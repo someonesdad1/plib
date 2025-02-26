@@ -51,11 +51,9 @@ if 1:  # Header
         from itertools import zip_longest, starmap
         from threading import Lock
         from os import environ
-        import locale
         import math
         import operator
         import random
-        import re
         import sys
         import textwrap
     # Custom imports
@@ -381,7 +379,6 @@ class Matrix:
                 # Matrix subtraction
                 if self.r != other.r or self.c != other.c:
                     raise TypeError("Cannot subtract matrices of different sizes")
-                m = Matrix(self.r, self.c)
                 return -other + self
             else:
                 # Assume it's a number to subtract from each element
@@ -442,7 +439,7 @@ class Matrix:
                         try:
                             Li[j] = (math.sqrt(Ai[i] - s) if (i == j) else
                                     (1/Lj[j]*(Ai[j] - s)))
-                        except TypeError as e:
+                        except TypeError:
                             Li[j] = (csqrt(Ai[i] - s) if (i == j) else
                                     (1/Lj[j]*(Ai[j] - s)))
             except (ValueError, ZeroDivisionError):
@@ -1109,7 +1106,7 @@ class Matrix:
             None would have to be returned for the second matrix.  The original
             matrix is unchanged.
             '''
-            R, C = self._r, self._c
+            C = self._c
             if not ii(n, int): 
                 raise TypeError("n must be an integer")
             def row_split(M, n):
@@ -1389,7 +1386,7 @@ class Matrix:
                 # Assume x is an expression to be evaluated with globals
                 # dictionary expr[0] and locals dictionary expr[1].
                 if not ii(expr, (list, tuple)) and len(expr) != 2:
-                    raise ValueError(f"expr must be sequence of 2 dicts or None")
+                    raise ValueError("expr must be sequence of 2 dicts or None")
                 return eval(x, expr[0], expr[1])
             if numtype is not None:
                 return Matrix.NumberConvert(x, numtype)
@@ -1805,7 +1802,7 @@ class Matrix:
             '''Returns True if this matrix has an inverse.
             '''
             try:
-                inverse = self.i
+                self.i
                 return True
             except TypeError:
                 return False
@@ -1909,7 +1906,7 @@ class Matrix:
             'Returns the number of elements in the matrix'
             return self.r*self.c
         @property
-        def l(self): 
+        def l(self):    # noqa
             'Synonym for self.flat'
             return self.flat
         @property
@@ -1923,7 +1920,7 @@ class Matrix:
                 raise TypeError("mag can be used on vectors only")
             try:
                 return math.sqrt(sum(e**2 for _, _, e in self))
-            except TypeError as e:
+            except TypeError:
                 return abs(csqrt(sum(e**2 for _, _, e in self)))
         @property
         def nl(self): 
@@ -1938,7 +1935,7 @@ class Matrix:
             '''
             try:
                 return math.sqrt(sum(i*i for i in self.list))
-            except TypeError as e:
+            except TypeError:
                 return csqrt(sum(i*i for i in self.list))
         @property
         def numtype(self): 
@@ -2039,6 +2036,7 @@ class Matrix:
         def t(self): 
             'Returns the transpose as a new matrix'
             m = self.copy
+            # map(lambda *x: x, *seq) should also work
             m._grid = [list(i) for i in zip(*m._grid)]
             m._r, m._c = self.c, self.r
             m._copy_attr(self)
@@ -2269,7 +2267,6 @@ if 1:   # Utility functions
  
         vector(2, fill=0) returns [0 0]
         '''
-        LT = (list, tuple)
         c = kw.get("c", False)
         fill = kw.get("fill", None)
         # Get q, the sequence of vector components
@@ -2526,7 +2523,6 @@ if 1:   # Utility functions
         elif have_mpmath and ii(number, mpmath.mpc):
             re = Decimal(mpmath.nstr(number.real, mpmath.mp.dps))
             im = Decimal(mpmath.nstr(number.imag, mpmath.mp.dps))
-            old_dps = mpmath.mp.dps
             with localcontext() as ctx:
                 ctx.prec = digits
                 re = +re
@@ -2549,10 +2545,9 @@ if __name__ == "__main__":
     from lwtest import run, raises, assert_equal, Assert
     from fractions import Fraction
     from decimal import Decimal
-    from math import log10, sin, cos, pi, exp, sqrt
+    from math import log10, pi, exp, sqrt
     from textwrap import dedent
     import sys
-    import os
     import io
     name = sys.argv[0]
     ii = isinstance
@@ -2568,7 +2563,7 @@ if __name__ == "__main__":
     else:
         print(f"{name}:  mpmath not tested")
     if have_sympy:
-        from sympy import Matrix as spmatrix
+        from sympy import Matrix as spmatrix  # noqa
     else:
         print(f"{name}:  sympy not tested")
     if 1:  # Global variables
@@ -3298,7 +3293,6 @@ if __name__ == "__main__":
     if 1:   # Test attributes
         def test_attributes():
             with Testing():
-                F = Fraction
                 m = matrix("1 2\n3 4")
                 t = matrix("1 3\n2 4")
                 i = matrix("-2 1\n3/2 -1/2")
@@ -3355,14 +3349,14 @@ if __name__ == "__main__":
                 if 1:
                     Assert(m.numtype is None)
                     m.numtype = int
-                    Assert(m.numtype == int)
-                    Assert(all([type(i) == int for i in m.list]))
+                    Assert(m.numtype is int)
+                    Assert(all([type(i) is int for i in m.list]))
                     m.numtype = float
-                    Assert(m.numtype == float)
-                    Assert(all([type(i) == float for i in m.list]))
+                    Assert(m.numtype is float)
+                    Assert(all([type(i) is float for i in m.list]))
                     m.numtype = complex
-                    Assert(m.numtype == complex)
-                    Assert(all([type(i) == complex for i in m.list]))
+                    Assert(m.numtype is complex)
+                    Assert(all([type(i) is complex for i in m.list]))
                 # Hermitian
                 h = matrix("2 2+1j 4\n2-1j 3 0+1j\n4 0-1j 1")
                 Assert(h.is_hermitian)
@@ -3477,7 +3471,7 @@ if __name__ == "__main__":
                 m[0, 0] = 1
                 Assert(not m.is_skew)
     if 1:   # Miscellaneous
-        def test_getnum():
+        def test_getnum1():
             with Testing():
                 gn = Matrix.getnum
                 for x in (1, 1.0, 1+1j, Fraction(1, 1), Decimal(1)):
@@ -3489,22 +3483,22 @@ if __name__ == "__main__":
                                 ("1+0j", complex), ("1/1", Fraction),
                                 ("Decimal(1)", Decimal)):
                         x = gn(s)
-                        Assert(x == 1 and type(x) == t)
+                        Assert(x == 1 and type(x) is t)
                     Matrix.use_Complex = True
                     for s, t in (("1", int), ("1.", float), ("1e0", float),
                                 ("1+0j", cpx), ("1/1", Fraction),
                                 ("Decimal(1)", Decimal)):
                         x = gn(s)
-                        Assert(x == 1 and type(x) == t)
+                        Assert(x == 1 and type(x) is t)
                 Matrix.use_Complex = False
                 # Show we can coerce types with numtype where meaningful
                 for x in (1, 1., Decimal(1), Fraction(1)):
                     for t in (int, float, Decimal, Fraction):
                         try:
-                            Assert(type(gn(x, t)) == t)
+                            Assert(type(gn(x, t)) is t)
                         except TypeError:
                             # Can't convert Fraction to Decimal
-                            Assert(type(x) == Fraction and t == Decimal)
+                            Assert(type(x) is Fraction and t == Decimal)
                 # Convert values with uncertainty
                 if have_unc:
                     for s in "1.00(3) 1+/-0.03 1+-0.03 1±0.03".split():
@@ -3522,8 +3516,6 @@ if __name__ == "__main__":
                 Assert(m[1, 1] == y**2)
         def test_numtype():
             with Testing():
-                s = '''1     2.
-                    1+1j 3/4'''
                 m = matrix("1 2.\n1+1j 3/4")
                 m.numtype = complex  # All complex
                 Assert(m[0:].list == [1+0j, 2+0j])
@@ -3531,24 +3523,24 @@ if __name__ == "__main__":
                 # Note we also need to check type because 1 == 1+0j
                 for i in range(2):
                     for j in range(2):
-                        Assert(type(m[i, j]) == complex)
+                        Assert(type(m[i, j]) is complex)
                 # Test the supported conversions
                 m.numtype = int
-                Assert(all([type(i) == int for i in m.list]))
+                Assert(all([type(i) is int for i in m.list]))
                 m.numtype = float
-                Assert(all([type(i) == float for i in m.list]))
+                Assert(all([type(i) is float for i in m.list]))
                 m.numtype = complex
-                Assert(all([type(i) == complex for i in m.list]))
+                Assert(all([type(i) is complex for i in m.list]))
                 m.numtype = Fraction
-                Assert(all([type(i) == Fraction for i in m.list]))
+                Assert(all([type(i) is Fraction for i in m.list]))
                 m.numtype = Decimal
-                Assert(all([type(i) == Decimal for i in m.list]))
+                Assert(all([type(i) is Decimal for i in m.list]))
                 if have_unc:
                     m.numtype = ufloat
-                    Assert(all([type(i) == ufloat_t for i in m.list]))
+                    Assert(all([type(i) is ufloat_t for i in m.list]))
                 if have_mpmath:
                     m.numtype = mpf
-                    Assert(all([type(i) == mpf for i in m.list]))
+                    Assert(all([type(i) is mpf for i in m.list]))
         def test_contains():
             with Testing():
                 for i in (-1, 0, 1, 2, 3, 4, 6):
@@ -3577,7 +3569,7 @@ if __name__ == "__main__":
                 Assert(x[1, 0] == 1.5)
                 # Solve by coercing to Fraction
                 x = m.solve(b, numtype=Fraction)
-                Assert(x[0, 0] == 1 and type(x[0, 0]) == Fraction)
+                Assert(x[0, 0] == 1 and type(x[0, 0]) is Fraction)
                 Assert(x[0, 1] == Fraction(3, 2))
                 # Solve using augmented matrix
                 M = m.copy
@@ -3592,12 +3584,12 @@ if __name__ == "__main__":
                 # hilbert
                 m = Matrix.hilbert(2)
                 Assert(m == matrix("1 1/2\n1/2 1/3"))
-        def test_getnum():
+        def test_getnum2():
             with Testing():
                 mg = Matrix.getnum
                 # Force coercion works
                 for t in (int, float, complex, cpx, Decimal, Fraction):
-                    Assert(type(mg(1, numtype=t)) == t)
+                    Assert(type(mg(1, numtype=t)) is t)
                 if 1:
                     # Type identified from string
                     for s, t, x in (("1", int, 1),
@@ -3606,7 +3598,7 @@ if __name__ == "__main__":
                                 ("1+0i", cpx, 1+0j),
                                 ("Decimal(1)", Decimal, Decimal(1)),
                                 ("1/2", Fraction, Fraction(1, 2))):
-                        Assert(type(mg(s)) == t)
+                        Assert(type(mg(s)) is t)
                         Assert(mg(s) == x)
             if have_unc:
                 with Testing():
@@ -3615,7 +3607,7 @@ if __name__ == "__main__":
                                     ("2+-1", u, ufloat(2, 1)),
                                     ("2±1", u, ufloat(2, 1)),
                                     ("2.0(1)", u, ufloat(2, 0.1))):
-                        Assert(type(mg(s)) == t)
+                        Assert(type(mg(s)) is t)
                         # Have to handle ufloat == specially
                         Assert(mg(s).nominal_value == x.nominal_value)
                         Assert(mg(s).std_dev == x.std_dev)
@@ -3968,7 +3960,7 @@ if __name__ == "__main__":
                     for i in range(2):
                         for j in range(2):
                             Assert(M[i, j] == m[i, j])
-                            Assert(type(M[i, j]) == mpf)
+                            Assert(type(M[i, j]) is mpf)
                     n = Matrix.from_mpmath(M)
                     Assert(m == n)
             if have_sympy:

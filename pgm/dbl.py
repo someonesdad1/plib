@@ -1,5 +1,16 @@
 '''
-Delete blank lines from files or stdin
+
+Todo
+    - black/ruff remove the lines of spaces I use inside functions to let me use } and {
+      in vi to jump to a working location.  Figure out how to make another pass to find 
+      these locations and add the appropriate number of spaces.  Note this only happens
+      inside of a multiline string, so it may be able to be built into the existing
+      code.
+
+Delete blank lines from files or stdin.  Done by simple pattern matching, so doesn't
+understand python syntax.  Currently, this is mostly intended to be a tool called from
+within vi, so in Feb 2025 I modified the user interface to assume input from stdin by
+default.  Add file arguments if you wish.
 '''
 if 1:   # Header
     if 1:   # Copyright, license
@@ -35,15 +46,17 @@ if 1:   # Utility
     def Usage(status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] [file1 [file2 ...]]
-          Delete blank lines from files.  Use '-' for stdin.
+          Delete blank lines from files.  Note a blank line is a line with no whitespace
+          on it except for a newline.  Assumes stdin for no files.  If you include files
+          on the command line, use '-' for stdin.
         Options:
             -1      Collapse multiple blank lines to one
         '''))
         exit(status)
     def ParseCommandLine(d):
         d["-1"] = False     # Multiple blank lines to one
-        if len(sys.argv) < 2:
-            Usage()
+        #if len(sys.argv) < 2:
+        #    Usage()
         try:
             opts, files = getopt.getopt(sys.argv[1:], "1") 
         except getopt.GetoptError as e:
@@ -54,7 +67,14 @@ if 1:   # Utility
                 d[o] = not d[o]
         return files
 if 1:   # Core functionality
-    def ProcessFile(file):
+    def ProcessFileOrig(file):
+        '''Use regex matching to remove blank lines.
+         
+        A problem with this approach is that it will remove the blank lines inside of
+        python multiline strings, which is almost certainly not wanted.
+        ProcessFile2() was made to handle this case.  However, this function's approach
+        is also concise and fast.
+        '''
         s = sys.stdin.read() if file == "-" else open(file).read()
         # Remove leading and trailing blank lines
         s = re.sub(r"^\n+", "", s)
@@ -64,9 +84,79 @@ if 1:   # Core functionality
         else:
             s = re.sub(r"\n\n+", "\n", s)
         print(s)
+    def ProcessFile(file):
+        lines = sys.stdin.read() if file == "-" else open(file).read()
+        for line in lines.split("\n"):
+            ProcessLine(line)
+    def IsComment(line):
+        return line.strip()[0] == "#"
+    def ProcessLine(line):
+        '''If we're in a multiline string, send the line to stdout.  Otherwise, if it's a
+        blank line, ignore it; if not, print it.
+        '''
+        single, double, empty = "'''", '"""', ""
+        def GetSingleTriple(line):
+            'Return any single triple quote in this line'
+            nonlocal single, double, empty
+            if IsComment(line):
+                return empty
+            elif single in line and double not in line:
+                return single
+            elif single not in line and double in line:
+                return double
+            elif single not in line and double not in line:
+                return empty
+            else:
+                # Had both single & double on line; get their locations
+                loc_single = line.find(single)
+                loc_double = line.find(double)
+                # If we're current in a single quote multiline, it's only ending if the
+                # single triple comes after the double triple.  Analogously for the double
+                # quote multiline.
+                if ProcessLine.multiline == single and loc_single > loc_double:
+                    return single
+                elif ProcessLine.multiline == double and loc_double > loc_single:
+                    return double
+                else:
+                    return double if loc_double > loc_single else single
+        def IsSingleMultiline(line):
+            nonlocal single, double
+            return line.count(single) == 1 or line.count(double) == 1
+        if ProcessLine.multiline:   # We're currently in a multiline string
+            if IsSingleMultiline(line):
+                item = GetSingleTriple(line)
+                if item == ProcessLine.multiline:  # Single or double triple is ended
+                    ProcessLine.multiline = empty
+            print(line)
+        elif line == "":  # Don't print an empty line
+            return
+        elif line.count(single) == 1 or line.count(double) == 1:
+            if ProcessLine.multiline:
+                print(line)
+                # Exit the multiline state
+                ProcessLine.multiline = empty
+            else:
+                print(line)
+                # Enter the multiline state
+                if line.count(single) == 1:
+                    ProcessLine.multiline = single
+                elif line.count(double) == 1:
+                    ProcessLine.multiline = double
+                else:
+                    print(f"---------- BUG ------------")
+                    breakpoint() #xx 
+        else:
+            print(line)
+    def Reset():
+        ProcessLine.multiline = False
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     files = ParseCommandLine(d)
-    for file in files:
-        ProcessFile(file)
+    if not files:
+        Reset()
+        ProcessFile("-")
+    else:
+        for file in files:
+            Reset()
+            ProcessFile(file)

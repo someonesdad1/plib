@@ -7020,7 +7020,7 @@ if __name__ == "__main__":
     from util import unrange
     from wrap import dedent
     def ByWavelength():
-        print(dedent(f'''
+        print(dedent('''
         The following printout shows the "wavelengths" in nm making up each of the "hues" in the
         colorhues dict: 
         '''))
@@ -7087,7 +7087,7 @@ if __name__ == "__main__":
               the red and magenta, marked with *.
         '''
     def ByHue():
-        print(dedent(f'''
+        print(dedent('''
         The following printout shows the hues making up each of the "hues" in the colorhues dict: 
         '''))
         o = {}

@@ -1,21 +1,44 @@
 Active:  /plib/.todo
 
-    - I need a python code linter/formatter.
-        - https://github.com/life4/awesome-python-code-formatters
-        - ruff looks like a good tool; it's written in rust and is very fast.
-          https://github.com/astral-sh/ruff
-        - This is worth some serious reading.  I got tired of black.  Most of the time all
-          I really need is a formatter, but for serious code the linter can be valuable,
-          so it would be wise to have both.
-        - ruff can be gotten on pypy.  However, it can also be installed with uv (you can
-          also install it on Linux with a curl command).  
-        - uv looks very interesting (https://docs.astral.sh/uv/), written by the creators
-          of ruff..  It's a fast Python package and project manager, written in Rust.
+    - pgm/dbl.py
+        - Works to remove lines from files that are empty (match "^$")
+        - This will be a tool I use more because I'll start using ruff for formatting,
+          which follows black's standardization.
+        - The only place I see an issue is in docstrings that contain empty lines rather
+          than the usual whitespace to match the line before it.  
+        - This might be a good place to introduce some line processing logic with
+          python's match command without having to fire up a tokenizer.  You'll look for
+          lines with "'''" or '"""' in them without being terminated and that weren't
+          comments.  Then this stuff would be left alone, as it's likely part of a
+          program multiline string.  It could be fooled by e.g. \'\'\'.
 
-        - I chose to install it with 'conda install conda-forge::ruff' to get running
-          quickly at 23 Feb 2025 19:49:14.  It had to update libgcc stuff and the ruff
-          install was about 8 MB.  In installed in
-          /home/dpbin/miniconda3/envs/11/bin/ruff.
+    - Fix ruff's formatting
+        - I can live with it if I have to, as it's better to have a standard file format
+        - Change
+            - I like '''...''' docstrings
+            - I like "str"*3, not "str" * 3
+            - It rewrites assert(x) to assert x
+                - This is ok with assert's syntax, but doesn't let me easily change to
+                  Assert()
+            - raise TypeError("kjfdkfjdkfjdkfjd") gets changed by putting the string on
+              its own line, adding to file size
+        - ruff.toml
+            - quote-style = "preserve":  won't change my choices
+        - 2 lines between functions
+            - I really dislike this because 1) I use blank lines for positioning when
+              I'm working on code and 2) vertical real estate is precious.
+              Unfortunately, it appears these style rules are from younger folks who
+              aren't as able to (or don't like) read dense printed information.
+            - I can fix this for working on a script by using the dbl command, which may
+              only break code if there are blanks in triple-quoted strings.
+            - I changed 'dbl' to a script which assumes stdin by default, so use '!Gdbl'
+              in vim to remove the blank lines (use '!Gdbl -1' to leave one blank line)
+        - black/ruff use 88 columns by default for file widths.  I'll standardize on
+          that too.
+
+    - Investigate uv https://docs.astral.sh/uv
+        - Fast Python package and project manager
+        - By creators of ruff
 
     - Learn rust
         - Write a cli:  https://rust-cli.github.io/book/tutorial/index.html
@@ -24,25 +47,25 @@ Active:  /plib/.todo
         - Book:  https://www.rust-lang.org/learn
 
     - pgm/ptoken.py python_file fn_name regex
-        - Script to take a set of python scripts and print out the tokens that match those
-          used in the function fn_name.
+        - Script to take a set of python scripts and print out the tokens that match
+          those used in the function fn_name.
             - Use case:  see if the 'sin' or 'math.sin' token is used in a routine.
 
     - fish.py
         - See if pgm/fish.py can be sped up by about a factor of 3 by using the
-          multiprocessing library.  Note python can't run multiple threads, so this is the
-          only available way to use more cores.  It should get the solution time down to
-          about 1 minute with my current computer and a late version of python.  Of
-          course, the solution is only of intellectual interest, but could introduce a way
-          to get speedups in other programs.
+          multiprocessing library.  Note python can't run multiple threads, so this is
+          the only available way to use more cores.  It should get the solution time
+          down to about 1 minute with my current computer and a late version of python.
+          Of course, the solution is only of intellectual interest, but could introduce
+          a way to get speedups in other programs.
         - See dev/scrdatafile.py below
 
     - root.py
-        - Why are RootFinder and Crenshaw present?  RootFinder is Jack's algorithm, so is
-          the Crenshaw function obsolete?  I believe the Crenshaw routine is a slightly
-          updated form that used Jack's observation that the routine would often converge
-          to a solution better than what you asked for.  This should be the standard
-          routine.
+        - Why are RootFinder and Crenshaw present?  RootFinder is Jack's algorithm, so
+          is the Crenshaw function obsolete?  I believe the Crenshaw routine is a
+          slightly updated form that used Jack's observation that the routine would
+          often converge to a solution better than what you asked for.  This should be
+          the standard routine.
             - I'd like RootFinder to be the general purpose tool.  It should have a
               dbgstream argument to let you see convergence like Crenshaw does.
         - This was written before closures existed in python; it should be rewritten to
@@ -2054,4 +2077,3 @@ Game for the goils
     https://www.adventuregamestudio.co.uk/ provides a studio to develop an adventure game.  It
     sounds like something that would be straightforward to develop games for Tiny & Pepper.
 
-vim: tw=90

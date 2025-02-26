@@ -19,21 +19,14 @@ if 1:   # Header
         #∞test∞# #∞test∞#
         pass
     if 1:   # Standard imports
-        from collections import deque
-        from pathlib import Path as P
         import getopt
         import os
-        import re
-        import subprocess
         import sys
     if 1:   # Custom imports
         from color import t
         from dpprint import PP
         pp = PP()   # Screen width aware form of pprint.pprint
-        from get import GetLines
         from wrap import wrap as Wrap, dedent
-        from wsl import wsl     # wsl is True when running under WSL Linux
-        from lwtest import Assert
         #from columnize import Columnize
     if 1:   # Global variables
         __all__ = '''PnP'''.split()
