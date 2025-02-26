@@ -44,38 +44,20 @@ so this repository is the only code I use outside of what's in the python distri
 
 # Code formatting
 
-I prefer to work on all source code with no blank lines at all because it lets me see
-the most information on my screen via folding and I can navigate to where I'm working
+I prefer to work on all source code with no blank lines at all because 1) it lets me see
+the most information on my screen via folding and 2) I can navigate to where I'm working
 faster than any other way (I won't explain it, as it's specific to the editor I use).
 
 Tools like black and ruff will format code with blank lines (e.g., between functions and
 classes) and change lines with spaces only into empty lines.  Because I use both of
 these methods to speed navigation through python files, I wrote a python tool
 /plib/pgm/dbl.py that will delete blank lines from a file that the formatter has
-inserted.  This gives me the best of both worlds, as I also value a standardized format
-that let people focus on the content, not argue over the use of tab characters (when I
-switched my career to software 35 years ago, I saw some grown adults behave pretty
-childishly over such things).
+inserted and fix the docstring blank lines.  This gives me the best of both worlds, as I
+also value a standardized format that let people focus on the content, not argue over
+formatting.
 
 Because I use dbl to format a python file to work on it, I may check something in that's
-not formatted like ruff would do it.  Ruff is so fast, you can just pipe the editor's
-content to 'ruff format' and you'll see the proper PEP-8 form immediately.
-
-I use [ruff](https://docs.astral.sh/ruff/) to lint and format my python code; ruff
-follows black's formatting.  I can live with most of the formatting decisions of either
-of those tools, but these tools do two things that interfere with my coding practices:
-inserting blank lines between functions and changing lines that contain only spaces to
-blank lines.  This is an interference for me because vertical screen space is most
-precious to me and I want to see as much as possible on my screen.  Thus, I code
-everything (python/C/C++) with no blank lines between things.  This is not a hardship
-with a folding editor.  Further, it gives me a core advantage:  I can insert one blank
-line in a file where I am currently working and get to that point with one keystroke ({
-or } in vi).  This is much faster than searching, bookmarks, saved locations, etc.
-Where I need a "blank" line like in a docstring, I use the number of space characters
-that match the surrounding lines' indent.  
-
-I've worked on large software projects with hundreds of developers and I understand the
-importance of standardizing on things.
+not formatted like ruff would do it.  If this bugs you, run it through your formatter.
 
 # Tools
 
