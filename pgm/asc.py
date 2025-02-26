@@ -1,37 +1,41 @@
-'''
+"""
 
 TODO
 
 Prints out ASCII characters
-'''
-if 1:   # Header
+"""
+
+if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2009, 2014 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2009, 2014 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Prints out ASCII/Unicode characters
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Imports
+    if 1:  # Imports
         import getopt
         import sys
         from textwrap import dedent
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from color import t
         from columnize import Columnize
         from dpprint import PP
         from wrap import dedent
-        from wsl import wsl     # wsl is True when running under WSL Linux
-        pp = PP()   # Screen width aware form of pprint.pprint
-    if 1:   # Global variables
+        from wsl import wsl  # wsl is True when running under WSL Linux
+
+        pp = PP()  # Screen width aware form of pprint.pprint
+    if 1:  # Global variables
+
         class Global:
             pass
+
         g = Global()
         if 0:
             g.dbg = True
@@ -45,13 +49,15 @@ if 1:   # Header
         g.column_width = 9
         g.number_of_columns = 8
         g.c = True  # Colorize
-if 1:   # Utility
+if 1:  # Utility
+
     def GetScreen():
-        'Return (LINES, COLUMNS)'
+        "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
-            int(os.environ.get("COLUMNS", "80")) - 1
+            int(os.environ.get("COLUMNS", "80")) - 1,
         )
+
     def GetColors():
         t.dbg = t("cyn")
         t.err = t("redl")
@@ -60,6 +66,7 @@ if 1:   # Utility
         t.oct = t("olv")
         t.bin = t("yeld")
         t.chr = t("yell")
+
     def Dbg(*p, **kw):
         if g.dbg:
             if 0:
@@ -73,13 +80,18 @@ if 1:   # Utility
                 k = kw.copy()
                 print(*p, **k)
                 t.print(f"", end="")
+
     Dbg.file = sys.stdout
+
     def Error(msg, status=1):
         print(msg)
         exit(status)
+
     def Usage():
         name = sys.argv[0]
-        print(dedent(f'''
+        print(
+            dedent(
+                f"""
         Usage: {name} [options] [offset [numchars]]
           Prints the ASCII/Unicode character set starting at the indicated offset 
           for the indicated number of characters (default 0x100).
@@ -103,8 +115,11 @@ if 1:   # Utility
             {name} 0x10a8*2
           will print a table of Unicode characters starting at 0x2150.
           These are Unicode fractions symbols such as 1/7, 1/9, 1/10, etc.
-          and a variety of arrows and math symbols.'''[1:]))
+          and a variety of arrows and math symbols."""[1:]
+            )
+        )
         exit(1)
+
     def ParseCommandLine():
         try:
             optlist, args = getopt.getopt(sys.argv[1:], "Bbcdhloux")
@@ -144,10 +159,10 @@ if 1:   # Utility
             if len(args) == 2:
                 numchars = args[1]
             try:
-                i = eval(offset)   # This handles "0x3", "0o3", "0b11", "3"
+                i = eval(offset)  # This handles "0x3", "0o3", "0b11", "3"
                 if i < 0:
                     raise ValueError()
-                g.offset = min(max(0, i), 0x10ffff)
+                g.offset = min(max(0, i), 0x10FFFF)
             except Exception:
                 Error(f"'{offset}' is not a valid integer for offset (must be >= 0)")
             try:
@@ -162,7 +177,7 @@ if 1:   # Utility
         else:
             g.offset = 0
             g.numchars = 256
-        if 1:   # Debug print input stuff
+        if 1:  # Debug print input stuff
             Dbg(f"g.offset   = {g.offset}")
             Dbg(f"g.numchars = {g.numchars}")
             Dbg(f"Settings:")
@@ -171,11 +186,14 @@ if 1:   # Utility
                     continue
                 Dbg(f"  g.{i} = {eval(f'g.{i}')}")
         return g.offset, g.offset + g.numchars
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def Integer(s):
-        '''Convert the string s to an integer.  Allow prefixes such as 0x,
+        """Convert the string s to an integer.  Allow prefixes such as 0x,
         0b, 0o.
-        '''
+        """
         s, base = s.lower(), 10
         if s.startswith("0b"):
             base = 2
@@ -184,31 +202,36 @@ if 1:   # Core functionality
         elif s.startswith("0x"):
             base = 16
         return int(s, base)
+
     def PrintBinary():
         for i in range(lower, upper):
             c = i + g.offset
-            s = " "*4   # Spacing to make things easier to read
-            print(f"{t.dec}{c:3d}{t.n}{s}"
-                  f"{t.hex}0x{c:02x}{t.n}{s}"
-                  f"{t.oct}0o{c:03o}{t.n}{s}"
-                  f"{t.bin}0b{c:08b}{t.n}{s}"
-                  f"{t.chr}{chr(c)}{t.n}")
+            s = " " * 4  # Spacing to make things easier to read
+            print(
+                f"{t.dec}{c:3d}{t.n}{s}"
+                f"{t.hex}0x{c:02x}{t.n}{s}"
+                f"{t.oct}0o{c:03o}{t.n}{s}"
+                f"{t.bin}0b{c:08b}{t.n}{s}"
+                f"{t.chr}{chr(c)}{t.n}"
+            )
+
     def PrintBinaryListing():
         for i in range(0x100):
             c = i + g.offset
             print(chr(c))
         print()
+
     def PrintTable(lower, upper):
-        ctrl = '''
+        ctrl = """
                 nul soh stx etx eot enq ack bel bs ht nl vt ff cr so si dle dc1
                 dc2 dc3 dc4 nak syn etb can em sub esc fs gs rs us sp
-        '''.split()
+        """.split()
         out = []
         for i in range(lower, upper):
             c = ctrl[i] if i <= ord(" ") else chr(i)
             # Handle the special case of char == 0xf7, which doesn't print correctly.  We
             # replace it with a space with a red background.
-            c = f"{t('redl', 'redl')} {t.n}" if i == 0x7f else c
+            c = f"{t('redl', 'redl')} {t.n}" if i == 0x7F else c
             if g.decimal:
                 out.append(f"{t.dec}{i:3d}{t.n} {t.chr}{c:3s}{t.n}")
             elif g.octal:
@@ -217,7 +240,9 @@ if 1:   # Core functionality
                 out.append(f"{t.hex}{i:02x}{t.n} {t.chr}{c:3s}{t.n}")
         for i in Columnize(out, col_width=g.column_width, columns=g.number_of_columns):
             print(i)
-if __name__ == "__main__": 
+
+
+if __name__ == "__main__":
     lower, upper = ParseCommandLine()
     if g.binary:
         PrintBinary()

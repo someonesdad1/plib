@@ -1,38 +1,46 @@
-'''
+"""
 Print out minimum strings to identify a set of tokens
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Print out minimum strings to identify a set of tokens
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import getopt
     import os
     import sys
     from collections import defaultdict
     from pprint import pprint as pp
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
     from columnize import Columnize
     from bidict import bidict
+
+
 def CommonPrefix(*s):
     "Return the common prefix to the strings in s or '' if None"
     return os.path.commonprefix(s)
+
+
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
+
+
 def Usage(d, status=1):
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]} [options] file1 [file2 ...]
       The files contain tokens separated by whitespace.  Print out a minimum
       set of strings that can be used to identify each token.  The intended use
@@ -42,10 +50,14 @@ def Usage(d, status=1):
       -h      Print an example
       -i      Don't ignore the case of the tokens
       -D      Flag duplicate tokens to stderr
-    '''))
+    """)
+    )
     exit(status)
+
+
 def Manpage():
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Suppose the following commands were in a file: 
         cost      material  shape
         dump      number    size
@@ -68,8 +80,11 @@ def Manpage():
     set where users could type in single character commands except for
     those starting with 's', which would need two characters to identify
     the command.
-    '''))
+    """)
+    )
     exit(0)
+
+
 def ParseCommandLine(d):
     d["-D"] = False
     d["-i"] = False
@@ -87,10 +102,12 @@ def ParseCommandLine(d):
     if not args:
         Usage(d)
     return args
+
+
 def ReadTokens(file, d):
-    '''Read the tokens in from the indicated file, splitting first on
+    """Read the tokens in from the indicated file, splitting first on
     newlines then on spaces.  Add to the set d["tokens"].
-    '''
+    """
     s = sys.stdin.read() if file == "-" else open(file, "r").read()
     T, msg = d["tokens"], set()
     for num, line in enumerate(s.split("\n")):
@@ -104,13 +121,15 @@ def ReadTokens(file, d):
                 print(m, file=sys.stderr)
                 msg.add(token)
             T.add(token)
+
+
 def Split(tokens):
-    '''tokens is a dictionary of tokens.  The keys are the first
+    """tokens is a dictionary of tokens.  The keys are the first
     characters of the tokens and the values are the tokens that begin with
     that character.  Return (unique, not_unique) where unique is a list
     of tuples (token, first_char) and not_unique is the tokens
     dictionary with the unique tokens removed.
-    '''
+    """
     unique = []
     for token in tokens:
         if len(tokens[token]) == 1:
@@ -127,14 +146,16 @@ def Split(tokens):
             unique.append((letter, letter))
     # Consistency:  all tokens in the lists must have a length > 1
     for letter in tokens:
-        assert(all([len(i) > 1 for i in tokens[letter]]))
+        assert all([len(i) > 1 for i in tokens[letter]])
     return unique, tokens
+
+
 def Process1(tokenset):
-    '''Find a minimal set of strings which can identify the set
+    """Find a minimal set of strings which can identify the set
     of tokens.  tokenset is a set of tokens.
 
     Method:  use a bidict to store the token's abbreviations.
-    '''
+    """
     tokens = tokenset.copy()
     dbg = 0
     if dbg:
@@ -159,10 +180,12 @@ def Process1(tokenset):
     if dbg:
         print("Dict keyed by first letter:")
         pp(d)
+
+
 def Process(tokenset):
-    '''Find a minimal set of strings which can identify the set
+    """Find a minimal set of strings which can identify the set
     of tokens.  tokenset is a set of tokens.
-    '''
+    """
     # unique will be a list of (token, abbreviation) pairs.
     tokendict, unique = defaultdict(list), []
     for i in tokenset:
@@ -191,8 +214,10 @@ def Process(tokenset):
     print("Remaining commands:")
     for k in remaining:
         print(f"    {k}   {remaining[k]}")
+
+
 if __name__ == "__main__":
-    d = {      # Options dictionary
+    d = {  # Options dictionary
         "tokens": set(),
     }
     files = ParseCommandLine(d)

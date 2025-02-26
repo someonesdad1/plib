@@ -1,38 +1,46 @@
-'''
+"""
 Module to return file information in a more human-readable form than
-os.stat().  
-'''
+os.stat().
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # <utility> Module to return file information in a more human-readable form
-    # than os.stat().  
-    #∞what∞#
-    #∞test∞# --test #∞test∞#
+    # than os.stat().
+    # ∞what∞#
+    # ∞test∞# --test #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     from collections import namedtuple
     from collections.abc import Iterable
     import hashlib
     import os
     import pathlib
     from datetime import datetime
-if 1:   # Global variables
-    Filesize = namedtuple("Filesize", '''size perm inode hardlinks atime
-                           mtime ctime hash''')
+if 1:  # Global variables
+    Filesize = namedtuple(
+        "Filesize",
+        """size perm inode hardlinks atime
+                           mtime ctime hash""",
+    )
+
+
 def IsIterable(x):
-    'Return True if x is an iterable and not a string'
+    "Return True if x is an iterable and not a string"
     if isinstance(x, str):
         return False
     return isinstance(x, Iterable)
+
+
 def GetFileData(p, gethash=None):
-    'Return the Filesize object with the stat data'
+    "Return the Filesize object with the stat data"
     st = os.stat(p)
     h = None
     if gethash:
@@ -40,24 +48,31 @@ def GetFileData(p, gethash=None):
             m = gethash()
             m.update(fp.read())
             h = m.hexdigest()
-    f = Filesize(st.st_size, oct(st.st_mode), st.st_ino, st.st_nlink, 
-            datetime.fromtimestamp(st.st_atime),
-            datetime.fromtimestamp(st.st_mtime),
-            datetime.fromtimestamp(st.st_ctime),
-            h)
+    f = Filesize(
+        st.st_size,
+        oct(st.st_mode),
+        st.st_ino,
+        st.st_nlink,
+        datetime.fromtimestamp(st.st_atime),
+        datetime.fromtimestamp(st.st_mtime),
+        datetime.fromtimestamp(st.st_ctime),
+        h,
+    )
     return f
+
+
 def FileInfo(names, gethash=hashlib.sha1):
-    '''Return a dictionary of the file names specified in names, which
+    """Return a dictionary of the file names specified in names, which
     can be a single string or a sequence of strings and/or pathlib
-    globbing patterns.  
- 
+    globbing patterns.
+
     The hash returned is defined by the constructor defined in the
     gethash keyword (or use None for faster execution).  The globbing
     patterns are relative to the current directory.
- 
+
     The returned dictionary is keyed by pathlib objects whose values are
     named tuples with the following attributes:
- 
+
       size            Size of file in bytes
       perm            Permissions as an octal string
       inode           Inode integer (or file index on Windows)
@@ -67,7 +82,7 @@ def FileInfo(names, gethash=hashlib.sha1):
       ctime           Most recent metadata change time on UNIX or creation
                       time on Windows (datetime.datetime object)
       hash            Hex string hash of file's contents or None
- 
+
     Note:  In hashlib, the SHA1 method is the fastest with MD5 a close
     second.  The others from openssl are roughly 10% to 20% slower.  On
     my older computer with a ramdisk, the hashing speed is about 75
@@ -78,12 +93,12 @@ def FileInfo(names, gethash=hashlib.sha1):
     the time is reduced by about one-third.  My tests were based on
     around 1130 python files in my /pylib directory tree that totaled
     about 50 Mbytes in size.
- 
+
     Example 1:
         To get the size in bytes of a file named "abc" in the current
         directory, use
             FileInfo("abc").size
-    '''
+    """
     results = r = {}
     p = pathlib.Path(".")
     if IsIterable(names):
@@ -95,31 +110,36 @@ def FileInfo(names, gethash=hashlib.sha1):
                 if file.exists():
                     r[file] = GetFileData(file, gethash=gethash)
         else:
-            file = p/names
+            file = p / names
             r[file] = GetFileData(file, gethash=gethash)
     return results
 
-if __name__ == "__main__": 
+
+if __name__ == "__main__":
     import sys
     from wrap import dedent
     from lwtest import run, assert_equal, raises
     from pdb import set_trace as xx
+
     def ShowExample(pattern):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         {__file__} example output (python file sizes) for current directory
         (the file globbing pattern was '{pattern}'):
-        '''))
+        """)
+        )
         d = FileInfo(pattern)
         for key in d:
             print(f"{'':4s}{key!s:20s} {d[key].size:>8d}")
+
     def Test_FileInfo():
         # Single file
         file = "test/get.a"
         fi = FileInfo(file)
         pth, fs = list(fi.items())[0]
-        assert(isinstance(pth, pathlib.Path))
-        assert(fs.size == 10)
-        assert(fs.hash == 'a4834bd6ba8ca17ca66bb968b3bb847cbdf71fa1')
+        assert isinstance(pth, pathlib.Path)
+        assert fs.size == 10
+        assert fs.hash == "a4834bd6ba8ca17ca66bb968b3bb847cbdf71fa1"
         # Globbing pattern in a sequence.  This pattern references some
         # files that shouldn't change over time.
         dir = "../pylib/test"
@@ -127,15 +147,16 @@ if __name__ == "__main__":
         for i, f in enumerate(fi):
             file = str(f)
             info = fi[f]
-            assert(file == f"{dir}/loo_image{i + 1}.png")
+            assert file == f"{dir}/loo_image{i + 1}.png"
             if i == 0:
-                assert(info.size == 3676)
+                assert info.size == 3676
             elif i == 1:
-                assert(info.size == 4009)
+                assert info.size == 4009
             elif i == 2:
-                assert(info.size == 4097)
+                assert info.size == 4097
             else:
                 raise Exception("Unexpected number of files")
+
     if len(sys.argv) > 1 and sys.argv[1] == "--test":
         exit(run(globals(), halt=True)[0])
     ShowExample("f*.py")

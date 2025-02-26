@@ -1,33 +1,39 @@
-'''
+"""
 Calculate RPM for a desired surface speed and cutter diameter
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Calculate RPM for a desired surface speed and cutter diameter
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import getopt
     from math import *
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
     from u import u, ParseUnit
     from f import flt
+
+
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
+
+
 def Usage(d, status=1):
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]} [options] dia [surface_speed]
       Calculate the needed tool RPM to achieve a given surface speed for a
       given diameter.  surface_speed defaults to 100 sfpm.  The diameter dia is
@@ -55,10 +61,13 @@ def Usage(d, status=1):
         Monel                       70          200
         Rubber, hard               150          300
         Zinc die castings        200-300     800-1200
-    '''))
+    """)
+    )
     exit(status)
+
+
 def ParseCommandLine():
-    d["-d"] = 3         # Number of significant digits
+    d["-d"] = 3  # Number of significant digits
     if len(sys.argv) < 2:
         Usage(d)
     try:
@@ -80,41 +89,50 @@ def ParseCommandLine():
     if len(args) not in (1, 2):
         Usage(d)
     return args
+
+
 def GetDiameter(arg):
     dia_entered, unit_dia = ParseUnit(args[0])
     if not unit_dia:
         unit_dia = "inch"
     try:
-        d["dia_m"] = flt(eval(dia_entered))*u(unit_dia)
-        d["dia_mm"] = d["dia_m"]*1000
+        d["dia_m"] = flt(eval(dia_entered)) * u(unit_dia)
+        d["dia_mm"] = d["dia_m"] * 1000
     except Exception:
         Error(f"'{arg}' is an invalid diameter")
     d["dia_entered"], d["unit_dia"] = dia_entered, unit_dia
+
+
 def GetSurfaceSpeed(arg):
     if arg is None:
         d["surface_speed"] = flt(100)
         d["surface_speed_unit"] = "sfpm"
-        d["surface_speed_m_per_s"] = flt(100*u("ft/min"))
+        d["surface_speed_m_per_s"] = flt(100 * u("ft/min"))
     else:
         surface_speed, surface_speed_unit = ParseUnit(arg)
         if not surface_speed_unit:
             surface_speed_unit = "ft/min"
         try:
-            surface_speed_m_per_s = (flt(eval(surface_speed)) *
-                                     u(surface_speed_unit))
+            surface_speed_m_per_s = flt(eval(surface_speed)) * u(surface_speed_unit)
         except Exception:
             Error(f"'{args[1]}' is an invalid surface speed")
         d["surface_speed"] = surface_speed
         d["surface_speed_unit"] = surface_speed_unit
         d["surface_speed_m_per_s"] = surface_speed_m_per_s
+
+
 def PrintReport():
-    frequency_Hz = d["surface_speed_m_per_s"]/(pi*d["dia_m"])
-    d["rpm"] = frequency_Hz/u("1/min")
-    print(dedent(f'''
+    frequency_Hz = d["surface_speed_m_per_s"] / (pi * d["dia_m"])
+    d["rpm"] = frequency_Hz / u("1/min")
+    print(
+        dedent(f"""
     Diameter      = {d["dia_entered"]} {d["unit_dia"]} = {d["dia_mm"]} mm
     Surface speed = {d["surface_speed"]} {d["surface_speed_unit"]} = {d["surface_speed_m_per_s"]} m/s
     RPM needed    = {d["rpm"]}
-    '''))
+    """)
+    )
+
+
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine()

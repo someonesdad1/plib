@@ -1,4 +1,4 @@
-'''
+"""
 Draw a filled path.  This path consists of intersecting subpaths, two
 triangles and a square.  Since they intersect, you'll see that some of
 the path doesn't get filled.  We also show how using getPath() can get
@@ -6,8 +6,11 @@ a copy of the path to use later; we go to a new page and draw the same
 path with different colors.  To understand why some areas get filled
 and some don't, refer to "non-zero winding" in the reference manual
 glossary in the doc directory.
-'''
+"""
+
 from g import *
+
+
 def FilledPath(file):
     s = SetUp(file, portrait, inches)
     lineWidth(0.01)
@@ -54,4 +57,6 @@ def FilledPath(file):
     drawPath(p)
     # We're finished
     s.close()
+
+
 FilledPath("out/filled_path.ps")

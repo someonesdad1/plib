@@ -1,8 +1,11 @@
-'''This prints a scale that can be used to calibrate your printer.
+"""This prints a scale that can be used to calibrate your printer.
 By printing the scales, you can measure the physical printing limits
 of your printer.  This assumes letter size paper and inches.
-'''
+"""
+
 from g import *
+
+
 def DrawScaleTickMarks(y0, y1, spacing=0.02, major=5):
     assert y1 > y0
     assert spacing > 0
@@ -16,6 +19,8 @@ def DrawScaleTickMarks(y0, y1, spacing=0.02, major=5):
             line(-2 * width, y, 2 * width, y)
         else:
             line(-width, y, width, y)
+
+
 def PaperScale(file):
     s = Setup(file, portrait, inches)
     lineWidth(0.001)
@@ -49,4 +54,6 @@ def PaperScale(file):
     rotate(90)
     DrawScaleTickMarks(x0, x1)
     s.close()
+
+
 PaperScale("out/paper_scale.ps")

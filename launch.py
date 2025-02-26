@@ -1,4 +1,4 @@
-'''
+"""
 Launch files with their registered applications
 
     Windows:  You can compile the C++ application given below; it worked with Windows NT systems in
@@ -11,40 +11,43 @@ Launch files with their registered applications
     file, but the twist is you have to cd to the file's directory first because Explorer is a
     strange application.
 
-'''
-if 1:   # Header
+"""
+
+if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # <utility> Launch files with their registered applications.  Works
         # on cygwin/Linux/Windows.
-        #∞what∞#
-        #∞test∞# ignore #∞test∞#
+        # ∞what∞#
+        # ∞test∞# ignore #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         from pathlib import Path as P
         import getopt
         import os
         import platform
         import subprocess
         import sys
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import dedent
-        from wsl import wsl     # If wsl is 1, we're running under WSL under Windows
-    if 1:   # Global variables
+        from wsl import wsl  # If wsl is 1, we're running under WSL under Windows
+    if 1:  # Global variables
         ii = isinstance
+
         class G:
             pass
+
         g = G()
         g.system = None
-if 0:   # C++ source code old Windows launcher app.exe
-    '''
+if 0:  # C++ source code old Windows launcher app.exe
+    """
     Note:  the above Windows application can be used to launch files.
     Here's its source code:
 
@@ -222,17 +225,18 @@ if 0:   # C++ source code old Windows launcher app.exe
 
         return 0;
     }
-    '''
-if 1:   # Core functionality
+    """
+if 1:  # Core functionality
+
     def GetSystem():
-        '''Set g.system to one of the following strings:
+        """Set g.system to one of the following strings:
             cygwin      Running under cygwin
             linux       Running under a real Linux system, not WSL
             wsl         Running Linux under WSL
             mac       * Running under Apple's UNIX
             windows   * Running under Windows
         Note * means not supported yet.
-        '''
+        """
         s = platform.system()
         if s.startswith("CYGWIN_NT"):
             g.system = "cygwin"
@@ -240,10 +244,11 @@ if 1:   # Core functionality
             g.system = "wsl" if wsl else "linux"
         else:
             raise ValueError("{s!r} not supported for platform.system()")
+
     def RegisteredOpen(file):
-        '''Open the indicated file with its registered application.  file must be a string
+        """Open the indicated file with its registered application.  file must be a string
         or a Path instance.
-        '''
+        """
         if ii(file, str):
             p = P(file)
         elif ii(file, P):
@@ -267,30 +272,37 @@ if 1:   # Core functionality
                 r = subprocess.run(f"cygstart {filename}", shell=True)
             elif g.system == "linux":
                 # Older method worked a decade or two ago, needs to be tested on a Linux box
-                subprocess.call(('xdg-open', filename))
+                subprocess.call(("xdg-open", filename))
             else:
                 raise ValueError(f"{g.system!r} not supported yet")
         except Exception as e:
             print(f"{e}", file=sys.stderr)
         finally:
             os.chdir(cwd)
+
     def Launch(*files):
         for file in files:
             RegisteredOpen(file)
+
     # Make sure we know the system when we get imported
     GetSystem()
 
 if __name__ == "__main__":
+
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=1):
         name = sys.argv[0]
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {name} [options] file1 [file2 ...]
           Launch the files with their registered applications. 
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
         d["-a"] = False
         try:
@@ -306,6 +318,7 @@ if __name__ == "__main__":
         if not args:
             Usage()
         return args
-    d = {}      # Options dictionary
+
+    d = {}  # Options dictionary
     files = ParseCommandLine(d)
     Launch(*files)

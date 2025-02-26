@@ -1,21 +1,22 @@
-'''
+"""
 This module contains the function Banner() which can be used to print
 a banner message like the UNIX banner(1) function.
 
 28 Jul 2014 update:  added Raymond Hettinger's banner code.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2005 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2005 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # <utility> Print banner messages
-    #∞what∞#
-    #∞test∞# ignore #∞test∞#
+    # ∞what∞#
+    # ∞test∞# ignore #∞test∞#
     pass
 if 1:  # Imports
     import sys
@@ -23,11 +24,12 @@ if 1:  # Imports
     import getopt
     from pdb import set_trace as xx
 
+
 def Hettinger(string, char="X"):
-    '''Raymond Hettinger's banner code from
+    """Raymond Hettinger's banner code from
     http://code.activestate.com/recipes/577537
-    '''
-    letterforms = r'''
+    """
+    letterforms = r"""
        |       |       |       |       |       |       | |
   XXX  |  XXX  |  XXX  |   X   |       |  XXX  |  XXX  |!|
   X  X |  X  X |  X  X |       |       |       |       |"|
@@ -123,34 +125,38 @@ X      | X     |  X    |   X   |    X  |     X |      X|\|
    X   |   X   |   X   |       |   X   |   X   |   X   |||
   XXX  |     X |     X |     XX|     X |     X |  XXX  |}|
  XX    |X  X  X|    XX |       |       |       |       |~|
-'''.splitlines()
+""".splitlines()
     table = {}
     for form in letterforms:
-        if '|' in form:
-            table[form[-2]] = form[:-3].split('|')
+        if "|" in form:
+            table[form[-2]] = form[:-3].split("|")
     xx()
     ROWS = len(list(table.values())[0])
+
     def horizontal(string):
         for row in range(ROWS):
             for c in string:
                 print(table[c][row].replace("X", char), end="")
             print()
         print()
+
     def vertical(string):
         for c in string:
             for row in zip(*table[c]):
-                s = ' '.join(reversed(row)).replace("X", char)
+                s = " ".join(reversed(row)).replace("X", char)
                 print(s)
             print()
+
     if Hettinger.vertical:
         vertical(string)
     else:
         horizontal(string)
 
+
 def Banner(string, char_to_use):
-    '''Prints the string using the character given in char_to_use.
+    """Prints the string using the character given in char_to_use.
     Example:  Banner("banner", "l") produces
- 
+
          lll
           ll
           ll      lllll   ll lll  ll lll  lllll  ll lll
@@ -158,31 +164,32 @@ def Banner(string, char_to_use):
           ll  ll llllll   ll  ll  ll  ll lllllll  ll
           ll  ll l   ll   ll  ll  ll  ll ll       ll
          llllll  lllll l  ll  ll  ll  ll  lllll  llll
-    '''
+    """
     out = [[], [], [], [], [], [], [], []]  # 8 lines of data
     for ltr in range(len(string)):
         char = string[ltr]
         if ord(char) < 32 or ord(char) > 126:
             char = " "
-        i = ord(char)-32
+        i = ord(char) - 32
         bytes = []
         lines = Banner.letters[i][0]
-        #print("Lines = 0x%08x" % lines)
-        out[0].append(((lines & (0xff << 24)) >> 24) & 0xff)
-        out[1].append(((lines & (0xff << 16)) >> 16) & 0xff)
-        out[2].append(((lines & (0xff << 8)) >> 8) & 0xff)
-        out[3].append(lines & 0xff)
+        # print("Lines = 0x%08x" % lines)
+        out[0].append(((lines & (0xFF << 24)) >> 24) & 0xFF)
+        out[1].append(((lines & (0xFF << 16)) >> 16) & 0xFF)
+        out[2].append(((lines & (0xFF << 8)) >> 8) & 0xFF)
+        out[3].append(lines & 0xFF)
         lines = Banner.letters[i][1]
-        #print("Lines = 0x%08x" % lines)
-        out[4].append(((lines & (0xff << 24)) >> 24) & 0xff)
-        out[5].append(((lines & (0xff << 16)) >> 16) & 0xff)
-        out[6].append(((lines & (0xff << 8)) >> 8) & 0xff)
-        out[7].append(lines & 0xff)
+        # print("Lines = 0x%08x" % lines)
+        out[4].append(((lines & (0xFF << 24)) >> 24) & 0xFF)
+        out[5].append(((lines & (0xFF << 16)) >> 16) & 0xFF)
+        out[6].append(((lines & (0xFF << 8)) >> 8) & 0xFF)
+        out[7].append(lines & 0xFF)
     for element in out:
         for byte in element:
             PrintByteLine(byte, char_to_use)
         print()
     print()
+
 
 # The array Banner.letters contains the information on how to print
 # each character between 32 and 126, inclusive.  There are 8 bytes for
@@ -194,55 +201,103 @@ def Banner(string, char_to_use):
 # system).
 
 Banner.letters = (
-    (0x00000000, 0x00000000), (0x30303030, 0x30003000),
-    (0x6c6c6c00, 0x00000000), (0x6c6cfe6c, 0xfe6c6c00),
-    (0x187e407e, 0x027e1800), (0xc2c60c18, 0x3066c600),
-    (0x3828387b, 0xd6cc7700), (0x60204000, 0x00000000),
-    (0x1c70c0c0, 0xc0701c00), (0x701c0606, 0x061c7000),
-    (0x006c38fe, 0x386c0000), (0x303030fc, 0x30303000),
-    (0x00000000, 0x00602040), (0x0000007c, 0x00000000),
-    (0x00000000, 0x00060600), (0x02060c18, 0x3060c000),
-    (0x7cc6ced6, 0xe6c67c00), (0x10703030, 0x30307800),
-    (0x78cc0c18, 0x3062fe00), (0x78cc0c38, 0x0ccc7800),
-    (0x0c1c6ccc, 0xfe0c1e00), (0x7e40407c, 0x06c67c00),
-    (0x3c64c0fc, 0xc6c67c00), (0xfe860c18, 0x18181800),
-    (0x3c66663c, 0x66663c00), (0x7cc6c67e, 0x064c7800),
-    (0x00006060, 0x00606000), (0x00006060, 0x00602040),
-    (0x183060c0, 0x60301800), (0x00007c00, 0x7c000000),
-    (0xc0603018, 0x3060c000), (0x78cc8c1c, 0x30003000),
-    (0x3c46c2ce, 0xcc407800), (0x183c6666, 0x7e666600),
-    (0xfc66667c, 0x6666fc00), (0x3c66c0c0, 0xc2663c00),
-    (0xfc666666, 0x6666fc00), (0xfe626878, 0x6862fe00),
-    (0xfe626878, 0x6860f000), (0x3c64c0c0, 0xce663a00),
-    (0xccccccfc, 0xcccccc00), (0x3c181818, 0x18183c00),
-    (0x3c181818, 0x98d87000), (0xe6666c78, 0x6c66e600),
-    (0xf0606060, 0x6066fe00), (0xc6eefed6, 0xc6c6c600),
-    (0xc6e6f6de, 0xcec6c600), (0x7cc6c6c6, 0xc6c67c00),
-    (0xfc66667c, 0x6060f000), (0x7cc6c6c6, 0xc6c67c06),
-    (0xfc66667c, 0x6c66e600), (0x7ec2c07c, 0x0686fc00),
-    (0x7e5a1818, 0x18183c00), (0x66666666, 0x66663c00),
-    (0xc6c6c66c, 0x6c381000), (0xc6c6c6d6, 0xfeeec600),
-    (0xee6c3810, 0x386cee00), (0xc3663c18, 0x18183c00),
-    (0xfe860c18, 0x3062fe00), (0x7c606060, 0x60607c00),
-    (0xc0603018, 0x0c060200), (0x3e060606, 0x06063e00),
-    (0x10386cc6, 0x00000000), (0x00000000, 0x00007c00),
-    (0x0c080400, 0x00000000), (0x00007c04, 0xfc8cfa00),
-    (0xe060607c, 0x6666fc00), (0x00007cc6, 0xc0c67c00),
-    (0x1c0c0c7c, 0xcccc7a00), (0x00007cc2, 0xfec07c00),
-    (0x386c60f8, 0x6060f000), (0x00007bc6, 0xc67e047c),
-    (0xe060606e, 0x7666e700), (0x18003818, 0x18183c00),
-    (0x18003c18, 0x1818d870), (0xe060666c, 0x706ce600),
-    (0x38181818, 0x18183c00), (0x0000ecd6, 0xd6c6e700),
-    (0x00006e76, 0x66666600), (0x00003c66, 0x66663c00),
-    (0x0000dc66, 0x667c60f0), (0x000076cc, 0xcc7c0c1e),
-    (0x0000dc76, 0x6060f000), (0x0000fec0, 0xfe06fe00),
-    (0x10307c30, 0x30361c00), (0x0000cecc, 0xcccc7600),
-    (0x00006666, 0x663c1800), (0x0000c6d6, 0xd6fe6c00),
-    (0x0000c66c, 0x386cc600), (0x0000c6c6, 0xc67e0478),
-    (0x0000fc98, 0x3064fc00), (0x0c181830, 0x18180c00),
-    (0x10101000, 0x10101000), (0x60303018, 0x30306000),
-    (0x66980000, 0x00000000)
+    (0x00000000, 0x00000000),
+    (0x30303030, 0x30003000),
+    (0x6C6C6C00, 0x00000000),
+    (0x6C6CFE6C, 0xFE6C6C00),
+    (0x187E407E, 0x027E1800),
+    (0xC2C60C18, 0x3066C600),
+    (0x3828387B, 0xD6CC7700),
+    (0x60204000, 0x00000000),
+    (0x1C70C0C0, 0xC0701C00),
+    (0x701C0606, 0x061C7000),
+    (0x006C38FE, 0x386C0000),
+    (0x303030FC, 0x30303000),
+    (0x00000000, 0x00602040),
+    (0x0000007C, 0x00000000),
+    (0x00000000, 0x00060600),
+    (0x02060C18, 0x3060C000),
+    (0x7CC6CED6, 0xE6C67C00),
+    (0x10703030, 0x30307800),
+    (0x78CC0C18, 0x3062FE00),
+    (0x78CC0C38, 0x0CCC7800),
+    (0x0C1C6CCC, 0xFE0C1E00),
+    (0x7E40407C, 0x06C67C00),
+    (0x3C64C0FC, 0xC6C67C00),
+    (0xFE860C18, 0x18181800),
+    (0x3C66663C, 0x66663C00),
+    (0x7CC6C67E, 0x064C7800),
+    (0x00006060, 0x00606000),
+    (0x00006060, 0x00602040),
+    (0x183060C0, 0x60301800),
+    (0x00007C00, 0x7C000000),
+    (0xC0603018, 0x3060C000),
+    (0x78CC8C1C, 0x30003000),
+    (0x3C46C2CE, 0xCC407800),
+    (0x183C6666, 0x7E666600),
+    (0xFC66667C, 0x6666FC00),
+    (0x3C66C0C0, 0xC2663C00),
+    (0xFC666666, 0x6666FC00),
+    (0xFE626878, 0x6862FE00),
+    (0xFE626878, 0x6860F000),
+    (0x3C64C0C0, 0xCE663A00),
+    (0xCCCCCCFC, 0xCCCCCC00),
+    (0x3C181818, 0x18183C00),
+    (0x3C181818, 0x98D87000),
+    (0xE6666C78, 0x6C66E600),
+    (0xF0606060, 0x6066FE00),
+    (0xC6EEFED6, 0xC6C6C600),
+    (0xC6E6F6DE, 0xCEC6C600),
+    (0x7CC6C6C6, 0xC6C67C00),
+    (0xFC66667C, 0x6060F000),
+    (0x7CC6C6C6, 0xC6C67C06),
+    (0xFC66667C, 0x6C66E600),
+    (0x7EC2C07C, 0x0686FC00),
+    (0x7E5A1818, 0x18183C00),
+    (0x66666666, 0x66663C00),
+    (0xC6C6C66C, 0x6C381000),
+    (0xC6C6C6D6, 0xFEEEC600),
+    (0xEE6C3810, 0x386CEE00),
+    (0xC3663C18, 0x18183C00),
+    (0xFE860C18, 0x3062FE00),
+    (0x7C606060, 0x60607C00),
+    (0xC0603018, 0x0C060200),
+    (0x3E060606, 0x06063E00),
+    (0x10386CC6, 0x00000000),
+    (0x00000000, 0x00007C00),
+    (0x0C080400, 0x00000000),
+    (0x00007C04, 0xFC8CFA00),
+    (0xE060607C, 0x6666FC00),
+    (0x00007CC6, 0xC0C67C00),
+    (0x1C0C0C7C, 0xCCCC7A00),
+    (0x00007CC2, 0xFEC07C00),
+    (0x386C60F8, 0x6060F000),
+    (0x00007BC6, 0xC67E047C),
+    (0xE060606E, 0x7666E700),
+    (0x18003818, 0x18183C00),
+    (0x18003C18, 0x1818D870),
+    (0xE060666C, 0x706CE600),
+    (0x38181818, 0x18183C00),
+    (0x0000ECD6, 0xD6C6E700),
+    (0x00006E76, 0x66666600),
+    (0x00003C66, 0x66663C00),
+    (0x0000DC66, 0x667C60F0),
+    (0x000076CC, 0xCC7C0C1E),
+    (0x0000DC76, 0x6060F000),
+    (0x0000FEC0, 0xFE06FE00),
+    (0x10307C30, 0x30361C00),
+    (0x0000CECC, 0xCCCC7600),
+    (0x00006666, 0x663C1800),
+    (0x0000C6D6, 0xD6FE6C00),
+    (0x0000C66C, 0x386CC600),
+    (0x0000C6C6, 0xC67E0478),
+    (0x0000FC98, 0x3064FC00),
+    (0x0C181830, 0x18180C00),
+    (0x10101000, 0x10101000),
+    (0x60303018, 0x30306000),
+    (0x66980000, 0x00000000),
 )
+
 
 def PrintByteLine(byte, char_to_use):
     for i in range(8):
@@ -251,21 +306,24 @@ def PrintByteLine(byte, char_to_use):
         else:
             print(" ", end="")
 
+
 def Example(string):
-    '''Prints the string to stdout with each ASCII character
+    """Prints the string to stdout with each ASCII character
     from 33 to 255.
-    '''
+    """
     for i in range(33, 256):
         print("Character ASCII value =", i)
         Banner(string, chr(i))
+
 
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
 
+
 def Usage(d, status=1):
     name = sys.argv[0]
-    s = '''
+    s = """
 Usage:  {name} [-e] string
   Prints a banner message.
 
@@ -278,15 +336,16 @@ Options
             to 255 to let you see the effects of different character
             choices.
     -v      Vertical output (implies -a).
-'''[1:-1]
+"""[1:-1]
     print(s.format(**locals()))
     exit(status)
 
+
 def ParseCommandLine(d):
-    d["-a"] = False     # Use Hettinger's implementation
-    d["-c"] = "X"       # Character to use
-    d["-e"] = False     # Print for all usable characters
-    d["-v"] = False     # Vertical output (implies -a)
+    d["-a"] = False  # Use Hettinger's implementation
+    d["-c"] = "X"  # Character to use
+    d["-e"] = False  # Print for all usable characters
+    d["-v"] = False  # Vertical output (implies -a)
     if len(sys.argv) < 2:
         Usage(d)
     try:
@@ -300,7 +359,7 @@ def ParseCommandLine(d):
             d["-a"] = True
         if opt[0] == "-c":
             try:
-                d["-c"] = chr(int(opt[1]) & 0x7f)
+                d["-c"] = chr(int(opt[1]) & 0x7F)
             except Exception:
                 Error("'%s' isn't a valid character for -c" % opt[1])
         if opt[0] == "-e":
@@ -311,10 +370,11 @@ def ParseCommandLine(d):
         Usage(d)
     return args
 
+
 if __name__ == "__main__":
     d = {}
     args = ParseCommandLine(d)
-    string = ' '.join(args)
+    string = " ".join(args)
     if d["-e"]:
         Example(string)
         exit(0)

@@ -1,10 +1,11 @@
-'''
+"""
 
 Convert this old C program to a python script.  I no longer have the
 graphics.lib file and I can't read the design.doc file anymore.
 
-'''
-r'''
+"""
+
+r"""
 This is the original code, written to compile IIRC under both the Borland
 and QuickC compilers.
 
@@ -526,4 +527,4 @@ void Eng(double T, char *str)
     tmpstr++;  /* Remove the sign character */
     strcpy(str, tmpstr);
 }
-'''
+"""

@@ -1,11 +1,11 @@
-'''
+"""
 Finds trigger strings in text files
 
     Run as a script to see an example.
 
     The basic purpose is to provide the ability to find and update
     "trigger" strings in a file.  An example of a trigger string in a
-    python file might be 
+    python file might be
 
         #∞license∞#
         # Licensed under the Open Software License version 3.0.
@@ -29,16 +29,20 @@ Finds trigger strings in text files
         t["license"] = new_license_text
 
     and call t.write() to write the information back to the file.
-'''
+"""
+
 import pathlib
 import re
+
 P = pathlib.Path
+
+
 class Trigger(dict):
     def __new__(cls, start="#∞", end="∞#", allowed="[A-Za-z0-9_]"):
-        '''The trigger string will be the string X between the start and
+        """The trigger string will be the string X between the start and
         end strings.  The allowed string defines the python re
         characters allowed to be in the trigger string.
-        '''
+        """
         instance = super().__new__(cls)
         instance.start = start
         instance.end = end
@@ -49,12 +53,13 @@ class Trigger(dict):
         regexp = f"{start}({allowed}+){end}"
         instance.r = re.compile(regexp)
         return instance
+
     def __call__(self, file):
-        '''Given file (a str or pathlib.Path), get all trigger strings'
+        """Given file (a str or pathlib.Path), get all trigger strings'
         text.
-        '''
+        """
         self.clear()
-        self.filled = False     # Allow changes
+        self.filled = False  # Allow changes
         # Get the file's string
         if isinstance(file, str):
             p = P(file)
@@ -84,8 +89,10 @@ class Trigger(dict):
             self[trigger] = t[0]
         self.filled = True
         return self
+
     def __delitem__(self, key):
         raise ValueError("Deletion not allowed")
+
     def __setitem__(self, key, value):
         if not self.filled:
             super().__setitem__(key, value)
@@ -94,11 +101,12 @@ class Trigger(dict):
             raise KeyError(f"'{key}' not in dict")
         # Set the new value
         super().__setitem__(key, value)
+
     def write(self):
-        '''Assuming the object has been filled, write the new object out
+        """Assuming the object has been filled, write the new object out
         to the file, including any changes made in the trigger string
         contents.
-        '''
+        """
         if self.text is None:
             raise ValueError("call() on a file hasn't been done")
         # self.text contains the text of the file read in call().  This
@@ -109,60 +117,79 @@ class Trigger(dict):
             trig = f"{self.start}{trigger}{self.end}"
             repl = f"{trig}{self[trigger]}{trig}"
             self.text = r.sub(repl, self.text)
-        #xx Need to test write functionality
+        # xx Need to test write functionality
         print("New text")
         pp(self.text)
         exit()
+
     # Disable other dict methods
     def get(self, key, default=None):
         raise self.not_allowed
+
     def pop(self, key, default=None):
         raise self.not_allowed
+
     def popitem(self):
         raise self.not_allowed
+
     def setdefault(self, key, default=None):
         raise self.not_allowed
+
     def update(self, other=None):
         raise self.not_allowed
-if __name__ == "__main__": 
+
+
+if __name__ == "__main__":
     from pprint import pprint as pp
     from lwtest import raises
+
     p = None
+
     def Setup():
         global p
         p = pathlib.Path("/plib/trigger.tmpfile")
+
     def Teardown():
         p.unlink()
-        assert(not p.is_file())
+        assert not p.is_file()
+
     def Separator():
-        print(f"{'-'*70}")
+        print(f"{'-' * 70}")
+
     def CheckDisabled():
-        'Show that the disabled methods result in an exception'
+        "Show that the disabled methods result in an exception"
         text = "Dummy text"
         p.write_text(text)
         t = Trigger()
-        t(p)    # Load the file
+        t(p)  # Load the file
         key = "dummy"
-        for i in ((t.get, key), (t.pop, key), (t.setdefault, key),
-                  (t.popitem,), (t.update,)):
+        for i in (
+            (t.get, key),
+            (t.pop, key),
+            (t.setdefault, key),
+            (t.popitem,),
+            (t.update,),
+        ):
             raises(ValueError, *i)
+
     def ShowStrings():
-        text = '''
+        text = """
         #∞who∞#
             This is the text between the trigger string pair.
             It can be multiple lines.  All of the whitespace
             is included.
         #∞who∞#
         #∞what∞# The text can be one line. #∞what∞# 
-        '''
+        """
         print(f"Demo of {__file__}'s Trigger() object:\n")
         print("Here's our text:")
         print(text)
         p.write_text(text)
         t = Trigger()
-        t(p)    # Load the file
+        t(p)  # Load the file
         print("Here's the dictionary of extracted strings:\n")
         pp(t)
+
     def SingleTriggerStringException():
         Separator()
         text = "#∞how∞#"
@@ -170,18 +197,19 @@ if __name__ == "__main__":
         t = Trigger()
         print("You'll get a ValueError for a single trigger string:")
         try:
-            t(p)    # Try to load the file
+            t(p)  # Try to load the file
         except ValueError as e:
             print(f"  {e}")
+
     def ReplaceText():
         Separator()
-        text = '''
+        text = """
         #∞who∞# 
             Who's text on
             multiple lines.
         #∞who∞#
         #∞what∞# What's text on one line. #∞what∞# 
-        '''
+        """
         p.write_text(text)
         print("Showing how text can be replaced.  We'll exchange the 'who'")
         print("and 'what' values.\n")
@@ -189,16 +217,17 @@ if __name__ == "__main__":
         pp(text)
         print()
         t = Trigger()
-        t(p)    # Get our contents
+        t(p)  # Get our contents
         # Swap who and what strings
         tmp = t["who"]
         t["who"] = t["what"]
         t["what"] = tmp
         t.write()
         t.clear()
-        t(p)    # Get our contents
+        t(p)  # Get our contents
         print("Swapped strings:")
         pp(t)
+
     Setup()
     CheckDisabled()
     ShowStrings()

@@ -1,46 +1,50 @@
-'''
+"""
 Construct the anagrams text file, which is a list of lines containing words
 that are anagrams of each other.  This is done by reading a large number
 of text files.
-'''
-if 1:   # Header
-    if 1:   # Copyright, license
+"""
+
+if 1:  # Header
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Construct the anagrams text file
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         import getopt
         import os
         from pathlib import Path as P
         import sys
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import wrap, dedent
         from color import Color, TRM as t
         import anagram
         import get
         from timer import Timer
-    if 1:   # Global variables
+    if 1:  # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
         t.tm = t("purl")
         t.total = t("yell")
         t.stats = t("grnl")
-if 1:   # Utility
+if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] choice
           choice is a letter.  'd' means to build the debug version.
           Anything else means to build the production version.
@@ -49,12 +53,14 @@ if 1:   # Utility
           anagrams from a set of input files.
         Options:
             -h      Print a manpage
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
         d["-a"] = False
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ah") 
+            opts, args = getopt.getopt(sys.argv[1:], "ah")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -66,13 +72,15 @@ if 1:   # Utility
         if 0 and not args:
             Usage(status=1)
         return args
+
     def GetFileString(file):
         "Return string of file, but delete lines beginning with '#'"
         lines = get.GetLines(file, script=True)
-        return '\n'.join(lines)
+        return "\n".join(lines)
+
 
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     arg = ParseCommandLine(d)
     print("Reading files:")
     if arg == ["d"]:
@@ -114,7 +122,7 @@ if __name__ == "__main__":
             if "*" in file:
                 loc = file.find("*")
                 p = P(file[:loc])
-                assert(p.is_dir())
+                assert p.is_dir()
                 for f in p.glob(file[loc:]):
                     s = GetFileString(f)
                     words = anagram.GetWords(s)
@@ -132,7 +140,7 @@ if __name__ == "__main__":
     total += tm.et
     print("Getting anagrams")
     with Timer() as tm:
-        anagrams = anagram.GetAnagrams(' '.join(o))
+        anagrams = anagram.GetAnagrams(" ".join(o))
     t.print(f"{t.tm}Getting anagrams took {tm.et} s")
     total += tm.et
     print("Writing /plib/pgm/anagrams")

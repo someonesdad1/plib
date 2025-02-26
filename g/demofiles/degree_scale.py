@@ -1,9 +1,12 @@
-'''
+"""
 Draw a circular degree grid.  Make a tick mark at every degree.  Make
 a slightly larger tick mark every 5 degrees.  Make a large tick mark
 every 10 degrees and label this tick mark.
-'''
+"""
+
 from g import *
+
+
 def DegreeScale(file):
     s = Setup(file, portrait, inches)
     lineWidth(0.01)
@@ -41,4 +44,6 @@ def DegreeScale(file):
         rotate(10)
     pop()
     s.close()
+
+
 DegreeScale("out/degree_scale.ps")

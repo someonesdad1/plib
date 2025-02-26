@@ -1,8 +1,8 @@
-'''
+"""
 
 Wed 16 Aug 2023 11:13:27 AM
 
-    - Update to running with winpython 
+    - Update to running with winpython
     - Print out the starting time of the script
     - The key commands don't work, probably because they are bytestrings
     - Option to change time resolution
@@ -13,47 +13,48 @@ Wed 16 Aug 2023 11:13:27 AM
 
 Python script to provide stopwatch like behavior.  It is specific to the 32
 bit Windows environment.
- 
+
 Instructions for use:
     1.  Start the program
     2.  When you press a key, the split time, total elapsed time,
         time/date and key pressed are printed on a line.
- 
+
 Special keys are:
- 
+
     q        Quit
     Z        Rezero the timer
     C        Get prompted for a comment
- 
+
 If a file is included on the command line, the data are also logged to
 that file.
-'''
-if 1:   # Header
-    if 1:   # Copyright, license
+"""
+
+if 1:  # Header
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Stopwatch for a terminal
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         import getopt
         import os
         from pathlib import Path as P
         import sys
         import time
         import string
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         import msvcrt
         from wrap import wrap, dedent
         from color import t
-    if 1:   # Global variables
+    if 1:  # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
@@ -62,24 +63,29 @@ if 1:   # Header
         t.m = t("cynl")
         t.h = t("ornl")
         t.d = t("redl")
+
         # Holder for global variables
         class G:
             pass
+
         g = G()
-        g.n = 15    # Num spaces for decimal time
+        g.n = 15  # Num spaces for decimal time
         g.display_unit = "s"
         g.allowed_display_units = "smhd"
-        g.start = 0         # Integer start time in ns
-        g.now = 0           # Integer now in ns
-        g.last = 0          # Integer last time in ns
-if 1:   # Utility
+        g.start = 0  # Integer start time in ns
+        g.now = 0  # Integer now in ns
+        g.last = 0  # Integer last time in ns
+if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(spc=False):
         if spc:
             print(f"{t.n}")
-        print(dedent(f'''
+        print(
+            dedent(f"""
         {t.n}Commands:
             q       Quit
             ? or /  This help
@@ -92,15 +98,16 @@ if 1:   # Utility
         Any other keys take a split.  Start with a filename on the command
         line to also have the data appended to that file.  A state summary
         report will be written to the file.
-        '''))
+        """)
+        )
         if spc:
             print()
+
     def ParseCommandLine(d):
         d["-a"] = False
-        d["-d"] = 3         # Number of significant digits
+        d["-d"] = 3  # Number of significant digits
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:h", 
-                    ["help", "debug"])
+            opts, args = getopt.getopt(sys.argv[1:], "ad:h", ["help", "debug"])
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -113,8 +120,7 @@ if 1:   # Utility
                     if not (1 <= d["-d"] <= 15):
                         raise ValueError()
                 except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                        "1 and 15")
+                    msg = "-d option's argument must be an integer between 1 and 15"
                     Error(msg)
             elif o in ("-h", "--help"):
                 Usage(status=0)
@@ -122,75 +128,84 @@ if 1:   # Utility
                 # Set up a handler to drop us into the debugger on an
                 # unhandled exception
                 import debug
+
                 debug.SetDebugger()
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def Header():
         a = f"{'Diff time':^{g.n}s}"
         b = f"{'Total time':^{g.n}s}"
-        c = "-"*g.n
-        return dedent(f'''
+        c = "-" * g.n
+        return dedent(f"""
         Times are in seconds
  
         {a} {b}
-        {c} {c}''')
+        {c} {c}""")
+
     def Log(str, quiet=0):
         if not quiet:
             print(str)
         if log_stream:
             log_stream.write(str + "\n")
+
     def Print(key):
         def tof(t):
-            'Change t in ns to float in s'
-            return float(t)/1e9
-        g.now = time.time_ns()   # Integer current time in ns
+            "Change t in ns to float in s"
+            return float(t) / 1e9
+
+        g.now = time.time_ns()  # Integer current time in ns
         # Print split and total time in chosen units.  The decimal
         # resolution is chosen so that holding the space bar down lets you
         # see the last digit change.
         if g.display_unit == "s":
             c = 1
-            dt1 = tof(g.now - g.last)/c
-            dt2 = tof(g.now - g.start)/c
+            dt1 = tof(g.now - g.last) / c
+            dt2 = tof(g.now - g.start) / c
             s1 = f"{t.s}{dt1:{g.n}.2f}"
             s2 = f"{t.s}{dt2:{g.n}.2f}"
         elif g.display_unit == "m":
             c = 60
-            dt1 = tof(g.now - g.last)/c
-            dt2 = tof(g.now - g.start)/c
+            dt1 = tof(g.now - g.last) / c
+            dt2 = tof(g.now - g.start) / c
             s1 = f"{t.m}{dt1:{g.n}.4f}"
             s2 = f"{t.m}{dt2:{g.n}.4f}"
         elif g.display_unit == "h":
             c = 3600
-            dt1 = tof(g.now - g.last)/c
-            dt2 = tof(g.now - g.start)/c
+            dt1 = tof(g.now - g.last) / c
+            dt2 = tof(g.now - g.start) / c
             s1 = f"{t.h}{dt1:{g.n}.5f}"
             s2 = f"{t.h}{dt2:{g.n}.5f}"
         elif g.display_unit == "d":
-            c = 24*3600
-            dt1 = tof(g.now - g.last)/c
-            dt2 = tof(g.now - g.start)/c
+            c = 24 * 3600
+            dt1 = tof(g.now - g.last) / c
+            dt2 = tof(g.now - g.start) / c
             s1 = f"{t.d}{dt1:{g.n}.7f}"
             s2 = f"{dt2:{g.n}.7f}{t.n}"
         else:
             raise RuntimeError("{g.display_unit!r} is bad display unit")
         # Get current time string
-        loc = time.localtime(tof(g.now) - 7*3600.)
+        loc = time.localtime(tof(g.now) - 7 * 3600.0)
         s = time.strftime("%d%b%Y %H:%M:%S", loc)
         Log(f"{s1} {s2} {s} {key}")
         g.last = g.now
+
     def GetKey():
-        '''Return a string that represents the key pressed.  If the first
+        """Return a string that represents the key pressed.  If the first
         getch() returns a '\000' character, then we call getch() again to
         get the second character and then perform a lookup in the Keys
         dictionary to get the string which represents the key pressed.
-        '''
+        """
         key = msvcrt.getch().decode()
-        if key == '\003':  # Always exit on a ctrl-C
+        if key == "\003":  # Always exit on a ctrl-C
             sys.exit(0)
-        if key == '\000':
+        if key == "\000":
             key = msvcrt.getch()
             key = "+" + key
         return key
+
 
 if __name__ == "__main__":
     done = 0
@@ -198,7 +213,7 @@ if __name__ == "__main__":
     g.last = g.start
     log_stream = None
 
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     Usage()
     if len(sys.argv) > 1:
@@ -233,4 +248,3 @@ if __name__ == "__main__":
             Print(key)
         else:
             Print(key)
-

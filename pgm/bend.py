@@ -1,21 +1,22 @@
-'''
+"""
 Bend allowance computation for sheet metal
-'''
-if 1:   # Header
-    if 1:   # Copyright, license
+"""
+
+if 1:  # Header
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Program description string
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         from collections import deque
         from pathlib import Path as P
         import getopt
@@ -23,32 +24,38 @@ if 1:   # Header
         import re
         import subprocess
         import sys
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from color import t
         from f import flt, radians
         from dpprint import PP
-        pp = PP()   # Screen width aware form of pprint.pprint
+
+        pp = PP()  # Screen width aware form of pprint.pprint
         from get import GetLines
         from wrap import dedent
-        from wsl import wsl     # wsl is True when running under WSL Linux
-    if 1:   # Global variables
+        from wsl import wsl  # wsl is True when running under WSL Linux
+    if 1:  # Global variables
+
         class G:
             # Storage for global variables as attributes
             pass
+
         g = G()
         g.dbg = False
         ii = isinstance
-if 1:   # Utility
+if 1:  # Utility
+
     def GetScreen():
-        'Return (LINES, COLUMNS)'
+        "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
-            int(os.environ.get("COLUMNS", "80")) - 1
+            int(os.environ.get("COLUMNS", "80")) - 1,
         )
+
     def GetColors():
         t.dbg = t("cyn") if g.dbg else ""
         t.N = t.n if g.dbg else ""
         t.err = t("redl")
+
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="", file=Dbg.file)
@@ -56,12 +63,17 @@ if 1:   # Utility
             k["file"] = Dbg.file
             print(*p, **k)
             print(f"{t.N}", end="", file=Dbg.file)
+
     Dbg.file = sys.stdout
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Manpage():
-        print(dedent(f'''
+        print(
+            dedent(
+                f"""
         Bend allowance = X = amount to add to a desired length of sheet metal to get a desired
         finished length L after making a bend.
 
@@ -144,10 +156,14 @@ if 1:   # Utility
         angle you have to bend a flat piece of material to get the inside 60° angle.  If you forget
         this detail, you'll use a too-small θ and the bend allowance will be too small.
 
-        '''.rstrip()))
+        """.rstrip()
+            )
+        )
         exit(0)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] t L r [θ]
           Calculate the needed length L' of stock to make a bend in sheet metal of thickness t.
           The angle θ is the bend angle from the flat form and r is the inside radius of the bend.
@@ -160,15 +176,17 @@ if 1:   # Utility
             -2      Material is bronze, hard copper, cold-rolled steel or spring steel
             -d n    Number of significant figures to use [{d["-d"]}]
             -h      Print a manpage
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["c"] = 0.64       # Constant for half-hard copper/brass, soft steel, aluminum
-        d["-1"] = False     # Soft brass or copper
-        d["-2"] = False     # Bronze, hard copper, cold-rolled steel or spring steel
-        d["-d"] = 3         # Number of significant digits
+        d["c"] = 0.64  # Constant for half-hard copper/brass, soft steel, aluminum
+        d["-1"] = False  # Soft brass or copper
+        d["-2"] = False  # Bronze, hard copper, cold-rolled steel or spring steel
+        d["-d"] = 3  # Number of significant digits
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "12d:h") 
+            opts, args = getopt.getopt(sys.argv[1:], "12d:h")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -181,8 +199,7 @@ if 1:   # Utility
                     if not (1 <= d[o] <= 15):
                         raise ValueError()
                 except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                        "1 and 15")
+                    msg = "-d option's argument must be an integer between 1 and 15"
                     Error(msg)
             elif o == "-h":
                 Manpage()
@@ -200,27 +217,31 @@ if 1:   # Utility
         elif d["-2"]:
             d["c"] = 0.71
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def Westinghouse(t, L, r, θ):
         c = d["c"]
-        X = c*t + radians(θ)*r      # Bend allowance from Machinery's handbook
-        X1 = (r + t/2)*radians(θ)   # Basic bend allowance
+        X = c * t + radians(θ) * r  # Bend allowance from Machinery's handbook
+        X1 = (r + t / 2) * radians(θ)  # Basic bend allowance
         if d["-1"]:
             print(f"Bending soft copper or brass sheet")
         elif d["-2"]:
             print(f"Bending hard copper, cold-rolled steel, or spring steel sheet")
         else:
             print(f"Bending half-hard copper/brass, soft steel, or aluminum sheet")
-        i = " "*2
+        i = " " * 2
         print(f"{i}t  = sheet metal thickness       {t}")
         print(f"{i}L  = finished length             {L}")
         print(f"{i}r  = inside bend radius          {r}")
         print(f"{i}θ  = bend angle                  {θ}° = {radians(θ)} radians")
         print(f"{i}X  = bend allowance              {X} (geometrical {X1})")
         print(f"{i}L' = cut to length = L + X       {L + X}")
-    
+
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     # Get parameters
     t = flt(eval(args[0]))

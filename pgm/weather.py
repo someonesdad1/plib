@@ -1,66 +1,76 @@
-'''
+"""
 Get daily text form of weather forecast
     - Parse contents and convert to very short output
     - Use color to flag important stuff like winds, rain, thunderstorms,
       snow
-'''
-if 1:   # Header
+"""
+
+if 1:  # Header
     # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright © 2022 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
-        # Print out text-based weather information
-        #∞what∞#
-        #∞test∞# #∞test∞#
+    # These "trigger strings" can be managed with trigger.py
+    # ∞copyright∞# Copyright © 2022 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    # ∞license∞#
+    # ∞what∞#
+    # Print out text-based weather information
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     # Standard imports
-        import getopt
-        import os
-        from pathlib import Path as P
-        import re
-        import sys
-        from collections import deque
+    import getopt
+    import os
+    from pathlib import Path as P
+    import re
+    import sys
+    from collections import deque
+
     # Custom imports
-        import requests
-        import julian
-        import months
-        from wrap import dedent
-        from color import TRM as t
-        from lwtest import Assert
-        from dpprint import PP
-        pp = PP()   # Screen width aware form of pprint.pprint
+    import requests
+    import julian
+    import months
+    from wrap import dedent
+    from color import TRM as t
+    from lwtest import Assert
+    from dpprint import PP
+
+    pp = PP()  # Screen width aware form of pprint.pprint
     # Global variables
-        ii = isinstance
-        w = int(os.environ.get("COLUMNS", "80")) - 5
-        # Location
-        lat, lon = "43.5", "-116.4"
-        class g: 
-            # Global variable holder
-            pass
-        g.update = ""
-        # Turn on debugging to avoid loading from web
-        g.dbg = 1
-        g.dbg = 0
-if 1:   # Utility
+    ii = isinstance
+    w = int(os.environ.get("COLUMNS", "80")) - 5
+    # Location
+    lat, lon = "43.5", "-116.4"
+
+    class g:
+        # Global variable holder
+        pass
+
+    g.update = ""
+    # Turn on debugging to avoid loading from web
+    g.dbg = 1
+    g.dbg = 0
+if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] [s]
           Print NOAA weather forecast as plain text.  If s is not empty, a 
           one-line report for each period is given unless it's 'd', in
           which case the raw NOAA text is printed.
         Options:
             -h      Print a manpage
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-b"] = True            # Brief output (one line)
+        d["-b"] = True  # Brief output (one line)
         try:
             opts, args = getopt.getopt(sys.argv[1:], "bh", ["help"])
         except getopt.GetoptError as e:
@@ -75,35 +85,45 @@ if 1:   # Utility
         if not args:
             d["-b"] = not d["-b"]
         return args
-if 0:   # Functions to return string describing the weather feature
+
+
+if 0:  # Functions to return string describing the weather feature
+
     def AnalyzeRain(line):
-        'Return empty string if nothing of interest'
+        "Return empty string if nothing of interest"
         return ""
+
     def AnalyzeWind(line):
-        'Return empty string if nothing of interest'
+        "Return empty string if nothing of interest"
         return ""
+
     def AnalyzeThun(line):
-        'Return empty string if nothing of interest'
+        "Return empty string if nothing of interest"
         return ""
+
     def AnalyzeSnow(line):
-        'Return empty string if nothing of interest'
+        "Return empty string if nothing of interest"
         return ""
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def Wrap(line):
-        'Print the line wrapped as needed'
+        "Print the line wrapped as needed"
         n, used = 4, 0
-        print(f"{' '*n}", end="")
+        print(f"{' ' * n}", end="")
         used += n
         for word in line.split():
             l = len(word) + 1
             if l + used > w:
-                print(f"\n{' '*n}", end="")
+                print(f"\n{' ' * n}", end="")
                 used = n
             print(word, end=" ")
             used += l
         print()
+
     def Age():
-        'Return the age of the report in hours'
+        "Return the age of the report in hours"
         s = g.update.replace("Last Update: ", "")
         f = s.split()
         tm, ampm, tz, month, day, year = f
@@ -116,16 +136,19 @@ if 1:   # Core functionality
         jday = julian.JulianAstroDateTime(year, month, day, hour, minute, 0)
         jdaynow = julian.JulianNow()
         daydiff = jdaynow - jday
-        age_hours = int(round(24.0*daydiff, 0))
+        age_hours = int(round(24.0 * daydiff, 0))
         return age_hours
+
     def Get():
         file = "/plib/pgm/weather.data"
         if g.dbg:
             t.print(f"{t.dbg}weather.py is in debug mode")
             s = open(file).read()
         else:
-            url = (f"https://forecast.weather.gov/MapClick.php?lat={lat}&lon={lon}&"
-                   f"unit=0&lg=english&FcstType=text&TextType=1")
+            url = (
+                f"https://forecast.weather.gov/MapClick.php?lat={lat}&lon={lon}&"
+                f"unit=0&lg=english&FcstType=text&TextType=1"
+            )
             url = "https://forecast.weather.gov/MapClick.php?lat=43.6339&lon=-116.3256&unit=0&lg=english&FcstType=text&TextType=1"
             u = requests.get(url)
             s = u.content.decode()
@@ -142,9 +165,12 @@ if 1:   # Core functionality
                 ln = q.popleft()
         else:
             # Use regexps to keep only lines with data we want
-            s = ["^" + i for i in '''Last Today Tonight Monday Tuesday Wednesday 
-                   Thursday Friday Saturday Sunday'''.split()]
-            r = re.compile('|'.join(s))
+            s = [
+                "^" + i
+                for i in """Last Today Tonight Monday Tuesday Wednesday 
+                   Thursday Friday Saturday Sunday""".split()
+            ]
+            r = re.compile("|".join(s))
             o = []
             while q:
                 ln = q.pop(0)
@@ -157,6 +183,7 @@ if 1:   # Core functionality
                     print(i)
                 exit()
         return q
+
     def SetColors():
         t.dbg = t("purl")
         t.title = t("orn")
@@ -168,18 +195,19 @@ if 1:   # Core functionality
         t.cloud = t("vio")
         t.low = t("wht", "blu")
         t.high = t("yell", "lip")
+
     def Select(dq):
-        'Return a list of the lines to be printed'
+        "Return a list of the lines to be printed"
         Assert(ii(dq, deque))
         found, lines = False, []
-        show = 0    # Set to True to see all of the lines and then exit
+        show = 0  # Set to True to see all of the lines and then exit
         while dq:
             u = dq.popleft()
             u = u.strip()
             if show:
                 # Just print to see what's going on
                 print(u)
-                continue 
+                continue
             if not u:
                 continue
             if u.startswith("Last Update:"):
@@ -188,7 +216,7 @@ if 1:   # Core functionality
                 g.update = s.replace("</a>", "")
                 continue
             f = u.startswith
-            if (f("Today") or f("This ") or f("Tonight")):
+            if f("Today") or f("This ") or f("Tonight"):
                 found = True
             if not found:
                 continue
@@ -198,36 +226,41 @@ if 1:   # Core functionality
         if show:
             exit()
         Assert(lines)
-        if 0:   # Dump lines
+        if 0:  # Dump lines
             pp(lines)
             exit()
         return lines
+
     def PrintColors():
-        print(f"Colors:\n{t.dbg}debug{t.n} "
-              f"{t.title}title{t.n} "
-              f"{t.rain}rain{t.n} "
-              f"{t.snow}snow{t.n} "
-              f"{t.thun}thunderstorm{t.n} "
-              f"{t.wind}wind{t.n} "
-              f"{t.sun}sunny{t.n} "
-              f"{t.cloud}cloudy{t.n} "
-              f"{t.low}low{t.n} "
-              f"{t.high}high{t.n}")
+        print(
+            f"Colors:\n{t.dbg}debug{t.n} "
+            f"{t.title}title{t.n} "
+            f"{t.rain}rain{t.n} "
+            f"{t.snow}snow{t.n} "
+            f"{t.thun}thunderstorm{t.n} "
+            f"{t.wind}wind{t.n} "
+            f"{t.sun}sunny{t.n} "
+            f"{t.cloud}cloudy{t.n} "
+            f"{t.low}low{t.n} "
+            f"{t.high}high{t.n}"
+        )
+
     def Report(lines):
         for line in lines:
             loc = line.find(":")
             title = line[:loc]
-            details = line[loc + 1:].strip()
+            details = line[loc + 1 :].strip()
             PrintTitle(title, details)
             if d["-b"]:
                 Wrap(details)
         age = Age()
         print(f"Data are {age} hours old")
         PrintColors()
+
     def PrintTitle(title, line):
-        '''Print the title with color coding.  To do this, search line
+        """Print the title with color coding.  To do this, search line
         text for keywords.
-        '''
+        """
         r = line.lower()
         rain = True if "rain" in r or "shower" in r else False
         snow = True if "snow" in r else False
@@ -236,7 +269,7 @@ if 1:   # Core functionality
         sunny = True if "sunny" in r else False
         cloudy = True if "cloudy" in r else False
         # Get high and low temperatures
-        s = " "*2
+        s = " " * 2
         mo = re.search(r"high near (-?\d{1,3})", line, re.I)
         if mo:
             high = f"{t.high}{mo.groups()[0]}{t.n}{s}"
@@ -250,8 +283,8 @@ if 1:   # Core functionality
         temp = f"{low}{high}{t.n}"
         # Print title to 16 characters wide
         n = 16 - len(title)
-        print(f"{t.title}{title:s}{t.n}", end=" "*n)
-        print(f"{temp}", end=" "*4)
+        print(f"{t.title}{title:s}{t.n}", end=" " * n)
+        print(f"{temp}", end=" " * 4)
         if thund:
             print(f"{t.thun}tstorm{t.n} ", end="")
         if snow:
@@ -266,8 +299,9 @@ if 1:   # Core functionality
             print(f"{t.cloud}cloudy{t.n} ", end="")
         print()
 
-if __name__ == "__main__": 
-    d = {}      # Options dictionary
+
+if __name__ == "__main__":
+    d = {}  # Options dictionary
     SetColors()
     args = ParseCommandLine(d)
     dq = Get()

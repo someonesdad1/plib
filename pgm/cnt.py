@@ -1,15 +1,15 @@
-'''
+"""
 Count 8-bit characters in a stream or file
     TODO
- 
+
     * Change -r to turn on a report section that provides a number of
-      statistical tests of randomness:  
- 
+      statistical tests of randomness:
+
         - Entropy
         - Chi-squared
         - Mean
         - Serial correlation test
- 
+
     These statistical calculations should be done during the
     accumulation of the data from the files, but only if -r is used
     because they slow things down considerably.  Or, they would only
@@ -17,21 +17,22 @@ Count 8-bit characters in a stream or file
     chi-squared, and mean could be calculated at report time.  The
     Serial correlation data adds to the calculation time, so it would
     only be printed if the -R option was used.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2012, 2019 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2012, 2019 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Count 8-bit characters in a stream or file
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import getopt
     import io
     import itertools
@@ -41,27 +42,31 @@ if 1:   # Imports
     from collections import defaultdict
     from pprint import pprint as pp
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
     from columnize import Columnize
     from fpformat import FPFormat
     from roundoff import RoundOff
     from color import TRM as T
     from pdb import set_trace as xx
+
     if 0:
         import debug
+
         debug.SetDebugger()
-if 1:   # Global variables
+if 1:  # Global variables
     # Colors
     # Regular expression decoration
     T.max = T("grnl")
     T.median = T("cynl")
     T.min = T("redl")
     T.filtered = T("yell")
+
+
 def ProcessFile(file, d):
-    ''' Read in the bytes from the file and add them to the
+    """Read in the bytes from the file and add them to the
     d["counts"] dictionary.
-    '''
+    """
     try:
         ifp = sys.stdin.buffer if file == "-" else open(file, "rb")
     except IsADirectoryError:
@@ -79,11 +84,15 @@ def ProcessFile(file, d):
         b = ifp.read(d["chunksize"])
         if d["-u"]:
             b = b.decode("UTF-8")
+
+
 def GetCharacterClasses(d):
     'Set up the various character classes in d["char_classes"]'
+
     def F(s):
-        'Convert the string s to a set of its ord numbers.'
+        "Convert the string s to a set of its ord numbers."
         return set([ord(i) for i in s])
+
     cc = {
         "all": set(range(256)),
         "ctrl": set(range(32)),
@@ -100,26 +109,35 @@ def GetCharacterClasses(d):
         "ws": F(string.whitespace),
     }
     d["char_classes"] = cc
+
+
 def SetUpEncoding(d):
-    '''The d["encoding"] dictionary is used to print out the
+    """The d["encoding"] dictionary is used to print out the
     characters for the given ord() value of a character.  This is done
-    for two reasons:  1) The ASCII control characters are printed with 
-    mnemonics and 2) certain 8-bit characters are replaced by a small 
+    for two reasons:  1) The ASCII control characters are printed with
+    mnemonics and 2) certain 8-bit characters are replaced by a small
     square because they don't print correctly in mintty under cygwin
     (which is where I'm currently working).  You'll want to change this
     encoding if you're working with a more sensible console program.
-    '''
+    """
     # Set up the control character mnemonics
     e = d["encoding"] = {}
-    for i, c in enumerate(("nul soh stx etx eot enq ack bel bs ht nl vt np "
+    for i, c in enumerate(
+        (
+            "nul soh stx etx eot enq ack bel bs ht nl vt np "
             "cr so si dle dc1 dc2 dc3 dc4 nak syn etb can em sub esc fs gs "
-            "rs us sp").split()):
+            "rs us sp"
+        ).split()
+    ):
         e[i] = c
-    u = chr(0x25ab)     # White small square
+    u = chr(0x25AB)  # White small square
     for i in range(33, 256):
         e[i] = u if 127 <= i <= 159 else chr(i)
+
+
 def Usage(d, status=1):
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]} [options] [file1 [file2 ...]]
       Construct a table of the counts of the bytes in one or more files
       (use '-' for stdin).  Directories on the command line are ignored.
@@ -185,8 +203,11 @@ def Usage(d, status=1):
         lowest_count        = Count of least frequent byte(s) (nonzero)
         median              = ord() at midpoint of ordered list of bytes
         total_bytes_read    = Number of bytes in input
-    '''))
+    """)
+    )
     exit(status)
+
+
 def ParseCommandLine(d):
     d["-C"] = True
     d["-c"] = []
@@ -220,16 +241,17 @@ def ParseCommandLine(d):
         if o[1] in "CDdfLlNnoPpRrsuvXx":
             d[o] = not d[o]
         elif o == "-c":
+
             def ProcessCharacterClass(cls):
                 # Specify character class
                 if cls not in d["char_classes"]:
-                    s = (f"'{cls}' is an unrecognized character class.  "
-                         f"Choose from:")
+                    s = f"'{cls}' is an unrecognized character class.  Choose from:"
                     print(s)
                     s = "\n   ".join(list(d["char_classes"]))
                     print("  ", s)
                     exit(1)
                 d["-c"].append(cls)
+
             if " " in a:
                 for cls in a.strip().split():
                     ProcessCharacterClass(cls)
@@ -247,8 +269,7 @@ def ParseCommandLine(d):
             if i in others:
                 if i == "-c" and d["-X"]:
                     continue
-                print(f"Warning:  option {i} not functional with -u",
-                      file=sys.stderr)
+                print(f"Warning:  option {i} not functional with -u", file=sys.stderr)
     if d["-R"]:
         d["-r"] = True
     if d["-X"] and not (d["-c"] or d["-S"]):
@@ -259,10 +280,12 @@ def ParseCommandLine(d):
     if not args:
         Usage(d)
     return args
+
+
 def GetStatistics(d):
-    ''' Calculate the counting statistics and put them in 
+    """Calculate the counting statistics and put them in
     d["statistics"].
-    '''
+    """
     C = d["counts"]
     total_bytes_read = sum(C.values())
     if d["-u"]:
@@ -271,7 +294,7 @@ def GetStatistics(d):
     if d["-f"]:
         # Put uppercase counts into lowercase counts
         folded = True
-        for i in range(ord('A'), ord('Z') + 1):
+        for i in range(ord("A"), ord("Z") + 1):
             C[i + 32] += C[i]
             del C[i]
     items = sorted(C.items())
@@ -281,13 +304,13 @@ def GetStatistics(d):
     filtered = bool(d["-c"] or d["-S"])
     if filtered:
         keep = set()
-        character_classes = ' '.join(d["-c"])
+        character_classes = " ".join(d["-c"])
         s = None
         for i in character_classes.split():
             s = d["char_classes"][i]
             keep |= s
         keep |= d["-S"]
-        if d["-X"]:     # Get the complement
+        if d["-X"]:  # Get the complement
             keep = set(range(256)) - keep
         C1 = defaultdict(int)
         for i in C:
@@ -296,21 +319,23 @@ def GetStatistics(d):
         d["counts"] = C = C1
         del s, keep, C1, i
         filtered_bytes_read = sum(C.values())
-    if 1:   # Median
-        midcount = filtered_bytes_read//2 if filtered else total_bytes_read//2
+    if 1:  # Median
+        midcount = filtered_bytes_read // 2 if filtered else total_bytes_read // 2
         # Find the location in values where the cumulative sum is closest
         # to midcount
         cumul = list(itertools.accumulate(values))
         diff = [abs(i - midcount) for i in cumul]
         median = None
         if d["-v"]:
-            print(dedent(f'''
+            print(
+                dedent(f"""
                 Median data:
-                  midcount = {midcount}'''))
+                  midcount = {midcount}""")
+            )
             s = []
             for b, df in zip(keys, diff):
                 s.append(f"{b:3d} {df:{max([len(str(i)) for i in diff])}d}")
-            for i in Columnize(s, indent=" "*2):
+            for i in Columnize(s, indent=" " * 2):
                 print(i)
         try:
             n = diff.index(min(diff))
@@ -321,9 +346,9 @@ def GetStatistics(d):
             del midcount, cumul, diff, n, b, s, i, df
         except Exception:
             pass
-    if d["-r"]:   # chi-squared
-        e = total_bytes_read//256       # Expected value for each count
-        terms = [RoundOff((i - e)**2/e, 3) for i in values]
+    if d["-r"]:  # chi-squared
+        e = total_bytes_read // 256  # Expected value for each count
+        terms = [RoundOff((i - e) ** 2 / e, 3) for i in values]
         d["chi_square_terms"] = list(zip(keys, values, terms))
         chi_squared = round(sum(terms), 2)
         if chi_squared >= 1000:
@@ -331,11 +356,11 @@ def GetStatistics(d):
         else:
             chi_squared = str(chi_squared) + " (255 d.f.)"
         expected_count = e
-        mean = sum([i*j for i, j in d["counts"].items()])
-        mean = mean/filtered_bytes_read if filtered else mean/total_bytes_read
+        mean = sum([i * j for i, j in d["counts"].items()])
+        mean = mean / filtered_bytes_read if filtered else mean / total_bytes_read
         mean = round(mean, 2)
         del e, terms
-    if d["-f"]:   # Upper case folded into lower case counts
+    if d["-f"]:  # Upper case folded into lower case counts
         folded = True
     count_nonzero = len(C)
     count_zero = 256 - count_nonzero
@@ -351,37 +376,41 @@ def GetStatistics(d):
         print("Variables in GetStatistics():")
         for i in l:
             print(f"   {i:20s}= {l[i]}")
+
+
 def PrintFiles(d):
-    ''
+    ""
     if d["-D"]:
         n = len(d["files"])
         s = "s" if n > 1 else ""
         print(f"{n} file{s} processed:")
-        for i in Columnize(d["files"], indent=" "*2):
+        for i in Columnize(d["files"], indent=" " * 2):
             print(i)
+
+
 def ReportLongForm(d):
-    ''' Show the detailed long report.  The fields printed are:
-        Byte decimal value
-        Byte hex value
-        Byte character form
-        Count
-        Relative percentage
-        Histogram of relative percentage using '*' characters
-    '''
+    """Show the detailed long report.  The fields printed are:
+    Byte decimal value
+    Byte hex value
+    Byte character form
+    Count
+    Relative percentage
+    Histogram of relative percentage using '*' characters
+    """
     # Get needed data
     stats, counts, e = d["statistics"], d["counts"], d["encoding"]
     max_count = stats["highest_count"]
     median = stats["median"]
     highest, lowest = stats["highest"], stats["lowest"]
     filtered = stats["filtered"]
-    numplaces = len(str(stats["highest_count"])) 
+    numplaces = len(str(stats["highest_count"]))
     used_dot = False
     lines = []
     # Sort data
-    if d["-s"]:     # Sort by count values
+    if d["-s"]:  # Sort by count values
         t = sorted([(j, i) for i, j in counts.items()])
         items = [j for i, j in reversed(t)]
-    else:           # Sort by byte value
+    else:  # Sort by byte value
         items = sorted(counts)
     # Get screen width
     c, E = "COLUMNS", os.environ
@@ -391,9 +420,9 @@ def ReportLongForm(d):
         print("Byte percentages:")
     else:
         print("Byte counts:")
-    W = w - 3 - 1 - 2 - 1 - 3 - numplaces - 1 - 2   # Room left for *'s
+    W = w - 3 - 1 - 2 - 1 - 3 - numplaces - 1 - 2  # Room left for *'s
     for i in items:
-        a = "*"*int(W*counts[i]/max_count)
+        a = "*" * int(W * counts[i] / max_count)
         printed_color = False
         if i in highest and d["-C"]:
             printed_color = True
@@ -409,26 +438,29 @@ def ReportLongForm(d):
             print(T.n)
         else:
             print()
+
+
 def PrintStatistics(d):
     def F(x, flag, name):
         # flag:  0 = normal, 1 = max, 2 = min, 3 = median
         if isinstance(x, (list, tuple)):
             if flag:
-                s = [' '.join([str(i) for i in x])]
-                s += [' '.join([e[i] for i in x])]
+                s = [" ".join([str(i) for i in x])]
+                s += [" ".join([e[i] for i in x])]
                 if d["-x"]:
-                    s += [' '.join([f"0x{i:02x}" for i in x])]
+                    s += [" ".join([f"0x{i:02x}" for i in x])]
                 elif d["-o"]:
-                    s += [' '.join([f"0o{i:03o}" for i in x])]
-                t = ' ≡ '.join(s)
+                    s += [" ".join([f"0o{i:03o}" for i in x])]
+                t = " ≡ ".join(s)
                 if d["-C"]:
                     c = T.max if flag == 1 else T.min if flag == 2 else T.median
                     t = c + t + T.n
                 return t
             else:
-                return ' '.join([str(i) for i in x])
+                return " ".join([str(i) for i in x])
         else:
             return str(x)
+
     print("Statistics:")
     stats, counts, e = d["statistics"], d["counts"], d["encoding"]
     max_count = stats["highest_count"] if stats["highest_count"] else None
@@ -437,8 +469,8 @@ def PrintStatistics(d):
     filtered = stats["filtered"]
     used_dot = False
     lines = []
-    n = 23      # Width of statistics names
-    trans = {   # Get printed name of statistics
+    n = 23  # Width of statistics names
+    trans = {  # Get printed name of statistics
         "chi_squared": "Chi-squared",
         "count_nonzero": "Used bytes",
         "count_zero": "Unused bytes",
@@ -468,23 +500,25 @@ def PrintStatistics(d):
         elif i == "median":
             flag = 3
         if i == "character_classes" and d["-S"]:
-            t = ''.join(sorted(list([chr(j) for j in d["-S"]])))
+            t = "".join(sorted(list([chr(j) for j in d["-S"]])))
             if stats[i]:
                 stats[i] += f" special('{t}')"
             else:
                 stats[i] = f"special('{t}')"
         s = stats[i]
         j = trans[i]
-        if i in set("lowest_count highest_count total_bytes_read "
-                    "filtered_bytes_read".split()):
+        if i in set(
+            "lowest_count highest_count total_bytes_read filtered_bytes_read".split()
+        ):
             print(f"   {j:{n}s}= {stats[i]:,}")
         else:
             print(f"   {j:{n}s}= {F(stats[i], flag, i)}")
+
+
 def PrintReport(d):
-    ''' Show the collected counts.
-    '''
+    """Show the collected counts."""
     PrintFiles(d)
-    if d["-u"]:     # Interpret files as UTF-8 encoded text files
+    if d["-u"]:  # Interpret files as UTF-8 encoded text files
         # Used to align decimal points in percentage
         fp = FPFormat(num_digits=3)
         GetStatistics(d)
@@ -494,15 +528,15 @@ def PrintReport(d):
         counts, e = d["counts"], d["encoding"]
         max_count = max(len(str(max(counts.values()))), 5)
         # Sort data
-        if d["-s"]:     # Sort by count values
+        if d["-s"]:  # Sort by count values
             t = sorted([(j, i) for i, j in counts.items()])
             items = [j for i, j in reversed(t)]
-        else:           # Sort by byte value
+        else:  # Sort by byte value
             items = sorted(counts)
         # If -X option used, filter out the non-wanted characters
         if d["-X"]:
             keep = set()
-            character_classes = ' '.join(d["-c"])
+            character_classes = " ".join(d["-c"])
             s = None
             for i in character_classes.split():
                 s = d["char_classes"][i]
@@ -519,7 +553,7 @@ def PrintReport(d):
         for i in items:
             n = counts[i]
             c = chr(i)
-            p = 100*n/total_characters
+            p = 100 * n / total_characters
             try:
                 pct = fp.dp(p, width=30, dpoint=4)
             except ValueError:
@@ -528,17 +562,14 @@ def PrintReport(d):
             try:
                 c = e[i]
                 hx = f"{i:02x}"
-                print(f"{i:7d} {hx:^8s} {c:^3s}   {counts[i]:{max_count}d} "
-                      f"{pct}")
+                print(f"{i:7d} {hx:^8s} {c:^3s}   {counts[i]:{max_count}d} {pct}")
             except KeyError:
-                if i <= 0xffff:
+                if i <= 0xFFFF:
                     s = f"U+{i:04x}"
-                    print(f"{i:7d} {s:^8s} {c:^3s}   {counts[i]:{max_count}d}"
-                          f" {pct}")
-                        
+                    print(f"{i:7d} {s:^8s} {c:^3s}   {counts[i]:{max_count}d} {pct}")
+
                 else:
-                    print(f"{i:7d} U+{i:06x} {c:^3s}   {counts[i]:{max_count}d}"
-                          f" {pct}")
+                    print(f"{i:7d} U+{i:06x} {c:^3s}   {counts[i]:{max_count}d} {pct}")
         return
     else:
         GetStatistics(d)
@@ -554,6 +585,7 @@ def PrintReport(d):
                 # Sort the data by the size of the terms
                 def k(x):
                     return x[2]
+
                 data = sorted(data, key=k, reverse=True)
             s = []
             terms = [k for i, j, k in data]
@@ -571,7 +603,7 @@ def PrintReport(d):
                     s.append(f"{key:02d} {t:{n}s}")
                 else:
                     s.append(f"{e[key]:^3s} {t:{n}s}")
-            for i in Columnize(s, indent=" "*2):
+            for i in Columnize(s, indent=" " * 2):
                 print(i)
     # Get needed data
     stats, counts, e = d["statistics"], d["counts"], d["encoding"]
@@ -583,10 +615,10 @@ def PrintReport(d):
     used_dot = False
     lines = []
     # Sort data
-    if d["-s"]:     # Sort by count values
+    if d["-s"]:  # Sort by count values
         t = sorted([(j, i) for i, j in counts.items()])
         items = [j for i, j in reversed(t)]
-    else:           # Sort by byte value
+    else:  # Sort by byte value
         items = sorted(counts)
     # Print counts
     for i in items:
@@ -600,7 +632,7 @@ def PrintReport(d):
         else:
             s1 = f"{e[i]:^3s}"
         if d["-p"] or d["-P"]:
-            p = 100*counts[i]/stats["highest_count"]
+            p = 100 * counts[i] / stats["highest_count"]
             if p:
                 if d["-P"]:
                     s2 = f"{p:7.3f}  "
@@ -609,7 +641,7 @@ def PrintReport(d):
                     s2 = f"{p:4d}  " if p else "   ."
                     used_dot = "." in s2
             else:
-                s2 = " "*4
+                s2 = " " * 4
         else:
             s2 = f"{counts[i]:{numplaces}}  "
         line = s1 + s2
@@ -636,10 +668,10 @@ def PrintReport(d):
             lines = [f"{e[i]:^3s}" for i in b]
             s = ""
         print(f"Bytes not present in data{s}:")
-        for i in Columnize(lines, indent=" "*2):
+        for i in Columnize(lines, indent=" " * 2):
             print(i)
         return
-    if d["-l"]:   # Long form of report
+    if d["-l"]:  # Long form of report
         ReportLongForm(d)
     else:
         s = " (. means > 0 but rounds to 0)" if used_dot else ""
@@ -649,12 +681,14 @@ def PrintReport(d):
             print(f"Byte percentages{p}{s}:")
         else:
             print(f"Byte {ho}counts:")
-        for i in Columnize(lines, indent=" "*2):
+        for i in Columnize(lines, indent=" " * 2):
             print(i)
+
+
 if __name__ == "__main__":
-    d = {   # Options dictionary
-        "chunksize": int(1e6),          # How much to read into buffer
-        "counts": defaultdict(int),     # Store counts
+    d = {  # Options dictionary
+        "chunksize": int(1e6),  # How much to read into buffer
+        "counts": defaultdict(int),  # Store counts
     }
     GetCharacterClasses(d)
     SetUpEncoding(d)

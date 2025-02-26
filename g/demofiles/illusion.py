@@ -1,27 +1,31 @@
-'''
+"""
 Interesting illusion from
 http://www.ritsumei.ac.jp/~akitaoka/saishin-e.html
-'''
+"""
+
 import sys
 import string
 import math
 from g import *
+
 # Global variables
-nx = 1    # Number of circles in X direction
-ny = 1    # Number of circles in Y direction
-nc = 20   # Number of items around the circumference
-nr = 10   # Number of radii to plot on
-D = 2     # Circle diameter
+nx = 1  # Number of circles in X direction
+ny = 1  # Number of circles in Y direction
+nc = 20  # Number of items around the circumference
+nr = 10  # Number of radii to plot on
+D = 2  # Circle diameter
 # Starting circle's center
 X0 = 4.25
 Y0 = 5.75
 # Spacing of circles
 dX = 2
 dY = 2
+
+
 def PlotItem(width, height):
-    '''This is the basic graphical unit that the whole picture is made
+    """This is the basic graphical unit that the whole picture is made
     up from.
-    '''
+    """
     push()
     # Draw a black rectangle
     rmove(-width / 2, -height / 2)
@@ -37,6 +41,8 @@ def PlotItem(width, height):
     fillColor(yellow)
     ellipse(major_diameter, minor_diameter)
     pop()
+
+
 def PlotCircle(xcenter, ycenter):
     push()
     nr = 22
@@ -61,7 +67,9 @@ def PlotCircle(xcenter, ycenter):
             PlotItem(width, height)
             pop()
     pop()
-if __name__ == "__main__": 
+
+
+if __name__ == "__main__":
     os = open("out/illusion.ps", "w")
     ginitialize(os)
     # setOrientation(landscape, inches)

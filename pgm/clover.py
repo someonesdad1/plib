@@ -1,9 +1,10 @@
-'''Clover lapping/grinding compounds
+"""Clover lapping/grinding compounds
 
 Sizes from https://www.kemet.co.uk/blog/lapping/clover-lapping-compound-comparision-chart
-'''
+"""
 
-print('''
+print(
+    """
 Clover brand grinding compounds
 
     Clover  US grit
@@ -19,4 +20,5 @@ Clover brand grinding compounds
     B        240
     C        220
     D        180
-    NC       150'''[1:])
+    NC       150"""[1:]
+)

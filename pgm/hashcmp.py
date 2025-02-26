@@ -1,33 +1,37 @@
-'''
+"""
 Given two files of sha or md5 output (first token hash, second token
 file name), compare the files and find any mismatches.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Compare two files with hash/file tokens to find differences
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import getopt
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
-if 1:   # Global variables
+if 1:  # Global variables
     d = {}  # Options dictionary
-if 1:   # Utility
+if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [-i] file1 file2
           Compares two files that contain two fields:
               1:  Hash of the file's data
@@ -36,8 +40,10 @@ if 1:   # Utility
           and identifies files in one set but not in the other.
         Options
           -i    Ignore case in the file names
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine():
         d["-i"] = False
         try:
@@ -53,8 +59,10 @@ if 1:   # Utility
         if len(args) != 2:
             Usage()
         return args
+
+
 def ReadFile(file, ignore_case=False):
-    'Return a dict of filename:hash pairs'
+    "Return a dict of filename:hash pairs"
     lines = open(file).readlines()
     di = {}
     for line in lines:
@@ -68,8 +76,10 @@ def ReadFile(file, ignore_case=False):
         else:
             di[name] = hash
     return di
+
+
 def Compare(d1, d2):
-    'Compare two dictionaries of hashes by keys'
+    "Compare two dictionaries of hashes by keys"
     s1, s2 = set(d1), set(d2)
     common_keys = s1 & s2
     for key in common_keys:
@@ -88,7 +98,9 @@ def Compare(d1, d2):
         print(f"Files in '{file2}' not in '{file1}':")
         for key in sorted(diff2):
             print(f"  {key}")
-if __name__ == "__main__": 
+
+
+if __name__ == "__main__":
     file1, file2 = ParseCommandLine()
     d1 = ReadFile(file1)
     d2 = ReadFile(file2)

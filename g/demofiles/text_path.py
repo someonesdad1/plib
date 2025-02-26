@@ -1,8 +1,10 @@
-'''
+"""
 Demonstrates text along a path.
-'''
+"""
+
 from g import *
 from math import sqrt
+
 Setup("out/text_path.ps", orientation=landscape, units=inches)
 translate(1, 1)
 move(0, 0)
@@ -10,10 +12,10 @@ move(0, 0)
 NewPath()
 a, b = 6, 3  # Major, minor diameters
 n = 20
-dx = a/(n+1)
+dx = a / (n + 1)
 for i in range(n):
-    x = i*dx
-    y = sqrt(b**2*(1 - (x/a)**2))
+    x = i * dx
+    y = sqrt(b**2 * (1 - (x / a) ** 2))
     PathAdd((x, y))
 p = GetPath()
 LineWidth(0.001)

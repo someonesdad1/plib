@@ -1,16 +1,20 @@
-'''
+"""
 Draw a number of filled elliptical arcs with randomly-chosen colors.
 This example draws a set of ellipses in the center of the screen, then
 shows how easy it is to make the set of ellipses in a smaller part of
 the screen by translating and scaling the coordinate system.
-'''
+"""
+
 from g import *
 import random
+
 # Convenience name for a random number generator that returns a
 # uniformly-distributed random number between 0.0 and 1.0.
-rand = random.random  
+rand = random.random
+
+
 def BlackBackground():
-    '''Fill the whole drawing area with black.'''
+    """Fill the whole drawing area with black."""
     push()
     reset()
     move(-10, -10)
@@ -18,8 +22,12 @@ def BlackBackground():
     fillOn()
     rectangle(1000, 1000)
     pop()
+
+
 def GetRandomColor():
     return (rand(), rand(), rand())
+
+
 def RandomEllipticalArcs(numArcs=20):
     for ix in range(numArcs):
         r, g, b = rand(), rand(), rand()
@@ -35,9 +43,9 @@ def RandomEllipticalArcs(numArcs=20):
         else:
             fillOff()
         move(rand(), rand())
-        ellipticalArc(
-            major_diameter, minor_diameter, start_angle, stop_angle
-        )
+        ellipticalArc(major_diameter, minor_diameter, start_angle, stop_angle)
+
+
 def DrawEllipses(file):
     s = Setup(file, portrait, inches)
     random.seed(1)
@@ -59,4 +67,6 @@ def DrawEllipses(file):
     RandomEllipticalArcs()
     pop()
     s.close()
+
+
 DrawEllipses("out/ellipses.ps")

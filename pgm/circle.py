@@ -1,4 +1,4 @@
-'''
+"""
 ToDo
     - Allow input numbers to have uncertainties
 
@@ -7,113 +7,133 @@ Interactive script for various circle calculations:
     2. Segment area
     3. Sector area
     4. 3 mutually tangent circles given their centers
- 
+
     See http://mathworld.wolfram.com/TangentCircles.html for details
-'''
+"""
+
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Interactive circle tool:  3 pts, segment/sector area, 3 tangent circles
-        #∞what∞#
-        #∞test∞# --test #∞test∞#
+        # ∞what∞#
+        # ∞test∞# --test #∞test∞#
         pass
-    if 1:   # Imports
+    if 1:  # Imports
         import sys
         from fractions import Fraction
         import getopt
         from pdb import set_trace as xx
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from get import GetNumber
         from wrap import dedent
         from f import flt, pi, sqrt, asin, sin, hypot, fmod, radians
         from roundoff import RoundOff
         from lwtest import run, assert_equal, raises
 if 1:  # Utility
+
     def Error(msg, status=1, end=True):
         print(msg, file=sys.stderr)
         exit(status)
-if 1:   # Unit-test functions
+
+
+if 1:  # Unit-test functions
+
     def TestSectorArea():
         # Radius, angle
-        r, circle = 1, 2*pi      # Unit circle
+        r, circle = 1, 2 * pi  # Unit circle
         for n in range(1, 11):
-            assert_equal(SectorArea_r_theta(r, circle/n), pi/n)
+            assert_equal(SectorArea_r_theta(r, circle / n), pi / n)
         # Radius, arc length
-        r, b = 1, 2*pi
-        assert_equal(SectorArea_r_b(r, b), pi*r**2)
+        r, b = 1, 2 * pi
+        assert_equal(SectorArea_r_b(r, b), pi * r**2)
         # Radius, width
-        r, s = 1, 2     # Unit circle, on diameter
-        assert_equal(SectorArea_r_s(r, s), pi*r**2/2)
+        r, s = 1, 2  # Unit circle, on diameter
+        assert_equal(SectorArea_r_s(r, s), pi * r**2 / 2)
+
     def TestSegmentArea():
         # Radius, angle
-        r, theta = 1, pi/2
-        A = (theta - 1)/2
+        r, theta = 1, pi / 2
+        A = (theta - 1) / 2
         assert_equal(SectorArea_r_theta(r, theta, segment=True), A)
         # Radius, arc length
-        r, b = 1, 2*pi
-        assert_equal(SectorArea_r_b(r, b, segment=True), pi*r**2)
-        r, b = 1, pi/2
+        r, b = 1, 2 * pi
+        assert_equal(SectorArea_r_b(r, b, segment=True), pi * r**2)
+        r, b = 1, pi / 2
         assert_equal(SectorArea_r_b(r, b, segment=True), A)
         # Radius, width
-        r, s = 1, 2     # Unit circle, on diameter
-        assert_equal(SectorArea_r_s(r, s, segment=True), pi*r**2/2)
-        r, s = 1, sqrt(2)     # Unit circle, 90 degrees
+        r, s = 1, 2  # Unit circle, on diameter
+        assert_equal(SectorArea_r_s(r, s, segment=True), pi * r**2 / 2)
+        r, s = 1, sqrt(2)  # Unit circle, 90 degrees
         assert_equal(SectorArea_r_s(r, s, segment=True), A, abstol=1e-15)
+
     def TestCircleThroughThreePoints():
         # Unit circle at origin
         x, y, r = Circ3Pts((1, 0), (0, 1), (-1, 0))
         assert_equal(x, 0)
         assert_equal(y, 0)
         assert_equal(r, 1)
+
     def TestTangentCenters():
         # Equilateral triangle with base of length 2 centered on x axis;
         # each circle will be a unit circle.
         p1, p2, p3 = (-1, 0), (1, 0), (0, sqrt(3))
         for i in TangentCenters(p1, p2, p3):
             assert_equal(i, 1, reltol=1e-15)
+
     def TestGetPoint():
         x, y = GetPoint("", test="0 0")
-        assert(not x and not y)
+        assert not x and not y
         x, y = GetPoint("", test="1 0")
-        assert(x == 1 and not y)
+        assert x == 1 and not y
         x, y = GetPoint("", test="1 2")
-        assert(x == 1 and y == 2)
+        assert x == 1 and y == 2
         x, y = GetPoint("", test="1 sqrt(3)")
-        assert(x == 1 and y == sqrt(3))
+        assert x == 1 and y == sqrt(3)
+
     def TestDet():
         d = Det(((1, 0, 0), (0, 1, 0), (0, 0, 1)))
         assert_equal(d, 1)
         d = Det(((-1, 0, 0), (0, -1, 0), (0, 0, -1)))
         assert_equal(d, -1)
         # 3x3 Hilbert matrix
-        d = Det(((1, 1/2, 1/3), (1/2, 1/3, 1/4), (1/3, 1/4, 1/5)))
+        d = Det(((1, 1 / 2, 1 / 3), (1 / 2, 1 / 3, 1 / 4), (1 / 3, 1 / 4, 1 / 5)))
+
         def f(x):
             return Fraction(1, x)
+
         ans = f(15) - f(16) - f(20) + f(12) - f(27)
         assert_equal(d, float(ans), reltol=1e-13)
+
+
 if 1:  # Helpers
+
     def Det(matrix):
-        '''Calculate the determinant of a 3x3 matrix.  matrix must be a
+        """Calculate the determinant of a 3x3 matrix.  matrix must be a
         sequence of 3 sequences containing numbers.
-        '''
+        """
         a1, a2, a3 = matrix[0]
         a4, a5, a6 = matrix[1]
         a7, a8, a9 = matrix[2]
-        d = a1*(a5*a9 - a6*a8) - a2*(a4*a9 - a6*a7) + a3*(a4*a8 - a5*a7)
+        d = (
+            a1 * (a5 * a9 - a6 * a8)
+            - a2 * (a4 * a9 - a6 * a7)
+            + a3 * (a4 * a8 - a5 * a7)
+        )
         return flt(d)
+
     def GetPoint(prompt, default_response="", test=None):
-        '''Return a tuple of two flts (x, y) gotten from prompting the user.  If you
+        """Return a tuple of two flts (x, y) gotten from prompting the user.  If you
         use a comma, you can use expressions with spaces in them.
-     
+
         If test is not None, then it is the string that is parsed.
-        '''
+        """
         while True:
             if test:
                 s = test
@@ -136,10 +156,12 @@ if 1:  # Helpers
                 f = s.split()
             # Must have two components
             if len(f) != 2:
-                print(dedent('''
+                print(
+                    dedent("""
                 You must enter two numbers or expressions separated by a space or comma.
                 If you use a comma, the two expressions can contain spaces.
-                '''))
+                """)
+                )
                 continue
             # Convert them to numbers
             try:
@@ -149,13 +171,14 @@ if 1:  # Helpers
                 print("'{}' contains an invalid expression".format(s))
                 continue
             return (flt(x), flt(y))
+
     def GetInput(prompt, default_response="", acceptable=[], lower=True):
-        '''Prompt the user and get a response.  If default_response is
+        """Prompt the user and get a response.  If default_response is
         given, it's what is returned if the user just hits the Enter key.
         If acceptable is not empty, then the responses must be in this
         container.  If lower is True, convert the responses to lower case
         before testing.
-        '''
+        """
         while True:
             answer = input(prompt).strip()
             ans = answer.lower() if lower else answer
@@ -166,27 +189,33 @@ if 1:  # Helpers
             elif ans == "q":
                 exit(0)
             print(f"'{answer}' is not a proper response")
+
+
 if 1:  # Core functionality
+
     def Circ3Pts(p1, p2, p3):
-        'Equations from http://mathworld.wolfram.com/Circle.html'
+        "Equations from http://mathworld.wolfram.com/Circle.html"
         x1, y1 = p1
         x2, y2 = p2
         x3, y3 = p3
+
         def hyp(a, b):
-            return a*a + b*b
+            return a * a + b * b
+
         h1, h2, h3 = hyp(x1, y1), hyp(x2, y2), hyp(x3, y3)
-        a =  Det(((x1, y1, 1), (x2, y2, 1), (x3, y3, 1)))
+        a = Det(((x1, y1, 1), (x2, y2, 1), (x3, y3, 1)))
         d = -Det(((h1, y1, 1), (h2, y2, 1), (h3, y3, 1)))
-        e =  Det(((h1, x1, 1), (h2, x2, 1), (h3, x3, 1)))
+        e = Det(((h1, x1, 1), (h2, x2, 1), (h3, x3, 1)))
         f = -Det(((h1, x1, y1), (h2, x2, y2), (h3, x3, y3)))
         if not a:
             raise ValueError("Points are collinear")
-        x = flt(-d/(2*a))
-        y = flt(-e/(2*a))
-        r = flt((d*d + e*e)/(4*a*a) - f/a)
+        x = flt(-d / (2 * a))
+        y = flt(-e / (2 * a))
+        r = flt((d * d + e * e) / (4 * a * a) - f / a)
         if r < 0:
             raise ValueError("r is negative = " + str(r))
         return x, y, r
+
     def Circle3Points():
         print("\nEnter the three points:")
         p1 = GetPoint("(x1, y1) = ? ")
@@ -200,15 +229,16 @@ if 1:  # Core functionality
         print("\nResults:")
         print("  Center   =", str((x, y)))
         print("  Radius   =", r)
-        print("  Diameter =", 2*r)
+        print("  Diameter =", 2 * r)
+
     def TangentCenters(p1, p2, p3):
-        '''Given three noncollinear points p1, p2, and p3, these points
+        """Given three noncollinear points p1, p2, and p3, these points
         determine three circles that are mutually tangent.  Return a
         sequence (r1, r2, r3) of the radii of these circles.
-     
+
         Ref.  http://mathworld.wolfram.com/TangentCircles.html, equations
         5, 6, 7.
-        '''
+        """
         x1, y1 = p1
         x2, y2 = p2
         x3, y3 = p3
@@ -220,10 +250,11 @@ if 1:  # Core functionality
         b = hypot(x2 - x3, y2 - y3)
         c = hypot(x3 - x1, y3 - y1)
         # Equations 5, 6, 7
-        ra = (-a + b + c)/2
-        rb = (a - b + c)/2
-        rc = (a + b - c)/2
+        ra = (-a + b + c) / 2
+        rb = (a - b + c) / 2
+        rc = (a + b - c) / 2
         return ra, rb, rc
+
     def ThreeTangentCenters():
         print("\nEnter the circles' center points:")
         p1 = GetPoint("(x1, y1) = ? ")
@@ -233,62 +264,75 @@ if 1:  # Core functionality
         print("\nCircle radii:")
         for i in r:
             print(f"    {i}")
+
     def CircleSegment():
         CircleSector(segment=True)
+
     def CircleSector(segment=False):
         name = "segment" if segment else "sector"
         if name == "segment":
-            print("Segment = smaller of the two figures gotten by cutting the circle by a chord")
+            print(
+                "Segment = smaller of the two figures gotten by cutting the circle by a chord"
+            )
         else:
-            print("Sector = pie-slice shaped portion of a circle defined by the included angle")
-        print(dedent(f'''
+            print(
+                "Sector = pie-slice shaped portion of a circle defined by the included angle"
+            )
+        print(
+            dedent(f"""
         Find {name}'s area given:
           1.  Angle and diameter.
           2.  Arc length and diameter.
-          3.  Chord length and diameter.'''))
+          3.  Chord length and diameter.""")
+        )
         choices = ("1", "2", "3")
-        ans = GetInput("Problem choice? [1] ", default_response="1",
-                       acceptable=choices)
+        ans = GetInput("Problem choice? [1] ", default_response="1", acceptable=choices)
         if ans == "1":
-            r = GetNumber("What is the diameter? ", low=0, low_open=True)/2
+            r = GetNumber("What is the diameter? ", low=0, low_open=True) / 2
             h = 180 if name == "segment" else 360
             theta_deg = GetNumber("What is the angle in degrees? ", low=0, high=h)
             area = SectorArea_r_theta(r, radians(theta_deg), segment=segment)
         elif ans == "2":
-            r = GetNumber("What is the diameter? ", low=0, low_open=True)/2
-            max_b = 2*pi*r
+            r = GetNumber("What is the diameter? ", low=0, low_open=True) / 2
+            max_b = 2 * pi * r
             b = GetNumber("What is the arc length? ", low=0, high=max_b)
             area = SectorArea_r_b(r, b, segment=segment)
         elif ans == "3":
-            r = GetNumber("What is the diameter? ", low=0, low_open=True)/2
-            s = GetNumber("What is the chord length? ", low=0, low_open=True, high=2*r)
+            r = GetNumber("What is the diameter? ", low=0, low_open=True) / 2
+            s = GetNumber(
+                "What is the chord length? ", low=0, low_open=True, high=2 * r
+            )
             area = SectorArea_r_s(r, s, segment=segment)
         else:
             raise Exception("Bug")
         print("\nArea =", RoundOff(area))
+
     def SectorArea_r_theta(r, theta, segment=False):
-        'Sector/segment area given angle and diameter.  theta must be in radians.'
-        area = r**2*theta/2
-        assert(theta >= 0)
+        "Sector/segment area given angle and diameter.  theta must be in radians."
+        area = r**2 * theta / 2
+        assert theta >= 0
         if segment:
             # Subtract off the area of the triangle to get segment's area
             if theta > pi:
                 raise ValueError("Segment's angle must be <= 180°")
-            area -= r**2*sin(theta)/2
+            area -= r**2 * sin(theta) / 2
         return area
+
     def SectorArea_r_b(r, b, segment=False):
-        'Sector/segment area given arc length b and radius r'
-        area = r*b/2
+        "Sector/segment area given arc length b and radius r"
+        area = r * b / 2
         if segment:
-            area -= r**2*sin(b/r)/2
+            area -= r**2 * sin(b / r) / 2
         return area
+
     def SectorArea_r_s(r, s, segment=False):
-        'Sector/segment area given width s and radius'
-        theta = 2*asin(s/(2*r))
-        area = r**2*theta/2
+        "Sector/segment area given width s and radius"
+        theta = 2 * asin(s / (2 * r))
+        area = r**2 * theta / 2
         if segment:
-            area -= r**2*sin(theta)/2
+            area -= r**2 * sin(theta) / 2
         return area
+
 
 if __name__ == "__main__":
     problems = (
@@ -301,14 +345,16 @@ if __name__ == "__main__":
         if sys.argv[1] == "--test":
             run(globals())
         elif sys.argv[1] == "-h":
-            print(dedent(f'''
+            print(
+                dedent(f"""
             {sys.argv[0]}:  script to interactively calculate circle problems:
                 - Circle through 3 points
                 - Segment area
                 - Sector area
                 - 3 mutually tangent circles given their centers
             Run with --test to execute self-tests.
-            '''))
+            """)
+            )
             exit(0)
     else:
         digits = 6

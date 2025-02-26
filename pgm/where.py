@@ -1,21 +1,22 @@
-'''
+"""
 Given one or more regular expressions on the command line, searches
 the PATH for all files that match and prints them out.
-'''
-if 1:   # Header
+"""
+
+if 1:  # Header
     # Copyright, license
     if 1:
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Search PATH for regular expressions
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
     # Standard imports
     if 1:
@@ -36,18 +37,23 @@ if 1:   # Header
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
+
         class g:
             pass
+
         g.seen_windows = False
         # Store any matches in the matches dictionary so that there are
         # no duplicates.
         matches = {}
-if 1:   # Utility
+if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] regexp1 [regexp2...]
             Find all files in the PATH directories that match a python regular
             expression.
@@ -57,14 +63,16 @@ if 1:   # Utility
             -v      Print whether Windows directory is ignored [false]
             -w      Include C:/WINDOWS if it is in path [false]
             -x      Only show executables [true]
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-c"] = True      # Print in columns
-        d["-i"] = True      # Ignore case
-        d["-v"] = False     # Verbose
-        d["-w"] = False     # Include C:/WINDOWS if it is in path
-        d["-x"] = True      # Only show executables
+        d["-c"] = True  # Print in columns
+        d["-i"] = True  # Ignore case
+        d["-v"] = False  # Verbose
+        d["-w"] = False  # Include C:/WINDOWS if it is in path
+        d["-x"] = True  # Only show executables
         if len(sys.argv) < 2:
             Usage()
         try:
@@ -78,10 +86,12 @@ if 1:   # Utility
             elif o in ("-h", "--help"):
                 Usage(status=0)
         return regexps
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def GetRegexps(regexps):
-        '''Return a list of compiled regular expressions.
-        '''
+        """Return a list of compiled regular expressions."""
         regexp_list = []
         for regex in regexps:
             if d["-i"]:
@@ -89,10 +99,11 @@ if 1:   # Core functionality
             else:
                 regexp_list.append(re.compile(regex))
         return regexp_list
+
     def ForwardSlashes(dir):
-        '''Change any backslashes to forward slashes.
-        '''
+        """Change any backslashes to forward slashes."""
         return dir.replace("\\", "/")
+
     def GetListOfDirectories():
         # Get a list of the directories in the path
         sep = ":"
@@ -113,8 +124,9 @@ if 1:   # Core functionality
             Error("No PATH variable in environment")
         # Add in plib
         directories += ["/plib", "/plib/pgm"]
-        directories = [i for i in directories if i]     # Remove empty strings
+        directories = [i for i in directories if i]  # Remove empty strings
         return directories
+
     def PrintResults():
         files = list(matches.keys())
         files.sort()
@@ -124,8 +136,9 @@ if 1:   # Core functionality
         else:
             for file in files:
                 print(file.replace("\\", "/"))
+
     def IsExecutable(file):
-        'Return True if the file is executable'
+        "Return True if the file is executable"
         try:
             s, n = file.lower(), 4
             if sys.platform == "win32":
@@ -146,13 +159,14 @@ if 1:   # Core functionality
         except Exception:
             pass
         return False
+
     def CheckDirectory(dir, regexps):
-        '''dir is a directory name, regexps is a list of compiled
+        """dir is a directory name, regexps is a list of compiled
         regular expressions.  cd to the indicated directory and
         put any filenames found that match the regexps into the
         matches dictionary.  Note that we don't check to see if
         they're executables or not.
-        '''
+        """
         global matches
         msg = "Ignoring c:/windows (use -w if you don't want to ignore it)\n"
         if d["-w"]:
@@ -181,8 +195,9 @@ if 1:   # Core functionality
             sys.stderr.write("Warning:  directory '%s' in PATH not found\n" % dir)
         os.chdir(currdir)
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     regexp_list = GetRegexps(args)
     directories = GetListOfDirectories()

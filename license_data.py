@@ -1,8 +1,9 @@
-'''
+"""
 This module contains the text of various software licenses.  They are
 encapsulated using the License class, which provides various features.
-'''
-#∞test∞# ignore #∞test∞#
+"""
+
+# ∞test∞# ignore #∞test∞#
 import collections
 import difflib
 import hashlib
@@ -15,23 +16,27 @@ from pdb import set_trace as xx
 # Custom modules
 if len(sys.argv) > 1:
     import debug
+
     debug.SetDebugger()
 from textcompare import TextCompare
 
 ii = isinstance
 
+
 class License:
-    'Container for license text'
+    "Container for license text"
+
     def __init__(self, header, text=None, url=None):
-        '''If text is None, the whole license is in header.  If url is
+        """If text is None, the whole license is in header.  If url is
         None, it's a location that the text file can be gotten for
         validation.
-        '''
+        """
         self._text = self.strip_comments(text) if text else None
         self.header = header
         self.url = url
+
     def is_valid(self):
-        'Download text from url and compare'
+        "Download text from url and compare"
         if self.url is None:
             raise ValueError("No url given")
         r = requests.get(self.url)
@@ -42,6 +47,7 @@ class License:
             new_text = new_text.decode()
         c = TextCompare(self.text, new_text)
         return c.equal
+
     def strip_comments(self, s):
         nl = "\n"
         t, d = [], collections.deque(s.split(nl))
@@ -51,9 +57,11 @@ class License:
                 continue
             t.append(u)
         return nl.join(t).strip()
+
     @property
     def text(self):
         return self.header if self._text is None else self._text
+
 
 # This dictionary uses keys like "apache2" to hold the License objects
 # containing the text and headers of the various licenses.
@@ -67,8 +75,12 @@ urls = {
 # Fill licenses from the licenses directory
 P = pathlib.Path
 p = P("/pylib/licenses")
+
+
 def get(x):
     return open(x).read()
+
+
 for h in p.glob("*.header"):
     header = get(h)
     f = P(str(h).replace(".header", ""))
@@ -78,4 +90,5 @@ for h in p.glob("*.header"):
     licenses[key] = L
 if 0:
     from pprint import pprint as pp
+
     pp(licenses)

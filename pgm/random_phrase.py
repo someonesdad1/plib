@@ -1,4 +1,4 @@
-'''
+"""
 
 ToDo
     - The word lists are too large and can result in things that use unfamiliar words.  Divide
@@ -11,28 +11,29 @@ Generate random phrases of words
     can result in reasonably secure pass phrases, especially if you include
     puntuation marks.  These phrases are typically easier for humans to
     memorize.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Generate random phrases of words
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import getopt
     import random
-    from pdb import set_trace as xx 
-if 1:   # Custom imports
+    from pdb import set_trace as xx
+if 1:  # Custom imports
     from wrap import dedent, wrap
-if 1:   # Global variables
+if 1:  # Global variables
     # List made from words from WordNet 3.1.  Note the '_' character stands
     # for a space in the 'word'.  I'd like to thank the folks who have
     # contributed to WordNet, an amazing collection of stuff.  It's
@@ -42,7 +43,7 @@ if 1:   # Global variables
     # to copy intelligently), lack of careful attribution, and of course the
     # basic laziness of humans.
     wordstrings = {
-        "adjective": '''
+        "adjective": """
 
         dabbled dacitic dactylic daedal dagger-like daily dainty daisylike
         damaged damaging damascene damask damn damnable damnatory damp
@@ -1626,9 +1627,8 @@ if 1:   # Global variables
         yellow-white yielding yogistic yokel-like yonder young young-begetting
         younger youngish youthful zenithal zero zeroth zestful zigzag zillion
         zodiacal zoic zonal zoological zoonotic zygodactyl zygomatic
-        zygomorphic zygotic zymoid zymotic''',
-
-        "adverb": '''
+        zygomorphic zygotic zymoid zymotic""",
+        "adverb": """
 
         ASAP God_knows_how a_bit a_cappella a_fortiori a_la_carte a_la_mode
         a_lot a_posteriori a_priori aback abaxially abeam abed abjectly
@@ -2134,9 +2134,8 @@ if 1:   # Global variables
         wolfishly wonderfully worriedly worryingly worse worst worthily
         worthlessly wrathfully wretchedly wrongfully wrongheadedly wrongly
         wryly yea yesterday yet yonder youthfully zealously zestfully
-        zigzag''',
-
-        "noun": '''
+        zigzag""",
+        "noun": """
 
         18-karat_gold 22-karat_gold 24-karat_gold 24/7 401-k_plan
         ABO_antibodies ABO_blood_group_system ACE_inhibitor ADA-SCID AIDS ALGOL
@@ -14359,9 +14358,8 @@ if 1:   # Global variables
         zoonosis zoophilia zoophobia zoophyte zooplankton zoopsia zoospore
         zoot_suit zoril zoysia zucchini zumbooruk zwieback zydeco
         zygodactyl_foot zygoma zygomatic_process zygospore zygote zygotene
-        zymase zymology zymosis''',
-
-        "verb": '''
+        zymase zymology zymosis""",
+        "verb": """
 
         Agenize Americanize Balkanize Charleston Christianize Europeanize FTP
         French Frenchify G.I.  Islamize Latinize Rollerblade Romanize Simonize
@@ -15275,9 +15273,8 @@ if 1:   # Global variables
         write_down write_in write_off write_on write_out write_up writhe wrong
         x-ray yacht yack yak yank yarn yaw yawn yawp yearn yell yellow yelp
         yield yield_up yodel yoke yowl zap zero zest zigzag zinc zip_by zip_up
-        zone zonk_out zoom zoom_in''',
-
-        "preposition": '''
+        zone zonk_out zoom zoom_in""",
+        "preposition": """
 
         about above absent across after against along alongside amid amidst
         among anti around as at atop before behind below beneath beside besides
@@ -15286,9 +15283,8 @@ if 1:   # Global variables
         into like mid minus near next of off on on top of onto opposite out out
         of outside over past per plus regarding round save since than through
         till times to toward towards under underneath unlike until up upon
-        versus via with withaboard within without ''',
-
-        "pronoun": '''
+        versus via with withaboard within without """,
+        "pronoun": """
 
         all another any anybody anyone anything both each each other either
         everybody everyone everything few he her hers herself him himself his I
@@ -15296,9 +15292,8 @@ if 1:   # Global variables
         one nobody none nothing one one another other others our ours ourselves
         several she some somebody someone something that their theirs them
         themselves these they this those us we what whatever which whichever
-        who whoever whom whomever whose you your yours yourself yourselves ''',
-
-        }
+        who whoever whom whomever whose you your yours yourself yourselves """,
+    }
     # Convert strings to lists
     words = {}
     for key in wordstrings:
@@ -15319,9 +15314,13 @@ if 1:   # Global variables
     # Build a dictionary of abbrev:count items to calculate total number of
     # combinations.
     wordcounts = dict([(ikeys[i], len(words[i])) for i in words])
+
+
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
+
+
 def Usage(d, status=1):
     nouns = len(words["noun"])
     verbs = len(words["verb"])
@@ -15330,7 +15329,8 @@ def Usage(d, status=1):
     prepositions = len(words["preposition"])
     pronouns = len(words["pronoun"])
     num = d["-n"]
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]} [options] wordtype1 [wordtype2 ...]
       Generate random phrases of words.  wordtype1, etc. are (the numbers are
       the number of different words of that type):
@@ -15359,21 +15359,26 @@ def Usage(d, status=1):
       -n n  How many lines to print out (defaults to {num})
       -p    Print the list of words in each category given on the command line
       -u    Allow words with underscores
-    '''))
+    """)
+    )
     exit(status)
+
+
 def CheckWordtypes(words):
-    '''words is a list of wordtype abbreviations.  See that they
+    """words is a list of wordtype abbreviations.  See that they
     uniquely identify one of the indicated types.
-    '''
+    """
     allowed = set("n v a ad p pr".split())
     for i in words:
         if i.lower() not in allowed:
             Error("'{}' is not an allowed word type abbreviation".format(i))
+
+
 def ParseCommandLine(d):
-    d["-s"] = None      # If not None, its hash is the RNG seed
-    d["-n"] = 20        # How many lines to print
-    d["-p"] = False     # If True, print the lists of words
-    d["-u"] = False     # If True, allow words with underscores
+    d["-s"] = None  # If not None, its hash is the RNG seed
+    d["-n"] = 20  # How many lines to print
+    d["-p"] = False  # If True, print the lists of words
+    d["-u"] = False  # If True, allow words with underscores
     if len(sys.argv) < 2:
         Usage(d)
     try:
@@ -15400,44 +15405,54 @@ def ParseCommandLine(d):
     if not d["-p"]:
         CheckWordtypes(args)
     return args
+
+
 def GetWord(wordtype):
-    '''Given the abbreviation wordtype, return a random word from the
+    """Given the abbreviation wordtype, return a random word from the
     associated list.
-    '''
+    """
     wordlist = words[keys[wordtype]]
     return random.choice(wordlist)
+
+
 def PrintWords(wordtypes):
-    '''Print the wordlist for each of the given types of words in
+    """Print the wordlist for each of the given types of words in
     wordtypes.
-    '''
+    """
     if not wordtypes:
         wordtypes = "n v a ad p pr".split()
-    wrap.i = " "*2
+    wrap.i = " " * 2
     for wordtype in wordtypes:
         print(keys[wordtype] + ":")
         s = wordstrings[keys[wordtype]].strip()
         print(wrap(s))
         print()
+
+
 def CalculateCombinations(wordtypes):
     count = 1
     for i in wordtypes:
         count *= wordcounts[i]
     m, e = f"{count:.1e}".split("e")
     print(f"Possible combinations = {count} = {m}e{int(e)}")
+
+
 def PrintExpansion(wordtypes):
-    '''wordtypes is a list of desired wordtype abbreviations.  Print one
+    """wordtypes is a list of desired wordtype abbreviations.  Print one
     word randomly for each type.
-    '''
+    """
     s = []
     for wordtype in wordtypes:
         word = GetWord(wordtype)
         while "_" in word and not d["-u"]:
             word = GetWord(wordtype)
         s.append(word)
-    t = ' '.join(s).replace("_", " ")
+    t = " ".join(s).replace("_", " ")
     print(t)
+
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     wordtypes = ParseCommandLine(d)
     if d["-p"]:
         PrintWords(wordtypes)

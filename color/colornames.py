@@ -1,36 +1,42 @@
-'''
+"""
 
 This script worked when I used the clr.py stuff, but that script has disappeared (replaced by
 color.py) and this script is no longer worth spending the time to translate between the
 implementations.
 
---------------------------------------------------------------------------- 
+---------------------------------------------------------------------------
 
 Shows some thoughts about color naming
-'''
+"""
+
 import sys
 import colorsys
-from pdb import set_trace as xx 
+from pdb import set_trace as xx
 
 from util import iDistribute
 from interpolate import LinearInterpFunction
 from f import flt
-#from rgb import ColorNum
+
+# from rgb import ColorNum
 from color import t, Color as ColorNum
 from wrap import dedent
 from columnize import Columnize
 from frange import frange
 from wl2rgb import wl2rgb, rgb2wl
+
 if 0:
     import debug
+
     debug.SetDebugger()
 
 ii = isinstance
 fi = lambda x: f"({x[0]:3d}, {x[1]:3d}, {x[2]:3d})"
 square = "■"
 
+
 def Introduction():
-    print(dedent(f'''
+    print(
+        dedent(f"""
 
     This script details my thinking on coming up with a set of color names
     for my own use.  My impression from collecting samples of color names
@@ -43,48 +49,63 @@ def Introduction():
     Take a look at the following printout, which shows 256 different 
     colors with nominal 1 nm steps in wavelength.
 
-    '''))
+    """)
+    )
     SteppedWavelengths(1, compact=True)
-    print(dedent(f'''
+    print(
+        dedent(f"""
 
     That's too fine a resolution.  How about 5 nm steps?
 
-    '''))
+    """)
+    )
     SteppedWavelengths(5, compact=True)
-    print(dedent(f'''
+    print(
+        dedent(f"""
 
     10 nm steps are better:
 
-    '''))
+    """)
+    )
     SteppedWavelengths(10, compact=True)
-    print(dedent(f'''
+    print(
+        dedent(f"""
 
     It's interesting to print the Unicode character U+25A0 out in the
     colors used in the above text table, as they then butt up nearly next
     to each other.  Here are these characters printed out in 5 nm
     wavelength steps:
 
-    '''))
+    """)
+    )
     PrintedLine(5)
-    print(dedent(f'''
+    print(
+        dedent(f"""
 
     Here are 10 nm steps:
 
-    '''))
+    """)
+    )
     PrintedLine(10)
+
+
 def PrintedLine(step):
     for nm in range(380, 781, step):
         a = wl2rgb(nm)
         print(f"{t(a.xrgb)}{square}{t.n}", end="")
     print()
+
+
 def SteppedWavelengths(step, compact=False, hdr=False):
     gamma = 0.8
     if hdr:
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Wavelength in steps of {step} nm to RGB colors (gamma = {gamma})
         Uses Bruton's linear approximation to convert light wavelength in
         nm to an approximating RGB 3-tuple:
-        '''))
+        """)
+        )
     out, count = [], 0
     if not compact:
         print(f"  wl in nm, RGB hex, RGB integer, HSV integer")
@@ -99,15 +120,18 @@ def SteppedWavelengths(step, compact=False, hdr=False):
             out.append(f"{t(s)}{nm} {s!s:7s}   {fi(T)}   {fi(u)}{t.n}")
         count += 1
     if compact:
-        o = Columnize(out, indent=" "*2, horiz=True)
+        o = Columnize(out, indent=" " * 2, horiz=True)
     else:
         o = out
     for line in o:
         print(line)
     if hdr:
         print(f"{count} wavelengths printed")
+
+
 def BasicColorNames():
-    print(dedent(f'''
+    print(
+        dedent(f"""
 
     This led to me subjectively defining some basic color names in terms
     of wavelength.  The corresponding RGB values are converted to HSV
@@ -115,26 +139,31 @@ def BasicColorNames():
     [0, 1].  We'll use EIA color abbreviations used in the color code
     for resistors.
 
-    '''))
-    defs = (    # Map name to wavelength (in nm) and hue (on [0, 255])
+    """)
+    )
+    defs = (  # Map name to wavelength (in nm) and hue (on [0, 255])
         ("vio", 400, 200),
         ("blu", 440, 170),
         ("cyn", 490, 127),
-        ("grn", 510,  85),
-        ("yel", 580,  42),
-        ("orn", 618,  21),
-        ("red", 646,   0),
+        ("grn", 510, 85),
+        ("yel", 580, 42),
+        ("orn", 618, 21),
+        ("red", 646, 0),
     )
     print("    Name  nm  Hue  RGBhex        RGBint            HSVint")
     for name, nm, hue in defs:
-        hsv = [i/255 for i in (hue, 255, 255)]
+        hsv = [i / 255 for i in (hue, 255, 255)]
         rgb = colorsys.hsv_to_rgb(*hsv)
         colornum = ColorNum(*rgb)
         s = colornum.xrgb
         T = colornum.irgb
         u = colornum.ihsv
-        print(f"    {t(s)}{name:4s} {nm:3d}  {hue:3d} {s!s:7s}   {fi(T)}   {fi(u)}{t.n}")
-    print(dedent(f'''
+        print(
+            f"    {t(s)}{name:4s} {nm:3d}  {hue:3d} {s!s:7s}   {fi(T)}   {fi(u)}{t.n}"
+        )
+    print(
+        dedent(
+            f"""
 
     These look like a good basis, although they don't appear to be the same
     brightness to my eyes (this is a well-known phenomenon).  On my
@@ -142,9 +171,15 @@ def BasicColorNames():
     Violet, orange, and red are a bit dimmer but about the same brightness
     amongst themselves.  Blue appears to be the dimmest of the colors.
 
-    '''.rstrip()))
+    """.rstrip()
+        )
+    )
+
+
 def Thoughts1():
-    print(dedent(f'''
+    print(
+        dedent(
+            f"""
 
     Starting from these names, I'd like color names to have no spaces
     in them (separate word components with the underscore character)
@@ -160,9 +195,14 @@ def Thoughts1():
     these hues.  The goal is to decide on a suitable hue step for the
     interval.
 
-    '''.rstrip()))
+    """.rstrip()
+        )
+    )
+
+
 def HueIntervals():
-    print(dedent('''
+    print(
+        dedent("""
 
     Define color intervals in terms of wavelength in nm.  The step
     increment was picked by examining the screen output.  The goal was
@@ -172,7 +212,8 @@ def HueIntervals():
     context of color).  The strings are the primary's 3-letter name with
     the wavelength in nm.
 
-    '''))
+    """)
+    )
     n = 14
     colors = [
         ("vio", range(380, 425 + 1, n + 2)),
@@ -181,7 +222,7 @@ def HueIntervals():
         ("grn", range(495, 540 + 1, n + 2)),
         ("yel", range(540, 600 + 1, n + 11)),
         ("orn", range(600, 632 + 1, n)),
-        ("red", range(632, 780 + 1, 3*n + 8)),
+        ("red", range(632, 780 + 1, 3 * n + 8)),
     ]
     for color, wavelengths in colors:
         for nm in wavelengths:
@@ -189,7 +230,8 @@ def HueIntervals():
             s = colornum.xrgb
             print(f"    {t(s)}{color}{nm}{t.n} ", end="")
         print()
-    print(dedent('''
+    print(
+        dedent("""
 
     Comments:  I like the distribution.  The middle value of each color
     is the nominal center color; either side of that is one that is
@@ -204,16 +246,17 @@ def HueIntervals():
     would look like after slight tuning after seeing what it looked
     like:
 
-    '''))
-    count, indent = 0, " "*4
+    """)
+    )
+    count, indent = 0, " " * 4
     print(indent, end="")
-    for name in '''v380 v396 v412
+    for name in """v380 v396 v412
                     b425 b439 b453
                     c465 c479 c490
                     g500 g520 g540
                     y550 y565 y590
                     o600 o614 o628
-                    r632 r682 r732'''.split():
+                    r632 r682 r732""".split():
         colornum = GetBaseColornum(name)
         s = colornum.xrgb
         print(f"{t(s)}{name}{t.n} ", end="")
@@ -222,15 +265,19 @@ def HueIntervals():
             print()
             print(indent, end="")
     print()
+
+
 def GetBaseColornum(name):
     nm = int(name[1:4])
     return wl2rgb(nm)
+
+
 def HueGradations():
     def ShowHLS(k, use_hex=False):
-        R = list(iDistribute(k + 1, 0, 255))   # Count 0 as one we don't want
+        R = list(iDistribute(k + 1, 0, 255))  # Count 0 as one we don't want
         if R[0] == 0:
-            R = R[1:]   # Remove the first element of 0
-        indent = " "*4
+            R = R[1:]  # Remove the first element of 0
+        indent = " " * 4
         for base in "g500 g520 g540".split():
             cn = GetBaseColornum(base)
             s = cn.xrgb
@@ -240,14 +287,14 @@ def HueGradations():
                 if l == 255:
                     continue
                 print(indent, end="")
-                hls[1] = l/255
+                hls[1] = l / 255
                 rgb = colorsys.hls_to_rgb(*hls)
                 n = ColorNum(*rgb)
                 hls1 = list(n.ihls)
                 for s in R:
                     li = R.index(l)
                     si = R.index(s)
-                    hls1[2] = s/255
+                    hls1[2] = s / 255
                     rgb = colorsys.hls_to_rgb(*hls1)
                     m = ColorNum(*rgb)
                     if use_hex:
@@ -257,11 +304,12 @@ def HueGradations():
                         print(f"{t(m.xrgb)}{name}{t.n} ", end="")
                 print()
             print()
+
     def ShowHSV(k, use_hex=False):
-        R = list(iDistribute(k + 1, 0, 255))   # Count 0 as one we don't want
+        R = list(iDistribute(k + 1, 0, 255))  # Count 0 as one we don't want
         if R[0] == 0:
-            R = R[1:]   # Remove the first element of 0
-        indent = " "*4
+            R = R[1:]  # Remove the first element of 0
+        indent = " " * 4
         for base in "g500 g520 g540".split():
             cn = GetBaseColornum(base)
             s = cn.xrgb
@@ -271,14 +319,14 @@ def HueGradations():
                 if s == 255:
                     continue
                 print(indent, end="")
-                hsv[1] = s/255
+                hsv[1] = s / 255
                 rgb = colorsys.hsv_to_rgb(*hsv)
                 n = ColorNum(*rgb)
                 hsv1 = list(n.ihsv)
                 for v in R:
                     si = R.index(s)
                     vi = R.index(v)
-                    hsv1[2] = v/255
+                    hsv1[2] = v / 255
                     rgb = colorsys.hsv_to_rgb(*hsv1)
                     m = ColorNum(*rgb)
                     if use_hex:
@@ -288,7 +336,9 @@ def HueGradations():
                         print(f"{t(m.xrgb)}{name}{t.n} ", end="")
                 print()
             print()
-    print(dedent('''
+
+    print(
+        dedent("""
 
     The next task is to define the gradations of these 21 colors by
     e.g. varying lightness and saturation.  Let's experiment with the
@@ -301,7 +351,8 @@ def HueGradations():
     you calculate the RGB components of the color from the name, which
     would be handy.
 
-    '''))
+    """)
+    )
     n = 4
     if 0:
         print("HLS by name")
@@ -313,7 +364,8 @@ def HueGradations():
         ShowHSV(n, use_hex=False)
         print("HSV by RGB hex value")
         ShowHSV(n, use_hex=True)
-    print(dedent(f'''
+    print(
+        dedent(f"""
 
     {t.ornl}Bugs, so the previous stuff isn't printed.{t.n}
 
@@ -322,23 +374,30 @@ def HueGradations():
     preference is for the HLS set of colors, so that's the method I
     chose.
 
-    '''))
-colorbands = '''v380 v396 v412 b425 b439 b453 c465 c479 c490 
+    """)
+    )
+
+
+colorbands = """v380 v396 v412 b425 b439 b453 c465 c479 c490 
                 g500 g520 g540 y550 y565 y590 o600 o614 o628
-                r632 r682 r732'''.split()
+                r632 r682 r732""".split()
+
+
 def FirstChoice(n):
     print()
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Here's a printout of a set of colors, selected as shown above by an
     algorithm.  I've chosen to use {n} levels of lightness and
     saturation.  The following will print out each color band color and
     its gradations.  This will make a candidate for a color set.  The
     hex number shown is HLS and the L value of 0xff is not used.
 
-    '''))
-    R = list(iDistribute(n + 1, 0, 255))   # The 1 is added to ignore zero
+    """)
+    )
+    R = list(iDistribute(n + 1, 0, 255))  # The 1 is added to ignore zero
     if R[0] == 0:
-        R = R[1:]   # Remove the first element of 0
+        R = R[1:]  # Remove the first element of 0
     for name in colorbands:
         colornum = GetBaseColornum(name)
         hls = list(colornum.ihls)
@@ -347,25 +406,27 @@ def FirstChoice(n):
         for l in R:
             if l == 255:
                 continue
-            hls[1] = l/255  # Convert to decimal
+            hls[1] = l / 255  # Convert to decimal
             rgb = colorsys.hls_to_rgb(*hls)
             n = ColorNum(*rgb)
             hls1 = list(n.ihls)
             for s in R:
                 li = R.index(l)
                 si = R.index(s)
-                hls1[2] = s/255
+                hls1[2] = s / 255
                 rgb = colorsys.hls_to_rgb(*hls1)
                 m = ColorNum(*rgb)
                 print(f"{t(m.xrgb)}{m.xhls}{t.n} ", end="")
         print()
-    print(dedent(f'''
+    print(
+        dedent(f"""
 
     Missing from the set are the usual saturated colors of red, green,
     blue, yellow, cyan, magenta, bright white, and the shades of gray.
     Black also needs to be on the list.  Here are these:
 
-    '''))
+    """)
+    )
     d = {
         "blk": ColorNum(*(0, 0, 0)).xhls,
         "whtl": ColorNum(*(1, 1, 1)).xhls,
@@ -382,22 +443,25 @@ def FirstChoice(n):
         print(f"{t(i)}{d[i]}{t.n}", end=" ")
     print()
     ngray = 12
-    print(dedent(f'''
+    print(
+        dedent(f"""
 
     Remember '$' means an HLS value.  Here are {ngray} shades of gray
     in RGB hex notation:
 
-    '''))
+    """)
+    )
     count = 0
     for i in iDistribute(0, 255, ngray):
-        n = ColorNum(*[i/255 for i in (i, i, i)])
+        n = ColorNum(*[i / 255 for i in (i, i, i)])
         count += 1
-        if count == ngray//2 + 1:
+        if count == ngray // 2 + 1:
             print()
         print(f"{t(n.xrgb)}{n.xrgb}{t.n} ", end="")
     print()
-    n = 12*21 + ngray
-    print(dedent(f'''
+    n = 12 * 21 + ngray
+    print(
+        dedent(f"""
 
     These 12 grays could be added to a 'blk' color that's got the label
     of 'k000'.
@@ -412,9 +476,13 @@ def FirstChoice(n):
     brightest one can double as lwht.  There are {n} colors in this
     set.  
 
-    '''))
+    """)
+    )
+
+
 def SomeNames():
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Invariably, someone will want to start giving names to colors.
     Here are some of my desires for such naming:
 
@@ -435,7 +503,8 @@ def SomeNames():
 
     Here's an attempt to come up with a set of short names:
 
-    '''))
+    """)
+    )
     d = {
         "v380": "  uv    ultvio     purple               ",
         "v396": "  vv    viovio     wine                 ",
@@ -459,13 +528,14 @@ def SomeNames():
         "r682": "  rr    redred     red                  ",
         "r732": "  ir    infred     cherry               ",
     }
-    indent = " "*4
+    indent = " " * 4
     print(f"{indent}Band   Short  Longer     Named")
     for name in colorbands:
         colornum = GetBaseColornum(name)
         s = colornum.xrgb
         print(f"{indent}{t(s)}{name}  {d[name]}{t.n} ")
-    print(dedent(f'''
+    print(
+        dedent(f"""
 
     One of the features of these names is that they are all six or less
     characters, consistent with on of the goals.  Part of the
@@ -495,28 +565,34 @@ def SomeNames():
     often using a variety of color specifiers, such as names, hex
     strings, RGB, HSV, and HLS.  
 
-    '''))
+    """)
+    )
+
+
 def HueVersusFrequency():
-    print(dedent(f'''
+    print(
+        dedent(f"""
     It's also convenient to have an inverse to the wl2rgb function by
     Bruton.  Here's a printout of the "frequency" and hue of
     wavelengths in nm in 10 nm steps:
 
-    '''))
+    """)
+    )
     flt(0).rtdp = True
-    i = " "*4
+    i = " " * 4
     use_color = True
     print(f"{i}Hue  'Hz'    nm")
     for nm in range(380, 781, 10):
         cn = wl2rgb(nm, 0)
         h, l, s = cn.HLS
-        f = int(1e5/nm)
-        if use_color:   # Print in color
+        f = int(1e5 / nm)
+        if use_color:  # Print in color
             cl = t(cn.xrgb)
             print(f"{i}{cl}{h:3d}{t.n}   {f:3d}   {nm:3d}")
         else:
             print(f"{i}{h:3d}   {f:3d}   {nm:3d}")
-    print(dedent(f'''
+    print(
+        dedent(f"""
 
     Frequency is int(1e5/nm) for wavelength nm in nm.  Note the hue
     ranges over only 0-212 for return values of wl2rgb().  Higher
@@ -525,14 +601,16 @@ def HueVersusFrequency():
     with.  Here are these higher hue numbers converted to their
     equivalent RGB values with lightness = 128 and saturation of 255:
 
-    '''))
+    """)
+    )
     for hue in range(200, 256, 5):
-        hls = [i/255 for i in (hue, 128, 255)]
+        hls = [i / 255 for i in (hue, 128, 255)]
         rgb = colorsys.hls_to_rgb(*hls)
         cn = ColorNum(*rgb)
         cl = t(cn.xrgb)
         print(f"{i}{t(cn.xrgb)}{hue:3d}{t.n}")
-    print(dedent(f'''
+    print(
+        dedent(f"""
 
     A plot of "frequency" versus hue is nonlinear, so I decided the
     best way to get an inverse is to create a dictionary of hue versus
@@ -543,13 +621,15 @@ def HueVersusFrequency():
     spectrum to our eyes.  Here's a terminal-based approximation that
     fits on one line:
 
-    '''))
+    """)
+    )
     for wl in range(380, 781, 6):
         cn = wl2rgb(wl)
         print(f"{t(cn.xrgb)}{square}", end="")
     print(f"{t.n}")
 
-    print(dedent(f'''
+    print(
+        dedent(f"""
 
     This looks to be identical (not suprisingly) to the simulated
     spectrum in the file spectrum.png, which was constructed with
@@ -577,7 +657,8 @@ def HueVersusFrequency():
     of 1 come about because not all wavelengths map to an integer hue)
     over all except the reds.
 
-    '''))
+    """)
+    )
     print(f"{i}           Inv    Hue    nm")
     print(f"{i}nm     Hue Hue    Diff  Diff")
     for nm in range(380, 781, 10):
@@ -597,13 +678,17 @@ def HueVersusFrequency():
         nm_diff = str(nm_diff) if nm_diff else ""
         print(f"{hue_diff:4s}   ", end="")
         print(f"{nm_diff:4s}")
-    print(dedent(f'''
+    print(
+        dedent(f"""
 
     Not suprisingly, the inverse for wavelength is poor for the reds
     approaching the infrared.  Note the lack of dimming because gamma
     was set to zero in wl2rgb().
 
-    '''))
+    """)
+    )
+
+
 if 1:
     Introduction()
     BasicColorNames()

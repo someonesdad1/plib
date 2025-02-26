@@ -1,53 +1,60 @@
-'''
+"""
 Prints out combinations & permutations of command line arguments.
-'''
- 
+"""
+
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Prints comb/perm of command line arguments
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         import getopt
         from pathlib import Path as P
         import math
         import sys
         from itertools import combinations, permutations
         from pdb import set_trace as xx
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from columnize import Columnize
         from wrap import wrap, dedent
         from color import t
         from f import flt
+
         try:
             import mpmath
             from mpmath.libmp import to_str
+
             have_mpmath = True
         except ImportError:
             have_mpmath = False
         if 0:
             import debug
+
             debug.SetDebugger()
-    if 1:   # Global variables
+    if 1:  # Global variables
+
         class G:
             pass
+
         g = G()
         ii = isinstance
         g.n = None  # number of objects
         g.k = None  # k at a time
-if 1:   # Utility
+if 1:  # Utility
+
     def Manpage():
         c = t("lill")
-        print(dedent(f'''
+        print(
+            dedent(f"""
 
         This script will compute permutations if it's named perm.py and will computer combinations
         if it's named comb.py.
@@ -89,16 +96,20 @@ if 1:   # Utility
                 {c}rgb rgh rgs rgv rbh rbs rbv rhs rhv rsv
                 gbh gbs gbv ghs ghv gsv bhs bhv bsv hsv{t.n}
                 20 combinations
-        '''))
+        """)
+        )
         exit(0)
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage():
         which = "combinations" if comb else "permutations"
         formula = "C(n, k)" if comb else "P(n, k)"
         k = None if comb else "n"
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] A [B...]
           Prints out {which} of command line arguments.  A is a string and if it's the only
           argument, then its letters are used as the elements.  Otherwise the set of n arguments
@@ -107,26 +118,36 @@ if 1:   # Utility
         Notation
           n = number of letters in A or number of arguments if > 1
           k = number of items to take for each subset
-        '''))
+        """)
+        )
         ex = "-k 2 -s '|' my dog has fleas"
         if comb:
-            print(dedent(f'''
+            print(
+                dedent(f"""
             C(n, k) = combinations of n objects taken k at a time
-                    = n!/((n - k)!*k!)'''))
-            print(dedent(f'''
+                    = n!/((n - k)!*k!)""")
+            )
+            print(
+                dedent(f"""
             Example:  The arguments {ex!r} will print out all the combinations of
               the four words that contain two words.
-            '''))
+            """)
+            )
         else:
-            print(dedent(f'''
+            print(
+                dedent(f"""
             P(n, k) = all permutations of the size k subsets taken from all the n elements
                     = n!/(n - k)!
-            P(n)    = P(n, n) = n!'''))
-            print(dedent(f'''
+            P(n)    = P(n, n) = n!""")
+            )
+            print(
+                dedent(f"""
             Example:  The arguments {ex!r} will print out all the permutations of
               the four words that contain two words.
-            '''))
-        print(dedent(f'''
+            """)
+            )
+        print(
+            dedent(f"""
         Options (default in square brackets):
           -c    Don't print in columns
           -f    Print output even if number of items is large (over 10!)
@@ -138,20 +159,24 @@ if 1:   # Utility
           -s x  Separator string for grouped items [""]
           --sum     The arguments are numbers; show all sums
           --prod    The arguments are numbers; show all products
-        '''))
+        """)
+        )
         exit(0)
+
     def ParseCommandLine(d):
-        d["-c"] = True      # Print in columns
-        d["-f"] = False     # Force output for large numbers
-        d["-k"] = None      # Choose number
-        d["-l"] = False     # Number only
-        d["-n"] = None      # Set the number of objects (implies -l also)
-        d["-q"] = False     # Quote output strings
-        d["-s"] = ""        # Separator string
+        d["-c"] = True  # Print in columns
+        d["-f"] = False  # Force output for large numbers
+        d["-k"] = None  # Choose number
+        d["-l"] = False  # Number only
+        d["-n"] = None  # Set the number of objects (implies -l also)
+        d["-q"] = False  # Quote output strings
+        d["-s"] = ""  # Separator string
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "cfhk:ln:qs:", ["help", "sum", "prod"])
+            opts, args = getopt.getopt(
+                sys.argv[1:], "cfhk:ln:qs:", ["help", "sum", "prod"]
+            )
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -190,15 +215,21 @@ if 1:   # Utility
             elif o == "--prod":
                 Sums(args, product=True)
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def Product(*args):
         product = flt(1)
         for i in args:
             product *= flt(i)
         return product
+
     def Sums(args, product=False):
-        'Print a sorted list of all the possible sums/products of the numbers on the command line'
-        print(f"All {'products' if product else 'sums'} of {' '.join(args)!r}:", end=" ")
+        "Print a sorted list of all the possible sums/products of the numbers on the command line"
+        print(
+            f"All {'products' if product else 'sums'} of {' '.join(args)!r}:", end=" "
+        )
         nums = [flt(i) for i in args]
         o = []
         for k in range(1, len(nums) + 1):
@@ -212,6 +243,7 @@ if 1:   # Core functionality
         for i in Columnize(sorted(o), col_width=10, horiz=True):
             print(i)
         exit(0)
+
     def PrintOutput(func, name, objects):
         count = 0
         if g.k is None and func == combinations:
@@ -230,10 +262,11 @@ if 1:   # Core functionality
             for i in out:
                 print(i)
         print(f"{count} {name}")
+
     def GetHowMany(numobjects, k):
-        '''Calculate the number of combinations or permutations of numobjects taken k at
+        """Calculate the number of combinations or permutations of numobjects taken k at
         a time.  This will return an integer, float, or mpmath.mpf.
-        '''
+        """
         n = numobjects
         if have_mpmath:
             f, F = mpmath.factorial, mpmath.fac
@@ -241,39 +274,44 @@ if 1:   # Core functionality
                 if k is None:
                     p = f(n)
                 else:
-                    p = f(n)/f(n - k)
+                    p = f(n) / f(n - k)
             except Exception:
                 if k is None:
                     p = F(n)
                 else:
-                    p = F(n)/F(n - k)
-            p = p/f(k) if comb else p
+                    p = F(n) / F(n - k)
+            p = p / f(k) if comb else p
             assert ii(p, mpmath.mpf)
         else:
             if n > 9223372036854775807:
-                raise ValueError("Number of objects must be no more than 9223372036854775807")
+                raise ValueError(
+                    "Number of objects must be no more than 9223372036854775807"
+                )
             try:
                 if k is None:
                     p = math.factorial(n)
                 else:
-                    p = math.factorial(n)//math.factorial(n - k)
+                    p = math.factorial(n) // math.factorial(n - k)
             except Exception:
                 print("{n} objects is too many to compute math.factorial()")
                 exit(1)
-            p = p//f(k) if comb else p
+            p = p // f(k) if comb else p
             assert ii(p, int)
         return p
+
     def Magnitude(n):
-        assert(ii(n, int) and n > 0)
+        assert ii(n, int) and n > 0
         s = str(n)
         m, e = s[0], len(s)
         e = len(s)
         return f"{m}e{e}"
+
     def JustPrintNumber():
         s = str(GetHowMany(g.n, g.k))
         if s.endswith(".0"):
             s = s[:-2]
         print(f"{s} {'combinations' if comb else 'permutations'}")
+
 
 if __name__ == "__main__":
     # Options dictionary
@@ -292,7 +330,7 @@ if __name__ == "__main__":
         exit(0)
     large = True if g.n >= too_many else False
     if d["-f"]:
-        large = False   # Ignore the size
+        large = False  # Ignore the size
     if large:
         if ii(g.n, int):
             e = Magnitude(g.n)

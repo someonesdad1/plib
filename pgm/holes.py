@@ -1,48 +1,56 @@
-'''
+"""
 Given a textfile of circle diameters (separated by whitespace), space
 these circles equally around a circle whose diameter is given on the
 command line.
-'''
+"""
+
 if 1:  # Header
     # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2013 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
-        # Space holes equally around a circle
-        #∞what∞#
-        #∞test∞# #∞test∞#
+    # These "trigger strings" can be managed with trigger.py
+    # ∞copyright∞# Copyright (C) 2013 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    # ∞license∞#
+    # ∞what∞#
+    # Space holes equally around a circle
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     # Standard imports
-        import sys
-        import os
-        import getopt
-        import math
-        #from math import *
-        from pdb import set_trace as xx
+    import sys
+    import os
+    import getopt
+    import math
+
+    # from math import *
+    from pdb import set_trace as xx
+
     # Custom imports
-        from wrap import dedent
-        from sig import sig
-        from f import flt
-        have_g = False
-        try:
-            # This option library can generate a PostScript plot of the layout
-            from g import *  
-            have_g = True
-        except ImportError:
-            pass
+    from wrap import dedent
+    from sig import sig
+    from f import flt
+
+    have_g = False
+    try:
+        # This option library can generate a PostScript plot of the layout
+        from g import *
+
+        have_g = True
+    except ImportError:
+        pass
     # Global variables
-        ii = isinstance
-        r2d = 180/math.pi
-if 1:   # Utility
+    ii = isinstance
+    r2d = 180 / math.pi
+if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(d, status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] datafile diameter
 
           Position holes on a circle so that they are equally-spaced.  The script prints a table of
@@ -65,7 +73,7 @@ if 1:   # Utility
           the command line then becomes the distance between the circle's edges.  An example of use
           is to lay out the holes to drill in a block of wood to hold a set of sockets.
         Options:
-          -d n  Number of significant figures in results [{d['-d']}]
+          -d n  Number of significant figures in results [{d["-d"]}]
           -g f  Generate a Postscript drawing to file f
           -l    Lay out the circles on a line.  The diameter on the command line 
                 is the distance between the edges of the circles.
@@ -112,14 +120,16 @@ if 1:   # Utility
         The number under the Dividers column is the distance to set your
         dividers to in order to scribe the hole location from the previous hole
         location (Dividers[i] = x[i] - x[i-1]).
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-d"] = 4         # Number of significant figures in results
-        d["-g"] = None      # Construct a Postscript drawing of output
-        d["-l"] = False     # Linear layout instead of circular
-        d["-r"] = False     # Go in clockwise direction
-        d["warn_ratio"] = 0.9   # When to warn about a circle's diameter
+        d["-d"] = 4  # Number of significant figures in results
+        d["-g"] = None  # Construct a Postscript drawing of output
+        d["-l"] = False  # Linear layout instead of circular
+        d["-r"] = False  # Go in clockwise direction
+        d["warn_ratio"] = 0.9  # When to warn about a circle's diameter
         if len(sys.argv) < 2:
             Usage(d)
         try:
@@ -151,11 +161,14 @@ if 1:   # Utility
             Usage(d)
         flt(0).n = d["-d"]
         return args
-if 1:   # Utility
+
+
+if 1:  # Utility
+
     def ReadDatafile(__datafile, __d):
-        '''Return the variables the user defined along with the diameters
+        """Return the variables the user defined along with the diameters
         of the circles.
-        '''
+        """
         # Note:  the double underscores for variable names are used so
         # that those names can be removed from the locals() dictionary to
         # return a dictionary of the variables the user defined.
@@ -191,18 +204,20 @@ if 1:   # Utility
         __d["vars"] = vars
         __d["diameters"] = [flt(i) for i in __diameters]
         return __diameters
+
     def Fmt(x, d):
-        '''Return string representation of the number x.  If it's an
+        """Return string representation of the number x.  If it's an
         integer, just return its string.  Otherwise, assume it's a flt.
-        '''
+        """
         if ii(x, int):
             return str(x)
         elif ii(x, flt):
             return str(x)
         else:
             return str(flt(x))
+
     def SolveProblem(diameters, d):
-        '''diameters is a list of the circle diameters desired to be
+        """diameters is a list of the circle diameters desired to be
         placed evenly spaced on a circle of diameter d["diameter"].
         Compute the gap angle in radians, then return a list of tuples of
         the form
@@ -212,40 +227,40 @@ if 1:   # Utility
         circle), angle is the polar angle of the circle's center (the
         first circle is defined to have zero polar angle), and
         chord_to_next is the distance to the center of the next circle.
-        '''
-        R = flt(d["vars"]["D"]/2)
+        """
+        R = flt(d["vars"]["D"] / 2)
         n = len(diameters)
         theta_total = flt(0)
         results = []
         neg = -1 if d["-r"] else 1
         # Calculate angular widths
         for dia in diameters:
-            r = flt(dia)/2
-            a = (R/r)**2
+            r = flt(dia) / 2
+            a = (R / r) ** 2
             if a < 1:
                 msg = f"Circle with diameter {dia} too large"
                 Error(msg)
             # Angular width of this circle
-            thetai = flt(neg*2*math.atan(1/math.sqrt(a - 1)))
+            thetai = flt(neg * 2 * math.atan(1 / math.sqrt(a - 1)))
             theta_total += flt(abs(thetai))
             results.append([flt(dia), 0, 0, 0, 0, thetai])
-        if theta_total > 2*math.pi:
+        if theta_total > 2 * math.pi:
             Error("No solution possible")
         # Number of gaps is equal to the number of circles
-        gap = flt((2*math.pi - theta_total)/n)
+        gap = flt((2 * math.pi - theta_total) / n)
         d["gap"] = gap
         d["theta_total"] = theta_total
         # Calculate polar angle of each circle center.  The first circle
         # will always be on the x axis.
         results[0][3] = 0
         for i in range(1, len(diameters)):
-            theta = flt(abs(results[i - 1][5]/2) + abs(gap) + abs(results[i][5]/2))
-            results[i][3] = flt(neg*(theta + abs(results[i - 1][3])))
+            theta = flt(abs(results[i - 1][5] / 2) + abs(gap) + abs(results[i][5] / 2))
+            results[i][3] = flt(neg * (theta + abs(results[i - 1][3])))
         # Calculate the Cartesian coordinates of the circles' centers
         for i in range(len(results)):
             theta = flt(results[i][3])
-            results[i][1] = flt(R*math.cos(theta))
-            results[i][2] = flt(R*math.sin(theta))
+            results[i][1] = flt(R * math.cos(theta))
+            results[i][2] = flt(R * math.sin(theta))
         # Calculate chords
         for i in range(len(results)):
             # j is index of next circle (note it has to wrap around if i
@@ -256,24 +271,26 @@ if 1:   # Utility
             chord = flt(math.hypot(x1 - x2, y1 - y2))
             results[i][4] = chord
         return results
+
     def Plot(results, diameters, d):
         def SetUp(file, orientation=landscape, units=inches):
-            '''Convenience function to set up the drawing environment and
+            """Convenience function to set up the drawing environment and
             return a file object to the output stream.
-            '''
+            """
             ofp = open(file, "w")
             ginitialize(ofp, wrap_in_PJL=0)
             setOrientation(orientation, units)
             return ofp
+
         # We'll assume US letter-size paper.  Change the width W and the
         # height H if you wish to plot to another paper size.
         SetUp(d["-g"], orientation=landscape, units=inches)
         W, H, n = 11, 8.5, len(diameters)
         margin = 0.5
         # Put origin at center of page
-        translate(W/2, H/2)
+        translate(W / 2, H / 2)
         # Draw coordinate axes
-        r = 0.45*H
+        r = 0.45 * H
         LineType(little_dash)
         LineColor(gray(0.5))
         line(-r, 0, r, 0)
@@ -282,26 +299,28 @@ if 1:   # Utility
         LineColor(black)
         # Text characteristics
         T = 0.15
-        t = T/3
+        t = T / 3
         TextSize(T)
         TextName(SansBold)
         # Dimensions of plotting viewport
-        w, h = W - 2*margin, H - 2*margin
-        r = max(diameters)/2
-        R = d["vars"]["D"]/2
+        w, h = W - 2 * margin, H - 2 * margin
+        r = max(diameters) / 2
+        R = d["vars"]["D"] / 2
         # Scale things so that all circles will fit on page
-        S = h/(2*(r + R))
+        S = h / (2 * (r + R))
         scale(S, S)
         move(0, 0)
         # Draw main circle
-        circle(2*R)
-        x, y = -w/2, h/2 - margin
-        move(x/S, y/S)
-        TextLines((
-            "Main circle dia = " + sig(2*R),
-            "Chords in red",
-            "Gap angle = " + sig(d["gap"]*r2d) + " deg",
-        ))
+        circle(2 * R)
+        x, y = -w / 2, h / 2 - margin
+        move(x / S, y / S)
+        TextLines(
+            (
+                "Main circle dia = " + sig(2 * R),
+                "Chords in red",
+                "Gap angle = " + sig(d["gap"] * r2d) + " deg",
+            )
+        )
         # Plot small circles
         for i in range(len(results)):
             dia, x, y, theta, chord, thetai = results[i]
@@ -310,12 +329,12 @@ if 1:   # Utility
             circle(dia)
             # Label with diameter
             push()
-            rotate(theta*r2d)
-            x = R + dia/2 + t/S
-            move(x, -t/S)
+            rotate(theta * r2d)
+            x = R + dia / 2 + t / S
+            move(x, -t / S)
             text(sig(dia))
-            move(R/2, t/(2*S))
-            ctext(sig(theta*r2d))
+            move(R / 2, t / (2 * S))
+            ctext(sig(theta * r2d))
             if 0:
                 TextName(Symbol)
                 text(chr(176))
@@ -324,44 +343,51 @@ if 1:   # Utility
             pop()
             # Label with chord
             push()
-            next = results[(i + 1) % n][3] + 2*math.pi*(not ((i + 1) % n))
+            next = results[(i + 1) % n][3] + 2 * math.pi * (not ((i + 1) % n))
             current = results[i][3]
-            dtheta = (next - current)/2
-            rotate((theta + dtheta)*r2d)
-            x = R*0.75
+            dtheta = (next - current) / 2
+            rotate((theta + dtheta) * r2d)
+            x = R * 0.75
             TextColor(red)
-            move(x, -t/S)
+            move(x, -t / S)
             text(sig(chord))
             pop()
+
     def LinearProblem(diameters, d):
-        '''Solve the problem of the diameters along a straight line.  
+        """Solve the problem of the diameters along a straight line.
         Given r = [r_0, r_1, ..., r_(n-1)] and L, then the abscissa of the
         point i for i > 0 is
-            
+
             x_i = x_(i-1) + r_(i-1) + L + r_i
-     
+
         and x_0 = 0.
-        '''
+        """
         L = d["vars"]["D"]
         x = flt(0)
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Linear hole placement problem for line 
           L = distance between circle edges = {L}
           x = distance from origin (x = 0) of hole centers
           Results to {x.n} significant figures
-        '''))
-        r = [i/2 for i in diameters]
-        print('''
+        """)
+        )
+        r = [i / 2 for i in diameters]
+        print(
+            """
                                                      Hole
             i            x         Dividers        Diameter
-        --------      --------     --------        --------'''[1:])
+        --------      --------     --------        --------"""[1:]
+        )
         f = "     {:^8d}      {:^8s}     {:^8s}        {:^8s}"
+
         def g(x):
             return f"{x!s:^8}"
+
         lastx = x
         for i, dia in enumerate(diameters):
             if i:
-                x += r[i-1] + L + r[i]
+                x += r[i - 1] + L + r[i]
             div = x - lastx
             if 0:
                 if n is not None:
@@ -373,71 +399,105 @@ if 1:   # Utility
             lastx = x
         S = flt(sum(diameters))
         N = len(diameters) - 1
-        oal = S + N*L
+        oal = S + N * L
         with oal:
             oal.n = 3
-            need = str(oal + 4*L)
-        print(dedent(f'''
+            need = str(oal + 4 * L)
+        print(
+            dedent(f"""
             S = sum of diameters = {sum(diameters)}
             L = distance between hole edges = {L}
             N = Number of lengths L between holes = {len(diameters) - 1}
-            OAL = Overall length = S + N*L = {S} + {N}*{L} = {S + N*L}
+            OAL = Overall length = S + N*L = {S} + {N}*{L} = {S + N * L}
                            = outside distance of outermost holes
             With a border of 2*L on either end, you'll need a chunk of material
             that's OAL + 4*L = {need}.
-        '''))
+        """)
+        )
         exit(0)
+
     def PrintReport(results, diameters, d):
-        R = flt(d["vars"]["D"]/2)
-        print(f"Main circle diameter = {2*R}")
+        R = flt(d["vars"]["D"] / 2)
+        print(f"Main circle diameter = {2 * R}")
         for dia in diameters:
-            r = dia/2
-            if r/R > d["warn_ratio"]:
+            r = dia / 2
+            if r / R > d["warn_ratio"]:
                 print("  Warning:  large diameter circle: ", Fmt(dia, d))
         w = 12
-        #sig.fit = w = 12
-        #sig.dp_position = sig.fit//2
-        print(" "*37, "Polar angle,", " "*12, "Angular width,")
+        # sig.fit = w = 12
+        # sig.dp_position = sig.fit//2
+        print(" " * 37, "Polar angle,", " " * 12, "Angular width,")
         s = "Dia x y degrees Chord degrees"
-        print(" "*4, end="")
+        print(" " * 4, end="")
         print("{0:14}{1:14}{2:9}{3:14}{4:13}{5}".format(*s.split()))
-        print("-"*78)
+        print("-" * 78)
         for item in results:
             dia, x, y, theta, chord, thetai = item
             if 0:
                 sdia = sig(dia)
                 sx = sig(x)
                 sy = sig(y)
-                stheta = sig(theta*r2d)
+                stheta = sig(theta * r2d)
                 schord = sig(chord)
-                sangle = sig(abs(thetai*r2d))
-                s = ("{sdia:{w}} {sx:{w}} {sy:{w}} {stheta:{w}} "
-                    "{schord:{w}} {sangle:{w}}")
+                sangle = sig(abs(thetai * r2d))
+                s = (
+                    "{sdia:{w}} {sx:{w}} {sy:{w}} {stheta:{w}} "
+                    "{schord:{w}} {sangle:{w}}"
+                )
                 print(s.format(**locals()))
             else:
                 theta = flt(math.degrees(theta))
                 chord = flt(chord)
                 angle = flt(abs(math.degrees(thetai)))
-                print(f"{dia!s:^{w}} {x!s:^{w}} {y!s:^{w}} {theta!s:^{w}} "
-                      f"{chord!s:^{w}} {angle!s:^{w}}")
-        #sig.fit, n = 0, len(diameters)
+                print(
+                    f"{dia!s:^{w}} {x!s:^{w}} {y!s:^{w}} {theta!s:^{w}} "
+                    f"{chord!s:^{w}} {angle!s:^{w}}"
+                )
+        # sig.fit, n = 0, len(diameters)
         n = len(diameters)
         print()
         print("Number of circles              =", n)
         gap = abs(d["gap"])
-        print("Gap angle between each circle  =", Fmt(math.degrees(gap), d), "deg",
-              "=", Fmt(gap, d), "rad")
-        tga = gap*n
-        print("Total gap angle                =", Fmt(math.degrees(tga), d), "deg", "=",
-              Fmt(tga, d), "rad")
+        print(
+            "Gap angle between each circle  =",
+            Fmt(math.degrees(gap), d),
+            "deg",
+            "=",
+            Fmt(gap, d),
+            "rad",
+        )
+        tga = gap * n
+        print(
+            "Total gap angle                =",
+            Fmt(math.degrees(tga), d),
+            "deg",
+            "=",
+            Fmt(tga, d),
+            "rad",
+        )
         ac = d["theta_total"]
-        print("Angle subtended by all circles =", Fmt(math.degrees(ac), d), "deg", "=",
-              Fmt(ac, d), "rad")
+        print(
+            "Angle subtended by all circles =",
+            Fmt(math.degrees(ac), d),
+            "deg",
+            "=",
+            Fmt(ac, d),
+            "rad",
+        )
         ta = tga + ac
-        print("Total angle", " "*20, Fmt(math.degrees(ta), d), "deg", "=", Fmt(ta, d), "rad")
+        print(
+            "Total angle",
+            " " * 20,
+            Fmt(math.degrees(ta), d),
+            "deg",
+            "=",
+            Fmt(ta, d),
+            "rad",
+        )
+
 
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     datafile, diameter = ParseCommandLine(d)
     try:
         d["diameter"] = float(eval(diameter))

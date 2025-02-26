@@ -1,45 +1,56 @@
-'''
+"""
 Print out Pascal's triangle
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Print out Pascal's triangle
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import getopt
     from math import factorial
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
+
+
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
+
+
 def Usage(d, status=1):
     name = sys.argv[0]
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {name} m [n]
       Print Pascal's triangle from 1 to m or m to n if the second argument
       is given.
-    '''))
+    """)
+    )
     if d["-h"]:
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Formula
           The kth number on each line that begins with m is Bin(m, k) where we must
           have 0 <= k <= m and Bin is the binomial coefficient, which is 
           m!/(k!*(m - k)!).  Example:  for the line that begins with '5:', the third
           number will be for k = 2.  It's value is 5!/(2!*(5 - 2)!), which is 
           5!/(2*3*2) = 5*4*3*2/(3*4) = 10.
-        '''))
+        """)
+        )
     exit(status)
+
+
 def ParseCommandLine(d):
     try:
         opts, args = getopt.getopt(sys.argv[1:], "h", "help")
@@ -59,19 +70,23 @@ def ParseCommandLine(d):
     if n is not None and n < m:
         Error("n must be >= m")
     return m, n
+
+
 def Line(n):
     a, s = [], 0
     print(f"{n}: ", end="")
     for i in range(n + 1):
-        value = factorial(n)//(factorial(i)*factorial(n - i))
+        value = factorial(n) // (factorial(i) * factorial(n - i))
         s += value
         print(value, end=" ")
     print()
     # An invariant is that the sum of Bin(m, n) over n for 0 to m must be
     # 2**n.  This is a check on the calculation.
-    assert(s == 2**n)
+    assert s == 2**n
+
+
 if __name__ == "__main__":
-    d = {"-h": False}      # Options dictionary
+    d = {"-h": False}  # Options dictionary
     m, n = ParseCommandLine(d)
     s = [1]
     if n is None:

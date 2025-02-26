@@ -1,4 +1,4 @@
-'''
+"""
 
 ToDo:
     - Color-highlight the matched strings in each line
@@ -24,35 +24,38 @@ ToDo:
 Search various indexes of metalworking publications
     The script contains its own data, so this is the only file you
     should need.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2020 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2020 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Search metalworking publications for titles
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     from collections import namedtuple
     from io import StringIO
     import csv
     import getopt
     import re
     import sys
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
     import color as C
-    from pdb import set_trace as xx 
+    from pdb import set_trace as xx
+
     if 1:
         import debug
+
         debug.SetDebugger()
-if 1:   # Global variables
+if 1:  # Global variables
     # Raw data for the script
     #
     # Note:  None of these files contain any information about how they are
@@ -75,7 +78,7 @@ if 1:   # Global variables
     # http://machinistindex.com/Metalworking_index_2000.txt.  MD5 hash is
     # 5e4ac70ff2eb81007e3c32b7b6fb7d57.
     # NOTE:  these links are defunct as of 6 Jul 2021.
-    mi = dedent('''
+    mi = dedent("""
 
     ! Joe Landau's Metalworking Index 2000 Edition, covering 
     ! "Home Shop Machinist" through 1999
@@ -3799,7 +3802,7 @@ if 1:   # Global variables
     Z-axis Downfeed for a Mill-drill Machine	MUELLER, FRAN O.	PiM-Feb.'91,12
     Zero Set Micrometer Dial	GROSJEAN, W. C.	PiM-Jun.'90,7
     Zinc Aluminum Alloy Sleeve Bearings for a Dividing head Upgrade	CLARKE, THEODORE M	HSM'99:S/O  60
-    ''')
+    """)
     mi_key = (
         "HSM    Home Shop Machinist",
         "HTIM   Hey Tim, I gotta tell ya...",
@@ -5688,7 +5691,7 @@ if 1:   # Global variables
     # 2020 07:49:09 PM from
     # http://www.homeshopmachinist.net/resources/article-index/.  MD5 hash
     # is 0615a68f7866dd3e94238d595b1d5492.  BOM & carriage returns removed.
-    vp2 = dedent('''
+    vp2 = dedent("""
     "Article Title","Author Name","Article Subject","Issue","Page"
     "Drill Press Table","Robert S. Hedin","Shop Machinery","HSM Vol. 01 No. 1 Jan-Feb 1982","5"
     "A Lathe Tool Holder","John Campbell","Lathes","HSM Vol. 01 No. 1 Jan-Feb 1982","7"
@@ -8416,8 +8419,8 @@ if 1:   # Global variables
     "A Simple Gravity Powered Band Saw Fence","Brian Weeks","Shop Machinery","HSM Vol. 39 No. 2 Mar/Apr 2020","51"
     "Making Custom Washers and Spacers","R.G. Sparber","General Machining Knowledge","HSM Vol. 39 No. 2 Mar/Apr 2020","56"
     "The Old Retired Shop Teacher: Take the Muscle Out of Lathe Chuck Handling","Roger Taylor","lathes","HSM Vol. 39 No. 2 Mar/Apr 2020","60"
-    ''')
-    '''
+    """)
+    """
     Formats of different publication entries: [x] is line number in raw
     data.  This could stand some regularlizing, along with author names and
     titles.
@@ -8434,13 +8437,17 @@ if 1:   # Global variables
         TMBR#2:v; vi HTIM:iii [2196]
         TMBR#3 1st printing:94, 139. & 251 [1698]
         TMBR#3 2nd printing:94, 139. & 251 [1697]
-    '''
+    """
+
+
 def Regularlize(string):
-    'Fix inconsistencies in the raw data strings'
+    "Fix inconsistencies in the raw data strings"
     string = re.sub("  +", " ", string)
     return string
+
+
 def GetData():
-    'Return a sequence of named tuples of the form (title, author, pub)'
+    "Return a sequence of named tuples of the form (title, author, pub)"
     NT = namedtuple("NT", "title author pub")
     seq = []
     # Metalworking index
@@ -8449,27 +8456,32 @@ def GetData():
         if not line or line[0] == "!":
             continue
         seq.append(NT(*line.split("\t")))
+
     def ProcessVP(raw_data):
         # Process Village Press indexes
         VP = namedtuple("VP", "title author subject issue page")
         sio = StringIO(Regularlize(raw_data))
         c = csv.reader(sio)
         for i, line in enumerate(c):
-            if not i:   # Ignore first line
+            if not i:  # Ignore first line
                 continue
             # This does not read the Harold Mason article on a "Rocking,
             # Swinging Grinder table" correctly.
             title, author, subject, issue, page = VP(*line)
             pub = issue.strip() + "," + page.strip()
             seq.append(NT(title, author, pub))
+
     # Machinist's Workshop index
     ProcessVP(vp1)
     # Home Shop Machinist index
     ProcessVP(vp2)
     return seq
+
+
 def Usage(d, status=1):
     name = sys.argv[0]
-    print(dedent(f'''
+    print(
+        dedent(f'''
     Usage:  {name} [options] [regex1 [regex2 ...]]
       Search metalworking titles for regular expressions.  Note the datasets
       have overlap, so you'll see multiple references to the same article.
@@ -8493,18 +8505,21 @@ def Usage(d, status=1):
       -i    Don't ignore case
       -k    Show publication abbreviations
       -p    Search publication instead of title
-      -s x  Separate printed fields with the string x (default is "{d['-s']}")
-    '''))
+      -s x  Separate printed fields with the string x (default is "{d["-s"]}")
+    ''')
+    )
     exit(status)
+
+
 def ParseCommandLine(d):
-    d["-1"] = False     # Print title
-    d["-2"] = False     # Print author
-    d["-3"] = False     # Print author
-    d["-d"] = False     # Dump all records
-    d["-a"] = False     # Search author
-    d["-i"] = True      # Ignore case
-    d["-p"] = False     # Search publication
-    d["-s"] = " | "     # Printing separator
+    d["-1"] = False  # Print title
+    d["-2"] = False  # Print author
+    d["-3"] = False  # Print author
+    d["-d"] = False  # Dump all records
+    d["-a"] = False  # Search author
+    d["-i"] = True  # Ignore case
+    d["-p"] = False  # Search publication
+    d["-s"] = " | "  # Printing separator
     try:
         opts, args = getopt.getopt(sys.argv[1:], "123adhikps:")
     except getopt.GetoptError as e:
@@ -8527,6 +8542,8 @@ def ParseCommandLine(d):
     if not d["-d"] and not args:
         Usage(d)
     return args
+
+
 def PrintItem(item):
     title, author, pub = item
     if d["all"]:
@@ -8538,6 +8555,8 @@ def PrintItem(item):
         s += [author] if d["-2"] else []
         s += [pub] if d["-3"] else []
         print(*s, sep=d["-s"])
+
+
 def Search(regexp):
     r = re.compile(regexp, re.I) if d["-i"] else re.compile(regexp)
     out = []
@@ -8550,11 +8569,13 @@ def Search(regexp):
             if r.search(pub):
                 out.append(item)
         elif r.search(title):
-                out.append(item)
+            out.append(item)
     for item in sorted(out):
         PrintItem(item)
-if __name__ == "__main__": 
-    d = {}      # Options dictionary
+
+
+if __name__ == "__main__":
+    d = {}  # Options dictionary
     regexps = ParseCommandLine(d)
     d["data"] = GetData()
     if d["-d"]:

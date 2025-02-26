@@ -1,11 +1,12 @@
 import sys
-attr = f'''
+
+attr = f"""
 file = {sys.argv[0]}
 from http://chir.ag/projects/ntc/ntc.js
 Downloaded Sat 04 Oct 2014 10:30:39 AM
 Verified unchanged from download on Wed 16 Mar 2022 02:12:12 PM
-'''.strip()
-data = '''
+""".strip()
+data = """
 "000000", "Black"
 "000080", "Navy Blue"
 "0000C8", "Dark Blue"
@@ -1572,7 +1573,7 @@ data = '''
 "FFFFB4", "Portafino"
 "FFFFF0", "Ivory"
 "FFFFFF", "White"
-'''.strip()
+""".strip()
 print(f"""'''{attr}'''""")
 for line in data.split("\n"):
     color, name = line.replace('"', "").split(",")

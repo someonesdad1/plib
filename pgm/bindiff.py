@@ -1,4 +1,4 @@
-'''
+"""
 Don Peterson 8/3/99
 
 Print the binary differences between two files.  Any differences
@@ -40,27 +40,28 @@ The state transitions and their actions are:
     S2-S3    No action
 
 (This looks a little cleaner on a state machine diagram.)
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 1999 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 1999 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Print the binary differences between two files
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import os
     import string
     import sys
     from io import StringIO
-    from pdb import set_trace as xx 
-if 1:   # Global variables
+    from pdb import set_trace as xx
+if 1:  # Global variables
     file1G = ""
     file2G = ""
     # There is an interesting tradeoff between the chunksize and the number
@@ -76,16 +77,21 @@ if 1:   # Global variables
     chunksizeG = 1 << 12
     debugG = 0
     sepG = "=" * 78
+
+
 def Debug(s):
     if debugG:
         print(s)
+
+
 def CheckSizes():
-    '''Compare the file sizes; if they are different, print out a message
+    """Compare the file sizes; if they are different, print out a message
     to stdout to this effect.  Return a tuple of the smallest size followed
     by the two sizes.  If one of the file sizes is zero, print and error
     message and exit.
-    '''
+    """
     import stat
+
     size1 = os.stat(file1G)[stat.ST_SIZE]
     size2 = os.stat(file2G)[stat.ST_SIZE]
     if size1 == 0:
@@ -101,14 +107,18 @@ def CheckSizes():
     elif size1 > size2:
         return size2, size1, size2
     return size1, size1, size2
+
+
 def Usage():
     print("Usage:  %s file1 file2" % sys.argv[0])
     print("  Performs a binary file comparison between two files")
     exit(1)
+
+
 def FixContiguousRanges(ranges):
-    '''Go through the list of ranges and collapse contiguous ranges
+    """Go through the list of ranges and collapse contiguous ranges
     into one range.
-    '''
+    """
     if len(ranges) == 0:
         Debug("FixContiguousRanges:  empty ranges")
         return []
@@ -125,16 +135,18 @@ def FixContiguousRanges(ranges):
         else:
             range_list.append(r)
     return range_list
+
+
 def CompareBytes(ifp1, ifp2, filesize):
-    '''Compare the bytes of the two files up to the number of bytes in
+    """Compare the bytes of the two files up to the number of bytes in
     filesize.  Generate and return a list of ranges of the bytes that
     are different.  Each range is a list of two integers, the beginning
     and ending 0-based offset of the range.  Return a list that represents
     all the differences in the file.
-    '''
+    """
     list = []
     Debug("filesize = %d" % filesize)
-    numchunks = filesize//chunksizeG + 1
+    numchunks = filesize // chunksizeG + 1
     Debug("Number of chunks = %d, chunksize = %d" % (numchunks, chunksizeG))
     all_ranges = []
     for chunk in range(numchunks):
@@ -150,12 +162,14 @@ def CompareBytes(ifp1, ifp2, filesize):
             Range = Range + r
     Range = FixContiguousRanges(Range)
     return Range
+
+
 def CompareChunk(str1, str2, chunk):
-    '''Compare the two chunks in str1 and str2.  If they are not equal,
+    """Compare the two chunks in str1 and str2.  If they are not equal,
     put the differences in a ranges list and return the list; otherwise,
     return an empty list.  The chunk value is used to calculate the
     actual offsets in the file.
-    '''
+    """
     if str1 == str2:
         Debug("++++++ Chunk %d the same +++++" % chunk)
         return []
@@ -171,22 +185,24 @@ def CompareChunk(str1, str2, chunk):
     old_state = new_state = START
     ranges = []
     start = end = INVALID_VALUE
-    Debug("+++++++++++++++++++ Start compare chunk %d "
-          "+++++++++++++++++++++++++" % chunk)
-    Debug("Offset will be from %d to %d"
-          % (chunk*chunksizeG, chunk*chunksizeG + chunksizeG-1))
+    Debug(
+        "+++++++++++++++++++ Start compare chunk %d +++++++++++++++++++++++++" % chunk
+    )
+    Debug(
+        "Offset will be from %d to %d"
+        % (chunk * chunksizeG, chunk * chunksizeG + chunksizeG - 1)
+    )
     Debug("Starting state = START")
     for i in range(size):
-        offset = i + chunk*chunksizeG
+        offset = i + chunk * chunksizeG
         try:
-            Debug("Offset = %d, str1 = %c, str2 = %c" %
-                  (offset, str1[i], str2[i]))
+            Debug("Offset = %d, str1 = %c, str2 = %c" % (offset, str1[i], str2[i]))
         except Exception:
             print("i =", i)
             print("len(str1) =", len(str1))
             print("len(str2) =", len(str2))
             exit(1)
-        equal = (str1[i] == str2[i])
+        equal = str1[i] == str2[i]
         Debug("  equal = %d" % equal)
         if old_state == START:
             if equal:
@@ -228,11 +244,12 @@ def CompareChunk(str1, str2, chunk):
             else:
                 ranges.append([start, end])
     Debug("Ranges is " + repr(ranges))
-    Debug("+++++++++++++++++++ End compare chunk "
-          "++++++++++++++++++++++++++++++")
+    Debug("+++++++++++++++++++ End compare chunk ++++++++++++++++++++++++++++++")
     return ranges
+
+
 def hexdump(dest, src, numbytes=-1, startnum=0):
-    '''Hex dump utility.  The function call is
+    """Hex dump utility.  The function call is
         hexdump(dest, src, numbytes, startnum)
     where
         dest       A file object opened for writing; is where the output
@@ -248,10 +265,10 @@ def hexdump(dest, src, numbytes=-1, startnum=0):
     The function does not return anything.  Exceptions will be raised for
     improper parameters.  Exceptions from the underlying operations such
     as file access are not caught.
-    '''
+    """
+
     def OutputLine(dest, bytes, offset, bytes_per_line, nonprintable_char):
-        '''Print a hex dump line of bytes_per_line bytes.
-        '''
+        """Print a hex dump line of bytes_per_line bytes."""
         if len(bytes) == 0:
             return
         dest.write("%08x  " % offset)
@@ -272,13 +289,14 @@ def hexdump(dest, src, numbytes=-1, startnum=0):
                     dest.write("%c" % bytes[i])
                 else:
                     dest.write("%c" % nonprintable_char)
-        dest.write("\n")   # Go to the next line
+        dest.write("\n")  # Go to the next line
+
     bytes_per_line = 16
     nonprintable_char = 250  # Use for DOS
     if "OSTYPE" in os.environ:
         if os.environ["OSTYPE"] == "linux-gnu":
             nonprintable_char = 183  # For Linux xterm
-    stringio = StringIO('')
+    stringio = StringIO("")
     # If dest is a string, convert it to a StringIO object.
     if isinstance(dest, str):
         Dest = StringIO()
@@ -290,24 +308,25 @@ def hexdump(dest, src, numbytes=-1, startnum=0):
         Src = src
     done = 0
     if numbytes == -1:
-        numbytes = 0x7fffffff
+        numbytes = 0x7FFFFFFF
     bytes = Src.read(bytes_per_line)
     count = 0
     offset = startnum
     while len(bytes) != 0:
         if len(bytes) + count >= numbytes:
-            bytes = bytes[:numbytes - count]
+            bytes = bytes[: numbytes - count]
         OutputLine(Dest, bytes, offset, bytes_per_line, nonprintable_char)
         count = count + len(bytes)
         if count >= numbytes:
             break
         bytes = Src.read(bytes_per_line)
         offset = offset + bytes_per_line
+
+
 def TestHexDump():
     # Perform some simple tests
     dest = sys.stdout
-    s = ("This is a sample string that is definitely longer than "
-         "16 characters.")
+    s = "This is a sample string that is definitely longer than 16 characters."
     src = StringIO(s)
     print("Whole string: %r" % s)
     hexdump(dest, src)
@@ -342,7 +361,7 @@ def TestHexDump():
 
     print("\nWith number of bytes larger than string size")
     src.seek(0)
-    hexdump(dest, src, numbytes=len(s)+1)
+    hexdump(dest, src, numbytes=len(s) + 1)
 
     del src
     src = s
@@ -354,9 +373,10 @@ def TestHexDump():
     src = open("hd.py")
     hexdump(dest, src, numbytes=35)
     src.close()
+
+
 def PrintDifference(ifp1, ifp2, diff):
-    '''
-    '''
+    """ """
     offset = diff[0]
     numbytes = diff[1] - offset + 1
     print(sepG)
@@ -369,6 +389,8 @@ def PrintDifference(ifp1, ifp2, diff):
     hexdump(sys.stdout, ifp1, numbytes, offset)
     print("File %s:" % file2G)
     hexdump(sys.stdout, ifp2, numbytes, offset)
+
+
 def PrintHeader(size1, size2):
     if size1 != size2:
         s = "byte"
@@ -388,7 +410,9 @@ def PrintHeader(size1, size2):
             print("Only the first %d (0x%x) bytes are compared" % (size, size))
     else:
         print("Files are %d (0x%x) bytes in size" % (size1, size1))
-if __name__ == "__main__": 
+
+
+if __name__ == "__main__":
     if len(sys.argv) != 3:
         Usage()
     file1G = sys.argv[1]

@@ -1,11 +1,12 @@
 if 1:
     import debug
+
     debug.SetDebugger()
-attr = '''file = /pylib/g/rgb.txt
+attr = """file = /pylib/g/rgb.txt
 Constructed from an rgb.txt file I got from either an HPUX or Linux box
-in the early 1990's.'''.strip()
+in the early 1990's.""".strip()
 # Split first on the tab character
-data = '''
+data = """
 240 248 255	AliceBlue
 250 235 215	AntiqueWhite
 255 239 219	AntiqueWhite1
@@ -982,7 +983,7 @@ data = '''
 205 205   0	yellow3
 139 139   0	yellow4
  50 216  56	yellow green
-'''[1:-1]
+"""[1:-1]
 print(f"""'''{attr}'''""")
 for i, line in enumerate(data.split("\n")):
     colors, name = line.split("\t")

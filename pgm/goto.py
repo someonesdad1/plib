@@ -1,73 +1,81 @@
-'''
+"""
 
 TODO
     - It's OK to have an alias collision -- you just then prompt for which
-      alias to use.  
- 
+      alias to use.
+
 Driver for the old shell g() function that used the _goto.py script.
 This new file includes the functionality of the g() function, so minimal
 shell function support is needed to use it.  This gets around the need
 for writing ugly shell syntax stuff.
-'''
- 
+"""
+
 if 1:  # Header
     # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
-        # Script to help 'remember' locations and files
-        #∞what∞#
-        #∞test∞# #∞test∞#
+    # These "trigger strings" can be managed with trigger.py
+    # ∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    # ∞license∞#
+    # ∞what∞#
+    # Script to help 'remember' locations and files
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     # Standard imports
-        from pprint import pprint as pp
-        import getopt
-        import os
-        import pathlib
-        import platform
-        import re
-        import subprocess
-        import sys
+    from pprint import pprint as pp
+    import getopt
+    import os
+    import pathlib
+    import platform
+    import re
+    import subprocess
+    import sys
+
     # Custom imports
-        from wrap import wrap, dedent
-        import get
-        from color import TRM as t, RegexpDecorate, Color
-        from wsl import wsl
-        if 0:
-            import debug
-            debug.SetDebugger()
+    from wrap import wrap, dedent
+    import get
+    from color import TRM as t, RegexpDecorate, Color
+    from wsl import wsl
+
+    if 0:
+        import debug
+
+        debug.SetDebugger()
     # Global variables
-        P = pathlib.Path
-        ii = isinstance
-        class g:
-            pass
-        g.name = sys.argv[0]
-        g.config = None             # Configuration file
-        g.cygprefix = "d:/cygwin64"
-        if wsl:
-            g.backup = P(f"/home/don/.bup")     # Backup directory
-        else:
-            g.backup = P(f"{g.cygprefix}/home/Don/.bup")     # Backup directory
-        g.sep = ";"                 # Field separator for config file
-        g.at = "@"                  # Designates a silent alias
-        g.editor = os.environ["EDITOR"]
-        # Colors for terminal printing
-        t.C = t("cynl")
-        t.R = t("redl")
-        t.y = t("yell")
-        # Regular expressions describing configuration file lines that
-        # should be ignored
-        g.ignore = ()
-if 1:   # Utility
+    P = pathlib.Path
+    ii = isinstance
+
+    class g:
+        pass
+
+    g.name = sys.argv[0]
+    g.config = None  # Configuration file
+    g.cygprefix = "d:/cygwin64"
+    if wsl:
+        g.backup = P(f"/home/don/.bup")  # Backup directory
+    else:
+        g.backup = P(f"{g.cygprefix}/home/Don/.bup")  # Backup directory
+    g.sep = ";"  # Field separator for config file
+    g.at = "@"  # Designates a silent alias
+    g.editor = os.environ["EDITOR"]
+    # Colors for terminal printing
+    t.C = t("cynl")
+    t.R = t("redl")
+    t.y = t("yell")
+    # Regular expressions describing configuration file lines that
+    # should be ignored
+    g.ignore = ()
+if 1:  # Utility
+
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
+
     def Usage(d, status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {g.name} [options] arguments
           Script to save/choose file or directory names.  When run, the
           configuration file is read (change it with the -f option) and you
@@ -92,15 +100,17 @@ if 1:   # Utility
             -f f    Set the name of the configuration file
             -H      Explains details of the configuration file syntax
             -q      Print silent alias names (prefaced with {g.at})
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-d"] = False     # Show data file contents
-        d["-e"] = None      # Write result to indicated file
-        d["-f"] = None      # Name of the configuration file
-        d["-H"] = False     # Show config file syntax
-        d["-q"] = False     # Print silent alias names
-        d["-s"] = False     # Search config lines for regex
+        d["-d"] = False  # Show data file contents
+        d["-e"] = None  # Write result to indicated file
+        d["-f"] = None  # Name of the configuration file
+        d["-H"] = False  # Show config file syntax
+        d["-q"] = False  # Print silent alias names
+        d["-s"] = False  # Search config lines for regex
         try:
             opts, args = getopt.getopt(sys.argv[1:], "de:f:Hhqs")
         except getopt.GetoptError as e:
@@ -125,8 +135,10 @@ if 1:   # Utility
         if not g.backup.exists() or not g.backup.is_dir():
             Error(f"{g.name}:  Must define a backup directory in g.backup")
         return args
+
     def Manpage():
-        print(dedent(f'''
+        print(
+            dedent(f"""
         This script is for "remembering" directories and project files.
         I use it primarily to remember directory locations and to keep a
         list of project files I work on.  When I'm finished with working
@@ -198,35 +210,41 @@ if 1:   # Utility
         
         Or, give the number or alias of the directory/file you want on the   
         command line and you won't be prompted.
-        '''))
+        """)
+        )
         exit(0)
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def Ignore(line):
-        'Return True if this configuration file line should be ignored'
+        "Return True if this configuration file line should be ignored"
         for r in g.ignore:
             if r.search(line):
                 return True
         return False
+
     def BackUpConfigFile():
-        '''The configuration file is about to be modified, so save a
+        """The configuration file is about to be modified, so save a
         copy of it in the g.backup directory.
- 
+
         Note we check that the -f option must be used if the script
         name doesn't contain 'goto' to avoid overwriting the default
         configuration file in g.config.
-        '''
+        """
         script = P(g.name).resolve()
         needs_dash_f = script.stem != "goto"
         if needs_dash_f and d["-f"] is None:
             Error("Won't backup to default config file unless script is goto.py")
-        bup = g.backup/f"{script.name}.{os.getpid()}"
+        bup = g.backup / f"{script.name}.{os.getpid()}"
         s = open(d["-f"]).read() if d["-f"] else open(g.config).read()
         open(bup, "w").write(s)
+
     def AddCurrentDirectory(args):
-        '''If args is empty, then add the current directory to the
+        """If args is empty, then add the current directory to the
         beginning of the config file.  Otherwise, add each file to the
         beginning of the config file.
-        '''
+        """
         BackUpConfigFile()
         out = []
         if args:
@@ -238,28 +256,31 @@ if 1:   # Core functionality
         else:
             out = [str(P(".").resolve())]
         out.append(open(g.config).read())
-        open(g.config, "w").write('\n'.join(out))
+        open(g.config, "w").write("\n".join(out))
+
     def EditFile():
         subprocess.call([g.editor, str(g.config)])
+
     def CheckAlias(alias):
         "No spaces; optional leading '@'"
         if g.at in alias and alias[0] != g.at:
             Error(f"'{alias}' alias has '{g.at}' in wrong position")
         return alias.replace(" ", "")
+
     def GetChoicesAndAliases(lines):
-        '''Return (choices, aliases) where choices is a dict of the
+        """Return (choices, aliases) where choices is a dict of the
         choices by numbers and aliases is the dict of choices by alias.
         Both dictionaries have values of (dir, name).  dir is a string
         of the directory or file of interest and name is how it's
         displayed if not None.
- 
+
         choices will be keyed by an integer starting at 1.
-        '''
+        """
         choices, aliases = {}, {}
         tmp = []
         for ln, line in lines:
             f = line.strip().split(g.sep)
-            if len(f) == 3:         # This line has an alias
+            if len(f) == 3:  # This line has an alias
                 name, alias, dir = [i.strip() for i in f]
                 alias = CheckAlias(alias)
                 alias1 = f"{g.at}{alias}"
@@ -270,30 +291,31 @@ if 1:   # Core functionality
                     except KeyError:
                         dir, name = aliases[alias1]
                         al = alias1
-                    m = dedent(f'''
+                    m = dedent(f"""
                     {t.R}Duplicate alias '{al}' on line {ln}{t.n}
                       Previous definition:
                         name:      {name}
                         file/dir:  {dir}
-                    ''')
+                    """)
                     Error(m)
                 aliases[alias] = (dir, name)
-            elif len(f) == 2:       # Name and directory
+            elif len(f) == 2:  # Name and directory
                 name, dir = [i.strip() for i in f]
                 tmp.append((dir, name))
-            elif len(f) == 1:       # Directory only
+            elif len(f) == 1:  # Directory only
                 dir = f[0].strip()
                 tmp.append((dir, None))
-            else:                   # Bad line
+            else:  # Bad line
                 m = f"Line {ln} has wrong number of fields:\n  '{line}'"
                 raise RuntimeError(m)
         for i, item in enumerate(tmp):
             choices[i + 1] = item
         return choices, aliases
+
     def DumpAll(choices, aliases):
         if not d["-d"]:
             return
-        i = " "*2
+        i = " " * 2
         # Options
         print(f"{t.y}Options dictionary:")
         for key in d:
@@ -319,10 +341,11 @@ if 1:   # Core functionality
         for key in GetSortedAliases(aliases):
             print(f"{i}{key:{n}s}:  {', '.join(aliases[key])}")
         print(f"{t.n}")
+
     def ActOn(dir):
-        '''dir is a directory or file.  Write it to stdout or the output
+        """dir is a directory or file.  Write it to stdout or the output
         file if -e option was used.
-        '''
+        """
         # dir is string, so turn it into a Path and resolve it to an absolute name
         try:
             p = P(dir).resolve()
@@ -341,35 +364,42 @@ if 1:   # Core functionality
             print(f"goto.py failed:  {str(e)!r}", file=sys.stderr)
             exit(1)
         if d["-e"]:
-            # We exit with a status of 0 to indicate to the calling context that the desired file 
+            # We exit with a status of 0 to indicate to the calling context that the desired file
             # is in the output file.  Only one command on the command line works for this
             # condition.
             exit(0)
+
     ActOn.app = f"{g.cygprefix}/home/Don/bin/app.exe"
     ActOn.cygstart = f"{g.cygprefix}/bin/cygstart.exe"
+
     def GetSortedAliases(aliases):
-        '''Generator to return the keys of the aliases dictionary, but
+        """Generator to return the keys of the aliases dictionary, but
         sorted so that aliases like '@abc' and 'abc' sort next to each
         other.
-        '''
+        """
         at = g.at
         a, b = lambda x: x[1:] + at, lambda x: at + x[:-1]
         tmp = sorted([a(k) if k[0] == at else k for k in aliases.keys()])
         for key in [b(k) if k[-1] == at else k for k in tmp]:
             yield key
+
     def CheckConfigFile(lines, all=False):
-        '''For each line, verify the file exists.  Note we check all config
+        """For each line, verify the file exists.  Note we check all config
         file lines if they contain '/'.  If all is True, then we also
         return the commented lines (but lines starting with "##" are never
         returned).
-        '''
+        """
+
         def BadLine(linenum, line, msg):
-            print(dedent(f'''
+            print(
+                dedent(f"""
             {t.C}Line {linenum} in configuration file is bad:
                 Line:     '{t.y}{line}{t.C}'
                 Problem:  {t.R}{msg}{t.C}
-            '''))
+            """)
+            )
             BadLine.bad = True
+
         BadLine.bad = False
         keep = []
         for linenum, line in lines:
@@ -396,7 +426,7 @@ if 1:   # Core functionality
             file = P(f[-1])
             fs = str(file)
             if fs.startswith("#"):
-                if len(fs) > 1 and fs[1] == "-":    # Line of hyphens
+                if len(fs) > 1 and fs[1] == "-":  # Line of hyphens
                     continue
                 file = P(fs[1:].strip())
             if not file.exists():
@@ -412,11 +442,12 @@ if 1:   # Core functionality
             if not item[1].startswith("#"):
                 o.append(item)
         return o
+
     def ReadConfigFile(all=False):
-        '''Read in the configuration file and check the lines.  If all is
+        """Read in the configuration file and check the lines.  If all is
         True, return regular lines and commented lines.  Lines starting
         with "##" are never returned.
-        '''
+        """
         # Create a list of (linenumber, linestring) tuples so we can refer
         # to line numbers later if needed.  Line numbers are 1-based.
         # We have to read all lines in to get correct numbering.
@@ -435,10 +466,11 @@ if 1:   # Core functionality
         # Check all lines
         lines = CheckConfigFile(keep, all)
         return lines
+
     def SearchLines(regexps, all=False):
-        '''Find regexps on the gotorc file's lines.  If all is True, search
+        """Find regexps on the gotorc file's lines.  If all is True, search
         all of the lines, even the commented-out ones.
-        '''
+        """
         lines = ReadConfigFile(all)
         rd = RegexpDecorate()
         if 0:
@@ -461,18 +493,20 @@ if 1:   # Core functionality
                     if mo:
                         rd(f"{ln}:  {line}", insert_nl=True)
                         break
+
     def LaunchFiles(args):
         for item in args:
             try:
                 subprocess.call((ActOn.cygstart, item))
             except Exception as e:
                 print(f"{e}", file=sys.stderr)
+
     def GoTo(arg):
-        'Print the path string the user selects'
+        "Print the path string the user selects"
         lines = ReadConfigFile()
         choices, aliases = GetChoicesAndAliases(lines)
         DumpAll(choices, aliases)
-        if arg:     # User passed in a number or alias
+        if arg:  # User passed in a number or alias
             try:
                 choice = int(arg)
                 if choice not in choices:
@@ -489,7 +523,7 @@ if 1:   # Core functionality
                 else:
                     Error(f"'{arg}' isn't a valid choice")
                 ActOn(dir)
-        else:       # Prompt for a choice
+        else:  # Prompt for a choice
             n = max([len(i) for i in aliases]) if aliases else 3
             # Print out choices
             had_choice = False
@@ -537,6 +571,7 @@ if 1:   # Core functionality
                     dir, name = choices[choice]
                     ActOn(dir)
                     return
+
     def ExecuteCommand(cmd, args):
         if cmd == "a":
             AddCurrentDirectory(args)
@@ -551,8 +586,10 @@ if 1:   # Core functionality
         else:
             # cmd will be a number or alias
             GoTo(cmd)
+
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     cmd, other = "", []
     if len(args) == 1:

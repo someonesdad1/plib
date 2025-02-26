@@ -1,21 +1,22 @@
-'''
+"""
 Cartesian coordinates of bolt holes on a circle
-'''
-if 1:   # Header
+"""
+
+if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2013 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2013 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Cartesian coordinates of bolt holes on a circle
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         from collections import deque
         from pathlib import Path as P
         import getopt
@@ -23,41 +24,49 @@ if 1:   # Header
         import re
         import subprocess
         import sys
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from f import flt, sin, cos, pi, degrees, radians, fmod
         from get import GetNumber
         from wrap import dedent
         from color import t
         from dpprint import PP
-        pp = PP()   # Screen width aware form of pprint.pprint
-        from wsl import wsl     # wsl is True when running under WSL Linux
-        #from columnize import Columnize
+
+        pp = PP()  # Screen width aware form of pprint.pprint
+        from wsl import wsl  # wsl is True when running under WSL Linux
+
+        # from columnize import Columnize
         if 1:
             import debug
+
             debug.SetDebugger()
-    if 1:   # Global variables
+    if 1:  # Global variables
+
         class G:
             # Storage for global variables as attributes
             pass
+
         g = G()
         g.dbg = False
         ii = isinstance
         # Problem variables
-        g.num_holes = 0                     # Number of holes
-        g.bc_dia = 0                        # Bolt circle diameter
+        g.num_holes = 0  # Number of holes
+        g.bc_dia = 0  # Bolt circle diameter
         g.angle_offset_degrees = flt(0)
-        g.origin = (flt(0), flt(0))         # Origin
-if 1:   # Utility
+        g.origin = (flt(0), flt(0))  # Origin
+if 1:  # Utility
+
     def GetScreen():
-        'Return (LINES, COLUMNS)'
+        "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
-            int(os.environ.get("COLUMNS", "80")) - 1
+            int(os.environ.get("COLUMNS", "80")) - 1,
         )
+
     def GetColors():
         t.dbg = t("cyn") if g.dbg else ""
         t.N = t.n if g.dbg else ""
         t.err = t("redl")
+
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="", file=Dbg.file)
@@ -65,12 +74,17 @@ if 1:   # Utility
             k["file"] = Dbg.file
             print(*p, **k)
             print(f"{t.N}", end="", file=Dbg.file)
+
     Dbg.file = sys.stdout
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Manpage():
-        print(dedent(f'''
+        print(
+            dedent(
+                f"""
         A shop task is to drill a set of n equally-spaced holes on a circle.  For example, an
         exhaust flange on a car engine might have three holes equally spaced on a circle about 50
         mm in diameter.  The problem's variables are (angles are in radians)
@@ -107,10 +121,14 @@ if 1:   # Utility
         You can make a temporary plug to fix this problem, but an origin offset probably takes less
         time.
 
-        '''.rstrip()))
+        """.rstrip()
+            )
+        )
         exit(0)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] N bc_dia 
           Print a table of Cartesian coordinates of bolt holes on a circle.  Standard Cartesian and
           polar coordinate systems in analytic geometry are assumed.
@@ -120,40 +138,45 @@ if 1:   # Utility
             -d n        Number of significant figures [{d["-d"]}]
             -h          Print a manpage
             -o 'x,y'    Location of origin
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-0"] = False     # Zero-based hole numbering
-        d["-a"] = 0         # Angle offset in degrees
-        d["-d"] = 5         # Number of significant digits
-        d["-o"] = (0, 0)    # Location of origin
+        d["-0"] = False  # Zero-based hole numbering
+        d["-a"] = 0  # Angle offset in degrees
+        d["-d"] = 5  # Number of significant digits
+        d["-o"] = (0, 0)  # Location of origin
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "0a:d:ho:") 
+            opts, args = getopt.getopt(sys.argv[1:], "0a:d:ho:")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
             if o[1] in list("0"):
                 d[o] = not d[o]
-            elif o == "-a":     # Angle offset in degrees
+            elif o == "-a":  # Angle offset in degrees
                 g.angle_offset_degrees = flt(a)
-            elif o == "-d":     # Significant digits
+            elif o == "-d":  # Significant digits
                 try:
                     d[o] = int(a)
                     if not (1 <= d[o] <= 15):
                         raise ValueError()
                 except ValueError:
                     Error("-d option's argument must be an integer between 1 and 15")
-            elif o == "-o":     # Origin
+            elif o == "-o":  # Origin
                 g.origin = [flt(i) for i in a.split(",")]
             elif o == "-h":
                 Usage(status=0)
         GetColors()
         g.W, g.L = GetScreen()
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def Report():
         # Origin translation offsets
         x0, y0 = g.origin
@@ -167,29 +190,32 @@ if 1:   # Core functionality
         s = "Table of hole positions"
         print()
         print(s)
-        print("-"*len(s))
+        print("-" * len(s))
         print()
-        w, eps, r = 15, 1e-14, g.bc_dia/2
-        s = "-"*(w - 4)
+        w, eps, r = 15, 1e-14, g.bc_dia / 2
+        s = "-" * (w - 4)
         print(f"Hole {'x':^{w}} {'y':^{w}} {'θ, °':^{w}}")
         print(f"---- {s:^{w}} {s:^{w}} {s:^{w}}")
+
         def f(x):
             return f"{x!s:^{w}}" if abs(x) >= eps else f"{flt(0)!s:^{w}}"
-        z = 0 if d["-0"] else 1     # Hole numbering correction
+
+        z = 0 if d["-0"] else 1  # Hole numbering correction
         for i in range(g.num_holes):
-            θ = 2*pi*i/g.num_holes + θ0
-            X, Y = r*cos(θ) + x0, r*sin(θ) + y0
+            θ = 2 * pi * i / g.num_holes + θ0
+            X, Y = r * cos(θ) + x0, r * sin(θ) + y0
             x, y, t = f(X), f(Y), f(fmod(flt(degrees(θ)), 360))
             print(f"{i + z:^4} {x:^{w}} {y:^{w}} {t:^{w}}")
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
-    g.num_holes = int(args[0])      # Number of holes
-    g.bc_dia = flt(args[1])         # Bolt circle diameter
+    g.num_holes = int(args[0])  # Number of holes
+    g.bc_dia = flt(args[1])  # Bolt circle diameter
     Report()
 
-'''
+"""
 Validation:  I drew a 100 mm diameter circle on paper, then drew an origin at (0, -71.2 mm) below
 the circle's center.  I stepped off the 6 points using the circle's radius set on the compass and
 measured these coordinates in the translated coordinate system.  The numbers were (0-based hole
@@ -210,4 +236,4 @@ Hole        x               y             θ, °
  5         25             27.9             300
  
 which check.
-'''
+"""

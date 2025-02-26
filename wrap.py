@@ -1,4 +1,4 @@
-'''
+"""
 TODO
     - Use abbreviations.py instead of class Abbr.
     - Bug:  Wrapping 'which is equal to (x - 1)!  if x is an integer.' will
@@ -82,33 +82,38 @@ Wrap class: make text fit into a desired width with a specified indent.
 
     Run the module as a script to see some examples.  Use the --test option
     to run the unit tests.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # <programming> Provides the Wrap class, which can be used to make
     # text fit into a desired width with a specified indent.  Can also
     # indent and dedent like the textwrap module.  Handles common
     # English abbreviations also.
-    #∞what∞#
-    #∞test∞# --test #∞test∞#
+    # ∞what∞#
+    # ∞test∞# --test #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     from collections import deque
     import os
-if 1:   # Global variables
-    all = '''Abbr Wrap dedent indent wrap'''.split()
+if 1:  # Global variables
+    all = """Abbr Wrap dedent indent wrap""".split()
+
+
 class Abbr:
-    'Used to identify common abbreviations in English'
+    "Used to identify common abbreviations in English"
+
     def __init__(self):
         # This list came from searching hundreds of texts with a script
-        self.abbr = set('''
+        self.abbr = set(
+            """
             a.c. a.d. a.k.a. abr. abstr. acad. acc. acct. addr. adj.
             adm.  adv. advb. anon. app. appl. assoc. attrib. auth. ave.
             b. b.c.  b.c.e. b.o. b.t.u. betw. bk. bur. c. c.e. c.o.d.
@@ -138,18 +143,22 @@ class Abbr:
     
             add. admin. ann. bull. conn. dim. fig. math. mod.
             no. pa. pop. sing. west. 
-        '''.split())
+        """.split()
+        )
+
     def is_abbreviation(self, s):
         return s.strip().lower() in self.abbr
+
+
 class Wrap(Abbr):
     def __init__(self, indent="", width=None, rmargin=0):
         super().__init__()
         self._indent = str(indent)
         self._width = width
         self._rmargin = int(rmargin)
-        self.ls = "\n"*1
-        self.pp = "\n"*2        # Paragraph separator
-        self.opp = "\n"*2       # Paragraph separator for output
+        self.ls = "\n" * 1
+        self.pp = "\n" * 2  # Paragraph separator
+        self.opp = "\n" * 2  # Paragraph separator for output
         # The following is the sentence separator string.  If this entry
         # is the empty string, all sentences are separated by one space.
         # Thus, if you want two spaces between sentences, make it " ".
@@ -162,20 +171,23 @@ class Wrap(Abbr):
                 self._width = 79
         # The following strings can end a sentence.
         self.ends = (".", "!", "?", '."', '?"', '!"')
+
     def __call__(self, *args):
-        'Process each string in args and return the wrapped result'
+        "Process each string in args and return the wrapped result"
         r = []
         for s in args:
             t = self.process(s)
             r.extend(t)
         return self.opp.join(r).rstrip()
+
     def indent(self, s, indent=""):
-        'Insert the indent string at the beginning of each line in s'
+        "Insert the indent string at the beginning of each line in s"
         o, d = [], deque(s.split("\n"))
         while d:
             t = d.popleft()
             o.append(indent + t)
-        return '\n'.join(o)
+        return "\n".join(o)
+
     def is_sentence_end(self, token):
         if not token.endswith(self.ends):
             return False
@@ -183,33 +195,36 @@ class Wrap(Abbr):
             if self.is_abbreviation(token):
                 return False
         return True
+
     def normalize(self, s):
-        '''Remove the indent from the string s, lstrip leading whitespace,
+        """Remove the indent from the string s, lstrip leading whitespace,
         and put the indent back.  This handles some corner cases.
-        '''
-        t = s[len(self._indent):].lstrip()
+        """
+        t = s[len(self._indent) :].lstrip()
         return self._indent + t
+
     def process(self, s):
         r = []
         for paragraph in s.split(self.pp):
             r.append(self.process_paragraph(paragraph))
         return r
+
     def process_paragraph(self, p):
-        assert(self.pp not in p)
+        assert self.pp not in p
         p = p.strip()
         # Separate into lines by the linefeeds
         lines = p.split("\n")
         # Remove leading space characters
         lines = [i.lstrip(" ") for i in lines]
         # Append space to each line and join to a single string
-        s = ' '.join(lines)
+        s = " ".join(lines)
         # Tokenize at whitespace characters
         tokens = deque(s.split())
         results = deque()
         # Look for sentence ends.  We use unusual Unicode characters as
         # a sentinel character that is unlikely to be in any English
         # text.
-        sentinels = deque([0x204b, 0x2188, 0x2187, 0xbeef, 0x2588])
+        sentinels = deque([0x204B, 0x2188, 0x2187, 0xBEEF, 0x2588])
         sentinel = chr(sentinels.pop())
         while sentinel in p:
             sentinel = chr(sentinels.pop())
@@ -223,8 +238,10 @@ class Wrap(Abbr):
         # results contains the paragraph's tokens with sentence ending
         # markers, so we can now construct the wrapped paragraph.
         lines, line, space = [], deque(), " "
+
         def Len(x):
-            return len(''.join(x))
+            return len("".join(x))
+
         W = self._width - self._rmargin
         while results:
             token = results.popleft()
@@ -241,29 +258,32 @@ class Wrap(Abbr):
             if Len(line) + next_token_length >= W:
                 # Remove the indent, lstrip whitespace, and put the
                 # indent back.  This handles some corner cases.
-                lines.append(self.normalize(''.join(line)))
+                lines.append(self.normalize("".join(line)))
                 line.clear()
         # Don't forget last portion
         if line:
-            lines.append(self.normalize(''.join(line)))
+            lines.append(self.normalize("".join(line)))
         q = self.ls.join(lines).rstrip()
         return q
+
     def seq(self, seq, fmt):
-        '''Given a sequence of objects in seq and a string interpolation
+        """Given a sequence of objects in seq and a string interpolation
         formatting string fmt, wrap this sequence's string
         representation into the desired width.  The basic use case is a
         sequence of numbers that you want to have a specified set of
         space characters around them.  The __call__ method will strip
         all the spaces off the individual "words".
-        '''
+        """
         # Put the needed strings into a deque
         tokens, lines, line = deque(), [], deque()
         for i in seq:
             s = fmt.format(i)
             tokens.append(s)
+
         # Construct the individual lines
         def Len(x):
-            return len(''.join(x))
+            return len("".join(x))
+
         W = self._width - self._rmargin
         while tokens:
             token = tokens.popleft()
@@ -272,54 +292,75 @@ class Wrap(Abbr):
             line.append(token)
             next_token_length = len(tokens[0]) if tokens else 0
             if Len(line) + next_token_length >= W:
-                lines.append(''.join(line))
+                lines.append("".join(line))
                 line.clear()
         # Don't forget last portion
         if line:
-            lines.append(''.join(line))
+            lines.append("".join(line))
         q = self.ls.join(lines).rstrip()
         return q
+
     @property
     def i(self):
         return self._indent
+
     @i.setter
     def i(self, value):
         self._indent = str(value)
+
     @property
     def rmargin(self):
         return self._rmargin
+
     @rmargin.setter
     def rmargin(self, value):
         self._rmargin = int(value)
+
     @property
     def width(self):
         return self._width
+
     @width.setter
     def width(self, value):
         self._width = int(value)
+
+
 def HangingIndent(s, indent="", first_line_indent=""):
-    '''Return the string s wrapped so that the first line has the indicated
+    """Return the string s wrapped so that the first line has the indicated
     indent with the remaining lines indented uniformly.
-    '''
+    """
     w = Wrap(indent=first_line_indent)
     out = []
     lines = w(s).split("\n")
     out.append(lines[0])
     lines.pop(0)
     if len(lines):
-        t = '\n'.join(lines)
+        t = "\n".join(lines)
         w = Wrap(indent=indent)
         out.extend(w(t).split("\n"))
-    return '\n'.join(out)
+    return "\n".join(out)
+
+
 def indent(s: str, sindent=""):
-    'Convenience function to indent'
+    "Convenience function to indent"
     if not hasattr(indent, "wrap"):
         indent.wrap = Wrap()
     return indent.wrap.indent(s, sindent)
-def Dedent(s, empty=True, leading=True, trailing=True, trim=False, ltrim=False, rtrim=False, n=None):
+
+
+def Dedent(
+    s,
+    empty=True,
+    leading=True,
+    trailing=True,
+    trim=False,
+    ltrim=False,
+    rtrim=False,
+    n=None,
+):
     '''For the multiline string s, remove the common leading space
     characters and return the modified string.
-    
+
     empty       Consider empty lines to have an infinite number of spaces.
                 They will be empty lines in the output string.
     leading     Remove first line if it is only space characters.
@@ -328,9 +369,9 @@ def Dedent(s, empty=True, leading=True, trailing=True, trim=False, ltrim=False, 
     rtrim       Remove all trailing lines that are blank or whitespace.
     trim        Remove all trailing whitespace.
     n           If not None, remove this number of leading space characters
-    
+
     The keywords default to the values most useful in help strings for
-    scripts.  Typical use is 
+    scripts.  Typical use is
         s = """
         Line 1
           Line 2
@@ -341,7 +382,7 @@ def Dedent(s, empty=True, leading=True, trailing=True, trim=False, ltrim=False, 
         return ""
     if trim:
         s = s.rstrip()
-    lines = deque(s.split('\n'))
+    lines = deque(s.split("\n"))
     if len(lines) == 1:
         return s.lstrip()
     if ltrim:
@@ -362,18 +403,21 @@ def Dedent(s, empty=True, leading=True, trailing=True, trim=False, ltrim=False, 
     if empty:
         # Fix the empty lines
         m = max(o)
-        o = [i if i else m + 1 for i in o]  
+        o = [i if i else m + 1 for i in o]
     n = min(o) if n is None else n
     if n:
         lines = [i[n:] for i in lines]
-    return '\n'.join(lines)
+    return "\n".join(lines)
+
 
 def IsBlankOrSpaces(s):
     "For string s, return True if it's empty or contains only spaces"
     empty, only_spaces = set(), set(" ")
     return set(s) == empty or set(s) == only_spaces
+
+
 def LeadingSpaces(s):
-    'Return the number of space characters at the beginning of string s'
+    "Return the number of space characters at the beginning of string s"
     if not s:
         return 0
     dq, count = deque(s), 0
@@ -384,15 +428,17 @@ def LeadingSpaces(s):
         else:
             break
     return count
+
+
 def dedent(s):
     '''For the multiline string s, remove common leading space characters.  The use case is for
     help strings in scripts, allowing arbitrary leading and trailing newlines that are removed.
     Example:  dedent(s) for
         s = """
-    
+
         Line 1
           Line 2
-    
+
         """
     will return 'Line 1\n  Line 2'.
     '''
@@ -400,7 +446,7 @@ def dedent(s):
     if not s.strip():
         return ""
     # If s has no newlines, return s.strip()
-    if '\n' not in s:
+    if "\n" not in s:
         return s.strip()
     lines = deque(s.split("\n"))
     # Remove leading blank lines or lines with only spaces
@@ -418,7 +464,7 @@ def dedent(s):
     # Bare newlines are considered to have infinite spaces.  The following emulates this by making
     # them appear to have max(numspaces) + 1 spaces.
     m = max(numspaces)
-    numspaces = [i if i else m + 1 for i in numspaces]  
+    numspaces = [i if i else m + 1 for i in numspaces]
     # Find n = the number of common beginning spaces on each line
     n = min(numspaces)
     # If n is zero, then there are no lines with leading spaces, so just return s
@@ -428,66 +474,76 @@ def dedent(s):
         # Trim off n spaces from each line
         lines = [i[n:] for i in lines]
     # Return the dedented string
-    return '\n'.join(lines)
+    return "\n".join(lines)
 
-if 0: #xx
-    s = '''
+
+if 0:  # xx
+    s = """
     Line 1
    Line 2
-    '''
+    """
     result = dedent(s)
     print(f"orig:\n{s}")
     print()
     print(f"result:\n{result}")
     exit()
 
-wrap = Wrap()   # Convenience instance
+wrap = Wrap()  # Convenience instance
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
     # Run the selftests
     from lwtest import run, Assert
     import sys
+
     def Dump(s):
-        'Print a multiline string to stdout'
+        "Print a multiline string to stdout"
         for i in s.split("\n"):
             print(repr(i))
+
     def W():
         return Wrap()
+
     def TestBasic():
-        s = '''One two.          Three four.
+        s = """One two.          Three four.
 
         Five
         six.
         Seven
-                eight.'''
+                eight."""
         # Default behavior
         w = W()
         t = w(s)
         u = ["One two.  Three four.", "", "Five six.  Seven eight."]
-        Assert(t == '\n'.join(u))
+        Assert(t == "\n".join(u))
         # One space after sentence
         w.ss = ""
         t = w(s)
         u = ["One two. Three four.", "", "Five six. Seven eight."]
-        Assert(t == '\n'.join(u))
+        Assert(t == "\n".join(u))
         # Triple newline
-        w.opp = "\n"*4
+        w.opp = "\n" * 4
         t = w(s)
         u = ["One two. Three four.", "", "", "", "Five six. Seven eight."]
-        Assert(t == '\n'.join(u))
+        Assert(t == "\n".join(u))
+
     def TestDoubleLineSpacing():
-        s = '''
+        s = """
         Mr. Bennet missed his second daughter exceedingly; his affection
         for her drew him oftener from home than anything else could do. 
-        '''
+        """
         w = W()
-        w.ls = "\n"*2
+        w.ls = "\n" * 2
         w.width = 60
         t = w(s)
-        u = ('Mr. Bennet missed his second daughter exceedingly; his \n' '\n'
-            'affection for her drew him oftener from home than anything \n'
-            '\n' 'else could do.')
+        u = (
+            "Mr. Bennet missed his second daughter exceedingly; his \n"
+            "\n"
+            "affection for her drew him oftener from home than anything \n"
+            "\n"
+            "else could do."
+        )
         Assert(u == t)
+
     def Test_dedent():
         # Simplest cases:  no newline in string
         Assert(dedent("") == "")
@@ -497,21 +553,21 @@ if __name__ == "__main__":
         Assert(dedent("  x") == "x")
         Assert(dedent("  x  ") == "x")
         # Canonical use cases
-        x = '''
+        x = """
         a
         b
-        '''
+        """
         Assert(dedent(x) == "a\nb")
-        x = '''
+        x = """
         
         a
         b
         
-        '''
+        """
         Assert(dedent(x) == "a\nb")
         # Make sure an embedded blank line is retained, but leading and trailing empty lines are
         # deleted.
-        x = '''
+        x = """
 
         
         
@@ -523,42 +579,44 @@ if __name__ == "__main__":
         
         
 
-        '''
+        """
         Assert(dedent(x) == "a\n\nb")
+
     def TestDedent():
         Assert(Dedent(" x") == "x")
-        s = '''        a
-        b'''
+        s = """        a
+        b"""
         s = "        a\n        b"
         Assert(Dedent(s) == "a\nb")
         s = "\n        a\n        b\n          c\n        "
         Assert(Dedent(s) == "a\nb\n  c")
         # Test main use case:  script help strings
-        s = '''   
+        s = """   
         Line 1
           Line 2
         
-        '''
+        """
         t = "Line 1\n  Line 2\n"
         Assert(Dedent(s) == t)
         # Blank line with empty False
-        s = '''   
+        s = """   
         Line 1
           Line 2
 
         
-        '''
+        """
         t = "        Line 1\n          Line 2\n\n        "
         Assert(Dedent(s, empty=False) == t)
         t = "Line 1\n  Line 2\n\n"
         Assert(Dedent(s, empty=True) == t)
         # Most common use case
-        s = '''
+        s = """
         Line 1
           Line 2
-        '''
+        """
         t = "Line 1\n  Line 2"
         Assert(Dedent(s) == t)
+
     def TestIndent():
         f, spc = wrap.indent, " "
         Assert(f(" x", spc) == "  x")
@@ -568,6 +626,7 @@ if __name__ == "__main__":
         s = "\n        a\n        b\n          c\n        "
         t = " \n         a\n         b\n           c\n         "
         Assert(f(s, spc) == t)
+
     def TestTwoSpacesAfterColon():
         s = "This is a:     test."
         w = W()
@@ -576,9 +635,10 @@ if __name__ == "__main__":
         t = w(s)
         u = "This is a:  test."
         Assert(u == t)
+
     # Run the demos
     def Demos():
-        s = '''
+        s = """
             It is a truth universally acknowledged, that a single man in
             possession of a good fortune, must be in want of a wife.
             However little known the feelings or views of such a man may be
@@ -593,49 +653,59 @@ if __name__ == "__main__":
             just been here, and she told me all about it." "Oh!  Single, my
             dear, to be sure!  A single man of large fortune; four or five
             thousand a year.  What a fine thing for our girls!"  Mr. Bennet
-            was quiet.'''[1:]
+            was quiet."""[1:]
+
         def Sep():
-            print("-"*(wrap.width - 1))
+            print("-" * (wrap.width - 1))
+
         def Example1():
             print("Original text:")
             print(s)
+
         def Example2():
             Sep()
             w = Wrap()
             print("Wrapped to screen width with no indent:")
             print(w(s))
+
         def Example3():
             Sep()
             w = Wrap()
             print("Wrapped to width 50 with an indent of 10 (text width = 40):")
-            w.indent = " "*(10 - 1)
+            w.indent = " " * (10 - 1)
             w.width = 50
-            print('''
+            print(
+                """
             1         2         3         4         5         6         7 
     ....+....|....+....|....+....|....+....|....+....|....+....|....+....|....+....
-    '''[1:].rstrip())
+    """[1:].rstrip()
+            )
             print(w(s))
+
         def Example4():
             Sep()
             w = Wrap()
             print("Single space between sentences:")
-            w.indent = " "*2
+            w.indent = " " * 2
             w.ss = ""
-            w.opp = "\n"*4
+            w.opp = "\n" * 4
             print(w(s))
+
         def Example5():
             Sep()
             w = Wrap()
             print("Double line spacing, quadruple space between paragraphs:")
-            w.indent = " "*2
-            w.opp = "\n"*5
-            w.ls = "\n"*2
+            w.indent = " " * 2
+            w.opp = "\n" * 5
+            w.ls = "\n" * 2
             print(w(s))
+
         Example1()
         Example2()
         Example3()
         Example4()
         Example5()
+
     # Run self tests, then show demo stuff if successful
     status = run(globals())[0]
     if status:

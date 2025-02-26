@@ -1,25 +1,26 @@
-'''Fixup for cygwin man pages.  This allows you to get a plain ASCII
+"""Fixup for cygwin man pages.  This allows you to get a plain ASCII
 version of a man page.  There used to be a /bin/col command that you
 used to use like 'col -b' or somesuch, but it's not there anymore and I
 don't know what package contains it.  No matter, this is a quick hack
 that gets mostly there.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Cygwin manpage fixup
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
-if __name__ == "__main__":  
+if __name__ == "__main__":
     s = sys.stdin.read()
     # The following is used for the vertical pipe symbols
     s = s.replace("\xe2\x8e\xaa\x08\xe2\x8e\xaa", "|")
@@ -32,7 +33,7 @@ if __name__ == "__main__":
     i = 0
     while i < len(s):
         c = s[i]
-        if ord(c) == 0xe2:    # It's a hyphen, so swallow remainder to newline
+        if ord(c) == 0xE2:  # It's a hyphen, so swallow remainder to newline
             out("-")
             while c != "\n" and i < len(s):
                 i += 1

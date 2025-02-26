@@ -1,11 +1,11 @@
-'''
+"""
 This module finds all the python files in /plib, then searches all
 other directories for python files and finds those that import /plib
 modules.
 
 This script will fail on lines like the following:
 
-    from modulename import (x, 
+    from modulename import (x,
         y, z)
 
 because it uses a regexp on each line.  Because of this, a function will
@@ -22,9 +22,10 @@ Other policies enforced by this script are:
 
     * The python files and modules must either be plain ASCII text or
       UTF-8 encoded.
-'''
-#∞test∞# ignore #∞test∞#
-if 1:   # Standard imports
+"""
+
+# ∞test∞# ignore #∞test∞#
+if 1:  # Standard imports
     import getopt
     import io
     import os
@@ -34,35 +35,41 @@ if 1:   # Standard imports
     from collections import defaultdict
     from pprint import pprint as pp
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import wrap, dedent, indent, Wrap
     from columnize import Columnize
-if 1:   # Global variables
+if 1:  # Global variables
     P = pathlib.Path
     # This will collect bad import lines that need fixing
     bad = set()
-if 1:   # Utility
+if 1:  # Utility
+
     def eprint(*p, **kw):
-        'Print to stderr'
+        "Print to stderr"
         print(*p, **kw, file=sys.stderr)
+
     def Error(msg, status=1):
         eprint(msg)
         exit(status)
+
     def Usage(d, status=1):
         name = sys.argv[0]
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {name} [options] etc.
         Explanations...
         
         Options:
           -h
             Print a manpage.
-        '''))
+        """)
+        )
         print(s.format(**locals()))
         exit(status)
+
     def ParseCommandLine(d):
         d["-a"] = False
-        d["-d"] = 3         # Number of significant digits
+        d["-d"] = 3  # Number of significant digits
         if len(sys.argv) < 2:
             Usage(d)
         try:
@@ -79,22 +86,28 @@ if 1:   # Utility
                     if not (1 <= d["-d"] <= 15):
                         raise ValueError()
                 except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                        "1 and 15")
+                    msg = "-d option's argument must be an integer between 1 and 15"
                     Error(msg)
             elif o in ("-h", "--help"):
                 Usage(d, status=0)
         if len(args) < 2:
             Usage(d)
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def GetModuleNames() -> set:
-        'Return set of module names'
+        "Return set of module names"
         # Assumes we're in the correct directory
         return set(P(".").glob("*.py"))
+
     def GetSourceFiles(modules: set) -> set:
-        'Get all source files that are not modules'
-        ignore = set([P(i) for i in '''
+        "Get all source files that are not modules"
+        ignore = set(
+            [
+                P(i)
+                for i in """
             pgm/words.py 
             pgm/words_syllables.py
             interval/interval_orig.py
@@ -104,10 +117,14 @@ if 1:   # Core functionality
             regress/kupper/kupper.py
             regress/wesley_phoa/1D_nonlinear_regress.py
             regress/wesley_phoa/mathutil.py
-        '''.split()])
+        """.split()
+            ]
+        )
+
         # Ignore files in these directories
         def f(x):
             return P(x).rglob("*.py")
+
         ignore.update(f("crenshaw"))
         ignore.update(f("g/demo"))
         ignore.update(f("g/gnew/demo"))
@@ -122,10 +139,11 @@ if 1:   # Core functionality
         p = P(".")
         source = set(p.rglob("*.py"))
         return source - ignore - modules
+
     def ProcessFile(file):
-        '''Read the file's lines and only keep those lines that have 'import'
+        """Read the file's lines and only keep those lines that have 'import'
         in them.
-        '''
+        """
         keep = []
         for line in open(file):
             if line.find("import") != -1:
@@ -136,20 +154,25 @@ if 1:   # Core functionality
                 if "__future__" in line:
                     continue
                 # Ignore all but 'import', 'from', and 'if'
-                if (line.startswith("import ") or 
-                    line.startswith("from ") or 
-                    line.startswith("if ")):
+                if (
+                    line.startswith("import ")
+                    or line.startswith("from ")
+                    or line.startswith("if ")
+                ):
                     keep.append(line)
         return keep
+
     def Used(line, modules):
         found = []
         for m in modules:
             if m in line:
                 found.append(m)
         return found
+
     def NotAComment(line):
         s = line.lstrip()
         return s and s[0] != "#"
+
     def GetFilesImportLines(file: P) -> list:
         "Return lines that aren't comments that contain 'import'"
         lines = []
@@ -164,6 +187,7 @@ if 1:   # Core functionality
                         msg = f"{file}:  '{line}'"
                         bad.add(msg)
         return lines
+
     GetFilesImportLines.r = re.compile(r"^\s*import |^\s*from\s+.*\s+import\s+")
     GetFilesImportLines.regexps = (
         re.compile(r"\bprint\s+[^(]"),
@@ -173,19 +197,22 @@ if 1:   # Core functionality
         re.compile(r"\bexcept\s*\w+,\b"),
         re.compile(r"\bunicode\b"),
     )
+
     def BadImportLine(line, file):
-        '''Stop on a bad import line like
+        """Stop on a bad import line like
             'from x import (y, z, '
         that doesn't contain ')'.
-        '''
-        assert("import" in line)
+        """
+        assert "import" in line
         if "(" in line and ")" not in line:
             bad.add(str(file))
+
     def FileUsesModule(import_lines: list, module: P, file: P) -> bool:
         def ScrubLine(line):
             'Replace "(", ")", and "," with space characters'
             s = " "
             return line.replace("(", s).replace(")", s).replace(",", s)
+
         name_token = module.name[:-3]
         for line in import_lines:
             BadImportLine(line, file)
@@ -193,13 +220,14 @@ if 1:   # Core functionality
             if name_token in tokens:
                 return True
         return False
+
     def GetUsed(modules: set, sources: set) -> dict:
-        '''Return a dict of module names with the list of the file(s)
+        """Return a dict of module names with the list of the file(s)
         in sources that import that name.  An example entry would be:
             P("sig.py"): [P("pgm/file1.py"), P("pgm/file2.py"), ...],
         where P is a pathlib.Path instance.
-        '''
-        assert(all([str(i).endswith(".py") for i in modules]))
+        """
+        assert all([str(i).endswith(".py") for i in modules])
         module_names = [i.name[:-3] for i in modules]
         out = defaultdict(list)
         for file in sources:
@@ -214,8 +242,10 @@ if 1:   # Core functionality
                 if FileUsesModule(import_lines, module, file):
                     out[module].append(file)
         return out
+
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     os.chdir("/plib")
     modules = GetModuleNames()
     source = GetSourceFiles(modules)

@@ -1,33 +1,38 @@
-'''
+"""
 Print out battery data
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2020 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2020 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Print out battery data
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import getopt
     import os
     import sys
     import subprocess
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
     from color import t
     from wsl import wsl
     import util
+
     t.e = t("ornl")
+
+
 def PrintData():
-    print(f'''
+    print(
+        f"""
     Battery capacity in mA*hr (3.6 coul)  (mass in g, dimensions in mm)
         Alk.
        Mass,g   Alkaline    C-Zn  NiMH        Lithium  Diameter   Length
@@ -76,9 +81,13 @@ NiMH *      1.2   1.0                               Hi ED, hi self-D
                                EOL = end of life
 Include a command line argument to see lithium coin cell data.  Use aa, aaa,
 etc. to see common battery PDF datasheets.  Use -t to see how to test capacity.
-    '''[1:].rstrip())
+    """[1:].rstrip()
+    )
+
+
 def PrintHearingAid():
-    print(f'''
+    print(
+        f"""
 Hearing aid batteries (typically Zinc-Air (ZnO2) 1.4 V)         Tab color
 ---------------------
     5       35 mA*hr    5.8 mm dia  2.15 mm long    0.20 g      Red
@@ -87,14 +96,19 @@ Hearing aid batteries (typically Zinc-Air (ZnO2) 1.4 V)         Tab color
     13     300 mA*hr    7.9 mm dia  5.4  mm long    0.80 g      Orange
     675    605 mA*hr   11.6 mm dia  5.4  mm long    1.76 g      Blue
     5.8 mm = 0.228", 7.9 mm = 0.311", 11.6 mm = 0.457"
-    '''[1:].rstrip())
+    """[1:].rstrip()
+    )
+
+
 def PrintLithium():
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Lithium (LiMn02 chemistry) Coin cells (3 V nom, 3.6 V open circuit)
       No.     Dia, mm   Thk, mm   Mass, g     mA*hr
     ------    -------   -------   -------     -----
-    '''))
-    s = f'''
+    """)
+    )
+    s = f"""
     CR1025 10x2.5 0.7 30 3
     CR1216 12.5x1.6 0.7 25 3
     CR1220 12.5x2 1.2 35 3
@@ -117,7 +131,7 @@ def PrintLithium():
     CR2477 24.5x7.7 10.5 1000 3
     CR3032 30x3.2 7.1 500 3
     CR927 9.5x2.7 0.51 30 3
-    '''  # From http://www.batteriesandbutter.com/coin_batttery_chart.html
+    """  # From http://www.batteriesandbutter.com/coin_batttery_chart.html
     f = "{:7s}     {:^4s}      {:^4s}      {:^4s}       {:>4s}"
     for line in s.strip().split("\n"):
         name, sz, mass, mAhr, V = line.split()
@@ -128,11 +142,16 @@ def PrintLithium():
         if "CR2032" in name or "CR2025" in name:
             print(f"{t.n}", end="")
         print()
+
+
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
+
+
 def Usage(d, status=1):
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]} [options] [cmd]
       Print out battery data for no cmd.  Other commands:
     
@@ -141,10 +160,13 @@ def Usage(d, status=1):
       l                     Print lithium coin cell data too
     Options:
         -h      Print a manpage
-    '''))
+    """)
+    )
     exit(status)
+
+
 def ParseCommandLine(d):
-    d["-t"] = False     # Show how to test
+    d["-t"] = False  # Show how to test
     try:
         opts, args = getopt.getopt(sys.argv[1:], "ht")
     except getopt.GetoptError as e:
@@ -159,8 +181,10 @@ def ParseCommandLine(d):
         TestData()
         exit(0)
     return args
+
+
 def Open(cmd):
-    'cmd is one of aa, aaa, c, d, or 9.  Open the relevant Duracell datasheet.'
+    "cmd is one of aa, aaa, c, d, or 9.  Open the relevant Duracell datasheet."
     if 0:
         # Old 32 bit cygwin environment
         pth = "C:/cygwin/elec/batteries/duracell"
@@ -174,8 +198,11 @@ def Open(cmd):
             st = "d:/cygwin64/bin/cygstart.exe"
     file = f"{pth}/Duracell_{cmd.upper()}_alkaline.pdf"
     util.ShowFile(file)
+
+
 def TestData():
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Suggested testing method with DC load.  This is for new alkaline batteries.
     Measure the open circuit voltage, then the voltage with a 0.1 A load; the
     latter should be equal to or greater than that in the third column.
@@ -190,9 +217,12 @@ def TestData():
     
     The C battery measurements were probably with old batteries, as we rarely
     use them.
-    '''))
+    """)
+    )
+
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     cmd = args[0].lower() if args else None
     if not cmd:

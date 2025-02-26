@@ -1,27 +1,32 @@
-'''
+"""
 Draw a grid of 1 inch squares, 0.1 inch tick marks, and label things.
-'''
+"""
+
 from g import *
+
+
 def AddTickMarks(tick_interval, tick_length, skip=0, down=0):
-    '''Add 10 tick marks with a wider fifth one.  This assumes that
+    """Add 10 tick marks with a wider fifth one.  This assumes that
     the origin is at the beginning point we need to mark and that the
     tick marks start along the positive x axis between 0 and 1 and go
     down in the y direction.
-    '''
+    """
     if down:
         tick_length = -tick_length
     for i in range(1, 10):
         if skip:
             skip = skip - 1
             continue
-        x = i/10.0
+        x = i / 10.0
         move(x, 0)
         if i == 5:
             rline(0, tick_length * 1.5)
         else:
             rline(0, tick_length)
+
+
 def Grid(file):
-    '''Draw a grid of 1 inch squares.'''
+    """Draw a grid of 1 inch squares."""
     s = Setup(file, portrait, inches)
     translate(0.25, 0.5)  # Center the grid on the page (assumes a sheet
     # of paper of 8.5" by 11" (letter size).
@@ -58,9 +63,7 @@ def Grid(file):
         translate(i, 0)
         rotate(-90)
         move(delta, delta - text_size / 2.5)
-        if (
-            i != 0
-        ):  # Don't do the zero, since it will overlap with the other
+        if i != 0:  # Don't do the zero, since it will overlap with the other
             text("%d" % i)
         pop()
         # Put in tick marks
@@ -83,6 +86,8 @@ def Grid(file):
     roundedRectangle(2.0, 0.5, 0.3)
     move(x - delta / 3, y - text_size / 2.5)
     textColor(green)
-    text("8\"x10\" grid")
+    text('8"x10" grid')
     s.close()
+
+
 Grid("out/grid.ps")

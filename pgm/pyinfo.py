@@ -1,36 +1,41 @@
-'''
+"""
 Prints information about the python installation
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014, 2021 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2014, 2021 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Prints information about the python installation
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     # Uncomment the following, move up, and it should work for python 2
-    #from __future__ import print_function, division
+    # from __future__ import print_function, division
     import sys
-    from pdb import set_trace as xx 
-if 1:   # Custom imports
+    from pdb import set_trace as xx
+if 1:  # Custom imports
     from columnize import Columnize
     from wrap import dedent
-if 1:   # Global variables
+if 1:  # Global variables
     py3 = True if sys.version_info[0] > 2 else False
+
+
 def Python2():
     def P(s, val):
         print(s)
         print("  " + val)
+
     def PL(s, val, size=30):
         fmt = "%%-%ds %%s" % size
         print(fmt % (s, val))
+
     def Numbers():
         size = 35
         print("Number information:")
@@ -43,11 +48,13 @@ def Python2():
         PL("    Minimum floating point number", s.min, size)
         PL("    (First number > 1) - 1", s.epsilon, size)
         print("")
+
     def Path():
         print("Path:")
         for i in sys.path:
             print(" " + i)
         print("")
+
     def Version():
         print("Version info:\n  " + sys.version)
         PL("  Version info", sys.version_info)
@@ -63,12 +70,13 @@ def Python2():
         except Exception:
             pass
         print("")
+
     def Other():
         print("Other info:")
         PL("  Interpreter's check interval", sys.getcheckinterval())
         PL("  Default Unicode encoding", sys.getdefaultencoding())
         PL("  Byte order", sys.byteorder)
-        #PL("  DLL handle", hex(sys.dllhandle))
+        # PL("  DLL handle", hex(sys.dllhandle))
         PL("  Exec prefix", sys.exec_prefix)
         PL("  Executable", sys.executable)
         PL("  File system encoding", sys.getfilesystemencoding())
@@ -80,6 +88,7 @@ def Python2():
         PL("  stdin", sys.stdin)
         PL("  stdout", sys.stdout)
         PL("  stderr", sys.stderr)
+
     print("Python Information")
     print("------------------")
     print("")
@@ -87,6 +96,8 @@ def Python2():
     Numbers()
     Path()
     Other()
+
+
 def Python3():
     def Version():
         v = sys.version.replace("\n", " ")
@@ -98,14 +109,14 @@ def Python3():
         except Exception:
             pass
         print("Implementation:  ")
-        im, ind = sys.implementation, " "*4
+        im, ind = sys.implementation, " " * 4
         print(f"{ind}_multiarch:  {im._multiarch}")
         print(f"{ind}cache_tag :  {im.cache_tag}")
         print(f"{ind}hexversion:  {im.hexversion} = 0x{im.hexversion:x}")
         print(f"{ind}name      :  {im.name}")
         print(f"Byte order = {sys.byteorder}")
         print(f"Built-in module names:")
-        #for line in Columnize(sys.builtin_module_names, indent=" "*4,
+        # for line in Columnize(sys.builtin_module_names, indent=" "*4,
         #                      width=14):
         for line in Columnize(sys.builtin_module_names, columns=5):
             print(ind, line)
@@ -124,9 +135,9 @@ def Python3():
         print(f"executable = {sys.executable}")
         f = sys.flags
         print(f"Command line flags:")
-        for i in '''debug inspect interactive optimize dont_write_bytecode
+        for i in """debug inspect interactive optimize dont_write_bytecode
             no_user_site no_site ignore_environment verbose bytes_warning
-            quiet hash_randomization isolated dev_mode utf8_mode'''.split():
+            quiet hash_randomization isolated dev_mode utf8_mode""".split():
             try:
                 s = eval(f"bool(f.{i})")
                 print(f"{ind}{i:19s} = {s}")
@@ -134,8 +145,8 @@ def Python3():
                 pass
         print(f"Float information:")
         f = sys.float_info
-        for i in '''max max_exp max_10_exp min min_exp min_10_exp
-                dig mant_dig epsilon radix rounds'''.split():
+        for i in """max max_exp max_10_exp min min_exp min_10_exp
+                dig mant_dig epsilon radix rounds""".split():
             s = eval(f"f.{i}")
             print(f"{ind}{i:19s} = {s}")
         print(f"float_repr_style = {sys.float_repr_style}")
@@ -157,7 +168,9 @@ def Python3():
             pass
         print(f"get_asyncgen_hooks = {sys.get_asyncgen_hooks()}")
         try:
-            print(f"get_coroutine_origin_tracking_depth = {sys.get_coroutine_origin_tracking_depth()}")
+            print(
+                f"get_coroutine_origin_tracking_depth = {sys.get_coroutine_origin_tracking_depth()}"
+            )
         except Exception:
             pass
         try:
@@ -166,9 +179,9 @@ def Python3():
             pass
         f = sys.hash_info
         print(f"Hash information:")
-        for i in '''
+        for i in """
             width modulus inf nan imag algorithm hash_bits seed_bits cutoff
-            '''.split():
+            """.split():
             s = eval(f"f.{i}")
             print(f"{ind}{i:9s} = {s}")
         print(f"int information: {sys.int_info}")
@@ -197,9 +210,12 @@ def Python3():
         except Exception:
             pass
         print(f"_xoptions: {sys._xoptions}")
+
     print("Python Information")
     print("------------------")
     print("")
     Version()
-if __name__ == "__main__": 
+
+
+if __name__ == "__main__":
     Python3() if py3 else Python2()

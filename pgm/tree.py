@@ -1,4 +1,4 @@
-'''
+"""
 
 Print a directory tree in hierarchical form
     - Options to consider
@@ -14,40 +14,46 @@ Print a directory tree in hierarchical form
     - Consider making each of the vertical columns of | characters
         different colors to make it easier to trace them
 
-'''
+"""
+
 if 1:  # Header
     # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2005 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
-        # Print a directory tree
-        #∞what∞#
-        #∞test∞# #∞test∞#
+    # These "trigger strings" can be managed with trigger.py
+    # ∞copyright∞# Copyright (C) 2005 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    # ∞license∞#
+    # ∞what∞#
+    # Print a directory tree
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     # Imports
-        from pathlib import Path as P
-        import getopt
-        import math
-        import os
-        import sys
+    from pathlib import Path as P
+    import getopt
+    import math
+    import os
+    import sys
+
     # Custom imports
-        from wrap import dedent
-        from dppath import IsVCDir
-        from color import Color, TRM as t
-        if 0:
-            import debug
-            debug.SetDebugger()
+    from wrap import dedent
+    from dppath import IsVCDir
+    from color import Color, TRM as t
+
+    if 0:
+        import debug
+
+        debug.SetDebugger()
     # Global variables
-        ii = isinstance
-        w = int(os.environ.get("COLUMNS", "80")) - 1
-if 1:   # Utility
+    ii = isinstance
+    w = int(os.environ.get("COLUMNS", "80")) - 1
+if 1:  # Utility
+
     def Usage(status=1):
         name = sys.argv[0]
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] dir1 [dir2...]
           Print a directory tree for each directory given on the command line.
  
@@ -60,14 +66,16 @@ if 1:   # Utility
           -d n    Limit tree depth to n (default is to show all of tree)
           -s      Decorate name with log size (lack may mean permission error)
           -v      Include version control directories (they are ignored by default)
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine():
-        d["-c"] = False     # Enable colorizing
-        d["-d"] = 0         # Depth limit
-        d["-l"] = "|   "    # Indentation string
-        d["-s"] = False     # Decorate directory names with log(size)
-        d["-v"] = False     # Include version control directories
+        d["-c"] = False  # Enable colorizing
+        d["-d"] = 0  # Depth limit
+        d["-l"] = "|   "  # Indentation string
+        d["-s"] = False  # Decorate directory names with log(size)
+        d["-v"] = False  # Include version control directories
         try:
             optlist, args = getopt.getopt(sys.argv[1:], "cd:hl:sv")
         except getopt.GetoptError as msg:
@@ -85,9 +93,12 @@ if 1:   # Utility
         if not len(args):
             Usage()
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def IsVCDir(dir):
-        'Return True if dir is in a version control directory tree'
+        "Return True if dir is in a version control directory tree"
         if d["-v"]:
             return False
         if not hasattr(IsVCDir, "vc"):
@@ -96,35 +107,38 @@ if 1:   # Core functionality
             if i in IsVCDir.vc:
                 return True
         return False
+
     def ShortSize(b):
-        '''b is number of bytes.  Return a shortened version with an SI
+        """b is number of bytes.  Return a shortened version with an SI
         prefix as a suffix.
-        '''
-        assert(ii(b, int) and b >= 0)
+        """
+        assert ii(b, int) and b >= 0
         if not b:
             return "0"
         characteristic = int(math.log10(b))
         n, rem = divmod(characteristic, 3)
-        ltr = {0: "", 1: "k", 2: "M", 3: "G", 4: "T", 5: "P", 6: "E",
-               7: "Z", 8: "Y"}[n]
-        s = f"{b:.6e}" 
+        ltr = {0: "", 1: "k", 2: "M", 3: "G", 4: "T", 5: "P", 6: "E", 7: "Z", 8: "Y"}[n]
+        s = f"{b:.6e}"
         digits = s.split("e")[0]
         u = round(float(digits), rem)
         v = str(u).replace(".", "")
-        return v[:rem + 1] + ltr
+        return v[: rem + 1] + ltr
+
     def GetFileSize(file):
-        assert(ii(file, P))
+        assert ii(file, P)
+
     def GetDirSize(dir):
-        'Return size of files in bytes'
-        assert(ii(dir, P))
+        "Return size of files in bytes"
+        assert ii(dir, P)
         size = 0
         for item in os.scandir(dir):
             size += os.path.getsize(item)
         return size
+
     def ColorSize(s: int):
-        '''Return the colorized integer giving the characteristic of the
+        """Return the colorized integer giving the characteristic of the
         size.  The empty string is returned for s < 10.
-        '''
+        """
         i = int(round(math.log10(s), 0)) if s else 0
         if not i:
             return ""
@@ -142,20 +156,22 @@ if 1:   # Core functionality
             return f"{t.c9}{i}{t.n}"
         else:
             return f"{t.c10}{i}{t.n}"
+
     def Logsize(size_in_bytes):
         if size_in_bytes:
             return len(str(int(round(math.log10(size_in_bytes), 0))))
         else:
             return 0
+
     def Tree(dir):
-        '''Return (maxsz, out) where maxsz is the longest directory string
+        """Return (maxsz, out) where maxsz is the longest directory string
         to print and out is a tuple of (decorated_str, sz, decorated_sz)
         elements  where decorated_str is the colorized string to print and
         decorated_sz is the colorized size number to print justified on the
         right.  sz is the length of the uncolored header + directory name,
         which allows the decorated_sz string to be positioned so that it
         lines up on the right.
-        '''
+        """
         Tree.size = 0
         out, limit, maxsz = [], d["-d"], 0
         # Build the first element of out, which will be the directory for
@@ -181,13 +197,13 @@ if 1:   # Core functionality
                         size_in_bytes = GetDirSize(p)
                     except PermissionError:
                         continue
-                    Tree.size += size_in_bytes 
-                    hdr = f"{d['-l']*depth}"
+                    Tree.size += size_in_bytes
+                    hdr = f"{d['-l'] * depth}"
                     # Get the characteristic of the size in bytes
                     logsize = Logsize(size_in_bytes)
                     maxsz = max(maxsz, len(hdr) + len(p.name) + logsize)
                     s1 = f"{hdr}{t.d}{p.name}{t.n}"
-                    sz = len(hdr) + len(p.name)     # Size of first string
+                    sz = len(hdr) + len(p.name)  # Size of first string
                     s2 = ""
                     n = w - len(hdr) - len(p.name) - logsize
                     if n > 1 and d["-s"]:
@@ -195,9 +211,10 @@ if 1:   # Core functionality
                         s2 = f"{ColorSize(size_in_bytes)}{t.n}"
                     out.append((s1, sz, s2))
         return maxsz, tuple(out)
+
     def GetColors():
         t.on = d["-c"]
-        t.d = t(Color(255, 64, 64))     # Directories (same red as ls)
+        t.d = t(Color(255, 64, 64))  # Directories (same red as ls)
         # Colors for sizes
         t.c1 = t("gryd")
         t.c3 = t("wht")
@@ -207,7 +224,8 @@ if 1:   # Core functionality
         t.c9 = t("magl", None, "rb")
         t.c10 = t("redl", None, "rb")
 
-if 0:   # Test area 
+
+if 0:  # Test area
     d = {"-c": 0}
     GetColors()
     for i in range(12):
@@ -215,11 +233,11 @@ if 0:   # Test area
     exit()
 
 if __name__ == "__main__":
-    d = {}   # Options dictionary
+    d = {}  # Options dictionary
     dirs = [P(i) for i in ParseCommandLine()]
     GetColors()
     for dir in dirs:
         n, out = Tree(dir)  # n is maximum width of 1st str in out
         for s1, sz, s2 in out:
-            s = " "*(n - sz) if sz else ""
+            s = " " * (n - sz) if sz else ""
             print(f"{s1}{s}{s2}")

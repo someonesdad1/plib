@@ -1,43 +1,50 @@
-'''
+"""
 Print monthly payment for mortgage loans
     Print out a table of factors to derive a monthly payment for a
     mortgage, given the interest rate in %/yr and the length of the
     mortgage in years.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2005 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2005 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Print monthly payment for mortgage loans
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import math
     import sys
     import getopt
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
-if 1:   # Global variables
+if 1:  # Global variables
     interest_step = 0.5
     begin_interest = 0.5
     end_interest = 15.0
     years = [3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30]
+
+
 def Usage(status=1):
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]} [options]
       Prints out a mortgage table.
     Options
       -b i      Specify the beginning interest
       -e i      Specify the ending interest
       -s i      Specify the interest step
-    '''))
+    """)
+    )
     exit(status)
+
+
 def ParseCommandLine(d):
     d["-b"] = 0.5
     d["-e"] = 15
@@ -58,16 +65,23 @@ def ParseCommandLine(d):
         if opt[0] == "-s":
             d["-s"] = float(opt[1])
     return args
+
+
 def PrintHeader():
-    print(dedent('''
+    print(
+        dedent("""
     Monthly payment per $1000 principal (compounding period = 1 month)
                                        Years
-    %/yr  '''), end="")
+    %/yr  """),
+        end="",
+    )
     for year in years:
         print(f"  {year:2d}  ", end="")
     print()
-    print("-"*6, end=" ")
-    print("----- "*len(years))
+    print("-" * 6, end=" ")
+    print("----- " * len(years))
+
+
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
@@ -80,8 +94,8 @@ if __name__ == "__main__":
         # Calculate the current row's factors
         factor_array = []
         for i in range(len(years)):
-            tmp = math.pow(1 + interest/1200, -years[i]*12)
-            factor = 1000*(interest/1200)/(1 - tmp)
+            tmp = math.pow(1 + interest / 1200, -years[i] * 12)
+            factor = 1000 * (interest / 1200) / (1 - tmp)
             factor_array.append(factor)
         # Now print the factors
         print("%5.1f  " % interest, end="")
@@ -94,7 +108,7 @@ if __name__ == "__main__":
             print(fmt % factor_array[i], end="")
         print()
         interest += interest_step
-    print('''
+    print("""
     Use:  Divide the principal in dollars by 1000 and multiply it by the
     factor from the table. 
 
@@ -104,4 +118,4 @@ if __name__ == "__main__":
     Formula:  let i = yearly interest in %
                   T = time in years
                   A = (1 + i/1200)**(-T*12)
-    Then factor = 1000*(i/1200)/(1 - A)''')
+    Then factor = 1000*(i/1200)/(1 - A)""")

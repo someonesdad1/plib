@@ -1,41 +1,49 @@
-'''
+"""
 Execute a makefile when a file changes
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Execute a makefile when a file changes
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import os
     import getopt
     import time
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
     from color import TRM as t
+
     if 0:
         import debug
+
         debug.SetDebugger()
-if 1:   # Global variables
+if 1:  # Global variables
     t.err = t("ornl")
     t.bld = t("grnl")
     t.nz = t("redl")
     t.dry = t("sky")
+
+
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
+
+
 def Usage(d, status=1):
     st = d["-s"]
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]} [options] [kfile]
       Monitors the files given on the separate lines of the text file
       kfile and when the source file is newer than the destination file,
@@ -74,12 +82,15 @@ def Usage(d, status=1):
             in the terminal window.
       -s t  Sleep time t in s between checking file times.  t can be a
             floating point number.  Default is {st} seconds.
-    '''))
+    """)
+    )
     exit(status)
+
+
 def ParseCommandLine(d):
-    d["-n"] = False     # Dry run
-    d["-q"] = False     # Quiet mode
-    d["-s"] = 1.0       # Default sleep time in s
+    d["-n"] = False  # Dry run
+    d["-q"] = False  # Quiet mode
+    d["-s"] = 1.0  # Default sleep time in s
     try:
         optlist, filename = getopt.getopt(sys.argv[1:], "hnqs:")
     except getopt.GetoptError as e:
@@ -110,10 +121,12 @@ def ParseCommandLine(d):
     else:
         filename = filename[0]
     return filename
+
+
 def GetLines(filename, d):
-    '''Read in the lines from filename, strip out comments, and build
+    """Read in the lines from filename, strip out comments, and build
     the d["lines"] list for periodic checking.
-    '''
+    """
     d["lines"] = D = []
     for linenum, line in enumerate(open(filename).readlines()):
         s = line.strip()
@@ -121,11 +134,13 @@ def GetLines(filename, d):
             continue
         fields = [i.strip() for i in s.split(",", 2)]
         if len(fields) != 3:
-            msg = f"Improper number of fields on line {linenum+1}:\n {line!r}"
+            msg = f"Improper number of fields on line {linenum + 1}:\n {line!r}"
             Error(msg)
         # Parse the commands
         fields[2] = tuple([i.strip() for i in fields[2].split(";")])
         D.append(tuple(fields))
+
+
 def GetTime(d):
     t, s = time.time() - d["start"], "s"
     # Change to minutes or hours as needed
@@ -136,24 +151,26 @@ def GetTime(d):
         t /= 60
         s = "min"
     return "%.1f %s" % (t, s)
+
+
 def Execute(cmd, d):
-    '''cmd is of the form (src, dest, cmdlist) where src is the source
+    """cmd is of the form (src, dest, cmdlist) where src is the source
     file, dest is the destination file, and cmdlist is the set of
     commands to execute if src is newer than dest.
-    '''
+    """
     src, dest, cmdlist = cmd
     # Get last modification times
     no_src, no_dest = False, False
     try:
         tm_src = os.stat(src).st_mtime
     except Exception as e:
-        #t.print(f"{t.err}Couldn't get modification times for {src!r} or {dest!r}")
+        # t.print(f"{t.err}Couldn't get modification times for {src!r} or {dest!r}")
         tm_src = 0
         no_src = True
     try:
         tm_dest = os.stat(dest).st_mtime
     except Exception as e:
-        #t.print(f"{t.err}Couldn't get modification times for {src!r} or {dest!r}")
+        # t.print(f"{t.err}Couldn't get modification times for {src!r} or {dest!r}")
         tm_dest = -1
         no_dest = True
     if no_dest or no_src:
@@ -173,6 +190,8 @@ def Execute(cmd, d):
             status = os.system(cmd)
             if status:
                 t.print(f"{t.nz}{cmd!r} returned nonzero status")
+
+
 if __name__ == "__main__":
     d = {}  # Options dictionary
     d["start"] = time.time()

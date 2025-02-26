@@ -1,19 +1,23 @@
-'''
+"""
 This script will get rid of the cruft and print out a table of the color
 names and six digit hex number for the RGB values.
-'''
+"""
+
 import sys
+
 if 1:
     import debug
+
     debug.SetDebugger()
 import re
-attr = f'''
+
+attr = f"""
 file = {sys.argv[0]}
 Text of the first three web pages at
 https://en.wikipedia.org/wiki/Lists_of_colors
 Downloaded Tue 01 Jun 2021 07:08:24 PM
-'''.strip()
-data = '''
+""".strip()
+data = """
 Absolute Zero
 <https://en.wikipedia.org/wiki/List_of_Crayola_crayon_colors#Extreme_Twistables_colors>
 	#0048BA 	0% 	28% 	73% 	217° 	100% 	37% 	100% 	73%
@@ -2399,7 +2403,7 @@ Zaffre <https://en.wikipedia.org/wiki/Zaffre> 	#0014A8 	0% 	8% 	66%
 233° 	100% 	33% 	100% 	66%
 Zomp <https://en.wikipedia.org/wiki/Spring_green#Zomp> 	#39A78E 	22%
 65% 	56% 	166° 	49% 	44% 	66% 	65%
-'''
+"""
 
 out = []
 for line in data.strip().split("\n"):
@@ -2408,7 +2412,7 @@ for line in data.strip().split("\n"):
     # Remove e.g. '97%' and '58°'
     line = re.sub(r"[0-9\.]+[%°]", "", line)
     out.append(line)
-newdata = ' '.join(out)
+newdata = " ".join(out)
 # Get rid of tab character just before # of hex number.  This will let
 # us split the fields on tab characters.
 newdata = newdata.replace("\t#", " #")

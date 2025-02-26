@@ -1,11 +1,11 @@
-'''
+"""
 Sort by line length.  Take input from stdin if there's no parameter
 on the command line.
-'''
+"""
 
 import sys
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
     lines, decorate = [], lambda x: (len(x), x)
     if len(sys.argv) == 1:
         for i in sys.stdin:

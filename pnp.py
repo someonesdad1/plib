@@ -1,41 +1,46 @@
-'''
+"""
 
 Since I use the text of Pride and Prejudice for many testing tasks, this module has the function
 PnP() which return the text as a string.
 
-'''
-if 1:   # Header
-    if 1:   # Copyright, license
+"""
+
+if 1:  # Header
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Return text of Pride and Prejudice
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         import getopt
         import os
         import sys
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from color import t
         from dpprint import PP
-        pp = PP()   # Screen width aware form of pprint.pprint
+
+        pp = PP()  # Screen width aware form of pprint.pprint
         from wrap import wrap as Wrap, dedent
-        #from columnize import Columnize
-    if 1:   # Global variables
-        __all__ = '''PnP'''.split()
-        class G:    # Storage for global variables as attributes
+        # from columnize import Columnize
+    if 1:  # Global variables
+        __all__ = """PnP""".split()
+
+        class G:  # Storage for global variables as attributes
             pass
+
         g = G()
         g.dbg = False
         ii = isinstance
-        g.pnp = dedent('''
+        g.pnp = dedent(
+            """
             PRIDE AND PREJUDICE
             By Jane Austen
             Chapter 1
@@ -2162,18 +2167,22 @@ if 1:   # Header
             Pemberley was now Georgiana's home; and the attachment of the sisters was exactly what Darcy had hoped to see.  They were able to love each other even as well as they intended.  Georgiana had the highest opinion in the world of Elizabeth; though at first she often listened with an astonishment bordering on alarm at her lively, sportive, manner of talking to her brother.  He, who had always inspired in herself a respect which almost overcame her affection, she now saw the object of open pleasantry.  Her mind received knowledge which had never before fallen in her way.  By Elizabeth's instructions, she began to comprehend that a woman may take liberties with her husband which a brother will not always allow in a sister more than ten years younger than himself.
             Lady Catherine was extremely indignant on the marriage of her nephew; and as she gave way to all the genuine frankness of her character in her reply to the letter which announced its arrangement, she sent him language so very abusive, especially of Elizabeth, that for some time all intercourse was at an end.  But at length, by Elizabeth's persuasion, he was prevailed on to overlook the offence, and seek a reconciliation; and, after a little further resistance on the part of his aunt, her resentment gave way, either to her affection for him, or her curiosity to see how his wife conducted herself; and she condescended to wait on them at Pemberley, in spite of that pollution which its woods had received, not merely from the presence of such a mistress, but the visits of her uncle and aunt from the city.
             With the Gardiners, they were always on the most intimate terms.  Darcy, as well as Elizabeth, really loved them; and they were both ever sensible of the warmest gratitude towards the persons who, by bringing her into Derbyshire, had been the means of uniting them.
-            '''.rstrip())
-if 1:   # Utility
+            """.rstrip()
+        )
+if 1:  # Utility
+
     def GetScreen():
-        'Return (LINES, COLUMNS)'
+        "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
-            int(os.environ.get("COLUMNS", "80")) - 1
+            int(os.environ.get("COLUMNS", "80")) - 1,
         )
+
     def GetColors():
         t.dbg = t("cyn") if g.dbg else ""
         t.N = t.n if g.dbg else ""
         t.err = t("redl")
+
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="", file=Dbg.file)
@@ -2181,23 +2190,29 @@ if 1:   # Utility
             k["file"] = Dbg.file
             print(*p, **k)
             print(f"{t.N}", end="", file=Dbg.file)
+
     Dbg.file = sys.stdout
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage():
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] [cmd]
           Send the text of Pride and Prejudice to stdout.  cmd is:
             w   Wrap to current screen width    [default]
             0   As stored; each paragraph is a single line
             1   Each paragraph is a single line with empty lines between them
-        '''))
+        """)
+        )
         exit(0)
+
     def ParseCommandLine(d):
-        d["-a"] = False     # Describe this option
+        d["-a"] = False  # Describe this option
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "h") 
+            opts, args = getopt.getopt(sys.argv[1:], "h")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -2209,14 +2224,17 @@ if 1:   # Utility
         GetColors()
         g.W, g.L = GetScreen()
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def PnP(wrap=False, nlnl=False, width=None):
-        '''Return a string containing the text of Pride and Prejudice.  The default call returns a
+        """Return a string containing the text of Pride and Prejudice.  The default call returns a
         string with paragraphs of single lines with one linefeed.  If nlnl is True, then there are
         two linefeeds after each paragraph.  If wrap is true, the paragraphs are wrapped to the
         current screen width if the keyword width is None or the indicated width if it is an
         integer greater than 0.  An empty line separates paragraph when wrap is True.
-        '''
+        """
         _, W = GetScreen()
         if wrap:
             w = GetScreen()[1] if width is None else int(width)
@@ -2229,8 +2247,9 @@ if 1:   # Core functionality
                 return g.pnp.replace("\n", "\n\n")
             return g.pnp
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     cmd = args[0] if args else "w"
     if cmd == "0":

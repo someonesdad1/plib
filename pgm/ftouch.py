@@ -1,32 +1,39 @@
-'''
+"""
 Set the mod time of a set of files to that of a reference file
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Set the mod time of a set of files to that of a reference file
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import os
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
+
+
 def Usage(status=1):
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]} mainfile file1 [file2 ...]
       Change the modification times of file1, file2, ... to be the same as
       mainfile.
-    '''))
+    """)
+    )
     exit(status)
-if __name__ == "__main__": 
+
+
+if __name__ == "__main__":
     args = sys.argv[1:]
     if len(args) < 2:
         Usage()

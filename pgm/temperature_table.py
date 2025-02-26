@@ -1,47 +1,52 @@
-'''
+"""
 Generate a temperature table
-'''
+"""
+
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2017 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2017 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Generate a temperature table
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Imports
+    if 1:  # Imports
         import getopt
         import os
         import sys
         from pdb import set_trace as xx
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import dedent
         from color import t
         from temperature import ConvertTemperature
         from frange import frange
         from sig import sig
         from f import flt
-if 1:   # Global variables
+if 1:  # Global variables
     ii = isinstance
-if 1:   # Utility
+if 1:  # Utility
+
     def GetColors():
         t.k = t.roy if d["-c"] else ""
         t.c = t.yel if d["-c"] else ""
         t.f = t.grn if d["-c"] else ""
         t.r = t.viol if d["-c"] else ""
         t.N = t.n if d["-c"] else ""
+
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
+
     def Usage(d, status=1):
         n, unit = d["-d"], d["-u"]
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] start end increment [column1]
           Generate a temperature conversion table.  If column1 is included, it must be one of C, F,
           K, R (defaults to {unit}, case not important) and is the first column's temperature unit.
@@ -53,21 +58,24 @@ if 1:   # Utility
         Options:
           -c    Don't print in color
           -d n  Set number of significant digits.  [{n}]
-        '''))
+        """)
+        )
         exit(status)
+
     def GetTemp(s):
         try:
             return int(s)
         except ValueError:
             return float(s)
+
     def ParseCommandLine(d):
-        d["-c"] = True          # Print colors
-        d["-u"] = "C"           # Primary unit (C, F, R, K)
-        d["-d"] = 3             # Number of significant digits
+        d["-c"] = True  # Print colors
+        d["-u"] = "C"  # Primary unit (C, F, R, K)
+        d["-d"] = 3  # Number of significant digits
         d["units"] = tuple("CFRK")
-        d["range"] = frange     # Iterator for input temperatures
+        d["range"] = frange  # Iterator for input temperatures
         if len(sys.argv) < 2:
-                Usage(d)
+            Usage(d)
         try:
             opts, args = getopt.getopt(sys.argv[1:], "cd:h")
         except getopt.GetoptError as e:
@@ -82,8 +90,7 @@ if 1:   # Utility
                     if not (1 <= d["-d"] <= 15):
                         raise ValueError()
                 except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                           "1 and 15")
+                    msg = "-d option's argument must be an integer between 1 and 15"
                     Error(msg)
             elif o in ("-h", "--help"):
                 Usage(d, status=0)
@@ -101,17 +108,23 @@ if 1:   # Utility
         if all([ii(i, int) for i in d["specs"]]):
             d["range"] = range
         GetColors()
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def rdp(s):
         if s[-1] == ".":
             return s[:-1]
         return s
+
     def deg(s):
         if s != "K":
             return "°" + s
         return s
+
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     sig.idp = False
     sig.rtz = True
     ParseCommandLine(d)
@@ -124,7 +137,7 @@ if __name__ == "__main__":
         "R": "°R K °C °F".split(),
         "K": "K °C °F °R".split(),
     }
-    clr = { # Column colors
+    clr = {  # Column colors
         "C": [t.c, t.f, t.k, t.r],
         "F": [t.f, t.c, t.k, t.r],
         "R": [t.r, t.k, t.c, t.f],
@@ -151,19 +164,23 @@ if __name__ == "__main__":
     # Dump contents of out sequence
     if 0:
         from pprint import pprint as pp
+
         pp(out)
         exit()
     # Print report
-    sep = " "*4     # Space between columns
-    c = clr[iu]     # Color for each column
+    sep = " " * 4  # Space between columns
+    c = clr[iu]  # Color for each column
+
     def Header1():
         for i, letter in enumerate((iu, ou1, ou2, ou3)):
             print(f"{c[i]}{deg(letter):^{w}s}{t.N}{sep}", end="")
         print()
+
     def Header2():
         for i, letter in enumerate((iu, ou1, ou2, ou3)):
-            print(f"{c[i]}{'─'*w:^{w}s}{t.N}{sep}", end="")
+            print(f"{c[i]}{'─' * w:^{w}s}{t.N}{sep}", end="")
         print()
+
     Header1()
     Header2()
     if 0:
@@ -179,7 +196,7 @@ if __name__ == "__main__":
             print()
     else:
         for i, items in enumerate(out):
-            if i:   # First row already printed in Header()
+            if i:  # First row already printed in Header()
                 for j, k in enumerate(items):
                     print(f"{c[j]}{k!s:^{w}s}{sep}", end="")
                 print()

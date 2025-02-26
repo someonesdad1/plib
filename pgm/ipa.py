@@ -1,14 +1,14 @@
-'''
+"""
 IPA pronunciations
-'''
+"""
 
 # https://en.wikipedia.org/wiki/Template:IPAc-en table's columns:
-    #  0  Code
-    #  1  Aliases
-    #  2  Display text
-    #  3  Tooltip
-    #  4  Type
-table = '''
+#  0  Code
+#  1  Aliases
+#  2  Display text
+#  3  Tooltip
+#  4  Type
+table = """
     b		b	'b' in 'buy'	diaphoneme
     d		d	'd' in 'dye'	diaphoneme
     dj	dy, dʲ	dj	/dj/: 'd' in 'dew'	diaphoneme
@@ -104,7 +104,7 @@ table = '''
     ...		 ... 		separator
     juː		juː	/juː/: 'u' in 'cute'	diaphoneme
     jʊər		jʊər	/jʊər/: 'ure' in 'cure'	diaphoneme
-'''.strip()
+""".strip()
 
 if 0:
     # This table has had field 3 from above extracted, modified for uniformity,
@@ -127,7 +127,7 @@ if 0:
 # "prosodic" eliminated.  I've moved the order around and denoted column
 # headers with '+'.
 
-table = '''
+table = """
     Consonants	+
     /b/	'b' in 'buy'
     /d/	'd' in 'dye'
@@ -227,58 +227,64 @@ table = '''
     /ˌ/	secondary stress follows
     /./	syllable break
     /#/	morpheme break
-'''.strip()
+""".strip()
 
-if 1:   # Header
-    if 1:   # Copyright, license
+if 1:  # Header
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # IPA pronunciations
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         import getopt
         import os
         from pathlib import Path as P
         import re
         import sys
         from pdb import set_trace as xx
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import wrap, dedent
         from color import Color, TRM as t
         from columnize import Columnize
+
         if 0:
             import debug
+
             debug.SetDebugger()
-    if 1:   # Global variables
+    if 1:  # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
         r = re.compile("'(.*)' in '(.*)'")
-if 1:   # Utility
+if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] 
           Print out a table of IPA symbols.
         Options:
             -c      Don't use ANSI color in output
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-c"] = True      # Print in color
+        d["-c"] = True  # Print in color
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ch", 
-                    ["help", "debug"])
+            opts, args = getopt.getopt(sys.argv[1:], "ch", ["help", "debug"])
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -289,15 +295,18 @@ if 1:   # Utility
                 Usage(status=0)
         SetupColor()
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def SetupColor():
         t.hi = t("whtl", "blud") if d["-c"] else ""
         t.hdr = t("ornl") if d["-c"] else ""
         t.ti = t("yell") if d["-c"] else ""
         t.N = t.n if d["-c"] else ""
+
     def GetString(a, b):
-        '''Return a string with color coding
-        '''
+        """Return a string with color coding"""
         a = a.replace("/", "")
         mo = r.search(b)
         if mo:
@@ -322,6 +331,7 @@ if 1:   # Core functionality
             elif a == " " or a == "‖":
                 return None
             return f"{a:4s}  {b}"
+
     def PrintTable():
         out = []
         for line in table.split("\n"):
@@ -337,7 +347,8 @@ if 1:   # Core functionality
         for i in Columnize(out, width=W):
             print(i)
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     PrintTable()

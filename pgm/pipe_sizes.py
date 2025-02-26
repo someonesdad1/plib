@@ -1,22 +1,24 @@
-'''
+"""
 Print PVC and steel US pipe dimensions
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # PVC and steel US standard pipe dimensions
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
-print(dedent(f'''
+print(
+    dedent(f"""
           Schedule 40 PVC pipe                    Schedule 80 PVC pipe
     Nominal                                 Nominal
      Size      OD      Wall      ID          Size      OD      Wall      ID
@@ -52,4 +54,5 @@ print(dedent(f'''
     4        4.500    4.026   0.237   8      0.1250    4.334     0.898   4-1/4
     5        5.563    5.047   0.258   8      0.1250    5.391     1.22
     6        6.625    6.065   0.280   8      0.1250    6.446     1.58
-    '''))
+    """)
+)

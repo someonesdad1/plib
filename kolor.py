@@ -1,4 +1,4 @@
-'''
+"""
 Contains functions to set screen color for console applications
     Use sys.stdout.isatty() to determine if you should emit escape codes.
 
@@ -26,29 +26,29 @@ Contains functions to set screen color for console applications
 
         - A cprint() function should allow the following syntax:
 
-            import color as C                                      
+            import color as C
             C.cprint(C.lred, "Red text, ", C.normal, " plain text")
 
           which lets you easily get colored text with one line.  The C.lred
           object would be a Style object and you could easily define other
-          styles.  
+          styles.
 
         Question:  would it make sense to make the Style objects derive
         from int so that older code wouldn't need to be changed?  One way
-        to do this would be to make the object's str() method return the 
+        to do this would be to make the object's str() method return the
         desired escape code, but make fg() etc. know to get the equivalent
         integer.  Then no cprint() function is needed, as print() works as
         desired.
-    
+
     ----------------------------------------------------------------------
 
     There are 16 colors given by names:  black, blue, green, cyan, red,
     magenta, brown, white, gray, lblue, lgreen, lcyan, lred, lmagenta,
     yellow, and lwhite.
-    
+
     The primary function is fg(), which can be used in the following ways
     to set the foreground and background colors:
-    
+
         fg(white)
             Sets the foreground color to white and leaves the background
             unchanged.
@@ -61,29 +61,29 @@ Contains functions to set screen color for console applications
             Sets the foreground and background colors by using the number
             color_byte.  The low nibble gives the foreground color and the
             high nibble gives the background color
-    
+
     The normal() function sets the foreground and background colors back
     to their normal values.  Call with arguments the same as fg() to
     define the normal foreground and background colors.  Set the
     default_colors global variable to the default colors you use.
-    
-    A ColorContext instance is useful as a context manager to ensure that 
+
+    A ColorContext instance is useful as a context manager to ensure that
     you have normal colors enabled when your script exits.  See the example
     at the end of the file.
-    
+
     These functions should work on both Windows and an environment that
     uses ANSI escape sequences (e.g., an xterm).
-    
+
     PrintMatch()
     PrintMatches()
-    
+
         These two functions can be used to print color annotations of regular
         expression matches in strings being printed to the console.  I find
         PrintMatch() very helpful when developing a complicated regular
         expression.  Here's an example of how I'd use it in a python script:
-    
+
         r = re.compile(r"<your regular expression here", re.S)
-    
+
         # Colorize where the regexp r matches in the file
         s = open(file).read()
         print("-"*70)
@@ -99,19 +99,19 @@ Contains functions to set screen color for console applications
 
     The c() function decorates integers and floats to make the
     three-digit-groups easier to read.
-    
+
     The Decorate() object is a convenience; an instance of it will return the
     escape strings to set the console colors.  An example use would be
-    
+
         dec = Decorate()
         print("Hello", dec.fg(dec.lred), " there", dec.normal(), sep="")
-    
+
     which would print the word "there" in light red.
-    
+
     The code for Windows console colors was taken from Andre Burgaud's work at
     http://www.burgaud.com/bring-colors-to-the-windows-console-with-python/,
     downloaded Wed 28 May 2014.
-    
+
     ---------------------------------------------------------------------------
     Some ANSI control codes for attributes that have an effect in xterms:
         Esc[0m  Attributes off
@@ -120,11 +120,11 @@ Contains functions to set screen color for console applications
         Esc[4m  Underline
         Esc[5m  Blinking
         Esc[7m  Reverse video
-    
+
     ---------------------------------------------------------------------------
     If this module is not available, put the following in your code so that
     things will still work.
-    
+
     # Try to import the color.py module; if not available, the script
     # should still work (you'll just get uncolored output).
     try:
@@ -138,22 +138,23 @@ Contains functions to set screen color for console applications
             def __getattr__(self, name): pass
         color = Dummy()
         _have_color = False
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # <programming> Module to provide ANSI color escape sequences.
     # These are useful for coloring output to a terminal.
-    #∞what∞#
-    #∞test∞# --test #∞test∞#
+    # ∞what∞#
+    # ∞test∞# --test #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     from decimal import Decimal, localcontext
     import locale
     import os
@@ -161,58 +162,79 @@ if 1:   # Imports
     import sys
     from collections import deque
     from collections.abc import Iterable
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
+
     try:
         import mpmath
+
         _have_mpmath = True
     except ImportError:
         _have_mpmath = False
-if 1:   # Global variables
+if 1:  # Global variables
     # To use this under the old cygwin bash, which was derived from a Windows
     # console, you must define the environment variable BASH_IS_WIN_CONSOLE.
     # The new cygwin bash window is based on mintty and accepts ANSI escape
     # codes directly.
     bash_is_win_console = os.environ.get("BASH_IS_WIN_CONSOLE", False)
     _win = True if (sys.platform == "win32") and bash_is_win_console else False
-    __all__ = '''
+    __all__ = """
         black blue  green  cyan  red  magenta  brown  white 
         gray  lblue lgreen lcyan lred lmagenta yellow lwhite
         default_colors normal fg
         SetStyle Decorate Style
         PrintMatch PrintMatches
-    '''.split()
+    """.split()
     ii = isinstance
     if _win:
         from ctypes import windll
+
     class Colors(int):
-        '''Used to identify colors; shift left by 4 bits to get a
+        """Used to identify colors; shift left by 4 bits to get a
         background color.  The main reason to use a class allows the
         __call__ method to be added, which returns the escape code.
         This is a convenience for use in f-strings; for example
             print(f"{yellow()}Hello {norm()}there")
         will print 'Hello' in yellow and 'there' in the normal color.
-        '''
+        """
+
         _DecodeColor = None
         _GetNibbles = None
         _cfg = None
         _cbg = None
+
         def __new__(cls, value):
             return super(Colors, cls).__new__(cls, int(value))
+
         def __call__(self, arg=None):
-            '''Return the ASCII escape code for the color.  If arg is
+            """Return the ASCII escape code for the color.  If arg is
             not none, return the escape code for the background color.
-            '''
+            """
             val = self << 4 if arg else self
             one_byte_color = Colors._DecodeColor(val)
             cfg, cbg = Colors._GetNibbles(one_byte_color)
             f, b = Colors._cfg[cfg], Colors._cbg[cbg]
             s = "\x1b[%s;%s" % (f, b)
             return s
+
     # Foreground colors; shift left by 4 bits to get a background color.
     (
-        black, blue, green, cyan, red, magenta, brown, white,
-        gray, lblue, lgreen, lcyan, lred, lmagenta, yellow, lwhite
+        black,
+        blue,
+        green,
+        cyan,
+        red,
+        magenta,
+        brown,
+        white,
+        gray,
+        lblue,
+        lgreen,
+        lcyan,
+        lred,
+        lmagenta,
+        yellow,
+        lwhite,
     ) = [Colors(i) for i in range(16)]
     # Set the default_colors global variable to be the defaults for your system
     default_colors = (white, black)
@@ -256,44 +278,48 @@ if 1:   # Global variables
     # Handle to call into Windows DLL
     STD_OUTPUT_HANDLE = -11
     _hstdout = windll.kernel32.GetStdHandle(STD_OUTPUT_HANDLE) if _win else None
-if 1:   # Utility
+if 1:  # Utility
+
     def _is_iterable(x):
-        '''Return True if x is an iterable that isn't a string.
-        '''
+        """Return True if x is an iterable that isn't a string."""
         return ii(x, Iterable) and not ii(x, str)
+
     def _DecodeColor(*c):
-        '''Return a 1-byte integer that represents the foreground and
+        """Return a 1-byte integer that represents the foreground and
         background color.  c can be
             * An integer
             * Two integers
             * A sequence of two integers
-        '''
+        """
         if len(c) == 1:
             # It can either be a number or a tuple of two integers
             if _is_iterable(c[0]):
                 if len(c[0]) != 2:
                     raise ValueError("Must be a sequence of two integers")
-                color = ((c[0][1] << 4) | c[0][0]) & 0xff
+                color = ((c[0][1] << 4) | c[0][0]) & 0xFF
             else:
                 if not ii(c[0], int):
                     raise ValueError("Argument must be an integer")
-                color = c[0] & 0xff
+                color = c[0] & 0xFF
         elif len(c) == 2:
-            color = ((c[1] << 4) | c[0]) & 0xff
+            color = ((c[1] << 4) | c[0]) & 0xFF
         else:
             raise ValueError("Argument must be one or two integers")
         return color
+
     def _GetNibbles(c):
         assert 0 <= c < 256
-        return (0x0f & c, (0xf0 & c) >> 4)
+        return (0x0F & c, (0xF0 & c) >> 4)
+
+
 # Core functionality
 def normal(*p, **kw):
-    '''If the argument is None, set the foreground and background
+    """If the argument is None, set the foreground and background
     colors to their default values.  Otherwise, use the argument to
     set the default colors.
- 
+
     If keyword 's' is True, return a string instead of printing.
-    '''
+    """
     ret_string = kw.setdefault("s", False)
     global default_colors
     if p:
@@ -304,22 +330,24 @@ def normal(*p, **kw):
             return fg(default_colors, **kw)
         else:
             fg(default_colors, **kw)
+
+
 def fg(*p, **kw):
-    '''Set the color.  p can be an integer or a tuple of two
+    """Set the color.  p can be an integer or a tuple of two
     integers.  If it is an integer that is greater than 15, then it
     also contains the background color encoded in the high nibble.
     fgcolor can be a sequence of two integers of length two also.
- 
+
     The keyword 'style' can be:
         normal
         italic
         underline
         blink
         reverse
- 
+
     If the keyword 's' is True, return a string containing the escape
     codes rather than printing it.  Note this won't work if _win is True.
-    '''
+    """
     style = kw.setdefault("style", None)
     ret_string = kw.setdefault("s", False)
     one_byte_color = _DecodeColor(*p)
@@ -342,24 +370,32 @@ def fg(*p, **kw):
                 return s
             print(s, end="")
             return ""
+
+
 def SetStyle(style, **kw):
-    '''If the keyword 's' is True, return a string containing the escape
+    """If the keyword 's' is True, return a string containing the escape
     codes rather than printing it.  Note this won't work if _win is True.
-    '''
+    """
     ret_string = kw.setdefault("s", False)
     if _win:
         return
     st = {
-        "normal": 0, "bold": 1, "italic": 3, "underline": 4,
-        "blink": 5, "reverse": 7,
+        "normal": 0,
+        "bold": 1,
+        "italic": 3,
+        "underline": 4,
+        "blink": 5,
+        "reverse": 7,
     }[style]
     if ret_string:
         return "\x1b[%sm" % st
     else:
         print("\x1b[%sm" % st, end="")
+
+
 class Decorate(object):
-    '''A convenience object that will return escape code strings.
-    '''
+    """A convenience object that will return escape code strings."""
+
     def __init__(self):
         # Make colors an attribute
         self.black = black
@@ -379,54 +415,64 @@ class Decorate(object):
         self.yellow = yellow
         self.lwhite = lwhite
         self.kw = {"s": True}
+
     def fg(self, *p):
         return fg(*p, **self.kw)
+
     def normal(self, *p):
         return normal(*p, **self.kw)
+
     def SetStyle(self, style):
         return SetStyle(style, **self.kw)
+
+
 class Style(object):
-    '''Defines foreground and background colors and a particular text
+    """Defines foreground and background colors and a particular text
     style (such as bold, italic, etc.).  The class is intended to be a
     convenience container for color information.  Note the escape codes
     are always printed to stdout; use class Decorate if you want the
     strings with the escape codes.
-    '''
-    def __init__(self, fg=default_colors[0], 
-                 bg=default_colors[1], style="normal"):
+    """
+
+    def __init__(self, fg=default_colors[0], bg=default_colors[1], style="normal"):
         self.fg = fg
         self.bg = bg
         self.style = style
+
     def set(self):
-        '''Print our escape codes to stdout.
-        '''
+        """Print our escape codes to stdout."""
         fg(self.fg, self.bg)
         if self.style != "normal":
             # This logic is used because the 'normal' style will undo any
             # foreground color set.
             SetStyle(self.style)
+
     @classmethod
     def clear(self):
-        '''Print the normal style escape codes to stdout.
-        '''
+        """Print the normal style escape codes to stdout."""
         normal()
+
+
 class ColorContext:
-    '''Context manager to ensure the screen colors are reset to desired
+    """Context manager to ensure the screen colors are reset to desired
     values when the manager exits.  Here's an example use:
         with ColorContext():
             s = Style(fg=yellow, style="italic")
             s.set()
             print("  In yellow italics")
         print("  Back to normal")
-    '''
+    """
+
     def __init__(self, foreground=None, background=None):
-        '''If foreground and background are None, the default colors are
+        """If foreground and background are None, the default colors are
         used.
-        '''
+        """
         self.foreground = foreground
         self.background = background
+
     def __enter__(self):
         pass
+
     def __exit__(self, type, value, traceback):
         if self.foreground is None and self.background is None:
             normal()
@@ -435,14 +481,16 @@ class ColorContext:
         if self.background is None:
             b = default_colors[1]
         fg(f, b)
+
+
 def PrintMatch(text, regexp, style=Style(yellow, black)):
-    '''Print the indicated text in normal colors if there are no
+    """Print the indicated text in normal colors if there are no
     matches to the regular expression.  If there are matches, print each
     of them in the indicated style.  text can be a multiline string.
- 
+
     regexp can also be a plain text string that occurs in text and it will
     also printed via highlighting by converting it to a regexp.
-    '''
+    """
     if isinstance(regexp, str):
         # Need to escape magic characters
         magic = set("*+^$.?{}[]|()")
@@ -450,7 +498,7 @@ def PrintMatch(text, regexp, style=Style(yellow, black)):
         while t:
             c = t.popleft()
             q.append("\\" + c if c in magic else c)
-        r = re.compile(''.join(q)) 
+        r = re.compile("".join(q))
     else:
         r = regexp
     mo = r.search(text)
@@ -461,59 +509,71 @@ def PrintMatch(text, regexp, style=Style(yellow, black)):
     text = mo.string
     while text:
         style.clear()
-        print(text[:mo.start()], end="")      # Print non-matching start stuff
+        print(text[: mo.start()], end="")  # Print non-matching start stuff
         style.set()
-        print(text[mo.start():mo.end()], end="")  # Print the match in color
+        print(text[mo.start() : mo.end()], end="")  # Print the match in color
         style.clear()
         # Use the remaining substring
-        text = text[mo.end():]
+        text = text[mo.end() :]
         mo = r.search(text)
         if not mo:
             print(text)
             return
+
+
 def PrintMatches(line, regexps):
-    '''Given a line of text, search for regular expression matches
+    """Given a line of text, search for regular expression matches
     given in the sequence of regexps, which contain pairs of regular
     expressions and Style objects, then print the line to stdout with
     the indicated styles.
-    '''
+    """
+
     def out(s):
         print(s, end="")
+
     def GetShortestMatch(text):
-        '''Return (start, end, style) of the earliest match or (None, None,
+        """Return (start, end, style) of the earliest match or (None, None,
         None) if there were no matches.
-        '''
+        """
         matches = []
         for r, style in regexps:
             mo = r.search(line)
             if mo:
                 matches.append([mo.start(), mo.end(), style])
         return sorted(matches)[0] if matches else (None, None, None)
+
     while line:
         start, end, style = GetShortestMatch(line)
         if start is None:
-            out(line)           # No matches so print remainder
+            out(line)  # No matches so print remainder
             return
         style.clear()
-        out(line[:start])       # Print non-matching start stuff
+        out(line[:start])  # Print non-matching start stuff
         style.set()
-        out(line[start:end])    # Print match in chosen style
+        out(line[start:end])  # Print match in chosen style
         style.clear()
-        line = line[end:]       # Use the remaining substring
+        line = line[end:]  # Use the remaining substring
+
+
 if 1:
     Colors._DecodeColor = _DecodeColor
     Colors._GetNibbles = _GetNibbles
     Colors._cfg = _cfg
     Colors._cbg = _cbg
+
+
 def norm():
-    'Return the escape string for normal text'
+    "Return the escape string for normal text"
     return normal(s=True)
+
+
 class C:
-    '''This is a convenience instance that holds the escape strings for
+    """This is a convenience instance that holds the escape strings for
     the colors.  The color names are abbreviated with three letters
     commonly seen in resistor color codes.  Preface with 'l' to get the
     brighter color.
-    '''
+    """
+
     blk = fg(black, s=1)
     blu = fg(blue, s=1)
     grn = fg(green, s=1)
@@ -531,46 +591,51 @@ class C:
     lyel = fg(yellow, s=1)
     lwht = fg(lwhite, s=1)
     norm = normal(s=1)
-if 1:   # Dictionary for colorizing numbers
+
+
+if 1:  # Dictionary for colorizing numbers
     # Groups of three digits are colored with the following colors
     clrdict = {
         0: C.wht,
         1: C.lgrn,
         2: C.lyel,
-        3: C.lred, 
-        4: C.lcyn, 
-        5: C.lmag, 
-        6: C.lblu, 
-        7: C.lwht, 
-        8: C.cyn, 
-        9: C.yel, 
-        10: fg(0x4f, s=1), 
+        3: C.lred,
+        4: C.lcyn,
+        5: C.lmag,
+        6: C.lblu,
+        7: C.lwht,
+        8: C.cyn,
+        9: C.yel,
+        10: fg(0x4F, s=1),
     }
+
+
 def c(x, colors=clrdict):
-    'Return a colorized string for the number x'
+    "Return a colorized string for the number x"
     S = set("1234567890")
     dp = locale.localeconv()["decimal_point"]
     sgn = "-" if x < 0 else ""
     N = len(colors)
-    print("x =", x) 
+    print("x =", x)
+
     def Colorize(s, rev=False):
-        '''Colorize the string of digits in s.  If rev is True, then the
+        """Colorize the string of digits in s.  If rev is True, then the
         set of digits in s are considered to be the digits in a floating
         point number to the right of the decimal point.
-        '''
-        assert(set(s).issubset(S))
+        """
+        assert set(s).issubset(S)
         t, o, count = deque(), deque(), 0
         # Put groups of 3 digits in t
         if rev:
             u = list(s)
             while u:
                 if len(u) > 3:
-                    t.append(''.join(u[:3]))
+                    t.append("".join(u[:3]))
                     del u[:3]
                 else:
-                    t.append(''.join(u))
+                    t.append("".join(u))
                     break
-            #print("float t: ", t)
+            # print("float t: ", t)
             o.append(colors[0])
             count += 1
             while t:
@@ -579,17 +644,17 @@ def c(x, colors=clrdict):
                 o.append(colors[count % N])
                 count += 1
             o.append(C.norm)
-            return ''.join(o)
+            return "".join(o)
         else:
             u = list(s)
             while u:
                 if len(u) > 3:
-                    t.append(''.join(u[-3:]))
+                    t.append("".join(u[-3:]))
                     del u[-3:]
                 else:
-                    t.append(''.join(u))
+                    t.append("".join(u))
                     break
-            #print("integer t: ", t)
+            # print("integer t: ", t)
             o.append(C.norm)
             while t:
                 a = t.popleft()
@@ -597,13 +662,14 @@ def c(x, colors=clrdict):
                 o.appendleft(colors[count % N])
                 count += 1
             o.append(C.norm)
-            return ''.join(o)
+            return "".join(o)
+
     reals = (float, Decimal)
     if _have_mpmath:
         reals = (float, Decimal, mpmath.mpf)
     if ii(x, int):
         o = Colorize(str(abs(x)))
-        return sgn + ''.join(o)
+        return sgn + "".join(o)
     elif ii(x, (float, reals)):
         s = str(abs(x)).lower()
         if "e" in s:
@@ -612,16 +678,19 @@ def c(x, colors=clrdict):
             ld, rd = m.split(dp)
             o = Colorize(rd, rev=True)
             E = "E" if ii(x, Decimal) else "e"
-            return sgn + ld + dp + ''.join(o) + E + exp
+            return sgn + ld + dp + "".join(o) + E + exp
         else:
             ld, rd = s.split(dp)
             L = Colorize(ld)
             r = Colorize(rd, rev=True)
-            return sgn + ''.join(L) + dp + ''.join(r)
-if __name__ == "__main__": 
+            return sgn + "".join(L) + dp + "".join(r)
+
+
+if __name__ == "__main__":
     from lwtest import run, Assert
     from wrap import dedent
     import subprocess
+
     def DisplayTable():
         # Display a table of the color combinations
         names = {
@@ -666,6 +735,7 @@ if __name__ == "__main__":
         msg = " black   blue    green   cyan    red    magenta  brown   white"
         fg(lcyan)
         print(back + msg)
+
         def Table(bgcolors):
             for fgcolor in low + high:
                 normal()
@@ -673,12 +743,13 @@ if __name__ == "__main__":
                 print("%-15s" % s, end="")
                 for bgcolor in bgcolors:
                     fg(fgcolor, bgcolor)
-                    c = (0xf0 & (bgcolor << 4)) | (0x0f & fgcolor)
+                    c = (0xF0 & (bgcolor << 4)) | (0x0F & fgcolor)
                     print("wxyz %02x" % c, end="")
                     normal()
                     print(" ", end="")
                 normal()
                 print()
+
         Table(low)
         msg = " gray    lblue   lgreen  lcyan   lred  lmagenta yellow  lWhite"
         fg(lcyan)
@@ -716,37 +787,45 @@ if __name__ == "__main__":
         print(f"{C.lmag}C convenience escape code strings:")
         print(f"{C.grn}  blk  blu  grn  cyn  red  mag  yel  wht gry")
         print(f"{C.lgrn}      lblu lgrn lcyn lred lmag lyel lwht norm{C.norm}")
-    if 1:   # Imports
+
+    if 1:  # Imports
         # Standard library modules
         import getopt
         import os
         import pathlib
         import sys
-    if 1:   # Custom modules
+    if 1:  # Custom modules
         from wrap import wrap, dedent, indent, Wrap
         from globalcontainer import Global, Variable, Constant
+
         try:
             from lwtest import run, raises, assert_equal
+
             _have_lwtest = True
         except ImportError:
             # Get it from
             # https://someonesdad1.github.io/hobbyutil/prog/lwtest.zip
             _have_lwtest = False
-    if 1:   # Global variables
+    if 1:  # Global variables
         P = pathlib.Path
-    if 1:   # Module's base code
+    if 1:  # Module's base code
+
         def Error(msg, status=1):
             print(msg, file=sys.stderr)
             exit(status)
+
         def Usage(d, status=1):
             name = sys.argv[0]
-            print(dedent(f'''
+            print(
+                dedent(f"""
             Usage:  {name} [options] etc.
               Show color table.  Use --test option to run self tests.
-            '''))
+            """)
+            )
             exit(status)
+
         def ParseCommandLine(d):
-            d["--test"] = False         # Run self tests
+            d["--test"] = False  # Run self tests
             try:
                 opts, args = getopt.getopt(sys.argv[1:], "h", "test")
             except getopt.GetoptError as e:
@@ -758,18 +837,21 @@ if __name__ == "__main__":
                 elif o == "--test":
                     d["--test"] = True
             return args
-    if 1:   # Test code 
+
+    if 1:  # Test code
+
         def Assert(cond):
-            '''Same as assert, but you'll be dropped into the debugger on an
+            """Same as assert, but you'll be dropped into the debugger on an
             exception if you include a command line argument.
-            '''
+            """
             if not cond:
                 if args:
                     print("Type 'up' to go to line that failed")
                     breakpoint()
                 else:
                     raise AssertionError
-        expected_lines = '''
+
+        expected_lines = """
         [1;33;40m                              color.py Text Colors                             
         [1;36;40mBackground -->  black   blue    green   cyan    red    magenta  brown   white
         [0;37;40mblack (0)      [0;30;40mwxyz 00[0;37;40m [0;30;44mwxyz 10[0;37;40m [0;30;42mwxyz 20[0;37;40m [0;30;46mwxyz 30[0;37;40m [0;30;41mwxyz 40[0;37;40m [0;30;45mwxyz 50[0;37;40m [0;30;43mwxyz 60[0;37;40m [0;30;47mwxyz 70[0;37;40m [0;37;40m
@@ -816,7 +898,8 @@ if __name__ == "__main__":
         [1;35;40mC convenience escape code strings:
         [0;32;40m  blk  blu  grn  cyn  red  mag  yel  wht gry
         [1;32;40m      lblu lgrn lcyn lred lmag lyel lwht norm[0;37;40m
-        '''[1:].split("\n")
+        """[1:].split("\n")
+
         def TestAsScript():
             # Skip, as this program is obsolete
             return
@@ -833,12 +916,13 @@ if __name__ == "__main__":
             del expected_lines[0]
             Assert(len(lines) == len(expected_lines))
             for i in range(len(lines)):
-                E = expected_lines[i][8:]    # Remove first 8 space characters
+                E = expected_lines[i][8:]  # Remove first 8 space characters
                 if lines[i] != E:
                     print(f"Difference in line {i + 1} (second line is expected):")
                     print(repr(lines[i]))
                     print(repr(E))
                     Assert(lines[i] == E)
+
         def TestCanReturnAsString():
             # fg
             got = fg(lred, s=True)
@@ -852,10 +936,12 @@ if __name__ == "__main__":
             got = SetStyle("underline", s=True)
             expected = "[4m"
             Assert(got == expected)
+
         def TestNumberDecorate():
             pass
+
     # ----------------------------------------------------------------------
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     if d["--test"]:
         exit(run(globals())[0])

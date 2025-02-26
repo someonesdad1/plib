@@ -1,4 +1,4 @@
-'''
+"""
 This shows that you can change the font color in the middle of a
 sentence.  It also demonstrates that the text() function puts text at
 the end of the previous text, assuming the PostScript current point
@@ -8,13 +8,17 @@ something that uses the current point.  This happens because
 PostScript keeps track of the current point, but we have no way of
 asking PostScript where the current point is.  Thus, remember to issue
 a move() command before the next drawing command.
-'''
+"""
+
 from g import *
 import random
 import sys
-rand = random.random # Convenience name for a random number generator that 
-                     # returns a uniformly-distributed random number between
-                     # 0.0 and 1.0.
+
+rand = random.random  # Convenience name for a random number generator that
+
+
+# returns a uniformly-distributed random number between
+# 0.0 and 1.0.
 def RadialText(file):
     s = Setup(file, portrait, inches)
     translate(4.25, 5.5)  # Put origin at middle of page
@@ -46,4 +50,6 @@ def RadialText(file):
     move(-0.85, -0.62)  # I fiddled until it was correct
     text("O")
     s.close()
+
+
 RadialText("out/radial_text.ps")

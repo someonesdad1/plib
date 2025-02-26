@@ -1,6 +1,6 @@
-'''
+"""
 Decode user command strings, even if they are incomplete.
- 
+
 This module provides the CommandDecode object which, when initialized
 with a sequence of allowed command strings, will allow you to find a
 given command string when given just a prefix of the string.  If there
@@ -9,9 +9,9 @@ return.  Otherwise, you'll get a list of candidates that matched.
 Getting an empty sequence in return means the given string didn't match
 anything.  The comparisons can be made on a case-insensitive basis if
 you wish.
- 
+
 Example usage:
- 
+
     s = set(("one", "two", "three"))
     c, prompt = CommandDecode(s), "> "
     print(". to list choices, q to exit")
@@ -37,43 +37,47 @@ Example usage:
     c("o") --> gives ["one"]
     c("t") --> gives ["two", "three"]
     c("x") --> gives []
- 
+
 Run this file as a script to get an interactive demo.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2006 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2006 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # <programming> Decode user command strings.  When initialized with
     # a sequence of command strings, calling the object with a string
     # will return a list of 0, 1 or many strings.  0 means no match, 1
     # is a unique match, and many means more than one match.  The
     # constructor lets you choose to ignore the command's case or not.
-    #∞what∞#
-    #∞test∞# ["test/cmddecode_test.py"] #∞test∞#
+    # ∞what∞#
+    # ∞test∞# ["test/cmddecode_test.py"] #∞test∞#
     pass
 if 1:  # Imports
     import re
     import sys
     from collections import defaultdict
     from pdb import set_trace as xx
+
+
 class CommandDecode:
-    '''Instantiate the class with a sequence of command strings.  Then
+    """Instantiate the class with a sequence of command strings.  Then
     call the object with a command candidate; the returned list will
     have either 0, 1, or multiple commands that matched.
-    '''
+    """
+
     def __init__(self, commands, ignore_case=False):
-        '''commands is a sequence that contains a unique set of strings.
+        """commands is a sequence that contains a unique set of strings.
         If you set ignore_case to True, then the commands will all be
         converted to lower case; if this lower-case set doesn't contain
         the same number of elements as commands, then you'll get a
         ValueError.
-        '''
+        """
         self.ignore_case = ignore_case
         # See if we can convert commands to a set
         try:
@@ -87,8 +91,7 @@ class CommandDecode:
         if ignore_case:
             self.commands = set([i.lower() for i in c])
             if len(self.commands) != len(commands):
-                msg = ("Some commands are not unique after conversion "
-                       "to lower case")
+                msg = "Some commands are not unique after conversion to lower case"
                 raise ValueError(msg)
         else:
             self.commands = c
@@ -101,10 +104,12 @@ class CommandDecode:
             first_char = cmd[0]
             self.index[first_char].append(cmd)
         self.first_char_list = self.index.keys()
+
     def __str__(self):
-        s = ' '.join(sorted(self.commands))
+        s = " ".join(sorted(self.commands))
         ic = "ignore_case=True"
         return f"CommandDecode({s}, ignore_case={self.ignore_case})"
+
     def __call__(self, user_string):
         if not isinstance(user_string, str):
             raise ValueError("Input must be a string")
@@ -132,9 +137,12 @@ class CommandDecode:
         if len(matches) == 1:
             return [matches[0]]
         return matches
+
+
 if __name__ == "__main__":
     # Demonstrate the class; use some typical UNIX program names.
-    cmds, d = '''
+    cmds, d = (
+        """
         ar awk banner basename bc cal cat cc chmod cksum clear cmp
         compress cp cpio crypt ctags cut date dc dd df diff dirname du
         echo ed egrep env ex expand expr false fgrep file find fmt
@@ -144,7 +152,9 @@ if __name__ == "__main__":
         split strings strip stty sum sync tail tar tee test touch tr
         true tsort tty uname uncompress unexpand uniq uudecode
         uuencode vi wc which who xargs zcat
-    ''', []
+    """,
+        [],
+    )
     for i in cmds.replace("\n", "").split():
         d.append((i, ""))
     c, prompt = CommandDecode(dict(d), ignore_case=True), "> "

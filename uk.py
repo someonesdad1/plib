@@ -1,44 +1,48 @@
-'''
-Module to convert between British and US spellings 
+"""
+Module to convert between British and US spellings
     - B2A() returns a dictionary that converts British words to American equivalents
     - A2B() returns a dictionary that converts American words to British equivalents
     - Both dictionaries are all lowercase
 
     - When run as a script, flags UK words with their US conversions
-'''
-if 1:   # Header
-    if 1:   # Copyright, license
+"""
+
+if 1:  # Header
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Convert between UK and US spellings
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         from pathlib import Path as P
         import getopt
         import sys
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from color import t
         import get
         from wrap import dedent
-    if 1:   # Global variables
+    if 1:  # Global variables
         __all__ = "B_to_US US_to_B".split()
         ii = isinstance
-        class G:    # Storage for global variables as attributes
+
+        class G:  # Storage for global variables as attributes
             pass
+
         g = G()
         g.dbg = False
-        g.b2us = None   # Build British to US dict when needed
-        g.us2b = None   # Build US to British dict when needed
-if 1:   # Translation data
-        g.data = dedent('''
+        g.b2us = None  # Build British to US dict when needed
+        g.us2b = None  # Build US to British dict when needed
+if 1:  # Translation data
+    g.data = dedent(
+        """
 
             CCW                       ACW
             England                   Britain
@@ -2092,8 +2096,10 @@ if 1:   # Translation data
             zee                       zed
             zucchini                  courgette
 
-        '''.rstrip()).strip()
-if 1:   # Utility
+        """.rstrip()
+    ).strip()
+if 1:  # Utility
+
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="", file=Dbg.file)
@@ -2101,12 +2107,16 @@ if 1:   # Utility
             k["file"] = Dbg.file
             print(*p, **k)
             print(f"{t.N}", end="", file=Dbg.file)
+
     Dbg.file = sys.stdout
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Manpage():
-        print(dedent(f'''
+        print(
+            dedent(f"""
           Caution:  inspect the results carefully, as different senses of the words may not
           require the substitution given, particularly with older text.  Here's are some examples
           from "Pride and Prejudice" (a good test case), there are numerous cases like this:  
@@ -2123,24 +2133,29 @@ if 1:   # Utility
           These examples indicate that this tool is simplistic and is only working on spelling,
           not on semantics.  Still, most of the nearly 100 changes recommended for PnP are
           appropriate.
-        '''))
+        """)
+        )
         exit(0)
+
     def Usage():
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] [file1 [file2...]]
           Show the use of UK words in the indicated files along with their US counterpart.
           Use "-" for stdin.
         Options:
             -h      Print a manpage
             -r      Reverse the sense of the search:  show UK words for US words
-        '''))
+        """)
+        )
         exit(0)
+
     def ParseCommandLine(d):
-        d["-r"] = False     # Reverse sense of search
+        d["-r"] = False  # Reverse sense of search
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "hr") 
+            opts, args = getopt.getopt(sys.argv[1:], "hr")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -2150,11 +2165,14 @@ if 1:   # Utility
             elif o == "-h":
                 Manpage()
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def B_to_US():
-        '''Return a dict to convert British spellings to US spellings.  Note all the words are
+        """Return a dict to convert British spellings to US spellings.  Note all the words are
         lowercase.
-        '''
+        """
         if g.b2us is None:
             di = {}
             for line in g.data.split("\n"):
@@ -2167,10 +2185,11 @@ if 1:   # Core functionality
                 di[br] = us
             g.b2us = di
         return g.b2us
+
     def US_to_B():
-        '''Return a dict to convert US spellings to British spellings.  Note all the words are
+        """Return a dict to convert US spellings to British spellings.  Note all the words are
         lowercase.
-        '''
+        """
         if g.us2b is None:
             di = {}
             for line in g.data.split("\n"):
@@ -2183,6 +2202,7 @@ if 1:   # Core functionality
                 di[us] = br
             g.us2b = di
         return g.us2b
+
     def ProcessFile(file, reverse=False):
         if file == "-":
             s = sys.stdin.read()
@@ -2218,6 +2238,7 @@ if 1:   # Core functionality
             else:
                 for uk, us in sorted(out):
                     print(f"{uk:{w}s}  -->  {us}")
+
 
 if __name__ == "__main__":
     d = {}  # Options dictionary

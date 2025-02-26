@@ -1,13 +1,15 @@
-'''
+"""
 Draw a number spiral.  See http://numberspiral.com/index.html
-    The formula for the number n's position is 
+    The formula for the number n's position is
         r = sqrt(n)
         theta = sqrt(n)
     where theta is measured in revolutions, not degrees or radians.
-'''
+"""
+
 from math import fmod, sin, cos, sqrt, pi
 from g import *
 import primes
+
 N = 1e3
 N = int(N)
 X0 = 8.5
@@ -16,6 +18,8 @@ dot_dia = 0.75
 scale_factor = 0.12
 prime_color = yellow
 normal_color = gray(0.8)
+
+
 def BlackBackground():
     # Make whole plotting area black
     push()
@@ -24,6 +28,8 @@ def BlackBackground():
     move(-X0, -Y0)
     rectangle(2 * X0, 2 * Y0)
     pop()
+
+
 def PlotNum(n):
     r = sqrt(n) * scale_factor
     theta = fmod(2 * pi * sqrt(n), 2 * pi)
@@ -51,6 +57,8 @@ def PlotNum(n):
         fillColor(normal_color)
         circle(dot_dia * scale_factor / 2)
     pop()
+
+
 def NumberSpiral(file):
     s = Setup(file, portrait, inches)
     dx, dy = X0 / 2, Y0 / 2
@@ -84,4 +92,6 @@ def NumberSpiral(file):
     move(-dx + 0.2, dy - 1.0)
     text("N = %d" % N)
     s.close()
+
+
 NumberSpiral("out/number_spiral.ps")

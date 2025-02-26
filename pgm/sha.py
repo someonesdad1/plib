@@ -1,21 +1,22 @@
-'''
+"""
 Print out the SHA hashes for files on the command line.
-'''
+"""
+
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Print hashes for files on the command line
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Imports
+    if 1:  # Imports
         from pathlib import Path as P
         import getopt
         import hashlib
@@ -23,11 +24,13 @@ if 1:  # Header
         import re
         import sys
         import zlib
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import dedent
 if 1:  # Utility
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] [file1 [file2...]]
           Calculate the hash of the given files.  Use '-' for stdin.  If a
           command line argument is a directory, it's silently ignored.
@@ -43,21 +46,23 @@ if 1:  # Utility
             -a      Show hash for each of the different methods
             -c n    Truncate hash to n characters
             -w      Remove whitespace from each file
-            '''))
+            """)
+        )
         exit(status)
+
     def ParseCommandLine():
-        d["-a"] = False     # Use all hash methods
-        d["-h"] = False     # Help
-        d["-n"] = None      # Truncate hash to n characters
-        d["-w"] = False     # Remove whitespace from each file
-        d["-1"] = False     # SHA1
-        d["-2"] = False     # SHA224
-        d["-3"] = False     # SHA256
-        d["-4"] = False     # SHA384
-        d["-5"] = False     # SHA512
-        d["-6"] = False     # MD5
-        d["-7"] = False     # CRC32
-        d["-8"] = False     # ADLER32
+        d["-a"] = False  # Use all hash methods
+        d["-h"] = False  # Help
+        d["-n"] = None  # Truncate hash to n characters
+        d["-w"] = False  # Remove whitespace from each file
+        d["-1"] = False  # SHA1
+        d["-2"] = False  # SHA224
+        d["-3"] = False  # SHA256
+        d["-4"] = False  # SHA384
+        d["-5"] = False  # SHA512
+        d["-6"] = False  # MD5
+        d["-7"] = False  # CRC32
+        d["-8"] = False  # ADLER32
         d["method"] = {
             "-1": (hashlib.sha1, "SHA1"),
             "-2": (hashlib.sha224, "SHA224"),
@@ -89,10 +94,13 @@ if 1:  # Utility
             Usage()
         num = sum([d[i] for i in L])
         if not num:
-            d["-3"] = True      # Use SHA256 by default
+            d["-3"] = True  # Use SHA256 by default
         d["more_than_one"] = num > 1
         return files
+
+
 if 1:  # Core functionality
+
     def GetHash(Bytes, method):
         if method == zlib.crc32:
             i = zlib.crc32(Bytes)
@@ -105,10 +113,11 @@ if 1:  # Core functionality
             h.update(Bytes)
             h = h.hexdigest()
         if d["-n"] is not None:
-            h = h[:d["-n"]]
+            h = h[: d["-n"]]
         return h
+
     def GetBytes(file):
-        'Read file in binary as a bytes object'
+        "Read file in binary as a bytes object"
         if file == "-":
             # Method to read stdin as binary
             b = sys.stdin.buffer.read()
@@ -123,10 +132,11 @@ if 1:  # Core functionality
                 return None
         assert type(b) == bytes
         if d["-w"]:
-            b = re.sub(rb"\s+", b"", b)     # Remove whitespace
+            b = re.sub(rb"\s+", b"", b)  # Remove whitespace
         return b
 
-if __name__ == "__main__": 
+
+if __name__ == "__main__":
     d = {}  # Options dictionary
     files = ParseCommandLine()
     for file in files:

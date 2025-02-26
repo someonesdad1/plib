@@ -1,20 +1,21 @@
-'''
+"""
 Generate a series of random numbers
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2003 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2003 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Generate a series of random numbers
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import os
     import re
@@ -22,39 +23,46 @@ if 1:   # Imports
     import random
     import statistics
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
     from columnize import Columnize
     from f import flt
+
+
 def Percentile(seq, fraction):
-    '''Return the indicated fraction of a sequence seq of sorted
+    """Return the indicated fraction of a sequence seq of sorted
     values.  fraction will be forced to be in [0, 1].
- 
+
     The method is recommended by NIST at
     https://www.itl.nist.gov/div898/handbook/prc/section2/prc262.htm.
-    '''
+    """
     if not seq:
         return None
     N = len(seq)
     if N == 1:
         raise ValueError("Sequence must have at least 2 elements")
-    fraction = max(min(fraction, 1), 0)     # Clamp to [0, 1]
-    x = fraction*(N + 1)
-    k = int(x)      # Integer part of x
-    d = x - k       # Fractional part of x
+    fraction = max(min(fraction, 1), 0)  # Clamp to [0, 1]
+    x = fraction * (N + 1)
+    k = int(x)  # Integer part of x
+    d = x - k  # Fractional part of x
     if 0 < k < N:
         yk = seq[k - 1]
-        y = yk + d*(seq[k] - yk)
+        y = yk + d * (seq[k] - yk)
     elif k >= N:
         y = seq[-1]
     else:
         y = seq[0]
     return y
+
+
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
+
+
 def Usage(d, status=1):
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]} [options] dist N [other_parameters]
       Generate N random numbers from the following distributions:
                  Parameters         Constraints [defaults]
@@ -92,11 +100,15 @@ def Usage(d, status=1):
       -v    Print parameters used and sample statistics of the random
             variates produced
       -V    Same as -v except produce percentiles every 1%
-    '''))
+    """)
+    )
     exit(status)
+
+
 def Examples(d):
     name = sys.argv[0]
-    print(dedent(f'''
+    print(
+        dedent(f'''
                       Examples of use of the {name} script
     
     These examples use a seed of 0.  Note you only have to type enough
@@ -333,10 +345,13 @@ def Examples(d):
             p*(1 - p)**(k - 1) = 1/2**k because p = 0.5.
       For run length = k = 9, you'd expect a percentage of 100/2**9 or 0.19%;
       the table's 0.2% is close.
-    '''))
+    ''')
+    )
     exit(0)
+
+
 def sig(x, digits=None):
-    '''Returns a string representing the float x to a specified number
+    """Returns a string representing the float x to a specified number
     of significant digits.  x can also be an integer, complex number,
     sequence of numbers, or any object or sequence of objects that can
     be converted to a float.  If the digits parameter is None, the
@@ -344,9 +359,9 @@ def sig(x, digits=None):
     number of digits.  Warning: extended precision numbers like
     decimal.Decimal or mpmath.mpf types may lose precision when
     converted to floats.
- 
+
     Function attributes:
- 
+
     sig.low         Use scientific notation if x < low
     sig.high        Use scientific notation if x > high
     sig.digits      Default number of significant digits
@@ -355,7 +370,7 @@ def sig(x, digits=None):
     sig.imagunit    Imaginary unit string
     sig.rtz         Remove trailing zeroes if True
     sig.rlz         Remove leading 0 before decimal point if True
-    '''
+    """
     sig.low = sig.__dict__.get("low", 1e-5)
     sig.high = sig.__dict__.get("high", 1e6)
     sig.digits = sig.__dict__.get("digits", 3)
@@ -364,13 +379,15 @@ def sig(x, digits=None):
     sig.imagunit = sig.__dict__.get("imagunit", "i")
     sig.rtz = sig.__dict__.get("rtz", False)
     sig.rlz = sig.__dict__.get("rlz", False)
+
     def rtz(s):
         if not sig.rtz:
             return s
         t = list(s)
         while t[-1] == "0":
             del t[-1]
-        return ''.join(t)
+        return "".join(t)
+
     if sig.low > sig.high:
         raise ValueError("sig.low > sig.high")
     msg = "{}digits = {} is out of range"
@@ -378,13 +395,13 @@ def sig(x, digits=None):
         raise ValueError(msg.format("sig.", sig.digits))
     if digits is not None and not (1 <= digits <= 15):
         raise ValueError(msg.format("", digits))
-    try:    # If x is an iterable, iterate over it
+    try:  # If x is an iterable, iterate over it
         iter(x)
         T = tuple if isinstance(x, tuple) else list
         return T(sig(i, digits=digits) for i in x)
     except TypeError:
         pass
-    if isinstance(x, int):      # Return integers with all their digits
+    if isinstance(x, int):  # Return integers with all their digits
         return str(x)
     elif isinstance(x, complex):
         r = sig(x.real, digits=digits)
@@ -395,7 +412,7 @@ def sig(x, digits=None):
         x = float(x)
     ndig = sig.digits - 1 if digits is None else digits - 1
     if x and (abs(x) < sig.low or abs(x) > sig.high):
-        xs = "{:.{}e}".format(x, ndig)      # Use scientific notation
+        xs = "{:.{}e}".format(x, ndig)  # Use scientific notation
         st, e = xs.split("e")
         t = "{}e{}".format(rtz(st), int(e))
         return t.replace(".", sig.dp)
@@ -431,21 +448,23 @@ def sig(x, digits=None):
             xs.append(sig.dp)
         else:
             xs.insert(e + 1, sig.dp)
-    t = rtz(''.join(xs))
+    t = rtz("".join(xs))
     if sig.rdp and t[-1] == sig.dp:
         t = t[:-1]
     return sgn + t
+
+
 def ParseCommandLine(d):
-    d["-c"] = False     # Don't output in columns
-    d["-d"] = 3         # Number of significant digits
-    d["-i"] = False     # Force output to be integers
-    d["-n"] = False     # Put all numbers on one line
-    d["-o"] = False     # Sort the output from low to high
-    d["-q"] = False     # Don't print the random numbers in the report
-    d["-s"] = None      # Random number seed
-    d["-V"] = False     # Same as -v but percentiles every 1%
-    d["-v"] = False     # Show sample statistics & parameters
-    d["discrete"] = False   # Flags a discrete distribution
+    d["-c"] = False  # Don't output in columns
+    d["-d"] = 3  # Number of significant digits
+    d["-i"] = False  # Force output to be integers
+    d["-n"] = False  # Put all numbers on one line
+    d["-o"] = False  # Sort the output from low to high
+    d["-q"] = False  # Don't print the random numbers in the report
+    d["-s"] = None  # Random number seed
+    d["-V"] = False  # Same as -v but percentiles every 1%
+    d["-v"] = False  # Show sample statistics & parameters
+    d["discrete"] = False  # Flags a discrete distribution
     try:
         opts, args = getopt.getopt(sys.argv[1:], "cd:hinoqs:vV")
     except getopt.GetoptError as e:
@@ -459,7 +478,7 @@ def ParseCommandLine(d):
                 d["-d"] = int(a)
                 if not (1 <= d["-d"] <= 15):
                     raise Exception()
-                #sig.digits = d["-d"]
+                # sig.digits = d["-d"]
             except Exception:
                 Error("'{}' is improper integer for -d option".format(a))
         elif o in ("-h",):
@@ -480,20 +499,25 @@ def ParseCommandLine(d):
     if d["-V"]:
         d["-v"] = True
     return args
+
+
 def GetParams(params, number, errmsg):
-    '''Return a list of the number of needed parameters if len(params) <=
+    """Return a list of the number of needed parameters if len(params) <=
     number; missing parameters are returned as empty strings.  If there are
     too many parameters, print errmsg and exit.
-    '''
+    """
     params = list(params)
     missing = number - len(params)
     if missing >= 0:
-        params.extend([""]*missing)
+        params.extend([""] * missing)
         return params
     else:
         Error(errmsg)
+
+
 class RV(object):
-    'Base class of a random variable object.'
+    "Base class of a random variable object."
+
     def __init__(self, *params, **kw):
         # The derived classes will set the self.params attribute.
         self.n = n = kw.setdefault("n", 1)
@@ -505,35 +529,40 @@ class RV(object):
             raise ValueError("d must be a dictionary of options")
         self.check_parameters()
         self.report()
+
     def check_parameters(self):
-        '''Check the parameters and set any missing ones to default
-        values.'''
+        """Check the parameters and set any missing ones to default
+        values."""
         raise Exception("Abstract base class")
+
     def get_numbers(self):
-        'Return a list of n random variates.'
+        "Return a list of n random variates."
         raise Exception("Abstract base class")
+
     def report(self):
-        '''Print a report to stdout for self.n numbers with the options
+        """Print a report to stdout for self.n numbers with the options
         given in the dictionary self.d.
-        '''
+        """
+
         def F(x):
-            if 0:   # Old method
-                'Format the number with sig and a leading space if it is >= 0'
+            if 0:  # Old method
+                "Format the number with sig and a leading space if it is >= 0"
                 if self.d["discrete"] or self.d["-i"]:
                     return str(x)
                 else:
                     fmt = " {}" if x >= 0 else "{}"
                     return fmt.format(sig(x), self.d["-d"])
-            else:   # New method with flt
+            else:  # New method with flt
                 return str(x)
+
         if self.d["-v"]:
             print(self)
         nums = list(self.get_numbers(self.n))
-        if self.d["-o"]:    # Sort the numbers
+        if self.d["-o"]:  # Sort the numbers
             nums.sort()
-        if self.d["-i"]:    # Force output to be integers
+        if self.d["-i"]:  # Force output to be integers
             nums = [int(i) for i in nums]
-        if not self.d["-q"]:    # If not quiet
+        if not self.d["-q"]:  # If not quiet
             if self.d["-c"] or self.d["-n"]:
                 end = "\n" if self.d["-c"] else " "
                 for i in nums:
@@ -546,10 +575,11 @@ class RV(object):
         if self.d["-v"]:
             self.print_statistics(nums)
             self.print_percentiles(nums)
+
     def print_statistics(self, nums):
         n = len(nums)
-        mean = sum(nums)/n
-        var = sum([(i - mean)**2 for i in nums])/(n - 1)
+        mean = sum(nums) / n
+        var = sum([(i - mean) ** 2 for i in nums]) / (n - 1)
         sdev = var**0.5
         if self.d["discrete"]:
             maximum, minimum = max(nums), min(nums)
@@ -558,13 +588,14 @@ class RV(object):
             maximum, minimum = max(nums), min(nums)
             range = max(nums) - min(nums)
         # 0xb1 is the plus/minus symbol
-        ci = range/(2*sdev)
+        ci = range / (2 * sdev)
         median = statistics.median(nums)
         try:
             mode = statistics.mode(nums)
         except statistics.StatisticsError:
             mode = "undefined"
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Sample statistics:
             n      {n}
             mean   {mean}
@@ -573,21 +604,26 @@ class RV(object):
             sdev   {sdev}
             min    {minimum}
             max    {maximum}
-            range  {range}   [±{ci} standard deviations]'''))
+            range  {range}   [±{ci} standard deviations]""")
+        )
+
     def print_percentiles(self, nums):
         if len(nums) < 2:
             Error("Must have at least 2 elements for percentiles")
         s, seq = [], sorted(nums)
         print("    Percentiles:")
         for i in range(0, 101, 1 if d["-V"] else 5):
-            y = Percentile(seq, i/100)
+            y = Percentile(seq, i / 100)
             s.append(f"{i:3d}  {y}")
-        for i in Columnize(s, indent=" "*4):
+        for i in Columnize(s, indent=" " * 4):
             print(i)
+
+
 class Normal(RV):
     def __init__(self, *params, **kw):
         self.params = GetParams(params, 2, "Normal needs 2 parameters")
         super(Normal, self).__init__(*params, **kw)
+
     def check_parameters(self):
         mu, sigma = self.params
         try:
@@ -606,21 +642,26 @@ class Normal(RV):
                 Error("'{}' is not a valid standard deviation".format(sigma))
             else:
                 self.sigma = 1
+
     def get_numbers(self, n):
         nums = []
         for i in range(n):
             nums.append(flt(random.gauss(self.mu, self.sigma)))
         return nums
+
     def __str__(self):
-        return '''Normal distribution
+        return """Normal distribution
     Mean = {0.mu}
     Standard deviation = {0.sigma}
     Seed = {0.seed}
-    Number of points = {0.n}'''.format(self)
+    Number of points = {0.n}""".format(self)
+
+
 class Exponential(RV):
     def __init__(self, *params, **kw):
         self.params = GetParams(params, 1, "Exponential needs 1 parameter")
         super(Exponential, self).__init__(*params, **kw)
+
     def check_parameters(self):
         mu = self.params[0]
         try:
@@ -632,19 +673,24 @@ class Exponential(RV):
                 Error("'{}' is not a valid mean".format(mu))
             else:
                 self.mu = 1
+
     def get_numbers(self, n):
         nums = []
         for i in range(n):
             nums.append(flt(random.expovariate(self.mu)))
         return nums
+
     def __str__(self):
-        return '''Exponential distribution
+        return """Exponential distribution
     mu = {0.mu}
-    Number of points = {0.n}'''.format(self)
+    Number of points = {0.n}""".format(self)
+
+
 class Beta(RV):
     def __init__(self, *params, **kw):
         self.params = GetParams(params, 2, "Beta needs 2 parameters")
         super(Beta, self).__init__(*params, **kw)
+
     def check_parameters(self):
         a, b = self.params
         try:
@@ -665,21 +711,26 @@ class Beta(RV):
                 Error("'{}' is not a valid b parameter".format(b))
             else:
                 self.b = 1
+
     def get_numbers(self, n):
         nums = []
         for i in range(n):
             nums.append(flt(random.betavariate(self.a, self.b)))
         return nums
+
     def __str__(self):
-        return '''Beta distribution
+        return """Beta distribution
     a = {0.a}
     b = {0.b}
     Seed = {0.seed}
-    Number of points = {0.n}'''.format(self)
+    Number of points = {0.n}""".format(self)
+
+
 class Gamma(RV):
     def __init__(self, *params, **kw):
         self.params = GetParams(params, 2, "Gamma needs 2 parameters")
         super(Gamma, self).__init__(*params, **kw)
+
     def check_parameters(self):
         a, b = self.params
         try:
@@ -700,23 +751,28 @@ class Gamma(RV):
                 Error("'{}' is not a valid b parameter".format(b))
             else:
                 self.b = 1
+
     def get_numbers(self, n):
         nums = []
         for i in range(n):
             nums.append(flt(random.gammavariate(self.a, self.b)))
         return nums
+
     def __str__(self):
-        return '''Gamma distribution
+        return """Gamma distribution
     a = {0.a}
     b = {0.b}
     Seed = {0.seed}
-    Number of points = {0.n}'''.format(self)
+    Number of points = {0.n}""".format(self)
+
+
 class Binomial(RV):
     def __init__(self, *params, **kw):
         self.params = GetParams(params, 2, "Binomial needs 2 parameters")
         self.d = kw.setdefault("d", {})
         self.d["discrete"] = True
         super(Binomial, self).__init__(*params, **kw)
+
     def check_parameters(self):
         p, m = self.params
         try:
@@ -737,6 +793,7 @@ class Binomial(RV):
                 Error("'{}' is not a valid integer".format(m))
             else:
                 self.m = 1
+
     def get_numbers(self, n):
         # http://heather.cs.ucdavis.edu/~matloff/SimCourse/PLN/RandNumGen.pdf
         nums = []
@@ -748,18 +805,22 @@ class Binomial(RV):
                     count += 1
             nums.append(count)
         return nums
+
     def __str__(self):
-        return '''Binomial distribution
+        return """Binomial distribution
     p = {0.p} (fraction of population with characteristic)
     m = {0.m} (number of items in sample drawn with replacement)
     Seed = {0.seed}
-    Number of points = {0.n}'''.format(self)
+    Number of points = {0.n}""".format(self)
+
+
 class Poisson(RV):
     def __init__(self, *params, **kw):
         self.params = GetParams(params, 1, "Poisson needs 1 parameter")
         self.d = kw.setdefault("d", {})
         self.d["discrete"] = True
         super(Poisson, self).__init__(*params, **kw)
+
     def check_parameters(self):
         mu = self.params[0]
         try:
@@ -771,6 +832,7 @@ class Poisson(RV):
                 Error("'{}' is not a valid a parameter".format(mu))
             else:
                 self.mu = 1
+
     def get_numbers(self, n):
         # http://heather.cs.ucdavis.edu/~matloff/SimCourse/PLN/RandNumGen.pdf
         nums = []
@@ -783,15 +845,19 @@ class Poisson(RV):
                     break
             nums.append(count - 1)
         return nums
+
     def __str__(self):
-        return '''Poisson distribution
+        return """Poisson distribution
     mu = {0.mu} (single event exponential distribution parameter)
     Seed = {0.seed}
-    Number of points = {0.n}'''.format(self)
+    Number of points = {0.n}""".format(self)
+
+
 class Lognormal(RV):
     def __init__(self, *params, **kw):
         self.params = GetParams(params, 2, "Lognormal needs 2 parameters")
         super(Lognormal, self).__init__(*params, **kw)
+
     def check_parameters(self):
         mu, sigma = self.params
         try:
@@ -810,21 +876,26 @@ class Lognormal(RV):
                 Error("'{}' is not a valid sigma".format(sigma))
             else:
                 self.sigma = 1
+
     def get_numbers(self, n):
         nums = []
         for i in range(n):
             nums.append(flt(random.lognormvariate(self.mu, self.sigma)))
         return nums
+
     def __str__(self):
-        return '''Lognormal distribution
+        return """Lognormal distribution
     mu = {0.mu}
     sigma = {0.sigma}
     Seed = {0.seed}
-    Number of points = {0.n}'''.format(self)
+    Number of points = {0.n}""".format(self)
+
+
 class Pareto(RV):
     def __init__(self, *params, **kw):
         self.params = GetParams(params, 1, "Pareto needs 1 parameter")
         super(Pareto, self).__init__(*params, **kw)
+
     def check_parameters(self):
         alpha = self.params[0]
         try:
@@ -834,34 +905,44 @@ class Pareto(RV):
                 Error("'{}' is not a valid alpha".format(alpha))
             else:
                 self.alpha = 1
+
     def get_numbers(self, n):
         nums = []
         for i in range(n):
             nums.append(flt(random.paretovariate(self.alpha)))
         return nums
+
     def __str__(self):
-        return '''Pareto distribution
+        return """Pareto distribution
     alpha = {0.alpha}
     Seed = {0.seed}
-    Number of points = {0.n}'''.format(self)
+    Number of points = {0.n}""".format(self)
+
+
 class Rand(RV):
     def __init__(self, *params, **kw):
         super(Rand, self).__init__(*params, **kw)
+
     def check_parameters(self):
         return
+
     def get_numbers(self, n):
         nums = []
         for i in range(n):
             nums.append(flt(random.random()))
         return nums
+
     def __str__(self):
-        return '''Rand distribution (uniform on [0, 1))
+        return """Rand distribution (uniform on [0, 1))
     Seed = {0.seed}
-    Number of points = {0.n}'''.format(self)
+    Number of points = {0.n}""".format(self)
+
+
 class Triangular(RV):
     def __init__(self, *params, **kw):
         self.params = GetParams(params, 3, "Triangular needs 3 parameters")
         super(Triangular, self).__init__(*params, **kw)
+
     def check_parameters(self):
         low, high, infl = self.params
         try:
@@ -884,25 +965,30 @@ class Triangular(RV):
             if infl:
                 Error("'{}' is not a valid infl".format(infl))
             else:
-                self.infl = (self.low + self.high)/2
+                self.infl = (self.low + self.high) / 2
+
     def get_numbers(self, n):
         nums = []
         for i in range(n):
             nums.append(flt(random.triangular(self.low, self.high, self.infl)))
         return nums
+
     def __str__(self):
-        return '''Triangular distribution
+        return """Triangular distribution
     low = {0.low}
     high = {0.high}
     infl = {0.infl}
     Seed = {0.seed}
-    Number of points = {0.n}'''.format(self)
+    Number of points = {0.n}""".format(self)
+
+
 class Uint(RV):
     def __init__(self, *params, **kw):
         self.params = GetParams(params, 2, "Uint needs 2 parameters")
         self.d = kw.setdefault("d", {})
         self.d["discrete"] = True
         super(Uint, self).__init__(*params, **kw)
+
     def check_parameters(self):
         a, b = self.params
         try:
@@ -919,21 +1005,26 @@ class Uint(RV):
                 Error("'{}' is not a valid b".format(b))
             else:
                 self.b = self.a + 1
+
     def get_numbers(self, n):
         nums = []
         for i in range(n):
             nums.append(flt(random.randint(self.a, self.b)))
         return nums
+
     def __str__(self):
-        return '''Uniform distribution
+        return """Uniform distribution
     a = {0.a}
     b = {0.b}
     Seed = {0.seed}
-    Number of points = {0.n}'''.format(self)
+    Number of points = {0.n}""".format(self)
+
+
 class Uniform(RV):
     def __init__(self, *params, **kw):
         self.params = GetParams(params, 2, "Uniform needs 2 parameters")
         super(Uniform, self).__init__(*params, **kw)
+
     def check_parameters(self):
         a, b = self.params
         try:
@@ -950,21 +1041,26 @@ class Uniform(RV):
                 Error("'{}' is not a valid b".format(b))
             else:
                 self.b = 1
+
     def get_numbers(self, n):
         nums = []
         for i in range(n):
             nums.append(flt(random.uniform(self.a, self.b)))
         return nums
+
     def __str__(self):
-        return '''Uniform distribution
+        return """Uniform distribution
     a = {0.a}
     b = {0.b}
     Seed = {0.seed}
-    Number of points = {0.n}'''.format(self)
+    Number of points = {0.n}""".format(self)
+
+
 class Weibull(RV):
     def __init__(self, *params, **kw):
         self.params = GetParams(params, 2, "Weibull needs 2 parameters")
         super(Weibull, self).__init__(*params, **kw)
+
     def check_parameters(self):
         alpha, beta = self.params
         try:
@@ -981,17 +1077,21 @@ class Weibull(RV):
                 Error("'{}' is not a valid b".format(beta))
             else:
                 self.beta = 1
+
     def get_numbers(self, n):
         nums = []
         for i in range(n):
             nums.append(flt(random.weibullvariate(self.alpha, self.beta)))
         return nums
+
     def __str__(self):
-        return '''Weibull distribution
+        return """Weibull distribution
     alpha = {0.alpha}
     beta = {0.beta}
     Seed = {0.seed}
-    Number of points = {0.n}'''.format(self)
+    Number of points = {0.n}""".format(self)
+
+
 def Shuffle(params, n=None, d=None):
     if len(params) not in (0, 1):
         Error("Shuffle needs one or two parameters")
@@ -1020,6 +1120,8 @@ def Shuffle(params, n=None, d=None):
         print(i)
     if d["-v"]:
         print("Seed =", d["-s"])
+
+
 def Sample(params, n=None, d=None):
     if len(params) != 1:
         Error("Sample needs two parameters")
@@ -1045,6 +1147,8 @@ def Sample(params, n=None, d=None):
         print(i)
     if d["-v"]:
         print("Seed =", d["-s"])
+
+
 def SampleWithReplacement(params, n=None, d=None):
     if len(params) != 1:
         Error("bsample needs two parameters")
@@ -1066,19 +1170,21 @@ def SampleWithReplacement(params, n=None, d=None):
     if d["-o"]:
         t = sorted(t)
     if d["-n"]:
-        print(' '.join([str(i) for i in t]))
+        print(" ".join([str(i) for i in t]))
     else:
         for i in Columnize([str(j) for j in t]):
             print(i)
     if d["-v"]:
         print("Seed =", d["-s"])
+
+
 def Process(dist, args, d):
-    '''Generate the random numbers to stdout.  
- 
-    dist    Abbreviation for the distribution.  
+    """Generate the random numbers to stdout.
+
+    dist    Abbreviation for the distribution.
     args    Sequence of the command line arguments.
     d       Dictionary of options.
-    '''
+    """
     s = dist.lower().strip()
     n, params = args[0], args[1:]
     if s.startswith("n"):
@@ -1115,6 +1221,8 @@ def Process(dist, args, d):
         Weibull(*params, n=n, d=d)
     else:
         Error(f"'{dist}' is not a recognized distribution")
+
+
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

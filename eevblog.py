@@ -1,4 +1,4 @@
-'''
+"""
 
 Construct the python module /plib/eevblog_data.py that lets the EEVblog episodes from
 https://www.eevblog.com/episodes/ be searched.  The /plib/pgm/eev.py script can be used to do
@@ -14,48 +14,53 @@ Import this module and the eevblog global variable will be a dictionary with the
 as the key and the value will be the relevant URL.  Note that as of 1 Jan 2025 not all the early
 titles load pages with a video link.
 
-'''
-if 1:   # Header
+"""
+
+if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Program description string
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         from pathlib import Path as P
         import re
         import sys
         import time
         from pprint import pprint as pp
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         import requests
         from dptime import dpdatetime
         from color import t
+
         if 0:
             import debug
-            debug.SetDebugger() 
-if 1:   # Core functionality
+
+            debug.SetDebugger()
+if 1:  # Core functionality
+
     class Title:
-        '''Class to regularize the title.  Note there are a number of things needing fixes, as
+        """Class to regularize the title.  Note there are a number of things needing fixes, as
         the website was written by a human, not a script.
-        '''
+        """
+
         def __init__(self, title):
-            '''We'll standardize on the following properties
+            """We'll standardize on the following properties
             n           EEVblog number (most are numbered in sequence).  None if no number.
             title       Basic title with no 'EEVblog dddd -'.
             part        Part number (<= numparts), None if not a multipart
             numparts    Number of parts, None if not a multipart
-            
+
             The __str__ form is what should be used to print the title to the screen.
-            '''
+            """
             # Remove leading and trailing " characters
             if title[0] == '"':
                 title = title[1:]
@@ -79,7 +84,7 @@ if 1:   # Core functionality
             if mo:
                 self.title = title
                 if "1388" in title:
-                    title = "Dumpster Diving 4K TV Murphy's \"Repair\""
+                    title = 'Dumpster Diving 4K TV Murphy\'s "Repair"'
                 return
             # Find the not quite standard forms
             r = re.compile(r"^EEVblog \d+")
@@ -102,16 +107,18 @@ if 1:   # Core functionality
                 return
             # Set our title
             self.title = title
+
         def __str__(self):
             return self.title
+
     def CreateModule():
-        '''Create the /plib/eevblog_data.py module file that has a dict of titles and the relevant
+        """Create the /plib/eevblog_data.py module file that has a dict of titles and the relevant
         URL to the web page.
-    
+
         To create this, load the url in the browser, view the source, copy it to the clipboard, then
         pasted it to /home/don/dp/eevblog.data.  This function will open it and create the module from
         it.
-        '''
+        """
         url = "https://www.eevblog.com/"
         module = P("/plib/eevblog_data.py")
         datafile = P("/home/don/dp/eevblog.data")
@@ -138,7 +145,7 @@ if 1:   # Core functionality
         # Write the module
         with open(module, "w") as fp:
             f = fp
-            if 0:   # Debug by printing to stdout
+            if 0:  # Debug by printing to stdout
                 f = sys.stdout
             print(f"# Created by a script on {dpdatetime()}", file=f)
             print("", file=f)
@@ -149,8 +156,9 @@ if 1:   # Core functionality
                     continue
                 # Regularize the title
                 title = Title(title)
-                print(f'{" "*4}"{title!s}": "{page_url}",', file=f)
+                print(f'{" " * 4}"{title!s}": "{page_url}",', file=f)
             print("}", file=f)
 
-if __name__ == "__main__":  
+
+if __name__ == "__main__":
     CreateModule()

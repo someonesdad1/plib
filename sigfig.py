@@ -1,44 +1,49 @@
-'''
+"""
 Estimate number of significant figures in numbers
     SigFig()
         Returns the number of signifcant figures in an integer, float,
         flt, cpx, Fraction, decimal.Decimal, mpmath.mpf.
-    SigFigFloat() 
+    SigFigFloat()
         Returns the number of significant figures in a float.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # <programming> Estimate number of significant figures in a number
-    #∞what∞#
-    #∞test∞# run #∞test∞#
+    # ∞what∞#
+    # ∞test∞# run #∞test∞#
     pass
-if 1:   # Standard imports
+if 1:  # Standard imports
     from fractions import Fraction
     from decimal import Decimal, getcontext
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import wrap, dedent
     from f import flt, cpx
+
     try:
         import mpmath
+
         _have_mpmath = True
     except ImportError:
         _have_mpmath = False
-if 1:   # Global variables
+if 1:  # Global variables
     ii = isinstance
+
+
 def SigFig(x, rtz=False):
-    '''Return the number of significant figures in the number x.  If
+    """Return the number of significant figures in the number x.  If
     rtz is zero, then integers are processed by first removing trailing
     zero digits.  Note this means all trailing zeros are significant
     or none are.
-    '''
+    """
     if not x:
         return 1
     if ii(x, (flt, cpx)):
@@ -59,35 +64,42 @@ def SigFig(x, rtz=False):
         return mpmath.mp.dps
     else:
         raise TypeError("Type of x not supported")
+
+
 def SigFigFloat(x, strict=False, maxsigfig=16):
-    '''Return the estimated number of significant figures in the
+    """Return the estimated number of significant figures in the
     float x.  If x is an integer, it will be changed to a float if
     strict is not True.  Also works on a flt, but uses the actual float
     value, not the n attribute.
- 
-    Trailing zero digits are removed and are not considered significant.  
-    '''
+
+    Trailing zero digits are removed and are not considered significant.
+    """
+
     # Algorithm:  Change the float x to a significand with maxsigfig
     # digits.  Remove trailing zeros to find the number of significant
     # figures in the number; this assumes trailing zeros are not
     # significant.  Secondly, remove the last digit and then remove all
     # 9's or all 0's, rounding appropriately.
     def RemoveTrailingDigit(i, digit="0"):
-        assert(ii(i, int) and i >= 0)
+        assert ii(i, int) and i >= 0
         s = str(i)
         while s and s[-1] == digit:
             s = s[:-1]
         return int(s)
+
     def CheckLimits(n):
         if not (1 <= n <= maxsigfig):
             raise ValueError(f"n = {n} is improper")
+
     if not ii(x, float) and strict:
         raise TypeError("x must be a float")
     if not x:
         return 1
     y = float(x) if ii(x, int) else x
+
     def Len(x):
         return len(str(x))
+
     # Turn significand into an integer
     s = int(f"{abs(y):.{maxsigfig}e}".split("e")[0].replace(".", ""))
     ns = Len(s)
@@ -97,7 +109,7 @@ def SigFigFloat(x, strict=False, maxsigfig=16):
         CheckLimits(nt)
         return nt
     # See if it rounds by removing the last digit
-    assert(Len(s) > 1)
+    assert Len(s) > 1
     t = int(str(s)[:-1])
     u = RemoveTrailingDigit(t)
     nu, nt = Len(u), Len(t)
@@ -114,9 +126,12 @@ def SigFigFloat(x, strict=False, maxsigfig=16):
     # It's full precision
     CheckLimits(ns)
     return ns
+
+
 if __name__ == "__main__":
     from wrap import dedent
     from lwtest import run, raises, assert_equal, Assert
+
     def Test_SigFigFloat():
         x, f = 0, SigFigFloat
         with raises(TypeError):
@@ -126,7 +141,7 @@ if __name__ == "__main__":
         # Simple truncation
         t = 1.111111111111111
         for i in range(1, 15):
-            x = round(t, i)    
+            x = round(t, i)
             Assert(f(x) == i + 1)
         # Where digits need to be removed.  Note these tests depend on
         # the value of the maxsigfig keyword parameter.
@@ -141,6 +156,7 @@ if __name__ == "__main__":
         # Works with a flt
         x = flt(1.234)
         Assert(f(x) == 4)
+
     def Test_SigFig():
         # flt
         f = SigFig
@@ -176,4 +192,5 @@ if __name__ == "__main__":
                 x = mpmath.mpf(1)
                 mpmath.mp.dps = i
                 Assert(f(x) == i)
+
     exit(run(globals(), regexp=r"Test_", halt=1)[0])

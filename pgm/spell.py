@@ -1,32 +1,33 @@
-'''
+"""
 Spell-checking script
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Spell-checking script
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports & globals
+if 1:  # Imports & globals
     import getopt
     import os
     import pathlib
     import string
     import sys
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
     from asciify import Asciify
     import get
     from columnize import Columnize
-if 1:   # Global variables
+if 1:  # Global variables
     wordlist = {
         "additional": "/words/words.additional",
         0: "/words/words.ngsl.experimental",
@@ -34,13 +35,17 @@ if 1:   # Global variables
         2: "/words/words.univ",
     }
     default_wordlist = 1
+
+
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
+
+
 def BuildTranslate(d):
-    '''Construct the d["trans"] dictionary used to translate the strings
+    """Construct the d["trans"] dictionary used to translate the strings
     to be read to tokenize.
-    '''
+    """
     d["trans"] = t = {}
     for c in string.punctuation:
         t[ord(c)] = " "
@@ -53,12 +58,17 @@ def BuildTranslate(d):
             t[ord(c)] = None
     if d["-h"]:
         del t[ord("-")]
+
+
 def Usage(d, status=1):
     wl = "-" + str(default_wordlist)
+
     # Get names of wordlists
     def P(p):
         return pathlib.Path(p).name
-    print(dedent(f'''
+
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]} [options] file1 [file2 ...]
       Spell check the indicated files by replacing non-letters with space
       characters and tokenizing on whitespace.  Use '-' to read stdin.
@@ -75,8 +85,11 @@ def Usage(d, status=1):
       -n    Shows tokens in dictionary
       -s    Only print the number misspelled
       -u    Ignore tokens with non-7-bit characters
-    '''))
+    """)
+    )
     exit(status)
+
+
 def ParseCommandLine(d):
     d["-0"] = False
     d["-1"] = False
@@ -102,6 +115,8 @@ def ParseCommandLine(d):
     if not args:
         Usage(d)
     return args
+
+
 def GetWordlists(d):
     # regex ignores comments; convert to lowercase if d["-i"] is True
     regex = r"^\s*#"
@@ -116,6 +131,8 @@ def GetWordlists(d):
     d["words"] = wl
     if d["-i"]:
         wl = set([i.lower() for i in wl])
+
+
 def ProcessFile(file, d):
     s = sys.stdin.read() if file == "-" else open(file).read()
     if d["-i"]:
@@ -131,6 +148,8 @@ def ProcessFile(file, d):
             d["correct"].add(W)
         else:
             d["incorrect"].add(W)
+
+
 def Report(d):
     words = d["correct"] if d["-n"] else d["incorrect"]
     if d["-k"]:
@@ -144,8 +163,10 @@ def Report(d):
     else:
         for i in sorted(words):
             print(i)
+
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     files = ParseCommandLine(d)
     BuildTranslate(d)
     GetWordlists(d)

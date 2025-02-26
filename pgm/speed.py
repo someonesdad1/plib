@@ -1,4 +1,4 @@
-'''
+"""
 Calculate spindle RPM from material and diameter
 
 Primary reference will be MH 19th ed pg 1697 to 1731.  Most of such tables
@@ -38,34 +38,37 @@ Turning:  1706-1713
 Milling:  1716-1722
 Drilling: 1725-1731 (includes reaming)
 
-'''
-if 1:   # Header
-    if 1:   # Copyright, license
+"""
+
+if 1:  # Header
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Calculate spindle RPM from material and diameter
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         import getopt
         import os
         from pathlib import Path as P
         import sys
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import dedent
         from color import t
         from f import flt, pi
-        #from columnize import Columnize
-    if 1:   # Global variables
+        # from columnize import Columnize
+    if 1:  # Global variables
+
         class G:
             pass
+
         g = G()  # Storage for global variables as attributes
         g.dbg = False
         t.dbg = t("lill") if g.dbg else ""
@@ -73,9 +76,9 @@ if 1:   # Header
         ii = isinstance
         g.W = int(os.environ.get("COLUMNS", "80")) - 1
         g.L = int(os.environ.get("LINES", "50"))
-if 1:   # Cutting data 
-    if 1:   # Cutting data from https://physics.byu.edu
-        '''
+if 1:  # Cutting data
+    if 1:  # Cutting data from https://physics.byu.edu
+        """
         Taken from https://physics.byu.edu/courses/experimental/docs/physics240/toolspeeds.pdf
         For HSS tools
     
@@ -153,9 +156,9 @@ if 1:   # Cutting data
             3/4         140         200
             7/8         100         200
             1           100         150
-        '''
-    if 1:   # Cutting data from Morse
-        '''
+        """
+    if 1:  # Cutting data from Morse
+        """
         "Machinist's Practical Guide", copyright 1929, 1963-1970, 1973-1974
         A small handbook I probably got in the 1970's
     
@@ -197,9 +200,9 @@ if 1:   # Cutting data
             Slab milling, heavy         8
             Sawing                      0.5 to 1
             Thread milling              0.5 to 1
-        '''
-    if 1:   # Cutting data from Cleveland
-        '''
+        """
+    if 1:  # Cutting data from Cleveland
+        """
         From Grandpa's lathe, it's a small PVC circular "slide rule"
         Copyright 1947
     
@@ -210,17 +213,17 @@ if 1:   # Cutting data
         For larger drills on other side, sfpm
             60, 80, 90, 100 for "Cle-forge"
             30, 50          for carbon steel
-        '''
-    if 1:   # Cutting data from MH 27th ed
-        '''
+        """
+    if 1:  # Cutting data from MH 27th ed
+        """
         Ref. table 1 on pg 1027
         For HSS, feed is 12 mils/rev and a 125 mil depth of cut; see page 1036
         for an adjustment table.  NOTE THESE NUMBERS ARE FOR A TOOL LIFE OF 15
         MINUTES.  I would probably divide the recommended surface speeds by 2
         to get more realistic home shop numbers.
-        '''
-    if 1:   # Cutting data from MH 19th ed
-        '''
+        """
+    if 1:  # Cutting data from MH 19th ed
+        """
         Opinion:  This is probably the most reliable information to use.  The
         27th ed. clearly expands on the same material & words, but is more
         tedious to digest, probably because most of the focus is on throughput
@@ -231,9 +234,9 @@ if 1:   # Cutting data
     
         pg 1703 states reaming speeds should be about 2/3 those of drilling
         with a feed of 1.5 to 4 mils per flute per rev.
-        '''
-    if 1:   # Cutting data from Tubal Cain
-        '''
+        """
+    if 1:  # Cutting data from Tubal Cain
+        """
         This is probably the most practical information, particularly
         because it is aimed at the HSM, not production people.  First use
         these numbers, then contrast them to MH 19th ed numbers.
@@ -254,7 +257,7 @@ if 1:   # Cutting data
             4    E      600      785        1.31
 
         For mental computation, use R = 4*sfpm/D.
-        '''
+        """
         tubal = {
             # Group, sfpm, f/r ratio
             "A": (20, 1.25),
@@ -281,17 +284,21 @@ if 1:   # Cutting data
             "Drill rod": "B",
             "Plastics": "D",
         }
-if 1:   # Utility
+if 1:  # Utility
+
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="")
             print(*p, **kw)
             print(f"{t.N}", end="")
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] diameter [material]
           For the given diameter, show the needed spindle speed for
           turning, milling, and drilling.  With no arguments, print out a
@@ -300,13 +307,15 @@ if 1:   # Utility
             -d n    Number of digits [{d["-d"]}]
             -h      Print a manpage
             -l      List the materials
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-a"] = False     # Describe this option
-        d["-d"] = 2         # Number of significant digits
+        d["-a"] = False  # Describe this option
+        d["-d"] = 2  # Number of significant digits
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:h") 
+            opts, args = getopt.getopt(sys.argv[1:], "ad:h")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -319,24 +328,55 @@ if 1:   # Utility
                     if not (1 <= d[o] <= 15):
                         raise ValueError()
                 except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                        "1 and 15")
+                    msg = "-d option's argument must be an integer between 1 and 15"
                     Error(msg)
             elif o == "-h":
                 Usage(status=0)
         x = flt(0)
         x.N = d["-d"]
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def GetData(dia, matl=None):
         pass
+
     def Table():
-        dia = (0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.2,
-               1.4, 1.6, 1.8, 2, 2.5, 3, 3.5, 4, 5, 6, 7, 8, 9, 10, 11, 12)
-        ltr = "A B C D E".split()        
+        dia = (
+            0.05,
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+            0.5,
+            0.6,
+            0.7,
+            0.8,
+            0.9,
+            1,
+            1.2,
+            1.4,
+            1.6,
+            1.8,
+            2,
+            2.5,
+            3,
+            3.5,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+        )
+        ltr = "A B C D E".split()
         print("Turning speed for various materials (ref. Tubal Cain)\n")
         w0, w1, a = 10, 10, ">"
-        gap = " "*2
+        gap = " " * 2
         c = {
             "A": t("seal"),
             "B": t("purl"),
@@ -353,7 +393,7 @@ if 1:   # Core functionality
             print(f"{D!s:^{w0}s}", end=gap)
             for l in ltr:
                 sfpm, ratio = tubal[l]
-                rpm = flt(12*sfpm/(pi*D))
+                rpm = flt(12 * sfpm / (pi * D))
                 print(f"{c[l]}{rpm!s:{a}{w1}s}{t.n}", end="")
             print()
         # Print material key
@@ -364,10 +404,11 @@ if 1:   # Core functionality
                     matls.append(i)
             t.print(f"{c[l]}{l}:  {'; '.join(matls)}")
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     if 0 and args:
         GetData(*args)
-    else:   
+    else:
         Table()

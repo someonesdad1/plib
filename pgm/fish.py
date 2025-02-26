@@ -1,17 +1,17 @@
-'''
+"""
 This script does a brute-force search for the solutions to the fish
 puzzle:
- 
+
     There are 5 houses in five different colors.  In each house lives a
     person with a different nationality.  These 5 owners drink a certain
     drink, smoke a certain brand of tobacco and keep a certain pet.  No
     owners have the same pet, smoke the same tobacco, or drink the same
     drink.
- 
+
     The question is:  Who owns the fish?
- 
+
     Hints:
- 
+
     1.  The Brit lives in the red house.
     2.  The Swede keeps dogs as pets.
     3.  The Dane drinks tea.
@@ -27,17 +27,17 @@ puzzle:
     13. The German smokes Prince.
     14. The Norwegian lives next to the blue house.
     15. The man who smokes Blends has a neighbor who drinks water.
- 
+
 Here are the major steps in solving the problem:
- 
+
     1.  Generate the 5^5 = 3125 possible combinations of the characteristics.
         Use the hints to reduce this set to the 51 combinations that meet
         these constraints.  (See the function ListCombinations()).
- 
+
     2.  There are 51 choose 5 combinations of the remaining possibilities.
         Generate each of these combinations, then examine each of the 5!
         = 120 permutations of this choice for solutions.
- 
+
 Note:  this script was originally written in python 1.5.2 during a
 weekend in 2000 when my wife and daughter went to the Winter Olympics in
 Utah.  It took about 120 minutes to solve the problem on the Micron laptop
@@ -65,10 +65,10 @@ Mon 15 Jan 2024 01:56:55 PM
 22 Feb 2025 10:51:30 am Sat
 
     Same Windows computer with python 3.11.5 in a Ubuntu bash shell under WSL
-    in 114.5 s = 1.9 minutes.  2461839 permutations/s; there are 
+    in 114.5 s = 1.9 minutes.  2461839 permutations/s; there are
     (51 choose 5)*5!  = 281887200 permutations.
 
-    It's interesting to note that this is the identical hardware used since 
+    It's interesting to note that this is the identical hardware used since
     2017; the only change has been to WSL in 2024 and later python versions.
 
 ---------------------------------------------------------------------------
@@ -96,21 +96,21 @@ Thoughts about using multiprocessing to reduce computation time
     - Since this computer has 4 cores, perhaps a 3 to 4 times speed
       improvement could be gotten
     - The controlling process could keep a deque containing the combinations
-      of the calculations needing to be done.  
+      of the calculations needing to be done.
     - Workers  would pull off calculations and perform them.
     - The working functions need to be vetted to be sure they aren't using
       global data.
 
-'''
- 
+"""
+
 # Copyright (C) 2014 Don Peterson
 # Contact:  gmail.com@someonesdad1
- 
-#
+
+#
 # Licensed under the Open Software License version 3.0.
 # See http://opensource.org/licenses/OSL-3.0.
-#
- 
+#
+
 import re
 import sys
 import time
@@ -131,7 +131,7 @@ allowed_combinations = []
 # Indexes for house color, nationality, drink, pet, and tobacco
 C, N, D, P, T = 0, 1, 2, 3, 4
 
-always_print = 0   # For debugging; print out every comb/perm checked
+always_print = 0  # For debugging; print out every comb/perm checked
 
 # Keep track of how many possibilities we look at.  This should be
 # equal to (51 choose 5) * 5! = 281887200 at the end of calculation.
@@ -145,8 +145,9 @@ perms = ()
 
 ############################## Functions #####################################
 
+
 def ListCombinations(A1, A2, A3, A4, A5):
-    '''Return a list of all possible combinations of the sets of elements.
+    """Return a list of all possible combinations of the sets of elements.
     Each combinations is a tuple of the five characteristics.  The output
     list is:
         [('red', 'Swede', 'tea', 'dogs', 'PallMall'),
@@ -156,59 +157,67 @@ def ListCombinations(A1, A2, A3, A4, A5):
          ('red', 'Swede', 'tea', 'dogs', 'Bluemaster'),
          ('red', 'Swede', 'tea', 'birds', 'PallMall'),
          etc.
-    '''
+    """
     list = [
         (a1, a2, a3, a4, a5)
-        for a1 in A1 for a2 in A2 for a3 in A3 for a4 in A4 for a5 in A5
+        for a1 in A1
+        for a2 in A2
+        for a3 in A3
+        for a4 in A4
+        for a5 in A5
     ]
-    assert(len(list) == 5**5)   # 5**5 = 3125
+    assert len(list) == 5**5  # 5**5 = 3125
     return list
 
+
 def ApplyEqConstraint(list, index1, value1, index2, value2):
-    '''For each item in the list of tuples, check that the item
+    """For each item in the list of tuples, check that the item
     satisfies the constraint; if not, remove it from the list.  The Eq
     constraint is where if a combination contains either value 1 or
     value 2, it must contain the pair.  Example: the red house must
     contain the Brit.  Note we start at the end of the list and work
     backwards (this avoids "chopping off the limb you're standing on").
-    '''
-    for ix in range(len(list)-1, -1, -1):
+    """
+    for ix in range(len(list) - 1, -1, -1):
         item = list[ix]
         if item[index1] == value1 and item[index2] != value2:
             del list[ix]
         if item[index2] == value2 and item[index1] != value1:
             del list[ix]
 
+
 def ApplyNotEqConstraint(list, index1, value1, index2, value2):
-    '''For each item in the list of tuples, check that the item satisfies
+    """For each item in the list of tuples, check that the item satisfies
     the constraint; if not, remove it from the list.  Note we work backwards
     from the end of the list.  The NotEq constraint is where the combination
     must not contain the value1/value2 pair.  Example:  a particular house
     cannot use Blends tobacco and keep cats.
-    '''
-    for ix in range(len(list)-1, -1, -1):
+    """
+    for ix in range(len(list) - 1, -1, -1):
         item = list[ix]
         if item[index1] == value1 and item[index2] == value2:
             del list[ix]
 
+
 def GenerateCombinationsList():
     combinations = ListCombinations(colors, nations, drinks, pets, tobaccos)
     # Apply the constraints where both items must be present
-    ApplyEqConstraint(combinations, C, "red", N, "Brit")            # Hint 1
-    ApplyEqConstraint(combinations, N, "Swede", P, "dogs")          # Hint 2
-    ApplyEqConstraint(combinations, N, "Dane", D, "tea")            # Hint 3
-    ApplyEqConstraint(combinations, C, "green", D, "coffee")        # Hint 5
-    ApplyEqConstraint(combinations, P, "birds", T, "PallMall")      # Hint 6
-    ApplyEqConstraint(combinations, C, "yellow", T, "Dunhill")      # Hint 7
-    ApplyEqConstraint(combinations, D, "beer", T, "Bluemaster")     # Hint 12
-    ApplyEqConstraint(combinations, N, "German", T, "Prince")       # Hint 13
+    ApplyEqConstraint(combinations, C, "red", N, "Brit")  # Hint 1
+    ApplyEqConstraint(combinations, N, "Swede", P, "dogs")  # Hint 2
+    ApplyEqConstraint(combinations, N, "Dane", D, "tea")  # Hint 3
+    ApplyEqConstraint(combinations, C, "green", D, "coffee")  # Hint 5
+    ApplyEqConstraint(combinations, P, "birds", T, "PallMall")  # Hint 6
+    ApplyEqConstraint(combinations, C, "yellow", T, "Dunhill")  # Hint 7
+    ApplyEqConstraint(combinations, D, "beer", T, "Bluemaster")  # Hint 12
+    ApplyEqConstraint(combinations, N, "German", T, "Prince")  # Hint 13
     # Apply the constraints where both items must not be present at same time
-    ApplyNotEqConstraint(combinations, P, "cats", T, "Blends")      # Hint 10
-    ApplyNotEqConstraint(combinations, P, "horses", T, "Dunhill")   # Hint 11
-    ApplyNotEqConstraint(combinations, C, "blue", N, "Norwegian")   # Hint 14
-    ApplyNotEqConstraint(combinations, D, "water", T, "Blends")     # Hint 15
+    ApplyNotEqConstraint(combinations, P, "cats", T, "Blends")  # Hint 10
+    ApplyNotEqConstraint(combinations, P, "horses", T, "Dunhill")  # Hint 11
+    ApplyNotEqConstraint(combinations, C, "blue", N, "Norwegian")  # Hint 14
+    ApplyNotEqConstraint(combinations, D, "water", T, "Blends")  # Hint 15
     combinations.sort()
     return combinations
+
 
 def GreenNotLeftOfWhite(candidate):
     white_found = 0
@@ -225,7 +234,8 @@ def GreenNotLeftOfWhite(candidate):
             return 0
     print("\nError in following candidate:")
     PrintCandidate(candidate, "  ")
-    raise Exception("Green and white not found")   # Should never reach here
+    raise Exception("Green and white not found")  # Should never reach here
+
 
 def PrintCandidate(candidate, prefix):
     for item in candidate:
@@ -233,10 +243,11 @@ def PrintCandidate(candidate, prefix):
             print(prefix, end="")
         print(("%-12s " * 5) % item)
 
+
 def BlendsFailed(candidate):
-    '''Hint 10 says Blends must be next to cats and water.  Find the index
+    """Hint 10 says Blends must be next to cats and water.  Find the index
     of Blends and then check these two statements.
-    '''
+    """
     blends = -1
     for ix in range(len(candidate)):
         if candidate[ix][T] == "Blends":
@@ -270,10 +281,11 @@ def BlendsFailed(candidate):
         raise Exception("Blends not found")
     return 0
 
+
 def DunhillFailed(candidate):
-    '''Hint 11 says Dunhill must be next to horses.  Find the index of
+    """Hint 11 says Dunhill must be next to horses.  Find the index of
     Dunhill and then check this statement.
-    '''
+    """
     dunhill = -1
     for ix in range(len(candidate)):
         if candidate[ix][T] == "Dunhill":
@@ -287,13 +299,16 @@ def DunhillFailed(candidate):
         if candidate[3][P] != "horses":
             return 1
     else:
-        if (candidate[dunhill-1][P] != "horses" and
-                candidate[dunhill+1][P] != "horses"):
+        if (
+            candidate[dunhill - 1][P] != "horses"
+            and candidate[dunhill + 1][P] != "horses"
+        ):
             return 1
     return 0
 
+
 def IsSolution(candidate):
-    '''candidate is a tuple of 5 of the lines of the following form:
+    """candidate is a tuple of 5 of the lines of the following form:
         (
             (s1, s2, s3, s4, s5),
             (s1, s2, s3, s4, s5),
@@ -308,11 +323,11 @@ def IsSolution(candidate):
         - House 2 must contain the milk drinker
     since not meeting these will weed out most candidates.  If this
     hurdle is passed, then the remaining constraints are checked.
- 
+
     The assumption here is that houses are numbered from left to right
     so that the house number on the left is number 1, the next one is 2,
     etc.
-    '''
+    """
     # Make the easy checks for the first 3 houses
     if candidate[0][N] != "Norwegian":
         return 0
@@ -339,12 +354,13 @@ def IsSolution(candidate):
     # If reach here, we've found a solution, so return true
     return 1
 
+
 def GeneratePermutations(possibility):
-    '''possibility is a tuple of 5 tuples; each tuple represents one of the
+    """possibility is a tuple of 5 tuples; each tuple represents one of the
     combinations of the 51 possibilities.  This function will generate a
     tuple of 120 tuples, each containing a permutation of the original
     tuple.
-    '''
+    """
     candidates = []
     for permutation in perms:
         candidate = []
@@ -353,11 +369,12 @@ def GeneratePermutations(possibility):
         candidates.append(tuple(candidate))
     return tuple(candidates)
 
+
 def CheckCombination(comb):
-    '''comb is a tuple of 5 0-based indexes chosen from the numbers 0-51
+    """comb is a tuple of 5 0-based indexes chosen from the numbers 0-51
     inclusive.  Use it to get the 5 tuples indicated, then generate each
     permutation of these 5 tuples and check them as possible solutions.
-    '''
+    """
     global total_examined
     possible_lines = (
         allowed_combinations[comb[0]],
@@ -382,10 +399,11 @@ def CheckCombination(comb):
                     print(("%-12s " * 5) % item)
                 print()
 
+
 def GetPerms():
-    '''Fill the perms sequence, which will contain tuples of the permutations
+    """Fill the perms sequence, which will contain tuples of the permutations
     of (0, 1, 2, 3, 4).
-    '''
+    """
     global perms
     array = []
     array.append(tuple(comb_perm.GetPermutation(5, init=1, zero_based=1)))
@@ -395,33 +413,34 @@ def GetPerms():
         p = comb_perm.GetPermutation(5)
     perms = tuple(array)
 
+
 if __name__ == "__main__":
     start_time = time.time()
     allowed_combinations = GenerateCombinationsList()
     GetPerms()
     # From an earlier version of this program, we know this should be a
     # list of 51 combinations.
-    assert(len(allowed_combinations) == 51)
+    assert len(allowed_combinations) == 51
     # Now generate the 51 choose 5 combinations of these possible lines
     # and examine each combination as a possible solution.
     current_combination = comb_perm.GetCombination(51, 5, init=1, zero_based=1)
     # The first combination is (0, 1, 2, 3, 4)
     count = 1  # Number of combinations examined
-    total_expected = 51*50*49*48*47/(5*4*3*2)    # (51 choose 5) = 2349060
+    total_expected = 51 * 50 * 49 * 48 * 47 / (5 * 4 * 3 * 2)  # (51 choose 5) = 2349060
     last_printed = -1
     while current_combination:
         CheckCombination(current_combination)
         # Print percent done in 10% increments to stderr
-        pct = int(100.*count/total_expected)
+        pct = int(100.0 * count / total_expected)
         if pct % 10 == 0 and pct > 0 and pct != last_printed:
             sys.stderr.write("%d%% finished\n" % pct)
             last_printed = pct
         count = count + 1
         current_combination = comb_perm.GetCombination(51, 5)
-    count = count - 1   # Last one is None
+    count = count - 1  # Last one is None
     finish_time = time.time()
     total_time = finish_time - start_time
     print("Search time = %.1f" % total_time, "sec")
-    print("Search rate = %.0f permutations/sec" % (total_examined/total_time))
+    print("Search rate = %.0f permutations/sec" % (total_examined / total_time))
     print("Total number of permutations checked =", total_examined)
     print("(51 choose 5) * 5!                   =", total_examined)

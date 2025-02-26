@@ -1,5 +1,5 @@
 # vi: wm=0 tw=0
-'''
+"""
 Mean, variance, covariance data of proposed CIE 10° tristimulus functions
 
     Data from I. Nimeroff, J. Rosenblatt, M. Dannemiller, "Variability of
@@ -8,7 +8,7 @@ Mean, variance, covariance data of proposed CIE 10° tristimulus functions
 
     Observations from the paper:
 
-    - The data came from two independent investigations 
+    - The data came from two independent investigations
         - Burch & Stiles 1959: sample size of 53 British observers
         - Speranskaya 1958:  sample size of 27 Russian observers
         - The covariance data are estimated only on the basis of the Burch &
@@ -26,20 +26,21 @@ Mean, variance, covariance data of proposed CIE 10° tristimulus functions
       primary responses and standard deviations and is the log axis; the x axis
       is the wavelength in nm) and allow comparison of the means and standard
       deviations of the two experiments.  The standard deviations are
-      reasonably close except for the > 500 nm data for the blue primary.  
+      reasonably close except for the > 500 nm data for the blue primary.
         - The authors give two possible reasons for this discrepancy, both due
           to experimental methods.
         - The figures show interesting heteroscedastic behavior that might be
-          clues to how the human visual system works.  
+          clues to how the human visual system works.
 
     This module provides two tuples of the data:  table3 and table4.  The
     floating point values are given as f.flt objects.
 
-'''
+"""
+
 from f import flt
 from wrap import dedent
-from pdb import set_trace as xx 
-#----------------------------------------------------------------------------
+from pdb import set_trace as xx
+# ----------------------------------------------------------------------------
 # Table 3 in Nimeroff, pg 482.  This is the proposed CIE tristimulus
 # functions for a 10° observer with variances and covariances.
 #   λ =  wavelength in nm
@@ -56,7 +57,7 @@ from pdb import set_trace as xx
 
 # 0      1          2          3          4            5          6                 7             8                9
 # λ      x          y          z         v(x)         v(y)       v(z)            c(x, y)       c(x, z)          c(y, z)
-table3_data = '''
+table3_data = """
     400 0.0191097  0.0020044  0.0860109   0.000126    0.00000118   0.00256         +0.0000104    +0.000568        +0.0000467
     410 0.084736   0.008756   0.389366    0.000661    0.0000110    0.0132          +0.0000708    +0.00294         +0.000321
     420 0.204492   0.021391   0.972542    0.000937    0.0000262    0.0193          +0.0000731    +0.00421         +0.000350
@@ -90,7 +91,7 @@ table3_data = '''
     700 0.00957688 0.00371774 0.000000    0.000000366 0.000000052  0.00000000016   +0.000000137  +0.00000000088   +0.00000000049
     710 0.00455263 0.00176847 0.000000    0.000000114 0.000000016  0.000000000039  +0.000000042  +0.00000000012   +0.000000000086
     720 0.00217496 0.00084619 0.000000    0.000000019 0.0000000026 0.0000000000043 +0.0000000069 +0.0000000000027 +0.0000000000051
-'''[1:-1]
+"""[1:-1]
 
 data3 = []
 for line in table3_data.split("\n"):
@@ -99,14 +100,14 @@ for line in table3_data.split("\n"):
     data3.append(tuple(f))
 data3 = tuple(data3)
 
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Table 4 in Nimeroff, pg 483
 # Within-observer variances in xbar, ybar, zbar.  These are about 32 times
 # smaller than those in table 3.
 # v(x) = variance of xbar
 # v(y) = variance of ybar
 # v(z) = variance of zbar
-table4_data = '''
+table4_data = """
     400 0.00000390     0.0000000364    0.0000788
     410 0.0000204      0.000000338     0.000407
     420 0.0000288      0.000000806     0.000595
@@ -140,7 +141,7 @@ table4_data = '''
     700 0.0000000113   0.00000000160   0.00000000000493
     710 0.00000000351  0.000000000493  0.00000000000120
     720 0.000000000585 0.0000000000801 0.000000000000132
-'''[1:-1]
+"""[1:-1]
 
 data4 = []
 for line in table4_data.split("\n"):
@@ -149,12 +150,13 @@ for line in table4_data.split("\n"):
     data4.append(tuple(f))
 data4 = tuple(data4)
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
     # When run as a script, this prints out the data in a more digestible
-    # form.  
+    # form.
     from clr import Clr
     from rgb import ColorNum
     from fpformat import FPFormat
+
     c = Clr(always=True)
     c.r, c.g, c.b = c("lred"), c("lgrn"), c("lblu")
     FP = True
@@ -163,24 +165,25 @@ if __name__ == "__main__":
         N, M = 4, 2
         fp = FPFormat(num_digits=N)
         fp2 = FPFormat(num_digits=M)
+
     def wl2rgb(nm, gamma=0.8):
-        '''Convert nm (light wavelength in nm) into a ColorNum object using a
+        """Convert nm (light wavelength in nm) into a ColorNum object using a
         linear approximation.  The ColorNum object represents an RGB color.
         gamma is used for a gamma adjustment.  nm must be on [380, 780].
-        '''
+        """
         # Translation of Dan Bruton's FORTRAN code from
         # http://www.physics.sfasu.edu/astro/color/spectra.html into python.
         # Also see http://www.midnightkite.com/color.html.
         if 380 <= nm <= 440:
-            a = (440 - nm)/(440 - 380), 0, 1
+            a = (440 - nm) / (440 - 380), 0, 1
         elif 440 <= nm <= 490:
-            a = 0, (nm - 440)/(490 - 440), 1
+            a = 0, (nm - 440) / (490 - 440), 1
         elif 490 <= nm <= 510:
-            a = 0, 1, (510 - nm)/(510 - 490)
+            a = 0, 1, (510 - nm) / (510 - 490)
         elif 510 <= nm <= 580:
-            a = (nm - 510)/(580 - 510), 1, 0
+            a = (nm - 510) / (580 - 510), 1, 0
         elif 580 <= nm <= 645:
-            a = 1, (645 - nm)/(645 - 580), 0
+            a = 1, (645 - nm) / (645 - 580), 0
         elif 645 <= nm <= 780:
             a = 1, 0, 0
         else:
@@ -190,30 +193,29 @@ if __name__ == "__main__":
         # Intensity i falls off near vision limits
         i, u, v = 1, 0.3, 0.7
         if nm > 700:
-            i = u + v*(780 - nm)/(780 - 700)
+            i = u + v * (780 - nm) / (780 - 700)
         elif nm < 420:
-            i = u + v*(nm - 380)/(420 - 380)
+            i = u + v * (nm - 380) / (420 - 380)
         # Scale the RGB components by i and raise to the gamma power if gamma
         # is nonzero.
         if gamma:
-            b = [float((i*j)**gamma) for j in a]
+            b = [float((i * j) ** gamma) for j in a]
         else:
             b = [float(i) for i in a]
         # Make sure the numbers are on [0, 1]
-        assert(all([0 <= i <=1 for i in b]))
+        assert all([0 <= i <= 1 for i in b])
         return ColorNum(b)
+
     def SummarizeTable3():
         def SummarizeTable3Line(line):
             def S(variance, mean):
                 if mean:
-                    return 100*variance**(1/2)/mean
+                    return 100 * variance ** (1 / 2) / mean
                 else:
                     return flt(0)
-            assert(len(line) == 10)
-            (  λ,
-            x, y, z,
-            vx, vy, vz,
-            cxy, cxz, cyz) = line
+
+            assert len(line) == 10
+            (λ, x, y, z, vx, vy, vz, cxy, cxz, cyz) = line
             m = x, y, z
             v = vx, vy, vz
             C = cxy, cxz, cyz
@@ -222,7 +224,7 @@ if __name__ == "__main__":
             if FP:
                 # Use fpformat printing to line up decimal points
                 w = 10
-                f = lambda x:  fp.dp(x, width=w)
+                f = lambda x: fp.dp(x, width=w)
                 print(f"{c.r}{f(m[0]):{w}s}{c.n} ", end="")
                 print(f"{c.g}{f(m[1]):{w}s}{c.n} ", end="")
                 if m[2]:
@@ -235,10 +237,10 @@ if __name__ == "__main__":
                 print(f"{c.g}{m[1]:10.3f}{c.n} ", end="")
                 print(f"{c.b}{m[2]:10.3f}{c.n} ", end="")
             if not FP:
-                print(" "*6, end="")
+                print(" " * 6, end="")
             # Standard deviation:  take square root of variance to get standard
             # deviation, print to 2 figures.
-            s = [flt(i**(1/2)) for i in v]
+            s = [flt(i ** (1 / 2)) for i in v]
             with flt(0):
                 flt(0).n = 2
                 if FP:
@@ -251,6 +253,7 @@ if __name__ == "__main__":
                             return s
                         except Exception:
                             return f"{x:{w}.2g}"
+
                     w = 9
                     print(f"{c.r}{F(s[0]):{w}s}{c.n} ", end="")
                     print(f"{c.g}{F(s[1]):{w}s}{c.n} ", end="")
@@ -260,9 +263,11 @@ if __name__ == "__main__":
                     print(f"{c.g}{s[1]!s:^9s}{c.n} ", end="")
                     print(f"{c.b}{s[2]!s:^9s}{c.n} ", end="")
             print()
+
         msg1 = f"(to {N} figures)" if FP else ""
         msg2 = f"(to {M} figures)" if FP else ""
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Table 3:  10° CIE Color Matching Functions
         From I. Nimeroff, J. Rosenblatt, M. Dannemiller, "Variability of
         Spectral Tristimulus Values", J. Res. NBS A, 65A(6) 475-483, 1961
@@ -272,36 +277,47 @@ if __name__ == "__main__":
         xbar, ybar, zbar are mean CMFs {msg1}
         s = standard deviation in same units as mean {msg2}
         Nominal d.f. approximately 80
-        '''))
+        """)
+        )
         if FP:
-            print(f"λ, nm   {c.r}xbar{c.n}       {c.g}ybar{c.n}       {c.b}zbar{c.n}        ", end="")
+            print(
+                f"λ, nm   {c.r}xbar{c.n}       {c.g}ybar{c.n}       {c.b}zbar{c.n}        ",
+                end="",
+            )
             print(f"{c.r}sx{c.n}        {c.g}sy{c.n}        {c.b}sz{c.n}")
         else:
-            print(f"λ, nm     {c.r}xbar{c.n}       {c.g}ybar{c.n}       {c.b}zbar{c.n}           ", end="")
+            print(
+                f"λ, nm     {c.r}xbar{c.n}       {c.g}ybar{c.n}       {c.b}zbar{c.n}           ",
+                end="",
+            )
             print(f"{c.r}sx{c.n}       {c.g}sy{c.n}         {c.b}sz{c.n}")
         for line in data3:
             SummarizeTable3Line(line)
+
     def SummarizeTable4():
-        print(dedent('''
+        print(
+            dedent("""
 
         Within-observer standard deviations
         d.f. approximately 7
  
-        '''))
-        print(f"λ, nm", end=" "*5)
+        """)
+        )
+        print(f"λ, nm", end=" " * 5)
         w = 8
-        i = " "*9
+        i = " " * 9
         print(f"{c.r}sx{c.n}{i}{c.g}sy{c.n}{i}{c.b}sz{c.n}")
-        i = " "*2
+        i = " " * 2
         for line in data4:
-            assert(len(line) == 4)
+            assert len(line) == 4
             λ, vx, vy, vz = line
             v = vx, vy, vz
             cn = wl2rgb(λ)
-            s = [flt(i**(1/2)) for i in v]
+            s = [flt(i ** (1 / 2)) for i in v]
             print(f" {c(cn.rgbhex)}{λ:3d}{c.n}  ", end="")
             print(f"{c.r}{s[0]:{w}.4f}{c.n} ", end=f"{i}")
             print(f"{c.g}{s[1]:{w}.4f}{c.n} ", end=f"{i}")
             print(f"{c.b}{s[2]:{w}.4f}{c.n} ")
+
     SummarizeTable3()
     SummarizeTable4()

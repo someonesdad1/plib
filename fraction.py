@@ -1,4 +1,4 @@
-'''
+"""
 xx Move to fmt.py
 
 FormatFraction
@@ -14,29 +14,31 @@ FractionFromUnicode
 ToFraction
   Convert a string to a Fraction.  '19/16', '1 3/16', '1-3/16', and
   '1+3/16' all give the same fraction.
-'''
-#∞test∞# ["test/fraction_test.py"] #∞test∞#
+"""
+# ∞test∞# ["test/fraction_test.py"] #∞test∞#
 
 import re
 from fractions import Fraction
 
 if 0:
     import debug
+
     debug.SetDebugger()
 
 _super, _sub = "⁰¹²³⁴⁵⁶⁷⁸⁹", "₀₁₂₃₄₅₆₇₈₉"
 
+
 def FormatFraction(f, improper=False, unicode=True):
-    '''Return the string form of a fraction using Unicode subscript and
+    """Return the string form of a fraction using Unicode subscript and
     superscript characters.  If improper is True, return an improper
     fraction.  If unicode is False, then return strings like '1-5/16'.
-    '''
+    """
     if not isinstance(f, Fraction):
         raise TypeError("f must be a Fraction")
     s, n, d = "", f.numerator, f.denominator
     if unicode:
         if improper:
-            rem = n     # rem is remainder
+            rem = n  # rem is remainder
         else:
             ip, rem = divmod(n, d)
             if ip:
@@ -58,34 +60,35 @@ def FormatFraction(f, improper=False, unicode=True):
             else:
                 return f"{ip}"
 
+
 def FractionToUnicode(s):
-    '''In the string s, convert 'a/b' expressions to the Unicode form
+    """In the string s, convert 'a/b' expressions to the Unicode form
     where a and b are strings of ASCII digits.
- 
+
     Example:  '3/16' will become '³/₁₆'.
-    '''
+    """
     # Mixed fractions
     r = re.compile(r"(\d+[ +-])+(\d+)/(\d+)")
     mo = r.search(s)
     t = s
     if mo:
         g = mo.groups()
-        assert(len(g) == 3)
+        assert len(g) == 3
         # Change denominator
         u = []
         for i in g[2]:
             u.append(_sub[int(i)])
         a, b = mo.span(3)
-        t = t[:a] + ''.join(u) + t[b:]
+        t = t[:a] + "".join(u) + t[b:]
         # Change numerator
         u = []
         for i in g[1]:
             u.append(_super[int(i)])
         a, b = mo.span(2)
-        t = t[:a] + ''.join(u) + t[b:]
+        t = t[:a] + "".join(u) + t[b:]
         # Change integer part
         ip = g[0]
-        assert(len(ip) > 1)
+        assert len(ip) > 1
         a, b = mo.span(1)
         t = t[:a] + str(int(ip[:-1])) + t[b:]
         return t
@@ -96,24 +99,47 @@ def FractionToUnicode(s):
         g = mo.groups()
         return FormatFraction(Fraction(int(g[0]), int(g[1])))
 
+
 def FractionFromUnicode(s, sep="-"):
-    '''In the string s, convert 'Ia/b' expressions where a and b are
+    """In the string s, convert 'Ia/b' expressions where a and b are
     Unicode strings (superscripts for a and subscripts for b) to the
     usual form using ASCII digits.  I is an optional ASCII string of
     digits for the integer part.  sep is the character to separate the
     integer part and the fractional part.
- 
+
     Example:  '1³/₁₆' will become '1-3/16'.
-    '''
-    sup = {"⁰": 0, "¹": 1, "²": 2, "³": 3, "⁴": 4, "⁵": 5, "⁶": 6, "⁷": 7, "⁸": 8, "⁹": 9}
-    sub = {"₀": 0, "₁": 1, "₂": 2, "₃": 3, "₄": 4, "₅": 5, "₆": 6, "₇": 7, "₈": 8, "₉": 9}
+    """
+    sup = {
+        "⁰": 0,
+        "¹": 1,
+        "²": 2,
+        "³": 3,
+        "⁴": 4,
+        "⁵": 5,
+        "⁶": 6,
+        "⁷": 7,
+        "⁸": 8,
+        "⁹": 9,
+    }
+    sub = {
+        "₀": 0,
+        "₁": 1,
+        "₂": 2,
+        "₃": 3,
+        "₄": 4,
+        "₅": 5,
+        "₆": 6,
+        "₇": 7,
+        "₈": 8,
+        "₉": 9,
+    }
     # Mixed fractions
-    t = r"(\d+)([" + ''.join(_super) + "]+)/([" + ''.join(_sub) + "]+)"
+    t = r"(\d+)([" + "".join(_super) + "]+)/([" + "".join(_sub) + "]+)"
     r = re.compile(t)
     mo = r.search(s)
     if mo:
         g = mo.groups()
-        assert(len(g) == 3)
+        assert len(g) == 3
         t = g[0] + sep
         for i in g[1]:
             t += str(sup[i])
@@ -122,12 +148,12 @@ def FractionFromUnicode(s, sep="-"):
             t += str(sub[i])
         return t
     # Regular fractions with no integer part
-    t = r"([" + ''.join(_super) + "]+)/([" + ''.join(_sub) + "]+)"
+    t = r"([" + "".join(_super) + "]+)/([" + "".join(_sub) + "]+)"
     r = re.compile(t)
     mo = r.search(s)
     if mo:
         g = mo.groups()
-        assert(len(g) == 2)
+        assert len(g) == 2
         t = ""
         for i in g[0]:
             t += str(sup[i])
@@ -136,13 +162,15 @@ def FractionFromUnicode(s, sep="-"):
             t += str(sub[i])
         return t
 
+
 def ToFraction(string):
-    '''Convert a string to a fractions.Fraction object.  '19/16', 
+    """Convert a string to a fractions.Fraction object.  '19/16',
     '1 3/16', '1-3/16', and '1+3/16' all give the same fraction.  Use
     FractionFromUnicode() if the string contains Unicode characters.
-    '''
+    """
+
     def ConvertFraction(frac):
-        'Assumes a/b form where a and b are positive integers'
+        "Assumes a/b form where a and b are positive integers"
         f = frac.split("/")
         if len(f) == 1:
             # It must be an integer
@@ -151,6 +179,7 @@ def ToFraction(string):
             raise ValueError(f"'{string}' not proper fractional form")
         a, b = f
         return Fraction(int(a.strip()), int(b.strip()))
+
     s, sign = string.strip(), 1
     if not s:
         raise ValueError("Empty string")
@@ -162,9 +191,9 @@ def ToFraction(string):
         s = s[1:]
     # s is now of the form 'a/b', 'I-a/b', 'I+a/b', or 'I a/b'.  Convert
     # the mixed forms to the canonical 'I-a/b'.
-    if '+' in s:
+    if "+" in s:
         s = s.replace("+", "-")
-    elif ' ' in s:
+    elif " " in s:
         s = s.replace(" ", "-")
     if "-" in s:
         # Mixed form I-a/b
@@ -172,11 +201,12 @@ def ToFraction(string):
         if len(f) != 2:
             raise ValueError(f"'{string}' not proper fractional form")
         I, frac = f
-        return sign*(int(I) + ConvertFraction(frac))
+        return sign * (int(I) + ConvertFraction(frac))
     else:
-        return sign*ConvertFraction(s)
+        return sign * ConvertFraction(s)
 
-if __name__ == "__main__": 
+
+if __name__ == "__main__":
     # Print out fractions
     d = 16
     for n in range(1, d):

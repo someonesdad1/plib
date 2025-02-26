@@ -1,34 +1,35 @@
-'''
+"""
 Generate n sentences of gibberish
     Python implementation of consult-o-matic at http://hewgill.com/.
- 
+
     Example output:
         Of course, the highly factual report is further compounded when
         taking into account the subsystem compatibility testing.
         Similarly, the incorporation of additional mission constraints
         greatly reduces the complexity of the total system rationale.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Python script to generate meaningless gibberish
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import getopt
     import sys
     import textwrap
     from random import choice as ch
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent, wrap
-if 1:   # Global variables
+if 1:  # Global variables
     e1 = (
         "In particular,",
         "On the other hand,",
@@ -87,8 +88,7 @@ if 1:   # Global variables
         "increases time required for",
         "adds explicit performance limits to",
         "necessitates that urgent consideration be applied to",
-        "requires considerable systems analysis and trade-off "
-        "studies to arrive at",
+        "requires considerable systems analysis and trade-off studies to arrive at",
         "is further compounded when taking into account",
         "presents extremely interesting challenges to",
         "recognizes other systems' importance and the necessity for",
@@ -117,7 +117,7 @@ if 1:   # Global variables
         "the preliminary qualification limit.",
         "the evolution of specifications over a given time period.",
         "the philosophy of commonality and standardization.",
-        #"the greater fight-worthiness concept.",
+        # "the greater fight-worthiness concept.",
         "any discrete configuration mode.",
         "the management-by-contention principle.",
         "the total system rationale.",
@@ -141,14 +141,18 @@ if 1:   # Global variables
         "a parametric social-dynamics approach.",
         "a non-parametric socio-economic approach.",
     )
-if 1:   # Utility
+if 1:  # Utility
+
     def Usage(d, status=1):
         name = sys.argv[0]
-        print(dedent(f'''
+        print(
+            dedent(f"""
     Usage:  {name} [options] n
       Generate n sentences of gibberish.
-    '''))
+    """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
         try:
             opts, args = getopt.getopt(sys.argv[1:], "h")
@@ -161,10 +165,12 @@ if 1:   # Utility
         if not args:
             Usage(d, status=1)
         return int(args[0])
+
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     n = ParseCommandLine(d)
     result = []
     for i in range(n):
-        result.append(' '.join([ch(e1), ch(e2), ch(e3), ch(e4)]))
-    print(wrap(' '.join(result)))
+        result.append(" ".join([ch(e1), ch(e2), ch(e3), ch(e4)]))
+    print(wrap(" ".join(result)))

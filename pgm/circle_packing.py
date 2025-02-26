@@ -1,8 +1,8 @@
-'''
+"""
 Information on circle packing
     Data from the web page http://hydra.nat.uni-magdeburg.de/packing/cci
     (downloaded 13 Apr 2014).  Here are definitions of terms:
- 
+
     0  N
         The number of circles; colors correspond to active researchers in
         the past, see "References" at the bottom of the pag
@@ -36,34 +36,35 @@ Information on circle packing
         for the best known packing so fa
     10 records
         the sequence of N 's that establish density record
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Circle packing information
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import os
     import getopt
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
     from sig import sig
-if 1:   # Global variables
+if 1:  # Global variables
     oops = -1
     # The data are taken from the web page
     # http://hydra.nat.uni-magdeburg.de/packing/cci; the fields are
     # tab-separated.
-    data = dedent('''
+    data = dedent("""
     N 	radius 	distance 	ratio 	density 	contacts 	loose 	boundary 	symmetry group 	reference
     1 	1.000000000000000000000000000000 		1.0000000000000000000000000000 	1.000000000000000000000000000000 	1 		1 		
     2 	0.500000000000000000000000000000 	2.000000000000000000000000000000 	2.0000000000000000000000000000 	0.500000000000000000000000000000 	3 		2 	D2 	[2]
@@ -1566,8 +1567,8 @@ if 1:   # Global variables
     1498 	0.024160146433992760901776879445 	0.049516621699153698599912180678 	41.3904776087376437021851671363 	0.874401588216535735272618455870 	138 	1222 	4 		[31]
     1499 	0.024156106473034430898938180165 	0.049508136769145901013688248352 	41.3973999127841420947730685566 	0.874692702424927323042986701612 	2294 	73 	85 		[31]
     1500 	0.024136953276953005272501460056 	0.049467911215626035710238172068 	41.4302496477400378941120499724 	0.873888770240718629467810495615 	121 	1259 	4 		[31]
-    ''')
-    man = dedent('''
+    """)
+    man = dedent("""
     N
         The number of circles; colors correspond to active researchers in
         the past, see "References" at the bottom of the pag
@@ -1623,7 +1624,9 @@ if 1:   # Global variables
     [18]  J. Donovan.
     [19]  C.O. Lopez, J.E. Beasley, A heuristic for the circle packing problem with a variety of containers, European Journal of Operational Research 214 (2011) 3, 512-525.
     [31]  , program cci, 1999-2010
-    ''')
+    """)
+
+
 def Parse():
     results = {}
     for i, line in enumerate(data.split("\n")):
@@ -1648,17 +1651,29 @@ def Parse():
         symmetry_group = f[8].strip()
         reference = f[9].strip()
         results[N] = (
-            radius, distance, ratio, density, contacts, loose, boundary,
-            symmetry_group, reference,
+            radius,
+            distance,
+            ratio,
+            density,
+            contacts,
+            loose,
+            boundary,
+            symmetry_group,
+            reference,
         )
     return results
+
+
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
+
+
 def Usage(d, status=1):
     name = sys.argv[0]
     digits = d["-d"]
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {name} [options] n1 [n2 ...]
       Give data on packing n1, n2, ... circles into a unit circle.
     Options:
@@ -1667,8 +1682,11 @@ def Usage(d, status=1):
       -r        Print key and references.
       -s        Show the raw data table; floating point numbers are shown to the number of digits
                 specified by the -d option.
-    '''))
+    """)
+    )
     exit(status)
+
+
 def ParseCommandLine(d):
     d["-a"] = False
     d["-d"] = 4
@@ -1694,6 +1712,8 @@ def ParseCommandLine(d):
     if not (d["-a"] or d["-s"]) and len(args) < 1:
         Usage(d)
     return args
+
+
 def Report(n, R, d):
     r, dist, ratio, density = [sig(i) for i in R[:4]]
     contacts, loose, boundary, group, ref = R[4:]
@@ -1701,7 +1721,8 @@ def Report(n, R, d):
     dist = "" if R[1] == -1 else dist
     f = (r, dist, ratio, density, contacts, loose, boundary, group, ref)
     w, sp, h = max([len(str(i)) for i in f]), "  ", "  "
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Packing {n} circles into a unit circle:
     {h}{r:{w}}{sp}Circle radius
     {h}{dist:{w}}{sp}Largest distance between centers
@@ -1712,14 +1733,19 @@ def Report(n, R, d):
     {h}{boundary:<{w}}{sp}Boundary (number of circles with container contact)
     {h}{group:{w}}{sp}Symmetry group (Schonfliess)
     {h}{ref:{w}}{sp}Reference
-    '''))
+    """)
+    )
+
+
 def ShowRecord(n, result, d):
     print(n, end=" ")
     for i in [sig(j) for j in result[:4]]:
         print(i, end=" ")
     result[7] = "--" if not result[7] else result[7]
     result[8] = "--" if not result[8] else result[8]
-    print(' '.join([str(i).strip() for i in result[4:9]]))
+    print(" ".join([str(i).strip() for i in result[4:9]]))
+
+
 if __name__ == "__main__":
     d = {}
     args = ParseCommandLine(d)
@@ -1731,8 +1757,7 @@ if __name__ == "__main__":
             Report(i, results[i], d)
     elif d["-s"]:
         # Show the records in table form
-        print("N radius distance ratio density contacts loose boundary "
-              "symmetry ref")
+        print("N radius distance ratio density contacts loose boundary symmetry ref")
         n = len(results) + 1
         for i in range(1, n):
             ShowRecord(i, list(results[i]), d)

@@ -1,4 +1,4 @@
-'''
+"""
 TODO
 
     * Change lines with // to #
@@ -23,47 +23,53 @@ Translate C code to python
 
     Lines are otherwise left alone, so things like #include and #define
     statements will be in the resulting text.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Translate C code to python
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import re
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
     from color import C
-if 1:   # Global variables
+if 1:  # Global variables
     nl = "\n"
     comment = re.compile(r"/\*(.*?)\*/", re.S)
     if_stmnt = re.compile(r"if\s*(\(.*?\))", re.S)
     elif_stmnt = re.compile(r"(else\s+if)")
     else_stmnt = re.compile(r"(else)")
     not_token = re.compile(r"![^=]")
+
+
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
+
+
 def Commentify(s):
-    '''Split on newlines and prepend '#' to each line.  Return as a
-    string.'''
+    """Split on newlines and prepend '#' to each line.  Return as a
+    string."""
     out = []
     for line in s.split(nl):
         out.append("# " + line)
     return nl.join(out)
+
+
 def ConvertComments(s):
-    '''Convert C comments to python comments and return the string.
-    '''
+    """Convert C comments to python comments and return the string."""
     mo = comment.search(s)
     while mo:
         assert len(mo.groups()) == 1
@@ -72,9 +78,10 @@ def ConvertComments(s):
         s = s[:i] + t + s[j:]
         mo = comment.search(s)
     return s
+
+
 def RemoveSemicolons(s, file):
-    '''Note this also removes curly braces.
-    '''
+    """Note this also removes curly braces."""
     out = []
     for i, line in enumerate(s.split(nl)):
         line = line.rstrip()
@@ -92,12 +99,14 @@ def RemoveSemicolons(s, file):
             line = line.replace(";", "")
         out.append(line)
     return nl.join(out)
+
+
 def FixIfs(s, file):
-    '''Find and translate if statements:
+    """Find and translate if statements:
     !  --> not
     && --> and
     || --> or
-    '''
+    """
     out = []
     mo = if_stmnt.search(s)
     while mo:
@@ -113,10 +122,11 @@ def FixIfs(s, file):
         s = s[j:]
         mo = if_stmnt.search(s)
     out.append(s)
-    return ''.join(out)
+    return "".join(out)
+
+
 def FixElif(s, file):
-    '''Change 'else if' to 'elif' and put a colon after 'else'.
-    '''
+    """Change 'else if' to 'elif' and put a colon after 'else'."""
     out = []
     for line in s.split(nl):
         t = line.lstrip()
@@ -137,10 +147,12 @@ def FixElif(s, file):
             continue
         out.append(line)
     return nl.join(out)
+
+
 def Translate(file, d):
-    '''Translate the given file and write it to a new file with '.py'
+    """Translate the given file and write it to a new file with '.py'
     appended.
-    '''
+    """
     with open(file, "r") as fp:
         s = fp.read()
     s = s.replace("&&", " and ").replace("||", " or ")
@@ -150,9 +162,12 @@ def Translate(file, d):
     s = FixElif(s, file)
     with open(file + ".py", "w") as fp:
         fp.write(s)
+
+
 def BugNotice():
     print(f"{C.lcyn}", end="")
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Bugs in implementation:
         * Need to handle while and do{{}}while statements too
         * if () to if(): can be wrong if there are multiple tests inside
@@ -160,16 +175,21 @@ def BugNotice():
         * Pointer stuff has to be handled manually
         * goto statements not handled
         * You will still have to hand-translate stuff
-    '''))
+    """)
+    )
     print(f"{C.norm}", end="")
+
+
 if __name__ == "__main__":
     BugNotice()
     d = {}
     if len(sys.argv) < 2:
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} file1 [file2...]
           Translates the indicated C file(s) to python.  '.py' will be appended to
           the file's name.
-        '''))
+        """)
+        )
     for file in sys.argv[1:]:
         Translate(file, d)

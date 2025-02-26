@@ -1,6 +1,7 @@
-'''
+"""
 Print out a table showing the math/cmath functions and their return types.
-'''
+"""
+
 from wrap import dedent
 from astr import alen
 from color import t
@@ -13,8 +14,8 @@ z = t("purl")
 x = t("ornl")
 r = t("redl")
 e = "∊"
- 
-s = dedent(f'''
+
+s = dedent(f"""
     python 3.9.10 math functions
  
     acos(x) ;  float ; complex
@@ -70,9 +71,11 @@ s = dedent(f'''
     tanh(x) ;  float  ; complex
     trunc(x) ;  int 
     ulp(x) ;  float 
-    ''')
+    """)
+
+
 def F(s):
-    'Put in color-coding'
+    "Put in color-coding"
     s = s.replace("(x)", f"({x}x{t.n})")
     s = s.replace("(x,", f"({x}x{t.n},")
     s = s.replace("=x)", f"={x}x{t.n})")
@@ -89,45 +92,49 @@ def F(s):
     s = s.replace("bool", f"{b}bool{t.n}")
     s = s.replace("(z)", f"({z}z{t.n})")
     return s
+
+
 # Print the elements in columns
 for line in s.split("\n"):
     if "python" in line:
         print(line)
-        print(f"{' '*28}Return type(s)")
-        t.print(f"{' '*22}{r}math{' '*16}cmath")
-        t.print(f"{' '*22}{r}----{' '*16}-----")
+        print(f"{' ' * 28}Return type(s)")
+        t.print(f"{' ' * 22}{r}math{' ' * 16}cmath")
+        t.print(f"{' ' * 22}{r}----{' ' * 16}-----")
         continue
     if not line.strip():
-        #print()
+        # print()
         continue
     g = line.split(";")
     name = F(g[0])
-    print(name, end=" "*(20 - alen(name)))
+    print(name, end=" " * (20 - alen(name)))
     mret = F(g[1])
-    print(mret, end=" "*(20 - alen(mret)))
+    print(mret, end=" " * (20 - alen(mret)))
     if len(g) > 2:
         print(F(g[2]))
     else:
         print()
 print()
-s = dedent('''
+s = dedent("""
     phase(z); float
     polar(z); float, float
     rect(float, float) ; complex
-''')
+""")
 for line in s.split("\n"):
     if not line:
         continue
     g = line.split(";")
     name = F(g[0])
-    print(name, end=" "*(40 - alen(name)))
+    print(name, end=" " * (40 - alen(name)))
     cmret = F(g[1])
     print(F(cmret))
 print()
-t.print(f'''
+t.print(
+    f"""
 Type color coding:  {b}bool    {i}int    {f}float    {c}complex{t.n}
     {x}x{t.n}, {x}y{t.n} {e} {{{i}int{t.n}, {f}float{t.n}}}
     {z}z{t.n} {e} {{{i}int{t.n}, {f}float{t.n}, {c}complex{t.n}}}
     iseq = sequence of {i}int{t.n}
     fseq = sequence of {i}int{t.n} or {f}float{t.n}
-'''.strip())
+""".strip()
+)

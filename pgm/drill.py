@@ -1,4 +1,4 @@
-'''
+"""
 Print out a table of drill sizes
 
     If an argument was given, print out the nearest drill sizes.  Use
@@ -11,31 +11,32 @@ Print out a table of drill sizes
 
     I don't have a metric set, but typical sets go from 1 to 13 mm by 0.5
     mm steps.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Print out drill sizes
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import getopt
     from fractions import Fraction
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
     from columnize import Columnize
     from color import t
     import color as c
-if 1:   # Global variables
-    DrillSizes = '''
+if 1:  # Global variables
+    DrillSizes = """
         # Name:(diameter in inches)
         # Letter sizes
         A:0.234 B:0.238 C:0.242 D:0.246 E:0.250 F:0.257 G:0.261 H:0.266
@@ -57,7 +58,9 @@ if 1:   # Global variables
         68:0.0310 69:0.0293 70:0.0280 71:0.0260 72:0.0250 73:0.0240
         74:0.0225 75:0.0210 76:0.0200 77:0.0180 78:0.0160 79:0.0145
         80:0.0135
-    '''
+    """
+
+
 def GetDictFromString(string):
     d = {}
     for line in string.split("\n"):
@@ -69,45 +72,54 @@ def GetDictFromString(string):
             size, dia_inches = f
             d[size] = float(dia_inches)
     return d
+
+
 def Str(x):
-    '''If x is equal to an integer, return its string value.  Otherwise,
+    """If x is equal to an integer, return its string value.  Otherwise,
     return it with one decimal place.
-    '''
+    """
     if int(x) == x:
         return str(int(x))
     else:
         return f"{x:.1f}"
+
+
 def GetDrillSizes(metric=False):
-    '''Return a dictionary relating drill name (a string or number) to
+    """Return a dictionary relating drill name (a string or number) to
     drill diameter in inches.  The keys will be:
         Ends in 'mm'       Metric size in mm
         Capital letters    Letter drills
         Number strings     Number drills
         Contains '/'       Fractional
     If metric is True, return the dictionary values in mm.
-    '''
-    sz, denominator, in2mm, mm2in = {}, 64, 25.4, 1/25.4
+    """
+    sz, denominator, in2mm, mm2in = {}, 64, 25.4, 1 / 25.4
     # Fractions of an inch
     for numerator in range(1, denominator + 1):
         f = Fraction(numerator, denominator)
         sz[f"{f.numerator}/{f.denominator}"] = f
     # Metric (integer steps in units of 0.1 mm)
     min, max, step = 1, 13, 0.5
-    for i in range(min*10, int(max + step)*10 + 1, int(10*step)):
-        sz[Str(i/10) + " mm"] = (i/10)*mm2in
+    for i in range(min * 10, int(max + step) * 10 + 1, int(10 * step)):
+        sz[Str(i / 10) + " mm"] = (i / 10) * mm2in
     sz.update(GetDictFromString(DrillSizes))
     if metric:
         for i in sz:
-            sz[i] = round(sz[i]*in2mm, 2)
+            sz[i] = round(sz[i] * in2mm, 2)
     return sz
+
+
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
+
+
 def Usage(d, status=1):
     name = sys.argv[0]
     tol = d["-t"]
     metric = bool(d["-m"])
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {name} [options] [size1 [size2...]]
       Prints out a table of drill sizes if no arguments given.  For each
       size in inches, print out nearest standard drill sizes.  Append 'mm'
@@ -125,12 +137,15 @@ def Usage(d, status=1):
         -t pct
             When printing a list of matching sizes, use pct as the
             tolerance in percent.  [{tol}%]
-    '''))
+    """)
+    )
     exit(status)
+
+
 def ParseCommandLine(d):
-    d["-c"] = True      # Output in color
-    d["-m"] = False     # Output in mm
-    d["-t"] = "10"      # Tolerance in %
+    d["-c"] = True  # Output in color
+    d["-m"] = False  # Output in mm
+    d["-t"] = "10"  # Tolerance in %
     try:
         opts, sizes = getopt.getopt(sys.argv[1:], "chmt:")
     except getopt.GetoptError as e:
@@ -152,10 +167,14 @@ def ParseCommandLine(d):
             except Exception:
                 Error("'{0}' is a bad percentage (use -h for help)".format(a))
     return sizes
+
+
 def GetFormat(max_length, d):
     metric = d["-m"]
     rnd = 2 if metric else 4
     return "{{0:^{0}s}}  {{1:.{1}f}}".format(max_length, rnd)
+
+
 def PrintTable(d):
     metric = d["-m"]
     sz = [(size, name) for name, size in GetDrillSizes(metric=d["-m"]).items()]
@@ -169,6 +188,8 @@ def PrintTable(d):
     print("Drill sizes in", "mm" if metric else "inches")
     for i in Columnize(out):
         print(i)
+
+
 def PrintSize(size, d):
     size = size.strip()
     metric, indent = d["-m"], 4
@@ -176,50 +197,56 @@ def PrintSize(size, d):
     try:
         if size.endswith("mm"):
             s = size.replace("mm", "")
-            convert_size = 1/25.4
-        sz_inches = convert_size*float(eval(s))
+            convert_size = 1 / 25.4
+        sz_inches = convert_size * float(eval(s))
         if sz_inches <= 0:
             raise Exception
     except Exception:
         Error("'{0}' is a bad size (use -h for help)".format(size))
-    tol = float(d["-t"])/100
+    tol = float(d["-t"]) / 100
     # Find sizes that are within +/- tol of the indicated size.
     print("Drills within {0}% of size '{1}':".format(d["-t"], size))
     if metric:
-        print(" "*indent, "Target size = ",
-              "{0:.2f} mm".format(sz_inches*25.4), sep="")
+        print(
+            " " * indent,
+            "Target size = ",
+            "{0:.2f} mm".format(sz_inches * 25.4),
+            sep="",
+        )
     else:
-        print(" "*indent, "Target size = ",
-              "{0:.4f} inches".format(sz_inches), sep="")
+        print(
+            " " * indent, "Target size = ", "{0:.4f} inches".format(sz_inches), sep=""
+        )
     sz = [(size, name) for name, size in GetDrillSizes(metric=d["-m"]).items()]
     sz.sort()
     s = []
     for size, name in sz:
-        if (1 - tol)*sz_inches <= size <= (1 + tol)*sz_inches:
+        if (1 - tol) * sz_inches <= size <= (1 + tol) * sz_inches:
             s.append((size, name))
     max_length = max([len(name) for size, name in sz])
     # Get the best match
     matches = []
     for size, name in s:
-        pct = 100*(float(size) - sz_inches)/sz_inches
+        pct = 100 * (float(size) - sz_inches) / sz_inches
         matches.append((abs(pct), name))
     if not matches:
         print("No matches found")
         exit(0)
     matches.sort()
     best = matches[0][1]
-    fmt = " "*4 + GetFormat(max_length, d)
-    fmt += " "*indent + "{2: .2g}%    {3}"
+    fmt = " " * 4 + GetFormat(max_length, d)
+    fmt += " " * indent + "{2: .2g}%    {3}"
     for size, name in s:
         flag = "*" if name == best else ""
         if d["-c"] and name == best:
             print(f"{t('ornl')}", end="")
-        pct = 100*(float(size) - sz_inches)/sz_inches
+        pct = 100 * (float(size) - sz_inches) / sz_inches
         print(fmt.format(name, float(size), pct, flag))
         if d["-c"]:
             print(f"{t.n}", end="")
 
-if __name__ == "__main__": 
+
+if __name__ == "__main__":
     d = {}  # Options dictionary
     sizes = ParseCommandLine(d)
     if sizes:

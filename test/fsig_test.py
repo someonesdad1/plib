@@ -2,9 +2,10 @@ from lwtest import run, assert_equal, raises
 from fsig import fsig
 from pdb import set_trace as xx
 
+
 def Test_fsig():
     p = 3.141592653
-    data = '''-10 3.14e-10
+    data = """-10 3.14e-10
               -9 3.14e-09
               -8 3.14e-08
               -7 3.14e-07
@@ -24,11 +25,12 @@ def Test_fsig():
               7 3.14e+07
               8 3.14e+08
               9 3.14e+09
-              10 3.14e+10'''
+              10 3.14e+10"""
     for line in data.split("\n"):
         e, s = line.split()
-        x = p*10**(int(e))
-        assert(s == fsig(x))
+        x = p * 10 ** (int(e))
+        assert s == fsig(x)
+
 
 if __name__ == "__main__":
     exit(run(globals())[0])

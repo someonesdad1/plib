@@ -1,11 +1,11 @@
-'''
+"""
 Print out solder melting points.  Data taken from
 https://www.kester.com/Portals/0/Documents/Knowledge%20Base/Alloy%20Temperature%20Chart.pdf
-'''
+"""
 
 from color import *
 
-data = '''
+data = """
                          °C           °F
 HIGH-TEMP
     Sn5Pb93.5Ag1.5    296-301
@@ -28,11 +28,13 @@ LEAD-FREE
     Sn96.5Ag3Cu0.5    217-220
     Sn96.3Ag3.7       221-223
     Sn95Sb5           232-240
-'''[1:-1]
+"""[1:-1]
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
+
     def c2f(x):
-        return 1.8*x + 32
+        return 1.8 * x + 32
+
     print("Solder melting point ranges\n")
     for i, line in enumerate(data.split("\n")):
         if not i:
@@ -46,10 +48,10 @@ if __name__ == "__main__":
                 fg(lcyan)
             if "-" in mp:
                 low, high = [int(j) for j in mp.split("-")]
-                mp = (low + high)/2
-                pm = (high - low)/2
+                mp = (low + high) / 2
+                pm = (high - low) / 2
                 dc = "{} ± {}".format(int(mp), int(pm))
-                df = "{} ± {}".format(int(c2f(mp)), int(1.8*pm))
+                df = "{} ± {}".format(int(c2f(mp)), int(1.8 * pm))
             else:
                 mp = int(mp)
                 dc = "{}".format(mp)

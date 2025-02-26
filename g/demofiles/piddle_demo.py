@@ -1,4 +1,4 @@
-''' 
+"""
 
 This file produces a drawing similar to the demo picture included with the
 piddle (also called sping) package.  I first took a look at piddle before
@@ -13,25 +13,28 @@ The piddle code for the picture is:
 canvas.defaultLineColor = Color(0.7,0.7,1.0)    # (light blue)
 canvas.drawLines(map(lambda i:(i*10,0,i*10,300), range(30)))
 canvas.drawLines(map(lambda i:(0,i*10,300,i*10), range(30)))
-canvas.defaultLineColor = black         
+canvas.defaultLineColor = black
 canvas.drawLine(10,200, 20,190, color=red)
 canvas.drawEllipse(130,30, 200,100, fillColor=yellow, edgeWidth=4)
-canvas.drawArc(130,30, 200,100, 45,50, fillColor=blue, edgeColor=navy, 
+canvas.drawArc(130,30, 200,100, 45,50, fillColor=blue, edgeColor=navy,
                 edgeWidth=4)
 canvas.defaultLineWidth = 4
 canvas.drawRoundRect(30,30, 100,100, fillColor=blue, edgeColor=maroon)
 canvas.drawCurve(20,20, 100,50, 50,100, 160,160)
-canvas.drawString("This is a test!", 30,130, Font(face="times",size=16,bold=1), 
+canvas.drawString("This is a test!", 30,130, Font(face="times",size=16,bold=1),
              color=green, angle=-45)
 polypoints = [(160,120), (130,190), (210,145), (110,145), (190,190)]
-canvas.drawPolygon(polypoints, fillColor=lime, edgeColor=red, edgeWidth=3, 
+canvas.drawPolygon(polypoints, fillColor=lime, edgeColor=red, edgeWidth=3,
                    closed=1)
 canvas.drawRect(200,200,260,260, edgeColor=yellow, edgeWidth=5)
 canvas.drawLine(200,260,260,260, color=green, width=5)
 canvas.drawLine(260,200,260,260, color=red, width=5)
 canvas.flush()
-'''
+"""
+
 from g import *
+
+
 def DrawBlueLines():
     push()
     lineColor(lightblue)
@@ -52,6 +55,8 @@ def DrawBlueLines():
         line(x, y, x, height)
         x = x + increment
     pop()
+
+
 def RoundedRectangle():
     push()
     lineColor(maroon)
@@ -61,11 +66,15 @@ def RoundedRectangle():
     move(0.6, 7.4)
     roundedRectangle(2, 2, 0.4)
     pop()
+
+
 def ShortRedLine():
     push()
     lineColor(red)
     line(0.2, 5.2, 0.4, 5.4)
     pop()
+
+
 def BlackPath():
     push()
     lineWidth(0.1)
@@ -75,6 +84,8 @@ def BlackPath():
     pathAdd((2.5, 9, 1.6, 7, 3.75, 6), path_bezier)
     drawPath()
     pop()
+
+
 def Pie():
     push()
     x_center = 4
@@ -96,6 +107,8 @@ def Pie():
     pathClose()
     fillPath()
     pop()
+
+
 def Star():
     push()
     translate(3.75, 6)
@@ -107,6 +120,7 @@ def Star():
     newPath()
     # Construct the points for a 5-pointed star
     from math import sin, cos, pi
+
     r = 1
     c = pi / 180
     points = [
@@ -122,6 +136,8 @@ def Star():
     eoFillPath(p)
     drawPath(p)
     pop()
+
+
 def DrawText():
     push()
     translate(0.6, 6.8)
@@ -132,6 +148,8 @@ def DrawText():
     move(0, 0)
     text("This is a test!")
     pop()
+
+
 def DrawBox():
     push()
     x = 4.6
@@ -150,7 +168,9 @@ def DrawBox():
     lineColor(red)
     line(x + s, y, x + s, y + s)
     pop()
-if __name__ == "__main__": 
+
+
+if __name__ == "__main__":
     file = "out/piddle_demo.ps"
     Setup(file, orientation=portrait, units=inches)
     margin = 0.5

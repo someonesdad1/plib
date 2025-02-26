@@ -1,4 +1,4 @@
-'''
+"""
 
 ToDo
     - Turn this into a design tool given wire insulation temperature rating, number of conductors
@@ -23,7 +23,7 @@ intercepts.
 
               Table 1
               -------
-    AWG     ΔT = 30°C     ΔT = 250°C 
+    AWG     ΔT = 30°C     ΔT = 250°C
     ---     ---------     ----------
     10         38             104
     12         29             79
@@ -36,14 +36,14 @@ intercepts.
     26         4.58           12.1
 
 https://www.lectromec.com/maximum-harness-ampacity/
-https://www.lectromec.com/ampacity-improvements/ 
+https://www.lectromec.com/ampacity-improvements/
 
     Summary:  electrical harness design has become much more sophisticated, with both better
     thermal modeling (including lower air pressures at elevated altitudes) and predicting
     degradation of insulation at elevated temperatures.
 
     Fundamentally, the design of cable bundles is a heat transfer and materials problem, compounded
-    by the need to worry about the long-term degradation of insulation at elevated temperatures.  
+    by the need to worry about the long-term degradation of insulation at elevated temperatures.
 
 The HP 6033A power supply manual on page 37 of the Agilent PDF gives a table of stranded copper
 wire ampacity in A derived from MIL-W-5088B (is probably for 50 °C ambient):
@@ -74,18 +74,20 @@ turn came from SAMS, Handbook of Electronics Tables and Formulas, various editio
 read comments that this SAMS information probably was based on a military standard and, through the
 Agilent 6033 manual, I found the number MIL-W-5088L (the L revision is dated in the 1990's and appears
 to be the latest).
-'''
+"""
 
 from math import log10
 from get import GetNumberArray
 from f import flt
+
 if 1:
     import debug
+
     debug.SetDebugger()
 
 # Columns are
-#  AWG        
-data = '''
+#  AWG
+data = """
     10         38             104
     12         29             79
     14         21.6           60
@@ -95,20 +97,22 @@ data = '''
     22         8.22           21
     24         6.2            16
     26         4.58           12.1
-'''
+"""
 # The array Ig contains the values I read from the MIL5088L graph for 60°C
 Ig = [51.3, 40.4, 29.7, 22.3, 19, 14.4, 11, 8.6, 6.4]
 # AWG  10    12    14    16   18   20   22  24   26
 
+
 def GetLine(Δt30, Δt250):
-    'Return the slope m and intercept 10**b'
+    "Return the slope m and intercept 10**b"
     x1, y1 = log10(30), log10(Δt30)
     x2, y2 = log10(250), log10(Δt250)
-    m = (y2 - y1)/(x2 - x1)
-    b = y1 - m*x1
+    m = (y2 - y1) / (x2 - x1)
+    b = y1 - m * x1
     return flt(m), flt(10**b)
 
-indent = " "*4
+
+indent = " " * 4
 # Calculate linear fit slope and intercept
 AWG, ΔT30, ΔT250 = GetNumberArray(data)
 AWG = [int(i) for i in AWG]
@@ -122,7 +126,7 @@ for i, awg in enumerate(AWG):
     M.append(m)
     B.append(b)
     print(f"{indent}{awg:2d}        {m} {b!s:^22s}")
-mean_slope = flt(sum(M)/len(M))
+mean_slope = flt(sum(M) / len(M))
 print(f"{indent}Mean slope = {mean_slope}")
 
 # Print the formula's prediction:  i = b*ΔT**m
@@ -131,8 +135,8 @@ print(f"{indent}AWG    Formula    Graph     %diff")
 print(f"{indent}---    -------    -----     -----")
 ΔT = 60
 for i, awg in enumerate(AWG):
-    I = flt(B[i]*ΔT**M[i])
-    pdiff = flt(100*(Ig[i] - I)/Ig[i])
+    I = flt(B[i] * ΔT ** M[i])
+    pdiff = flt(100 * (Ig[i] - I) / Ig[i])
     print(f"{indent}{awg}       {I!s:6s}    {flt(Ig[i])!s:6s}    {pdiff:4.1f}")
 
 # Compare to Chass currents in existing table
@@ -145,16 +149,18 @@ x = flt(0)
 x.n = 2
 x.rtz = x.rtdp = True
 for i, awg in enumerate(AWG):
-    I = flt(B[i]*ΔT**M[i])
-    Im = flt(B[i]*ΔT**mean_slope)
+    I = flt(B[i] * ΔT ** M[i])
+    Im = flt(B[i] * ΔT**mean_slope)
     exact = I
     chass = Chass[i]
-    pct = flt(100*(chass - exact)/exact)
+    pct = flt(100 * (chass - exact) / exact)
     s = "*" if -pct > 5 else ""
-    print(f"{indent}{awg}     {I:6.1f}      {Im:6.1f}       "
-          f"{Chass[i]:^6s}     {pct!s:^12s} {s}")
+    print(
+        f"{indent}{awg}     {I:6.1f}      {Im:6.1f}       "
+        f"{Chass[i]:^6s}     {pct!s:^12s} {s}"
+    )
 
-'''
+"""
 Results:
 
 Slope and intercept:
@@ -203,4 +209,4 @@ values.  I suspect the 'Exact Calc' values may be too large.
 The wires I have on-hand to test are:  18 ga solid copper bell wire and 24
 ga solid copper from some CAT5 cable.
 
-'''
+"""

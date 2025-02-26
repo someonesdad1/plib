@@ -1,43 +1,46 @@
-'''
+"""
 List of shortwave frequencies from catalog #14 of the C. Crane
 Company.  The list was updated May 2003.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2003 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2003 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # List of shortwave frequencies
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import getopt
     import os
     import re
     import sys
     from collections import defaultdict, deque
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import wrap, dedent
     from columnize import Columnize
-if 1:   # Frequency class
+if 1:  # Frequency class
+
     class Freq:
-        '''Encapsulate a frequency in kHz, allowing suffixes like "v",
+        """Encapsulate a frequency in kHz, allowing suffixes like "v",
         "-lsb", and "-usb".  The primary functionality is to sort the
         frequency numerically regardless of the suffix.
-        '''
+        """
+
         def __init__(self, s):
             me, freq = deque(s), deque()
             digits = "0123456789."
             while me and me[0] in digits:
                 freq.append(me.popleft())
-            f = ''.join(freq)
-            s = ''.join(me)
+            f = "".join(freq)
+            s = "".join(me)
             self.suffix = ""
             if s == "-usb":
                 self.suffix = "U"
@@ -46,20 +49,25 @@ if 1:   # Frequency class
             elif s == "v":
                 self.suffix = "v"
             self.kHz = round(float(f), 1) if "." in f else int(f)
+
         def __lt__(self, other):
-            assert(isinstance(other, Freq))
+            assert isinstance(other, Freq)
             return self.kHz < other.kHz
+
         def __str__(self):
             return str(self.kHz) + str(self.suffix)
-if 1:   # Data
+
+
+if 1:  # Data
+
     def CCrane():
-        '''Returns a dictionary indexed by frequency; the values are the
+        """Returns a dictionary indexed by frequency; the values are the
         countries.  Downloaded 15 Aug 2021 from
         https://ccrane.com/shortwave-frequency-list/.  Notations:  usb =
         upper sideband, lsb = lower sideband, v = frequency varies or is
         not exact.
-        '''
-        data = '''
+        """
+        data = """
             Alaska: 6150 6950 7355 9920
             Albania: 6115 7425 7450 7465
             Argentina: 9690 11710 15345
@@ -148,7 +156,7 @@ if 1:   # Data
             Yemen: 9780v
             Zambia: 4910 5915 6165
             Zanzibar: 11735
-        '''
+        """
         byfreq = defaultdict(list)
         for line in data.split("\n"):
             line = line.strip()
@@ -159,11 +167,12 @@ if 1:   # Data
                 f = Freq(s)
                 byfreq[f].append(country)
         return byfreq
+
     def PrimeTime():
-        '''From http://www.primetimeshortwave.com/country.txt downloaded 
+        """From http://www.primetimeshortwave.com/country.txt downloaded
         15 Aug 2021.
-        '''
-        data = '''
+        """
+        data = """
             PRIME TIME SHORTWAVE - http://www.primetimeshortwave.com
             English shortwave broadcasts sorted by country
 
@@ -894,24 +903,30 @@ if 1:   # Data
             Zambia          V.of Hope Africa  1600-1900 sAf, M-F   4965
             Zambia          V.of Hope Africa  1600-1900 wAf, M-F   6065
             Zambia          V.of Hope Africa  1700-1730 sAf, Su    9680
-        '''
+        """
 
-if 1:   # Utility
+
+if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] [freq1] [freq2 ...]
           Search for shortwave frequencies in kHz.
         Options:
           -c  Print table by country
           -f  Print table by frequency
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-c"] = False     # Print table by country
-        d["-f"] = False     # Print table by frequency
+        d["-c"] = False  # Print table by country
+        d["-f"] = False  # Print table by frequency
         try:
             opts, args = getopt.getopt(sys.argv[1:], "cf")
         except getopt.GetoptError as e:
@@ -923,7 +938,10 @@ if 1:   # Utility
         if not args and not d["-c"] and not d["-f"]:
             Usage()
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def ConstructDictionary():
         dict = {}
         for line in data.split("\n"):
@@ -934,6 +952,7 @@ if 1:   # Core functionality
             country = country.strip()
             dict[country] = frequencies.split()
         return dict
+
     def PrintByCountry(dict):
         print("Frequencies in kHz by country:")
         out = defaultdict(list)
@@ -942,8 +961,9 @@ if 1:   # Core functionality
                 out[c].append(f)
         for c in sorted(out):
             print(f"{c}")
-            for line in Columnize(out[c], indent=" "*4):
+            for line in Columnize(out[c], indent=" " * 4):
                 print(line)
+
     def PrintByFrequency(dict):
         print("By frequency in kHz:")
         out = deque()
@@ -952,6 +972,7 @@ if 1:   # Core functionality
                 out.append((f, c))
         for f, c in sorted(out):
             print(f"{f!s:8s} {c}")
+
     def Search(args, dict):
         found = deque()
         for arg in args:
@@ -959,10 +980,11 @@ if 1:   # Core functionality
             for f in dict:
                 mo = r.search(str(f))
                 if mo:
-                    print(f, ', '.join(dict[f]))
-        
+                    print(f, ", ".join(dict[f]))
+
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     dict = CCrane()
     if d["-f"]:

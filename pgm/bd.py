@@ -1,7 +1,8 @@
-'''
+"""
 Prints hex dumps of the differences between two files
-'''
-'''
+"""
+
+"""
 Algorithm
 
     The method is to read in blocks of the files and perform comparisons on
@@ -48,75 +49,83 @@ Algorithm
         --------------------------------------------------------------------------
 
     (This looks a little cleaner on a state machine diagram.)
-'''
-if 1:   # Header
+"""
+if 1:  # Header
     # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
-        # Prints hex dumps of the differences between two files
-        #∞what∞#
-        #∞test∞# --test #∞test∞#
+    # These "trigger strings" can be managed with trigger.py
+    # ∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    # ∞license∞#
+    # ∞what∞#
+    # Prints hex dumps of the differences between two files
+    # ∞what∞#
+    # ∞test∞# --test #∞test∞#
     # Standard imports
-        import getopt
-        import os
-        from pathlib import Path as P
-        import sys
-        import enum
-        from pdb import set_trace as xx
+    import getopt
+    import os
+    from pathlib import Path as P
+    import sys
+    import enum
+    from pdb import set_trace as xx
+
     # Custom imports
-        from wrap import wrap, dedent
-        from color import Color, TRM as t
-        from lwtest import Assert
-        if 0:
-            from hexdump import hexdump
-        else:
-            from hd import hexdump
+    from wrap import wrap, dedent
+    from color import Color, TRM as t
+    from lwtest import Assert
+
+    if 0:
+        from hexdump import hexdump
+    else:
+        from hd import hexdump
     # Global variables
-        ii = isinstance
-        class g:
-            pass
-        g.columns = int(os.environ.get("COLUMNS", "80")) - 1
-        g.lines = int(os.environ.get("LINES", "50"))
-        g.block_size = 2**16
-        g.offset = 0    # Offset for both file buffers
-        g.path1 = None  # Path object to file 1
-        g.path2 = None  # Path object to file 2
-        g.size1 = None  # Size of file1 in bytes
-        g.size2 = None  # Size of file2 in bytes
-        g.size = None   # Common number of bytes
-        g.stream1 = None    # Stream 1
-        g.stream2 = None    # Stream 2
-        g.buf1 = None   # Buffer 1
-        g.buf2 = None   # Buffer 2
-        # States of the finite state machine
-        g.start = 0     # Starting state
-        g.eq = 1        # Last bytes were equal
-        g.ne = 2        # Last bytes were unequal
-        g.end = 3       # Encountered end of file
-        g.previous_state = g.start
-        g.state = g.start
-        # The following list contains Diff objects that show where
-        # the bytes were different.
-        g.diffs = []
-        # Set to True to get debug printing
-        g.debug = 1
-if 1:   # Utility
+    ii = isinstance
+
+    class g:
+        pass
+
+    g.columns = int(os.environ.get("COLUMNS", "80")) - 1
+    g.lines = int(os.environ.get("LINES", "50"))
+    g.block_size = 2**16
+    g.offset = 0  # Offset for both file buffers
+    g.path1 = None  # Path object to file 1
+    g.path2 = None  # Path object to file 2
+    g.size1 = None  # Size of file1 in bytes
+    g.size2 = None  # Size of file2 in bytes
+    g.size = None  # Common number of bytes
+    g.stream1 = None  # Stream 1
+    g.stream2 = None  # Stream 2
+    g.buf1 = None  # Buffer 1
+    g.buf2 = None  # Buffer 2
+    # States of the finite state machine
+    g.start = 0  # Starting state
+    g.eq = 1  # Last bytes were equal
+    g.ne = 2  # Last bytes were unequal
+    g.end = 3  # Encountered end of file
+    g.previous_state = g.start
+    g.state = g.start
+    # The following list contains Diff objects that show where
+    # the bytes were different.
+    g.diffs = []
+    # Set to True to get debug printing
+    g.debug = 1
+if 1:  # Utility
+
     def Debug(msg, **kw):
         if g.debug:
             print(f"{t('cyn')}", end="")
             print(msg, **kw)
             t.out()
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] file1 file2
           Print hex dumps of the differences between two binary files.
           Returns 0 if files are identical, 1 if not.
@@ -124,16 +133,17 @@ if 1:   # Utility
             -%      Print ASCII graphical summary indexed by percentage
                     through the files
             -q      Do not print differences, just return status
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-%"] = False     # ASCII graphical summary
-        d["-q"] = False     # Only return status
+        d["-%"] = False  # ASCII graphical summary
+        d["-q"] = False  # Only return status
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "%ad:h", 
-                    ["help", "debug"])
+            opts, args = getopt.getopt(sys.argv[1:], "%ad:h", ["help", "debug"])
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -146,8 +156,7 @@ if 1:   # Utility
                     if not (1 <= d["-d"] <= 15):
                         raise ValueError()
                 except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                        "1 and 15")
+                    msg = "-d option's argument must be an integer between 1 and 15"
                     Error(msg)
             elif o in ("-h", "--help"):
                 Usage(status=0)
@@ -155,30 +164,42 @@ if 1:   # Utility
                 # Set up a handler to drop us into the debugger on an
                 # unhandled exception
                 import debug
+
                 debug.SetDebugger()
         if len(args) != 2:
             Usage()
         return args
-if 1:   # Classes
+
+
+if 1:  # Classes
+
     class Diff:
         def __init__(self, start):
-            assert(ii(start, int))
+            assert ii(start, int)
             self._start = self._end = start
+
         def inc(self):
             self._end += 1
+
         @property
         def start(self):
             return self._start
+
         @property
         def end(self):
             return self._end
+
         def __str__(self):
             return f"Diff({self.start}, {self.end})"
+
         def __repr__(self):
             return str(self)
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def Initialize(file1, file2):
-        'Set up our variables'
+        "Set up our variables"
         g.path1, g.path2 = P(file1), P(file2)
         # The files must exist on the file system
         if not g.path1.is_file():
@@ -197,18 +218,21 @@ if 1:   # Core functionality
         # Open the streams
         g.stream1 = g.path1.open("rb")
         g.stream2 = g.path2.open("rb")
+
     def ReadBlock():
-        '''Read a block into both buffers.  Return the smaller of the number of
+        """Read a block into both buffers.  Return the smaller of the number of
         bytes read.  Return 0 when one of the streams is at EOF.
-        '''
+        """
+
         def IsEOF(stream):
-            'Return True if stream is at EOF'
+            "Return True if stream is at EOF"
             curr_position = stream.tell()
-            stream.seek(0, 2)   # Go to EOF
+            stream.seek(0, 2)  # Go to EOF
             eof_position = stream.tell()
             # Go back to starting position
             stream.seek(curr_position)
             return curr_position == eof_position
+
         if IsEOF(g.stream1) or IsEOF(g.stream2):
             g.buf1 = g.buf2 = None
             return 0
@@ -220,10 +244,11 @@ if 1:   # Core functionality
         g.buf1 = g.buf1[:n]
         g.buf2 = g.buf2[:n]
         return n
+
     def AnalyzeBlock(n):
-        '''n is the size of the next block of bytes to compare.  Compare
+        """n is the size of the next block of bytes to compare.  Compare
         each byte in the buffers and set the state.
-        '''
+        """
         # Logical checks
         Assert(n)
         Assert(g.buf1 is not None and g.buf2 is not None)
@@ -242,10 +267,12 @@ if 1:   # Core functionality
             elif g.state == g.ne:
                 # Increment Diff object's count
                 g.diffs[-1].inc()
+
     def Dump():
-        'Debug dump of g.diffs'
+        "Debug dump of g.diffs"
         for i in g.diffs:
             Debug(i)
+
     def PrintReport():
         for i in g.diffs:
             offset, length = i.start, i.end - i.start + 1
@@ -261,10 +288,10 @@ if 1:   # Core functionality
                 hexdump(g.stream2, offset=offset, length=length, out=sys.stdout)
             else:
                 hexdump(g.stream2, offset=offset, n=length, out=sys.stdout)
-        
+
 
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     file1, file2 = ParseCommandLine(d)
     Initialize(file1, file2)
     while True:

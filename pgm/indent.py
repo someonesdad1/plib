@@ -1,4 +1,4 @@
-r'''
+r"""
 TODO
 
     * Add -n for dry run (--dry-run for astyle option)
@@ -36,52 +36,74 @@ TODO
 
 ----------------------------------------------------------------------
 Front end to the astyle command for indenting C/C++ code.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Wrapper program for the astyle tool to indent C/C++ code
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Standard imports
+if 1:  # Standard imports
     import getopt
     import os
     import pathlib
     import subprocess
     import sys
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import wrap, dedent
-    from color import (C, fg, black, blue, green, cyan, red, magenta,
-        brown, white, gray, lblue, lgreen, lcyan, lred, lmagenta, yellow,
-        lwhite)
+    from color import (
+        C,
+        fg,
+        black,
+        blue,
+        green,
+        cyan,
+        red,
+        magenta,
+        brown,
+        white,
+        gray,
+        lblue,
+        lgreen,
+        lcyan,
+        lred,
+        lmagenta,
+        yellow,
+        lwhite,
+    )
     from cmddecode import CommandDecode
+
     if 0:
         import debug
+
         debug.SetDebugger()
-if 1:   # Global variables
+if 1:  # Global variables
     P = pathlib.Path
     ii = isinstance
+
     class g:
         pass
+
     g.astyle = "c:/cygwin/home/Don/bin/astyle.exe"
-    g.styles = '''
+    g.styles = """
         1tbs allman attach banner break bsd gnu google horstmann java k&r
         k/r knf kr linux lisp mozilla otbs pico ratliff run-in stroustrup
         vtk whitesmith
-        '''.split()
-    g.allowed = set("c cpp h hpp m mm".split())    # Allowed extensions
+        """.split()
+    g.allowed = set("c cpp h hpp m mm".split())  # Allowed extensions
     # The following styles are used for the -h option
-    g.styles_list = '''
+    g.styles_list = """
         banner bsd gnu google java kr linux mozilla otbs pico python
         run-in stroustrup vtk whitesmith
-    '''.split()
+    """.split()
     g.style_aliases = {
         # Use to show synonyms in -h option
         "bsd": "allman break",
@@ -97,7 +119,7 @@ if 1:   # Global variables
     g.backup_ext = ".astyle.bak"
     g.default_style = None
     g.cmd = CommandDecode(set(g.styles))
-    g.sample = dedent('''
+    g.sample = dedent("""
     int Function(bool use_other) {
         if (use_other) {
             Other();
@@ -105,37 +127,45 @@ if 1:   # Global variables
         } else
             return 0;
     }
-    ''')
-if 1:   # Error handling
+    """)
+if 1:  # Error handling
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-if 1:   # Classes
+
+
+if 1:  # Classes
+
     class Styles:
-        '''Container for styles.  The methods/attributes are containers of
+        """Container for styles.  The methods/attributes are containers of
         the various styles that can be used (.x means it's an attribute and
         a tuple):
             .core       These are astyle styles
             aliases     Gives astyle style synonyms dictionary
-        '''
+        """
+
         def __init__(self):
             pass
+
     class FileList:
-        '''This is a container for the files given on the command line.
+        """This is a container for the files given on the command line.
         Globbing symbols are allowed.  This object lets all of the files
         be passed at once to the astyle command for better performance.
         It also allows the permissions to be restored after astyle runs, as
         astyle screws up permissions on Windows.
-        '''
+        """
+
         def __init__(self, files):
             self.files = files
             # Container for filenames and starting permissions
             self.filelist = {}
             self.resolve()
+
         def resolve(self):
-            '''Expand self.files into a dict to eliminate globs and capture
+            """Expand self.files into a dict to eliminate globs and capture
             the files' permissions
-            '''
+            """
             if "**" in self.get_files():
                 Error("Cannot use '**' in glob expressions")
             for file in self.files:
@@ -146,26 +176,31 @@ if 1:   # Classes
                 else:
                     p = P(file)
                     self.filelist[file] = os.stat(p).st_mode
-        def get(self):
-            'Return string for astyle command line'
-            return ' '.join(self.files)
 
-if 1:   # Utility
+        def get(self):
+            "Return string for astyle command line"
+            return " ".join(self.files)
+
+
+if 1:  # Utility
+
     def Dbg(*msg):
         if d["-d"]:
             for i in msg:
                 print(f"{g.d}" + i + f"{g.n}")
+
     def Usage(status=1):
         e = sys.argv[0]
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {e} [options] [style] [file1 [file2 ...]]
                 {e} [options] project_file
                 {e} [options] [style]
           Indent the indicated source code files with astyle (the files
           must be C/C++/ObjC).  The first argument can optionally be one
           of the following indentation styles:
-              {' '.join(g.styles_list[:11])}
-              {' '.join(g.styles_list[11:])}
+              {" ".join(g.styles_list[:11])}
+              {" ".join(g.styles_list[11:])}
           You can use abbreviations for the styles as long they are unique.
           There is no default style except that defined in e.g. your
           .astylerc file.
@@ -192,21 +227,22 @@ if 1:   # Utility
             -o o    String o holds extra astyle options (put in quotes)
             -t      Show testing suggestions
             --dp    Show my thoughts on indentation
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-c"] = True      # Use color
-        d["-C"] = False     # Clean out *.bak files
-        d["-d"] = False     # Show debugging output
-        d["-e"] = False     # Allow any file extensions
-        d["-f"] = None      # File containing files to format
-        d["-H"] = False     # Show astyle 3.1 options
-        d["-h"] = False     # Show formatting samples
-        d["-o"] = ""        # Extra options for astyle
-        d["-t"] = False     # Show testing suggestions
+        d["-c"] = True  # Use color
+        d["-C"] = False  # Clean out *.bak files
+        d["-d"] = False  # Show debugging output
+        d["-e"] = False  # Allow any file extensions
+        d["-f"] = None  # File containing files to format
+        d["-H"] = False  # Show astyle 3.1 options
+        d["-h"] = False  # Show formatting samples
+        d["-o"] = ""  # Extra options for astyle
+        d["-t"] = False  # Show testing suggestions
         try:
-            opts, files = getopt.getopt(sys.argv[1:], "cCdef:Hho:t", 
-                "dp".split())
+            opts, files = getopt.getopt(sys.argv[1:], "cCdef:Hho:t", "dp".split())
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -233,7 +269,7 @@ if 1:   # Utility
             ShowAstyleOptions()
         if len(sys.argv) < 2 and not d["-f"]:
             Usage()
-        if d["-f"]:     # Add -f option files to list
+        if d["-f"]:  # Add -f option files to list
             for line in open(d["-f"]).readlines():
                 files.append(line.strip())
         if d["-t"]:
@@ -241,9 +277,14 @@ if 1:   # Utility
         if d["-c"]:
             SetupColor()
         return files
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def Comments():
-        print(wrap(dedent(f'''
+        print(
+            wrap(
+                dedent(f"""
  
         If you work on a software project with a number of people, 
         management people may dictate an
@@ -303,20 +344,23 @@ if 1:   # Core functionality
         Thus, my advice is that you experiment to see what works best for
         you under a variety of conditions.
  
-        ''')))
+        """)
+            )
+        )
         exit(0)
+
     def SetupColor():
-        '''Normally, I'd use sys.stdout.istty() to determine whether to use
+        """Normally, I'd use sys.stdout.istty() to determine whether to use
         color or not.  Howver, I often want the color output of this
         program put into a file, so the color is on by default and turned
         off by the -c option.
-        '''
+        """
         global g
         if d["-c"]:
             g.err = C.lred
             g.d = C.cyn
-            g.b = fg(lwhite, blue, s=1)     # Brace color
-            g.m = fg(yellow, s=1)           # Message color showing style
+            g.b = fg(lwhite, blue, s=1)  # Brace color
+            g.m = fg(yellow, s=1)  # Message color showing style
             g.n = C.norm
         else:
             g.err = ""
@@ -324,8 +368,10 @@ if 1:   # Core functionality
             g.b = ""
             g.m = ""
             g.n = ""
+
     def TestingSuggestions():
-        print(dedent('''
+        print(
+            dedent("""
         Here's a suggested way to test this script.  Go to an empty
         directory and create some source code files.  I suggest you use a
         script for this so that they can be created fresh again after
@@ -381,10 +427,12 @@ if 1:   # Core functionality
  
         Test case:  verify -C works with project file
         Test case:  verify -o option passes extra options to astyle
-        '''))
+        """)
+        )
         exit(0)
+
     def Example(style, file, maxwidth):
-        'Print the sample code to stdout with the indicated style'
+        "Print the sample code to stdout with the indicated style"
         cmd = [g.astyle, f"--style={style}", "indent.data"]
         r = subprocess.run(cmd, capture_output=True)
         if r.returncode:
@@ -399,10 +447,10 @@ if 1:   # Core functionality
             synonyms = g.style_aliases[style]
         print(f"style = {g.m}{style} {synonyms}{g.n}")
         print(s)
-        print("-"*maxwidth)
+        print("-" * maxwidth)
+
     def ShowExamples(sourcefile):
-        '''If sourcefile is not None, use it as the sample code to format.
-        '''
+        """If sourcefile is not None, use it as the sample code to format."""
         SetupColor()
         # Fill the file to indent
         file = P("indent.data")
@@ -428,14 +476,16 @@ if 1:   # Core functionality
             print(f"    {style:15s} {n:2d}")
         file.unlink()
         exit(0)
+
     def CheckExtensions(files):
-        'Check that files have allowed extensions'
+        "Check that files have allowed extensions"
         for file in files:
             ext = P(file).suffix
             if not ext or ext[0] != ".":
                 Error(f"'{file}' has a missing extension")
             if ext[1:].lower() not in g.allowed:
                 Error(f"'{file}' has an illegal extension")
+
     def IndentFile(file, style):
         Dbg(f"Indenting '{file}'")
         cmd = [g.astyle, f"--style={style}"]
@@ -454,8 +504,10 @@ if 1:   # Core functionality
         else:
             global count
             count += 1
+
     def ShowAstyleOptions():
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Disable Formatting
             *INDENT-OFF* and *INDENT-ON*, *NOPAD*
         Brace Style Options
@@ -578,8 +630,10 @@ if 1:   # Core functionality
             --html, OR --html=####, OR  -!
             --stdin=####    Replacement for redirection
             --stdout=####   Replacement for redirection
-        '''))
+        """)
+        )
         exit(0)
+
     def GetStyle(s):
         lst = g.cmd(files[0])
         if len(lst) == 1:
@@ -588,8 +642,9 @@ if 1:   # Core functionality
             Error(f"Ambiguous style:  {' '.joint(lst)}")
         return lst[0]
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     files = ParseCommandLine(d)
     SetupColor()
     style = g.default_style
@@ -608,7 +663,7 @@ if __name__ == "__main__":
             p = P(files[0] + g.project_extension)
             if p.exists():
                 have_project = True
-        if have_project:   # We have a project file
+        if have_project:  # We have a project file
             if d["-f"]:
                 Error("-f option not supported with project files")
             project_name = files.pop()

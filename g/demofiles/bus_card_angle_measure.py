@@ -1,15 +1,17 @@
-'''
+"""
 Draw a sheet containing scales for estimating sizes of distant objects
 or measuring their angular extent.
 
     Eye measurements in cm:
     dp    65
     gp    55.9
-'''
+"""
+
 import sys
 from g import *
 from math import sin, cos, tan, pi, sqrt, atan
 from pdb import set_trace as xx
+
 debug = 0
 wrap_in_PJL = 0
 d2r = pi / 180
@@ -522,14 +524,18 @@ mark_dict = {
         ),
     ),
 }
+
+
 def SetUp(file, orientation=landscape, units=inches):
-    '''Convenience function to set up the drawing environment and return a
+    """Convenience function to set up the drawing environment and return a
     file object to the output stream.
-    '''
+    """
     ofp = open(file, "w")
     ginitialize(ofp)
     setOrientation(orientation, units)
     return ofp
+
+
 def CardLabel(width, height, eye_distance_cm, text_height):
     push()
     translate(width / 2, height / 2)
@@ -543,6 +549,8 @@ def CardLabel(width, height, eye_distance_cm, text_height):
     ctext("https://github.com/someonesdad1/plib")
     pop()
     pop()
+
+
 def DegreeScale(tenth_degrees, eye_distance_cm, text_height):
     push()
     d = float(eye_distance_cm) * cm2in
@@ -566,15 +574,17 @@ def DegreeScale(tenth_degrees, eye_distance_cm, text_height):
             move(dx * 1.1, y - text_height / 3.5)
             text("%d deg" % (theta / 10))
     pop()
+
+
 def TimesScale(marks, eye_distance_cm, text_height):
-    '''marks is a list of tick marks:
+    """marks is a list of tick marks:
         (factor, label_string, tick_lengths)
     where factor is a number, label_string is what to label the tick with,
     and tick_lengths is how many lengths to make the tick.
 
     Math:  1/factor is the ratio of the height to the distance.  Thus, the
     y distance plotted should be in the same ratio to the eye distance.
-    '''
+    """
     push()
     d = float(eye_distance_cm) * cm2in
     y0 = 0.15
@@ -594,6 +604,8 @@ def TimesScale(marks, eye_distance_cm, text_height):
             textSize(text_height * text_height_factor)
             text(label)
     pop()
+
+
 def Card(x, y, marks, eye_distance_cm, width, height, tenth_degrees):
     push()
     translate(x * width, y * height)
@@ -608,7 +620,9 @@ def Card(x, y, marks, eye_distance_cm, width, height, tenth_degrees):
     rotate(180)
     TimesScale(marks, eye_distance_cm, text_height)
     pop()
-if __name__ == "__main__": 
+
+
+if __name__ == "__main__":
     f = SetUp("out/bus_card_angle_measure.ps")
     translate(1, 1)
     if debug:

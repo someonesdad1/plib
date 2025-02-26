@@ -1,8 +1,8 @@
-'''
+"""
 Finds files modified within a specified time frame
 
   TODO:
- 
+
     - Use a mod_ignore file that uses regexps to define files/directories to ignore.  For example,
       I don't care to see things like files that end with `~` or have 'lock' in them, nor do I
       want to see git or hg directories.
@@ -26,51 +26,58 @@ Finds files modified within a specified time frame
       ctime is last owner/group/perm change on UNIX (creation time on Windows).
     - Thus there might be two searches:  modification time and access time.
     - Use -s option with letter:  a, c, or m
- 
-'''
+
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2011, 2016 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2011, 2016 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Finds files modified within a specified time frame
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import os
     import os.path
     import getopt
     import time
     import re
-    from pdb import set_trace as xx 
-if 1:   # Custom imports
+    from pdb import set_trace as xx
+if 1:  # Custom imports
     from wrap import dedent
     from sig import sig
+
     # The color.py module is used to get color output when the -D option is
     # used, but it's not required.
     try:
         import color
+
         _have_color = True
     except ImportError:
-        class Dummy:    # Make a dummy color object to swallow function calls
+
+        class Dummy:  # Make a dummy color object to swallow function calls
             def fg(self, *p, **kw):
                 pass
+
             def normal(self, *p, **kw):
                 pass
+
             def __getattr__(self, name):
                 pass
+
         color = Dummy()
         _have_color = False
-if 1:   # Global variables
+if 1:  # Global variables
     C = color
     short_name = "mod.py"
-    manual = dedent(f'''
+    manual = dedent(f"""
     Usage:  {sys.argv[0]} [options] [age [dir [dir2...]]]
       Recursively print out changed files younger than the given age in the
       indicated directories.  age is a number with an optional letter suffix:
@@ -116,8 +123,10 @@ if 1:   # Global variables
         -t  Sort the output names by age (most-recently changed last)
         -w  Make names case insensitive (for Windows)
         -x regexp    Ignore files that match regexp (more than one -x OK)
-    ''')
+    """)
     default_time = "1w"
+
+
 def ParseCommandLine(d):
     d["-c"] = False
     d["-l"] = False
@@ -130,27 +139,37 @@ def ParseCommandLine(d):
     d["-x"] = []
     d["dbg"] = False
     # Edit the following containers as needed
-    d["directories_to_ignore"] = set(('''
+    d["directories_to_ignore"] = set(
+        (
+            """
         .hg .git .bzr .cache .mozilla __pycache__ .local tmp-donp-linux
-    '''.split()))
-    d["picture_extensions"] = set(('''
+    """.split()
+        )
+    )
+    d["picture_extensions"] = set(
+        (
+            """
         .bmp .dib .emf .eps .gif .ipc .ipk .j2c .j2k .jif .jp2 .jpeg
         .jpg .pbm .pct .pgm .pic .png .ppm .ps .psp .pspframe .pspimage
         .pspshape .psptube .svg .tif .tiff .tub .xbm .xpm
-    '''.split()))
+    """.split()
+        )
+    )
     # Regular expressions for common files that should be ignored
-    d["common_files"] = set((
-        re.compile(r"^\.vi$", re.I),
-        re.compile(r"^\.z$", re.I),
-        re.compile(r"^.*\.swp$", re.I),
-        re.compile(r"^log$", re.I),
-        re.compile(r"^tags$", re.I),
-        re.compile(r"^[abz]$", re.I),
-        re.compile(r"^.*\.pyc$", re.I),
-        re.compile(r"^.*\.pyo$", re.I),
-        re.compile(r"^.*\.o$", re.I),
-        re.compile(r"^.*\.obj$", re.I),
-    ))
+    d["common_files"] = set(
+        (
+            re.compile(r"^\.vi$", re.I),
+            re.compile(r"^\.z$", re.I),
+            re.compile(r"^.*\.swp$", re.I),
+            re.compile(r"^log$", re.I),
+            re.compile(r"^tags$", re.I),
+            re.compile(r"^[abz]$", re.I),
+            re.compile(r"^.*\.pyc$", re.I),
+            re.compile(r"^.*\.pyo$", re.I),
+            re.compile(r"^.*\.o$", re.I),
+            re.compile(r"^.*\.obj$", re.I),
+        )
+    )
     try:
         optlist, args = getopt.getopt(sys.argv[1:], "cDhlmnprtx:")
     except getopt.GetoptError as e:
@@ -170,7 +189,7 @@ def ParseCommandLine(d):
             # Don't allow a default so usage is seen with no args
             Usage(d, 0)
     elif len(args) == 1:
-        args.append(".")    # Default directory
+        args.append(".")  # Default directory
     # Compile any regular expressions
     for i, r in enumerate(d["-x"]):
         try:
@@ -178,7 +197,7 @@ def ParseCommandLine(d):
         except Exception:
             Error("'{}' is a bad regexp".format(r))
             exit(1)
-    if d["dbg"]:     # Debug print the settings
+    if d["dbg"]:  # Debug print the settings
         fg = C.lmagenta
         Dbg("Settings:", fg=fg)
         for key in sorted("dbg -n now -t -w -m -p -l -x -r -c".split()):
@@ -187,21 +206,27 @@ def ParseCommandLine(d):
             else:
                 Dbg("  {} =".format(key), d[key], fg=fg)
     return args
+
+
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
+
+
 def Usage(d, status=1):
     name = sys.argv[0]
     short_name = os.path.split(name)[1]
     dt = default_time
     print(manual.format(**locals()))
     exit(status)
+
+
 def GetTime(age):
-    '''age is a string representing a number (integer or floating point)
+    """age is a string representing a number (integer or floating point)
     with an optional letter suffix or a time interval separated by a
     hyphen.  Return the tuple (start, end) representing this age; if no
     hyphen is present, (start,) will be returned.  Examples:
- 
+
         age     Returned
        ------   --------
         1s      (1,)
@@ -211,9 +236,9 @@ def GetTime(age):
         2d-1d   (24*3600, 2*24*3600)
         i       (10000000000.0,)    # Note default coefficient of 1
     'i' is intended to represent an infinite time in the past.
-    '''
+    """
     digits, days_per_year, s_per_hr = "1234567890", 365.25, 3600
-    s_per_day = 24*s_per_hr
+    s_per_day = 24 * s_per_hr
     age = age.strip()
     if not age:
         Usage()
@@ -225,35 +250,37 @@ def GetTime(age):
         "H": s_per_hr,
         "d": s_per_day,
         "D": s_per_day,
-        "w": 7*s_per_day,
-        "W": 7*s_per_day,
-        "m": days_per_year/12*s_per_day,
-        "y": days_per_year*s_per_day,
-        "Y": days_per_year*s_per_day,
+        "w": 7 * s_per_day,
+        "W": 7 * s_per_day,
+        "m": days_per_year / 12 * s_per_day,
+        "y": days_per_year * s_per_day,
+        "Y": days_per_year * s_per_day,
         "i": inf,
         "I": inf,
     }
     fmt = "'{}' is a bad age specification"
+
     def Translate(a):
-        '''Convert the age a to a time in seconds.  The form is [n][s]
+        """Convert the age a to a time in seconds.  The form is [n][s]
         where n is a number (defaults to 1) and s is a character
         indicating a time unit (defaults to 'd').
-        '''
+        """
         a = a.strip()
         if not a:
             Error("Empty age specification in '{}'".format(age))
         if len(a) == 1 and a[-1] in suffixes:
-            a = "1" + a          # Implied 1
+            a = "1" + a  # Implied 1
         if a[-1] in digits:  # No letter suffix
             a += "d"
         elif a[-1] not in suffixes:
             Error("'{}' is an illegal time suffix".format(a[-1]))
         try:
-            t = float(a[:-1])*suffixes[a[-1]]
+            t = float(a[:-1]) * suffixes[a[-1]]
         except ValueError:
             Error(fmt.format(a))
         return t
-    #---------------------
+
+    # ---------------------
     if "-" in age:
         f = age.split("-")
         if len(f) != 2:
@@ -262,18 +289,21 @@ def GetTime(age):
         return (start, end) if start <= end else (end, start)
     else:
         return (Translate(age),)
+
+
 def ShouldBeIgnored(name, d):
-    '''Check against the to-be-ignored regular expressions.
-    '''
+    """Check against the to-be-ignored regular expressions."""
     for regexp in d["common_files"]:
         if regexp.match(name):
             return True
     return False
+
+
 def IgnoreThisFile(file, d):
-    '''If the indicated file is a picture file (indicated by its extension)
+    """If the indicated file is a picture file (indicated by its extension)
     or it matches one of the -x regular expressions, return True.
     Otherwise, return False.
-    '''
+    """
     if not d["-c"]:
         name = os.path.split(file)[1]
         if d["-w"]:
@@ -291,34 +321,38 @@ def IgnoreThisFile(file, d):
         if ext in d["picture_extensions"]:
             return True
     return False
+
+
 def FmtTimeDiff(td):
-    '''Return s, minutes, hours, days, weeks, months, years for
+    """Return s, minutes, hours, days, weeks, months, years for
     a time difference td in seconds.
-    '''
-    fmt, s = "{}{:.1f} {}", " "*2
+    """
+    fmt, s = "{}{:.1f} {}", " " * 2
     if abs(td) < 60:
-        return fmt.format(s*0, td, "s")
+        return fmt.format(s * 0, td, "s")
     td /= 60
     if abs(td) < 60:
-        return fmt.format(s*1, td, "min")
+        return fmt.format(s * 1, td, "min")
     td /= 60
     if abs(td) < 24:
-        return fmt.format(s*2, td, "hr")
+        return fmt.format(s * 2, td, "hr")
     td /= 24
     if abs(td) < 7:
-        return fmt.format(s*3, td, "days")
+        return fmt.format(s * 3, td, "days")
     td /= 7
     if abs(td) < 30:
-        return fmt.format(s*4, td, "wk")
+        return fmt.format(s * 4, td, "wk")
     td /= 4
     if abs(td) < 12:
-        return fmt.format(s*5, td, "mo")
+        return fmt.format(s * 5, td, "mo")
     td /= 12
-    return fmt.format(s*6, td, "yr")
+    return fmt.format(s * 6, td, "yr")
+
+
 def IgnoreDirectory(components, d):
-    '''Return True if one of the elements of the list components is a
+    """Return True if one of the elements of the list components is a
     directory to ignore.
-    '''
+    """
     for i in components:
         if d["-w"]:
             if i.lower() in d["directories_to_ignore"]:
@@ -327,6 +361,8 @@ def IgnoreDirectory(components, d):
             if i in d["directories_to_ignore"]:
                 return True
     return False
+
+
 def Dbg(*s, **kw):
     if d["dbg"]:
         fg = kw.setdefault("fg", C.lblue)
@@ -335,10 +371,12 @@ def Dbg(*s, **kw):
         C.fg(fg)
         print(*s, **kw)
         C.normal()
+
+
 def ProcessFiles(dir, files, d):
-    '''For each file in dir, determine if it has changed in the
+    """For each file in dir, determine if it has changed in the
     indicated age interval.
-    '''
+    """
     Dbg("Processing directory", dir)
     filelist, now = [], d["now"]
     age0 = 0
@@ -357,7 +395,7 @@ def ProcessFiles(dir, files, d):
         try:
             t = last_change_time = os.stat(file).st_mtime
             age = now - t
-            in_interval = (age0 <= age <= age1)
+            in_interval = age0 <= age <= age1
             if d["-n"] and not in_interval:
                 filelist.append((age, file))
                 Dbg("  ", file, "not in interval", fg=C.lred)
@@ -368,9 +406,10 @@ def ProcessFiles(dir, files, d):
             Dbg("  Exception on file '{}'".format(file))
             pass
     return filelist
+
+
 def ProcessDirectory(dir, d):
-    '''Find all files at and below dir.
-    '''
+    """Find all files at and below dir."""
     filelist = []
     for root, dirs, files in os.walk(dir):
         root = root.replace("\\", "/")
@@ -381,11 +420,13 @@ def ProcessDirectory(dir, d):
         if d["-r"]:
             break
     return filelist
+
+
 def PrintReport(results, d):
-    '''results = (
-        (age, file),
-        ...
-    '''
+    """results = (
+    (age, file),
+    ...
+    """
     if d["-t"]:
         results = sorted(results, reverse=True)
     if not results:
@@ -395,12 +436,13 @@ def PrintReport(results, d):
         if d["-l"]:
             age_str = FmtTimeDiff(age_s) if d["-l"] else ""
             n = maxlen - len(file)
-            print(file, " "*n, age_str)
+            print(file, " " * n, age_str)
         else:
             print(file)
 
+
 if __name__ == "__main__":
-    nl, inf = "\n", 1e20   # inf is infinite time into the past
+    nl, inf = "\n", 1e20  # inf is infinite time into the past
     d = {}  # Options dictionary
     d["now"] = time.time()
     args = ParseCommandLine(d)

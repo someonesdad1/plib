@@ -1,32 +1,36 @@
-'''
+"""
 Find all file extensions used
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2012 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2012 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Find all file extensions used
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import os
     import getopt
     import glob
     from collections import defaultdict
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
     from columnize import Columnize
+
+
 def Usage(d, status=1):
     name = sys.argv[0]
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {name} [options] dir1 [dir2...]
       Prints out file extensions and their counts used in the files contained
       in the given directories.
@@ -38,15 +42,18 @@ def Usage(d, status=1):
         -h  Include git/Mercurial directories
         -r  Recurse into each directory given
         -s  Sort the output by counts
-    '''))
+    """)
+    )
     exit(status)
+
+
 def ParseCommandLine(d):
-    d["-c"] = False     # Extension names are case-sensitive
-    d["-C"] = False     # Print in columns
-    d["-f"] = False     # Command line contains files
-    d["-h"] = False     # Include .hg/.git directories
-    d["-r"] = False     # Recurse into directories
-    d["-s"] = False     # Sort output by counts
+    d["-c"] = False  # Extension names are case-sensitive
+    d["-C"] = False  # Print in columns
+    d["-f"] = False  # Command line contains files
+    d["-h"] = False  # Include .hg/.git directories
+    d["-r"] = False  # Recurse into directories
+    d["-s"] = False  # Sort output by counts
     if len(sys.argv) < 2:
         Usage(d)
     try:
@@ -61,14 +68,17 @@ def ParseCommandLine(d):
     if not args:
         Usage(d)
     return args
+
+
 def Reverse(seq):
-    '''seq is a list of [a, b] type pairs.  Turn each pair into the form
+    """seq is a list of [a, b] type pairs.  Turn each pair into the form
     [b, a].
-    '''
+    """
     return [[b, a] for a, b in seq]
+
+
 def PrintReport(data, d):
-    '''data is the defaultdict of counts; d is the options dict.
-    '''
+    """data is the defaultdict of counts; d is the options dict."""
     if "" in data:
         del data[""]
     v = data.values()
@@ -100,8 +110,12 @@ def PrintReport(data, d):
     else:
         for i in output_data:
             print(i)
+
+
 def NormalizePath(path):
     return path.replace("\\", "/")
+
+
 def ProcessDirectory(dir, data, d):
     assert os.path.isdir(dir)
     p = os.path.split(dir)[1]
@@ -110,10 +124,12 @@ def ProcessDirectory(dir, data, d):
         return
     dir = NormalizePath(dir)
     ProcessFiles(glob.glob(dir + "/*"), data, d)
+
+
 def ProcessFiles(files, data, d):
-    '''For each file in the list files, classify the extension into
+    """For each file in the list files, classify the extension into
     the data container.
-    '''
+    """
     for file in files:
         if os.path.isfile(file):
             name, ext = os.path.splitext(file)
@@ -121,6 +137,8 @@ def ProcessFiles(files, data, d):
                 if d["-c"]:
                     ext = ext.lower()
                 data[ext] += 1
+
+
 if __name__ == "__main__":
     d = {}  # Options dictionary
     items, data = ParseCommandLine(d), defaultdict(int)

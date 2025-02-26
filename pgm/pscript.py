@@ -1,46 +1,55 @@
-'''
+"""
 Execute a python script when it changes.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2016 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2016 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Execute a python script when it changes
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import getopt
     import os
     import sys
     import time
     import hashlib
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
-if 1:   # Global variables
+if 1:  # Global variables
     python = sys.executable
     ii = isinstance
+
+
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
+
+
 def Usage(d, status=1):
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]} [options] script_name
       Monitor the python script with the name script_name; when it changes,
       run it.
     Options:
       -s    Use a hash to determin when the file has changed
       -t d  Set the delay in seconds between checks for changes
-    '''))
+    """)
+    )
     exit(status)
+
+
 def ParseCommandLine(d):
-    d["-s"] = False     # Use hash if True
+    d["-s"] = False  # Use hash if True
     d["-t"] = 0.25
     if len(sys.argv) < 2:
         Usage(d)
@@ -69,19 +78,23 @@ def ParseCommandLine(d):
     if len(args) != 1:
         Usage(d)
     return args[0]
+
+
 def Hash(d):
-    '''Return an object used to determine if the file has changed.
+    """Return an object used to determine if the file has changed.
     The default is to use the modification time; if you use the -s
     option, it will use a hash instead.
-    '''
+    """
     if d["-s"]:
         h = hashlib.sha1()
         h.update(open(script_name, "rb").read())
         return h.hexdigest()
     else:
         return os.stat(script_name).st_mtime
+
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     script_name = ParseCommandLine(d)
     hash0 = Hash(d)
     while True:

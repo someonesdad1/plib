@@ -1,31 +1,32 @@
-'''
+"""
 Index of movies on VCR tapes
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2005 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2005 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Index of movies on VCR tapes
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import os
     import getopt
     import re
     from collections import defaultdict
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
-if 1:   # Global variables
+if 1:  # Global variables
     # Data are (tape number ; Title)
-    data = '''
+    data = """
         1 ; American Graffiti
         1 ; Beverly Hills Cop
         1 ; High Anxiety
@@ -601,17 +602,23 @@ if 1:   # Global variables
         224 ; Cutting Edge, The
         224 ; Radio Flyer
         224 ; Roxanne
-    '''
+    """
+
+
 def Usage(d, status=1):
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]} [options] regexp
       Print movie titles containing regexp.
     Options:
       -h    Print a manpage
       -i    Make the search case-sensitive
       -n    Print titles by tape number
-    '''))
+    """)
+    )
     exit(status)
+
+
 def ParseCommandLine(d):
     d["-i"] = False
     d["-n"] = False
@@ -632,6 +639,8 @@ def ParseCommandLine(d):
     if not d["-n"] and len(regex) != 1:
         Usage(d)
     return None if d["-n"] else regex[0]
+
+
 def GetMovies(d):
     movies = []
     by_number = defaultdict(list)
@@ -647,10 +656,12 @@ def GetMovies(d):
     movies.sort()
     d["movies"] = movies
     d["by_number"] = by_number
+
+
 def Search(regex, d):
-    '''Return (movies, max_width) where movies is a list of tuples
+    """Return (movies, max_width) where movies is a list of tuples
     (title, tape_number) and max_width is the widest title.
-    '''
+    """
     if d["-i"]:
         r = re.compile(regex)
     else:
@@ -662,6 +673,8 @@ def Search(regex, d):
             max_width = max(max_width, len(title))
     movies.sort()
     return (movies, max_width + 2)
+
+
 def PrintByNumber(d):
     n = d["by_number"]
     numbers = list(n.keys())
@@ -676,8 +689,10 @@ def PrintByNumber(d):
             else:
                 print("{0:5s}".format(""), j)
     exit(0)
+
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     regex = ParseCommandLine(d)
     GetMovies(d)
     if d["-n"]:

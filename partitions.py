@@ -1,28 +1,31 @@
-'''
+"""
 Generate partitions of the integer n.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # <math> Generate partitions of the integer n
-    #∞what∞#
-    #∞test∞# ignore #∞test∞#
+    # ∞what∞#
+    # ∞test∞# ignore #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     from collections import OrderedDict
+
+
 def partitions(n, k=None):
-    '''Generator for partitions of the integer n.  For each iteration, a
+    """Generator for partitions of the integer n.  For each iteration, a
     tuple of integers that sum to n is returned.  If k is an integer > 0,
     then the returned tuples are limited to integers <= k.  If k is None,
     then the tuples may contain integers up to n.
-    '''
+    """
     # Timing:  on my quad Intel machine bought Feb 2011, a partition of 40
     # takes about 1.5 s ('partitions 40 >nul').  Roughly about 20% of this
     # is due to the following loop and the rest is due to Peters'
@@ -34,23 +37,25 @@ def partitions(n, k=None):
         # integers.
         result = []
         for i in d:
-            result += [i]*d[i]
+            result += [i] * d[i]
         result = tuple(result)
         assert sum(result) == n
         yield result
+
+
 def partitions_cs(n, k=None):
-    '''This is Chris Smith's modification of Tim Peters' fast
+    """This is Chris Smith's modification of Tim Peters' fast
     algorithm based on a dictionary.  If k is defined, then the
     partitions returned are limited to integers of value k or less; if
     k is None, then integers up to n are returned.
- 
+
     See http://code.activestate.com/recipes/218332 for the discussion
     & algorithms.
- 
+
     -----------------------------------------------------------------
     Generate all partitions of integer n (>= 0) using integers no
     greater than k (default, None, allows the partition to contain n).
- 
+
     Each partition is represented as a multiset, i.e. a dictionary
     mapping an integer to the number of copies of that integer in the
     partition.  For example, the partitions of 4 are {4: 1}, {3: 1, 1:
@@ -58,25 +63,25 @@ def partitions_cs(n, k=None):
     [2, 2], [1, 1, 2] and [1, 1, 1, 1], respectively.  In general,
     sum(k * v for k, v in a_partition.iteritems()) == n, and
     len(a_partition) is never larger than about sqrt(2*n).
- 
+
     Note that the _same_ dictionary object is returned each time.
     This is for speed:  generating each partition goes quickly, taking
     constant time independent of n. If you want to build a list of
     returned values then use .copy() to get copies of the returned
     values:
- 
+
     >>> p_all = []
     >>> for p in partitions(6, 2):
     ...         p_all.append(p.copy())
     ...
     >>> print(p_all)
     [{2: 3}, {1: 2, 2: 2}, {1: 4, 2: 1}, {1: 6}]
- 
+
     Reference
     ---------
     Modified from Tim Peter's posting to accommodate a k value:
     http://code.activestate.com/recipes/218332/
-    '''
+    """
     if n < 0:
         raise ValueError("n must be >= 0")
     if k is not None and k < 1:
@@ -115,15 +120,20 @@ def partitions_cs(n, k=None):
             ms[r] = 1
             keys.append(r)
         yield ms
+
+
 if __name__ == "__main__":
     k = None
     try:
         n = int(sys.argv[1])
     except IndexError:
-        print('''Usage:  %s n [k]
+        print(
+            """Usage:  %s n [k]
   Generates the partitions of integer n.  If k is present, then the
   integers returned are <= k.
-'''[:-1] % sys.argv[0])
+"""[:-1]
+            % sys.argv[0]
+        )
         exit(1)
     try:
         k = int(sys.argv[2])
@@ -133,4 +143,4 @@ if __name__ == "__main__":
         print("k must be > 0")
         exit(1)
     for i in partitionss(n, k):
-        print(' '.join([str(j) for j in i]))
+        print(" ".join([str(j) for j in i]))

@@ -1,4 +1,4 @@
-'''
+"""
 Calculate features of a circle's segment
 
     The method is to use the formulas from pg 51 of the Analytic Geometry document, as it has
@@ -7,7 +7,7 @@ Calculate features of a circle's segment
     Alas, the symbols used in the document are poor, as I used s for the chord length and b for the
     arc length.  s is almost always used for arc length and it catches me every time I use the
     program, but it's too much work to change the document and its formulas.
- 
+
     Check data from a drawing on an A size piece of paper in mm:
         r = 152.2       Radius of circle
         θ = 90°         Central angle of circle's sector
@@ -32,10 +32,10 @@ Calculate features of a circle's segment
     you'll get the output
 
         θ = 2.80681° = 0.0489881 radians
-        r = 204152.                     
-        h = 61.2382                     
-        b = 10001.0                     
-        s = 10000.0                     
+        r = 204152.
+        h = 61.2382
+        b = 10001.0
+        s = 10000.0
 
     The thing that surprises folks is that the rail is 61.2 m (200 feet) over your head.  The root
     cause of this is that the circle is large.  If the circle were sitting on the Earth's surface
@@ -57,33 +57,36 @@ Calculate features of a circle's segment
     Thus, this rail track problem and the above drawing on paper are good checks of the numerical
     methods used.
 
-'''
+"""
+
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Interactive script to calculate features of a circle's segment
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Imports
+    if 1:  # Imports
         from pathlib import Path as P
         import os
         import re
         import sys
+
         try:
-            import readline         # History and command editing
-            import rlcompleter      # Command completion
+            import readline  # History and command editing
+            import rlcompleter  # Command completion
+
             have_readline = True
         except Exception:
             have_readline = False
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import dedent
         from f import flt, pi, degrees, radians, sin, cos, tan, sqrt, asin, acos, atan
         from u import u, ParseUnit
@@ -92,12 +95,16 @@ if 1:  # Header
         from launch import Launch
         import root
         from wsl import wsl
+
         if 0:
             import debug
+
             debug.SetDebugger()
-    if 1:   # Global variables
+    if 1:  # Global variables
+
         class g:
             pass
+
         g.E = Exception("Not implemented")
         t.prompt = t("ornl")
         t.N = t.n
@@ -109,10 +116,11 @@ if 1:  # Header
         x.rtz = x.rtdp = False
         g.digits = x.N = 6
 if 1:  # Utility
+
     def GetNumber(value, vars=None):
-        '''The user has entered a number.  Interpret it as an expression
+        """The user has entered a number.  Interpret it as an expression
         evaluated as a flt.
-        '''
+        """
         try:
             x = flt(eval(value, globals(), vars))
             return x
@@ -124,8 +132,9 @@ if 1:  # Utility
             except Exception:
                 print(f"Couldn't evaluate '{value}'")
                 return None
+
     def GetCommand():
-        'Return (command_string, arguments)'
+        "Return (command_string, arguments)"
         ok = False
         while not ok:
             s = ""
@@ -147,8 +156,9 @@ if 1:  # Utility
                     print(f"  {' '.join(cmd)}")
                 else:
                     return (cmd[0], args[1:])
+
     def TestCase():
-        '''
+        """
         Check data from a drawing on an A size piece of paper:
             r = 152.2
             θ = 90°
@@ -156,26 +166,26 @@ if 1:  # Utility
             h = 44.8
             b = 239.1
             s = 215.5
-        '''
+        """
         Nlt(0).N = 6
         # r, θ
         g.vars["r"] = flt(152.2)
-        g.vars["theta"] = pi/2
+        g.vars["theta"] = pi / 2
         SolveProblem()
         g.vars.clear()
         # s, θ
         g.vars["s"] = flt(215.24)
-        g.vars["theta"] = pi/2
+        g.vars["theta"] = pi / 2
         SolveProblem()
         g.vars.clear()
         # h, θ
         g.vars["h"] = flt(44.578)
-        g.vars["theta"] = pi/2
+        g.vars["theta"] = pi / 2
         SolveProblem()
         g.vars.clear()
         # b, θ
         g.vars["b"] = flt(239.07)
-        g.vars["theta"] = pi/2
+        g.vars["theta"] = pi / 2
         SolveProblem()
         g.vars.clear()
         # r, s
@@ -208,84 +218,103 @@ if 1:  # Utility
         g.vars["b"] = flt(239.07)
         SolveProblem()
         g.vars.clear()
-        print(dedent('''
+        print(
+            dedent("""
         This test problem should give essentially the same answers for each of the
-        test cases.'''))
+        test cases.""")
+        )
         exit()
-if 1:   # Solve the problems
+
+
+if 1:  # Solve the problems
+
     def Get_theta_r():
         r, theta = g.vars["r"], g.vars["theta"]
-        s = flt(2*r*sin(theta/2))
-        h = flt(r*(1 - cos(theta/2)))
-        b = flt(r*theta)
+        s = flt(2 * r * sin(theta / 2))
+        h = flt(r * (1 - cos(theta / 2)))
+        b = flt(r * theta)
         g.vars.update(locals())
+
     def Get_theta_s():
         s, theta = g.vars["s"], g.vars["theta"]
-        a = flt(2*sin(theta/2))
-        r = flt(s/a)
-        h = flt(s/2*tan(theta/4))
-        b = flt(s*theta/a)
+        a = flt(2 * sin(theta / 2))
+        r = flt(s / a)
+        h = flt(s / 2 * tan(theta / 4))
+        b = flt(s * theta / a)
         del a
         g.vars.update(locals())
+
     def Get_theta_h():
         h, theta = g.vars["h"], g.vars["theta"]
-        a = flt(1 - cos(theta/2))
-        r = flt(h/a)
-        s = flt(2*h/tan(theta/4))
-        b = flt(h*theta/a)
+        a = flt(1 - cos(theta / 2))
+        r = flt(h / a)
+        s = flt(2 * h / tan(theta / 4))
+        b = flt(h * theta / a)
         del a
         g.vars.update(locals())
+
     def Get_theta_b():
         b, theta = g.vars["b"], g.vars["theta"]
-        r = flt(b/theta)
-        s = flt(2*b*sin(theta/2)/theta)
-        h = flt(b*(1 - cos(theta/2))/theta)
+        r = flt(b / theta)
+        s = flt(2 * b * sin(theta / 2) / theta)
+        h = flt(b * (1 - cos(theta / 2)) / theta)
         g.vars.update(locals())
+
     def Get_r_s():
         r, s = g.vars["r"], g.vars["s"]
-        theta = flt(2*asin(s/(2*r)))
-        h = flt(r - sqrt(4*r*r - s*s)/2)
-        b = flt(r*theta)
+        theta = flt(2 * asin(s / (2 * r)))
+        h = flt(r - sqrt(4 * r * r - s * s) / 2)
+        b = flt(r * theta)
         g.vars.update(locals())
+
     def Get_r_h():
         r, h = g.vars["r"], g.vars["h"]
-        theta = flt(2*acos(1 - h/r))
-        s = flt(2*sqrt(h*(2*r - h)))
-        b = flt(r*theta)
+        theta = flt(2 * acos(1 - h / r))
+        s = flt(2 * sqrt(h * (2 * r - h)))
+        b = flt(r * theta)
         g.vars.update(locals())
+
     def Get_r_b():
         r, b = g.vars["r"], g.vars["b"]
-        theta = flt(b/r)
-        s = flt(2*r*sin(b/(2*r)))
-        h = flt(r*(1 - cos(b/(2*r))))
+        theta = flt(b / r)
+        s = flt(2 * r * sin(b / (2 * r)))
+        h = flt(r * (1 - cos(b / (2 * r))))
         g.vars.update(locals())
+
     def Get_s_h():
         h, s = g.vars["h"], g.vars["s"]
-        theta = flt(4*atan(2*h/s))
-        r = flt((s*s + 4*h*h)/(8*h))
-        b = flt(r*theta)
+        theta = flt(4 * atan(2 * h / s))
+        r = flt((s * s + 4 * h * h) / (8 * h))
+        b = flt(r * theta)
         g.vars.update(locals())
+
     def Get_s_b():
         b, s = g.vars["b"], g.vars["s"]
-        a = flt(2*b/s)
-        f, fd = lambda x: flt(x - a*sin(x/2)), lambda x: flt(1 - a*cos(x/2)/2)
+        a = flt(2 * b / s)
+        f, fd = lambda x: flt(x - a * sin(x / 2)), lambda x: flt(1 - a * cos(x / 2) / 2)
         g.vars["theta"] = flt(root.NewtonRaphson(f, fd, 1, eps=1e-15))
         del a, f, fd
         Get_theta_s()
         g.vars.update(locals())
+
     def Get_h_b():
         b, h = g.vars["b"], g.vars["h"]
-        a = flt(h/b)
-        f, fd = lambda x: flt(a*x + cos(x/2) - 1), lambda x: flt(a - sin(x/2)/2)
+        a = flt(h / b)
+        f, fd = lambda x: flt(a * x + cos(x / 2) - 1), lambda x: flt(a - sin(x / 2) / 2)
         g.vars["theta"] = flt(root.NewtonRaphson(f, fd, 1, eps=1e-15))
         del a, f, fd
         Get_theta_h()
         g.vars.update(locals())
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def Help():
         def f(x):
             return f"[{g.vars[x]}]" if x in g.vars else ""
-        print(dedent(f'''
+
+        print(
+            dedent(f"""
     
         Enter two variables needed to solve for the properties of the segment of a circle.  The
         variables are (all lengths must be in the same units):
@@ -321,10 +350,12 @@ if 1:   # Core functionality
           .             Print the currently solved problem
           dbg           Enter the debugger
           clear         Remove problem's variable definitions 
-        '''))
+        """)
+        )
+
     def SolveProblem():
-        'If g.vars is sufficient, print the solution'
-        needed_pairs = p = dedent('''
+        "If g.vars is sufficient, print the solution"
+        needed_pairs = p = dedent("""
             theta r
             theta s
             theta h
@@ -335,7 +366,7 @@ if 1:   # Core functionality
             s h
             s b
             h b
-        ''').split("\n")
+        """).split("\n")
         solved = False
         for i in needed_pairs:
             v1, v2 = i.split()
@@ -347,23 +378,28 @@ if 1:   # Core functionality
             Report()
         else:
             print("Need more variables")
+
     def Report():
-        i = " "*4
+        i = " " * 4
         print(f"Results:")
-        print(f"{i}θ = {flt(degrees(g.vars['theta']))}° = {flt(g.vars['theta'])} radians")
+        print(
+            f"{i}θ = {flt(degrees(g.vars['theta']))}° = {flt(g.vars['theta'])} radians"
+        )
         print(f"{i}r = {g.vars['r']}")
         print(f"{i}h = {g.vars['h']}")
         print(f"{i}b = {g.vars['b']}")
         print(f"{i}s = {g.vars['s']}")
         # Report area
         r, θ = g.vars["r"], g.vars["theta"]
-        A = flt(r**2*(θ - sin(θ))/2)
+        A = flt(r**2 * (θ - sin(θ)) / 2)
         print(f"{i}area = {A}")
+
     def Execute(cmd, args):
         def CheckArgs():
             if not args:
                 print("Need argument for variable")
             return not bool(args)
+
         if args:
             value, unit = args[0], None
             if len(args) > 1:
@@ -371,7 +407,7 @@ if 1:   # Core functionality
         if cmd == ".":
             pass
         elif cmd == "dbg":
-            breakpoint() #xx
+            breakpoint()  # xx
             return
         elif cmd == "digits":
             if CheckArgs():
@@ -385,7 +421,7 @@ if 1:   # Core functionality
             except Exception:
                 print("'{args[0]}' not an integer")
         elif cmd == "picture":
-            Launch(P("/plib/pgm/seg.png"))      # Open the file /plib/pgm/seg.png
+            Launch(P("/plib/pgm/seg.png"))  # Open the file /plib/pgm/seg.png
             return
         elif cmd == "clear":
             g.vars.clear()
@@ -412,7 +448,7 @@ if 1:   # Core functionality
                 if u == "rad":
                     t = flt(args[0])
                 elif u == "grad":
-                    t = flt(args[0])*pi/200
+                    t = flt(args[0]) * pi / 200
             g.vars["theta"] = flt(t)
         elif cmd == "s":
             if CheckArgs():
@@ -427,14 +463,18 @@ if 1:   # Core functionality
                 return
             g.vars["b"] = GetNumber(value, vars=None)
         SolveProblem()
-if __name__ == "__main__": 
+
+
+if __name__ == "__main__":
     if len(sys.argv) == 2 and sys.argv[1] == "-t":
         TestCase()
     flt(0).N = 4
     g.variables = {}
-    g.commands = sorted('''clear ? . quit digits picture dbg dump
+    g.commands = sorted(
+        """clear ? . quit digits picture dbg dump
                   r theta s h b u
-                  '''.split())
+                  """.split()
+    )
     g.Cmd = CommandDecode(g.commands, ignore_case=True)
     Help()
     while True:

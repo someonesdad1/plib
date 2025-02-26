@@ -1,6 +1,7 @@
-'''
+"""
 Prints a template for python scripts
-'''
+"""
+
 data = """
 '''
 Description of program

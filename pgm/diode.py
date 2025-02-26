@@ -1,35 +1,35 @@
-'''
+"""
 
 ToDo
     - Add cmd 'stack 12V 20mA d1 d2...' that calculates the resistance needed for such a stack to
       run at indicated voltage and current.
 
 This script prints out the measured voltage & current relationships of various diodes.
-'''
- 
+"""
+
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright © 2025 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright © 2025 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Program description string
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         from collections import defaultdict
         from pathlib import Path as P
         import getopt
         import os
         import re
         import sys
-    if 1:   # Custom imports
-        import root     # Use for finding roots of equations
+    if 1:  # Custom imports
+        import root  # Use for finding roots of equations
         from f import flt
         from math import log as ln, exp, ceil
         from frange import frange
@@ -42,21 +42,25 @@ if 1:  # Header
         from columnize import Columnize
         import si
         import debug
+
         if 0:
             debug.SetDebugger()
-    if 1:   # Global variables
+    if 1:  # Global variables
+
         class G:
             pass
+
         g = G()
         g.dbg = False
         g.dbg = True
         g.w = 10
-        g.ind = " "*4
+        g.ind = " " * 4
         ii = isinstance
         pp = PP()
-if 1:   # Utility
+if 1:  # Utility
+
     def GetColors():
-        t.always = True # Always use color
+        t.always = True  # Always use color
         t.err = t.redl
         t.name = t.ornl
         t.i = t.lipl
@@ -67,22 +71,27 @@ if 1:   # Utility
         t.subtitle = t.whtl
         t.dbg = t("lill") if g.dbg else ""
         t.N = t.n if g.dbg else ""
+
     def GetScreen():
-        'Return (LINES, COLUMNS)'
+        "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
-            int(os.environ.get("COLUMNS", "80")) - 1
+            int(os.environ.get("COLUMNS", "80")) - 1,
         )
+
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="")
             print(*p, **kw)
             print(f"{t.N}", end="")
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=0):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] op value1 [value2...]
           Print the voltage/current relationships for various diodes, gotten from measured values
           for a single diode and linear interpolation.  Functionality defined by the op argument:
@@ -105,30 +114,32 @@ if 1:   # Utility
             -d str  Select diode type (see list below, si1 == 1N4148 is default)
             -h      Print a manpage
             -n n    Number of digits in output [{d["-n"]}]
-        '''))
+        """)
+        )
         # Print diode types list
         print("Diode types (4004 means e.g. 1N4004, red5 is a 5 mm red LED):")
         dt = sorted(diodes.keys())
-        for i in Columnize(dt, columns=5, col_width=15, indent=" "*4):
+        for i in Columnize(dt, columns=5, col_width=15, indent=" " * 4):
             print(i)
         exit(status)
+
     def ParseCommandLine(d):
-        d["-a"] = False     # Print report for all diodes
-        d["-d"] = "si1"     # Selected diode
-        d["-n"] = 3         # Number of significant digits
+        d["-a"] = False  # Print report for all diodes
+        d["-d"] = "si1"  # Selected diode
+        d["-n"] = 3  # Number of significant digits
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "aDd:hn:") 
+            opts, args = getopt.getopt(sys.argv[1:], "aDd:hn:")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
             if o[1] in list("a"):
                 d[o] = not d[o]
-            elif o == "-D":     # Enter debugger on unhandled exception
+            elif o == "-D":  # Enter debugger on unhandled exception
                 debug.SetDebugger()
-            elif o == "-d":     # Select diode
+            elif o == "-d":  # Select diode
                 # The -d option is a regex
                 r = re.compile(a, re.I)
                 matches = []
@@ -136,23 +147,23 @@ if 1:   # Utility
                     mo = r.search(i)
                     if mo:
                         matches.append(i)
-                if not matches: 
+                if not matches:
                     Error(f"{a!r} didn't match any diode name")
                 elif len(matches) == 1:
                     d[o] = matches[0]
                 else:
                     s = "\n"
                     Error(f"{a!r} had multiple matches: {s}{s.join(matches)}")
-            elif o == "-h":     # Show manpage
+            elif o == "-h":  # Show manpage
                 Manpage()
-            elif o == "-n":     # Number of digits
+            elif o == "-n":  # Number of digits
                 try:
                     d[o] = int(a)
                     if not (1 <= d[o] <= 15):
                         raise ValueError()
                 except ValueError:
                     Error(f"-n option's argument must be an integer between 1 and 15")
-            elif o == "-t":     # Table 
+            elif o == "-t":  # Table
                 d[o] = int(a)
                 if d[o] < 2:
                     Error(f"-t option's argument must be an integer >= 2")
@@ -164,9 +175,13 @@ if 1:   # Utility
         x.rtdp = True
         GetColors()
         return args
-if 1:   # Doc
+
+
+if 1:  # Doc
+
     def Manpage():
-        print(dedent(f'''
+        print(
+            dedent(f"""
 
         This script shows the measured current versus voltage relationships of on-hand diodes.
         Internally, the script uses your measured voltage/current relationships of the diodes you
@@ -227,18 +242,22 @@ if 1:   # Doc
         get the desired drop of 2 V.  You'll have to iterate to get the correct current, but it
         will let you use your choice of diodes, not the script's choice.
 
-        '''))
+        """)
+        )
         exit(0)
-if 1:   # Classes
+
+
+if 1:  # Classes
+
     class Diode:
         def __init__(self, name, i_max_A, PIV, V_V, i_A, note=None):
-            '''
+            """
             name        E.g. 1N4148
             i_max_A     Maximum current rating in A
             PIV         Peak inverse voltage rating
             V_V         V-i curve voltage data in V
             i_A         V-i curve current data in A
-            '''
+            """
             self.name = name
             self.i_max_A = i_max_A
             self.PIV = PIV
@@ -250,6 +269,7 @@ if 1:   # Classes
             # Generate the interpolation functions using scipy
             self.vi = interp1d(self.i_A, self.V_V)
             self.iv = interp1d(self.V_V, self.i_A)
+
         def __str__(self):
             # Return a string decorated with the diode's color for LEDs
             c = ""
@@ -266,47 +286,57 @@ if 1:   # Classes
             if self.note:
                 return f"{c}{self.name} ({self.note}){t.N}"
             return f"{c}{self.name}{t.N}"
+
         def __repr__(self):
             return f"Diode({self.name!r})"
+
         def i(self, V):
-            'Return diode current in A for voltage V in V or None if out of range'
+            "Return diode current in A for voltage V in V or None if out of range"
             try:
                 return flt(self.iv(V))
             except ValueError:
                 return None
+
         def V(self, i):
-            'Return diode voltage in V for current i in A or None if out of range'
+            "Return diode voltage in V for current i in A or None if out of range"
             try:
                 return flt(self.vi(i))
             except ValueError:
                 return None
-        if 1:   # Properties
+
+        if 1:  # Properties
+
             @property
             def imax(self):
                 return max(self.i_A)
+
             @property
             def imin(self):
                 return min(self.i_A)
+
             @property
             def vmax(self):
                 return max(self.V_V)
+
             @property
             def vmin(self):
                 return min(self.V_V)
+
     diodes = {}
+
     def ConstructDiodeData():
-        '''In Feb 2025 I systematically measured a number of diodes.  My Aneng 870 was used to
+        """In Feb 2025 I systematically measured a number of diodes.  My Aneng 870 was used to
         measure the diode's current, an Aneng 8009 was used to measure the voltage across the
         diode, and an HP E3615A power supply was used to supply the needed voltage.  An EDFM
         resistance box was used to provide a series resistance, as this is a great convenience in
         making such measurements as you can dynamically adjust the resistance while making the
-        measurements.  
+        measurements.
 
         Starting off at 1 μA usually requires a 1 to 10 MΩ resistance, as this gives the necessary
         adjustability with the HP supply's 10-turn pot to set the current to the exact value to
         the nearest 10 nA.  I usually find the supply is outputting in the 5-12 V range.  I
         usually set the current limit to about 10 mA to avoid damaging the LED or the resistance
-        box.  
+        box.
 
         When adjusting to higher currents, I'll drop the resistance by a factor of 10.  Sometimes
         this means I can't adjust the voltage control closely enough to get the desired value, so
@@ -352,21 +382,59 @@ if 1:   # Classes
         is run by an Arduino that has access to a real time clock module that can also measure
         ambient temperature, so these diode temperature offsets are corrected for in the software.
 
-        '''
-        if 1:   # 1N4148
+        """
+        if 1:  # 1N4148
             # Raw data in mV and mA
-            V_V = [flt(i)/1000 for i in (260, 320, 360, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900)]
-            i_A = [flt(i) /1000 for i in (0.001, 0.002, 0.005, 0.01, 0.03, 0.1, 0.3, 0.8, 2.5, 8, 18, 40, 100, 200)]
+            V_V = [
+                flt(i) / 1000
+                for i in (
+                    260,
+                    320,
+                    360,
+                    400,
+                    450,
+                    500,
+                    550,
+                    600,
+                    650,
+                    700,
+                    750,
+                    800,
+                    850,
+                    900,
+                )
+            ]
+            i_A = [
+                flt(i) / 1000
+                for i in (
+                    0.001,
+                    0.002,
+                    0.005,
+                    0.01,
+                    0.03,
+                    0.1,
+                    0.3,
+                    0.8,
+                    2.5,
+                    8,
+                    18,
+                    40,
+                    100,
+                    200,
+                )
+            ]
             # Store the data in the diode container
-            name = "si1"    # This was a 1N4148 diode
-            D = diodes[name] = Diode(name, flt(0.3), flt(100), V_V, i_A, "1N4148 silicon diode")
-        if 1:   # Unknown small signal Si diode
+            name = "si1"  # This was a 1N4148 diode
+            D = diodes[name] = Diode(
+                name, flt(0.3), flt(100), V_V, i_A, "1N4148 silicon diode"
+            )
+        if 1:  # Unknown small signal Si diode
             # Columns:  current in mA, voltage in mV
             # Measured 19 Feb 2025, Aneng 870 for current, Aneng 8009 for voltage, HP E3615A DC power
             # supply, EDFM 1 W resistance box.  This resistor came from the junk box and looks exactly
             # like a 1N4148; however, it's 1 mA current is about 120 mV higher than the 1N4148 that I
             # measured a number of years ago.
-            data = dedent('''
+            data = dedent("""
                 0.001   421
                 0.005   510
                 0.01    544
@@ -381,22 +449,22 @@ if 1:   # Classes
                 10      788
                 20      807
                 50      833
-                100.64  852''')
+                100.64  852""")
             m = []
             for line in data.split("\n"):
                 row = [flt(i) for i in line.split()]
                 m.append(row)
             mt = Transpose(m)
-            i_A = [flt(i/1000) for i in mt[0]]
-            V_V = [flt(i)/1000 for i in mt[1]]
+            i_A = [flt(i / 1000) for i in mt[0]]
+            V_V = [flt(i) / 1000 for i in mt[1]]
             name = "si2"
             i_max, PIV = "?", "?"
             D = Diode(name, i_max, PIV, V_V, i_A, "Small signal Si diode in junkbox")
             diodes[name] = D
-        if 1:   # 3 mm LEDs
+        if 1:  # 3 mm LEDs
             # 3 mm LEDs measured voltage drops as function of current
             #   mA      yel      grn      red      blu      wht
-            data = dedent('''
+            data = dedent("""
                 0.5     1.85     1.87     1.81     2.62     2.60
                  1      1.90     1.91     1.84     2.67     2.64
                  2      1.94     1.94     1.87     2.74     2.70
@@ -405,29 +473,34 @@ if 1:   # Classes
                 15      2.06     2.04     2.01     3.10     2.98
                 20      2.07     2.06     2.03     3.16     3.05
                 25      2.09     2.07     2.05     3.21     3.11
-                30      2.10     2.08     2.07     3.25     3.17''')
+                30      2.10     2.08     2.07     3.25     3.17""")
             # Generate a nested list
             m = []
             for line in data.split("\n"):
                 row = [flt(i) for i in line.split()]
                 m.append(row)
             mt = Transpose(m)
-            i_A = [flt(i/1000) for i in mt[0]]      # Current
-            V_V_yel = [flt(i) for i in mt[1]]       # yel voltage
-            V_V_grn = [flt(i) for i in mt[2]]       # grn voltage
-            V_V_red = [flt(i) for i in mt[3]]       # red voltage
-            V_V_blu = [flt(i) for i in mt[4]]       # blu voltage
-            V_V_wht = [flt(i) for i in mt[5]]       # wht voltage
+            i_A = [flt(i / 1000) for i in mt[0]]  # Current
+            V_V_yel = [flt(i) for i in mt[1]]  # yel voltage
+            V_V_grn = [flt(i) for i in mt[2]]  # grn voltage
+            V_V_red = [flt(i) for i in mt[3]]  # red voltage
+            V_V_blu = [flt(i) for i in mt[4]]  # blu voltage
+            V_V_wht = [flt(i) for i in mt[5]]  # wht voltage
             i_max, PIV = 0.05, 20
-            name = "yel3"; diodes[name] = Diode(name, i_max, PIV, V_V_yel, i_A)
-            name = "grn3"; diodes[name] = Diode(name, i_max, PIV, V_V_grn, i_A)
-            name = "red3"; diodes[name] = Diode(name, i_max, PIV, V_V_red, i_A)
-            name = "blu3"; diodes[name] = Diode(name, i_max, PIV, V_V_blu, i_A)
-            name = "wht3"; diodes[name] = Diode(name, i_max, PIV, V_V_wht, i_A)
-        if 1:   # 5 mm LEDs
+            name = "yel3"
+            diodes[name] = Diode(name, i_max, PIV, V_V_yel, i_A)
+            name = "grn3"
+            diodes[name] = Diode(name, i_max, PIV, V_V_grn, i_A)
+            name = "red3"
+            diodes[name] = Diode(name, i_max, PIV, V_V_red, i_A)
+            name = "blu3"
+            diodes[name] = Diode(name, i_max, PIV, V_V_blu, i_A)
+            name = "wht3"
+            diodes[name] = Diode(name, i_max, PIV, V_V_wht, i_A)
+        if 1:  # 5 mm LEDs
             # 5 mm LEDs measured voltage drops as function of current
             #   mA      yel      grn      red      blu      wht
-            data = dedent('''
+            data = dedent("""
                 0.5     1.85     2.28     1.76     2.61     2.61
                  1      1.88     2.33     1.79     2.65     2.65
                  2      1.92     2.40     1.83     2.71     2.70
@@ -436,7 +509,7 @@ if 1:   # Classes
                 15      2.09     2.78     2.03     3.05     3.07
                 20      2.12     2.86     2.07     3.13     3.14
                 25      2.15     2.92     2.10     3.19     3.21
-                30      2.16     2.98     2.13     3.25     3.26''')
+                30      2.16     2.98     2.13     3.25     3.26""")
             # Generate a nested list
             # For blu, see next section's more detailed measurements
             m = []
@@ -444,24 +517,28 @@ if 1:   # Classes
                 row = [flt(i) for i in line.split()]
                 m.append(row)
             mt = Transpose(m)
-            i_A = [flt(i/1000) for i in mt[0]]      # Current
-            V_V_yel = [flt(i) for i in mt[1]]       # yel voltage
-            V_V_grn = [flt(i) for i in mt[2]]       # grn voltage
-           #V_V_blu = [flt(i) for i in mt[4]]       # blu voltage
-            V_V_red = [flt(i) for i in mt[3]]       # red voltage
-            V_V_wht = [flt(i) for i in mt[5]]       # wht voltage
+            i_A = [flt(i / 1000) for i in mt[0]]  # Current
+            V_V_yel = [flt(i) for i in mt[1]]  # yel voltage
+            V_V_grn = [flt(i) for i in mt[2]]  # grn voltage
+            # V_V_blu = [flt(i) for i in mt[4]]       # blu voltage
+            V_V_red = [flt(i) for i in mt[3]]  # red voltage
+            V_V_wht = [flt(i) for i in mt[5]]  # wht voltage
             i_max, PIV = 0.05, 20
-            name = "yel5"; diodes[name] = Diode(name, i_max, PIV, V_V_yel, i_A)
-            name = "grn5"; diodes[name] = Diode(name, i_max, PIV, V_V_grn, i_A)
-            name = "red5"; diodes[name] = Diode(name, i_max, PIV, V_V_red, i_A)
-            #name = "blu5"; diodes[name] = Diode(name, i_max, PIV, V_V_blu, i_A)
-            name = "wht5"; diodes[name] = Diode(name, i_max, PIV, V_V_wht, i_A)
-        if 1:   # 5 mm blue LED
+            name = "yel5"
+            diodes[name] = Diode(name, i_max, PIV, V_V_yel, i_A)
+            name = "grn5"
+            diodes[name] = Diode(name, i_max, PIV, V_V_grn, i_A)
+            name = "red5"
+            diodes[name] = Diode(name, i_max, PIV, V_V_red, i_A)
+            # name = "blu5"; diodes[name] = Diode(name, i_max, PIV, V_V_blu, i_A)
+            name = "wht5"
+            diodes[name] = Diode(name, i_max, PIV, V_V_wht, i_A)
+        if 1:  # 5 mm blue LED
             # Measured 21 Feb 2025:  Aneng 870 for i, Aneng 8009 for V
             # Columns:  i in mA, V in V
             # Interestingly, I can see blue light from the LED at 1 μA of current -- and
             # connecting the 8009 voltmeter changed the current by about 40 nA.
-            data = dedent('''
+            data = dedent("""
                 0.001   2.275
                 0.002   2.337
                 0.005   2.401
@@ -478,20 +555,21 @@ if 1:   # Classes
                 20      3.281
                 50      3.535
                 100     3.756
-                ''')
+                """)
             # Generate a nested list
             m = []
             for line in data.split("\n"):
                 row = [flt(i) for i in line.split()]
                 m.append(row)
             mt = Transpose(m)
-            i_A = [flt(i/1000) for i in mt[0]]      # Current
-            V_V_blu = [flt(i) for i in mt[1]]       # blu voltage
-            name = "blu5"; diodes[name] = Diode(name, i_max, PIV, V_V_blu, i_A)
+            i_A = [flt(i / 1000) for i in mt[0]]  # Current
+            V_V_blu = [flt(i) for i in mt[1]]  # blu voltage
+            name = "blu5"
+            diodes[name] = Diode(name, i_max, PIV, V_V_blu, i_A)
 
-        if 1:   # 1N5817G Schottky
+        if 1:  # 1N5817G Schottky
             # Columns:  voltage in mV, current in mA
-            data = dedent('''
+            data = dedent("""
                 10.6    0.00253
                 52.1    0.032
                 102.8   0.2503
@@ -503,20 +581,20 @@ if 1:   # Classes
                 300.4   328
                 319.3   526
                 337.7   786
-                350.9   1003''')
+                350.9   1003""")
             m = []
             for line in data.split("\n"):
                 row = [flt(i) for i in line.split()]
                 m.append(row)
             mt = Transpose(m)
-            V_V = [flt(i)/1000 for i in mt[0]]
-            i_A = [flt(i/1000) for i in mt[1]]
+            V_V = [flt(i) / 1000 for i in mt[0]]
+            i_A = [flt(i / 1000) for i in mt[1]]
             name = "5817"
             i_max, PIV = flt(1), flt(20)
             diodes[name] = Diode(name, i_max, PIV, V_V, i_A, "Schottky diode")
-        if 1:   # 1N5818 Schottky
+        if 1:  # 1N5818 Schottky
             # Columns:  voltage in mV, current in mA
-            data = dedent('''
+            data = dedent("""
                 15.34     0.00047
                 63.16     0.00645
                 101.38    0.02969
@@ -526,20 +604,20 @@ if 1:   # Classes
                 322.3     104
                 369       383
                 397       680
-                420       980''')
+                420       980""")
             m = []
             for line in data.split("\n"):
                 row = [flt(i) for i in line.split()]
                 m.append(row)
             mt = Transpose(m)
-            V_V = [flt(i)/1000 for i in mt[0]]
-            i_A = [flt(i/1000) for i in mt[1]]
+            V_V = [flt(i) / 1000 for i in mt[0]]
+            i_A = [flt(i / 1000) for i in mt[1]]
             name = "5818"
             i_max, PIV = flt(1), flt(30)
             diodes[name] = Diode(name, i_max, PIV, V_V, i_A, "Schottky diode")
-        if 1:   # 1N4004
+        if 1:  # 1N4004
             # Columns:  current in mA, voltage in mV
-            data = dedent('''
+            data = dedent("""
                 0.001       287.7
                 0.002       327.9
                 0.005       373.4
@@ -558,20 +636,20 @@ if 1:   # Classes
                 100         768
                 200         793
                 500         820
-                1000        840''')
+                1000        840""")
             m = []
             for line in data.split("\n"):
                 row = [flt(i) for i in line.split()]
                 m.append(row)
             mt = Transpose(m)
-            i_A = [flt(i/1000) for i in mt[0]]
-            V_V = [flt(i)/1000 for i in mt[1]]
+            i_A = [flt(i / 1000) for i in mt[0]]
+            V_V = [flt(i) / 1000 for i in mt[1]]
             name = "4004"
             i_max, PIV = flt(1), flt(400)
             diodes[name] = Diode(name, i_max, PIV, V_V, i_A)
-        if 1:   # 1N4007
+        if 1:  # 1N4007
             # Columns:  current in mA, voltage in mV
-            data = dedent('''
+            data = dedent("""
                 0.001       286.6
                 0.002       327.3
                 0.005       374.2
@@ -590,113 +668,210 @@ if 1:   # Classes
                 100         811
                 200         833
                 500         848
-                1000        861''')
+                1000        861""")
             m = []
             for line in data.split("\n"):
                 row = [flt(i) for i in line.split()]
                 m.append(row)
             mt = Transpose(m)
-            i_A = [flt(i/1000) for i in mt[0]]
-            V_V = [flt(i)/1000 for i in mt[1]]
+            i_A = [flt(i / 1000) for i in mt[0]]
+            V_V = [flt(i) / 1000 for i in mt[1]]
             name = "4007"
             i_max, PIV = flt(1), flt(1000)
             diodes[name] = Diode(name, i_max, PIV, V_V, i_A)
+
     ConstructDiodeData()
-if 1:   # Core functionality
+if 1:  # Core functionality
+
     def PrintVoltageHeader(diode):
-        t.print(f"{t.title}Voltage/current relationship for {t.name}{diode.name}{t.title} diode")
+        t.print(
+            f"{t.title}Voltage/current relationship for {t.name}{diode.name}{t.title} diode"
+        )
         t.print(f"{t.subtitle}  Max current = {diode.i_max_A} A, PIV = {diode.PIV}")
         if diode.note:
             t.print(f"  {t.subtitle}{diode.note}")
-        t.print(f"{g.ind}{t.V}{'Voltage':>{g.w}s}"
-                f"{g.ind}{t.i}{'Current':>{g.w}s}"
-                f"{g.ind}{t.R}{'Resistance':>{g.w}s}"
-                f"{g.ind}{t.P}{'Power':>{g.w}s}")
-        t.print(f"{g.ind}{t.V}{'-'*g.w:>{g.w}s}"
-                f"{g.ind}{t.i}{'-'*g.w:>{g.w}s}"
-                f"{g.ind}{t.R}{'-'*g.w:>{g.w}s}"
-                f"{g.ind}{t.P}{'-'*g.w:>{g.w}s}")
+        t.print(
+            f"{g.ind}{t.V}{'Voltage':>{g.w}s}"
+            f"{g.ind}{t.i}{'Current':>{g.w}s}"
+            f"{g.ind}{t.R}{'Resistance':>{g.w}s}"
+            f"{g.ind}{t.P}{'Power':>{g.w}s}"
+        )
+        t.print(
+            f"{g.ind}{t.V}{'-' * g.w:>{g.w}s}"
+            f"{g.ind}{t.i}{'-' * g.w:>{g.w}s}"
+            f"{g.ind}{t.R}{'-' * g.w:>{g.w}s}"
+            f"{g.ind}{t.P}{'-' * g.w:>{g.w}s}"
+        )
+
     def PrintVoltage(V, diode, alert=False):
         i = diode.i(V)
         if i is None:
             if alert:
-                t.print(f"{2*g.ind}{t.err}No current for voltage {V} V")
+                t.print(f"{2 * g.ind}{t.err}No current for voltage {V} V")
             return
-        p, r = V*i, V/i
+        p, r = V * i, V / i
         sv = f"{V.engsi}V"
         si = f"{i.engsi}A"
         sp = f"{p.engsi}W"
         sr = f"{r.engsi}Ω"
-        t.print(f"{g.ind}{t.V}{sv:>{g.w}s}"
-                f"{g.ind}{t.i}{si:>{g.w}s}"
-                f"{g.ind}{t.R}{sr:>{g.w}s}"
-                f"{g.ind}{t.P}{sp:>{g.w}s}")
+        t.print(
+            f"{g.ind}{t.V}{sv:>{g.w}s}"
+            f"{g.ind}{t.i}{si:>{g.w}s}"
+            f"{g.ind}{t.R}{sr:>{g.w}s}"
+            f"{g.ind}{t.P}{sp:>{g.w}s}"
+        )
+
     def VoltageTable(diode):
-        'Print a voltage table for the indicated diode instance'
+        "Print a voltage table for the indicated diode instance"
         # Get the voltages in mV to print
-        V = [1, 2, 3, 4, 5, 6, 7, 8, 9,
-             10, 20, 30, 40, 50, 60, 70, 80, 90,
-             100, 150, 200, 250, 300, 350, 400, 450, 500,
-             600, 650, 700, 750, 800, 850, 900, 950]
+        V = [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            20,
+            30,
+            40,
+            50,
+            60,
+            70,
+            80,
+            90,
+            100,
+            150,
+            200,
+            250,
+            300,
+            350,
+            400,
+            450,
+            500,
+            600,
+            650,
+            700,
+            750,
+            800,
+            850,
+            900,
+            950,
+        ]
         V += range(1000, 5001, 50)
         PrintVoltageHeader(diode)
         for v in V:
-            PrintVoltage(flt(v/1000), diode)
+            PrintVoltage(flt(v / 1000), diode)
+
     def PrintCurrentHeader(diode):
         t.print(f"{t.title}Current/voltage relationship for {diode.name} diode")
         t.print(f"  {t.subtitle}Max current = {diode.i_max_A} A, PIV = {diode.PIV}")
         if diode.note:
             print(f"  {t.subtitle}{diode.note}")
-        t.print(f"{g.ind}{t.i}{'Current':>{g.w}s}"
-                f"{g.ind}{t.V}{'Voltage':>{g.w}s}"
-                f"{g.ind}{t.R}{'Resistance':>{g.w}s}"
-                f"{g.ind}{t.P}{'Power':>{g.w}s}")
-        t.print(f"{g.ind}{t.i}{'-'*g.w:>{g.w}s}"
-                f"{g.ind}{t.V}{'-'*g.w:>{g.w}s}"
-                f"{g.ind}{t.R}{'-'*g.w:>{g.w}s}"
-                f"{g.ind}{t.P}{'-'*g.w:>{g.w}s}")
+        t.print(
+            f"{g.ind}{t.i}{'Current':>{g.w}s}"
+            f"{g.ind}{t.V}{'Voltage':>{g.w}s}"
+            f"{g.ind}{t.R}{'Resistance':>{g.w}s}"
+            f"{g.ind}{t.P}{'Power':>{g.w}s}"
+        )
+        t.print(
+            f"{g.ind}{t.i}{'-' * g.w:>{g.w}s}"
+            f"{g.ind}{t.V}{'-' * g.w:>{g.w}s}"
+            f"{g.ind}{t.R}{'-' * g.w:>{g.w}s}"
+            f"{g.ind}{t.P}{'-' * g.w:>{g.w}s}"
+        )
+
     def PrintCurrent(i, diode, alert=False):
         v = diode.V(i)
         if v is None:
             if alert:
-                t.print(f"{2*g.ind}{t.err}No voltage for current {i} A")
+                t.print(f"{2 * g.ind}{t.err}No voltage for current {i} A")
             return
-        p = v*i
-        r = v/i
+        p = v * i
+        r = v / i
         sv = f"{v.engsi}V"
         si = f"{i.engsi}A"
         sp = f"{p.engsi}W"
         sr = f"{r.engsi}Ω"
-        t.print(f"{g.ind}{t.i}{si:>{g.w}s}"
-                f"{g.ind}{t.V}{sv:>{g.w}s}"
-                f"{g.ind}{t.R}{sr:>{g.w}s}"
-                f"{g.ind}{t.P}{sp:>{g.w}s}")
+        t.print(
+            f"{g.ind}{t.i}{si:>{g.w}s}"
+            f"{g.ind}{t.V}{sv:>{g.w}s}"
+            f"{g.ind}{t.R}{sr:>{g.w}s}"
+            f"{g.ind}{t.P}{sp:>{g.w}s}"
+        )
+
     def CurrentTable(diode):
-        'Print a current table for the selected diode'
+        "Print a current table for the selected diode"
         # Get the currents in mA to print
-        DI = [0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5,
-              1, 2, 3, 4, 5, 6, 7, 8, 9,
-              10, 20, 30, 40, 50, 60, 70, 80, 90,
-              100, 150, 200, 250, 300, 350, 400, 450, 500,
-              600, 650, 700, 750, 800, 850, 900, 950, 1000]
+        DI = [
+            0.001,
+            0.002,
+            0.005,
+            0.01,
+            0.02,
+            0.05,
+            0.1,
+            0.2,
+            0.5,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            20,
+            30,
+            40,
+            50,
+            60,
+            70,
+            80,
+            90,
+            100,
+            150,
+            200,
+            250,
+            300,
+            350,
+            400,
+            450,
+            500,
+            600,
+            650,
+            700,
+            750,
+            800,
+            850,
+            900,
+            950,
+            1000,
+        ]
         DI += range(1100, 10000, 100)
         DI += range(10000, 100000, 1000)
         PrintCurrentHeader(diode)
         for I in DI:
-            PrintCurrent(flt(I)/1000, diode)
+            PrintCurrent(flt(I) / 1000, diode)
+
     def VoltageReference(args):
-        '''Find a set of diodes and resistors in series that give a desired output voltage Vref
+        """Find a set of diodes and resistors in series that give a desired output voltage Vref
         when put across an given input voltage Vcc.  Limit the maximum current through the series
         circuit to approximately 10 mA.  For Vref > 3 V, this will be done by putting blue LEDs
         in series.  The minimum voltage is 0.1 V.
-        
+
         The algorithm is to start with a 1 μA current and increase the current until the selected
         stack of diodes has the desired Vref reference voltage within a percent or two.
-        
+
         Test case:  Vcc = 10, Vref = 1:  solution = two series 1N4148 with a 11.3 kΩ resistor.  With an
         actual Vcc of 10.007 V, the actual reference voltage was 0.9994 V with a 10.98 kΩ
         resistance at 88 μA.
-        '''
+        """
         assert args[0].lower() == "vref"
         Vcc = si.NumberWithSISuffix(args[1])
         Vref = si.NumberWithSISuffix(args[2])
@@ -706,7 +881,7 @@ if 1:   # Core functionality
             Error("Vcc must be > 0")
         if Vref < 20e-3:
             Error("Vref must be > 0")
-        if 1:   # Select diodes to use
+        if 1:  # Select diodes to use
             if 20e-3 <= Vref <= 0.183:
                 Diodes = ["5817"]
             elif 0.183 < Vref <= 0.223:
@@ -714,21 +889,21 @@ if 1:   # Core functionality
             elif 0.223 < Vref <= 0.5:
                 Diodes = ["5818", "5818"]
             elif 0.5 < Vref <= 0.71:
-                Diodes = ["si1"]*1
+                Diodes = ["si1"] * 1
             elif 0.71 < Vref <= 0.92:
-                Diodes = ["si1"]*2
+                Diodes = ["si1"] * 2
             elif 0.92 < Vref <= 1.13:
-                Diodes = ["si1"]*3
+                Diodes = ["si1"] * 3
             elif 1.13 < Vref <= 1.34:
-                Diodes = ["si1"]*4
+                Diodes = ["si1"] * 4
             elif 1.34 < Vref <= 1.55:
-                Diodes = ["si1"]*5
+                Diodes = ["si1"] * 5
             elif 1.55 < Vref <= 1.76:
-                Diodes = ["si1"]*6
+                Diodes = ["si1"] * 6
             elif 1.76 < Vref <= 1.85:
-                Diodes = ["si1"]*7
+                Diodes = ["si1"] * 7
             elif 1.85 < Vref <= 2.05:
-                Diodes = ["yel5"]*1
+                Diodes = ["yel5"] * 1
             elif 2.05 < Vref <= 2.21:
                 Diodes = ["yel5", "si1"]
             elif 2.21 < Vref <= 2.42:
@@ -739,12 +914,12 @@ if 1:   # Core functionality
                 Diodes = ["blu5"]
             elif 2.95 < Vref:
                 # Use multiples of the blu/wht LEDs
-                n = ceil(Vref/3)
-                Diodes = ["blu5"]*n
+                n = ceil(Vref / 3)
+                Diodes = ["blu5"] * n
         # Now we must find the current to run this set of diodes at to get the desired voltage
         # drop.  We'll start at 0.5 mA and go to 15 mA and we'll stop when we're within 1% of our
         # goal.
-        if 0:   # Iterative approach
+        if 0:  # Iterative approach
             low, high = flt(0.98), flt(1.02)
             increment, i, found = flt(1.05), flt(1e-6), False
             while not found and i < 0.015:
@@ -760,7 +935,7 @@ if 1:   # Core functionality
                         v += u
                 Dbg(f"v = {v}  i = {i}  goal = {Vref}")
                 # See if we're done
-                if Vref*low <= v <= Vref*high:
+                if Vref * low <= v <= Vref * high:
                     found = True
                     Dbg(f"Found")
                     continue
@@ -768,22 +943,22 @@ if 1:   # Core functionality
                     # Increment the current and try again
                     i *= increment
             if 0 and found:
-                ind = " "*2
+                ind = " " * 2
                 t.print(f"{t.name}Voltage reference solution found:")
                 print(f"{ind}Vref = {Vref} V, Vcc = {Vcc} V")
-                pct = 100*(v - Vref)/Vref
+                pct = 100 * (v - Vref) / Vref
                 with pct:
                     pct.N = 2
                     t.print(f"{ind}Found solution within {t.P}{pct}%")
                 t.print(f"{ind}{t.i}Current = {i.engsi}A")
                 s = "" if len(Diodes) == 1 else "s"
                 t.print(f"{ind}Diode{s}:  {t.title}{' '.join(Diodes)}")
-                R = (Vcc - Vref)/i
+                R = (Vcc - Vref) / i
                 t.print(f"{ind}{t.R}Needed series resistance = {R.engsi}Ω")
             if not found:
                 print(f"No solution found:  Vref = {Vref.engsi}V, Vcc = {Vcc.engsi}V")
                 return
-        else:   # Use a rootfinder
+        else:  # Use a rootfinder
             # Approach using a rootfinder.  f is a closure that is a function of current in A that
             # will return the voltage of a stack of diodes minus the Vref value.  Thus, its root
             # is the current we desire.
@@ -791,25 +966,29 @@ if 1:   # Core functionality
             ilow = max(diodes[i].imin for i in Diodes)
             ihigh = min(diodes[i].imax for i in Diodes)
             try:
-                stream = sys.stdout if 0 else None  # Set to 1 for debugging output from rootfinder
+                stream = (
+                    sys.stdout if 0 else None
+                )  # Set to 1 for debugging output from rootfinder
                 eps = 1e-3  # Relative change in root to stop
-                if 1:   # Check for root bracketing
+                if 1:  # Check for root bracketing
                     v1, v2 = f(ilow), f(ihigh)
-                    if v1*v2 > 0:
+                    if v1 * v2 > 0:
                         print("Root bracketing problem:")
                         print(f"  Vref = {Vref}")
                         print(f"  v1 = {v1} at i = {ilow.engsi}A")
                         print(f"  v2 = {v2} at i = {ihigh.engsi}A")
                         print(f"  Diodes = {Diodes}")
-                        if v1*v2 > 0:
-                            exit() #xx
+                        if v1 * v2 > 0:
+                            exit()  # xx
                 i, num_iterations = root.Crenshaw(ilow, ihigh, f, eps=eps, dbg=stream)
                 # Get the voltage drop across the diodes
                 v = 0
                 for diode in Diodes:
                     v += diodes[diode].V(i)
             except ValueError as e:
-                t.print(f"{t.err}{str(e)} (diode data in script probably not sufficient)")
+                t.print(
+                    f"{t.err}{str(e)} (diode data in script probably not sufficient)"
+                )
                 print(f"Diodes = {Diodes}")
                 for diode in Diodes:
                     try:
@@ -821,11 +1000,11 @@ if 1:   # Core functionality
                 print(f"No solution found:  Vref = {Vref.engsi}V, Vcc = {Vcc.engsi}V")
                 return
         # Print report
-        ind = " "*2
+        ind = " " * 2
         t.print(f"{t.name}Diode stack Voltage reference:")
         print(f"{ind}Vref = {t.V}{Vref} V{t.N}, Vcc = {Vcc} V")
-        pct = 100*(v - Vref)/Vref
-        if 0:   # Don't really need percent, as root finder will work nearly exactly
+        pct = 100 * (v - Vref) / Vref
+        if 0:  # Don't really need percent, as root finder will work nearly exactly
             with pct:
                 pct.N = 2
                 t.print(f"{ind}Found solution within {t.P}{pct}%")
@@ -833,37 +1012,42 @@ if 1:   # Core functionality
         s = "" if len(Diodes) == 1 else "s"
         t.print(f"{ind}Diode{s} (count and diode type):")
         PrintDiodes(Diodes, ind)
-        R = (Vcc - Vref)/i
+        R = (Vcc - Vref) / i
         t.print(f"{ind}Needed series resistance = {t.R}{R.engsi}Ω")
+
     def PrintDiodes(list_of_diodes, ind):
         di = defaultdict(int)
         for i in list_of_diodes:
             di[i] += 1
         for i in sorted(di):
-            print(f"{ind*2} {di[i]:3d}{ind}{str(diodes[i])}")
+            print(f"{ind * 2} {di[i]:3d}{ind}{str(diodes[i])}")
+
     def GetVrefFunction(list_of_diodes, Vref):
-        '''Return a function of current i in A that a root finder can use to find the current that
+        """Return a function of current i in A that a root finder can use to find the current that
         gives the diode stack operating point such that the sum of the diodes' drops is Vref.
         Note f is a closure, which is needed to remember our two arguments when f is called later
         by a root finder.
 
         set_of_diodes   List of diode name strings (the Diode instances are in diodes[name])
         Vref            A flt containing the desired voltage reference in V
-        '''
+        """
+
         def f(i):
-            nonlocal list_of_diodes, Vref   # Get GetVrefFunction's local variables
-            global diodes                   # A dict containing Diode class instances
-            V = 0       # Sum of voltages across a group of diodes in series
+            nonlocal list_of_diodes, Vref  # Get GetVrefFunction's local variables
+            global diodes  # A dict containing Diode class instances
+            V = 0  # Sum of voltages across a group of diodes in series
             for diode_ID in list_of_diodes:
                 V += diodes[diode_ID].V(i)
-            #t.print(f"{t.dbg}Vref = {Vref}, V = {V}, Vref - V = {Vref - V}")
-            return V - Vref     # The desired current will be such that V - Vref is zero
+            # t.print(f"{t.dbg}Vref = {Vref}, V = {V}, Vref - V = {Vref - V}")
+            return V - Vref  # The desired current will be such that V - Vref is zero
+
         return f
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
-    if d["-a"]:     # Print all diodes
+    if d["-a"]:  # Print all diodes
         if not args or ((len(args) == 1) and (args[0].lower() == "v")):
             # Print out details of all diodes
             for diode in diodes:
@@ -873,7 +1057,7 @@ if __name__ == "__main__":
             wn = 0
             for diode in diodes:
                 wn = max(wn, len(diodes[diode].name))
-            ind = " "*4
+            ind = " " * 4
             if args[0].lower() == "v":
                 for v in args[1:]:
                     V = si.NumberWithSISuffix(v)
@@ -882,11 +1066,13 @@ if __name__ == "__main__":
                         D = diodes[diode]
                         try:
                             vs = f"{D.i(V).engsi}A"
-                            vp = f"{(V*D.i(V)).engsi}W"
-                            vr = f"{(V/D.i(V)).engsi}Ω"
-                            t.print(f"{ind}{D.name:{wn}s}{ind}{vs:>{g.w}s}"
-                                    f"{ind}{t.R}{vr:>{g.w}s}"
-                                    f"{ind}{t.P}{vp:>{g.w}s}")
+                            vp = f"{(V * D.i(V)).engsi}W"
+                            vr = f"{(V / D.i(V)).engsi}Ω"
+                            t.print(
+                                f"{ind}{D.name:{wn}s}{ind}{vs:>{g.w}s}"
+                                f"{ind}{t.R}{vr:>{g.w}s}"
+                                f"{ind}{t.P}{vp:>{g.w}s}"
+                            )
                         except Exception:
                             print(f"{ind}{D.name:{wn}s}")
             elif args[0].lower() == "i":
@@ -897,11 +1083,13 @@ if __name__ == "__main__":
                         D = diodes[diode]
                         try:
                             vs = f"{D.V(i).engsi}V"
-                            vp = f"{(i*D.V(i)).engsi}W"
-                            vr = f"{(D.V(i)/i).engsi}Ω"
-                            t.print(f"{ind}{D.name:{wn}s}{ind}{t.V}{vs:>{g.w}s}"
-                                    f"{ind}{t.R}{vr:>{g.w}s}"
-                                    f"{ind}{t.P}{vp:>{g.w}s}")
+                            vp = f"{(i * D.V(i)).engsi}W"
+                            vr = f"{(D.V(i) / i).engsi}Ω"
+                            t.print(
+                                f"{ind}{D.name:{wn}s}{ind}{t.V}{vs:>{g.w}s}"
+                                f"{ind}{t.R}{vr:>{g.w}s}"
+                                f"{ind}{t.P}{vp:>{g.w}s}"
+                            )
                         except Exception:
                             print(f"{ind}{D.name:{wn}s}")
             else:
@@ -911,7 +1099,7 @@ if __name__ == "__main__":
     elif args and args[0].lower() == "st":  # Calculate resistor for diode stack
         if len(args) < 4:
             Usage()
-        V, i = flt(args[1]), flt(args[2])/1000  # In volts and amperes
+        V, i = flt(args[1]), flt(args[2]) / 1000  # In volts and amperes
         if V <= 0 or i <= 0:
             Error(f"Voltage and current have to be > 0")
         Diodes = []
@@ -936,17 +1124,17 @@ if __name__ == "__main__":
         v = 0
         for j in Diodes:
             v += j.V(i)
-        R = v/i
-        ind = " "*4
+        R = v / i
+        ind = " " * 4
         t.print(f"{t.title}Diode stack with arguments {' '.join(args[1:])!r}")
         t.print(f"{ind}Voltage = {t.V}{V.engsi}V")
         t.print(f"{ind}Current = {t.i}{i.engsi}A")
         print(f"{ind}Voltage drops of individual diodes:")
         for j in Diodes:
-            print(f"{ind*2}{t.V}{j.V(i).engsi}V{t.n} {j.name}")
+            print(f"{ind * 2}{t.V}{j.V(i).engsi}V{t.n} {j.name}")
         t.print(f"{ind}Total voltage drop = {t.V}{v.engsi}V")
         t.print(f"{ind}Resistor needs to drop {t.V}{(V - v).engsi}V")
-        P = v*i
+        P = v * i
         t.print(f"{ind}Resistor = {t.R}{R.engsi}Ω{t.n} (power = {t.P}{P.engsi}W{t.n})")
 
     elif len(args) == 1:
@@ -959,7 +1147,7 @@ if __name__ == "__main__":
                 func(diodes[diode])
         else:
             func(diodes[d["-d"]])
-    else:   # Print at selected values
+    else:  # Print at selected values
         diode = diodes[d["-d"]]
         if args[0].lower() == "v":
             PrintVoltageHeader(diode)

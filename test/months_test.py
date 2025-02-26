@@ -1,6 +1,7 @@
 from months import months
 from lwtest import run
 
+
 def Test():
     assert months[1] == "Jan"
     assert months[2] == "Feb"
@@ -27,6 +28,7 @@ def Test():
     assert months("Oct") == 10
     assert months("Nov") == 11
     assert months("Dec") == 12
+
 
 if __name__ == "__main__":
     exit(run(globals())[0])

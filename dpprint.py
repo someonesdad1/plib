@@ -1,41 +1,46 @@
-'''
+"""
 Provides the function PP which returns a form of the pprint.pprint function
-with a width argument set to the desired width.  Also includes the utility 
+with a width argument set to the desired width.  Also includes the utility
 Clear() which will clear the screen on UNIX type systems.
-'''
+"""
+
 if 1:  # Header
     # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
-        # <programming> Provides pp, a pprint aware of the screen width
-        #∞what∞#
-        #∞test∞# run #∞test∞#
+    # These "trigger strings" can be managed with trigger.py
+    # ∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    # ∞license∞#
+    # ∞what∞#
+    # <programming> Provides pp, a pprint aware of the screen width
+    # ∞what∞#
+    # ∞test∞# run #∞test∞#
     # Standard imports
-        import os
-        import subprocess
-        import sys
-        from functools import partial
-        from fractions import Fraction
-        from decimal import Decimal
-        from pprint import pprint
+    import os
+    import subprocess
+    import sys
+    from functools import partial
+    from fractions import Fraction
+    from decimal import Decimal
+    from pprint import pprint
+
     # Custom imports
-        have_mpmath = False
-        try:
-            import mpmath
-            have_mpmath = True
-        except ImportError:
-            pass
-    # Global variables 
-        __all__ = ["Clear", "PP"]
-        ii = isinstance
+    have_mpmath = False
+    try:
+        import mpmath
+
+        have_mpmath = True
+    except ImportError:
+        pass
+    # Global variables
+    __all__ = ["Clear", "PP"]
+    ii = isinstance
+
+
 def Int(s):
-    'Convert s into a positive integer'
+    "Convert s into a positive integer"
     n = int(os.environ.get("COLUMNS", 80)) - 1
     if ii(s, str):
         if s.startswith("0x"):
@@ -60,12 +65,14 @@ def Int(s):
     if n <= 0:
         raise ValueError("Integer value of s must be > 0")
     return n
+
+
 def PP(width=None, compact=False):
-    '''Returns pprint.pprint with a width parameter set to one less than
+    """Returns pprint.pprint with a width parameter set to one less than
     the current screen width if the parameter width is None.  Otherwise,
     it's a number converted to a positive integer that must be nonzero.
     If compact is True, multiple items will be printed on one line.
-    '''
+    """
     columns = int(os.environ.get("COLUMNS", 80)) - 1
     if width is not None:
         try:
@@ -76,13 +83,17 @@ def PP(width=None, compact=False):
             print(e)
             exit(1)
     return partial(pprint, width=columns, compact=compact)
+
+
 def Clear():
     subprocess.run("clear", shell=True)
 
-if __name__ == "__main__": 
+
+if __name__ == "__main__":
     from lwtest import run, Assert, raises
     from io import StringIO
     from f import flt
+
     def TestInt():
         # Integer forms
         Assert(Int(1) == 1)
@@ -105,12 +116,13 @@ if __name__ == "__main__":
             Assert(Int(mpmath.mpf("1")) == 1)
             Assert(Int(mpmath.mpf("1.2")) == 1)
             Assert(Int(mpmath.mpf("1e2")) == 100)
+
     def Test_pp():
         pp = PP(5)
         buf = StringIO()
         s = "1234567890"
         pp(s, stream=buf)
         u = buf.getvalue()
-        assert(u == f"{s!r}\n")
+        assert u == f"{s!r}\n"
 
     exit(run(globals(), halt=True)[0])

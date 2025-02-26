@@ -1,4 +1,4 @@
-'''
+"""
 
 TODO
     - Convert to python 3 syntax
@@ -9,39 +9,42 @@ TODO
 Generate a C++ include file that can be used for type-safe numerical
 computation with units.
 
-This script was derived as part of the UnitsC++ project at 
+This script was derived as part of the UnitsC++ project at
 http://sourceforge.net/projects/unitscpp/
-'''
-if 1:   # Header
-    if 1:   # Copyright, license
+"""
+
+if 1:  # Header
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2008, 2023 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2008, 2023 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Tool to write C++ type-safe numerical code with units
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         import getopt
         import os
         from pathlib import Path as P
         import sys
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import wrap, dedent
         from color import Color, TRM as t
+
         if 1:
             import debug
+
             debug.SetDebugger()
-    if 1:   # Global variables
+    if 1:  # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
-    if 1:   # Global variables
+    if 1:  # Global variables
         err = sys.stderr.write
         ii = isinstance
         # Keys and map used to store strings used in output
@@ -78,23 +81,23 @@ if 1:   # Header
             units_namespace: "",
             numerical_type: "double",
             class_identifier: "class",  # Gets around bug in ctags 5.7
-            needed_includes: dedent('''
+            needed_includes: dedent("""
         #include <ostream>
         #include <sstream>
         #include <string>
-        ''')
+        """),
         }
         # Other string constants
         header_begin = "HeaderBegin"
         header_end = "HeaderEnd"
         trailer_begin = "TrailerBegin"
         trailer_end = "TrailerEnd"
-        unit_marker_begin = "\"<\" "
-        unit_marker_end = "\">\""
+        unit_marker_begin = '"<" '
+        unit_marker_end = '">"'
         indent = "    "
         nl = "\n"
         # Configuration file example
-        configuration_file_contents = dedent('''
+        configuration_file_contents = dedent("""
         # Empty configuration file for C++ units include file generation.  The
         # method is based on the ideas in Barton and Nackman, "Scientific and
         # Engineering C++", Addison-Wesley, 1994, ISBN 0201533936.  Also see
@@ -252,11 +255,11 @@ if 1:   # Header
 
         TrailerBegin
         TrailerEnd
-        ''')
+        """)
 
         # The following strings are used when the -s option is given.
         # Customize them to your own needs.
-        s_fundamental = dedent('''
+        s_fundamental = dedent("""
         Unit = Mass
         Unit = Length
         Unit = Time
@@ -266,9 +269,9 @@ if 1:   # Header
         Unit = LuminousIntensity
         Unit = Angle
         Unit = SolidAngle
-        ''')
+        """)
 
-        s_derived = dedent('''
+        s_derived = dedent("""
         DerivedUnit = Dimensionless = 1
         DerivedUnit = Avogadro = 1/Quantity
         DerivedUnit = Area = Length^2
@@ -324,9 +327,9 @@ if 1:   # Header
         DerivedUnit = Luminance = LuminousIntensity/Area
         DerivedUnit = Illuminance = LuminousFlux/Area
         DerivedUnit = RadiantIntensity = Power/SolidAngle
-        ''')
+        """)
 
-        s_constants = dedent('''
+        s_constants = dedent("""
         Constant = const NT tera = 1e12;
         Constant = const NT giga = 1e9;
         Constant = const NT mega = 1e6;
@@ -522,9 +525,9 @@ if 1:   # Header
         Constant = const Mass MoonMass = 7.3483e22*kg;
         Constant = const Length MoonRadius = 1738*km;
         Constant = const Length MoonDistance = 3.844e8*m;
-        ''')
+        """)
 
-        include_file = dedent('''
+        include_file = dedent("""
         typedef %(NumericalType)s NT;   // Number Type
 
         template<%(IPAR)s>
@@ -779,14 +782,17 @@ if 1:   # Header
         // where the base unit m has already been defined.  This requires you
         // to i) know the unit type at compile time and ii) assume its value
         // is in terms of the base type.
-        ''')
-if 1:   # Utility
+        """)
+if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=1):
         name = sys.argv[0]
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {name} [options] [configuration_file]
           Writes an include file that can be used for type-safe C++ numerical
           computations with units.  The configuration_file controls the contents
@@ -805,8 +811,10 @@ if 1:   # Utility
                   added to the output along with common derived units and
                   constants.  Edit this script to customize the output for
                   your own needs.
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine():
         if len(sys.argv) < 2:
             Usage()
@@ -821,33 +829,43 @@ if 1:   # Utility
                 print(configuration_file_contents % d)
                 exit(0)
             if opt[0] == "-s":
-                d = {"fundamental": s_fundamental, 
-                    "derived": s_derived, 
-                    "constants": s_constants}
+                d = {
+                    "fundamental": s_fundamental,
+                    "derived": s_derived,
+                    "constants": s_constants,
+                }
                 print(configuration_file_contents % d)
                 exit(0)
         if len(args) != 1:
             Usage()
         return args[0]
-if 1:   # Classes
+
+
+if 1:  # Classes
+
     class U:
-        '''Perform dimension arithmetic for arbitrary units.  This class is
+        """Perform dimension arithmetic for arbitrary units.  This class is
         used to calculate the fundamental unit representation for derived units.
-        '''
+        """
+
         def __init__(self, d):
             self.d = tuple(d)
+
         def __repr__(self):
-            #return "%s," % join(["%d" % int(i) for i in self.d], ",")
-            return ','.join([f"{int(i)}" for i in self.d])
+            # return "%s," % join(["%d" % int(i) for i in self.d], ",")
+            return ",".join([f"{int(i)}" for i in self.d])
+
         def __mul__(self, b):
             return U([self.d[i] + b.d[i] for i in range(len(self.d))])
+
         def __div__(self, b):
             return U([self.d[i] - b.d[i] for i in range(len(self.d))])
+
         def __pow__(self, b):
             if not ii(b, int):
                 raise TypeError("Bad exponent:  " + repr(b))
             if b == 0:
-                return U([0]*len(self.d))
+                return U([0] * len(self.d))
             if b == 1:
                 return x
             if b < 0:
@@ -861,16 +879,20 @@ if 1:   # Classes
                 for i in range(b - 1):
                     x *= self
             return x
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def ReadConfigFile(config_file):
         try:
             lines = open(config_file).readlines()
             return lines
         except Exception:
             Error(f"Error:  couldn't read config file {config_file!r}")
+
     def RemoveComments(lines):
         # Remove comments and empty lines by reading backwards through the file
-        for i in range(len(lines)-1, -1, -1):
+        for i in range(len(lines) - 1, -1, -1):
             if not lines[i].strip():
                 del lines[i]
                 continue
@@ -878,11 +900,12 @@ if 1:   # Core functionality
                 del lines[i]
         lines = [line.strip() for line in lines]
         return lines
+
     def GetSection(lines, StartString, EndString):
-        '''Find the text between lines with StartString and EndString on
+        """Find the text between lines with StartString and EndString on
         them.  Return the text between them and delete the associated lines
         from the lines list.
-        '''
+        """
         StartString += nl  # The lines from the file have newlines at the end
         EndString += nl
         start = end = -1
@@ -896,46 +919,57 @@ if 1:   # Core functionality
                 Error("Error:  Missing {EndString!r} in config file")
             end = lines.index(EndString)
             if start > end:
-                Error("Error:  {EndString!r} comes before {StartString!r} in config file%s")
+                Error(
+                    "Error:  {EndString!r} comes before {StartString!r} in config file%s"
+                )
         header = None
         if end - start > 1:
-            header = lines[start+1:end]
-        del lines[start:end+1]
+            header = lines[start + 1 : end]
+        del lines[start : end + 1]
         if header:
             return join(header, nl)
         else:
             return None
+
     def Split(line, char="="):
-        'Split on the first indicated character'
+        "Split on the first indicated character"
         if char not in line:
             Error("Error:  configuration file line missing {char!r}:\n{line}")
         position = line.find(char)
         key = line[:position].strip()
-        value = line[position+1:].strip()
+        value = line[position + 1 :].strip()
         return [key, value]
+
     def ParseLine(line):
-        '''Parse on the first '=' character on the line.
-        '''
-        if '=' not in line:
+        """Parse on the first '=' character on the line."""
+        if "=" not in line:
             Error("Error:  configuration file line missing '=':\n{line}")
         position = line.find("=")
         key = line[:position].strip()
-        value = line[position+1:].strip()
+        value = line[position + 1 :].strip()
         return [key, value]
+
     def ParseUnit(line, string):
-        '''Make sure there's an '=' character and two tokens.
-        '''
-        if '=' not in string:
+        """Make sure there's an '=' character and two tokens."""
+        if "=" not in string:
             Error("Error:  configuration file line missing '=':\n{line}")
         name, symbol = Split(string, "=")
         return name + "=" + symbol
+
     def ProcessLines(lines):
-        '''Fill the output_strings global with the relevant information, 
+        """Fill the output_strings global with the relevant information,
         ready to be printed out to the include file.
-        '''
+        """
         global output_strings
-        AllowedKeys = (units_class, units_namespace, numerical_type, f_unit, 
-            d_unit, constant, include_file_name)
+        AllowedKeys = (
+            units_class,
+            units_namespace,
+            numerical_type,
+            f_unit,
+            d_unit,
+            constant,
+            include_file_name,
+        )
         for line in lines:
             key, value = Split(line, "=")
             if key not in AllowedKeys:
@@ -948,6 +982,7 @@ if 1:   # Core functionality
                 output_strings[constant].append(value)
             else:
                 output_strings[key] = value
+
     def CheckData():
         # Check for duplicates in fundamental units.
         # Form is Unit = Length
@@ -983,10 +1018,11 @@ if 1:   # Core functionality
                 Error("Error:  {key!r} is a duplicated constant")
             else:
                 units[key] = 0
+
     def MakeMap():
-        '''Make a map that contains all the variables needed for outputting
+        """Make a map that contains all the variables needed for outputting
         the include file.
-        '''
+        """
         m = {}
         for key in output_strings[parameters]:
             m[key] = output_strings[parameters][key]
@@ -995,15 +1031,18 @@ if 1:   # Core functionality
         m[outstream] = output_strings[outstream]
         m[class_identifier] = output_strings[class_identifier]
         return m
+
     def MakeTemplateParameters():
         def f(s, number_of_dimensions):
             string = range(1, number_of_dimensions + 1)
             string = [s % i for i in string]
             return join(string, ", ")
+
         def g(s, number_of_dimensions):
             string = range(1, number_of_dimensions + 1)
             string = [s % (i, i) for i in string]
             return join(string, ", ")
+
         global output_strings
         number_of_dimensions = len(output_strings[fundamental])
         d = {}
@@ -1012,19 +1051,23 @@ if 1:   # Core functionality
         d["PARb"] = f("U%db", number_of_dimensions)
         d["MPAR"] = f("-U%d", number_of_dimensions)
         d["IPAR"] = f("int U%d", number_of_dimensions)
-        d["IPARmul"] = f("int U%da", number_of_dimensions) + ", " + \
-                    f("int U%db", number_of_dimensions)
+        d["IPARmul"] = (
+            f("int U%da", number_of_dimensions)
+            + ", "
+            + f("int U%db", number_of_dimensions)
+        )
         d["PARaPb"] = g("U%da+U%db", number_of_dimensions)
         d["PARaMb"] = g("U%da-U%db", number_of_dimensions)
         d["UNIT"] = "%s<%s>" % (output_strings[units_class], d["PAR"])
         d["mUNIT"] = "%s<%s>" % (output_strings[units_class], d["MPAR"])
         output_strings[parameters] = d
+
     def BuildNeededStrings():
         global output_strings
         # String for dumping unit's dimensions
         number_of_dimensions = len(output_strings[fundamental])
         string = range(1, number_of_dimensions)
-        string = ["<< U%d << \",\"" % i for i in string]
+        string = ['<< U%d << ","' % i for i in string]
         string.append("<< U%d" % number_of_dimensions)
         s = unit_marker_begin + join(string) + " << " + unit_marker_end
         output_strings[outstream] = s
@@ -1036,29 +1079,44 @@ if 1:   # Core functionality
         for i in range(n):
             name = output_strings[fundamental][i]
             tp = repr(output_strings[Units][name])
-            if tp[-1] == ",": 
-                tp = tp[:-1]    # Remove comma
+            if tp[-1] == ",":
+                tp = tp[:-1]  # Remove comma
             if ns:
-                s += "typedef %s::%s<%s> %s;%s" % \
-                    (ns, output_strings[units_class], tp, name, nl)
+                s += "typedef %s::%s<%s> %s;%s" % (
+                    ns,
+                    output_strings[units_class],
+                    tp,
+                    name,
+                    nl,
+                )
             else:
-                s += "typedef %s<%s> %s;%s" % \
-                    (output_strings[units_class], tp, name, nl)
+                s += "typedef %s<%s> %s;%s" % (
+                    output_strings[units_class],
+                    tp,
+                    name,
+                    nl,
+                )
             names_to_pos[name] = i + 1
-        output_strings[typedefs] = s 
+        output_strings[typedefs] = s
+
         # Build derived typedefs
         def Derived(derived_unit_string):
             name, expression = Split(derived_unit_string, "=")
             tp = repr(output_strings[Units][name])
-            if tp[-1] == ",": 
-                tp = tp[:-1]    # Remove comma
+            if tp[-1] == ",":
+                tp = tp[:-1]  # Remove comma
             if ns:
-                s = "typedef %s::%s<%s> %s;%s" % \
-                    (ns, output_strings[units_class], tp, name, nl)
+                s = "typedef %s::%s<%s> %s;%s" % (
+                    ns,
+                    output_strings[units_class],
+                    tp,
+                    name,
+                    nl,
+                )
             else:
-                s = "typedef %s<%s> %s;%s" % \
-                    (output_strings[units_class], tp, name, nl)
+                s = "typedef %s<%s> %s;%s" % (output_strings[units_class], tp, name, nl)
             return s
+
         n = len(output_strings[derived])
         s = ""
         for item in output_strings[derived]:
@@ -1069,6 +1127,7 @@ if 1:   # Core functionality
         for string in output_strings[constant]:
             s += string + nl
         output_strings[constants] = s + nl
+
     def WriteIncludeFile():
         s = output_strings[include_file_name]
         of = sys.stdout
@@ -1104,24 +1163,25 @@ if 1:   # Core functionality
         print("#endif //" + t)
         if s:
             of.close()
+
     def ConstructFundamentalUnits():
-        '''Our basic procedure is to compile expressions that create the
+        """Our basic procedure is to compile expressions that create the
         fundamental unit names objects in our local scope, then put the objects
-        into the dictionary keyed by "Units" in the output_strings global 
+        into the dictionary keyed by "Units" in the output_strings global
         dictionary.  We'll use these to evaluate the expressions for derived
         units.
-        '''
+        """
         global output_strings
         n = len(output_strings[fundamental])
         d = {}  # Dictionary for our fundamental objects
         for i in range(n):
             name = output_strings[fundamental][i]
-            t = [0]*n
+            t = [0] * n
             t[i] = 1
             # Construct the string to compile
             s = "%s = U((%s))" % (name, repr(U(t)))
             try:
-                breakpoint() #xx
+                breakpoint()  # xx
                 c = compile(s, "", "single")
                 eval(c)  # Evaluate it in our local namespace
                 # Get the object created and put into our dictionary
@@ -1133,8 +1193,9 @@ if 1:   # Core functionality
         if len(d) == 0:
             Error("Need at least one Unit statement in configuration file")
         output_strings[Units] = d
+
     def ConstructDerivedUnits():
-        '''The procedure here is analogous to what was done in
+        """The procedure here is analogous to what was done in
         ConstructFundamentalUnits, except we'll construct strings to be
         compile that contain the expressions the user put into the
         configuration file.  We'll then get the dimensions of the
@@ -1144,7 +1205,7 @@ if 1:   # Core functionality
         determine whether they are legitimate (i.e., we don't have to
         write a parser).  The U class captures the semantics of combining
         the units' dimensions.
-        '''
+        """
         global output_strings
         num_fund = len(output_strings[fundamental])
         # First, put the fundamental units into our local namespace.  This
@@ -1152,7 +1213,7 @@ if 1:   # Core functionality
         # to keep the tasks separate.
         for name in output_strings[Units]:
             try:
-                breakpoint() #xx
+                breakpoint()  # xx
                 s = "%s = U((%s))" % (name, output_strings[Units][name])
                 c = compile(s, "", "single")
                 eval(c)
@@ -1161,16 +1222,16 @@ if 1:   # Core functionality
         # Now evaluate the derived expressions
         n = len(output_strings[derived])
         d = output_strings[Units]  # Fundamental units are already here
-        one = U([0]*num_fund)      # Allow things like '1/Length'
+        one = U([0] * num_fund)  # Allow things like '1/Length'
         for i in range(n):
             name, expression = Split(output_strings[derived][i], "=")
             if name in d:
-                Error("Derived unit {name} is already the name of a unit.") 
+                Error("Derived unit {name} is already the name of a unit.")
             # Construct the string to compile
             s = expression
             # Needed substitutions to make things work
             s = s.replace("1", "one")  # Allow things line '1/Length'
-            s = s.replace("^", "**")   # Let's '^' be used for exponentiation
+            s = s.replace("^", "**")  # Let's '^' be used for exponentiation
             try:
                 c = compile(s, "", "eval")
                 result = eval(c)
@@ -1180,7 +1241,8 @@ if 1:   # Core functionality
             locals()[name] = d[name]
         output_strings[Units] = d
 
-if __name__ == "__main__": 
+
+if __name__ == "__main__":
     config_file = ParseCommandLine()
     lines = ReadConfigFile(config_file)
     output_strings[header] = GetSection(lines, header_begin, header_end)

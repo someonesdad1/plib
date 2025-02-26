@@ -1,33 +1,34 @@
-'''
+"""
 Show favorite xkcd links
-'''
-if 1:   # Header
-    if 1:   # Copyright, license
+"""
+
+if 1:  # Header
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Show favorite xkcd links
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         import getopt
         import os
         from pathlib import Path as P
         import sys
         from pdb import set_trace as xx
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import wrap, dedent
         from color import Color, TRM as t
-    if 1:   # Global variables
+    if 1:  # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
-        data = '''
+        data = """
 
             131 Clicking fans
             135 Substitute (velociraptors, matter of life & death)
@@ -77,23 +78,28 @@ if 1:   # Header
             1985 Pure math meteorologist
             1994 How well something works after I've fixed it
 
-        '''
-if 1:   # Utility
+        """
+if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] keyword
           Show xkcd links with keyword.  Show all with none.
         Options:
             -h      Print a manpage
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
         d["-a"] = False
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "h") 
+            opts, args = getopt.getopt(sys.argv[1:], "h")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -103,7 +109,10 @@ if 1:   # Utility
             elif o == "-h":
                 Usage(status=0)
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def GetDict():
         di = {}
         for line in data.split("\n"):
@@ -113,14 +122,17 @@ if 1:   # Core functionality
             f = line.split(" ", maxsplit=1)
             di[int(f[0])] = f[1]
         return di
+
     def PrintItem(i):
         s = f"{p}{i!s}"
         print(f"{s:21s} {di[i]}")
+
     def PrintResults(keyword):
-        breakpoint() #xx
+        breakpoint()  # xx
+
 
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     di = GetDict()
     keywords = ParseCommandLine(d)
     results, p = [], "https://xkcd.com/"

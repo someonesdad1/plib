@@ -1,26 +1,27 @@
-'''
+"""
 Print out the cost of electrical power.
-'''
+"""
+
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Print out cost of electrical power
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Imports
+    if 1:  # Imports
         import sys
         from math import *
         import getopt
         from pprint import pprint as pp
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import dedent
         from f import flt
         from fpformat import FPFormat
@@ -28,16 +29,23 @@ if 1:  # Header
         from u import u, ParseUnit, dim
         from color import t
         import matrix
+
         if 0:
             import debug
+
             debug.SetDebugger()
-    if 1:   # Global variables
+    if 1:  # Global variables
         ii = isinstance
+
+
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
+
+
 def Manpage():
-    print(dedent(f'''
+    print(
+        dedent(f"""
     This script prints out the cost of electrical power for a constant load.  The assumptions are
         
         - Your cost for electrical power is a constant
@@ -102,17 +110,21 @@ def Manpage():
     power factor.  Typical consumers aren't dinged for non-unity power factors, but industrial
     users are unless they install power factor correction circuitry.  
 
-    '''))
+    """)
+    )
     exit(0)
+
+
 def Usage(status=0):
     dpkWhr = flt(d["-r"])
-    cent_per_kWhr = dpkWhr*100
-    cent_per_MJ = 0.27777778*cent_per_kWhr
+    cent_per_kWhr = dpkWhr * 100
+    cent_per_MJ = 0.27777778 * cent_per_kWhr
     with dpkWhr:
         dpkWhr.N = 4
-        print(dedent(f'''
+        print(
+            dedent(f"""
     Usage:  {sys.argv[0]} [options] p1 [p2 ...]
-      Prints out various period costs of electrical power for the rate of {100*flt(d["-r"])}¢/(kW*hr) for a
+      Prints out various period costs of electrical power for the rate of {100 * flt(d["-r"])}¢/(kW*hr) for a
       given power p1, p2, ... in watts.  The current cost of electrical power as of {d["date"]}
       for the state of Idaho is {cent_per_kWhr} ¢/(kW·hr) = {cent_per_MJ} ¢/MJ.  You can append an optional
       power unit to p1 with a space (put the expression in quotes to escape it from shell
@@ -131,18 +143,21 @@ def Usage(status=0):
       -i        Print the consumption of various instruments
       -r C      Change the cost per kW*hr to C dollars
       -t        Show some costs for typical appliances
-        '''))
+        """)
+        )
     exit(status)
+
+
 def ParseCommandLine(d):
     # From https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_a
     d["date"] = "May 2024"  # Month/year of above webpage revision
-    d["-d"] = 2         # Number of significant digits
-    d["-i"] = False     # Instrument consumption
-    d["-l"] = False     # Print out lighting power too
-    d["-p"] = 1         # Power factor
+    d["-d"] = 2  # Number of significant digits
+    d["-i"] = False  # Instrument consumption
+    d["-l"] = False  # Print out lighting power too
+    d["-p"] = 1  # Power factor
     # This value is for the state of Idaho
     d["-r"] = "0.1155"  # Cost of kW*hr of electrical energy in $
-    d["-t"] = False     # Table of typical costs
+    d["-t"] = False  # Table of typical costs
     flt(0).N = d["-d"]
     try:
         opts, args = getopt.getopt(sys.argv[1:], "d:hilp:r:t")
@@ -191,22 +206,29 @@ def ParseCommandLine(d):
     if not args:
         Usage()
     return args
+
+
 def F(x):
-    'For flt x, if str has trailing decimal point, remove it'
-    assert(ii(x, flt))
+    "For flt x, if str has trailing decimal point, remove it"
+    assert ii(x, flt)
     s = str(x)
     if s[-1] == ".":
         s = s[:-1]
     return s
+
+
 def Money(amount, time_period):
-    '''Print in dollars if the amount is greater than 1; in cents if
+    """Print in dollars if the amount is greater than 1; in cents if
     less than 1.
-    '''
-    i, t = " "*4, time_period
-    a = amount if amount >= 1 else 100*amount
+    """
+    i, t = " " * 4, time_period
+    a = amount if amount >= 1 else 100 * amount
     return f"{i}${F(a)} per {t}" if amount >= 1 else f"{i}{F(a)}¢ per {t}"
+
+
 def Lighting():
-    print(dedent('''
+    print(
+        dedent("""
     Lighting electrical power consumption, W
       From https://en.wikipedia.org/wiki/Lumen_%28unit%29
       Accessed 25 Jan 2017
@@ -244,45 +266,50 @@ def Lighting():
     Truncated 5800 K black body      251        37
     Ideal, green 555 nm              683        100
 
-    '''))
+    """)
+    )
+
+
 def Instruments():
-    fp= FPFormat()  # Use to line up cost decimal points
+    fp = FPFormat()  # Use to line up cost decimal points
     inst = {
         # Item:  power in W
-        #"HP 427A     Voltmeter": 0.06,
-        #"HP 3435A    Digital multimeter": 2,
-        #"HP 3466A    Digital multimeter": 2,
-        #"HP 3400A    RMS voltmeter": 7,
+        # "HP 427A     Voltmeter": 0.06,
+        # "HP 3435A    Digital multimeter": 2,
+        # "HP 3466A    Digital multimeter": 2,
+        # "HP 3400A    RMS voltmeter": 7,
         "HP E3615A   Power supply": 7,
         "B&K 8500    DC Load": 9,
         "B&K 4052    Function generator": 13,
-        #"B&K 2556A   Oscilloscope": 20,
+        # "B&K 2556A   Oscilloscope": 20,
         "B&K 9130    Power supply": 20,
-        #"HP 3456A    Voltmeter": 21,
+        # "HP 3456A    Voltmeter": 21,
         "HP 6038A    Power supply": 34,
         "HP 6033A    Power supply": 38,
         "HP 54601B   Oscilloscope": 50,
         "HP 428B     Clamp-on ammeter": 50,
     }
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Cost to run various instruments (power supplies in quiescent state)
 
     Instrument                       Power, W     ¢/day     $/month
     ------------------------------   --------     -----     -------
-    '''))
-    kWhr_cost = flt(d["-r"])    # Cost of a kW*hr in $
-    J_per_kWhr = 3600000        # A kW*hr is 3600000 J
-    dpj = kWhr_cost/J_per_kWhr  # Cost of power in $/J
+    """)
+    )
+    kWhr_cost = flt(d["-r"])  # Cost of a kW*hr in $
+    J_per_kWhr = 3600000  # A kW*hr is 3600000 J
+    dpj = kWhr_cost / J_per_kWhr  # Cost of power in $/J
     # Check with GNU units:  0.1155 $/(kW*hr) is equal to 3.2083333e-08 $/J
     assert abs(dpj - 3.2083333e-08) < 1e-15
-    cent_day = 24*3600*100*dpj  # Cost of 1 W for 24 hr in cents
-    fp.digits(3)    # Show numbers to 3 digits
-    dpj.N = 3    
+    cent_day = 24 * 3600 * 100 * dpj  # Cost of 1 W for 24 hr in cents
+    fp.digits(3)  # Show numbers to 3 digits
+    dpj.N = 3
     dpj.rtz = dpj.rtdp = False
     monthly_total = 0
     for i, pow in inst.items():
-        day = pow*cent_day              # In cents per day
-        mo = flt(365.25*day/(12*100))   # In dollars per month
+        day = pow * cent_day  # In cents per day
+        mo = flt(365.25 * day / (12 * 100))  # In dollars per month
         p = fp.dp(pow, width=6, dpoint=3)
         D = fp.dp(day, width=6, dpoint=3)
         m = fp.dp(mo, width=6, dpoint=3)
@@ -290,6 +317,8 @@ def Instruments():
         monthly_total += mo
     print(f"\nMonthly cost to run all of these is ${monthly_total}")
     print(f"Cost of power is ${d['-r']} per kW*hr = {dpj} $/J")
+
+
 def TypicalAppliances():
     # Most of this data from https://generatorist.com/power-consumption-of-household-appliances
     items = [
@@ -324,22 +353,24 @@ def TypicalAppliances():
     items = sorted([(i[1], i[0]) for i in items])
     w = max([len(i[1]) for i in items])
     print(f"{'Item':^{w}s}  Watts    $ per 8 hr")
-    print(f"{'-'*w:^{w}s}  -----    ----------")
-    c = 100*flt(2.77778e-07)*d["-r"]  # Power cost in cents/J
-    cents_day = 8*3600*c    # Cost of 1 W for 8 hr in cents
+    print(f"{'-' * w:^{w}s}  -----    ----------")
+    c = 100 * flt(2.77778e-07) * d["-r"]  # Power cost in cents/J
+    cents_day = 8 * 3600 * c  # Cost of 1 W for 8 hr in cents
     for item in items:
         power_W, name = item
-        cost = cents_day*power_W
-        dollars = cost/100
+        cost = cents_day * power_W
+        dollars = cost / 100
         print(f"{name:{w}s}  {int(power_W):4d}     {dollars!s:^11s}")
+
+
 def PowerCostByState():
-    '''Return a dict keyed by state with value of average cost in cents per
+    """Return a dict keyed by state with value of average cost in cents per
     kW*hr.
-    '''
-    # Residential power costs from https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_a	
-    # Downloaded 22 Oct 2021	
-    # Average cost in cents per kW*hr	
-    data = '''
+    """
+    # Residential power costs from https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_a
+    # Downloaded 22 Oct 2021
+    # Average cost in cents per kW*hr
+    data = """
         10.24 	Washington 
         10.41 	Idaho 
         10.86 	Nevada 
@@ -391,7 +422,7 @@ def PowerCostByState():
         22.85 	Massachusetts 
         23.42 	Alaska 
         33.24 	Hawaii 
-    '''
+    """
     pc = {}
     for line in data.split("\n"):
         line = line.strip()
@@ -401,14 +432,16 @@ def PowerCostByState():
         print(flt(cost), state)
         pc[state] = flt(cost)
     return pc
+
+
 def Power(power_expr):
     # Times in seconds
     hour = flt(3600)
-    eight_hour_day = flt(8*hour)
-    day = hour*24
-    week = 7*day
-    month = flt(365.25/12*day)
-    year = flt(365.25*day)
+    eight_hour_day = flt(8 * hour)
+    day = hour * 24
+    week = 7 * day
+    month = flt(365.25 / 12 * day)
+    year = flt(365.25 * day)
     # Get power and unit
     unit = "W"
     val, un = ParseUnit(power_expr, allow_expr=True)
@@ -417,33 +450,41 @@ def Power(power_expr):
         if dim(un) != dim("W"):
             Error(f"{un!r} is not a unit of power")
         unit = un
-    power_W = flt(eval(val)*u(unit))
+    power_W = flt(eval(val) * u(unit))
     dollar_per_kW_hr = flt(d["-r"])
-    dollar_per_joule = dollar_per_kW_hr/3.6e6
+    dollar_per_joule = dollar_per_kW_hr / 3.6e6
     kW_per_hp = flt(745.7)
-    hp = str(power_W/kW_per_hp)
-    if 1:   # Header
+    hp = str(power_W / kW_per_hp)
+    if 1:  # Header
         print(f"Cost of electrical power:  input is {power_expr!r}")
-        print(f"  Cost basis is {dollar_per_kW_hr*100:.1f} ¢ per kW*hr")
+        print(f"  Cost basis is {dollar_per_kW_hr * 100:.1f} ¢ per kW*hr")
         print(f"  Input power is = {power_W} W = {hp} hp")
         print(f"  Output is rounded to {d['-d']} figures (-d option)")
         print()
-    pf = d["-p"]    # Power factor
-    const = pf*power_W*dollar_per_joule
-    cpd, cpw, cpm, cpy = [const*i for i in (day, week, month, year)]
+    pf = d["-p"]  # Power factor
+    const = pf * power_W * dollar_per_joule
+    cpd, cpw, cpm, cpy = [const * i for i in (day, week, month, year)]
     # Print daily, weekly, monthly, yearly in columns
-    if 1:   # Generate table
+    if 1:  # Generate table
         o = []
         for hr_per_day in range(1, 25):
             s = []
             s.append(f"{hr_per_day:^6d}")
-            s.append(Money(cpd*hr_per_day/24, "day").strip().replace(" per day", ""))
-            s.append(Money(cpw*hr_per_day/24, "week").strip().replace(" per week", ""))
-            s.append(Money(cpm*hr_per_day/24, "month").strip().replace(" per month", ""))
-            s.append(Money(cpy*hr_per_day/24, "year").strip().replace(" per year", ""))
+            s.append(
+                Money(cpd * hr_per_day / 24, "day").strip().replace(" per day", "")
+            )
+            s.append(
+                Money(cpw * hr_per_day / 24, "week").strip().replace(" per week", "")
+            )
+            s.append(
+                Money(cpm * hr_per_day / 24, "month").strip().replace(" per month", "")
+            )
+            s.append(
+                Money(cpy * hr_per_day / 24, "year").strip().replace(" per year", "")
+            )
             o.append(s)
-    if 1:   # Get maximum column widths
-        m = matrix.matrix(o)    # m is a 24x5 matrix
+    if 1:  # Get maximum column widths
+        m = matrix.matrix(o)  # m is a 24x5 matrix
         w = []
         w.append(6)
         w.append(max(len(i[2]) for i in m.col(1)))
@@ -452,23 +493,28 @@ def Power(power_expr):
         w.append(max(len(i[2]) for i in m.col(4)))
         for i in (1, 2, 3, 4):
             w[i] = max(w[i], 8)
-    gap = " "*2     # Space between columns
-    if 1:   # Header
-        print(f"{'hr/day':^{w[0]}s}{gap}"
-                f"{'Daily':^{w[1]}s}{gap}"
-                f"{'Weekly':^{w[2]}s}{gap}"
-                f"{'Monthly':^{w[3]}s}{gap}"
-                f"{'Yearly':^{w[4]}s}")
+    gap = " " * 2  # Space between columns
+    if 1:  # Header
+        print(
+            f"{'hr/day':^{w[0]}s}{gap}"
+            f"{'Daily':^{w[1]}s}{gap}"
+            f"{'Weekly':^{w[2]}s}{gap}"
+            f"{'Monthly':^{w[3]}s}{gap}"
+            f"{'Yearly':^{w[4]}s}"
+        )
         for i in w:
-            print(f"{'-'*i:^{i}s}", end=gap)
+            print(f"{'-' * i:^{i}s}", end=gap)
         print()
-    if 1:   # Table
+    if 1:  # Table
         for item in o:
-            print(f"{item[0]:^{w[0]}s}{gap}"
-                    f"{item[1]:^{w[1]}s}{gap}"
-                    f"{item[2]:^{w[2]}s}{gap}"
-                    f"{item[3]:^{w[3]}s}{gap}"
-                    f"{item[4]:^{w[4]}s}")
+            print(
+                f"{item[0]:^{w[0]}s}{gap}"
+                f"{item[1]:^{w[1]}s}{gap}"
+                f"{item[2]:^{w[2]}s}{gap}"
+                f"{item[3]:^{w[3]}s}{gap}"
+                f"{item[4]:^{w[4]}s}"
+            )
+
 
 if __name__ == "__main__":
     d = {}  # Options dictionary

@@ -1,41 +1,48 @@
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Print out platform information
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import platform
     import pathlib
     import sys
     from pdb import set_trace as xx
+
     if 1:
         import debug
+
         debug.SetDebugger()
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent, wrap
-if 1:   # Global variables
+if 1:  # Global variables
     ii = isinstance
     n = 25
     fmt = "{{:{}}} {{}}".format(n)
-    wrap.i = " "*4
+    wrap.i = " " * 4
+
+
 def W(s):
     if 0:
-        tw = textwrap.wrap(str(s), width=76 - n, initial_indent="",
-                           subsequent_indent=" "*(n + 3))
+        tw = textwrap.wrap(
+            str(s), width=76 - n, initial_indent="", subsequent_indent=" " * (n + 3)
+        )
         for i in tw:
             print(i)
     else:
         print(wrap(s))
+
+
 def Platform():
-    cmds = '''
+    cmds = """
         Architecture, architecture(), 0
         Machine, architecture(), 0
         Platform, platform(), 0
@@ -48,7 +55,7 @@ def Platform():
         Version, version(), 0
         Uname, uname(), 1
         Win32 version, win32_ver(), 0
-    '''.strip().split("\n")
+    """.strip().split("\n")
     for cmd in cmds:
         f, c, newline = [i.strip() for i in cmd.split(",")]
         newline = bool(int(newline))
@@ -60,10 +67,12 @@ def Platform():
             W(str(s))
         else:
             if ii(s, (list, tuple)):
-                print(fmt.format(f, ' '.join(s)))
+                print(fmt.format(f, " ".join(s)))
             else:
                 print(fmt.format(f, s))
-    print("-"*70)
+    print("-" * 70)
+
+
 def Other():
     print(fmt.format("Python executable ", sys.executable))
     print(fmt.format("Allocated memory blocks", sys.getallocatedblocks()))
@@ -74,7 +83,7 @@ def Other():
     print(fmt.format("Bytes per integer digit", sys.int_info.sizeof_digit))
     print(fmt.format("Largest Unicode codepoint (hex)", hex(sys.maxunicode)))
     # Module search path
-    s = ', '.join(sys.path)
+    s = ", ".join(sys.path)
     print(fmt.format("Module search path", ""))
     W(s)
     #
@@ -100,7 +109,9 @@ def Other():
     print(fmt.format("  Min base 10 exponent", fi.min_10_exp))
     print(fmt.format("  Rounding mode", fi.rounds))
     print(fmt.format("  Float representation style", sys.float_repr_style))
-if __name__ == "__main__": 
+
+
+if __name__ == "__main__":
     p = pathlib.Path(sys.argv[0]).resolve()
     print(f"Script:  {p}")
     Platform()

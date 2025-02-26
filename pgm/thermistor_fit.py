@@ -1,11 +1,11 @@
-'''
+"""
 Fit the YSI thermistor data to a suitable function.
 
 The equation is similar to the Steinhart-Hart equation:
     1/T = A[0] + A[1]*ln(R) + A[2]*ln(R)**2 + A[3]*ln(R)**3
 were T is temperature in K and R is resistance in ohms.
 
-Results:  
+Results:
     A[0] = 9.503704e-04
     A[1] = 2.163135e-04
     A[2] = 4.939487e-07
@@ -217,15 +217,15 @@ prediction is at 149 degC with a residual of 0.33 K).
 https://www.mathscinotes.com/2011/07/thermistor-mathematics/ shows an
 approximate method of linearizing a thermistor by putting a resistor in
 series with it to make a voltage divider.
-'''
+"""
 
 # Copyright (C) 2014 Don Peterson
 # Contact:  gmail.com@someonesdad1
 
-#
+#
 # Licensed under the Open Software License version 3.0.
 # See http://opensource.org/licenses/OSL-3.0.
-#
+#
 from pylab import *
 import scipy
 import scipy.optimize
@@ -236,7 +236,7 @@ ln = log
 k = 273.15
 
 # Temp in deg C, R in kohm
-data = '''
+data = """
     -40 884.6
     -39 830.9
     -38 780.8
@@ -428,24 +428,28 @@ data = '''
     148 0.58
     149 0.56
     150 0.55
-'''
+"""
+
 
 def PlotModel(a, b, c, d, T, R):
-    plot(ln(R), 1/T)
+    plot(ln(R), 1 / T)
     plot(ln(R), Model(a, b, c, d, R))
     grid()
     show()
-    #savefig("a.png", dpi=200)
+    # savefig("a.png", dpi=200)
+
 
 def Model(A, R):
     t = ln(R)
-    return A[0] + A[1]*t + A[2]*t*t + A[3]*t*t*t
+    return A[0] + A[1] * t + A[2] * t * t + A[3] * t * t * t
+
 
 def objective(A, t, y0, func):
     # Residual of model and data
     return y0 - func(A, t)
 
-if __name__ == "__main__": 
+
+if __name__ == "__main__":
     # Convert data into an array of number pairs
     d = []
     for i in data.split("\n"):
@@ -456,20 +460,19 @@ if __name__ == "__main__":
 
     # Get the data into numpy arrays
     a = array(d)
-    T = a[:, 0] + k          # Temperature in K
-    R = a[:, 1]*1000         # Resistance in ohms
+    T = a[:, 0] + k  # Temperature in K
+    R = a[:, 1] * 1000  # Resistance in ohms
 
     A0 = (2.508e-3, 2.425e-4, 1e-7, 4.415e-7)
-    param = (R, 1/T, Model)     # x, y, function
+    param = (R, 1 / T, Model)  # x, y, function
     # Perform the regression
-    A, cov_x, infodict, mesg, ier = leastsq(objective, A0, args=param,
-                                            full_output=True)
+    A, cov_x, infodict, mesg, ier = leastsq(objective, A0, args=param, full_output=True)
     if ier != 1:
         print("No fit!")
         print(mesg)
         exit(1)
     y_final = Model(A, R)
-    chi2 = sum((1/T - y_final)**2/y_final)
+    chi2 = sum((1 / T - y_final) ** 2 / y_final)
 
     # Print parameters
     print("Model:  1/T = A[0] + A[1]*x + A[2]*x*x + A[3]*x**3 where x = ln(R)")
@@ -482,9 +485,9 @@ if __name__ == "__main__":
     # Plot the fitted curve
     if len(sys.argv) > 1:
         a, b, c, d = A
-        oot = a + b*ln(R) + c*ln(R)**2 + d*ln(R)**3
+        oot = a + b * ln(R) + c * ln(R) ** 2 + d * ln(R) ** 3
         semilogy(T, R, ".", label="data")
-        semilogy(1/oot, R, label="fitted")
+        semilogy(1 / oot, R, label="fitted")
         title("Fitted Function")
         xlabel("Temperature, K")
         ylabel("Resistance, ohms")
@@ -493,7 +496,7 @@ if __name__ == "__main__":
         show()
 
     # Plot the relative residuals
-    residuals = 100*(Model(A, R) - 1/T)/(1/T)
+    residuals = 100 * (Model(A, R) - 1 / T) / (1 / T)
     if len(sys.argv) > 1:
         if 0:
             # Print the relative residuals
@@ -514,6 +517,6 @@ if __name__ == "__main__":
         r = lambda x: round(x, 1)
         for i in range(len(T)):
             T_actual = T[i] - k
-            T_pred = 1/M[i] - k
+            T_pred = 1 / M[i] - k
             diff = round(T_pred - T_actual, 2)
             print(f"{r(T_actual):5.1f} {r(T_pred):5.1f} {diff: .2f}")

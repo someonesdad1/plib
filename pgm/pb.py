@@ -1,4 +1,4 @@
-'''
+"""
 
 Print out lead-acid battery voltage and % of charge as a function of
 temperature
@@ -15,52 +15,60 @@ Equations in °F:
   V = (P/100 + 15.5151)/1.3065 + (T - 80)/417
   P = -0.31330935*T + 130.65*V - 1526.445
 
-'''
+"""
+
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Print out lead-acid battery voltage as function of temperature
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Imports
+    if 1:  # Imports
         import getopt
         import os
         import sys
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import dedent
         from f import flt
         from frange import frange
         from color import t
         from columnize import Columnize
         from util import Len
+
         if len(sys.argv) > 1:
             import debug
+
             debug.SetDebugger()
-    if 1:   # Global variables
+    if 1:  # Global variables
+
         class G:
             pass
+
         g = G()  # Storage for global variables as attributes
         g.dbg = False
         ii = isinstance
         g.W = int(os.environ.get("COLUMNS", "80")) - 1
         g.L = int(os.environ.get("LINES", "50"))
         # Colors for charge levels
-        t.bad = t("lip")   # < 50%
-        t.good = t("grn")   # >= 50%
+        t.bad = t("lip")  # < 50%
+        t.good = t("grn")  # >= 50%
 if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Manpage():
-        print(dedent(f'''
+        print(
+            dedent(f"""
 
         The formula used for these tables is one I found many years ago on the web and I can't
         attribute it, but it looks like someone found a table of battery voltages as a function of
@@ -153,10 +161,13 @@ if 1:  # Utility
         [1] https://www.power-sonic.com/wp-content/uploads/2018/12/Technical-Manual.pdf
         [2] https://batteryuniversity.com/article/bu-903-how-to-measure-state-of-charge
         [3] https://batteryuniversity.com/article/bu-403-charging-lead-acid
-        '''))
+        """)
+        )
         exit(0)
+
     def Usage(d, status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [temperature]
             Print a table of percent of charge of a lead acid battery as a function of electrolyte
             temperature and voltage.  Allow 24 hours for the battery to reach equilibrium after
@@ -180,8 +191,10 @@ if 1:  # Utility
             -p    Print a table of voltages as a function of % charge at temperatures ±5 from
                   the given temperatures.  This helps visualize the slopes for both temperature 
                   and charge.
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
         d["-2"] = False
         d["-c"] = False
@@ -203,9 +216,12 @@ if 1:  # Utility
         x.N = 4
         x.rtz = False
         return args
+
+
 if 1:  # Core functionality
+
     def DeriveEquations():
-        '''Use sympy to invert the relations.  Results are:
+        """Use sympy to invert the relations.  Results are:
 
         Equations in °C:
             V = (P/100 + 15.5151)/1.3065 + (T - 26.7)/231.7
@@ -213,32 +229,36 @@ if 1:  # Core functionality
         Equations in °F:
             V = (P/100 + 15.5151)/1.3065 + (T - 80)/417
             P = -0.313309352517986*T + 130.65*V - 1526.44525179856
-        '''
+        """
         from sympy import symbols, Eq, solve
+
         V, P, T = symbols("V P T")
         # °C
         print("Equations in °C:")
         print("  V = (P/100 + 15.5151)/1.3065 + (T - 26.7)/231.7")
-        f = Eq(V, (P/100 + 15.5151)/1.3065 + (T - 26.7)/231.7)
+        f = Eq(V, (P / 100 + 15.5151) / 1.3065 + (T - 26.7) / 231.7)
         print(f"  P = {solve(f, P)[0]}")
         # °F
         print("Equations in °F:")
         print("  V = (P/100 + 15.5151)/1.3065 + (T - 80)/417")
-        f = Eq(V, (P/100 + 15.5151)/1.3065 + (T - 80)/417)
+        f = Eq(V, (P / 100 + 15.5151) / 1.3065 + (T - 80) / 417)
         print(f"  P = {solve(f, P)[0]}")
         exit()
+
     def FtoC(T_degF):
-        return 5/9*(T_degF - 32)
+        return 5 / 9 * (T_degF - 32)
+
     def Voltage(pct_chg, T, degF=False):
-        '''Calculate voltage given the % charge and temperature T in °C.  I can't attribute this
+        """Calculate voltage given the % charge and temperature T in °C.  I can't attribute this
         formula for lead-acid battery voltage as a function of % of charge and electrolyte
         temperature, as I found it many years ago and didn't write down the source.
-        '''
+        """
         if degF:
-            T = (T - 32)*5/9
-        return (pct_chg/100 + 15.5151)/1.3065 + (T - 26.7)/231.7
+            T = (T - 32) * 5 / 9
+        return (pct_chg / 100 + 15.5151) / 1.3065 + (T - 26.7) / 231.7
+
     def ChargeTable(temperature):
-        'Print charge table when command line has a temperature'
+        "Print charge table when command line has a temperature"
         T = int(temperature)
         degC = d["-c"]
         w = 80  # Can use fixed-width
@@ -255,7 +275,7 @@ if 1:  # Core functionality
         print(t.n)
         print("--- ", end="")
         for i in R:
-            print(f"{'-'*n:^{n}s} ", end="")
+            print(f"{'-' * n:^{n}s} ", end="")
         print()
         for pct in range(0, 101, 10):
             print(f"{pct:3d}", end=" ")
@@ -267,25 +287,28 @@ if 1:  # Core functionality
                 print(f"{v:{n}.2f}" if d["-2"] else f"{v:{n}.3f}", end=" ")
             print()
         print()
+
     def VoltageTable(degC=True):
-        '''Print out a table of % of charge as a function of DC voltage.
+        """Print out a table of % of charge as a function of DC voltage.
         The voltages go down the left column from 11.6 to 12.8 in steps of
         50 mV.  The electrolyte temperature is in steps of 5 °C or 10 °F.
- 
+
         Equations in °C:
             V = (P/100 + 15.5151)/1.3065 + (T - 26.7)/231.7
             P = -0.563875701337937*T + 130.65*V - 1536.45451877427
         Equations in °F:
             V = (P/100 + 15.5151)/1.3065 + (T - 80)/417
             P = -0.313309352517986*T + 130.65*V - 1526.44525179856
-        '''
-        if not d["-c"]: # Use °F
-            if 1:   # Print header
+        """
+        if not d["-c"]:  # Use °F
+            if 1:  # Print header
                 print(f"Percent charge as a function of lead-acid battery voltage")
-                print("  (Battery has not been charged or discharged for at least 24 hours)")
+                print(
+                    "  (Battery has not been charged or discharged for at least 24 hours)"
+                )
                 print()
                 s = "  0  10  20  30  40  50  60  70  80  90 100 110 120 130 140 150 160"
-                print(f"{' '*7}{'Electrolyte Temperature, °F':^{len(s)}s}")
+                print(f"{' ' * 7}{'Electrolyte Temperature, °F':^{len(s)}s}")
                 # Percent of charge will be a 2 digit integer and
                 # temperature will be 3 digits (typically to allow from 0
                 # to 160 °F).  We'll have a space between columns, so each
@@ -293,7 +316,7 @@ if 1:  # Core functionality
                 # and will be 5 characters.
                 T_degF = list(range(0, 161, 10))
                 # Trim items off this list until the column width is <= g.W
-                while len(T_degF)*4 + 7 > g.W:
+                while len(T_degF) * 4 + 7 > g.W:
                     T_degF.pop()
                 print(f"Volts ", end="")
                 for T in T_degF:
@@ -307,8 +330,8 @@ if 1:  # Core functionality
             for V in frange("11.7", "12.8", "0.05", include_end=True, return_type=flt):
                 print(V, end=" ")
                 for T in T_degF:
-                    P = -0.313309352517986*T + 130.65*V - 1526.44525179856
-                    if 0 <= P <=100:
+                    P = -0.313309352517986 * T + 130.65 * V - 1526.44525179856
+                    if 0 <= P <= 100:
                         if P < 50:
                             print(f"{t.bad}{int(round(P, 0)):>4d}{t.n}", end="")
                         else:
@@ -316,10 +339,12 @@ if 1:  # Core functionality
                     else:
                         print(f"{'  · '}", end="")
                 print()
-        else:       # Use °C
-            if 1:   # Print header
+        else:  # Use °C
+            if 1:  # Print header
                 print(f"Percent charge as a function of lead-acid battery voltage")
-                print("  (Battery has not been charged or discharged for at least 24 hours)")
+                print(
+                    "  (Battery has not been charged or discharged for at least 24 hours)"
+                )
                 print()
                 print(f"{'Electrolyte Temperature, °C':^{g.W}s}")
                 # Percent of charge will be a 2 digit integer and
@@ -329,7 +354,7 @@ if 1:  # Core functionality
                 # and will be 5 characters.
                 T_degC = list(range(-20, 71, 5))
                 # Trim items off this list until the column width is <= g.W
-                while len(T_degC)*4 + 7 > g.W:
+                while len(T_degC) * 4 + 7 > g.W:
                     T_degC.pop()
                 print(f"Volts ", end="")
                 for T in T_degC:
@@ -343,8 +368,8 @@ if 1:  # Core functionality
             for V in frange("11.7", "12.8", "0.05", include_end=True, return_type=flt):
                 print(V, end=" ")
                 for T in T_degC:
-                    P = -0.563875701337937*T + 130.65*V - 1536.45451877427
-                    if 0 <= P <=100:
+                    P = -0.563875701337937 * T + 130.65 * V - 1536.45451877427
+                    if 0 <= P <= 100:
                         if P < 50:
                             print(f"{t.bad}{int(round(P, 0)):>4d}{t.n}", end="")
                         else:
@@ -353,16 +378,21 @@ if 1:  # Core functionality
                         print(f"{'  · '}", end="")
                 print()
         print("Use -c for °C, -H for manpage")
+
     def PctVsVoltage(T, degF=False):
-        'Return the equation for P(V) at the given temperature T'
+        "Return the equation for P(V) at the given temperature T"
         a, b = 130.65, -1526.44525179856
+
         def P_degF(V):
-            return -0.313309352517986*T + a*V + b
+            return -0.313309352517986 * T + a * V + b
+
         def P_degC(V):
-            return -0.563875701337937*T + a*V + b
+            return -0.563875701337937 * T + a * V + b
+
         return P_degF if degF else P_degC
+
     def PercentVersusVoltageTable(temperature):
-        'Print percent of charge for every 1% with its corresponding voltage'
+        "Print percent of charge for every 1% with its corresponding voltage"
         T = temperature
         degC = d["-c"]
         t.v = t.lill
@@ -372,7 +402,7 @@ if 1:  # Core functionality
         o = []
         vlast = 11.851
         for pct in range(0, 101, 1):
-            v = Voltage(pct, T, degF=not d['-c'])
+            v = Voltage(pct, T, degF=not d["-c"])
             s = f"{t.p}{pct:3d}  {t.v}{v:6.3f}{t.n}"
             o.append(s)
         lines = list(Columnize(o, width=width))
@@ -387,30 +417,33 @@ if 1:  # Core functionality
             print(i)
         # Print the linear equation
         slope, b = flt(130.65), flt(1526.44525179856)
-        b1 = flt(0.563875701337937*T) if d["-c"] else flt(0.313309352517986*T)
+        b1 = flt(0.563875701337937 * T) if d["-c"] else flt(0.313309352517986 * T)
         intercept = b + b1
         print()
         with slope:
             slope.N = 6
             t.print(f"Linear equation:  {t.grnl}P = {slope}*V - {intercept}")
-            p = slope*12.333 - intercept
+            p = slope * 12.333 - intercept
             print(f"Example:  for 12.333 V, P = {slope}*12.333 - {intercept}")
-            print(f"                          = {slope*12.333} - {intercept} = {p:.2f}")
+            print(
+                f"                          = {slope * 12.333} - {intercept} = {p:.2f}"
+            )
+
     def PercentVersusVoltageFunctions():
-        '''
+        """
         Equations in °C:
             P = -0.563875701337937*T + 130.65*V - 1536.45451877427
         Equations in °F:
             P = -0.313309352517986*T + 130.65*V - 1526.44525179856
         Constant names
                          a              slope           b
-        '''
+        """
         slope = flt(130.65)
         ac, bc = flt(-0.563875701337937), flt(-1536.45451877427)
         af, bf = flt(-0.313309352517986), flt(-1526.44525179856)
         F = [flt(i) for i in "  0  10  20  30  40  50  60  70  80  90 100 110".split()]
         C = [flt(i) for i in "-15 -10  -5   0   5  10  15  20  25  30  35  40".split()]
-        t.t, t.eq, t.f, t.c = t.ornl, t.magl, t.yell, t.grnl   # Colors
+        t.t, t.eq, t.f, t.c = t.ornl, t.magl, t.yell, t.grnl  # Colors
         # Print header
         t.print(f"{t.t}Equations for % charge as a function of voltage")
         print(f"    Voltage should be from 11.6 V to 12.8 V")
@@ -418,39 +451,54 @@ if 1:  # Core functionality
         print()
         w1, w2 = 6, 15
         w = (w1, w2, w1, w2)
-        t.print(f"{t.f}{'°F':>{w[0]}s} " f"{'b for °F':^{w[1]}s} "
-                f"{t.c}{'°C':>{w[2]}s} " f"{'b for °C':^{w[3]}s}")
-        t.print(f"{t.f}{'-'*3:>{w[0]}s} " f"{'-'*8:^{w[1]}s} "
-                f"{t.c}{'-'*3:>{w[2]}s} " f"{'-'*8:^{w[3]}s}")
+        t.print(
+            f"{t.f}{'°F':>{w[0]}s} "
+            f"{'b for °F':^{w[1]}s} "
+            f"{t.c}{'°C':>{w[2]}s} "
+            f"{'b for °C':^{w[3]}s}"
+        )
+        t.print(
+            f"{t.f}{'-' * 3:>{w[0]}s} "
+            f"{'-' * 8:^{w[1]}s} "
+            f"{t.c}{'-' * 3:>{w[2]}s} "
+            f"{'-' * 8:^{w[3]}s}"
+        )
         # Print table
         with slope:
             slope.N = 6
             slope.rtz = True
             for Tf, Tc in zip(F, C):
-                ef = flt(f"{abs(af*Tf + bf)}")
-                ec = flt(f"{abs(ac*Tc + bc)}")
-                t.print(f"{t.f}{Tf!s:>{w[0]}s} " f"{ef:^{w[1]}.1f} "
-                        f"{t.c}{Tc!s:>{w[2]}s} " f"{ec:^{w[3]}.1f}")
+                ef = flt(f"{abs(af * Tf + bf)}")
+                ec = flt(f"{abs(ac * Tc + bc)}")
+                t.print(
+                    f"{t.f}{Tf!s:>{w[0]}s} "
+                    f"{ef:^{w[1]}.1f} "
+                    f"{t.c}{Tc!s:>{w[2]}s} "
+                    f"{ec:^{w[3]}.1f}"
+                )
         # Print example
         print()
-        print(dedent(f'''
+        print(
+            dedent(f"""
 
         Example:  At 50 °F, the equation is 130.65*V - 1542.1.  12.57 V will give 100.1% charge
         and 12.19 V will give 50.5% charge.  Caution:  you'll want to verify these formulas before
         using them, as they may not apply to the batteries you're using.
 
-        '''))
+        """)
+        )
+
 
 if 0:
     PercentVersusVoltageFunctions()
     exit()
 
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     if d["-p"]:
         if args:
-            T = flt(args[0])        # Assume °F
+            T = flt(args[0])  # Assume °F
         else:
             T = flt(20) if d["-c"] else flt(70)
         ChargeTable(T)

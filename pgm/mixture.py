@@ -1,14 +1,14 @@
-'''
+"""
 
 TODO
     - Change to a datafile format
         - Get rid of prompting stuff
-        - You then define variables c1, c2, c, v1, v2, v 
+        - You then define variables c1, c2, c, v1, v2, v
         - concentrations can be plain or have % appended
         - conc_unit = "%" or "" (used in output report)
-        - vol_unit = "xxxx" 
+        - vol_unit = "xxxx"
         - Input data are printed, then report of results is given
-    - 
+    -
     - Allow calculations via either mass or volume basis
         - -v is volume basis (default)
         - -m is mass basis
@@ -20,14 +20,14 @@ TODO
       'c = 0.25%' " and the other variables would be solved for.  You can
       give concentration in % or as a number which must be on [0, 1].
     - With no command line arguments, you're prompted for the quantities
- 
+
 - The basic problem variables are
     - a and b are the two solutions, m is the mixture
     - c1, c2, c = concentrations (fractions on [0, 1])
     - v1, v2, v  = volumes
     - Equations
         - v = v1 + v2
-        - c = (c1*v1 + c2*v2)/v 
+        - c = (c1*v1 + c2*v2)/v
     - There are 6 variables with 2 equations, so there will be 4 variables
       that will need to be given for a solution.
     - The fundamental assumption is that the volumes don't change when you
@@ -37,7 +37,7 @@ TODO
 
     Typical problems
 
-        - Have 0.41 mixture of glyphosate.  Want to mix with water to get 0.02 solution and get v 
+        - Have 0.41 mixture of glyphosate.  Want to mix with water to get 0.02 solution and get v
           of this amount.  Variables are
             - v = 15 gallons for our sprayer
             - c = 0.02     Desired mixture concentration
@@ -52,7 +52,7 @@ TODO
             - *** WRONG ***   The solution to this problem given in the manual is 2-2/3 floz of
               solution to make 1 gallon of water.  This is 2.667/(128 - 2.667) = 2.13% since 1
               gallon is 128 floz..
-            - Do for 1 gallon:  
+            - Do for 1 gallon:
                 - v = 128 floz
                 - c = 0.02     Desired mixture concentration
                 - c1 = 0.41     Bottled glyphosate solution
@@ -64,44 +64,49 @@ TODO
 
 
 ---------------------------------------------------------------------------
- 
+
 Program to calculate mixtures
-'''
+"""
+
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Calculate mixture concentrations
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Imports
+    if 1:  # Imports
         import sys
         import getopt
         from pathlib import Path as P
         import time
         from functools import partial
         from pprint import pprint as pp
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import dedent
         from get import GetNumber, GetLines
         from f import flt
         from u import u
         from color import t
         from lwtest import Assert
+
         if 0:
             import debug
+
             debug.SetDebugger()
-    if 1:   # Global variables
+    if 1:  # Global variables
         Get = partial(GetNumber, num_type=flt, low=0)
+
         class g:
             pass
+
         g.Vol1 = flt(0)
         g.Vol2 = flt(0)
         g.VolMixture = flt(0)
@@ -109,13 +114,16 @@ if 1:  # Header
         g.Conc2 = flt(0)
         g.ConcMixture = flt(0)
         t.unk = t("ornl")
-        t.c1, t.c2, t.c, t.v1, t.v2, t.v  = [""]*6
+        t.c1, t.c2, t.c, t.v1, t.v2, t.v = [""] * 6
 if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(d):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [dilution_file]
           Solve a dilution problem whose definition is in dilution_file.  Use '-' to read the
           contents from stdin.  The variables are
@@ -134,13 +142,15 @@ if 1:  # Utility
             -H      Show manpage
             -h      Show this help
             -i      Interactively solve the problem
-        '''))
+        """)
+        )
         exit(0)
+
     def ParseCommandLine(d):
-        d["-c"] = False     # Print sample datafile
-        d["-d"] = 3         # Number of significant digits
-        d["-g"] = False     # Debug printing
-        d["-i"] = False     # Interactive solution
+        d["-c"] = False  # Print sample datafile
+        d["-d"] = 3  # Number of significant digits
+        d["-g"] = False  # Debug printing
+        d["-i"] = False  # Interactive solution
         try:
             opts, args = getopt.getopt(sys.argv[1:], "cd:gHhi")
         except getopt.GetoptError as e:
@@ -155,8 +165,7 @@ if 1:  # Utility
                     if not (1 <= d["-d"] <= 15):
                         raise ValueError()
                 except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                        "1 and 15")
+                    msg = "-d option's argument must be an integer between 1 and 15"
                     print(msg, file=sys.stderr)
                     exit(1)
             elif o == "-h":
@@ -175,8 +184,10 @@ if 1:  # Utility
         if not args:
             Usage(d)
         return args
+
     def Manpage(d):
-        print(dedent('''
+        print(
+            dedent("""
         
         This script calculates the concentration of a solution gotten by mixing two volumes of
         solutions of differing concentrations.  The solute is the solution that is diluted by
@@ -283,16 +294,21 @@ if 1:  # Utility
             [1] Percent solutions:  percent_solutions_calculator.html
             [2] Mass per unit volume calculator:  mass_per_volume_solution_concentration_calculator.html
             [3] Dilution calculator: dilution_calculator_mass_per_volume.html
-        '''))
+        """)
+        )
         exit(0)
+
+
 if 1:  # Interactive solution
+
     def GetData():
         # Set all numbers to 0
         g.Conc1 = g.Conc2 = flt(0)
         g.Vol1 = g.Vol2 = g.VolMixture = g.ConcMixture = flt(0)
         #
         if 0:
-            print(dedent(f'''
+            print(
+                dedent(f"""
             Script is {pathlib.Path(sys.argv[0]).resolve()}
     
             Calculate the resulting concentration of a solution gotten by mixing
@@ -300,21 +316,26 @@ if 1:  # Interactive solution
             to see the formulas used.  Use -d to set the number of significant
             digits (defaults to {d["-d"]}).
     
-            '''))
-        print(dedent('''
+            """)
+            )
+        print(
+            dedent("""
         Specify concentrations of both solutions.  If one solution is a
         dilutant (e.g., pure water), enter its concentration as 0%.
     
-        '''))
+        """)
+        )
         g.Conc1 = Get("  Concentration of solution 1 in %? ", high=100, default=0)
         g.Conc2 = Get("  Concentration of solution 2 in %? ", high=100, default=0)
-        print(dedent('''
+        print(
+            dedent("""
     
         Enter two of:  volume 1, volume 2, mixture volume, mixture
         concentration.  Press return if not known.  Expressions are allowed and
         the math module is in scope.
     
-        '''))
+        """)
+        )
         data_items_entered = 0
         while True:
             g.Vol1 = Get("  Volume of solution 1? ", default=g.Vol1)
@@ -328,8 +349,11 @@ if 1:  # Interactive solution
                 if g.VolMixture:
                     data_items_entered += 1
                 if data_items_entered != 2:
-                    g.ConcMixture = Get("  Concentration of mixture in %? ",
-                                        high=100, default=g.ConcMixture)
+                    g.ConcMixture = Get(
+                        "  Concentration of mixture in %? ",
+                        high=100,
+                        default=g.ConcMixture,
+                    )
                     if g.ConcMixture:
                         data_items_entered += 1
                     if data_items_entered != 2:
@@ -341,41 +365,45 @@ if 1:  # Interactive solution
                 break
         if d["-g"]:
             # Show how we interpreted the input data
-            print(dedent(f'''
+            print(
+                dedent(f"""
     
-            {t('cynl')}Entered data:
+            {t("cynl")}Entered data:
                 Vol1            {g.Vol1!r}
                 Vol2            {g.Vol2!r}
                 VolMixture      {g.VolMixture!r}
                 Conc1           {g.Conc1!r}
                 Conc2           {g.Conc2!r}
-                ConcMixture     {g.ConcMixture!r}{C.norm}'''))
+                ConcMixture     {g.ConcMixture!r}{C.norm}""")
+            )
+
     def PrintResults():
-        pa, pb, pm = g.Conc1/flt(100), g.Conc2/flt(100), g.ConcMixture/flt(100)
+        pa, pb, pm = g.Conc1 / flt(100), g.Conc2 / flt(100), g.ConcMixture / flt(100)
         if g.Vol1 and g.Vol2:
             g.VolMixture = flt(g.Vol1 + g.Vol2)
-            g.ConcMixture = flt(100*(g.Vol1*pa + g.Vol2*pb)/(g.Vol1 + g.Vol2))
+            g.ConcMixture = flt(100 * (g.Vol1 * pa + g.Vol2 * pb) / (g.Vol1 + g.Vol2))
         elif g.Vol1 and g.ConcMixture:
-            g.VolMixture = flt(g.Vol1*(pa - pb)/(pm - pb))
+            g.VolMixture = flt(g.Vol1 * (pa - pb) / (pm - pb))
             g.Vol2 = flt(g.VolMixture - g.Vol1)
         elif g.Vol1 and g.VolMixture:
             g.Vol2 = flt(g.VolMixture - g.Vol1)
-            g.ConcMixture = flt(100*(g.Vol1*pa + g.Vol2*pb)/(g.Vol1 + g.Vol2))
+            g.ConcMixture = flt(100 * (g.Vol1 * pa + g.Vol2 * pb) / (g.Vol1 + g.Vol2))
         elif g.Vol2 and g.ConcMixture:
-            g.VolMixture = flt(g.Vol2*(pb - pa)/(pm - pa))
+            g.VolMixture = flt(g.Vol2 * (pb - pa) / (pm - pa))
             g.Vol1 = flt(g.VolMixture - g.Vol2)
         elif g.Vol2 and g.VolMixture:
             g.Vol1 = flt(g.VolMixture - g.Vol2)
-            g.ConcMixture = flt(100*(g.Vol1*pa + g.Vol2*pb)/g.VolMixture)
+            g.ConcMixture = flt(100 * (g.Vol1 * pa + g.Vol2 * pb) / g.VolMixture)
         elif g.VolMixture and g.ConcMixture:
-            g.Vol1 = flt(g.VolMixture*(pm - pb)/(pa - pb))
+            g.Vol1 = flt(g.VolMixture * (pm - pb) / (pa - pb))
             g.Vol2 = flt(g.VolMixture - g.Vol1)
         else:
             print("Not enough information")
             exit(1)
         # Print results
-        n, k, s = 8, 14, " "*8
-        print(dedent(f'''
+        n, k, s = 8, 14, " " * 8
+        print(
+            dedent(f"""
         
         Results:
             Solution            Volume            Concentration %
@@ -383,10 +411,15 @@ if 1:  # Interactive solution
             {"1":^{n}s}{s}{g.Vol1!s:^{k}s}{s}{g.Conc1!s:^{k}s}
             {"2":^{n}s}{s}{g.Vol2!s:^{k}s}{s}{g.Conc2!s:^{k}s}
             {"Mixture":^{n}s}{s}{g.VolMixture!s:^{k}s}{s}{g.ConcMixture!s:^{k}s}
-        '''))
+        """)
+        )
+
+
 if 1:  # Datafile approach
+
     def PrintSampleDatafile():
-        print(dedent(f"""
+        print(
+            dedent(f"""
         '''
         This is a sample data file for the mixture.py script.  This data file needs to be valid
         python syntax.
@@ -448,116 +481,119 @@ if 1:  # Datafile approach
         # This data file should give the results
         #   volume of solution 1 = 0.332 gal
         #   volume of solution 2 = 14.7 gal
-        """))
+        """)
+        )
+
     def TestSolutions():
-        '''This function tests the GetUnknowns() function to see that it
+        """This function tests the GetUnknowns() function to see that it
         uses the correct formulas.  The equations are
             v = v1 + v2
             c*v = c1*v1 + c2*v2
-        The problem is 
+        The problem is
             c1, c2, c = 8, 10, 9
             v1, v2, v = 1, 1, 2
-        '''
+        """
         init = 8, 10, 9, 1, 1, 2
-        # Unknowns v2 and v 
-        c1, c2, c, v1, v2, v  = init
-        v2, v  = None, None
-        v, _ = GetUnknowns(c1, c2, c, v1, v2, v )
-        c1, c2, c, v1, v2, v  = v
-        Assert(v2 == 1 and v  == 2)
-        # Unknowns v1 and v 
-        c1, c2, c, v1, v2, v  = init
-        v1, v  = None, None
-        v, _ = GetUnknowns(c1, c2, c, v1, v2, v )
-        c1, c2, c, v1, v2, v  = v
-        Assert(v1 == 1 and v  == 2)
+        # Unknowns v2 and v
+        c1, c2, c, v1, v2, v = init
+        v2, v = None, None
+        v, _ = GetUnknowns(c1, c2, c, v1, v2, v)
+        c1, c2, c, v1, v2, v = v
+        Assert(v2 == 1 and v == 2)
+        # Unknowns v1 and v
+        c1, c2, c, v1, v2, v = init
+        v1, v = None, None
+        v, _ = GetUnknowns(c1, c2, c, v1, v2, v)
+        c1, c2, c, v1, v2, v = v
+        Assert(v1 == 1 and v == 2)
         # Unknowns v1 and v2
-        c1, c2, c, v1, v2, v  = init
+        c1, c2, c, v1, v2, v = init
         v1, v2 = None, None
-        v, _ = GetUnknowns(c1, c2, c, v1, v2, v )
-        c1, c2, c, v1, v2, v  = v
+        v, _ = GetUnknowns(c1, c2, c, v1, v2, v)
+        c1, c2, c, v1, v2, v = v
         Assert(v1 == 1 and v2 == 1)
-        # Unknowns c  and v 
-        c1, c2, c, v1, v2, v  = init
-        c, v  = None, None
-        v, _ = GetUnknowns(c1, c2, c, v1, v2, v )
-        c1, c2, c, v1, v2, v  = v
-        Assert(c  == 9 and v  == 2)
+        # Unknowns c  and v
+        c1, c2, c, v1, v2, v = init
+        c, v = None, None
+        v, _ = GetUnknowns(c1, c2, c, v1, v2, v)
+        c1, c2, c, v1, v2, v = v
+        Assert(c == 9 and v == 2)
         # Unknowns c  and v2
-        c1, c2, c, v1, v2, v  = init
+        c1, c2, c, v1, v2, v = init
         c, v2 = None, None
-        v, _ = GetUnknowns(c1, c2, c, v1, v2, v )
-        c1, c2, c, v1, v2, v  = v
-        Assert(c  == 9 and v2 == 1)
+        v, _ = GetUnknowns(c1, c2, c, v1, v2, v)
+        c1, c2, c, v1, v2, v = v
+        Assert(c == 9 and v2 == 1)
         # Unknowns c  and v1
-        c1, c2, c, v1, v2, v  = init
+        c1, c2, c, v1, v2, v = init
         c, v1 = None, None
-        v, _ = GetUnknowns(c1, c2, c, v1, v2, v )
-        c1, c2, c, v1, v2, v  = v
-        Assert(c  == 9 and v1 == 1)
-        # Unknowns c2 and v 
-        c1, c2, c, v1, v2, v  = init
-        c2, v  = None, None
-        v, _ = GetUnknowns(c1, c2, c, v1, v2, v )
-        c1, c2, c, v1, v2, v  = v
-        Assert(c2 == 10 and v  == 2)
+        v, _ = GetUnknowns(c1, c2, c, v1, v2, v)
+        c1, c2, c, v1, v2, v = v
+        Assert(c == 9 and v1 == 1)
+        # Unknowns c2 and v
+        c1, c2, c, v1, v2, v = init
+        c2, v = None, None
+        v, _ = GetUnknowns(c1, c2, c, v1, v2, v)
+        c1, c2, c, v1, v2, v = v
+        Assert(c2 == 10 and v == 2)
         # Unknowns c2 and v2
-        c1, c2, c, v1, v2, v  = init
+        c1, c2, c, v1, v2, v = init
         c2, v2 = None, None
-        v, _ = GetUnknowns(c1, c2, c, v1, v2, v )
-        c1, c2, c, v1, v2, v  = v
+        v, _ = GetUnknowns(c1, c2, c, v1, v2, v)
+        c1, c2, c, v1, v2, v = v
         Assert(c2 == 10 and v2 == 1)
         # Unknowns c2 and v1
-        c1, c2, c, v1, v2, v  = init
+        c1, c2, c, v1, v2, v = init
         c2, v1 = None, None
-        v, _ = GetUnknowns(c1, c2, c, v1, v2, v )
-        c1, c2, c, v1, v2, v  = v
+        v, _ = GetUnknowns(c1, c2, c, v1, v2, v)
+        c1, c2, c, v1, v2, v = v
         Assert(c2 == 10 and v1 == 1)
-        # Unknowns c1 and v 
-        c1, c2, c, v1, v2, v  = init
-        c1, v  = None, None
-        v, _ = GetUnknowns(c1, c2, c, v1, v2, v )
-        c1, c2, c, v1, v2, v  = v
-        Assert(c1 == 8 and v  == 2)
+        # Unknowns c1 and v
+        c1, c2, c, v1, v2, v = init
+        c1, v = None, None
+        v, _ = GetUnknowns(c1, c2, c, v1, v2, v)
+        c1, c2, c, v1, v2, v = v
+        Assert(c1 == 8 and v == 2)
         # Unknowns c1 and v2
-        c1, c2, c, v1, v2, v  = init
+        c1, c2, c, v1, v2, v = init
         c1, v2 = None, None
-        v, _ = GetUnknowns(c1, c2, c, v1, v2, v )
-        c1, c2, c, v1, v2, v  = v
+        v, _ = GetUnknowns(c1, c2, c, v1, v2, v)
+        c1, c2, c, v1, v2, v = v
         Assert(c1 == 8 and v2 == 1)
         # Unknowns c1 and v1
-        c1, c2, c, v1, v2, v  = init
+        c1, c2, c, v1, v2, v = init
         c1, v1 = None, None
-        v, _ = GetUnknowns(c1, c2, c, v1, v2, v )
-        c1, c2, c, v1, v2, v  = v
+        v, _ = GetUnknowns(c1, c2, c, v1, v2, v)
+        c1, c2, c, v1, v2, v = v
         Assert(c1 == 8 and v1 == 1)
+
     def GetSolutions():
-        '''Use sympy to solve for the needed volume mixture functions.
+        """Use sympy to solve for the needed volume mixture functions.
         The two core equations are:
             v  = v1 + v2
             c *v  = c1*v1 + c2*v2
         There are six variables, so the user must supply four of them.
         The problems are:
-        
+
                 Known      Solve for
-            c1 c2 c  v1     v2 v 
-            c1 c2 c  v2     v1 v 
+            c1 c2 c  v1     v2 v
+            c1 c2 c  v2     v1 v
             c1 c2 c  v      v1 v2
-            c1 c2 v1 v2     c  v 
+            c1 c2 v1 v2     c  v
             c1 c2 v1 v      c  v2
             c1 c2 v2 v      c  v1
-            c1 c  v1 v2     c2 v 
+            c1 c  v1 v2     c2 v
             c1 c  v1 v      c2 v2
             c1 c  v2 v      c2 v1
             c1 v1 v2 v      c2 c  *
-            c2 c  v1 v2     c1 v 
+            c2 c  v1 v2     c1 v
             c2 c  v1 v      c1 v2
             c2 c  v2 v      c1 v1
             c2 v1 v2 v      c1 c  *
             c  v1 v2 v      c1 c2 *
         The problems marked * are those that cannot be solved because there
         is only one equation with two unknowns.
-         
+
         This code produces the following output:
             (v2, v ) {((-c1*v1 + c *v1)/(c2 - c ), (-c1*v1 + c2*v1)/(c2 - c ))}
             (v1, v ) {((-c2*v2 + c *v2)/(c1 - c ), (c1*v2 - c2*v2)/(c1 - c ))}
@@ -579,127 +615,133 @@ if 1:  # Datafile approach
         not be an equality.  Thus, the allowed solutions must contain at
         least one unknown volume.
         ----------------------------------------------------------------
-        '''
+        """
         import sympy as S
-        c1, c2, c, v1, v2, v  = S.symbols("c1 c2 c  v1 v2 v ")
+
+        c1, c2, c, v1, v2, v = S.symbols("c1 c2 c  v1 v2 v ")
         # Basic equations
-        equations = [S.Eq(v , v1 + v2), S.Eq(c *v , c1*v1 + c2*v2)]
+        equations = [S.Eq(v, v1 + v2), S.Eq(c * v, c1 * v1 + c2 * v2)]
         # Get solutions
         for i in (
-            (v2, v ),
-            (v1, v ),
+            (v2, v),
+            (v1, v),
             (v1, v2),
-            (c, v ),
+            (c, v),
             (c, v2),
             (c, v1),
-            (c2, v ),
+            (c2, v),
             (c2, v2),
             (c2, v1),
-            (c2, c ),
-            (c1, v ),
+            (c2, c),
+            (c1, v),
             (c1, v2),
             (c1, v1),
-            (c1, c ),
+            (c1, c),
             (c1, c2),
-            ):
+        ):
             try:
                 print(i, S.linsolve(equations, i))
             except Exception:
                 print(i, S.nonlinsolve(equations, i))
+
     def GetVars(file):
-        'Return a dict of variables from file'
+        "Return a dict of variables from file"
         vars = {}
         if file == "-":
-            code = compile(sys.stdin.read(), "sys.stdin", 'exec')
+            code = compile(sys.stdin.read(), "sys.stdin", "exec")
             exec(code, globals(), vars)
         else:
             try:
                 with open(file) as f:
-                    code = compile(f.read(), file, 'exec')
+                    code = compile(f.read(), file, "exec")
                     exec(code, globals(), vars)
             except Exception:
                 Error(f"Couldn't open file {file!r}")
         return vars
-    def GetUnknowns(c1, c2, c, v1, v2, v ):
-        '''Two of the unknowns should be None.  Solve for these two.
+
+    def GetUnknowns(c1, c2, c, v1, v2, v):
+        """Two of the unknowns should be None.  Solve for these two.
         Return (vars, colors) where both are 6-tuples.  vars contains the
         solved variables and colors contains the colorizing strings for the
         variables (the two unknowns will be colored).
-        
+
         The solution's equations came from GetSolutions().
-        '''
-        if v2 is None and v  is None:
-            v2 = (-c1*v1 + c *v1)/(c2 - c )
-            v  = (-c1*v1 + c2*v1)/(c2 - c )
-            t.v2 = t.v  = t.unk
-        elif v1 is None and v  is None:
-            v1 = (-c2*v2 + c *v2)/(c1 - c )
-            v  = (c1*v2 - c2*v2)/(c1 - c )
-            t.v1 = t.v  = t.unk
+        """
+        if v2 is None and v is None:
+            v2 = (-c1 * v1 + c * v1) / (c2 - c)
+            v = (-c1 * v1 + c2 * v1) / (c2 - c)
+            t.v2 = t.v = t.unk
+        elif v1 is None and v is None:
+            v1 = (-c2 * v2 + c * v2) / (c1 - c)
+            v = (c1 * v2 - c2 * v2) / (c1 - c)
+            t.v1 = t.v = t.unk
         elif v1 is None and v2 is None:
-            v1 = (-c2*v  + c *v )/(c1 - c2)
-            v2 = (c1*v  - c *v )/(c1 - c2)
+            v1 = (-c2 * v + c * v) / (c1 - c2)
+            v2 = (c1 * v - c * v) / (c1 - c2)
             t.v1 = t.v2 = t.unk
-        elif c  is None and v  is None:
-            c  = (c1*v1 + c2*v2)/(v1 + v2)
-            v  = v1 + v2
-            t.c  = t.v  = t.unk
-        elif c  is None and v2 is None:
-            c  = (c1*v1 - c2*v1 + c2*v )/v 
-            v2 = -v1 + v 
-            t.c  = t.v2 = t.unk
-        elif c  is None and v1 is None:
-            c  = (-c1*v2 + c1*v  + c2*v2)/v 
-            v1 = -v2 + v 
-            t.c  = t.v1 = t.unk
-        elif c2 is None and v  is None:
-            c2 = (-c1*v1 + c *v1 + c *v2)/v2
-            v  = v1 + v2
-            t.c2 = t.v  = t.unk
+        elif c is None and v is None:
+            c = (c1 * v1 + c2 * v2) / (v1 + v2)
+            v = v1 + v2
+            t.c = t.v = t.unk
+        elif c is None and v2 is None:
+            c = (c1 * v1 - c2 * v1 + c2 * v) / v
+            v2 = -v1 + v
+            t.c = t.v2 = t.unk
+        elif c is None and v1 is None:
+            c = (-c1 * v2 + c1 * v + c2 * v2) / v
+            v1 = -v2 + v
+            t.c = t.v1 = t.unk
+        elif c2 is None and v is None:
+            c2 = (-c1 * v1 + c * v1 + c * v2) / v2
+            v = v1 + v2
+            t.c2 = t.v = t.unk
         elif c2 is None and v2 is None:
-            c2 = (c1*v1 - c *v )/(v1 - v )
-            v2 = -v1 + v 
+            c2 = (c1 * v1 - c * v) / (v1 - v)
+            v2 = -v1 + v
             t.c2 = t.v2 = t.unk
         elif c2 is None and v1 is None:
-            c2 = (c1*v2 - c1*v  + c *v )/v2
-            v1 = -v2 + v 
+            c2 = (c1 * v2 - c1 * v + c * v) / v2
+            v1 = -v2 + v
             t.c2 = t.v1 = t.unk
-        elif c1 is None and v  is None:
-            c1 = (-c2*v2 + c *v1 + c *v2)/v1
-            v  = v1 + v2
-            t.c1 = t.v  = t.unk
+        elif c1 is None and v is None:
+            c1 = (-c2 * v2 + c * v1 + c * v2) / v1
+            v = v1 + v2
+            t.c1 = t.v = t.unk
         elif c1 is None and v2 is None:
-            c1 = (c2*v1 - c2*v  + c *v )/v1
-            v2 = -v1 + v 
+            c1 = (c2 * v1 - c2 * v + c * v) / v1
+            v2 = -v1 + v
             t.c1 = t.v2 = t.unk
         elif c1 is None and v1 is None:
-            c1 = (c2*v2 - c *v )/(v2 - v )
-            v1 = -v2 + v 
+            c1 = (c2 * v2 - c * v) / (v2 - v)
+            v1 = -v2 + v
             t.c1 = t.v1 = t.unk
-        elif ((c2 is None and c  is None) or (c1 is None and c  is None) or 
-              (c1 is None and c2 is None)):
-            Error(dedent(f'''
+        elif (
+            (c2 is None and c is None)
+            or (c1 is None and c is None)
+            or (c1 is None and c2 is None)
+        ):
+            Error(
+                dedent(f"""
             The following unknown pairs are not allowed:
                 c1 and c2
                 c1 and c 
                 c2 and c 
             This is because this effectively gives one equation in two unknowns.
-            '''))
+            """)
+            )
         else:
             print("Bad problem:  variables are:")
             print(f"  c1 = {c1}%")
             print(f"  c2 = {c2}%")
-            print(f"  c  = {c }%")
+            print(f"  c  = {c}%")
             print(f"  v1 = {v1}")
             print(f"  v2 = {v2}")
-            print(f"  v  = {v }")
+            print(f"  v  = {v}")
             exit(1)
-        return (
-            (c1, c2, c, v1, v2, v ),
-            (t.c1, t.c2, t.c, t.v1, t.v2, t.v )
-        )
+        return ((c1, c2, c, v1, v2, v), (t.c1, t.c2, t.c, t.v1, t.v2, t.v))
+
     def SolveDatafile(file):
-        '''Read the variables in from a text file and solve for the
+        """Read the variables in from a text file and solve for the
         unknowns.  The core equations are
             v  = v1 + v2
             c *v  = c1*v1 + c2*v2
@@ -707,59 +749,61 @@ if 1:  # Datafile approach
         There are Comb(6, 4) = 15 combinations, but 3 of them are not
         allowed because they have no solution.  The problems are:
                Known      Solve for
-            c1 c2 c  v1     v2 v 
-            c1 c2 c  v2     v1 v 
+            c1 c2 c  v1     v2 v
+            c1 c2 c  v2     v1 v
             c1 c2 c  v      v1 v2
-            c1 c2 v1 v2     c  v 
+            c1 c2 v1 v2     c  v
             c1 c2 v1 v      c  v2
             c1 c2 v2 v      c  v1
-            c1 c  v1 v2     c2 v 
+            c1 c  v1 v2     c2 v
             c1 c  v1 v      c2 v2
             c1 c  v2 v      c2 v1
             c1 v1 v2 v      c2 c  *
-            c2 c  v1 v2     c1 v 
+            c2 c  v1 v2     c1 v
             c2 c  v1 v      c1 v2
             c2 c  v2 v      c1 v1
             c2 v1 v2 v      c1 c  *
             c  v1 v2 v      c1 c2 *
         The ones marked with * are not allowed because there is then
         effectively only one equation, the second, with two unknowns.
-        '''
+        """
         if file != "-":
             f = P(file).resolve()
         vars = GetVars(f)
         # Get the problem's variables
         c1 = vars.get("c1", None)
         c2 = vars.get("c2", None)
-        c  = vars.get("c ", None)
+        c = vars.get("c ", None)
         v1 = vars.get("v1", None)
         v2 = vars.get("v2", None)
-        v  = vars.get("v ", None)
+        v = vars.get("v ", None)
         v_unit = vars.get("v_unit", "m3")
         # Set up output colors
         t.c1 = t.n
         t.c2 = t.n
-        t.c  = t.n
+        t.c = t.n
         t.v1 = t.n
         t.v2 = t.n
-        t.v  = t.n
+        t.v = t.n
         # Solve for the unknowns
-        myvars, colors = GetUnknowns(c1, c2, c, v1, v2, v )
-        c1, c2, c, v1, v2, v  = myvars
-        t.c1, t.c2, t.c, t.v1, t.v2, t.v  = colors
+        myvars, colors = GetUnknowns(c1, c2, c, v1, v2, v)
+        c1, c2, c, v1, v2, v = myvars
+        t.c1, t.c2, t.c, t.v1, t.v2, t.v = colors
         # Get width of printed variables
-        c1, c2, c  = [flt(i) for i in (c1, c2, c )]
-        v1, v2, v  = [flt(i)/u(v_unit) for i in (v1, v2, v )]
-        results = c1, c2, c, v1, v2, v 
+        c1, c2, c = [flt(i) for i in (c1, c2, c)]
+        v1, v2, v = [flt(i) / u(v_unit) for i in (v1, v2, v)]
+        results = c1, c2, c, v1, v2, v
         w = max(len(str(i)) for i in results)
         # Print report
-        t.print(dedent(f'''
+        t.print(
+            dedent(f"""
         Concentration calculation (volume basis, unknowns in {t.unk}this color{t.n})
           Use '{sys.argv[0]} -H' to see the problem's assumptions.
           {time.asctime()}
-          Input file = {t('grnl')}{"sys.stdin" if file == "-" else f} 
+          Input file = {t("grnl")}{"sys.stdin" if file == "-" else f} 
  
-        '''))
+        """)
+        )
         if "description" in vars and vars["description"].strip():
             print(vars["description"].strip())
             print()
@@ -768,12 +812,13 @@ if 1:  # Datafile approach
         t.print(f"{t.c}c = Mixture concentration      {c!s:>{w}s} %")
         t.print(f"{t.v1}v1 = Volume of solution 1       {v1!s:>{w}s} {v_unit}")
         t.print(f"{t.v2}v2 = Volume of solution 2       {v2!s:>{w}s} {v_unit}")
-        t.print(f"{t.v }v  = Volume of mixture          {v !s:>{w}s} {v_unit}")
+        t.print(f"{t.v}v  = Volume of mixture          {v!s:>{w}s} {v_unit}")
         if len(args) > 1:
             print()
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     TestSolutions()
     args = ParseCommandLine(d)
     for file in args:

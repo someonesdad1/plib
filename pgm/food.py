@@ -1,4 +1,4 @@
-'''
+"""
 Show food calorie content of foods
 
 Motivation
@@ -13,23 +13,23 @@ food_mealplan.csv
       spreadsheet, then open it in Open Office and save it as a CSV file using UTF-8 encoding.
     - After saving it, edit it to remove blank lines and the cruft at the bottom of the file.
 
-'''
- 
+"""
+
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Program description string
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         from collections import deque
         from pathlib import Path as P
         from pprint import pprint as pp
@@ -38,23 +38,27 @@ if 1:  # Header
         import os
         import re
         import sys
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from f import flt
         from wrap import dedent
         from color import t
         from lwtest import Assert
+
         if 0:
             import debug
+
             debug.SetDebugger()
-    if 1:   # Global variables
+    if 1:  # Global variables
+
         class G:
             pass
+
         g = G()
         g.dbg = False
         ii = isinstance
-if 1:   # Food data (https://www.fatsecret.com/calories-nutrition)
-        # kcal per 100 g
-        raw_data = '''
+if 1:  # Food data (https://www.fatsecret.com/calories-nutrition)
+    # kcal per 100 g
+    raw_data = """
 
             almonds:578
             apple juice:47
@@ -172,53 +176,61 @@ if 1:   # Food data (https://www.fatsecret.com/calories-nutrition)
             yellow squash:16
             yogurt:131
 
-        '''
-        data = []
-        # Change the data to kcal/g
-        ok = True
-        for i in raw_data.strip().split("\n"):
-            s, cal = i.strip().split(":")
-            try:
-                data.append((s.strip(), flt(cal)/100))
-            except ValueError:
-                print(f"Missing number for {s}")
-                ok = False
-        if not ok:
-            exit(0)
-if 1:   # Utility
+        """
+    data = []
+    # Change the data to kcal/g
+    ok = True
+    for i in raw_data.strip().split("\n"):
+        s, cal = i.strip().split(":")
+        try:
+            data.append((s.strip(), flt(cal) / 100))
+        except ValueError:
+            print(f"Missing number for {s}")
+            ok = False
+    if not ok:
+        exit(0)
+if 1:  # Utility
+
     def GetColors():
         t.err = t("redl")
         t.dbg = t("lill") if g.dbg else ""
         t.N = t.n if g.dbg else ""
+
     def GetScreen():
-        'Return (LINES, COLUMNS)'
+        "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
-            int(os.environ.get("COLUMNS", "80")) - 1
+            int(os.environ.get("COLUMNS", "80")) - 1,
         )
+
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="")
             print(*p, **kw)
             print(f"{t.N}", end="")
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=0):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] etc.
           Explanations...
         Options:
             -h      Print a manpage
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-a"] = False     # Need description
-        d["-d"] = 2         # Number of significant digits
-        #if len(sys.argv) < 2:
+        d["-a"] = False  # Need description
+        d["-d"] = 2  # Number of significant digits
+        # if len(sys.argv) < 2:
         #    Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "d:h") 
+            opts, args = getopt.getopt(sys.argv[1:], "d:h")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -231,15 +243,17 @@ if 1:   # Utility
                     if not (1 <= d["-d"] <= 15):
                         raise ValueError()
                 except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                        "1 and 15")
+                    msg = "-d option's argument must be an integer between 1 and 15"
                     Error(msg)
             elif o == "-h":
                 Usage()
         x = flt(0)
         x.N = d["-d"]
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def Report():
         w = max([len(i[0]) for i in data])
         # Alphabetical
@@ -249,6 +263,7 @@ if 1:   # Core functionality
         t.print(f"\n{t('ornl')}Sorted by size")
         for item, cphg in sorted(data, key=lambda x: x[1]):
             print(f"{item:{w}s} {cphg!s:5s}")
+
     def HD():
         "Dump the Hacker's Diet data"
         data = []
@@ -260,10 +275,11 @@ if 1:   # Core functionality
         w = max([len(i[0]) for i in data])
         for i in data:
             print(f"{i[0]:{w}s} ", end="")
-            print(' '.join(i[1:]))
+            print(" ".join(i[1:]))
+
 
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     if 1:
         Report()

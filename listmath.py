@@ -1,35 +1,38 @@
-'''
+"""
 Prints out math/cmath functions and their syntax
-'''
-if 1:   # Header
-    if 1:   # Copyright, license
+"""
+
+if 1:  # Header
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Prints out math/cmath functions and their syntax
-        #∞what∞#
-        #∞test∞# ignore #∞test∞#
+        # ∞what∞#
+        # ∞test∞# ignore #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         from collections import namedtuple
         import cmath
         import math
         import os
         import platform
         import sys
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from color import t
         from dpprint import PP
-        pp = PP()   # Screen width aware form of pprint.pprint
+
+        pp = PP()  # Screen width aware form of pprint.pprint
         from columnize import Columnize
 if 1:
+
     def GetSymbols():
-        data = '''
+        data = """
             # num_args signature
             1 math.ceil(x)
             2 math.comb(n, k)
@@ -122,7 +125,7 @@ if 1:
             0 cmath.infj
             0 cmath.nan
             0 cmath.nanj
-        '''
+        """
         o = []
         for line in data.split("\n"):
             line = line.strip()
@@ -140,10 +143,12 @@ if 1:
             e = entry(module[0], numargs, fname, arg, clr)
             o.append(e)
         return o
+
     def uniq(x):
         return list(sorted(set(x)))
+
     def Prt1(title, s):
-        'Print the columnized colorized names'
+        "Print the columnized colorized names"
         t.print(title)
         sym = []
         for i in s:
@@ -153,8 +158,9 @@ if 1:
             out.append(f"{entry.color}{name}{t.n}")
         for i in Columnize(out, indent=ind, esc=True):
             print(i)
+
     def Prt2(title, s):
-        'Print the names'
+        "Print the names"
         t.print(title)
         sym = []
         for i in s:
@@ -167,9 +173,10 @@ if 1:
             out.append(s)
         for i in Columnize(out, indent=ind, esc=True):
             print(i)
+
     def MathReport():
-        'Show the math/cmath symbols'
-        if 1:   # Get & check data
+        "Show the math/cmath symbols"
+        if 1:  # Get & check data
             o = GetSymbols()
             # Make dicts for math & cmath modules' symbols
             m, c = {}, {}
@@ -190,10 +197,12 @@ if 1:
                 if i not in c:
                     print("Error:  cmath.{i!r} not in data")
         # Report
-        t.print(f"{t('ornl')}math/cmath functions for python {platform.python_version()}")
+        t.print(
+            f"{t('ornl')}math/cmath functions for python {platform.python_version()}"
+        )
         print(f"{ind}Produced by {__file__}")
         t.print(f"{ind}Colors:  {t.m}math{t.n}  {t.c}cmath")
-        if 1:   # All symbols
+        if 1:  # All symbols
             t.print(f"{t('grnl')}All symbols")
             sym = []
             for i in o:
@@ -203,29 +212,29 @@ if 1:
                 out.append(f"{entry.color}{name}{t.n}")
             for i in Columnize(out, indent=ind, esc=True):
                 print(i)
-        if 1:   # Names organized by calling type
-            print("-"*W)
+        if 1:  # Names organized by calling type
+            print("-" * W)
             t.print(f"{t.hdr}Names organized by calling type")
-            if 1:   # Constants
+            if 1:  # Constants
                 s = [i for i in o if i.n == "0"]
                 Prt1(f"{t.type}Constants", s)
-            if 1:   # Univariate
+            if 1:  # Univariate
                 univariate = [i for i in o if i.n == "1"]
                 Prt1(f"{t.type}Univariate", univariate)
-            if 1:   # Bivariate
+            if 1:  # Bivariate
                 bivariate = [i for i in o if i.n == "2"]
                 Prt1(f"{t.type}Bivariate", bivariate)
-            if 1:   # Iterator
+            if 1:  # Iterator
                 iterator = [i for i in o if i.n == "i"]
                 Prt1(f"{t.type}Iterator", iterator)
-            if 1:   # List of arguments
+            if 1:  # List of arguments
                 list_of_arguments = [i for i in o if i.n == "*"]
                 Prt1(f"{t.type}List of arguments", list_of_arguments)
-            if 1:   # Other
+            if 1:  # Other
                 other = [i for i in o if i.n == "4"]
                 Prt1(f"{t.type}Other", other)
-        if 1:   # Argument syntax for functions
-            print("-"*W)
+        if 1:  # Argument syntax for functions
+            print("-" * W)
             t.print(f"{t.hdr}Argument syntax for functions")
             Prt2(f"{t.type}Univariate", univariate)
             Prt2(f"{t.type}Bivariate", bivariate)
@@ -233,12 +242,13 @@ if 1:
             Prt2(f"{t.type}List of arguments", list_of_arguments)
             Prt2(f"{t.type}Other", other)
 
-if __name__ == "__main__":  
+
+if __name__ == "__main__":
     entry = namedtuple("Entry", "lib n name args color")
     t.m = t("brnl")
     t.c = t("denl")
     t.type = t("grnl")
     t.hdr = t("whtl", "royd")
-    ind = " "*2
+    ind = " " * 2
     W = int(os.environ.get("COLUMNS", "80")) - 1
     MathReport()

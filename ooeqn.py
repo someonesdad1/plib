@@ -1,4 +1,4 @@
-'''
+"""
 
 Module to get the text content of the mathematical equations in an Open
 Document file.
@@ -33,22 +33,23 @@ Plan
     - Print the resulting lines out
     - Once this works, do it all from the zipped .odt file
 
-'''
-if 1:   # Header
+"""
+
+if 1:  # Header
     # Copyright, license
     if 1:
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Module to get the text content of the mathematical equations in an Open
         # Document file.
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
     # Standard imports
     if 1:
@@ -63,8 +64,10 @@ if 1:   # Header
     if 1:
         from wrap import dedent
         from color import Color, TRM as t
+
         if 0:
             import debug
+
             debug.SetDebugger()
     # Global variables
     if 1:
@@ -76,20 +79,21 @@ if 1:   # Header
         t.hyphens = t("yell")
         t.objname = t("ornl")
         t.noeqns = t("magl")
-if 1:   # Core functionality
+if 1:  # Core functionality
+
     def GetObjects(file):
-        '''Return a list of the object directories we'll need to search.  These
+        """Return a list of the object directories we'll need to search.  These
         are the objects as they are encountered in the document.
 
         The assumption is that file is the unmodified content.xml file from an
         OO Writer document.  It contains two lines and the second line is
         searched with a regular expression.  file can be a filename or stream.
-        '''
+        """
         r = re.compile(r"(Object \d+)")
         # Get the XML data
-        if ii(file, str):           # It's a file name
+        if ii(file, str):  # It's a file name
             data = open(file).read()
-        else:                       # It's a stream
+        else:  # It's a stream
             data = file.read()
         # Convert it to a string
         data = data.decode()
@@ -103,12 +107,13 @@ if 1:   # Core functionality
                 found.add(i)
                 objects.append(i)
         return objects
+
     def GetEquation(file, zf=None):
-        '''file is the name of the 'Object d/content.xml' where d is an
+        """file is the name of the 'Object d/content.xml' where d is an
         integer.  Read the data, searching for the 'StarMath 5.0' regular
         expression.  If zf is None, file is a regular file; otherwise, it's in
         a ZipFile instance.
-        '''
+        """
         a = "annotation"
         if zf:
             stream = zf.open(file)
@@ -119,21 +124,22 @@ if 1:   # Core functionality
         loc = data.find(look_for)
         if loc == -1:
             return None
-        data = data[loc + len(look_for):]
+        data = data[loc + len(look_for) :]
         look_for = "</annotation>"
         loc = data.find(look_for)
         if loc == -1:
             return None
         eq = data[0:loc]
         return eq
+
     def FixUnicode(eq):
-        '''Standard LaTeX doesn't work with Unicode very well because it was written
-        before Unicode appeared.  This function, however, will substitute strings 
+        """Standard LaTeX doesn't work with Unicode very well because it was written
+        before Unicode appeared.  This function, however, will substitute strings
         that will get the same result inside the math environment.
 
         NOTE:  You'll probably want to modify this mapping to fit your needs, as I only
         put in enough to get the results I wanted on the document I was processing.
-        '''
+        """
         di = {
             "Γ": r" \Gamma ",
             "Δ": r" \Delta ",
@@ -157,12 +163,13 @@ if 1:   # Core functionality
             "ℕ": r" \textbb{N} ",
         }
         for i in di:
-            eq = eq.replace(i, di[i]) 
+            eq = eq.replace(i, di[i])
         return eq
+
     def AdjustEquation(eq):
-        'Make a number of adjustments to make it easier to convert to LaTeX'
-        greek = '''alpha beta chi delta epsilon eta gamma iota kappa lambda mu nu
-                omega phi pi psi rho sigma tau theta upsilon xi zeta'''.split()
+        "Make a number of adjustments to make it easier to convert to LaTeX"
+        greek = """alpha beta chi delta epsilon eta gamma iota kappa lambda mu nu
+                omega phi pi psi rho sigma tau theta upsilon xi zeta""".split()
         # Change Greek letters to LaTeX form
         for i in greek:
             j = f"%{i}"
@@ -177,27 +184,33 @@ if 1:   # Core functionality
             if j in eq:
                 eq = eq.replace(j.strip(), rf"\{j.strip()} ")
         # Fix equal sign spacing
-        eq = eq.replace("`=`", "=")         # Remove "= spacing hack"
-        eq = eq.replace("`=", "=")          # Remove "= spacing hack"
-        eq = eq.replace("`", "")            # Remove backticks
+        eq = eq.replace("`=`", "=")  # Remove "= spacing hack"
+        eq = eq.replace("`=", "=")  # Remove "= spacing hack"
+        eq = eq.replace("`", "")  # Remove backticks
         # +- and -+
         eq = eq.replace("+-", r"\pm ")
         eq = eq.replace("-+", r"\mp ")
         # Make it easy to find where \frac is needed
         eq = eq.replace("over", "__OVER__")  # Makes it easy to see & search for
         # < and >
-        eq = eq.replace("&lt;", " < ") 
-        eq = eq.replace("&gt;", " > ") 
-        eq = eq.replace("&le;", r" \le ") 
-        eq = eq.replace("&ge;", r" \ge ") 
+        eq = eq.replace("&lt;", " < ")
+        eq = eq.replace("&gt;", " > ")
+        eq = eq.replace("&le;", r" \le ")
+        eq = eq.replace("&ge;", r" \ge ")
         eq = FixUnicode(eq)
         return eq
-if 1:   # Utility
+
+
+if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Help():
-        print(dedent(rf'''
+        print(
+            dedent(
+                rf"""
         The script's purpose
         --------------------
 
@@ -297,26 +310,32 @@ if 1:   # Utility
             - Save the file as a UTF-8-encoded text file to get the document's text.
             - Using a text editor, format this text into paragraphs suitable for LaTeX.
 
-        '''.rstrip()))
+        """.rstrip()
+            )
+        )
         exit(0)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] odfile1 [odfile2...]
             Print out the equations' text in the Open Document files.
         Options:
             -a      Adjust the text for conversion to LaTeX
             -h      Details on how the script works
             -r      Print repr() form of equations rather than str()
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-a"] = False     # Adjust the equations for LaTeX
-        d["-h"] = False     # Print detailed help
-        d["-r"] = False     # Use repr() instead of str() for equations
+        d["-a"] = False  # Adjust the equations for LaTeX
+        d["-h"] = False  # Print detailed help
+        d["-r"] = False  # Use repr() instead of str() for equations
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, files = getopt.getopt(sys.argv[1:], "ahr") 
+            opts, files = getopt.getopt(sys.argv[1:], "ahr")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -326,9 +345,10 @@ if 1:   # Utility
         if d["-h"]:
             Help()
         return files
+
     def PrintDocumentObjects(document):
         try:
-            hyphens = "-"*(W - 2)
+            hyphens = "-" * (W - 2)
             with ZipFile(document) as zf:
                 o = GetObjects(zf.open("content.xml"))
                 equations = []
@@ -362,15 +382,16 @@ if 1:   # Utility
         except Exception as e:
             print(f"{document}:  Error:  {e}", file=sys.stderr)
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     files = ParseCommandLine(d)
     for file in files:
         PrintDocumentObjects(file)
 
-if 0:     # Generate a list of Objects in document order
+if 0:  # Generate a list of Objects in document order
     o = GetObjects("content.xml")
-    #print(f"Found {len(o)} candidates")
+    # print(f"Found {len(o)} candidates")
     for i in o:
         obj = i.replace(" ", "")
         eq = GetEquation(i.lower())
@@ -378,5 +399,5 @@ if 0:     # Generate a list of Objects in document order
             print(obj)
             print()
             print(eq)
-            print("%" + "-"*50)
+            print("%" + "-" * 50)
     print(eq)

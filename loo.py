@@ -1,42 +1,44 @@
-'''
+"""
 Library routine to find picture files linked or embedded in an Open
 Office document.  call GetOOFilePictures(oofile) with the path to an
 OO file and you'll get a list of image files in that document.
- 
+
 Run as a script and pass OO files on the command line; their picture
 files will be printed to stdout.  Missing image files and image files
 that aren't relative to the document's location will be flagged.
- 
+
 This is done by a heuristic rather than parsing the XML.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # <utility> Find picture files in Open Office files.  I find it
     # useful because I always link in pictures rather than copy them
     # into the OO document (this saves space).  However, when the
     # pictures aren't in a subdirectory below the location of the OO
     # file, you can have a problem when you distribute the OO file and
     # its pictures to a user.  This script heads off this problem.
-    #∞what∞#
-    #∞test∞# ignore #∞test∞#
+    # ∞what∞#
+    # ∞test∞# ignore #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import getopt
     import os
     import zipfile
     from re import sub
     from string import whitespace
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
     from color import TRM as t
+
     if 0:
         # Try to import the color.py module to allow highlighting missing
         # files in color to make them easier to see.  If you don't have the
@@ -44,20 +46,25 @@ if 1:   # Custom imports
         _have_color = False
         try:
             import color as c
+
             _have_color = True
         except ImportError:
-            class Dummy:    # Make a dummy color object to swallow function calls
+
+            class Dummy:  # Make a dummy color object to swallow function calls
                 def fg(self, *p, **kw):
                     pass
+
                 def normal(self, *p, **kw):
                     pass
+
                 def __getattr__(self, name):
                     pass
+
             c = Dummy()
     t.missing = t("whtl", "redl")
     t.notrel = t("whtl", "magl")
     t.embedded = t("grnl")
-if 1:   # Global variables
+if 1:  # Global variables
     out = sys.stdout.write
     err = sys.stderr.write
     broken_link = "[missing]"
@@ -65,12 +72,12 @@ if 1:   # Global variables
     nl = "\n"
     # File extensions that indicate a picture.  This list came from
     # https://wiki.openoffice.org/wiki/Documentation/OOo3_User_Guides/Getting_Started/File_formats
-    _raw_ext = '''
+    _raw_ext = """
     bmp  gif  pbm  pgm  psd  sgf  tif  wmf
     dxf  jpeg pcd  plt  ras  sgv  tiff xbm
     emf  jpg  pct  png  sda  svm  vor  xpm
     eps  met  pcx  ppm  sdd  tga
-    '''
+    """
     ext = []
     for i in _raw_ext.split(nl):
         ext += ["." + j.lower() for j in i.split()]
@@ -81,25 +88,34 @@ if 1:   # Global variables
         pass
     # File extensions for Open Office documents.  Add to this list if
     # there are additional files you want searched.
-    _oo_ext = set((
-        ".odb",     # OO Base database
-        ".odg",     # OO Draw drawing
-        ".odp",     # OO Impress presentation
-        ".ods",     # OO Calc spreadsheet
-        ".odt",     # OO Writer document
-        ".ott",     # OO Writer template document
-    ))
+    _oo_ext = set(
+        (
+            ".odb",  # OO Base database
+            ".odg",  # OO Draw drawing
+            ".odp",  # OO Impress presentation
+            ".ods",  # OO Calc spreadsheet
+            ".odt",  # OO Writer document
+            ".ott",  # OO Writer template document
+        )
+    )
+
+
 class ZipfileError(Exception):
     pass
+
+
 def Error(*msg, status=1):
-        print(*msg, file=sys.stderr)
-        exit(status)
+    print(*msg, file=sys.stderr)
+    exit(status)
+
+
 def Usage(d, status=1):
     name = sys.argv[0]
     shortname = os.path.split(sys.argv[0])[1]
     missing = broken_link
     notrel = notrel_image
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {name} [options] file1 [file2...]
       For each Open Office document file given on the command line, print
       out any image files that the document file has links to.  Highlight
@@ -141,13 +157,16 @@ def Usage(d, status=1):
         names.
       - '{shortname} -r dir' will show all the OO files and their images
         at below the directory dir.
-    '''))
+    """)
+    )
     exit(status)
+
+
 def ParseCommandLine(d):
-    d["-e"] = False     # Don't ignore embedded pictures
-    d["-l"] = False     # Only list OO file names
-    d["-m"] = False     # Missing pictures only
-    d["-r"] = False     # Recursive search
+    d["-e"] = False  # Don't ignore embedded pictures
+    d["-l"] = False  # Only list OO file names
+    d["-m"] = False  # Missing pictures only
+    d["-r"] = False  # Recursive search
     if len(sys.argv) < 2:
         Usage(d)
     try:
@@ -172,9 +191,10 @@ def ParseCommandLine(d):
     elif not args:
         Error("Need at least one Open Office file")
     return args
+
+
 def _Extract(filename, s):
-    '''_Extract the image tag at the beginning of the string s.
-    '''
+    """_Extract the image tag at the beginning of the string s."""
     k = "href="
     loc = s.find(k)
     if loc == -1:
@@ -192,10 +212,12 @@ def _Extract(filename, s):
         if path.startswith("../"):
             path = path[3:]
         return path
+
+
 def _ProcessZipObject(zipobj, filename):
-    '''zipobj is an open ZipFile object.  Open the file filename in
+    """zipobj is an open ZipFile object.  Open the file filename in
     the zip archive, read in its bytes, and search them for image tags.
-    '''
+    """
     s = zipobj.open(filename).read()
     s = s.decode("UTF-8")
     tag_begin, tag_end = "<draw:image xlink:href", "/>"
@@ -214,30 +236,34 @@ def _ProcessZipObject(zipobj, filename):
         s = s[end:]
         loc = s.find("<draw:image xlink:href")
     return found_files
+
+
 def IsOOFile(file):
-    '''Return True if file has the name of an Open Office document
+    """Return True if file has the name of an Open Office document
     file.
-    '''
+    """
     path, filename = os.path.split(file)
     name, ext = os.path.splitext(filename)
     return ext.lower() in _oo_ext
+
+
 def GetOOFilePictures(oofile):
-    '''Return a sequence of the picture files included in the given
+    """Return a sequence of the picture files included in the given
     Open Office file.  If oofile contains a path, it will be made the
     current directory (and the old current directory will be restored
     before exiting).
-    
+
     Each returned item is a tuple of the form
         (path, state)
     where path is either a relative to the oofile's directory or
     an absolute path.
-    
+
     state is a string of one of the following values:  "", "missing",
     "notrel".  "missing" means a link that points to a file that isn't
     present in the file system.  "notrel" means it's a path that is
     not at or below the directory containing the Open Office file.  An
     empty string means it's neither "missing" or "notrel".
-    '''
+    """
     olddir = os.getcwd()
     path, file = os.path.split(oofile)
     if path:
@@ -270,35 +296,44 @@ def GetOOFilePictures(oofile):
     finally:
         os.chdir(olddir)
     return tuple(found)
+
+
 def keep(s, chars, incl_ws=False):
-    '''Returns the string s after keeping only the characters in chars.
+    """Returns the string s after keeping only the characters in chars.
     If incl_ws is True, then whitespace characters are added to chars
     (this is useful for processing text files).
-    '''
+    """
     chars = chars + whitespace if incl_ws else chars
-    c = "[^{}]".format(''.join(list(set(chars))))
+    c = "[^{}]".format("".join(list(set(chars))))
     return sub(c, "", s)
+
+
 def J(*p):
-    '''Join the components of the sequence p into a path and Normalize
+    """Join the components of the sequence p into a path and Normalize
     it to have forward slashes.
-    '''
+    """
     return Normalize(os.path.join(*p))
+
+
 def Normalize(path):
-    '''Use forward slashes in file names.
-    '''
+    """Use forward slashes in file names."""
     return path.replace("\\", "/")
+
+
 def IsEmbeddedImage(path):
-    '''If the path is of the form e.g.
+    """If the path is of the form e.g.
     Pictures/1000000000000233000000FE20974D73.png
     then it's probably an embedded image, so return True.  Note we
     ignore the extension.  This is a heuristic.
-    '''
+    """
     dir, file = os.path.split(path)
     name, ext = os.path.splitext(file)
     k = keep(name, "1234567890abcdefABCDEF")
     if dir == "Pictures" and k == name:
         return True
     return False
+
+
 def GetImages(file, ignore_embedded=True):
     olddir, image_files = os.getcwd(), []
     path, name = os.path.split(file)
@@ -327,10 +362,12 @@ def GetImages(file, ignore_embedded=True):
                     non_embedded.append(i)
             image_files = non_embedded
         return image_files
+
+
 def ProcessFile(oofile, d):
-    '''Print out any linked image files in the Open Office file
+    """Print out any linked image files in the Open Office file
     oofile.  d is the options directory.
-    '''
+    """
     if not os.path.isfile(oofile):
         err("'%s' is not a file%s" % (oofile, nl))
         return
@@ -378,7 +415,7 @@ def ProcessFile(oofile, d):
             continue
         if d["-m"] and not state:
             continue
-        print(" "*4, name, end=" ")
+        print(" " * 4, name, end=" ")
         if state == "missing":
             t.print(f"{t.missing}[{state}]")
         elif state == "notrel":
@@ -387,6 +424,8 @@ def ProcessFile(oofile, d):
             t.print(f"{t.embedded}[{state}]")
         else:
             print(f"[{state}]")
+
+
 def ProcessDirectory(directory, d):
     if not os.path.isdir(directory):
         err("'%s' is not a directory%s" % (directory, nl))
@@ -403,15 +442,19 @@ def ProcessDirectory(directory, d):
                 if oofile[:2] == "./":  # Remove './' prefix
                     oofile = oofile[2:]
                 ProcessFile(oofile, d)
+
+
 def SearchDirectories(directories, d):
     for directory in directories:
         ProcessDirectory(directory, d)
-if __name__ == "__main__": 
-    d = {}      # Options dictionary
+
+
+if __name__ == "__main__":
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     d["start_dir"] = os.getcwd()
     if d["-r"]:
-        #dirs = [Normalize(os.path.abspath(i)) for i in args]
+        # dirs = [Normalize(os.path.abspath(i)) for i in args]
         SearchDirectories(args, d)
     else:
         if not args:

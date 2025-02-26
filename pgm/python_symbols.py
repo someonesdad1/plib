@@ -1,15 +1,15 @@
-'''
+"""
 Print the set of characters that are allowed as python symbols.
-'''
+"""
 
 import uni
 from columnize import Columnize
 
 # Options dictionary in uni.py (keys needed by uni.GetCharacterSet)
 d = {
-    "-a": True,     # Use all characters
-    "-e": True,     # Remove non-English characters
-    "-v": False,    # Verbose
+    "-a": True,  # Use all characters
+    "-e": True,  # Remove non-English characters
+    "-v": False,  # Verbose
 }
 
 allowed = []
@@ -26,4 +26,3 @@ for cp in uni.GetCharacterSet(d):
         pass
 for line in Columnize(allowed, horiz=True):
     print(line)
-

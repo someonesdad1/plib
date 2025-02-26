@@ -1,53 +1,59 @@
-'''
+"""
 Trim characters from the lines of files and print them to stdout
 
 ToDo
     - Change to use dpstr:Trim()
-'''
-if 1:   # Header
-    if 1:   # Copyright, license
+"""
+
+if 1:  # Header
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Trim characters from the lines of files and print them to stdout
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         import fileinput
         import getopt
         import os
         from pathlib import Path as P
         import string
         from sys import stdin, stdout, stderr, argv
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import dedent
         from color import t
-    if 1:   # Global variables
+    if 1:  # Global variables
+
         class G:
             pass
+
         g = G()  # Storage for global variables as attributes
         g.dbg = False
         ii = isinstance
         g.W = int(os.environ.get("COLUMNS", "80")) - 1
         g.L = int(os.environ.get("LINES", "50"))
-if 1:   # Utility
+if 1:  # Utility
+
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="")
             print(*p, **kw)
             print(f"{t.N}", end="")
-            
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {argv[0]} [options] file1 [file2...]
           Trim characters from the lines read from the files and print them
           to stdout.  Use '-' to read from stdin.  If -c is not given, the
@@ -58,16 +64,18 @@ if 1:   # Utility
             -l      Trim from the left side only
             -r      Trim from the right side only
             -w      Trim whitespace
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-c"] = ""        # Characters to trim
-        d["-d"] = False     # Turn on debug printing
-        d["-l"] = False     # Trim from left side only
-        d["-r"] = False     # Trim from right side only
-        d["-w"] = False     # Include whitespace characters
+        d["-c"] = ""  # Characters to trim
+        d["-d"] = False  # Turn on debug printing
+        d["-l"] = False  # Trim from left side only
+        d["-r"] = False  # Trim from right side only
+        d["-w"] = False  # Include whitespace characters
         try:
-            opts, files = getopt.getopt(argv[1:], "c:dhlrw") 
+            opts, files = getopt.getopt(argv[1:], "c:dhlrw")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -99,26 +107,32 @@ if 1:   # Utility
         Dbg(f"  -r = {d['-r']!r}")
         Dbg(f"  -w = {d['-w']!r}")
         return files
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def Escape(s):
-        'Escape the characters in the string s and return it'
+        "Escape the characters in the string s and return it"
+
         def esc(c):
             if ord(c) == 8:
-                return r'\t'    # backspace
+                return r"\t"  # backspace
             elif ord(c) == 9:
-                return r'\t'    # horizontal tab
+                return r"\t"  # horizontal tab
             elif ord(c) == 10:
-                return r'\n'    # newline
+                return r"\n"  # newline
             elif ord(c) == 11:
-                return r'\v'    # vertical tab
+                return r"\v"  # vertical tab
             elif ord(c) == 12:
-                return r'\f'    # formfeed
+                return r"\f"  # formfeed
             elif ord(c) == 13:
-                return r'\r'    # carriage return
-            elif ord(c) == 0x5c:
-                return r'\\'  # backslash
+                return r"\r"  # carriage return
+            elif ord(c) == 0x5C:
+                return r"\\"  # backslash
             return c
-        return ''.join([esc(i) for i in s])
+
+        return "".join([esc(i) for i in s])
+
     def ProcessLine(line, where):
         Dbg(f"Processing {where} {line!r}")
         # Remove trailing newline
@@ -129,14 +143,14 @@ if 1:   # Core functionality
         LM = line.rstrip(ProcessLine.chars)
         M = line.strip(ProcessLine.chars)
         m = len(M)
-        L = LM[:len(LM) - m]
+        L = LM[: len(LM) - m]
         R = MR[m:]
         Dbg(f"  Left   = '{Escape(L)}'")
         Dbg(f"  Middle = '{Escape(M)}'")
         Dbg(f"  Right  = '{Escape(R)}'")
         if g.dbg:
             # Validate invariant
-            assert(L + M + R == line)
+            assert L + M + R == line
         if d["-l"]:
             Dbg(f"  Result = '{M + R}'")
             print(f"{t.norm}{M + R}{t.N}")
@@ -147,13 +161,14 @@ if 1:   # Core functionality
             Dbg(f"  Result = '{M}'")
             print(f"{t.norm}{M}{t.N}")
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     files = ParseCommandLine(d)
-    if 1:   # Make the set of chars to remove
+    if 1:  # Make the set of chars to remove
         if d["-w"]:
             d["-c"] += string.whitespace
-        ProcessLine.chars = ''.join(set(d["-c"] if d["-c"] else " "))
+        ProcessLine.chars = "".join(set(d["-c"] if d["-c"] else " "))
     if 0:
         line = " aa∞ \t\v\n\n"
         ProcessLine(line, "xx")

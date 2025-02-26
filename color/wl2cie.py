@@ -1,4 +1,4 @@
-'''
+"""
 Provides convenience functions for CIE color data
 
 ToDo
@@ -13,8 +13,9 @@ ToDo
       nominal normal deviates.
 
 
-'''
-from pdb import set_trace as xx 
+"""
+
+from pdb import set_trace as xx
 import sys
 import colorcoord
 import wl2rgb
@@ -22,24 +23,26 @@ from color import Color, t
 
 if 0:
     import debug
+
     debug.SetDebugger()
 
+
 def GetCIETable():
-    '''Returns a tuple of (nm, (xbar, ybar, zbar)) values to give the CIE's
+    """Returns a tuple of (nm, (xbar, ybar, zbar)) values to give the CIE's
     standard method to convert from a power spectral density (PSD) function
     to X, Y, Z tristimulus coordinates.  A PSD is integrated with these
     numerical functions over the wavelengths of 380 to 780 nm.  These are
     for the 2° field of view.  These numbers were derived around 1930 from
     two experimental samples from 17 people.  The experiments were careful
-    and have been repeated, so though the samples were biased, it seems 
+    and have been repeated, so though the samples were biased, it seems
     they represent a large portion of humanity.
- 
+
     From 204.xls downloaded from
     https://web.archive.org/web/20170131100357/http://files.cie.co.at/204.xls
     Thu 24 Mar 2022.
-    '''
-    # CIE 1931 standard colorimetric observer			
-    # Columns: 
+    """
+    # CIE 1931 standard colorimetric observer
+    # Columns:
     #     wavelength, nm
     #     xbar(wl_nm)
     #     ybar(wl_nm)
@@ -149,15 +152,18 @@ def GetCIETable():
             raise ValueError("Bad z checksum")
         GetCIETable.data = checked
     return GetCIETable.data
+
+
 GetCIETable.checked = False
 GetCIETable()
 
+
 def GetCIEDict():
-    '''Returns a dict keyed by integer wavelength in nm to return the CIE
+    """Returns a dict keyed by integer wavelength in nm to return the CIE
     1931 Color Matching Functions to convert a spectral power density to
     tristimulus XYZ values by integration.  The keys are integers on the
     interval [380, 780] in steps of 1.
-    '''
+    """
     if GetCIEDict.dict is None:
         # Linearly interpolate the GetCIETable()'s data to get 1 nm steps
         di = {}
@@ -166,20 +172,23 @@ def GetCIEDict():
         f = lambda x, n: round(x, n)
         for wl in range(380, 779, 5):
             start, end = di[wl], di[wl + 5]
-            slope = [f((j - i)/5, 10) for i, j in zip(start, end)]
+            slope = [f((j - i) / 5, 10) for i, j in zip(start, end)]
             for i in (1, 2, 3, 4):
-                a = [f(j + k*i, 6) for j, k in zip(start, slope)]
+                a = [f(j + k * i, 6) for j, k in zip(start, slope)]
                 di[wl + i] = a
         GetCIEDict.dict = di
     return GetCIEDict.dict
+
+
 GetCIEDict.dict = None
 
+
 def wl2cie_xy(wl_nm):
-    '''Returns CIE xy for a given integer wavelength in nm.  These are the
+    """Returns CIE xy for a given integer wavelength in nm.  These are the
     1931 xy coordinates of the outside edges of the chromaticity diagram
     that correspond to a wavelength.  Spot checks against a few 1931
     chromaticity diagrams indicate the correct values have been gotten.
-    '''
+    """
     di = GetCIEDict()
     wl = int(wl_nm)
     if wl not in di:
@@ -189,10 +198,11 @@ def wl2cie_xy(wl_nm):
     f = lambda x, n: round(x, n)
     t = sum(XYZ)
     n = 4
-    return (f(XYZ[0]/t, n), f(XYZ[1]/t, n))
+    return (f(XYZ[0] / t, n), f(XYZ[1] / t, n))
+
 
 def Round(x, n):
-    'Round a sequence of floats to n places'
+    "Round a sequence of floats to n places"
     return tuple([round(i, n) for i in x])
 
 
@@ -210,7 +220,7 @@ if 0:
 if 1:
     # Print the wavelengths out in their sRGB colors
     print("wl in nm vs CIExy")
-    To_sRGB =  colorcoord.xy_to_sRGB
+    To_sRGB = colorcoord.xy_to_sRGB
     step = 5
     for nm in range(380, 781, step):
         x, y = wl2cie_xy(nm)

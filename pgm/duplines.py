@@ -1,30 +1,31 @@
-'''
+"""
 Finds duplicate lines in one or more files
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2008 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2008 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Finds duplicate lines in one or more files
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import getopt
     import re
     import random
     from hashlib import sha256 as hash
     from math import log10 as log
-    from pdb import set_trace as xx 
-if 1:   # Custom imports
+    from pdb import set_trace as xx
+if 1:  # Custom imports
     from wrap import dedent
-if 1:   # Global variables
+if 1:  # Global variables
     out = sys.stdout.write
     nl = "\n"
     return_status = {
@@ -55,7 +56,8 @@ if 1:   # Global variables
     # Compiled regular expressions we will ignore
     regular_expressions = []
     canned_expressions = {
-        "float": re.compile(r'''
+        "float": re.compile(
+            r"""
             [+-]?               # Optional sign
             \d*\.\d+            # Mandatory decimal point and following digit
             ([eE][+-]?\d+)?     # Optional exponent
@@ -67,17 +69,24 @@ if 1:   # Global variables
             [+-]?               # Optional sign
             \d+                 # Leading digits, but no decimal point
             [eE][+-]?\d+        # Mandatory exponent
-        ''', re.VERBOSE),
+        """,
+            re.VERBOSE,
+        ),
         "integer": re.compile(r"[+-]?\d+(?!\.)"),
         "hex": re.compile(r"0x[\da-f]+", re.IGNORECASE),
     }
     whitespace = re.compile(r"\s+")
+
+
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
+
+
 def Usage(status=1):
     name = sys.argv[0]
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {name} [options] file1 [file2...]
       Finds duplicate lines in one or more files.  Each duplicate line
       will be printed along with the file it occurs in and the line number.
@@ -97,33 +106,37 @@ def Usage(status=1):
           -t n    Generate n files for testing.  There are 1e4 lines in each
                   file and the first line is the same as the last.
           -w      Ignore whitespace [%(ignore_whitespace)s]
-    '''))
+    """)
+    )
     exit(status)
+
+
 def Test(number_of_files=100):
-    '''Generate lots of files with lots of lines.
- 
+    """Generate lots of files with lots of lines.
+
     29Mar2008 (dual Celeron process running XP):  generated 100 files with
     1e4 lines each.  Made the last line of the last file the same as the
     first line.  It took 30 seconds for this script to find and print the
     duplicates.  That's 33 klines/sec.  Changing the script's hash to MD5
     knocked 1 second off that time.  Using sha512 added 5 seconds.  sha256
     seems like a good compromise.
- 
+
     Note:  I changed from using a hash from hashlib to just putting the
     text string itself in the dictionary.  This took 5 seconds less and
     should guarantee there won't be any collisions.
- 
+
     24Apr2011 (quad core Intel processor running XP):  Took 10.8 s to find
     the duplicates for 100 files for 92 klines/s (note these lines were
     probably cached, so that's not a realistic number).
- 
+
     3Jul2021 (quad core processor running cygwin under Windows 10 with
     python 3.7.10):  took 2.7 s for 100 files produced with 'dupfiles -t
     100'.
-    '''
+    """
     random.seed()
     digits = int(log(number_of_files) - 1e-9) + 1
     number_of_lines = 10000
+
     def FillFile(file):
         f = open(file, "w")
         for i in range(number_of_lines - 1):
@@ -134,9 +147,12 @@ def Test(number_of_files=100):
                 firstline = line
             f.write(line)
         f.write(firstline)
+
     for i in range(number_of_files):
         FillFile(f"dupfiles.test.{i}")
     exit(0)
+
+
 def ParseCommandLine():
     global regular_expressions
     global ignore_blank_lines
@@ -168,10 +184,12 @@ def ParseCommandLine():
     if len(files) < 1:
         Usage()
     return files
+
+
 def ProcessLine(line):
-    '''Transform the line to satisfy the constraints of the things that
+    """Transform the line to satisfy the constraints of the things that
     must be ignored.
-    '''
+    """
     if ignore_case:
         line = line.lower()
     if ignore_whitespace:
@@ -180,10 +198,12 @@ def ProcessLine(line):
     for expression in regular_expressions:
         line = expression.sub("", line)
     return line
+
+
 def ProcessFile(file):
-    '''Add (file_number, line_number) pairs to the matches map for each
+    """Add (file_number, line_number) pairs to the matches map for each
     line.
-    '''
+    """
     global matches
     global filenames
     lines = open(file).readlines()
@@ -201,13 +221,15 @@ def ProcessFile(file):
             # Not in map yet; create a new entry.  Note the string for
             # the original line is the first element.
             matches[line] = [lines[i][:-1], (file_number, line_number)]
+
+
 def GetDetails(items):
-    '''Change from (file_number, line_number) pairs to a string of the
+    """Change from (file_number, line_number) pairs to a string of the
     form
         file1:  linenum1, linenum2, ...
         file2:  linenum1, linenum2, ...
         ...
-    '''
+    """
     data = {}
     for file_number, line_number in items:
         if file_number in data:
@@ -220,9 +242,11 @@ def GetDetails(items):
     for file_number, line_numbers in files:
         s += "  %s: " % filenames[file_number]
         nums = ["%d" % i for i in line_numbers]
-        s += ' '.join(nums)
+        s += " ".join(nums)
         s += nl
     return s
+
+
 def PrintReport():
     data = []  # Build a structure that we can sort on the lines
     status = return_status["no duplicates"]
@@ -239,6 +263,8 @@ def PrintReport():
         print(line)
         print(info, end="")
     return status
+
+
 if __name__ == "__main__":
     files = ParseCommandLine()
     for file in files:

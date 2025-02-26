@@ -1,4 +1,4 @@
-'''
+"""
 TODO:
 
 * Add the -c option so that colorized printing is enabled.  Use three
@@ -13,15 +13,15 @@ details.
 If you want to use numbers with uncertainty, you'll have to install
 the python uncertainties library
 https://pypi.python.org/pypi/uncertainties/.
-'''
+"""
 
 # Copyright (C) 2013 Don Peterson
 # Contact:  gmail.com@someonesdad1
 
-#
+#
 # Licensed under the Open Software License version 3.0.
 # See http://opensource.org/licenses/OSL-3.0.
-#
+#
 
 from __future__ import print_function, division
 import sys
@@ -32,13 +32,16 @@ import traceback
 from math import *
 from collections import OrderedDict
 from itertools import combinations
-#from geom_prim import *
+
+# from geom_prim import *
 from geom_prim import Ctm, Point, Line, Plane, V, UseUnicode
 import color
 
 from pdb import set_trace as xx
+
 if 0:
     import debug
+
     debug.SetDebugger()
 
 have_unc = False
@@ -51,6 +54,7 @@ try:
     from uncertainties.umath import log10, log1p, modf, pow, radians, sin
     from uncertainties.umath import sinh, sqrt, tan, tanh, trunc
     from uncertainties import ufloat, UFloat
+
     have_unc = True
 except ImportError:
     pass
@@ -59,8 +63,8 @@ pyver = sys.version_info[0]
 if pyver == 3:
     long = int
 
-_debug = False      # Turn debugging output on
-_color = False      # Whether to print with color
+_debug = False  # Turn debugging output on
+_color = False  # Whether to print with color
 
 # _test is set to True for test purposes.  It will disable the exit
 # from Error() and allow the error message to be put in _test_msg.
@@ -84,6 +88,7 @@ colors = {
     "dbg": color.lblue,
 }
 
+
 def Rnd(x):
     if not eps:
         return x
@@ -94,6 +99,7 @@ def Rnd(x):
         if x.std_dev > eps and abs(x.nominal_value) < eps:
             x.nominal_value = 0
     return x
+
 
 def dbg(*s, **kw):
     # If _debug is True, send information to stderr.  Preface each
@@ -107,6 +113,7 @@ def dbg(*s, **kw):
         if _color:
             color.normal()
 
+
 def Error(msg, status=1):
     if _test:
         global _test_msg
@@ -115,9 +122,10 @@ def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
 
+
 def Usage(d, status=1):
     name = sys.argv[0]
-    s = '''
+    s = """
 Usage:  {name} [options] [datafile]
   Script to transform points, lines, and planes in 2-dimensional or
   3-dimensional space using translations, rotations, and dilatations.
@@ -154,31 +162,32 @@ Options:
     -W
         Same as -w, but will exit with an error if you overwrite
         either an object or a variable.
-'''[1:-1]
+"""[1:-1]
     print(s.format(**locals()))
     exit(status)
 
+
 def ParseCommandLine(d):
     # Command line option settings
-    d["-a"] = False         # Don't limit print to points, lines, and planes
-    d["-c"] = False         # Use color in printing to console
-    d["-d"] = False         # Turn debugging on
-    d["-e"] = False         # Don't use try/except on dispatched commands
-    d["-s"] = ","           # Line separation string
-    d["-u"] = False         # Use Unicode symbols
-    d["-w"] = False         # Error when overwriting object names
-    d["-W"] = False         # Error when overwriting object or variable names
-    d["-@"] = None          # Read datafile from stdin
+    d["-a"] = False  # Don't limit print to points, lines, and planes
+    d["-c"] = False  # Use color in printing to console
+    d["-d"] = False  # Turn debugging on
+    d["-e"] = False  # Don't use try/except on dispatched commands
+    d["-s"] = ","  # Line separation string
+    d["-u"] = False  # Use Unicode symbols
+    d["-w"] = False  # Error when overwriting object names
+    d["-W"] = False  # Error when overwriting object or variable names
+    d["-@"] = None  # Read datafile from stdin
     # Other settings
-    d["lines"] = []         # Will contain datafiles' lines
-    d["vars"] = OrderedDict()   # Local variables for expressions
-    d["coord_sys"] = "rect"     # Coordinate system for output
-    d["width"] = 15         # Width of report's x, y, mass columns
-    d["name_width"] = 15    # Width of report name column
-    d["indent"] = ""        # String to indent output by
-    d["alphabetical"] = False   # If true, sort output objects by name
+    d["lines"] = []  # Will contain datafiles' lines
+    d["vars"] = OrderedDict()  # Local variables for expressions
+    d["coord_sys"] = "rect"  # Coordinate system for output
+    d["width"] = 15  # Width of report's x, y, mass columns
+    d["name_width"] = 15  # Width of report name column
+    d["indent"] = ""  # String to indent output by
+    d["alphabetical"] = False  # If true, sort output objects by name
     # Set up the default angle units
-    Ctm._angle = 180/pi     # Divide by this to get radians
+    Ctm._angle = 180 / pi  # Divide by this to get radians
     Ctm._angle_name = "deg"
     if len(sys.argv) < 2:
         Usage(d)
@@ -218,15 +227,16 @@ def ParseCommandLine(d):
     if d["-@"]:
         return ["stdin"]
     elif len(args) != 1:
-            Usage(d)
+        Usage(d)
     return [args[0]]
 
+
 def ReadDatafile(d):
-    '''Read in the datafile.  Strip out comments and blank lines.
+    """Read in the datafile.  Strip out comments and blank lines.
     Remove trailing whitespace from each line, but leave the leading
     whitespace (may be needed if it's python code).  Return a list of
     lines d["lines"] as (linenum, line_string).
-    '''
+    """
     file = d["datafile"][-1]
     if file == "stdin":
         lines = sys.stdin.readlines()
@@ -259,12 +269,13 @@ def ReadDatafile(d):
     d["lines"] += L
     d["datafile"].pop()
 
+
 def Interp(s, d, linenum=None, line=None):
-    '''Interpret the string s as either an expression defining a value
+    """Interpret the string s as either an expression defining a value
     or as a string with a mean and optional uncertainty and physical
     unit.  The unit is ignored.  The value returned can be an int,
     float, or ufloat.
-    '''
+    """
     s = s.strip()
     try:
         val = eval(s, None, d["vars"])
@@ -285,21 +296,21 @@ def Interp(s, d, linenum=None, line=None):
             val = val.nominal_value
     return val
 
+
 def IsIdentifier(s):
-    '''Return True if s is a valid python variable name.
-    '''
+    """Return True if s is a valid python variable name."""
     try:
         exec("%s = 0" % s)
         return True
     except SyntaxError:
         return False
 
+
 def GetVar(linenum, line, d):
-    '''The line contains an '=' character, so it's an assignment.
-    '''
+    """The line contains an '=' character, so it's an assignment."""
     try:
         loc = line.find("=")
-        f = [line[:loc], line[loc + 1:]]
+        f = [line[:loc], line[loc + 1 :]]
         name, val = f
         # Try to set a local variable using the name; if we get an
         # exception, the name isn't valid.
@@ -317,16 +328,18 @@ def GetVar(linenum, line, d):
             Error(msg % (linenum, line, unit))
         return val
 
+
 def Listify(list_):
-    '''Return a string representing the list with each element
+    """Return a string representing the list with each element
     separated with commas.
-    '''
+    """
     return list_.replace("[", "").replace("]", "").replace("'", "")
 
+
 def Eval(linenum, line, val, d):
-    '''If val is an expression, return its value.  Otherwise,
+    """If val is an expression, return its value.  Otherwise,
     generate an error message.
-    '''
+    """
     try:
         value = eval(val, globals(), d["vars"])
         return value
@@ -338,6 +351,7 @@ def Eval(linenum, line, val, d):
             msg = "cannot interpret '%s' as expression or number" % val
             Bad(linenum, line, msg, d)
         return value
+
 
 def Bad(linenum, line, errmsg, d):
     lines = []
@@ -351,6 +365,7 @@ def Bad(linenum, line, errmsg, d):
     msg += "  Error: %s"
     Error(msg % (linenum, scrlines, line, errmsg))
 
+
 def CheckOverwrite(name, d, linenum, line):
     if name not in d["vars"]:
         return
@@ -362,10 +377,11 @@ def CheckOverwrite(name, d, linenum, line):
     elif d["-W"]:
         Bad(linenum, line, msg, d)
 
+
 def GetObj(linenum, line, name, d):
-    '''Return the object with the indicated name or print an error
+    """Return the object with the indicated name or print an error
     message.
-    '''
+    """
     try:
         return d["vars"][name]
     except KeyError:
@@ -380,10 +396,11 @@ def GetObj(linenum, line, name, d):
         msg = "Object '%s' is not defined" % name
         Bad(linenum, line, msg, d)
 
+
 def GetValues(linenum, line, d, name, x, y=None, z=None):
-    '''Return a 3-tuple of numbers from their strings.  If the string
+    """Return a 3-tuple of numbers from their strings.  If the string
     is None, then it defaults to 0.
-    '''
+    """
     if not IsIdentifier(name):
         Bad(linenum, line, "Name '%s' is not valid" % name, d)
     x = Eval(linenum, line, x, d)
@@ -395,10 +412,11 @@ def GetValues(linenum, line, d, name, x, y=None, z=None):
         return (x, y, 0)
     return (x, 0, 0)
 
+
 def Overwrite(name, obj, d):
-    '''Exit if about to overwrite an existing object or variable
+    """Exit if about to overwrite an existing object or variable
     (action depends on -w and -W options).
-    '''
+    """
     msg = "Tried to overwrite %%s '%s'" % name
     if d["-w"] or d["-W"]:
         if ii(obj, Point) or ii(obj, Line) or ii(obj, Plane):
@@ -411,6 +429,7 @@ def Overwrite(name, obj, d):
                 Bad(linenum, line, msg % "variable", d)
     CheckOverwrite(name, d, linenum, line)
     d["vars"][name] = obj
+
 
 def PointRect(linenum, line, kw, args, d, showdbg=True):
     # Note PointCyl and PointSph will use this same code, then convert
@@ -455,39 +474,42 @@ def PointRect(linenum, line, kw, args, d, showdbg=True):
     return (name, P)
     return ("point(rect)", (name, P))
 
+
 def FixTheta(theta):
-    '''Convert an azimuth angle to canonical polar coordinate measure.
+    """Convert an azimuth angle to canonical polar coordinate measure.
     theta is assumed to be in radians.
-    '''
+    """
     if Ctm._compass:
         if Ctm._neg:
-            theta += pi/2
+            theta += pi / 2
         else:
-            theta = pi/2 - theta
+            theta = pi / 2 - theta
     elif Ctm._neg:
         theta *= -1
     if theta < 0:
-        theta += 2*pi
-    return abs(fmod(theta, 2*pi))
+        theta += 2 * pi
+    return abs(fmod(theta, 2 * pi))
+
 
 def PointCyl(linenum, line, kw, args, d):
     name, P = PointRect(linenum, line, kw, args, d, showdbg=False)
     R = P.Rnd
     # x and y are actually cylindrical coordinates; convert them to Cartesian.
     rho, theta, z = [R(i) for i in P.rect]
-    theta /= Ctm._angle     # Convert to radians
+    theta /= Ctm._angle  # Convert to radians
     theta = FixTheta(theta)
     rho = abs(rho)
     if not rho:
         P = Point(0, 0, 0)
     else:
-        x, y = rho*cos(theta), rho*sin(theta)
+        x, y = rho * cos(theta), rho * sin(theta)
         P = Point(R(x), R(y), R(z))
     CheckOverwrite(name, d, linenum, line)
     d["vars"][name] = P
     if _debug:
         dbg("[%s] %s =" % (linenum, name), str(P))
     return ("point(cyl)", (name, P))
+
 
 def PointSph(linenum, line, kw, args, d):
     if len(args) not in (4, 5):
@@ -507,13 +529,13 @@ def PointSph(linenum, line, kw, args, d):
         phi /= Ctm._angle
         theta = FixTheta(theta)
         if Ctm._elev:
-            phi = pi/2 - phi
+            phi = pi / 2 - phi
         # Note Ctm._neg does not affect phi
-        if abs(phi) > pi/2:
-            phi = fmod(phi, pi/2)
-        rho = r*sin(phi)
-        x, y = rho*cos(theta), rho*sin(theta)
-        z = r*cos(phi)
+        if abs(phi) > pi / 2:
+            phi = fmod(phi, pi / 2)
+        rho = r * sin(phi)
+        x, y = rho * cos(theta), rho * sin(theta)
+        z = r * cos(phi)
         P = Point(R(x), R(y), R(z), P.m)
     CheckOverwrite(name, d, linenum, line)
     d["vars"][name] = P
@@ -521,12 +543,13 @@ def PointSph(linenum, line, kw, args, d):
         dbg("[%s] %s =" % (linenum, name), str(P))
     return ("point(sph)", (name, P))
 
+
 def GetLine(linenum, line, kw, args, d):
-    '''Three allowed forms:
+    """Three allowed forms:
     pt1, pt2, name
     pt, ln, name [, len=L]
     pl1, pl2, name
-    '''
+    """
     if len(args) not in (3, 4):
         Bad(linenum, line, "Improper number of parameters", d)
     if len(args) == 3:
@@ -556,13 +579,14 @@ def GetLine(linenum, line, kw, args, d):
             Bad(linenum, line, "Argument types improper", d)
         x, y, z = p.rect
         a, b, c = ln1.dc
-        p2 = Point(x + L*a, y + L*b, z + L*c)
+        p2 = Point(x + L * a, y + L * b, z + L * c)
         ln = Line(p1, p2)
     CheckOverwrite(name, d, linenum, line)
     d["vars"][name] = ln
     if _debug:
         dbg("[%s] %s =" % (linenum, name), str(ln))
     return ("line", (name, ln))
+
 
 def Intersect(linenum, line, kw, args, d):
     if len(args) not in (2, 3):
@@ -584,10 +608,11 @@ def Intersect(linenum, line, kw, args, d):
         dbg("[%s] intersect = %s" % (linenum, str(o)))
     return ("intersect", (name, o))
 
+
 def Length(linenum, line, kw, args, d):
-    '''length ln, length
+    """length ln, length
     Change the length of a line.
-    '''
+    """
     if len(args) != 2:
         Bad(linenum, line, "Improper number of parameters", d)
     name, length = args
@@ -597,14 +622,14 @@ def Length(linenum, line, kw, args, d):
         Bad(linenum, line, "Length must be > 0", d)
     x, y, z = ln.p.rect
     a, b, c = ln.dc
-    ln._q = Point(x + L*a, y + L*b, z + L*c)
+    ln._q = Point(x + L * a, y + L * b, z + L * c)
     if _debug:
         dbg("[%s] %s =" % (linenum, name), str(ln))
     return (name, ln)
 
+
 def Locate(linenum, line, kw, args, d):
-    '''Relocate o1 at o2.
-    '''
+    """Relocate o1 at o2."""
     if len(args) != 2:
         Bad(linenum, line, "Improper number of parameters", d)
     o1 = GetObj(linenum, line, args[0], d)
@@ -615,9 +640,9 @@ def Locate(linenum, line, kw, args, d):
         dbg("[%s] locate %s to %s:  %s" % (linenum, p, o2, o1))
     return ("locate", (o1, p))
 
+
 def Stp(linenum, line, kw, args, d):
-    '''Scalar triple product.
-    '''
+    """Scalar triple product."""
     if len(args) not in (3, 4):
         Bad(linenum, line, "Improper number of parameters", d)
     name = args[3] if len(args) == 4 else ""
@@ -629,15 +654,14 @@ def Stp(linenum, line, kw, args, d):
         CheckOverwrite(name, d, linenum, line)
         d["vars"][name] = stp
     else:
-        print(d["indent"] + "stp ", Listify(str(args[:3])), ":  ",
-              Sig(stp), sep="")
+        print(d["indent"] + "stp ", Listify(str(args[:3])), ":  ", Sig(stp), sep="")
     if _debug:
         dbg("[%s] stp = %s" % (linenum, Sig(stp)))
     return ("stp", stp)
 
+
 def Vtp(linenum, line, kw, args, d):
-    '''Vector triple product.
-    '''
+    """Vector triple product."""
     if len(args) not in (3, 4):
         Bad(linenum, line, "Improper number of parameters", d)
     name = args[3] if len(args) == 4 else ""
@@ -654,13 +678,14 @@ def Vtp(linenum, line, kw, args, d):
         dbg("[%s] vtp = %s" % (linenum, vtp))
     return ("vtp", vtp)
 
+
 def Perp(linenum, line, kw, args, d):
-    '''Create a line that passes through a given point and is
+    """Create a line that passes through a given point and is
     perpendicular to the given object.
- 
+
     perp pt, ln [, name]
     perp pt, pl [, name]
-    '''
+    """
     if len(args) not in (2, 3):
         Bad(linenum, line, "Improper number of parameters", d)
     o1 = GetObj(linenum, line, args[0], d)
@@ -695,7 +720,7 @@ def Perp(linenum, line, kw, args, d):
         # desired line will pass through p and have the same direction
         # cosines as the plane's normal.
         x, y, z = o1.rect
-        a, b, c = o2.dc     # Plane's direction cosines
+        a, b, c = o2.dc  # Plane's direction cosines
         o = Line(o1, Point(x + a, y + b, z + c))
     if name:
         CheckOverwrite(name, d, linenum, line)
@@ -706,14 +731,15 @@ def Perp(linenum, line, kw, args, d):
         print(d["indent"] + "Perp of %s & %s:  %s" % (o1, o2, o))
     return ("perp", o)
 
+
 def GetPlane(linenum, line, kw, args, d):
-    '''Five allowed forms:
+    """Five allowed forms:
     1.  pt1, pt2, pt3, name     Through 3 pts
     2.  pt, ln1, ln2, name      Through pt, normal is ln1 X ln2
     3.  pt, ln, name            Through pt with line as normal
     4.  pt, pl, name            Through pt and parallel to plane
     5.  ln1, ln2, name          Through lines w/ norm ln1 X ln2
-    '''
+    """
     if len(args) not in (3, 4):
         Bad(linenum, line, "Improper number of parameters", d)
     if len(args) == 3:
@@ -752,12 +778,13 @@ def GetPlane(linenum, line, kw, args, d):
         dbg("[%s] %s =" % (linenum, name), str(pl))
     return (name, pl)
 
+
 def Dot(linenum, line, kw, args, d):
-    '''Calculates the dot product between any objects.  Note points,
+    """Calculates the dot product between any objects.  Note points,
     lines, and planes can all be interpreted as vectors.  The first
     two arguments are the vectors and the last argument is the
     variable name to store the results in.
-    '''
+    """
     if len(args) not in (2, 3):
         Bad(linenum, line, "Improper number of parameters", d)
     name = ""
@@ -793,10 +820,11 @@ def Dot(linenum, line, kw, args, d):
         print(d["indent"] + "%s dot %s = %s" % (par1, par2, Sig(dp)))
     return (name, dp)
 
+
 def Ijk(linenum, line, kw, args, d):
-    '''Define the usual i, j, k unit vectors and the coordinate planes
+    """Define the usual i, j, k unit vectors and the coordinate planes
     xy, xz, and yz.  Note these are in the current coordinate system!
-    '''
+    """
     if args:
         Bad(linenum, line, "This command takes no parameters", d)
     v = d["vars"]
@@ -811,10 +839,11 @@ def Ijk(linenum, line, kw, args, d):
     v["xz"] = Plane(v["o"], v["j"])
     v["yz"] = Plane(v["o"], v["i"])
 
+
 def Cross(linenum, line, kw, args, d):
-    '''Calculates the cross product between any objects; note they all
+    """Calculates the cross product between any objects; note they all
     can be interpreted as vectors.
-    '''
+    """
     if len(args) not in (2, 3):
         Bad(linenum, line, "Improper number of parameters", d)
     name = ""
@@ -852,6 +881,7 @@ def Cross(linenum, line, kw, args, d):
         dbg("[%s] %s =" % (linenum, name), ln)
     return (name, ln)
 
+
 def Pop(linenum, line, kw, args, d):
     if len(args) != 0:
         Bad(linenum, line, "pop takes no arguments", d)
@@ -864,6 +894,7 @@ def Pop(linenum, line, kw, args, d):
         dbg("[%s] pop:  CTM = " % linenum, Listify(str(ctm)))
     return ("pop", ctm)
 
+
 def Push(linenum, line, kw, args, d):
     if len(args) != 0:
         Bad(linenum, line, "push takes no arguments", d)
@@ -873,6 +904,7 @@ def Push(linenum, line, kw, args, d):
         dbg("[%s] Pushed CTM" % linenum)
     return ("push", None)
 
+
 def Reset(linenum, line, kw, args, d):
     if len(args) != 0:
         Bad(linenum, line, "reset takes no arguments", d)
@@ -881,6 +913,7 @@ def Reset(linenum, line, kw, args, d):
     if _debug:
         dbg("[%s] Reset CTM to identity and emptied stack" % linenum)
     return ("", None)
+
 
 def Rotate(linenum, line, kw, args, d):
     if len(args) not in (1, 2):
@@ -897,10 +930,11 @@ def Rotate(linenum, line, kw, args, d):
         theta = Interp(angle, d, linenum, line)
     theta /= Ctm._angle  # Convert to radians
     axis.rotate(theta, axis)
-    s = Sig(theta*Ctm._angle) + " %s" % Ctm._angle_name
+    s = Sig(theta * Ctm._angle) + " %s" % Ctm._angle_name
     if _debug:
         dbg("[%s] rotate %s about %s" % (linenum, s, str(axis)))
     return ("Rotated", (theta, axis))
+
 
 def Scale(linenum, line, kw, args, d):
     if len(args) not in (1, 2, 3):
@@ -945,12 +979,14 @@ def Scale(linenum, line, kw, args, d):
         dbg("[%s] Scaled by %s" % (linenum, s))
     return ("Scaled", (sx, sy, sz))
 
+
 def Translate(linenum, line, kw, args, d):
     def Get(s):
         if s in d["vars"]:
             return GetObj(linenum, line, s, d)
         else:
             return Interp(s, d, linenum, line)
+
     if len(args) not in (1, 2, 3):
         Bad(linenum, line, "Improper number of parameters", d)
     x, y, z = 0, 0, 0
@@ -975,10 +1011,11 @@ def Translate(linenum, line, kw, args, d):
         dbg("[%s] Translated by %s" % (linenum, s))
     return ("Translated", (x, y, z))
 
+
 def XY(linenum, line, kw, args, d):
-    '''The single argument is a plane.  Rotate the coordinate system
+    """The single argument is a plane.  Rotate the coordinate system
     so that the plane in kw is parallel to the argument plane.
-    '''
+    """
     if len(args) != 1:
         Bad(linenum, line, "Improper number of parameters", d)
     pl = GetObj(linenum, line, args[0], d)
@@ -1006,9 +1043,9 @@ def XY(linenum, line, kw, args, d):
         dbg("[%s] %s --> %s" % (linenum, kw, pl))
     return (kw, pl)
 
+
 def Rotaxis(linenum, line, kw, args, d):
-    '''Return in two variables the rotation angle and rotation axis.
-    '''
+    """Return in two variables the rotation angle and rotation axis."""
     if len(args) != 2:
         Bad(linenum, line, "Improper number of parameters", d)
     p = Point(0, 0, 0)
@@ -1018,7 +1055,7 @@ def Rotaxis(linenum, line, kw, args, d):
         Bad(linenum, line, str(e), d)
     angle_name, dc_name = args
     CheckOverwrite(angle_name, d, linenum, line)
-    d["vars"][angle_name] = theta*Ctm._angle
+    d["vars"][angle_name] = theta * Ctm._angle
     CheckOverwrite(dc_name, d, linenum, line)
     d["vars"][dc_name] = dc
     t = Sig(d["vars"][angle_name]) + " " + Ctm._angle_name
@@ -1026,9 +1063,9 @@ def Rotaxis(linenum, line, kw, args, d):
         dbg("[%s] rotaxis:  %s about (%s)" % (linenum, t, Sig(dc)))
     return ("rotaxis", (theta, dc))
 
+
 def Angle(linenum, line, kw, args, d):
-    '''Calculate the angle between the two indicated objects.
-    '''
+    """Calculate the angle between the two indicated objects."""
     if len(args) not in (2, 3):
         Bad(linenum, line, "Improper number of parameters", d)
     name = ""
@@ -1050,31 +1087,30 @@ def Angle(linenum, line, kw, args, d):
     if C2:
         # Complement of angle for line and plane (because the angle is
         # for the plane's normal).
-        theta = pi/2 - theta
+        theta = pi / 2 - theta
         if theta < 0:
-            theta += 2*pi
+            theta += 2 * pi
     assert 0 <= theta <= pi
-    theta *= Ctm._angle     # Convert to current angle units
+    theta *= Ctm._angle  # Convert to current angle units
     if name:
         CheckOverwrite(name, d, linenum, line)
         d["vars"][name] = theta
     else:
         msg = "Angle between %s and %s = %s %s"
-        print(d["indent"] + msg % (args[0], args[1], Sig(theta),
-              Ctm._angle_name))
+        print(d["indent"] + msg % (args[0], args[1], Sig(theta), Ctm._angle_name))
     if _debug:
-        dbg("[%s] %s:  %s %s" % (linenum, line.strip(), Sig(theta),
-            Ctm._angle_name))
+        dbg("[%s] %s:  %s %s" % (linenum, line.strip(), Sig(theta), Ctm._angle_name))
     return ("angle", theta)
 
+
 def IsSelfintersecting(obj, d):
-    '''obj is a sequence of the names and points making up the
+    """obj is a sequence of the names and points making up the
     polygon.  Generate another list called lines that contains a pair
     of points that make up the line of each edge of the polygon.  Then
     examine all of these lines in pairs to see if there are any
     intersections between the two points.  Return True if there are
     any such intersections.
-    '''
+    """
     lines, n, p = [], len(obj), d["vars"]
     for i, item in enumerate(obj):
         name, o = item
@@ -1088,12 +1124,12 @@ def IsSelfintersecting(obj, d):
         x2, y2, z2 = side1[1].rect
         X1, Y1, Z1 = side2[0].rect
         X2, Y2, Z2 = side2[1].rect
-        det = (x1 - x2)*(Y1 - Y2) - (y1 - y2)*(X1 - X2)
+        det = (x1 - x2) * (Y1 - Y2) - (y1 - y2) * (X1 - X2)
         if det:
             # A nonzero determinant means lines don't have the same
             # slope.  Get parameter values where the lines intersect.
-            t = (X2*(y1 - Y1) + x1*(Y1 - Y2) + X1*(-y1 + Y2))/det
-            s = (x2*(y1 - Y1) + x1*(Y1 - y2) + X1*(-y1 + y2))/det
+            t = (X2 * (y1 - Y1) + x1 * (Y1 - Y2) + X1 * (-y1 + Y2)) / det
+            s = (x2 * (y1 - Y1) + x1 * (Y1 - y2) + X1 * (-y1 + y2)) / det
             # They must be interior to the endpoints (adjacent
             # lines will naturally intersect at their
             # endpoints).
@@ -1107,10 +1143,11 @@ def IsSelfintersecting(obj, d):
                 return True
     return False
 
+
 def Area(linenum, line, kw, args, d):
-    '''Calculate the area for the indicated set of points.  It is an
+    """Calculate the area for the indicated set of points.  It is an
     error if they do not lie in the xy plane.
-    '''
+    """
     # The area of a polygon is gotten with the "shoelace" algorithm
     # (see the picture at http://mathworld.wolfram.com/PolygonArea.html
     # which makes it obvious why it's named this way).
@@ -1138,7 +1175,7 @@ def Area(linenum, line, kw, args, d):
     area = 0
     for i in range(n):
         j = (i + 1) % n
-        area += X[i]*Y[j] - X[j]*Y[i]
+        area += X[i] * Y[j] - X[j] * Y[i]
     area /= 2
     s = Listify(str(names))
     i = d["indent"]
@@ -1151,9 +1188,9 @@ def Area(linenum, line, kw, args, d):
 
 
 def Centroid(linenum, line, kw, args, d):
-    '''Search through the d["vars"] dictionary for Point objects with
+    """Search through the d["vars"] dictionary for Point objects with
     mass and print their total mass and centroid.
-    '''
+    """
     pts = []
     msg = "Mass must be a number, not %s"
     if args:
@@ -1182,11 +1219,11 @@ def Centroid(linenum, line, kw, args, d):
         for o in pts:
             x, y, z = o.rect
             m = o.m
-            xs += x*m
-            ys += y*m
-            zs += z*m
+            xs += x * m
+            ys += y * m
+            zs += z * m
             M += m
-        C = Point(xs/M, ys/M, zs/M)
+        C = Point(xs / M, ys / M, zs / M)
     except Exception:
         Bad(linenum, line, "A point had a bad mass", d)
     if _debug:
@@ -1197,10 +1234,11 @@ def Centroid(linenum, line, kw, args, d):
     d["vars"]["centroid"] = C
     return ("centroid", (M, C))
 
+
 def Circ3(linenum, line, kw, args, D):
-    '''Calculate the radius and center of a circle formed from three
+    """Calculate the radius and center of a circle formed from three
     points and print the results.
-    '''
+    """
     # Equations for circumscribed circle from three points from
     # http://mathworld.wolfram.com/Circle.html.
     if len(args) != 3:
@@ -1228,8 +1266,10 @@ def Circ3(linenum, line, kw, args, D):
     R = c.Rnd
     if R(z1) or R(z2) or R(z3):
         Bad(linenum, line, "One or more points not in xy plane", D)
+
     def h(x, y):
         return x**2 + y**2
+
     h1, h2, h3 = h(x1, y1), h(x2, y2), h(x3, y3)
     a = Det3((x1, y1, 1, x2, y2, 1, x3, y3, 1))
     d = -Det3((h1, y1, 1, h2, y2, 1, h3, y3, 1))
@@ -1243,9 +1283,9 @@ def Circ3(linenum, line, kw, args, D):
             Bad(linenum, line, msg, D)
     # Radius of circle
     Sig.fit = 0
-    rho = sqrt(h(d, e)/(4*a*a) - f/a)
+    rho = sqrt(h(d, e) / (4 * a * a) - f / a)
     RI = Sig(rho)
-    diaI = Sig(2*rho)
+    diaI = Sig(2 * rho)
     # Header
     s = Listify(str(args))
     print(D["indent"] + "Circles from three points %s:" % s)
@@ -1253,7 +1293,7 @@ def Circ3(linenum, line, kw, args, D):
     print(D["indent"] + "  %s : %s" % (n2, Point(x2, y2)))
     print(D["indent"] + "  %s : %s" % (n3, Point(x3, y3)))
     # Center
-    cx, cy = -d/(2*a), -e/(2*a)
+    cx, cy = -d / (2 * a), -e / (2 * a)
     CI = Point(cx, cy)
     t = D["indent"]
     t += "  Circumcenter = %s, radius = {RI}, dia = {diaI}" % CI
@@ -1268,23 +1308,22 @@ def Circ3(linenum, line, kw, args, D):
     c = hypot(x2 - x3, y2 - y3)
     xc, yc = x1, y1
     P = a + b + c
-    s = P/2
+    s = P / 2
     # Location of incenter
-    x = (a*xa + b*xb + c*xc)/P
-    y = (a*ya + b*yb + c*yc)/P
+    x = (a * xa + b * xb + c * xc) / P
+    y = (a * ya + b * yb + c * yc) / P
     CO = Point(x, y)
-    rho = sqrt((s - a)*(s - b)*(s - c)/s)  # Radius of incircle
+    rho = sqrt((s - a) * (s - b) * (s - c) / s)  # Radius of incircle
     RO = Sig(rho)
-    diaO = Sig(2*rho)
+    diaO = Sig(2 * rho)
     t = D["indent"]
     t += "  Incenter     = %s, radius = {RO}, dia = {diaO}" % CO
     print(t.format(**locals()))
-    return("circ3", (CI, RI, CO, RO))
+    return ("circ3", (CI, RI, CO, RO))
 
 
 def Dc(linenum, line, kw, args, d):
-    '''Print the direction cosines of the indicated objects.
-    '''
+    """Print the direction cosines of the indicated objects."""
     if len(args) < 1:
         Bad(linenum, line, "Improper number of parameters", d)
     for name in args:
@@ -1299,22 +1338,23 @@ def Dc(linenum, line, kw, args, d):
         elif ii(o, Plane):
             t = "Pl"
         dc, ang, an = o.dc, Ctm._angle, Ctm._angle_name
-        da = tuple([acos(i)*ang for i in dc])
+        da = tuple([acos(i) * ang for i in dc])
         s = Sig(o.dc)
         a, b, c = tuple([o.Rnd(i) for i in dc])
         f = " (%s):  dc = "
         if a == 0 and b == 0 and c == 0:
             print(d["indent"] + name, f % t, s)
         else:
-            print(d["indent"] + name, f % t, s, ", dir ang = ",
-                  Sig(da), " ", an, sep="")
+            print(
+                d["indent"] + name, f % t, s, ", dir ang = ", Sig(da), " ", an, sep=""
+            )
     if _debug:
         dbg("[%s] dc command" % linenum)
     return ("", None)
 
+
 def Dist(linenum, line, kw, args, d):
-    '''Calculate the distance between the two indicated objects.
-    '''
+    """Calculate the distance between the two indicated objects."""
     if len(args) not in (2, 3):
         Bad(linenum, line, "Improper number of parameters", d)
     o1 = GetObj(linenum, line, args[0], d)
@@ -1322,21 +1362,24 @@ def Dist(linenum, line, kw, args, d):
     name = args[2] if len(args) == 3 else ""
     distance = o1.Rnd(o1.dist(o2))
     if _debug:
-        dbg("[%s] Distance:  %s to %s = %s" %
-            (linenum, args[0], args[1], Sig(distance)))
+        dbg(
+            "[%s] Distance:  %s to %s = %s" % (linenum, args[0], args[1], Sig(distance))
+        )
     if name:
         CheckOverwrite(name, d, linenum, line)
         d["vars"][name] = distance
     else:
-        print(d["indent"] + "Distance: %s to %s = %s" %
-              (args[0], args[1], Sig(distance)))
+        print(
+            d["indent"] + "Distance: %s to %s = %s" % (args[0], args[1], Sig(distance))
+        )
     return ("dist", distance)
 
+
 def Trace(linenum, line, kw, args, d):
-    '''Calculate the traces for the indicated points.  These are the
+    """Calculate the traces for the indicated points.  These are the
     angles that the position vector extends from the positive axes.
     The z trace is the spherical coordinate phi coordinate.
-    '''
+    """
     if len(args) < 1:
         Bad(linenum, line, "Need at least one point", d)
     results, m, cn = [], Ctm._angle, "trace"
@@ -1345,7 +1388,7 @@ def Trace(linenum, line, kw, args, d):
         if not ii(o, Point):
             Bad(linenum, line, "Projection angles only defined for points", d)
         x, y, z = o.rect
-        a, b, c = atan2(z, x)*m, atan2(z, y)*m, atan2(z, hypot(x, y))*m
+        a, b, c = atan2(z, x) * m, atan2(z, y) * m, atan2(z, hypot(x, y)) * m
         results.append((a, b, c))
         sa, sb, sc = Sig(o.Rnd(a)), Sig(o.Rnd(b)), Sig(o.Rnd(c))
         if _debug:
@@ -1354,26 +1397,28 @@ def Trace(linenum, line, kw, args, d):
         print(d["indent"] + msg % (cn, name, o, sa, sb, sc, Ctm._angle_name))
     return (cn, results)
 
+
 def Make_xy(plane):
-    '''Make the point in the plane the origin, then make two rotations
+    """Make the point in the plane the origin, then make two rotations
     so that the plane becomes the xy plane.
-    '''
-    p = plane.p                 # Point in plane
-    q = plane.q                 # Tip of normal vector
-    plane.translate(*p.rect)    # Origin is now in plane
+    """
+    p = plane.p  # Point in plane
+    q = plane.q  # Tip of normal vector
+    plane.translate(*p.rect)  # Origin is now in plane
     r, theta, phi = q._sph()
     k = Line(Point(0, 0, 0), Point(0, 0, 1))
-    plane.rotate(theta, k)      # Rotate about z axis
+    plane.rotate(theta, k)  # Rotate about z axis
     r, theta, phi = q._sph()
     j = Line(Point(0, 0, 0), Point(0, 1, 0))
-    plane.rotate(phi, j)        # Rotate about y axis
+    plane.rotate(phi, j)  # Rotate about y axis
+
 
 def Project(linenum, line, kw, args, d):
-    '''Project a set of objects onto a plane.  Note the coordinates of
+    """Project a set of objects onto a plane.  Note the coordinates of
     the objects are changed!  If Ctm._eye is not None, then use a
     projective transformation.  Otherwise, use an orthogonal
     transformation.
-    '''
+    """
     if len(args) < 2:
         Bad(linenum, line, "Need a plane and at least one point", d)
     plane_name = args[0]
@@ -1452,16 +1497,24 @@ def Project(linenum, line, kw, args, d):
                     q[2] = 0
                     o.q._r = tuple(q)
             o.ToDCS()  # Make sure the ._r0 values change to correct ones
-        pl.pop()    # Restore old coordinates
+        pl.pop()  # Restore old coordinates
     # Print results
     if _debug:
         dbg("[%s] projected %d objects" % (linenum, len(objects)))
     if Ctm._eye is None:
-        print(d["indent"] + "Projection ", plane_name, "[", pl,
-              "] (orthogonal)", sep="")
+        print(
+            d["indent"] + "Projection ", plane_name, "[", pl, "] (orthogonal)", sep=""
+        )
     else:
-        print(d["indent"] + "Projection ", plane_name, "[", pl,
-              "], eye = ", Ctm._eye, sep="")
+        print(
+            d["indent"] + "Projection ",
+            plane_name,
+            "[",
+            pl,
+            "], eye = ",
+            Ctm._eye,
+            sep="",
+        )
     w = 0
     # Get width of widest name
     for name, orig, o in objects:
@@ -1471,13 +1524,14 @@ def Project(linenum, line, kw, args, d):
         print(d["indent"] + "  {name:{w}}: {orig} -->".format(**locals()), o)
     return ("project", objects)
 
+
 def Reflect(linenum, line, kw, args, d):
-    '''Reflect a set of objects about a point, line, or plane.  If the
+    """Reflect a set of objects about a point, line, or plane.  If the
     object to reflect about is a line, all the objects must be in the
     xy plane.
-    
+
     Note the coordinates of the objects are changed!
-    '''
+    """
     if len(args) < 2:
         Bad(linenum, line, "Need a plane and at least one point", d)
     reflector = GetObj(linenum, line, args[0], d)
@@ -1489,8 +1543,7 @@ def Reflect(linenum, line, kw, args, d):
             msg = "The line to reflect about must by in the xy plane"
             Bad(linenum, line, msg, d)
     if not ii(reflector, (Point, Line, Plane)):
-        Bad(linenum, line,
-            "First argument needs to be a point, line, or plane", d)
+        Bad(linenum, line, "First argument needs to be a point, line, or plane", d)
     # Get the objects to be reflected
     objects = []
     no_plane = "A plane can't be reflected about a line"
@@ -1578,10 +1631,11 @@ def Reflect(linenum, line, kw, args, d):
         print(d["indent"] + "  {name:{w}}: {orig} -->".format(**locals()), o)
     return ("reflect", objects)
 
+
 def Angunit(linenum, line, kw, args, d):
-    '''Change the constant used to convert angle measure and set the
+    """Change the constant used to convert angle measure and set the
     name of the unit.
-    '''
+    """
     if len(args) not in (1, 2):
         Bad(linenum, line, "Improper number of parameters", d)
     name = ""
@@ -1597,9 +1651,9 @@ def Angunit(linenum, line, kw, args, d):
         dbg("[%s] angunit:  %s %s" % (linenum, Sig(Ctm._angle, name)))
     return ("angunit", (Ctm._angle, name))
 
+
 def Cyl(linenum, line, kw, args, d):
-    '''Set output to cylindrical coordinates.
-    '''
+    """Set output to cylindrical coordinates."""
     if args:
         Bad(linenum, line, "Command doesn't take arguments", d)
     Ctm._coord_sys = "cyl"
@@ -1607,29 +1661,29 @@ def Cyl(linenum, line, kw, args, d):
         dbg("[%s] cyl" % linenum)
     return ("cyl", None)
 
+
 def Date(linenum, line, kw, args, d):
-    '''Print the date/time.
-    '''
+    """Print the date/time."""
     s = time.asctime()
     if _debug:
         dbg("[%s] Date/time:  %s" % (linenum, s))
     print(d["indent"] + "Date/time:  %s" % s)
     return ("date", s)
 
+
 def Deg(linenum, line, kw, args, d):
-    '''Set output angle measure to degrees.
-    '''
+    """Set output angle measure to degrees."""
     if args:
         Bad(linenum, line, "Command doesn't take arguments", d)
-    Ctm._angle = 180/pi
+    Ctm._angle = 180 / pi
     Ctm._angle_name = "deg"
     if _debug:
         dbg("[%s] deg" % linenum)
     return ("deg", None)
 
+
 def Del(linenum, line, kw, args, d):
-    '''Delete the indicated objects.
-    '''
+    """Delete the indicated objects."""
     if not args:
         Bad(linenum, line, "Need at least one object to delete", d)
     vars = d["vars"]
@@ -1643,9 +1697,9 @@ def Del(linenum, line, kw, args, d):
         dbg("[%s] %s" % (linenum, line.strip()))
     return ("del", None)
 
+
 def Digits(linenum, line, kw, args, d):
-    '''Set the number of significant figures for output.
-    '''
+    """Set the number of significant figures for output."""
     try:
         digits = int(args[0])
         if 1 <= digits <= 15:
@@ -1655,9 +1709,9 @@ def Digits(linenum, line, kw, args, d):
     except Exception as e:
         Bad(linenum, line, str(e), d)
 
+
 def Eps(linenum, line, kw, args, d):
-    '''Set the zero-threshold number.
-    '''
+    """Set the zero-threshold number."""
     if len(args) != 1:
         Bad(linenum, line, "Improper number of parameters", d)
     try:
@@ -1671,6 +1725,7 @@ def Eps(linenum, line, kw, args, d):
         dbg("[%s] eps = %s" % (linenum, Sig(eps)))
     return ("eps", eps)
 
+
 def Exit(linenum, line, kw, args, d):
     if _test:
         global _test_msg
@@ -1678,9 +1733,9 @@ def Exit(linenum, line, kw, args, d):
     else:
         exit(0)
 
+
 def Eye(linenum, line, kw, args, d):
-    '''Set the eye point.
-    '''
+    """Set the eye point."""
     if len(args) not in (0, 1):
         Bad(linenum, line, "Improper number of parameters", d)
     if args:
@@ -1696,13 +1751,14 @@ def Eye(linenum, line, kw, args, d):
         dbg("[%s] eye %s" % (linenum, o))
     return ("eye", o)
 
+
 def Print(linenum, line, kw, args, d):
-    '''Print the string representation of the indicated objects to
+    """Print the string representation of the indicated objects to
     stdout.  Note, because of some parsing syntax issues, we allow one
     of the args to be '.', '<', or '<<'; these will override the
     global settings for the coordinate system to display in for the
     items printed by this command.
-    '''
+    """
     allowed = (Point, Line, Plane)
     to_print, sort, coord = [], False, None
     cnames = {".": "rect", "<": "cyl", "<<": "sph"}
@@ -1743,9 +1799,9 @@ def Print(linenum, line, kw, args, d):
         Ctm._coord_sys = temp
     return ("print", to_print)
 
+
 def State(linenum, line, kw, args, d):
-    '''Print the script's state to stdout.
-    '''
+    """Print the script's state to stdout."""
     comp = str(Ctm._compass)
     neg = str(Ctm._neg)
     sz = str(Ctm._suppress_z)
@@ -1763,7 +1819,8 @@ def State(linenum, line, kw, args, d):
             no += 1
     nv = len(v) - no
     w, sp, i = 8, "", d["indent"]
-    print('''
+    print(
+        """
 {i}State:
 {i}{comp:>{w}} {sp} Compass mode
 {i}{elev:>{w}} {sp} Elevation mode
@@ -1777,21 +1834,29 @@ def State(linenum, line, kw, args, d):
 {i}{cs:>{w}} {sp} Coordinate system for output
 {i}{nv:>{w}} {sp} Number of defined variables
 {i}{no:>{w}} {sp} Number of defined geometric objects
-'''[1:-1].format(**locals()))
+"""[1:-1].format(**locals())
+    )
     # Now print the CTM
     c = Ctm._CTM
-    r0, r1, r2, r3 = Sig(c[:4]), Sig(c[4:8]), Sig(c[8:12]), Sig(c[12:]),
-    print('''
+    r0, r1, r2, r3 = (
+        Sig(c[:4]),
+        Sig(c[4:8]),
+        Sig(c[8:12]),
+        Sig(c[12:]),
+    )
+    print(
+        """
 {i}  Coordinate transformation matrix:
 {i}    {r0}
 {i}    {r1}
 {i}    {r2}
 {i}    {r3}
-'''[1:-1].format(**locals()))
+"""[1:-1].format(**locals())
+    )
+
 
 def Rad(linenum, line, kw, args, d):
-    '''Set output angle measure to radians.
-    '''
+    """Set output angle measure to radians."""
     if len(args) > 1:
         Bad(linenum, line, "Command doesn't take arguments", d)
     Ctm._angle = 1
@@ -1799,19 +1864,19 @@ def Rad(linenum, line, kw, args, d):
     if _debug:
         dbg("[%s] rad" % linenum)
 
+
 def Rev(linenum, line, kw, args, d):
-    '''Set output angle measure to revolutions.
-    '''
+    """Set output angle measure to revolutions."""
     if len(args) > 1:
         Bad(linenum, line, "Command doesn't take arguments", d)
-    Ctm._angle = 1/(2*pi)
+    Ctm._angle = 1 / (2 * pi)
     Ctm._angle_name = "rev"
     if _debug:
         dbg("[%s] rev" % linenum)
 
+
 def Rect(linenum, line, kw, args, d):
-    '''Set output to rectangular coordinates.
-    '''
+    """Set output to rectangular coordinates."""
     if args:
         Bad(linenum, line, "Command doesn't take arguments", d)
     Ctm._coord_sys = "rect"
@@ -1819,15 +1884,16 @@ def Rect(linenum, line, kw, args, d):
         dbg("[%s] rect" % linenum)
     return ("rect", None)
 
+
 def Sph(linenum, line, kw, args, d):
-    '''Set output to spherical coordinates.
-    '''
+    """Set output to spherical coordinates."""
     if args:
         Bad(linenum, line, "Command doesn't take arguments", d)
     Ctm._coord_sys = "sph"
     if _debug:
         dbg("[%s] sph" % linenum)
     return ("sph", None)
+
 
 def SetClassVar(varname, linenum, line, kw, args, d):
     if len(args) != 1:
@@ -1849,24 +1915,28 @@ def SetClassVar(varname, linenum, line, kw, args, d):
         dbg("[%s] %s %s" % (linenum, varname, word))
     return ("%s" % varname, word)
 
+
 def Compass(linenum, line, kw, args, d):
-    '''Set output to compass mode.  Angle theta is displayed
+    """Set output to compass mode.  Angle theta is displayed
     increasing clockwise from the +y axis, just like a compass.
-    '''
+    """
     return SetClassVar("_compass", linenum, line, kw, args, d)
 
+
 def Elev(linenum, line, kw, args, d):
-    '''Set output to elevation mode.  Instead of printing phi for
+    """Set output to elevation mode.  Instead of printing phi for
     spherical coordinates, phi's complement psi is printed instead;
     this measures the elevation above or below the xy plane.
-    '''
+    """
     return SetClassVar("_elev", linenum, line, kw, args, d)
 
+
 def Neg(linenum, line, kw, args, d):
-    '''Set output to negative mode.  This means the theta angle is
+    """Set output to negative mode.  This means the theta angle is
     shown increasing in the opposite direction to what's customary.
-    '''
+    """
     return SetClassVar("_neg", linenum, line, kw, args, d)
+
 
 def Indent(linenum, line, kw, args, d):
     if len(args) != 1:
@@ -1877,16 +1947,16 @@ def Indent(linenum, line, kw, args, d):
     except Exception:
         Bad(linenum, line, "Argument can't be interpreted as an integer", d)
     new_indent = max(0, len(d["indent"]) + num)
-    d["indent"] = " "*new_indent if num else ""
+    d["indent"] = " " * new_indent if num else ""
     if _debug:
-        dbg("[%s] indent %d:  new indent level = %d" %
-            (linenum, num, len(d["indent"])))
+        dbg("[%s] indent %d:  new indent level = %d" % (linenum, num, len(d["indent"])))
     return ("indent", num)
 
+
 def TwoD(linenum, line, kw, args, d):
-    '''Set output to 2D mode.  This means that points with a z
+    """Set output to 2D mode.  This means that points with a z
     coordinate of zero will only show the first two coordinates.
-    '''
+    """
     if len(args) != 1:
         Bad(linenum, line, "Improper number of parameters", d)
     word = args[0]
@@ -1905,6 +1975,7 @@ def TwoD(linenum, line, kw, args, d):
     if _debug:
         dbg("[%s] 2D = %s" % (linenum, word))
     return ("2D", word)
+
 
 def Alphabetical(linenum, line, kw, args, d):
     if len(args) != 1:
@@ -1926,17 +1997,18 @@ def Alphabetical(linenum, line, kw, args, d):
         dbg("[%s] alphabetical = %s" % (linenum, word))
     return ("2D", d["alphabetical"])
 
+
 def IsAssignment(linenum, line, d):
-    '''Return True if this is an assignment statement.  The logic is
+    """Return True if this is an assignment statement.  The logic is
     that the first "=" must occur by itself (i.e., not be followed by
     another "=" character.
-    '''
+    """
     eqloc, assignment, n = line.find("="), False, len(line)
     if eqloc != -1 and eqloc < n - 1 and line[eqloc + 1] != "=":
         # If there's a token separator before the '=' character, then
         # it's a line with a keyword parameter like '. 1, 2, a, m=3'.
         if d["-s"] not in line[:eqloc]:
-            assignment = True   # It's a single = sign
+            assignment = True  # It's a single = sign
     if assignment and d["-W"]:
         # Check for overwriting
         f = line.split("=")
@@ -1947,9 +2019,9 @@ def IsAssignment(linenum, line, d):
         CheckOverwrite(name, d, linenum, line)
     return assignment
 
+
 def CTM(linenum, line, kw, args, d):
-    '''Print the CTM.
-    '''
+    """Print the CTM."""
     m = Ctm._CTM
     print(d["indent"] + "CTM [")
     print(d["indent"] + "  ", Listify(sig(m[:4])))
@@ -1958,17 +2030,18 @@ def CTM(linenum, line, kw, args, d):
     print(d["indent"] + "  ", Listify(sig(m[12:])))
     print(d["indent"] + "]")
 
+
 def ProcessLines(d):
-    '''In the following code and function calls, we'll set the
+    """In the following code and function calls, we'll set the
     dictionary d up with two main additions.  d["objects"] will be an
     OrderedDict that will contain the names of the geometrical objects
     that the user defined in the order they were defined (the values
     will be None).
- 
+
     d["vars"] will be a dictionary of all the defined variables and
     objects.  This is used as the set of local variables when
     evaluating expressions or code.
-    '''
+    """
     # Set up a dispatch function for each command
     d["dispatch"] = {
         # Define geometrical objects
@@ -2037,8 +2110,8 @@ def ProcessLines(d):
     # Note all lines have trailing whitespace stripped, but may have
     # leading whitespace, which we'll remove if we're not in a code
     # block.
-    off = False     # Flags that interpreting lines is off
-    code = False    # Flags that we're in a code section
+    off = False  # Flags that interpreting lines is off
+    code = False  # Flags that we're in a code section
     for num, file, line in d["lines"]:
         linenum = "%s:%d" % (file, num)
         sline = line.lstrip()
@@ -2051,11 +2124,11 @@ def ProcessLines(d):
             off = True
         elif kw == "{":
             code = True
-            codelines = []      # Start a new buffer
+            codelines = []  # Start a new buffer
         elif kw == "}":
             code = False
             # Execute the buffer
-            cmd = '\n'.join(codelines)
+            cmd = "\n".join(codelines)
             if d["-e"]:
                 c = compile(cmd, "", "exec")
                 exec(c, globals(), d["vars"])
@@ -2088,7 +2161,7 @@ def ProcessLines(d):
             line = line.strip()
             loc = line.find("=")
             if loc != -1 and loc < len(line) - 1:
-                name, expr = line[:loc].strip(), line[loc + 1:].strip()
+                name, expr = line[:loc].strip(), line[loc + 1 :].strip()
                 if d["-e"]:
                     val = Interp(expr, d, linenum, line)
                 else:
@@ -2112,7 +2185,7 @@ def ProcessLines(d):
                 # interpret this before failing.
                 loc = line.find("=")
                 if loc != -1 and loc < len(line) - 1:
-                    name, expr = line[:loc], line[loc + 1:]
+                    name, expr = line[:loc], line[loc + 1 :]
                     if d["-e"]:
                         val = Interp(expr, d, linenum, line)
                     else:
@@ -2134,7 +2207,7 @@ def ProcessLines(d):
             if " " in fields[0].strip():
                 f = fields[0].strip().split()
                 if len(f) > 1:
-                    fields[0] = ' '.join(f[1:])
+                    fields[0] = " ".join(f[1:])
                 kw = f[0]
             elif len(fields) == 1:
                 kw = fields[0]
@@ -2157,8 +2230,9 @@ def ProcessLines(d):
     if code:
         Bad(linenum, line, "Missing matching 'endcode' to 'code' command", d)
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     # Note: d["datafile"] is a list used as a stack; this allows us to
     # use the 'include' command and open a new datafile while
     # processing an existing one.

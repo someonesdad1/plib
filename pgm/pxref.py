@@ -1,23 +1,24 @@
-'''
+"""
 TODO
     - Update names to 3.9 or 3.10.
 
 Index tokens in python files and spell check them
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Index tokens in python files and spell check them
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import getopt
     from keyword import kwlist as KeywordList
@@ -28,25 +29,30 @@ if 1:   # Imports
     import io
     from collections import defaultdict, deque
     from functools import partial
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
     from columnize import Columnize
     from color import C
     from f import flt
+
     if 0:
         import debug
+
         debug.SetDebugger()
-if 1:   # Global variables
+if 1:  # Global variables
     P = pathlib.Path
     FoldSort = partial(sorted, key=str.lower)
     underscore = "_"
-    double_us = "_"*2
+    double_us = "_" * 2
     digits = re.compile(r"[0-9]+")
     # Provide a container of the allowed special identifiers that begin and
     # end with double underscores.  This set came from the page
     # file:///C:/cygwin/doc/python/python-3.7.4-docs-html/genindex-_.html and a
     # script that filtered out all the relevant names.
-    special_identifiers = set(["__" + i + "__" for i in '''
+    special_identifiers = set(
+        [
+            "__" + i + "__"
+            for i in """
         abs add aenter aexit aiter all and anext annotations await bases bool
         breakpointhook bytes cached call callback cause ceil class
         class_getitem classcell closure code complex concat contains context
@@ -64,23 +70,28 @@ if 1:   # Global variables
         setattr setitem setstate slots spec stderr stdin stdout str sub
         subclasscheck subclasses subclasshook suppress_context traceback
         truediv trunc xor
-        '''.split()])
+        """.split()
+        ]
+    )
     # Keywords are defined in the keyword module
     keywords = set(KeywordList)
     # See the built-in functions list in e.g.
     # file:///C:/cygwin/doc/python/python-3.7.4-docs-html/library/functions.html
-    functions = set('''
+    functions = set(
+        """
         __import__ abs all any ascii bin bool breakpoint bytearray bytes
         callable chr classmethod compile complex delattr dict dir divmod
         enumerate eval exec filter float format frozenset getattr globals
         hasattr hash help hex id input int isinstance issubclass iter len
         list locals map max memoryview min next object oct open ord pow
         print property range repr reversed round set setattr slice sorted
-        staticmethod str sum super tuple type vars zip'''.split())
+        staticmethod str sum super tuple type vars zip""".split()
+    )
     # This set of allowed words is specific to my needs and gets added to
     # over time.  The intent is to allow the -s option to identify the
     # possible token names that don't conform to my typical usage.
-    allowed_words = set('''
+    allowed_words = set(
+        """
 
         a aberration above abs abscissas absdiff absolute abspath abstol
         abstract acos acosh acquire across actual add addition adjust
@@ -273,14 +284,17 @@ if 1:   # Global variables
 
         spelled
 
-    '''.split())    # End of allowed_words
+    """.split()
+    )  # End of allowed_words
+
+
 def GetLatestSymbols():
     '''This function replaces the global variables
     special_identifiers, keywords, and functions with the sets gotten from the
-    python 3.9.6 documentation at https://docs.python.org/3/py-modindex.html, 
+    python 3.9.6 documentation at https://docs.python.org/3/py-modindex.html,
     downloaded 21 Jul 2021 10:18:55 AM.  The main documentation was selected,
     then the page for "_" was chosen and put into a string s.
- 
+
     Here's the code that generated the list for special identifiers from s:
         for i in s.strip().split("\n"):
             i = i.strip()
@@ -290,10 +304,10 @@ def GetLatestSymbols():
                     if j.endswith("()"):
                         j = j[:-2]
                     print(j)
- 
-    The only changes between 3.7.4 and 3.9.6 were the additions of 
+
+    The only changes between 3.7.4 and 3.9.6 were the additions of
     __unraisablehook__, __parameters__, __origin__, and __args__.
- 
+
     Here's the code that showed this:
         # Show differences between python 3.7 and 3.9
         si7 = special_identifiers
@@ -315,8 +329,11 @@ def GetLatestSymbols():
             9, not 7:  {func9 - func7}
         """))
     '''
-    global special_identifiers, keywords, functions 
-    special_identifiers = set(["__" + i + "__" for i in '''
+    global special_identifiers, keywords, functions
+    special_identifiers = set(
+        [
+            "__" + i + "__"
+            for i in """
         abs add aenter aexit aiter all and anext annotations args await bases
         bool breakpointhook bytes cached call callback cause ceil class
         class_getitem classcell closure code complex concat contains context
@@ -333,28 +350,39 @@ def GetLatestSymbols():
         rlshift rmatmul rmod rmul ror round rpow rrshift rshift rsub rtruediv
         rxor self set set_name setattr setitem setstate slots spec stderr stdin
         stdout str sub subclasscheck subclasses subclasshook suppress_context
-        traceback truediv trunc unraisablehook xor'''.split()])
+        traceback truediv trunc unraisablehook xor""".split()
+        ]
+    )
     # Keywords copied from web page
     # https://docs.python.org/3/reference/lexical_analysis.html#keywords
-    keywords = set('''
+    keywords = set(
+        """
         False None True and as assert async await break class continue def del
         elif else except finally for from global if import in is lambda
-        nonlocal not or pass raise return try while with yield'''.split())
+        nonlocal not or pass raise return try while with yield""".split()
+    )
     # See the built-in functions list in e.g.
     # https://docs.python.org/3/library/functions.html
-    functions = set('''
+    functions = set(
+        """
         __import__ abs all any ascii bin bool breakpoint bytearray bytes
         callable chr classmethod compile complex delattr dict dir divmod
         enumerate eval exec filter float format frozenset getattr globals
         hasattr hash help hex id input int isinstance issubclass iter len list
         locals map max memoryview min next object oct open ord pow print
         property range repr reversed round set setattr slice sorted
-        staticmethod str sum super tuple type vars zip'''.split())
+        staticmethod str sum super tuple type vars zip""".split()
+    )
+
+
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
+
+
 def Usage(status=1):
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]} [options] [pyfile1 [pyfile2...]]
       Print a cross-reference of the tokens in the indicated python source
       code files.  The text in comments and strings is ignored.
@@ -373,10 +401,15 @@ def Usage(status=1):
                   which part of a token is misspelled)
       -t          Print tokens only
       -v          Print statistics
-    '''))
+    """)
+    )
     exit(status)
+
+
 def Manpage():
-    print(dedent(f'''
+    print(
+        dedent(
+            f"""
     This script is useful for finding the location of tokens in a set of python
     scripts.  The default output is a list of tokens that don't occur in
     comments and strings.  Under each token is the file it appeared in and a
@@ -408,19 +441,23 @@ def Manpage():
     that all words are converted to lowercase, so case is unimportant for
     spell checking.
 
-    '''.rstrip()))
+    """.rstrip()
+        )
+    )
     exit(0)
+
+
 def ParseCommandLine():
-    d["-c"] = False         # Sorted by number of occurrences
-    d["-D"] = False         # Don't use default set of words
-    d["-d"] = []            # Additional dictionaries
-    d["-e"] = "UTF-8"       # Encoding of files
-    d["-k"] = "frsu"        # Tokens to display
-    d["-S"] = False         # Show misspelled words in color
-    d["-s"] = False         # Spell check
-    d["-T"] = False         # Short listing, columnized
-    d["-t"] = False         # Short listing
-    d["-v"] = False         # Include statistics
+    d["-c"] = False  # Sorted by number of occurrences
+    d["-D"] = False  # Don't use default set of words
+    d["-d"] = []  # Additional dictionaries
+    d["-e"] = "UTF-8"  # Encoding of files
+    d["-k"] = "frsu"  # Tokens to display
+    d["-S"] = False  # Show misspelled words in color
+    d["-s"] = False  # Spell check
+    d["-T"] = False  # Short listing, columnized
+    d["-t"] = False  # Short listing
+    d["-v"] = False  # Include statistics
     # The tokens found in the input files will be stored in the
     # following dictionary.  The key is the token and the value is a
     # list of (filenum, linenum) where the token occurs.
@@ -459,10 +496,12 @@ def ParseCommandLine():
                 Error(f"Dictionary file '{i}' doesn't exist")
     args = FoldSort(args)  # Sort input files in dictionary order
     return args
+
+
 def GetNameTokens(file):
-    '''Generator that returns (name, linenum) tuples of tokens for a
+    """Generator that returns (name, linenum) tuples of tokens for a
     python source code file.
-    '''
+    """
     with io.open(file, "r", encoding=d["-e"]) as f:
         try:
             for tok in tokenize.generate_tokens(f.readline):
@@ -471,9 +510,9 @@ def GetNameTokens(file):
                     name, linenum = tok[1], tok[2][0]
                     include = False
                     if "u" in d["-k"]:
-                        include |= (name not in
-                                    functions.union(keywords,
-                                                    special_identifiers))
+                        include |= name not in functions.union(
+                            keywords, special_identifiers
+                        )
                     if "f" in d["-k"]:
                         include |= name in functions
                     if "r" in d["-k"]:
@@ -483,20 +522,26 @@ def GetNameTokens(file):
                     if include:
                         yield name, linenum
         except Exception as e:
-            print(dedent(f'''
+            print(
+                dedent(f"""
             Unexpected exception for file '{file}':
-              {e}'''))
+              {e}""")
+            )
             exit(1)
+
+
 def ProcessFile(filenum, file):
     for name, linenum in GetNameTokens(file):
         if max([ord(i) for i in name]) > 127:
             d["non-ascii"].add(name)
         d["tokens"][name].append((filenum, linenum))
+
+
 def GetWords(file):
-    '''Read in the words from the indicated file (words are separated
+    """Read in the words from the indicated file (words are separated
     by spaces and newlines) and return the set of the words converted
     to lower case.
-    '''
+    """
     words = set()
     with open(file, "r") as f:
         for line in f:
@@ -504,35 +549,43 @@ def GetWords(file):
                 continue
             words.update([i.lower() for i in line.split()])
     return words
+
+
 def GetDictionary():
-    '''Read in the indicated dictionaries and convert each item to
+    """Read in the indicated dictionaries and convert each item to
     lower case.  The resulting dictionary will be a set in
     d["dictionary"].
-    '''
+    """
     D = d["dictionary"] = set()
     if not d["-D"]:
-        D.update(allowed_words)   # Default set of words
+        D.update(allowed_words)  # Default set of words
     for file in d["-d"]:
         D.update(GetWords(file))
+
+
 def TokenSplit(token):
-    '''Return a list of the token's elements split at underscores or
+    """Return a list of the token's elements split at underscores or
     capital letters.
-    '''
+    """
     o, T = [], deque(token)
     while T:
         c = T.popleft()
         if c in TokenSplit.s:
             o.append(" ")
         o.append(c if c != "_" else " ")
-    return [i.lower() for i in ''.join(o).split()]
+    return [i.lower() for i in "".join(o).split()]
+
+
 TokenSplit.s = set("_ABCDEFGHIJKLMNOPQURSTUVWXYZ")
+
+
 def SpelledOK(token):
-    '''Return True if the string token is spelled properly.  If one or
+    """Return True if the string token is spelled properly.  If one or
     more underscores are present, then name is split into subtokens by
     the underscore characters.  Otherwise, the capital letters in the
     name are used to split the token into subtokens and each subtoken's
     spelling is checked.
-    '''
+    """
     if not token:
         return True
     if not d["dictionary"]:
@@ -549,9 +602,10 @@ def SpelledOK(token):
                 print(f"{C.lmag}{word}{C.norm}")
             return False
     return True
+
+
 def SpellCheck():
-    '''Remove any items in d["tokens"] that are spelled correctly.
-    '''
+    """Remove any items in d["tokens"] that are spelled correctly."""
     GetDictionary()
     remove = []
     for name in d["tokens"]:
@@ -559,6 +613,8 @@ def SpellCheck():
             remove.append(name)
     for name in remove:
         del d["tokens"][name]
+
+
 def CalculateStatistics():
     stats, T = {}, d["tokens"]
     # T is {"tokname": [(filenum, line), (filenum, line), ...], etc.}
@@ -573,7 +629,7 @@ def CalculateStatistics():
             max_refs, name = L, t
         bysize[len(t)].append(t)
     stats["max_refs"] = name
-    stats["mean_length"] = mean_length/len(T)
+    stats["mean_length"] = mean_length / len(T)
     stats["num_tokens"] = len(T)
     stats["longest_tokens"] = bysize[max(bysize)]
     # Tokens with only one reference
@@ -583,6 +639,8 @@ def CalculateStatistics():
             oneref.append(name)
     stats["one_ref"] = oneref
     d["stats"] = stats
+
+
 def PrintReport():
     if d["-T"]:  # Print tokens in columns
         for name in FoldSort(d["tokens"].keys()):
@@ -592,11 +650,11 @@ def PrintReport():
         o = []  # Elements will be (count, token)
         T = d["tokens"]
         CalculateStatistics()
-        w, k, spc = len(d["stats"]["longest_tokens"][0]), 12, " "*4
+        w, k, spc = len(d["stats"]["longest_tokens"][0]), 12, " " * 4
         for token in T:
             o.append((len(T[token]), token))
         print(f"{'Token':^{w}s}{spc}{'Count':^{k}s}")
-        print(f"{'-'*w:^{w}s}{spc}{'-'*k:^{k}s}")
+        print(f"{'-' * w:^{w}s}{spc}{'-' * k:^{k}s}")
         for n, token in sorted(o):
             print(f"{token:{w}s}{spc}{n:^{k}d}")
         return
@@ -625,23 +683,29 @@ def PrintReport():
         mr = len(d["tokens"][ref])
         n = s["num_tokens"]
         ml = flt(s["mean_length"])
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Summary statistics:
             Tokens with one reference    = {tor}
             Maximum number of references = {mr} ({ref})
             Total number of tokens       = {n}
             Mean token length            = {ml}
-        '''))
+        """)
+        )
         longest = s["longest_tokens"]
         p = "s" if len(longest) > 1 else ""
         print(f"    Longest token{p}:")
         for i in s["longest_tokens"]:
             print(f"      {i}")
     if d["non-ascii"]:
-        print("Warning, non-ASCII characters are in the following tokens:",
-              file=sys.stderr)
+        print(
+            "Warning, non-ASCII characters are in the following tokens:",
+            file=sys.stderr,
+        )
         for i in FoldSort(d["non-ascii"]):
             print(f"    {i}", file=sys.stderr)
+
+
 if __name__ == "__main__":
     d = {}  # Options dictionary
     d["files"] = ParseCommandLine()

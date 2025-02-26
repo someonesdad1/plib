@@ -1,4 +1,4 @@
-'''
+"""
 Index to Lautard's TMBR
 
     The index was taken from
@@ -9,34 +9,40 @@ Index to Lautard's TMBR
     Todo:
         - Collapse entries like 'Dial' and 'dial' into one.  Give the
           capitalized word precedence.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2008 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2008 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Index to Lautard's books
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import getopt
     import re
     import string
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
     from tmbr_data import data
     from columnize import Columnize
+
+
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
+
+
 def Usage(status=1):
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]} [options] regexp
       Look up topics in Lautard's "The Machinist Bedside Reader" books.
       Matches are printed to stdout.  Use the command '{sys.argv[0]} .'
@@ -45,11 +51,14 @@ def Usage(status=1):
     Options:
       -i    Make the search case-sensitive
       -x    Print a concordance to stdout
-    '''))
+    """)
+    )
     exit(status)
+
+
 def ParseCommandLine():
-    d["-i"] = True      # Ignore case
-    d["-x"] = False     # Generate index
+    d["-i"] = True  # Ignore case
+    d["-x"] = False  # Generate index
     try:
         opts, args = getopt.getopt(sys.argv[1:], "ix")
     except getopt.GetoptError as e:
@@ -64,6 +73,8 @@ def ParseCommandLine():
     if not args:
         Usage()
     return args
+
+
 def PrintMatches(regexp):
     f = re.I if d["-i"] else 0
     r = re.compile(regexp, f)
@@ -72,11 +83,14 @@ def PrintMatches(regexp):
         mo = r.search(title)
         if mo:
             print(title, loc)
+
+
 def FilterWords(words):
-    '''Remove words we don't want to keep.  words is a sequence of
+    """Remove words we don't want to keep.  words is a sequence of
     words.
-    '''
-    remove = set('''
+    """
+    remove = set(
+        """
         'flat 's - /or 0 018 1 1/4 118 15/16 160 1st 2 240 3 3/4 3000
         490 5161 6th 7/8 75 9 900 a after against ago ahead aid aided al
         along an and any are as at back be before big by c c/p can co
@@ -87,7 +101,8 @@ def FilterWords(words):
         things this thou to too two up upon use used useful uses using v
         very vs w/ was we what what when where which while why why/where
         with without you your
-    '''.split())
+    """.split()
+    )
     words = set(words)
     keep = set()
     for word in words:
@@ -95,12 +110,14 @@ def FilterWords(words):
             continue
         keep.add(word)
     return keep
+
+
 def Split(line):
-    '''Return a sequence of words from the line after replacing
+    """Return a sequence of words from the line after replacing
     punctuation, etc. with spaces.  Also weed out lines that aren't to
     be used, so the returned sequence could be empty.
-    '''
-    p = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'
+    """
+    p = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
     p = string.punctuation
     for i in "/-'":
         p = p.replace(i, "")
@@ -108,6 +125,8 @@ def Split(line):
         line = line.replace(i, " ")
     words = line.split()
     return FilterWords(words)
+
+
 def NormalizeRefs(refs):
     "Split on ';', then sort"
     out = []
@@ -115,8 +134,10 @@ def NormalizeRefs(refs):
         for j in i.split(";"):
             out.append(j.strip())
     return list(sorted(set(out)))
+
+
 def GenerateConcordance(d):
-    'Print a concordance to stdout'
+    "Print a concordance to stdout"
     # Get all the words in the descriptions
     words = set()
     for text, vol in data:
@@ -129,11 +150,13 @@ def GenerateConcordance(d):
                 refs.append(ref)
         if refs:
             print(word)
-            sep = " "*2
+            sep = " " * 2
             refs = NormalizeRefs(refs)
             for line in Columnize(refs, indent=sep, sep=sep):
                 print(line)
     exit(0)
+
+
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine()

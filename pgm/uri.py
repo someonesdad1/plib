@@ -1,4 +1,4 @@
-'''
+"""
 Print out URIs (Uniform Resource Identifier schemes)
 
 The fields are
@@ -13,7 +13,8 @@ The fields are
 
 Status elements are Permanent, Provisional, or Historical.  The script
 prints out the URIs of each status.
-'''
+"""
+
 import csv
 from io import StringIO
 from columnize import Columnize
@@ -21,7 +22,7 @@ from columnize import Columnize
 # Web page:  https://www.iana.org/assignments/uri-schemes/uri-schemes.xhtml
 # For the data, use the link to the CSV file
 # https://www.iana.org/assignments/uri-schemes/uri-schemes-1.csv
-data = '''
+data = """
 URI Scheme,Template,Description,Status,Well-Known URI Support,Reference,Notes
 aaa,,Diameter Protocol,Permanent,-,[RFC6733],
 aaas,,Diameter Protocol with Secure Transport,Permanent,-,[RFC6733],
@@ -397,17 +398,19 @@ ymsgr,prov/ymsgr,ymsgr,Provisional,-,[Dave_Thaler],
 z39.50,,Z39.50 information access,Historical,-,[RFC1738][RFC2056],
 z39.50r,,Z39.50 Retrieval,Permanent,-,[RFC2056],
 z39.50s,,Z39.50 Session,Permanent,-,[RFC2056],
-'''[1:-1]
+"""[1:-1]
+
 
 def PrintStatus(fp, status="Permanent"):
     reader, out = csv.reader(fp), []
     for row in reader:
         if row[3] == status:
             out.append(row[0])
-    print(f"{'-'*40}\n{status} status")
+    print(f"{'-' * 40}\n{status} status")
     for i in Columnize(out, indent="  "):
         print(i)
     fp.seek(0)
+
 
 print("List of URI Schemes as of 30 Nov 2023")
 print("  Source = https://www.iana.org/assignments/uri-schemes/uri-schemes.xhtml")

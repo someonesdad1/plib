@@ -1,28 +1,30 @@
-'''
+"""
 class Tee:    Class to let you tee streams' output to a file
 Print():      A simpler way to do the same thing
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # <programming> Tee streams' output to other streams.
-    #∞what∞#
-    #∞test∞# --test #∞test∞#
+    # ∞what∞#
+    # ∞test∞# --test #∞test∞#
     pass
-if 1:   # Standard imports
+if 1:  # Standard imports
     import sys
 
+
 def Print(*p, **kw):
-    '''Print like the builtin print() and then print to any streams in
+    """Print like the builtin print() and then print to any streams in
     Print.streams.  Here's a typical use case:  we want a script's
     output to go to stdout and a file, acting like a tee.
- 
+
         # We want the script's output to go to stdout and a file,
         # acting like a tee.  Without Print's features, this could be a
         # lot of code editing.  Here's the easy way:
@@ -40,15 +42,15 @@ def Print(*p, **kw):
             print = Print.print
         # Now we're back to standard python behavior.  Note we left
         # Print.print defined in case we want it again.
- 
+
     print's keyword dictionary is only allowed to have the four keys
     'sep', 'end', 'file', and 'flush'.  Sometimes I like to define
     other functions with parameters similar to print, but allowing more
     keywords.  Without the True conditional, a call to print() with
     unsupported keywords will result in an exception.
-    '''
+    """
     Print.print(*p, **kw)
-    k = kw.copy() if Print.streams else None    # Don't mess up caller's kw
+    k = kw.copy() if Print.streams else None  # Don't mess up caller's kw
     if True:
         if not hasattr(Print, "allowed"):
             Print.allowed = set("sep end file flush".split())
@@ -58,12 +60,16 @@ def Print(*p, **kw):
     for stream in Print.streams:
         k["file"] = stream
         Print.print(*p, **k)
-Print.print = print     # Make sure print() is stored away
+
+
+Print.print = print  # Make sure print() is stored away
+
 
 class Tee:
-    '''This behaves like an output stream object.  Run this file as a
+    """This behaves like an output stream object.  Run this file as a
     script to see an example.
-    '''
+    """
+
     # Idea from https://shallowsky.com/blog/programming/python-tee.html
     def __init__(self, *streams):
         self.streams = streams
@@ -72,31 +78,37 @@ class Tee:
             for m in "write flush __del__".split():
                 if not hasattr(i, m):
                     raise ValueError(f"Argument '{i}' lacks stream methods")
+
     def __del__(self):
         for i in self.streams:
             if i != sys.stdout and i != sys.stderr:
                 i.close()
+
     def write(self, s):
         for i in self.streams:
             i.write(s)
+
     def flush(self):
         for i in self.streams:
             i.flush()
 
-if 1:   # Demo code
+
+if 1:  # Demo code
+
     def SetUp():
         # Colorize the output to the streams to identify them.
-        t.s = t("grnl")     # Things sent to stdout are green
-        t.e = t("redl")     # Things sent to stderr are red
-        t.o = t("cynl")     # The 'other' messages are cyan
+        t.s = t("grnl")  # Things sent to stdout are green
+        t.e = t("redl")  # Things sent to stderr are red
+        t.o = t("cynl")  # The 'other' messages are cyan
         # This is the file where we'll send the data
         g.file = "tee.test"
+
     def DemoPrint():
         SetUp()
         # Hook up plumbing
         stream = open(g.file, "w")
         Print.streams = [stream]
-        print = Print 
+        print = Print
         # Send our data to the screen and the file
         print(f"{t.s}Message to stdout{t.n}")
         print(f"{t.e}Message to stderr{t.n}", file=sys.stderr)
@@ -109,6 +121,7 @@ if 1:   # Demo code
         # have been disconnected.
         print(f"{t.o}Last message to stdout{t.n}")
         print(f"{t.o}+ Last message to stderr{t.n}", file=sys.stderr)
+
     def DemoTee():
         SetUp()
         # Save the original streams
@@ -140,30 +153,34 @@ if 1:   # Demo code
         # have been disconnected.
         print(f"{t.o}Last message to stdout{t.n}")
         print(f"{t.o}+ Last message to stderr{t.n}", file=sys.stderr)
+
     def ShowFileResults():
         # Print the contents of the file to stdout to show we captured what was
         # intended.
-        print("-"*40)
+        print("-" * 40)
         print("Contents of the file that captured the data:")
         print(open(g.file).read(), end="")
-        os.unlink(g.file)     # Delete the file
+        os.unlink(g.file)  # Delete the file
 
-if __name__ == "__main__": 
+
+if __name__ == "__main__":
     # Tee test
     import os
     from color import TRM as t
     import tempfile
     from lwtest import run, raises, Assert
     from io import StringIO
-    from pdb import set_trace as xx 
+    from pdb import set_trace as xx
+
     class g:
         pass
+
     # Note:  I haven't written a test for the Tee class because I prefer to
     # use the Print function.
     def TestPrint():
-        '''Send output to both a file and a StringIO object and verify 
+        """Send output to both a file and a StringIO object and verify
         they are the same.
-        '''
+        """
         file = tempfile.mkstemp(text=True)[1]
         st = open(file, "w")
         strm = StringIO()
@@ -176,6 +193,7 @@ if __name__ == "__main__":
         Assert(file_string == s + "\n")
         Assert(file_string == strm_string)
         os.unlink(file)
+
     if len(sys.argv) > 1 and sys.argv[1] == "--test":
         exit(run(globals(), halt=True)[0])
     else:

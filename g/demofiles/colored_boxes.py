@@ -1,12 +1,16 @@
-'''
+"""
 Draw a rectangular array of boxes that are filled with randomly-selected
 colors.
-'''
+"""
+
 from g import *
 import random
+
 # Convenience name for a random number generator that returns a
 # uniformly-distributed random number between 0.0 and 1.0.
-rand = random.random  
+rand = random.random
+
+
 def RandomColoredBoxes(ncol, nrow, file):
     # Initialize the graphics library by giving it a file to put its
     # drawing output into.  Also set the drawing units to points.
@@ -44,9 +48,7 @@ def RandomColoredBoxes(ncol, nrow, file):
     border_factor = 0.75
     for row in range(nrow):
         for col in range(ncol):
-            x = (
-                col * 1.0 / ncol
-            )  # The 1.0 is there to make this calculation
+            x = col * 1.0 / ncol  # The 1.0 is there to make this calculation
             # be done as floating point; otherwise,
             # since row and nrow are integers, x would
             # be zero, since nrow is always greater
@@ -58,8 +60,8 @@ def RandomColoredBoxes(ncol, nrow, file):
             b = rand()
             fillColor((r, g, b))
             move(x, y)
-            rectangle(
-                border_factor * 1.0 / nrow, border_factor * 1.0 / ncol
-            )
+            rectangle(border_factor * 1.0 / nrow, border_factor * 1.0 / ncol)
     s.close()
+
+
 RandomColoredBoxes(20, 20, "out/colored_boxes.ps")

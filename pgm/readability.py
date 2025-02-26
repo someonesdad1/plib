@@ -1,14 +1,14 @@
-'''
+"""
 Calculate readability statistics for a set of files
- 
+
     I use this script to estimate the Flesch-Kincaid US grade level (FKGL)
     for the text files on the command line.  For my own writing, I aim to
     have an FKGL score of <= 8 for general writing and <= 12 for technical
     writing.
- 
+
     Hemingway:  "I write one page of masterpiece to ninety-one pages of
     shit.  I try to put the shit in the wastebasket."
- 
+
     Some references on writing:
         - Malcom Forbes, "How to Write a Business Letter"
         - Edward Thompson, "How to Write Clearly"
@@ -18,7 +18,7 @@ Calculate readability statistics for a set of files
 
 
 https://en.wikipedia.org/wiki/Readability#Using_the_readability_formulas
-    
+
     Most experts agree that simple readability formulas like Flesch–Kincaid
     grade-level can be highly misleading. Even though the traditional
     features like the average sentence length have high correlation with
@@ -31,49 +31,55 @@ simplicity of the formulas like those used in this script are attractive
 compared to the work needed to generate the AI tools mentioned in the
 wikipedia article.
 
-'''
-if 1:   # Header
+"""
+
+if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2005, 2023 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2005, 2023 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Calculate readability statistics for a set of files
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Imports
+    if 1:  # Imports
         import getopt
         import math
         from pathlib import Path as P
         import re
         import sys
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import dedent
         from color import t
         import get
+
         # Load a dictionary of number of syllables if available (otherwise,
         # the number of syllables in each word will be found by the
         # function GuessSyllables.  Using this syllable dictionary speeds
         # this script up by about 4 times.
         try:
             from words_syllables import syllables as S, multiple_syllables as MS
+
             have_syllable_dict = True
         except ImportError:
             have_syllable_dict = False
-    if 1:   # Global variables
+    if 1:  # Global variables
         ii = isinstance
         common_abbreviations = set("mr mrs ms dr no mssr st ave".split())
-if 1:   # Utility
+if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} file1 [file2...]
           Prints readability statistics for text files.  Use '-' for stdin.
           The Flesch-Kincaid grade level is printed by default for each
@@ -90,17 +96,19 @@ if 1:   # Utility
           -p    Print to one decimal place (integer is default)
           -t    Run self-tests
           -z    Print approximate file size in subscripts after name
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-a"] = False     # Print all statistics
-        d["-C"] = False     # Print color key
-        d["-c"] = False     # Print in color
-        d["-d"] = False     # Debug output
-        d["-e"] = False     # Exponent notation
-        d["-p"] = False     # Print to 1 decimal place
-        d["-t"] = False     # Run self-tests
-        d["-z"] = False     # Print file size
+        d["-a"] = False  # Print all statistics
+        d["-C"] = False  # Print color key
+        d["-c"] = False  # Print in color
+        d["-d"] = False  # Debug output
+        d["-e"] = False  # Exponent notation
+        d["-p"] = False  # Print to 1 decimal place
+        d["-t"] = False  # Run self-tests
+        d["-z"] = False  # Print file size
         try:
             opts, files = getopt.getopt(sys.argv[1:], "aCcdehptz")
         except getopt.GetoptError as e:
@@ -121,9 +129,11 @@ if 1:   # Utility
             d["-d"] = True
         GetColor()
         return files
+
     def Clamp(x, low, high):
-        'Return a number on [low, high]'
+        "Return a number on [low, high]"
         return min(max(low, x), high)
+
     def GetColor():
         t.easy = t("purl") if d["-c"] else ""
         t.std = t("grnl") if d["-c"] else ""
@@ -131,8 +141,10 @@ if 1:   # Utility
         t.medhard = t("ornl") if d["-c"] else ""
         t.hard = t("redl") if d["-c"] else ""
         t.N = t.n if d["-c"] else ""
+
     def Manpage():
-        print(dedent(f'''
+        print(
+            dedent(f"""
 
         This script prints various readability estimates for the text files
         on the command line.  The estimates are
@@ -380,68 +392,76 @@ if 1:   # Utility
  
         https://pypi.org/project/py-readability-metrics
  
-        '''))
+        """)
+        )
         exit(0)
-if 1:   # Testing
+
+
+if 1:  # Testing
+
     def SelfTests():
-        'Return 0 for pass, number of failures for fail'
+        "Return 0 for pass, number of failures for fail"
         # Note:  the formulas written below were independently written from
         # the wikipedia web pages without looking at the script's
         # implementation.
         fail = 0
         p = P(sys.argv[0]).parent
         # This file's data came from "The Martian"
-        file = p/"readability.txt"
+        file = p / "readability.txt"
         s = open(file).read()
-        (characters, words, complex_words, one_syllable_words,
-                syllables, sentences) = CountStats(s)
-        #print(characters, words, complex_words, one_syllable_words, syllables, sentences)
-        assert(characters == 2414)
-        assert(words == 578)
-        assert(complex_words == 38)
-        assert(one_syllable_words == 414)
-        assert(syllables == 791)
-        assert(sentences == 55)
+        (characters, words, complex_words, one_syllable_words, syllables, sentences) = (
+            CountStats(s)
+        )
+        # print(characters, words, complex_words, one_syllable_words, syllables, sentences)
+        assert characters == 2414
+        assert words == 578
+        assert complex_words == 38
+        assert one_syllable_words == 414
+        assert syllables == 791
+        assert sentences == 55
         # FKGL https://en.wikipedia.org/wiki/Flesch%E2%80%93Kincaid_readability_tests
         fkgl = FleschKincaidGradeLevel(words, syllables, sentences)
-        expected = 0.39*words/sentences + 11.8*syllables/words - 15.59
+        expected = 0.39 * words / sentences + 11.8 * syllables / words - 15.59
         if fkgl != expected:
             fail += 1
         # Fog https://en.wikipedia.org/wiki/Gunning_fog_index
         fog = GunningFogIndex(words, sentences, complex_words)
-        expected = 0.4*(words/sentences + 100*complex_words/words)
+        expected = 0.4 * (words / sentences + 100 * complex_words / words)
         if fog != expected:
             fail += 1
         # FRES https://en.wikipedia.org/wiki/Flesch%E2%80%93Kincaid_readability_tests
         fres = FleschReadingEaseScore(words, syllables, sentences)
-        expected = 206.835 - 1.015*words/sentences - 84.6*syllables/words
+        expected = 206.835 - 1.015 * words / sentences - 84.6 * syllables / words
         if fres != expected:
             fail += 1
         # ARI http://en.wikipedia.org/wiki/Automated_Readability_Index
         ari = AutomatedReadabilityIndex(characters, words, sentences)
-        expected = 4.71*characters/words + 0.5*words/sentences - 21.43
+        expected = 4.71 * characters / words + 0.5 * words / sentences - 21.43
         if ari != expected:
             fail += 1
         # CL http://en.wikipedia.org/wiki/Coleman-Liau_Index
         cl = ColemanLiauIndex(characters, words, sentences)
-        expected = 0.0588*100*characters/words - 0.296*100*sentences/words - 15.8
+        expected = (
+            0.0588 * 100 * characters / words - 0.296 * 100 * sentences / words - 15.8
+        )
         if cl != expected:
             fail += 1
         # SMOG http://en.wikipedia.org/wiki/SMOG_Index
         smog = SMOGIndex(complex_words, sentences)
-        expected = 1.043*math.sqrt(complex_words*30/sentences) + 3.1291
+        expected = 1.043 * math.sqrt(complex_words * 30 / sentences) + 3.1291
         if smog != expected:
             fail += 1
         return fail
+
     def Test_Syllable_function():
-        '''22 Sep 2010 DP:  this function provides a check of the
+        """22 Sep 2010 DP:  this function provides a check of the
         GuessSyllables function's output.  The word_syllables dictionary from
         words.py contains the number of syllables for each word in the
         dictionary; I believe I found this list of syllables from a CS-heavy
         school like CMU.  This function prints out the histogram of the (actual
         - predicted) number of syllables.  This gives the following results
         for the words.py file included with this script:
- 
+
             -2 0.11%
             -1 6.54%
             0 83.56%
@@ -450,12 +470,13 @@ if 1:   # Testing
             3 0.04%
             4 0.01%
             5 0.00%
- 
+
         The bottom line is that the GuessSyllables function is correct 84% of
         the time and only off by one syllable 16% of the time.  In my mind,
         this is excellent performance for a relatively simple algorithm.
-        '''
+        """
         from words import word_syllables
+
         d, n = {}, len(word_syllables)
         for i in word_syllables:
             actual, calculated = word_syllables[i], GuessSyllables(i)
@@ -467,8 +488,11 @@ if 1:   # Testing
         keys = d.keys()
         keys.sort()
         for i in keys:
-            print(i, "%.2f%%" % (100.*d[i]/n))
-if 1:   # Core functionality
+            print(i, "%.2f%%" % (100.0 * d[i] / n))
+
+
+if 1:  # Core functionality
+
     def GuessSyllables(word):
         "Guess the number of syllables in a word"
         # Our basic way of guessing is to count the number of vowels
@@ -485,19 +509,45 @@ if 1:   # Core functionality
         # https://github.com/sebbacon/pyflesch which uses a database of
         # words with number of syllables.
         syl = 0
-        subtract_syl = ['cial', 'tia', 'cius', 'cious', 'giu', 'ion', 'iou',
-                        'sia$', '.ely$', 'ea.', 'oa.', 'enced$']
-        add_syl = ['ia', 'riet', 'dien', 'iu', 'io', 'ii', '[aeiouym]bl$',
-                '[aeiou]{3}', '^mc', 'ism$', '([^aeiouy])\1l$',
-                '[^l]lien', '^coa[dglx].', '[^gq]ua[^auieo]', 'dnt$']
+        subtract_syl = [
+            "cial",
+            "tia",
+            "cius",
+            "cious",
+            "giu",
+            "ion",
+            "iou",
+            "sia$",
+            ".ely$",
+            "ea.",
+            "oa.",
+            "enced$",
+        ]
+        add_syl = [
+            "ia",
+            "riet",
+            "dien",
+            "iu",
+            "io",
+            "ii",
+            "[aeiouym]bl$",
+            "[aeiou]{3}",
+            "^mc",
+            "ism$",
+            "([^aeiouy])\1l$",
+            "[^l]lien",
+            "^coa[dglx].",
+            "[^gq]ua[^auieo]",
+            "dnt$",
+        ]
         word = word.lower()
-        word = word.replace("'", "")    # fold contractions
-        word = word.replace('"', "")    # remove quotes from around word
+        word = word.replace("'", "")  # fold contractions
+        word = word.replace('"', "")  # remove quotes from around word
         word = re.sub("e$", "", word)
         spl = re.split("[^aeiouy]+", word)
         try:
             spl.remove("")
-            spl.remove('')      # why do this twice?
+            spl.remove("")  # why do this twice?
         except ValueError:
             pass
         for rx in subtract_syl:
@@ -506,39 +556,45 @@ if 1:   # Core functionality
         for rx in add_syl:
             if re.match(rx, word):
                 syl += 1
-        if len(word) == 1:      # 'x'
+        if len(word) == 1:  # 'x'
             syl += 1
         syl += len(spl)
         return syl if syl else 1
+
     def GunningFogIndex(words, sentences, complex_words):
-        ASL = words/sentences
-        PCW = 100*complex_words/words
-        fog = 0.4*(ASL + PCW)
+        ASL = words / sentences
+        PCW = 100 * complex_words / words
+        fog = 0.4 * (ASL + PCW)
         return Clamp(fog, 0, 9999)
+
     def AutomatedReadabilityIndex(characters, words, sentences):
-        ari = 4.71*characters/words + 0.5*words/sentences - 21.43
+        ari = 4.71 * characters / words + 0.5 * words / sentences - 21.43
         return Clamp(ari, 0, 9999)
+
     def ColemanLiauIndex(characters, words, sentences):
-        CL = 0.0588*100*characters/words - 0.296*100*sentences/words - 15.8
+        CL = 0.0588 * 100 * characters / words - 0.296 * 100 * sentences / words - 15.8
         return Clamp(CL, 0, 9999)
+
     def FleschReadingEaseScore(words, syllables, sentences):
-        fres = 206.835 - 1.015*words/sentences - 84.6*syllables/words
+        fres = 206.835 - 1.015 * words / sentences - 84.6 * syllables / words
         # We clamp to -1 to use -1 for pathological cases where there's
         # only one sentence.
         return Clamp(fres, -1, 9999)
+
     def FleschKincaidGradeLevel(words, syllables, sentences):
-        ASL = words/sentences
-        ASW = syllables/words
-        fkgl = 0.39*ASL + 11.8*ASW - 15.59
+        ASL = words / sentences
+        ASW = syllables / words
+        fkgl = 0.39 * ASL + 11.8 * ASW - 15.59
         return Clamp(fkgl, 0, 9999)
+
     def SMOGIndex(complex_words, sentences):
         # Updated from wikipedia page 5 Feb 2023 (constant in front of
         # radical no longer 1 and constant of 3 updated)
-        smog = 1.0430*math.sqrt(30*complex_words/sentences) + 3.1291
+        smog = 1.0430 * math.sqrt(30 * complex_words / sentences) + 3.1291
         return Clamp(smog, 0, 9999)
+
     def EndOfSentence(word):
-        '''Return 1 if the word is the end of a sentence.
-        '''
+        """Return 1 if the word is the end of a sentence."""
         if not word:
             raise Exception("Empty word")
         last_char = word[-1]
@@ -552,10 +608,12 @@ if 1:   # Core functionality
             return False if word in common_abbreviations else True
         else:
             return False
+
     def StripNonletters(word):
         while len(word) and word[-1] not in "abcdefghijklmnopqrstuvwxyz":
             word = word[:-1]
         return word
+
     def CountSyllables(word):
         num = 0
         if have_syllable_dict:
@@ -568,14 +626,15 @@ if 1:   # Core functionality
         else:
             num = GuessSyllables(word)
         return num
+
     def CountStats(text):
-        '''For a set string of text, return a tuple of the following items:
-            number of characters
-            number of words
-            number of sentences
-            number of syllables
-            number of complex words (i.e., with >= 3 syllables)
-        '''
+        """For a set string of text, return a tuple of the following items:
+        number of characters
+        number of words
+        number of sentences
+        number of syllables
+        number of complex words (i.e., with >= 3 syllables)
+        """
         characters = 0
         words = 0
         complex_words = 0
@@ -595,8 +654,15 @@ if 1:   # Core functionality
                 complex_words += 1
             if number_of_syllables == 1:
                 one_syllable_words += 1
-        return [characters, words, complex_words, one_syllable_words,
-                syllables, sentences]
+        return [
+            characters,
+            words,
+            complex_words,
+            one_syllable_words,
+            syllables,
+            sentences,
+        ]
+
     def Print(gradelevel, n, fmt, metric):
         if metric == "fres":
             if gradelevel >= 70:
@@ -622,6 +688,7 @@ if 1:   # Core functionality
                 c = t.hard
         s = fmt % gradelevel
         print(f"{c}{s:{n}s}{t.N}", end="")
+
     def PrintColorKey():
         print("\nColor key")
         w = len("medium hard") + 3
@@ -630,6 +697,7 @@ if 1:   # Core functionality
         print(f"{t.med}{'Medium':<{w}s} Grade 11-12")
         print(f"{t.medhard}{'Medium hard':<{w}s} Undergraduate college")
         print(f"{t.hard}{'Hard':<{w}s} Graduate-level college")
+
     def PrintHeader():
         if PrintHeader.hdr:
             return
@@ -649,21 +717,25 @@ if 1:   # Core functionality
             print(f"{'SMOG':>6s}", end=" ")
         print()
         PrintHeader.hdr = True
+
     PrintHeader.hdr = False
+
     def AbbrExp(x, places=1):
-        '''Return abbreviated exponential form for a number.  Example:
+        """Return abbreviated exponential form for a number.  Example:
         The integer 142103 will be returned as 1.3⁵.
-        '''
+        """
         ss = dict(zip("0123456789", "⁰¹²³⁴⁵⁶⁷⁸⁹"))
         m, e = f"{x:.{places}e}".split("e")
         k = [m]
         for i in str(int(e)):
             k.append(ss[i])
-        u = ''.join(k)
+        u = "".join(k)
         return u
+
     def PrintResults(stats, file):
-        (characters, words, complex_words, one_syllable_words, 
-            syllables, sentences) = stats
+        (characters, words, complex_words, one_syllable_words, syllables, sentences) = (
+            stats
+        )
         fog = GunningFogIndex(words, sentences, complex_words)
         ari = AutomatedReadabilityIndex(characters, words, sentences)
         cl = ColemanLiauIndex(characters, words, sentences)
@@ -680,7 +752,7 @@ if 1:   # Core functionality
                 print("%7d %6d %6d %6d %6d %6d" % tuple(stats), end=" ")
         n = 6
         fmt = f"%{n}.1f " if d["-p"] else f"%{n}.0f "
-        fmt1 = f"%{n}.1f " if d["-p"] else f"%{n-1}.0f. "
+        fmt1 = f"%{n}.1f " if d["-p"] else f"%{n - 1}.0f. "
         if d["-a"]:
             Print(fkgl, n, fmt, "fkgl")
             Print(fres, n, fmt1, "fres")
@@ -703,7 +775,7 @@ if 1:   # Core functionality
             k = [ss[m], ss["e"]]
             for i in str(int(e)):
                 k.append(ss[i])
-            print(''.join(k), end="")
+            print("".join(k), end="")
         print()
         # Print color key if needed
         if d["-C"]:
@@ -711,8 +783,9 @@ if 1:   # Core functionality
             GetColor()
             PrintColorKey()
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     files = ParseCommandLine(d)
     stdin_size = None
     for file in files:

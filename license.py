@@ -1,24 +1,25 @@
-'''
+"""
 xx Make the license header substitution part of trigger.py.  Then this
 script is only used to print copies of the licenses to stdout.
 
 ----------------------------------------------------------------------
 Replace license statements in files.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014, 2021 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2014, 2021 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # <utility> Replace license statements in files
-    #∞what∞#
-    #∞test∞# ignore #∞test∞#
+    # ∞what∞#
+    # ∞test∞# ignore #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import getopt
     import os
     import pathlib
@@ -26,11 +27,11 @@ if 1:   # Imports
     import shutil
     import sys
     import time
-if 1:   # Custom imports
+if 1:  # Custom imports
     import color as C
     from wrap import dedent
     from license_data import licenses
-if 1:   # Global variables
+if 1:  # Global variables
     P = pathlib.Path
     # Trigger string for replacements
     trigger = "#∞#"
@@ -57,12 +58,18 @@ if 1:   # Global variables
         "wol": "  Wide-open License",
     }
     analysis = None
+
+
 def eprint(*p, **kw):
-    'Print to stderr'
+    "Print to stderr"
     print(*p, **kw, file=sys.stderr)
+
+
 def Error(msg, status=1):
     eprint(msg)
     exit(status)
+
+
 def Usage(d, status=1):
     name = sys.argv[0]
     choices = sorted(descr.keys())
@@ -70,7 +77,8 @@ def Usage(d, status=1):
     lic = nl.join(lic)
     bak = backup_extension
     cmnt = d["-c"]
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {name} [options] [license [file1 [file2...]]]
       Replace the license header in source code files.   Short licenses
       like BSD include the whole of the license text instead of a
@@ -79,11 +87,13 @@ def Usage(d, status=1):
     
       The license argument must be one of the strings (* = copyleft,
       - = non-strong copyleft):
-    '''))
+    """)
+    )
     for i in choices:
         print(f"    {i:8s} {descr[i]}")
     print()
-    print(dedent(f'''
+    print(
+        dedent(f'''
       Each source code file will be copied to a backup file with the
       appended extension "{bak}".  The script will first examine all the
       files to ensure they have the trigger string; if not, the program
@@ -102,15 +112,18 @@ def Usage(d, status=1):
       -n      Show which files don't have the requisite header
       -s      Substitute the license for the header
       -t s    Change the trigger string to s
-    '''))
+    ''')
+    )
     exit(status)
+
+
 def ParseCommandLine(d):
     global trigger
-    d["-c"] = "# "      # Comment prepend string
-    d["-f"] = False     # Force overwriting of backup files
-    d["-n"] = False     # Show which files don't have header
-    d["-s"] = False     # Substitute license text
-    d["-t"] = trigger   # Trigger string
+    d["-c"] = "# "  # Comment prepend string
+    d["-f"] = False  # Force overwriting of backup files
+    d["-n"] = False  # Show which files don't have header
+    d["-s"] = False  # Substitute license text
+    d["-t"] = trigger  # Trigger string
     d["missing"] = []
     # Get the analysis text, in the licenses subdirectory
     d["dir"] = GetDir()
@@ -143,23 +156,31 @@ def ParseCommandLine(d):
         # Need choice and at least one file
         Usage(d)
     return args
+
+
 def GetDir():
-    'Return the directory of the script'
+    "Return the directory of the script"
     return pathlib.Path(sys.argv[0]).resolve().parent
+
+
 def PrintLicense(choice):
     if choice not in licenses:
         Error(f"'{choice}' license not recognized")
-    print(dedent(f'''
+    print(
+        dedent(f"""
         <statement about program's intent>
         Copyright (C) {time.strftime("%Y")} Don Peterson
         gmail.com at someonesdad1
-    '''))
+    """)
+    )
     print()
     print(licenses[choice].text)
+
+
 def CheckFiles(files, d):
-    '''For each file in files, ensure that it is readable and has the
+    """For each file in files, ensure that it is readable and has the
     requisite string for substitution.
-    '''
+    """
     bad, se = False, sys.stderr
     for file in files:
         p = P(file)
@@ -184,21 +205,27 @@ def CheckFiles(files, d):
             eprint("Cannot continue because of the above problems")
             C.normal()
         exit(1)
+
+
 def MakeBackups(files, d):
-    'For each file in files, make a backup file'
+    "For each file in files, make a backup file"
     for file in files:
-        bu = P(file)/backup_extension
+        bu = P(file) / backup_extension
         if bu.exists() and not d["-f"]:
-            eprint(dedent(f'''
+            eprint(
+                dedent(f"""
             Backup file '{bu}' already exists
               Use the -f option to force overwriting of backup files.
-            '''))
+            """)
+            )
             exit(1)
         try:
             shutil.copyfile(file, bu)
         except Exception:
             eprint(f"Copy of '{file}' to '{bu}' failed")
             exit(1)
+
+
 def ProcessFile(choice, file, d):
     if d["-s"] and choice not in short_choices:
         # Use license text rather than header
@@ -218,15 +245,22 @@ def ProcessFile(choice, file, d):
         open(file, "w").write(regexp.sub(t, s))
     except Exception as e:
         C.fg(C.lred)
-        print('''File '%s' couldn't be changed
+        print(
+            """File '%s' couldn't be changed
   '%s'
-''' % (file, e))
+"""
+            % (file, e)
+        )
         C.normal()
+
+
 def ChangeFiles(choice, files, d):
     for file in files:
         ProcessFile(choice, file, d)
+
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     choice, files = args[0], args[1:]
     if not files:

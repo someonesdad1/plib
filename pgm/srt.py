@@ -1,21 +1,22 @@
-'''
+"""
 Sort the fields of each line of a text file
-'''
-if 1:   # Header
-    if 1:   # Copyright, license
+"""
+
+if 1:  # Header
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Program description string
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         from collections import deque
         from pathlib import Path as P
         import getopt
@@ -23,32 +24,38 @@ if 1:   # Header
         import re
         import subprocess
         import sys
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from color import t
         from dpprint import PP
-        pp = PP()   # Screen width aware form of pprint.pprint
+
+        pp = PP()  # Screen width aware form of pprint.pprint
         import get
         from wrap import dedent
-        from wsl import wsl     # wsl is True when running under WSL Linux
+        from wsl import wsl  # wsl is True when running under WSL Linux
         from lwtest import Assert
-        #from columnize import Columnize
-    if 1:   # Global variables
-        class G:    # Storage for global variables as attributes
+        # from columnize import Columnize
+    if 1:  # Global variables
+
+        class G:  # Storage for global variables as attributes
             pass
+
         g = G()
         g.dbg = False
         ii = isinstance
-if 1:   # Utility
+if 1:  # Utility
+
     def GetScreen():
-        'Return (LINES, COLUMNS)'
+        "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
-            int(os.environ.get("COLUMNS", "80")) - 1
+            int(os.environ.get("COLUMNS", "80")) - 1,
         )
+
     def GetColors():
         t.dbg = t("cyn") if g.dbg else ""
         t.N = t.n if g.dbg else ""
         t.err = t("redl")
+
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="", file=Dbg.file)
@@ -56,16 +63,26 @@ if 1:   # Utility
             k["file"] = Dbg.file
             print(*p, **k)
             print(f"{t.N}", end="", file=Dbg.file)
+
     Dbg.file = sys.stdout
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Manpage():
-        print(dedent(f'''
-        '''.rstrip()).lstrip())
+        print(
+            dedent(
+                f"""
+        """.rstrip()
+            ).lstrip()
+        )
         exit(0)
+
     def Usage():
-        print(dedent(f'''
+        print(
+            dedent(
+                f"""
  
         Usage:  {sys.argv[0]} [options] [file1 [file2...]]
           Sort the fields of each line of a text file and send to stdout.  Tabs and other
@@ -76,16 +93,19 @@ if 1:   # Utility
             -r      Reverse sort order
             -x re   Define regex for lines to ignore
  
-        '''.rstrip()).lstrip())
+        """.rstrip()
+            ).lstrip()
+        )
         exit(0)
+
     def ParseCommandLine(d):
-        d["-f"] = None      # Field separator (defaults to whitespace)
-        d["-r"] = False     # Reverse sort order
-        d["-x"] = []        # Sequences of regexes for ignoring lines
+        d["-f"] = None  # Field separator (defaults to whitespace)
+        d["-r"] = False  # Reverse sort order
+        d["-x"] = []  # Sequences of regexes for ignoring lines
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "f:rx:") 
+            opts, args = getopt.getopt(sys.argv[1:], "f:rx:")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -102,16 +122,20 @@ if 1:   # Utility
         GetColors()
         g.W, g.L = GetScreen()
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def Ignore(line):
-        'Return True if this line should be ignored'
+        "Return True if this line should be ignored"
         for r in d["-x"]:
             mo = r.search(line)
             if mo:
                 return True
         return False
+
     def Process(file):
-        'Sort the fields of each line in file'
+        "Sort the fields of each line in file"
         s = get.GetText(file)
         if s[-1] == "\n":
             s = s[:-1]  # Remove last newline to avoid a phantom last empty line
@@ -126,10 +150,11 @@ if 1:   # Core functionality
             else:
                 fields = line.split()
                 fields = reversed(sorted(fields)) if d["-r"] else sorted(fields)
-                print(' '.join(fields))
+                print(" ".join(fields))
+
 
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     files = ParseCommandLine(d)
     for file in files:
         Process(file)

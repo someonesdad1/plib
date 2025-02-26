@@ -1,20 +1,21 @@
-'''
+"""
 OneTimePad object can be used to get a random string of bytes
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2005, 2012 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2005, 2012 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # OneTimePad object can be used to get a random string of bytes
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import binascii
     import base64
     import codecs
@@ -23,53 +24,65 @@ if 1:   # Imports
     import sys
     import getopt
     from io import BytesIO, StringIO
-    from pdb import set_trace as xx 
-if 1:   # Custom imports
+    from pdb import set_trace as xx
+if 1:  # Custom imports
     from wrap import dedent
     from dpstr import Chop
+
+
 class OneTimePad:
-    '''Generate random number sequences.  If you initialize with a seed,
+    """Generate random number sequences.  If you initialize with a seed,
     the routine will use a repeatable pseudorandom number generator.
     Otherwise, the os.urandom() generator is used.
-    '''
+    """
+
     def __init__(self, numbytes=16, seed=None):
         self.numbytes = numbytes
         self.seed = seed
         if seed is not None:
             random.seed(seed)
+
     def binary(self, num_bytes):
-        'Return a bytes object of size num_bytes'
+        "Return a bytes object of size num_bytes"
         if self.seed is not None:
-            k = hex(random.getrandbits(8*num_bytes))[2:]
+            k = hex(random.getrandbits(8 * num_bytes))[2:]
             return bytes([int(i, 16) for i in Chop(k, 2)])
         else:
             return os.urandom(num_bytes)
+
     def ascii(self, num_bytes):
-        '''Return a string of random bytes composed of the ASCII characters
+        """Return a string of random bytes composed of the ASCII characters
         from 0x20 to 0x7e, inclusive.  If no_equals is True, remove any
         trailing '=' characters from the returned string.
-        '''
-        s, n = self.binary(num_bytes), 0x7f - 0x20
+        """
+        s, n = self.binary(num_bytes), 0x7F - 0x20
+
         def f(x):
             return chr(0x20 + (x % n))
-        return ''.join([f(i) for i in s])
+
+        return "".join([f(i) for i in s])
+
     def hex(self, num_bytes):
         s = self.binary(num_bytes)
         t = binascii.b2a_hex(s)
         return t.decode("ascii")
+
     def base64(self, num_bytes, no_equals=False):
-        '''Return random bytes in base64 encoding.  If no_equals is True,
+        """Return random bytes in base64 encoding.  If no_equals is True,
         remove any trailing '=' characters from the returned string.
-        '''
+        """
         s = self.binary(num_bytes)
         t = base64.encodebytes(s)
         u = t.decode("ascii").rstrip("\n")
         if no_equals:
             u = u.rstrip("=")
         return u
+
+
 def Manpage():
     name = "python otp.py"
-    print(dedent(f'''
+    print(
+        dedent(f"""
 
     This script generates sequences of bytes that are supposedly
     cryptographically secure (unless you use the -s option).  It's up to you to
@@ -148,16 +161,19 @@ def Manpage():
           and weaknesses at https://en.wikipedia.org/wiki/One-time_pad.
           The weakness of the technique is the generation and management of
           the one-time keys.
-    '''))
+    """)
+    )
     exit(0)
+
+
 def ParseCommandLine(d):
-    d["-a"] = False     # Use ASCII characters, digits, and punctuation
-    d["-B"] = False     # Output in base64
-    d["-C"] = False     # Output in base64 except no trailing '='
-    d["-b"] = None      # Write binary to file
-    d["-l"] = False     # Change output string to lowercase
-    d["-s"] = None      # Seed for pseudorandom generator
-    d["-u"] = False     # Change output string to uppercase
+    d["-a"] = False  # Use ASCII characters, digits, and punctuation
+    d["-B"] = False  # Output in base64
+    d["-C"] = False  # Output in base64 except no trailing '='
+    d["-b"] = None  # Write binary to file
+    d["-l"] = False  # Change output string to lowercase
+    d["-s"] = None  # Seed for pseudorandom generator
+    d["-u"] = False  # Change output string to uppercase
     if len(sys.argv) < 2:
         Usage(d)
     try:
@@ -178,11 +194,16 @@ def ParseCommandLine(d):
     if not args:
         Usage(d)
     return args
+
+
 def Error(*msg):
     print(*msg, file=sys.stderr)
     exit(1)
+
+
 def Usage(d, status=1):
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]} [options] bytes_per_line [num_lines]
       Generate cryptographically-secure random bytes.  If seed is given
       with -s, a repeatable random sequence is generated.  Output is
@@ -195,9 +216,12 @@ def Usage(d, status=1):
       -b f      Output is binary bytes written to file f
       -h        More detailed help and examples
       -s s      Seed pseudorandom generator with s
-    '''))
+    """)
+    )
     exit(1)
-if __name__ == "__main__": 
+
+
+if __name__ == "__main__":
     d = {}
     seed, num_lines = 0, 1
     args = ParseCommandLine(d)

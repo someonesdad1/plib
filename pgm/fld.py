@@ -1,34 +1,36 @@
-'''
+"""
 Manipulate fields in the stdin stream
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 1995, 2009, 2021 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 1995, 2009, 2021 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Manipulate fields in the stdin stream
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     from io import StringIO
     from pdb import set_trace as xx
     import functools
     import getopt
     import re
     import sys
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
-if 1:   # Global variables
+if 1:  # Global variables
     debug = False
     testing = False
     nl = "\n"
     dash = "-"
     split_re = None
+
     class TestingException(Exception):
         pass
 
@@ -36,7 +38,7 @@ if 1:   # Global variables
     status_fail = 1
     status_bad_command_line = 2
 
-    manual = dedent('''
+    manual = dedent("""
     NAME
         fld -- manipulate fields of stdin
     SYNOPSIS
@@ -157,16 +159,23 @@ if 1:   # Global variables
     DIAGNOSTICS
         0  Successful completion.
         1  Failure.
-        2  Failure due to an invalid command line option.''')
+        2  Failure due to an invalid command line option.""")
+
+
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
+
+
 def dbg(s):
     if debug:
         print("+", s, file=sys.stderr)
+
+
 def Usage(status=1):
     name = sys.argv[0]
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {name} [options] field-specifiers
       Pick out 1-based number fields of a stream.  Example:
         fld -f - 3 1 
@@ -175,32 +184,43 @@ def Usage(status=1):
       -f is to specify the file to read; '-' means stdin.  Use
       -i to specify a regexp to split the fields.
       Use -h to get a more detailed manual.
-      '''))
+      """)
+    )
     exit(status)
+
+
 def GetFieldWidthNumbers(field_width_specs):
-    def f(s):   # Change a non-numeric character into a space
+    def f(s):  # Change a non-numeric character into a space
         from string import digits
+
         if s in digits:
             return s
         return " "
-    fn = ''.join(map(f, list(field_width_specs)))  # Keep only digits
+
+    fn = "".join(map(f, list(field_width_specs)))  # Keep only digits
     fn = [int(i) for i in fn.split()]
     return fn
+
+
 def GetFixedFieldNumbers(field_number_specs):
-    def f(s):   # Change a non-numeric character into a space
+    def f(s):  # Change a non-numeric character into a space
         from string import digits
+
         if s in digits:
             return s
         return " "
-    fn = ''.join(map(f, list(field_number_specs)))  # Keep only digits
+
+    fn = "".join(map(f, list(field_number_specs)))  # Keep only digits
     # Convert to 0-based indexing and sort the numbers
     fn = list(sorted([int(i) - 1 for i in fn.split()]))
     return fn
+
+
 def ProcessFieldSpecs(specs, settings):
-    '''Turn the field specifications into a tuple of field numbers.
+    """Turn the field specifications into a tuple of field numbers.
     Reverse if so indicated.  Note at this point, all field numbers are
     1-based.
-    '''
+    """
     if debug:
         dbg("Field specs from command line = " + str(specs))
     fields = []
@@ -232,11 +252,15 @@ def ProcessFieldSpecs(specs, settings):
                 # It must be a simple number
                 fields.append(int(spec))
         except ValueError:
-            Error("'%s' is an improper field specification" % spec,
-                  status_bad_command_line)
+            Error(
+                "'%s' is an improper field specification" % spec,
+                status_bad_command_line,
+            )
     settings["fields to get"] = fields
     if debug:
         dbg("Fields specified list (1-based):  ", str(fields))
+
+
 def PrintOutputLine(line, settings):
     def pad(s, width, settings=settings):
         # Pad s with spaces if it's less than width long.  If longer,
@@ -245,11 +269,12 @@ def PrintOutputLine(line, settings):
         if n == width:
             return s
         if n < width:
-            return s + " "*(width - n)
+            return s + " " * (width - n)
         if n > width:
             # Truncation condition
             settings["truncated lines"][settings["line number"]] = 0
             return s[:width]
+
     # Note line is a list of field strings
     if settings["output fixed width"]:
         widths = settings["output fixed width"]
@@ -266,7 +291,7 @@ def PrintOutputLine(line, settings):
                 del line[i:]
                 break
             line[i] = pad(field, widths[i])
-        print(''.join(line))
+        print("".join(line))
     elif settings["output fixed max width"]:
         # The settings will contain the max column widths of the output
         # fields.  Note the output will have a space character between
@@ -274,13 +299,15 @@ def PrintOutputLine(line, settings):
         d = settings["max field widths"]
         for i, field in enumerate(line):
             line[i] = pad(field, d[i])
-        print(' '.join(line))
+        print(" ".join(line))
     else:
         print(settings["output separator"].join(line))
+
+
 def ProcessFields(fields, settings):
-    '''Remove any indicated characters from the right and left of each
+    """Remove any indicated characters from the right and left of each
     field.
-    '''
+    """
     L = settings["trim left"]
     if L:
         fields = [i.lstrip(L) for i in fields]
@@ -288,6 +315,8 @@ def ProcessFields(fields, settings):
     if R:
         fields = [i.rstrip(R) for i in fields]
     return fields
+
+
 def SplitFixedWidth(line, columns, line_number):
     fields = []
     n = len(columns)
@@ -296,12 +325,16 @@ def SplitFixedWidth(line, columns, line_number):
             if i == n - 1:
                 fields.append(line[column:].rstrip())
             else:
-                fields.append(line[column:columns[i+1]].rstrip())
+                fields.append(line[column : columns[i + 1]].rstrip())
     except IndexError:
-        Error(f"Parsing error in line {line_number}\n"
-              f"{column} or {columns[i+1]} is a bad column number",
-              status_fail)
+        Error(
+            f"Parsing error in line {line_number}\n"
+            f"{column} or {columns[i + 1]} is a bad column number",
+            status_fail,
+        )
     return fields
+
+
 def ProcessLine(line, output, settings):
     settings["line number"] += 1
     if debug:
@@ -325,8 +358,10 @@ def ProcessLine(line, output, settings):
                 settings["record size"] = n
         else:
             if n != settings["record size"]:
-                msg = ("Fatal error:  line number %d does not have %d fields"
-                       % (settings["line number"], settings["record size"]))
+                msg = "Fatal error:  line number %d does not have %d fields" % (
+                    settings["line number"],
+                    settings["record size"],
+                )
                 if not testing:
                     Error(msg, status_fail)
     output = []
@@ -350,6 +385,8 @@ def ProcessLine(line, output, settings):
         d.setdefault(i, n)
         d[i] = max(n, d[i])
     return output
+
+
 def PrintTruncation(settings):
     m = "Lines with truncated fields:  "
     lines = list(settings["truncated lines"].keys())
@@ -358,12 +395,14 @@ def PrintTruncation(settings):
         for line in sorted(lines):
             print(line, " ", file=sys.stderr, end="")
         print()
+
+
 def ParseCommandLine(settings):
-    '''Because we will allow field specifications such as '-3', we need
+    """Because we will allow field specifications such as '-3', we need
     to collect all field specs on the command line and not pass them to
     getopt.  Thus, build two lists; one contains the field specs and the
     other contains the options.
-    '''
+    """
     require_arg = "filmnor"
     no_require_arg = "dhIMRstwz"
     fs = re.compile(r"^-\d+$|^\d+-\d+$|^\d+-$")
@@ -412,8 +451,7 @@ def ParseCommandLine(settings):
             try:
                 settings["split_re"] = re.compile(a)
             except re.error as e:
-                Error("Bad -i regular expression: " + str(e),
-                      status_bad_command_line)
+                Error("Bad -i regular expression: " + str(e), status_bad_command_line)
         elif o == "-I":
             settings["case sensitivity"] = False
         elif o == "-l":
@@ -445,8 +483,7 @@ def ParseCommandLine(settings):
         else:
             settings["split_re"] = re.compile(r, re.I)
     except re.error as e:
-        Error("Bad -i or -I regular expression: " + str(e),
-              status_bad_command_line)
+        Error("Bad -i or -I regular expression: " + str(e), status_bad_command_line)
     if not field_specs:
         Usage()
     if debug:
@@ -459,6 +496,8 @@ def ParseCommandLine(settings):
                 dbg(f"  {i:20d} = {s!r}")
         dbg(f"Command line args = {args}")
     return field_specs
+
+
 def GetLines(settings):
     file = settings["file"]
     if file == "-":
@@ -466,30 +505,32 @@ def GetLines(settings):
     else:
         lines = open(file).readlines()
     return lines
-if __name__ == "__main__": 
+
+
+if __name__ == "__main__":
     settings = {
-        "file": "-",                            # -f
-        "input regexp": "[ \t]+",               # -i
-        "case sensitivity": True,               # -I
-        "trim left": "",                        # -l
-        "trim right": "",                       # -r
-        "fixed width": None,                    # -n
-        "output fixed width": None,             # -m
-        "output fixed max width": False,        # -M
+        "file": "-",  # -f
+        "input regexp": "[ \t]+",  # -i
+        "case sensitivity": True,  # -I
+        "trim left": "",  # -l
+        "trim right": "",  # -r
+        "fixed width": None,  # -n
+        "output fixed width": None,  # -m
+        "output fixed max width": False,  # -M
         "max field widths": {},
-        "output separator": "\t",               # -o
-        "reverse sense": False,                 # -R
-        "same size records": False,             # -s
-        "record size": 0,                       # -s
-        "show truncated lines": False,          # -t
+        "output separator": "\t",  # -o
+        "reverse sense": False,  # -R
+        "same size records": False,  # -s
+        "record size": 0,  # -s
+        "show truncated lines": False,  # -t
         "truncated lines": {},
-        "strip whitespace": False,              # -w
+        "strip whitespace": False,  # -w
         "line number": 0,
     }
     args = ParseCommandLine(settings)
     ProcessFieldSpecs(args, settings)
     lines = GetLines(settings)
-    lines = [i.rstrip("\n") for i in lines]     # Remove newlines
+    lines = [i.rstrip("\n") for i in lines]  # Remove newlines
     output = []
     for line in lines:
         output.append(ProcessLine(line, output, settings))

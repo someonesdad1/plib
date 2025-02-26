@@ -5,7 +5,7 @@ from get import GetNumberArray
 from f import flt
 
 # Wire dia in mm, chassis current in A
-data = '''
+data = """
     11.7   380
     10.4   330
     9.27   280
@@ -25,7 +25,7 @@ data = '''
     .404   2.2
     .320   1.4
     .254   0.860
-'''
+"""
 a = GetNumberArray(data)
 dia, i = a
 plot(dia, i, "b.-", label="Data")
@@ -39,9 +39,9 @@ if 1:
     b0, b1, b2 = -7.64555, 22.6453, 0.913065
     # Second coefficients are reasonable approximations
     b0, b1, b2 = -7.6, 22.6, 0.9
-    i_pred = [b0 + b1*x + b2*x**2 for x in dia]
+    i_pred = [b0 + b1 * x + b2 * x**2 for x in dia]
     plot(dia, i_pred, "r-", label="Quadratic approx.")
-    plot(dia, [b1*x + b2*x**2 for x in dia], "g-", label="Even simpler")
+    plot(dia, [b1 * x + b2 * x**2 for x in dia], "g-", label="Even simpler")
 grid()
 xlabel("d = diameter, mm")
 ylabel("i = chassis current, A")
@@ -49,9 +49,9 @@ text(1, 325, "$i = 0.9d^2 + 22.6d - 7.6$")
 title("Copper wire allowed current in air\n(Based on MIL-W-5088L) DP 20 Sep 2024")
 legend(loc="lower right")
 # Show residuals
-resid = [flt((a - b)/b*100) for a, b in zip(i_pred, i)]
-print(' '.join([str(i) for i in resid]))
-exit() #xx
+resid = [flt((a - b) / b * 100) for a, b in zip(i_pred, i)]
+print(" ".join([str(i) for i in resid]))
+exit()  # xx
 
 if 1:
     show()

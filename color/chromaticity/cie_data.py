@@ -1,4 +1,4 @@
-'''
+"""
 
 ToDo
     - Write an access function that uses the data to linearly interpolate
@@ -15,8 +15,9 @@ ToDo
 From 204.xls downloaded from
 https://web.archive.org/web/20170131100357/http://files.cie.co.at/204.xls
 Thu 24 Mar 2022
-'''
-from pdb import set_trace as xx 
+"""
+
+from pdb import set_trace as xx
 from wrap import dedent
 from math import exp
 
@@ -29,7 +30,7 @@ from math import exp
 # careful and have been repeated, so though the samples were clearly
 # biased, it seems they represent a large portion of humanity.
 
-data1 = '''
+data1 = """
 # CIE 1931 standard colorimetric observer			
 # Columns: 
 #     wavelength, nm
@@ -118,9 +119,9 @@ data1 = '''
 775	0.000059	0.000021	0.000000
 780	0.000042	0.000015	0.000000
 !Sum:21.371524	21.371327	21.371540
-'''[1:-1]
+"""[1:-1]
 
-data2 = '''
+data2 = """
 # CIE 1964 supplementary standard colorimetric observer			
 # Columns: 
 #     wavelength, nm
@@ -210,10 +211,13 @@ data2 = '''
 775	0.000046	0.000018	0.000000
 780	0.000033	0.000013	0.000000
 !Sum:23.329353	23.332036	23.334153
-'''[1:-1]
-indent = " "*4
+"""[1:-1]
+indent = " " * 4
+
+
 def CIE_Data(dbg=False):
     tab = "\t"
+
     def GetData(data):
         f = lambda x: float(x)
         out = []
@@ -247,16 +251,21 @@ def CIE_Data(dbg=False):
             print(z, sums[2])
             exit(1)
         return out
+
     def Header():
-        print(dedent(f'''
+        print(
+            dedent(f"""
         # Raw data data from
         # https://web.archive.org/web/20170131100357/http://files.cie.co.at/204.xls
         # Downloaded 24 Mar 2022
  
-        '''))
+        """)
+        )
+
     def Output(out, suppl=False):
         if suppl:
-            print(dedent(f'''
+            print(
+                dedent(f"""
             # CIE 1964 supplementary standard colorimetric observer			
             # Structure:  (wavelength_nm, (xbar10, ybar10, zbar10))
             # Columns: 
@@ -266,9 +275,11 @@ def CIE_Data(dbg=False):
             #     zbar10(wl_nm), dimensionless
     
             CIE1964_suppl_CMF = (
-            '''))
+            """)
+            )
         else:
-            print(dedent(f'''
+            print(
+                dedent(f"""
             # CIE 1931 standard colorimetric observer			
             # Structure:  (wavelength_nm, (xbar, ybar, zbar))
             # Columns: 
@@ -278,7 +289,8 @@ def CIE_Data(dbg=False):
             #     zbar(wl_nm), dimensionless
     
             CIE1931_CMF = (
-            '''))
+            """)
+            )
         i = indent
         if dbg:
             out = out[:10]
@@ -288,44 +300,56 @@ def CIE_Data(dbg=False):
         print(f")")
         if suppl:
             print()
+
     Header()
     out = GetData(data2)
     Output(out, suppl=True)
     out = GetData(data1)
     Output(out)
+
+
 def CIE_CMF_Approx(nm):
-    '''Produce the CIE 1931 CMFs with piecewise-linear approximations.  From
+    """Produce the CIE 1931 CMFs with piecewise-linear approximations.  From
     C. Wyman, et. al., "Simple Analytic Approximations to the CIE XYZ Color
     Matching Functions", Journal of Computer Graphics Techniques, vol. 2,
     no. 2, 2013.  https://jcgt.org/published/0002/02/01/
-    '''
+    """
     if not (380 <= nm <= 780):
         raise ValueError(f"'{nm}' must be between 380 and 780 nm")
     T = lambda boolean, a, b: a if boolean else b
-    t1 = (nm - 442)*T(nm < 442, 0.0624, 0.0374)
-    t2 = (nm - 599.8)*T(nm < 599.8, 0.0264, 0.0323)
-    t3 = (nm - 501.1)*T(nm < 501.1, 0.049, 0.0382)
-    x = 0.362*exp(-t1**2/2) + 1.056*exp(-t2**2/2) - 0.065*exp(-t3**2/2)
-    t1 = (nm - 568.8)*T(nm < 568.8, 0.0213, 0.0247)
-    t2 = (nm - 530.9)*T(nm < 530.9, 0.0613, 0.0322)
-    y = 0.821*exp(-t1**2/2) + 0.286*exp(-t2**2/2)
-    t1 = (nm - 437)*T(nm < 437, 0.0845, 0.0278)
-    t2 = (nm - 459)*T(nm < 459, 0.0385, 0.0725)
-    z = 1.217*exp(-t1**2/2) + 0.681*exp(-t2**2/2)
+    t1 = (nm - 442) * T(nm < 442, 0.0624, 0.0374)
+    t2 = (nm - 599.8) * T(nm < 599.8, 0.0264, 0.0323)
+    t3 = (nm - 501.1) * T(nm < 501.1, 0.049, 0.0382)
+    x = (
+        0.362 * exp(-(t1**2) / 2)
+        + 1.056 * exp(-(t2**2) / 2)
+        - 0.065 * exp(-(t3**2) / 2)
+    )
+    t1 = (nm - 568.8) * T(nm < 568.8, 0.0213, 0.0247)
+    t2 = (nm - 530.9) * T(nm < 530.9, 0.0613, 0.0322)
+    y = 0.821 * exp(-(t1**2) / 2) + 0.286 * exp(-(t2**2) / 2)
+    t1 = (nm - 437) * T(nm < 437, 0.0845, 0.0278)
+    t2 = (nm - 459) * T(nm < 459, 0.0385, 0.0725)
+    z = 1.217 * exp(-(t1**2) / 2) + 0.681 * exp(-(t2**2) / 2)
     return x, y, z
+
+
 def CIE_CMF_Approximation(dbg=False, nm_step=5):
     i = indent
     if dbg:
         nm_step = 30
-    print(dedent(f'''
+    print(
+        dedent(f"""
     # Analytical approximation to CIE 1931 CMF\n
     CIE1931_CMF = (
-    '''))
+    """)
+    )
     for nm in range(380, 781, nm_step):
         x, y, z = CIE_CMF_Approx(nm)
         print(f"{i}({nm:3d}, ({x:8.6f}, {y:8.6f}, {z:8.6f})),")
 
-if __name__ == "__main__": 
+
+if __name__ == "__main__":
     dbg = 0
     if 1:
         CIE_Data(dbg=dbg)

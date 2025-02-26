@@ -1,29 +1,30 @@
-'''
+"""
 Find files above a specified size
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2008 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2008 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Find files above a specified size
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import os
     import getopt
     from operator import itemgetter
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
     from fpformat import FPFormat
-if 1:   # Global variables
+if 1:  # Global variables
     nl = "\n"
     size_string = ""
     size_in_bytes = 0
@@ -34,9 +35,13 @@ if 1:   # Global variables
     dirlist = []
     topdown = True
     dirs_to_ignore = []
+
+
 def Usage():
     name = sys.argv[0]
-    print(dedent('''
+    print(
+        dedent(
+            """
     Usage:  %(name)s size [dir1 [dir2...]]
       Print all files above the specified size at and below each directory
       specified.  The size is the number of bytes; it can have "k", "M",
@@ -58,8 +63,13 @@ def Usage():
           Ignore files in this directory.  More than one -x option OK.
       -X
           Ignore the directories I don't normally search on my Linux box.
-    ''' % locals()))
+    """
+            % locals()
+        )
+    )
     sys.exit(2)
+
+
 def ParseCommandLine():
     global size_in_bytes, size_string, sorted, num_largest, topdown
     global dirs_to_ignore
@@ -122,10 +132,10 @@ def ParseCommandLine():
     d = {"k": 3, "M": 6, "G": 9, "K": 3, "m": 6, "g": 9}
     multiplier = 1
     if size[-1] in d:
-        multiplier = 10**d[size[-1]]
+        multiplier = 10 ** d[size[-1]]
         size = size[:-1]
     try:
-        size_in_bytes = int(float(size)*multiplier)
+        size_in_bytes = int(float(size) * multiplier)
     except ValueError:
         print("Bad number for size")
         sys.exit(1)
@@ -135,27 +145,36 @@ def ParseCommandLine():
     # Turn dirs_to_ignore's paths to absolute paths
     dirs_to_ignore = [os.path.abspath(i) for i in dirs_to_ignore]
     return tuple(args)
+
+
 def FormatSize(n):
     def RemoveDecimalPoint(s):
         if s[-1] == ".":
             s = s[:-1]
         return s
+
     s = fp.engsi(n).strip()
     if " " in s:
         num, suffix = s.split()
         num = RemoveDecimalPoint(num)
-        return ''.join((num, suffix))
+        return "".join((num, suffix))
     else:
         return RemoveDecimalPoint(s)
+
+
 def GetSizeStringFormat(list_of_dirs):
     # list_of_dirs is a list of tuples containing
     # (size, formatted size, path)
     longest = max(map(len, map(itemgetter(1), list_of_dirs)))
     return "%%%ds %%s" % longest
+
+
 def PrintList(list_of_dirs):
     fmt = GetSizeStringFormat(list_of_dirs)
     for size, formatted_size, path in list_of_dirs:
         print(fmt % (formatted_size, path))
+
+
 def PrintLargest():
     # dirlist is a list of tuples containing (size, formatted size, path)
     global dirlist
@@ -166,6 +185,8 @@ def PrintLargest():
         largest.reverse()
     if largest:
         PrintList(largest)
+
+
 def PrintResults():
     global dirlist
     if not dirlist:
@@ -175,6 +196,8 @@ def PrintResults():
         if sorted == 2:
             dirlist.reverse()
     PrintList(dirlist)
+
+
 def ProcessDirectory(dir):
     for root, dirs, files in os.walk(dir, topdown=topdown):
         ap = os.path.abspath(root)
@@ -189,7 +212,9 @@ def ProcessDirectory(dir):
                 continue
             if size > size_in_bytes:
                 dirlist.append((size, FormatSize(size), filepath))
-if __name__ == "__main__": 
+
+
+if __name__ == "__main__":
     directories = ParseCommandLine()
     for dir in directories:
         ProcessDirectory(dir)

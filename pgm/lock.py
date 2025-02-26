@@ -1,24 +1,25 @@
-'''
+"""
 Encrypt/decrypt a file
     This is intended to be a practical tool for encrypting/unencrypting files.  It requires
     the PyPi 'cryptography' library that provides the Fernet object.  See
     https://cryptography.io/en/latest/fernet/#.
-'''
-if 1:   # Header
-    if 1:   # Copyright, license
+"""
+
+if 1:  # Header
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Encrypt/decrypt a file
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         from collections import deque
         from cryptography.fernet import Fernet
         from cryptography.hazmat.primitives import hashes
@@ -32,33 +33,39 @@ if 1:   # Header
         import subprocess
         import sys
         import zlib
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from color import t
         from dpprint import PP
-        pp = PP()   # Screen width aware form of pprint.pprint
+
+        pp = PP()  # Screen width aware form of pprint.pprint
         from get import GetLines
         from wrap import dedent
-        from wsl import wsl     # wsl is True when running under WSL Linux
+        from wsl import wsl  # wsl is True when running under WSL Linux
         from lwtest import Assert
-        #from columnize import Columnize
-    if 1:   # Global variables
+        # from columnize import Columnize
+    if 1:  # Global variables
+
         class G:
             # Storage for global variables as attributes
             pass
+
         g = G()
         g.dbg = False
         ii = isinstance
-if 1:   # Utility
+if 1:  # Utility
+
     def GetScreen():
-        'Return (LINES, COLUMNS)'
+        "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
-            int(os.environ.get("COLUMNS", "80")) - 1
+            int(os.environ.get("COLUMNS", "80")) - 1,
         )
+
     def GetColors():
         t.dbg = t("sky") if g.dbg else ""
         t.N = t.n if g.dbg else ""
         t.err = t("redl")
+
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="", file=Dbg.file)
@@ -66,12 +73,17 @@ if 1:   # Utility
             k["file"] = Dbg.file
             print(*p, **k)
             print(f"{t.n}", end="", file=Dbg.file)
+
     Dbg.file = sys.stdout
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Manpage():
-        print(dedent(f'''
+        print(
+            dedent(
+                f"""
             I use this script as a utility encrypting/decrypting tool on my computers.  I use a
             shell function 'lock' to encrypt and another function 'unlock' to decrypt.
 
@@ -99,11 +111,15 @@ if 1:   # Utility
             time; if you don't want it you can switch it off by changing the line around 8 lines
             from the end of the file.
             
-        '''.rstrip()))
+        """.rstrip()
+            )
+        )
         exit(0)
+
     def Usage(status=1):
         comp = "Do not use" if d["-c"] else "Use"
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] infile [outfile]
             Encrypt (default) and decrypt files.  outfile will be overwritten if it exists.  You'll
             be prompted for a password twice and your inputs must match before the program will
@@ -114,17 +130,19 @@ if 1:   # Utility
             -h      Show more detailed help
             -u      Use no password (i.e., file is shrouded like ROT13)
             -v      Verbose operation (messages to stderr)
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-c"] = False     # Use compression
-        d["-d"] = False     # Decrypt the file
-        d["-u"] = False     # Do not prompt for password
-        d["-v"] = False     # Verbose output
+        d["-c"] = False  # Use compression
+        d["-d"] = False  # Decrypt the file
+        d["-u"] = False  # Do not prompt for password
+        d["-v"] = False  # Verbose output
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "cdhuv") 
+            opts, args = getopt.getopt(sys.argv[1:], "cdhuv")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -140,7 +158,10 @@ if 1:   # Utility
         GetColors()
         g.W, g.L = GetScreen()
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def GetPassword():
         while True:
             pw1 = getpass().encode()
@@ -149,10 +170,11 @@ if 1:   # Core functionality
                 print("Passwords differ; try again")
             else:
                 return pw1
+
     def GetFernet(password):
-        'Return the Fernet object for encrypting/decrypting'
+        "Return the Fernet object for encrypting/decrypting"
         Assert(ii(password, bytes))
-        salt = b'\xde\xc4\x9f\xb0\xc7\xa7j\x81\xca\x1a0}q\x1fB\x80'
+        salt = b"\xde\xc4\x9f\xb0\xc7\xa7j\x81\xca\x1a0}q\x1fB\x80"
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
@@ -161,8 +183,9 @@ if 1:   # Core functionality
         )
         key = base64.urlsafe_b64encode(kdf.derive(password))
         return Fernet(key)
+
     def GetData(*args):
-        'Return inputdata (bytes), outstream'
+        "Return inputdata (bytes), outstream"
         if len(args) == 1:
             if args[0] == "-":
                 inputdata = sys.stdin.buffer.read()
@@ -172,7 +195,7 @@ if 1:   # Core functionality
                 inputdata = open(args[0], "rb").read()
             outstream = sys.stdout.buffer
             Dbg("Sending output to stdout")
-        else:   # Must be 2 arguments
+        else:  # Must be 2 arguments
             if args[0] == "-":
                 inputdata = sys.stdin.buffer.read()
                 Dbg(f"Got input from stdin")
@@ -184,23 +207,24 @@ if 1:   # Core functionality
         assert isinstance(inputdata, bytes)
         return inputdata, outstream
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     inputdata, outstream = GetData(*args)
-    password = b'' if d["-u"] else GetPassword()
+    password = b"" if d["-u"] else GetPassword()
     fernet = GetFernet(password)
-    if d["-d"]:     # Decrypt
+    if d["-d"]:  # Decrypt
         data = inputdata
         if d["-c"]:
             data = zlib.decompress(inputdata)
         output_data = fernet.decrypt(data)
-    else:           # Encrypt
+    else:  # Encrypt
         output_data = fernet.encrypt(inputdata)
         if d["-c"]:
             output_data = zlib.compress(output_data)
-    if 1:   # Validate when encrypting
-        if not d["-d"]: 
+    if 1:  # Validate when encrypting
+        if not d["-d"]:
             indata = output_data
             if d["-c"]:
                 indata = zlib.decompress(output_data)

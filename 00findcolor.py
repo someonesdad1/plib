@@ -1,43 +1,51 @@
-'''
+"""
 Find files that use color.py
-'''
-if 1:   # Header
+"""
+
+if 1:  # Header
     # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
-        # Program description string
-        #∞what∞#
-        #∞test∞# none #∞test∞#
+    # These "trigger strings" can be managed with trigger.py
+    # ∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    # ∞license∞#
+    # ∞what∞#
+    # Program description string
+    # ∞what∞#
+    # ∞test∞# none #∞test∞#
     # Standard imports
-        import getopt
-        import os
-        from pathlib import Path as P
-        import sys
-        import re
-        from pdb import set_trace as xx
+    import getopt
+    import os
+    from pathlib import Path as P
+    import sys
+    import re
+    from pdb import set_trace as xx
+
     # Custom imports
-        from get import GetLines
-        from wrap import wrap, dedent
+    from get import GetLines
+    from wrap import wrap, dedent
+
     # Global variables
-        ii = isinstance
-if 1:   # Utility
+    ii = isinstance
+if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] etc.
           Explanations...
         Options:
             -h      Print a manpage
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
         d["-a"] = False
         try:
@@ -51,21 +59,29 @@ if 1:   # Utility
             elif o in ("-h", "--help"):
                 Usage(status=0)
         return args
-if 1:   # Core functionality
-    r = re.compile(r"from\s+color\s+import|"
-                    r"from\s+kolor\s+import|"
-                    r"import\s.*color|"
-                    r"import\s.*kolor")
+
+
+if 1:  # Core functionality
+    r = re.compile(
+        r"from\s+color\s+import|"
+        r"from\s+kolor\s+import|"
+        r"import\s.*color|"
+        r"import\s.*kolor"
+    )
     print("Looking for 'kolor' only")
-    r = re.compile(r"from\s+kolor\s+import|"
-                    r"import\s.*kolor")
+    r = re.compile(
+        r"from\s+kolor\s+import|"
+        r"import\s.*kolor"
+    )
+
     def ProcessFile(file):
-        'Return True if it has the regexp'
+        "Return True if it has the regexp"
         lines = GetLines(file, script=True)
         for line in lines:
             if r.search(line):
                 return True
         return False
+
     def ProcessDir(dir, recursive=False):
         print(f"{dir}: ", end=" ")
         old = os.getcwd()
@@ -80,8 +96,9 @@ if 1:   # Core functionality
         print(f" <{n}>")
         os.chdir(old)
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     dirs = (".", "pgm", "rgb", "test")
     for dir in dirs:

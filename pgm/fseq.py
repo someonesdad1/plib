@@ -1,29 +1,30 @@
-'''
+"""
 TODO:
     - wor 100 10 doesn't work
 
     - Ensure the -x xfms are applied to the array before the -X
       operations so that they will be applied sequentially.
- 
+
 Output an arithmetic sequence of numbers
- 
+
 Can also generate sequences of random numbers (use -h to see
 details).
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2008, 2012 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2008, 2012 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Generate sequences of numbers
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import getopt
     import os
@@ -31,39 +32,44 @@ if 1:   # Imports
     import math
     import fractions
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
     import numpy as np
     import numpy.random as npr
     from sig import sig as _sig
     from cmddecode import CommandDecode
+
     _have_scipy = False
     try:
         from scipy.stats import binom, hypergeom, expon, norm, poisson
+
         _have_scipy = True
     except ImportError:
         pass
-if 1:   # Global variables
+if 1:  # Global variables
     _out = sys.stdout.write
     _err = sys.stderr.write
     _nl = "\n"
-    _digits = 3     # Default number of significant figures in floats
-    _sep = " "      # Default separator
+    _digits = 3  # Default number of significant figures in floats
+    _sep = " "  # Default separator
     # The following string is common to the usage message and the manpage.
-    _basic = '''
+    _basic = """
     Output a sequence of numbers from n to m inclusive in steps of
     inc.  For just n, output from 1 to n by 1.  For n to m, output
     n to m by 1.  n, m, and inc can be integers, floats, fractions
     or python expressions.  The absolute value of inc will be taken
     unless the -g option is used.
-    '''
+    """
+
+
 def Manpage(d, bye=None):
     name = os.path.split(sys.argv[0])[1]
     basic = _basic
     digits = _digits
     eps = d["-e"]
     sep = _sep
-    _out(dedent('''
+    _out(
+        dedent("""
     Usage:  {name} [options] n [m [inc]]
       Output a sequence of numbers from n to m inclusive in steps of
       inc.  For just n, output from 1 to n by 1.  For n to m, output
@@ -182,36 +188,39 @@ def Manpage(d, bye=None):
             5.5 degrees; output to 5 significant figures:
                 python {name} -d 5 "asin(0.2)*180/pi" 90 5.5
 
-    '''))
+    """)
+    )
     if bye is not None:
         exit(bye)
+
+
 def ParseCommandLine(d):
-    d["mixed"] = "+"        # Separates mixed fraction components
-    d["-0"] = False         # Used 0-based arrays
+    d["mixed"] = "+"  # Separates mixed fraction components
+    d["-0"] = False  # Used 0-based arrays
 
-    d["-D"] = None          # Calculate nth difference for output
-    d["-E"] = None          # Output in E series ratios
-    d["-F"] = None          # Output in fractions; value is largest denom
-    d["-I"] = False         # Force output to integer values
-    d["-L"] = False         # Output in loge ratios
-    d["-R"] = None          # Output using Renard numbers ratios
-    d["-S"] = False         # Sort output array for wr
-    d["-T"] = False         # Run self-tests
-    d["-X"] = None          # Output array transformation function
+    d["-D"] = None  # Calculate nth difference for output
+    d["-E"] = None  # Output in E series ratios
+    d["-F"] = None  # Output in fractions; value is largest denom
+    d["-I"] = False  # Force output to integer values
+    d["-L"] = False  # Output in loge ratios
+    d["-R"] = None  # Output using Renard numbers ratios
+    d["-S"] = False  # Sort output array for wr
+    d["-T"] = False  # Run self-tests
+    d["-X"] = None  # Output array transformation function
 
-    d["-c"] = False         # Calculate CDF
-    d["-d"] = None          # Digits in output or fmt str (None => figure out)
-    d["-e"] = 1e-14         # Rel diff to determine when float == integer
-    d["-f"] = False         # Convert output to float
-    d["-g"] = False         # Geometric series
-    d["-i"] = False         # Display as integer if possible
-    d["-l"] = False         # Output in log10 ratios
-    d["-m"] = False         # Convert improper to mixed fractions
-    d["-o"] = _sep          # Output separator string
-    d["-p"] = False         # Calculate PDF
-    d["-s"] = None          # Seed RNG; None means system clock
-    d["-t"] = False         # Output the transpose
-    d["-x"] = None          # Output transformation function
+    d["-c"] = False  # Calculate CDF
+    d["-d"] = None  # Digits in output or fmt str (None => figure out)
+    d["-e"] = 1e-14  # Rel diff to determine when float == integer
+    d["-f"] = False  # Convert output to float
+    d["-g"] = False  # Geometric series
+    d["-i"] = False  # Display as integer if possible
+    d["-l"] = False  # Output in log10 ratios
+    d["-m"] = False  # Convert improper to mixed fractions
+    d["-o"] = _sep  # Output separator string
+    d["-p"] = False  # Calculate PDF
+    d["-s"] = None  # Seed RNG; None means system clock
+    d["-t"] = False  # Output the transpose
+    d["-x"] = None  # Output transformation function
     if len(sys.argv) < 2:
         Usage(status=1)
     try:
@@ -263,12 +272,15 @@ def ParseCommandLine(d):
             if d["-R"] not in (5, 10, 20, 40, 80):
                 if d["-R"] < 2:
                     Error("'%s' is a bad integer for -R option" % opt[1])
-                msg = ("Warning:  Renard series with non-standard series "
-                       "number %d\n" % d["-R"])
+                msg = (
+                    "Warning:  Renard series with non-standard series "
+                    "number %d\n" % d["-R"]
+                )
                 _err(msg)
-                factor = 10**(1/float(d["-R"]))
-                msg = ("          (The geometric series factor is %s)\n"
-                       % _sig(factor, 6))
+                factor = 10 ** (1 / float(d["-R"]))
+                msg = "          (The geometric series factor is %s)\n" % _sig(
+                    factor, 6
+                )
                 _err(msg)
         if opt[0] == "-S":
             d["-S"] = not d["-S"]
@@ -324,13 +336,18 @@ def ParseCommandLine(d):
     if not d["-T"] and len(args) == 0:
         Usage()
     return args
+
+
 def Error(msg):
     _err(msg + _nl)
     exit(1)
+
+
 def Usage(status=1):
     name = os.path.split(sys.argv[0])[1]
     basic = _basic
-    _out(dedent(f'''
+    _out(
+        dedent(f"""
     Usage:  {name} [options] n [m [inc]]
       Output a sequence of numbers from n to m inclusive in steps of
       inc.  For just n, output from 1 to n by 1.  For n to m, output
@@ -342,33 +359,38 @@ def Usage(status=1):
       numbers, samples with and without replacement, permutations of
       a set of integers, IEC "E series", Renard numbers, geometric
       progressions, and numbers in specified logarithmic ratios.  Use
-      the -h option for a man page.\n'''))
+      the -h option for a man page.\n""")
+    )
     exit(status)
+
+
 def Convert(s):
     s = s.replace("\n", "")
     s = [int(i) for i in s.split()]
     s.sort()
     return np.array(s)
+
+
 def E(series):
-    '''Return numpy array values that are the IEC 60063 numbers.
+    """Return numpy array values that are the IEC 60063 numbers.
     Reference: http://en.wikipedia.org/wiki/Preferred_value#E_series
- 
+
     series should be an integer:  6, 12, 24, 48, 96, or 192.  If you
     give a bad integer, None is returned.
-    '''
+    """
     d = {
-        6: Convert('''100 150 220 330 470 680 1000'''),
-        12: Convert('''100 120 150 180 220 270 330 390 470 560 680 820
-                       1000'''),
-        24: Convert('''100 110 120 130 150 160 180 200 220 240 270 300
+        6: Convert("""100 150 220 330 470 680 1000"""),
+        12: Convert("""100 120 150 180 220 270 330 390 470 560 680 820
+                       1000"""),
+        24: Convert("""100 110 120 130 150 160 180 200 220 240 270 300
                        330 360 390 430 470 510 560 620 680 750 820 910
-                       1000'''),
-        48: Convert('''100 105 110 115 121 127 133 140 147 154 162 169
+                       1000"""),
+        48: Convert("""100 105 110 115 121 127 133 140 147 154 162 169
                        178 187 196 205 215 226 237 249 261 274 287 301
                        316 332 348 365 383 402 422 442 464 487 511 536
                        562 590 619 649 681 715 750 787 825 866 909 953
-                       1000'''),
-        96: Convert('''100 102 105 107 110 113 115 118 121 124 127 130
+                       1000"""),
+        96: Convert("""100 102 105 107 110 113 115 118 121 124 127 130
                        133 137 140 143 147 150 154 158 162 165 169 174
                        178 182 187 191 196 200 205 210 215 221 226 232
                        237 243 249 255 261 267 274 280 287 294 301 309
@@ -376,8 +398,8 @@ def E(series):
                        422 432 442 453 464 475 487 499 511 523 536 549
                        562 576 590 604 619 634 649 665 681 698 715 732
                        750 768 787 806 825 845 866 887 909 931 953 976
-                       1000'''),
-        192: Convert('''100 101 102 104 105 106 107 109 110 111 113 114
+                       1000"""),
+        192: Convert("""100 101 102 104 105 106 107 109 110 111 113 114
                         115 117 118 120 121 123 124 126 127 129 130 132
                         133 135 137 138 140 142 143 145 147 149 150 152
                         154 156 158 160 162 164 165 167 169 172 174 176
@@ -393,15 +415,17 @@ def E(series):
                         649 657 665 673 681 690 698 706 715 723 732 741
                         750 759 768 777 787 796 806 816 825 835 845 856
                         866 876 887 898 909 920 931 942 953 965 976 988
-                        1000'''),
+                        1000"""),
     }
     if series not in d:
         return None
     s = d[series].astype(float)
     s /= s[0]  # Normalize
     return s
+
+
 def Renard(series):
-    '''Returns a sequence of Renard numbers (see
+    """Returns a sequence of Renard numbers (see
     http://en.wikipedia.org/wiki/Preferred_value#Renard_numbers).
     Note:  the series number is allowed to be any positive integer greater
     than 1, although a warning message is printed to stderr when the series
@@ -409,19 +433,19 @@ def Renard(series):
 
     For another listing, see page 689 of Machinery's Handbook, 27th
     edition, 2004.
-    '''
+    """
     d = {
-        5: Convert('''10   16  25  40  63 100'''),
-        10: Convert('''100 125 160 200 250 315 400 500 630 800 1000'''),
-        20: Convert('''100 112 125 140 160 180 200 224 250 280
+        5: Convert("""10   16  25  40  63 100"""),
+        10: Convert("""100 125 160 200 250 315 400 500 630 800 1000"""),
+        20: Convert("""100 112 125 140 160 180 200 224 250 280
                        315 355 400 450 500 560 630 710 800 900
-                       1000'''),
-        40: Convert('''100 106 112 118 125 132 140 150 160 170
+                       1000"""),
+        40: Convert("""100 106 112 118 125 132 140 150 160 170
                        180 190 200 212 224 236 250 265 280 300
                        315 335 355 375 400 425 450 475 500 530
                        560 600 630 670 710 750 800 850 900 950
-                       1000'''),
-        80: Convert('''100 103 106 109 112 115 118 122 125 128
+                       1000"""),
+        80: Convert("""100 103 106 109 112 115 118 122 125 128
                        132 136 140 145 150 155 160 165 170 175
                        180 185 190 195 200 206 212 218 224 230
                        236 243 250 258 265 272 280 290 300 307
@@ -429,7 +453,7 @@ def Renard(series):
                        425 437 450 462 475 487 500 515 530 545
                        560 580 600 615 630 650 670 690 710 730
                        750 775 800 825 850 875 900 925 950 975
-                       1000'''),
+                       1000"""),
     }
     if series not in d:
         # We'll allow non-standard Renard series, as they can be calculated
@@ -439,18 +463,20 @@ def Renard(series):
             raise ValueError("Renard series number must be an integer")
         if series < 2:
             raise ValueError("Renard series number must be > 1")
-        s = np.arange(0, series + 1, 1)/series
+        s = np.arange(0, series + 1, 1) / series
         return 10**s
     s = d[series].astype(float)
     s /= s[0]  # Normalize
     return s
+
+
 def GetInt(x, msg, minimum=None, minimum_ge=None):
-    '''x should be convertible to an integer.  If minimum is not None,
+    """x should be convertible to an integer.  If minimum is not None,
     then x must be > minimum.  If not, print the error message in
     msg.  minimum_ge is the same as minimum by the comparison is >=.
 
     Note we round to the nearest integer
-    '''
+    """
     if isinstance(x, str):
         # This gets rid of annoying things like appended carriage
         # returns.
@@ -464,13 +490,14 @@ def GetInt(x, msg, minimum=None, minimum_ge=None):
         return y
     except Exception:
         Error(msg)
-def GetFloat(x, msg, minimum=None, minimum_ge=None, maximum=None,
-              maximum_le=None):
-    '''x should be convertible to a float.  If minimum is not None,
+
+
+def GetFloat(x, msg, minimum=None, minimum_ge=None, maximum=None, maximum_le=None):
+    """x should be convertible to a float.  If minimum is not None,
     then x must be > minimum.  If maximum is not None, then x must be
     < maximum.  For *_ge or *_le, the = sign is added to the
     comparison.  Print error message msg otherwise.
-    '''
+    """
     if isinstance(x, str):
         # This gets rid of annoying things like appended carriage
         # returns.
@@ -488,8 +515,10 @@ def GetFloat(x, msg, minimum=None, minimum_ge=None, maximum=None,
         return y
     except Exception:
         Error(msg)
+
+
 def PrintArray(y, d, test=False):
-    '''The difference between the -X option and the -x option is
+    """The difference between the -X option and the -x option is
     that -X applies to the whole array at once; therefore it must
     be a vectorized function.  -x applies to each element and can
     contain e.g. math module functions.  If test is True, then
@@ -497,7 +526,7 @@ def PrintArray(y, d, test=False):
 
     Note that the -x transformation is applied before the -X
     transformation.
-    '''
+    """
     assert isinstance(y, np.ndarray)
     # Get math module's symbols into local namespace for the -x
     # option evaluations.
@@ -509,7 +538,7 @@ def PrintArray(y, d, test=False):
         k.sort()
         for i in k:
             _out("  " + i + "    " + repr(d[i]) + _nl)
-    if d["-x"]:     # Transform each component separately
+    if d["-x"]:  # Transform each component separately
         for i, x in enumerate(y):
             try:
                 x1 = eval(d["-x"])
@@ -522,18 +551,18 @@ def PrintArray(y, d, test=False):
                 except ValueError:
                     y = y.astype(float)
                     y[i] = np.nan
-    if d["-X"]:     # Transform the whole array at once
+    if d["-X"]:  # Transform the whole array at once
         x = y
         y = eval(d["-X"])
-    if d["-D"]:     # Calculate diffs
+    if d["-D"]:  # Calculate diffs
         for i in range(d["-D"]):
             y = np.diff(y)
-    if d["-S"]:     # Sort output
+    if d["-S"]:  # Sort output
         y.sort()
     # T is made True if we must print out in floating point, even
     # if the array is made of integers.
     T = (d["-f"]) or (isinstance(d["-d"], str))
-    if y.dtype == np.int32 and not T:   # Integer array
+    if y.dtype == np.int32 and not T:  # Integer array
         s = [str(i) for i in y]
     else:
         # In the following loop, the order of checking the
@@ -543,7 +572,7 @@ def PrintArray(y, d, test=False):
         s = []
         for x in y:
             try:
-                if d["-F"] is not None:     # Output as fraction
+                if d["-F"] is not None:  # Output as fraction
                     f = fractions.Fraction(str(x))
                     if d["-F"]:
                         # Denominator is limited
@@ -551,7 +580,7 @@ def PrintArray(y, d, test=False):
                     else:
                         # Full precision
                         f = f.from_float(x)
-                    if d["-m"]:     # Allow mixed fraction
+                    if d["-m"]:  # Allow mixed fraction
                         N, D = f.numerator, f.denominator
                         i, r = divmod(N, D)
                         if r:
@@ -559,14 +588,14 @@ def PrintArray(y, d, test=False):
                         else:
                             f = str(i)
                     s.append(str(f))
-                elif d["-I"]:   # Force to an integer
+                elif d["-I"]:  # Force to an integer
                     s.append(str(int(x + 0.5)))
-                elif d["-i"]:   # Display as integer if possible
+                elif d["-i"]:  # Display as integer if possible
                     if int(x) == x:
                         s.append(str(int(x)))
                     else:
                         diff = abs(x - int(x + 0.5))
-                        reldiff = diff/abs(x) if x else 1
+                        reldiff = diff / abs(x) if x else 1
                         if reldiff <= d["-e"]:
                             s.append(str(int(x + 0.5)))
                         else:
@@ -575,10 +604,10 @@ def PrintArray(y, d, test=False):
                     s.append(d["-d"] % x)
                 elif d["-f"]:
                     s.append(FormatFloat(x, d))
-                else:                   # Default behavior
-                    if x == int(x):     # Display as integer if possible
+                else:  # Default behavior
+                    if x == int(x):  # Display as integer if possible
                         s.append(str(int(x)))
-                    else:               # Normal float display
+                    else:  # Normal float display
                         s.append(FormatFloat(x, d))
             except ValueError:
                 s.append("nan")
@@ -592,24 +621,28 @@ def PrintArray(y, d, test=False):
             _out(d["-o"].join(s) + _nl)
         else:
             _out(_nl.join(s) + _nl)
+
+
 def FormatFloat(x, d):
-    '''Format the float x with d["-d"].  This is either an
+    """Format the float x with d["-d"].  This is either an
     integer for the number of significant figures or a format
     string.
-    '''
+    """
     s = d["-d"]
     if s is not None:
         if isinstance(s, str):  # It's a format string
             return s % x
-        else:                   # Use _sig()
+        else:  # Use _sig()
             assert isinstance(s, int)
             return _sig(x, s)
     else:
-        return _sig(x)          # Default _sig()
+        return _sig(x)  # Default _sig()
+
+
 def GetNumber(s, d):
-    '''s can be an expression.  Evaluate it and get a float.  If
+    """s can be an expression.  Evaluate it and get a float.  If
     it can be exactly expressed as an integer, then do so.
-    '''
+    """
     # Get math module's symbols into local namespace
     # option evaluations.
     for i in [i for i in math.__dict__ if i[0] != "_"]:
@@ -618,6 +651,8 @@ def GetNumber(s, d):
     y = float(eval(s))
     i = int(y)
     return i if i == y else y
+
+
 def RandomNumbers(cmd, args, d):
     n = GetInt(args[0], "n must be an integer > 0", minimum=1)
     start = 0 if d["-0"] else 1
@@ -626,8 +661,12 @@ def RandomNumbers(cmd, args, d):
         if len(args) != 3:
             Error("binomial uses 3 arguments")
         N = GetInt(args[1], "N must be an integer >= 1", minimum_ge=1)
-        p = GetFloat(args[2], "p must be a float such that 0 <= p <= 1",
-                      minimum_ge=0, maximum_le=1)
+        p = GetFloat(
+            args[2],
+            "p must be a float such that 0 <= p <= 1",
+            minimum_ge=0,
+            maximum_le=1,
+        )
         PrintArray(npr.binomial(N, p, n), d)
     elif cmd == "hypergeometric":
         if len(args) != 4:
@@ -635,11 +674,15 @@ def RandomNumbers(cmd, args, d):
         # Total number of items in the population
         N = GetInt(args[1], "N must be an integer >= 1", minimum_ge=1)
         # Fraction of items with desired characteristic
-        p = GetFloat(args[2], "p must be a float such that 0 <= p <= 1",
-                      minimum_ge=0, maximum_le=1)
+        p = GetFloat(
+            args[2],
+            "p must be a float such that 0 <= p <= 1",
+            minimum_ge=0,
+            maximum_le=1,
+        )
         # Size of sample drawn
         m = GetInt(args[3], "m must be an integer >= 1", minimum_ge=1)
-        M = int(p*N + 0.5)  # Round to nearest integer
+        M = int(p * N + 0.5)  # Round to nearest integer
         if m > N:
             Error("We must have m <= N")
         PrintArray(npr.hypergeometric(N - M, M, m, n), d)
@@ -702,13 +745,19 @@ def RandomNumbers(cmd, args, d):
         PrintArray(s, d)
     else:
         raise RuntimeError("Bug in program:  '%s' is bad command" % cmd)
+
+
 def CDFs(cmd, args, d):
     if cmd == "binomial":
         if len(args) < 3:
             Error("binomial CDF uses 3 or more arguments")
         n = GetInt(args[0], "n must be an integer >= 1", minimum_ge=1)
-        p = GetFloat(args[1], "p must be a float such that 0 <= p <= 1",
-                      minimum_ge=0, maximum_le=1)
+        p = GetFloat(
+            args[1],
+            "p must be a float such that 0 <= p <= 1",
+            minimum_ge=0,
+            maximum_le=1,
+        )
         x = []
         for i in args[2:]:
             num = GetInt(i, "x must be an integer >= 0", minimum_ge=0)
@@ -723,9 +772,13 @@ def CDFs(cmd, args, d):
         if len(args) < 4:
             Error("hypergeometric CDF uses 4 or more arguments")
         N = GetInt(args[0], "n must be an integer >= 1", minimum_ge=1)
-        p = GetFloat(args[1], "p must be a float such that 0 <= p <= 1",
-                      minimum_ge=0, maximum_le=1)
-        M = int(N*p + 1/2)
+        p = GetFloat(
+            args[1],
+            "p must be a float such that 0 <= p <= 1",
+            minimum_ge=0,
+            maximum_le=1,
+        )
+        M = int(N * p + 1 / 2)
         m = GetInt(args[2], "m must be an integer >= 1", minimum_ge=1)
         if m > N:
             Error("m must be <= N")
@@ -791,6 +844,8 @@ def CDFs(cmd, args, d):
             PrintArray(rv.cdf(x), d)
         else:
             PrintArray(rv.pmf(x), d)
+
+
 def Sequence(args, d):
     # Get math module's symbols into local namespace
     for i in [i for i in math.__dict__ if i[0] != "_"]:
@@ -813,7 +868,7 @@ def Sequence(args, d):
         Error("Need 1 to 3 arguments for a numerical sequence")
     # Get number of significant figures to use if it's not set
     if d["-d"] is None and not (d["-R"] or d["-E"] or d["-g"]):
-        delta = abs(math.log10(max(abs(n), abs(m))/abs(inc)))
+        delta = abs(math.log10(max(abs(n), abs(m)) / abs(inc)))
         T = int(delta) != delta
         digits = math.ceil(delta) if T else math.ceil(delta) + 1
         if delta < 1:
@@ -831,14 +886,14 @@ def Sequence(args, d):
         if d["-d"] is None:
             d["-d"] = 3
         for e in E:
-            y.append(e*m)
+            y.append(e * m)
     elif d["-R"]:
         # Renard numbers
         R = Renard(d["-R"])
         if d["-d"] is None:
             d["-d"] = 3
         for r in R:
-            y.append(r*m)
+            y.append(r * m)
     elif d["-g"]:
         # Geometric series.  We need to decide on the number of
         # significant figures if this isn't defined.  To do this,
@@ -913,12 +968,27 @@ def Sequence(args, d):
                 n -= inc
     y = np.array(y)
     PrintArray(y, d)
+
+
 if __name__ == "__main__":
     d = {}  # Hold options & globally-needed stuff
-    d["decode"] = CommandDecode(set((
-        "binomial", "exponential", "hypergeometric", "normal",
-        "poisson", "randint", "shuffle", "uniform", "wor", "wr",
-    )), ignore_case=True)
+    d["decode"] = CommandDecode(
+        set(
+            (
+                "binomial",
+                "exponential",
+                "hypergeometric",
+                "normal",
+                "poisson",
+                "randint",
+                "shuffle",
+                "uniform",
+                "wor",
+                "wr",
+            )
+        ),
+        ignore_case=True,
+    )
     args = ParseCommandLine(d)
     # Set up seeds
     if d["-s"] is not None:

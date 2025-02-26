@@ -1,33 +1,34 @@
-'''
+"""
 Utility encoding tool
     Given a file, read it in as binary and try to determine its encoding
     by finding what decoder works on it.  Use '-o num' to choose an
     output encoding.
-   
+
     It doesn't make sense to have all the encodings available, as I'd
     only practically use a few; choose this small set to be the standard
     and add an option that lets you expand the set of codecs.
-  
+
     Here's a book that does a fairly good job of explaining Unicode and
     some problems (written by a non-native English speaker):
     https://unicodebook.readthedocs.io/index.html
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞# <utility> Utility encoding tool.  It reads a file and
+    # ∞license∞#
+    # ∞what∞# <utility> Utility encoding tool.  It reads a file and
     # decodes it with various codecs; the ones that don't raise an
     # exception are possible encodings.  Also lets you change a file's
     # encoding like iconv.
-    #∞what∞#
-    #∞test∞# ignore #∞test∞#
+    # ∞what∞#
+    # ∞test∞# ignore #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import csv
     import getopt
     import os
@@ -35,27 +36,32 @@ if 1:   # Imports
     import sys
     from collections import defaultdict
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
     from columnize import Columnize
+
     if 0:
         import debug
+
         debug.SetDebugger()  # Start debugger on unhandled exception
-if 1:   # Global variables
+if 1:  # Global variables
     P = pathlib.Path
     # This list comes from the most frequently used web page encodings.
     # I've kept English and western European codecs, getting rid of
     # Asian, Turkish, Russian, etc. encodings.  ASCII is detected
     # separately.
-    use_first = '''utf_8 latin_1 cp1252 iso8859_2 cp1250 iso8859_15'''.split()
+    use_first = """utf_8 latin_1 cp1252 iso8859_2 cp1250 iso8859_15""".split()
     aliases, primary = None, None
-if 1:   # Utility
+if 1:  # Utility
+
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
+
     def Usage(d, status=1):
         name = sys.argv[0]
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {name} [options] file1 [file2 ...]
           Try to identify the encoding of the file(s) on the command line.  This
           is done by finding which python codecs module encodings don't raise an
@@ -79,15 +85,17 @@ if 1:   # Utility
                     with UTF-8 unless you give a -d option.  The
                     characters are sorted.
           -X        Same as -x, but show codepoints
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-a"] = False     # Try all encodings
-        d["-d"] = None      # Which encoding to use
-        d["-l"] = False     # List allowed encodings
-        d["-o"] = None      # Encode file on command line with this encoding
-        d["-x"] = False     # Show the non-ASCII characters in the file
-        d["-X"] = False     # Same as -x, but show codepoints
+        d["-a"] = False  # Try all encodings
+        d["-d"] = None  # Which encoding to use
+        d["-l"] = False  # List allowed encodings
+        d["-o"] = None  # Encode file on command line with this encoding
+        d["-x"] = False  # Show the non-ASCII characters in the file
+        d["-X"] = False  # Same as -x, but show codepoints
         if len(sys.argv) < 2:
             Usage(d)
         try:
@@ -107,17 +115,19 @@ if 1:   # Utility
         if d["-o"] is not None and len(args) != 2:
             Error(f"Two arguments needed with -o option")
         return args
+
+
 def ConstructEncodingData():
-    '''This function can be called to print a dict to stdout that builds
+    """This function can be called to print a dict to stdout that builds
     the dictionary to use for doing decoding.  The keys are integers
     that give the order that the encodings should be tried.
- 
+
     Here's a URL that purports to have studied the frequencies of
     encodings used on web pages:
     https://w3techs.com/technologies/overview/character_encoding.  I've
     used this page's data to determine the encoding priority by this
     script.  Here are the frequencies in %:
- 
+
     Data from 9 Jun 2021:
         Web page's name   Frequency      Python codec name
         ---------------   ---------      -----------------
@@ -132,7 +142,7 @@ def ConstructEncodingData():
         EUC-KR               0.1%           euc_kr
         GBK                  0.1%           gbk
         EUC-JP               0.1%           euc_jp
- 
+
     Data from 2019:
         Web page's name   Frequency      Python codec name
         ---------------   ---------      -----------------
@@ -150,12 +160,12 @@ def ConstructEncodingData():
         Big5                 0.1%           big5
         ISO-8859-9           0.1%           iso8859_9
         ISO-8859-15          0.1%           iso8859_15
- 
+
     In my experience, the only other encoding I encounter besides UTF-8 on
     a regular basis is ISO-8859-1 (Latin-1).
- 
+
     The following encodings are used in less than 0.1%:
- 
+
         Web page's name                  Python codec name
         -------------------              -----------------
         Windows-1254                        cp1254
@@ -190,29 +200,27 @@ def ConstructEncodingData():
         ISO-8859-11                         iso8859_11
         ISO-8859-14                         iso8859_14
         IBM850                              cp850
- 
-    '''
+
+    """
     encodings = {
         # These encodings are listed on the codec documentation page for
         # python 3.7.4.  The key is the primary encoding name.  Values are
         # (pri, alt, lang) where pri is an integer indicating the priority
         # to use (0 being highest), alt is a set of aliases and lang are the
         # languages supported.
- 
         # English
         "ascii": ("646, us-ascii", "English"),
         "utf_8": ("U8, UTF, utf8", "All"),
- 
-        "latin_1": ("iso-8859-1, iso8859-1, 8859, cp819, latin, latin1, L1", "West Europe"),
+        "latin_1": (
+            "iso-8859-1, iso8859-1, 8859, cp819, latin, latin1, L1",
+            "West Europe",
+        ),
         "iso8859_2": ("iso-8859-2, latin2, L2", "Central and Eastern Europe"),
         "cp1252": ("windows-1252", "Western Europe"),
- 
         "utf_16": ("U16, utf16", "All"),
         "utf_32": ("U32, utf32", "All"),
- 
         "cp437": ("437, IBM437", "English (orig IBM PC)"),
         "cp037": ("IBM037, IBM039", "English (EBCDIC Latin-1)"),
- 
         "utf_8_sig": ("", "All (e.g. Notepad)"),
         "utf_32_be": ("UTF-32BE", "All"),
         "utf_32_le": ("UTF-32LE", "All"),
@@ -220,7 +228,6 @@ def ConstructEncodingData():
         "utf_16_le": ("UTF-16LE", "All"),
         "utf_7": ("U7, unicode-1-1-utf-7", "All"),
         "cp65001": ("", "Windows UTF-8 (CP_UTF8)"),
- 
         # European
         "cp500": ("EBCDIC-CP-BE, EBCDIC-CP-CH, IBM500", "Western Europe"),
         "cp850": ("850, IBM850", "Western Europe"),
@@ -232,16 +239,17 @@ def ConstructEncodingData():
         "iso8859_16": ("iso-8859-16, latin10, L10", "South-Eastern Europe"),
         "mac_latin2": ("maclatin2, maccentraleurope", "Central and Eastern Europe"),
         "mac_roman": ("macroman, macintosh", "Western Europe"),
- 
         # Chinese
         "big5": ("big5-tw, csbig5", "Traditional Chinese"),
         "big5hkscs": ("big5-hkscs, hkscs", "Traditional Chinese"),
         "cp950": ("950, ms950", "Traditional Chinese"),
-        "gb2312": ("chinese, csiso58gb231280, euc-cn, euccn, eucgb2312-cn, gb2312-1980, gb2312-80, iso-ir-58", "Simplified Chinese"),
+        "gb2312": (
+            "chinese, csiso58gb231280, euc-cn, euccn, eucgb2312-cn, gb2312-1980, gb2312-80, iso-ir-58",
+            "Simplified Chinese",
+        ),
         "gbk": ("936, cp936, ms936", "Unified Chinese"),
         "gb18030": ("gb18030-2000", "Unified Chinese"),
         "hz": ("hzgb, hz-gb, hz-gb-2312", "Simplified Chinese"),
- 
         # Japanese
         "cp932": ("932, ms932, mskanji, ms-kanji", "Japanese (aka Windows-31J)"),
         "euc_jp": ("eucjp, ujis, u-jis", "Japanese"),
@@ -249,27 +257,43 @@ def ConstructEncodingData():
         "euc_jisx0213": ("eucjisx0213", "Japanese"),
         "iso2022_jp": ("csiso2022jp, iso2022jp, iso-2022-jp", "Japanese"),
         "iso2022_jp_1": ("iso2022jp-1, iso-2022-jp-1", "Japanese"),
-        "iso2022_jp_2": ("iso2022jp-2, iso-2022-jp-2", "Japanese, Korean, Simplified Chinese, Western Europe, Greek"),
+        "iso2022_jp_2": (
+            "iso2022jp-2, iso-2022-jp-2",
+            "Japanese, Korean, Simplified Chinese, Western Europe, Greek",
+        ),
         "iso2022_jp_2004": ("iso2022jp-2004, iso-2022-jp-2004", "Japanese"),
         "iso2022_jp_3": ("iso2022jp-3, iso-2022-jp-3", "Japanese"),
         "iso2022_jp_ext": ("iso2022jp-ext, iso-2022-jp-ext", "Japanese"),
         "shift_jis": ("csshiftjis, shiftjis, sjis, s_jis", "Japanese"),
         "shift_jis_2004": ("shiftjis2004, sjis_2004, sjis2004", "Japanese"),
         "shift_jisx0213": ("shiftjisx0213, sjisx0213, s_jisx0213", "Japanese"),
- 
         # Korean
         "cp949": ("949, ms949, uhc", "Korean"),
         "iso2022_kr": ("csiso2022kr, iso2022kr, iso-2022-kr", "Korean"),
         "johab": ("cp1361, ms1361", "Korean"),
-        "euc_kr": ("euckr, korean, ksc5601, ks_c-5601, ks_c-5601-1987, ksx1001, ks_x-1001", "Korean"),
-        
+        "euc_kr": (
+            "euckr, korean, ksc5601, ks_c-5601, ks_c-5601-1987, ksx1001, ks_x-1001",
+            "Korean",
+        ),
         # Russian & Baltic
-        "cp855": ("855, IBM855", "Bulgarian, Byelorussian, Macedonian, Russian, Serbian"),
+        "cp855": (
+            "855, IBM855",
+            "Bulgarian, Byelorussian, Macedonian, Russian, Serbian",
+        ),
         "cp866": ("866, IBM866", "Russian"),
-        "cp1251": ("windows-1251", "Bulgarian, Byelorussian, Macedonian, Russian, Serbian"),
-        "iso8859_5": ("iso-8859-5, cyrillic", "Bulgarian, Byelorussian, Macedonian, Russian, Serbian"),
+        "cp1251": (
+            "windows-1251",
+            "Bulgarian, Byelorussian, Macedonian, Russian, Serbian",
+        ),
+        "iso8859_5": (
+            "iso-8859-5, cyrillic",
+            "Bulgarian, Byelorussian, Macedonian, Russian, Serbian",
+        ),
         "koi8_r": ("", "Russian"),
-        "mac_cyrillic": ("maccyrillic", "Bulgarian, Byelorussian, Macedonian, Russian, Serbian"),
+        "mac_cyrillic": (
+            "maccyrillic",
+            "Bulgarian, Byelorussian, Macedonian, Russian, Serbian",
+        ),
         "ptcp154": ("csptcp154, pt154, cp154, cyrillic-asian", "Kazakh"),
         "cp775": ("IBM775", "Baltic languages"),
         "cp1257": ("windows-1257", "Baltic languages"),
@@ -278,7 +302,6 @@ def ConstructEncodingData():
         "cp1125": ("1125, ibm1125, cp866u, ruscii", "Ukrainian"),
         "koi8_u": ("", "Ukrainian"),
         "kz1048": ("kz_1048, strk1048_2002, rk1048", "Kazakh"),
- 
         # Greek
         "cp737": ("", "Greek"),
         "cp869": ("869, CP-GR, IBM869", "Greek"),
@@ -286,35 +309,32 @@ def ConstructEncodingData():
         "cp1253": ("windows-1253", "Greek"),
         "iso8859_7": ("iso-8859-7, greek, greek8", "Greek"),
         "mac_greek": ("macgreek", "Greek"),
- 
         # Turkish
         "cp857": ("857, IBM857", "Turkish"),
         "cp1026": ("ibm1026", "Turkish"),
         "cp1254": ("windows-1254", "Turkish"),
         "iso8859_9": ("iso-8859-9, latin5, L5", "Turkish"),
         "mac_turkish": ("macturkish", "Turkish"),
- 
         # Hebrew
         "cp424": ("EBCDIC-CP-HE, IBM424", "Hebrew"),
         "cp856": ("", "Hebrew"),
         "cp862": ("862, IBM862", "Hebrew"),
         "cp1255": ("windows-1255", "Hebrew"),
         "iso8859_8": ("iso-8859-8, hebrew", "Hebrew"),
- 
         # Arabic
         "cp720": ("", "Arabic"),
         "cp864": ("IBM864", "Arabic"),
         "cp1256": ("windows-1256", "Arabic"),
         "iso8859_6": ("iso-8859-6, arabic", "Arabic"),
- 
         # Icelandic
         "cp861": ("861, CP-IS, IBM861", "Icelandic"),
         "mac_iceland": ("maciceland", "Icelandic"),
- 
         # Thai
         "cp874": ("", "Thai"),
-        "iso8859_11": ("iso-8859-11, thai", "Thai languages (aka Windows-874, TIS-620)"),
- 
+        "iso8859_11": (
+            "iso-8859-11, thai",
+            "Thai languages (aka Windows-874, TIS-620)",
+        ),
         # Others
         "cp273": ("273, IBM273, csIBM273", "German"),
         "cp860": ("860, IBM860", "Portuguese"),
@@ -329,17 +349,17 @@ def ConstructEncodingData():
     }
     # Priorities for trying an encoding
     high = "utf_8 latin_1 ascii".split()
-    medium = '''
+    medium = """
         cp1251 cp1252 shift_jis gb2312 euc_kr euc_jp iso8859_2 gbk
         cp1250 big5 iso8859_9 iso8859_15
-        '''.split()
-    low = '''
+        """.split()
+    low = """
         cp1254 cp1256 iso8859_11 cp1255 iso8859_11 iso8859_7
         cp1253 utf_16 koi8_r cp1257 gb18030 utf_7 cp932 iso8859_8
         iso8859_5 iso8859_4 iso8859_6 koi8_u iso2022_jp iso8859_13
         iso8859_16 iso8859_3 cp949 iso8859_10 cp1258 iso8859_11
         iso8859_14 cp850
-        '''.split()
+        """.split()
     # Build the dictionary
     key, d, remainder = 0, defaultdict(list), set(encodings)
     for s in (high, medium, low):
@@ -353,11 +373,19 @@ def ConstructEncodingData():
     d[key] = tuple(d[key])
     # Check for no overlap
     A, B, C, D = set(high), set(medium), set(low), remainder
-    assert(A | B | C | D == set(encodings))
-    assert(not(A & B) and not(A & C) and not(A & D) and not(B & C) and 
-           not(B & D) and not(C & D))
+    assert A | B | C | D == set(encodings)
+    assert (
+        not (A & B)
+        and not (A & C)
+        and not (A & D)
+        and not (B & C)
+        and not (B & D)
+        and not (C & D)
+    )
     # Dump data to stdout
-    print(dedent('''
+    print(
+        dedent(
+            """
     # Note:  'encodings' and 'priorities' were produced by the
     # ConstructEncodingData function.  You may wish to edit it to your own
     # tastes.
@@ -365,20 +393,24 @@ def ConstructEncodingData():
     encodings = {
         # Key:  encoding_name, Value: (aliases, languages)
         # Note:  encoding names and aliases are from python 3.7.4 codecs
-        # module documentation, "Standard Encodings" section.'''[1:]))
+        # module documentation, "Standard Encodings" section."""[1:]
+        )
+    )
     for i in encodings:
         print(f'    "{i}": "{encodings[i]}",')
     print("}")
-    print('''priorities = {
+    print("""priorities = {
     # Key:  integer, Value: tuple of encodings
-    # Highest priority is lowest integer''')
+    # Highest priority is lowest integer""")
     for i in d:
-        print(f'    {i}: {d[i]},')
+        print(f"    {i}: {d[i]},")
     print("}")
+
+
 def GetEncoding(mybytes, seq):
-    '''For mybytes object, try to decode with the codec names in
+    """For mybytes object, try to decode with the codec names in
     seq.  Return a list of the codecs that didn't have an exception.
-    '''
+    """
     enc = []
     for e in seq:
         try:
@@ -387,11 +419,15 @@ def GetEncoding(mybytes, seq):
         except (UnicodeDecodeError, LookupError):
             pass
     return enc
+
+
 def IsASCII(mybytes):
-    '''Return True if the set of bytes are 7 bit, meaning it's likely
+    """Return True if the set of bytes are 7 bit, meaning it's likely
     the encoding was ASCII.
-    '''
+    """
     return max(set(mybytes)) < 0x80
+
+
 def CheckEncoding(file):
     mycodecs = primary if d["-a"] else use_first
     mybytes = open(file, "rb").read()
@@ -402,28 +438,31 @@ def CheckEncoding(file):
     enc.extend(GetEncoding(mybytes, mycodecs))
     if enc:
         print(f"'{file}' possible encodings:")
-        for line in Columnize([i for i in enc if i], indent=" "*2):
+        for line in Columnize([i for i in enc if i], indent=" " * 2):
             print(line)
+
+
 def Encode(files):
-    '''Encode the input file to the encoding specified by the -o option.
-    '''
+    """Encode the input file to the encoding specified by the -o option."""
     ifile, ofile = files
     if d["-d"] is not None:
         s = open(ifile, "rb").read().decode(d["-d"])
     else:
         s = open(ifile, "r").read()
     open(ofile, "wb").write(s.encode(d["-o"]))
+
+
 def BuildAliasDict():
-    '''Return (aliases, primary) where aliases is a dictionary of
+    """Return (aliases, primary) where aliases is a dictionary of
     aliases recognized by the codecs module.  Keys and values are all
     lowercase, as the case of the codec name isn't important.  primary
     is a set of the main codec names, which is also the set of values of
     aliases.
-    '''
+    """
     # The enc_codecs.csv file was made by importing the HTML page of the
     # python version 3.7.4 codecs documentation and copying the codecs
     # table to a spreadsheet, saving it in CSV form.
-    file = dir.parent/"enc_codecs.csv"
+    file = dir.parent / "enc_codecs.csv"
     lines = [i.rstrip() for i in open(file).readlines()][2:]
     r, aliases, primary = csv.reader(lines), {}, set()
     for row in r:
@@ -443,6 +482,8 @@ def BuildAliasDict():
             else:
                 aliases[key] = name
     return (aliases, primary)
+
+
 def ShowNonASCII(files):
     decode = d["-d"] if d["-d"] else "utf-8"
     for file in files:
@@ -459,12 +500,14 @@ def ShowNonASCII(files):
         if d["-X"]:
             t1 = sorted([ord(i) for i in characters if ord(i) >= 0x80])
             t2 = [f"U+{hex(i)[2:]}" for i in t1]
-            s = ' '.join(t2)
+            s = " ".join(t2)
         else:
             u = [i for i in characters if ord(i) >= 0x80]
-            s = ' '.join(sorted(u))
+            s = " ".join(sorted(u))
         if s:
             print(f"{file}:  {s}")
+
+
 def Decode(files):
     success, failure = [], []
     for file in files:
@@ -478,18 +521,21 @@ def Decode(files):
         except (UnicodeDecodeError, LookupError):
             failure.append(file)
     if files:
-        print(f'''Using '{d["-d"]}' codec for decoding''')
+        print(f"""Using '{d["-d"]}' codec for decoding""")
         if success:
             print(f"Successfully decoded:")
-            for line in Columnize(success, indent=" "*2):
+            for line in Columnize(success, indent=" " * 2):
                 print(line)
         if failure:
             print(f"Failed to decode:")
-            for line in Columnize(failure, indent=" "*2):
+            for line in Columnize(failure, indent=" " * 2):
                 print(line)
+
+
 def UsageHints():
     name = "python " + sys.argv[0]
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Show the common encodings that can decode a file:
         {name} file
     Show all encodings that can decode a file:
@@ -500,14 +546,17 @@ def UsageHints():
         {name} -d iso8859_1 -o utf_8 file output_file
     Show the non-ASCII characters in all files in the directory:
         {name} -x *
-    '''))
+    """)
+    )
+
+
 if __name__ == "__main__":
     dir = P(sys.argv[0])
     aliases, primary = BuildAliasDict()
     valid_encodings = set()
     valid_encodings.update(primary)
     valid_encodings.update(aliases)
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     files = ParseCommandLine(d)
     if d["-o"]:
         Encode(files)
@@ -517,10 +566,10 @@ if __name__ == "__main__":
         ShowNonASCII(files)
     elif d["-l"]:
         print("Aliases for the primary codec names:")
-        for line in Columnize(sorted(aliases), indent=" "*2):
+        for line in Columnize(sorted(aliases), indent=" " * 2):
             print(line)
         print("Primary codec names:")
-        for line in Columnize(sorted(primary), indent=" "*2):
+        for line in Columnize(sorted(primary), indent=" " * 2):
             print(line)
     else:
         for file in files:

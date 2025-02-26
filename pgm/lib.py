@@ -1,4 +1,4 @@
-__doc__ = '''
+__doc__ = """
     Usage:  {name} [options] [name1 [name2...]]
       Tool to keep track of short snippets of code.  Prints to stdout the
       routines with the given names.  Enter no parameter to see an index of
@@ -25,21 +25,21 @@ __doc__ = '''
       -f   Specify an alternative data file.
       -l   Dump record names to stdout.
       -h   Show this help.
-    '''
+    """
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2005, 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2005, 2014 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Tool to keep track of code snippets
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import string
     import getopt
@@ -47,31 +47,38 @@ if 1:   # Imports
     import re
     from collections import defaultdict
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
     from color import t
+
     if 0:
         # We'll try to import the color module to highlight the utilities by
         # their language.
         have_color = False
         try:
             import color as c
+
             have_color = True
         except ImportError:
-            class C:    # Dummy object that will swallow calls to the color module
+
+            class C:  # Dummy object that will swallow calls to the color module
                 def __setattr__(self, attr, x):
                     pass
+
                 def __getattr__(self, attr):
                     return None
+
                 def fg(self, *p):
                     pass
+
                 def normal(self):
                     pass
+
             c = C()
-if 1:   # Global variables
-    sep = "@@"          # Separates datafile records
+if 1:  # Global variables
+    sep = "@@"  # Separates datafile records
     nl = "\n"
-    ff = "\n\x0c\n"      # Separates output records
+    ff = "\n\x0c\n"  # Separates output records
     # Define colors for language types.  Languages not in this list won't
     # be highlighted.
     language_colors = {  # Color, name to display
@@ -80,9 +87,11 @@ if 1:   # Global variables
         "sh": ("grnl", "sh"),
         "text": ("wht", "text"),
     }
+
+
 class Record(object):
-    '''Holds the data from one record.
-    '''
+    """Holds the data from one record."""
+
     def __init__(self):
         self.name = None
         self.category = None
@@ -90,18 +99,26 @@ class Record(object):
         self.lines = None
         self.language = None
         self.ignore = False
+
     def __cmp__(self, other):
         return self.name < other.name
+
+
 def Error(msg):
     sys.stderr.write(msg + nl)
     sys.exit(1)
+
+
 def Usage(d, status=1):
     name = d["name"]
     S = sep
     print(dedent(__doc__.format(**locals())))
     exit(status)
+
+
 def DumpTemplateFile(d):
-    print(dedent(f'''
+    print(
+        dedent(f"""
     routine_name ; category ; language(optional)
     Put the one-line description on the second line
     The following lines are for the snippet's code
@@ -112,14 +129,17 @@ def DumpTemplateFile(d):
     Line 1 for routine2's code
     Line 2 for routine2's code
     ...
-    '''))
+    """)
+    )
     exit(0)
+
+
 def GetOptions(d):
-    d["-l"] = False     # List record names
+    d["-l"] = False  # List record names
     # Get our default data file
     name, ext = os.path.splitext(d["name"])
     file = os.path.join(d["dir"], name + ".dat")
-    d["-f"] = file.replace("\\", "/")   # Data file
+    d["-f"] = file.replace("\\", "/")  # Data file
     try:
         optlist, args = getopt.getopt(sys.argv[1:], "cef:hl")
     except getopt.error as str:
@@ -144,10 +164,12 @@ def GetOptions(d):
         if opt[0] == "-l":
             d["-l"] = True
     return args
+
+
 def ReadDataFile(d):
-    '''Read in the data file indicated in d["-f"].  Parse it into
+    """Read in the data file indicated in d["-f"].  Parse it into
     records and return a dictionary of records keyed by the names.
-    '''
+    """
     # Build a regular expression to split the datafile into records.
     # This lets us use '@@' for the record separator, but you can
     # include e.g. a bunch of hyphens after it to the end of the line
@@ -182,20 +204,24 @@ def ReadDataFile(d):
             Error("'%s' used more than once for a record name" % record.name)
         records[record.name] = record
     return records
+
+
 def DumpRecordNames(records, d):
     names = list(records.keys())
     names.sort()
     print("Record names in datafile '%s':" % d["-f"])
     for name in names:
         ignored = " (ignored)" if records[name].ignore else ""
-        print(" "*4 + name + ignored)
+        print(" " * 4 + name + ignored)
     exit(0)
+
+
 def ShowContents(records, d):
-    '''records is a dictionary containing entries of the form:
+    """records is a dictionary containing entries of the form:
         'name' : (category, description, lines, language)
     where name, category, description, and language are strings and
     lines is a sequence of strings.
-    '''
+    """
     # Print the language names in their colors
     L = list(language_colors.keys())
     L.sort()
@@ -226,17 +252,18 @@ def ShowContents(records, d):
             try:
                 lang_color, lang_name = language_colors[r.language]
             except KeyError:
-                s = ["Language '%s' doesn't have an associated color"
-                        % language]
+                s = ["Language '%s' doesn't have an associated color" % language]
                 s += ["  in record for '%s'" % r.name]
                 Error(nl.join(s))
             print(f"{t(lang_color)}  %-*s " % (maxlen, r.name), end=" ")
             print(f"{t.n}%s" % r.description)
+
+
 def GetKey(key, records):
-    '''Search for key as a beginning string of record names.  If not
+    """Search for key as a beginning string of record names.  If not
     unique or can't be found, print error message and stop.  Return
     the unique string.
-    '''
+    """
     found = []
     for name, record in records.items():
         if not record.ignore and name.startswith(key):
@@ -252,7 +279,9 @@ def GetKey(key, records):
             msg = ["Too many matches:"]
             msg += ["  " + i.name for i in found]
             Error("\n".join(msg))
-if __name__ == "__main__": 
+
+
+if __name__ == "__main__":
     d = {}
     d["dir"], d["name"] = os.path.split(sys.argv[0])
     args = GetOptions(d)

@@ -1,11 +1,14 @@
-'''
+"""
 Draws a 1951 USAF-type of resolution target.
-'''
+"""
+
 from g import *
+
+
 def Element(X, Y, size, label):
-    '''Draws an element whose lower left corner is at (X, Y) with the
+    """Draws an element whose lower left corner is at (X, Y) with the
     given size.  It is labelled using the given string in label.
-    '''
+    """
     push()
     fillOn()
     y = 2.5 * size
@@ -27,6 +30,8 @@ def Element(X, Y, size, label):
     textSize(size)
     rtext(label + " ")
     pop()
+
+
 def MakeArray():
     X = 30
     Y = 250
@@ -42,6 +47,8 @@ def MakeArray():
         Element(X, Y, size, "%.2f" % (1 / size))
         size /= factor
         Y -= 3.5 * size
+
+
 def Chart1():
     s = SetUp("out/resolution_target.ps", portrait, mm)
     MakeArray()
@@ -56,6 +63,8 @@ def Chart1():
     move(X, 80)
     ctext("DP 5 Aug 2007")
     s.close()
+
+
 def Chart2():
     s = SetUp("out/resolution_target_gray.ps", portrait, mm)
     c = gray(0.8)
@@ -73,6 +82,8 @@ def Chart2():
     move(X, 80)
     ctext("DP 5 Aug 2007")
     s.close()
-if __name__ == "__main__": 
+
+
+if __name__ == "__main__":
     Chart1()
     Chart2()

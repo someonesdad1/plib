@@ -1,32 +1,38 @@
-'''
+"""
 Generate combinations and permutations of the lines of a file.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Generate comb/perm of the lines of a file
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import os
     import getopt
     from itertools import combinations, permutations
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
+
+
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
+
+
 def Usage(d, status=1):
     pgm = sys.argv[0]
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {pgm} [options] m [file]
       Generate the combinations of the lines of a file taken m at a time.
       The m items are put on one line of the output.  Input is taken from
@@ -50,8 +56,11 @@ def Usage(d, status=1):
       -s     Strip whitespace from the front of each line too
       -u     Only keep the unique lines
       -z N   The elements are the integers from 0 to N - 1
-    '''))
+    """)
+    )
     exit(status)
+
+
 def ParseCommandLine(d):
     d["-Q"] = False
     d["-n"] = None
@@ -84,8 +93,10 @@ def ParseCommandLine(d):
     if len(args) not in (1, 2):
         Usage(d)
     return args
+
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     m = int(args[0])
     if m < 2:
@@ -120,4 +131,4 @@ if __name__ == "__main__":
             c = ['"' + i + '"' for i in c]
         elif d["-Q"]:
             c = ["'" + i + "'" for i in c]
-        print(' '.join(c))
+        print(" ".join(c))

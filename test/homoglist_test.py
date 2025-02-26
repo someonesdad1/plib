@@ -1,13 +1,14 @@
 from homoglist import HomogenousList
 from lwtest import run, assert_equal, raises
 
+
 def Test():
     # Construct empty list
     h = HomogenousList()
     h.append(0)
     h.append(1)
     raises(ValueError, h.append, "2")
-    h1 = HomogenousList(range(2))    # Construct list with sequence
+    h1 = HomogenousList(range(2))  # Construct list with sequence
     raises(ValueError, h1.append, "2")
     assert_equal(h, list(range(2)))
     assert_equal(h1, list(range(2)))
@@ -20,6 +21,7 @@ def Test():
     g = HomogenousList(["0"])
     with raises(ValueError):
         h + g
+
 
 if __name__ == "__main__":
     run(globals())

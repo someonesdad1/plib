@@ -1,4 +1,4 @@
-'''
+"""
 TODO
 
     - Sizes are not sorted
@@ -6,67 +6,70 @@ TODO
       search on '1mm'.
 
 Show lengths close to command line argument
-'''
+"""
+
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2020 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2020 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Show lengths close to command line argument
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Imports
+    if 1:  # Imports
         import getopt
         import os
         import re
         import sys
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import dedent, wrap
         import u
         from f import flt
         from color import t
+
         if 0:
             import debug
+
             debug.SetDebugger()
-    if 1:   # Global variables
+    if 1:  # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         SI_prefix = {
-            -30: "q",   
-            -27: "r",   
-            -24: "y",   
-            -21: "z",   
-            -18: "a",   
-            -15: "f",   
-            -12: "p",   
-            -9: "n",    
-            -6: "μ",    
-            -3: "m",    
-            0: "",      
-            3: "k",     
-            6: "M",     
-            9: "G",     
-            12: "T",    
-            15: "P",    
-            18: "E",    
-            21: "Z",    
-            24: "Y",    
-            27: "R",    
-            30: "Q",    
+            -30: "q",
+            -27: "r",
+            -24: "y",
+            -21: "z",
+            -18: "a",
+            -15: "f",
+            -12: "p",
+            -9: "n",
+            -6: "μ",
+            -3: "m",
+            0: "",
+            3: "k",
+            6: "M",
+            9: "G",
+            12: "T",
+            15: "P",
+            18: "E",
+            21: "Z",
+            24: "Y",
+            27: "R",
+            30: "Q",
         }
-if 1:   # Raw data from https://en.wikipedia.org/wiki/Orders_of_magnitude_(length)
+if 1:  # Raw data from https://en.wikipedia.org/wiki/Orders_of_magnitude_(length)
     # Changes I've made:
     #   - Removed inconsistencies and annoyances in the original web page data.
     #
     # References to cm have been changed to mm, as I consider the use of CGS units to be
     # antiquated.  The entries were sorted by size.
-    data = dedent('''
+    data = dedent("""
 
     1.6e-11 ym 		The Planck length (measures of distance shorter than this are considered nonsensical and do not make any physical sense, according to current theories of physics)
     1 ym 		 1 yoctometer, the smallest named subdivision of the meter in the SI base unit of length, 1e-24 meter
@@ -746,19 +749,21 @@ if 1:   # Raw data from https://en.wikipedia.org/wiki/Orders_of_magnitude_(lengt
     590 Ym 		 Cosmological event horizon: the largest comoving distance from which light will ever reach us (the observer) at any time in the future
     886.48 Ym 		 The diameter of the observable universe (twice the particle horizon); however, there might be unobserved distances that are even greater
 
-    ''')
+    """)
 if 1:  # Classes
+
     class Num(flt):
-        '''Encapsulate a number so "closeness" can be determined by the ==
+        """Encapsulate a number so "closeness" can be determined by the ==
         operator.  A list of Num objects will sort numerically by size.
-        
+
         Note:  since I changed this to derive from flt, I had to change the
         low and high attributes of Num to Low and High to avoid the collision
         with flt's attributes.
-        '''
+        """
+
         def __new__(cls, s, descr):
-            '''descr is a string describing this number.
-     
+            """descr is a string describing this number.
+
             s is a string representing the number.  It will be of one of
             the forms
                 'a to b'
@@ -770,63 +775,72 @@ if 1:  # Classes
             self.High values set from a and b.  Otherwise, the value is set
             from a.  Note a will be of the form e.g. '1 nm', i.e., a number and
             a length unit.
-     
+
             The value of a Num is the length in m.  When a range is given, the
             mean of the endpoints is the value.
-            '''
+            """
             t = s
             if s[0] == "~":
                 t = t[1:]
             if "to" in t:
                 f = t.split()
-                assert(len(f) == 4)
-                assert(f[1] == "to") 
+                assert len(f) == 4
+                assert f[1] == "to"
                 unit = f[3]
                 toSI = u.u(unit)
                 Low, High = [float(i) for i in (f[0], f[2])]
-                val = (Low + High)*toSI/2
+                val = (Low + High) * toSI / 2
                 instance = flt.__new__(cls, val)
                 instance.units = unit
-                instance.Low = Low*toSI
-                instance.High = High*toSI
+                instance.Low = Low * toSI
+                instance.High = High * toSI
             else:
                 val, unit = u.ParseUnit(t)
                 toSI = u.u(unit)
-                instance = flt.__new__(cls, float(val)*toSI)
+                instance = flt.__new__(cls, float(val) * toSI)
                 instance.units = unit
                 instance.Low = None
                 instance.High = None
             instance.str = s.strip()
             instance.descr = descr.strip()
             return instance
+
         def __str__(self):
             return self.str + " " + self.descr
+
         def __repr__(self):
             return self.str + " " + self.descr
+
         def __eq__(self, other):
-            '''Return True if we're equal to other.  If self is a single
+            """Return True if we're equal to other.  If self is a single
             number, then it's True if other is within d["-t"] percent of it.
             Otherwise, it's equal if self.Low <= other <= self.High.
-            '''
+            """
             if other is None:
                 return False
-            assert(ii(other, Num))
+            assert ii(other, Num)
             if self.Low is None:
-                p = flt(d["-t"])/100
-                return (1 - p)*self <= other <= (1 + p)*self
+                p = flt(d["-t"]) / 100
+                return (1 - p) * self <= other <= (1 + p) * self
             else:
                 return self.Low <= other <= self.High
+
         def __lt__(self, other):
-            'Return True if self < other'
-            assert(ii(other, Num))
+            "Return True if self < other"
+            assert ii(other, Num)
             # This depends on the floating point value being in m
             return float(self) < float(other)
+
+
 if 1:  # Utility
+
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
+
     def Usage(d, status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] dist1 [dist2 ...]
           Print the order of magnitude distance data for distances close to dist1, dist2, etc.
           Default units are meters, but you can include another unit with no space between it and
@@ -838,14 +852,16 @@ if 1:  # Utility
           -m      Dump the raw data to stdout and exit
           -s      Print a summary of some key distances
           -t n    Set % tolerance to be "equal" [{d["-t"]}]
-        '''))
+        """)
+        )
         exit(0)
+
     def ParseCommandLine(d):
-        d["-d"] = 3         # Number of significant digits
-        d["-m"] = False     # Dump data to stdout
-        d["-n"] = False     # Display in meters numerically too
-        d["-s"] = False     # Print summary
-        d["-t"] = 50        # Tolerance to be "equal"
+        d["-d"] = 3  # Number of significant digits
+        d["-m"] = False  # Dump data to stdout
+        d["-n"] = False  # Display in meters numerically too
+        d["-s"] = False  # Print summary
+        d["-t"] = 50  # Tolerance to be "equal"
         try:
             opts, args = getopt.getopt(sys.argv[1:], "d:mnst")
         except getopt.GetoptError as e:
@@ -860,8 +876,7 @@ if 1:  # Utility
                     if not (1 <= d["-d"] <= 15):
                         raise ValueError()
                 except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                           "1 and 15")
+                    msg = "-d option's argument must be an integer between 1 and 15"
                     Error(msg)
             elif o in ("-t",):
                 try:
@@ -869,7 +884,7 @@ if 1:  # Utility
                     if d["-t"] <= 0:
                         raise ValueError()
                 except ValueError:
-                    msg = ("-t option must be > 0")
+                    msg = "-t option must be > 0"
                     Error(msg)
             elif o in ("-h", "--help"):
                 Usage(d, status=0)
@@ -884,9 +899,12 @@ if 1:  # Utility
         if not args:
             Usage(d)
         return args
+
+
 if 1:  # Core functionality
+
     def ParseDistance(s):
-        'Return distance string in s in m'
+        "Return distance string in s in m"
         f = s.split()
         if "to" in s:
             print(s)
@@ -897,10 +915,11 @@ if 1:  # Core functionality
         else:
             pass
         return 1
+
     def GetData(show_sorted=False):
-        '''Put data into d["data"].  If show_sorted is True, then the input
+        """Put data into d["data"].  If show_sorted is True, then the input
         lines are sorted by size, printed to stdout, and the script exits.
-        '''
+        """
         # d["data"] is a list of Num objects
         for line in data.split("\n"):
             line = line.strip()
@@ -917,8 +936,9 @@ if 1:  # Core functionality
             for i in d["data"]:
                 print(i[1])
             exit()
+
     def Summary():
-        data = '''
+        data = """
         1.8 to 15 fm 		 Diameter range of the atomic nucleus
         100 pm 		 Diameter of a hydrogen atom
         200 pm 		 Highest resolution of a typical electron microscope
@@ -960,9 +980,9 @@ if 1:  # Core functionality
         1.2 Ym 		 Distance to the closest observed gamma ray burst GRB 980425
         18 Ym 		 Redshift 0.16 - Distance to the quasar 3C 273 (light travel distance)
         260 Ym 		 Diameter of the observable universe (double light travel distance)
-        '''
+        """
         w = 15
-        wrap.i = " "*2
+        wrap.i = " " * 2
         for line in data.split("\n"):
             line = line.strip()
             if not line:
@@ -970,16 +990,19 @@ if 1:  # Core functionality
             x, s = line.split("\t\t")
             print(f"{x:{w}s} {s}")
         print(f"Exponents:  T: 12   P: 15   E: 18   Z: 21   Y: 24")
+
     def Print(x, r=None):
-        '''x is a Num object; print it.  If r is not None, then it will be
+        """x is a Num object; print it.  If r is not None, then it will be
         the regex that matched x.descr.
-        '''
+        """
+
         def sci(x):
             y = float(x)  # This is in m
             a, b = f"{y:.0e}".split("e")
-            return ''.join([a, "e", str(int(b))])
+            return "".join([a, "e", str(int(b))])
+
         t.num = t("skyl")
-        wrap.i = " "*2
+        wrap.i = " " * 2
         print(f"{t.num}{x.str}{t.n}", end=" ")
         if d["-n"]:
             print(f"({sci(x)} m)")
@@ -1001,16 +1024,20 @@ if 1:  # Core functionality
             if d["-n"]:
                 print(f"({sci(x)})", end=" ")
             print(x.descr)
+
     def PrintClose(dist, sep=False):
-        '''dist is a command line argument.  Convert it to meters and print out
+        """dist is a command line argument.  Convert it to meters and print out
         those elements in d["data"] that are close to it.
-        '''
+        """
         unit = ""
-        class DoTextSearch(Exception): pass
+
+        class DoTextSearch(Exception):
+            pass
+
         try:
             val, unit = u.ParseUnit(dist)
             if not unit:
-                m =Num(val + " m", "")
+                m = Num(val + " m", "")
             elif u.dim(unit) != u.dim("m"):
                 raise DoTextSearch()  # Just do a text search
             else:
@@ -1024,7 +1051,7 @@ if 1:  # Core functionality
             t.print(f"{t('ornl')}{dist}")
         else:
             if unit and not unit.endswith("m"):
-                x = flt(val)*u.u(unit)
+                x = flt(val) * u.u(unit)
                 t.print(f"{t('ornl')}{dist} = {x} m")
             else:
                 t.print(f"{t('ornl')}{dist}")
@@ -1034,7 +1061,8 @@ if 1:  # Core functionality
             elif search and r.search(x.descr):
                 Print(x, r=r)
         if sep:
-            t.print(f"{t('grnl')}{'-'*W}")
+            t.print(f"{t('grnl')}{'-' * W}")
+
 
 if __name__ == "__main__":
     d = {  # Options dictionary

@@ -1,35 +1,40 @@
-'''
+"""
 Print out CDC population projections for 2025
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2020 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2020 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Print out CDC population projections for 2025
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import getopt
     import os
     import sys
     from pprint import pprint as pp
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
     from f import flt
     from columnize import Columnize
+
     if 0:
         import debug
+
         debug.SetDebugger()
-if 1:   # Global variables
+if 1:  # Global variables
+
     class g:
         pass
+
     g.width = int(os.environ.get("COLUMNS", 80)) - 1
     ii = isinstance
     # Downloaded Sun 18 Jul 2021 11:37:14 AM
@@ -37,11 +42,11 @@ if 1:   # Global variables
     # and enter "population projection".  This will show a "National
     # Population Projections 2014-2060" database.  Click on the DataRequest
     # link, then choose 2025 for the year; press the Send button.
-    # 
+    #
     # CDC projection for US population in 2025
     # Age,  population (age 0 means < 1 year old)
     # The number for 100 is all people 100 and older
-    us_pop_2025 = dedent('''
+    us_pop_2025 = dedent("""
         0      4186576
         1      4197220
         2      4205907
@@ -144,12 +149,17 @@ if 1:   # Global variables
         99     74014
         100    119381
         Total  347334912
-    ''')
+    """)
+
+
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
+
+
 def Usage(d, status=1):
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]} [options]
       Prints a table of the projected population in millions by age for the 
       year 2025.  Source was CDC.
@@ -159,13 +169,16 @@ def Usage(d, status=1):
       -H    Print a histogram
       -h    Print a manpage
       -p    Print percentages of the total US population
-    '''))
+    """)
+    )
     exit(status)
+
+
 def ParseCommandLine(d):
-    d["-c"] = False     # Print cumulative data
-    d["-H"] = False     # Print histogram
-    d["-p"] = False     # Print percentages
-    d["-d"] = 3         # Number of significant digits
+    d["-c"] = False  # Print cumulative data
+    d["-H"] = False  # Print histogram
+    d["-p"] = False  # Print percentages
+    d["-d"] = 3  # Number of significant digits
     try:
         opts, args = getopt.getopt(sys.argv[1:], "cd:Hhp")
     except getopt.GetoptError as e:
@@ -180,18 +193,19 @@ def ParseCommandLine(d):
                 if not (1 <= d["-d"] <= 15):
                     raise ValueError()
             except ValueError:
-                msg = ("-d option's argument must be an integer between "
-                       "1 and 15")
+                msg = "-d option's argument must be an integer between 1 and 15"
                 Error(msg)
         elif o in ("-h", "--help"):
             Usage(d, status=0)
     flt(0).n = d["-d"]
     return args
+
+
 def Rnd(n):
-    '''Return the integer n rounded to the current number of significant
+    """Return the integer n rounded to the current number of significant
     figures.
-    '''
-    assert(ii(n, int))
+    """
+    assert ii(n, int)
     x = flt(n)
     with x:
         x.rtz = True
@@ -199,6 +213,8 @@ def Rnd(n):
         if s[-1] == ".":
             s = s[:-1]
         return int(s)
+
+
 def GetData():
     population, population_total = [], None
     for line in us_pop_2025.split("\n"):
@@ -210,80 +226,100 @@ def GetData():
             population_total = int(num)
         else:
             population.append([age, int(num)])
-    assert(population_total == sum([j for i, j in population]))
+    assert population_total == sum([j for i, j in population])
     # Get cumulative population data
     cumulative = [i[:] for i in population]
     for i in range(1, len(cumulative)):
         cumulative[i][1] += cumulative[i - 1][1]
     return population, cumulative, population_total
+
+
 def PctTable():
     N = population_total
     o = []
     for age, n in population:
-        f = flt(100*n/N)
+        f = flt(100 * n / N)
         o.append((age, f))
     # Get width of widest fraction
     w = max([len(str(f)) for age, f in o])
     t = [f"Age  {'%':^{w}s}"]
     for age, f in o:
         t.append(f"{age:^4s} {f!s:>{w}s}")
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Percent of total US population by age in years (CDC projection for 2025)
       Printed to {d["-d"]} significant figures
       Total population = {N:,}
-    '''))
+    """)
+    )
     for line in Columnize(t):
         print(line)
+
+
 def PopTable():
     N = population_total
     o = ["Age   Number"]
     for age, n in population:
         o.append(f"{age:^4s} {Rnd(n):>9,d}")
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Total US population by age in years (CDC projection for 2025)
         Printed to {d["-d"]} significant figures
         Total population = {N:,}
-    '''))
+    """)
+    )
     for line in Columnize(o):
         print(line)
+
+
 def CumulPctTable():
     N = population_total
     o = []
     for age, n in cumulative:
-        f = flt(100*n/N)
+        f = flt(100 * n / N)
         o.append((age, f))
     # Get width of widest fraction
     w = max([len(str(f)) for age, f in o])
     t = [f"Age  {'%':^{w}s}"]
     for age, f in o:
         t.append(f"{age:^4s} {f!s:>{w}s}")
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Cumulative % of total US population by age in years (CDC projection for 2025)
       Printed to {d["-d"]} significant figures
       Total population = {N:,}
-    '''))
+    """)
+    )
     for line in Columnize(t):
         print(line)
+
+
 def CumulPopTable():
     N = population_total
     o = ["Age   Number"]
     for age, n in cumulative:
         o.append(f"{age:^4s} {Rnd(n):>11,d}")
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Cumulative total US population by age in years (CDC projection for 2025)
       Printed to {d["-d"]} significant figures
       Total population = {N:,}
-    '''))
+    """)
+    )
     for line in Columnize(o):
         print(line)
+
+
 def GetDict():
-    '''Return a dictionary of age: population where age is a string and
+    """Return a dictionary of age: population where age is a string and
     population is an integer.
-    '''
+    """
     pd = {}
     for age, value in population:
         pd[age] = value
     return pd
+
+
 def PrintAge(age):
     try:
         int(age)
@@ -293,40 +329,48 @@ def PrintAge(age):
         Error(f"'{age}' must be between 0 and 99 inclusive")
     N = population_total
     pd = GetDict()
-    print(dedent(f'''
+    print(
+        dedent(f"""
     CDC US population projection for 2025
       Printed to {d["-d"]} significant figures
       Total population = {Rnd(N):,}
-    '''))
+    """)
+    )
     print(f"Age {age}")
     n = Rnd(pd[age])
-    p = flt(100*pd[age]/N)
+    p = flt(100 * pd[age] / N)
     print(f"  Number of people this age {n:,} ({p}%)")
     # People younger and older than this age
     a = int(age)
     if a <= 99:
         y = Rnd(sum([i[1] for i in population[:a]]))
-        o = Rnd(sum([i[1] for i in population[a + 1:]]))
+        o = Rnd(sum([i[1] for i in population[a + 1 :]]))
     else:
         y = Rnd(sum([i[1] for i in population[:100]]))
         o = 0
-    yp, yo = flt(100*y/N), flt(100*o/N)
+    yp, yo = flt(100 * y / N), flt(100 * o / N)
     print(f"  Number of people younger than this age {y:,} ({yp}%)")
     print(f"  Number of people older than this age   {o:,} ({yo}%)")
+
+
 def Histogram():
     N = population_total
-    print(dedent(f'''
+    print(
+        dedent(f"""
     CDC US population projection for 2025
       Total population = {N:,}
-    '''))
-    pct = [flt(100*i[1]/N) for i in population]
+    """)
+    )
+    pct = [flt(100 * i[1] / N) for i in population]
     pmin, pmax, w = min(pct), max(pct), g.width - 4
     for i in range(101):
         print(f"{i:^3d}", end=" ")
-        p = pct[i]/pmax
-        print(f"{'*'*(int(p*w))}")
+        p = pct[i] / pmax
+        print(f"{'*' * (int(p * w))}")
+
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     ages = ParseCommandLine(d)
     population, cumulative, population_total = GetData()
     if ages:

@@ -1,4 +1,4 @@
-'''
+"""
 TODO:
     - Line 315 problem in report:  mass m is 1.1586435611491177e-08 kg
       and converted to galh20 is 3.0607267548685616e-09 galh2o.  But the
@@ -86,26 +86,27 @@ Performs ideal gas law calculations.  Prompts you for input.
         e = Cv*T = internal energy per unit mass
         Cv = specific heat at constant volume
         Cp = specific heat at constant pressure
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Ideal gas law calculations
-    #∞what∞#
-    #∞test∞# --test #∞test∞#
+    # ∞what∞#
+    # ∞test∞# --test #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import os
     import getopt
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
     from color import t
     from get import GetNumber
@@ -113,24 +114,26 @@ if 1:   # Custom imports
     from u import u, to, CT, ParseUnit
     from columnize import Columnize
     from lwtest import run, assert_equal
+
     if 0:
         import debug
+
         debug.SetDebugger()
-if 1:   # Global variables
+if 1:  # Global variables
     # Set Debug to True to bypass prompting
     Debug = False
-    R = 8.31432     # J/(mol*K)) ideal gas constant
-    T0_K = 273.15   # 0 degC in K
+    R = 8.31432  # J/(mol*K)) ideal gas constant
+    T0_K = 273.15  # 0 degC in K
     temperature_units = {
         # The function converts the indicated unit to K.
         "C": lambda C: flt(C + T0_K),
         "c": lambda C: flt(C + T0_K),
         "K": lambda K: flt(K),
         "k": lambda K: flt(K),
-        "F": lambda F: flt(5*(F - 32)/9 + T0_K),
-        "f": lambda F: flt(5*(F - 32)/9 + T0_K),
-        "R": lambda R: flt(5/9*R),
-        "r": lambda R: flt(5/9*R),
+        "F": lambda F: flt(5 * (F - 32) / 9 + T0_K),
+        "f": lambda F: flt(5 * (F - 32) / 9 + T0_K),
+        "R": lambda R: flt(5 / 9 * R),
+        "r": lambda R: flt(5 / 9 * R),
     }
     # Table of gas critical temperatures and pressures, page F-90, CRC Handbook
     # of Chemistry and Physics, 59th ed., 1978.
@@ -167,46 +170,48 @@ if 1:   # Global variables
         # w = acentric factor (mostly from wikipedia page)
         # Pc, Tc, MW, w
         ["Air", 37.2, -140, 28.9, 0],
-        ["Acetylene (C2H2)", 61.6, 35.5, 2*C+2*H, 0.187],
-        ["Ammonia (NH3)", 112.5, 132.5, N+3*H, 0.252],
+        ["Acetylene (C2H2)", 61.6, 35.5, 2 * C + 2 * H, 0.187],
+        ["Ammonia (NH3)", 112.5, 132.5, N + 3 * H, 0.252],
         ["Argon (Ar)", 48, -122.3, Ar, 0],
-        ["Carbon dioxide (CO2)", 72.9, 31, C+2*O, 0.228],
-        ["Carbon monoxide (CO)", 34.5, -140, C+O, 0],
-        ["Chlorine (Cl2)", 76.1, 144, 2*Cl, 0],
-        ["Ethane (C2H6)", 48.2, 32.2, 2*C+6*H, 0.008],
-        ["Fluorine (F2)", 55, -129, 2*F, 0],
-        ["Freon (CCl2F2)", 39.6, 111.5, C+2*Cl+2*F, 0],
+        ["Carbon dioxide (CO2)", 72.9, 31, C + 2 * O, 0.228],
+        ["Carbon monoxide (CO)", 34.5, -140, C + O, 0],
+        ["Chlorine (Cl2)", 76.1, 144, 2 * Cl, 0],
+        ["Ethane (C2H6)", 48.2, 32.2, 2 * C + 6 * H, 0.008],
+        ["Fluorine (F2)", 55, -129, 2 * F, 0],
+        ["Freon (CCl2F2)", 39.6, 111.5, C + 2 * Cl + 2 * F, 0],
         ["Helium (He)", 2.26, -267.9, He, -0.390],
-        ["Hydrogen (H2)", 12.8, -239.9, 2*H, -0.22],
-        ["Hydrogen cyanide (HCN)", 48.9, 183.5, H+C+N, 0],
-        ["Hydrogen sulfide (H2S)", 48.9, 183.5, 2*H+S, 0],
-        ["Iodine (I2)", 116, 512, 2*126.904, 0],
-        ["Isopr. alcohol (C3H8O)", 47, 235, 3*C+8*H+O, 0],
+        ["Hydrogen (H2)", 12.8, -239.9, 2 * H, -0.22],
+        ["Hydrogen cyanide (HCN)", 48.9, 183.5, H + C + N, 0],
+        ["Hydrogen sulfide (H2S)", 48.9, 183.5, 2 * H + S, 0],
+        ["Iodine (I2)", 116, 512, 2 * 126.904, 0],
+        ["Isopr. alcohol (C3H8O)", 47, 235, 3 * C + 8 * H + O, 0],
         ["Krypton (Kr)", 54.3, -63.8, Kr, 0],
-        ["Methane (CH4)", 45.8, -82.1, C+4*H, 0.008],
+        ["Methane (CH4)", 45.8, -82.1, C + 4 * H, 0.008],
         ["Neon (Ne)", 26.9, -228.7, Ne, 0],
-        ["Nitrogen (N2)", 33.5, -147, 2*N, 0.04],
-        ["Oxygen (O2)", 50.1, -118.4, 2*O, 0.022],
-        ["Ozone (O3)", 67, -5.16, 3*O, 0],
-        ["Propane (C2H2)", 42, 96.8, 2*C+2*H, 0.008],
-        ["Sulfur dioxide (SO2)", 77.7, 157.8, S+2*O, 0],
-        ["Toluene (C7H8)", 41.6, 320.8, 7*C+8*H, 0],
-        ["Water (H2O)", 218.3, 374.1, 2*H+O, 0],
+        ["Nitrogen (N2)", 33.5, -147, 2 * N, 0.04],
+        ["Oxygen (O2)", 50.1, -118.4, 2 * O, 0.022],
+        ["Ozone (O3)", 67, -5.16, 3 * O, 0],
+        ["Propane (C2H2)", 42, 96.8, 2 * C + 2 * H, 0.008],
+        ["Sulfur dioxide (SO2)", 77.7, 157.8, S + 2 * O, 0],
+        ["Toluene (C7H8)", 41.6, 320.8, 7 * C + 8 * H, 0],
+        ["Water (H2O)", 218.3, 374.1, 2 * H + O, 0],
         ["Xenon (Kr)", 58, 16.6, Xe, 0],
     ]
     del H, C, O, N, Cl, F, S, Ar, He, Ne, Xe, Kr
     # Convert critical temperature & pressure to SI units
     for i in range(len(constants)):
-        c = constants[i]     
-        c[1] = flt(c[1])*u("atm")
-        c[2] = flt(c[2])        # °C, leave alone for ease later
-        c[3] = flt(c[3])*u("g/mol")
+        c = constants[i]
+        c[1] = flt(c[1]) * u("atm")
+        c[2] = flt(c[2])  # °C, leave alone for ease later
+        c[3] = flt(c[3]) * u("g/mol")
         c[4] = flt(c[4])
-        constants[i] = tuple(constants[i]) 
+        constants[i] = tuple(constants[i])
     constants = tuple(constants)
+
+
 def ParseCommandLine(d):
-    d["-d"] = 4         # Number of digits in report
-    d["-t"] = False     # Run tests
+    d["-d"] = 4  # Number of digits in report
+    d["-t"] = False  # Run tests
     try:
         optlist, args = getopt.getopt(sys.argv[1:], "d:ht", "test")
     except getopt.GetoptError as str:
@@ -221,8 +226,9 @@ def ParseCommandLine(d):
                 print("Bad input for -d option")
                 exit(1)
             if not (1 <= d["-d"] <= 15):
-                print("-d:  Number of digits must be between 1 and 15",
-                      stream=sys.stderr)
+                print(
+                    "-d:  Number of digits must be between 1 and 15", stream=sys.stderr
+                )
                 exit(1)
         elif o == "-h":
             Help(d)
@@ -234,8 +240,11 @@ def ParseCommandLine(d):
     x.low = 0.001
     x.high = 99999.999
     return args
+
+
 def Help(d):
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]}
       This script will calculate the properties of a gas using the ideal gas law.
       This law is a good approximation for pressures less than about 2.7 MPa (400
@@ -267,19 +276,28 @@ def Help(d):
       critical temperature.
   
       Options
-        -d n      Set output number of significant figures [{d['-d']}]
+        -d n      Set output number of significant figures [{d["-d"]}]
         -h        Show this help
         -t        Run self tests
         --test    Run self tests
-    '''))
+    """)
+    )
+
+
 def GetValue(name, entered, is_temperature=False):
-    '''name contains the name of the parameter we're after.  Return
+    """name contains the name of the parameter we're after.  Return
     the SI equivalent of the number the user entered.  entered is a
     dictionary that will contain the user's entered value and units.
-    '''
+    """
     while True:
-        num, unit = GetNumber(name + "? ", low=0, high=sys.float_info.max,
-                              default=0, use_unit=True, allow_quit=True)
+        num, unit = GetNumber(
+            name + "? ",
+            low=0,
+            high=sys.float_info.max,
+            default=0,
+            use_unit=True,
+            allow_quit=True,
+        )
         entered[name] = (num, unit)
         try:
             if is_temperature:
@@ -295,50 +313,57 @@ def GetValue(name, entered, is_temperature=False):
                     continue
                 return T_K
             else:
-                return num*u(unit)
+                return num * u(unit)
         except ValueError:
             print("Number and/or unit entered not recognized; try again.\n")
+
+
 def PrintResults(d, indent=""):
-    '''P is pressure in Pa, V is volume in m³, m is mass in kg, n is
+    """P is pressure in Pa, V is volume in m³, m is mass in kg, n is
     number of moles, T is temperature in K, gas_id is the string
     identifying the gas, and entered is the dictionary containing the
     user's entered values.  d is the options dictionary.
-    '''
-    P = flt(d["P"])/u("Pa")
-    V = flt(d["V"])/u("m³")
+    """
+    P = flt(d["P"]) / u("Pa")
+    V = flt(d["V"]) / u("m³")
     n = flt(d["n"])
-    m = flt(d["m"])/u("kg")
-    T = flt(d["T"])/u("K")
+    m = flt(d["m"]) / u("kg")
+    T = flt(d["T"]) / u("K")
     OutputVariable(P, "Pressure:", "kPa atm psi mmHg")
     OutputVariable(V, "Volume:", "m³ liter cc gal ft³")
     OutputVariable(m, f"Mass ({n} moles):", "kg lbm galwater oz")
-    OutputVariable(m/V, "Density:", "kg/m³ g/cc lb/inch³ lb/ft³")
+    OutputVariable(m / V, "Density:", "kg/m³ g/cc lb/inch³ lb/ft³")
     OutputTemperature(T)
-def OutputVariable(var, label, units, indent=" "*4):
+
+
+def OutputVariable(var, label, units, indent=" " * 4):
     s = []
     print()
     print(label)
     for unit in units.split():
-        s.append(indent + str(var/u(unit))  + " " + unit)
+        s.append(indent + str(var / u(unit)) + " " + unit)
     for i in Columnize(s, sep=" "):
         print(i)
-def OutputTemperature(T_K, indent=" "*4):
-    '''Have to handle temperature specially.
-    '''
-    ip = flt("273.15")     # Ice point temperature in K
+
+
+def OutputTemperature(T_K, indent=" " * 4):
+    """Have to handle temperature specially."""
+    ip = flt("273.15")  # Ice point temperature in K
     with ip:
         s = []
         print()
         print("Temperature:")
         s.append(indent + str(T_K) + " K")
         s.append(indent + str(flt(T_K - ip)) + " °C")
-        degF = 9/5*(T_K - ip) + 32
+        degF = 9 / 5 * (T_K - ip) + 32
         s.append(indent + str(flt(degF)) + " °F")
-        s.append(indent + str(9/5*T_K) + " °R")
+        s.append(indent + str(9 / 5 * T_K) + " °R")
     for i in Columnize(s, sep=" "):
         print(i.rstrip(" ="))
+
+
 def EOS_IdealGas(d):
-    '''The common formula is P*V = n*R*T where
+    """The common formula is P*V = n*R*T where
         P = pressure, Pa
         V = volume, m³
         n = number of moles, dimensionless
@@ -347,7 +372,7 @@ def EOS_IdealGas(d):
 
     The equation can be changed to use mass instead of moles by the relation n = m/M where m is the
     mass in kg and M is the molecular mass in kg/mole.
-    '''
+    """
     P = d["P"]
     V = d["V"]
     n = d["n"]
@@ -356,17 +381,19 @@ def EOS_IdealGas(d):
     name, pc, tc, mw, w = constants[d["gas_id"]]
     # mw is in kg/mol
     if not P:
-        d["P"] = n*R*T/V
+        d["P"] = n * R * T / V
     elif not V:
-        d["V"] = n*R*T/P
+        d["V"] = n * R * T / P
     elif not n:
-        d["n"] = P*V/(R*T)
-        d["m"] = d["n"]*mw      # Convert moles to kg
+        d["n"] = P * V / (R * T)
+        d["m"] = d["n"] * mw  # Convert moles to kg
     elif not T:
-        d["T"] = P*V/(R*n)
+        d["T"] = P * V / (R * n)
     else:
         print("Need at least one variable to be zero")
         exit(1)
+
+
 def PrintHeader(d):
     P = d["P"]
     V = d["V"]
@@ -377,32 +404,40 @@ def PrintHeader(d):
     width = int(os.environ.get("COLUMNS", 79)) - 1
     s, f = f"Results for {name} (MW = {mw} kg/mol)", "{0:^{1}}"
     print(f.format(s, width))
-    print(f.format("-"*len(s), width))
+    print(f.format("-" * len(s), width))
     print("Ideal gas equation of state")
     print("Critical values:")
     # Note that tc was set without units, but it's in °C
-    print("    Tc = %s °C   = %s K   = %s °F   = %s °R" % (
-        str(CT(tc, "C", "C")),
-        str(CT(tc, "C", "K")),
-        str(CT(tc, "C", "F")),
-        str(CT(tc, "C", "R"))))
-    print("    Pc = %s atm  = %s MPa  = %s psi" % (
-        pc/u("atm"),
-        pc/u("MPa"),
-        pc/u("psi")))
+    print(
+        "    Tc = %s °C   = %s K   = %s °F   = %s °R"
+        % (
+            str(CT(tc, "C", "C")),
+            str(CT(tc, "C", "K")),
+            str(CT(tc, "C", "F")),
+            str(CT(tc, "C", "R")),
+        )
+    )
+    print(
+        "    Pc = %s atm  = %s MPa  = %s psi"
+        % (pc / u("atm"), pc / u("MPa"), pc / u("psi"))
+    )
+
+
 def GetRequirements(d):
     gas_id = 1
-    print(dedent(f'''
+    print(
+        dedent(f"""
                         Ideal Gas Law Calculation
                         -------------------------
     Enter zero for the variable you don't know.  Default units are SI if you
     don't enter a unit string (commonly-used units are supported; for
     example, cubic feet are represented by ft3).
 
-    '''))
+    """)
+    )
     # Print gas selections
     gases = []
-    entered = {    # Keep track of what user enters
+    entered = {  # Keep track of what user enters
         # (value, unit)
         "Pressure": (0, ""),
         "Volume": (0, ""),
@@ -413,16 +448,14 @@ def GetRequirements(d):
         # Show gases
         while True:
             for i in range(len(constants)):
-                gases.append("%2d %s" % (i+1, constants[i][0]))
-            for i in Columnize(gases, col_width=26, columns=3,
-                                   trunc=1):
+                gases.append("%2d %s" % (i + 1, constants[i][0]))
+            for i in Columnize(gases, col_width=26, columns=3, trunc=1):
                 print(i)
             msg = "\nGas type" % locals()
-            gas_id = GetNumber(msg, numtype=int, default=1, low=1,
-                               high=len(gases))
+            gas_id = GetNumber(msg, numtype=int, default=1, low=1, high=len(gases))
             gas_id -= 1  # Correct for zero-based list
             try:
-                Pc = constants[gas_id][1]*u("MPa")
+                Pc = constants[gas_id][1] * u("MPa")
                 Tc = constants[gas_id][2]
                 mw = constants[gas_id][3]
                 break
@@ -435,18 +468,24 @@ def GetRequirements(d):
             m = GetValue("Mass", entered)
             # The factor of 1000 is because m is in kg and we need it
             # in g.
-            n = 1000*m/mw    # Convert mass to moles
-            T = GetValue("Temperature (default units are K)", entered, is_temperature=True)
+            n = 1000 * m / mw  # Convert mass to moles
+            T = GetValue(
+                "Temperature (default units are K)", entered, is_temperature=True
+            )
+
             # Check that we only have one zero variable
             def f(a, b):
                 return not a and not b
+
             if f(P, V) or f(P, n) or f(P, T) or f(V, n) or f(V, T) or f(n, T):
                 print("Must have only one zero variable\nStart over...\n")
             else:
                 break
+
         def f(s):
             v, u = entered[s]
             return str(v) + " " + u if u else str(v)
+
         print("\nYou entered:")
         print("  P =", f("Pressure"), "=", str(P), "Pa")
         print("  V =", f("Volume"), "=", str(V), "m³")
@@ -455,68 +494,76 @@ def GetRequirements(d):
         print()
     d.update({"P": P, "V": V, "n": n, "m": m, "T": T, "gas_id": gas_id})
     d["entered"] = entered
-if 1:   # Unit tests
+
+
+if 1:  # Unit tests
+
     def TestGetTemperature():
         # Hydrogen at 1 atm, 1 mol, 1 kg
         gas_id = 11
-        P = 1*u("atm")      # Pa
-        V = 1               # Cubic meters
-        n = 1               # moles
+        P = 1 * u("atm")  # Pa
+        V = 1  # Cubic meters
+        n = 1  # moles
         name, pc, tc, mw, w = constants[gas_id]
-        T = expected_T = P*V/(R*n)
-        m = P*V/(R*T)*mw
+        T = expected_T = P * V / (R * n)
+        m = P * V / (R * T) * mw
         d = {"P": P, "V": V, "n": n, "m": m, "T": 0, "gas_id": gas_id}
         EOS_IdealGas(d)
         assert_equal(d["T"], expected_T)
+
     def TestGetMass():
         # Total mass of air in house on Shamrock:  901.9 m³
-        gas_id = 0          # Air
-        P = 1*u("atm")      # Pa
-        V = 901.9           # Cubic meters
-        n = 0               # moles
-        T = 293.15          # About room temperature
+        gas_id = 0  # Air
+        P = 1 * u("atm")  # Pa
+        V = 901.9  # Cubic meters
+        n = 0  # moles
+        T = 293.15  # About room temperature
         name, pc, tc, mw, w = constants[gas_id]
-        n = P*V/(R*T)
-        expected_m = n*mw  # kg
+        n = P * V / (R * T)
+        expected_m = n * mw  # kg
         d = {"P": P, "V": V, "n": 0, "m": 0, "T": T, "gas_id": gas_id}
         EOS_IdealGas(d)
-        assert_equal(d["m"], expected_m)    # 1.083 kg
+        assert_equal(d["m"], expected_m)  # 1.083 kg
         # Mass of air in 20 gallon air compressor at 100 psi
-        gas_id = 0          # Air
-        P = 100*u("psi")    # Pa
-        V = 20*u("gal")     # Cubic meters
-        n = 0               # moles
-        T = 293.15          # About room temperature
+        gas_id = 0  # Air
+        P = 100 * u("psi")  # Pa
+        V = 20 * u("gal")  # Cubic meters
+        n = 0  # moles
+        T = 293.15  # About room temperature
         name, pc, tc, mw, w = constants[gas_id]
-        n = P*V/(R*T)
-        expected_m = n*mw  # kg
+        n = P * V / (R * T)
+        expected_m = n * mw  # kg
         d = {"P": P, "V": V, "n": 0, "m": 0, "T": T, "gas_id": gas_id}
         EOS_IdealGas(d)
-        assert(abs(d["m"] == expected_m))   # 0.62 g
+        assert abs(d["m"] == expected_m)  # 0.62 g
+
     def TestGetPressure():
         # 1 mole of Hydrogen at 300 K in 1 m³
         gas_id = 11
-        V = 1               # Cubic meters
-        n = 1               # moles
-        T = 300             # K
-        P = expected_P = n*R*T/V
+        V = 1  # Cubic meters
+        n = 1  # moles
+        T = 300  # K
+        P = expected_P = n * R * T / V
         name, pc, tc, mw, w = constants[gas_id]
-        m = n*mw/1000       # kg
+        m = n * mw / 1000  # kg
         d = {"P": 0, "V": V, "n": n, "m": m, "T": T, "gas_id": gas_id}
         EOS_IdealGas(d)
-        assert_equal(d["P"], expected_P)    # 2494 Pa
+        assert_equal(d["P"], expected_P)  # 2494 Pa
+
     def TestGetVolume():
         # 1 mole of Hydrogen at 300 K and 2500 Pa
         gas_id = 11
-        P = 2500            # Pa
-        n = 1               # moles
-        T = 300             # K
-        V = expected_V = n*R*T/P
+        P = 2500  # Pa
+        n = 1  # moles
+        T = 300  # K
+        V = expected_V = n * R * T / P
         name, pc, tc, mw, w = constants[gas_id]
-        m = n*mw       # kg
+        m = n * mw  # kg
         d = {"P": P, "V": 0, "n": n, "m": m, "T": T, "gas_id": gas_id}
         EOS_IdealGas(d)
-        assert_equal(d["V"], expected_V)    # 1 m³
+        assert_equal(d["V"], expected_V)  # 1 m³
+
+
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
@@ -528,12 +575,12 @@ if __name__ == "__main__":
             # temperature (293 K) for T.
             gas_id = 0
             d["gas_id"] = gas_id  # Air
-            d["P"] = 1*u("atm")
+            d["P"] = 1 * u("atm")
             d["V"] = 901.9  # m³
             d["m"] = 1083.5482834484887
             d["T"] = 0
             name, pc, tc, mw, w = constants[gas_id]
-            d["n"] = d["m"]/mw
+            d["n"] = d["m"] / mw
             t.print(f"\n{t('ornl')}T should be room temperature (20 °C)\n")
         else:
             GetRequirements(d)

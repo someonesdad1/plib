@@ -1,29 +1,30 @@
-'''
+"""
 Script that will parse words from stdin and print out those that do not
 belong to the included words below.
 
 See http://simple.wikipedia.org/wiki/Wikipedia:Basic_English_ordered_wordlist.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Print words from stdin that don't belong to Ogden's basic English
     # word set
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
-if 1:   # Global variables
+if 1:  # Global variables
     all_words = set()
     punct = ".,;:?![](){}='\"@#$%^&*-_=+|\\<>`~"
-    wordlist = '''
+    wordlist = """
     # Basic 100
 
         i a about across after again against all almost among and any as
@@ -180,7 +181,9 @@ if 1:   # Global variables
         throw threw took tried unhappy until upper wait waited walked
         wanted wear went wish wonder yet your yourself
 
-    '''
+    """
+
+
 def GetAllWords():
     global all_words
     words = []
@@ -189,6 +192,8 @@ def GetAllWords():
         if not line or line[0] == "#":
             continue
         all_words.update(set(line.split()))
+
+
 def RemovePunctuation(word):
     if word[0] in punct:
         word = word[1:]
@@ -198,20 +203,24 @@ def RemovePunctuation(word):
     except Exception:
         pass
     return word
+
+
 def ProcessLine(linenum, line, wordsdict):
-    '''Split the line into words and put each word into the dictionary
+    """Split the line into words and put each word into the dictionary
     wordsdict (key = word, value = linenumber).
-    '''
-    table = ''.maketrans(punct, " "*len(punct))
+    """
+    table = "".maketrans(punct, " " * len(punct))
     words = line.lower().translate(table).split()
     for word in words:
         if word not in wordsdict:
             wordsdict[word] = linenum
+
+
 def GetWords():
-    '''Read the lines from stdin and return a dictionary of the words
+    """Read the lines from stdin and return a dictionary of the words
     from these lines.  The word is the key; the value is the line
     number.
-    '''
+    """
     words = {}
     if 0:
         print("**, Reading from file instead of stdin")
@@ -221,9 +230,10 @@ def GetWords():
     for i, line in enumerate(sys.stdin.readlines()):
         ProcessLine(i + 1, line, words)
     return words
+
+
 def NotElementaryWord(word):
-    '''Return True if word is not an elementary word.
-    '''
+    """Return True if word is not an elementary word."""
     if word in all_words:
         return False
     # Check for plurals
@@ -234,13 +244,17 @@ def NotElementaryWord(word):
         if word[:-2] in all_words:
             return False
     return True
+
+
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "-h":
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]}
           Parses stdin into words and print those that don't belong to basic
           English usage.
-        '''))
+        """)
+        )
         exit(0)
     GetAllWords()
     # Put all the words from stdin in a dictionary (word : linenum)

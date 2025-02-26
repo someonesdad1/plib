@@ -1,40 +1,44 @@
-'''
+"""
 Print out matching characteristics of two resistors.  They are measured in
 series with a voltage across them.
-'''
-if 1:   # Header
-    if 1:   # Copyright, license
+"""
+
+if 1:  # Header
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Print out matching characteristics of two resistors
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         import getopt
         from pathlib import Path as P
         import sys
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import dedent
         from color import t
         from si import GetSignificantFigures, ConvertSI
         from f import flt
-    if 1:   # Global variables
+    if 1:  # Global variables
         ii = isinstance
         t.pct = t("ornl")
         t.ppm = t("yell")
-if 1:   # Utility
+if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Manpage():
-        print(dedent(f'''
+        print(
+            dedent(f"""
         This script calculates how close two resistors' resistances are by
         measurement:  the two resistances in series are put across a known
         voltage and the voltage drop across each resistor is measured. 
@@ -93,10 +97,13 @@ if 1:   # Utility
         for the mean will be the maximum number of figures in V1 and V2
         plus one.
 
-        '''))
+        """)
+        )
         exit(0)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] V1 V2
           Print matching % for two resistors in series with a voltage
           across them.  V1 and V2 are the voltages in volts across the
@@ -115,19 +122,21 @@ if 1:   # Utility
         Options:
             -1 R    Define resistance of first resistor
             -2 R    Define resistance of second resistor
-            -d n    Number of significant figures in % and ppm [{d['-d']}]
+            -d n    Number of significant figures in % and ppm [{d["-d"]}]
             -h      Print a manpage
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["n"] = 0          # Number of digits for -1 or -2
-        d["-1"] = None      # First resistor
-        d["-2"] = None      # Second resistor
-        d["-d"] = 2         # Number of significant digits in % or ppm
+        d["n"] = 0  # Number of digits for -1 or -2
+        d["-1"] = None  # First resistor
+        d["-2"] = None  # Second resistor
+        d["-d"] = 2  # Number of significant digits in % or ppm
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "1:2:d:h") 
+            opts, args = getopt.getopt(sys.argv[1:], "1:2:d:h")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -161,51 +170,59 @@ if 1:   # Utility
         if len(args) != 2:
             Usage()
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def Strip(s):
-        'Remove letters/signs to make a float an integer significand'
+        "Remove letters/signs to make a float an integer significand"
         for i in ".,eE+-":
             s = s.replace(i, "")
         return s
+
     def Report(s1, s2):
-        's1 and s2 are the strings the user entered for the voltages'
+        "s1 and s2 are the strings the user entered for the voltages"
         # Get number of digits to use in numbers
         n = max(GetSignificantFigures(s1), GetSignificantFigures(s2))
         flt(0).N = n
         flt(0).rtz = False
         flt(0).high = 1e6
         V1, V2 = ConvertSI(s1), ConvertSI(s2)
-        mean = (V1 + V2)/2
-        halfwidth = abs(V1 - V2)/2
+        mean = (V1 + V2) / 2
+        halfwidth = abs(V1 - V2) / 2
         if not mean:
             Error("One of the values is zero")
-        cov = halfwidth/mean
-        pct = 100*cov
-        ppm = 1e6*cov
+        cov = halfwidth / mean
+        pct = 100 * cov
+        ppm = 1e6 * cov
         # Print data
         print(f"Resistor matching (ppm = parts per 10⁶):")
         if d["-1"] or d["-2"]:
             # One of the resistors was defined
             V1.N = max(d["n"], n)
             if d["-1"]:
-                i = flt(V1/d["-1"])
-                R1, R2 = V1/i, V2/i
+                i = flt(V1 / d["-1"])
+                R1, R2 = V1 / i, V2 / i
                 diff = R2 - R1
                 sgn = "-" if diff < 0 else "+"
-                pct = 100*abs(diff)/R1
-                ppm = 1e4*pct
+                pct = 100 * abs(diff) / R1
+                ppm = 1e4 * pct
                 pct.n, ppm.n = d["-d"], d["-d"]
                 print(f"  R1   ≝ {R1} Ω")
-                print(f"  R2   = {R1} Ω {t.pct}{sgn} {pct}%{t.n} = R1 {t.ppm}{sgn} {ppm} ppm{t.n}")
+                print(
+                    f"  R2   = {R1} Ω {t.pct}{sgn} {pct}%{t.n} = R1 {t.ppm}{sgn} {ppm} ppm{t.n}"
+                )
             else:
-                i = V2/d["-2"]
-                R1, R2 = V1/i, V2/i
+                i = V2 / d["-2"]
+                R1, R2 = V1 / i, V2 / i
                 diff = R1 - R2
                 sgn = "-" if diff < 0 else "+"
-                pct = 100*abs(diff)/R2
-                ppm = 1e4*pct
+                pct = 100 * abs(diff) / R2
+                ppm = 1e4 * pct
                 pct.n, ppm.n = d["-d"], d["-d"]
-                print(f"  R1   = {R2} Ω {t.pct}{sgn} {pct}%{t.n} = R2 {t.ppm}{sgn} {ppm} ppm{t.n}")
+                print(
+                    f"  R1   = {R2} Ω {t.pct}{sgn} {pct}%{t.n} = R2 {t.ppm}{sgn} {ppm} ppm{t.n}"
+                )
                 print(f"  R2   ≝ {R2} Ω")
         else:
             mean.N = n + 1  # One more digit than components
@@ -215,7 +232,8 @@ if 1:   # Core functionality
             pct.n, ppm.n = d["-d"], d["-d"]
             print(f"{t.pct}± {pct}%{t.n} = {mean} {t.ppm}± {ppm} ppm{t.n}")
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     Report(*args)

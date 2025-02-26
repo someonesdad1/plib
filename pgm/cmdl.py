@@ -1,34 +1,36 @@
-'''
+"""
 Script to output Mac keyboard commands in various ways
-'''
- 
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Output Mac keyboard commands
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Standard imports
+if 1:  # Standard imports
     import getopt
     import os
     import pathlib
     import sys
     import enum
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import wrap, dedent
     from color import C
+
     if 0:
         import debug
+
         debug.SetDebugger()
-if 1:   # Global variables
+if 1:  # Global variables
     P = pathlib.Path
     ii = isinstance
     # Ignore lines with comments
@@ -36,7 +38,7 @@ if 1:   # Global variables
     # ',' in first column denotes an informational heading
     # ';' in non-first column indicates modifying text for that topic
     # Indentation implies material associated with the heading
-    data = dedent('''
+    data = dedent("""
     ,Mac keyboard shortcuts including modifier keys:
                         Mac         Windows keyboard
         Command         ⌘               Windows key
@@ -219,14 +221,14 @@ if 1:   # Global variables
         Shift-Command-Question mark (?): Open the Help menu.
     ,Other shortcuts
         ;For more shortcuts, check the shortcut abbreviations shown in the menus of your apps. Every app can have its own shortcuts, and shortcuts that work in one app might not work in another. 
-    ''')
+    """)
     # Ignore lines with comments
     # '.' in first column denotes a topic heading
     # ',' in first column denotes an informational heading
     # ';' in non-first column indicates modifying text for that topic
     # Indentation implies material associated with the heading
-    if 1:   # Use this for debugging
-        data = dedent('''
+    if 1:  # Use this for debugging
+        data = dedent("""
         ,Mac keyboard shortcuts including modifier keys:
             Command         ⌘               Windows key
             Shift           ⇧
@@ -247,8 +249,9 @@ if 1:   # Global variables
             Shift-Command-Down arrow: Select the text between the insertion point and the end of the document.
         ,Other shortcuts
             ;For more shortcuts, check the shortcut abbreviations shown in the menus of your apps. Every app can have its own shortcuts, and shortcuts that work in one app might not work in another. 
-        ''')
-if 1:   # Classes and types
+        """)
+if 1:  # Classes and types
+
     class KeyCmd:
         def __init__(self, key, descr):
             self.key = key
@@ -262,7 +265,6 @@ if 1:   # Classes and types
                 "Up arrow": "▲",
                 "Left arrow": "◀",
                 "Right arrow": "▶",
-
                 "Brightness Up": "Brt▲",
                 "Brightness Down": "Brt▼",
                 "Keyboard Brightness Up": "KbdBrt▲",
@@ -270,7 +272,6 @@ if 1:   # Classes and types
                 "Volume Up": "Vol▲",
                 "Volume Down": "Vol▼",
                 "Mission Control": "MisCtrl",
-
                 "Left Bracket": "[",
                 "Right Bracket": "]",
                 "Left Curly Bracket": "{",
@@ -287,47 +288,57 @@ if 1:   # Classes and types
                 "Power button": "Pwr",
                 "Space bar": "Spc",
             }
+
         def __str__(self):
-            #return self.symbol()
+            # return self.symbol()
             return self.decorate()
+
         def symbol(self):
-            'Return the key name symbol'
+            "Return the key name symbol"
             f = self.key.split("-")
             if self.key == "Shift-Command-Down Arrow":
                 xx()  # xx
             for item in f:
                 i = item.strip()
                 items.append(d[i] if i in d else i)
+
         def decorate(self):
             "Return the name with the key's symbols"
-            items = [f"{self.key:40s}{' '*5}"]
+            items = [f"{self.key:40s}{' ' * 5}"]
             f = self.key.split("-")
             if self.key == "Shift-Command-Down Arrow":
                 xx()  # xx
             for item in f:
                 i = item.strip()
                 items.append(self._sym[i] if i in self._sym else i)
-            return ''.join(items)
-                    
+            return "".join(items)
+
     class State(enum.Enum):
         ignore = enum.auto()
         topic = enum.auto()
         modifier = enum.auto()
-if 1:   # Utility
+
+
+if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] etc.
           Explanations...
         Options:
             -h      Print a manpage
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
         d["-a"] = False
-        d["-d"] = 3         # Number of significant digits
+        d["-d"] = 3  # Number of significant digits
         try:
             opts, args = getopt.getopt(sys.argv[1:], "ad:h")
         except getopt.GetoptError as e:
@@ -342,24 +353,26 @@ if 1:   # Utility
                     if not (1 <= d["-d"] <= 15):
                         raise ValueError()
                 except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                        "1 and 15")
+                    msg = "-d option's argument must be an integer between 1 and 15"
                     Error(msg)
             elif o in ("-h", "--help"):
                 Usage(status=0)
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def FixLine(line):
-        '''Remove '(x)' where x is one of the repl characters
-        '''
+        """Remove '(x)' where x is one of the repl characters"""
         repl = ",;:/[]{}+-?|"
         for i in repl:
             s = f"({i})"
             if s in line:
                 line = line.replace(s, "")
         return line
+
     def ProcessData():
-        'Return a list of the key objects'
+        "Return a list of the key objects"
         state = State.ignore
         keys = []
         for line in data.split("\n"):
@@ -390,8 +403,9 @@ if 1:   # Core functionality
             keys.append(key)
         return keys
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     keys = ProcessData()
     # Show some output

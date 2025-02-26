@@ -1,34 +1,36 @@
-'''
+"""
 Generate an HTML difference of two files and launch in browser
     Note the tempfile used is not cleaned up.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # <utility> Generate an HTML difference of two files and launch in
     # browser.
-    #∞what∞#
-    #∞test∞# ignore #∞test∞#
+    # ∞what∞#
+    # ∞test∞# ignore #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import difflib
     import getopt
     import sys
     import tempfile
     from textwrap import dedent
-    from pdb import set_trace as xx 
-if 1:   # Custom imports
+    from pdb import set_trace as xx
+if 1:  # Custom imports
     from launch import Launch
-if 1:   # Global variables
+if 1:  # Global variables
     nl = "\n"
     ii = isinstance
-if 1:   # Core functionality
+if 1:  # Core functionality
+
     def ShowDifference(old_str, new_str):
         h = difflib.HtmlDiff()
         s = h.make_file(old_str.split(nl), new_str.split(nl))
@@ -37,17 +39,26 @@ if 1:   # Core functionality
         Launch(name)
         # This leaves the temporary file because there's no easy way to
         # determine when the browser is finished looking at it.
+
+
 if __name__ == "__main__":
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(d, status=1):
-        print(dedent(f'''
+        print(
+            dedent(
+                f"""
         Usage:  {sys.argv[0]} [options] file1 file2
           Show an HTML difference between the two files in a browser.
         Options:
-          -i   Ignore case'''[1:]))
+          -i   Ignore case"""[1:]
+            )
+        )
         exit(status)
+
     def ParseCommandLine(d):
         d["-i"] = False
         try:
@@ -63,13 +74,15 @@ if __name__ == "__main__":
         if len(args) != 2:
             Usage(d)
         return args
+
     def GetFile(file):
         s = open(file, "rb").read()
         if ii(s, bytes):
             s = s.decode()
-        assert(isinstance(s, str))
+        assert isinstance(s, str)
         return s
-    d = {}      # Options dictionary
+
+    d = {}  # Options dictionary
     file1, file2 = ParseCommandLine(d)
     old, new = GetFile(file1), GetFile(file2)
     if d["-i"]:

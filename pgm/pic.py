@@ -1,22 +1,23 @@
-'''
+"""
 Create an index of picture files
     The index file is pickled, then you can quickly search for file
     names with regular expressions.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2020 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2020 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Create an index of picture files
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import getopt
     import os
     import pathlib
@@ -24,18 +25,23 @@ if 1:   # Imports
     import re
     import sys
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
-if 1:   # Global variables
-    bitmap_extensions = set('''
+if 1:  # Global variables
+    bitmap_extensions = set(
+        """
         .pspimage .jfif .gif .tif .tiff .png .jpg .ppm .ps .eps .bmp
         .emf .jls .jp2 .jpc .j2k .jpf .jpg .jpeg .jpe .kdc .pbm .pcd
         .pcx .pgm .psd .ras .sun .raw .sgi .rgb .sfw .wmf .xbm .xpm
-    '''.split())
-    video_extensions = set('''
+    """.split()
+    )
+    video_extensions = set(
+        """
         .swf .flv .avi .mpg .mpe .mpeg .mov .wmv .ogg
-    '''.split())
-    directories_to_index = set('''
+    """.split()
+    )
+    directories_to_index = set(
+        """
         /cygdrive/d/pictures
         /doc
         /ebooks
@@ -48,14 +54,18 @@ if 1:   # Global variables
         /science
         /shop
         /tools
-        '''.split())
-if 1:   # Utility
+        """.split()
+    )
+if 1:  # Utility
+
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
+
     def Usage(d, status=1):
         name = sys.argv[0]
-        s = print(dedent(f'''
+        s = print(
+            dedent(f"""
         Usage:  {name} [options] regex1 [regex2 ...]
           Search for bitmap files whose name matches the given regular
           expression(s).
@@ -63,11 +73,13 @@ if 1:   # Utility
         Options:
             -I      Perform indexing of the hard disk
             -v      Search for video files instead of bitmaps
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-I"] = False     # Perform indexing
-        d["-v"] = False     # Find video files
+        d["-I"] = False  # Perform indexing
+        d["-v"] = False  # Find video files
         d["bitmaps"] = []
         d["videos"] = []
         try:
@@ -95,6 +107,8 @@ if 1:   # Utility
             d["bitmaps"] = pickle.load(fp)
             d["videos"] = pickle.load(fp)
         return args
+
+
 def GenerateIndex():
     print(f"Updating index file {d['index_file']}")
     # Search all files
@@ -107,7 +121,7 @@ def GenerateIndex():
                 b.append(p)
             elif s and s.lower() in video_extensions:
                 v.append(p)
-    if 0:   # Debug print the data
+    if 0:  # Debug print the data
         print("Bitmaps")
         for i in b:
             print("  ", i)
@@ -118,13 +132,17 @@ def GenerateIndex():
     fp = open(d["index_file"], "wb")
     pickle.dump(b, fp)
     pickle.dump(v, fp)
+
+
 def Search(regexps):
     for r in regexps:
         for file in d["videos"] if d["-v"] else d["bitmaps"]:
             mo = r.search(str(file))
             if mo:
                 print(file)
+
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     regexps = [re.compile(i, re.I) for i in ParseCommandLine(d)]
     Search(regexps)

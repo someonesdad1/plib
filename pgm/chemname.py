@@ -1,29 +1,30 @@
-'''
+"""
 xx Update to new color.py:  get rid of PrintMatch
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Search for chemical names, old and new
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import os
     import getopt
     import re
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
-    #from color import PrintMatch
-if 1:   # Global variables
-    chemical_data = dedent('''
+    # from color import PrintMatch
+if 1:  # Global variables
+    chemical_data = dedent("""
     Acetic ether	Ethyl acetate	C2H5O2C2H3
     Acetone                     	Dimethyl ketone, 2-propanone	OC(CH3)2
     Acid of air	Carbon dioxide	CO2
@@ -613,12 +614,17 @@ if 1:   # Global variables
     Yellow prussiate	Potassium ferricyanide	K3Fe(CN)6·3H2O
     Yellow prussiate of potash  	Potassium ferrocyanide        	K4Fe(CN)6·3H2O
     Zinc white                  	Zinc oxide                    	ZnO
-    ''')
+    """)
+
+
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
+
+
 def Usage(d, status=1):
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]} [options] regex1 ...
       Search for a chemical name in a database of old and new names.  The
       regular expressions are OR'd together.  Examples:  
@@ -627,8 +633,11 @@ def Usage(d, status=1):
           a sweetener before its toxicity was known).
     Options:
         -i      Make the search case-sensitive
-    '''))
+    """)
+    )
     exit(status)
+
+
 def ParseCommandLine(d):
     d["-i"] = False
     if len(sys.argv) < 2:
@@ -646,10 +655,12 @@ def ParseCommandLine(d):
     if not args:
         Usage(d)
     return args
+
+
 def GetData():
-    '''Return the chemical data as a list of lists; each list contains
+    """Return the chemical data as a list of lists; each list contains
     three strings:  [old_name, modern_name, formula].
-    '''
+    """
     data = []
     for i in chemical_data.split("\n"):
         s = [j.strip() for j in i.split("\t")]
@@ -659,19 +670,22 @@ def GetData():
             exit()
         data.append(s)
     return data
+
+
 def SearchLine(regexps, line, d):
-    '''
-    '''
+    """ """
     for r in regexps:
         mo = r.search(line)
         if mo:
             print(line)
-            #PrintMatch(line, r)
+            # PrintMatch(line, r)
             return
+
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
-    data = ['; '.join(i) for i in GetData()]
+    data = ["; ".join(i) for i in GetData()]
     regexps = []
     case = 0 if d["-i"] else re.I
     for i in args:

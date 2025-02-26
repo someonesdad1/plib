@@ -1,14 +1,16 @@
 import sys
+
 if 1:
     import debug
+
     debug.SetDebugger()
-attr = f'''
+attr = f"""
 file = {sys.argv[0]}
 from http://www.two4u.com/color/medium-txt.html
 Downloaded Sat 04 Oct 2014 10:53:39 AM
 Verified Wed 16 Mar 2022 02:15:37 PM
-'''.strip()
-data = '''
+""".strip()
+data = """
 White                     #FFFFFF     255  255  255
 Red                       #FF0000     255    0    0
 Green                     #00FF00       0  255    0
@@ -109,7 +111,7 @@ Violet                    #4F2F4F      79   47   79
 Violet Red                #CC3299     204   50  153
 Wheat                     #D8D8BF     216  216  191
 Yellow Green              #99CC32     153  204   50
-'''.strip()
+""".strip()
 print(f"""'''{attr}'''""")
 for i, line in enumerate(data.split("\n")):
     name, color = line.split("#")

@@ -1,4 +1,4 @@
-'''
+"""
 Information relevant to a diet.
 
 Food info to add
@@ -9,23 +9,23 @@ Food info to add
     - celery
     - pickled beets:  29 g per serving = 15 Cal or 52 Cal/100 g
 
-'''
- 
+"""
+
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Information relevant to a diet
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         from collections import deque
         from pathlib import Path as P
         from pprint import pprint as pp
@@ -33,7 +33,7 @@ if 1:  # Header
         import os
         import re
         import sys
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from f import flt
         from wrap import dedent
         from color import t
@@ -41,36 +41,46 @@ if 1:  # Header
         from columnize import Columnize
         import u
         import get
+
         if 0:
             import debug
+
             debug.SetDebugger()
-    if 1:   # Global variables
+    if 1:  # Global variables
+
         class G:
             pass
+
         g = G()
         g.dbg = False
         ii = isinstance
-if 1:   # Utility
+if 1:  # Utility
+
     def GetColors():
         t.err = t("redl")
         t.dbg = t("lill") if g.dbg else ""
         t.N = t.n if g.dbg else ""
+
     def GetScreen():
-        'Return (LINES, COLUMNS)'
+        "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
-            int(os.environ.get("COLUMNS", "80")) - 1
+            int(os.environ.get("COLUMNS", "80")) - 1,
         )
+
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="")
             print(*p, **kw)
             print(f"{t.N}", end="")
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Manpage():
-        print(dedent(f'''
+        print(
+            dedent(f"""
         There is no magic to losing weight, just as there is no magic to gaining it.  If you
         consider the body as a closed system, then what you breathe and eat are closely related to
         what you put on, take off, and excrete on a daily basis.  In my opinion, the keys are
@@ -204,10 +214,13 @@ if 1:   # Utility
             Overweight		25 to 30
             Obese 		    > 30
 
-        '''))
+        """)
+        )
         exit(0)
+
     def Usage(status=0):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] [cmd]
           Print out information relevant to a diet.
           e     Estimate daily food energy need
@@ -219,15 +232,17 @@ if 1:   # Utility
           f     Specific energy list of common foods
         Options:
             -h      Print a manpage
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-a"] = False     # Need description
-        d["-d"] = 3         # Number of significant digits
+        d["-a"] = False  # Need description
+        d["-d"] = 3  # Number of significant digits
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:h") 
+            opts, args = getopt.getopt(sys.argv[1:], "ad:h")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -247,10 +262,13 @@ if 1:   # Utility
         x.N = d["-d"]
         x.rtz = True
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def GetData():
-        'Return a dict of food name to specific energy'
-        data = '''
+        "Return a dict of food name to specific energy"
+        data = """
             apple 52
             banana 89
             bell pepper 26
@@ -300,7 +318,7 @@ if 1:   # Core functionality
             Wheat Thins 452
             white bread 231 # 60 C in one slice
             yellow squash 16
-        '''
+        """
         fd = {}
         for i in data.split("\n"):
             i = i.strip()
@@ -310,11 +328,13 @@ if 1:   # Core functionality
             if k != -1:
                 i = i[:k]
             j = i.split()
-            fd[' '.join(j[:-1])] = int(j[-1])
+            fd[" ".join(j[:-1])] = int(j[-1])
         return fd
+
     g.low = 60
     g.med = 100
     g.hi = 400
+
     def ColorCoding(energy):
         if energy > g.hi:
             return t.ornl
@@ -324,10 +344,14 @@ if 1:   # Core functionality
             return t.grnl
         else:
             return t.whtl
+
     def ColorKey():
         C = ColorCoding
-        print(f"{t.n}Color key:  {C(g.low)}< {g.low}, {C(g.med)}< {g.med}, "
-              f"{C(g.hi)}< {g.hi}, {t.n}else {C(500)}this")
+        print(
+            f"{t.n}Color key:  {C(g.low)}< {g.low}, {C(g.med)}< {g.med}, "
+            f"{C(g.hi)}< {g.hi}, {t.n}else {C(500)}this"
+        )
+
     def PrintTable():
         fd = GetData()
         d = list(fd.items())
@@ -349,17 +373,28 @@ if 1:   # Core functionality
         for i in Columnize(o):
             print(i)
         ColorKey()
+
     def Breakfast():
-        print(dedent(f'''
-        '''))
+        print(
+            dedent(f"""
+        """)
+        )
+
     def Lunch():
-        print(dedent(f'''
-        '''))
+        print(
+            dedent(f"""
+        """)
+        )
+
     def Dinner():
-        print(dedent(f'''
-        '''))
+        print(
+            dedent(f"""
+        """)
+        )
+
     def Metabolism():
-        print(dedent(f'''
+        print(
+            dedent(f"""
         The Harris-Benedict formula for basal metabolic rate from the early 1900's is (revised by
         Mifflin and St Jeor in 1990)
         
@@ -411,12 +446,16 @@ if 1:   # Core functionality
         The equation is 662 - 9.53(70) + 15.91(70)(1.11) + 539.6(1.75), which is 662 - 667.1 +
         1236.2 + 994.3 or 2225.4 Calories.  I'd round this to 2200 Calories per day.
         
-        '''))
+        """)
+        )
+
     def GetDailyEnergyNeed():
-        '''Show daily Calories needed given mass, height, and age.  The calculation is based on
+        """Show daily Calories needed given mass, height, and age.  The calculation is based on
         the Institute of Medicine equation published in 2002.
-        '''
-        print("You'll be prompted for mass, height, and age.  Enter different units if desired.")
+        """
+        print(
+            "You'll be prompted for mass, height, and age.  Enter different units if desired."
+        )
         # Get m, the mass in kg
         done = False
         # Set no_test to False to avoid prompting so you can test
@@ -429,9 +468,9 @@ if 1:   # Core functionality
                 if u.u(unit, dim=True)[1] != u.u("m", dim=True)[1]:
                     print("You must use a mass unit")
                     continue
-                m = mass*u.u(unit)  # Mass in kg
+                m = mass * u.u(unit)  # Mass in kg
             else:
-                m = mass*u.u("lbm")
+                m = mass * u.u("lbm")
                 mass = f"{mass} lb"
             # Check for reasonableness
             if not (35 <= m <= 200):
@@ -450,10 +489,10 @@ if 1:   # Core functionality
             else:
                 # Convert to m
                 if unit:
-                    h = height*u.u(unit)
+                    h = height * u.u(unit)
                     height = f"{height} {unit}"
                 else:
-                    h = height*u.u("inch")
+                    h = height * u.u("inch")
                     height = f"{height} inches"
                 # Check for reasonableness
                 if not (1 <= h <= 3):
@@ -467,8 +506,8 @@ if 1:   # Core functionality
             years = f"{y} years"
             done = True
         if not no_test:
-            mass, m = "150 lb", flt(150)*u.u("lbm")
-            height, h = "69.3 inches", flt(69.3)*u.u("inch")
+            mass, m = "150 lb", flt(150) * u.u("lbm")
+            height, h = "69.3 inches", flt(69.3) * u.u("inch")
             years, y = f"{y} years", flt(75)
         # Activity levels and factors
         levels = {
@@ -479,28 +518,33 @@ if 1:   # Core functionality
             3: ("Very active", 1.48, 1.45),
         }
         # Print report
-        i = " "*2
-        t.print(f"\n{t.purl}Institute of Medicine daily food energy need in Calories (2002)")
-        print(f"{i}Mass   = {mass} = {m} kg")  
-        print(f"{i}Height = {height} = {h} m")  
-        print(f"{i}Age    = {y} years")  
+        i = " " * 2
+        t.print(
+            f"\n{t.purl}Institute of Medicine daily food energy need in Calories (2002)"
+        )
+        print(f"{i}Mass   = {mass} = {m} kg")
+        print(f"{i}Height = {height} = {h} m")
+        print(f"{i}Age    = {y} years")
         w, w1, w2, w3 = 5, 17, 8, 8
-        s = " "*w
-        print(f"{' '*25}Food Calories (kcal)")
+        s = " " * w
+        print(f"{' ' * 25}Food Calories (kcal)")
         print(f"{i}{'Activity level':^{w1}s}{s}{'Male':^{w2}s}{s}{'Female':^{w3}s}")
-        print(f"{i}{'-'*w1:{w1}s}{s}{'-'*w2:{w2}s}{s}{'-'*w3:^{w3}s}")
+        print(f"{i}{'-' * w1:{w1}s}{s}{'-' * w2:{w2}s}{s}{'-' * w3:^{w3}s}")
         for j in levels:
             level, pmen, pwomen = levels[j]
-            eer_men = 662 - 9.53*y + 15.91*m*pmen + 539.6*h
-            eer_women= 354 - 6.91*y + 9.36*m*pwomen + 726*h
-            print(f"{i}{level:{w1}s}{' '*w}{eer_men!s:^{w2}s}{' '*w}{eer_women!s:^{w3}s}")
+            eer_men = 662 - 9.53 * y + 15.91 * m * pmen + 539.6 * h
+            eer_women = 354 - 6.91 * y + 9.36 * m * pwomen + 726 * h
+            print(
+                f"{i}{level:{w1}s}{' ' * w}{eer_men!s:^{w2}s}{' ' * w}{eer_women!s:^{w3}s}"
+            )
+
 
 if 0:
     GetDailyEnergyNeed()
     exit()
 
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     cmd = args[0].lower()
     if cmd == "h":

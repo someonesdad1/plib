@@ -1,4 +1,4 @@
-'''
+"""
 
 This script uses the cmudict from the nltk.corpus to generate a python
 module that lets you look up the number of syllables in a word.  The
@@ -9,7 +9,7 @@ Toolkit):
 
     pip install nltk
 
-You can learn more about nltk from 
+You can learn more about nltk from
 https://en.wikipedia.org/wiki/Natural_Language_Toolkit.  The authors
 wrote a book published by O'Reilley (see http://nltk.org/book_1ed/).
 You can also see an on-line version at http://www.nltk.org/book/.
@@ -27,20 +27,22 @@ This script produces the same dictionaries when run under python 3.7.4
 and 2.7.16, though they won't be in the same order when printed to the
 file words_syllables.py.  The words_syllables.py file should be usable by
 any python version.
-'''
+"""
 
 from __future__ import print_function
 import sys
 import time
 from nltk.corpus import cmudict
 
+
 def Syllables(word):
-    '''For the given word, returns the number of syllables in the word.
+    """For the given word, returns the number of syllables in the word.
     The returned value will either be an integer or a tuple of integers.
-    '''
+    """
     t = [len(list(y for y in x if y[-1].isdigit())) for x in d[word]]
     syls = tuple(sorted(set(t)))
     return syls[0] if len(syls) == 1 else syls
+
 
 # Construct two dictionaries.  The first, syllables, contains a unique
 # mapping of the word in lower case letters to number of syllables.  The
@@ -59,66 +61,68 @@ for w in words:
         syllables[w] = t
 
 # Items to ignore
-ignore = set((
-    "!exclamation-point",
-    "#sharp-sign",
-    "%percent",
-    "&ampersand",
-    "'end-inner-quote",
-    "'end-quote",
-    "'inner-quote",
-    "'quote",
-    "'single-quote",
-    "(begin-parens",
-    "(in-parentheses",
-    "(left-paren",
-    "(open-parentheses",
-    "(paren",
-    "(parens",
-    "(parentheses",
-    ")close-paren",
-    ")close-parentheses",
-    ")end-paren",
-    ")end-parens",
-    ")end-parentheses",
-    ")end-the-paren",
-    ")paren",
-    ")parens",
-    ")right-paren",
-    ")un-parentheses",
-    ",comma",
-    "-dash",
-    "-hyphen",
-    "...ellipsis",
-    ".decimal",
-    ".dot",
-    ".full-stop",
-    ".period",
-    ".point",
-    "/slash",
-    ";semi-colon",
-    "?question-mark",
-    "a",
-    "a's",
-    "a.",
-    "a.",
-    "a.'s",
-    "a.s",
-    "a42128",
-    "a42128",
-    "aaa",
-    "{brace",
-    "{left-brace",
-    "}close-brace",
-    "}right-brace",
-    '"close-quote',
-    '"double-quote',
-    '"end-of-quote',
-    '"end-quote',
-    '"in-quotes',
-    '"quote',
-    '"unquote',
-))
+ignore = set(
+    (
+        "!exclamation-point",
+        "#sharp-sign",
+        "%percent",
+        "&ampersand",
+        "'end-inner-quote",
+        "'end-quote",
+        "'inner-quote",
+        "'quote",
+        "'single-quote",
+        "(begin-parens",
+        "(in-parentheses",
+        "(left-paren",
+        "(open-parentheses",
+        "(paren",
+        "(parens",
+        "(parentheses",
+        ")close-paren",
+        ")close-parentheses",
+        ")end-paren",
+        ")end-parens",
+        ")end-parentheses",
+        ")end-the-paren",
+        ")paren",
+        ")parens",
+        ")right-paren",
+        ")un-parentheses",
+        ",comma",
+        "-dash",
+        "-hyphen",
+        "...ellipsis",
+        ".decimal",
+        ".dot",
+        ".full-stop",
+        ".period",
+        ".point",
+        "/slash",
+        ";semi-colon",
+        "?question-mark",
+        "a",
+        "a's",
+        "a.",
+        "a.",
+        "a.'s",
+        "a.s",
+        "a42128",
+        "a42128",
+        "aaa",
+        "{brace",
+        "{left-brace",
+        "}close-brace",
+        "}right-brace",
+        '"close-quote',
+        '"double-quote',
+        '"end-of-quote',
+        '"end-quote',
+        '"in-quotes',
+        '"quote',
+        '"unquote',
+    )
+)
 
 description = """'''
 This module provides two dictionaries that give the number of syllables
@@ -153,7 +157,7 @@ restore to the full dictionaries.
 
 '''"""
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
     module_name = "words_syllables.py"
     name = sys.argv[0]
     date = time.asctime()

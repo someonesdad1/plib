@@ -1,17 +1,17 @@
-'''
+"""
 Script to generate monthly calendars.  You must set the variables
 start_month, start_year, end_month, and end_year.  Then the program will
-produce one monthly calendar per page.  
- 
+produce one monthly calendar per page.
+
 The program works by finding the day of the week of the first day of the
 month.  Dummy days of 0 are prefixed to the list of days of the month.
 When the box drawing routine finds a zero, it doesn't print a day for
 that box.
- 
+
 The dictionary birthdays indicates special days to color in the
 calendar.  The keys are date strings of the form "14 Dec".  The
 dictionary's values are:
- 
+
     value[0]  = a list of one or more colors to color the box.  If more
                 than one color is given, the colors are printed from top
                 to bottom.  Note these colors are given indirectly by
@@ -20,12 +20,14 @@ dictionary's values are:
                 to get the color associated with "Child" in the legend
                 dictionary.
     value[1:] = Names of the people to print in this box.
- 
-If you set birthdays to the empty dictionary, no birthday information 
+
+If you set birthdays to the empty dictionary, no birthday information
 will be printed.
-'''
+"""
+
 import pdb, sys, string
 from g import *
+
 # The values are a list of the colors to print in each box (indexes into
 # the dictionary legend) and the names of the people to print in that box.
 # A birthdate has to be written with the day number, one space character,
@@ -103,37 +105,39 @@ day_size = 0.3
 y_day_names = 7.5
 box_line_width = 0.01
 if 1:  # Date routines
+
     def JulianAstro(month, day, year):
-        '''Julian day routine from Meeus, "Astronomical Formulae for Calculators".
+        """Julian day routine from Meeus, "Astronomical Formulae for Calculators".
         Also in Meeus, "Astronomical Algorithms", 2nd ed., Willman-Bell, 1998.
-        '''
+        """
         if not IsValidDate(month, day, year):
             raise "Invalid date"
         if month < 3:
             year = year - 1
             month = month + 12
-        julian = (
-            int(365.25 * year) + int(30.6001 * (month + 1)) + day + 1720994.5
-        )
+        julian = int(365.25 * year) + int(30.6001 * (month + 1)) + day + 1720994.5
         tmp = year + month / 100.0 + day / 10000.0
         if tmp >= 1582.1015:
             A = year // 100
             B = 2 - A + A // 4
             julian = julian + B
         return julian * 1.0
+
     def DayOfWeek(month, day, year):
-        '''Sunday = 0'''
+        """Sunday = 0"""
         julian = int(JulianAstro(month, int(day), year) + 1.5)
         return julian % 7
+
     def IsLeapYear(year):
         if (year % 400 == 0) or (year % 4 == 0 and year % 100 != 0):
             return 1
         else:
             return 0
+
     def IsValidDate(month, day, year):
-        '''Returns true if the year is later than 1752 and the month and day
+        """Returns true if the year is later than 1752 and the month and day
         numbers are valid.
-        '''
+        """
         if month < 1 or month > 12:
             return 0
         if int(month) != month:
@@ -171,6 +175,7 @@ if 1:  # Date routines
                 if day >= 31:
                     return 0
         return 1
+
     def NumDaysInMonth(month, year):
         days = {
             1: 31,
@@ -190,19 +195,23 @@ if 1:  # Date routines
         if month == 2 and IsLeapYear(year):
             days_in_month = days_in_month + 1
         return days_in_month
+
+
 def GetDays(month, year):
-    '''Return a list of the days in the month, padded by leading zeroes,
+    """Return a list of the days in the month, padded by leading zeroes,
     which represent empty boxes in the first week.
-    '''
+    """
     days = list(range(1, NumDaysInMonth(month, year) + 1))
     for ix in range(DayOfWeek(month, 1, year)):
         days = [0] + days
     return days
+
+
 def FillBirthdayColors(color_list, width, height):
-    '''color_list is a list of strings that name the color to use in
+    """color_list is a list of strings that name the color to use in
     the legend dictionary.  The box is assumed to go from (0, 0) to (-1, -1).
     Fill it with len(color_list) different colors.
-    '''
+    """
     push()
     assert len(color_list) > 0
     num_boxes = float(len(color_list))
@@ -216,10 +225,12 @@ def FillBirthdayColors(color_list, width, height):
         move(x, -y)
         rectangle(1.0, -1.0 / num_boxes)
     pop()
+
+
 def WriteNamesInBox(names, width, height):
-    '''names is a list of strings to print in a box that goes from (0, 0)
+    """names is a list of strings to print in a box that goes from (0, 0)
     to (width, -height).
-    '''
+    """
     push()
     assert len(names) > 0
     # Set font height to be a fraction of what we drew the day number with
@@ -230,15 +241,17 @@ def WriteNamesInBox(names, width, height):
         move(x, -y)
         text(names[ix])
     pop()
+
+
 def PrintDay(x, y, day, month, width, height, day_fill_color, box_fill_color):
-    '''Draw the box for this day number and place the day number in the
+    """Draw the box for this day number and place the day number in the
     top left corner of the box.  The point (x, y) is the upper left
     corner of the box and we have a right-handed coordinate system.
- 
+
     Return a dictionary of the color keys used to fill the box, so that
     we can make sure we print a legend for these colors at the bottom of
     the page.
-    '''
+    """
     push()
     translate(x, y)  # Make upper left corner of box the origin
     move(0, -height)
@@ -280,8 +293,10 @@ def PrintDay(x, y, day, month, width, height, day_fill_color, box_fill_color):
         text(repr(day))
     pop()
     return colors_used
+
+
 def ProcessMonth(month, year):
-    '''Generate a calendar page.'''
+    """Generate a calendar page."""
     months = [
         "Jan",
         "Feb",
@@ -354,10 +369,12 @@ def ProcessMonth(month, year):
         for key in colors_used.keys():
             colors[key] = 0
     # DrawLegend(colors)
+
+
 def DrawLegend(colors):
-    '''Put a legend at the bottom of the page for the colors in the colors
+    """Put a legend at the bottom of the page for the colors in the colors
     dictionary.
-    '''
+    """
     for key in colors.keys():
         colors[key] = legend[key]
     legends = list(colors.keys())
@@ -385,6 +402,8 @@ def DrawLegend(colors):
         rectangle(width, height)
         move(x + 1.1 * width, y + height / 2.0 - font_size / 3.0)
         text(relationship)
+
+
 if __name__ == "__main__":
     assert end_year >= start_year
     year = start_year

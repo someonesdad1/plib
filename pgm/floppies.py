@@ -1,39 +1,43 @@
-'''
+"""
 Index of old floppy disks
-'''
-if 1:   # Header
+"""
+
+if 1:  # Header
     # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright © 2022 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
-        # Index of old floppy disks
-        #∞what∞#
-        #∞test∞# #∞test∞#
+    # These "trigger strings" can be managed with trigger.py
+    # ∞copyright∞# Copyright © 2022 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    # ∞license∞#
+    # ∞what∞#
+    # Index of old floppy disks
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     # Standard imports
-        import getopt
-        import os
-        from pathlib import Path as P
-        import re
-        import sys
-        from pdb import set_trace as xx
+    import getopt
+    import os
+    from pathlib import Path as P
+    import re
+    import sys
+    from pdb import set_trace as xx
+
     # Custom imports
-        from wrap import wrap, dedent
-        from color import Color, TRM as t, RegexpDecorate
-        from get import GetLines
-        from columnize import Columnize
-        if 1:
-            import debug
-            debug.SetDebugger()
+    from wrap import wrap, dedent
+    from color import Color, TRM as t, RegexpDecorate
+    from get import GetLines
+    from columnize import Columnize
+
+    if 1:
+        import debug
+
+        debug.SetDebugger()
     # Global variables
-        ii = isinstance
-        W = int(os.environ.get("COLUMNS", "80")) - 1
-        L = int(os.environ.get("LINES", "50"))
-        data = '''
+    ii = isinstance
+    W = int(os.environ.get("COLUMNS", "80")) - 1
+    L = int(os.environ.get("LINES", "50"))
+    data = """
             # Disk_size StartNumber EndNumber Title
             5   1 12        MS BASIC 7.0
             5   13 28       MS Word 5.0
@@ -245,11 +249,11 @@ if 1:   # Header
             3   504 505     vim 5.3
             3   506         vim 5.3 source
             3   507 511     Turbo C++ 3.0 for DOS
-        '''
-        # These are the floppy numbers I have.  I suspect the a, b etc. suffix
-        # means that these were extra floppies made as backups, as even back
-        # then things were sometimes unreadable.
-        floppies = '''
+        """
+    # These are the floppy numbers I have.  I suspect the a, b etc. suffix
+    # means that these were extra floppies made as backups, as even back
+    # then things were sometimes unreadable.
+    floppies = """
             245 246 261 262 263 268 269 270 271 275 288 293 294 295 304 304a
             305 305a 306 307 308 309 310 311 312 319 320 321 322b 323 324 325
             334 347 353 355 356 357 358 359 360 361 362 363 364 365 370 371 374
@@ -259,15 +263,18 @@ if 1:   # Header
             463 463a 464 465 466 467 468 469 470 471 472 473 474 475 476 477
             478 479 480 481 482 483 484 485 486 487 488 489 490 491 492 493 494
             495 496 497 498 499 500 503 504 506 507 508 509 510 511
-        '''.split()
-        # floppies will be a set of integers 
-        floppies = set(int(i[:3]) for i in floppies)
-if 1:   # Utility
+        """.split()
+    # floppies will be a set of integers
+    floppies = set(int(i[:3]) for i in floppies)
+if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] regexp1 [regexp2...]
           Search for the indicated regular expressions in the names of old
           floppy disks.
@@ -276,12 +283,14 @@ if 1:   # Utility
             -h      Print a manpage
             -i      Don't ignore case
             -o      Only search the on-hand floppies
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-c"] = False     # Don't color code
-        d["-i"] = True      # Ignore case
-        d["-o"] = False     # Show on-hand disks
+        d["-c"] = False  # Don't color code
+        d["-i"] = True  # Ignore case
+        d["-o"] = False  # Show on-hand disks
         if len(sys.argv) < 2:
             Usage()
         try:
@@ -295,9 +304,12 @@ if 1:   # Utility
             elif o in ("-h", "--help"):
                 Usage(status=0)
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def OnHand():
-        'Return a list of the disks on-hand'
+        "Return a list of the disks on-hand"
         out = []
         for line in lines:
             try:
@@ -316,16 +328,17 @@ if 1:   # Core functionality
                 if all_there:
                     out.append(line)
         return out
-            
+
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     regexps = ParseCommandLine(d)
     rd = RegexpDecorate()
     lines = GetLines(data, ignore_empty=True, strip=True)
     if d["-o"]:
         lines = OnHand()
-    colors = '''yell grnl ornl redl viol cynl magl lip lav pur roy den
-                trq'''.split()
+    colors = """yell grnl ornl redl viol cynl magl lip lav pur roy den
+                trq""".split()
     n = len(colors)
     for i, regexp in enumerate(regexps):
         r = re.compile(regexp, re.I) if d["-i"] else re.compile(regexp)

@@ -1,14 +1,16 @@
 import sys
+
 if 1:
     import debug
+
     debug.SetDebugger()
-attr = f'''
+attr = f"""
 file = {sys.argv[0]}
 from http://people.csail.mit.edu/jaffer/Color/resenecolours.txt
 Downloaded Sat 04 Oct 2014 10:23:31 AM
 Verified Wed 16 Mar 2022 02:19:16 PM
-'''.strip()
-data = '''
+""".strip()
+data = """
 "Resene Abbey" #76 79 86
 "Resene Acadia" #27 20 4
 "Resene Acapulco" #124 176 161
@@ -1392,7 +1394,7 @@ data = '''
 "Resene Zuccini" #4 64 34
 "Resene Zumthor" #237 246 255
 "Resene Zydeco" #2 64 44
-'''.strip()
+""".strip()
 print(f"""'''{attr}'''""")
 for i, line in enumerate(data.split("\n")):
     name, color = line.split("#")

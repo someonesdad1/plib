@@ -1,32 +1,38 @@
-'''
+"""
 Replacement for the UNIX-style nl program for line numbering.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2013 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2013 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Line numbering script
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import os
     import getopt
     import re
     from math import log10, ceil
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
+
+
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
+
+
 def Usage(d, status=1):
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]} [options] [file1 [file2...]]
       Number lines of a file.  If more than one file is given, it is as if
       they were all concatenated together.  Use '-' to read stdin.
@@ -47,18 +53,21 @@ def Usage(d, status=1):
       -s s    Print string s after line number.  Escape codes are decoded,
               so you can use things like \\t for tabs.
       -t      Use a tab character between the number and line's text.
-    '''))
+    """)
+    )
     exit(status)
+
+
 def ParseCommandLine(d):
-    d["-e"] = None      # Number only if this regexp in line
-    d["-i"] = 1         # Line increment number
-    d["-n"] = 1         # Starting line number
-    d["-p"] = 0         # Page length
-    d["-q"] = None      # Delimit text with ' characters
-    d["-R"] = False     # Reverse sense of -e/-E
-    d["-r"] = False     # Right justify numbers
-    d["-s"] = " "       # String to print after line number
-    d["-t"] = False     # Tab separates number & text
+    d["-e"] = None  # Number only if this regexp in line
+    d["-i"] = 1  # Line increment number
+    d["-n"] = 1  # Starting line number
+    d["-p"] = 0  # Page length
+    d["-q"] = None  # Delimit text with ' characters
+    d["-R"] = False  # Reverse sense of -e/-E
+    d["-r"] = False  # Right justify numbers
+    d["-s"] = " "  # String to print after line number
+    d["-t"] = False  # Tab separates number & text
     try:
         optlist, args = getopt.getopt(sys.argv[1:], "ce:E:hi:n:p:q:Rrs:t")
     except getopt.GetoptError as e:
@@ -116,6 +125,8 @@ def ParseCommandLine(d):
     if not args:
         Usage(d, status=1)
     return args
+
+
 def GetLines(files):
     lines = []
     for file in files:
@@ -128,32 +139,37 @@ def GetLines(files):
                 Error("Bad file '%s'" % file)
     lines = [i.rstrip("\n") for i in lines]
     return lines
+
+
 def Width(n):
-    '''Return the number of spaces required to hold the integer n.
-    '''
+    """Return the number of spaces required to hold the integer n."""
     assert n > 0
     if n == 1:
         return 1
     else:
         power_of_ten = set([int(10**i) for i in range(1, 10)])
         return int(ceil(log10(n))) + (n in power_of_ten)
+
+
 def GetNumberWidth(lines, d):
-    '''Return the required number of spaces to hold the maximum line
+    """Return the required number of spaces to hold the maximum line
     number.
-    '''
+    """
     if d["-p"]:
-        num_pages = len(lines)//d["-p"]
+        num_pages = len(lines) // d["-p"]
         return Width(num_pages) + 1 + Width(d["-p"])
     else:
-        nmax = d["-n"] + (len(lines) - 1)*d["-i"]   # Maximum line number
+        nmax = d["-n"] + (len(lines) - 1) * d["-i"]  # Maximum line number
         return Width(nmax)
+
+
 def GetNumbers(lines, d):
-    '''Return an array of the same length as lines containing the
+    """Return an array of the same length as lines containing the
     desired line numbers.  Note they will be the formatted strings, so
     all that needs to be done is to concatenate them with each line.
-    '''
+    """
     if d["-p"]:  # Page numbering (ignores -r option)
-        num_pages = len(lines)//d["-p"]
+        num_pages = len(lines) // d["-p"]
         fmt = "%%%dd.%%-%dd%s" % (Width(num_pages), Width(d["-p"]), d["-s"])
         s = []
         for i in range(len(lines)):
@@ -161,7 +177,7 @@ def GetNumbers(lines, d):
             s.append(fmt % (n + 1, l + 1))
         return s
     else:
-        maxnum = d["-n"] + d["-i"]*len(lines)
+        maxnum = d["-n"] + d["-i"] * len(lines)
         fmt = "%%-%ds%s" % (Width(maxnum), d["-s"])
         if d["-r"]:
             fmt = "%%%ds%s" % (Width(maxnum), d["-s"])
@@ -183,9 +199,12 @@ def GetNumbers(lines, d):
                 linenums.append(s)
             return linenums
         else:
-            return [(fmt % i) for i in
-                    range(d["-n"], d["-i"]*len(lines) + 1, d["-i"])]
-if __name__ == "__main__": 
+            return [
+                (fmt % i) for i in range(d["-n"], d["-i"] * len(lines) + 1, d["-i"])
+            ]
+
+
+if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
     lines = GetLines(args)

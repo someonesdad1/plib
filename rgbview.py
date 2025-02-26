@@ -1,42 +1,45 @@
-'''
+"""
 Dump the colors in rgbdata.py's list to stdout
     They are decorated with their ANSI escape codes and will display in a
     24-bit color terminal.  In a mintty terminal full-screen on cygwin with
     548 columns and 157 lines, all 6743 of these colored strings are shown
     at the same time on my 4k monitor (there are over 10000 in the
     rgbdata.py file, but there are many duplicates.
-'''
- 
+"""
+
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Program description string
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         import getopt
         import os
         import pathlib
         import sys
         from collections import deque
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from rgbdata import color_data
         from wrap import dedent
         from color import Color, t
-if 1:   # Utility
+if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] sort_order
           Print the colors' hex string to stdout wrapped in its 24-bit ANSI escape code.  RGB hex
           values are shown in lower case; upper case is used for HSV.
@@ -50,13 +53,15 @@ if 1:   # Utility
             -h      Show hsv values
             -l      Show HLS values
             -r      Show rgb values (default)
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-d"] = False     # Debug:  truncate the data for debugging
-        d["-h"] = False     # Show hsv values
-        d["-l"] = False     # Show HLS values
-        d["-r"] = False     # Show rgb values
+        d["-d"] = False  # Debug:  truncate the data for debugging
+        d["-h"] = False  # Show hsv values
+        d["-l"] = False  # Show HLS values
+        d["-r"] = False  # Show rgb values
         try:
             opts, args = getopt.getopt(sys.argv[1:], "dhlr")
         except getopt.GetoptError as e:
@@ -71,27 +76,32 @@ if 1:   # Utility
             d["-r"] = True
         sort_order = CheckSortLetters(args[0])
         return sort_order
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def CheckSortLetters(letters):
         allowed = [set("rgb"), set("hsv"), set("HLS")]
         s = set(letters)
         if s not in allowed:
             Error("sort_order must be orderings of 'rgb', 'hsv', or 'HLS'")
         return letters
+
     def GetColors(sort_order):
-        'Return a sorted list of rgb.Color objects'
+        "Return a sorted list of rgb.Color objects"
         colors = [i[2] for i in color_data]
         if d["-d"]:
             colors = colors[:50]
         # Sort the data
         sorted_colors = list(Color.Sort(colors, keys=sort_order))
         return sorted_colors
+
     def DumpColors(colors):
         size = len(colors)
         w = int(os.environ.get("COLUMNS", "80"))
         # Each output string (e.g. '#ff7f00 ') takes 8 characters, so N will be the number of
         # these we can print on a single line before needing a newline.
-        N = w//8
+        N = w // 8
         count = 0
         used = set()
         while colors:
@@ -115,8 +125,9 @@ if 1:   # Core functionality
         duplicates = size - len(used)
         print(f"\n{count} colors printed ({duplicates} duplicates)")
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     sort_order = ParseCommandLine(d)
     colors = GetColors(sort_order)
     DumpColors(colors)

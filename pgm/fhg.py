@@ -1,45 +1,49 @@
-'''
+"""
 Find all Mercurial directories at and under the current directory
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Find all Mercurial directories under the current directory
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import os
     import getopt
     import subprocess
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
     from color import *
-if 1:   # Global variables
+if 1:  # Global variables
     # Set to the Mercurial command's location
-    #hg = "d:/bin/TortoiseHg104/hg.exe"
-    #hg = "/usr/bin/hg"
+    # hg = "d:/bin/TortoiseHg104/hg.exe"
+    # hg = "/usr/bin/hg"
     hg = "/cygdrive/c/bin/mercurial/hg.exe"
     # Colors used to indicate various Mercurial states
     states = {
-        "M": yellow,           # Modified
-        "A": lgreen,           # Added
-        "R": (lwhite, red),    # Removed
-        "!": lcyan,            # Missing
-        "?": lmagenta,         # Not tracked
+        "M": yellow,  # Modified
+        "A": lgreen,  # Added
+        "R": (lwhite, red),  # Removed
+        "!": lcyan,  # Missing
+        "?": lmagenta,  # Not tracked
         "dirty": lred,
         "clean": (white, black),
     }
+
+
 def Usage(status=0):
     name = sys.argv[0]
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {name} [options] dir1 [dir2...]
       Show directories at and below the indicated directories that
       contain a Mercurial repository and indicate the directories'
@@ -48,13 +52,18 @@ def Usage(status=0):
     Options
         -c
             Don't show clean directories.
-    '''))
+    """)
+    )
     exit(status)
+
+
 def ProcessDir(dir, d):
     level = 0
     for root, dirs, files in os.walk(dir):
         if ".hg" in dirs:
             Report(root.replace("\\", "/"), d)
+
+
 def Line(indent, letter, text):
     print(indent, end="")
     fg(states[letter])
@@ -62,10 +71,11 @@ def Line(indent, letter, text):
     print(" ", text, end="")
     normal()
     print()
+
+
 def Header(d):
-    '''Show key to interpret report.
-    '''
-    sp = " "*2
+    """Show key to interpret report."""
+    sp = " " * 2
     print("Color key:  (M:n means there are n files of type M)")
     Line(sp, "M", "Modified")
     Line(sp, "A", "Added")
@@ -84,20 +94,23 @@ def Header(d):
         print("Clean repository")
     normal()
     print()
+
+
 def Int(letter, count):
-    '''Print the indicated count in the associated color.
-    '''
+    """Print the indicated count in the associated color."""
     fg(states[letter])
     s = "%s:%d" % (letter, count)
     print(s, end="")
     normal()
     print(" ", end="")
+
+
 def Status(dir, status, d):
-    '''Report as if this was a colorized 'hg st' command for this
+    """Report as if this was a colorized 'hg st' command for this
     directory (which, in fact, is exactly what it is.
 
     status will be a list of the lines from an 'hg st' command.
-    '''
+    """
     # Only display dirty repositories
     if not status:
         return
@@ -110,11 +123,13 @@ def Status(dir, status, d):
         fg(states[letter])
         print(i)
         normal()
+
+
 def Report(dir, d):
-    '''dir is a Mercurial directory.  Find out if its status indicates
+    """dir is a Mercurial directory.  Find out if its status indicates
     the repository has changed; if so, print out the name in color.
     Note:  the status command prints out the following prefixes:
- 
+
         M = modified
         A = added
         R = removed
@@ -124,7 +139,7 @@ def Report(dir, d):
         I = ignored
           = origin of the previous file listed as A (added)
     The color is printed only for prefixes of M, A, R, and ?.
-    '''
+    """
     cwd = os.getcwd()
     os.chdir(dir)
     p = subprocess.PIPE
@@ -161,9 +176,11 @@ def Report(dir, d):
             print(dir)
         normal()
     os.chdir(cwd)
+
+
 def ParseCommandLine(d):
-    d["-c"] = True      # Don't show clean directories
-    d["-s"] = False     # Show 'hg st' type listing
+    d["-c"] = True  # Don't show clean directories
+    d["-s"] = False  # Show 'hg st' type listing
     try:
         optlist, args = getopt.getopt(sys.argv[1:], "chs")
     except getopt.GetoptError as e:
@@ -180,14 +197,18 @@ def ParseCommandLine(d):
     if not args:
         args = ["."]
     return args
-if __name__ == "__main__": 
+
+
+if __name__ == "__main__":
     d = {}  # Options dictionary
     dirs = ParseCommandLine(d)
-    print('''
+    print(
+        """
 Search for dirty Mercurial repositories.  Options:
     -c      Show both clean and dirty repositories
     -s      Display the same information as 'hg st' but in color
-'''[1:])
+"""[1:]
+    )
     Header(d)
     for dir in dirs:
         ProcessDir(dir, d)

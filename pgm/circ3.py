@@ -1,49 +1,56 @@
-'''
+"""
 Find the radius of a circle given three points
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2013 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2013 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Find the radius of a circle given three points
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import string
     import sys
     import getopt
     from math import sqrt, cos, acos, sin
-    from pdb import set_trace as xx 
-if 1:   # Custom imports
+    from pdb import set_trace as xx
+if 1:  # Custom imports
     from sig import sig
     from wrap import dedent
+
     try:
         from uncertainties import ufloat, ufloat_fromstr, UFloat
         from uncertainties.umath import sqrt, cos, acos, sin
+
         have_unc = True
     except ImportError:
         have_unc = False
-if 1:   # Global variables
+if 1:  # Global variables
     ii = isinstance
+
+
 def Det(a, b, c, d, e, f, g, h, i):
-    '''Calculate a 3x3 determinant:
-        | a b c |
-        | d e f |
-        | g h i |
-    '''
-    return a*(e*i - h*f) - b*(d*i - g*f) + c*(d*h - g*e)
+    """Calculate a 3x3 determinant:
+    | a b c |
+    | d e f |
+    | g h i |
+    """
+    return a * (e * i - h * f) - b * (d * i - g * f) + c * (d * h - g * e)
+
+
 def Circ3Points(x1, y1, x2, y2, x3, y3):
-    '''Returns the radius of the circle that passes through the three
+    """Returns the radius of the circle that passes through the three
     points (x1, y1), (x2, y2), and (x3, y3).
     This is equations 30-34 from
     http://mathworld.wolfram.com/Circle.html.
-    '''
+    """
     h1 = x1**2 + y1**2
     h2 = x2**2 + y2**2
     h3 = x3**2 + y3**2
@@ -57,30 +64,37 @@ def Circ3Points(x1, y1, x2, y2, x3, y3):
         if isinstance(a, UFloat) and not a.nominal_value:
             msg = "Collinearity:  an uncertain divisor is %s" % sig(a)
             raise ValueError(msg)
-    r = sqrt((d**2 + e**2)/(4*a*a) - f/a)
+    r = sqrt((d**2 + e**2) / (4 * a * a) - f / a)
     return r
+
+
 def Circ3Dist(a, b, c):
-    '''Given a triangle with sides a, b, c, returns the radius of the
+    """Given a triangle with sides a, b, c, returns the radius of the
     circle which passes through the three points.  This is turned into
     the circle from 3 points problem by putting the longest side on
     the x axis with one point at the origin.  Then use the cosine law
     to find the coordinates of the third point.
-    '''
+    """
     c, b, a = sorted([a, b, c])
     # Now a is longest, b next, and c shortest
     x1, y1 = 0, 0
     x2, y2 = a, 0
     try:
-        B = acos((a*a + c*c - b*b)/(2*a*c))
+        B = acos((a * a + c * c - b * b) / (2 * a * c))
     except ValueError:
         raise ValueError("The three distances don't make a triangle")
-    x3, y3 = c*cos(B), c*sin(B)
+    x3, y3 = c * cos(B), c * sin(B)
     return Circ3Points(x1, y1, x2, y2, x3, y3)
+
+
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
+
+
 def Usage(d, status=1):
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]} [options] [datafile]
       Print the radius of a circle given three points.  You can either
       give the distances between the three points or their Cartesian
@@ -123,8 +137,11 @@ def Usage(d, status=1):
             0.0(1), 1.0(1)
           You should get a circle of radius 1.00(7); this means the
           circle's radius is 1 with a standard uncertainty of 0.07.
-    '''))
+    """)
+    )
     exit(status)
+
+
 def ParseCommandLine(d):
     d["-d"] = 6
     d["-i"] = False
@@ -146,9 +163,10 @@ def ParseCommandLine(d):
         Usage(d)
     sig.digits = d["-d"]
     return args[0]
+
+
 def GetNumber(prompt):
-    '''Return a float or ufloat, depending on what the user types in.
-    '''
+    """Return a float or ufloat, depending on what the user types in."""
     while True:
         s = input(prompt)
         t = s.replace("+-", "+/-")
@@ -161,6 +179,8 @@ def GetNumber(prompt):
             return x
         except Exception:
             print("'{}' is not a proper number".format(s))
+
+
 def GetDataInteractively(d):
     order = ["first", "second", "third"]
     while True:
@@ -182,8 +202,7 @@ def GetDataInteractively(d):
     else:
         # Points
         coord = [0, 0, 0]
-        print("  Note:  enter points as two numbers 'x, y' separated "
-              "by a comma")
+        print("  Note:  enter points as two numbers 'x, y' separated by a comma")
         for i in range(3):
             while True:
                 s = input("Enter the {} point:  ".format(order[i]))
@@ -202,15 +221,18 @@ def GetDataInteractively(d):
                     pass
         d["coordinates"] = coord
     print()
+
+
 def InterpretNum(s):
-    '''Return a float or ufloat from the string s.
-    '''
+    """Return a float or ufloat from the string s."""
     t = s.replace("+-", "+/-")
     t = t.replace("\xb1", "+/-")
-    t = t.replace("\xc2", "")    # Hack for python 2.7
+    t = t.replace("\xc2", "")  # Hack for python 2.7
     if "+/-" in t or ("(" in t and ")" in t):
         return ufloat_fromstr(t)
     return float(t)
+
+
 def ReadDatafile(datafile, d):
     lines = [i.strip() for i in open(datafile).readlines()]
     dist, coord = [], []
@@ -244,6 +266,8 @@ def ReadDatafile(datafile, d):
         msg += "  Line:  '%s'\n" % line
         msg += "  Error:  %s" % str(e)
         Error(msg)
+
+
 def Coordinates(d):
     (x1, y1), (x2, y2), (x3, y3) = d["coordinates"]
     try:
@@ -255,19 +279,23 @@ def Coordinates(d):
         X2, Y2 = sig(x2), sig(y2)
         X3, Y3 = sig(x3), sig(y3)
         err = str(e)
-        msg = dedent(f'''
+        msg = dedent(f"""
         Couldn't calculate radius from coordinates:
             {X1}, {Y1}
             {X2}, {Y2}
             {X3}, {Y3}
-        Error:  {err}''')
+        Error:  {err}""")
         Error(msg)
+
+
 def Distances(d):
     a, b, c = d["distances"]
     try:
         return Circ3Dist(a, b, c), (a, b, c)
     except Exception as e:
         Error(str(e))
+
+
 def Report(r, s, d):
     prob_type = "three distances" if isinstance(s, tuple) else "three points"
     print("Circle from {prob_type}:".format(**locals()))
@@ -276,9 +304,9 @@ def Report(r, s, d):
         for i in s:
             print("    ", sig(i))
     else:
-        indent, w = " "*4, 16
+        indent, w = " " * 4, 16
         print(indent, "{0:^{1}}".format("x", w), "{0:^{1}}".format("y", w))
-        h = "{0:>{1}}".format("-"*w, w)
+        h = "{0:>{1}}".format("-" * w, w)
         print(indent, h, h)
         for x, y in s:
             X = "{:.1fS}".format(x) if ii(x, UFloat) else sig(x)
@@ -287,9 +315,11 @@ def Report(r, s, d):
             sy = "{:>{}s}".format(Y, w)
             print("    ", sx, sy)
     print("\nRadius of circle   =", sig(r))
-    print("Diameter of circle =", sig(2*r))
+    print("Diameter of circle =", sig(2 * r))
+
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     datafile = ParseCommandLine(d)
     if d["-i"]:
         GetDataInteractively(d)

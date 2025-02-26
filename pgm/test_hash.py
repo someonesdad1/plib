@@ -1,4 +1,4 @@
-'''
+"""
 This script tests hashing speeds and will run under python 2.7 and 3.
 
 Test hashing speeds of some hash algorithms.
@@ -18,7 +18,7 @@ Test hashing speeds of some hash algorithms.
             sha384  : 8.74 s, 9.789 ns/byte     ** (Truncated form of sha512)
             sha512  : 8.75 s, 9.793 ns/byte     **
 
-    Tue 15 Feb 2022 12:51:35 PM On Windows box built in 2016 
+    Tue 15 Feb 2022 12:51:35 PM On Windows box built in 2016
         python 2.7.18:
             md5     : 4.11 s, 4.622 ns/byte
             sha1    : 3.99 s, 4.477 ns/byte
@@ -53,12 +53,12 @@ Test hashing speeds of some hash algorithms.
 
         Note that Mercurial, git, etc. all use SHA-1 for their hashing needs
         (i.e., they identify file revisions with these hashes).
-'''
+"""
 
 from __future__ import print_function, division
 from timeit import timeit
 import sys
-from pdb import set_trace as xx 
+from pdb import set_trace as xx
 
 py3 = sys.version_info.major == 3
 
@@ -105,13 +105,14 @@ modern term is secure hash.
 h.update(t)
     '''
 
+
 def GetTime(statement, hash_fn, n=1000000):
-    '''Print the time to hash in s and the normalized time in ns/byte.
-    '''
+    """Print the time to hash in s and the normalized time in ns/byte."""
     st = statement % hash_fn
     t = timeit(stmt=st, number=n)
     bytes = len(st)
-    print("%-8s: %.2f s, %.3f ns/byte" % (hash_fn, t, (t/n*1e9)/bytes))
+    print("%-8s: %.2f s, %.3f ns/byte" % (hash_fn, t, (t / n * 1e9) / bytes))
+
 
 n = 1000000
 GetTime(s, "md5", n=n)

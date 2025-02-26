@@ -1,33 +1,34 @@
-'''
+"""
 Script to remove various files that don't need to be kept around
 (e.g., object files, coverage files, profiler files, etc.).
-'''
+"""
+
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2009 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2009 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Remove various files (e.g., object files, coverage, etc.)
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Imports
+    if 1:  # Imports
         import sys
         import getopt
         import os
         import stat
         from glob import glob
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import dedent
-if 1:   # Global variables
+if 1:  # Global variables
     debug = False
     ext = {
-        "-c": [],      # Used to add extensions/files at runtime
+        "-c": [],  # Used to add extensions/files at runtime
         "-d": [
             "*.i",
             "*.obj",
@@ -56,7 +57,7 @@ if 1:   # Global variables
         "-t": ["tags"],
     }
     nl = "\n"
-    manual = dedent(f'''
+    manual = dedent(f"""
     Usage:  {sys.argv[0]} [options] [dir1 [dir2...]]
       Removes files that one doesn't generally want to keep around after
       they've served their purpose, such as object files, debugging files,
@@ -78,12 +79,14 @@ if 1:   # Global variables
       -p    Remove python *.pyc and *.pyo files
       -r    Operate recursively
       -t    Remove tags files
-    ''')
-if 1:   # Utility
+    """)
+if 1:  # Utility
+
     def PrintManual():
         name = sys.argv[0]
         print(manual.format(**locals()))
         sys.exit(0)
+
     def ParseCommandLine():
         settings = {
             "-f force": False,
@@ -142,7 +145,10 @@ if 1:   # Utility
                 for i in args:
                     dbg("    ", i)
         return args, settings
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def ProcessFiles(dir, settings):
         for g in settings["things to glob"]:
             files = glob(os.path.join(dir, g))
@@ -157,6 +163,7 @@ if 1:   # Core functionality
                     except WindowsError:
                         # File is probably in use or read-only
                         err("'%s' can't be removed" % file)
+
     def ProcessDirectory(dir, settings):
         if debug:
             dbg("Processing directory " + dir)
@@ -165,6 +172,7 @@ if 1:   # Core functionality
                 for d in dirnames:
                     ProcessDirectory(os.path.join(dirpath, d), settings)
         ProcessFiles(dir, settings)
+
 
 if __name__ == "__main__":
     args, settings = ParseCommandLine()

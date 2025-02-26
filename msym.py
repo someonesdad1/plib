@@ -1,48 +1,51 @@
-'''
- 
+"""
+
 Provide for simple command line mathematical equations
- 
+
 Call the Interpret(s) function with a string s to have it converted to a
 Unicode string with special characters, exponents, and subscripts
-substituted.  
- 
+substituted.
+
 Special characters are indicated by the '%' character followed by a
 string.  For example, the lowercase Greek letters are the first three
 characters of their names.  The capital Greek letters are the same
 except the first letter is capitalized.  Example:  '%alp' represents a
 lowercase alpha.
- 
+
 Exponents are indicated with '^{s}' where s is a string of allowed
 characters (see the Interpret function for what's allowed).
 Analogously, use '_{s}' for subscripts.  Note the curly brackets are
 required.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2016 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2016 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # <math> Make simple math equations from the command line using
     # Unicode.
-    #∞what∞#
-    #∞test∞# ignore #∞test∞#
+    # ∞what∞#
+    # ∞test∞# ignore #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import re
-if 1:   # Custom imports
+if 1:  # Custom imports
     from columnize import Columnize
+
+
 def _GetSymbols():
-    '''Attach attributes to the Interpret function:
- 
+    """Attach attributes to the Interpret function:
+
     symbols:  A dictionary containing the symbols and their Unicode equivalent.
     rsub:  regexp for finding subscript expressions.
     rsup:  regexp for finding superscript expressions.
-    '''
-    _symbols = '''
+    """
+    _symbols = """
     # Lowercase Greek letters
     alp α, bet β, gam ɣ, del δ, eps ϵ, eps1 ɛ, zet ζ, eta η, the θ, iot
     ɩ, kap κ, lam λ, mu μ, nu ν, xi ξ, omi ο, pi π, rho ρ, sig σ, tau τ,
@@ -61,14 +64,14 @@ def _GetSymbols():
     real ℝ, complex ℂ, integer ℤ, whole ℕ, rational ℚ, im ℐ, re ℛ,
     notsubset ⊄, subset ⊂, 
     partial ∂, integral ∫, nabla ∇
-    '''
+    """
     S, symbols, s = Interpret, {}, []
     for line in _symbols.split("\n"):
         L = line.strip()
         if not L or L[0] == "#":
             continue
         s.append(L)
-    s = ' '.join(s)
+    s = " ".join(s)
     s.replace("\n", " ")
     for i in s.split(","):
         if not i:
@@ -94,24 +97,26 @@ def _GetSymbols():
     S.rsup = re.compile(r"(\^{[" + superscripts + "]+})")
     # Compile special character subscripts
     s = ["(" + i + ")" for i in symbols]
-    S.special_chars = re.compile('|'.join(s))
+    S.special_chars = re.compile("|".join(s))
+
+
 def Interpret(s):
-    '''Change the string s into an expression by substituting for the
+    """Change the string s into an expression by substituting for the
     special characters and superscripts/subscripts.
- 
+
     Example:  if s is '%%%alp^{-32} %bet^{3i} %gam_{2} %del_{3i}', the
     returned string is '%α⁻³² β³ⁱ ɣ₂ δ₃ᵢ'.
-    '''
+    """
     S = Interpret
     if not hasattr(Interpret, "symbols"):
         _GetSymbols()
-    pct_sym = chr(0x1f4a9)
+    pct_sym = chr(0x1F4A9)
     # Get rid of any actual '%' characters
     s = s.replace("%%", pct_sym)
     # Replace special characters
     mo = S.special_chars.search(s)
     while mo:
-        t = s[mo.start():mo.end()]
+        t = s[mo.start() : mo.end()]
         s = s.replace(t, S.symbols[t])
         mo = S.special_chars.search(s)
     # Superscripts
@@ -121,8 +126,8 @@ def Interpret(s):
         e = []
         for i in g[2:-1]:
             e.append(S.supersub[i])
-        e = ''.join(e)
-        s = s[:mo.start()] + e + s[mo.end():]
+        e = "".join(e)
+        s = s[: mo.start()] + e + s[mo.end() :]
         mo = S.rsup.search(s)
     # Subscripts
     mo = S.rsub.search(s)
@@ -131,23 +136,29 @@ def Interpret(s):
         e = []
         for i in g[2:-1]:
             e.append(S.subsub[i])
-        e = ''.join(e)
-        s = s[:mo.start()] + e + s[mo.end():]
+        e = "".join(e)
+        s = s[: mo.start()] + e + s[mo.end() :]
         mo = S.rsub.search(s)
     s = s.replace(pct_sym, "%")
     return s
+
+
 def DumpSupportedCharacters():
     s = []
     for name, sym in sorted(Interpret.symbols.items()):
         s.append(name[1:] + " " + sym)
-    for i in Columnize(s, indent=" "*2):
+    for i in Columnize(s, indent=" " * 2):
         print(i)
+
+
 if __name__ == "__main__":
     t = "%%%alp^{-32} %bet^{3i} %gam_{2} %del_{3i}"
     s = Interpret(t)
-    print('''Example:
+    print(
+        """Example:
     t = {}
-    Interpret(t) = {}'''.format(t, s))
-    assert(s == "%α⁻³² β³ⁱ ɣ₂ δ₃ᵢ")
+    Interpret(t) = {}""".format(t, s)
+    )
+    assert s == "%α⁻³² β³ⁱ ɣ₂ δ₃ᵢ"
     print("Supported characters:")
     DumpSupportedCharacters()

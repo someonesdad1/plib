@@ -1,27 +1,32 @@
-'''
+"""
 Print out pill bottle dimensions
-'''
+"""
+
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2020 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2020 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Print out pill bottle dimensions
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import dedent
         from color import t
+
         t.t = t("purl")
         t.o = t("ornl")
+
+
 def PrintData():
-    print(dedent(f'''
+    print(
+        dedent(f"""
             {t.t}Wal-Mart Pill Bottle Sizes in mm{t.n}
                         ID      OD  
     {t.o}Small{t.n}
@@ -47,6 +52,9 @@ def PrintData():
        - CS = cap screwed on, CL = cap locked on
        - ID measured with 8" Fay calipers & rule
        - OD measured with digital electronic calipers
-    '''))
+    """)
+    )
+
+
 if __name__ == "__main__":
     PrintData()

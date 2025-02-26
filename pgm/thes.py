@@ -1,41 +1,45 @@
-'''
+"""
 Find synonyms (based on Moby thesaurus)
-'''
-if 1:   # Header
-    if 1:   # Copyright, license
+"""
+
+if 1:  # Header
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
-        # Find synonyms 
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞license∞#
+        # ∞what∞#
+        # Find synonyms
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         import getopt
         import os
         from pathlib import Path as P
         import re
         import sys
         from pdb import set_trace as xx
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import wrap, dedent
         from color import Color, t
         from columnize import Columnize
-    if 1:   # Global variables
+    if 1:  # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
-if 1:   # Utility
+if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] regex 
           Show matches for the given regular expression in the Moby
           thesaurus.  To show the synonyms for these words, use the -s
@@ -45,8 +49,10 @@ if 1:   # Utility
             -c      No color
             -i      Don't ignore case
             -s      Show synonyms for the words
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
         d["-a"] = False
         d["-c"] = True
@@ -55,7 +61,7 @@ if 1:   # Utility
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "acihs") 
+            opts, args = getopt.getopt(sys.argv[1:], "acihs")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -65,7 +71,10 @@ if 1:   # Utility
             elif o == "-h":
                 Usage(status=0)
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def SetupColor():
         t.on = d["-a"] or sys.stdout.isatty()
         on = d["-c"]
@@ -73,13 +82,15 @@ if 1:   # Core functionality
         t.wrd = t("magl") if on else ""
         t.syn = t("wht") if on else ""
         t.N = t.n if on else ""
+
     def BuildThesaurus():
-        'Return dict of keyword: synonyms'
+        "Return dict of keyword: synonyms"
         th = {}
         for line in lines:
             a = line.split(",")
             th[a[0]] = a[1:]
         return th
+
     def FindWord(w):
         r = re.compile(w, re.I if d["-i"] else 0)
         matches = []
@@ -93,18 +104,19 @@ if 1:   # Core functionality
                 # Print the core word matches and synonyms
                 for i in matches:
                     print(f"  {t.wrd}{i}{t.N}")
-                    for j in Columnize(thesaurus[i], indent=" "*4):
+                    for j in Columnize(thesaurus[i], indent=" " * 4):
                         print(f"{t.syn}{j}{t.N}")
             else:
                 # Only print the core word matches
-                for i in Columnize(matches, indent=" "*2):
+                for i in Columnize(matches, indent=" " * 2):
                     print(f"{t.wrd}{i}{t.N}")
+
 
 if __name__ == "__main__":
     file = "/home/Don/bin/mthesaur.txt"
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     wordlist = ParseCommandLine(d)
     SetupColor()
     lines = open(file).read().split("\n")
     thesaurus = BuildThesaurus()
-    FindWord(' '.join(wordlist))
+    FindWord(" ".join(wordlist))

@@ -1,4 +1,4 @@
-'''
+"""
 
 CIE 1931 2 degree color matching functions in 1 nm steps
 Columns
@@ -9,14 +9,15 @@ Columns
 From http://cvrl.ioo.ucl.ac.uk/cmfs.htm
 Downloaded as a CSV file 24 Mar 2022
 
-This script produces a python sequence to stdout.  Each entry is 
+This script produces a python sequence to stdout.  Each entry is
     (nm, (xbar, ybar, zbar))
-    
 
-'''
+
+"""
+
 import sys
 
-data = '''
+data = """
 360,0.000129900000,0.000003917000,0.000606100000
 361,0.000145847000,0.000004393581,0.000680879200
 362,0.000163802100,0.000004929604,0.000765145600
@@ -488,9 +489,9 @@ data = '''
 828,0.000001439440,0.000000519808,0.000000000000
 829,0.000001341977,0.000000484612,0.000000000000
 830,0.000001251141,0.000000451810,0.000000000000
-'''[1:-1]
+"""[1:-1]
 # The table data are converted to integers by removing the '.'
-f = lambda s:  int(s.replace(".", ""))
+f = lambda s: int(s.replace(".", ""))
 cmf = []
 for line in data.split("\n"):
     nm, X, Y, Z = line.split(",")
@@ -501,7 +502,7 @@ for line in data.split("\n"):
     cmf.append((nm, intXYZ))
     # Convert intXYZ to floats and verify
     # floatXYZ == refXYZ
-    floatXYZ = [round(i/1e12, 13) for i in intXYZ]
+    floatXYZ = [round(i / 1e12, 13) for i in intXYZ]
     for i, j in zip(floatXYZ, refXYZ):
         if i != j:
             print(f"calc {i} != {j} ref")

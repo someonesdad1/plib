@@ -1,40 +1,43 @@
-'''
+"""
 Half-lives for various radionuclides
     A module to provide half-lives for various radionuclides.  halflife
     is a dictionary keyed by the element's symbol.  The values are
     dictionaries whose keys are the isotope numbers (note some of them
     have an appended 'm' for metastable states).  The half-life value is
     a string in seconds rounded to _ndigits significant figures.
- 
+
     Data taken from the web page http://www.iem-inc.com/toolhalf.html.
     The web page's data were copied to a file; the file was sorted and
     only the relevant lines containing half-lives were retained.  Update
     17 Feb 2016:  the web page's data are no longer copyable to a file.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Half-lives for various radionuclides
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
     from f import flt
     from sig import sig
+
     if 0:
         import debug
+
         debug.SetDebugger()
-if 1:   # Global variables
-    ndigits = 3     # For rounding
+if 1:  # Global variables
+    ndigits = 3  # For rounding
     # Dictionary to convert element symbols to names.  Note these are only
     # those elements that are in the halflife dictionary.
     elements = {
@@ -117,7 +120,7 @@ if 1:   # Global variables
         "Y": "Yttrium",
         "Yb": "Ytterbium",
         "Zn": "Zinc",
-        "Zr": "Zirconium"
+        "Zr": "Zirconium",
     }
     # Dictionary to convert element names to symbols.
     Elements = {
@@ -209,7 +212,7 @@ if 1:   # Global variables
         "Osmium": "Os",
         "Tantalum": "Ta",
     }
-    data1 = '''
+    data1 = """
         Ac-225, 10.0 days
         Ac-227, 21.773 years
         Ac-228, 6.13 hours
@@ -470,7 +473,7 @@ if 1:   # Global variables
         Zr-93, 1.53E6 years
         Zr-95, 63.98 days
         Zr-97, 16.90 hours
-    '''[1:-1]
+    """[1:-1]
 
     atomic_data = {
         # Symbol, atomic number, atomic mass
@@ -586,22 +589,24 @@ if 1:   # Global variables
         "Ds": (110, "(269)"),
         "Rg": (111, "(272)"),
     }
+
+
 def ProcessData():
-    '''Return a dictionary indexed by the atomic symbol of the
+    """Return a dictionary indexed by the atomic symbol of the
     element.  Each value will be a dictionary of the half-life in
     seconds indexed by the isotope number.
-    '''
+    """
     t = {
         "seconds": 1,
-        "days": 24*3600,
+        "days": 24 * 3600,
         "years": 31556925.97,
         "hours": 3600,
         "microseconds": 1e6,
         "minutes": 60,
     }
     d, x = {}, flt(0)
-    x.n = 4         # Assume half-life's to 4 figures
-    x.rtz = True    # Remove trailing zeros
+    x.n = 4  # Assume half-life's to 4 figures
+    x.rtz = True  # Remove trailing zeros
     for line in data1.split("\n"):
         if not line.strip():
             continue
@@ -614,12 +619,14 @@ def ProcessData():
             d[element] = {}
         d[element][isotope] = flt(num)
     return d
+
+
 def Another1():
-    '''From
+    """From
     http://www.astro.caltech.edu/~dperley/public/isotopetable.html
     Isotope \t half-life in years
-    '''
-    data = '''
+    """
+    data = """
     # From http://www.astro.caltech.edu/~dperley/public/isotopetable.html
     # Isotope 	Half-life (yr)
     Holmium-166m 	1,200
@@ -715,11 +722,12 @@ def Another1():
     Tellurium-130 	7.9 x 10^20
     Xenon-136 	>2.4 x 10^21
     Tellurium-128 	2.2 x 10^24
-    '''
+    """
+
     def convert(s):
-        '''Return (greater, halflife) where greater is if a '>' sign was
+        """Return (greater, halflife) where greater is if a '>' sign was
         present and halflife is the floating point number in years.
-        '''
+        """
         greater = False
         s = s.strip()
         if s[0] == ">":
@@ -731,12 +739,13 @@ def Another1():
         elif "," in s:
             s = s.replace(",", "")
         return (greater, float(s))
+
     def GetName(s):
-        '''Split on '-' and convert to (abbreviation, isotope).
-        '''
+        """Split on '-' and convert to (abbreviation, isotope)."""
         name, isotope = s.split("-")
         abbr = Elements[name]
         return (abbr, isotope)
+
     d = {}
     for line in data.split("\n"):
         line = line.strip()
@@ -747,10 +756,12 @@ def Another1():
         greater, hl = convert(halflife)
         gt = ">" if greater else ""
         print(abbr, isotope, greater, "{}{:.2g}".format(gt, hl))
+
+
 def Another2():
-    '''
+    """
     From http://www.nist.gov/pml/data/halflife-html.cfm, Wed 17 Feb 2016
- 
+
     Columns:
         Radionuclide
         Number of sources
@@ -759,17 +770,17 @@ def Another2():
         Statistical standard uncertainty
         Other standard uncertainty
         References
- 
+
     * The stated uncertainties are the sum, in quadrature, of the
       statistical uncertainty (the "external standard deviation" in the
       weighted mean) and other uncertainties which include those from
       the Stevenson equation (NBS Special Publication 626) and from the
       correction for the 210Bi ingrowth in the radium reference sources.
- 
+
     (a)     Measured by internal gas proportional counting.
     (b)     Normal saline solution.
     (c)     Acid solution.
- 
+
     3H 	18 	3 	  4500 ± 8 d  	8 	0 	1 (a)
     18F 	3 	13.1 	  1.82951 ± 0.00034 h  	0.00024 	0.00024 	§
     22Na 	5 	1.9 - 4.7 	  950.97 ± 0.15 d  	0.09 	0.12 	§
@@ -835,29 +846,33 @@ def Another2():
     203Pb 	7 	1.8 - 2.8 	  51.923 ± 0.037 h  	0.013 	0.034 	§
     207Bi 	2 	0.9 	  11523. ± 15. d  	9 	12 	§,6
     228Th 	6 	1.7 - 8.3 	  698.60 ± 0.36 d  	0.14 	0.33 	§
-    '''
+    """
+
+
 def Time(tm):
-    '''Return a string where the time tm in seconds is given in
+    """Return a string where the time tm in seconds is given in
     customary time units.
-    '''
-    t, spd, spy = float(tm), 24*3600, 31556925.97
+    """
+    t, spd, spy = float(tm), 24 * 3600, 31556925.97
     if t < 1:
         if t < 1e-3:
-            s = sig(t*1e6, ndigits) + " us"
+            s = sig(t * 1e6, ndigits) + " us"
         else:
-            s = sig(t*1e3, ndigits) + " ms"
+            s = sig(t * 1e3, ndigits) + " ms"
     else:
         if t < 60:
             s = sig(t, ndigits) + " s"
-        elif t < 60*60:
-            s = sig(t/60, ndigits) + " min"
+        elif t < 60 * 60:
+            s = sig(t / 60, ndigits) + " min"
         elif t < spd:
-            s = sig(t/3600, ndigits) + " hr"
+            s = sig(t / 3600, ndigits) + " hr"
         elif t < spy:
-            s = sig(t/spd, ndigits) + " day"
+            s = sig(t / spd, ndigits) + " day"
         else:
-            s = sig(t/spy, ndigits) + " yr"
+            s = sig(t / spy, ndigits) + " yr"
     return s
+
+
 if __name__ == "__main__":
     halflife = ProcessData()
     # Print out a table of half-lives

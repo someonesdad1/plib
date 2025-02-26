@@ -1,4 +1,4 @@
-'''
+"""
 TODO
 
     Put the following lines in file 'a':
@@ -13,36 +13,40 @@ TODO
     line number ranges and change to 0-based indexing.
 
 Extract specified lines from a file
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2005 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2005 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Extract specified lines from a file
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import getopt
     import pathlib
     import sys
-    from pdb import set_trace as xx 
+    from pdb import set_trace as xx
     from pprint import pprint as pp
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
-if 1:   # Global variables
+if 1:  # Global variables
     P = pathlib.Path
     ii = isinstance
     debug = False
     # State variables
     number_lines = False
+
+
 def Usage(status=1):
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]} [options] file n:m [n1:m2 ...]
       Prints specified 1-based line number ranges (inclusive) of a file.
         n        Print line n
@@ -63,20 +67,27 @@ def Usage(status=1):
             Prints the first 10 and last 10 lines of the file.
         fcut -n file :
             Number all the lines of the file
-    '''))
+    """)
+    )
     exit(status)
+
+
 def GetLinesFromFile(file):
-    assert(ii(file, P))
+    assert ii(file, P)
     s = open(file).read()
     if s and s[-1] == "\n":
         s = s[:-1]
     return s.split("\n")
+
+
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
+
+
 def ParseCommandLine(d):
-    d["-c"] = False     # Complement of set of numbers on command line
-    d["-d"] = False     # Turn on debug printing
+    d["-c"] = False  # Complement of set of numbers on command line
+    d["-d"] = False  # Turn on debug printing
     if len(sys.argv) < 2:
         Usage()
     try:
@@ -95,13 +106,15 @@ def ParseCommandLine(d):
         global debug
         debug = True
     return args
+
+
 def ProcessLineSpecs(line_specs, numlines):
-    '''Return a list of pairs of integers that reflect the region of
+    """Return a list of pairs of integers that reflect the region of
     line numbers of the file that the user asked for (the user's numbers
     are 1-based line numbers).  Return line number specs that are
     1-based.  numlines is the number of lines in the file that were read
     in plus one.
-    '''
+    """
     specs = []
     for spec in line_specs:
         if spec.count(":") > 1:
@@ -111,11 +124,11 @@ def ProcessLineSpecs(line_specs, numlines):
         else:
             s = spec.split(":")
             if len(s) == 1 or s[0] == "" or s[1] == "":
-                if spec[-1] == ":":   # If it ends in ':'
+                if spec[-1] == ":":  # If it ends in ':'
                     low, high = int(s[0]), numlines
                 elif spec[0] == ":":  # If it begins with ':'
                     low, high = 1, int(s[1])
-                else:                 # Didn't contain ':'
+                else:  # Didn't contain ':'
                     low = high = int(s[0])
             else:
                 low, high = int(s[0]), int(s[1])
@@ -136,7 +149,7 @@ def ProcessLineSpecs(line_specs, numlines):
         # Clamp values
         low = max(1, low)
         high = min(numlines, high)
-        specs.append((low, high))   # Note these are 1-based numbers
+        specs.append((low, high))  # Note these are 1-based numbers
     if debug:
         print("+ specs =", specs)
     # Convert the specs to a set of numbers
@@ -149,12 +162,14 @@ def ProcessLineSpecs(line_specs, numlines):
     if debug:
         if d["-c"]:
             print('+ Complement taken because d["-c"] is True')
-        print("+ Line numbers in specs =", ' '.join([str(i) for i in nums]))
+        print("+ Line numbers in specs =", " ".join([str(i) for i in nums]))
         print(f"+ Line numbers go from 1 to {numlines}")
     # nums is the set of line numbers to return
     return nums
+
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     file = args[0]
     line_specs = args[1:]

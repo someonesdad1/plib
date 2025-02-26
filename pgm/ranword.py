@@ -1,41 +1,48 @@
-'''
+"""
 Select a word randomly from the word file
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Select a word randomly from the word file
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import os
     import string
     import sys
     import getopt
     import random
-    from pdb import set_trace as xx 
-if 1:   # Custom imports
+    from pdb import set_trace as xx
+if 1:  # Custom imports
     import dpstr
     from wrap import dedent
     from columnize import Columnize
     from get import GetWords
     from util import RandomIntegers
-if 1:   # Global variables
-    PunctuationFilter = dpstr.FilterStr(string.punctuation, 
-                                        " "*len(string.punctuation))
+if 1:  # Global variables
+    PunctuationFilter = dpstr.FilterStr(
+        string.punctuation, " " * len(string.punctuation)
+    )
+
+
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
+
+
 def Usage(status=1):
     name = sys.argv[0]
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {name} n
       Select n words randomly from a words file.  The list of words won't
       be repeatable unless you use -s.  There are about 94 kwords in the
@@ -49,10 +56,15 @@ def Usage(status=1):
       -o        Sort the output
       -s seed   Seed the random number generator
       -w file   Use a different word file (more than one -w OK)
-    '''))
+    """)
+    )
     exit(status)
+
+
 def Manpage():
-    print(dedent(f'''
+    print(
+        dedent(
+            f"""
     This script produces a sequence of n random words where n is the
     integer argument on the command line.  When n is a small number, you
     might be able to use the set of words as a passphrase.  For example, 
@@ -88,8 +100,12 @@ def Manpage():
     gotten by splitting on whitespace.  This algorithm lets you use nearly
     any text file as a source of words.
 
-    '''.rstrip()))
+    """.rstrip()
+        )
+    )
     exit(0)
+
+
 def ParseCommandLine(d):
     d["-1"] = False
     d["-2"] = False
@@ -124,12 +140,14 @@ def ParseCommandLine(d):
     except Exception:
         Error(f"'{args[0]}' is not a proper integer > 0")
     return n
+
+
 def GetWordList():
-    'Return the chosen list of words'
+    "Return the chosen list of words"
     # Choose word list
     if d["-w"]:
         # User defined word list(s)
-        w = set()   # Use a set to eliminate duplicates
+        w = set()  # Use a set to eliminate duplicates
         for file in d["-w"]:
             s = open(file).read()
             if d["-i"]:
@@ -140,18 +158,20 @@ def GetWordList():
         w = list(sorted(w))
     else:
         if d["-2"]:
-            #file = "/pylib/pgm/words.x.universal"
+            # file = "/pylib/pgm/words.x.universal"
             file = "/words/words.univ"
         elif d["-1"]:
-            #file = "/pylib/pgm/words.x.wordnet"
+            # file = "/pylib/pgm/words.x.wordnet"
             file = "/words/words/words.nltk"
         else:
-            #file = "/pylib/pgm/words"
+            # file = "/pylib/pgm/words"
             file = "/words/words.default"
         w = GetWords(file, ignore=[r"^\s*#"])
     if d["-i"]:
         w = [i.lower() for i in w]
     return w
+
+
 def GetSample(n):
     w = GetWordList()
     N = len(w)
@@ -165,7 +185,9 @@ def GetSample(n):
     if d["-o"]:
         sample = list(sorted(sample))
     return sample
-if __name__ == "__main__": 
+
+
+if __name__ == "__main__":
     d = {}  # Options dictionary
     n = ParseCommandLine(d)
     sample = GetSample(n)

@@ -1,8 +1,8 @@
 # Written by Kevin L. Sitze on 2010-11-25.  From
 # http://code.activestate.com/recipes/577470-fast-flatten-with-depth-control-and-oversight-over/?in=lang-python
 # This code may be used pursuant to the MIT License.
-#∞test∞# run #∞test∞#
-'''This module contains four flatten() functions for generating either
+# ∞test∞# run #∞test∞#
+"""This module contains four flatten() functions for generating either
 a sequence or an iterator.  The goal is to "flatten" a tree (typically
 comprised of lists and tuples) by slicing the elements in each
 contained subtree over the subtree element itself.  For example:
@@ -45,32 +45,38 @@ if the predicate function returns "True" for that subtree.
 The implementation of flatten here runs in O(N) time where N is the
 number of elements in the traversed tree.  It uses O(N+D) space
 where D is the maximum depth of the traversed tree.
-'''
+"""
 
 import sys
 
 _py3 = True if sys.version_info[0] == 3 else False
 
+
 def flatten(L, max_depth=None, ltypes=(list, tuple)):
-    '''flatten(sequence[, max_depth[, ltypes]]) => sequence
- 
+    """flatten(sequence[, max_depth[, ltypes]]) => sequence
+
     Flatten every sequence in "L" whose type is contained in "ltypes"
     to "max_depth" levels down the tree.  See the module documentation
     for a complete description of this function.
- 
+
     The sequence returned has the same type as the input sequence.
-    '''
+    """
     if max_depth is None:
+
         def make_flat(x):
             return True
     else:
+
         def make_flat(x):
             return max_depth > len(x)
+
     if callable(ltypes):
         is_sequence = ltypes
     else:
+
         def is_sequence(x):
             return isinstance(x, ltypes)
+
     r, s = [], []
     s.append((0, L))
     while s:
@@ -94,26 +100,32 @@ def flatten(L, max_depth=None, ltypes=(list, tuple)):
     except TypeError:
         return r
 
+
 def xflatten(L, max_depth=None, ltypes=(list, tuple)):
-    '''xflatten(sequence[, max_depth[, ltypes]]) => iterable
- 
+    """xflatten(sequence[, max_depth[, ltypes]]) => iterable
+
     Flatten every sequence in "L" whose type is contained in "ltypes"
     to "max_depth" levels down the tree.  See the module documentation
     for a complete description of this function.
- 
+
     This is the iterator version of the flatten function.
-    '''
+    """
     if max_depth is None:
+
         def make_flat(x):
             return True
     else:
+
         def make_flat(x):
             return max_depth > len(x)
+
     if callable(ltypes):
         is_sequence = ltypes
     else:
+
         def is_sequence(x):
             return isinstance(x, ltypes)
+
     r, s = [], []
     s.append((0, L))
     while s:
@@ -133,26 +145,32 @@ def xflatten(L, max_depth=None, ltypes=(list, tuple)):
                 yield L[i]
             i += 1
 
+
 def flatten_it(L, max_depth=None, ltypes=(list, tuple)):
-    '''flatten_it(iterator[, max_depth[, ltypes]]) => sequence
- 
+    """flatten_it(iterator[, max_depth[, ltypes]]) => sequence
+
     Flatten every sequence in "L" whose type is contained in "ltypes"
     to "max_depth" levels down the tree.  See the module documentation
     for a complete description of this function.
- 
+
     The sequence returned has the same type as the input sequence.
-    '''
+    """
     if max_depth is None:
+
         def make_flat(x):
             return True
     else:
+
         def make_flat(x):
             return max_depth > len(x)
+
     if callable(ltypes):
         is_iterable = ltypes
     else:
+
         def is_iterable(x):
             return isinstance(x, ltypes)
+
     r, s = [], []
     s.append((iter(L)))
     while s:
@@ -175,26 +193,32 @@ def flatten_it(L, max_depth=None, ltypes=(list, tuple)):
     except TypeError:
         return r
 
+
 def xflatten_it(L, max_depth=None, ltypes=(list, tuple)):
-    '''xflatten_it(iterator[, max_depth[, ltypes]]) => iterator
- 
+    """xflatten_it(iterator[, max_depth[, ltypes]]) => iterator
+
     Flatten every sequence in "L" whose type is contained in "ltypes"
     to "max_depth" levels down the tree.  See the module documentation
     for a complete description of this function.
- 
+
     This is the iterator version of the flatten_it function.
-    '''
+    """
     if max_depth is None:
+
         def make_flat(x):
             return True
     else:
+
         def make_flat(x):
             return max_depth > len(x)
+
     if callable(ltypes):
         is_iterable = ltypes
     else:
+
         def is_iterable(x):
             return isinstance(x, ltypes)
+
     r, s = [], []
     s.append((iter(L)))
     while s:
@@ -213,10 +237,12 @@ def xflatten_it(L, max_depth=None, ltypes=(list, tuple)):
         except StopIteration:
             pass
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     import sys
     import traceback
     from lwtest import run, assert_equal
+
     def Test():
         def test(exp, got, depth=None):
             assert_equal(exp, flatten(got, depth))
@@ -242,30 +268,76 @@ if __name__ == '__main__':
             test((1, 2, 3), ((1, 2), 3))
             test((1, 2, 3), (1, (2, 3)))
             test((1, 2, 3), ((1,), (2,), 3))
-            test(((((((((((0,), 1), 2), 3), 4), 5), 6), 7), 8), 9), ((((((((((0,), 1), 2), 3), 4), 5), 6), 7), 8), 9), 0)
-            test((((((((((0,), 1), 2), 3), 4), 5), 6), 7), 8, 9), ((((((((((0,), 1), 2), 3), 4), 5), 6), 7), 8), 9), 1)
-            test(((((((((0,), 1), 2), 3), 4), 5), 6), 7, 8, 9), ((((((((((0,), 1), 2), 3), 4), 5), 6), 7), 8), 9), 2)
-            test((((((((0,), 1), 2), 3), 4), 5), 6, 7, 8, 9), ((((((((((0,), 1), 2), 3), 4), 5), 6), 7), 8), 9), 3)
-            test(((((((0,), 1), 2), 3), 4), 5, 6, 7, 8, 9), ((((((((((0,), 1), 2), 3), 4), 5), 6), 7), 8), 9), 4)
-            test((((((0,), 1), 2), 3), 4, 5, 6, 7, 8, 9), ((((((((((0,), 1), 2), 3), 4), 5), 6), 7), 8), 9), 5)
-            test(((((0,), 1), 2), 3, 4, 5, 6, 7, 8, 9), ((((((((((0,), 1), 2), 3), 4), 5), 6), 7), 8), 9), 6)
-            test((((0,), 1), 2, 3, 4, 5, 6, 7, 8, 9), ((((((((((0,), 1), 2), 3), 4), 5), 6), 7), 8), 9), 7)
-            test(((0,), 1, 2, 3, 4, 5, 6, 7, 8, 9), ((((((((((0,), 1), 2), 3), 4), 5), 6), 7), 8), 9), 8)
-            test((0, 1, 2, 3, 4, 5, 6, 7, 8, 9), ((((((((((0,), 1), 2), 3), 4), 5), 6), 7), 8), 9), 9)
-            test((0, 1, 2, 3, 4, 5, 6, 7, 8, 9), ((((((((((0,), 1), 2), 3), 4), 5), 6), 7), 8), 9), 10)
+            test(
+                ((((((((((0,), 1), 2), 3), 4), 5), 6), 7), 8), 9),
+                ((((((((((0,), 1), 2), 3), 4), 5), 6), 7), 8), 9),
+                0,
+            )
+            test(
+                (((((((((0,), 1), 2), 3), 4), 5), 6), 7), 8, 9),
+                ((((((((((0,), 1), 2), 3), 4), 5), 6), 7), 8), 9),
+                1,
+            )
+            test(
+                ((((((((0,), 1), 2), 3), 4), 5), 6), 7, 8, 9),
+                ((((((((((0,), 1), 2), 3), 4), 5), 6), 7), 8), 9),
+                2,
+            )
+            test(
+                (((((((0,), 1), 2), 3), 4), 5), 6, 7, 8, 9),
+                ((((((((((0,), 1), 2), 3), 4), 5), 6), 7), 8), 9),
+                3,
+            )
+            test(
+                ((((((0,), 1), 2), 3), 4), 5, 6, 7, 8, 9),
+                ((((((((((0,), 1), 2), 3), 4), 5), 6), 7), 8), 9),
+                4,
+            )
+            test(
+                (((((0,), 1), 2), 3), 4, 5, 6, 7, 8, 9),
+                ((((((((((0,), 1), 2), 3), 4), 5), 6), 7), 8), 9),
+                5,
+            )
+            test(
+                ((((0,), 1), 2), 3, 4, 5, 6, 7, 8, 9),
+                ((((((((((0,), 1), 2), 3), 4), 5), 6), 7), 8), 9),
+                6,
+            )
+            test(
+                (((0,), 1), 2, 3, 4, 5, 6, 7, 8, 9),
+                ((((((((((0,), 1), 2), 3), 4), 5), 6), 7), 8), 9),
+                7,
+            )
+            test(
+                ((0,), 1, 2, 3, 4, 5, 6, 7, 8, 9),
+                ((((((((((0,), 1), 2), 3), 4), 5), 6), 7), 8), 9),
+                8,
+            )
+            test(
+                (0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+                ((((((((((0,), 1), 2), 3), 4), 5), 6), 7), 8), 9),
+                9,
+            )
+            test(
+                (0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+                ((((((((((0,), 1), 2), 3), 4), 5), 6), 7), 8), 9),
+                10,
+            )
             test(({1: 2}, 3, 4, set([5, 6])), ({1: 2}, (3, 4), set([5, 6])))
+
         # Build a tree n elements deep
         n, L = int(1e4), (1,)
         for i in range(n):
             L = (L, 2)
         # Expected value is a 1 followed by n 2's
-        exp = (1,) + (2,)*n
+        exp = (1,) + (2,) * n
         got = flatten(L)
-        assert(exp == got)
+        assert exp == got
         got = tuple(xflatten(L))
-        assert(exp == got)
+        assert exp == got
         got = flatten_it(L)
-        assert(exp == got)
+        assert exp == got
         got = tuple(xflatten_it(L))
-        assert(exp == got)
+        assert exp == got
+
     run(globals(), halt=1)

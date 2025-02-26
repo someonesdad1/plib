@@ -1,7 +1,7 @@
-'''
+"""
 Print out the frequency of musical notes
 
-    The data came from the table at 
+    The data came from the table at
     https://en.wikipedia.org/wiki/Scientific_pitch_notation.
 
     Data from web page (tab-delimited):
@@ -23,31 +23,32 @@ Print out the frequency of musical notes
     AB 	29.135 (−38) 	58.270 (−26) 	116.54 (−14) 	233.08 (−2) 	466.16 (+10) 	932.33 (+22) 	1864.7 (+34) 	3729.3 (+46) 	7458.6 (+58) 	14917.2 (+70) 	29834.5 (+82)
     B 	30.868 (−37) 	61.735 (−25) 	123.47 (−13) 	246.94 (−1) 	493.88 (+11) 	987.77 (+23) 	1975.5 (+35) 	3951.1 (+47) 	7902.1 (+59) 	15804.3 (+71) 	31608.5 (+83)
 
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2016 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2016 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Print out the frequency of musical notes
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import getopt
     import os
     import sys
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
-if 1:   # Global variables
+if 1:  # Global variables
     nl = "\n"
     tab = "\t"
-    raw_data = dedent('''
+    raw_data = dedent("""
     C 	16.352 (-48) 	32.703 (-36) 	65.406 (-24) 	130.81 (-12) 	261.63 (0) 	523.25 (+12) 	1046.5 (+24) 	2093.0 (+36) 	4186.0 (+48) 	8372.0 (+60) 	16744.0 (+72)
     CD 	17.324 (-47) 	34.648 (-35) 	69.296 (-23) 	138.59 (-11) 	277.18 (+1) 	554.37 (+13) 	1108.7 (+25) 	2217.5 (+37) 	4434.9 (+49) 	8869.8 (+61) 	17739.7 (+73)
     D 	18.354 (-46) 	36.708 (-34) 	73.416 (-22) 	146.83 (-10) 	293.66 (+2) 	587.33 (+14) 	1174.7 (+26) 	2349.3 (+38) 	4698.6 (+50) 	9397.3 (+62) 	18794.5 (+74)
@@ -60,7 +61,7 @@ if 1:   # Global variables
     A 	27.500 (-39) 	55.000 (-27) 	110.00 (-15) 	220.00 (-3) 	440.00 (+9) 	880.00 (+21) 	1760.0 (+33) 	3520.0 (+45) 	7040.0 (+57) 	14080.0 (+69) 	28160.0 (+81)
     AB 	29.135 (-38) 	58.270 (-26) 	116.54 (-14) 	233.08 (-2) 	466.16 (+10) 	932.33 (+22) 	1864.7 (+34) 	3729.3 (+46) 	7458.6 (+58) 	14917.2 (+70) 	29834.5 (+82)
     B 	30.868 (-37) 	61.735 (-25) 	123.47 (-13) 	246.94 (-1) 	493.88 (+11) 	987.77 (+23) 	1975.5 (+35) 	3951.1 (+47) 	7902.1 (+59) 	15804.3 (+71) 	31608.5 (+83)
-    ''')
+    """)
     data = {}
     for i in raw_data.split(nl):
         i = i.replace("(", "").replace(")", "")
@@ -75,11 +76,16 @@ if 1:   # Global variables
                 freq = int(freq)
             semitones = int(semitones)
             data[name].append((freq, semitones))
+
+
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
+
+
 def Usage(d, status=1):
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]} [options] [note1 [note2 ...]]
       Print out the frequency in Hz of a given note.  Note can be either a
       single letter or a letter and a number, the number denoting the
@@ -88,12 +94,15 @@ def Usage(d, status=1):
       -i    Round frequencies to integer Hz
       -t    Print the whole table
       -u    Use Unicode for sharp and flat symbols
-    '''))
+    """)
+    )
     exit(status)
+
+
 def ParseCommandLine(d):
-    d["-i"] = False     # Round to integer Hz
-    d["-t"] = False     # Print table
-    d["-u"] = False     # Use Unicode for sharp & flat symbols
+    d["-i"] = False  # Round to integer Hz
+    d["-t"] = False  # Print table
+    d["-u"] = False  # Use Unicode for sharp & flat symbols
     try:
         opts, notes = getopt.getopt(sys.argv[1:], "itu")
     except getopt.GetoptError as e:
@@ -107,15 +116,17 @@ def ParseCommandLine(d):
     if not notes:
         Usage(d)
     return notes
+
+
 def PrintTable(d):
     sharp, flat, sz = "s", "f", 8
     if d["-u"]:
-        sharp, flat = chr(0x266f), chr(0x266d)
+        sharp, flat = chr(0x266F), chr(0x266D)
     print("Frequencies in Hz")
-    print(" "*48, "Octave")
+    print(" " * 48, "Octave")
     print("    ", end="")
     for octave in range(11):
-        o = " "*3 + str(octave)
+        o = " " * 3 + str(octave)
         print("{:^{}s} ".format(o, sz), end="")
     print()
     for note in "C CD D DE E F FG G GA A AB B".split():
@@ -129,6 +140,8 @@ def PrintTable(d):
             print("{:^{}s}".format(str(freq), sz), end=" ")
         print()
     exit()
+
+
 def PrintNote(Note, d):
     note, octaves, notes = Note.upper(), range(11), set("ABCDEFG")
     if len(note) == 1:
@@ -144,8 +157,7 @@ def PrintNote(Note, d):
             st = str(semitones)
             if st[0] != "-":
                 st = " " + st
-            print("     {:2d}       {:10s}       {}".format(
-                  octave, str(freq), st))
+            print("     {:2d}       {:10s}       {}".format(octave, str(freq), st))
     elif len(note) == 2:
         try:
             octave = int(note[1])
@@ -159,8 +171,10 @@ def PrintNote(Note, d):
         print(note, "octave", octave)
     else:
         Error("The note must be one or two characters.")
+
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     notes = ParseCommandLine(d)
     for note in notes:
         PrintNote(note, d)

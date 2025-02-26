@@ -1,9 +1,9 @@
-'''
+"""
 Print execution time of some math operations
     You can pass the value of N, which is the number of times to
     repeat the timeit() measurement, on the command line; it defaults to 1e5.
     I've found that 1e5 seems to be a good choice to give reasonably
-    repeatable results and not take too long to execute.  
+    repeatable results and not take too long to execute.
 
         Time to execute in 2011 was about 16 s.  With my computer built
         in 2016, it took 5 s in 2021.
@@ -14,37 +14,40 @@ Print execution time of some math operations
     performance (it's slow compared to the floating point stuff done by
     hardware), realize that it's a pure-python implementation and gives
     arbitrary precision.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2010 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2010 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Print execution time of some math operations
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import platform
     import timeit
     import time
     import math
     import cmath
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
+
     try:
         import mpmath as mp
+
         has_mpmath = True
     except ImportError:
         has_mpmath = False
-if 1:   # Global variables
+if 1:  # Global variables
     N = int(1e5)  # How many repeats
-    Nmp = N//100  # mpmath stuff takes substantially longer
+    Nmp = N // 100  # mpmath stuff takes substantially longer
     assert Nmp >= 10, "N must be >= 1000 (it's %d)" % N
     if len(sys.argv) > 1:
         N = int(float(sys.argv[1]))
@@ -60,23 +63,19 @@ if 1:   # Global variables
             ("  Integer subtraction", "3 - 4", "", N),
             ("  Integer multiplication", "3*4", "", N),
             ("  Integer division", "3//4", "", N),
-
             ("  Long addition", "30000000000000000 + 40000000000000000", "", N),
             ("  Long subtraction", "30000000000000000 - 40000000000000000", "", N),
             ("  Long multiplication", "30000000000000000*40000000000000000", "", N),
             ("  Long division", "30000000000000000//40000000000000000", "", N),
-
             ("  Float addition", "3. + 4.", "", N),
             ("  Float subtraction", "3. - 4.", "", N),
             ("  Float multiplication", "3.*4.", "", N),
             ("  Float division", "3./4.", "", N),
-
             ("  Complex addition", "(1. + 2.j) + (3. + 4.j)", "", N),
             ("  Complex subtraction", "(1. + 2.j) - (3. + 4.j)", "", N),
             ("  Complex multiplication", "(1. + 2.j)*(3. + 4.j)", "", N),
             ("  Complex division", "(1. + 2.j)/(3. + 4.j)", "", N),
         ),
-
         "real_functions": (
             ("Elementary real functions", "", "", N),
             ("  sin", "sin(1.)", m + "sin", N),
@@ -95,7 +94,7 @@ if 1:   # Global variables
             ("  atanh", "atan(1.)", m + "atan", N),
             ("  fabs", "fabs(-1.2)", m + "fabs", N),
             ("  factorial(10)", "factorial(10)", m + "factorial", N),
-            ("  factorial(100)", "factorial(100)", m + "factorial", N//10),
+            ("  factorial(100)", "factorial(100)", m + "factorial", N // 10),
             ("  floor", "floor(-1.2)", m + "floor", N),
             ("  fmod", "fmod(10.1, 0.2)", m + "fmod", N),
             ("  frexp", "frexp(10.1)", m + "frexp", N),
@@ -111,7 +110,6 @@ if 1:   # Global variables
             ("  degrees", "degrees(10.1)", m + "degrees", N),
             ("  radians", "radians(10.1)", m + "radians", N),
         ),
-
         "complex_functions": (
             ("Elementary complex functions", "", "", N),
             ("  sin", "sin(1.j)", c + "sin", N),
@@ -135,9 +133,8 @@ if 1:   # Global variables
             ("  polar", "polar(1.j)", c + "polar", N),
             ("  rect", "rect(1., 2.)", c + "rect", N),
         ),
-
         "mpmath_functions": (
-            ("mpmath functions (N//%d)" % (N//Nmp), "", "", N),
+            ("mpmath functions (N//%d)" % (N // Nmp), "", "", N),
             ("  sqrt", "sqrt(mpf(1.))", mp + "sqrt", Nmp),
             ("  sqrt", "sqrt(mpc(1.j))", mp + "sqrt", Nmp),
             ("  hypot", "hypot(mpf(1.), mpf(2.))", mp + "hypot", Nmp),
@@ -160,7 +157,6 @@ if 1:   # Global variables
             ("  acos", "acos(mpc(1.j))", mp + "acos", Nmp),
             ("  atan", "atan(mpf(1.))", mp + "atan", Nmp),
             ("  atan", "atan(mpc(1.j))", mp + "atan", Nmp),
-
             ("  sinh", "sinh(mpf(1.))", mp + "sinh", Nmp),
             ("  sinh", "sinh(mpc(1.j))", mp + "sinh", Nmp),
             ("  cosh", "cosh(mpf(1.))", mp + "cosh", Nmp),
@@ -205,10 +201,12 @@ if 1:   # Global variables
             ("  zeta", "zeta(mpc(10j))", mp + "zeta", Nmp),
         ),
     }
+
+
 def TwoFig(x):
-    '''Round x to two significant figures and return it as a string.
+    """Round x to two significant figures and return it as a string.
     Insert commas if needed.
-    '''
+    """
     s, t = list(str(int(float("%.1e" % x)))), ""
     s.reverse()
     for i, c in enumerate(s):
@@ -217,7 +215,9 @@ def TwoFig(x):
         t += c
     s = list(t)
     s.reverse()
-    return ''.join(s)
+    return "".join(s)
+
+
 def P(s, val, size=35):
     fmt = "%%-%ds %%s" % size
     try:
@@ -225,6 +225,8 @@ def P(s, val, size=35):
     except Exception:
         return
     print(fmt % (s, v))
+
+
 def Numbers():
     print("\nNumber information")
     P("  Max int", "sys.maxint")
@@ -241,6 +243,8 @@ def Numbers():
     P("    Minimum exponent for 10", "sys.float_info.min_10_exp")
     P("    (First number > 1) - 1", "sys.float_info.epsilon")
     P("    Addition rounds", "sys.float_info.rounds")
+
+
 def System():
     print()
     print("System information")
@@ -255,7 +259,9 @@ def System():
     P("  Mac version", "platform.mac_ver()")
     P("  Linux version", "platform.linux_distribution()")
     P("  libc version", "platform.libc_ver()")
-    P("  log2(maximum container size)", "\"%.2f\" % (math.log(sys.maxsize)/math.log(2))")
+    P("  log2(maximum container size)", '"%.2f" % (math.log(sys.maxsize)/math.log(2))')
+
+
 def RunGroup(group):
     fmt = "%-25s %-42s %9s"
     print()
@@ -265,16 +271,20 @@ def RunGroup(group):
             continue
         T = timeit.Timer(expr, setup)
         t = T.timeit(n)
-        print(fmt % (op, expr, TwoFig(t/n*1e9)))
+        print(fmt % (op, expr, TwoFig(t / n * 1e9)))
+
+
 if __name__ == "__main__":
     t = time.time()
-    print('''          Python performance measures %s
+    print(
+        """          Python performance measures %s
           -----------------------------------------------------
                             log10(N) = %g
                                                                          Time
   Operation               Expression                                     in ns
-  ---------------------   -----------------------------------------      ----- ''' %
- (time.asctime(), math.log10(N)))
+  ---------------------   -----------------------------------------      ----- """
+        % (time.asctime(), math.log10(N))
+    )
     RunGroup(expressions["arithmetic"])
     RunGroup(expressions["real_functions"])
     RunGroup(expressions["complex_functions"])
@@ -286,7 +296,7 @@ if __name__ == "__main__":
 
 # ---------------------------------------------------------------------------
 # Results Feb 2011 python 2.6.5     16.2 s
-'''
+"""
 For new PC Jimmy built for me Feb 2011:
 
           Python performance measures Thu Nov 15 10:44:26 2012
@@ -466,9 +476,9 @@ System information
   log2(maximum container size)      31.00
 
 Total time to execute = 16.17 s
-'''
+"""
 # Results Jul 2021 python 3.7.5     4.8 s
-'''
+"""
 This computer was built around 2016
 
           Python performance measures Tue Jul 20 21:21:35 2021
@@ -647,9 +657,9 @@ System information
   log2(maximum container size)      31.00
 
 Total time to execute = 4.80 s
-'''
+"""
 # Results Aug 2022 python 3.9.10    4.1 s
-'''
+"""
           Python performance measures Mon Aug  8 07:25:38 2022
           -----------------------------------------------------
                             log10(N) = 5
@@ -825,4 +835,4 @@ System information
   log2(maximum container size)      63.00
 
 Total time to execute = 4.13 s
-'''
+"""

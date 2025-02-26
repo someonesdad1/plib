@@ -4,6 +4,7 @@ from fraction import FormatFraction, FractionToUnicode
 from fraction import FractionFromUnicode, ToFraction, _sub, _super
 from pdb import set_trace as xx
 
+
 def TestFunctions():
     for ip in range(0, 11):
         for d in range(2, 11):
@@ -18,30 +19,39 @@ def TestFunctions():
                 for i in str(f.denominator):
                     D += _sub[int(i)]
                 t = N + "/" + D
-                assert(s == t)
+                assert s == t
                 u = FractionToUnicode(str(n) + "/" + str(d))
-                assert(s == u)
+                assert s == u
                 v = FractionFromUnicode(u)
                 ff = str(f.numerator) + "/" + str(f.denominator)
-                assert(v == ff)
+                assert v == ff
                 # Add integer part
                 if ip:
                     s = FormatFraction(ip + f)
                     t = str(ip) + N + "/" + D
-                    assert(s == t)
+                    assert s == t
                     s = FractionToUnicode(str(ip) + "-" + ff)
-                    assert(s == t)
+                    assert s == t
                     w = FractionFromUnicode(t)
                     u = str(ip) + "-" + v
-                    assert(w == str(ip) + "-" + v)
+                    assert w == str(ip) + "-" + v
+
 
 def TestToFraction():
     f = Fraction(19, 16)
     for s in ("19/16", "1 3/16", "1-3/16", "1+3/16"):
-        assert(ToFraction(s) == f)
-    for s in ("1  3/16", "1-+3/16", "1--3/16", "1++3/16", "1 3//16",
-              "1 3/-16", "1 3/+16"):
+        assert ToFraction(s) == f
+    for s in (
+        "1  3/16",
+        "1-+3/16",
+        "1--3/16",
+        "1++3/16",
+        "1 3//16",
+        "1 3/-16",
+        "1 3/+16",
+    ):
         raises(ValueError, ToFraction, s)
+
 
 if __name__ == "__main__":
     exit(run(globals())[0])

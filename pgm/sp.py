@@ -1,9 +1,10 @@
-'''
+"""
 Show the sprinkler watering schedule.
-'''
+"""
 
-if __name__ == "__main__": 
-    print('''
+if __name__ == "__main__":
+    print(
+        """
 A = our controller's A program
 B = our controller's B program
 F = flood irrigators' times
@@ -50,4 +51,5 @@ Circuit times in minutes        Total run time = 140 + 320 = 460 minutes
 Total watering time = 3(70) + 4(80) = 210 + 320 = 530 = 8:50 = 8.83 hr
 Ditch pump time     = 3(70) + 3(80) = 210 + 240 = 450 = 7:30 = 7.5  hr
     (because #9 runs from the well)
-'''.strip())
+""".strip()
+    )

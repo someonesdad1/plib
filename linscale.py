@@ -1,6 +1,6 @@
-'''
+"""
 ToDo:
- 
+
     * Look at what it would take to produce mirror image scales by just
       setting a Boolean.  This would be quite handy to allow
       laser-printed stuff to be ironed onto a substrate.  For example,
@@ -10,25 +10,25 @@ ToDo:
       xylene (the polystyrene dissolves in it).  Wet the cotton, rub on
       the back of the paper (keep thin), and then rub things off with a
       burnisher or spoon.
- 
+
       Get some spray white latex paint and put on a few thin coats and
       sand smooth.  Then the laser printing should transfer on OK
       without disturbing the white substrate.
- 
+
     * Instead of a settings dictionary, make all the things like
       index_function, label_angle, tick1_length, etc. be attributes of
       the instance.  This would make source code look a little cleaner.
       It might also allow computed forms for the attributes that aren't
       defined; this would be easy to handle in __getattr__.
- 
+
 This module contains the Scale object which uses the g library to draw
 linear scales with tick marks and labels.  Run as a script to see a simple
 scale example.
- 
+
 How to use:
     Get a default settings dictionary:
         settings = DefaultSettings()
- 
+
     Change things as needed:
         settings["index_function"] = log10
         settings["label_angle"] = 180
@@ -42,23 +42,23 @@ How to use:
         settings["tick2_length"] = 0.8   Note 2-4 are relative to tick1
         settings["tick3_length"] = 0.6
         settings["tick4_length"] = 0.4
- 
+
         Note:  the index function determines how the points are distributed
- 
+
     Generate the values and strings
         values = map(lambda x: x/10., range(15, 76, 10))
         settings["unlabelled1"] = [8.5, 9.5]   # These points don't plot
         tmp = map(lambda x: x*scale, values)
         strings = map(lambda x: nFmt(scale, 1) % x, tmp)
         settings["labelled1"] = [values, strings]
- 
+
     Draw the scale from (x0, y0) to (x1, y1)
         s = Scale(x0, y0, x1, y1, settings)
         s.Draw()
- 
+
         Note that the values passed to the Scale object should have x values
         from 0 to 1.
- 
+
     Label the scale
     push()
     y = y0 - 0.1
@@ -70,37 +70,38 @@ How to use:
     text("D, in")
     if not print_slide_rule_scale:
         NumberScale(x1, y1)  # Print a number to the right of the scale
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2010 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2010 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # <programming> Draw linear scales with tick marks and labels.
     # Requires the g.py module for generating PostScript.
-    #∞what∞#
-    #∞test∞# ignore #∞test∞#
+    # ∞what∞#
+    # ∞test∞# ignore #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import g
     import math
     from pdb import set_trace as xx
-if 1:   # Global variables
+if 1:  # Global variables
     debug = 0
     wrap_in_PJL = 0
     in_color = True
-    d2r = math.pi/180
+    d2r = math.pi / 180
     # For applying a number to a scale on the RHS
     scale_count = 1
     scale_count_offset_x = 0.15
     scale_count_offset_y = -0.05
     # Font sizes are all relative to the base font size
-    base_font_size = 8/72.27
+    base_font_size = 8 / 72.27
     footer_font_size = 1
     title_font_size = 1
     exponent_font = 0.8
@@ -147,13 +148,15 @@ if 1:   # Global variables
     # The following variable is used to correct a base 10 log to the
     # interval [0, 1].
     log_correction = 0
+
+
 class Scale:
     def __init__(self, x0, y0, x1, y1, settings={}):
-        '''Draw a scale from point (x0, y0) to (x1, y1).  The dictionary
+        """Draw a scale from point (x0, y0) to (x1, y1).  The dictionary
         settings contains all of the adjustable parameters of a scale.
         Most settings have default values, but a few will cause an
         exception if the user doesn't set them.
-        '''
+        """
         self.x0, self.y0, self.x1, self.y1 = x0, y0, x1, y1
         # Set the default settings.
         self.s = {}
@@ -175,7 +178,7 @@ class Scale:
         # same size.  An unlabelled container is just a sequence of
         # values to put ticks at.
         self.N = 6  # Number of containers for labels and ticks
-        for n in range(1, self.N+1):
+        for n in range(1, self.N + 1):
             self.s["labelled%d" % n] = None
             self.s["unlabelled%d" % n] = None
             self.s["label%d_x" % n] = 0
@@ -186,15 +189,15 @@ class Scale:
             self.s["tick%d_line_type" % n] = None
             self.s["tick%d_start_offset" % n] = 0
         # We'll set default Font sizes
-        self.s["font1_size"] = None   # User must pass in
-        self.s["font2_size"] = 0.8    # All are relative to font1
+        self.s["font1_size"] = None  # User must pass in
+        self.s["font2_size"] = 0.8  # All are relative to font1
         self.s["font3_size"] = 0.6
         self.s["font4_size"] = 0.5
         self.s["font5_size"] = 0.4
         self.s["font6_size"] = 0.3
         # Tick data
-        self.s["tick1_length"] = None   # User must pass in
-        self.s["tick2_length"] = 0.9    # All are relative to tick1 length
+        self.s["tick1_length"] = None  # User must pass in
+        self.s["tick2_length"] = 0.9  # All are relative to tick1 length
         self.s["tick3_length"] = 0.8
         self.s["tick4_length"] = 0.6
         self.s["tick5_length"] = 0.45
@@ -218,18 +221,20 @@ class Scale:
         # Get length and angle
         self.length = Distance(self.x0, self.y0, self.x1, self.y1)
         self.angle_degrees = Angle(self.x0, self.y0, self.x1, self.y1)
+
     def Settings(self, settings):
         if debug:
             print("Settings:")
             keys = settings.keys()
             for key in sorted(keys):
                 print("  %-20s : %s" % (key, repr(settings[key])))
-            print("-"*70)
+            print("-" * 70)
         for key in settings:
             if key in self.s:
                 self.s[key] = settings[key]
             else:
                 raise Exception("'" + key + "' key not in settings")
+
     def DrawTick(self, number):
         values = []
         L = "labelled%d" % number
@@ -254,12 +259,13 @@ class Scale:
         if number != 1:
             tick_length *= self.s[t + "_length"]
         for value in values:
-            x = self.s["index_function"](value)*self.length
+            x = self.s["index_function"](value) * self.length
             y = self.s[t + "_start_offset"]
-            g.line(x, y, x, tick_right*(y + tick_length))
+            g.line(x, y, x, tick_right * (y + tick_length))
             if debug:
                 print("Tick at (%g, %g), len = %g" % (x, y, tick_length))
         g.pop()
+
     def DrawLabel(self, number):
         container = self.s["labelled%d" % number]
         if not container:
@@ -294,17 +300,18 @@ class Scale:
                 # The 1/4 is a phenomenological correction to get the
                 # label a default pleasing distance from the tick
                 # mark.
-                y += tick_length - 1/4*font_height
+                y += tick_length - 1 / 4 * font_height
             y *= tick_right
             g.translate(x, y)
             g.rotate(self.s["label_angle"])
             x = self.s[L + "_x"]
-            y = self.s[L + "_y"] + font_height/10
+            y = self.s[L + "_y"] + font_height / 10
             y *= label_right
             g.move(x, y)
             g.ctext(label)
             g.pop()
         g.pop()
+
     def Draw(self):
         g.push()
         g.translate(self.x0, self.y0)
@@ -322,13 +329,18 @@ class Scale:
         for i in range(self.N, 0, -1):
             self.DrawLabel(i)
         g.pop()
+
+
 def Distance(x0, y0, x1, y1):
     x, y = x0 - x1, y0 - y1
-    return math.sqrt(x*x + y*y)
+    return math.sqrt(x * x + y * y)
+
+
 def Angle(x0, y0, x1, y1):
-    '''Return the angle in degrees.
-    '''
-    return math.atan2(y1 - y0, x1 - x0)/d2r
+    """Return the angle in degrees."""
+    return math.atan2(y1 - y0, x1 - x0) / d2r
+
+
 def DefaultSettings(index_function=None):
     return {
         "line_width": line_width,
@@ -339,31 +351,35 @@ def DefaultSettings(index_function=None):
         "tick3_length": 0.7,
         "tick4_length": 0.4,
     }
+
+
 def SetUp(file, orientation=g.landscape, units=g.inches):
-    '''Convenience function to set up the drawing environment and return a
+    """Convenience function to set up the drawing environment and return a
     file object to the output stream.
-    '''
+    """
     ofp = open(file, "w")
     g.ginitialize(ofp)
     g.setOrientation(orientation, units)
     return ofp
+
+
 if __name__ == "__main__":
     # When run as a script, will create output files with some example
     # scales.
 
-    if 1:   # Scales in x and y directions
+    if 1:  # Scales in x and y directions
         # The scale in the x direction will go from 0 to 180 and have
         # numbers every 20 units.  The scale in the y direction will go
         # from 0 to 100 and have numbers every 10 units.
         #
         if 1:
             # x scale
-            x0, x1 = 1, 10      # Left and right limits of scale, inches
-            y = 1               # Scale vertical location
+            x0, x1 = 1, 10  # Left and right limits of scale, inches
+            y = 1  # Scale vertical location
             # Get the default settings dictionary.  The index function needs to
             # map the x values onto [0, 1], because that's the parameter's range
             # for the whole scale.
-            settings = DefaultSettings(index_function=lambda x: x/180)
+            settings = DefaultSettings(index_function=lambda x: x / 180)
             SetUp("linscale1.ps", orientation=g.landscape, units=g.inches)
             # Level 1 tick marks and labels
             values = list(range(0, 181, 20))
@@ -377,12 +393,12 @@ if __name__ == "__main__":
             s.Draw()
         if 1:
             # y scale
-            y0, y1 = 1, 7       # Bottom and top limits of scale, inches
-            x = 1               # Scale horizontal location
+            y0, y1 = 1, 7  # Bottom and top limits of scale, inches
+            x = 1  # Scale horizontal location
             # Get the default settings dictionary.  The index function needs to
             # map the x values onto [0, 1], because that's the parameter's range
             # for the whole scale.
-            settings = DefaultSettings(index_function=lambda x: x/100)
+            settings = DefaultSettings(index_function=lambda x: x / 100)
             # Level 1 tick marks and labels
             values = list(range(0, 101, 10))
             strings = [str(i) for i in values]
@@ -392,15 +408,15 @@ if __name__ == "__main__":
             s = Scale(x, y0, x, y1, settings)
             s.Draw()
 
-    if 1:   # 0 to 10 horizontal scale in color
-        x0, x1 = 1, 10      # Left and right limits of scale, inches
-        y = 7               # Scale vertical location
+    if 1:  # 0 to 10 horizontal scale in color
+        x0, x1 = 1, 10  # Left and right limits of scale, inches
+        y = 7  # Scale vertical location
         # Get the default settings dictionary.  The index function needs to
         # map the x values onto [0, 1], because that's the parameter's range
         # for the whole scale.
-        settings = DefaultSettings(index_function=lambda x: x/10)
-        # Add some colors 
-        settings = DefaultSettings(index_function=lambda x: x/10)
+        settings = DefaultSettings(index_function=lambda x: x / 10)
+        # Add some colors
+        settings = DefaultSettings(index_function=lambda x: x / 10)
         settings["line_color"] = g.blue
         settings["font1_color"] = g.red
         SetUp("linscale.ps", orientation=g.landscape, units=g.inches)
@@ -409,12 +425,12 @@ if __name__ == "__main__":
         strings = [str(i) for i in values]
         settings["labelled1"] = [values, strings]
         # Level 2 tick marks
-        settings["unlabelled2"] = [i + 1/2 for i in values if i < 10]
+        settings["unlabelled2"] = [i + 1 / 2 for i in values if i < 10]
         s = Scale(x0, y, x1, y, settings)
         s.Draw()
         # Add a scale label
-        x = (x0 + x1)/2
-        yl, dy = y - 2*base_font_size, 1.5*base_font_size
+        x = (x0 + x1) / 2
+        yl, dy = y - 2 * base_font_size, 1.5 * base_font_size
         g.move(x, yl)
         g.ctext("Sample")
         g.move(x, yl - dy)

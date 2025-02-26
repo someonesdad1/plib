@@ -1,4 +1,4 @@
-'''
+"""
 TODO
 
     - Include the -2 problem solving of a pot with two resistors in the obsolete/divider.py script.
@@ -7,37 +7,40 @@ TODO
       ratios using the calculated resistors and an assumed tolerance %.  The uncertainty of the
       resistors will be assumed to be triangular and the uncertainty will be 1/sqrt(6) times the
       percentage half-width.
-      
-'''
+
+"""
+
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2020 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2020 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Design a voltage divider
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Imports
+    if 1:  # Imports
         import getopt
         import os
         import sys
         from pdb import set_trace as xx
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import dedent
         from resistors import resistors, FindClosest
         from fpformat import FPFormat
         from f import flt
         from color import t
         import u
-    if 1:   # Global variables
+    if 1:  # Global variables
+
         class g:
             pass
+
         t.exact = t.cynl
         t.ser = t.yel
         t.par = t.grn
@@ -45,11 +48,14 @@ if 1:  # Header
         t.err = t.redl
         t.norm = t.wht
 if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(d, status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] R ratio1 ratio2 [ratio3 ...]
           Design a voltage divider for the input of a voltmeter.  R is the total divider resistance in
           ohms.  The ratios must be floating point numbers on the open interval (0, 1).  Expressions
@@ -64,10 +70,13 @@ if 1:  # Utility
             -2      Solve problem 2
             -E e    Use an EIA resistor set
             -h      Print a manpage (more detailed documentation)
-        '''))
+        """)
+        )
         exit(status)
+
     def Manpage():
-        print(dedent(f'''
+        print(
+            dedent(f"""
         The schematic is
     
             o-------+-----------o  ρ0
@@ -186,9 +195,12 @@ if 1:  # Utility
             do; companies like HP built products in large enough volumes that they could
             economically order the exact resistor sizes needed (although there were likely some
             products that still required selection at construction time).
-        '''))
+        """)
+        )
         ColorCoding()
-        print(dedent(rf'''
+        print(
+            dedent(
+                rf"""
          
         Problem 2
             The -2 option solves the following problem:
@@ -206,13 +218,16 @@ if 1:  # Utility
             2) the current that will pass through the pot and resistors when
             the Vout terminal is open.
          
-        '''.rstrip()))
+        """.rstrip()
+            )
+        )
         exit(0)
+
     def ParseCommandLine():
-        d["-2"] = False     # Solve problem 2
-        d["-d"] = 4         # Number of significant digits
-        d["-E"] = None      # EIA set specifier
-        d["command_line"] = ' '.join(sys.argv[1:])
+        d["-2"] = False  # Solve problem 2
+        d["-d"] = 4  # Number of significant digits
+        d["-E"] = None  # EIA set specifier
+        d["command_line"] = " ".join(sys.argv[1:])
         try:
             opts, args = getopt.getopt(sys.argv[1:], "2d:Eh")
         except getopt.GetoptError as e:
@@ -227,8 +242,7 @@ if 1:  # Utility
                     if not (1 <= d["-d"] <= 15):
                         raise ValueError()
                 except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                           "1 and 15")
+                    msg = "-d option's argument must be an integer between 1 and 15"
                     Error(msg)
             elif o in ("-h", "--help"):
                 Manpage()
@@ -239,19 +253,25 @@ if 1:  # Utility
         d["fp"].trailing_decimal_point(False)
         d["ohm"] = "Ω"
         x = flt(0)
-        x.n = 2     # Used for percent deviations
+        x.n = 2  # Used for percent deviations
         x.rtz = True
         return args
+
+
 if 1:  # Core functionality
+
     def ColorCoding():
-        t.print(dedent(f'''
+        t.print(
+            dedent(f"""
             The color coding in the report is:
                 {t.dev}Deviation in % from goal
                 {t.err}Needed resistor is not available
                 {t.exact}Deviation is zero to about 6 figures
                 {t.ser}Resistors are in series
                 {t.par}Resistors are in parallel
-        '''))
+        """)
+        )
+
     def ProcessArguments(args):
         if 1:  # Get the total resistance
             r = args.pop(0)
@@ -263,7 +283,7 @@ if 1:  # Core functionality
                 R = eval(x)
             except Exception:
                 Error(f"'{x}' isn't a proper form for a number expression")
-            R *= factor     # Multiply by SI prefix
+            R *= factor  # Multiply by SI prefix
             d["R"] = R
         if 1:  # Expand the arguments into ratios
             ratios = []
@@ -287,8 +307,9 @@ if 1:  # Core functionality
             # Make the first element unity
             ratios.insert(0, 1)
             d["ratios"] = ratios
+
     def GetEIA():
-        'Return (n, pow0, pow1, ...) where n is the EIA series and pow0, etc. are the powers of 10'
+        "Return (n, pow0, pow1, ...) where n is the EIA series and pow0, etc. are the powers of 10"
         s = d["-E"]
         s = s.replace(",", " ")
         f = [int(i) for i in s.split()]
@@ -296,23 +317,26 @@ if 1:  # Core functionality
         assert n in set((6, 12, 24, 48, 96))
         f.insert(n, 0)
         return f
+
     def GetResistors():
         if d["-E"]:
             f = GetEIA()
             d["resistors"] = Resistors(EIA=f[0], powers_of_10=f[1:])
         else:
             d["resistors"] = resistors  # On-hand set
+
     def Fix(x):
-        'Format with fpformat.fix and remove trailing zeros'
+        "Format with fpformat.fix and remove trailing zeros"
         fp = d["fp"]
         s = fp.fix(x)
         while s and s[-1] == "0":
             s = s[:-1]
         return s
+
     def Fmt(R):
-        '''Format a resistance R.  Use engsi format, but remove trailing zeros and remove the
+        """Format a resistance R.  Use engsi format, but remove trailing zeros and remove the
         decimal point if possible.
-        '''
+        """
         fp = d["fp"].engsi
         T = fp(R) + d["ohm"]
         s, u = T.split()
@@ -320,17 +344,18 @@ if 1:  # Core functionality
             s = s[:-1]
         if s and s[-1] == ".":
             s = s[:-1]
-        return ' '.join([s, u])
+        return " ".join([s, u])
+
     def SolveSystem():
         fp = d["fp"]
         F = Fmt
         Rtotal, ratios = d["R"], d["ratios"]
         n = len(ratios)
-        ind, k = " "*8, 12
-        R = [0]*n
+        ind, k = " " * 8, 12
+        R = [0] * n
         # Calculate resistances
         for i in range(1, len(ratios)):
-            R[i] = Rtotal*(ratios[i - 1] - ratios[i])
+            R[i] = Rtotal * (ratios[i - 1] - ratios[i])
         # Get rid of initial 0
         R.pop(0)
         # Get last resistance
@@ -368,18 +393,18 @@ if 1:  # Core functionality
                 R1, R2, rdiff, typ = r
                 if typ == "series":
                     Rt = R1 + R2
-                    dev = flt((Rt - R[i])/R[i])
+                    dev = flt((Rt - R[i]) / R[i])
                     if abs(dev) < nearly_exact:
                         Re = f"{t.ser}{F(R1)} + {F(R2)}{t.norm}"
                     else:
-                        Re = f"{t.ser}{F(R1)} + {F(R2)} {t.dev}{100*dev}%{t.norm}"
+                        Re = f"{t.ser}{F(R1)} + {F(R2)} {t.dev}{100 * dev}%{t.norm}"
                 else:
-                    Rt = 1/(1/R1 + 1/R2)
-                    dev = flt((Rt - R[i])/R[i])
+                    Rt = 1 / (1 / R1 + 1 / R2)
+                    dev = flt((Rt - R[i]) / R[i])
                     if abs(dev) < nearly_exact:
                         Re = f"{t.par}{F(R1)} || {F(R2)}{t.norm}"
                     else:
-                        Re = f"{t.par}{F(R1)} || {F(R2)} {t.dev}{100*dev}%{t.norm}"
+                        Re = f"{t.par}{F(R1)} || {F(R2)} {t.dev}{100 * dev}%{t.norm}"
                 Rtotal_actual += Rt
                 Ractual.append(Rt)
                 print(f"{ind}{F(Rt):{k}s}    {Re}")
@@ -391,25 +416,27 @@ if 1:  # Core functionality
         ρactual = []
         for i in range(len(Ractual)):
             if not i:
-                ρactual.append(1 - Ractual[i]/Rtotal_actual)
+                ρactual.append(1 - Ractual[i] / Rtotal_actual)
             else:
-                ρactual.append(ρactual[i - 1] - Ractual[i]/Rtotal_actual)
+                ρactual.append(ρactual[i - 1] - Ractual[i] / Rtotal_actual)
         for i, ratio in enumerate(ρactual[:-1]):
             goal = ratios[i + 1]
-            dev = flt((ratio - goal)/goal)
+            dev = flt((ratio - goal) / goal)
             if abs(dev) < nearly_exact:
                 t.print(f"{t.exact}{ind}{Fix(ratio):{k}s}")
             else:
                 with dev:
                     dev.N = 2
-                    print(f"{ind}{Fix(ratio):{k}s}   {t.dev}{100*dev}%{t.norm}")
+                    print(f"{ind}{Fix(ratio):{k}s}   {t.dev}{100 * dev}%{t.norm}")
+
     def GetR(s):
-        's is a string that can have a cuddled SI prefix'
+        "s is a string that can have a cuddled SI prefix"
         val, prefix = u.ParseUnit(s)
         val = flt(val)
         if prefix:
             val *= flt(u.SI_prefixes[prefix])
         return val
+
     def Problem2(args):
         E = d["fp"].engsi
         if len(args) != 4:
@@ -423,19 +450,20 @@ if 1:  # Core functionality
         if V1 <= 0 or V2 <= 0:
             Error("V1 and V2 must be greater than 0")
         R = GetR(R)
-        R1 = R*(V - V1)/(V1 - V2)
-        R2 = R*V2/(V1 - V2)
+        R1 = R * (V - V1) / (V1 - V2)
+        R2 = R * V2 / (V1 - V2)
         try:
             R1c = FindClosest(R1)
             R2c = FindClosest(R2)
         except ValueError as e:
             print(str(e))
             exit(1)
-        i = V/(R + R1 + R2)
+        i = V / (R + R1 + R2)
         # Print report
         i, V, V1, V2 = [E(i) for i in (i, V, V1, V2)]
         R, R1, R2, R1c, R2c = [Fmt(i) for i in (R, R1, R2, R1c, R2c)]
-        print(dedent(r'''
+        print(
+            dedent(r"""
                              ◯ Vout
                              |
                              ↓
@@ -452,10 +480,13 @@ if 1:  # Core functionality
             R1 = {R1} (closest is {R1c})
             R2 = {R2} (closest is {R2c})
             i = {i}A
-        ''').format(**locals()))
+        """).format(**locals())
+        )
         exit(0)
+
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine()
     if d["-2"]:
         Problem2(args)

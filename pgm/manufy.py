@@ -1,28 +1,32 @@
-'''
+"""
 Convert a text file for including into a C program
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Convert a text file for including into a C program
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import os
     import getopt
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
+
+
 def Usage(status=1):
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]} [options] [file1 [file2...]]
       Convert the text lines in the files to lines suitable for use in a
       C/C++ program by surrounding them with double quotes, putting \\n at
@@ -38,8 +42,11 @@ def Usage(status=1):
         -h      Show this help message.
         -u      Remove the leading/trailing quotes, unescape the double quotes,
                 and remove the ending \\n.
-    '''))
+    """)
+    )
     exit(status)
+
+
 def ParseCommandLine(d):
     d["-u"] = False
     try:
@@ -56,6 +63,8 @@ def ParseCommandLine(d):
     if not files:
         Usage()
     return files
+
+
 def ProcessFile(stream, d):
     for line in stream:
         if d["-u"]:
@@ -64,12 +73,14 @@ def ProcessFile(stream, d):
                 line = line[1:]
             if line[-1] == '"':
                 line = line[:-1]
-            if line[-2:] == '\\n':
+            if line[-2:] == "\\n":
                 line = line[:-2]
         else:
             line = line.rstrip().replace('"', '\\"')
             line = '"{}\\n"'.format(line)
         print(line)
+
+
 if __name__ == "__main__":
     d = {}  # Options dictionary
     files = ParseCommandLine(d)

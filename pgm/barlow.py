@@ -1,4 +1,4 @@
-'''
+"""
 Construct a copy of Barlow's tables
     This script will produce a table that will fit in 80 columns, assuming
     the argument isn't too large.  The square, cube, square root, cube
@@ -9,10 +9,10 @@ Construct a copy of Barlow's tables
     generated.
 
     Barlow's work was important for many years to people who needed to do
-    manual arithmetic calculations.  
+    manual arithmetic calculations.
 
     See https://en.wikipedia.org/wiki/Peter_Barlow_(mathematician).
- 
+
     The original work took much effort to produce, both calculation of the
     numbers (aided by algebraic checks) and checking the printer's
     typesetting; typesetting was a notorious source of errors.  The edition
@@ -20,45 +20,51 @@ Construct a copy of Barlow's tables
     types of tables were made obsolete by electronic calculators and
     computers, which can produce an equivalent table in a fraction of a
     second.
-'''
-if 1:   # Header
-    if 1:   # Copyright, license
+"""
+
+if 1:  # Header
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Produce a replica of Barlow's Tables
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         import getopt
         import os
         from pathlib import Path as P
         import sys
         from pprint import pprint as pp
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import wrap, dedent
         from color import Color, TRM as t
         from lwtest import Assert
         from f import flt, log10
+
         if 1:
             import debug
+
             debug.SetDebugger()
-    if 1:   # Global variables
+    if 1:  # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
-if 1:   # Utility
+if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] n [m]
           Prints out Barlow's table from 1 to n with an additional column
           for the logarithm.  If m is given, the table goes from n to m.
@@ -66,15 +72,17 @@ if 1:   # Utility
             -c      Color escapes always on
             -l      Omit the logarithm
             -t      Separate output by tabs
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-C"] = False     # No color coding
-        d["-c"] = False     # Always color coding
-        d["-l"] = False     # Omit logarithm printing
-        d["-t"] = False     # Tab separator
+        d["-C"] = False  # No color coding
+        d["-c"] = False  # Always color coding
+        d["-l"] = False  # Omit logarithm printing
+        d["-t"] = False  # Tab separator
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "Cchl") 
+            opts, args = getopt.getopt(sys.argv[1:], "Cchl")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -88,7 +96,10 @@ if 1:   # Utility
         if not args:
             Usage()
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def GetColors():
         a = sys.stdout.isatty() or d["-c"]
         if d["-C"]:
@@ -101,8 +112,10 @@ if 1:   # Core functionality
         t.recip = t("redl") if a else ""
         t.log = t("cynl") if a else ""
         t.N = t.n if a else ""
+
     def Row(n):
-        return (n, n**2, n**3, n**(1/2), n**(1/3), 1/n, log10(n))
+        return (n, n**2, n**3, n ** (1 / 2), n ** (1 / 3), 1 / n, log10(n))
+
     def GenerateTable(n, m):
         Assert(n < m)
         big = True if m > 10000 else False
@@ -110,18 +123,20 @@ if 1:   # Core functionality
         if big:
             # Get widths from largest string of each type of number
             R = range(n, m + 1)
+
             def P(func, j):
                 mx = 0
                 for i in R:
                     mx = max(mx, len(repr(func(i))))
                 return mx
+
             f = (
                 lambda x: x,
                 lambda x: x**2,
                 lambda x: x**3,
-                lambda x: x**(1/2),
-                lambda x: x**(1/3),
-                lambda x: 1/x,
+                lambda x: x ** (1 / 2),
+                lambda x: x ** (1 / 3),
+                lambda x: 1 / x,
                 lambda x: log10(x),
             )
             for i in range(7):
@@ -142,7 +157,7 @@ if 1:   # Core functionality
         print(sep.join(o))
         o, hy = [], "-"
         for i in range(len(w) - d["-l"]):
-            o.append(f"{u[i]}{hy*w[i]:^{w[i]}s}{t.N}")
+            o.append(f"{u[i]}{hy * w[i]:^{w[i]}s}{t.N}")
         print(sep.join(o))
         # Get table rows
         for i in range(n, m + 1):
@@ -168,19 +183,23 @@ if 1:   # Core functionality
                     o.append(f"{u[6]}{r[6]:{w[6]}.10f}{t.N}")
             print(sep.join(o))
         # Print color code
-        print(f"\nColor code: {t.num}num{t.N} "
-              f"{t.sq}Square{t.N} "
-              f"{t.cu}Cube{t.N} "
-              f"{t.sqrt}SquareRoot{t.N} "
-              f"{t.curt}CubeRoot{t.N} "
-              f"{t.recip}Reciprocal{t.N} ", end="")
+        print(
+            f"\nColor code: {t.num}num{t.N} "
+            f"{t.sq}Square{t.N} "
+            f"{t.cu}Cube{t.N} "
+            f"{t.sqrt}SquareRoot{t.N} "
+            f"{t.curt}CubeRoot{t.N} "
+            f"{t.recip}Reciprocal{t.N} ",
+            end="",
+        )
         if not d["-l"]:
             print(f"{t.log}Log10{t.N}")
         else:
             print()
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     n = 1
     m = int(eval(args[0]))

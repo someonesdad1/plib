@@ -1,4 +1,4 @@
-'''
+"""
 The following functions help print a table of the named color values
 used in g.py.  This is an excellent example of what the g.py module
 and python are good at, since it was a task that cried out for
@@ -34,11 +34,14 @@ switch the focus to the GSview window and see the new result, all in a
 couple of seconds (GSview has a nice option to automatically reload a
 file if it changes).  This code-test-fix method enables quick
 development.
-'''
+"""
+
 import sys
 from g import *
+
+
 def BlackBackground():
-    '''Fill the whole drawing area with black.'''
+    """Fill the whole drawing area with black."""
     push()
     reset()
     move(-10, -10)
@@ -46,8 +49,10 @@ def BlackBackground():
     fillOn()
     rectangle(1000, 1000)
     pop()
+
+
 def GetColors():
-    '''Return a list of lists relating color name to the RGB tuple.
+    """Return a list of lists relating color name to the RGB tuple.
     The form of the list is:
         [
             [ colorname1, (r, g, b), 0],
@@ -56,7 +61,7 @@ def GetColors():
         ]
     The trailing 0 is used as a flag to indicate when the rectangle
     with color shouldn't be printed.
-    '''
+    """
     G = globals()
     colors = []
     for key in G.keys():
@@ -64,13 +69,17 @@ def GetColors():
         if type(element) == type(()) and len(element) == 3:
             colors.append([key, element, 0])
     return colors
+
+
 def ColorChartByName(file):
-    '''Print a color chart with the colors sorted by name.'''
+    """Print a color chart with the colors sorted by name."""
     colors = list(GetColors())
     colors.sort()
     ColorChart(file, colors)
+
+
 def ColorChart(file, colors):
-    '''For each color defined in the g.py file, draw a box, fill it with
+    """For each color defined in the g.py file, draw a box, fill it with
     that color, then label the box with the color name.  The colors are
     in the colors list and are in the order they should be printed.  The
     structure of the colors list is:
@@ -81,7 +90,7 @@ def ColorChart(file, colors):
         ]
     If you'd like to see the chart drawn with a black background, set
     black_background to true.
-    '''
+    """
     black_background = no
     # Initialize our graphics environment
     s = Setup(file, portrait, inches)
@@ -154,55 +163,73 @@ def ColorChart(file, colors):
         text(name)
         pop()
     s.close()
+
+
 def IsAGrey(color):
     r, g, b = color
     if r == g and r == b and g == b:
         return 1
     else:
         return 0
+
+
 def IsARed(color):
     r, g, b = color
     if r > g and r > b:
         return 1
     else:
         return 0
+
+
 def IsAGreen(color):
     r, g, b = color
     if g > r and g > b:
         return 1
     else:
         return 0
+
+
 def IsABlue(color):
     r, g, b = color
     if b > r and b > g:
         return 1
     else:
         return 0
+
+
 def IsAYellow(color):
     r, g, b = color
     if r == g and r > b:
         return 1
     else:
         return 0
+
+
 def IsACyan(color):
     r, g, b = color
     if g == b and g > r:
         return 1
     else:
         return 0
+
+
 def IsAMagenta(color):
     r, g, b = color
     if r == b and r > g:
         return 1
     else:
         return 0
+
+
 def Nm(name):
-    '''Return a color with the flag element set to true to indicate that
+    """Return a color with the flag element set to true to indicate that
     only the name should be printed.
-    '''
+    """
     return [[name, (0, 0, 0), 1]]
+
+
 def SortByIntensity(colors):
-    '''The incoming list is of the following form:
+    """The incoming list is of the following form:
         [
             [name, (r, g, b), 0],
             [name, (r, g, b), 0],
@@ -217,7 +244,7 @@ def SortByIntensity(colors):
             [intensity, name, (r, g, b), 0],
             ...
         ]
-    '''
+    """
     for ix in range(len(colors)):
         element = colors[ix]
         r, g, b = element[1]
@@ -229,10 +256,12 @@ def SortByIntensity(colors):
     # Now delete the intensity element
     for ix in range(len(colors)):
         del colors[ix][0]
+
+
 def MoveColor(name, from_list, to_list):
-    '''Find the element in from_list that has name as its first element
+    """Find the element in from_list that has name as its first element
     and move it to the to_list.
-    '''
+    """
     for ix in range(len(from_list)):
         element = from_list[ix]
         if name == element[0]:
@@ -240,8 +269,10 @@ def MoveColor(name, from_list, to_list):
             to_list.append(element)
             return
     raise "Element not found"
+
+
 def ColorChartByColor(file):
-    '''Print a color chart with the colors sorted by color.'''
+    """Print a color chart with the colors sorted by color."""
     colors = GetColors()
     greys = []
     reds = []
@@ -382,5 +413,7 @@ def ColorChartByColor(file):
         + greys
     )
     ColorChart(file, colors)
+
+
 ColorChartByName("out/color_by_name.ps")
 ColorChartByColor("out/color_by_color.ps")

@@ -1,15 +1,17 @@
 import sys
+
 if 1:
     import debug
+
     debug.SetDebugger()
-attr = f'''
+attr = f"""
 file = {sys.argv[0]}
 Downloaded Sat 04 Oct 2014 10:51:00 AM
 from http://cvsweb.xfree86.org/cvsweb/~checkout~/xc/programs/rgb/rgb.txt
 Link is defunct as of Wed 16 Mar 2022 02:23:33 PM
-'''.strip()
+""".strip()
 # I added the ',' to help with parsing
-data = '''
+data = """
 255 250 250, snow
 248 248 255, GhostWhite
 245 245 245, WhiteSmoke
@@ -667,7 +669,7 @@ data = '''
 139   0 139, DarkMagenta
 139   0   0, DarkRed
 144 238 144, LightGreen
-'''.strip()
+""".strip()
 print(f"""'''{attr}'''""")
 for i, line in enumerate(data.split("\n")):
     colors, name = line.split(",")

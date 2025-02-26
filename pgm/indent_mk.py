@@ -1,17 +1,19 @@
-'''
+"""
 This script creates a set of test files to test the indent.py script.
 Run it in an empty directory to create a set of test files.
-'''
+"""
 
 import os
 import pathlib
 from wrap import dedent
-from pdb import set_trace as xx 
+from pdb import set_trace as xx
 
 P = pathlib.Path
 
+
 def Make(str, file):
     open(file, "w").write(str)
+
 
 # Make a tmp directory
 try:
@@ -19,7 +21,7 @@ try:
 except FileExistsError:
     pass
 
-s = dedent('''
+s = dedent("""
     // *INDENT-OFF* 
         // Include files
             #include <iostream>
@@ -151,10 +153,10 @@ s = dedent('''
                 TestLoadVector<double>("data_ending_newline");
             }
         #endif
-    ''')
+    """)
 Make(s, "dpstr.cpp")
 Make(s, "tmp/dpstr.cpp")
-s = dedent('''
+s = dedent("""
     // String utilities
     #ifndef DPSTR_H
     #define DPSTR_H
@@ -180,14 +182,14 @@ s = dedent('''
     void Remove(string &s, const string &c);
     int Substitute(string &s, const string &from, const string &to);
     #endif // DPSTR_H
-    ''')
+    """)
 Make(s, "dpstr.h")
 Make(s, "tmp/dpstr.h")
-s = dedent('''
+s = dedent("""
     style = python
     dpstr.cpp
     dpstr.h
-    ''')
+    """)
 Make(s, "dpstr.proj")
 # Remove any backup files
 os.system("rm -f *.astyle.bak tmp/*.astyle.bak")

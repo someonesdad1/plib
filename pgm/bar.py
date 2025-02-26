@@ -1,30 +1,31 @@
-'''
+"""
 Print out mass of bar stock
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2011 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2011 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Print out mass of bar stock
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import os
     import getopt
     from math import pi, sqrt
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
     from columnize import Columnize
     from sig import sig
-if 1:   # Global variables
+if 1:  # Global variables
     width = 70  # Screen width to print to
     in2mm = 25.4
     spgr = {
@@ -53,7 +54,6 @@ if 1:   # Global variables
         "titanium": 4.49,
         "tungsten": 18.7,
         "zinc": 7.11,
-
         # Plastics
         "abs": 1.07,
         "acrylic": 1.18,
@@ -68,7 +68,6 @@ if 1:   # Global variables
         "polystyrene": 1.06,
         "pvc": 1.39,
         "teflon": 2.20,
-
         # Other
         "alumina": 3.90,
         "glass": 2.6,
@@ -76,13 +75,11 @@ if 1:   # Global variables
         "graphite": 1.7,
         "marble": 2.69,
         "rubber": 1.00,
-
         # Woods
         "cedar": 0.38,
         "maple": 0.609,
         "oak": 0.720,
         "pine": 0.432,
-
         # Paired stuff
         "tungsten carbide": 15.6,
         "carbide": 15.6,
@@ -94,13 +91,11 @@ if 1:   # Global variables
         "solder": 8.40,
         "stainless 304": 8.02,
         "stainless": 8.02,
-
     }
 
     tr_matl = {
         # Convert a lower-case name that can be given on the command line
         # to the normal capitalized name.
-
         # Metals
         "aluminum": "Aluminum",
         "brass": "Brass",
@@ -131,7 +126,6 @@ if 1:   # Global variables
         "tungsten": "Tungsten",
         "zinc": "Zinc",
         "tungsten carbide": "Tungsten carbide",
-
         # Plastics
         "abs": "ABS",
         "acrylic": "Acrylic",
@@ -146,7 +140,6 @@ if 1:   # Global variables
         "polystyrene": "Polystyrene",
         "pvc": "PVC",
         "teflon": "Teflon",
-
         # Woods
         "black cherry": "Black cherry",
         "cedar": "Cedar (red)",
@@ -156,7 +149,6 @@ if 1:   # Global variables
         "maple": "Maple",
         "oak": "Oak",
         "pine": "Pine",
-
         # Other
         "alumina": "Alumina",
         "cement": "Cement",
@@ -243,12 +235,15 @@ if 1:   # Global variables
     )
     # Diameters in mm
     millimeters = tuple(
-        list(range(1, 21)) +
-        [25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 150, 200]
+        list(range(1, 21)) + [25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 150, 200]
     )
+
+
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
+
+
 def Usage(d, status=1):
     d1, d2, d3, D = "", "", "", "[default]"
     if d["default_output"] == "lbm/ft":
@@ -257,7 +252,8 @@ def Usage(d, status=1):
         d2 = D
     elif d["default_output"] == "kg/m":
         d3 = D
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]} [options] material
       Print out a table of the mass of bar stock for the given material.
       For materials, try "steel", "brass", etc. (use the -l option to see
@@ -270,8 +266,11 @@ def Usage(d, status=1):
         -k  Output is in kg per m of length of bar stock.  {d3}
         -l  List materials
         -m  Use metric sizes for diameters.
-    '''))
+    """)
+    )
     exit(status)
+
+
 def ParseCommandLine(d):
     d["-c"] = False
     d["-d"] = False
@@ -282,7 +281,7 @@ def ParseCommandLine(d):
     d["-m"] = False
     # The following can be lbm/ft, lbm/in, or kg/m
     d["default_output"] = "lbm/in"
-    d["gap"] = " "*4
+    d["gap"] = " " * 4
     if len(sys.argv) < 2:
         Usage(d)
     try:
@@ -315,6 +314,8 @@ def ParseCommandLine(d):
     if d["-m"] and d["-d"]:
         Error("Can't use -m and -d options together")
     return args[0]
+
+
 def PrintHeader(d):
     try:
         mat = tr_matl[d["material"]]
@@ -323,40 +324,86 @@ def PrintHeader(d):
     title = "Mass of bar stock (material = {0})".format(mat)
     print("{0:^{1}}".format(title, width))
     sig.lead_zero = True
-    ppci = sig(d["spgr"]*0.0361273)
-    s = "Specific gravity = {0} ({1} lb/in3)".format(
-        sig(d["spgr"]), ppci)
+    ppci = sig(d["spgr"] * 0.0361273)
+    s = "Specific gravity = {0} ({1} lb/in3)".format(sig(d["spgr"]), ppci)
     sig.lead_zero = False
     print("{0:^{1}}".format(s, width))
     df = d["default_output"]
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Masses are in {df}.  Scale by square of diameter ratio for other diameters.
-    '''))
+    """)
+    )
     u1, u2 = ("mm", "in") if d["-m"] else ("in", "mm")
-    h1, h2 = "-"*12, "-"*10
-    print(dedent(f'''
+    h1, h2 = "-" * 12, "-" * 10
+    print(
+        dedent(f"""
     Diameter, {u1}      Round          Hex          Square      Diameter, {u2}
-    '''))
+    """)
+    )
     gap = d["gap"]
     print(h1, gap, h2, gap, h2, gap, h2, gap, h1, sep="")
+
+
 # Materials for -c and -l options
 metals = (
-        "aluminum", "brass", "bronze", "iron", "chromium", "cobalt",
-        "gold", "lead", "magnesium", "mercury", "molybdenum", "monel",
-        "nickel", "platinum", "silver", "solder", "stainless",
-        "steel", "tantalum", "tin", "titanium", "tungsten", "zinc",
-    )
+    "aluminum",
+    "brass",
+    "bronze",
+    "iron",
+    "chromium",
+    "cobalt",
+    "gold",
+    "lead",
+    "magnesium",
+    "mercury",
+    "molybdenum",
+    "monel",
+    "nickel",
+    "platinum",
+    "silver",
+    "solder",
+    "stainless",
+    "steel",
+    "tantalum",
+    "tin",
+    "titanium",
+    "tungsten",
+    "zinc",
+)
 plastics = (
-        "abs", "acrylic", "bakelite", "delrin", "epoxy", "melamine",
-        "nylon", "polycarbonate", "polyethylene", "polypropylene",
-        "polystyrene", "pvc", "teflon",
-    )
+    "abs",
+    "acrylic",
+    "bakelite",
+    "delrin",
+    "epoxy",
+    "melamine",
+    "nylon",
+    "polycarbonate",
+    "polyethylene",
+    "polypropylene",
+    "polystyrene",
+    "pvc",
+    "teflon",
+)
 woods = (
-        "cedar", "cherry", "fir", "maple", "oak", "pine",
-    )
+    "cedar",
+    "cherry",
+    "fir",
+    "maple",
+    "oak",
+    "pine",
+)
 others = (
-        "alumina", "glass", "granite", "graphite", "marble", "rubber",
-    )
+    "alumina",
+    "glass",
+    "granite",
+    "graphite",
+    "marble",
+    "rubber",
+)
+
+
 def PrintMaterials():
     s = []
     s.append(" -- Metals --")
@@ -376,13 +423,15 @@ def PrintMaterials():
         s.append(i)
     for i in Columnize(s, col_width=20, columns=4):
         print(i)
+
+
 def PrintTrailer(d):
     # Put the dictionary single word entries into the local namespace.
     sig.fit = 8
-    sig.dp_position = sig.fit//2
+    sig.dp_position = sig.fit // 2
     for i in spgr:
         try:
-            exec("%s = '%s'" % (i, sig(spgr[i]/d["spgr"])))
+            exec("%s = '%s'" % (i, sig(spgr[i] / d["spgr"])))
         except Exception:
             pass
     s = "Mass conversion factors to other materials"
@@ -393,46 +442,49 @@ def PrintTrailer(d):
     s.append("{0:^{1}}".format("Metals", ctr))
     fmt = "%-14s"
     for i in metals:
-        u = sig(spgr[i]/d["spgr"], ndigits)
+        u = sig(spgr[i] / d["spgr"], ndigits)
         t = fmt % tr_matl[i] + u
         s.append(t)
     s.append("")
     s.append("{0:^{1}}".format("Plastics", ctr))
     for i in plastics:
-        u = sig(spgr[i]/d["spgr"], ndigits)
+        u = sig(spgr[i] / d["spgr"], ndigits)
         t = fmt % tr_matl[i] + u
         s.append(t)
     s.append("")
     s.append("{0:^{1}}".format("Dry Woods", ctr))
     for i in woods:
-        u = sig(spgr[i]/d["spgr"], ndigits)
+        u = sig(spgr[i] / d["spgr"], ndigits)
         t = fmt % tr_matl[i] + u
         s.append(t)
     s.append("")
     s.append("{0:^{1}}".format("Other Materials", ctr))
     for i in others:
-        u = sig(spgr[i]/d["spgr"], ndigits)
+        u = sig(spgr[i] / d["spgr"], ndigits)
         t = fmt % tr_matl[i] + u
         s.append(t)
     for i in Columnize(s, col_width=col_width, columns=3):
         print(i)
+
+
 def Line_mm(mm, round, hex, square):
     raise Exception("not impl")
+
+
 def Line_inches(inches, numer, denom, round, hex, square, d):
-    '''Print a line of inch data.
-    '''
-    if d["-d"]:     # Decimal inches
-        x = inches + numer/denom
+    """Print a line of inch data."""
+    if d["-d"]:  # Decimal inches
+        x = inches + numer / denom
         s = "%.1f" % x
         if s[0] == "0":
             s = " " + s[1:]
-            s = " "*3 + s
+            s = " " * 3 + s
         elif s[-1] == "0":
             s = s[:-2]
-            s = " "*3 + s
+            s = " " * 3 + s
         else:
-            s = " "*3 + s
-    else:   # Fractions
+            s = " " * 3 + s
+    else:  # Fractions
         if not inches:
             s = "   %d/%d" % (numer, denom)
         else:
@@ -444,15 +496,16 @@ def Line_inches(inches, numer, denom, round, hex, square, d):
     print(d["gap"], end="")
     sig.low = 1e-6
     sig.fit = 12
-    sig.dp_position = sig.fit//2
-    gap = " "*1
+    sig.dp_position = sig.fit // 2
+    gap = " " * 1
     for i in (round, hex, square):
         print(sig(i), gap, end="")
-    print("%10.1f" % ((inches + numer/denom)*25.4))
+    print("%10.1f" % ((inches + numer / denom) * 25.4))
     return s
+
+
 def Line_mm(diam_mm, round, hex, square, d):
-    '''Print a line of mm data.
-    '''
+    """Print a line of mm data."""
     if int(diam_mm) == diam_mm:
         s = " %4d" % diam_mm
     else:
@@ -461,36 +514,40 @@ def Line_mm(diam_mm, round, hex, square, d):
     print(d["gap"], end="")
     sig.low = 1e-6
     sig.fit = 12
-    sig.dp_position = sig.fit//2
-    gap = " "*1
+    sig.dp_position = sig.fit // 2
+    gap = " " * 1
     for i in (round, hex, square):
         print(sig(i), gap, end="")
-    print("%10.3f" % (diam_mm/25.4))
+    print("%10.3f" % (diam_mm / 25.4))
     return s
+
+
 def GetMass(diam_mm, d):
-    '''Return a tuple of mass per unit length for round, hex, and
+    """Return a tuple of mass per unit length for round, hex, and
     square cross sections; the units are given by the default_output
     setting in the dictionary d.
-    '''
+    """
     # Do the calculation in cm using specific gravity in g/cc and
     # convert to kg.
-    diam_cm, length_cm, g2kg = diam_mm/10, length_m*100, 0.001
-    round = pi/4*diam_cm**2*length_cm*d["spgr"]*g2kg
-    hex = sqrt(3)/2*diam_cm**2*length_cm*d["spgr"]*g2kg
-    square = diam_cm**2*length_cm*d["spgr"]*g2kg
+    diam_cm, length_cm, g2kg = diam_mm / 10, length_m * 100, 0.001
+    round = pi / 4 * diam_cm**2 * length_cm * d["spgr"] * g2kg
+    hex = sqrt(3) / 2 * diam_cm**2 * length_cm * d["spgr"] * g2kg
+    square = diam_cm**2 * length_cm * d["spgr"] * g2kg
     # Units are kg/m.  Convert to the desired set of units.
     if d["default_output"] == "lbm/ft":
-        round, hex, square = [i*0.671969 for i in (round, hex, square)]
+        round, hex, square = [i * 0.671969 for i in (round, hex, square)]
     elif d["default_output"] == "lbm/in":
-        round, hex, square = [i*0.0559974 for i in (round, hex, square)]
+        round, hex, square = [i * 0.0559974 for i in (round, hex, square)]
     return round, hex, square
+
+
 def GetMaterial(d):
-    '''d["material"] contains the material entered by the user.  See if
+    """d["material"] contains the material entered by the user.  See if
     we can uniquely identify it; if so, return it; if not, issue an
     error message.
-    '''
+    """
     user_entered = d["material"].lower()
-    if user_entered == "al":     # Special case because it's common
+    if user_entered == "al":  # Special case because it's common
         user_entered = "aluminum"
     matches, materials = [], tr_matl.keys()
     for material in materials:
@@ -501,11 +558,15 @@ def GetMaterial(d):
     if len(matches) == 1:
         d["material"] = matches[0]
     else:
-        print("Material '{}' matches more than one material:".format(
-              d["material"]), file=sys.stderr)
+        print(
+            "Material '{}' matches more than one material:".format(d["material"]),
+            file=sys.stderr,
+        )
         for material in matches:
             print("  ", material, file=sys.stderr)
         exit(1)
+
+
 if __name__ == "__main__":
     d = {}  # Options dictionary
     d["material"] = ParseCommandLine(d)
@@ -523,8 +584,8 @@ if __name__ == "__main__":
         if d["-d"]:
             items = decimals
         for i, numer, denom in items:
-            diam = i + numer/denom
-            round, hex, square = GetMass(diam*in2mm, d)
+            diam = i + numer / denom
+            round, hex, square = GetMass(diam * in2mm, d)
             Line_inches(i, numer, denom, round, hex, square, d)
     if d["-c"]:
         PrintTrailer(d)

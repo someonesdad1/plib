@@ -1,4 +1,4 @@
-'''
+"""
 
 ToDo
     - Refine the error messages by trapping requests' exceptions.  See
@@ -46,35 +46,38 @@ You can also run this file as a script to search file(s) for URLs and check
 that they can be loaded.
 
 To use this module, install select with 'pip install select'.
-'''
-if 1:   # Header
-    if 1:   # Copyright, license
+"""
+
+if 1:  # Header
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Search text files for defunct URLs
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         import getopt
         from pathlib import Path as P
         import re
         import sys
         from pprint import pprint as pp
         from textwrap import dedent
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         import requests
         from color import t
         from lwtest import Assert
-    if 1:   # Global variables
+    if 1:  # Global variables
+
         class G:
             pass
+
         g = G()
         # This regex came from https://gist.github.com/gruber/8891611 on 29
         # Nov 2023 and aims to find valid URLs in text strings.
@@ -82,7 +85,7 @@ if 1:   # Header
         # Comment:  it's the only regex I was able to find after trying
         # many different ones (mostly from stackoverflow, which has a large
         # number of poor suggestions).
-        regex = r'''
+        regex = r"""
             (?xi)
             \b
             (							# Capture 1: entire matched URL
@@ -126,23 +129,24 @@ if 1:   # Header
                 (?!@)			# not succeeded by a @, avoid matching "foo.na" in "foo.na@example.com"
               )
             )
-        '''
+        """
 
         g.r = re.compile(regex.strip())
         dbg = None
-if 1:   # Core functionality
+if 1:  # Core functionality
+
     def URL_is_unreadable(url, timeout=10):
-        '''Return (True, status_code, e) if URL cannot be read, (False,
+        """Return (True, status_code, e) if URL cannot be read, (False,
         status_code, None) otherwise.  status_code is the number returned
         by the get request.  If an exception occurred, e is set to the
         Exception object and status_code will be None.
- 
+
         The URL is considered readable if a get request returns 200 to 299.
-        If an exception occurs, it's often because the URL is poorly formed 
+        If an exception occurs, it's often because the URL is poorly formed
         or the website no longer exists.
 
         The timeout is set to the indicated number of seconds.
-        '''
+        """
         try:
             r = requests.get(url, timeout=timeout)
         except requests.exceptions.Timeout:
@@ -151,27 +155,28 @@ if 1:   # Core functionality
             return (True, None, e)
         st = r.status_code
         # Note:  the status code is 200-299 for a successful response (see
-        # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status).  
+        # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status).
         success = 200 <= st < 300
         return (False, st, None) if success else (True, st, None)
+
     def GetURLs(s, unique=True, filter=False, schemes="http https ftp".split()):
-        '''Return a list of the URLs in the string s.  If unique is True,
+        """Return a list of the URLs in the string s.  If unique is True,
         then only return the unique URLs.  The order of the URLs in the
         list is the same as they are encountered in the string.
- 
+
         filter
             If filter is True, then only URLs with the indicated schemes
             are returned.  Thus "https://developer.mozilla.org" would be
             returned, but "developer.mozilla.org" would not.
- 
+
         schemes
             The URL is kept only if filter is True and the URL starts with
             one of these scheme strings.
- 
+
         https://www.iana.org/assignments/uri-schemes/uri-schemes.xhtml is
         the official list of schemes, last updated 28 Nov 2023 with 358
         schemes.
-        '''
+        """
         urls, found = [], set()
         mo = g.r.search(s)
         while mo:
@@ -182,7 +187,7 @@ if 1:   # Core functionality
                 else:
                     urls.append(i)
             start, end = mo.span()
-            s = s[end + 1:]
+            s = s[end + 1 :]
             mo = g.r.search(s)
         del found
         # Filter the URLs
@@ -196,7 +201,9 @@ if 1:   # Core functionality
             urls = filtered
         return urls
 
+
 if __name__ == "__main__":
+
     def SetUpDbg(debug):
         global dbg
         if debug:
@@ -204,6 +211,7 @@ if __name__ == "__main__":
         t.dbg = t("lill") if dbg else ""
         t.N = t.n if dbg else ""
         Dbg("Debug printing turned on")
+
     def SetUpColor():
         if d["-c"]:
             t.on = True
@@ -213,31 +221,36 @@ if __name__ == "__main__":
         else:
             t.exc = ""
             t.st = ""
+
     def RunTests():
         Dbg("Running tests")
         # Check a known good URL
         url = "https://en.wikipedia.org/wiki/Main_Page"
-        status, sc, exc =  URL_is_unreadable(url)
+        status, sc, exc = URL_is_unreadable(url)
         Assert(not status and sc == 200 and not exc)
         # Get an exception on an unreachable url
         url = "https://kdfjopeurte.3095uoleorj.eorijeor/kdjfdkfj.html"
-        status, sc, exc =  URL_is_unreadable(url)
+        status, sc, exc = URL_is_unreadable(url)
         Assert(status and sc == None and exc)
         # Get a non-200 status
         url = "http://www.ndt-ed.org/GeneralResources/IACS/IACS.htm"
-        status, sc, exc =  URL_is_unreadable(url)
+        status, sc, exc = URL_is_unreadable(url)
         Assert(status and sc == 404 and not exc)
+
     def Dbg(*p, **kw):
         if dbg:
             print(f"{t.dbg}", end="")
             print(*p, **kw)
             print(f"{t.N}", end="")
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Manpage():
         Dbg("Showing manpage")
-        print(dedent(f'''
+        print(
+            dedent(f"""
         This script evolved as a tool to validate the URLs used in a file.
         The first functionality was to find URLs in text files, such as a
         python script.  This is done by using a regex (regular expression)
@@ -299,10 +312,14 @@ if __name__ == "__main__":
             file and prints out any URLs that don't work.  The -v option
             prints out a table that tells what the (known) error status
             numbers are.
-        '''))
+        """)
+        )
         exit(0)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(
+                f"""
         Usage:  {sys.argv[0]} file1 [file2 ...]
           Print the URLs in the given text files.  The URLs are listed in
           the order they are found.  Use '-' to get text from stdin.
@@ -324,30 +341,33 @@ if __name__ == "__main__":
           -l        Load the URLs, which verifies the URL is not defunct
           -s        Sort the URLs in each file
           -T        Run basic tests
-          -t n      Set timeout in seconds [{d['-t']}]
+          -t n      Set timeout in seconds [{d["-t"]}]
           -U        Coalesce all unique URLs from the files into a sorted list
           -u        Don't show the unique URLs in a file, show them all
           -v        Include get() 400 status code explanations
           -x file   Ignore URLs in the file (can have more than one -x option)
-        '''[1:].rstrip()))
+        """[1:].rstrip()
+            )
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-a"] = False     # Show all URLs, not just http/https/ftp
-        d["-c"] = True      # Color in output
-        d["-d"] = False     # Show debugging output
-        d["-F"] = False     # Don't include file name in output
-        d["-f"] = []        # Read the input files from a file
-        d["-h"] = False     # Manpage
-        d["-l"] = False     # Load URLs found
-        d["-s"] = False     # Sort URLs in each file
-        d["-T"] = False     # Run basic tests
-        d["-t"] = 5         # Set timeout in seconds
-        d["-U"] = False     # Coalesce all URLs into sorted unique list
-        d["-u"] = True      # Unique set for each file on the command line
-        d["-v"] = False     # Show the 400 status explanations that are found
-        d["-x"] = []        # Ignore URLs in these files
+        d["-a"] = False  # Show all URLs, not just http/https/ftp
+        d["-c"] = True  # Color in output
+        d["-d"] = False  # Show debugging output
+        d["-F"] = False  # Don't include file name in output
+        d["-f"] = []  # Read the input files from a file
+        d["-h"] = False  # Manpage
+        d["-l"] = False  # Load URLs found
+        d["-s"] = False  # Sort URLs in each file
+        d["-T"] = False  # Run basic tests
+        d["-t"] = 5  # Set timeout in seconds
+        d["-U"] = False  # Coalesce all URLs into sorted unique list
+        d["-u"] = True  # Unique set for each file on the command line
+        d["-v"] = False  # Show the 400 status explanations that are found
+        d["-x"] = []  # Ignore URLs in these files
         try:
-            opts, files = getopt.getopt(sys.argv[1:], "acdfhlsTt:Uuvx:") 
+            opts, files = getopt.getopt(sys.argv[1:], "acdfhlsTt:Uuvx:")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -382,10 +402,11 @@ if __name__ == "__main__":
             Usage()
         SetUpColor()
         return files
+
     def GetIgnored():
-        '''Get the set of URLs to ignore by virtue of the files saved by -x
+        """Get the set of URLs to ignore by virtue of the files saved by -x
         option(s).
-        '''
+        """
         for file in d["-x"]:
             try:
                 s = open(file).read()
@@ -394,11 +415,12 @@ if __name__ == "__main__":
                 Error(msg)
             urls = GetURLs(s, unique=True, filter=not d["-a"])
             d["ignored"].update(urls)
+
     def GetFileString(file):
-        '''Return (s, filename), where s is the string contents of the file
+        """Return (s, filename), where s is the string contents of the file
         and filename is the printable name of the file.  Return None for s if
         file cannot be read.  Print error messages to stderr.
-        '''
+        """
         if file == "-":
             s = sys.stdin.read()
             return (s, "stdin")
@@ -412,8 +434,9 @@ if __name__ == "__main__":
             except Exception as e:
                 print(f"Cannot read {file!r}: {e!r}", file=sys.stderr)
                 return (None, file)
+
     def CheckFile(file):
-        'Find URLs in the file and print any that cannot be read'
+        "Find URLs in the file and print any that cannot be read"
         s, filename = GetFileString(file)
         urls = GetURLs(s, filter=not d["-a"])
         loaded = set()  # Only load a URL once
@@ -439,7 +462,10 @@ if __name__ == "__main__":
                     if d["-f"]:
                         print(f"{url}    {t.st}get() status = {status}{t.n}")
                     else:
-                        print(f"{filename}:  {url}    {t.st}get() status = {status}{t.n}")
+                        print(
+                            f"{filename}:  {url}    {t.st}get() status = {status}{t.n}"
+                        )
+
     def URLsInFile(file):
         'Save the results in the dict d["urls"]'
         Dbg(f"In URLsInFile({file!r})")
@@ -475,21 +501,23 @@ if __name__ == "__main__":
             for url in urls:
                 print(f"  {url}")
         d["urls"][file] = urls
+
     def Report():
-        '''The urls are in the dict d["urls"] keyed by filename.  Since the
+        """The urls are in the dict d["urls"] keyed by filename.  Since the
         -U option was used, collapse this set of URLs into a unique sorted
         list.
-        '''
+        """
         found = set()
         for file in d["files"]:
             found.update(d["urls"][file])
         found = list(sorted(found))
         for url in found:
             print(url)
+
     def StatusName(status):
-        '''Convert integer status to string.  Taken from
+        """Convert integer status to string.  Taken from
         https://en.wikipedia.org/wiki/List_of_HTTP_status_codes.
-        '''
+        """
         names = {
             400: "Bad Request",
             401: "Unauthorized",
@@ -533,19 +561,21 @@ if __name__ == "__main__":
             511: "Network Authentication Required (RFC 6585)",
         }
         return names.get(status, "?")
+
     def PrintStatuses():
-        'Show statuses found'
+        "Show statuses found"
         file = sys.stdout
         if d["status"] and d["-v"]:
             print(f"\n{t.sts}get() status items found in search:", file=file)
             for i in sorted(d["status"]):
                 print(f"  {i}:  {StatusName(i)}", file=file)
             print(f"{t.N}", end="", file=file)
-    d = {       # Options dictionary
-        "urls": {},         # Dict for -U option keyed by file
-        "files": set(),     # Keep track of files processed
-        "status": set(),    # Keep track of returned statuses
-        "ignored": set(),   # URLs to ignore 
+
+    d = {  # Options dictionary
+        "urls": {},  # Dict for -U option keyed by file
+        "files": set(),  # Keep track of files processed
+        "status": set(),  # Keep track of returned statuses
+        "ignored": set(),  # URLs to ignore
     }
     files = ParseCommandLine(d)
     GetIgnored()

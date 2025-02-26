@@ -1,4 +1,4 @@
-'''
+"""
 -TODO
     - Add colorizing of output
 
@@ -9,7 +9,7 @@ Print moon phase times
     You'll want to modify the ConvertToLocalTime() function to make its
     output appropriate for your location.  You can also make it do nothing,
     which results in the program printing its times in UT.
- 
+
     Converted to python from my moon.c program from June 1995 (which, in
     turn, came from a QuickBASIC program I wrote around 1987).  Algorithms
     from Meeus, Astronomical Formulas for Calculators, 2nd ed., 1982.
@@ -57,37 +57,39 @@ Script's output for 2014 with no conversion from UT:
 
 Conclusion:  the times are off with most errors around 1/2 of a
 day or so.  It's usable for casual stuff, as you usually just want the day.
-'''
-if 1:   # Header
+"""
+
+if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2005 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2005 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Print moon phase times
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Imports
+    if 1:  # Imports
         from math import pi, sin, cos, floor, radians
         import getopt
         import sys
         import time
-        from pdb import set_trace as xx 
-    if 1:   # Custom imports
+        from pdb import set_trace as xx
+    if 1:  # Custom imports
         from wrap import dedent
         from meeus import IsDST
         from color import TRM as t
+
         t.yr = t("grnl")
         t.new = t("gry")
         t.full = t("whtl")
         t.first = t("cyn")
         t.last = t("purl")
-    if 1:   # Global variables
+    if 1:  # Global variables
         # The script will correct universal times to your local time zone's
         # time.  This time zone is assumed to be in the US so that the
         # meeus.IsDST function works correctly.
@@ -102,14 +104,17 @@ if 1:   # Header
         FIRST = 1
         FULL = 2
         LAST = 3
-        d2r = pi/180.0    # Converts degrees to radians
+        d2r = pi / 180.0  # Converts degrees to radians
         desired_year = 0
-if 1:   # Utility
+if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] args
           Print moon phases.  Forms of args are:
             year            Single year
@@ -118,8 +123,10 @@ if 1:   # Utility
           If no argument is given, the current year is the default.
         Options:
             -h      Print a manpage
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
         try:
             opts, args = getopt.getopt(sys.argv[1:], "h", ["help"])
@@ -130,92 +137,103 @@ if 1:   # Utility
             if o in ("-h", "--help"):
                 Usage(status=0)
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def GetJulianFromPhase(k, phase):
-        '''Derive the Julian day number corresponding to the number k.  k is
+        """Derive the Julian day number corresponding to the number k.  k is
         the integer corresponding to new moon and phase is 0 for new, 1 for
         first quarter, 2 for full, and 3 for last quarter.  Returns a float.
         From Meeus, pg 159.
-        '''
+        """
         if phase not in (NEW, FIRST, FULL, LAST):
             raise ValueError("'{phase}' is an illegal phase value")
-        k1 = k + phase/4
-        T = k1/1236.85
-        T2 = T*T
-        T3 = T2*T
+        k1 = k + phase / 4
+        T = k1 / 1236.85
+        T2 = T * T
+        T3 = T2 * T
         # Get time of mean phase
-        julian = (2415020.75933 + 29.53058868*k1 + 1.178e-4*T2 - 1.55e-7*T3
-                + 3.3e-4*sin(d2r*(166.56 + 132.87*T - 0.009173*T2)))
+        julian = (
+            2415020.75933
+            + 29.53058868 * k1
+            + 1.178e-4 * T2
+            - 1.55e-7 * T3
+            + 3.3e-4 * sin(d2r * (166.56 + 132.87 * T - 0.009173 * T2))
+        )
         # Compute the corrections to get the time of true phase
-        M = 359.2242 + 29.10535608*k - 3.33e-5*T2 - 3.47e-6*T3
-        Mprime = 306.0253 + 385.81691806*k + 0.0107306*T2 + 1.236e-5*T3
-        F = 21.2964 + 390.67050646*k - 1.6528e-3*T2 - 2.39e-6*T3
+        M = 359.2242 + 29.10535608 * k - 3.33e-5 * T2 - 3.47e-6 * T3
+        Mprime = 306.0253 + 385.81691806 * k + 0.0107306 * T2 + 1.236e-5 * T3
+        F = 21.2964 + 390.67050646 * k - 1.6528e-3 * T2 - 2.39e-6 * T3
         # Adjust these values to the interval [0, 360]
-        M = M - 360*(floor(M/360))
-        Mprime = Mprime - 360*(floor(Mprime/360))
-        F = F - 360*(floor(F/360))
+        M = M - 360 * (floor(M / 360))
+        Mprime = Mprime - 360 * (floor(Mprime / 360))
+        F = F - 360 * (floor(F / 360))
         # Convert them to radians
         M, Mprime, F = radians(M), radians(Mprime), radians(F)
         # Perform the corrections
         if phase in (NEW, FULL):
-            correction = ((
-                0.1734 - 3.93e-4*T)*sin(M)
-                + 0.0021*sin(2*M)
-                - 0.4068*sin(Mprime)
-                + 0.0161*sin(2*Mprime)
-                - 0.0004*sin(3*Mprime)
-                + 0.0104*sin(2*F)
-                - 0.0051*sin(M + Mprime)
-                - 0.0074*sin(M - Mprime)
-                + 0.0004*sin(2*F + M)
-                - 0.0004*sin(2*F - M)
-                - 0.0006*sin(2*F + Mprime)
-                + 0.0010*sin(2*F - Mprime)
-                + 0.0005*sin(M + 2*Mprime))
+            correction = (
+                (0.1734 - 3.93e-4 * T) * sin(M)
+                + 0.0021 * sin(2 * M)
+                - 0.4068 * sin(Mprime)
+                + 0.0161 * sin(2 * Mprime)
+                - 0.0004 * sin(3 * Mprime)
+                + 0.0104 * sin(2 * F)
+                - 0.0051 * sin(M + Mprime)
+                - 0.0074 * sin(M - Mprime)
+                + 0.0004 * sin(2 * F + M)
+                - 0.0004 * sin(2 * F - M)
+                - 0.0006 * sin(2 * F + Mprime)
+                + 0.0010 * sin(2 * F - Mprime)
+                + 0.0005 * sin(M + 2 * Mprime)
+            )
         else:
-            correction = ((
-                0.1721 - 0.0004*T)*sin(M)
-                + 0.0021*sin(2*M)
-                - 0.6280*sin(Mprime)
-                + 0.0089*sin(2*Mprime)
-                - 0.0004*sin(3*Mprime)
-                + 0.0079*sin(2*F)
-                - 0.0119*sin(M + Mprime)
-                - 0.0047*sin(M - Mprime)
-                + 0.0003*sin(2*F + M)
-                - 0.0004*sin(2*F - M)
-                - 0.0006*sin(2*F + Mprime)
-                + 0.0021*sin(2*F - Mprime)
-                + 0.0003*sin(M + 2*Mprime)
-                + 0.0004*sin(M - 2*Mprime)
-                - 0.0003*sin(2*M + Mprime))
+            correction = (
+                (0.1721 - 0.0004 * T) * sin(M)
+                + 0.0021 * sin(2 * M)
+                - 0.6280 * sin(Mprime)
+                + 0.0089 * sin(2 * Mprime)
+                - 0.0004 * sin(3 * Mprime)
+                + 0.0079 * sin(2 * F)
+                - 0.0119 * sin(M + Mprime)
+                - 0.0047 * sin(M - Mprime)
+                + 0.0003 * sin(2 * F + M)
+                - 0.0004 * sin(2 * F - M)
+                - 0.0006 * sin(2 * F + Mprime)
+                + 0.0021 * sin(2 * F - Mprime)
+                + 0.0003 * sin(M + 2 * Mprime)
+                + 0.0004 * sin(M - 2 * Mprime)
+                - 0.0003 * sin(2 * M + Mprime)
+            )
         julian = julian + correction
-        other_correction = 0.0028 - 0.0004*cos(M) + 0.0003*cos(Mprime)
+        other_correction = 0.0028 - 0.0004 * cos(M) + 0.0003 * cos(Mprime)
         if phase == FIRST:
             julian += other_correction
         elif phase == LAST:
             julian -= other_correction
         return julian
+
     def caldate(julian):
-        '''Returns a structure that contains the calendar date associated with
+        """Returns a structure that contains the calendar date associated with
         a Julian day.  The tuple is (year, month, day) where year and month are
         integers; day is a float.  The Julian parameter is expected to be a
         float.  Ref. Meeus pg 26.
-        '''
-        assert(isinstance(julian, float))
+        """
+        assert isinstance(julian, float)
         julian += 0.5
         Z = int(julian)
         F = julian - Z
         if Z < 2299161:
             A = Z
         else:
-            alpha = int((Z-1867216.25)/36524.25)
-            A = Z + 1 + alpha - int(alpha/4)
+            alpha = int((Z - 1867216.25) / 36524.25)
+            A = Z + 1 + alpha - int(alpha / 4)
         B = A + 1524
-        C = int((B - 122.1)/365.25)
-        D = int(365.25*C)
-        E = int((B - D)/30.6001)
-        day = B - D - int(30.6001*E) + F
+        C = int((B - 122.1) / 365.25)
+        D = int(365.25 * C)
+        E = int((B - D) / 30.6001)
+        day = B - D - int(30.6001 * E) + F
         if E < 13.5:
             month = int(E - 1)
         else:
@@ -225,21 +243,23 @@ if 1:   # Core functionality
         else:
             year = int(C - 4715)
         return (year, month, day)
+
     def UnivTimeCorrect(year):
-        '''UnivTimeCorrect  Ref. Meeus pg 35.  Calculates the correction to
+        """UnivTimeCorrect  Ref. Meeus pg 35.  Calculates the correction to
         ephemeris time to get universal time.  The correction is gotten purely
         by his approximate formula; the error is a maximum of 1.2 minutes
         between 1710 and 1987.
-        '''
-        T = (year - 1900.0)/100.0
-        return (0.41 + 1.2053*T + 0.4992*T*T)/60.0
+        """
+        T = (year - 1900.0) / 100.0
+        return (0.41 + 1.2053 * T + 0.4992 * T * T) / 60.0
+
     def GetPhaseData(desired_year, phase):
-        '''Return a list of the Julian days for the given year of each phase.
+        """Return a list of the Julian days for the given year of each phase.
         Start by getting a k that is in the middle of the previous year.
-        '''
+        """
         if desired_year < 1900:
             raise ValueError(f"Desired year should be > 1900 (got {desired_year})")
-        k1 = (desired_year - 0.5 - 1900)*12.3685
+        k1 = (desired_year - 0.5 - 1900) * 12.3685
         k = int(k1)
         done, data = 0, []
         while not done:
@@ -251,23 +271,37 @@ if 1:   # Core functionality
                 done = 1
             k = k + 1
         return data
+
     def GetItem(julian):
-        '''Return a formatted string that represents the date and time of
+        """Return a formatted string that represents the date and time of
         a given Julian day.  The times will be corrected to Mountain time
         and take into account Daylight Saving Time.
-        '''
-        month_name = ["", "Jan", "Feb", "Mar", "Apr", "May",
-                    "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+        """
+        month_name = [
+            "",
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec",
+        ]
         try:
             # Convert to local standard time by subtracting a constant
             # from UT.
             if UT_correction:
-                j = julian - UT_correction/24.0
+                j = julian - UT_correction / 24.0
                 year, month, day = caldate(j)
                 d = int(day + 0.5)
                 if IsDST(month, d, year):
                     # It's Daylight Saving Time, so add 1 hour
-                    j = julian + 1/24.0
+                    j = julian + 1 / 24.0
                     year, month, day = caldate(j)
             else:
                 year, month, day = caldate(julian)
@@ -275,26 +309,34 @@ if 1:   # Core functionality
             return " " * 14
         Day = int(day)
         fraction = day - Day
-        hours = 24.0*fraction
+        hours = 24.0 * fraction
         decimal_time = hours + 12.0 + UnivTimeCorrect(year)
         if decimal_time > 24.0:
             day = day + 1
             decimal_time = decimal_time - 24.0
-        minutes = int((decimal_time - int(decimal_time))*60)
-        return "  %2d %s %02d:%02d " % \
-            (Day, month_name[month], int(decimal_time), minutes)
+        minutes = int((decimal_time - int(decimal_time)) * 60)
+        return "  %2d %s %02d:%02d " % (
+            Day,
+            month_name[month],
+            int(decimal_time),
+            minutes,
+        )
+
     def FixArrays(new, first, full, last):
-        '''Make the arrays the same length as the longest by appending
+        """Make the arrays the same length as the longest by appending
         null strings.
-        '''
+        """
         max_lines = max(len(new), len(first), len(full), len(last))
+
         def Adjust(array, numlines):
             while len(array) < numlines:
                 array.append("")
+
         Adjust(new, max_lines)
         Adjust(first, max_lines)
         Adjust(full, max_lines)
         Adjust(last, max_lines)
+
     def PrintYear(desired_year):
         # Get a list of the phase times in Julian days.  Each element of the
         # list is another list containing the Julian day and the phase number.
@@ -304,7 +346,7 @@ if 1:   # Core functionality
         full = GetPhaseData(desired_year, FULL)
         last = GetPhaseData(desired_year, LAST)
         FixArrays(new, first, full, last)
-        ind = " "*2
+        ind = " " * 2
         print(f"                    Moon phases for {t.yr}{desired_year}{t.n}")
         print(f"           (Times are {zn} time corrected for DST)")
         print(f"       {t.new}New{t.n}            {t.full}Full{t.n}", end="")
@@ -324,6 +366,7 @@ if 1:   # Core functionality
                 print(f"{t.full}{GetItem(full[i]):15s}{t.n}", end=" ")
                 print(f"{t.first}{GetItem(first[i]):15s}{t.n}", end=" ")
                 print(f"{t.last}{GetItem(last[i]):15s}{t.n}")
+
     def HandleRange(rng):
         yr1, yr2 = [int(i) for i in rng.split("-")]
         if yr1 > yr2:
@@ -332,8 +375,9 @@ if 1:   # Core functionality
             PrintYear(yr)
             print()
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     if not args:
         year = time.gmtime()[0]  # Default to current year

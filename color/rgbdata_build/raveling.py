@@ -1,12 +1,13 @@
 import sys
-attr = f'''
+
+attr = f"""
 file = {sys.argv[0]}
 Downloaded Sat 04 Oct 2014 10:50:16 AM
 from http://cvsweb.xfree86.org/cvsweb/~checkout~/xc/programs/rgb/others/raveling.txt
 Link defunct on Wed 16 Mar 2022 02:16:36 PM
-'''.strip()
+""".strip()
 # I added the ',' for easier parsing
-data = '''
+data = """
 255 250 250, snow
 255 250 240, floral white
 255 250 240, FloralWhite
@@ -743,7 +744,7 @@ data = '''
 250 250 250,  grey98
 252 252 252,  grey99
 255 255 255,  grey100
-'''.strip()
+""".strip()
 print(f"""'''{attr}'''""")
 for i, line in enumerate(data.split("\n")):
     color, name = line.split(",")

@@ -1,4 +1,4 @@
-'''
+"""
 
 - Default behavior is to print out timing with current budget setting
     - Spring budget setting is 50%, letting hot summer temperatures use 80% or 90%
@@ -9,22 +9,23 @@
   starting time
 
 Print out sprinkler timing
-'''
-if 1:   # Header
-    if 1:   # Copyright, license
+"""
+
+if 1:  # Header
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Print out sprinkler timing
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         from pathlib import Path as P
         import bisect
         import datetime as dt
@@ -32,15 +33,17 @@ if 1:   # Header
         import os
         import sys
         import time
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from dpstr import Keep
         from get import GetClosest
         from color import t
         from wrap import dedent
         from lwtest import Assert
-    if 1:   # Global variables
+    if 1:  # Global variables
+
         class G:
             pass
+
         g = G()
         ii = isinstance
         # Circuit timing in minutes at budget == 100%, as of 6 Jun 2024
@@ -63,23 +66,28 @@ if 1:   # Header
         g.allowed_budget = (0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100)
         # Always output color
         t.always = True
-if 1:   # Utility
+if 1:  # Utility
+
     def GetColors():
         t.budget = t("ornl")
         t.err = t("redl")
         t.day = t("yell")
         t.title = t("purl")
+
     def GetScreen():
-        'Return (LINES, COLUMNS)'
+        "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
-            int(os.environ.get("COLUMNS", "80")) - 1
+            int(os.environ.get("COLUMNS", "80")) - 1,
         )
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] [start_time]
           Print out the times the sprinklers will come on.  No argument prints the normal weekly
           schedule.  If you provide a start_time, the sprinkler circuit timing will be printed.
@@ -93,12 +101,14 @@ if 1:   # Utility
           -B n    Set n to the default budget value
           -b n    Use n as the budget value.  The closest allowed value to n will be used.
           -h      Print a manpage
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-b"] = g.default_budget    # Default budget value
+        d["-b"] = g.default_budget  # Default budget value
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "B:b:h") 
+            opts, args = getopt.getopt(sys.argv[1:], "B:b:h")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -130,7 +140,10 @@ if 1:   # Utility
                 Usage(status=0)
         g.L, g.W = GetScreen()
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def SetBudget(budget):
         try:
             b = GetClosest(budget, g.allowed_budget)
@@ -139,6 +152,7 @@ if 1:   # Core functionality
             print(f"Budget set to {b}%")
         except Exception:
             Error(f"Could not write budget file {g.budget_file}.")
+
     def GetBudget():
         try:
             with open(g.budget_file) as fp:
@@ -148,8 +162,9 @@ if 1:   # Core functionality
         except Exception:
             t.print(f"{t.err}Could not read budget file {g.budget_file!r}.  Using 50%.")
             return 50
+
     def GetBudgetChanged():
-        'Return date budget file changed'
+        "Return date budget file changed"
         p = P(g.budget_file)
         t = time.localtime(p.stat().st_mtime)
         a = time.strftime("%d %b %Y", t)
@@ -158,24 +173,26 @@ if 1:   # Core functionality
             b = b[1:]
         c = time.strftime("%p", t)
         return f"{a} {b} {c}"
+
     def TemplateRound(x, template, up=True):
-        '''Round a float to a template number.  The basic algorithm is to
+        """Round a float to a template number.  The basic algorithm is to
         determine how many template values are in x.  You can choose to
         round up (the default) or down.
-        '''
+        """
         if not x:
             return x
         sign = 1 if x >= 0 else -1
         if sign < 0:
             up = not up
-        y = int(abs(x/template) + 0.5)*abs(template)
+        y = int(abs(x / template) + 0.5) * abs(template)
         if up and y < abs(x):
             y += template
         elif not up and y > abs(x):
             y -= template
-        return sign*y
+        return sign * y
+
     def HM(t):
-        't is time in minutes from midnight.  Return in HH:MM format.'
+        "t is time in minutes from midnight.  Return in HH:MM format."
         h, m = divmod(t, 60)
         H = h % 24
         h %= 12
@@ -184,63 +201,80 @@ if 1:   # Core functionality
         if not h:
             h = 12
         return f"{h:2d}:{m:02d} {ap}"
+
     def PrintSchedule():
         budget = d["-b"]
-        assert(ii(budget, int) and 0 <= budget <= 100)
-        p = budget/100
+        assert ii(budget, int) and 0 <= budget <= 100
+        p = budget / 100
         t.print(f"{t.budget}Budget = {budget}%   (changed {GetBudgetChanged()})")
         print("The following times are programmed into the controller")
-        w, sep = (7, 7, 7, 7), " "*5
-        if 1:   # Tuesday and Thursday
-            indent = " "*4
+        w, sep = (7, 7, 7, 7), " " * 5
+        if 1:  # Tuesday and Thursday
+            indent = " " * 4
             t.print(f"{indent}{t.day}Tuesday, Thursday schedule")
-            indent = " "*8
-            w, sep, indent = (7, 7, 7, 7), " "*5, " "*4
-            print(f"{indent}{'Circuit':^{w[0]}s}"
-                  f"{sep}{'Minutes':^{w[1]}s}"
-                  f"{sep}{'Start':^{w[2]}s}"
-                  f"{sep}{'End':^{w[3]}s}")
-            print(f"{indent}{'-'*w[0]:^{w[0]}s}"
-                  f"{sep}{'-'*w[1]:^{w[1]}s}"
-                  f"{sep}{'-'*w[2]:^{w[2]}s}"
-                  f"{sep}{'-'*w[3]:^{w[3]}s}")
-            T = 7*60    # Start at 7 am
+            indent = " " * 8
+            w, sep, indent = (7, 7, 7, 7), " " * 5, " " * 4
+            print(
+                f"{indent}{'Circuit':^{w[0]}s}"
+                f"{sep}{'Minutes':^{w[1]}s}"
+                f"{sep}{'Start':^{w[2]}s}"
+                f"{sep}{'End':^{w[3]}s}"
+            )
+            print(
+                f"{indent}{'-' * w[0]:^{w[0]}s}"
+                f"{sep}{'-' * w[1]:^{w[1]}s}"
+                f"{sep}{'-' * w[2]:^{w[2]}s}"
+                f"{sep}{'-' * w[3]:^{w[3]}s}"
+            )
+            T = 7 * 60  # Start at 7 am
             total_minutes = 0
             for ckt, minutes in g.timing:
-                minutes = int(minutes*budget/100 + 0.5)
+                minutes = int(minutes * budget / 100 + 0.5)
                 total_minutes += minutes
-                print(f"{indent}{ckt:^{w[0]}s}"
+                print(
+                    f"{indent}{ckt:^{w[0]}s}"
                     f"{sep}{minutes!s:^{w[1]}s}"
                     f"{sep}{HM(T):^{w[2]}s}"
-                    f"{sep}{HM(T + minutes):^{w[3]}s}")
+                    f"{sep}{HM(T + minutes):^{w[3]}s}"
+                )
                 T += minutes
-            print(f"{indent}Total minutes = {total_minutes} = {total_minutes/60:.3f} hours")
-        if 1:   # Saturday
-            indent = " "*4
+            print(
+                f"{indent}Total minutes = {total_minutes} = {total_minutes / 60:.3f} hours"
+            )
+        if 1:  # Saturday
+            indent = " " * 4
             t.print(f"{indent}{t.day}Saturday schedule")
-            indent = " "*8
-            print(f"{indent}{'Circuit':^{w[0]}s}"
-                  f"{sep}{'Minutes':^{w[1]}s}"
-                  f"{sep}{'Start':^{w[2]}s}"
-                  f"{sep}{'End':^{w[3]}s}")
-            print(f"{indent}{'-'*w[0]:^{w[0]}s}"
-                  f"{sep}{'-'*w[1]:^{w[1]}s}"
-                  f"{sep}{'-'*w[2]:^{w[2]}s}"
-                  f"{sep}{'-'*w[3]:^{w[3]}s}")
-            T = 16*60    # Start at 4 pm
+            indent = " " * 8
+            print(
+                f"{indent}{'Circuit':^{w[0]}s}"
+                f"{sep}{'Minutes':^{w[1]}s}"
+                f"{sep}{'Start':^{w[2]}s}"
+                f"{sep}{'End':^{w[3]}s}"
+            )
+            print(
+                f"{indent}{'-' * w[0]:^{w[0]}s}"
+                f"{sep}{'-' * w[1]:^{w[1]}s}"
+                f"{sep}{'-' * w[2]:^{w[2]}s}"
+                f"{sep}{'-' * w[3]:^{w[3]}s}"
+            )
+            T = 16 * 60  # Start at 4 pm
             total_minutes = 0
             for ckt, minutes in g.timing:
-                minutes = int(minutes*budget/100 + 0.5)
+                minutes = int(minutes * budget / 100 + 0.5)
                 total_minutes += minutes
-                print(f"{indent}{ckt:^{w[0]}s}"
+                print(
+                    f"{indent}{ckt:^{w[0]}s}"
                     f"{sep}{minutes!s:^{w[1]}s}"
                     f"{sep}{HM(T):^{w[2]}s}"
-                    f"{sep}{HM(T + minutes):^{w[3]}s}")
+                    f"{sep}{HM(T + minutes):^{w[3]}s}"
+                )
                 T += minutes
-            print(f"{indent}Total minutes = {total_minutes} = {total_minutes/60:.3f} hours")
+            print(
+                f"{indent}Total minutes = {total_minutes} = {total_minutes / 60:.3f} hours"
+            )
+
     def H(tm):
-        '''tm is a datetime.  Extract the time and return it in the form 'hh:mm am' or 'hh:mm pm'.
-        '''
+        """tm is a datetime.  Extract the time and return it in the form 'hh:mm am' or 'hh:mm pm'."""
         hr, min, sec = [int(i) for i in str(tm).split()[1].split(":")]
         a = "am"
         if hr >= 12:
@@ -249,28 +283,29 @@ if 1:   # Core functionality
         if not hr:
             hr = 12
         return f"{hr:2d}:{min:02d} {a}"
+
     def GetStartTime(start_time):
-        '''start_time can be of the following forms:
+        """start_time can be of the following forms:
             13:34       24 hour hh:mm form
             1:34 p      12 hour hh:mm am/pm form
             1:34 pm     12 hour hh:mm am/pm form
             13.4        24 hour h.h decimal form
             1.6 p       12 hour h.h decimal form
         Return it as (h, m) where h and m are integers with h on [0, 23) and m on [0, 60).
-        '''
+        """
         h, m = 0, 0
         st = start_time.lower()
-        keep = "+-0123456789.e"     # Decimal number characters
+        keep = "+-0123456789.e"  # Decimal number characters
         try:
             if "." in st:
                 # Decimal form
                 if "p" in st:
                     h = float(Keep(st, keep)) + 12
-                    m = int(60*(h - int(h)))
+                    m = int(60 * (h - int(h)))
                     h = int(h)
                 else:
                     h = float(Keep(st, keep))
-                    m = int(60*(h - int(h)))
+                    m = int(60 * (h - int(h)))
                     h = int(h)
             elif ":" in st:
                 if "a" in st:
@@ -281,7 +316,7 @@ if 1:   # Core functionality
                 elif "p" in st:
                     # 12 hour hh:mm form
                     a, b = st.split(":")
-                    h = int(a) + 12 
+                    h = int(a) + 12
                     m = int(b[:2])
                 else:
                     # 24 hour hh:mm form
@@ -303,52 +338,64 @@ if 1:   # Core functionality
         if not (0 <= m < 60):
             Error(f"Minutes must be on [0, 60)")
         return h, m
+
     def PrintOffsetSchedule(h, m):
-        '''Print out the actual times for programs A and B, as they both run unless you select only one.
+        """Print out the actual times for programs A and B, as they both run unless you select only one.
         Start time is h:m; h is integer on [0, 24) and m is integer on [0, 60).
-        '''
+        """
         budget = d["-b"]
-        assert(ii(budget, int) and 0 <= budget <= 100)
-        p = budget/100
+        assert ii(budget, int) and 0 <= budget <= 100
+        p = budget / 100
         t.print(f"{t.budget}Budget = {budget}%   (changed {GetBudgetChanged()})")
         now = dt.datetime.now()
         starttime = dt.datetime(now.year, now.month, now.day, h, m)
-        indent = " "*4
+        indent = " " * 4
         total_minutes = 0
+
         def Print():
             w = (7, 7, 12, 12)
             nonlocal total_minutes
-            print(f"{indent} "
+            print(
+                f"{indent} "
                 f"{'Circuit':^{w[0]}s}{indent}"
                 f"{'Minutes':^{w[1]}s}{indent}"
                 f"{'Start':^{w[2]}s}{indent}"
-                f"{'End':^{w[3]}s}")
+                f"{'End':^{w[3]}s}"
+            )
             s = "-"
-            print(f"{indent} "
-                f"{s*w[0]:^{w[0]}s}{indent}"
-                f"{s*w[1]:^{w[1]}s}{indent}"
-                f"{s*w[2]:^{w[2]}s}{indent}"
-                f"{s*w[3]:^{w[3]}s}")
+            print(
+                f"{indent} "
+                f"{s * w[0]:^{w[0]}s}{indent}"
+                f"{s * w[1]:^{w[1]}s}{indent}"
+                f"{s * w[2]:^{w[2]}s}{indent}"
+                f"{s * w[3]:^{w[3]}s}"
+            )
             for ckt, minutes in g.timing:
-                minutes = int(minutes*budget/100 + 0.5)
+                minutes = int(minutes * budget / 100 + 0.5)
                 start = starttime + dt.timedelta(minutes=total_minutes)
                 total_minutes += minutes
                 finish = starttime + dt.timedelta(minutes=total_minutes)
-                print(f"{indent} "
+                print(
+                    f"{indent} "
                     f"{ckt:^{w[0]}s}{indent}"
                     f"{minutes!s:^{w[1]}s}{indent}"
                     f"{H(start):^{w[2]}s}{indent}"
-                    f"{H(finish):^{w[3]}s}")
-            print(f"{indent}Watering time = {total_minutes} minutes = {total_minutes/60:.2f} hours")
+                    f"{H(finish):^{w[3]}s}"
+                )
+            print(
+                f"{indent}Watering time = {total_minutes} minutes = {total_minutes / 60:.2f} hours"
+            )
+
         # Program A
         print("Program A")
         Print()
         # Program B
         print("\nProgram B")
         Print()
+
     def Test():
-        'Check utility functions'
-        if 1:   # GetStartTime()
+        "Check utility functions"
+        if 1:  # GetStartTime()
             Assert(GetStartTime("7:30") == (7, 30))
             Assert(GetStartTime("7:30 a") == (7, 30))
             Assert(GetStartTime("7:30 am") == (7, 30))
@@ -360,38 +407,42 @@ if 1:   # Core functionality
             Assert(GetStartTime("3:30 pm") == (15, 30))
             Assert(GetStartTime("3.5p") == (15, 30))
             Assert(GetStartTime("15.5") == (15, 30))
-        if 1:   # HM()
+        if 1:  # HM()
             Assert(HM(0) == "12:00 am")
             Assert(HM(1) == "12:01 am")
-            Assert(HM(1*60) == " 1:00 am")
-            Assert(HM(8*60) == " 8:00 am")
-            Assert(HM(12*60) == "12:00 pm")
-            Assert(HM(20*60) == " 8:00 pm")
-            Assert(HM(23*60) == "11:00 pm")
-            Assert(HM(23*60 + 59) == "11:59 pm")
+            Assert(HM(1 * 60) == " 1:00 am")
+            Assert(HM(8 * 60) == " 8:00 am")
+            Assert(HM(12 * 60) == "12:00 pm")
+            Assert(HM(20 * 60) == " 8:00 pm")
+            Assert(HM(23 * 60) == "11:00 pm")
+            Assert(HM(23 * 60 + 59) == "11:59 pm")
+
     def PrintTiming():
-        'Show circuit times from 50% to 100%'
-        t.print(f"{t.budget}{' '*10}Circuit timing in minutes as function of budget percentage")
+        "Show circuit times from 50% to 100%"
+        t.print(
+            f"{t.budget}{' ' * 10}Circuit timing in minutes as function of budget percentage"
+        )
         w, B = 8, range(100, 19, -10)
         # Header
         print(f"{'Circuit':^{w}s}", end=" ")
         for b in B:
             print(f"{str(b) + '%':^{w}s}", end=" ")
         print()
-        print(f"{'-'*w:{w}s}", end=" ")
+        print(f"{'-' * w:{w}s}", end=" ")
         for b in B:
-            print(f"{'-'*w:{w}s}", end=" ")
+            print(f"{'-' * w:{w}s}", end=" ")
         print()
         # Table
         for ckt, minutes in g.timing:
             print(f"{ckt:^{w}s}", end=" ")
             for b in B:
-                print(f"{str(int(minutes*b/100)):^{w}s}", end=" ")
+                print(f"{str(int(minutes * b / 100)):^{w}s}", end=" ")
             print()
         print()
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     Test()
     GetColors()
     g.default_budget = GetBudget()

@@ -1,4 +1,4 @@
-'''
+"""
 Plot shoe size graphs
     https://en.wikipedia.org/wiki/Shoe_size
 
@@ -8,7 +8,7 @@ size should mean a person's foot sizes, but then this puts the burden of
 fitting the shoes to the person's size on the manufacturers, which they
 don't want.  Instead, the usual practice is to mean the last size, which is
 the tooling around which the shoe is constructed.  This then tells the
-consumer nothing about whether that shoe will fit them or not.  
+consumer nothing about whether that shoe will fit them or not.
 
     Table from above wikipedia link for US adult sizes
         Last length          US sizes
@@ -48,31 +48,32 @@ consumer nothing about whether that shoe will fit them or not.
         338.67           16               17
         342.9            16.5             17.5
         347.13           17               18
-'''
-if 1:   # Header
-    if 1:   # Copyright, license
+"""
+
+if 1:  # Header
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Plot shoe size graphs (needs matplotlib)
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         import sys
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from pylab import *
-    if 1:   # Global variables
+    if 1:  # Global variables
         # Set dbg to True to see individual plots to screen
         dbg = len(sys.argv) > 1
-        if 1: # SafeWorkWear data:  https://safeworkwears.com/measure-foot-size
+        if 1:  # SafeWorkWear data:  https://safeworkwears.com/measure-foot-size
             # Women's sizes
-            sww_women = '''
+            sww_women = """
                 True Length	US/CA Size	UK Size	EU Size	Narrow Width	Standard Width	Wide Width
                 22.5	6	4	36-37	7.1	7.3	7.8
                 23	6.5	4.5	37	7.1	7.6	8.1
@@ -84,9 +85,9 @@ if 1:   # Header
                 25.4	9.5	7.5	40	8.1	8.6	9.1
                 25.9	10	8	40-41	8.3	8.6	9.1
                 26.2	10.5	8.5	41	8.3	8.8	9.3
-                26.7	11	9	41-42	8.6	8.8	9.3'''
+                26.7	11	9	41-42	8.6	8.8	9.3"""
             # Men's sizes
-            sww_men = '''
+            sww_men = """
                 True Length	US/CA Size	UK Size	EU Size	Narrow Width	Standard Width	Wide Width
                 24.4	7	6	40	8.6	9.1	9.6
                 24.8	7.5	6.5	40-41	8.6	9.3	9.9
@@ -100,11 +101,11 @@ if 1:   # Header
                 28.3	11.5	10.5	44-45	9.9	10.6	11.1
                 28.6	12	11	45	10.1	10.9	11.1
                 29.2	12.5	11.5	45-46	10.4	10.9	11.4
-                29.4	13	12	46	10.4	11.1	11.6'''
-        if 1: # Wikipedia adult sizes https://en.wikipedia.org/wiki/Shoe_size#Conversion_between_US_and_UK_sizing
+                29.4	13	12	46	10.4	11.1	11.6"""
+        if 1:  # Wikipedia adult sizes https://en.wikipedia.org/wiki/Shoe_size#Conversion_between_US_and_UK_sizing
             # Note length is in mm
             # Women's sizes
-            wp_women = '''
+            wp_women = """
                 Last length    Size
                     203.2       1
                     207.43      1.5
@@ -140,9 +141,9 @@ if 1:   # Header
                     334.43      16.5
                     338.67      17
                     342.9       17.5
-                    347.13      18'''
+                    347.13      18"""
             # Men's sizes
-            wp_men = '''
+            wp_men = """
                 Last length    Size
                     211.6       1
                     215.9       1.5
@@ -176,27 +177,37 @@ if 1:   # Header
                     334.43      15.5
                     338.67      16
                     342.9       16.5
-                    347.13      17'''
-if 1:   # Plotting
+                    347.13      17"""
+if 1:  # Plotting
+
     def Vector(s):
-        'Return a list of floats from the string s'
+        "Return a list of floats from the string s"
         return [float(i) for i in s.split()]
+
     def Length():
         def Nike():
             if dbg:
                 clf()
             # Nike data https://www.nike.com/a/how-to-measure-foot-size
             # Women's data
-            length = [float(i) for i in 
-                    "8.5 8.8 8.9 9.1 9.3 9.4 9.5 9.7 9.9 10 10.2 10.3 10.5 10.7 10.9".split()]
-            size = [float(i) for i in
-                    "5 5.5 6 6.5 7 7.5 8 8.5 9 9.5 10 10.5 11 11.5 12".split()]
+            length = [
+                float(i)
+                for i in "8.5 8.8 8.9 9.1 9.3 9.4 9.5 9.7 9.9 10 10.2 10.3 10.5 10.7 10.9".split()
+            ]
+            size = [
+                float(i)
+                for i in "5 5.5 6 6.5 7 7.5 8 8.5 9 9.5 10 10.5 11 11.5 12".split()
+            ]
             plot(length, size, "o-", label="Women, Nike")
             # Men's data
-            length = [float(i) for i in 
-                    " 9.9 10.1 10.3 10.4 10.6 10.8 10.9 11.1 11.3 11.5 11.7 11.8 12 12.2 12.3".split()]
-            size = [float(i) for i in
-                    "8 8.5 9 9.5 10 10.5 11 11.5 12 12.5 13 13.5 14 14.5 15".split()]
+            length = [
+                float(i)
+                for i in " 9.9 10.1 10.3 10.4 10.6 10.8 10.9 11.1 11.3 11.5 11.7 11.8 12 12.2 12.3".split()
+            ]
+            size = [
+                float(i)
+                for i in "8 8.5 9 9.5 10 10.5 11 11.5 12 12.5 13 13.5 14 14.5 15".split()
+            ]
             plot(length, size, "o-", label="Men, Nike")
             if dbg:
                 xlabel("Length, inches")
@@ -205,6 +216,7 @@ if 1:   # Plotting
                 legend()
                 grid()
                 show()
+
         def SafeWorkWears():
             # https://safeworkwears.com/measure-foot-size
             # Measurements in cm, tab-separated
@@ -221,7 +233,7 @@ if 1:   # Plotting
                 if f[0] != "True Length":
                     lines.append(f)
             for line in lines:
-                length.append(float(line[0])/2.54)
+                length.append(float(line[0]) / 2.54)
                 size.append(float(line[1]))
             plot(length, size, "o-", label="Women, SafeWorkWears")
             # Men's sizes
@@ -235,7 +247,7 @@ if 1:   # Plotting
                 if f[0] != "True Length":
                     lines.append(f)
             for line in lines:
-                length.append(float(line[0])/2.54)
+                length.append(float(line[0]) / 2.54)
                 size.append(float(line[1]))
             plot(length, size, "o-", label="Men, SafeWorkWears")
             if dbg:
@@ -245,6 +257,7 @@ if 1:   # Plotting
                 legend()
                 grid()
                 show()
+
         def Wikipedia():
             if dbg:
                 clf()
@@ -260,7 +273,7 @@ if 1:   # Plotting
                 if not f[0].startswith(s):
                     lines.append(f)
             for line in lines:
-                length.append(float(line[0])/25.4)
+                length.append(float(line[0]) / 25.4)
                 size.append(float(line[1]))
             plot(length, size, "o-", label="Women, Wikipedia")
             # Men's sizes
@@ -274,7 +287,7 @@ if 1:   # Plotting
                 if not f[0].startswith(s):
                     lines.append(f)
             for line in lines:
-                length.append(float(line[0])/25.4)
+                length.append(float(line[0]) / 25.4)
                 size.append(float(line[1]))
             plot(length, size, "o-", label="Men, Wikipedia")
             if dbg:
@@ -285,6 +298,7 @@ if 1:   # Plotting
                 grid()
                 show()
             text(10, 2, "Wikipedia length is the size of the last")
+
         clf()
         Nike()
         SafeWorkWears()
@@ -296,6 +310,7 @@ if 1:   # Plotting
             legend()
             grid(True, which="both")
             savefig("shoesize_length.png")
+
     def Width():
         def Nike():
             # Women's:  US shoe size vs. width in inches
@@ -322,10 +337,10 @@ if 1:   # Plotting
                 grid()
                 show()
 
-        #def SafeWorkWears():
+        # def SafeWorkWears():
         clf()
         Nike()
-        #SafeWorkWears()
+        # SafeWorkWears()
         if not dbg:
             xlabel("Width, inches")
             ylabel("US Shoe Size")
@@ -334,6 +349,7 @@ if 1:   # Plotting
             grid(True, which="both")
             savefig("shoesize_width.png")
 
+
 if __name__ == "__main__":
     Length()
-    #Width()
+    # Width()

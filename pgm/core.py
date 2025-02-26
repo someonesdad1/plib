@@ -1,54 +1,62 @@
-'''
+"""
 List GNU core utilities
-'''
-if 1:   # Header
-    if 1:   # Copyright, license
+"""
+
+if 1:  # Header
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # List GNU core utilities
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         import getopt
         import os
         from pathlib import Path as P
         import sys
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import dedent
         from color import t
+
         if 1:
             import debug
+
             debug.SetDebugger()
-    if 1:   # Global variables
+    if 1:  # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
-if 1:   # Utility
+if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] etc.
           Explanations...
         Options:
             -h      Print a manpage
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-a"] = False     # Describe this option
-        d["-d"] = 3         # Number of significant digits
+        d["-a"] = False  # Describe this option
+        d["-d"] = 3  # Number of significant digits
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:h") 
+            opts, args = getopt.getopt(sys.argv[1:], "ad:h")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -61,16 +69,18 @@ if 1:   # Utility
                     if not (1 <= d[o] <= 15):
                         raise ValueError()
                 except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                        "1 and 15")
+                    msg = "-d option's argument must be an integer between 1 and 15"
                     Error(msg)
             elif o == "-h":
                 Usage(status=0)
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def ListUtilities():
         print("             GNU core utilities")
-        data = dedent('''
+        data = dedent("""
         Output of entire files
             cat: Concatenate and write files
             tac: Concatenate and write files in reverse
@@ -198,17 +208,18 @@ if 1:   # Core functionality
             factor: Print prime factors
             numfmt: Reformat numbers
             seq: Print numeric sequences
-        ''')
+        """)
         w = 15
         for line in data.split("\n"):
             if line.startswith(" "):
                 name, rem = line.strip().split(":", 1)
-                print(f"{' '*4}{name:{w}s} {rem}")
+                print(f"{' ' * 4}{name:{w}s} {rem}")
             else:
                 print(line)
         exit(0)
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
-    #args = ParseCommandLine(d)
+    d = {}  # Options dictionary
+    # args = ParseCommandLine(d)
     ListUtilities()

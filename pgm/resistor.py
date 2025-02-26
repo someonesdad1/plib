@@ -1,4 +1,4 @@
-'''
+"""
 TODO
     - Change 'res l' to only list on-hand resistors.  Add 'res e' to show EIA values.
     - Incorporate 2 W resistor values (use special color when showing them)
@@ -7,22 +7,23 @@ TODO
 Select from on-hand resistors to make a voltage divider or a given resistance value from a pair of
 resistors in series or parallel Change the on_hand global variable to reflect the resistors you
 have.
-'''
+"""
+
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2013 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2013 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Resistor selection from on-hand resistors
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Imports
+    if 1:  # Imports
         import getopt
         import os
         import string
@@ -30,7 +31,7 @@ if 1:  # Header
         from math import *
         from itertools import combinations
         from pdb import set_trace as xx
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from bidict import bidict
         from wrap import dedent
         from sig import sig
@@ -40,18 +41,22 @@ if 1:  # Header
         from u import u, ParseUnit, SI_prefixes
         from dpprint import PP, Clear
         from f import flt
+
         if len(sys.argv) > 1:
             import debug
+
             debug.SetDebugger()
-    if 1:   # Global variables
+    if 1:  # Global variables
         W = int(os.environ.get("COLUMNS", "80")) - 1
         fp = FPFormat()
         fp.trailing_dp = False
+
         class G:
             pass
-        g = G() # Global variable container
+
+        g = G()  # Global variable container
         # On-hand resistor values.  Change these entries to match what you have.
-        g.on_hand = dedent('''
+        g.on_hand = dedent("""
             0.025 0.18 0.2 0.27 0.33 0.6
 
             1 2.2 4.6 8.3
@@ -70,8 +75,8 @@ if 1:  # Header
             100k 120k 147k 162k 170k 180k 220k 263k 330k 390k 422k 460k 464k 560k 674k 820k
         
             1M 1.2M 1.5M 1.7M 1.9M 2.2M 2.4M 2.6M 2.8M 3.2M 4M 4.8M 5.6M 6M 8.7M 10M 16M 23.5M
-        ''')
-        g.two_watt = dedent('''
+        """)
+        g.two_watt = dedent("""
             1 1.2 1.5 2 3 4.7 6.3 8.2 9.1
 
             10 12 15 20 22 30 47 51 62 82 91 
@@ -83,7 +88,7 @@ if 1:  # Header
             100k 120k 150k 200k 220k 240k 300k 330k 390k 430k 470k 510k 560k 620k 820k
 
             1M
-        ''')
+        """)
         # The following array is used to define what decades of E-series
         # resistors are included.
         powers_of_10 = (-1, 0, 1, 2, 3, 4, 5, 6, 7)
@@ -92,23 +97,180 @@ if 1:  # Header
         EIA = {
             6: (1.0, 1.5, 2.2, 3.3, 4.7, 6.8),
             12: (1.0, 1.2, 1.5, 1.8, 2.2, 2.7, 3.3, 3.9, 4.7, 5.6, 6.8, 8.2),
-            24: (1.0, 1.1, 1.2, 1.3, 1.5, 1.6, 1.8, 2.0, 2.2, 2.4, 2.7, 3.0,
-                3.3, 3.6, 3.9, 4.3, 4.7, 5.1, 5.6, 6.2, 6.8, 7.5, 8.2, 9.1),
-            48: (1.00, 1.05, 1.10, 1.15, 1.21, 1.27, 1.33, 1.40, 1.47, 1.54,
-                1.62, 1.69, 1.78, 1.87, 1.96, 2.05, 2.15, 2.26, 2.37, 2.49,
-                2.61, 2.74, 2.87, 3.01, 3.16, 3.32, 3.48, 3.65, 3.83, 4.02,
-                4.22, 4.42, 4.64, 4.87, 5.11, 5.36, 5.62, 5.90, 6.19, 6.49,
-                6.81, 7.15, 7.50, 7.87, 8.25, 8.66, 9.09, 9.53),
-            96: (1.00, 1.02, 1.05, 1.07, 1.10, 1.13, 1.15, 1.18, 1.21, 1.24,
-                1.27, 1.30, 1.33, 1.37, 1.40, 1.43, 1.47, 1.50, 1.54, 1.58,
-                1.62, 1.65, 1.69, 1.74, 1.78, 1.82, 1.87, 1.91, 1.96, 2.00,
-                2.05, 2.10, 2.16, 2.21, 2.36, 2.32, 2.37, 2.43, 2.49, 2.55,
-                2.61, 2.67, 2.74, 2.80, 2.87, 2.94, 3.01, 3.09, 3.16, 3.24,
-                3.32, 3.40, 3.48, 3.57, 3.65, 3.74, 3.83, 3.92, 4.02, 4.12,
-                4.22, 4.32, 4.42, 4.53, 4.64, 4.75, 4.87, 4.91, 5.11, 5.23,
-                5.36, 5.49, 5.62, 5.76, 5.90, 6.04, 6.19, 6.34, 6.49, 6.65,
-                6.81, 6.98, 7.15, 7.32, 7.50, 7.68, 7.87, 8.06, 8.25, 8.45,
-                8.66, 8.87, 9.09, 9.31, 9.59, 9.76),
+            24: (
+                1.0,
+                1.1,
+                1.2,
+                1.3,
+                1.5,
+                1.6,
+                1.8,
+                2.0,
+                2.2,
+                2.4,
+                2.7,
+                3.0,
+                3.3,
+                3.6,
+                3.9,
+                4.3,
+                4.7,
+                5.1,
+                5.6,
+                6.2,
+                6.8,
+                7.5,
+                8.2,
+                9.1,
+            ),
+            48: (
+                1.00,
+                1.05,
+                1.10,
+                1.15,
+                1.21,
+                1.27,
+                1.33,
+                1.40,
+                1.47,
+                1.54,
+                1.62,
+                1.69,
+                1.78,
+                1.87,
+                1.96,
+                2.05,
+                2.15,
+                2.26,
+                2.37,
+                2.49,
+                2.61,
+                2.74,
+                2.87,
+                3.01,
+                3.16,
+                3.32,
+                3.48,
+                3.65,
+                3.83,
+                4.02,
+                4.22,
+                4.42,
+                4.64,
+                4.87,
+                5.11,
+                5.36,
+                5.62,
+                5.90,
+                6.19,
+                6.49,
+                6.81,
+                7.15,
+                7.50,
+                7.87,
+                8.25,
+                8.66,
+                9.09,
+                9.53,
+            ),
+            96: (
+                1.00,
+                1.02,
+                1.05,
+                1.07,
+                1.10,
+                1.13,
+                1.15,
+                1.18,
+                1.21,
+                1.24,
+                1.27,
+                1.30,
+                1.33,
+                1.37,
+                1.40,
+                1.43,
+                1.47,
+                1.50,
+                1.54,
+                1.58,
+                1.62,
+                1.65,
+                1.69,
+                1.74,
+                1.78,
+                1.82,
+                1.87,
+                1.91,
+                1.96,
+                2.00,
+                2.05,
+                2.10,
+                2.16,
+                2.21,
+                2.36,
+                2.32,
+                2.37,
+                2.43,
+                2.49,
+                2.55,
+                2.61,
+                2.67,
+                2.74,
+                2.80,
+                2.87,
+                2.94,
+                3.01,
+                3.09,
+                3.16,
+                3.24,
+                3.32,
+                3.40,
+                3.48,
+                3.57,
+                3.65,
+                3.74,
+                3.83,
+                3.92,
+                4.02,
+                4.12,
+                4.22,
+                4.32,
+                4.42,
+                4.53,
+                4.64,
+                4.75,
+                4.87,
+                4.91,
+                5.11,
+                5.23,
+                5.36,
+                5.49,
+                5.62,
+                5.76,
+                5.90,
+                6.04,
+                6.19,
+                6.34,
+                6.49,
+                6.65,
+                6.81,
+                6.98,
+                7.15,
+                7.32,
+                7.50,
+                7.68,
+                7.87,
+                8.06,
+                8.25,
+                8.45,
+                8.66,
+                8.87,
+                9.09,
+                9.31,
+                9.59,
+                9.76,
+            ),
         }
         # These are the SI prefixes likely to be used
         prefixes = {
@@ -127,16 +289,19 @@ if 1:  # Header
         t.watt_quarter = t.sky
         t.watt2 = t.yell
 if 1:  # Utility
+
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
+
     def Usage(d, status=0):
         name = sys.argv[0]
-        pmin = "%.1g" % (10**min(powers_of_10))
-        pmax = "%.1g" % (10**(max(powers_of_10) + 1))
+        pmin = "%.1g" % (10 ** min(powers_of_10))
+        pmax = "%.1g" % (10 ** (max(powers_of_10) + 1))
         num_entries = d["-n"]
         digits = d["-d"]
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {name} [options] action [parameters]
         
         Actions:
@@ -196,17 +361,19 @@ if 1:  # Utility
             0   Black       3   Orange      6   Blue        9   White
             1   Brown       4   Yellow      7   Violet      Gold 0.1
             2   Red         5   Green       8   Gray        Silver 0.01
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine():
-        d["-c"] = None      # Configuration file
-        d["-d"] = 4         # Significant figures
-        d["-e"] = None      # Which EIA series to use
-        d["-n"] = 30        # How many to show if get lots from search
-        d["-p"] = False     # Only show parallel
-        d["-r"] = None      # Specify total divider resistance
-        d["-s"] = False     # Only show series
-        d["-t"] = 0.01      # Tolerance
+        d["-c"] = None  # Configuration file
+        d["-d"] = 4  # Significant figures
+        d["-e"] = None  # Which EIA series to use
+        d["-n"] = 30  # How many to show if get lots from search
+        d["-p"] = False  # Only show parallel
+        d["-r"] = None  # Specify total divider resistance
+        d["-s"] = False  # Only show series
+        d["-t"] = 0.01  # Tolerance
         if len(sys.argv) < 2:
             Usage(d)
         try:
@@ -243,7 +410,7 @@ if 1:  # Utility
                     if len(f) != 2:
                         Error("Bad form for option -r")
                     # d["-r"] is (total_resistance, tolerance)
-                    d["-r"] = (float(f[0]), float(f[1])/100)
+                    d["-r"] = (float(f[0]), float(f[1]) / 100)
                     if d["-r"][1] <= 0:
                         Error("-r:  percent tolerance must be > 0")
                 else:
@@ -251,7 +418,7 @@ if 1:  # Utility
             elif opt[0] == "-s":
                 d["-s"] = True
             elif opt[0] == "-t":
-                d["-t"] = float(opt[1])/100
+                d["-t"] = float(opt[1]) / 100
                 if d["-t"] <= 0:
                     Error("-t:  percent tolerance must be > 0")
             elif opt[0] == "-h":
@@ -276,11 +443,14 @@ if 1:  # Utility
                     Usage(d)
             args[0] = cmd
         return args
+
+
 if 1:  # Core functionality
+
     def ConvertString(s):
-        '''s will be a number possibly followed by an SI prefix.  Return it as
+        """s will be a number possibly followed by an SI prefix.  Return it as
         a float.
-        '''
+        """
         msg = f"'{s}' is an unrecognized resistance value"
         f = ParseUnit(s)
         factor = 1
@@ -292,16 +462,17 @@ if 1:  # Core functionality
                 Error(msg)
             factor = float(SI_prefixes[unit])
         try:
-            return float(m)*factor
+            return float(m) * factor
         except Exception:
             Error(msg)
+
     def GetResistors():
         R, p = [], {"m": 1e-3, "k": 1e3, "M": 1e6, "G": 1e9, "T": 1e12}
         if d["-e"] is not None:
             # Use EIA resistors
             for p in powers_of_10:
                 for i in EIA[d["-e"]]:
-                    R.append(i*10**p)
+                    R.append(i * 10**p)
         else:
             # Use on-hand resistors
             if d["-c"] is not None:
@@ -313,20 +484,22 @@ if 1:  # Core functionality
                 for i in line.split():
                     R.append(ConvertString(i))
         d["R"] = R
+
     def Div(d, ratio, R1, R2):
-        '''If the divider ratio of R1 and R2 (R1 on top) is within the desired
+        """If the divider ratio of R1 and R2 (R1 on top) is within the desired
         tolerance of ratio, then include it in the set d["divider"].
-        '''
+        """
         s, t = R1 + R2, d["-t"]
         if d["-r"] is not None:
             R, Rt = d["-r"]
-            if not ((1 - Rt)*R <= s <= (1 + Rt)*R):
+            if not ((1 - Rt) * R <= s <= (1 + Rt) * R):
                 return
-        rat1, rat2 = R1/s, R2/s
-        if (1 - t)*ratio <= rat1 <= (1 + t)*ratio:
+        rat1, rat2 = R1 / s, R2 / s
+        if (1 - t) * ratio <= rat1 <= (1 + t) * ratio:
             d["divider"].add((rat1, R1, R2))
-        elif (1 - t)*ratio <= rat2 <= (1 + t)*ratio:
+        elif (1 - t) * ratio <= rat2 <= (1 + t) * ratio:
             d["divider"].add((rat2, R2, R1))
+
     def Divider(ratio):
         d["divider"] = set()
         # First check using equal resistors
@@ -340,27 +513,34 @@ if 1:  # Core functionality
             print("No divider can be made")
             return
         div.sort()
-        print("Voltage divider with ratio = ", ratio, ", tolerance = ",
-              sig(d["-t"]*100, 2), "%", sep="")
+        print(
+            "Voltage divider with ratio = ",
+            ratio,
+            ", tolerance = ",
+            sig(d["-t"] * 100, 2),
+            "%",
+            sep="",
+        )
         print()
         print("% dev from")
         print("desired ratio       R1           R2      Total Res.")
         print("-------------   ----------   ----------  ----------")
         for rat, r1, r2 in div:
-            dev = 100*((rat - float(ratio))/float(ratio))
+            dev = 100 * ((rat - float(ratio)) / float(ratio))
             pct = sig(dev)
             if dev >= 0:
                 pct = " " + pct
             R1, R2, R = fp.engsi(r1), fp.engsi(r2), fp.engsi(r1 + r2)
             if not dev:
-                #fg(highlight)
+                # fg(highlight)
                 print(t.hl, end="")
             t.print("   {0:10}   {1:^10}   {2:^10}   {3:^10}".format(pct, R1, R2, R))
-            #normal()
+            # normal()
+
     def Resistance(resistance, report=False):
-        '''Print the report of the choices to get the desired resistance if
-        report is True.  If report is False, return 
-        '''
+        """Print the report of the choices to get the desired resistance if
+        report is True.  If report is False, return
+        """
         d["resistances"] = set()
         # First see if we have an exact match
         if resistance in d["R"]:
@@ -384,16 +564,24 @@ if 1:  # Core functionality
         if len(res) > d["-n"]:
             # Sort by absolute value of tolerance
             def tol(tgt, val):
-                return abs(val - tgt)/val
-            r = [(tol(resistance, i[0]), i) for i in res]   # Decorate with abs val
+                return abs(val - tgt) / val
+
+            r = [(tol(resistance, i[0]), i) for i in res]  # Decorate with abs val
             r.sort()
-            res = [i[1] for i in r[:d["-n"]]]
+            res = [i[1] for i in r[: d["-n"]]]
             clipped = True
         if report:
             # Print report
             res.sort()
-            print("Desired resistance = ", d["desired"], " = ", sig(d["res"]) +
-                  ", tolerance = ", sig(d["-t"]*100, 2), "%", sep="")
+            print(
+                "Desired resistance = ",
+                d["desired"],
+                " = ",
+                sig(d["res"]) + ", tolerance = ",
+                sig(d["-t"] * 100, 2),
+                "%",
+                sep="",
+            )
             if clipped:
                 print("Closest %d matches shown" % d["-n"])
             print()
@@ -401,7 +589,7 @@ if 1:  # Core functionality
             print("desired res.        R1           R2      Connection")
             print("-------------   ----------   ----------  ----------")
             for val, c, r1, r2 in res:
-                dev = 100*((val - resistance)/resistance)
+                dev = 100 * ((val - resistance) / resistance)
                 pct = str(sig(dev, 2)) + "%"
                 if dev >= 0:
                     pct = " " + pct
@@ -410,37 +598,43 @@ if 1:  # Core functionality
                 if (d["-p"] and c == "s") or (d["-s"] and c == "p"):
                     continue
                 if not dev:
-                    #fg(highlight)
+                    # fg(highlight)
                     print(t.hl, end="")
                 if c == "e":
-                    t.print("   {0:10}   {1:^10}                {2}".format(pct, R1, conn))
+                    t.print(
+                        "   {0:10}   {1:^10}                {2}".format(pct, R1, conn)
+                    )
                 else:
-                    t.print("   {0:10}   {1:^10}   {2:^10}   {3}".format(pct, R1, R2, conn))
-                #normal()
+                    t.print(
+                        "   {0:10}   {1:^10}   {2:^10}   {3}".format(pct, R1, R2, conn)
+                    )
+                # normal()
         else:
             return res
+
     def Res(d, R, R1, R2):
-        '''See if R1 and R2 sum to R within the desired tolerance; if so,
+        """See if R1 and R2 sum to R within the desired tolerance; if so,
         include it in the set d["resistances"].
-        '''
+        """
         t = d["-t"]
         ser = R1 + R2
-        if (1 - t)*R <= ser <= (1 + t)*R:
+        if (1 - t) * R <= ser <= (1 + t) * R:
             d["resistances"].add((ser, "s", R1, R2))
-        par = 1/(1/R1 + 1/R2)
-        if (1 - t)*R <= par <= (1 + t)*R:
+        par = 1 / (1 / R1 + 1 / R2)
+        if (1 - t) * R <= par <= (1 + t) * R:
             d["resistances"].add((par, "p", R1, R2))
+
     def Quotient(ratio):
         if ratio == 1:
             print("Quotient cannot be 1")
             exit(1)
         d["resistances"], t, Ratio = set(), d["-t"], float(ratio)
         for R1, R2 in combinations(d["R"], 2):
-            q1 = R1/R2
-            q2 = 1/q1
-            if (1 - t)*Ratio <= q1 <= (1 + t)*Ratio:
+            q1 = R1 / R2
+            q2 = 1 / q1
+            if (1 - t) * Ratio <= q1 <= (1 + t) * Ratio:
                 d["resistances"].add((q1, R1, R2))
-            elif (1 - t)*Ratio <= q2 <= (1 + t)*Ratio:
+            elif (1 - t) * Ratio <= q2 <= (1 + t) * Ratio:
                 d["resistances"].add((q2, R2, R1))
         # Print report
         res = list(d["resistances"])
@@ -448,23 +642,30 @@ if 1:  # Core functionality
             print("No resistor combinations that meet tolerance")
             return
         res.sort()
-        print("Desired ratio = ", ratio, ", tolerance = ",
-              sig(d["-t"]*100, 2), "%", sep="")
+        print(
+            "Desired ratio = ",
+            ratio,
+            ", tolerance = ",
+            sig(d["-t"] * 100, 2),
+            "%",
+            sep="",
+        )
         print()
         print("% dev from")
         print("desired ratio       R1           R2")
         print("-------------   ----------   ----------")
         for val, r1, r2 in res:
-            dev = 100*((val - Ratio)/Ratio)
+            dev = 100 * ((val - Ratio) / Ratio)
             pct = sig(dev, 2)
             if dev >= 0:
                 pct = " " + pct
             R1, R2 = fp.engsi(r1), fp.engsi(r2)
             if not dev:
-                #fg(highlight)
+                # fg(highlight)
                 print(t.hl, end="")
             t.print("   {0:10}   {1:^10}   {2:^10}".format(pct, R1, R2))
-            #normal()
+            # normal()
+
     def Pairs(args):
         if len(args) != 4:
             Usage(d)
@@ -488,29 +689,33 @@ if 1:  # Core functionality
         if not r1 or not r2:
             Error("Missing blank line in resistor file '%s'" % args[1])
         if len(r1) != len(r2):
-            Error("Two resistor sets don't have equal number in resistor file '%s'"
-                  % args[1])
+            Error(
+                "Two resistor sets don't have equal number in resistor file '%s'"
+                % args[1]
+            )
         # Calculate the set of resultant resistances
         results = []
         for i in r1:
             for j in r2:
                 if parallel:
-                    r = 1/(1/i + 1/j)
+                    r = 1 / (1 / i + 1 / j)
                 else:
                     r = i + j
-                pct_dev = 100*(r - target_value)/target_value
+                pct_dev = 100 * (r - target_value) / target_value
                 pct_dev = 0 if abs(pct_dev) < 1e-10 else pct_dev
                 results.append([pct_dev, r, i, j])
         results.sort()
         model, file = "parallel" if parallel else "series", args[1]
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Model = {model}
         File  = {file}
         
         % dev from
         mean value      Resistance          R1               R2
         ----------      ----------      -------------   -------------
-        '''))
+        """)
+        )
         sig.digits = d["-d"]
         for i in results:
             r, r1, r2 = i[1:]
@@ -518,24 +723,26 @@ if 1:  # Core functionality
             print("%-10s      " % sig(r), nl=False)
             print("%-10s      " % sig(r1), nl=False)
             print("%-10s" % sig(r2))
+
     def GetValue(args):
-        '''Convert a number and optional SI prefix on the command line to a
+        """Convert a number and optional SI prefix on the command line to a
         floating point equivalent.  Note the string with the optional trailing
         suffix removed can be an expression.
-        '''
-        s, factor = ''.join(args).replace(" ", ""), 1
+        """
+        s, factor = "".join(args).replace(" ", ""), 1
         if s[-1] in prefixes:
-            factor = 10**prefixes[s[-1]]
+            factor = 10 ** prefixes[s[-1]]
             s = s[:-1]
         try:
-            return float(eval(s))*factor
+            return float(eval(s)) * factor
         except Exception:
-            print("'%s' isn't recognized as a resistance value" % ' '.join(args))
+            print("'%s' isn't recognized as a resistance value" % " ".join(args))
             exit(1)
+
     def Series(res):
-        '''Find a set of resistors that sum to the desired value but remain
+        """Find a set of resistors that sum to the desired value but remain
         less than or equal to it.
-        '''
+        """
         resistors = d["R"]
         resistors.sort()
         resistors = list(reversed(resistors))
@@ -550,18 +757,20 @@ if 1:  # Core functionality
         r = 0
         for i in used:
             r += i
-            print("  %-10s" % fp.engsi(i), " ", sig(100*r/res, 6))
+            print("  %-10s" % fp.engsi(i), " ", sig(100 * r / res, 6))
+
     def Interpret(s):
-        '''Given a string such as '10k', convert it to a floating point value
+        """Given a string such as '10k', convert it to a floating point value
         in ohms.  Note that the string with the suffix removed can be a valid
         python expression.
-        '''
+        """
         factor = 1
         s = s.strip()
         if s[-1] in prefixes:
-            factor = 10**prefixes[s[-1]]
+            factor = 10 ** prefixes[s[-1]]
             s = s[:-1]
-        return float(eval(s))*factor
+        return float(eval(s)) * factor
+
     def DividerRatios(res):
         r = [Interpret(i) for i in res]
         R = sum(r)
@@ -572,28 +781,29 @@ if 1:  # Core functionality
         print("  Total resistance =", fp.engsi(R))
         print("  Divider ratios:")
         for i in range(1, len(r)):
-            D = sum(r[i:])/R
+            D = sum(r[i:]) / R
             print("  %2d  " % i, sig(D, 4))
+
     def DDivider(args):
-        '''The arguments are:
+        """The arguments are:
             total_resistance_ohms ratio1 ratio2 ...
                                   -----------------
                                         n ratios
         Return the n+1 resistors that make up this divider.
-     
+
         The equations are
-    
+
             R_n = R*rho_{n-1}
             R_i = R*(rho_{i-1} - rho_i), i = 2, 3, ..., n-1
             R_1 = R*(1 - rho_1)
-    
+
         Note that it's easier to augment the array of ratios with 0 at the
         beginning and 1 at the end; then we can use the indexed formula
-    
+
             R_i = R*(rho_{i-1} - rho_i), i = 1, 2, 3, ..., n
-    
+
         to get the n resistances.
-        '''
+        """
         R = Interpret(args[1])
         if R <= 0:
             Error("Total resistance must be > 0")
@@ -609,25 +819,25 @@ if 1:  # Core functionality
             Error("Ratios must all be < 1")
         rho.sort()
         rho = list(reversed(rho))
-        rho = [1] + rho + [0]   # Augment for indexing ease
+        rho = [1] + rho + [0]  # Augment for indexing ease
         n = len(rho)
         print("Resistors                   Ratio")
         print("--------------------        ----------")
         for i in range(1, n):
-            Rx = R*(rho[i-1] - rho[i])
+            Rx = R * (rho[i - 1] - rho[i])
             if i == n - 1:
                 print("  R%d = %-20s" % (i, fp.engsi(Rx)))
             else:
                 print("  R%d = %-20s %s" % (i, fp.engsi(Rx), rho[i]))
         print("Total resistance =", fp.engsi(R))
+
     def sdev(r1, r2):
-        '''Return the standard deviation of the two values.
-        '''
-        mean = (r1 + r2)/2
-        return (r1 - mean)**2 + (r2 - mean)**2
+        """Return the standard deviation of the two values."""
+        mean = (r1 + r2) / 2
+        return (r1 - mean) ** 2 + (r2 - mean) ** 2
+
     def Best(R, res):
-        '''Return the best selection of resistor R from the list res.
-        '''
+        """Return the best selection of resistor R from the list res."""
         # Get exact matches
         exact = []
         for r in res:
@@ -648,29 +858,32 @@ if 1:  # Core functionality
                     lowest = r
             match = lowest
         return match
+
     def Int(x):
         return int(x) if x == int(x) else x
+
     def BCD(args):
-        '''Print the series/parallel combinations of on-hand resistors to
+        """Print the series/parallel combinations of on-hand resistors to
         construct the needed 1, 2, 4, 8 values in each decade.  This allows
         construction of a resistance box from suitable BCD (binary-coded
         decimal) switches.
-     
+
         Note that the typical BCD switch connects the common to the appropriate
         1-2-4-8 terminal and there's no easy way to make a resistance box from
         such a thing, although a capacitor box is possible.
-        '''
+        """
         onhand = d["R"]
         rmin, rmax = min(onhand), max(onhand)
         from pprint import pprint as pp
+
         for decade in range(0, 7):
             for r in (1, 2, 4, 8):
-                R = r*10**decade
+                R = r * 10**decade
                 print("{:10d}:".format(R), end="  ")
                 if R in onhand:
-                    #fg(lgreen)
-                    #print("Exact")
-                    #normal()
+                    # fg(lgreen)
+                    # print("Exact")
+                    # normal()
                     t.print(f"{t.grnl}Exact")
                 else:
                     res = Resistance(R, report=False)
@@ -678,17 +891,18 @@ if 1:  # Core functionality
                         choice = Best(R, res)
                         p = "+" if choice[1] == "s" else "||"
                         r1, r2 = Int(choice[2]), Int(choice[3])
-                        pct = (choice[0] - R)/R*100
+                        pct = (choice[0] - R) / R * 100
                         pct = "[{}%]".format(sig(pct, 2)) if pct else ""
                         print(r1, p, r2, pct)
                     else:
-                        #fg(lred)
-                        #print("No match")
-                        #normal()
+                        # fg(lred)
+                        # print("No match")
+                        # normal()
                         t.print(f"{t.redl}No match")
         exit(0)
+
     def Pots():
-        'List code numbers on trimmer pots'
+        "List code numbers on trimmer pots"
         p = (
             ("50 Ω", 500),
             ("100 Ω", 101),
@@ -706,16 +920,17 @@ if 1:  # Core functionality
             ("1 MΩ", 105),
             ("2 MΩ", 205),
         )
-        i, c = " "*4, t.purl
-        if 1:   # Print by code number
+        i, c = " " * 4, t.purl
+        if 1:  # Print by code number
             f = lambda x: x[1]
             t.print(f"{c}By code:")
             for R, code in sorted(p, key=f):
                 print(f"{i}{code}      {R:8s}")
-        if 1:   # Print by resistance
+        if 1:  # Print by resistance
             t.print(f"{c}By resistance:")
             for R, code in p:
                 print(f"{i}{R:8s} {code}")
+
     def ListEIA():
         t.print(f"{t.hdr}EIA resistance series:")
         sig.rtz = True
@@ -727,6 +942,7 @@ if 1:  # Core functionality
                 s.append(sig(num, digits))
             for i in Columnize(s, horiz=True):
                 print(" ", i)
+
     class Resistor:
         def __init__(self, value, wattage):
             self.value = value
@@ -734,30 +950,36 @@ if 1:  # Core functionality
             # Get resistance value
             last_character = value[-1]
             if last_character not in string.digits and last_character != ".":
-                multiplier = 10**prefixes[last_character]
-                self.R = flt(value[:-1])*multiplier
+                multiplier = 10 ** prefixes[last_character]
+                self.R = flt(value[:-1]) * multiplier
             else:
                 self.R = flt(value)
+
         def __lt__(self, other):
             return self.R < other.R
+
         def __str__(self):
-            'Return string form, colorized if needed'
+            "Return string form, colorized if needed"
             if self.wattage == 2:
                 return f"{t.watt2}{self.value}{t.n}"
             else:
                 return f"{t.watt_quarter}{self.value}{t.n}"
+
         def __repr__(self):
             return str(self)
+
     def ListOnhand():
-        '''This is the most-used feature of this script.  What's desired is an easy to read
+        """This is the most-used feature of this script.  What's desired is an easy to read
         listing of the resistors I have on-hand.  Most in my collection are 1/4 W, so these are
         printed in the t.watt_quarter color.  The 2 W resistors are in the t.watt2 color so that
         they stand out.
-        '''
-        t.print(f"{t.hdr}On-hand resistors{t.n}   {t('wht', attr='ul')}Colors{t.n}:  "
-                f"{t.watt_quarter}1/4 watt{t.n}, "
-                f"{t.watt2}2 watt")
-        if 0:   # Old method
+        """
+        t.print(
+            f"{t.hdr}On-hand resistors{t.n}   {t('wht', attr='ul')}Colors{t.n}:  "
+            f"{t.watt_quarter}1/4 watt{t.n}, "
+            f"{t.watt2}2 watt"
+        )
+        if 0:  # Old method
             print(f"{t.skyl}", end="")
             print(g.on_hand)
             print(t.n, end="")
@@ -785,26 +1007,26 @@ if 1:  # Core functionality
                 ("100k", 1e6),
                 ("1M", 1e7),
                 ("10M", 1e8),
-                #("100M", 1e9),
+                # ("100M", 1e9),
             )
             for size, Rmax in sizes:
                 row = []
                 t.print(f"{t.size}{size}")
                 while r and r[0] < Resistor(str(Rmax), 0.25):
                     row.append(r.pop(0))
-                for i in Columnize(row, indent=" "*4, horiz=True, sep=" "*8):
+                for i in Columnize(row, indent=" " * 4, horiz=True, sep=" " * 8):
                     print(i)
             # xx Note this illuminates one or more bugs in Columnize, as this doesn't print as
             # I would wish.
             print("\nCrappy display due to bug in columnize.Columnize")
 
 
-if 0: #xx
+if 0:  # xx
     ListOnhand()
     exit()
 
 if __name__ == "__main__":
-    d = {}   # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine()
     cmd = args[0]
     sig.digits = d["-d"]
@@ -837,13 +1059,13 @@ if __name__ == "__main__":
             Error("Quotient ratio must be > 0")
         Quotient(ratio)
     elif cmd == "R":
-        d["desired"] = ' '.join(args[1:])
+        d["desired"] = " ".join(args[1:])
         res = d["res"] = GetValue(args[1:])
         if res <= 0:
             Error("Desired resistance must be > 0")
         Series(res)
     elif cmd == "r":
-        d["desired"] = ' '.join(args[1:])
+        d["desired"] = " ".join(args[1:])
         res = d["res"] = GetValue(args[1:])
         if res <= 0:
             Error("Desired resistance must be > 0")

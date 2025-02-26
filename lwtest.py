@@ -1,79 +1,84 @@
-'''
+"""
 TODO:
- 
+
     - https://pycodestyle.pycqa.org/en/latest/advanced.html#automated-tests
       tells how to add automated code style testing for conformance.  Add
       it to the self tests as an option to run.
- 
+
     - If an argument passed on the command line is a directory, search it
       recursively for all files that appear to be test scripts and run
       them.
- 
+
         - If a file is passed on the command line, search it for suitable
           test functions and run them, even if there's no run() call in the
           script.  Options to provide run()'s features:  -h to halt at
           first failure, -r for regexp to identify a test function, -R for
           regexp's options, -v for verbose
- 
+
     - Add a verbose keyword to run() which prints the file name and the
       function/class to be executed, like 'nosetests -v' does.  Another
       thing to consider would be to let run look at sys.argv and process
       options there in lieu of keywords (this would be handy for command
       line work, as the command line options would overrule the keywords).
- 
-'''
+
+"""
+
 if 1:  # Header
     # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
-        # <programming> Lightweight test runner.  I use this tool to run all
-        # my python module's regression tests, as I was dissatisfied with
-        # python's unittest and I've never liked doctest.
-        #∞what∞#
-        #∞test∞# ["test/lwtest_test.py"] #∞test∞#
+    # These "trigger strings" can be managed with trigger.py
+    # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    # ∞license∞#
+    # ∞what∞#
+    # <programming> Lightweight test runner.  I use this tool to run all
+    # my python module's regression tests, as I was dissatisfied with
+    # python's unittest and I've never liked doctest.
+    # ∞what∞#
+    # ∞test∞# ["test/lwtest_test.py"] #∞test∞#
     # Origin
-        # Derived from some nice code by Raymond Hettinger 8 May 2008:
-        # http://code.activestate.com/recipes/572194/.  Downloaded 27 Jul
-        # 2014.  The ActiveState web page appears to state Hettinger's code
-        # was released under the PSF (Python Software Foundation) License.
-        # Hettinger's code includes a search for test functions that are
-        # generators; if such functionality is important to you, you might
-        # want to add it to this file.
-        #
-        # The raises context() manager functionality was inspired by pytest's
-        # implementation (see https://docs.pytest.org/en/latest/).
+    # Derived from some nice code by Raymond Hettinger 8 May 2008:
+    # http://code.activestate.com/recipes/572194/.  Downloaded 27 Jul
+    # 2014.  The ActiveState web page appears to state Hettinger's code
+    # was released under the PSF (Python Software Foundation) License.
+    # Hettinger's code includes a search for test functions that are
+    # generators; if such functionality is important to you, you might
+    # want to add it to this file.
+    #
+    # The raises context() manager functionality was inspired by pytest's
+    # implementation (see https://docs.pytest.org/en/latest/).
     # Standard imports
-        from collections.abc import Iterable
-        from decimal import Decimal
-        from math import isnan, isinf, copysign
-        from time import time
-        import os
-        import re
-        import sys
-        import traceback
+    from collections.abc import Iterable
+    from decimal import Decimal
+    from math import isnan, isinf, copysign
+    from time import time
+    import os
+    import re
+    import sys
+    import traceback
+
     # Custom imports
-        from f import flt, cpx
-        from wrap import dedent
-        from color import Color, t
+    from f import flt, cpx
+    from wrap import dedent
+    from color import Color, t
+
     # Optional imports
-        try:
-            import numpy
-            have_numpy = True
-        except ImportError:
-            have_numpy = False
-        try:
-            import mpmath
-            have_mpmath = True
-        except ImportError:
-            have_mpmath = False
+    try:
+        import numpy
+
+        have_numpy = True
+    except ImportError:
+        have_numpy = False
+    try:
+        import mpmath
+
+        have_mpmath = True
+    except ImportError:
+        have_mpmath = False
     # Global variables
-        __doc__ = dedent('''
+    __doc__ = dedent("""
         Lightweight testrunner framework
             from lwtest import run, raises, assert_equal, Assert, Debugger
         
@@ -136,27 +141,28 @@ if 1:  # Header
             This tool was derived from some nice code by Raymond Hettinger 8
             May 2008: http://code.activestate.com/recipes/572194/.  I'm
             grateful Raymond put it out there for other folks.
-        ''')
-        __all__ = [
-            "Assert",
-            "ToDoMessage",
-            "assert_equal",
-            "raises",
-            "run",
-            "id_test_function_regexp",
-        ]
-        ii = isinstance
-        python_version = '.'.join([str(i) for i in sys.version_info[:3]])
-        # Regular expression to identify test functions
-        id_test_function_regexp = "^_*test|test$"
-if 1:   # Core functionality
+        """)
+    __all__ = [
+        "Assert",
+        "ToDoMessage",
+        "assert_equal",
+        "raises",
+        "run",
+        "id_test_function_regexp",
+    ]
+    ii = isinstance
+    python_version = ".".join([str(i) for i in sys.version_info[:3]])
+    # Regular expression to identify test functions
+    id_test_function_regexp = "^_*test|test$"
+if 1:  # Core functionality
+
     def run(names_dict, **kw):
-        '''Discover and run the test functions in the names_dict
+        """Discover and run the test functions in the names_dict
         dictionary (name : function pairs).  Return (failed, s) where
         failed is an integer giving the number of failures that occurred
         and s is the information string that was sent (or would have been
         sent) to the stream.  A failure is an unhandled exception.
-    
+
         Keyword options [default]:
             broken:     If True, testing code is acknowledged to be broken;
                         a warning message is printed and tests are not run.
@@ -172,7 +178,7 @@ if 1:   # Core functionality
             reopts:     Regular expression's options. [re.I]
             stream:     Where to send output [stdout].  None = no output.
             nomsg       If True, return only the integer 'failed'.
-        '''
+        """
         # Keyword arguments
         broken = bool(kw.get("broken", False))
         dbg = bool(kw.get("dbg", False)) or "dbg" in os.environ
@@ -190,11 +196,14 @@ if 1:   # Core functionality
             print(f"{t('ornl')}! {file}:  Error:  tests are broken{t.n}")
             return (1, "Tests are broken")
         # Find test functions in names_dict to run.  Note we don't allow
-        # "_lwtest" to end the name; this lets you use a variable like 
+        # "_lwtest" to end the name; this lets you use a variable like
         # _have_lwtest in a script.
         istest = re.compile(regexp, reopts)
-        tests = [(name, func) for name, func in names_dict.items()
-                if istest.search(name) and not name.endswith("_lwtest")]
+        tests = [
+            (name, func)
+            for name, func in names_dict.items()
+            if istest.search(name) and not name.endswith("_lwtest")
+        ]
         # Reverse the list so they can be popped in alphabetical order
         tests = sorted(tests, reverse=True)
         try:
@@ -220,7 +229,7 @@ if 1:   # Core functionality
                 func()
             except TypeError as e:
                 # Probably trying to run the module.
-                if str(e) == '''TypeError("'module' object is not callable",)''':
+                if str(e) == """TypeError("'module' object is not callable",)""":
                     print("xx lwtest.py:  need to test TypeError catch")
                 else:
                     raise
@@ -238,21 +247,26 @@ if 1:   # Core functionality
             else:
                 pass_count += 1
         stop_time = time()
-        output = (nl.join(fail_messages) if fail_messages else
-                "{}:  {} {} passed in {} [python {}]".
-                format(filename, 
-                        pass_count, 
-                        "test" if pass_count == 1 else "tests", 
-                        GetTime(stop_time - start_time), 
-                        python_version))
+        output = (
+            nl.join(fail_messages)
+            if fail_messages
+            else "{}:  {} {} passed in {} [python {}]".format(
+                filename,
+                pass_count,
+                "test" if pass_count == 1 else "tests",
+                GetTime(stop_time - start_time),
+                python_version,
+            )
+        )
         if stream and not quiet:
             print(output, file=stream)
         if nomsg:
             return fail_count
         else:
             return (fail_count, output)
+
     def raises(ExpectedExceptions, *args, **kw):
-        '''Asserts that a function call raises one of a sequence of expected
+        """Asserts that a function call raises one of a sequence of expected
         exceptions.  ExpectedExceptions can either be a single exception
         type or a sequence of such types.  If args is empty, then a context
         manager instance is returned for use in a 'with' statement.  Examples:
@@ -261,7 +275,7 @@ if 1:   # Core functionality
             Context manager:
                 with raises(ZeroDivisionError):
                     1/0
-        '''
+        """
         if args:
             try:
                 args[0](*args[1:], **kw)
@@ -270,11 +284,12 @@ if 1:   # Core functionality
             else:
                 raise AssertionError("Did not raise expected exception")
         return RaisesContextManager(ExpectedExceptions)
+
     class RaisesContextManager(object):
         def __init__(self, ExpectedExceptions):
-            '''Initialize with one one exception object or a sequence of
+            """Initialize with one one exception object or a sequence of
             exception objects
-            '''
+            """
             if issubclass(ExpectedExceptions, BaseException):
                 self.expected = set([ExpectedExceptions])
                 return
@@ -287,33 +302,46 @@ if 1:   # Core functionality
                     m = f"'{exc}' is not a subclass of BaseException"
                     raise ValueError(m)
             self.value = None
+
         def __enter__(self):
             return self
+
         def __exit__(self, exception, exception_value, traceback):
             if exception in self.expected:
                 self.value = str(exception)
                 return True
             raise AssertionError("Did not raise expected exception")
-if 1:   # Utility
+
+
+if 1:  # Utility
+
     def GetTime(duration_s):
         if duration_s > 3600:
-            return f"{duration_s/3600:.3f} hr"
+            return f"{duration_s / 3600:.3f} hr"
         elif duration_s > 60:
-            return f"{duration_s/60:.2f} min"
+            return f"{duration_s / 60:.2f} min"
         else:
             return f"{duration_s:.2f} s"
+
     def ToDoMessage(message, prefix="+ ", color=None):
-        '''This function results in a message to stdout; its purpose is to
+        """This function results in a message to stdout; its purpose is to
         allow you to see something that needs to be done, but won't cause
         the test to fail.  The message is decorated with a leading prefix
         string and the file and line number.  If color is not None, then it
         must either be a string naming a color (see color.py) or a Color
         class instance.  The message is printed in this color.
-        '''
+        """
         fn, ln, method, call = traceback.extract_stack()[-2]
         c = t(color) if color is not None else ""
-        vars = {"fn": fn, "ln": ln, "method": method, "msg": message,
-            "prefix": prefix, "c": c, "n": t.n}
+        vars = {
+            "fn": fn,
+            "ln": ln,
+            "method": method,
+            "msg": message,
+            "prefix": prefix,
+            "c": c,
+            "n": t.n,
+        }
         if vars["method"] == "<module>":
             if color is None:
                 print("{prefix}{fn}[{ln}]:  {msg}".format(**vars))
@@ -324,26 +352,33 @@ if 1:   # Utility
                 print("{prefix}{fn}[{ln}] in {method}:  {msg}".format(**vars))
             else:
                 print("{c}{prefix}{fn}[{ln}] in {method}:  {msg}{n}".format(**vars))
-if 1:   # Checking functions
+
+
+if 1:  # Checking functions
+
     def check_flt(a, b, reltol=None, abstol=None, use_min=False):
-        '''a must be a flt.  If b is not a flt, then convert it if
+        """a must be a flt.  If b is not a flt, then convert it if
         possible.
-        '''
-        assert(ii(a, flt))
-        return check_float(float(a), float(b), reltol=reltol,
-                           abstol=abstol, use_min=use_min)
+        """
+        assert ii(a, flt)
+        return check_float(
+            float(a), float(b), reltol=reltol, abstol=abstol, use_min=use_min
+        )
+
     def check_cpx(a, b, reltol=None, abstol=None, use_min=False):
-        '''a must be a cpx.  If b is not a cpx, then convert it if
+        """a must be a cpx.  If b is not a cpx, then convert it if
         possible.
-        '''
-        assert(ii(a, cpx))
-        return check_complex(complex(a), complex(b), reltol=reltol,
-                             abstol=abstol, use_min=use_min)
+        """
+        assert ii(a, cpx)
+        return check_complex(
+            complex(a), complex(b), reltol=reltol, abstol=abstol, use_min=use_min
+        )
+
     def check_float(a, b, reltol=None, abstol=None, use_min=False):
-        '''Some of these checks were patterned after the checks in
+        """Some of these checks were patterned after the checks in
         Lib/test/test_cmath.py in the python distribution (probably
         version 2.6.5).
-        '''
+        """
         if not ii(a, (int, float)):
             raise ValueError("a needs to be a float")
         if not ii(b, float):
@@ -354,11 +389,11 @@ if 1:   # Checking functions
                 raise ValueError("b must be convertible to a float")
         fail = None
         # Handle NaN and infinite values
-        if ((isnan(a) and not isnan(b)) or (not isnan(a) and isnan(b))):
+        if (isnan(a) and not isnan(b)) or (not isnan(a) and isnan(b)):
             fail = []
-        if ((isinf(a) and not isinf(b)) or (not isinf(a) and isinf(b))):
+        if (isinf(a) and not isinf(b)) or (not isinf(a) and isinf(b)):
             fail = []
-        sign_a, sign_b = copysign(1., a), copysign(1., b)
+        sign_a, sign_b = copysign(1.0, a), copysign(1.0, b)
         if isinf(a) and isinf(b):
             # a and b can be infinite, but they must have the same sign
             if sign_a != sign_b:
@@ -377,12 +412,12 @@ if 1:   # Checking functions
                 abstol = 0 if abstol is None else abstol
                 reltol = 0 if reltol is None else reltol
                 minmax = min if use_min else max
-                tolerance = minmax(abstol, reltol*abs(a))
+                tolerance = minmax(abstol, reltol * abs(a))
                 if not a and b:  # Relative to b if a is zero
-                    tolerance = minmax(abstol, reltol*abs(b))
+                    tolerance = minmax(abstol, reltol * abs(b))
                 if absdiff > tolerance:
                     fail = [
-                         "Unacceptable numerical difference:",
+                        "Unacceptable numerical difference:",
                         f"  abstol     = {abstol}",
                         f"  reltol     = {reltol}",
                         f"  tolerance  = {tolerance}",
@@ -390,6 +425,7 @@ if 1:   # Checking functions
                         f"  difference - tolerance = {absdiff - tolerance}",
                     ]
         return fail
+
     def check_decimal(a, b, reltol=None, abstol=None, use_min=False):
         fail = None
         if not ii(a, Decimal):
@@ -401,10 +437,11 @@ if 1:   # Checking functions
             except Exception:
                 raise ValueError("b must be convertible to a Decimal")
         # Handle NaN and infinite values
-        if ((a.is_nan() and not b.is_nan(b)) or (not a.is_nan() and b.is_nan())):
+        if (a.is_nan() and not b.is_nan(b)) or (not a.is_nan() and b.is_nan()):
             fail = []
-        if ((a.is_infinite() and not b.is_infinite()) or
-                (not a.is_infinite() and b.is_infinite())):
+        if (a.is_infinite() and not b.is_infinite()) or (
+            not a.is_infinite() and b.is_infinite()
+        ):
             fail = []
         sign_a, sign_b = a.copy_sign(Decimal(1)), b.copy_sign(Decimal(1))
         if a.is_infinite() and b.is_infinite():
@@ -425,12 +462,12 @@ if 1:   # Checking functions
                 abstol = zero if abstol is None else D(str(abstol))
                 reltol = zero if reltol is None else D(str(reltol))
                 minmax = min if use_min else max
-                tolerance = minmax(abstol, reltol*abs(a))
+                tolerance = minmax(abstol, reltol * abs(a))
                 if not a and b:  # Relative to b if a is zero
-                    tolerance = minmax(abstol, reltol*abs(b))
+                    tolerance = minmax(abstol, reltol * abs(b))
                 if absdiff > tolerance:
                     fail = [
-                         "Numerical difference",
+                        "Numerical difference",
                         f"  abstol     = {abstol}",
                         f"  reltol     = {reltol}",
                         f"  tolerance  = {tolerance}",
@@ -438,28 +475,30 @@ if 1:   # Checking functions
                         f"  difference - tolerance = {absdiff - tolerance}",
                     ]
         return fail
+
     def check_complex(a, b, reltol=None, abstol=None, use_min=False):
         if not ii(a, complex) or not ii(b, complex):
             raise ValueError("Both a and be need to be complex")
         # The real and imaginary parts must satisfy the requirements
         # separately.
-        fail = check_float(a.real, b.real, reltol=reltol, abstol=abstol,
-                        use_min=use_min)
-        f = check_float(a.imag, b.imag, reltol=reltol, abstol=abstol,
-                        use_min=use_min)
+        fail = check_float(
+            a.real, b.real, reltol=reltol, abstol=abstol, use_min=use_min
+        )
+        f = check_float(a.imag, b.imag, reltol=reltol, abstol=abstol, use_min=use_min)
         if f is not None:
             if fail is not None:
                 fail += f
             else:
                 fail = f
         return fail
+
     def check_equal(a, b, reltol=None, abstol=None, use_min=False):
-        '''a and b are not sequences, so they can be compared directly.
+        """a and b are not sequences, so they can be compared directly.
         The comparison semantics are determined by reltol and abstol; if
         either is nonzero, then a and b are compared as floating point
         types; which type comparison is used is determined by the type
         of a.  Otherwise, a and b are compared directly.
-        '''
+        """
         fail = None
         R, A, U = reltol, abstol, use_min
         if reltol is not None or abstol is not None:
@@ -487,9 +526,11 @@ if 1:   # Checking functions
                 if a != b:
                     fail = ["{} != {}".format(repr(a), repr(b))]
         return fail
-    def assert_equal(a, b, reltol=None, abstol=None, use_min=False, 
-                    msg="", halt=True, debug=False):
-        '''Raise an AssertionError if a != b.  a and b can be objects,
+
+    def assert_equal(
+        a, b, reltol=None, abstol=None, use_min=False, msg="", halt=True, debug=False
+    ):
+        """Raise an AssertionError if a != b.  a and b can be objects,
         numbers, or sequences of numbers (sequence elements are compared
         pairwise), or dictionaries.  reltol and abstol are the relative and
         absolute tolerances.  No exception will be raised if for each
@@ -500,16 +541,16 @@ if 1:   # Checking functions
         If both abstol and reltol are defined, the one with the larger
         tolerance range will be used unless use_min is True, in which case
         the smaller tolerance will be used.
-    
+
         If msg is present, include it in the printout as a message.
-    
+
         If halt is True, a failed assertion causes an exception to be
         raised; if halt is False, the error message is printed to stderr and
         the function returns (this allows you to e.g. start a debugger).
- 
+
         If debug is True, a failed assertion will drop you into the
         debugger.
-        '''
+        """
         # fail will be None if all things compared are equal.  Otherwise,
         # it will be a list of error message strings detailing where the
         # comparison(s) failed.
@@ -530,8 +571,9 @@ if 1:   # Checking functions
                 # they have the same key and value pairs.
                 try:
                     for i, j in zip(a, b):
-                        f = check_equal(i, j, reltol=reltol, abstol=abstol,
-                                        use_min=use_min)
+                        f = check_equal(
+                            i, j, reltol=reltol, abstol=abstol, use_min=use_min
+                        )
                         if f is not None:
                             if fail is not None:
                                 fail += f
@@ -543,7 +585,7 @@ if 1:   # Checking functions
         else:
             fail = check_equal(a, b, reltol=reltol, abstol=abstol, use_min=use_min)
         if fail is None:
-            return      # a and b were equal
+            return  # a and b were equal
         else:
             arg_not_eq = "Arguments are not equal [pyver {}]:".format(python_version)
             try:
@@ -562,11 +604,11 @@ if 1:   # Checking functions
                     ]
                 else:
                     try:
-                        rel_diff_arg1 = diff/a
+                        rel_diff_arg1 = diff / a
                     except Exception:
                         rel_diff_arg1 = None
                     try:
-                        rel_diff_arg2 = diff/b
+                        rel_diff_arg2 = diff / b
                     except Exception:
                         rel_diff_arg2 = None
                     fail += [
@@ -594,11 +636,12 @@ if 1:   # Checking functions
             breakpoint()
         else:
             print(fail, file=sys.stderr)
+
     def Assert(cond, msg="", debug=False):
-        '''Replacement for assert but it can't be optimized out.  If debug is True, Assert.debug is
+        """Replacement for assert but it can't be optimized out.  If debug is True, Assert.debug is
         True, or 'Assert' is a nonempty environment string, you'll be dropped into a debugger.  If
         msg is not empty, it's printed out.
-        '''
+        """
         if not cond:
             if debug or Assert.debug or os.environ.get("Assert", ""):
                 # Print colorized message to stdout and start debugger
@@ -608,13 +651,16 @@ if 1:   # Checking functions
                 breakpoint()
             else:
                 raise AssertionError(msg)
+
     Assert.debug = False
 
 if __name__ == "__main__":
     t.h = t("lill")
     t.w = t("whtl")
-    print(dedent(f'''
-    {t('yell')}lwtest:  Lightweight test framework -- typical usage:{t.n}
+    print(
+        dedent(
+            f'''
+    {t("yell")}lwtest:  Lightweight test framework -- typical usage:{t.n}
         from lwtest import run, assert_equal, raises
         # Name your test functions e.g. "def Test_*()"
         if __name__ == "__main__":
@@ -646,4 +692,6 @@ if __name__ == "__main__":
             you into the debugger if condition is False (type 'u' to go to the line that failed)
             and msg is printed in color to stderr.  You can also get this behavior if the
             environment variable Assert is not empty.
-    '''[1:].rstrip()))
+    '''[1:].rstrip()
+        )
+    )

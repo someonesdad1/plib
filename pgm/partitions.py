@@ -1,38 +1,42 @@
-'''
+"""
 Generate partitions of the integer n
 
     Performance:  on my 10-year-old computer under python 3.11.5 under WSL, it takes 19 s to
     calculate 'p partitions.py 70 &>/dev/null'.
-'''
+"""
+
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Generate partitions of the integer n
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Imports
+    if 1:  # Imports
         import getopt
         import sys
         from math import pi, exp, sqrt
         from collections import OrderedDict, defaultdict
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import dedent
         from f import flt
         from columnize import Columnize
-if 1:   # Utility
+if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} n [k]
           Generate the partitions of integer n.  If k is present, then the integers returned are <= k.
           The partitions of an integer n are the sets of integers <= n that sum to n.  Example:
@@ -45,16 +49,18 @@ if 1:   # Utility
             -a      Output in abbreviated form
             -c      Columnize the abbreviated form (implies -a)
             -u      Estimate number of partitions of n (Ramanujan's upper bound)
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-a"] = False     # Output in abbreviated form
-        d["-c"] = False     # Columnize the abbreviated form
-        d["-u"] = False     # Upper bound estimate
+        d["-a"] = False  # Output in abbreviated form
+        d["-c"] = False  # Columnize the abbreviated form
+        d["-u"] = False  # Upper bound estimate
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "acu") 
+            opts, args = getopt.getopt(sys.argv[1:], "acu")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -64,50 +70,54 @@ if 1:   # Utility
         if d["-c"]:
             d["-a"] = True
         return args
+
+
 if 1:  # Core functionality
+
     def partitions(n, k=None):
-        '''Generator for partitions of the integer n.  For each iteration, a list of integers that sum
+        """Generator for partitions of the integer n.  For each iteration, a list of integers that sum
         to n is returned.  If k is an integer > 0, then the returned lists are limited to integers <=
         k.  If k is None, then the lists may contain integers up to n.
-        '''
+        """
         for d in partitions_cs(n, k):
             # d will be an OrderedDict of integer keys with their repetition count as values.  Convert
             # this to a tuple of integers.
             result = []
             for i in d:
-                result += [i]*d[i]
+                result += [i] * d[i]
             assert sum(result) == n
             yield result
+
     def partitions_cs(n, k=None):
-        '''This is Chris Smith's modification of Tim Peters' fast algorithm based on a dictionary.  If
+        """This is Chris Smith's modification of Tim Peters' fast algorithm based on a dictionary.  If
         k is defined, then the partitions returned are limited to integers of value k or less; if k is
         None, then integers up to n are returned.
-     
+
         See http://code.activestate.com/recipes/218332 for the discussion & algorithms.
         ----------------------------------------------------------------------------------------------
-    
+
         Generate all partitions of integer n (>= 0) using integers no greater than k (default, None,
         allows the partition to contain n).
-     
+
         Each partition is represented as a multiset, i.e. a dictionary mapping an integer to the number
         of copies of that integer in the partition.  For example, the partitions of 4 are {4: 1}, {3:
         1, 1: 1}, {2: 2}, {2: 1, 1: 2}, and {1: 4} corresponding to [4], [1, 3], [2, 2], [1, 1, 2] and
         [1, 1, 1, 1], respectively.  In general, sum(k*v for k, v in a_partition.iteritems()) == n, and
         len(a_partition) is never larger than about sqrt(2*n).
-     
+
         Note that the _same_ dictionary object is returned each time.  This is for speed:  generating
         each partition goes quickly, taking constant time independent of n. If you want to build a list
         of returned values then use .copy() to get copies of the returned values:
-     
+
         >>> p_all = []
         >>> for p in partitions(6, 2):
         ...    p_all.append(p.copy())
         ...
         >>> print(p_all)
         [{2: 3}, {1: 2, 2: 2}, {1: 4, 2: 1}, {1: 6}]
-     
+
         Modified from Tim Peter's posting to accommodate a k value: http://code.activestate.com/recipes/218332/
-        '''
+        """
         if n < 0:
             raise ValueError("n must be >= 0")
         if k is not None and k < 1:
@@ -146,16 +156,18 @@ if 1:  # Core functionality
                 ms[r] = 1
                 keys.append(r)
             yield ms
+
     def RamanujaUpperBound(n):
         "Ramanujan's upper bound https://code.activestate.com/recipes/218332/#c2"
-        return int(exp(pi*sqrt(2*n/3))/(4*n*sqrt(3)))
+        return int(exp(pi * sqrt(2 * n / 3)) / (4 * n * sqrt(3)))
+
     def GetShortForm(lst):
-        '''lst is a list of the integers making the partition.  Return the short string form.
+        """lst is a list of the integers making the partition.  Return the short string form.
         Example:  [5, 1, 1, 1, 1, 1] is a partition of 10; the returned string will be
         "5 1⁵".
-        '''
+        """
         ss = dict(zip("0123456789", "⁰¹²³⁴⁵⁶⁷⁸⁹"))
-        o = defaultdict(int)    # Count the integers in lst
+        o = defaultdict(int)  # Count the integers in lst
         for i in lst:
             o[i] += 1
         q = []
@@ -165,10 +177,11 @@ if 1:  # Core functionality
                 for j in str(o[i]):
                     s += ss[j]
             q.append(s)
-        return ' '.join(q)
+        return " ".join(q)
+
 
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     try:
         n = int(args[0])
@@ -210,7 +223,7 @@ if __name__ == "__main__":
             if d["-a"]:
                 print(GetShortForm(i))
             else:
-                print(' '.join([str(j) for j in i]))
+                print(" ".join([str(j) for j in i]))
             count += 1
         print(rub)
         print(f"Actual count = {count}")

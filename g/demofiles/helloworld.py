@@ -1,4 +1,5 @@
 from g import *
+
 output_stream = open("out/helloworld.ps", "w")
 ginitialize(output_stream)
 setOrientation(portrait, inches)

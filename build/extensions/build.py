@@ -1,28 +1,32 @@
-'''
+"""
 Construct a dictionary of file name extensions to a tuple of their
 descriptions to stdout.  This is used to make /plib/extension.py.
-'''
-if 1:   # Header
-    if 1:   # Standard imports
+"""
+
+if 1:  # Header
+    if 1:  # Standard imports
         from collections import defaultdict
         from pathlib import Path as P
         import sys
         import time
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import dedent
         from color import t
-    if 1:   # Global variables
+    if 1:  # Global variables
         t.err = t("ornl")
+
         class G:
             pass
+
         g = G()  # Storage for global variables as attributes
-        g.di = defaultdict(list)    # Output dict
-if 1:   # Utility
+        g.di = defaultdict(list)  # Output dict
+if 1:  # Utility
+
     def Webopedia():
-        'Generator to return (ext, descr) tuples'
+        "Generator to return (ext, descr) tuples"
         # From https://www.webopedia.com/reference/data-formats-and-file-extensions/
         # 2 Dec 2023 09:08:10 AM
-        data = '''
+        data = """
             .!bt	BitTorrent Incomplete Download file
             .!qb	qBittorrent Partial Download file
             .!ut	uTorrent Incomplete Download file
@@ -4032,18 +4036,19 @@ if 1:   # Utility
             .zxp	Extension Manager Package
             .zz	Zzip Compressed Archive file
             .zzt	ZZT Game Creation System
-        '''[1:-1]
+        """[1:-1]
         for line in data.split("\n"):
             if "\t" in line:
                 e, s = line.split("\t")
                 if s.strip():
                     yield e.strip(), s.strip()
+
     def Wikipedia():
-        'Generator to return (ext, descr) tuples'
+        "Generator to return (ext, descr) tuples"
         # From https://en.wikipedia.org/wiki/List_of_file_formats
         # 2 Dec 2023 09:25:35 AM
 
-        data='''
+        data = """
             .?Q? – files that are compressed, often by the SQ program.
             7z – 7z: 7-Zip compressed file
             A – An external file extension for C/C++
@@ -5878,15 +5883,17 @@ if 1:   # Utility
             .partial – PARTIAL partly complete Internet Explorer or Edge Legacy download
             Temporary files
             .temp, .tmp – Temporary file sometimes in a specific format, but often just raw data in the middle of processing
-        '''[1:-1]
+        """[1:-1]
+
         def P(s):
             'Make extension is s lowercase and prepend a "." if needed'
             s = s.strip().lower()
-            assert(s)
+            assert s
             if not s.startswith("."):
                 s = "." + s
             return s
-        dsh = "–"   # U+2013 en dash
+
+        dsh = "–"  # U+2013 en dash
         out = defaultdict(list)
         for line in data.split("\n"):
             if not line.strip():
@@ -5908,10 +5915,12 @@ if 1:   # Utility
                     if not e.startswith("."):
                         e = "." + e
                     yield e, descr
+
     def Header():
         script = P(sys.argv[0]).absolute()
         dt = time.asctime(time.localtime())
-        print(dedent(f"""
+        print(
+            dedent(f"""
         '''
         This module provides the extensions dictionary, which provides a
         number of lowercase extensions casually used for various datafiles.
@@ -5920,11 +5929,14 @@ if 1:   # Utility
         '''
 
         extensions = {{
-        """))
+        """)
+        )
+
     def Trailer():
         print("}")
+
     def Vet():
-        'Check the dict'
+        "Check the dict"
         bad = 0
         for i in g.di:
             if not i.startswith("."):
@@ -5932,9 +5944,9 @@ if 1:   # Utility
                 bad += 1
         if bad:
             exit(1)
+
     def Fix():
-        '''Find keys with '-' in them and generate suitable ranges of them.
-        '''
+        """Find keys with '-' in them and generate suitable ranges of them."""
         Vet()
         for i in g.di.copy():
             if i == ".zs1-.zs9":
@@ -5949,6 +5961,7 @@ if 1:   # Utility
                 for j in range(9):
                     g.di[f".00{j}"] = g.di[i]
                 del g.di[i]
+
     def DumpDict():
         Fix()
         for i in sorted(g.di):
@@ -5960,7 +5973,7 @@ if 1:   # Utility
                 for j in sorted(set(g.di[i]), key=str.lower):
                     print(f"        {j!r},")
                 print(f"    ),")
-                
+
 
 if __name__ == "__main__":
     # Construct a suitable dictionary (key is extension, value is list of

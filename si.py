@@ -1,69 +1,76 @@
-'''
+"""
 SI prefixes
-'''
-if 1:   # Header
-    if 1:   # Copyright, license
+"""
+
+if 1:  # Header
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2014, 2023 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2014, 2023 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # SI constants
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         import math
         from collections import deque
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from fmt import fmt
         from f import flt
+
         have_mpmath = False
         try:
             import mpmath as M
+
             have_mpmath = True
         except ImportError:
             pass
-    if 1:   # Global variables
+    if 1:  # Global variables
         ii = isinstance
-if 1:   # Classes
+if 1:  # Classes
+
     class SI(dict):
-        '''Class to present a bidict behavior for both SI prefix strings and exponents.  Index as
+        """Class to present a bidict behavior for both SI prefix strings and exponents.  Index as
         a dictionary with an SI prefix string and you'll have the corresponding base 10 logarithm
         returned.  Call as a function with an integer representing the base 10 logarithm of the
         prefix and you'll have the corresponding prefix returned.
-     
+
         An incorrect string or integer will result in a KeyError exception.
-    
+
         Use pure=True in constructor to avoid the 'd c da h" prefixes.
-        '''
+        """
+
         def __init__(self, pure=False):
-            self.update({
-                "m": -3,    # milli
-                "μ": -6,    # micro
-                "u": -6,    # micro
-                "n": -9,    # nano
-                "p": -12,   # pico
-                "f": -15,   # femto
-                "a": -18,   # atto
-                "z": -21,   # zepto
-                "y": -24,   # yocto
-                "r": -27,   # ronto   Added 2022 27th CGPM
-                "q": -30,   # quecto  Added 2022 27th CGPM
-                "k": 3,     # kilo
-                "M": 6,     # mega
-                "G": 9,     # giga
-                "T": 12,    # tera
-                "P": 15,    # peta
-                "E": 18,    # exa
-                "Z": 21,    # zetta
-                "Y": 24,    # yotta
-                "R": 27,    # ronna   Added 2022 27th CGPM
-                "Q": 30,    # quetta  Added 2022 27th CGPM
-            })
+            self.update(
+                {
+                    "m": -3,  # milli
+                    "μ": -6,  # micro
+                    "u": -6,  # micro
+                    "n": -9,  # nano
+                    "p": -12,  # pico
+                    "f": -15,  # femto
+                    "a": -18,  # atto
+                    "z": -21,  # zepto
+                    "y": -24,  # yocto
+                    "r": -27,  # ronto   Added 2022 27th CGPM
+                    "q": -30,  # quecto  Added 2022 27th CGPM
+                    "k": 3,  # kilo
+                    "M": 6,  # mega
+                    "G": 9,  # giga
+                    "T": 12,  # tera
+                    "P": 15,  # peta
+                    "E": 18,  # exa
+                    "Z": 21,  # zetta
+                    "Y": 24,  # yotta
+                    "R": 27,  # ronna   Added 2022 27th CGPM
+                    "Q": 30,  # quetta  Added 2022 27th CGPM
+                }
+            )
             self.d = {
                 -30: "q",
                 -27: "r",
@@ -89,51 +96,60 @@ if 1:   # Classes
             }
             self.pure = pure
             if not self.pure:
-                self.update({
-                    "d": -1,
-                    "c": -2,
-                    "da": 1,
-                    "h": 2,
-                })
-                self.d.update({
-                    -1: "d",
-                    -2: "c",
-                    1: "da",
-                    2: "h",
-                })
+                self.update(
+                    {
+                        "d": -1,
+                        "c": -2,
+                        "da": 1,
+                        "h": 2,
+                    }
+                )
+                self.d.update(
+                    {
+                        -1: "d",
+                        -2: "c",
+                        1: "da",
+                        2: "h",
+                    }
+                )
+
         def __call__(self, x):
             return self.d[x]
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def GetSIExponent(e: int):
-        '''Return None if not (-24 <= e <= 26).  Otherwise, return the nearest integer that is a
+        """Return None if not (-24 <= e <= 26).  Otherwise, return the nearest integer that is a
         suitable exponent division by 3.
-        '''
+        """
         if not (-24 <= e <= 26):
             return None
         e = 24 if e > 24 else e
         while abs(e) % 3 != 0:
             e -= 1
         return e
+
     def GetSI(x, eng=False):
-        '''
+        """
         - Call with a single character string that is an SI prefix and you'll have the
           corresponding power of 10 returned.  An unrecognized SI string results in an exception.
-     
+
         - Call with a number (integer or float) and a tuple (x, t, p) will be returned:
             x is the original number
             t is the number's significand (a number in the interval [1, 10)
             p is the appropriate SI prefix
-          
+
           If x is 0, then (x, 0, "") is returned.
-     
+
           If x is in (1/1000, 1000), then (x, x, "") is returned.
-     
+
           If x is not within a factor of 1000 of the largest or smallest SI prefix, then None is
           returned for t and p.  The exception is when x is 0, in which case (x, 0, "") will be
           returned.  If x is in (1/1000, 1000), then (x, x, "") is returned if eng is True.
-     
+
           If eng is True, then the prefixes d, c, da, and h are not allowed.
-        '''
+        """
         if ii(x, str):
             if not x:
                 return 1
@@ -143,7 +159,7 @@ if 1:   # Core functionality
                 if eng and x in ("d", "c", "da", "h"):
                     msg = "Prefixes that aren't a power of 3 not allowed"
                     raise ValueError(msg)
-                return 10**si[x]
+                return 10 ** si[x]
             else:
                 raise ValueError("'%s' is not a recognized SI prefix" % x)
         elif ii(x, (int, float)) or (have_mpmath and ii(x, M.mpf)):
@@ -159,9 +175,9 @@ if 1:   # Core functionality
             e1 = GetSIExponent(e)
             if e1 is None:
                 return no_match
-            assert(e1 <= e)
+            assert e1 <= e
             correction = e - e1
-            assert(correction in (0, 1, 2))
+            assert correction in (0, 1, 2)
             # Get significand
             t = fmt.significand(abs(x))
             t = M.mpf(t) if have_mpmath and ii(x, M.mpf) else float(t)
@@ -171,12 +187,13 @@ if 1:   # Core functionality
             return (x, t, p)
         else:
             raise ValueError("x must be string, float (mpmath.mpf OK too), or integer")
+
     def GetSISuffix(s, eng=False):
-        '''Return (s1, sisuffix) where s1 is the string s with the SI suffix sisuffix removed.
+        """Return (s1, sisuffix) where s1 is the string s with the SI suffix sisuffix removed.
         Leading and trailing whitespace are first removed from s.
-        
+
         If eng is True, then the prefixes d, c, da, and h are not allowed.
-        
+
         Examples:                                   Returns
             GetSISuffix("")                         ("", "")
             GetSISuffix("   ")                      ("", "")
@@ -184,7 +201,7 @@ if 1:   # Core functionality
             GetSISuffix("wirhwuda")                 ("wirhwu", "da")
             GetSISuffix("wirhwuda", eng=True)       ("wirhwuda", "")
             GetSISuffix("wirhwux")                  ("wirhwux", "")
-        '''
+        """
         s1 = s.strip()
         if not s1:
             return ("", "")
@@ -196,40 +213,42 @@ if 1:   # Core functionality
         si = SI(pure=eng)
         for prefix in prefixes:
             if s1.endswith(prefix):
-                return (s1[:-len(prefix)].strip(), prefix)
+                return (s1[: -len(prefix)].strip(), prefix)
         return (s1, "")
+
     def NumberWithSISuffix(s, eng=False):
-        '''Return a flt form of the string s.  When s has an SI prefix as a suffix, include its
+        """Return a flt form of the string s.  When s has an SI prefix as a suffix, include its
         magnitude.  If eng is True, then the prefixes d, c, da, and h are not allowed.  If a
         suitable flt form can't be returned, raise ValueError.
-        
+
         The use case is scripts that request user input.  For example, when working with
         capacitance, microfarads is a common unit and it's handy to let the user type in '10 u' or
         '10u' to a prompt to indicate 10e-6 as a shorthand.  This also allows the shorthand 'u' to
         mean '1u'.
-        
+
         Examples:
             - '1.2k' and '1.2 k' will return flt(1.2)*1000.
             - 'k' and '   k   ' will return flt(1000).
             - 'xyz' will raise an exception even though the last character is a valid SI prefix
               because the conversion of 'xy' to flt will fail.
-        '''
+        """
         sx, si = s.strip(), SI(pure=eng)
         number, suffix = GetSISuffix(sx, eng=eng)
         x = flt(number)
         if suffix:
             try:
-                x *= 10**si[suffix]
+                x *= 10 ** si[suffix]
             except IndexError:
                 msg = f"{suffix!r} is not a valid SI prefix"
                 raise ValueError(msg)
         return x
+
     def PerformConversion(s):
-        '''If the string s contains 'e', then convert to SI engineering notation.
+        """If the string s contains 'e', then convert to SI engineering notation.
         If it contains an SI prefix, convert it to 'e' notation.
-     
+
         Examples:  '3.4e7' returns '34M'.  '34M' returns '3.4e7'.
-        '''
+        """
         # Remove any trailing SI prefix
         n = GetSignificantFigures(s)
         if "e" in s:
@@ -247,20 +266,23 @@ if 1:   # Core functionality
             if si_prefix_found:
                 if not s.endswith(si_prefix_found):
                     raise ValueError(f"{s!r} doesn't end with {si_prefix_found!r}")
-                x = float(s[:-1])*10**si[si_prefix_found]
+                x = float(s[:-1]) * 10 ** si[si_prefix_found]
                 return fmt.sci(x, n=n)
             else:
-                # Assume it's an integer 
+                # Assume it's an integer
                 return flt(s).engsi
+
     def GetSignificantFigures(s, rtz=False):
-        '''Given a string s representing a floating point number, determine how
+        """Given a string s representing a floating point number, determine how
         many significant figures it has.  If rtz is True, remove trailing
         zeroes.
-        '''
+        """
+
         def Fix(s):
             for i in "+- .,":
                 s = s.replace(i, "")
             return s
+
         # Remove any SI prefix
         u = s
         for i in si:
@@ -275,7 +297,7 @@ if 1:   # Core functionality
         else:
             t = Fix(u)
         # t should now be an integer.  Note an integer > 1e308 will cause an
-        # exception.  
+        # exception.
         if set(t) == {"0"}:
             # The special case of any number of "0" characters will always
             # be one significant figure
@@ -285,12 +307,13 @@ if 1:   # Core functionality
             u = deque(str(int(t)))
             while len(u) > 1 and u[-1] == "0":
                 u.pop()
-            t = ''.join(u)
+            t = "".join(u)
         return len(t)
+
     def ConvertSI(s):
-        '''String s can end in an SI prefix and the remaining characters must
+        """String s can end in an SI prefix and the remaining characters must
         represent a float.  Return a flt instance for the represented number.
-        '''
+        """
         if s == "inf":
             return flt("inf")
         elif s == "-inf":
@@ -305,37 +328,45 @@ if 1:   # Core functionality
         if not found:
             return flt(s)
         s = s[:-1]  # Remove prefix letter
-        x = flt(s)*10**si[prefix]
+        x = flt(s) * 10 ** si[prefix]
         return x
 
-# Convenience instance 
+
+# Convenience instance
 si = SI(pure=True)
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
     import getopt
     import sys
     from lwtest import Assert, raises
     from wrap import dedent
+
     if 0:
         import debug
+
         debug.SetDebugger()
-    if 1:   # Utility
+    if 1:  # Utility
+
         def Error(*msg, status=1):
             print(*msg, file=sys.stderr)
             exit(status)
+
         def Usage(status=1):
-            print(dedent(f'''
+            print(
+                dedent(f"""
             Usage:  {sys.argv[0]} [options] expr1 [expr2 ...]
               Convert expressions to and from SI-prefix forms.  If no
               expressions are given, print out a table of SI prefixes.
             Options:
                 -t      Put tabs in the table output
-            '''))
+            """)
+            )
             exit(status)
+
         def ParseCommandLine(d):
-            d["-t"] = False     # Tabs in printed table
+            d["-t"] = False  # Tabs in printed table
             try:
-                opts, args = getopt.getopt(sys.argv[1:], "ht") 
+                opts, args = getopt.getopt(sys.argv[1:], "ht")
             except getopt.GetoptError as e:
                 print(str(e))
                 exit(1)
@@ -345,14 +376,16 @@ if __name__ == "__main__":
                 if o == "-h":
                     Usage(0)
             return args
-    if 1:   # Tests
+
+    if 1:  # Tests
+
         def RunSelfTests():
             global si
             si = SI(pure=False)
             # float
             a = 6.2
             for e in range(-25, 28):
-                b = a*10**e
+                b = a * 10**e
                 e1 = GetSIExponent(e)
                 expected_p = None
                 if e1 in si.values():
@@ -363,7 +396,7 @@ if __name__ == "__main__":
                     Assert(p == expected_p)
                     Assert(correction in (0, 1, 2))
                     x1 = round(float(t), 2)
-                    b1 = 10**correction*round(float(fmt.significand(t)), 2)
+                    b1 = 10**correction * round(float(fmt.significand(t)), 2)
                     Assert(str(x1) == str(b1))
                 else:
                     if e < -24 or e > 25:
@@ -375,7 +408,7 @@ if __name__ == "__main__":
             # mpmath
             a = M.mpf(6.2)
             for e in range(-25, 28):
-                b = a*10**e
+                b = a * 10**e
                 e1 = GetSIExponent(e)
                 expected_p = None
                 if e1 in si.values():
@@ -386,7 +419,7 @@ if __name__ == "__main__":
                     Assert(p == expected_p)
                     Assert(correction in (0, 1, 2))
                     x1 = round(M.mpf(t), 2)
-                    b1 = 10**correction*round(M.mpf(fmt.significand(t)), 2)
+                    b1 = 10**correction * round(M.mpf(fmt.significand(t)), 2)
                     Assert(str(x1) == str(b1))
                 else:
                     if e < -24 or e > 25:
@@ -425,7 +458,7 @@ if __name__ == "__main__":
                 "Q": 30,
             }
             for prefix in di:
-                expected = 10**di[prefix]
+                expected = 10 ** di[prefix]
                 Assert(expected == GetSI(prefix, eng=False))
             # Not allowed prefix when eng is True
             for i in ("d", "c", "da", "h"):
@@ -442,7 +475,7 @@ if __name__ == "__main__":
                 ("12.340000", True, 4),
                 ("12.34e6", False, 4),
                 ("12.34×10⁶", False, 4),
-                ):
+            ):
                 Assert(GetSignificantFigures(s, rtz=rtz) == n)
                 Assert(GetSignificantFigures("-" + s, rtz=rtz) == n)
             # Test GetSISuffix
@@ -474,10 +507,11 @@ if __name__ == "__main__":
             raises(ValueError, NumberWithSISuffix, "1da", eng=True)
             # Reset global variable
             si = SI(pure=True)
-    if 1:   # Run self tests
+
+    if 1:  # Run self tests
         RunSelfTests()
     # Script behavior
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     if args:
         for arg in args:
@@ -492,23 +526,23 @@ if __name__ == "__main__":
             -18: "atto      1964",
             -15: "femto     1964",
             -12: "pico      1960",
-             -9: "nano      1960",
-             -6: "micro     1960",
-             -3: "milli     1795",
-             -2: "centi     1795",
-             -1: "deci      1795",
-              1: "deca      1795",
-              2: "hecto     1795",
-              3: "kilo      1795",
-              6: "mega      1960",
-              9: "giga      1960",
-             12: "tera      1960",
-             15: "peta      1975",
-             18: "exa       1975",
-             21: "zetta     1991",
-             24: "yotta     1991",
-             27: "ronna     2022",
-             30: "quetta    2022",
+            -9: "nano      1960",
+            -6: "micro     1960",
+            -3: "milli     1795",
+            -2: "centi     1795",
+            -1: "deci      1795",
+            1: "deca      1795",
+            2: "hecto     1795",
+            3: "kilo      1795",
+            6: "mega      1960",
+            9: "giga      1960",
+            12: "tera      1960",
+            15: "peta      1975",
+            18: "exa       1975",
+            21: "zetta     1991",
+            24: "yotta     1991",
+            27: "ronna     2022",
+            30: "quetta    2022",
         }
         si = SI(pure=False)
         if d["-t"]:

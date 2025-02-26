@@ -1,4 +1,4 @@
-'''
+"""
 Finds duplicate files in directory trees
     The algorithm used is to walk the directory tree(s) using os.walk().
     The files found then have their (hash, size) saved in a dictionary
@@ -9,21 +9,22 @@ Finds duplicate files in directory trees
     all the bytes in the file to be more sure of identity -- the
     tradeoff is that this can increase the time the program runs by
     about an order of magnitude.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2011 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2011 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Find duplicate files in directory trees
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import os
     import getopt
@@ -31,24 +32,31 @@ if 1:   # Imports
     import stat
     import re
     from collections import defaultdict
-    from pdb import set_trace as xx 
-if 1:   # Custom imports
+    from pdb import set_trace as xx
+if 1:  # Custom imports
     from wrap import dedent
+
     try:
         import color as C
+
         have_color = True
     except ImportError:
         have_color = False
-if 1:   # Global variables
+if 1:  # Global variables
     _debug = False
     # Hashing method to use on files
     hash = hashlib.sha1
+
+
 class IgnoreThisFile(Exception):
     pass
+
+
 def Usage(d, status=1):
     name = sys.argv[0]
     dashb = d["-b"]
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {name} dir1 [dir2...]
       Display duplicate files in directories.  In the output, 1: means
       dir1, 2: means dir2, etc.  Hard links are reported (turn off with
@@ -74,34 +82,41 @@ def Usage(d, status=1):
       -x re   Ignore specified file regexp.  Can have multiple -x's.
       -X re   Ignore specified directory regexp.  Can have multiple -X's.
       -z      Do not ignore zero-length files
-    '''))
+    """)
+    )
     exit(status)
+
+
 def Debug(*s, **kw):
     stream = kw.setdefault("file", sys.stderr)
     ends = kw.setdefault("end", "\n")
     if _debug:
         print(*s, **kw)
+
+
 def Error(*s, **kw):
     stream = kw.setdefault("file", sys.stderr)
     ends = kw.setdefault("end", "\n")
     print(*s, file=stream, end=ends)
     exit(1)
+
+
 def ParseCommandLine(d):
-    d["-b"] = 4096      # Bytes to read to compute hash
-    d["-c"] = False     # Use color if True
-    d["-d"] = False     # Show debug information
-    d["-F"] = False     # Find duplicate file names, print full path
-    d["-f"] = False     # Find duplicate file names
-    d["-g"] = False     # Do not ignore git directories
-    d["-h"] = False     # Do not ignore hidden directories
-    d["-L"] = False     # Do not report hard links
-    d["-l"] = False     # Dereference symbolic links
-    d["-m"] = False     # Do not ignore Mercurial directories
-    d["-r"] = False     # Disable recursion
-    d["-t"] = -1        # Threshold for size, in bytes
-    d["-x"] = set()     # File regexps to ignore
-    d["-X"] = set()     # Directory regexps to ignore
-    d["-z"] = False     # Do not ignore zero-length files
+    d["-b"] = 4096  # Bytes to read to compute hash
+    d["-c"] = False  # Use color if True
+    d["-d"] = False  # Show debug information
+    d["-F"] = False  # Find duplicate file names, print full path
+    d["-f"] = False  # Find duplicate file names
+    d["-g"] = False  # Do not ignore git directories
+    d["-h"] = False  # Do not ignore hidden directories
+    d["-L"] = False  # Do not report hard links
+    d["-l"] = False  # Dereference symbolic links
+    d["-m"] = False  # Do not ignore Mercurial directories
+    d["-r"] = False  # Disable recursion
+    d["-t"] = -1  # Threshold for size, in bytes
+    d["-x"] = set()  # File regexps to ignore
+    d["-X"] = set()  # Directory regexps to ignore
+    d["-z"] = False  # Do not ignore zero-length files
     # Ignore some common files I use
     d["-x"].add(re.compile(r"\.vi"))
     d["-x"].add(re.compile(r"\.z"))
@@ -154,27 +169,31 @@ def ParseCommandLine(d):
     for k in keys:
         Debug("%4s%-4s %s" % (" ", k, d[k]))
     return dirs
+
+
 def GetSize(s):
-    '''Return the size in bytes from the string s.  Note s can have k,
+    """Return the size in bytes from the string s.  Note s can have k,
     M, G, or T appended (interpret as decimal SI prefixes).
-    '''
+    """
     msg = "'%s' is a bad threshold specification" % s
     si = {"k": 3, "M": 6, "G": 9, "T": 12}
     s, factor = s.replace(" ", ""), 1
     if s[-1] in si:
-        factor = int(10**si[s[-1]])
+        factor = int(10 ** si[s[-1]])
         s = s[:-1]
     try:
         i = float(s)
     except Exception:
         Error(msg)
-    return int(factor*i)
+    return int(factor * i)
+
+
 def ProcessDir(dirnum, dir, d):
-    '''Return a dictionary containing the information on the files in
+    """Return a dictionary containing the information on the files in
     the directory dir.  dirnum is an integer indicating the order on
     the command line.  dir is a single directory.  d is the settings
     dictionary.
- 
+
     The returned dictionary has the form (s=string, i=integer, b=bool):
     {
         (hash1, size1) : [
@@ -187,7 +206,7 @@ def ProcessDir(dirnum, dir, d):
         ],
         ...
     }
-    '''
+    """
     # Get a list of all the files
     dirfiles = []
     for root, dirs, files in os.walk(dir):
@@ -207,15 +226,17 @@ def ProcessDir(dirnum, dir, d):
         # Check for directories that we'll ignore by default
         if ".hg" in dir_fields and not d["-m"]:
             Debug("Ignoring Mercurial directory:  ", root)
-            continue    # Ignore Mercurial directories
+            continue  # Ignore Mercurial directories
         if ".git" in dir_fields and not d["-g"]:
             Debug("Ignoring git directory:  ", root)
-            continue    # Ignore Mercurial directories
+            continue  # Ignore Mercurial directories
+
         def dotted(x):
             x.startswith(".") and x != "."
+
         if any([dotted(i) for i in dir_fields]) and not d["-h"]:
             Debug("Ignoring hidden directory:  ", root)
-            continue    # Ignore hidden directories
+            continue  # Ignore hidden directories
         # Check that each file doesn't match the -X regexps -- if no
         # matches, then add to the dirfiles sequence.
         for f in files:
@@ -285,34 +306,39 @@ def ProcessDir(dirnum, dir, d):
                     # It's below the size threshold in d["-t"]
                     Debug("Ignoring file below threshold:  ", filename)
         return hashdict
+
+
 def GetColor(size):
-    '''Return a color indicating file size.
-    '''
+    """Return a color indicating file size."""
     if size < 10**5:
         return C.white
     elif size < 10**6:
         return C.yellow
     else:
         return C.lred
+
+
 def PrintSize(size, stream, d):
     if d["-c"]:
         C.fg(GetColor(size))
     print("%d" % size, file=stream, end="")
     if d["-c"]:
         C.normal()
+
+
 def ReportDuplicate(item, d, stream):
-    '''item is a list of tuples (length > 1) that contain duplicated
+    """item is a list of tuples (length > 1) that contain duplicated
     information.  Print this information to the indicated stream and
     end with a blank line.
- 
+
         item = [
             (filename, lstat_info, dirnumber, islink),
             ...
         ]
- 
+
     Note the lstat() info is stat() instead if the -l option is used
     because -l means to follow symbolic links.
-    '''
+    """
     if not d["-L"]:
         # Get a list of hard links (soft links also look like hard
         # links if the -l option was used).
@@ -325,11 +351,14 @@ def ReportDuplicate(item, d, stream):
                 if d["-c"]:
                     C.fg(C.yellow)
                 if d["-l"]:
-                    print("Hard-linked [inode] or soft-linked <inode> files "
-                          "(-l option used) (", file=stream, end="")
+                    print(
+                        "Hard-linked [inode] or soft-linked <inode> files "
+                        "(-l option used) (",
+                        file=stream,
+                        end="",
+                    )
                 else:
-                    print("Hard-linked files [inode number] (",
-                          file=stream, end="")
+                    print("Hard-linked files [inode number] (", file=stream, end="")
                 PrintSize(size, stream, d)
                 print("):")
                 if d["-c"]:
@@ -356,18 +385,22 @@ def ReportDuplicate(item, d, stream):
         print("  %d:  %s" % (dirnumber, filename), file=stream)
     # Make sure there's a blank line to separate duplicate information
     print("", file=stream)
+
+
 def ReportDuplicates(fileinfo, d, stream=sys.stdout):
-    '''fileinfo is a dictionary with keys (hash, size) and values that
+    """fileinfo is a dictionary with keys (hash, size) and values that
     are a list of tuples(filename, lstat_info, dirnumber).  d is the
     options dictionary.  stream is where to print the results.
 
     If a value list contains more than one tuple, this is duplicated
     information.  It can be due to either a copy of a file or a hard
     link.
-    '''
+    """
     for i in fileinfo:
         if len(fileinfo[i]) > 1:
             ReportDuplicate(fileinfo[i], d, stream)
+
+
 def ReportDuplicateFilenames(fileinfo, d, stream=sys.stdout):
     duplicates = []
     for key, value in fileinfo.items():
@@ -387,6 +420,8 @@ def ReportDuplicateFilenames(fileinfo, d, stream=sys.stdout):
                     i = "."
                 print("    %s" % i, file=stream)
         print(file=stream)
+
+
 if __name__ == "__main__":
     d = {}  # Options dictionary
     dirs = ParseCommandLine(d)

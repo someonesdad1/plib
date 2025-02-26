@@ -1,8 +1,10 @@
 import sys
+
 if 1:
     import debug
+
     debug.SetDebugger()
-attr = f'''
+attr = f"""
 file = {sys.argv[0]}
 These pencil color definitions were downloaded from the Excel file
 https://www.resene.co.nz/swatches/download_pencils.xls.  This was
@@ -10,8 +12,8 @@ converted to Open Office, the columns for name and RGB colors saved, and
 then was saved as a CSV file.  Downloaded Wed 16 Mar 2022 04:59:10 PM.
 After deleting names that had '-' for colors, this information was the
 same as the file I loaded from this site on 1 Jun 2021.
-'''.strip()
-data = '''
+""".strip()
+data = """
 A B Sea,51,80,131
 ASAP,192,187,29
 Ab Fab,50,27,47
@@ -3311,13 +3313,13 @@ Zuccini,23,70,46
 Zulu,88,81,86
 Zumthor,205,213,213
 Zydeco,32,72,63
-'''.strip()
+""".strip()
 comma = ","
 print(f"""'''{attr}'''""")
 for i, line in enumerate(data.split("\n")):
     loc = line.find(comma)
     name = line[:loc]
-    color = line[loc + 1:].split(comma)
+    color = line[loc + 1 :].split(comma)
     r, g, b = [int(i) for i in color]
     h = f"#{r:02x}{g:02x}{b:02x}"
     print(f"{name}, #{r:02x}{g:02x}{b:02x}")

@@ -1,35 +1,39 @@
-'''
+"""
 Plot a histogram of the file sizes for the directories given on the command
 line.  Recursively walk each of the directories.  Uses matplotlib and
 numpy.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Plot file sizes in given directories
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import getopt
     import os
     from pylab import *
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
-if 1:   # Global variables
+if 1:  # Global variables
     out = sys.stdout.write
     nl = "\n"
+
+
 def Usage(d, status=1):
     name = sys.argv[0]
     binsize = d["-b"]
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {name} [options] dir1 [dir2...]
       Plots a histogram of file sizes for the indicated directories.  The
       directories are descended recursively.  Files of zero size are ignored
@@ -49,8 +53,11 @@ def Usage(d, status=1):
       -z
         Do not ignore zero-length files.  These zero-length files are encoded
         with logarithms of -0.5.
-    '''))
+    """)
+    )
     exit(status)
+
+
 def ParseCommandLine(d):
     d["-b"] = 40
     d["-f"] = None
@@ -79,6 +86,8 @@ def ParseCommandLine(d):
     if not args:
         Usage(d)
     return args
+
+
 def ProcessFiles(root, files, d):
     sizes = []
     for file in files:
@@ -92,6 +101,8 @@ def ProcessFiles(root, files, d):
         except Exception:
             pass
     return sizes
+
+
 def ProcessDir(dir, d):
     sizes = []
     for root, dirs, files in os.walk(dir):
@@ -99,7 +110,9 @@ def ProcessDir(dir, d):
         if d["-r"]:
             break
     return sizes
-if __name__ == "__main__": 
+
+
+if __name__ == "__main__":
     d = {}  # Options dictionary
     dirs = ParseCommandLine(d)
     sizes = []

@@ -1,33 +1,35 @@
-'''
+"""
 Use /usr/bin/factor to provide the prime factorization of integers
     Factor(3141596, u=True) produces 2²·37·21227
     Factor(3141596) produces 2^2*37*21227
-'''
-if 1:   # Header
-    if 1:   # Copyright, license
+"""
+
+if 1:  # Header
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Provide Factor(x), which factors integers using /usr/bin/factor
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         from collections import deque, defaultdict
         import subprocess
-    if 1:   # Global variables
+    if 1:  # Global variables
         ii = isinstance
-if 1:   # Core functionality
+if 1:  # Core functionality
+
     def Factor(x, u=False):
-        '''Return the string representing the prime factorization of
+        """Return the string representing the prime factorization of
         integer x.  If u is True, use Unicode to represent the
         factorization.  Return None if something goes wrong.
-        '''
+        """
         e = dict(zip(list(range(10)), "⁰¹²³⁴⁵⁶⁷⁸⁹"))
         if not (ii(x, int)):
             raise TypeError("x must be an integer")
@@ -51,7 +53,7 @@ if 1:   # Core functionality
             else:
                 o.append(str(i))
         r = "*".join(o)
-        assert(eval(r) == x)
+        assert eval(r) == x
         r = r.replace("**", "^")
         # Return the needed value
         if u:
@@ -69,15 +71,22 @@ if 1:   # Core functionality
         else:
             return r
 
-if __name__ == "__main__": 
+
+if __name__ == "__main__":
     from lwtest import run, Assert
     from math import factorial
+
     def Test_Factor():
         x = factorial(100)
-        s = ("2^97*3^48*5^24*7^16*11^9*13^7*17^5*19^5*23^4*29^3*31^3*"
-             "37^2*41^2*43^2*47^2*53*59*61*67*71*73*79*83*89*97")
+        s = (
+            "2^97*3^48*5^24*7^16*11^9*13^7*17^5*19^5*23^4*29^3*31^3*"
+            "37^2*41^2*43^2*47^2*53*59*61*67*71*73*79*83*89*97"
+        )
         Assert(Factor(x, u=False) == s)
-        s = ("2⁹⁷·3⁴⁸·5²⁴·7¹⁶·11⁹·13⁷·17⁵·19⁵·23⁴·29³·31³·37²·41²·"
-             "43²·47²·53·59·61·67·71·73·79·83·89·97")
+        s = (
+            "2⁹⁷·3⁴⁸·5²⁴·7¹⁶·11⁹·13⁷·17⁵·19⁵·23⁴·29³·31³·37²·41²·"
+            "43²·47²·53·59·61·67·71·73·79·83·89·97"
+        )
         Assert(Factor(x, u=True) == s)
+
     exit(run(globals(), halt=True)[0])

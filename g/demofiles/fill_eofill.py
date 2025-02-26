@@ -1,18 +1,22 @@
-'''
+"""
 Draw two little squares inside of a square as part of the same path,
 then fill it.  The square at the bottom of the page is filled with the
 default filling method.  You'll see that the inner square marked CCW
 (means it was traversed in the counterclockwise direction) is filled,
 but the CW sqare is not.   The upper square on the page is filled with
 a different PostScript filling method called eofill, or "even-odd"
-fill. 
+fill.
 
 See the documentation for an explanation of the difference between the
 fillPath() and the eofillPath() commands.
-'''
+"""
+
 from g import *
 import random
+
 rand = random.random  # Convenience name for a random number generator that
+
+
 # returns a uniformly-distributed random number between
 # 0.0 and 1.0.
 def ShowDifferentFillTypes(file):
@@ -100,9 +104,7 @@ def ShowDifferentFillTypes(file):
     translate(0.5, 0)  # Left margin
     move(0, 1.3)
     textSize(0.2)
-    text(
-        "This demonstrates the differences between two PostScript filling methods."
-    )
+    text("This demonstrates the differences between two PostScript filling methods.")
     move(0, 1.1)
     text(
         "eofill is even-odd fill:  an area is filled if a line from inside to infinity crosses an odd"
@@ -114,4 +116,6 @@ def ShowDifferentFillTypes(file):
     move(0, 0.7)
     text("lines crossed is included in the sum.")
     s.close()
+
+
 ShowDifferentFillTypes("out/fill_eofill.ps")

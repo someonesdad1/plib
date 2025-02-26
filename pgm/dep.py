@@ -1,8 +1,8 @@
-'''
+"""
 Find python library dependencies
     Prints out the python library dependencies of the python files given on the
     command line.  This is done by scanning the files with regular
-    expressions, so it can miss things.  But it will find lines like 
+    expressions, so it can miss things.  But it will find lines like
 
         import x
         from x import a, b, c
@@ -37,21 +37,22 @@ Find python library dependencies
                 debug
                 lwtest
                 sig
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2018 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2018 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Show python import dependencies
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Standard imports
+if 1:  # Standard imports
     from glob import glob
     import getopt
     import os
@@ -59,16 +60,18 @@ if 1:   # Standard imports
     import sys
     import sysconfig
     from collections import defaultdict
-    from pdb import set_trace as xx 
+    from pdb import set_trace as xx
     from importlib.util import find_spec
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
-if 1:   # Global variables
+if 1:  # Global variables
     version = None
-if 1:   # Utility
+if 1:  # Utility
+
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
+
     def CheckVersion():
         v = sys.version_info
         msg = "Python version must be >= 3.7"
@@ -76,12 +79,13 @@ if 1:   # Utility
             Error(msg)
         global version
         version = f"{v.major}.{v.minor}"
+
     def Usage(d):
         name = sys.argv[0]
         stdlib_dir = sysconfig.get_paths()["stdlib"]
-        addon_dir = os.path.join(sysconfig.get_paths()["stdlib"],
-                                "site-packages")
-        print(dedent(f'''
+        addon_dir = os.path.join(sysconfig.get_paths()["stdlib"], "site-packages")
+        print(
+            dedent(f"""
         Usage:  {name} [options] [file1 ...]
           Determine the python module dependencies of the files given on the
           command line.  IMPORTANT:  it will not find *.pyc or *.pyo files your
@@ -100,8 +104,10 @@ if 1:   # Utility
         Options:
           -n        Show only the modules that can't be imported.  These are
                     typically missing modules or ones that have errors.
-        '''))
+        """)
+        )
         exit(1)
+
     def ParseCommandLine(d):
         CheckVersion()
         d["-n"] = False
@@ -118,7 +124,10 @@ if 1:   # Utility
         if not files:
             Usage(d)
         return files
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def CanBeImported(module):
         # This method doesn't actually import the file
         try:
@@ -129,20 +138,22 @@ if 1:   # Core functionality
             return False
         else:
             return False if s is None else True
+
     def GetModuleListing() -> dict:
-        '''Return a dictionary containing the names of the modules in the
+        """Return a dictionary containing the names of the modules in the
         standard python distribution and the add-ons.  They keys are:
             stdlib
             addon
             compiled
         and the values are a set of the string names of the modules.
-        '''
+        """
         listing, currdir = {}, os.getcwd()
         # compiled:  Note:  these are manually-built lists.  If you want to
         # support another python version, look at the DLL names in
         # /usr/lib/pythonX.X/lib-dynload.  This list was updated for
         # python 3.7.7 on cygwin on 6 May 2021.
-        listing["compiled"] = set('''
+        listing["compiled"] = set(
+            """
             asyncio bisect blake2 bz2 codecs_cn codecs_hk codecs_iso2022
             codecs_jp codecs_kr codecs_tw contextvars crypt csv ctypes
             curses curses_panel datetime dbm decimal elementtree gdbm
@@ -151,7 +162,8 @@ if 1:   # Core functionality
             sha1 sha256 sha3 sha512 socket sqlite3 ssl struct tkinter
             uuid array audioop binascii cmath fcntl grp math mmap parser
             pyexpat readline resource select syslog termios unicodedata
-            zlib'''.split())
+            zlib""".split()
+        )
         # stdlib
         dir, files = sysconfig.get_paths()["stdlib"], set()
         os.chdir(dir)
@@ -159,8 +171,9 @@ if 1:   # Core functionality
             if i.endswith(".py"):
                 i = i[:-3]
             files.add(i)
-        for i in ("__phello__.foo __pycache__ site-packages pydoc_data "
-                "lib-dynload test").split():
+        for i in (
+            "__phello__.foo __pycache__ site-packages pydoc_data lib-dynload test"
+        ).split():
             if i in files:
                 files.remove(i)
         files.add("sys")  # Must manually add
@@ -176,18 +189,19 @@ if 1:   # Core functionality
         # Ready to return
         os.chdir(currdir)
         return listing
+
     def Classify(modules: set) -> dict:
-        '''Return a dictionary that classifies the module names in the set
+        """Return a dictionary that classifies the module names in the set
         modules.  Keys are
-    
+
             addon       Add-on modules in stdlib/site-packages
             compiled    Python's modules in C
             stdlib      Python's standard library module
             user        User module
             not_found   Module that couldn't be imported
-    
+
         The values will be the sets of modules in that classification.
-        '''
+        """
         # Construct sets of those modules that can be found and imported and
         # those that can't.
         found, not_found = set(), set()
@@ -224,11 +238,12 @@ if 1:   # Core functionality
             "user": user,
             "not_found": not_found,
         }
+
     def ProcessFile(file, d):
-        r'''For the given file, find the lines that match the regular
+        r"""For the given file, find the lines that match the regular
         expressions '^\s*from\s+ .* import .*' or 'import .*$'.
-        '''
-        modules = []    # Find the modules imported by this file
+        """
+        modules = []  # Find the modules imported by this file
         # Use regular expressions to find the import statements
         r1 = re.compile(r"^\s*import\s+(.*)$")
         r2 = re.compile(r"^\s*from\s+(\w+)\s+import\s+.*$")
@@ -260,12 +275,14 @@ if 1:   # Core functionality
             if classified[key]:
                 if d["-n"] and key != "not_found":
                     continue
-                #print("    {}".format(description[key]))
+                # print("    {}".format(description[key]))
                 print(f"    {description[key]}")
                 for item in sorted(classified[key]):
                     print(f"        {item}")
+
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     files = ParseCommandLine(d)
     for file in files:
         ProcessFile(file, d)

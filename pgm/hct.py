@@ -1,4 +1,4 @@
-'''
+"""
 Plot the electrical characteristics of the high current transformer.
 
     - Temperature rise as a function of secondary current
@@ -19,22 +19,23 @@ Plot the electrical characteristics of the high current transformer.
           maximum current gotten with the Variac at 100%.  Line voltage is typically 118 V.
             - Qualitative check was made by feeling the temperature of the tubing short
 
-'''
+"""
+
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Program description string
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         from collections import deque, namedtuple
         from pathlib import Path as P
         from pprint import pprint as pp
@@ -42,59 +43,63 @@ if 1:  # Header
         import os
         import re
         import sys
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from f import flt
         from wrap import dedent
         from color import t
         from lwtest import Assert
         from columnize import Columnize
         from u import u
+
         if 0:
             import debug
+
             debug.SetDebugger()
-    if 1:   # Global variables
+    if 1:  # Global variables
+
         class G:
             pass
+
         g = G()
         g.dbg = False
         ii = isinstance
-if 1:   # Data
+if 1:  # Data
     winding_data = {
         # Left to right, the data fields are
         #   Primary current in mA
         #   Primary voltage in V
         #   Secondary current in A
         #   Secondary voltage in mV
-        5: '''69.8    1.869    10.1    4.35
+        5: """69.8    1.869    10.1    4.35
               139.7   3.734    20.2    8.68
               357.5   9.589    52      22.48
               697.2   18.78    100.9   44.4
               1038    28.14    150.1   66.72
-              1424    38.7     206.5   92.09''',
-        4: '''92.4    1.352    10      4.492
+              1424    38.7     206.5   92.09""",
+        4: """92.4    1.352    10      4.492
               183.1   2.687    19.9    8.984
               480.3   7.066    52.1    23.63
               942     13.88    101.5   46.66
               1385    20.55    150     69.58
-              1861    27.66    200.8   94.51''',
-        3: '''160.4   1.059    11.5    5.444
+              1861    27.66    200.8   94.51""",
+        3: """160.4   1.059    11.5    5.444
               309.8   2.049    22.4    10.566
               698.2   4.638    50.3    23.99
               1423    9.478    102.2   49.22
               2093    13.98    150.4   73.23
-              2835    18.99    203.5   99.56''',
-        2: '''251.1   0.5658   10.7    4.9
+              2835    18.99    203.5   99.56""",
+        2: """251.1   0.5658   10.7    4.9
               481     1.086    20.5    9.452
               1205    2.727    51.5    23.78
               2370    5.374    100.8   47.06
               3549    8.091    150.6   71.8
-              4781    10.88    202.4   96.9''',
-        1: ''' 552.1  0.3854   11.96   6.035
+              4781    10.88    202.4   96.9""",
+        1: """ 552.1  0.3854   11.96   6.035
                1037   0.7292   22.73   11.48
                2330   1.642    50.9    25.96
                4618   3.259    100.5   51.83
                6918   4.886    150.6   78.23
-               9430   6.659    204     107.4''',
+               9430   6.659    204     107.4""",
     }
     # Convert to numerical arrays
     data = {}
@@ -104,7 +109,8 @@ if 1:   # Data
             s = [flt(i) for i in line.split()]
             o.append([flt(i) for i in line.split()])
         data[w] = o
-if 1:   # Utility
+if 1:  # Utility
+
     def GetColors():
         t.err = t("redl")
         t.dbg = t("lill") if g.dbg else ""
@@ -115,22 +121,27 @@ if 1:   # Utility
         t.high = t.magl
         t.medium = t.purl
         t.low = t.trql
+
     def GetScreen():
-        'Return (LINES, COLUMNS)'
+        "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
-            int(os.environ.get("COLUMNS", "80")) - 1
+            int(os.environ.get("COLUMNS", "80")) - 1,
         )
+
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="")
             print(*p, **kw)
             print(f"{t.N}", end="")
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Manpage():
-        print(dedent(f'''
+        print(
+            dedent(f"""
 
         This script is for the transformer made by Electronic Corporation of America.  The
         markings on the transformer are
@@ -216,9 +227,12 @@ if 1:   # Utility
             predicted voltage by (501/129)37.3, we get 144 V.  The measured Variac output at 201 A
             was 60.7 V, so things don't scale like I'd expect.
 
-        '''))
+        """)
+        )
+
     def Usage(status=0):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] current_A [resistance_Ω]
           Display the needed primary voltage for a desired shorted secondary current for the high
           current transformer.  If the resistance is given, then the terminal number and primary
@@ -227,15 +241,17 @@ if 1:   # Utility
             -d n    Number of digits in numbers
             -h      Print a manpage
             -r      Display the raw measured data
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-d"] = 2         # Number of significant digits
-        d["-r"] = False     # Display raw data
+        d["-d"] = 2  # Number of significant digits
+        d["-r"] = False  # Display raw data
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:hr", "--debug") 
+            opts, args = getopt.getopt(sys.argv[1:], "ad:hr", "--debug")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -248,20 +264,23 @@ if 1:   # Utility
                     if not (1 <= d["-d"] <= 15):
                         raise ValueError()
                 except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                        "1 and 15")
+                    msg = "-d option's argument must be an integer between 1 and 15"
                     Error(msg)
             elif o == "-h":
                 Usage()
             elif o in ("--debug",):
                 # Set up a handler to drop us into the debugger on an unhandled exception
                 import debug
+
                 debug.SetDebugger()
         GetColors()
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def PrintRawData():
-        'Print the raw data'
+        "Print the raw data"
         x = flt(0)
         x.N = d["-d"]
         x.rtz = True
@@ -275,29 +294,33 @@ if 1:   # Core functionality
         print("    Secondary, current = Kaiweets HT2006D clamp-on ammeter")
         print("    Secondary, voltage = Aneng 870")
         print()
-        t.print(f"  {t.ornl}{' '*(w0 + wc//2)}Primary{' '*(w0//2 + wc//2 + 2)}Secondary")
+        t.print(
+            f"  {t.ornl}{' ' * (w0 + wc // 2)}Primary{' ' * (w0 // 2 + wc // 2 + 2)}Secondary"
+        )
         for w in sorted(data):
-            print(f"{t.sky}{f'Winding {w}':{w0}s}{t.ornl}" , end="")
+            print(f"{t.sky}{f'Winding {w}':{w0}s}{t.ornl}", end="")
             for label in column_labels:
                 print(f"{label:^{wc}s}", end="")
             t.print()
             for line in data[w]:
-                print(f"{' '*w0}", end="")
+                print(f"{' ' * w0}", end="")
                 for count, item in enumerate(line):
                     if not count:
                         item /= 1000
                     print(f"{item!s:^{wc}s}", end="")
                 print()
+
     def GetColor(primary_voltage):
-        'Return color escape code string for given voltage'
+        "Return color escape code string for given voltage"
         if primary_voltage < 0:
             raise ValueError("primary_voltage must be zero or positive")
         if primary_voltage > 115:
             return t.over
         else:
             return t.N
+
     def GetVoltage(current, terminal):
-        'Calculate needed voltage given current in A and terminal'
+        "Calculate needed voltage given current in A and terminal"
         if not ii(terminal, int):
             raise TypeError("terminal must be an int")
         if terminal not in (1, 2, 3, 4, 5):
@@ -309,10 +332,11 @@ if 1:   # Core functionality
             2: (0.0549, -0.0689),
             3: (0.0950, -0.0874),
             4: (0.1405, -0.0885),
-            5: (0.1861,  0.0541),
+            5: (0.1861, 0.0541),
         }
         m, b = model[terminal]
-        return flt(m*current + b)
+        return flt(m * current + b)
+
     def CalculateVoltage(current):
         print(f"For current = {current} A, use the following primary voltages:")
         for terminal in (1, 2, 3, 4, 5):
@@ -321,6 +345,7 @@ if 1:   # Core functionality
                 print(f"  Terminal {terminal}    ~ 0 V")
             else:
                 t.print(f"  Terminal {terminal}    {GetColor(v)}{v} V")
+
     def CalculateVoltageFromResistance(current, resistance):
         print(f"For current = {current} A and resistance {resistance} Ω:")
         v = []
@@ -328,19 +353,25 @@ if 1:   # Core functionality
             v.append((terminal, GetVoltage(current, terminal)))
         # Find the lowest voltage needed for the desired resistance
         for terminal, voltage in reversed(v):
-            i = voltage/resistance
+            i = voltage / resistance
             if i >= current:
-                print(f"  Use terminal {t.ornl}{terminal}{t.n} with {t.trql}{voltage}{t.n} V on the primary")
-                p = current**2*resistance
+                print(
+                    f"  Use terminal {t.ornl}{terminal}{t.n} with {t.trql}{voltage}{t.n} V on the primary"
+                )
+                p = current**2 * resistance
                 t.print(f"  Resistor power is {t.denl}{p} W")
                 return
         t.print(f"  {t.err}Cannot reach desired current {current} with {resistance} Ω")
-if 1:   # Classes
+
+
+if 1:  # Classes
     # If you know any one of the primary or secondary current or voltage, you can predict the
     # other three values by knowing the ratios and regressions.
     OperationPoint = namedtuple("OperationPoint", "i_p i_s V_p V_s P_p P_s")
+
     class Winding:
-        'Capture experimental data about a winding'
+        "Capture experimental data about a winding"
+
         def __init__(self, terminal):
             if not ii(terminal, int):
                 raise TypeError("terminal must be an int")
@@ -348,65 +379,69 @@ if 1:   # Classes
                 raise ValueError("terminal must 1, 2, 3, 4, or 5")
             self.terminal = terminal
             # Summary of experimental current, voltage, and power ratios
-            data = {    # Map terminal number to ratios
-                1: (    # Tuple is ratio mean, ratio stdev
-                    (21.8e-3, 0.11),        # Current:  (sec in A)/(pri in A)
-                    (0.01588, 1.74e-4),     # Voltage:  (sec in V)/(pri in V)
-                    (0.346, 0.0035),        # Power:  (sec in W)/(pri in W)
+            data = {  # Map terminal number to ratios
+                1: (  # Tuple is ratio mean, ratio stdev
+                    (21.8e-3, 0.11),  # Current:  (sec in A)/(pri in A)
+                    (0.01588, 1.74e-4),  # Voltage:  (sec in V)/(pri in V)
+                    (0.346, 0.0035),  # Power:  (sec in W)/(pri in W)
                 ),
-                2: (    # Tuple is ratio mean, ratio stdev
-                    (42.5e-3, 0.14),        # Current:  (sec in A)/(pri in A)
-                    (0.00877, 9.8e-5),      # Voltage:  (sec in V)/(pri in V)
-                    (0.373, 0.0031),        # Power:  (sec in W)/(pri in W)
+                2: (  # Tuple is ratio mean, ratio stdev
+                    (42.5e-3, 0.14),  # Current:  (sec in A)/(pri in A)
+                    (0.00877, 9.8e-5),  # Voltage:  (sec in V)/(pri in V)
+                    (0.373, 0.0031),  # Power:  (sec in W)/(pri in W)
                 ),
-                3: (    # Tuple is ratio mean, ratio stdev
-                    (71.9e-3, 0.22),        # Current:  (sec in A)/(pri in A)
-                    (0.00519, 4.2e-5),      # Voltage:  (sec in V)/(pri in V)
-                    (0.373, 0.0029),        # Power:  (sec in W)/(pri in W)
+                3: (  # Tuple is ratio mean, ratio stdev
+                    (71.9e-3, 0.22),  # Current:  (sec in A)/(pri in A)
+                    (0.00519, 4.2e-5),  # Voltage:  (sec in V)/(pri in V)
+                    (0.373, 0.0029),  # Power:  (sec in W)/(pri in W)
                 ),
-                4: (    # Tuple is ratio mean, ratio stdev
-                    (108.2e-3, 0.35),       # Current:  (sec in A)/(pri in A)
-                    (0.00336, 3.4e-5),      # Voltage:  (sec in V)/(pri in V)
-                    (0.364, 0.0033),        # Power:  (sec in W)/(pri in W)
+                4: (  # Tuple is ratio mean, ratio stdev
+                    (108.2e-3, 0.35),  # Current:  (sec in A)/(pri in A)
+                    (0.00336, 3.4e-5),  # Voltage:  (sec in V)/(pri in V)
+                    (0.364, 0.0033),  # Power:  (sec in W)/(pri in W)
                 ),
-                5: (    # Tuple is ratio mean, ratio stdev
-                    (144.8e-3, 0.33),       # Current:  (sec in A)/(pri in A)
-                    (0.00235, 2.3e-5),      # Voltage:  (sec in V)/(pri in V)
-                    (0.341, 0.0035),        # Power:  (sec in W)/(pri in W)
+                5: (  # Tuple is ratio mean, ratio stdev
+                    (144.8e-3, 0.33),  # Current:  (sec in A)/(pri in A)
+                    (0.00235, 2.3e-5),  # Voltage:  (sec in V)/(pri in V)
+                    (0.341, 0.0035),  # Power:  (sec in W)/(pri in W)
                 ),
             }
             # Set up our ratios as secondary/primary
             self.i_ratio, self.i_ratio_s = data[terminal][0]
             self.V_ratio, self.V_ratio_s = data[terminal][1]
             self.P_ratio, self.P_ratio_s = data[terminal][2]
+
         def PriCurrent(self, current_A):
-            'Return OperationPoint for primary current in A'
+            "Return OperationPoint for primary current in A"
             i_pri = flt(current_A)
-            i_sec = flt(i_pri*self.i_ratio)
+            i_sec = flt(i_pri * self.i_ratio)
             V_pri = flt(GetVoltage(i_sec, self.terminal))
-            V_sec = flt(V_pri*self.V_ratio)
-            P_pri = flt(V_pri*i_pri)
-            P_sec = flt(V_sec*current_A)
+            V_sec = flt(V_pri * self.V_ratio)
+            P_pri = flt(V_pri * i_pri)
+            P_sec = flt(V_sec * current_A)
             op = OperationPoint(i_pri, current_A, V_pri, V_sec, P_pri, P_sec)
             return op
+
         def SecCurrent(self, current_A):
-            'Return OperationPoint for secondary current in A'
+            "Return OperationPoint for secondary current in A"
             i_sec = flt(current_A)
             V_pri = flt(GetVoltage(current_A, self.terminal))
-            V_sec = flt(V_pri*self.V_ratio)
-            i_pri = flt((i_sec/self.i_ratio)/1000)
-            P_pri = flt(V_pri*i_pri)
-            P_sec = flt(V_sec*current_A)
+            V_sec = flt(V_pri * self.V_ratio)
+            i_pri = flt((i_sec / self.i_ratio) / 1000)
+            P_pri = flt(V_pri * i_pri)
+            P_sec = flt(V_sec * current_A)
             op = OperationPoint(i_pri, current_A, V_pri, V_sec, P_pri, P_sec)
             return op
+
         def PriVoltage(self, voltage_V):
-            'Return OperationPoint for primary voltage in V'
+            "Return OperationPoint for primary voltage in V"
+
         def SecVoltage(self, voltage_V):
-            'Return OperationPoint for secondary voltage in V'
+            "Return OperationPoint for secondary voltage in V"
 
     x = Winding(5)
     # Data for 100.9 A for secondary gave:
-    #       0.0442 V on secondary 
+    #       0.0442 V on secondary
     #       0.6972 A on primary
     #       18.78 V on primary
     if 1:  # Given secondary current
@@ -416,7 +451,7 @@ if 1:   # Classes
         print(f"    Primary   voltage = {op.V_p} V")
         print(f"    Primary   power   = {op.P_p} W")
         print(f"    Secondary current = {op.i_s} A")
-        print(f"    Secondary voltage = {op.V_s*1000} mV")
+        print(f"    Secondary voltage = {op.V_s * 1000} mV")
         print(f"    Secondary power   = {op.P_s} W")
     if 1:  # Given primary current
         print("Given primary current")
@@ -425,13 +460,13 @@ if 1:   # Classes
         print(f"    Primary   voltage = {op.V_p} V")
         print(f"    Primary   power   = {op.P_p} W")
         print(f"    Secondary current = {op.i_s} A")
-        print(f"    Secondary voltage = {op.V_s*1000} mV")
+        print(f"    Secondary voltage = {op.V_s * 1000} mV")
         print(f"    Secondary power   = {op.P_s} W")
     exit()
 
 
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     if d["-r"]:
         PrintRawData()

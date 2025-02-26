@@ -1,37 +1,43 @@
-'''
+"""
 Uses mpmath and sympy to try to identify a real number
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2016 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2016 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Uses mpmath and sympy to try to identify a real number
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import getopt
     import os
     import sys
     from fractions import Fraction
     from time import strftime
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from sympy import sympify
     from wrap import dedent
     from sig import sig, SigFig
     from mpmath import *
     from columnize import Columnize
+
+
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
+
+
 def Usage(d):
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]} [options] num1 [num2...]
       Try to identify the real numbers given on the command line.  If an argument is 'h', the
       history of the commands that resulted in output are printed to stdout.  Because arguments
@@ -48,16 +54,19 @@ def Usage(d):
       -S    Don't use sympy for simplification
       -u c  Use char c for the variable and Unicode when printing the polynomial found with the
             -P option.  Use %alp for lowercase Greek alpha, %Alp for uppercase, etc.
-    '''))
+    """)
+    )
     exit(0)
+
+
 def Functions(*p):
-    '''If p is empty, print out a list of available function names.
+    """If p is empty, print out a list of available function names.
     Otherwise, list syntax for each non-obvious function.
-    '''
+    """
     if p:
         xx()
     else:
-        f = '''
+        f = """
             acos acosh asin asinh atan atan2 atanh bei ber bernoulli besseli
             besselj besselk bessely beta betainc binomial cbrt chebyfit
             chebyt chebyu chi ci cos cosh degrees diff diffs digamma ei
@@ -68,20 +77,22 @@ def Functions(*p):
             loggamma ncdf npdf nprod nsum pade polyroots polyval power psi
             quad radians root shi si sin sinc sinh spherharm sqrt stirling1
             stirling2 sumem tan tanh taylor zeta zetazero
-    '''
+    """
         f = f.replace("\n", " ").split()
         for i in Columnize(f):
             print(i)
     exit(0)
+
+
 def ParseCommandLine(d):
-    d["-P"] = None       # Find polynomial of indicated degree
-    d["-d"] = 15         # Number of significant digits
-    d["-e"] = False      # Include e
-    d["-f"] = False      # Function listing
-    d["-r"] = None       # Maximum fraction denominator
-    d["-p"] = False      # Include pi
-    d["-s"] = None       # Include a sequence of things
-    d["-S"] = True       # Use sympy
+    d["-P"] = None  # Find polynomial of indicated degree
+    d["-d"] = 15  # Number of significant digits
+    d["-e"] = False  # Include e
+    d["-f"] = False  # Function listing
+    d["-r"] = None  # Maximum fraction denominator
+    d["-p"] = False  # Include pi
+    d["-s"] = None  # Include a sequence of things
+    d["-S"] = True  # Use sympy
     try:
         opts, args = getopt.getopt(sys.argv[1:], "d:efP:pr:s:S")
     except getopt.GetoptError as e:
@@ -94,7 +105,7 @@ def ParseCommandLine(d):
                 if d["-P"] < 1:
                     raise ValueError()
             except ValueError:
-                msg = ("-P option's argument must be an integer > 0")
+                msg = "-P option's argument must be an integer > 0"
                 Error(msg)
         elif o in ("-d",):
             try:
@@ -102,7 +113,7 @@ def ParseCommandLine(d):
                 if d["-d"] < 1:
                     raise ValueError()
             except ValueError:
-                msg = ("-d option's argument must be an integer > 0")
+                msg = "-d option's argument must be an integer > 0"
                 Error(msg)
         elif o in ("-f",):
             d["-f"] = not d["-f"]
@@ -124,9 +135,10 @@ def ParseCommandLine(d):
     if not args:
         Usage(d)
     return args
+
+
 def FindPolynomial(x, d):
-    '''Print out the polynomial of degree d["-d"] which has x as a root.
-    '''
+    """Print out the polynomial of degree d["-d"] which has x as a root."""
     p = findpoly(x, d["-P"], maxcoeff=100000)
     if p is None:
         print("   No polynomial found")
@@ -138,14 +150,16 @@ def FindPolynomial(x, d):
         for r in polyroots(p):
             s = " "
             if isinstance(r, mpf) and r < 0:
-                s = "" 
+                s = ""
             elif isinstance(r, mpc) and r.real < 0:
-                s = "" 
-            print(" "*10, s, sig(r, d["-d"]), sep="")
+                s = ""
+            print(" " * 10, s, sig(r, d["-d"]), sep="")
+
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
-    cmdline = ' '.join(sys.argv[1:])
+    cmdline = " ".join(sys.argv[1:])
     mp.dps = d["-d"]
     sig.imag_pre = " "
     sig.imag_post = " "
@@ -185,9 +199,12 @@ if __name__ == "__main__":
                     sigfig = SigFig()
                     sigfig.low = 1e-8
                     sigfig.digits = 1
-                    pct = 100*(float(f) - x)/x
-                    print("   Rational approximation = {}/{} [{}%]".format(
-                          f.numerator, f.denominator, sigfig(pct)))
+                    pct = 100 * (float(f) - x) / x
+                    print(
+                        "   Rational approximation = {}/{} [{}%]".format(
+                            f.numerator, f.denominator, sigfig(pct)
+                        )
+                    )
                 # Find polynomial if indicated
                 if d["-P"] is not None:
                     FindPolynomial(x, d)
@@ -196,12 +213,11 @@ if __name__ == "__main__":
                 t = t.replace("PM", "pm").replace("AM", "am")
                 s = ["'{}'".format(cmdline), "[{}]".format(t), "\n"]
                 ofp = open("/pylib/pgm/real.history", "a")
-                ofp.write(' '.join(s))
+                ofp.write(" ".join(s))
                 ofp.close()
-            except RuntimeError:    # Exception
-                print("'{}' couldn't be evaluated".format(arg),
-                      file=sys.stderr)
-'''
+            except RuntimeError:  # Exception
+                print("'{}' couldn't be evaluated".format(arg), file=sys.stderr)
+"""
 Note the following example leads to different results, even though the
 expressions are the same (the first gives the second expression):
  
@@ -227,4 +243,4 @@ Note the expressions in single quotes are identical, but their printed
 numerical values differ.  However, repeating with the addition of '-d
 20' gives identical numerical results for the evaluation, but the
 polynomials are still different.
-'''
+"""

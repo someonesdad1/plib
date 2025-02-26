@@ -1,27 +1,31 @@
-'Dimensions of sockets in shop'
+"Dimensions of sockets in shop"
 
 # Copyright (C) 2020 Don Peterson
 # Contact:  gmail.com@someonesdad1
 # Licensed under the Open Software License version 3.0.
 # See http://opensource.org/licenses/OSL-3.0.
- 
-if 1:   # Imports & globals
+
+if 1:  # Imports & globals
     import getopt
     import os
     import sys
     from columnize import Columnize
     from color import t
-    w = t("wht")   # White
-    h = t("ornl")   # Highlight color
+
+    w = t("wht")  # White
+    h = t("ornl")  # Highlight color
 else:
     w = h = ""
+
 
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
 
+
 def Regular():
-    print('''
+    print(
+        """
 D = diameter, L = length, in inches
                 {h}3/8 square drive sockets{w}
 Snap-On  Standard         Deep     | Mac Std    Sunex Univ dp | Craftsman dp
@@ -61,10 +65,13 @@ Snap-On  Standard        Deep      | Craftsman Std   | Snap-On deep
 
 * = Craftsman
 @ = Challenger
-'''[1:-1].format(**globals()))
+"""[1:-1].format(**globals())
+    )
+
 
 def Big():
-    print('''
+    print(
+        """
                 {h}3/4 square drive sockets{w}
 mm     D      L             mm     D      L             
 19   1.424  1.969           36   1.969  2.397
@@ -108,7 +115,9 @@ Neiko metric deep impact socket diameters, L = 3.06
 16      0.944       24      1.336
 17      1.023       
 
-'''[1:-1].format(**globals()))
+"""[1:-1].format(**globals())
+    )
+
 
 sockets = {
     # Dia  Size   Brand    Type  Drive
@@ -125,7 +134,6 @@ sockets = {
     (1151, "7/8", "SO", "std", "3/8"),
     (1237, "15/16", "CH", "std", "3/8"),
     (1307, "1", "CH", "std", "3/8"),
-
     (663, "7/16", "SO", "deep", "3/8"),
     (709, "1/2", "SO", "deep", "3/8"),
     (770, "9/16", "SO", "deep", "3/8"),
@@ -134,7 +142,6 @@ sockets = {
     (986, "3/4", "SO", "deep", "3/8"),
     (1045, "13/16", "SO", "deep", "3/8"),
     (1147, "7/8", "SO", "deep", "3/8"),
-
     (683, "6", "Mac", "std", "3/8"),
     (686, "7", "Mac", "std", "3/8"),
     (680, "8", "Mac", "std", "3/8"),
@@ -149,7 +156,6 @@ sockets = {
     (932, "17", "Mac", "std", "3/8"),
     (987, "18", "Mac", "std", "3/8"),
     (1014, "19", "Mac", "std", "3/8"),
-
     (629, "10", "SU", "univ deep", "3/8"),
     (670, "11", "SU", "univ deep", "3/8"),
     (741, "12", "SU", "univ deep", "3/8"),
@@ -160,7 +166,6 @@ sockets = {
     (900, "17", "SU", "univ deep", "3/8"),
     (981, "18", "SU", "univ deep", "3/8"),
     (1060, "19", "SU", "univ deep", "3/8"),
-
     (651, "9", "CR", "deep", "3/8"),
     (651, "10", "CR", "deep", "3/8"),
     (649, "11", "CR", "deep", "3/8"),
@@ -170,7 +175,6 @@ sockets = {
     (790, "15", "CR", "deep", "3/8"),
     (839, "16", "CR", "deep", "3/8"),
     (895, "17", "CR", "deep", "3/8"),
-
     (452, "5/32", "CR", "std", "1/4"),
     (478, "3/16", "SO", "deep", "1/4"),
     (479, "7/32", "SO", "deep", "1/4"),
@@ -183,7 +187,6 @@ sockets = {
     (676, "1/2", "SO", "deep", "1/4"),
     (740, "9/16", "SO", "deep", "1/4"),
     (824, "5/8", "SO", "deep", "1/4"),
-
     (448, "3/16", "SO", "deep", "1/4"),
     (447, "7/32", "SO", "deep", "1/4"),
     (434, "1/4", "SO", "deep", "1/4"),
@@ -194,7 +197,6 @@ sockets = {
     (620, "7/16", "SO", "deep", "1/4"),
     (683, "1/2", "SO", "deep", "1/4"),
     (740, "9/16", "SO", "deep", "1/4"),
-
     (473, "4", "CR", "std", "1/4"),
     (473, "5", "CR", "std", "1/4"),
     (474, "6", "CR", "std", "1/4"),
@@ -205,7 +207,6 @@ sockets = {
     (620, "11", "CR", "std", "1/4"),
     (656, "12", "CR", "std", "1/4"),
     (683, "13", "CR", "std", "1/4"),
-
     (476, "5", "SO", "deep", "1/4"),
     (477, "5.5", "SO", "deep", "1/4"),
     (479, "6", "SO", "deep", "1/4"),
@@ -217,7 +218,6 @@ sockets = {
     (650, "12", "SO", "deep", "1/4"),
     (693, "13", "SO", "deep", "1/4"),
     (740, "14", "SO", "deep", "1/4"),
-
     (877, "9/16", "CH", "std", "1/2"),
     (863, "5/8", "CH", "std", "1/2"),
     (933, "11/16", "CH", "std", "1/2"),
@@ -228,7 +228,6 @@ sockets = {
     (1427, "1-1/16", "CH", "std", "1/2"),
     (1494, "1-1/8", "CH", "std", "1/2"),
     (1618, "1-1/4", "CH", "std", "1/2"),
-
     (1177, "7/8", "SO", "std", "1/2"),
     (1269, "15/16", "SO", "std", "1/2"),
     (1333, "1", "SO", "std", "1/2"),
@@ -240,7 +239,6 @@ sockets = {
     (1897, "1-3/8", "SO", "std", "1/2"),
     (1922, "1-5/16", "SO", "std", "1/2"),
     (1988, "1-1/2", "SO", "std", "1/2"),
-
     (944, "10", "NE", "deep", "1/2"),
     (944, "11", "NE", "deep", "1/2"),
     (944, "12", "NE", "deep", "1/2"),
@@ -256,7 +254,6 @@ sockets = {
     (1255, "22", "NE", "deep", "1/2"),
     (1335, "23", "NE", "deep", "1/2"),
     (1336, "24", "NE", "deep", "1/2"),
-
     (1424, "19", "HF", "std", "3/4"),
     (1413, "22", "HF", "std", "3/4"),
     (1389, "24", "HF", "std", "3/4"),
@@ -276,9 +273,10 @@ sockets = {
     (2644, "50", "HF", "std", "3/4"),
 }
 
+
 def Usage(d, status=1):
     name = sys.argv[0]
-    s = f'''
+    s = f"""
 Usage:  {name} [options] [dia1 [dia2 ...]]
   Show on-hand sockets that are close to the indicated diameter(s) in
   inches.  If no diameters are given, print a list of all sockets.
@@ -286,16 +284,17 @@ Usage:  {name} [options] [dia1 [dia2 ...]]
 Options:
     -h      Print a manpage
     -m      Use mm for diameters
-    -t      Tolerance in percent (default is {d['-t']}%)
+    -t      Tolerance in percent (default is {d["-t"]}%)
     -T      Show table of sockets by diameter
-'''[1:-1]
+"""[1:-1]
     print(s)
     exit(status)
 
+
 def ParseCommandLine(d):
-    d["-m"] = False     # Use mm
-    d["-t"] = 5         # Tolerance in %
-    d["-T"] = False     # Table
+    d["-m"] = False  # Use mm
+    d["-t"] = 5  # Tolerance in %
+    d["-T"] = False  # Table
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hmt:T")
     except getopt.GetoptError as e:
@@ -315,6 +314,7 @@ def ParseCommandLine(d):
             Usage(d, status=0)
     return args
 
+
 def Table():
     print("Diameter in ", end="")
     if d["-m"]:
@@ -323,15 +323,16 @@ def Table():
         print("inches")
     for D, sz, mfg, type, drive in sorted(sockets):
         if d["-m"]:
-            dia_mm = 25.4*D/1000
+            dia_mm = 25.4 * D / 1000
             print(f"    {dia_mm:5.2f}     {sz:8s} {mfg:^6s} {type:10s} {drive:4s}")
         else:
-            print(f"    {D/1000:5.3f}     {sz:8s} {mfg:^6s} {type:10s} {drive:4s}")
+            print(f"    {D / 1000:5.3f}     {sz:8s} {mfg:^6s} {type:10s} {drive:4s}")
     Mfg()
     ShortTable()
 
+
 def ShortTable():
-    diameters = '''
+    diameters = """
         429 434 447 448 449 452 473 474 476 477 478 479 494 495 501 539
         540 547 549 558 603 604 620 629 649 650 651 656 658 663 664 670
         674 676 680 682 683 684 686 693 709 713 714 740 741 750 770 772
@@ -340,19 +341,21 @@ def ShortTable():
         1098 1147 1151 1175 1176 1177 1235 1237 1255 1269 1302 1307 1333
         1335 1336 1389 1413 1422 1424 1427 1432 1455 1488 1494 1530 1599
         1609 1618 1675 1711 1734 1838 1897 1922 1969 1988 2010 2210 2228
-        2402 2418 2505 2644'''
+        2402 2418 2505 2644"""
     mils = [int(i) for i in diameters.split()]
     print("Available diameters in mils")
-    for line in Columnize([f"{i:4d}" for i in mils], indent=" "*4,
-                          col_width=6):
+    for line in Columnize([f"{i:4d}" for i in mils], indent=" " * 4, col_width=6):
         print(line)
     print("Available diameters in mm")
-    for line in Columnize([f"{i/1000*25.4:.1f}" for i in mils], 
-                          indent=" "*4, col_width=6):
+    for line in Columnize(
+        [f"{i / 1000 * 25.4:.1f}" for i in mils], indent=" " * 4, col_width=6
+    ):
         print(line)
 
+
 def Mfg():
-    print('''
+    print(
+        """
 Manufacturers:
     CH      Challenger
     CR      Craftsman
@@ -361,34 +364,37 @@ Manufacturers:
     NE      Neiko
     SO      Snap-On
     SU      Sunex
-'''.strip())
+""".strip()
+    )
+
 
 def Search(args):
     print(f"Tolerance = {d['-t']}%")
     for size in args:
         # Get diameter in mils
-        D_mils = int(1000*float(size)*25.4 if d["-m"] else 1000*float(size))
+        D_mils = int(1000 * float(size) * 25.4 if d["-m"] else 1000 * float(size))
         Find(D_mils, size)
 
+
 def Find(D_mils, size):
-    low = (1 - d["-t"]/100)*D_mils
-    high = (1 + d["-t"]/100)*D_mils
+    low = (1 - d["-t"] / 100) * D_mils
+    high = (1 + d["-t"] / 100) * D_mils
     found = []
     for i in sockets:
         dia_mils = i[0]
         if low <= dia_mils <= high:
             found.append(i)
     if found:
-
         if d["-m"]:
             print(size, "mm")
         else:
             print(size, "inches")
         for D, sz, mfg, type, drive in sorted(found):
-            print(f"    {D/1000:5.3f} {sz:8s} {mfg:2s} {type:4s} {drive:4s}")
+            print(f"    {D / 1000:5.3f} {sz:8s} {mfg:2s} {type:4s} {drive:4s}")
+
 
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     if d["-T"]:
         Table()

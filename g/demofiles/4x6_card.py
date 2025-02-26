@@ -1,4 +1,4 @@
-'''
+"""
 Make a 4x6 card
 
     Contains year, title, date, and an engineering grid.  This is intended
@@ -7,34 +7,42 @@ Make a 4x6 card
     a LaserJet 4050.
 
     The grid is on a 0.1 inch spacing.
-''' 
+"""
+
 from g import *
 from math import modf, fabs
 import time
 import sys
+
 eps = 1e-6
 debug = 0
 heavy_color = grey(0.7)
 medium_color = grey(0.8)
 light_color = grey(0.9)
+
+
 def IsMinor(x):
-    'If the fractional part is 0.5, return true; otherwise, return 0'
+    "If the fractional part is 0.5, return true; otherwise, return 0"
     fp, ip = modf(x)
     if fabs(fp - 0.5) < 1e-4:
         return 1
     else:
         return 0
+
+
 def IsMajor(x):
-    '''If the value is a whole number of inches, return 1.  Otherwise,
+    """If the value is a whole number of inches, return 1.  Otherwise,
     return 0.
-    '''
+    """
     fp, ip = modf(x)
     if fp < 1e-4 or fp > (1 - 1e-6):
         return 1
     else:
         return 0
+
+
 def Grid(file, increment=0.2):
-    'Draw a grid of 1 inch squares'
+    "Draw a grid of 1 inch squares"
     s = Setup(file, portrait, inches)
     lineWidth(0.005)
     box_width = 4
@@ -95,4 +103,6 @@ def Grid(file, increment=0.2):
     else:
         text(time.strftime("%Y"))
     s.close()
+
+
 Grid("out/4x6_card.ps", 0.1)

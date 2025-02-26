@@ -1,4 +1,4 @@
-'''
+"""
 Print the time to hash a bunch of data for the different python hash library
 algorithms.  Pass the files to hash on the command line.
 
@@ -28,7 +28,7 @@ Results for /pylib/pgm using -r (Wed 23 Dec 2020 11:06:28 AM):
 Repeat Tue 06 Jul 2021 08:30:21 AM
 
     Number of bytes from files = 442.9 Mbytes
-    
+
                    Relative
     Speed, MB/s    speed, %     Algorithm         12-byte hash
     -----------    --------     ---------         ------------
@@ -50,7 +50,7 @@ Repeat Tue 06 Jul 2021 08:30:21 AM
 
 Note that all the files would have been cached in the RAM disk.  A
 second run took 34.846 s.
-'''
+"""
 
 from time import time
 import getopt
@@ -60,13 +60,15 @@ import pathlib
 import sys
 import textwrap
 
+
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
 
+
 def Usage(d, status=1):
     name = sys.argv[0]
-    s = f'''
+    s = f"""
 Usage:  {name} [options] [file1 [file2 ...]]
   Calculate the hash for the set of files with the different algorithms 
   in python's hashlib.  Print a report sorted by algorithm speed.
@@ -74,12 +76,13 @@ Usage:  {name} [options] [file1 [file2 ...]]
 
 Options:
   -r    Recursively process all files at and below the current directory
-'''[1:-1]
+"""[1:-1]
     print(s)
     exit(status)
 
+
 def ParseCommandLine(d):
-    d["-r"] = False     # Process all files recursively
+    d["-r"] = False  # Process all files recursively
     try:
         opts, args = getopt.getopt(sys.argv[1:], "r")
     except getopt.GetoptError as e:
@@ -92,8 +95,9 @@ def ParseCommandLine(d):
         Usage(d)
     return args
 
+
 def Test(algorithm_name):
-    'Time how long it takes to hash the data and return the time in s'
+    "Time how long it takes to hash the data and return the time in s"
     h = hashlib.new(algorithm_name)
     start = time()
     h.update(data)
@@ -102,14 +106,15 @@ def Test(algorithm_name):
     numbytes = 12
     try:
         return h.hexdigest()[:numbytes], s
-    except TypeError:   # Shake methods are variable length digests
+    except TypeError:  # Shake methods are variable length digests
         return h.hexdigest(128)[:numbytes], s
 
+
 def GetData(files):
-    '''Return a string containing the bytes of the files on the command
+    """Return a string containing the bytes of the files on the command
     line.  If d["-r"] is True, process all files at and below the
     current directory.
-    '''
+    """
     data = []
     if d["-r"]:
         p = pathlib.Path(".")
@@ -123,36 +128,40 @@ def GetData(files):
             if not p.is_file():
                 continue
             data.append(open(file, "rb").read())
-    return b''.join(data)
+    return b"".join(data)
+
 
 def Report(files, data, results):
-    size_MB = len(data)/1e6
+    size_MB = len(data) / 1e6
     if files:
         print(f"Command line arguments:")
-        s = ' '.join(files)
-        for line in textwrap.wrap(' '.join(files)):
+        s = " ".join(files)
+        for line in textwrap.wrap(" ".join(files)):
             print(" ", line)
     else:
         print(f"All files under {os.getcwd()}")
     print(f"Number of bytes from files = {round(size_MB, 1)} Mbytes")
-    print('''
+    print("""
                Relative
 Speed, MB/s    speed, %     Algorithm         12-byte hash
------------    --------     ---------         ------------''')
+-----------    --------     ---------         ------------""")
     total_time = 0
     results = sorted(results)
-    max_speed = size_MB/results[0][0]  # Used to calculated relative speed
+    max_speed = size_MB / results[0][0]  # Used to calculated relative speed
     for time_in_s, name, digest in sorted(results):
-        speed_MB_per_s = size_MB/time_in_s
-        rel_speed_pct = 100*speed_MB_per_s/max_speed
+        speed_MB_per_s = size_MB / time_in_s
+        rel_speed_pct = 100 * speed_MB_per_s / max_speed
         total_time += time_in_s
-        print(f"{int(speed_MB_per_s):^11d}   "
-              f"{int(rel_speed_pct):6d}        "
-              f"{name:^9s}         {digest:10s}")
+        print(
+            f"{int(speed_MB_per_s):^11d}   "
+            f"{int(rel_speed_pct):6d}        "
+            f"{name:^9s}         {digest:10s}"
+        )
     print(f"Total processing time = {round(total_time, 3)} seconds")
 
-if __name__ == "__main__": 
-    d = {}      # Options dictionary
+
+if __name__ == "__main__":
+    d = {}  # Options dictionary
     files = ParseCommandLine(d)
     data, results = GetData(files), []
     for name in sorted(hashlib.algorithms_available):

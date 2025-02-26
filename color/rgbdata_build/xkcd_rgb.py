@@ -1,14 +1,16 @@
 import sys
+
 if 1:
     import debug
+
     debug.SetDebugger()
-attr = f'''
+attr = f"""
 file = {sys.argv[0]}
 from http://xkcd.com/color/rgb.txt
 Downloaded Sat 04 Oct 2014 10:36:40 AM
 Verified Wed 16 Mar 2022 02:27:06 PM (equal with 'diff -w')
-'''.strip()
-data = '''
+""".strip()
+data = """
 cloudy blue  #acc2d9
 dark pastel green  #56ae57
 dust  #b2996e
@@ -958,7 +960,7 @@ pink  #ff81c0
 blue  #0343df
 green  #15b01a
 purple  #7e1e9c
-'''.strip()
+""".strip()
 print(f"""'''{attr}'''""")
 for i, line in enumerate(data.split("\n")):
     name, color = line.split("#")

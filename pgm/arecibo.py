@@ -1,22 +1,23 @@
-'''
+"""
 Various binary messages for extraterrestrial communication
 
-'''
-if 1:   # Header
-    if 1:   # Copyright, license
+"""
+
+if 1:  # Header
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Gives various binary messages for extraterrestrial communication
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         import getopt
         import hashlib
         import os
@@ -24,36 +25,45 @@ if 1:   # Header
         import sys
         from textwrap import dedent
         from collections import deque
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import dedent
         from color import t
-        if 0:   # Drops into debugger on exception
+
+        if 0:  # Drops into debugger on exception
             import debug
+
             debug.SetDebugger()
-    if 1:   # Global variables
+    if 1:  # Global variables
+
         class G:
             pass
+
         g = G()  # Storage for global variables as attributes
         g.dbg = False
         ii = isinstance
         # Screen dimensions
         g.W = int(os.environ.get("COLUMNS", "80")) - 1
         g.L = int(os.environ.get("LINES", "50"))
-if 1:   # Utility
+if 1:  # Utility
+
     def GetColors():
         t.dbg = t("lill")
         t.ruler = t("sky")
         t.N = t.n
+
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="")
             print(*p, **kw)
             print(f"{t.N}", end="")
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Manpage():
-        print(dedent(f'''
+        print(
+            dedent(f"""
         This script grew out of my interest in seeing both the content and bitmap
         interpretation of these old messages put forward as examples to communicate
         with extraterrestrial beings.
@@ -116,10 +126,13 @@ if 1:   # Utility
             Press, 1975
         [8] https://en.wikipedia.org/wiki/Lincos_language
         [9] https://math.dartmouth.edu/~carlp/PDF/extraterrestrial.pdf
-        '''))
+        """)
+        )
         exit(0)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] action
           Actions:
             1   Plot the Barney Oliver 1961 data
@@ -135,19 +148,21 @@ if 1:   # Utility
             -d      Turn on debug printing
             -h      Show manpage
             -r      Flip rows & columns when printing to see "other" bitmap
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-0"] = " "       # Character for 0 (others:  ․ ‥)
-        d["-1"] = "X"       # Character for 1 (others:  ● █ ■ ⛝)
-        d["-2"] = False     # Double horizontal bits in plot
-        d["-2"] = False     # Double horizontal bits in plot
-        d["-d"] = False     # Turn on debug printing
-        d["-r"] = False     # Flip bitmap
+        d["-0"] = " "  # Character for 0 (others:  ․ ‥)
+        d["-1"] = "X"  # Character for 1 (others:  ● █ ■ ⛝)
+        d["-2"] = False  # Double horizontal bits in plot
+        d["-2"] = False  # Double horizontal bits in plot
+        d["-d"] = False  # Turn on debug printing
+        d["-r"] = False  # Flip bitmap
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "0:1:2dhr") 
+            opts, args = getopt.getopt(sys.argv[1:], "0:1:2dhr")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -165,12 +180,13 @@ if 1:   # Utility
         if d["-d"]:
             g.dbg = True
         return args
+
     def Assert(cond, debug=False, msg=""):
-        '''Similar to assert, but you'll be dropped into the debugger on an
+        """Similar to assert, but you'll be dropped into the debugger on an
         exception if debug is True, Assert.debug is True, or 'Assert' is
         a nonempty environment string.  If msg is not empty, it's printed
         out.
-        '''
+        """
         if not cond:
             if debug or Assert.debug or os.environ.get("Assert", ""):
                 if msg:
@@ -179,12 +195,14 @@ if 1:   # Utility
                 breakpoint()
             else:
                 raise AssertionError(msg)
+
     Assert.debug = False
-if 1:   # Core functionality
+if 1:  # Core functionality
+
     def GetOliver():
-        'Return the 1271 bit Oliver message'
+        "Return the 1271 bit Oliver message"
         # Screen-scraped from PDF of pg 5 of ref [1]
-        s = '''
+        s = """
             1000000000000000000000000000000000000000
             1000011100000000001000001000000100000100
             0000010001000000000000000000000000000000
@@ -217,11 +235,11 @@ if 1:   # Core functionality
             00001000l000l000100000l000001l000110000l
             0000010001000100010000010000011000000001
             1000001101100011011000001100111
-        '''
+        """
         s = s.replace("\n", "").replace(" ", "")
         Assert(len(s) == 1271 + 1)  # The '.' is an extra character
-        if 1: # Fix the data
-            '''The set of non-whitespace characters in the data is '.01Qlo~'.
+        if 1:  # Fix the data
+            """The set of non-whitespace characters in the data is '.01Qlo~'.
             I would make the following substitutions:
 
                             Row Col
@@ -234,7 +252,7 @@ if 1:   # Core functionality
                 ~   '0'      8   13  Gotten by counting in figure 2  
             It's supposed to be 41 columns and 31 rows.  However, return the string
             of 1271 characters.
-            '''
+            """
             # Remove spaces and newlines
             s = s.replace(" ", "").replace("\n", "")
             # Remove the '.'
@@ -246,10 +264,11 @@ if 1:   # Core functionality
             s = s.replace("~", "0")
         Assert(len(s) == 1271)
         return s
+
     def GetDrake():
-        'Return the 551 bit Drake message'
-        # From Shklovskii & Sagan [2] pg 423 
-        s = '''
+        "Return the 551 bit Drake message"
+        # From Shklovskii & Sagan [2] pg 423
+        s = """
         11110000101001000011001000000010000010100
         10000011001011001111000001100001101000000
         00100000100001000010000101010000100000000
@@ -264,14 +283,15 @@ if 1:   # Core functionality
         00000000000111110000001011000111111100000
         10000011000001100001000011000000011000101
         001000111100101111
-        '''
+        """
         s = s.replace("\n", "").replace(" ", "")
         Assert(len(s) == 551)
         return s
+
     def GetArecibo():
-        'Return the 1679 bit Arecibo message'
+        "Return the 1679 bit Arecibo message"
         # From https://pages.uoregon.edu/jimbrau/astr123/Notes/ch28/73by23.html
-        s = '''
+        s = """
             00000010101010000000000 00101000001010000000100
             10001000100010010110010 10101010101010100100100
             00000000000000000000000 00000000000011000000000
@@ -309,24 +329,25 @@ if 1:   # Core functionality
             00000100010100010000000 00000100001000010000000
             00000100000000010000000 00000001001010000000000
             01111001111101001111000
-        '''
+        """
         s = s.replace("\n", "").replace(" ", "")
         Assert(len(s) == 1679)
         return s
+
     def PlotRows(s, nrows, one="1", zero="0", double=False):
-        '''Given the binary string s, print out the 1's and 0's with the
+        """Given the binary string s, print out the 1's and 0's with the
         indicated characters.  If double is True, then print two characters
         for each bit, as this can help with the anisotropic nature of a
         terminal screen.  Print the date in the indicated number of rows.
         The number of columns is gotten from the number of bits in s.
-        '''
+        """
         Assert(set(s) == set("01"))
-        ncols = len(s)//nrows
+        ncols = len(s) // nrows
         Dbg(f"PlotRows:  {len(s)} bits, {nrows} rows, {ncols} columns")
-        if ncols*nrows != len(s):
+        if ncols * nrows != len(s):
             Dbg(f"  Warning:  ncols*nrows != len(s)")
         # Print a header to get column numbering
-        tens = (ncols + 1)//10 + 1
+        tens = (ncols + 1) // 10 + 1
         if double:
             print("  ", end="")
             for i in range(1, tens):
@@ -346,48 +367,57 @@ if 1:   # Core functionality
         # Print the data rows with a leading row number
         for i, c in enumerate(s):
             if i % ncols == 0:
-                print(f"\n{i//ncols + 1:2d} ", end="")
-            char = one*2 if double else one
+                print(f"\n{i // ncols + 1:2d} ", end="")
+            char = one * 2 if double else one
             if c == "0":
                 char = zero + zero if double else zero
             print(char, end="")
         print()
+
     def PlotOliver():
         s = GetOliver()
         print("Barney Oliver message from 1961\n")
         # 1271 bits = 31*41
         rows = 41 if d["-r"] else 31
         PlotRows(s, nrows=rows, one=g.one, zero=g.zero, double=d["-2"])
+
     def PrintOliver():
         s = GetOliver()
         print("Barney Oliver message from 1961")
         PrintSummary(s)
+
     def PlotArecibo():
         s = GetArecibo()
         print("Arecibo message from 1974\n")
         # 1679 bits = 23*73
         rows = 23 if d["-r"] else 73
         PlotRows(s, nrows=rows, one=g.one, zero=g.zero, double=d["-2"])
+
     def PrintArecibo():
         s = GetArecibo()
         print("Arecibo message from 1974")
         PrintSummary(s)
+
     def PlotDrake():
         s = GetDrake()
         print("Drake message from Shklovskii & Sagan pg 423 \n")
         # 551 bits = 19*29
         rows = 19 if d["-r"] else 29
         PlotRows(s, nrows=rows, one=g.one, zero=g.zero, double=d["-2"])
+
     def PrintDrake():
         s = GetDrake()
         print("Drake message from Shklovskii & Sagan pg 423")
         PrintSummary(s)
-        print(dedent('''
+        print(
+            dedent("""
         
         Note:  I suspect there are errors in the table on page 423 because the carbon
-        atom picture is wrong.'''))
+        atom picture is wrong.""")
+        )
+
     def PrintSummary(s):
-        'Print a summary of the message string s'
+        "Print a summary of the message string s"
         bits = len(s)
         cksum = sum(int(i) for i in s)
         md5 = hashlib.md5()
@@ -395,37 +425,39 @@ if 1:   # Core functionality
         print(f"  {len(s)} bits:  {cksum} 1's, {bits - cksum} 0's")
         print(f"  MD5 hash of binary string:  {md5.hexdigest()}")
         PrintBinaryString(s)
+
     def PrintBinaryString(s):
-        '''Fit the string s to the screen and use a number of columns that
+        """Fit the string s to the screen and use a number of columns that
         is divisible by 10.  Also use rulers to help see rows and columns.
-        '''
+        """
         n = g.W
         while n % 10:
             n -= 1
-        m = 0   # Keep track of number of characters printed
+        m = 0  # Keep track of number of characters printed
         # Divide into rows
         rows = []
         for i in range(0, len(s) + 1, n):
-            row = s[i:i + n]
+            row = s[i : i + n]
             rows.append(row)
             m += len(row)
         Assert(m == len(s))
         # Print the header
         w = len(str(len(rows)))
-        m = n//10
-        print(f"{' '*w} {t.ruler}", end="")
+        m = n // 10
+        print(f"{' ' * w} {t.ruler}", end="")
         for i in range(m):
             s = str(i + 1)
-            u = " "*(10 - len(s))
+            u = " " * (10 - len(s))
             print(f"{u}{s}", end="")
         t.print()
         # Print the rows
-        t.print(f"{' '*w} {t.ruler}{'1234567890'*m}")
+        t.print(f"{' ' * w} {t.ruler}{'1234567890' * m}")
         for i, row in enumerate(rows):
             print(f"{t.ruler}{i + 1:{w}d}{t.n} {row}")
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     GetColors()
     action = int(args[0])

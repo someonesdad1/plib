@@ -1,9 +1,9 @@
-'''
+"""
 Sort bash function definitions
 
     NOTE:  This script is only intended to work with my bash initialization
     files, which use a specific form of function definitions:
-        
+
         function name [()]
         {
             ## Description of function's purpose on one line
@@ -12,22 +12,23 @@ Sort bash function definitions
 
     The parenthese after the function name are optional.  The functions are
     put in alphabetical order and sent to stdout.
-'''
-if 1:   # Header
-    if 1:   # Copyright, license
+"""
+
+if 1:  # Header
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Sort bash function definitions
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         from collections import deque
         import getopt
         import os
@@ -35,39 +36,47 @@ if 1:   # Header
         from pathlib import Path as P
         import sys
         from pprint import pprint as pp
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import dedent
         from color import t
         from get import GetLines
         from columnize import Columnize
+
         if 1:
             import debug
+
             debug.SetDebugger()
-    if 1:   # Global variables
+    if 1:  # Global variables
+
         class G:
             # Storage for global variables as attributes
             pass
+
         g = G()
         g.dbg = False
         ii = isinstance
         # Regular expressions to find lines of interest
-        g.funcname =re.compile(r"^function +([A-Za-z_][A-Za-z_0-9]*) *(\( *\))? *$")
-        g.funcstart =re.compile(r"^{ *$")
-        g.funcend =re.compile(r"^} *$")
+        g.funcname = re.compile(r"^function +([A-Za-z_][A-Za-z_0-9]*) *(\( *\))? *$")
+        g.funcstart = re.compile(r"^{ *$")
+        g.funcend = re.compile(r"^} *$")
         # Hold spurious lines, which are blank or comment lines between
         # functions
         g.spurious = []
-if 1:   # Utility
+if 1:  # Utility
+
     def GetColors():
         t.dbg = t("lill") if g.dbg else ""
         t.N = t.n if g.dbg else ""
+
     def GetScreen():
-        'Return (LINES, COLUMNS)'
+        "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
-            int(os.environ.get("COLUMNS", "80")) - 1
+            int(os.environ.get("COLUMNS", "80")) - 1,
         )
+
     g.W, g.L = GetScreen()
+
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="", file=Dbg.file)
@@ -75,12 +84,16 @@ if 1:   # Utility
             k["file"] = Dbg.file
             print(*p, **k)
             print(f"{t.N}", end="", file=Dbg.file)
-    Dbg.file = sys.stderr   # Debug printing to stderr by default
+
+    Dbg.file = sys.stderr  # Debug printing to stderr by default
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] file
           Read the files and sort their bash function definitions into
           alphabetical order.  Use - to read from stdin.
@@ -95,15 +108,17 @@ if 1:   # Utility
           The function_body can have any form desired.
         Options:
             -c      Columnize the output
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-c"] = False     # Columnize the output
-        d["-d"] = False     # Turn on debug printing
+        d["-c"] = False  # Columnize the output
+        d["-d"] = False  # Turn on debug printing
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, files = getopt.getopt(sys.argv[1:], "cdh") 
+            opts, files = getopt.getopt(sys.argv[1:], "cdh")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -118,9 +133,12 @@ if 1:   # Utility
             g.dbg = True
         GetColors()
         return files[0]
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     class Function:
-        '''Give the constructor a deque of lines to a text file.  When it
+        """Give the constructor a deque of lines to a text file.  When it
         encounters a line of the form 'function name', it will get
         remaining lines until it has the full functional form, ending on a
         line of '}'.
@@ -129,19 +147,20 @@ if 1:   # Core functionality
             name    = function name
             lines   = lines of the function body
             summary = description string
-        '''
+        """
+
         def __init__(self, dq):
-            '''The deque dq must be tuples of (int, str) where the integer
+            """The deque dq must be tuples of (int, str) where the integer
             is the 1-based line number in the file and str is the line's
             text without an ending newline.
-            '''
+            """
             # Regex to identify a starting line
             r = g.funcname
             lines, found = [], False
             start, end = "{", "}"
             while dq:
                 n, line = dq.popleft()
-                #print(f"{t('yel')}[{n}] {line!r}{t.n}")
+                # print(f"{t('yel')}[{n}] {line!r}{t.n}")
                 mo = r.match(line)
                 if mo:
                     found = True
@@ -166,7 +185,7 @@ if 1:   # Core functionality
             while dq:
                 n, line = dq.popleft()
                 lines.append((n, line))
-                if line.rstrip() == end:    # No leading whitespace
+                if line.rstrip() == end:  # No leading whitespace
                     break
             if lines[-1][1] != end:
                 Error(f"{self.name!r} missing ending {end!r}")
@@ -175,16 +194,18 @@ if 1:   # Core functionality
                 Dbg(f"{t('grnl')}{self.name}: {self.summary}")
                 for i, s in lines:
                     Dbg(f"  [{i}]: {s}")
+
         def __str__(self):
             return f"Function({self.name}: {self.summary})"
+
         def __repr__(self):
             return f"Function({self.name}: {self.summary})"
 
     def ProcessFile(file, definitions):
-        '''Read the file and parse out its function definitions.  Put them
+        """Read the file and parse out its function definitions.  Put them
         into the dictionary definitions keyed by the function's name.  Put
         the 'header' (lines before first function) into definitions[""].
-        '''
+        """
         if file == "-":
             file = sys.stdin
         lines = [(i + 1, ln) for i, ln in enumerate(GetLines(file, nonl=True))]
@@ -222,6 +243,7 @@ if 1:   # Core functionality
                 ln, line = dq.popleft()
                 if line.strip():
                     g.spurious.append((ln, line))
+
     def PrintResults(definitions):
         if g.spurious:
             print(f"{t('ornl')}Error{t.n}:  spurious line(s) in {g.file!r}")
@@ -235,7 +257,7 @@ if 1:   # Core functionality
         for name in sorted(definitions.keys(), key=str.lower):
             if not name:
                 continue
-            #print(name)
+            # print(name)
             if 1:
                 funcobj = definitions[name]
                 for ln, l in funcobj.lines:
@@ -243,7 +265,7 @@ if 1:   # Core functionality
 
 
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     g.file = ParseCommandLine(d)
     definitions = {}
     ProcessFile(g.file, definitions)

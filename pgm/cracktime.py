@@ -1,21 +1,22 @@
-'''
+"""
 Estimate crack time for a password
-'''
-if 1:   # Header
-    if 1:   # Copyright, license
+"""
+
+if 1:  # Header
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Estimate crack time for a password
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         from collections import deque
         from pathlib import Path as P
         import getopt
@@ -23,36 +24,42 @@ if 1:   # Header
         import re
         import subprocess
         import sys
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from f import flt
         from u import u
         from si import GetSI
         from lwtest import Assert
         from color import t
         from dpprint import PP
-        pp = PP()   # Screen width aware form of pprint.pprint
+
+        pp = PP()  # Screen width aware form of pprint.pprint
         from get import GetLines
         from wrap import dedent
-        from wsl import wsl     # wsl is True when running under WSL Linux
+        from wsl import wsl  # wsl is True when running under WSL Linux
         from timer import AdjustTimeUnits
-        #from columnize import Columnize
-    if 1:   # Global variables
-        class G:    # Storage for global variables as attributes
+        # from columnize import Columnize
+    if 1:  # Global variables
+
+        class G:  # Storage for global variables as attributes
             pass
+
         g = G()
         g.dbg = False
         ii = isinstance
-if 1:   # Utility
+if 1:  # Utility
+
     def GetScreen():
-        'Return (LINES, COLUMNS)'
+        "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
-            int(os.environ.get("COLUMNS", "80")) - 1
+            int(os.environ.get("COLUMNS", "80")) - 1,
         )
+
     def GetColors():
         t.dbg = t("cyn") if g.dbg else ""
         t.N = t.n if g.dbg else ""
         t.err = t("redl")
+
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="", file=Dbg.file)
@@ -60,12 +67,16 @@ if 1:   # Utility
             k["file"] = Dbg.file
             print(*p, **k)
             print(f"{t.N}", end="", file=Dbg.file)
+
     Dbg.file = sys.stdout
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage():
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] N P op_Hz
 
           Estimates the time needed to crack a password made up from a set of N symbols and that
@@ -80,15 +91,17 @@ if 1:   # Utility
           universe. 
         Options:
             -h      Print a manpage
-        '''))
+        """)
+        )
         exit(0)
+
     def ParseCommandLine(d):
-        d["-a"] = False     # Describe this option
-        d["-d"] = 3         # Number of significant digits
+        d["-a"] = False  # Describe this option
+        d["-d"] = 3  # Number of significant digits
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:h") 
+            opts, args = getopt.getopt(sys.argv[1:], "ad:h")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -101,15 +114,17 @@ if 1:   # Utility
                     if not (1 <= d[o] <= 15):
                         raise ValueError()
                 except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                        "1 and 15")
+                    msg = "-d option's argument must be an integer between 1 and 15"
                     Error(msg)
             elif o == "-h":
                 Usage()
         GetColors()
         g.W, g.L = GetScreen()
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def Calculate(N, P, Hz):
         Assert(ii(N, int) and N > 0)
         Assert(ii(P, int) and P > 0)
@@ -117,10 +132,10 @@ if 1:   # Core functionality
         num_passwds = 0
         for i in range(1, P):
             num_passwds += N**i
-        crack_time_s = num_passwds/Hz
-        age_of_universe = flt(13.8e9*u("years"))
+        crack_time_s = num_passwds / Hz
+        age_of_universe = flt(13.8e9 * u("years"))
         if crack_time_s > age_of_universe:
-            crack_time = crack_time_s/age_of_universe
+            crack_time = crack_time_s / age_of_universe
             aou = True
         else:
             crack_time = AdjustTimeUnits(crack_time_s, un=True)
@@ -134,18 +149,21 @@ if 1:   # Core functionality
             with crack_time:
                 crack_time.u = True
                 crack_time.N = 2
-                print(f"  = {crack_time.sci} in units of the estimated age of the universe")
+                print(
+                    f"  = {crack_time.sci} in units of the estimated age of the universe"
+                )
         else:
             print(f"t = {crack_time_s} s = time to crack password = {crack_time}")
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     N = int(args[0])
     P = int(args[1])
     Hz = args[2].strip()
     if Hz[-1] in "QRYZEPTGMk":
-        Hz = flt(Hz[:-1])*GetSI(Hz[-1])
+        Hz = flt(Hz[:-1]) * GetSI(Hz[-1])
     else:
         Hz = flt(Hz)
     Calculate(N, P, Hz)

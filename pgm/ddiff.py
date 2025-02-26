@@ -1,50 +1,53 @@
-'''
+"""
 TODO
     - Change {1} to <1> to quantify differences
     - Mute the colors a bit
 
 Compare the contents of two directories
-'''
- 
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Compare the contents of two directories
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Standard imports
+if 1:  # Standard imports
     import getopt
     import hashlib
     import os
     import pathlib
     import sys
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import wrap, dedent
     from color import Color, TRM as t
     from columnize import Columnize
     import strdiff
+
     if 0:
         import debug
+
         debug.SetDebugger()
-if 1:   # Global variables
+if 1:  # Global variables
     P = pathlib.Path
     ii = isinstance
-    t.l = t("purl")     # Only in left directory
-    t.r = t("cynl")     # Only in right directory
-    t.d = t("yel")      # Common, but different
-    t.dbg = t("brnl")   # Debug
-    t.nr = t("magl")    # Couldn't read
-    t.di = t("lip")     # Difference metric
+    t.l = t("purl")  # Only in left directory
+    t.r = t("cynl")  # Only in right directory
+    t.d = t("yel")  # Common, but different
+    t.dbg = t("brnl")  # Debug
+    t.nr = t("magl")  # Couldn't read
+    t.di = t("lip")  # Difference metric
     debug = False
-if 1:   # Utility
+if 1:  # Utility
+
     def Debug(*p, **kw):
         if debug:
             k = kw.copy()
@@ -52,11 +55,14 @@ if 1:   # Utility
             print(f"{t.dbg}", **k)
             print(*p, **kw)
             print(f"{t.n}", **k)
+
     def Error(*p, status=1):
         print(*p, file=sys.stderr)
         exit(status)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] dir1 dir2
           Compare the two directories and print out the file differences.
           The file comparisons are first made by size, then by a hash if
@@ -75,15 +81,17 @@ if 1:   # Utility
             -k      Don't use color in printout to a terminal
             -d      Print debug information
             -r      Recursive compare
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-1"] = True          # Print out dir1 stuff
-        d["-2"] = True          # Print out dir2 stuff
-        d["-c"] = True          # Print out common stuff
-        d["-d"] = False         # Debug output
-        d["-k"] = True          # Use color
-        d["-r"] = False         # Recurse
+        d["-1"] = True  # Print out dir1 stuff
+        d["-2"] = True  # Print out dir2 stuff
+        d["-c"] = True  # Print out common stuff
+        d["-d"] = False  # Debug output
+        d["-k"] = True  # Use color
+        d["-r"] = False  # Recurse
         try:
             opts, dirs = getopt.getopt(sys.argv[1:], "12cdhkr")
         except getopt.GetoptError as e:
@@ -102,17 +110,22 @@ if 1:   # Utility
         if not d["-k"]:
             t.l = t.r = t.d = t.dbg = t.nr = t.di = ""
         return dirs
+
     def CleanUp():
-        'Make sure ANSI colors are off'
+        "Make sure ANSI colors are off"
         if d["-k"]:
             print(f"{t.n}", end="")
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def GetFiles(dir):
         p = P(dir)
         s = p.rglob("*") if d["-r"] else p.glob("*")
         s = [i.relative_to(dir) for i in s]
-        s = [i for i in s if (dir/i).is_file()]
+        s = [i for i in s if (dir / i).is_file()]
         return s
+
     def Hash(file):
         "Return a hash string or None if couldn't read"
         h = hashlib.sha256()
@@ -124,16 +137,17 @@ if 1:   # Core functionality
                 print(f"Error on file '{file}'", file=sys.stderr)
                 print(f"  {e}", file=sys.stderr)
             return None
+
     def Diffs(common, dirleft, dirright):
-        '''Return a set of the files that are in both directories, but
+        """Return a set of the files that are in both directories, but
         differ.
-        '''
+        """
         diffs, noread = [], []
         for file in common:
-            left = dirleft/file
-            assert(left.is_file())
-            right = dirright/file
-            assert(right.is_file())
+            left = dirleft / file
+            assert left.is_file()
+            right = dirright / file
+            assert right.is_file()
             # Compare by sizes
             sz_left = left.stat().st_size
             sz_right = right.stat().st_size
@@ -160,16 +174,19 @@ if 1:   # Core functionality
                 Debug(f"  right:  {right_hash[:n]}")
                 diffs.append(file)
         return set(diffs), set(noread)
+
     def GetDecorator(item):
-        left = open(dirleft/item, "rb").read()
-        right = open(dirright/item, "rb").read()
+        left = open(dirleft / item, "rb").read()
+        right = open(dirright / item, "rb").read()
         if len(left) != len(right):
             return ""
         frac = strdiff.DiffFrac(left, right)
         digit = strdiff.DiffDigit(frac, len(left))
         return f"{t.di}<{digit}>{t.n}"
+
     def Report(only_in_left, only_in_right, diffs, noread):
-        indent = " "*2
+        indent = " " * 2
+
         def P(title, myset, decorate=False):
             print(title)
             items = sorted(list(myset))
@@ -178,6 +195,7 @@ if 1:   # Core functionality
             for i in Columnize(items, indent=indent):
                 print(i)
             print(f"{t.n}", end="")
+
         if noread:
             P(f"{t.nr}Files that couldn't be read", noread)
         if d["-1"] and only_in_left:
@@ -186,11 +204,16 @@ if 1:   # Core functionality
             P(f"{t.r}Files only in {dirright}", only_in_right)
         if d["-c"] and diffs:
             GetDecorator.color = t.d
-            P(f"{t.d}Common files that differ ({t.di}<1>{t.d} to "
-              f"{t.di}<9>{t.d} quantify differences)",
-              diffs, decorate=True)
+            P(
+                f"{t.d}Common files that differ ({t.di}<1>{t.d} to "
+                f"{t.di}<9>{t.d} quantify differences)",
+                diffs,
+                decorate=True,
+            )
+
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     dirleft, dirright = ParseCommandLine(d)
     left, right = [set(GetFiles(i)) for i in (dirleft, dirright)]
     only_in_left = left - right

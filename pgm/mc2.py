@@ -1,56 +1,63 @@
-'''
+"""
 Calculations relating mass and energy
-'''
-if 1:   # Header
-    if 1:   # Copyright, license
+"""
+
+if 1:  # Header
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Relate mass and energy
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         import getopt
         import os
         from pathlib import Path as P
         import sys
         from math import *
         from pdb import set_trace as xx
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import wrap, dedent
         from color import Color, TRM as t
         from u import u, ParseUnit
-        from f import flt 
+        from f import flt
         from lwtest import Assert, check_flt
         from pprint import pprint as pp
-    if 1:   # Global variables
+    if 1:  # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
         # Set to True for debug messages
         dbg = False
         t.dbg = t("lil")
+
         # Global variable holder
         class g:
             pass
-        g.m = None          # Mass
-        g.E = None          # Energy
-        g.V = None          # Volume
-        g.s = None          # Length of side of cube = Volume**3
-        g.c = 299792458     # Speed of light in m/s
-if 1:   # Utility
+
+        g.m = None  # Mass
+        g.E = None  # Energy
+        g.V = None  # Volume
+        g.s = None  # Length of side of cube = Volume**3
+        g.c = 299792458  # Speed of light in m/s
+if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Manpage():
         n = sys.argv[0]
-        print(dedent(f'''
+        print(
+            dedent(
+                f"""
         This script is used to convert between mass and energy.  Example:  how much energy is in 1
         kg of mass:
             
@@ -116,11 +123,15 @@ if 1:   # Utility
           steel e 1e20/0.1' to get a mass of about 1e6 kg.  That's a cube of steel about 1 m on a
           side, maybe about half the size of a regular desk.
 
-        '''.rstrip()))
+        """.rstrip()
+            )
+        )
         exit(0)
+
     def Usage(status=1):
         n = sys.argv[0]
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {n} [options] op arg
           Calculations involving m = mass, E = energy, s = side of cube.  The op choices denoting
           the calculation to be done are:
@@ -141,21 +152,23 @@ if 1:   # Utility
           will calculate the energy created by the conversion of 1 milliliter of water to energy.
           Since this is 1 g of water, the resulting energy is 9e13 J.
         Options:
-            -d n    Number of significant digits [{d['-d']}]
+            -d n    Number of significant digits [{d["-d"]}]
             -h      Print manpage
             -M      List material choices
             -m mat  Choose material (default is water).  The mat string must start the name in the
                     list of materials.  Can also be a number in g/mL.
             -t      Run self tests
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
         GetDensityDict()
-        d["-d"] = 2         # Number of significant figures
-        d["-m"] = "water"   # Material
-        d["-t"] = False     # Run self tests
+        d["-d"] = 2  # Number of significant figures
+        d["-m"] = "water"  # Material
+        d["-t"] = False  # Run self tests
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "d:hMm:t") 
+            opts, args = getopt.getopt(sys.argv[1:], "d:hMm:t")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -172,8 +185,7 @@ if 1:   # Utility
                     if not (1 <= d["-d"] <= 15):
                         raise ValueError()
                 except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                        "1 and 15")
+                    msg = "-d option's argument must be an integer between 1 and 15"
                     Error(msg)
             elif o == "-m":
                 d["-m"] = a
@@ -190,7 +202,10 @@ if 1:   # Utility
         if d["-t"]:
             Test()
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def ListMaterials():
         # Get max width
         w = 0
@@ -204,10 +219,11 @@ if 1:   # Core functionality
         for i in g.density:
             print(f"{i:{w}s} {int(g.density[i]):6d}")
         exit(0)
+
     def GetDensityDict():
-        'Put density dict in g.density in kg/m3'
-        # Density in g/cc 
-        data = '''
+        "Put density dict in g.density in kg/m3"
+        # Density in g/cc
+        data = """
         Styrofoam                         ; 0.04     
         Aerogel                           ; 0.11     
         Corkboard                         ; 0.2      
@@ -250,19 +266,20 @@ if 1:   # Core functionality
         Gold                              ; 19.3     
         Tungsten                          ; 19.3     
         Platinum                          ; 21.4     
-        Osmium                            ; 22.6'''[1:]
+        Osmium                            ; 22.6"""[1:]
         g.density = {}
         for line in data.split("\n"):
             f = line.split(";")
             Assert(len(f) == 2)
             name = f[0].strip()
             density = flt(f[1].strip())
-            g.density[name] = density*u("g/cc")  # Convert to kg/m3
+            g.density[name] = density * u("g/cc")  # Convert to kg/m3
         if 0:
             print("Density dictionary:")
             pp(g.density)
+
     def FindMaterialDensity(material):
-        'Return (name, density) of indicated material in kg/m3'
+        "Return (name, density) of indicated material in kg/m3"
         found, names = [], []
         for matl in g.density:
             if matl.lower().startswith(material.lower()):
@@ -277,69 +294,76 @@ if 1:   # Core functionality
             for i in names:
                 print(f"    {i}")
             exit(1)
+
     def GetDensity():
-        'Set g.rho to chosen material density in kg/m3'
+        "Set g.rho to chosen material density in kg/m3"
         material = d["-m"]
         try:
             # Can be a flt in g/cc
             g.name = "{material} g/cc"
-            g.rho = flt(material)*u("g/cc")
+            g.rho = flt(material) * u("g/cc")
         except ValueError:
             g.name, g.rho = FindMaterialDensity(material)
+
     def Mass(op, arg):
         if dbg:
             t.print(f"{t.dbg}Mass({op}, {arg})")
         mass, unit = ParseUnit(arg, allow_expr=True)
         if not unit:
             unit = "kg"
-        g.m = flt(eval(mass))*u(unit)
-        g.V = g.m/g.rho
-        g.s = g.V**(1/3)    # Edge of cube with this volume
-        g.E = g.m*g.c**2
+        g.m = flt(eval(mass)) * u(unit)
+        g.V = g.m / g.rho
+        g.s = g.V ** (1 / 3)  # Edge of cube with this volume
+        g.E = g.m * g.c**2
         Report(op, arg)
+
     def Energy(op, arg):
         if dbg:
             t.print(f"{t.dbg}Energy({op}, {arg})")
         energy, unit = ParseUnit(arg, allow_expr=True)
         if not unit:
             unit = "J"
-        g.E = flt(eval(energy))*u(unit)
-        g.m = g.E/g.c**2
-        g.V = g.m/g.rho
-        g.s = g.V**(1/3)
+        g.E = flt(eval(energy)) * u(unit)
+        g.m = g.E / g.c**2
+        g.V = g.m / g.rho
+        g.s = g.V ** (1 / 3)
         Report(op, arg)
+
     def Volume(op, arg):
         if dbg:
             t.print(f"{t.dbg}Volume({op}, {arg})")
         volume, unit = ParseUnit(arg, allow_expr=True)
         if not unit:
             unit = "m3"
-        g.V = flt(eval(volume))*u(unit)
-        g.s = g.V**(1/3)    # Edge of cube with this volume
-        g.m = g.rho*g.V
-        g.E = g.m*g.c**2
+        g.V = flt(eval(volume)) * u(unit)
+        g.s = g.V ** (1 / 3)  # Edge of cube with this volume
+        g.m = g.rho * g.V
+        g.E = g.m * g.c**2
         Report(op, arg)
+
     def Length(op, arg):
         if dbg:
             t.print(f"{t.dbg}Length({op}, {arg})")
         length, unit = ParseUnit(arg, allow_expr=True)
         if not unit:
             unit = "m"
-        g.s = flt(eval(length))*u(unit)
+        g.s = flt(eval(length)) * u(unit)
         g.V = g.s**3
-        g.m = g.rho*g.V
-        g.E = g.m*g.c**2
+        g.m = g.rho * g.V
+        g.E = g.m * g.c**2
         Report(op, arg)
+
     def Test():
-        '''Test each function Mass, Energy, Volume, Length to show that
+        """Test each function Mass, Energy, Volume, Length to show that
         they produce the correct values.
- 
+
         The basic calculation is done for 1 kg of mass:
             m = 1 kg
             E = 8.98755178736818e16 J
             V = 1.26103404791929e-4 m3 for steel
             s = V**(1/3) = 0.0501466898597635 m
-        '''
+        """
+
         def Check():
             eps = 1e-15
             f = check_flt(g.m, m, reltol=eps)
@@ -350,12 +374,13 @@ if 1:   # Core functionality
             Assert(not f)
             f = check_flt(g.s, s, reltol=eps)
             Assert(not f)
+
         GetDensity()
         # Expected values for a 1 kg mass of steel
-        m = 1                       # kg
-        E = 8.98755178736818e16     # J
-        V = 1.26103404791929e-4     # m3
-        s = 0.0501466898597635      # m
+        m = 1  # kg
+        E = 8.98755178736818e16  # J
+        V = 1.26103404791929e-4  # m3
+        s = 0.0501466898597635  # m
         # Mass
         Mass("m", str(m))
         Check()
@@ -370,15 +395,20 @@ if 1:   # Core functionality
         Check()
         print("Tests passed")
         exit(0)
+
     def Report(op, arg):
         if d["-t"]:
             return
-        w, t = 12, " "*0
+        w, t = 12, " " * 0
         print(f"{'Input':{w}s}{t}'{op} {arg}'")
-        print(f"{'Mass':{w}s}{t}{(1000*g.m).engsi}g = {g.m.sci} kg = {(g.m/u('lb')).sci} lb")
-        kt = g.E/flt(4.184e12)
-        hiroshima = kt/15.5
-        print(f"{'Energy':{w}s}{t}{g.E.engsi}J = {g.E.sci} J = {kt} kilotons TNT = {hiroshima} Hiroshimas")
+        print(
+            f"{'Mass':{w}s}{t}{(1000 * g.m).engsi}g = {g.m.sci} kg = {(g.m / u('lb')).sci} lb"
+        )
+        kt = g.E / flt(4.184e12)
+        hiroshima = kt / 15.5
+        print(
+            f"{'Energy':{w}s}{t}{g.E.engsi}J = {g.E.sci} J = {kt} kilotons TNT = {hiroshima} Hiroshimas"
+        )
         # Need to handle the exceptional case where g.V.engsi is "m" because it will read "mm³",
         # which is incorrect.
         if g.V.engsi.endswith("m"):
@@ -386,15 +416,18 @@ if 1:   # Core functionality
         else:
             print(f"{'Volume':{w}s}{t}{g.V.engsi}m³ = {g.V.sci} m³")
 
-        print(f"{'Length':{w}s}{t}{g.s.engsi}m = {g.s.sci} m = {(g.s/u('in')).sci} in")
-        print(f"{'Density':{w}s}{t}{g.rho} kg/m³ = {g.rho/1000} g/cm³")
+        print(
+            f"{'Length':{w}s}{t}{g.s.engsi}m = {g.s.sci} m = {(g.s / u('in')).sci} in"
+        )
+        print(f"{'Density':{w}s}{t}{g.rho} kg/m³ = {g.rho / 1000} g/cm³")
         print(f"{'Material':{w}s}{t}{g.name}")
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     op = args.pop(0)
-    arg = ' '.join(args)
+    arg = " ".join(args)
     if op.lower() == "m":
         Mass(op, arg)
     elif op.lower() == "e":

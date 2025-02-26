@@ -1,37 +1,38 @@
-'''
+"""
 Calculates the mass and area of a given amount of paper
     Also does conversions between grammage and the screwball US system.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2011 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2011 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Calculates the mass and area of a given amount of paper
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import os
     import getopt
     import functools
     import time
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
     import fpformat
-if 1:   # Global variables
+if 1:  # Global variables
     # Conversion factors
     in2mm = 25.4
-    mm2in = 1/in2mm
+    mm2in = 1 / in2mm
     in2_to_m2 = 6.4516e-4
     g2oz = 0.035274
     kg2lbm = 2.20462
-    g2lbm = kg2lbm/1000
+    g2lbm = kg2lbm / 1000
     #
     fp = fpformat.FPFormat(num_digits=4)
     fp.trailing_decimal_point(False)
@@ -53,8 +54,11 @@ if 1:   # Global variables
         ("Newsprint", 24, 36, 500),
         ("Tissue", 24, 36, 480),
     )
+
+
 def Usage(status=1):
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]} [options] gsm size [count [cost]]
       Prints the mass of a given amount of paper stock.  gsm is grams per
       square meter, size is WxH where W is the width and H is the height; units
@@ -70,8 +74,11 @@ def Usage(status=1):
       -g g  Print out the US paper mass equivalents for the grammage g
       -m    Interpret the WxH sizes in mm instead of inches
       -p lb Print out the gsm equivalents for the indicated pound mass
-    '''))
+    """)
+    )
     exit(status)
+
+
 def ParseCommandLine(d):
     d["-m"] = False
     d["-g"] = False
@@ -96,8 +103,10 @@ def ParseCommandLine(d):
     if len(args) < 2:
         Usage()
     return args
+
+
 def ParseSize(size, d):
-    'Return paper size in mm as (length, width)'
+    "Return paper size in mm as (length, width)"
     in2mm = 25.4
     sz, conv = size.lower(), in2mm
     if d["-m"]:
@@ -107,17 +116,17 @@ def ParseSize(size, d):
         if len(f) != 2:
             err("Bad size spec")
             Usage()
-        return tuple([float(i)*conv for i in f])
+        return tuple([float(i) * conv for i in f])
     else:
         s = {
-            "letter": (11*in2mm, 8.5*in2mm),
-            "a": (11*in2mm, 8.5*in2mm),
-            "legal": (14*in2mm, 8.5*in2mm),
-            "ledger": (11*in2mm, 17*in2mm),
-            "b": (11*in2mm, 17*in2mm),
-            "c": (17*in2mm, 22*in2mm),
-            "d": (22*in2mm, 34*in2mm),
-            "e": (34*in2mm, 44*in2mm),
+            "letter": (11 * in2mm, 8.5 * in2mm),
+            "a": (11 * in2mm, 8.5 * in2mm),
+            "legal": (14 * in2mm, 8.5 * in2mm),
+            "ledger": (11 * in2mm, 17 * in2mm),
+            "b": (11 * in2mm, 17 * in2mm),
+            "c": (17 * in2mm, 22 * in2mm),
+            "d": (22 * in2mm, 34 * in2mm),
+            "e": (34 * in2mm, 44 * in2mm),
             # ISO paper sizes
             "a0": (1189, 841),
             "a1": (594, 841),
@@ -158,21 +167,27 @@ def ParseSize(size, d):
         except KeyError:
             err("'%s' is not a recognized paper size" % size)
             Usage()
+
+
 def GetNumSheets(s):
-    '''s is either a string for an integer or it contains "r", which
+    """s is either a string for an integer or it contains "r", which
     represents a ream.  The "r" form can be a valid python expression.
-    '''
+    """
     try:
         return int(s)
     except ValueError:
         e = s.lower().replace("r", "500")
         return eval(e)
+
+
 def GetSize(s):
-    '''Return a "nice" form of the size spec.
-    '''
-    sizes = set((
-        "a b c d e a0 a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 b0 b1 b2 b3 b4"
-        "b5 b6 b7 b8 b9 b10 c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10".split()))
+    """Return a "nice" form of the size spec."""
+    sizes = set(
+        (
+            "a b c d e a0 a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 b0 b1 b2 b3 b4"
+            "b5 b6 b7 b8 b9 b10 c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10".split()
+        )
+    )
     if s in sizes:
         return s.upper()
     else:
@@ -180,29 +195,34 @@ def GetSize(s):
             return s.replace("X", "x")
         else:
             return s
+
+
 def Grammage(args):
-    '''args[0] is the grammage.  Print equivalent US paper masses.
-    '''
+    """args[0] is the grammage.  Print equivalent US paper masses."""
     in2_to_m2 = 0.00064516
     gsm = float(args[0])
     print("%.3g gsm equivalent US paper mass:" % gsm)
     for name, w, h, count in us:
-        area_m2 = w*h*count*in2_to_m2
-        mass_lb = gsm*area_m2*g2lbm
+        area_m2 = w * h * count * in2_to_m2
+        mass_lb = gsm * area_m2 * g2lbm
         print("%-30s %.1f pound" % (name, mass_lb))
     exit(0)
+
+
 def Poundage(args):
-    '''args[0] is the pounds.  For the different US paper masses, print
+    """args[0] is the pounds.  For the different US paper masses, print
     the grammage.
-    '''
+    """
     lb = float(args[0])
     print("Grammage equivalents of %s pound US paper masses:" % args[0])
     for name, w, h, count in us:
-        area_m2 = w*h*count*in2_to_m2
-        mass_g = lb/g2lbm
-        gsm = mass_g/area_m2
+        area_m2 = w * h * count * in2_to_m2
+        mass_g = lb / g2lbm
+        gsm = mass_g / area_m2
         print("%-30s %.0f gsm" % (name, gsm))
     exit(0)
+
+
 if __name__ == "__main__":
     d = {}  # Options dictionary
     have_cost = False
@@ -221,72 +241,89 @@ if __name__ == "__main__":
     else:
         s = " (in inches)"
     print("Size = ", GetSize(args[1]), s)
-    s = " "*4
+    s = " " * 4
     if length_mm > width_mm:
-        print("%sLength = %.1f mm = %.2f in" % (s, length_mm, length_mm*mm2in))
-        print("%sWidth  = %.1f mm = %.2f in" % (s, width_mm, width_mm*mm2in))
+        print("%sLength = %.1f mm = %.2f in" % (s, length_mm, length_mm * mm2in))
+        print("%sWidth  = %.1f mm = %.2f in" % (s, width_mm, width_mm * mm2in))
     else:
-        print("%sLength = %.1f mm = %.2f in" % (s, width_mm, width_mm*mm2in))
-        print("%sWidth  = %.1f mm = %.2f in" % (s, length_mm, length_mm*mm2in))
-    area_mm2 = width_mm*length_mm
+        print("%sLength = %.1f mm = %.2f in" % (s, width_mm, width_mm * mm2in))
+        print("%sWidth  = %.1f mm = %.2f in" % (s, length_mm, length_mm * mm2in))
+    area_mm2 = width_mm * length_mm
     print("1 sheet:")
-    print("%sArea = %s m%s = %s cm%s = %s mm%s = %s in%s" % (
-        s,
-        fp.sig(area_mm2/1e6),
-        ec,
-        fp.sig(area_mm2/1e2),
-        ec,
-        fp.sig(area_mm2),
-        ec,
-        fp.sig(area_mm2*0.00155),
-        ec,
+    print(
+        "%sArea = %s m%s = %s cm%s = %s mm%s = %s in%s"
+        % (
+            s,
+            fp.sig(area_mm2 / 1e6),
+            ec,
+            fp.sig(area_mm2 / 1e2),
+            ec,
+            fp.sig(area_mm2),
+            ec,
+            fp.sig(area_mm2 * 0.00155),
+            ec,
         )
     )
-    m_g = gsm*length_mm*width_mm/1000**2
-    print("%sMass = %s g = %s oz = %s lb" %
-          (s, fp.sig(m_g), fp.sig(m_g*g2oz), fp.sig(m_g*g2oz/16)))
+    m_g = gsm * length_mm * width_mm / 1000**2
+    print(
+        "%sMass = %s g = %s oz = %s lb"
+        % (s, fp.sig(m_g), fp.sig(m_g * g2oz), fp.sig(m_g * g2oz / 16))
+    )
     print("Number of sheets per unit mass:")
-    print("%s%s sheets/kg  " % (s, fp.sig(1000/m_g)), end="")
-    print("%s%s sheets/lb  " % (s, fp.sig(1/(m_g/1000*kg2lbm))), end="")
-    print("%s%s sheets/oz" % (s, fp.sig(1/(m_g/1000*kg2lbm*16))))
+    print("%s%s sheets/kg  " % (s, fp.sig(1000 / m_g)), end="")
+    print("%s%s sheets/lb  " % (s, fp.sig(1 / (m_g / 1000 * kg2lbm))), end="")
+    print("%s%s sheets/oz" % (s, fp.sig(1 / (m_g / 1000 * kg2lbm * 16))))
     if num_sheets > 1:
         print("%d sheets:" % num_sheets)
-        print("%sArea = %s m%s = %s cm%s = %s mm%s = %s in%s" % (
-            s,
-            fp.sig(area_mm2/10**6*num_sheets),
-            ec,
-            fp.sig(area_mm2/100*num_sheets),
-            ec,
-            fp.sig(area_mm2*num_sheets),
-            ec,
-            fp.sig(area_mm2*0.00155*num_sheets),
-            ec))
-        print("%sMass = %s g = %s kg = %s oz = %s lb" % (
-              s,
-              fp.sig(m_g*num_sheets),
-              fp.sig(m_g*num_sheets/1000),
-              fp.sig(m_g*num_sheets*g2oz),
-              fp.sig(m_g*num_sheets*g2oz/16)))
+        print(
+            "%sArea = %s m%s = %s cm%s = %s mm%s = %s in%s"
+            % (
+                s,
+                fp.sig(area_mm2 / 10**6 * num_sheets),
+                ec,
+                fp.sig(area_mm2 / 100 * num_sheets),
+                ec,
+                fp.sig(area_mm2 * num_sheets),
+                ec,
+                fp.sig(area_mm2 * 0.00155 * num_sheets),
+                ec,
+            )
+        )
+        print(
+            "%sMass = %s g = %s kg = %s oz = %s lb"
+            % (
+                s,
+                fp.sig(m_g * num_sheets),
+                fp.sig(m_g * num_sheets / 1000),
+                fp.sig(m_g * num_sheets * g2oz),
+                fp.sig(m_g * num_sheets * g2oz / 16),
+            )
+        )
         if have_cost:
-            print("%sCost/area = %s $/m%s = %s cents/in%s" % (
-                  s,
-                  fp.sig(cost/(area_mm2/1000**2*num_sheets)),
-                  ec,
-                  fp.sig(0.00064516*100*cost/(area_mm2/1000**2*num_sheets)),
-                  ec))
-            m_kg = m_g/1000*num_sheets
-            print("%sCost/mass = %s $/kg = %s $/lb = %s cents/gram" % (
-                  s,
-                  fp.sig(cost/m_kg),
-                  fp.sig(cost/(m_kg*kg2lbm)),
-                  fp.sig(100*cost/(1000*m_kg))))
+            print(
+                "%sCost/area = %s $/m%s = %s cents/in%s"
+                % (
+                    s,
+                    fp.sig(cost / (area_mm2 / 1000**2 * num_sheets)),
+                    ec,
+                    fp.sig(0.00064516 * 100 * cost / (area_mm2 / 1000**2 * num_sheets)),
+                    ec,
+                )
+            )
+            m_kg = m_g / 1000 * num_sheets
+            print(
+                "%sCost/mass = %s $/kg = %s $/lb = %s cents/gram"
+                % (
+                    s,
+                    fp.sig(cost / m_kg),
+                    fp.sig(cost / (m_kg * kg2lbm)),
+                    fp.sig(100 * cost / (1000 * m_kg)),
+                )
+            )
             # Calculate $/(m2*kg)
-            cpam = fp.sig(cost/(m_kg*area_mm2/10**6*num_sheets))
-            print("%sCost/(area*mass) = %s $/(m%s*kg)" % (
-                  s,
-                  cpam,
-                  ec))
-            print("%sCost per sheet = $%s = %s cents" % (
-                  s,
-                  fp.sig(cost/num_sheets),
-                  fp.sig(100*cost/num_sheets)))
+            cpam = fp.sig(cost / (m_kg * area_mm2 / 10**6 * num_sheets))
+            print("%sCost/(area*mass) = %s $/(m%s*kg)" % (s, cpam, ec))
+            print(
+                "%sCost per sheet = $%s = %s cents"
+                % (s, fp.sig(cost / num_sheets), fp.sig(100 * cost / num_sheets))
+            )

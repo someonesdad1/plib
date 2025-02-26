@@ -1,16 +1,17 @@
-'''
+"""
 Compare the whitespace-separated tokens in two text strings.  The use
 case for this tool is comparing open source licenses, which are
 typically 7-bit ASCII text but with differing whitespace.  Run as a
 script to compare two files.
-'''
+"""
 
 import difflib
 import hashlib
 import io
 
+
 class TextCompare:
-    '''Compares two text strings.  Useful attributes:
+    """Compares two text strings.  Useful attributes:
         diff    Returns a string describing how to change old to new
         equal   Returns True if the normalized strings are equal
         i       Ignore case in comparison if True
@@ -20,7 +21,8 @@ class TextCompare:
         x       Print diff offsets in hex if True
     Normalization is done by tokenizing on whitespace, then separating
     tokens by space characters.
-    '''
+    """
+
     def __init__(self, old: str, new: str):
         self.old = old
         self.new = new
@@ -30,13 +32,15 @@ class TextCompare:
             raise TypeError(f"new must be a text string")
         self._hex_offsets = False
         self._ignore_case = False
+
     def normalize(self, text):
-        'Tokenize on whitespace and separate with one space character'
-        s = ' '.join(text.split())
+        "Tokenize on whitespace and separate with one space character"
+        s = " ".join(text.split())
         return s.lower() if self.i else s
+
     @property
     def diff(self):
-        'Return a string showing how to convert old to new'
+        "Return a string showing how to convert old to new"
         F, O = ("x", "0x") if self.x else ("d", "")  # Format for offsets
         f = io.StringIO()
         print("To convert old to new:", file=f)
@@ -46,16 +50,20 @@ class TextCompare:
         for o in s.get_opcodes():
             tag, o1, o2, n1, n2 = o
             if tag == "replace":
-                print(f"{tag} {O}{o1:{F}}:{O}{o2:{F}} {old[o1:o2]!r} "
-                      f"with {O}{n1:{F}}:{O}{n2:{F}} {new[n1:n2]!r}", file=f)
+                print(
+                    f"{tag} {O}{o1:{F}}:{O}{o2:{F}} {old[o1:o2]!r} "
+                    f"with {O}{n1:{F}}:{O}{n2:{F}} {new[n1:n2]!r}",
+                    file=f,
+                )
             elif tag == "delete":
                 print(f"{tag} {O}{o1:{F}}:{O}{o2:{F}} = {old[o1:o2]!r}", file=f)
             elif tag == "insert":
                 print(f"{tag} at {O}{o1:{F}}:  {new[n1:n2]!r}", file=f)
         return f.getvalue().rstrip()
+
     @property
     def equal(self):
-        'Return True if the normalized hashes are equal'
+        "Return True if the normalized hashes are equal"
         f = hashlib.sha256
         old = self.normalize(self.old).encode()
         new = self.normalize(self.new).encode()
@@ -63,16 +71,19 @@ class TextCompare:
         o.update(old)
         n.update(new)
         return o.digest() == n.digest()
+
     @property
     def i(self):
-        'If True, ignore case in comparison'
+        "If True, ignore case in comparison"
         return bool(self._ignore_case)
+
     @i.setter
     def i(self, value):
         self._ignore_case = bool(value)
+
     @property
     def ratio(self):
-        'Returns a ratio on [0, 1] that measures equality (equal is 1)'
+        "Returns a ratio on [0, 1] that measures equality (equal is 1)"
         old = self.normalize(self.old)
         new = self.normalize(self.new)
         s = difflib.SequenceMatcher(lambda x: x == " ", old, new)
@@ -86,48 +97,63 @@ class TextCompare:
                 n += 1
                 r = f"{round(ratio, n)}"
         return float(r)
+
     @property
     def t(self):
-        'Number of tokens in file if they are equal; 0 otherwise'
+        "Number of tokens in file if they are equal; 0 otherwise"
         return len(self.old.split()) if self.equal else 0
+
     @property
     def x(self):
-        'If True, use hex for offsets in diff string'
+        "If True, use hex for offsets in diff string"
         return bool(self._hex_offsets)
+
     @x.setter
     def x(self, value):
         self._hex_offsets = bool(value)
 
-if __name__ == "__main__": 
+
+if __name__ == "__main__":
     # Standard library modules
     import getopt
     import os
     import pathlib
     import sys
     from pdb import set_trace as xx
+
     # Custom modules
     from lwtest import run, raises, assert_equal
     from wrap import dedent
+
     # Try to import the color.py module; if not available, the script
     # should still work (you'll just get uncolored output).
     try:
         import xcolor as C
+
         _have_color = True
     except ImportError:
         # Make a dummy color object to swallow function calls
         class Dummy:
-            def fg(self, *p, **kw): pass
-            def normal(self, *p, **kw): pass
-            def __getattr__(self, name): pass
+            def fg(self, *p, **kw):
+                pass
+
+            def normal(self, *p, **kw):
+                pass
+
+            def __getattr__(self, name):
+                pass
+
         C = Dummy()
         _have_color = False
-    if 1:   # Script base code
+    if 1:  # Script base code
+
         def Error(msg, status=1):
             print(msg, file=sys.stderr)
             exit(status)
+
         def Usage(d, status=1):
             name = sys.argv[0]
-            s = dedent(f'''
+            s = dedent(f"""
         Usage:  {name} [options] file1 file2
           Compare the two files by tokens to see if they are equal.  An example
           is comparing the text of two open source licenses.  A message is
@@ -158,24 +184,26 @@ if __name__ == "__main__":
             --test      Run regression test file named test/X_test.py 
                         where X is the name of this script
             --Test f    Run regression test file f
-            ''')
+            """)
             print(s)
             exit(status)
+
         def ParseCommandLine(d):
-            d["-D"] = False             # Dump tokens to stdout
-            d["-d"] = False             # Show diff
-            d["-H"] = False             # Show HTML diff of tokens
-            d["-i"] = False             # Ignore case
-            d["-x"] = False             # Use hex for offsets in diff
-            d["--example"] = False      # Run examples
-            d["--self"] = False         # Run self tests
-            d["--test"] = False         # Run tests in test/
-            d["--Test"] = None          # Run tests in another file
-            d["special"] = False        # If True, one of --example,
-                                        # --self, or --test was given
+            d["-D"] = False  # Dump tokens to stdout
+            d["-d"] = False  # Show diff
+            d["-H"] = False  # Show HTML diff of tokens
+            d["-i"] = False  # Ignore case
+            d["-x"] = False  # Use hex for offsets in diff
+            d["--example"] = False  # Run examples
+            d["--self"] = False  # Run self tests
+            d["--test"] = False  # Run tests in test/
+            d["--Test"] = None  # Run tests in another file
+            d["special"] = False  # If True, one of --example,
+            # --self, or --test was given
             try:
-                opts, args = getopt.getopt(sys.argv[1:], "Ddhix", 
-                    "example help self test Test=".split())
+                opts, args = getopt.getopt(
+                    sys.argv[1:], "Ddhix", "example help self test Test=".split()
+                )
             except getopt.GetoptError as e:
                 print(str(e))
                 exit(1)
@@ -192,35 +220,41 @@ if __name__ == "__main__":
                     d["--Test"] = a
                 elif o == "--self":
                     d["--self"] = True
-            d["special"] = (d["--example"] or d["--self"] or d["--test"]
-                            or d["--Test"])
+            d["special"] = d["--example"] or d["--self"] or d["--test"] or d["--Test"]
             if not args and not d["special"]:
                 Usage(d)
             if len(args) != 2:
                 Usage(d)
             return args
+
         def GetFile(file):
             s = open(file, "rb").read()
             return s.decode()
-    if 1:   # Test code 
+
+    if 1:  # Test code
+
         def Assert(cond):
-            '''Same as assert, but you'll be dropped into the debugger on an
+            """Same as assert, but you'll be dropped into the debugger on an
             exception if you include a command line argument.
-            '''
+            """
             if not cond:
                 if args:
                     print("Type 'up' to go to line that failed")
                     xx()
                 else:
                     raise AssertionError
+
         def Test_1():
             pass
-    if 1:   # Example code for module
+
+    if 1:  # Example code for module
+
         def Example_1():
             print("example 1")
             pass
+
     # ----------------------------------------------------------------------
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     if d["special"]:
         if d["--self"]:

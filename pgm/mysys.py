@@ -1,18 +1,21 @@
-'''
+"""
 Show system and python information
-'''
+"""
+
 import f
 import platform
 import multiprocessing as mp
 import sys
 from color import t
 from textwrap import wrap
+
 t.hl = t("grnl")
 t.ti = t("ornl")
 cores = mp.cpu_count()
 
 # System info
-print(f'''
+print(
+    f"""
 Device name     DON-PC
 Processor       Intel Core i5-7600 CPU @ 3.5 GHz
     {t.hl}Cores       {cores}{t.n}
@@ -31,16 +34,18 @@ Windows information
     Installed on    15-Oct-22
     OS build        19044.3803
     Experience      Windows Feature Experience Pack 1000.19053.1000.0
-'''[1:-1])
+"""[1:-1]
+)
 
 # Python info
 ver = sys.version.replace("\n", "")
-contsz = f"{f.log(sys.maxsize)/f.log(2)}"
+contsz = f"{f.log(sys.maxsize) / f.log(2)}"
 impl = f"{platform.python_implementation()}"
 w = 34
-flg = wrap(str(sys.flags), initial_indent = " "*16, subsequent_indent=" "*w)
-flags = '\n'.join(flg)
-print(f'''
+flg = wrap(str(sys.flags), initial_indent=" " * 16, subsequent_indent=" " * w)
+flags = "\n".join(flg)
+print(
+    f"""
 {t.ti}Python information{t.n}
     {t.hl}Python version  {ver}{t.n}
     Flags
@@ -62,4 +67,5 @@ Python floating point information
     Minimum exponent for 10         {sys.float_info.min_10_exp}
     (First number > 1) - 1          {sys.float_info.epsilon}
     Addition rounds                 {sys.float_info.rounds}
-'''[1:-1])
+"""[1:-1]
+)

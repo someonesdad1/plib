@@ -1,78 +1,128 @@
-'''
+"""
 Month names and numbers
     Use DaysPerMonth() to get the number of days in a month.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # <programming> Month names and numbers in dictionary form.
-    #∞what∞#
-    #∞test∞# run #∞test∞#
+    # ∞what∞#
+    # ∞test∞# run #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import datetime
     import string
     from bidict import bidict
-if 1:   # Global variables
+if 1:  # Global variables
     # Names of the months
-    Months = set(("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul",
-        "Aug", "Sep", "Oct", "Nov", "Dec"))
-    Months_lc = set(("jan", "feb", "mar", "apr", "may", "jun", "jul",
-        "aug", "sep", "oct", "nov", "dec"))
-    Months_uc = set(("JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL",
-        "AUG", "SEP", "OCT", "NOV", "DEC"))
+    Months = set(
+        (
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec",
+        )
+    )
+    Months_lc = set(
+        (
+            "jan",
+            "feb",
+            "mar",
+            "apr",
+            "may",
+            "jun",
+            "jul",
+            "aug",
+            "sep",
+            "oct",
+            "nov",
+            "dec",
+        )
+    )
+    Months_uc = set(
+        (
+            "JAN",
+            "FEB",
+            "MAR",
+            "APR",
+            "MAY",
+            "JUN",
+            "JUL",
+            "AUG",
+            "SEP",
+            "OCT",
+            "NOV",
+            "DEC",
+        )
+    )
     # Bi-directional mappings between month number and 3-letter string name
-    months = bidict({
-        1: "Jan",
-        2: "Feb",
-        3: "Mar",
-        4: "Apr",
-        5: "May",
-        6: "Jun",
-        7: "Jul",
-        8: "Aug",
-        9: "Sep",
-        10: "Oct",
-        11: "Nov",
-        12: "Dec",
-    })
+    months = bidict(
+        {
+            1: "Jan",
+            2: "Feb",
+            3: "Mar",
+            4: "Apr",
+            5: "May",
+            6: "Jun",
+            7: "Jul",
+            8: "Aug",
+            9: "Sep",
+            10: "Oct",
+            11: "Nov",
+            12: "Dec",
+        }
+    )
     # The following uses upper case letters
-    months_uc = bidict({
-        1: "JAN",
-        2: "FEB",
-        3: "MAR",
-        4: "APR",
-        5: "MAY",
-        6: "JUN",
-        7: "JUL",
-        8: "AUG",
-        9: "SEP",
-        10: "OCT",
-        11: "NOV",
-        12: "DEC",
-    })
+    months_uc = bidict(
+        {
+            1: "JAN",
+            2: "FEB",
+            3: "MAR",
+            4: "APR",
+            5: "MAY",
+            6: "JUN",
+            7: "JUL",
+            8: "AUG",
+            9: "SEP",
+            10: "OCT",
+            11: "NOV",
+            12: "DEC",
+        }
+    )
     # The following uses lower case letters
-    months_lc = bidict({
-        1: "jan",
-        2: "feb",
-        3: "mar",
-        4: "apr",
-        5: "may",
-        6: "jun",
-        7: "jul",
-        8: "aug",
-        9: "sep",
-        10: "oct",
-        11: "nov",
-        12: "dec",
-    })
-if 1:   # Core functions
+    months_lc = bidict(
+        {
+            1: "jan",
+            2: "feb",
+            3: "mar",
+            4: "apr",
+            5: "may",
+            6: "jun",
+            7: "jul",
+            8: "aug",
+            9: "sep",
+            10: "oct",
+            11: "nov",
+            12: "dec",
+        }
+    )
+if 1:  # Core functions
+
     def DaysPerMonth(month, leap_year=False):
         days_per_month = {
             1: 31,
@@ -93,10 +143,11 @@ if 1:   # Core functions
         elif isinstance(month, int):
             n = month
         return days_per_month[n] + bool(leap_year)
+
     def GetDate(s):
-        '''Return a date.Date object given the string s in the form
+        """Return a date.Date object given the string s in the form
         11Feb2023.
-        '''
+        """
         u = s.replace(" ", "")
         u = "0" + u if len(u) == 8 else u
         day = int(u[:2])
@@ -104,8 +155,10 @@ if 1:   # Core functions
         year = int(u[5:])
         return datetime.date(year, month, day)
 
-if __name__ == "__main__": 
+
+if __name__ == "__main__":
     from lwtest import run
+
     def Test():
         assert months[1] == "Jan"
         assert months[2] == "Feb"
@@ -162,4 +215,5 @@ if __name__ == "__main__":
         assert DaysPerMonth(12) == 31
         #
         assert GetDate("11Feb2023") == datetime.date(2023, 2, 11)
+
     exit(run(globals(), halt=1)[0])

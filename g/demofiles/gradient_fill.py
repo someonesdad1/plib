@@ -1,7 +1,9 @@
-'''
+"""
 Demonstrates a simple gradient file of a path.
-'''
+"""
+
 from g import *
+
 SetUp("out/gradient_fill.ps", landscape, inches)
 translate(1, 1)
 FillOn()

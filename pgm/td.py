@@ -1,4 +1,4 @@
-'''
+"""
 TODO
     - Another problem:  comments will be found in multiline strings
     - Sometimes comments are needed in the code.  Let these be indicated by
@@ -27,44 +27,51 @@ Highlights todo items in python scripts
     existing comment can be an indicator of something that needs to be done
     in that file.  This scripts finds and prints those items out.
 
-'''
-if 1:   # Header
+"""
+
+if 1:  # Header
     # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
-        # Highlights todo items in python scripts
-        #∞what∞#
-        #∞test∞# #∞test∞#
+    # These "trigger strings" can be managed with trigger.py
+    # ∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    # ∞license∞#
+    # ∞what∞#
+    # Highlights todo items in python scripts
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     # Standard imports
-        import getopt
-        import inspect
-        import os
-        import re
-        from pathlib import Path as P
-        import sys
-        #from pdb import set_trace as xx
-        from collections import deque
-        from pprint import pprint as pp
+    import getopt
+    import inspect
+    import os
+    import re
+    from pathlib import Path as P
+    import sys
+
+    # from pdb import set_trace as xx
+    from collections import deque
+    from pprint import pprint as pp
+
     # Custom imports
-        from wrap import wrap, dedent
-        from color import Color, TRM as t
-        from get import GetLines
+    from wrap import wrap, dedent
+    from color import Color, TRM as t
+    from get import GetLines
+
     # Global variables
-        ii = isinstance
-        w = int(os.environ.get("COLUMNS", "80")) - 1
-        L = int(os.environ.get("LINES", "50"))
-if 1:   # Utility
+    ii = isinstance
+    w = int(os.environ.get("COLUMNS", "80")) - 1
+    L = int(os.environ.get("LINES", "50"))
+if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] [file1 [file2 ...]]
           Print out comments before functions and classes in python
           scripts, as they are interpreted as todo items.  If a file item
@@ -76,15 +83,16 @@ if 1:   # Utility
             -c      Colorize the output
             -l      List files with todo items
             -s      Strip leading whitespace off the todo items
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
         d["-c"] = False
         d["-l"] = False
         d["-s"] = False
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "chls", 
-                    ["help", "debug"])
+            opts, args = getopt.getopt(sys.argv[1:], "chls", ["help", "debug"])
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -97,13 +105,17 @@ if 1:   # Utility
                 # Set up a handler to drop us into the debugger on an
                 # unhandled exception
                 import debug
+
                 debug.SetDebugger()
                 global dbg
                 dbg = True
         if not args:
             Usage()
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def Colorize():
         c = d["-c"]
         t.file = t("yell") if c else ""
@@ -111,39 +123,41 @@ if 1:   # Core functionality
         t.klass = t("purl") if c else ""
         t.func = t("royl") if c else ""
         t.todo = t("cynl") if c else ""
+
     def ProcessDirectory(dir):
         for file in dir.glob("*.py"):
             Process(file)
+
     def IsMatch(line):
-        '''Return matched string if there's a match; '' if not.
-        '''
+        """Return matched string if there's a match; '' if not."""
         for r in R:
             mo = r.match(line)
             if mo:
                 match = mo.groups()[0]
                 return match
         return ""
+
     def IsComment(line):
-        '''The line is declared to be a comment if it begins with a single
+        """The line is declared to be a comment if it begins with a single
         '#' character.  Because sometimes comments are wanted in source and
         I don't want them to be interpreted as a todo-comment, they will be
         introduced with '##' and will be ignored.
-        '''
+        """
         s = line.lstrip()
         if s.startswith("##"):
             return False
         return s and s[0] == "#"
+
     def DumpLines(file, name, linenum, out):
-        '''file is the file being processed, name is the class or function
+        """file is the file being processed, name is the class or function
         name that matched, linenum is the 1-based line number of the line
         in the file, and out is the set of comment lines.
-        '''
+        """
         if d["-l"]:
             print(file)
             return
         # Print header line
-        print(f"{t.file}{file}:"
-              f"{t.linenum}{linenum}  ", end="")
+        print(f"{t.file}{file}:{t.linenum}{linenum}  ", end="")
         if "class" in name:
             print(f"{t.klass}{name}{t.n}")
         elif "def" in name:
@@ -155,6 +169,7 @@ if 1:   # Core functionality
             # Substitute ' ' for the first '#'
             line = line.replace("#", " ", 1)
             t.print(f"{t.todo}{line}")
+
     def Process(file):
         lines = GetLines(file, nonl=True)
         # Decorate with line numbers
@@ -166,7 +181,7 @@ if 1:   # Core functionality
         found = []
         while lines:
             linenum, line = lines.popleft()
-            if dbg:     # Show the line read in
+            if dbg:  # Show the line read in
                 t.print(f"{t('gry')}{line!r}")
             name = IsMatch(line)
             if name:
@@ -180,15 +195,18 @@ if 1:   # Core functionality
                         out.append(lines.popleft()[1])
                 if out:
                     found.append((file, name, linenum, reversed(out)))
+
         # Sort by line number
         def f(x):
             return x[2]
+
         for item in sorted(found, key=f):
             DumpLines(*item)
 
+
 if __name__ == "__main__":
     dbg = False
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     R = [
         re.compile(r"^\s*(def\s+[A-Za-z_][A-Za-z_0-9]*)(.*):.*$"),
         re.compile(r"^\s*(class\s+[A-Za-z_][A-Za-z_0-9]*)(\(.*\))?:.*$"),

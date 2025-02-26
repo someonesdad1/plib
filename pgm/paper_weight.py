@@ -1,17 +1,17 @@
-'''
+"""
 Plot US paper weights vs. grammage
-'''
+"""
 # Copyright (C) 2014 Don Peterson
 # Contact:  gmail.com@someonesdad1
- 
-#
+
+#
 # Licensed under the Open Software License version 3.0.
 # See http://opensource.org/licenses/OSL-3.0.
-#
+#
 from pylab import *
 
 in2mm = 25.4
-mm2in = 1/in2mm
+mm2in = 1 / in2mm
 g2oz = 0.035274
 
 # Conversion factors
@@ -34,13 +34,13 @@ us = (
 )
 gsm = arange(0, 300, 1)
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
     for name, w, h, count, style in us:
-        area_m2 = w*h*count*in2_to_m2
-        weight_lb = gsm*area_m2*0.00220462
-        #plot(gsm, weight_lb, style, label=name)
+        area_m2 = w * h * count * in2_to_m2
+        weight_lb = gsm * area_m2 * 0.00220462
+        # plot(gsm, weight_lb, style, label=name)
         plot(weight_lb, gsm, style, label=name)
-    #legend(loc="upper left")
+    # legend(loc="upper left")
     legend(loc="lower right")
     title("US paper weights")
     ylabel("grams per square meter")

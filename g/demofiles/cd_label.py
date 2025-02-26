@@ -1,20 +1,23 @@
-'''
+"""
 This example constructs a letter-sized drawing that could be used to
 print CD labels.  Two CD labels will be drawn on the sheet.  The top
 left one demonstrates writing text along a circle.  The bottom right
-one demonstrates writing text along a path and filling the CD area 
+one demonstrates writing text along a path and filling the CD area
 with a picture.
 
 This examples requires that you have the PIL module installed.
-'''
+"""
+
 import sys
 from g import *
+
+
 # Set the following variable to nonzero if you want to send the generated
 # files directly to a PostScript printer.  Otherwise, set it to zero.
 def DrawPlainCD(x_center, y_center):
-    '''Draws a CD label around the indicated point.  Fill the CD with a
+    """Draws a CD label around the indicated point.  Fill the CD with a
     plain color.  Assumes the units are mm.
-    '''
+    """
     push()
     translate(x_center, y_center)
     lineWidth(0.1)
@@ -41,9 +44,7 @@ def DrawPlainCD(x_center, y_center):
     textCircle("Placing text on a circle", 85)
     textName(Sans)
     textSize(8)
-    textCircle(
-        "Use the textCircle() command", 80, center_angle=270, inside=yes
-    )
+    textCircle("Use the textCircle() command", 80, center_angle=270, inside=yes)
     # Put a small string all the way around at the ID
     str = "You can also put text in a small font practically all the way "
     str = str + "around the ID if the string is long enough..."
@@ -51,12 +52,14 @@ def DrawPlainCD(x_center, y_center):
     textSize(3)
     textCircle(str, 42)
     pop()
+
+
 def DrawPictureCD(picture_file, x_center, y_center):
-    '''Draw a CD label by first filling with the indicated picture, then
+    """Draw a CD label by first filling with the indicated picture, then
     writing some text, using both text on a circle and text on a path.
     Note that the positioning and size of the picture will have to be
     hand-tweaked; see the comments below.
-    '''
+    """
     od = 130.0
     id = 40.0
     push()
@@ -84,6 +87,7 @@ def DrawPictureCD(picture_file, x_center, y_center):
         eoclip(p)
     # Darken the image
     from PIL import Image, ImageEnhance
+
     im = Image.open(picture_file)
     enh = ImageEnhance.Brightness(im)
     new_image = enh.enhance(0.5)
@@ -128,8 +132,10 @@ def DrawPictureCD(picture_file, x_center, y_center):
         inside=yes,
     )
     pop()
+
+
 def DrawBoxes():
-    '''Draw some boxes with text in them.'''
+    """Draw some boxes with text in them."""
     push()
     translate(20, 20)
     rotate(90)
@@ -146,8 +152,10 @@ def DrawBoxes():
     move(-3, -12)
     roundedRectangle(125, 20, 5)
     pop()
+
+
 def CD_Label(file):
-    '''Show the use of drawing text in a circle by making a simple label
+    """Show the use of drawing text in a circle by making a simple label
     for a CD.  A CD is 40 mm inside diameter and 130 mm outside
     diameter.  On the labels that I use, the center of the upper CD
     label is at the position(72, 205); there are two CD labels on each
@@ -164,7 +172,7 @@ def CD_Label(file):
     locates the labels consistently with respect to the left edge of the
     paper, but the vertical location of the centers is dependent on how
     close the label stock is to the assumed 11 inch height.
-    '''
+    """
     s = Setup(file, portrait, mm)  # Note units are mm
     x_label_center, y_label_center = 72, 205
     DrawBoxes()
@@ -173,4 +181,6 @@ def CD_Label(file):
     file = "pics/face1.jpg"
     DrawPictureCD(file, x_label_center, y_label_center)
     s.close()
+
+
 CD_Label("out/cd_label.ps")

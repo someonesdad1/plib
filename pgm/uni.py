@@ -1,6 +1,6 @@
-'''
+"""
 TODO
-    
+
     - Add -u option that prints out all non-7-bit ASCII characters from
       stdin.
     - Add an option that prints out all characters that can be used as
@@ -16,16 +16,16 @@ If you give symbol x on command line, Lookup('x', d) is called
 For codepoint cp:
     PrintCodepointDetails(cp, d)
 
-'''
+"""
 
 # Copyright (C) 2019 Don Peterson
 # Contact:  gmail.com@someonesdad1
- 
-#
+
+#
 # Licensed under the Open Software License version 3.0.
 # See http://opensource.org/licenses/OSL-3.0.
-#
- 
+#
+
 # Imports & globals
 import bisect
 import getopt
@@ -41,16 +41,20 @@ from pdb import set_trace as xx
 # Special modules
 if 1:
     import debug
+
     debug.SetDebugger()
 
 # Color coding
 try:
     from color import PrintMatch, lred, black, Style
+
     MatchStyle = Style(lred, black)
 except ImportError:
     MatchStyle = None
+
     def PrintMatch(text, regexp, style):
         print(text)
+
 
 # Unicode Character Database (http://www.unicode.org/reports/tr44/) Note
 # the UCD version may be different than the Unicode version python is
@@ -63,10 +67,11 @@ try:
 except ImportError:
     ucd = None
 
+
 def RemoveInvalid(cpset):
-    '''Remove codepoint values that cause an exception when looking up the
+    """Remove codepoint values that cause an exception when looking up the
     name.
-    '''
+    """
     remove = set()
     for cp in cpset:
         try:
@@ -74,6 +79,7 @@ def RemoveInvalid(cpset):
         except ValueError:
             remove.add(cp)
     cpset -= remove
+
 
 def GetCharacterSet(d):
     maxcp = 0x110000 if d["-a"] else 0x10000
@@ -86,8 +92,10 @@ def GetCharacterSet(d):
         except ValueError:
             remove.add(cp)
     cpset -= remove
-    if d["-e"]:     # Remove non-English characters
-        languages = list(set('''
+    if d["-e"]:  # Remove non-English characters
+        languages = list(
+            set(
+                """
  
             adlam admetos aegean afghani ahom anatolian arabian arabic
             armenian avestan balinese bamum bassa batak bengali
@@ -115,13 +123,15 @@ def GetCharacterSet(d):
             ugaritic vai vedic wancho warang xiangqi yi zanabazar
             newa
  
-        '''.upper().split()))
+        """.upper().split()
+            )
+        )
         l = [r"\b" + i + r"\b" for i in languages]  # Add word boundaries
-        ignore = re.compile('|'.join(l))
+        ignore = re.compile("|".join(l))
         remove = set()
         # Also remove some Japanese special characters
         sq = set(range(0x3300, 0x3358))
-        sq.update(range(0x337b, 0x3380))
+        sq.update(range(0x337B, 0x3380))
         remove.update(sq)
         for cp in cpset:
             descr = U.name(chr(cp))
@@ -130,15 +140,18 @@ def GetCharacterSet(d):
         cpset -= remove
     if d["-v"]:
         mn, mx = min(cpset), max(cpset)
-        print(f'''
+        print(
+            f"""
 Unicode database version = {U.unidata_version}
   {len(cpset)} characters in codepoint set
   min = {mn} = 0x{mn:X}, max = {mx} = 0x{mx:X}
-'''[1:])
+"""[1:]
+        )
     return cpset
 
+
 def ASCII_name(cp):
-    assert(0 <= cp < 0x20)
+    assert 0 <= cp < 0x20
     s = (
         "NULL",
         "START OF HEADING",
@@ -175,12 +188,14 @@ def ASCII_name(cp):
     )
     return f"ASCII CONTROL {s[cp]}"
 
+
 def ASCII_symbol(cp):
-    assert(0 <= cp < 0x20)
-    s = '''nul soh stx etx eot enq ack bel bs ht lf vt ff cr so si
+    assert 0 <= cp < 0x20
+    s = """nul soh stx etx eot enq ack bel bs ht lf vt ff cr so si
            dle dc1 dc2 dc3 dc4 nak syn etb can em sub esc fs gs rs
-           us'''.split()
+           us""".split()
     return "<" + s[cp] + ">"
+
 
 def GetBlockName(cp):
     # Construct three equal-length arrays for the start cp, end cp,
@@ -200,14 +215,16 @@ def GetBlockName(cp):
         return "None"
     return names[index]
 
+
 def find_le(a, x):
-    '''Return the index of the rightmost value <= x.  Adapted from the
+    """Return the index of the rightmost value <= x.  Adapted from the
     recipe in python's documentation on the bisect module.
-    '''
+    """
     index = bisect.bisect_right(a, x)
     if index:
         return index - 1
     return None
+
 
 def PrintUCDData(cp, d):
     if not ucd:
@@ -218,7 +235,7 @@ def PrintUCDData(cp, d):
         return
     print(f"  Data from Unicode Character Database {ucd['version']}")
     g = ucd["groups"][group]
-    c, i = chr(cp), " "*4
+    c, i = chr(cp), " " * 4
     if cp in (10, 11, 12, 13):
         c = " "
     if "na1" in data:
@@ -234,19 +251,21 @@ def PrintUCDData(cp, d):
     if block is not None:
         print(f"{i}Block = {block}")
 
+
 def GetDecomp(cp):
     try:
         decomp = U.decomposition(chr(cp))
         f, t = decomp.split(), ""
         if f[0].startswith("<"):
             t, f = f[0], f[1:]
-        t += ' '.join(chr(int(i, 16)) for i in f)
+        t += " ".join(chr(int(i, 16)) for i in f)
         return t
     except Exception:
         return ""
 
+
 def IsPythonSymbol(cp):
-    'Return True if codepoint is allowed in python symbol'
+    "Return True if codepoint is allowed in python symbol"
     try:
         if cp in set((9, 12, 32, 35)):  # tab, formfeed, space, comment
             return False
@@ -257,28 +276,31 @@ def IsPythonSymbol(cp):
     except Exception:
         return False
 
+
 def PrintCodepointDetails(cp, d):
     c = chr(cp)
     sym = "yes" if IsPythonSymbol(cp) else "no"
-    if (0 <= cp < 0x20):    
+    if 0 <= cp < 0x20:
         # Handle the ASCII control characters specially because
         # the unicodedata module doesn't contain them.
         c = ASCII_symbol(cp)
         name = ASCII_name(cp)
     else:
         name = U.name(c)
-    print(f'''
+    print(
+        f"""
 Data on codepoint U+{cp:0X} = character {c}
   Decimal = {cp}, octal = {cp:o}, binary = {cp:b}
   Name = {name}
-  Allowed in python symbol = {sym}'''[1:])
+  Allowed in python symbol = {sym}"""[1:]
+    )
     decomp = U.decomposition(c)
     if decomp:
         try:
             f = decomp.split()
             if f[0][0] == "<":
                 f = f[1:]
-            t = ' '.join(chr(int(i, 16)) for i in f)
+            t = " ".join(chr(int(i, 16)) for i in f)
             print(f"  Decomposition = {decomp} = {t}")
         except Exception:
             pass
@@ -294,10 +316,10 @@ Data on codepoint U+{cp:0X} = character {c}
         for b in chr(cp).encode(enc):
             print(f"{b:02x} ", end="")
         print()
-    PrintUCDData(cp, d)     # Print data from Unicode Character Database
+    PrintUCDData(cp, d)  # Print data from Unicode Character Database
     if d["-v"] and not (0 <= cp < 0x20):
         # Print extra data from unicodedata
-        s, n = " "*4, 18
+        s, n = " " * 4, 18
         print("  Extra unicodedata information:")
         try:
             print(f"{s}{'Decimal':{n}s}", U.decimal(c))
@@ -324,8 +346,9 @@ Data on codepoint U+{cp:0X} = character {c}
         # Print a newline to separate grouped lines
         print()
 
+
 def PrintByGroup(d):
-    s = '''
+    s = """
     Lu :Uppercase_Letter :an uppercase letter
     Ll :Lowercase_Letter :a lowercase letter
     Lt :Titlecase_Letter :a digraphic character, with first part uppercase
@@ -363,7 +386,7 @@ def PrintByGroup(d):
     Cs :Surrogate :a surrogate code point
     Co :Private_Use :a private-use character
     Cn :Unassigned :a reserved unassigned code point or a noncharacter
-    '''.strip().split("\n")
+    """.strip().split("\n")
     # Put this data into a dictionary for group header information
     gcdata = {}
     for line in s:
@@ -379,7 +402,7 @@ def PrintByGroup(d):
         try:
             group, data = ucd["chars"][cp]
             g = ucd["groups"][group]
-            gc = g["gc"]    # General category
+            gc = g["gc"]  # General category
             G[gc].append(cp)
         except KeyError:
             G[no_category].append(cp)
@@ -388,17 +411,18 @@ def PrintByGroup(d):
         s = "" if gc == "" else gc + " "
         print(f"{s}{gcdata[gc]}")
         for cp in G[gc]:
-            PrintCP(cp, indent=" "*2, decomp=True)
+            PrintCP(cp, indent=" " * 2, decomp=True)
         print()
 
+
 def DumpBlocks(args, d):
-    '''Dump the common blocks; if -a is True, then dump all the blocks.
+    """Dump the common blocks; if -a is True, then dump all the blocks.
     If args is not empty, print out all the characters in the blocks
     that match these regular expressions.
-    '''
+    """
     # Note:  these block names came from UCD version 12.1.0.
     common = set()
-    for i in '''
+    for i in """
         Alchemical_Symbols Alphabetic_Presentation_Forms Arrows
         Basic_Latin Block_Elements Box_Drawing Braille_Patterns
         Chess_Symbols Combining_Diacritical_Marks
@@ -426,10 +450,10 @@ def DumpBlocks(args, d):
         Supplemental_Mathematical_Operators Supplemental_Punctuation
         Supplemental_Symbols_and_Pictographs Sutton_SignWriting
         Symbols_and_Pictographs_Extended-A Transport_and_Map_Symbols
-        '''.split():
+        """.split():
         common.add(i.replace("_", " "))
     other = set()
-    for i in '''
+    for i in """
         Adlam Aegean_Numbers Ahom Anatolian_Hieroglyphs
         Ancient_Greek_Musical_Notation Ancient_Greek_Numbers
         Ancient_Symbols Arabic Arabic_Extended-A
@@ -497,7 +521,7 @@ def DumpBlocks(args, d):
         Variation_Selectors Variation_Selectors_Supplement
         Vedic_Extensions Vertical_Forms Wancho Warang_Citi Yi_Radicals
         Yi_Syllables Yijing_Hexagram_Symbols Zanabazar_Square
-        '''.split():
+        """.split():
         other.add(i.replace("_", " "))
     # Get the set of block names to use
     blocks = (common | other) if d["-a"] else common
@@ -515,22 +539,23 @@ def DumpBlocks(args, d):
             print(f"Block:  {name}")
             for cp in range(start, end + 1):
                 if cp in cpset:
-                    PrintCP(cp, indent=" "*2)
+                    PrintCP(cp, indent=" " * 2)
     else:
         print(f"Block definitions {b}:")
         for start, end, name in u:
             if name in blocks:
-                if d["-d"]:     # Use decimal numbers
+                if d["-d"]:  # Use decimal numbers
                     print(f"  {start:7d} {end:7d}  {name}")
-                else:           # Use hex numbers
+                else:  # Use hex numbers
                     print(f"  U+{start:06X} U+{end:06X}  {name}")
 
+
 def PrintCP(cp, regex=None, indent="", decomp=False):
-    '''Print the indicated codepoint.  If regex is not None, it is the
+    """Print the indicated codepoint.  If regex is not None, it is the
     regular expression that matched the description.  If decomp is True,
     append the decomposition if it is available.
-    '''
-    if (0 <= cp < 0x20):
+    """
+    if 0 <= cp < 0x20:
         c = ASCII_symbol(cp)
         descr = ASCII_name(cp)
     else:
@@ -539,12 +564,12 @@ def PrintCP(cp, regex=None, indent="", decomp=False):
             descr = U.name(c)
         except ValueError:
             descr = "<no name for U+{cp:04X}>"
-    if d["-d"]:         # Use decimal numbers
-        if d["-a"]:     # Full set of codepoints
+    if d["-d"]:  # Use decimal numbers
+        if d["-a"]:  # Full set of codepoints
             print(f"{indent} {cp:6d} {c:^5s}", end=" ")
         else:
             print(f"{indent} {cp:5d} {c:^5s}", end=" ")
-    else:               # Use U+ (hex) notation 
+    else:  # Use U+ (hex) notation
         if d["-a"]:
             print(f"{indent}U+{cp:05X} {c:^5s}", end=" ")
         else:
@@ -561,14 +586,14 @@ def PrintCP(cp, regex=None, indent="", decomp=False):
         else:
             print(descr)
 
+
 def GetAliases(cp):
-    '''Return a list of the aliases of the indicated codepoint.
-    '''
+    """Return a list of the aliases of the indicated codepoint."""
     if not ucd:
         return []
     try:
         group, data = ucd["chars"][cp]
-    except KeyError: 
+    except KeyError:
         return []
     aliases = []
     if "na1" in data:
@@ -578,18 +603,21 @@ def GetAliases(cp):
             aliases.append(a["alias"])
     return aliases
 
+
 def LookUp(expr, d):
-    '''If expr is a number (hex or base 10), print out the
+    """If expr is a number (hex or base 10), print out the
     characteristics of the Unicode codepoint.  expr can be two numbers
     separated by a hyphen, giving a range of codepoints to print.
     Otherwise, expr is interpreted as a regular expression that is used
     to search the Unicode names; matches are printed to stdout.  If expr
     is a single character, look up that character.
-    '''
+    """
     if not expr:
         return
+
     def Int(x):
         return int(x) if d["-d"] else int(x, 16)
+
     # If expr contains a '-' character, see if it can be interpreted as
     # a range of integers.
     if len(expr) > 1 and "-" in expr and not d["-t"]:
@@ -615,7 +643,7 @@ def LookUp(expr, d):
         except Exception:
             pass
     try:
-        if d["-t"]:     # Force a regular expression search
+        if d["-t"]:  # Force a regular expression search
             raise Exception()
         if len(expr) == 1:
             if ord(expr) in cpset:
@@ -629,7 +657,7 @@ def LookUp(expr, d):
                 PrintCodepointDetails(h, d)
             else:
                 PrintCodepointDetails(Int(expr), d)
-    except Exception:   # Regular expression search
+    except Exception:  # Regular expression search
         r = re.compile(expr, re.I)
         for cp in sorted(cpset, reverse=True):
             descr = U.name(chr(cp))
@@ -642,19 +670,20 @@ def LookUp(expr, d):
                     PrintCP(cp, r)
                     break
 
+
 def ParseCommandLine(d):
-    d["-a"] = False     # Generate all characters
-    d["-b"] = False     # Dump block information
-    d["-c"] = True      # Use color
-    d["-D"] = False     # Print all characters
-    d["-d"] = False     # Decimal numbers
-    d["-e"] = False     # Remove non-English characters
-    d["-g"] = False     # Like -D, but print by group (general category)
-    d["-P"] = False     # Print python symbols 
-    d["-p"] = False     # Print python symbols (limited)
-    d["-s"] = False     # Print data on command line strings
-    d["-t"] = False     # Force text
-    d["-v"] = False     # Verbose
+    d["-a"] = False  # Generate all characters
+    d["-b"] = False  # Dump block information
+    d["-c"] = True  # Use color
+    d["-D"] = False  # Print all characters
+    d["-d"] = False  # Decimal numbers
+    d["-e"] = False  # Remove non-English characters
+    d["-g"] = False  # Like -D, but print by group (general category)
+    d["-P"] = False  # Print python symbols
+    d["-p"] = False  # Print python symbols (limited)
+    d["-s"] = False  # Print data on command line strings
+    d["-t"] = False  # Force text
+    d["-v"] = False  # Verbose
     try:
         opts, args = getopt.getopt(sys.argv[1:], "abcDdegPpstv")
     except getopt.GetoptError as e:
@@ -663,22 +692,26 @@ def ParseCommandLine(d):
     for o, a in opts:
         if o[1] in list("abcDdegPpstv"):
             d[o] = not d[o]
-    if (not d["-D"] and 
-        not d["-b"] and 
-        not d["-g"] and 
-        not d["-P"] and 
-        not d["-p"] and 
-        not args):
+    if (
+        not d["-D"]
+        and not d["-b"]
+        and not d["-g"]
+        and not d["-P"]
+        and not d["-p"]
+        and not args
+    ):
         Usage(d, status=0)
     if d["-D"] or d["-g"]:
         d["-a"] = True
     return args
 
+
 def Usage(d, status=1):
     name = pathlib.PurePath(sys.argv[0]).name
     eng = ("Don't r" if d["-e"] else "R") + "emove non-English characters."
     col = ("Don't p" if d["-c"] else "P") + "rint in color."
-    print(f'''
+    print(
+        f"""
 Usage:  {name} [options] r1 [r2 ...]
   Look up r1 in the Unicode character database.  If r1 is a codepoint
   number (hex by default; use -d for decimal), then print out data on
@@ -711,10 +744,12 @@ Examples:
 Options:
   -a  Use all valid Unicode characters.  The default set uses the
       Basic Multilingual Plane up to U+FFFF.
-'''[:-1])
+"""[:-1]
+    )
     if ucd is not None:
         print("  -b  Dump block information")
-    print(f'''
+    print(
+        f"""
   -c  {col}
   -D  Print the descriptions of all valid Unicode characters.
   -d  Numbers on command line are decimal (hex is the default).
@@ -739,18 +774,21 @@ Some useful Unicode characters:
   © ® ← ↑ → ↓ ↔ ↕ ↖ ↗ ↘ ↙ ↺ ↻ ⇐ ⇑ ⇒ ⇓ ⇔ ⇦ ⇧ ⇨ ⇩ ⭍ ⭠ ⭡ ⭢ ⭣ ⭤ ⭥ ⭮ ⭯ ￪ ￬
   Superscripts: ⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ⁱⁿ
   Subscripts:   ₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐₑₕᵢⱼₖₗₘₙₒₚᵣₛₜᵤᵥₓᵦᵩ
-'''[1:-1])
-    '''
+"""[1:-1]
+    )
+    """
     https://www.unicode.org/reporting.html  unicode@unicode.org On 28
     May 2021 I subscribed to the Unicode mailing list.  When I am
     confirmed, submit an enhancement request for all letters, numbers,
     and punctuation symbols as subscripts and superscripts.  I've been
     wanting this for years, as I am unable to properly display physical
     units.
-    '''
+    """
     if not d["-v"]:
         exit(status)
-    print(dedent(f'''
+    print(
+        dedent(
+            f"""
 
     - You'll get extra information on characters if you download and
       install the Unicode Character Database, but it's not required.
@@ -791,43 +829,47 @@ Some useful Unicode characters:
       editor.  A month ago I upgraded my terminal to the latest version
       (also less than 6 months old and it has pretty good Unicode
       support too).  It's hit or miss with the other command line tools
-      I use.'''[1:]))
+      I use."""[1:]
+        )
+    )
     exit(status)
 
+
 def PythonSymbols(d):
-    'Print allowed python symbols'
+    "Print allowed python symbols"
     i = 0
     for cp in sorted(cpset, reverse=True):
         allowed = IsPythonSymbol(cp)
         if allowed:
-            if d["-p"] and cp > 0x3e1:
+            if d["-p"] and cp > 0x3E1:
                 continue
-            #PrintCP(cp)
+            # PrintCP(cp)
             if i and not (i % 60):
                 print()
             print(chr(cp), end="")
             i += 1
     print()
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = d["args"] = ParseCommandLine(d)
     cpset = GetCharacterSet(d)
-    if d["-D"]:     # Print all valid characters
+    if d["-D"]:  # Print all valid characters
         for cp in sorted(cpset, reverse=True):
             PrintCP(cp)
-    elif d["-g"]:     # Print all valid characters by group
+    elif d["-g"]:  # Print all valid characters by group
         PrintByGroup(d)
-    elif d["-p"] or d["-P"]:     # Print valid python symbols
+    elif d["-p"] or d["-P"]:  # Print valid python symbols
         PythonSymbols(d)
     elif d["-b"] and ucd is not None:
         DumpBlocks(args, d)
-    elif d["-s"]:       # Print data on command line strings
+    elif d["-s"]:  # Print data on command line strings
         for arg in args:
             for c in arg:
                 PrintCP(ord(c))
             print()
-    else:   # Look up as a regular expression, number, range
+    else:  # Look up as a regular expression, number, range
         for i, r in enumerate(args):
-            d["last"] = (i == len(args) - 1)
+            d["last"] = i == len(args) - 1
             LookUp(r, d)

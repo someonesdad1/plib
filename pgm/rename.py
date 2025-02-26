@@ -1,37 +1,40 @@
-'''
+"""
 Utility to rename files with given extensions
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2004 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2004 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Rename a large set of files with given extensions
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import getopt
     import math
     import os
     import pathlib
     import sys
     from io import StringIO
-    from pdb import set_trace as xx 
-if 1:   # Custom imports
+    from pdb import set_trace as xx
+if 1:  # Custom imports
     from wrap import dedent, wrap
     from color import C
     from get import GetLines
-if 1:   # Global variables
+if 1:  # Global variables
     ii = isinstance
     P = pathlib.Path
     PosixPath = pathlib.PosixPath
+
     class g:
         pass
+
     g.name = P(sys.argv[0])
     g.err = C.lred
     g.dir = C.lcyn
@@ -40,12 +43,17 @@ if 1:   # Global variables
     g.width = 0
     # Container for undo information.  First entry will be the directory
     # and following items will be [newname, oldname] pairs.
-    g.undo = []     # Container for undo information
+    g.undo = []  # Container for undo information
+
+
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
+
+
 def Manpage():
-    print(wrap(f'''
+    print(
+        wrap(f"""
     {g.name.name} will number all the files in directory dir that end with .ext1,
     .ext2, etc.  The files are numbered sequentially.  The program will not
     overwrite any existing files.  Normal behavior is to show what will be
@@ -72,8 +80,10 @@ def Manpage():
     For picture files, this could be a big loss with accidental renaming,
     so careful scrutiny of the dry run results is suggested.
 
-    '''))
-    print(dedent(f'''
+    """)
+    )
+    print(
+        dedent(f"""
 
     Example:
       Suppose we're in a directory that has the following files:
@@ -106,10 +116,14 @@ def Manpage():
     This would allow easy reorganization later into e.g. separate
     directories, where the file names could be refined or annotations added.
 
-    '''))
+    """)
+    )
     exit(0)
+
+
 def Usage(status=1):
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {g.name} [opt] dir ext1 [ext2...]
       Rename a sequence of files in a directory with the given extensions.
       Normal behavior is to show what will be done; you must use the -x
@@ -124,15 +138,18 @@ def Usage(status=1):
       -s p  Use suffix p for renaming
       -u f  Use the file f to undo the renaming
       -x    Do the renaming
-    '''))
+    """)
+    )
     exit(status)
+
+
 def ParseCommandLine():
-    d["-c"] = False     # Colorize
-    d["-i"] = False     # Ignore errors
-    d["-p"] = ""        # Prefix to rename with
-    d["-s"] = ""        # Suffix to rename with
-    d["-u"] = None      # Undo command
-    d["-x"] = False     # Do the renaming
+    d["-c"] = False  # Colorize
+    d["-i"] = False  # Ignore errors
+    d["-p"] = ""  # Prefix to rename with
+    d["-s"] = ""  # Suffix to rename with
+    d["-u"] = None  # Undo command
+    d["-x"] = False  # Do the renaming
     try:
         optlist, args = getopt.getopt(sys.argv[1:], "chip:s:u:x")
     except getopt.error as str:
@@ -153,8 +170,10 @@ def ParseCommandLine():
         g.dir = g.n = ""
         g.colors = []
     return args
+
+
 def GetWidth():
-    'Find the longest filename we have to print'
+    "Find the longest filename we have to print"
     currdir = os.getcwd()
     os.chdir(directory)
     cd = P(".")
@@ -163,6 +182,8 @@ def GetWidth():
         for file in files:
             g.width = max(len(str(file)), g.width)
     os.chdir(currdir)
+
+
 def ProcessExtension(ext, directory, ext_number):
     currdir = os.getcwd()
     os.chdir(directory)
@@ -181,7 +202,7 @@ def ProcessExtension(ext, directory, ext_number):
         w = max(len(str(file)), w)
     # Determine color to use for this extension
     if d["-c"]:
-        n = ext_number % len(g.colors) 
+        n = ext_number % len(g.colors)
         clr = g.colors[n]
     else:
         clr = ""
@@ -208,9 +229,11 @@ def ProcessExtension(ext, directory, ext_number):
         g.undo.append((str(newname), str(p)))
         number = number + 1
     os.chdir(currdir)
+
+
 def WriteUndoFile(directory):
     if not d["-x"]:
-        return 
+        return
     currdir = os.getcwd()
     os.chdir(directory)
     name, num = P(f"{g.name.stem}.undo"), 0
@@ -221,6 +244,8 @@ def WriteUndoFile(directory):
     for item in g.undo:
         print(repr(item), file=stream)
     os.chdir(currdir)
+
+
 def RunUndoFile(directory):
     currdir = os.getcwd()
     os.chdir(directory)
@@ -244,7 +269,9 @@ def RunUndoFile(directory):
         except Exception:
             print(f"{g.err}'{new}' --> '{old}' rename failed{g.n}")
     os.chdir(currdir)
-if __name__ == "__main__": 
+
+
+if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine()
     try:

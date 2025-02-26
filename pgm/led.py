@@ -1,29 +1,30 @@
-'''
+"""
 Allows a design of LED and resistor given the power rating of the resistor
 you want to use
-'''
+"""
+
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Design LED & resistor
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         import getopt
         import os
         import pathlib
         import sys
         from pdb import set_trace as xx
         from pprint import pprint as pp
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import dedent
         from get import GetNumbers as GN
         from interpolate import LinearInterpFunction
@@ -32,7 +33,7 @@ if 1:  # Header
         from resistors import FindClosest
         from fpformat import FPFormat
         from color import t
-    if 1:   # Global variables
+    if 1:  # Global variables
         P = pathlib.Path
         ii = isinstance
         # LED characteristics
@@ -53,20 +54,25 @@ if 1:  # Header
             "blu": GN("2.62 2.67 2.74 2.86 3.00 3.10 3.16 3.21 3.25"),
             "wht": GN("2.60 2.64 2.70 2.80 2.90 2.98 3.05 3.11 3.17"),
         }
+
         class g:
             pass
+
         # Colors
         t.a = t.yell
         t.p = t.magl
         t.o = t.grnl
         t.l3 = t.ornl
         t.l5 = t.grnl
-if 1:   # Utility
+if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] color voltage
           Print the resistance to put in series with an LED to allow it to
           run at the given voltage at various currents.  Colors can be grn,
@@ -79,15 +85,17 @@ if 1:   # Utility
           -h      Print more detailed help and LED data used
           -p      Print tables for common resistor power ratings
           -w p    Resistor rated power in W [{d["-w"]}]
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-a"] = False     # Show all the current choices
-        d["-c"] = False     # Turn off color printing
-        d["-3"] = False     # Use 3 mm LED data
-        d["-d"] = 3         # Number of significant digits
-        d["-p"] = False     # Print for range of powers
-        d["-w"] = 0.25      # Default resistor power in W
+        d["-a"] = False  # Show all the current choices
+        d["-c"] = False  # Turn off color printing
+        d["-3"] = False  # Use 3 mm LED data
+        d["-d"] = 3  # Number of significant digits
+        d["-p"] = False  # Print for range of powers
+        d["-w"] = 0.25  # Default resistor power in W
         try:
             opts, args = getopt.getopt(sys.argv[1:], "3acd:hpw:")
         except getopt.GetoptError as e:
@@ -102,8 +110,7 @@ if 1:   # Utility
                     if not (1 <= d["-d"] <= 15):
                         raise ValueError()
                 except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                        "1 and 15")
+                    msg = "-d option's argument must be an integer between 1 and 15"
                     Error(msg)
             elif o in ("-w",):
                 try:
@@ -125,9 +132,12 @@ if 1:   # Utility
         if d["-c"]:
             t.a = t.p = t.o = t.l3 = t.l5 = ""
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def GetColor(color):
-        'Return needed color string'
+        "Return needed color string"
         c = color.lower()
         if c in ("r", "re", "red"):
             return "red"
@@ -139,8 +149,9 @@ if 1:   # Core functionality
             return "yel"
         elif c in ("w", "wh", "wht", "whi", "whit", "white"):
             return "wht"
+
     def ResistorPower(pwr):
-        'Return a fraction string if suitable'
+        "Return a fraction string if suitable"
         if pwr == 0.125:
             return "1/8"
         elif pwr == 0.25:
@@ -155,12 +166,13 @@ if 1:   # Core functionality
             return "5"
         else:
             return str(pwr)
+
     def PrintResults(color, operating_voltage_V, resistor_power_rating_W, o):
-        w = 70 
+        w = 70
         print(f"{'LED Resistor Selection':^{w}s}")
         print(f"{'----------------------':^{w}s}")
         # Problem parameters
-        w = 20 
+        w = 20
         print(f"{'Operating voltage':{w}s} {voltage} V")
         print(f"{'LED color':{w}s} {GetColor(color)}")
         print(f"{'LED diameter':{w}s} {3 if d['-3'] else 5} mm")
@@ -168,14 +180,16 @@ if 1:   # Core functionality
         # Header
         w = 10
         print()
-        print(" "*11, "---Voltage drops---")
-        print(" "*13, end="")
-        print(f"Diode     Resistor    -----{t.a}Actual{t.n}------     "
-              f"-----{t.o}On-hand{t.n}-----")
+        print(" " * 11, "---Voltage drops---")
+        print(" " * 13, end="")
+        print(
+            f"Diode     Resistor    -----{t.a}Actual{t.n}------     "
+            f"-----{t.o}On-hand{t.n}-----"
+        )
         print(f"{'i, mA':^{w}s} {'Vd, V':^{w}s} {'Vr, V':^{w}s} ", end="")
         print(f"{'R, Ω':^{w}s} {'%power':^{w}s} ", end="")
         print(f"{'Ro, Ω':^{w}s} {'%power':^{w}s}")
-        h = "-"*6
+        h = "-" * 6
         for i in range(7):
             print(f"{h:^{w}s} ", end="")
         print()
@@ -193,6 +207,7 @@ if 1:   # Core functionality
             print(f"{int(pcto):6d}")
         if d["-p"]:
             print()
+
     def Solve(color, operating_voltage_V, resistor_power_rating_W):
         P = resistor_power_rating_W
         # Formatting tool
@@ -212,23 +227,26 @@ if 1:   # Core functionality
         # Make an array of [i, V, voltage - V, R, Ro, pct_pwr]
         o = []
         for curr in I:
-            i = curr/1000                   # Current in A
-            Vd = i2V(curr)                  # Voltage drop across diode
-            Vr = operating_voltage_V - Vd   # Voltage drop across resistor
+            i = curr / 1000  # Current in A
+            Vd = i2V(curr)  # Voltage drop across diode
+            Vr = operating_voltage_V - Vd  # Voltage drop across resistor
             if Vr > 0:
-                R = Vr/i                    # Actual resistance needed
-                Ro = FindClosest(R)         # Closest on-hand resistor
-                power = i**2*R              # Actual resistor power
-                pct = flt(100*power/P)      # Actual power percent
+                R = Vr / i  # Actual resistance needed
+                Ro = FindClosest(R)  # Closest on-hand resistor
+                power = i**2 * R  # Actual resistor power
+                pct = flt(100 * power / P)  # Actual power percent
                 if Ro is None:
                     o.append([curr, Vd, Vr, fp(R), pct, "-", "-"])
                 else:
-                    powero = i**2*Ro            # On-hand resistor power
-                    pcto = flt(100*powero/P)    # On-hand power percent
+                    powero = i**2 * Ro  # On-hand resistor power
+                    pcto = flt(100 * powero / P)  # On-hand power percent
                     o.append([curr, Vd, Vr, fp(R), pct, fp(Ro), pcto])
         PrintResults(color, operating_voltage_V, resistor_power_rating_W, o)
+
+
 def Details():
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Units:  mA for current, V for volts, Ω for resistance.  All non-DC values are RMS.
 
     The script's objective is to give you a range of operating currents for the LED that let you
@@ -358,16 +376,19 @@ def Details():
         25      2.15     2.92     2.10     3.19     3.21
         30      2.16     2.98     2.13     3.25     3.26
 
-    '''))
+    """)
+    )
     exit(0)
+
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     if len(args[0]) == 1:
         Details()
     color, voltage = args[0], flt(args[1])
     if d["-p"]:
-        for pwr in (1/8, 1/4, 1/2, 1, 2, 5):
+        for pwr in (1 / 8, 1 / 4, 1 / 2, 1, 2, 5):
             Solve(color, voltage, pwr)
     else:
         pwr = d["-w"]

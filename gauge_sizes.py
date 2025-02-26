@@ -1,82 +1,164 @@
-'''
+"""
 Dictionary of various gauge sizes for sheet and wire
     A gauge size of -1 means 00, -2 means 000, etc.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2013 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2013 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # <shop> Dictionary of various gauge sizes for sheet and wire.  Also
     # has the function WireGauge() to get drill sizes from 1 to 80.
-    #∞what∞#
-    #∞test∞# --test #∞test∞#
+    # ∞what∞#
+    # ∞test∞# --test #∞test∞#
     pass
-if 1:   # Imports
-    from pdb import set_trace as xx 
-if 1:   # Custom imports
+if 1:  # Imports
+    from pdb import set_trace as xx
+if 1:  # Custom imports
     from f import flt
-if 1:   # Global variables
+if 1:  # Global variables
     __all__ = "gauges GetGauge WireGauge".split()
     gauges, urls = {}, {}
+
+
 def WireGauge(num, mm=False):
-    '''If num is an integer between 1 and 80, this function will return the
+    """If num is an integer between 1 and 80, this function will return the
     diameter of the indicated wire gauge size in inches (or mm if the mm
     keyword is True).  This gauge is used for number-sized drills in the
     US.
- 
+
     If num is a floating point number, this function will return an
     integer representing the nearest wire gauge size.  It will throw
     an exception if the floating point number is greater than the
     diameter of #1 or less than #80.
-    '''
+    """
     # Index number in sizes is wire gauge number.  units is the number of
     # inches for each integral wire gauge size.
-    units, sizes = 1e-4, (
-        0, 2280, 2210, 2130, 2090, 2055, 2040, 2010, 1990, 1960, 1935,
-        1910, 1890, 1850, 1820, 1800, 1770, 1730, 1695, 1660, 1610,
-        1590, 1570, 1540, 1520, 1495, 1470, 1440, 1405, 1360, 1285,
-        1200, 1160, 1130, 1110, 1100, 1065, 1040, 1015, 995, 980, 960,
-        935, 890, 860, 820, 810, 785, 760, 730, 700, 670, 635,
-        595, 550, 520, 465, 430, 420, 410, 400, 390, 380, 370,
-        360, 350, 330, 320, 310, 293, 280, 260, 250, 240, 225,
-        210, 200, 180, 160, 145, 135)
+    units, sizes = (
+        1e-4,
+        (
+            0,
+            2280,
+            2210,
+            2130,
+            2090,
+            2055,
+            2040,
+            2010,
+            1990,
+            1960,
+            1935,
+            1910,
+            1890,
+            1850,
+            1820,
+            1800,
+            1770,
+            1730,
+            1695,
+            1660,
+            1610,
+            1590,
+            1570,
+            1540,
+            1520,
+            1495,
+            1470,
+            1440,
+            1405,
+            1360,
+            1285,
+            1200,
+            1160,
+            1130,
+            1110,
+            1100,
+            1065,
+            1040,
+            1015,
+            995,
+            980,
+            960,
+            935,
+            890,
+            860,
+            820,
+            810,
+            785,
+            760,
+            730,
+            700,
+            670,
+            635,
+            595,
+            550,
+            520,
+            465,
+            430,
+            420,
+            410,
+            400,
+            390,
+            380,
+            370,
+            360,
+            350,
+            330,
+            320,
+            310,
+            293,
+            280,
+            260,
+            250,
+            240,
+            225,
+            210,
+            200,
+            180,
+            160,
+            145,
+            135,
+        ),
+    )
     if isinstance(num, int):
         if num < 1 or num > 80:
             raise ValueError("num must be between 1 and 80 inclusive")
         if mm:
-            return flt(units*sizes[num]*25.4)
+            return flt(units * sizes[num] * 25.4)
         else:
-            return flt(units*sizes[num])
+            return flt(units * sizes[num])
     elif isinstance(num, (flt, float)):
         num = float(num)
         # num is now a float in either inches or mm
         if mm:
             num /= 25.4  # Convert to inches
         # Note sizes is from largest to smallest
-        if num > units*sizes[1] or num < units*sizes[80]:
+        if num > units * sizes[1] or num < units * sizes[80]:
             raise ValueError("num diameter is outside wire gauge range")
         # Create units list with the differences from the target value.
         # Note we've deleted the 0 element.
-        s = list(map(lambda x: abs(x - num/units), sizes[1:]))
-        t = [(s[i], i) for i in range(len(s))]    # Combine with array position
+        s = list(map(lambda x: abs(x - num / units), sizes[1:]))
+        t = [(s[i], i) for i in range(len(s))]  # Combine with array position
         t.sort()  # Sort to put minimum diff first in list
         return t[0][1] + 1  # Add 1 because we deleted the first element
     else:
         raise ValueError("num is an unexpected type")
+
+
 def Convert(text):
-    ''' Given the string text, put the indicated data into the global dict
+    """Given the string text, put the indicated data into the global dict
     gauges under the key on the first comment line.  The value is a
     dictionary relating gauge size to diameter or thickness in inches.
 
     If the f.py module is available, the dimension in inches is stored
     as a f.flt object with units of inches.  Otherwise, it's a plain
     float.
-    '''
+    """
     global gauges
     d, s = {}, []
     for i, line in enumerate(text.strip().split("\n")):
@@ -93,7 +175,7 @@ def Convert(text):
             if not line or line[0] == "#":
                 continue
             s.append(line)
-    s = ' '.join(s)
+    s = " ".join(s)
     for item in s.split(","):
         item = item.strip()
         if not item:
@@ -105,6 +187,8 @@ def Convert(text):
             d[int(n)] = flt(dia)
     gauges[key] = d
     urls[key] = url
+
+
 def GetGauge(gauge):
     try:
         return gauges[gauge]
@@ -114,8 +198,10 @@ def GetGauge(gauge):
         except KeyError:
             print("Gauge '{}' not found".format(gauge))
             exit(1)
-if 1:   # Data
-    _temp = '''
+
+
+if 1:  # Data
+    _temp = """
     # US Standard steel sheet
     # From https://www.unc.edu/~rowlett/units/scales/sheetmetal.html
     # Gauge number, diameter in inches
@@ -127,9 +213,9 @@ if 1:   # Data
         0.0164, 28 0.0149, 29 0.0135, 30 0.012, 31 0.0105, 32 0.0097, 33
         0.009, 34 0.0082, 35 0.0075, 36 0.0067
 
-    '''
+    """
     Convert(_temp)
-    _temp = '''
+    _temp = """
     # Galvanized steel sheet
     # From https://www.unc.edu/~rowlett/units/scales/sheetmetal.html
     # Gauge number, diameter in inches
@@ -139,9 +225,9 @@ if 1:   # Data
         0.0366, 22 0.0336, 23 0.0306, 24 0.0276, 25 0.0247, 26 0.0217, 27
         0.0202, 28 0.0187, 29 0.0172, 30 0.0157, 31 0.0142, 32 0.0134
 
-    '''
+    """
     Convert(_temp)
-    _temp = '''
+    _temp = """
     # Aluminum sheet
     # From https://www.unc.edu/~rowlett/units/scales/sheetmetal.html
     # Gauge number, diameter in inches
@@ -153,9 +239,9 @@ if 1:   # Data
         0.0126, 29 0.0113, 30 0.01, 31 0.0089, 32 0.008, 33 0.0071, 34
         0.0063, 35 0.0056
 
-    '''
+    """
     Convert(_temp)
-    _temp = '''
+    _temp = """
     # AWG
     # From https://sizes.com/materials/wire.htm
     # Gauge number, diameter in inches
@@ -172,9 +258,9 @@ if 1:   # Data
         0.0028, 42  0.0025, 43  0.0022, 44  0.00198, 45  0.00176, 46
         0.00157, 47  0.0014, 48 0.00124, 49  0.001108, 50  0.00099
 
-    '''
+    """
     Convert(_temp)
-    _temp = '''
+    _temp = """
     # US Number drill sizes
     # From /pylib/pgm/drill.py
     # Drill number, diameter in inches
@@ -193,9 +279,9 @@ if 1:   # Data
         0.196, 8 0.199, 7 0.201, 6 0.204, 5 0.2055, 4 0.209, 3 0.213, 2
         0.221, 1 0.228
 
-    '''
+    """
     Convert(_temp)
-    _temp = '''
+    _temp = """
     # US Letter drill sizes
     # From /pylib/pgm/drill.py
     # Drill number, diameter in inches
@@ -205,9 +291,9 @@ if 1:   # Data
         0.316, P 0.323, Q 0.332, R 0.339, S 0.348, T 0.358, U 0.368, V
         0.377, W 0.386, X 0.397, Y 0.404, Z 0.413
 
-    '''
+    """
     Convert(_temp)
-    _temp = '''
+    _temp = """
     # Birmingham wire gauge
     # From https://sizes.com/materials/wire.htm
     # Gauge number, diameter in inches
@@ -219,9 +305,9 @@ if 1:   # Data
         0.022, 25 0.02, 26 0.018, 27 0.016, 28 0.014, 29 0.013, 30 0.012, 31
         0.01, 32 0.009, 33 0.008, 34 0.007, 35 0.005, 36 0.004,
 
-    '''
+    """
     Convert(_temp)
-    _temp = '''
+    _temp = """
     # Stubs' steel wire gauge
     # From https://sizes.com/materials/wire.htm
     # Gauge number, diameter in inches
@@ -239,9 +325,9 @@ if 1:   # Data
         69 0.029, 70 0.027, 71 0.026, 72 0.024, 73 0.023, 74 0.022, 75 0.02,
         76 0.018, 77 0.016, 78 0.015, 79 0.014, 80 0.013
 
-    '''
+    """
     Convert(_temp)
-    _temp = '''
+    _temp = """
     # Washburn & Moen wire gauge
     # From https://sizes.com/materials/wire.htm
     # Gauge number, diameter in inches
@@ -254,9 +340,9 @@ if 1:   # Data
         0.0181, 27 0.0173, 28 0.0162, 29 0.015, 30 0.014, 31 0.0132, 32
         0.0128, 33 0.0118, 34 0.0104, 35 0.0095, 36 0.009
 
-    '''
+    """
     Convert(_temp)
-    _temp = '''
+    _temp = """
     # Imperial wire gauge
     # From https://sizes.com/materials/wire.htm
     # Gauge number, diameter in inches
@@ -271,9 +357,9 @@ if 1:   # Data
         0.004, 43 0.0036, 44 0.0032, 45 0.0028, 46 0.0024, 47 0.002, 48
         0.0016, 49 0.0012, 50 0.001
 
-    '''
+    """
     Convert(_temp)
-    _temp = '''
+    _temp = """
     # Whitworth's wire gauge
     # From https://sizes.com/materials/wire.htm
     # Gauge number, diameter in inches
@@ -291,9 +377,9 @@ if 1:   # Data
         0.069, 70 0.07, 71 0.071, 72 0.072, 73 0.073, 74 0.074, 75 0.075, 76
         0.076, 77 0.077, 78 0.078, 79 0.079, 80 0.08
 
-    '''
+    """
     Convert(_temp)
-    _temp = '''
+    _temp = """
     # Waterbury steel wire gauge (1917)
     # From https://sizes.com/materials/wire.htm
     # Gauge number, diameter in inches
@@ -307,9 +393,9 @@ if 1:   # Data
         0.086, 33 0.09, 34 0.094, 35 0.098, 36 0.102, 37 0.106, 38 0.112, 39
         0.118, 40 0.125, 41 0.132, 42 0.139, 43 0.146, 44 0.153, 45 0.16
 
-    '''
+    """
     Convert(_temp)
-    _temp = '''
+    _temp = """
     # American Steel & Wire Co. music wire gauge
     # From https://sizes.com/materials/wire.htm
     # Gauge number, diameter in inches
@@ -323,9 +409,9 @@ if 1:   # Data
         0.112, 37 0.118, 38 0.124, 39 0.13, 40 0.138, 41 0.146, 42 0.154, 43
         0.162, 44 0.17, 45 0.18
 
-    '''
+    """
     Convert(_temp)
-    _temp = '''
+    _temp = """
     # American Screw & Wire Co. music wire gauge
     # From https://sizes.com/materials/wire.htm
     # Gauge number, diameter in inches
@@ -337,9 +423,9 @@ if 1:   # Data
         0.0434, 21 0.046, 22 0.0483, 23 0.051, 24 0.055, 25 0.0586, 26
         0.0626, 27 0.0675, 28 0.072, 29 0.076, 30 0.08, 31 0.085 
 
-    '''
+    """
     Convert(_temp)
-    _temp = '''
+    _temp = """
     # Wright Wire Co. music wire gauge
     # From https://sizes.com/materials/wire.htm
     # Gauge number, diameter in inches
@@ -351,9 +437,9 @@ if 1:   # Data
         0.0583, 26 0.063, 27 0.067, 28 0.071, 29 0.0745, 30 0.078, 31 0.082,
         32 0.086, 33 0.09, 34 0.096
 
-    '''
+    """
     Convert(_temp)
-    _temp = '''
+    _temp = """
     # Washburn & Moen music wire gauge
     # From https://sizes.com/materials/wire.htm
     # Gauge number, diameter in inches
@@ -365,9 +451,9 @@ if 1:   # Data
         0.0395, 19 0.0414, 20 0.0434, 21 0.046, 22 0.0483, 23 0.051, 24
         0.055, 25 0.0586, 26 0.0626, 27 0.0658, 28 0.072, 29 0.076, 30 0.08
 
-    '''
+    """
     Convert(_temp)
-    _temp = '''
+    _temp = """
     # Roebling music wire gauge
     # From https://sizes.com/materials/wire.htm
     # Gauge number, diameter in inches
@@ -380,9 +466,9 @@ if 1:   # Data
         32 0.086, 33 0.09, 34 0.095, 35 0.1, 36 0.105, 37 0.11, 38 0.115, 39
         0.12, 40 0.125, 41 0.13
 
-    '''
+    """
     Convert(_temp)
-    _temp = '''
+    _temp = """
     # Felten & Guilleaume music wire gauge
     # From https://sizes.com/materials/wire.htm
     # Gauge number, diameter in inches
@@ -394,9 +480,9 @@ if 1:   # Data
         23 0.051, 24 0.055, 25 0.059, 26 0.063, 27 0.067, 28 0.071, 29
         0.074, 30 0.078, 31 0.082, 32 0.086
 
-    '''
+    """
     Convert(_temp)
-    _temp = '''
+    _temp = """
     # English music wire gauge
     # From https://sizes.com/materials/wire.htm
     # Gauge number, diameter in inches
@@ -407,9 +493,9 @@ if 1:   # Data
         22 0.047, 23 0.049, 24 0.053, 25 0.056, 26 0.0605, 27 0.064, 28
         0.0685, 29 0.0715, 30 0.075
 
-    '''
+    """
     Convert(_temp)
-    _temp = '''
+    _temp = """
     # Poehlmann music wire gauge
     # From https://sizes.com/materials/wire.htm
     # Gauge number, diameter in inches
@@ -420,9 +506,9 @@ if 1:   # Data
         18 0.041, 19 0.043, 20 0.045, 21 0.047, 22 0.049, 23 0.051, 24
         0.055, 25 0.059, 26 0.063, 27 0.067, 28 0.071, 29 0.075, 30 0.08
 
-    '''
+    """
     Convert(_temp)
-    _temp = '''
+    _temp = """
     # Alhoff & Muller music wire gauge
     # From https://sizes.com/materials/wire.htm
     # Gauge number, diameter in inches
@@ -434,9 +520,9 @@ if 1:   # Data
         27 0.067, 28 0.071, 29 0.074, 30 0.078, 31 0.082, 32 0.086, 33 0.09,
         34 0.094, 35 0.098, 36 0.102
 
-    '''
+    """
     Convert(_temp)
-    _temp = '''
+    _temp = """
     # W. N. Brunton music wire gauge
     # From https://sizes.com/materials/wire.htm
     # Gauge number, diameter in inches
@@ -448,7 +534,7 @@ if 1:   # Data
         0.066, 28 0.069, 29 0.072, 30 0.076, 31 0.08, 32 0.086, 33 0.092, 34
         0.098, 35 0.104, 36 0.11, 37 0.117, 38 0.121, 39 0.13, 40 0.14
 
-    '''
+    """
     Convert(_temp)
     synonyms = {
         "Brown & Sharpe Gauge": "AWG",
@@ -465,16 +551,17 @@ if 1:   # Data
             continue
         if synonyms[i] not in gauges:
             print(synonyms[i], "missing in gauges")
-if __name__ == "__main__": 
+if __name__ == "__main__":
     import sys
     import os
     from wrap import dedent
     from columnize import Columnize
     from dpmath import AlmostEqual
     from lwtest import run, Assert
+
     def TestWireGauge():
         x = flt(1)
-        x.promote = True    # Allows the following comparisons
+        x.promote = True  # Allows the following comparisons
         Assert(AlmostEqual(WireGauge(12), 0.189))
         Assert(AlmostEqual(WireGauge(0.189), 12))
         # Check that each gauge number, when run back through the function as a
@@ -483,29 +570,34 @@ if __name__ == "__main__":
         t = [WireGauge(i) for i in sizes]
         s = [WireGauge(i) for i in t]
         Assert(s == sizes)
+
     if len(sys.argv) > 1 and sys.argv[1] == "--test":
         exit(run(globals(), halt=1)[0])
     name = sys.argv[0]
     w = int(os.environ.get("COLUMNS", 80)) - 5
-    sep = "-"*w
+    sep = "-" * w
     print(f"{name}:  List of different gauges (sizes in inches)")
-    print(dedent(f'''
+    print(
+        dedent(f"""
      Number   
     of sizes    Gauge name
-    --------    {'-'*40}'''))
+    --------    {"-" * 40}""")
+    )
     for i in gauges:
         print(f"{len(gauges[i]):4d}        {i}")
-    print(dedent('''
+    print(
+        dedent("""
     Notes:
     - The Precision Brand music wire I have in the shop uses the US Standard
-        wire gauge (e.g., 20 gauge is 0.045" diameter).'''))
+        wire gauge (e.g., 20 gauge is 0.045" diameter).""")
+    )
     # Print out data
     print(sep)
     print("-1 means 00 or 1/0, -2 means 000 or 2/0, etc.")
     print("Trailing 0 digits are removed from the dimensions in inches")
     x = flt(0)
-    x.n = 4         # Print numbers to 4 significant figures
-    x.rtz = True    # Remove trailing 0 digits
+    x.n = 4  # Print numbers to 4 significant figures
+    x.rtz = True  # Remove trailing 0 digits
     for gauge in gauges:
         data = gauges[gauge]
         print(sep)

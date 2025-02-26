@@ -1,35 +1,38 @@
-'''
+"""
 Show sizes of on-hand o-rings
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2020 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2020 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Show sizes of on-hand o-rings
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import getopt
     import os
     import sys
     from fractions import Fraction
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
     from get import GetFraction
     from fraction import FormatFraction
     from f import flt
     from color import C
+
     if 1:
         import debug
+
         debug.SetDebugger()
-if 1:   # Global variables
+if 1:  # Global variables
     # O-ring data
     # 1.23 is inches, 1/8 is fractional inches, M1.3 is mm
     #   ID
@@ -37,7 +40,7 @@ if 1:   # Global variables
     #   Cross section
     #   Material (N = nitrile, V = viton)
     #   ; Name/number (optional)
-    data = '''
+    data = """
     # Red box
         1/8     1/4     1/16    ;F-01 Red box
         3/16    1/4     1/16    ;F-02 Red box
@@ -86,10 +89,12 @@ if 1:   # Global variables
         7/8     1-1/8   1/8     ;Plumber's Pak 2-210
         13/16   1-1/16  1/8     ;Plumber's Pak 2-211
         3/4     1       1/8     ;Plumber's Pak 2-212
-    '''
+    """
+
+
 class Size(object):
     def __init__(self, s):
-        'self.value will be size in inches'
+        "self.value will be size in inches"
         s = s.strip()
         self.metric = False
         self.fraction = False
@@ -97,18 +102,22 @@ class Size(object):
             self.value = GetFraction(s)
             self.fraction = True
         elif s[0].lower() == "m":
-            self.value = flt(s[1:])/25.4
+            self.value = flt(s[1:]) / 25.4
             self.metric = True
         else:
             self.value = flt(s)
+
     @property
-    def inches(self):   
+    def inches(self):
         return self.value
+
     @property
-    def mm(self):   
-        return self.value*25.4
+    def mm(self):
+        return self.value * 25.4
+
     def __repr__(self):
         return str(self)
+
     def __str__(self):
         x = self.value
         if self.fraction:
@@ -123,8 +132,11 @@ class Size(object):
                 return str(int(x))
             else:
                 return str(x)
+
     def __lt__(self, other):
         return self.value < other.value
+
+
 def GetData():
     orings = []
     for line in data.split("\n"):
@@ -138,11 +150,16 @@ def GetData():
         thickness = Size(s[2])
         orings.append((id, od, thickness, name))
     return list(sorted(orings))
+
+
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
+
+
 def Usage(d, status=1):
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]} [options] [dia1 [dia2 ...]]
       Show on-hand o-rings that are closest to the indicated diameter(s) in 
       inches.
@@ -151,8 +168,11 @@ def Usage(d, status=1):
       -r      Reverse sort
       -s x    Sort table by x (i = inside, o = outside, t = thickness)
       -t      Show table of all the o-rings
-    '''))
+    """)
+    )
     exit(status)
+
+
 def ParseCommandLine(d):
     d["-m"] = False
     d["-r"] = False
@@ -176,6 +196,8 @@ def ParseCommandLine(d):
         ShowTable()
         exit(0)
     return args
+
+
 def ShowTable():
     k = 0
     if d["-s"] == "o":
@@ -183,34 +205,44 @@ def ShowTable():
     elif d["-s"] == "t":
         k = 2
     orings = GetData()
+
     def f(x):
         return x[k]
+
     orings = sorted(orings, key=f, reverse=d["-r"])
     i = "Inside Diameter"
     o = "Outside Diameter"
     t = "  Thickness  "
     m = 7
-    n = " "*m + "Name" + " "*m
+    n = " " * m + "Name" + " " * m
     h = "-"
-    sep = " "*3
+    sep = " " * 3
     if d["-m"]:
         print("Table of o-ring sizes (dimensions in mm)")
     else:
         print("Table of o-ring sizes (dimensions in inches, M means metric size in mm)")
-    print(dedent(f'''
+    print(
+        dedent(f"""
     {i}{sep}{o}{sep}{t}{sep}{n}
-    {h*len(i)}{sep}{h*len(o)}{sep}{h*len(t)}{sep}{h*len(n)}
-    '''))
+    {h * len(i)}{sep}{h * len(o)}{sep}{h * len(t)}{sep}{h * len(n)}
+    """)
+    )
     for id, od, thickness, name in orings:
         if d["-m"]:
-            print(f"{str(id.mm()):^{len(i)}s}{sep}{str(od.mm()):^{len(o)}s}{sep}"
-                f"{str(thickness.mm()):^{len(t)}s}{sep}{name}")
+            print(
+                f"{str(id.mm()):^{len(i)}s}{sep}{str(od.mm()):^{len(o)}s}{sep}"
+                f"{str(thickness.mm()):^{len(t)}s}{sep}{name}"
+            )
         else:
-            print(f"{str(id):^{len(i)}s}{sep}{str(od):^{len(o)}s}{sep}"
-                f"{str(thickness):^{len(t)}s}{sep}{name}")
+            print(
+                f"{str(id):^{len(i)}s}{sep}{str(od):^{len(o)}s}{sep}"
+                f"{str(thickness):^{len(t)}s}{sep}{name}"
+            )
+
+
 def ShowMatches(dia):
     def KeepSmallest(seq):
-        'Return a list containing only the smallest first items of seq'
+        "Return a list containing only the smallest first items of seq"
         seq = sorted(seq)
         keep = [seq[0]]
         smallest = seq[0][0]
@@ -219,13 +251,15 @@ def ShowMatches(dia):
             keep.append(seq[n])
             n += 1
         return keep
+
     def Show(item):
         absdiff, diff, oring = item
         id, od, t, name = oring
-        if not diff:    # Exact matches are in color
+        if not diff:  # Exact matches are in color
             print(f"{C.lgrn}    ID = {id}, OD = {od}, T = {t}, {name}{C.norm}")
         else:
             print(f"    diff = {diff}  ID = {id}, OD = {od}, T = {t}, {name}")
+
     if "/" in dia:
         D = flt(GetFraction(dia))
         is_fraction = True
@@ -249,7 +283,7 @@ def ShowMatches(dia):
     print("Diameters in inches")
     print(f"Search value = {dia} {u}", end=" ")
     if d["-m"]:
-        print(f"= {flt(dia)/25.4:.3f} inches")
+        print(f"= {flt(dia) / 25.4:.3f} inches")
     else:
         print()
     print(f"  Closest ID match(es):")
@@ -258,12 +292,14 @@ def ShowMatches(dia):
     print(f"  Closest OD match(es):")
     for item in OD:
         Show(item)
-    if 0:   # Don't show thicknesses (maybe later)
+    if 0:  # Don't show thicknesses (maybe later)
         print(f"  Closest thickness match(es):")
         for item in T:
             Show(item)
+
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     diameters = ParseCommandLine(d)
     orings = GetData()
     for dia in diameters:

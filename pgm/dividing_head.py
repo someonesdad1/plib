@@ -1,4 +1,4 @@
-'''
+"""
 
 ToDo
     - Operators
@@ -12,46 +12,46 @@ ToDo
           holes.
 
 Calculate characteristics of a dividing head
- 
+
 See PIM Feb 1991, "The Mathematics of a Dividing Head", pg 17
- 
+
 The fundamental characteristics of the dividing head are
     R       Gear ratio, number of turns required to make output shaft
             rotate once.
     H       Number of equally-spaced holes in dividing plate.
- 
+
 If you want N divisions on something, then you'll need to make R/N turns of
 the worm gear shaft to get 1/N of a circle of movement.  Here, assume R and
 N are both integers.
- 
+
     Example:  suppose R = 40 and we want N = 24 divisions.  Then 1/24th of
     a revolution is gotten by a turn of 40/24 or 1-16/24 of a turn.  This
     is the fraction 1-2/3 in lowest terms.  We can perform this operation
     if we have a dividing plate with 3 equally-spaced holes in it - or any
     number of holes that's a multiple of 3..
- 
+
 The number of holes needed for N turns is thus Fraction(R % N, N).denominator.
- 
+
 This lets us construct a table of N versus number of holes in a plate for a
 given ratio R.
- 
- 
- 
+
+
+
 ---------------------------------------------------------------------------
 Relatively common divisions needed
-    
+
 2 4 8   Square, octagon
 5       Pentagon
 6       Hexagon
 ---------------------------------------------------------------------------
- 
+
 B&S dividing heads came with three plates:
     1:  15 16 17 18 19 20
     2:  21 23 27 29 31 33
     3:  37 39 41 43 47 49
- 
+
 Assuming a 40:1 gear ratio, these give the divisions
- 
+
 15: 75 150
 16: 128
 17: 17 34 68 85 136 170
@@ -70,23 +70,24 @@ Assuming a 40:1 gear ratio, these give the divisions
 43: 43 86 172
 47: 47 94 188
 49: 49 98 196
- 
-'''
-if 1:   # Header
-    if 1:   # Copyright, license
+
+"""
+
+if 1:  # Header
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Calculate characteristics of a dividing head
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         from collections import defaultdict, deque
         from fraction import Fraction
         import getopt
@@ -94,19 +95,21 @@ if 1:   # Header
         from pprint import pprint as pp
         from pathlib import Path as P
         import sys
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from f import flt
         from wrap import wrap, dedent
         from color import t
         from columnize import Columnize
         from primes import IsPrime, AllFactors
-    if 1:   # Global variables
+    if 1:  # Global variables
         W = int(os.environ.get("COLUMNS", "80")) - 1
         dbg = True
         dbg = False
-if 1:   # Manpage
+if 1:  # Manpage
+
     def Manpage():
-        print(dedent(f'''
+        print(
+            dedent(f"""
 
         A dividing head is a spindle that is rotated by a worm gear and
         worm wheel.  A handle turns the worm gear and a dividing plate with
@@ -151,14 +154,20 @@ if 1:   # Manpage
             [2] Projects in Metal, Feb 1991, "The Mathematics of a Dividing
                 Head", pg 17.
 
-        '''))
+        """)
+        )
         exit(0)
-if 1:   # Utility
+
+
+if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] operator operator_arguments
           d   N [h]
             Construct table showing number of holes to get divisions 
@@ -170,15 +179,17 @@ if 1:   # Utility
         Options:
             -h      Print a manpage
             -m      Print characteristics of Master dividing head
-            -r R    Set worm gear ratio [{d['-r']}]
+            -r R    Set worm gear ratio [{d["-r"]}]
             -t      Show table of divisions wanted and holes needed
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-d"] = 4         # Number of significant digits
-        d["-r"] = 40        # Default worm gear ratio
+        d["-d"] = 4  # Number of significant digits
+        d["-r"] = 40  # Default worm gear ratio
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "d:hr:") 
+            opts, args = getopt.getopt(sys.argv[1:], "d:hr:")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -209,19 +220,23 @@ if 1:   # Utility
         x.N = d["-d"]
         x.rtz = True
         return list(args)
-if 1:   # Master dividing head
+
+
+if 1:  # Master dividing head
+
     def MasterDividingHead():
-        '''Print out the division capabilities of the Master dividing head.
- 
+        """Print out the division capabilities of the Master dividing head.
+
         This is a smaller Master dividing head for lathes that belonged
         to HPR.  It has an expanding collet to fit a spindle tube and,
         once secured to the lathe, can divide spindle rotation into desired
         numbers.
- 
+
         The worm gear is 40:1 and the dividing plate has 21, 23, 27, 29,
         31, and 33 holes.
-        '''
-        print(dedent(f'''
+        """
+        print(
+            dedent(f"""
         Master dividing head for lathe (belonged to HPR)
             40:1 worm with 21 23 27 29 31 33 holes in plate
 
@@ -236,15 +251,18 @@ if 1:   # Master dividing head
             33:  33 66 132 165 264 330
 
         This script gives the 
-        '''))
+        """)
+        )
 
-if 0:   # Core functionality
+
+if 0:  # Core functionality
+
     def OrganizeResults(results):
-        '''results is a dict of Nmax for keys and di[n] is the number of holes in a
+        """results is a dict of Nmax for keys and di[n] is the number of holes in a
         dividing plate to get Nmax for the give ratio.  List things by number
         of holes and the values of Nmax that can be gotten with that number of
         holes.
-        '''
+        """
         mydict = defaultdict(list)
         for n in results:
             holes = results[n]
@@ -269,8 +287,8 @@ if 0:   # Core functionality
                     del mydict[n]
                     too_many.append(n)
         # Print report
-        w, s = 4, " "*4
-        cmd = ' '.join(sys.argv[1:])
+        w, s = 4, " " * 4
+        cmd = " ".join(sys.argv[1:])
         print(f"Dividing head calculations (args = {cmd!r})")
         print(f"{ratio:{w}d}{s}Worm gear ratio")
         print(f"{Nmax:{w}d}{s}Max divisions to generate")
@@ -279,30 +297,31 @@ if 0:   # Core functionality
         print(f"\nHoles  Divisions")
         o = []
         for i in sorted(mydict):
-            s = ' '.join(str(j) for j in mydict[i])
+            s = " ".join(str(j) for j in mydict[i])
             o.append(f"{i:2d}:  {s}")
         for i in Columnize(o):
             print(i)
         # Plates for single prime numbers
         print(f"Plates for single prime numbers:")
-        for i in Columnize([str(j) for j in sorted(p)], indent=" "*4):
+        for i in Columnize([str(j) for j in sorted(p)], indent=" " * 4):
             print(i)
         # Plates removed
         if hmax:
             print(f"Plates removed because they were > hmax = {hmax}:")
-            for i in Columnize([str(j) for j in sorted(too_many)], indent=" "*4):
+            for i in Columnize([str(j) for j in sorted(too_many)], indent=" " * 4):
                 print(i)
         CoalesceHoles(mydict)
+
     def CoalesceHoles(mydict):
-        '''Reduce the set to a minimum number of hole circles needed.
- 
+        """Reduce the set to a minimum number of hole circles needed.
+
         Here's the results for arguments of 100 50:
- 
+
             Dividing head calculations
               40    Worm gear ratio
              100    Max divisions to generate
               50    Max holes in plates
-            
+
             Holes  Divisions
              1:  40                   11:  11 22 44 55 88       29:  29 58
              2:  16 20 80             12:  96                   31:  31 62
@@ -318,7 +337,7 @@ if 0:   # Core functionality
                 53 59 61 67 71 73 79 83 89 97
             Plates removed because they were > hmax:
                 51 57 63 69 77 81 87 91 93 99
- 
+
         Here's how this would be analyzed.  Integer factors:
             10: 2 5
             12: 2 2 3
@@ -350,9 +369,9 @@ if 0:   # Core functionality
             48: 2 2 2 2 3
             49: 7 7
             50: 2 5 5
- 
+
         First get the even number of holes:
-            2 4 6 8 10 12 20 
+            2 4 6 8 10 12 20
         The factors are
             2: 2
             4: 2 2
@@ -361,9 +380,10 @@ if 0:   # Core functionality
             10: 2 5
             12: 2 2 3
             20: 2 2 5
-        
+
         The factors in the list are 2, 3, 5
-        '''
+        """
+
     def HoleTable(*args):
         if not args:
             Error("Need N, the maximum number of divisions wanted")
@@ -383,32 +403,41 @@ if 0:   # Core functionality
             o.append(f"{n:3d}:{results[n]:3d}")
         for i in Columnize(o, col_width=10):
             print(i)
+
     def AngleData(*args):
         if not args:
             Error("Need h, the maximum number of holes")
         Hmax = int(args[0])
         ratio = d["-r"]
-        print(f"Angle steps for number of holes in division plate, worm ratio is {d['-r']}\n")
+        print(
+            f"Angle steps for number of holes in division plate, worm ratio is {d['-r']}\n"
+        )
         print(f"Holes Steps   1000/Steps   °/step")
         print(f"----- -----   ----------   ------")
         for h in range(1, Hmax + 1):
-            n = ratio*h
-            recip = flt(1000/n)
-            step_deg = 360*recip/1000
-            s = ' '.join(str(i) for i in AllFactors(n))
+            n = ratio * h
+            recip = flt(1000 / n)
+            step_deg = 360 * recip / 1000
+            s = " ".join(str(i) for i in AllFactors(n))
             print(f"{h:4d} {n:5d}      {recip!s:8s}   {step_deg!s:6s}    {s}")
+
     def VernierPlates(*args):
         pass
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def Degrees(*args):
         pass
+
     def Master(*args):
         pass
+
     def DivisionsWithPlates(*args):
-        '''If only one argument is present, print out the divisions that
+        """If only one argument is present, print out the divisions that
         can be gotten with all plates with holes from 1 to that value.
         Otherwise, just print the divisions for the given plates.
-        '''
+        """
         discrete = False
         try:
             if len(args) > 1:
@@ -426,7 +455,7 @@ if 1:   # Core functionality
         # gotten.
         div = defaultdict(list)
         for h in H:
-            for factor in AllFactors(ratio*h):
+            for factor in AllFactors(ratio * h):
                 div[factor].append(h)
         # Make sure for each item in dict that number of holes is only
         # given once
@@ -438,7 +467,7 @@ if 1:   # Core functionality
             print(f"  Holes:  {' '.join(args)}\n")
         print(f"Divisions    Number of holes to use ")
         print(f"---------   ------------------------")
-        indent = " "*12
+        indent = " " * 12
         for n in sorted(div):
             dq = deque(str(j) for j in div[n])
             line = f"{n:^9d}   "
@@ -455,26 +484,27 @@ if 1:   # Core functionality
                 print(line)
         print("\nList of divisions available:")
         o = sorted([f"{i:4d}" for i in div], key=int)
-        for i in Columnize(o, indent=" "*4, col_width=8):
+        for i in Columnize(o, indent=" " * 4, col_width=8):
             print(i)
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     if dbg:
-            op, args = "t", ["50"]
-            # Master dividing head's possibilities
-            op, args = "t", "21 23 27 29 31 33".split()
+        op, args = "t", ["50"]
+        # Master dividing head's possibilities
+        op, args = "t", "21 23 27 29 31 33".split()
     else:
         op = args.pop(0)
     if dbg:
-        if op == "t":       # Table of divisions gotten with plates up to h
+        if op == "t":  # Table of divisions gotten with plates up to h
             DivisionsWithPlates(*args)
-        elif op == "h":     # What divisions a plate with h holes can give
+        elif op == "h":  # What divisions a plate with h holes can give
             Plate(*args)
-        elif op == "d":     # How to get specific degrees of rotation
+        elif op == "d":  # How to get specific degrees of rotation
             Degrees(*args)
-        elif op == "m":     # How to get divisions with Master dividing head
+        elif op == "m":  # How to get divisions with Master dividing head
             Master(*args)
         else:
             Error(f"{op!r} not recognized")

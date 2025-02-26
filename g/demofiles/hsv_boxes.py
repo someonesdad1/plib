@@ -1,10 +1,13 @@
-'''
+"""
 Draw a rectangular array of boxes on the screen that are filled with
 colors specified by HSV values, demonstrating the use of the hsv2rgb
 conversion function.  H is hue, S is saturation, V is value (all
 numbers between 0 and 1).
-'''
+"""
+
 from g import *
+
+
 def HSVColoredBoxes(ncol, nrow, file):
     os = Setup(file, portrait, points)
     # Set the coordinate system so that the origin is the top left corner of
@@ -38,8 +41,8 @@ def HSVColoredBoxes(ncol, nrow, file):
             r, g, b = hsv2rgb(h, s, v)
             fillColor((r, g, b))
             move(x, y)
-            rectangle(
-                border_factor * 1.0 / nrow, border_factor * 1.0 / ncol
-            )
+            rectangle(border_factor * 1.0 / nrow, border_factor * 1.0 / ncol)
     os.close()
+
+
 HSVColoredBoxes(8, 8, "out/hsv_boxes.ps")

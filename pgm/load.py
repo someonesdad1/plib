@@ -1,4 +1,4 @@
-'''
+"""
 This computes a table of allowed currents and voltages for a DC or AC load constructed from 120 W
 power resistors.  These are found at https://www.mpja.com/ for $6 to $7 each.  I wrote this script
 so I could print the table on the outside of a box with switches that allows choosing any of these
@@ -21,23 +21,23 @@ of 1 to 31 ohms in steps of 1 ohm for the bench that cost under $60.
 Total cost should be under $70.  I used the mini toggle switches to switch the relays on and off.
 The extra toggle switch switches the whole series load of resistors in and out of the circuit.
 
-'''
- 
+"""
+
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Program description string
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         from collections import deque
         from itertools import combinations
         from pathlib import Path as P
@@ -46,57 +46,69 @@ if 1:  # Header
         import os
         import re
         import sys
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from f import flt
         from wrap import dedent
         from color import t
         from lwtest import Assert
+
         if 0:
             import debug
+
             debug.SetDebugger()
-    if 1:   # Global variables
+    if 1:  # Global variables
+
         class G:
             pass
+
         g = G()
         g.dbg = True
         g.dbg = False
         ii = isinstance
-if 1:   # Utility
+if 1:  # Utility
+
     def GetColors():
         t.err = t("redl")
         t.dbg = t("lill") if g.dbg else ""
         t.N = t.n if g.dbg else ""
+
     def GetScreen():
-        'Return (LINES, COLUMNS)'
+        "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
-            int(os.environ.get("COLUMNS", "80")) - 1
+            int(os.environ.get("COLUMNS", "80")) - 1,
         )
+
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="")
             print(*p, **kw)
             print(f"{t.N}", end="")
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=0):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] [power_W]
           Print a table of the allowed voltages and currents for the series combinations of the
           power resistors in 1, 2, 4, 8, 16 Ω, each rated to 120 W.  The table is printed for 120
           W maximum dissipation unless you include a power on the command line.
         Options:
             -h      Print a manpage
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-a"] = False     # Need description
-        d["-n"] = 3         # Number of significant digits
-        #if len(sys.argv) < 2:
+        d["-a"] = False  # Need description
+        d["-n"] = 3  # Number of significant digits
+        # if len(sys.argv) < 2:
         #    Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "an:h") 
+            opts, args = getopt.getopt(sys.argv[1:], "an:h")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -113,12 +125,15 @@ if 1:   # Utility
             elif o == "-h":
                 Usage()
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def PrintPowers(power_W):
-        '''Given a set of resistors of values 1, 2, 4, 8, 16 in series, selected by toggle
+        """Given a set of resistors of values 1, 2, 4, 8, 16 in series, selected by toggle
         switches or relays.  Print out a table of the allowed current and voltage across the
         selected resistance value.
-        '''
+        """
         o = []
         # Construct all combinations
         for k in range(1, 6):
@@ -134,18 +149,21 @@ if 1:   # Core functionality
         print(f"Maximum power in W is {power_W}")
         print(f"R, Ω    Volts       Amperes     Hottest resistor % of maximum power")
         for R, comb in sorted(o):
-            V = (power_W*R)**0.5
-            i = (power_W/R)**0.5
+            V = (power_W * R) ** 0.5
+            i = (power_W / R) ** 0.5
             # Get maximum power of hottest resistor
             p = []
             for j, r in enumerate(comb):
-                p.append((i**2*r, j))
+                p.append((i**2 * r, j))
             P, n = p[-1]
-            pct = 100*P/power_W
-            print(f"{R:2d}       {V!s:{w}s}     {i!s:{w}s}      {int(round(pct, 0)):3d}")
+            pct = 100 * P / power_W
+            print(
+                f"{R:2d}       {V!s:{w}s}     {i!s:{w}s}      {int(round(pct, 0)):3d}"
+            )
+
 
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     power_W = flt(args[0]) if args else flt(120)
     PrintPowers(power_W)

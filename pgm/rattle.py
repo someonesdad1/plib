@@ -1,4 +1,4 @@
-'''
+"""
 Help with rattle measurements.
 
 Roll rattle
@@ -14,46 +14,50 @@ Pitch rattle
     eps = desired interference
     a = rattle measurement is approximately sqrt(2*d*eps)
 
-'''
+"""
+
 dbg = 1
-if 1:   # Header
-    if 1:   # Copyright, license
+if 1:  # Header
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Help with rattle measurements
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         import getopt
         import os
         from pathlib import Path as P
         import sys
         from pdb import set_trace as xx
         from functools import partial
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import wrap, dedent
         from color import Color, t
         from u import u
         from f import flt, sqrt
         import get
-    if 1:   # Global variables
+    if 1:  # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
         t.ans = t("purl")
-if 1:   # Utility
+if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] type
           Use 'r[oll]' or 'p[itch]' for the type of rattle measurement.
           Prompts you for the needed dimensions and calculates the third.
@@ -62,16 +66,17 @@ if 1:   # Utility
           dimensions you're prompted for.
         Options:
             -h      Print a manpage
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-d"] = 4         # Number of significant digits
-        d["-m"] = False     # Default to mm
+        d["-d"] = 4  # Number of significant digits
+        d["-m"] = False  # Default to mm
         if not dbg and len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:h", 
-                    ["help", "debug"])
+            opts, args = getopt.getopt(sys.argv[1:], "ad:h", ["help", "debug"])
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -84,8 +89,7 @@ if 1:   # Utility
                     if not (1 <= d["-d"] <= 15):
                         raise ValueError()
                 except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                        "1 and 15")
+                    msg = "-d option's argument must be an integer between 1 and 15"
                     Error(msg)
             elif o in ("-h", "--help"):
                 Manpage()
@@ -93,6 +97,7 @@ if 1:   # Utility
                 # Set up a handler to drop us into the debugger on an
                 # unhandled exception
                 import debug
+
                 debug.SetDebugger()
         # Set up flt characteristics
         x = flt(0)
@@ -101,8 +106,10 @@ if 1:   # Utility
         if dbg:
             args = ["r"]
         return args[0]
+
     def Manpage():
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Roll rattle
         -----------
 
@@ -142,10 +149,14 @@ if 1:   # Utility
 
         Thus, set your calipers to 4.126 inches and bore the hole out until
         the pitch rattle is 1/8 inches from the entry to the bore.
-        '''))
+        """)
+        )
         exit(0)
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
     GetNum = partial(get.GetNumber, allow_none=True, numtype=flt)
+
     def RollRattle():
         print("Roll rattle:  enter nothing for the unknown")
         while True:
@@ -163,8 +174,8 @@ if 1:   # Core functionality
                 if L is None or w is None:
                     print("Not enough things defined")
                     continue
-                a = flt(w/L)
-                b = 1 - a**2/4
+                a = flt(w / L)
+                b = 1 - a**2 / 4
                 if b <= 0:
                     print(f"Bad w and L values give complex result")
                     if dbg:
@@ -175,7 +186,7 @@ if 1:   # Core functionality
                     if dbg:
                         exit(1)
                     continue
-                d = flt(L/sqrt(b))
+                d = flt(L / sqrt(b))
                 print(f"L = {L}")
                 print(f"w = {w}")
                 t.print(f"{t.ans}d = {d}")
@@ -189,12 +200,14 @@ if 1:   # Core functionality
                     continue
             else:
                 print("Leave one variable undefined")
-            if dbg: exit(0) #xx
-            
+            if dbg:
+                exit(0)  # xx
+
     def PitchRattle():
         pass
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     arg = ParseCommandLine(d)
     RollRattle() if arg.lower()[0] == "r" else PitchRattle()

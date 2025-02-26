@@ -1,27 +1,33 @@
 # plib
 
-Last updated 12 Mar 2024
+Last updated 26 Feb 2025 
 
 # Introduction
 
-This repository is a collection of python stuff I've written since 1998.  Feel free to browse and
-use what suits your needs.  There are quite a few files, use the tools (see below) to help
-understand what these files are for.  Most of the stuff is licensed under the Open Software License
-version 3.0.
+This repository is a collection of python stuff I've written since 1998.  Feel free to
+browse and use what suits your needs.  There are quite a few files, use the tools (see
+below) to help understand what these files are for.  Most of the stuff is licensed under
+the Open Software License version 3.0.
 
 * The `plib` directory holds modules that are intended to be used by other scripts.
 * The `plib/pgm` directory holds scripts that are separate programs.
-* The `plib/test` directory holds scripts that test the modules in `plib` (many modules have their
-  test code built-in).
-* The `plib/g` directory holds a python graphics library that is a thin layer over PostScript.
+* The `plib/test` directory holds scripts that test the modules in `plib` (many modules
+  have their test code built-in).
+* The `plib/g` directory holds a python graphics library that is a thin layer over
+  PostScript.
 
 ## Roadmap
 
-I made this repository public in 2022.  My goals for 2024 are 
+I made this repository public in 2022.  My goals for 2025 are 
 
-* /plib:  Self-tests are up-to-date and all pass.  Remove specialized modules that are better
-  stored elsewhere.  Standardize on style and structure.  0what.py returns useful output for all
-  modules.
+* /plib
+    * Use [ruff](https://docs.astral.sh/ruff/) to lint & format the files
+    * Self-tests are up-to-date and all pass
+    * Remove specialized modules that are better stored elsewhere
+    * Move stuff in from Dev as appropriate & clean up Dev
+    * Standardize on style and structure (see below)
+        * 
+    * 0what.py returns useful output for all modules
 * /plib/pgm:  All scripts working with updated style and structure.  Remove any dependencies on
   old color.py module (kolor.py).
 * All material tested with python 3.11.
@@ -35,6 +41,41 @@ coupled.  This means if you find a script you like and want to move it somewhere
 that it's dependent on a number of other modules.  This will be annoying and possibly a lot of work
 to fix.  This repository on my system is `/plib` and my `PYTHONPATH` variable is `"/plib:/plib/g"`,
 so this repository is the only code I use outside of what's in the python distribution. 
+
+# Code formatting
+
+I prefer to work on all source code with no blank lines at all because it lets me see
+the most information on my screen via folding and I can navigate to where I'm working
+faster than any other way (I won't explain it, as it's specific to the editor I use).
+
+Tools like black and ruff will format code with blank lines (e.g., between functions and
+classes) and change lines with spaces only into empty lines.  Because I use both of
+these methods to speed navigation through python files, I wrote a python tool
+/plib/pgm/dbl.py that will delete blank lines from a file that the formatter has
+inserted.  This gives me the best of both worlds, as I also value a standardized format
+that let people focus on the content, not argue over the use of tab characters (when I
+switched my career to software 35 years ago, I saw some grown adults behave pretty
+childishly over such things).
+
+Because I use dbl to format a python file to work on it, I may check something in that's
+not formatted like ruff would do it.  Ruff is so fast, you can just pipe the editor's
+content to 'ruff format' and you'll see the proper PEP-8 form immediately.
+
+I use [ruff](https://docs.astral.sh/ruff/) to lint and format my python code; ruff
+follows black's formatting.  I can live with most of the formatting decisions of either
+of those tools, but these tools do two things that interfere with my coding practices:
+inserting blank lines between functions and changing lines that contain only spaces to
+blank lines.  This is an interference for me because vertical screen space is most
+precious to me and I want to see as much as possible on my screen.  Thus, I code
+everything (python/C/C++) with no blank lines between things.  This is not a hardship
+with a folding editor.  Further, it gives me a core advantage:  I can insert one blank
+line in a file where I am currently working and get to that point with one keystroke ({
+or } in vi).  This is much faster than searching, bookmarks, saved locations, etc.
+Where I need a "blank" line like in a docstring, I use the number of space characters
+that match the surrounding lines' indent.  
+
+I've worked on large software projects with hundreds of developers and I understand the
+importance of standardizing on things.
 
 # Tools
 

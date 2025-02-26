@@ -1,40 +1,43 @@
-'''
+"""
 ToDo
     - Add -m option for metric output
     - Only print inch or metric
     - For both Cain & Johansson methods, show clearances in red & green
 
 Calculate shaft/hole fits
-'''
+"""
+
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Calculate shaft/hole fits
-        #∞what∞#
-        #∞test∞# ignore #∞test∞#
+        # ∞what∞#
+        # ∞test∞# ignore #∞test∞#
         pass
-    if 1:   # Imports
+    if 1:  # Imports
         import sys
         import os
         import getopt
-        from pdb import set_trace as xx 
+        from pdb import set_trace as xx
         from fractions import Fraction as F
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import dedent
         from f import flt
         from u import u, ParseUnit
         from color import t
-    if 1:   # Global variables
+    if 1:  # Global variables
+
         class G:
             pass
-        in2mm = u("inches")/u("mm")
+
+        in2mm = u("inches") / u("mm")
         # Colors
         t.int = t("redl")
         t.cl = t("grnl")
@@ -43,8 +46,11 @@ if 1:  # Header
         t.matl = t("ornl")
         t.meth = t("purl")
 if 1:  # Utility
+
     def Manpage():
-        print(dedent(f'''
+        print(
+            dedent(
+                f"""
         Example
  
             I have a shaft with a measured OD of 0.9937 inches.  I'd like to make this shaft a
@@ -123,15 +129,19 @@ if 1:  # Utility
             a hole size of 0.9930-0.9934 for an easy driving fit compared to the 0.9930 of Tubal
             Cain's method.
  
-        '''.rstrip()))
+        """.rstrip()
+            )
+        )
         exit(0)
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def ParseCommandLine(opt):
-        opt["-f"] = 1         # Adjustment for material (1 = metal)
-        opt["-j"] = False     # Use Johansson method
-        opt["-m"] = False     # Output in mm
+        opt["-f"] = 1  # Adjustment for material (1 = metal)
+        opt["-j"] = False  # Use Johansson method
+        opt["-m"] = False  # Output in mm
         if len(sys.argv) < 2:
             Usage(opt)
         try:
@@ -148,10 +158,12 @@ if 1:  # Utility
                     Error("-f option must be > 0")
             elif o == "-h":
                 Manpage()
-        return ' '.join(args)
+        return " ".join(args)
+
     def Usage(opt, status=1):
         name = sys.argv[0]
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {name} [options] diameter [unit]
           Print a table showing fits for hole and shaft sizes (inches by
           default).  The command line can include python expressions; the math
@@ -162,14 +174,18 @@ if 1:  # Utility
           -j    Use the Johansson system of fits
           -k    Use the system from MH 1919 pg 880
           -m    Output in mm instead of inches
-        '''))
+        """)
+        )
         exit(status)
+
+
 if 1:  # Core functionality
+
     def GetDiameter(arg, opt):
-        '''Given the command line arguments collapsed into a space-separated
+        """Given the command line arguments collapsed into a space-separated
         string, return the command and the diameter in inches that the user
         requested data for.
-        '''
+        """
         try:
             s, unit = ParseUnit(arg, allow_expr=True)
             if not s:
@@ -183,8 +199,10 @@ if 1:  # Core functionality
         if diam <= 0:
             Error("Negative or zero diameter is meaningless.")
         unit = unit if unit else "inches"
-        diam_inches = flt(diam*u(unit)/u("inches"))
+        diam_inches = flt(diam * u(unit) / u("inches"))
         return arg, diam_inches
+
+
 if 1:  # Tubal Cain functionality
     if 1:  # Global variables
         tc = G()
@@ -195,7 +213,7 @@ if 1:  # Tubal Cain functionality
             ("Shrink", flt(0.5), flt(1.5)),
             ("Force", flt(0.5), flt(0.75)),
             ("Drive", flt(0.3), flt(0.45)),
-           #("Wheel keying", flt(0), flt(0)),
+            # ("Wheel keying", flt(0), flt(0)),
             ("Push", flt(-0.15), flt(-0.35)),
             ("Slide", flt(-0.3), flt(-0.45)),
             ("Precision running", flt(-0.5), flt(-0.65)),
@@ -205,35 +223,38 @@ if 1:  # Tubal Cain functionality
             ("Small clearance", flt(-2.0), flt(-3.0)),
             ("Large clearance", flt(-3.0), flt(-5.0)),
         )
-        tc.thermal_expansion = (   # Units are 1/K
+        tc.thermal_expansion = (  # Units are 1/K
             ("Aluminum", flt(23e-6)),
             ("Brass", flt(19e-6)),
             ("Copper", flt(17e-6)),
             ("Iron", flt(11e-6)),
             ("Steel", flt(12e-6)),
         )
+
     def TubalCain(cmdline, D, opt):
         def HoleBasic(D, opt):
-            'D is hole size in inches'
+            "D is hole size in inches"
             f = opt["-f"]
             shaft_size_in = D
-            shaft_size_mm = D*in2mm
+            shaft_size_mm = D * in2mm
             t.print(f"{t.msg}Hole size is basic")
             hole_size_in = float(D)
-            hole_size_mm = in2mm*D
+            hole_size_mm = in2mm * D
             i = "mm" if opt["-m"] else "in"
             c = "mm" if opt["-m"] else "mils"
-            print(f'''
+            print(
+                f"""
                            {t.meth}Tom Walshaw's (Tubal Cain) Method{t.n}
                           Shaft size, {i}       Clearance, {c}
                           --------------       ---------------
-            '''[1:].rstrip())
+            """[1:].rstrip()
+            )
             for name, constant, allowance in tc.fits:
-                correction = f*(allowance*hole_size_in + constant)/1000
+                correction = f * (allowance * hole_size_in + constant) / 1000
                 shaft_size_in = hole_size_in + correction
-                shaft_size_mm = shaft_size_in*in2mm
-                clearance_mils = f*(hole_size_in - shaft_size_in)*1000
-                clearance_mm = clearance_mils*in2mm/1000
+                shaft_size_mm = shaft_size_in * in2mm
+                clearance_mils = f * (hole_size_in - shaft_size_in) * 1000
+                clearance_mm = clearance_mils * in2mm / 1000
                 q = f"{t.int if clearance_mm < 0 else t.cl}"
                 if opt["-m"]:
                     print(f"  {name:18s} {shaft_size_mm:16.3f}", end=" ")
@@ -241,24 +262,27 @@ if 1:  # Tubal Cain functionality
                 else:
                     print(f"  {name:18s} {shaft_size_in:15.4f}", end=" ")
                     print(f"{q}{clearance_mils:19.2f}{t.n}")
+
         def ShaftBasic(D, opt):
-            'D is hole size in inches'
+            "D is hole size in inches"
             f = opt["-f"]
             shaft_size_in = float(D)
-            shaft_size_mm = in2mm*D
+            shaft_size_mm = in2mm * D
             i = "mm" if opt["-m"] else "in"
             c = "mm" if opt["-m"] else "mils"
             t.print(f"\n{t.msg}Shaft size is basic")
-            print(f'''
+            print(
+                f"""
                            Hole size, {i}       Clearance, {c}
                            -------------       ---------------
-            '''[1:].rstrip())
+            """[1:].rstrip()
+            )
             for name, constant, allowance in tc.fits:
-                correction = -f*(allowance*shaft_size_in + constant)/1000
+                correction = -f * (allowance * shaft_size_in + constant) / 1000
                 hole_size_in = shaft_size_in + correction
-                hole_size_mm = hole_size_in*in2mm
-                clearance_mils = f*(hole_size_in - shaft_size_in)*1000
-                clearance_mm = clearance_mils*in2mm/1000
+                hole_size_mm = hole_size_in * in2mm
+                clearance_mils = f * (hole_size_in - shaft_size_in) * 1000
+                clearance_mm = clearance_mils * in2mm / 1000
                 q = f"{t.int if clearance_mm < 0 else t.cl}"
                 if opt["-m"]:
                     print(f"  {name:18s} {hole_size_mm:16.3f}", end=" ")
@@ -266,11 +290,12 @@ if 1:  # Tubal Cain functionality
                 else:
                     print(f"  {name:18s} {hole_size_in:15.4f}", end=" ")
                     print(f"{q}{clearance_mils:19.2f}{t.n}")
+
         def CalculateFit(cmdline, D, opt):
-            '''hole_size_inches is diameter of hole in inches.  opt is the
+            """hole_size_inches is diameter of hole in inches.  opt is the
             settings dictionary.
-            '''
-            Dmm = D*in2mm
+            """
+            Dmm = D * in2mm
             if opt["-f"] != 1:
                 t.print(f"{t.matl}Material factor is", opt["-f"])
             print("Diameter = " + cmdline)
@@ -281,30 +306,38 @@ if 1:  # Tubal Cain functionality
             print()
             HoleBasic(D, opt)
             ShaftBasic(D, opt)
+
         def Temperatures(D, opt):
-            'Show temperatures needed to get a shrink fit'
+            "Show temperatures needed to get a shrink fit"
             hole_size_in = float(D)
-            hole_size_mm = in2mm*D
+            hole_size_mm = in2mm * D
             name, constant, allowance = tc.fits[0]
             f = opt["-f"]
-            assert(name == "Shrink")
-            correction = f*(allowance*hole_size_in + constant)/1000
+            assert name == "Shrink"
+            correction = f * (allowance * hole_size_in + constant) / 1000
             shaft_size_in = hole_size_in + correction
-            clearance_in = f*(hole_size_in - shaft_size_in)
-            print(dedent(f'''
+            clearance_in = f * (hole_size_in - shaft_size_in)
+            print(
+                dedent(f"""
             
             {t.msg}Temperature differential for shrink fit:{t.n}
               Material    alpha, 1/MK            °C         °F
-              --------    -----------           -----      -----'''))
+              --------    -----------           -----      -----""")
+            )
             for material, alpha in tc.thermal_expansion:
-                δd = abs(clearance_in/hole_size_in)
+                δd = abs(clearance_in / hole_size_in)
                 # Calculate ΔT in K
-                ΔT = int(δd/alpha)
-                print(f"  {material:12s} {int(alpha*1e6):6d} {ΔT:18d} {int(ΔT*9/5):10d}")
+                ΔT = int(δd / alpha)
+                print(
+                    f"  {material:12s} {int(alpha * 1e6):6d} {ΔT:18d} {int(ΔT * 9 / 5):10d}"
+                )
+
         CalculateFit(cmdline, D, opt)
         Temperatures(D, opt)
+
+
 if 1:  # Johansson functionality
-    '''
+    """
     Logic of the Johansson system
  
     The tables give the hole as basic.  Let's take an example, a hole of
@@ -336,12 +369,12 @@ if 1:  # Johansson functionality
         Subtract (-0.00024, +0.00031) from 0.85 to get (0.84969, 0.85024).  The
         hole diameter is thus (0.8497, 0.8502) inches.  Tubal Cain's method gives
         0.8504 for the hole diameter, 0.2 mils above Johansson's method.
-    '''
+    """
     if 1:  # Global variables
         jo = G()
         # Table data:  Machinery's Handbook, 19th ed., pg 1514
-        jo.min = 1/32
-        jo.max = 15 + 3/4
+        jo.min = 1 / 32
+        jo.max = 15 + 3 / 4
         jo.fits = "l r s p e c f".split()
         jo.fit_names = {
             "l": "Light running",
@@ -354,133 +387,134 @@ if 1:  # Johansson functionality
         }
         jo.sizes = (
             # 11 ranges
-            (flt(1/32), flt(1/8)),            #  0:  0.0312-0.125
-            (flt(1/8), flt(1/4)),             #  1:  0.125-0.25
-            (flt(1/4), flt(13/32)),           #  2:  0.25-0.406
-            (flt(13/32), flt(23/32)),         #  3:  0.406-0.719
-            (flt(23/32), flt(1 + 1/8)),       #  4:  0.719-1.12
-            (flt(1 + 1/8), flt(1 + 7/8)),     #  5:  1.12-1.88
-            (flt(1 + 7/8), flt(2 + 15/16)),   #  6:  1.88-2.94
-            (flt(2 + 15/16), flt(4 + 17/32)), #  7:  2.94-4.53
-            (flt(4 + 17/32), flt(6 + 7/8)),   #  8:  4.53-6.88
-            (flt(6 + 7/8), flt(10 + 7/16)),   #  9:  6.88-10.4
-            (flt(10 + 7/16), flt(15 + 3/4)),  # 10:  10.4-15.8
+            (flt(1 / 32), flt(1 / 8)),  #  0:  0.0312-0.125
+            (flt(1 / 8), flt(1 / 4)),  #  1:  0.125-0.25
+            (flt(1 / 4), flt(13 / 32)),  #  2:  0.25-0.406
+            (flt(13 / 32), flt(23 / 32)),  #  3:  0.406-0.719
+            (flt(23 / 32), flt(1 + 1 / 8)),  #  4:  0.719-1.12
+            (flt(1 + 1 / 8), flt(1 + 7 / 8)),  #  5:  1.12-1.88
+            (flt(1 + 7 / 8), flt(2 + 15 / 16)),  #  6:  1.88-2.94
+            (flt(2 + 15 / 16), flt(4 + 17 / 32)),  #  7:  2.94-4.53
+            (flt(4 + 17 / 32), flt(6 + 7 / 8)),  #  8:  4.53-6.88
+            (flt(6 + 7 / 8), flt(10 + 7 / 16)),  #  9:  6.88-10.4
+            (flt(10 + 7 / 16), flt(15 + 3 / 4)),  # 10:  10.4-15.8
         )
         assert jo.sizes[0][0] == jo.min
         assert jo.sizes[10][1] == jo.max
         # Units in these tables are 10⁻⁵ inches
         jo.fit = {
             "l": (
-                ( -83,  -43),   # 0
-                (-122,  -63),   # 1
-                (-165,  -87),   # 2
-                (-217, -118),   # 3
-                (-276, -157),   # 4
-                (-335, -197),   # 5
-                (-402, -236),   # 6
-                (-473, -276),   # 7
-                (-551, -315),   # 8
-                (-630, -354),   # 9
-                (-709, -394),   # 10
+                (-83, -43),  # 0
+                (-122, -63),  # 1
+                (-165, -87),  # 2
+                (-217, -118),  # 3
+                (-276, -157),  # 4
+                (-335, -197),  # 5
+                (-402, -236),  # 6
+                (-473, -276),  # 7
+                (-551, -315),  # 8
+                (-630, -354),  # 9
+                (-709, -394),  # 10
             ),
             "r": (
-                ( -43,  -20),   # 0
-                ( -63,  -31),   # 1
-                ( -87,  -43),   # 2
-                (-118,  -59),   # 3
-                (-157,  -79),   # 4
-                (-197,  -98),   # 5
-                (-236, -118),   # 6
-                (-276, -138),   # 7
-                (-315, -157),   # 8
-                (-354, -177),   # 9
-                (-394, -197),   # 10
+                (-43, -20),  # 0
+                (-63, -31),  # 1
+                (-87, -43),  # 2
+                (-118, -59),  # 3
+                (-157, -79),  # 4
+                (-197, -98),  # 5
+                (-236, -118),  # 6
+                (-276, -138),  # 7
+                (-315, -157),  # 8
+                (-354, -177),  # 9
+                (-394, -197),  # 10
             ),
             "s": (
-                ( -20,   -8),   # 0
-                ( -31,  -12),   # 1
-                ( -43,  -16),   # 2
-                ( -59,  -20),   # 3
-                ( -79,  -24),   # 4
-                ( -98,  -31),   # 5
-                (-118,  -39),   # 6
-                (-138,  -47),   # 7
-                (-157,  -55),   # 8
-                (-177,  -67),   # 9
-                (-197,  -75),   # 10
+                (-20, -8),  # 0
+                (-31, -12),  # 1
+                (-43, -16),  # 2
+                (-59, -20),  # 3
+                (-79, -24),  # 4
+                (-98, -31),  # 5
+                (-118, -39),  # 6
+                (-138, -47),  # 7
+                (-157, -55),  # 8
+                (-177, -67),  # 9
+                (-197, -75),  # 10
             ),
             "p": (
-                (  -8,  +12),   # 0
-                ( -12,  +20),   # 1
-                ( -16,  +28),   # 2
-                ( -20,  +31),   # 3
-                ( -24,  +31),   # 4
-                ( -31,  +31),   # 5
-                ( -39,  +28),   # 6
-                ( -47,  +24),   # 7
-                ( -55,  +20),   # 8
-                ( -67,  +20),   # 9
-                ( -75,  +20),   # 10
+                (-8, +12),  # 0
+                (-12, +20),  # 1
+                (-16, +28),  # 2
+                (-20, +31),  # 3
+                (-24, +31),  # 4
+                (-31, +31),  # 5
+                (-39, +28),  # 6
+                (-47, +24),  # 7
+                (-55, +20),  # 8
+                (-67, +20),  # 9
+                (-75, +20),  # 10
             ),
             "e": (
-                ( +12,  +24),   # 0
-                ( +20,  +35),   # 1
-                ( +28,  +47),   # 2
-                ( +31,  +59),   # 3
-                ( +31,  +71),   # 4
-                ( +31,  +87),   # 5
-                ( +28, +102),   # 6
-                ( +24, +118),   # 7
-                ( +20, +138),   # 8
-                ( +20, +157),   # 9
-                ( +20, +177),   # 10
+                (+12, +24),  # 0
+                (+20, +35),  # 1
+                (+28, +47),  # 2
+                (+31, +59),  # 3
+                (+31, +71),  # 4
+                (+31, +87),  # 5
+                (+28, +102),  # 6
+                (+24, +118),  # 7
+                (+20, +138),  # 8
+                (+20, +157),  # 9
+                (+20, +177),  # 10
             ),
             "c": (
-                ( +24,  +39),   # 0
-                ( +35,  +59),   # 1
-                ( +47,  +83),   # 2
-                ( +59, +110),   # 3
-                ( +71, +142),   # 4
-                ( +87, +177),   # 5
-                (+102, +213),   # 6
-                (+118, +256),   # 7
-                (+138, +303),   # 8
-                (+157, +354),   # 9
-                (+177, +414),   # 10
+                (+24, +39),  # 0
+                (+35, +59),  # 1
+                (+47, +83),  # 2
+                (+59, +110),  # 3
+                (+71, +142),  # 4
+                (+87, +177),  # 5
+                (+102, +213),  # 6
+                (+118, +256),  # 7
+                (+138, +303),  # 8
+                (+157, +354),  # 9
+                (+177, +414),  # 10
             ),
             "f": (
-                ( +39,  +59),   # 0
-                ( +59,  +98),   # 1
-                ( +83, +146),   # 2
-                (+110, +197),   # 3
-                (+142, +252),   # 4
-                (+177, +319),   # 5
-                (+213, +394),   # 6
-                (+256, +481),   # 7
-                (+303, +579),   # 8
-                (+354, +689),   # 9
-                (+414, +808),   # 10
+                (+39, +59),  # 0
+                (+59, +98),  # 1
+                (+83, +146),  # 2
+                (+110, +197),  # 3
+                (+142, +252),  # 4
+                (+177, +319),  # 5
+                (+213, +394),  # 6
+                (+256, +481),  # 7
+                (+303, +579),  # 8
+                (+354, +689),  # 9
+                (+414, +808),  # 10
             ),
         }
+
     def Johansson(cmdline, D, opt):
-        '''cmdline is the string on the command line.  D is the calculated
+        """cmdline is the string on the command line.  D is the calculated
         diameter in inches and opt is the options dictionary.
-        '''
+        """
         if not jo.min <= D <= jo.max:
             msg = f"Diameter {cmdline!r} must be between {jo.min} and {jo.max} inches"
             Error(msg)
-        print(f"Diameter = {cmdline!r} = {D:.4f} in = {D*25.4:.3f} mm")
+        print(f"Diameter = {cmdline!r} = {D:.4f} in = {D * 25.4:.3f} mm")
         t.print(f"{t.meth}  Johansson's method")
         mm = 25.4
-        hdrh = " "*31 + "Shaft Diameter"
-        hdrs = " "*32 + "Hole Diameter"
+        hdrh = " " * 31 + "Shaft Diameter"
+        hdrs = " " * 32 + "Hole Diameter"
         hdr1 = "                         Inches            Millimeters"
         hdr2 = f"{t.msg}Hole is basic{t.n}         Min      Max         Min      Max"
         hdr3 = f"{t.msg}Shaft is basic{t.n}        Min      Max         Min      Max"
         # Decimal digits of decimal numbers
-        win = 4 
+        win = 4
         wmm = win - 1
-        if 1:   # Hole is basic
+        if 1:  # Hole is basic
             print()
             print(hdrh)
             print(hdr1)
@@ -488,13 +522,13 @@ if 1:  # Johansson functionality
             w = 15
             for i, letter in enumerate(jo.fits):
                 print(f"  {jo.fit_names[letter]:{w}s}", end=" ")
-                a, b = [j/1e5 for j in jo.fit[letter][i]]
+                a, b = [j / 1e5 for j in jo.fit[letter][i]]
                 # Print diameter in inches
                 dlo, dhi = D + a, D + b
-                print(f"{dlo:8.{win}f} {dhi:8.{win}f}", end=" "*4)
+                print(f"{dlo:8.{win}f} {dhi:8.{win}f}", end=" " * 4)
                 # Print diameter in mm
-                print(f"{dlo*mm:8.{wmm}f} {dhi*mm:8.{wmm}f}")
-        if 1:   # Shaft is basic
+                print(f"{dlo * mm:8.{wmm}f} {dhi * mm:8.{wmm}f}")
+        if 1:  # Shaft is basic
             print()
             print(hdrs)
             print(hdr1)
@@ -502,12 +536,13 @@ if 1:  # Johansson functionality
             w = 15
             for i, letter in enumerate(jo.fits):
                 print(f"  {jo.fit_names[letter]:{w}s}", end=" ")
-                a, b = [-j/1e5 for j in jo.fit[letter][i]]
+                a, b = [-j / 1e5 for j in jo.fit[letter][i]]
                 # Print diameter in inches
                 dlo, dhi = D + a, D + b
-                print(f"{dhi:8.{win}f} {dlo:8.{win}f}", end=" "*4)
+                print(f"{dhi:8.{win}f} {dlo:8.{win}f}", end=" " * 4)
                 # Print diameter in mm
-                print(f"{dlo*mm:8.{wmm}f} {dhi*mm:8.{wmm}f}")
+                print(f"{dlo * mm:8.{wmm}f} {dhi * mm:8.{wmm}f}")
+
 
 if __name__ == "__main__":
     opt = {}  # Options dictionary

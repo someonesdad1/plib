@@ -116,19 +116,21 @@ atomic_mass = {
     "Y": 88.906,
     "Yb": 173.04,
     "Zn": 65.39,
-    "Zr": 91.224
+    "Zr": 91.224,
 }
+
 
 def find_closing_paren(tokens):
     count = 0
     for index, tok in enumerate(tokens):
-        if tok == ')':
+        if tok == ")":
             count -= 1
             if count == 0:
                 return index
-        elif tok == '(':
+        elif tok == "(":
             count += 1
-    raise ValueError('unmatched parentheses')
+    raise ValueError("unmatched parentheses")
+
 
 def parse(tokens, stack=None):
     if stack is None:
@@ -136,25 +138,27 @@ def parse(tokens, stack=None):
     if len(tokens) == 0:
         return sum(stack)
     tok = tokens[0]
-    if tok == '(':
+    if tok == "(":
         end = find_closing_paren(tokens)
         stack.append(parse(tokens[1:end], []))
-        return parse(tokens[end + 1:], stack)
+        return parse(tokens[end + 1 :], stack)
     elif tok.isdigit():
         stack[-1] *= int(tok)
     else:
         stack.append(atomic_mass[tok])
     return parse(tokens[1:], stack)
 
+
 def MolarMass(formula):
-    '''A token is:
-        * A chemical name composed of a capital letter followed by
-          zero or more lower case letters.
-        * A sequence of digits.
-        * A '(' or a ')'.
-    '''
-    tokens = re.findall(r'[A-Z][a-z]*|\d+|\(|\)', formula)
+    """A token is:
+    * A chemical name composed of a capital letter followed by
+      zero or more lower case letters.
+    * A sequence of digits.
+    * A '(' or a ')'.
+    """
+    tokens = re.findall(r"[A-Z][a-z]*|\d+|\(|\)", formula)
     return parse(tokens)
+
 
 def Test():
     data = (
@@ -167,6 +171,7 @@ def Test():
         mw = MolarMass(formula)
         assert_equal(mw, result, abstol=0.01)
 
+
 if __name__ == "__main__":
     # Use -t to run tests
     if len(sys.argv) > 1 and sys.argv[1] == "-t":
@@ -178,11 +183,13 @@ if __name__ == "__main__":
         exit(0)
     msg = "Molar mass of {0} = {1:.2f} g/mol"
     if len(sys.argv) == 1:
-        print('''
+        print(
+            """
 Prints the molecular mass of a chemical formula.  You must enter a
 formula using the standard chemical name symbols (e.g., Cl, Fe, etc.).
 Example:  water is H2O with a molecular weight of 18.01.
-'''[1:])
+"""[1:]
+        )
         while True:
             formula = input("Input a formula: ").strip()
             if not formula or formula.lower() == "q":

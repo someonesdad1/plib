@@ -1,22 +1,22 @@
-'''
+"""
 Script to describe Mercurial files relative to a particular directory.
 Use the -h option for a help message.
- 
+
 Note:  My primary use case for this script is to show me the state of
 files _in_the_current_directory_.  Mercurial's status command shows
 the state of all files in the repository, not just the ones in the
 current directory.
-'''
- 
+"""
+
 # Copyright (C) 2011 Don Peterson
 # Contact:  gmail.com@someonesdad1
 # Updated 28 Jun 2020 to python 3 only and uses pathlib.
- 
-#
+
+#
 # Licensed under the Open Software License version 3.0.
 # See http://opensource.org/licenses/OSL-3.0.
-#
- 
+#
+
 import os
 import pathlib
 import sys
@@ -28,16 +28,18 @@ import collections
 import color as c
 from pprint import pprint as pp
 from pdb import set_trace as xx
+
 if 1:
     import debug
+
     debug.SetDebugger()
 
-debug = 0   # Turns on debug printing
+debug = 0  # Turns on debug printing
 nl = "\n"
 
 # Set to the Mercurial command's location
-#hg = "d:/bin/TortoiseHg104/hg.exe"
-#hg = "/usr/bin/hg"
+# hg = "d:/bin/TortoiseHg104/hg.exe"
+# hg = "/usr/bin/hg"
 hg = "/cygdrive/c/bin/mercurial/hg.exe"
 # Holds the root directory of the repository
 root = None
@@ -55,11 +57,42 @@ reldir = os.getcwd()
 #   magenta lmagenta
 #   brown   yellow
 #   white   lwhite
-(black, blue, green, cyan, red, magenta, brown, white, gray, lblue,
- lgreen, lcyan, lred, lmagenta, yellow, lwhite) = (
-    c.black, c.blue, c.green, c.cyan, c.red, c.magenta, c.brown,
-    c.white, c.gray, c.lblue, c.lgreen, c.lcyan, c.lred, c.lmagenta,
-    c.yellow, c.lwhite)
+(
+    black,
+    blue,
+    green,
+    cyan,
+    red,
+    magenta,
+    brown,
+    white,
+    gray,
+    lblue,
+    lgreen,
+    lcyan,
+    lred,
+    lmagenta,
+    yellow,
+    lwhite,
+) = (
+    c.black,
+    c.blue,
+    c.green,
+    c.cyan,
+    c.red,
+    c.magenta,
+    c.brown,
+    c.white,
+    c.gray,
+    c.lblue,
+    c.lgreen,
+    c.lcyan,
+    c.lred,
+    c.lmagenta,
+    c.yellow,
+    c.lwhite,
+)
+
 
 def StreamOut(stream, *s, **kw):
     k = kw.setdefault
@@ -76,10 +109,12 @@ def StreamOut(stream, *s, **kw):
     if auto_nl:
         stream.write(nl)
 
+
 out = functools.partial(StreamOut, sys.stdout)
 outs = functools.partial(StreamOut, sys.stdout, sep=" ")
 dbg = functools.partial(StreamOut, sys.stdout, sep=" ", prefix="+ ")
 err = functools.partial(StreamOut, sys.stderr)
+
 
 def Dbg(msg, no_newline=0):
     if debug:
@@ -87,13 +122,15 @@ def Dbg(msg, no_newline=0):
         if not no_newline:
             err(nl)
 
+
 def Error(msg):
     err(msg)
     exit(1)
 
+
 def Usage(status=1):
     name = sys.argv[0]
-    s = '''
+    s = """
 Usage:  {name} [options] [dir]
   Lists files in . (or dir if given) that are not being tracked by
   Mercurial.  Note this is different than the normal "hg status" command
@@ -109,26 +146,27 @@ Options
     -m  Show modified files
     -M  Show missing files
     -r  "recursive"  Show for files at and below the directory
-'''[1:-1]
-#   Codes for an hg status listing are:
-#       M = modified
-#       A = added
-#       R = removed
-#       C = clean
-#       ! = missing (deleted by non-Mercurial command, but still tracked)
-#       ? = not tracked
-#       I = ignored
+"""[1:-1]
+    #   Codes for an hg status listing are:
+    #       M = modified
+    #       A = added
+    #       R = removed
+    #       C = clean
+    #       ! = missing (deleted by non-Mercurial command, but still tracked)
+    #       ? = not tracked
+    #       I = ignored
     out(s.format(**locals()))
     sys.exit(status)
 
+
 def ParseCommandLine(d):
-    d["-a"] = False     # Show all files
-    d["-c"] = False     # Show clean files
-    d["-i"] = False     # Show ignored files
-    d["-m"] = False     # Show modified files
-    d["-M"] = False     # Show missing files
-    d["-R"] = False     # Recursive at and below the directory
-    d["-r"] = False     # Show removed files
+    d["-a"] = False  # Show all files
+    d["-c"] = False  # Show clean files
+    d["-i"] = False  # Show ignored files
+    d["-m"] = False  # Show modified files
+    d["-M"] = False  # Show missing files
+    d["-R"] = False  # Recursive at and below the directory
+    d["-r"] = False  # Show removed files
     d["dir"] = "."
     try:
         optlist, args = getopt.getopt(sys.argv[1:], "acihmMr")
@@ -148,10 +186,11 @@ def ParseCommandLine(d):
         d["dir"] = args[0]
     d["home"] = os.getcwd()
 
+
 def GetRoot():
-    '''Returns the root directory of the Mercurial repository we're
+    """Returns the root directory of the Mercurial repository we're
     currently in.
-    '''
+    """
     p = subprocess.PIPE
     s = subprocess.Popen((hg, "root"), stdout=p, stderr=p)
     errlines = s.stderr.readlines()
@@ -169,26 +208,27 @@ def GetRoot():
     # Fix problematical stuff on cygwin under Windows
     s = "C:/cygwin"
     if str(root).startswith(s):
-        root = pathlib.Path(str(root)[len(s):])
+        root = pathlib.Path(str(root)[len(s) :])
+
 
 def IsContained(file):
-    '''Return True if file is in a subdirectory of the current directory.
-    '''
+    """Return True if file is in a subdirectory of the current directory."""
     if 0:
         cwd = os.getcwd()
         f = os.path.join(root, file)
         loc = f.find(cwd)
         return True if loc == 0 else False
     else:
-        p = root/pathlib.Path(file)
+        p = root / pathlib.Path(file)
         parent = p.parent
         cwd = p.cwd()
         return True if str(parent).startswith(str(cwd)) else False
 
+
 def GetFiles(d):
-    '''Get the full output of an 'hg status -A' command, then filter the
+    """Get the full output of an 'hg status -A' command, then filter the
     list by the given options.
-    '''
+    """
     try:
         # Change to the directory we're interested in
         p = pathlib.Path(d["dir"])
@@ -202,7 +242,7 @@ def GetFiles(d):
     s = subprocess.Popen((hg, "status", "-A"), stdout=p)
     results = [i.strip() for i in s.stdout.readlines()]
     # results now is a list of bytestrings of the form e.g.
-    # b'C software\\ShopCalculator\\water.cpp.orig'.  Convert these to 
+    # b'C software\\ShopCalculator\\water.cpp.orig'.  Convert these to
     # strings and replace '\' with '/'.
     results = [i.decode("UTF8").replace("\\", "/") for i in results]
     # Make a dictionary containing the relevant files keyed by the
@@ -223,19 +263,23 @@ def GetFiles(d):
             files[key] = list(filter(IsContained, files[key]))
     return files
 
+
 def Out(s):
     s = s.replace("\\", "/")
     out(s)
 
+
 def PrintItems(itemlist, name, d):
     num_lines, e = [0], os.environ
     page = int(e["LINES"]) - 1 if "LINES" in e else 25
+
     def Page(num_lines):
         num_lines[0] += 1
         if num_lines[0] % page == 0:
             s = raw_input()
             if s in ("q", "Q", "\x1b"):
                 exit(0)
+
     # First, find out if there are any files to be printed in the
     # current directory.
     has_files = False
@@ -252,29 +296,30 @@ def PrintItems(itemlist, name, d):
     if not has_files:
         return
     out(name)
-    #Page(num_lines)
+    # Page(num_lines)
     for item in itemlist:
         p = os.path.join(root, item)
         try:
             p = os.path.relpath(p, cwd)
         except ValueError:
-            Out("  nul " + "<" + "-"*20)
-            #Page(num_lines)
+            Out("  nul " + "<" + "-" * 20)
+            # Page(num_lines)
             continue
         if d["-R"]:
             Out("  " + p)
-            #Page(num_lines)
+            # Page(num_lines)
         else:
             # Only print this file if it's in the current directory
             dir, filename = os.path.split(p)
             if not dir:
                 Out("  " + p)
-                #Page(num_lines)
+                # Page(num_lines)
+
 
 def PrintResults(files, d):
-    '''files is a dictionary keyed by Mercurial status letter.  d is the
+    """files is a dictionary keyed by Mercurial status letter.  d is the
     options dictionary.
-    '''
+    """
     assert len(files) > 0
     normal = (white, black)
     names = {
@@ -293,6 +338,7 @@ def PrintResults(files, d):
             PrintItems(files[key], names[key][0], d)
         c.fg(normal)
     c.fg(normal)
+
 
 if __name__ == "__main__":
     d = {}  # Options dictionary

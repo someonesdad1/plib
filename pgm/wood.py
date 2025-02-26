@@ -1,24 +1,25 @@
-'''
+"""
 Print out wood properties for "2 by" materials
 
 Add -b option to select size, then print out beam properties including
 critical load for buckling and tension/compression stress
-'''
- 
+"""
+
 # Copyright (C) 2020 Don Peterson
 # Contact:  gmail.com@someonesdad1
- 
-#
+
+#
 # Licensed under the Academic Free License version 3.0.
 # See http://opensource.org/licenses/AFL-3.0.
-#
- 
-if 1:   # Imports & globals
+#
+
+if 1:  # Imports & globals
     import getopt
     import os
     import sys
     from math import sqrt, pi
     import textwrap as tw
+
     # Custom libraries
     from sig import sig
     import u
@@ -27,21 +28,29 @@ if 1:   # Imports & globals
     # should still work (you'll just get uncolored output).
     try:
         import color as C
+
         _have_color = True
     except ImportError:
         # Make a dummy color object to swallow function calls
         class Dummy:
-            def fg(self, *p, **kw): pass
-            def normal(self, *p, **kw): pass
-            def __getattr__(self, name): pass
+            def fg(self, *p, **kw):
+                pass
+
+            def normal(self, *p, **kw):
+                pass
+
+            def __getattr__(self, name):
+                pass
+
         C = Dummy()
         _have_color = False
 
-
     # Debugging stuff
     from pdb import set_trace as xx
+
     if 0:
         import debug
+
         debug.SetDebugger()  # Start debugger on unhandled exception
 
 sizes = {
@@ -68,50 +77,60 @@ modulus_of_rupture_psi = 12e3
 # Used to flag where color printing is needed
 max_bending_stress_exceeded = False
 
+
 def GetSize(s):
-    'Return linear dimensions of beam'
+    "Return linear dimensions of beam"
     b, d = sizes[s]
     if opt["-l"]:
         b, d = d, b
     return b, d
 
+
 def A(s):
-    'Area in square inches'
+    "Area in square inches"
     b, d = GetSize(s)
-    return b*d
+    return b * d
+
 
 def I(s):
-    'Moment of inertia in in4'
+    "Moment of inertia in in4"
     b, d = GetSize(s)
-    return b*d**3/12
+    return b * d**3 / 12
+
 
 def y(s):
-    'Distance to neutral axis in inches'
+    "Distance to neutral axis in inches"
     b, d = GetSize(s)
-    return d/2
+    return d / 2
+
 
 def Z(s):
-    'Section modulus = I/y in in3'
+    "Section modulus = I/y in in3"
     b, d = GetSize(s)
-    return I(s)/y(s)
+    return I(s) / y(s)
+
 
 def k(s):
-    'Radius of gyration in inches'
+    "Radius of gyration in inches"
     b, d = GetSize(s)
-    return d/sqrt(12)
+    return d / sqrt(12)
+
 
 def m(s):
-    'Linear mass density in lbm/in'
+    "Linear mass density in lbm/in"
     b, d = GetSize(s)
-    return b*d*d["rho"]
+    return b * d * d["rho"]
+
 
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
 
+
 def Usage(d, status=1):
     name = sys.argv[0]
-    P(f'''
+    P(
+        f"""
     Usage:  {name} [options] [length load]
       Print deflection and stress properties for beams from common Douglas
       fir wood commonly used in the US of the given length and uniform load.
@@ -135,19 +154,21 @@ def Usage(d, status=1):
       -m      Include more board sizes
       -s S    Specify the rupture stress in psi (S can be an expression)
       -t      Print table of beam properties
-    '''[1:].rstrip())
+    """[1:].rstrip()
+    )
     exit(status)
+
 
 def ParseCommandLine(opt):
     global modulus_of_rupture_psi, sizes
-    opt["-c"] = False     # Concentrated load
-    opt["-d"] = 2         # Number of significant digits
-    opt["-e"] = False     # Show design examples
-    opt["-f"] = False     # Include beam formulas
-    opt["-l"] = False     # Neutral axis parallel to long axis
-    opt["-m"] = False     # Include more board sizes
-    opt["-t"] = False     # Print table
-    opt["-s"] = modulus_of_rupture_psi   # Allowed stress
+    opt["-c"] = False  # Concentrated load
+    opt["-d"] = 2  # Number of significant digits
+    opt["-e"] = False  # Show design examples
+    opt["-f"] = False  # Include beam formulas
+    opt["-l"] = False  # Neutral axis parallel to long axis
+    opt["-m"] = False  # Include more board sizes
+    opt["-t"] = False  # Print table
+    opt["-s"] = modulus_of_rupture_psi  # Allowed stress
     try:
         opts, args = getopt.getopt(sys.argv[1:], "cd:efhlms:t")
     except getopt.GetoptError as e:
@@ -162,8 +183,7 @@ def ParseCommandLine(opt):
                 if not (1 <= opt["-d"] <= 15):
                     raise ValueError()
             except ValueError:
-                msg = ("-d option's argument must be an integer between "
-                       "1 and 15")
+                msg = "-d option's argument must be an integer between 1 and 15"
                 Error(msg)
         elif o in ("-m",):
             for key, item in more_sizes.items():
@@ -184,9 +204,11 @@ def ParseCommandLine(opt):
         Usage(opt)
     return args
 
+
 def DesignExamples():
-    'Show examples of different designs'
-    P(f'''
+    "Show examples of different designs"
+    P(
+        f"""
     Design examples
 
     * Standing on a 2x4
@@ -229,7 +251,7 @@ def DesignExamples():
       I need to stand on a scaffold beam that is 16 feet between supports.
       If my equipment and I weigh 250 lbf and I stand in the center of the
       beam, what wood width should I use to not exceed the maximum allowed
-      wood bending stress of {modulus_of_rupture_psi/2} psi?
+      wood bending stress of {modulus_of_rupture_psi / 2} psi?
 
       Method of solution:  The load is concentrated at the center, so use
       the -c option.  Here, you also need to use the -l option because
@@ -277,13 +299,16 @@ def DesignExamples():
       the 10-year design stress levels which are on the order of
       one-tenth the rupture stress.  Aiming for around 1200 psi stress,
       you'd choose a 2x12 for beam A and a 2x8 for beams B and C.
-    '''[1:].rstrip())
+    """[1:].rstrip()
+    )
     exit(0)
 
+
 def BeamFormulas():
-    P(f'''
+    P(
+        f"""
     The approximate static bending stress at which Douglas fir will break
-    ("modulus of rupture") is {sig(modulus_of_rupture_psi/1000, 2)} kpsi.  The 10 year maximum design stress is
+    ("modulus of rupture") is {sig(modulus_of_rupture_psi / 1000, 2)} kpsi.  The 10 year maximum design stress is
     typically about an order of magnitude less.
  
     Beam formulas (from Machinery's Handbook, 19th ed., 1971)
@@ -332,26 +357,30 @@ def BeamFormulas():
       Cantilevered (fixed at one end), load at unsupported end
           y = α/3
           s = β
-    '''[:-1].rstrip())
+    """[:-1].rstrip()
+    )
+
 
 def PrintTable():
     we = "long" if opt["-l"] else "short"
     na = f"Neutral axis parallel to {we} edge\n"
-    P(f'''
+    P(
+        f"""
     Table of Douglas fir lumber 
     Specific gravity = {opt["spgr"]}, density = {opt["density"]:.3g} lbm/cubic inch
     {na}
           Width,  Height,  Mass,    A,       I,      Y,      Z,      k,
     Size    in      in    lbm/in   in2      in4      in     in3      in
-    ----  ------  ------  ------  ------  -------  -----  -------  -----'''[1:])
+    ----  ------  ------  ------  ------  -------  -----  -------  -----"""[1:]
+    )
     for sz in sizes:
         b, d = w, h = GetSize(sz)
-        A = b*d
-        Y = d/2
-        lmd = A*opt["density"]
-        I = b*d**3/12
-        Z = b*d**2/6
-        k = d/sqrt(12)
+        A = b * d
+        Y = d / 2
+        lmd = A * opt["density"]
+        I = b * d**3 / 12
+        Z = b * d**2 / 6
+        k = d / sqrt(12)
         # Nominal size, inches
         print(f"{sz:4s}", end="")
         # Width, inches
@@ -371,26 +400,31 @@ def PrintTable():
         # Radius of gyration in inches
         print(f"{sig(k):>7s}")
     print()
-    P(f'''
+    P(
+        f"""
       A = cross-sectional area
       I = moment of inertia
       Y = location of neutral axis from {we} edge
       Z = section modulus
       k = radius of gyration
-    '''[1:].rstrip())
+    """[1:].rstrip()
+    )
     if opt["-f"]:
         BeamFormulas()
     exit(0)
 
+
 def P(s):
-    'Print s but first remove leading 4 spaces'
+    "Print s but first remove leading 4 spaces"
     for line in s.split("\n"):
         print(line[4:])
 
+
 def PrintBeamReport(L, F):
-    'Length L in inches, load F in lbf'
+    "Length L in inches, load F in lbf"
     global max_bending_stress_exceeded
     max_bending_stress_exceeded = False
+
     def PI(y, s):
         # Deflection y
         print(f"{sig(y):^9s} ", end="")
@@ -402,108 +436,120 @@ def PrintBeamReport(L, F):
         print(f"{sig(s):^9s}  ", end="")
         if s > modulus_of_rupture_psi:
             C.normal()
+
     s = "concentrated" if opt["-c"] else "uniform"
-    P(f'''
+    P(
+        f"""
     Loaded beam results for Douglas fir
       Specific gravity = {opt["spgr"]}, density = {opt["density"]:.3g} lbm/cubic inch
-      Modulus of elasticity = {sig(opt["E"]/1e6)} Mpsi
-      Length = {sig(L)} inches = {sig(L/12)} feet = {sig(L/39.37)} m
+      Modulus of elasticity = {sig(opt["E"] / 1e6)} Mpsi
+      Length = {sig(L)} inches = {sig(L / 12)} feet = {sig(L / 39.37)} m
       Load   = {sig(F)} lbf ({s})
       y      = maximum deflection in inches
       s      = maximum stress in psi
-    '''[1:].rstrip())
+    """[1:].rstrip()
+    )
     if opt["-c"]:
         print("Beam configurations (load is concentrated at one point):")
-        P(f'''
+        P(
+            f"""
       Fixed           Fixed at both ends, load at center
       Supported       Supported at both ends, load at center
-      Cantilevered    Fixed at one end, load at unsupported end'''[1:])
+      Cantilevered    Fixed at one end, load at unsupported end"""[1:]
+        )
     else:
         print("Beam configurations (beam has a uniform load and is horizontal):")
-        P(f'''
+        P(
+            f"""
       Fixed           Fixed at both ends
       Supported       Supported at both ends
-      Cantilevered    Fixed at one end'''[1:])
+      Cantilevered    Fixed at one end"""[1:]
+        )
     # We'll explicitly indicate the Douglas fir rupture stress if it is equal
     # to 1.2e4 psi; otherwise, it's the "maximum allowed stress".
     sl = "Rupture stress" if opt["-s"] == 1.2e4 else "Maximum allowed stress"
-    P(f'''    {sl} = {sig(opt["-s"]/1000)} kpsi, weight of board is ignored
+    P(
+        f"""    {sl} = {sig(opt["-s"] / 1000)} kpsi, weight of board is ignored
     Colored output means stress is larger than maximum allowed. 
 
           Mass          Fixed              Supported          Cantilevered
            lb      y, in    s, psi      y, in    s, psi      y, in    s, psi
           -----  --------- ---------  --------- ---------  --------- ---------
-    '''.rstrip())
+    """.rstrip()
+    )
     for i in sizes:
         print(f"{i:6s}", end="")
         b, d = w, h = GetSize(i)
-        Y = d/2
-        A = w*h
-        m = A*L*opt["density"]
-        I = b*d**3/12   # Moment of inertia in in**4
-        Z = I/Y         # Section modulus in in**3
+        Y = d / 2
+        A = w * h
+        m = A * L * opt["density"]
+        I = b * d**3 / 12  # Moment of inertia in in**4
+        Z = I / Y  # Section modulus in in**3
         # Mass in lb
         print(f"{sig(m):>5s}  ", end="")
-        α = F*L**3/(opt["E"]*I)
-        β = F*L/Z
-        if opt["-c"]:   # Load is concentrated
+        α = F * L**3 / (opt["E"] * I)
+        β = F * L / Z
+        if opt["-c"]:  # Load is concentrated
             # Fixed
-            y = α/192
-            s = β/8                                                           
+            y = α / 192
+            s = β / 8
             PI(y, s)
             # Supported
-            y = 5*α/384
-            s = β/2
+            y = 5 * α / 384
+            s = β / 2
             PI(y, s)
             # Cantilevered
-            y = α/3
+            y = α / 3
             s = β
             PI(y, s)
-        else:   # Uniform load
+        else:  # Uniform load
             # Fixed
-            y = α/384
-            s = β/24
+            y = α / 384
+            s = β / 24
             PI(y, s)
             # Supported
-            y = 5*α/384
-            s = β/8
+            y = 5 * α / 384
+            s = β / 8
             PI(y, s)
             # Cantilevered
-            y = α/8
-            s = β/2
+            y = α / 8
+            s = β / 2
             PI(y, s)
         print()
     # Print critical buckling load and tension/compressive stress
-    P(f'''    
+    P(
+        f"""    
     Column characteristics
  
           Compression   Critical force
               psi       buckling, klbf
           -----------  ---------------
-    '''.rstrip())
+    """.rstrip()
+    )
     for i in sizes:
         print(f"{i:6s}", end="")
         b, d = GetSize(i)
-        I = b*d**3/12   # Moment of inertia in in**4
-        Fcrit = 4*pi**2*opt["E"]*I/(L**2*1000)
-        Comp = F/(b*d)
+        I = b * d**3 / 12  # Moment of inertia in in**4
+        Fcrit = 4 * pi**2 * opt["E"] * I / (L**2 * 1000)
+        Comp = F / (b * d)
         print(f"{sig(Comp):^11s} ", end="")
         print(f"{sig(Fcrit):^17s} ")
 
+
 if __name__ == "__main__":
     # Note:  all calculations are done in inches and lbm
-    opt = { # Options dictionary
-        "spgr": 0.48,           # Douglas fir specific gravity
-        "E": 1.7e6,             # Modulus of elasticity in psi
-        "-s": 12000,            # Rupture stress for Douglas fir
+    opt = {  # Options dictionary
+        "spgr": 0.48,  # Douglas fir specific gravity
+        "E": 1.7e6,  # Modulus of elasticity in psi
+        "-s": 12000,  # Rupture stress for Douglas fir
     }
     # Calculate Douglas fir density in lbm/in3
-    opt["density"] = opt["spgr"]*0.0361
+    opt["density"] = opt["spgr"] * 0.0361
     args = ParseCommandLine(opt)
     value, unit = u.ParseUnit(args[0])
     x = float(value)
-    L = x*u.u(unit)/u.u("inch") if unit else x
+    L = x * u.u(unit) / u.u("inch") if unit else x
     value, unit = u.ParseUnit(args[1])
     x = float(value)
-    F = x*u.u(unit)/u.u("lbf") if unit else x
+    F = x * u.u(unit) / u.u("lbf") if unit else x
     PrintBeamReport(L, F)

@@ -2,13 +2,16 @@ from collections import namedtuple
 from color import t
 from get import GetTextLines
 from dpprint import PP
+
 pp = PP()
-from pdb import set_trace as xx 
+from pdb import set_trace as xx
 import iso
 import sys
 import time
+
 if 0:
     import debug
+
     debug.SetDebugger()
 
 # Fields are
@@ -18,9 +21,9 @@ if 0:
 #   3   Comment
 
 Entry = namedtuple("Entry", "name artist url comment")
-S = "|"    # Field separator
- 
-favorites = f'''
+S = "|"  # Field separator
+
+favorites = f"""
 
 Angie {S} Rolling Stones {S} oWRr03VcA-0 {S}
 Beethoven's 7th {S} Bernstein {S} Rw-KtQLdRT4 {S} 2nd movement 14:33 is best
@@ -46,9 +49,9 @@ This is a Man's World {S} PMJ, Morgan James {S} mPimt0Zu_To {S}
 Vltava (The Moldau) {S} Smetana {S} l6kqu2mk-Kw {S} 
 Volga Boatmen {S} {S} qsovBF4N27Q {S}
 
-'''
+"""
 
-dead_urls = f'''
+dead_urls = f"""
 Hot Rod Lincoln {S} {S} 3R7l7nDuj1o {S} 
 White Rabbit {S} Jefferson Airplane {S} EUY2kJE0AZE {S} 
 Mack the Knife {S} Bobby Darin {S} SEllHMWkXEU {S} 
@@ -57,8 +60,8 @@ Fever {S} Peggy Lee {S} JGb5IweiYG8 {S}
 The Night the Lights Went Out in Georgia {S} Vicki Lawrence {S} wMD5nBcPrCk {S} 
 I Will Survive {S} {S} ARt9HV9T0w8 {S} 
 Bad Bad Leroy Brown {S} Jim Croce {S} CIiVindRSTA {S} 
-'''
-songs = f'''
+"""
+songs = f"""
 
 100 lbs of Clay {S} Gene McDaniels {S} rUGonj90b5I {S}
 16 Tons {S} Tennessee Ernie Ford {S} jIfu2A0ezq0 {S} 
@@ -306,22 +309,26 @@ Bach: Toccata and Fugue in D Minor {S} {S} oPmKRtWta4E {S} Harp (a masterpiece)
 Bach: Toccata and Fugue in D Minor {S} {S} ojBYW3ycVTE {S} Guitar
 Bach: Toccata and Fugue in D Minor {S} {S} zhH53UODLEM {S} Piano with visual score
 
-'''
+"""
+
 
 def Check(line):
-    '''Split on the field separator and check the that line has the requisite fields.
-    '''
+    """Split on the field separator and check the that line has the requisite fields."""
     f = line.split(S)
     if len(f) != 4:
         print(f"Bad line:\n{line!r}")
         exit(1)
+
+
 def Validate():
-    'Check that all the lines have the proper form'
+    "Check that all the lines have the proper form"
     for item in (favorites, songs):
         for line in GetTextLines(item):
             if not line or line.strip()[0] == "#":
                 continue
             Check(line)
+
+
 def Print(s):
     link = "https://www.youtube.com/watch?v="
     song_list = []
@@ -336,16 +343,21 @@ def Print(s):
             f[i] = link + f[i]
         entry = Entry(*f)
         song_list.append(entry)
-    # Output the HTML data.  The Entry namedtuple is 
+    # Output the HTML data.  The Entry namedtuple is
     # namedtuple("Entry", "name artist url comment").
     for i in sorted(song_list):
         artist = f"[{i.artist}]" if i.artist else ""
-        print(f"<a href=\"{i.url}\">{i.name}</a> {artist} {i.comment} <br>")
-def Notation():
-    print(dedent('''
-    '''))
+        print(f'<a href="{i.url}">{i.name}</a> {artist} {i.comment} <br>')
 
-if __name__ == "__main__": 
+
+def Notation():
+    print(
+        dedent("""
+    """)
+    )
+
+
+if __name__ == "__main__":
     now = iso.ISO()
     Validate()
     long = len(sys.argv) > 1
@@ -354,5 +366,5 @@ if __name__ == "__main__":
     print(f"<p>Others:</p>")
     Print(songs)
     print(f"<p>Updated {now.date}<p>")
- 
+
 # vim: tw=0 wm=0

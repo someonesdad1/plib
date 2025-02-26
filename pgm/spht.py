@@ -1,39 +1,44 @@
-'''
+"""
 ToDo
     - Find the values for all pri 0 materials
 
 Specific heat of some materials
-'''
-if 1:   # Header
-    if 1:   # Copyright, license
+"""
+
+if 1:  # Header
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Specific heat of some materials
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         import getopt
         import os
         import re
         from pathlib import Path as P
         import sys
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import dedent
         from color import t
         from f import flt
+
         if 1:
             import debug
+
             debug.SetDebugger()
-    if 1:   # Global variables
+    if 1:  # Global variables
+
         class G:
             pass
+
         g = G()  # Storage for global variables as attributes
         g.dbg = False
         t.dbg = t("lill") if g.dbg else ""
@@ -47,7 +52,7 @@ if 1:   # Header
         t.gas = t("denl")
         t.title = t("magl", attr="ul")
         t.trlr = t("ornl")
-if 1:   # Data
+if 1:  # Data
     # References
     #   https://en.wikipedia.org/wiki/Table_of_specific_heat_capacities
     #   https://www.engineeringtoolbox.com/specific-heat-capacity-d_391.html
@@ -55,7 +60,7 @@ if 1:   # Data
     # Nominally at room temperature (25 °C).  A//B*C means A/(B*C).
     #   Name, phase, Cp in J//g*K, thermal conductivity in W//m*K, priority
     #   Phase is s, l, g, m (mixed)
-    data = '''
+    data = """
         Acetone;                l;      2.18;       -        ; 0
         Acrylic plastic;        s;      1.5;        0.18     ; 0
         Air;                    g;      1.012;      0.0262   ; 0
@@ -147,14 +152,14 @@ if 1:   # Data
         Water;                  l;      4.18;       0.592    ; 0
         Wood (1.2 to 2.9);      s;      2;          0.3      ; 0
         Zinc;                   s;      0.387;      -        ; 1
-    '''
+    """
     spht = []
     for line in data.split("\n"):
         if not line.strip():
             continue
         f = [i.strip() for i in line.strip().split(";")]
         matl, ph, cp, tc, pri = f
-        assert(ph in "slg")
+        assert ph in "slg"
         cp = 0 if cp == "-" else flt(cp)
         tc = 0 if tc == "-" else flt(tc)
         spht.append((matl, ph, cp, tc, pri))
@@ -164,17 +169,21 @@ if 1:   # Data
     w1 = 6
     w2 = max(len(str(i[2])) for i in spht)
     w3 = max(len(str(i[3])) for i in spht)
-if 1:   # Utility
+if 1:  # Utility
+
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="")
             print(*p, **kw)
             print(f"{t.N}", end="")
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Manpage():
-        print(dedent(f'''
+        print(
+            dedent(f"""
 
         The specific heat is the amount of energy per unit mass of material
         that must be added to a material to raise its temperature 1 K.  The
@@ -201,10 +210,13 @@ if 1:   # Utility
             - Koshkin and Shirkevich, "Handbook of Elementary Physics", MIR
               Publishers, 3rd ed., 1977
 
-        '''))
+        """)
+        )
         exit(0)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] [regex]
           Show a table of specific heats and thermal conductivity (search
           for regex if given).  Only the most commonly-used materials are
@@ -214,13 +226,15 @@ if 1:   # Utility
             -d n    Number of digits [{d["-d"]}]
             -H      Print a manpage
             -h      Print usage help
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-a"] = False     # Show all materials
-        d["-d"] = 2         # Number of significant digits
+        d["-a"] = False  # Show all materials
+        d["-d"] = 2  # Number of significant digits
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:Hh") 
+            opts, args = getopt.getopt(sys.argv[1:], "ad:Hh")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -233,8 +247,7 @@ if 1:   # Utility
                     if not (1 <= d[o] <= 4):
                         raise ValueError()
                 except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                        "1 and 4")
+                    msg = "-d option's argument must be an integer between 1 and 4"
                     Error(msg)
             elif o == "-H":
                 Manpage()
@@ -244,14 +257,17 @@ if 1:   # Utility
         x.N = d["-d"]
         x.rtz = x.rtdp = True
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def PrintItem(*args, all=False):
         matl, ph, cp, tc, pri = args
         pri = int(pri)
         f = lambda x: str(x) if x else "-"
         p = {
             "s": "solid",
-        "l": "liquid",
+            "l": "liquid",
             "g": "gas",
         }
         c = ""
@@ -262,17 +278,24 @@ if 1:   # Core functionality
         elif ph == "g":
             c = t.gas
         if pri == 0 or all:
-            t.print(f"{c}{matl:{w0}s}{spc}{f(p[ph]):^{w1}s}{spc}{f(cp):^{w2}s}{spc}{f(tc):^{w3}s}")
+            t.print(
+                f"{c}{matl:{w0}s}{spc}{f(p[ph]):^{w1}s}{spc}{f(cp):^{w2}s}{spc}{f(tc):^{w3}s}"
+            )
+
     def Hdr():
-        t.print(f"{t.title}{'Material':{w0}s}{spc}{'Phase':^{w1}s}{spc}{'Cp':^{w2}s}{spc}{'k':^{w3}s}")
+        t.print(
+            f"{t.title}{'Material':{w0}s}{spc}{'Phase':^{w1}s}{spc}{'Cp':^{w2}s}{spc}{'k':^{w3}s}"
+        )
+
     def Trlr():
         t.print(f"{t.trlr}Cp = specific heat at constant pressure in J/(g*K)")
         t.print(f"{t.trlr}k = thermal conductivity in W/(m*K)")
         t.print(f"{t.trlr}Values given to {d['-d']} figures.  T ~ 20 °C, P ~ 101 kPa.")
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
-    spc = " "*4
+    d = {}  # Options dictionary
+    spc = " " * 4
     args = ParseCommandLine(d)
     if not args:
         Hdr()

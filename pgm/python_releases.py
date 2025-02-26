@@ -1,34 +1,35 @@
-'''
+"""
 TODO:
     * Change sorting method on revision numbers so they sort into
       numerical order.
 
 Python release dates
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2018 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2018 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Python release dates
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     from datetime import date
-    from pdb import set_trace as xx 
-if 1:   # Custom imports
+    from pdb import set_trace as xx
+if 1:  # Custom imports
     from wrap import dedent
     from bidict import bidict
     from columnize import Columnize
-if 1:   # Global variables
+if 1:  # Global variables
     # From https://www.python.org/downloads
     # Downloaded 22 Jul 2021
-    data = dedent('''
+    data = dedent("""
         3.9.6 Jun 28 2021
         3.8.11 Jun 28 2021
         3.7.11 Jun 28 2021
@@ -176,11 +177,24 @@ if 1:   # Global variables
         2.1.3 Apr 9 2002
         2.2.0 Dec 21 2001
         2.0.1 Jun 22 2001
-        ''')
-    months = bidict({
-        1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr", 5: "May", 6: "Jun",
-        7: "Jul", 8: "Aug", 9: "Sep", 10: "Oct", 11: "Nov", 12: "Dec"})
-if __name__ == "__main__": 
+        """)
+    months = bidict(
+        {
+            1: "Jan",
+            2: "Feb",
+            3: "Mar",
+            4: "Apr",
+            5: "May",
+            6: "Jun",
+            7: "Jul",
+            8: "Aug",
+            9: "Sep",
+            10: "Oct",
+            11: "Nov",
+            12: "Dec",
+        }
+    )
+if __name__ == "__main__":
     byrev, bydate = [], []
     for i, item in enumerate(data.split("\n")):
         rev, month, day, year = item.split()
@@ -192,7 +206,7 @@ if __name__ == "__main__":
     print("Python revisions sorted by revision:")
     for rev, dt in sorted(byrev):
         o.append(f"{rev:7s} {dt.day}{months[dt.month]}{dt.year}")
-    for line in Columnize(o, indent=" "*2):
+    for line in Columnize(o, indent=" " * 2):
         print(line)
     print()
     # Print by date
@@ -200,5 +214,5 @@ if __name__ == "__main__":
     print("Python revisions sorted by date:")
     for dt, rev in sorted(bydate):
         o.append(f"{rev:7s} {dt.day}{months[dt.month]}{dt.year}")
-    for line in Columnize(o, indent=" "*2):
+    for line in Columnize(o, indent=" " * 2):
         print(line)

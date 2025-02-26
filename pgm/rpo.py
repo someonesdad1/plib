@@ -1,36 +1,39 @@
-'''
+"""
 Search RPO codes
     'Retail Production Order'
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2020 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2020 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Search RPO codes for cars
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import getopt
     import os
     import re
     import sys
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
     import get
+
     if 0:
         import debug
+
         debug.SetDebugger()  # Start debugger on unhandled exception
-if 1:   # Global variables
+if 1:  # Global variables
     # Data gotten about Sat 08 Aug 2020 4 pm
     # http://www.rpocodes.com
-    data_gm = '''
+    data_gm = """
     --C PREMIUM CLOTH SEAT TRM
     00L SECONDARY COLOR, EXTERIOR, PRIME
     00U PRIMARY COLOR, EXTERIOR, PRIME
@@ -4307,9 +4310,9 @@ if 1:   # Global variables
     ZY6 COLOR COMBINATION, TWO TONE TREATMENT
     ZY7 COLOR COMBINATION, LOWER ACCENT, TWO TONE
     ZY8 COLOR COMBINATION, CUSTOM, TWO TONE
-    ZYN LT235/85R16E, R/PE ST TL ALS BL SPARE'''
+    ZYN LT235/85R16E, R/PE ST TL ALS BL SPARE"""
 
-    data_ford = '''
+    data_ford = """
     &F6 Ceramic White CC Metallic Tri-Coat Paint
     &G2 Vivid Red Clearcoat Metallic
     &G4 Cashmere Clearcoat Tri-Coat
@@ -4969,9 +4972,9 @@ if 1:   # Global variables
     XH9 Limited slip differential
     YZ Paint- Oxford White
     Y_ Seat upholstery
-    Z_ Cloth Sport Bucket Seats'''
+    Z_ Cloth Sport Bucket Seats"""
 
-    data_chrysler = '''
+    data_chrysler = """
     &PB5 Electric Blue Pearl Paint
     &PDM Mineral Gray Metallic Paint
     &PKG Light Sandstone Metallic Clear Coat
@@ -5842,12 +5845,17 @@ if 1:   # Global variables
     YCH Federal Emissions Order Code
     Z5A Payload - 1450#
     Z5C Payload - 2000#
-    Z6D GVWR: 6400 lbs.'''
+    Z6D GVWR: 6400 lbs."""
+
+
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
+
+
 def Usage(d, status=1):
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]} [options] regex1 [regex2 ...]
       Search RPO codes and descriptions for regular expressions.  RPO codes
       are "regular production options" used by car manufacturers to
@@ -5878,19 +5886,22 @@ def Usage(d, status=1):
       -s    Show 2011 Suburban's RPO codes
       -t    Show 2002 Tahoe's RPO codes
       -y    Show 2006 Yukon's RPO codes
-    '''))
+    """)
+    )
     exit(status)
+
+
 def ParseCommandLine(d):
-    d["-c"] = False     # Chrysler only
-    d["-D"] = False     # Dump data
-    d["-d"] = False     # Search descriptions only
-    d["-f"] = False     # Ford only
-    d["-g"] = False     # GM only
-    d["-i"] = True      # Ignore case
-    d["-r"] = False     # Search RPO only
-    d["-s"] = False     # Show 2011 Suburban's RPO codes
-    d["-t"] = False     # Show 2002 Tahoe's RPO codes
-    d["-y"] = False     # Show 2006 Yukon's RPO codes
+    d["-c"] = False  # Chrysler only
+    d["-D"] = False  # Dump data
+    d["-d"] = False  # Search descriptions only
+    d["-f"] = False  # Ford only
+    d["-g"] = False  # GM only
+    d["-i"] = True  # Ignore case
+    d["-r"] = False  # Search RPO only
+    d["-s"] = False  # Show 2011 Suburban's RPO codes
+    d["-t"] = False  # Show 2002 Tahoe's RPO codes
+    d["-y"] = False  # Show 2006 Yukon's RPO codes
     s, newargs = "@cDdfgirsty", []
     try:
         opts, args = getopt.getopt(sys.argv[1:], s)
@@ -5908,11 +5919,13 @@ def ParseCommandLine(d):
     if not d["-d"] and not d["-r"]:
         d["-d"] = d["-r"] = True
     return args
+
+
 def GetData(d):
-    '''The data will be a list of tuples of the form (m, rpo, descr)
+    """The data will be a list of tuples of the form (m, rpo, descr)
     where m is g, f, or c for GM, Ford, or Chrysler, rpo is the RPO
     code, and descr is the description.
-    '''
+    """
     D = d["data"] = []
     # Process GM data
     key = "gm"
@@ -5947,6 +5960,8 @@ def GetData(d):
         code = line[:sp].strip()
         descr = line[sp:].strip()
         D.append(("c", code, descr))
+
+
 def DumpData(d):
     D = d["data"]
     print("GM Data")
@@ -5967,6 +5982,8 @@ def DumpData(d):
             continue
         print(f"  {rpo:3s}  {descr}")
     exit(0)
+
+
 def Find(regex, d, noheader=False):
     D = d["data"]
     results = []
@@ -5985,7 +6002,7 @@ def Find(regex, d, noheader=False):
         spc = ""
         if not noheader:
             print(regex)
-            spc = " "*2
+            spc = " " * 2
         for mfg, rpo, descr in results:
             if d["-g"]:
                 print(f"{spc}{rpo:3s}  {descr} [GM]")
@@ -5993,6 +6010,8 @@ def Find(regex, d, noheader=False):
                 print(f"{spc}{rpo:3s}  {descr} [Ford]")
             if d["-c"]:
                 print(f"{spc}{rpo:3s}  {descr} [Chrysler]")
+
+
 def Search(args, d):
     D = d["data"]
     for regex in args:
@@ -6005,9 +6024,12 @@ def Search(args, d):
                 Find(r, d)
         else:
             Find(regex, d)
+
+
 def Tahoe(d):
     d["-f"] = d["-c"] = False
-    RPO = sorted('''
+    RPO = sorted(
+        """
         AG1 AG2 AJ1 AJ7 AL0 AM1 AM8 AP3 ARL ASF AS3
         AU3 AXP A31 A95 BVE B30 B58 B85 CJ3 C25 C36 
         C49 C6C C69 DH6 DK8 DL8 DRC D07 EF7 E52 FHS
@@ -6016,12 +6038,15 @@ def Tahoe(d):
         SLM TL1 T1U T74 UD7 UE1 UJM UK3 UK6 UPF UQ3
         USR UUI UVC U2K U84 VGD VGE VK3 VR4 VT7 V1K
         V54 V76 V8D XL7 X88 YD3 YD5 YD6 YE9 ZRS ZW7
-        ZY1 Z82 1LS 1SZ 19C 19I 50U 6SH 7SH'''.split())
+        ZY1 Z82 1LS 1SZ 19C 19I 50U 6SH 7SH""".split()
+    )
     print("RPO codes for 2002 Tahoe:")
     GM_Dump(RPO)
+
+
 def Suburban(d):
     d["-f"] = d["-c"] = False
-    RPO = '''
+    RPO = """
         AG1 AG2 AJ1 AJ7 AL0 AM1 AM8 AP3 ARL ASF AS3
         AU3 AXP A31 A95 BVE B30 B58 B85 CJ3 C25 C36 
         C49 C6C C69 DH6 DK8 DL8 DRC D07 EF7 E52 FHS
@@ -6030,13 +6055,15 @@ def Suburban(d):
         SLM TL1 T1U T74 UD7 UE1 UJM UK3 UK6 UPF UQ3
         USR UUI UVC U2K U84 VGD VGE VK3 VR4 VT7 V1K
         V54 V76 V8D XL7 X88 YD3 YD5 YD6 YE9 ZRS ZW7
-        ZY1 Z82 1LS 1SZ 19C 19I 50U 6SH 7SH'''.split()
+        ZY1 Z82 1LS 1SZ 19C 19I 50U 6SH 7SH""".split()
     print("RPO codes for 2011 Suburban:")
     GM_Dump(RPO)
+
+
 def Yukon06(d):
     d["-f"] = d["-c"] = False
     vin = "1GKEK63U16J151440"
-    RPO = '''
+    RPO = """
         AG1 AG2 AJ1 AJ7 AL0 AN3 AP9 AS3 AT5 AU0 AXP
         A31 BS1 BVF BW2 B30 B58 CF5 CJ2 C25 C36 C49
         C5W C69 DF5 DH6 DK8 DL3 D07 EVA E52 FE9 FK2
@@ -6046,17 +6073,21 @@ def Yukon06(d):
         T74 T96 UE1 UC1 UJ6 UK3 UK6 UM8 UQ7 U1S U2K
         U42 VFF VK3 VR4 VT4 VT5 VXS VZ2 V1K V54 V73
         V76 XAN YAN YD3 YD5 YD6 YE9 Y91 ZNK ZY1 Z55
-        Z82 Z88 1SZ 5SA 50U 6XK 7XK 921 922'''.split()
+        Z82 Z88 1SZ 5SA 50U 6XK 7XK 921 922""".split()
     print(f"RPO codes for 2006 Yukon (VIN {vin}):")
     GM_Dump(RPO)
+
+
 def GM_Dump(RPO):
     d["-f"] = d["-c"] = d["-d"] = False
     d["-r"] = True
     for r in RPO:
         Find(r, d, noheader=True)
     exit()
+
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     GetData(d)
     args = ParseCommandLine(d)
     if d["-D"]:

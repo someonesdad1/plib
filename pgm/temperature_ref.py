@@ -1,57 +1,62 @@
-'''
+"""
 Print out a sorted list of reference temperatures
-'''
+"""
+
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2025 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2025 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Print out a sorted list of reference temperatures
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         import bisect
         import getopt
         import os
         import re
         import sys
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from temperature import ConvertTemperature
         from f import flt
         from wrap import dedent
         from color import t
         from lwtest import Assert
+
         if 0:
             import debug
+
             debug.SetDebugger()
-    if 1:   # Global variables
+    if 1:  # Global variables
+
         class G:
             pass
+
         g = G()
         g.dbg = True
         # Script's data
-        g.data = None   # Holder of the list of temperature data
-        g.unit = "c"    # Default temperature unit
-        g.Twidth = 15   # Temperature column width
-        g.get_color = {}    # Color to print temperature units
-        g.n = 4         # Number to print near a found item (default of -n option)
-        g.N = 4         # Default number of decimal places (default of -d option)
+        g.data = None  # Holder of the list of temperature data
+        g.unit = "c"  # Default temperature unit
+        g.Twidth = 15  # Temperature column width
+        g.get_color = {}  # Color to print temperature units
+        g.n = 4  # Number to print near a found item (default of -n option)
+        g.N = 4  # Default number of decimal places (default of -d option)
         g.allowed_units = set(list("cfkr"))
         # Printing constants
-        g.indent = " "*2    # How much to indent the line
-        g.sep = " "*2       # Separation between temperature and description
+        g.indent = " " * 2  # How much to indent the line
+        g.sep = " " * 2  # Separation between temperature and description
         g.units = {"k": "K", "c": "°C", "f": "°F", "r": "°R"}
         ii = isinstance
-if 1:   # Data
+if 1:  # Data
     # First field is a temperature in K (with optional alternate unit letter of C, F, or R)
     # Remaining string is the description
-    data = '''
+    data = """
 
         # Approximate ocean temperatures https://en.wikipedia.org/wiki/Ocean_temperature
         11C Winter sea surface
@@ -462,15 +467,18 @@ if 1:   # Data
         1449 95 Am Americium m.p.
         1613 96 Cm Curium m.p.
 
-    '''
-if 1:   # Classes
+    """
+if 1:  # Classes
+
     class Element:
         def __init__(self, T, name):
-            self.Traw = T               # Raw string
+            self.Traw = T  # Raw string
             self.T = self.get_value(T)  # Numerical value
             self.name = name
+
         def __lt__(self, other):
             return self.T < other.T
+
         def __str__(self):
             s = g.indent
             # Convert self.T to requisite temperature unit
@@ -480,10 +488,12 @@ if 1:   # Classes
             # Append the description
             s += self.name
             return f"{self.T} {self.name}"
+
         def __repr__(self):
             return str(self)
+
         def interpret(self, s):
-            'Interpret s as a temperature converted to K'
+            "Interpret s as a temperature converted to K"
             last = s[-1].lower()
             if last not in list("kcfr"):
                 value = flt(s)
@@ -492,12 +502,14 @@ if 1:   # Classes
                 value = flt(s[:-1])
             T_K = ConvertTemperature(value, last, "k")
             return T_K
+
         def interpret_range(self, s):
             'Interpret "a-b" as a range; return the mean value in K'
             a, b = [self.interpret(i) for i in s.split("-")]
-            return (a + b)/2
+            return (a + b) / 2
+
         def get_value(self, T):
-            'T can have a single letter suffix denoting the temperature unit'
+            "T can have a single letter suffix denoting the temperature unit"
             if "-" in T and T[0] != "-":
                 return self.interpret_range(T)
             elif T.startswith(">"):
@@ -508,12 +520,16 @@ if 1:   # Classes
                     return self.interpret(T)
                 else:
                     return flt(T)
-if 1:   # Utility
+
+
+if 1:  # Utility
+
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="")
             print(*p, **kw)
             print(f"{t.N}", end="")
+
     def GetColors():
         t.err = t("redl")
         t.dbg = t("lill") if g.dbg else ""
@@ -526,22 +542,27 @@ if 1:   # Utility
         g.get_color["c"] = t.c
         g.get_color["f"] = t.f
         g.get_color["r"] = t.r
+
     def GetScreen():
-        'Return (LINES, COLUMNS)'
+        "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
-            int(os.environ.get("COLUMNS", "80")) - 1
+            int(os.environ.get("COLUMNS", "80")) - 1,
         )
+
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="")
             print(*p, **kw)
             print(f"{t.n}", end="")
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Manpage():
-        print(dedent(f'''
+        print(
+            dedent(f"""
 
         The basic use cases for this script are:  1) show various temperatures close to an entered
         temperature and 2) look up a temperature for a material.  
@@ -611,10 +632,13 @@ if 1:   # Utility
 
         The default temperature unit used is in the variable g.unit.
 
-        '''))
+        """)
+        )
         exit(0)
+
     def Usage(status=0):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] [unit] regex1 [regex2...]
           Search for items in the temperature list that match the regexes.  If unit is present, it
           must be one of the letters c, f, k, r indicating the temperature unit to use (default is
@@ -632,18 +656,22 @@ if 1:   # Utility
             -i          Don't ignore case
             -n n        ± number of items to display [{d["-n"]}]
             --debug     Enter debugger on unhandled exception
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-a"] = False     # Show all entries
-        d["-c"] = False     # Don't use color
-        d["-d"] = g.N       # Number of digits in floating point numbers
-        d["-i"] = False     # Don't ignore case
-        d["-n"] = g.n       # Number of items to display on either side of found temperature items
+        d["-a"] = False  # Show all entries
+        d["-c"] = False  # Don't use color
+        d["-d"] = g.N  # Number of digits in floating point numbers
+        d["-i"] = False  # Don't ignore case
+        d["-n"] = (
+            g.n
+        )  # Number of items to display on either side of found temperature items
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "acd:hin:", "debug") 
+            opts, args = getopt.getopt(sys.argv[1:], "acd:hin:", "debug")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -666,15 +694,19 @@ if 1:   # Utility
                 Manpage()
             elif o == "--debug":
                 import debug
+
                 debug.SetDebugger()
         x = flt(0)
         x.N = d["-d"]
         x.rtz = x.rtdp = True
         GetColors()
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def GetData():
-        'Return a list of [T_K, Description] elements'
+        "Return a list of [T_K, Description] elements"
         o = []
         for line in data.split("\n"):
             line = line.strip()
@@ -684,10 +716,11 @@ if 1:   # Core functionality
             T, name = line[:sp], line[sp:]
             o.append(Element(T, name.strip()))
         return o
+
     def GetSuffix(s):
-        '''Return (a, b) where b is the last character of s if it's c, f, k, or r and a is the
+        """Return (a, b) where b is the last character of s if it's c, f, k, or r and a is the
         remaining portion of the string.
-        '''
+        """
         default = (s, "")
         if len(s) < 2:
             return default
@@ -695,12 +728,13 @@ if 1:   # Core functionality
         if u in g.allowed_units:
             return (a, u)
         return default
+
     def GetRegexes(args):
-        '''If the first argument is one of the letters c, f, k, r, then set g.unit using it.
+        """If the first argument is one of the letters c, f, k, r, then set g.unit using it.
         Otherwise, see if it's a number by seeing if it's a flt (it can have one of the unit
         letters as a suffix).  If not, then compile it as a regular expression.  Return
         (numbers_in_K, compiled_regexes).
-        '''
+        """
         flags = re.X if d["-i"] else re.X | re.I
         # Check for first letter being a unit
         if len(args[0]) == 1:
@@ -721,7 +755,7 @@ if 1:   # Core functionality
                 except ValueError:
                     pass
                 if is_a_number:
-                    T = ConvertTemperature(T, unit, "k")     # Convert it to K
+                    T = ConvertTemperature(T, unit, "k")  # Convert it to K
                     temperatures_in_K.append(T)
                     continue
             # It's a regex; compile it
@@ -732,13 +766,16 @@ if 1:   # Core functionality
                 Error(f"{repr(item)} is a bad regular expression")
         return (temperatures_in_K, regexes)
         raise ValueError
+
     def IsTemperatureUnit(arg):
         "Return True if it's a single letter that's a temperature unit"
         return len(arg) == 1 and arg.lower() in g.allowed_units
+
     def IsTemperature(arg):
-        'Return (temperature, unit) or None'
+        "Return (temperature, unit) or None"
         flags = re.X if d["-i"] else re.X | re.I
-        rnum = re.compile(r'''              # Regex to get integers or floats
+        rnum = re.compile(
+            r"""              # Regex to get integers or floats
             (?x)                            # Allow verbosity
             ^
             (                               # Group
@@ -752,7 +789,9 @@ if 1:   # Core functionality
             )                               # End group
             ([cfkrCFKR])?                   # Optional temperature unit
             $
-            ''', flags)
+            """,
+            flags,
+        )
         mo = rnum.match(arg)
         if mo:
             is_a_number = False
@@ -765,10 +804,11 @@ if 1:   # Core functionality
             if is_a_number:
                 return (T, unit)
         return None
+
     def GetTemperatureData(T_K):
-        '''g.data is sorted by temperature in K, so use binary search to find the closest matches
+        """g.data is sorted by temperature in K, so use binary search to find the closest matches
         to the given temperature in K; return a list of indexes into g.data.
-        '''
+        """
         found, key, N = [], lambda x: x.T, len(g.data) - 1
         # This call to bisect_left finds the insertion point in the sequence where an
         # element with the temperature T could be inserted and the sequence sort order
@@ -792,9 +832,10 @@ if 1:   # Core functionality
             found.append(i + j)
         found = list(sorted(set(found)))
         return found
+
     def PrintItems(results):
         for i in results:
-            e = g.data[i]   # Element instance
+            e = g.data[i]  # Element instance
             print(g.indent, end="")
             # Convert e.T to requisite temperature unit
             T = ConvertTemperature(e.T, "k", g.unit)
@@ -804,9 +845,10 @@ if 1:   # Core functionality
             # Print the description
             print(e.name)
 
+
 if __name__ == "__main__":
     g.data = sorted(GetData())
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     # See if first argument is a temperature unit
     if args and IsTemperatureUnit(args[0]):
@@ -823,12 +865,12 @@ if __name__ == "__main__":
             if results is not None:
                 # The user gave a temperature to search for
                 T, unit = results
-                #Dbg(f"T = {T}, unit = {unit!r}")
+                # Dbg(f"T = {T}, unit = {unit!r}")
                 if not unit:
                     unit = g.unit
                 T_K = ConvertTemperature(T, unit, "k")
                 results = GetTemperatureData(T_K)
-                if results:     # List of matching item indexes
+                if results:  # List of matching item indexes
                     print(f"Search for temperature {repr(arg)}")
                     PrintItems(results)
             else:

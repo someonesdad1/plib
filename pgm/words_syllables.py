@@ -1,15 +1,15 @@
-'''
+"""
 This module provides two dictionaries that give the number of syllables
 in a word.  Convert a word to lowercase, then see if it is in the
 syllables dictionary; if it is, then the number of syllables is
 returned.  If not, then check in multiple_syllables; if it is, a tuple
-of integers is returned.  
+of integers is returned.
 
 Examples:
     syllable["aardvark"] returns 2.
     multiple_syllables["babbling"] returns (2, 3).
 
-This file was constructed by the words_syllables_make.py script on 
+This file was constructed by the words_syllables_make.py script on
 Fri May  7 15:05:15 2021.
 
 The data came from the cmudict dictionary in the nltk.corpus module.  You
@@ -25,11 +25,12 @@ python prompt).  After downloading, this script should then run.
 Note:  the CMU dictionary from the nltk.corpus contains 123455 word
 entries, but some of them are foreign words, acronyms, or abbreviations.
 While they could be encountered in everyday speech (particularly the
-acronyms), you might not want them to be in the two dictionaries.  
+acronyms), you might not want them to be in the two dictionaries.
 If so, call the module function Restrict(True); call Restrict(False) to
 restore to the full dictionaries.
 
-'''
+"""
+
 syllables = {
     "fawn": 1,
     "sermersheim": 3,

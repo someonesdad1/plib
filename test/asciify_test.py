@@ -2,18 +2,19 @@ import pathlib
 import sys
 from lwtest import run, raises
 from asciify import Asciify
-from pdb import set_trace as xx 
+from pdb import set_trace as xx
 from color import TRM as t
 
 t.e = t("grnl")
 t.g = t("redl")
 
+
 def TestAsciify1():
-    '''Unfortunately, I didn't document where this set of test cases
-    came from.  In the "A" line, the last letter fails, but it's a 
+    """Unfortunately, I didn't document where this set of test cases
+    came from.  In the "A" line, the last letter fails, but it's a
     Roman wide A, so it should pass.  Thus, the asciify.py script needs
     updating.
-    '''
+    """
     return
     d = {
         "A": "ÀÁÂÃÄÅĀĂǍǞǠǺȀȂȦȺⒶḀẠẢẤẦẨẪẬẮẰẲẴẶＡ",
@@ -79,23 +80,24 @@ def TestAsciify1():
         "<": "⟨〈⟪《❬〈❰⦑⧼",
         ">": "⟩〉⟫》❭〉❱⦒⧽",
         "'": " ̀́❛›❮❯′ʹ‵❟‘’‚‛❜‹",
-        ' ': "          \u200b\ufeff",
+        " ": "          \u200b\ufeff",
         '"': "＂〃“〝〞〟”„‟«″‴‶‷ʺ»⹂⁗❝❞❠",
     }
     for asc, ltrs in d.items():
         if 0:
             for i in ltrs:
-                assert(Asciify(i) == asc)
+                assert Asciify(i) == asc
         else:
             for i in ltrs:
                 if Asciify(i) != asc:
                     print(asc, i, hex(ord(i)))
 
+
 def TestAsciify():
-    '''This test uses the /pylib/asciify.test file, which contains lines
+    """This test uses the /pylib/asciify.test file, which contains lines
     that have a character X, tab, and a set of Unicode codepoints that
     should Asciify to X.
-    '''
+    """
     p = pathlib.Path("/pylib/asciify.test")
     s = p.read_text()
     print("asciify_test.py fails on these characters:")
@@ -108,7 +110,10 @@ def TestAsciify():
         for i in chars:
             got = Asciify(i)
             if got != expected:
-                print(f"{i:6s}:  {t.e}{expected:^{w}s} {t.g}{got:^{w}s}{t.n} {hex(ord(i))}")
+                print(
+                    f"{i:6s}:  {t.e}{expected:^{w}s} {t.g}{got:^{w}s}{t.n} {hex(ord(i))}"
+                )
+
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:

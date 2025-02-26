@@ -1,6 +1,7 @@
 from sig import GetSigFig
 from collections import defaultdict, deque
-'''
+
+"""
 Sat 28 Aug 2021 08:24:20 AM
     (Checked again Sun 17 Dec 2023 08:24:17 AM and is identical)
 from https://physics.nist.gov/cuu/Constants/Table/allascii.txt
@@ -17,9 +18,9 @@ for each of the constants.
 
 0         1         2         3         4         5         6         7         8         9        10        11        12
 |····+····|····+····|····+····|····+····|····+····|····+····|····+····|····+····|····+····|····+····|····+····|····+····|····+
-'''
+"""
 
-data = '''
+data = """
 alpha particle-electron mass ratio                          7294.299 541 42          0.000 000 24             
 alpha particle mass                                         6.644 657 3357 e-27      0.000 000 0020 e-27      kg
 alpha particle mass energy equivalent                       5.971 920 1914 e-10      0.000 000 0018 e-10      J
@@ -374,7 +375,7 @@ weak mixing angle                                           0.222 90            
 Wien frequency displacement law constant                    5.878 925 757... e10     (exact)                  Hz K^-1
 Wien wavelength displacement law constant                   2.897 771 955... e-3     (exact)                  m K
 W to Z mass ratio                                           0.881 53                 0.000 17                 
-'''
+"""
 
 d = defaultdict(int)
 count, U = 0, []
@@ -403,23 +404,23 @@ for line in data.split("\n"):
             s = deque(u[2:])
             while s and s[0] == "0":
                 s.popleft()
-            if len(''.join(s)) != 2:
+            if len("".join(s)) != 2:
                 print(name, u)
-print(f'''NIST constants ({count} that are not exact)
+print(f"""NIST constants ({count} that are not exact)
 Significant                 Number of 
   figures                   constants
------------                 ---------''')
+-----------                 ---------""")
 for n in sorted(d):
-    print(f"    {n - 2:2d}{' '*16}{d[n]:12d}")
-assert(sum(d.values()) == count)
-print('''Note:  The uncertainty is typically expressed to 2 figures, so 2 was 
-subtracted from each of the values.''')
+    print(f"    {n - 2:2d}{' ' * 16}{d[n]:12d}")
+assert sum(d.values()) == count
+print("""Note:  The uncertainty is typically expressed to 2 figures, so 2 was 
+subtracted from each of the values.""")
 
 # Get weighted average
 N = 0
 Sum = 0
 for n in d:
-    Sum += (n - 2)*d[n]
+    Sum += (n - 2) * d[n]
     N += d[n]
-avg = round(Sum/N, 1)
+avg = round(Sum / N, 1)
 print(f"Weighted average = {avg}")

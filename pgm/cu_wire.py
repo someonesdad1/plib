@@ -1,4 +1,4 @@
-'''
+"""
 TODO:
 
     - Remove old color stuff (oc)
@@ -9,31 +9,32 @@ TODO:
     - Finish MIL5088(gauge, ΔT) function.
     - In -a printout, Freq is mentioned, so this column needs to be printed.
     - In ampacity, discuss NEC briefly
- 
+
 ----------------------------------------------------------------------
-Output a copper wire table.  Other useful things are done too (use the 
+Output a copper wire table.  Other useful things are done too (use the
 -h option for help and -H for a manpage).
-'''
-if 1:   # Header
-    if 1:   # Copyright, license
+"""
+
+if 1:  # Header
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Copper wire table and ancillary information
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Imports
+    if 1:  # Imports
         import sys
         import os
         import getopt
         from math import pi, log, sqrt, log10
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from color import t
         from wrap import dedent
         from fpformat import FPFormat
@@ -43,62 +44,69 @@ if 1:   # Header
         from sig import sig
         from u import u, ParseUnit
         from f import flt
+
         # Debugging
         from pdb import set_trace as xx
+
         if 0:
             import debug
+
             debug.SetDebugger()
         if 0:
             # For interactive use
             from pnumber import PhysicalNumber as PN, PhysicalNumberFactory as PNF
             from getinput import Choice
             from get import GetNumber, GetWireDiameter
-    if 1:   # Global variables
+    if 1:  # Global variables
         # Copper properties
         # In 1914 an international agreement was reached defining the
         # resistivity of annealed copper to be the following.  See NBS 470
         # circular from 1948.
-        resistivity = 17.241e-9     # Cu resistivity in Ω·m at 20 °C
-        temp_coeff = 0.0039         # Temperature coefficient of resistivity, 1/K
-        density = 8900              # kg/m³
+        resistivity = 17.241e-9  # Cu resistivity in Ω·m at 20 °C
+        temp_coeff = 0.0039  # Temperature coefficient of resistivity, 1/K
+        density = 8900  # kg/m³
         isatty = sys.stdout.isatty()
         no_color = False
         # Color of popular gauge sizes
-        if 1:   # Original choice for colorizing printout
+        if 1:  # Original choice for colorizing printout
             popular_sizes = {
-                #10: t("grnl"),
+                # 10: t("grnl"),
                 12: t("redl"),
                 "c12": t("whtl", "redl"),
-                #14: t("brnl"),
+                # 14: t("brnl"),
                 16: t("grnl"),
                 "c16": t("blk", "grnl"),
                 18: t("yell"),
                 "c18": t("blk", "yell"),
-                #20: t("magl"),
+                # 20: t("magl"),
                 24: t("ornl"),
                 "c24": t("whtl", "ornl"),
             }
         else:
             popular_sizes = {
-                #10: t("grnl"),
+                # 10: t("grnl"),
                 12: t("denl"),
-                #14: t("brnl"),
-                #16: t("whtl", "mag"),
+                # 14: t("brnl"),
+                # 16: t("whtl", "mag"),
                 18: t("denl"),
-                #20: t("magl"),
+                # 20: t("magl"),
                 24: t("denl"),
-                #28: t("ornl"),
+                # 28: t("ornl"),
             }
         # Used for formatting numbers
         fp = FPFormat(4)
         fp.trailing_decimal_point(False)
-if 1:   # Utility
+if 1:  # Utility
+
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
+
     def Manpage():
-        rho = f"{resistivity*1e9:.5g}"
-        print(dedent(f'''
+        rho = f"{resistivity * 1e9:.5g}"
+        print(
+            dedent(
+                f"""
                                            Copper Wire Table
                                            -----------------
         
@@ -332,8 +340,11 @@ if 1:   # Utility
         
         [10] https://www.lectromec.com/maximum-harness-ampacity and
              https://www.lectromec.com/ampacity-improvements.
-            '''.rstrip()))
-        print(dedent(f'''
+            """.rstrip()
+            )
+        )
+        print(
+            dedent(f"""
      
         Other information
         -----------------
@@ -359,19 +370,21 @@ if 1:   # Utility
         Temperature coefficient of resistance in 1000/K @ 20 °C:  annealed copper: 3.93, aluminum:
         3.8, carbon: -0.25, iron: 5.0, lead: 4.3, Pt: 3.8, Ag: 4.0, W: 4.5, Zn: 3.7
     
-        '''))
+        """)
+        )
         exit(0)
+
     def ParseCommandLine(d):
-        d["-a"] = False     # Print detailed ampacity data
-        d["-C"] = False     # Do not use color
-        d["-c"] = False     # Emit color escape codes even if not a tty
-        d["-e"] = False     # Print an equivalence table
-        d["-i"] = False     # Interactive solution
-        d["-F"] = False     # Print full table
-        d["-f"] = False     # Print big stuff
-        d["-r"] = False     # Include resistivities
-        d["-t"] = False     # Print equivalence table
-        d["-v"] = False     # Print voltage drop table
+        d["-a"] = False  # Print detailed ampacity data
+        d["-C"] = False  # Do not use color
+        d["-c"] = False  # Emit color escape codes even if not a tty
+        d["-e"] = False  # Print an equivalence table
+        d["-i"] = False  # Interactive solution
+        d["-F"] = False  # Print full table
+        d["-f"] = False  # Print big stuff
+        d["-r"] = False  # Include resistivities
+        d["-t"] = False  # Print equivalence table
+        d["-v"] = False  # Print voltage drop table
         try:
             optlist, args = getopt.getopt(sys.argv[1:], "aCceFfhHitv")
         except getopt.GetoptError as e:
@@ -396,9 +409,12 @@ if 1:   # Utility
             global no_color
             no_color = True
         return args
+
     def Usage(status=1):
         name = sys.argv[0]
-        print(dedent(f'''
+        print(
+            dedent(
+                f"""
         Usage:  {name} [options] [n_awg m_awg]
             With no arguments, print a copper wire table.  With one argument, 
             print out a table of needed wires of other sizes to get equal area.
@@ -422,15 +438,20 @@ if 1:   # Utility
             -r  Include resistivities in output
             -t  Show table for big wire equivalents
             -v  Show voltage drop table
-        '''[1:-1]))
+        """[1:-1]
+            )
+        )
         exit(status)
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def ShowResistivities():
-        # Resistivity data from 
+        # Resistivity data from
         # https://en.wikipedia.org/wiki/Electrical_resistivity_and_conductivity#Resistivity_and_conductivity_of_various_materials
         # as of 16 Aug 2024
         if not d["-r"]:
-            return 
+            return
         r = (
             ("Silver", 15.9),
             ("Copper", 17.241),
@@ -452,7 +473,7 @@ if 1:   # Core functionality
             ("304 steel", 690),
             ("Mercury", 980),
         )
-        w, indent, o = 14, " "*4, []
+        w, indent, o = 14, " " * 4, []
         t.rel = t("sky")
         print(f"\nResistivities in nΩ·m @ 20 °C   {t.rel}[Rel. to Cu]{t.n}")
         cu = flt(17.241)
@@ -460,54 +481,66 @@ if 1:   # Core functionality
             cu.N = 3
             for material, rho in r:
                 fp.digits(2)
-                rel = fp.sig(rho/cu)
+                rel = fp.sig(rho / cu)
                 o.append(f"{material:{w}s} {flt(rho)!s:^6s} {t.rel}[{rel}]{t.n}")
-        for i in Columnize(o, columns=2, col_width=28, sep=" "*4):
+        for i in Columnize(o, columns=2, col_width=28, sep=" " * 4):
             print(i)
+
     def Interactive():
-        '''Prompt the user for three of (d, L, rho, R) and calculate the
+        """Prompt the user for three of (d, L, rho, R) and calculate the
         fourth.
-        '''
+        """
         print("Solves for resistance, length, diameter, or resistivity:\n")
-        lu = "mm"   # Default length unit
+        lu = "mm"  # Default length unit
         rhoCu = PN(str(resistivity) + " ohm*m")  # Resistivity of copper
         PN.dimensions[u.dim("Ω")] = "Ω"
         PN.dimensions[u.dim("Ω*m")] = "nΩ*m"
-        'Utility functions'
+        "Utility functions"
+
         def Report(R, d, L, rho):
-            r = rho*rhoCu
-            print('''Results:
+            r = rho * rhoCu
+            print(
+                """Results:
         R = {R}
         d = {d}
         L = {L}
-        rho = {rho} (relative to copper) = {r}'''.format(**locals()))
+        rho = {rho} (relative to copper) = {r}""".format(**locals())
+            )
+
         def GetVariable(ignore=""):
-            '''Return R, d, L, or rho to indicate the variable of interest.  If
+            """Return R, d, L, or rho to indicate the variable of interest.  If
             you wish to ignore one variable, put it into ignore.
-            '''
+            """
             choices = "R d L rho".split()
             choices.remove(ignore)
             if not choices:
                 raise Exception("Bug in program")
             print("Select which variable:")
-            i = Choice(choices, indent=" "*3)
+            i = Choice(choices, indent=" " * 3)
             return choices[i]
+
         def fR(d, L, rho):
-            return 4*L*rho/(pi*d**2)
+            return 4 * L * rho / (pi * d**2)
+
         def fd(R, L, rho):
-            return sqrt(4*L*rho/(pi*R))
+            return sqrt(4 * L * rho / (pi * R))
+
         def fL(d, R, rho):
-            return R*pi*d**2/(4*rho)
+            return R * pi * d**2 / (4 * rho)
+
         def frho(d, R, L):
-            return R*pi*d**2/(4*L)
+            return R * pi * d**2 / (4 * L)
+
         def GetLength(msg):
             while True:
-                value, unit = GetNumber(msg, low=0, low_open=True,
-                                        use_unit=True, default=1)
+                value, unit = GetNumber(
+                    msg, low=0, low_open=True, use_unit=True, default=1
+                )
                 try:
                     return Length(value, lu if not unit else unit)
                 except Exception:
                     print("Not a proper length, try again.")
+
         # For testing, set testing to True
         testing = False
         # Get default length units
@@ -530,118 +563,136 @@ if 1:   # Core functionality
         Length.low_open = True
         # Choose problem to solve
         if not testing:
-            choices = ("R       Resistance",
-                       "d       Diameter",
-                       "L       Length",
-                       "rho     Resistivity")
+            choices = (
+                "R       Resistance",
+                "d       Diameter",
+                "L       Length",
+                "rho     Resistivity",
+            )
             while True:
                 try:
                     print("Select which variable to solve for:")
-                    i, s = Choice(choices, indent=" "*3)
+                    i, s = Choice(choices, indent=" " * 3)
                     break
                 except Exception as e:
                     print(e)
             print("Solving for", choices[i].split()[0])
-            if i == 0:      # Resistance
+            if i == 0:  # Resistance
                 ShowResistivities()
-                rho = GetNumber("What is resistivity relative to copper? ",
-                                low=0, low_open=True, default="1")
+                rho = GetNumber(
+                    "What is resistivity relative to copper? ",
+                    low=0,
+                    low_open=True,
+                    default="1",
+                )
                 L = Length.get("What is length of wire? ")
                 string, value = GetWireDiameter(default_unit=lu)
                 d = PN(str(value) + " " + lu)
-                R = fR(d, L, rho*rhoCu)
+                R = fR(d, L, rho * rhoCu)
                 R.units = "Ω"
-            elif i == 1:    # Diameter
+            elif i == 1:  # Diameter
                 ShowResistivities()
-                rho = GetNumber("What is resistivity relative to copper? ",
-                                low=0, low_open=True, default="1")
+                rho = GetNumber(
+                    "What is resistivity relative to copper? ",
+                    low=0,
+                    low_open=True,
+                    default="1",
+                )
                 L = Length.get("What is length of wire? ")
-                value, unit = GetNumber("What is resistance in Ω? ", low=0,
-                                        low_open=True, use_unit=True)
+                value, unit = GetNumber(
+                    "What is resistance in Ω? ", low=0, low_open=True, use_unit=True
+                )
                 R = PN(str(value) + "Ω")
-                d = fd(R, L, rho*rhoCu)
+                d = fd(R, L, rho * rhoCu)
                 d.units = lu
-            elif i == 2:    # Length
+            elif i == 2:  # Length
                 string, value = GetWireDiameter(default_unit=lu)
                 d = PN(str(value) + " " + lu)
-                value, unit = GetNumber("What is resistance in Ω? ", low=0,
-                                        low_open=True, use_unit=True)
+                value, unit = GetNumber(
+                    "What is resistance in Ω? ", low=0, low_open=True, use_unit=True
+                )
                 R = PN(str(value) + " " + unit)
                 ShowResistivities()
-                rho = GetNumber("What is resistivity relative to copper? ",
-                                low=0, low_open=True, default="1")
-                L = fL(d, R, rho*rhoCu)
+                rho = GetNumber(
+                    "What is resistivity relative to copper? ",
+                    low=0,
+                    low_open=True,
+                    default="1",
+                )
+                L = fL(d, R, rho * rhoCu)
                 L.units = lu
-            elif i == 3:    # Resistivity
+            elif i == 3:  # Resistivity
                 string, value = GetWireDiameter(default_unit=lu)
                 d = PN(str(value) + " " + lu)
-                value, unit = GetNumber("What is resistance in Ω? ", low=0,
-                                        low_open=True, use_unit=True)
+                value, unit = GetNumber(
+                    "What is resistance in Ω? ", low=0, low_open=True, use_unit=True
+                )
                 R = PN(str(value) + " " + unit)
                 L = Length.get("What is length of wire? ")
-                rho = frho(d, R, L)/rhoCu  # Note it's dimensionless
+                rho = frho(d, R, L) / rhoCu  # Note it's dimensionless
             else:
                 raise Exception("Bug in program")
             Report(R, d, L, rho)
             exit(0)
         else:
-            rho = resistivity*PN(1, "ohm m")  # Copper resistivity
+            rho = resistivity * PN(1, "ohm m")  # Copper resistivity
             # Solve for a 1 m piece of 12 gauge copper wire
             # Resistance
             L = PN("1 m")
             d = PN("2.053 mm")
             R = fR(d, L, rho)
-            assert(abs(R - PN("0.005196 Ω")) < PN("0.0001 Ω"))
+            assert abs(R - PN("0.005196 Ω")) < PN("0.0001 Ω")
             # Diameter
             L = PN("1 m")
             R = PN("0.005196 Ω")
             d = fd(R, L, rho)
-            assert(abs(d - PN("2.053 mm")) < PN("0.01 mm"))
+            assert abs(d - PN("2.053 mm")) < PN("0.01 mm")
             # Length
             R = PN("0.005196 Ω")
             d = PN("2.053 mm")
             L = fL(d, R, rho)
-            assert(abs(L - PN("1 m")) < PN("0.003 m"))
+            assert abs(L - PN("1 m")) < PN("0.003 m")
             # Resistivity
             d = PN("2.053 mm")
             R = PN("0.005196 Ω")
             L = PN("1 m")
             xrho = frho(d, R, L)
             tgtrho = PN("17.2 nΩ m")
-            assert(abs(xrho - tgtrho < PN("0.001 nΩ*m")))
+            assert abs(xrho - tgtrho < PN("0.001 nΩ*m"))
             print("Interactive tests passed")
             exit(0)
+
     def MaxCurrentDensity(diameter_m, temperature):
-        '''This function returns the maximum allowed current density in A/mm²
+        """This function returns the maximum allowed current density in A/mm²
         given the wire diameter in m and the temperature in °C.  The
         algorithm is from the resistor.ods Open Office spreadsheet I wrote and
         ultimately comes from a linear regression of a log-log plot of the NEC
         allowed ampacities.  The temperature is the insulation rating of the
         wire and must be 60, 75, or 90 °C.
-     
+
         The code is from an Open Office macro in Basic.
-        '''
+        """
         slope = -0.820  # Common to each curve
         assert diameter_m > 0
         assert temperature in (60, 75, 90)
-        ld = log(diameter_m*1000)/log(10)
+        ld = log(diameter_m * 1000) / log(10)
         if ld < 0.21:
             # Constant current density
             jmax = 10**0.85
         elif ld < 0.315:
             # One curve in this region
-            jmax = 10**(slope*ld + 1.032)
+            jmax = 10 ** (slope * ld + 1.032)
         elif ld < 0.41:
             ld = ld - 0.315
             dx = 0.095
             y = 0.775
             if temperature == 60:
-                slope = (0.75 - y)/dx
+                slope = (0.75 - y) / dx
             elif temperature == 75:
-                slope = (0.82 - y)/dx
+                slope = (0.82 - y) / dx
             else:
-                slope = (0.87 - y)/dx
-            jmax = 10**(y + ld*slope)
+                slope = (0.87 - y) / dx
+            jmax = 10 ** (y + ld * slope)
         else:
             if temperature == 60:
                 b = 1.106  # y-intercept of fitted line
@@ -649,28 +700,35 @@ if 1:   # Core functionality
                 b = 1.203
             else:
                 b = 1.264
-            jmax = 10**(ld*slope + b)
+            jmax = 10 ** (ld * slope + b)
         # Debug check of jmax
         if jmax > 10**0.93:  # Note:  max y value at ld = 0.41
-            msg = ("Internal error:  bad current density: " +
-                   str(jmax) + " for " + str(temperature) +
-                   " and diameter in m = " + str(diameter_m))
+            msg = (
+                "Internal error:  bad current density: "
+                + str(jmax)
+                + " for "
+                + str(temperature)
+                + " and diameter in m = "
+                + str(diameter_m)
+            )
             raise Exception(msg)
         return jmax
+
     def Size(n):
         if n < 0:
             return {1: "2/0", 2: "3/0", 3: "4/0"}[abs(n)]
         else:
             return str(n)
+
     def GetAmpacityData():
-        '''Return a dictionary keyed by AWG size (as a string) with the
+        """Return a dictionary keyed by AWG size (as a string) with the
         values
             Diameter, inches
             Maximum current for chassis wiring, A
             Maximum current for power transmission, A
             Maximum frequency for 100% skin depth for solid copper, Hz
             Breaking force in lbf for annealed Cu (37 kpsi)
-     
+
         The following data come from
         https://www.powerstream.com/Wire_Size.htm.
             Column 1:  AWG
@@ -679,8 +737,8 @@ if 1:   # Core functionality
             Column 4:  Maximum current for power transmission, A
             Column 5:  Maximum frequency for 100% skin depth for solid copper
             Column 6:  Breaking force in lbf for annealed Cu (37 kpsi)
-        '''
-        data = '''
+        """
+        data = """
         -3,0.46,380,302,125 Hz,6120 lbs
         -2,0.4096,328,239,160 Hz,4860 lbs
         -1,0.3648,283,190,200 Hz,3860 lbs
@@ -724,7 +782,7 @@ if 1:   # Core functionality
         37,0.0045,0.17,0.0289,1350 kHz,0.57 lbs
         38,0.004,0.13,0.0228,1750 kHz,0.45 lbs
         39,0.0035,0.11,0.0175,2250 kHz,0.36 lbs
-        40,0.0031,0.09,0.0137,2900 kHz,0.29 lbs'''[1:]
+        40,0.0031,0.09,0.0137,2900 kHz,0.29 lbs"""[1:]
         wt = {}
         dbg = False
         if dbg:
@@ -734,7 +792,7 @@ if 1:   # Core functionality
             print("Column 4:  Maximum current for power transmission, A")
             print("Column 5:  Maximum frequency in kHz for 100% skin depth for Cu wire")
             print("Column 6:  Breaking force in lbf for annealed Cu (37 kpsi)'''[1:])")
-            #print("  AWG Dia, in      Chassis, A       Power, A")
+            # print("  AWG Dia, in      Chassis, A       Power, A")
             sig.digits = 2
             sig.rtz = True
         for line in data.split("\n"):
@@ -748,7 +806,7 @@ if 1:   # Core functionality
                 freq = freq.replace(" kHz", "000")
             else:
                 freq = freq.replace(" Hz", "")
-            freq = float(freq)/1000
+            freq = float(freq) / 1000
             if freq >= 100:
                 freq_kHz = int(freq)
             else:
@@ -757,38 +815,44 @@ if 1:   # Core functionality
             # http://www.nessengr.com/technical-data/skin-depth/ gives the
             # formula for Cu as δ = 0.066/sqrt(f) for δ = skin depth in m
             # and f in Hz.  Then f = 0.00436/δ**2.
-            δ = (dia_in*25.4/1000)/2  # Radius is the skin depth
-            f_kHz = (0.066/δ)**2/1000
+            δ = (dia_in * 25.4 / 1000) / 2  # Radius is the skin depth
+            f_kHz = (0.066 / δ) ** 2 / 1000
             # Check that calculated and table values are close
             alpha = 0.07
-            if not (1 - alpha < freq_kHz/f_kHz < 1 + alpha):
-                print(freq_kHz/f_kHz, awg)
+            if not (1 - alpha < freq_kHz / f_kHz < 1 + alpha):
+                print(freq_kHz / f_kHz, awg)
                 exit()
             # Note the tabulated breaking values aren't quite correct -- use
             # calculated value instead.
-            brk = pi*dia_in**2/4*37e3
+            brk = pi * dia_in**2 / 4 * 37e3
             if dbg:
-                print(f"{int(awg):>4d} {dia_in:7.4f} {sig(chassis_A):>6s} "
-                    f"{sig(pwr_A):>6s} {sig(f_kHz):>7s} {sig(brk):>8s}")
+                print(
+                    f"{int(awg):>4d} {dia_in:7.4f} {sig(chassis_A):>6s} "
+                    f"{sig(pwr_A):>6s} {sig(f_kHz):>7s} {sig(brk):>8s}"
+                )
             else:
-                wt[awg] = (dia_in, chassis_A, pwr_A, int(f_kHz*1000), brk)
+                wt[awg] = (dia_in, chassis_A, pwr_A, int(f_kHz * 1000), brk)
         return wt
+
     def EquivalentArea(n, m):
-        '''Given n ga wire, return how many m ga wires have the equivalent
+        """Given n ga wire, return how many m ga wires have the equivalent
         area.
-        '''
-        D, d = [round(AWG(i), 4) for i in (n, m)]     # Diameter in inches
-        ratio = flt(D/d)**2
+        """
+        D, d = [round(AWG(i), 4) for i in (n, m)]  # Diameter in inches
+        ratio = flt(D / d) ** 2
         return D, d, ratio
+
     def SingleWireEquivalents(n):
         if n > 40:
             Error("Size must be <= 40")
         print(f"Number of wires of different sizes to match {n} gauge in area:")
-        print(dedent(f'''
+        print(
+            dedent(f"""
                      Num
         AWG         Wires
         ---      -----------
-        '''))
+        """)
+        )
         flt(0).n = 2
         flt(0).rtz = flt(0).rtdp = True
         for i in range(0, 41, 2):
@@ -797,40 +861,46 @@ if 1:   # Core functionality
             D, d, ratio = EquivalentArea(n, i)
             print(f"{i:3d}        {flt(ratio)!s:^6s}")
         exit(0)
+
     def ShowEquivalentAreas(args, d):
-        '''args is [n_awg, m_awg].  Print out how many of the smaller size wires
+        """args is [n_awg, m_awg].  Print out how many of the smaller size wires
         are needed to equal the area of the larger wire.
-        '''
+        """
         if len(args) == 1:
             SingleWireEquivalents(int(args[0]))
         n, m = [int(i) for i in args]
         n, m = (n, m) if n < m else (m, n)  # Make n the larger AWG size
         D, d, ratio = EquivalentArea(n, m)
-        A, a = flt(pi/4*D**2), flt(pi/4*d**2)
-        print(dedent(f'''
+        A, a = flt(pi / 4 * D**2), flt(pi / 4 * d**2)
+        print(
+            dedent(f"""
         Larger  = {n} AWG      Diameter = {D} inches    Area = {A} in²
         Smaller = {m} AWG      Diameter = {d} inches    Area = {a} in²
         {ratio} of {m} gauge wires = same area as one {n} gauge wire
-        '''))
+        """)
+        )
         exit(0)
+
     def PrintBigTable():
-        'This table is for getting big wires from smaller wires'
+        "This table is for getting big wires from smaller wires"
         N = range(0, 25, 2)
         m = 5
-        print(dedent('''
+        print(
+            dedent("""
         Number of equivalent wires for equal areas, rounded up
         Row and column headings are AWG sizes
      
-        '''))
+        """)
+        )
         # Print row of numbers
-        print(" "*m, end="")
+        print(" " * m, end="")
         for i in N:
             print(f"{i:^{m}d}", end="")
         print()
         # Print row of hyphens
-        print(" "*m, end="")
+        print(" " * m, end="")
         for i in N:
-            t = " " + "-"*(m - 2) + " "
+            t = " " + "-" * (m - 2) + " "
             print(f"{t:^{m}s}", end="")
         print()
         # Print table
@@ -844,10 +914,11 @@ if 1:   # Core functionality
                     r = int(ratio + 0.5)
                     print(f"{r:^{m}d}", end="")
             print()
+
     def PrintEquivalenceTable():
-        '''Print out a list of gauge sizes with the number of wires of smaller
+        """Print out a list of gauge sizes with the number of wires of smaller
         sizes that are equivalent in area.
-        '''
+        """
         N, x, w = 10, flt(0), 12
         x.n = 3
         x.rtz = x.rtdp = True
@@ -857,15 +928,16 @@ if 1:   # Core functionality
         print(" -------    ----------       --------------")
         for i in range(1, 11):
             D, d, A_ratio = EquivalentArea(N, N + i)
-            #print(f"    {A_ratio} of (n + {i}) gauge")
+            # print(f"    {A_ratio} of (n + {i}) gauge")
             s = f"n + {i}"
-            D_ratio = flt(D/d)
+            D_ratio = flt(D / d)
             print(f"  {s:^6s}   {A_ratio!s:^{w}s}       {D_ratio!s:^{w}s}")
+
     def NEC():
-        '''Return a dictionary containing NEC-allowed currents for copper
+        """Return a dictionary containing NEC-allowed currents for copper
         conductors.  The three values are for 60, 75, and 90 °C rated
         insulations.
-        '''
+        """
         return {
             18: (None, None, 14),
             16: (None, None, 18),
@@ -883,38 +955,48 @@ if 1:   # Core functionality
             -3: (165, 200, 225),
             -4: (195, 230, 260),
         }
+
     def Print(*s, **kw):
-        '''Normal print except don't emit a newline'''
+        """Normal print except don't emit a newline"""
         print(*s, **kw, end="")
+
     def Strip(s):
-        'Strip leading 0 from string in number representation'
+        "Strip leading 0 from string in number representation"
         if s[0:2] == "0.":
             return s[1:]
         return s
+
     def f(x):
-        'Sig fig string'
+        "Sig fig string"
         return Strip(fp.sig(x))
+
     def g(x):
-        'Cuddled eng string'
+        "Cuddled eng string"
         return Strip(fp.engsic(x))
+
     def PrintTable(n, m, step=1, others=[]):
-        'Print the copper wire table from AWG n to m in the indicated steps'
+        "Print the copper wire table from AWG n to m in the indicated steps"
         if 0:
-            print(dedent(f'''
+            print(
+                dedent(f"""
                     Diameter    Res/length    Length/mass  Area     Amps     Freq  Break
              AWG  mils    mm    Ω/ft    Ω/m   ft/lb   m/kg  mm²  Chass  Pwr   kHz   lbf
             ----  ----- ------ ------  -----  -----  ----- ----- ----- ----- ----- -----
-            ''')[:-1].replace("!", " "))
+            """)[:-1].replace("!", " ")
+            )
         else:
             print(f"Copper wire table (annealed copper)")
-            print(dedent(f'''
+            print(
+                dedent(f"""
                                                         Chass      j
             AWG    ∅ mm      Ω/m     m/kg       mm²       A      A/mm²
             ---    ----     -----    ----      -----    -----    -----
-            '''))
+            """)
+            )
         sizes = sorted(set(list(range(n, m, step)) + others))
         for n in sizes:
             PrintLine(n)
+
     def PrintLine(awg):
         fp.digits(3)
         special = awg in popular_sizes and isatty and not no_color
@@ -923,21 +1005,21 @@ if 1:   # Core functionality
         Print(f"{Size(awg):>3s}  ")
         dia_in = AWG(awg)
         # Diameter
-        #Print(f"{f(1000*dia_in):5s} ")     # in mils
-        Print(f"{f(dia_in*25.4):>6s}   ")   # in mm
-        dia_m = dia_in/39.37
-        area_m2 = pi*(dia_m/2)**2
-        r_ohm_per_m = resistivity/area_m2
+        # Print(f"{f(1000*dia_in):5s} ")     # in mils
+        Print(f"{f(dia_in * 25.4):>6s}   ")  # in mm
+        dia_m = dia_in / 39.37
+        area_m2 = pi * (dia_m / 2) ** 2
+        r_ohm_per_m = resistivity / area_m2
         # Resistance/length
         fp.digits(3)
-        #Print(f"{g(0.3048*r_ohm_per_m):>7s}")   # Ω/ft
-        Print(f"{g(r_ohm_per_m):>7s} ")          # Ω/m
-        m_per_kg = 1/(density*area_m2)
+        # Print(f"{g(0.3048*r_ohm_per_m):>7s}")   # Ω/ft
+        Print(f"{g(r_ohm_per_m):>7s} ")  # Ω/m
+        m_per_kg = 1 / (density * area_m2)
         # Mass/length
-        #Print(f"{g(1.4881639*m_per_kg):>7s}")   # ft/lb
-        Print(f"{g(m_per_kg):>7s}      ")        # m/kg
+        # Print(f"{g(1.4881639*m_per_kg):>7s}")   # ft/lb
+        Print(f"{g(m_per_kg):>7s}      ")  # m/kg
         # Area
-        Print(f"{g(area_m2*1e6):>5s}    ")       # mm²
+        Print(f"{g(area_m2 * 1e6):>5s}    ")  # mm²
         # Ampacity data
         fp.digits(2)
         wt = GetAmpacityData()
@@ -946,7 +1028,7 @@ if 1:   # Core functionality
             w = 5
             # Print leading blanks
             s = g(chassis_A)
-            Print(" "*(w - len(s)))
+            Print(" " * (w - len(s)))
             if special:
                 # Use special reverse video mode to make chassis current stand out
                 Print(f"{popular_sizes['c' + str(awg)]}")
@@ -954,40 +1036,44 @@ if 1:   # Core functionality
             if special:
                 Print(f"{t.n}{popular_sizes[awg]}")
             Print(f"    ")
-            #Print(f"{g(pwr_A):>5s} ")
-            #Print(f"{g(f_Hz/1000):>5s} ")
-            #Print(f"{g(brk):>5s}")
+            # Print(f"{g(pwr_A):>5s} ")
+            # Print(f"{g(f_Hz/1000):>5s} ")
+            # Print(f"{g(brk):>5s}")
         # Current density in A/mm²
-        j = chassis_A/(area_m2*1e6)
+        j = chassis_A / (area_m2 * 1e6)
         with j:
             j.N = 2
             Print(f"{j!s:>5s} ")
         if awg in popular_sizes and isatty and not no_color:
             print(f"{t.n}", end="")
         print()
+
     def Preece(awg):
-        '''Return the current in A at which a copper conductor of AWG size awg
+        """Return the current in A at which a copper conductor of AWG size awg
         will fuse.
-        '''
+        """
         wt = GetAmpacityData()
         dia_in, chassis_A, pwr_A, f_Hz, brk = wt[str(awg)]
-        A = pi*dia_in**2/4
-        return 12277*A**0.75
+        A = pi * dia_in**2 / 4
+        return 12277 * A**0.75
+
     def Onderdonk(awg, time_s):
-        '''Return the current in A at which a copper conductor of AWG size awg
+        """Return the current in A at which a copper conductor of AWG size awg
         will fuse in a time time_s seconds.
-        '''
+        """
         wt = GetAmpacityData()
         dia_in, chassis_A, pwr_A, f_Hz, brk = wt[str(awg)]
-        A = pi*dia_in**2/4  # Area in square inches
-        A *= 1.27324e+06    # Convert to circular mils
-        return A*sqrt(log10(1053/274 + 1)/(33*time_s))
+        A = pi * dia_in**2 / 4  # Area in square inches
+        A *= 1.27324e06  # Convert to circular mils
+        return A * sqrt(log10(1053 / 274 + 1) / (33 * time_s))
+
     def PrintAmpacityLine(awg):
         def h(x):
             if x is None:
                 return ""
             else:
                 return g(x)
+
         fp.digits(4)
         if awg in popular_sizes and isatty and not no_color:
             print(f"{popular_sizes[awg]}", end="")
@@ -999,8 +1085,8 @@ if 1:   # Core functionality
         wt = GetAmpacityData()
         if str(awg) in wt:
             dia_in, chassis_A, pwr_A, f_Hz, brk = wt[str(awg)]
-            dia_m = dia_in/39.37
-            area_m2 = pi*dia_m**2/3
+            dia_m = dia_in / 39.37
+            area_m2 = pi * dia_m**2 / 3
             Print(f"{g(chassis_A):>5s} ")
             Print(f"{g(pwr_A):>5s} ")
             # Note we use the NEC-mandated values when the wire size fits
@@ -1014,17 +1100,20 @@ if 1:   # Core functionality
                     for i in range(3):
                         Print(f"{'':>7s}  ")
                 else:
-                    Print(f"{g(1e6*MaxCurrentDensity(dia_m, 60)*area_m2):>7s}  ")
-                    Print(f"{g(1e6*MaxCurrentDensity(dia_m, 75)*area_m2):>7s}  ")
-                    Print(f"{g(1e6*MaxCurrentDensity(dia_m, 90)*area_m2):>7s}  ")
+                    Print(f"{g(1e6 * MaxCurrentDensity(dia_m, 60) * area_m2):>7s}  ")
+                    Print(f"{g(1e6 * MaxCurrentDensity(dia_m, 75) * area_m2):>7s}  ")
+                    Print(f"{g(1e6 * MaxCurrentDensity(dia_m, 90) * area_m2):>7s}  ")
             Print(f"{g(Preece(awg)):>7s}")
             Print(f"{g(Onderdonk(awg, 1)):>8s}")
             Print(f"{g(Onderdonk(awg, 0.032)):>8s}")
         if awg in popular_sizes and isatty and not no_color:
             print(f"{t.n}", end="")
         print()
+
     def AmpacityData():
-        print(dedent(f'''
+        print(
+            dedent(
+                f"""
         Ampacity data for copper wire (currents in amperes, ambient temperature
         around normal room temperatures of 20 °C)
          
@@ -1032,30 +1121,35 @@ if 1:   # Core functionality
                              Insulation rating, °C               Onderdonk     
          AWG  Chass  Pwr      60       75       90    Preece    1 s     32 ms
         ----  ----- -----   -----    -----    -----   ------   -----    -----
-        '''[1:]))
+        """[1:]
+            )
+        )
         for awg in range(0, 41, 2):
             PrintAmpacityLine(awg)
         print()
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Chass is the maximum current for a single isolated wire in air (current density varies with
         wire diameter).  Pwr uses a current density of 2.82 A/mm².  Use the -H option for more details.
-        '''))
+        """)
+        )
+
     def MIL5088(gauge, ΔT):
-        '''Return the allowed current for a wire of size AWG gauge.  The temperature difference ΔT
+        """Return the allowed current for a wire of size AWG gauge.  The temperature difference ΔT
         is the wire's rating minus the ambient temperature in K.
-        
+
         From MIL-W-5088L dated 10 May 1991.  This is a specification for the wiring of aerospace
         vehicles such as airplanes, helicopters, and missles.  The formula is estimated from the
         graphs on pages 46 and 47.
-        
+
         Since the graphs are log-log and the lines are straight, I used a model of ΔT = b*i**m.
         Taking the log of both sides, we get
-        
+
                 ln(ΔT) = m*ln(i) + ln(b)
-        
+
         The slope m is estimated from page 46 as 2.09 and as 2.07 on page 47, so I'll use 2.08.
         The y-intercepts read from the graph at the 100 K line in A are
-        
+
             AWG      i0
             4/0     535
             3/0     480
@@ -1075,21 +1169,21 @@ if 1:   # Core functionality
             22      14
             24      10.7
             26      8
-        
+
         For a plot y = m*x + b, if a point x0 has a value k, then we can solve for b as b = k -
         m*x0.  Changing things for the ln expressions, we get
-        
+
             ln(b) = ln(ΔT) - m*ln(i0)
             b = exp(ln(ΔT) - m*ln(i0))
-        
+
         It's easier to work with wire diameter than AWG.  Plotting the above data as i0 vs wire
         diameter in mm, the graph is approximated by two straight lines (and the plot shows that
         the MIL spec graphs were probably gotten from empirical data).  If d is the diameter in mm
         of the wire, then the two lines are:
-        
+
             ΔT = 27*d             d < 2.6
             ΔT = 51*d - 58        d >= 2.6
-        '''
+        """
         if not (25 <= ΔT <= 250):
             raise ValueError("ΔT must be between 25 and 250 K")
         if not (-3 <= gauge <= 26):
@@ -1113,13 +1207,15 @@ if 1:   # Core functionality
                 20: 18.4,
                 22: 14,
                 24: 10.7,
-                26: 8
+                26: 8,
             }
             from util import AWG
+
             for n in intercept:
-                mm = round(AWG(n)*25.4, 3)
+                mm = round(AWG(n) * 25.4, 3)
                 print(mm, intercept[n])
             exit()
+
     def PrintVoltageDropTable():
         w, wc = 79, 6
         print(f"{'Voltage Drop Table for Copper Wire':^{w}s}")
@@ -1131,7 +1227,7 @@ if 1:   # Core functionality
         print()
         print(f"---    ----- ", end="")
         for p in pct:
-            print(f"{'-'*(wc - 2):^{wc}s} ", end="")
+            print(f"{'-' * (wc - 2):^{wc}s} ", end="")
         print()
         sizes = sorted(set(list(range(0, 41, 2))))
         amp_data = GetAmpacityData()
@@ -1141,25 +1237,24 @@ if 1:   # Core functionality
         for n in sizes:
             item = amp_data[str(n)]
             dia_in, i_chass = item[0:2]
-            dia_m = dia_in/39.37
-            area_m2 = pi*(dia_m/2)**2
-            r_ohm_per_m = flt(resistivity/area_m2)
+            dia_m = dia_in / 39.37
+            area_m2 = pi * (dia_m / 2) ** 2
+            r_ohm_per_m = flt(resistivity / area_m2)
             if n in popular_sizes and not d["-C"]:
                 print(f"{popular_sizes[n]}", end="")
             print(f"{n:2d}     ", end="")
             print(f"{flt(i_chass)!s:^5s} ", end="")
             for p in pct:
-                i = p/100*i_chass
-                V = int(i*r_ohm_per_m*1000)
+                i = p / 100 * i_chass
+                V = int(i * r_ohm_per_m * 1000)
                 print(f"{V:^{wc}d} ", end="")
             if n in popular_sizes and not d["-C"]:
                 print(f"{t.n}", end="")
             print()
 
 
-
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     if d["-a"]:
         AmpacityData()

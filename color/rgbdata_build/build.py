@@ -1,23 +1,24 @@
-'''
+"""
 Construct the rgbdata.py file.  This file is a list of color names
 and Color objects encapsulating the RGB color.  Write the constructed data
 to stdout.
-'''
+"""
+
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Build the rgbdata.py file's information
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         import getopt
         import os
         from pathlib import Path as P
@@ -25,24 +26,29 @@ if 1:  # Header
         import time
         from collections import deque
         from pdb import set_trace as xx
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import wrap, dedent
         from color import Color as C
-    if 1:   # Global variables
+    if 1:  # Global variables
         ii = isinstance
-if 1:   # Utility
+if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] data_file
           Builds the data file from the data file.  Write the information
           to stdout.
         Options:
             -h      Print a manpage
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
         if len(sys.argv) < 2:
             Usage()
@@ -59,16 +65,22 @@ if 1:   # Utility
         if len(args) != 1:
             Usage()
         return args[0]
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     class Color:
         def __init__(self, r, g, b):
             self.rgb = (r, g, b)
+
         def __str__(self):
             f = lambda x: f"{x:3d}"
             r, g, b = self.rgb
             return f"Color({f(r)}, {f(g)}, {f(b)})"
+
         def __repr__(self):
             return str(self)
+
     def GetData(file):
         datafile = P(file)
         if not datafile.exists():
@@ -94,7 +106,7 @@ if 1:   # Core functionality
                     line = lines.popleft()
                     a.append(line)
                     if line.endswith(trigger):
-                        attr[attrnum] = '\n'.join(a)
+                        attr[attrnum] = "\n".join(a)
                         break
             if got_attr or not line:
                 continue
@@ -103,16 +115,18 @@ if 1:   # Core functionality
             a = hex_to_int(color)
             c = Color(*a)
             out.append((attrnum, name, c))
-            #print(f"{name:20s} [{attrnum}]", color, c)
+            # print(f"{name:20s} [{attrnum}]", color, c)
         return out, attr
+
     def hex_to_int(s):
-        's is of the form #000000'
-        assert(len(s) == 7)
+        "s is of the form #000000"
+        assert len(s) == 7
         s = s[1:]
         rgb = s[0:2], s[2:4], s[4:6]
         return tuple(int(i, 16) for i in rgb)
+
     def GetHueCategory(color_instance):
-        'Return a hue category string for the color instance'
+        "Return a hue category string for the color instance"
         h = color_instance.ihsv[0]
         if 5 <= h <= 15:
             return "redorn"
@@ -146,12 +160,14 @@ if 1:   # Core functionality
             return "red"
         else:
             raise ValueError(f"{h} is a bad hue number")
+
     def Report(data, attrdict):
-        'Write output in form of python list and dict'
+        "Write output in form of python list and dict"
         myname = P(sys.argv[0]).resolve()
         # List of colors
         if 1:
-            print(dedent(f'''
+            print(
+                dedent(f"""
             # This file was constructed by {myname}
             # {time.asctime()}
             #
@@ -170,11 +186,12 @@ if 1:   # Core functionality
             #   Hue category string (there are 15 hue categories:  red, redorn, orn, ornyel, yel,
             #   yelgrn, grn, grncyn, cyn, cynblu, blu, vio, viomag, mag, magred))
 
-            '''))
+            """)
+            )
             print("color_data = [")
             last = (1, 0, 0)
             for i in data:
-                if i[0] != last[0]:     # Space after attribution number change
+                if i[0] != last[0]:  # Space after attribution number change
                     print()
                     last = i
                 attr, name, c = i
@@ -184,21 +201,24 @@ if 1:   # Core functionality
                 print(f"    ({attr:2d}, {n:44s}, {c}, {GetHueCategory(clr)!r}),")
             print("]")
         # Attribution data
-        print(dedent(f'''
+        print(
+            dedent(f"""
 
         # Attribution dictionary:  the integer key is the color name
         # attribution in the above list, the value is the attribution
         # string.  These python scripts are in the 
         # {myname.parent} directory.
-        '''))
+        """)
+        )
         print("attribution_dict = {")
         for i in attrdict:
             print(f"    {i}: {attrdict[i]},")
         print("}")
         exit()
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     file = ParseCommandLine(d)
     data, attrdict = GetData(file)
     Report(data, attrdict)

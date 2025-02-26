@@ -1,30 +1,31 @@
-'''
+"""
 Call GetElementNamedTuples() to get a list of named tuples with the properties of the elements.
 The index is 1 minus the atomic number.
- 
+
     Can also be run as a script to look at the properties of individual elements and launch
     wikipedia's web page on an element.
- 
+
     Data from e.g.
         https://en.wikipedia.org/wiki/Hydrogen
         https://en.wikipedia.org/wiki/Isotopes_of_hydrogen
         https://en.wikipedia.org/wiki/List_of_chemical_elements
-'''
-if 1:   # Header
-    if 1:   # Copyright, license
+"""
+
+if 1:  # Header
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Program description string
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Standard imports
+    if 1:  # Standard imports
         import getopt
         import os
         import re
@@ -33,20 +34,22 @@ if 1:   # Header
         import webbrowser
         from pprint import pprint as pp
         from collections import deque, namedtuple
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import wrap, dedent
         from color import Color, TRM as t
         from lwtest import Assert
         from columnize import Columnize
         from f import flt
+
         if 1:
             import debug
+
             debug.SetDebugger()
         t.dbg = t("brnl")
         t.err = t("ornl")
-    if 1:   # Global variables
+    if 1:  # Global variables
         ii = isinstance
-        elements = '''
+        elements = """
             Hydrogen       H    1
             Helium         He   2
             Lithium        Li   3
@@ -165,30 +168,32 @@ if 1:   # Header
             Livermorium    Lv   116
             Tennessine     Ts   117
             Oganesson      Og   118
-            '''
+            """
+
         # Mappings for element names, symbols, atomic numbers
         class g:
             pass
-        g.sym2num = {}      # {('h', 1), ('he', 2), ...
-                            #  ('H', 1), ('He', 2)}
-        g.num2sym = {}      # {(1, 'h'), (2, 'he')}
-        g.num2Sym = {}      # {(1, 'H'), (2, 'He')}
-        g.num2name = {}     # {(1, 'hydrogen'), (2, 'helium')}
-        g.num2Name = {}     # {(1, 'Hydrogen'), (2, 'Helium')}
-        g.name2num = {}     # [('hydrogen', 1), ('helium', 2)]
-        g.Name2num = {}     # [('Hydrogen', 1), ('Helium', 2)]
-        g.names = []        # ['hydrogen', 'helium', ...
-                            #  'Hydrogen', 'Helium']
-        g.symbols = []      # ['h', 'he', 'li', 'be', ...
-                            #  'H', 'He', 'Li', 'Be']
-if 1:   # Element data
+
+        g.sym2num = {}  # {('h', 1), ('he', 2), ...
+        #  ('H', 1), ('He', 2)}
+        g.num2sym = {}  # {(1, 'h'), (2, 'he')}
+        g.num2Sym = {}  # {(1, 'H'), (2, 'He')}
+        g.num2name = {}  # {(1, 'hydrogen'), (2, 'helium')}
+        g.num2Name = {}  # {(1, 'Hydrogen'), (2, 'Helium')}
+        g.name2num = {}  # [('hydrogen', 1), ('helium', 2)]
+        g.Name2num = {}  # [('Hydrogen', 1), ('Helium', 2)]
+        g.names = []  # ['hydrogen', 'helium', ...
+        #  'Hydrogen', 'Helium']
+        g.symbols = []  # ['h', 'he', 'li', 'be', ...
+        #  'H', 'He', 'Li', 'Be']
+if 1:  # Element data
     # Screen-scraped from https://en.wikipedia.org/wiki/List_of_chemical_elements
     # Edits made
     # - Removed notes like '[a]' and '[7]'
     # - Changed Fm's mp to a single estimate
     # - Changed numbers like 1×10-4 to 1×10⁻⁴
 
-    data = '''
+    data = """
     1	H	Hydrogen	Greek elements hydro- and -gen, 'water-forming'	1	1	s-block	1.0080	0.00008988	14.01	20.28	14.304	2.20	1400	primordial	gas
     2	He	Helium	Greek hḗlios, 'sun'	18	1	s-block	4.0026	0.0001785	-[k]	4.22	5.193	-	0.008	primordial	gas
     3	Li	Lithium	Greek líthos, 'stone'	1	2	s-block	6.94	0.534	453.69	1560	3.582	0.98	20	primordial	solid
@@ -307,7 +312,7 @@ if 1:   # Element data
     116	Lv	Livermorium	Lawrence Livermore National Laboratory in Livermore, California	16	7	p-block	[293]	(12.9)	(700)	(1100)	-	-	-	synthetic	unknown phase
     117	Ts	Tennessine	Tennessee, United States, where Oak Ridge National Laboratory is located	17	7	p-block	[294]	(7.1-7.3)	(700)	(883)	-	-	-	synthetic	unknown phase
     118	Og	Oganesson	Yuri Oganessian, Russian physicist	18	7	p-block	[294]	(7)	(325±15)	(450±10)	-	-	-	synthetic	unknown phase
-    '''
+    """
     # Fields for Element named tuple
     # 0   Atomic number Z
     # 1   Symbol
@@ -325,7 +330,9 @@ if 1:   # Element data
     # 13  Abundance in Earth's crust, ppm
     # 14  Origin
     # 15  Phase at 25 °C, 100 kPa
-    Element = namedtuple("Element", '''
+    Element = namedtuple(
+        "Element",
+        """
         Z
         sym
         name
@@ -342,16 +349,18 @@ if 1:   # Element data
         ppm
         origin
         phase
-    ''')
+    """,
+    )
     if 0:
+
         def Analyze(d):
             "Use to look at set of each element's contents"
             o = []
             for i in d:
                 o.append(i.rho)
             k = list(set(o))
-            print('   '.join(sorted(k)))
-            '''
+            print("   ".join(sorted(k)))
+            """
             group:  integer except for 'f-block groups'
             period: int 1-7
             block:  d-block   f-block   p-block   s-block
@@ -364,16 +373,18 @@ if 1:   # Element data
             ppm:    float, -, 1×10-4, ~ 1×10-18, ~, ≤ 3×10-11
             origin: from decay, primordial, synthetic
             phase:  gas, liquid, solid, unknown phase
-            '''
+            """
+
     def FixLine(line):
-        '''Fix lines that contain things like '[a]' by deleting such
+        """Fix lines that contain things like '[a]' by deleting such
         things in square brackets.
-        '''
+        """
         s = re.sub(r"\[[a-z]\]", "", line)
         s = re.sub(r"\[[0-9]\]", "", s)
         return s
+
     def GetElementNamedTuples():
-        'Return a list of Element namedtuple objects'
+        "Return a list of Element namedtuple objects"
         o = []
         for line in data.split("\n"):
             line = line.strip()
@@ -381,18 +392,24 @@ if 1:   # Element data
                 continue
             line = FixLine(line)
             f = line.split("\t")
-            assert(len(f) == 16)
+            assert len(f) == 16
             # Convert to integers
-            for i in (0, 5):    # Z and period (row)
+            for i in (0, 5):  # Z and period (row)
                 f[i] = int(f[i])
             o.append(Element(*f))
         return o
-if 1:   # Utility
+
+
+if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Manpage():
-        print(dedent(f'''
+        print(
+            dedent(
+                f"""
         This script is intended to let you see physical properties of the elements through the
         following features:
             
@@ -446,13 +463,17 @@ if 1:   # Utility
           [2] https://www.rsc.org/periodic-table
           [3] https://en.wikipedia.org/wiki/Astatine
  
-        '''.rstrip()))
+        """.rstrip()
+            )
+        )
         exit(0)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] [el1 [el2 ...]]
           Print the properties of the matched elements.  The el strings can be the element's
-          symbol, a regular expression for the name, or the atomic number.  There are {d['n']}
+          symbol, a regular expression for the name, or the atomic number.  There are {d["n"]}
           elements in the script.  If no arguments on the command line are given, the short list of
           elements is printed.  The data were screen scraped from the web page
           https://en.wikipedia.org/wiki/List_of_chemical_elements
@@ -471,25 +492,27 @@ if 1:   # Utility
             -H      Show manpage
             -h      Usage statement
             -l      Launch page on list of elements
-            -n m    Allow up to m pages to be opened [{d['-n']}]
+            -n m    Allow up to m pages to be opened [{d["-n"]}]
             -o      Open wikipedia page on matched elements
             -t      Run self-tests
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-a"] = False     # Show all elements
-        d["-c"] = False     # Use color if stdout isn't terminal
-        d["-D"] = False     # Dump data structures
-        d["-d"] = 4         # Significant digits
-        d["-H"] = False     # Manpage
-        d["-h"] = False     # Usage
-        d["-i"] = False     # Open isotopes page
-        d["-l"] = False     # Launch page on list of elements
-        d["-n"] = 5         # Number of allowed pages
-        d["-o"] = False     # Open web page instead of printing to stdout
-        d["-t"] = False     # Run self-tests
+        d["-a"] = False  # Show all elements
+        d["-c"] = False  # Use color if stdout isn't terminal
+        d["-D"] = False  # Dump data structures
+        d["-d"] = 4  # Significant digits
+        d["-H"] = False  # Manpage
+        d["-h"] = False  # Usage
+        d["-i"] = False  # Open isotopes page
+        d["-l"] = False  # Launch page on list of elements
+        d["-n"] = 5  # Number of allowed pages
+        d["-o"] = False  # Open web page instead of printing to stdout
+        d["-t"] = False  # Run self-tests
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "acDd:Hhiln:ot") 
+            opts, args = getopt.getopt(sys.argv[1:], "acDd:Hhiln:ot")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -502,8 +525,7 @@ if 1:   # Utility
                     if not (1 <= d["-d"] <= 15):
                         raise ValueError()
                 except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                        "1 and 15")
+                    msg = "-d option's argument must be an integer between 1 and 15"
                     Error(msg)
             elif o == "-n":
                 try:
@@ -514,7 +536,7 @@ if 1:   # Utility
                     Error("-n argument must be an integer > 0")
         GetData()
         d["el"] = GetElementNamedTuples()
-        d["n"] = len(g.num2sym)     # Number of elements in the script
+        d["n"] = len(g.num2sym)  # Number of elements in the script
         x = flt(0)
         x.N = d["-d"]
         # Set formatting for flts to use Unicode for scientific notation
@@ -532,12 +554,16 @@ if 1:   # Utility
         if not args:
             ShortList()
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def Uppercase(word):
-        assert(word)
+        assert word
         return word[0].upper() + word[1:]
+
     def GetData():
-        'Construct global dicts'
+        "Construct global dicts"
         for line in elements.strip().split("\n"):
             Name, Sym, num = [i.strip() for i in line.split()]
             num = int(num)
@@ -559,9 +585,11 @@ if 1:   # Core functionality
             g.names.append(name)
         #  Set of capitalized element names
         g.all = set(i for i in g.names if i[0] in string.ascii_uppercase)
-        if d["-D"]:     # Dump data structures
+        if d["-D"]:  # Dump data structures
+
             def L(di):
                 return list(di.items())[:2]
+
             print(f"{t.dbg}g.names    [list]: {g.names[:4]}")
             print(f"g.symbols  [list]: {g.symbols[:4]}")
             print()
@@ -577,6 +605,7 @@ if 1:   # Core functionality
             t.print(f"  g.all       [set]: {list(g.all)[:2]}")
             print()
             exit(0)
+
     def LaunchWebPage(name):
         base = "https://en.wikipedia.org/wiki/"
         if d["-i"]:
@@ -589,21 +618,22 @@ if 1:   # Core functionality
             # Open the element page
             url = base + name
         webbrowser.open(url)
+
     def GetElements(el, test=False):
-        '''Return the name(s) of the indicated element as a list.
+        """Return the name(s) of the indicated element as a list.
         Search strategy:
             - See if it's an integer, meaning an atomic number
             - See if it's an element symbol (1st character must be upper case)
             - See if it's a full element name
             - Search with it as a regex
         If test is True, always return a list, even if empty.
-        '''
+        """
         if not el.strip():
             return []
-        try:    # Atomic number?
+        try:  # Atomic number?
             atomic_number = int(el)
             name = g.num2Name[atomic_number]
-            assert(name in g.all)
+            assert name in g.all
             return [name]
         except (ValueError, KeyError):
             if test:
@@ -614,7 +644,7 @@ if 1:   # Core functionality
                 if el in g.symbols:
                     atomic_number = g.sym2num[el]
                     name = g.num2Name[atomic_number]
-                    assert(name in g.all)
+                    assert name in g.all
                     return [name]
             except KeyError:
                 if test:
@@ -623,7 +653,7 @@ if 1:   # Core functionality
         if el in g.names:
             index = g.names.index(el)
             name = Uppercase(g.names[index])
-            assert(name in g.all)
+            assert name in g.all
             return [name]
         # Use regular expression
         r = re.compile(el)
@@ -633,10 +663,11 @@ if 1:   # Core functionality
             if mo and Uppercase(name) not in names:
                 names.append(Uppercase(name))
         for name in names:
-            assert(name in g.all)
+            assert name in g.all
         return names
+
     def TestGetElements():
-        'Check that GetElements returns reasonable values'
+        "Check that GetElements returns reasonable values"
         # Valid atomic number
         Assert(GetElements("1") == ["Hydrogen"])
         # Invalid atomic number
@@ -651,43 +682,48 @@ if 1:   # Core functionality
         # Invalid full element name
         Assert(GetElements("Zydrogen") == [])
         # Valid regex
-        Assert(GetElements("[YZ]") == ['Zinc', 'Yttrium', 'Zirconium', 'Ytterbium'])
+        Assert(GetElements("[YZ]") == ["Zinc", "Yttrium", "Zirconium", "Ytterbium"])
         # Invalid regex
         Assert(GetElements("Zydrogen") == [])
         Assert(GetElements("") == [])
         #
         print("Tests passed")
         exit(0)
+
     def DumpElements():
         for i in Columnize(sorted(g.found_names)):
             print(i)
+
     def ToFlt(s):
         try:
             return flt(s)
         except ValueError:
             return s
+
     def F(K):
-        'Convert temperature in K to °F'
-        assert(ii(K, flt))
-        return (K - 273.15)*9/5 + 32
+        "Convert temperature in K to °F"
+        assert ii(K, flt)
+        return (K - 273.15) * 9 / 5 + 32
+
     def C(K):
-        'Convert temperature in K to °C'
-        assert(ii(K, flt))
+        "Convert temperature in K to °C"
+        assert ii(K, flt)
         return K - 273.15
+
     def PrintElement(Name):
         # Must subtract 1 because the array is 0-based
         num = g.Name2num[Name] - 1
         e = d["el"][num]
-        i, w = " "*4, 20
+        i, w = " " * 4, 20
         Da2yg = 1.66053906660
-        Da2kg = Da2yg*1e-27
+        Da2kg = Da2yg * 1e-27
         print(f"{Name} ({e.sym})    Z = {e.Z}")
         # Atomic weight
         aw = ToFlt(e.aw_Da)
         if ii(aw, flt):
-            #print(f"{i}{'Atomic weight':{w}s}{aw} Da = {aw*Da2kg} kg")
+            # print(f"{i}{'Atomic weight':{w}s}{aw} Da = {aw*Da2kg} kg")
             # Print in yg
-            print(f"{i}{'Atomic weight':{w}s}{aw} Da = {aw*Da2yg} yg")
+            print(f"{i}{'Atomic weight':{w}s}{aw} Da = {aw * Da2yg} yg")
         else:
             print(f"{i}{'Atomic weight':{w}s}{e.aw_Da} Da")
         # Density
@@ -727,13 +763,14 @@ if 1:   # Core functionality
         print(f"{i}{'Group':{w}s}{e.group}")
         print(f"{i}{'Period':{w}s}{e.period}")
         print(f"{i}{'Block':{w}s}{e.block}")
+
     def ShortList():
-        'This is printed if there are no arguments.  One element per line.'
+        "This is printed if there are no arguments.  One element per line."
         # Print header
-        hdr = dedent('''
+        hdr = dedent("""
         Sym  Z      Name     AtWt, Da       mp/bp K         g/cm³      ppm
         --- -- ------------- --------- ----------------- ---------- ----------
-        ''')
+        """)
         t.hdr = t("brnl")
         t.print(f"{t.hdr}{hdr}")
         # Get colors for phases
@@ -748,11 +785,11 @@ if 1:   # Core functionality
             num = i.Z
             if not d["-a"] and num > 92:
                 continue
-            c = dc[f"{i.phase}"]    # Phase color
+            c = dc[f"{i.phase}"]  # Phase color
             if i.aw_Da[0] == "[":
-                s = f"{t.rad}{i.aw_Da:^9s}{t.n}"    # Radioactive atomic weight
+                s = f"{t.rad}{i.aw_Da:^9s}{t.n}"  # Radioactive atomic weight
             else:
-                s = f"{i.aw_Da:^9s}"                # Regular atomic weight
+                s = f"{i.aw_Da:^9s}"  # Regular atomic weight
             # symbol, Z, name, at. wt.
             print(f"{c}{i.sym:2s} {i.Z:3d} {i.name:13s} {s:^9s} {c}", end=" ")
             s = f"{i.mp}/{i.bp}"
@@ -766,15 +803,18 @@ if 1:   # Core functionality
         liq = dc["liquid"]
         gas = dc["gas"]
         unk = dc["unknown phase"]
-        print(f"\nPhase colors:  {sol}solid{t.n} "
-              f"{liq}liquid{t.n} {gas}gas{t.n} {unk}unknown{t.n} "
-              "at 25 °C and 100 kPa")
+        print(
+            f"\nPhase colors:  {sol}solid{t.n} "
+            f"{liq}liquid{t.n} {gas}gas{t.n} {unk}unknown{t.n} "
+            "at 25 °C and 100 kPa"
+        )
         print(f"{t.rad}[209]{t.n} means the atomic weight of the most stable isotope")
         print(f"(1125) means a predicted property")
         print(f"1 Da is 1.66054×10⁻²⁴ g (i.e., yg)")
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     # Find all the element names referenced by the command line
     g.found_names = []
@@ -782,7 +822,7 @@ if __name__ == "__main__":
         for name in GetElements(el):
             if name not in g.found_names:
                 g.found_names.append(name)
-    if d["-D"]:   # Dump for debugging
+    if d["-D"]:  # Dump for debugging
         print("Found the following elements:")
         DumpElements()
         exit(0)

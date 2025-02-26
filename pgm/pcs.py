@@ -1,4 +1,4 @@
-'''
+"""
 
 TODO
     - Add an option that just shows lines with problems and condenses
@@ -12,106 +12,115 @@ Runs pycodestyle and summarizes results
     notable, low-priority, and ignored.
 
     For my python files, I will fix anything that is labeled a priority 3
-    error.  Such things include 
+    error.  Such things include
 
         - Any use of tab characters
         - Indentation that is not a multiple of 4 spaces
         - Multiple imports or imports not at beginning of file
         - Multiple statements on one line
         - No bare 'except' usage
-        - Deprecated usage.  
+        - Deprecated usage.
 
     Most of the priority 2 errors will be fixed.  I'll look at the
-    remaining stuff and decide what needs fixing. 
+    remaining stuff and decide what needs fixing.
 
-'''
-if 1:   # Header
+"""
+
+if 1:  # Header
     # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
-        # Runs pycodestyle on a set of python files
-        #∞what∞#
-        #∞test∞# #∞test∞#
+    # These "trigger strings" can be managed with trigger.py
+    # ∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    # ∞license∞#
+    # ∞what∞#
+    # Runs pycodestyle on a set of python files
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     # Standard imports
-        import getopt
-        import os
-        from pathlib import Path as P
-        import subprocess
-        import sys
-        from pdb import set_trace as xx
-        from collections import defaultdict, namedtuple
-        from pprint import pprint as pp
+    import getopt
+    import os
+    from pathlib import Path as P
+    import subprocess
+    import sys
+    from pdb import set_trace as xx
+    from collections import defaultdict, namedtuple
+    from pprint import pprint as pp
+
     # Custom imports
-        from wrap import wrap, dedent, HangingIndent
-        from color import Color, TRM as t
-        from get import GetLines
-        from lwtest import Assert
-        from color import Color, TRM as t
-        if 0:
-            import debug
-            debug.SetDebugger()
+    from wrap import wrap, dedent, HangingIndent
+    from color import Color, TRM as t
+    from get import GetLines
+    from lwtest import Assert
+    from color import Color, TRM as t
+
+    if 0:
+        import debug
+
+        debug.SetDebugger()
     # Global variables
-        t.always = True
-        dbg = False
-        ii = isinstance
-        W = int(os.environ.get("COLUMNS", "80")) - 1
-        L = int(os.environ.get("LINES", "50"))
-        # Colors
-        t.dbg = t("lill")
-        t.err = t("lip")
-        t.file = t("grnl")
-        # Named tuple to hold output lines' data
-        Entry = namedtuple("Entry", "file linenum colnum errnum msg")
-        # Dictionary to map seen errors to the errors' description.  An
-        # example entry is:
-        #       "E501": "E501 line too long (81 > 79 # characters)"
-        errors = {}
-        # Dictionary to map errors to their rank 0 to 3 with 0 most
-        # important.
-        error_ranks = {}
-        # Dictionary for error colors
-        error_colors = {
-            0: t("sky"),
-            1: t("roy"),
-            2: t("ornl"),
-            3: t("redl"),
-        }
-if 1:   # Utility
+    t.always = True
+    dbg = False
+    ii = isinstance
+    W = int(os.environ.get("COLUMNS", "80")) - 1
+    L = int(os.environ.get("LINES", "50"))
+    # Colors
+    t.dbg = t("lill")
+    t.err = t("lip")
+    t.file = t("grnl")
+    # Named tuple to hold output lines' data
+    Entry = namedtuple("Entry", "file linenum colnum errnum msg")
+    # Dictionary to map seen errors to the errors' description.  An
+    # example entry is:
+    #       "E501": "E501 line too long (81 > 79 # characters)"
+    errors = {}
+    # Dictionary to map errors to their rank 0 to 3 with 0 most
+    # important.
+    error_ranks = {}
+    # Dictionary for error colors
+    error_colors = {
+        0: t("sky"),
+        1: t("roy"),
+        2: t("ornl"),
+        3: t("redl"),
+    }
+if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} [options] file1 [file2 ...]
           Run pycodestyle on the indicated files and summarize the results.
           Returned status is 0 for nothing printed, 1 for one or more
           messages printed.  
         Options:
-            -0      Print ignored items      [{d['-0']}]
-            -1      Print low-priority items [{d['-1']}]
-            -2      Print notable items      [{d['-2']}]
-            -3      Print important items    [{d['-3']}]
-            -a      Show all errors/warnings [{d['-a']}]
+            -0      Print ignored items      [{d["-0"]}]
+            -1      Print low-priority items [{d["-1"]}]
+            -2      Print notable items      [{d["-2"]}]
+            -3      Print important items    [{d["-3"]}]
+            -a      Show all errors/warnings [{d["-a"]}]
             -c      Include column information with line numbers
-            -f      Organize output by file  [{d['-f']}]
+            -f      Organize output by file  [{d["-f"]}]
             -v      Debug output (more than one for more verbosity)
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-0"] = False     # Show ignored items
-        d["-1"] = False     # Show low-priority items
-        d["-2"] = True      # Show notable items
-        d["-3"] = True      # Show important items
-        d["-a"] = False     # Show all errors/warnings
-        d["-c"] = False     # Include column numbers
-        d["-f"] = True      # Organize output by file
-        d["-v"] = 0         # Show debug output
+        d["-0"] = False  # Show ignored items
+        d["-1"] = False  # Show low-priority items
+        d["-2"] = True  # Show notable items
+        d["-3"] = True  # Show important items
+        d["-a"] = False  # Show all errors/warnings
+        d["-c"] = False  # Include column numbers
+        d["-f"] = True  # Organize output by file
+        d["-v"] = 0  # Show debug output
         if len(sys.argv) < 2:
             Usage()
         a = ["help", "debug"]
@@ -131,6 +140,7 @@ if 1:   # Utility
                 # Set up a handler to drop us into the debugger on an
                 # unhandled exception
                 import debug
+
                 debug.SetDebugger()
         if d["-a"]:
             d["-0"] = d["-1"] = d["-2"] = d["-3"] = True
@@ -138,22 +148,26 @@ if 1:   # Utility
             global dbg
             dbg = d["-v"]
         return args
+
     def Dbg(*p, **kw):
-        'Assumes colorizing escape strings output to stdout'
+        "Assumes colorizing escape strings output to stdout"
         if not dbg:
             return
         print(f"{t.dbg}", end="")
         print(*p, **kw)
         print(f"{t.n}", end="")
-if 1:   # Rankings of error/warning types
+
+
+if 1:  # Rankings of error/warning types
+
     def GetErrorRankDict():
-        '''Return a dict keyed by error/warning numbers like "E305" and
+        """Return a dict keyed by error/warning numbers like "E305" and
         values of integers on [0, 3]:
             0   Ignored
             1   Low-priority fixes
             2   Notable and should be fixed
             3   Important and must be fixed
-        '''
+        """
         global error_ranks
         for line in GetErrorRankDict.data.split("\n"):
             line = line.strip()
@@ -164,10 +178,11 @@ if 1:   # Rankings of error/warning types
             Assert(rank in range(4))
             errnum = f[1]
             error_ranks[errnum] = rank
+
     # Downloaded from
     # https://pycodestyle.pycqa.org/en/latest/intro.html#error-codes
     # on 05 Aug 2022 06:58:55 PM
-    GetErrorRankDict.data = '''
+    GetErrorRankDict.data = """
         3   E101 indentation contains mixed spaces and tabs
         3   E111 indentation is not a multiple of four
         1   E112 expected an indented block
@@ -252,17 +267,20 @@ if 1:   # Rankings of error/warning types
         3   W604 backticks are deprecated, use ‘repr()’
         3   W605 invalid escape sequence ‘x’
         3   W606 ‘async’ and ‘await’ are reserved keywords starting with Python 3.7
-    '''
-if 1:   # Classes
+    """
+if 1:  # Classes
+
     class Item:
-        '''An item holds the following data:
+        """An item holds the following data:
             Error number (e.g. "E225")
             File name
             line_col = tuple of (line, column) where error was
         The __str__ method allows printing the item to stdout.
-        '''
+        """
+
         # The default way of returning a string interpolation
         by_file = True
+
         def __init__(self, errnum, file, line_col):
             self.errnum = errnum
             self.file = file
@@ -276,18 +294,19 @@ if 1:   # Classes
                 self.colnums.append(colnum)
             self.linenums = sorted(self.linenums)
             self.colnums = sorted(self.colnums)
+
         def __str__(self):
-            '''Return a string that gives the filename, a ":", and the list
+            """Return a string that gives the filename, a ":", and the list
             of line numbers with one space between them.  Wrap things so
             that the line numbers are easy to read.
-            '''
+            """
             if Item.by_file:
                 if d["-c"]:
                     q = [f"{i}:{j}" for i, j in zip(self.linenums, self.colnums)]
                 else:
                     q = self.linenums
                 s = f"{' '.join(str(i) for i in q)}"
-                i = " "*4
+                i = " " * 4
                 return HangingIndent(s, indent=i, first_line_indent=i)
             else:
                 if d["-c"]:
@@ -295,21 +314,26 @@ if 1:   # Classes
                 else:
                     q = self.linenums
                 s = f"{self.file}: {' '.join(str(i) for i in q)}"
-                return HangingIndent(s, indent=" "*4, first_line_indent=" "*2)
+                return HangingIndent(s, indent=" " * 4, first_line_indent=" " * 2)
+
         def __repr__(self):
-            'String for debugging'
+            "String for debugging"
             return f"Item({self.errnum}, {len(self.line_col)} lines)"
+
         def __lt__(self, other):
             return self.rank < other.rank
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def ProcessFile(file, di):
-        '''For the indicated python file, run pycodestyle in it and capture
+        """For the indicated python file, run pycodestyle in it and capture
         the output.  Return a list of Entry tuples.  The lines have the
         form
             fpformat.py:80:54: E241 multiple spaces after ','
         where the fields are the file name, line number, column number, and
         error message.
-        '''
+        """
         Dbg(f"Processing file {file!r}")
         f = P(file)
         if not f.exists():
@@ -339,8 +363,9 @@ if 1:   # Core functionality
                 Dbg(f"{entry}")
             out.append(entry)
         return out
+
     def ProcessData(entries):
-        '''entries is a list of Entry instances.  Classify these into a
+        """entries is a list of Entry instances.  Classify these into a
         dict with the following structure
         {
             "E501": {
@@ -350,7 +375,7 @@ if 1:   # Core functionality
             },
         }
         where T tuples are (linenum, colnum); both entries are integers.
-        '''
+        """
         di = defaultdict(dict)
         Dbg(f"{len(entries)} entries to process")
         for entry in entries:
@@ -372,8 +397,9 @@ if 1:   # Core functionality
             pp(di)
             t.out()
         return di
+
     def ReportByError(data):
-        '''Print the condensed data by error/warning number.  data is a
+        """Print the condensed data by error/warning number.  data is a
         dict with the structure
         {
             "E501": {
@@ -382,13 +408,14 @@ if 1:   # Core functionality
                 etc.
             },
         }
-        '''
+        """
         Item.by_file = False
         count = 0  # Count number of items
+
         def Print(r):
-            '''r is a dict keyed by error numbers with values of list of
+            """r is a dict keyed by error numbers with values of list of
             Item instances.
-            '''
+            """
             nonlocal count
             for errnum, items in r.items():
                 # Note all the items have the same rank
@@ -397,6 +424,7 @@ if 1:   # Core functionality
                 for item in items:
                     print(item)
                     count += 1
+
         # Divide up into ranked groups
         r0 = defaultdict(list)
         r1 = defaultdict(list)
@@ -424,8 +452,9 @@ if 1:   # Core functionality
         if d["-3"]:
             Print(r3)
         return bool(count)
+
     def ReportByFile(data):
-        '''Print the condensed data by file.  data is a dict with the
+        """Print the condensed data by file.  data is a dict with the
         structure
         {
             "E501": {
@@ -434,7 +463,7 @@ if 1:   # Core functionality
                 etc.
             },
         }
-        '''
+        """
         Item.by_file = True
         # Make a dictionary keyed by file name with values being that
         # file's Item instances.
@@ -442,10 +471,11 @@ if 1:   # Core functionality
         for errnum in data:
             for file in data[errnum]:
                 di[file].append(data[errnum][file])
+
         def HasItemsToPrint(file):
-            '''Return True if this file has data to print.  This determines
+            """Return True if this file has data to print.  This determines
             if we should print the file's name.
-            '''
+            """
             nonlocal di
             if d["-0"]:
                 for item in di[file]:
@@ -464,8 +494,9 @@ if 1:   # Core functionality
                     if item.rank == 3:
                         return True
             return False
+
         def Print(rank, items):
-            'rank is int, items is list of Item instances'
+            "rank is int, items is list of Item instances"
             for item in items:
                 if item.rank != rank:
                     continue
@@ -473,6 +504,7 @@ if 1:   # Core functionality
                 t.print(f"  {c}{errors[item.errnum]}")
                 s = str(item).replace(item.file + ":", "").strip()
                 print(f"    {s}")
+
         # Sort the items by rank
         for file in di:
             di[file] = sorted(di[file])
@@ -492,8 +524,9 @@ if 1:   # Core functionality
             if d["-3"]:
                 Print(3, items)
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     GetErrorRankDict()
     files = ParseCommandLine(d)
     di = defaultdict(dict)

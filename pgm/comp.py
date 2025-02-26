@@ -1,9 +1,11 @@
-'''
+"""
 Search for text in the components database
-'''
-if 1:   # Data
+"""
+
+if 1:  # Data
     from wrap import dedent
-    todo = dedent('''
+
+    todo = dedent("""
     comp.py ToDo list
 
     - Inventory
@@ -23,8 +25,8 @@ if 1:   # Data
     - Look at getting some locking heavy duty plastic boxes for storage that will stack in a
       compact fashion
 
-    ''')
-    data = dedent('''
+    """)
+    data = dedent("""
         
         The compartments of the plastic boxes are numbered from left to right and front to back.
         These data are free form.  The actual data lines contain three integers separated by
@@ -577,14 +579,14 @@ if 1:   # Data
             32:12:?      
             32:13:?      
 
-    ''')
-    if 0:   # For testing/debugging
-        data = dedent('''
+    """)
+    if 0:  # For testing/debugging
+        data = dedent("""
                 32:1:?    Capacitor, 100 nF, 25 V, part no. 104M5C806   capacitor
                 32:2:?      
-        ''')
-if 1:   # Header
-    if 1:   # Imports
+        """)
+if 1:  # Header
+    if 1:  # Imports
         import sys
         import os
         import getopt
@@ -594,18 +596,21 @@ if 1:   # Header
         from pdb import set_trace as xx
         from functools import cmp_to_key
         from pprint import pprint as pp
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from columnize import Columnize
         from color import TRM as t
+
         if 0:
             import debug
+
             debug.SetDebugger()
-    if 1:   # Global variables
+    if 1:  # Global variables
         beginning_lines_to_ignore = 3
-if 1:   # Classes
+if 1:  # Classes
+
     class Entry:
         def __init__(self, line_number, info, description, keywords):
-            '''Attributes:
+            """Attributes:
             line_number     i Line number in data string
             box             i Box number
             compartment     i Compartment number
@@ -615,7 +620,7 @@ if 1:   # Classes
             start           i Start of regex match
             end             i End of regex match
             empty           b If description string is empty
-            '''
+            """
             self.line_number = line_number  # 1-based number
             # info will be two integers and a string separated by colons
             self.box, self.compartment, self.quantity = info.split(":")
@@ -628,29 +633,35 @@ if 1:   # Classes
             self.end = None
             # Other attributes
             self.empty = True if not self.description else False
+
         def __str__(self):
-            k = '/'.join(self.keywords)
-            i = " "*1
+            k = "/".join(self.keywords)
+            i = " " * 1
             s = f"{t.box}{self.box:2d}:{t.compartment}{self.compartment:2d}:"
             q = "" if self.quantity == "?" else str(self.quantity)
             s += f"{t.quantity}{q:3s}{t.n}{i}{self.description}"
-            #s = f"{t.box}{self.box:2d}:{t.compartment}{self.compartment:2d}{t.n}{i}{self.description}"
+            # s = f"{t.box}{self.box:2d}:{t.compartment}{self.compartment:2d}{t.n}{i}{self.description}"
             if k:
                 s += f" {t.keyword}[{k}]{t.n}"
             return s
+
         def __repr__(self):
             return str(self)
+
         def __lt__(self, other):
-            '''Comparison for sorting.  The primary key is the box number and the secondary key is
+            """Comparison for sorting.  The primary key is the box number and the secondary key is
             the compartment number.
-            '''
+            """
             if int(self.box) < int(other.box):
                 return True
             elif int(self.box) > int(other.box):
                 return False
             else:
                 return int(self.compartment) < int(other.compartment)
-if 1:   # Utility
+
+
+if 1:  # Utility
+
     def SetColors(on=True):
         # Colors
         t.match = t("royl") if on else ""
@@ -658,9 +669,11 @@ if 1:   # Utility
         t.compartment = t("grn") if on else ""
         t.quantity = t("viol") if on else ""
         t.keyword = t("gry") if on else ""
-        t.warn = t("ornl") if on else ""     # Color for a missing category warning
+        t.warn = t("ornl") if on else ""  # Color for a missing category warning
+
     def Usage(status=0):
-        print(dedent(f'''
+        print(
+            dedent(f"""
             {sys.argv[0]} [options] [regex [regex2...]]
                 Searches the components database for the indicated regular expressions AND'd
                 together.  The search is case-insensitive.  Prefix a regex with '-' and anything
@@ -684,20 +697,22 @@ if 1:   # Utility
                 -o        OR the regexes instead of AND
                 -t        Dump the ToDo list
                 -v        Print out color code and numbering key 
-        '''))
+        """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-a"] = False     # Dump all records
-        d["-b"] = None      # Specifies box number to list
-        d["-C"] = False     # Turn off color highlighting
-        d["-c"] = False     # Show category
-        d["-d"] = False     # Inspection
-        d["-e"] = False     # Show empty compartments
-        d["-i"] = True      # Ignore case
-        d["-k"] = ""        # Show this keyword
-        d["-l"] = False     # List the keywords
-        d["-o"] = False     # OR the regexes on the command line
-        d["-v"] = False     # Print color coding & numbering key
+        d["-a"] = False  # Dump all records
+        d["-b"] = None  # Specifies box number to list
+        d["-C"] = False  # Turn off color highlighting
+        d["-c"] = False  # Show category
+        d["-d"] = False  # Inspection
+        d["-e"] = False  # Show empty compartments
+        d["-i"] = True  # Ignore case
+        d["-k"] = ""  # Show this keyword
+        d["-l"] = False  # List the keywords
+        d["-o"] = False  # OR the regexes on the command line
+        d["-v"] = False  # Print color coding & numbering key
         try:
             optlist, args = getopt.getopt(sys.argv[1:], "ab:CcDdehik:lotv")
         except getopt.GetoptError as e:
@@ -720,9 +735,12 @@ if 1:   # Utility
                 exit(0)
         SetColors(False) if d["-C"] else SetColors()
         return args
-if 1:   # Core functionality
+
+
+if 1:  # Core functionality
+
     def GetData():
-        'Return a list of Entry items'
+        "Return a list of Entry items"
         items = []
         # This regex should find lines beginning with two integers, each with a colon after
         # them, then a string.
@@ -731,7 +749,7 @@ if 1:   # Core functionality
             line = line.strip()
             mo = r.search(line)
             if mo:
-                if 0:   # Show the line
+                if 0:  # Show the line
                     t.print(f"{t.magl}{line}")
                 f = line.split()
                 if len(f) == 1:
@@ -742,15 +760,15 @@ if 1:   # Core functionality
                     # location is of the form 'n:m:s' where n and m are integers and s is a
                     # string.  remainder is the description followed by a non-breaking space,
                     # followed by optional keyword(s).
-                    nbs = "\xa0"    # Non-breaking space character
-                    if nbs in remainder:    # Has one or more keywords
+                    nbs = "\xa0"  # Non-breaking space character
+                    if nbs in remainder:  # Has one or more keywords
                         description, keywords = remainder.split(nbs)
-                    else:                   # Has no keywords
+                    else:  # Has no keywords
                         description = remainder.strip()
                         keywords = ""
                     e = Entry(i + 1, location, description, keywords)
                 items.append(e)
-        if 0:   # Debug dump items
+        if 0:  # Debug dump items
             t.print(f"{t.ornl}Debug dump of items:")
             for i in items:
                 print(i)
@@ -760,17 +778,18 @@ if 1:   # Core functionality
             print(f"{t.ornl}items is empty")
             exit()
         return items
+
     def TextSearch(args, items):
-        '''found will hold the Entry items that matched; pos holds the start and
+        """found will hold the Entry items that matched; pos holds the start and
         end position of the first match and is keyed by the line.
-        
+
         args        List of regexes to search for
         items       List of Entry instances; when printed, an Entry will result in a string like
                     "1:1 Component pins".
-        '''
+        """
         if 1:  # regexps is a list of the regular expressions made from args
             regexps = []
-            remove = []     # Hold those that begin with "-"
+            remove = []  # Hold those that begin with "-"
             for i in args:
                 i = i.strip()
                 if not i:
@@ -793,7 +812,7 @@ if 1:   # Core functionality
             else:  # AND the regexes
                 for i in items:
                     s = i.description
-                    matched_all = True          # Assume we'll match all
+                    matched_all = True  # Assume we'll match all
                     # Since this is reversed, the only regex that will be color-coded is the first
                     for r in reversed(regexps):
                         mo = r.search(s)
@@ -806,7 +825,10 @@ if 1:   # Core functionality
         if 1 and remove:  # Remove any specified regexes
             keep = []
             # Compile the regexes
-            remove = [re.compile(regex, re.I) if d["-i"] else re.compile(regex) for regex in remove]
+            remove = [
+                re.compile(regex, re.I) if d["-i"] else re.compile(regex)
+                for regex in remove
+            ]
             for item in found:
                 not_found = True
                 for r in remove:
@@ -824,51 +846,63 @@ if 1:   # Core functionality
                 # Box, compartment, quantity.  If quantity is ?, meaning it hasn't been
                 # inventoried, then print it in black so that it won't be visible.
                 q = t.blk if item.quantity == "?" else t.quantity
-                print(f"{t.box}{item.box:>2d}:"
-                      f"{t.compartment}{item.compartment:>2d}:"
-                      f"{q}{item.quantity:3s}{t.n}", end="")
+                print(
+                    f"{t.box}{item.box:>2d}:"
+                    f"{t.compartment}{item.compartment:>2d}:"
+                    f"{q}{item.quantity:3s}{t.n}",
+                    end="",
+                )
                 # Description
                 if 1:
-                    print("", end=" "*1)    # Spacing between box:compartment and description
+                    print(
+                        "", end=" " * 1
+                    )  # Spacing between box:compartment and description
                     s = item.description
-                    print(s[:item.start], end="")
+                    print(s[: item.start], end="")
                     # Colorized match
-                    print(f"{t.match}{s[item.start:item.end]}{t.n}", end="")
+                    print(f"{t.match}{s[item.start : item.end]}{t.n}", end="")
                     # Remainder
-                    print(s[item.end:], end="")
+                    print(s[item.end :], end="")
                 # Keywords
-                k = '/'.join(item.keywords)
+                k = "/".join(item.keywords)
                 print(f" {t.keyword}[{k}]{t.n}") if k else print()
             if found:
                 PrintColorCoding()
+
     def PrintColorCoding(qty=True):
         if not d["-v"]:
             return
         if not d["-C"]:
-            t.print(f"Color coding:  {t.box}box "
-                    f"{t.compartment}compartment "
-                    f"{t.quantity}quantity "
-                    f"{t.keyword}keyword")
+            t.print(
+                f"Color coding:  {t.box}box "
+                f"{t.compartment}compartment "
+                f"{t.quantity}quantity "
+                f"{t.keyword}keyword"
+            )
         # Quantity coding
         if qty:
-            print(dedent('''
+            print(
+                dedent("""
                 Letters for quantity:
                     ?   Not inventoried yet
                     f   A few
                     m   Too many to count
-            '''))
+            """)
+            )
+
     def Keywords(items):
-        'Returns a set of the keywords'
+        "Returns a set of the keywords"
         kw = []
         for item in items:
             kw.extend(item.keywords)
         return set(kw)
+
     def Inspection():
-        '''Look for problems in the data:
-            - No keyword
-            - Misspelled (not important yet)
-            - Needs inventory taken
-        '''
+        """Look for problems in the data:
+        - No keyword
+        - Misspelled (not important yet)
+        - Needs inventory taken
+        """
         # No keyword
         if 1:
             no_kwd = []
@@ -895,14 +929,11 @@ if 1:   # Core functionality
                 t.print(f"{t.ornl}Boxes:compartments that still need parts counting:")
                 for box in needs_counting:
                     o.append(f"{box:2d}: {needs_counting[box]}")
-                for i in Columnize(o, columns=5, sep=" "*5):
+                for i in Columnize(o, columns=5, sep=" " * 5):
                     print(i)
-                
-        
-                
-            
 
-if __name__ == "__main__": 
+
+if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
     if not d["-C"]:
@@ -920,7 +951,7 @@ if __name__ == "__main__":
                 print(item)
         PrintColorCoding()
     elif d["-d"]:
-            Inspection()
+        Inspection()
     elif d["-e"]:  # Show empty compartments
         u = defaultdict(list)
         for item in items:
@@ -939,7 +970,7 @@ if __name__ == "__main__":
                 KW[kw] += 1
         # Get maximum count
         max_count = max(KW.values())
-        w = len(str(max_count))     # Needed printing width
+        w = len(str(max_count))  # Needed printing width
         # Print sorted alphabetically
         o, o1, max_count = [], [], 0
         print("Keywords sorted alphabetically (number is count):")

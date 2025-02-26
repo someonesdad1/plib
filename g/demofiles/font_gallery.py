@@ -1,10 +1,12 @@
-'''
+"""
 Show the alphabets in some different fonts.  We put similar fonts next
 to each other for comparison.  Since I only have access to a LaserJet
 4050, these fonts work on my printer -- they may not work on yours.
-'''
+"""
+
 import sys
 from g import *
+
 x = 2.3  # offset
 font_list = (
     (AntiqueOlive, "AntiqueOlive", x),
@@ -49,6 +51,8 @@ font_list = (
     (Symbol, "Symbol", x),
     (Dingbats, "Dingbats", x),
 )
+
+
 def FontGallery1(file):
     # This is the original version with fonts all across the page.
     s = Setup(file, landscape, inches)
@@ -77,6 +81,8 @@ def FontGallery1(file):
         text("%s" % alphabet)
         pop()
     s.close()
+
+
 def FontGallery2(file):
     # This version only prints all the letters for dingbats and symbol.
     s = SetUp(file, landscape, inches)
@@ -129,5 +135,7 @@ def FontGallery2(file):
         textName(Dingbats)
         text(c)
     s.close()
+
+
 FontGallery1("out/font_gallery1.ps")
 FontGallery2("out/font_gallery2.ps")

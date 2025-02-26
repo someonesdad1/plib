@@ -1,31 +1,36 @@
-'''
+"""
 Treat lines of a file like a set
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2005, 2009 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2005, 2009 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Treat lines of a file like a set
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import getopt
     import re
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
-if 1:   # Global variables
-    element_string = None   # For el operation
+if 1:  # Global variables
+    element_string = None  # For el operation
+
+
 def Error(msg):
     print(msg, file=sys.stderr)
     exit(1)
+
+
 def CheckArgs(args):
     if len(args) < 3:
         Usage()
@@ -39,13 +44,20 @@ def CheckArgs(args):
     if op in "sd is el".split():
         if len(args) != 3:
             Usage(1)
+
+
 def Manpage():
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Manpage
-    '''))
+    """)
+    )
     exit(0)
+
+
 def Usage(status=1):
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]} [options] op file1 file2 [file3 ...]
       where op is the operation:
         ne               Lines in file1 are != to the lines in following files
@@ -77,14 +89,17 @@ def Usage(status=1):
       -l            Convert all lines to lowercase
       -s            Do not sort the output lines
       -w            Ignore leading and trailing whitespace
-    '''))
+    """)
+    )
     exit(status)
+
+
 def ParseCommandLine(d):
-    d["-H"] = False     # Print manpage
-    d["-i"] = []        # Regexps of lines to ignore
-    d["-l"] = False     # Convert all lines to lowercase
-    d["-s"] = True      # Sort output
-    d["-w"] = False     # Ignore leading and trailing whitespace
+    d["-H"] = False  # Print manpage
+    d["-i"] = []  # Regexps of lines to ignore
+    d["-l"] = False  # Convert all lines to lowercase
+    d["-s"] = True  # Sort output
+    d["-w"] = False  # Ignore leading and trailing whitespace
     if len(sys.argv) < 2:
         Usage()
     try:
@@ -107,16 +122,20 @@ def ParseCommandLine(d):
         Usage()
     CheckArgs(args)
     return args
+
+
 def GetLines(op, files, d):
-    '''Read in the lines from the files, perform the indicated operation,
+    """Read in the lines from the files, perform the indicated operation,
     and return (a, b) where lines1 and lines2 are the sets of lines.  Note
     the returned lines include the newline.
       op:       one of the strings ne eq el di sd in is un
       files:    List of files to get lines from
       d:        Command line options dictionary
-    '''
+    """
+
     def do_not_ignore(line, r):
         return not r.search(line)
+
     lines1 = open(files[0]).readlines()
     lines2 = []
     if op == "el":
@@ -126,17 +145,19 @@ def GetLines(op, files, d):
     else:
         for file in files[1:]:
             lines2 += open(file).readlines()
-        if d["-i"]:     # Ignore lines with given regular expressions
+        if d["-i"]:  # Ignore lines with given regular expressions
             for r in d["-i"]:
                 lines1 = [line for line in lines1 if do_not_ignore(line, r)]
                 lines2 = [line for line in lines2 if do_not_ignore(line, r)]
-        if d["-w"]:     # Strip leading and trailing whitespace
+        if d["-w"]:  # Strip leading and trailing whitespace
             lines1 = [line.strip() for line in lines1]
             lines2 = [line.strip() for line in lines2]
-        if d["-l"]:     # Convert lines to lowercase
+        if d["-l"]:  # Convert lines to lowercase
             lines1 = [line.lower() for line in lines1]
             lines2 = [line.lower() for line in lines2]
     return frozenset(lines1), frozenset(lines2)
+
+
 if __name__ == "__main__":
     d = {}
     args = ParseCommandLine(d)

@@ -1,20 +1,21 @@
-'''
+"""
 Tool to compare shell environment variables and functions.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2005, 2011 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2005, 2011 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Compare environment variables and functions
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import re
     import getopt
@@ -22,32 +23,37 @@ if 1:   # Imports
     import tempfile
     import subprocess
     import time
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
-if 1:   # Global variables
+if 1:  # Global variables
     # Set wdiff to a program like kdiff3 or WinMerge.  If you don't have
     # such a program, set it to None.
     wdiff = "d:/bin/TortoiseHg104/kdiff3.exe"
     wdiff = None
     wdiff = "d:/bin/winmerge/WinMergeU.exe"
-    # Regular expressions 
+    # Regular expressions
     bash_func = re.compile(r"^.* \(\)$")
     bash_env = re.compile(r"^.*=.*$")
     # The following string is used to identify the functions dictionary
     # in the dictionary containing the environment variables.  It is a
     # string that is not allowed as a shell variable name.
     func_key = "\nfunc"
+
+
 def GetTempFilename(filename):
-    '''Get a temporary file name and append filename to the file's name.
+    """Get a temporary file name and append filename to the file's name.
     This is intended to provide a temporary file for use with displaying
     differences in the visual diff program.
-    '''
+    """
     t = tempfile.NamedTemporaryFile(delete=False)
     name = t.name
     head, tail = os.path.split(name)
-    return os.path.join(head, ''.join([tail, ".", filename]))
+    return os.path.join(head, "".join([tail, ".", filename]))
+
+
 def Usage():
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]}  A  B
       Compares two files A and B containing the output of a bash shell 'set'
       command and reports:
@@ -66,15 +72,18 @@ def Usage():
         -v      Show the values of the environment variables in the output.
         -w      Create a visual diff viewing of the common but unequal variables
                 or functions.
-    '''))
+    """)
+    )
     exit(1)
+
+
 def Categorize(dictA, dictB):
-    '''Return four sets that encapsulate the sameness and
+    """Return four sets that encapsulate the sameness and
     differences of the two given dictionary's keys.  The keys are either
     the function name lines or the environment variable names.  The values
     are the values of the environment variables or the function body
     strings.
-    '''
+    """
     common_equal = set()
     common_unequal = set()
     only_in_A = set()
@@ -97,21 +106,24 @@ def Categorize(dictA, dictB):
         else:
             only_in_B.add(key)
     return common_equal, common_unequal, only_in_A, only_in_B
+
+
 def Compare(dictA, dictB, d):
     if d["-f"]:
         CompareFunc(dictA, dictB, d)
     else:
         CompareEnv(dictA, dictB, d)
+
+
 def CompareEnv(dictA, dictB, d):
-    '''dictA and dictB are dictionaries that are keyed by environment
+    """dictA and dictB are dictionaries that are keyed by environment
     variable names.  However, the entry keyed by the string in the global
     variable func_key is another dictionary that is keyed by the function
     names; the values are lists of the function's lines.
- 
+
     d is a dictionary of the command line settings.
-    '''
-    common_equal, common_unequal, only_in_A, only_in_B = \
-        Categorize(dictA, dictB)
+    """
+    common_equal, common_unequal, only_in_A, only_in_B = Categorize(dictA, dictB)
     if d["-w"]:
         # Send common_unequal variables to visual diff program
         tmpfileA = GetTempFilename(d["fileA"])
@@ -140,18 +152,22 @@ def CompareEnv(dictA, dictB, d):
         if not d["-B"] and only_in_B:
             print("Only in file %s:" % d["fileB"])
             PrintKeys(only_in_B, d, dictB)
+
+
 def DumpEnvToFile(file, variables, dict):
     ofp = open(file, "w")
     vars = list(variables)
     vars.sort()
     for var in vars:
         ofp.write("%s=%s\n" % (var, dict[var]))
+
+
 def CompareFunc(dictA, dictB, d):
-    '''dictA and dictB are dictionaries that are keyed by function
+    """dictA and dictB are dictionaries that are keyed by function
     names; the values are lists of the function's lines.
- 
+
     d is a dictionary of the command line settings.
-    '''
+    """
     # Get dictionaries of the functions
     A, B = dictA[func_key], dictB[func_key]
     common_equal, common_unequal, only_in_A, only_in_B = Categorize(A, B)
@@ -183,11 +199,13 @@ def CompareFunc(dictA, dictB, d):
         if not d["-B"] and only_in_B:
             print("Only in file %s:" % d["fileB"])
             PrintKeys(only_in_B, d)
+
+
 def DumpFuncToFile(file, functions, dict):
-    '''Write the indicated functions to a file.
+    """Write the indicated functions to a file.
     functions is a set of function names.
     dict is a dictionary containing the function's lines.
-    '''
+    """
     ofp = open(file, "w")
     funcs = list(functions)
     funcs.sort()
@@ -196,19 +214,23 @@ def DumpFuncToFile(file, functions, dict):
         for i in dict[func]:
             ofp.write("  %s\n" % i)
         ofp.write("\n")
+
+
 def PrintKeys(set_of_keys, settings, dict=None):
-    '''Print the set_of_keys after sorting them alphabetically.  If
+    """Print the set_of_keys after sorting them alphabetically.  If
     settings["-v"] is True, then also print the environment variables'
     values after them (this won't be done unless the associated dictionary
     in dict is also given).
-    '''
+    """
     keys, indent = list(set_of_keys), "  "
     keys.sort()
     for key in keys:
         if settings["-v"] and dict is not None:
-            print(' = '.join([indent + key, dict[key]]))
+            print(" = ".join([indent + key, dict[key]]))
         else:
-            print(''.join([indent, key]))
+            print("".join([indent, key]))
+
+
 def BuildDict(file):
     lines = [i.strip() for i in open(file).readlines()]
     dict = {}
@@ -219,12 +241,14 @@ def BuildDict(file):
                 msg = "Error:  bad line %d in file '%s'\n" % (i + 1, file)
                 sys.stderr.write(msg)
                 exit(1)
-            name, value = lines[i][:loc], lines[i][loc + 1:]
+            name, value = lines[i][:loc], lines[i][loc + 1 :]
             dict[name] = value
         else:
             dict[func_key] = ParseFunctions(lines[i:])
             break
     return dict
+
+
 def ParseCommandLine(d):
     options = "ABefuvw"
     for i in options:
@@ -242,11 +266,13 @@ def ParseCommandLine(d):
     if len(args) != 2:
         Usage()
     return args
+
+
 def ParseFunctions(lines):
-    '''Return a dictionary keyed by function name and whose values are the
+    """Return a dictionary keyed by function name and whose values are the
     remaining lines of the function.  The first line in the sequence lines
     is expected to be a function name line.
-    '''
+    """
     assert bash_func.match(lines[0])
     i, d, n = 0, {}, len(lines)
     while True:
@@ -258,8 +284,10 @@ def ParseFunctions(lines):
         d[key] = funclines
         if i >= n - 1:
             return d
-if __name__ == "__main__": 
-    d = {}      # Options dictionary
+
+
+if __name__ == "__main__":
+    d = {}  # Options dictionary
     fileA, fileB = ParseCommandLine(d)
     d["fileA"], d["fileB"] = fileA, fileB
     dictA, dictB = BuildDict(fileA), BuildDict(fileB)

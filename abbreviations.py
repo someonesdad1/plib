@@ -1,4 +1,4 @@
-'''
+"""
 
 Todo:
     - Harvest from https://en.wikipedia.org/wiki/Lists_of_abbreviations
@@ -11,34 +11,37 @@ Source:  I put together this list over a period of time from a variety of
 searches and manual construction.  The typical method is to search for a
 string in text that ends in "." that's not a word in a dictionary.
 
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # <utility> Provides the function IsAbbreviation() which will return
     # True if the string argument is an abbreviation.  Case is ignored.
-    #∞what∞#
-    #∞test∞# run #∞test∞#
+    # ∞what∞#
+    # ∞test∞# run #∞test∞#
     pass
 
-if 1:   # Imports
+if 1:  # Imports
     from collections import defaultdict
-if 1:   # Custom imports
+if 1:  # Custom imports
     from columnize import Columnize
+
+
 def IsAbbreviation(w, full=False):
-    '''Returns True if w is an abbreviation; case is ignored.  If full is
+    """Returns True if w is an abbreviation; case is ignored.  If full is
     True, the set is enhanced by abbreviations that can also be words that
     end a sentence.
-    '''
+    """
     if not hasattr(IsAbbreviation, "abbrev"):
         # Cache our set of abbreviation strings
-        IsAbbreviation.data = '''
+        IsAbbreviation.data = """
 
             a.c. a.d. a.k.a. a.m. a.s.a.p. abbr. abbrev. abol.  aborig.
             abr. abr. abstr. acad. acc. acct. accts. addr. adj.  adjs.
@@ -125,26 +128,33 @@ def IsAbbreviation(w, full=False):
 
             zeitschr. zool.
 
-        '''
+        """
         IsAbbreviation.abbrev = set(IsAbbreviation.data.split())
         if full:
             # The following abbreviations can also be words that end
             # a sentence; you can exclude them if you wish by setting the
             # keyword full to False.
-            IsAbbreviation.abbrev.update(set('''
+            IsAbbreviation.abbrev.update(
+                set(
+                    """
 
                 add. admin. am. ann. art. bull. class. conn. dim. fig.
                 math. mod. no. off. pa. pass. path. pop. sept. sing. west.
                 wed. sat. sun.
 
-            '''.split()))
+            """.split()
+                )
+            )
     return w.strip().lower() in IsAbbreviation.abbrev
-IsAbbreviation("")      # Load IsAbbreviation.abbrev
-if 1:   # Utility functions to vet data
+
+
+IsAbbreviation("")  # Load IsAbbreviation.abbrev
+if 1:  # Utility functions to vet data
+
     def _Missing(name, s):
-        '''Print out abbreviations from s that are missing from
+        """Print out abbreviations from s that are missing from
         IsAbbreviation.abbrev.
-        '''
+        """
         not_found = []
         for line in s.strip().split("\n"):
             abbr = line.split("|")[0].strip().lower()
@@ -153,13 +163,13 @@ if 1:   # Utility functions to vet data
             if abbr not in IsAbbreviation.abbrev:
                 not_found.append(abbr)
         if not_found:
-            print("-"*70)
+            print("-" * 70)
             print(f"Missing in '{name}'")
             for line in Columnize(not_found, indent="  "):
                 print(line)
+
     def _CanonicalizeData():
-        '''Print IsAbbrevation.data in sorted form.
-        '''
+        """Print IsAbbrevation.data in sorted form."""
         # Build dictionary keyed by first letter of abbreviation
         items = defaultdict(list)
         for i in sorted(IsAbbreviation.data.split()):
@@ -167,15 +177,19 @@ if 1:   # Utility functions to vet data
             items[fl].append(i)
         # Print the data
         for fl in items:
-            print(' '.join(sorted(items[fl])))
+            print(" ".join(sorted(items[fl])))
             print()
-if __name__ == "__main__": 
-    if 1:   # Custom modules
+
+
+if __name__ == "__main__":
+    if 1:  # Custom modules
         from lwtest import run, Assert
+
     def Test_IsAbbreviation():
         f = IsAbbreviation
         Assert(f("zeitschr."))
         Assert(f("ZeiTscHr."))
         Assert(f("ZEITSCHR."))
         Assert(not f("zzeitschr."))
+
     exit(run(globals(), halt=1)[0])

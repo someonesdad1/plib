@@ -1,33 +1,37 @@
-'''
+"""
 Python version of UNIX cat program.  Includes ability to validate
 the input files via their SHA1 hashes as produced by the split.py
 script.
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2008 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2008 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Python version of UNIX cat program
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import hashlib
     import getopt
-    from pdb import set_trace as xx 
-if 1:   # Custom imports
+    from pdb import set_trace as xx
+if 1:  # Custom imports
     from wrap import dedent
-if 1:   # Global variables
+if 1:  # Global variables
     hash_file = ""
     output_file = ""
+
+
 def Usage():
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]} [-f SHA_hash_file] file1 file2 [file3...] output_file
       Concatenates file1, file2, ... into a single output_file.  
     
@@ -37,8 +41,11 @@ def Usage():
   
       The -f option with the SHA1 hash file is to be used in conjunction with
       the split.py utility.
-    '''))
+    """)
+    )
     exit(1)
+
+
 def ParseCommandLine():
     if len(sys.argv) < 2:
         Usage()
@@ -67,10 +74,12 @@ def ParseCommandLine():
         input_files = args[:-1]
         output_file = args[-1]
     return input_files
+
+
 def ProcessHashFile():
-    '''Read the hash file and check the hashes of each file.  Then return a
+    """Read the hash file and check the hashes of each file.  Then return a
     list of the file names.
-    '''
+    """
     try:
         lines = open(hash_file).readlines()[1:]
     except Exception:
@@ -88,7 +97,9 @@ def ProcessHashFile():
             print("Hash error on file '{}'".format(file), file=sys.stderr)
             exit(1)
     return input_files
-if __name__ == "__main__": 
+
+
+if __name__ == "__main__":
     input_files = ParseCommandLine()
     output_stream = open(output_file, "wb")
     for file in input_files:

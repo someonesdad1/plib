@@ -1,4 +1,4 @@
-'''
+"""
 From RJN's 'ESD_Resistivities.pdf' document (unattributed)
 
 Note:  R = ρ*L/A where L is length and A is cross sectional area.  Since
@@ -10,10 +10,12 @@ the same resistance between two sides, regardless of the size.
 
 The sheet resistance Rs can be multiplied by the film's thickness to get
 the volume resistivity.
-'''
+"""
+
 from wrap import dedent
-if 1:   
-    data = dedent('''
+
+if 1:
+    data = dedent("""
     # Units:  Ω·m, value is base 10 logarithm
     # First number is log10 of volume resistivity in Ω·m
     # Second number is log10 of surface resistivity in Ω/square
@@ -78,17 +80,19 @@ if 1:
     Sulfur ; 14-15 ; 15.8
     Wood (paraffined) ; 8-11 ; 12
     Water, distilled ; 2-5
-    ''')
+    """)
 
 o = []
 w = [35, 12, 12]
-print(dedent('''
+print(
+    dedent("""
     Resistivity data
         Column 1:  log10(volume resistivity in Ω·m)
         Column 2:  log10(sheet resistivity in Ω)
         Multiply sheet resistivity by thickness to get volume resistivity
 
-    '''))
+    """)
+)
 for line in data.split("\n"):
     line = line.rstrip()
     if not line or line.startswith("#"):

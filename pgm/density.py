@@ -1,6 +1,6 @@
-'''
+"""
 TODO
-    
+
     - -d doesn't work for range data (e.g., human urine is 1-1.03)
     - CO2 gas at 1.8 from pht can't be correct
     - Move density data to a datafile and use GetLines to retrieve.  In
@@ -26,39 +26,44 @@ TODO
 Utility to find density of materials by name or value.  Run with no
 command line argument to get a manpage.  Also see the density.pdf
 file that came in the density.zip package.
-'''
+"""
+
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2005, 2013 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2005, 2013 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Find density of materials
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Imports
+    if 1:  # Imports
         import sys
         import os
         import getopt
         import re
         from collections import defaultdict
         from pprint import pprint as pp
+
         if 1:
             import debug
+
             debug.SetDebugger()
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from wrap import dedent, wrap
+
         # Use flt objects to get rid of the dependency on the sig module
         from f import flt
+
         float = flt
-        #from sig import sig
+        # from sig import sig
         from u import u, to, fromto, ParseUnit
-    if 1:   # Global variables
+    if 1:  # Global variables
         dbg = False
         width = int(os.environ.get("COLUMNS", 80)) - 5
         # The following variable, if True, causes the data from reference sim to
@@ -72,7 +77,7 @@ if 1:  # Header
         # The following density information came from a variety of sources.
         # See the material following this table for the details on the
         # references.
-        data = '''
+        data = """
         # Name                                           g/cc          Ref
     
         category = metal
@@ -2081,49 +2086,49 @@ if 1:  # Header
         Sulfur dioxide (20 °C & 1 atm)                  ; 0.002661    ; aes 38
         Tungsten hexafluoride                          ; 0.0124      ; wp
         Xenon (20 °C & 1 atm)                           ; 0.005455    ; aes 38
-        '''
-    
+        """
+
         references = {
-            "aes": dedent('''
+            "aes": dedent("""
                     Bolz & Tuve, "Handbook of Tables for Applied Engineering
-                    Science", 2nd ed., CRC Press, 1973.'''),
-            "asm": dedent('''
+                    Science", 2nd ed., CRC Press, 1973."""),
+            "asm": dedent("""
                     American Society of Metals, "Metals Handbook", Vol. 1,
-                    8th ed., 1961 (9th printing, Aug 1977).'''),
-            "ceh": dedent('''
+                    8th ed., 1961 (9th printing, Aug 1977)."""),
+            "ceh": dedent("""
                     Perry (ed.), "Chemical Engineers' Handbook", 5th ed.,
-                    McGraw-Hill, 1973.'''),
-            "el": dedent('''Emsley, "The Elements", Oxford, 1989.'''),
-            "glo": dedent('''Glover, "Pocket Ref", Sequoia Publishing, 1993.'''),
-            "hcp": dedent('''
+                    McGraw-Hill, 1973."""),
+            "el": dedent("""Emsley, "The Elements", Oxford, 1989."""),
+            "glo": dedent("""Glover, "Pocket Ref", Sequoia Publishing, 1993."""),
+            "hcp": dedent("""
                     Weast (ed.), "CRC Handbook of Chemistry and Physics",
-                    CRC, 59th ed., 1978.'''),
-            "hep": dedent('''
+                    CRC, 59th ed., 1978."""),
+            "hep": dedent("""
                     Koshkin & Shirkevich, "Handbook of Elementary Physics",
-                    3rd ed., MIR Publishers, 1977.'''),
-            "mar": dedent('''
+                    3rd ed., MIR Publishers, 1977."""),
+            "mar": dedent("""
                     Marks, "Standard Handbook for Mechanical Engineers",
-                    7th ed., McGraw-Hill, 1967.'''),
+                    7th ed., McGraw-Hill, 1967."""),
             "dp": "Measured by script author",
-            "mh": dedent('''
+            "mh": dedent("""
                     Oberg, Jones, Horton, "Machinery's Handbook", 21st
-                    ed., Industrial Press, 1979.'''),
-            "pht": dedent('''
+                    ed., Industrial Press, 1979."""),
+            "pht": dedent("""
                     "Physics Hypertextbook", http://physics.info/density
-                    (various pages accessed on various dates)'''),
-            "pvc": dedent('''
+                    (various pages accessed on various dates)"""),
+            "pvc": dedent("""
                     http://www.pvc.org/en/p/specific-gravity-density
-                    (accessed 13 Nov 2018)'''),
-            "pwdrh": dedent('''
+                    (accessed 13 Nov 2018)"""),
+            "pwdrh": dedent("""
                     https://www.powderhandling.com.au/bulk-density-chart,
-                    (accessed 2 Jul 2021)'''),
-            "sim": dedent('''
+                    (accessed 2 Jul 2021)"""),
+            "sim": dedent("""
                     http://www.simetric.co.uk/si_materials.htm
-                    (accessed 27 Jan 2013)'''),
+                    (accessed 27 Jan 2013)"""),
             "web": "From web, location and date not noted.",
-            "wp": dedent('''
+            "wp": dedent("""
                     Wikipedia http://en.wikipedia.org, accessed various
-                    pages on various dates.'''),
+                    pages on various dates."""),
         }
         categories = (
             "all",
@@ -2136,7 +2141,7 @@ if 1:  # Header
             "wood",
         )
         # The following list is for the quick list -l option.
-        quick_list = '''
+        quick_list = """
         Aluminum                                       ; 2.70        ; aes 117
         Brass, leaded free-machining                   ; 8.50        ; asm 52
         Bronze, phosphor                               ; 8.88        ; mar 6-7
@@ -2234,10 +2239,10 @@ if 1:  # Header
         Oxygen (20 °C & 1 atm)                         ; 0.001331    ; aes 38
         Propane (20 °C & 1 atm)                        ; 0.00183     ; aes 38
         Steam (H2O) saturated (100 °C & 1 atm)         ; 0.0005977   ; aes 18
-        '''[1:-1]
-    
+        """[1:-1]
+
         # From https://www.powderhandling.com.au/bulk-density-chart/
-        pwdrh_data = dedent('''
+        pwdrh_data = dedent("""
         Abrasive compound                              ; 2.371       ; pwdrh
         Abrasive mix                                   ; 2.451       ; pwdrh
         Acetate                                        ; 0.561       ; pwdrh
@@ -2801,14 +2806,16 @@ if 1:  # Header
         Zinc carbonate                                 ; 0.561       ; pwdrh
         Zinc oxide                                     ; 0.881       ; pwdrh
         Zinc powder                                    ; 3.364       ; pwdrh
-        ''')
+        """)
 if 1:  # Utility
+
     def Usage(d, status=1):
         name = sys.argv[0]
         digits = d["-d"]
         tol = d["-t"]
         def_unit = d["-u"]
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {name} [options] [cmd [unit]]
           Look up material densities or find materials within a specified density
           range.  cmd can be a number or a string.
@@ -2896,17 +2903,19 @@ if 1:  # Utility
                 value is within a range, the range is printed.  [Default = {tol}%]
             -u unit
                 Set the output unit for the density.  [Default = {def_unit}]
-            '''))
+            """)
+        )
         exit(status)
+
     def ParseCommandLine(d):
-        d["-c"] = 0         # Category to print
-        d["-d"] = 4         # Number of significant digits
-        d["-n"] = False     # Sort by name
-        d["-q"] = False     # Quick list
-        d["-r"] = 1         # Relative to indicated density in g/cc
-        d["relative"] = None    # Relative mode; what user typed
-        d["-u"] = "g/mL"    # Output units
-        d["-t"] = 10        # Tolerance in percent
+        d["-c"] = 0  # Category to print
+        d["-d"] = 4  # Number of significant digits
+        d["-n"] = False  # Sort by name
+        d["-q"] = False  # Quick list
+        d["-r"] = 1  # Relative to indicated density in g/cc
+        d["relative"] = None  # Relative mode; what user typed
+        d["-u"] = "g/mL"  # Output units
+        d["-t"] = 10  # Tolerance in percent
         if len(sys.argv) < 2:
             Usage(d)
         try:
@@ -2933,8 +2942,7 @@ if 1:  # Utility
                     if n is not None:
                         d["-c"] = n
                     else:
-                        Error("'%s' is not adequate to identify the category" %
-                              a)
+                        Error("'%s' is not adequate to identify the category" % a)
             elif o == "-d":
                 try:
                     d["-d"] = int(a)
@@ -2949,7 +2957,7 @@ if 1:  # Utility
             elif o == "-n":  # Sort by name
                 d["-n"] = not d["-n"]
             elif o == "-R":
-                wrap.i = " "*4
+                wrap.i = " " * 4
                 wrap.width = width
                 print(f"{'Density References':^{width}s}")
                 keys = list(references.keys())
@@ -2960,7 +2968,8 @@ if 1:  # Utility
                     print(wrap(references[key]))
                 print()
                 wrap.i = ""
-                print(wrap(f'''
+                print(
+                    wrap(f"""
                 Most web references that provide density tables have
                 poor scholarship because they don't attribute their sources.
                 It's not uncommon to come across sites that appear to copy
@@ -2970,15 +2979,18 @@ if 1:  # Utility
                 research literature.  This script's data should demonstrate
                 that there's a goodly variation of density numbers when
                 multiple sources are consulted.
-                '''))
+                """)
+                )
                 print()
-                print(wrap(f'''
+                print(
+                    wrap(f"""
                 The references I've given are ones I have on-hand.  For more
                 careful work, you might want to look for a copy of the
                 Smithsonian Physical Tables book, although it is dated.  For
                 critical work, mistrust the handbooks and go directly to the
                 research literature.
-                '''))
+                """)
+                )
                 exit(0)
             elif o == "-r":  # Print relative to a given density
                 try:
@@ -3020,12 +3032,13 @@ if 1:  # Utility
                 args.append(None)
             if len(args) != 2:
                 Usage(d)
-        #sig.rtz = True  # Remove trailing zeros from numbers
+        # sig.rtz = True  # Remove trailing zeros from numbers
         return args
+
     def GetCategory(s):
-        '''See if we can identify the category number from the string s;
+        """See if we can identify the category number from the string s;
         partial matches OK.
-        '''
+        """
         found, s = [], s.lower()
         for i, cat in enumerate(categories):
             if cat.find(s) == 0:
@@ -3034,18 +3047,22 @@ if 1:  # Utility
             return found[0]
         else:
             return None
+
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
+
+
 if 1:  # Core functionality
+
     def GetData(d):
-        '''Return a tuple of the material data; each entry will be
+        """Return a tuple of the material data; each entry will be
            (name, spgr, ref, cat)
         where name is a string, spgr is the density in g/cc, ref is an
         integer which indicates which reference the number came from, and
         cat is the category number.  Note that spgr is a string that
         either represents a float or two floats separated by a hyphen.
-        '''
+        """
         # Process data global variable
         lines = data.split("\n")
         densities = set()
@@ -3085,24 +3102,26 @@ if 1:  # Core functionality
             print("Longest name:")
             print(a[-1])
         return densities
+
     def InterpretDensity(s):
-        '''Return a tuple of (low, high) or (nominal, None) that
+        """Return a tuple of (low, high) or (nominal, None) that
         represents the density in g/cc given in the string s.
-        '''
+        """
         if "-" in s:
             t = tuple([float(i) for i in s.split("-")])
         else:
             t = (float(s), None)
         return t
+
     def Report(results, d):
-        '''results will be a sequence of the form:
+        """results will be a sequence of the form:
             [('Steel, stainless, 440', '0.00770', 'asm 52'),
              ('Steel, stainless, 17-4PH', '0.00780', 'asm 52'),
             ...
             ]
         I.e., tuples of the form (name, density, reference).
         d is the options dictionary.
-        '''
+        """
         if not results:
             print("No matches")
             return
@@ -3120,9 +3139,9 @@ if 1:  # Core functionality
         print()
         if 1:
             # Print header
-            sname = "-"*maxname
-            ss = "-"*maxs
-            sref = "-"*maxref
+            sname = "-" * maxname
+            ss = "-" * maxs
+            sref = "-" * maxref
             maxname += 3
             maxs += 3
             maxref += 3
@@ -3138,15 +3157,16 @@ if 1:  # Core functionality
                 if name == "#":
                     print()
                 else:
-                    #t = "{indent}{name:{maxname}} {s:^{maxs}} {ref:^{maxref}}"
+                    # t = "{indent}{name:{maxname}} {s:^{maxs}} {ref:^{maxref}}"
                     t = "{indent}{name:{maxname}} {s:^{maxs}}  {ref}"
                     print(t.format(**locals()))
+
     def FindDensity(density, unit, d):
-        '''density is the density in the user wants to search for.
+        """density is the density in the user wants to search for.
         unit is the string that specifies the units the density are in;
         note we must convert density to g/cc.  d is the options dictionary.
-        '''
-        tolerance = d["-t"]/100
+        """
+        tolerance = d["-t"] / 100
         relative_to = d["-r"]
         sort_by_name = d["-n"]
         results = []
@@ -3163,11 +3183,14 @@ if 1:  # Core functionality
             low, high = InterpretDensity(spgr)
             item = [name, low, high, ref]
             if high is None:
-                if (density_gpcc*(1 - tolerance) <= low <=
-                        density_gpcc*(1 + tolerance)):
+                if (
+                    density_gpcc * (1 - tolerance)
+                    <= low
+                    <= density_gpcc * (1 + tolerance)
+                ):
                     results.append(item)
             else:
-                if (low <= density_gpcc <= high):
+                if low <= density_gpcc <= high:
                     results.append(item)
         # Sort the results
         if sort_by_name:
@@ -3178,24 +3201,25 @@ if 1:  # Core functionality
         # Change low and high to their formatted values
         for i, item in enumerate(results):
             name, low, high, ref = item
-            low *= conv_factor/relative_to
+            low *= conv_factor / relative_to
             if high is None:
-                #s = sig(low)
+                # s = sig(low)
                 s = str(low)
             else:
-                high *= conv_factor/relative_to
-                #s = sig(low) + "-" + sig(high)
+                high *= conv_factor / relative_to
+                # s = sig(low) + "-" + sig(high)
                 s = str(low) + "-" + str(high)
             results[i] = (name, s, ref)
         Report(results, d)
+
     def PerformTextSearch(cmd, unit, d):
-        '''cmd is a text string representing a python regular expression.
+        """cmd is a text string representing a python regular expression.
         Find all materials whose description match this regular
         expression.  unit is the string to convert the output display to.
         d is the options dictionary.  If cmd can't be compiled as a
         regular expression, then it will just be used for a
         case-insensitive string search.
-        '''
+        """
         relative_to = d["-r"]
         sort_by_name = d["-n"]
         if unit is not None:
@@ -3229,22 +3253,23 @@ if 1:  # Core functionality
         # Change low and high to their formatted values
         for i, item in enumerate(results):
             name, low, high, ref = item
-            low *= conv_factor/relative_to
+            low *= conv_factor / relative_to
             if high is None:
-                #s = sig(low)
+                # s = sig(low)
                 s = str(low)
             else:
-                high *= conv_factor/relative_to
-                #s = sig(low) + "-" + sig(high)
+                high *= conv_factor / relative_to
+                # s = sig(low) + "-" + sig(high)
                 s = str(low) + "-" + str(high)
             results[i] = (name, s, ref)
         Report(results, d)
+
     def SummaryReport(d):
-        '''Show:
+        """Show:
         - Number of items in data
         - Number of items in each material category
         - Min & max density value
-        '''
+        """
         materials, counts, fi = GetData(d), defaultdict(int), sys.float_info
         min_density, max_density = fi.max, -fi.max
         for name, density, ref, category in materials:
@@ -3257,47 +3282,52 @@ if 1:  # Core functionality
                 min_density = min(low, min_density)
                 max_density = max(high, max_density)
         n = sum(counts.values())
-        #min_density = sig(min_density)
-        #max_density = sig(max_density)
+        # min_density = sig(min_density)
+        # max_density = sig(max_density)
         min_density = str(min_density)
         max_density = str(max_density)
         # Print report
-        print(dedent(f'''
+        print(
+            dedent(f"""
         {n} data entries
         {min_density} = minimum density in g/cc
         {max_density} = maximum density in g/cc
-        Count by material category:'''))
+        Count by material category:""")
+        )
         for index, count in counts.items():
             s = categories[index] if index else "no category"
             print("    {count:5} {s}".format(**locals()))
+
     def QuickList(d):
         # Parse the quick list string to tuples of
         # (name, low_spgr, high_spgr, ref).
         results = []
         relative_to = d["-r"]
-        conv_factor = fromto(1, "g/cc", d["-u"])/relative_to
+        conv_factor = fromto(1, "g/cc", d["-u"]) / relative_to
         for line in quick_list.split("\n"):
             if not line.strip():
                 results.append(("#", "", ""))
             else:
                 name, spgr, ref = line.split(";")
                 low, high = InterpretDensity(spgr)
-                #lowstr = sig(conv_factor*low)
-                lowstr = str(conv_factor*low)
+                # lowstr = sig(conv_factor*low)
+                lowstr = str(conv_factor * low)
                 if high is not None:
-                    #highstr = sig(conv_factor*high)
-                    highstr = str(conv_factor*high)
+                    # highstr = sig(conv_factor*high)
+                    highstr = str(conv_factor * high)
                     spgr = "{}-{}".format(lowstr, highstr)
                 else:
                     spgr = "{}".format(lowstr)
                 results.append((name, spgr, ref))
         Report(results, d)
         exit(0)
+
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     cmd, unit = ParseCommandLine(d)
     d["materials"] = GetData(d)
-    #sig.digits = d["-d"]
+    # sig.digits = d["-d"]
     flt(0).n = d["-d"]
     flt(0).rtz = True
     if d["-q"]:

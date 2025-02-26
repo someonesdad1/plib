@@ -1,9 +1,9 @@
-'''
+"""
 TODO
     * obj can be a pathlib.Path
- 
+
 Python 3 hexdump module
- 
+
 hexdump("abc") produces
     "00000000: 6162 63                                  abc\n"
 hexdump("abc", asc=False) produces
@@ -12,30 +12,33 @@ hexdump("abc", offset=1) produces
     "00000001: 6263                                     bc\n"
 hexdump("abc", length=2) produces
     "00000000: 6162                                     ab\n"
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2020 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2020 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # <utility> Python 3 hexdump module
-    #∞what∞#
-    #∞test∞# run #∞test∞#
+    # ∞what∞#
+    # ∞test∞# run #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import io
     from functools import partial
+
+
 def hexdump(obj, offset=0, length=0, asc=True, out=None, encoding="UTF-8"):
-    '''Return a string of the hexdump of obj.  If out is given, then
+    """Return a string of the hexdump of obj.  If out is given, then
     send the hexdump string to it.
- 
+
     obj can be a string, bytestring, or stream.  If it is a string, it
     is encoded to a bytestring with the indicated encoding.
- 
+
     asc
         Include ASCII text if True.
     encoding
@@ -46,16 +49,16 @@ def hexdump(obj, offset=0, length=0, asc=True, out=None, encoding="UTF-8"):
         Where to start in the input stream.
     out
         Stream to send the output if not None.
- 
+
     Compared to xxd, this function takes about 3.5 times as long for a
     hex dump of a 5.5 MB file.
-    '''
+    """
     if not hasattr(hexdump, "tt"):
         # Make translation table to convert bytes to ASCII characters
         From, To = bytes(range(256)), bytearray(range(256))
         for i in range(32):
             To[i] = ord(".")
-        for i in range(0x7f, 0x100):
+        for i in range(0x7F, 0x100):
             To[i] = ord(".")
         hexdump.tt = bytes.maketrans(From, To)
     o = out if out else io.StringIO()
@@ -82,7 +85,7 @@ def hexdump(obj, offset=0, length=0, asc=True, out=None, encoding="UTF-8"):
         in_stream.read(offset)
         bytes_read = offset
         line_address = offset
-    data = in_stream.read(bytes_per_line)   # First line of data
+    data = in_stream.read(bytes_per_line)  # First line of data
     while data:
         bytes_read = len(data)
         Print(f"{line_address:08x}: ")
@@ -97,42 +100,46 @@ def hexdump(obj, offset=0, length=0, asc=True, out=None, encoding="UTF-8"):
             if length and bytes_printed >= length:
                 truncated = True
                 break
-        s = ''.join(line)
+        s = "".join(line)
         if asc and (len(s) < line_length):
-            s += " "*(line_length - len(s))
+            s += " " * (line_length - len(s))
         Print(s)
         # Add ASCII decode
         if asc:
             if truncated:
-                data = data[:i + 1]
+                data = data[: i + 1]
             Print(data.translate(hexdump.tt).decode("ASCII"))
         Print("\n")
         if length and bytes_printed >= length:
             break
-        data = in_stream.read(bytes_per_line)   # Next line
+        data = in_stream.read(bytes_per_line)  # Next line
     # We're done.  Return a string if the output stream was None.
     if out is None:
         return o.getvalue()
-if __name__ == "__main__": 
+
+
+if __name__ == "__main__":
     from lwtest import run, assert_equal, raises
     from io import StringIO
-    from pdb import set_trace as xx 
+    from pdb import set_trace as xx
+
     def Test():
         hd = hexdump
         s = "abc"
         e = "00000000: 6162 63                                  abc\n"
-        assert(hd(s) == e)
+        assert hd(s) == e
         # Test out
         o = StringIO()
         hd(s, out=o)
-        assert(o.getvalue() == e)
+        assert o.getvalue() == e
         # Test offset
         e = "00000001: 6263                                     bc\n"
-        assert(hd(s, offset=1) == e)
+        assert hd(s, offset=1) == e
         # Test length
         e = "00000000: 6162                                     ab\n"
-        assert(hd(s, length=2) == e)
+        assert hd(s, length=2) == e
         # Test asc
         e = "00000000: 6162 63\n"
-        assert(hd(s, asc=False) == e)
+        assert hd(s, asc=False) == e
+
     exit(run(globals(), halt=1)[0])

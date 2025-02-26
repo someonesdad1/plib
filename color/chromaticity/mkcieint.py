@@ -1,4 +1,4 @@
-'''
+"""
 Experiment to convert wavelength in nm to RGB colors.  The raw data are the
 1931 CIE PSD to XYZ tristimulus coordinates, which are then converted to
 xyY values.
@@ -10,20 +10,23 @@ ToDo
 The raw data are in the cid204.xls file downloaded from
 https://web.archive.org/web/20170131100357/http://files.cie.co.at/204.xls
 on 24 Mar 2022.
-'''
-from pdb import set_trace as xx 
+"""
+
+from pdb import set_trace as xx
 from f import flt
 from wrap import dedent
 import sys
+
 if len(sys.argv) > 1:
     import debug
+
     debug.SetDebugger()
-if 1:   # CIE data
+if 1:  # CIE data
     # This table is the standard method to convert from a power spectral
     # density (PSD) function to X, Y, Z tristimulus coordinates.  The PSD is
     # integrated with these numerical functions over the wavelengths of 380 to
-    # 780 nm.  These are for the 2° field of view.  
-    data = '''
+    # 780 nm.  These are for the 2° field of view.
+    data = """
         # CIE 1931 standard colorimetric observer			
         # Columns: 
         #     wavelength, nm
@@ -111,7 +114,7 @@ if 1:   # CIE data
         770	0.000083	0.000030	0.000000
         775	0.000059	0.000021	0.000000
         780	0.000042	0.000015	0.000000
-    '''[1:-1]
+    """[1:-1]
     # Check:  the sum of the columns should be these numbers
     Sum = (21.371524, 21.371327, 21.371540)
 
@@ -135,13 +138,13 @@ for nm, d in cie:
     sy += d[1]
     sz += d[2]
 f = lambda x: round(x, 6)
-assert(f(sx) == Sum[0])
-assert(f(sy) == Sum[1])
-assert(f(sz) == Sum[2])
+assert f(sx) == Sum[0]
+assert f(sy) == Sum[1]
+assert f(sz) == Sum[2]
 # Convert to integer values
 cieint = []
 for nm, d in cie:
-    e = [int(round(i*1e6, 0)) for i in d]
+    e = [int(round(i * 1e6, 0)) for i in d]
     cieint.append((nm, e))
 # Check sums again
 sx = sy = sz = 0
@@ -150,12 +153,12 @@ for nm, d in cieint:
     sy += d[1]
     sz += d[2]
 f = lambda x: round(x, 6)
-assert(sx == f(1e6*Sum[0]))
-assert(sy == f(1e6*Sum[1]))
-assert(sz == f(1e6*Sum[2]))
+assert sx == f(1e6 * Sum[0])
+assert sy == f(1e6 * Sum[1])
+assert sz == f(1e6 * Sum[2])
 # Write out as integer structure
 
-print(f'''# cieint1931
+print(f"""# cieint1931
 # This structure contains the 1931 CIE numerical functions for converting
 # an optical power spectral density to the tristimulus XYZ functions.  This
 # is nominally done by integrating the PSD over wavelength, weighted by
@@ -163,7 +166,7 @@ print(f'''# cieint1931
 # works well and integration by summing over 1 nm intervals works
 # acceptably.  Divide the integers in the (xbar, ybar, zbar) tuples by 1e6
 # to get the CIE's floating point numbers and around to 6 decimal places.
-''')
+""")
 print("cieint1931 = (")
 w = 7
 for nm, d in cieint:

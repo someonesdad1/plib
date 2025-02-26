@@ -1,8 +1,12 @@
 # Resistor color code
 
 from color import C, fg, black, white
+
+
 class g:
     pass
+
+
 g.red = C.lred
 g.yel = C.lyel
 g.grn = C.lgrn
@@ -13,7 +17,8 @@ g.wht = C.lwht
 g.n = C.norm
 
 print("     ", end="")
-print(f'''
+print(
+    f"""
 {fg(black, white)}Resistor color code{g.n}
 
 Color     Number   Multiplier
@@ -30,4 +35,5 @@ Orange      3         10³
 {g.wht}White       9         10⁹{g.n}
 Gold        -         10⁻¹
 Silver      -         10⁻²
-'''[1:-1])
+"""[1:-1]
+)

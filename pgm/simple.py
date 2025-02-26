@@ -1,30 +1,32 @@
-'''
+"""
 Print words that are not in Ogden's 850 basic English words
-'''
+"""
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Print words that are not in Ogden's 850 basic English words
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import getopt
     import re
     from collections import deque
     from pdb import set_trace as xx
-if 1:   # Custom imports
+if 1:  # Custom imports
     from wrap import dedent
     from columnize import Columnize
-if 1:   # Global variables
-    ogdens_words = set('''
+if 1:  # Global variables
+    ogdens_words = set(
+        """
         i a able about account acid across act addition adjustment
         advertisement after again against agreement air all almost among
         amount amusement and angle angry animal answer ant any apparatus
@@ -107,9 +109,13 @@ if 1:   # Global variables
         while whip whistle white who why wide will wind window wine wing
         winter wire wise with woman wood wool word work worm wound writing
         wrong year yellow yes yesterday you young
-        '''.split())
+        """.split()
+    )
+
+
 def Usage(status=1):
-    print(dedent(f'''
+    print(
+        dedent(f"""
     Usage:  {sys.argv[0]} [file1 [file2 ...]]
       Split the text files into words by substituting space characters for all
       punctuation and splitting on whitespace.  After converting to lowercase,
@@ -133,10 +139,13 @@ def Usage(status=1):
     Options:
       -h    Print a manpage
       -n    Ignore words with numbers
-    '''))
+    """)
+    )
     exit(status)
+
+
 def ParseCommandLine(d):
-    d["-n"] = False     # Ignore words with numbers
+    d["-n"] = False  # Ignore words with numbers
     try:
         optlist, files = getopt.getopt(sys.argv[1:], "hn")
     except getopt.GetoptError as str:
@@ -151,6 +160,8 @@ def ParseCommandLine(d):
     if not files:
         Usage()
     return files
+
+
 def GetLines(files):
     s = []
     for file in files:
@@ -159,29 +170,35 @@ def GetLines(files):
         else:
             s += open(file).readlines()
     return s
+
+
 def GetTranslationTable():
-    '''Returns a dictionary indexed by integers 0 to 255 that map a Unicode
+    """Returns a dictionary indexed by integers 0 to 255 that map a Unicode
     ordinal to an equivalent ordinal.  Here, characters that are not letters
     or digits are converted to space characters.
-    '''
+    """
     td = {}
     for key in range(256):
-        if (0x41 <= key <= 0x5a or      # Upper case letters
-            0x61 <= key <= 0x7a or      # Lower case letters
-            0x30 <= key <= 0x39):       # Digits
+        if (
+            0x41 <= key <= 0x5A  # Upper case letters
+            or 0x61 <= key <= 0x7A  # Lower case letters
+            or 0x30 <= key <= 0x39
+        ):  # Digits
             td[key] = key
         else:
-            td[key] = 0x20               # Space character's ordinal
+            td[key] = 0x20  # Space character's ordinal
     return td
+
+
 def GetWords(lines):
-    '''Convert all the text to a single string, make it lowercase,
+    """Convert all the text to a single string, make it lowercase,
     then return it as a set of words.
-    '''
-    s = ' '.join(lines).lower()
+    """
+    s = " ".join(lines).lower()
     table = GetTranslationTable()
     tt = str.maketrans(table)
     words = set(s.translate(tt).split())
-    if d["-n"]:     # Ignore words with number digits
+    if d["-n"]:  # Ignore words with number digits
         r = re.compile(r"\d+")
         out, words = deque(), deque(words)
         while words:
@@ -190,13 +207,17 @@ def GetWords(lines):
                 out.append(word)
         words = set(out)
     return words
-if __name__ == "__main__": 
+
+
+if __name__ == "__main__":
     d = {}  # Options dictionary
     files = ParseCommandLine(d)
     lines = GetLines(files)
     words = GetWords(lines)
     big_words = sorted(list(words - ogdens_words))
     if big_words:
-        print("The following words are not in Ogden's list of 850 simple English words:")
+        print(
+            "The following words are not in Ogden's list of 850 simple English words:"
+        )
         for line in Columnize(big_words):
             print(line)

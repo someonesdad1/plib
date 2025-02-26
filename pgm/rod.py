@@ -1,35 +1,38 @@
-'''
+"""
 Print out estimates of shear, compressive, and tensile strengths of
 metal rods.
-'''
+"""
+
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2016 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
+        # ∞copyright∞# Copyright (C) 2016 Don Peterson #∞copyright∞#
+        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        # ∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
+        # ∞license∞#
+        # ∞what∞#
         # Estimate strengths of metal rods
-        #∞what∞#
-        #∞test∞# #∞test∞#
+        # ∞what∞#
+        # ∞test∞# #∞test∞#
         pass
-    if 1:   # Imports
+    if 1:  # Imports
         import getopt
         import os
         import sys
         from pdb import set_trace as xx
-    if 1:   # Custom imports
+    if 1:  # Custom imports
         from color import t
         from wrap import dedent
         from f import flt as f, pi
         from u import u, ParseUnit
+
         if 0:
             import debug
+
             debug.SetDebugger()
-    if 1:   # Global variables
+    if 1:  # Global variables
         # Metal ultimate strengths from Machinery's Handbook, 19th
         # ed., page 444.  Ranges are given.
         materials = (
@@ -42,72 +45,80 @@ if 1:  # Header
             #   5  E = Modulus of elasticity in tension, Mpsi
             #   6  Modulus of elasticity in shear in terms of E
             # None means no number available.
-            ("Steel, low carbon 1025", 
-                (f(60), f(103)), 
-                (f(60), f(103)), 
-                (f(45), f(77.25)), 
+            (
+                "Steel, low carbon 1025",
+                (f(60), f(103)),
+                (f(60), f(103)),
+                (f(45), f(77.25)),
                 (f(40), f(90)),
-                1000*f(30),
+                1000 * f(30),
                 0.38,
             ),
-            ("Steel, medium carbon 1045", 
-                (f(80), f(182)), 
-                (f(80), f(182)), 
-                (f(60), f(136.5)), 
+            (
+                "Steel, medium carbon 1045",
+                (f(80), f(182)),
+                (f(80), f(182)),
+                (f(60), f(136.5)),
                 (f(50), f(162)),
-                1000*f(30),
+                1000 * f(30),
                 0.38,
             ),
-            ("Steel, high carbon 1095", 
-                (f(90), f(213)), 
-                (f(90), f(213)), 
-                (f(67.5), f(160)), 
+            (
+                "Steel, high carbon 1095",
+                (f(90), f(213)),
+                (f(90), f(213)),
+                (f(67.5), f(160)),
                 (f(20), f(150)),
-                1000*f(30),
+                1000 * f(30),
                 0.39,
             ),
-            ("Steel, structural (common)", 
-                (f(60), f(75)), 
-                (f(60), f(75)), 
-                (f(45), f(56.25)), 
+            (
+                "Steel, structural (common)",
+                (f(60), f(75)),
+                (f(60), f(75)),
+                (f(45), f(56.25)),
                 (f(33), f(33)),
-                1000*f(29),
+                1000 * f(29),
                 0.41,
             ),
-            ("Steel, 4130 alloy", 
-                (f(81), f(179)), 
-                (f(81), f(179)), 
-                (f(60.75), f(134.25)), 
+            (
+                "Steel, 4130 alloy",
+                (f(81), f(179)),
+                (f(81), f(179)),
+                (f(60.75), f(134.25)),
                 (f(46), f(161)),
-                1000*f(30),
+                1000 * f(30),
                 0.38,
             ),
-            ("Steel, 52100 alloy", 
-                (f(100), f(238)), 
-                (f(100), f(238)), 
-                (f(75), f(178.5)), 
+            (
+                "Steel, 52100 alloy",
+                (f(100), f(238)),
+                (f(100), f(238)),
+                (f(75), f(178.5)),
                 (f(81), f(228)),
-                1000*f(30),
+                1000 * f(30),
                 0.38,
             ),
-            ("Steel, 302 stainless", 
-                (f(85), f(125)), 
-                (f(85), f(125)), 
+            (
+                "Steel, 302 stainless",
+                (f(85), f(125)),
+                (f(85), f(125)),
                 # Following from https://www.makeitfrom.com/material-properties/AISI-302-S30200-Stainless-Steel
                 # which gave 400 to 830 MPa
                 (f(58), f(120)),
                 (f(35), f(95)),
-                1000*f(28),
+                1000 * f(28),
                 0.45,
             ),
-            ("Aluminum alloy, sand cast", 
-                (f(19), f(35)), 
+            (
+                "Aluminum alloy, sand cast",
+                (f(19), f(35)),
                 # I have approximated the compressive strength as equal to 3/4
                 # of the tensile strength
-                (f(19*3/4), f(35*3/4)),
+                (f(19 * 3 / 4), f(35 * 3 / 4)),
                 (f(14), f(26)),
                 (f(8), f(25)),
-                1000*f(10.3),
+                1000 * f(10.3),
                 None,
             ),
             # Old data from American Machinist's handbook, 1945
@@ -124,7 +135,6 @@ if 1:  # Header
             #    ("Steel wire, soft", None, None, 80),
             #    ("Steel, piano wire", None, None, 300),
             #    ("Zinc, sand cast", 14, 20, 9),
-    
             # From https://www.unipunch.com/support/charts/material-specifications/
             # Shear strengths in kpsi
             #   Steel, low carbon hot rolled            50
@@ -140,9 +150,9 @@ if 1:  # Header
             #   Cu, 342 high lead, 1/2 hard             40
             #   Cu, 672 Mn bronze                       42
         )
-        # Numbers from 
+        # Numbers from
         # http://www.engineersedge.com/analysis/factor-of-safety-review.htm
-        safety = '''
+        safety = """
         Approximate factors of safety:
             3       Ultimate strength of material is known exactly, steady load.
             4       Same, variable loads.
@@ -150,13 +160,16 @@ if 1:  # Header
             6       Reversed in direction (tension to compression and back).
             10      Subject to shock loads.
             >10     High cost/risk of failure.
-        '''
+        """
 if 1:  # Utility
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+
     def Usage(d, status=1):
-        print(dedent(f'''
+        print(
+            dedent(f"""
         Usage:  {sys.argv[0]} diameter [length_unit]
           Prints a table of ultimate or maximum design strengths for metal rods.  The diameter units
           default to inches.  The output forces are in lbf; use the -o option to change.  diameter
@@ -177,13 +190,15 @@ if 1:  # Utility
           -s sf Use a specified factor of safety.  The default is None, which means
                 the printed numbers are estimates of the forces where things break.
           -t    Print root diameters of common UN threads
-        {safety}'''))
+        {safety}""")
+        )
         exit(status)
+
     def ParseCommandLine():
-        d["-d"] = 2         # Number of significant digits
-        d["-o"] = "lbf"     # Output units
-        d["-s"] = None      # Factor of safety
-        d["-p"] = 0         # Number of sides in regular polygon
+        d["-d"] = 2  # Number of significant digits
+        d["-o"] = "lbf"  # Output units
+        d["-s"] = None  # Factor of safety
+        d["-p"] = 0  # Number of sides in regular polygon
         if len(sys.argv) < 2:
             Usage(d)
         try:
@@ -198,8 +213,7 @@ if 1:  # Utility
                     if not (1 <= d["-d"] <= 15):
                         raise ValueError()
                 except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                           "1 and 15")
+                    msg = "-d option's argument must be an integer between 1 and 15"
                     Error(msg)
             elif o in ("-o",):
                 d["-o"] = a
@@ -213,7 +227,7 @@ if 1:  # Utility
                     if d["-p"] < 3:
                         raise ValueError()
                 except ValueError:
-                    msg = ("-p option's argument must be an integer > 3")
+                    msg = "-p option's argument must be an integer > 3"
                     Error(msg)
             elif o in ("-s",):
                 try:
@@ -233,10 +247,14 @@ if 1:  # Utility
         x.N = d["-d"]
         x.rtz = x.rtdp = True
         return args
+
+
 if 1:  # Core functionality
+
     def PrintThreadData():
-        'Print a table of the minor diameters of commonly-used threads'
-        print(dedent('''
+        "Print a table of the minor diameters of commonly-used threads"
+        print(
+            dedent("""
         Commonly used UN thread root diameters in inches
            Size        UNC     UNF
             4         0.080   0.086
@@ -250,21 +268,24 @@ if 1:  # Core functionality
             1/2       0.404   0.437
             5/8       0.512   0.555
             3/4       0.625   0.672
-          '''))
+          """)
+        )
         exit(0)
+
     def Area(dia):
-        'Compute the cross-sectional area of the shape'
-        if d["-p"]:     # Area of a regular polygon
-            return d["-p"]*dia**2/4*tan(pi/d["-p"])
-        else:           # Area of a circle
-            return pi/4*dia**2
+        "Compute the cross-sectional area of the shape"
+        if d["-p"]:  # Area of a regular polygon
+            return d["-p"] * dia**2 / 4 * tan(pi / d["-p"])
+        else:  # Area of a circle
+            return pi / 4 * dia**2
+
     def PrintReport(dia):
-        '''dia is a flt gotten from the diameter expression and optional units on the
+        """dia is a flt gotten from the diameter expression and optional units on the
         command line.  It will be a flt in units of m.
-        '''
+        """
         # Convert diameter to inches
         dia /= u("inches")
-        print(f"Diameter = {dia} inches = {dia*25.4} mm")
+        print(f"Diameter = {dia} inches = {dia * 25.4} mm")
         # Shape
         n = d["-p"]
         print("Shape =", end=" ")
@@ -284,63 +305,66 @@ if 1:  # Core functionality
             print("round")
         # Area
         A = Area(dia)
-        print(f"Area = {A} in2 = {A/u('mm2')} mm2")
+        print(f"Area = {A} in2 = {A / u('mm2')} mm2")
         # Number of digits
         print(f"Number of digits = {d['-d']}")
         # Force data
         sp = 15
-        indent = " "*35
+        indent = " " * 35
         f, fos = d["-o"], d["-s"]
         n = 30  # Approximate width of columns to get centering
         if fos is not None:
             t.print(f"  {t('grnl')}Factor of safety =", fos)
             s = "Maximum load in " + f
-            print(" "*40, "{:^{}}".format(s, n))
+            print(" " * 40, "{:^{}}".format(s, n))
         else:
             s = "Breaking load in " + f
-            print(" "*40, "{:^{}}".format(s, n))
+            print(" " * 40, "{:^{}}".format(s, n))
             fos = 1
         print(indent, "Shear       Compression       Tension")
         NA = "--"
         for item in materials:
             name = item[0]
-            uts_low, uts_high = [1000*i for i in item[1]]   # Ultimate tensile strength range
-            ucs_low, ucs_high = [1000*i for i in item[2]]   # Ultimate compr. str.
-            uss_low, uss_high = [1000*i for i in item[3]]   # Ultimate shear str.
-            yp_low, yp_high = [1000*i for i in item[4]]     # Yield point (0.2% offset)
+            uts_low, uts_high = [
+                1000 * i for i in item[1]
+            ]  # Ultimate tensile strength range
+            ucs_low, ucs_high = [1000 * i for i in item[2]]  # Ultimate compr. str.
+            uss_low, uss_high = [1000 * i for i in item[3]]  # Ultimate shear str.
+            yp_low, yp_high = [1000 * i for i in item[4]]  # Yield point (0.2% offset)
             if item[5] is not None and item[6] is not None:
-                E_tension = item[5]                             # Modulus of elasticity
-                E_shear = item[6]*E_tension     # Shear modulus
+                E_tension = item[5]  # Modulus of elasticity
+                E_shear = item[6] * E_tension  # Shear modulus
             # Shear
             if uss_low is not None:
-                f = uss_low*A/fos
-                sh = str(f/u(d["-o"])) + "-"
-                f = uss_high*A/fos
-                sh += str(f/u(d["-o"]))
+                f = uss_low * A / fos
+                sh = str(f / u(d["-o"])) + "-"
+                f = uss_high * A / fos
+                sh += str(f / u(d["-o"]))
             else:
                 sh = NA
             # Compression
             if ucs_low is not None:
-                f = ucs_low*A/fos
-                comp = str(f/u(d["-o"])) + "-"
-                f = ucs_high*A/fos
-                comp += str(f/u(d["-o"]))
+                f = ucs_low * A / fos
+                comp = str(f / u(d["-o"])) + "-"
+                f = ucs_high * A / fos
+                comp += str(f / u(d["-o"]))
             else:
                 comp = NA
             # Tension
-            f = uts_low*A/fos
-            tens = str(f/u(d["-o"])) + "-"
-            f = uts_high*A/fos
-            tens += str(f/u(d["-o"]))
+            f = uts_low * A / fos
+            tens = str(f / u(d["-o"])) + "-"
+            f = uts_high * A / fos
+            tens += str(f / u(d["-o"]))
             # Print results
             c = t("ornl") if name == "Steel, structural (common)" else ""
             t.print(f"{c}{name:30s} {sh:^{sp}s} {comp:^{sp}s} {tens:^{sp}s}")
         print("\n1 lbf = 4.45 N")
 
+
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine()
     dia = eval(args[0], globals())
     dia_units = args[1] if len(args) > 1 else "inches"
-    dia = f(dia)*u(dia_units)  # Converts to m
+    dia = f(dia) * u(dia_units)  # Converts to m
     PrintReport(dia)

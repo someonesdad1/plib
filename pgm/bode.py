@@ -1,25 +1,27 @@
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2011 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
+    # ∞copyright∞# Copyright (C) 2011 Don Peterson #∞copyright∞#
+    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    # ∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
+    # ∞license∞#
+    # ∞what∞#
     # Make a Bode plot of a transfer function
-    #∞what∞#
-    #∞test∞# #∞test∞#
+    # ∞what∞#
+    # ∞test∞# #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     import getopt
     from pylab import *
+
+
 def Usage(d, status=1):
     name = sys.argv[0]
     lower = d["-l"]
     upper = d["-u"]
-    s = '''Usage:  {name} [options] xfr_fn_file
+    s = """Usage:  {name} [options] xfr_fn_file
   Generates a Bode plot for a transfer function defined in a file called
   xfr_fn_file.  This file must contain a python function of the form
 
@@ -45,9 +47,11 @@ Options:
         10^dec Hz.  dec must be a number that can have the integer part taken.
     -t title
         String to use for the plot's title
-'''
+"""
     print(s.format(**locals()))
     exit(status)
+
+
 def ParseCommandLine(d):
     d["-l"] = 0
     d["-L"] = False
@@ -73,11 +77,13 @@ def ParseCommandLine(d):
     if len(args) != 1:
         Usage(d)
     return args
+
+
 def Plot(file, d):
     n, R = 1000, d["-u"] - d["-l"]
-    f = 10**arange(d["-l"], d["-u"], R/n)
-    w = 2*pi*f
-    s = w*1j
+    f = 10 ** arange(d["-l"], d["-u"], R / n)
+    w = 2 * pi * f
+    s = w * 1j
     # Read in the function
     with open(file) as source_file:
         exec(source_file.read(), globals(), globals())
@@ -88,7 +94,7 @@ def Plot(file, d):
         semilogx(f, abs(response))
         ys = "Response"
     else:
-        semilogx(f, 20*log10(abs(response)))
+        semilogx(f, 20 * log10(abs(response)))
         ys = "Response, dB"
     if d["-t"]:
         t = d["-t"] + "\nMagnitude"
@@ -99,13 +105,15 @@ def Plot(file, d):
     grid()
     subplot(212)
     title("Phase")
-    phase = arctan2(imag(response), real(response))*180/pi   # In degrees
+    phase = arctan2(imag(response), real(response)) * 180 / pi  # In degrees
     semilogx(f, phase)
     grid()
     xlabel("Frequency, Hz")
     ylabel("Phase, degrees")
     show()
-if __name__ == "__main__": 
-    d = {}   # Options dictionary
+
+
+if __name__ == "__main__":
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     Plot(args[0], d)
