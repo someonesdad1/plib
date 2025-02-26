@@ -7,10 +7,8 @@ Todo
       inside of a multiline string, so it may be able to be built into the existing
       code.
 
-Delete blank lines from files or stdin.  Done by simple pattern matching, so doesn't
-understand python syntax.  Currently, this is mostly intended to be a tool called from
-within vi, so in Feb 2025 I modified the user interface to assume input from stdin by
-default.  Add file arguments if you wish.
+Delete blank lines from files or stdin.  This is intended to be used to remove blank
+lines that are inserted by python formatters like ruff or black.
 '''
 if 1:   # Header
     if 1:   # Copyright, license
@@ -122,21 +120,39 @@ if 1:   # Core functionality
         def IsSingleMultiline(line):
             nonlocal single, double
             return line.count(single) == 1 or line.count(double) == 1
+        def CountLeadingSpaces(string):
+            lst, count = list(string), 0
+            while lst:
+                c = lst.pop(0)
+                if c == " ":
+                    count += 1
+                else:
+                    break
+            return count
+        # We'll use ProcessLine.previous_line to keep track of the previous line.  If we
+        # encounter an empty line while in a multiline string, we'll add in the number
+        # of spaces of indent on the previous line.
         if ProcessLine.multiline:   # We're currently in a multiline string
             if IsSingleMultiline(line):
                 item = GetSingleTriple(line)
                 if item == ProcessLine.multiline:  # Single or double triple is ended
                     ProcessLine.multiline = empty
+            if not line:
+                # Add indent of previous line
+                line = " "*CountLeadingSpaces(ProcessLine.previous_line)
             print(line)
+            ProcessLine.previous_line = line
         elif line == "":  # Don't print an empty line
             return
         elif line.count(single) == 1 or line.count(double) == 1:
             if ProcessLine.multiline:
                 print(line)
+                ProcessLine.previous_line = line
                 # Exit the multiline state
                 ProcessLine.multiline = empty
             else:
                 print(line)
+                ProcessLine.previous_line = line
                 # Enter the multiline state
                 if line.count(single) == 1:
                     ProcessLine.multiline = single
@@ -147,7 +163,9 @@ if 1:   # Core functionality
                     breakpoint() #xx 
         else:
             print(line)
+            ProcessLine.previous_line = line
     def Reset():
+        ProcessLine.previous_line = None
         ProcessLine.multiline = False
 
 if __name__ == "__main__":

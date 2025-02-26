@@ -27,6 +27,7 @@ fDistribute           Return a float sequence equally distributed
 Flatten               Flattens nested sequences to a sequence of scalars
 getch                 Block until a key is pressed
 GetHash               Get a file's hash as a hex string
+GetLeadingString      Return the leading string from another string
 GroupByN              Group items from a sequence by n items at a time
 grouper               Function to group data
 HeatIndex             Effect of temperature and humidity
@@ -147,6 +148,44 @@ def GetHash(file, method="md5"):
     except Exception:
         return None
     return h.hexdigest()
+def GetLeadingString(string, prefix=" "):
+    '''Return the leading string from string, made up of one or more groups of the
+    indicated string prefix.  A use case is to match the indentation of a previous line.
+    
+    Examples:
+        GetLeadingString(b"zzzHi", prefix=b"z") --> b"zzz"
+        GetLeadingString("zzzHi", prefix="z") --> "zzz"
+        GetLeadingString("ababHi", prefix="ab") --> "abab"
+    '''
+    np, lp, ls = 0, len(prefix), len(string)
+    while np*lp < ls:
+        if string[np*lp:(np + 1)*lp] == prefix:
+            np += 1
+        else:
+            break
+    return np*prefix
+def GetTrailingString(string, suffix=" "):
+    '''Return the trailing string from string, made up of one or more groups of the
+    indicated string suffix.
+    '''
+    # This is done by reversing string and suffix and using GetLeadingString(), but it
+    # does mean we have to create copies in memory.
+    f = lambda x: list(reversed(x))
+    result = f(GetLeadingString(f(string), prefix=f(suffix)))
+    breakpoint() #xx
+    return result
+
+if 1:   #xx
+    if 0:
+        print(f"{GetLeadingString(b'zzzHi', prefix=b'z')!r}")
+        print(f"{GetLeadingString('zzzHi', prefix='z')!r}")
+        print(f"{GetLeadingString('ababHi', prefix='ab')!r}")
+    print(f"{GetTrailingString('Hizzz', suffix='z')!r}")
+    print(f"{GetTrailingString('Hizzz', suffix='zz')!r}")
+    #print(f"{GetTrailingString('Hizzz', suffix='zz')!r}")
+    #print(f"{GetTrailingString('ababHi', suffix='ab')!r}")
+    exit() #xx
+
 def getch():
     'Block until a key is pressed.  This function returns nothing.'
     s = platform.system()

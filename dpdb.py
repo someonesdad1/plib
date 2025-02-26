@@ -325,14 +325,14 @@ class DPdb(Pdb):
                 t = Trm()
                 c = color_choice != NoColors
                 t.title = t("whtl") if c else ""
-                t.bool = t("lipl") if c else ""
-                t.float = t("ornl") if c else ""
-                t.flt = t("yell") if c else ""
-                t.cpx = t("royl") if c else ""
-                t.int = t("grnl") if c else ""
-                t.Decimal = t("magl") if c else ""
-                t.string = t("cynl") if c else ""
-                t.bytes = t("trq") if c else ""
+                t.bool = t("pnkl") if c else ""
+                t.float = t("brnl") if c else ""
+                t.flt = t("redl") if c else ""
+                t.cpx = t("viol") if c else ""
+                t.int = t("magl") if c else ""
+                t.Decimal = t("trq") if c else ""
+                t.string = t("sky") if c else ""
+                t.bytes = t("ornl") if c else ""
                 t.bytearray = t("lwnl") if c else ""
                 t.N = t.n if c else ""
             if 1:   # Get local variables
@@ -342,7 +342,7 @@ class DPdb(Pdb):
                     print("No local variables in this frame")
                     return 
             if 1:   # Print the local variable dictionary
-                print(f"{t.title}Local variables:{t.N}")
+                print(f"{t.title}Local variables (extra arg for color key):{t.N}")
                 # Get length of longest name
                 w = max(len(i) for i in di)
                 # Print the variables
