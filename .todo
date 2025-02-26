@@ -1,40 +1,9 @@
 Active:  /plib/.todo
 
     - pgm/dbl.py
-        - Works to remove lines from files that are empty (match "^$")
-        - This will be a tool I use more because I'll start using ruff for formatting,
-          which follows black's standardization.
-        - The only place I see an issue is in docstrings that contain empty lines rather
-          than the usual whitespace to match the line before it.  
-        - This might be a good place to introduce some line processing logic with
-          python's match command without having to fire up a tokenizer.  You'll look for
-          lines with "'''" or '"""' in them without being terminated and that weren't
-          comments.  Then this stuff would be left alone, as it's likely part of a
-          program multiline string.  It could be fooled by e.g. \'\'\'.
-
-    - Fix ruff's formatting
-        - I can live with it if I have to, as it's better to have a standard file format
-        - Change
-            - I like '''...''' docstrings
-            - I like "str"*3, not "str" * 3
-            - It rewrites assert(x) to assert x
-                - This is ok with assert's syntax, but doesn't let me easily change to
-                  Assert()
-            - raise TypeError("kjfdkfjdkfjdkfjd") gets changed by putting the string on
-              its own line, adding to file size
-        - ruff.toml
-            - quote-style = "preserve":  won't change my choices
-        - 2 lines between functions
-            - I really dislike this because 1) I use blank lines for positioning when
-              I'm working on code and 2) vertical real estate is precious.
-              Unfortunately, it appears these style rules are from younger folks who
-              aren't as able to (or don't like) read dense printed information.
-            - I can fix this for working on a script by using the dbl command, which may
-              only break code if there are blanks in triple-quoted strings.
-            - I changed 'dbl' to a script which assumes stdin by default, so use '!Gdbl'
-              in vim to remove the blank lines (use '!Gdbl -1' to leave one blank line)
-        - black/ruff use 88 columns by default for file widths.  I'll standardize on
-          that too.
+        - After 'ruff format' puts blank lines inside of nested functions, the script
+          needs to remove these lines if not in a triple quoted string.
+        - If encounter 'if __name__ == "__main__":', insert a newline before it.
 
     - Investigate uv https://docs.astral.sh/uv
         - Fast Python package and project manager

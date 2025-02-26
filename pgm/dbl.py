@@ -1,16 +1,7 @@
 """
-
-Todo
-    - black/ruff remove the lines of spaces I use inside functions to let me use } and {
-      in vi to jump to a working location.  Figure out how to make another pass to find
-      these locations and add the appropriate number of spaces.  Note this only happens
-      inside of a multiline string, so it may be able to be built into the existing
-      code.
-
-Delete blank lines from files or stdin.  This is intended to be used to remove blank
-lines that are inserted by python formatters like ruff or black.
+Delete blank lines from files or stdin and fix docstrings.  This is intended to be used
+to remove blank lines that are inserted by python formatters like ruff or black.
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -39,11 +30,9 @@ if 1:  # Header
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
             dedent(f"""
@@ -56,7 +45,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-1"] = False  # Multiple blank lines to one
         # if len(sys.argv) < 2:
@@ -70,13 +58,10 @@ if 1:  # Utility
             if o[1] in list("1"):
                 d[o] = not d[o]
         return files
-
-
 if 1:  # Core functionality
-
     def ProcessFileOrig(file):
         """Use regex matching to remove blank lines.
-
+        
         A problem with this approach is that it will remove the blank lines inside of
         python multiline strings, which is almost certainly not wanted.
         ProcessFile2() was made to handle this case.  However, this function's approach
@@ -91,21 +76,18 @@ if 1:  # Core functionality
         else:
             s = re.sub(r"\n\n+", "\n", s)
         print(s)
-
     def ProcessFile(file):
         lines = sys.stdin.read() if file == "-" else open(file).read()
         for line in lines.split("\n"):
             ProcessLine(line)
-
     def IsComment(line):
         return line.strip()[0] == "#"
-
     def ProcessLine(line):
         """If we're in a multiline string, send the line to stdout.  Otherwise, if it's a
         blank line, ignore it; if not, print it.
         """
         single, double, empty = "'''", '"""', ""
-
+        
         def GetSingleTriple(line):
             "Return any single triple quote in this line"
             nonlocal single, double, empty
@@ -130,11 +112,11 @@ if 1:  # Core functionality
                     return double
                 else:
                     return double if loc_double > loc_single else single
-
+                    
         def IsSingleMultiline(line):
             nonlocal single, double
             return line.count(single) == 1 or line.count(double) == 1
-
+            
         def CountLeadingSpaces(string):
             lst, count = list(string), 0
             while lst:
@@ -144,7 +126,7 @@ if 1:  # Core functionality
                 else:
                     break
             return count
-
+            
         # We'll use ProcessLine.previous_line to keep track of the previous line.  If we
         # encounter an empty line while in a multiline string, we'll add in the number
         # of spaces of indent on the previous line.
@@ -180,12 +162,12 @@ if 1:  # Core functionality
         else:
             print(line)
             ProcessLine.previous_line = line
-
+            
     def Reset():
         ProcessLine.previous_line = None
         ProcessLine.multiline = False
-
-
+        
+        
 if __name__ == "__main__":
     d = {}  # Options dictionary
     files = ParseCommandLine(d)
@@ -196,3 +178,4 @@ if __name__ == "__main__":
         for file in files:
             Reset()
             ProcessFile(file)
+            
