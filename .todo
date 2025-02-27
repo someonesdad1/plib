@@ -1,5 +1,96 @@
 Active:  /plib/.todo
 
+Roadmap for 2025
+    - Standardize on a python version
+        - All tests should be run with this version
+        - Prefer 3.10 or later
+    - Make the top level directory sleek with few subdirectories:
+        - pgm       Command line scripts
+        - doc       Documentation files
+            - pictures
+        - lib       Libraries (e.g. cephes.dll) and stuff to build things
+            - g         Graphics library
+            - build     Used to make things (move color's stuff in here)
+        - test      Tests for files in /plib
+    - /plib/doc
+        - README.md should be concise
+            - My collection of python modules
+            - Links to the various pages to allow browsing
+            - Repo made public 2022; last change date
+        - Create HTML pages to browse/find content
+            - New stuff
+            - Alphabetized
+            - By subject
+            - Things I think are of interest
+        - Put all picture files in here
+    - /plib
+        - Lint & format the files
+        - Make self-tests up-to-date and ensure all pass with python 3.11
+        - Standardize on an open source license
+            - It may be adequate to include a LICENSE file and state in the top level
+              stuff that all of these files are under this specific license.  Makes
+              maintenance easier.
+            - Each file then gets a link to it's location
+              https://github.com/someonesdad1/plib
+        - Remove specialized modules that are better stored elsewhere
+        - 0what.py & trigger strings
+            - Are they useful or should they be discarded?  For documentation & finding
+              things, I think it's more useful consulting an HTML page.
+            - An annoyance of the 'what' string is that it required me to duplicate what
+              was in the docstring at the top of the file.  This is why I think I should
+              eliminate this stuff and the header in the my boilerplate should only have
+              the <<oo test oo>> construct and the copyright date.
+        - build/cephes
+            - This was written for python 3.7 under cygwin.  See if the same code works
+              for WSL.  If not, then two different DLLs are needed.
+    - /plib/pgm
+        - Fix old color.py dependencies (kolor.py) in /plib/pgm
+    - License
+        - A new project on github can choose the following licenses:
+            - Apache2.0
+            - GPLv3
+            - MIT
+            - BSD2-clause "simplified"
+            - BSD3-clause "revised"
+            - Boost1.0
+            - Creative Commons Zero v1.0 universal
+            - GNU Affero v3.0
+            - GPLv2
+            - LGPLv2.1
+            - Mozilla2.0
+            - Unlicense
+        - See 
+            - https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository
+            - https://choosealicense.com/.
+            - https://opensource.guide/legal/ Good discussion
+        - I am leaning towards using the MIT license for my projects, as that gives the
+          most freedom to users and there's no copyleft clause in it.  I'd imagine most
+          folks know they can use MIT stuff however they want and the only practical
+          limitation on them is that they need to include the MIT license in their
+          stuff.
+    - Current header
+        - if 1:  # Copyright, license
+            - # These "trigger strings" can be managed with trigger.py
+            - #∞copyright∞# Copyright © 2025 Don Peterson #∞copyright∞#
+            - #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+            - #∞license∞#
+            - #   Licensed under the Open Software License version 3.0.
+            - #   See http://opensource.org/licenses/OSL-3.0.
+            - #∞license∞#
+            - #∞what∞#
+            - # Program description string
+            - #∞what∞#
+            - #∞test∞# #∞test∞#
+    - New header
+        - if 1:  # Copyright & info
+            - # Copyright © 2025 Don Peterson   https://github.com/someonesdad1/plib
+            - # <∞ test none ∞> 
+        - In particular, the test information is given by the <∞ ∞> tag, which currently
+          isn't in any of my files.  For a pure ASCII form, <<oo and oo>> could be used.
+          This is easy to extract with a regex.
+
+Details
+
     - trigger.py
         - Problem caused by ruff formatting the file and putting a space after every
           leading '#' character when they look like comments.
