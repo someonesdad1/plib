@@ -7,7 +7,7 @@ xx A number like 3.14e-34 needs to be changed to a power of 10
 Module to format numbers using Unicode characters to make them easier
 to read.
 """
-# ∞test∞# ["test/format_numbers_test.py"] #∞test∞#
+##∞test∞# ["test/format_numbers_test.py"] #∞test∞#
 
 from decimal import Decimal
 from fpformat import FPFormat

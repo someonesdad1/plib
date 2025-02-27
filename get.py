@@ -20,20 +20,20 @@ user.
 if 1:  # Header
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    # ∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
-    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    # ∞license∞#
+    ##∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
+    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    ##∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    # ∞license∞#
-    # ∞what∞#
+    ##∞license∞#
+    ##∞what∞#
     # <programming> Module for getting data from files, strings, and
     # streams.  An example is reading a text file, getting all the lines
     # except for those that match a sequence of regular expressions.
     # Other examples are getting all the words (tokens) from a file or a
     # set of numbers.  Handles a number of common programming tasks.
-    # ∞what∞#
-    # ∞test∞# run #∞test∞#
+    ##∞what∞#
+    ##∞test∞# run #∞test∞#
     # Standard imports
     import bisect
     import locale

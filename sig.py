@@ -19,13 +19,13 @@ Todo, bugs:
 
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    # ∞copyright∞# Copyright (C) 2012 Don Peterson #∞copyright∞#
-    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    # ∞license∞#
+    ##∞copyright∞# Copyright (C) 2012 Don Peterson #∞copyright∞#
+    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    ##∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    # ∞license∞#
-    # ∞what∞#
+    ##∞license∞#
+    ##∞what∞#
     # <programming> Represent a number to a specified number of
     # significant figures.  Handles numerous number types (including
     # complex numbers and ufloats from the python uncertainties library)
@@ -33,8 +33,8 @@ if 1:  # Copyright, license
     # I consider this module obsolete, as it's too long and complex, but a
     # lot of code was written using it.  I prefer to use flt and cpx
     # objects now in f.py.
-    # ∞what∞#
-    # ∞test∞# --test #∞test∞#
+    ##∞what∞#
+    ##∞test∞# --test #∞test∞#
     pass
 if 1:  # Imports
     from fractions import Fraction

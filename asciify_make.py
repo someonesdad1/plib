@@ -22,7 +22,7 @@ content is the driving force behind this transliteration, primarily
 because I am not a linguist.
 """
 
-# ∞test∞# ignore #∞test∞#
+##∞test∞# ignore #∞test∞#
 import unicodedata as U
 import re
 import pickle

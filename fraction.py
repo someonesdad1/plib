@@ -15,7 +15,7 @@ ToFraction
   Convert a string to a Fraction.  '19/16', '1 3/16', '1-3/16', and
   '1+3/16' all give the same fraction.
 """
-# ∞test∞# ["test/fraction_test.py"] #∞test∞#
+##∞test∞# ["test/fraction_test.py"] #∞test∞#
 
 import re
 from fractions import Fraction

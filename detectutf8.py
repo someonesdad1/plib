@@ -6,20 +6,20 @@ UTF-8 encoded.
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        # ∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
-        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        # ∞license∞#
+        ##∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
+        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        ##∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        # ∞license∞#
-        # ∞what∞#
+        ##∞license∞#
+        ##∞what∞#
         # <programming> Module to find files that aren't encoded as UTF-8.  Run
         # as a script for a command line tool.  The algorithm is to read the
         # whole file in as binary, then try to decode it as UTF-8.  If there's
         # an exception, the file is not encoded UTF-8.  This may be inefficient
         # for lots of large files, but it's the only method guaranteed to work.
-        # ∞what∞#
-        # ∞test∞# #∞test∞#
+        ##∞what∞#
+        ##∞test∞# #∞test∞#
         pass
     if 1:  # Standard imports
         from pathlib import Path as P

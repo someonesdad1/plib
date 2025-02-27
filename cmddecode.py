@@ -43,20 +43,20 @@ Run this file as a script to get an interactive demo.
 
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    # ∞copyright∞# Copyright (C) 2006 Don Peterson #∞copyright∞#
-    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    # ∞license∞#
+    ##∞copyright∞# Copyright (C) 2006 Don Peterson #∞copyright∞#
+    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    ##∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    # ∞license∞#
-    # ∞what∞#
+    ##∞license∞#
+    ##∞what∞#
     # <programming> Decode user command strings.  When initialized with
     # a sequence of command strings, calling the object with a string
     # will return a list of 0, 1 or many strings.  0 means no match, 1
     # is a unique match, and many means more than one match.  The
     # constructor lets you choose to ignore the command's case or not.
-    # ∞what∞#
-    # ∞test∞# ["test/cmddecode_test.py"] #∞test∞#
+    ##∞what∞#
+    ##∞test∞# ["test/cmddecode_test.py"] #∞test∞#
     pass
 if 1:  # Imports
     import re

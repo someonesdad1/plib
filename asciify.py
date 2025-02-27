@@ -5,19 +5,19 @@ function IsASCII() to determine if a string is all ASCII characters.
 
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    # ∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
-    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    # ∞license∞#
+    ##∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
+    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    ##∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    # ∞license∞#
-    # ∞what∞#
+    ##∞license∞#
+    ##∞what∞#
     # <programming> Change Unicode characters to nearest ASCII
     # equivalents.  For example, é and è would be changed to e.
-    # ∞what∞#
-    # ∞test∞# ignore #∞test∞#
+    ##∞what∞#
+    ##∞test∞# ignore #∞test∞#
     # Testing with the following script is disabled until it can be fixed
-    # ∞Test∞# ["test/asciify_test.py"] #∞Test∞#
+    ##∞Test∞# ["test/asciify_test.py"] #∞Test∞#
     pass
 if 1:  # Global variables
     __all__ = ["Asciify"]

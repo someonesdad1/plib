@@ -55,18 +55,18 @@ suggest using mpmath instead of this module because:
 if 1:  # Header
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    # ∞copyright∞# Copyright (C) 2006, 2012 Don Peterson #∞copyright∞#
-    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    # ∞license∞#
+    ##∞copyright∞# Copyright (C) 2006, 2012 Don Peterson #∞copyright∞#
+    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    ##∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    # ∞license∞#
-    # ∞what∞#
+    ##∞license∞#
+    ##∞what∞#
     # <math> Elementary math functions for the python Decimal library.
     # Provides a number of the real-valued functions that are in the math
     # module.
-    # ∞what∞#
-    # ∞test∞# run #∞test∞#
+    ##∞what∞#
+    ##∞test∞# run #∞test∞#
     # Imports
     import decimal
     import math

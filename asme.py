@@ -5,17 +5,17 @@ National thread forms in inches.  Formulas taken from ASME B1.1-1989.
 
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    # ∞copyright∞# Copyright (C) 2007, 2021 Don Peterson #∞copyright∞#
-    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    # ∞license∞#
+    ##∞copyright∞# Copyright (C) 2007, 2021 Don Peterson #∞copyright∞#
+    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    ##∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    # ∞license∞#
-    # ∞what∞#
+    ##∞license∞#
+    ##∞what∞#
     # <shop> Provides the UnifiedThread class which gives the inch dimensions
     # associated with Unified National thread forms from ASME B1.1-1989.
-    # ∞what∞#
-    # ∞test∞# run #∞test∞#
+    ##∞what∞#
+    ##∞test∞# run #∞test∞#
     pass
 if 1:  # Custom imports
     from f import flt

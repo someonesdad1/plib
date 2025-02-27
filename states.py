@@ -2,7 +2,7 @@
 US State abbreviations
 """
 
-# ∞test∞# ignore #∞test∞#
+##∞test∞# ignore #∞test∞#
 name_to_two_letters = n2l = {
     "Alabama": "AL",
     "Alaska": "AK",

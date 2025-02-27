@@ -47,7 +47,7 @@ This module extends the python debugger pdb.py Features:
               file.
 """
 
-# ∞test∞# none #∞test∞#
+##∞test∞# none #∞test∞#
 from pdb import Pdb
 import code
 import linecache

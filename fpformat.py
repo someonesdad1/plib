@@ -7,17 +7,17 @@ Format floating point numbers in a variety of ways
 
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    # ∞copyright∞# Copyright (C) 2008, 2012 Don Peterson #∞copyright∞#
-    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    # ∞license∞#
+    ##∞copyright∞# Copyright (C) 2008, 2012 Don Peterson #∞copyright∞#
+    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    ##∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    # ∞license∞#
-    # ∞what∞#
+    ##∞license∞#
+    ##∞what∞#
     # <programming> Obsolete formatter for floating point numbers.  Use
     # fmt.py as a replacement.
-    # ∞what∞#
-    # ∞test∞# ["test/fpformat_test.py"] #∞test∞#
+    ##∞what∞#
+    ##∞test∞# ["test/fpformat_test.py"] #∞test∞#
     pass
 if 1:  # Imports
     import sys

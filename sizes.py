@@ -2,7 +2,7 @@
 Provide commonly-used sizes.
 """
 
-# ∞test∞# ignore #∞test∞#
+##∞test∞# ignore #∞test∞#
 from columnize import Columnize
 from frange import frange
 from sig import sig

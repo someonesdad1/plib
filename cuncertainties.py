@@ -10,18 +10,18 @@ impedance by using an oscilloscope.
 
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    # ∞copyright∞# Copyright (C) 2013 Don Peterson #∞copyright∞#
-    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    # ∞license∞#
+    ##∞copyright∞# Copyright (C) 2013 Don Peterson #∞copyright∞#
+    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    ##∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    # ∞license∞#
-    # ∞what∞#
+    ##∞license∞#
+    ##∞what∞#
     # <math> This module defines a cufloat object that can be used as a
     # complex number that has uncertainties associated with the real and
     # imaginary parts.
-    # ∞what∞#
-    # ∞test∞# --test #∞test∞#
+    ##∞what∞#
+    ##∞test∞# --test #∞test∞#
     pass
 if 1:  # Imports
     import math

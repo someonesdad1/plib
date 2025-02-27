@@ -1,7 +1,7 @@
 """
 Date/time strings for now() I use a lot
 """
-# ∞test∞# ignore #∞test∞#
+##∞test∞# ignore #∞test∞#
 
 from time import strftime as ft
 

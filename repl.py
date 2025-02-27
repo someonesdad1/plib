@@ -168,16 +168,16 @@ __doc__ = dedent("""
 if 1:  # Header
     # Copyright, trigger strings
     # These "trigger strings" can be managed with trigger.py
-    # ∞version∞#
+    ##∞version∞#
     _version = "2 Jun 2021"
-    # ∞version∞#
-    # ∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
-    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    # ∞license∞#
+    ##∞version∞#
+    ##∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
+    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    ##∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    # ∞license∞#
-    # ∞what∞#
+    ##∞license∞#
+    ##∞what∞#
     # <utility> This provides a REPL I use for an interactive python
     # calculator.  By default it uses flt and cpx number types from
     # f.py, along with units from u.py, letting you do physical
@@ -186,8 +186,8 @@ if 1:  # Header
     # in their interpolated strings (you can set the number of digits
     # you want to see), so you don't see all the annoying digits common
     # in floating point calculations.
-    # ∞what∞#
-    # ∞test∞# ignore #∞test∞#
+    ##∞what∞#
+    ##∞test∞# ignore #∞test∞#
     # Standard imports
     from atexit import register
     from collections import defaultdict

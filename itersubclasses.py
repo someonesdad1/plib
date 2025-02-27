@@ -1,4 +1,4 @@
-# ∞test∞# ignore #∞test∞#
+##∞test∞# ignore #∞test∞#
 def IterSubclasses(cls, seen=None):
     """Iterator over all subclasses of a given class, in depth first
     order.  If not None, seen should be a set that will contain the

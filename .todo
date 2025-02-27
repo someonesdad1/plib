@@ -1,5 +1,18 @@
 Active:  /plib/.todo
 
+    - trigger.py
+        - Problem caused by ruff formatting the file and putting a space after every
+          leading '#' character when they look like comments.
+            - Fix:  change leading '#' to '##' and things will work
+        - Keys used: the string between the ∞test∞
+              strings is use to determine how to test:
+            - run
+            - --test
+            - None
+            - ["test/cmddecode_test.py"] 
+            - ignore
+            - none
+
     - pgm/dbl.py
         - After 'ruff format' puts blank lines inside of nested functions, the script
           needs to remove these lines if not in a triple quoted string.

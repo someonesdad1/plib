@@ -28,19 +28,19 @@ A dictionary that is an invertible function
 
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    # ∞copyright∞# Copyright (C) 2009, 2011, 2014 Don Peterson #∞copyright∞#
-    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    # ∞license∞#
+    ##∞copyright∞# Copyright (C) 2009, 2011, 2014 Don Peterson #∞copyright∞#
+    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    ##∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    # ∞license∞#
-    # ∞what∞#
+    ##∞license∞#
+    ##∞what∞#
     # <programming> A dictionary that is an invertible function.  As
     # long as the mapping is one-to-one, you can use the dictionary in
     # either direction.  dict[a] goes the "normal" direction and dict(a)
     # goes the reverse direction.
-    # ∞what∞#
-    # ∞test∞# run #∞test∞#
+    ##∞what∞#
+    ##∞test∞# run #∞test∞#
     pass
 
 

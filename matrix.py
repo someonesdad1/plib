@@ -28,18 +28,18 @@ Matrix module
 if 1:  # Header
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    # ∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
-    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    # ∞license∞#
+    ##∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
+    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    ##∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    # ∞license∞#
-    # ∞what∞#
+    ##∞license∞#
+    ##∞what∞#
     # <math> Matrix module.  This module is a derivative work of the 3.0.0
     # version of pymatrix, gotten on 15 Jul 2019 from
     # https://github.com/dmulholl/pymatrix.git.
-    # ∞what∞#
-    # ∞test∞# run #∞test∞#
+    ##∞what∞#
+    ##∞test∞# run #∞test∞#
     # Attribution:  This module is derived from Darren Mulholland's
     # Pymatrix, which he put into the public domain.
     # Standard imports

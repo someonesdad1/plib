@@ -4,17 +4,17 @@ Give sequence values that are the IEC 60063 numbers.
 
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    # ∞copyright∞# Copyright (C) 2012 Don Peterson #∞copyright∞#
-    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    # ∞license∞#
+    ##∞copyright∞# Copyright (C) 2012 Don Peterson #∞copyright∞#
+    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    ##∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    # ∞license∞#
-    # ∞what∞#
+    ##∞license∞#
+    ##∞what∞#
     # <utility> IEC 60063 preferred numbers (E-series:  E6, E12, etc.).  For
     # example, the E6 values are 100 150 220 330 470 680.
-    # ∞what∞#
-    # ∞test∞# --test #∞test∞#
+    ##∞what∞#
+    ##∞test∞# --test #∞test∞#
     pass
 
 

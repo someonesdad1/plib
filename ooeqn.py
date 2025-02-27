@@ -39,17 +39,17 @@ if 1:  # Header
     # Copyright, license
     if 1:
         # These "trigger strings" can be managed with trigger.py
-        # ∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
-        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        # ∞license∞#
+        ##∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
+        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        ##∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        # ∞license∞#
-        # ∞what∞#
+        ##∞license∞#
+        ##∞what∞#
         # Module to get the text content of the mathematical equations in an Open
         # Document file.
-        # ∞what∞#
-        # ∞test∞# #∞test∞#
+        ##∞what∞#
+        ##∞test∞# #∞test∞#
         pass
     # Standard imports
     if 1:

@@ -3,7 +3,7 @@ This file contains a collection of named colors organized by hue.  It was produc
 that I wrote but can no longer find.
 6976 total colors
 """
-# ∞test∞# none #∞test∞#
+##∞test∞# none #∞test∞#
 
 colorhues = {
     "blu": {

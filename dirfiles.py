@@ -4,13 +4,13 @@ Module to get a set of files from a set of disjoint directory trees.
 
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    # ∞copyright∞# Copyright (C) 2020 Don Peterson #∞copyright∞#
-    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    # ∞license∞#
+    ##∞copyright∞# Copyright (C) 2020 Don Peterson #∞copyright∞#
+    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    ##∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    # ∞license∞#
-    # ∞what∞#
+    ##∞license∞#
+    ##∞what∞#
     # <programming> Get a set of files from a set of disjoint directory
     # trees.  An example use case is to generate a set of PDF files in
     # various locations.  An example shows you how to collect the PDF
@@ -20,8 +20,8 @@ if 1:  # Copyright, license
     # articles, data sheets, catalogs, etc.).  The names of the files
     # are cached to disk and only take a few of seconds to reindex; the
     # cache makes the lookups essentially instantaneous.
-    # ∞what∞#
-    # ∞test∞# run #∞test∞#
+    ##∞what∞#
+    ##∞test∞# run #∞test∞#
     pass
 if 1:  # Imports
     import pathlib

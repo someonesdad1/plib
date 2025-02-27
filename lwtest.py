@@ -26,18 +26,18 @@ TODO:
 if 1:  # Header
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    # ∞license∞#
+    ##∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    ##∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    # ∞license∞#
-    # ∞what∞#
+    ##∞license∞#
+    ##∞what∞#
     # <programming> Lightweight test runner.  I use this tool to run all
     # my python module's regression tests, as I was dissatisfied with
     # python's unittest and I've never liked doctest.
-    # ∞what∞#
-    # ∞test∞# ["test/lwtest_test.py"] #∞test∞#
+    ##∞what∞#
+    ##∞test∞# ["test/lwtest_test.py"] #∞test∞#
     # Origin
     # Derived from some nice code by Raymond Hettinger 8 May 2008:
     # http://code.activestate.com/recipes/572194/.  Downloaded 27 Jul

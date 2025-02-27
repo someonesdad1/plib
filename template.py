@@ -1,5 +1,5 @@
 if __name__ == "__main__":
-    # ∞test∞# ignore #∞test∞#
+    ##∞test∞# ignore #∞test∞#
     """Drop this template into a module to:
         * Create a normal script or print examples of use when run as a
           script

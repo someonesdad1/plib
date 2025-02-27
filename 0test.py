@@ -1,30 +1,34 @@
 """
-
-- Look at adding style tests via
-  https://pycodestyle.pycqa.org/en/latest/advanced.html#automated-tests
-- Trigger string policy
-    - None means the file has no testing and shouldn't be listed
-    - Empty means its missing and probably needs something
-    - Ignore means the file is ignored for testing purposes
-- Log file should have date-time in name.
-
+     
+TODO
+    - Look at changing default behavior:  'python 0test.py' looks for every python file
+      in the current file and runs its self tests.  This makes keeping things up to
+      date.
+        - Cache the file's hash in a hidden data file so that if the hash hasn't
+          changed, then the test isn't run.
+            - A -f option can override this
+    - Trigger string policy
+        - None means the file has no testing and shouldn't be listed
+        - Empty means its missing and probably needs something
+        - Ignore means the file is ignored for testing purposes
+    - Log file should have date-time in name.
+     
 Testing automation tool
     This script will examine the test trigger strings of the indicated
     files and run their indicated tests.  See the description of these
     strings below.
-
+    
 """
-
 if 1:  # Header
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    # ∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
-    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    # ∞license∞#
+    ##∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
+    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    ##∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    # ∞license∞#
-    # ∞what∞#
+    ##∞license∞#
+    ##∞what∞#
     # <utility> Run self tests of python scripts with a test trigger string:
     #   <empty>     Missing; probably needs a test written.
     #   "none"      Has no test and shouldn't be listed.
@@ -32,8 +36,8 @@ if 1:  # Header
     #   "run"       Run the script to run the self-tests.
     #   "--test"    Run script with the '--test' option.
     #   A list of strings specifies one or more test files to run.
-    # ∞what∞#
-    # ∞test∞# none #∞test∞#
+    ##∞what∞#
+    ##∞test∞# none #∞test∞#
     # Standard imports
     import getopt
     import os
@@ -41,7 +45,6 @@ if 1:  # Header
     import subprocess
     import sys
     from pdb import set_trace as xx
-
     # Custom imports
     from tee import Print
     from wrap import wrap, dedent, indent, Wrap
@@ -50,14 +53,11 @@ if 1:  # Header
     from color import TRM as t
     import trigger
     import dpstr
-
     if 0:
         import debug
-
         debug.SetDebugger()  # Start debugger on unhandled exception
     try:
         import pycodestyle
-
         have_pycodestyle = True
     except ImportError:
         have_pycodestyle = False
@@ -75,11 +75,9 @@ if 1:  # Header
     # Files to ignore
     ignore = set((P("/plib/trigger.py"),))
 if 1:  # Utility
-
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         name = P(sys.argv[0])
         print(
@@ -101,7 +99,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-d"] = False  # Debug output
         d["-q"] = False  # Quiet
@@ -123,26 +120,21 @@ if 1:  # Utility
         if (d["-s"] or d["-S"]) and not have_pycodestyle:
             print("Warning:  pycodestyle not installed", file=sys.stderr)
         return args
-
     def GetLogFile():
         "Return a log file name that ends in .0test"
         suffix = fnt() + ".0test"
         return P(".testlog") / suffix
-
-
 class TestRunner:
     def __init__(self):
         self.total = 0
         self.failed = 0
         self.not_run = 0
         self.trigger = trigger.Trigger()
-
     def GetTestTrigger(self, file):
         triggers = self.trigger(file)
         if triggers is not None and "test" in triggers:
             return (file, triggers["test"].strip())
         return None
-
     def GetFiles(self, dir):
         "Return a sorted list of (files, trigger)"
         p, glb, o = P(dir), "*.py", []
@@ -155,9 +147,7 @@ class TestRunner:
             else:
                 o.append((file, None))
         return list(sorted(o))
-
     if 0:  # Functionality not being used
-
         def ListFilesWithoutTrigger(self, dir):
             if dir.is_file():
                 t = self.GetTestTrigger(dir)
@@ -174,7 +164,6 @@ class TestRunner:
                 out.append(f"{file!s}")
             for line in Columnize(out, indent=" " * 2):
                 print(line)
-
         def ListFiles(self, dir):
             if dir.is_file():
                 T = self.GetTestTrigger(dir)
@@ -195,7 +184,6 @@ class TestRunner:
                     print(f"  {t.gry}{file!s:{n}s} {trig}{t.n}")
                 else:
                     print(f"  {t.yel}{file!s:{n}s} {t.grn}{trig}{t.n}")
-
     def Run(self, file, additional=None):
         if file.suffix == ".py":
             cmd = [sys.executable, str(file)]
@@ -246,7 +234,6 @@ class TestRunner:
             if status:
                 self.failed += 1
                 print(f"{t.fail}{file} test failed{t.n}")
-
     def RunTests(self, dir):
         "Only failed tests have their info printed out"
         if dir.is_file():
@@ -282,20 +269,15 @@ class TestRunner:
                 self.not_run += 1
                 if d["-v"]:
                     print(f"{file}: no test to run")
-
-
 def Dbg(*p, **kw):
     if not d["-d"]:
         return
     print(f"{t.dbg}", end="")
     print(*p, **kw)
     t.out()
-
-
 def ShowWhatWillBeDone(tr, items):
     # Categories of trigger strings
     empty, none, ignore, run = [], [], [], []
-
     def Categorize(p, action):
         if 0:
             print(p, action)
@@ -307,13 +289,11 @@ def ShowWhatWillBeDone(tr, items):
             ignore.append(p)
         else:
             run.append(p)
-
     def Show(title, seq):
         if seq:
             print(title)
             for i in Columnize(sorted(seq), indent=" " * 4):
                 print(i)
-
     for item in items:
         if item.is_dir():
             files = tr.GetFiles(item)
@@ -335,7 +315,6 @@ def ShowWhatWillBeDone(tr, items):
     print(f"{t('grn')}", end="")
     Show("Files with tests to run:", run)
     t.out()
-
 
 if __name__ == "__main__":
     d = {}  # Options dictionary

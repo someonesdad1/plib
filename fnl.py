@@ -27,7 +27,7 @@ composed functions ------#'):
 
 if 1:  # License
     # These "trigger strings" can be managed with trigger.py
-    # ∞license∞#
+    ##∞license∞#
     # Note: David Mertz's site https://gnosis.cx/TPiP/ appears to state
     # (downloaded on 10 Jun 2021) that the book's copyright is owned by
     # Addison-Wesley, but the code samples are released into the public
@@ -57,12 +57,12 @@ if 1:  # License
     # CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
     # CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
     # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-    # ∞license∞#
-    # ∞what∞#
+    ##∞license∞#
+    ##∞what∞#
     # <programming> Functional programming examples from D. Mertz, "Text
     # Processing in Python" (see http://gnosis.cx/TPiP).
-    # ∞what∞#
-    # ∞test∞# ignore #∞test∞#
+    ##∞what∞#
+    ##∞test∞# ignore #∞test∞#
     pass
 if 1:  # Imports
     import sys

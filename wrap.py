@@ -86,19 +86,19 @@ Wrap class: make text fit into a desired width with a specified indent.
 
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    # ∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
-    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    # ∞license∞#
+    ##∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
+    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    ##∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    # ∞license∞#
-    # ∞what∞#
+    ##∞license∞#
+    ##∞what∞#
     # <programming> Provides the Wrap class, which can be used to make
     # text fit into a desired width with a specified indent.  Can also
     # indent and dedent like the textwrap module.  Handles common
     # English abbreviations also.
-    # ∞what∞#
-    # ∞test∞# --test #∞test∞#
+    ##∞what∞#
+    ##∞test∞# --test #∞test∞#
     pass
 if 1:  # Imports
     from collections import deque

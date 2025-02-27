@@ -41,7 +41,7 @@ sequence passed to the constructor.
 # Licensed under the Open Software License version 3.0.
 # See http://opensource.org/licenses/OSL-3.0.
 #
-# ∞test∞# ignore #∞test∞#
+##∞test∞# ignore #∞test∞#
 
 import sys
 from bisect import bisect_right

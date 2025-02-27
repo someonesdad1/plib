@@ -159,20 +159,20 @@ Module for calculations with real and complex numbers
 if 1:  # Header
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    # ∞copyright∞# Copyright © 2021 Don Peterson #∞copyright∞#
-    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    # ∞license∞#
+    ##∞copyright∞# Copyright © 2021 Don Peterson #∞copyright∞#
+    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    ##∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    # ∞license∞#
-    # ∞what∞#
+    ##∞license∞#
+    ##∞what∞#
     # <programming> This module provides the flt/cpx types for calculations
     # with numbers derived from measurements.  flt is derived from float
     # and cpx from complex.  Their most useful feature is to only show
     # a few digits in their string interpolations so that you don't see
     # lots of digits with no real information.
-    # ∞what∞#
-    # ∞test∞# run #∞test∞#
+    ##∞what∞#
+    ##∞test∞# run #∞test∞#
     # Standard library modules
     from collections import deque
     from collections.abc import Iterable

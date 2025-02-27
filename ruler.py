@@ -3,7 +3,7 @@ Return a ruler for ASCII printing
     Run as a script for a demo
 """
 
-# ∞test∞# ignore #∞test∞#
+##∞test∞# ignore #∞test∞#
 # Copyright (C) 2009, 2021 Don Peterson
 # Contact:  gmail.com@someonesdad1
 # Licensed under the Open Software License version 3.0.

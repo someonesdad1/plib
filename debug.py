@@ -51,17 +51,17 @@ Debugging tools
 if 1:  # Header
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    # ∞copyright∞# Copyright (C) 2009, 2014 Don Peterson #∞copyright∞#
-    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    # ∞license∞#
+    ##∞copyright∞# Copyright (C) 2009, 2014 Don Peterson #∞copyright∞#
+    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    ##∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    # ∞license∞#
-    # ∞what∞#
+    ##∞license∞#
+    ##∞what∞#
     # <programming> Debugging aids (taken from the "Python Cookbook" and
     # Beazley's "Python Essential Reference", 4th edition).
-    # ∞what∞#
-    # ∞test∞# ignore #∞test∞#
+    ##∞what∞#
+    ##∞test∞# ignore #∞test∞#
     # Standard imports
     import types
     import sys

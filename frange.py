@@ -42,19 +42,19 @@ Generators that are floating point analogs of range()
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        # ∞copyright∞# Copyright (C) 2010, 2015 Don Peterson #∞copyright∞#
-        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        # ∞license∞#
+        ##∞copyright∞# Copyright (C) 2010, 2015 Don Peterson #∞copyright∞#
+        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        ##∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        # ∞license∞#
-        # ∞what∞#
+        ##∞license∞#
+        ##∞what∞#
         # <programming> Generators that are floating point analogs of
         # range().  Also provides a utility function that can produce
         # arithmetic sequences of integers, floating point numbers, and
         # fractions.
-        # ∞what∞#
-        # ∞test∞# --test #∞test∞# pass
+        ##∞what∞#
+        ##∞test∞# --test #∞test∞# pass
         pass
     if 1:  # Imports
         import getopt

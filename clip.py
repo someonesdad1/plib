@@ -48,7 +48,7 @@ Pyperclip into running them with whatever permissions the Python process has.
 
 """
 
-# ∞test∞# ignore #∞test∞#
+##∞test∞# ignore #∞test∞#
 __version__ = "1.7.0"
 
 import contextlib

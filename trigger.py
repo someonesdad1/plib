@@ -2,46 +2,44 @@
 Finds trigger strings in text files
 
     Run as a script to see an example.
-
+    
     The basic purpose is to provide the ability to find and update
     "trigger" strings in a file.  An example of a trigger string in a
     python file might be
-
+    
         #∞license∞#
         # Licensed under the Open Software License version 3.0.
         # See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
-
+        
     To find this and similar trigger strings, you'd use the following code:
-
+    
         import pathlib
         t = Trigger()
         p = pathlib.Path("myscript.py")
         t(p)  # Trigger.__call__
-
+        
     The last statement reads the file's text in and parses the trigger
     strings.  The Trigger class is derived from dict, so the names of the
     trigger strings are the keys of the dict and the value for the key
     "license" is the text between the two occurrences of "#∞license∞#".
-
+    
     You can change the text between the trigger strings:
-
+    
         t["license"] = new_license_text
-
+        
     and call t.write() to write the information back to the file.
 """
-
 import pathlib
 import re
-
 P = pathlib.Path
-
-
 class Trigger(dict):
-    def __new__(cls, start="#∞", end="∞#", allowed="[A-Za-z0-9_]"):
-        """The trigger string will be the string X between the start and
-        end strings.  The allowed string defines the python re
-        characters allowed to be in the trigger string.
+    def __new__(cls, start="##∞", end="∞#", allowed="[A-Za-z0-9_]"):
+
+        """The trigger string will be the string X between the start and end strings.
+        The allowed string defines the python re characters allowed to be in the trigger
+        string.  26 Feb 2025:  using black or ruff to format python causes the #∞ to get
+        changed to '##∞'. 
         """
         instance = super().__new__(cls)
         instance.start = start
@@ -53,7 +51,6 @@ class Trigger(dict):
         regexp = f"{start}({allowed}+){end}"
         instance.r = re.compile(regexp)
         return instance
-
     def __call__(self, file):
         """Given file (a str or pathlib.Path), get all trigger strings'
         text.
@@ -82,6 +79,7 @@ class Trigger(dict):
             t = r.findall(self.text)
             if not t:
                 msg = f"Trigger '{trigger}' only occurred once"
+                breakpoint() #xx 
                 raise ValueError(msg)
             elif len(t) != 1 or trigger in self:
                 msg = f"{p}:  More than one string for trigger '{trigger}'"
@@ -89,10 +87,8 @@ class Trigger(dict):
             self[trigger] = t[0]
         self.filled = True
         return self
-
     def __delitem__(self, key):
         raise ValueError("Deletion not allowed")
-
     def __setitem__(self, key, value):
         if not self.filled:
             super().__setitem__(key, value)
@@ -101,7 +97,6 @@ class Trigger(dict):
             raise KeyError(f"'{key}' not in dict")
         # Set the new value
         super().__setitem__(key, value)
-
     def write(self):
         """Assuming the object has been filled, write the new object out
         to the file, including any changes made in the trigger string
@@ -121,41 +116,29 @@ class Trigger(dict):
         print("New text")
         pp(self.text)
         exit()
-
     # Disable other dict methods
     def get(self, key, default=None):
         raise self.not_allowed
-
     def pop(self, key, default=None):
         raise self.not_allowed
-
     def popitem(self):
         raise self.not_allowed
-
     def setdefault(self, key, default=None):
         raise self.not_allowed
-
     def update(self, other=None):
         raise self.not_allowed
-
-
 if __name__ == "__main__":
     from pprint import pprint as pp
     from lwtest import raises
-
     p = None
-
     def Setup():
         global p
         p = pathlib.Path("/plib/trigger.tmpfile")
-
     def Teardown():
         p.unlink()
         assert not p.is_file()
-
     def Separator():
         print(f"{'-' * 70}")
-
     def CheckDisabled():
         "Show that the disabled methods result in an exception"
         text = "Dummy text"
@@ -171,7 +154,6 @@ if __name__ == "__main__":
             (t.update,),
         ):
             raises(ValueError, *i)
-
     def ShowStrings():
         text = """
         #∞who∞#
@@ -189,18 +171,17 @@ if __name__ == "__main__":
         t(p)  # Load the file
         print("Here's the dictionary of extracted strings:\n")
         pp(t)
-
     def SingleTriggerStringException():
         Separator()
         text = "#∞how∞#"
         p.write_text(text)
         t = Trigger()
         print("You'll get a ValueError for a single trigger string:")
+        print(f"  (suppose file contains {text!r})")
         try:
             t(p)  # Try to load the file
         except ValueError as e:
             print(f"  {e}")
-
     def ReplaceText():
         Separator()
         text = """
@@ -227,7 +208,6 @@ if __name__ == "__main__":
         t(p)  # Get our contents
         print("Swapped strings:")
         pp(t)
-
     Setup()
     CheckDisabled()
     ShowStrings()

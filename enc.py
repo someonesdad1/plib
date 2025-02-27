@@ -15,18 +15,18 @@ Utility encoding tool
 
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    # ∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
-    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    # ∞license∞#
+    ##∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
+    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    ##∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    # ∞license∞#
-    # ∞what∞# <utility> Utility encoding tool.  It reads a file and
+    ##∞license∞#
+    ##∞what∞# <utility> Utility encoding tool.  It reads a file and
     # decodes it with various codecs; the ones that don't raise an
     # exception are possible encodings.  Also lets you change a file's
     # encoding like iconv.
-    # ∞what∞#
-    # ∞test∞# ignore #∞test∞#
+    ##∞what∞#
+    ##∞test∞# ignore #∞test∞#
     pass
 if 1:  # Imports
     import csv

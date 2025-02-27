@@ -5,15 +5,15 @@ Calculate the molecular mass of a chemical formula
 if 1:  # Header
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    # ∞license∞#
+    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    ##∞license∞#
     # None
-    # ∞license∞#
-    # ∞what∞#
+    ##∞license∞#
+    ##∞what∞#
     # Calculate the molecular mass of a chemical formula.  Taken from
     # https://gist.github.com/Rhomboid/5994999.
-    # ∞what∞#
-    # ∞test∞# --test #∞test∞#
+    ##∞what∞#
+    ##∞test∞# --test #∞test∞#
     # Standard imports
     import getopt
     import os

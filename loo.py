@@ -12,21 +12,21 @@ This is done by a heuristic rather than parsing the XML.
 
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    # ∞license∞#
+    ##∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    ##∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    # ∞license∞#
-    # ∞what∞#
+    ##∞license∞#
+    ##∞what∞#
     # <utility> Find picture files in Open Office files.  I find it
     # useful because I always link in pictures rather than copy them
     # into the OO document (this saves space).  However, when the
     # pictures aren't in a subdirectory below the location of the OO
     # file, you can have a problem when you distribute the OO file and
     # its pictures to a user.  This script heads off this problem.
-    # ∞what∞#
-    # ∞test∞# ignore #∞test∞#
+    ##∞what∞#
+    ##∞test∞# ignore #∞test∞#
     pass
 if 1:  # Imports
     import sys
