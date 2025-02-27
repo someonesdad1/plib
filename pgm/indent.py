@@ -40,16 +40,16 @@ Front end to the astyle command for indenting C/C++ code.
 
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    # ∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
-    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    # ∞license∞#
+    ##∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
+    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    ##∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    # ∞license∞#
-    # ∞what∞#
+    ##∞license∞#
+    ##∞what∞#
     # Wrapper program for the astyle tool to indent C/C++ code
-    # ∞what∞#
-    # ∞test∞# #∞test∞#
+    ##∞what∞#
+    ##∞test∞# #∞test∞#
     pass
 if 1:  # Standard imports
     import getopt

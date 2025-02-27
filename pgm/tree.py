@@ -19,16 +19,16 @@ Print a directory tree in hierarchical form
 if 1:  # Header
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    # ∞copyright∞# Copyright (C) 2005 Don Peterson #∞copyright∞#
-    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    # ∞license∞#
+    ##∞copyright∞# Copyright (C) 2005 Don Peterson #∞copyright∞#
+    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    ##∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    # ∞license∞#
-    # ∞what∞#
+    ##∞license∞#
+    ##∞what∞#
     # Print a directory tree
-    # ∞what∞#
-    # ∞test∞# #∞test∞#
+    ##∞what∞#
+    ##∞test∞# #∞test∞#
     # Imports
     from pathlib import Path as P
     import getopt

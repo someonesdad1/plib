@@ -53,16 +53,16 @@ consumer nothing about whether that shoe will fit them or not.
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        # ∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
-        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        # ∞license∞#
+        ##∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
+        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        ##∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        # ∞license∞#
-        # ∞what∞#
+        ##∞license∞#
+        ##∞what∞#
         # Plot shoe size graphs (needs matplotlib)
-        # ∞what∞#
-        # ∞test∞# #∞test∞#
+        ##∞what∞#
+        ##∞test∞# #∞test∞#
         pass
     if 1:  # Standard imports
         import sys

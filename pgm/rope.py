@@ -12,7 +12,7 @@ ToDo:
 Print rope data
 """
 
-# ∞test∞# ignore #∞test∞#
+##∞test∞# ignore #∞test∞#
 if 1:  # Header
     # Standard imports
     import getopt

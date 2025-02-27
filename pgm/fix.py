@@ -61,7 +61,7 @@ if 1:   # Utility
           the function FixFile().
 
           Example:  When 'ruff format' changed all my files' trigger strings to the form
-          '# ∞' from '#∞', it broke my /plib/0test.py functionality.  This fixing script
+          '##∞' from '#∞', it broke my /plib/0test.py functionality.  This fixing script
           quickly fixed the problem.
         '''))
         exit(status)
@@ -94,7 +94,7 @@ if 1:   # Core functionality
         out = []
         # Fix the trigger string problem
         for line in lines:
-            out.append(line.replace("# ∞", "##∞"))
+            out.append(line.replace("##∞", "##∞"))
         open(file, "w").writelines(out)
 
 if __name__ == "__main__":

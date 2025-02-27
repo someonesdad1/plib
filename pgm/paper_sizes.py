@@ -8,17 +8,17 @@ http://code.google.com/p/pygraphicsps/ if you wish to run this script.
 
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    # ∞license∞#
+    ##∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    ##∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    # ∞license∞#
-    # ∞what∞#
+    ##∞license∞#
+    ##∞what∞#
     # Construct a graphic that shows the relative sizes of the various
     # sizes of paper
-    # ∞what∞#
-    # ∞test∞# #∞test∞#
+    ##∞what∞#
+    ##∞test∞# #∞test∞#
     pass
 if 1:  # Imports
     from math import atan, pi

@@ -51,16 +51,16 @@ To use this module, install select with 'pip install select'.
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        # ∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
-        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        # ∞license∞#
+        ##∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
+        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        ##∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        # ∞license∞#
-        # ∞what∞#
+        ##∞license∞#
+        ##∞what∞#
         # Search text files for defunct URLs
-        # ∞what∞#
-        # ∞test∞# #∞test∞#
+        ##∞what∞#
+        ##∞test∞# #∞test∞#
         pass
     if 1:  # Standard imports
         import getopt

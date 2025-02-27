@@ -14,16 +14,16 @@ Interactive script for various circle calculations:
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        # ∞license∞#
+        ##∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        ##∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        # ∞license∞#
-        # ∞what∞#
+        ##∞license∞#
+        ##∞what∞#
         # Interactive circle tool:  3 pts, segment/sector area, 3 tangent circles
-        # ∞what∞#
-        # ∞test∞# --test #∞test∞#
+        ##∞what∞#
+        ##∞test∞# --test #∞test∞#
         pass
     if 1:  # Imports
         import sys

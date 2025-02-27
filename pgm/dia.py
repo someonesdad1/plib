@@ -24,16 +24,16 @@ General-purpose diameter/length finding utility.
 if 1:  # Header
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    # ∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    # ∞license∞#
+    ##∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    ##∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    # ∞license∞#
-    # ∞what∞#
+    ##∞license∞#
+    ##∞what∞#
     # Identifies dimensions that might be close to some "standard" size
-    # ∞what∞#
-    # ∞test∞# #∞test∞#
+    ##∞what∞#
+    ##∞test∞# #∞test∞#
     # Standard imports
     import sys
     import getopt

@@ -27,16 +27,16 @@ Print a table of color hues
 if 1:  # Header
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    # ∞copyright∞# Copyright © 2022 Don Peterson #∞copyright∞#
-    # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    # ∞license∞#
+    ##∞copyright∞# Copyright © 2022 Don Peterson #∞copyright∞#
+    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    ##∞license∞#
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
-    # ∞license∞#
-    # ∞what∞#
+    ##∞license∞#
+    ##∞what∞#
     # Print a table of color hues
-    # ∞what∞#
-    # ∞test∞# #∞test∞#
+    ##∞what∞#
+    ##∞test∞# #∞test∞#
     pass
     # Standard imports
     import getopt

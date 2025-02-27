@@ -5,16 +5,16 @@ Script to help with estimating daily food energy needs.
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        # ∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
-        # ∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        # ∞license∞#
+        ##∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
+        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        ##∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
-        # ∞license∞#
-        # ∞what∞#
+        ##∞license∞#
+        ##∞what∞#
         # Estimate daily food energy need.
-        # ∞what∞#
-        # ∞test∞# #∞test∞#
+        ##∞what∞#
+        ##∞test∞# #∞test∞#
         pass
     if 1:  # Standard imports
         from collections import deque
