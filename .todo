@@ -124,6 +124,9 @@ Details
           those used in the function fn_name.
             - Use case:  see if the 'sin' or 'math.sin' token is used in a routine.
 
+    - wrench.py
+        - Have it put + by the wrenches that I have
+
     - fish.py
         - See if pgm/fish.py can be sped up by about a factor of 3 by using the
           multiprocessing library.  Note python can't run multiple threads, so this is
