@@ -1,7 +1,22 @@
-"""
+'''
+
+ToDo
+    - Need to fix blank lines that the python formatter inserts in functions with nested
+      functions
+
 Delete blank lines from files or stdin and fix docstrings.  This is intended to be used
-to remove blank lines that are inserted by python formatters like ruff or black.
-"""
+to remove blank lines that are inserted by python formatters.
+ 
+It was updated 25 Feb 2025 to deal with the issues caused by the ruff formatter on my
+python files, which removed the whitespace from lines in docstrings and added two blank
+lines between functions/classes.  The original approach used regular expressions, but
+the new approach is more of a state machine approach that knows when it's inside of a
+triple-quoted string.
+ 
+I'd label it as ready for testing and I've been using it, but there will likely be some
+corner case that causes a python file to stop working.
+ 
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -35,14 +50,14 @@ if 1:  # Utility
         exit(status)
     def Usage(status=1):
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options] [file1 [file2 ...]]
           Delete blank lines from files.  Note a blank line is a line with no whitespace
           on it except for a newline.  Assumes stdin for no files.  If you include files
           on the command line, use '-' for stdin.
         Options:
             -1      Collapse multiple blank lines to one
-        """)
+        ''')
         )
         exit(status)
     def ParseCommandLine(d):
@@ -60,13 +75,13 @@ if 1:  # Utility
         return files
 if 1:  # Core functionality
     def ProcessFileOrig(file):
-        """Use regex matching to remove blank lines.
+        '''Use regex matching to remove blank lines.
         
         A problem with this approach is that it will remove the blank lines inside of
         python multiline strings, which is almost certainly not wanted.
         ProcessFile2() was made to handle this case.  However, this function's approach
         is also concise and fast.
-        """
+        '''
         s = sys.stdin.read() if file == "-" else open(file).read()
         # Remove leading and trailing blank lines
         s = re.sub(r"^\n+", "", s)
@@ -83,11 +98,10 @@ if 1:  # Core functionality
     def IsComment(line):
         return line.strip()[0] == "#"
     def ProcessLine(line):
-        """If we're in a multiline string, send the line to stdout.  Otherwise, if it's a
+        '''If we're in a multiline string, send the line to stdout.  Otherwise, if it's a
         blank line, ignore it; if not, print it.
-        """
+        '''
         single, double, empty = "'''", '"""', ""
-        
         def GetSingleTriple(line):
             "Return any single triple quote in this line"
             nonlocal single, double, empty
@@ -112,11 +126,9 @@ if 1:  # Core functionality
                     return double
                 else:
                     return double if loc_double > loc_single else single
-                    
         def IsSingleMultiline(line):
             nonlocal single, double
             return line.count(single) == 1 or line.count(double) == 1
-            
         def CountLeadingSpaces(string):
             lst, count = list(string), 0
             while lst:
@@ -126,7 +138,6 @@ if 1:  # Core functionality
                 else:
                     break
             return count
-            
         # We'll use ProcessLine.previous_line to keep track of the previous line.  If we
         # encounter an empty line while in a multiline string, we'll add in the number
         # of spaces of indent on the previous line.
@@ -162,12 +173,10 @@ if 1:  # Core functionality
         else:
             print(line)
             ProcessLine.previous_line = line
-            
     def Reset():
         ProcessLine.previous_line = None
         ProcessLine.multiline = False
-        
-        
+
 if __name__ == "__main__":
     d = {}  # Options dictionary
     files = ParseCommandLine(d)
