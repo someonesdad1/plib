@@ -1,6 +1,16 @@
 Active:  /plib/.todo
 
 Roadmap for 2025
+    - 28 Feb 2025:  created plib_reorg branch.  I'll do my development work on this
+      branch, get things how I like them, then merge to main when satisfied.
+        - KEEP TRACK of basic changes here
+        - New top level directories:  pgm, doc, lib, test
+            - Moved g and build to lib
+            - Moved *.odt files to doc
+            - Note Dev is not in the repository
+        - README.md is basic readme file for /plib, then points to HTML files in doc for
+          detailed documentation.
+
     - Standardize on a python version
         - All tests should be run with this version
         - Prefer 3.10 or later
