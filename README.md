@@ -1,15 +1,20 @@
 # plib
 
-[plib](https://github.com/someonesdad1/plib) Last updated 26 Feb 2025 
-
-# Overview
+[plib](https://github.com/someonesdad1/plib) Last updated 28 Feb 2025 
 
 This repository is a collection of python stuff I've written since 1998.  
 
-* `plib` holds modules that are intended to be used by other scripts.
-* `plib/pgm` holds scripts that are separate programs.
-* `plib/tests` holds test scripts for modules that don't have their tests built in.
-* `plib/g` holds a python graphics library that outputs PostScript.
+* `plib` holds modules that are intended to be used by other scripts
+* `plib/pgm` holds scripts that are separate programs
+* `plib/tests` holds test scripts for modules that don't have their tests built in
+* `plib/g` holds a python graphics library that outputs PostScript
+
+Click on the following links to get more information:
+
+* [plib](doc/modules.html) Information on plib's modules
+* [pgm](doc/pgm.html) Information on plib/pgm's scripts
+* [lib](doc/lib.html) Information on plib/lib's content
+* [roadmap](doc/roadmap.html) How I plan to change things in this repository
 
 ## Roadmap for 2025
 
