@@ -80,7 +80,8 @@ if 1:   # Utility
         return args
 if 1:   # Classes
     class Info:
-        def __init__(self, string):
+        def __init__(self, file, string):
+            self.file = file
             self.string = string
             # Parse the string with regexes.
             # Description
@@ -96,10 +97,20 @@ if 1:   # Classes
             mo = re.search(r"<∞ +test +(.*?)∞>", string, re.S)
             self.test = mo.groups()[0].strip() if mo else ""
             if 0:
-                print("desc", self.desc)
-                print("copyright", self.copyright)
-                print("category", self.category)
-                print("test", self.test)
+                print(f"desc {self.desc}")
+                print(f"copyright {self.copyright}")
+                print(f"category {self.category}")
+                print(f"test {self.test}")
+        def __str__(self):
+            ind = " "*2
+            s = f"Info(     :  {file}\n"
+            s += f"{ind}desc    :  {self.desc}\n" if self.desc else ""
+            s += f"{ind}cr      :  {self.copyright}\n" if self.copyright else ""
+            s += f"{ind}category:  {self.category}\n" if self.category else ""
+            s += f"{ind}test    :  {self.test}\n" if self.test else ""
+            s += ")"
+            return s
+
 if 1:   # Core functionality
     def GetFiles():
         'Return a list of the *.py files in /plib'
@@ -116,7 +127,6 @@ if 1:   # Core functionality
         pgminfo, found = [], False
         while dq:
             line = dq.popleft()
-            Dbg(line)
             ln = line.strip()
             if ln.startswith("_pgminfo"):
                 found = True
@@ -141,7 +151,8 @@ if __name__ == "__main__":
     for file in files:
         file = P("/plib/aa.py")
         data_list = GetFileData(file)
-        info = Info('\n'.join(data_list))
+        info = Info(file, '\n'.join(data_list))
         filedict[file] = info
         break
-    pp(filedict)
+    for i in filedict:
+        print(filedict[file])

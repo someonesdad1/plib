@@ -1,13 +1,9 @@
 ToDo for /plib
 - Standardize
+    - Change all *.py in /pylib to use _pgminfo variable
+        - desc:  summary paragraph of what module does
     - File's docstring
-        - Put file description in <∞ desc ... ∞>
-        - Put category in <∞ category ... ∞>
-        - Put copyright in <∞ Copyright ... ∞>
-    - Simplified header
-        - Copyright
-        - Testing info:  in <∞ test keyword ∞> 
-    - File's docstring 
+        - Use for detailed usage info for when 'pd file' is used
     - Repository's directory structure
     - Formatting of the python files
     - All files pass linting tool
@@ -17,3 +13,6 @@ ToDo for /plib
     - Alphabetical, by subject, point out things I think are of interest
     - Caution about use:  tight coupling can mean it's hard to extract something you're interested in.
 - Fix old color.py dependencies
+
+Done
+    - Developed _pgminfo content; abbreviated it in vi to xi

@@ -1,7 +1,7 @@
 '''
 <∞ desc 
 
-    Operation of B&K 8500 DC load
+Operation of B&K 8500 DC load
 
 ∞>
 
@@ -65,8 +65,8 @@ if 1:   # Utility
             bat     Battery test
             rs      Remote sense
             brk     DC circuit breaker
-        Options:
-            -h      Print a manpage
+            short   Short emulator
+            save    Save/recall settings to/from registers
         '''))
         exit(status)
     def ParseCommandLine(d):
@@ -74,15 +74,13 @@ if 1:   # Utility
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "h") 
+            opts, args = getopt.getopt(sys.argv[1:], "") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
             if o[1] in list(""):
                 d[o] = not d[o]
-            elif o == "-h":
-                Usage()
         GetColors()
         return args
 if 1:   # Core functionality
@@ -150,6 +148,23 @@ if 1:   # Core functionality
             - Now the current should be shut off if the 
 
         '''))
+    def SHORT():
+        on, off = t.cmd, t.n
+        t.print(dedent(f'''
+        {t.title}Short emulation{t.n}
+            CC, CR, CV:  shift-Short simulates a short and draws maximum current.
+                         shift-Short to turn off.
+            CP:  Same, put you must press On-Off to turn off the load.
+
+        '''))
+    def SAVE():
+        on, off = t.cmd, t.n
+        t.print(dedent(f'''
+        {t.title}Save/recall settings to/from registers{t.n}
+            There are 25 registers.  To save, use shift-Store; press 1 to 25 and then
+            press enter.  Use shift-Recall to restore the settings.
+
+        '''))
     def Dispatch(args):
         dispatch = {
             "cc": CC,
@@ -157,6 +172,8 @@ if 1:   # Core functionality
             "bat": BAT,
             "rs": RS,
             "brk": BRK,
+            "short": SHORT,
+            "save": SAVE,
         }
         if "all" in args:
             for cmd in dispatch:
