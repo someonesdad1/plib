@@ -10,7 +10,6 @@ Roadmap for 2025
             - Note Dev is not in the repository
         - README.md is basic readme file for /plib, then points to HTML files in doc for
           detailed documentation.
-
     - Standardize on a python version
         - All tests should be run with this version
         - Prefer 3.10 or later
@@ -56,50 +55,18 @@ Roadmap for 2025
     - /plib/pgm
         - Fix old color.py dependencies (kolor.py) in /plib/pgm
     - License
-        - A new project on github can choose the following licenses:
-            - Apache2.0
-            - GPLv3
-            - MIT
-            - BSD2-clause "simplified"
-            - BSD3-clause "revised"
-            - Boost1.0
-            - Creative Commons Zero v1.0 universal
-            - GNU Affero v3.0
-            - GPLv2
-            - LGPLv2.1
-            - Mozilla2.0
-            - Unlicense
+        - Switch to MIT license
+        - Remove statements from individual licenses
         - See 
             - https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository
             - https://choosealicense.com/.
             - https://opensource.guide/legal/ Good discussion
-        - I am leaning towards using the MIT license for my projects, as that gives the
-          most freedom to users and there's no copyleft clause in it.  I'd imagine most
-          folks know they can use MIT stuff however they want and the only practical
-          limitation on them is that they need to include the MIT license in their
-          stuff.
-    - Current header
-        - if 1:  # Copyright, license
-            - # These "trigger strings" can be managed with trigger.py
-            - #∞copyright∞# Copyright © 2025 Don Peterson #∞copyright∞#
-            - #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-            - #∞license∞#
-            - #   Licensed under the Open Software License version 3.0.
-            - #   See http://opensource.org/licenses/OSL-3.0.
-            - #∞license∞#
-            - #∞what∞#
-            - # Program description string
-            - #∞what∞#
-            - #∞test∞# #∞test∞#
-    - New header
-        - if 1:  # Copyright & info
-            - # Copyright © 2025 Don Peterson   https://github.com/someonesdad1/plib
-            - # <∞ test none ∞> 
-        - In particular, the test information is given by the <∞ ∞> tag, which currently
-          isn't in any of my files.  For a pure ASCII form, <<oo and oo>> could be used.
-          This is easy to extract with a regex.
 
 Details
+
+
+    - astr.py, fsig.py
+        - Move functionality to util.py
 
     - trigger.py
         - Problem caused by ruff formatting the file and putting a space after every

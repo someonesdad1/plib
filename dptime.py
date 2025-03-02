@@ -1,5 +1,5 @@
 """
-This is a module with functions to return the datea and time as I like to see them.
+This is a module with functions to return the date and time as I like to see them.
 """
 
 if 1:  # Header
