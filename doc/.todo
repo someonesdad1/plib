@@ -1,14 +1,4 @@
 ToDo for /plib
-- Coalescing
-    - electrical.py
-    - mechanical.py
-    - engineering.py
-    - mathematical.py
-    - science.py
-    - shop.py
-    - programming.py
-    - timestuff.py
-        - dt.py, dptime.py, timer.py
 - Standardize
     - Change all *.py in /pylib to use _pgminfo variable
         - desc:  summary paragraph of what module does
@@ -33,47 +23,38 @@ ToDo for /plib
   other modules
 - Most /plib modules should have self tests that pass
 - Documentation
-    - Make it easier for someone to browse what's in this repository and find things of interest
+    - Make it easier for someone to browse what's in this repository and find things of
+      interest
     - Alphabetical, by subject, point out things I think are of interest
-    - Caution about use:  tight coupling can mean it's hard to extract something you're interested in.
+    - Caution about use:  tight coupling can mean it's hard to extract something you're
+      interested in.
 - Fix old color.py dependencies
 - Semantic versioning
     - Important concept for users of software tools
     - Does it apply to my stuff?
+- Coalescing
+    - electrical.py:  bama e eevblog eia resistors thermocouple waveform wire 
+    - mechanical.py:  asme
+    - engineering.py:  airnav
+    - mathematical.py:  combinatorial cuncertainties decimalmath dpdecimal dpmath
+      elliptic f fac frac integrate interpolate kepler laser_dist linreg lngamma matrix
+      msym primes prob root stirling 
+    - science.py:  atm atomic_mass density_db elements meeus novas planets solarsys
+      temperature u water wl2rgb  
+    - shop.py:  drillsizes gauge_sizes sizes 
+    - programming.py:  bidict bitfield constant dbg debug debugg decorators dpdb enc
+      extensions fmt fnl format_numbers fpformat fraction frange frozendict fsig
+      geom_prim geometry get globalcontainer hd hexdump homoglist idhash interval
+      interval_proto itersubclasses iterutil kbhit launch license linscale listmath loo
+      lwtest modified module_dep mpfmt ooeqn partitions pdiff repl rgb rgbdata rgbview
+      roundoff selection shop si sig sigfig stack strdiff tee trigger tw util wconio win
+      wsl
+    - text.py:  abbreviations asciify astr banner columnize just pnp readability
+      textcompare uk wordparse wrap 
+    - timestuff.py: dt dptime timer dt iso julian months 
+    - util.py:  changed_datafile cmddecode cpi_data dirfiles dpopen dpprint dpseq dpstr
+      edit fel filesizes flatten ruler 
 
 Done
     - Developed _pgminfo content; abbreviated it in vi to xi
 
-- Coalescing
-    - electrical.py
-        bama e eevblog eia resistors thermocouple waveform wire 
-    - mechanical.py
-        - asme
-    - engineering.py
-        - airnav
-    - mathematical.py
-        - combinatorial cuncertainties decimalmath dpdecimal dpmath elliptic f fac frac
-          integrate interpolate kepler laser_dist linreg lngamma matrix msym primes prob
-          root stirling 
-    - science.py
-        - atm atomic_mass density_db elements meeus novas planets solarsys temperature u
-          water wl2rgb  
-          
-    - shop.py
-        - drillsizes gauge_sizes sizes 
-    - programming.py
-        - bidict bitfield constant dbg debug debugg decorators dpdb enc extensions fmt
-          fnl format_numbers fpformat fraction frange frozendict fsig geom_prim geometry
-          get globalcontainer hd hexdump homoglist idhash interval interval_proto
-          itersubclasses iterutil kbhit launch license linscale listmath loo lwtest 
-          modified module_dep mpfmt ooeqn partitions pdiff repl rgb rgbdata rgbview 
-          roundoff selection shop si sig sigfig stack strdiff tee trigger tw util 
-          wconio win wsl
-    - text.py
-        - abbreviations asciify astr banner columnize just pnp readability textcompare
-          uk wordparse wrap 
-    - timestuff.py
-        - dt dptime timer dt iso julian months 
-    - util.py
-        - changed_datafile cmddecode cpi_data dirfiles dpopen dpprint dpseq dpstr edit
-          fel filesizes flatten ruler 
