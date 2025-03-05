@@ -1,7 +1,6 @@
-"""
+'''
 Spell-checking script
-"""
-
+'''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
@@ -35,17 +34,13 @@ if 1:  # Global variables
         2: "/words/words.univ",
     }
     default_wordlist = 1
-
-
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
-
-
 def BuildTranslate(d):
-    """Construct the d["trans"] dictionary used to translate the strings
-    to be read to tokenize.
-    """
+    '''Construct the d["trans"] dictionary used to translate the strings to be ready to
+    tokenize.  This replaces punctuation and whitespace with spaces and deletes digits.
+    '''
     d["trans"] = t = {}
     for c in string.punctuation:
         t[ord(c)] = " "
@@ -58,17 +53,13 @@ def BuildTranslate(d):
             t[ord(c)] = None
     if d["-h"]:
         del t[ord("-")]
-
-
 def Usage(d, status=1):
     wl = "-" + str(default_wordlist)
-
     # Get names of wordlists
     def P(p):
         return pathlib.Path(p).name
-
     print(
-        dedent(f"""
+        dedent(f'''
     Usage:  {sys.argv[0]} [options] file1 [file2 ...]
       Spell check the indicated files by replacing non-letters with space
       characters and tokenizing on whitespace.  Use '-' to read stdin.
@@ -85,11 +76,9 @@ def Usage(d, status=1):
       -n    Shows tokens in dictionary
       -s    Only print the number misspelled
       -u    Ignore tokens with non-7-bit characters
-    """)
+    ''')
     )
     exit(status)
-
-
 def ParseCommandLine(d):
     d["-0"] = False
     d["-1"] = False
@@ -115,8 +104,6 @@ def ParseCommandLine(d):
     if not args:
         Usage(d)
     return args
-
-
 def GetWordlists(d):
     # regex ignores comments; convert to lowercase if d["-i"] is True
     regex = r"^\s*#"
@@ -128,11 +115,9 @@ def GetWordlists(d):
         wl.update(get.GetWords(wordlist[1], ignore=[regex]))
     if d["-2"]:
         wl.update(get.GetWords(wordlist[2], ignore=[regex]))
-    d["words"] = wl
     if d["-i"]:
         wl = set([i.lower() for i in wl])
-
-
+    d["words"] = wl
 def ProcessFile(file, d):
     s = sys.stdin.read() if file == "-" else open(file).read()
     if d["-i"]:
@@ -148,8 +133,6 @@ def ProcessFile(file, d):
             d["correct"].add(W)
         else:
             d["incorrect"].add(W)
-
-
 def Report(d):
     words = d["correct"] if d["-n"] else d["incorrect"]
     if d["-k"]:
@@ -163,8 +146,6 @@ def Report(d):
     else:
         for i in sorted(words):
             print(i)
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     files = ParseCommandLine(d)
