@@ -2,6 +2,7 @@ ToDo for /plib
 - Standardize
     - Change all *.py in /pylib to use _pgminfo variable
         - desc:  summary paragraph of what module does
+        - todo:  Things that need fixing
     - File's docstring
         - Use for detailed usage info for when 'pd file' is used
     - Repository's directory structure

@@ -80,34 +80,40 @@ if 1:   # Utility
         return args
 if 1:   # Classes
     class Info:
+        '''Capture the information in the _pgminfo variable.  Instance attributes are:
+        desc        Description of module
+        cr          Legal statement of copyright with date
+        cat         Category keyword to help with documentation
+        test        How to run the module's self tests
+        todo        Things that need to be done for the module
+        '''
         def __init__(self, file, string):
             self.file = file
             self.string = string
             # Parse the string with regexes.
             # Description
-            mo = re.search(r"<∞ +desc +(.*?)∞>", string, re.S)
+            mo = re.search(r"<oo +desc +(.*?)oo>", string, re.S)
             self.desc = mo.groups()[0].strip() if mo else ""
             # Copyright
-            mo = re.search(r"<∞ +Copyright +(.*?)∞>", string, re.S)
-            self.copyright = "Copyright " + mo.groups()[0].strip() if mo else ""
+            mo = re.search(r"<oo +Copyright +(.*?)oo>", string, re.S)
+            self.cr = "Copyright " + mo.groups()[0].strip() if mo else ""
             # Category
-            mo = re.search(r"<∞ +category +(.*?)∞>", string, re.S)
-            self.category = mo.groups()[0].strip() if mo else ""
+            mo = re.search(r"<oo +category +(.*?)oo>", string, re.S)
+            self.cat = mo.groups()[0].strip() if mo else ""
             # Test
-            mo = re.search(r"<∞ +test +(.*?)∞>", string, re.S)
+            mo = re.search(r"<oo +test +(.*?)oo>", string, re.S)
             self.test = mo.groups()[0].strip() if mo else ""
-            if 0:
-                print(f"desc {self.desc}")
-                print(f"copyright {self.copyright}")
-                print(f"category {self.category}")
-                print(f"test {self.test}")
+            # ToDo
+            mo = re.search(r"<oo +todo +(.*?)oo>", string, re.S)
+            self.todo = mo.groups()[0].strip() if mo else ""
         def __str__(self):
             ind = " "*2
-            s = f"Info(     :  {file}\n"
-            s += f"{ind}desc    :  {self.desc}\n" if self.desc else ""
-            s += f"{ind}cr      :  {self.copyright}\n" if self.copyright else ""
-            s += f"{ind}category:  {self.category}\n" if self.category else ""
-            s += f"{ind}test    :  {self.test}\n" if self.test else ""
+            s = f"Info({file}\n"
+            s += f"{ind}desc:  {self.desc}\n" if self.desc else ""
+            s += f"{ind}cr  :  {self.cr}\n" if self.cr else ""
+            s += f"{ind}cat :  {self.cat}\n" if self.cat else ""
+            s += f"{ind}test:  {self.test}\n" if self.test else ""
+            s += f"{ind}todo:  {self.todo}\n" if self.todo else ""
             s += ")"
             return s
 
@@ -149,7 +155,7 @@ if __name__ == "__main__":
     files = GetFiles()
     filedict = {}
     for file in files:
-        file = P("/plib/aa.py")
+        file = P("/plib/doc/a.py")
         data_list = GetFileData(file)
         info = Info(file, '\n'.join(data_list))
         filedict[file] = info

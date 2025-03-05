@@ -1,4 +1,8 @@
 '''
+
+ToDo
+    - Use a regex to remove hyperlinks, as these nearly always have misspelled words
+
 Spell-checking script
 '''
 if 1:  # Copyright, license
