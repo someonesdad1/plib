@@ -64,7 +64,7 @@ if __name__ == "__main__":
                          ----------------------
     
     Nominal size is 1/8 inch less than actual outside diameter.  Type K is
-    heaviest wall, typically used for underground applications.  Tyle L is the
+    heaviest wall, typically used for underground applications.  Type L is the
     most common.  Type M is the lightest wall for low cost and low pressure.
     "Hard" pipe is drawn and unannealed; "soft" pipe is annealed.  You can
     anneal copper by heating it red hot and quenching in water.  Do not use

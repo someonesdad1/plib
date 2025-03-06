@@ -1,69 +1,39 @@
 Active:  /plib/.todo
 
-Roadmap for 2025
-    - 28 Feb 2025:  created plib_reorg branch.  I'll do my development work on this
-      branch, get things how I like them, then merge to main when satisfied.
-        - KEEP TRACK of basic changes here
-        - New top level directories:  pgm, doc, lib, test
-            - Moved g and build to lib
-            - Moved *.odt files to doc
-            - Note Dev is not in the repository
-        - README.md is basic readme file for /plib, then points to HTML files in doc for
-          detailed documentation.
-    - Standardize on a python version
-        - All tests should be run with this version
-        - Prefer 3.10 or later
-    - Make the top level directory sleek with few subdirectories:
-        - pgm       Command line scripts
-        - doc       Documentation files
-            - pictures
-        - lib       Libraries (e.g. cephes.dll) and stuff to build things
-            - g         Graphics library
-            - build     Used to make things (move color's stuff in here)
-        - test      Tests for files in /plib
-    - /plib/doc
-        - README.md should be concise
-            - My collection of python modules
-            - Links to the various pages to allow browsing
-            - Repo made public 2022; last change date
-        - Create HTML pages to browse/find content
-            - New stuff
-            - Alphabetized
-            - By subject
-            - Things I think are of interest
-        - Put all picture files in here
-    - /plib
-        - Lint & format the files
-        - Make self-tests up-to-date and ensure all pass with python 3.11
-        - Standardize on an open source license
-            - It may be adequate to include a LICENSE file and state in the top level
-              stuff that all of these files are under this specific license.  Makes
-              maintenance easier.
-            - Each file then gets a link to it's location
-              https://github.com/someonesdad1/plib
-        - Remove specialized modules that are better stored elsewhere
-        - 0what.py & trigger strings
-            - Are they useful or should they be discarded?  For documentation & finding
-              things, I think it's more useful consulting an HTML page.
-            - An annoyance of the 'what' string is that it required me to duplicate what
-              was in the docstring at the top of the file.  This is why I think I should
-              eliminate this stuff and the header in the my boilerplate should only have
-              the <<oo test oo>> construct and the copyright date.
-        - build/cephes
-            - This was written for python 3.7 under cygwin.  See if the same code works
-              for WSL.  If not, then two different DLLs are needed.
-    - /plib/pgm
-        - Fix old color.py dependencies (kolor.py) in /plib/pgm
-    - License
-        - Switch to MIT license
-        - Remove statements from individual licenses
-        - See 
-            - https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository
-            - https://choosealicense.com/.
-            - https://opensource.guide/legal/ Good discussion
-
-Details
-
+    - abbrev.py
+        - Finds likely abbreviations/acronyms in files
+        - Repository for the one I like to use, with definitions
+            - CBC (commercial battery charger) ooo μP IDE wrt Ah amd anova ansi argc
+              argv asap asme AT atm ATO ATX awk bk b&k bnc bsky buff cdf cephes cfg chr
+              chs CC clf clrg clst cmd cmdline cmds codec cols com comm comms conda
+              const config conj cpi cpp cruft css csv ctags ctrl cyg daq dat dbf dbg dbm
+              dbl dbus dd def del demag denom descr dest det df dict diff dir diy dll
+              dlock dm42 dmath doc docs dos dps dpstr dr dtype dx dy edu ee elec elif
+              emf eng engsi enum eof eps eqn er esc esr et eva evac eval expr ext flt
+              fmt fp ft fyi gdssw gdb gc gcc git gov gpg gps grep gsl gz hc hcpy hdr hld
+              hls hms hpj href iet im ii imag img impl inf init int inv ip ir iso ix
+              jpeg jpg jpl kbhit kdiff kft kph kps ksh kw kwh lj lbf lbm lcd len lib
+              linalg linenum linreg ll log ln loc loo ls lt manufy mawk md med meg mic
+              min mingw minibike mintty mk mkdir mks mobi mol mon mp3 mp4 mpc mpf mpi
+              mpja mrtc MSE msg MSR mysql nah nagaoka nav ncdf nd ndarray nema netrw
+              NIST nl nltk nobreak noic nomagic nop npos npp nsa num odict odt oft
+              optlist os osl papa pcl PCs pdb pfft pfind pgp php pil pkg plib png pnp
+              popen ppf ppm ppb precis prr prst ps psa psi pto putch pwd pwm pwr pypi
+              pyvenv pyver pyw rad RCS rdbuf redir regex regexp relpath reltol remap
+              repr req lhs rhs rmdir rd roms rpath rpo rps rst rtd rtz sa sat sbin SCCS
+              sci scipy SCO sed seq seti sfpm sha shcs shl shlvl shtml sig sigfig
+              siglent simpy sinesticks skrip sp spc sr src srcfile SSE SSR SSTO stat
+              stats s stddev stdev STP str sts su svg svn sw sx sxx sxy sy sympy sys
+              sysop syy techref temp tempfile tex texmf tgz thd tmbr tmux toml Torx tp
+              trans trie troff Tsat tsort tst tty txt tz uint unc unf uni un u unx URL
+              URI USB usd usr uss utf utf8 va var vars vcs venv vi vim viemu vimrc vip
+              voa vs vu vxware wav wd wdiff wdr wl lc wsl www wx xargs xfm xlabel xlim
+              xls xml xrange xref xx xxd xyzzy YAML Yhat Ybar ylabel ymax ymin xmax xmin
+              yy __call__ __dict__ __doc__ __floordiv__ __getattr__ __gt__ __iadd__
+              __iand__ __idiv__ __ifloordiv__ __ilshift__ __imod__ __imul__ __init__
+              __ior__ __ipow__ __irshift__ __isub__ __itruediv__ __ixor__ __le__ __lt__
+              __neg__ __pos__ __rfloordiv__ __rtruediv__ __setattr__ __truediv__ dmm
+              dupont eeprom leds lifepo mux opto romex SCPI SMD Uno wifi rv bms 
 
     - astr.py, fsig.py
         - Move functionality to util.py
