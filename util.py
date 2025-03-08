@@ -1,4 +1,4 @@
-"""
+'''
     
 ToDo
     - Convert Spinner to a class so the instance is thread-safe
@@ -75,7 +75,7 @@ US_states             Return a dict of US_states keyed by two-letter names
 VisualCount           Return a list representing a histogram of a sequence
 WindChillInDegF       Calculate wind chill given OAT & wind speed
 Winnow                Winnow a sequence of strings with regular expressions
-"""
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -130,16 +130,16 @@ if 1:  # Header
         nl = "\n"
 def US_states():
     "Return dictionary of US state abbreviations"
-    a = """AK AL AR AZ CA CO CT DE FL GA HI IA ID IL IN KS KY LA MA MD ME MI MN MO MS MT NC ND NE
-        NH NJ NM NV NY OH OK OR PA RI SC SD TN TX UT VA VT WA WI WV WY""".split()
+    a = '''AK AL AR AZ CA CO CT DE FL GA HI IA ID IL IN KS KY LA MA MD ME MI MN MO MS MT NC ND NE
+        NH NJ NM NV NY OH OK OR PA RI SC SD TN TX UT VA VT WA WI WV WY'''.split()
     b = [
         i.replace("·", " ")
-        for i in """Alaska Alabama Arkansas Arizona California Colorado
+        for i in '''Alaska Alabama Arkansas Arizona California Colorado
         Connecticut Delaware Florida Georgia Hawaii Iowa Idaho Illinois Indiana Kansas Kentucky
         Louisiana Massachusetts Maryland Maine Michigan Minnesota Missouri Mississippi Montana
         North·Carolina North·Dakota Nebraska New·Hampshire New·Jersey New·Mexico Nevada New·York
         Ohio Oklahoma Oregon Pennsylvania Rhode·Island South·Carolina South·Dakota Tennessee Texas
-        Utah Virginia Vermont Washington Wisconsin West·Virginia Wyoming""".split()
+        Utah Virginia Vermont Washington Wisconsin West·Virginia Wyoming'''.split()
     ]
     return dict(zip(a, b))
 def GetHash(file, method="md5"):
@@ -154,14 +154,14 @@ def GetHash(file, method="md5"):
         return None
     return h.hexdigest()
 def GetLeadingString(string, prefix=" "):
-    """Return the leading string from string, made up of one or more groups of the
+    '''Return the leading string from string, made up of one or more groups of the
     indicated string prefix.  A use case is to match the indentation of a previous line.
     
     Examples:
         GetLeadingString(b"zzzHi", prefix=b"z") --> b"zzz"
         GetLeadingString("zzzHi", prefix="z") --> "zzz"
         GetLeadingString("ababHi", prefix="ab") --> "abab"
-    """
+    '''
     np, lp, ls = 0, len(prefix), len(string)
     while np * lp < ls:
         if string[np * lp : (np + 1) * lp] == prefix:
@@ -170,9 +170,9 @@ def GetLeadingString(string, prefix=" "):
             break
     return np * prefix
 def GetTrailingString(string, suffix=" "):
-    """Return the trailing string from string, made up of one or more groups of the
+    '''Return the trailing string from string, made up of one or more groups of the
     indicated string suffix.
-    """
+    '''
     # This is done by reversing string and suffix and using GetLeadingString(), but it
     # does mean we have to create copies in memory.
     f = lambda x: list(reversed(x))
@@ -189,7 +189,7 @@ def getch():
     else:
         msvcrt.getch()
 def ItemCount(seq, n=None):
-    """Return a sorted list of (item, count) in the iterable seq, with the highest count first in
+    '''Return a sorted list of (item, count) in the iterable seq, with the highest count first in
     the list.  If n is given, only return the largest n counts.  The items in seq must be
     hashable.
     
@@ -203,14 +203,14 @@ def ItemCount(seq, n=None):
     Note that 1, 1.0, and Fraction(1, 1) hash to the same value; since a dictionary is used as the
     counting container, these are considered to be the same items.  Thus, you can get syntactically
     different results that are semantically the same.
-    """
+    '''
     items = defaultdict(int)
     for item in seq:
         items[item] += 1
     s = sorted(items.items(), key=itemgetter(1), reverse=True)
     return s if n is None else s[:n]
 def VisualCount(seq, n=None, char="*", width=None, indent=0):
-    """Return a list of strings representing a histogram of the items in the iterable seq.  If the
+    '''Return a list of strings representing a histogram of the items in the iterable seq.  If the
     values in the sequence can be sorted, the histogram will be shown by increasing item value;
     otherwise, the items will be shown sorted by frequency.
     
@@ -230,7 +230,7 @@ def VisualCount(seq, n=None, char="*", width=None, indent=0):
             1 *************
             8 ********
             9 ******************************
-    """
+    '''
     counts = ItemCount(seq, n=n)
     try:
         counts = sorted(counts)  # Sort by item values if possible
@@ -258,9 +258,9 @@ class Singleton(object):
             cls._singletons[cls] = object.__new__(cls)
         return cls._singletons[cls]
 def RemoveIndent(s, numspaces=4):
-    """Given a multi-line string s, remove the indicated number of spaces from the beginning each
+    '''Given a multi-line string s, remove the indicated number of spaces from the beginning each
     line.  If that number of space characters aren't present, then leave the line alone.
-    """
+    '''
     if numspaces < 0:
         raise ValueError("numspaces must be >= 0")
     lines = s.split(nl)
@@ -269,7 +269,7 @@ def RemoveIndent(s, numspaces=4):
             lines[i] = lines[i][numspaces:]
     return nl.join(lines)
 def Batch(iterable, size):
-    """Generator that gives you batches from an iterable in manageable sizes.  Slightly adapted
+    '''Generator that gives you batches from an iterable in manageable sizes.  Slightly adapted
     from Raymond Hettinger's entry in the comments to
     http://code.activestate.com/recipes/303279-getting-items-in-batches/
     
@@ -293,7 +293,7 @@ def Batch(iterable, size):
                     break
                 yield s
                 i += size
-    """
+    '''
     def counter(x):
         counter.n += 1
         return counter.n // size
@@ -301,7 +301,7 @@ def Batch(iterable, size):
     for k, g in groupby(iterable, counter):
         yield g
 def GroupByN(seq, n, fill=False):
-    """Return an iterator that gives groups of n items from the sequence.  If fill is True, return
+    '''Return an iterator that gives groups of n items from the sequence.  If fill is True, return
     None for any missing items.  In other words, if fill is False, groups without the full number
     of elements are discarded.
     
@@ -320,7 +320,7 @@ def GroupByN(seq, n, fill=False):
            (0, 1, 2)
            (3, 4, 5)
            (6, None, None)
-    """
+    '''
     # Inspired by http://code.activestate.com/recipes/303060-group-a-list-into-sequential-n-tuples
     if fill:
         return zip_longest(*([iter(seq)] * n), fillvalue=None)
@@ -373,7 +373,7 @@ def Cfg(lines, lvars=OrderedDict(), gvars=OrderedDict()):
     # dictionary lvars.
     return lvars
 def ReadVariables(file, ignore_errors=False):
-    """Given a file of lines of python code, this function reads in each line and executes it.  If
+    '''Given a file of lines of python code, this function reads in each line and executes it.  If
     the lines of the file are assignments to variables, then this results in a defined variable in
     the local namespace.  Return the dictionary containing these variables.
     
@@ -395,7 +395,7 @@ def ReadVariables(file, ignore_errors=False):
     
     If any line in the input file causes an exception, the offending line will be printed to stderr
     and the program will exit unless ignore_errors is True.
-    """
+    '''
     try:
         lines = file.readlines()
     except AttributeError:
@@ -420,12 +420,12 @@ def ReadVariables(file, ignore_errors=False):
         del d[i]
     return d
 def randq(seed=-1):
-    """The simple random number generator in the section "An Even Quicker Generator" from
+    '''The simple random number generator in the section "An Even Quicker Generator" from
     "Numerical Recipes in C", page 284, chapter 7, 2nd ed, 1997 reprinting (found on the web in PDF
     form).
     
     If seed is not -1, it is used to initialize the sequence; it can be any hashable value.
-    """
+    '''
     if seed != -1:
         randq.idum = abs(hash(seed))
     randq.idum = (randq.a * randq.idum + randq.c) % randq.maxidum
@@ -450,27 +450,24 @@ def TranslateSymlink(file):
     "For a cygwin symlink, return a string of what it's pointing to"
     return open(file).read()[12:].replace("\x00", "")
 def transpose(seq, typ=list, check=False):
-    """Return the transpose of a nested two-dimensional sequence, such as an n x m matrix.
+    '''Return the transpose of a nested two-dimensional sequence, such as an n x m matrix.
     len(seq) is n and len(seq[i]) is m for i in range(0, n).
     
     typ:  The returned sequence will be of type typ, with each nested sequence also of type typ.
     
     check:  If check is True, then checks are made on seq to ensure it's of proper type.
-        If checks are not satisfied, a ValueError exception is raised.
+        If checks are not satisfied, a ValueError exception is raised.  I recommend not
+        using checking in production code because copies of seq are made, using up
+        memory.
         
-    For a quick transpose without the checking and type safety:
-    
-        def transpose(seq):
-            return map(lambda *x: x, *seq)
-            
     Example:
         data = [[1, 2],
                 [3, 4],
                 [5, 6]]
-        transpose(data) = [[1, 3, 5],
-                           [2, 4, 6]]
+        transpose(data) --> [[1, 3, 5],
+                             [2, 4, 6]]
                            
-    """
+    '''
     if check:
         # seq can't be a string, set, or dict
         if isinstance(seq, (str, dict, set)):
@@ -499,21 +496,29 @@ def transpose(seq, typ=list, check=False):
             raise TypeError(f"seq row lengths not all {ncols}")
     if not seq:
         return typ(seq)
-    seqT = typ(map(lambda *x: typ(x), *seq))
+    # There are two algorithms here:  one using map and the other using zip.  I prefer
+    # using zip because the strict keyword gives us some automatic checking.  Using
+    # timeit, measurements show that transposing a 20x10 matrix of floats takes 2.5 μs
+    # for the zip implementation and 3.4 μs for the map implementation, so zip is the
+    # default.
+    if 1:
+        seqT = typ(typ(j) for j in zip(*[typ(i) for i in seq], strict=True))
+    else:
+        seqT = typ(map(lambda *x: typ(x), *seq))
     if check:  # transpose(seqT) == seq
         orig = list(map(list, seq))
         tseq = transpose(seqT, typ=list)
         Assert(orig == tseq)
     return seqT
 def IsTextFile(file, num_bytes=100):
-    """Heuristic to classify a file as text or binary.  The algorithm is to read num_bytes from the
+    '''Heuristic to classify a file as text or binary.  The algorithm is to read num_bytes from the
     beginning of the file; if there are any characters other than the "typical" ones found in plain
     text files, the file is classified as binary.  This won't work on a file that contains Unicode
     characters but is otherwise plain text.  Here, "text" means plain ASCII.
     
     Note:  if file is a string, it is assumed to be a file name and opened.  Otherwise it is
     assumed to be an open stream.
-    """
+    '''
     text_chars = set([ord(i) for i in "\n\r\b\t\v"] + list(range(32, 127)))
     if isinstance(file, str):
         s = open(file, "rb").read(num_bytes)
@@ -533,7 +538,7 @@ def IsHomogeneous(seq):
     typ = type(seq[0])
     return all(type(i) is typ for i in seq)
 def IsIterable(x, ignore_strings=True):
-    """Return True if x is an iterable.  You can exclude strings from the things that can be
+    '''Return True if x is an iterable.  You can exclude strings from the things that can be
     iterated on if you wish.
     
     Note:  if you don't care whether x is a string or not, a simpler way
@@ -543,20 +548,20 @@ def IsIterable(x, ignore_strings=True):
             return True
         except TypeError:
             return False
-    """
+    '''
     if ignore_strings and isinstance(x, str):
         return False
     return isinstance(x, Iterable)
 def SpeedOfSound(T):
-    """Returns speed of sound in air in m/s as a function of temperature T in K.  Assumes sea level
+    '''Returns speed of sound in air in m/s as a function of temperature T in K.  Assumes sea level
     air pressure.
-    """
+    '''
     assert T > 0
     return 331.4 * math.sqrt(T / 273.15)
 def WindChillInDegF(wind_speed_in_mph, air_temp_deg_F):
-    """Wind Chill for exposed human skin, expressed as a function of wind speed in miles per hour
+    '''Wind Chill for exposed human skin, expressed as a function of wind speed in miles per hour
     and temperature in degrees Fahrenheit.  http://en.wikipedia.org/wiki/Wind_chill.
-    """
+    '''
     if wind_speed_in_mph <= 3:
         raise ValueError("Wind speed must be > 3 mph")
     if air_temp_deg_F > 50:
@@ -568,10 +573,10 @@ def WindChillInDegF(wind_speed_in_mph, air_temp_deg_F):
         + 0.4275 * air_temp_deg_F * wind_speed_in_mph**0.16
     )
 def Height(current_height_inches, age_years, sex):
-    """Returns the predicted adult height in inches of a child.  Unattributed, but found in the C
+    '''Returns the predicted adult height in inches of a child.  Unattributed, but found in the C
     code files of Glenn Rhoads' old website http://remus.rutgers.edu/~rhoads/Code/code.html, but
     which was defunct in 2010.
-    """
+    '''
     if not (0 < current_height_inches < 72):
         raise ValueError("current_height_inches must be between 0 and 72")
     if not (0 < age_years < 20):
@@ -584,7 +589,7 @@ def Height(current_height_inches, age_years, sex):
     else:
         return h / (((0.00028 * a - 0.0071) * a + 0.0926) * a + 0.3524)
 def HeatIndex(air_temp_deg_F, relative_humidity_percent):
-    """From http://www.weather.gov/forecasts/graphical/sectors/idaho.php#tabs.  See also
+    '''From http://www.weather.gov/forecasts/graphical/sectors/idaho.php#tabs.  See also
     http://www.crh.noaa.gov/pub/heat.php.
     
     Heat Index combines the effects of heat and humidity. When heat and humidity combine to reduce
@@ -605,7 +610,7 @@ def HeatIndex(air_temp_deg_F, relative_humidity_percent):
         105-129:     Danger:  sunstroke, muscle cramps and/or heat exhaustion likely.  Heatstroke
                      possible with prolonged exposure and/or physical activity.
         >= 130       Extreme danger:  Heat stroke or sunstroke likely.
-    """
+    '''
     RH, Tf = relative_humidity_percent, air_temp_deg_F
     HI = (
         -42.379
@@ -620,13 +625,13 @@ def HeatIndex(air_temp_deg_F, relative_humidity_percent):
     )
     return HI
 class Debug:
-    """Implements a debug class that can be useful in printing debugging information.
+    '''Implements a debug class that can be useful in printing debugging information.
     
     dbg = Debug()
     dbg.print("Message")
         Will print '+ Message' to stderr
     Turn off printing with 'dbg.on = False'.
-    """
+    '''
     def __init__(self, stream=sys.stderr, add_nl=True, prefix="+ "):
         self.stream = stream
         self.on = True
@@ -647,7 +652,7 @@ def Time():
     ampm = time.strftime("%p", t).lower()
     return " ".join((date, clock, ampm, day))
 def AWG(n):
-    """Returns the wire diameter in inches given the AWG (American Wire Gauge) number (also known
+    '''Returns the wire diameter in inches given the AWG (American Wire Gauge) number (also known
     as the Brown and Sharpe gauge).  Use negative numbers as follows:
     
         00    -1
@@ -669,7 +674,7 @@ def AWG(n):
         0.0001 inch.  Gauges from 44 to 56 are to be rounded to the nearest 0.00001 inch.
         
     An equivalent formula is 0.32487/1.12294049**n where n is the gauge number (works for n >= 0).
-    """
+    '''
     if n < -3 or n > 56:
         raise ValueError("AWG argument out of range")
     diameter = 92.0 ** ((36 - n) / 39) / 200
@@ -677,7 +682,7 @@ def AWG(n):
         return round(diameter, 4)
     return round(diameter, 5)
 def SignificantFiguresS(value, digits=3, exp_compress=True):
-    """Returns a string representing the number value rounded to a specified number of significant
+    '''Returns a string representing the number value rounded to a specified number of significant
     figures.  The number is converted to a string, then rounded and returned as a string.  If you
     want it back as a number, use float() on the string.  If exp_compress is true, the exponent has
     leading zeros removed.
@@ -715,7 +720,7 @@ def SignificantFiguresS(value, digits=3, exp_compress=True):
     B:  SignificantFiguresS(x, 3, 0)
     C:  "%.3g" % x
     D:  float(SignificantFiguresS(x, 3))
-    """
+    '''
     if digits < 1 or digits > 15:
         msg = "Number of significant figures must be >= 1 and <= 15"
         raise ValueError(msg)
@@ -751,7 +756,7 @@ def EditData(data, binary=False):
             data = file.read_text()
     return data
 def Engineering(value, digits=3):
-    """Return a tuple (m, e, s) representing a number in engineering notation.  m is the
+    '''Return a tuple (m, e, s) representing a number in engineering notation.  m is the
     significand.  e is the exponent in the form of an integer; it is adjusted to be a multiple of
     3.  s is the SI symbol for the exponent; for "e+003" it would be "k".  s is empty if there is
     no SI symbol.
@@ -759,7 +764,7 @@ def Engineering(value, digits=3):
     Engineering(1.2345678901234567890e-88, 4) --> ('123.5', -90, '')
     Engineering(1.2345678901234567890e-8, 4)  --> ('12.35', -9, 'n')
     Engineering(1.2345678901234567890e8, 4)   --> ('123.5', 6, 'M')
-    """
+    '''
     suffixes = {
         -10: "q",
         -9: "r",
@@ -794,11 +799,11 @@ def Engineering(value, digits=3):
         m = str(int(float(m)))
     return m, 3 * (exponent // 3), s
 def eng(value, digits=3, unit=None, width=0):
-    """Convenience function for engineering representation.  If unit is given, then the number of
+    '''Convenience function for engineering representation.  If unit is given, then the number of
     digits is displayed in value with the prefix prepended to unit.  Otherwise, "xey" notation is
     used, except if y == 0, no exponent portion is given.  Returns a string for printing.  If width
     is nonzero, then returns a string right-justified to that width.
-    """
+    '''
     m, e, p = Engineering(value, digits)
     if unit:
         s = m + " " + p + unit
@@ -810,7 +815,7 @@ def eng(value, digits=3, unit=None, width=0):
             s = p + s
     return s
 def IdealGas(P=0, v=0, T=0, MW=28.9):
-    """Given two of the three variables P, v, and T, calculates the third for the indicated gas.
+    '''Given two of the three variables P, v, and T, calculates the third for the indicated gas.
     The variable that is unknown should have a value of zero.
         P = pressure in Pa
         v = specific volume in m^3/kg
@@ -846,7 +851,7 @@ def IdealGas(P=0, v=0, T=0, MW=28.9):
         propane    369.8     42.49     26.03814
         water      647.3    221.2      18.01534
         xenon      289.8     58.00    131.30
-    """
+    '''
     gas_molar_mass = {
         "air": 28.9,
         "ammonia": 17.03,
@@ -876,7 +881,7 @@ def IdealGas(P=0, v=0, T=0, MW=28.9):
     else:
         return P * v / R
 def Flatten(L, max_depth=None, ltypes=(list, tuple)):
-    """Flatten every sequence in L whose type is contained in "ltypes" to "max_depth" levels down
+    '''Flatten every sequence in L whose type is contained in "ltypes" to "max_depth" levels down
     the tree.  The sequence returned has the same type as the input sequence.
     
     Written by Kevin L. Sitze on 2010-11-25.  From
@@ -891,7 +896,7 @@ def Flatten(L, max_depth=None, ltypes=(list, tuple)):
             
     but every element encountered needs to be an iterable.  This Flatten() function works more
     generally.
-    """
+    '''
     if max_depth is None:
         def make_flat(x):
             return True
@@ -956,7 +961,7 @@ def TempConvert(t, in_unit, to_unit):
         raise e
     return T
 def TemplateRound(x, template, up=None):
-    """Round a number to a template number.
+    '''Round a number to a template number.
         - The returned value's type will be the same as template's type
         - template must be a number greater than zero
         - x/template must be a meaningful expression (x will be converted to template's type)
@@ -996,7 +1001,7 @@ def TemplateRound(x, template, up=None):
             TemplateRound(1.6535, Fraction(1, 8)) = 13/8
             
         which is correct, as 12/8 is 1.5 and 0.1535 is about 0.03 larger than 1/8.
-    """
+    '''
     # Check inputs
     if template <= 0:
         raise ValueError("template must be > 0")
@@ -1015,7 +1020,7 @@ def TemplateRound(x, template, up=None):
             y -= template
     return sign * y
 def ConvertToNumber(s, handle_i=True):
-    """This is a general-purpose routine that will return a python number for a string if it is
+    '''This is a general-purpose routine that will return a python number for a string if it is
     possible.  The basic logic is:
         - If it contains 'j' or 'J', it's complex
         - If it contains '/', it's a fraction
@@ -1023,7 +1028,7 @@ def ConvertToNumber(s, handle_i=True):
         - Otherwise it's interpreted as an integer
     Since I prefer to use 'i' for complex numbers, we'll also allow an 'i' in the number unless
     handle_i is False.
-    """
+    '''
     s = s.lower()
     if handle_i:
         s = s.replace("i", "j")
@@ -1036,10 +1041,10 @@ def ConvertToNumber(s, handle_i=True):
     else:
         return int(s)
 def StringToNumbers(s, sep=" ", handle_i=True):
-    """s is a string; return the sequence (tuple) of numbers it represents; number strings are
+    '''s is a string; return the sequence (tuple) of numbers it represents; number strings are
     separated by the string sep.  The numbers returned are integers, fractions, floats, or complex.
     If handle_i is True, 'i' or 'I' are allowed as the imaginary unit.
-    """
+    '''
     seq = []
     for line in s.strip().split(nl):
         if sep is None:
@@ -1048,7 +1053,7 @@ def StringToNumbers(s, sep=" ", handle_i=True):
             seq.extend(line.split())
     return tuple([ConvertToNumber(i, handle_i=handle_i) for i in seq])
 def hyphen_range(s, sorted=False, unique=False):
-    """Takes a set of range specifications of the form "a-b" and returns a list of integers between
+    '''Takes a set of range specifications of the form "a-b" and returns a list of integers between
     a and b inclusive.  Also accepts comma separated ranges like "a-b,c-d,f".  Numbers from a to b,
     a to d and f.  If sorted is True, the returned list will be sorted.  If unique is True, only
     unique numbers are kept and the list is automatically sorted.  In "a-b", a can be larger than
@@ -1058,7 +1063,7 @@ def hyphen_range(s, sorted=False, unique=False):
     
     Adapted from routine at
     http://code.activestate.com/recipes/577279-generate-list-of-numbers-from-hyphenated-and-comma/?in=lang-python
-    """
+    '''
     assert ii(s, str)
     s = "".join(s.split())  # Removes white space
     r = []
@@ -1080,7 +1085,7 @@ def hyphen_range(s, sorted=False, unique=False):
         r.sort()
     return r
 def grouper(data, mapper, reducer=None):
-    """Simple map/reduce for data analysis.
+    '''Simple map/reduce for data analysis.
     
     Each data element is passed to a *mapper* function.  The mapper returns key/value pairs or None
     for data elements to be skipped.
@@ -1101,7 +1106,7 @@ def grouper(data, mapper, reducer=None):
     
     Note:  from http://code.activestate.com/recipes/577676-dirt-simple-mapreduce/?in=lang-python I
     renamed the function to grouper.
-    """
+    '''
     d = {}
     for elem in data:
         r = mapper(elem)
@@ -1116,7 +1121,7 @@ def grouper(data, mapper, reducer=None):
             d[key] = reducer(group)
     return d
 def IsConvexPolygon(*p):
-    """Return True if the sequence p of two-dimensional points constitutes a convex polygon.  Ref:
+    '''Return True if the sequence p of two-dimensional points constitutes a convex polygon.  Ref:
     http://stackoverflow.com/questions/471962/how-do-determine-if-a-polygon-is-complex-convex-nonconvex
     
     The assumption is that the sequence p of points traverses consecutive points of the polygon.
@@ -1129,7 +1134,7 @@ def IsConvexPolygon(*p):
         ((0, 0), (1, 0), (1, 1), (1, 0)) will return True.
         ((0, 0), (1, 0), (1, 1), (0.5,         0.5)) will return False.
         ((0, 0), (1, 0), (1, 1), (0.5 - 1e-10, 0.5)) will return True.
-    """
+    '''
     n = len(p)
     if n < 3:
         raise ValueError("Need at least three points")
@@ -1150,7 +1155,7 @@ def IsConvexPolygon(*p):
         return True
     return False
 def BraceExpansion(s, glob=False):
-    """Generator to perform brace expansion on the string s.  If glob is True, then also glob each
+    '''Generator to perform brace expansion on the string s.  If glob is True, then also glob each
     pattern in the current directory.  Examples:
     
     - BraceExpansion("a.{a, b}")) returns
@@ -1164,10 +1169,10 @@ def BraceExpansion(s, glob=False):
         ['/c', '/d', 'a/c', 'a/d']
     - BraceExpansion(r"{,,a}/{c,d}") returns
         ['/c', '/d', '/c', '/d', 'a/c', 'a/d']
-    """
-    """Algorithm from http://rosettacode.org/wiki/Brace_expansion#Python The web page's content is
+    '''
+    '''Algorithm from http://rosettacode.org/wiki/Brace_expansion#Python The web page's content is
     available under the GNU Free Documentation license 1.2.
-    """
+    '''
     def getitem(s, depth=0):
         out = [""]
         while s:
@@ -1205,7 +1210,7 @@ def BraceExpansion(s, glob=False):
         for i in getitem(s)[0]:
             yield i
 def Spinner(chars=r"-\|/-\|/", delay=0.1):
-    """Show a spinner to indicate that processing is still taking place.  Set Spinner.stop to True
+    '''Show a spinner to indicate that processing is still taking place.  Set Spinner.stop to True
     to cause it to exit.  Note this is not thread-safe.
     
     Here's some example code that demonstrates how it could be used:
@@ -1219,7 +1224,7 @@ def Spinner(chars=r"-\|/-\|/", delay=0.1):
         t.start()
         time.sleep(2)
         Spinner.stop = True
-    """
+    '''
     # Idea from https://realpython.com/python-print/#living-it-up-with-cool-animations
     for frame in cycle(chars):
         print("\r", frame, sep="", end="", flush=True)
@@ -1229,7 +1234,7 @@ def Spinner(chars=r"-\|/-\|/", delay=0.1):
             return
 Spinner.stop = False
 def ProgressBar(frac=0, width=40, char="#"):
-    """Prints a progress bar to stdout.  frac must be a number on the closed interval [0, 1].
+    '''Prints a progress bar to stdout.  frac must be a number on the closed interval [0, 1].
     
     Here's an example of use:
         n = 100
@@ -1237,7 +1242,7 @@ def ProgressBar(frac=0, width=40, char="#"):
             ProgressBar(i/n)
             time.sleep(0.01)
         print()
-    """
+    '''
     # Idea from https://realpython.com/python-print/#living-it-up-with-cool-animations
     assert len(char) == 1
     left = int(width * frac)
@@ -1254,7 +1259,7 @@ def ProgressBar(frac=0, width=40, char="#"):
         flush=True,
     )
 def Paste(*seq, missing="", sep="\t"):
-    """Return a list whose elements are each corresponding element of the sequences in *seq,
+    '''Return a list whose elements are each corresponding element of the sequences in *seq,
     separated by the string sep.  If a sequence is too short, the missing string will be
     substituted.  All sequence elements will be converted to strings using str().
     
@@ -1262,19 +1267,19 @@ def Paste(*seq, missing="", sep="\t"):
         Paste([1, 2, "a"], ["3 4", 5], missing="X")
     will return
         ['1\t3 4', '2\t5', 'a\tX']
-    """
+    '''
     result = list(zip_longest(*seq, fillvalue=missing))
     for i, item in enumerate(result):  # Convert all elements to strings
         result[i] = [str(j) for j in result[i]]
     return [sep.join(i) for i in result]
 def EBCDIC():
-    """Returns two byte-translation tables to use with
+    '''Returns two byte-translation tables to use with
     bytes.translate().  The first converts ASCII bytes to EBCDIC and the
     second converts EBCDIC bytes to ASCII.
-    """
+    '''
     a2e = [
         int(i)
-        for i in """0 1 2 3 55 45 46 47 22 5 37 11 12 13 14 15 16 17 18 19 60 61 50 38 24 25 63 39 28 29
+        for i in '''0 1 2 3 55 45 46 47 22 5 37 11 12 13 14 15 16 17 18 19 60 61 50 38 24 25 63 39 28 29
            30 31 64 79 127 123 91 108 80 125 77 93 92 78 107 96 75 97 240 241 242 243 244 245 246
            247 248 249 122 94 76 126 110 111 124 193 194 195 196 197 198 199 200 201 209 210 211
            212 213 214 215 216 217 226 227 228 229 230 231 232 233 74 224 90 95 109 121 129 130 131
@@ -1284,11 +1289,11 @@ def EBCDIC():
            100 101 102 103 104 105 112 113 114 115 116 117 118 119 120 128 138 139 140 141 142 143
            144 154 155 156 157 158 159 160 170 171 172 173 174 175 176 177 178 179 180 181 182 183
            184 185 186 187 188 189 190 191 202 203 204 205 206 207 218 219 220 221 222 223 234 235
-           236 237 238 239 250 251 252 253 254 255""".split()
+           236 237 238 239 250 251 252 253 254 255'''.split()
     ]
     e2a = [
         int(i)
-        for i in """0 1 2 3 156 9 134 127 151 141 142 11 12 13 14 15 16 17 18 19 157 133 8 135 24 25 146
+        for i in '''0 1 2 3 156 9 134 127 151 141 142 11 12 13 14 15 16 17 18 19 157 133 8 135 24 25 146
            143 28 29 30 31 128 129 130 131 132 10 23 27 136 137 138 139 140 5 6 7 144 145 22 147
            148 149 150 4 152 153 154 155 20 21 158 26 32 160 161 162 163 164 165 166 167 168 91 46
            60 40 43 33 38 169 170 171 172 173 174 175 176 177 93 36 42 41 59 94 45 47 178 179 180
@@ -1298,12 +1303,12 @@ def EBCDIC():
            210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231
            123 65 66 67 68 69 70 71 72 73 232 233 234 235 236 237 125 74 75 76 77 78 79 80 81 82
            238 239 240 241 242 243 92 159 83 84 85 86 87 88 89 90 244 245 246 247 248 249 48 49 50
-           51 52 53 54 55 56 57 250 251 252 253 254 255""".split()
+           51 52 53 54 55 56 57 250 251 252 253 254 255'''.split()
     ]
     s, t = bytearray(a2e), bytearray(e2a)
     return s.maketrans(s, t), s.maketrans(t, s)
 def Ampacity(dia_mm, insul_degC=60, ambient_degC=30):
-    """Return the NEC-allowed current in a copper conductor at the indicated ambient temperature
+    '''Return the NEC-allowed current in a copper conductor at the indicated ambient temperature
     and with the indicated insulation temperature rating.
     
     The data from table 310-16 in the 1998 NEC was fitted to cubic polynomials, so the table data
@@ -1312,7 +1317,7 @@ def Ampacity(dia_mm, insul_degC=60, ambient_degC=30):
     wire, the constant term of the regression was set to zero.
     
     The data and regressions are in /elec/projects/current_capacity.
-    """
+    '''
     def AmbientCorrection(ambient_degC, insul_degC):
         if insul_degC not in (60, 75, 90):
             raise ValueError("insul_degC must be 60, 75, or 90 °C")
@@ -1362,10 +1367,10 @@ def Ampacity(dia_mm, insul_degC=60, ambient_degC=30):
     else:
         raise ValueError("ambient_degC out of range")
 def RandomIntegers(n, maxint, seed=None, duplicates_OK=False):
-    """Return a random list of n integers between 0 and maxint - 1.  Set seed to be not None to
+    '''Return a random list of n integers between 0 and maxint - 1.  Set seed to be not None to
     generate a repeatable set of integers.  If duplicates_OK is False, the integers are distinct;
     otherwise, the list may contain duplicates.
-    """
+    '''
     # Check parameters
     if not isinstance(n, int) or not isinstance(maxint, int):
         raise TypeError("n and maxint must be integers")
@@ -1389,12 +1394,12 @@ def RandomIntegers(n, maxint, seed=None, duplicates_OK=False):
             f(random.randint(0, maxint - 1))
     return list(s)
 def execfile(filename, globals=None, locals=None, use_user_env=True):
-    """Python 3 substitute for python 2's execfile.  It gets the locals and globals from the
+    '''Python 3 substitute for python 2's execfile.  It gets the locals and globals from the
     caller's environment unless use_user_env is False.
     
     Caution:  you should be aware of the risks of using this function to execute arbitrary code,
     as a malicious file could e.g. wipe out your system or do other types of arbitrary damage.
-    """
+    '''
     # https://stackoverflow.com/questions/436198/what-is-an-alternative-to-execfile-in-python-3
     e = sys._getframe(1)
     if globals is None and use_user_env:
@@ -1405,7 +1410,7 @@ def execfile(filename, globals=None, locals=None, use_user_env=True):
         s = fh.read() + "\n"
         exec(s, globals, locals)
 def iDistribute(n, a, b):
-    """Generator to return an integer sequence [a, ..., b] with n elements equally distributed
+    '''Generator to return an integer sequence [a, ..., b] with n elements equally distributed
     between a and b.  Raises ValueError if no solution is possible.  Example:
         a, b = 1, 6
         for n in range(2, 8):
@@ -1422,7 +1427,7 @@ def iDistribute(n, a, b):
     true.
     
     If you need a sequence of n floating point values, see util.fDistribute().
-    """
+    '''
     if not (ii(a, int) and ii(b, int) and ii(n, int)):
         raise TypeError("Arguments must be integers")
     if a >= b:
@@ -1439,7 +1444,7 @@ def iDistribute(n, a, b):
     for i in range(n):
         yield int(round(a + i * dx, 0))
 def fDistribute(n, a=0, b=1, impl=float):
-    """Generator to return n impl instances on [a, b] inclusive. A common use case is an
+    '''Generator to return n impl instances on [a, b] inclusive. A common use case is an
     interpolation parameter on [0, 1].  Examples:
         fd = fDistribute
         fd(3) --> [0.0, 0.5, 1.0]
@@ -1450,7 +1455,7 @@ def fDistribute(n, a=0, b=1, impl=float):
     return an impl-type floating point number will also work (e.g., mpmath's mpf type).
     
     If you need a sequence of evenly-distributed integers, see util.iDistribute().
-    """
+    '''
     # Check arguments
     msg = "n must be an integer > 1"
     if not ii(n, int):
@@ -1480,7 +1485,7 @@ def signum(x):
     except Exception:
         raise TypeError(f"x = '{x}' not a suitable numerical type")
 def SizeOf(o, handlers={}, verbose=False, full=False, title=None):
-    """Returns a string containing the approximate memory in bytes used by
+    '''Returns a string containing the approximate memory in bytes used by
     an object.  Recursively uses sys.getsizeof().
     
     verbose     If True, show the details on each object.
@@ -1491,7 +1496,7 @@ def SizeOf(o, handlers={}, verbose=False, full=False, title=None):
             def Iter(s):
                 return s.attr1, s.attr2
             handler = {MyClass: Iter}
-    """
+    '''
     # DP 11 Apr 2022
     # This is a modified version of
     # https://code.activestate.com/recipes/577504/.  Changes:
@@ -1541,7 +1546,7 @@ def SizeOf(o, handlers={}, verbose=False, full=False, title=None):
     else:
         return total
 class PPSeq:
-    """Format sequences for pretty printing
+    '''Format sequences for pretty printing
     Floats must be in [0, 1].
     
     Example:
@@ -1550,7 +1555,7 @@ class PPSeq:
         print(p(a))
     prints
         [0.4000000000, 0.1200000000, 0.3300000000, 0.1600000000]
-    """
+    '''
     def __init__(self, bits_per_number=8):
         self._bpn = bits_per_number
     def __call__(self, seq, **kw):
@@ -1634,7 +1639,7 @@ class PPSeq:
                 return False
         return True
 class Now:
-    """Example:
+    '''Example:
         s = Now()
         print(s.time())
         print(s.date())
@@ -1643,7 +1648,7 @@ class Now:
         3:20pm
         11 Oct 2024
         11Oct2024
-    """
+    '''
     def __init__(self):
         self._t = t = time.localtime()
         dy = self.remove_leading_zero(time.strftime("%d", t))
@@ -1667,7 +1672,7 @@ class Now:
         dy, mo, yr = self._dt
         return f"{dy}{mo}{yr}"
 def DoubleFactorial(n):
-    """Returns n!! which is defined to be the product from k = 0 to k = int(n/2) - 1 of (n - 2*k).
+    '''Returns n!! which is defined to be the product from k = 0 to k = int(n/2) - 1 of (n - 2*k).
     Since we ensure that n is an integer, this function should never fail, but of course it will
     take a long time for big integers.
     
@@ -1676,7 +1681,7 @@ def DoubleFactorial(n):
             Or:  Product from k = 1 to n//2 of 2*k
         If n is odd,  n!! = n(n - 1)(n - 4)···(3)(1)
             Or:  Product from k = 1 to (n+1)//2 of 2*k - 1
-    """
+    '''
     if not isinstance(n, int):
         raise TypeError("n must be an integer")
     if n < 0:
@@ -1686,11 +1691,11 @@ def DoubleFactorial(n):
         product *= i
     return product
 def Cumul(seq, check=False):
-    """Return the cumulative sum list of the given sequence seq.  If check is True, verify the last
+    '''Return the cumulative sum list of the given sequence seq.  If check is True, verify the last
     element of the returned array is equal to the sum of all the elements in seq.
     
     Example:  Cumul([1, 2, 3, 4, 7]) returns [1, 3, 6, 10, 17]
-    """
+    '''
     cumul, dq = [], deque(seq)
     while dq:
         item = dq.popleft()
@@ -1699,11 +1704,11 @@ def Cumul(seq, check=False):
         raise ValueError("Sum of sequence not same as last cumul element")
     return cumul
 def ParseComplex(numstring):
-    """numstring contains a string representing a complex number that must be of the form 'x+yi';
+    '''numstring contains a string representing a complex number that must be of the form 'x+yi';
     the complex unit can be i or j.  Return (real, imag) where real and imag are the real and
     imaginary strings of the complex number.  Space characters can be anywhere in the string, as
     they are removed.
-    """
+    '''
     # The method uses a regular expression to recognize the string forms of integers or real
     # numbers.  Applied to the string twice, it picks out the real and imaginary parts.
     str = numstring.lower().strip().replace("i", "j").replace(",", ".").replace(" ", "")
@@ -1713,7 +1718,7 @@ def ParseComplex(numstring):
     if not s.issubset(set("j+-e.0123456789")):
         raise ValueError(msg)
     # Regular expression to recognize an int or float
-    regex = r"""
+    regex = r'''
             (                               # Group
                 [+-]?                       # Optional sign
                 \.\d+                       # Number like .345
@@ -1723,7 +1728,7 @@ def ParseComplex(numstring):
                 \d+\.?\d*                   # Number:  2.345
                 ([eE][+-]?\d+)?             # Optional exponent
             )                               # End group
-            """
+            '''
     r = re.compile(regex, re.X)
     # If no 'j', it's real
     if str[-1] != "j":
@@ -1762,7 +1767,7 @@ def ParseComplex(numstring):
                 raise ValueError(msg)
     return (first, second)
 def unrange(seq, sort_first=False, sep="┅"):
-    """Turn a sequence of integers seq into a collection of ranges and return as a string.  It
+    '''Turn a sequence of integers seq into a collection of ranges and return as a string.  It
     provides a string summary of the ranges in the sequence.  See unrange_real() for sequences of
     real numbers.
     
@@ -1776,7 +1781,7 @@ def unrange(seq, sort_first=False, sep="┅"):
         seq = [-1, -5, -6, -7, -3, -4, -8, -10, -11, -12]
         unrange(seq, sort_first=True)  outputs -12┅-10 -8┅-3 -1
         unrange(seq, sort_first=False) outputs -1 -5 -6 -7 -3 -4 -8 -10 -11 -12
-    """
+    '''
     if not seq:
         return ""
     dq = deque(sorted(seq)) if sort_first else deque(seq)
@@ -1804,7 +1809,7 @@ def unrange(seq, sort_first=False, sep="┅"):
     u = s.replace(" " + sep + " ", sep)
     return u
 def unrange_real(seq, sort_first=False, sep="┅"):
-    """Turn a sequence of numbers seq into a collection of ranges and return as a string.  It
+    '''Turn a sequence of numbers seq into a collection of ranges and return as a string.  It
     provides a string summary of the ranges in the sequence.  See unrange() for sequences of
     integers.
     
@@ -1819,7 +1824,7 @@ def unrange_real(seq, sort_first=False, sep="┅"):
         seq = [1.0, 2.2, 3.1, 2.7, 8.1]
         unrange_real(seq, sort_first=True)  outputs 1.0┅8.1
         unrange_real(seq, sort_first=False) outputs 1.0┅3.1 2.7┅8.1
-    """
+    '''
     if not seq:
         return ""
     dq = deque(sorted(seq)) if sort_first else deque(seq)
@@ -1837,9 +1842,9 @@ def unrange_real(seq, sort_first=False, sep="┅"):
             break  # Finished
     return " ".join(out)
 def Unique(seq):
-    """Generator to return only the unique elements in sequence.  The order of the items in the
+    '''Generator to return only the unique elements in sequence.  The order of the items in the
     sequence is maintained.
-    """
+    '''
     found = set()
     for item in seq:
         if item in found:
@@ -1848,12 +1853,12 @@ def Unique(seq):
             found.add(item)
             yield item
 def AcceptableDiff(x, y, n=3, strict=False):
-    """Return True if abs((x - y)/x) <= 10ⁿ.  If x is 0, then calculate abs((y - x)/y).  If
+    '''Return True if abs((x - y)/x) <= 10ⁿ.  If x is 0, then calculate abs((y - x)/y).  If
     strict is True, then x and y must be the same numerical type.
     
     The use case for this is testing for numerical differences when the numbers come from physical
     measurements.  Most of the time such data have n = 2, 3, or 4 figures.
-    """
+    '''
     if strict and (type(x) is not type(y)):
         raise TypeError("x and y must be the same numerical type")
     if x == y:
@@ -1873,10 +1878,10 @@ def ShowFile(*files):
             app = "d:/cygwin64/bin/cygstart.exe"  # cygwin
             subprocess.run([app, file])
 def Winnow(seq, regexps=[], OR=False, flags=re.I):
-    """Returns a set of strings contained in seq that match the regular expression strings in the
+    '''Returns a set of strings contained in seq that match the regular expression strings in the
     sequence regexps.  The regexps are ANDed together unless OR is True.  flags are used in the
     re.compile() function (use 0 or re.NOFLAG to use no flags).
-    """
+    '''
     if not seq:
         return set()
     if not regexps:
@@ -1902,10 +1907,10 @@ def Len(string):
     "Return the length of a string with ANSI escape sequences removed"
     return len(ANSI_strip(string))
 def ANSI_strip(string):
-    """Return the a string with ANSI escape sequences removed.  16 Feb 2023 Suggested regexp from
+    '''Return the a string with ANSI escape sequences removed.  16 Feb 2023 Suggested regexp from
     https://stackoverflow.com/questions/14693701/how-can-i-remove-the-ansi-escape-sequences-from-a-string-in-python
     (see the answer below this answer, as it is a more general regexp).
-    """
+    '''
     r = re.compile(r"(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]")
     return r.sub("", string)
 
@@ -2236,7 +2241,7 @@ if __name__ == "__main__":
         expected = {0: 90, 1: 75}
         Assert(got == expected)
     def Test_Cfg():
-        lines = dedent("""
+        lines = dedent('''
             from math import sqrt
             a = 44
             b = "A string"
@@ -2244,7 +2249,7 @@ if __name__ == "__main__":
                 return a/2
             c = a*sqrt(2)
             d = X(a)
-        """).split("\n")
+        ''').split("\n")
         d = Cfg(lines)
         Assert(d["a"] == 44)
         Assert(d["b"] == "A string")
@@ -2252,11 +2257,11 @@ if __name__ == "__main__":
         Assert(d["d"] == 22)
         Assert(str(d["X"])[:11] == "<function X")
     def Test_RemoveIndent():
-        s = """
+        s = '''
         This is a test
             Second line
           Third line
-        """
+        '''
         lines = RemoveIndent(s, numspaces=8).split("\n")
         Assert(lines[0] == "")
         Assert(lines[1] == "This is a test")
@@ -2365,11 +2370,11 @@ if __name__ == "__main__":
     def Test_VisualCount():
         s = (1, 1, 1, 2, "a", "a", (1, 2))
         got = "\n".join(VisualCount(s, width=20))
-        expected = dedent("""
+        expected = dedent('''
         1      *************
         a      ********
         2      ****
-        (1, 2) ****""")
+        (1, 2) ****''')
         Assert(got == expected)
     def Test_BraceExpansion():
         # Simple
@@ -2708,7 +2713,7 @@ if __name__ == "__main__":
     check_names = True
     if check_names:
         mnames, delete = set(dir()), []
-        ignore = """
+        ignore = '''
             AlmostEqual
             ascii_letters
             Assert
@@ -2781,7 +2786,7 @@ if __name__ == "__main__":
             __doc__
             __annotations__
             __file__
-        """.split()
+        '''.split()
         for name in mnames:
             for s in ignore:
                 if name == s:
