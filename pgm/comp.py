@@ -350,7 +350,7 @@ if 1:  # Data
             18:3:?    1N5817G Schottky diode, 20 PIV, 1 A   diode
             18:4:?    AGC fuse holder, panel mount   fuse
             18:4:?    2 A AGC slo-blo fuses   fuse
-            18:5:?    IRF630 N channel MOSFET 200 V   transistor
+            18:5:?    IRF630 N-ch MOSFET 200 V 9 A 0.29 Ω transistor TO-220
             18:5:?    Socket, 8-pin DIP   socket
             18:6:?    16 pin ZIF socket   socket
             18:6:?    Jumper, 0.1 inch   jumper
@@ -358,7 +358,7 @@ if 1:  # Data
             18:8:?    Jumper, fits 8-pin DIP socket   jumper
             18:9:?    Fuse, AGC, various sizes   fuse
             18:10:?    1A 250 V lever snap action microswitch   switch
-            18:11:?    2N7000 MOSFET transistor   MOS
+            18:11:?    2N7000 MOSFET transistor TO92 60 V 200 mA   MOS
             18:12:?    IC tube pin (closes IC antistatic tube off)   misc
             18:12:?    0.2 A AGC-size fuse for Aneng 870 DMM   fuse
         Box 19
@@ -469,7 +469,7 @@ if 1:  # Data
             24:11:?    15 A panel mount circuit breaker, 50 VDC, 120/240 VAC   breaker
             24:12:?    15 A panel mount circuit breaker, 50 VDC, 120/240 VAC   breaker
             24:13:?    Fahnestock clips   terminal
-            24:14:?    FDP8030L MOSFET transistor, 80 A 30 V   transistor
+            24:14:?    FDP8030L logic level MOSFET transistor, 80 A 30 V 4.5 mΩ TO220   transistor
             24:15:?    MPJA mini 3 W per channel stereo amplifier   amplifier
             24:15:?    LTC1968 RMS-to-DC converter 500 kHz   IC
             24:16:?    50 A 1 kV PIV full wave bridge rectifier   diode
@@ -542,7 +542,7 @@ if 1:  # Data
         Box 29
             29:1:?      
             29:2:?    BNC jacks & hardware   connector
-            29:3:?    2N7000 MOSFET transistor   MOS
+            29:3:?    2N7000 MOSFET transistor TO92 60 V 200 mA   MOS
             29:4:?    Normally closed thermostats, MPJA 38152   thermostat
             29:5:?    Rubber tips & plugs for banana test leads   probe
             29:6:?    Normally open thermostats, MPJA 35719   thermostat
@@ -554,7 +554,7 @@ if 1:  # Data
             30:1:?    Dupont jumper wires, assorted, 100 mm   connector
             30:1:?    AC volts multi-function meter (line voltage & current measurement)   meter
             30:2:?    ZK-TD2 timer module $4.6 ea banggood 19Nov2021 /elec/projects/TimerBox.odt   module
-            30:3:?    IRFZ44N N-ch MOSFET 55 V, 17.5 mΩ, 62 °C/W   MOS
+            30:3:?    IRFZ44N N-ch MOSFET 55 V 49 A 17.5 mΩ 62 °C/W TO220   MOS
             30:4:?      
             30:5:?    5 V relay, 2.5 mA @ 5 V, 15 A 125 V (new 7 Aug 2017 banggood)   relay
             30:6:?    12 V 10 A relay, 60 mA closed (new 19 May 2022, Amazon, $2)   relay
@@ -570,7 +570,7 @@ if 1:  # Data
             32:3:?      
             32:4:?      
             32:5:?      
-            32:6:?      
+            32:6:M    Ring terminal, blue, 1/4 inch   terminal
             32:7:?      
             32:8:?      
             32:9:?      

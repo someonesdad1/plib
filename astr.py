@@ -37,32 +37,32 @@ if 1:  # Copyright, license
     pass
 if 1:  # Imports
     import re
-
-
+    
+    
 class astr(str):
     """This is a string object that uses a regular expression to remove
     ANSI color-coding strings before calculating the string length.
     """
-
+    
     # This regexp replaces each color-coding escape sequence with the empty
     # string.  See https://en.wikipedia.org/wiki/ANSI_escape_code.
     r = re.compile(r"\x1b\[[0-?]*[ -\/]*[@-~]")
-
+    
     def __len__(self):
         return len(astr.r.sub("", str(self)))
-
-
+        
+        
 # Use the alen() function to get the string's length instead if you don't
 # want to instantiate an astr object.
 
 
 def alen(s):
     return len(astr.r.sub("", s))
-
-
+    
+    
 if __name__ == "__main__":
     from lwtest import run, raises, assert_equal
-
+    
     # Note the Unicode '∞' in the third line.
     tststring = """[1;37;42mstring1[0m
 string2
@@ -77,6 +77,10 @@ string2
             else:
                 assert_equal(len(a), 8)
                 assert_equal(alen(s), 8)
-
+                
     failed, messages = run(globals())
     exit(failed)
+    
+    
+    
+    

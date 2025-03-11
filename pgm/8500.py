@@ -97,12 +97,16 @@ if 1:   # Core functionality
             shift + menu        {on}:CONFIG{off}
             ↑ or ↓              {on}:LOAD ON TIMER{off}
             enter               {on}:TIMER STATE{off}
+                Turn on timer state and press enter
             ↓                   {on}:TIMER SET{off}
+                Set number of seconds to run
             enter               {on}:TIMER=XXXXXS{off}   Enter 1 to 6000 s
-            enter               {on}:TIMER SET{off}
             esc esc
-            Now when load is turned on, its duration will be timed.  To turn off, enter the menu
-            {on}:CONFIG:LOAD ON TIMER:TIMER STATE{off} and set to {on}:OFF{off}.
+            Set load mode (e.g., draw 10 A of current in CC mode).
+            When load is turned on, its duration will be timed (there is no
+            indication on the panel that the timer is running).  To turn off,
+            enter the menu {on}:CONFIG:LOAD ON TIMER:TIMER STATE{off} and set
+            to {on}:OFF{off}.
         '''))
     def BAT():
         on, off = t.cmd, t.n

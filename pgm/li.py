@@ -4,7 +4,7 @@ LiFePO₄ battery characteristics
 
 '''
 _pgminfo = '''
-<oo 
+<oo desc 
     LiFePO₄ battery characteristics
 oo>
 <oo cr Copyright © 2025 Don Peterson oo>
@@ -41,9 +41,9 @@ if 1:  # Header
         g.dbg = False
         ii = isinstance
 if 1:   # Utility
-    def GetColors():
-        t.ten = t.grn
-        t.five = t.whtl
+    def GetColors(on=False):
+        t.ten = t.grn if on else ""
+        t.five = t.whtl if on else ""
         t.err = t.redl
         t.dbg = t.skyl if g.dbg else ""
         t.N = t.n if g.dbg else ""
@@ -72,16 +72,17 @@ if 1:   # Utility
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-p"] = 1    # Percentage interval
+        d["-c"] = False     # Use colors
+        d["-p"] = 10        # Percentage interval
         #if len(sys.argv) < 2:
         #    Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "hp:") 
+            opts, args = getopt.getopt(sys.argv[1:], "chp:") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list(""):
+            if o[1] in list("c"):
                 d[o] = not d[o]
             elif o == "-p":
                 try:
@@ -92,7 +93,7 @@ if 1:   # Utility
                     Error(f"-p option's argument must be a number > 0")
             elif o == "-h":
                 Usage()
-        GetColors()
+        GetColors(d["-c"])
         return args
 if 1:   # Core functionality
     def Data():
@@ -102,9 +103,8 @@ if 1:   # Core functionality
         return pct, V
     def PrintBatteryDetails(num_cells):
         print(dedent(f'''
-        LiFePO₄ batteries:  % charge vs. open circuit voltage
-            During charging, the 100% charged cell voltage is 3.65 V.  After resting, this
-            open circuit cell voltage will be 3.40 V.
+        LiFePO₄ battery ({num_cells} cells)
+        % charge vs. rested open circuit voltage
         '''))
         pct, V = Data()
         f = interp1d(pct, V)
@@ -115,7 +115,10 @@ if 1:   # Core functionality
             with p:
                 p.rtz = p.rtdp = True
                 ps = f"{p!s:^{w1}s}"
-            V = flt(num_cells*f(p))
+            try:
+                V = flt(num_cells*f(p))
+            except ValueError:
+                continue
             with V:
                 V.rtz = V.rtdp = False
                 V.N = 4
@@ -126,8 +129,12 @@ if 1:   # Core functionality
             elif not (p % five):
                 c = t.five
             o.append(f"{c}{ps} {Vs}{t.n}")
-        for i in Columnize(o, columns=5, sep=" "*5):
-            print(i)
+        if d["-p"] < 5:
+            for i in Columnize(o, columns=5, sep=" "*5):
+                print(i)
+        else:
+            for i in o:
+                print(i)
 
 if __name__ == "__main__":
     d = {}      # Options dictionary

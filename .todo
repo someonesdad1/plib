@@ -1,40 +1,5 @@
 Active:  /plib/.todo
 
-    - abbrev.py
-        - Finds likely abbreviations/acronyms in files
-        - Repository for the one I like to use, with definitions
-            - CBC (commercial battery charger) ooo μP IDE wrt Ah amd anova ansi argc
-              argv asap asme AT atm ATO ATX awk bk b&k bnc bsky buff cdf cephes cfg chr
-              chs CC clf clrg clst cmd cmdline cmds codec cols com comm comms conda
-              const config conj cpi cpp cruft css csv ctags ctrl cyg daq dat dbf dbg dbm
-              dbl dbus dd def del demag denom descr dest det df dict diff dir diy dll
-              dlock dm42 dmath doc docs dos dps dpstr dr dtype dx dy edu ee elec elif
-              emf eng engsi enum eof eps eqn er esc esr et eva evac eval expr ext flt
-              fmt fp ft fyi gdssw gdb gc gcc git gov gpg gps grep gsl gz hc hcpy hdr hld
-              hls hms hpj href iet im ii imag img impl inf init int inv ip ir iso ix
-              jpeg jpg jpl kbhit kdiff kft kph kps ksh kw kwh lj lbf lbm lcd len lib
-              linalg linenum linreg ll log ln loc loo ls lt manufy mawk md med meg mic
-              min mingw minibike mintty mk mkdir mks mobi mol mon mp3 mp4 mpc mpf mpi
-              mpja mrtc MSE msg MSR mysql nah nagaoka nav ncdf nd ndarray nema netrw
-              NIST nl nltk nobreak noic nomagic nop npos npp nsa num odict odt oft
-              optlist os osl papa pcl PCs pdb pfft pfind pgp php pil pkg plib png pnp
-              popen ppf ppm ppb precis prr prst ps psa psi pto putch pwd pwm pwr pypi
-              pyvenv pyver pyw rad RCS rdbuf redir regex regexp relpath reltol remap
-              repr req lhs rhs rmdir rd roms rpath rpo rps rst rtd rtz sa sat sbin SCCS
-              sci scipy SCO sed seq seti sfpm sha shcs shl shlvl shtml sig sigfig
-              siglent simpy sinesticks skrip sp spc sr src srcfile SSE SSR SSTO stat
-              stats s stddev stdev STP str sts su svg svn sw sx sxx sxy sy sympy sys
-              sysop syy techref temp tempfile tex texmf tgz thd tmbr tmux toml Torx tp
-              trans trie troff Tsat tsort tst tty txt tz uint unc unf uni un u unx URL
-              URI USB usd usr uss utf utf8 va var vars vcs venv vi vim viemu vimrc vip
-              voa vs vu vxware wav wd wdiff wdr wl lc wsl www wx xargs xfm xlabel xlim
-              xls xml xrange xref xx xxd xyzzy YAML Yhat Ybar ylabel ymax ymin xmax xmin
-              yy __call__ __dict__ __doc__ __floordiv__ __getattr__ __gt__ __iadd__
-              __iand__ __idiv__ __ifloordiv__ __ilshift__ __imod__ __imul__ __init__
-              __ior__ __ipow__ __irshift__ __isub__ __itruediv__ __ixor__ __le__ __lt__
-              __neg__ __pos__ __rfloordiv__ __rtruediv__ __setattr__ __truediv__ dmm
-              dupont eeprom leds lifepo mux opto romex SCPI SMD Uno wifi rv bms 
-
     - astr.py, fsig.py
         - Move functionality to util.py
 
@@ -70,6 +35,74 @@ Active:  /plib/.todo
         - Script to take a set of python scripts and print out the tokens that match
           those used in the function fn_name.
             - Use case:  see if the 'sin' or 'math.sin' token is used in a routine.
+
+    - abbrev.py
+        - Finds likely abbreviations/acronyms in files
+        - Lists definitions for the ones found
+        - Repository for the one I like to use, with definitions
+            - CBC (commercial battery charger) ooo μP IDE wrt Ah A*h A*hr amd anova ansi argc
+              argv asap asme AT atm ATO ATX awk bk b&k bnc bsky buff cdf cephes cfg chr
+              chs CC clf clrg clst cmd cmdline cmds codec cols com comm comms conda
+              const config conj cpi cpp cruft css csv ctags ctrl cyg daq dat dbf dbg dbm
+              dbl dbus dd def del demag denom descr dest det df dict diff dir diy dll
+              dlock dm42 dmath doc docs dos dps dpstr dr dtype dx dy edu ee elec elif
+              emf eng engsi enum eof eps eqn er esc esr et eva evac eval expr ext flt
+              fmt fp ft fyi gdssw gdb gc gcc git gov gpg gps grep gsl gz hc hcpy hdr hld
+              hls hms hpj href iet im ii imag img impl inf init int inv ip ir iso ix
+              jpeg jpg jpl kbhit kdiff kft kph kps ksh kw kwh lj lbf lbm lcd len lib
+              linalg linenum linreg ll log ln loc loo ls lt manufy mawk md med meg mic
+              min mingw minibike mintty mk mkdir mks mobi mol mon mp3 mp4 mpc mpf mpi
+              mpja mrtc MSE msg MSR mysql nah nagaoka nav ncdf nd ndarray nema netrw
+              NIST nl nltk nobreak noic nomagic nop npos npp nsa num odict odt oft
+              optlist os osl papa pcl PCs pdb pfft pfind pgp php pil pkg plib png pnp
+              popen ppf ppm ppb precis prr prst ps psa psi pto putch pwd pwm pwr pypi
+              pyvenv pyver pyw rad RCS rdbuf redir regex regexp relpath reltol remap
+              repr req lhs rhs rmdir rd roms rpath rpo rps rst rtd rtz sa sat sbin SCCS
+              sci scipy SCO sed seq seti sfpm sha shcs shl shlvl shtml sig sigfig
+              siglent simpy sinesticks skrip sp spc sr src srcfile SSE SSR SSTO stat
+              stats s stddev stdev STP str sts su svg svn sw sx sxx sxy sy sympy sys
+              sysop syy techref temp tempfile tex texmf tgz thd tmbr tmux toml Torx tp
+              trans trie troff Tsat tsort tst tty txt tz uint unc unf uni un u unx URL
+              URI USB usd usr uss utf utf8 va var vars vcs venv vi vim viemu vimrc vip
+              voa vs vu vxware wav wd wdiff wdr wl lc wsl www wx xargs xfm xlabel xlim
+              xls xml xrange xref xx xxd xyzzy YAML Yhat Ybar ylabel ymax ymin xmax xmin
+              yy __call__ __dict__ __doc__ __floordiv__ __getattr__ __gt__ __iadd__
+              __iand__ __idiv__ __ifloordiv__ __ilshift__ __imod__ __imul__ __init__
+              __ior__ __ipow__ __irshift__ __isub__ __itruediv__ __ixor__ __le__ __lt__
+              __neg__ __pos__ __rfloordiv__ __rtruediv__ __setattr__ __truediv__ dmm
+              dupont eeprom leds lifepo mux opto romex SCPI SMD Uno wifi rv bms 
+
+    - Troubleshooting
+        - It could be time to try to write a fairly extensive overview of
+          troubleshooting, which is really figuring out the cause of a problem.  
+        - Probably the single most significant idea I've found useful in a lifetime of
+          troubleshooting is "there's a unique physical cause of this problem you're
+          seeing".  This notion is very useful in the context of a group of humans with
+          a variety of experiences trying to quickly find/fix a problem.  Less technical
+          or experienced people can generate wacky or multiple-cause suggestions and can
+          cause a bad waste of precious resources, so core needs are objectivity,
+          experience, and good leadership.
+        - https://blog.parr.us/2014/11/17/the-essentials-of-debugging/ talks about it
+          from a programming standpoint, but misses some key things (e.g., "debuggers
+          are evil", figuring out what's wrong with some code running on hardware where
+          you have no way of connecting to it (e.g. no printf like debugging boot LJ
+          code).
+            - His essentials are:  reproducability, reduction, deduction, experiment,
+              experience, tenacity
+        - The process seems to revolves around constructing the proper mental models to
+          interpret the signals the system is giving you.  This, in turn, seems to argue
+          for significant education in math, physics, engineering, CS, behavior, etc.
+            - A good strategy can be to look at the major disciplines and ask the
+              experts for a high level precis or distill it yourself.  Example:  in
+              troubleshooting electrical problems, some core ideas that are useful are
+              conservation of charge/energy and the lumped parameter model.  Then you
+              need to know the boundaries of where such ideas can and cannot be applied.
+            - Another might be the skill to recognize random vs. pseudorandom behavior
+              and to be able to know when you have enough information to make good
+              guiding decisions.
+        - KT analysis is a good framework, but I believe at least its text is
+          copyrighted -- but the ideas are valuable, particularly things like "looking
+          beyond the fix".
 
     - wrench.py
         - Have it put + by the wrenches that I have
@@ -579,6 +612,8 @@ Active:  /plib/.todo
         - Script datafile library tool that uses multiprocessing to detect when a datafile has
           changed and alerts the calling context that it needs to take action.
         - This is also a good technique for speeding up the fish problem.
+        - Run this script:  it's broken because /plib/timer.py:184 raises an exception
+          because the timer isn't stopped
 
     - dividing_holes.py
         - Print a paper template to allow marking holes on a workpiece
