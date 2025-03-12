@@ -1,7 +1,18 @@
 Active:  /plib/.todo
 
-    - astr.py, fsig.py
+    - util.py
+        - fsig() should be changed to a thread-safe and process-safe class by using
+          threading.Lock and multiprocessing.Lock.
+
+    - astr.py 
         - Move functionality to util.py
+        - astr.py is used in 
+            - /plib:  abbreviations.py asciify_make.py astr.py bama.py color.py
+              colorcoord.py colorhues.py eevblog_data.py elements.py extensions.py
+              interval.py julian.py meeus.py novas.py rgbdata.py u.py wl2rgb.py
+            - /plib/pgm:  arecibo.py current_date.py date.py de.py ds.py halflife.py
+              hpj.py igor.sibilant_c.py mathfuncs.py oom.py random_phrase.py
+              sunriseset.py wl.py words_syllables.py
 
     - trigger.py
         - Problem caused by ruff formatting the file and putting a space after every
@@ -51,8 +62,8 @@ Active:  /plib/.todo
               hls hms hpj href iet im ii imag img impl inf init int inv ip ir iso ix
               jpeg jpg jpl kbhit kdiff kft kph kps ksh kw kwh lj lbf lbm lcd len lib
               linalg linenum linreg ll log ln loc loo ls lt manufy mawk md med meg mic
-              min mingw minibike mintty mk mkdir mks mobi mol mon mp3 mp4 mpc mpf mpi
-              mpja mrtc MSE msg MSR mysql nah nagaoka nav ncdf nd ndarray nema netrw
+              min mingw mintty mk mkdir mks mobi mol mon mp3 mp4 mpc mpf mpi
+              mpja mrtc MSE msg MSR mysql nah nav ncdf nd ndarray nema netrw
               NIST nl nltk nobreak noic nomagic nop npos npp nsa num odict odt oft
               optlist os osl papa pcl PCs pdb pfft pfind pgp php pil pkg plib png pnp
               popen ppf ppm ppb precis prr prst ps psa psi pto putch pwd pwm pwr pypi
@@ -74,21 +85,28 @@ Active:  /plib/.todo
 
     - Troubleshooting
         - It could be time to try to write a fairly extensive overview of
-          troubleshooting, which is really figuring out the cause of a problem.  
+          troubleshooting, which is using various skills to figure out the cause of a
+          problem.  
         - Probably the single most significant idea I've found useful in a lifetime of
           troubleshooting is "there's a unique physical cause of this problem you're
-          seeing".  This notion is very useful in the context of a group of humans with
-          a variety of experiences trying to quickly find/fix a problem.  Less technical
-          or experienced people can generate wacky or multiple-cause suggestions and can
-          cause a bad waste of precious resources, so core needs are objectivity,
-          experience, and good leadership.
+          seeing".  
+            - This notion is very useful in the context of a group of humans with a
+              variety of experiences trying to quickly find/fix a problem.  Less
+              technical or experienced people can generate wacky or multiple-cause
+              suggestions and can cause a bad waste of precious resources, so core needs
+              are objectivity, experience, and good leadership.
+            - Other methods are things that provide contrast, temporal coincidence,
+              is/is not characteristics, polling the experts/web, using knowledge to
+              rule things out (but can be dangerous and make you overlook something)
         - https://blog.parr.us/2014/11/17/the-essentials-of-debugging/ talks about it
           from a programming standpoint, but misses some key things (e.g., "debuggers
-          are evil", figuring out what's wrong with some code running on hardware where
+          are evil"), figuring out what's wrong with some code running on hardware where
           you have no way of connecting to it (e.g. no printf like debugging boot LJ
           code).
             - His essentials are:  reproducability, reduction, deduction, experiment,
               experience, tenacity
+            - Another lesson:  reluctance of a sw team to adopt a new version of a
+              compiler because of the massive turmoil caused by compiler bugs
         - The process seems to revolves around constructing the proper mental models to
           interpret the signals the system is giving you.  This, in turn, seems to argue
           for significant education in math, physics, engineering, CS, behavior, etc.

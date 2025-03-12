@@ -4,9 +4,9 @@ def fsig(x, digits=None):
     a float.  Similar to the 'g' string formatting spec, but you can
     control the points where fixed point interpolation switches to
     scientific notation.
-
+    
     The fsig function attributes control other behaviors:
-
+    
     fsig.low         Use scientific notation if x < low
     fsig.high        Use scientific notation if x >= high
     fsig.digits      Default number of significant digits
@@ -22,7 +22,6 @@ def fsig(x, digits=None):
     fsig.rdp = fsig.__dict__.get("rdp", False)
     fsig.rtz = fsig.__dict__.get("rtz", False)
     fsig.rlz = fsig.__dict__.get("rlz", False)
-
     def rtz(s):
         if not fsig.rtz:
             return s
@@ -30,7 +29,6 @@ def fsig(x, digits=None):
         while t and t[-1] == "0":
             del t[-1]
         return "".join(t)
-
     if fsig.low > fsig.high:
         raise ValueError("fsig.low > fsig.high")
     msg = "{}digits = {} is out of range"
@@ -84,7 +82,6 @@ def fsig(x, digits=None):
     if fsig.rdp and t[-1] == fsig.dp:
         t = t[:-1]
     return sgn + t
-
 
 if __name__ == "__main__":
     # A few test cases
