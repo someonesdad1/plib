@@ -1,3 +1,11 @@
+'''
+
+ToDo
+    - Change to a class design
+    - Have it by default use both thread and process locking
+
+'''
+
 def fsig(x, digits=None):
     """Returns a string representing the float x to a specified number
     of digits.  x can also be an integer, in which case it is converted to
@@ -82,6 +90,31 @@ def fsig(x, digits=None):
     if fsig.rdp and t[-1] == fsig.dp:
         t = t[:-1]
     return sgn + t
+
+class Fsig:
+    '''Construct an instance that provides a desired string interpolation for a floating
+    point number.  
+
+    Example of use
+
+    x = Fsig()
+    x(math.pi) --> 3.14
+
+    '''
+    def __init__(self, **kw):
+        '''Keywords:
+        
+                Type    [default]
+        low       f   Use scientific notation if x < low [1e-5]
+        high      f   Use scientific notation if x >= high [1e6]
+        digits    i   Default number of significant digits [3]
+        n         i   Same as digits
+        dp        s   String to use for decimal point ["."]
+        rdp       b   Remove ending decimal point if True [False]
+        rtz       b   Remove trailing zeroes if True [False]
+        rlz       b   Remove leading 0 before decimal point if True [False]
+        tsafe     b   Thread-safe if True [True]
+        psafe     b   Process-safe if True [True]
 
 if __name__ == "__main__":
     # A few test cases
