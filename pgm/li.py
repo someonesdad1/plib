@@ -98,7 +98,7 @@ if 1:   # Utility
 if 1:   # Core functionality
     def Data():
         'Return [[%chg, OCVoltage], ...]'
-        pct = [int(i) for i in reversed("100 90 80 70 76 50 40 30 20 10 0".split())]
+        pct = [int(i) for i in reversed("100 90 80 70 60 50 40 30 20 10 0".split())]
         V = [flt(i) for i in reversed("3.40 3.35 3.32 3.30 3.27 3.26 3.25 3.22 3.20 3.00 2.50".split())]
         return pct, V
     def PrintBatteryDetails(num_cells):
