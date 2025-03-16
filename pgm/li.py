@@ -1,6 +1,24 @@
 '''
 
-LiFePO₄ battery characteristics
+LiFePO₄ battery characteristics:  prints the % charge as a function of open circuit
+rested voltage.  The information from the web is poor, as it doesn't attribute sources
+and it appears that everyone copies everyone else.  The information I used is:
+
+     %     V
+     0   10.00
+    10   12.00
+    20   12.80
+    30   12.88
+    40   13.00
+    50   13.04
+    60   13.08
+    70   13.20
+    80   13.28
+    90   13.40
+    100  13.60
+
+and the printed data are gotten through linear interpolation using scipy's
+interpolate.interp1d.
 
 '''
 _pgminfo = '''
@@ -69,6 +87,7 @@ if 1:   # Utility
         Options:
             -h      Print a manpage
             -n c    Number of cells [{d["-n"]}]
+            -p      Plot the data (requires matplotlib)
         '''))
         exit(status)
     def ParseCommandLine(d):
@@ -77,13 +96,15 @@ if 1:   # Utility
         #if len(sys.argv) < 2:
         #    Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "chn:") 
+            opts, args = getopt.getopt(sys.argv[1:], "chn:p") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
             if o[1] in list("c"):
                 d[o] = not d[o]
+            elif o == "-h":
+                Usage()
             elif o == "-n":
                 try:
                     d[o] = int(a)
@@ -91,23 +112,93 @@ if 1:   # Utility
                         raise ValueError
                 except ValueError:
                     Error(f"-n option's argument must be an integer > 0")
-            elif o == "-h":
-                Usage()
+            elif o == "-p":
+                PlotData()
         GetColors(d["-c"])
         return args
 if 1:   # Core functionality
+    def PlotData():
+        '''This is used to show various forms of the plotted charge level vs. open
+        circuit voltage.  Alas, there's no attribution and this doesn't look like
+        carefully-taken data.
+
+        The linear plot was the most useful, as I printed it on a sheet of paper using a
+        cubic spline interpolation plot and got 5 intervals that are usefully
+        approximated by straight lines:
+
+            (0, 2.5) to (0.33, 2.86)
+            (0.33, 2.86) to (11.9, 3.06)
+            (11.9, 3.06) to (20, 3.20)
+            (20, 3.20) to (84.4, 3.33)
+            (84.4, 3.33) to (100, 3.40)
+
+        '''
+        from pylab import plot, semilogy, semilogx, loglog, legend
+        from pylab import show, grid, title, xlabel, ylabel, savefig
+        from scipy.interpolate import CubicSpline
+        from frange import frange
+        pct, V = Data()
+        f = interp1d(pct, V)        # Linear interp
+        cs = CubicSpline(pct, V)    # Cubic spline interp
+        dec = "-"
+        if 0:   # Exploratory plotting to find decent approximation
+            # Plot the data
+            step = ".10"
+            pct = list(frange("0", "100.01", step))
+            typ = "semilogy"
+            typ = "linear"
+            if typ == "linear":
+                plot(pct, [cs(i) for i in pct], dec)
+            elif typ == "loglog":
+                loglog(pct, [cs(i) for i in pct], dec)
+            elif typ == "semilogy":
+                semilogy(pct, [cs(i) for i in pct], dec)
+            elif typ == "semilogx":
+                semilogx(pct, [cs(i) for i in pct], dec)
+            else:
+                raise ValueError(f"Bad typ = {typ!r}")
+            title("LiFePO₄ battery OC voltage vs % of charge")
+            xlabel("% of charge")
+            xlabel("Open circuit voltage, V")
+            grid()
+            savefig("lifepo4.png", dpi=200)
+            show()
+        else:   # Plot cubic spline approx versus linear approx
+            def GetLinearInterp():
+                # Get linear interpolation function derived from plot
+                x = (0, 6.39, 11.9, 20, 84.4, 100)
+                y = (2.5, 2.86, 3.06, 3.20, 3.33, 3.4)
+                return interp1d(x, y)
+            # Cubic spline plot
+            pct = list(frange("0", "100.01", "0.1"))
+            plot(pct, [cs(i) for i in pct], dec, label="Cubic spline") # 
+            # Our linear approximation
+            line = GetLinearInterp()
+            plot(pct, [line(i) for i in pct], dec, label="Linear approx.") # 
+            title("LiFePO₄ battery OC voltage vs % of charge")
+            xlabel("% of charge")
+            xlabel("Open circuit voltage, V")
+            grid()
+            legend()
+            #savefig("lifepo4.png", dpi=200)
+            show()
+        exit(0)
     def Data():
         'Return [[%chg, OCVoltage], ...]'
         pct = [int(i) for i in reversed("100 90 80 70 60 50 40 30 20 10 0".split())]
         V = [flt(i) for i in reversed("3.40 3.35 3.32 3.30 3.27 3.26 3.25 3.22 3.20 3.00 2.50".split())]
         return pct, V
+    def GetInterpolationFunction():
+        pct, V = Data()
+        f = interp1d(pct, V)
+        finv = interp1d(V, pct)
+        return f, finv
     def PrintBatteryDetails(pct_step):
         print(dedent(f'''
         LiFePO₄ battery ({d["-n"]} cells)
         % charge vs. rested open circuit voltage
         '''))
-        pct, V = Data()
-        f = interp1d(pct, V)
+        f, finv = GetInterpolationFunction()
         flt(0).rtz = False
         w1, w2, ten, five = 5, 5, flt(10), flt(5)
         o = [f"{'%':^{w1}s} {'V':^{w2}s}"]
