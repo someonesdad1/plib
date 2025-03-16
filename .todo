@@ -1,5 +1,11 @@
 Active:  /plib/.todo
 
+    - Autoformatters
+        - See if it they avoid the annoying spacing of expressions that black uses
+        - https://github.com/hhatto/autopep8
+        - https://github.com/google/yapf
+            - ARITHMETIC_PRECEDENCE_INDICATION does opposite of what I want
+
     - util.py
         - fsig() should be changed to a thread-safe and process-safe class by using
           threading.Lock and multiprocessing.Lock.

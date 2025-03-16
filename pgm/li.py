@@ -63,34 +63,34 @@ if 1:   # Utility
         exit(status)
     def Usage(status=0):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] [N1 [N2...]]
-          Print out LiFePO₄ battery characteristics for given number of cells N1.
-          Defaults to 4 for a 12 V battery.
+        Usage:  {sys.argv[0]} [options] [%step]
+          Print out LiFePO₄ battery characteristics for a 1% step in capacity.  Change
+          the step percentage by a command line argument.
         Options:
             -h      Print a manpage
-            -p p    Set percentage interval 
+            -n c    Number of cells [{d["-n"]}]
         '''))
         exit(status)
     def ParseCommandLine(d):
         d["-c"] = False     # Use colors
-        d["-p"] = 10        # Percentage interval
+        d["-n"] = 4         # Number of cells
         #if len(sys.argv) < 2:
         #    Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "chp:") 
+            opts, args = getopt.getopt(sys.argv[1:], "chn:") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
             if o[1] in list("c"):
                 d[o] = not d[o]
-            elif o == "-p":
+            elif o == "-n":
                 try:
-                    d[o] = flt(a)
-                    if not (0 < d[o] <= 100):
-                        Error("-p argument must be > 0 and <= 100")
+                    d[o] = int(a)
+                    if d[o] < 1:
+                        raise ValueError
                 except ValueError:
-                    Error(f"-p option's argument must be a number > 0")
+                    Error(f"-n option's argument must be an integer > 0")
             elif o == "-h":
                 Usage()
         GetColors(d["-c"])
@@ -101,9 +101,9 @@ if 1:   # Core functionality
         pct = [int(i) for i in reversed("100 90 80 70 60 50 40 30 20 10 0".split())]
         V = [flt(i) for i in reversed("3.40 3.35 3.32 3.30 3.27 3.26 3.25 3.22 3.20 3.00 2.50".split())]
         return pct, V
-    def PrintBatteryDetails(num_cells):
+    def PrintBatteryDetails(pct_step):
         print(dedent(f'''
-        LiFePO₄ battery ({num_cells} cells)
+        LiFePO₄ battery ({d["-n"]} cells)
         % charge vs. rested open circuit voltage
         '''))
         pct, V = Data()
@@ -111,12 +111,16 @@ if 1:   # Core functionality
         flt(0).rtz = False
         w1, w2, ten, five = 5, 5, flt(10), flt(5)
         o = [f"{'%':^{w1}s} {'V':^{w2}s}"]
-        for p in frange("0", "100", str(flt(d["-p"])), impl=flt, include_end=True):
+        try:
+            step = float(pct_step)
+        except ValueError:
+            Error(f"{str(pct_step)!r} is not a valid percentage step")
+        for p in frange("0", "100", str(float(pct_step)), impl=flt, include_end=True):
             with p:
                 p.rtz = p.rtdp = True
                 ps = f"{p!s:^{w1}s}"
             try:
-                V = flt(num_cells*f(p))
+                V = flt(d["-n"]*f(p))
             except ValueError:
                 continue
             with V:
@@ -129,7 +133,7 @@ if 1:   # Core functionality
             elif not (p % five):
                 c = t.five
             o.append(f"{c}{ps} {Vs}{t.n}")
-        if d["-p"] < 5:
+        if step < 5:
             for i in Columnize(o, columns=5, sep=" "*5):
                 print(i)
         else:
@@ -139,15 +143,14 @@ if 1:   # Core functionality
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    N = 4
     if args:
         for arg in args:
             try:
-                N = int(arg)
-                if N < 1:
-                    Error("N must be > 0")
-                PrintBatteryDetails(N)
+                p = flt(arg)
+                if p <= 0:
+                    Error("%step must be a number > 0")
+                PrintBatteryDetails(p)
             except ValueError:
                 Error(f"{arg!r} isn't a valid integer")
     else:
-        PrintBatteryDetails(4)
+        PrintBatteryDetails(1)
