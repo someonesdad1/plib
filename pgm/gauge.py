@@ -1,4 +1,4 @@
-"""
+'''
 Prints combinations of gauge blocks that will sum to a desired size
 
     This is a brute-force solution of the subset sum problem.
@@ -35,7 +35,7 @@ Prints combinations of gauge blocks that will sum to a desired size
     These measurements are more likely to be the micrometer's inaccuracy rather than the gauge
     blocks' inaccuracies.  But they do give a measure of confidence in the consistency of the gauge
     blocks.
-"""
+'''
 
 if 1:  # Header
     if 1:  # Copyright, license
@@ -77,340 +77,67 @@ if 1:  # Header
                 (  # 64 blocks
                     # This gauge block set is a used Starrett set I bought in 2005 and had
                     # some missing blocks.
-                    250,
-                    350,
-                    490,
-                    500,
-                    1000,
-                    1003,
-                    1004,
-                    1005,
-                    1006,
-                    1007,
-                    1008,
-                    1009,
-                    1040,
-                    1050,
-                    1060,
-                    1070,
-                    1080,
-                    1090,
-                    1110,
-                    1120,
-                    1140,
-                    1160,
-                    1170,
-                    1180,
-                    1190,
-                    1210,
-                    1220,
-                    1230,
-                    1250,
-                    1260,
-                    1270,
-                    1290,
-                    1300,
-                    1310,
-                    1320,
-                    1330,
-                    1340,
-                    1350,
-                    1370,
-                    1380,
-                    1390,
-                    1400,
-                    1420,
-                    1430,
-                    1440,
-                    1450,
-                    1460,
-                    1470,
-                    1500,
-                    2500,
-                    3500,
-                    4500,
-                    5500,
-                    6000,
-                    6500,
-                    7000,
-                    7500,
-                    8000,
-                    8500,
-                    9000,
-                    9500,
-                    20000,
-                    30000,
-                    40000,
+                    250, 350, 490, 500, 1000, 1003, 1004, 1005, 1006, 1007, 1008, 1009,
+                    1040, 1050, 1060, 1070, 1080, 1090, 1110, 1120, 1140, 1160, 1170,
+                    1180, 1190, 1210, 1220, 1230, 1250, 1260, 1270, 1290, 1300, 1310,
+                    1320, 1330, 1340, 1350, 1370, 1380, 1390, 1400, 1420, 1430, 1440,
+                    1450, 1460, 1470, 1500, 2500, 3500, 4500, 5500, 6000, 6500, 7000,
+                    7500, 8000, 8500, 9000, 9500, 20000, 30000, 40000,
                 ),
             ),
             "metric": (
                 "mm  ",
                 "0.001",
                 (  # 86 blocks
-                    1001,
-                    1002,
-                    1003,
-                    1004,
-                    1005,
-                    1006,
-                    1007,
-                    1008,
-                    1009,
-                    1010,
-                    1020,
-                    1030,
-                    1040,
-                    1050,
-                    1060,
-                    1070,
-                    1080,
-                    1090,
-                    1100,
-                    1110,
-                    1120,
-                    1130,
-                    1140,
-                    1150,
-                    1160,
-                    1170,
-                    1180,
-                    1190,
-                    1200,
-                    1210,
-                    1220,
-                    1230,
-                    1240,
-                    1250,
-                    1260,
-                    1270,
-                    1280,
-                    1290,
-                    1300,
-                    1310,
-                    1320,
-                    1330,
-                    1340,
-                    1350,
-                    1360,
-                    1370,
-                    1380,
-                    1390,
-                    1400,
-                    1410,
-                    1420,
-                    1430,
-                    1440,
-                    1450,
-                    1460,
-                    1470,
-                    1480,
-                    1490,
-                    1000,
-                    1500,
-                    2000,
-                    2500,
-                    3000,
-                    3500,
-                    4000,
-                    4500,
-                    5000,
-                    5500,
-                    6000,
-                    6500,
-                    7000,
-                    7500,
-                    8000,
-                    8500,
-                    9000,
-                    9500,
-                    10000,
-                    20000,
-                    30000,
-                    40000,
-                    50000,
-                    60000,
-                    70000,
-                    80000,
-                    90000,
-                    100000,
+                    1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009, 1010, 1020,
+                    1030, 1040, 1050, 1060, 1070, 1080, 1090, 1100, 1110, 1120, 1130,
+                    1140, 1150, 1160, 1170, 1180, 1190, 1200, 1210, 1220, 1230, 1240,
+                    1250, 1260, 1270, 1280, 1290, 1300, 1310, 1320, 1330, 1340, 1350,
+                    1360, 1370, 1380, 1390, 1400, 1410, 1420, 1430, 1440, 1450, 1460,
+                    1470, 1480, 1490, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500,
+                    5000, 5500, 6000, 6500, 7000, 7500, 8000, 8500, 9000, 9500, 10000,
+                    20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000,
                 ),
             ),
             "inch36": (
                 "inch",
                 "0.0001",
                 (  # 36 blocks
-                    500,
-                    1001,
-                    1002,
-                    1003,
-                    1004,
-                    1005,
-                    1006,
-                    1007,
-                    1008,
-                    1009,
-                    1010,
-                    1020,
-                    1030,
-                    1040,
-                    1050,
-                    1060,
-                    1070,
-                    1080,
-                    1090,
-                    1100,
-                    1200,
-                    1300,
-                    1400,
-                    1500,
-                    1600,
-                    1700,
-                    1800,
-                    1900,
-                    1000,
-                    2000,
-                    3000,
-                    4000,
-                    5000,
-                    10000,
-                    20000,
-                    40000,
+                    500, 1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009, 1010,
+                    1020, 1030, 1040, 1050, 1060, 1070, 1080, 1090, 1100, 1200, 1300,
+                    1400, 1500, 1600, 1700, 1800, 1900, 1000, 2000, 3000, 4000, 5000,
+                    10000, 20000, 40000,
                 ),
             ),
             "inch81": (
                 "inch",
                 "0.0001",
                 (  # 81 blocks
-                    500,
-                    1001,
-                    1002,
-                    1003,
-                    1004,
-                    1005,
-                    1006,
-                    1007,
-                    1008,
-                    1009,
-                    1010,
-                    1020,
-                    1030,
-                    1040,
-                    1050,
-                    1060,
-                    1070,
-                    1080,
-                    1090,
-                    1100,
-                    1110,
-                    1120,
-                    1130,
-                    1140,
-                    1150,
-                    1160,
-                    1170,
-                    1180,
-                    1190,
-                    1200,
-                    1210,
-                    1220,
-                    1230,
-                    1240,
-                    1250,
-                    1260,
-                    1270,
-                    1280,
-                    1290,
-                    1300,
-                    1310,
-                    1320,
-                    1330,
-                    1340,
-                    1350,
-                    1360,
-                    1370,
-                    1380,
-                    1390,
-                    1400,
-                    1410,
-                    1420,
-                    1430,
-                    1440,
-                    1450,
-                    1460,
-                    1470,
-                    1480,
-                    1490,
-                    1000,
-                    1500,
-                    2000,
-                    2500,
-                    3000,
-                    3500,
-                    4000,
-                    4500,
-                    5000,
-                    5500,
-                    6000,
-                    6500,
-                    7000,
-                    7500,
-                    8000,
-                    8500,
-                    9000,
-                    9500,
-                    10000,
-                    20000,
-                    30000,
-                    40000,
+                    500, 1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009, 1010,
+                    1020, 1030, 1040, 1050, 1060, 1070, 1080, 1090, 1100, 1110, 1120,
+                    1130, 1140, 1150, 1160, 1170, 1180, 1190, 1200, 1210, 1220, 1230,
+                    1240, 1250, 1260, 1270, 1280, 1290, 1300, 1310, 1320, 1330, 1340,
+                    1350, 1360, 1370, 1380, 1390, 1400, 1410, 1420, 1430, 1440, 1450,
+                    1460, 1470, 1480, 1490, 1000, 1500, 2000, 2500, 3000, 3500, 4000,
+                    4500, 5000, 5500, 6000, 6500, 7000, 7500, 8000, 8500, 9000, 9500,
+                    10000, 20000, 30000, 40000,
                 ),
             ),
             "space": (
                 "inch",
                 "0.0005",
-                [
+                (
                     # This is a "Space Blocks" set I bought in the early 1970's.  I
-                    # remember paying around $70 for it and the same sets are
-                    # available today for around the same price.  They're cylinders
-                    # of steel finished to the stamped length and they can be
-                    # clamped together with set screws because there is a tapped
-                    # longitudinal hole through each piece.
-                    500,
-                    625,
-                    600,
-                    700,
-                    800,
-                    900,
-                    1000,
-                    1010,
-                    1020,
-                    1030,
-                    1040,
-                    1050,
-                    1060,
-                    1070,
-                    1080,
-                    1090,
-                    1100,
-                    1200,
-                    1250,
-                    1300,
-                    1400,
-                    1500,
-                    1600,
-                    1700,
-                    1800,
-                    1900,
-                    2000,
-                    3000,
-                    4000,
-                    5000,
-                    6000,
-                    7000,
-                    8000,
-                    9000,
-                    10000,
-                    10000,
-                ],
+                    # remember paying around $70 for it and the same sets are available
+                    # today for around the same price.  They're cylinders of steel
+                    # finished to the stamped length and they can be clamped together
+                    # with set screws because there is a tapped longitudinal hole
+                    # through each piece.
+                    500, 625, 600, 700, 800, 900, 1000, 1010, 1020, 1030, 1040, 1050,
+                    1060, 1070, 1080, 1090, 1100, 1200, 1250, 1300, 1400, 1500, 1600,
+                    1700, 1800, 1900, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000,
+                    10000, 10000,
+                ),
             ),
         }
         # Dictionary used to get the format string needed to print out the
@@ -424,12 +151,20 @@ if 1:  # Header
         for name in gauge_block_sets:
             unit, resolution, blocks = gauge_block_sets[name]
             assert resolution in formats
+        class G:
+            pass
+        g = G()
+        g.dbg = False
 if 1:  # Utility
-
+    def GetColors():
+        t.stuff = t.lill
+        t.err = t.redl
+        t.dbg = t.lill if g.dbg else ""
+        t.N = t.n if g.dbg else ""
     def Manpage():
         print(
             dedent(
-                f"""
+                f'''
  
         This script determines the gauge blocks necessary to get a desired dimensions.  The
         solution method is to search all the combinations of blocks.  This is a brute-force
@@ -469,16 +204,14 @@ if 1:  # Utility
         most home shop tasks.  It is rare for home shop stuff to need the accuracy of the Starrett
         gauge blocks.
  
-        """.rstrip()
+        '''.rstrip()
             )
         )
         exit(0)
-
-    def Usage(d, status=1):
+    def Usage(status=1):
         name, dsn, maxnum = sys.argv[0], d["-n"], d["-k"]
         tol = d["-f"]
-        print(
-            dedent(f"""
+        print(dedent(f'''
         Usage:  {name} [options] size1 [size2...]
           Prints out the gauge blocks to use to make up the indicated sizes.  Note the sizes will be
           rounded to the nearest unit of resolution of the gauge block set.  The '{dsn}' gauge block
@@ -503,10 +236,10 @@ if 1:  # Utility
                     Making this number too large can result in long run times.
           -n set    Choose which gauge block set to use
           -t        Print out a table of the sizes of each gauge block set
-          -T        For the user blocks, print out the dimensions up to 10 inches that cannot be gotten
-                    with {maxnum} blocks.
-        """)
-        )
+        '''))
+        #  -T        For the user blocks, print out the dimensions up to 10 inches that cannot be gotten
+        #            with {maxnum} blocks.
+        #'''))
         print("Allowed gauge block set names and characteristics:")
         s = []
         for name in sorted(gauge_block_sets):
@@ -514,7 +247,6 @@ if 1:  # Utility
             s.append(f"  {name:10s} {resolution:6s} {unit} ({len(blocks)} blocks)")
         print("\n".join(s))
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = False  # Show all combinations, not just the first
         d["-f"] = 1  # Tolerance in % for -g/-G lookups
@@ -524,10 +256,11 @@ if 1:  # Utility
         d["-n"] = "user"  # Name of default gauge block set
         d["-T"] = False  # Analyze user set for unreachable dimensions
         d["num_blocks"] = (1, 5)  # Min and max block combinations to search for
+        GetColors()
         if len(sys.argv) < 2:
-            Usage(d)
+            Usage()
         try:
-            optlist, args = getopt.getopt(sys.argv[1:], "af:gGk:n:tT")
+            optlist, args = getopt.getopt(sys.argv[1:], "af:Gghk:n:tT")
         except getopt.error as str:
             print(str)
             sys.exit(1)
@@ -535,9 +268,11 @@ if 1:  # Utility
             if o[1] in "agG":
                 d[o] = not d[o]
             elif o == "-f":
-                d["-f"] = int(a)
+                d["-f"] = flt(a)
                 if d["-f"] <= 0:
                     raise ValueError("-f option must be > 0")
+            elif o == "-h":
+                Usage()
             elif o == "-k":
                 d["-k"] = int(a)
                 if d["-k"] < 1:
@@ -552,56 +287,58 @@ if 1:  # Utility
                 PrintTable()
                 exit(0)
             elif o == "-T":
-                d["-T"] = True
-                AnalyzeUser(d)
+                # This currently isn't working, so just exit
+                #d["-T"] = True
+                #AnalyzeUser(d)
+                print("-T not working")
                 exit(0)
         if not args:
-            Usage(d)
+            Usage()
         return args
-
-
 if 1:  # Core functionality
-
     def PrintTable():
-        """Print nicely-formatted tables of each type of block set."""
+        '''Print nicely-formatted tables of each type of block set.'''
         for name, (unit, resolution, seq) in gauge_block_sets.items():
             s, f = [], float(resolution)
-            print("{0} ({1})".format(name, "um" if unit == "mm" else "0.0001 inches"))
+            if 0:
+                print("{0} ({1})".format(name, "um" if unit == "mm" else "0.0001 inches"))
+            else:
+                u = "μm" if unit == "mm" else "0.0001 inches"
+                t.print(f"{t.stuff}{name} ({u})")
+                
             fmt = formats[resolution] + "  "
-            seq.sort()
-            for i in seq:
+            for i in sorted(seq):
                 s.append(str(i))
             for i in Columnize(s):
                 print(i)
         # Next, compare the 81-block and user sets
         set_81 = set(gauge_block_sets["inch81"][2])
         set_user = set(gauge_block_sets["user"][2])
-        print("\nBlocks in 81-block set missing from 'user' set:")
+        t.print(f"\n{t.ornl}In following, remember units are 0.0001 inches")
+        t.print(f"{t.stuff}Blocks in 81-block set missing from 'user' set:")
         missing = list(set_81 - set_user)
         missing.sort()
         for i in Columnize(missing):
             print(i)
-        print("Blocks in 'user' set not in 81-block set:")
+        t.print(f"{t.stuff}Blocks in 'user' set not in 81-block set:")
         added = list(set_user - set_81)
         added.sort()
         for i in Columnize(added):
             print(i)
-
     def GetIntegerSize(size, d):
-        """Convert the size number (a string in inches or mm) to an integer
+        '''Convert the size number (a string in inches or mm) to an integer
         size to search for.
-        """
+        '''
         # string, string, list of integer sizes
         unit, resolution, blocks = gauge_block_sets[d["-n"]]
         x, T = abs(float(eval(size))), abs(float(resolution))
         # Using resolution as a template, round the size to an integer
         # number of template units.
         return int(x / T + 0.5)
-
     def PrintResults(integer_size, size, combination, d):
-        """integer_size is the actual size searched for; size is the
+        '''integer_size is the actual size searched for; size is the
         original string the user passed on the command line.
-        """
+        '''
         # string, string, list of integer sizes
         unit, resolution, blocks = gauge_block_sets[d["-n"]]
         fmt = formats[resolution]
@@ -610,7 +347,6 @@ if 1:  # Core functionality
         for i in combination:
             print(fmt % (float(i) * float(resolution)), " ", end="")
         print()
-
     def GetBlocks(size_str, d):
         size = GetIntegerSize(size_str, d)
         set_of_blocks = gauge_block_sets[d["-n"]][2]
@@ -625,21 +361,20 @@ if 1:  # Core functionality
                     if not d["-a"]:
                         return i
         return None
-
     def AnalyzeUser(d):
-        """For dimensions less than 10 inches, determine which dimensions can't
+        '''For dimensions less than 10 inches, determine which dimensions can't
         be gotten using the indicated (-k option) number of blocks.
-        """
+        '''
         ofp = open("user.blocks.impossible", "w")
         max_blocks = d["-k"]
         if 0:
             # Units are 0.0001 inches
             min_size, max_size = 1001, 100000
             print(
-                dedent("""
+                dedent('''
             0.0001 inch dimensions that cannot be gotten with user block set:
             (Maximum number of blocks used is {max_blocks}).
-            """)
+            ''')
             )
             print(msg)
             ofp.write(msg + "\n")
@@ -653,9 +388,9 @@ if 1:  # Core functionality
             # Units are 0.001 inches
             min_size, max_size = 100, 10000
             print(
-                dedent("""
+                dedent('''
             0.001 inch dimensions that cannot be gotten with user block set:
-            (Maximum number of blocks used is {max_blocks}).""")
+            (Maximum number of blocks used is {max_blocks}).''')
             )
             print(msg)
             ofp.write(msg + "\n")
@@ -665,12 +400,11 @@ if 1:  # Core functionality
                 if seq is None:
                     print(size)
                     ofp.write(size + "\n")
-
     def GetSize(size):
-        """size is a string and will normally be a decimal number in inches.
+        '''size is a string and will normally be a decimal number in inches.
         However, an optional length unit can be appended (space separator
         optional).  The size in inches is returned.
-        """
+        '''
         t, unit = ParseUnit(size)
         t = float(t)
         if unit:
@@ -679,11 +413,10 @@ if 1:  # Core functionality
                 exit(1)
             t *= u(unit) / u("inches")
         return t
-
     def GaugeSizes(sizes, d, all=False):
-        """Display gauge sizes that are within the tolerance percentage (from
+        '''Display gauge sizes that are within the tolerance percentage (from
         d["-f"]) of the given size.
-        """
+        '''
         GAUGES = (
             list(sorted(gauges.keys()))
             if all
@@ -720,15 +453,12 @@ if 1:  # Core functionality
                     )
             else:
                 print("  No matches")
-
-
 if 1:  # Find sizes that cannot be made
-
     def PartialStarrettSet(dia_min, dia_max, klo=4, khi=6):
-        """Print out the sizes that cannot be made with the indicated number of blocks.  dia_min
+        '''Print out the sizes that cannot be made with the indicated number of blocks.  dia_min
         and dia_max are integers in units of 0.0001 inches.  klo and khi are the k values to search
         with (k = number of blocks in set)
-        """
+        '''
         blocks = gauge_block_sets["user"][2]
         Assert(len(blocks) == 64)
         if 0:
@@ -753,8 +483,6 @@ if 1:  # Find sizes that cannot be made
             #    pct = int(100*count/N)
             #    print(f"{t('redl')}{pct}%{t.n}", file=sys.stderr)
         # print()
-
-
 if 0:
     d, D = 4000, 100000
     from timer import Stopwatch
@@ -765,7 +493,7 @@ if 0:
         PartialStarrettSet(d, D, klo=4, khi=6)
     print(f"Ended at {sw()} seconds")
     exit()
-    """Results of running this code:
+    '''Results of running this code:
 
     k = 4 to 6 impossible sizes from $pp/gauge.py.  Took 1.7 days of calculation, 9033 sizes cannot be
     made out of 0.4 to 10 inches in steps of 0.1 mils, 96e3 sizes; this is 9.4%.  About 50% of them are
@@ -1430,7 +1158,7 @@ if 0:
     9.9912 9.9913 9.9914 9.9915 9.9916 9.9917 9.9918 9.9919 9.9921 9.9922 9.9931 9.9932 9.9941 9.9942
     9.9951 9.9952 9.9961 9.9962 9.9971 9.9972 9.9981 9.9982 9.9983 9.9984 9.9985 9.9986 9.9987 9.9988
     9.9989 9.9991 9.9992
-    """
+    '''
 
 if __name__ == "__main__":
     d = {}
