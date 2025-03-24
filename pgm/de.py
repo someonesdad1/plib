@@ -69,7 +69,7 @@ if 1:  # Header
         max_indent = max(default_indents.values())
         # This color is used to indicate a match in the extended listing that has
         # zero % deviation from the desired value.
-        match = color.yellow
+        #match = color.yellow
         t.match = t("yell")
         # Names of the gauges
         GN = {
@@ -645,7 +645,7 @@ if 1:  # Core functionality
         c = {}
         for key in GN:
             c[GN[key]] = None
-        c["0dev"] = match
+        c["0dev"] = t.match
         # Construct data
         s = BuildExtendedTable(args, d)
         s = SortTable(s, 0)  # Sort by diameter in inches
