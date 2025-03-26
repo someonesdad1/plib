@@ -1,4 +1,4 @@
-"""
+'''
 TODO:
     - Add -d for sig figures
     - Add -b for brief report
@@ -8,8 +8,7 @@ TODO:
 ----------------------------------------------------------------------
 
 Calculate thread properties
-"""
-
+'''
 if 1:  # Header
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -183,7 +182,7 @@ if 1:  # Header
     #       s = special).
     #   Classes to print (each digit means print that Class)
     # Note you can comment a line out if desired.
-    t = """
+    t = '''
             #   n0 80 f 2
             #   n1 64 c 2
             #   n1 72 f 2
@@ -243,7 +242,7 @@ if 1:  # Header
                 1-3/16 12 f 2
                 1-1/2 6 c 2
                 1-1/2 12 f 2
-        """[1:]
+        '''[1:]
     table4 = []
     for i in t.split("\n"):
         s = i.strip()
@@ -255,7 +254,7 @@ if 1:  # Header
     table4 = tuple(table4)
     # List the taps, dies, etc. that you have on hand.  This string is printed
     # out when you use the -l option.
-    my_sizes = dedent("""
+    my_sizes = dedent('''
                                 Thread Sizes on Hand
                                 --------------------
      
@@ -290,7 +289,7 @@ if 1:  # Header
      
         Thread Chasers:
             Inside:  18, 20, 24             Outside:  18, 20
-        """)
+        ''')
     # Wire diameters in mils in Pee Dee thread measuring set
     wires = [18, 24, 29, 32, 40, 45, 55, 63, 72, 81, 92, 108, 120, 127, 143, 185]
     for i in range(len(wires)):
@@ -991,14 +990,12 @@ if 1:  # Header
         ("1 UNEF", 1.000, 20.0),
     )
 if 1:  # Utility
-
     def Error(s):
         print(s, file=sys.stderr)
         sys.exit(1)
-
     def Manpage():
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options] thread_size
         
         Prints thread information for the indicated thread.  The thread size
@@ -1175,15 +1172,14 @@ if 1:  # Utility
             nearest 0.01 inches.  This is because it's typically used with
             thread calipers to measure a vee thread and this is about the best
             you can do with a rule.
-        """)
+        ''')
         )
-
     def Usage():
         name = sys.argv[0]
         n = os.path.split(sys.argv[0])[1]
         tol = "{}%".format(int(100 * tolerance))
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options] thread_size
         Prints thread information for the indicated external thread.  Examples:
             {n} n6-32   US numbered machine screw sizes are preceded by an 'n'
@@ -1208,10 +1204,9 @@ if 1:  # Utility
           -T          Print table of UNC, UNF, UNEF threads
           -u          Show common UNC and UNF sizes
           -w dia      Specify size of thread wire to use
-        """)
+        ''')
         )
         exit(1)
-
     def ProcessCommandLine():
         d["-A"] = False  # Show all threads
         d["-a"] = 0.95  # Fraction of 5/8*H for max thread wire diameter
@@ -1275,6 +1270,8 @@ if 1:  # Utility
                     Error("Thread wire diameter must be > 0")
         if d["-o"] or d["-t"] or d["-T"]:
             if d["-T"]:
+                if d["-m"]:
+                    Error("-m can't be used with -T")
                 PrintTable4()
             else:
                 if len(args) < 1:
@@ -1303,10 +1300,7 @@ if 1:  # Utility
             else:
                 new_args += [x]
         return new_args
-
-
 if 1:  # Core functionality
-
     def ListSizes():
         print(my_sizes)
         # Lathe threads
@@ -1314,7 +1308,7 @@ if 1:  # Core functionality
         for i in Columnize(lathe_threads, indent=" " * 4, col_width=5):
             print(i)
         print(
-            dedent("""
+            dedent('''
         Comparison of threads per inch and metric pitches
             tpi  Metric       tpi  Metric       tpi  Metric       tpi  Metric
             ---- ------       ---- ------       ---- ------       ---- ------
@@ -1337,7 +1331,7 @@ if 1:  # Core functionality
                   0.6               1.2               2.25        4.5
             40                      1.25        11                4
                   0.65        20                      2.5
-        """)
+        ''')
         )
         exit(0)
 
@@ -1393,7 +1387,7 @@ if 1:  # Core functionality
         exit(0)
 
     def PrintCommon():
-        sizes = """
+        sizes = '''
         2 0.085 56 64
         3 0.098 48 56
         4 0.111 40 48
@@ -1416,12 +1410,12 @@ if 1:  # Core functionality
         1-1/4 1.248 7 12
         1-3/8 1.373 6 12
         1-1/2 1.498 6 12
-        """
+        '''
         print(
-            dedent("""
+            dedent('''
                                  Threads per inch    Coarse pitch     Fine pitch
         Diameter  inches    mm   Coarse      Fine    inches   mm     inches   mm
-        """)
+        ''')
         )
         for line in sizes.strip().split("\n"):
             nom, dia, unc, unf = line.split()
@@ -1478,9 +1472,9 @@ if 1:  # Core functionality
         ThreadDepths(H)
 
     def GetDiameter(s):
-        """Is either a number sized diameter, a decimal number, or a fraction.
+        '''Is either a number sized diameter, a decimal number, or a fraction.
         Return the diameter in decimal inches.
-        """
+        '''
         if s[0] in "nN":
             return 0.06 + 0.013 * int(s[1:])
         elif "/" in s:
@@ -1499,9 +1493,9 @@ if 1:  # Core functionality
             return diameter
 
     def MOW(pitch_diameter, tpi, wire_diameter, starts=1):
-        """Calculate MOW given the PD, pitch, and wire diameter.
+        '''Calculate MOW given the PD, pitch, and wire diameter.
         starts is the number of thread starts (here, we only use 1).
-        """
+        '''
         E = pitch_diameter
         W = wire_diameter
         A = pi / 6
@@ -1573,19 +1567,19 @@ if 1:  # Core functionality
         for tpi in lathe_threads:
             TPI[float(tpi)] = tpi
         print(
-            dedent("""
+            dedent('''
         How to use Clausing 5914 lathe to cut metric threads:  This table
         gives typical metric threads and the nearest thread or feed to the
         metric pitch.
-        """)
+        ''')
         )
         print(
-            dedent("""
+            dedent('''
                                 Closest
             Pitch           Lathe tpi/feed
           mm     mils      feed, mil   tpi     %Dev
         ------  ------     ---------   ----    ----
-        """)
+        ''')
         )
         for pitch in metric_pitches:
             closest, pct_dev = GetBestMatch(float(pitch))
@@ -1689,7 +1683,7 @@ if 1:  # Core functionality
             print(f"{s:{g.w}s} {value!s:^{g.iw}s} {m!s:^{g.mw}s}", end=end)
 
     def ThreadDepths(H):
-        """These thread depths came from the Atlas manual of lathe operation,
+        '''These thread depths came from the Atlas manual of lathe operation,
         as the ones used from the standard don't give the correct values.
 
         Draw a picture of one side of a 60 degree vee thread.  The depth of
@@ -1708,7 +1702,7 @@ if 1:  # Core functionality
                 Dl = D - sqrt(3)/2*f = sqrt(3)/2*P - sqrt(3)/2*(P/8)
                 = (7/8) * (sqrt(3)/2) * P
                 = 7*sqrt(3)*P/16
-        """
+        '''
         C = cos(radians(29))
         if 1:
             # These are the values from the Atlas book
@@ -1748,14 +1742,14 @@ if 1:  # Core functionality
             )
 
     def PrintTable4():
-        """Duplicate Table 4 from Machinery's Handbook, 19th ed., pg 1276."""
+        '''Duplicate Table 4 from Machinery's Handbook, 19th ed., pg 1276.'''
         print(
-            dedent("""
+            dedent('''
                                External Thread                  Internal Thread
                             Major dia.    Pitch dia.         Minor dia.    Pitch dia.
         Thread         Cl  Dmax   Dmin   Emax   Emin    Cl  dmin   dmax   emin   emax
         -------------- -- ------ ------ ------ ------   -- ------ ------ ------ ------
-        """)
+        ''')
         )
         # Coarse threads
         for thd in table4:
@@ -1769,9 +1763,9 @@ if 1:  # Core functionality
         exit(0)
 
     def PrintThread(thd):
-        """thd is a 2- or 3-tuple containing a string designating the OD, the
+        '''thd is a 2- or 3-tuple containing a string designating the OD, the
         tpi, and the thread series.
-        """
+        '''
         conv_ser = {"c": "UNC", "f": "UNF", "e": "UNEF", "s": "UNS"}
         series = "UN" if len(thd) == 2 else conv_ser[thd[2]]
         D, tpi, fmt = GetDiameter(thd[0]), thd[1], "%6.4f "
@@ -1810,7 +1804,7 @@ if 1:  # Core functionality
             print(f"{name:11s}  OD = {o:7s}  tpi = {t:5s}  {long_name}")
 
     def Center(s, width=6):
-        """Remove trailing zeros and decimal point, then center in the given width."""
+        '''Remove trailing zeros and decimal point, then center in the given width.'''
         while s[-1] == "0":
             s = s[:-1]
         if s[-1] == ".":
@@ -1818,7 +1812,7 @@ if 1:  # Core functionality
         return "{1:^{0}s}".format(width, s)
 
     def PitchTable():
-        """Print a table of pitches commonly seen for screw threads."""
+        '''Print a table of pitches commonly seen for screw threads.'''
         # Common thread pitches
         lathe_tpi = [
             4,
@@ -1894,11 +1888,11 @@ if 1:  # Core functionality
             5.5,
             6,
         ]
-        hdr = dedent("""
+        hdr = dedent('''
         
                   Pitch
          tpi    mil    mm
-        """)
+        ''')
         out, pitches = hdr.split("\n"), []
         # Inch threads on lathe
         for tpi in lathe_tpi:
@@ -2148,26 +2142,26 @@ if 1:  # Core functionality
         )
         print(f"Tensile area = {TA_IN2} in² = {TA_MM2} mm²")
         print(
-            dedent(f"""
+            dedent(f'''
         External thread diameters           Max     Min     Tol
             Major {" " * 25} {EXTDMAX:6s}  {EXTDMIN:6s}{1000 * (A.Dmax() - A.Dmin()):6.1f}
             Pitch {" " * 25} {EXTPDMAX:6s}  {EXTPDMIN:6s}{1000 * (A.Emax() - A.Emin()):6.1f}
             Minor (vee thread), nom. {" " * 7}{EXTdNOM} 
-        """)
+        ''')
         )
         print(
-            dedent(f"""
+            dedent(f'''
         Internal thread diameters
             Minor {" " * 25} {INTdMAX:6s}  {INTdMIN:6s}{1000 * (A.dmax() - A.dmin()):6.1f}
             Pitch {" " * 25} {INTPDMAX:6s}  {INTPDMIN:6s}{1000 * (A.emax() - A.emin()):6.1f}
             Major (vee thread), nom. {" " * 7}{INTDNOM} 
-        """)
+        ''')
         )
         td65 = f"{TD65} ({TDS65})"
         td75 = f"{TD75} ({TDS75})"
         td85 = f"{TD85} ({TDS85})"
         print(
-            dedent(f"""
+            dedent(f'''
         Measurements over wires       Wire ⌀      MOW-Max     MOW-Min
         {" " * 33}{MOWWD}         {MOWMAX}         {MOWMIN}
         Tap drills      65%             75%             85%
@@ -2179,7 +2173,7 @@ if 1:  # Core functionality
             Flat on form tool                              {FRMTOOLFLT}
             Double depth                                   {UNDD}     
             Compound feed, DD/cos(29°)                     {UNCF} 
-        """)
+        ''')
         )
         # Print short instructions for lathe cutting
         T.print(f"\n{T('magl')}Lathe cutting summary for vee thread at MMC")
@@ -2195,7 +2189,6 @@ if 1:  # Core functionality
         print(f"     Bore ID to           {int(ID):5d} mils")
         print(f"     Compound feed        {cf:5d} mils")
         T.print(f"     Note:  start CF from 200 mils reading")
-
 
 if __name__ == "__main__":
     d = {}  # Options dictionary
