@@ -2145,7 +2145,7 @@ if 1:  # Core functionality
         td85 = f"{TD85} ({TDS85})"
         print(
             dedent(f'''
-        Measurements over wires       Wire ⌀      MOW-Max     MOW-Min
+        Measurements over wires       Wire ∅      MOW-Max     MOW-Min
         {" " * 33}{MOWWD}         {MOWMAX}         {MOWMIN}
         Tap drills      65%             75%             85%
         {" " * 10}{td65:^15s} {td75:^15s} {td85:^15s}
