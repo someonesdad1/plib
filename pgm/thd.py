@@ -4,60 +4,59 @@ TODO:
     - Add -b for brief report
     - Helix angle
     - UN flat on front of cutting tool
-
 ----------------------------------------------------------------------
-
 Calculate thread properties
 '''
 if 1:  # Header
-    # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    ##∞copyright∞# Copyright (C) 2005 Don Peterson #∞copyright∞#
-    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    ##∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    ##∞license∞#
-    ##∞what∞#
-    # Calculate thread properties (uses asme.py module)
-    ##∞what∞#
-    ##∞test∞# #∞test∞#
-    # Standard imports
-    import sys
-    import getopt
-    import os
-    import asme
-    import string
-
-    # Custom imports
-    from wrap import dedent
-    from columnize import Columnize
-    from f import flt
-    from f import cos, tan, sin, atan, pi, sqrt, radians
-    from color import Color, TRM as T
-
-    # Global variables
-    float = flt
-    mm_per_in = 25.4  # in to mm
-    tolerance = 0.1  # Tolerance for match in OD or tpi search
-    old = False  # Use old formatting methods
-
-    class g:
+    if 1:   # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        ##∞copyright∞# Copyright (C) 2005 Don Peterson #∞copyright∞#
+        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        ##∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        ##∞license∞#
+        ##∞what∞#
+        # Calculate thread properties (uses asme.py module)
+        ##∞what∞#
+        ##∞test∞# #∞test∞#
         pass
-
-    # Globals for locating inch and mm columns
-    g.iw = 14  # Inch column's width
-    g.mw = 12  # mm column's width
-    g.w = 50  # Title's width
-    # Format strings
-    spc = 35
-    vf = "%%-%ss" % spc
-    fmt = vf + "%10.4f   %8.2f"
-    fmtv = vf + "%10.2f   %8.1f"
-    fmt1 = vf + "%7.1f      %8.2f"
-    fmt2 = vf + "%7.1f"
-    fmt3 = vf + "%9.3f    %8.2f"
-    fmt6 = vf + "%12.6f %8.2f"
+    if 1:   # Standard imports
+        import sys
+        import getopt
+        import os
+        import asme
+        import string
+    if 1:   # Custom imports
+        from wrap import dedent
+        from columnize import Columnize
+        from f import flt
+        from f import cos, tan, sin, atan, pi, sqrt, radians
+        from color import Color, TRM as T
+    if 1:   # Global variables
+        mm_per_in = 25.4  # in to mm
+        tolerance = 0.1  # Tolerance for match in OD or tpi search
+        old = False  # Use old formatting methods
+        class G:
+            pass
+        g = G()
+        # Globals for locating inch and mm columns
+        g.iw = 14  # Inch column's width
+        g.mw = 12  # mm column's width
+        g.w = 50  # Title's width
+        # Format strings
+        spc = 35
+        vf = "%%-%ss" % spc
+        fmt = vf + "%10.4f   %8.2f"
+        fmtv = vf + "%10.2f   %8.1f"
+        fmt1 = vf + "%7.1f      %8.2f"
+        fmt2 = vf + "%7.1f"
+        fmt3 = vf + "%9.3f    %8.2f"
+        fmt6 = vf + "%12.6f %8.2f"
+        # Colors to indicate length units
+        T.mm = T.roy
+        T.inch = T.lill
+if 1:   # Data
     # Clausing 5914 lathe threads per inch
     lathe_threads = (
         "4",
@@ -174,6 +173,7 @@ if 1:  # Header
     ]
     metric_pitches = []
     in_to_mm = 25.4
+    p2tpi = lambda x: in_to_mm/x
     # Data for -T option to print out table 4 in 1972's Machinery's
     # Handbook.  The fields are:
     #   Size designator
@@ -280,7 +280,7 @@ if 1:  # Header
             5:0.8,0.9,0.8Gx,0.9Gx                   6:1,1Gx
             7:1,1Ax                                 8:1,1.25,1Ax,1.25Ax
             9:1,1.25,1Ax,1.25Ax                     10:1,1.25,1.5,1.25Ax,1.5Ax
-            11:1.5,1.5Ax                            12:1.5,1.75,1.5Ax,1.75Ax
+            11:1.5,1.5Ax                            12:1.25,1.5,1.75,1.5Ax,1.75Ax
             14:1.25
      
         Pipe:
@@ -647,7 +647,7 @@ if 1:  # Header
         ("4-40 ASME", 0.1120, 40.0),
         ("4-40 UNC", 0.1120, 40.0),
         ("4-48 ASME", 0.1120, 48.0),
-        ("M3 Coarse", 0.1180, 50.8),
+        ("M3 Coarse", 0.1180, p2tpi(0.5)),
         ("3 LOEW", 0.1181, 50.8),
         ("T HOLTZ", 0.1200, 55.0),
         ("1/8 BRASS", 0.1250, 26.0),
@@ -664,7 +664,7 @@ if 1:  # Header
         ("6-32 UNC", 0.1380, 32.0),
         ("6-36 ASME", 0.1380, 36.0),
         ("6-40 ASME", 0.1380, 40.0),
-        ("M3.5 Coarse", 0.1380, 42.3),
+        ("M3.5 Coarse", 0.1380, p2tpi(0.6)),
         ("4 BA", 0.1420, 38.5),
         ("4 THURY", 0.1425, 38.7),
         ("0.148 GAS", 0.1480, 32.0),
@@ -674,7 +674,7 @@ if 1:  # Header
         ("7-36 ASME", 0.1510, 36.0),
         ("0 PEND", 0.1535, 66.0),
         ("5/32 CEI", 0.1563, 32.0),
-        ("M4 Coarse", 0.1570, 36.3),
+        ("M4 Coarse", 0.1570, p2tpi(0.7)),
         ("4 LOEW", 0.1575, 36.3),
         ("3 BA", 0.1610, 34.8),
         ("3 THURY", 0.1618, 34.8),
@@ -688,7 +688,7 @@ if 1:  # Header
         ("9-24 ASME", 0.1770, 24.0),
         ("9-30 ASME", 0.1770, 30.0),
         ("9-32 ASME", 0.1770, 32.0),
-        ("M4.5 Coarse", 0.1770, 33.9),
+        ("M4.5 Coarse", 0.1770, p2tpi(0.75)),
         ("4.5 LOEW", 0.1772, 33.9),
         ("0 HOLTZ", 0.1800, 36.1),
         ("2 THURY", 0.1835, 31.4),
@@ -707,7 +707,7 @@ if 1:  # Header
         ("0.196 GAS", 0.1960, 32.0),
         ("16 PEND", 0.1969, 60.0),
         ("5 LOEW", 0.1969, 31.8),
-        ("M5 Coarse", 0.1970, 31.8),
+        ("M5 Coarse", 0.1970, p2tpi(0.8)),
         ("N HOLTZ", 0.2000, 36.1),
         ("1 THURY", 0.2083, 28.2),
         ("1 BA", 0.2090, 28.3),
@@ -720,7 +720,7 @@ if 1:  # Header
         ("7/32 BSF", 0.2190, 28.0),
         ("18 PEND", 0.2323, 50.0),
         ("0 BA", 0.2360, 25.4),
-        ("M6 Coarse", 0.2360, 25.4),
+        ("M6 Coarse", 0.2360, p2tpi(1)),
         ("0 THURY", 0.2362, 25.4),
         ("6 LOEW", 0.2362, 25.4),
         ("M HOLTZ", 0.2400, 36.1),
@@ -741,7 +741,7 @@ if 1:  # Header
         ("16-22 ASME", 0.2680, 22.0),
         ("-1 THURY", 0.2681, 23.1),
         ("7 LOEW", 0.2756, 23.1),
-        ("M7 Coarse", 0.2760, 25.4),
+        ("M7 Coarse", 0.2760, p2tpi(1)),
         ("9/32 CEI", 0.2813, 26.0),
         ("J HOLTZ", 0.2900, 25.7),
         ("18-18 ASME", 0.2940, 18.0),
@@ -753,8 +753,8 @@ if 1:  # Header
         ("5/16 UNF", 0.3130, 24.0),
         ("5/16 WHIT", 0.3130, 18.0),
         ("8 LOEW", 0.3150, 21.2),
-        ("M8 Coarse", 0.3150, 20.3),
-        ("M8 Fine", 0.3150, 25.4),
+        ("M8 Coarse", 0.3150, p2tpi(1.25)),
+        ("M8 Fine", 0.3150, p2tpi(1)),
         ("20-16 ASME", 0.3200, 16.0),
         ("20-18 ASME", 0.3200, 18.0),
         ("20-20 ASME", 0.3200, 20.0),
@@ -779,8 +779,8 @@ if 1:  # Header
         ("3/8 GAS", 0.3900, 27.0),
         ("-4 THURY", 0.3917, 16.7),
         ("10 LOEW", 0.3937, 18.1),
-        ("M10 Coarse", 0.3940, 16.9),
-        ("M10 Fine", 0.3940, 20.3),
+        ("M10 Coarse", 0.3940, p2tpi(1.5)),
+        ("M10 Fine", 0.3940, p2tpi(1.25)),
         ("26-14 ASME", 0.3980, 14.0),
         ("26-16 ASME", 0.3980, 16.0),
         ("1/8 WPIPE", 0.4063, 28.0),
@@ -799,8 +799,8 @@ if 1:  # Header
         ("30-16 ASME", 0.4500, 16.0),
         ("F HOLTZ", 0.4500, 16.5),
         ("7/16 GAS", 0.4590, 27.0),
-        ("M12 Coarse", 0.4724, 14.5),
-        ("M12 Fine", 0.4724, 20.3),
+        ("M12 Coarse", 0.4724, p2tpi(1.75)),
+        ("M12 Fine", 0.4724, p2tpi(1.25)),
         ("12 LOEW", 0.4724, 15.9),
         ("12MM SPARK", 0.4724, 25.4),
         ("1/2 ADM", 0.5000, 20.0),
@@ -816,7 +816,7 @@ if 1:  # Header
         ("1/2 GAS", 0.5150, 27.0),
         ("1/4 BSP", 0.5180, 19.0),
         ("1/4 WPIPE", 0.5313, 19.0),
-        ("M15 Coarse", 0.5512, 12.7),
+        ("M15 Coarse", 0.5512, p2tpi(2)),
         ("14 LOEW", 0.5512, 14.1),
         ("14MM SPARK", 0.5512, 20.3),
         ("9/16 ADM", 0.5556, 20.0),
@@ -838,8 +838,8 @@ if 1:  # Header
         ("5/8 UNF", 0.6250, 18.0),
         ("5/8 WHIT", 0.6250, 11.0),
         ("DD HOLTZ", 0.6250, 13.1),
-        ("M16 Coarse", 0.6299, 12.7),
-        ("M16 Fine", 0.6299, 16.9),
+        ("M16 Coarse", 0.6299, p2tpi(2)),
+        ("M16 Fine", 0.6299, p2tpi(1.5)),
         ("16 LOEW", 0.6299, 12.7),
         ("5/8 GAS", 0.6370, 27.0),
         ("-8 THURY", 0.6496, 10.9),
@@ -848,7 +848,7 @@ if 1:  # Header
         ("11/16 CEI", 0.6875, 26.0),
         ("11/16 CEI20", 0.6875, 20.0),
         ("3/8 WPIPE", 0.6875, 19.0),
-        ("M18 Coarse", 0.7087, 10.2),
+        ("M18 Coarse", 0.7087, p2tpi(2.5)),
         ("18 LOEW", 0.7087, 11.5),
         ("18MM SPARK", 0.7087, 16.9),
         ("-9 THURY", 0.7362, 9.8),
@@ -862,13 +862,13 @@ if 1:  # Header
         ("3/4 WHIT", 0.7500, 10.0),
         ("C HOLTZ", 0.7500, 9.5),
         ("3/4 GAS", 0.7700, 27.0),
-        ("M20 Coarse", 0.7874, 10.2),
-        ("M20 Fine", 0.7874, 16.9),
+        ("M20 Coarse", 0.7874, p2tpi(2.5)),
+        ("M20 Fine", 0.7874, p2tpi(1.5)),
         ("13/16 ADM", 0.8125, 14.0),
         ("1/2 BSP", 0.8250, 14.0),
         ("-10 THURY", 0.8346, 8.9),
         ("1/2 WPIPE", 0.8438, 14.0),
-        ("M22 Coarse", 0.8661, 10.2),
+        ("M22 Coarse", 0.8661, p2tpi(2.5)),
         ("7/8 ADM", 0.8750, 14.0),
         ("7/8 BRASS", 0.8750, 26.0),
         ("7/8 BSF", 0.8750, 11.0),
@@ -881,8 +881,8 @@ if 1:  # Header
         ("5/8 BSP", 0.9020, 14.0),
         ("15/16 ADM", 0.9375, 14.0),
         ("5/8 WPIPE", 0.9375, 14.0),
-        ("M24 Coarse", 0.9449, 8.5),
-        ("M24 Fine", 0.9449, 12.7),
+        ("M24 Coarse", 0.9449, p2tpi(3)),
+        ("M24 Fine", 0.9449, p2tpi(2)),
         ("-11 THURY", 0.9492, 8.0),
         ("1 ADM", 1.0000, 12.0),
         ("1 BRASS", 1.0000, 26.0),
@@ -896,14 +896,14 @@ if 1:  # Header
         ("3/4 BSP", 1.0410, 14.0),
         ("1 1/16 ADM", 1.0625, 12.0),
         ("3/4 WPIPE", 1.0625, 14.0),
-        ("M27 Coarse", 1.0630, 8.5),
+        ("M27 Coarse", 1.0630, p2tpi(3)),
         ("-12 THURY", 1.0787, 7.2),
         ("1 1/8 ADM", 1.1250, 12.0),
         ("1 1/8 BSF", 1.1250, 9.0),
         ("1 1/8 UNC", 1.1250, 7.0),
         ("1 1/8 UNF", 1.1250, 12.0),
-        ("M30 Coarse", 1.1811, 7.3),
-        ("M30 Fine", 1.1811, 12.7),
+        ("M30 Coarse", 1.1811, p2tpi(3.5)),
+        ("M30 Fine", 1.1811, p2tpi(2)),
         ("1 3/16 ADM", 1.1875, 12.0),
         ("7/8 BSP", 1.1890, 14.0),
         ("-13 THURY", 1.2048, 6.5),
@@ -914,7 +914,7 @@ if 1:  # Header
         ("1 1/4 UNF", 1.2500, 12.0),
         ("1 1/4 WHIT", 1.2500, 7.0),
         ("1 1/4 ADM", 1.2500, 12.0),
-        ("M33 Coarse", 1.2992, 7.3),
+        ("M33 Coarse", 1.2992, p2tpi(3.5)),
         ("1 BSP", 1.3090, 11.0),
         ("1 5/16 ADM", 1.3125, 12.0),
         ("1 WPIPE", 1.3438, 11.0),
@@ -923,8 +923,8 @@ if 1:  # Header
         ("1 3/8 UNC", 1.3750, 6.0),
         ("1 3/8 UNF", 1.3750, 12.0),
         ("-14 THURY", 1.3858, 5.8),
-        ("M36 Coarse", 1.4173, 6.4),
-        ("M36 Fine", 1.4173, 8.5),
+        ("M36 Coarse", 1.4173, p2tpi(4)),
+        ("M36 Fine", 1.4173, p2tpi(3)),
         ("1 7/16 ADM", 1.4375, 12.0),
         ("1 1/2 ADM", 1.5000, 12.0),
         ("1 1/2 BRASS", 1.5000, 26.0),
@@ -932,37 +932,37 @@ if 1:  # Header
         ("1 1/2 UNC", 1.5000, 6.0),
         ("1 1/2 UNF", 1.5000, 12.0),
         ("1 1/2 WHIT", 1.5000, 6.0),
-        ("M39 Coarse", 1.5354, 6.4),
+        ("M39 Coarse", 1.5354, p2tpi(4)),
         ("-15 THURY", 1.5748, 5.2),
         ("1 5/8 BSF", 1.6250, 8.0),
-        ("M42 Coarse", 1.6535, 5.6),
-        ("M42 Fine", 1.6535, 8.5),
+        ("M42 Coarse", 1.6535, p2tpi(4.5)),
+        ("M42 Fine", 1.6535, p2tpi(3)),
         ("1 1/4 WPIPE", 1.6875, 11.0),
         ("1 3/4 BSF", 1.7500, 7.0),
         ("1 3/4 UNC", 1.7500, 5.0),
-        ("M45 Coarse", 1.7717, 5.6),
+        ("M45 Coarse", 1.7717, p2tpi(4.5)),
         ("-16 THURY", 1.7874, 4.7),
-        ("M48 Coarse", 1.8898, 5.1),
-        ("M48 Fine", 1.8898, 8.5),
+        ("M48 Coarse", 1.8898, p2tpi(5)),
+        ("M48 Fine", 1.8898, p2tpi(3)),
         ("1 1/2 WPIPE", 1.9063, 11.0),
         ("2 BSF", 2.0000, 7.0),
         ("2 UNC", 2.0000, 4.5),
         ("2 WHIT", 2.0000, 4.5),
         ("-17 THURY", 2.0276, 4.2),
-        ("M52 Coarse", 2.0472, 5.1),
+        ("M52 Coarse", 2.0472, p2tpi(5)),
         ("1 3/4 WPIPE", 2.1563, 11.0),
-        ("M56 Coarse", 2.2047, 4.6),
-        ("M56 Fine", 2.2047, 6.4),
+        ("M56 Coarse", 2.2047, p2tpi(5.5)),
+        ("M56 Fine", 2.2047, p2tpi(4)),
         ("2 1/4 BSF", 2.2500, 6.0),
         ("-18 THURY", 2.2992, 3.8),
-        ("M60 Coarse", 2.3622, 4.6),
+        ("M60 Coarse", 2.3622, p2tpi(5.5)),
         ("2 WPIPE", 2.3750, 11.0),
         ("2 1/2 BSF", 2.5000, 6.0),
-        ("M64 Coarse", 2.5197, 4.2),
-        ("M64 Fine", 2.5197, 6.4),
+        ("M64 Coarse", 2.5197, p2tpi(6)),
+        ("M64 Fine", 2.5197, p2tpi(4)),
         ("-19 THURY", 2.6102, 3.4),
         ("2 1/4 WPIPE", 2.6250, 11.0),
-        ("M68 Coarse", 2.6772, 4.2),
+        ("M68 Coarse", 2.6772, p2tpi(6)),
         ("2 3/4 BSF", 2.7500, 6.0),
         ("-20 THURY", 2.9606, 3.1),
         ("2 1/2 WPIPE", 3.0000, 11.0),
@@ -1186,6 +1186,7 @@ if 1:  # Utility
             {n} 0.25-20     (hyphen optional)
             {n} 1 1/2-6
             {n} -m 6 1      (metric threads in mm)
+            {n} M6-1        (metric threads can also be specified like this)
         Options
           -A          Show all threads
           -B          Show brief report in mils only
@@ -1334,7 +1335,6 @@ if 1:  # Core functionality
         ''')
         )
         exit(0)
-
     def SearchOD(args):
         arg, od = args[0], 0.0
         od = 0.0
@@ -1363,7 +1363,6 @@ if 1:  # Core functionality
         if not found:
             print("  No matches")
         exit(0)
-
     def SearchTPI(args):
         arg, tpi = args[0], 0.0
         try:
@@ -1385,7 +1384,6 @@ if 1:  # Core functionality
         if not found:
             print("  No matches")
         exit(0)
-
     def PrintCommon():
         sizes = '''
         2 0.085 56 64
@@ -1425,7 +1423,6 @@ if 1:  # Core functionality
             cp, fp = 1 / float(unc), 1 / float(unf)
             print(f"  {cp:5.4f} {cp * 25.4:5.2f}    {fp:5.4f} {fp * 25.4:5.2f}")
         exit(0)
-
     def Float(x):
         # Interpret the string x as a float.  Also allow the form "n/d".
         try:
@@ -1439,7 +1436,6 @@ if 1:  # Core functionality
             else:
                 float(x)
         return y
-
     def PrintPitchProperties(arg):
         "arg will either be tpi or pitch in mm"
         # We need the pitch in inches
@@ -1470,7 +1466,6 @@ if 1:  # Core functionality
         print()
         H = p * cos(pi / 6)
         ThreadDepths(H)
-
     def GetDiameter(s):
         '''Is either a number sized diameter, a decimal number, or a fraction.
         Return the diameter in decimal inches.
@@ -1491,7 +1486,6 @@ if 1:  # Core functionality
             if d["-m"]:
                 diameter /= 25.4
             return diameter
-
     def MOW(pitch_diameter, tpi, wire_diameter, starts=1):
         '''Calculate MOW given the PD, pitch, and wire diameter.
         starts is the number of thread starts (here, we only use 1).
@@ -1509,7 +1503,6 @@ if 1:  # Core functionality
             + W * (1 + 1 / sin(A) + 0.5 * tan(B) * tan(B) * cos(A) / tan(A))
         )
         return mow
-
     def FindClosestWire(D):
         if D < wires[0] or D > wires[-1]:
             return 0
@@ -1522,7 +1515,6 @@ if 1:  # Core functionality
                     return wires[i - 1]
                 else:
                     return wires[i]
-
     def InitializeThreads():
         global lathe_feeds
         lathe_feeds = ["%.5f" % (x / 1000) for x in lathe_feeds]
@@ -1542,7 +1534,6 @@ if 1:  # Core functionality
         metric_pitches.sort()
         metric_pitches = ["%.2f" % (x / 100) for x in metric_pitches]
         metric_pitches = tuple(metric_pitches)
-
     def GetBestMatch(pitch_mm):
         closest = ""
         pct_dev = 1e9
@@ -1560,7 +1551,6 @@ if 1:  # Core functionality
                 pct_dev = dev
         pct_dev = "{:+.1f}".format(pct_dev)
         return closest, pct_dev
-
     def BestThreadMatches():
         InitializeThreads()
         TPI = {}
@@ -1606,14 +1596,12 @@ if 1:  # Core functionality
                     "%5s   %6.4f      %-8s  %s"
                     % (pitch, float(pitch) / 25.4, closest, pct_dev)
                 )
-
     def WireSizeLimits(pitch):
         "Return the minimum and maximum wire diameters."
         H = sqrt(3) / 2 * pitch
         min = H / 2
         max = 4 / 3 * (5 / 8 * d["-a"] + 1 / 4) * H
         return min, max
-
     def PrintBestWire(pitch):
         best_wire_size = pitch / (2 * cos(radians(30)))
         Min, Max = WireSizeLimits(pitch)
@@ -1623,7 +1611,6 @@ if 1:  # Core functionality
             Print("    Min wire size", Min)
             Print(f"    Max wire size ({int(100 * d['-a'])}%)", Max)
             Print("    Best wire size", best_wire_size)
-
     def GetNearestDrillSize(D):
         assert 0 < D <= 1 / 2
         if D == 1 / 2:
@@ -1641,7 +1628,6 @@ if 1:  # Core functionality
         if larger - D <= D - smaller:
             size = larger
         return drills[size]
-
     def GetNearestSixtyFourth(D):
         assert D <= 1
         if D == 1:
@@ -1660,7 +1646,6 @@ if 1:  # Core functionality
                 numer /= 2
                 denom /= 2
             return "%d/%d" % (numer, denom)
-
     def TapDrill(nominal_diameter, percent, pitch):
         D = nominal_diameter - 3 / 4 * sqrt(3) * percent / 100 * pitch
         if D <= 1 / 2:
@@ -1670,10 +1655,8 @@ if 1:  # Core functionality
         else:
             size = ""
         return D, size
-
     def mm(x):
         return flt(25.4 * x)
-
     def Print(s, value, mmvalue=None, nomm=False, nonl=False):
         end = "" if nonl else "\n"
         if nomm:
@@ -1681,11 +1664,10 @@ if 1:  # Core functionality
         else:
             m = mmvalue if mmvalue is not None else mm(value)
             print(f"{s:{g.w}s} {value!s:^{g.iw}s} {m!s:^{g.mw}s}", end=end)
-
     def ThreadDepths(H):
         '''These thread depths came from the Atlas manual of lathe operation,
         as the ones used from the standard don't give the correct values.
-
+        
         Draw a picture of one side of a 60 degree vee thread.  The depth of
         thread D will be sqrt(3)/2*P where P is the pitch = 1/tpi.  For the
         National Form thread, the flat at top and bottom of the thread is
@@ -1740,7 +1722,6 @@ if 1:  # Core functionality
                 fmt3
                 % ("    Double compound feed 4*h/C", 4 * h / C, 4 * h / C * mm_per_in)
             )
-
     def PrintTable4():
         '''Duplicate Table 4 from Machinery's Handbook, 19th ed., pg 1276.'''
         print(
@@ -1761,7 +1742,6 @@ if 1:  # Core functionality
             if thd[2] == "f":
                 PrintThread(thd)
         exit(0)
-
     def PrintThread(thd):
         '''thd is a 2- or 3-tuple containing a string designating the OD, the
         tpi, and the thread series.
@@ -1794,15 +1774,21 @@ if 1:  # Core functionality
             emax = T.emax()
             emin = T.emin()
             print("%dB " % Class + 4 * fmt % (dmin, dmax, emin, emax))
-
     def ShowAllThreads():
-        print("OD in inches")
-        for name, OD, tpi in weird_threads:
-            long_name = weird_thread_names[name.split()[-1]]
-            o = f"{OD}"
-            t = f"{tpi}"
-            print(f"{name:11s}  OD = {o:7s}  tpi = {t:5s}  {long_name}")
-
+        x = flt(0)
+        with x:
+            x.N = 3
+            x.rtz = x.rtdp = True
+            print("OD in inches")
+            for name, OD, TPI in weird_threads:
+                long_name = weird_thread_names[name.split()[-1]]
+                od = f"{OD}"
+                odm = flt(OD)*25.4
+                tpi = f"{flt(TPI)}"
+                p = flt(25.4/TPI)
+                P = f"p = {p!s}"
+                print(f"{name:11s}  OD = {od:7s} {T.mm}{odm!s:<5s}{T.n}  "
+                      f"tpi = {tpi:5s} {T.mm}{P:<10s}{T.n} {long_name}")
     def Center(s, width=6):
         '''Remove trailing zeros and decimal point, then center in the given width.'''
         while s[-1] == "0":
@@ -1810,7 +1796,6 @@ if 1:  # Core functionality
         if s[-1] == ".":
             s = s[:-1]
         return "{1:^{0}s}".format(width, s)
-
     def PitchTable():
         '''Print a table of pitches commonly seen for screw threads.'''
         # Common thread pitches
@@ -1914,7 +1899,6 @@ if 1:  # Core functionality
         for i in Columnize(out, sep=" " * 4):
             print(i)
         exit(0)
-
     def PrintResults(diameter, tpi):
         thread_class = d["-c"]
         A = asme.UnifiedThread(
@@ -2022,7 +2006,6 @@ if 1:  # Core functionality
             Print(f"    {percent:3d}% thread      Drill = {F}", D)
         print()
         ThreadDepths(H)
-
     def PrintBriefResults(diameter, tpi):
         thread_class = d["-c"]
         A = asme.UnifiedThread(
@@ -2189,7 +2172,6 @@ if 1:  # Core functionality
         print(f"     Bore ID to           {int(ID):5d} mils")
         print(f"     Compound feed        {cf:5d} mils")
         T.print(f"     Note:  start CF from 200 mils reading")
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     width = int(os.environ.get("COLUMNS", 80)) - 1
@@ -2200,10 +2182,18 @@ if __name__ == "__main__":
         PrintPitchProperties(args[0])
         exit(0)
     if len(args) == 2:
-        diameter_inches = GetDiameter(args[0])
-        tpi = float(args[1])
-        if d["-m"]:
-            tpi = 25.4 / tpi
+        if args[0][0] == "M":
+            # It's a metric thread
+            diameter_inches = flt(args[0][1:])/mm_per_in
+            pitch_in = flt(args[1])/mm_per_in
+            tpi = 1/pitch_in
+            if d["-m"]:
+                Error("Can't use -m with an 'M' thread on command line")
+        else:
+            diameter_inches = GetDiameter(args[0])
+            tpi = float(args[1])
+            if d["-m"]:
+                tpi = 25.4/tpi
     else:
         assert len(args) == 3
         # This is of the form 'i f tpi' where i is an integer and
@@ -2211,7 +2201,7 @@ if __name__ == "__main__":
         if args[1].find("/") == -1:
             Error("Second parameter must have '/' in it")
         numerator, denominator = map(float, args[1].split("/"))
-        diameter_inches = float(args[0]) + numerator / denominator
+        diameter_inches = float(args[0]) + numerator/denominator
         tpi = float(args[2])
     if d["-B"]:
         PrintBriefResults(diameter_inches, tpi)
