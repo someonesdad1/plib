@@ -1,28 +1,27 @@
-"""
+'''
 TODO:
 
     - https://pycodestyle.pycqa.org/en/latest/advanced.html#automated-tests
       tells how to add automated code style testing for conformance.  Add
       it to the self tests as an option to run.
-
+      
     - If an argument passed on the command line is a directory, search it
       recursively for all files that appear to be test scripts and run
       them.
-
+      
         - If a file is passed on the command line, search it for suitable
           test functions and run them, even if there's no run() call in the
           script.  Options to provide run()'s features:  -h to halt at
           first failure, -r for regexp to identify a test function, -R for
           regexp's options, -v for verbose
-
+          
     - Add a verbose keyword to run() which prints the file name and the
       function/class to be executed, like 'nosetests -v' does.  Another
       thing to consider would be to let run look at sys.argv and process
       options there in lieu of keywords (this would be handy for command
       line work, as the command line options would overrule the keywords).
-
-"""
-
+      
+'''
 if 1:  # Header
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -58,27 +57,23 @@ if 1:  # Header
     import re
     import sys
     import traceback
-
     # Custom imports
     from f import flt, cpx
     from wrap import dedent
     from color import Color, t
-
     # Optional imports
     try:
         import numpy
-
         have_numpy = True
     except ImportError:
         have_numpy = False
     try:
         import mpmath
-
         have_mpmath = True
     except ImportError:
         have_mpmath = False
     # Global variables
-    __doc__ = dedent("""
+    __doc__ = dedent('''
         Lightweight testrunner framework
             from lwtest import run, raises, assert_equal, Assert, Debugger
         
@@ -141,7 +136,7 @@ if 1:  # Header
             This tool was derived from some nice code by Raymond Hettinger 8
             May 2008: http://code.activestate.com/recipes/572194/.  I'm
             grateful Raymond put it out there for other folks.
-        """)
+        ''')
     __all__ = [
         "Assert",
         "ToDoMessage",
@@ -155,14 +150,13 @@ if 1:  # Header
     # Regular expression to identify test functions
     id_test_function_regexp = "^_*test|test$"
 if 1:  # Core functionality
-
     def run(names_dict, **kw):
-        """Discover and run the test functions in the names_dict
+        '''Discover and run the test functions in the names_dict
         dictionary (name : function pairs).  Return (failed, s) where
         failed is an integer giving the number of failures that occurred
         and s is the information string that was sent (or would have been
         sent) to the stream.  A failure is an unhandled exception.
-
+        
         Keyword options [default]:
             broken:     If True, testing code is acknowledged to be broken;
                         a warning message is printed and tests are not run.
@@ -178,7 +172,7 @@ if 1:  # Core functionality
             reopts:     Regular expression's options. [re.I]
             stream:     Where to send output [stdout].  None = no output.
             nomsg       If True, return only the integer 'failed'.
-        """
+        '''
         # Keyword arguments
         broken = bool(kw.get("broken", False))
         dbg = bool(kw.get("dbg", False)) or "dbg" in os.environ
@@ -229,7 +223,7 @@ if 1:  # Core functionality
                 func()
             except TypeError as e:
                 # Probably trying to run the module.
-                if str(e) == """TypeError("'module' object is not callable",)""":
+                if str(e) == '''TypeError("'module' object is not callable",)''':
                     print("xx lwtest.py:  need to test TypeError catch")
                 else:
                     raise
@@ -264,9 +258,8 @@ if 1:  # Core functionality
             return fail_count
         else:
             return (fail_count, output)
-
     def raises(ExpectedExceptions, *args, **kw):
-        """Asserts that a function call raises one of a sequence of expected
+        '''Asserts that a function call raises one of a sequence of expected
         exceptions.  ExpectedExceptions can either be a single exception
         type or a sequence of such types.  If args is empty, then a context
         manager instance is returned for use in a 'with' statement.  Examples:
@@ -275,7 +268,7 @@ if 1:  # Core functionality
             Context manager:
                 with raises(ZeroDivisionError):
                     1/0
-        """
+        '''
         if args:
             try:
                 args[0](*args[1:], **kw)
@@ -284,12 +277,11 @@ if 1:  # Core functionality
             else:
                 raise AssertionError("Did not raise expected exception")
         return RaisesContextManager(ExpectedExceptions)
-
     class RaisesContextManager(object):
         def __init__(self, ExpectedExceptions):
-            """Initialize with one one exception object or a sequence of
+            '''Initialize with one one exception object or a sequence of
             exception objects
-            """
+            '''
             if issubclass(ExpectedExceptions, BaseException):
                 self.expected = set([ExpectedExceptions])
                 return
@@ -302,19 +294,14 @@ if 1:  # Core functionality
                     m = f"'{exc}' is not a subclass of BaseException"
                     raise ValueError(m)
             self.value = None
-
         def __enter__(self):
             return self
-
         def __exit__(self, exception, exception_value, traceback):
             if exception in self.expected:
                 self.value = str(exception)
                 return True
             raise AssertionError("Did not raise expected exception")
-
-
 if 1:  # Utility
-
     def GetTime(duration_s):
         if duration_s > 3600:
             return f"{duration_s / 3600:.3f} hr"
@@ -322,15 +309,14 @@ if 1:  # Utility
             return f"{duration_s / 60:.2f} min"
         else:
             return f"{duration_s:.2f} s"
-
     def ToDoMessage(message, prefix="+ ", color=None):
-        """This function results in a message to stdout; its purpose is to
+        '''This function results in a message to stdout; its purpose is to
         allow you to see something that needs to be done, but won't cause
         the test to fail.  The message is decorated with a leading prefix
         string and the file and line number.  If color is not None, then it
         must either be a string naming a color (see color.py) or a Color
         class instance.  The message is printed in this color.
-        """
+        '''
         fn, ln, method, call = traceback.extract_stack()[-2]
         c = t(color) if color is not None else ""
         vars = {
@@ -352,33 +338,28 @@ if 1:  # Utility
                 print("{prefix}{fn}[{ln}] in {method}:  {msg}".format(**vars))
             else:
                 print("{c}{prefix}{fn}[{ln}] in {method}:  {msg}{n}".format(**vars))
-
-
 if 1:  # Checking functions
-
     def check_flt(a, b, reltol=None, abstol=None, use_min=False):
-        """a must be a flt.  If b is not a flt, then convert it if
+        '''a must be a flt.  If b is not a flt, then convert it if
         possible.
-        """
+        '''
         assert ii(a, flt)
         return check_float(
             float(a), float(b), reltol=reltol, abstol=abstol, use_min=use_min
         )
-
     def check_cpx(a, b, reltol=None, abstol=None, use_min=False):
-        """a must be a cpx.  If b is not a cpx, then convert it if
+        '''a must be a cpx.  If b is not a cpx, then convert it if
         possible.
-        """
+        '''
         assert ii(a, cpx)
         return check_complex(
             complex(a), complex(b), reltol=reltol, abstol=abstol, use_min=use_min
         )
-
     def check_float(a, b, reltol=None, abstol=None, use_min=False):
-        """Some of these checks were patterned after the checks in
+        '''Some of these checks were patterned after the checks in
         Lib/test/test_cmath.py in the python distribution (probably
         version 2.6.5).
-        """
+        '''
         if not ii(a, (int, float)):
             raise ValueError("a needs to be a float")
         if not ii(b, float):
@@ -425,7 +406,6 @@ if 1:  # Checking functions
                         f"  difference - tolerance = {absdiff - tolerance}",
                     ]
         return fail
-
     def check_decimal(a, b, reltol=None, abstol=None, use_min=False):
         fail = None
         if not ii(a, Decimal):
@@ -475,7 +455,6 @@ if 1:  # Checking functions
                         f"  difference - tolerance = {absdiff - tolerance}",
                     ]
         return fail
-
     def check_complex(a, b, reltol=None, abstol=None, use_min=False):
         if not ii(a, complex) or not ii(b, complex):
             raise ValueError("Both a and be need to be complex")
@@ -491,14 +470,13 @@ if 1:  # Checking functions
             else:
                 fail = f
         return fail
-
     def check_equal(a, b, reltol=None, abstol=None, use_min=False):
-        """a and b are not sequences, so they can be compared directly.
+        '''a and b are not sequences, so they can be compared directly.
         The comparison semantics are determined by reltol and abstol; if
         either is nonzero, then a and b are compared as floating point
         types; which type comparison is used is determined by the type
         of a.  Otherwise, a and b are compared directly.
-        """
+        '''
         fail = None
         R, A, U = reltol, abstol, use_min
         if reltol is not None or abstol is not None:
@@ -526,11 +504,8 @@ if 1:  # Checking functions
                 if a != b:
                     fail = ["{} != {}".format(repr(a), repr(b))]
         return fail
-
-    def assert_equal(
-        a, b, reltol=None, abstol=None, use_min=False, msg="", halt=True, debug=False
-    ):
-        """Raise an AssertionError if a != b.  a and b can be objects,
+    def assert_equal(a, b, reltol=None, abstol=None, use_min=False, msg="", halt=True, debug=False):
+        '''Raise an AssertionError if a != b.  a and b can be objects,
         numbers, or sequences of numbers (sequence elements are compared
         pairwise), or dictionaries.  reltol and abstol are the relative and
         absolute tolerances.  No exception will be raised if for each
@@ -541,16 +516,16 @@ if 1:  # Checking functions
         If both abstol and reltol are defined, the one with the larger
         tolerance range will be used unless use_min is True, in which case
         the smaller tolerance will be used.
-
+        
         If msg is present, include it in the printout as a message.
-
+        
         If halt is True, a failed assertion causes an exception to be
         raised; if halt is False, the error message is printed to stderr and
         the function returns (this allows you to e.g. start a debugger).
-
+        
         If debug is True, a failed assertion will drop you into the
         debugger.
-        """
+        '''
         # fail will be None if all things compared are equal.  Otherwise,
         # it will be a list of error message strings detailing where the
         # comparison(s) failed.
@@ -636,12 +611,11 @@ if 1:  # Checking functions
             breakpoint()
         else:
             print(fail, file=sys.stderr)
-
     def Assert(cond, msg="", debug=False):
-        """Replacement for assert but it can't be optimized out.  If debug is True, Assert.debug is
+        '''Replacement for assert but it can't be optimized out.  If debug is True, Assert.debug is
         True, or 'Assert' is a nonempty environment string, you'll be dropped into a debugger.  If
         msg is not empty, it's printed out.
-        """
+        '''
         if not cond:
             if debug or Assert.debug or os.environ.get("Assert", ""):
                 # Print colorized message to stdout and start debugger
@@ -651,9 +625,7 @@ if 1:  # Checking functions
                 breakpoint()
             else:
                 raise AssertionError(msg)
-
     Assert.debug = False
-
 if __name__ == "__main__":
     t.h = t("lill")
     t.w = t("whtl")
@@ -667,7 +639,7 @@ if __name__ == "__main__":
             {t.h}failed, messages = run(globals()){t.n}
     
     {t.h}run(){t.n}'s keyword arguments (default value in square brackets):
-
+    
         {t.w}broken{t.n}    If True, testing is acknowledged to be broken and a warning message to this
                   effect is printed. [False]
         {t.w}verbose{t.n}   Print the function names as they are executed [False]
@@ -686,7 +658,7 @@ if __name__ == "__main__":
                 <code that must raise an exception>
         Send a colored reminder message to stdout:
             ToDoMessage(message, prefix="+", color="yel")
-
+            
         {t.h}Assert(condition, msg){t.n}
             Is like assert but can't be optimized out.  The debug keyword argument if True drops
             you into the debugger if condition is False (type 'u' to go to the line that failed)

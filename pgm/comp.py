@@ -1,11 +1,10 @@
-"""
+'''
 Search for text in the components database
-"""
-
+'''
 if 1:  # Data
     from wrap import dedent
 
-    todo = dedent("""
+    todo = dedent('''
     comp.py ToDo list
 
     - Inventory
@@ -25,8 +24,8 @@ if 1:  # Data
     - Look at getting some locking heavy duty plastic boxes for storage that will stack in a
       compact fashion
 
-    """)
-    data = dedent("""
+    ''')
+    data = dedent('''
         
         The compartments of the plastic boxes are numbered from left to right and front to back.
         These data are free form.  The actual data lines contain three integers separated by
@@ -579,12 +578,12 @@ if 1:  # Data
             32:12:?      
             32:13:?      
 
-    """)
+    ''')
     if 0:  # For testing/debugging
-        data = dedent("""
+        data = dedent('''
                 32:1:?    Capacitor, 100 nF, 25 V, part no. 104M5C806   capacitor
                 32:2:?      
-        """)
+        ''')
 if 1:  # Header
     if 1:  # Imports
         import sys
@@ -607,10 +606,9 @@ if 1:  # Header
     if 1:  # Global variables
         beginning_lines_to_ignore = 3
 if 1:  # Classes
-
     class Entry:
         def __init__(self, line_number, info, description, keywords):
-            """Attributes:
+            '''Attributes:
             line_number     i Line number in data string
             box             i Box number
             compartment     i Compartment number
@@ -620,7 +618,7 @@ if 1:  # Classes
             start           i Start of regex match
             end             i End of regex match
             empty           b If description string is empty
-            """
+            '''
             self.line_number = line_number  # 1-based number
             # info will be two integers and a string separated by colons
             self.box, self.compartment, self.quantity = info.split(":")
@@ -649,19 +647,16 @@ if 1:  # Classes
             return str(self)
 
         def __lt__(self, other):
-            """Comparison for sorting.  The primary key is the box number and the secondary key is
+            '''Comparison for sorting.  The primary key is the box number and the secondary key is
             the compartment number.
-            """
+            '''
             if int(self.box) < int(other.box):
                 return True
             elif int(self.box) > int(other.box):
                 return False
             else:
                 return int(self.compartment) < int(other.compartment)
-
-
 if 1:  # Utility
-
     def SetColors(on=True):
         # Colors
         t.match = t("royl") if on else ""
@@ -673,7 +668,7 @@ if 1:  # Utility
 
     def Usage(status=0):
         print(
-            dedent(f"""
+            dedent(f'''
             {sys.argv[0]} [options] [regex [regex2...]]
                 Searches the components database for the indicated regular expressions AND'd
                 together.  The search is case-insensitive.  Prefix a regex with '-' and anything
@@ -697,7 +692,7 @@ if 1:  # Utility
                 -o        OR the regexes instead of AND
                 -t        Dump the ToDo list
                 -v        Print out color code and numbering key 
-        """)
+        ''')
         )
         exit(status)
 
@@ -735,10 +730,7 @@ if 1:  # Utility
                 exit(0)
         SetColors(False) if d["-C"] else SetColors()
         return args
-
-
 if 1:  # Core functionality
-
     def GetData():
         "Return a list of Entry items"
         items = []
@@ -780,13 +772,13 @@ if 1:  # Core functionality
         return items
 
     def TextSearch(args, items):
-        """found will hold the Entry items that matched; pos holds the start and
+        '''found will hold the Entry items that matched; pos holds the start and
         end position of the first match and is keyed by the line.
 
         args        List of regexes to search for
         items       List of Entry instances; when printed, an Entry will result in a string like
                     "1:1 Component pins".
-        """
+        '''
         if 1:  # regexps is a list of the regular expressions made from args
             regexps = []
             remove = []  # Hold those that begin with "-"
@@ -882,12 +874,12 @@ if 1:  # Core functionality
         # Quantity coding
         if qty:
             print(
-                dedent("""
+                dedent('''
                 Letters for quantity:
                     ?   Not inventoried yet
                     f   A few
                     m   Too many to count
-            """)
+            ''')
             )
 
     def Keywords(items):
@@ -898,11 +890,11 @@ if 1:  # Core functionality
         return set(kw)
 
     def Inspection():
-        """Look for problems in the data:
+        '''Look for problems in the data:
         - No keyword
         - Misspelled (not important yet)
         - Needs inventory taken
-        """
+        '''
         # No keyword
         if 1:
             no_kwd = []
@@ -931,8 +923,6 @@ if 1:  # Core functionality
                     o.append(f"{box:2d}: {needs_counting[box]}")
                 for i in Columnize(o, columns=5, sep=" " * 5):
                     print(i)
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

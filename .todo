@@ -1,5 +1,11 @@
 Active:  /plib/.todo
 
+    - dpdb.py
+        - When debugging, the return value string gets truncated with '...'.  This can
+          be a pain when e.g. the return value is a ufloat, as you can't see the value.
+          Make it use up the available width or see if a debugger option can be used to
+          let you see the whole string.
+
     - Autoformatters
         - See if it they avoid the annoying spacing of expressions that black uses
         - https://github.com/hhatto/autopep8

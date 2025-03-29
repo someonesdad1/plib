@@ -11,12 +11,11 @@ TODO:
     - Add number kw to GetLines which then causes a list of tuples (linenum, str) to be returned
     - Add Zn to GetNumbers
     - Change GetFraction to also handle integers
-
+    
 Module for a) getting data from files, strings, and streams, b) getting numbers interactively from
 user.
 
 """
-
 if 1:  # Header
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -46,27 +45,22 @@ if 1:  # Header
     from collections.abc import Iterable
     from io import StringIO
     from fractions import Fraction
-
     # Custom imports
     import u
     from f import flt
     from asciify import Asciify
-
     try:
         from uncertainties import ufloat, ufloat_fromstr, UFloat
-
         have_unc = True
     except ImportError:
         have_unc = False
     try:
         from f import flt, cpx
-
         have_f = True
     except ImportError:
         have_f = False
     try:
         from mpmath import mpf, mpc
-
         have_mpmath = True
     except ImportError:
         have_mpmath = False
@@ -89,7 +83,6 @@ if 1:  # Header
             IsPunctuation GetWireDiameter GetFileSize
         """.split()
 if 1:  # Getting text, lines, bytes
-
     def GetText(thing, enc=None):
         """Return text from thing, which is
             string      It's a file name.  If read exception, then use string
@@ -117,9 +110,7 @@ if 1:  # Getting text, lines, bytes
         else:
             raise TypeError("Type of 'thing' not recognized")
         return s
-
     if 0:  # Phase out if nothing breaks
-
         def GetLines1(
             thing,
             enc=None,
@@ -136,21 +127,21 @@ if 1:  # Getting text, lines, bytes
                stream
             If enc is not None, then it's the encoding to read the file and it is
             read as binary.  Keywords are (for bool (b), action is if True):
-
+            
                nonl          b If True, remove trailing newline
                script        b If True, ignore comment lines
                strip         b If True, strip off whitespace from each line.  If
                              strip is True, it also implies nonl is True, even if
                              it is set False.
                ignore_empty  b If True, ignore empty (whitespace only) lines
-
+               
                ignore          Either None or a sequence of strings that are
                                compiled to regular expressions and are lines
                                that are to be ignored.
-
+                               
                If you want to use strip or script as True, then you must also set
                ignore to the empty list.
-
+               
                Example:
                    s = """# Comment
                    ## Another comment
@@ -164,7 +155,6 @@ if 1:  # Getting text, lines, bytes
                    lines ['Line 1', '    Line 2', '']
                The call GetLines(s, script=True) does the same thing.
             '''
-
             def Filter(line):
                 if ignore is None:
                     return True
@@ -172,7 +162,6 @@ if 1:  # Getting text, lines, bytes
                     if re.search(r, line):
                         return False  # Don't keep this line
                 return True  # Keep this line
-
             if ignore is not None and (ii(ignore, str) or not ii(ignore, Iterable)):
                 raise TypeError("ignore must be an iterable")
             if script and ignore is not None:
@@ -195,7 +184,6 @@ if 1:  # Getting text, lines, bytes
             if strip:
                 lines = [i.strip() for i in lines]
             return lines
-
     def GetLines(
         thing,
         enc=None,
@@ -212,17 +200,17 @@ if 1:  # Getting text, lines, bytes
            stream
         If enc is not None, then it's the encoding to read the file and it is
         read as binary.  Keywords are (for bool (b), action is if True):
-
+        
            nonl          b If True, remove trailing newline
            script        b If True, ignore comment lines
            strip         b If True, strip off whitespace from each line.  If
                            strip is True, it also implies nonl is True, even if
                            it is set False.
            ignore_empty  b If True, ignore empty (whitespace only) lines
-
+           
            ignore          A list of strings that are compiled to regular
                            expressions and are lines that are to be ignored.
-
+                           
            Example:
                s = """# Comment
                ## Another comment
@@ -236,7 +224,6 @@ if 1:  # Getting text, lines, bytes
                lines ['Line 1', '    Line 2', '']
            The call GetLines(s, script=True) does the same thing.
         '''
-
         def Filter(line):
             if not ignore:
                 return True
@@ -244,7 +231,6 @@ if 1:  # Getting text, lines, bytes
                 if re.search(r, line):
                     return False  # Don't keep this line
             return True  # Keep this line
-
         if not ii(ignore, (list, tuple)):
             raise TypeError("ignore must be a list or tuple")
         if script:
@@ -267,7 +253,6 @@ if 1:  # Getting text, lines, bytes
         if strip:
             lines = [i.strip() for i in lines]
         return lines
-
     def GetTextLines(thing):
         """This is a convenience instance of GetLines with the keywords:
             script = True
@@ -278,13 +263,12 @@ if 1:  # Getting text, lines, bytes
         containing a data table that's e.g. tab-separated.
         """
         return GetLines(thing, script=True, ignore_empty=True, strip=True, nonl=True)
-
     def GetLine(thing, enc=None):
         """Similar to GetLines, but is a generator so it gets a line at a time.
         thing can be a string, bytes, or a stream.  If it is a string, it's
         assumed to be a file name; if trying to read the file generates an
         exception, the string itself is used as the text.
-
+        
         If it is a bytes object, then the indicated encoding is used to
         decode it, then it's read a line at a time.
         """
@@ -305,7 +289,6 @@ if 1:  # Getting text, lines, bytes
         while line:
             yield line
             line = stream.readline()
-
     def GetNumberedLines(thing, enc=None):
         """Return a tuple of (linenum, line_string) tuples where linenum is
         the line number in the file.  See GetText for details on the enc
@@ -313,11 +296,10 @@ if 1:  # Getting text, lines, bytes
         """
         lines = GetText(thing, enc=enc).split("\n")
         return tuple((i + 1, j) for i, j in enumerate(lines))
-
     def GetBinary(thing, encoded=False):
         """Read in thing as binary (thing is a stream or filename).  Bytes
         will be returned.
-
+        
         If encoded is True, then try to decode it by using a number of
         encodings.  A string will be returned if it can be decoded.
         """
@@ -346,63 +328,60 @@ if 1:  # Getting text, lines, bytes
                 return thing.read()
             except AttributeError:
                 return open(thing, "rb").read()
-
-
 if 1:  # Getting numbers
-
     def GetNumber(prompt_msg, **kw):
         """General-purpose routine to get a number from the user with the prompt msg.  These are
         the things that can be returned:
-
+        
             number                      use_unit is False
             (number, unit_string)       use_unit is True
             True or False               inspect is True
             None                        default = None and allow_none = True
-
+            
         The returned number type will be numtype.  Examples:
-
+        
             a_float = GetNumber(prompt_msg)
             an_integer = GetNumber(prompt_msg, numtype=int)
             a_flt = GetNumber(prompt_msg, numtype=flt)
             a_UFloat = GetNumber(prompt_msg, use_unc=True)
-
+            
         The user can utilize python expressions in the input; the math library's functions are in
         scope.
-
+        
         If you wish to restrict the allowed values of the number, use the following keyword
         arguments (default values are in square brackets):
-
+        
             numtype     Number type [flt].  Use int if you want the number to be an integer.  You
                         can use a number type as long as it obeys the required ordering semantics
                         and the constructor returns a number object that raises a ValueError if
                         the initializing string is of improper form.  For an example, see the use
                         of mpmath's mpf numbers in the unit tests.
-
+                        
             default     Default value.  This value will be returned if the user just presses the
                         return key when prompted.  Note the default value of None will cause an
                         exception unless the keyword allow_none is True.  [None]
-
+                        
             allow_none  If True, allows None to be returned as the default.  [False]
-
+            
             low         Lowest allowed value.  [None]
-
+            
             high        Highest allowed value.  [None]
-
+            
             low_open    Boolean; if True, then the low end of the acceptance interval is open.
                         [False]
-
+                        
             high_open   Boolean; if True, then the high end of the acceptance interval is open.
                         [False]
-
+                        
             invert      If true, the value must be in the complement interval.  This is used to
                         allow numbers except those in a particular range.  See note below.
-
+                        
             outstream   Stream to print messages to.  [stdout]
-
+            
             instream    Stream to get input from (intended for unit tests).
-
+            
             prefix      Prefix string for error messages ["Error:  must have "]
-
+            
             use_unc     If true, lets you use number strings that can be interpreted by the python
                         uncertainties library.  If use_unit is true, then all units must be
                         separated from the uncertain number string by one or more spaces (i.e., no
@@ -411,42 +390,42 @@ if 1:  # Getting numbers
                         interpretive behavior of the uncertainties library's ufloat_fromstr()
                         function.  The following strings mean the same number and uncertainty:
                         "4.2+/-0.4", "4.2+-0.4", "4.2(4)".  [False]
-
+                        
             use_unit    If true, allows a unit to be included in the string.  The return value will
                         be a tuple of (number, unit_string).  [False]
-
+                        
                         Additionally, if use_unit is a string, it's the unit that any entered unit
                         must be dimensionally equal to or a TypeError is raised.  If the default
                         answer is used, this is the unit that will be returned with it.
-
+                        
             allow_quit  If true, "Q" or "q" quits the program.  [True]
-
+            
             inspect     If not None, it's a string that should be inspected to see if it meets the
                         requirements.  If it does, True will be returned; otherwise, False is
                         returned.
-
+                        
             vars        Dictionary to use as locals to evaluate expressions.
-
+            
         Note:  if you call
-
+        
             GetNumber("", low=a, high=b)
-
+            
         the number returned will be the number in the closed interval [a, b].  If you make the
         same call but with invert set to True
-
+        
             GetNumber("", low=a, high=b, invert=True)
-
+            
         then the returned number must lie in the union of the open intervals (-inf, a) and (b,
         inf); this set of numbers is the complement of the previous call's.  If you make the call
-
+        
             GetNumber("", low=a, high=b, low_open=True, high_open=True)
-
+            
         the number returned will be in the open interval (a, b).  If this is inverted by setting
         invert to True as in
-
+        
             GetNumber("", low=a, high=b, low_open=True,
                     high_open=True, invert=True)
-
+                    
         then you'll get a number returned in the union of the half-closed intervals (-inf, a] and
         [b, inf).  A programmer might be confused by the fact that the intervals were half-closed,
         even though the settings low_open and high_open were used, implying the programmer wanted
@@ -648,17 +627,16 @@ if 1:  # Getting numbers
                     return (x, unit_string)
                 else:
                     return x
-
     def GetNumbers(thing, numtype=None, enc=None):
         """Uses GetText() to get a string, then recognizes integers, floats,
         fractions, complex, and uncertain numbers in the string separated by
         whitespace and returns a list of these numbers.  If numtype is
         given, all found strings are converted to that type.
-
+        
         If flt and cpx types are available (have_f is True), then floats
         and complex types are converted to these over float and complex,
         respectively.
-
+        
         If the uncertainties library is present, the ufloat type can be
         recognized.
         """
@@ -681,7 +659,6 @@ if 1:  # Getting numbers
                     x = int(s)
                 lst.append(x)
         return lst
-
     def GetNumberArray(string, row=False, numtype=float):
         r'''Return a list of vectors gotten from the indicated multiline string.
         The numbers are separated on each line by whitespace.  If row is
@@ -689,7 +666,7 @@ if 1:  # Getting numbers
         the regular expression with '^\s*#' are ignored.  If string is empty or
         only whitespace, then [[]] is returned.  ValueError will be raised if a
         row contains a different number of elements than the others.
-
+        
         Example:
             If the string is
                 s = """
@@ -725,13 +702,12 @@ if 1:  # Getting numbers
             return A  # Special case of one column or row vector
         # Use transpose to return column vectors
         return [list(i) for i in zip(*A)]
-
     def GetFraction(s):
         """Return a Fraction object if string s contains a '/' and can be
         interpreted as an improper or proper fraction or if it can be
         interpreted as an integer.  Otherwise return None.  The following
         forms are allowed:
-
+        
             A   5/4     +5/4    -5/4
             B   1 1/4   +1 1/4  -1 1/4
             C   1-1/4   +1-1/4  -1-1/4
@@ -760,7 +736,6 @@ if 1:  # Getting numbers
             return neg * (ip + Fraction(int(n), int(d)))
         except Exception:
             return None
-
     def ParseUnit(s):
         """Assume the string s has a unit and possible SI prefix appended
         to the end, such as '123Pa', '123 Pa', or '1.23e4 Pa'.  Remove the
@@ -791,25 +766,24 @@ if 1:  # Getting numbers
             else:
                 unit.append(i)
         return ("".join(reversed(num)), ("".join(reversed(unit))).strip())
-
     def ParseUnitString(x, allowed_units, strict=True):
         """This routine will take a string x and return a tuple (prefix,
         unit) where prefix is a power of ten gotten from the SI prefix
         found in x and unit is one of the allowed_units strings.
         allowed_units must be an iterable container.  Note things are
         case-sensitive.  prefix will either be a float or an integer.
-
+        
         Example:
             u = ["m", "in", "ft"]
             s = "mm"
             Then ParseUnitString(s, u) returns (0.001, "m").
-
+            
         The typical use case is where ParseUnit() has been used to separate
         a number and unit.  Then ParseUnitString() can be used to parse the
         returned unit string to get the SI prefix actual unit string.
         Parsing of composite units (such as m/s) must take place outside
         this function.
-
+        
         If strict is True, then one of the strings in allowed_units must
         be anchored at the right end of x.  If strict is False, then the
         strings in allowed_units do not have to be present in x; in this
@@ -867,7 +841,6 @@ if 1:  # Getting numbers
             if prefix not in si:
                 raise ValueError(f"'{prefix}' is not an SI prefix")
             return (10 ** si[prefix], unit)
-
     def GetComplex(s, typ=complex):
         """Return a complex number from the string s.  If s does not
         represent a complex number, None is returned.  You can change the
@@ -947,7 +920,6 @@ if 1:  # Getting numbers
             return typ(f"{sgn}{r}", f"{sp}{i}")
         else:
             return typ(z)
-
     def GetClosest(x, seq, dist=lambda a, b: abs(a - b)):
         """Given a number x, return the number in seq that is closest to x.  seq is assumed to be in
         sorted order so that the bisect module can be used.  The distance between x and elements
@@ -964,21 +936,18 @@ if 1:  # Getting numbers
         else:
             # Choose seq[i - 1] or seq[i], whichever is closest to x
             return seq[i - 1] if dist(x, seq[i - 1]) < dist(x, seq[i]) else seq[i]
-
-
 if 1:  # Getting choices
-
     def GetChoice(
         seq, default=1, indent=None, col=False, instream=None, outstream=None
     ):
         """Display the choices in seq with numbers and prompt the user for his
         choice.  Note the numbers are 1-based as displayed to the user, but the
         returned value of choice will be 0-based.  Return the choice_number.
-
+        
         default     Default choice
         indent      String to indent printed choices
         col         If True, use Columnize to print the choices
-
+        
         instream and outstream are used for testing and are passed to
         GetNumber().
         """
@@ -1007,15 +976,12 @@ if 1:  # Getting choices
             return (None, "")
         choice = int(choice) - 1
         return (choice, seq[choice])
-
-
 if 1:  # Tokenizing
-
     def GetWords(thing, sep=None, enc=None, ignore=[]):
         """Return a list of words separated by the string sep from the thing (see details for
         GetLines).  If sep is None, then the data are split on whitespace; otherwise, the newlines
         are replaced by sep, then the data are split on sep.
-
+        
         ignore is a sequence of regular expressions that indicate the lines to ignore.
         """
         lines = GetLines(thing, ignore=ignore, nonl=True)
@@ -1024,7 +990,6 @@ if 1:  # Tokenizing
             return sep.join(lines).split(sep)
         else:
             return " ".join(lines).split()
-
     def GetTokens(*things, sep=None, enc=None):
         """Similar to GetWords(), but this is a generator so that arbitrarily large sets of files
         or streams can be processed.
@@ -1033,15 +998,14 @@ if 1:  # Tokenizing
             for line in GetLine(thing, enc=enc):
                 for token in line.split() if sep is None else line.split(sep):
                     yield token
-
     def GetWordlist(*files, case=None):
         """The arguments can be a stream, filename, or string to parse.  Return a set of all the
         words in these files.
-
+        
         This function is aimed at reading wordlists I use on my computer.  These will have comment
         lines beginning with '#' after stripping whitespace.  Then words are separated by
         whitespace and can be gotten at once on the whole file's string with strip().
-
+        
         If case is None, do nothing with the words.  If it is "lower", change them to lower case;
         upper with "upper".
         """
@@ -1068,15 +1032,12 @@ if 1:  # Tokenizing
                 s = s.lower()
             words.update(set(s.split()))
         return words
-
     class wrd(str):
         def __new__(cls, value):
             return super(wrd, cls).__new__(cls, value)
-
     class pnc(str):
         def __new__(cls, value):
             return super(pnc, cls).__new__(cls, value)
-
     def Tokenize(
         s, wordchars=letters, otherchars=others, check=True, wordtype=wrd, punctype=pnc
     ):
@@ -1085,19 +1046,18 @@ if 1:  # Tokenizing
         True and raises an exception if it isn't).  wordchars and otherchars must be sequences of
         letters (sets preferred) so that "in" works on detecting whether a letter is in the
         sequence.
-
+        
         The returned deque is made up of non-empty strings of a) words with letters and b)
         non-letters.  These strings will be wordtype and punctype, respectively, which are derived
         from str.
-
+        
         Example:  Tokenize("To be, or not to be:") returns
-
+        
             deque(['To', ' ', 'be', ', ', 'or', ' ', 'not', ' ', 'to', ' ', 'be', ':'])
-
+            
         The word tokens have isinstance(token, wrd) return True and the punctuation strings have
         isinstance(token, pnc) return True.
         """
-
         def Handle(char, seq1, seq2, seq2type):
             """Append char to seq1 and coalesce seq2 to seq2type, and clear seq2.  seq1 and seq2
             are either word or punctuation sequences.
@@ -1108,7 +1068,6 @@ if 1:  # Tokenizing
                 if p:
                     out.append(seq2type(p))
                 seq2.clear()
-
         inp, out, word, punc = deque(s), deque(), deque(), deque()
         while inp:
             char = inp.popleft()
@@ -1129,10 +1088,7 @@ if 1:  # Tokenizing
                 print(f"New :  {repr(t)}")
                 raise ValueError("Tokenize's invariant failed")
         return out
-
-
 if 1:  # Miscellaneous
-
     def IsPunctuation(seq):
         "Return True if all characters in iterable seq are punctuation"
         if not hasattr(IsPunctuation, "punc"):
@@ -1188,7 +1144,6 @@ if 1:  # Miscellaneous
             )
             IsPunctuation.punc = set(string.punctuation + other_punc)
         return set(seq) <= IsPunctuation.punc
-
     def GetWireDiameter(default_unit="mm"):
         """Returns (s, d) where d is a wire diameter in the indicated units and
         s is the string the user input.  The user is prompted for the value,
@@ -1196,7 +1151,6 @@ if 1:  # Miscellaneous
         by one or more spaces) or ' ga' to denote AWG.  The number portion of
         the input can be a valid python expression.
         """
-
         def AWG(n):
             if n < -3 or n > 56:
                 raise ValueError("AWG argument out of range")
@@ -1204,7 +1158,6 @@ if 1:  # Miscellaneous
             if n <= 44:
                 return round(diameter, 4)
             return round(diameter, 5)
-
         msg = "Enter wire diameter (use 'ga' suffix for AWG): "
         while True:
             if GetWireDiameter.input is not None:
@@ -1237,14 +1190,11 @@ if 1:  # Miscellaneous
                     return s, value * u(unit) / u(default_unit)
                 elif not unit:
                     return s, value
-
     GetWireDiameter.input = None  # Used for self tests
-
     def GetFileSize(file):
         p = pathlib.Path(file)
         s = p.stat()
         return s.st_size
-
     def GetIndent(line):
         if not ii(line, str):
             raise TypeError("Argument must be a string")
@@ -1256,8 +1206,6 @@ if 1:  # Miscellaneous
             count += 1
             dq.popleft()
         return count
-
-
 if __name__ == "__main__":
     # Regression tests
     if 1:  # Initialization
@@ -1265,27 +1213,21 @@ if __name__ == "__main__":
         from wrap import dedent
         from lwtest import run, raises, Assert
         from io import StringIO
-
         text_file, S = None, None
-
         def SetUp():
             global text_file, S
             text_file = P("get.test")
             S = "Some\ntext\n"
             text_file.write_text(S)
-
         def TearDown():
             if text_file.exists():
                 text_file.unlink()
-
         def sio(*s):
             "Allows StringIO to be used for input or output"
             if not s:
                 return StringIO()
             return StringIO(s[0])
-
     if 1:  # Getting text, tokens, lines, bytes
-
         def TestGetText():
             sio = StringIO(S)
             t = GetText(sio)
@@ -1311,7 +1253,6 @@ if __name__ == "__main__":
             r = ("^ *#",)
             lines = GetLines(s, ignore=r, nonl=True)
             Assert(lines == ["Line 1", "  Line 2"])
-
         def TestGetLines():
             # Test with stream
             sio = StringIO(S)
@@ -1356,7 +1297,6 @@ if __name__ == "__main__":
             Assert(lines == expected)
             lines = GetLines(s, ignore=[], script=True, nonl=True)
             Assert(lines == expected)
-
         def TestGetLine():
             # Test with stream
             sio = StringIO(S)
@@ -1369,7 +1309,6 @@ if __name__ == "__main__":
             # Test with file
             for i, line in enumerate(GetLine(text_file)):
                 Assert(line == lines[i])
-
         def TestGetNumberedLines():
             expected = ((1, "Some"), (2, "text"), (3, ""))
             sio = StringIO(S)
@@ -1379,15 +1318,12 @@ if __name__ == "__main__":
             Assert(t == expected)
             t = GetNumberedLines(text_file)
             Assert(t == expected)
-
         def TestGetBinary():
             enc = "iso-8859-1"
             open(text_file, "wb").write(S.encode(enc))
             t = GetBinary(text_file)
             Assert(t == S.encode("ascii"))
-
     if 1:  # Getting numbers
-
         def TestGetNumber():
             msg = "Error:  must have "
             # Note:  the test case comment is a picture of the allowed interval;
@@ -1731,7 +1667,6 @@ if __name__ == "__main__":
             Assert(n == 6 and isinstance(n, flt))
             # Show that we can evaluate things with a variables dictionary.
             from math import sin, pi
-
             v = {"sin": sin, "pi": pi}
             s_out = sio()
             n = GetNumber(
@@ -1745,13 +1680,11 @@ if __name__ == "__main__":
             )
             Assert(n == sin(pi / 6) and isinstance(n, float))
             Assert(n == sin(pi / 6) and isinstance(n, flt))
-
         def TestGetNumberExceptionalCases():
             # low > high
             raises(ValueError, GetNumber, "", low=1, high=0, instream=sio("0"))
             # Invert True without low or high
             raises(ValueError, GetNumber, "", invert=True, instream=sio("0"))
-
         def TestGetNumber_mpmath():
             # Import mpmath and use for testing if available.
             # Demonstrates that GetNumber works with ordered number types
@@ -1766,7 +1699,6 @@ if __name__ == "__main__":
                     "", numtype=mpmath.mpf, low=2, outstream=sio(), instream=sio("4")
                 )
                 Assert(n == 4 and isinstance(n, mpmath.mpf))
-
         def TestGetNumberDefaultValue():
             # See that we get an exception when the default is not between low
             # and high.
@@ -1831,7 +1763,6 @@ if __name__ == "__main__":
                 allow_none=True,
             )
             Assert(n is None)
-
         def TestGetNumberNumberWithUnit():
             # Show that we can return numbers with units
             # 5 with no unit string
@@ -1923,14 +1854,12 @@ if __name__ == "__main__":
                 instream=sio("5 inches"),
                 use_unit="s",
             )
-
         def TestGetNumberInspect():
             # Test that 2 isn't in the first interval, but is in the second.
             Assert(not GetNumber("", low=0, high=1, inspect="2"))
             Assert(GetNumber("", low=0, high=3, inspect="2"))
             # If inspect is not a string, get exception
             raises(ValueError, GetNumber, "", inspect=1)
-
         def TestGetNumbers():
             # Check general python numerical types
             s = "1 1.2 3/4 3+1j"
@@ -1969,7 +1898,6 @@ if __name__ == "__main__":
             L = GetNumbers(s)
             Assert(all([ii(i, Fraction) for i in L]))
             Assert(L == [Fraction(3, 8), Fraction(7, 16), Fraction(1, 2)])
-
         def TestGetNumberArray():
             s = """
                 1 2 3
@@ -2017,7 +1945,6 @@ if __name__ == "__main__":
             """
             with raises(ValueError):
                 a = GetNumberArray(s)
-
         def TestGetFraction():
             e = Fraction(5, 4)
             for i in (
@@ -2038,7 +1965,6 @@ if __name__ == "__main__":
                 neg = -1 if i[0] == "-" else 1
                 Assert(GetFraction(i) == neg * e)
             Assert(GetFraction("1") == Fraction(1, 1))
-
         def TestParseUnitString():
             u = ["m", "in", "ft"]
             s = "mm"
@@ -2056,7 +1982,6 @@ if __name__ == "__main__":
             Assert(a == 1 and b == "")
             a, b = ParseUnitString("μ", [], strict=False)
             Assert(a == 1 and b == "")
-
         def TestGetComplex():
             em, ep = "1.23e-77", "1.23e+77"
             cases = (
@@ -2114,7 +2039,6 @@ if __name__ == "__main__":
                 if have_mpmath:
                     z = GetComplex(i, typ=mpc)
                     Assert(z == expected)
-
         def TestGetClosest():
             seq = (0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100)
             Assert(GetClosest(-1e300, seq) == 0)
@@ -2145,9 +2069,7 @@ if __name__ == "__main__":
             #
             Assert(GetClosest(101, seq) == 100)
             Assert(GetClosest(1e300, seq) == 100)
-
     if 1:  # Getting choices
-
         def TestGetChoice():
             seq = ["a", "b", "c"]
             i, o = sio("1"), sio()
@@ -2160,9 +2082,7 @@ if __name__ == "__main__":
             i, o = sio("88"), sio()
             n, choice = GetChoice(seq, instream=i, outstream=o)
             Assert(n is None and choice == "")
-
     if 1:  # Tokenizing
-
         def TestGetWords():
             sio = StringIO(S)
             L = S.split()
@@ -2172,12 +2092,10 @@ if __name__ == "__main__":
             Assert(t == L)
             t = GetWords(text_file)
             Assert(t == L)
-
         def TestGetTokens():
             s = "1 2 3\n4 5 6\n"
             L = list(GetTokens(s))
             Assert(L == "1 2 3 4 5 6".split())
-
         def TestGetWordlist():
             t = "Aa Bb cC"
             s = f"""# Comment
@@ -2192,7 +2110,6 @@ if __name__ == "__main__":
             Assert(wl == set(t.lower().split()))
             wl = GetWordlist(s, case="upper")
             Assert(wl == set(t.upper().split()))
-
         def TestTokenize():
             s = "To be, or not to be:"
             t = list(Tokenize(s))
@@ -2250,9 +2167,7 @@ if __name__ == "__main__":
                 ]
             )
             Assert(tk == expected)
-
     if 1:  # Miscellaneous
-
         def TestIsPunctuation():
             other_punc = "".join(
                 [
@@ -2307,7 +2222,6 @@ if __name__ == "__main__":
             Assert(IsPunctuation(s))
             s.add("s")
             Assert(not IsPunctuation(s))
-
         def TestGetIndent():
             raises(TypeError, GetIndent, None)
             raises(TypeError, GetIndent, 1)
@@ -2318,7 +2232,6 @@ if __name__ == "__main__":
             Assert(GetIndent("  ") == 2)
             Assert(GetIndent("  This is a test") == 2)
             Assert(GetIndent("\t  This is a test") == 0)
-
     SetUp()
     status = run(globals(), halt=True)[0]
     TearDown()
