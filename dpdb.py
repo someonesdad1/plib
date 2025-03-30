@@ -1,15 +1,19 @@
-"""
+'''
     - Todo
+        - When debugging, the return value string gets truncated with '...'.  This can
+          be a pain when e.g. the return value is a ufloat, as you can't see the value.
+          Make it use up the available width or see if a debugger option can be used to
+          let you see the whole string.
         - Add a command to change the number of lines displayed
         - po command:
-            - Columnize dir() output.  First arg is object to dir, remaining
-            args are regexps to search for.
+            - Columnize dir() output.  First arg is object to dir, remaining args are
+              regexps to search for.
         - See if r vs s behavior can be changed or toggled
-        - inspect has a number of functions that could be useful for a
-          command that's used to inspect an object:  it's source, docs,
-          etc.  Call the built-in pager to do this.
+        - inspect has a number of functions that could be useful for a command that's
+          used to inspect an object:  it's source, docs, etc.  Call the built-in pager
+          to do this.
         - Use a traceback to print the call stack on an exception.
-
+        
 This module extends the python debugger pdb.py Features:
     - Added commands
         - o         Dump local variables
@@ -22,17 +26,17 @@ This module extends the python debugger pdb.py Features:
         - The file and line number in the current line
         - Error messages
         - Entering the REPL
-
+        
     To use this module to debug my code, I set the environment variable
     PYTHONBREAKPOINT to 'dpdb.set_trace' and insert 'breakpoint()' where I
     want to drop into the debugger (this is available in python 3.7 and
     later).
-
+    
     To avoid having to go too deep in the pdb/bdb code, I chose to use
     regular expressions to find the lines I wanted to colorize in the
     Pdb.message() method, so I overrode it with the definition here.
     There may be some corner cases where it doesn't work right yet.
-
+    
     Tips on the python debugger (pdb.py)
         - You can provide command aliases in a ~/.pdbrc or ./.pdbrc file.
           For example, I alias 'interactive' to 'i'.  Use 'alias' command
@@ -45,8 +49,7 @@ This module extends the python debugger pdb.py Features:
               stuff.  You then have an update problem when you go to a new
               python version.  That's why I try to make my changes in this
               file.
-"""
-
+'''
 ##∞test∞# none #∞test∞#
 from pdb import Pdb
 import code
@@ -62,9 +65,7 @@ from f import flt, cpx
 from decimal import Decimal
 from pprint import pprint as pp
 from columnize import Columnize
-
 if 1:  # Functions to set up colorizing strings
-
     def All():
         "Fancier set of colors"
         t.current_line = t("cynl")
@@ -75,7 +76,6 @@ if 1:  # Functions to set up colorizing strings
         t.error = t("redl")
         t.ret = t("viol")
         t.interactive = t("blk", "yell")
-
     def LineNumOnly():
         "Minimal set of colors"
         t.current_line = t("cynl")
@@ -86,7 +86,6 @@ if 1:  # Functions to set up colorizing strings
         t.error = t("redl")
         t.ret = t("viol")
         t.interactive = t("blk", "yell")
-
     def NoColors():
         t.current_line = ""
         t.directory = ""
@@ -96,8 +95,6 @@ if 1:  # Functions to set up colorizing strings
         t.error = ""
         t.ret = ""
         t.interactive = ""
-
-
 if 1:  # Global variables
     color_choice = All
     color_choice()
@@ -112,13 +109,13 @@ if 1:  # Regular expressions
     rlist = re.compile(r"^\s*(\d+)(\s+[B]?[->]>\s*.*)$")
     # Identify current line when stepping
     rcurr = re.compile(
-        r"""
+        r'''
         ^>\s        # Beginning of line is '> '
         ([^(]*?)    # Match up to parentheses for dir/filename
         \((.*?)\)   # Get text in parentheses for line number
         ([^\n]*)    # Get text up to newline for function name
         (\n.*)$     # String to end of line for current line
-        """,
+        ''',
         re.M | re.X,
     )
     # Identify a (simple) return
@@ -126,11 +123,8 @@ if 1:  # Regular expressions
     # Regular expression decorator
     rd = RegexpDecorate()
     rd.register(rret, Color("viol"))
-
-
 class DPdb(Pdb):
     if 1:  # Overridden Pdb methods
-
         def message(self, msg):
             if dbg:  # Print line for debugging
                 t.print(f"{t('brnl')}{msg!r}")
@@ -150,11 +144,11 @@ class DPdb(Pdb):
                 # A return
                 mo = rret.match(msg)
                 if mo:
-                    # t.print(f"{t.ret}{msg}")
+                    t.print(f"{t.ret}{msg}")
                     #   The following line is what has been giving the
                     #   'C⁸(163,  65, 255)--Return--' message in the
                     #   debugger, so I've just commented it out.
-                    # rd(msg, insert_nl=True)
+                    #rd(msg, insert_nl=True)
                     return
             except TypeError:
                 # This exception will occur when the 'whatis' command
@@ -162,27 +156,25 @@ class DPdb(Pdb):
                 pass
             # Nothing special found, so print line as normal
             print(f"{msg}")
-
         def error(self, msg):
             print(f"{t.error}", end="")
             t.print("***", msg, file=self.stdout)
-
         # This method is changed to allow more than 11 lines to be shown
         def do_list(self, arg):
-            """l(ist) [first [,last] | .]
-
+            '''l(ist) [first [,last] | .]
+            
             List source code for the current file.  Without arguments,
             list 11 lines around the current line or continue the previous
             listing.  With . as argument, list 11 lines around the current
             line.  With one argument, list 11 lines starting at that line.
             With two arguments, list the given range; if the second
             argument is less than the first, it is a count.
-
+            
             The current line in the current frame is indicated by "->".
             If an exception is being debugged, the line where the
             exception was originally raised or propagated is indicated by
             ">>", if it differs from the current line.
-            """
+            '''
             numlines = 20  # DP
             half = numlines // 2  # DP
             self.lastcmd = "list"
@@ -223,9 +215,7 @@ class DPdb(Pdb):
                     self.message("[EOF]")
             except KeyboardInterrupt:
                 pass
-
         do_l = do_list
-
         def do_interact(self, arg):
             ns = self.curframe.f_globals.copy()
             ns.update(self.curframe_locals)
@@ -237,9 +227,7 @@ class DPdb(Pdb):
                 code.interact(f"{t.interactive}*Interactive*{t.n}{t('lill')}", local=ns)
             # Go back to standard screen colors
             print(f"{t.n}", end="")
-
     if 1:  # New helper methods
-
         def current_stopped_line(self, file, linenum, func, remainder):
             print("> ", end="")
             # Only colorize the file name portion
@@ -249,11 +237,9 @@ class DPdb(Pdb):
             print(f"{t.linenum}{linenum}{t.n} ", end="")
             print(f"{t.function}{func}{t.n}", end="")
             print(f"{remainder}")
-
         def current_listing_line(self, linenum, remainder):
             print(f"{t.linenum}{linenum}", end="")
             t.print(f"{t.current_line}{remainder}")
-
         def Decorate(self, name, val, t, w):
             "Print name and value in indicated color"
             c = ""
@@ -282,11 +268,10 @@ class DPdb(Pdb):
                 print(f"  {c}{name:{w}s} = {val!r}{t.N}")
             else:
                 print(f"  {c}{name:{w}s} = {val}{t.N}")
-
         def get_frame_of_interest(self):
-            """Return the stack frame that's current in the thing being
+            '''Return the stack frame that's current in the thing being
             debugged.
-            """
+            '''
             # Get the stack.  Note that st will be a list of FrameInfo
             # objects.
             st = inspect.stack()
@@ -319,9 +304,7 @@ class DPdb(Pdb):
                     return None
                 fr = fi.frame  # Stack frame
                 return fr
-
     if 1:  # New debugger commands
-
         def do_clr(self, var):  # Set colorizing state
             "Set colorizing:  0 = None, 1 = line number, 2 = all"
             global color_choice
@@ -340,11 +323,9 @@ class DPdb(Pdb):
                 color_choice = All
             else:
                 print("value must be 0 (no color), 1 (line number), or 2 (all)")
-
         def do_cls(self, arg):  # Clear the screen
             "Clear the screen"
             print("\x1b[H\x1b[2J\x1b[3J")
-
         def do_o(self, arg):  # Dump local variables
             "Dump local variables (extra arg shows color key)"
             if 1:  # Define our own colors
@@ -389,7 +370,6 @@ class DPdb(Pdb):
                         f"{t.bytes}bytes{t.N} "
                         f"{t.bytearray}bytearray{t.N} "
                     )
-
         def do_dr(self, arg):  # Nicely print dir(arg)
             "Print the results of dir(obj) for objects in argument"
             if not arg:
@@ -399,7 +379,6 @@ class DPdb(Pdb):
             # Get locals and globals
             di = fr.f_locals  # Local variable dictionary
             args = arg.split()
-
             def Pr(s):
                 "Print item of interest s if in locals or globals"
                 if s in di:
@@ -412,18 +391,13 @@ class DPdb(Pdb):
                 print(f"{s} ({type(obj)})")  # Show object's name and type
                 for i in Columnize(dir(obj), indent="  "):
                     print(i)
-
             for i in args:
                 Pr(i)
-
-
 def set_trace(*, header=None):
     pdb = DPdb()
     if header is not None:
         pdb.message(header)
     pdb.set_trace(sys._getframe().f_back)
-
-
 # The following two functions are needed by debug.py to let DPdb be used
 # by debug.TraceInfo().
 def post_mortem(t=None):
@@ -439,7 +413,5 @@ def post_mortem(t=None):
     p = DPdb()
     p.reset()
     p.interaction(None, t)
-
-
 def pm():
     post_mortem(sys.last_traceback)

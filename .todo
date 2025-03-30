@@ -7,10 +7,15 @@ Active:  /plib/.todo
           let you see the whole string.
 
     - Autoformatters
-        - See if it they avoid the annoying spacing of expressions that black uses
-        - https://github.com/hhatto/autopep8
+        - pycodestyle.py
+            - Is useful checking tool that can be configured and used as a linter
+            - Compare to ruff's output via my function lint
+            - Have another script color code the errors/warnings and group them by line numbers
         - https://github.com/google/yapf
             - ARITHMETIC_PRECEDENCE_INDICATION does opposite of what I want
+            - NO_SPACES_AROUND_SELECTED_BINARY_OPERATORS does exactly what I want when
+              configured with "*,/".  There are 61 different knobs you can turn, so this
+              is an architecture to test.
 
     - util.py
         - fsig() should be changed to a thread-safe and process-safe class by using
