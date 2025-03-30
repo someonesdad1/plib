@@ -1,4 +1,4 @@
-"""
+'''
 TODO:
 
     - GetNumber uses the boolean use_unit to allow the user to append a unit string.  Change it to
@@ -15,7 +15,7 @@ TODO:
 Module for a) getting data from files, strings, and streams, b) getting numbers interactively from
 user.
 
-"""
+'''
 if 1:  # Header
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -75,23 +75,23 @@ if 1:  # Header
         "ĆąĄăĂāĀÿþýüûúùøöõôóòñðïîíìëêéèçæåäãâáàßÞÝÜÛÚÙØÖÕÔÓÒÑÐÏÎÍÌË"
         "ÊÉÈÇÆÅÄÃÂÁÀ"
     )
-    __all__ = """
+    __all__ = '''
             GetText GetLines1 GetLines GetTextLines GetLine GetNumberedLines GetBinary
             GetNumber GetNumber GetNumberArray GetFraction ParseUnit ParseUnitString GetComplex
             GetChoice
             GetWords GetTokens GetWordlist wrd pnc Tokenize
             IsPunctuation GetWireDiameter GetFileSize
-        """.split()
+        '''.split()
 if 1:  # Getting text, lines, bytes
     def GetText(thing, enc=None):
-        """Return text from thing, which is
+        '''Return text from thing, which is
             string      It's a file name.  If read exception, then use string
                         itself for the text. "-" means to read stdin.
             bytes
             stream
         If enc is not None, then it's the encoding to read the file and it is
         read as binary.  enc is ignored for stdin.
-        """
+        '''
         if ii(thing, bytes):  # Bytes
             s = thing.decode(encoding="UTF-8" if enc is None else enc)
         elif ii(thing, pathlib.Path):  # It's a path, so read its text
@@ -254,24 +254,24 @@ if 1:  # Getting text, lines, bytes
             lines = [i.strip() for i in lines]
         return lines
     def GetTextLines(thing):
-        """This is a convenience instance of GetLines with the keywords:
+        '''This is a convenience instance of GetLines with the keywords:
             script = True
             ignore_empty = True
             strip = True
             nonl = True
         This is because a common use case in a script is a multi-line string
         containing a data table that's e.g. tab-separated.
-        """
+        '''
         return GetLines(thing, script=True, ignore_empty=True, strip=True, nonl=True)
     def GetLine(thing, enc=None):
-        """Similar to GetLines, but is a generator so it gets a line at a time.
+        '''Similar to GetLines, but is a generator so it gets a line at a time.
         thing can be a string, bytes, or a stream.  If it is a string, it's
         assumed to be a file name; if trying to read the file generates an
         exception, the string itself is used as the text.
         
         If it is a bytes object, then the indicated encoding is used to
         decode it, then it's read a line at a time.
-        """
+        '''
         if ii(thing, bytes):  # Bytes
             s = thing.decode(encoding="UTF-8" if enc is None else enc)
             stream = StringIO(s)
@@ -290,25 +290,25 @@ if 1:  # Getting text, lines, bytes
             yield line
             line = stream.readline()
     def GetNumberedLines(thing, enc=None):
-        """Return a tuple of (linenum, line_string) tuples where linenum is
+        '''Return a tuple of (linenum, line_string) tuples where linenum is
         the line number in the file.  See GetText for details on the enc
         argument.
-        """
+        '''
         lines = GetText(thing, enc=enc).split("\n")
         return tuple((i + 1, j) for i, j in enumerate(lines))
     def GetBinary(thing, encoded=False):
-        """Read in thing as binary (thing is a stream or filename).  Bytes
+        '''Read in thing as binary (thing is a stream or filename).  Bytes
         will be returned.
         
         If encoded is True, then try to decode it by using a number of
         encodings.  A string will be returned if it can be decoded.
-        """
+        '''
         # See ConstructEncodingData in /pylib/enc.py, as it gives the
         # frequency of these encodings found on web pages.
-        encodings = """
+        encodings = '''
             utf_8 latin_1 cp1251 cp1252 shift_jis gb2312 euc_kr euc_jp
             iso8859_2 gbk cp1250 big5 iso8859_9 iso8859_15
-        """.split()
+        '''.split()
         if encoded:
             try:
                 s = thing.read()
@@ -330,7 +330,7 @@ if 1:  # Getting text, lines, bytes
                 return open(thing, "rb").read()
 if 1:  # Getting numbers
     def GetNumber(prompt_msg, **kw):
-        """General-purpose routine to get a number from the user with the prompt msg.  These are
+        '''General-purpose routine to get a number from the user with the prompt msg.  These are
         the things that can be returned:
         
             number                      use_unit is False
@@ -436,7 +436,7 @@ if 1:  # Getting numbers
         (I debated as to whether I should make this function an object instead; then this could be
         done by subclassing rather than changing the function.  But the convenience of a simple
         function won out.)
-        """
+        '''
         outstream = kw.get("outstream", sys.stdout)
         instream = kw.get("instream", None)
         numtype = kw.get("numtype", flt)
@@ -590,14 +590,14 @@ if 1:  # Getting numbers
                 if c not in conditionals:
                     # Programmer mistake
                     raise ValueError(
-                        """Bad set of parameters to GetNumber:
+                        '''Bad set of parameters to GetNumber:
         low       = {low}
         high      = {high}
         low_open  = {low_open}
         high_open = {high_open}
         invert    = {invert}
     
-        For example, low and high must not be None.""".format(**locals())
+        For example, low and high must not be None.'''.format(**locals())
                     )
                 condition = conditionals[c]
                 if not eval(condition):
@@ -628,7 +628,7 @@ if 1:  # Getting numbers
                 else:
                     return x
     def GetNumbers(thing, numtype=None, enc=None):
-        """Uses GetText() to get a string, then recognizes integers, floats,
+        '''Uses GetText() to get a string, then recognizes integers, floats,
         fractions, complex, and uncertain numbers in the string separated by
         whitespace and returns a list of these numbers.  If numtype is
         given, all found strings are converted to that type.
@@ -639,7 +639,7 @@ if 1:  # Getting numbers
         
         If the uncertainties library is present, the ufloat type can be
         recognized.
-        """
+        '''
         lst, dp = [], locale.localeconv()["decimal_point"]
         for s in GetText(thing, enc=enc).split():
             if numtype:
@@ -703,7 +703,7 @@ if 1:  # Getting numbers
         # Use transpose to return column vectors
         return [list(i) for i in zip(*A)]
     def GetFraction(s):
-        """Return a Fraction object if string s contains a '/' and can be
+        '''Return a Fraction object if string s contains a '/' and can be
         interpreted as an improper or proper fraction or if it can be
         interpreted as an integer.  Otherwise return None.  The following
         forms are allowed:
@@ -712,7 +712,7 @@ if 1:  # Getting numbers
             B   1 1/4   +1 1/4  -1 1/4
             C   1-1/4   +1-1/4  -1-1/4
             D   1+1/4   +1+1/4  -1+1/4
-        """
+        '''
         if "/" not in s:
             try:
                 i = int(s)
@@ -737,7 +737,7 @@ if 1:  # Getting numbers
         except Exception:
             return None
     def ParseUnit(s):
-        """Assume the string s has a unit and possible SI prefix appended
+        '''Assume the string s has a unit and possible SI prefix appended
         to the end, such as '123Pa', '123 Pa', or '1.23e4 Pa'.  Remove the
         unit and prefix and return the tuple (num, unit).  Note that two
         methods are used.  First, if the string contains one or more space
@@ -745,7 +745,7 @@ if 1:  # Getting numbers
         returned immediately; an exception is raised if there are more
         than two portions.  The other method covers the case where the
         unit may be cuddled against the number.
-        """
+        '''
         if " " in s:
             f = tuple(i.strip() for i in s.split())
             if len(f) != 2:
@@ -767,7 +767,7 @@ if 1:  # Getting numbers
                 unit.append(i)
         return ("".join(reversed(num)), ("".join(reversed(unit))).strip())
     def ParseUnitString(x, allowed_units, strict=True):
-        """This routine will take a string x and return a tuple (prefix,
+        '''This routine will take a string x and return a tuple (prefix,
         unit) where prefix is a power of ten gotten from the SI prefix
         found in x and unit is one of the allowed_units strings.
         allowed_units must be an iterable container.  Note things are
@@ -788,7 +788,7 @@ if 1:  # Getting numbers
         be anchored at the right end of x.  If strict is False, then the
         strings in allowed_units do not have to be present in x; in this
         case, (1, "") will be returned.
-        """
+        '''
         # Define the allowed SI prefixes
         si = {
             "y": -24,
@@ -842,7 +842,7 @@ if 1:  # Getting numbers
                 raise ValueError(f"'{prefix}' is not an SI prefix")
             return (10 ** si[prefix], unit)
     def GetComplex(s, typ=complex):
-        """Return a complex number from the string s.  If s does not
+        '''Return a complex number from the string s.  If s does not
         represent a complex number, None is returned.  You can change the
         returned number type with typ.  The allowed forms of s are:
             1. i, +i, -i
@@ -852,7 +852,7 @@ if 1:  # Getting numbers
         where
             X is an integer or float with an optional leading sign
             Y is an integer or float with a mandatory leading sign
-        """
+        '''
         if not ii(s, str):
             raise TypeError("Parameter s must be a string")
         u = s.lower().replace("j", "i")
@@ -921,10 +921,10 @@ if 1:  # Getting numbers
         else:
             return typ(z)
     def GetClosest(x, seq, dist=lambda a, b: abs(a - b)):
-        """Given a number x, return the number in seq that is closest to x.  seq is assumed to be in
+        '''Given a number x, return the number in seq that is closest to x.  seq is assumed to be in
         sorted order so that the bisect module can be used.  The distance between x and elements
         in seq is calculated by the dist function.
-        """
+        '''
         if not seq:
             raise ValueError("seq cannot be an empty sequence")
         assert seq
@@ -940,7 +940,7 @@ if 1:  # Getting choices
     def GetChoice(
         seq, default=1, indent=None, col=False, instream=None, outstream=None
     ):
-        """Display the choices in seq with numbers and prompt the user for his
+        '''Display the choices in seq with numbers and prompt the user for his
         choice.  Note the numbers are 1-based as displayed to the user, but the
         returned value of choice will be 0-based.  Return the choice_number.
         
@@ -950,7 +950,7 @@ if 1:  # Getting choices
         
         instream and outstream are used for testing and are passed to
         GetNumber().
-        """
+        '''
         if not seq:
             raise ValueError("seq can't be empty")
         items, n = [], len(seq)
@@ -978,12 +978,12 @@ if 1:  # Getting choices
         return (choice, seq[choice])
 if 1:  # Tokenizing
     def GetWords(thing, sep=None, enc=None, ignore=[]):
-        """Return a list of words separated by the string sep from the thing (see details for
+        '''Return a list of words separated by the string sep from the thing (see details for
         GetLines).  If sep is None, then the data are split on whitespace; otherwise, the newlines
         are replaced by sep, then the data are split on sep.
         
         ignore is a sequence of regular expressions that indicate the lines to ignore.
-        """
+        '''
         lines = GetLines(thing, ignore=ignore, nonl=True)
         if sep is not None:
             s = sep.join(lines)
@@ -991,15 +991,15 @@ if 1:  # Tokenizing
         else:
             return " ".join(lines).split()
     def GetTokens(*things, sep=None, enc=None):
-        """Similar to GetWords(), but this is a generator so that arbitrarily large sets of files
+        '''Similar to GetWords(), but this is a generator so that arbitrarily large sets of files
         or streams can be processed.
-        """
+        '''
         for thing in things:
             for line in GetLine(thing, enc=enc):
                 for token in line.split() if sep is None else line.split(sep):
                     yield token
     def GetWordlist(*files, case=None):
-        """The arguments can be a stream, filename, or string to parse.  Return a set of all the
+        '''The arguments can be a stream, filename, or string to parse.  Return a set of all the
         words in these files.
         
         This function is aimed at reading wordlists I use on my computer.  These will have comment
@@ -1008,7 +1008,7 @@ if 1:  # Tokenizing
         
         If case is None, do nothing with the words.  If it is "lower", change them to lower case;
         upper with "upper".
-        """
+        '''
         words = set()
         for file in files:
             try:
@@ -1041,7 +1041,7 @@ if 1:  # Tokenizing
     def Tokenize(
         s, wordchars=letters, otherchars=others, check=True, wordtype=wrd, punctype=pnc
     ):
-        """Return a deque out that contains all the word tokens in the string s.  The tokenizing
+        '''Return a deque out that contains all the word tokens in the string s.  The tokenizing
         process is such that ''.join(out) is the same string as s (this is verified if check is
         True and raises an exception if it isn't).  wordchars and otherchars must be sequences of
         letters (sets preferred) so that "in" works on detecting whether a letter is in the
@@ -1057,11 +1057,11 @@ if 1:  # Tokenizing
             
         The word tokens have isinstance(token, wrd) return True and the punctuation strings have
         isinstance(token, pnc) return True.
-        """
+        '''
         def Handle(char, seq1, seq2, seq2type):
-            """Append char to seq1 and coalesce seq2 to seq2type, and clear seq2.  seq1 and seq2
+            '''Append char to seq1 and coalesce seq2 to seq2type, and clear seq2.  seq1 and seq2
             are either word or punctuation sequences.
-            """
+            '''
             seq1.append(char)
             if seq2:
                 p = "".join(seq2)  # Coalesce into a single string
@@ -1145,12 +1145,12 @@ if 1:  # Miscellaneous
             IsPunctuation.punc = set(string.punctuation + other_punc)
         return set(seq) <= IsPunctuation.punc
     def GetWireDiameter(default_unit="mm"):
-        """Returns (s, d) where d is a wire diameter in the indicated units and
+        '''Returns (s, d) where d is a wire diameter in the indicated units and
         s is the string the user input.  The user is prompted for the value,
         which can use an optional length unit (must be separated from the value
         by one or more spaces) or ' ga' to denote AWG.  The number portion of
         the input can be a valid python expression.
-        """
+        '''
         def AWG(n):
             if n < -3 or n > 56:
                 raise ValueError("AWG argument out of range")
@@ -1245,11 +1245,11 @@ if __name__ == "__main__":
             t = GetText(b"\xb5", enc="ISO-8859-1")
             Assert(t == "µ")
             # Test with regexp
-            s = dedent("""
+            s = dedent('''
             # Comment
             ## Another comment
             Line 1
-              Line 2""")
+              Line 2''')
             r = ("^ *#",)
             lines = GetLines(s, ignore=r, nonl=True)
             Assert(lines == ["Line 1", "  Line 2"])
@@ -1278,11 +1278,11 @@ if __name__ == "__main__":
             t = GetLines(sio, ignore=[], script=True, nonl=True)
             Assert(t == ["abc"])
             # Test docstring example
-            s = """# Comment
+            s = '''# Comment
             ## Another comment
             Line 1
                 Line 2
-            """
+            '''
             r = [r"^\s*#"]
             lines = GetLines(s, ignore=r, nonl=True)
             if 0:
@@ -1899,10 +1899,10 @@ if __name__ == "__main__":
             Assert(all([ii(i, Fraction) for i in L]))
             Assert(L == [Fraction(3, 8), Fraction(7, 16), Fraction(1, 2)])
         def TestGetNumberArray():
-            s = """
+            s = '''
                 1 2 3
                 4 5 6
-            """
+            '''
             # Empty string
             a = GetNumberArray("")
             Assert(a == [[]])
@@ -1917,10 +1917,10 @@ if __name__ == "__main__":
             Assert(a == [[1]])
             Assert(isinstance(a[0][0], int))
             # Single column vector
-            t = """
+            t = '''
                 1
                 2
-            """
+            '''
             a = GetNumberArray(t)
             Assert(a == [[1.0], [2.0]])
             # Single row vector
@@ -1939,10 +1939,10 @@ if __name__ == "__main__":
             a = GetNumberArray(s, row=True, numtype=int)
             Assert(a == [[1, 2, 3], [4, 5, 6]])
             # Bad data gets exception
-            s = """
+            s = '''
                 1 2 3
                 4 5  
-            """
+            '''
             with raises(ValueError):
                 a = GetNumberArray(s)
         def TestGetFraction():
@@ -2098,12 +2098,12 @@ if __name__ == "__main__":
             Assert(L == "1 2 3 4 5 6".split())
         def TestGetWordlist():
             t = "Aa Bb cC"
-            s = f"""# Comment
+            s = f'''# Comment
             # Another comment
             {t}
                         {t}
     
-            """
+            '''
             wl = GetWordlist(s, case=None)
             Assert(wl == set(t.split()))
             wl = GetWordlist(s, case="lower")
