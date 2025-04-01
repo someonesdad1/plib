@@ -48,30 +48,35 @@ if 1:  # Data
         (use 'nbs' in vim).
 
         Box 1
-            1:1:?    Component pins   pin
-            1:1:?    Pin rings   pin
-            1:1:?    Pin sockets   pin socket
-            1:1:?    Test pins   pin
-            1:2:?    CAT5 jack connector, female RJ-45, panel mount   jack connector
-            1:2:?    Capacitor, 20 pF   capacitor
-            1:3:?    3-5 V piezo device   sound
-            1:4:?    Various Radio Shack (276-1657) CdS photocells   opto
-            1:5:?    Small relays   relay switch
-            1:7:?    #6 solder lugs   lug
-            1:6:?    0.1 uF capacitor   capacitor
-            1:7:?    Jumpers   jumper
-            1:8:?    3 V piezo buzzer   sound
-            1:9:?    2 kHz piezo buzzer   sound
-            1:10:?    Piezo buzzers   sound
-            1:11:?    Microphone   sound
-            1:11:?    Piezo, buzzer   sound
-            1:12:?    Piezo, buzzer   sound
-            1:13:?    Speaker, small, 8 ohm   sound
-            1:14:?    2 kHz piezo buzzer   sound
-            1:15:?    Buzzer 1.2-3.5 V   sound
-            1:16:?    Chime, 1.5-3 V, 30-60 mA, two tone, + RED, -BLK, connect WHT to + for sound   sound
-            1:17:?    Piezo, buzzer   sound
-            1:18:?    Piezo, buzzer   sound
+            1:1:M    Component pins   pin
+            1:1:M    Pin rings   pin
+            1:1:M    Pin sockets   pin socket
+            1:1:M    Test pins   pin
+            1:2:1    CAT5 jack connector, female RJ-45, panel mount   jack connector
+            1:2:7    Capacitor, 20 pF   capacitor
+            1:3:1    3-5 V piezo device   sound
+            1:4:4    Various Radio Shack (276-1657) CdS photocells   opto
+            1:4:2    All Elec. 15 V sound modules   sound
+            1:5:9    Small relays   relay switch
+            1:6:9    Capacitor, 100 nF   capacitor
+            1:6:1    Buck converter MPJA 35371 4.5-28 V in, > 3 Vout, 3 A max, heat snk > 10 W   converter
+            1:7:M    #6 solder lugs   lug
+            1:7:M    Jumpers   jumper
+            1:8:1    3 V 0.5 mA piezo buzzer (best 2.4 kHz)   sound
+            1:8:M    Buzzer, mechanical 3 V 10 mA MPJA 34102 48 
+            1:9:1    2 kHz piezo buzzer   sound
+            1:9:2    PS MOD-3 5 V piezo buzzer (use PWM on Arduino)   sound
+            1:10:2    Piezo buzzers 1 kHz sq wv 9 Vpp   sound
+            1:11:3    Microphone   sound
+            1:11:1    Piezo buzzer ?   sound
+            1:12:2    Piezo buzzer All El. 1 kHz 10 Vpp   sound
+            1:13:1    Speaker, small, 8 ohm   sound
+            1:13:1    RS 273-065A buzzer 3-20 V DC   sound
+            1:14:1    Piezo buzzer 60 Hz - 2 kHz 4.5 Vpp   sound
+            1:15:1    Buzzer 2 kHz 9 V   sound
+            1:16:1    RS Chime, 1.5-3 V, 30-60 mA, two tone, + RED, -BLK, connect WHT to + for sound   sound
+            1:17:M    Buzzer, mechanical 3 V 10 mA MPJA 34102 48 
+            1:18:1    Piezo buzzer All El. <= 20 Vpp, AVX mfg   sound
         Box 2
             2:1:?    LEDs, misc (high brightness, UV)   opto LED
             2:2:?    120 VAC neon indicator in threaded housing   opto
@@ -105,19 +110,19 @@ if 1:  # Data
             3:1:?    Cable clamps   misc
             3:1:?    Captured fastener, right angle   fastener
             3:1:?    Tinnerman fastener   fastener
-            3:2:?    fastener, 4.2" long, 1/4" dia, plated steel   fastener
-            3:2:?    fasteners   fastener
-            3:3:?    fasteners   fastener
+            3:2:?    Fastener, 4.2" long, 1/4" dia, plated steel   fastener
+            3:2:?    Fasteners   fastener
+            3:3:?    Fasteners   fastener
             3:4:?    Star fasteners   fastener
-            3:5:?    fasteners   fastener
-            3:6:?    fasteners   fastener
-            3:7:?    fasteners   fastener
+            3:5:?    Fasteners   fastener
+            3:6:?    Fasteners   fastener
+            3:7:?    Fasteners   fastener
             3:8:?    Molex pins   pin
             3:8:?    Rubber fastener   fastener
             3:9:?    Thumb fasteners   fastener
-            3:10:?    fasteners, nylon   fastener
-            3:11:?    fasteners, nylon   fastener
-            3:12:?    fasteners   fastener
+            3:10:?    Fasteners, nylon   fastener
+            3:11:?    Fasteners, nylon   fastener
+            3:12:?    Fasteners   fastener
         Box 4
             4:1:?    2N5114 transistor, P-channel JFET, < 75 ohm, 30 V, 500 mW   FET transistor
             4:1:?    4-pin transistor socket   socket
@@ -471,7 +476,7 @@ if 1:  # Data
             24:14:?    FDP8030L logic level MOSFET transistor, 80 A 30 V 4.5 mΩ TO220   transistor
             24:15:?    MPJA mini 3 W per channel stereo amplifier   amplifier
             24:15:?    LTC1968 RMS-to-DC converter 500 kHz   IC
-            24:16:?    50 A 1 kV PIV full wave bridge rectifier   diode
+            24:16:?    50 A 1 kV PIV full wave bridge diode rectifier   diode
             24:16:?    Rubber feet   diode
             24:17:?    DPDT toggle switch   switch
             24:18:?    DPDT toggle switch   switch
@@ -554,7 +559,7 @@ if 1:  # Data
             30:1:?    AC volts multi-function meter (line voltage & current measurement)   meter
             30:2:?    ZK-TD2 timer module $4.6 ea banggood 19Nov2021 /elec/projects/TimerBox.odt   module
             30:3:?    IRFZ44N N-ch MOSFET 55 V 49 A 17.5 mΩ 62 °C/W TO220   MOS
-            30:4:?      
+            30:4:7    Buck converter banggood 30Dec2019 $1.2   PCB
             30:5:?    5 V relay, 2.5 mA @ 5 V, 15 A 125 V (new 7 Aug 2017 banggood)   relay
             30:6:?    12 V 10 A relay, 60 mA closed (new 19 May 2022, Amazon, $2)   relay
         Box 31
@@ -567,7 +572,7 @@ if 1:  # Data
             32:1:?    Capacitor, 100 nF, 25 V, part no. 104M5C806   capacitor
             32:2:?      
             32:3:?      
-            32:4:?      
+            32:4:?    PWM modules 2 A   PCB
             32:5:?      
             32:6:M    Ring terminal, blue, 1/4 inch   terminal
             32:7:?      
@@ -576,7 +581,7 @@ if 1:  # Data
             32:10:?      
             32:11:?      
             32:12:?      
-            32:13:?      
+            32:13:M   Boost converter 2 A 2-24 V banggood 2017/2020 ~80¢   PCB
 
     ''')
     if 0:  # For testing/debugging

@@ -1,8 +1,5 @@
 Active:  /plib/.todo
 
-    - Remove color.py references from f.py, as this produces circular imports,
-      especially when using get.py.  Also remove flt stuff from get.py.
-
     - dpdb.py
         - When debugging, the return value string gets truncated with '...'.  This can
           be a pain when e.g. the return value is a ufloat, as you can't see the value.
