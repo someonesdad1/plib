@@ -573,9 +573,9 @@ if 1:  # Data
             32:2:?      
             32:3:?      
             32:4:?    PWM modules 2 A   PCB
-            32:5:?      
+            32:5:12   5/16-18 inch Penta-nuts
             32:6:M    Ring terminal, blue, 1/4 inch   terminal
-            32:7:?      
+            32:7:20   1/4-20 inch Penta-nuts
             32:8:?      
             32:9:?      
             32:10:?      

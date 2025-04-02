@@ -17,6 +17,13 @@ Active:  /plib/.todo
               configured with "*,/".  There are 61 different knobs you can turn, so this
               is an architecture to test.
 
+    - 7 segment displays
+        - Can display these letters
+            - A B C E F G H I J L N O P S T U X Y Z
+            - b c d h i j l n o q r t u y
+        - Write a script that displays the words from /words dictionaries that can be
+          thus displayed
+
     - util.py
         - fsig() should be changed to a thread-safe and process-safe class by using
           threading.Lock and multiprocessing.Lock.
