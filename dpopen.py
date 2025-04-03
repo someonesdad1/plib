@@ -1,12 +1,11 @@
-"""
+'''
 Provides RegisteredOpen(), which lets you open a file with its registered application
 
     This should be trivial, but there's no OS-independent way to do it in python.  This module
     covers cygwin and WSL, the two environments I currently work in.  Extending to Linux and Mac
     should be pretty trivial.
-
-"""
-
+    
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -31,11 +30,10 @@ if 1:  # Header
     if 1:  # Global variables
         ii = isinstance
 if 1:  # Core functionality
-
     def RegisteredOpen(file):
-        """Open the indicated file with its registered application.  file must be a string
+        '''Open the indicated file with its registered application.  file must be a string
         or a Path instance.
-        """
+        '''
         if ii(file, str):
             p = P(file)
         elif ii(file, P):
@@ -63,8 +61,6 @@ if 1:  # Core functionality
             print(f"{e}")
         finally:
             os.chdir(cwd)
-
-
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         print(f"Usage: {sys.argv[0]} [file1 [file2 ...]]")
