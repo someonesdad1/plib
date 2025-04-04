@@ -2099,7 +2099,6 @@ g library
                 - https://cairosvg.org/documentation/#installation
 
 wb.py
-
     Wheatstone bridge exploration tool
 
     You'd provide a script containing the parameters of the bridge
@@ -2145,6 +2144,14 @@ wb.py
 
     If uncertainties are given, then the calculations are done with the python uncertainties
     library.
+
+Basic math tables
+    - Suppose you were marooned on a desert island with a 150 mm slide rule, paper, and
+      writing implements.  You want to design things and do basic math stuff.  How would
+      you generate the core math tables used for centuries to do the calculations that
+      need to be done?
+    - My first supposition is that the most important tables would be first to duplicate
+      Barlow's tables.  Then would come logarithms and trig tables.
 
 Programmer's index  xxpgidx
 
