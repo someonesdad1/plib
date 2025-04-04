@@ -15,7 +15,7 @@ pp = PP()
 #   2   URL
 #   3   Comment
 Entry = namedtuple("Entry", "title artist url comment")
-favorites = f'''
+favorites = '''
 
     Angie ; Rolling Stones ; oWRr03VcA-0 ;
     Beethoven's 7th ; Bernstein ; Rw-KtQLdRT4 ; 2nd movement 14:33 is best
@@ -43,7 +43,7 @@ favorites = f'''
     Volga Boatmen ; ; qsovBF4N27Q ;
 
 '''
-dead_urls = f'''
+dead_urls = '''
 
     Bad Bad Leroy Brown ; Jim Croce ; CIiVindRSTA ; 
     Beethoven: Für Elise ; ; _mVW8tgGY_w ; 
@@ -58,7 +58,7 @@ dead_urls = f'''
     White Rabbit ; Jefferson Airplane ; EUY2kJE0AZE ; 
 
 '''
-songs = f'''
+songs = '''
 
     100 lbs of Clay ; Gene McDaniels ; rUGonj90b5I ;
     16 Tons ; Tennessee Ernie Ford ; jIfu2A0ezq0 ; 
@@ -326,6 +326,7 @@ if 1:   # Functions
     def ValidateURL(entry):
         if not validate:
             return
+        global validated_OK
         r = requests.get(entry.url)
         # This is a heuristic that looks for the string "This video isn't available
         # anymore", indicating the url is no longer valid.
@@ -347,7 +348,7 @@ if 1:   # Functions
             if not line or line[0] == "#":
                 continue
             # Split the line on ';' as the field separator
-            title, artist, url, comment = f = [i.strip() for i in line.split(";")]
+            title, artist, url, comment = [i.strip() for i in line.split(";")]
             # If the URL doesn't start with "https://", construct it
             if not url.startswith("https://"):
                 url = "https://www.youtube.com/watch?v=" + url
