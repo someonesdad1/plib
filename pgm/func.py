@@ -18,14 +18,12 @@ if 1:  # Header
         import sys
     if 1:   # Custom imports
         from columnize import Columnize
-        from f import flt
         from wrap import dedent
         from color import t
-        from lwtest import Assert
         from dpprint import PP
         import get
         pp = PP()   # Get pprint with current screen width
-        if 1:
+        if 0:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
@@ -90,7 +88,7 @@ if 1:   # Utility
                     if not (1 <= d[o] <= 15):
                         raise ValueError()
                 except ValueError:
-                    Error(f"-d option's argument must be an integer between 1 and 15")
+                    Error("-d option's argument must be an integer between 1 and 15")
             elif o == "-h":
                 Usage()
         GetColors()
@@ -171,6 +169,33 @@ if 1:   # Core functionality
             w = max(w, len(item.name))
         for item in sorted(funcdict[category]):
             print(f"  {t.name}{item.name:{w}s}{t.n} {item.descr}")
+    def BinExecutables():
+        o = []
+        for file in P("/home/don/.0rc/bin").glob("*"):
+            # Get first 20 bytes of file
+            try:
+                f = file.open("rb").read(20)
+            except Exception:
+                continue
+            if f[:2] != b"#!":
+                continue
+            if file.name.endswith(".py"):
+                continue
+            if file.name in ("z",):
+                continue
+            o.append(file)
+        # Report:  print the first line's info
+        t.print(f"{t.cat}Scripts in ~/.0rc/bin:")
+        w = 0
+        for i in o:
+            w = max(w, len(i.name))
+        for i in sorted(o):
+            line = i.open().read().split("\n")[1]
+            descr = line[1:].strip()
+            print(f"  {i.name:{w}s} {descr}")
+    def SearchForRegex(args):
+        r = re.compile("")
+        print(r) #xx
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
@@ -181,7 +206,8 @@ if __name__ == "__main__":
     if op == "b":
         BinExecutables()
     elif op == "c":
-        for category in args:
+        items = args if args else sorted(funcdict.keys())
+        for category in items:
             ShowCategoryNames(category)
     elif op == "l":
         List(args)

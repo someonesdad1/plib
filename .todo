@@ -65,7 +65,8 @@ Active:  /plib/.todo
         - By creators of ruff
 
     - Learn rust
-        - Write a cli:  https://rust-cli.github.io/book/tutorial/index.html
+        - Rust apparently is a good CLI toolkit
+            - Write a cli:  https://rust-cli.github.io/book/tutorial/index.html
         - Install:  https://www.rust-lang.org/tools/install
             - WSL:  "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
         - Book:  https://www.rust-lang.org/learn
