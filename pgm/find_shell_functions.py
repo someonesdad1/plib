@@ -1,12 +1,11 @@
-"""
+'''
 
 Purpose:  locate valid shell function definitions
     - Default behavior is to list all function names found
-
-
+    
+    
 Find shell functions in text
-"""
-
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -35,11 +34,9 @@ if 1:  # Header
         from get import GetLines
         from columnize import Columnize
     if 1:  # Global variables
-
         class G:
             # Storage for global variables as attributes
             pass
-
         g = G()
         g.dbg = False
         ii = isinstance
@@ -56,21 +53,17 @@ if 1:  # Header
             # g.ignore contains regexps to ignore
             g.ignore = set()
 if 1:  # Utility
-
     def GetColors():
         t.dbg = t("lill") if g.dbg else ""
         t.don = t("grnl")
         t.N = t.n if g.dbg else ""
-
     def GetScreen():
         "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
             int(os.environ.get("COLUMNS", "80")) - 1,
         )
-
     g.W, g.L = GetScreen()
-
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="", file=Dbg.file)
@@ -78,45 +71,37 @@ if 1:  # Utility
             k["file"] = Dbg.file
             print(*p, **k)
             print(f"{t.N}", end="", file=Dbg.file)
-
     Dbg.file = sys.stderr  # Debug printing to stderr by default
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options] [file1 [file2...]]
-          Read files and find shell function names.  Use - for stdin.
-          Print each function name found on one line.  Use -c to print in
-          columns.
- 
-          The options -s and -S are used to identify functions that
-          follow my preferred shell function forms:
+          Read files and find shell function names.  Use - for stdin.  Print each
+          function name found on one line.  Use -c to print in columns.  The options -s
+          and -S are used to identify functions that follow my preferred shell function
+          forms:
             -s      "^function name$"
             -S      "^ *function name$"
- 
         Note
-          Bash function names can be any unquoted shell word without '$'.
-          In this script, I only allow characters 'A-Z', 'a-z', '0-9', '_'
-          and '.'.
+          Bash function names can be any unquoted shell word without '$'.  In this
+          script, I only allow characters 'A-Z', 'a-z', '0-9', '_' and '.'.
         Options:
             -c      Print in columns
             -d      Debug printing
             -I r    Define regex for function names to ignore (case insensitive)
             -i r    Define regex for function names to ignore
             -s      Use strict regex to find my preferred function syntax
-        """)
+        ''')
         )
         exit(status)
-
     def ParseCommandLine(d):
-        d["-c"] = False  # Columnized printing
-        d["-d"] = False  # Debug printing
-        d["-i"] = []  # Function name regexes to ignore
-        d["-s"] = False  # Use a strict regexp to find my preferred form
+        d["-c"] = False     # Columnized printing
+        d["-d"] = False     # Debug printing
+        d["-i"] = []        # Function name regexes to ignore
+        d["-s"] = False     # Use a strict regexp to find my preferred form
         d["ignore_regexps"] = []
         if len(sys.argv) < 2:
             Usage()
@@ -143,14 +128,12 @@ if 1:  # Utility
         g.dbg = d["-d"]
         GetColors()
         return args
-
-
 if 1:  # Core functionality
-
     def Report(function_set):
         "Print the function report"
         sentinel = None
         dq = deque(sorted(function_set))
+        breakpoint() #xx 
         dq.append(sentinel)  # Identifies end of deque
         results = []
         while dq:
@@ -158,7 +141,6 @@ if 1:  # Core functionality
             if funcname is sentinel:
                 break
             # See if this funcname is to be ignored
-
             print(funcname)
             if d["-g"] and IgnoreGitGawk(item):
                 continue
@@ -174,9 +156,8 @@ if 1:  # Core functionality
         else:
             while dq:
                 print(dq.popleft())
-
     def DebugPrint(funcs, lines):
-        """funcs is a set, lines is a list"""
+        '''funcs is a set, lines is a list'''
         if g.dbg:
             if 0:
                 for line in lines:
@@ -185,7 +166,6 @@ if 1:  # Core functionality
             Dbg(f"  File's functions:")
             for i in Columnize(funcs):
                 Dbg(i)
-
     def GetFunctions(file, funcs, strict):
         r = g.strict if strict else g.relaxed
         Dbg(f"strict = {strict}")
@@ -205,20 +185,17 @@ if 1:  # Core functionality
                 funcs.add(dq.popleft())
         DebugPrint(funcs, lines)
 
-        exit()  # xx
-
-
 if 0:
     # This is a non-strict regexp and it matches things that are taken as
     # functions by bash.
     r = r"^\s*function\s+([a-z_][a-z0-9_]*)\s*(\(\s*\))\s*$|^\s*([a-z_][a-z0-9_]*)\s*(\(\s*\))\s*$"
     print(type(re.compile(r)))
     exit()
-    S = """
+    S = '''
 ab ()
 cd	(	)		
 	ef	(	)		
-    """
+    '''
     for line in S.split("\n"):
         mo = re.match(r, line, re.I)
         if mo:
@@ -226,7 +203,6 @@ cd	(	)
         else:
             print(f"{line!r}", None)
     exit()
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     files = ParseCommandLine(d)

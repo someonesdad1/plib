@@ -1,0 +1,191 @@
+_pgminfo = '''
+<oo 
+    Utility to examine my shell functions
+oo>
+<oo cr Copyright © 2025 Don Peterson oo>
+<oo cat utility oo>
+<oo test none oo>
+<oo todo oo>
+'''
+ 
+if 1:  # Header
+    if 1:   # Standard imports
+        from collections import deque, defaultdict
+        from pathlib import Path as P
+        import getopt
+        import os
+        import re
+        import sys
+    if 1:   # Custom imports
+        from columnize import Columnize
+        from f import flt
+        from wrap import dedent
+        from color import t
+        from lwtest import Assert
+        from dpprint import PP
+        import get
+        pp = PP()   # Get pprint with current screen width
+        if 1:
+            import debug
+            debug.SetDebugger()
+    if 1:   # Global variables
+        class G:
+            pass
+        g = G()
+        g.dbg = False
+        g.files = (
+            P("/home/don/.0rc/dot_func"),
+            P("/home/don/.0rc/dot_bin"),
+        )
+        ii = isinstance
+if 1:   # Utility
+    def GetColors():
+        t.cat = t.lil
+        t.name = t.yel
+        t.err = t.redl
+        t.dbg = t.lill if g.dbg else ""
+        t.N = t.n if g.dbg else ""
+    def GetScreen():
+        'Return (LINES, COLUMNS)'
+        return (
+            int(os.environ.get("LINES", "50")),
+            int(os.environ.get("COLUMNS", "80")) - 1
+        )
+    def Dbg(*p, **kw):
+        if g.dbg:
+            print(f"{t.dbg}", end="")
+            print(*p, **kw)
+            print(f"{t.N}", end="")
+    def Error(*msg, status=1):
+        print(*msg, file=sys.stderr)
+        exit(status)
+    def Usage(status=0):
+        print(dedent(f'''
+        Usage:  {sys.argv[0]} [options] [op] [args]
+          Search my shell functions:
+            b   Show my bin executables
+            c   Show category names
+            l   List (args are optional categories to list)
+            s   Search for regex
+        Options:
+            -h      Print a manpage
+        '''))
+        exit(status)
+    def ParseCommandLine(d):
+        d["-a"] = False     # Need description
+        d["-d"] = 3         # Number of significant digits
+        if len(sys.argv) < 2:
+            Usage()
+        try:
+            opts, args = getopt.getopt(sys.argv[1:], "ad:h") 
+        except getopt.GetoptError as e:
+            print(str(e))
+            exit(1)
+        for o, a in opts:
+            if o[1] in list("a"):
+                d[o] = not d[o]
+            elif o == "-d":
+                try:
+                    d[o] = int(a)
+                    if not (1 <= d[o] <= 15):
+                        raise ValueError()
+                except ValueError:
+                    Error(f"-d option's argument must be an integer between 1 and 15")
+            elif o == "-h":
+                Usage()
+        GetColors()
+        return args
+if 1:   # Core functionality
+    class Func:
+        def __init__(self, line):
+            self.line = line
+            self.lines = []
+            # Split the first line to get the desired fields
+            f = line.split()
+            assert f[0] == "function"
+            self.name = f[1]
+            assert f[2] == "##"
+            assert f[3].startswith("<") and f[3].endswith(">")
+            self.category = f[3].replace("<", "").replace(">", "")
+            self.descr = ' '.join(f[4:])
+        def __str__(self):
+            return f"Func({self.name}, <{self.category}>, {self.descr!r}"
+        def __repr__(self):
+            return str(self)
+        def __lt__(self, other):
+            return self.name < other.name
+    def CheckForDuplicates(funcs):
+        funcset = set()
+        found = False
+        for name, _ in funcs:
+            if name in funcset:
+                print(f"{t.err}{name!r}{t.n} is a function name duplicate")
+                found = True
+            funcset.add(name)
+        if found:
+            exit(1)
+    def GetFuncs():
+        'Return list of (funcname, func_instance)'
+        for file in g.files:
+            lines = get.GetLines(file, script=True, ignore_empty=True, nonl=True)
+        dq, o = deque(lines), []
+        while dq:
+            line = dq.popleft()
+            if line.startswith("function"):
+                func = Func(line)
+                line = dq.popleft()
+                assert line == "{"
+                func.lines.append(line)
+                while line != "}":
+                    line = dq.popleft()
+                    func.lines.append(line)
+                assert line == "}"
+                func.lines.append(line)
+                o.append((func.name, func))
+        CheckForDuplicates(o)
+        # Also make a dict of function categories
+        di = defaultdict(list)
+        for name, func in o:
+            di[func.category].append(func)
+        return o, di
+    def List(categories):
+        'Print the categories and their functions'
+        di = defaultdict(list)
+        for name, func in funcs:
+            di[func.category].append(name)
+        for cat in sorted(di):
+            if categories and cat not in categories:
+                continue
+            t.print(f"{t.cat}{cat}")
+            for i in Columnize(sorted(di[cat]), indent=" "*4):
+                print(i)
+    def ShowCategoryNames(category):
+        'List the functions and their descriptions in this category'
+        if category not in funcdict:
+            print(f"{category!r} invalid category name")
+            return
+        t.print(f"{t.cat}{category}")
+        # Get maximum name width
+        w = 0
+        for item in funcdict[category]:
+            w = max(w, len(item.name))
+        for item in sorted(funcdict[category]):
+            print(f"  {t.name}{item.name:{w}s}{t.n} {item.descr}")
+
+if __name__ == "__main__":
+    d = {}      # Options dictionary
+    args = ParseCommandLine(d)
+    funcs, funcdict = GetFuncs()
+    op = args[0]
+    args = args[1:]
+    if op == "b":
+        BinExecutables()
+    elif op == "c":
+        for category in args:
+            ShowCategoryNames(category)
+    elif op == "l":
+        List(args)
+    elif op == "s":
+        SearchForRegex(args)
+    else:
+        Error(f"{op!r} not recognized")

@@ -1,8 +1,7 @@
 #!/usr/bin/python
-"""
+'''
 Show current date/time
-"""
-
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -28,54 +27,45 @@ if 1:  # Header
         import time
     if 1:  # Custom imports
         from dpprint import PP
-
         pp = PP()
         from color import t
         from u import u
         from f import flt
         import julian
-        from get import GetLines
+        from get import GetLines, ParseUnit
         from wrap import dedent
-
         if 0:
             import debug
-
             debug.SetDebugger()
         # from columnize import Columnize
     if 1:  # Global variables
-
         class G:
             # Storage for global variables as attributes
             pass
-
         g = G()
         g.dbg = False
         t.dbg = t("lill")
         ii = isinstance
 if 1:  # Utility
-
     def GetColors():
         "Colors for printed line"
         t.dow = t("lip")
         t.date = t("ornl")
         t.time = t("yell")
         t.ampm = t("yell")
-        t.z = t("gryd")
+        t.z = t("gryl")
         t.qtr = t("grn")
         t.sec = t("royl")
         t.jd = t("olv")
         t.wk = t("mag")
         t.doy = t("lipl")
-
     def GetScreen():
         "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
             int(os.environ.get("COLUMNS", "80")) - 1,
         )
-
     g.W, g.L = GetScreen()
-
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="", file=Dbg.file)
@@ -83,29 +73,26 @@ if 1:  # Utility
             k["file"] = Dbg.file
             print(*p, **k)
             print(f"{t.n}", end="", file=Dbg.file)
-
     Dbg.file = sys.stderr  # Debug printing to stderr by default
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Manpage():
         print(
-            dedent(f"""
+            dedent(f'''
         Day, date and time should be as you expect.  Other fields are:
-
+        
             - [....Z] is the HHMM offset from Universal Coordinated Time
             - Qx is the quarter of the year
             - x/365 is the day number of the indicated year
             - x/52 is the week number
             - x s is the number of seconds since the epoch (1 Jan 1970)
             - JDx is the astronomical Julian day
-
+            
         The time units are those allowed by the /plib/u.py script.  Run
         'python /plib/u.py time' to see the supported time units:
-
-        """)
+        
+        ''')
         )
         cmd = [sys.executable, "/plib/u.py", "Time"]
         r = subprocess.run(cmd, capture_output=True)
@@ -113,15 +100,14 @@ if 1:  # Utility
             Error("Running u.py got an error")
         print(r.stdout.decode())
         print(
-            dedent(f"""
+            dedent(f'''
          See?
-        """)
+        ''')
         )
         exit(0)
-
     def Usage(status=1):
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options] [offset [unit]]
           Show the indicated date/time on one line.  If offset is given, it
           must be an integer or float.  unit is an optional time unit
@@ -145,42 +131,40 @@ if 1:  # Utility
             epoch.
         Options
             -d      Turn on debugging
-            -h      Print a manpage
-        """)
+            -H      Print a manpage
+        ''')
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-d"] = False  # Turn on debug
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "dh")
+            opts, args = getopt.getopt(sys.argv[1:], "dHh")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
             if o[1] in list("d"):
                 d[o] = not d[o]
-            elif o == "-h":
+            elif o == "-H":
                 Manpage()
+            elif o == "-h":
+                Usage()
         if len(args) not in (1, 2):
             Usage()
         if d["-d"]:
             g.dbg = True
         GetColors()
         return args
-
-
 if 1:  # Core functionality
-
     def PrintDateTime(user_offset, units=None):
-        """Construct the single-line string representing the user's desired
+        '''Construct the single-line string representing the user's desired
         date/time.
-
+        
         Note:  GNU units says there's 31556925.9746784 s in a year, as does
         the u("year") call.  This is a tropical year = 365.242198781 days.
-        """
+        '''
         dt = datetime.now()  # datetime instance
         Dbg(f"now = {dt} = {time.time()} s")
         # Get a time_delta for the offset
@@ -189,9 +173,8 @@ if 1:  # Core functionality
             # are given, they default to days.
             factor = u(units) if units else u("day")
         except Exception as e:
-            print(f"Exception:  {e}")
-            Usage(1)
-        offset_s = float(user_offset) * factor
+            Error(f"Exception:  {e}")
+        offset_s = float(user_offset)*factor
         td = timedelta(seconds=offset_s)
         Dbg(f"user_offset = {user_offset}, units = {units}")
         # Add the offset
@@ -239,8 +222,6 @@ if 1:  # Core functionality
         # Julian day is given to 5 decimal places, as this is a resolution of 0.9 s
         print(f"{t.jd}JD{jd:.5f} ", end="")
         t.print()
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

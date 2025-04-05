@@ -1,5 +1,9 @@
 Active:  /plib/.todo
 
+    - func.py
+        - Read & parse my shell function files and search for matches to remind me of
+          using
+
     - dpdb.py
         - When debugging, the return value string gets truncated with '...'.  This can
           be a pain when e.g. the return value is a ufloat, as you can't see the value.

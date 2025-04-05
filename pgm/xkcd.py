@@ -1,7 +1,6 @@
-"""
+'''
 Show favorite xkcd links
-"""
-
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -28,8 +27,8 @@ if 1:  # Header
     if 1:  # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
-        data = """
-
+        data = '''
+        
             131 Clicking fans
             135 Substitute (velociraptors, matter of life & death)
             356 Nerd sniping
@@ -50,7 +49,7 @@ if 1:  # Header
             896 Marie Curie, Noether
             962 Can't focus on calculus
             967 Amber waves of grain --> particles when observed
-            972 Tongue awareness month (perfect for Sa)
+            972 Tongue awareness month
             974 Why software development is problematic
             979 One link when googling an error
             999 Cougars:  good parenting
@@ -72,30 +71,27 @@ if 1:  # Header
             1693 Oxidizing car
             1713 50 ccs
             1726 Unicode ==> trying to steer a river with signs
-            1728 You're move cron
+            1728 Your move cron
             1750 Game player's life goals
             1770 UI change == getting old
             1985 Pure math meteorologist
             1994 How well something works after I've fixed it
-
-        """
+            
+        '''
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options] keyword
           Show xkcd links with keyword.  Show all with none.
         Options:
             -h      Print a manpage
-        """)
+        ''')
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = False
         try:
@@ -109,10 +105,7 @@ if 1:  # Utility
             elif o == "-h":
                 Usage(status=0)
         return args
-
-
 if 1:  # Core functionality
-
     def GetDict():
         di = {}
         for line in data.split("\n"):
@@ -122,15 +115,11 @@ if 1:  # Core functionality
             f = line.split(" ", maxsplit=1)
             di[int(f[0])] = f[1]
         return di
-
     def PrintItem(i):
         s = f"{p}{i!s}"
         print(f"{s:21s} {di[i]}")
-
     def PrintResults(keyword):
         breakpoint()  # xx
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     di = GetDict()

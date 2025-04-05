@@ -48,30 +48,30 @@ if 1:  # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-    def Usage(status=1):
-        print(
-            dedent(f'''
+    def Usage(status=0):
+        print(dedent(f'''
         Usage:  {sys.argv[0]} [options] [file1 [file2 ...]]
           Delete blank lines from files.  Note a blank line is a line with no whitespace
           on it except for a newline.  Assumes stdin for no files.  If you include files
           on the command line, use '-' for stdin.
         Options:
             -1      Collapse multiple blank lines to one
-        ''')
-        )
+        '''))
         exit(status)
     def ParseCommandLine(d):
         d["-1"] = False  # Multiple blank lines to one
         # if len(sys.argv) < 2:
         #    Usage()
         try:
-            opts, files = getopt.getopt(sys.argv[1:], "1")
+            opts, files = getopt.getopt(sys.argv[1:], "1h")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
             if o[1] in list("1"):
                 d[o] = not d[o]
+            elif o == "-h":
+                Usage()
         return files
 if 1:  # Core functionality
     def ProcessFileOrig(file):
