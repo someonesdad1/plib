@@ -19,7 +19,7 @@ if 1:  # Header
     if 1:   # Custom imports
         from columnize import Columnize
         from wrap import dedent
-        from color import t
+        from color import t, RegexpDecorate
         from dpprint import PP
         import get
         pp = PP()   # Get pprint with current screen width
@@ -54,8 +54,10 @@ if 1:   # Utility
             print(f"{t.dbg}", end="")
             print(*p, **kw)
             print(f"{t.N}", end="")
-    def Error(*msg, status=1):
+    def Warn(*msg):
         print(*msg, file=sys.stderr)
+    def Error(*msg, status=1):
+        Warn(*msg)
         exit(status)
     def Usage(status=0):
         print(dedent(f'''
@@ -67,34 +69,28 @@ if 1:   # Utility
             s   Search for regex
         Options:
             -h      Print a manpage
+            -i      Make searches case sensitive
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-a"] = False     # Need description
-        d["-d"] = 3         # Number of significant digits
+        d["-i"] = True     # Case insensitive searches
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:h") 
+            opts, args = getopt.getopt(sys.argv[1:], "ih") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("a"):
+            if o[1] in list("i"):
                 d[o] = not d[o]
-            elif o == "-d":
-                try:
-                    d[o] = int(a)
-                    if not (1 <= d[o] <= 15):
-                        raise ValueError()
-                except ValueError:
-                    Error("-d option's argument must be an integer between 1 and 15")
             elif o == "-h":
                 Usage()
         GetColors()
         return args
 if 1:   # Core functionality
     class Func:
+        w = 0   # Will be maximum name width
         def __init__(self, line):
             self.line = line
             self.lines = []
@@ -102,6 +98,7 @@ if 1:   # Core functionality
             f = line.split()
             assert f[0] == "function"
             self.name = f[1]
+            Func.w = max(Func.w, len(self.name))
             assert f[2] == "##"
             assert f[3].startswith("<") and f[3].endswith(">")
             self.category = f[3].replace("<", "").replace(">", "")
@@ -163,7 +160,7 @@ if 1:   # Core functionality
             print(f"{category!r} invalid category name")
             return
         t.print(f"{t.cat}{category}")
-        # Get maximum name width
+        # Get maximum name width for this category
         w = 0
         for item in funcdict[category]:
             w = max(w, len(item.name))
@@ -193,9 +190,26 @@ if 1:   # Core functionality
             line = i.open().read().split("\n")[1]
             descr = line[1:].strip()
             print(f"  {i.name:{w}s} {descr}")
-    def SearchForRegex(args):
-        r = re.compile("")
-        print(r) #xx
+    def SearchForRegexes(args):
+        for arg in args:
+            SearchForRegex(arg)
+    def SearchForRegex(regex):
+        r = re.compile(regex, re.I if d["-i"] else 0)
+        # Create a list of the names & descriptions, which we'll search with the regex
+        listing = []
+        for i in funcs:
+            listing.append(f"{i[0]:{Func.w}s} {i[1].descr}")
+        found = []
+        for item in listing:
+            mo = r.search(item)
+            if mo:
+                found.append("  " + item)
+        if found:
+            rd = RegexpDecorate()
+            rd.register(r, t.yel, t.n)
+            t.print(f"{t.cat}{regex}")
+            for i in found:
+                rd(i, insert_nl=True)
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
@@ -212,6 +226,6 @@ if __name__ == "__main__":
     elif op == "l":
         List(args)
     elif op == "s":
-        SearchForRegex(args)
+        SearchForRegexes(args)
     else:
         Error(f"{op!r} not recognized")
