@@ -1,5 +1,9 @@
 Active:  /plib/.todo
 
+    - poly.py
+        - Print out dimensions/formulas for common regular polygons
+        - Print r, R, and r+R for odd n's
+
     - func.py
         - Read & parse my shell function files and search for matches to remind me of
           using

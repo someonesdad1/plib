@@ -40,6 +40,7 @@ if 1:   # Utility
     def GetColors():
         t.cat = t.lil
         t.name = t.yel
+        t.warn = t.ornl
         t.err = t.redl
         t.dbg = t.lill if g.dbg else ""
         t.N = t.n if g.dbg else ""
@@ -145,17 +146,25 @@ if 1:   # Core functionality
         return o, di
     def List(categories):
         'Print the categories and their functions'
-        di = defaultdict(list)
-        for name, func in funcs:
-            di[func.category].append(name)
-        for cat in sorted(di):
-            if categories and cat not in categories:
+        if categories:
+            categories_to_use = categories
+        else:
+            categories_to_use = sorted(funcdict.keys())
+        for cat in categories_to_use:
+            if cat not in funcdict:
+                t.print(f"{t.warn}{cat!r} not a recognized category")
                 continue
             t.print(f"{t.cat}{cat}")
-            for i in Columnize(sorted(di[cat]), indent=" "*4):
-                print(i)
+            for i in sorted(funcdict[cat]):
+                print(f"  {i.name:{Func.w}s} {i.descr}")
     def ShowCategoryNames(category):
         'List the functions and their descriptions in this category'
+        if not category:
+            # Just print category names
+            t.print(f"{t.cat}Category names:")
+            for i in sorted(funcdict):
+                print(f"  {i}")
+            return
         if category not in funcdict:
             print(f"{category!r} invalid category name")
             return
@@ -220,7 +229,7 @@ if __name__ == "__main__":
     if op == "b":
         BinExecutables()
     elif op == "c":
-        items = args if args else sorted(funcdict.keys())
+        items = args if args else [""]
         for category in items:
             ShowCategoryNames(category)
     elif op == "l":

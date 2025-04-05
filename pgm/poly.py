@@ -1,4 +1,4 @@
-"""
+'''
 
 ToDo
     - Allow parameters to have uncertainty
@@ -23,9 +23,8 @@ ToDo
             - A(s, n), A(ρ, n)
             - r(s, n), r(R, n)
             - d(s, n), d(D, n)
-
-"""
-
+            
+'''
 if 1:  # Header
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -44,18 +43,15 @@ if 1:  # Header
     import sys
     import os
     import getopt
-
     # Custom imports
     from wrap import dedent
     from lwtest import Assert
     from color import TRM as t
     from f import flt, pi, sqrt, sin, cos, tan
     from uncertainties import ufloat, ufloat_fromstr, UFloat
-
     # Global variables
     class g:
         pass
-
     g.width = int(os.environ.get("COLUMNS", 80)) - 1
     ii = isinstance
     isatty = sys.stdout.isatty()
@@ -65,24 +61,20 @@ if 1:  # Header
     t.circ = t("trq") if isatty else ""
     t.nn = t.n if isatty else ""
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(d, status=1):
-        print(
-            dedent(f"""
+        print(dedent(f'''
         Usage:  {sys.argv[0]} [options] dia1 [dia2...]
-          Print dimensions of regular polygons for given diameter(s) as either
-          the inscribed or circumscribed circle diameter.  The diameters can
-          be strings like '47', '4.7', '7/16', or '1-7/16'.
- 
-          You can also use words like 'triangle', 'hexagon', etc. to
-          identify the polygon(s) you're interested in.  The first three
-          letters of the word are what are used for identification.  Thus,
-          '{sys.argv[0]} 1.3 tri' causes the script to print out results
-          for a triangle only.
+          Print dimensions of regular polygons for given diameter(s) as either the
+          inscribed or circumscribed circle diameter.  The diameters can be strings like
+          '47', '4.7', '7/16', or '1-7/16'.
+         
+          You can also use words like 'triangle', 'hexagon', etc. to identify the
+          polygon(s) you're interested in.  The first three letters of the word are what
+          are used for identification.  Thus, '{sys.argv[0]} 1.3 tri' causes the script
+          to print out results for a triangle only.
         Options:
           -a    Abbreviate numbers [{d["-a"]}]
           -c l  Color highlight the sides in the list l [{d["-c"]}]
@@ -91,10 +83,9 @@ if 1:  # Utility
                 integers or a range() call.  [{d["-n"]}]
           -t    Produce a table of useful factors allowing you to calculate
                 various parameters of polygons given certain dimensions.
-        """)
+        ''')
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = False  # Abbreviate numbers
         d["-c"] = ""  # Which lines to highlight
@@ -140,15 +131,12 @@ if 1:  # Utility
         else:
             d["-c"] = set([3, 6])
         return diameters
-
-
 if 1:  # Core functionality
-
     def Convert(size):
-        """Convert the string size to a flt or ufloat.  Can be an integer, flt,
+        '''Convert the string size to a flt or ufloat.  Can be an integer, flt,
         or fraction of e.g. the forms 7/8 or 1-7/8.  A ufloat can be either
         '1+-.1' or '1.0(1)' forms.
-        """
+        '''
         if "/" in size:
             ip = 0
             num, denom = size.split("/")
@@ -164,33 +152,30 @@ if 1:  # Core functionality
             return ufloat_fromstr(size)
         else:
             return flt(size)
-
     def PrintFormulaTable():
-        """Print a table similar to the table on page 1-39 of Mark's
+        '''Print a table similar to the table on page 1-39 of Mark's
         "Standard Handbook for Mechanical Engineers", 7th ed., 1967.
-        """
-
+        '''
         def F(x, w=None):
-            """str of flt x with leading 0 removed.  If w is not None, it's a
+            '''str of flt x with leading 0 removed.  If w is not None, it's a
             width to center the string of x in.
-            """
+            '''
             s = str(x)
             if s[0] == "0" and s[1] == ".":
                 s = s[1:]
             if w is None:
                 return s
             return f"{s:^{w}s}"
-
         # Check of formulas:  I drew a 6" diameter circle and used a
         # 30-60-90 triangle to draw a hexagon around it.  The measurements
         # agreed with the values calculated with the table to better than
         # 0.1%.
         print(
-            dedent("""
+            dedent('''
         Regular polygons
         d = inscribed circle diameter, D = circumscribed circle diameter, A = area,
         s = perimeter, a = length of one side, T = angle subtended by side
-        """)
+        ''')
         )
         # Width of printout:  the column for n is 2 wide and the remaining 9
         # columns are the width of a flt at current significance.  The smallest
@@ -198,12 +183,10 @@ if 1:  # Core functionality
         # defines the width w for each column.
         s = F(sin(pi / 64))
         w = len(s)
-
         # Use new printing methods with flt and Unicode.  There are 9
         # columns for flt and we want to fit into g.width if possible.
         def f(x):
             return 4 + 9 * x + 3
-
         while True:
             if f(w + 1) < g.width:
                 w += 1
@@ -242,7 +225,7 @@ if 1:  # Core functionality
             print()
             print(
                 dedent(
-                    """
+                    '''
             Formulas:
             k = π/n                           T = 360*k/π
             a/d = tan(k)                      A/d² = n*tan(k)/4
@@ -255,25 +238,23 @@ if 1:  # Core functionality
             A = n*a*r/2 = n*a/2*sqrt((D² - a²)/4)
                 = n*a²*cot(k)/4 = n*r²*tan(k) = n*R²*sin(2*k)/2
             s = 2*sqrt(R^2 - r^2) = 2*r*tan(k)
-            """,
+            ''',
                     n=4,
                 )
             )
         print('\nRef:  Marks, "Std Hdbk for Mech Engrs", pg 1-39, 7th ed., 1967')
         exit(0)
-
     def Title():
         print(
-            dedent(f"""
+            dedent(f'''
         {t.ti}Properties of regular polygons to {opts["-d"]} figures{t.nn}
             d = inscribed diameter
             D = circumscribed diameter
             a = length of side
-        """)
+        ''')
         )
-
     def Poly(s, n, circumscribed=False, leave_out=""):
-        """Given the diameter in the string s, number of sides n, and
+        '''Given the diameter in the string s, number of sides n, and
         options dictionary opts, calculate the parameters and print the
         table.  Leave out the indicated column (only will be d or D).
         -----------------
@@ -295,7 +276,7 @@ if 1:  # Core functionality
             A = n*a*r/2 = n*a/2*sqrt((D^2 - a^2)/4)
             = n*a^2*cot(K)/4 = n*r^2*tan(K) = n*R^2*sin(2*K)/2
             s = 2*sqrt(R^2 - r^2) = 2*r*tan(K)
-        """
+        '''
         try:
             d = Convert(s)
         except Exception:
@@ -330,12 +311,10 @@ if 1:  # Core functionality
         if colorize:
             print(f"{t.nn}", end="")
         print()
-
     def Report(dstr):
-        """Print the calculated values assuming the diameter string in dstr
+        '''Print the calculated values assuming the diameter string in dstr
         is first an inscribed diameter, then the circumscribed diameter.
-        """
-
+        '''
         def Header(circumscribed=False, leave_out=""):
             w = opts["-d"] + 5
             for s in "Sides d D a Area Perim".split():
@@ -345,7 +324,6 @@ if 1:  # Core functionality
             print()
             for n in number_of_sides:
                 Poly(dstr, n, circumscribed, leave_out=leave_out)
-
         try:
             number_of_sides = [int(i) for i in opts["-n"].split(",")]
         except Exception:
@@ -366,12 +344,11 @@ if 1:  # Core functionality
             )
             print(f"    {t.circ}R = {dia / 2} = circumscribed radius{t.nn}")
             Header(circumscribed=True, leave_out="D")
-
     def LookForWords(diameters):
-        """Look for strings like 'tri', 'quad', etc. in the list of
+        '''Look for strings like 'tri', 'quad', etc. in the list of
         diameters and set the appropriate values in the -n option.  Remove
         these words and return the resultant remaining diameters.
-        """
+        '''
         words = "tri tet qua pen hex hep sep oct non dec dod".split()
         nums = {
             "tri": 3,
@@ -404,8 +381,6 @@ if 1:  # Core functionality
         if found:
             opts["-n"] = ",".join(str(i) for i in found)
         return dia
-
-
 if __name__ == "__main__":
     opts = {}
     diameters = ParseCommandLine(opts)
