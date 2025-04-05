@@ -208,7 +208,6 @@ def Usage(d, status=1):
       Generate cryptographically-secure random bytes.  If seed is given
       with -s, a repeatable random sequence is generated.  Output is
       num_lines (default is 1) sets of bytes_per_line hex digits.
-      On my 7 year old computer, the -b option works at over 300 MB/s.
     Options
       -a        Use ASCII characters, digits, and punctuation (0x20-0x7e)
       -B        Output in base64 instead of hex

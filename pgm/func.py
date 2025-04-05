@@ -195,21 +195,21 @@ if 1:   # Core functionality
             SearchForRegex(arg)
     def SearchForRegex(regex):
         r = re.compile(regex, re.I if d["-i"] else 0)
-        # Create a list of the names & descriptions, which we'll search with the regex
-        listing = []
-        for i in funcs:
-            listing.append(f"{i[0]:{Func.w}s} {i[1].descr}")
+        # Find the names or descriptions that match the regex
         found = []
-        for item in listing:
-            mo = r.search(item)
-            if mo:
-                found.append("  " + item)
+        for name, func in funcs:
+            mo1 = r.search(name)
+            mo2 = r.search(func.descr)
+            if mo1 or mo2:
+                found.append(func)
+        # Report if we found anything
         if found:
             rd = RegexpDecorate()
             rd.register(r, t.yel, t.n)
             t.print(f"{t.cat}{regex}")
             for i in found:
-                rd(i, insert_nl=True)
+                s = f"  {i.name:{Func.w}s} {i.descr}"
+                rd(s, insert_nl=True)
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
