@@ -206,7 +206,7 @@ if 1:   # Core functionality
         if found:
             rd = RegexpDecorate()
             rd.register(r, t.yel, t.n)
-            t.print(f"{t.cat}{regex}")
+            t.print(f"regex = {t.cat}{regex}")
             for i in found:
                 s = f"  {i.name:{Func.w}s} {i.descr}"
                 rd(s, insert_nl=True)
