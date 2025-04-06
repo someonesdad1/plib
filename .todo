@@ -1,5 +1,10 @@
 Active:  /plib/.todo
 
+    - fset.py
+        - Add the command line 'w:file1' form to indicate that the file should be
+          processed for its words to form the set.  This allows easy comparison of
+          wordlist files.
+
     - poly.py
         - Print out dimensions/formulas for common regular polygons
         - Print r, R, and r+R for odd n's
