@@ -998,16 +998,19 @@ if 1:  # Tokenizing
             for line in GetLine(thing, enc=enc):
                 for token in line.split() if sep is None else line.split(sep):
                     yield token
-    def GetWordlist(*files, case=None):
-        '''The arguments can be a stream, filename, or string to parse.  Return a set of all the
-        words in these files.
+    def GetWordlist(*files, case=None, remove_punc=False):
+        '''The arguments can be a stream, filename, or string to parse.  Return a set of
+        all the words in these files.
         
-        This function is aimed at reading wordlists I use on my computer.  These will have comment
-        lines beginning with '#' after stripping whitespace.  Then words are separated by
-        whitespace and can be gotten at once on the whole file's string with strip().
+        This function is aimed at reading wordlists I use on my computer.  These will
+        have comment lines beginning with '#' after stripping whitespace.  Then words
+        are separated by whitespace and can be gotten at once on the whole file's string
+        with split().
         
-        If case is None, do nothing with the words.  If it is "lower", change them to lower case;
-        upper with "upper".
+        If case is None, do nothing with the words.  If it is "lower", change them to
+        lower case; upper with "upper".
+         
+        If remove_punc is true, replace ASCII punctuation characters with spaces.
         '''
         words = set()
         for file in files:
@@ -1030,6 +1033,10 @@ if 1:  # Tokenizing
                 s = s.upper()
             elif case == "lower":
                 s = s.lower()
+            if remove_punc:
+                # Remove ASCII punctuation
+                p = string.punctuation
+                s = s.translate("".maketrans(dict(zip(p, " "*len(p)))))
             words.update(set(s.split()))
         return words
     class wrd(str):
@@ -1038,9 +1045,8 @@ if 1:  # Tokenizing
     class pnc(str):
         def __new__(cls, value):
             return super(pnc, cls).__new__(cls, value)
-    def Tokenize(
-        s, wordchars=letters, otherchars=others, check=True, wordtype=wrd, punctype=pnc
-    ):
+    def Tokenize(s, wordchars=letters, otherchars=others, check=True, wordtype=wrd,
+                 punctype=pnc):
         '''Return a deque out that contains all the word tokens in the string s.  The tokenizing
         process is such that ''.join(out) is the same string as s (this is verified if check is
         True and raises an exception if it isn't).  wordchars and otherchars must be sequences of
@@ -1206,6 +1212,7 @@ if 1:  # Miscellaneous
             count += 1
             dq.popleft()
         return count
+
 if __name__ == "__main__":
     # Regression tests
     if 1:  # Initialization

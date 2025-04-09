@@ -22,6 +22,7 @@ if 1:  # Header
         from pdb import set_trace as xx
     if 1:  # Custom imports
         from wrap import dedent
+        from get import GetWordlist
     if 1:  # Global variables
         element_string = None  # For el operation
 if 1:  # Utility
@@ -68,8 +69,7 @@ if 1:  # Utility
         CheckArgs(args)
         return args
     def Usage(status=1):
-        print(
-            dedent(f'''
+        print(dedent(f'''
         Usage:  {sys.argv[0]} [options] op file1 file2 [file3 ...]
           where op is the operation:
             ne               Lines in file1 are != to the lines in following files
@@ -94,7 +94,7 @@ if 1:  # Utility
           Output is sent to stdout and is sorted; use the -s option if you don't
           want the lines sorted (they will be in an indeterminate order, however,
           as a set has no notion of ordering).
-    
+        
           If a filename starts with ':', then it is a list of filenames to read, one file
           per line.
         Options
@@ -107,8 +107,7 @@ if 1:  # Utility
           -w            Convert all file contents to a list of words, splitting on
                         whitespace
           --ws          Ignore leading and trailing whitespace
-        ''')
-        )
+        '''))
         exit(status)
 if 1:  # Core functionality
     def CheckArgs(args):
@@ -165,14 +164,10 @@ if 1:  # Core functionality
                 lines1 = [line.lower() for line in lines1]
                 lines2 = [line.lower() for line in lines2]
         if d["-W"] or d["-w"]:
-            # Convert the lines to lists of words
-            lines1 = ToWords(lines1, remove_punc=d["-W"])
-            lines2 = ToWords(lines2, remove_punc=d["-W"])
+            # Convert the lines to sets of words
+            lines1 = GetWordlist(lines1, remove_punc=d["-W"])
+            lines2 = GetWordlist(lines2, remove_punc=d["-W"])
         return frozenset(lines1), frozenset(lines2)
-    def ToWords(lines, remove_punc=False):
-        '''Convert list lines to a list of words.  If remove_punc is True, then change
-        all punctuation characters to spaces before converting.
-        '''
 
 if __name__ == "__main__":
     d = {}
