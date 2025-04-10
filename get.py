@@ -1020,7 +1020,7 @@ if 1:  # Tokenizing
             except Exception:
                 try:
                     s = open(file).read()  # It's a file
-                except FileNotFoundError:
+                except (FileNotFoundError, OSError):
                     s = file  # It's a string
             lines = []
             for line in s.split("\n"):

@@ -23,6 +23,9 @@ if 1:  # Header
     if 1:  # Custom imports
         from wrap import dedent
         from get import GetWordlist
+        if 1:
+            import debug       
+            debug.SetDebugger()
     if 1:  # Global variables
         element_string = None  # For el operation
 if 1:  # Utility
@@ -129,8 +132,10 @@ if 1:  # Core functionality
         '''
         if file.startswith(":"):
             lines = []
-            for _file in open(File).read().split("\n"):
-                Lines.extend(open(_file).read().split("\n"))
+            for _file in open(file[1:]).read().split("\n"):
+                f = _file.strip()
+                if f:
+                    lines.extend(open(f).read().split("\n"))
         else:
             lines = open(file).read().split("\n")
         return lines 
@@ -144,7 +149,7 @@ if 1:  # Core functionality
         '''
         def do_not_ignore(line, r):
             return not r.search(line)
-        lines1 = GetLines(file[0])
+        lines1 = GetLines(files[0])
         lines2 = []
         if op == "el":
             lines2 = []
@@ -165,8 +170,8 @@ if 1:  # Core functionality
                 lines2 = [line.lower() for line in lines2]
         if d["-W"] or d["-w"]:
             # Convert the lines to sets of words
-            lines1 = GetWordlist(lines1, remove_punc=d["-W"])
-            lines2 = GetWordlist(lines2, remove_punc=d["-W"])
+            lines1 = GetWordlist(' '.join(lines1), remove_punc=d["-W"])
+            lines2 = GetWordlist(' '.join(lines2), remove_punc=d["-W"])
         return frozenset(lines1), frozenset(lines2)
 
 if __name__ == "__main__":
