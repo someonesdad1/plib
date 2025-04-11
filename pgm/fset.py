@@ -23,7 +23,7 @@ if 1:  # Header
     if 1:  # Custom imports
         from wrap import dedent
         from get import GetWordlist
-        if 1:
+        if 0:
             import debug       
             debug.SetDebugger()
     if 1:  # Global variables
@@ -33,11 +33,19 @@ if 1:  # Utility
         print(msg, file=sys.stderr)
         exit(1)
     def Manpage():
-        print(
-            dedent(f'''
-        Manpage
-        ''')
-        )
+        print(dedent(f'''
+        There are two use cases for this script:
+            - Compare the lines in two files
+            - Convert files to sets of words and compare them
+
+        In the first case, the lines making up the file are regarded as elements of a
+        set.  In fact, this is what is done internally, as python lets you construct
+        sets of hashable objects like strings.
+
+        The second use case uses the same basic set operations, but first parses the
+        input file into tokens by splitting on whitespace.
+
+        '''))
         exit(0)
     def ParseCommandLine():
         d["-H"] = False  # Print manpage
@@ -76,15 +84,15 @@ if 1:  # Utility
         Usage:  {sys.argv[0]} [options] op file1 file2 [file3 ...]
           where op is the operation:
             ne               Lines in file1 are != to the lines in following files
-            eq[ual]          Lines in file1 are == to the lines in following files
-            el[ement]        file1 contains the string given as file2 as an element
-            di[fference]     Lines in file1 that are not in the following files
-            sd[ifference]  * Lines that are in file1 or the remaining files, but
+            eq               Lines in file1 are == to the lines in following files
+            el               file1 contains the string given as file2 as an element
+            di               Lines in file1 that are not in the following files
+            sd             * Lines that are in file1 or the remaining files, but
                                 not both (symmetric difference)
-            in[tersection]   Lines that are common to all files
-            is[subset]     * Determine whether file1 is a proper subset of
+            in               Lines that are common to all files
+            ps             * Determine whether file1 is a proper subset of
                                 remaining files
-            un[ion]          Lines that are in any of the files
+            un               Lines that are in any of the files
           Performs operations on the lines of a file as if they were members of a set.  In
           the operations marked with '*', file2 and subsequent files will be collapsed into
           one set of lines.
