@@ -1,7 +1,8 @@
 '''
 
 ToDo
-    - Allow parameters to have uncertainty
+    - Add option to generate and show a PostScript drawing for a particular number of
+      sides.  This would be handy for shop documentation.
     - Add -i option for interactive solution
         - Variables:
             - n = number of sides
@@ -23,6 +24,8 @@ ToDo
             - A(s, n), A(ρ, n)
             - r(s, n), r(R, n)
             - d(s, n), d(D, n)
+        - Also solve for r + R for n odd (like was needed to get the inscribed diameter
+          of the Penta-nut's recess)
             
 '''
 if 1:  # Header
@@ -53,18 +56,20 @@ if 1:  # Header
     class g:
         pass
     g.width = int(os.environ.get("COLUMNS", 80)) - 1
+    g.w = None      # Used for maximum column width of table
     ii = isinstance
     isatty = sys.stdout.isatty()
     t.ti = t("ornl") if isatty else ""
-    t.hi = t("yell") if isatty else ""
+    t.hi = t("brnl") if isatty else ""
+    t.hdr = t("redl") if isatty else ""
     t.insc = t("purl") if isatty else ""
     t.circ = t("trq") if isatty else ""
-    t.nn = t.n if isatty else ""
+    t.N = t.n if isatty else ""
 if 1:  # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-    def Usage(d, status=1):
+    def Usage(status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] dia1 [dia2...]
           Print dimensions of regular polygons for given diameter(s) as either the
@@ -76,24 +81,24 @@ if 1:  # Utility
           are used for identification.  Thus, '{sys.argv[0]} 1.3 tri' causes the script
           to print out results for a triangle only.
         Options:
-          -a    Abbreviate numbers [{d["-a"]}]
-          -c l  Color highlight the sides in the list l [{d["-c"]}]
-          -d n  Number of significant digits to print [{d["-d"]}]
+          -a    Abbreviate numbers (remove trailing 0's and decimal point) [{opts["-a"]}]
+          -c l  Color highlight the sides in the list l [{opts["-c"]}]
+          -d n  Number of significant digits to print [{opts["-d"]}]
           -n l  Which sides to print; must be a comma-separated list of
-                integers or a range() call.  [{d["-n"]}]
+                integers or a range() call.  [{opts["-n"]}]
           -t    Produce a table of useful factors allowing you to calculate
                 various parameters of polygons given certain dimensions.
         ''')
         )
         exit(status)
     def ParseCommandLine(d):
-        d["-a"] = False  # Abbreviate numbers
-        d["-c"] = ""  # Which lines to highlight
-        d["-d"] = 4  # Number of significant digits
+        d["-a"] = False     # Abbreviate numbers
+        d["-c"] = ""        # Which lines to highlight
+        d["-d"] = 4         # Number of significant digits
         d["-n"] = ",".join(str(i) for i in range(3, 13))
-        d["-t"] = False  # Print the table
+        d["-t"] = False     # Print the table
         try:
-            opts, diameters = getopt.getopt(sys.argv[1:], "ac:d:n:t")
+            opts, diameters = getopt.getopt(sys.argv[1:], "ac:d:hn:t")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -110,6 +115,8 @@ if 1:  # Utility
                 except ValueError:
                     msg = "-d option's argument must be an integer between 1 and 15"
                     Error(msg)
+            elif o in ("-h",):
+                Usage()
             elif o in ("-n",):
                 if "range" in arg:
                     d["-n"] = ",".join(str(i) for i in list(eval(arg)) if i > 2)
@@ -117,19 +124,20 @@ if 1:  # Utility
                     d["-n"] = arg
         x = flt(0)
         x.N = d["-d"]
-        x.rtz = x.rtdp = False
+        x.rtz = False
+        x.rtdp = True
         if d["-a"]:
             x.rtz = x.rtdp = True
         x.low = 1e-4
         x.high = 1e6
         if not d["-t"] and not diameters:
-            Usage(d)
+            Usage()
         # Convert d["-c"] to a set of integers
         if d["-c"]:
             s = d["-c"].split(",")
             d["-c"] = set([int(i) for i in s])
         else:
-            d["-c"] = set([3, 6])
+            d["-c"] = set()
         return diameters
 if 1:  # Core functionality
     def Convert(size):
@@ -137,20 +145,22 @@ if 1:  # Core functionality
         or fraction of e.g. the forms 7/8 or 1-7/8.  A ufloat can be either
         '1+-.1' or '1.0(1)' forms.
         '''
-        if "/" in size:
+        if "+-" in size:    # It's a ufloat
+            return ufloat_fromstr(size.replace("+-", "+/-"))
+        elif "+/-" in size: # It's a ufloat
+            return ufloat_fromstr(size)
+        elif "±" in size:   # It's a ufloat
+            return ufloat_fromstr(size)
+        elif "(" in size and ")" in size:   # It's a ufloat
+            return ufloat_fromstr(size)
+        elif "/" in size:   # It's a fraction
             ip = 0
             num, denom = size.split("/")
             if "-" in num:
                 ip, num = num.split("-")
             num, denom, ip = [int(i) for i in (num, denom, ip)]
             return flt(Fraction(num + ip * denom, denom))
-        elif "+-" in size:
-            return ufloat_fromstr(size.replace("+-", "+/-"))
-        elif "±" in size:
-            return ufloat_fromstr(size)
-        elif "(" in size and ")" in size:
-            return ufloat_fromstr(size)
-        else:
+        else:   # It's a float
             return flt(size)
     def PrintFormulaTable():
         '''Print a table similar to the table on page 1-39 of Mark's
@@ -220,12 +230,10 @@ if 1:  # Core functionality
                 print(f"{t.hi}", end="")
             print(" ".join(res).rstrip())
             if colorize:
-                print(f"{t.nn}", end="")
+                print(f"{t.N}", end="")
         if 1:  # Print formulas
             print()
-            print(
-                dedent(
-                    '''
+            print(dedent('''
             Formulas:
             k = π/n                           T = 360*k/π
             a/d = tan(k)                      A/d² = n*tan(k)/4
@@ -238,118 +246,14 @@ if 1:  # Core functionality
             A = n*a*r/2 = n*a/2*sqrt((D² - a²)/4)
                 = n*a²*cot(k)/4 = n*r²*tan(k) = n*R²*sin(2*k)/2
             s = 2*sqrt(R^2 - r^2) = 2*r*tan(k)
-            ''',
-                    n=4,
-                )
-            )
+            '''))
         print('\nRef:  Marks, "Std Hdbk for Mech Engrs", pg 1-39, 7th ed., 1967')
         exit(0)
-    def Title():
-        print(
-            dedent(f'''
-        {t.ti}Properties of regular polygons to {opts["-d"]} figures{t.nn}
-            d = inscribed diameter
-            D = circumscribed diameter
-            a = length of side
-        ''')
-        )
-    def Poly(s, n, circumscribed=False, leave_out=""):
-        '''Given the diameter in the string s, number of sides n, and
-        options dictionary opts, calculate the parameters and print the
-        table.  Leave out the indicated column (only will be d or D).
-        -----------------
-        Definitions are:
-            d = inscribed circle diameter
-            D = circumscribed circle diameter
-            s = perimeter
-            A = area or surface area
-            a = length of side
-            r = radius of inscribed circle = d/2
-            R = radius of circumscribed circle = D/2
-            n = number of sides
-        Equations are:
-            theta = 2*pi/n = central angle subtended by side
-            K = theta/2
-            a = length of side = d*tan(K) = D*sin(K)
-            r = sqrt(R^2 - a^2/4) = a*cot(K)/2 = R*cos(K)
-            R = sqrt(r^2 + a^2/4) = a*csc(K)/2 = r*sec(K) = r/cos(K)
-            A = n*a*r/2 = n*a/2*sqrt((D^2 - a^2)/4)
-            = n*a^2*cot(K)/4 = n*r^2*tan(K) = n*R^2*sin(2*K)/2
-            s = 2*sqrt(R^2 - r^2) = 2*r*tan(K)
-        '''
-        try:
-            d = Convert(s)
-        except Exception:
-            Error(f"'{s}' is not a valid number")
-        Assert(ii(d, (flt, int, Fraction, UFloat)))
-        Assert(ii(n, int))
-        Assert(n > 0)
-        K = pi / n
-        D = d / cos(K)
-        if circumscribed:
-            D = d
-            d = D * cos(K)
-        a = d * tan(K)
-        A = n * a * d / 4
-        s = n * a
-        colorize = n in opts["-c"]
-        if colorize:
-            print(f"{t.hi}", end="")
-        if leave_out == "d":
-            L = (n, D, a, A, s)
-        elif leave_out == "D":
-            L = (n, d, a, A, s)
-        else:
-            Error(f"Program bug: leave_out = {leave_out!r}")
-        # Now print the line
-        for x in L:
-            w = opts["-d"] + 5
-            if ii(x, UFloat):
-                print(f"{x:^{w}.1uS}", end=" ")
-            else:
-                print(f"{x!s:^{w}s}", end=" ")
-        if colorize:
-            print(f"{t.nn}", end="")
-        print()
-    def Report(dstr):
-        '''Print the calculated values assuming the diameter string in dstr
-        is first an inscribed diameter, then the circumscribed diameter.
-        '''
-        def Header(circumscribed=False, leave_out=""):
-            w = opts["-d"] + 5
-            for s in "Sides d D a Area Perim".split():
-                if s == leave_out:
-                    continue
-                print(f"{s:^{w}s}", end=" ")
-            print()
-            for n in number_of_sides:
-                Poly(dstr, n, circumscribed, leave_out=leave_out)
-        try:
-            number_of_sides = [int(i) for i in opts["-n"].split(",")]
-        except Exception:
-            Error("'{0}' is bad -n option".format(opts["-n"]))
-        try:
-            dia = Convert(dstr)
-        except Exception:
-            breakpoint()  # xx
-            dia = flt(eval(dstr))
-            pass
-        if 1:  # Print inscribed diameter
-            print(f"\n{t.insc}d = {dstr!r} = {dia} = inscribed diameter{t.nn}")
-            print(f"    {t.insc}r = {dia / 2} = inscribed radius{t.nn}")
-            Header(circumscribed=False, leave_out="d")
-        if 1:  # Print circumscribed diameter
-            print(
-                f"\n{t.circ}D = {dstr!r} = {dia} = circumscribed diameter (distance across points){t.nn}"
-            )
-            print(f"    {t.circ}R = {dia / 2} = circumscribed radius{t.nn}")
-            Header(circumscribed=True, leave_out="D")
     def LookForWords(diameters):
         '''Look for strings like 'tri', 'quad', etc. in the list of
         diameters and set the appropriate values in the -n option.  Remove
         these words and return the resultant remaining diameters.
         '''
-        words = "tri tet qua pen hex hep sep oct non dec dod".split()
         nums = {
             "tri": 3,
             "tet": 4,
@@ -366,7 +270,7 @@ if 1:  # Core functionality
         found, dia = [], []
         for d in diameters:
             got_one = False
-            for word in words:
+            for word in nums:
                 if d.startswith(word):
                     found.append(nums[word])
                     got_one = True
@@ -381,6 +285,129 @@ if 1:  # Core functionality
         if found:
             opts["-n"] = ",".join(str(i) for i in found)
         return dia
+    def Title():
+        print(dedent(f'''
+        {t.ti}Properties of regular polygons to {opts["-d"]} figures{t.N}
+            {t.insc}d = inscribed diameter{t.N}      r = inscribed radius
+            {t.circ}D = circumscribed diameter{t.N}  R = circumscribed radius
+            a = length of side
+        ''')
+        )
+    def Poly(s, n, circumscribed=False, leave_out="", noprint=False):
+        '''Given the diameter in the string s, number of sides n, and options dictionary
+        opts, calculate the parameters and print the table.  Leave out the indicated
+        column (only will be d or D).  If noprint is True, return the calculated
+        variables' maximum width.
+        
+        Definitions are:
+            d = inscribed circle diameter
+            D = circumscribed circle diameter
+            s = perimeter
+            A = area or surface area
+            a = length of side
+            r = radius of inscribed circle = d/2
+            R = radius of circumscribed circle = D/2
+            n = number of sides
+        Equations are:
+            theta = 2*pi/n = central angle subtended by side
+            K = theta/2
+            a = length of side = d*tan(K) = D*sin(K)
+            r = sqrt(R^2 - a^2/4) = a*cot(K)/2 = R*cos(K)
+            R = sqrt(r^2 + a^2/4) = a*csc(K)/2 = r*sec(K) = r/cos(K)
+            A = n*a*r/2 = n*a/2*sqrt((D^2 - a^2)/4)
+              = n*a^2*cot(K)/4 = n*r^2*tan(K) = n*R^2*sin(2*K)/2
+            s = 2*sqrt(R^2 - r^2) = 2*r*tan(K)
+        '''
+        try:
+            d = Convert(s)
+        except Exception:
+            Error(f"'{s}' is not a valid number")
+        if 1:   # Check assumptions
+            Assert(ii(d, (flt, int, Fraction, UFloat)))
+            Assert(ii(n, int))
+            Assert(n > 0)
+        K = pi/n
+        D = d/cos(K)
+        if circumscribed:
+            D = d
+            d = D*cos(K)
+        a = d*tan(K)
+        A = n*a*d/4
+        s = n*a
+        colorize = n in opts["-c"]
+        if colorize and not noprint:
+            print(f"{t.hi}", end="")
+        if leave_out == "d":
+            L = (n, D, a, A, s)
+        elif leave_out == "D":
+            L = (n, d, a, A, s)
+        else:
+            Error(f"Program bug: leave_out = {leave_out!r}")
+        if noprint:
+            if "+/-" in str(d):
+                # It's a ufloat, so use the shorthand string interpolation
+                return max(len(f"{i:^.1uS}") for i in (d, D, a, A, s))
+            else:
+                # It's a flt
+                return max(len(str(i)) for i in (d, D, a, A, s))
+        # Now print the line
+        for i, x in enumerate(L):
+            w = opts["-d"] + 5
+            if ii(x, UFloat):
+                print(f"{x:^{g.w}.1uS}", end=" ")
+            else:
+                print(f"{x!s:^{g.w}s}", end=" ")
+        if colorize:
+            print(f"{t.N}", end="")
+        print()
+    def GetColumnWidth(dstr):
+        '''Put the column width necessary to print the table's columns in g.w.  The
+        algorithm is to use opts["-d"] + 5, the number of decimal places + 5.  However,
+        if dstr contains uncertainty, then each of the values to be printed must be
+        examined.
+        '''
+        d = Convert(dstr)   # Convert to flt or ufloat
+        if isinstance(d, flt):
+            g.w = opts["-d"] + 5
+        else:
+            w = 0
+            number_of_sides = [int(i) for i in opts["-n"].split(",")]
+            for n in number_of_sides:
+                w = max(w, Poly(dstr, n, leave_out="d", noprint=True))
+            g.w = w
+    def Report(dstr):
+        '''Print the calculated values assuming the diameter string in dstr
+        is first an inscribed diameter, then the circumscribed diameter.
+        '''
+        GetColumnWidth(dstr)
+        def Header(circumscribed=False, leave_out=""):
+            for s in "Sides d D a Area Perim".split():
+                if s == leave_out:
+                    continue
+                print(f"{t.hdr}{s:^{g.w}s}", end=" ")
+            t.print()
+            for n in number_of_sides:
+                Poly(dstr, n, circumscribed, leave_out=leave_out)
+        try:
+            number_of_sides = [int(i) for i in opts["-n"].split(",")]
+        except Exception:
+            Error("'{0}' is bad -n option".format(opts["-n"]))
+        try:
+            dia = Convert(dstr)
+        except Exception:
+            dia = flt(eval(dstr))
+        if 1:  # Print inscribed diameter
+            if isinstance(dia, flt):
+                print(f"\n{t.insc}d = {dstr!r} = {dia}, r = {dia/2}{t.N}")
+            else:
+                print(f"\n{t.insc}d = {dstr!r} = {dia:.1uS}, r = {dia/2:.1uS}{t.N}")
+            Header(circumscribed=False, leave_out="d")
+        if 1:  # Print circumscribed diameter
+            if isinstance(dia, flt):
+                print(f"\n{t.circ}d = {dstr!r} = {dia}, r = {dia/2}{t.N}")
+            else:
+                print(f"\n{t.circ}d = {dstr!r} = {dia:.1uS}, r = {dia/2:.1uS}{t.N}")
+            Header(circumscribed=True, leave_out="D")
 if __name__ == "__main__":
     opts = {}
     diameters = ParseCommandLine(opts)
@@ -388,7 +415,7 @@ if __name__ == "__main__":
     # Make sure we can convert the diameters
     for dia in diameters:
         try:
-            Convert(dia)
+            d = Convert(dia)
         except Exception:
             Error(f"'{dia}' is not a valid number")
     if opts["-t"]:
