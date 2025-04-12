@@ -187,22 +187,102 @@ if 1:  # Regular polygon formulas
 
     Inscribed diameter = d = s/tan(ϕ) = D*cos(ϕ)
 
-    Table in Marks
-        A/s² = n/(4*tan(π/n))
-        A/D² = n*sin(2*π/n)/8
-        A/d² = n*tan(π/n)/4
-        s/D  = sin(π/n)
-        s/d  = tan(π/n)
-        d/D  = cos(π/n)
+    Table (like that in Marks)
+        ϕ = π/n
+        A/s² = n/[4*tan(ϕ)]
+        A/D² = n*sin(2*ϕ)/8
+        A/d² = n*tan(ϕ)/4
+        s/D  = sin(ϕ)
+        s/d  = tan(ϕ)
+        d/D  = cos(ϕ)
+        p/d  = n*tan(ϕ)
+        p/D  = n*sin(ϕ)
+
+        tan(ϕ) = n*s**2/(4*A) = 4*A/(n*d**2) = s/d = p/(n*d)
+        sin(ϕ) = s/D = p/(n*D)
+        cos(ϕ) = d/D
 
     Use cases for an interactive solver
-        - Note that only one of d, D, r, R have to be given to scale the problem.  For a
-          unique solution, you also need n.
+        - One of d, D, r, R, s, p, A scale the problem.  Then the problem can be solved
+          by knowing n.
         - Given A or p, find n and d/D that give the closest value.  Allow the user to
           constrain n to allowed values.
         - For most problems, you can probably assume you'll be given n.
         - Given a desired mass and material, find best n and d.  Allow user to constrain
           n to allowed values.
+
+    Equations
+        
+        ϕ = π/n
+        cos(ϕ) = d/D
+        d = 2*r = s/tan(ϕ) = D*cos(ϕ)
+        D = 2*R = s/sin(ϕ) = d/cos(ϕ)
+        A = n*s*d/4 = p*d/4 = n*D**2*sin(2*ϕ)/8
+          = n*d**2*tan(ϕ)/4 = n*s**2/(4*tan(ϕ))
+        p = n*s = n*d*tan(ϕ)
+        s = d*tan(ϕ) = D*sin(ϕ)
+
+    Should be able to solve for the following two variable cases:
+
+            d   D   r   R   s   p   A   n
+        d   x   x   x   x   1   2   3   4
+        D   x   x   x   x   5   6   7   8
+        r   x   x   x   x   9   10  11  12
+        R   x   x   x   x   13  14  15  16
+        s   17  18  19  20  x   21  22  23
+        p   24  25  26  27  28  x   29  30
+        A   31  32  33  34  35  36  x   37
+        n   38  39  40  41  42  43  44  x
+
+    Case
+     1 d, s
+     2 d, p
+     3 d, A
+     4 d, n
+     5 D, s
+     6 D, p
+     7 D, A
+     8 D, n
+     9 r, s
+    10 r, p
+    11 r, A
+    12 r, n
+    13 R, s
+    14 R, p
+    15 R, A
+    16 R, n
+
+    17 s, d
+    18 s, D
+    19 s, r
+    20 s, R
+    21 s, p
+    22 s, A
+    23 s, n
+
+    24 p, d
+    25 p, D
+    26 p, r
+    27 p, R
+    28 p, s
+    29 p, A
+    30 p, n
+
+    31 A, d
+    32 A, D
+    33 A, r
+    34 A, R
+    35 A, s
+    36 A, p
+    37 A, n
+
+    38 n, d
+    39 n, D
+    40 n, r
+    41 n, R
+    42 n, s
+    43 n, p
+    44 n, A
     
 °F °C Ω θ μ Δ% π · ×✕✗ ÷ √ α β ɣ δ ɛ ϵ ϶ ν ξ ψ φ ϕ ζ λ ρ σ τ χ ω Γ Φ Ξ Λ Σ ℝ ℂ ℤ ℕ ℚ ℐ ℛ
 ∞ ± ∓ ¢ ≤ ≥ = ≠ ≡ ≢ † ‡ ∂ ∫ ∇ ∼ ≅ ≈ ∝ ∍ ∊ ∈ ∉ ∅ ∃ « » ∀ ∡ ∠ ∟ ∥ ∦ ⊙ ⊗ ⊕ ⊉ ⊈ ⊇ ⊆ ⊅ ⊄ ⊃ ⊂ ∪ ∩
