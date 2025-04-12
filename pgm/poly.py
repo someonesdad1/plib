@@ -139,6 +139,77 @@ if 1:  # Utility
         else:
             d["-c"] = set()
         return diameters
+if 1:  # Regular polygon formulas
+
+    '''This section contains the relevant formulas with definition of the symbols.
+    Angles are measured in radians.  My analytic geometry document is the reference,
+    along with Marks, "Standard Handbook for Mechanical Engineers", McGraw-Hill, 7th
+    ed., pg 1-39, 1967.  Symbols are
+
+        d = inscribed circle diameter
+        D = circumscribed circle diameter
+        r = inscribed circle radius = apothem = d/2
+        R = circumscribed circle radius = D/2
+        A = area
+        p = perimeter
+        s = length of one side
+        θ = 2*π/n = angle subtended by one side
+        ϕ = θ/2 = π/n = the angle for solving polygon properties because you can use
+            the formulas for right triangles.
+
+    For practical work, r and R aren't convenient because they can't be conveniently
+    measured unless you're working on a surface you can e.g. use dividers and you can
+    locate the center of the polygon's inscribed or circumscribed circle.  Thus, the
+    formulas will be in terms of the diameters d and D.  If n is odd, you can't easily
+    measure d or D either:  consider the pentagon like in a Penta-nut.  You use
+    electronic or dial calipers and measure the distance from an internal vertex to the
+    perpendicular point of the opposite side, which is r + R.  You'd do the same thing
+    with the external jaws on a pentagon that would fit into this recess.  The formulas
+    give r + R = R*(1 + cos(ϕ)) = r*(1 + 1/cos(ϕ)).
+
+    Basic formula = length of side = s = d*tan(ϕ)
+
+        The basic triangle T of the n-sided regular polygon is half of the isoceles
+        triangle formed by the circle's center and one side, with the radius making a
+        right angle with the side.  We thus get s = d*tan(ϕ).  There are n of these
+        basic triangles making up the regular polygon.
+
+    p = perimeter = n*s = n*d*tan(ϕ)
+
+    A = area = n*s*d/4 = p*d/4
+
+        The area of T is half the base times the height, or (s/2)*r/2 = s*r/4.  The area
+        of two of these triangles is s*r/2, which is the area of 1/n of the polyon
+        because there are n of these triangles that make up the polygon.  Thus, the
+        polygon's area is n*s*r/2 = n*s*d/4.
+
+    Circumscribed diameter = D = s/sin(ϕ) = d/cos(ϕ)
+
+    Inscribed diameter = d = s/tan(ϕ) = D*cos(ϕ)
+
+    Table in Marks
+        A/s² = n/(4*tan(π/n))
+        A/D² = n*sin(2*π/n)/8
+        A/d² = n*tan(π/n)/4
+        s/D  = sin(π/n)
+        s/d  = tan(π/n)
+        d/D  = cos(π/n)
+
+    Use cases for an interactive solver
+        - Note that only one of d, D, r, R have to be given to scale the problem.  For a
+          unique solution, you also need n.
+        - Given A or p, find n and d/D that give the closest value.  Allow the user to
+          constrain n to allowed values.
+        - For most problems, you can probably assume you'll be given n.
+        - Given a desired mass and material, find best n and d.  Allow user to constrain
+          n to allowed values.
+    
+°F °C Ω θ μ Δ% π · ×✕✗ ÷ √ α β ɣ δ ɛ ϵ ϶ ν ξ ψ φ ϕ ζ λ ρ σ τ χ ω Γ Φ Ξ Λ Σ ℝ ℂ ℤ ℕ ℚ ℐ ℛ
+∞ ± ∓ ¢ ≤ ≥ = ≠ ≡ ≢ † ‡ ∂ ∫ ∇ ∼ ≅ ≈ ∝ ∍ ∊ ∈ ∉ ∅ ∃ « » ∀ ∡ ∠ ∟ ∥ ∦ ⊙ ⊗ ⊕ ⊉ ⊈ ⊇ ⊆ ⊅ ⊄ ⊃ ⊂ ∪ ∩
+Superscripts: ⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ⁱⁿ Subscripts: ₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐₑₕᵢⱼₖₗₘₙₒₚᵣₛₜᵤᵥₓᵦᵩ
+        
+    '''
+
 if 1:  # Core functionality
     def Convert(size):
         '''Convert the string size to a flt or ufloat.  Can be an integer, flt,
@@ -162,7 +233,7 @@ if 1:  # Core functionality
             return flt(Fraction(num + ip * denom, denom))
         else:   # It's a float
             return flt(size)
-    def PrintFormulaTable():
+    def FormulaTable():
         '''Print a table similar to the table on page 1-39 of Mark's
         "Standard Handbook for Mechanical Engineers", 7th ed., 1967.
         '''
@@ -180,57 +251,56 @@ if 1:  # Core functionality
         # 30-60-90 triangle to draw a hexagon around it.  The measurements
         # agreed with the values calculated with the table to better than
         # 0.1%.
-        print(
-            dedent('''
+        print(dedent('''
         Regular polygons
-        d = inscribed circle diameter, D = circumscribed circle diameter, A = area,
-        s = perimeter, a = length of one side, T = angle subtended by side
-        ''')
-        )
-        # Width of printout:  the column for n is 2 wide and the remaining 9
-        # columns are the width of a flt at current significance.  The smallest
-        # number (and thus the longest) will be a/D for n=64.  This thus
-        # defines the width w for each column.
-        s = F(sin(pi / 64))
-        w = len(s)
-        # Use new printing methods with flt and Unicode.  There are 9
-        # columns for flt and we want to fit into g.width if possible.
-        def f(x):
-            return 4 + 9 * x + 3
-        while True:
-            if f(w + 1) < g.width:
-                w += 1
+        d = inscribed circle diameter, D = circumscribed circle diameter, A = area
+        s = perimeter, a = length of one side, θ = angle subtended by side
+        '''))
+        if 1:   # Print table header
+            # Width of printout:  the column for n is 2 wide and the remaining 9
+            # columns are the width of a flt at current significance.  The smallest
+            # number (and thus the longest) will be a/D for n=64.  This thus
+            # defines the width w for each column.
+            s = F(sin(pi/64))
+            w = len(s)
+            # There are 9 columns for flt and we want to fit into g.width if possible
+            def f(x):
+                return 4 + 9*x + 3
+            while True:
+                if f(w + 1) < g.width:
+                    w += 1
+                else:
+                    break
+            print(f"{'n':^2s}", end=" ")
+            for s in "θ,° A/d² A/D² A/a² d/a D/a a/d a/D D/d".split():
+                print(f"{s:^{w}s}", end=" ")
+            print()
+        if 1:   # Print table body
+            # Get which sizes to print
+            if opts["-n"]:
+                sizes = list(sorted(int(i) for i in opts["-n"].split(",")))
             else:
-                break
-        print(f"{'n':^2s}", end=" ")
-        for s in "T,° A/d² A/D² A/a² d/a D/a a/d a/D D/d".split():
-            print(f"{s:^{w}s}", end=" ")
-        print()
-        # Get which sizes to print
-        if opts["-n"]:
-            sizes = list(sorted(int(i) for i in opts["-n"].split(",")))
-        else:
-            sizes = list(range(3, 11)) + [12, 15, 16, 20, 24, 32, 48, 60, 64]
-        for n in sizes:
-            colorize = n in opts["-c"]
-            res = []
-            K = pi / n
-            res.append("{0:^2d}".format(n))
-            res.append(F(2 * K * 180 / pi, w))  # T
-            res.append(F(n * tan(K) / 4, w))  # A/d^2
-            res.append(F(n * sin(2 * K) / 8, w))  # A/D^2
-            res.append(F(n / (tan(K) * 4), w))  # A/a^2
-            doa, Doa = 1 / tan(K), 1 / sin(K)
-            res.append(F(doa, w))  # d/a
-            res.append(F(Doa, w))  # D/a
-            res.append(F(1 / doa, w))  # a/d
-            res.append(F(1 / Doa, w))  # a/D
-            res.append(F(Doa / doa, w))  # D/d
-            if colorize:
-                print(f"{t.hi}", end="")
-            print(" ".join(res).rstrip())
-            if colorize:
-                print(f"{t.N}", end="")
+                sizes = list(range(3, 11)) + [12, 15, 16, 20, 24, 32, 48, 60, 64]
+            for n in sizes:
+                colorize = n in opts["-c"]
+                res = []
+                K = pi/n
+                res.append("{0:^2d}".format(n))
+                res.append(F(2*K*180/pi, w))  # T
+                res.append(F(n*tan(K)/4, w))  # A/d^2
+                res.append(F(n*sin(2*K)/8, w))  # A/D^2
+                res.append(F(n/(tan(K)*4), w))  # A/a^2
+                doa, Doa = 1/tan(K), 1/sin(K)
+                res.append(F(doa, w))  # d/a
+                res.append(F(Doa, w))  # D/a
+                res.append(F(1/doa, w))  # a/d
+                res.append(F(1/Doa, w))  # a/D
+                res.append(F(Doa/doa, w))  # D/d
+                if colorize:
+                    print(f"{t.hi}", end="")
+                print(" ".join(res).rstrip())
+                if colorize:
+                    print(f"{t.N}", end="")
         if 1:  # Print formulas
             print()
             print(dedent('''
@@ -419,7 +489,7 @@ if __name__ == "__main__":
         except Exception:
             Error(f"'{dia}' is not a valid number")
     if opts["-t"]:
-        PrintFormulaTable()
+        FormulaTable()
     Title()
     for d in diameters:
         Report(d)
