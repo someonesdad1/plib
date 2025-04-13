@@ -50,7 +50,7 @@ if 1:  # Header
     from wrap import dedent
     from lwtest import Assert
     from color import TRM as t
-    from f import flt, pi, sqrt, sin, cos, tan
+    from f import flt, pi as π, sqrt, sin, cos, tan, degrees
     from uncertainties import ufloat, ufloat_fromstr, UFloat
     # Global variables
     class g:
@@ -311,8 +311,8 @@ if 1:  # Core functionality
         else:   # It's a float
             return flt(size)
     def FormulaTable():
-        '''Print a table similar to the table on page 1-39 of Mark's
-        "Standard Handbook for Mechanical Engineers", 7th ed., 1967.
+        '''Print a table similar to the table on page 1-39 of Mark's "Standard Handbook
+        for Mechanical Engineers", 7th ed., 1967.
         '''
         def F(x, w=None):
             '''str of flt x with leading 0 removed.  If w is not None, it's a
@@ -323,34 +323,37 @@ if 1:  # Core functionality
                 s = s[1:]
             if w is None:
                 return s
-            return f"{s:^{w}s}"
+            return f"{s:>{w}s}"
         # Check of formulas:  I drew a 6" diameter circle and used a
         # 30-60-90 triangle to draw a hexagon around it.  The measurements
         # agreed with the values calculated with the table to better than
         # 0.1%.
-        print(dedent('''
-        Regular polygons
-        d = inscribed circle diameter, D = circumscribed circle diameter, A = area
-        s = perimeter, a = length of one side, θ = angle subtended by side
+        print(dedent(f'''
+                                     {t.ti}Regular polygons{t.n}
+        d = inscribed circle diameter       D = circumscribed circle diameter
+        A = area     p = perimeter     s = length of one side
+        θ = angle subtended by side = 2ϕ
         '''))
+        print()
         if 1:   # Print table header
             # Width of printout:  the column for n is 2 wide and the remaining 9
             # columns are the width of a flt at current significance.  The smallest
-            # number (and thus the longest) will be a/D for n=64.  This thus
-            # defines the width w for each column.
-            s = F(sin(pi/64))
-            w = len(s)
+            # number (and thus the longest) will be s/D for n=64.  This thus
+            # defines the width for each column.
+            u = F(sin(π/12))
+            width = len(u)
+            w1 = 4
             # There are 9 columns for flt and we want to fit into g.width if possible
             def f(x):
                 return 4 + 9*x + 3
             while True:
-                if f(w + 1) < g.width:
-                    w += 1
+                if f(width + 1) < g.width:
+                    width += 1
                 else:
                     break
-            print(f"{'n':^2s}", end=" ")
-            for s in "θ,° A/d² A/D² A/a² d/a D/a a/d a/D D/d".split():
-                print(f"{s:^{w}s}", end=" ")
+            print(f"{'n':>{w1}s}", end=" ")
+            for u in "θ,° ϕ,° A/d² A/D² A/s² s/d s/D d/D".split():
+                print(f"{u:>{width}s}", end=" ")
             print()
         if 1:   # Print table body
             # Get which sizes to print
@@ -361,18 +364,17 @@ if 1:  # Core functionality
             for n in sizes:
                 colorize = n in opts["-c"]
                 res = []
-                K = pi/n
-                res.append("{0:^2d}".format(n))
-                res.append(F(2*K*180/pi, w))  # T
-                res.append(F(n*tan(K)/4, w))  # A/d^2
-                res.append(F(n*sin(2*K)/8, w))  # A/D^2
-                res.append(F(n/(tan(K)*4), w))  # A/a^2
-                doa, Doa = 1/tan(K), 1/sin(K)
-                res.append(F(doa, w))  # d/a
-                res.append(F(Doa, w))  # D/a
-                res.append(F(1/doa, w))  # a/d
-                res.append(F(1/Doa, w))  # a/D
-                res.append(F(Doa/doa, w))  # D/d
+                ϕ = π/n
+                res.append(f"{n:>{w1}d}")
+                res.append(F(2*ϕ*180/π, width))     # θ in °
+                res.append(F(ϕ*180/π, width))       # ϕ in °
+                res.append(F(n*tan(ϕ)/4, width))    # A/d^2
+                res.append(F(n*sin(2*ϕ)/8, width))  # A/D^2
+                res.append(F(n/(tan(ϕ)*4), width))  # A/s^2
+                d, D = 1/tan(ϕ), 1/sin(ϕ)
+                res.append(F(1/d, width))           # s/d
+                res.append(F(1/D, width))           # s/D
+                res.append(F(d/D, width))           # d/D
                 if colorize:
                     print(f"{t.hi}", end="")
                 print(" ".join(res).rstrip())
@@ -381,21 +383,18 @@ if 1:  # Core functionality
         if 1:  # Print formulas
             print()
             print(dedent('''
-            Formulas:
-            k = π/n                           T = 360*k/π
-            a/d = tan(k)                      A/d² = n*tan(k)/4
-            a/D = sin(k)                      A/D² = n*sin(2*k)/8
-            D/d = 1/cos(k)                    A/a² = 4*n/tan(k)
+            Formulas:           ϕ = π/n = θ/2
+            s/d = tan(ϕ)                      A/d² = n*tan(ϕ)/4
+            s/D = sin(ϕ)                      A/D² = n*sin(2*ϕ)/8
+            d/D = cos(ϕ)                      A/s² = 4*n/tan(ϕ)
     
-            a = d*tan(k) = D*sin(k)
-            r = d/2 = sqrt(R² - a²/4) = a/(tan(k)*2) = R*cos(k)
-            R = D/2 = sqrt(r² + a²/4) = a/(sin(k)*2) = r/cos(k)
-            A = n*a*r/2 = n*a/2*sqrt((D² - a²)/4)
-                = n*a²*cot(k)/4 = n*r²*tan(k) = n*R²*sin(2*k)/2
-            s = 2*sqrt(R^2 - r^2) = 2*r*tan(k)
+            s = d*tan(ϕ) = D*sin(ϕ)
+            r = d/2 = sqrt(R² - s²/4) = s/(2*tan(ϕ)) = R*cos(ϕ)
+            R = D/2 = sqrt(r² + s²/4) = s/(2*sin(ϕ)) = r/cos(ϕ)
+            A = n*s*r/2 = n*s/2*sqrt((D² - s²)/4)
+                = n*s²*cot(ϕ)/4 = n*r²*tan(ϕ) = n*R²*sin(2*ϕ)/2
+            p = 2*sqrt(R^2 - r^2) = 2*r*tan(ϕ)
             '''))
-        print('\nRef:  Marks, "Std Hdbk for Mech Engrs", pg 1-39, 7th ed., 1967')
-        exit(0)
     def LookForWords(diameters):
         '''Look for strings like 'tri', 'quad', etc. in the list of
         diameters and set the appropriate values in the -n option.  Remove
@@ -488,73 +487,6 @@ if 1:  # Core functionality
             else:
                 print(f"\n{t.circ}d = {dstr!r} = {dia:.1uS}, r = {dia/2:.1uS}{t.N}")
             Header(circumscribed=True, leave_out="D")
-    def Poly1(s, n, circumscribed=False, leave_out="", noprint=False):
-        '''Given the diameter in the string s, number of sides n, and options dictionary
-        opts, calculate the parameters and print the table.  Leave out the indicated
-        column (only will be d or D).  If noprint is True, return the calculated
-        variables' maximum width.
-        
-        Definitions are:
-            d = inscribed circle diameter
-            D = circumscribed circle diameter
-            s = perimeter
-            A = area or surface area
-            a = length of side
-            r = radius of inscribed circle = d/2
-            R = radius of circumscribed circle = D/2
-            n = number of sides
-        Equations are:
-            theta = 2*pi/n = central angle subtended by side
-            K = theta/2
-            a = length of side = d*tan(K) = D*sin(K)
-            r = sqrt(R^2 - a^2/4) = a*cot(K)/2 = R*cos(K)
-            R = sqrt(r^2 + a^2/4) = a*csc(K)/2 = r*sec(K) = r/cos(K)
-            A = n*a*r/2 = n*a/2*sqrt((D^2 - a^2)/4)
-              = n*a^2*cot(K)/4 = n*r^2*tan(K) = n*R^2*sin(2*K)/2
-            s = 2*sqrt(R^2 - r^2) = 2*r*tan(K)
-        '''
-        try:
-            d = Convert(s)
-        except Exception:
-            Error(f"'{s}' is not a valid number")
-        if 1:   # Check assumptions
-            Assert(ii(d, (flt, int, Fraction, UFloat)))
-            Assert(ii(n, int))
-            Assert(n > 0)
-        K = pi/n
-        D = d/cos(K)
-        if circumscribed:
-            D = d
-            d = D*cos(K)
-        a = d*tan(K)
-        A = n*a*d/4
-        s = n*a
-        colorize = n in opts["-c"]
-        if colorize and not noprint:
-            print(f"{t.hi}", end="")
-        if leave_out == "d":
-            L = (n, D, a, A, s)
-        elif leave_out == "D":
-            L = (n, d, a, A, s)
-        else:
-            Error(f"Program bug: leave_out = {leave_out!r}")
-        if noprint:
-            if "+/-" in str(d):
-                # It's a ufloat, so use the shorthand string interpolation
-                return max(len(f"{i:^.1uS}") for i in (d, D, a, A, s))
-            else:
-                # It's a flt
-                return max(len(str(i)) for i in (d, D, a, A, s))
-        # Now print the line
-        for i, x in enumerate(L):
-            w = opts["-d"] + 5
-            if ii(x, UFloat):
-                print(f"{x:^{g.w}.1uS}", end=" ")
-            else:
-                print(f"{x!s:^{g.w}s}", end=" ")
-        if colorize:
-            print(f"{t.N}", end="")
-        print()
     def Poly(dia, n, circumscribed=False, leave_out="", noprint=False):
         '''Given the diameter in the string dia, number of sides n, and options dictionary
         opts, calculate the parameters and print the table.  Leave out the indicated
@@ -571,14 +503,14 @@ if 1:  # Core functionality
             R = radius of circumscribed circle = D/2
             n = number of sides
         Equations are:
-            theta = 2*pi/n = central angle subtended by side
-            K = theta/2
-            s = length of side = d*tan(K) = D*sin(K)
-            r = sqrt(R^2 - s^2/4) = s*cot(K)/2 = R*cos(K)
-            R = sqrt(r^2 + s^2/4) = s*csc(K)/2 = r*sec(K) = r/cos(K)
+            θ = 2*π/n = central angle subtended by side
+            ϕ = θ/2
+            s = length of side = d*tan(ϕ) = D*sin(ϕ)
+            r = sqrt(R^2 - s^2/4) = s*cot(ϕ)/2 = R*cos(ϕ)
+            R = sqrt(r^2 + s^2/4) = s*csc(ϕ)/2 = r*sec(ϕ) = r/cos(ϕ)
             A = n*s*r/2 = n*s/2*sqrt((D^2 - s^2)/4)
-              = n*s^2*cot(K)/4 = n*r^2*tan(K) = n*R^2*sin(2*K)/2
-            p = 2*sqrt(R^2 - r^2) = 2*r*tan(K)
+              = n*s^2*cot(ϕ)/4 = n*r^2*tan(ϕ) = n*R^2*sin(2*ϕ)/2
+            p = 2*sqrt(R^2 - r^2) = 2*r*tan(ϕ)
         '''
         try:
             diameter = Convert(dia)
@@ -588,13 +520,13 @@ if 1:  # Core functionality
             Assert(ii(diameter, (flt, int, Fraction, UFloat)))
             Assert(ii(n, int))
             Assert(n > 0)
-        K = pi/n
+        ϕ = π/n
         d = diameter    # d is inscribed diameter
-        D = d/cos(K)
+        D = d/cos(ϕ)
         if circumscribed:
             D = d
-            d = D*cos(K)
-        s = d*tan(K)
+            d = D*cos(ϕ)
+        s = d*tan(ϕ)
         A = n*s*d/4
         p = n*s
         colorize = n in opts["-c"]
@@ -636,8 +568,9 @@ if __name__ == "__main__":
             Error(f"'{dia}' is not a valid number")
     if opts["-t"]:
         FormulaTable()
-    Title()
-    for d in diameters:
-        Report(d)
-        if len(diameters) > 1:
-            print()
+    else:
+        Title()
+        for d in diameters:
+            Report(d)
+            if len(diameters) > 1:
+                print()
