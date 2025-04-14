@@ -47,11 +47,15 @@ if 1:  # Header
     import os
     import getopt
     # Custom imports
+    import termtables as tt     # Used for printing tables
     from wrap import dedent
     from lwtest import Assert
     from color import TRM as t
     from f import flt, pi as π, sqrt, sin, cos, tan, degrees
     from uncertainties import ufloat, ufloat_fromstr, UFloat
+    if 1:
+        import debug
+        debug.SetDebugger()
     # Global variables
     class g:
         pass
@@ -68,15 +72,32 @@ if 1:  # Utility
         t.circ = t.trq if x else ""
         t.N = t.n if x else ""
         # Variables' colors
-        t._n = t.redl if x else ""
+        t.n_ = t.redl if x else ""
         t.d = t.whtl if x else ""
         t.D = t.purl if x else ""
         t.r = t.royl if x else ""
         t.R = t.olvl if x else ""
         t.s = t.yell if x else ""
         t.p = t.grnl if x else ""
-        t.A = t.ornl if x else ""
-        t.phi = t.cynl if x else ""
+        t.A = t.magl if x else ""
+        t.ϕ = t.cynl if x else ""
+        t.θ = t.lipl if x else ""
+        # Dictionary to get symbol colors
+        g.sym = {
+            "n": f"{t.n_}n{t.n}",
+            "d": f"{t.d}d{t.n}",
+            "D": f"{t.D}D{t.n}",
+            "r": f"{t.r}r{t.n}",
+            "R": f"{t.R}R{t.n}",
+            "s": f"{t.s}s{t.n}",
+            "p": f"{t.p}p{t.n}",
+            "A": f"{t.A}A{t.n}",
+            "θ": f"{t.θ}θ{t.n}",
+            "ϕ": f"{t.ϕ}ϕ{t.n}",
+        }
+    def C(sym):
+        'Short name for getting symbol color'
+        return g.sym[sym]
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
@@ -95,8 +116,9 @@ if 1:  # Utility
           -a    Abbreviate numbers (remove trailing 0's and decimal point) [{opts["-a"]}]
           -c l  Color highlight the sides in the list l [{opts["-c"]}]
           -d n  Number of significant digits to print [{opts["-d"]}]
-          -n l  Which sides to print; must be a comma-separated list of
-                integers or a range() call.  [{opts["-n"]}]
+          -n l  Which sides to print; must be a space-separated list of integers.
+                [{opts["-n"]}]
+          -r    For the -t option, divide by r and R
           -t    Produce a table of useful factors allowing you to calculate
                 various parameters of polygons given certain dimensions.
         ''')
@@ -106,15 +128,16 @@ if 1:  # Utility
         d["-a"] = False     # Abbreviate numbers
         d["-c"] = ""        # Which lines to highlight
         d["-d"] = 4         # Number of significant digits
-        d["-n"] = ",".join(str(i) for i in range(3, 13))
+        d["-n"] = " ".join(str(i) for i in range(3, 13))
+        d["-r"] = False     # Divide by r & R for -t
         d["-t"] = False     # Print the table
         try:
-            opts, diameters = getopt.getopt(sys.argv[1:], "ac:d:hn:t")
+            opts, diameters = getopt.getopt(sys.argv[1:], "ac:d:hn:rt")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, arg in opts:
-            if o[1] in "at":
+            if o[1] in "art":
                 d[o] = not d[o]
             elif o in ("-c",):
                 d["-c"] = arg
@@ -339,90 +362,100 @@ if 1:  # Core functionality
     def FormulaTable():
         '''Print a table similar to the table on page 1-39 of Mark's "Standard Handbook
         for Mechanical Engineers", 7th ed., 1967.
+        
+        Check of formulas:  I drew a 6" diameter circle and used a 30-60-90 triangle
+        to draw a hexagon around it.  The measurements agreed with the values
+        calculated with the table to better than 0.1%.
         '''
-        def F(x, w=None):
-            '''str of flt x with leading 0 removed.  If w is not None, it's a
-            width to center the string of x in.
-            '''
-            s = str(x)
-            if s[0] == "0" and s[1] == ".":
-                s = s[1:]
-            if w is None:
-                return s
-            return f"{s:>{w}s}"
-        # Check of formulas:  I drew a 6" diameter circle and used a
-        # 30-60-90 triangle to draw a hexagon around it.  The measurements
-        # agreed with the values calculated with the table to better than
-        # 0.1%.
+        # Header
         print(dedent(f'''
-                                     {t.ti}Regular polygons{t.n}
-        d = inscribed circle diameter       D = circumscribed circle diameter
-        A = area     p = perimeter     s = length of one side
-        θ = angle subtended by side = 2ϕ
+                             {t.ti}Regular polygons{t.n}
+        {C('d')} = inscribed circle diameter       
+        {C('D')} = circumscribed circle diameter
+        {C('A')} = area     {C('p')} = perimeter     {C('s')} = length of one side
+        {C('θ')} = angle subtended by side = 2{C('ϕ')}
         '''))
         print()
-        if 1:   # Print table header
-            # Width of printout:  the column for n is 2 wide and the remaining 9
-            # columns are the width of a flt at current significance.  The smallest
-            # number (and thus the longest) will be s/D for n=64.  This thus
-            # defines the width for each column.
-            u = F(sin(π/12))
-            width = len(u)
-            w1 = 4
-            # There are 9 columns for flt and we want to fit into g.width if possible
-            def f(x):
-                return 4 + 9*x + 3
-            while True:
-                if f(width + 1) < g.width:
-                    width += 1
+        # Print table body
+        if opts["-r"]:
+            header = f'''{C('n')} {C('θ')},° {C('ϕ')},° {C('A')}/{C('r')}²
+                            {C('A')}/{C('R')}² {C('A')}/{C('s')}² {C('s')}/{C('r')}
+                            {C('s')}/{C('R')} {C('p')}/{C('r')} {C('p')}/{C('R')}'''.split()
+        else:
+            header = f'''{C('n')} {C('θ')},° {C('ϕ')},° {C('A')}/{C('d')}²
+                            {C('A')}/{C('D')}² {C('A')}/{C('s')}² {C('s')}/{C('d')}
+                            {C('s')}/{C('D')} {C('p')}/{C('d')} {C('p')}/{C('D')}'''.split()
+        o, use_r = [], opts["-r"]
+        # In the table, we assume the inscribed circle is a unit circle
+        r = flt(1)
+        for n in [int(i) for i in opts["-n"].split()]:
+            colorize = n in opts["-c"]
+            row = []
+            ϕ = π/n
+            R = r/cos(ϕ)
+            d = 2*r
+            D = 2*R
+            s = D*sin(ϕ)
+            A = n*s*r/2
+            p = n*s
+            if 0 and n == 3:
+                # Debug print
+                print(f"{t.sky}n = {n}, ϕ = {degrees(ϕ)}, r = {r}, R = {R}, d = {d}, D = {D}, s = {s}, A = {A}, p = {p}")
+                if use_r:
+                    print(f"A/r² = {A/r**2}, A/R² = {A/R**2}, A/s² = {A/s**2}, s/r = {s/r}, s/R = {s/R}, p/r = {p/r}, p/R = {p/R}")
                 else:
-                    break
-            print(f"{'n':>{w1}s}", end=" ")
-            for u in "θ,° ϕ,° A/d² A/D² A/s² s/d s/D p/d p/D".split():
-                print(f"{u:>{width}s}", end=" ")
-            print()
-        if 1:   # Print table body
-            # Get which sizes to print
-            if opts["-n"]:
-                sizes = list(sorted(int(i) for i in opts["-n"].split(",")))
+                    print(f"A/d² = {A/d**2}, A/D² = {A/D**2}, A/s² = {A/s**2}, s/d = {s/d}, s/D = {s/D}, p/d = {p/d}, p/D = {p/D}")
+                t.print()
+            row.append(f"{n}")              # n
+            row.append(f"{2*degrees(ϕ)}")   # θ in °
+            row.append(f"{degrees(ϕ)}")     # ϕ in °
+            if use_r:
+                row.append(f"{A/r**2}")     # A/r^2
+                row.append(f"{A/R**2}")     # A/R^2
+                row.append(f"{A/s**2}")     # A/s^2
+                row.append(f"{s/r}")        # s/r
+                row.append(f"{s/R}")        # s/R
+                row.append(f"{p/r}")        # p/r
+                row.append(f"{p/R}")        # p/R
             else:
-                sizes = list(range(3, 11)) + [12, 15, 16, 20, 24, 32, 48, 60, 64]
-            for n in sizes:
-                colorize = n in opts["-c"]
-                res = []
-                ϕ = π/n
-                res.append(f"{n:>{w1}d}")
-                res.append(F(2*ϕ*180/π, width))     # θ in °
-                res.append(F(ϕ*180/π, width))       # ϕ in °
-                res.append(F(n*tan(ϕ)/4, width))    # A/d^2
-                res.append(F(n*sin(2*ϕ)/8, width))  # A/D^2
-                res.append(F(n/(tan(ϕ)*4), width))  # A/s^2
-                d, D = 1/tan(ϕ), 1/sin(ϕ)
-                pod = n*tan(ϕ)
-                poD = n*cos(ϕ)
-                res.append(F(1/d, width))           # s/d
-                res.append(F(1/D, width))           # s/D
-                res.append(F(pod, width))           # p/d
-                res.append(F(poD, width))           # p/D
-                #res.append(F(d/D, width))           # d/D
-                if colorize:
-                    print(f"{t.hi}", end="")
-                print(" ".join(res).rstrip())
-                if colorize:
-                    print(f"{t.N}", end="")
-        if 1:  # Print formulas
-            print()
-            print(dedent('''
-            Formulas:           ϕ = π/n = θ/2
-            s/d = tan(ϕ)                      A/d² = n*tan(ϕ)/4
-            s/D = sin(ϕ)                      A/D² = n*sin(2*ϕ)/8
+                row.append(f"{A/d**2}")     # A/d^2
+                row.append(f"{A/D**2}")     # A/D^2
+                row.append(f"{A/s**2}")     # A/s^2
+                row.append(f"{s/d}")        # s/d
+                row.append(f"{s/D}")        # s/D
+                row.append(f"{p/d}")        # p/d
+                row.append(f"{p/D}")        # p/D
+            o.append(row)
+        tt.print(o, header=header, padding=(0, 0), style=tt.styles.thin_double, alignment="c"*10)
+        # Print formulas
+        print()
+        if 0:
+            print(dedent(f'''
+            Formulas:           {C('ϕ')} = π/{C('n')} = {C('θ')}/2
+            {C('s')}/{C('d')} = tan({C('ϕ')})                      {C('A')}/{C('d')}² = {C('n')}*tan({C('ϕ')}/4)
+            {C('s')}/{C('D')} = sin({C('ϕ')})                      {C('A')}/{C('D')}² = {C('n')}*sin(2*{C('ϕ')}/8)
+            {C('d')}/{C('D')} = cos({C('ϕ')})                      {C('A')}/{C('s')}² = 4*{C('n')}/tan({C('ϕ')})
+
+            {C('s')} = {C('d')}*tan({C('ϕ')}) = {C('D')}*sin({C('ϕ')})
+            {C('r')} = {C('d')}/2 = sqrt({C('R')}² - {C('s')}²/4) = {C('s')}/(2*tan({C('ϕ')})) = {C('R')}*cos({C('ϕ')})
+            {C('R')} = {C('D')}/2 = sqrt({C('r')}² + {C('s')}²/4) = {C('s')}/(2*sin({C('ϕ')})) = {C('r')}/cos({C('ϕ')})
+            {C('A')} = {C('n')}*{C('s')}*{C('r')}/2 = {C('n')}*{C('s')}/2*sqrt(({C('D')}² - {C('s')}²)/4)
+                = {C('n')}*{C('s')}²*cot({C('ϕ')}/4) = {C('n')}*{C('r')}²*tan({C('ϕ')}) = {C('n')}*{C('R')}²*sin(2*{C('ϕ')}/2)
+            {C('p')} = 2*sqrt({C('R')}^2 - {C('r')}^2) = 2*{C('r')}*tan({C('ϕ')})
+            '''))
+        else:
+            # The above comes out looking like fruit salad
+            print(dedent(f'''
+            {t.ti}Formulas{t.n}:           ϕ = π/n = θ/2
+            s/d = tan(ϕ)                      A/d² = n*tan(ϕ/4)
+            s/D = sin(ϕ)                      A/D² = n*sin(2*ϕ/8)
             d/D = cos(ϕ)                      A/s² = 4*n/tan(ϕ)
-    
+
             s = d*tan(ϕ) = D*sin(ϕ)
             r = d/2 = sqrt(R² - s²/4) = s/(2*tan(ϕ)) = R*cos(ϕ)
             R = D/2 = sqrt(r² + s²/4) = s/(2*sin(ϕ)) = r/cos(ϕ)
             A = n*s*r/2 = n*s/2*sqrt((D² - s²)/4)
-                = n*s²*cot(ϕ)/4 = n*r²*tan(ϕ) = n*R²*sin(2*ϕ)/2
+                = n*s²*cot(ϕ/4) = n*r²*tan(ϕ) = n*R²*sin(2*ϕ/2)
             p = 2*sqrt(R^2 - r^2) = 2*r*tan(ϕ)
             '''))
     def LookForWords(diameters):
@@ -461,14 +494,6 @@ if 1:  # Core functionality
         if found:
             opts["-n"] = ",".join(str(i) for i in found)
         return dia
-    def Title():
-        print(dedent(f'''
-        {t.ti}Properties of regular polygons{t.n}
-            {t.d}d{t.n} = inscribed diameter      r = inscribed radius
-            {t.D}D{t.n} = circumscribed diameter  R = circumscribed radius
-            s = length of side   A = area   p = perimeter
-        ''')
-        )
     def GetColumnWidth(dstr):
         '''Put the column width necessary to print the table's columns in g.w.  The
         algorithm is to use opts["-d"] + 5, the number of decimal places + 5.  However,
@@ -484,40 +509,133 @@ if 1:  # Core functionality
             for n in number_of_sides:
                 w = max(w, Poly(dstr, n, leave_out="d", noprint=True))
             g.w = w
+    def Title():
+        print(dedent(f'''
+        {t.ti}Properties of regular polygons{t.n}
+            {C('d')} = inscribed diameter      {C('r')} = inscribed radius
+            {C('D')} = circumscribed diameter  {C('R')} = circumscribed radius
+            {C('s')} = length of side   {C('A')} = area   {C('p')} = perimeter
+        '''))
     def Report(dstr):
         '''Print the calculated values assuming the diameter string in dstr
         is first an inscribed diameter, then the circumscribed diameter.
         '''
-        GetColumnWidth(dstr)
-        def Header(circumscribed=False, leave_out=""):
-            for s in "n d D s A p".split():
-                if s == leave_out:
-                    continue
-                print(f"{t.hdr}{s:^{g.w}s}", end=" ")
-            t.print()
-            for n in number_of_sides:
-                Poly(dstr, n, circumscribed, leave_out=leave_out)
         try:
-            number_of_sides = [int(i) for i in opts["-n"].split(",")]
+            number_of_sides = [int(i) for i in opts["-n"].split()]
         except Exception:
             Error("'{0}' is bad -n option".format(opts["-n"]))
         try:
             dia = Convert(dstr)
         except Exception:
             dia = flt(eval(dstr))
-        if 1:  # Print inscribed diameter
-            if isinstance(dia, flt):
-                print(f"\n{t.d}d{t.n} = {dstr!r} = {dia}, r = {dia/2}")
-            else:
-                print(f"\n{t.d}d{t.n} = {dstr!r} = {dia:.1uS}, r = {dia/2:.1uS}")
-            Header(circumscribed=False, leave_out="d")
-        if 1:  # Print circumscribed diameter
-            if isinstance(dia, flt):
-                print(f"\n{t.D}D{t.n} = {dstr!r} = {dia}, r = {dia/2}")
-            else:
-                print(f"\n{t.D}D{t.n} = {dstr!r} = {dia:.1uS}, r = {dia/2:.1uS}")
-            Header(circumscribed=True, leave_out="D")
-    def Poly(dia, n, circumscribed=False, leave_out="", noprint=False):
+        if 0:
+            # Original method
+            GetColumnWidth(dstr)
+            def Header(circumscribed=False, leave_out=""):
+                for s in "n d D s A p".split():
+                    if s == leave_out:
+                        continue
+                    print(f"{t.hdr}{s:^{g.w}s}", end=" ")
+                t.print()
+                for n in number_of_sides:
+                    Poly(dstr, n, circumscribed, leave_out=leave_out)
+            if 1:  # Print inscribed diameter
+                if isinstance(dia, flt):
+                    print(f"\n{t.d}d{t.n} = {dstr!r} = {dia}, r = {dia/2}")
+                else:
+                    print(f"\n{t.d}d{t.n} = {dstr!r} = {dia:.1uS}, r = {dia/2:.1uS}")
+                Header(circumscribed=False, leave_out="d")
+            if 1:  # Print circumscribed diameter
+                if isinstance(dia, flt):
+                    print(f"\n{t.D}D{t.n} = {dstr!r} = {dia}, r = {dia/2}")
+                else:
+                    print(f"\n{t.D}D{t.n} = {dstr!r} = {dia:.1uS}, r = {dia/2:.1uS}")
+                Header(circumscribed=True, leave_out="D")
+        else:   # Using texttable
+            table_lines = []
+            style = " │             "
+            if 1:  # Print inscribed diameter
+                if isinstance(dia, flt):
+                    print(f"\n{t.d}d{t.n} = {dstr!r} = {dia}, r = {dia/2}")
+                else:
+                    print(f"\n{t.d}d{t.n} = {dstr!r} = {dia:.1uS}, r = {dia/2:.1uS}")
+                # Now print the table
+                hdr = [f"{C('n')}", f"{C('D')}", f"{C('s')}", f"{C('A')}", f"{C('p')}"]
+                for n in number_of_sides:
+                    u = tuple([" " + i + " " for i in Poly(dstr, n, circumscribed=False)])
+                    table_lines.append(u)
+                tt.print(table_lines, header=hdr, padding=(0, 0), style=style, alignment="c"*5)
+
+            if 1:  # Print circumscribed diameter
+                if isinstance(dia, flt):
+                    print(f"\n{t.D}D{t.n} = {dstr!r} = {dia}, r = {dia/2}")
+                else:
+                    print(f"\n{t.D}D{t.n} = {dstr!r} = {dia:.1uS}, r = {dia/2:.1uS}")
+                # Now print the table
+                hdr = [f"{C('n')}", f"{C('d')}", f"{C('s')}", f"{C('A')}", f"{C('p')}"]
+                table_lines.clear()
+                for n in number_of_sides:
+                    u = tuple([" " + i + " " for i in Poly(dstr, n, circumscribed=False)])
+                    table_lines.append(u)
+                tt.print(table_lines, header=hdr, padding=(0, 0), style=style, alignment="c"*5)
+
+    def Poly(dia, n, circumscribed=False):
+        '''Return (n, d or D, s, A, p) where each element is the corresponding variable's
+        string.  dia is a flt and is the inscribed circle diameter if circumscribed is
+        False and the circumscribed circle diameter if True.  n is the integer number of
+        sides.  
+        
+        Definitions are:
+            d = inscribed circle diameter
+            D = circumscribed circle diameter
+            p = perimeter
+            A = area or surface area
+            s = length of side
+            r = radius of inscribed circle = d/2
+            R = radius of circumscribed circle = D/2
+            n = number of sides
+        Equations are:
+            θ = 2*π/n = central angle subtended by side
+            ϕ = θ/2
+            s = length of side = d*tan(ϕ) = D*sin(ϕ)
+            r = sqrt(R^2 - s^2/4) = s*cot(ϕ)/2 = R*cos(ϕ)
+            R = sqrt(r^2 + s^2/4) = s*csc(ϕ)/2 = r*sec(ϕ) = r/cos(ϕ)
+            A = n*s*r/2 = n*s/2*sqrt((D^2 - s^2)/4)
+              = n*s^2*cot(ϕ)/4 = n*r^2*tan(ϕ) = n*R^2*sin(2*ϕ)/2
+            p = 2*sqrt(R^2 - r^2) = 2*r*tan(ϕ)
+        '''
+        try:
+            diameter = Convert(dia)
+        except Exception:
+            Error(f"'{s}' is not a valid number")
+        if 1:   # Check assumptions
+           Assert(ii(diameter, (flt, int, Fraction, UFloat)))
+           Assert(ii(n, int))
+           Assert(n > 0)
+        is_uncertain = True if ii(diameter, UFloat) else False
+        # Calculate regular polygon's properties
+        ϕ = π/n
+        d = diameter    # d is inscribed diameter
+        D = d/cos(ϕ)
+        if circumscribed:
+            D = d
+            d = D*cos(ϕ)
+        s = d*tan(ϕ)
+        A = n*s*d/4
+        p = n*s
+        # 
+        o = []
+        o.append(f"{n}")
+        if circumscribed:
+            o.append(f"{d:.1uS}" if ii(d, UFloat) else f"{d}")
+        else:
+            o.append(f"{D:.1uS}" if ii(D, UFloat) else f"{D}")
+        o.append(f"{s:.1uS}" if ii(s, UFloat) else f"{s}")
+        o.append(f"{A:.1uS}" if ii(A, UFloat) else f"{A}")
+        o.append(f"{p:.1uS}" if ii(p, UFloat) else f"{p}")
+        return tuple(o)
+
+    def Poly_(dia, n, circumscribed=False, leave_out="", noprint=False):
         '''Given the diameter in the string dia, number of sides n, and options dictionary
         opts, calculate the parameters and print the table.  Leave out the indicated
         column (only will be d or D).  If noprint is True, return the calculated

@@ -1,5 +1,16 @@
 Active:  /plib/.todo
 
+    - Debugging complicated expressions
+        - Create a script that finds unmatched (, [, {, < in python code.  A great
+          example pgm/poly.py around line 430 where the problem's variables are getting
+          color coded.  It's easy to miss a bracket, especially when using search and
+          replace and forgetting something.
+        - The method would be to find the row/col of each bracket; each bracket goes on
+          a stack and is popped off when the mate is found.  At the end, any of the
+          stacks that are non-empty have the row/column of the last opening brace that
+          wasn't matched printed.  Even better, print the string out and highlight the
+          unmatched item.
+
     - poly.py
         - Print out dimensions/formulas for common regular polygons
         - Print r, R, and r+R for odd n's
