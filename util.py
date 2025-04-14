@@ -1,6 +1,9 @@
 '''
     
 ToDo
+    - hyphen_range should take strings like "1-3 6" by default and split them on
+      whitespace.  Add the allow_commas keyword to use things like "1-3, 6" where the
+      commas delimit the specifiers.  I have use cases for both types.
     - Convert Spinner to a class so the instance is thread-safe
     - Debug class should use print()'s arguments
     - Document Now class
@@ -1042,9 +1045,10 @@ def ConvertToNumber(s, handle_i=True):
     else:
         return int(s)
 def StringToNumbers(s, sep=" ", handle_i=True):
-    '''s is a string; return the sequence (tuple) of numbers it represents; number strings are
-    separated by the string sep.  The numbers returned are integers, fractions, floats, or complex.
-    If handle_i is True, 'i' or 'I' are allowed as the imaginary unit.
+    '''s is a string; return the sequence (tuple) of numbers it represents; number
+    strings are separated by the string sep.  The numbers returned are integers,
+    fractions, floats, or complex.  If handle_i is True, 'i' or 'I' are allowed as the
+    imaginary unit.
     '''
     seq = []
     for line in s.strip().split(nl):
@@ -1054,11 +1058,12 @@ def StringToNumbers(s, sep=" ", handle_i=True):
             seq.extend(line.split())
     return tuple([ConvertToNumber(i, handle_i=handle_i) for i in seq])
 def hyphen_range(s, sorted=False, unique=False):
-    '''Takes a set of range specifications of the form "a-b" and returns a list of integers between
-    a and b inclusive.  Also accepts comma separated ranges like "a-b,c-d,f".  Numbers from a to b,
-    a to d and f.  If sorted is True, the returned list will be sorted.  If unique is True, only
-    unique numbers are kept and the list is automatically sorted.  In "a-b", a can be larger than
-    b, in which case the sequence will decrease until b is reached.
+    '''Takes a set of range specifications of the form "a-b" and returns a list of
+    integers between a and b inclusive.  Also accepts comma separated ranges like
+    "a-b,c-d,f".  Numbers from a to b, a to d and f.  If sorted is True, the returned
+    list will be sorted.  If unique is True, only unique numbers are kept and the list
+    is automatically sorted.  In "a-b", a can be larger than b, in which case the
+    sequence will decrease until b is reached.
     
     Example:  hyphen_range("8-12,14,18") returns [8, 9, 10, 11, 12, 14, 18]
     
@@ -2000,6 +2005,10 @@ def fsig(x, digits=None):
     if fsig.rdp and t[-1] == fsig.dp:
         t = t[:-1]
     return sgn + t
+
+if 1:
+    print(hyphen_range("1-3 6"))
+    exit()
 
 if __name__ == "__main__":
     # Missing tests for: Ignore Debug, GetString

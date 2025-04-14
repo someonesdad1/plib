@@ -58,14 +58,25 @@ if 1:  # Header
     g.width = int(os.environ.get("COLUMNS", 80)) - 1
     g.w = None      # Used for maximum column width of table
     ii = isinstance
-    isatty = sys.stdout.isatty()
-    t.ti = t("ornl") if isatty else ""
-    t.hi = t("brnl") if isatty else ""
-    t.hdr = t("redl") if isatty else ""
-    t.insc = t("purl") if isatty else ""
-    t.circ = t("trq") if isatty else ""
-    t.N = t.n if isatty else ""
 if 1:  # Utility
+    def GetColors():
+        x = sys.stdout.isatty()
+        t.ti = t.ornl if x else ""
+        t.hi = t.brnl if x else ""
+        t.hdr = t.redl if x else ""
+        t.insc = t.purl if x else ""
+        t.circ = t.trq if x else ""
+        t.N = t.n if x else ""
+        # Variables' colors
+        t._n = t.redl if x else ""
+        t.d = t.whtl if x else ""
+        t.D = t.purl if x else ""
+        t.r = t.royl if x else ""
+        t.R = t.olvl if x else ""
+        t.s = t.yell if x else ""
+        t.p = t.grnl if x else ""
+        t.A = t.ornl if x else ""
+        t.phi = t.cynl if x else ""
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
@@ -138,12 +149,15 @@ if 1:  # Utility
             d["-c"] = set([int(i) for i in s])
         else:
             d["-c"] = set()
+        GetColors()
         return diameters
 if 1:  # Regular polygon formulas
     '''This section contains the relevant formulas with definition of the symbols.
-    Angles are measured in radians.  My analytic geometry document is the reference,
-    along with Marks, "Standard Handbook for Mechanical Engineers", McGraw-Hill, 7th
-    ed., pg 1-39, 1967.  Symbols are
+    It also contains test routines that validate the formulas.
+
+    Angles are measured in radians.  My analytic geometry document is the reference
+    along with the table in Marks, "Standard Handbook for Mechanical Engineers",
+    McGraw-Hill, 7th ed., pg 1-39, 1967.  Symbols are
 
         d = inscribed circle diameter
         D = circumscribed circle diameter
@@ -156,8 +170,11 @@ if 1:  # Regular polygon formulas
         ϕ = θ/2 = π/n = the angle for solving polygon properties because you can use
             the formulas for right triangles.
 
+    Let T be the right triangle that is half the isoceles triangle formed by the
+    circle's center and one side, with the radius making a right angle with the side.
+
     For practical work, r and R aren't convenient because they can't be conveniently
-    measured unless you're working on a surface you can e.g. use dividers and you can
+    measured unless you're working on a surface where you can use dividers and you can
     locate the center of the polygon's inscribed or circumscribed circle.  Thus, the
     formulas will be in terms of the diameters d and D.  If n is odd, you can't easily
     measure d or D either:  consider the pentagon like in a Penta-nut.  You use
@@ -166,18 +183,16 @@ if 1:  # Regular polygon formulas
     with the external jaws on a pentagon that would fit into this recess.  The formulas
     give r + R = R*(1 + cos(ϕ)) = r*(1 + 1/cos(ϕ)).
 
-    Basic formula = length of side = s = d*tan(ϕ)
+    Basic formula for length of side:  s = d*tan(ϕ)
 
-        The basic triangle T of the n-sided regular polygon is half of the isoceles
-        triangle formed by the circle's center and one side, with the radius making a
-        right angle with the side.  We thus get s = d*tan(ϕ).  There are n of these
-        basic triangles making up the regular polygon.
+        From triangle T, we get s = d*tan(ϕ).  There are 2*n of these basic triangles
+        T making up the regular polygon.
 
     p = perimeter = n*s = n*d*tan(ϕ)
 
     A = area = n*s*d/4 = p*d/4
 
-        The area of T is half the base times the height, or (s/2)*r/2 = s*r/4.  The area
+        The area of T is half the base times the height, or (1/2)*r*(s/2) = s*r/4.  The area
         of two of these triangles is s*r/2, which is the area of 1/n of the polyon
         because there are n of these triangles that make up the polygon.  Thus, the
         polygon's area is n*s*r/2 = n*s*d/4.
@@ -188,7 +203,7 @@ if 1:  # Regular polygon formulas
 
     Table (like that in Marks)
         ϕ = π/n
-        A/s² = n/[4*tan(ϕ)]
+        A/s² = n/(4*tan(ϕ))
         A/D² = n*sin(2*ϕ)/8
         A/d² = n*tan(ϕ)/4
         s/D  = sin(ϕ)
@@ -201,18 +216,25 @@ if 1:  # Regular polygon formulas
         sin(ϕ) = s/D = p/(n*D)
         cos(ϕ) = d/D
 
-    Use cases for an interactive solver
-        - One of d, D, r, R, s, p, A scale the problem.  Then the problem can be solved
-          by knowing n.
-        - Given A or p, find n and d/D that give the closest value.  Allow the user to
-          constrain n to allowed values.
-        - For most problems, you can probably assume you'll be given n.
-        - Given a desired mass and material, find best n and d.  Allow user to constrain
-          n to allowed values.
+    Use cases for an interactive polygon calculator
+        - Polygon calculator
+            - State allowed n values, e.g.:  3-6 8
+                - !n gives default 3-12
+                - n+ adds values
+                - n- removes values
+            - Enter one of d, D, r, R, s, p, A and see the calculated variables.
+                - r and R are not shown by default unless you specify them.
+                - Use !x to not show variable x, !! to show all variables
+            - At the prompt, you enter new values of the last variable and see the
+              changes.  Enter a new variable name and that variable gets the focus.
+              This will let you iterate to find a desired solution.
+
+        - Mass problem
+            - Choose material.  Given t = thickness and n, enter one of d, D, s, p, A.
+              Calculate resulting mass.
 
     Equations
-        
-        ϕ = π/n
+        ϕ = π/n = 2*θ
         cos(ϕ) = d/D
         d = 2*r = s/tan(ϕ) = D*cos(ϕ)
         D = 2*R = s/sin(ϕ) = d/cos(ϕ)
@@ -220,6 +242,9 @@ if 1:  # Regular polygon formulas
           = n*d**2*tan(ϕ)/4 = n*s**2/(4*tan(ϕ))
         p = n*s = n*d*tan(ϕ)
         s = d*tan(ϕ) = D*sin(ϕ)
+
+    Functional forms
+        ϕ: (n), (d, D), (d, s), (D, s), (n, D, A), (n, d, A), (n, s, A) (n, d, p)
 
     Should be able to solve for the following two variable cases:
 
@@ -234,54 +259,55 @@ if 1:  # Regular polygon formulas
         n   38  39  40  41  42  43  44  x
 
     Case
-     1 d, s
-     2 d, p
-     3 d, A
-     4 d, n
-     5 D, s
-     6 D, p
-     7 D, A
-     8 D, n
-     9 r, s
-    10 r, p
-    11 r, A
-    12 r, n
-    13 R, s
-    14 R, p
-    15 R, A
-    16 R, n
+     1 d, s     tan(ϕ) = s/d
+     2 d, p     p = n*d*tan(ϕ)
+     3 d, A     
+     4 d, n     
+     5 D, s     
+     6 D, p     
+     7 D, A     
+     8 D, n     
 
-    17 s, d
-    18 s, D
-    19 s, r
-    20 s, R
-    21 s, p
-    22 s, A
-    23 s, n
+     9 r, s     
+    10 r, p     
+    11 r, A     
+    12 r, n     
+    13 R, s     
+    14 R, p     
+    15 R, A     
+    16 R, n     
 
-    24 p, d
-    25 p, D
-    26 p, r
-    27 p, R
-    28 p, s
-    29 p, A
-    30 p, n
+    17 s, d     
+    18 s, D     
+    19 s, r     
+    20 s, R     
+    21 s, p     
+    22 s, A     
+    23 s, n     
 
-    31 A, d
-    32 A, D
-    33 A, r
-    34 A, R
-    35 A, s
-    36 A, p
-    37 A, n
+    24 p, d     
+    25 p, D     
+    26 p, r     
+    27 p, R     
+    28 p, s     
+    29 p, A     
+    30 p, n     
 
-    38 n, d
-    39 n, D
-    40 n, r
-    41 n, R
-    42 n, s
-    43 n, p
-    44 n, A
+    31 A, d     
+    32 A, D     
+    33 A, r     
+    34 A, R     
+    35 A, s     
+    36 A, p     
+    37 A, n     
+
+    38 n, d     
+    39 n, D     
+    40 n, r     
+    41 n, R     
+    42 n, s     
+    43 n, p     
+    44 n, A     
      
     °F °C Ω θ μ Δ% π · ×✕✗ ÷ √ α β ɣ δ ɛ ϵ ϶ ν ξ ψ φ ϕ ζ λ ρ σ τ χ ω Γ Φ Ξ Λ Σ ℝ ℂ ℤ ℕ ℚ ℐ ℛ
     ∞ ± ∓ ¢ ≤ ≥ = ≠ ≡ ≢ † ‡ ∂ ∫ ∇ ∼ ≅ ≈ ∝ ∍ ∊ ∈ ∉ ∅ ∃ « » ∀ ∡ ∠ ∟ ∥ ∦ ⊙ ⊗ ⊕ ⊉ ⊈ ⊇ ⊆ ⊅ ⊄ ⊃ ⊂ ∪ ∩
@@ -352,7 +378,7 @@ if 1:  # Core functionality
                 else:
                     break
             print(f"{'n':>{w1}s}", end=" ")
-            for u in "θ,° ϕ,° A/d² A/D² A/s² s/d s/D d/D".split():
+            for u in "θ,° ϕ,° A/d² A/D² A/s² s/d s/D p/d p/D".split():
                 print(f"{u:>{width}s}", end=" ")
             print()
         if 1:   # Print table body
@@ -372,9 +398,13 @@ if 1:  # Core functionality
                 res.append(F(n*sin(2*ϕ)/8, width))  # A/D^2
                 res.append(F(n/(tan(ϕ)*4), width))  # A/s^2
                 d, D = 1/tan(ϕ), 1/sin(ϕ)
+                pod = n*tan(ϕ)
+                poD = n*cos(ϕ)
                 res.append(F(1/d, width))           # s/d
                 res.append(F(1/D, width))           # s/D
-                res.append(F(d/D, width))           # d/D
+                res.append(F(pod, width))           # p/d
+                res.append(F(poD, width))           # p/D
+                #res.append(F(d/D, width))           # d/D
                 if colorize:
                     print(f"{t.hi}", end="")
                 print(" ".join(res).rstrip())
@@ -433,9 +463,9 @@ if 1:  # Core functionality
         return dia
     def Title():
         print(dedent(f'''
-        {t.ti}Properties of regular polygons to {opts["-d"]} figures{t.N}
-            {t.insc}d = inscribed diameter{t.N}      r = inscribed radius
-            {t.circ}D = circumscribed diameter{t.N}  R = circumscribed radius
+        {t.ti}Properties of regular polygons{t.n}
+            {t.d}d{t.n} = inscribed diameter      r = inscribed radius
+            {t.D}D{t.n} = circumscribed diameter  R = circumscribed radius
             s = length of side   A = area   p = perimeter
         ''')
         )
@@ -460,7 +490,7 @@ if 1:  # Core functionality
         '''
         GetColumnWidth(dstr)
         def Header(circumscribed=False, leave_out=""):
-            for s in "Sides d D s A p".split():
+            for s in "n d D s A p".split():
                 if s == leave_out:
                     continue
                 print(f"{t.hdr}{s:^{g.w}s}", end=" ")
@@ -477,15 +507,15 @@ if 1:  # Core functionality
             dia = flt(eval(dstr))
         if 1:  # Print inscribed diameter
             if isinstance(dia, flt):
-                print(f"\n{t.insc}d = {dstr!r} = {dia}, r = {dia/2}{t.N}")
+                print(f"\n{t.d}d{t.n} = {dstr!r} = {dia}, r = {dia/2}")
             else:
-                print(f"\n{t.insc}d = {dstr!r} = {dia:.1uS}, r = {dia/2:.1uS}{t.N}")
+                print(f"\n{t.d}d{t.n} = {dstr!r} = {dia:.1uS}, r = {dia/2:.1uS}")
             Header(circumscribed=False, leave_out="d")
         if 1:  # Print circumscribed diameter
             if isinstance(dia, flt):
-                print(f"\n{t.circ}d = {dstr!r} = {dia}, r = {dia/2}{t.N}")
+                print(f"\n{t.D}D{t.n} = {dstr!r} = {dia}, r = {dia/2}")
             else:
-                print(f"\n{t.circ}d = {dstr!r} = {dia:.1uS}, r = {dia/2:.1uS}{t.N}")
+                print(f"\n{t.D}D{t.n} = {dstr!r} = {dia:.1uS}, r = {dia/2:.1uS}")
             Header(circumscribed=True, leave_out="D")
     def Poly(dia, n, circumscribed=False, leave_out="", noprint=False):
         '''Given the diameter in the string dia, number of sides n, and options dictionary
