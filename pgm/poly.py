@@ -1,9 +1,8 @@
 '''
 
 ToDo (higher priority items first)
-    - Add -i option for interactive solution (see notes below)
-        - This would let you type in variables and see their effect on the calculated
-          values.  You can iteratively approach a desired solution as needed.
+    - Interactive
+        - Print out r + R if n is odd
     - Add -z option to specify thickness and -D option to specify density.  Then the
       report will include volume and mass.  Density can be a string, in which case
       you're presented with a list of matches to choose from or it's a number with the
@@ -13,13 +12,6 @@ ToDo (higher priority items first)
       problem
     - Add option to generate and show a PostScript drawing for a particular number of
       sides.  This would be handy for shop documentation.
-
-Interactive
-
-    This lets you numerically experiment with the variables r, R, d, D, A, s, and p.
-    When the script starts up, you're prompted for an entry.  The prompt will show the
-    current independent variable (defaults to 'd>> ').  You can type in a number or a
-    variable name to change it.  
 
 '''
 if 1:  # Header
@@ -65,7 +57,7 @@ if 1:  # Header
     π = pi
     g.width = int(os.environ.get("COLUMNS", 80)) - 1
     g.w = None      # Used for maximum column width of table
-    g.dbg = True    # Print Dbg messages
+    g.dbg = False   # Print Dbg messages
     ii = isinstance
 if 1:  # Utility
     def GetColors():
@@ -105,9 +97,10 @@ if 1:  # Utility
         'Short name for getting symbol color'
         return g.sym[sym]
     def Dbg(*p, **kw):
-        print(f"{t.dbg}", end="")
-        print(*p, **kw)
-        print(f"{t.N}", end="")
+        if g.dbg:
+            print(f"{t.dbg}", end="")
+            print(*p, **kw)
+            print(f"{t.N}", end="")
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
@@ -159,6 +152,7 @@ if 1:  # Utility
         Options:
           -a    Abbreviate numbers (remove trailing 0's and decimal point) [{opts["-a"]}]
           -c l  Color highlight the sides in the list l [{opts["-c"]}]
+          -D    Show debugging messages
           -d n  Number of significant digits to print [{opts["-d"]}]
           -H    Print a manpage
           -i    Start interactive session
@@ -172,18 +166,19 @@ if 1:  # Utility
     def ParseCommandLine(d):
         d["-a"] = False     # Abbreviate numbers
         d["-c"] = ""        # Which lines to highlight
+        d["-D"] = False     # Turn on debugging
         d["-d"] = 4         # Number of significant digits
         d["-i"] = False     # Start interactive session
         d["-n"] = " ".join(str(i) for i in range(3, 13))
         d["-r"] = False     # Divide by r & R for -t
         d["-t"] = False     # Print the table
         try:
-            opts, diameters = getopt.getopt(sys.argv[1:], "ac:d:hin:rt")
+            opts, diameters = getopt.getopt(sys.argv[1:], "ac:Dd:hin:rt")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, arg in opts:
-            if o[1] in "airt":
+            if o[1] in "aDirt":
                 d[o] = not d[o]
             elif o in ("-c",):
                 d["-c"] = arg
@@ -210,8 +205,9 @@ if 1:  # Utility
             x.rtz = x.rtdp = True
         x.low = 1e-4
         x.high = 1e6
-        if not d["-t"] and not diameters:
-            Usage()
+        if not d["-i"]:
+            if not d["-t"] and not diameters:
+                Usage()
         # Convert d["-c"] to a set of integers
         if d["-c"]:
             s = d["-c"].split(",")
@@ -219,6 +215,8 @@ if 1:  # Utility
         else:
             d["-c"] = set()
         GetColors()
+        if d["-D"]:
+            g.dbg = True
         if d["-i"]:
             Interactive()
             exit(0)
@@ -781,7 +779,10 @@ if 1:  # Interactive portion
                 o.append(row)
         # Print the table
         tt.print(o, header=None, padding=(0, 0), style=" "*15, alignment="l"*4)
-
+        # If n is odd, also print r + R
+        if n % 2:
+            print(f"For odd n, {C('r')} + {C('R')} = ", end="")
+            print(f"{r + R:.1uS}") if ii(d, UFloat) else print(f"{r + R}")
     def Interactive():
         'Start an interactive session'
         z = flt(0)
@@ -791,7 +792,7 @@ if 1:  # Interactive portion
         print(dedent(f'''
         {t.ti}Calculation of regular polygon properties{t.n}
         Use ? for help on commands
-
+        
         Variables are
           {C('d')}    Diameter of inscribed circle
           {C('D')}    Diameter of circumscribed circle
@@ -906,20 +907,15 @@ if 1:  # Interactive portion
                     Dbg(f"command = ? {arg}")
                     Help(arg)
                 case _:
-                    Dbg(f"command = _ = {user_input!r} fall through")
-                    # See if it's a number
                     try:
+                        # See if it's a number
                         number = Convert(user_input)
                         Dbg(f"Got number = {number}")
                         vars[vars["current"]] = number
                         Print(vars)
                     except Exception:
+                        Dbg(f"command = _ = {user_input!r} fall through")
                         print(f"{user_input!r} not recognized")
-
-    GetColors()
-    Interactive()
-    exit()
-
 
 if __name__ == "__main__":
     opts = {}
