@@ -1,32 +1,26 @@
 '''
 
-ToDo
+ToDo (higher priority items first)
+    - Add -i option for interactive solution (see notes below)
+        - This would let you type in variables and see their effect on the calculated
+          values.  You can iteratively approach a desired solution as needed.
+    - Add -z option to specify thickness and -D option to specify density.  Then the
+      report will include volume and mass.  Density can be a string, in which case
+      you're presented with a list of matches to choose from or it's a number with the
+      default units of kg/m3.  You can include a density unit if you wish.  The -m unit
+      can be used to specify the output mass unit [kg].
+    - Add -o option for n odd to calculate d/D from knowing r + R like in Penta-nut
+      problem
     - Add option to generate and show a PostScript drawing for a particular number of
       sides.  This would be handy for shop documentation.
-    - Add -i option for interactive solution
-        - Variables:
-            - n = number of sides
-            - θ = central angle
-            - β = interior angle between sides
-            - s = length of side
-            - p = perimeter
-            - A = area
-            - r = radius for inscribed circle
-            - R = radius for circumscribed circle
-            - d = diameter for inscribed circle
-            - D = diameter for circumscribed circle
-        - Here are the functions given in the analytic geometry document
-            - ρ means one of r, R, d, D
-            - θ(n)
-            - β(n)
-            - s(ρ, n)
-            - p(s, n)
-            - A(s, n), A(ρ, n)
-            - r(s, n), r(R, n)
-            - d(s, n), d(D, n)
-        - Also solve for r + R for n odd (like was needed to get the inscribed diameter
-          of the Penta-nut's recess)
-            
+
+Interactive
+
+    This lets you numerically experiment with the variables r, R, d, D, A, s, and p.
+    When the script starts up, you're prompted for an entry.  The prompt will show the
+    current independent variable (defaults to 'd>> ').  You can type in a number or a
+    variable name to change it.  
+
 '''
 if 1:  # Header
     # Copyright, license
@@ -48,12 +42,17 @@ if 1:  # Header
     import getopt
     # Custom imports
     import termtables as tt     # Used for printing tables
+    from cmddecode import CommandDecode
     from wrap import dedent
     from lwtest import Assert
     from color import TRM as t
     from f import flt, pi as π, sqrt, sin, cos, tan, degrees
-    from uncertainties import ufloat, ufloat_fromstr, UFloat
-    if 1:
+    try:
+        from uncertainties import ufloat, ufloat_fromstr, UFloat
+        have_unc = True
+    except ImportError:
+        have_unc = False
+    if 0:
         import debug
         debug.SetDebugger()
     # Global variables
@@ -61,6 +60,7 @@ if 1:  # Header
         pass
     g.width = int(os.environ.get("COLUMNS", 80)) - 1
     g.w = None      # Used for maximum column width of table
+    g.dbg = True    # Print Dbg messages
     ii = isinstance
 if 1:  # Utility
     def GetColors():
@@ -70,6 +70,7 @@ if 1:  # Utility
         t.hdr = t.redl if x else ""
         t.insc = t.purl if x else ""
         t.circ = t.trq if x else ""
+        t.dbg = t.lavl if x else ""
         t.N = t.n if x else ""
         # Variables' colors
         t.n_ = t.redl if x else ""
@@ -98,9 +99,32 @@ if 1:  # Utility
     def C(sym):
         'Short name for getting symbol color'
         return g.sym[sym]
+    def Dbg(*p, **kw):
+        print(f"{t.dbg}", end="")
+        print(*p, **kw)
+        print(f"{t.N}", end="")
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+    def Manpage():
+        print(dedent(f'''
+
+        This script calculates numerical properties of a regular polygon for diameters
+        that you pass on the command line.  Because relevant diameters can be either the
+        inscribed circle or the circumscribed circle, a report for both types is printed.
+
+        If you have the python uncertainties library installed and a diameter is
+        specified to have uncertainty (e.g. '3+-0.1', '3+/-0.1', and '3.0(1)' are
+        equivalent), the output will show the uncertainties in the computed numbers.
+
+        Examples
+            - Find the inscribed diameter of an octagon with area of 37.7 units.  A few
+              iterations with '6.75 oct' shows you this is accurate to about 3 figures.
+            - To two figures, when is the circumference of a regular polygon
+              indistinguishable from one with one more side?  Use an inscribed diameter
+              of 1.  "-n 'range(3, 100)' -d 2 1" shows it's 35 and 36 sides.
+
+        '''))
     def Usage(status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] dia1 [dia2...]
@@ -116,28 +140,30 @@ if 1:  # Utility
           -a    Abbreviate numbers (remove trailing 0's and decimal point) [{opts["-a"]}]
           -c l  Color highlight the sides in the list l [{opts["-c"]}]
           -d n  Number of significant digits to print [{opts["-d"]}]
+          -H    Print a manpage
+          -i    Start interactive session
           -n l  Which sides to print; must be a space-separated list of integers.
                 [{opts["-n"]}]
           -r    For the -t option, divide by r and R
           -t    Produce a table of useful factors allowing you to calculate
                 various parameters of polygons given certain dimensions.
-        ''')
-        )
+        '''))
         exit(status)
     def ParseCommandLine(d):
         d["-a"] = False     # Abbreviate numbers
         d["-c"] = ""        # Which lines to highlight
         d["-d"] = 4         # Number of significant digits
+        d["-i"] = False     # Start interactive session
         d["-n"] = " ".join(str(i) for i in range(3, 13))
         d["-r"] = False     # Divide by r & R for -t
         d["-t"] = False     # Print the table
         try:
-            opts, diameters = getopt.getopt(sys.argv[1:], "ac:d:hn:rt")
+            opts, diameters = getopt.getopt(sys.argv[1:], "ac:d:hin:rt")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, arg in opts:
-            if o[1] in "art":
+            if o[1] in "airt":
                 d[o] = not d[o]
             elif o in ("-c",):
                 d["-c"] = arg
@@ -153,7 +179,7 @@ if 1:  # Utility
                 Usage()
             elif o in ("-n",):
                 if "range" in arg:
-                    d["-n"] = ",".join(str(i) for i in list(eval(arg)) if i > 2)
+                    d["-n"] = " ".join(str(i) for i in list(eval(arg)) if i > 2)
                 else:
                     d["-n"] = arg
         x = flt(0)
@@ -173,6 +199,9 @@ if 1:  # Utility
         else:
             d["-c"] = set()
         GetColors()
+        if d["-i"]:
+            Interactive()
+            exit(0)
         return diameters
 if 1:  # Regular polygon formulas
     '''This section contains the relevant formulas with definition of the symbols.
@@ -339,8 +368,11 @@ if 1:  # Regular polygon formulas
 if 1:  # Core functionality
     def Convert(size):
         '''Convert the string size to a flt or ufloat.  Can be an integer, flt,
-        or fraction of e.g. the forms 7/8 or 1-7/8.  A ufloat can be either
-        '1+-.1' or '1.0(1)' forms.
+        or fraction of e.g. the forms 7/8 or 1-7/8.  A ufloat can be e.g.:
+            1+-.1
+            1+/-.1
+            1±.1
+            1.0(1)
         '''
         if "+-" in size:    # It's a ufloat
             return ufloat_fromstr(size.replace("+-", "+/-"))
@@ -356,7 +388,7 @@ if 1:  # Core functionality
             if "-" in num:
                 ip, num = num.split("-")
             num, denom, ip = [int(i) for i in (num, denom, ip)]
-            return flt(Fraction(num + ip * denom, denom))
+            return flt(Fraction(num + ip*denom, denom))
         else:   # It's a float
             return flt(size)
     def FormulaTable():
@@ -552,13 +584,13 @@ if 1:  # Core functionality
                     print(f"\n{t.D}D{t.n} = {dstr!r} = {dia:.1uS}, r = {dia/2:.1uS}")
                 Header(circumscribed=True, leave_out="D")
         else:   # Using texttable
-            table_lines = []
+            table_lines, v = [], " "*2
             style = " │             "
             if 1:  # Print inscribed diameter
                 if isinstance(dia, flt):
-                    print(f"\n{t.d}d{t.n} = {dstr!r} = {dia}, r = {dia/2}")
+                    print(f"\n{v}{t.d}d{t.n} = {dstr!r} = {dia}, r = {dia/2}")
                 else:
-                    print(f"\n{t.d}d{t.n} = {dstr!r} = {dia:.1uS}, r = {dia/2:.1uS}")
+                    print(f"\n{v}{t.d}d{t.n} = {dstr!r} = {dia:.1uS}, r = {dia/2:.1uS}")
                 # Now print the table
                 hdr = [f"{C('n')}", f"{C('D')}", f"{C('s')}", f"{C('A')}", f"{C('p')}"]
                 for n in number_of_sides:
@@ -568,9 +600,9 @@ if 1:  # Core functionality
 
             if 1:  # Print circumscribed diameter
                 if isinstance(dia, flt):
-                    print(f"\n{t.D}D{t.n} = {dstr!r} = {dia}, r = {dia/2}")
+                    print(f"\n{v}{t.D}D{t.n} = {dstr!r} = {dia}, r = {dia/2}")
                 else:
-                    print(f"\n{t.D}D{t.n} = {dstr!r} = {dia:.1uS}, r = {dia/2:.1uS}")
+                    print(f"\n{v}{t.D}D{t.n} = {dstr!r} = {dia:.1uS}, r = {dia/2:.1uS}")
                 # Now print the table
                 hdr = [f"{C('n')}", f"{C('d')}", f"{C('s')}", f"{C('A')}", f"{C('p')}"]
                 table_lines.clear()
@@ -578,7 +610,6 @@ if 1:  # Core functionality
                     u = tuple([" " + i + " " for i in Poly(dstr, n, circumscribed=False)])
                     table_lines.append(u)
                 tt.print(table_lines, header=hdr, padding=(0, 0), style=style, alignment="c"*5)
-
     def Poly(dia, n, circumscribed=False):
         '''Return (n, d or D, s, A, p) where each element is the corresponding variable's
         string.  dia is a flt and is the inscribed circle diameter if circumscribed is
@@ -634,75 +665,161 @@ if 1:  # Core functionality
         o.append(f"{A:.1uS}" if ii(A, UFloat) else f"{A}")
         o.append(f"{p:.1uS}" if ii(p, UFloat) else f"{p}")
         return tuple(o)
-
-    def Poly_(dia, n, circumscribed=False, leave_out="", noprint=False):
-        '''Given the diameter in the string dia, number of sides n, and options dictionary
-        opts, calculate the parameters and print the table.  Leave out the indicated
-        column (only will be d or D).  If noprint is True, return the calculated
-        variables' maximum width.
-        
-        Definitions are:
-            d = inscribed circle diameter
-            D = circumscribed circle diameter
-            p = perimeter
-            A = area or surface area
-            s = length of side
-            r = radius of inscribed circle = d/2
-            R = radius of circumscribed circle = D/2
-            n = number of sides
-        Equations are:
-            θ = 2*π/n = central angle subtended by side
-            ϕ = θ/2
-            s = length of side = d*tan(ϕ) = D*sin(ϕ)
-            r = sqrt(R^2 - s^2/4) = s*cot(ϕ)/2 = R*cos(ϕ)
-            R = sqrt(r^2 + s^2/4) = s*csc(ϕ)/2 = r*sec(ϕ) = r/cos(ϕ)
-            A = n*s*r/2 = n*s/2*sqrt((D^2 - s^2)/4)
-              = n*s^2*cot(ϕ)/4 = n*r^2*tan(ϕ) = n*R^2*sin(2*ϕ)/2
-            p = 2*sqrt(R^2 - r^2) = 2*r*tan(ϕ)
-        '''
-        try:
-            diameter = Convert(dia)
-        except Exception:
-            Error(f"'{s}' is not a valid number")
-        if 1:   # Check assumptions
-            Assert(ii(diameter, (flt, int, Fraction, UFloat)))
-            Assert(ii(n, int))
-            Assert(n > 0)
+if 1:  # Interactive portion
+    def Help(cmd):
+        print(f"Help on {cmd!r}")
+    def Process(cmd, args, vars):
+        print(f"Process {cmd!r} {args!r}")
+    def Print(vars):
+        'Print the current variables'
+        current = vars["current"]
+        n = vars["n"]
         ϕ = π/n
-        d = diameter    # d is inscribed diameter
-        D = d/cos(ϕ)
-        if circumscribed:
-            D = d
-            d = D*cos(ϕ)
-        s = d*tan(ϕ)
-        A = n*s*d/4
-        p = n*s
-        colorize = n in opts["-c"]
-        if colorize and not noprint:
-            print(f"{t.hi}", end="")
-        if leave_out == "d":
-            L = (n, D, s, A, p)
-        elif leave_out == "D":
-            L = (n, d, s, A, p)
+        Cos, S, T = cos(ϕ), sin(ϕ), tan(ϕ)
+        if current == "d":
+            d = vars["d"]
+            r = d/2
+            D = d/Cos
+            R = D/2
+            s = d*T
+            p = n*s
+            A = p*d/4
+        elif current == "D":
+            D = vars["D"]
+            R = D/2
+            d = D*Cos
+            r = d/2
+            s = d*T
+            p = n*s
+            A = p*d/4
+        elif current == "r":
+            r = vars["r"]
+            d = 2*r
+            D = d/Cos
+            R = D/2
+            s = d*T
+            p = n*s
+            A = p*d/4
+        elif current == "R":
+            R = vars["R"]
+            D = 2*r
+            d = D*Cos
+            r = d/2
+            s = d*T
+            p = n*s
+            A = p*d/4
+        elif current == "A":
+            A = vars["A"]
+            D = sqrt(8*A/(n*sin(2*ϕ)))
+            R = D/2
+            d = D*Cos
+            r = d/2
+            s = d*T
+            p = n*s
+        elif current == "s":
+            s = vars["s"]
+            p = n*s
+            d = s/T
+            D = d/Cos
+            r = d/2
+            R = D/2
+            A = n*s*d/4
+        elif current == "p":
+            p = vars["p"]
+            s = p/n
+            d = s/T
+            D = d/Cos
+            r = d/2
+            R = D/2
+            A = n*s*d/4
         else:
-            Error(f"Program bug: leave_out = {leave_out!r}")
-        if noprint:
-            if "+/-" in str(d):
-                # It's a ufloat, so use the shorthand string interpolation
-                return max(len(f"{i:^.1uS}") for i in (d, D, s, A, p))
+            Error(f"{current!r} is an invalid current variable in Print()")
+        # Update the vars dict
+        for i in "d D r R s p A".split():
+            exec(f"vars['{i}'] = {i}")
+        # Print the values of the variables
+        o = []
+        pad = lambda x, n: " "*n + x + " "*n
+        if 1:   # Row 1:  d, D, r, R
+            row = [f"{C('d')} = {d}", f"{C('D')} = {D}", f"{C('r')} = {r}", f"{C('R')} = {R}"]
+            row = [pad(i, 2) for i in row]
+            o.append(row)
+        if 1:   # Row 2:  n, A, s, p
+            row = [f"{C('n')} = {n}", f"{C('A')} = {A}", f"{C('s')} = {s}", f"{C('p')} = {p}"]
+            row = [pad(i, 2) for i in row]
+            o.append(row)
+        # Print the table
+        tt.print(o, header=None, padding=(0, 0), style=" "*15, alignment="l"*4)
+
+    def Interactive():
+        'Start an interactive session'
+        z = flt(0)
+        init = {"current": "d", "d": z, "D": z, "r": z, "R": z, "n": 4, "A": z, "s": z, "p": z}
+        vars = init.copy()
+        commands = set('''d D r R n A s p . clear q ?'''.split())
+        c, prompt = CommandDecode(commands), ">> "
+        while True:
+            s = input(vars["current"] + prompt).strip()
+            f = s.split()
+            if not f:
+                continue
+            if len(f) == 1:
+                cmd = f[0]
+            elif len(f) == 2:
+                cmd, arg = f[0], f[1]
+                # The only valid 2 argument command is to change n
+                if cmd != "n":
+                    print(f"{s!r} is an illegal command")
+                    continue
+                try:
+                    n = int(arg)
+                    if n < 4:
+                        print(f"n must be 3 or larger")
+                        continue
+                    vars["n"] = n
+                except Exception:
+                    print(f"Cannot convert {arg!r} to integer")
+                    continue
             else:
-                # It's a flt
-                return max(len(str(i)) for i in (d, D, s, A, p))
-        # Now print the line
-        for i, x in enumerate(L):
-            w = opts["-d"] + 5
-            if ii(x, UFloat):
-                print(f"{x:^{g.w}.1uS}", end=" ")
-            else:
-                print(f"{x!s:^{g.w}s}", end=" ")
-        if colorize:
-            print(f"{t.N}", end="")
-        print()
+                cmd, args = f[0], f[1:]
+            # See if cmd is a number
+            try:
+                number = Convert(cmd)
+                is_number = True
+            except Exception:
+                is_number = False
+            if is_number:
+                vars[vars["current"]] = number
+                Dbg(f"Got number {number}")
+                Print(vars)
+                continue
+            # No, it's a command
+            match cmd:
+                case "d" | "D" | "r" | "R" | "A" | "s" | "p":
+                    vars["current"] = cmd
+                    Dbg(f"command = {cmd}")
+                case "clear":
+                    Dbg("command = clear")
+                    vars = init.copy()
+                case "q":
+                    exit(0)
+                case ".":
+                    Dbg("command = .")
+                    Print(vars)
+                case "?":
+                    Dbg("command = ?")
+                    print("d D r R n A s p . clear q ?")
+                case ["?", cmd]:
+                    Dbg("command = ?  cmd = {cmd!r}")
+                    Help(cmd)
+                case _:
+                    Dbg("command = _ fall through case...")
+                    print(f"{s!r} not recognized")
+
+    GetColors()
+    Interactive()
+    exit()
+
 
 if __name__ == "__main__":
     opts = {}
