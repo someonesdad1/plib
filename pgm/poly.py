@@ -70,7 +70,7 @@ if 1:  # Utility
         t.hdr = t.redl if x else ""
         t.insc = t.purl if x else ""
         t.circ = t.trq if x else ""
-        t.dbg = t.lavl if x else ""
+        t.dbg = t.cyn if x else ""
         t.N = t.n if x else ""
         # Variables' colors
         t.n_ = t.redl if x else ""
@@ -740,14 +740,25 @@ if 1:  # Interactive portion
         # Print the values of the variables
         o = []
         pad = lambda x, n: " "*n + x + " "*n
-        if 1:   # Row 1:  d, D, r, R
-            row = [f"{C('d')} = {d}", f"{C('D')} = {D}", f"{C('r')} = {r}", f"{C('R')} = {R}"]
-            row = [pad(i, 2) for i in row]
-            o.append(row)
-        if 1:   # Row 2:  n, A, s, p
-            row = [f"{C('n')} = {n}", f"{C('A')} = {A}", f"{C('s')} = {s}", f"{C('p')} = {p}"]
-            row = [pad(i, 2) for i in row]
-            o.append(row)
+        if ii(d, UFloat):
+            # Use shorthand form for uncertainty
+            if 1:   # Row 1:  d, D, r, R
+                row = [f"{C('d')} = {d:.1uS}", f"{C('D')} = {D:.1uS}", f"{C('r')} = {r:.1uS}", f"{C('R')} = {R:.1uS}"]
+                row = [pad(i, 2) for i in row]
+                o.append(row)
+            if 1:   # Row 2:  n, A, s, p
+                row = [f"{C('n')} = {n}", f"{C('A')} = {A:.1uS}", f"{C('s')} = {s:.1uS}", f"{C('p')} = {p:.1uS}"]
+                row = [pad(i, 2) for i in row]
+                o.append(row)
+        else:
+            if 1:   # Row 1:  d, D, r, R
+                row = [f"{C('d')} = {d}", f"{C('D')} = {D}", f"{C('r')} = {r}", f"{C('R')} = {R}"]
+                row = [pad(i, 2) for i in row]
+                o.append(row)
+            if 1:   # Row 2:  n, A, s, p
+                row = [f"{C('n')} = {n}", f"{C('A')} = {A}", f"{C('s')} = {s}", f"{C('p')} = {p}"]
+                row = [pad(i, 2) for i in row]
+                o.append(row)
         # Print the table
         tt.print(o, header=None, padding=(0, 0), style=" "*15, alignment="l"*4)
 
@@ -759,62 +770,104 @@ if 1:  # Interactive portion
         commands = set('''d D r R n A s p . clear q ?'''.split())
         c, prompt = CommandDecode(commands), ">> "
         while True:
-            s = input(vars["current"] + prompt).strip()
-            f = s.split()
-            if not f:
-                continue
-            if len(f) == 1:
-                cmd = f[0]
-            elif len(f) == 2:
-                cmd, arg = f[0], f[1]
-                # The only valid 2 argument command is to change n
-                if cmd != "n":
-                    print(f"{s!r} is an illegal command")
+            user_input = input(f"{C(vars['current'])}" + prompt).strip()
+            if 0:
+                f = user_input.split()
+                if not f:
                     continue
-                try:
-                    n = int(arg)
-                    if n < 4:
-                        print(f"n must be 3 or larger")
+                if len(f) == 1:
+                    cmd = f[0]
+                    arg = None
+                elif len(f) == 2:
+                    cmd, arg = f[0], f[1]
+                    # The only valid 2 argument command is to change n
+                    if cmd != "n":
+                        print(f"{s!r} is an illegal command")
                         continue
-                    vars["n"] = n
+                    try:
+                        n = int(arg)
+                        if n < 4:
+                            print(f"n must be 3 or larger")
+                            continue
+                        vars["n"] = n
+                    except Exception:
+                        print(f"Cannot convert {arg!r} to integer")
+                        continue
+                else:
+                    cmd, args = f[0], f[1:]
+                # See if cmd is a number
+                try:
+                    number = Convert(cmd)
+                    is_number = True
                 except Exception:
-                    print(f"Cannot convert {arg!r} to integer")
+                    is_number = False
+                if is_number:
+                    vars[vars["current"]] = number
+                    Dbg(f"Got number {number}")
+                    Print(vars)
                     continue
-            else:
-                cmd, args = f[0], f[1:]
-            # See if cmd is a number
-            try:
-                number = Convert(cmd)
-                is_number = True
-            except Exception:
-                is_number = False
-            if is_number:
-                vars[vars["current"]] = number
-                Dbg(f"Got number {number}")
-                Print(vars)
-                continue
-            # No, it's a command
-            match cmd:
-                case "d" | "D" | "r" | "R" | "A" | "s" | "p":
-                    vars["current"] = cmd
-                    Dbg(f"command = {cmd}")
-                case "clear":
+            match user_input.split():
+                case ["d"] | ["D"] | ["r"] | ["R"] | ["A"] | ["s"] | ["p"]:
+                    Dbg(f"command = {user_input!r}")
+                    vars["current"] = user_input[0]
+                    Print(vars)
+                case ["n", arg]:
+                    Dbg(f"command = {user_input!r}")
+                    try:
+                        n = int(arg)
+                        if n < 3:
+                            t.print(f"{t.err}n must be 3 or greater")
+                        else:
+                            vars["n"] = n
+                        Print(vars)
+                    except Exception:
+                        t.print(f"{t.err}{arg!r} is not an integer")
+                case ["N", arg]:
+                    Dbg(f"command = {user_input!r}")
+                    try:
+                        n = int(arg)
+                        if not (1 <= n <= 15):
+                            t.print(f"{t.err}N must be an integer between 1 and 15")
+                        else:
+                            vars["d"].N = n
+                        Print(vars)
+                    except Exception:
+                        t.print(f"{t.err}{arg!r} is not an integer")
+                case ["clear"]:
                     Dbg("command = clear")
                     vars = init.copy()
-                case "q":
+                    Print(vars)
+                case ["z"]:
+                    Dbg("command = z")
+                    vars["d"].rtz = not vars["d"].rtz
+                    Print(vars)
+                case ["q"]:
                     exit(0)
-                case ".":
+                case ["."]:
                     Dbg("command = .")
                     Print(vars)
-                case "?":
+                case ["?"]:
                     Dbg("command = ?")
-                    print("d D r R n A s p . clear q ?")
-                case ["?", cmd]:
-                    Dbg("command = ?  cmd = {cmd!r}")
-                    Help(cmd)
+                    print("Command summary:")
+                    print("  d  D  r  R  n  A  s  p  Set the variable that gets next entered number")
+                    print("  clear                   Set variables to starting state")
+                    print("  .                       Print values of variables")
+                    print("  z                       Toggle remove trailing zeros")
+                    print("  ? cmd                   Help on cmd")
+                    print("  q                       Quit")
+                case ["?", arg]:
+                    Dbg(f"command = ? {arg}")
+                    Help(arg)
                 case _:
-                    Dbg("command = _ fall through case...")
-                    print(f"{s!r} not recognized")
+                    Dbg(f"command = _ = {user_input!r} fall through")
+                    # See if it's a number
+                    try:
+                        number = Convert(user_input)
+                        Dbg(f"Got number = {number}")
+                        vars[vars["current"]] = number
+                        Print(vars)
+                    except Exception:
+                        print(f"{user_input!r} not recognized")
 
     GetColors()
     Interactive()
