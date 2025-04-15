@@ -46,7 +46,11 @@ if 1:  # Header
     from wrap import dedent
     from lwtest import Assert
     from color import TRM as t
-    from f import flt, pi as π, sqrt, sin, cos, tan, degrees
+    from f import (flt, acos, acosh, asin, asinh, atan, atanh, atan2, ceil, copysign,
+        cos, cosh, degrees, e, erf, erfc, exp, expm1, fabs, factorial, floor, fmod,
+        frexp, fsum, gamma, gcd, hypot, inf, isclose, isfinite, isinf, isnan, ldexp,
+        lgamma, log, log10, log1p, log2, modf, nan, pi, pow, radians, remainder, sin,
+        sinh, sqrt, tan, tanh, tau, trunc)
     try:
         from uncertainties import ufloat, ufloat_fromstr, UFloat
         have_unc = True
@@ -58,6 +62,7 @@ if 1:  # Header
     # Global variables
     class g:
         pass
+    π = pi
     g.width = int(os.environ.get("COLUMNS", 80)) - 1
     g.w = None      # Used for maximum column width of table
     g.dbg = True    # Print Dbg messages
@@ -123,6 +128,21 @@ if 1:  # Utility
             - To two figures, when is the circumference of a regular polygon
               indistinguishable from one with one more side?  Use an inscribed diameter
               of 1.  "-n 'range(3, 100)' -d 2 1" shows it's 35 and 36 sides.
+
+        Interactive mode (use -i option)
+            
+            This mode gives you an interactive calculator to solve for regular polygon
+            characteristics.  Example:  find the side of a square with area 2.  Start
+            the program with the -i option.  At the prompt 'd>>', type A.  This sets the
+            variable to get the next number typed in and you see the current values of
+            the variables printed out (they are all 0 and the number of sides is set to
+            the default of 4 (a square)).  Enter the number 2 and the report will show
+            that d, the inscribed circle diameter is 1.41, which is the square root of 2
+            and the length of the square's side.  To see more digits in the answer,
+            type in 'N 6' and you'll see 1.41421 for d.  To show that it's really the
+            square root of 2, type in '! d**' and you'll get 2.  '!' evaluates an
+            expression you type in and you can use the problem's variables and the math
+            functions like sin, cos, etc.
 
         '''))
     def Usage(status=1):
@@ -767,8 +787,21 @@ if 1:  # Interactive portion
         z = flt(0)
         init = {"current": "d", "d": z, "D": z, "r": z, "R": z, "n": 4, "A": z, "s": z, "p": z}
         vars = init.copy()
-        commands = set('''d D r R n A s p . clear q ?'''.split())
-        c, prompt = CommandDecode(commands), ">> "
+        prompt = ">> "
+        print(dedent(f'''
+        {t.ti}Calculation of regular polygon properties{t.n}
+        Use ? for help on commands
+
+        Variables are
+          {C('d')}    Diameter of inscribed circle
+          {C('D')}    Diameter of circumscribed circle
+          {C('r')}    Radius of inscribed circle
+          {C('R')}    Radius of circumscribed circle
+          {C('n')}    Number of sides in polygon
+          {C('A')}    Area
+          {C('s')}    Length of side
+          {C('p')}    Perimeter
+        '''))
         while True:
             user_input = input(f"{C(vars['current'])}" + prompt).strip()
             if 0:
@@ -833,29 +866,43 @@ if 1:  # Interactive portion
                         Print(vars)
                     except Exception:
                         t.print(f"{t.err}{arg!r} is not an integer")
+                case ["!", *arg]:
+                    # Evaluate the expression after !
+                    Dbg(f"command = ! {arg}")
+                    expr = ' '.join(arg)
+                    print(f"Expression = {eval(expr, globals(), vars)}")
                 case ["clear"]:
+                    # Set vars to initial state
                     Dbg("command = clear")
                     vars = init.copy()
                     Print(vars)
                 case ["z"]:
+                    # Toggle whether flt instances remove trailing zeros
                     Dbg("command = z")
                     vars["d"].rtz = not vars["d"].rtz
                     Print(vars)
                 case ["q"]:
+                    # Quit
                     exit(0)
                 case ["."]:
+                    # Show the current value of the variables
                     Dbg("command = .")
                     Print(vars)
                 case ["?"]:
+                    # Show help
                     Dbg("command = ?")
                     print("Command summary:")
                     print("  d  D  r  R  n  A  s  p  Set the variable that gets next entered number")
+                    print("                          (it's shown in the prompt)")
                     print("  clear                   Set variables to starting state")
                     print("  .                       Print values of variables")
+                    print("  N digits                Set number of digits to show")
                     print("  z                       Toggle remove trailing zeros")
+                    print("  ! expr                  Evaluate an expression")
                     print("  ? cmd                   Help on cmd")
                     print("  q                       Quit")
                 case ["?", arg]:
+                    # Show help on a command
                     Dbg(f"command = ? {arg}")
                     Help(arg)
                 case _:
