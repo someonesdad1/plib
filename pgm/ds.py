@@ -1,4 +1,4 @@
-"""
+'''
 
 ToDo
     - Add -o option to OR the regexps together rather than ANDing them
@@ -24,7 +24,7 @@ Open a document file
     Current --exec options support datasheets (ds), ebooks (eb), and HP
     Journal articles (hpj).  For the HP Journal stuff, use the -j
     option.
-"""
+'''
 
 if 1:  # Header
     if 1:  # Copyright, license
@@ -115,7 +115,7 @@ if 1:  # Utility
         name = sys.argv[0]
         name = d["--exec"]
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {name} [options] regexp [re1 re2...]
           Open a document if it's the only match to the regexp.  Otherwise print out the matches
           and choose which ones to display.  When choosing, you can select multiple numbers by
@@ -134,7 +134,7 @@ if 1:  # Utility
           --exec n
             Name of index file for usage statement.  Choices are:
               {" ".join(g.index_files.keys())}
-        """)
+        ''')
         )
         exit(status)
 
@@ -180,14 +180,14 @@ if 1:  # Core functionality
         # keeps the index files accessible to both cygwin and WSL as they're not in a git
         # repository that can be out of sync.
         name_ignore = set(
-            """
+            '''
             .vi .gitignore .z z tags a b aa bb
-        """.split()
+        '''.split()
         )
         suffix_ignore = set(
-            """
+            '''
             .zip .bak
-        """.split()
+        '''.split()
         )
 
         def DumpIndexFile(name, df):
@@ -261,7 +261,7 @@ if 1:  # Core functionality
         exit(0)
 
     def GetChoices(matches):
-        """Return a set of integers representing the user's choices."""
+        '''Return a set of integers representing the user's choices.'''
         while True:
             answer = input("? ").strip()
             if not answer or answer == "q":
@@ -303,10 +303,10 @@ if 1:  # Core functionality
         r = subprocess.run(f"/home/don/.0rc/bin/expl {file}", shell=True)
 
     def PrintMatch(num, path, start, end, d):
-        """For the match in path, print things out in the appropriate colors.
+        '''For the match in path, print things out in the appropriate colors.
         Note start and end are the indices into just the file part of the
         whole path name.
-        """
+        '''
         print("%3d  " % num, end="")
         s = str(path)
         dir, file = split(s[len(d["root"]) + 1 :])  # Gets rid of leading stuff
@@ -380,10 +380,10 @@ if 1:  # Core functionality
         d["root"] = root[key]
 
     def OpenMatches(matches, d):
-        """Each match item will be (full_filename, match_object) where
+        '''Each match item will be (full_filename, match_object) where
         match_object is the mo for _only_ the actual file name (not the
         path).
-        """
+        '''
         if len(matches) > 1:
             PrintChoices(matches, d)
             for choice in GetChoices(matches):

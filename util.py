@@ -2006,7 +2006,7 @@ def fsig(x, digits=None):
         t = t[:-1]
     return sgn + t
 
-if 1:
+if 0:
     print(hyphen_range("1-3 6"))
     exit()
 

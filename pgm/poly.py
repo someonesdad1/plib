@@ -1,15 +1,6 @@
 '''
 
 ToDo (higher priority items first)
-    - Interactive
-        - Print out r + R if n is odd
-    - Add -z option to specify thickness and -D option to specify density.  Then the
-      report will include volume and mass.  Density can be a string, in which case
-      you're presented with a list of matches to choose from or it's a number with the
-      default units of kg/m3.  You can include a density unit if you wish.  The -m unit
-      can be used to specify the output mass unit [kg].
-    - Add -o option for n odd to calculate d/D from knowing r + R like in Penta-nut
-      problem
     - Add option to generate and show a PostScript drawing for a particular number of
       sides.  This would be handy for shop documentation.
 
@@ -29,6 +20,8 @@ if 1:  # Header
     ##∞test∞# #∞test∞#
     # Standard imports
     from fractions import Fraction
+    import readline
+    readline.set_startup_hook(input)
     import sys
     import os
     import getopt
@@ -48,7 +41,7 @@ if 1:  # Header
         have_unc = True
     except ImportError:
         have_unc = False
-    if 0:
+    if 1:
         import debug
         debug.SetDebugger()
     # Global variables
@@ -59,6 +52,8 @@ if 1:  # Header
     g.w = None      # Used for maximum column width of table
     g.dbg = False   # Print Dbg messages
     ii = isinstance
+    # Used to indicate Convert() couldn't convert a string to a number
+    class NotANumber(Exception): pass
 if 1:  # Utility
     def GetColors():
         x = sys.stdout.isatty()
@@ -68,18 +63,22 @@ if 1:  # Utility
         t.insc = t.purl if x else ""
         t.circ = t.trq if x else ""
         t.dbg = t.cyn if x else ""
+        t.err = t.redl if x else ""
+        t.warn = t.ornl if x else ""
         t.N = t.n if x else ""
         # Variables' colors
-        t.n_ = t.redl if x else ""
         t.d = t.whtl if x else ""
-        t.D = t.purl if x else ""
+        t.D = t.cynl if x else ""
         t.r = t.royl if x else ""
-        t.R = t.olvl if x else ""
+        t.R = t.purl if x else ""
         t.s = t.yell if x else ""
         t.p = t.grnl if x else ""
-        t.A = t.magl if x else ""
+        t.n_ = t("whtl", "red") if x else ""
+        t.A = t("whtl", "magd") if x else ""
+        t.t = t("whtl", "grnd") if x else ""
+        t.V = t("whtl", "dend") if x else ""
         t.ϕ = t.cynl if x else ""
-        t.θ = t.lipl if x else ""
+        t.θ = t.blul if x else ""
         # Dictionary to get symbol colors
         g.sym = {
             "n": f"{t.n_}n{t.n}",
@@ -90,6 +89,8 @@ if 1:  # Utility
             "s": f"{t.s}s{t.n}",
             "p": f"{t.p}p{t.n}",
             "A": f"{t.A}A{t.n}",
+            "t": f"{t.t}t{t.n}",
+            "V": f"{t.V}V{t.n}",
             "θ": f"{t.θ}θ{t.n}",
             "ϕ": f"{t.ϕ}ϕ{t.n}",
         }
@@ -102,7 +103,10 @@ if 1:  # Utility
             print(*p, **kw)
             print(f"{t.N}", end="")
     def Error(*msg, status=1):
-        print(*msg, file=sys.stderr)
+        f = sys.stderr
+        print(f"{t.err}", end="", file=f)
+        print(*msg, file=f)
+        t.print(file=f)
         exit(status)
     def Manpage():
         print(dedent(f'''
@@ -110,14 +114,18 @@ if 1:  # Utility
         This script calculates numerical properties of a regular polygon for diameters
         that you pass on the command line.  Because relevant diameters can be either the
         inscribed circle or the circumscribed circle, a report for both types is printed.
+        You can input diameters as integers, floating point numbers, or fractions like
+        '11/3' or '3-2/3'.
 
         If you have the python uncertainties library installed and a diameter is
-        specified to have uncertainty (e.g. '3+-0.1', '3+/-0.1', and '3.0(1)' are
+        specified to have uncertainty (e.g. '3+-0.1', '3+/-0.1', '3±0.1', and '3.0(1)' are
         equivalent), the output will show the uncertainties in the computed numbers.
 
         Examples
             - Find the inscribed diameter of an octagon with area of 37.7 units.  A few
-              iterations with '6.75 oct' shows you this is accurate to about 3 figures.
+              iterations gives 6.746 and is accurate to about 4 figures.
+                - Find this directly by using interactive mode with the -i option.  Type
+                  'A' at the prompt, then enter 37.7.  Read d = 6.746 as the answer.
             - To two figures, when is the circumference of a regular polygon
               indistinguishable from one with one more side?  Use an inscribed diameter
               of 1.  "-n 'range(3, 100)' -d 2 1" shows it's 35 and 36 sides.
@@ -125,35 +133,46 @@ if 1:  # Utility
         Interactive mode (use -i option)
             
             This mode gives you an interactive calculator to solve for regular polygon
-            characteristics.  Example:  find the side of a square with area 2.  Start
-            the program with the -i option.  At the prompt 'd>>', type A.  This sets the
-            variable to get the next number typed in and you see the current values of
-            the variables printed out (they are all 0 and the number of sides is set to
-            the default of 4 (a square)).  Enter the number 2 and the report will show
-            that d, the inscribed circle diameter is 1.41, which is the square root of 2
-            and the length of the square's side.  To see more digits in the answer,
-            type in 'N 6' and you'll see 1.41421 for d.  To show that it's really the
-            square root of 2, type in '! d**' and you'll get 2.  '!' evaluates an
-            expression you type in and you can use the problem's variables and the math
-            functions like sin, cos, etc.
+            characteristics.  
+
+            Example:  find the side of a square with area 2.  
+                - Start the program with the -i option.  
+                - At the prompt 'd>>', type A.  This sets the variable to get the next
+                  number typed in and you see the current values of the variables
+                  printed out (they are all 0 and the number of sides is set to the
+                  default of 4 (a square)).  
+                - Enter the number 2 and the report will show that d, the inscribed
+                  circle diameter is 1.41, which is the square root of 2 and the length
+                  of the square's side.
+                - To see more digits in the answer, type in 'N 6' and you'll see 1.41421
+                  for d.  
+                - To show that it's really the square root of 2, type in '!d**2' and
+                  you'll get 2.  '!' evaluates the following expression and you can use
+                  the problem's variables and the math functions like sin, cos, etc.
+
+            If you type in a number with uncertainty, all the numbers of the problem are
+            converted to have uncertainty (some may have a zero uncertainty until a new
+            number is typed in to force a recalculation).  To go back to arithmetic with
+            floats, use the 'C' command to revert to the initial state.
 
         '''))
     def Usage(status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] dia1 [dia2...]
           Print dimensions of regular polygons for given diameter(s) as either the
-          inscribed or circumscribed circle diameter.  The diameters can be strings like
-          '47', '4.7', '7/16', or '1-7/16'.
+          inscribed or circumscribed circle diameter.  Read the manpage for the
+          supported numbers.
          
           You can also use words like 'triangle', 'hexagon', etc. to identify the
           polygon(s) you're interested in.  The first three letters of the word are what
           are used for identification.  Thus, '{sys.argv[0]} 1.3 tri' causes the script
-          to print out results for a triangle only.
+          to print out results for a triangle only; you'll see the inscribed and
+          circumscribed diameters and radii, length of a side, perimeter, and area.
         Options:
           -a    Abbreviate numbers (remove trailing 0's and decimal point) [{opts["-a"]}]
           -c l  Color highlight the sides in the list l [{opts["-c"]}]
           -D    Show debugging messages
-          -d n  Number of significant digits to print [{opts["-d"]}]
+          -d n  Number of digits to print [{opts["-d"]}]
           -H    Print a manpage
           -i    Start interactive session
           -n l  Which sides to print; must be a space-separated list of integers.
@@ -201,7 +220,7 @@ if 1:  # Utility
         x.N = d["-d"]
         x.rtz = False
         x.rtdp = True
-        if d["-a"]:
+        if d["-a"] or d["-i"]:
             x.rtz = x.rtdp = True
         x.low = 1e-4
         x.high = 1e6
@@ -384,31 +403,30 @@ if 1:  # Regular polygon formulas
     Superscripts: ⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ⁱⁿ Subscripts: ₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐₑₕᵢⱼₖₗₘₙₒₚᵣₛₜᵤᵥₓᵦᵩ
     '''
 if 1:  # Core functionality
-    def Convert(size):
-        '''Convert the string size to a flt or ufloat.  Can be an integer, flt,
-        or fraction of e.g. the forms 7/8 or 1-7/8.  A ufloat can be e.g.:
+    def Convert(s):
+        '''Return the string s as a flt or ufloat.  The string form can be an integer,
+        flt, or fraction of e.g. the forms 7/8 or 1-7/8.  A ufloat can be e.g.:
             1+-.1
             1+/-.1
             1±.1
             1.0(1)
         '''
-        if "+-" in size:    # It's a ufloat
-            return ufloat_fromstr(size.replace("+-", "+/-"))
-        elif "+/-" in size: # It's a ufloat
-            return ufloat_fromstr(size)
-        elif "±" in size:   # It's a ufloat
-            return ufloat_fromstr(size)
-        elif "(" in size and ")" in size:   # It's a ufloat
-            return ufloat_fromstr(size)
-        elif "/" in size:   # It's a fraction
-            ip = 0
-            num, denom = size.split("/")
-            if "-" in num:
-                ip, num = num.split("-")
-            num, denom, ip = [int(i) for i in (num, denom, ip)]
-            return flt(Fraction(num + ip*denom, denom))
-        else:   # It's a float
-            return flt(size)
+        try:
+            if "+-" in s:    # It's a ufloat
+                return ufloat_fromstr(s.replace("+-", "+/-"))
+            elif "+/-" in s or "±" in s or ("(" in s and ")" in s): # It's a ufloat
+                return ufloat_fromstr(s)
+            elif "/" in s:   # It's a fraction
+                ip = 0
+                num, denom = s.split("/")
+                if "-" in num:
+                    ip, num = num.split("-")
+                num, denom, ip = [int(i) for i in (num, denom, ip)]
+                return flt(Fraction(num + ip*denom, denom))
+            else:   # It's a float
+                return flt(s)
+        except Exception:
+            raise NotANumber
     def FormulaTable():
         '''Print a table similar to the table on page 1-39 of Mark's "Standard Handbook
         for Mechanical Engineers", 7th ed., 1967.
@@ -683,7 +701,7 @@ if 1:  # Core functionality
         o.append(f"{A:.1uS}" if ii(A, UFloat) else f"{A}")
         o.append(f"{p:.1uS}" if ii(p, UFloat) else f"{p}")
         return tuple(o)
-if 1:  # Interactive portion
+if 1:  # Interactive
     def Help(cmd):
         print(f"Help on {cmd!r}")
     def Process(cmd, args, vars):
@@ -692,64 +710,104 @@ if 1:  # Interactive portion
         'Print the current variables'
         current = vars["current"]
         n = vars["n"]
-        ϕ = π/n
+        ϕ = phi = π/n
         Cos, S, T = cos(ϕ), sin(ϕ), tan(ϕ)
         if current == "d":
             d = vars["d"]
+            t_ = vars["t"]
             r = d/2
             D = d/Cos
             R = D/2
             s = d*T
             p = n*s
             A = p*d/4
+            V = A*t_
         elif current == "D":
             D = vars["D"]
+            t_ = vars["t"]
             R = D/2
             d = D*Cos
             r = d/2
             s = d*T
             p = n*s
             A = p*d/4
+            V = A*t_
         elif current == "r":
             r = vars["r"]
+            t_ = vars["t"]
             d = 2*r
             D = d/Cos
             R = D/2
             s = d*T
             p = n*s
             A = p*d/4
+            V = A*t_
         elif current == "R":
             R = vars["R"]
+            t_ = vars["t"]
             D = 2*r
             d = D*Cos
             r = d/2
             s = d*T
             p = n*s
             A = p*d/4
+            V = A*t_
         elif current == "A":
             A = vars["A"]
+            t_ = vars["t"]
             D = sqrt(8*A/(n*sin(2*ϕ)))
             R = D/2
             d = D*Cos
             r = d/2
             s = d*T
             p = n*s
+            V = A*t_
         elif current == "s":
             s = vars["s"]
+            t_ = vars["t"]
             p = n*s
             d = s/T
             D = d/Cos
             r = d/2
             R = D/2
             A = n*s*d/4
+            V = A*t_
         elif current == "p":
             p = vars["p"]
+            t_ = vars["t"]
             s = p/n
             d = s/T
             D = d/Cos
             r = d/2
             R = D/2
             A = n*s*d/4
+            V = A*t_
+        elif current == "t":
+            t_ = vars["t"]
+            A = vars["A"]
+            if A:
+                V = A*t_
+                D = sqrt(8*A/(n*sin(2*ϕ)))
+                R = D/2
+                d = D*Cos
+                r = d/2
+                s = d*T
+                p = n*s
+            else:
+                V = D = R = d = r = s = p = 0
+        elif current == "V":
+            t_ = vars["t"]
+            V = vars["V"]
+            if V:
+                A = V*t_
+                D = sqrt(8*A/(n*sin(2*ϕ)))
+                R = D/2
+                d = D*Cos
+                r = d/2
+                s = d*T
+                p = n*s
+            else:
+                A = D = R = d = r = s = p = 0
         else:
             Error(f"{current!r} is an invalid current variable in Print()")
         # Update the vars dict
@@ -758,94 +816,140 @@ if 1:  # Interactive portion
         # Print the values of the variables
         o = []
         pad = lambda x, n: " "*n + x + " "*n
-        if ii(d, UFloat):
-            # Use shorthand form for uncertainty
-            if 1:   # Row 1:  d, D, r, R
-                row = [f"{C('d')} = {d:.1uS}", f"{C('D')} = {D:.1uS}", f"{C('r')} = {r:.1uS}", f"{C('R')} = {R:.1uS}"]
+        # In the following, note that t is the color.TRM instance and t_ is the local
+        # variable for thickness.
+        u = t.n
+        if 1:
+            # New method of making table
+            def f(x, name):
+                'Return x colored & formatted'
+                a = "t." + name
+                if name == "n":
+                    a = "t.n_"
+                c = eval(a)
+                if ii(x, UFloat):
+                    s = f"{x:.1uS}"
+                else:
+                    s = f"{x}"
+                return f"{c}{name} = {s}{u}"
+
+            if 1:
+                # Row 1:  d, D, r, R
+                row = []
+                row.append(f(d, "d"))
+                row.append(f(D, "D"))
+                row.append(f(r, "r"))
+                row.append(f(R, "R"))
                 row = [pad(i, 2) for i in row]
                 o.append(row)
-            if 1:   # Row 2:  n, A, s, p
-                row = [f"{C('n')} = {n}", f"{C('A')} = {A:.1uS}", f"{C('s')} = {s:.1uS}", f"{C('p')} = {p:.1uS}"]
+                # Row 2:  n, A, s, p
+                row = []
+                row.append(f(n, "n"))
+                row.append(f(A, "A"))
+                row.append(f(s, "s"))
+                row.append(f(p, "p"))
                 row = [pad(i, 2) for i in row]
                 o.append(row)
+                # Row 3:  t, V, r+R
+                row = []
+                row.append(f(t_, "t"))
+                row.append(f(V, "V"))
+                if n % 2:
+                    # This case has to be handled specially
+                    s = f"{C('r')}+{C('R')} = "
+                    x = r + R
+                    s += f"{x:.1uS}" if ii(x, UFloat) else f"{x}"
+                    row.append(s)
+                else:
+                    row.append("")
+                row.append("")
+                row = [pad(i, 2) for i in row]
+                o.append(row)
+            #yy
         else:
-            if 1:   # Row 1:  d, D, r, R
-                row = [f"{C('d')} = {d}", f"{C('D')} = {D}", f"{C('r')} = {r}", f"{C('R')} = {R}"]
-                row = [pad(i, 2) for i in row]
-                o.append(row)
-            if 1:   # Row 2:  n, A, s, p
-                row = [f"{C('n')} = {n}", f"{C('A')} = {A}", f"{C('s')} = {s}", f"{C('p')} = {p}"]
-                row = [pad(i, 2) for i in row]
-                o.append(row)
+            if ii(d, UFloat):
+                # Use shorthand form for uncertainty
+                if 1:   # Row 1:  d, D, r, R
+                    row = []
+                    row.append(f(d, "d"))
+                    breakpoint() #xx 
+                    row = [f"{t.d}d = {d:.1uS}{u}", f"{t.D}D = {D:.1uS}{u}", 
+                        f"{t.r}r = {r:.1uS}{u}", f"{t.R}R = {R:.1uS}{u}"]
+                    row = [pad(i, 2) for i in row]
+                    o.append(row)
+                if 1:   # Row 2:  n, A, s, p
+                    row = [f"{t.n_}n = {n}{u}", f"{t.A}A = {A:.1uS}{u}",
+                        f"{t.s}s = {s:.1uS}{u}", f"{t.p}p = {p:.1uS}{u}"]
+                    row = [pad(i, 2) for i in row]
+                    o.append(row)
+                if 1:   # Row 3:  t, V, r+R
+                    row = [f"{t.t}t = {t_:.1uS}{u}", f"{t.V}V = {V:.1uS}{u}"]
+                    if n % 2:
+                        row.extend([f"{t.r}r{u}+{t.R}R{u} = {r + R:.1uS}", ""])
+                    else:
+                        row.extend(["", ""])
+                    row = [pad(i, 2) for i in row]
+                    o.append(row)
+            else:
+                if 1:   # Row 1:  d, D, r, R
+                    row = [f"{t.d}d = {d}{u}", f"{t.D}D = {D}{u}", f"{t.r}r = {r}{u}",
+                        f"{t.R}R = {R}{u}"]
+                    row = [pad(i, 2) for i in row]
+                    o.append(row)
+                if 1:   # Row 2:  n, A, s, p
+                    row = [f"{t.n_}n = {n}{u}", f"{t.A}A = {A}{u}", f"{t.s}s = {s}{u}",
+                        f"{t.p}p = {p}{u}"]
+                    row = [pad(i, 2) for i in row]
+                    o.append(row)
+                if 1:   # Row 3:  t, V, r+R
+                    row = [f"{t.t}t = {t_}{u}", f"{t.V}V = {V}{u}"]
+                    if n % 2:
+                        row.extend([f"{t.r}r{u}+{t.R}R{u} = {r + R}", ""])
+                    else:
+                        row.extend(["", ""])
+                    row = [pad(i, 2) for i in row]
+                    o.append(row)
         # Print the table
         tt.print(o, header=None, padding=(0, 0), style=" "*15, alignment="l"*4)
-        # If n is odd, also print r + R
-        if n % 2:
-            print(f"For odd n, {C('r')} + {C('R')} = ", end="")
-            print(f"{r + R:.1uS}") if ii(d, UFloat) else print(f"{r + R}")
     def Interactive():
         'Start an interactive session'
-        z = flt(0)
-        init = {"current": "d", "d": z, "D": z, "r": z, "R": z, "n": 4, "A": z, "s": z, "p": z}
+        z, one = flt(0), flt(1)
+        init = {    # Dictionary of regular polygon's variables
+            "unc": False,   # Flags using numbers with uncertainty
+            "current": "d",
+            "d": one,   # Inscribed diameter
+            "D": z,     # Circumscribed diameter
+            "r": z,     # Inscribed radius
+            "R": z,     # Inscribed radius
+            "n": 4,     # Number of sides
+            "A": z,     # Area
+            "s": z,     # Side
+            "p": z,     # Perimeter
+            "t": z,     # Thickness of polygon plate
+            "V": z      # Volume of polygon plate
+            }
         vars = init.copy()
         prompt = ">> "
         print(dedent(f'''
-        {t.ti}Calculation of regular polygon properties{t.n}
-        Use ? for help on commands
-        
-        Variables are
-          {C('d')}    Diameter of inscribed circle
-          {C('D')}    Diameter of circumscribed circle
-          {C('r')}    Radius of inscribed circle
-          {C('R')}    Radius of circumscribed circle
-          {C('n')}    Number of sides in polygon
-          {C('A')}    Area
-          {C('s')}    Length of side
-          {C('p')}    Perimeter
+        {t.ti}Calculation of regular polygon properties{t.n} ? for help
+          {C('d')} Diameter of inscribed circle         {C('n')} Number of sides in polygon
+          {C('D')} Diameter of circumscribed circle     {C('A')} Area
+          {C('r')} Radius of inscribed circle           {C('s')} Length of side
+          {C('R')} Radius of circumscribed circle       {C('p')} Perimeter
+          {C('t')} Thickness of polygon plate           {C('V')} Volume of plate
         '''))
+        print()
+        Print(vars)
+        if 0:   exit()#xx
         while True:
             user_input = input(f"{C(vars['current'])}" + prompt).strip()
-            if 0:
-                f = user_input.split()
-                if not f:
-                    continue
-                if len(f) == 1:
-                    cmd = f[0]
-                    arg = None
-                elif len(f) == 2:
-                    cmd, arg = f[0], f[1]
-                    # The only valid 2 argument command is to change n
-                    if cmd != "n":
-                        print(f"{s!r} is an illegal command")
-                        continue
-                    try:
-                        n = int(arg)
-                        if n < 4:
-                            print(f"n must be 3 or larger")
-                            continue
-                        vars["n"] = n
-                    except Exception:
-                        print(f"Cannot convert {arg!r} to integer")
-                        continue
-                else:
-                    cmd, args = f[0], f[1:]
-                # See if cmd is a number
-                try:
-                    number = Convert(cmd)
-                    is_number = True
-                except Exception:
-                    is_number = False
-                if is_number:
-                    vars[vars["current"]] = number
-                    Dbg(f"Got number {number}")
-                    Print(vars)
-                    continue
             match user_input.split():
-                case ["d"] | ["D"] | ["r"] | ["R"] | ["A"] | ["s"] | ["p"]:
+                case ["d"] | ["D"] | ["r"] | ["R"] | ["A"] | ["s"] | ["p"] | ["t"] | ["V"]:
+                    # Switch the current variable that gets the input focus
                     Dbg(f"command = {user_input!r}")
                     vars["current"] = user_input[0]
                     Print(vars)
-                case ["n", arg]:
+                case ["n", arg]:    # Set number of sides of polygon
                     Dbg(f"command = {user_input!r}")
                     try:
                         n = int(arg)
@@ -856,7 +960,7 @@ if 1:  # Interactive portion
                         Print(vars)
                     except Exception:
                         t.print(f"{t.err}{arg!r} is not an integer")
-                case ["N", arg]:
+                case ["N", arg]:    # Set number of digits in floating point numbers
                     Dbg(f"command = {user_input!r}")
                     try:
                         n = int(arg)
@@ -865,57 +969,93 @@ if 1:  # Interactive portion
                         else:
                             vars["d"].N = n
                         Print(vars)
-                    except Exception:
+                    except ValueError:
                         t.print(f"{t.err}{arg!r} is not an integer")
-                case ["!", *arg]:
-                    # Evaluate the expression after !
-                    Dbg(f"command = ! {arg}")
-                    expr = ' '.join(arg)
-                    print(f"Expression = {eval(expr, globals(), vars)}")
-                case ["clear"]:
-                    # Set vars to initial state
+                case ["clear"]:     # Set vars to initial state
                     Dbg("command = clear")
                     vars = init.copy()
                     Print(vars)
-                case ["z"]:
-                    # Toggle whether flt instances remove trailing zeros
+                case ["z"]:     # Toggle whether flt instances remove trailing zeros
                     Dbg("command = z")
-                    vars["d"].rtz = not vars["d"].rtz
+                    x = flt(0)
+                    x.rtz = not x.rtz
                     Print(vars)
-                case ["q"]:
-                    # Quit
+                case ["q"]:     # Quit
                     exit(0)
-                case ["."]:
-                    # Show the current value of the variables
+                case ["."]:     # Show the current value of the variables
                     Dbg("command = .")
                     Print(vars)
-                case ["?"]:
-                    # Show help
+                case ["?"]:     # Show help
                     Dbg("command = ?")
                     print("Command summary:")
-                    print("  d  D  r  R  n  A  s  p  Set the variable that gets next entered number")
-                    print("                          (it's shown in the prompt)")
-                    print("  clear                   Set variables to starting state")
+                    print("  d  D  r  R  A  s  p     Set variable that gets next entered number")
+                    print("  n integer               Set number of polygon sides")
+                    print("  C                       Reset to starting state")
                     print("  .                       Print values of variables")
                     print("  N digits                Set number of digits to show")
                     print("  z                       Toggle remove trailing zeros")
                     print("  ! expr                  Evaluate an expression")
                     print("  ? cmd                   Help on cmd")
                     print("  q                       Quit")
-                case ["?", arg]:
-                    # Show help on a command
+                case ["?", arg]:    # Show help on a command
                     Dbg(f"command = ? {arg}")
                     Help(arg)
                 case _:
-                    try:
-                        # See if it's a number
-                        number = Convert(user_input)
-                        Dbg(f"Got number = {number}")
-                        vars[vars["current"]] = number
+                    if user_input[0] == "!":    # Expression to evaluate?
+                        Dbg(f"command = {user_input}")
+                        print(f"{eval(user_input[1:], globals(), vars)}")
+                    elif user_input[0] == "=":  # Set current variable to expression
+                        try:
+                            x = eval(user_input[1:].strip(), globals(), vars)
+                            if ii(x, flt):
+                                if x <= 0:
+                                    print(f"{t.err}Expression result must be > 0")
+                                else:
+                                    vars[vars["current"]] = x
+                            else:
+                                if x.n <= 0:
+                                    print(f"{t.err}Expression result must be > 0")
+                                else:
+                                    vars[vars["current"]] = x
+                                    ConvertToUfloat(vars)
+                        except Exception as e:
+                            print(f"{t.warn}Your expression was {user_input[1:].strip()!r}")
+                            print(f"{t.err}{e}")
                         Print(vars)
-                    except Exception:
-                        Dbg(f"command = _ = {user_input!r} fall through")
-                        print(f"{user_input!r} not recognized")
+                    else:
+                        try:
+                            # See if it's a number
+                            number = Convert(user_input)
+                            Dbg(f"Got number = {number}")
+                            if ii(number, UFloat):
+                                if number.n <= 0:
+                                    t.print(f"{t.err}Number must be 0 or larger")
+                                vars[vars["current"]] = number
+                                ConvertToUfloat(vars)
+                            else:
+                                if number <= 0:
+                                    t.print(f"{t.err}Number must be 0 or larger")
+                                else:
+                                    if ii(vars["current"], UFloat):
+                                        # Keep it a ufloat but make the uncertainty zero
+                                        vars[vars["current"]] = ufloat(number, 0)
+                                    else:
+                                        vars[vars["current"]] = number
+                                Print(vars)
+                        except NotANumber:
+                            Dbg(f"command = _ = {user_input!r} fall through")
+                            print(f"{user_input!r} not recognized")
+    def ConvertToUfloat(vars):
+        'Convert all of vars to ufloats (current already is one)'
+        # Note this is OK, as current was just set and we'll recalculate everything else
+        Assert(ii(vars[vars["current"]], UFloat))
+        names = set("d D r R A s p t V".split())
+        names.remove(vars["current"])
+        for i in names:
+            x = vars[i]
+            if not ii(x, UFloat):
+                vars[i] = ufloat(x, 0)
+        vars["unc"] = True  # Flag that we're using uncertainty
 
 if __name__ == "__main__":
     opts = {}
