@@ -38,6 +38,7 @@ if 1:  # Header
         sinh, sqrt, tan, tanh, tau, trunc)
     try:
         from uncertainties import ufloat, ufloat_fromstr, UFloat
+        from uncertainties.umath import sin as usin, sqrt as usqrt
         have_unc = True
     except ImportError:
         have_unc = False
@@ -67,16 +68,16 @@ if 1:  # Utility
         t.warn = t.ornl if x else ""
         t.N = t.n if x else ""
         # Variables' colors
-        t.d = t.whtl if x else ""
+        t.d = t.ornl if x else ""
         t.D = t.cynl if x else ""
         t.r = t.royl if x else ""
         t.R = t.purl if x else ""
         t.s = t.yell if x else ""
         t.p = t.grnl if x else ""
-        t.n_ = t("whtl", "red") if x else ""
-        t.A = t("whtl", "magd") if x else ""
-        t.t = t("whtl", "grnd") if x else ""
-        t.V = t("whtl", "dend") if x else ""
+        t.n_ = t.redl if x else ""
+        t.A = t.magl if x else ""
+        t.t = t.brnl if x else ""
+        t.V = t.lipl if x else ""
         t.ϕ = t.cynl if x else ""
         t.θ = t.blul if x else ""
         # Dictionary to get symbol colors
@@ -154,6 +155,16 @@ if 1:  # Utility
             converted to have uncertainty (some may have a zero uncertainty until a new
             number is typed in to force a recalculation).  To go back to arithmetic with
             floats, use the 'C' command to revert to the initial state.
+
+            Example:  I have some plate steel with a density of 7.86(5) g/mL.  The steel
+            thickness is 14.1(2) mm.  If I make a hexagon with a side length of 420(5) mm
+            (I'm cutting it with a torch), what will be the plate's mass?
+                - Start the program with the -i option.  
+                - At the prompt 'd>>', type s
+                - Enter 420(5)
+                - Enter t
+                - Enter 14.1(2)
+                
 
         '''))
     def Usage(status=1):
@@ -425,6 +436,8 @@ if 1:  # Core functionality
                 return flt(Fraction(num + ip*denom, denom))
             else:   # It's a float
                 return flt(s)
+        except ZeroDivisionError:
+            raise
         except Exception:
             raise NotANumber
     def FormulaTable():
@@ -710,7 +723,7 @@ if 1:  # Interactive
         'Print the current variables'
         current = vars["current"]
         n = vars["n"]
-        ϕ = phi = π/n
+        ϕ = vars["phi"] = phi = π/n
         Cos, S, T = cos(ϕ), sin(ϕ), tan(ϕ)
         if current == "d":
             d = vars["d"]
@@ -755,7 +768,7 @@ if 1:  # Interactive
         elif current == "A":
             A = vars["A"]
             t_ = vars["t"]
-            D = sqrt(8*A/(n*sin(2*ϕ)))
+            D = usqrt(8*A/(n*usin(2*ϕ))) if vars["unc"] else sqrt(8*A/(n*sin(2*ϕ)))
             R = D/2
             d = D*Cos
             r = d/2
@@ -787,7 +800,7 @@ if 1:  # Interactive
             A = vars["A"]
             if A:
                 V = A*t_
-                D = sqrt(8*A/(n*sin(2*ϕ)))
+                D = usqrt(8*A/(n*usin(2*ϕ))) if vars["unc"] else sqrt(8*A/(n*sin(2*ϕ)))
                 R = D/2
                 d = D*Cos
                 r = d/2
@@ -800,7 +813,7 @@ if 1:  # Interactive
             V = vars["V"]
             if V:
                 A = V*t_
-                D = sqrt(8*A/(n*sin(2*ϕ)))
+                D = usqrt(8*A/(n*usin(2*ϕ))) if vars["unc"] else sqrt(8*A/(n*sin(2*ϕ)))
                 R = D/2
                 d = D*Cos
                 r = d/2
@@ -818,110 +831,73 @@ if 1:  # Interactive
         pad = lambda x, n: " "*n + x + " "*n
         # In the following, note that t is the color.TRM instance and t_ is the local
         # variable for thickness.
-        u = t.n
-        if 1:
-            # New method of making table
-            def f(x, name):
-                'Return x colored & formatted'
-                a = "t." + name
-                if name == "n":
-                    a = "t.n_"
-                c = eval(a)
-                if ii(x, UFloat):
-                    s = f"{x:.1uS}"
-                else:
-                    s = f"{x}"
-                return f"{c}{name} = {s}{u}"
-
-            if 1:
-                # Row 1:  d, D, r, R
-                row = []
-                row.append(f(d, "d"))
-                row.append(f(D, "D"))
-                row.append(f(r, "r"))
-                row.append(f(R, "R"))
-                row = [pad(i, 2) for i in row]
-                o.append(row)
-                # Row 2:  n, A, s, p
-                row = []
-                row.append(f(n, "n"))
-                row.append(f(A, "A"))
-                row.append(f(s, "s"))
-                row.append(f(p, "p"))
-                row = [pad(i, 2) for i in row]
-                o.append(row)
-                # Row 3:  t, V, r+R
-                row = []
-                row.append(f(t_, "t"))
-                row.append(f(V, "V"))
-                if n % 2:
-                    # This case has to be handled specially
-                    s = f"{C('r')}+{C('R')} = "
-                    x = r + R
-                    s += f"{x:.1uS}" if ii(x, UFloat) else f"{x}"
-                    row.append(s)
-                else:
-                    row.append("")
-                row.append("")
-                row = [pad(i, 2) for i in row]
-                o.append(row)
-            #yy
-        else:
-            if ii(d, UFloat):
-                # Use shorthand form for uncertainty
-                if 1:   # Row 1:  d, D, r, R
-                    row = []
-                    row.append(f(d, "d"))
-                    breakpoint() #xx 
-                    row = [f"{t.d}d = {d:.1uS}{u}", f"{t.D}D = {D:.1uS}{u}", 
-                        f"{t.r}r = {r:.1uS}{u}", f"{t.R}R = {R:.1uS}{u}"]
-                    row = [pad(i, 2) for i in row]
-                    o.append(row)
-                if 1:   # Row 2:  n, A, s, p
-                    row = [f"{t.n_}n = {n}{u}", f"{t.A}A = {A:.1uS}{u}",
-                        f"{t.s}s = {s:.1uS}{u}", f"{t.p}p = {p:.1uS}{u}"]
-                    row = [pad(i, 2) for i in row]
-                    o.append(row)
-                if 1:   # Row 3:  t, V, r+R
-                    row = [f"{t.t}t = {t_:.1uS}{u}", f"{t.V}V = {V:.1uS}{u}"]
-                    if n % 2:
-                        row.extend([f"{t.r}r{u}+{t.R}R{u} = {r + R:.1uS}", ""])
-                    else:
-                        row.extend(["", ""])
-                    row = [pad(i, 2) for i in row]
-                    o.append(row)
+        def f(x, name):
+            'Return x colored & formatted'
+            a = "t." + name
+            if name == "n":
+                a = "t.n_"
+            c = eval(a)
+            if ii(x, UFloat):
+                s = f"{x:.1uS}"
             else:
-                if 1:   # Row 1:  d, D, r, R
-                    row = [f"{t.d}d = {d}{u}", f"{t.D}D = {D}{u}", f"{t.r}r = {r}{u}",
-                        f"{t.R}R = {R}{u}"]
-                    row = [pad(i, 2) for i in row]
-                    o.append(row)
-                if 1:   # Row 2:  n, A, s, p
-                    row = [f"{t.n_}n = {n}{u}", f"{t.A}A = {A}{u}", f"{t.s}s = {s}{u}",
-                        f"{t.p}p = {p}{u}"]
-                    row = [pad(i, 2) for i in row]
-                    o.append(row)
-                if 1:   # Row 3:  t, V, r+R
-                    row = [f"{t.t}t = {t_}{u}", f"{t.V}V = {V}{u}"]
-                    if n % 2:
-                        row.extend([f"{t.r}r{u}+{t.R}R{u} = {r + R}", ""])
-                    else:
-                        row.extend(["", ""])
-                    row = [pad(i, 2) for i in row]
-                    o.append(row)
+                s = f"{x}"
+            return f"{c}{name}{t.whtl} = {s}{t.n}"
+
+        # Make table
+        # Row 1:  d, D, r, R
+        row = []
+        row.append(f(d, "d"))
+        row.append(f(D, "D"))
+        row.append(f(r, "r"))
+        row.append(f(R, "R"))
+        row = [pad(i, 2) for i in row]
+        o.append(row)
+
+        # Row 2:  n, A, s, p
+        row = []
+        row.append(f(n, "n"))
+        row.append(f(A, "A"))
+        row.append(f(s, "s"))
+        row.append(f(p, "p"))
+        row = [pad(i, 2) for i in row]
+        o.append(row)
+        # Row 3:  t, V, r+R
+        row = []
+        row.append(f(t_, "t"))
+        row.append(f(V, "V"))
+        if n % 2:
+            # This case has to be handled specially
+            s = f"{C('r')}+{C('R')} = "
+            x = r + R
+            s += f"{x:.1uS}" if ii(x, UFloat) else f"{x}"
+            row.append(s)
+        else:
+            row.append("")
+        row.append("")
+        row = [pad(i, 2) for i in row]
+        o.append(row)
         # Print the table
         tt.print(o, header=None, padding=(0, 0), style=" "*15, alignment="l"*4)
+    def Variables():
+        print(dedent(f'''
+          {C('d')} Diameter of inscribed circle         {C('n')} Number of sides in polygon
+          {C('D')} Diameter of circumscribed circle     {C('A')} Area
+          {C('r')} Radius of inscribed circle           {C('s')} Length of side
+          {C('R')} Radius of circumscribed circle       {C('p')} Perimeter
+          {C('t')} Thickness of polygon plate           {C('V')} Volume of plate
+        '''))
+        print()
     def Interactive():
         'Start an interactive session'
         z, one = flt(0), flt(1)
         init = {    # Dictionary of regular polygon's variables
             "unc": False,   # Flags using numbers with uncertainty
             "current": "d",
-            "d": one,   # Inscribed diameter
+            "d": z,     # Inscribed diameter
             "D": z,     # Circumscribed diameter
             "r": z,     # Inscribed radius
             "R": z,     # Inscribed radius
-            "n": 4,     # Number of sides
+            "n": 6,     # Number of sides
             "A": z,     # Area
             "s": z,     # Side
             "p": z,     # Perimeter
@@ -930,16 +906,7 @@ if 1:  # Interactive
             }
         vars = init.copy()
         prompt = ">> "
-        print(dedent(f'''
-        {t.ti}Calculation of regular polygon properties{t.n} ? for help
-          {C('d')} Diameter of inscribed circle         {C('n')} Number of sides in polygon
-          {C('D')} Diameter of circumscribed circle     {C('A')} Area
-          {C('r')} Radius of inscribed circle           {C('s')} Length of side
-          {C('R')} Radius of circumscribed circle       {C('p')} Perimeter
-          {C('t')} Thickness of polygon plate           {C('V')} Volume of plate
-        '''))
-        print()
-        Print(vars)
+        print(f"{t(attr='ul')}Calculation of regular polygon properties{t.n}    Use ? for help")
         if 0:   exit()#xx
         while True:
             user_input = input(f"{C(vars['current'])}" + prompt).strip()
@@ -971,7 +938,7 @@ if 1:  # Interactive
                         Print(vars)
                     except ValueError:
                         t.print(f"{t.err}{arg!r} is not an integer")
-                case ["clear"]:     # Set vars to initial state
+                case ["C"]:     # Set vars to initial state
                     Dbg("command = clear")
                     vars = init.copy()
                     Print(vars)
@@ -987,6 +954,7 @@ if 1:  # Interactive
                     Print(vars)
                 case ["?"]:     # Show help
                     Dbg("command = ?")
+                    Variables()
                     print("Command summary:")
                     print("  d  D  r  R  A  s  p     Set variable that gets next entered number")
                     print("  n integer               Set number of polygon sides")
@@ -1001,9 +969,12 @@ if 1:  # Interactive
                     Dbg(f"command = ? {arg}")
                     Help(arg)
                 case _:
-                    if user_input[0] == "!":    # Expression to evaluate?
+                    if user_input[0] == "!":    # Expression to evaluate
                         Dbg(f"command = {user_input}")
-                        print(f"{eval(user_input[1:], globals(), vars)}")
+                        try:
+                            print(f"{eval(user_input[1:], globals(), vars)}")
+                        except Exception as e:
+                            print(f"{t.err}Exception:  {e}")
                     elif user_input[0] == "=":  # Set current variable to expression
                         try:
                             x = eval(user_input[1:].strip(), globals(), vars)
@@ -1019,8 +990,7 @@ if 1:  # Interactive
                                     vars[vars["current"]] = x
                                     ConvertToUfloat(vars)
                         except Exception as e:
-                            print(f"{t.warn}Your expression was {user_input[1:].strip()!r}")
-                            print(f"{t.err}{e}")
+                            print(f"{t.err}Exception:  {e}")
                         Print(vars)
                     else:
                         try:
@@ -1041,10 +1011,12 @@ if 1:  # Interactive
                                         vars[vars["current"]] = ufloat(number, 0)
                                     else:
                                         vars[vars["current"]] = number
-                                Print(vars)
+                            Print(vars)
+                        except ZeroDivisionError:
+                            print(f"{t.err}Exception:  division by zero")
                         except NotANumber:
                             Dbg(f"command = _ = {user_input!r} fall through")
-                            print(f"{user_input!r} not recognized")
+                            print(f"{t.warn}{user_input!r} not recognized")
     def ConvertToUfloat(vars):
         'Convert all of vars to ufloats (current already is one)'
         # Note this is OK, as current was just set and we'll recalculate everything else
