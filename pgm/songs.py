@@ -18,26 +18,28 @@ Entry = namedtuple("Entry", "title artist url comment")
 favorites = '''
 
     Angie ; Rolling Stones ; oWRr03VcA-0 ;
-    Beethoven's 7th ; Bernstein ; Rw-KtQLdRT4 ; 2nd movement 14:33 is best
-    Beethoven's 9th, 2nd movement (1824) ; ; iwIvS4yIThU ; Genius
-    Bad Romance ; PMJ, Sarah Reich, Ariana Savalas ; VCTOpdlZJ8U ; 
+    Bach: Toccata and Fugue in D Minor ; Amy Turk ; oPmKRtWta4E ;
+    Bach: Toccata and Fugue in D Minor ; Canadian Brass ; _Cst9lV5PPg ;
+    Beethoven's 7th ; Bernstein ; Rw-KtQLdRT4 ; 2nd movement at 14:33 is my favorite
+    Beethoven's 9th, 2nd movement (1824) ; ; iwIvS4yIThU ; 
+    Beethoven: Moonlight Sonata (3rd) ;Tina S ; o6rBK0BqL2w ; 
+    Bad Romance ; PMJ, Sarah Reich, Ariana Savalas ; VCTOpdlZJ8U ; Percussion by Sarah Reich :^)
     Catharsis ; Sally ; h3hlFAVV6aI ; My favorite fiddle song
     Crazy ; Patsy Cline ; MbnrdCS57d0 ; 
-    Diamonds and Rust ; Joan Baez ; IrVD0bP_ybg ; Baez's best
-    Don't Cry For Me Argentina ; Karen Carpenter ; _n8mq7sedP4 ; A masterpiece
+    Diamonds and Rust ; Joan Baez ; IrVD0bP_ybg ; 
+    Don't Cry For Me Argentina ; Karen Carpenter ; _n8mq7sedP4 ; 
     Fast Freight ; Eliza Gilkyson ; Sin3FeAQAws ;  Singer is song writer's daughter
-    The Good, The Bad, and the Ugly ; Danish National Symphony ; enuOArEfqGo ;
     Hit the Road Jack ; Becca Krueger ; OfUDsHtSv88 ; (skip first 20 seconds)
-    Ievan Polkka ; Loituma ; 4om1rQKPijI ; A masterpiece of a capella, 2008
-    Ievan Polkka ; Loituma ; Zcg66Qcwjw8 ; 13 years later, 2021
+    Ievan Polkka ; Loituma ; 4om1rQKPijI ; 2008
     I'll Never Find Another You ; Seekers ; KmactMIhrRM ; How I feel about Glenda
-    Korobushka ; ; Pr3ZgN8onRA ; 
-    Korobushka ; Bond ; E5NByiEIbD8 ; 
-    Midnight In Moscow ; Kenny Ball ; o744d4mwOgQ ; Dixieland from England
+    Korobushka ; ; Pr3ZgN8onRA ; (vocal)
+    Korobushka ; Bond ; E5NByiEIbD8 ; (strings)
+    Midnight In Moscow ; Kenny Ball ; o744d4mwOgQ ; 
     Papillon (waltz arrangement) ; ; FKrmozFh5ww ; 
     Potato Head Blues ; Louis Armstrong ; EfGZB78R7uw ; Famous trumpet solo
-    Scheherazade (1st movement) ; Rimsky-Korsakov ; 6dDk6aft4JU ; von Karajan on Deutsche Grammophone
+    Scheherazade (1st movement) ; Rimsky-Korsakov ; 6dDk6aft4JU ;
     Stairway to Heaven ; Led Zeppelin ; QkF3oxziUI4 ; 
+    The Good, The Bad, and the Ugly ; Danish National Symphony ; enuOArEfqGo ; 
     This is a Man's World ; PMJ, Morgan James ; mPimt0Zu_To ; 
     Vltava (The Moldau) ; Smetana ; l6kqu2mk-Kw ; 
     Volga Boatmen ; ; qsovBF4N27Q ;
@@ -141,6 +143,7 @@ songs = '''
     I'm Just A Singer in a Rock And Roll Band ; Moody Blues ; 5UZWXE76ELU ; Album
     I'm Just a Singer in a Rock and Roll Band ; Moody Blues ; s5tb25TqXYU ; Concert
     I'm Still Standing ; Elton John ; Ye9hGotPPVk ; 
+    Ievan Polkka ; Loituma ; Zcg66Qcwjw8 ; 2021
     In Hell I'll be in Good Company ; Dead South ; B9FzVhw8_bY ; 
     In The Year 2525 ; Zager &  Evans ; yesyhQkYrQM ; 
     Indian Lake ; Cowsills ; 3Xup3HSZLIQ ; Bubble rock
@@ -187,7 +190,7 @@ songs = '''
     Nothing Else Matters: Guitar & cello ; ; pxoW-00Zyho ; 
     Nothing Else Matters: Guitar ; ; WlGiOiRQNhI ; 
     Nothing Else Matters: Hammered dulcimer ; ; 8KK0-9Moz5Q ; 
-    Nothing Else Matters: Hardpan ; ; 32v8ARqaBas ; She makes it look easy
+    Nothing Else Matters: Hardpan ; ; 32v8ARqaBas ;
     Nothing Else Matters: Harp ; ; KMX2bmtS_TE ; 
     Nothing Else Matters: Piano ; ; DmL12NRE4hQ ; 
     Old Man ; Neil Young ; rAtDrFdomN4 ; 
@@ -221,7 +224,7 @@ songs = '''
     Scarborough Fair ; Simon & Garfunkel ; -BakWVXHSug ; 
     Scat singing ; Ella Fitzgerald & Mel Torme ; 9CbVy1NnB4g ; 
     She Works Hard for the Money ; Donna Summers ; 09ZSKE38lTU ; 
-    She's Got You ; Peterson ; 7nXPQbKZBbw ; 
+    She's Got You ; Petersons ; 7nXPQbKZBbw ; 
     Shrek Hallelujah ; Rufus Wainright ; EbO6P-_Zx0Y ; 
     Silver Threads and Golden Needles ; Dusty Springfield ; uz6HB9HYQz4 ; Dusty Springfield
     Sounds of Silence ; Simon & Garfunkel ; 4zLfCnGVeL4 ; 
@@ -280,7 +283,6 @@ songs = '''
     Rimsky-Korsakov:  Scheherazade ; ; 1i6TsIVKByM ; Excellent youth orchestra
     Barber of Seville (1821) ; ; OloXRhesab0 ; Most of us probably heard this first by watching Saturday morning cartoons.
     Ravel: Bolero ; ; 8KsXPq3nedY ; 
-    Beethoven: Moonlight Sonata (3rd) ; ; o6rBK0BqL2w ; 17 year old girl (Tina S)
     Beethoven: Moonlight Sonata (3rd) ; ; zucBfXpCA6s ; Valentina Lisitsa
     Beethoven:  2nd movement 9th ; ; p5favl2Qtx0 ; Player-piano type visual
     Beethoven: Moonlight Sonata ; ; 4Tr0otuiQuU ; 
@@ -293,12 +295,10 @@ songs = '''
     Tchaikovsky:  1812 Overture (1888) ; ; QUpuAvQQrC0 ; 
 
     Bach: Toccata and Fugue in D Minor: Violin ; ; JL0PCLMSQms ; Violin
-    Bach: Toccata and Fugue in D Minor: Brass ; Canadian Brass ; _Cst9lV5PPg ; Superb
     Bach: Toccata and Fugue in D Minor ; ; eDFFUIGoBUc ; Accordion
     Bach: Toccata and Fugue in D Minor ; ; ho9rZjlsyYY ; Organ
     Bach: Toccata and Fugue in D Minor ; ; i9UQ61EbdO0 ; Orchestra
     Bach: Toccata and Fugue in D Minor ; ; ipzR9bhei_o ; Organ with bar graph score
-    Bach: Toccata and Fugue in D Minor ; ; oPmKRtWta4E ; Harp (a masterpiece)
     Bach: Toccata and Fugue in D Minor ; ; ojBYW3ycVTE ; Guitar
     Bach: Toccata and Fugue in D Minor ; ; zhH53UODLEM ; Piano with visual score
 
@@ -322,7 +322,10 @@ if 1:   # Functions
     def Print(entries):
         # namedtuple("Entry", "title artist url comment")
         for i in sorted(entries):
-            print(f'<a href="{i.url}">{i.title}</a> {i.artist} {i.comment} <br>')
+            if i.artist:
+                print(f'<a href="{i.url}">{i.title}</a> [{i.artist}] {i.comment} <br>')
+            else:
+                print(f'<a href="{i.url}">{i.title}</a> {i.comment} <br>')
     def ValidateURL(entry):
         if not validate:
             return
@@ -371,5 +374,6 @@ if __name__ == "__main__":
     Print(favorites_list)
     print("<p>Others:</p>")
     Print(song_list)
-    print(f"<p>Updated {now.date}<p>")
+    if 0:
+        print(f"<p>Updated {now.date}<p>")
 # vim: tw=0 wm=0

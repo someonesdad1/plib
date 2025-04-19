@@ -103,11 +103,12 @@ Here are a few of the modules/scripts I use a lot or provide useful techniques.
       convert things over to the new file and delete the legacy stuff.  
     - A handy utility that uses `color.py` is `cdec.py`, which will decorate lines of a
       file with color specifiers, so you see the line in its specified color.  Try
-      'python cdec.py colornames0' and you'll see a demo.  The colornames0 is my default
-      set of colors with naming based on the 3 letter names of the resistor color code.
-      Run `color.py` as a script to see the colors and add the `a` argument to see the
-      styles.  I use the mintty terminal under cygwin, which uses 24-bit color and
-      provides Unicode support.
+      'python /plib/pgm/cdec.py colornames0' and you'll see a demo.  The colornames0 is
+      my default set of colors with naming based on the 3 letter names of the resistor
+      color code.  Run `color.py` as a script to see the colors and add the `a` argument
+      to see the styles.  I use both the mintty terminal under cygwin, which uses 24-bit
+      color and provides Unicode support, and the not-quite-as-good Windows Terminal
+      running bash under WSL.
 
 * lwtest.py
     - Lightweight test runner adapted from a nice tool by Raymond Hettinger.  I use this

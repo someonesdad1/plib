@@ -106,23 +106,23 @@ if 1:  # Utility
         )
         exit(0)
     def Usage(status=1):
+        GetColors()
         print(
             dedent(f'''
         Usage:  {sys.argv[0]} [options] [offset [unit]]
-          Show the indicated date/time on one line.  If offset is given, it
-          must be an integer or float.  unit is an optional time unit
-          (defaults to day, use -h to see details).  offset is added to the
-          current time.  The fields in the output are in different colors
-          and are:
-            Day of week (3 letters)
-            Day, month (3 letters), year
-            Time (am or pm)
+          Show the indicated date/time on one line.  If offset is given, it must be an
+          integer or float.  unit is an optional time unit (defaults to day, use -h to
+          see details).  offset is added to the current time.  The fields in the output
+          are in different colors and are:
+            {t.dow}Day of week (3 letters{t.n})
+            {t.date}Day, month (3 letters), year{t.n}
+            {t.time}Time (am or pm){t.n}
             Local timezone's offset from GMT
-            Quarter of the year
-            Week number (out of 52)
-            Day number (out of 365 or 366)
-            Time in s from 1 Jan 1970
-            Julian astronomical date
+            {t.qtr}Quarter of the year{t.n}
+            {t.wk}Week number (out of 52){t.n}
+            {t.doy}Day number (out of 365 or 366){t.n}
+            {t.sec}Time in s from 1 Jan 1970{t.n}
+            {t.jd}Julian astronomical date{t.n}
         Examples
           - '{sys.argv[0]} -- -3 wk' shows the time/date 3 weeks ago
           - '{sys.argv[0]} 0' shows the current time/date
@@ -130,22 +130,24 @@ if 1:  # Utility
             '{sys.argv[0]} -- -x s' should be within hours of the date of the
             epoch.
         Options
-            -d      Turn on debugging
+            -D      Turn on debugging
             -H      Print a manpage
+            -s      Short output
         ''')
         )
         exit(status)
     def ParseCommandLine(d):
-        d["-d"] = False  # Turn on debug
+        d["-D"] = False  # Turn on debug
+        d["-s"] = False  # Short output
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "dHh")
+            opts, args = getopt.getopt(sys.argv[1:], "DHhs")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("d"):
+            if o[1] in list("Ds"):
                 d[o] = not d[o]
             elif o == "-H":
                 Manpage()
@@ -153,7 +155,7 @@ if 1:  # Utility
                 Usage()
         if len(args) not in (1, 2):
             Usage()
-        if d["-d"]:
+        if d["-D"]:
             g.dbg = True
         GetColors()
         return args
@@ -206,20 +208,27 @@ if 1:  # Core functionality
             doy = int(time.strftime("%j", tm))  # Day of the year
         if 0:
             pp(locals())
-        # Print the string
-        print(f"{t.dow}{weekday} ", end="")
-        print(f"{t.date}{day:2d} ", end="")
-        print(f"{t.date}{month:3s} ", end="")
-        print(f"{t.date}{year:4d} ", end="")
-        print(f"{t.time}{hour}:{minute}:{sec} {ampm} ", end="")
-        print(f"{t.z}[{utc_offset}Z] ", end="")
-        print(f"{t.qtr}Q{qtr} ", end="")
-        print(f"{t.wk}{wk}/52 ", end="")
-        print(f"{t.doy}{doy}/{365 + ly} ", end="")
-        print(f"{t.sec}{int(seconds):,d} s ", end="")
-        # Julian day is given to 5 decimal places, as this is a resolution of 0.9 s
-        print(f"{t.jd}JD{jd:,.5f} ", end="")
-        t.print()
+        if d["-s"]: # Short output, no color 
+            # Same output as "/usr/bin/date '+%d %b %Y %H:%M:%S %P %a'")
+            print(f"{day:2d} {month:3s} {year:4d} ", end="")
+            print(f"{hour}:{minute}:{sec} {ampm} {weekday}")
+        else:
+            # Print the string
+            print(f"{t.date}{day:2d} ", end="")
+            print(f"{t.date}{month:3s} ", end="")
+            print(f"{t.date}{year:4d} ", end="")
+            #
+            print(f"{t.time}{hour}:{minute}:{sec} {ampm} ", end="")
+            print(f"{t.dow}{weekday} ", end="")
+            #
+            print(f"{t.z}[{utc_offset}Z] ", end="")
+            print(f"{t.qtr}Q{qtr} ", end="")
+            print(f"{t.wk}{wk}/52 ", end="")
+            print(f"{t.doy}{doy}/{365 + ly} ", end="")
+            print(f"{t.sec}{int(seconds):,d} s ", end="")
+            # Julian day is given to 5 decimal places, as this is a resolution of 0.9 s
+            print(f"{t.jd}JD{jd:,.5f} ", end="")
+            t.print()
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
