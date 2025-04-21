@@ -1,5 +1,5 @@
 '''
-Make an HTML file of URLs to videos
+Make an HTML file of URLs to youtube videos
 '''
 if 1:   # Header
     from color import t
