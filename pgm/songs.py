@@ -80,6 +80,7 @@ songs = '''
     Blowin' in the Wind ; Peter, Paul, and Mary ; Ld6fAO4idaI ; 
     Blue World ; Moody Blues ; 8a9bfvNuTw0 ; With lyrics
     Blue World ; Moody Blues ; oosjl8wNLJU ; 
+    Bolero; Danish National Symphony; 3T92rCMQOMI ; 
     Boogie Woogie Bugle Boy ; Andrew Sisters ; 8of3uhG1tCI ; 
     Both Sides Now ; Judy Collins ; 8L1UngfqojI ; 
     Brandy ; Looking Glass ; CFhFyvk0yS8 ;
@@ -91,10 +92,10 @@ songs = '''
     Country Roads ; John Denver ; 1vrEljMfXYo ; 
     Country Roads ; Petersens ; qap9Qm-Q894 ; Petersens
     Crocodile Rock ; Elton John ; 75r0nQu-hMs ; 
-    Darin:  Dream Lover ; Bobby Darin ; wVHAQX5sSaU ; 
     Different Drum ; Stone Pony ; w9qsDgA1q8Y ; 
     Doc & San Miguel 5 ; Doc Severinsen and Arturo Sandoval ; s53B0PyAEOE ; Great trumpets & guitar, but the violin is best
     Downtown ; Petula Clark ; Zx06XNfDvk0 ; 
+    Dream Lover ; Bobby Darin ; wVHAQX5sSaU ; 
     Dreams ; Fleetwood Mac ; O5ugW4-BstE ; 
     Drive My Car ; Beatles ; kfSQkZuIx84 ; 
     Dust in the Wind ; Kansas ; tH2w6Oxx0kQ ; 
@@ -122,8 +123,8 @@ songs = '''
     Ghost Riders In the Sky ; Roy Clark & Glen Campbell ; v_kbgjsuCec ; 
     Ghost Riders In the Sky ; Roy Clark ; 8o2w1zhBKzk ; 
     Girl drummer ; ; L-So4DLDvGc ; 
-    Gypsy Waltz ; Sally ; eDGE6ah-e4Y ; 
     Gypsy ; Fleetwood Mac ; mwgg1Pu6cNg ; 
+    Gypsy Waltz ; Sally ; eDGE6ah-e4Y ; 
     Hair ; Cowsills ; BFy-yzj02FE ; 
     Hallelujah ; Lucy Thomas ; dLk9pzmaFHY ;
     Hang 'Em High ; Movie theme ; 0gscut1p4kY ; 
@@ -224,7 +225,7 @@ songs = '''
     Scarborough Fair ; Simon & Garfunkel ; -BakWVXHSug ; 
     Scat singing ; Ella Fitzgerald & Mel Torme ; 9CbVy1NnB4g ; 
     She Works Hard for the Money ; Donna Summers ; 09ZSKE38lTU ; 
-    She's Got You ; Petersons ; 7nXPQbKZBbw ; 
+    She's Got You ; Petersens ; 7nXPQbKZBbw ; 
     Shrek Hallelujah ; Rufus Wainright ; EbO6P-_Zx0Y ; 
     Silver Threads and Golden Needles ; Dusty Springfield ; uz6HB9HYQz4 ; Dusty Springfield
     Sounds of Silence ; Simon & Garfunkel ; 4zLfCnGVeL4 ; 
@@ -266,8 +267,8 @@ songs = '''
     Volga Boatmen  ; Red Army Choir & Band ; yfO0ADduEr8 ; 1996
     Volga Boatmen ; L. Kharitonov ; 0tw3g88JtWA ; 1965 
     Walk On the Wild Side ; Walk on the Wild Side ; 5O82y59h7MI ; 
-    Walking in the Air ; Walking In the Air movie ; upH1QZU4Z0Y ; Movie theme sung by a 13 year old choirboy Aled Jones
     Walking in the Air ; Malakai Bayoh & Aled Jones ; Lq8kqsI3hCo ; Movie theme sung by a 13 year old choirboy
+    Walking in the Air ; Walking In the Air movie ; upH1QZU4Z0Y ; Movie theme sung by a 13 year old choirboy Aled Jones
     Wanderer ; Dion ; SbYa7NBYyRc ;
     Washington Square ; Village Stompers ; ihenbyTzQ2A ; 
     White Silver Sands ; Don Rondo ; mOqbjENGN7s ; 
