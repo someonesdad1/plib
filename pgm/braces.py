@@ -122,7 +122,7 @@ if 1:   # Utility
         for o, a in opts:
             if o[1] in list("p"):
                 d[o] = not d[o]
-                Dbg(f"{a!r} option used")
+                Dbg(f"{o!r} option used")
             elif o == "-C":
                 if not len(a) or (len(a) % 2):
                     Error("-C option requires an even number of characters")
@@ -194,8 +194,10 @@ if 1:   # Core functionality
                 u = s.split("\n")[linenum]
                 # Decorate the mismatched character in color
                 print(f"  {u[:column - 1]}", end="")
-                print(f"{t.nomatch}{u[column - 1:]}{t.N}", end="")
+                print(f"{t.nomatch}{u[column - 1:column]}{t.N}", end="")
                 print(f"{u[column:]}")
+            else:
+                print()
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
