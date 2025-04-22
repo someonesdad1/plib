@@ -87,7 +87,7 @@ class Stack(deque):
         return s
     def pop(self):
         with self._lock:
-            t = super(Stack, self).popleft()
+            t = super(Stack, self).pop()
         return t
     def push(self, x):
         with self._lock:
@@ -96,7 +96,7 @@ class Stack(deque):
                     msg = "'{}' is an incorrect type.\n".format(x)
                     msg += "  It must be of type {}.".format(self._type)
                     raise TypeError(msg)
-            super(Stack, self).appendleft(x)
+            super(Stack, self).append(x)
     def rotate(self, n=1):
         with self._lock:
             super(Stack, self).rotate(n)
@@ -144,7 +144,7 @@ if __name__ == "__main__":
     def TestPop():
         st = init()
         R = list(st)
-        for i in R:
+        for i in reversed(R):
             Assert(st.pop() == i)
         # Make sure empty stack raises exception when popped
         Assert(len(st) == 0)
@@ -154,11 +154,10 @@ if __name__ == "__main__":
     def TestPush():
         st = Stack()
         r = list(range(n))
-        R = list(reversed(r))
         for i in r:
             st.push(i)
-        Assert(list(st) == R)
-        for i in R:
+        Assert(list(st) == r)
+        for i in reversed(r):
             Assert(st.pop() == i)
         Assert(len(st) == 0)
         Assert(not st)
@@ -201,6 +200,6 @@ if __name__ == "__main__":
     def TestMaxlen():
         st = Stack([1, 2], maxlen=2)
         st.push(3)
-        Assert(list(st) == [3, 1])
+        Assert(list(st) == [2, 3])
         Assert(st.maxlen == 2)
     exit(run(globals())[0])

@@ -45,6 +45,7 @@ if 1:   # Data
                 it look simple. Note the use of the uphill blade edge, as that's how he gets the fill for
                 the road bed.'''),
             Item("Bulldozer making a different road", "YRq7DZHt5y4"),
+            Item("Bulldozer and excavator move a large rock", "-83L3KBTvUE"),
             Item("Bulldozer digging road through rocks", "ECc0wzH5OQQ"),
             Item("Land clearing with two bulldozers and an anchor chain", "2TL7fuVYyRg"),
         ],

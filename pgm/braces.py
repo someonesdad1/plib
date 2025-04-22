@@ -95,9 +95,8 @@ if 1:   # Classes
                 raise ValueError(f"close ({close!r}) needs to be a string of one character")
             self.open = open
             self.close = close
-            # Keep track of (offset, line, column)  where characters were found.  offset
-            # will be 0-based and line and column are 1-based, as they would be used by
-            # someone using an editor.
+            # Keep track of (offset, line, column)  where characters were found.
+            # Parameters are all 0-based.
             self.locations = Stack()
             # 'Register' with the character pair dictionary
             if self.open in g.char_pairs:
@@ -107,13 +106,12 @@ if 1:   # Classes
             g.char_pairs[self.open] = self
             g.char_pairs[self.close] = self
         def __str__(self):
-            return f"Char({self.open}{self.close})"
+            return f"Char({self.open}{self.close}<{self.locations}>)"
         def __repr__(self):
-            return f"Char(\n  {self.open_locations}\n  {self.close_locations}\n)"
+            return f"Char({self.open}{self.close}<{self.locations}>)"
         def __bool__(self):
             "Return True if character pairs don't match, False otherwise"
             parity, st = 0, self.locations.copy()
-            breakpoint() #xx
             while st:
                 character, offset, linenum, column = st.pop()
                 if character == self.open:
@@ -126,8 +124,8 @@ if 1:   # Classes
         def found(self, character, offset, linenum, column):
             '''Log the occurrence of an open or close character.  
                 offset0b    0-based character offset into the file
-                linenum     1-based line number the character is on
-                column      1-based column number in this line
+                linenum     0-based line number the character is on
+                column      0-based column number in this line
             '''
             self.locations.push((character, offset, linenum, column))
 if 1:   # Utility
@@ -205,35 +203,23 @@ if 1:   # Core functionality
             Char(start, end)
     def Process(s, filename):
         'Process the string s contents of the indicated file'
-        linenum0b = 0       # Line number counter (0-based)
-        last_newline0b = 0    # Offset of last newline
+        # linenum, offset, last_newline, and column are all 0-based
+        linenum = 0
+        last_newline = 0
         parity_errors = []
-        for offset0b, char in enumerate(s):
+        for offset, char in enumerate(s):
             if char == "\n":
-                linenum0b += 1
-                last_newline0b = offset0b
+                linenum += 1
+                last_newline = offset
             if char in g.char_pairs:
                 Char_instance = g.char_pairs[char]
-                column = offset0b - last_newline0b
-                try:
-                    Char_instance.found(char, offset0b, linenum0b, column)
-                except ParityError as e:
-                    if 0:
-                        t.print(f"{t.ornl}Parity error for file {filename!r}")
-                        print(f"  {e}")
-                    else:
-                        s = f"{filename}[{linenum0b + 1}:{column}]:  Too many closing {char!r} characters"
-                        parity_errors.append(s)
-        # Identify pair mismatches 
-        pair_mismatches = set()
-        for item in g.char_pairs:
-            char = g.char_pairs[item]
-            if char:
-                pair_mismatches.add(char)
-        if not g.test and (pair_mismatches or parity_errors):
-            Report(s, filename, pair_mismatches, parity_errors)
-        else:
-            return pair_mismatches, parity_errors
+                column = offset - last_newline
+                Char_instance.found(char, offset, linenum, column)
+        # Now the Char instances contain a record of all the braces found in the file.
+        # Suppose the input was s = "{{}".  
+        pp(g.char_pairs)
+        exit()
+
     def Report(s, filename, pair_mismatches, parity_errors):
         '''Print report.  s is file's string, pair_mismatches is a set of mismatched
         pairs, and parity_errors is a list of parity errors.
@@ -260,27 +246,27 @@ if 1:   # Self tests
          pair_mismatches, parity_errors = Process("abc\ndef", "")
          Assert(not pair_mismatches and not parity_errors)
     def PairMismatch():
-         for s in ("((\n)", "[[\n]", "{{\n}"):
+         for s in ("(()", "[[]", "{{}"):
             p, _ = Process(s, "")
+            breakpoint() #xx 
             c = p.pop()
             Assert(c.open_locations == [(0, 0, 0), (1, 0, 1)])
             Assert(c.close_locations == [(3, 1, 1)])
     def ParityErrors():
          for s in ("())", "[]]", "{}}"):
-            breakpoint() #xx 
             _, p = Process(s, "")
     def SelfTests():
         EmptyFile()
         PairMismatch()
         ParityErrors()
         exit(0)
+    if 0:
+        SelfTests()
 
 if 1:
-    # Show we get a parity error with a bad expression
     C = Char("{", "}")
-    C.found("{", 0, 1, 1)
-    C.found("}", 1, 1, 2)
-    print(bool(C))
+    s = "{{}"
+    Process(s, "")
     exit()
 
 if __name__ == "__main__":
