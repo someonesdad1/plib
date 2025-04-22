@@ -1,4 +1,11 @@
 '''
+
+Todo
+    - Change architecture:  no exception for parity error.  Focus on getting test data
+      needed and adapt Report() to use that information.  Eliminate -p option unless
+      it remains easy.
+        - Goal is to quickly locate the source of the error.  Since this will be a user
+          with an editor the most, the line/col numbers are the most important.
     
 Definitions
     - A brace pair is a pair of characters (a, b) defined where a is the opening
@@ -63,6 +70,7 @@ if 1:  # Header
         from color import t
         from lwtest import Assert
         from dpprint import PP
+        from stack import Stack
         pp = PP()   # Get pprint with current screen width
         if 1:
             import debug
@@ -81,18 +89,16 @@ if 1:   # Classes
         pass
     class Char:
         def __init__(self, open, close):
+            if not ii(open, str) and len(open) != 1:
+                raise ValueError(f"open ({open!r}) needs to be a string of one character")
+            if not ii(close, str) and len(close) != 1:
+                raise ValueError(f"close ({close!r}) needs to be a string of one character")
             self.open = open
             self.close = close
-            Assert(len(open) == 1 and len(close) == 1)
-            # Keep track of positions where characters were found
-            self.open_locations = []
-            self.close_locations = []
-            # Parity is sum of open (+1) and close (-1) characters' parities.  If parity
-            # sum is ever < 0, it's considered an error.
-            self.parity = 0
-            # Character counters
-            self.n_open = 0
-            self.n_close = 0
+            # Keep track of (offset, line, column)  where characters were found.  offset
+            # will be 0-based and line and column are 1-based, as they would be used by
+            # someone using an editor.
+            self.locations = Stack()
             # 'Register' with the character pair dictionary
             if self.open in g.char_pairs:
                 Error(f"{self.open!r} already in g.char_pairs")
@@ -106,27 +112,24 @@ if 1:   # Classes
             return f"Char(\n  {self.open_locations}\n  {self.close_locations}\n)"
         def __bool__(self):
             "Return True if character pairs don't match, False otherwise"
-            if not self.n_open and not self.n_close:
-                return False
-            return bool(self.parity)
-        def found(self, character, offset0b, linenum0b, column1b):
-            '''Log the occurrence of an open or close character.  offset0b is the
-            character offset into the file, linenum0b is the 0-based line number the
-            character is on, and column1b is the 0-based column number in this line.
+            parity, st = 0, self.locations.copy()
+            breakpoint() #xx
+            while st:
+                character, offset, linenum, column = st.pop()
+                if character == self.open:
+                    parity += 1
+                elif character == self.close:
+                    parity -= 1
+                else:
+                    raise RuntimeError(f"{character!r} is unexpected")
+            return parity == 0
+        def found(self, character, offset, linenum, column):
+            '''Log the occurrence of an open or close character.  
+                offset0b    0-based character offset into the file
+                linenum     1-based line number the character is on
+                column      1-based column number in this line
             '''
-            if character == self.open:
-                self.open_locations.append((offset0b, linenum0b, column1b))
-                self.parity += 1
-                self.n_open += 1
-            elif character == self.close:
-                self.close_locations.append((offset0b, linenum0b, column1b))
-                self.parity -= 1
-                self.n_close += 1
-            else:
-                raise ValueError(f"{character!r} not tracked by this class")
-            if self.parity < 0:
-                raise ParityError(f"Parity < 0 for {character!r}:  offset={offset0b}, "
-                                  f"line={linenum0b + 1}, column={column1b}")
+            self.locations.push((character, offset, linenum, column))
 if 1:   # Utility
     def GetColors():
         t.err = t.redl
@@ -271,8 +274,15 @@ if 1:   # Self tests
         PairMismatch()
         ParityErrors()
         exit(0)
-    ParityErrors()
+
+if 1:
+    # Show we get a parity error with a bad expression
+    C = Char("{", "}")
+    C.found("{", 0, 1, 1)
+    C.found("}", 1, 1, 2)
+    print(bool(C))
     exit()
+
 if __name__ == "__main__":
     d = {}      # Options dictionary
     files = ParseCommandLine(d)
