@@ -1,8 +1,7 @@
-"""
+'''
 This is a drawing library (using the g library) that can draw 7
 segment and alphanumeric displays like those seen on instruments.
-"""
-
+'''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
@@ -40,21 +39,17 @@ if 1:  # Global variables
         "E": (0x79, 0x4F),
         "F": (0x71, 0x47),
     }
-
-
 def SetUp(file, orientation=g.landscape, units=g.mm):
-    """Convenience function to set up the drawing environment and return a
+    '''Convenience function to set up the drawing environment and return a
     file object to the output stream.
-    """
+    '''
     ofp = open(file, "w")
     g.ginitialize(ofp, wrap_in_PJL=0)
     g.setOrientation(orientation, units)
     return ofp
-
-
 class Seg7(object):
     def __init__(self, h, **kw):
-        """Initialize with a height.  The other dimensions are gotten
+        '''Initialize with a height.  The other dimensions are gotten
         as a fraction of this height and are keywords:
             sf      Separation fraction
             wf      Width fraction
@@ -64,7 +59,7 @@ class Seg7(object):
             fc      Fill color
             lw      Line width
         The encoding is 'gfedcba' (default) or 'abcdefg'.
-        """
+        '''
         self.h = h  # Height
         self.lw = kw.setdefault("lw", 0.1)
         self.lc = kw.setdefault("lc", g.black)
@@ -90,7 +85,6 @@ class Seg7(object):
             self.E = 1 << 3
             self.F = 1 << 2
             self.G = 1 << 1
-
     def DrawSegment(self, x, y, vert=False):
         # Get the dimensions
         h = self._h * self.vf if vert else self._h
@@ -123,7 +117,6 @@ class Seg7(object):
         g.DrawPath(p)
         g.FillPath(p)
         g.pop()
-
     def draw(self, x, y, char=0):
         g.push()
         g.translate(x, y)
@@ -146,18 +139,14 @@ class Seg7(object):
         if char & 1:
             s.DrawSegment(h, 3 * h + 4 * dx)  # A segment
         g.pop()
-
     @property
     def h(self):
         "Segment height"
         return self._h
-
     @h.setter
     def h(self, h):
         assert h > 0
         self._h = h
-
-
 if __name__ == "__main__":
     ofp = SetUp("a.ps")
     g.translate(10, 50)

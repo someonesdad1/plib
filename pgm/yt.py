@@ -48,6 +48,7 @@ if 1:   # Data
             Item("Bulldozer and excavator move a large rock", "-83L3KBTvUE"),
             Item("Bulldozer digging road through rocks", "ECc0wzH5OQQ"),
             Item("Land clearing with two bulldozers and an anchor chain", "2TL7fuVYyRg"),
+            Item("Removing a tree with no room to fell it", "IgR7TEuQU8E"),
         ],
 }
 if __name__ == "__main__":
