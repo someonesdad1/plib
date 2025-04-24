@@ -38,7 +38,7 @@ oo>
 <oo test none oo>
 <oo todo 
     
-    - Define parity.  Use it to detect a syntax error quickly and exit at that point.
+    - Also make work for bytes instead of strings
     - Tokenize python code and set all string content to space characters to maintain
       character offsets.  Then process for braces.  The tokenizing might have to be done
       as bytes, not strings.
@@ -57,7 +57,7 @@ if 1:  # Header
     if 1:   # Custom imports
         from wrap import dedent
         from color import t
-        from lwtest import Assert
+        from lwtest import Assert, run
         from dpprint import PP
         pp = PP()   # Get pprint with current screen width
         if 0:
@@ -68,41 +68,20 @@ if 1:  # Header
             pass
         g = G()
         g.dbg = True    # If true, print debugging messages
-        g.test = False  # If true, run self-tests
+        g.dbg = False   # If true, print debugging messages
         ii = isinstance
-if 1:   # Self tests
-    def EmptyFile():
-         # Empty file should also be successful
-         pair_mismatches, parity_errors = Process("", "")
-         Assert(not pair_mismatches and not parity_errors)
-         # So should be a file with no braces in it
-         pair_mismatches, parity_errors = Process("abc\ndef", "")
-         Assert(not pair_mismatches and not parity_errors)
-    def PairMismatch():
-         for s in ("(()", "[[]", "{{}"):
-            p, _ = Process(s, "")
-            c = p.pop()
-            Assert(c.open_locations == [(0, 0, 0), (1, 0, 1)])
-            Assert(c.close_locations == [(3, 1, 1)])
-    def ParityErrors():
-         for s in ("())", "[]]", "{}}"):
-            _, p = Process(s, "")
-    def SelfTests():
-        EmptyFile()
-        PairMismatch()
-        ParityErrors()
-        exit(0)
-    if 0:
-        SelfTests()
 if 1:   # Classes
     class Char:
         '''Container for opening and closing brace pairs.  Each occurrence in a file
         will result in an entry being added to this container's deque instance used to
         keep a record of where each character was.
+        
+        When starting to process a new file, call the clear() method of any existing
+        Char instance to clear all the instance's location data.  Set the file property
+        if you wish (it's a string to keep track of what's being processed, but not used
+        internally).
 
-        When starting to process a new file, call the reset() method and set the file
-        property if you wish (it's a string to keep track of what's being processed, but
-        not used internally).
+        To start over and delete any Char instances, call the initialize() method.
         '''
         opening = []    # Keeps track of opening brace-type characters
         closing = []    # Keeps track of closing brace-type characters
@@ -126,9 +105,17 @@ if 1:   # Classes
             if self.open in Char.instances:
                 Error(f"{self.open!r} already in Char.instances")
             Char.instances[self.open] = self
-        def reset(self):
-            'Reset self.locations to empty'
-            self.locations.clear()
+        def initialize(self):
+            'Clear all class variable information to e.g. start over'
+            Char.opening = []
+            Char.closing = []
+            Char.instances = {}
+            Char.string = None
+        def clear(self):
+            'Reset self.locations to empty for each instance in Char.instances'
+            for char in Char.instances:
+                instance = Char.instances[char]
+                instance.locations.clear()
             Char.string = None
         def _str(self):
             return f"Char({self.open}{self.close}<{self.locations}>)"
@@ -165,11 +152,11 @@ if 1:   # Classes
             '''Return a list of (status, (character, offset, linenum, column)) elements
             of the brace-type characters that are mismatched for this instance.  None is
             returned if there are no mismatches.
-
-            status is a string that indicates the problem:
-                "opening & closing characters not matched"
-                "closing character with no opening character"
-
+            
+            status is a string that indicates the problem, e.g.:
+                "{ character with no matching } character"
+                "} character with no matching { character"
+            
             There are two conditions for a mismatch:  
             
                 1) The number of opening characters must match the number of closing
@@ -248,7 +235,6 @@ if 1:   # Classes
         @file.setter
         def file(self, filename):
             self._file = filename
-
 if 1:   # Utility
     def GetColors():
         t.err = t.redl
@@ -295,7 +281,7 @@ if 1:   # Utility
         are examined to find pairs of brace-type characters that are mismatched.  For
         example, the string '{}' has matched braces, but '{{}' does not, nor do '{',
         '{', or '}{'.  
-
+        
         '''))
         exit(0)
     def Usage(status=0):
@@ -340,11 +326,51 @@ if 1:   # Utility
                 Manpage()
             elif o == "-h":
                 Usage()
+        if d["-t"]:     # Run self-tests
+            SelfTests.c = Char("{", "}")
+            exit(run(globals(), halt=True)[0])
         RegisterCharacterPairs(d["-c"])
-        if d["-t"]:
-            g.test = True
-            SelfTests()
         return args
+if 1:   # Self tests
+    def TestPassing():
+        for s in ["", "{}", "{{}}"]:
+            Process(s)
+            Assert(SelfTests.c.locate_mismatch() is None)
+    def TestFailures():
+        m1 = "{ character with no matching } character"
+        m2 = "} character with no matching { character"
+        #
+        Process("{")
+        mm = SelfTests.c.locate_mismatch()
+        Assert(mm[0] == m1)
+        Assert(mm[1] == ('{', 0, 0, 0))
+        #
+        Process("}")
+        mm = SelfTests.c.locate_mismatch()
+        Assert(mm[0] == m2)
+        Assert(mm[1] == ('}', 0, 0, 0))
+        #
+        Process("{{}")
+        mm = SelfTests.c.locate_mismatch()
+        Assert(mm[0] == m1)
+        Assert(mm[1] == ('{', 0, 0, 0))
+        #
+        Process("{}}")
+        mm = SelfTests.c.locate_mismatch()
+        Assert(mm[0] == m2)
+        Assert(mm[1] == ('}', 2, 0, 2))
+        #
+        Process("}{}")
+        mm = SelfTests.c.locate_mismatch()
+        Assert(mm[0] == m2)
+        Assert(mm[1] == ('}', 0, 0, 0))
+        #
+        Process("}}{{")
+        mm = SelfTests.c.locate_mismatch()
+        Assert(mm[0] == m2)
+        Assert(mm[1] == ('}', 0, 0, 0))
+    def SelfTests():
+        pass
 if 1:   # Core functionality
     def RegisterCharacterPairs(pairs):
         'pairs is a string of character pairs'
@@ -352,33 +378,30 @@ if 1:   # Core functionality
         for i in range(0, len(pairs), 2):
             start, end = pairs[i], pairs[i + 1]
             Char(start, end)
-    def Report(s, filename, pair_mismatches, parity_errors):
-        '''Print report.  s is file's string, pair_mismatches is a set of mismatched
-        pairs, and parity_errors is a list of parity errors.
-        '''
-        for item in pair_mismatches:
-            open_locations = item.open_locations
-            close_locations = item.close_locations
-            if len(open_locations) > len(close_locations):
-                offset, linenum, column = open_locations[0]
-                char = item.open
-            else:
-                offset, linenum, column = close_locations[-1]
-                char = item.close
-            print(f"{filename}[{linenum + 1}:{column + 1}]:  {char!r} "
-                   "is missing matching character")
-        for item in parity_errors:
-            print(item)
-    def Process(s, filename):
+    def Report(s, file):
+        "Print report.  s is file's string and file is file's name."
+        # Get any Char instance
+        c = list(Char.instances)[0]
+        item = Char.instances[c]
+        mismatches = item.locate_mismatches()
+        if mismatches is None:
+            Dbg(f"No mismatches in {file}")
+            return
+        for mismatch in mismatches:
+            msg = mismatch[0]
+            char, offset, linenum, column = mismatch[1]
+            print(f"{file}[{linenum + 1}:{column + 1}]:  {msg}")
+    def Process(s, file=""):
         'Process the string s contents of the indicated file'
-        Dbg(f"Processing {t.yell}{s!r}{t.dbg} in file {filename!r}")
-        # Initialize the Char instances
+        Dbg(f"Processing {t.yell}{s!r}{t.dbg} in file {file!r}")
+        # Clear the Char instances of any prior information
         if not Char.instances:
             raise ValueError("No registered Char instances")
         for char in Char.instances:
-            i = Char.instances[char]
-            i.reset()
-        i.file = filename
+            instance = Char.instances[char]
+            instance.clear()
+            break   # Only need to call this for one instance and it clears all of them
+        instance.file = file
         # linenum, offset, last_newline, and column are all 0-based
         linenum = 0
         column = 0
@@ -405,36 +428,15 @@ if 1:   # Core functionality
         # {'{': Char({}<Stack([('{', 0, 0, 0), ('{', 1, 0, 1), ('}', 2, 0, 2)])>)},
         # showing the location of each 'brace' character.
 
-if 1:
-    GetColors()
-    t.case = t.trql
-    t.mismatch = t.royl
-    c = Char("{", "}")
-    s = "{{}"
-    s = "{}}"
-    g.dbg = 1
-    Dbg.indent = " "*4
-    t.print(f"{t.ornl}These should pass:")
-    for s in ["", "{}", "{{}}"]:
-        t.print(f"{t.case}Test case {s!r}")
-        Process(s, "debug")
-        print(f"{t.mismatch}{c.locate_mismatch()}")
-        print()
-    t.print(f"{t.grnl}{'-'*70}")
-    t.print(f"\n{t.ornl}These should have problems:")
-    for s in "{ } {{} {}} }{} }}{{".split():
-        t.print(f"{t.case}Test case {s!r}")
-        Process(s, "debug")
-        print(f"{t.mismatch}{c.locate_mismatch()}")
-        print()
-    exit()
-
 if __name__ == "__main__":
     d = {}      # Options dictionary
     files = ParseCommandLine(d)
     if not files:
-        s = sys.stdin.read()
-        Process(s, "<stdin>")
+        s, file = sys.stdin.read(), "<stdin>"
+        Process(s, file)
+        Report(s, file)
     else:
         for file in files:
-            Process(open(file).read(), file)
+            s = open(file).read()
+            Process(s, file)
+            Report(s, file)

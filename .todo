@@ -1,5 +1,10 @@
 Active:  /plib/.todo
 
+    - pgm/pipe_sizes.py
+        - Add a -m option that gives pipe sizes in mm
+        - Use termtables for printing table data
+        - Color code common pipe sizes (1/2, 3/4 particularly)
+
     - Debugging complicated expressions
         - Create a script that finds unmatched (, [, {, < in python code.  A great
           example pgm/poly.py around line 430 where the problem's variables are getting

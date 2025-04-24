@@ -1,6 +1,6 @@
-"""
+'''
 Print PVC and steel US pipe dimensions
-"""
+'''
 
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -18,7 +18,7 @@ if 1:  # Copyright, license
 if 1:  # Custom imports
     from wrap import dedent
 print(
-    dedent(f"""
+    dedent(f'''
           Schedule 40 PVC pipe                    Schedule 80 PVC pipe
     Nominal                                 Nominal
      Size      OD      Wall      ID          Size      OD      Wall      ID
@@ -54,5 +54,5 @@ print(
     4        4.500    4.026   0.237   8      0.1250    4.334     0.898   4-1/4
     5        5.563    5.047   0.258   8      0.1250    5.391     1.22
     6        6.625    6.065   0.280   8      0.1250    6.446     1.58
-    """)
+    ''')
 )
