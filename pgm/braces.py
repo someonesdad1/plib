@@ -67,7 +67,6 @@ if 1:  # Header
         class G:
             pass
         g = G()
-        g.dbg = True    # If true, print debugging messages
         g.dbg = False   # If true, print debugging messages
         ii = isinstance
 if 1:   # Classes
@@ -149,86 +148,120 @@ if 1:   # Classes
                     mismatches.append(result)
             return mismatches if mismatches else None
         def locate_mismatch(self):
-            '''Return a list of (status, (character, offset, linenum, column)) elements
-            of the brace-type characters that are mismatched for this instance.  None is
-            returned if there are no mismatches.
+            '''Return the (status, (character, offset, linenum, column)) element
+            of the brace-type characters that is mismatched for this instance.  None is
+            returned if there is no mismatch.
             
             status is a string that indicates the problem, e.g.:
-                "{ character with no matching } character"
-                "} character with no matching { character"
-            
-            There are two conditions for a mismatch:  
-            
-                1) The number of opening characters must match the number of closing
-                characters 
-            
-                2) A closing character can't occur without an earlier matching opening
-                character.
-            
-            Both of these conditions are found by defining the parity of the sets of
-            these character pairs as an integer.  When an opening character is found,
-            the parity is incremented and when a closing character is found, the parity
-            is decremented.  Condition 1 is fulfilled if the parity is zero after all
-            characters are examined.  Condition 2 is violated if the parity is ever
-            negative.
+                error1:  "{ character with no matching } character"
+                error2:  "} character with no matching { character"
+
+            The algorithm uses the cumulative sum of parities.  The parity of the
+            opening character is +1 and the parity of the closing character is -1.  The
+            following three strings demonstrate the algorithm with parity sums as lists:
+
+                                                    csum =
+                    Expr    List of parities    Cumulative sum   Result
+                1.  "{{}}"  [+1, +1, -1, -1]    [1, 2, 1, 0]     Correct expression
+                2.  "{{}"   [+1, +1, -1]        [1, 2, 1]        error1
+                3.  "}{}"   [-1, +1, -1]        [-1, 0, -1]      error2
+
             '''
-            no_close = f"{self.open} character with no matching {self.close} character"
-            no_open = f"{self.close} character with no matching {self.open} character"
+            error1 = f"{self.open} character with no matching {self.close} character"
+            error2 = f"{self.close} character with no matching {self.open} character"
             Dbg(f"Char.locations = {self.locations}")
-            parity, st, seq = 0, self.locations.copy(), []
-            # seq will be list of (parity, item) where item is the (character, offset,
-            # linenum, column) entry.
-            while st:
-                entry = st.popleft()
+            if 1:   # New algorithm
+                if not self.locations:  # No open/close characters were found
+                    return None
+                # Calculate cumulative sum of parities
+                mysum, csum = 0, []
+                for char, _, _, _ in self.locations:
+                    if char == self.open:
+                        mysum += 1
+                    else:
+                        mysum -= 1
+                    csum.append(mysum)
+                # Look for first negative element (has to be -1)
+                try:
+                    index = csum.index(-1)      # index is location of error2
+                    # There's an unmatched self.close character
+                    return (error2, self.locations[index])
+                except ValueError:
+                    pass
+                # See if last element is 0, implying no mismatch
+                if not csum[-1]:
+                    return None
+                else:
+                    # There's an unmatched self.open character
+                    if len(csum) == 1:  # Only one element
+                        return (error1, self.locations[0])
+                    # Look for largest cumulative sum value from the end of the list
+                    last_element = 0
+                    while csum:
+                        elem = csum.pop()   # List's pop() removes rightmost element
+                        if elem > last_element:
+                            last_element = elem
+                        else:
+                            break
+                    # Get index of largest cumulative sum value.  The remaining size of
+                    # csum tells us the index of the largest element.
+                    index = len(csum) + 1
+                    return (error1, self.locations[index])
+            else:   # Old algorithm
+                parity, st, parityseq = 0, self.locations.copy(), []
+                # parityseq will be list of (parity, item) where item is the (character, offset,
+                # linenum, column) entry.
+                while st:
+                    entry = st.popleft()
+                    if entry[0] == self.open:
+                        parity += 1
+                    elif entry[0] == self.close:
+                        parity -= 1
+                    else:
+                        raise RuntimeError(f"Program bug:  {entry[0]!r} is unexpected")
+                    parityseq.append((parity, entry))
+                if not parityseq:
+                    Dbg("Analyzed string is empty")
+                    return None
+                if 1:   # Show parity sequence if debugging
+                    Dbg("Parity sequence: ", end="")
+                    spc = Dbg.indent
+                    Dbg.indent = ""
+                    for item in parityseq:
+                        Dbg(item[0], end=" ")
+                    Dbg()
+                    Dbg.indent = spc
+                # Look first for a negative parity
+                for parity, item in parityseq:
+                    if parity < 0:
+                        Dbg(f"Negative parity for item {item}")
+                        return no_open, item     # Condition #2 violated
+                # If ending parity is zero, there's no mismatch
+                if not parityseq[-1][0]:
+                    Dbg("Parity is OK")
+                    return None
+                Assert(parityseq[-1][0] > 0)
+                # Ending parity was nonzero.  Offending character is the one just after it
+                # was last zero.
+                st = self.locations.copy()
+                last_entry = None
+                while st:
+                    entry = st.pop()    # Remove last entry on the right
+                    parity = entry[0]
+                    if not parity :
+                        # This is rightmost brace where parity was OK
+                        if last_entry is None:
+                            raise RuntimeError(f"Program bug:  unexpected parity of 0")
+                        Dbg(f"Offending char = {last_entry}")
+                        return no_close, last_entry
+                    else:
+                        last_entry = entry
+                # Had no match, so offending character had to be first entry
+                Dbg(f"Offending char = {entry}")
                 if entry[0] == self.open:
-                    parity += 1
-                elif entry[0] == self.close:
-                    parity -= 1
+                    return no_close, entry
                 else:
-                    raise RuntimeError(f"Program bug:  {entry[0]!r} is unexpected")
-                seq.append((parity, entry))
-            if not seq:
-                Dbg("Analyzed string is empty")
-                return None
-            # Show parity sequence if debugging
-            Dbg("Parity sequence: ", end="")
-            spc = Dbg.indent
-            Dbg.indent = ""
-            for item in seq:
-                Dbg(item[0], end=" ")
-            Dbg()
-            Dbg.indent = spc
-            # Look first for a negative parity
-            for parity, item in seq:
-                if parity < 0:
-                    Dbg(f"Negative parity for item {item}")
-                    return no_open, item     # Condition #2 violated
-            # If ending parity is zero, there's no mismatch
-            if not seq[-1][0]:
-                Dbg("Parity is OK")
-                return None
-            Assert(seq[-1][0] > 0)
-            # Ending parity was nonzero.  Offending character is the one just after it
-            # was last zero.
-            st = self.locations.copy()
-            last_entry = None
-            while st:
-                entry = st.pop()    # Remove last entry on the right
-                parity = entry[0]
-                if not parity :
-                    # This is rightmost brace where parity was OK
-                    if last_entry is None:
-                        raise RuntimeError(f"Program bug:  unexpected parity of 0")
-                    Dbg(f"Offending char = {last_entry}")
-                    return no_close, last_entry
-                else:
-                    last_entry = entry
-            # Had no match, so offending character had to be first entry
-            Dbg(f"Offending char = {entry}")
-            if entry[0] == self.open:
-                return no_close, entry
-            else:
-                return no_open, entry
+                    return no_open, entry
         @property
         def file(self):
             return self._file
@@ -292,7 +325,7 @@ if 1:   # Utility
         Options:
             -C s    Add set of characters s to character pairs
             -c s    Define the character pairs: '()[]{{}}' is the default
-            -p      Print the line(s) with mismatches; color highlight the problem
+            -d      Print debugging messages
             -t      Run self tests
             -H      Print a manpage
             -h      Print the usage message
@@ -300,16 +333,17 @@ if 1:   # Utility
         exit(status)
     def ParseCommandLine(d):
         d["-c"] = "()[]{}"     # Character pairs
-        d["-p"] = False        # Print the offending character in its line
+        d["-d"] = False        # Debugging printing
+        #d["-p"] = False        # Print the offending character in its line
         d["-t"] = False        # Run self tests
         GetColors()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "C:c:Hhpt") 
+            opts, args = getopt.getopt(sys.argv[1:], "C:c:dHht") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("pt"):
+            if o[1] in list("dt"):
                 d[o] = not d[o]
                 Dbg(f"{o!r} option used")
             elif o == "-C":
@@ -326,6 +360,9 @@ if 1:   # Utility
                 Manpage()
             elif o == "-h":
                 Usage()
+        if d["-d"]:     # Debugging printing
+            g.dbg = True
+            GetColors()
         if d["-t"]:     # Run self-tests
             SelfTests.c = Char("{", "}")
             exit(run(globals(), halt=True)[0])
@@ -353,7 +390,7 @@ if 1:   # Self tests
         Process("{{}")
         mm = SelfTests.c.locate_mismatch()
         Assert(mm[0] == m1)
-        Assert(mm[1] == ('{', 0, 0, 0))
+        Assert(mm[1] == ('{', 1, 0, 1))
         #
         Process("{}}")
         mm = SelfTests.c.locate_mismatch()
@@ -393,7 +430,7 @@ if 1:   # Core functionality
             print(f"{file}[{linenum + 1}:{column + 1}]:  {msg}")
     def Process(s, file=""):
         'Process the string s contents of the indicated file'
-        Dbg(f"Processing {t.yell}{s!r}{t.dbg} in file {file!r}")
+        Dbg(f"Processing file {file!r}")
         # Clear the Char instances of any prior information
         if not Char.instances:
             raise ValueError("No registered Char instances")
@@ -406,7 +443,6 @@ if 1:   # Core functionality
         linenum = 0
         column = 0
         last_newline = 0
-        parity_errors = []
         # Look at each character c and its offset.  If c is one of the primary
         # brace-type characters (in g.char) or its matching brace-type character, log
         # its occurrence in the appropriate Char instance.
@@ -421,12 +457,23 @@ if 1:   # Core functionality
                     # Get matching opening character
                     index = Char.closing.index(c)
                     Char_instance = Char.instances[Char.opening[index]]
-                column = offset - last_newline
+                # Calculating column number needs a 1 subtracted except for first line
+                column = offset - last_newline - (linenum > 0)
                 Char_instance.found(c, offset, linenum, column)
         # Now the Char instances contain a record of all the braces found in the file.
         # Suppose the input was s = "{{}".  Then the Char.instances dictionary will be
         # {'{': Char({}<Stack([('{', 0, 0, 0), ('{', 1, 0, 1), ('}', 2, 0, 2)])>)},
         # showing the location of each 'brace' character.
+
+if 0:   
+    s = "()("
+    t.print(f"{t.ornl}file = {s!r}")
+    g.dbg = True
+    GetColors()
+    c = Char("(", ")")
+    Process(s, "")
+    print(c.locate_mismatch())
+    exit()
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
