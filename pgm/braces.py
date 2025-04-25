@@ -170,98 +170,42 @@ if 1:   # Classes
             error1 = f"{self.open} character with no matching {self.close} character"
             error2 = f"{self.close} character with no matching {self.open} character"
             Dbg(f"Char.locations = {self.locations}")
-            if 1:   # New algorithm
-                if not self.locations:  # No open/close characters were found
-                    return None
-                # Calculate cumulative sum of parities
-                mysum, csum = 0, []
-                for char, _, _, _ in self.locations:
-                    if char == self.open:
-                        mysum += 1
-                    else:
-                        mysum -= 1
-                    csum.append(mysum)
-                # Look for first negative element (has to be -1)
-                try:
-                    index = csum.index(-1)      # index is location of error2
-                    # There's an unmatched self.close character
-                    return (error2, self.locations[index])
-                except ValueError:
-                    pass
-                # See if last element is 0, implying no mismatch
-                if not csum[-1]:
-                    return None
+            if not self.locations:  # No open/close characters were found
+                return None
+            # Calculate cumulative sum of parities
+            mysum, csum = 0, []
+            for char, _, _, _ in self.locations:
+                if char == self.open:
+                    mysum += 1
                 else:
-                    # There's an unmatched self.open character
-                    if len(csum) == 1:  # Only one element
-                        return (error1, self.locations[0])
-                    # Look for largest cumulative sum value from the end of the list
-                    last_element = 0
-                    while csum:
-                        elem = csum.pop()   # List's pop() removes rightmost element
-                        if elem > last_element:
-                            last_element = elem
-                        else:
-                            break
-                    # Get index of largest cumulative sum value.  The remaining size of
-                    # csum tells us the index of the largest element.
-                    index = len(csum) + 1
-                    return (error1, self.locations[index])
-            else:   # Old algorithm
-                parity, st, parityseq = 0, self.locations.copy(), []
-                # parityseq will be list of (parity, item) where item is the (character, offset,
-                # linenum, column) entry.
-                while st:
-                    entry = st.popleft()
-                    if entry[0] == self.open:
-                        parity += 1
-                    elif entry[0] == self.close:
-                        parity -= 1
+                    mysum -= 1
+                csum.append(mysum)
+            # Look for first negative element (has to be -1)
+            try:
+                index = csum.index(-1)      # index is location of error2
+                # There's an unmatched self.close character
+                return (error2, self.locations[index])
+            except ValueError:
+                pass
+            # See if last element is 0, implying no mismatch
+            if not csum[-1]:
+                return None
+            else:
+                # There's an unmatched self.open character
+                if len(csum) == 1:  # Only one element
+                    return (error1, self.locations[0])
+                # Look for largest cumulative sum value from the end of the list
+                last_element = 0
+                while csum:
+                    elem = csum.pop()   # List's pop() removes rightmost element
+                    if elem > last_element:
+                        last_element = elem
                     else:
-                        raise RuntimeError(f"Program bug:  {entry[0]!r} is unexpected")
-                    parityseq.append((parity, entry))
-                if not parityseq:
-                    Dbg("Analyzed string is empty")
-                    return None
-                if 1:   # Show parity sequence if debugging
-                    Dbg("Parity sequence: ", end="")
-                    spc = Dbg.indent
-                    Dbg.indent = ""
-                    for item in parityseq:
-                        Dbg(item[0], end=" ")
-                    Dbg()
-                    Dbg.indent = spc
-                # Look first for a negative parity
-                for parity, item in parityseq:
-                    if parity < 0:
-                        Dbg(f"Negative parity for item {item}")
-                        return no_open, item     # Condition #2 violated
-                # If ending parity is zero, there's no mismatch
-                if not parityseq[-1][0]:
-                    Dbg("Parity is OK")
-                    return None
-                Assert(parityseq[-1][0] > 0)
-                # Ending parity was nonzero.  Offending character is the one just after it
-                # was last zero.
-                st = self.locations.copy()
-                last_entry = None
-                while st:
-                    entry = st.pop()    # Remove last entry on the right
-                    parity = entry[0]
-                    if not parity :
-                        # This is rightmost brace where parity was OK
-                        if last_entry is None:
-                            raise RuntimeError(f"Program bug:  unexpected parity of 0")
-                        Dbg(f"Offending char = {last_entry}")
-                        return no_close, last_entry
-                    else:
-                        last_entry = entry
-                # Had no match, so offending character had to be first entry
-                Dbg(f"Offending char = {entry}")
-                if entry[0] == self.open:
-                    return no_close, entry
-                else:
-                    return no_open, entry
+                        break
+                # Get index of largest cumulative sum value.  The remaining size of
+                # csum tells us the index of the largest element.
+                index = len(csum) + 1
+                return (error1, self.locations[index])
         @property
         def file(self):
             return self._file
