@@ -18,10 +18,12 @@ if 1:  # Header
         pass
     if 1:  # Standard imports
         from fractions import Fraction
+        import sys
     if 1:  # Custom imports
+        from f import flt
         from wrap import dedent
         import termtables as tt
-if 0:   # Original implementation
+if len(sys.argv) > 1:   # Original implementation
     print(
         dedent(f'''
               Schedule 40 PVC pipe                    Schedule 80 PVC pipe
@@ -74,56 +76,80 @@ if 1:   # Using dimensions
         #   Sch80 PVC wall thickness
         Fraction(1, 8): (405,    70, 27,    364, 339),
         Fraction(1, 4): (540,    90, 18,    477, 438),
-        Fraction(3, 8): (675,    90, 18,    612, 37000/64),
-        Fraction(1, 2): (840 ,  109, 14,    758, 23/32,        147),
-        Fraction(3, 4): (1050,  113, 14,    968, 59/64,        154),
-        Fraction(1, 1): (1315,  133, 11.5, 1214, 1+5/32,       179),
-        Fraction(5, 4): (1660,  140, 11.5, 1557, 1+1/2,        191),
-        Fraction(3, 2): (1900,  145, 11.5, 1796, 1+47/64,      200),
-        Fraction(2, 1): (2375,  154, 11.5, 2269, 2+7/32,       218),
-        Fraction(5, 2): (2875,  203, 8,    2720, 2+5/8),
-        Fraction(3, 1): (3500,  216, 8,    3341, 3+1/4),
-        Fraction(7, 2): (3000,  226, 8,    3838, 3+3/4),
-        Fraction(4, 1): (4500,  237, 8,    4334, 4+1/4),
-        Fraction(5, 1): (5563,  258, 8,    5391, 1.22),
-        Fraction(6, 1): (6625,  280, 8,    6446, 1.58),
+        Fraction(3, 8): (675,    90, 18,    612, 1000*(37/64)),
+        Fraction(1, 2): (840 ,  109, 14,    758, 1000*(23/32),   147),
+        Fraction(3, 4): (1050,  113, 14,    968, 1000*(59/64),   154),
+        Fraction(1, 1): (1315,  133, 11.5, 1214, 1000*(1+5/32),  179),
+        Fraction(5, 4): (1660,  140, 11.5, 1557, 1000*(1+1/2),   191),
+        Fraction(3, 2): (1900,  145, 11.5, 1796, 1000*(1+47/64), 200),
+        Fraction(2, 1): (2375,  154, 11.5, 2269, 1000*(2+7/32),  218),
+        Fraction(5, 2): (2875,  203, 8,    2720, 1000*(2+5/8)),
+        Fraction(3, 1): (3500,  216, 8,    3341, 1000*(3+1/4)),
+        Fraction(7, 2): (3000,  226, 8,    3838, 1000*(3+3/4)),
+        Fraction(4, 1): (4500,  237, 8,    4334, 1000*(4+1/4)),
+        Fraction(5, 1): (5563,  258, 8,    5391, 1000*(1.22)),
+        Fraction(6, 1): (6625,  280, 8,    6446, 1000*(1.58)),
     }
-    def FF(fraction):
+    def FF(fraction, use_unicode=False):
         'Return a formatted fraction string'
         i, r = divmod(fraction.numerator, fraction.denominator)
-        if fraction.denominator == 8:
-            if r == 1:
-                return o8
-            elif r == 3:
-                return t8
-            else:
-                raise ValueError
-        elif fraction.denominator == 4:
-            if r == 1:
-                if i == 0:
-                    return oq
+        if use_unicode:
+            if fraction.denominator == 8:
+                if r == 1:
+                    return o8
+                elif r == 3:
+                    return t8
                 else:
-                    return f"1{oq}"
-            elif i == 0 and r == 3:
-                return tq
-            elif r == 3:
-                return tq
-            else:
-                raise ValueError
-        elif fraction.denominator == 2:
-            if r == 1:
-                if i == 1:
-                    return f"1{oh}"
-                elif i == 2:
-                    return f"2{oh}"
-                elif i == 3:
-                    return f"3{oh}"
+                    raise ValueError
+            elif fraction.denominator == 4:
+                if r == 1:
+                    if i == 0:
+                        return oq
+                    else:
+                        return f"1{oq}"
+                elif i == 0 and r == 3:
+                    return tq
+                elif r == 3:
+                    return tq
                 else:
-                    return oh
+                    raise ValueError
+            elif fraction.denominator == 2:
+                if r == 1:
+                    if i == 1:
+                        return f"1{oh}"
+                    elif i == 2:
+                        return f"2{oh}"
+                    elif i == 3:
+                        return f"3{oh}"
+                    else:
+                        return oh
+                else:
+                    raise ValueError
             else:
-                raise ValueError
+                return str(int(fraction))
         else:
-            return str(int(fraction))
+            if not r:
+                return f"{i}"
+            elif i:
+                return f"{i}-{r}/{fraction.denominator}"
+            else:
+                return f"{r}/{fraction.denominator}"
     # Build table data
-    for i in sch40:
-        print(i, FF(i))
+    header = ["Size", "OD", "Wall", "ID", "tpi", "pitch", "PD", "Tap drill", "Wall sch 80"]
+    data = []
+    for k in sch40:
+        entry = sch40[k]
+        size = FF(k)
+        #print(f"{i!s:5s} {FF(k)}")
+        if len(entry) == 5:
+            OD, wall, tpi, PD, TD = [flt(j) for j in entry]
+            wall80 = 0
+        else:
+            OD, wall, tpi, PD, TD, wall80 = [flt(j) for j in entry]
+        OD, wall, PD, TD = [flt(j)/1000 for j in entry]
+        ID = OD - 2*wall
+        pitch = 1/tpi
+        elem = [size, str(OD), str(wall), str(ID), str(tpi), str(PD), str(TD), 
+                str(wall80) if wall80 else ""]
+        data.append(elem)
+    tt.print(data, header=header, padding=(0, 0), style=" "*15, alignment="c"*len(header))
