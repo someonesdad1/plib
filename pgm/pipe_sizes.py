@@ -23,6 +23,9 @@ if 1:  # Header
         from f import flt
         from wrap import dedent
         import termtables as tt
+        if 0:
+            import debug       
+            debug.SetDebugger()
 if len(sys.argv) > 1:   # Original implementation
     print(
         dedent(f'''
@@ -77,12 +80,12 @@ if 1:   # Using dimensions
         Fraction(1, 8): (405,    70, 27,    364, 339),
         Fraction(1, 4): (540,    90, 18,    477, 438),
         Fraction(3, 8): (675,    90, 18,    612, 1000*(37/64)),
-        Fraction(1, 2): (840 ,  109, 14,    758, 1000*(23/32),   147),
-        Fraction(3, 4): (1050,  113, 14,    968, 1000*(59/64),   154),
-        Fraction(1, 1): (1315,  133, 11.5, 1214, 1000*(1+5/32),  179),
-        Fraction(5, 4): (1660,  140, 11.5, 1557, 1000*(1+1/2),   191),
-        Fraction(3, 2): (1900,  145, 11.5, 1796, 1000*(1+47/64), 200),
-        Fraction(2, 1): (2375,  154, 11.5, 2269, 1000*(2+7/32),  218),
+        Fraction(1, 2): (840 ,  109, 14,    758, 1000*(23/32),   147/1000),
+        Fraction(3, 4): (1050,  113, 14,    968, 1000*(59/64),   154/1000),
+        Fraction(1, 1): (1315,  133, 11.5, 1214, 1000*(1+5/32),  179/1000),
+        Fraction(5, 4): (1660,  140, 11.5, 1557, 1000*(1+1/2),   191/1000),
+        Fraction(3, 2): (1900,  145, 11.5, 1796, 1000*(1+47/64), 200/1000),
+        Fraction(2, 1): (2375,  154, 11.5, 2269, 1000*(2+7/32),  218/1000),
         Fraction(5, 2): (2875,  203, 8,    2720, 1000*(2+5/8)),
         Fraction(3, 1): (3500,  216, 8,    3341, 1000*(3+1/4)),
         Fraction(7, 2): (3000,  226, 8,    3838, 1000*(3+3/4)),
@@ -134,22 +137,54 @@ if 1:   # Using dimensions
                 return f"{i}-{r}/{fraction.denominator}"
             else:
                 return f"{r}/{fraction.denominator}"
+    # Set up flt formatting
+    x = flt(0)
+    x.rtz = x.rdp = False
     # Build table data
-    header = ["Size", "OD", "Wall", "ID", "tpi", "pitch", "PD", "Tap drill", "Wall sch 80"]
-    data = []
+    p = " "*1
+    header = [
+        f"{p}Size{p}",
+        f"{p}OD{p}",
+        f"{p}Wall{p}",
+        f"{p}ID{p}",
+        f"{p}tpi{p}",
+        f"{p}pitch{p}",
+        f"{p}PD{p}",
+        f"{p}Tap drill{p}",
+        f"{p}Wall Sch 80{p}"
+    ]
+    data = [[
+        f"{p}{'-'*6}{p}",   # Size
+        f"{p}{'-'*6}{p}",   # OD
+        f"{p}{'-'*6}{p}",   # Wall
+        f"{p}{'-'*5}{p}",   # ID
+        f"{p}{'-'*4}{p}",   # tpi
+        f"{p}{'-'*6}{p}",   # pitch
+        f"{p}{'-'*5}{p}",   # PD
+        f"{p}{'-'*9}{p}",   # TD
+        f"{p}{'-'*11}{p}"   # Wall80
+    ]]
     for k in sch40:
         entry = sch40[k]
-        size = FF(k)
         #print(f"{i!s:5s} {FF(k)}")
         if len(entry) == 5:
             OD, wall, tpi, PD, TD = [flt(j) for j in entry]
             wall80 = 0
         else:
             OD, wall, tpi, PD, TD, wall80 = [flt(j) for j in entry]
-        OD, wall, PD, TD = [flt(j)/1000 for j in entry]
+        # Get columns
+        size = FF(k)
+        OD, wall, PD, TD = [flt(j)/1000 for j in (OD, wall, PD, TD)]
         ID = OD - 2*wall
         pitch = 1/tpi
-        elem = [size, str(OD), str(wall), str(ID), str(tpi), str(PD), str(TD), 
-                str(wall80) if wall80 else ""]
+        elem = [size, 
+                f"{p}{OD}{p}", 
+                f"{p}{wall}{p}", 
+                f"{p}{ID}{p}", 
+                f"{p}{tpi}{p}", 
+                f"{p}{pitch}{p}", 
+                f"{p}{PD}{p}", 
+                f"{p}{TD}{p}", 
+                f"{p}{str(wall80) if wall80 else ''}{p}"] 
         data.append(elem)
-    tt.print(data, header=header, padding=(0, 0), style=" "*15, alignment="c"*len(header))
+    tt.print(data, header=header, padding=(0, 0), style=None, alignment="c"*len(header))
