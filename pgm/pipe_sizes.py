@@ -20,6 +20,7 @@ if 1:  # Header
         from fractions import Fraction
     if 1:  # Custom imports
         from wrap import dedent
+        import termtables as tt
 if 0:   # Original implementation
     print(
         dedent(f'''
@@ -61,6 +62,7 @@ if 0:   # Original implementation
         ''')
     )
 if 1:   # Using dimensions
+    o8, oq, oh, tq, t8 = "⅛ ¼ ½ ¾ ⅜".split()
     sch40 = {
         # Key is fractional size
         # Value fields in mils are
@@ -86,3 +88,42 @@ if 1:   # Using dimensions
         Fraction(5, 1): (5563,  258, 8,    5391, 1.22),
         Fraction(6, 1): (6625,  280, 8,    6446, 1.58),
     }
+    def FF(fraction):
+        'Return a formatted fraction string'
+        i, r = divmod(fraction.numerator, fraction.denominator)
+        if fraction.denominator == 8:
+            if r == 1:
+                return o8
+            elif r == 3:
+                return t8
+            else:
+                raise ValueError
+        elif fraction.denominator == 4:
+            if r == 1:
+                if i == 0:
+                    return oq
+                else:
+                    return f"1{oq}"
+            elif i == 0 and r == 3:
+                return tq
+            elif r == 3:
+                return tq
+            else:
+                raise ValueError
+        elif fraction.denominator == 2:
+            if r == 1:
+                if i == 1:
+                    return f"1{oh}"
+                elif i == 2:
+                    return f"2{oh}"
+                elif i == 3:
+                    return f"3{oh}"
+                else:
+                    return oh
+            else:
+                raise ValueError
+        else:
+            return str(int(fraction))
+    # Build table data
+    for i in sch40:
+        print(i, FF(i))
