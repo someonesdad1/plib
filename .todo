@@ -1,10 +1,5 @@
 Active:  /plib/.todo
 
-    - pgm/pipe_sizes.py
-        - Add a -m option that gives pipe sizes in mm
-        - Use termtables for printing table data
-        - Color code common pipe sizes (1/2, 3/4 particularly)
-
     - poly.py
         - Print out dimensions/formulas for common regular polygons
         - Print r, R, and r+R for odd n's

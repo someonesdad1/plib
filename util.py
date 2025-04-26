@@ -12,7 +12,9 @@ Miscellaneous routines in python: @start
     
 AcceptableDiff        Returns False if two numbers are not equal
 Ampacity              Returns NEC ampacity of copper wire
+alen                  Function for string length that ignores ANSI escape codes
 ANSI_strip            Remove ANSI escape sequences from a string
+astr                  String object with len() that ignores ANSI escape codes
 AWG                   Returns wire diameter in inches for AWG gauge number
 Batch                 Generator to pick n items at a time from a sequence
 BraceExpansion        Brace expansion like modern shells
@@ -2008,6 +2010,18 @@ def fsig(x, digits=None):
         if fsig.rdp and t[-1] == fsig.dp:
             t = t[:-1]
         return sgn + t
+class astr(str):
+    '''This is a string object that uses a regular expression to remove
+    ANSI color-coding strings before calculating the string length.
+    '''
+    # This regular expression is used to replace color-coding escape sequence with the
+    # empty string.  See https://en.wikipedia.org/wiki/ANSI_escape_code.
+    r = re.compile(r"\x1b\[[0-?]*[ -\/]*[@-~]")
+    def __len__(self):
+        return len(astr.r.sub("", str(self)))
+def alen(s):
+    'Function to get the length of a string, ignoring any ANSI escape sequences'
+    return len(astr.r.sub("", s))
 
 if __name__ == "__main__":
     # Missing tests for: Ignore Debug, GetString
@@ -2025,6 +2039,20 @@ if __name__ == "__main__":
     # Need to have version, as SizeOf stuff changed between 3.7 and 3.9
     vi = sys.version_info
     ver = f"{vi[0]}.{vi[1]}"
+    def Test_len():
+        # Note the Unicode '∞' in the third line.
+        tststring = dedent('''
+        [1;37;42mstring1[0m
+        string2
+        [1;36mstring3∞[0m''')
+        for i, s in enumerate(tststring.split("\n")):
+            a = astr(s)
+            if i in (0, 1):
+                assert_equal(len(a), 7)
+                assert_equal(alen(s), 7)
+            else:
+                assert_equal(len(a), 8)
+                assert_equal(alen(s), 8)
     def Test_fsig():
         fsig.digits = 2
         fsig.rtz = True
