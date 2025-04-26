@@ -1,5 +1,5 @@
 '''
-Print PVC and steel US pipe dimensions
+Print US pipe dimensions
 '''
 
 if 1:  # Header
