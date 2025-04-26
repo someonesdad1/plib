@@ -60,7 +60,7 @@ if 1:  # Header
     # Custom imports
     from f import flt, cpx
     from wrap import dedent
-    from color import Color, t
+    from color import t
     # Optional imports
     try:
         import numpy
@@ -207,7 +207,7 @@ if 1:  # Core functionality
             # indicate it might not be the correct file (e.g., the user
             # manually invoked run() with a hand-crafted dictionary and
             # forgot to add a "__file__" key).
-            filename = f"<__file__ ?>"
+            filename = "<__file__ ?>"
         pass_count = fail_count = 0
         fail_messages = []
         if verbose:
@@ -286,7 +286,7 @@ if 1:  # Core functionality
                 self.expected = set([ExpectedExceptions])
                 return
             elif not issubclass(ExpectedExceptions, Iterable):
-                m = f"ExpectedExceptions must be a container of Exceptions"
+                m = "ExpectedExceptions must be a container of Exceptions"
                 raise ValueError(m)
             self.expected = set(ExpectedExceptions)
             for exc in self.expected:
@@ -534,7 +534,7 @@ if 1:  # Checking functions
             if reltol is None and abstol is None:
                 # Compare them as objects.  Note they could be numpy
                 # arrays.
-                if have_numpy and type(a) == numpy.ndarray:
+                if have_numpy and type(a) is numpy.ndarray:
                     if any(a != b):
                         fail = []
                 else:

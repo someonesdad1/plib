@@ -18,6 +18,7 @@ if 1:  # Header
         pass
     if 1:  # Imports
         from f import flt
+        from lwtest import Assert
 def E(series, normalize=False):
     '''Specify the series you want by an integer:  6, 12, 24, 48, 96,
     or 192.  If normalize is True, each value in the returned array
@@ -207,22 +208,51 @@ if __name__ == "__main__":
             for i in data:
                 assert E(i) == data[i]
         def Test_Renard():
+            # Lists taken from https://www.sizes.com/numbers/preferred_numbers.htm
+            R5 = [10, 16, 25, 40, 63, 100]
+            R10 = [10, 12.5, 16, 20, 25, 31.5, 40, 50, 63, 80, 100]
+            R20 = [10, 11.2, 12.5, 14, 16, 18, 20, 22.4, 25, 28, 31.5, 35.5, 40, 45, 50,
+                    56, 63, 71, 80, 90, 100]
+            R40 = [10, 10.6, 11.2, 11.8, 12.5, 13.2, 14, 15, 16, 17, 18, 19, 20, 21.2,
+                22.4, 23.6, 25, 26.5, 28, 30, 31.5, 33.5, 35.5, 37.5, 40, 42.5, 45, 47.5,
+                50, 53, 56, 60, 63, 67, 71, 75, 80, 85, 90, 95, 100]
+            Ra10 = [10, 12.5, 16, 20, 25, 32, 40, 50, 63, 80, 100]
+            Ra20 = [10, 11, 12.5, 14, 16, 18, 20, 22, 25, 28, 32,36, 40, 45, 50, 56, 63,
+                    71, 80, 90, 100]
+            Ra40 = [10, 10.5, 11, 12, 12.5, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 24,
+                    25, 26, 28, 30, 32, 34, 36, 38, 40, 42, 45, 48, 50, 53, 56, 60, 63,
+                    67, 71, 75, 80, 85, 90, 95, 100]
+            Rb5 = [10, 15, 25, 40, 60, 100]
+            Rb10 = [10, 12, 15, 20, 25, 30, 40, 50, 60, 80, 100]
+            Rb20 = [10, 11, 12, 14, 16, 18, 20, 22, 25, 28, 30, 35, 40, 45, 50, 50, 55,
+                    60, 70, 80, 90, 100]
+            def f(x):
+                'Return sequence x multiplied by 10'
+                return [10*i for i in x]
+            def g(x):
+                'Round off x to 0.001'
+                return round(x, 3)
+            def Compare(x, y):
+                'Return True if sequences x and y are equal'
+                x, y = [g(float(i)) for i in x], [g(float(i)) for i in y]
+                return x == y
+            for i, y in ((5, R5), (10, R10), (20, R20), (40, R40)):
+                x = f(Renard(i))
+                Assert(Compare(x, y))
+            exit()
     if 1:  # Module's base code
         def Error(msg, status=1):
             print(msg, file=sys.stderr)
             exit(status)
         def Usage(d, status=1):
             name = sys.argv[0]
-            print(
-                dedent(f'''
+            print(dedent(f'''
             Usage:  {name} 
               Prints the E series.
-             
             Options:
               -p        Plot the data
               --test    Run internal self tests
-            ''')
-            )
+            '''))
             exit(status)
         def ParseCommandLine(d):
             d["-p"] = False  # Plot the data
@@ -262,7 +292,6 @@ if __name__ == "__main__":
                     s = [str(i) for i in values]
                     for i in Columnize(s, indent=" "*4, col_width = 6, horiz=True):
                         print(i)
-
         def PlotSeries():
             from pylab import plot, grid, xlabel, ylabel, legend, title, show
             from functools import partial

@@ -55,15 +55,12 @@ from pdb import Pdb
 import code
 import linecache
 import re
-import os
 import sys
 import inspect
 from color import Color, Trm, TRM as t, RegexpDecorate
 from pathlib import Path
-from collections import deque
 from f import flt, cpx
 from decimal import Decimal
-from pprint import pprint as pp
 from columnize import Columnize
 if 1:  # Functions to set up colorizing strings
     def All():
@@ -220,7 +217,7 @@ class DPdb(Pdb):
             ns = self.curframe.f_globals.copy()
             ns.update(self.curframe_locals)
             if color_choice == NoColors:
-                code.interact(f"*Interactive*", local=ns)
+                code.interact("*Interactive*", local=ns)
             else:
                 # Leave interactive code in the brnl foreground color,
                 # which alerts you that you're in the REPL
@@ -358,7 +355,7 @@ class DPdb(Pdb):
                 breakpoint()
                 # Print a key
                 if arg and c:
-                    t.print(f"Color coding:  ", end="")
+                    t.print("Color coding:  ", end="")
                     print(
                         f"{t.int}int{t.N} "
                         f"{t.float}float{t.N} "
