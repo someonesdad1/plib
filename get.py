@@ -17,71 +17,72 @@ user.
 
 '''
 if 1:  # Header
-    # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    ##∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
-    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    ##∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    ##∞license∞#
-    ##∞what∞#
-    # <programming> Module for getting data from files, strings, and
-    # streams.  An example is reading a text file, getting all the lines
-    # except for those that match a sequence of regular expressions.
-    # Other examples are getting all the words (tokens) from a file or a
-    # set of numbers.  Handles a number of common programming tasks.
-    ##∞what∞#
-    ##∞test∞# run #∞test∞#
-    # Standard imports
-    import bisect
-    import locale
-    import math
-    import pathlib
-    import re
-    import string
-    import sys
-    from collections import defaultdict, deque
-    from collections.abc import Iterable
-    from io import StringIO
-    from fractions import Fraction
-    # Custom imports
-    import u
-    from f import flt
-    from asciify import Asciify
-    try:
-        from uncertainties import ufloat, ufloat_fromstr, UFloat
-        have_unc = True
-    except ImportError:
-        have_unc = False
-    try:
-        from f import flt, cpx
-        have_f = True
-    except ImportError:
-        have_f = False
-    try:
-        from mpmath import mpf, mpc
-        have_mpmath = True
-    except ImportError:
-        have_mpmath = False
-    # Global variables
-    P = pathlib.Path
-    ii = isinstance
-    # For Tokenize
-    letters = set(string.ascii_letters)
-    others = set(
-        "žŽżŻźŹŸŷŶŵŴųŲűŰůŮŭŬūŪũŨŧŦťŤţŢšŠşŞŝŜśŚřŘŗŖŕŔőŐŏŎōŌŋŊŉňŇņŅńŃ"
-        "łŁŀĿľĽļĻĺĹĸķĶĵĴıİįĮĭĬīĪĩĨħĦĥĤģĢġĠğĞĝĜěĚęĘėĖĕĔēĒđĐďĎčČċĊĉĈć"
-        "ĆąĄăĂāĀÿþýüûúùøöõôóòñðïîíìëêéèçæåäãâáàßÞÝÜÛÚÙØÖÕÔÓÒÑÐÏÎÍÌË"
-        "ÊÉÈÇÆÅÄÃÂÁÀ"
-    )
-    __all__ = '''
-            GetText GetLines1 GetLines GetTextLines GetLine GetNumberedLines GetBinary
-            GetNumber GetNumber GetNumberArray GetFraction ParseUnit ParseUnitString GetComplex
-            GetChoice
-            GetWords GetTokens GetWordlist wrd pnc Tokenize
-            IsPunctuation GetWireDiameter GetFileSize
-        '''.split()
+    if 1:   # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        ##∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
+        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        ##∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        ##∞license∞#
+        ##∞what∞#
+        # <programming> Module for getting data from files, strings, and
+        # streams.  An example is reading a text file, getting all the lines
+        # except for those that match a sequence of regular expressions.
+        # Other examples are getting all the words (tokens) from a file or a
+        # set of numbers.  Handles a number of common programming tasks.
+        ##∞what∞#
+        ##∞test∞# run #∞test∞#
+        pass
+    if 1:   # Standard imports
+        import bisect
+        import locale
+        import math
+        import pathlib
+        import re
+        import string
+        import sys
+        from collections import deque
+        from collections.abc import Iterable
+        from io import StringIO
+        from fractions import Fraction
+    if 1:   # Custom imports
+        import u
+        from f import flt
+        from columnize import Columnize
+        try:
+            from uncertainties import ufloat_fromstr, UFloat
+            have_unc = True
+        except ImportError:
+            have_unc = False
+        try:
+            from f import flt, cpx
+            have_f = True
+        except ImportError:
+            have_f = False
+        try:
+            from mpmath import mpc
+            have_mpmath = True
+        except ImportError:
+            have_mpmath = False
+    if 1:   # Global variables
+        P = pathlib.Path
+        ii = isinstance
+        # For Tokenize
+        letters = set(string.ascii_letters)
+        others = set(
+            "žŽżŻźŹŸŷŶŵŴųŲűŰůŮŭŬūŪũŨŧŦťŤţŢšŠşŞŝŜśŚřŘŗŖŕŔőŐŏŎōŌŋŊŉňŇņŅńŃ"
+            "łŁŀĿľĽļĻĺĹĸķĶĵĴıİįĮĭĬīĪĩĨħĦĥĤģĢġĠğĞĝĜěĚęĘėĖĕĔēĒđĐďĎčČċĊĉĈć"
+            "ĆąĄăĂāĀÿþýüûúùøöõôóòñðïîíìëêéèçæåäãâáàßÞÝÜÛÚÙØÖÕÔÓÒÑÐÏÎÍÌË"
+            "ÊÉÈÇÆÅÄÃÂÁÀ"
+        )
+        __all__ = '''
+                GetText GetLines1 GetLines GetTextLines GetLine GetNumberedLines GetBinary
+                GetNumber GetNumber GetNumberArray GetFraction ParseUnit ParseUnitString GetComplex
+                GetChoice
+                GetWords GetTokens GetWordlist wrd pnc Tokenize
+                IsPunctuation GetWireDiameter GetFileSize
+            '''.split()
 if 1:  # Getting text, lines, bytes
     def GetText(thing, enc=None):
         '''Return text from thing, which is
@@ -563,7 +564,7 @@ if 1:  # Getting numbers
             except ValueError:
                 if inspect is not None:
                     return False
-                if numtype == int:
+                if numtype is int:
                     out("'%s' is not a valid integer\n" % s)
                 else:
                     out("'%s' is not a valid number\n" % s)
@@ -914,7 +915,6 @@ if 1:  # Getting numbers
         i = i.replace("em", "e-")
         r = r if r else 0
         i = i if i else 0
-        iminus = -1 if sp == "-" else 1
         z = f"{sgn}{r}{sp}{i}j"
         if have_mpmath and typ == mpc:
             return typ(f"{sgn}{r}", f"{sp}{i}")
@@ -986,7 +986,6 @@ if 1:  # Tokenizing
         '''
         lines = GetLines(thing, ignore=ignore, nonl=True)
         if sep is not None:
-            s = sep.join(lines)
             return sep.join(lines).split(sep)
         else:
             return " ".join(lines).split()
@@ -1693,13 +1692,13 @@ if __name__ == "__main__":
             # Invert True without low or high
             raises(ValueError, GetNumber, "", invert=True, instream=sio("0"))
         def TestGetNumber_mpmath():
-            # Import mpmath and use for testing if available.
-            # Demonstrates that GetNumber works with ordered number types
-            # other than int and float.
+            '''Import mpmath and use for testing if available.  Demonstrates that
+            GetNumber works with ordered number types other than int and float.
+            '''
             try:
                 import mpmath
             except ImportError:
-                print("** mpmath not tested in getnumber_test.py", file=err)
+                print("** mpmath not tested in getnumber_test.py", file=sys.stderr)
             else:
                 # [----
                 n = GetNumber(

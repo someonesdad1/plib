@@ -32,16 +32,6 @@ Active:  /plib/.todo
         - Write a script that displays the words from /words dictionaries that can be
           thus displayed
 
-    - astr.py 
-        - Move functionality to util.py
-        - astr.py is used in 
-            - /plib:  abbreviations.py asciify_make.py astr.py bama.py color.py
-              colorcoord.py colorhues.py eevblog_data.py elements.py extensions.py
-              interval.py julian.py meeus.py novas.py rgbdata.py u.py wl2rgb.py
-            - /plib/pgm:  arecibo.py current_date.py date.py de.py ds.py halflife.py
-              hpj.py igor.sibilant_c.py mathfuncs.py oom.py random_phrase.py
-              sunriseset.py wl.py words_syllables.py
-
     - trigger.py
         - Problem caused by ruff formatting the file and putting a space after every
           leading '#' character when they look like comments.

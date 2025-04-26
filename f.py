@@ -184,13 +184,11 @@ if 1:  # Header
     import sys
     import threading
     import time
-    from pdb import set_trace as xx
     if 0:
         import debug
         debug.SetDebugger()
     # Custom imports
     from wrap import dedent
-    from columnize import Columnize
     import fmt
     try:
         import uncertainties
@@ -248,10 +246,8 @@ class Base(object):
             self.cls = cls
         def __exit__(self, exc_type, exc_val, exc_tb):
             # Restore our important attributes
-            B = Base.__dict__
             for i in self.base:
                 exec(f"Base.{i} = self.base[i]")
-            S = flt.__dict__ if ii(self, flt) else cpx.__dict__
             name = "flt" if ii(self, flt) else "cpx"
             for i in self.cls:
                 exec(f"{name}.{i} = self.cls[i]")
@@ -333,18 +329,18 @@ class Base(object):
                 elif ii(b, (complex, cpx)):
                     return GetResult(float, complex, cpx)
                 else:
-                    return GetResult(float, float, flt, promote=needs_promotion)
+                    return GetResult(float, float, flt)
             elif ii(a, cpx):
                 if ii(b, flt):
                     return GetResult(complex, float, cpx)
                 elif ii(b, (complex, cpx)):
                     return GetResult(complex, complex, cpx)
                 else:
-                    return GetResult(complex, float, cpx, promote=needs_promotion)
+                    return GetResult(complex, float, cpx)
             else:
                 type_a = complex if ii(a, complex) else float
                 if ii(b, flt):
-                    if type_a == complex:
+                    if type_a is complex:
                         return GetResult(type_a, float, cpx)
                     else:
                         return GetResult(type_a, float, flt)
@@ -697,7 +693,7 @@ class flt(Base, float):
             if not ii(value, int):
                 raise TypeError(f"{value!r} must be an integer")
             if not (0 <= value <= 15):
-                raise ValueError(f"value must be >= 0 and <= 15")
+                raise ValueError("value must be >= 0 and <= 15")
             self._n = value
     if 1:  # Formatting properties
         @property
@@ -1106,11 +1102,10 @@ if 1:  # Get math/cmath functions into this namespace
     is handled to give a cpx instead of an exception).
     '''
     class Delegator(object):
-        '''A delegator object is used to encapsulate the math and cmath
-        functions and allow them to be put in this module's namespace.  When
-        the Delegator instance.__call__ is called, the cmath routine is
-        called if any of the arguments are complex; otherwise, the math
-        routine is called.
+        '''A delegator object is used to encapsulate the math and cmath functions and
+        allow them to be put in this module's namespace.  When the Delegator
+        instance.__call__ is called, the cmath routine is called if any of the arguments
+        are complex; otherwise, the math routine is called.
         '''
         # The following strings can be used to decorate the names with
         # e.g. ANSI escape codes for color
@@ -1124,59 +1119,57 @@ if 1:  # Get math/cmath functions into this namespace
             C = (complex, cpx)
             if hasattr(math, self.name) and not hasattr(cmath, self.name):
                 # Forces a math call
-                s = f"math.{self.name}(*args, **kw)"
+                expr = f"math.{self.name}(*args, **kw)"
             elif not hasattr(math, self.name) and hasattr(cmath, self.name):
                 # Forces a cmath call
-                s = f"cmath.{self.name}(*args, **kw)"
+                expr = f"cmath.{self.name}(*args, **kw)"
             else:
                 if self.iscomplex(*args, **kw):
-                    s = f"cmath.{self.name}(*args, **kw)"
+                    expr = f"cmath.{self.name}(*args, **kw)"
                 else:
                     if self.name == "sqrt" and len(args) == 1 and args[0] < 0:
-                        s = f"cmath.{self.name}(*args, **kw)"
+                        expr = f"cmath.{self.name}(*args, **kw)"
                     elif self.name == "rect" and len(args) == 2:
-                        s = f"cmath.{self.name}(*args, **kw)"
+                        expr = f"cmath.{self.name}(*args, **kw)"
                     elif self.name == "pow" and len(args) == 2:
-                        s = f"math.{self.name}(*args, **kw)"
+                        expr = f"math.{self.name}(*args, **kw)"
                     else:
-                        s = f"math.{self.name}(*args, **kw)"
-            # Now execute the function.  You'll get a TypeError if you do
-            # something like erf(1j), just what you'll get from
-            # math.erf(1j).  However, the Delegator's exception message will
-            # tell you that "module 'cmath' has no attribute 'erf'".  The
-            # TypeError from math.erf will tell you "can't convert complex
-            # to float".  The complex argument forced the Delegator to
-            # search for a complex function, which doesn't exist.  This
-            # could be fixed with more code (e.g., knowing erf is only in
-            # math), but I don't think it's worth the extra effort.
+                        expr = f"math.{self.name}(*args, **kw)"
+            # Now execute the function.  You'll get a TypeError if you do something like
+            # erf(1j), just what you'll get from math.erf(1j).  However, the Delegator's
+            # exception message will tell you that "module 'cmath' has no attribute
+            # 'erf'".  The TypeError from math.erf will tell you "can't convert complex
+            # to float".  The complex argument forced the Delegator to search for a
+            # complex function, which doesn't exist.  This could be fixed with more code
+            # (e.g., knowing erf is only in math), but I don't think it's worth the
+            # extra effort.
             result = None
             try:
-                result = eval(s)
+                result = eval(expr)
             except AttributeError as err:
                 raise TypeError(err) from None
-            except TypeError as err:
+            except TypeError:
                 raise
             except ValueError as err:
                 if str(err) == "math domain error":
-                    # This can happen with e.g. asin(2) where you need
-                    # to use the cmath version to get a complex result.
-                    # The argument is a float, but the result is a
-                    # complex and this case won't be detected by the
-                    # above tests.
+                    # This can happen with e.g. asin(2) where you need to use the cmath
+                    # version to get a complex result.  The argument is a float, but the
+                    # result is a complex and this case won't be detected by the above
+                    # tests.
                     if self.name in "asin acos".split():
                         # Try using cmath
-                        result = eval("c" + s)
+                        result = eval("c" + expr)
                     else:
                         raise
                 else:
                     raise
-            except OverflowError as err:
+            except OverflowError:
                 raise
             except Exception as err:
                 print(f"Unhandled exception in f.py's Delegator:\n  '{err!r}'")
                 print("Dropping into debugger")
                 breakpoint()
-                pass
+                pass    # Lets you see the exception in the debugger
             if ii(result, int):
                 return result
             elif ii(result, (float, flt)):
@@ -1225,8 +1218,10 @@ if 1:  # Get math/cmath functions into this namespace
     # Constants
     #   both:  e inf nan pi tau
     #   cmath: infj nanj
-    from math import e, inf, nan, pi, tau
-    from cmath import infj, nanj
+    from math import inf, pi, e, tau
+    # Dummy usages to avoid linter message
+    e
+    tau
     # Change constants' type to flt
     constants = "e pi tau".split()
     for i in constants:
@@ -1472,10 +1467,10 @@ if 0:  # Classes derived from flt for physical data
             if loc == -1:
                 continue
             if loc == 0:
-                raise ValueError(f"Hyphen can't be first non-space character")
+                raise ValueError("Hyphen can't be first non-space character")
             f = u.split(i)
             if len(f) != 2:
-                raise ValueError(f"More than 2 hyphens")
+                raise ValueError("More than 2 hyphens")
             a, b = f
             return Rng(a, b)
         # See if it's an expression
@@ -1910,7 +1905,7 @@ if __name__ == "__main__":
                 s, expected = i.split()
             except Exception as e:
                 print(f"Unhandled exception:  '{e}'")
-                print(f"Dropping into debugger")
+                print("Dropping into debugger")
                 breakpoint()
                 pass
             got = GetNumDigits(s)
@@ -2078,61 +2073,61 @@ if __name__ == "__main__":
         a, i = 0.8813735870195429, cpx(0, 1)
         tf, tc, ti = type(x), type(i), type(1)
         if 1:  # acos
-            Assert(type(acos(0)) == tf)
-            Assert(type(acos(i)) == tc)
+            Assert(type(acos(0)) is tf)
+            Assert(type(acos(i)) is tc)
         if 1:  # acosh
             raises(ValueError, acosh, 0.1)
-            Assert(type(acosh(1)) == tf)
-            Assert(type(acosh(i)) == tc)
+            Assert(type(acosh(1)) is tf)
+            Assert(type(acosh(i)) is tc)
         if 1:  # asin
-            Assert(type(asin(0)) == tf)
-            Assert(type(asin(i)) == tc)
+            Assert(type(asin(0)) is tf)
+            Assert(type(asin(i)) is tc)
         if 1:  # asinh
-            Assert(type(asinh(0)) == tf)
-            Assert(type(asinh(i)) == tc)
+            Assert(type(asinh(0)) is tf)
+            Assert(type(asinh(i)) is tc)
         if 1:  # atan
-            Assert(type(atan(0)) == tf)
+            Assert(type(atan(0)) is tf)
             raises(ValueError, atan, i)
         if 1:  # atan2
-            Assert(type(atan2(0, 0)) == tf)
+            Assert(type(atan2(0, 0)) is tf)
         if 1:  # atanh
-            Assert(type(atanh(0)) == tf)
-            Assert(type(atanh(i)) == tc)
+            Assert(type(atanh(0)) is tf)
+            Assert(type(atanh(i)) is tc)
             raises(ValueError, atanh, 1)
         if 1:  # ceil
-            Assert(type(ceil(x)) == ti)
+            Assert(type(ceil(x)) is ti)
             raises(TypeError, ceil, i)
         if 1:  # copysign
-            Assert(type(copysign(x, 1)) == tf)
-            Assert(type(copysign(x, -1)) == tf)
+            Assert(type(copysign(x, 1)) is tf)
+            Assert(type(copysign(x, -1)) is tf)
         if 1:  # cos
-            Assert(type(cos(0)) == tf)
-            Assert(type(cos(i)) == tc)
+            Assert(type(cos(0)) is tf)
+            Assert(type(cos(i)) is tc)
         if 1:  # cosh
-            Assert(type(cosh(0)) == tf)
-            Assert(type(cosh(i)) == tc)
+            Assert(type(cosh(0)) is tf)
+            Assert(type(cosh(i)) is tc)
         if 1:  # degrees
-            Assert(type(degrees(pi)) == tf)
+            Assert(type(degrees(pi)) is tf)
             raises(TypeError, degrees, i)
         if 1:  # divmod
             q, rem = divmod(x, y)
             Assert(q == 2 and ii(q, int))
-            Assert(rem == x - 2 * y and type(rem) == tf)
+            Assert(rem == x - 2 * y and type(rem) is tf)
             Assert(q * y + x % y == x)
         if 1:  # erf
-            Assert(type(erf(x)) == tf)
+            Assert(type(erf(x)) is tf)
             raises(TypeError, erf, i)
         if 1:  # erfc
-            Assert(type(erfc(x)) == tf)
+            Assert(type(erfc(x)) is tf)
             raises(TypeError, erfc, i)
         if 1:  # exp
-            Assert(type(exp(0)) == tf)
-            Assert(type(exp(i)) == tc)
+            Assert(type(exp(0)) is tf)
+            Assert(type(exp(i)) is tc)
         if 1:  # expm1
-            Assert(type(expm1(0)) == tf)
+            Assert(type(expm1(0)) is tf)
             raises(TypeError, expm1, i)
         if 1:  # fabs
-            Assert(type(fabs(x)) == tf)
+            Assert(type(fabs(x)) is tf)
             raises(TypeError, fabs, i)
         if 1:  # factorial
             Assert(factorial(3) == 6)
@@ -2142,30 +2137,30 @@ if __name__ == "__main__":
             # raises(ValueError, factorial, x)
             raises(TypeError, factorial, i)
         if 1:  # floor
-            Assert(type(floor(x)) == ti)
+            Assert(type(floor(x)) is ti)
             raises(TypeError, floor, i)
         if 1:  # fmod
-            Assert(type(fmod(x, y)) == tf)
+            Assert(type(fmod(x, y)) is tf)
             raises(TypeError, fmod, i, y)
         if 1:  # frexp
             a, b = frexp(x)
-            Assert(type(a) == tf)
-            Assert(type(b) == ti)
+            Assert(type(a) is tf)
+            Assert(type(b) is ti)
             raises(TypeError, frexp, i)
         if 1:  # fsum
-            Assert(type(fsum([x, y])) == tf)
+            Assert(type(fsum([x, y])) is tf)
             raises(TypeError, fsum, [i, y])
         if 1:  # gamma
-            Assert(type(gamma(x)) == tf)
+            Assert(type(gamma(x)) is tf)
             raises(TypeError, gamma, i)
         if 1:  # hypot
-            Assert(type(hypot(x, y)) == tf)
+            Assert(type(hypot(x, y)) is tf)
             raises(TypeError, hypot, i, x)
         if 1:  # isclose
-            Assert(type(isclose(x, y)) == bool)
-            Assert(type(isclose(i, y)) == bool)
+            Assert(type(isclose(x, y)) is bool)
+            Assert(type(isclose(i, y)) is bool)
         if 1:  # isfinite
-            Assert(type(isfinite(x)) == bool)
+            Assert(type(isfinite(x)) is bool)
         if 1:  # isinf
             Assert(isinf(flt("inf")))
         if 1:  # isnan
@@ -2173,59 +2168,59 @@ if __name__ == "__main__":
         if 1:  # ldexp
             Assert(ldexp(x, 4) == x * 2**4)
         if 1:  # lgamma
-            Assert(type(lgamma(x)) == tf)
+            Assert(type(lgamma(x)) is tf)
             raises(TypeError, lgamma, i)
         if 1:  # log
-            Assert(type(log(x)) == tf)
-            Assert(type(log(i)) == tc)
+            Assert(type(log(x)) is tf)
+            Assert(type(log(i)) is tc)
         if 1:  # log10
-            Assert(type(log10(x)) == tf)
-            Assert(type(log10(i)) == tc)
+            Assert(type(log10(x)) is tf)
+            Assert(type(log10(i)) is tc)
         if 1:  # log1p
-            Assert(type(log1p(x)) == tf)
+            Assert(type(log1p(x)) is tf)
             raises(TypeError, log1p, i)
         if 1:  # log2
-            Assert(type(log2(x)) == tf)
+            Assert(type(log2(x)) is tf)
             raises(TypeError, log2, i)
         if 1:  # modf
             a, b = modf(x)
-            Assert(type(a) == tf and type(b) == tf)
+            Assert(type(a) is tf and type(b) is tf)
             raises(TypeError, modf, i)
         if 1:  # phase
-            Assert(type(phase(x)) == tf)
-            Assert(type(phase(i)) == tf)
+            Assert(type(phase(x)) is tf)
+            Assert(type(phase(i)) is tf)
         if 1:  # polar
             a, b = polar(i)
-            Assert(type(a) == tf and type(b) == tf)
+            Assert(type(a) is tf and type(b) is tf)
         if 1:  # pow
-            Assert(type(pow(x, y)) == tf)
+            Assert(type(pow(x, y)) is tf)
             raises(TypeError, pow, i, x)
             raises(TypeError, pow, x, i)
         if 1:  # radians
-            Assert(type(radians(x)) == tf)
+            Assert(type(radians(x)) is tf)
             raises(TypeError, radians, i)
         if 1:  # rect
-            Assert(type(rect(x, y)) == tc)
+            Assert(type(rect(x, y)) is tc)
         if 1:  # remainder
-            Assert(type(remainder(x, y)) == tf)
+            Assert(type(remainder(x, y)) is tf)
         if 1:  # sin
-            Assert(type(sin(x)) == tf)
-            Assert(type(sin(i)) == tc)
+            Assert(type(sin(x)) is tf)
+            Assert(type(sin(i)) is tc)
         if 1:  # sinh
-            Assert(type(sinh(x)) == tf)
-            Assert(type(sinh(i)) == tc)
+            Assert(type(sinh(x)) is tf)
+            Assert(type(sinh(i)) is tc)
         if 1:  # sqrt
-            Assert(type(sqrt(x)) == tf)
-            Assert(type(sqrt(-x)) == tc)
-            Assert(type(sqrt(i)) == tc)
+            Assert(type(sqrt(x)) is tf)
+            Assert(type(sqrt(-x)) is tc)
+            Assert(type(sqrt(i)) is tc)
         if 1:  # tan
-            Assert(type(tan(x)) == tf)
-            Assert(type(tan(i)) == tc)
+            Assert(type(tan(x)) is tf)
+            Assert(type(tan(i)) is tc)
         if 1:  # tanh
-            Assert(type(tanh(x)) == tf)
-            Assert(type(tanh(i)) == tc)
+            Assert(type(tanh(x)) is tf)
+            Assert(type(tanh(i)) is tc)
         if 1:  # trunc
-            Assert(type(trunc(x)) == ti)
+            Assert(type(trunc(x)) is ti)
             raises(TypeError, trunc, i)
     def Test_ParseComplex():
         test_cases = {

@@ -179,9 +179,7 @@ if 1:  # Header
         import math
         import cmath
         import numbers
-        from pdb import set_trace as xx
     if 1:  # Custom imports
-        from wrap import dedent
         from lwtest import Assert
     if 1:  # Global variables
         class G:  # Holder of global information
@@ -669,25 +667,28 @@ def Ridders(a, b, f, eps=g.eps, itmax=g.itmax):
         raise ValueError("Root is not bracketed")
     for i in range(itmax):
         # Compute the improved root x from Ridder's formula
-        c = (a + b) / 2
+        c = (a + b)/2
         fc = f(c)
-        s = (fc**2 - fa * fb) ** (1 / 2)
+        s = (fc**2 - fa*fb)**(1/2)
         if not s:
             if not fc:
                 return c, i + 1
             raise ValueError("No root")
-        dx = (c - a) * fc / s
+        dx = (c - a)*fc/s
         if (fa - fb) < 0:
             dx = -dx
         x = c + dx
         fx = f(x)
-        # Test for convergence
-        if i > 0 and abs(x - x_old) < eps * max(abs(x), 1.0):
-            return x, i + 1
-        x_old = x
+        # Test for convergence.  Note:  a linter will complain that x_old is undefined
+        # or assigned and never used, but in fact it works OK because i is 0 the first
+        # pass through.
+        if i > 0:
+            if abs(x - x_old) < eps*max(abs(x), 1.0):   # noqa
+                return x, i + 1
+        x_old = x   # noqa
         # Re-bracket the root as tightly as possible
-        if fc * fx > 0:
-            if fa * fx < 0:
+        if fc*fx > 0:
+            if fa*fx < 0:
                 b, fb = x, fx
             else:
                 a, fa = x, fx
@@ -765,7 +766,6 @@ def Ostrowski(x0, f, deriv, eps=g.eps, itmax=g.itmax, dbg=None):
     Reference:  "Ostrowski's Method for Finding Roots" by Namir Shammas in "HP Solve", issue 28,
     July 2012, page 8.
     '''
-    x = x0
     if dbg:
         dbg.write("+ Starting value of x = {}\n".format(x0))
     xn = x0
@@ -782,7 +782,7 @@ def Ostrowski(x0, f, deriv, eps=g.eps, itmax=g.itmax, dbg=None):
         xn1 = yn - b * (xn - yn) / c
         # Dump to debug stream
         if dbg:
-            dbg.write("+ i = {}  xnew = {}, ynew = {}\n".format(i, sig(xn1), sig(yn)))
+            dbg.write(f"+ i = {i}  xnew = {xn1}, ynew = {yn}\n")
         # Check for convergence
         if xn1 == xn:
             return (xn, i)
@@ -1067,21 +1067,21 @@ def QuarticEquation(a, b, c, d, e, adjust=True, force_real=False):
 def ITP(f, a, b, eps, k1=None, k2=2, n0=1):
     '''ITP algorithm for roots (interpolate/truncate/project)
     
-    f           Function to find the root of
-    [a, b]      Interval that brackets root
-    eps         Precision within which to find the root
-    k1, k2, n0  Tuning constants.  These are chosen based on the comments given below.
+        f           Function to find the root of
+        [a, b]      Interval that brackets root
+        eps         Precision within which to find the root
+        k1, k2, n0  Tuning constants.  These are chosen based on the comments given below.
     
-    23 Feb 2025:  This is one of those lucky events; I had asked buff a question about closures in
-    the context of rootfinders vs using args/kw arguments to a function call.  This led to me
-    looking more at the stuff I had and finding a link to the ITP method on wikipedia's page on
-    bisection.  The basic article is from 2020 and appears to be a fundamentally important
-    contribution to root finders, as it combines the reliability of bisection with faster
-    convergence, apparently replacing Brent, Ridder's, secant, etc.  Some searching led to
-    https://www.wikiwand.com/en/articles/ITP_Method; I figured it would be a mess and wouldn't
-    work correctly, but I got things typed in and the first example of finding the root to x**3 -
-    x - 2 on [1, 2] worked perfectly.  With some testing, it's likely this will become my
-    rootfinder of choice.
+    23 Feb 2025:  This is one of those lucky events; I had asked buff a question about
+    closures in the context of rootfinders vs using args/kw arguments to a function
+    call.  This led to me looking more at the stuff I had and finding a link to the ITP
+    method on wikipedia's page on bisection.  The basic article is from 2020 and appears
+    to be an important contribution to root finders, as it combines the reliability of
+    bisection with faster convergence, apparently replacing Brent, Ridder's, secant,
+    etc.  Some searching led to https://www.wikiwand.com/en/articles/ITP_Method; I
+    figured it would be a mess and wouldn't work correctly, but I got things typed in
+    and the first example of finding the root to x**3 - x - 2 on [1, 2] worked
+    perfectly.  With some testing, it's likely this will become my rootfinder of choice.
     
     The original paper is
     
@@ -1170,7 +1170,8 @@ def ITP(f, a, b, eps, k1=None, k2=2, n0=1):
         k1 = 0.2/abs(b - a)
     Assert(k1 >= 0)
     count, j = 0, 0
-    sign = lambda x: -1 if x < 0 else 1
+    def sign(x):
+        return -1 if x < 0 else 1
     diff = abs(b - a)
     while diff > 2*eps:
         count += 1
@@ -1348,13 +1349,14 @@ if __name__ == "__main__":
     from timer import Timer
     t = Timer()
     t.u = 1000000  # Set units to μs
-    if 0:
-        f = lambda x: math.cos(x) - x
-    else:
-        f = lambda x: x - math.cos(x)
-    x0, x1 = 0, math.pi / 2
+    def f(x):
+        return x - math.cos(x)
+    x0, x1 = 0, math.pi/2
     y0, y1 = f(x0), f(x1)
     eps = 1e-6
+    eps = 1e-15
+    u = flt(0)
+    u.N = 2
     n = 10000
     print(f"eps = {eps}, num evals = {n}")
     g.dbg = None
@@ -1365,8 +1367,7 @@ if __name__ == "__main__":
             x, m = Bisection(x0, x1, f, eps=eps)
             count += m
         t.stop
-        M = flt(count / n)
-        print(f"Bisection:  Got {x} in {M} steps, {flt(t.et) / n} μs")
+        print(f"Bisection:  Got {x} in {count//n} steps, {flt(t.et) / n} μs")
     if 1:  # Crenshaw
         count = 0
         t.start
@@ -1374,8 +1375,7 @@ if __name__ == "__main__":
             x, m = Crenshaw(x0, x1, f, eps=eps)
             count += m
         t.stop
-        M = flt(count / n)
-        print(f"Crenshaw:   Got {x} in {M} steps, {flt(t.et) / n} μs")
+        print(f"Crenshaw:   Got {x} in {count//n} steps, {flt(t.et) / n} μs")
     if 1:  # Ridders
         count = 0
         t.start
@@ -1383,8 +1383,7 @@ if __name__ == "__main__":
             x, m = Ridders(x0, x1, f, eps=eps)
             count += m
         t.stop
-        M = flt(count / n)
-        print(f"Ridders:    Got {x} in {M} steps, {flt(t.et) / n} μs")
+        print(f"Ridders:    Got {x} in {count//n} steps, {flt(t.et) / n} μs")
     if 1:  # kbrent
         count = 0
         t.start
@@ -1392,8 +1391,7 @@ if __name__ == "__main__":
             x, m = kbrent(x0, x1, f, eps=eps)
             count += m
         t.stop
-        M = flt(count / n)
-        print(f"kbrent:     Got {x} in {M} steps, {flt(t.et) / n} μs")
+        print(f"kbrent:     Got {x} in {count//n} steps, {flt(t.et) / n} μs")
     if 1:  # RootFinder
         count = 0
         t.start
@@ -1401,18 +1399,23 @@ if __name__ == "__main__":
             x, m = RootFinder(x0, x1, f, eps=eps)
             count += m
         t.stop
-        M = flt(count / n)
-        print(f"RootFinder: Got {x} in {M} steps, {flt(t.et) / n} μs")
+        print(f"RootFinder: Got {x} in {count//n} steps, {flt(t.et) / n} μs")
     if 1:  # ITP
         count = 0
         t.start
         for i in range(n):
-            # x, m = ITP(f, x0, x1, eps=eps)
+            x, m = ITP(f, x0, x1, eps=eps)
+            count += m
+        t.stop
+        print(f"ITP:        Got {x} in {count//n} steps, {flt(t.et) / n} μs")
+    if 1:  # zero_itp
+        count = 0
+        t.start
+        for i in range(n):
             x, m = zero_itp(f, x0, x1, eps=eps)
             count += m
         t.stop
-        M = flt(count / n)
-        print(f"ITP:        Got {x} in {M} steps, {flt(t.et) / n} μs")
+        print(f"zero_itp:   Got {x} in {count//n} steps, {flt(t.et) / n} μs")
     if 1:  # FindRoots
         count = 0
         t.start
@@ -1420,5 +1423,4 @@ if __name__ == "__main__":
             x = FindRoots(f, 10, x0, x1, eps=eps)
             count += m
         t.stop
-        M = flt(count / n)
         print(f"FindRoots:  Got {x[0]} in  ?  steps, {flt(t.et) / n} μs")

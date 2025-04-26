@@ -92,7 +92,7 @@ class Stack(deque):
     def push(self, x):
         with self._lock:
             if self._type is not None:
-                if type(x) != self._type:
+                if type(x) is not self._type:
                     msg = "'{}' is an incorrect type.\n".format(x)
                     msg += "  It must be of type {}.".format(self._type)
                     raise TypeError(msg)
@@ -102,9 +102,7 @@ class Stack(deque):
             super(Stack, self).rotate(n)
     @property
     def homogeneous(self):
-        '''Returns the type of a homogeneous stack or None if not
-        homogeneous.
-        '''
+        'Returns the type of a homogeneous stack or None if not homogeneous'
         return self._type
     # Disable unused deque methods
     def append(self, x):
@@ -192,7 +190,7 @@ if __name__ == "__main__":
         Assert(len(st) == 0)
     def TestHomogeneity():
         st = Stack(["a", "b"], homogeneous=str)
-        Assert(st.homogeneous and st.homogeneous == str)
+        Assert(st.homogeneous is str)
         raises(TypeError, st.push, 1)
         st.push("b")
         st = init()     # Stack of integers; non-homogeneous

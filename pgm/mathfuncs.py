@@ -3,7 +3,7 @@ Print out a table showing the math/cmath functions and their return types.
 """
 
 from wrap import dedent
-from astr import alen
+from util import alen
 from color import t
 
 b = t("magl")
@@ -13,7 +13,7 @@ c = t("cynl")
 z = t("purl")
 x = t("ornl")
 r = t("redl")
-e = "∊"
+e = "∈"
 
 s = dedent(f"""
     python 3.9.10 math functions

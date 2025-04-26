@@ -72,7 +72,6 @@ if 1:  # Header
     # Standard imports
     from collections import deque, defaultdict
     from itertools import filterfalse
-    from pdb import set_trace as xx
     import os
     import random
     import re
@@ -433,10 +432,8 @@ if 1:  # Core functionality
             found = FindStrings(seq, Str)
             Then found is [(0, 1)]
         '''
-        found, s, sq = [], Str, seq
+        found, sq = [], seq
         if ignorecase:
-            # Make copy so we don't change the original seq
-            s = Str.lower()
             sq = [i.lower() for i in seq]
         for i, u in enumerate(sq):
             j = Str.find(u)
@@ -492,7 +489,7 @@ if 1:  # Core functionality
             raise ValueError("name must be a string")
         if not isinstance(names, (set, dict)):
             raise ValueError("names must be a set or dictionary")
-        d, n = defaultdict(list), len(name)
+        d = defaultdict(list)
         for i in names:
             d[i[: len(name)]] += [i]
         if name in d:
@@ -820,7 +817,7 @@ if 1:  # Core functionality
             if sep is not None:
                 if ii(sep, str):
                     fields = line.split(sep)
-                elif hasattr(sep, split):
+                elif hasattr(sep, "split"):
                     fields = sep.split(line)
                 else:
                     raise ValueError("sep '{sep}' is unknown type")
@@ -1053,8 +1050,6 @@ if 1:  # Core functionality
                 assert not L and not M and not R
             else:
                 assert L + M + R == s
-                assert set(L).issubset(charset)
-                assert set(R).issubset(charset)
         if left:
             return M if right else M + R
         else:
@@ -1097,7 +1092,7 @@ if 1:  # Core functionality
             return s.translate(tt)
         return f
 if __name__ == "__main__":
-    from lwtest import run, raises, assert_equal, Assert
+    from lwtest import run, raises, Assert
     import math
     import os
     from sig import sig
@@ -1157,12 +1152,12 @@ if __name__ == "__main__":
         # Tests are only on strings, but they should work for any sequence
         if 1:  # FindFirstIn, FindLastIn
             F, L = FindFirstIn, FindLastIn
-            Assert(F("", "abc") == None)
-            Assert(L("", "abc") == None)
-            Assert(F("abc", "") == None)
-            Assert(L("abc", "") == None)
-            Assert(F("abc", "d") == None)
-            Assert(L("abc", "d") == None)
+            Assert(F("", "abc") is None)
+            Assert(L("", "abc") is None)
+            Assert(F("abc", "") is None)
+            Assert(L("abc", "") is None)
+            Assert(F("abc", "d") is None)
+            Assert(L("abc", "d") is None)
             #
             Assert(F("dabc", "d") == 0)
             Assert(L("dabc", "d") == 0)
@@ -1172,10 +1167,10 @@ if __name__ == "__main__":
             Assert(L(";abc;", ";") == 4)
         if 1:  # FindFirstNotIn, FindLastNotIn
             F, L = FindFirstNotIn, FindLastNotIn
-            Assert(F("", "abc") == None)
-            Assert(L("", "abc") == None)
-            Assert(F("abc", "") == None)
-            Assert(L("abc", "") == None)
+            Assert(F("", "abc") is None)
+            Assert(L("", "abc") is None)
+            Assert(F("abc", "") is None)
+            Assert(L("abc", "") is None)
             #
             Assert(F("abc", "d") == 0)
             Assert(L("abc", "d") == 2)
@@ -1220,7 +1215,7 @@ if __name__ == "__main__":
         Assert(IsASCII(""))
         Assert(not IsASCII(s2))
     def Test_GetWhitespace():
-        for t in (
+        for u in (
             "",
             " ",
             "  ",
@@ -1228,25 +1223,25 @@ if __name__ == "__main__":
             "\n",
             "\t\r\n\f    \t\t\t",
         ):
-            Assert(GetLeadingChars(t) == t)
-            Assert(GetLeadingChars(t + "a") == t)
-            Assert(GetTrailingChars(t) == t)
-            Assert(GetTrailingChars("a" + t) == t)
+            Assert(GetLeadingChars(u) == u)
+            Assert(GetLeadingChars(u + "a") == u)
+            Assert(GetTrailingChars(u) == u)
+            Assert(GetTrailingChars("a" + u) == u)
         # Define custom sets of whitespace
         if 1:  # Leading
             Assert(GetLeadingChars("  \t  a", chars="z") == "")
             Assert(GetLeadingChars("  \t  a", chars="\t") == "")
             Assert(GetLeadingChars("  \t  a", chars=" ") == "  ")
-            ws, t = ".;:", ".;..:::."
-            a = GetLeadingChars(t + "a", chars=ws)
-            Assert(a == t)
+            ws, u = ".;:", ".;..:::."
+            a = GetLeadingChars(u + "a", chars=ws)
+            Assert(a == u)
         if 1:  # Trailing
             Assert(GetTrailingChars("a  \t  ", chars="z") == "")
             Assert(GetTrailingChars("a  \t  ", chars="\t") == "")
             Assert(GetTrailingChars("a  \t  ", chars=" ") == "  ")
-            ws, t = ".;:", ".;..:::."
-            a = GetTrailingChars("a" + t, chars=ws)
-            Assert(a == t)
+            ws, u = ".;:", ".;..:::."
+            a = GetTrailingChars("a" + u, chars=ws)
+            Assert(a == u)
     def Test_Tokenize():
         Assert(Tokenize("", check=True) == [])
         Assert(Tokenize(" ", check=True) == [" "])
@@ -1548,7 +1543,7 @@ if __name__ == "__main__":
                 print(f"    {i}")
             print(f"    {s}")
             print(f"  items argument is {items!r}")
-            print(f"  The functions return the 0-based index of the found item")
+            print("  The functions return the 0-based index of the found item")
             print(f"    FindFirstIn(s, items) = {FindFirstIn(s, items)} (A)")
             print(f"    FindLastIn(s, items)  = {FindLastIn(s, items)} (T)")
             items = string.ascii_lowercase
@@ -1580,7 +1575,7 @@ if __name__ == "__main__":
             s, u = "abc", "∞"
             print(f"IsASCII({s!r}) = {IsASCII(s)}, IsASCII({u!r}) = {IsASCII(u)}")
             # Keep
-            print(f"Keep is used to keep only desired elements in a sequence")
+            print("Keep is used to keep only desired elements in a sequence")
             s, items = "a;bc;d;", string.ascii_lowercase
             print(f"  items = desired elements = {items!r}")
             print(f"  Keep({s!r}, items) returns {Keep(s, items)!r}")
@@ -1594,10 +1589,10 @@ if __name__ == "__main__":
                 f"  Keep({s!r}, items, right=True) returns {Keep(s, items, right=True)!r}"
             )
             # KeepFilter
-            print(f"KeepFilter returns a filter based on Keep's arguments")
-            print(f"  f = KeepFilter returns a filter based on Keep's arguments")
+            print("KeepFilter returns a filter based on Keep's arguments")
+            print("  f = KeepFilter returns a filter based on Keep's arguments")
             f = KeepFilter(string.ascii_lowercase)
-            print(f"  f = KeepFilter(string.ascii_lowercase + )")
+            print("  f = KeepFilter(string.ascii_lowercase + )")
             s = "this STRING"
             print(f"  f({s!r}) = {f(s)}")
         # KeepOnlyLetters

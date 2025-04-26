@@ -107,7 +107,6 @@ if 1:  # Header
         from pathlib import Path as P
         from random import seed
         from reprlib import repr as Repr
-        import hashlib
         import math
         import os
         import platform
@@ -183,7 +182,8 @@ def GetTrailingString(string, suffix=" "):
     '''
     # This is done by reversing string and suffix and using GetLeadingString(), but it
     # does mean we have to create copies in memory.
-    f = lambda x: list(reversed(x))
+    def f(x):
+        return list(reversed(x))
     result = f(GetLeadingString(f(string), prefix=f(suffix)))
     if type(string) is bytes:
         return bytes(result)

@@ -200,7 +200,6 @@ if 1:  # Copyright, license
     ##∞test∞# --test #∞test∞#
     pass
 if 1:  # Standard imports
-    import functools
     import io
     import random
     import re
@@ -209,9 +208,8 @@ if 1:  # Standard imports
     from collections import defaultdict, deque
     from fractions import Fraction
     from decimal import Decimal
-    from random import Random, seed
+    from random import seed
     from math import pi
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from columnize import Columnize
     from wrap import dedent
@@ -497,7 +495,6 @@ if 1:  # Parsing
             1.1/8
         (1.125, "") will be returned.
         '''
-        Digits = set("1234567890")
         # Remove the unit
         f = s.strip().split()
         if len(f) == 1:
@@ -773,7 +770,7 @@ if 1:   # Classes
                     if 1:
                         # Number must be an integer or number expression
                         try:
-                            x = eval(number)
+                            eval(number)
                         except Exception:
                             return (symbol, "")
                     return (symbol, number)
@@ -1044,7 +1041,7 @@ if 1:   # Classes
                 while pos:
                     unit, exp = pos.popleft()
                     o.append(f"{unit}**{exp}") if exp != 1 else o.append(f"{unit}")
-                    o.append(f"*") if pos else o.append("")
+                    o.append("*") if pos else o.append("")
             else:
                 o.append("1")
             if neg:
@@ -1057,7 +1054,7 @@ if 1:   # Classes
                     unit, exp = neg.popleft()
                     exp = abs(exp)
                     o.append(f"{unit}**{exp}") if exp != 1 else o.append(f"{unit}")
-                    o.append(f"*") if neg else o.append("")
+                    o.append("*") if neg else o.append("")
                 if need_close_paren:
                     o.append(")")
             s = "".join(o)
@@ -1331,7 +1328,7 @@ if 1:   # Classes
                             if (last_num == OP and last_token == ")") or (last_num == NAME):
                                 string = "**-"
                                 if dbg:
-                                    print(f" --> Changed - to **-")
+                                    print(" --> Changed - to **-")
                             else:
                                 # It's OK if it's e.g. from 'm**(-3/4)',
                                 # as it works out if we ignore things
@@ -1515,7 +1512,7 @@ if 1:   # Classes
             if op not in allowed.split():
                 raise ValueError(f"'{op}' not in {allowed}")
             if not isinstance(a, str) and not isinstance(b, str):
-                raise TypeError(f"a and b must be strings")
+                raise TypeError("a and b must be strings")
 if 1:   # Core functionality
     def DefaultUnitData(level=-1, randomize=False, angles_have_dim=False):
         '''Returns a tuple of two sequences (DefaultUnits, BaseUnits) that
@@ -2466,7 +2463,6 @@ if 1:   # Core functionality
         # Dictionary to map digits to Unicode superscripts
         ss = dict(zip("0123456789", "⁰¹²³⁴⁵⁶⁷⁸⁹"))
         d = GetDim(unit, strict=strict).dims  # Dictionary of units & exponents
-        std = not any((expr, flat, solidus))
         N, D = deque(), deque()  # Collect output tokens
         numer, denom = Separate(d)
         if not numer:
@@ -2579,7 +2575,7 @@ if 1:   # Core functionality
             base = [i for i in units if isinstance(units[i], int) and units[i] == 1]
             print(f"Base SI units:  {', '.join(base)}\n")
             print(
-                dedent(f'''
+                dedent('''
             'dol' stands for US dollar and is not an SI unit, but it's part of the
             base units to facilitate cost calculations.
             
@@ -2666,8 +2662,8 @@ if 1:   # Core functionality
                 )
 if __name__ == "__main__":
     import contextlib
-    from lwtest import run, raises, assert_equal, Assert
-    from uncertainties import ufloat, ufloat_fromstr, UFloat
+    from lwtest import run, raises, assert_equal
+    from uncertainties import ufloat, ufloat_fromstr
     from io import StringIO
     from color import t  # Color for warnings
     eps = 1e-15  # For testing float equality
@@ -2963,7 +2959,6 @@ if __name__ == "__main__":
             "kg": Dim("M", allowed_symbols=allowed),
         }
         def GetUnits(randomize=False):
-            digits = 6
             # Define the conversion factor dictionary.  If randomize is True,
             # note that the conversion factors will have random nonzero values.
             # If randomize is False, they'll all have values of 1.

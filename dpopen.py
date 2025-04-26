@@ -52,11 +52,11 @@ if 1:  # Core functionality
                 # explorer.exe to open files.  To get this to work, we have to cd to the file's
                 # directory.  It appears Explorer returns 1 under all conditions.
                 cmd = f"explorer.exe {filename}"
-                r = subprocess.run(cmd, shell=True)
+                subprocess.run(cmd, shell=True)
             else:
                 # Must be cygwin; file can be opened with cygstart.exe.
                 cmd = f"cygstart {filename}"
-                r = subprocess.run(cmd, shell=True)
+                subprocess.run(cmd, shell=True)
         except Exception as e:
             print(f"{e}")
         finally:
@@ -64,7 +64,7 @@ if 1:  # Core functionality
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         print(f"Usage: {sys.argv[0]} [file1 [file2 ...]]")
-        print(f"  Opens files with registered applications.")
+        print("  Opens files with registered applications.")
         exit(1)
     else:
         status = 0
