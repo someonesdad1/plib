@@ -967,7 +967,8 @@ if 1:  # Core functionality
         # Compile the regular expressions
         regexes = []
         for regex in regex_seq:
-            regexes.append(re.compile(regex, re.I if ignore_case else 0))
+            if regex:
+                regexes.append(re.compile(regex, re.I if ignore_case else 0))
         # Bundle them into a closure
         def f(seq):
             results = seq.copy()

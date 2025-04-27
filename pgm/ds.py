@@ -70,6 +70,7 @@ if 1:  # Header
         from dirfiles import Dirfiles
         from wsl import wsl
         from timer import GetET
+        from dpstr import IgnoreFilter
         from f import flt
         from color import t
         import util
@@ -212,9 +213,6 @@ if 1:  # Core functionality
             start = flt(time())
             df = Dirfiles("/manuals/manuals/bk", clear=True)
             df.add("**/*")
-            if 1:
-                # Filter out stuff not wanted
-                pass
             tm = time() - start
             et += tm
             Dbg(f"{len(df.files)} files ({tm} s)")
@@ -224,12 +222,6 @@ if 1:  # Core functionality
             start = flt(time())
             df = Dirfiles("/ebooks", clear=True)
             df.add("**/*")
-            if 1:
-                # Filter out stuff not wanted
-                df.rm("kindle")
-                df.rm("hpj")
-                df.rm("wxPython")
-                df.rm("prog/scipy/scipy-html")
             tm = time() - start
             et += tm
             Dbg(f"{len(df.files)} files ({tm} s)")
@@ -239,9 +231,6 @@ if 1:  # Core functionality
             start = flt(time())
             df = Dirfiles("/manuals", clear=True)
             df.add("**/*")
-            if 1:
-                # Filter out stuff not wanted
-                df.rm("3615_power_supply_Jul2013.pdf")
             tm = time() - start
             et += tm
             Dbg(f"{len(df.files)} files ({tm} s)")
@@ -368,13 +357,16 @@ if 1:  # Core functionality
             "mn": "/manuals",
         }
         d["root"] = root[key]
-        # Using the ds.*.ignore file, remove the files to be ignored
-        try:
-            with open(g.ignore_files[key], "r") as fp:
-                d["ignore"] = set(fp.read().split("\n"))
-        except Exception:
-            breakpoint() #xx
-            pass
+        if 1:
+            # Using the ds.*.ignore file, remove the files to be ignored
+            try:
+                with open(g.ignore_files[key], "r") as fp:
+                    d["ignore"] = regex_seq = set(fp.read().split("\n"))
+                if regex_seq:
+                    f = IgnoreFilter(regex_seq)
+                    d["files"] = f(d["files"])
+            except FileNotFoundError:
+                pass
 
     def OpenMatches(matches, d):
         '''Each match item will be (full_filename, match_object) where
