@@ -1,15 +1,6 @@
 Active:  /plib/.todo
 
     - pgm/ds.py
-        - This is a tool I use a lot.  I'd like indexing to be fast (it sucks under WSL,
-          so I have to do it under cygwin).  See if there's some way to fix this.  I'm
-          beginning to believe it doesn't make sense to run WSL anymore and I'll look at 
-          a new small Linux box made from the computer Dave is sending me late Apr 2025
-          for machining his coherer brass pieces for him.
-        - For each "root" directory of a project, allow a .dsignore file that is exactly
-          like a .gitignore file, which gives regular expressions on those things to
-          ignore.  Example:  in my ebooks directory, I'd like all the vimscript
-          directories and files to be ignored.
         - Need a feature to define default documents so they open on the first search.
             - Example:  I have 3 versions of the HP427A manual:  1970, 1972, 1983.  The 1983 one
               covers my instrument best, but it can take time to render in Sumatra.  I'd like to
@@ -63,11 +54,6 @@ Active:  /plib/.todo
             - ignore
             - none
 
-    - pgm/dbl.py
-        - After 'ruff format' puts blank lines inside of nested functions, the script
-          needs to remove these lines if not in a triple quoted string.
-        - If encounter 'if __name__ == "__main__":', insert a newline before it.
-
     - Investigate uv https://docs.astral.sh/uv
         - Fast Python package and project manager
         - By creators of ruff
@@ -87,7 +73,7 @@ Active:  /plib/.todo
     - abbrev.py
         - Finds likely abbreviations/acronyms in files
         - Lists definitions for the ones found
-        - Repository for the one I like to use, with definitions
+        - Repository for the ones I like to use, with definitions
             - CBC (commercial battery charger) ooo μP IDE wrt Ah A*h A*hr amd anova ansi argc
               argv asap asme AT atm ATO ATX awk bk b&k bnc bsky buff cdf cephes cfg chr
               chs CC clf clrg clst cmd cmdline cmds codec cols com comm comms conda
@@ -130,7 +116,7 @@ Active:  /plib/.todo
             - This notion is very useful in the context of a group of humans with a
               variety of experiences trying to quickly find/fix a problem.  Less
               technical or experienced people can generate wacky or multiple-cause
-              suggestions and can cause a bad waste of precious resources, so core needs
+              suggestions and can cause a waste of precious resources, so core needs
               are objectivity, experience, and good leadership.
             - Other methods are things that provide contrast, temporal coincidence,
               is/is not characteristics, polling the experts/web, using knowledge to
@@ -179,6 +165,11 @@ Active:  /plib/.todo
           the standard routine.
             - I'd like RootFinder to be the general purpose tool.  It should have a
               dbgstream argument to let you see convergence like Crenshaw does.
+        - Running root.py is interesting, as it solves cos(x) - x and displays the
+          number of steps and elapsed time.  Bisection takes 10 times as many steps as
+          the others, but is within about a factor of 2 in speed.  Crenshaw for some
+          reason is slow and its time tends to have more variance.  Ridders and kbrent
+          seem to be consistently the fastest.
         - This was written before closures existed in python; it should be rewritten to
           take advantage of them.  Example is GetVrefFunction() in pgm/diode.py which
           returns a closure to use by the rootfinder.

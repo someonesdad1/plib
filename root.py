@@ -18,6 +18,10 @@ TODO
           two.
           
     - Must
+        - Ensure each function is dependent only on its passed-in information so that
+          they can be considered thread-safe.  This shows a weakness of python, as if
+          global variables could be made readonly, you'd then not worry about associated
+          race conditions.  Macros would give the same functionality.
         - Rename epsilon to something that is specific to complex numbers
         - eps0 should become reltol, as it's more expressive
         - See if every routine can be given an fp keyword argument; this would be the floating
@@ -415,7 +419,7 @@ def RootFinder(x0, x2, f, eps=g.eps, itmax=g.itmax, fp=float, args=[], kw={}):
     Sad news:  on 25 Feb 2025 I got an email from a friend of Jack's that Jack died on 24 Dec
     2024.  I originally contacted Jack about this algorithm and it led to an email friendship with
     many hundreds of emails on a bewildering variety of topics.  I never got to meet him (we lived
-    on opposite coasts of the US), but we connected over many things.  I will miss his lively
+    on opposite sides of the US), but we connected over many things.  I will miss his lively
     mind.
     '''
     zero, one, two, eps = fp("0"), fp("1"), fp("2"), fp(eps)
@@ -470,9 +474,7 @@ def RootFinder(x0, x2, f, eps=g.eps, itmax=g.itmax, fp=float, args=[], kw={}):
             else:
                 x0, y0, x2, y2 = xm, ym, x1, y1
     raise StopIteration("No convergence in RootFinder()")
-def NewtonRaphson(
-    f, fd, x, eps=g.eps, itmax=g.itmax, show=False, fp=float, args=[], kw={}
-):
+def NewtonRaphson(f, fd, x, eps=g.eps, itmax=g.itmax, show=False, fp=float, args=[], kw={}):
     '''Returns the root using Newton-Raphson algorithm for solving f(x) = 0.
         f     = the function (must be a function object)
         fd    = the function's derivative (must be a function object)
@@ -622,9 +624,9 @@ def Bisection(x1, x2, f, eps=g.eps, switch=False):
     if f1 * f2 > 0:
         raise ValueError("Root is not bracketed")
     # Get the number of iterations we'll need
-    n = int(math.ceil(math.log(abs(x2 - x1) / eps) / math.log(2)))
+    n = int(math.ceil(math.log(abs(x2 - x1)/eps)/math.log(2)))
     for i in range(n):
-        x3 = (x1 + x2) / 2  # Abscissa of interval midpoint
+        x3 = (x1 + x2)/2  # Abscissa of interval midpoint
         f3 = f(x3)  # Ordinate of interval midpoint
         if not f3:
             return x3, i + 1
@@ -633,12 +635,12 @@ def Bisection(x1, x2, f, eps=g.eps, switch=False):
             raise ValueError(msg)
         # Choose which half-interval to use based on which one continues to
         # bracket the root.
-        if f2 * f3 < 0:
+        if f2*f3 < 0:
             x1, f1 = x3, f3  # Right half-interval contains the root
         else:
             x2, f2 = x3, f3  # Left half-interval contains the root
-    x = (x1 + x2) / 2
-    assert d / 2**n <= eps
+    x = (x1 + x2)/2
+    assert d/2**n <= eps
     return x, n
 def Ridders(a, b, f, eps=g.eps, itmax=g.itmax):
     '''Returns (root, num_it) (root and the number of iterations) using Ridders' method to find a
@@ -1354,7 +1356,6 @@ if __name__ == "__main__":
     x0, x1 = 0, math.pi/2
     y0, y1 = f(x0), f(x1)
     eps = 1e-6
-    eps = 1e-15
     u = flt(0)
     u.N = 2
     n = 10000
