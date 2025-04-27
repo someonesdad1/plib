@@ -1,225 +1,202 @@
-"""
+'''
 Tool to build a transliteration table for ASCII characters.
 
-The strategy used is to create a set of all valid Unicode codepoints and
-remove things like combining characters, tags, and non-English language
-codepoints.  A decomposition from the Unicode Character Database (see
-ucd.py) is used if it exists; these usually translate characters with
-accents or other modifiers.  Then the Unicode string descriptions of
-each character are searched for key words to select the set of
-characters wanted for each of the above ASCII characters.  The result is
-a dictionary named keep that contains each ASCII character as a key and
-the set of Unicode characters that should be transliterated to that
-ASCII character.
+The strategy used is to create a set of all valid Unicode codepoints and remove things
+like combining characters, tags, and non-English language codepoints.  A decomposition
+from the Unicode Character Database (see ucd.py) is used if it exists; these usually
+translate characters with accents or other modifiers.  Then the Unicode string
+descriptions of each character are searched for key words to select the set of
+characters wanted for each of the above ASCII characters.  The result is a dictionary
+named keep that contains each ASCII character as a key and the set of Unicode characters
+that should be transliterated to that ASCII character.
 
-A guiding factor in my selection of the characters to transliterate is
-that they must look like the corresponding ASCII character, regardless
-of the semantic content.  Thus, U+01c3 looks like an exclamation mark,
-but has the name of "LATIN LETTER RETROFLEX CLICK".  The alternate name
-is "LATIN LETTER EXCLAMATION MARK", so it is reasonable that it be
-translated to !, U+0021.  In other words, syntax and not semantic
-content is the driving force behind this transliteration, primarily
-because I am not a linguist.
-"""
+A guiding factor in my selection of the characters to transliterate is that they must
+look like the corresponding ASCII character, regardless of the semantic content.  Thus,
+U+01c3 looks like an exclamation mark, but has the name of "LATIN LETTER RETROFLEX
+CLICK".  The alternate name is "LATIN LETTER EXCLAMATION MARK", so it is reasonable that
+it be translated to !, U+0021.  In other words, syntax and not semantic content is the
+driving force behind this transliteration, primarily because I am not a linguist.
 
-##∞test∞# ignore #∞test∞#
-import unicodedata as U
-import re
-import pickle
-import string
-import sys
-import time
-import getopt
-import os
-from ucd import ucd
-from textwrap import dedent
-from itertools import combinations, chain
-from columnize import Columnize
-from pprint import pprint as pp
-from collections import defaultdict
-from pdb import set_trace as xx
-
-if 0:
-    import debug
-
-    debug.SetDebugger()
-
-
-def ShowAll(cpset, arg="all"):
-    """Print all codepoints in cpset to stdout that contain the regular
-    expression arg.  Use "all" for arg to print all characters.
-    """
-    r = re.compile(arg, re.I)
-    for cp in sorted(cpset, reverse=True):
-        descr = U.name(chr(cp))
-        if arg == "all" or r.search(descr):
-            print(f"{cp:06x} {chr(cp)} {descr}")
-
-
-def PrintCP(cp, indent=""):
-    c = chr(cp)
-    print(f"{indent}{cp:05X} {chr(cp):^3s} {U.name(c)}", file=stream)
-
-
-def GetWorkingSet(file="asciify_make.pickle", build=False):
-    """Return (cpset, keep) where cpset is the working set of Unicode
-    codepoints and keep is a defaultdict of lists.
-
-    It takes about 1.6 s to build the set and about half of this time to
-    read it in from disk.  Thus, we pickle the data to disk.  The file
-    is only built if the pickled data cannot be read or build is True.
-    """
-
-    def RemoveInvalid(cpset):
-        "Remove codepoint values that cause an exception"
-        remove = set()
-        for cp in cpset:
-            try:
-                U.name(chr(cp))
-            except ValueError:
-                remove.add(cp)
-        Debug(fmt.format("  Invalid codepoints", -len(remove)))
-        cpset -= remove
-
-    def RemoveMisc(cpset):
-        "Remove TAG and COMBINING characters"
-        remove = set()
-        cpset -= set(range(0xE0020, 0xE007F))  # Remove TAGS
-        cpset -= set((0x0FDFC,))  # Special character
-        combine = re.compile(r"^COMBINING\b|\bCOMBINING\b")
-        for cp in cpset:
-            descr = U.name(chr(cp))
-            if combine.search(descr):
-                remove.add(cp)
-        Debug(fmt.format("  Tag, combining", -len(remove)))
-        cpset -= remove
-
-    def RemoveNotEnglish(cpset):
-        """Remove the codepoints from cpset whose Unicode
-        description string contains one of the following languages,
-        as they don't share symbols with English.
-        """
-        languages = set(
-            """
-            adlam admetos aegean afghani ahom anatolian arabian
-            arabic armenian avestan balinese bamum bassa batak
-            bengali bhaiksuki bopomofo brahmi buginese buhid
-            byzantine canadian carian caucasian chakma cham cherokee
-            cjk coptic cuneiform cypriot cyrillic deseret devanagari
-            dogra duployan egyptian egyptological elbasan ethiopic
-            ewa functional georgian geta glagolitic grantha greek
-            gujarati gunjala gurmukhi halfwidth hangul hangzhou
-            hanifi hanunoo hatran hebrew hentaigana hexagram
-            hieroglyph hiragana hom hungarian ideogram ideograph
-            ideographic imperial indic inscriptional interlinear
-            japanese javanese kaithi kangxi kannada katakana kayah
-            kharoshthi khmer khojki khudawadi korean lao lepcha
-            limbu linear lisu lycian lydian mahajani mahjong makasar
-            malayalam mandaic manichaean marchen masaram mayan
-            medefaidrin meetei mende meroitic miao modi mongolian
-            mro multani myanmar nabataean nandinagari newa nko
-            nomisma nushu nyiakeng object ogham ogonek ol oriya
-            osage osmanya pahawh pahlavi palmyrene parthian pau
-            permic persian phags-pa phaistos philippine phoenician
-            psalter rejang rumi runic samaritan saurashtra sesame
-            shakti sharada shavian siddham sinhala slavonic sogdian
-            sora soyombo sundanese svasti syloti syriac tagalog
-            tagbanwa tai takri tamil tangut telugu tetragram thaana
-            thai tibetan tifinagh tirhuta turkic ugaritic vai vedic
-            wancho warang xiangqi yi zanabazar
- 
-            alchemical astrological bottom dentistry digram domino
-            element emoji face input integral person recycling
-            shorthand sideways signwriting symbol
-        """.upper().split()
-        )
-        L = [rf"\b{i}\b" for i in languages]  # Add word boundaries
-        ignore = re.compile("|".join(L))
-        remove = set()
-        # Japanese special characters
-        remove.update(set(range(0x3300, 0x3358)))
-        remove.update(range(0x337B, 0x3380))
-        for cp in cpset:
-            descr = U.name(chr(cp))
-            if ignore.search(descr):
-                remove.add(cp)
-        Debug(fmt.format("  Non-English codepoints", -len(remove)))
-        cpset -= remove
-
-    def RemoveGroups(cpset):
-        """Remove general categories (ucd calls them groups) that
-        are known to not contain characters we want.
-
-        Cf = TAG, format control characters
-        Lo = Other letters from foreign languages
-        Mn = Combining, etc.
-        Ps = Open punctuation
-        """
-        gc_to_ignore = "Cf Lo Mn Ps"
-        ignore = set(gc_to_ignore.split())
-        remove = set()
-        for cp in cpset:
-            try:
-                group, data = ucd["chars"][cp]
-                g = ucd["groups"][group]
-                gc = g["gc"]  # General category
-                if gc in ignore:
-                    remove.add(cp)
-            except KeyError:
-                continue
-        Debug(fmt.format(f"  Remove gc '{gc_to_ignore}'", -len(remove)))
-        cpset -= remove
-
-    try:
-        if build or d["-f"]:
-            raise Exception()
-        # Read in the pickled data
-        f = open(file, "rb")
-        cpset = pickle.load(f)
-    except Exception:
-        # Construct the pickle file
-        cpset = set(range(0x110000))  # 1114112 codepoints
-        Debug(f"Started with {len(cpset)} codepoints")
-        RemoveInvalid(cpset)
-        RemoveGroups(cpset)
-        RemoveMisc(cpset)
-        RemoveNotEnglish(cpset)
-        f = open(file, "wb")
-        pickle.dump(cpset, f)
-        Debug(f"Left with {len(cpset)} valid codepoints")
-    return cpset, defaultdict(set)
-
-
+'''
+if 1:   # Header
+    ##∞test∞# ignore #∞test∞#
+    import unicodedata as U
+    import re
+    import pickle
+    import string
+    import sys
+    import time
+    import getopt
+    import os
+    from ucd import ucd
+    from textwrap import dedent
+    from itertools import combinations, chain
+    from columnize import Columnize
+    from pprint import pprint as pp
+    from collections import defaultdict
+    from pdb import set_trace as xx
+    if 0:
+        import debug
+        debug.SetDebugger()
 if 1:  # Utility
-
+    def ShowAll(cpset, arg="all"):
+        '''Print all codepoints in cpset to stdout that contain the regular
+        expression arg.  Use "all" for arg to print all characters.
+        '''
+        r = re.compile(arg, re.I)
+        for cp in sorted(cpset, reverse=True):
+            descr = U.name(chr(cp))
+            if arg == "all" or r.search(descr):
+                print(f"{cp:06x} {chr(cp)} {descr}")
+    def PrintCP(cp, indent=""):
+        c = chr(cp)
+        print(f"{indent}{cp:05X} {chr(cp):^3s} {U.name(c)}", file=stream)
+    def GetWorkingSet(file="asciify_make.pickle", build=False):
+        '''Return (cpset, keep) where cpset is the working set of Unicode
+        codepoints and keep is a defaultdict of lists.
+        
+        It takes about 1.6 s to build the set and about half of this time to
+        read it in from disk.  Thus, we pickle the data to disk.  The file
+        is only built if the pickled data cannot be read or build is True.
+        '''
+        def RemoveInvalid(cpset):
+            "Remove codepoint values that cause an exception"
+            remove = set()
+            for cp in cpset:
+                try:
+                    U.name(chr(cp))
+                except ValueError:
+                    remove.add(cp)
+            Debug(fmt.format("  Invalid codepoints", -len(remove)))
+            cpset -= remove
+        def RemoveMisc(cpset):
+            "Remove TAG and COMBINING characters"
+            remove = set()
+            cpset -= set(range(0xE0020, 0xE007F))  # Remove TAGS
+            cpset -= set((0x0FDFC,))  # Special character
+            combine = re.compile(r"^COMBINING\b|\bCOMBINING\b")
+            for cp in cpset:
+                descr = U.name(chr(cp))
+                if combine.search(descr):
+                    remove.add(cp)
+            Debug(fmt.format("  Tag, combining", -len(remove)))
+            cpset -= remove
+        def RemoveNotEnglish(cpset):
+            '''Remove the codepoints from cpset whose Unicode
+            description string contains one of the following languages,
+            as they don't share symbols with English.
+            '''
+            languages = set(
+                '''
+                adlam admetos aegean afghani ahom anatolian arabian
+                arabic armenian avestan balinese bamum bassa batak
+                bengali bhaiksuki bopomofo brahmi buginese buhid
+                byzantine canadian carian caucasian chakma cham cherokee
+                cjk coptic cuneiform cypriot cyrillic deseret devanagari
+                dogra duployan egyptian egyptological elbasan ethiopic
+                ewa functional georgian geta glagolitic grantha greek
+                gujarati gunjala gurmukhi halfwidth hangul hangzhou
+                hanifi hanunoo hatran hebrew hentaigana hexagram
+                hieroglyph hiragana hom hungarian ideogram ideograph
+                ideographic imperial indic inscriptional interlinear
+                japanese javanese kaithi kangxi kannada katakana kayah
+                kharoshthi khmer khojki khudawadi korean lao lepcha
+                limbu linear lisu lycian lydian mahajani mahjong makasar
+                malayalam mandaic manichaean marchen masaram mayan
+                medefaidrin meetei mende meroitic miao modi mongolian
+                mro multani myanmar nabataean nandinagari newa nko
+                nomisma nushu nyiakeng object ogham ogonek ol oriya
+                osage osmanya pahawh pahlavi palmyrene parthian pau
+                permic persian phags-pa phaistos philippine phoenician
+                psalter rejang rumi runic samaritan saurashtra sesame
+                shakti sharada shavian siddham sinhala slavonic sogdian
+                sora soyombo sundanese svasti syloti syriac tagalog
+                tagbanwa tai takri tamil tangut telugu tetragram thaana
+                thai tibetan tifinagh tirhuta turkic ugaritic vai vedic
+                wancho warang xiangqi yi zanabazar
+     
+                alchemical astrological bottom dentistry digram domino
+                element emoji face input integral person recycling
+                shorthand sideways signwriting symbol
+            '''.upper().split()
+            )
+            L = [rf"\b{i}\b" for i in languages]  # Add word boundaries
+            ignore = re.compile("|".join(L))
+            remove = set()
+            # Japanese special characters
+            remove.update(set(range(0x3300, 0x3358)))
+            remove.update(range(0x337B, 0x3380))
+            for cp in cpset:
+                descr = U.name(chr(cp))
+                if ignore.search(descr):
+                    remove.add(cp)
+            Debug(fmt.format("  Non-English codepoints", -len(remove)))
+            cpset -= remove
+        def RemoveGroups(cpset):
+            '''Remove general categories (ucd calls them groups) that
+            are known to not contain characters we want.
+            
+            Cf = TAG, format control characters
+            Lo = Other letters from foreign languages
+            Mn = Combining, etc.
+            Ps = Open punctuation
+            '''
+            gc_to_ignore = "Cf Lo Mn Ps"
+            ignore = set(gc_to_ignore.split())
+            remove = set()
+            for cp in cpset:
+                try:
+                    group, data = ucd["chars"][cp]
+                    g = ucd["groups"][group]
+                    gc = g["gc"]  # General category
+                    if gc in ignore:
+                        remove.add(cp)
+                except KeyError:
+                    continue
+            Debug(fmt.format(f"  Remove gc '{gc_to_ignore}'", -len(remove)))
+            cpset -= remove
+        try:
+            if build or d["-f"]:
+                raise Exception()
+            # Read in the pickled data
+            f = open(file, "rb")
+            cpset = pickle.load(f)
+        except Exception:
+            # Construct the pickle file
+            cpset = set(range(0x110000))  # 1114112 codepoints
+            Debug(f"Started with {len(cpset)} codepoints")
+            RemoveInvalid(cpset)
+            RemoveGroups(cpset)
+            RemoveMisc(cpset)
+            RemoveNotEnglish(cpset)
+            f = open(file, "wb")
+            pickle.dump(cpset, f)
+            Debug(f"Left with {len(cpset)} valid codepoints")
+        return cpset, defaultdict(set)
     def Debug(*p, **kw):
         print(*p, **kw, file=sys.stderr)
-
     def IsASCII(s):
-        """Return True if string s is composed of all ASCII characters.
+        '''Return True if string s is composed of all ASCII characters.
         Note it returns True for the empty string.
-        """
+        '''
         return all(ord(i) < 0x80 for i in s)
-
     def flatten(listOfLists):
         "Flatten one level of nesting"
         return chain.from_iterable(listOfLists)
-
         def Usage(d, status=1):
             name = sys.argv[0]
             print(
                 dedent(
-                    f"""
+                    f'''
             Usage:  {name} [options] [output_file]
         
             -d dbg      Debug level
             -f          Force a rebuild
             -s          Set select to True
-            """[1:-1]
+            '''[1:-1]
                 )
             )
             exit(status)
-
     def ParseCommandLine(d):
         d["-d"] = 0
         d["-f"] = False
@@ -237,10 +214,7 @@ if 1:  # Utility
             elif o == "-h":
                 Usage(d)
         return args
-
-
 if 1:  # Handling the codepoints
-
     def Quotes(cpset, keep):
         def GetDoubleQuotes():
             get = ["quot", "prime"]
@@ -255,7 +229,6 @@ if 1:  # Handling the codepoints
                 "^heavy right-pointing angle",
             ]
             Extract(cpset, keep, get, remove, '"', verbose="Double quotes")
-
         def GetSingleQuotes():
             get = ["quot", "prime"]
             remove = [
@@ -270,28 +243,23 @@ if 1:  # Handling the codepoints
                 "^heavy right-pointing angle",
             ]
             Extract(cpset, keep, get, remove, "'", verbose="Single quotes")
-
         def GetBackQuote():
             get = ["grave accent", "reversed.*prime"]
             remove = ["letter", "quotation"]
             Extract(cpset, keep, get, remove, "`", verbose="Back quote")
-
         if not select:
             GetSingleQuotes()
             GetDoubleQuotes()
             GetBackQuote()
-
     def Brackets(cpset, keep):
         def GetLeftParenthesis():
             get = ["parenthesis"]
             remove = ["right", "hook", "extension", "top", "vertical"]
             Extract(cpset, keep, get, remove, "(", verbose="Left parenthesis")
-
         def GetRightParenthesis():
             get = ["parenthesis"]
             remove = ["left", "hook", "extension", "top", "vertical"]
             Extract(cpset, keep, get, remove, ")", verbose="Right parenthesis")
-
         def GetLessThan():
             get = ["less-than"]
             remove = [
@@ -310,7 +278,6 @@ if 1:  # Handling the codepoints
                 "arrow",
             ]
             Extract(cpset, keep, get, remove, "<", verbose="Less-than")
-
         def GetGreaterThan():
             get = ["greater-than"]
             remove = [
@@ -329,7 +296,6 @@ if 1:  # Handling the codepoints
                 "arrow",
             ]
             Extract(cpset, keep, get, remove, ">", verbose="Greater-than")
-
         def GetLeftBracket():
             get = ["bracket"]
             remove = [
@@ -349,7 +315,6 @@ if 1:  # Handling the codepoints
                 "z notation",
             ]
             Extract(cpset, keep, get, remove, "[", verbose="Left bracket")
-
         def GetRightBracket():
             get = ["bracket"]
             remove = [
@@ -369,7 +334,6 @@ if 1:  # Handling the codepoints
                 "z notation",
             ]
             Extract(cpset, keep, get, remove, "]", verbose="Right bracket")
-
         def GetLeftCurly():
             get = ["curly"]
             remove = [
@@ -384,7 +348,6 @@ if 1:  # Handling the codepoints
                 "top",
             ]
             Extract(cpset, keep, get, remove, "{", verbose="Left curly bracket")
-
         def GetRightCurly():
             get = ["curly"]
             remove = [
@@ -399,7 +362,6 @@ if 1:  # Handling the codepoints
                 "top",
             ]
             Extract(cpset, keep, get, remove, "}", verbose="Right curly bracket")
-
         if not select:
             GetLeftParenthesis()
             GetRightParenthesis()
@@ -409,23 +371,19 @@ if 1:  # Handling the codepoints
             GetRightBracket()
             GetLeftCurly()
             GetRightCurly()
-
     def Punctuation(cpset, keep):
         def GetApostrophe():
             get = ["apostrophe", "prime"]
             remove = ["reversed", "double", "triple", "quadruple", "letter"]
             Extract(cpset, keep, get, remove, "'", verbose="Apostrophe")
-
         def GetExclamation():
             get = ["exclamation"]
             remove = "question squared arrow".split()
             Extract(cpset, keep, get, remove, "!", verbose="Exclamation")
-
         def GetComma():
             get = ["comma"]
             remove = ["digit", "double", "letter", "quotation"]
             Extract(cpset, keep, get, remove, ",", verbose="Comma")
-
         def GetDash():
             get = ["hyphen", "dash"]
             remove = [
@@ -441,7 +399,6 @@ if 1:  # Handling the codepoints
                 "subset",
             ]
             Extract(cpset, keep, get, remove, "-", verbose="Hyphen, dash")
-
         def GetPeriod():
             get = ["stop"]
             remove = [
@@ -453,27 +410,22 @@ if 1:  # Handling the codepoints
                 "square",
             ]
             Extract(cpset, keep, get, remove, ".", verbose="Period")
-
         def GetSemicolon():
             get = ["semicolon"]
             remove = []
             Extract(cpset, keep, get, remove, ";", verbose="Semicolon")
-
         def GetColon():
             get = ["colon"]
             remove = ["semicolon", "sign", "equal", "tri"]
             Extract(cpset, keep, get, remove, ":", verbose="Colon")
-
         def GetQuestion():
             get = ["question"]
             remove = ["than", "equal", "double", "exclamation"]
             Extract(cpset, keep, get, remove, "?", verbose="Question")
-
         def GetSpace():
             get = ["space"]
             remove = ["monospace"]
             Extract(cpset, keep, get, remove, " ", verbose="Space")
-
         if not select:
             GetApostrophe()
             GetComma()
@@ -484,84 +436,68 @@ if 1:  # Handling the codepoints
             GetQuestion()
             GetSpace()
             GetExclamation()
-
     def Slash_bar(cpset, keep):
         def GetSlash():
             get = ["solidus", "slash"]
             remove = ["reverse", "back", "falling", "set", "letter"]
             Extract(cpset, keep, get, remove, "/", verbose="Slash")
-
         def GetBackslash():
             get = ["reverse solidus", "backslash"]
             remove = ["set"]
             Extract(cpset, keep, get, remove, "\\", verbose="Backslash")
-
         def GetVerticalLine():
             get = ["vertical line"]
             remove = []
             Extract(cpset, keep, get, remove, "|", verbose="Vertical line")
-
         if not select:
             GetSlash()
             GetBackslash()
             GetVerticalLine()
-
     def OtherCharacters(cpset, keep):
         def GetNumberSign():
             get = ["number sign"]
             remove = []
             Extract(cpset, keep, get, remove, "#", verbose="Number sign")
-
         def GetDollarSign():
             get = ["dollar sign"]
             remove = []
             Extract(cpset, keep, get, remove, "$", verbose="Dollar sign")
-
         def GetPercentSign():
             get = ["percent sign"]
             remove = []
             Extract(cpset, keep, get, remove, "%", verbose="Percent sign")
-
         def GetAmpersand():
             get = ["ampersand"]
             remove = []
             Extract(cpset, keep, get, remove, "&", verbose="Ampersand")
-
         def GetAsterisk():
             get = ["asterisk"]
             remove = ["two", "equal"]
             Extract(cpset, keep, get, remove, "*", verbose="Asterisk")
-
         def GetPlusSign():
             get = ["plus sign"]
             remove = ["with", "or", "equal", "set", "circle", "triangle"]
             Extract(cpset, keep, get, remove, "+", verbose="Plus sign")
-
         def GetEqualSign():
             get = ["equals sign"]
             remove = ["above", "parallel", "dot", "infinity"]
             Extract(cpset, keep, get, remove, "=", verbose="Equal sign")
-
         def GetAtSign():
             get = ["commercial at"]
             remove = []
             Extract(cpset, keep, get, remove, "@", verbose="At sign")
-
         def GetCircumflex():
             get = ["circumflex"]
             remove = ["letter", "with"]
             Extract(cpset, keep, get, remove, "^", verbose="Circumflex")
-
         def GetUnderscore():
             get = ["low line"]
             remove = ["vertical"]
             Extract(cpset, keep, get, remove, "_", verbose="Underscore")
-
         def GetTilde():
             get = ["tilde"]
             remove = "letter with vertical equal set arrow not minus".split()
             Extract(cpset, keep, get, remove, "~", verbose="Tilde")
-
         if not select:
             GetNumberSign()
             GetDollarSign()
@@ -574,7 +510,6 @@ if 1:  # Handling the codepoints
             GetCircumflex()
             GetUnderscore()
             GetTilde()
-
     def Digits(cpset, keep):
         if not select:
             for n, s in (
@@ -597,7 +532,6 @@ if 1:  # Handling the codepoints
                 ]
                 remove = "rod fraction".split()
                 Extract(cpset, keep, get, remove, n, verbose=f"{s}")
-
     def Letters(cpset, keep):
         d = "double-struck"
         # Dict for superscripts & subscripts
@@ -621,13 +555,11 @@ if 1:  # Handling the codepoints
                     verbose=f"{i.lower()}",
                     other=other,
                 )
-
     def Miscellaneous(cpset, keep):
         # Note:  set show_orig to True to print out the characters extracted
         # using regexps.
         show_orig = True
         show_orig = False
-
         def Ligatures():
             if show_orig:
                 get = ["ligature"]
@@ -638,7 +570,6 @@ if 1:  # Handling the codepoints
             else:
                 keep["oe"] = set((0xA7F9,))
                 # I've chosen to ignore the ligatures 128624 to 128627
-
         def MultipleLetters():
             if show_orig:
                 get = ["letter [A-Z]{2,2} |letter [A-Z]{2,2}$", "digraph"]
@@ -652,35 +583,30 @@ if 1:  # Handling the codepoints
                     verbose="Multiple letters",
                 )
             else:
-                s = """
+                s = '''
                     Ȣ:OU ȣ:ou Ꜩ:TZ ʪ:ls ʫ:lz ꜩ:tz Ꜳ:AA ꜳ:aa Ꜵ:AO ꜵ:ao Ꜷ:AU
                     ꜷ:au ȸ:db ꜹ:av ȹ:qp Ꜹ:AV Ꜻ:AV ꜻ:av Ꜽ:AY ꜽ:ay Ꝏ:OO ꝏ:oo
                     ꭐ:ui Ꝡ:VY ꝡ:vy ꭣ:uo ᵫ:ue Ꝭ:IS ꝭ:is ꝸ:um ᵺ:th Ǽ:AE ǽ:ae
-                """
+                '''
                 for i in s.split():
                     c, e = i.split(":")
                     keep[e].update([ord(c)])
-
         def DigitStop():
             get = ["digit.*stop"]
             remove = []
             Extract(cpset, keep, get, remove, "xxDigit_stop", verbose="Digit stop")
-
         def DigitComma():
             get = ["digit.*comma"]
             remove = []
             Extract(cpset, keep, get, remove, "xxDigit_comma", verbose="Digit comma")
-
         def QuestionExcl():
             get = ["question exclamation", "exclamation question"]
             remove = []
             Extract(cpset, keep, get, remove, "xx?!", verbose="Quest. Excl.")
-
         def Fraction():
             get = ["fraction"]
             remove = ["slash"]
             Extract(cpset, keep, get, remove, "xxFraction", verbose="Fraction")
-
         def Ring():
             other = set((0xB0, 0x2DA, 0x1424, 0x18DE, 0x2218))
             if show_orig:
@@ -691,7 +617,6 @@ if 1:  # Handling the codepoints
                 for cp in other:
                     keep["deg"].add(cp)
                 keep["."].add(0x2E30)
-
         def Interrobang():
             if show_orig:
                 get = ["interrobang"]
@@ -702,7 +627,6 @@ if 1:  # Handling the codepoints
             else:
                 for cp in (8253, 11800, 128633, 128634, 128635):
                     keep["?!"].add(cp)
-
         def Plus():
             get = []
             remove = []
@@ -744,7 +668,6 @@ if 1:  # Handling the codepoints
             Extract(cpset, keep, get, remove, "+", verbose="Plus", other=other)
             keep["++"].add(0x29FA)
             keep["+++"].add(0x29FB)
-
         def Cross():
             get = []
             remove = []
@@ -763,7 +686,6 @@ if 1:  # Handling the codepoints
                 )
             )
             Extract(cpset, keep, get, remove, "x", verbose="Cross", other=other)
-
         def Precedes():
             if show_orig:
                 get = ["precedes", "succeeds"]
@@ -773,9 +695,8 @@ if 1:  # Handling the codepoints
                 for i in "≻:> ≺:< ⪻:<< ⪼:>>".split():
                     c, e = i.split(":")
                     keep[e].update([ord(c)])
-
         def Square():
-            s = """
+            s = '''
                 ㏿:gal ㏟:A/m ㏞:V/m ㏝:Wb ㏜:Sv ㏛:sr ㏙:ppm ㏘:p.m. ㏗:pH
                 ㏖:mol ㏕:mil ㏔:mb ㏓:lx ㏒:log ㏑:ln ㏐:lm ㏏:kt ㏌:in
                 ㏋:HP ㏊:ha ㏉:GY ㏈:dB ㏇:Co. ㏆:C/kg ㏅:cd ㏄:cc ㏃:Bq
@@ -788,11 +709,10 @@ if 1:  # Handling the codepoints
                 ㎏:kg ㎎:mg ㎍:ug ㎌:uF ㎋:nF ㎊:pF ㎉:kcal ㎈:cal ㎇:GB
                 ㎆:MB ㎅:kB ㎄:kA ㎃:mA ㎂:uA ㎁:nA ㎀:pA ㍹:dm^3 ㍸:dm^2
                 ㍷:dm ㍶:pc ㍵:oV ㍴:bar ㍳:AU ㍲:da ㍱:hPa
-            """
+            '''
             for i in s.split():
                 c, t = i.split(":")
                 keep[t].add(ord(c))
-
         def Other():
             keep["||"].add(0x23F8)
             keep["c/o"].add(0x2105)
@@ -814,30 +734,29 @@ if 1:  # Handling the codepoints
             keep["::"].add(ord("∷"))
             keep[":"].add(ord("∶"))
             keep["-:"].add(ord("∹"))
-            s = """⊘:/ ⊗:x ⊖:- ⊕:+ ⊛:* ⊠:x ⊟:- ⊞:+ ⊝:- ⊜:= ∿:~ ∾:~ ∽:~ ∼:~
-                ∞:oo ∗:* ∖:\\ ∕:/ ∓:-/+ −:- ∣:| ≫:>> ≪:<< ⋙:>>> ⋘:<<<"""
+            s = '''⊘:/ ⊗:x ⊖:- ⊕:+ ⊛:* ⊠:x ⊟:- ⊞:+ ⊝:- ⊜:= ∿:~ ∾:~ ∽:~ ∼:~
+                ∞:oo ∗:* ∖:\\ ∕:/ ∓:-/+ −:- ∣:| ≫:>> ≪:<< ⋙:>>> ⋘:<<<'''
             for i in s.split():
                 c, t = i.split(":")
                 keep[t].add(ord(c))
             # Currency
-            s = """
+            s = '''
                 ₡:<Colon> ₢:<Cruzeiro> ₣:<Franc> ₤:<Lira> ₧:<Peseta>
                 ₨:<Rupee> €:<Euro> ₯:<Drachma> ₱:<Peso> ₹:<Rupee> ₽:<Ruble>
-                ₿:<Bitcoin>"""
+                ₿:<Bitcoin>'''
             for i in s.split():
                 c, t = i.split(":")
                 keep[t].add(ord(c))
             # Modifiers
-            s = """
+            s = '''
                 ʰ:h ʱ:h ʲ:j ʳ:r ʴ:r ʵ:r ʶ:R ʷ:w ʸ:y ʹ:' ʺ:" ʻ:' ʼ:' ʽ:' ˂:<
                 ˃:> ˄:^ ˅:v ˆ:^ ˈ:| ˊ:' ˋ:` ˌ:| ˍ:_ ˎ:' ˏ:` ˖:+ ˗:- ˜:~ ˝:"
-                ˟:x ˡ:l ˢ:s ˣ:x ˮ:" ˴:` ˵:`` ˶:" ˷:~ ꜝ:! ꜞ:! ꜟ:!"""
+                ˟:x ˡ:l ˢ:s ˣ:x ˮ:" ˴:` ˵:`` ˶:" ˷:~ ꜝ:! ꜞ:! ꜟ:!'''
             for i in s.split():
                 c, t = i.split(":")
                 keep[t].add(ord(c))
             keep[":"].add(ord("ː"))
             keep[":"].add(ord("˸"))
-
         if not select:
             Ligatures()
             MultipleLetters()
@@ -852,20 +771,16 @@ if 1:  # Handling the codepoints
             Precedes()
             Square()
             Other()
-
-
 if 1:  # Core functions
-
     def Check(cpset, keep):
-        """Verify there's no overlap between the sets in keep."""
+        '''Verify there's no overlap between the sets in keep.'''
         for a, b in combinations(keep, 2):
             setA, setB = keep[a], keep[b]
             assert not (setA & setB)
             assert not (cpset & setA)
             assert not (cpset & setB)
-
     def GetAliases(cp):
-        """Return a list of the aliases of the indicated codepoint."""
+        '''Return a list of the aliases of the indicated codepoint.'''
         if not ucd:
             return []
         try:
@@ -879,15 +794,14 @@ if 1:  # Core functions
             for a in ucd["aliases"][cp]:
                 aliases.append(a["alias"])
         return aliases
-
     def Get(cpset, build, remove, other=None):
-        """Return (local, remove_set) where local is the set of characters
+        '''Return (local, remove_set) where local is the set of characters
         described by the sequence of regular expressions in build and
         remove_set is the set of characters in local that were removed
         because they matched the regular expressions in the sequence remove.
         Any characters in local must not be in the dictionary decomp because
         they have already been handled.
-        """
+        '''
         assert isinstance(cpset, set)
         assert isinstance(build, (list, tuple))
         assert isinstance(remove, (list, tuple))
@@ -924,9 +838,8 @@ if 1:  # Core functions
             local.update(other)
         local -= remove_set
         return local, remove_set
-
     def Extract(cpset, keep, build, remove, key, verbose="", other=None):
-        """For the set of codepoints cpset, put the subset defined by build
+        '''For the set of codepoints cpset, put the subset defined by build
         and remove into the keep dictionary under the indicated key.
             cpset    set of codepoints
             keep     dict{key:set(equivalent_codepoints)}
@@ -934,14 +847,14 @@ if 1:  # Core functions
             remove   list[regex]:  remove these matches from build
             key      single character
         keep[key] = build - remove
-
+        
         other is a set of characters that should be kept but aren't easy to
         find with regex searches.
-
+        
         If verbose is not the empty string and dbg is True, it is printed
         out as a header, then the removed and kept sets are printed, along
         with keep: keep[key].  This lets you see what's kept & not.
-        """
+        '''
         assert isinstance(key, str)
         assert isinstance(verbose, str)
         local, remove_set = Get(cpset, build, remove, other=other)
@@ -971,9 +884,8 @@ if 1:  # Core functions
                     n = ", ".join(f"0x{i:x}" for i in sorted(local))
                     print(f"    {key}\t[{n}]", file=stream)
                     print(file=stream)
-
     def Decompose(char):
-        """Return the decomposed string or '' if there is no suitable one."""
+        '''Return the decomposed string or '' if there is no suitable one.'''
         # Make a dictionary to translate some of the strings like "⁄"
         T = {
             0x2044: "/",
@@ -1010,13 +922,12 @@ if 1:  # Core functions
         elif char in set("℉℃₨"):
             return ""
         return s
-
     def Decomp(cpset, decomp):
-        """Use decomposition to construct conversions.  decomp is a
+        '''Use decomposition to construct conversions.  decomp is a
         dictionary to store the codepoints and their conversions in.
-
+        
         Example:  '🆐' (0x1f190) decomposes to 'DJ'
-        """
+        '''
         remove = set()
         for cp in sorted(cpset, reverse=1):
             if cp < 0x80:
@@ -1026,7 +937,6 @@ if 1:  # Core functions
                 decomp[cp] = t
                 remove.add(cp)
         cpset -= remove
-
     def GetTranslations():
         cpset, keep = GetWorkingSet()
         Decomp(cpset, decomp)
@@ -1045,28 +955,20 @@ if 1:  # Core functions
         # Output data
         MakeScript("asciify.script", keep)
         MakeTestFile("asciify.test", keep)
-
-
 if 1:  # Make the files
-
     def MakeScript(file, keep):
-        """Write the kept data in a form suitable for a python script's
+        '''Write the kept data in a form suitable for a python script's
         str.translate use.
-        """
+        '''
         f = open(file, "w")
-        print(
-            dedent(
-                f"""
+        print(dedent(f'''
         # Constructed {time.asctime()} by {sys.argv[0]}
     
         # This dictionary can be used by str.translate to "asciify" Unicode
         # text by converting non-7-bit Unicode characters to their (rough)
         # ASCII equivalents.
     
-        ascii_translate = {{"""[1:]
-            ),
-            file=f,
-        )
+        ascii_translate = {{'''[1:]), file=f)
         s = []
         for c in keep:
             for cp in keep[c]:
@@ -1075,28 +977,22 @@ if 1:  # Make the files
             s.append((cp, repr(decomp[cp])))
         for cp, c in sorted(s):
             print(f"    0x{cp:x}: {c},", file=f)
-        print(
-            dedent(
-                f"""
+        print(dedent(f'''
         }}
         if __name__ == "__main__": 
             import sys
             s = sys.stdin.read()
             print(s.translate(ascii_translate))
-        """[1:]
-            ),
-            file=f,
-        )
+        '''[1:]), file=f)
         print(f"Wrote '{file}'", file=sys.stderr)
-
     def MakeTestFile(file, keep):
-        """This function writes the data in keep to file, which can be used
+        '''This function writes the data in keep to file, which can be used
         to test the transliteration facilities.  The output format is the
         key ASCII character, followed by a tab, followed by the Unicode
         characters that should be mapped to it.  After the transliteration,
         the line should contain all the same characters with one tab
         character.
-        """
+        '''
         f = open(file, "w")
         for key in decomp:
             keep[decomp[key]].add(key)
@@ -1104,7 +1000,6 @@ if 1:  # Make the files
             u = "".join([chr(i) for i in keep[key]])
             print(f"{key}\t{u}", file=f)
         print(f"Wrote '{file}'", file=sys.stderr)
-
 
 if __name__ == "__main__":
     d = {}  # Options dictionary

@@ -1,5 +1,23 @@
 Active:  /plib/.todo
 
+    - pgm/ds.py
+        - This is a tool I use a lot.  I'd like indexing to be fast (it sucks under WSL,
+          so I have to do it under cygwin).  See if there's some way to fix this.  I'm
+          beginning to believe it doesn't make sense to run WSL anymore and I'll look at 
+          a new small Linux box made from the computer Dave is sending me late Apr 2025
+          for machining his coherer brass pieces for him.
+        - For each "root" directory of a project, allow a .dsignore file that is exactly
+          like a .gitignore file, which gives regular expressions on those things to
+          ignore.  Example:  in my ebooks directory, I'd like all the vimscript
+          directories and files to be ignored.
+        - Need a feature to define default documents so they open on the first search.
+            - Example:  I have 3 versions of the HP427A manual:  1970, 1972, 1983.  The 1983 one
+              covers my instrument best, but it can take time to render in Sumatra.  I'd like to
+              define the 1972 version as the one to open by default, but e.g. use the -e option to
+              let me see all the options if I don't want the default.  When the default is used,
+              print a message to stdout that this happens so that the user knows there's more to
+              see.
+
     - poly.py
         - Print out dimensions/formulas for common regular polygons
         - Print r, R, and r+R for odd n's
@@ -220,15 +238,6 @@ Active:  /plib/.todo
 
             for i in P("/plib").glob("**/*.py"):
                 dq = get.Tokenize(open(i).read())
-
-    - pgm/ds.py
-        - Need a feature to define default documents so they open on the first search.
-            - Example:  I have 3 versions of the HP427A manual:  1970, 1972, 1983.  The 1983 one
-              covers my instrument best, but it can take time to render in Sumatra.  I'd like to
-              define the 1972 version as the one to open by default, but e.g. use the -e option to
-              let me see all the options if I don't want the default.  When the default is used,
-              print a message to stdout that this happens so that the user knows there's more to
-              see.
 
     - pgm/rms.py
         - Numerical aid to dealing with various functionals used to measure voltage:  RMS, ACCRMS,
@@ -691,6 +700,8 @@ Active:  /plib/.todo
         - Include a bidict to get UK-American word spellings
 
     - wordparse.py
+        - The basic script needs to be finished and the documentation completed, as it's
+          not clear to me what its basic purpose is.
         - Tokenize a file and apply heuristics to get rid of things like '*italic*',
           '[GitHub](http://github.com)', etc.  This would for example be someone's markdown dialect.
           Then the remaining text can be evaluated for readability.  Also remove common

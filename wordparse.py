@@ -1,18 +1,31 @@
-"""
+'''
 Todo
+    - This is unfinished and it's not clear to me what it's original purpose was.
+      Develop this before going further.  It could be that I intended for it to get all
+      complete words from the many ASCII text files I have, including hyphenated words
+      and possessive forms.
+        - Use PnP as a test file, as if it has each space replaced by a newline, you'll
+          get tokens like '_me_--it' where the underscores imply underlining and the
+          '--' implies an em-space.  Another is '_mine_."', where the double quotes are
+          very common in conversation.  Another is <"'Tis>, where the " is the start of
+          a quote and 'Tis is a contraction.
+        - The analysis of such things could require an annotated dump of all such tokens
+          by printing the string to the console in color and to the right giving a
+          suitable concordance showing the token's context with the token underlined or
+          highlighted.
+
     - Add option to replace punctuation (except ' for contractions) in
       words with spaces before splitting.
         - -p replaces punctuation except ' and single - (thus keeping
           contractions and hyphenations)
         - -P replaces all punctuation
     - Make columnization an option
-
+    
 Provides WordParse(string) to get a list of words in the string.
 
 Run as a script to print a set of the words in the files given on the
 command line.
-"""
-
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -31,29 +44,24 @@ if 1:  # Header
         from collections import deque
         import getopt
         import os
-        from pathlib import Path as P
         import re
         import string
         import sys
     if 1:  # Custom imports
         from asciify import Asciify
         from wrap import dedent
-        from color import t
-        from columnize import Columnize
     if 1:  # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
         punc = set(string.punctuation)
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options] file1 [file2...]
           Print out the words in the indicated text files.  Use "-" to read
           from stdin.  
@@ -61,12 +69,11 @@ if 1:  # Utility
             -a      Do not asciify the input text
             -P      Replace all punctuation with space characters
             -p      Same as -P except for ' and -
-        """)
+        ''')
         )
         exit(status)
-
     def ParseCommandLine(d):
-        d["-a"] = True  # Do not asciify the text
+        d["-a"] = True   # Do not asciify the text
         d["-P"] = False  # Replace all punctuation with space
         d["-p"] = False  # Replace punc except ' and single -
         try:
@@ -82,10 +89,7 @@ if 1:  # Utility
         if not args:
             Usage()
         return args
-
-
 if 1:  # Core functionality
-
     def FixWord(word):
         "Remove leading and trailing punctuation"
         dq = deque(word)
@@ -124,11 +128,10 @@ if 1:  # Core functionality
                     ndq.append(c)
             dq = ndq.copy()
         return "".join(dq)
-
     def WordParse(s, ic=False):
-        """Returns a set of words from the string s.
+        '''Returns a set of words from the string s.
         ic      Ignore case if True
-        """
+        '''
         if ic:
             s = s.lower()
         words = set(s.split())
@@ -138,11 +141,10 @@ if 1:  # Core functionality
             if word:
                 new_words.add(word)
         return new_words
-
     def FixFile(s):
-        """s is the string read from a file.  Do the needed fix-ups and
+        '''s is the string read from a file.  Do the needed fix-ups and
         return a set of words from the string.
-        """
+        '''
         s1 = Asciify(s) if d["-a"] else s
         # Substitute ' ' for most punctuation characters except ' . -
         p = (
@@ -181,11 +183,8 @@ if 1:  # Core functionality
                     wrds.remove(i)
         return wrds
 
-
-if 0:
-    exit()
-
 if __name__ == "__main__":
+    from dpstr import KeepFilter
     d = {}  # Options dictionary
     files = ParseCommandLine(d)
     words = set()
@@ -196,10 +195,7 @@ if __name__ == "__main__":
             s = open(file).read()
         wrds = FixFile(s)
         words.update(wrds)
-    if 1:
-        from dpstr import KeepFilter
-        from abbreviations import IsAbbreviation
-
+    if 0:
         f = KeepFilter("'.-")
         words = filter(f, words)
     for i in sorted(words):
