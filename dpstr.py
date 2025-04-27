@@ -22,6 +22,7 @@ String utilities
     GetTrailingChars Return trailing characters of a string
     GetTransFunc     Return a function that translates strings
     GetString        Return string from user that matches choices
+    IgnoreFilter     Return a function which removes ignored strings
     IsASCII          Return True if string is all ASCII characters
     Keep             Return items in sequence that are in keep sequence
     KeepFilter       Returns a function that keeps a set of items in a sequence
@@ -942,6 +943,38 @@ if 1:  # Core functionality
             none = [None] * len(chars)
             RemoveASCII.table = "".maketrans(dict(zip(chars, none)))
         return s.translate(RemoveASCII.table)
+    def IgnoreFilter(regex_seq, ignore_case=False):
+        '''Return a function which removes ignored strings.  regex_seq is a sequence of
+        regular expressions that should be ignored.  Set ignore_case to True to ignore
+        case in the matching.
+        
+        The intent of this filter is to provide functionality like the .gitignore file
+        in a git repository:  any filename in the repository that matches a line in the
+        .gitignore file is ignored by git.
+        
+        Example:
+            f = IgnoreFilter(["bob", "carol"])
+            seq = [
+                "Bob",
+                "bob",
+                "bobwhite",
+                "Carol",
+                "carol",
+                "Alice"
+            ]
+            f(seq) returns ["Bob", "Carol", "Alice"].
+        '''
+        # Compile the regular expressions
+        regexes = []
+        for regex in regex_seq:
+            regexes.append(re.compile(regex, re.I if ignore_case else 0))
+        # Bundle them into a closure
+        def f(seq):
+            results = seq.copy()
+            for regex in regexes:
+                results = filterfalse(regex.search, results)
+            return list(results)
+        return f
     def IsASCII(s):
         '''Return True if string s is all ASCII characters.  This means the
         string only consists of characters chr(0x0) to chr(0x7e) inclusive.
@@ -1091,12 +1124,24 @@ if 1:  # Core functionality
         def f(s):
             return s.translate(tt)
         return f
+
 if __name__ == "__main__":
     from lwtest import run, raises, Assert
     import math
     import os
     from sig import sig
     from color import TRM as t
+    def Test_IgnoreFilter():
+        seq = [ "Bob", "bob", "bobwhite", "Carol", "carol", "Alice" ]
+        # Empty sequence is identity function
+        f = IgnoreFilter([])
+        Assert(f(seq) == seq)
+        # Don't ignore case
+        f = IgnoreFilter(["bob", "carol"])
+        Assert(f(seq) == ['Bob', 'Carol', 'Alice'])
+        # Ignore case
+        f = IgnoreFilter(["bob", "carol"], ignore_case=True)
+        Assert(f(seq) == ['Alice'])
     def Test_GetTransFunc():
         From = '''Mr. Dee, a, a--b; 'z' and "a", ok.'''
         expected = '''r  Dee  a  a  b   z  and  a   ok '''

@@ -1,6 +1,18 @@
 '''
 
 ToDo
+    - Dealing with bloat and ignoring things
+        - Each 'root' directory that is indexed can have a .dsignore file that is used
+          like a .gitignore file to provide regular expressions to ignore in the
+          indexing.
+            - Canonical example:  In /ebooks, using the search term 'hard' gives about
+              60 files associated with "Learn Vimscript the Hard Way" and I don't care
+              to see this listing of files, but I don't want to delete the directory.
+              Thus, a perfect .dsignore line would be "vimscript_book", which would
+              match on the prog/vimscript_book directory and not include such things.
+    - Get rid of the pickling code, as I'll always store the file names as a simple text
+      file
+              
     - Add -o option to OR the regexps together rather than ANDing them
     - Add the ability to open a set of PDFs with a keyword.  For example, if I get the HP 54645D
       MOS and use it with the 54659B module, I'd want them to be opened, along with the manual for
@@ -11,21 +23,20 @@ ToDo
     - My storage directories like /ebooks are bloated.  To keep things but allow me to see fewer
       selections, change this program so that older stuff can be moved to a directory named 'old'.
       Then this script will not enter and index such a directory.
-
+      
 Open a document file
     File is opened if it's the only match to the regexp on the command
     line.  Otherwise print out the matches.  Example:
-
+    
         ds 3456
-
+        
     will prompt you for manuals/datasheets/catalogs that contain the
     string 3456.
-
+    
     Current --exec options support datasheets (ds), ebooks (eb), and HP
     Journal articles (hpj).  For the HP Journal stuff, use the -j
     option.
 '''
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -63,40 +74,44 @@ if 1:  # Header
         from color import t
         import util
     if 1:  # Global variables
-
         class G:  # Storage for global variables as attributes
             pass
-
         g = G()
         g.dbg = False
         t.dbg = t("lill") if g.dbg else ""
         t.N = t.n if g.dbg else ""
-        # If the following is True, pickle the datafiles.  Comment:  the datafiles are a set of
-        # file names, so in reality the easiest way to store the data is as a list of files, one
-        # file per line.  This lets the thing be edited if needed.
-        g.pickle = False
         # app to open a file with registered application
         if wsl:
             g.app = "explorer.exe"  # Linux under WSL
         else:  # Windows
             g.app = "d:/cygwin64/bin/cygstart.exe"
-        # Index files hold the files to be searched.  These are stored in files
-        # because caching on my system doesn't work well for the d:/ drive.  Indexing performs well
-        # in cygwin, but is 5-10 times slower under WSL when indexing the Windows file system.
-        # The index files used to be stored in /plib/pgm, but 26 Feb 2024 I decided to store them
-        # in the directories themselves.  I also removed the BK stuff.
-        g.index_files = {
-            # "bk": "/plib/pgm/ds.bk.index",
-            "ds": "/manuals/ds.ds.index",
-            "mn": "/manuals/ds.mn.index",
-            "eb": "/ebooks/ds.eb.index",
-            "hpj": "/ebooks/hpj/ds.hpj.index",
-        }
+        if 1:   # Index files
+            # Index files hold the files to be searched.  These are stored in files
+            # because caching on my system doesn't work well for the d:/ drive.
+            # Indexing performs well in cygwin, but is 5-10 times slower under WSL when
+            # indexing the Windows file system.  The index files used to be stored in
+            # /plib/pgm, but 26 Feb 2024 I decided to store them in the directories
+            # themselves.
+            g.index_files = {
+                "ds": "/manuals/ds.ds.index",
+                "mn": "/manuals/ds.mn.index",
+                "eb": "/ebooks/ds.eb.index",
+                "hpj": "/ebooks/hpj/ds.hpj.index",
+            }
+        if 1:   # Ignore files
+            # Ignore files are analogous to .gitignore files; they contain regular
+            # expressions used to define the files that should be ignored, one regular
+            # expression per line.
+            g.ignore_files = {
+                "ds": "/manuals/ds.ds.ignore",
+                "mn": "/manuals/ds.mn.ignore",
+                "eb": "/ebooks/ds.eb.ignore",
+                "hpj": "/ebooks/hpj/ds.hpj.ignore",
+            }
         # Colors for output
         t.dir = t("sky")  # Contrast for directory portion
         t.match = t("ornl")  # Color for matches
 if 1:  # Utility
-
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="", file=Dbg.file)
@@ -104,13 +119,10 @@ if 1:  # Utility
             k["file"] = Dbg.file
             print(*p, **k)
             print(f"{t.N}", end="", file=Dbg.file)
-
     Dbg.file = sys.stderr  # Debug printing to stderr by default
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(d, status=1):
         name = sys.argv[0]
         name = d["--exec"]
@@ -129,7 +141,7 @@ if 1:  # Utility
           -j    Search HP Journal and Bench Brief files (note:  consider
                 using the hpj.py script for such searches)
           -k    Regex is a keyword; open the associated docs
-          -x    Generate the index (print debug info)
+          -x    Same as -I
         Long options
           --exec n
             Name of index file for usage statement.  Choices are:
@@ -137,7 +149,6 @@ if 1:  # Utility
         ''')
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-I"] = d["-x"] = False  # If True, then generate indexes
         d["-i"] = False  # If True, then case-sensitive search
@@ -159,8 +170,7 @@ if 1:  # Utility
             elif o == "-h":
                 Usage(d, 0)
         if d["-I"] or d["-x"]:
-            if d["-x"]:
-                g.dbg = True
+            g.dbg = True
             GenerateIndexFiles(d)
         if d["-j"]:
             d["--exec"] = "hpj"
@@ -169,10 +179,7 @@ if 1:  # Utility
         if d["-k"]:  # Open files indicated by keyword
             OpenByKeyword(*args)
         return args
-
-
 if 1:  # Core functionality
-
     def GenerateIndexFiles(d):
         "Generate all of the index files at once"
         # On 26 Feb 2024, I decided to 1) stop using pickling and just store the filenames in the
@@ -189,22 +196,16 @@ if 1:  # Core functionality
             .zip .bak
         '''.split()
         )
-
         def DumpIndexFile(name, df):
-            if g.pickle:
-                with open(name, "wb") as fp:
-                    pickle.dump(df.files, fp)
-            else:
-                with open(name, "w") as fp:
-                    for i in sorted(df.files):
-                        if i.name in name_ignore or i.suffix in suffix_ignore:
-                            continue
-                        s = str(i)
-                        # WSL puts on an unneeded mount point which will foul up cygwin
-                        if s.startswith("/mnt/d"):
-                            s = s.replace("/mnt/d", 1)
-                        fp.write(f"{s}\n")
-
+            with open(name, "w") as fp:
+                for i in sorted(df.files):
+                    if i.name in name_ignore or i.suffix in suffix_ignore:
+                        continue
+                    s = str(i)
+                    # WSL puts on an unneeded mount point which will foul up cygwin
+                    if s.startswith("/mnt/d"):
+                        s = s.replace("/mnt/d", 1)
+                    fp.write(f"{s}\n")
         et = flt(0)
         if 0:  # B&K
             Dbg("Indexing B&K:", end="  ")
@@ -259,7 +260,6 @@ if 1:  # Core functionality
             DumpIndexFile(g.index_files["hpj"], df)
         print(f"Indexing time = {GetET(et)}")
         exit(0)
-
     def GetChoices(matches):
         '''Return a set of integers representing the user's choices.'''
         while True:
@@ -274,7 +274,6 @@ if 1:  # Core functionality
             s = " ".join([str(i) for i in not_found])
             print(f"Selections not found:  {s}")
         return found
-
     def OpenFile(app, matches, choice):
         "Open indicated choice (subtract 1 first)"
         file = matches[choice - 1][0]
@@ -298,10 +297,8 @@ if 1:  # Core functionality
                 )
             else:
                 subprocess.run([app, file])
-
     def OpenFile1(file):
         r = subprocess.run(f"/home/don/.0rc/bin/expl {file}", shell=True)
-
     def PrintMatch(num, path, start, end, d):
         '''For the match in path, print things out in the appropriate colors.
         Note start and end are the indices into just the file part of the
@@ -314,13 +311,11 @@ if 1:  # Core functionality
         print(f"{t.dir}{dir}{t.n}", end="")
         print(file[:start], end="")
         print(f"{t.match}{file[start:end]}{t.n}{file[end:]}")
-
     def PrintChoices(matches, d):
         print("Choose which file(s) to open:")
         for num, data in enumerate(matches):
             file, mo = data
             PrintMatch(num + 1, file, mo.start(), mo.end(), d)
-
     def GetMatches(regexps):
         "regexps are the regexes on the command line; AND them together"
         flag = 0 if d["-i"] else re.I  # Ignore case unless d["-i"] is True
@@ -359,16 +354,11 @@ if 1:  # Core functionality
         # Change matches to [path_string, match_object]
         matches = [(str(i[0]), i[1]) for i in matches]
         return matches
-
     def ReadIndexFile(d):
         'Read the index file keyed by d["--exec"]'
         key = d["--exec"]
-        if g.pickle:
-            with open(g.index_files[key], "rb") as fp:
-                d["files"] = pickle.load(fp)
-        else:
-            with open(g.index_files[key], "r") as fp:
-                d["files"] = set(fp.read().split("\n"))
+        with open(g.index_files[key], "r") as fp:
+            d["files"] = set(fp.read().split("\n"))
         # Set d["root"] which is the files' prefix to remove
         root = {
             "bk": "/manuals/manuals",
@@ -378,6 +368,13 @@ if 1:  # Core functionality
             "mn": "/manuals",
         }
         d["root"] = root[key]
+        # Using the ds.*.ignore file, remove the files to be ignored
+        try:
+            with open(g.ignore_files[key], "r") as fp:
+                d["ignore"] = set(fp.read().split("\n"))
+        except Exception:
+            breakpoint() #xx
+            pass
 
     def OpenMatches(matches, d):
         '''Each match item will be (full_filename, match_object) where
@@ -392,10 +389,7 @@ if 1:  # Core functionality
             OpenFile(g.app, matches, 0)
         else:
             print("No matches")
-
-
 if 1:  # Open by keyword
-
     def OpenByKeyword(*args):
         man = "/manuals/manuals/"
         files = {
@@ -423,8 +417,6 @@ if 1:  # Open by keyword
                 for file in files[keyword]:
                     util.ShowFile(file)
         exit(0)
-
-
 if __name__ == "__main__":
     d = {  # Options dictionary
         "--exec": "ds",
