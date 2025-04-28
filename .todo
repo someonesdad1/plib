@@ -162,23 +162,6 @@ Active:  /plib/.todo
           a way to get speedups in other programs.
         - See dev/scrdatafile.py below
 
-    - root.py
-        - Why are RootFinder and Crenshaw present?  RootFinder is Jack's algorithm, so
-          is the Crenshaw function obsolete?  I believe the Crenshaw routine is a
-          slightly updated form that used Jack's observation that the routine would
-          often converge to a solution better than what you asked for.  This should be
-          the standard routine.
-            - I'd like RootFinder to be the general purpose tool.  It should have a
-              dbgstream argument to let you see convergence like Crenshaw does.
-        - Running root.py is interesting, as it solves cos(x) - x and displays the
-          number of steps and elapsed time.  Bisection takes 10 times as many steps as
-          the others, but is within about a factor of 2 in speed.  Crenshaw for some
-          reason is slow and its time tends to have more variance.  Ridders and kbrent
-          seem to be consistently the fastest.
-        - This was written before closures existed in python; it should be rewritten to
-          take advantage of them.  Example is GetVrefFunction() in pgm/diode.py which
-          returns a closure to use by the rootfinder.
-
     - Python lex-yacc by Beazley
         - See ch 191 in PythonNotesForProfessionals.pdf pg 788
         - Link broken; use https://github.com/dabeaz/ply
