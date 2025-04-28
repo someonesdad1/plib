@@ -1,10 +1,9 @@
-"""
+'''
 
 Todo
     - TestBracketRoots doesn't follow stated plan
-
-"""
-
+    
+'''
 import cmath
 import debug
 import math
@@ -12,42 +11,21 @@ import numbers
 import sys
 from decimal import Decimal, getcontext
 from random import uniform, seed
-
-from root import (
-    BracketRoots,
-    Brent,
-    CubicEquation,
-    FindRoots,
-    Bisection,
-    Ridders,
-    NewtonRaphson,
-    QuarticEquation,
-    RootFinder,
-    Pound,
-    QuadraticEquation,
-    SearchIntervalForRoots,
-    Crenshaw,
-    kbrent,
-    Ostrowski,
-)
+from root import (Bisection, BracketRoots, CubicEquation, FindRoots, kbrent,
+    NewtonRaphson, Ostrowski, Pound, QuadraticEquation, QuarticEquation, Ridders,
+    RootFinder, SearchIntervalForRoots)
 from lwtest import run, assert_equal, raises, Assert
 from pdb import set_trace as xx
-
 if 1:
     debug.SetDebugger()
-
 have_pylab = False
 if 1:
     try:
         import pylab as pl
-
         have_pylab = len(sys.argv) > 1
     except ImportError:
         pass
-
 eps = 2e-15  # For testing float equality
-
-
 def TestQuadratic():
     # Exception if not quadratic
     raises(ValueError, QuadraticEquation, *(0, 1, 1))
@@ -75,8 +53,6 @@ def TestQuadratic():
     r1, r2 = QuadraticEquation(1, 3 - 3j, 10 - 54j)
     assert_equal(r1, (3 + 7j))
     assert_equal(r2, (-6 - 4j))
-
-
 def TestCubic():
     # Exception if not cubic
     raises(ValueError, CubicEquation, *(0, 1, 1, 1))
@@ -98,8 +74,6 @@ def TestCubic():
         # because one test case results in -0-1j vs. -1j, which results
         # in a failure -- but the numbers are numerically equal.
         Assert(i == k)
-
-
 def TestQuartic():
     # Exception if not cubic
     raises(ValueError, QuarticEquation, *(0, 1, 1, 1, 1))
@@ -118,28 +92,24 @@ def TestQuartic():
     # Two real roots: x*(x-1)*(x-j)*(x+j)
     for i, k in zip(QuarticEquation(1, -1, 1, -1, 0), (-1j, 1j, 0j, 1)):
         assert_equal(i, k)
-
-
 def TestRootFinder():
-    """Here's a quick test of the routine.  The function is
+    '''Here's a quick test of the routine.  The function is
     the polynomial x^8 - 2 = 0; we should get as an answer the
     8th root of 2.  You should see the following output if
     show is nonzero:
-
+    
     Calculated root = 1.090507732665258
     Correct value   = 1.090507732665258
     Num iterations  = 9
-
+    
     Calculated root = 1.090507732665257659207010655760707978993
     Correct value   = 1.090507732665258
     Num iterations  = 14
-
+    
     The long answer can be checked with integer arithmetic.
-    """
-
+    '''
     def f(x):
         return x**8 - 2
-
     eps = 1e-10
     itmax = 20
     x0 = 0.0
@@ -152,12 +122,10 @@ def TestRootFinder():
     x0, x1 = Decimal(0), Decimal(10)
     root, numits = RootFinder(x0, x1, f, eps=eps, itmax=itmax, fp=Decimal)
     assert_equal(root**8, 2, reltol=eps)
-
     # Call a function that uses extra arguments
     def f(x, a, **kw):
         b = kw.setdefault("b", 8)
         return x**b - a
-
     eps = 1e-10
     itmax = 20
     x0 = 0.0
@@ -169,8 +137,6 @@ def TestRootFinder():
     a, b = 3, 7
     root, numits = RootFinder(x0, x1, f, eps=eps, itmax=itmax, args=[a], kw={"b": b})
     assert_equal(root, math.pow(a, 1 / b), reltol=eps)
-
-
 def TestFindRoots():
     # Show that FindRoots can do a reasonable job for a
     # polynomial.  Note the particular results are sensitive to
@@ -196,11 +162,9 @@ def TestFindRoots():
     assert_equal(r[0], 1)
     assert_equal(r[1], 2)
     assert_equal(r[2], 3)
-
     # Same as previous, but with a keyword parameter
     def f(x, a=1):
         return math.sin(a * x) / (a * x)
-
     r = FindRoots(f, n, x1, x2, kw={"a": 1}, eps=eps)
     assert_equal(r[0], 1 * math.pi)
     assert_equal(r[1], 2 * math.pi)
@@ -209,13 +173,10 @@ def TestFindRoots():
     assert_equal(r[0], 1)
     assert_equal(r[1], 2)
     assert_equal(r[2], 3)
-
-
 def TestPound():
-    """Pound(z) returns a pure real or imaginary if z is close enough to
+    '''Pound(z) returns a pure real or imaginary if z is close enough to
     the real or imaginary axis.
-    """
-
+    '''
     def test1():
         Assert(Pound(0, True) == 0)
         Assert(Pound(1 + 1j, True) == 1 + 1j)
@@ -248,7 +209,6 @@ def TestPound():
             b = Pound(z)
             Assert(b == expected)
             Assert(isinstance(b, t))
-
     def test2():
         epsilon = 2.5e-15
         eps = 0.99 * float(epsilon)
@@ -278,19 +238,14 @@ def TestPound():
         x = 1 + 1j
         Assert(Pound(x, 0) == x)
         Assert(Pound(x, 1) == x)
-
     test1()
     test2()
-
-
 def TestNewtonRaphson():
     # Find the root of f(x) = tan(x) - 1 for 0 < x < pi/2.
     f = lambda x: math.tan(x) - 1
     fd = lambda x: 1 / math.cos(x) ** 2
     x = NewtonRaphson(f, fd, 0.5, eps=eps)
     assert_equal(x, math.atan(1), reltol=1e-15)
-
-
 def TestSearchIntervalForRoots():
     # Find an interval containing the root of f(x) = tan(x) -
     # 1 for 0 < x < pi/2.
@@ -303,15 +258,13 @@ def TestSearchIntervalForRoots():
     intervals = SearchIntervalForRoots(f, 1000, x1, x2)
     for start, end in intervals:
         Assert(start <= answer <= end)
-
-
 def TestBracketRoots():
-    """The polynomial p(x) = (x-1)*(x-10)*(x+10) has
+    '''The polynomial p(x) = (x-1)*(x-10)*(x+10) has
     three roots.  Thus f(x) = exp(p(x)) - 1 will be zero when
     p(x) is zero.  Use BracketRoots() to find the x = 1 root.
     Also demonstrate that it will exceed the iteration limit
     if the interval doesn't include any of the roots.
-    """
+    '''
     r1, r2, r3 = 1000, -500, 500
     f = lambda x: (x - r1) * (x - r2) * (x + r3)
     r = BracketRoots(f, -2, -1)
@@ -319,22 +272,6 @@ def TestBracketRoots():
     # Demonstate iteration limit can be reached
     f = lambda x: x - 1000000
     raises(StopIteration, BracketRoots, f, -2, -1, itmax=10)
-
-
-def TestBrent():
-    # Find the root of f(x) = tan(x) - 1 for 0 < x < pi/2.
-    f = lambda x: math.tan(x) - 1
-    eps = 1e-8
-    x, numits = Brent(0, 1, f, eps=eps)
-    Assert(abs(x - math.atan(1)) < 2 * eps)
-    # Find the roots of a quadratic
-    r = 5
-    f = lambda x: (x - 1) * (x - r)
-    eps = 1e-8
-    x, numits = Brent(r - 1, r + 1, f, eps=eps)
-    Assert(abs(x - r) < eps)
-
-
 def TestBisection():
     # Root of x = cos(x); it's 0.739085133215161 as can be found easily
     # by iteration on a calculator.
@@ -356,8 +293,6 @@ def TestBisection():
     # Note setting switch to True will cause an exception for this
     # case.
     raises(ValueError, Bisection, 0, 2.1 * t, f, eps=eps, switch=True)
-
-
 def TestRidders():
     # Root of x = cos(x); it's 0.739085133215161 as can be found easily
     # by iteration on a calculator.
@@ -376,35 +311,34 @@ def TestRidders():
     eps = 1e-10
     root, numit = Ridders(0, 2.1 * t, f, eps=eps)
     Assert(abs(root - t) <= eps)
-
-
 def TestGeneralRootFinding(show=(len(sys.argv) > 1)):
-    """This test case uses each of the root finding functions to test a
+    '''This test case uses each of the root finding functions to test a
     practical example of finding the square root of numbers over a wide
     floating point range.  The desire is to have convergence to the
     correct value within a relative tolerance of 1e-6, which should fit
     the needs for most any numerical calculation based on
     physically-measured data.
-    """
+    '''
     eps = 1e-6
-    fd = lambda x: 1 / (2 * x**0.5)
+    fd = lambda x: 1/(2*x**0.5)
     # The stopping point is 10**(308//2) because this is about the square
     # root of largest floating point number.  Note some of the routines
     # won't converge over this full range.
     seed(0)
     e, bi, cr, rf, Br, kb, ri = [], [], [], [], [], [], []
-    for i in range(308 // 2):
+    for i in range(308//2):
         e.append(i)
         val = float(10**i)
         sr0 = math.sqrt(val)
-        a, b = sr0 * (1 - uniform(0, 0.2)), sr0 * (1 + uniform(0, 0.2))
-        f = lambda x: x * x - val
+        a, b = sr0*(1 - uniform(0, 0.2)), sr0*(1 + uniform(0, 0.2))
+        f = lambda x: x*x - val
         sr, n = Bisection(a, b, f, eps=eps)
         bi.append("%3d " % n)
         assert_equal(sr0, sr, reltol=eps)
-        sr, n = Crenshaw(a, b, f, eps=eps)
-        cr.append("%3d " % n)
-        assert_equal(sr0, sr, reltol=eps)
+        if 0:   # Crenshaw is commented out in root.py and probably will be removed
+            sr, n = Crenshaw(a, b, f, eps=eps)
+            cr.append("%3d " % n)
+            assert_equal(sr0, sr, reltol=eps)
         try:
             sr, n = RootFinder(a, b, f, eps=eps)
             rf.append("%3d " % n)
@@ -443,11 +377,8 @@ def TestGeneralRootFinding(show=(len(sys.argv) > 1)):
             pl.show()
         else:
             pl.savefig("rootfinder_comparison.png")
-
-
 def TestOstrowski():
     from math import sin, cos, exp
-
     eps = 1e-14
     # Square root of 2
     x0 = 3
@@ -491,7 +422,5 @@ def TestOstrowski():
     root = 1.7461395304080
     r, n = Ostrowski(x0, f, deriv, eps=eps)
     assert_equal(r, root, reltol=eps)
-
-
 if __name__ == "__main__":
     exit(run(globals(), halt=True)[0])
