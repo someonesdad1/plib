@@ -1,5 +1,10 @@
 Active:  /plib/.todo
 
+    - pgrep
+        - Currently, this is pgm/rgrep.py with the -p option
+        - Change it to only do searching in specified python functions.  A use case is
+          to e.g. see if the function uses the math module.
+
     - pgm/ds.py
         - Need a feature to define default documents so they open on the first search.
             - Example:  I have 3 versions of the HP427A manual:  1970, 1972, 1983.  The 1983 one

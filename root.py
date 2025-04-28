@@ -36,8 +36,9 @@ TODO
             - yell ordinate
             - ornl for convergence quality
     - Quadratic, etc.
-        - Get rid of the python 2 syntax of things like '1./3'.
-        - Consider converting the routines to mpmath.mpf numbers
+        - It's possible that this code will work without modifications on both
+          floats/complex and mpf/mpc numbers.  If so, point this out.
+        - Consider converting the routines to use Decimal numbers
     - Write a test routine that sets up a number of different problems and reports on
       the time each method uses, number of iterations, and goodness of answer.  This
       could obviously uncover some things that might not work right, as they should give
@@ -162,6 +163,11 @@ if 1:  # Header
         from lwtest import Assert
         from wrap import dedent
         from timer import Timer
+        try:
+            import mpmath
+            have_mpmath = True
+        except ImportError:
+            have_mpmath = False
     if 1:  # Global variables
         class G:  # Holder of global information
             pass
@@ -559,28 +565,6 @@ if 1:  # Root finders
                 x1, f1 = x3, f3
             x3 = x
         raise StopIteration("No convergence in kbrent()")
-    def Pound(z, adjust=True, ratio=2.5e-15):
-        '''Turn z into a real if z.imag is small enough relative to the z.real and adjust is True.
-        Do the analogous thing for a nearly pure imaginary number.
-        
-        The name comes from imagining the complex number is a nail which a light tap from a hammer
-        makes it lie parallel to either the real or imaginary axis.
-        
-        Set adjust to False so that only pure real or imaginary numbers are converted.  If adjust is
-        True, then the conversion is done if the ratio of the real to imaginary part is small enough.
-        '''
-        if not isinstance(z, complex):
-            return z
-        if z.real and not z.imag:
-            return z.real
-        elif not z.real and z.imag:
-            return z.imag * 1j
-        # Adjust if the z.real/z.imag or z.imag/z.real ratio is small enough, otherwise return unchanged
-        if adjust and z.real and abs(z.imag / z.real) < ratio:
-            return z.real
-        elif adjust and z.imag and abs(z.real / z.imag) < ratio:
-            return z.imag * 1j
-        return z
     def ITP(a, b, f, eps, k1=None, k2=2, n0=1):
         '''ITP algorithm for roots (interpolate/truncate/project)
         
@@ -723,7 +707,10 @@ if 1:  # Root finders
                     a = xitp
                     b = xitp
                     j += 1
+            last_diff = diff
             diff = abs(b - a)
+            if not abs(diff - last_diff):
+                break
         return (a + b)/2, count
     def zero_itp(a, b, f, eps, k1=None, k2=2, n0=1):
         '''
@@ -1010,9 +997,13 @@ if 0:  # Crenshaw
         raise StopIteration("No convergence in Crenshaw()")
 if 1:  # Polynomials
     def QuadraticEquation(a, b, c, adjust=True, force_real=False):
-        '''Return the two roots of a quadratic equation.  The equation is a*x**2 + b*x + c = 0; the
-        coefficients can be complex.  Note this works with float types only.  Set force_real to True to
-        force the returned values to be real.
+        '''Return the two roots of a quadratic equation.  The equation is a*x**2 + b*x +
+        c = 0; where the coefficients can be floats or complex numbers.  
+        
+        adjust      Use Pound() to cause roots with small real or imaginary parts to be
+                    adjusted to be pure real or imaginary
+        force_real  If true, forces the returned values to be real numbers by returning
+                    the real parts.
         
         Here's a derivation of the method used.  Multiply by 4*a and complete the square to get
         
@@ -1242,6 +1233,31 @@ if 1:  # Polynomials
             return tuple([i.real for i in roots])
         return tuple(Pound(i, adjust) for i in roots)
 if 1:  # Other
+    def Pound(z, adjust=True, ratio=2.5e-15):
+        '''Turn z into a real if z.imag is small enough relative to the z.real and adjust is True.
+        Do the analogous thing for a nearly pure imaginary number.
+        
+        The name comes from imagining the complex number is a nail which a light tap from a hammer
+        makes it lie parallel to either the real or imaginary axis.
+        
+        Set adjust to False so that only pure real or imaginary numbers are converted.
+        '''
+        if not isinstance(z, complex):
+            if have_mpmath and not isinstance(z, mpmath.mpc):
+                return z
+            else:
+                return z
+        if z.real and not z.imag:
+            return z.real
+        elif not z.real and z.imag:
+            return 1j*z.imag
+        # Adjust if the z.real/z.imag or z.imag/z.real ratio is small enough, otherwise return unchanged
+        if adjust and z.real and abs(z.imag/z.real) <= ratio:
+            return z.real
+        elif adjust and z.imag and abs(z.real/z.imag) <= ratio:
+            return z.imag*1j
+        else:
+            return z
     def Ostrowski(x0, f, deriv, eps=g.eps, itmax=g.itmax, dbg=None):
         '''Returns (root, num_iterations) for the root of the function f(x).
         
@@ -1319,11 +1335,13 @@ if 1:  # Other
                 intervals.append((x0, x))
             x0, y0 = x, y
         return tuple(intervals)
-if 1:  # Test code
-    def TestRootFinders():
+if 1:  # Demo code
+    def Check():
         '''This function runs each routine to find the solution of f(x) = 0 where the
         function f(x) is cos(x) - x.  If it completes without an exception, this shows
-        the routines got the same numerical value.
+        the routines got the same numerical value.  It's not intended to be the unit
+        test code (see test/root_test.py for that), but rather to be a tool to detect
+        when accidental changes have occurred to this file.
         '''
         def myfunc(x):
             return x - math.cos(x)
@@ -1347,7 +1365,63 @@ if 1:  # Test code
         # found
         x = FindRoots(myfunc, 10, x0, x1, eps=eps)
         Assert(f"{x[0]:.15f}" == expected)
+    def MpmathCheck():
+        'This checks that mpmath numbers can be used with the routines'
+        def myfunc(x):
+            return x - math.cos(x)
+        g.dbg = None
+        eps = mpmath.mpf("1e-16")
+        x0, x1 = mpmath.mpf(0), mpmath.pi
+        methods = (
+            (Bisection, "Bisection"), 
+            #(Crenshaw, "Crenshaw"),
+            (Ridders, "Ridders"),
+            (kbrent, "kbrent"),
+            (RootFinder, "RootFinder"),
+            (ITP, "ITP"),
+            (zero_itp, "zero_itp")
+        )
+        expected = mpmath.mpf("0.739085133215161")
+        for func, name in methods:
+            x, m = func(x0, x1, myfunc, eps=eps)
+            Assert(abs(x - expected) < 1e-15)
+        # FindRoots has a different calling pattern and it returns a tuple of roots found
+        x = FindRoots(myfunc, 10, x0, x1, eps=eps)[0]
+        Assert(abs(x - expected) < 1e-15)
+        if 1:   # Prints out a comparison of float/mpf for polynomial routines
+            from mpmath import mpf, mpc, mp
+            from color import t
+            t.print(f"{t.whtl}Demo that polynomial routines work for mpmath numbers")
+            a, b, c, d, e = 1, 1, 1, 1, 1
+            mp.dps = 16
+            A, B, C, D, E = mpf(1), mpf(1), mpf(1), mpf(1), mpf(1)
+            if 1:
+                t.print(f"{t.ornl}Quadratic")
+                for i in QuadraticEquation(a, b, c):
+                    print(i)
+                print(f"{t.lill}", end="")
+                for i in QuadraticEquation(A, B, C):
+                    print(i)
+                t.print()
+            if 1:
+                t.print(f"{t.ornl}Cubic")
+                for i in CubicEquation(a, b, c, d):
+                    print(i)
+                print(f"{t.lill}", end="")
+                for i in CubicEquation(A, B, C, D):
+                    print(i)
+                t.print()
+            if 1:
+                t.print(f"{t.ornl}Quartic")
+                for i in QuarticEquation(a, b, c, d, e):
+                    print(i)
+                print(f"{t.lill}", end="")
+                for i in QuarticEquation(A, B, C, D, E):
+                    print(i)
+                t.print()
     def Demo():
+        MpmathCheck()
+        Check()
         print(dedent('''
         Print out the results of calculating the root to cox(x) - x = 0; both the number of 
         iterations and timing are printed.
@@ -1366,7 +1440,8 @@ if 1:  # Test code
             (kbrent, "kbrent"),
             (RootFinder, "RootFinder"),
             (ITP, "ITP"),
-            (zero_itp, "zero_itp")):
+            (zero_itp, "zero_itp")
+                ):
             count = 0
             tm.start
             for i in range(n):
@@ -1380,6 +1455,7 @@ if 1:  # Test code
             x = FindRoots(myfunc, 10, x0, x1, eps=eps)
         tm.stop
         print(f"{ind}FindRoots :  Got {x[0]:{fmt}} in  ?  steps, {tm.et/n:{tfmt}} μs")
+
 
 if __name__ == "__main__":
     Demo()
