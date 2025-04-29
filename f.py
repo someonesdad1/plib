@@ -1218,10 +1218,13 @@ if 1:  # Get math/cmath functions into this namespace
     # Constants
     #   both:  e inf nan pi tau
     #   cmath: infj nanj
-    from math import inf, pi, e, tau
+    from math import inf, pi, e, tau, nan
     # Dummy usages to avoid linter message
+    inf
+    pi
     e
     tau
+    nan
     # Change constants' type to flt
     constants = "e pi tau".split()
     for i in constants:

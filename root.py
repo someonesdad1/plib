@@ -1,26 +1,20 @@
 '''
 
 TODO
-    - eps should become tol, as it's more expressive
-        - Are there cases where the eps calculation is zero, resulting in a divide by
-          zero?
     - Primary routines
         - Ridders, kbrent, and Rootfinder are the fastest on the cos(x)-x example.  All
           things being equal, the simplest and shortest code should be preferred.
     - The beginning root bracketing of each method could be a separate function called
-      RootIsBracketed(a, b, f)
+      RootIsBracketed(a, b, f) which raises an exception if it's not bracketed
     - Standardization
         - (a, b) brackets root, f for function name
         - Functions should have same args & kw
         - Rename epsilon to something that is specific to complex numbers
+        - dbg should be a boolean that causes debugging output to stderr so that you can
+          see convergence
     - Jack's convergence observation
         - Figure out the slightly better criterion used in Crenshaw and add it to both
           RootFinder and kbrent.
-    - Thread safety
-        - Ensure each function is dependent only on its passed-in information so that
-          they can be considered thread-safe.  This shows a weakness of python, as if
-          global variables could be made readonly, you'd then not worry about associated
-          race conditions.  Macros would give the same functionality.
     - fp argument
         - See if every routine can be given an fp keyword argument; this would be the
           floating point type to use for the calculations.  Default to flt.  Does this
@@ -43,13 +37,22 @@ TODO
       the time each method uses, number of iterations, and goodness of answer.  This
       could obviously uncover some things that might not work right, as they should give
       the same answers.  This would make a good addition to the testing strategy.
-          
+
+https://www.cs.princeton.edu/courses/archive/fall12/cos323/notes/cos323_f12_lecture02_rootfinding.pdf
+is a good overview of the basics.  The three pictures on page 9 show some of the things
+that can go wrong:  1) a root at a tangent point, 2) a singularity, and 3) a
+pathological case.  Construct some test cases using these cases.
+
+1.  y = x**8 - 37*x + 18
+
+---------------------------------------------------------------------------
+
 Root Finding Routines
 
-    The following functions find real roots of functions.  You can call them using e.g. mpmath
-    numbers and find roots to arbitrary precision.  The functions QuadraticEquation,
-    CubicEquation, and QuarticEquation use functions from the math and cmath library, so they
-    can't be used with other floating point implementations.
+    The following functions find real roots of functions.  You can call them using e.g.
+    mpmath numbers and find roots to arbitrary precision.  The functions Quadratic,
+    Cubic, and Quartic use functions from the math and cmath library, so they can't be
+    used with other floating point implementations.
     
     The routines will raise StopIteration if the number of iterations exceeds the allowed
     number.
@@ -140,6 +143,17 @@ Root Finding Routines
         Returns the four roots of a*x**4 + b*x**3 + c*x**2 + d*x + e = 0.  If adjust is true,
         any root where Im/Re < eps is converted to a real root.  Set adjust to False to have all
         roots returned as complex numbers.
+
+References ([x:y:z] means page y in reference x or page z in the PDF form)
+
+    [1] Various emails with Jack Crenshaw around 2014
+
+    [2] J. Kiusalaas, "Numerical Methods in Engineering with Python", Cambridge
+        University Press, 2005.  You can download the book's algorithms from
+        http://www.cambridge.org/us/download_file/202203/.
+
+    [3] "Numerical Recipes" books, various editions in various programming languages
+
 '''
 if 1:  # Header
     if 1:  # Copyright, license
@@ -173,7 +187,7 @@ if 1:  # Root finders
         '''Return (root, num_iterations) where root is a root of the function f() that lies in the
         interval [a, b] and num_iterations is the number of iterations taken.
     
-        f() takes one parameter and returns a number.  eps is the precision to find the root to (it
+        f() takes one parameter and returns a number.  tol is the precision to find the root to (it
         will be larger than the difference between the last two iterations) and itmax is the maximum
         number of iterations allowed.  fp is the number type to use in the calculation.  args is a
         sequence of any extra arguments that need to be passed to f; kw is a dictionary of keywords
@@ -259,59 +273,78 @@ if 1:  # Root finders
                 else:
                     a, y0, b, y2 = xm, ym, x1, y1
         raise StopIteration("No convergence in RootFinder()")
-    def Bisection(x1, x2, f, tol=1e-6, switch=False):
-        '''Returns (root, num_it) (the root and number of iterations) by finding a root of f(x) = 0 by
-        bisection.  The root must be bracketed in [x1,x2].
+    def Bisection(a, b, f, tol=1e-6, itmax=None, switch=False):
+        '''Returns (root, num_it) (the root and number of iterations) by finding a root
+        of f(x) = 0 by bisection.  The root must be bracketed in [a, b].  Adapted from
+        [2:145:154].
+
+        switch      If True, an exception will be raised if the function appears to be
+                    increasing during bisection.  Be careful with this, as the
+                    polynomial test case converges just fine with bisection, but will
+                    cause an exception if switch is True.  It is intended to handle the
+                    case where the number being converged on is a singularity.
+
+        itmax       Limit the number of iterations to this value if not None.  Since the
+                    number of iterations is N = log2(|a - b|/tol), setting itmax to less
+                    than N may lose precision.  
+
+        Example
+        -------
+
+        The function cos(x) - x can be shown to have a root at 0.739 radians by
+        continuously pressing the cos key on a calculator, which finds the root by
+        iteration (see Whittaker & Robinson, "The Calculus of Observations", p. 81,
+        1924).
+
+            from math import pi, cos
+            Bisection(0, pi/2, lambda x: cos(x) - x) --> (0.7390855007577259, 21)
+
+        Method
+        ------
+
+        If the root is bracketed and the function is continuous, bisection is guaranteed
+        to converge because of the intermediate value theorem.  It may also try to
+        converge on a singularity.  
+
+        The method is conceptually simple to understand: draw a line between the two
+        bracketing points and look at the midpoint.  Choose the new interval containing
+        the midpoint and the other point that evaluates to the opposite sign.  Repeat
+        until you find the root to the required accuracy.  Each iteration adds a
+        significant digit to the answer and is equivalent to a binary search, which is
+        called linear convergence.
         
-        If switch is True, an exception will be raised if the function appears to be increasing during
-        bisection.  Be careful with this, as the polynomial test case converges just fine with
-        bisection, but will cause an exception if switch is True.
+        Comment
+        -------
+
+        Much of the time real-world applications use data from measurements and these
+        are typically a few digits of useful information.  If the function is
+        continuous, bisection is guaranteed to work and you get roughly one root digit
+        per iteration.
         
-        If the root is bracketed, bisection is guaranteed to converge, either on some root in the
-        interval or a singularity within the interval.  It's also conceptually simple to understand:
-        draw a line between the two bracketing points and look at the midpoint.  Choose the new
-        interval containing the midpoint and the other point that evaluates to the opposite sign.
-        Repeat until you find the root to the required accuracy.  Each iteration adds a significant
-        digit to the answer.
-        
-        The number of iterations and function evaluations will be log2(abs(x2 - x1)/tol).
-        
-        Editorial comment:  Much of the time real-world applications use data from measurements and
-        these are almost always only 3 or 4 digits of useful information.  If the function is
-        continuous, bisection is guaranteed to work and you get roughly one root digit per
-        iteration.
-        
-        Adapted slightly from the book "Numerical Methods in Engineering with Python" by Jaan
-        Kiusalaas, 2nd ed.  You can get the book's algorithms from
-        http://www.cambridge.org/us/download_file/202203/.
-        
-        scipy has a bisection routine; it is probably in C/C++ and will be faster.
         '''
-        f1, f2, d = f(x1), f(x2), abs(x2 - x1)
+        IsBracketed(a, b, f)
+        f1, f2, diff = f(a), f(b), abs(b - a)
         if not f1:
-            return x1, 0
+            return a, 0
         if not f2:
-            return x2, 0
-        if f1 * f2 > 0:
-            raise ValueError("Root is not bracketed")
-        # Get the number of iterations we'll need
-        n = int(math.ceil(math.log(abs(x2 - x1)/tol)/math.log(2)))
-        for i in range(n):
-            x3 = (x1 + x2)/2  # Abscissa of interval midpoint
-            f3 = f(x3)  # Ordinate of interval midpoint
+            return b, 0
+        n = math.ceil(math.log2(abs(b - a)/tol))    # Number of iterations
+        for count in range(n):
+            x3 = (a + b)/2      # Abscissa of interval midpoint
+            f3 = f(x3)          # Ordinate of interval midpoint
             if not f3:
-                return x3, i + 1
+                return x3, count + 1
             if switch and abs(f3) > abs(f1) and abs(f3) > abs(f2):
                 msg = "f(x) increasing on interval bisection (i.e., a singularity)"
                 raise ValueError(msg)
             # Choose which half-interval to use based on which one continues to
             # bracket the root.
             if f2*f3 < 0:
-                x1, f1 = x3, f3  # Right half-interval contains the root
+                a, f1 = x3, f3  # Right half-interval contains the root
             else:
-                x2, f2 = x3, f3  # Left half-interval contains the root
-        x = (x1 + x2)/2
-        assert d/2**n <= tol
+                b, f2 = x3, f3  # Left half-interval contains the root
+        x = (a + b)/2
+        assert diff/2**n <= tol
         return x, n
     def Ridders(a, b, f, tol=1e-6, itmax=50):
         '''Returns (root, num_it) (root and the number of iterations) using Ridders' method to find a
@@ -368,9 +401,12 @@ if 1:  # Root finders
             else:
                 a, b, fa, fb = c, x, fc, fx
         raise StopIteration("Too many iterations ({0}) in Ridders()".format(i))
-    def kbrent(a, b, f, tol=1e-6, itmax=50):
-        '''Finds root of f(x) = 0 by combining quadratic interpolation with bisection (simplified
-        Brent's method).  The root must be bracketed in (a, b).  Calls user-supplied function f(x).
+    def Brent(a, b, f, tol=1e-6, itmax=50):
+
+        '''Return (root, number of iterations) where root is the root of f(x) = 0 by
+        combining quadratic interpolation with bisection (simplified Brent's method).
+        The root must be bracketed in (a, b).  Calls user-supplied function f(x).  From
+        [2:148:157].
         
         The method is defined to converge at x if:
             1.  f(x) < tol
@@ -379,48 +415,46 @@ if 1:  # Root finders
         This algorithm (slightly modified) is from page 150 in the book J. Kiusalaas, "Numerical
         Methods in Engineering with Python", 2005.
         '''
+        IsBracketed(a, b, f)
         x1, x2 = a, b
         f1 = f(x1)
         if not f1:
-            return x1
+            return x1, 0
         f2 = f(x2)
         if not f2:
-            return x2
-        if f1 * f2 > 0:
-            raise ValueError("Root is not bracketed")
-        x3 = (a + b) / 2  # Midpoint for bisection
-        for i in range(itmax):
+            return x2, 0
+        x3 = (a + b)/2  # Midpoint for bisection
+        for count in range(itmax):
             f3 = f(x3)
             if abs(f3) < tol:
-                return x3, i + 1
-            # print("i = {0}  x3 = {1:.8g}  f3 = {2:.8g}".format(i + 1, x3, f3))
-            # print(f"i = {i + 1}  x = {x3:.15g}  y = {f3:.15g}")
+                return x3, count + 1
+            # print("count = {0}  x3 = {1:.8g}  f3 = {2:.8g}".format(count + 1, x3, f3))
+            # print(f"count = {count + 1}  x = {x3:.15g}  y = {f3:.15g}")
             # Tighten the brackets on the root
-            if f1 * f3 < 0:
+            if f1*f3 < 0:
                 b = x3  # New interval is left-hand half
             else:
                 a = x3  # New interval is right-hand half
-            if (b - a) < tol * max(abs(b), 1):
-                return (a + b) / 2, i + 1
+            if (b - a) < tol*max(abs(b), 1):
+                return (a + b)/2, count + 1
             # Try quadratic interpolation (Lagrange's 3-point formula)
-            numer = (
-                x3 * (f1 - f2) * (f2 - f3 + f1) + f2 * x1 * (f2 - f3) + f1 * x2 * (f3 - f1)
-            )
-            denom = (f2 - f1) * (f3 - f1) * (f2 - f3)
+            numer = x3*(f1 - f2)*(f2 - f3 + f1) + f2*x1* (f2 - f3) + f1*x2*(f3 - f1)
+            denom = (f2 - f1)*(f3 - f1)*(f2 - f3)
             # If division by zero, push x out of bounds
-            x = x3 + (f3 * numer / denom if denom else b - a)
+            x = x3 + (f3*numer/denom if denom else b - a)
             # If interpolation goes out of bounds, use bisection.  This test is equivalent to
-            # (a < x < b) if a < b or (b < x < a) if b < a.  13 Oct 2014:  added inf test because
-            # was getting nonconvergence for simple test case (sqrt(1e108)) because x was NaN.
-            if denom == float("inf") or (b - x) * (x - a) < 0:
-                x = a + (b - a) / 2
+            # (a < x < b) if a < b or (b < x < a) if b < a.
+            # 13 Oct 2014:  added inf test because was getting nonconvergence for simple
+            # test case (sqrt(1e108)) because x was NaN.
+            if denom == float("inf") or (b - x)*(x - a) < 0:
+                x = a + (b - a)/2
             # Let x3 be x & choose new x1 and x2 so that x1 < x3 < x2
             if x < x3:
                 x2, f2 = x3, f3
             else:
                 x1, f1 = x3, f3
             x3 = x
-        raise StopIteration("No convergence in kbrent()")
+        raise StopIteration("No convergence in Brent()")
     def ITP(a, b, f, tol=1e-6, k1=None, k2=2, n0=1):
         '''Translation into python of John Burkardt's C routine (see
         https://people.sc.fsu.edu/~jburkardt/f_src/zero_itp/zero_itp.html).  Last
@@ -433,11 +467,11 @@ if 1:  # Root finders
             - ceil can be gotten with ROUND_CEIL
             - pow can be gotten with Decimal.power()
             - log2 can be gotten with ln
-            - Thus, this could be written with a Decimal implementation.  It would be interesting to
-              do this; fp could be set to Decimal and you'd get this impl.  Interesting to see how
-              much slower it is than float.
-                - This may give the general pattern for all the rootfinders to let them support float,
-                  Decimal, and mpf.
+            - Thus, this could be written with a Decimal implementation.  It would be
+              interesting to do this; fp could be set to Decimal and you'd get this
+              impl.  Interesting to see how much slower it is than float.
+                - This may give the general pattern for all the rootfinders to let them
+                  support float, Decimal, and mpf.
                   
         Constants:
             - k1 is on [0,∞], suggested value 0.2/(b - a)
@@ -452,23 +486,28 @@ if 1:  # Root finders
                   of the Bisection Method Average Performance Preserving Minmax
                   Optimality".  ACM Transactions on Mathematical Software.  47 (1):
                   5:1–5:24.  doi:10.1145/3423597. ISSN 0098-3500. S2CID 230586635.
-            - The assumption is that ya < 0 and yb > 0, otherwise unexpected results may occur
+            - The assumption is that ya < 0 and yb > 0, otherwise unexpected results may
+              occur
             - a and b must bracket the root and represent the search lower/upper bounds
-            - Must have tol > 2**(-63)(b - a), otherwise integer overflow may occur.  This is probably
-              specific to kurbo, which appears to be a 64-bit floating point R implementation
-            - kurbo hardwires k2 = 2, both because it avoids a floating point exponentiation and the
-              value has been tested to work well with curve fitting problems
-            - The n0 parameter controls the relative impact of the bisection and secant components.
-              When it is 0, the number of iterations is guaranteed to be no more than the number
-              required by bisection (thus, this method is strictly superior to bisection). However,
-              when the function is smooth, a value of 1 gives the secant method more of a chance to
-              engage, so the average number of iterations is likely lower, though there can be one
-              more iteration than bisection in the worst case.
-            - The k1 parameter is harder to characterize, and interested users are referred to the
-              paper, as well as encouraged to do empirical testing. To match the paper, a value of
-              0.2/(b-a) is suggested, and this is confirmed to give good results.
-            - When the function is monotonic, the returned result is guaranteed to be within epsilon
-              of the zero crossing.
+            - Must have tol > 2**(-63)(b - a), otherwise integer overflow may occur.
+              This is probably specific to kurbo, which appears to be a 64-bit floating
+              point R implementation
+            - kurbo hardwires k2 = 2, both because it avoids a floating point
+              exponentiation and the value has been tested to work well with curve
+              fitting problems
+            - The n0 parameter controls the relative impact of the bisection and secant
+              components.  When it is 0, the number of iterations is guaranteed to be no
+              more than the number required by bisection (thus, this method is strictly
+              superior to bisection). However, when the function is smooth, a value of 1
+              gives the secant method more of a chance to engage, so the average number
+              of iterations is likely lower, though there can be one more iteration than
+              bisection in the worst case.
+            - The k1 parameter is harder to characterize, and interested users are
+              referred to the paper, as well as encouraged to do empirical testing. To
+              match the paper, a value of 0.2/(b-a) is suggested, and this is confirmed
+              to give good results.
+            - When the function is monotonic, the returned result is guaranteed to be
+              within tol of the zero crossing.
               
         Here's the algorithm from https://www.wikiwand.com/en/articles/ITP_Method
             - Given interval [a0, b0], f, ϵ
@@ -533,7 +572,7 @@ if 0:  # Crenshaw
     shaving one iteration off the computation.
     
     I suspect it's not worth the bookkeeping needed to eliminate the extra step,
-    particularly since e.g. kbrent() converges quickly and is usually the fastest.
+    particularly since e.g. Brent() converges quickly and is usually the fastest.
     
     '''
     def Crenshaw(x1, x3, f, eps=1e-6, itmax=50, p=4, dbgstream=None):
@@ -681,12 +720,13 @@ if 0:  # Crenshaw
                     x3, y3 = x2, y2
         raise StopIteration("No convergence in Crenshaw()")
 if 1:  # Polynomials
-    def QuadraticEquation(a, b, c, adjust=True, force_real=False):
+    def Quadratic(a, b, c, adjust=True, force_real=False):
         '''Return the two roots of a quadratic equation.  The equation is a*x**2 + b*x +
-        c = 0; where the coefficients can be floats or complex numbers.  
+        c = 0; where the coefficients can be floats or complex numbers (including
+        mpmath's mpf and mpc numbers).  
         
         adjust      Use Pound() to cause roots with small real or imaginary parts to be
-                    adjusted to be pure real or imaginary
+                    adjusted to be pure real or imaginary.
         force_real  If true, forces the returned values to be real numbers by returning
                     the real parts.
         
@@ -746,42 +786,53 @@ if 1:  # Polynomials
             if force_real:
                 return tuple([i.real for i in (x1, x2)])
             return Pound(x1, adjust), Pound(x2, adjust)
-    def CubicEquation(a, b, c, d, adjust=True, force_real=False):
-        '''Returns the roots of a cubic with complex coefficients: a*z**3 + b*z**2 + c*z + d.
+    def Cubic(a, b, c, d, adjust=True, force_real=False):
+        '''Returns the roots of a cubic with complex coefficients: a*z**3 + b*z**2 + c*z
+        + d.  The coefficients can also be mpmath's mpf and mpc numbers.
         
-        You can set force_real to True to make all the returned roots be real (this causes the real
-        part of the calculated roots to be returned).  This may be of use e.g. when solving cubic
-        equations of state like the Peng-Robinson or Redlich-Kwong equations.  You must exercise
-        caution, as you might be throwing a true complex root away.
+        adjust      Use Pound() to cause roots with small real or imaginary parts to be
+                    adjusted to be pure real or imaginary.
+        force_real  If true, forces the returned values to be real numbers by returning
+                    the real parts.
         
-        If adjust is True and the roots have imaginary parts small enough relative to the real part,
-        they are converted to real numbers.
+        Using force_real might be of service when e.g. solving cubic equations of state
+        like the Peng-Robinson or Redlich-Kwong equations.  You must exercise caution,
+        as you might be throwing a true complex root away.
         
-        Example:
-            for i in CubicEquation(1, 1, 1, 1):
+        Example
+        -------
+            The cubic equation x**3 + x**2 + x + 1 = 0 has the roots -1, i, and -i, as
+            can be shown from expanding (x + 1)(x + i)(x - i).
+
+            for i in Cubic(1, 1, 1, 1):
                 print(i)
-        prints
-            -1.0
-            (-6.93889390391e-17+1j)
-            (-6.93889390391e-17-1j)
-        However,
-            for i in CubicEquation(1, 1, 1, 1, adjust=True):
+            prints
+                -1.0
+                (-6.93889390391e-17+1j)
+                (-6.93889390391e-17-1j)
+            
+            for i in Cubic(1, 1, 1, 1, adjust=True):
                 print(i)
-        prints
-            -1.0
-            1j
-            -1j
-        Note
-            for i in CubicEquation(1, 1, 1, 1, force_real=True):
-                print(i)
-        prints
-            -1.0
-            -6.93889390391e-17
-            -6.93889390391e-17
-        which is probably *not* what you want because it throws important information away.
+            prints
+                -1.0
+                1j
+                -1j
+            showing how the Pound() function eliminates the small real parts.
+
+            Note
+                for i in Cubic(1, 1, 1, 1, force_real=True):
+                    print(i)
+            prints
+                -1.0
+                -6.93889390391e-17
+                -6.93889390391e-17
+            which is probably *not* what you want because it throws important information
+            away.
+
         ----------------------------------------------------------------------
-        The following Mathematica commands were used to generate the code for the cubic and quartic
-        routines.
+
+        The following Mathematica commands were used to generate the code for the cubic
+        and quartic routines.
         
         (* Cubic *)
           f = a*x**3 + b*x**2 + c*x + d;
@@ -797,16 +848,15 @@ if 1:  # Polynomials
         
             1. Change (0,1) to 1j
             2. Remove extra parentheses and comma at end of expression
-            3. Substitute (1/3.) for 0.3333333333333333
-            4. Substitute (2/3.) for 0.6666666666666666
-            5. Put backslashes on lines as appropriate
+            3. Substitute 1/3 for 0.3333333333333333
+            4. Substitute 2/3 for 0.6666666666666666
             
-        After this manipulation, common terms were looked for and set up as single variables to avoid
-        recalculation.  This removed a lot of duplication.
+        After this manipulation, common terms were looked for and set up as single
+        variables to avoid recalculation.
         
-        The special case where we're finding the third or fourth root of a real or complex number, we
-        use De Moivre's theorem:  Let z be a complex number written in polar form z = r*(cos(x) +
-        i*sin(x)).  Then
+        The special case where we're finding the third or fourth root of a real or
+        complex number, we use De Moivre's theorem:  Let z be a complex number written
+        in polar form z = r*(cos(x) + i*sin(x)).  Then
         
           z**(1/n) = r**(1/n)*(cos((x + 2*k*pi)/n) + i*sin((x + 2*k*pi)/n))
           
@@ -845,7 +895,7 @@ if 1:  # Polynomials
         if force_real:
             return tuple(i.real for i in (x1, x2, x3))
         return tuple(Pound(i, adjust) for i in (x1, x2, x3))
-    def QuarticEquation(a, b, c, d, e, adjust=True, force_real=False):
+    def Quartic(a, b, c, d, e, adjust=True, force_real=False):
         '''Returns the roots of a quartic with complex coefficients: a*x**4 + b*x**3 + c*x**2 + d*x +
         e.  Note this works with float types only.  Set force_real to make all the returned roots be
         real.
@@ -859,7 +909,7 @@ if 1:  # Polynomials
         imaginary parts, the root is converted to a pure imaginary.
         
         Example 1:
-            for i in QuarticEquation(1, 1, 1, 1, 1):
+            for i in Quartic(1, 1, 1, 1, 1):
                 print(i)
         prints
             (-0.809016994375-0.587785252292j)
@@ -869,7 +919,7 @@ if 1:  # Polynomials
             
         Example 2:  (x-1)*(x-2)*(x-3)*(x-4) is a quartic polynomial with a = 1, b = -10, c = 35, d =
         -50, and e = 24.  Then
-            for i in QuarticEquation(1, -10, 35, -50, 24):
+            for i in Quartic(1, -10, 35, -50, 24):
                 print(i)
         prints
             0.9999999999999992
@@ -877,7 +927,7 @@ if 1:  # Polynomials
             2.9999999999999996
             4.000000000000001
             
-        See the docstring for CubicEquation to find out how the equations were generated.
+        See the docstring for Cubic to find out how the equations were generated.
         '''
         if not a:
             raise ValueError("a must not be zero")
@@ -918,14 +968,24 @@ if 1:  # Polynomials
             return tuple([i.real for i in roots])
         return tuple(Pound(i, adjust) for i in roots)
 if 1:  # Utility
+    def IsBracketed(a, b, f):
+        'Check that a and b bracket a roof of f(x); raise ValueError if not'
+        if f(a)*f(b) > 0:
+            raise ValueError(f"a = {a} and b = {b} do not bracket a root of f")
     def Pound(z, adjust=True, ratio=2.5e-15):
-        '''Turn z into a real if z.imag is small enough relative to the z.real and adjust is True.
-        Do the analogous thing for a nearly pure imaginary number.
+        '''Turn z into a real if z.imag is small enough relative to the z.real and
+        adjust is True.  Do the analogous thing for a nearly pure imaginary number.
         
-        The name comes from imagining the complex number is a nail which a light tap from a hammer
-        makes it lie parallel to either the real or imaginary axis.
+        The name comes from imagining the complex number is a nail which a light tap
+        from a hammer makes it lie parallel to either the real or imaginary axis.
         
         Set adjust to False so that only pure real or imaginary numbers are converted.
+        
+        Examples
+            Pound(-6.9e-17+1j) --> 1j
+            Pound(1-6.9e-17j) --> 1.0
+            Pound(-6.9e-17+1j, ratio=1e-20) --> (-6.9e-17+1j)
+            Pound(-6.9e-14+1j) --> (-6.9e-14+1j)
         '''
         if not isinstance(z, complex):
             if have_mpmath and not isinstance(z, mpmath.mpc):
@@ -936,11 +996,12 @@ if 1:  # Utility
             return z.real
         elif not z.real and z.imag:
             return 1j*z.imag
-        # Adjust if the z.real/z.imag or z.imag/z.real ratio is small enough, otherwise return unchanged
+        # Adjust if the z.real/z.imag or z.imag/z.real ratio is small enough, otherwise
+        # return z unchanged
         if adjust and z.real and abs(z.imag/z.real) <= ratio:
             return z.real
         elif adjust and z.imag and abs(z.real/z.imag) <= ratio:
-            return z.imag*1j
+            return 1j*z.imag
         else:
             return z
 if 1:  # Other
@@ -1167,7 +1228,7 @@ if 1:  # Demo code
             (Bisection, "Bisection"), 
             #(Crenshaw, "Crenshaw"),
             (Ridders, "Ridders"),
-            (kbrent, "kbrent"),
+            (Brent, "Brent"),
             (RootFinder, "RootFinder"),
             (ITP, "ITP"),
         )
@@ -1188,7 +1249,7 @@ if 1:  # Demo code
             (Bisection, "Bisection"), 
             #(Crenshaw, "Crenshaw"),
             (Ridders, "Ridders"),
-            (kbrent, "kbrent"),
+            (Brent, "Brent"),
             (RootFinder, "RootFinder"),
             (ITP, "ITP"),
         )
@@ -1203,32 +1264,32 @@ if 1:  # Demo code
         if 1:   # Prints out a comparison of float/mpf for polynomial routines
             from mpmath import mpf, mpc, mp
             from color import t
-            t.print(f"{t.whtl}Demo that polynomial routines work for mpmath numbers")
+            t.print(f"{t.whtl}Demo that Quadratic, Cubic, Quartic work for mpmath numbers")
             a, b, c, d, e = 1, 1, 1, 1, 1
             mp.dps = 16
             A, B, C, D, E = mpf(1), mpf(1), mpf(1), mpf(1), mpf(1)
             if 1:
                 t.print(f"{t.ornl}Quadratic")
-                for i in QuadraticEquation(a, b, c):
+                for i in Quadratic(a, b, c):
                     print(i)
                 print(f"{t.lill}", end="")
-                for i in QuadraticEquation(A, B, C):
+                for i in Quadratic(A, B, C):
                     print(i)
                 t.print()
             if 1:
                 t.print(f"{t.ornl}Cubic")
-                for i in CubicEquation(a, b, c, d):
+                for i in Cubic(a, b, c, d):
                     print(i)
                 print(f"{t.lill}", end="")
-                for i in CubicEquation(A, B, C, D):
+                for i in Cubic(A, B, C, D):
                     print(i)
                 t.print()
             if 1:
                 t.print(f"{t.ornl}Quartic")
-                for i in QuarticEquation(a, b, c, d, e):
+                for i in Quartic(a, b, c, d, e):
                     print(i)
                 print(f"{t.lill}", end="")
-                for i in QuarticEquation(A, B, C, D, E):
+                for i in Quartic(A, B, C, D, E):
                     print(i)
                 t.print()
     def Demo():
@@ -1249,7 +1310,7 @@ if 1:  # Demo code
             (Bisection, "Bisection"), 
             #(Crenshaw, "Crenshaw"),
             (Ridders, "Ridders"),
-            (kbrent, "kbrent"),
+            (Brent, "Brent"),
             (RootFinder, "RootFinder"),
             (ITP, "ITP"),
                 ):

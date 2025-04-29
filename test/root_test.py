@@ -13,8 +13,8 @@ if 1:   # Imports
         import numbers
         import sys
     if 1:   # Custom imports
-        from root import (Bisection, BracketRoots, CubicEquation, FindRoots, kbrent,
-            NewtonRaphson, Ostrowski, Pound, QuadraticEquation, QuarticEquation, Ridders,
+        from root import (Bisection, BracketRoots, Cubic, FindRoots, Brent,
+            NewtonRaphson, Ostrowski, Pound, Quadratic, Quartic, Ridders,
             RootFinder, SearchIntervalForRoots)
         from lwtest import run, assert_equal, raises, Assert
         try:
@@ -199,7 +199,7 @@ if 1:   # Test root-finding routines
         # root of largest floating point number.  Note some of the routines
         # won't converge over this full range.
         seed(0)
-        e, bi, cr, rf, Br, kb, ri = [], [], [], [], [], [], []
+        e, bi, cr, rf, br, ri = [], [], [], [], [], []
         for i in range(308//2):
             e.append(i)
             val = float(10**i)
@@ -226,8 +226,8 @@ if 1:   # Test root-finding routines
             except Exception as E:
                 pass
             try:
-                sr, n = kbrent(a, b, f, tol=tol)
-                kb.append("%3d " % n)
+                sr, n = Brent(a, b, f, tol=tol)
+                br.append("%3d " % n)
                 assert_equal(sr0, sr, reltol=tol)
             except Exception as E:
                 pass
@@ -240,8 +240,7 @@ if 1:   # Test root-finding routines
             p(e[: len(bi)], bi, ".-", label="Bisection")
             p(e[: len(cr)], cr, ".-", label="Crenshaw")
             p(e[: len(rf)], rf, ".-", label="RootFinder")
-            p(e[: len(Br)], Br, ".-", label="Brent")
-            p(e[: len(kb)], kb, ".-", label="kbrent")
+            p(e[: len(br)], br, ".-", label="Brent")
             p(e[: len(ri)], ri, ".-", label="Ridders")
             pl.title("Root-finding routine efficiency\n13 Oct 2014")
             pl.xlabel("n")
@@ -299,69 +298,69 @@ if 1:   # Test root-finding routines
 if 1:   # Test polynomial root-finding routines
     def TestQuadratic():
         # Exception if not quadratic
-        raises(ValueError, QuadraticEquation, *(0, 1, 1))
+        raises(ValueError, Quadratic, *(0, 1, 1))
         # Real roots
-        r1, r2 = QuadraticEquation(1, 0, -2)
+        r1, r2 = Quadratic(1, 0, -2)
         assert_equal(r1, -r2)
         assert_equal(abs(r1), math.sqrt(2))
         # Complex roots
-        r1, r2 = QuadraticEquation(1, 0, 2)
+        r1, r2 = Quadratic(1, 0, 2)
         assert_equal(r1, -r2)
         assert_equal(r1, cmath.sqrt(-2))
         # Constant term 0
-        r1, r2 = QuadraticEquation(1, -1, 0)
+        r1, r2 = Quadratic(1, -1, 0)
         assert_equal(r1, 1)
         assert_equal(r2, 0j)
         # Real, distinct
-        r1, r2 = QuadraticEquation(1, 4, -21)
+        r1, r2 = Quadratic(1, 4, -21)
         Assert(r1 == 3)
         Assert(r2 == -7)
         # Real coefficients, complex roots
-        r1, r2 = QuadraticEquation(1, -4, 5)
+        r1, r2 = Quadratic(1, -4, 5)
         assert_equal(r1, 2 + 1j)
         assert_equal(r2, 2 - 1j)
         # Complex coefficients, complex roots
-        r1, r2 = QuadraticEquation(1, 3 - 3j, 10 - 54j)
+        r1, r2 = Quadratic(1, 3 - 3j, 10 - 54j)
         assert_equal(r1, (3 + 7j))
         assert_equal(r2, (-6 - 4j))
     def TestCubic():
         # Exception if not cubic
-        raises(ValueError, CubicEquation, *(0, 1, 1, 1))
+        raises(ValueError, Cubic, *(0, 1, 1, 1))
         # Basic equation
-        r = CubicEquation(1, 0, 0, 0)
+        r = Cubic(1, 0, 0, 0)
         Assert(r == (0, 0, 0))
         # Cube roots of 1
-        for r in CubicEquation(1, 0, 0, -1):
+        for r in Cubic(1, 0, 0, -1):
             assert_equal(Pound(r**3, ratio=tol), 1, reltol=tol)
         # Cube roots of -1
-        for r in CubicEquation(1, 0, 0, 1):
+        for r in Cubic(1, 0, 0, 1):
             assert_equal(Pound(r**3, ratio=tol), -1, reltol=tol)
         # Three real roots:  (x-1)*(x-2)*(x-3)
-        for i, j in zip(CubicEquation(1, -6, 11, -6), (3, 1, 2)):
+        for i, j in zip(Cubic(1, -6, 11, -6), (3, 1, 2)):
             assert_equal(i, j, reltol=tol)
         # One real root:  (x-1)*(x-j)*(x+j) = x**3 - x**2 + x - 1, roots = 1, -j, j
-        for i, k in zip(CubicEquation(1, -1, 1, -1), (1, 1j, -1j)):
+        for i, k in zip(Cubic(1, -1, 1, -1), (1, 1j, -1j)):
             # In the following, Assert is used instead of assert_equal
             # because one test case results in -0-1j vs. -1j, which results
             # in a failure -- but the numbers are numerically equal.
             Assert(i == k)
     def TestQuartic():
         # Exception if not cubic
-        raises(ValueError, QuarticEquation, *(0, 1, 1, 1, 1))
+        raises(ValueError, Quartic, *(0, 1, 1, 1, 1))
         # Basic equation
-        r = QuarticEquation(1, 0, 0, 0, 0)
+        r = Quartic(1, 0, 0, 0, 0)
         Assert(r == (0, 0, 0, 0))
         # Fourth roots of 1
-        for r in QuarticEquation(1, 0, 0, 0, -1):
+        for r in Quartic(1, 0, 0, 0, -1):
             assert_equal(r**4, 1)
         # Fourth roots of -1
-        for r in QuarticEquation(1, 0, 0, 0, 1):
+        for r in Quartic(1, 0, 0, 0, 1):
             assert_equal(Pound(r**4, ratio=tol), -1, reltol=tol)
         # The equation (x-1)*(x-2)*(x-3)*(x-4)
-        for i, j in zip(QuarticEquation(1, -10, 35, -50, 24), range(1, 5)):
+        for i, j in zip(Quartic(1, -10, 35, -50, 24), range(1, 5)):
             assert_equal(i, j, reltol=tol)
         # Two real roots: x*(x-1)*(x-j)*(x+j)
-        for i, k in zip(QuarticEquation(1, -1, 1, -1, 0), (-1j, 1j, 0j, 1)):
+        for i, k in zip(Quartic(1, -1, 1, -1, 0), (-1j, 1j, 0j, 1)):
             assert_equal(i, k)
 if 1:   # Test utility
     def TestPound():
