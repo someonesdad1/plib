@@ -13,9 +13,9 @@ if 1:   # Imports
         import numbers
         import sys
     if 1:   # Custom imports
-        from root import (Bisection, BracketRoots, Cubic, FindRoots, Brent,
-            NewtonRaphson, Ostrowski, Pound, Quadratic, Quartic, Ridders,
-            RootFinder, SearchIntervalForRoots)
+        from root import (Bisection, BracketRoots, FindRoots, Brent, NewtonRaphson,
+            Ostrowski, Pound, Ridders, Crenshaw, SearchIntervalForRoots)
+        from root import Cubic, Quadratic, Quartic
         from lwtest import run, assert_equal, raises, Assert
         try:
             import mpmath
@@ -33,7 +33,7 @@ if 1:   # Imports
     if 1:   # Global variables
         tol = 2e-15  # For testing float equality
 if 1:   # Test root-finding routines
-    def TestRootFinder():
+    def TestCrenshaw():
         '''Here's a quick test of the routine.  The function is
         the polynomial x^8 - 2 = 0; we should get as an answer the
         8th root of 2.  You should see the following output if
@@ -55,13 +55,13 @@ if 1:   # Test root-finding routines
         itmax = 20
         x0 = 0.0
         x1 = 10.0
-        root, numits = RootFinder(x0, x1, f, tol=tol, itmax=itmax)
+        root, numits = Crenshaw(x0, x1, f, tol=tol, itmax=itmax)
         assert_equal(root, 1.090507732665258, reltol=tol)
         # Now do the same, but with Decimal numbers
         getcontext().prec = 50
         tol = Decimal("1e-48")
         x0, x1 = Decimal(0), Decimal(10)
-        root, numits = RootFinder(x0, x1, f, tol=tol, itmax=itmax, fp=Decimal)
+        root, numits = Crenshaw(x0, x1, f, tol=tol, itmax=itmax, fp=Decimal)
         assert_equal(root**8, 2, reltol=tol)
         # Call a function that uses extra arguments
         def f(x, a, **kw):
@@ -72,11 +72,11 @@ if 1:   # Test root-finding routines
         x0 = 0.0
         x1 = 10.0
         a, b = 2, 8
-        root, numits = RootFinder(x0, x1, f, tol=tol, itmax=itmax, args=[a])
+        root, numits = Crenshaw(x0, x1, f, tol=tol, itmax=itmax, args=[a])
         assert_equal(root, math.pow(a, 1 / b))
         # Use keyword argument
         a, b = 3, 7
-        root, numits = RootFinder(x0, x1, f, tol=tol, itmax=itmax, args=[a], kw={"b": b})
+        root, numits = Crenshaw(x0, x1, f, tol=tol, itmax=itmax, args=[a], kw={"b": b})
         assert_equal(root, math.pow(a, 1 / b), reltol=tol)
     def TestFindRoots():
         # Show that FindRoots can do a reasonable job for a
@@ -133,19 +133,17 @@ if 1:   # Test root-finding routines
         for start, end in intervals:
             Assert(start <= answer <= end)
     def TestBracketRoots():
-        '''The polynomial p(x) = (x-1)*(x-10)*(x+10) has
-        three roots.  Thus f(x) = exp(p(x)) - 1 will be zero when
-        p(x) is zero.  Use BracketRoots() to find the x = 1 root.
-        Also demonstrate that it will exceed the iteration limit
-        if the interval doesn't include any of the roots.
+        '''The polynomial f(x) = (x-r1)*(x-r2)*(x+r3) has three roots of r1, r2, -r3.
+        Use BracketRoots() to find one of the roots.  Also demonstrate that it will
+        exceed the iteration limit if the interval doesn't include any of the roots.
         '''
-        r1, r2, r3 = 1000, -500, 500
-        f = lambda x: (x - r1) * (x - r2) * (x + r3)
+        r1, r2, r3 = 1000, 500, -500
+        f = lambda x: (x - r1)*(x - r2)*(x + r3)
         r = BracketRoots(f, -2, -1)
         Assert((r[0] <= r1 <= r[1]) or (r[0] <= r2 <= r[1]) or (r[0] <= r3 <= r[1]))
         # Demonstate iteration limit can be reached
         f = lambda x: x - 1000000
-        raises(StopIteration, BracketRoots, f, -2, -1, itmax=10)
+        raises(ValueError, BracketRoots, f, -2, -1, itmax=10)
     def TestBisection():
         # Root of x = cos(x); it's 0.739085133215161 as can be found easily
         # by iteration on a calculator.
