@@ -1,6 +1,9 @@
 '''
 
 TODO
+    - Remove args & kw from everything except Crenshaw and Bisection
+        - These are used for more complicated cases
+        - Ridders, Brent, ITP for speedy evaluations & single-argument functions
     - Add fp=float, dbg=None, args=[], kw={} to each call
         - Modify each line to make sure each number is type fp
         - If dbg is not None, it's a stream to send debugging messages to
@@ -18,8 +21,8 @@ TODO
         - dbg should be a boolean that causes debugging output to stderr so that you can
           see convergence
     - Debugging
-        - Use bool dbg in function calls to turn it on
-        - Colorized output goes to stderr
+        - Use dbg == stream in function calls to turn it on
+        - Colorized output goes to stream
         - Done with Dbg()
     - Jack's convergence observation
         - Figure out the slightly better criterion used in Crenshaw and add it to both
@@ -68,94 +71,18 @@ TODO
 
 Root Finding Routines
 
-    The following functions find real roots of functions.  You can call them using e.g.
-    mpmath numbers and find roots to arbitrary precision.  The functions Quadratic,
-    Cubic, and Quartic use functions from the math and cmath library, so they can't be
-    used with other floating point implementations.
-    
-    The routines will raise StopIteration if the number of iterations exceeds the allowed
-    number.
-    
-    The fp keyword arguments let you perform these root-finding calculations with any floating
-    point type that can convert strings like "1.5" to a floating point number.  Python's float
-    type is the default.
-    
-    The following "prototypes" may be abbreviated; see the actual function definitions for
-    details.
-    
-    Bisection(x1, x2, f)
-        Finds a root by bisection.  Slow, but guaranteed to find the root of a continuous
-        function if the root is bracketed between [x1, x2].  The number of iterations can be
-        calculated beforehand also.
-        
-    Note:  Crenshaw, RootFinder, and kbrent are all forms of Brent's algorithm, but have
-    different source code.  From my testing they behave quite similarly, but Jack
-    Crenshaw's routine sometimes is a tad bit more efficient because of the more
-    carefully thought out convergence criteria Jack used.
-    
-    Crenshaw(x0, x2, f)
-        Finds a root with quadratic convergence that lies between x0 and x2.  x0 and x2 must
-        bracket the root.  The function whose root is being found is f(x).  The root is found
-        when successive estimates differ by less than eps.  The routine will raise an exception
-        if the number of iterations exceeds itmax.  The returned value is the root.
-        
-    kbrent(a, b, f)
-        Another form of Brent's method from Kiusalaas, "Numerical Methods in Engineering with
-        Python".
-        
-    Ostrowski(x0, f, deriv)
-        An improved form of Newton's method which uses another evaluation of the function f(x)
-        in each iteration to get fourth-order convergence.
-        
-    FindRoots(f, n, x1, x2)
-        This is a general-purpose root finding routine.  It uses SearchIntervalForRoots to
-        divide the interval [x1, x2] into n intervals and look for roots in each subinterval by
-        sign changes.  If a subinterval has a root, the RootFinder routine is used to find the
-        root to precision eps.  If more than itmax iterations are used in any interval, an
-        exception is raised.  Returns a tuple of the roots found.
-        
-    Pound(x)
-        Utility function to reduce complex numbers with small real or imaginary components to
-        pure imaginary or pure real numbers, respectively.
-        
-    Ridders(f, a, b)
-        Finds a root via Ridder's method if the root is bracketed.  Converges quadratically
-        with two function evaluations per iteration.
-        
-    NewtonRaphson(f, fd, x)
-        Quadratically-converging root-finding method; you need to supply the function f, its
-        derivative fd, and an initial guess x.
-        
-    SearchIntervalForRoots(f, n, x1, x2)
-        Given a function f of one variable, divide the interval [x1, x2] into n subintervals
-        and determine if the function crosses the x axis in each subinterval.  Return a tuple
-        of the intervals where there is a zero crossing (i.e., there's at least one root in
-        each intervale in the tuple).
-        
-    BracketRoots(f, x1, x2):
-        Expands an interval geometrically until a root is bracketed or the number of iterations
-        exceed itmax.  Returns (a, b) where a and b bracket the root.  An exception is raised
-        if too many iterations are used.
-        
-    The following functions find real and complex roots and use the math library, so are only
-    for calculations with floats.  If adjust is True, any root where Im/Re < epsilon is
-    converted to a real root.  epsilon is a global variable.  Set adjust to False, to have the
-    roots returned as complex numbers.
-    
-    QuadraticEquation(a, b, c, adjust=True)
-        Returns the two roots of a*x**2 + b*x + c = 0.  If adjust is true, any root where Im/Re
-        < eps is converted to a real root.  Set adjust to False to have all roots returned as
-        complex numbers.
-        
-    CubicEquation(a, b, c, d, adjust=True)
-        Returns the three roots of a*x**3 + b*x**2 + c*x + d = 0.  If adjust is true, any root
-        where Im/Re < eps is converted to a real root.  Set adjust to False to have all roots
-        returned as complex numbers.
-        
-    QuarticEquation(a, b, c, d, e, adjust=True)
-        Returns the four roots of a*x**4 + b*x**3 + c*x**2 + d*x + e = 0.  If adjust is true,
-        any root where Im/Re < eps is converted to a real root.  Set adjust to False to have all
-        roots returned as complex numbers.
+    - Ridders, Brent, ITP are for single argument functions and are intended to be fast
+      general purpose routines
+    - Extra arguments & keyword arguments for the function whose root is to be found
+        - Crenshaw (is Brent's method)
+        - Bisection
+    - fp argument lets you use float, flt, mpmath.mpf, or Decimal math types
+
+    Features
+        - dbg stream argument to send debugging information to watch convergence
+        - args, kw for extra parameters in the function f
+        - fp type to use float, flt, mpmath.mpf, or Decimal math types
+        - itmax to control maximum number of iterations
 
 References ([x:y:z] means page y in reference x or page z in the PDF form)
     
@@ -172,49 +99,56 @@ References ([x:y:z] means page y in reference x or page z in the PDF form)
     
 Notes
     
-Division
---------
+Division by multiplication & subtraction
+
     https://www.cs.princeton.edu/courses/archive/fall12/cos323/notes/cos323_f12_lecture02_rootfinding.pdf
-    notes that some computers a hardware divide is not available, so division can be
-    simulated in software by using Newton-Raphson iteration:
+    notes that in some computers a hardware divide is not available, so division can be
+    simulated in software by using Newton-Raphson iteration using only multiplication
+    and subtraction:
     
         a/b = a*(1/b)
-        f(x) = 1/x - b = 0
+        f(x) = 1/x - b = 0  Solve f(x) = 0 to get reciprocal of b
         f'(x) = -1/x**2
         x[n+1] = x - (1/x - b)/(-1/x**2)   (Here x = x[n])
                = x*(2 - b*x)
     
-    Thus, the calculation only involves multiplication and subtraction.  
-    
-    Let's do an example:  calculate 3/5.  a = 3 and b = 5.  Start with x = 0.  The
-    iteration is 
+    Example:  calculate 3/5.  a = 3 and b = 5.  Start with x = 0.1.  Some python code
+    for this iteration is (this calculates 1/b)
     
         x, b = 0.1, 5
+        tol = 1e-15     # Roughly floating point precision
         for i in range(20):
             xnew = x*(2 - b*x)
-            print(f"{i:2d} {xnew:.5f}")
-            if abs(x - xnew) < 1e-5:
+            print(f"{i:2d} {xnew:.15f}")
+            if abs(x - xnew) < tol:
                 break
             x = xnew
     
-    which prints out
+    which prints out the calculation of 1/5 as
     
-        0 0.15000
-        1 0.18750
-        2 0.19922
-        3 0.20000
-        4 0.20000
+        0 0.150000000000000
+        1 0.187500000000000
+        2 0.199218750000000
+        3 0.199996948242188
+        4 0.199999999953434
+        5 0.200000000000000
+        6 0.200000000000000
     
-    Here's another example:  calculate 42.7/6.2.  Use 0.1 as a starting value:
+    Here's another example:  calculate 42.7/6.2.  Use 0.1 as a starting value to get an
+    iterative calculation of 1/6.2:
     
-        0 0.13800
-        1 0.15793
-        2 0.16122
-        3 0.16129
-        4 0.16129
+        0 0.138000000000000
+        1 0.157927200000000
+        2 0.161220196900992
+        3 0.161290292091457
+        4 0.161290322580639
+        5 0.161290322580645
+        6 0.161290322580645
     
     But the starting value is important:  try the same problem but start with x = 7.
-    The algorithm diverges and results in -∞.
+    The algorithm diverges and results in -∞.  This is a well-known weakness of
+    Newton-Raphson root-finding, as it is unstable when the function's derivative is a
+    small number.  Here, f'(7) is about -0.02.
     
 '''
 if 1:  # Header
@@ -250,8 +184,10 @@ if 1:  # Header
         if 0:
             import debug
             debug.SetDebugger()
+    if 1:  # Global variables
+        t.dbg = t.skyl   # Color for debugging output
 if 1:  # Root finders
-    def Crenshaw(a, b, f, tol=1e-6, itmax=50, fp=float, dbg=False, args=[], kw={}):
+    def Crenshaw(a, b, f, tol=1e-6, itmax=50, fp=float, dbg=None, args=[], kw={}):
         '''Return (root, num_iterations) where root is a root of the function f() that
         lies in the interval [a, b] and num_iterations is the number of iterations it
         took to find the root.
@@ -266,7 +202,7 @@ if 1:  # Root finders
         fp      Number type to do the calculations with
         args    Sequence of extra arguments for the function f
         kw      Keyword arguments for the function f
-        dbg     If true, send debugging messages to stderr
+        dbg     If not None, send debugging messages to this stream
     
         The routine will raise an exception if it receives bad input data or it doesn't converge.
     
@@ -298,6 +234,7 @@ if 1:  # Root finders
         variety of topics.  I never got to meet him (we lived on opposite coasts of the
         US), but we connected over many things.  I miss his lively mind.
         '''
+        fnname = "Crenshaw"
         # Check function arguments
         if a == b:
             raise ValueError("a and b cannot be equal")
@@ -317,24 +254,19 @@ if 1:  # Root finders
         else:
             y0, y2 = (f(a, **kw), f(b, **kw)) if kw else (f(a), f(b))
         y0, y2 = fp(y0), fp(y2)
-        # Set up debugging
-        if dbg:
-            Dbg.dbg = True
         # Check for a zero at the endpoints
         if not y0:
-            if dbg:
-                Dbg.dbg = False
+            Dbg(f"{fnname}: a is root", file=dbg)
             return a, 0 
         if not y2:
-            if dbg:
-                Dbg.dbg = False
+            Dbg(f"{fnname}: b is root", file=dbg)
             return b, 0
         if y2*y0 > zero:
             msg = f"Root not bracketed: f(a) = {y0}, f(b) = {y2}"
             raise ValueError(msg)
         for i in range(itmax):
             x1 = (b + a)/2  # Bisection step
-            Dbg(f"Crenshaw:  {fp(x1)}, count = {i + 1}")
+            Dbg(f"{fnname}:  {fp(x1)}, count = {i + 1}", file=dbg)
             if args:
                 y1 = fp(f(x1, *args, **kw) if kw else f(x1, *args))
             else:
@@ -342,9 +274,7 @@ if 1:  # Root finders
             # 13 Oct 2014:  added 'abs(x1 - xmlast) < tol' test because routine was not converging on
             # sqrt(1e108), when it actually only took 5 iterations.
             if not y1 or (abs(x1 - a) < tol) or (abs(x1 - xmlast) < tol):
-                Dbg(f"Crenshaw done")
-                if dbg:
-                    Dbg.dbg = False
+                Dbg(f"{fnname} done", file=dbg)
                 return fp(x1), i + 1
             if y1*y0 > zero:
                 a, b, y0, y2 = b, a, y2, y0
@@ -360,9 +290,7 @@ if 1:  # Root finders
                 else:
                     ym = fp(f(xm, **kw) if kw else f(xm))
                 if not ym or abs(xm - xmlast) < tol:
-                    Dbg(f"Crenshaw done")
-                    if dbg:
-                        Dbg.dbg = False
+                    Dbg(f"{fnname} done", file=dbg)
                     return fp(xm), i + 1
                 xmlast = xm
                 if ym*y0 < zero:
@@ -370,7 +298,7 @@ if 1:  # Root finders
                 else:
                     a, y0, b, y2 = xm, ym, x1, y1
         raise ValueError(f"Number of iterations exceeded {itmax}")
-    def Bisection(a, b, f, tol=1e-6, itmax=None, switch=False, fp=float, dbg=False, args=[], kw={}):
+    def Bisection(a, b, f, tol=1e-6, itmax=None, switch=False, fp=float, dbg=None, args=[], kw={}):
         '''Returns (root, num_it) (the root and number of iterations) by finding a root
         of f(x) = 0 by bisection.  The root must be bracketed in [a, b].  Adapted from
         [2:145:154].
@@ -385,9 +313,9 @@ if 1:  # Root finders
                     number of iterations is N = log2(|a - b|/tol), setting itmax to less
                     than N will lose precision.  
         
-        fp          Type of number evaluated by f and the type of the returned root.
+        fp          Type of number evaluated by f and the type of the returned root
         
-        dbg         If True, send debugging information to stdout.
+        dbg         If not None, send debugging information to this stream
         
         args        Extra arguments for f (will be evaluated as f(x, *args)
         
@@ -418,12 +346,15 @@ if 1:  # Root finders
         significant digit to the answer and is equivalent to a binary search, which is
         called linear convergence.
         '''
+        fnname = "Bisection"
         a, b = [fp(i) for i in (a, b)]
         fa, fb = IsBracketed(a, b, f, fp=fp)
         diff = abs(b - a)
         if not fa:
+            Dbg(f"{fnname}: a is root", file=dbg)
             return a, 0
         if not fb:
+            Dbg(f"{fnname}: b is root", file=dbg)
             return b, 0
         # Get number of iterations we need to calculate
         n = Ceil(Log2(abs(b - a)/tol, fp), fp)
@@ -431,8 +362,10 @@ if 1:  # Root finders
             n = itmax
         for count in range(n):
             x = (a + b)/2   # Abscissa of interval midpoint
+            Dbg(f"{fnname}:  {fp(x)}, count = {count + 1}", file=dbg)
             y = fp(f(x))    # Ordinate of interval midpoint
             if not y:
+                Dbg(f"{fnname} done", file=dbg)
                 return x, count + 1
             if switch and abs(y) > abs(fa) and abs(y) > abs(fb):
                 msg = "f(x) increasing on interval bisection (i.e., a singularity)"
@@ -443,10 +376,11 @@ if 1:  # Root finders
                 a, fa = x, y  # Right half-interval contains the root
             else:
                 b, fb = x, y  # Left half-interval contains the root
-        x = (a + b)/2
+        x = fp((a + b)/2)
+        Dbg(f"{fnname} done, {x}, count = {count + 1}", file=dbg)
         assert diff/2**n <= tol
         return x, n
-    def Ridders(a, b, f, tol=1e-6, itmax=50, fp=float, dbg=False, args=[], kw={}):
+    def Ridders(a, b, f, tol=1e-6, itmax=50, fp=float, dbg=None, args=[], kw={}):
         '''Returns (root, num_it), the root and the number of iterations using Ridders'
         method to find a root of f(x) = 0 to the specified tolerance tol.  The
         root must be bracketed on [a, b].  If the number of iterations exceeds itmax, an
@@ -464,31 +398,37 @@ if 1:  # Root finders
         
         Adapted from [3:358:382].
         '''
+        fnname = "Ridders"
         a, b = [fp(i) for i in (a, b)]
         fa, fb = IsBracketed(a, b, f, fp=fp)
         if not fa:
+            Dbg(f"{fnname}: a is root", file=dbg)
             return a, 0
         if not fb:
+            Dbg(f"{fnname}: b is root", file=dbg)
             return b, 0
         for i in range(itmax):
             # Compute the improved root x from Ridder's formula
             c = (a + b)/2
+            Dbg(f"{fnname}:  {fp(c)}, count = {i + 1}", file=dbg)
             fc = fp(f(c))
             sr = (fc*fc - fa*fb)**0.5
             if not sr:
                 if not fc:
+                    Dbg(f"{fnname} done", file=dbg)
                     return c, i + 1
                 raise ValueError("No root")
             dx = (c - a)*fc/sr
             if (fa - fb) < 0:
                 dx = -dx
-            x = c + dx
-            fx = f(x)
+            x = fp(c + dx)
+            fx = fp(f(x))
             # Test for convergence.  Note:  a linter will complain that x_old is undefined
             # or assigned and never used, but in fact it works OK because i is 0 the first
             # pass through.
             if i > 0:
                 if abs(x - x_old) < tol*max(abs(x), 1):   # noqa
+                    Dbg(f"{fnname} done", file=dbg)
                     return x, i + 1
             x_old = x   # noqa
             # Re-bracket the root as tightly as possible
@@ -500,7 +440,7 @@ if 1:  # Root finders
             else:
                 a, b, fa, fb = c, x, fc, fx
         raise ValueError(f"Number of iterations exceeded {itmax}")
-    def Brent(a, b, f, tol=1e-6, itmax=50, fp=float, dbg=False, args=[], kw={}):
+    def Brent(a, b, f, tol=1e-6, itmax=50, fp=float, dbg=None, args=[], kw={}):
         '''Return (root, number of iterations) where root is the root of f(x) = 0 by
         combining quadratic interpolation with bisection (simplified Brent's method).
         The root must be bracketed in (a, b).  Calls user-supplied function f(x).  From
@@ -510,18 +450,23 @@ if 1:  # Root finders
             1.  f(x) < tol
             2.  The interval [a, b] width < tol*max(abs(b), 1)
         '''
+        fnname = "Brent"
         a, b = [fp(i) for i in (a, b)]
         fa, fb = IsBracketed(a, b, f, fp=fp)
         x1, x2 = a, b
         if not fa:
+            Dbg(f"{fnname}: a is root", file=dbg)
             return a, 0
         if not fb:
+            Dbg(f"{fnname}: b is root", file=dbg)
             return b, 0
         f1, f2 = fa, fb     # Renaming for algorithm's notation
-        x3 = (a + b)/2      # Midpoint for bisection
+        x3 = fp((a + b)/2)  # Midpoint for bisection
         for count in range(itmax):
             f3 = fp(f(x3))
+            Dbg(f"{fnname}:  {fp(f3)}, count = {count + 1}", file=dbg)
             if abs(f3) < tol:
+                Dbg(f"{fnname} done", file=dbg)
                 return x3, count + 1
             # Tighten the brackets on the root
             if f1*f3 < 0:
@@ -529,10 +474,12 @@ if 1:  # Root finders
             else:
                 a = x3  # New interval is right-hand half
             if (b - a) < tol*max(abs(b), 1):
+                Dbg(f"{fnname}:  {fp((a + b)/2)}, count = {count + 1}", file=dbg)
+                Dbg(f"{fnname} done", file=dbg)
                 return (a + b)/2, count + 1
             # Try quadratic interpolation (Lagrange's 3-point formula)
-            numer = x3*(f1 - f2)*(f2 - f3 + f1) + f2*x1*(f2 - f3) + f1*x2*(f3 - f1)
-            denom = (f2 - f1)*(f3 - f1)*(f2 - f3)
+            numer = fp(x3*(f1 - f2)*(f2 - f3 + f1) + f2*x1*(f2 - f3) + f1*x2*(f3 - f1))
+            denom = fp((f2 - f1)*(f3 - f1)*(f2 - f3))
             # If division by zero, push x out of bounds
             x = x3 + (f3*numer/denom if denom else b - a)
             # If interpolation goes out of bounds, use bisection.  This test is equivalent to
@@ -549,7 +496,7 @@ if 1:  # Root finders
             x3 = x
         raise ValueError(f"Number of iterations exceeded {itmax}")
 if 1:  # Other
-    def ITP(a, b, f, tol=1e-6, itmax=50, k1=None, k2=2, n0=1, fp=float, dbg=None):
+    def ITP(a, b, f, tol=1e-6, itmax=50, k1=None, k2=2, n0=1, fp=float):
         '''Return (root, num_iterations) for the root of the function f.
 
         a       Start of bracketing interval
@@ -560,7 +507,6 @@ if 1:  # Other
         itmax   Maximum number of iterations; if exceeded, a ValueError will be raised
         fp      Number type to do the calculations with (float, Decimal, mpmath.mpf
                 supported)
-        dbg     If true, send debugging messages to stderr
 
         Translation into python of John Burkardt's C routine (see
         https://people.sc.fsu.edu/~jburkardt/f_src/zero_itp/zero_itp.html, last modified
@@ -675,14 +621,13 @@ if 1:  # Other
                 a, b = xitp, xitp
                 break
         return fp((a + b)/2), count
-    def NewtonRaphson(f, fderiv, x, tol=1e-6, itmax=50, dbg=False, fp=float):
+    def NewtonRaphson(x, f, fderiv, tol=1e-6, itmax=50, fp=float):
         '''Returns the root using Newton-Raphson algorithm for solving f(x) = 0.
             f       The function 
             fderiv  f's derivative
             x       Initial guess of the root's location
             tol     Number used to determine when to quit
             itmax   Maximum number of iterations allowed
-            show    print intermediate values
             fp      Type of numbers to calculate with
             
         The iteration is xnew = x - f(x)/f'(x) until |dx|/(1+|x|) < tol is achieved.
@@ -709,20 +654,15 @@ if 1:  # Other
             x, count = x - dx, count + 1
             if count > itmax:
                 raise ValueError(f"Number of iterations exceeded {itmax}")
-            if dbg:
-                print(f"NewtonRaphson[{count}]: x = {x}")
-    def Ostrowski(x0, f, fderiv, tol=1e-6, itmax=50):
+    def Ostrowski(x, f, fderiv, tol=1e-6, itmax=50, fp=float):
         '''Returns (root, num_iterations) for the root of the function f(x).
 
-        x0          Initial guess for the root
+        x           Initial guess for the root
         f           The function f(x)
         fderiv      The first derivative of f
         tol         Convergence tolerance
         itmax       Maximum number of iterations
-        
-        x0 is the initial guess for the root, f is f(x), the univariate function whose root we want,
-        fderiv is the first derivative function of f(x), and tol is the relative change in successive
-        root iterations to use as a convergence criterion.
+        fp          Floating point type to do calculations with
         
         Ostrowski's method is based on Newton's method with a follow-on evaluation to refine the root:
         
@@ -734,70 +674,72 @@ if 1:  # Other
         Reference:  "Ostrowski's Method for Finding Roots" by Namir Shammas in "HP Solve", issue 28,
         July 2012, page 8.
         '''
-        xn = x0
-        for i in range(itmax):
-            a = f(xn)
-            if not a:
-                return (xn, i + 1)
-            yn = xn - a/fderiv(xn)
-            b = f(yn)
-            c = a - 2*b
+        xn = fp(x)
+        for count in range(itmax):
+            ya = fp(f(xn))
+            if not ya:
+                return (xn, count + 1)
+            yn = fp(xn - ya/fderiv(xn))
+            yb = fp(f(yn))
+            c = ya - 2*yb
             if not c:
-                if b:
-                    raise ZeroDivisionError("(a - 2*b) is zero")
+                if yb:
+                    raise ZeroDivisionError("(ya - 2*yb) is zero")
                 else:
-                    return (yn, i + 1)  # yn is a root of f
-            xn1 = yn - b*(xn - yn)/c
+                    return (yn, count + 1)
+            xn1 = fp(yn - yb*(xn - yn)/c)
             # Check for convergence
             if xn1 == xn:
-                return (xn, i + 1)
-            if xn:
-                rel = (xn1 - xn)/xn
-                if abs(rel) <= tol:
-                    return (xn, i + 1)
-            else:
-                # The following may not be an exact interpretation, but it
-                # allows for the case where xn was zero and avoids a divide by
-                # zero error.
-                rel = (xn - xn1)/xn1
-                if abs(rel) <= tol:
-                    return (xn1, i + 1)
-            # Set up for next iteration
+                return (xn, count + 1)
+            diff = abs(xn1 - xn)
+            if diff < tol:
+                return (xn, count + 1)
             xn = xn1
         raise ValueError(f"Number of iterations exceeded {itmax}")
-    def SearchIntervalForRoots(f, n, x1, x2, fp=float, args=[], kw={}):
-        '''Given a function f of one variable, divide the interval [x1, x2] into n subintervals and
-        determine if the function crosses the x axis in any subinterval; return a tuple of the
-        intervals where there is a zero crossing.  fp is the floating point type to use.  args is a
-        sequence of any extra parameters needed by f; kw is a dictionary of any keyword parameters
-        needed by f.
+    def SearchIntervalForRoots(a, b, f, n, fp=float, args=[], kw={}):
+        '''Return a tuple of subintervals of [a, b] where f has roots.
         
-        Idea from Numerical Recipes in C, zbrak, chapter 9, page 352.
+        a       Start of interval
+        b       End of interval
+        f       Function whose roots we want
+        fp      Floating point type to do calculations with
+        args    Extra arguments for f
+        kw      Extra keyword arguments for f
+
+        Divide [a, b] into n subintervals and examine each one for a zero crossing.
+        Idea from [3:352].
         '''
-        assert f and n > 0 and x1 < x2
+        if a == b:
+            raise ValueError("a and b are equal")
+        if n < 1 or not isinstance(n, int):
+            raise ValueError("n must be an integer > 0")
+        a, b = fp(a), fp(b)
+        if a > b:
+            raise ValueError("a must be < b")
         if args:
-            y0 = f(x1, *args, **kw) if kw else f(x1, *args)
+            y0 = fp(f(a, *args, **kw)) if kw else fp(f(a, *args))
         else:
-            y0 = f(x1, **kw) if kw else f(x1)
-        x0, delta, intervals = x1, (x2 - x1)/(n + fp("1.")), []
-        for i in range(1, n + 1):
-            x = x1 + i*delta
+            y0 = fp(f(a, **kw)) if kw else fp(f(a))
+        x0, delta, intervals = a, fp((b - a)/(n + fp("1"))), []
+        for count in range(1, n + 1):
+            x = a + count*delta
             if args:
                 y = f(x, *args, **kw) if kw else f(x, *args)
             else:
                 y = f(x, **kw) if kw else f(x)
-            if y0*y < 0:
+            # See if this interval has a root (check endpoints too)
+            if y0*y < 0 or not y0 or not y:
                 intervals.append((x0, x))
             x0, y0 = x, y
         return tuple(intervals)
     def FindRoots(f, n, x1, x2, tol=1e-6, itmax=50, fp=float, args=[], kw={}):
-        '''This is a general-purpose root finding routine that returns a tuple of the roots found
-        of the function f on the interval [x1, x2].
+        '''This is a general-purpose root finding routine that returns a tuple of the
+        roots found of the function f on the interval [x1, x2].
         
-        It uses SearchIntervalForRoots to divide the interval into n intervals and look for roots
-        in each subinterval.  If a subinterval has a root, the Crenshaw routine is used to find
-        the root to precision tol.  If more than itmax iterations are used in any interval, an
-        exception is raised.
+        It uses SearchIntervalForRoots to divide the interval into n intervals and look
+        for roots in each subinterval.  If a subinterval has a root, the Crenshaw
+        routine is used to find the root to precision tol.  If more than itmax
+        iterations are used in any interval, an exception is raised.
         
         Parameters
             f       Function to search for roots
@@ -815,9 +757,9 @@ if 1:  # Other
             for i in FindRoots(lambda x: math.sin(x)/x, 1000, 1, 10):
                 print(i)
         which prints
-            3.14159265359
-            6.28318530718
-            9.42477796077
+            3.141592653589784
+            6.283185307179587
+            9.424777960769378
         '''
         if not f:
             raise ValueError("f must be defined")
@@ -825,7 +767,7 @@ if 1:  # Other
             raise TypeError("n must be integer")
         if x1 >= x2:
             raise ValueError("Must have x1 < x2")
-        intervals = SearchIntervalForRoots(f, n, x1, x2, fp=fp, args=args, kw=kw)
+        intervals = SearchIntervalForRoots(x1, x2, f, n, fp=fp, args=args, kw=kw)
         if not intervals:
             return tuple()
         roots = []
@@ -838,16 +780,16 @@ if 1:  # Other
                 roots.append(x)
         return tuple(roots)
     def BracketRoots(f, x1, x2, itmax=50, fp=float, args=[], kw={}):
-        '''Given a function f and an initial interval [x1, x2], expand the interval geometrically until
-        a root is bracketed or the number of iterations exceeds itmax.  Return (a, b), where the
-        interval [a, b]  brackets a root.  If the maximum number of iterations is exceeded, an
-        exception is raised.
+        '''Given a function f and an initial interval [x1, x2], expand the interval
+        geometrically until a root is bracketed or the number of iterations exceeds
+        itmax.  Return (a, b), where the interval [a, b]  brackets a root.  If the
+        maximum number of iterations is exceeded, an exception is raised.
         
         fp      Floating point type to use
         args    Sequence of extra arguments to be passed to f
         kw      Dictionary of keywords that will be passed to f
         
-        Adapted from zbrac in chapter 9.1 of Numerical Recipes in C, page 352.
+        Adapted from zbrac in [3:352].
         '''
         assert f and x1 != x2
         zero = fp("0")
@@ -1345,12 +1287,14 @@ if 1:  # Utility
         else:
             return z
     def Dbg(*p, **kw):
-        'Used to print colorized debugging information to stderr'
-        if Dbg.dbg:
-            print(f"{t.lill}", end="")
-            print(*p, **kw)
-            print(f"{t.n}", end="")
-    Dbg.dbg = False
+        'Used to print colorized debugging information to stream'
+        file = kw.get("file", None)
+        if file is None:
+            return
+        # file must be a suitable stream
+        print(f"{t.dbg}", end="", file=file)
+        print(*p, **kw)
+        print(f"{t.n}", end="", file=file)
 if 1:  # Demo code
     def Check():
         '''This function runs each routine to find the solution of f(x) = 0 where the
@@ -1434,7 +1378,7 @@ if 1:  # Demo code
             MpmathCheck()
         Check()
         print(dedent('''
-        Print out the results of calculating the root to cox(x) - x = 0; both the number of 
+        Print out the results of calculating the root to cos(x) - x = 0; both the number of 
         iterations and timing are printed.
         '''))
         tm = Timer()

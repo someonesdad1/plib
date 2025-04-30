@@ -117,8 +117,8 @@ if 1:   # Test root-finding routines
     def TestNewtonRaphson():
         # Find the root of f(x) = tan(x) - 1 for 0 < x < pi/2.
         f = lambda x: math.tan(x) - 1
-        fd = lambda x: 1 / math.cos(x) ** 2
-        x = NewtonRaphson(f, fd, 0.5, tol=tol)
+        fd = lambda x: 1 / math.cos(x)**2
+        x = NewtonRaphson(0.5, f, fd, tol=tol)
         assert_equal(x, math.atan(1), reltol=1e-15)
     def TestSearchIntervalForRoots():
         # Find an interval containing the root of f(x) = tan(x) -
@@ -126,10 +126,10 @@ if 1:   # Test root-finding routines
         f = lambda x: math.tan(x) - 1
         answer = math.atan(1)
         x1, x2 = 0, math.pi / 2
-        intervals = SearchIntervalForRoots(f, 10, x1, x2)
+        intervals = SearchIntervalForRoots(x1, x2, f, 10)
         for start, end in intervals:
             Assert(start <= answer <= end)
-        intervals = SearchIntervalForRoots(f, 1000, x1, x2)
+        intervals = SearchIntervalForRoots(x1, x2, f, 1000)
         for start, end in intervals:
             Assert(start <= answer <= end)
     def TestBracketRoots():
