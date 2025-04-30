@@ -262,6 +262,9 @@ Active:  /plib/.todo
           open Explorer on the HP catalog directory.
 
     - color.py
+        - 'clr ornl' prints properties of ornl color.  It should also give a variety of
+          different lightnesses & saturations of this basic color, as this would be
+          helpful in choosing colors in scripts.
         - /plib/rgb
             - Fix up chromaticity directory's stuff
         - TRM needs a way to ensure all attribute access returns "" when .on is False.

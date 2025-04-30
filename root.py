@@ -1,7 +1,11 @@
 '''
 
 TODO
-    - Put in Dbg calls to each routine so you can see convergence
+    - Add fp=float, dbg=None, args=[], kw={} to each call
+        - Modify each line to make sure each number is type fp
+        - If dbg is not None, it's a stream to send debugging messages to
+        - Put in the necessary Dbg calls
+        - Equip function calls with args & kw
     - Primary routines
         - Ridders, Brent, and Rootfinder are the fastest on the cos(x)-x example.  All
           things being equal, the simplest and shortest code should be preferred.
@@ -228,21 +232,26 @@ if 1:  # Header
         ##∞test∞# ["test/root_test.py"] #∞test∞#
         pass
     if 1:  # Imports
-        import sys
+        import decimal
         import math
         import numbers
+        import sys
     if 1:  # Custom imports
         from color import t
         from lwtest import Assert
         from wrap import dedent
         from timer import Timer
+        from f import flt
         try:
             import mpmath
             have_mpmath = True
         except ImportError:
             have_mpmath = False
+        if 0:
+            import debug
+            debug.SetDebugger()
 if 1:  # Root finders
-    def Crenshaw(a, b, f, tol=1e-6, itmax=50, fp=float, args=[], kw={}):
+    def Crenshaw(a, b, f, tol=1e-6, itmax=50, fp=float, dbg=False, args=[], kw={}):
         '''Return (root, num_iterations) where root is a root of the function f() that
         lies in the interval [a, b] and num_iterations is the number of iterations it
         took to find the root.
@@ -257,6 +266,7 @@ if 1:  # Root finders
         fp      Number type to do the calculations with
         args    Sequence of extra arguments for the function f
         kw      Keyword arguments for the function f
+        dbg     If true, send debugging messages to stderr
     
         The routine will raise an exception if it receives bad input data or it doesn't converge.
     
@@ -307,15 +317,24 @@ if 1:  # Root finders
         else:
             y0, y2 = (f(a, **kw), f(b, **kw)) if kw else (f(a), f(b))
         y0, y2 = fp(y0), fp(y2)
+        # Set up debugging
+        if dbg:
+            Dbg.dbg = True
+        # Check for a zero at the endpoints
         if not y0:
+            if dbg:
+                Dbg.dbg = False
             return a, 0 
         if not y2:
+            if dbg:
+                Dbg.dbg = False
             return b, 0
         if y2*y0 > zero:
             msg = f"Root not bracketed: f(a) = {y0}, f(b) = {y2}"
             raise ValueError(msg)
         for i in range(itmax):
             x1 = (b + a)/2  # Bisection step
+            Dbg(f"Crenshaw:  {fp(x1)}, count = {i + 1}")
             if args:
                 y1 = fp(f(x1, *args, **kw) if kw else f(x1, *args))
             else:
@@ -323,6 +342,9 @@ if 1:  # Root finders
             # 13 Oct 2014:  added 'abs(x1 - xmlast) < tol' test because routine was not converging on
             # sqrt(1e108), when it actually only took 5 iterations.
             if not y1 or (abs(x1 - a) < tol) or (abs(x1 - xmlast) < tol):
+                Dbg(f"Crenshaw done")
+                if dbg:
+                    Dbg.dbg = False
                 return fp(x1), i + 1
             if y1*y0 > zero:
                 a, b, y0, y2 = b, a, y2, y0
@@ -338,6 +360,9 @@ if 1:  # Root finders
                 else:
                     ym = fp(f(xm, **kw) if kw else f(xm))
                 if not ym or abs(xm - xmlast) < tol:
+                    Dbg(f"Crenshaw done")
+                    if dbg:
+                        Dbg.dbg = False
                     return fp(xm), i + 1
                 xmlast = xm
                 if ym*y0 < zero:
@@ -345,7 +370,7 @@ if 1:  # Root finders
                 else:
                     a, y0, b, y2 = xm, ym, x1, y1
         raise ValueError(f"Number of iterations exceeded {itmax}")
-    def Bisection(a, b, f, tol=1e-6, itmax=None, switch=False):
+    def Bisection(a, b, f, tol=1e-6, itmax=None, switch=False, fp=float, dbg=False, args=[], kw={}):
         '''Returns (root, num_it) (the root and number of iterations) by finding a root
         of f(x) = 0 by bisection.  The root must be bracketed in [a, b].  Adapted from
         [2:145:154].
@@ -358,8 +383,16 @@ if 1:  # Root finders
 
         itmax       Limit the number of iterations to this value if not None.  Since the
                     number of iterations is N = log2(|a - b|/tol), setting itmax to less
-                    than N may lose precision.  
-
+                    than N will lose precision.  
+        
+        fp          Type of number evaluated by f and the type of the returned root.
+        
+        dbg         If True, send debugging information to stdout.
+        
+        args        Extra arguments for f (will be evaluated as f(x, *args)
+        
+        kw          Keyword dictionary for f (will be evaluated as f(x, **kw)
+        
         Example
         -------
 
@@ -385,18 +418,20 @@ if 1:  # Root finders
         significant digit to the answer and is equivalent to a binary search, which is
         called linear convergence.
         '''
-        fa, fb = IsBracketed(a, b, f)
+        a, b = [fp(i) for i in (a, b)]
+        fa, fb = IsBracketed(a, b, f, fp=fp)
         diff = abs(b - a)
         if not fa:
             return a, 0
         if not fb:
             return b, 0
-        n = math.ceil(math.log2(abs(b - a)/tol))    # Number of iterations
+        # Get number of iterations we need to calculate
+        n = Ceil(Log2(abs(b - a)/tol, fp), fp)
         if itmax is not None:
             n = itmax
         for count in range(n):
             x = (a + b)/2   # Abscissa of interval midpoint
-            y = f(x)        # Ordinate of interval midpoint
+            y = fp(f(x))    # Ordinate of interval midpoint
             if not y:
                 return x, count + 1
             if switch and abs(y) > abs(fa) and abs(y) > abs(fb):
@@ -411,7 +446,7 @@ if 1:  # Root finders
         x = (a + b)/2
         assert diff/2**n <= tol
         return x, n
-    def Ridders(a, b, f, tol=1e-6, itmax=50):
+    def Ridders(a, b, f, tol=1e-6, itmax=50, fp=float, dbg=False, args=[], kw={}):
         '''Returns (root, num_it), the root and the number of iterations using Ridders'
         method to find a root of f(x) = 0 to the specified tolerance tol.  The
         root must be bracketed on [a, b].  If the number of iterations exceeds itmax, an
@@ -429,7 +464,8 @@ if 1:  # Root finders
         
         Adapted from [3:358:382].
         '''
-        fa, fb = IsBracketed(a, b, f)
+        a, b = [fp(i) for i in (a, b)]
+        fa, fb = IsBracketed(a, b, f, fp=fp)
         if not fa:
             return a, 0
         if not fb:
@@ -437,13 +473,13 @@ if 1:  # Root finders
         for i in range(itmax):
             # Compute the improved root x from Ridder's formula
             c = (a + b)/2
-            fc = f(c)
-            s = (fc*fc - fa*fb)**0.5
-            if not s:
+            fc = fp(f(c))
+            sr = (fc*fc - fa*fb)**0.5
+            if not sr:
                 if not fc:
                     return c, i + 1
                 raise ValueError("No root")
-            dx = (c - a)*fc/s
+            dx = (c - a)*fc/sr
             if (fa - fb) < 0:
                 dx = -dx
             x = c + dx
@@ -452,7 +488,7 @@ if 1:  # Root finders
             # or assigned and never used, but in fact it works OK because i is 0 the first
             # pass through.
             if i > 0:
-                if abs(x - x_old) < tol*max(abs(x), 1.0):   # noqa
+                if abs(x - x_old) < tol*max(abs(x), 1):   # noqa
                     return x, i + 1
             x_old = x   # noqa
             # Re-bracket the root as tightly as possible
@@ -464,7 +500,7 @@ if 1:  # Root finders
             else:
                 a, b, fa, fb = c, x, fc, fx
         raise ValueError(f"Number of iterations exceeded {itmax}")
-    def Brent(a, b, f, tol=1e-6, itmax=50):
+    def Brent(a, b, f, tol=1e-6, itmax=50, fp=float, dbg=False, args=[], kw={}):
         '''Return (root, number of iterations) where root is the root of f(x) = 0 by
         combining quadratic interpolation with bisection (simplified Brent's method).
         The root must be bracketed in (a, b).  Calls user-supplied function f(x).  From
@@ -473,25 +509,20 @@ if 1:  # Root finders
         The method is defined to converge at x if:
             1.  f(x) < tol
             2.  The interval [a, b] width < tol*max(abs(b), 1)
-            
-        This algorithm (slightly modified) is from page 150 in the book J. Kiusalaas, "Numerical
-        Methods in Engineering with Python", 2005.
         '''
-        IsBracketed(a, b, f)
+        a, b = [fp(i) for i in (a, b)]
+        fa, fb = IsBracketed(a, b, f, fp=fp)
         x1, x2 = a, b
-        f1 = f(x1)
-        if not f1:
-            return x1, 0
-        f2 = f(x2)
-        if not f2:
-            return x2, 0
-        x3 = (a + b)/2  # Midpoint for bisection
+        if not fa:
+            return a, 0
+        if not fb:
+            return b, 0
+        f1, f2 = fa, fb     # Renaming for algorithm's notation
+        x3 = (a + b)/2      # Midpoint for bisection
         for count in range(itmax):
-            f3 = f(x3)
+            f3 = fp(f(x3))
             if abs(f3) < tol:
                 return x3, count + 1
-            # print("count = {0}  x3 = {1:.8g}  f3 = {2:.8g}".format(count + 1, x3, f3))
-            # print(f"count = {count + 1}  x = {x3:.15g}  y = {f3:.15g}")
             # Tighten the brackets on the root
             if f1*f3 < 0:
                 b = x3  # New interval is left-hand half
@@ -500,7 +531,7 @@ if 1:  # Root finders
             if (b - a) < tol*max(abs(b), 1):
                 return (a + b)/2, count + 1
             # Try quadratic interpolation (Lagrange's 3-point formula)
-            numer = x3*(f1 - f2)*(f2 - f3 + f1) + f2*x1* (f2 - f3) + f1*x2*(f3 - f1)
+            numer = x3*(f1 - f2)*(f2 - f3 + f1) + f2*x1*(f2 - f3) + f1*x2*(f3 - f1)
             denom = (f2 - f1)*(f3 - f1)*(f2 - f3)
             # If division by zero, push x out of bounds
             x = x3 + (f3*numer/denom if denom else b - a)
@@ -517,11 +548,23 @@ if 1:  # Root finders
                 x1, f1 = x3, f3
             x3 = x
         raise ValueError(f"Number of iterations exceeded {itmax}")
-    def ITP(a, b, f, tol=1e-6, itmax=50, k1=None, k2=2, n0=1):
-        '''Translation into python of John Burkardt's C routine (see
-        https://people.sc.fsu.edu/~jburkardt/f_src/zero_itp/zero_itp.html).  Last
-        modified 2 Mar 2024.  All variables are C doubles except nh and nmax, which are
-        integer.
+if 1:  # Other
+    def ITP(a, b, f, tol=1e-6, itmax=50, k1=None, k2=2, n0=1, fp=float, dbg=None):
+        '''Return (root, num_iterations) for the root of the function f.
+
+        a       Start of bracketing interval
+        b       End of bracketing interval
+        f       Function (univariate) to evaluate
+        tol     The routine has converged when the last two function values differ by
+                less than tol
+        itmax   Maximum number of iterations; if exceeded, a ValueError will be raised
+        fp      Number type to do the calculations with (float, Decimal, mpmath.mpf
+                supported)
+        dbg     If true, send debugging messages to stderr
+
+        Translation into python of John Burkardt's C routine (see
+        https://people.sc.fsu.edu/~jburkardt/f_src/zero_itp/zero_itp.html, last modified
+        2 Mar 2024).  All variables are C doubles except nh and nmax, which are integer.
         
         math symbols used:  ceil, log2
         
@@ -539,8 +582,8 @@ if 1:  # Root finders
             - k1 is on [0,∞], suggested value 0.2/(b - a)
             - k2 is on [1, 1+ϕ] == [1, 2.618], ϕ = (1 + sqrt(5))/2, suggested value 2
             - n0 on [0,∞] = max number of iterations over bisection.  It can be set to 0
-              for difficult problems, but is usually set to 1, to take more advantage of
-              the secant method.
+              for difficult problems, but is usually set to 1, to take advantage of the
+              secant method.
         
         From https://docs.rs/kurbo/0.8.1/kurbo/common/fn.solve_itp.html
             - ITP paper https://dl.acm.org/doi/10.1145/3423597
@@ -591,35 +634,39 @@ if 1:  # Root finders
                 - (j not defined, but used in the pseudocode)
 
         '''
+        a, b, tol = fp(a), fp(b), fp(tol)
+        if a == b:
+            raise ValueError("a and b are equal")
         if b < a:
-            c, a, b = a, b, c
+            a, b = b, a
         if k1 is None:
-            k1 = 0.2/(b - a)
-        ya, yb = f(a), f(b)
-        if 0 < ya*yb:
-            raise ValueError("a and b do not bracket the root")
+            k1 = fp("0.2")/(b - a)
+        else:
+            k1 = fp(k1)
+        k2 = fp(k2)
+        ya, yb = IsBracketed(a, b, f, fp=fp)
         # Modify f(x) so that y(a) < 0, 0 < y(b);
         if 0 < ya:
             s, ya, yb = -1, -ya, -yb
         else:
             s = 1
-        nh = math.ceil(math.log2((b - a)/(2*tol)))
+        nh = Ceil(Log2((b - a)/(2*tol), fp), fp)
         nmax, count = nh + n0, 0
         while 2*tol < (b - a):
             count += 1
             if count > itmax:
                 raise ValueError(f"Number of iterations exceeded {itmax}")
             # Calculate parameters
-            xh, r, delta = (a + b)/2, tol*2**(nmax - count) - (b - a)/2, k1*(b - a)**k2
+            xh, r, delta = (a + b)/2, tol*2**(nmax - count) - (b - a)/2, fp(k1*(b - a)**k2)
             # Interpolation
             xf = (yb*a - ya*b)/(yb - ya)
             # Truncation
             sigma = 1 if 0 <= xh - xf else -1
-            xt = xf + sigma*delta if delta < abs(xh - xf) else xh
+            xt = fp(xf + sigma*delta if delta < abs(xh - xf) else xh)
             # Projection
-            xitp = xt if abs(xt - xh) <= r else xh - sigma * r
+            xitp = xt if abs(xt - xh) <= r else fp(xh - sigma*r)
             # Update the interval
-            yitp = s * f(xitp)
+            yitp = fp(s*f(xitp))
             if 0 < yitp:
                 b, yb = xitp, yitp
             elif yitp < 0:
@@ -627,9 +674,8 @@ if 1:  # Root finders
             else:
                 a, b = xitp, xitp
                 break
-        return (a + b)/2, count
-if 1:  # Other
-    def NewtonRaphson(f, fderiv, x, tol=1e-6, itmax=50, show=False, fp=float, args=[], kw={}):
+        return fp((a + b)/2), count
+    def NewtonRaphson(f, fderiv, x, tol=1e-6, itmax=50, dbg=False, fp=float):
         '''Returns the root using Newton-Raphson algorithm for solving f(x) = 0.
             f       The function 
             fderiv  f's derivative
@@ -638,36 +684,32 @@ if 1:  # Other
             itmax   Maximum number of iterations allowed
             show    print intermediate values
             fp      Type of numbers to calculate with
-            args    Extra arguments for f
-            kw      Keyword arguments for f
             
         The iteration is xnew = x - f(x)/f'(x) until |dx|/(1+|x|) < tol is achieved.
         Here, dx = f(x)/fderiv(x).  This termination condition is a compromise between
         |dx| < tol if x is small and |dx|/|x| < tol if x is large.
         
-        Newton-Raphson converges quadratically near the root.  Its downfalls are
-        well-known: 1) near-zero derivatives can send it far from the root, 2) curves
-        with ogive shapes can make it oscillate and not converge, 3) you need to have an
-        expression for both the function and its derivative.  This routine's function
-        calling syntax is clumsy, as arguments and keywords can be used with f but not
-        its derivative (this could be fixed with even more clumsy notation).
+        - Advantages
+            - Simple code and easy to understand what's going on
+            - Fast
+            - Converges quadratically near the root
+        - Disadvantages
+            - Near-zero derivatives can send it far from the root
+            - Curves with ogive shapes can make it oscillate and not converge
+            - You need to have an expression for both the function and its derivative
         
         Adapted from http://www.phys.uu.nl/~haque/computing/WPark_recipes_in_python.html
         (defunct URL as of Sep 2014).
         '''
-        count, one = 0, fp("1.0")
+        count, one, x = 0, fp(1), fp(x)
         while True:
-            if args:
-                dx = f(x, *args, **kw)/fderiv(x) if kw else f(x, *args)/fderiv(x)
-            else:
-                dx = f(x, **kw)/fderiv(x) if kw else f(x)/fderiv(x)
+            dx = fp(f(x)/fderiv(x))
             if abs(dx) < tol*(one + abs(x)):
                 return x - dx
-            x = x - dx
-            count += 1
+            x, count = x - dx, count + 1
             if count > itmax:
                 raise ValueError(f"Number of iterations exceeded {itmax}")
-            if show:
+            if dbg:
                 print(f"NewtonRaphson[{count}]: x = {x}")
     def Ostrowski(x0, f, fderiv, tol=1e-6, itmax=50):
         '''Returns (root, num_iterations) for the root of the function f(x).
@@ -1241,11 +1283,32 @@ if 1:  # Polynomials
             return tuple([i.real for i in roots])
         return tuple(Pound(i, adjust) for i in roots)
 if 1:  # Utility
-    def IsBracketed(a, b, f):
-        '''Check that a and b bracket a roof of f(x); raise ValueError if not.  Return
-        the values (f(a), f(b)) for convenience and to avoid recalculating them.
+    def Ceil(x, fp):
+        'Ceiling function for type fp:  float, flt, mpf, Decimal'
+        if fp is float or fp is flt:
+            return math.ceil(x)
+        elif have_mpmath and fp is mpmath.mpf:
+            return mpmath.ceil(x)
+        elif fp is decimal.Decimal and x is decimal.Decimal:
+            return x.to_integral_exact(rounding=decimal.ROUND_CEILING) 
+        else:
+            raise TypeError(f"Type {fp} not supported")
+    def Log2(x, fp):
+        'Base 2 logarithm function for type fp:  float, flt, mpf, Decimal'
+        if fp is float or fp is flt:
+            return math.log2(x)
+        elif have_mpmath and fp is mpmath.mpf:
+            return mpmath.log2(x)
+        elif fp is decimal.Decimal:
+            assert x is decimal.Decimal
+            return x.ln(x)/x.ln(2)
+        else:
+            raise TypeError(f"Type {fp} not supported")
+    def IsBracketed(a, b, f, fp=float):
+        '''Check that a and b bracket a root of f(x); raise ValueError if not.  Return
+        the values (fp(f(a)), fp(f(b))) for convenience and to avoid recalculating them.
         '''
-        fa, fb = f(a), f(b)
+        fa, fb = fp(f(a)), fp(f(b))
         if fa*fb > 0:
             raise ValueError(f"a = {a} and b = {b} do not bracket a root of f")
         return (fa, fb)
@@ -1282,11 +1345,12 @@ if 1:  # Utility
         else:
             return z
     def Dbg(*p, **kw):
-        'Used to print colorized debugging information to stdout'
-        if g.dbg:
-            print(f"{t.dbg}", end="")
+        'Used to print colorized debugging information to stderr'
+        if Dbg.dbg:
+            print(f"{t.lill}", end="")
             print(*p, **kw)
-            print(f"{t.N}", end="")
+            print(f"{t.n}", end="")
+    Dbg.dbg = False
 if 1:  # Demo code
     def Check():
         '''This function runs each routine to find the solution of f(x) = 0 where the
@@ -1380,20 +1444,21 @@ if 1:  # Demo code
         def myfunc(x):
             return x - math.cos(x)
         print(f"{ind}Relative error = {tol}, number of evaluations for timing = {n}")
-        for func, name in (
-            (Bisection, "Bisection"), 
-            (Crenshaw, "Crenshaw"),
-            (Ridders, "Ridders"),
-            (Brent, "Brent"),
-            (ITP, "ITP"),
+        for func, name, fp, nfp in (
+                (Bisection, "Bisection", float, "float"), 
+                (Crenshaw, "Crenshaw", float, "float"),
+                (Crenshaw, "Crenshaw", mpmath.mpf, "mpf"),
+                (Ridders, "Ridders", float, "float"),
+                (Brent, "Brent", float, "float"),
+                (ITP, "ITP", float, "float"),
                 ):
             count = 0
             tm.start
             for i in range(n):
-                x, m = func(x0, x1, myfunc, tol=tol)
+                x, m = func(x0, x1, myfunc, tol=tol, fp=fp)
                 count += m
             tm.stop
-            print(f"{ind}{name:10s}:  Got {x:{fmt}} in {count//n:3d} steps, {tm.et/n:{tfmt}} μs")
+            print(f"{ind}{name:10s}:  Got {float(x):{fmt}} in {count//n:3d} steps, {tm.et/n:{tfmt}} μs {fp}")
         # FindRoots uses a different syntax
         tm.start
         for i in range(n):

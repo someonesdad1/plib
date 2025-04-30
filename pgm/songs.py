@@ -259,6 +259,7 @@ songs = '''
     Total Eclipse of the Heart ; Bonnie Tyler ; lcOxhH8N3Bo ; 
     Tuxedo Junction ; Mary MacGregor ; iBTYcqtaOjg ; 
     Two Faces Have I ; Lou Christie ; w05w1XbZTG8 ; 
+    The Good, the Bad and the Ugly ; The Ukelele Orchestra of Great Britain ; pLgJ7pk0X-s ;
     Unchained Melody ; Righteous Brothers ; m0EBs6uRgtw ; 
     Unforgettable ; Nat King Cole ; Fy_JRGjc1To ; 
     Unknown song ; Sally ; ob44BR1Hurg ; 
