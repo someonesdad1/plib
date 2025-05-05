@@ -186,7 +186,7 @@ if 1:  # Header
             debug.SetDebugger()
     if 1:  # Global variables
         t.dbg = t.skyl   # Color for debugging output
-if 1:  # Root finders
+if 1:  # Root finders that don't need derivative
     def Crenshaw(a, b, f, tol=1e-6, itmax=50, fp=float, dbg=None, args=[], kw={}):
         '''Return (root, num_iterations) where root is a root of the function f() that
         lies in the interval [a, b] and num_iterations is the number of iterations it
@@ -380,7 +380,7 @@ if 1:  # Root finders
         Dbg(f"{fnname} done, {x}, count = {count + 1}", file=dbg)
         assert diff/2**n <= tol
         return x, n
-    def Ridders(a, b, f, tol=1e-6, itmax=50, fp=float, dbg=None, args=[], kw={}):
+    def Ridders(a, b, f, tol=1e-6, itmax=50, fp=float):
         '''Returns (root, num_it), the root and the number of iterations using Ridders'
         method to find a root of f(x) = 0 to the specified tolerance tol.  The
         root must be bracketed on [a, b].  If the number of iterations exceeds itmax, an
@@ -398,24 +398,19 @@ if 1:  # Root finders
         
         Adapted from [3:358:382].
         '''
-        fnname = "Ridders"
         a, b = [fp(i) for i in (a, b)]
         fa, fb = IsBracketed(a, b, f, fp=fp)
         if not fa:
-            Dbg(f"{fnname}: a is root", file=dbg)
             return a, 0
         if not fb:
-            Dbg(f"{fnname}: b is root", file=dbg)
             return b, 0
         for i in range(itmax):
             # Compute the improved root x from Ridder's formula
             c = (a + b)/2
-            Dbg(f"{fnname}:  {fp(c)}, count = {i + 1}", file=dbg)
             fc = fp(f(c))
             sr = (fc*fc - fa*fb)**0.5
             if not sr:
                 if not fc:
-                    Dbg(f"{fnname} done", file=dbg)
                     return c, i + 1
                 raise ValueError("No root")
             dx = (c - a)*fc/sr
@@ -428,7 +423,6 @@ if 1:  # Root finders
             # pass through.
             if i > 0:
                 if abs(x - x_old) < tol*max(abs(x), 1):   # noqa
-                    Dbg(f"{fnname} done", file=dbg)
                     return x, i + 1
             x_old = x   # noqa
             # Re-bracket the root as tightly as possible
@@ -440,7 +434,7 @@ if 1:  # Root finders
             else:
                 a, b, fa, fb = c, x, fc, fx
         raise ValueError(f"Number of iterations exceeded {itmax}")
-    def Brent(a, b, f, tol=1e-6, itmax=50, fp=float, dbg=None, args=[], kw={}):
+    def Brent(a, b, f, tol=1e-6, itmax=50, fp=float):
         '''Return (root, number of iterations) where root is the root of f(x) = 0 by
         combining quadratic interpolation with bisection (simplified Brent's method).
         The root must be bracketed in (a, b).  Calls user-supplied function f(x).  From
@@ -450,23 +444,18 @@ if 1:  # Root finders
             1.  f(x) < tol
             2.  The interval [a, b] width < tol*max(abs(b), 1)
         '''
-        fnname = "Brent"
         a, b = [fp(i) for i in (a, b)]
         fa, fb = IsBracketed(a, b, f, fp=fp)
         x1, x2 = a, b
         if not fa:
-            Dbg(f"{fnname}: a is root", file=dbg)
             return a, 0
         if not fb:
-            Dbg(f"{fnname}: b is root", file=dbg)
             return b, 0
         f1, f2 = fa, fb     # Renaming for algorithm's notation
         x3 = fp((a + b)/2)  # Midpoint for bisection
         for count in range(itmax):
             f3 = fp(f(x3))
-            Dbg(f"{fnname}:  {fp(f3)}, count = {count + 1}", file=dbg)
             if abs(f3) < tol:
-                Dbg(f"{fnname} done", file=dbg)
                 return x3, count + 1
             # Tighten the brackets on the root
             if f1*f3 < 0:
@@ -474,8 +463,6 @@ if 1:  # Root finders
             else:
                 a = x3  # New interval is right-hand half
             if (b - a) < tol*max(abs(b), 1):
-                Dbg(f"{fnname}:  {fp((a + b)/2)}, count = {count + 1}", file=dbg)
-                Dbg(f"{fnname} done", file=dbg)
                 return (a + b)/2, count + 1
             # Try quadratic interpolation (Lagrange's 3-point formula)
             numer = fp(x3*(f1 - f2)*(f2 - f3 + f1) + f2*x1*(f2 - f3) + f1*x2*(f3 - f1))
@@ -495,7 +482,6 @@ if 1:  # Root finders
                 x1, f1 = x3, f3
             x3 = x
         raise ValueError(f"Number of iterations exceeded {itmax}")
-if 1:  # Other
     def ITP(a, b, f, tol=1e-6, itmax=50, k1=None, k2=2, n0=1, fp=float):
         '''Return (root, num_iterations) for the root of the function f.
 
@@ -621,6 +607,7 @@ if 1:  # Other
                 a, b = xitp, xitp
                 break
         return fp((a + b)/2), count
+if 1:  # Root finders that need derivative
     def NewtonRaphson(x, f, fderiv, tol=1e-6, itmax=50, fp=float):
         '''Returns the root using Newton-Raphson algorithm for solving f(x) = 0.
             f       The function 
@@ -696,6 +683,7 @@ if 1:  # Other
                 return (xn, count + 1)
             xn = xn1
         raise ValueError(f"Number of iterations exceeded {itmax}")
+if 1:  # Searching intervals for roots by sign changes
     def SearchIntervalForRoots(a, b, f, n, fp=float, args=[], kw={}):
         '''Return a tuple of subintervals of [a, b] where f has roots.
         
@@ -1188,22 +1176,29 @@ if 1:  # Polynomials
         '''
         if not a:
             raise ValueError("a must not be zero")
-        if b == 0 and c == 0 and d == 0 and e == 0:
+        if not b and not c and not d and not e:
+            # Equation is x**4 = 0
             return 0, 0, 0, 0
-        if b == 0 and c == 0 and d == 0:
-            # Find the four fourth roots of (-e) using De Moivre's theorem.
-            r = abs(-e)  # Magnitude
+        if not b and not c and not d:
+            # Equation is x**4 = -e/a; find roots using De Moivre's theorem.
+            num = -e/a
             # Get the argument
-            if isinstance(-e, numbers.Complex):
-                x = math.atan2((-e).imag, (-e).real)
+            if isinstance(num, numbers.Complex):
+                if have_mpmath and isinstance(num, mpmath.mpc):
+                    x = mpmath.atan2(num.imag, num.real)
+                else:
+                    x = math.atan2(num.imag, num.real)
             else:
                 x = 0
-                if -e < 0:
+                if num < 0:
                     x = math.pi
-            n = 4
+            r, n = abs(num), 4
             rn = r**(1/n)
             def f(x, k):
-                return rn*(math.cos((x + 2*k*math.pi)/n) + 1j * math.sin((x + 2*k*math.pi)/n))
+                if have_mpmath and isinstance(x, mpmath.mpc):
+                    return rn*(mpmath.cos((x + 2*k*mpmath.pi)/n) + 1j * μPmath.sin((x + 2*k*mpmath.pi)/n))
+                else:
+                    return rn*(math.cos((x + 2*k*math.pi)/n) + 1j * math.sin((x + 2*k*math.pi)/n))
             roots = f(x, 0), f(x, 1), f(x, 2), f(x, 3)
             if force_real:
                 return tuple([i.real for i in roots])
@@ -1228,11 +1223,11 @@ if 1:  # Utility
     def Ceil(x, fp):
         'Ceiling function for type fp:  float, flt, mpf, Decimal'
         if fp is float or fp is flt:
-            return math.ceil(x)
+            return int(math.ceil(x))
         elif have_mpmath and fp is mpmath.mpf:
-            return mpmath.ceil(x)
+            return int(mpmath.ceil(x))
         elif fp is decimal.Decimal and x is decimal.Decimal:
-            return x.to_integral_exact(rounding=decimal.ROUND_CEILING) 
+            return int(x.to_integral_exact(rounding=decimal.ROUND_CEILING))
         else:
             raise TypeError(f"Type {fp} not supported")
     def Log2(x, fp):
@@ -1240,7 +1235,7 @@ if 1:  # Utility
         if fp is float or fp is flt:
             return math.log2(x)
         elif have_mpmath and fp is mpmath.mpf:
-            return mpmath.log2(x)
+            return mpmath.log(x)/mpmath.log(2)
         elif fp is decimal.Decimal:
             assert x is decimal.Decimal
             return x.ln(x)/x.ln(2)
@@ -1387,11 +1382,14 @@ if 1:  # Demo code
         tol, n, fmt, tfmt, ind = 1e-16, 1000, ".15f", ".2g", " "*4
         def myfunc(x):
             return x - math.cos(x)
-        print(f"{ind}Relative error = {tol}, number of evaluations for timing = {n}")
+        print(f"{ind}Tolerance = {tol}, number of evaluations for timing = {n}")
         for func, name, fp, nfp in (
                 (Bisection, "Bisection", float, "float"), 
+                (Bisection, "Bisection", mpmath.mpf, "mpf"), 
+                (Bisection, "Bisection", flt, "flt"), 
                 (Crenshaw, "Crenshaw", float, "float"),
                 (Crenshaw, "Crenshaw", mpmath.mpf, "mpf"),
+                (Crenshaw, "Crenshaw", flt, "flt"),
                 (Ridders, "Ridders", float, "float"),
                 (Brent, "Brent", float, "float"),
                 (ITP, "ITP", float, "float"),
@@ -1402,7 +1400,7 @@ if 1:  # Demo code
                 x, m = func(x0, x1, myfunc, tol=tol, fp=fp)
                 count += m
             tm.stop
-            print(f"{ind}{name:10s}:  Got {float(x):{fmt}} in {count//n:3d} steps, {tm.et/n:{tfmt}} μs {fp}")
+            print(f"{ind}{name:10s}:  Got {float(x):{fmt}} in {count//n:3d} steps, {tm.et/n:{tfmt}} μs {nfp}")
         # FindRoots uses a different syntax
         tm.start
         for i in range(n):

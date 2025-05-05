@@ -1,5 +1,11 @@
 Active:  /plib/.todo
 
+    - 4 figure log table
+        - See eb Blaine 1907 pdf page 161 for example
+        - Most utilitarian log table of them all, with proportional parts
+        - Construct on a single page to be as readable (large) as possible
+        - Put 10, 20, 30, etc. lines in bold
+
     - pgrep
         - Currently, this is pgm/rgrep.py with the -p option
         - Change it to only do searching in specified python functions.  A use case is
@@ -34,6 +40,8 @@ Active:  /plib/.todo
             - Compare to ruff's output via my function lint
             - Have another script color code the errors/warnings and group them by line numbers
         - https://github.com/google/yapf
+            - 29 Apr 2025:  copied the git repo to my machine and tried to run command
+              like the web page says, but gets a missing library module error
             - ARITHMETIC_PRECEDENCE_INDICATION does opposite of what I want
             - NO_SPACES_AROUND_SELECTED_BINARY_OPERATORS does exactly what I want when
               configured with "*,/".  There are 61 different knobs you can turn, so this

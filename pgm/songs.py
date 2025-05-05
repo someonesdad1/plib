@@ -121,7 +121,7 @@ songs = '''
     Ghost Riders In the Sky ; Highwaymen ; nOWjX4BpC24 ; 
     Ghost Riders In the Sky ; Marty Robbins ; fD5kS3G1Jkk ; 
     Ghost Riders In the Sky ; Roy Clark & Glen Campbell ; v_kbgjsuCec ; 
-    Ghost Riders In the Sky ; Roy Clark ; 8o2w1zhBKzk ; 
+    Ghost Riders In the Sky ; Roy Clark & Buck Trent ; gt3O_jMkmGE ; 
     Girl drummer ; ; L-So4DLDvGc ; 
     Gypsy ; Fleetwood Mac ; mwgg1Pu6cNg ; 
     Gypsy Waltz ; Sally ; eDGE6ah-e4Y ; 

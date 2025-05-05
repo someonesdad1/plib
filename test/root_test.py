@@ -1,7 +1,7 @@
 '''
 
 Todo
-    - TestBracketRoots doesn't follow stated plan
+    - 
     
 '''
 if 1:   # Imports
@@ -321,6 +321,12 @@ if 1:   # Test polynomial root-finding routines
         r1, r2 = Quadratic(1, 3 - 3j, 10 - 54j)
         assert_equal(r1, (3 + 7j))
         assert_equal(r2, (-6 - 4j))
+        if have_mpmath:
+            mpc = mpmath.mpc
+            a, b, c = mpc(1, 0), mpc(3, -3), mpc(10, -54)
+            r1, r2 = Quadratic(a, b, c)
+            assert_equal(r1, mpc(3, 7))
+            assert_equal(r2, mpc(-6, -4))
     def TestCubic():
         # Exception if not cubic
         raises(ValueError, Cubic, *(0, 1, 1, 1))
