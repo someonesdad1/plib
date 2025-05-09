@@ -1,6 +1,7 @@
 '''
 
 ToDo (higher priority items first)
+    - Remove interactive stuff, as it's too much work and not worth the effort
     - Add option to generate and show a PostScript drawing for a particular number of
       sides.  This would be handy for shop documentation.
 
@@ -27,14 +28,14 @@ if 1:  # Header
     import getopt
     # Custom imports
     import termtables as tt     # Used for printing tables
-    from cmddecode import CommandDecode
     from wrap import dedent
     from lwtest import Assert
     from color import TRM as t
-    from f import (flt, acos, acosh, asin, asinh, atan, atanh, atan2, ceil, copysign,
-        cos, cosh, degrees, e, erf, erfc, exp, expm1, fabs, factorial, floor, fmod,
-        frexp, fsum, gamma, gcd, hypot, inf, isclose, isfinite, isinf, isnan, ldexp,
-        lgamma, log, log10, log1p, log2, modf, nan, pi, pow, radians, remainder, sin,
+    from util import hyphen_range
+    from f import (flt, acos, acosh, asin, asinh, atan, atanh, atan2, ceil, copysign,  # noqa
+        cos, cosh, degrees, e, erf, erfc, exp, expm1, fabs, factorial, floor, fmod,    # noqa
+        frexp, fsum, gamma, gcd, hypot, inf, isclose, isfinite, isinf, isnan, ldexp,   # noqa
+        lgamma, log, log10, log1p, log2, modf, nan, pi, pow, radians, remainder, sin,  # noqa
         sinh, sqrt, tan, tanh, tau, trunc)
     try:
         from uncertainties import ufloat, ufloat_fromstr, UFloat
@@ -52,9 +53,11 @@ if 1:  # Header
     g.width = int(os.environ.get("COLUMNS", 80)) - 1
     g.w = None      # Used for maximum column width of table
     g.dbg = False   # Print Dbg messages
+    g.default_sides = "3-6 8"
     ii = isinstance
     # Used to indicate Convert() couldn't convert a string to a number
-    class NotANumber(Exception): pass
+    class NotANumber(Exception):
+        pass
 if 1:  # Utility
     def GetColors(on):
         x = sys.stdout.isatty() if on else False
@@ -112,7 +115,7 @@ if 1:  # Utility
             print(*msg, file=f)
         exit(status)
     def Manpage():
-        print(dedent(f'''
+        print(dedent('''
 
         This script calculates numerical properties of a regular polygon for diameters
         that you pass on the command line.  Because relevant diameters can be either the
@@ -201,7 +204,7 @@ if 1:  # Utility
         d["-D"] = False     # Turn on debugging
         d["-d"] = 3         # Number of significant digits
         d["-i"] = False     # Start interactive session
-        d["-n"] = "3-6 8"   # Number of sides to print
+        d["-n"] = hyphen_range(g.default_sides)     # Which of sides to print
         d["-r"] = False     # Divide by r & R for -t
         d["-t"] = False     # Print the table
         try:
@@ -220,21 +223,14 @@ if 1:  # Utility
                 except ValueError:
                     msg = "-d option's argument must be an integer between 1 and 15"
                     Error(msg)
-            elif o in ("-h",):
+            elif o == "-h":
                 Usage()
-            elif o in ("-n",):
-                if "range" in arg:
-                    d["-n"] = " ".join(str(i) for i in list(eval(arg)) if i > 2)
-                else:
-                    d["-n"] = arg
+            elif o == "-n":
+                d[o] = hyphen_range(arg)
         if 1:   # Check all -n arguments
-            o = []
-            for i in d["-n"].split():
-                try:
-                    o.append(int(i))
-                except Exception:
-                    Error(f"{i!r} is bad -n option")
-            d["-n"] = o
+            for i in d["-n"]:
+                if i < 3:
+                    Error(f"{i} is a bad number of sides in -n argument")
         GetColors(not d["-C"])
         if 1:   # Set up flt behavior
             x = flt(0)
@@ -549,16 +545,27 @@ if 1:  # Core functionality
         '''
         nums = {
             "tri": 3,
+            "thr": 3,
+            "fou": 4,
             "tet": 4,
+            "sq": 4,
+            "squ": 4,
             "qua": 4,
             "pen": 5,
+            "fiv": 5,
             "hex": 6,
+            "six": 6,
             "hep": 7,
             "sep": 7,
+            "sev": 7,
             "oct": 8,
+            "eig": 8,
             "non": 9,
+            "nin": 9,
             "dec": 10,
+            "ten": 10,
             "dod": 12,
+            "twe": 12,
         }
         found, dia = [], []
         for d in diameters:
@@ -570,13 +577,8 @@ if 1:  # Core functionality
                     break
             if not got_one:
                 dia.append(d)
-        if 0:
-            print(f"diameters = {diameters}")
-            print(f"found = {found}")
-            print(f"dia   = {dia}")
-            exit()
         if found:
-            opts["-n"] = ",".join(str(i) for i in found)
+            opts["-n"] = list(sorted(set(found)))
         return dia
     def GetColumnWidth(dstr):
         '''Put the column width necessary to print the table's columns in g.w.  The
@@ -663,7 +665,7 @@ if 1:  # Core functionality
         try:
             diameter = Convert(dia)
         except Exception:
-            Error(f"'{s}' is not a valid number")
+            Error(f"'{dia}' is not a valid number")
         if 1:   # Check assumptions
            Assert(ii(diameter, (flt, int, Fraction, UFloat)))
            Assert(ii(n, int))
@@ -690,7 +692,7 @@ if 1:  # Core functionality
         o.append(f"{A:.1uS}" if ii(A, UFloat) else f"{A}")
         o.append(f"{p:.1uS}" if ii(p, UFloat) else f"{p}")
         return tuple(o)
-if 1:  # Interactive
+if 0:  # Interactive
     def Help(cmd):
         print(f"Help on {cmd!r}")
     def Process(cmd, args, vars):
@@ -804,7 +806,8 @@ if 1:  # Interactive
             exec(f"vars['{i}'] = {i}")
         # Print the values of the variables
         o = []
-        pad = lambda x, n: " "*n + x + " "*n
+        def pad(x, n):
+            " "*n + x + " "*n
         # In the following, note that t is the color.TRM instance and t_ is the local
         # variable for thickness.
         def f(x, name):
