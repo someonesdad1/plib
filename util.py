@@ -1,9 +1,6 @@
 '''
     
 ToDo
-    - hyphen_range should take strings like "1-3 6" by default and split them on
-      whitespace.  Add the allow_commas keyword to use things like "1-3, 6" where the
-      commas delimit the specifiers.  I have use cases for both types.
     - Convert Spinner to a class so the instance is thread-safe
     - Debug class should use print()'s arguments
     - Document Now class
@@ -1061,39 +1058,61 @@ def StringToNumbers(s, sep=" ", handle_i=True):
         else:
             seq.extend(line.split())
     return tuple([ConvertToNumber(i, handle_i=handle_i) for i in seq])
-def hyphen_range(s, sorted=False, unique=False):
+def hyphen_range(s, sorted=False):
     '''Takes a set of range specifications of the form "a-b" and returns a list of
-    integers between a and b inclusive.  Also accepts comma separated ranges like
-    "a-b,c-d,f".  Numbers from a to b, a to d and f.  If sorted is True, the returned
-    list will be sorted.  If unique is True, only unique numbers are kept and the list
-    is automatically sorted.  In "a-b", a can be larger than b, in which case the
-    sequence will decrease until b is reached.
-    
-    Example:  hyphen_range("8-12,14,18") returns [8, 9, 10, 11, 12, 14, 18]
-    
-    Adapted from routine at
-    http://code.activestate.com/recipes/577279-generate-list-of-numbers-from-hyphenated-and-comma/?in=lang-python
+    integers between a and b inclusive.  The string s will be separated on whitespace
+    after commas are replaced by spaces.
+
+    Examples:
+        "" returns []
+        "1" returns [1]
+        "2 3 4" returns [2, 3, 4]
+        "2-4" returns [2, 3, 4]
+        "4 3 2" returns [4, 3, 2]
+        "4-2" returns [4, 3, 2]
+        "1--2" returns [1, 0, -1, -2]
+        "-1--3" returns [-1, -2, -3]
+        "-3--1" returns [-3, -2, -1]
+        "1-3 5 10-8" returns [1, 2, 3, 5, 10, 9, 8]
     '''
-    assert ii(s, str)
-    s = "".join(s.split())  # Removes white space
-    r = []
-    for x in s.split(","):
-        t = [int(i) for i in x.split("-")]
-        if len(t) not in (1, 2):
-            raise ValueError(f"{s!r} is bad range specifier")
-        if len(t) == 1:
-            r.append(t[0])
+    if not ii(s, str):
+        raise TypeError("s must be a string")
+    msg = f"{0!r} is of improper form"
+    fields, o = s.replace(",", " ").split(), []
+    for item in fields:
+        # See if it's a single integer
+        try:
+            o.append(int(item))
+            continue
+        except Exception:
+            pass
+        if item.startswith("-"):
+            n = item.count("-")
+            # It must have at least 2 hyphens in it, otherwise it would have been caught
+            # as an integer (unless e.g. it's a float or bad syntax)
+            if n < 2 or n > 3:
+                raise ValueError(msg.format(item))
+            f = item[1:].split("-", maxsplit=1)
+            try:
+                num1 = int("-" + f[0])
+                num2 = int(f[1])
+                if num1 <= num2:
+                    o.extend(list(range(num1, num2 + 1)))
+                else:
+                    o.extend(list(range(num1, num2 - 1, -1)))
+            except Exception:
+                raise ValueError(msg.format(item))
         else:
-            if t[0] < t[1]:
-                r.extend(range(t[0], t[1] + 1))
-            else:
-                r.extend(range(t[0], t[1] - 1, -1))
-    if sorted:
-        r.sort()
-    elif unique:
-        r = list(set(r))
-        r.sort()
-    return r
+            f = item.split("-", maxsplit=1)
+            try:
+                num1, num2 = [int(i) for i in f]
+                if num1 <= num2:
+                    o.extend(list(range(num1, num2 + 1)))    
+                else:
+                    o.extend(list(range(num1, num2 - 1, -1)))
+            except Exception:
+                raise ValueError(msg.format(item))
+    return o
 def grouper(data, mapper, reducer=None):
     '''Simple map/reduce for data analysis.
     
@@ -2302,20 +2321,27 @@ if __name__ == "__main__":
         Assert(IsIterable(iter((0,))))
         Assert(not IsIterable(0))
     def Test_hyphen_range():
-        s, h = "77", hyphen_range
-        Assert(h(s) == [77])
-        s = "8-12,14,18"
-        Assert(h(s) == [8, 9, 10, 11, 12, 14, 18])
-        s = "8 - 12, 14, 18"
-        L1 = h(s)
-        Assert(L1 == [8, 9, 10, 11, 12, 14, 18])
-        s = "12-8,14,18,18"
-        L = h(s)
-        Assert(L == [12, 11, 10, 9, 8, 14, 18, 18])
-        L = h(s, sorted=True)
-        Assert(L == L1 + [18])
-        L = h(s, unique=True)
-        Assert(L == L1)
+        for s, expected in (
+                ("", []),
+                ("1", [1]),
+                ("2 3 4", [2, 3, 4]),
+                ("2-4", [2, 3, 4]),
+                ("4 3 2", [4, 3, 2]),
+                ("4-2", [4, 3, 2]),
+                ("1--2", [1, 0, -1, -2]),
+                ("-1--3", [-1, -2, -3]),
+                ("-3--1", [-3, -2, -1]),
+                ("1-3 5 10-8", [1, 2, 3, 5, 10, 9, 8])):
+            Assert(hyphen_range(s) == expected)
+        
+        # Things that give exceptions
+        raises(TypeError, hyphen_range, 0)
+        raises(TypeError, hyphen_range, 1.0)
+        raises(ValueError, hyphen_range, "1.0")
+        raises(ValueError, hyphen_range, "2-1.0")
+        raises(ValueError, hyphen_range, "1/2")
+        raises(ValueError, hyphen_range, "2-1/2")
+        raises(ValueError, hyphen_range, "-1---2")
     def Test_TempConvert():
         k, r = 273.15, 459.67
         Assert(AlmostEqual(TempConvert(0, "c", "f"), 32))

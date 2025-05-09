@@ -42,7 +42,7 @@ if 1:  # Header
         have_unc = True
     except ImportError:
         have_unc = False
-    if 1:
+    if 0:
         import debug
         debug.SetDebugger()
     # Global variables
@@ -56,9 +56,9 @@ if 1:  # Header
     # Used to indicate Convert() couldn't convert a string to a number
     class NotANumber(Exception): pass
 if 1:  # Utility
-    def GetColors():
-        x = sys.stdout.isatty()
-        t.ti = t.ornl if x else ""
+    def GetColors(on):
+        x = sys.stdout.isatty() if on else False
+        t.ti = t("wht", attr="ul") if x else ""
         t.hi = t.brnl if x else ""
         t.hdr = t.redl if x else ""
         t.insc = t.purl if x else ""
@@ -105,9 +105,11 @@ if 1:  # Utility
             print(f"{t.N}", end="")
     def Error(*msg, status=1):
         f = sys.stderr
-        print(f"{t.err}", end="", file=f)
-        print(*msg, file=f)
-        t.print(file=f)
+        if hasattr(t, "err"):
+            print(f"{t.err }", end="", file=f)
+            t.print(*msg, file=f)
+        else:
+            print(*msg, file=f)
         exit(status)
     def Manpage():
         print(dedent(f'''
@@ -181,7 +183,7 @@ if 1:  # Utility
           circumscribed diameters and radii, length of a side, perimeter, and area.
         Options:
           -a    Abbreviate numbers (remove trailing 0's and decimal point) [{opts["-a"]}]
-          -c l  Color highlight the sides in the list l [{opts["-c"]}]
+          -C    Do not use color highlighting
           -D    Show debugging messages
           -d n  Number of digits to print [{opts["-d"]}]
           -H    Print a manpage
@@ -195,23 +197,21 @@ if 1:  # Utility
         exit(status)
     def ParseCommandLine(d):
         d["-a"] = False     # Abbreviate numbers
-        d["-c"] = ""        # Which lines to highlight
+        d["-C"] = False     # Do not use color highlighting
         d["-D"] = False     # Turn on debugging
-        d["-d"] = 4         # Number of significant digits
+        d["-d"] = 3         # Number of significant digits
         d["-i"] = False     # Start interactive session
-        d["-n"] = " ".join(str(i) for i in range(3, 13))
+        d["-n"] = "3-6 8"   # Number of sides to print
         d["-r"] = False     # Divide by r & R for -t
         d["-t"] = False     # Print the table
         try:
-            opts, diameters = getopt.getopt(sys.argv[1:], "ac:Dd:hin:rt")
+            opts, diameters = getopt.getopt(sys.argv[1:], "aCDd:hin:rt")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, arg in opts:
-            if o[1] in "aDirt":
+            if o[1] in "aCDirt":
                 d[o] = not d[o]
-            elif o in ("-c",):
-                d["-c"] = arg
             elif o in ("-d",):
                 try:
                     d["-d"] = int(arg)
@@ -227,24 +227,27 @@ if 1:  # Utility
                     d["-n"] = " ".join(str(i) for i in list(eval(arg)) if i > 2)
                 else:
                     d["-n"] = arg
-        x = flt(0)
-        x.N = d["-d"]
-        x.rtz = False
-        x.rtdp = True
-        if d["-a"] or d["-i"]:
-            x.rtz = x.rtdp = True
-        x.low = 1e-4
-        x.high = 1e6
+        if 1:   # Check all -n arguments
+            o = []
+            for i in d["-n"].split():
+                try:
+                    o.append(int(i))
+                except Exception:
+                    Error(f"{i!r} is bad -n option")
+            d["-n"] = o
+        GetColors(not d["-C"])
+        if 1:   # Set up flt behavior
+            x = flt(0)
+            x.N = d["-d"]
+            x.rtz = False
+            x.rtdp = True
+            if d["-a"] or d["-i"]:
+                x.rtz = x.rtdp = True
+            x.low = 1e-4
+            x.high = 1e6
         if not d["-i"]:
             if not d["-t"] and not diameters:
                 Usage()
-        # Convert d["-c"] to a set of integers
-        if d["-c"]:
-            s = d["-c"].split(",")
-            d["-c"] = set([int(i) for i in s])
-        else:
-            d["-c"] = set()
-        GetColors()
         if d["-D"]:
             g.dbg = True
         if d["-i"]:
@@ -598,67 +601,40 @@ if 1:  # Core functionality
             {C('s')} = length of side   {C('A')} = area   {C('p')} = perimeter
         '''))
     def Report(dstr):
-        '''Print the calculated values assuming the diameter string in dstr
-        is first an inscribed diameter, then the circumscribed diameter.
+        '''Print the calculated values assuming the diameter string in dstr is first an
+        inscribed diameter, then the circumscribed diameter.
         '''
-        try:
-            number_of_sides = [int(i) for i in opts["-n"].split()]
-        except Exception:
-            Error("'{0}' is bad -n option".format(opts["-n"]))
         try:
             dia = Convert(dstr)
         except Exception:
             dia = flt(eval(dstr))
-        if 0:
-            # Original method
-            GetColumnWidth(dstr)
-            def Header(circumscribed=False, leave_out=""):
-                for s in "n d D s A p".split():
-                    if s == leave_out:
-                        continue
-                    print(f"{t.hdr}{s:^{g.w}s}", end=" ")
-                t.print()
-                for n in number_of_sides:
-                    Poly(dstr, n, circumscribed, leave_out=leave_out)
-            if 1:  # Print inscribed diameter
-                if isinstance(dia, flt):
-                    print(f"\n{t.d}d{t.n} = {dstr!r} = {dia}, r = {dia/2}")
-                else:
-                    print(f"\n{t.d}d{t.n} = {dstr!r} = {dia:.1uS}, r = {dia/2:.1uS}")
-                Header(circumscribed=False, leave_out="d")
-            if 1:  # Print circumscribed diameter
-                if isinstance(dia, flt):
-                    print(f"\n{t.D}D{t.n} = {dstr!r} = {dia}, r = {dia/2}")
-                else:
-                    print(f"\n{t.D}D{t.n} = {dstr!r} = {dia:.1uS}, r = {dia/2:.1uS}")
-                Header(circumscribed=True, leave_out="D")
-        else:   # Using texttable
-            table_lines, v = [], " "*2
-            style = " │             "
-            if 1:  # Print inscribed diameter
-                if isinstance(dia, flt):
-                    print(f"\n{v}{t.d}d{t.n} = {dstr!r} = {dia}, r = {dia/2}")
-                else:
-                    print(f"\n{v}{t.d}d{t.n} = {dstr!r} = {dia:.1uS}, r = {dia/2:.1uS}")
-                # Now print the table
-                hdr = [f"{C('n')}", f"{C('D')}", f"{C('s')}", f"{C('A')}", f"{C('p')}"]
-                for n in number_of_sides:
-                    u = tuple([" " + i + " " for i in Poly(dstr, n, circumscribed=False)])
-                    table_lines.append(u)
-                tt.print(table_lines, header=hdr, padding=(0, 0), style=style, alignment="c"*5)
+        table_lines, v = [], " "*2
+        style = "               "
+        number_of_sides = opts["-n"]
+        if 1:  # Print inscribed diameter
+            if isinstance(dia, flt):
+                print(f"\n{v}{t.d}d{t.n} = {dstr!r} = {dia}, r = {dia/2}")
+            else:
+                print(f"\n{v}{t.d}d{t.n} = {dstr!r} = {dia:.1uS}, r = {dia/2:.1uS}")
+            # Now print the table
+            hdr = [f"{C('n')}", f"{C('D')}", f"{C('s')}", f"{C('A')}", f"{C('p')}"]
+            for n in number_of_sides:
+                u = tuple([" " + i + " " for i in Poly(dstr, n, circumscribed=False)])
+                table_lines.append(u)
+            tt.print(table_lines, header=hdr, padding=(0, 0), style=style, alignment="c"*5)
 
-            if 1:  # Print circumscribed diameter
-                if isinstance(dia, flt):
-                    print(f"\n{v}{t.D}D{t.n} = {dstr!r} = {dia}, r = {dia/2}")
-                else:
-                    print(f"\n{v}{t.D}D{t.n} = {dstr!r} = {dia:.1uS}, r = {dia/2:.1uS}")
-                # Now print the table
-                hdr = [f"{C('n')}", f"{C('d')}", f"{C('s')}", f"{C('A')}", f"{C('p')}"]
-                table_lines.clear()
-                for n in number_of_sides:
-                    u = tuple([" " + i + " " for i in Poly(dstr, n, circumscribed=False)])
-                    table_lines.append(u)
-                tt.print(table_lines, header=hdr, padding=(0, 0), style=style, alignment="c"*5)
+        if 1:  # Print circumscribed diameter
+            if isinstance(dia, flt):
+                print(f"\n{v}{t.D}D{t.n} = {dstr!r} = {dia}, r = {dia/2}")
+            else:
+                print(f"\n{v}{t.D}D{t.n} = {dstr!r} = {dia:.1uS}, r = {dia/2:.1uS}")
+            # Now print the table
+            hdr = [f"{C('n')}", f"{C('d')}", f"{C('s')}", f"{C('A')}", f"{C('p')}"]
+            table_lines.clear()
+            for n in number_of_sides:
+                u = tuple([" " + i + " " for i in Poly(dstr, n, circumscribed=False)])
+                table_lines.append(u)
+            tt.print(table_lines, header=hdr, padding=(0, 0), style=style, alignment="c"*5)
     def Poly(dia, n, circumscribed=False):
         '''Return (n, d or D, s, A, p) where each element is the corresponding variable's
         string.  dia is a flt and is the inscribed circle diameter if circumscribed is
@@ -907,7 +883,8 @@ if 1:  # Interactive
         vars = init.copy()
         prompt = ">> "
         print(f"{t(attr='ul')}Calculation of regular polygon properties{t.n}    Use ? for help")
-        if 0:   exit()#xx
+        if 0:
+            exit()#xx
         while True:
             user_input = input(f"{C(vars['current'])}" + prompt).strip()
             match user_input.split():
