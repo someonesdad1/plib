@@ -1,7 +1,5 @@
 '''
-
 Produce log tables
-
 '''
 _pgminfo = '''
 <oo 
@@ -67,36 +65,64 @@ if 1:   # Utility
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] type
           Type
-            1       4 figure text [default]
-        Options:
-            -h      Print a manpage
+            1       4 place table, text
+            2       4 place table, graphical
         '''))
         exit(status)
     def ParseCommandLine(d):
         d["-a"] = False     # Need description
-        d["-d"] = 3         # Number of significant digits
-        if 0 and len(sys.argv) < 2:
+        if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:h") 
+            opts, args = getopt.getopt(sys.argv[1:], "") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("a"):
+            if o[1] in list(""):
                 d[o] = not d[o]
-            elif o == "-d":
-                try:
-                    d[o] = int(a)
-                    if not (1 <= d[o] <= 15):
-                        raise ValueError()
-                except ValueError:
-                    Error(f"-d option's argument must be an integer between 1 and 15")
-            elif o == "-h":
-                Usage()
         GetColors()
         return args
 if 1:   # Core functionality
+    def Manpage_Logs_4figures():
+        print()
+        print(dedent('''
+
+        This type of table is probably the most commonly-used logarithm table for
+        routine calculations.  With care, you can get nearly 4 significant figures in
+        the calculated results.  Most practical calculations that rely on measurements
+        typically have 2 or 3 figures (1% to 0.1% resolution), so these log tables can
+        help you perform mulitiplication and division with such numbers and avoid loss
+        of accuracy due to roundoff errors.
+
+        Example
+
+            4.38**(-0.28).  Estimate the answer:  this is approximately 1/4**0.25 or the
+            reciprocal of the fourth root of 4.  The fourth root of 4 is 1.414, the
+            square root of 2 and the reciprocal is 0.707, which most folks who do
+            calculations will remember.  Thus, 0.7 is an estimate.  Since 4.38 is about
+            10% larger than 4, the result will be smaller than 0.7, so we'll estimate
+            larger than 0.65 and less than 0.7.
+
+            The log of 4.38 is found in the 43 row:
+
+                     0    1    2    3    4    5    6    7    8    9
+                43 6335 6345 6355 6365 6375 6385 6395 6405 6415 6425
+
+            Looking under the 8 column, we get the log as 0.6415.  We must multiply this
+            by -0.28 and it's something you'll have to do manually, giving -0.1795.
+            Add 1 to get 0.8205.
+
+            Row 66 in the table is
+
+                     0    1    2    3    4    5    6    7    8    9
+                66 8195 8202 8209 8215 8222 8228 8235 8241 8248 8254
+
+            and 8205 is not quite half way between the 1 and 2 column:  it's 3/7ths of
+            the way; knowing 1/7 is 0.14, this is 0.4, giving our estimate of 0.6614.
+            If you check this with a calculator, you find the answer is 0.6613.
+
+        '''))
     def Logs_4figures():
         def header_row():
             print(t.ornl, end="")
@@ -108,9 +134,9 @@ if 1:   # Core functionality
             print(t.n)
         o = []
         t.print(f"{t('whtl', attr='ul')}4 place log table")
+        show_header = (10, 54)
         for row in range(10, 100):
-            d, remainder = divmod(row - 10, 10)
-            if not remainder:
+            if row in show_header:
                 header_row()
             PP = []     # Accumulate proportional parts for row
             print(f"{row}", end=" ")
@@ -129,6 +155,7 @@ if 1:   # Core functionality
             for i in range(1, 10):
                 print(f"{int(i/10*mean + 0.5):2d}", end=" ")
             print()
+        Manpage_Logs_4figures()
 
 if __name__ == "__main__":
     d = {}      # Options dictionary

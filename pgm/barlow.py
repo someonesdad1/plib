@@ -1,27 +1,56 @@
-"""
+'''
 Construct a copy of Barlow's tables
-    This script will produce a table that will fit in 80 columns, assuming
-    the argument isn't too large.  The square, cube, square root, cube
-    root, reciprocal, and base 10 logarithm of the integers are given.
-    This reproduces the contents of the book produced by Barlow in the
-    early 1800's that stayed in print for around 150 years.  In the early
-    1900's the original printing plates wore out, so new plates had to be
-    generated.
 
-    Barlow's work was important for many years to people who needed to do
-    manual arithmetic calculations.
-
-    See https://en.wikipedia.org/wiki/Peter_Barlow_(mathematician).
-
-    The original work took much effort to produce, both calculation of the
-    numbers (aided by algebraic checks) and checking the printer's
-    typesetting; typesetting was a notorious source of errors.  The edition
-    edited by de Morgan in 1840 was known to be nearly error free.  These
-    types of tables were made obsolete by electronic calculators and
-    computers, which can produce an equivalent table in a fraction of a
+    This script will produce a table that will fit in 80 columns, assuming the argument
+    isn't too large.  The square, cube, square root, cube root, reciprocal, and base 10
+    logarithm of the integers are given.  This reproduces the contents of the book
+    produced by Barlow in the early 1800's that stayed in print for around 150 years.
+    In the early 1900's the original printing plates wore out, so new plates had to be
+    generated.  See https://en.wikipedia.org/wiki/Peter_Barlow_(mathematician).
+    
+    Barlow's work was important for many years to people who needed to do manual
+    arithmetic calculations.  Barlow acknowledged that there was little of mathematical
+    merit in the publication to impress mathematicians, yet the enormous contribution of
+    the book was the care of its publication, the checking and double checking, and care
+    of both author and printer to ensure the accuracy of the printed works.  How many
+    books are you aware of that the printing plates were used so much that they wore out
+    and had to be replaced?  Using flawed math tables (i.e., tables with errors) is like
+    building a house with a tool you don't know is faulty and getting poor results.  You
+    can waste a lot of time finding the problem and folks who have been burned look for
+    consistently along the way, not wanting to repeat the pain or rework.
+    
+    The original work took much effort to produce, both calculation of the numbers
+    (aided by algebraic checks) and checking the printer's typesetting; typesetting was
+    a notorious source of errors.  The edition edited by de Morgan in 1840 was known to
+    be nearly error free.  These types of tables were made obsolete by electronic
+    calculators and computers, which can produce an equivalent table on the order of 1
     second.
-"""
 
+    I'm of the last generation of people who had to utilize manual calculation, log
+    tables, and slide rules to do their technical calculations, as electronic
+    calculators appeared in the mid-1970's and became commonly and cheaply available by
+    about 1980 (I went to college in the 1960's).  Yet I am embarrassed to say I had
+    never used Barlow's tables, nor seen it until a few decades later (and I'm surprised
+    that none of my teachers recommended it, as I have no doubt a few of them would have
+    been aware of it).  If we had to do a calculation that couldn't be done on a slide
+    rule, then it was done with the 5 place log tables in e.g. the CRC math tables or
+    Handbook of Chemistry and Physics.  My CRC math tables, a cloth-bound book, got used
+    so much it fell apart in the 1970's and I had to buy another copy.  Yet in the
+    1980's and 1990's I reflected on the powerful calculators we had and what drudgery
+    manual calculation was -- and recognized that using Barlow's tables would have made
+    things more convenient when I was doing manual calculations.  Much of this comes
+    from the need to work with squares and square roots, particularly with trigonometric
+    calculations.
+
+    One thing these laborious manual calculations did was give you an awareness
+    calculations that gave you both a more intuitive understanding of a problem as well
+    as a sense for when things weren't quite right.  This happened by necessity as long
+    as you paid attention and learned from your mistakes.  This contrasts to today's
+    common user who just punches numbers into a keyboard and doesn't even check their
+    work.  Checking is as important today with computers and calculators as it was with
+    manual calculations, but, again, you don't learn this important lesson easily.
+
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -47,24 +76,20 @@ if 1:  # Header
         from color import Color, TRM as t
         from lwtest import Assert
         from f import flt, log10
-
         if 1:
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options] n [m]
           Prints out Barlow's table from 1 to n with an additional column
           for the logarithm.  If m is given, the table goes from n to m.
@@ -72,10 +97,9 @@ if 1:  # Utility
             -c      Color escapes always on
             -l      Omit the logarithm
             -t      Separate output by tabs
-        """)
+        ''')
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-C"] = False  # No color coding
         d["-c"] = False  # Always color coding
@@ -96,26 +120,21 @@ if 1:  # Utility
         if not args:
             Usage()
         return args
-
-
 if 1:  # Core functionality
-
     def GetColors():
         a = sys.stdout.isatty() or d["-c"]
         if d["-C"]:
             a = False
-        t.num = t("wht") if a else ""
-        t.sq = t("trq") if a else ""
-        t.cu = t("olvl") if a else ""
-        t.sqrt = t("yell") if a else ""
-        t.curt = t("denl") if a else ""
-        t.recip = t("redl") if a else ""
-        t.log = t("cynl") if a else ""
+        t.num = t.grn if a else ""
+        t.sq = t.lill if a else ""
+        t.cu = t.wht if a else ""
+        t.sqrt = t.brnl if a else ""
+        t.curt = t.wht if a else ""
+        t.recip = t.pnk if a else ""
+        t.log = t.whtl if a else ""
         t.N = t.n if a else ""
-
     def Row(n):
         return (n, n**2, n**3, n ** (1 / 2), n ** (1 / 3), 1 / n, log10(n))
-
     def GenerateTable(n, m):
         Assert(n < m)
         big = True if m > 10000 else False
@@ -123,13 +142,11 @@ if 1:  # Core functionality
         if big:
             # Get widths from largest string of each type of number
             R = range(n, m + 1)
-
             def P(func, j):
                 mx = 0
                 for i in R:
                     mx = max(mx, len(repr(func(i))))
                 return mx
-
             f = (
                 lambda x: x,
                 lambda x: x**2,
@@ -196,8 +213,6 @@ if 1:  # Core functionality
             print(f"{t.log}Log10{t.N}")
         else:
             print()
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
