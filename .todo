@@ -14,10 +14,6 @@ Active:  /plib/.todo
               print a message to stdout that this happens so that the user knows there's more to
               see.
 
-    - poly.py
-        - Print out dimensions/formulas for common regular polygons
-        - Print r, R, and r+R for odd n's
-
     - func.py
         - Read & parse my shell function files and search for matches to remind me of
           using
@@ -45,8 +41,8 @@ Active:  /plib/.todo
         - Can display these letters
             - A B C E F G H I J L N O P S T U X Y Z
             - b c d h i j l n o q r t u y
-        - Write a script that displays the words from /words dictionaries that can be
-          thus displayed
+        - 7seg_words.py:  script that displays the words from /words dictionaries that
+          can be thus displayed
 
     - trigger.py
         - Problem caused by ruff formatting the file and putting a space after every

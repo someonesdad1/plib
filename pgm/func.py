@@ -69,7 +69,6 @@ if 1:   # Utility
             l   List (args are optional categories to list)
             s   Search for regex
         Options:
-            -h      Print a manpage
             -i      Make searches case sensitive
         '''))
         exit(status)
@@ -85,8 +84,6 @@ if 1:   # Utility
         for o, a in opts:
             if o[1] in list("i"):
                 d[o] = not d[o]
-            elif o == "-h":
-                Usage()
         GetColors()
         return args
 if 1:   # Core functionality
