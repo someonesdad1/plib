@@ -23,6 +23,7 @@ if 1:  # Header
         import statistics
         import sys
     if 1:   # Custom imports
+        from columnize import Columnize
         from f import flt
         from wrap import dedent
         from color import t
@@ -67,6 +68,7 @@ if 1:   # Utility
           Type
             1       4 place table, text
             2       4 place table, graphical
+            3       3 place table, text, simple
         '''))
         exit(status)
     def ParseCommandLine(d):
@@ -122,8 +124,28 @@ if 1:   # Core functionality
             the way; knowing 1/7 is 0.14, this is 0.4, giving our estimate of 0.6614.
             If you check this with a calculator, you find the answer is 0.6613.
 
+        More comprehensive tables of logarithms were needed for more significant
+        figures.  Consult J. Pryde, "Mathematical Tables", D. van Nostrand, 1900 for a
+        200 page table of base 10 logarithms of numbers from 1 to 108000.
+
         '''))
+    def Logs_3figures():
+        '''This is an easy to use form of a log table to 3 figures, as there's no
+        interpolation nor decimal places.  The numbers go from 100 to 999 and the
+        logarithm's values are the characteristic with no decimal point.
+        '''
+        o = []
+        for i in range(100, 1000):
+            l = math.log10(i)
+            s = f"{l:.6f}"[2:]
+            o.append(f"{i:3d} {s}")
+        for i in Columnize(o):
+            print(i)
+            
     def Logs_4figures():
+        '''This is the traditional form of the two page table that was by far the most
+        commonly used table for routine technical calculations to about 3 figures.
+        '''
         def header_row():
             print(t.ornl, end="")
             print(" "*3, end="")
@@ -166,5 +188,9 @@ if __name__ == "__main__":
         typ = 1
     if typ == 1:
         Logs_4figures()
+    elif typ == 2:
+        raise ValueError("Not implemented yet")
+    elif typ == 3:
+        Logs_3figures()
     else:
         Error("Number not recognized")

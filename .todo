@@ -69,7 +69,7 @@ Active:  /plib/.todo
         - Book:  https://www.rust-lang.org/learn
 
     - pgm/ptoken.py python_file fn_name regex
-        - Script to take a set of python scripts and print out the tokens that match
+         - Script to take a set of python scripts and print out the tokens that match
           those used in the function fn_name.
             - Use case:  see if the 'sin' or 'math.sin' token is used in a routine.
 
