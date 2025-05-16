@@ -1,5 +1,14 @@
 Active:  /plib/.todo
 
+    - Text substitution
+        - I currently have:  ts, tsub
+        - Winnow the list if possible
+        - Bugs
+            - tsub:  basic example in manpage doesn't work
+            - ts:  'ts -m' doesn't work
+        - Plan
+            - Retire tsub.py, as it's not used in /plib or /plib/pgm
+
     - pgrep
         - Currently, this is pgm/rgrep.py with the -p option
         - Change it to only do searching in specified python functions.  A use case is
@@ -77,33 +86,33 @@ Active:  /plib/.todo
         - Finds likely abbreviations/acronyms in files
         - Lists definitions for the ones found
         - Repository for the ones I like to use, with definitions
-            - CBC (commercial battery charger) ooo μP IDE wrt Ah A*h A*hr amd anova ansi argc
-              argv asap asme AT atm ATO ATX awk bk b&k bnc bsky buff cdf cephes cfg chr
-              chs CC clf clrg clst cmd cmdline cmds codec cols com comm comms conda
-              const config conj cpi cpp cruft css csv ctags ctrl cyg daq dat dbf dbg dbm
-              dbl dbus dd def del demag denom descr dest det df dict diff dir diy dll
-              dlock dm42 dmath doc docs dos dps dpstr dr dtype dx dy edu ee elec elif
-              emf eng engsi enum eof eps eqn er esc esr et eva evac eval expr ext flt
-              fmt fp ft fyi gdssw gdb gc gcc git gov gpg gps grep gsl gz hc hcpy hdr hld
-              hls hms hpj href iet im ii imag img impl inf init int inv ip ir iso ix
-              jpeg jpg jpl kbhit kdiff kft kph kps ksh kw kwh lj lbf lbm lcd len lib
-              linalg linenum linreg ll log ln loc loo ls lt manufy mawk md med meg mic
-              min mingw mintty mk mkdir mks mobi mol mon mp3 mp4 mpc mpf mpi
-              mpja mrtc MSE msg MSR mysql nah nav ncdf nd ndarray nema netrw
-              NIST nl nltk nobreak noic nomagic nop npos npp nsa num odict odt oft
-              optlist os osl papa pcl PCs pdb pfft pfind pgp php pil pkg plib png pnp
-              popen ppf ppm ppb precis prr prst ps psa psi pto putch pwd pwm pwr pypi
-              pyvenv pyver pyw rad RCS rdbuf redir regex regexp relpath reltol remap
-              repr req lhs rhs rmdir rd roms rpath rpo rps rst rtd rtz sa sat sbin SCCS
-              sci scipy SCO sed seq seti sfpm sha shcs shl shlvl shtml sig sigfig
-              siglent simpy sinesticks skrip sp spc sr src srcfile SSE SSR SSTO stat
-              stats s stddev stdev STP str sts su svg svn sw sx sxx sxy sy sympy sys
-              sysop syy techref temp tempfile tex texmf tgz thd tmbr tmux toml Torx tp
-              trans trie troff Tsat tsort tst tty txt tz uint unc unf uni un u unx URL
-              URI USB usd usr uss utf utf8 va var vars vcs venv vi vim viemu vimrc vip
-              voa vs vu vxware wav wd wdiff wdr wl lc wsl www wx xargs xfm xlabel xlim
-              xls xml xrange xref xx xxd xyzzy YAML Yhat Ybar ylabel ymax ymin xmax xmin
-              yy __call__ __dict__ __doc__ __floordiv__ __getattr__ __gt__ __iadd__
+            - CBC (commercial battery charger) BMS (battery management system) ooo μP
+              IDE wrt Ah A*h A*hr amd anova ansi argc argv asap asme AT atm ATO ATX awk
+              bk b&k bnc bsky buff cdf cephes cfg chr chs CC clf clrg clst cmd cmdline
+              cmds codec cols com comm comms conda const config conj cpi cpp cruft css
+              csv ctags ctrl cyg daq dat dbf dbg dbm dbl dbus dd def del demag denom
+              descr dest det df dict diff dir diy dll dlock dm42 dmath doc docs dos dps
+              dpstr dr dtype dx dy edu ee elec elif emf eng engsi enum eof eps eqn er
+              esc esr et eva evac eval expr ext flt fmt fp ft fyi gdssw gdb gc gcc git
+              gov gpg gps grep gsl gz hc hcpy hdr hld hls hms hpj href iet im ii imag
+              img impl inf init int inv ip ir iso ix jpeg jpg jpl kbhit kdiff kft kph
+              kps ksh kw kwh lj lbf lbm lcd len lib linalg linenum linreg ll log ln loc
+              loo ls lt manufy mawk md med meg mic min mingw mintty mk mkdir mks mobi
+              mol mon mp3 mp4 mpc mpf mpi mpja mrtc MSE msg MSR mysql nah nav ncdf nd
+              ndarray nema netrw NIST nl nltk nobreak noic nomagic nop npos npp nsa num
+              odict odt oft optlist os osl papa pcl PCs pdb pfft pfind pgp php pil pkg
+              plib png pnp popen ppf ppm ppb precis prr prst ps psa psi pto putch pwd
+              pwm pwr pypi pyvenv pyver pyw rad RCS rdbuf redir regex regexp relpath
+              reltol remap repr req lhs rhs rmdir rd roms rpath rpo rps rst rtd rtz sa
+              sat sbin SCCS sci scipy SCO sed seq seti sfpm sha shcs shl shlvl shtml sig
+              sigfig siglent simpy sinesticks skrip sp spc sr src srcfile SSE SSR SSTO
+              stat stats s stddev stdev STP str sts su svg svn sw sx sxx sxy sy sympy
+              sys sysop syy techref temp tempfile tex texmf tgz thd tmbr tmux toml Torx
+              tp trans trie troff Tsat tsort tst tty txt tz uint unc unf uni un u unx
+              URL URI USB usd usr uss utf utf8 va var vars vcs venv vi vim viemu vimrc
+              vip voa vs vu vxware wav wd wdiff wdr wl lc wsl www wx xargs xfm xlabel
+              xlim xls xml xrange xref xx xxd xyzzy YAML Yhat Ybar ylabel ymax ymin xmax
+              xmin yy __call__ __dict__ __doc__ __floordiv__ __getattr__ __gt__ __iadd__
               __iand__ __idiv__ __ifloordiv__ __ilshift__ __imod__ __imul__ __init__
               __ior__ __ipow__ __irshift__ __isub__ __itruediv__ __ixor__ __le__ __lt__
               __neg__ __pos__ __rfloordiv__ __rtruediv__ __setattr__ __truediv__ dmm

@@ -64,7 +64,6 @@ if 1:   # Utility
             tm      Timer operation
             bat     Battery test
             rs      Remote sense
-            brk     DC circuit breaker
             short   Short emulator
             save    Save/recall settings to/from registers
         '''))
@@ -84,13 +83,13 @@ if 1:   # Utility
         GetColors()
         return args
 if 1:   # Core functionality
-    def CC():
+    def ConstantCurrent():
         t.print(dedent(f'''
         {t.title}Constant current testing{t.n}
             Use I-set to choose the desired current level.  Press On-Off to turn the load on and
             off.  Press the ↑ or ↓ keys to see the operating power level.
         '''))
-    def TM():
+    def TimerOperation():
         on, off = t.cmd, t.n
         t.print(dedent(f'''
         {t.title}Timer mode:  stay on for indicated time, then turn off{t.n}
@@ -108,7 +107,7 @@ if 1:   # Core functionality
             enter the menu {on}:CONFIG:LOAD ON TIMER:TIMER STATE{off} and set
             to {on}:OFF{off}.
         '''))
-    def BAT():
+    def BatteryTest():
         on, off = t.cmd, t.n
         t.print(dedent(f'''
         {t.title}Battery test: Measures time it takes for battery to drop to a specified voltage at
@@ -122,7 +121,7 @@ if 1:   # Core functionality
             ↑ or ↓              Display total charge in A*hr
             shift + Battery     Turn battery test mode off
         '''))
-    def RS():
+    def RemoteSense():
         on, off = t.cmd, t.n
         t.print(dedent(f'''
         {t.title}Remote sensing:  Terminals in 4-clamp connector on back.  Remote sensing has
@@ -136,23 +135,7 @@ if 1:   # Core functionality
             enter               {on}:REMOTE SENSE{off} and annunciator shows Sense
             esc esc             Exit menu
         '''))
-    def BRK():
-        on, off = t.cmd, t.n
-        t.print(dedent(f'''
-        {t.title}Act as a DC circuit breaker{t.n}
-            - This needs to be tested.  Uses voltage threshold operation and remote
-              sensing terminals on back.  
-            - Set up a shunt to measure current with an op amp to condition the signal
-              to desired voltage levels.  This signal is input to the remote sense
-              terminals.
-            - Put the DC load in series with the supply voltage
-            - Enable remote sense
-            - Set {on}SYSTEM SET:VOLTAGE OFF SET{off} to the desired shunt voltage to turn off
-            - Set {on}SYSTEM SET:VOLTAGE ON SET{off} to 0 V
-            - Now the current should be shut off if the 
-
-        '''))
-    def SHORT():
+    def ShortEmulator():
         on, off = t.cmd, t.n
         t.print(dedent(f'''
         {t.title}Short emulation{t.n}
@@ -161,7 +144,7 @@ if 1:   # Core functionality
             CP:  Same, put you must press On-Off to turn off the load.
 
         '''))
-    def SAVE():
+    def SaveRecall():
         on, off = t.cmd, t.n
         t.print(dedent(f'''
         {t.title}Save/recall settings to/from registers{t.n}
@@ -169,27 +152,24 @@ if 1:   # Core functionality
             press enter.  Use shift-Recall to restore the settings.
 
         '''))
-    def Dispatch(args):
-        dispatch = {
-            "cc": CC,
-            "tm": TM,
-            "bat": BAT,
-            "rs": RS,
-            "brk": BRK,
-            "short": SHORT,
-            "save": SAVE,
-        }
-        if "all" in args:
-            for cmd in dispatch:
-                dispatch[cmd]()
-        else:
-            for cmd in args:
-                if cmd in dispatch:
-                    dispatch[cmd]()
-                else:
-                    print(f"{cmd!r} not recognized")
 
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d = {}          # Options dictionary
+    dispatch = {    # Translate commands to functions
+        "cc": ConstantCurrent,
+        "tm": TimerOperation,
+        "bat": BatteryTest,
+        "rs": RemoteSense,
+        "short": ShortEmulator,
+        "save": SaveRecall,
+    }
     args = ParseCommandLine(d)
-    Dispatch(args)
+    if "all" in args:
+        for cmd in dispatch:
+            dispatch[cmd]()
+    else:
+        for cmd in args:
+            if cmd in dispatch:
+                dispatch[cmd]()
+            else:
+                print(f"{cmd!r} not recognized")

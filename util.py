@@ -27,6 +27,7 @@ Engineering           Represent a number in engineering notation
 execfile              Python 3 replacement for python 2 function
 fDistribute           Return a float sequence equally distributed
 Flatten               Flattens nested sequences to a sequence of scalars
+Flatten_generator     Generator that flattens nested sequences 
 fsig                  Return string of float to specified number of digits
 getch                 Block until a key is pressed
 GetHash               Get a file's hash as a hex string
@@ -876,15 +877,50 @@ def IdealGas(P=0, v=0, T=0, MW=28.9):
     else:
         assert P >= 0 and v >= 0 and T >= 0 and MW >= 0
     molar_gas_constant = 8.3145  # J/(mol*K)
-    R = molar_gas_constant / (float(MW) / 1000)  # 1000 converts g to kg
+    R = molar_gas_constant/(float(MW)/1000)  # 1000 converts g to kg
     if sum([i == 0 for i in (P, v, T)]) != 1:
         raise ValueError("One and only one of P, v, T must be zero")
     if not P:
-        return R * T / v
+        return R*T/v
     elif not v:
-        return R * T / P
+        return R*T/P
     else:
-        return P * v / R
+        return P*v/R
+def Flatten_generator(seq, ltypes=(list, tuple)):
+    '''A generator that will return a flattened sequence from seq.  If an element in seq
+    is of one of the types in ltypes, then it's considered to be a sequence; otherwise,
+    it's a scalar element.
+    
+    The method is a nice use of a deque from
+    https://dev.to/miguendes/5-different-ways-to-flatten-a-list-of-lists-in-python-2cmn
+    The algorithm is:
+    
+    - dq = deque()
+    - Iterate through each element e of seq
+    - If e is not one of ltypes
+        - Append e to left of dq
+    - else
+        - dq.extendleft(reversed(e))
+    - Note:  reversing is needed because of the way extendleft works:
+        >>> dq = deque()
+        >>> dq.extendleft([1, 2, 3])
+        >>> dq
+        deque([3, 2, 1]
+    - Now iterate over the deque by popping the leftmost element e; if it's not an
+      ltypes, yield it; otherwise extendleft(reversed(e)).
+    '''
+    dq = deque()
+    for item in seq:
+        if ii(item, ltypes):
+            dq.extendleft(reversed(item))
+        else:
+            dq.appendleft(item)
+        while dq:
+            elem = dq.popleft()
+            if ii(elem, ltypes):
+                dq.extendleft(reversed(elem))
+            else:
+                yield elem
 def Flatten(L, max_depth=None, ltypes=(list, tuple)):
     '''Flatten every sequence in L whose type is contained in "ltypes" to "max_depth" levels down
     the tree.  The sequence returned has the same type as the input sequence.
@@ -1062,7 +1098,7 @@ def hyphen_range(s, sorted=False):
     '''Takes a set of range specifications of the form "a-b" and returns a list of
     integers between a and b inclusive.  The string s will be separated on whitespace
     after commas are replaced by spaces.
-
+    
     Examples:
         "" returns []
         "1" returns [1]
@@ -2299,6 +2335,13 @@ if __name__ == "__main__":
         Assert(list(Flatten(r)) == r)
         a = [0, (1, 2, [3, 4, (5, 6, 7)]), (8, (9, 10))]
         Assert(list(Flatten(a)) == r)
+    def Test_Flatten_generator():
+        Assert(list(Flatten_generator([])) == [])
+        Assert(tuple(Flatten_generator([])) == ())
+        r = list(range(11))
+        Assert(list(Flatten_generator(r)) == r)
+        a = [0, (1, 2, [3, 4, (5, 6, 7)]), (8, (9, 10))]
+        Assert(list(Flatten_generator(a)) == r)
     def Test_eng():
         Assert(eng(3456.78) == "3.46e3")
         Assert(eng(3456.78, digits=4) == "3.457e3")

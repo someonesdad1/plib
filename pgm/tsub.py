@@ -1,4 +1,4 @@
-"""
+'''
 
 TODO
     - Change behavior to allow the command line to have arbitrary
@@ -33,11 +33,10 @@ TODO
         - If var is a python symbol, then put it into the localvars dict so
           it can also be used in code.
     - .undef var1 var2 ...
-
+    
 A text substitution tool
 
-"""
-
+'''
 if 1:  # Header
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -58,21 +57,17 @@ if 1:  # Header
     import sys
     from pathlib import Path as P
     from pprint import PrettyPrinter
-
     PP = PrettyPrinter(width=180)
     pp = PP.pprint
     if 0:
         import debug
-
         debuSetDebugger()
     # Custom imports
     from wrap import dedent
     from color import TRM as t
-
     # Global variables
     class g:
         pass
-
     dbg = True  # If True, use breakpoints for debugging
     # script = os.path.split(sys.argv[0])[1]
     localvars = {}  # Dict for local variables
@@ -93,7 +88,6 @@ if 1:  # Header
     # formatting strings that need to be expanded with the global dictionary.
     need_global_expansion = re.compile(r"%\(([a-zA-Z][a-zA-Z_]*)\)")
 if 1:  # Utility
-
     def ColorCoding(on=False):
         t.err = t("redl") if on else ""  # Error message
         t.ln = t("grnl") if on else ""  # Line number
@@ -105,208 +99,175 @@ if 1:  # Utility
         t.redef = t("lipl") if on else ""  # Warning of a redefinition
         t.undef = t("viol") if on else ""  # Undefining a substitution
         t.N = t.n if on else ""  # Default normal mode
-
     def Manpage():
         name = P(sys.argv[0])
         sname = name.name
         print(
-            dedent(f"""
+            dedent(f'''
         NAME
             {name} - Text substitution tool
-
+            
         SYNOPSIS
             {sname} [options] file1 [file2...]
         
         DESCRIPTION
-        
-            The {sname} script is intended to make text substitutions and
-            allow arbitrary python code in your text files to compute
-            things needed.
-
-            {sname} replaces strings in the input files, then prints them
-            to stdout.  It knows nothing about things like identifiers or
-            tokens in programming languages.  It's a dumb text substitution
-            program.  For each line of input, it searches to see if a
-            "macro" name occurs on that line; if it does, then the text is
-            replaced.  The search starts with the longest macro names and
-            goes to the shorter names.  This lets you have two macros named
-            'mp_MyMacro4' and 'mp_MyMacro' and not have mp_MyMacro's value
+            The {sname} script is intended to make text substitutions and allow arbitrary python
+            code in your text files to compute things needed.
+            
+            {sname} replaces strings in the input files, then prints them to stdout.  It knows
+            nothing about things like identifiers or tokens in programming languages.  It's a
+            dumb text substitution program.  For each line of input, it searches to see if a
+            "macro" name occurs on that line; if it does, then the text is replaced.  The search
+            starts with the longest macro names and goes to the shorter names.  This lets you
+            have two macros named 'mp_MyMacro4' and 'mp_MyMacro' and not have mp_MyMacro's value
             replaced when the macro name mp_MyMacro4 occurs in text.
             
-            You'll want to make sure your macro names will not be found in
-            text except where you deliberately put them in.  One way is to
-            name all your macros with a prefix such as "mp_".
+            You'll want to make sure your macro names will not be found in text except where you
+            deliberately put them in.  One way is to name all your macros with a prefix such as
+            "mp_".
         
-            Programmers probably expect macro names and other things to be
-            processed in tokens like other macro tools such as m4.  The
-            {sname} script doesn't behave this way; it uses simple text
-            substitution.
+            Programmers probably expect macro names and other things to be processed in tokens
+            like other macro tools such as m4.  The {sname} script doesn't behave this way; it
+            uses simple text substitution and lines are processed sequentially one at a time.
         
         Options
             -h
                 Prints this man page.
             -I dir
-                Define an include directory.  When a file is included, it
-                is first looked for in the current directory.  If it isn't
-                found, directories specified with the -I option are
-                searched sequentially and the first match is used.  More
-                than one -I option can be given.
+                Define an include directory.  When a file is included, it is first looked for in
+                the current directory.  If it isn't found, directories specified with the -I
+                option are searched sequentially and the first match is used.  More than one -I
+                option can be given.
             -v
-                Show the processing that's happening in colored text to
-                stderr.  The script's normal output is in plain text.
-                Different colors are used to help interpret the output.
-                Escape codes for colorizing are emitted even if the output
-                isn't a TTY; if you don't want this behavior, find the line
-                't.always = True' in the code and make it False.
-
-                This is a handy option to see what's happening with your
-                input file.  It will show all of the input lines.
+                Show the processing that's happening in colored text to stderr.  The script's
+                normal output is in plain text.  Different colors are used to help interpret the
+                output.  Escape codes for colorizing are emitted even if the output isn't a TTY;
+                if you don't want this behavior, find the line 't.always = True' in the code and
+                make it False.
+                
+                This is a handy option to see what's happening with your input file.  It will
+                show all of the input lines.
         
         Command lines
-            Command lines for the macro processor have a '.' character in
-            the first column and can be followed by one or more space
-            characters.  You can edit the IsCommandLine() function in the
-            script if you'd like to change this syntax.
+            Command lines for the macro processor have a '.' character in the first column and
+            can be followed by one or more space characters.  You can edit the IsCommandLine()
+            function in the script if you'd like to change this syntax.
         
             The general forms of a command are:
                 
                 .  token [token's arguments]
                 .. token [token's arguments]
         
-            There can be optional whitespace between the '.' character and
-            the characters of the token.
+            There can be optional whitespace between the '.' character and the characters of the
+            token.
         
-            Note that command lines can have embedded macros expanded in them.
-            This e. allows you to write
+            Note that command lines can have embedded macros expanded in them.  This e. allows
+            you to write
         
                 .def mp_MY_FILE =abc
                 .include mp_MY_FILE
         
-            If you do not want macros expanded in the line, use the '..'
-            form.
-
-            A single line that only contains '.' is allowed; it behaves as a
-            comment and is ignored.  It's handy to space out text in an
-            input file.
+            If you do not want macros expanded in the line, use the '..' form.
+            
+            A single line that only contains '.' is allowed; it behaves as a comment and is
+            ignored.  It's handy to space out text in an input file.
         
             The allowed command tokens are:
         
             .def name = value
-                Defines a text substitution.  The name string can contain
-                any characters except a newline and cannot begin or end
-                with a space character.  All characters after '='
-                character become part of the substitution except for the
-                newline.
-
-                The definition can also be 'name='.  This shows the space
-                before the '=' is optional and also shows that you can
-                define a substitution to be the empty strin
-
-                You are free to redefine a substitution name at any time,
-                but if the -v option is used, a warning message will be
-                printed to stderr to alert you to the redefinition.
-
+                Defines a text substitution.  The name string can contain any characters except
+                a newline and cannot begin or end with a space character.  All characters after
+                '=' character become part of the substitution except for the newline.
+                
+                The definition can also be 'name='.  This shows the space before the '=' is
+                optional and also shows that you can define a substitution to be the empty strin
+                
+                You are free to redefine a substitution name at any time, but if the -v option
+                is used, a warning message will be printed to stderr to alert you to the
+                redefinition.
+                
             .undef name
-
-                Undefine a substitution.  If name isn't defined, there's no
-                error, but a warning will be printed if -v is used.
+                Undefine a substitution.  If name isn't defined, there's no error, but a warning
+                will be printed if -v is used.
         
             .cd dir
-                Set the current directory of the script to dir.  If dir is
-                missing, the current directory is set to what it was at the
-                start of the script.
+                Set the current directory of the script to dir.  If dir is missing, the current
+                directory is set to what it was at the start of the script.
         
             .{{ 
             .}}
-
-                Comment block.  This is an easy way to comment out a block
-                of text.  When the -v option is used, lines inside a
-                comment block won't be printed.
-
+                Comment block.  This is an easy way to comment out a block of text.  When the -v
+                option is used, lines inside a comment block won't be printed.
+                
             .( [code_section_name]
             .)
-
-                These two tokens must each appear on a line by themselves.
-                They delimit a block of lines of text that will be
-                interpreted as python code.  Typically, this is used to
-                define and set some global variables that are used for
-                variable expansions in lines.  See the Examples section
-                below for details.  However, arbitrary processing can be
-                done.  Any variables that you define in your code section
-                are added to the localvars dictionary, which is in the
-                global namespace.
-
-                IMPORTANT:  the code section is executed using exec() and
-                any variables you define are put into the global namespace.
-                To avoid namespace pollution or overwriting an existing
-                variable, use names that you know are not in the global
+                These two tokens must each appear on a line by themselves.  They delimit a block
+                of lines of text that will be interpreted as python code.  Typically, this is
+                used to define and set some global variables that are used for variable
+                expansions in lines.  See the Examples section below for details.  However,
+                arbitrary processing can be done.  Any variables that you define in your code
+                section are added to the localvars dictionary, which is in the global namespace.
+                
+                IMPORTANT:  the code section is executed using exec() and any variables you
+                define are put into the global namespace.  To avoid namespace pollution or
+                overwriting an existing variable, use names that you know are not in the global
                 namespace.  
         
-                If code_section_name is given, it must be encountered only
-                once while processing, otherwise an error will occur and
-                processing stops.  You can use this feature to avoid
-                accidentally including files multiple times (if your code
-                in the included file has a name, the {sname} script will
-                stop executing the second time it is included).
-
-                If an error in the code occurs, you'll get an exception.
-                You'll see '[file:line_number]' in the traceback.  This
-                points to the location of the '.)' line that ends the code
-                block.  You can find the offending line by counting from
-                the '.(' by the 'line x' message just after this file and
-                line number chunk.  If you used the -v option, you'll be
-                able to view the offending line on the screen by doing this
-                counting.
+                If code_section_name is given, it must be encountered only once while
+                processing, otherwise an error will occur and processing stops.  You can use
+                this feature to avoid accidentally including files multiple times (if your code
+                in the included file has a name, the {sname} script will stop executing the
+                second time it is included).
+                
+                If an error in the code occurs, you'll get an exception.  You'll see
+                '[file:line_number]' in the traceback.  This points to the location of the '.)'
+                line that ends the code block.  You can find the offending line by counting from
+                the '.(' by the 'line x' message just after this file and line number chunk.  If
+                you used the -v option, you'll be able to view the offending line on the screen
+                by doing this counting.
         
             .include file [once]
-                Used to include another file at this point.  The behavior is
-                to read all the lines of the indicated file and insert them
-                at the current location.  It is a fatal error if the file
-                cannot be found.
+                Used to include another file at this point.  The behavior is to read all the
+                lines of the indicated file and insert them at the current location.  It is a
+                fatal error if the file cannot be found.
         
-                If the token 'once' is present, the file is only included
-                once.  This is intended to be used where the include file
-                has python code/endcode chunks that you only want executed
-                once.
-
-                Because of the way the script works, you can't include
-                a file that has a space in its name.
-
+                If the token 'once' is present, the file is only included once.  This is
+                intended to be used where the include file has python code/endcode chunks that
+                you only want executed once.
+                
+                Because of the way the script works, you can't include a file that has a space
+                in its name.
+                
             .sinclude file [once]
-                Same as include, except it's not an error if the file cannot
-                be found.
+                Same as include, except it's not an error if the file cannot be found.
         
-                If the token 'once' is present, the file is only included
-                once.  This is intended to be used where the include file
-                has python code/endcode chunks that you only want executed
-                once.
+                If the token 'once' is present, the file is only included once.  This is
+                intended to be used where the include file has python code/endcode chunks that
+                you only want executed once.
         
             .#
-                This line is a comment and is discarded.  You can omit the
-                '#' and the effect is the same.
+                This line is a comment and is discarded.  You can omit the '#' and the effect is
+                the same.
         
             .on [expr]
-                Turns substitution on if expr is True.  Ignored if it is
-                already on.
+                Turns substitution on if expr is True.  Ignored if it is already on.
         
             .off
                 Turns substitution off.  Ignored if it is already off.
         
         Python variables
-            You may use python variable references in your text.  These references
-            must be of the form '%%(varname)s', where varname is the name of a
-            python variable and s is a formatting string, such as 's', 'd', 'f',
-            etc.  These expressions will be evaluated with the global dictionary
-            in effect at the time the code is evaluated.
+            You may use python variable references in your text.  These references must be of
+            the form '%%(varname)s', where varname is the name of a python variable and s is a
+            formatting string, such as 's', 'd', 'f', etc.  These expressions will be evaluated
+            with the global dictionary in effect at the time the code is evaluated.
         
-            Typical use of this functionality is to make a counter that gets
-            incremented or to define multiline strings.
+            Typical use of this functionality is to make a counter that gets incremented or to
+            define multiline strings.
         
         Example
-            The following example shows a simple use of python code to
-            generate serial numbers for a set of files.  The idea is that the
-            serial numbers will be incremented each time they are referenced,
-            allowing a set of files to have unique numbers.
+            The following example shows the use of python code to generate serial numbers for a
+            set of files.  The idea is that the serial numbers will be incremented each time
+            they are referenced, allowing a set of files to have unique numbers.
         
             File 1 contains:
                 .(
@@ -335,22 +296,19 @@ if 1:  # Utility
                 This is file 1.  The serial number is 100.
                 This is file 2.  The serial number is 101.
         
-            Note:  any global variables and functions you define in your code
-            will be put into the {sname} script's global namespace.
-        """)
+            Note:  any global variables and functions you define in your code will be put into
+            the {sname} script's global namespace.
+        ''')
         )
-
     def RmNl(line):
         "Remove the newline if it has one"
         if line and line[-1] == "\n":
             return line[:-1]
         return line
-
     def Log(s, color=None):
         if d["-v"]:
             color = "" if color is None else color
             print(f"{color}+ {RmNl(s)}{t.N}", file=sys.stderr)
-
     def PrintColorCoding():
         if not d["-v"]:
             return
@@ -365,10 +323,8 @@ if 1:  # Utility
         t.print(f"    {t.redef}Warning of a redefinition", file=f)
         t.print(f"    {t.undef}Undefining a substitution", file=f)
         print(file=f)
-
     def Dedent(s):
         "s is a code string; remove any common indenting and return it"
-
         def CntWS(s):
             "Return number of spaces in beginning whitespace of s"
             l = list(s)
@@ -377,7 +333,6 @@ if 1:  # Utility
                 n += 1
                 l.pop(0)
             return n
-
         if not s:
             return s
         # Remove last newline
@@ -392,10 +347,9 @@ if 1:  # Utility
         if q[-1] != "\n":
             q += "\n"
         return q
-
     def Usage():
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options] file1 [file2...]
           Text substitution tool.
         Options
@@ -420,9 +374,8 @@ if 1:  # Utility
           .include                      Insert a file; error if not found
           .sinclude                     Insert a file; no error if not found
           .cd [dir]                     Change the current directory
-        """)
+        ''')
         )
-
     def ParseCommandLine(d):
         d["-c"] = False  # If True, no color coding for -v
         d["-I"] = []  # Directories to search for include files
@@ -448,29 +401,24 @@ if 1:  # Utility
         if d["-v"]:
             PrintColorCoding()
         return files
-
-
 if 1:  # Core functionality
-
     def SortMacroNames():
-        """Sort the macro names so that the longest macros are first.  This
+        '''Sort the macro names so that the longest macros are first.  This
         lets macros like 'mp_MyMacro4' get substituted before 'mp_MyMacro',
         giving the behavior most of us would expect.
-        """
+        '''
         global macro_names
         s = [(len(i), i) for i in macro_names]
         s.sort()
         macro_names = [i[1] for i in list(reversed(s))]
-
     def Error(msg):
         print(msg, file=sys.stderr)
         exit(1)
-
     def ProcessCommandLine(line):
-        """The line is a command line, so parse out the command and execute
+        '''The line is a command line, so parse out the command and execute
         it.  If we're in code mode, the line is appended to the current_code
         strin
-        """
+        '''
         global code_mode, current_code, macro_names
         original_line = line
         # Note:  we don't remove the newline, as this is needed to separate
@@ -668,11 +616,10 @@ if 1:  # Core functionality
                 "Command '%s' on line %d of file '%s' not recognized"
                 % (cmd, current_line, current_file)
             )
-
     def FindIncludeFile(file):
-        """Search for the indicated file to include and return it; if not
+        '''Search for the indicated file to include and return it; if not
         found, return None.
-        """
+        '''
         p = P(file)
         if p.is_file():
             return p.resolve()
@@ -681,18 +628,16 @@ if 1:  # Core functionality
             if p.is_file():
                 return p.resolve()
         return None
-
     def IsCommandLine(line):
         "This function returns True if the line is a command line"
         # Note if we're in code mode, the line is also considered a
         # command.  Commands aren't printed to the output stream.
         return True if line[0] == cmd_char or code_mode else False
-
     def ExpandMacros(line):
-        """We look for any macro name matches.  Any that are found are
+        '''We look for any macro name matches.  Any that are found are
         replaced, then we start the search over again so we don't miss
         any macros within macros.
-        """
+        '''
         done = False
         while not done:
             found = False  # Flags finding at least one macro
@@ -717,12 +662,11 @@ if 1:  # Core functionality
             if mo:
                 line = line % globals()
         return line
-
     def ProcessLine(line, linenum):
-        """Determine if the line is a command line or not.  If it is, process
+        '''Determine if the line is a command line or not.  If it is, process
         it with ProcessCommandLine().  Otherwise, expand the macros in the
         line and print it to stdout.
-        """
+        '''
         if IsCommandLine(line):
             Log(f"{t.ln}[{linenum}]{t.cmd} {line}", t.cmd)
             ProcessCommandLine(line)
@@ -733,14 +677,13 @@ if 1:  # Core functionality
                     Output(line)
                 else:
                     Log(f"{t.ln}[{linenum}]{t.line} In comment block: {line!r}", t.line)
-
     def Output(line):
-        """Send the line to the output stream.  First, expand all the macros
+        '''Send the line to the output stream.  First, expand all the macros
         in the line.  Then check the character before the trailing newline:
         if it is a '\' character, remove the newline unless the character
         before that is another '\', in which case substitute '\' for the
         '\\' and keep the newline.
-        """
+        '''
         line = RmNl(ExpandMacros(line))
         if len(line) < 2:
             print(line)
@@ -760,16 +703,14 @@ if 1:  # Core functionality
                 return
         else:
             print(line)
-
     def ProcessFile(file, ignore_failure_to_open=0, restore_line=0, restore_file=""):
-        """Read in and process each line in the file.  The
-        ignore_failure_to_open variable is used to handle the sinclude case
-        when a file is missing or can't be opened.
-
-        If present, restore_line and restore_file are used to reset the
-        current_line and current_file global variables, since we're in a
-        recursive call from include or sinclude commands.
-        """
+        '''Read in and process each line in the file.  The ignore_failure_to_open variable is
+        used to handle the sinclude case when a file is missing or can't be opened.
+                
+        If present, restore_line and restore_file are used to reset the current_line and
+        current_file global variables, since we're in a recursive call from include or sinclude
+        commands.
+        '''
         try:
             ifp = open(file)
         except Exception:
@@ -791,7 +732,6 @@ if 1:  # Core functionality
         if restore_file:
             current_file = restore_file
         Log(f"===== Finished processing file {t.fn}{file!r}{t.N} =====")
-
 
 if __name__ == "__main__":
     d = {}  # Options dictionary

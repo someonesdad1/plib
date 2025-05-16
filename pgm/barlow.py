@@ -34,21 +34,22 @@ Construct a copy of Barlow's tables
     that none of my teachers recommended it, as I have no doubt a few of them would have
     been aware of it).  If we had to do a calculation that couldn't be done on a slide
     rule, then it was done with the 5 place log tables in e.g. the CRC math tables or
-    Handbook of Chemistry and Physics.  My CRC math tables, a cloth-bound book, got used
-    so much it fell apart in the 1970's and I had to buy another copy.  Yet in the
-    1980's and 1990's I reflected on the powerful calculators we had and what drudgery
-    manual calculation was -- and recognized that using Barlow's tables would have made
-    things more convenient when I was doing manual calculations.  Much of this comes
-    from the need to work with squares and square roots, particularly with trigonometric
-    calculations.
+    Handbook of Chemistry and Physics.  My CRC math tables, a cloth-bound book I got in
+    1965, got used so much it fell apart in the 1970's and I had to buy another copy.
+    Yet in the 1980's and 1990's I reflected on the powerful calculators we had and what
+    drudgery manual calculation was -- and recognized that using Barlow's tables would
+    have made things more convenient when I was doing manual calculations.  Much of this
+    comes from the need to work with squares and square roots, particularly with
+    trigonometric calculations.
 
-    One thing these laborious manual calculations did was give you an awareness
+    One thing these laborious manual calculations did was give you an awareness of
     calculations that gave you both a more intuitive understanding of a problem as well
     as a sense for when things weren't quite right.  This happened by necessity as long
     as you paid attention and learned from your mistakes.  This contrasts to today's
     common user who just punches numbers into a keyboard and doesn't even check their
     work.  Checking is as important today with computers and calculators as it was with
-    manual calculations, but, again, you don't learn this important lesson easily.
+    manual calculations, but typically one doesn't learn this important lesson easily,
+    least of all by hearing it from a teacher or reading it in a book.
 
 '''
 if 1:  # Header
