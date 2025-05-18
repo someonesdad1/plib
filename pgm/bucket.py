@@ -93,7 +93,7 @@ if 1:  # Header
         ii = isinstance
         required_keys = set(("D", "d", "h", "input_units", "offset", "shape"))
         optional_keys = set(("title",))
-        separator = "-" * 70
+        separator = "-"*70
         # Control how numbers with uncertainties are printed
         if 0:
             unc = ".1uS"    # E.g. 275(2)
@@ -106,19 +106,24 @@ if 1:  # Utility
     def Usage(d, status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] [datafile...]
-          Calculate volume calibration marks for square and round bucket
-          shapes.  The program will prompt you for the required quantities.
-          If one or more datafiles are given, then input is taken from them
-          rather than by prompting the user.  A separate report is printed
-          to stdout for each datafile.
+          Calculate volume calibration marks for square and round bucket shapes.  The
+          program will prompt you for the required quantities.  If one or more datafiles
+          are given, then input is taken from them rather than by prompting the user.  A
+          separate report is printed to stdout for each datafile.
         Options:
           -d n    Number of significant figures in report. [{d["-d"]}]
           -f      Print a sample datafile
           -h      Print this help
           -m      Use mm for input and output length measurements
-          -r s    Formatting spec for length output (example:  '.0f' prints
-                  lengths in mm to the nearest mm)
-                  
+          -r s    Formatting spec for length output (example:  '.0f' prints lengths in
+                  mm to the nearest mm)
+          -u      Allow uncertainty expressions in numerical values
+        Note:
+            If you use -u and use interactive input mode, if you type in e.g. '9 m' for
+            a value, it will have the standard uncertainty of 1, as this is how the
+            python uncertainties library works.  If you use a datafile, you can write
+            numbers with uncertainties as e.g. '10+/-1' or '10(1)' and no -u option is
+            needed.
         ''')
         )
         exit(status)
@@ -126,13 +131,14 @@ if 1:  # Utility
         d["-d"] = 4     # Number of display digits
         d["-m"] = False # Use mm
         d["-r"] = None  # Length formatting string
+        d["-u"] = False # Allow uncertainties
         try:
-            opts, datafiles = getopt.getopt(sys.argv[1:], "d:fhmr:")
+            opts, datafiles = getopt.getopt(sys.argv[1:], "d:fhmr:u")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in "m":
+            if o[1] in "mu":
                 d[o] = not d[o]
             if o in ("-d",):
                 try:
@@ -167,10 +173,10 @@ if 1:  # Core functionality
         '''
         h, A0, A1 = d["h"][0], d["A0"], d["A1"]
         assert h > 0 and A0 >= 0 and A1 >= 0 and A1 >= A0
-        return h * (A0 + A1 + sqrt(A0 * A1)) / 3
+        return h*(A0 + A1 + sqrt(A0*A1))/3
     def secant(sigma, D, h):
         assert h > 0 and D > 0 and sigma >= 0
-        return sqrt(1 + (sigma * D / (2 * h)) ** 2)
+        return sqrt(1 + (sigma*D/(2*h))**2)
     def PrintPercentCalibrations(A0, V):
         '''Print the calibration points that represent the fraction of the
         total bucket volume when filled to the brim.
@@ -181,15 +187,15 @@ if 1:  # Core functionality
         print("  Divisions for fraction of total volume")
         print("      Fraction     inches        mm")
         print("      --------     ------      ------")
-        fmt, count = " %10s " * 3, 0
+        fmt, count = " %10s "*3, 0
         while True:
-            fraction = count * step_size
+            fraction = count*step_size
             count += 1
-            vx = V * fraction
+            vx = V*fraction
             if fraction > 1:
                 break
             mark = CalibrationMark(D, h, offset, vx, A0)
-            f, i, m = "%6.2f" % fraction, "%8.2f" % mark, "%8.1f" % (mark * in2mm)
+            f, i, m = "%6.2f" % fraction, "%8.2f" % mark, "%8.1f" % (mark*in2mm)
             print(fmt % (f, i, m))
         print()
     def SampleDataFile(d):
@@ -260,10 +266,10 @@ if 1:  # Core functionality
                 d["title"] = "Rheem round gray bucket"
                 d["shape"] = "round"
                 d["input_units"] = "mm"
-                d["D"] = (11.34 * u("in"), "11.34", "in")
-                d["d"] = (10.42 * u("in"), "10.42", "in")
-                d["offset"] = (0.47 * u("in"), "0.47", "in")
-                d["h"] = (14 * u("in"), "14", "in")
+                d["D"] = (11.34*u("in"), "11.34", "in")
+                d["d"] = (10.42*u("in"), "10.42", "in")
+                d["offset"] = (0.47*u("in"), "0.47", "in")
+                d["h"] = (14*u("in"), "14", "in")
                 Report("liters", "mm", 1)
                 d["volume_fraction"] = 1
                 Report("%", "mm", 10)
@@ -274,11 +280,11 @@ if 1:  # Core functionality
                 d["title"] = "Ropak square cat litter bucket"
                 d["shape"] = "square"
                 d["input_units"] = "mm"
-                d["D"] = (9.10 * u("in"), "9.10", "in")
-                d["d"] = (8.16 * u("in"), "8.16", "in")
-                d["offset"] = (0.12 * u("in"), "0.12", "in")
-                d["h"] = (13 * u("in"), "13", "in")
-                d["r"] = (1.25 * u("in"), "1.25", "in")
+                d["D"] = (9.10*u("in"), "9.10", "in")
+                d["d"] = (8.16*u("in"), "8.16", "in")
+                d["offset"] = (0.12*u("in"), "0.12", "in")
+                d["h"] = (13*u("in"), "13", "in")
+                d["r"] = (1.25*u("in"), "1.25", "in")
                 Report("liters", "mm", 1)
         else:
             # Prompt the user for the required variables and put them in the
@@ -339,17 +345,13 @@ if 1:  # Core functionality
                 except ValueError:
                     if default_unit == "%":
                         # Get volume_fraction
-                        d["volume_fraction"] = GetNumber(
-                            "Volume fraction? ", low=0, low_open=True, high=1, default=1
-                        )
+                        d["volume_fraction"] = GetNumber("Volume fraction? ", low=0, low_open=True, high=1, default=1)
                         break
                     else:
                         print("'{}' is not a valid volume unit".format(default_unit))
             output_volume_units = default_unit
             # Output volume steps
-            volume_steps = GetNumber(
-                "Output volume steps? ", low=0, low_open=True, default=1
-            )
+            volume_steps = GetNumber("Output volume steps? ", low=0, low_open=True, default=1)
             Report.data.append((output_volume_units, output_length_units, volume_steps))
             # Bucket shape
             default_shape = "round"
@@ -379,14 +381,15 @@ if 1:  # Core functionality
                         low=0,
                         low_open=True,
                         use_unit=True,
+                        use_unc=d["-u"],
                     )
                     break
                 except ValueError:
                     print(emsg)
             if unit:
-                d["D"] = (num * u(unit), num, unit)
+                d["D"] = (num*u(unit), num, unit)
             else:
-                d["D"] = (num * u(d["input_units"]), num, unit)
+                d["D"] = (num*u(d["input_units"]), num, unit)
             # Bottom diameter/width
             D_val, D_num, D_unit = d["D"]
             while True:
@@ -396,11 +399,12 @@ if 1:  # Core functionality
                         low=0,
                         low_open=True,
                         use_unit=True,
+                        use_unc=d["-u"],
                     )
                     if unit:
-                        d_m = num * u(unit)
+                        d_m = num*u(unit)
                     else:
-                        d_m = num * u(d["input_units"])
+                        d_m = num*u(d["input_units"])
                     if d_m > D_val:
                         raise RuntimeError()
                     break
@@ -409,42 +413,38 @@ if 1:  # Core functionality
                 except RuntimeError:
                     print("  The value must be <= {} {}".format(D_num, D_unit))
             if unit:
-                d["d"] = (num * u(unit), num, unit)
+                d["d"] = (num*u(unit), num, unit)
             else:
-                d["d"] = (num * u(d["input_units"]), num, unit)
+                d["d"] = (num*u(d["input_units"]), num, unit)
             # Offset
             while True:
                 try:
-                    num, unit = GetNumber("What is the offset? ", low=0, use_unit=True)
+                    num, unit = GetNumber("What is the offset? ", low=0, use_unit=True, use_unc=d["-u"])
                     break
                 except ValueError:
                     print(emsg)
             if unit:
-                d["offset"] = (num * u(unit), num, unit)
+                d["offset"] = (num*u(unit), num, unit)
             else:
-                d["offset"] = (num * u(d["input_units"]), num, unit)
+                d["offset"] = (num*u(d["input_units"]), num, unit)
             # Height
             while True:
                 try:
-                    num, unit = GetNumber(
-                        "What is the height h? ", low=0, low_open=True, use_unit=True
-                    )
+                    num, unit = GetNumber( "What is the height h? ", low=0, low_open=True, use_unit=True, use_unc=d["-u"])
                     break
                 except ValueError:
                     print(emsg)
             if unit:
-                d["h"] = (num * u(unit), num, unit)
+                d["h"] = (num*u(unit), num, unit)
             else:
-                d["h"] = (num * u(d["input_units"]), num, unit)
+                d["h"] = (num*u(d["input_units"]), num, unit)
             # Radius for square buckets (note 0 is allowed)
             if d["shape"] == "square":
-                rmax_m = min(d["D"][0], d["d"][0]) / 2
+                rmax_m = min(d["D"][0], d["d"][0])/2
                 while True:
                     try:
-                        num, unit = GetNumber(
-                            "What is the corner radius? ", low=0, use_unit=True
-                        )
-                        val_m = num * u(unit)
+                        num, unit = GetNumber("What is the corner radius? ", low=0, use_unit=True)
+                        val_m = num*u(unit)
                         if val_m > rmax_m:
                             raise RuntimeError()
                         break
@@ -453,9 +453,9 @@ if 1:  # Core functionality
                     except RuntimeError:
                         print("  The value must be <= min(D, d)/2")
                 if unit:
-                    d["r"] = (num * u(unit), num, unit)
+                    d["r"] = (num*u(unit), num, unit)
                 else:
-                    d["r"] = (num * u(d["input_units"]), num, unit)
+                    d["r"] = (num*u(d["input_units"]), num, unit)
         print()
         # Verify we have the needed input keys in d
         missing = CheckForNeededKeys(d)
@@ -534,7 +534,7 @@ if 1:  # Core functionality
             A1 = opts["A1"] = RoundArea(D)
         else:
             raise ValueError("Unknown shape")
-        opts["V"] = h * (A0 + A1 + sqrt(A0 * A1)) / 3
+        opts["V"] = h*(A0 + A1 + sqrt(A0*A1))/3
     def PrintHeader(d):
         if "title" in d:
             print(d["title"])
@@ -542,7 +542,7 @@ if 1:  # Core functionality
         s = asctime().replace("  ", " ")
         print("Bucket volume calibration (", s, ")", sep="")
         if d["datafile"] is not None:
-            print(" " * 3, "Datafile =", d["datafile"])
+            print(" "*3, "Datafile =", d["datafile"])
     def PrintReport(d):
         PrintHeader(d)
         PrintInputValues(d)
@@ -596,10 +596,10 @@ if 1:  # Core functionality
             mark_m = CalibrationMark(d)
             if percent:
                 # Express V as a percent of Vbase
-                V = vx_m3 / Vbase * 100
+                V = vx_m3/Vbase*100
             else:
-                V = vx_m3 * to(d["output_volume_units"])
-            L = mark_m * to(d["output_length_units"])
+                V = vx_m3*to(d["output_volume_units"])
+            L = mark_m*to(d["output_length_units"])
             d["v"] = str(V)
             d["l"] = str(L)
             if d["-r"] is not None:
@@ -624,13 +624,13 @@ if 1:  # Core functionality
         offset = opts["offset"][0]
         vx = opts["vx"]
         A0 = opts["A0"]
-        sigma = D / d - 1
+        sigma = D/d - 1
         assert sigma >= 0
         try:
-            x = ((1 + 3 * sigma * vx / (A0 * h)) ** (1 / 3) - 1) / sigma
+            x = ((1 + 3*sigma*vx/(A0*h))**(1/3) - 1)/sigma
         except ZeroDivisionError:
-            x = vx / (A0 * h)  # sigma is zero; use the limit
-        return (x * h + offset) * secant(sigma, D, h)
+            x = vx/(A0*h)  # sigma is zero; use the limit
+        return (x*h + offset)* secant(sigma, D, h)
     def InterpretUncertainty(line, exception):
         '''Return (a, b) where line is expected to be e.g. something like 'D = 270(1)'
         or 'D = 270 ± 1'.   a is the string 'D' and b will be "ufloat_fromstr('270(1)')"
@@ -761,7 +761,7 @@ if 1:  # Core functionality
             except Exception:
                 Error("'{}' in value for variable {} isn't a number".format(num, key))
             try:
-                val = val * u(unit)
+                val = val*u(unit)
             except ValueError:
                 Error(f"The unit '{unit}' for variable {key} isn't a proper unit")
             return (val, num, unit)

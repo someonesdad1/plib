@@ -1,0 +1,12 @@
+# Test datafile for the bucket.py script.
+shape = "round"
+title = "Simplot 30 lb bucket for strawberries"
+input_units = "mm"
+D = 270(2)
+d = 247.5 ± 1
+offset = 7 ± 1
+h = 285(1)
+digits = 4
+output_volume_units = "l"
+output_length_units = "mm"
+volume_steps = 1
