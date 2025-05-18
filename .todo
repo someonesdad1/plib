@@ -1,5 +1,14 @@
 Active:  /plib/.todo
 
+    - bucket.py
+        - Support measurements with uncertainty and in the results.  This will be an
+          important feature for most routine bucket calibrations, particularly because
+          of e.g. the elliptical cross sections of most plastic buckets.
+
+    - Circular imports between util.py, f.py, color.py
+        - I am sick of getting such things.  Move iDistribute & fDistribute out of
+          util.py into dpseq.py.  Figure out how to stop these silly import problems.
+
     - Text substitution
         - I currently have:  ts, tsub
         - Winnow the list if possible
@@ -8,6 +17,21 @@ Active:  /plib/.todo
             - ts:  'ts -m' doesn't work
         - Plan
             - Retire tsub.py, as it's not used in /plib or /plib/pgm
+
+    - color.py
+        - 'clr ornl' prints properties of ornl color.  It should also give a variety of
+          different lightnesses & saturations of this basic color, as this would be
+          helpful in choosing colors in scripts.
+        - /plib/rgb
+            - Fix up chromaticity directory's stuff
+        - TRM needs a way to ensure all attribute access returns "" when .on is False.
+            - https://realpython.com/python-getter-setter/
+            - Probably the easiest way is to use __getattr__ and __setattr__ in the above web
+              page's example of a point
+        - Add support to /plib/g/g.py
+        - Use "grep -l '\<fg\>' *.py" to identify all files in /plib tree that use the old style
+          color.py calls and update them to the modern form.
+        - Obsolete rgb.py and any other old color stuff
 
     - pgrep
         - Currently, this is pgm/rgrep.py with the -p option
@@ -122,10 +146,10 @@ Active:  /plib/.todo
         - It could be time to try to write a fairly extensive overview of
           troubleshooting, which is using various skills to figure out the cause of a
           problem.  
-        - Probably the single most significant idea I've found useful in a lifetime of
+        - Probably the single most significant meme I've found useful in a lifetime of
           troubleshooting is "there's a unique physical cause of this problem you're
           seeing".  
-            - This notion is very useful in the context of a group of humans with a
+            - This notion is useful in the context of a group of humans with a
               variety of experiences trying to quickly find/fix a problem.  Less
               technical or experienced people can generate wacky or multiple-cause
               suggestions and can cause a waste of precious resources, so core needs
@@ -155,7 +179,11 @@ Active:  /plib/.todo
               guiding decisions.
         - KT analysis is a good framework, but I believe at least its text is
           copyrighted -- but the ideas are valuable, particularly things like "looking
-          beyond the fix".
+          beyond the fix".  They are still a business aimed at doing training, so
+          they'll protect their IP.
+        - https://www.decision-making-confidence.com/ talks about decision-making, which
+          is at the heart of troubleshooting, as your goal is virtually always to pick
+          and implement a plan which will get you out of the trouble.
 
     - wrench.py
         - Have it put + by the wrenches that I have
@@ -267,21 +295,6 @@ Active:  /plib/.todo
     - pgm/goto.py
         - Add -o option that opens Explorer on a selection's directory.  Use case:  'g -o hp' would
           open Explorer on the HP catalog directory.
-
-    - color.py
-        - 'clr ornl' prints properties of ornl color.  It should also give a variety of
-          different lightnesses & saturations of this basic color, as this would be
-          helpful in choosing colors in scripts.
-        - /plib/rgb
-            - Fix up chromaticity directory's stuff
-        - TRM needs a way to ensure all attribute access returns "" when .on is False.
-            - https://realpython.com/python-getter-setter/
-            - Probably the easiest way is to use __getattr__ and __setattr__ in the above web
-              page's example of a point
-        - Add support to /plib/g/g.py
-        - Use "grep -l '\<fg\>' *.py" to identify all files in /plib tree that use the old style
-          color.py calls and update them to the modern form.
-        - Obsolete rgb.py and any other old color stuff
 
     - diet
         - Hacker's diet is sound, but too wordy.  I also don't care to use spreadsheets.  However,

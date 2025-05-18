@@ -10662,10 +10662,9 @@ color_data = [
     ( 9, "green"                                     , Color( 21, 176,  26), 'grn'),
     ( 9, "purple"                                    , Color(126,  30, 156), 'mag'),
 ]
-# Attribution dictionary:  the integer key is the color name
-# attribution in the above list, the value is the attribution
-# string.  These python scripts are in the 
-# /donrepo/plib/color/rgbdata_build directory.
+# Attribution dictionary:  the integer key is the color name attribution in the above
+# list, the value is the attribution string.  These python scripts are in the
+# /donrepo/plib/lib/color/rgbdata_build directory.
 attribution_dict = {
     1: '''file = /pylib/g/rgb.txt
 Constructed from an rgb.txt file I got from either an HPUX or Linux box

@@ -170,6 +170,7 @@ if 1:  # Header
         from wrap import dedent
         import get
         from dpprint import PP
+        import termtables as tt
         pp = PP()
         try:
             from f import flt
@@ -3090,6 +3091,40 @@ if __name__ == "__main__":
         if len(rgb) != 3:
             Error(f"'{x!s}' doesn't represent three numbers")
         PrintRGB(s, x, rgb)
+    def iDistribute(n, a, b):
+        '''Generator to return an integer sequence [a, ..., b] with n elements equally distributed
+        between a and b.  Raises ValueError if no solution is possible.  Example:
+            a, b = 1, 6
+            for n in range(2, 8):
+                s = list(iDistribute(n, a, b))
+                print(f"iDistribute({n}, {a}, {b}) = {s}")
+        produces
+            iDistribute(2, 1, 6) = [1, 6]
+            iDistribute(3, 1, 6) = [1, 4, 6]
+            iDistribute(4, 1, 6) = [1, 3, 4, 6]
+            iDistribute(5, 1, 6) = [1, 2, 4, 5, 6]
+            iDistribute(6, 1, 6) = [1, 2, 3, 4, 5, 6]
+        with a ValueError exception on the n == 7 term.  For the case n == 4, note how the adjective
+        "equally" needs to be interpreted "symmetrically" and for the case n == 5, even that's not
+        true.
+        
+        If you need a sequence of n floating point values, see util.fDistribute().
+        '''
+        if not (ii(a, int) and ii(b, int) and ii(n, int)):
+            raise TypeError("Arguments must be integers")
+        if a >= b:
+            raise ValueError("Must have a < b")
+        if n < 2:
+            raise ValueError("n must be >= 2")
+        if n == 2:
+            yield a
+            yield b
+            return
+        dx = Fraction(b - a, n - 1)
+        if dx < 1:
+            raise ValueError("No solution")
+        for i in range(n):
+            yield int(round(a + i * dx, 0))
     def ShowRepresentations(c):
         "Show the Color instance c in various representations"
         q = "({:3d}, {:3d}, {:3d})"
@@ -3114,9 +3149,29 @@ if __name__ == "__main__":
         P(c.irgb, "RGB")
         P(c.ihsv, "HSV")
         P(c.ihls, "HLS")
+        # Show some variations of this color in different lightness and saturation to
+        # help with color selection.  Use the #ffffff form for the color specifier.
+        # There currently are only 4 lines printed, so another 10 or 20 would be fine.
+        # Column width is typically 88 and 8 chars are needed per spec, so 8 columns
+        # would be fine.  Thus, choose 8 lightness and saturation values.
+        H, S, V = c.ihsv
+        r = (32, 64, 96, 128, 160, 192, 224, 255)
+        Q = ' '.join(str(i) for i in r)
+        R = ' '.join(f"{i:02X}" for i in r)
+        print(f"  Same hue 0x{H:02X}:  value across, saturation down")
+        print(f"  Numbers are {Q} ({R})")
+        data = []
+        for s in r:
+            row = []
+            for v in r:
+                u = f"@{H:02x}{s:02x}{v:02x} "
+                x = Color.Construct(Color, u)
+                row.append(f"{t(x)}{u}{t.n}")
+            data.append(row)
+        tt.print(data, style=" "*15)
     def ShowShortNames():
         lines = get.GetLines("/plib/colornames0", nonl=True, script=True)
-        i, f = " " * 4, lambda x: " " * x
+        i, f = " "*4, lambda x: " "*x
         hdr = f"Name{f(10)}RGB{f(12)}XRGB{f(7)}XHSV{f(7)}XHLS{f(4)}8-BIT"
         t.hdr = t("whtl", "royd", "")
         t.print(f"{t.hdr}{hdr}")
@@ -3130,9 +3185,7 @@ if __name__ == "__main__":
             s = str(c).replace("C⁸", "")
             n = RGBtoANSI8bit(*c.irgb)
             ctrans = Translate8bit(n)
-            t.print(
-                f"{t(c)}{name}{i}{s}{i}{c.xrgb}{i}{c.xhsv}{i}{c.xhls}{i}{t(ctrans)}{n}"
-            )
+            t.print(f"{t(c)}{name}{i}{s}{i}{c.xrgb}{i}{c.xhsv}{i}{c.xhls}{i}{t(ctrans)}{n}")
         t.print(f"{t.hdr}{hdr}")
         print("Note:  if you look closely, you may be able to see small differences")
         print("between the last column's integer color and the remainder of the line.")
@@ -3250,33 +3303,9 @@ if __name__ == "__main__":
         print(f"{count} wavelengths printed")
         # Color names to approximate wavelength
         print()
-        names = '''blk   blkl  blkd  blkb
-                   brn   brnl  brnd  brnb
-                   red   redl  redd  redb
-                   orn   ornl  ornd  ornb
-                   yel   yell  yeld  yelb
-                   grn   grnl  grnd  grnb
-                   blu   blul  blud  blub
-                   vio   viol  viod  viob
-                   gry   gryl  gryd  gryb
-                   wht   whtl  whtd  whtb
-                   cyn   cynl  cynd  cynb
-                   mag   magl  magd  magb
-                   pnk   pnkl  pnkd  pnkb
-                   lip   lipl  lipd  lipb
-                   lav   lavl  lavd  lavb
-                   lil   lill  lild  lilb
-                   pur   purl  purd  purb
-                   roy   royl  royd  royb
-                   den   denl  dend  denb
-                   sky   skyl  skyd  skyb
-                   trq   trql  trqd  trqb
-                   sea   seal  sead  seab
-                   lwn   lwnl  lwnd  lwnb
-                   olv   olvl  olvd  olvb'''.split()
         o = []
-        for name in names:
-            c = Color(name)
+        for name in colordict:
+            c = colordict[name]
             wavelength_nm = wl2rgb.rgb2wl(c)
             o.append((name, wavelength_nm))
         # Print table by sorted names
@@ -3302,6 +3331,18 @@ if __name__ == "__main__":
         for i in Columnize(o1):
             print(i)
         print("Note that saturation plays a large part in how the color appears")
+    def GetNames():
+        '''Return a dict of my short color names sorted by name.  An example entry is 
+            'sky': Color('$90c3ff', bpc=8).
+        '''
+        lines, di = get.GetLines("/plib/colornames0", nonl=True, script=True), {}
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            name, clr = line.split(":")
+            di[eval(name)] = eval(clr)
+        return di
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
@@ -3347,25 +3388,28 @@ if __name__ == "__main__":
         exit(status)
     d = {}  # Options dictionary
     cmds = ParseCommandLine(d)
-    first_char = cmds[0][0]
-    if first_char == "d":  # Show examples
-        Examples()
-    elif first_char == "a":  # Show attributes
-        ShowAttributes()
-    elif first_char == "s":  # Default for no arguments
-        ShortNames()
-        print()
-        ShowAttributes()
-        print(
-            "\nUse d for examples, 't[4|8|24]' for color table, l for short name properties,"
-        )
-        print("otherwise interpret the color specifier")
-    elif first_char == "t":  # Show 4, 8, or 24 bit color table
-        ColorTable(int(cmds[0][1:]))
-    elif first_char == "l":  # Show #/@/$ and RGB numbers for short names
-        ShowShortNames()
-    elif first_char == "w":  # Show wavelengths and RGB color specifier
-        Wavelengths()
-    else:  # Interpret color strings on command line
+    colordict = GetNames()
+    if cmds[0] in colordict:
+        # Interpret color strings on command line
         for i in cmds:
             InterpretColorSpecifier(i)
+    else:
+        first_char = cmds[0][0]
+        if first_char == "d":  # Show examples
+            Examples()
+        elif first_char == "a":  # Show attributes
+            ShowAttributes()
+        elif first_char == "s":  # Default for no arguments
+            ShortNames()
+            print()
+            ShowAttributes()
+            print(
+                "\nUse d for examples, 't[4|8|24]' for color table, l for short name properties,"
+            )
+            print("otherwise interpret the color specifier")
+        elif first_char == "t":  # Show 4, 8, or 24 bit color table
+            ColorTable(int(cmds[0][1:]))
+        elif first_char == "l":  # Show #/@/$ and RGB numbers for short names
+            ShowShortNames()
+        elif first_char == "w":  # Show wavelengths and RGB color specifier
+            Wavelengths()

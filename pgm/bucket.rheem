@@ -10,10 +10,3 @@ digits = 4
 output_volume_units = "l"
 output_length_units = "mm"
 volume_steps = 5
-
-print('''Rheem 5 gallon bucket test case
-  Expected values:
-     5 L : 100.9 mm
-    10 L : 186.1 mm
-    15 L : 268.1 mm
-''')
