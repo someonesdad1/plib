@@ -137,6 +137,7 @@ songs = '''
     Hotel California ; Eagles ; BciS5krYL80 ; 
     House Of The Rising Sun ; Animals ; MJkr0DWbhTk ; 
     How Blue Can You Get? ; B.B. King ; LWLAAzOBoBI ; A masterpiece
+    Hymn to Red October; Basil Poledouris ; 5IyngX5mojc ;
     I Am A Man Of Constant Sorrow ; Movie song ; OdYGnAFaeHU ; 
     I Left My Heart in San Francisco ; Tony Bennett ; SC73kdOL5hk ; 
     I love the flower girl ; Cowsills ; dZMc0-ZAUeY ; 

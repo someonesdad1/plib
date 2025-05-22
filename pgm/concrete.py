@@ -1,4 +1,11 @@
 '''
+
+ToDo
+    - Write the basic interactive input and use this if there's no command line
+      arguments.  For command line arguments, consider each an input file and print a
+      report for that file.
+    - Add a -c option to generate a sample data file
+
 Script to help with mixing concrete
     See concrete.pdf for details.  Run the script; you'll be prompted
     for the requisite input.
