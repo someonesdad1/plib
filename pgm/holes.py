@@ -182,7 +182,7 @@ if 1:  # Utility
             Usage(d)
         x = flt(0)
         x.N = d["-d"]
-        x.rtz = x.rtdp = False
+        x.rtz = x.rtdp = True
         return args
     def sig(x):
         'Replaces old sig functionality by using str of flt'
@@ -225,7 +225,7 @@ if 1:  # Core functionality
         for i in rm:
             del vars[i]
         __d["vars"] = vars
-        __d["diameters"] = [flt(i) for i in __diameters]
+        __d["diameters"] = __diameters = [flt(i) for i in __diameters]
         return __diameters
     def Fmt(x, d):
         '''Return string representation of the number x.  If it's an
@@ -333,13 +333,11 @@ if 1:  # Core functionality
         circle(2*R)
         x, y = -w/2, h/2 - margin
         move(x/S, y/S)
-        TextLines(
-            (
-                "Main circle dia = " + sig(2*R),
-                "Chords in red",
-                "Gap angle = " + sig(d["gap"]*r2d) + "°",
-            )
-        )
+        TextLines((
+            "Main circle dia = " + sig(2*R),
+            "Chords in red",
+            "Gap angle = " + sig(d["gap"]*r2d) + "°",
+            ))
         # Plot small circles
         for i in range(len(results)):
             dia, x, y, theta, chord, thetai = results[i]
@@ -375,6 +373,17 @@ if 1:  # Core functionality
         '''Solve the problem of the diameters along a straight line.  Given 
         r = [r_0, r_1, ..., r_(n-1)] and L, then the abscissa of the point i
         for i > 0 is x_i = x_(i-1) + r_(i-1) + L + r_i and x_0 = 0.
+
+        Example:  diameters are 10, 20, 30 and L = 15.  See "Linear layout" section in
+        holes.odt file.  We'll define the left edge of the drawing in the document to be
+        the x-axis origin.  Then the abscissas of the hole centers will be
+
+            d1:     x1 = L + d1/2 = 15 + 5 = 20
+            d2:     x2 = x1 + d1/2 + L + d2/2 = 20 + 5 + 15 + 10 = 50
+            d3:     x3 = x2 + d2/2 + L + d3/2 = 50 + 10 + 15 + 15 = 90
+
+        The right-hand border of the rectangle is x3 + d3/2 + L = 90 +15 + 15 = 120.
+        This is what the reported length of the required chunk of material should be.
         '''
         L = d["vars"]["D"]
         x = flt(0)

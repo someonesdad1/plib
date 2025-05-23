@@ -19,18 +19,19 @@
 #  Sockets are 1.82 inches long
 
 # Design:  add 0.01 inches to diameter to get desired hole size
-0.76
-0.76
-0.76
-0.76
-0.76
-0.781
-0.825
-0.871
-0.933
-0.949
-0.985
-1.018
-1.100
-1.105
-1.192
+eps = 0.01
+0.76 + eps
+0.76 + eps
+0.76 + eps
+0.76 + eps
+0.76 + eps
+0.781 + eps
+0.825 + eps
+0.871 + eps
+0.933 + eps
+0.949 + eps
+0.985 + eps
+1.018 + eps
+1.100 + eps
+1.105 + eps
+1.192 + eps

@@ -465,19 +465,17 @@ if 1:  # Data
             24:3:?    16-pin DIP header (socket) for 8 resistor-type components   socket
             24:4:?    Super capacitors   capacitor
             24:5:?    Mercury switch, 2 A rating   switch
-            24:6:?    5 A panel mount circuit breaker, 125 VAC   breaker
-            24:7:?    15 A panel mount circuit breaker, 50 VDC, 120/240 VAC   breaker
-            24:8:?    15 A panel mount circuit breaker, 50 VDC, 120/240 VAC   breaker
-            24:9:?    10 A panel mount circuit breaker, 50 VDC, 120/240 VAC   breaker
-            24:10:?    15 A panel mount circuit breaker, 50 VDC, 120/240 VAC   breaker
-            24:11:?    15 A panel mount circuit breaker, 50 VDC, 120/240 VAC   breaker
-            24:12:?    15 A panel mount circuit breaker, 50 VDC, 120/240 VAC   breaker
+            24:6:?    
+            24:7:?    
+            24:8:?    9812 regulators TO220   IC
+            24:9:?    MPJA stereo amp 3 W/channel 33087   amplifier
+            24:10:?    
+            24:11:?    
+            24:12:?    
             24:13:?    Fahnestock clips   terminal
-            24:14:?    FDP8030L logic level MOSFET transistor, 80 A 30 V 4.5 mΩ TO220   transistor
-            24:15:?    MPJA mini 3 W per channel stereo amplifier   amplifier
+            24:14:?    
             24:15:?    LTC1968 RMS-to-DC converter 500 kHz   IC
-            24:16:?    50 A 1 kV PIV full wave bridge diode rectifier   diode
-            24:16:?    Rubber feet   diode
+            24:16:?    Rubber feet   hardware
             24:17:?    DPDT toggle switch   switch
             24:18:?    DPDT toggle switch   switch
             24:19:?    1/8" phone plug adapters   adapter
