@@ -1,7 +1,6 @@
-"""
+'''
 Count the number of lines
-"""
-
+'''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2005 Don Peterson #∞copyright∞#
@@ -22,11 +21,10 @@ if 1:  # Imports
 if 1:  # Custom imports
     from wrap import dedent
     import color as c
-
-
+    from color import t
 def Usage(status=1):
     print(
-        dedent(f"""
+        dedent(f'''
     Usage:  {sys.argv[0]} [file1 [file2...]]
       Prints the line counts for the indicated files.  stdin is read if there
       are no files given.  The total number of lines is sent to stderr.
@@ -37,11 +35,9 @@ def Usage(status=1):
         -n  Sort by file name
         -z  Sort by file size, smallest to largest
         -Z  Sort by file size, largest to smallest
-    """)
+    ''')
     )
     exit(status)
-
-
 def ParseCommandLine(d):
     d["-c"] = False
     d["-n"] = False
@@ -61,8 +57,6 @@ def ParseCommandLine(d):
     if not case1 and not files:
         Usage()
     return files
-
-
 def CountLines(stream, filename):
     try:
         lines = stream.readlines()
@@ -73,21 +67,17 @@ def CountLines(stream, filename):
         # of newline characters
         bytes = open(filename, "rb").read()
         return (bytes.count(0x0A), filename)
-
-
 def PrintReport(results):
-    """results is [(linecount, filename), ...].  The output order will
+    '''results is [(linecount, filename), ...].  The output order will
     be as the files were given on the command line.
-    """
+    '''
     if d["-z"]:
         results = list(sorted(results))
     elif d["-Z"]:
         results = list(reversed(sorted(results)))
     elif d["-n"]:
-
         def f(x):
             return x[1]
-
         results = list(sorted(results, key=f))
     # Get largest number in results array
     counts = [i[0] for i in results]
@@ -100,26 +90,25 @@ def PrintReport(results):
         already_colored = False
         if linecount == maxsize:
             if d["-c"]:
-                c.fg(c.lred)
+                c = t.redl
                 already_colored = True
         elif linecount == minsize:
             if d["-c"]:
-                c.fg(c.lgreen)
+                c = t.grnl
                 already_colored = True
         if not already_colored and filename == d["stdin"]:
             if d["-c"]:
-                c.fg(c.lcyan)
-        print(f"{linecount:{w}d}  {filename}")
+                c = t.cynl
         if d["-c"]:
-            c.normal()
+            t.print(f"{c}{linecount:{w}d}  {filename}")
+        else:
+            print(f"{linecount:{w}d}  {filename}")
     # Print total
     if d["-c"]:
-        c.fg(c.yellow)
-    print(f"{total:{w}d}  Total")
-    if d["-c"]:
-        c.normal()
-
-
+        c = t.yell
+        t.print(f"{c}{total:{w}d}  Total")
+    else:
+        print(f"{total:{w}d}  Total")
 if __name__ == "__main__":
     # NOTE:  there are two behaviors:  1) read from stdin if there are no
     # arguments or 2) you must use '-' as a file to read from stdin.  Set
@@ -147,4 +136,3 @@ if __name__ == "__main__":
             if result is not None:
                 results.append(result)
     PrintReport(results)
-    c.normal()
