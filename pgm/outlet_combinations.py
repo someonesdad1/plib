@@ -3,7 +3,9 @@
 _pgminfo = '''
 <oo 
     Prints out combinatorial properties of 3-wire electrical systems such as that used in
-    the usual 120 V appliances in US homes.
+    the usual 120 V appliances in US homes.  The intent is to show all possible
+    connections and outlet tester results for a typical NEMA5-15 outlet used in US
+    homes.
 oo>
 <oo cr Copyright © 2025 Don Peterson oo>
 <oo cat elec oo>
@@ -13,9 +15,19 @@ oo>
     - The "standard" problem is 3 wires with four possible connections:  hot, neutral,
       ground, and no connection.  The assumption is the electrical supply is properly
       wired.
-    - The rare problem is the above with five possible connections:  hot1, hot2,
-      neutral, ground, and no connection.  Dennis D. told me that this has happened in
-      some RV parks and is of course very damaging to an RV.
+
+    - A rare problem is the above with five possible connections:  hot1, hot2, neutral,
+      ground, and no connection.  hot1 and hot2 are the two 240 V legs from the
+      center-tapped transformer that steps down the e.g. 7.2 kV power line voltage.
+      Dennis D. told me that this has happened in some RV parks and is of course very
+      damaging to the AC appliances in an RV.  I haven't bothered (yet) with programming
+      this case because it's rare and I am planning on protecting my RV against such an
+      event by 1) installing a transfer switch that disconnects the trailer's AC
+      electronics from the shore power inlet and 2) using a built-in AC voltmeter and
+      switches to allow the measurement of the AC voltage on each of the three pairs of
+      wires coming into the trailer.  The transfer switch is changed to SHORE POWER if
+      and only if the measurements indicate safe voltage levels and proper wiring
+      polarity.
 
 oo>
 '''
