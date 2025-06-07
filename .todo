@@ -1,11 +1,25 @@
 Active:  /plib/.todo
 
+    - pgm/fet_current.py
+        - Script to model the current you can realistically get from a MOSFET
+        - Read 'ds FET_current_rating' to construct the script
+            - Need Rds_on and thermal resistances of package
+            - Useful tidbit is a TO220AB package at 75 A will melt the metal in the leg,
+              so your working current will be significantly less than this
+            - The script should present both free-air steady-state current limit and the
+              current limit with different heat sinks.
+                - You can get a water-cooled aluminum heat sink for $15 or so (search
+                  "liquid cooled heatsink" on Amazon)
+        - Water-cooled heat sink
+
     - pgm/concrete.py
         - Broken; needs to update to color.py
 
     - Circular imports between util.py, f.py, color.py
         - I am sick of getting such things.  Move iDistribute & fDistribute out of
           util.py into dpseq.py.  Figure out how to stop these silly import problems.
+        - See https://rollbar.com/blog/how-to-fix-circular-import-in-python/#, as it
+          looks like a decent discussion
 
     - Text substitution
         - I currently have:  ts, tsub

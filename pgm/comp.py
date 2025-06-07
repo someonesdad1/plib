@@ -465,7 +465,7 @@ if 1:  # Data
             24:3:?    16-pin DIP header (socket) for 8 resistor-type components   socket
             24:4:?    Super capacitors   capacitor
             24:5:?    Mercury switch, 2 A rating   switch
-            24:6:?    
+            24:6:10   LED, white, 10 mm   [opto/LED]
             24:7:?    
             24:8:?    9812 regulators TO220   IC
             24:9:?    MPJA stereo amp 3 W/channel 33087   amplifier
@@ -589,15 +589,16 @@ if 1:  # Data
         ''')
 if 1:  # Header
     if 1:  # Imports
-        import sys
-        import os
-        import getopt
-        import csv
-        import re
         from collections import defaultdict
-        from pdb import set_trace as xx
         from functools import cmp_to_key
+        from pdb import set_trace as xx
         from pprint import pprint as pp
+        import csv
+        import getopt
+        import os
+        import re
+        import subprocess
+        import sys
     if 1:  # Custom imports
         from columnize import Columnize
         from color import TRM as t
@@ -668,7 +669,6 @@ if 1:  # Utility
         t.quantity = t("viol") if on else ""
         t.keyword = t("gry") if on else ""
         t.warn = t("ornl") if on else ""  # Color for a missing category warning
-
     def Usage(status=0):
         print(
             dedent(f'''
@@ -678,6 +678,8 @@ if 1:  # Utility
                 that matches this with the '-' removed will not appear in the output.  The numbers
                 separated by ':' are:  box, compartment, quantity.  Quantity is not shown unless
                 it is known (i.e., not '?' in the data).
+                
+                The special regex 'e' will cause the source file to be edited.
             Example
                 python '{sys.argv[0]}' diode -zener
                     shows diodes that don't contain 'zener'.
@@ -698,7 +700,6 @@ if 1:  # Utility
         ''')
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = False  # Dump all records
         d["-b"] = None  # Specifies box number to list
@@ -732,8 +733,13 @@ if 1:  # Utility
                 print(todo)
                 exit(0)
         SetColors(False) if d["-C"] else SetColors()
+        if len(args) == 1 and args[0] == "e":
+            EditFile()
         return args
 if 1:  # Core functionality
+    def EditFile():
+        subprocess.call(["vi", "/plib/pgm/comp.py"])
+        exit(0)
     def GetData():
         "Return a list of Entry items"
         items = []
@@ -773,7 +779,6 @@ if 1:  # Core functionality
             print(f"{t.ornl}items is empty")
             exit()
         return items
-
     def TextSearch(args, items):
         '''found will hold the Entry items that matched; pos holds the start and
         end position of the first match and is keyed by the line.
@@ -863,7 +868,6 @@ if 1:  # Core functionality
                 print(f" {t.keyword}[{k}]{t.n}") if k else print()
             if found:
                 PrintColorCoding()
-
     def PrintColorCoding(qty=True):
         if not d["-v"]:
             return
@@ -884,14 +888,12 @@ if 1:  # Core functionality
                     m   Too many to count
             ''')
             )
-
     def Keywords(items):
         "Returns a set of the keywords"
         kw = []
         for item in items:
             kw.extend(item.keywords)
         return set(kw)
-
     def Inspection():
         '''Look for problems in the data:
         - No keyword
