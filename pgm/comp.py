@@ -466,7 +466,7 @@ if 1:  # Data
             24:4:?    Super capacitors   capacitor
             24:5:?    Mercury switch, 2 A rating   switch
             24:6:10   LED, white, 10 mm   [opto/LED]
-            24:7:?    
+            24:7:M    Black and yellow wire nuts
             24:8:?    9812 regulators TO220   IC
             24:9:?    MPJA stereo amp 3 W/channel 33087   amplifier
             24:10:?    

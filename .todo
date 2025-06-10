@@ -15,11 +15,14 @@ Active:  /plib/.todo
     - pgm/concrete.py
         - Broken; needs to update to color.py
 
+    - Move iDistribute & fDistribute out of util.py into dpseq.py
+
     - Circular imports between util.py, f.py, color.py
-        - I am sick of getting such things.  Move iDistribute & fDistribute out of
-          util.py into dpseq.py.  Figure out how to stop these silly import problems.
         - See https://rollbar.com/blog/how-to-fix-circular-import-in-python/#, as it
           looks like a decent discussion
+        - The problem is caused by module1 being partially initialized that tries to
+          import something from module2; in turn, module2 is partially initialized while
+          using something from module1
 
     - Text substitution
         - I currently have:  ts, tsub

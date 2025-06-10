@@ -33,7 +33,6 @@ favorites = '''
     Ievan Polkka ; Loituma ; 4om1rQKPijI ; 2008
     I'll Never Find Another You ; Seekers ; KmactMIhrRM ; How I feel about Glenda
     Korobushka ; ; Pr3ZgN8onRA ; (vocal)
-    Korobushka ; Bond ; E5NByiEIbD8 ; (strings)
     Midnight In Moscow ; Kenny Ball ; o744d4mwOgQ ; 
     Papillon (waltz arrangement) ; ; FKrmozFh5ww ; 
     Potato Head Blues ; Louis Armstrong ; EfGZB78R7uw ; Famous trumpet solo
@@ -120,8 +119,8 @@ songs = '''
     Ghost Riders In the Sky ; Frankie Laine ; ZwAPa0qHmLo ; 
     Ghost Riders In the Sky ; Highwaymen ; nOWjX4BpC24 ; 
     Ghost Riders In the Sky ; Marty Robbins ; fD5kS3G1Jkk ; 
-    Ghost Riders In the Sky ; Roy Clark & Glen Campbell ; v_kbgjsuCec ; 
     Ghost Riders In the Sky ; Roy Clark & Buck Trent ; gt3O_jMkmGE ; 
+    Ghost Riders In the Sky ; Roy Clark & Glen Campbell ; v_kbgjsuCec ; 
     Girl drummer ; ; L-So4DLDvGc ; 
     Gypsy ; Fleetwood Mac ; mwgg1Pu6cNg ; 
     Gypsy Waltz ; Sally ; eDGE6ah-e4Y ; 
@@ -159,7 +158,14 @@ songs = '''
     Judy Blue Eyes (2012) ; Crosby, Stills, and Nash ; XWvw_uZPGDA ; 
     Kisses Sweeter Than Wine ; Marty Robbins ; iulmZAz8XfY ; 
     Kodachrome ; Paul Simon ; 8rlDTK6QI-w ; 
-    Korobushka ; Bond ; vvC2vjtmUX8 ; 
+    Korobushka ; Bond ; E5NByiEIbD8 ; (strings)
+    Korobushka ; Funkhausorchester ; Y1TUS-yz5Yw ; 
+    Korobushka ; Instrumental ; pH1IgBMPkuE ; 
+    Korobushka ; Orchestral ; 1QOamVFM-sY ; 
+    Korobushka ; Traditional ; i9A2K2Bf-aQ ; 
+    Korobushka ; Trio ; hXFZsXRWP0w ; 
+    Korobushka ; Um, energetic ; SUO0-YvZmVI ; 
+    Korobushka ; Violin & Guitar ; TnDIRr9C83w ; 
     Land Down Under ; Men at Work ; 8jHXu86O01w ; 
     Les Bicyclettes De Belsize ; Englebert Humperdinck ; Qe_1B1P9Bw4 ; 
     Light My Fire ; Doors ; LY1l8T2Lcl0 ; 
@@ -243,6 +249,7 @@ songs = '''
     The Boxer ; Simon & Garfunkel ; C1VUWDcp5Sg ; 
     The Crystal Ship ; Doors ; bU1sLx1tjPY ; 
     The Gambler ; Kenny Rogers ; 7hx4gdlfamo ; 
+    The Good, the Bad and the Ugly ; The Ukelele Orchestra of Great Britain ; pLgJ7pk0X-s ;
     The Little Nash Rambler ; Playmates ; enqNl7tdLR4 ; 
     The Night They Drove Old Dixie Down ; Joan Baez ; wanJQC5KAfo ; 
     The Thrill is Gone ; B.B. King ; Nu4tjTyqbho ; 
@@ -260,7 +267,6 @@ songs = '''
     Total Eclipse of the Heart ; Bonnie Tyler ; lcOxhH8N3Bo ; 
     Tuxedo Junction ; Mary MacGregor ; iBTYcqtaOjg ; 
     Two Faces Have I ; Lou Christie ; w05w1XbZTG8 ; 
-    The Good, the Bad and the Ugly ; The Ukelele Orchestra of Great Britain ; pLgJ7pk0X-s ;
     Unchained Melody ; Righteous Brothers ; m0EBs6uRgtw ; 
     Unforgettable ; Nat King Cole ; Fy_JRGjc1To ; 
     Unknown song ; Sally ; ob44BR1Hurg ; 
