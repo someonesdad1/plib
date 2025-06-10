@@ -234,8 +234,7 @@ if 1:  # Core functionality
                     o.append([curr, Vd, Vr, fp(R), pct, fp(Ro), pcto])
         PrintResults(color, operating_voltage_V, resistor_power_rating_W, o)
     def Details():
-        if 0:
-            print(dedent(f'''
+        print(dedent(f'''
         Units:  mA for current, V for volts, Ω for resistance.  All non-DC values are RMS.
         
         The script's objective is to give you a range of operating currents for the LED that let you
@@ -323,9 +322,9 @@ if 1:  # Core functionality
         Voltage for an RGB LED, sample of one 24 Jun 2023
             mA    Red      Green      Blue
             0.5   1.75       2.30      2.50
-            1    1.78       2.37      2.54
+            1     1.78       2.37      2.54
             2.5   1.84       2.50      2.60
-            5    1.88       2.68      2.68
+            5     1.88       2.68      2.68
             7.5   1.93       2.80      2.74
             10    1.96       2.91      2.81
             20    2.06       3.22      3.00
@@ -340,30 +339,6 @@ if 1:  # Core functionality
             blu     5-10 μA     5-10 μA
             wht     5-10 μA     5-10 μA
             Recommendation:  {t.l5}5 mm{t.n}:  grn, blue   {t.l3}3 mm{t.n}:  blu
-            
-        {t.l3}3 mm LEDs measured voltage drops as function of current:{t.n}
-            mA     Yellow   Green     Red      Blue    White
-            0.5     1.85     1.87     1.81     2.62     2.60
-            1      1.90     1.91     1.84     2.67     2.64
-            2      1.94     1.94     1.87     2.74     2.70
-            5      1.99     1.98     1.93     2.86     2.80
-            10      2.03     2.02     1.97     3.00     2.90
-            15      2.06     2.04     2.01     3.10     2.98
-            20      2.07     2.06     2.03     3.16     3.05
-            25      2.09     2.07     2.05     3.21     3.11
-            30      2.10     2.08     2.07     3.25     3.17
-            
-        {t.l5}5 mm LEDs measured voltage drops as function of current:{t.n}
-            mA     Yellow   Green     Red      Blue    White
-            0.5     1.85     2.28     1.76     2.61     2.61
-            1      1.88     2.33     1.79     2.65     2.65
-            2      1.92     2.40     1.83     2.71     2.70
-            5      1.98     2.54     1.90     2.82     2.82
-            10      2.05     2.68     1.98     2.95     2.96
-            15      2.09     2.78     2.03     3.05     3.07
-            20      2.12     2.86     2.07     3.13     3.14
-            25      2.15     2.92     2.10     3.19     3.21
-            30      2.16     2.98     2.13     3.25     3.26
             
         '''))
         if 1:
