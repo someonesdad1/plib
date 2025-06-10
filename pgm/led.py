@@ -366,39 +366,46 @@ if 1:  # Core functionality
             30      2.16     2.98     2.13     3.25     3.26
             
         '''))
-        # Produce tables of 3 mm and 5 mm LED voltage drop & resistance
-        pad = " "*2
-        w1, w2 = 3, 9  # Column widths to get color names centered
-        col = "yel grn red blu wht".split()
-        c = [t.yel, t.grn, t.redl, t.roy, t.whtl]
-        o = [[f"{pad}{'mA':^{w1}s}",
-              f"{pad}{c[0]}{'YEL':^{w2}s}{pad}",
-              f"{pad}{c[1]}{'GRN':^{w2}s}{pad}",
-              f"{pad}{c[2]}{'RED':^{w2}s}{pad}",
-              f"{pad}{c[3]}{'BLU':^{w2}s}{pad}",
-              f"{pad}{c[4]}{'WHT':^{w2}s}{t.n}{pad}"]]
-        x = flt(0)
-        rtz = x.rtz
-        for j, i in enumerate(g.i_mA):
-            with x:
-                x.rtz = True
-                row = [f"{pad}{i!s:^{w1}s}"]
-                x.rtz = False
-                x.N = 3
-                for k in range(5):
-                    V = g.LED5[col[k]][j]
-                    R = V/(i/1000)
-                    x.N = 2
-                    s = f"{R.engsi}Ω"
-                    s = f"{R}"
-                    row.append(f"{pad}{c[k]}{V} [{s}]{t.n}{pad}")
-            o.append(row)
-        x.rtz = rtz
-        if 0:
-            for i, r in enumerate(o):
-                print(i, len(r), r)
-            exit()
-        tt.print(o, padding=(0, 0), style=" "*15, alignment="clllll")
+        if 1:
+            # Produce tables of 3 mm and 5 mm LED voltage drop & resistance
+            def Table(data, title):
+                print(f"\n{t(attr='ul')}{title}{t.n}")
+                pad = " "*2
+                w1, w2 = 3, 9  # Column widths to get color names centered
+                col = "yel grn red blu wht".split()
+                c = [t.yel, t.grn, t.redl, t.roy, t.whtl]
+                o = [[f"{pad}{'mA':^{w1}s}",
+                    f"{pad}{c[0]}{'YEL':^{w2}s}{pad}",
+                    f"{pad}{c[1]}{'GRN':^{w2}s}{pad}",
+                    f"{pad}{c[2]}{'RED':^{w2}s}{pad}",
+                    f"{pad}{c[3]}{'BLU':^{w2}s}{pad}",
+                    f"{pad}{c[4]}{'WHT':^{w2}s}{t.n}{pad}"]]
+                x = flt(0)
+                rtz = x.rtz
+                for j, i in enumerate(g.i_mA):
+                    with x:
+                        x.rtz = True
+                        row = [f"{pad}{i!s:^{w1}s}"]
+                        x.rtz = False
+                        x.N = 3
+                        for k in range(5):
+                            V = data[col[k]][j]
+                            R = V/(i/1000)
+                            x.N = 2
+                            s = f"{R.engsi}Ω"
+                            s = f"{R}"
+                            x.N = 3
+                            row.append(f"{pad}{c[k]}{V} [{s}]{t.n}{pad}")
+                    o.append(row)
+                x.rtz = rtz
+                if 0:
+                    for i, r in enumerate(o):
+                        print(i, len(r), r)
+                    exit()
+                tt.print(o, padding=(0, 0), style=" "*15, alignment="clllll")
+            title = " mm  LEDs measured voltage drops and [resistance in Ω] as function of current"
+            Table(g.LED3, "3" + title)
+            Table(g.LED5, "5" + title)
 
         exit(0)
 
