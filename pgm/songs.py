@@ -32,7 +32,7 @@ favorites = '''
     Hit the Road Jack ; Becca Krueger ; OfUDsHtSv88 ; (skip first 20 seconds)
     Ievan Polkka ; Loituma ; 4om1rQKPijI ; 2008
     I'll Never Find Another You ; Seekers ; KmactMIhrRM ; How I feel about Glenda
-    Korobushka ; ; Pr3ZgN8onRA ; (vocal)
+    Korobushka ; Smirnov ; Pr3ZgN8onRA ; (vocal)
     Midnight In Moscow ; Kenny Ball ; o744d4mwOgQ ; 
     Papillon (waltz arrangement) ; ; FKrmozFh5ww ; 
     Potato Head Blues ; Louis Armstrong ; EfGZB78R7uw ; Famous trumpet solo
@@ -145,6 +145,7 @@ songs = '''
     I'm Just a Singer in a Rock and Roll Band ; Moody Blues ; s5tb25TqXYU ; Concert
     I'm Still Standing ; Elton John ; Ye9hGotPPVk ; 
     Ievan Polkka ; Loituma ; Zcg66Qcwjw8 ; 2021
+    Ievan Polkka ; Small accordion ; Hfec4WCCTPE ;
     In Hell I'll be in Good Company ; Dead South ; B9FzVhw8_bY ; 
     In The Year 2525 ; Zager &  Evans ; yesyhQkYrQM ; 
     Indian Lake ; Cowsills ; 3Xup3HSZLIQ ; Bubble rock
@@ -158,14 +159,17 @@ songs = '''
     Judy Blue Eyes (2012) ; Crosby, Stills, and Nash ; XWvw_uZPGDA ; 
     Kisses Sweeter Than Wine ; Marty Robbins ; iulmZAz8XfY ; 
     Kodachrome ; Paul Simon ; 8rlDTK6QI-w ; 
+    Korobushka ; Accordion ; c9sN0HIUj7k ; Catchy
     Korobushka ; Bond ; E5NByiEIbD8 ; (strings)
     Korobushka ; Funkhausorchester ; Y1TUS-yz5Yw ; 
     Korobushka ; Instrumental ; pH1IgBMPkuE ; 
     Korobushka ; Orchestral ; 1QOamVFM-sY ; 
+    Korobushka ; Small accordion ; Q0vQB97DAaA ; Excellent
+    Korobushka ; Smirnov ; Pr3ZgN8onRA ; Vocal
     Korobushka ; Traditional ; i9A2K2Bf-aQ ; 
     Korobushka ; Trio ; hXFZsXRWP0w ; 
     Korobushka ; Um, energetic ; SUO0-YvZmVI ; 
-    Korobushka ; Violin & Guitar ; TnDIRr9C83w ; 
+    Korobushka ; Violin & Guitar ; TnDIRr9C83w ; Great violinist
     Land Down Under ; Men at Work ; 8jHXu86O01w ; 
     Les Bicyclettes De Belsize ; Englebert Humperdinck ; Qe_1B1P9Bw4 ; 
     Light My Fire ; Doors ; LY1l8T2Lcl0 ; 
