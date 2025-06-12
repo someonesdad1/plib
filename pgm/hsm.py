@@ -10,22 +10,21 @@ ToDo:
         - Datafile should be pure ASCII if possible
         - There are 8268 records currently, a lot of work
         - Eliminate titles in authors' names (like Dr.)
-
+        
     - Eliminate duplicates (e.g. Lautard's "Wax/Stockholm tar resist")
     - "A Rocking', ' Swinging Grinder Table" in vp1 has a comma in
         it, so it needs to be parsed by e.g. a CSV routine.  Joe
         Landau's index has it in it, so the vp1 index needs to be
         filtered and written so it can be simply split with a simple
         field separator.
-
+        
     - Add feature that highlights HSM issues I have.
-
+    
 ---------------------------------------------------------------------------
 Search various indexes of metalworking publications
     The script contains its own data, so this is the only file you
     should need.
 """
-
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2020 Don Peterson #∞copyright∞#
@@ -50,10 +49,8 @@ if 1:  # Custom imports
     from wrap import dedent
     import color as C
     from pdb import set_trace as xx
-
     if 1:
         import debug
-
         debug.SetDebugger()
 if 1:  # Global variables
     # Raw data for the script
@@ -79,7 +76,7 @@ if 1:  # Global variables
     # 5e4ac70ff2eb81007e3c32b7b6fb7d57.
     # NOTE:  these links are defunct as of 6 Jul 2021.
     mi = dedent("""
-
+    
     ! Joe Landau's Metalworking Index 2000 Edition, covering 
     ! "Home Shop Machinist" through 1999
     ! "Projects in Metal" magazines through-1998
@@ -123,7 +120,7 @@ if 1:  # Global variables
     ! HTIM-"Hey Tim, I gotta tell ya..."
     ! TMBR#n-The Machinist's Bedside Reader #1, 2, or 3
     !************************************************************************************************
-
+    
     "Floating" End Mill Sharpener Part 1, 2	DUCLOS, PHILIP	HSM'87:S/O20,N/D38
     "Quickie" Reamer, A	HOFF, MIKE 	MW Jun. 99, 41
     "Slow Poke" Small Keyway Broach	DUCLOS, PHILIP	HSM'85:S/O22
@@ -3813,7 +3810,6 @@ if 1:  # Global variables
         "PiM    Projects in Metal",
         "TMBR   The Machinist's Bedside Reader #1, #2, or #3",
     )
-
     # File:  Machinists_Workshop_Article_Index.csv Downloaded Mon 17 Feb
     # 2020 07:49:09 PM from
     # http://www.machinistsworkshop.net/resources/article-index/.  MD5 hash
@@ -5686,7 +5682,6 @@ if 1:  # Global variables
     "Tips  & Tricks: Another Type of Threaded Rivet","Howie Grunert","Tips & Tricks","MW Vol. 33 No. 1 Feb/Mar 20","43"
     "Tips  & Tricks: Cutting a Radius","Aaron Kohler","Tips & Tricks","MW Vol. 33 No. 1 Feb/Mar 20","43"
     ''')
-
     # File:  The_Home_Shop_Machinist_Article_Index.csv Downloaded Mon 17 Feb
     # 2020 07:49:09 PM from
     # http://www.homeshopmachinist.net/resources/article-index/.  MD5 hash
@@ -8438,14 +8433,10 @@ if 1:  # Global variables
         TMBR#3 1st printing:94, 139. & 251 [1698]
         TMBR#3 2nd printing:94, 139. & 251 [1697]
     """
-
-
 def Regularlize(string):
     "Fix inconsistencies in the raw data strings"
     string = re.sub("  +", " ", string)
     return string
-
-
 def GetData():
     "Return a sequence of named tuples of the form (title, author, pub)"
     NT = namedtuple("NT", "title author pub")
@@ -8456,7 +8447,6 @@ def GetData():
         if not line or line[0] == "!":
             continue
         seq.append(NT(*line.split("\t")))
-
     def ProcessVP(raw_data):
         # Process Village Press indexes
         VP = namedtuple("VP", "title author subject issue page")
@@ -8470,14 +8460,11 @@ def GetData():
             title, author, subject, issue, page = VP(*line)
             pub = issue.strip() + "," + page.strip()
             seq.append(NT(title, author, pub))
-
     # Machinist's Workshop index
     ProcessVP(vp1)
     # Home Shop Machinist index
     ProcessVP(vp2)
     return seq
-
-
 def Usage(d, status=1):
     name = sys.argv[0]
     print(
@@ -8509,8 +8496,6 @@ def Usage(d, status=1):
     ''')
     )
     exit(status)
-
-
 def ParseCommandLine(d):
     d["-1"] = False  # Print title
     d["-2"] = False  # Print author
@@ -8542,8 +8527,6 @@ def ParseCommandLine(d):
     if not d["-d"] and not args:
         Usage(d)
     return args
-
-
 def PrintItem(item):
     title, author, pub = item
     if d["all"]:
@@ -8555,8 +8538,6 @@ def PrintItem(item):
         s += [author] if d["-2"] else []
         s += [pub] if d["-3"] else []
         print(*s, sep=d["-s"])
-
-
 def Search(regexp):
     r = re.compile(regexp, re.I) if d["-i"] else re.compile(regexp)
     out = []
@@ -8570,10 +8551,8 @@ def Search(regexp):
                 out.append(item)
         elif r.search(title):
             out.append(item)
-    for item in sorted(out):
+    for item in sorted(set(out)):
         PrintItem(item)
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     regexps = ParseCommandLine(d)
