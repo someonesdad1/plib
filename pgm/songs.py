@@ -173,16 +173,16 @@ songs = '''
 
     Korobushka ; Accordion1 ; TtTTosTvVnA ; 
     Korobushka ; Accordion2 ; c9sN0HIUj7k ; 
-    Korobushka ; Bond ; E5NByiEIbD8 ; (strings)
+    Korobushka ; Bond ; E5NByiEIbD8 ; Strings
     Korobushka ; Funkhausorchester ; Y1TUS-yz5Yw ; 
-    Korobushka ; Instrumental ; pH1IgBMPkuE ; 
-    Korobushka ; Orchestral ; 1QOamVFM-sY ; 
-    Korobushka ; Small accordion ; Q0vQB97DAaA ; Excellent
+    Korobushka ; ; pH1IgBMPkuE ; Instrumental
+    Korobushka ; ; 1QOamVFM-sY ; Orchestral
+    Korobushka ; ; Q0vQB97DAaA ; Small accordion
     Korobushka ; Mikhail Smirnov ; Pr3ZgN8onRA ; Vocal
-    Korobushka ; Traditional ; i9A2K2Bf-aQ ; Vocal
-    Korobushka ; Trio ; hXFZsXRWP0w ; 
-    Korobushka ; Energetic ; SUO0-YvZmVI ; 
-    Korobushka ; Violin & Guitar ; TnDIRr9C83w ; Stunning violinist
+    Korobushka ; ; i9A2K2Bf-aQ ; Traditional vocal
+    Korobushka ; ; hXFZsXRWP0w ; Trio
+    Korobushka ; Critical Hit ; SUO0-YvZmVI ; 
+    Korobushka ; ; TnDIRr9C83w ; Violin & Guitar
     Korobushka ; Red Army Choir; krJR0b1Wgrg ; 
 
     Land Down Under ; Men at Work ; 8jHXu86O01w ; 
@@ -214,16 +214,16 @@ songs = '''
 
     Nothing Else Matters ; Metallica ; tAGnKpE4NCI ; 
     Nothing Else Matters ; PMJ, 15 year old girl singer ; KSSa0-oAnIo ; 
-    Nothing Else Matters: Accordion & piano ; ; ONPvHqm0x38 ; 
-    Nothing Else Matters: Accordion1 ; ; gwVsUKtKOss ; 
-    Nothing Else Matters: Accordion2 ; ; 0R7K-mktNtU ; 
-    Nothing Else Matters: Banjo & Mandolin ; ; 3JFb_aOn6rc ; 
-    Nothing Else Matters: Guitar & cello ; ; pxoW-00Zyho ; 
-    Nothing Else Matters: Guitar ; ; WlGiOiRQNhI ; 
-    Nothing Else Matters: Hammered dulcimer ; ; 8KK0-9Moz5Q ; 
-    Nothing Else Matters: Hardpan ; ; 32v8ARqaBas ;
-    Nothing Else Matters: Harp ; ; KMX2bmtS_TE ; 
-    Nothing Else Matters: Piano ; ; DmL12NRE4hQ ; 
+    Nothing Else Matters ; ; ONPvHqm0x38 ; Accordion & piano
+    Nothing Else Matters ; ; gwVsUKtKOss ; Accordion1
+    Nothing Else Matters ; ; 0R7K-mktNtU ; Accordion2
+    Nothing Else Matters ; ; 3JFb_aOn6rc ; Banjo & Mandolin
+    Nothing Else Matters ; ; pxoW-00Zyho ; Guitar & cello
+    Nothing Else Matters ; ; WlGiOiRQNhI ; Guitar
+    Nothing Else Matters ; ; 8KK0-9Moz5Q ; Hammered dulcimer
+    Nothing Else Matters ; Mumi ; 32v8ARqaBas ; Hardpan
+    Nothing Else Matters ; ; KMX2bmtS_TE ; Harp
+    Nothing Else Matters ; ; DmL12NRE4hQ ; Piano
 
     Old Man ; Neil Young ; rAtDrFdomN4 ; 
     Old and Wise ; Alan Parsons Project ; ZmzqqdVFw8g ; 
@@ -377,7 +377,11 @@ if 1:   # Functions
             if not line or line[0] == "#":
                 continue
             # Split the line on ';' as the field separator
-            title, artist, url, comment = [i.strip() for i in line.split(";")]
+            try:
+                title, artist, url, comment = [i.strip() for i in line.split(";")]
+            except ValueError:
+                print(f"Bad line:  {line!r}", file=sys.stderr)
+                exit(1)
             # If the URL doesn't start with "https://", construct it
             if not url.startswith("https://"):
                 url = "https://www.youtube.com/watch?v=" + url
