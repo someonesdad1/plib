@@ -32,7 +32,7 @@ favorites = '''
     Hit the Road Jack ; Becca Krueger ; OfUDsHtSv88 ; (skip first 20 seconds)
     Ievan Polkka ; Loituma ; 4om1rQKPijI ; 2008
     I'll Never Find Another You ; Seekers ; KmactMIhrRM ; How I feel about Glenda
-    Korobushka ; Smirnov ; Pr3ZgN8onRA ; (vocal)
+    Korobushka ; Smirnov ; Pr3ZgN8onRA ; Vocal
     Midnight In Moscow ; Kenny Ball ; o744d4mwOgQ ; 
     Papillon (waltz arrangement) ; ; FKrmozFh5ww ; 
     Potato Head Blues ; Louis Armstrong ; EfGZB78R7uw ; Famous trumpet solo
@@ -69,8 +69,19 @@ songs = '''
     Africa ; Toto ; qDLJ3pUZm9A ; 
     All Out of Love ; Air Supply ; https://www.youtube.com/watch?v=tH2w6Oxx0kQ ; 
     American Pie ; Don Maclean ; iX_TFkut1PM ; 
-    Angel of the Morning ; ; https://www.youtube.com/watch?v=HTzGMEfbnAw ; 
+    Angel of the Morning ; ; HTzGMEfbnAw ; 
     Aquarius ; Fifth Dimension ; oPK7ZF6jfJE&t=8 ; 
+
+    Bach: Toccata and Fugue in D Minor ; ; JL0PCLMSQms ; Violin
+    Bach: Toccata and Fugue in D Minor ; ; eDFFUIGoBUc ; Accordion
+    Bach: Toccata and Fugue in D Minor ; ; ho9rZjlsyYY ; Organ
+    Bach: Toccata and Fugue in D Minor ; ; i9UQ61EbdO0 ; Orchestra
+    Bach: Toccata and Fugue in D Minor ; ; ipzR9bhei_o ; Organ with bar graph score
+    Bach: Toccata and Fugue in D Minor ; ; ojBYW3ycVTE ; Guitar
+    Bach: Toccata and Fugue in D Minor ; ; zhH53UODLEM ; Piano with visual score
+    Bach: Toccata and Fugue in D Minor ; Amy Turk ; oPmKRtWta4E ;
+    Bach: Toccata and Fugue in D Minor ; Canadian Brass ; _Cst9lV5PPg ;
+
     Ballad Of Cat Ballou ; Nat King Cole and Stubby Kaye; -ghnpUNTR1I ; 
     Barracuda ; Heart ; PeMvMNpvB5M ; 
     Bay Of Mexico ; Kingston Trio ; -16OczraVi4 ; 
@@ -159,17 +170,21 @@ songs = '''
     Judy Blue Eyes (2012) ; Crosby, Stills, and Nash ; XWvw_uZPGDA ; 
     Kisses Sweeter Than Wine ; Marty Robbins ; iulmZAz8XfY ; 
     Kodachrome ; Paul Simon ; 8rlDTK6QI-w ; 
-    Korobushka ; Accordion ; c9sN0HIUj7k ; Catchy
+
+    Korobushka ; Accordion1 ; TtTTosTvVnA ; 
+    Korobushka ; Accordion2 ; c9sN0HIUj7k ; 
     Korobushka ; Bond ; E5NByiEIbD8 ; (strings)
     Korobushka ; Funkhausorchester ; Y1TUS-yz5Yw ; 
     Korobushka ; Instrumental ; pH1IgBMPkuE ; 
     Korobushka ; Orchestral ; 1QOamVFM-sY ; 
     Korobushka ; Small accordion ; Q0vQB97DAaA ; Excellent
-    Korobushka ; Smirnov ; Pr3ZgN8onRA ; Vocal
-    Korobushka ; Traditional ; i9A2K2Bf-aQ ; 
+    Korobushka ; Mikhail Smirnov ; Pr3ZgN8onRA ; Vocal
+    Korobushka ; Traditional ; i9A2K2Bf-aQ ; Vocal
     Korobushka ; Trio ; hXFZsXRWP0w ; 
-    Korobushka ; Um, energetic ; SUO0-YvZmVI ; 
-    Korobushka ; Violin & Guitar ; TnDIRr9C83w ; Great violinist
+    Korobushka ; Energetic ; SUO0-YvZmVI ; 
+    Korobushka ; Violin & Guitar ; TnDIRr9C83w ; Stunning violinist
+    Korobushka ; Red Army Choir; krJR0b1Wgrg ; 
+
     Land Down Under ; Men at Work ; 8jHXu86O01w ; 
     Les Bicyclettes De Belsize ; Englebert Humperdinck ; Qe_1B1P9Bw4 ; 
     Light My Fire ; Doors ; LY1l8T2Lcl0 ; 
@@ -196,8 +211,12 @@ songs = '''
     Nancy Sinatra and Lee Hazelwood: Lady Bird ; Nancy Sinatra and Lee Hazelwood ; FIPQVpw-zkk ; 
     Nancy Sinatra and Lee Hazelwood: Summer Wine ; Nancy Sinatra and Lee Hazelwood ; Ib_eW9VSUwM ; 
     North to Alaska (1960) ; Johnny Horton ; RO6IU9RpjS8 ; 
+
     Nothing Else Matters ; Metallica ; tAGnKpE4NCI ; 
     Nothing Else Matters ; PMJ, 15 year old girl singer ; KSSa0-oAnIo ; 
+    Nothing Else Matters: Accordion & piano ; ; ONPvHqm0x38 ; 
+    Nothing Else Matters: Accordion1 ; ; gwVsUKtKOss ; 
+    Nothing Else Matters: Accordion2 ; ; 0R7K-mktNtU ; 
     Nothing Else Matters: Banjo & Mandolin ; ; 3JFb_aOn6rc ; 
     Nothing Else Matters: Guitar & cello ; ; pxoW-00Zyho ; 
     Nothing Else Matters: Guitar ; ; WlGiOiRQNhI ; 
@@ -205,6 +224,7 @@ songs = '''
     Nothing Else Matters: Hardpan ; ; 32v8ARqaBas ;
     Nothing Else Matters: Harp ; ; KMX2bmtS_TE ; 
     Nothing Else Matters: Piano ; ; DmL12NRE4hQ ; 
+
     Old Man ; Neil Young ; rAtDrFdomN4 ; 
     Old and Wise ; Alan Parsons Project ; ZmzqqdVFw8g ; 
     One ; Three Dog Night ; UiKcd7yPLdU ; 
@@ -307,13 +327,6 @@ songs = '''
     New World Symphony and The Moldau ; ; Qut5e3OfCvg ; Slovak Philharmonic
     Tchaikovsky:  1812 Overture (1888) ; ; QUpuAvQQrC0 ; 
 
-    Bach: Toccata and Fugue in D Minor: Violin ; ; JL0PCLMSQms ; Violin
-    Bach: Toccata and Fugue in D Minor ; ; eDFFUIGoBUc ; Accordion
-    Bach: Toccata and Fugue in D Minor ; ; ho9rZjlsyYY ; Organ
-    Bach: Toccata and Fugue in D Minor ; ; i9UQ61EbdO0 ; Orchestra
-    Bach: Toccata and Fugue in D Minor ; ; ipzR9bhei_o ; Organ with bar graph score
-    Bach: Toccata and Fugue in D Minor ; ; ojBYW3ycVTE ; Guitar
-    Bach: Toccata and Fugue in D Minor ; ; zhH53UODLEM ; Piano with visual score
 
 '''
 if 1:   # Functions
