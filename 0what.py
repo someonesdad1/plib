@@ -34,7 +34,7 @@ if 1:  # Header
         import trigger
         from wrap import wrap, dedent, indent, Wrap
         from lwtest import run, raises, assert_equal, Assert
-        from color import TRM as t
+        from color import t
         from columnize import Columnize
     if 1:  # Global variables
         P = pathlib.Path
@@ -150,11 +150,7 @@ if 1:  # Core functionality
             f, tr, cat = file
             n = 35
             if tr is not None:
-                s = (
-                    f"{C.fg(C.lgreen, s=1)}{cat}{C.normal(s=1)}"
-                    if cat is not None
-                    else ""
-                )
+                s = f"{t.grnl}{cat}{t.n}" if cat is not None else ""
                 print(f"{f!s:20s} {tr[:n]:<{n}s}      {s}")
         print("Categories:")
         for i in sorted(categories):
