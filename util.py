@@ -25,7 +25,6 @@ EditData              Edit a str or bytes object with vim
 eng                   Convenience function for engineering format
 Engineering           Represent a number in engineering notation
 execfile              Python 3 replacement for python 2 function
-fDistribute           Return a float sequence equally distributed
 Flatten               Flattens nested sequences to a sequence of scalars
 Flatten_generator     Generator that flattens nested sequences 
 fsig                  Return string of float to specified number of digits
@@ -39,7 +38,6 @@ HeatIndex             Effect of temperature and humidity
 Height                Predict a child's adult height
 hyphen_range          Returns list of integers specified as ranges
 IdealGas              Calculate ideal gas P, v, T (v is specific volume)
-iDistribute           Return an integer sequence equally distributed
 IsBinaryFile          Heuristic to see if a file is a binary file
 IsConvexPolygon       Is seq of 2-D points a convex polygon?
 IsCygwinSymlink       Returns True if a file is a cygwin symlink
@@ -1474,72 +1472,6 @@ def execfile(filename, globals=None, locals=None, use_user_env=True):
     with open(filename, "r") as fh:
         s = fh.read() + "\n"
         exec(s, globals, locals)
-def iDistribute(n, a, b):
-    '''Generator to return an integer sequence [a, ..., b] with n elements equally distributed
-    between a and b.  Raises ValueError if no solution is possible.  Example:
-        a, b = 1, 6
-        for n in range(2, 8):
-            s = list(iDistribute(n, a, b))
-            print(f"iDistribute({n}, {a}, {b}) = {s}")
-    produces
-        iDistribute(2, 1, 6) = [1, 6]
-        iDistribute(3, 1, 6) = [1, 4, 6]
-        iDistribute(4, 1, 6) = [1, 3, 4, 6]
-        iDistribute(5, 1, 6) = [1, 2, 4, 5, 6]
-        iDistribute(6, 1, 6) = [1, 2, 3, 4, 5, 6]
-    with a ValueError exception on the n == 7 term.  For the case n == 4, note how the adjective
-    "equally" needs to be interpreted "symmetrically" and for the case n == 5, even that's not
-    true.
-    
-    If you need a sequence of n floating point values, see util.fDistribute().
-    '''
-    if not (ii(a, int) and ii(b, int) and ii(n, int)):
-        raise TypeError("Arguments must be integers")
-    if a >= b:
-        raise ValueError("Must have a < b")
-    if n < 2:
-        raise ValueError("n must be >= 2")
-    if n == 2:
-        yield a
-        yield b
-        return
-    dx = Fraction(b - a, n - 1)
-    if dx < 1:
-        raise ValueError("No solution")
-    for i in range(n):
-        yield int(round(a + i * dx, 0))
-def fDistribute(n, a=0, b=1, impl=float):
-    '''Generator to return n impl instances on [a, b] inclusive. A common use case is an
-    interpolation parameter on [0, 1].  Examples:
-        fd = fDistribute
-        fd(3) --> [0.0, 0.5, 1.0]
-        fd(3, 1, 2) --> [1.0, 1.5, 2.0]
-        fd(4, 1, 2, Fraction) --> [Fraction(1, 1), Fraction(4, 3), Fraction(5, 3), Fraction(2, 1)]
-        
-    You can use other impl types like decimal.Decimal.  Other types that define impl()/impl() to
-    return an impl-type floating point number will also work (e.g., mpmath's mpf type).
-    
-    If you need a sequence of evenly-distributed integers, see util.iDistribute().
-    '''
-    # Check arguments
-    msg = "n must be an integer > 1"
-    if not ii(n, int):
-        raise TypeError(msg)
-    if n < 2:
-        raise ValueError(msg)
-    if not ii(a, (int, impl)) or not ii(b, (int, impl)):
-        raise TypeError("a and b must be either an integer or impl")
-    if not (a < b):
-        raise ValueError("Must have a < b")
-    x0 = impl(a)
-    dx = impl(b) - x0
-    for i in range(n):
-        x = x0 + (impl(i) / impl(n - 1)) * dx
-        # Check invariants
-        assert a <= x <= b
-        assert ii(x, impl)
-        # Return value
-        yield x
 def signum(x):
     try:
         if x < 0:
@@ -2082,6 +2014,7 @@ if __name__ == "__main__":
     # Missing tests for: Ignore Debug, GetString
     from io import StringIO
     from lwtest import run, assert_equal, raises, Assert
+    from dpseq import fDistribute
     from random import seed
     from wrap import dedent
     from color import t
@@ -2649,26 +2582,6 @@ if __name__ == "__main__":
         s = RandomIntegers(n, 1000, seed=0, duplicates_OK=True)
         t = RandomIntegers(n, 1000, seed=0, duplicates_OK=True)
         Assert(s == t)
-    def Test_iDistribute():
-        def Dist(seq):
-            "Return distances between numbers in seq"
-            out = []
-            for i in range(1, len(seq)):
-                out.append(abs(seq[i] - seq[i - 1]))
-            return out
-        a, b = 0, 255
-        if 1:
-            for n in range(2, 256):
-                s = iDistribute(n, a, b)
-                if s is None:
-                    print(f"n = {n} no solution")
-                    continue
-                d = list(set(Dist(list(s))))
-                if len(d) > 1 and n > 2:
-                    assert_equal(len(d), 2)
-                    assert_equal(abs(d[0] - d[1]), 1)
-        for n in range(257, 265):
-            raises(ValueError, list, iDistribute(n, a, b))
     def TestParameterSequence():
         fd = fDistribute
         expected = [0.0, 1.0]
@@ -2939,6 +2852,7 @@ if __name__ == "__main__":
             defaultdict
             deque
             DIGITS
+            fDistribute
             flt
             Fraction
             frange

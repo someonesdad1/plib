@@ -171,8 +171,11 @@ songs = '''
     Kisses Sweeter Than Wine ; Marty Robbins ; iulmZAz8XfY ; 
     Kodachrome ; Paul Simon ; 8rlDTK6QI-w ; 
 
-    Korobushka ; Accordion1 ; TtTTosTvVnA ; 
-    Korobushka ; Accordion2 ; c9sN0HIUj7k ; 
+    Korobushka ; ; FQ-1W5GABCQ ; Chorale
+    Korobushka ; ; Lg0N3xhOzc8 ; Folk music1
+    Korobushka ; ; eHOgkzVKbJ8 ; Folk music2
+    Korobushka ; ; TtTTosTvVnA ; Accordion1
+    Korobushka ; ; c9sN0HIUj7k ; Accordion2
     Korobushka ; Bond ; E5NByiEIbD8 ; Strings
     Korobushka ; Funkhausorchester ; Y1TUS-yz5Yw ; 
     Korobushka ; ; pH1IgBMPkuE ; Instrumental
@@ -298,6 +301,7 @@ songs = '''
     Victory ; Bond ; j3nBuwOPu8A&list=RDE5NByiEIbD8 ; 
     Volga Boatmen  ; Red Army Choir & Band ; yfO0ADduEr8 ; 1996
     Volga Boatmen ; L. Kharitonov ; 0tw3g88JtWA ; 1965 
+    Volga Boatmen ; Ivan Rebroff ; I3bli2t40pU ; Powerful singer 
     Walk On the Wild Side ; Walk on the Wild Side ; 5O82y59h7MI ; 
     Walking in the Air ; Malakai Bayoh & Aled Jones ; Lq8kqsI3hCo ; Movie theme sung by a 13 year old choirboy
     Walking in the Air ; Walking In the Air movie ; upH1QZU4Z0Y ; Movie theme sung by a 13 year old choirboy Aled Jones

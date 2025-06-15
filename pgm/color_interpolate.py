@@ -1,4 +1,4 @@
-"""
+'''
 Interpolate between colors and show on console
 
 Examples to try:
@@ -6,8 +6,7 @@ Examples to try:
         - Shows 8 interpolations between black and white.
     - '#ff0000' 10 '#00ff00' 10 '#0000ff'
         - Shows 10 interpolations between red and green, then 10 between green and blue.
-"""
-
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -32,27 +31,22 @@ if 1:  # Header
     if 1:  # Custom imports
         from wrap import wrap, dedent
         from color import Color, t
-        from util import fDistribute
-
+        from dpseq import fDistribute
         if 0:
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
         ii = isinstance
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
-        print(
-            dedent(f"""
+        print(dedent(f'''
         Usage:  {sys.argv[0]} [options] c1 n c2 [m c3...]
           Interpolate n colors between c1 and c2 and print their values to
           stdout, then for c2 m c3, etc.  
- 
+         
           The colors can be specified by hex strings (preface with '#' for
           RGB, '@' for HSV, or '$' for HLS).  You can also use python
           sequences of numbers:  if they are integers in the range of 0 to
@@ -64,10 +58,9 @@ if 1:  # Utility
             -@      Hex digits represent HSV (hue, saturation, value)
             -#      Hex digits represent RGB (red, green, blue) [default]
             -$      Hex digits represent HLS (hue, lightness, saturation)
-        """)
+        ''')
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["typ"] = "rgb"  # Interpolation type
         try:
@@ -86,28 +79,23 @@ if 1:  # Utility
         if len(args) < 2:
             Usage()
         return args
-
-
 if 1:  # Core functionality
-
     def InterpretHex(s: str):
         t = s[1:] if s[0] in "@#$" else s
         try:
             return int(t[0:2], 16), int(t[2:4], 16), int(t[4:6], 16)
         except Exception:
             raise ValueError(f"'{s}' is an improper hex form")
-
     def InterpretArgument(x):
-        """x is a string from the command line representing a color.
+        '''x is a string from the command line representing a color.
         Return a Color object.
-        """
+        '''
         if x[0] in "@#$":  # Hex string
             c = Color(x)
         else:  # Must be a tuple or list
             y = eval(x)
             c = Color(x)
         return c
-
     def Process(s1, n, s2):
         cn1 = InterpretArgument(s1)
         cn2 = InterpretArgument(s2)
@@ -125,8 +113,6 @@ if 1:  # Core functionality
             # Display this string in this color
             print(f"{t(cn3.xrgb)}{s}{t.n} ", end="")
         print()
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = deque(ParseCommandLine(d))
