@@ -206,6 +206,7 @@ songs = '''
     Memories (from Cats); Betty Buckley ; 5mlllRdIfqw ; 
     Memories (from Cats); Elaine Paige ; mdBVJbzkoqo ; 
     Midnight In Moscow ; Sweet & Hot 2011 ; FY3Zr5Tj5zw ; 2011
+    Mongolian Throat Singer; ; HwANedEkqaY ; 
     Morningtown Ride ; Seekers ; M-RkC6MYT2E ; 1964
     Morningtown Ride ; Seekers ; wqdaCOt51Dk ; 2014
     Mr. Roboto ; Styx ; 51ybp_YFo7I ; 
@@ -302,6 +303,8 @@ songs = '''
     Volga Boatmen  ; Red Army Choir & Band ; yfO0ADduEr8 ; 1996
     Volga Boatmen ; L. Kharitonov ; 0tw3g88JtWA ; 1965 
     Volga Boatmen ; Ivan Rebroff ; I3bli2t40pU ; Powerful singer 
+    Volga Boatmen ; Nelson Eddy ; JdCPH2rkFRA ; 1939 movie
+    Volga Boatmen ; Kevin Maynor ; 2kb1JC9gaOI ;
     Walk On the Wild Side ; Walk on the Wild Side ; 5O82y59h7MI ; 
     Walking in the Air ; Malakai Bayoh & Aled Jones ; Lq8kqsI3hCo ; Movie theme sung by a 13 year old choirboy
     Walking in the Air ; Walking In the Air movie ; upH1QZU4Z0Y ; Movie theme sung by a 13 year old choirboy Aled Jones

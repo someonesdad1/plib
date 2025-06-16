@@ -1,18 +1,17 @@
-"""
+'''
 Launch files with their registered applications
 
     Windows:  You can compile the C++ application given below; it worked with Windows NT systems in
     the 1990's and 2000's.  The start.exe application can do the same thing and it's supplied with
     Windows.
-
+    
     cygwin:  The cygstart.exe program does the work.
-
+    
     Linux:  On a real Linux system, xdg-open works.  On WSL, you have to call explorer.exe on the
     file, but the twist is you have to cd to the file's directory first because Explorer is a
     strange application.
-
-"""
-
+    
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -40,26 +39,24 @@ if 1:  # Header
         from wsl import wsl  # If wsl is 1, we're running under WSL under Windows
     if 1:  # Global variables
         ii = isinstance
-
         class G:
             pass
-
         g = G()
         g.system = None
 if 0:  # C++ source code old Windows launcher app.exe
-    """
+    '''
     Note:  the above Windows application can be used to launch files.
     Here's its source code:
-
+    
     /****************************************************************************
     For each file on the command line, launch it with its registered
     application.  For Windows computers only.
-
+    
     Compiled and tested with the 3.2.3 version of the MinGW g++ compiler:
         g++ -o app.exe app.cpp
-
+        
     ----------------------------------------------------------------------
-
+    
     Copyright (C) 2006 Don Peterson
     Contact:  gmail.com@someonesdad1
     
@@ -72,26 +69,26 @@ if 0:  # C++ source code old Windows launcher app.exe
     IMPLIED WARRANTY OF ANY KIND. See
     http://www.dspguru.com/wide-open-license for more information.
     ****************************************************************************/
-
+    
     #include <iostream>
     #include <string>
     #include <cstdlib>
     #include <windows.h>
-
+    
     using std::cerr;
     using std::string;
     using std::endl;
-
+    
     const string edit    = "edit";
     const string explore = "explore";
     const string find    = "find";
     const string open    = "open";
     const string print   = "print";
-
+    
     string program_name = "";
-
+    
     // ----------------------------------------------------------------------
-
+    
     void Usage(void)
     {
         cerr << "Usage:  " << program_name 
@@ -105,22 +102,22 @@ if 0:  # C++ source code old Windows launcher app.exe
             << "    print" << endl;
         exit(1);
     }
-
+    
     // ----------------------------------------------------------------------
-
+    
     void ErrorMessage(const char * file_to_launch, const string message)
     {
         cerr << file_to_launch << ":  " << message << endl;
     }
-
+    
     // ----------------------------------------------------------------------
-
+    
     void LaunchFile(const char * file_to_launch, const string action)
     {
         const char * command_parameters = "";
         const char * working_directory  = "";    
         const int open_in_normal_window = 1;
-
+        
         HINSTANCE ret = ShellExecute(
                                     0,
                                     action.c_str(),
@@ -129,16 +126,16 @@ if 0:  # C++ source code old Windows launcher app.exe
                                     working_directory,
                                     open_in_normal_window
                                     );
-
+                                    
         int return_value = int(ret);
         const int failed_status = 32;
         if (return_value > failed_status)
             return;  // Successfully executed
-
+            
         // The call did not succeed; inform the user of the problem.  These
         // ShellExecute return values are from the MSDN help shipped with the
         // Visual C++ 2003 package.
-
+        
         switch (return_value)
         {
             case 0:                    // Fall through intentional
@@ -184,15 +181,15 @@ if 0:  # C++ source code old Windows launcher app.exe
                 break;
         }
     }
-
+    
     int main(int argc, char** argv)
     {
         program_name  = argv[0];
         string action = open;    // Default action is to open the file
-
+        
         if (argc < 2)
             Usage();
-
+            
         // Check for -a option
         argv++;
         if (argv[0][0] == '-' and argv[0][1] == 'a')
@@ -200,7 +197,7 @@ if 0:  # C++ source code old Windows launcher app.exe
             argv++;
             if (not *argv)
                 Usage();
-
+                
             // Make sure the action is allowed
             string action = *argv;
             if (action != edit    and 
@@ -216,27 +213,26 @@ if 0:  # C++ source code old Windows launcher app.exe
                 // Need at least one file
                 Usage();
         }
-
+        
         while (*argv)
         {
             LaunchFile(*argv, action);
             argv++;
         }
-
+        
         return 0;
     }
-    """
+    '''
 if 1:  # Core functionality
-
     def GetSystem():
-        """Set g.system to one of the following strings:
+        '''Set g.system to one of the following strings:
             cygwin      Running under cygwin
             linux       Running under a real Linux system, not WSL
             wsl         Running Linux under WSL
             mac       * Running under Apple's UNIX
             windows   * Running under Windows
         Note * means not supported yet.
-        """
+        '''
         s = platform.system()
         if s.startswith("CYGWIN_NT"):
             g.system = "cygwin"
@@ -244,11 +240,10 @@ if 1:  # Core functionality
             g.system = "wsl" if wsl else "linux"
         else:
             raise ValueError("{s!r} not supported for platform.system()")
-
     def RegisteredOpen(file):
-        """Open the indicated file with its registered application.  file must be a string
+        '''Open the indicated file with its registered application.  file must be a string
         or a Path instance.
-        """
+        '''
         if ii(file, str):
             p = P(file)
         elif ii(file, P):
@@ -279,30 +274,24 @@ if 1:  # Core functionality
             print(f"{e}", file=sys.stderr)
         finally:
             os.chdir(cwd)
-
     def Launch(*files):
         for file in files:
             RegisteredOpen(file)
-
     # Make sure we know the system when we get imported
     GetSystem()
-
 if __name__ == "__main__":
-
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         name = sys.argv[0]
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {name} [options] file1 [file2 ...]
           Launch the files with their registered applications. 
-        """)
+        ''')
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = False
         try:
@@ -318,7 +307,6 @@ if __name__ == "__main__":
         if not args:
             Usage()
         return args
-
     d = {}  # Options dictionary
     files = ParseCommandLine(d)
     Launch(*files)

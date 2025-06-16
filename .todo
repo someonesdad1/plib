@@ -1,5 +1,11 @@
 Active:  /plib/.todo
 
+    - Need a text comparing tool that mostly ignores whitespace.
+        - tcmp.py or cmpt.py
+        - Example:  The license.txt uses text content I downloaded in 2021.  Alas, you
+          can get the same file from the website, but it's not a plain text file, so
+          they won't compare directly.
+
     - pgm/fet_current.py
         - Script to model the current you can realistically get from a MOSFET
         - Read 'ds FET_current_rating' to construct the script
@@ -30,6 +36,11 @@ Active:  /plib/.todo
             - ts:  'ts -m' doesn't work
         - Plan
             - Retire tsub.py, as it's not used in /plib or /plib/pgm
+
+    - licenses.py
+        - Currently, the text is in /pylib/licenses
+        - Make a new directory lib/licenses
+            - The old stuff is dated May 2021.  Update to Jun 2025.
 
     - color.py
         - /plib/rgb
