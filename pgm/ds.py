@@ -137,12 +137,12 @@ if 1:  # Utility
           If re2 etc. are present, they are other regexps to additionally search for in the
           results; they are ANDed together.
         Options
-          -I    Generate the index
+          -I    Generate the index (ignore /ebooks)
           -i    Make the search case sensitive
           -j    Search HP Journal and Bench Brief files (note:  consider
                 using the hpj.py script for such searches)
           -k    Regex is a keyword; open the associated docs
-          -x    Same as -I
+          -x    Same as -I but include /ebooks
         Long options
           --exec n
             Name of index file for usage statement.  Choices are:
@@ -190,12 +190,12 @@ if 1:  # Core functionality
         name_ignore = set(
             '''
             .vi .gitignore .z z tags a b aa bb
-        '''.split()
+            '''.split()
         )
         suffix_ignore = set(
             '''
             .zip .bak
-        '''.split()
+            '''.split()
         )
         def DumpIndexFile(name, df):
             with open(name, "w") as fp:
@@ -205,7 +205,7 @@ if 1:  # Core functionality
                     s = str(i)
                     # WSL puts on an unneeded mount point which will foul up cygwin
                     if s.startswith("/mnt/d"):
-                        s = s.replace("/mnt/d", 1)
+                        s = s.replace("/mnt/d", "d:/")
                     fp.write(f"{s}\n")
         et = flt(0)
         if 0:  # B&K
@@ -218,14 +218,15 @@ if 1:  # Core functionality
             Dbg(f"{len(df.files)} files ({tm} s)")
             DumpIndexFile(g.index_files["bk"], df)
         if 1:  # ebooks
-            Dbg("Indexing ebooks:", end="  ")
-            start = flt(time())
-            df = Dirfiles("/ebooks", clear=True)
-            df.add("**/*")
-            tm = time() - start
-            et += tm
-            Dbg(f"{len(df.files)} files ({tm} s)")
-            DumpIndexFile(g.index_files["eb"], df)
+            if d["-x"]:
+                Dbg("Indexing ebooks:", end="  ")
+                start = flt(time())
+                df = Dirfiles("/ebooks", clear=True)
+                df.add("**/*")
+                tm = time() - start
+                et += tm
+                Dbg(f"{len(df.files)} files ({tm} s)")
+                DumpIndexFile(g.index_files["eb"], df)
         if 1:  # Datasheets
             Dbg("Indexing manuals & datasheets:", end="  ")
             start = flt(time())
