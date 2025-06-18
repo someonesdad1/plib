@@ -149,15 +149,17 @@ if 1:  # Classes
             return Len(self) if bool(self.on) else super().__len__()
 if 1:  # Core functionality
     def MatchCap(s, t):
-        '''Return t capitalized as s is.  s and t are expected to be sequences
-        of characters.  The returned sequence matches the type of t and has
-        a length equal to the shorter of s and t.  Must have len(s) >=
-        len(t).
+        '''Return t capitalized as s is.  s and t are expected to be sequences of
+        characters.  The returned sequence matches the type of t and has a length equal
+        to the shorter of s and t.  Must have len(s) >= len(t).
         
         Example:
             s = "StuVwxyz"
             t = "abcd"
             MatchCap(s, t) = "AbcD"
+        
+        If the example is confusing to you, what's going on is that s has the 0th and
+        3rd characters capitalized, so the function's returned value will do the same.
         '''
         if not t:
             return t
@@ -183,31 +185,29 @@ if 1:  # Core functionality
                 out.append(t[i])
         return "".join(out) if ii(t, str) else type(t)(out)
     def soundex(s):
-        '''Return the 4-character soundex value to a string argument.  The
-        string s must be one word formed with ASCII characters and with no
-        punctuation or spaces.  The returned soundex string can be used to
-        compare the sounds of words; from US patents 1261167(1918) and
-        1435663(1922) by Odell and Russell.
+        '''Return the 4-character soundex value to a string argument.  The string s must
+        be one word formed with ASCII characters and with no punctuation or spaces.  The
+        returned soundex string can be used to compare the sounds of words; from US
+        patents 1261167(1918) and 1435663(1922) by Odell and Russell.
         
-        The algorithm is from Knuth, "The Art of Computer Programming",
-        volume 3, "Sorting and Searching", pg. 392:
+        The algorithm is from Knuth, "The Art of Computer Programming", volume 3,
+        "Sorting and Searching", pg. 392:
         
             1. Retain first letter of name and drop all occurrences
                of a, e, h, i, o, u, w, y in other positions.
-            2. Assign the following numbers to the remaining letters
-               after the first:
+            2. Assign the following numbers to the remaining letters after the first:
                 1: b, f, p, v
                 2: c, g, j, k, q, s, x, z
                 3: d, t
                 4: l
                 5: m, n
                 6: r
-            3. If two or more letters with the same code were adjacent in
-               the original name (before step 1), omit all but the first.
-            4. Convert to the form "letter, digit, digit, digit" by adding
-               trailing zeroes (if there are less than three digits), or
-               by dropping rightmost digits (if there are more than
-               three).
+            3. If two or more letters with the same code were adjacent in the original
+               name (before step 1), omit all but the first.
+        
+            4. Convert to the form "letter, digit, digit, digit" by adding trailing
+               zeroes (if there are less than three digits), or by dropping rightmost
+               digits (if there are more than three).
         '''
         if not s:
             raise ValueError("Argument s must not be empty string")
@@ -244,33 +244,27 @@ if 1:  # Core functionality
             code += "0"
         return code
     def SoundSimilar(s, t):
-        "Return True if the strings s and t sound similar"
+        'Return True if the strings s and t sound similar'
         return True if soundex(s) == soundex(t) else False
     def CommonPrefix(seq):
-        '''Return the largest string that is a prefix of all the strings in
-        seq.
-        '''
+        'Return the largest string that is a prefix of all the strings in seq'
         return os.path.commonprefix(seq)
     def CommonSuffix(seq):
-        '''Return the largest string that is a suffix of all the strings in
-        seq.
-        '''
-        # Method: reverse each string in seq, find their common prefix, then
-        # reverse the result.
+        'Return the largest string that is a suffix of all the strings in seq'
+        # Method: reverse each string in seq, find their common prefix, then reverse the
+        # result.
         def f(lst):
             return "".join(lst)  # Convert the list back to a string
         def rev(s):  # Reverse the string s
             return f([f(list(i)) for i in reversed(s)])
         return rev(CommonPrefix([rev(i) for i in seq]))
     def FindFirstIn(s, items, invert=False):
-        '''Return smallest integer i such that s[i] is in items or else
-        None.  If invert is True, find the smallest integer i such that
-        s[i] is not in items.
-        
-        if s is a reversed type, then we're searching for the last
-        index of the item in items if invert is False or the last
-        index of the first item in reversed(s) that's in items when
-        invert is True.
+        '''Return smallest integer i such that s[i] is in items or else None.  If invert
+        is True, find the smallest integer i such that s[i] is not in items.
+                
+        if s is a reversed type, then we're searching for the last index of the item in
+        items if invert is False or the last index of the first item in reversed(s)
+        that's in items when invert is True.
         '''
         if not s or not items:
             return None
@@ -366,53 +360,49 @@ if 1:  # Core functionality
             return Keep(s, keep, whole=True)
         return func
     def Remove(s, remove):
-        "Return a sequence of the items in s that are not in remove"
+        'Return a sequence of the items in s that are not in remove'
         r = set(remove)
         def f(x):
             return x in r
         ret = filterfalse(f, s)
         return "".join(ret) if isinstance(s, str) else type(s)(ret)
     def RemoveFilter(remove):
-        '''Return a function that takes a string and returns a string
-        containing only those characters that are not in remove.
+        '''Return a function that takes a string and returns a string containing only
+        those characters that are not in remove.
         '''
         def func(s):
             return Remove(s, remove)
         return func
     def RemoveWhitespace(s):
-        '''Remove whitespace characters from the string s.  Whitespace
-        characters are:  space, tab, linefeed, return, formfeed and
-        vertical tab, which are ' ', \t, \n, \r, \f, and \v.
+        '''Remove whitespace characters from the string s.  Whitespace characters are:
+        space, tab, linefeed, return, formfeed and vertical tab.  This method is fast
+        because it's done by C code.
         '''
-        # This is a specialized fast method because it's done by C code
-        return "".join(s.split())
+        return ''.join(s.split())
     def FilterStr(remove, replacements):
-        '''Return a function that removes the characters in sequence remove
-        from other strings and replaces them with corresponding characters
-        in the sequence replacements.
+        '''Return a function that removes the characters in sequence remove from other
+        strings and replaces them with corresponding characters in the sequence
+        replacements.
         '''
         if len(remove) != len(replacements):
             raise ValueError("remove and replacements must be the same length")
         T = "".maketrans(dict(zip(remove, replacements)))
         return lambda s: s.translate(T)
     def FindDiff(s1, s2, ignore_empty=False, equal_length=False):
-        '''Returns the integer index of where the strings s1 and s2 first
-        differ.  The number returned is the index where the first
-        difference was found.  If the strings are equal, then -1 is
-        returned, implying one string is a substring of the other (or they
-        are the same string).  If ignore_empty is False, an exception is
-        raised if one of the strings is empty.  If equal_length is True,
-        then the strings must be of equal length or a ValueError exception
-        is raised.
+        '''Returns the integer index of where the strings s1 and s2 first differ.  The
+        number returned is the index where the first difference was found.  If the
+        strings are equal, then -1 is returned, implying one string is a substring of
+        the other (or they are the same string).  If ignore_empty is False, an exception
+        is raised if one of the strings is empty.  If equal_length is True, then the
+        strings must be of equal length or a ValueError exception is raised.
         '''
         if not isinstance(s1, str) or not isinstance(s2, str):
             raise TypeError("Arguments must be strings")
         if (not s1 or not s2) and not ignore_empty:
             raise ValueError("String cannot be empty")
-        ls1, ls2 = len(s1), len(s2)
-        if equal_length and ls1 != ls2:
+        if equal_length and len(s1) != len(s2):
             raise ValueError("Strings must be equal lengths")
-        n = min(ls1, ls2)
+        n = min(len(s1), len(s2))
         if not n:
             return 0
         if s1[:n] == s2[:n]:
@@ -423,9 +413,9 @@ if 1:  # Core functionality
                 return i
         raise RuntimeError("Bug:  strings differed")
     def FindStrings(seq, Str, ignorecase=False):
-        '''Return list of (i, j) pairs which indicate where the strings in
-        sequence seq (index i) are located in string Str (index j).  An
-        empty list is returned if there are no matches.
+        '''Return list of (i, j) pairs which indicate where the strings in sequence seq
+        (index i) are located in string Str (index j).  An empty list is returned if
+        there are no matches.
         
         Example:
             seq = "Jan Feb Mar".split()
@@ -442,8 +432,8 @@ if 1:  # Core functionality
                 found.append((i, j))
         return found
     def FindSubstring(mystring, substring):
-        '''Return a tuple of the all the indexes of where the substring is
-        found in the string mystring.
+        '''Return a tuple of the all the indexes of where the substring is found in the
+        string mystring.
         '''
         if not isinstance(mystring, str):
             raise TypeError("mystring needs to be a string")
@@ -458,11 +448,10 @@ if 1:  # Core functionality
             start = mystring.find(substring, start + 1)
         return tuple(d)
     def GetString(prompt_msg, default, allowed_values, ignore_case=True):
-        '''Get a string from a user and compare it to a sequence of
-        allowed values.  If the response is in the allowed values, return
-        it.  Otherwise, print an error message and ask again.  The letter
-        'q' or 'Q' will let the user quit the program.  The returned
-        string will have no leading or trailing whitespace.
+        '''Get a string from a user and compare it to a sequence of allowed values.  If
+        the response is in the allowed values, return it.  Otherwise, print an error
+        message and ask again.  The letter 'q' or 'Q' will let the user quit the
+        program.  The returned string will have no leading or trailing whitespace.
         '''
         if ignore_case:
             allowed_values = [i.lower() for i in allowed_values]
@@ -479,11 +468,11 @@ if 1:  # Core functionality
                 return s
             print("'%s' is not a valid response" % response.strip())
     def GetChoice(name, names):
-        '''name is a string and names is a set or dict of strings.  Find
-        if name uniquely identifies a string in names; if so, return it.
-        If it isn't unique, return a list of the matches.  Otherwise
-        return None.  The objective is to allow name to be the minimum
-        length string necessary to uniquely identify the choice.
+        '''name is a string and names is a set or dict of strings.  Find if name
+        uniquely identifies a string in names; if so, return it.  If it isn't unique,
+        return a list of the matches.  Otherwise return None.  The objective is to allow
+        name to be the minimum length prefix string necessary to uniquely identify the
+        choice.
         '''
         # See self tests below for an example of use
         if not isinstance(name, str):
@@ -500,9 +489,9 @@ if 1:  # Core functionality
                 return d[name]
         return None
     def KeepOnlyLetters(s, underscore=False, digits=False):
-        '''Replace all non-word characters with spaces.  If underscore is
-        True, keep underscores too (e.g., typical for programming language
-        identifiers).  If digits is True, keep digits too.
+        '''Replace all non-word characters with spaces.  If underscore is True, keep
+        underscores too (e.g., typical for programming language identifiers).  If digits
+        is True, keep digits too.
         '''
         allowed = string.ascii_letters + "_" if underscore else string.ascii_letters
         allowed += string.digits if digits is True else ""
@@ -510,35 +499,32 @@ if 1:  # Core functionality
         t = "".join([i if i in allowed else " " for i in c])
         return s.translate(t)
     def StringSplit(fields, string, remainder=True, strict=True):
-        '''Pick out the specified fields of the string and return them as
-        a tuple of strings.  fields can be either a format string or a
-        list/tuple of numbers.
+        '''Pick out the specified fields of the string and return them as a tuple of
+        strings.  fields can be either a format string or a list/tuple of numbers.
         
-        Field numbering starts at 0.  If strict is True, then the indicated
-        number of fields must be returned or a ValueError exception will be
-        raised.
+        Field numbering starts at 0.  If strict is True, then the indicated number of
+        fields must be returned or a ValueError exception will be raised.
         
         fields is a format string
-            A format string is used to get particular columns of the
-            string.  For example, the format string "5s 3x 8s 8s" means to
-            pick out the first five characters of the string, skip three
-            spaces, get the next 8 characters, then the next 8 characters.
-            If remainder is False, this is all that's returned; if
-            remainder is True, then whatever is left over will also be
-            returned.  Thus, if remainder is False, you'll have a 3-tuple
-            of strings returned; if True, a 4-tuple.
+            A format string is used to get particular columns of the string.  For
+            example, the format string "5s 3x 8s 8s" means to pick out the first five
+            characters of the string, skip three spaces, get the next 8 characters, then
+            the next 8 characters.  If remainder is False, this is all that's returned;
+            if remainder is True, then whatever is left over will also be returned.
+            Thus, if remainder is False, you'll have a 3-tuple of strings returned; if
+            True, a 4-tuple.
             
         fields is a sequence of numbers
-            The numbers specify cutting the string at the indicated
-            columns (numbering is 0-based).  Example: for the input string
-            "hello there", using the fields of [3, 7] will return the tuple
-            of strings ("hel", "lo t", "here").
+            The numbers specify cutting the string at the indicated columns (numbering
+            is 0-based).  Example: for the input string "hello there", using the fields
+            of [3, 7] will return the tuple of strings ("hel", "lo t", "here").
+
                 "hello there"
                  01234567890
                  
         Derived from code by Alex Martelli at
-        http://code.activestate.com/recipes/65224-accessing-substrings/
-        Downloaded Sun 27 Jul 2014 07:52:44 AM
+        http://code.activestate.com/recipes/65224-accessing-substrings/ Downloaded Sun
+        27 Jul 2014 07:52:44 AM
         '''
         if isinstance(fields, str):
             left_over = len(string) - struct.calcsize(fields)
@@ -559,23 +545,20 @@ if 1:  # Core functionality
                 )
             return pieces
     def ListInColumns(alist, col_width=0, num_columns=0, space_betw=0, truncate=0):
-        '''Returns a list of strings with the elements of alist (if
-        components are not strings, they will be converted to strings
-        using str) printed in columnar format.  Elements of alist that
-        won't fit in a column either generate an exception if truncate is
-        0 or get truncated if truncate is nonzero.  The number of spaces
-        between columns is space_betw.
+        '''Returns a list of strings with the elements of alist (if components are not
+        strings, they will be converted to strings using str) printed in columnar
+        format.  Elements of alist that won't fit in a column either generate an
+        exception if truncate is 0 or get truncated if truncate is nonzero.  The number
+        of spaces between columns is space_betw.
         
-        If col_width and num_columns are 0, then the program will set them
-        by reading the COLUMNS environment variable.  If COLUMNS doesn't
-        exist, col_width will default to 80.  num_columns will be chosen
-        by finding the length of the largest element so that it is not
-        truncated.
+        If col_width and num_columns are 0, then the program will set them by reading
+        the COLUMNS environment variable.  If COLUMNS doesn't exist, col_width will
+        default to 80.  num_columns will be chosen by finding the length of the largest
+        element so that it is not truncated.
         
-        Caveat: if there are a small number of elements in the list, you
-        may not get what you expect.  For example, try a list size of 1 to
-        10 with num_columns equal to 4: for lists of 1, 2, 3, 5, 6, and 9,
-        you'll get fewer than four columns.
+        Caveat: if there are a small number of elements in the list, you may not get
+        what you expect.  For example, try a list size of 1 to 10 with num_columns equal
+        to 4: for lists of 1, 2, 3, 5, 6, and 9, you'll get fewer than four columns.
         
         This function is obsolete; instead, use Columnize in columnize.py.
         '''
@@ -612,18 +595,18 @@ if 1:  # Core functionality
         for row in range(num_rows):
             s = ""
             for column in range(num_columns):
-                i = int(num_rows * column + row)
+                i = int(num_rows*column + row)
                 if 0 <= i <= (N - 1):
                     if len(str(alist[i])) > col_width:
                         if truncate:
-                            s += str(alist[i])[:col_width] + " " * space_betw
+                            s += str(alist[i])[:col_width] + " "*space_betw
                         else:
                             raise ValueError("Error: element %d too long" % i)
                     else:
                         s += (
                             str(alist[i])
-                            + " " * (col_width - len(str(alist[i])))
-                            + " " * space_betw
+                            + " "*(col_width - len(str(alist[i])))
+                            + " "*space_betw
                         )
             lines.append(s)
         assert len(lines) == num_rows
@@ -633,10 +616,9 @@ if 1:  # Core functionality
         )
         return lines
     def MultipleReplace(text, patterns, flags=0):
-        '''Replace multiple patterns in the string text.  patterns is a
-        dictionary whose keys are the regular expressions and values are the
-        replacement text.  The flags keyword variable is the same as that used
-        by the re.compile function.
+        '''Replace multiple patterns in the string text.  patterns is a dictionary whose
+        keys are the regular expressions and values are the replacement text.  The flags
+        keyword variable is the same as that used by the re.compile function.
         
         From page 88 of Python Cookbook.
         '''
@@ -645,10 +627,10 @@ if 1:  # Core functionality
         # For each match, look up the corresponding value in the dictionary
         return r.sub(lambda match: patterns[match.group(0)], text)
     def RemoveComment(line, code=False):
-        '''Remove the largest string starting with '#' from the string
-        line.  If code is True, then the resulting line will be compiled
-        and an exception will occur if the modified line won't compile.
-        This typically happens if '#' is inside of a comment.
+        '''Remove the largest string starting with '#' from the string line.  If code is
+        True, then the resulting line will be compiled and an exception will occur if
+        the modified line won't compile.  This typically happens if '#' is inside of a
+        comment.
         '''
         orig = line
         loc = line.find("#")
@@ -661,25 +643,25 @@ if 1:  # Core functionality
                 msg = "Line with comment removed won't compile:\n  '%s'" % orig
                 raise ValueError(msg)
         return line
-    def SpellCheck(input, Words, ignore_case=True):
-        '''input is a sequence of word strings; Words is a dictionary or set
+    def SpellCheck(input, words, ignore_case=True):
+        '''input is a sequence of word strings; words is a dictionary or set
         of correct spellings.  Return the set of any words in input that are not
-        in Words.
+        in words.
         '''
-        misspelled = set()
         if not input:
             return []
-        if not Words:
-            raise ValueError("Words parameter is empty")
+        if not words:
+            raise ValueError("words parameter is empty")
+        misspelled = set()
         for word in input:
             if ignore_case:
                 word = word.lower()
-            if word not in Words:
+            if word not in words:
                 misspelled.add(word)
         return misspelled
     def SplitOnNewlines(s):
-        '''Splits s on all of the three newline sequences: "\r\n", "\r", or
-        "\n".  Returns a list of the strings.
+        '''Splits s on all of the three newline sequences: "\r\n", "\r", or "\n".
+        Returns a list of the strings.
         
         Copyright (c) 2002-2009 Zooko Wilcox-O'Hearn, who put it under the GPL.
         '''
@@ -690,21 +672,17 @@ if 1:  # Core functionality
                 res.extend(y.split(nl))
         return res
     def TimeStr(time_in_s=None):
-        '''Return a readable string for the indicated time in seconds.
-        If the parameter is None, the time is time.now().  Example:
+        '''Return a readable string for the indicated time in seconds.  If the parameter
+        is None, the time is time.now().  Example:
             Time(1646408691.9415808) returns '4Mar2022-084451.942am'
-        This is a convenience aimed at producing names that can be used
-        in a filename for things like timestamping.
+        This is a convenience aimed at producing names that can be used in a filename
+        for things like timestamping.
         '''
         def Rm0(s):
             if s.startswith("0"):
                 return s[1:]
             return s
-        # The /plib/0test.py file in this file's directory uses this method to
-        # produce log files when it is run.
-        #
-        # Get t as time in seconds from the epoch (note it is local time, not
-        # GMT)
+        # Get t as time in seconds from the epoch (note it is local time, not GMT)
         T = time_in_s if time_in_s else time.time()
         # ts will contain the time structure needed by time's functions
         ts = time.localtime(T)
@@ -712,30 +690,28 @@ if 1:  # Core functionality
         d = Rm0(time.strftime("%d%b%Y", ts))
         t = time.strftime("%I%M%S", ts)
         ampm = time.strftime("%p", ts).lower()
-        # Get fractions of seconds.  Resolution is to the nearest μs because
-        # this gave what looked to be sufficient time resolution on my system
-        # to avoid generating an accidental collision, at least in the same
-        # process.
+        # Get fractions of seconds.  Resolution is to the nearest μs because this gave
+        # what looked to be sufficient time resolution on my system to avoid generating
+        # an accidental collision, at least in the same process.
         n = 6
         fs = round(T - int(T), n)
         f = Rm0(f"{fs:.{n}f}")
         return f"{d}-{t}{f}{ampm}"
     def WordID(half_length=3, unique=None, num_tries=100):
-        '''Return an ID string that is (somewhat) pronounceable.  The
-        returned number of characters will be twice the half_length.  If
-        unique is not None, it must be a container that can be used to
-        determine if the ID is unique.  You are responsible for adding the
-        returned word to the container.
+        '''Return an ID string that is (somewhat) pronounceable.  The returned number of
+        characters will be twice the half_length.  If unique is not None, it must be a
+        container that can be used to determine if the ID is unique.  You are
+        responsible for adding the returned word to the container.
         
-        The method is to choose a consonant from 'bdfghklmnprstvw' and append a
-        vowel; do this half_length number of times.
+        The method is to choose a consonant from 'bdfghklmnprstvw' and append a vowel;
+        do this half_length number of times.
         
-        Interestingly, the words often look like they come from Japanese or
-        Hawaiian.
+        Interestingly, the words often look like they come from Japanese or Hawaiian.
+        
+        I derived the code from http://code.activestate.com/recipes/576858, but this
+        link now points to a different algorithm.  The original recipe was by Robin
+        Palmer on 8 Aug 2007 under PSF license.
         '''
-        # Derived from http://code.activestate.com/recipes/576858
-        # downloaded Tue 12 Aug 2014 12:38:54 PM.  Original recipe by
-        # Robin Parmar on 8 Aug 2007 under PSF license.
         v, c, r, count = "aeiou", "bdfghklmnprstvw", range(half_length), 0
         while count < num_tries:
             word = "".join([random.choice(c) + random.choice(v) for i in r])
@@ -763,9 +739,8 @@ if 1:  # Core functionality
                 print()
         '''
     def Chop(seq, size):
-        '''Return a list of the sequence seq chopped into subsequences of
-        length size.  The last subsequence will be shorter than size if
-        len(seq) % size is not zero.
+        '''Return a list of the sequence seq chopped into subsequences of length size.
+        The last subsequence will be shorter than size if len(seq) % size is not zero.
         '''
         if not ii(size, int) or size <= 0:
             raise ValueError("size must be integer > 0")
@@ -774,30 +749,28 @@ if 1:  # Core functionality
             out.append(seq[i : i + size])
         return out
     def ReadData(data, structure, **kw):
-        '''Read data from a multiline string data.  structure is a list of the
-        field types.  Any line starting with optional whitespace and the
-        comment string is ignored, as is any line with only whitespace.
+        '''Read data from a multiline string data.  structure is a list of the field
+        types.  Any line starting with optional whitespace and the comment string is
+        ignored, as is any line with only whitespace.
         
         Keywords:
-        
             comment     Ignore lines that start with this string and optional
                         whitespace.  Can also be a compiled regular expression.
             sep         Separator string for fields.  Defaults to whitespace.
                         Can be a compiled regular expression.
-                        
+        
         Example: For the string
         
             data = """
                  9   680     2100    0       750
                 10   680     2100    250     750
             """
-        the call ReadData(data, structure=[str, int, int, int, int] returns
-        the list
+        the call ReadData(data, structure=[str, int, int, int, int] returns the list
             [["9", 680, 2100, 0, 750],
             ["10", 680, 2100, 250, 750]]
             
-        If an error occurs, the 1-based line number of the offending string
-        will be printed along with the problem.
+        If an error occurs, the 1-based line number of the offending string will be
+        printed along with the problem.
         '''
         # Get keywords
         comment = kw.get("comment", None)
@@ -838,40 +811,41 @@ if 1:  # Core functionality
             out.append(thisline)
         return out
     def Len(s) -> int:
-        '''Same as built-in len(), except if the argument is a str, the ANSI
-        escape sequences are stripped out.
+        '''Same as built-in len(), except if the argument is a str, the ANSI escape
+        sequences are stripped out.
         '''
-        if not hasattr(Len, "len"):
-            # Cache the built-in len in case someone redefines it
+        if not hasattr(Len, "len"): # Cache built-in len in case someone redefines it
             Len.len = len
         if ii(s, str):
             return Len.len(RmEsc(s))
         return Len.len(s)
     def RmEsc(s: str, on=True) -> str:
-        "Remove ANSI escape strings if on is True; otherwise just return s"
-        # The primary use case is to remove colorizing ANSI escape strings from
-        # a string s.  Not all ANSI escape strings are supported, just the ones
-        # that contain a CSI sequence.
+        '''Remove ANSI escape strings if on is True; otherwise just return s.
+        
+        The primary use case is to remove colorizing ANSI escape strings from a string
+        s.  Not all ANSI escape strings are supported, just the ones that contain a CSI
+        sequence.
+        '''
         if not on:
-            # Note it's deliberate that we don't check the type of s if on is
-            # False; this makes this the identity function for any type.
+            # Don't check the type of s if on is False; this makes this the identity
+            # function for any type.
             return s
         assert ii(s, str)
         if not hasattr(RmEsc, "r"):
             # This regexp was constructed from the information given on the
             # page https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_(Control_Sequence_Introducer)_sequences
             # This is:
-            #   ESC [
+            #   esc [
             # then "parameter bytes":    zero or more bytes 0x30-0x3f       [0-?]
             # then "intermediate bytes": zero or more bytes 0x20-0x2f       [ -/]
             # then "single byte":        one byte in range of 0x40-0x7e     [@-~]
             RmEsc.r = re.compile(r"\x1b\[[0-?]*[ -\/]*[@-~]")
         return RmEsc.r.sub("", s)
     def Tokenize(s, wordchars=None, check=False):
-        '''Split the string s into a list lst such that ''.join(lst) is the
-        original string.  wordchars is a sequence of characters that are in
-        words.  wordchars defaults to string.ascii_letters + string.digits.  If
-        check is True, verify the invariant s == ''.join(lst).
+        '''Split the string s into a list lst such that ''.join(lst) is the original
+        string.  wordchars is a sequence of characters that are in words.  wordchars
+        defaults to string.ascii_letters + string.digits.  If check is True, verify the
+        invariant s == ''.join(lst).
         '''
         if not ii(s, str):
             raise TypeError("Argument s needs to be a string")
@@ -894,11 +868,10 @@ if 1:  # Core functionality
             raise ValueError("Invariant s == ''.join(out) is not True")
         return out
     def GetLeadingChars(s, chars=None):
-        '''Return the string defining the leading characters in the string
-        s.  If chars is not None, use it as the set of allowed leading
-        characters.  If chars is None, then return the leading whitespace
-        characters, which are defined by the re module's '\\s'
-        metacharacters.
+        '''Return the string defining the leading characters in the string s.  If chars
+        is not None, use it as the set of allowed leading characters.  If chars is None,
+        then return the leading whitespace characters, which are defined by the re
+        module's '\\s' metacharacters.
         '''
         if not ii(s, str):
             raise TypeError("s must be a string")
@@ -913,11 +886,10 @@ if 1:  # Core functionality
             mo = r.match(s)
             return mo.groups()[0] if mo else ""
     def GetTrailingChars(s, chars=None):
-        '''Return the string defining the trailing characters in the string
-        s.  If chars is not None, use it as the set of allowed trailing
-        characters.  If chars is None, then return the leading whitespace
-        characters, which are defined by the re module's '\\s'
-        metacharacters.
+        '''Return the string defining the trailing characters in the string s.  If chars
+        is not None, use it as the set of allowed trailing characters.  If chars is
+        None, then return the leading whitespace characters, which are defined by the re
+        module's '\\s' metacharacters.
         '''
         if not ii(s, str):
             raise TypeError("s must be a string")
@@ -932,15 +904,15 @@ if 1:  # Core functionality
             mo = r.search(s)
             return mo.groups()[0] if mo else ""
     def RemoveASCII(s):
-        '''Remove ASCII characters from string s.  This means the string
-        only consists of characters chr(0x0) to chr(0x7e) inclusive or
-        Unicode characters above 0x7f.
+        '''Remove ASCII characters from string s.  This means the returned string only
+        consists of Unicode characters above 0x7f.  This is done with a cached translation
+        table, so it will be fast after the first invocation.
         '''
         if not hasattr(RemoveASCII, "table"):
             # Cache a translation table
             r = range(0, 0x7F)
             chars = [chr(i) for i in r]
-            none = [None] * len(chars)
+            none = [None]*len(chars)
             RemoveASCII.table = "".maketrans(dict(zip(chars, none)))
         return s.translate(RemoveASCII.table)
     def IgnoreFilter(regex_seq, ignore_case=False):
@@ -954,6 +926,7 @@ if 1:  # Core functionality
         
         Example:
             f = IgnoreFilter(["bob", "carol"])
+            g = IgnoreFilter(["bob", "carol"], ignore_case=True)
             seq = [
                 "Bob",
                 "bob",
@@ -963,6 +936,7 @@ if 1:  # Core functionality
                 "Alice"
             ]
             f(seq) returns ["Bob", "Carol", "Alice"].
+            g(seq) returns ["Alice"].
         '''
         # Compile the regular expressions
         regexes = []
@@ -977,31 +951,28 @@ if 1:  # Core functionality
             return list(results)
         return f
     def IsASCII(s):
-        '''Return True if string s is all ASCII characters.  This means the
-        string only consists of characters chr(0x0) to chr(0x7e) inclusive.
+        '''Return True if string s is all ASCII characters.  This means the string only
+        consists of characters chr(0x0) to chr(0x7e) inclusive.
         '''
         return not bool(RemoveASCII(s))
     def Scramble(mystring, punc=None, start_end_const=False):
-        '''Return a string with the letters in the words randomly shuffled
-        but with the punctuation and whitespace unchanged if punc is None.
+        '''Return a string with the letters in the words randomly shuffled but with the
+        punctuation and whitespace unchanged if punc is None.
         
-        Set punc to a different set of punctuation characters if you wish
-        (the punctuation characters are ignored when shuffling words).  For
-        example, you might want to include common Unicode characters
-        included as punctuation also.
+        Set punc to a different set of punctuation characters if you wish (the
+        punctuation characters are ignored when shuffling words).  For example, you
+        might want to include common Unicode characters included as punctuation also.
         
-        If start_end_const is True, then the first and last letters of each
-        word are unchanged.  This lets you test the assertion that leaving
-        the first and last letters intact but shuffling the interior
-        letters doesn't change the readability of the text.  Personally,
-        I've found that's mostly nonsense except for some fairly easy
-        pieces of text.  In particular, doing this scrambling on a
-        complicated technical document virtually always results in
-        jibberish.
+        If start_end_const is True, then the first and last letters of each word are
+        unchanged.  This lets you test the assertion that leaving the first and last
+        letters intact but shuffling the interior letters doesn't change the readability
+        of the text.  I've found this assertion is mostly untrue except for some fairly
+        easy-to-read pieces of text; doing this scrambling on a complicated technical
+        document virtually always results in gibberish.
         
-        If you wish to save memory, make mystring a list of individual
-        characters; then a copy of the string isn't made.  Note there is no
-        check that the list's elements are single character strings.
+        If you wish to save memory, make mystring a list of individual characters; then
+        a copy of the string isn't made.  Note there is no check that the list's
+        elements are single character strings.
         
         Example with random.seed('0'):
             s = '"Hello there", said John.'
@@ -1056,12 +1027,11 @@ if 1:  # Core functionality
         # Return scrambled string or list
         return "".join(s) if is_string else s
     def Trim(s, chars="", left=True, right=True, check=False):
-        '''Remove characters in the string chars from the left and right
-        sides of s, returning the result.
+        '''Remove characters in the string chars from the left and right sides of s,
+        returning the result.
         
-        This routine breaks s into three strings L, M, and R such that s =
-        L + M + R.  L and R consist only of characters in chars.  The
-        returned string is
+        This routine breaks s into three strings L, M, and R such that s = L + M + R.  L
+        and R consist only of characters in chars.  The returned string is
             left    right       returned
             ----    -----     -------------
             True    True            M
@@ -1088,30 +1058,32 @@ if 1:  # Core functionality
             return M if right else M + R
         else:
             return L + M
-    def GetTransFunc(chars_from, to, delete=None):
-        '''Return a function that will change characters in chars_from to the characters in to.
-        This function will use str.translate() to perform its work at C speeds.  If chars_from has
-        N characters, then to must have 1 or N characters.  The rules are:
+    def GetTransFunc(chars_from, chars_to, delete=None):
+        '''Return a function that will change characters in chars_from to the characters
+        in chars_to.  This function uses str.translate() to perform its work at C
+        speeds.  If chars_from has N characters, then chars_to must have 1 or N
+        characters.  The rules are:
         
             - Any characters in the sequence delete are deleted from chars_from.
-            - If delete is not None, then it must be a str whose characters are deleted from the
-              string.
-            - If to has 1 character, then remaining characters in the string will be replaced by
-              the character in to.
+            - If delete is not None, then it must be a str whose characters are deleted
+              from the string.
+            - If chars_to has 1 character, then remaining characters in the string will
+              be replaced by the character in chars_to.
               
-        Example:  Let chars_from = string.punctuation and to = " ".  Then GetTransFunc(chars_from,
-        to) returns a function f that substitutes a space character for every punctuation
-        character.  Given a string s, f(s) returns a string of the same length as s but with all
-        ASCII punctuation characters replaced by a string.
+        Example:  Let chars_from = string.punctuation and chars_to = " ".  Then
+        GetTransFunc(chars_from, chars_to) returns a function f that substitutes a space
+        character for every punctuation character.  Given a string s, f(s) returns a
+        string of the same length as s but with all ASCII punctuation characters
+        replaced by a string.
         '''
         if not chars_from:
             return lambda x: x
         N = len(chars_from)
-        if len(to) not in (1, N):
-            raise ValueError("to must have 1 or len(chars_from) characters")
-        From, To = chars_from, to
-        if len(to) == 1:
-            From, To = chars_from, to * N
+        if len(chars_to) not in (1, N):
+            raise ValueError("chars_to must have 1 or len(chars_from) characters")
+        From, To = chars_from, chars_to
+        if len(chars_to) == 1:
+            From, To = chars_from, chars_to*N
         # Check delete
         if delete is None:
             Delete = None
@@ -1291,7 +1263,7 @@ if __name__ == "__main__":
     def Test_Tokenize():
         Assert(Tokenize("", check=True) == [])
         Assert(Tokenize(" ", check=True) == [" "])
-        Assert(Tokenize(" " * 2, check=True) == [" ", " "])
+        Assert(Tokenize(" "*2, check=True) == [" ", " "])
         s = "How so?  How can it affect them?"
         t = Tokenize(s, check=True)
         u = [
@@ -1386,6 +1358,7 @@ if __name__ == "__main__":
         Assert(MatchCap("MATCHCAP", t) == "ABCDEF")
         Assert(MatchCap("matchcap", t) == "abcdef")
         Assert(MatchCap("matchcap", t) == "abcdef")
+        # Check example given in function's docstring
         s = "StuVwxyz"
         t = "abcd"
         Assert(MatchCap(s, t) == "AbcD")
@@ -1422,15 +1395,19 @@ if __name__ == "__main__":
         Assert(not CommonPrefix(["a", "b"]))
         Assert("a" == CommonPrefix(["aone", "atwo", "athree"]))
         Assert("abc" == CommonPrefix(["abc", "abc", "abc"]))
+        Assert("abc" == CommonPrefix(["abc", "abc", "abcd"]))
+        Assert("abc" == CommonPrefix(["abc", "abcd", "abce"]))
         raises(TypeError, CommonPrefix, ["a", 1])
     def Test_CommonSuffix():
         Assert(not CommonSuffix(["a", "b"]))
         Assert("a" == CommonSuffix(["onea", "twoa", "threea"]))
         Assert("abc" == CommonSuffix(["abc", "abc", "abc"]))
+        Assert("abc" == CommonSuffix(["1abc", "abc", "abc"]))
+        Assert("abc" == CommonSuffix(["1abc", "2abc", "abc"]))
         raises(TypeError, CommonSuffix, ["a", 1])
     def Test_FilterStr():
         s = '''"Not that easy, I'm sure."'''
-        f = FilterStr('''"',.''', [None] * 4)
+        f = FilterStr('''"',.''', [None]*4)
         t = f(s)
         Assert(t == "Not that easy Im sure")
     def Test_RemoveWhitespace():
@@ -1465,9 +1442,9 @@ if __name__ == "__main__":
         # digits False
         expected = "   abcABC"
         t = KeepOnlyLetters(s, underscore=False, digits=False)
-        Assert(t == expected + " " * 4)
+        Assert(t == expected + " "*4)
         t = KeepOnlyLetters(s, underscore=True, digits=False)
-        Assert(t == expected + " " * 3 + "_")
+        Assert(t == expected + " "*3 + "_")
     def Test_StringSplit():
         s = "hello there"
         Assert(StringSplit([4, 7], s) == ["hell", "o t", "here"])
@@ -1479,7 +1456,7 @@ if __name__ == "__main__":
         Assert(StringSplit(t, s, remainder=False) == q[:-1])
     def Test_ListInColumns():
         if 0:
-            s = [sig(math.sin(i / 20), 3) for i in range(20)]
+            s = [sig(math.sin(i/20), 3) for i in range(20)]
             got = "\n".join(ListInColumns(s))
             ts = "  "  # Note there are two spaces after these rows...
             exp = "0.00   0.0998 0.199  0.296  0.389  0.479  0.565  0.644  0.717  0.783"
@@ -1614,7 +1591,7 @@ if __name__ == "__main__":
             s = "this STRING HAS UPPER AND LOWER CASE letters"
             chars = string.ascii_lowercase
             print(
-                f"GetLeadingChars({s!r},\n {' ' * 15}{chars!r}) = "
+                f"GetLeadingChars({s!r},\n {' '*15}{chars!r}) = "
                 f"{GetLeadingChars(s, chars)}"
             )
             # IsASCII

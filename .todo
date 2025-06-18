@@ -5,6 +5,7 @@
         - Example:  The license.txt uses text content I downloaded in 2021.  Alas, you
           can get the same file from the website, but it's not a plain text file, so
           they won't compare directly.
+        - 'diff -w'
 
     - pgm/fet_current.py
         - Script to model the current you can realistically get from a MOSFET
