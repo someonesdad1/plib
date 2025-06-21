@@ -27,6 +27,8 @@ if 1:  # Header
     if 1:  # Imports
         import sys
         # from math import pi, acos, sqrt
+        import readline
+        readline.set_startup_hook(input)
     if 1:  # Custom imports
         from wrap import dedent
         from f import flt, pi, acos, sqrt
@@ -39,13 +41,19 @@ if 1:  # Header
         lb_per_kg = flt(2.20462)
         gal_per_L = flt(0.264172)
         in_per_m = flt(39.37)
-        ft_per_m = flt(12 / in_per_m)
+        ft_per_m = flt(12/in_per_m)
         class G:
             pass
         g = G()
         g.digits = 2
         # Set to True to debug the script
-        g.dbg = 1
+        g.dbg = True
+        g.dbg = False
+        # Colors
+        t.err = t.redl
+        t.default = t.ornl
+        t.note = t.grn
+        t.units = t.purl
     if 1:  # Component mixing info
         # Note:  in the following, specific gravities are always given in
         # g/cc units.  Multiply by 1000 to get kg/m3.
@@ -53,11 +61,11 @@ if 1:  # Header
         # The standard recommended ratio is 1:2:3 for cement:sand:gravel.
         # This is technically supposed to be the mass ratio, not the volume
         # ratio.  However, the specific gravities are cement:1.6,
-        # sand(dry):1.6, and gravel(dry):1.6, so if these conditions are
+        # sand(dry):1.6, and gravel(dry):1.6, so IF these conditions are
         # met, then it also works for volume.
-        vol_ratio_cement = flt(1 / 6)
-        vol_ratio_sand = flt(2 / 6)
-        vol_ratio_gravel = flt(3 / 6)
+        vol_ratio_cement = flt(1/6)
+        vol_ratio_sand = flt(2/6)
+        vol_ratio_gravel = flt(3/6)
         # Value to multiply a cured concrete volume to get the required dried
         # components volume.  This is also sometimes called the "make sure
         # you have enough factor".  Typical values range from 1.5 to 2.
@@ -121,21 +129,21 @@ if 1:  # Header
         allowed_length_units = {
             "": flt(1),
             "m": flt(1),
-            "in": flt(1 / in_per_m),
-            "inch": flt(1 / in_per_m),
-            "inches": flt(1 / in_per_m),
-            "foot": flt(12 / in_per_m),
-            "feet": flt(12 / in_per_m),
-            "ft": flt(12 / in_per_m),
-            "yard": flt(36 / in_per_m),
-            "yd": flt(36 / in_per_m),
+            "in": flt(1/in_per_m),
+            "inch": flt(1/in_per_m),
+            "inches": flt(1/in_per_m),
+            "foot": flt(12/in_per_m),
+            "feet": flt(12/in_per_m),
+            "ft": flt(12/in_per_m),
+            "yard": flt(36/in_per_m),
+            "yd": flt(36/in_per_m),
         }
         allowed_length_units[""] = allowed_length_units[default_unit]
         # The following is the factor by which the volume of a 5 gallon bucket
         # filled to the brim is different from 5 gallons.
         # with its top.  This comes from measurements of a few actual
         # buckets.
-        bucket_ratio = flt(5.6 / 5)
+        bucket_ratio = flt(5.6/5)
 if 1:  # Classes for shapes
     class FormShape(object):
         def GetDescription(self):
@@ -161,7 +169,7 @@ if 1:  # Classes for shapes
         def GetDescription(self):
             return 1, "Rectangular slab"
         def GetVolume(self):
-            return self.length * self.width * self.height * self.how_many
+            return self.length*self.width*self.height*self.how_many
         def GetDimensions(self):
             self.length, self.length_orig = GetLength("Length of slab? ")
             self.width, self.width_orig = GetLength("Width of slab? ")
@@ -181,13 +189,11 @@ if 1:  # Classes for shapes
         def GetDescription(self):
             return 2, "Cylinder"
         def GetVolume(self):
-            return pi * (self.diameter / 2) ** 2 * self.length * self.how_many
+            return pi*(self.diameter/2) ** 2*self.length*self.how_many
         def GetDimensions(self):
             self.diameter, self.diameter_orig = GetLength("Diameter of cylinder? ")
             self.length, self.length_orig = GetLength("Length of cylinder? ")
-            self.how_many = GetNumber(
-                "How many of them? ", numtype=int, low=1, default=1, allow_quit=True
-            )
+            self.how_many = GetNumber( "How many of them? ", numtype=int, low=1, default=1, allow_quit=True)
         def Characteristics(self):
             return (
                 "Diameter = %s" % self.diameter_orig,
@@ -202,25 +208,19 @@ if 1:  # Classes for shapes
             '''Formula from
             http://mathworld.wolfram.com/HorizontalCylindricalSegment.html
             '''
-            h = self.percent / 100 * self.diameter
-            r, L = self.diameter / 2, self.length
+            h = self.percent/100*self.diameter
+            r, L = self.diameter/2, self.length
             a = r - h
             return (
-                L * (r * r * acos(a / r) - a * sqrt(2 * r * h - h * h)) * self.how_many
+                L*(r*r*acos(a/r) - a*sqrt(2*r*h - h*h))*self.how_many
             )
         def GetDimensions(self):
             self.diameter, self.diameter_orig = GetLength("Diameter of cylinder? ")
             self.length, self.length_orig = GetLength("Length of cylinder? ")
-            self.percent, self.percent_orig = GetNumber(
-                "Filled to percent of height? ",
-                low=0,
-                low_open=True,
-                high=100,
-                use_unit=False,
-            )
-            self.how_many = GetNumber(
-                "How many of them? ", numtype=int, low=1, default=1, allow_quit=True
-            )
+            self.percent = GetNumber("Filled to percent of height? ", low=0, low_open=True,
+                                     high=100, use_unit=False)
+            self.percent_orig = str(self.percent)
+            self.how_many = GetNumber("How many of them? ", numtype=int, low=1, default=1, allow_quit=True)
         def Characteristics(self):
             return (
                 "Diameter = %s" % self.diameter_orig,
@@ -236,158 +236,146 @@ if 1:  # Classes for shapes
             '''See http://mathworld.wolfram.com/SphericalCap.html and
             http://mathworld.wolfram.com/SphericalSegment.html.
             '''
-            r = self.diameter / 2
+            r = self.diameter/2
             if self.percent >= 50:
-                h = self.diameter * (self.percent - 50) / 100
-                Vhalf = (4 / 3 * pi * r**3) / 2
+                h = self.diameter*(self.percent - 50)/100
+                Vhalf = (4/3*pi*r**3)/2
                 # Sph. cap volume from MH, 19th ed., pg 160
-                c1 = 2 * sqrt(r * r - h * h)
-                c2 = 2 * r
-                V = pi / 6 * h * (3 / 4 * (c1 * c1 + c2 * c2) + h * h)
-                return (V + Vhalf) * self.how_many
+                c1 = 2*sqrt(r*r - h*h)
+                c2 = 2*r
+                V = pi/6*h*(3/4*(c1*c1 + c2*c2) + h*h)
+                return (V + Vhalf)*self.how_many
             else:
-                h = r * self.percent / 100
+                h = r*self.percent/100
                 d = r - h
-                a = sqrt(r * r - d * d)
+                a = sqrt(r*r - d*d)
                 # Wolfram sph. cap page equation 14 with b = 0
-                return pi * h * (3 * a * a + h * h) * self.how_many
+                return pi*h*(3*a*a + h*h)*self.how_many
         def GetDimensions(self):
             self.diameter, self.diameter_orig = GetLength("Diameter of sphere? ")
-            self.percent, self.percent_orig = GetNumber(
-                "Filled to percent of diameter? ",
-                low=0,
-                low_open=True,
-                high=100,
-                use_unit=False,
-            )
-            self.how_many = GetNumber(
-                "How many of them? ", numtype=int, low=1, default=1, allow_quit=True
-            )
+            self.percent = GetNumber("Filled to percent of diameter? ", low=0, low_open=True,
+                                     high=100, use_unit=False)
+            self.how_many = GetNumber("How many of them? ", numtype=int, low=1, default=1, allow_quit=True)
         def Characteristics(self):
             return (
                 "Diameter = %s" % self.diameter_orig,
                 "Percent  = %s" % self.percent_orig,
             )
 if 1:  # Utility
-def Error(msg, status=1):
-    print(msg, stream=sys.stderr)
-    exit(status)
-def Initialization():
-    if len(sys.argv) == 3 and sys.argv[1] == "-d":
-        try:
-            g.digits = int(sys.argv[2])
-        except Exception:
-            Error("Bad argument for -d option (must be integer)")
-        else:
-            if not (1 <= g.digits <= 15):
-                Error("-d argument must be between 1 and 15")
-    x = flt(0)
-    x.N = g.digits
-def HeaderInfo():
-    if g.dbg:
-        return
-    u = allowed_length_units.keys()
-    u.sort()
-    units = " ".join(u)
-    print(
-        dedent(f'''
-    This script will help with the following concrete mixing problems:
-        1.  Using premixed bags of concrete mix.
-        2.  Mixing cement, sand, and aggregate.
-     
-    The following form shapes are supported:
-        1.  Rectangular slab
-        2.  Cylinder
-        3.  Partially-filled horizontal cylinder
-        4.  Partially-filled sphere
-     
-    You'll be prompted for the relevant dimensions of the form.  You can use the
-    following units (along with any valid SI prefix):
-        {units}
-    '{default_unit}' is the default unit if no unit string is appended.
-    ''')
-    )
-def GetProblem():
-    default = 1
-    while True:
-        print(
-            dedent(
-                '''
-        Specify problem:
-            1.  Calculate number of bags of ready-mix
-            2.  Calculate cement, sand, gravel mixture
-        [Default is {default}] --> ''',
-                end="",
-            )
-        )
-        s = input("").strip()
-        if s.lower() == "q":
-            exit(0)
-        try:
-            if s:
-                num = int(s)
+    def Error(msg, status=1):
+        print(msg, stream=sys.stderr)
+        exit(status)
+    def Initialization():
+        if len(sys.argv) == 3 and sys.argv[1] == "-d":
+            try:
+                g.digits = int(sys.argv[2])
+            except Exception:
+                Error("Bad argument for -d option (must be integer)")
             else:
-                num = default
-        except Exception:
-            print(f"'{s}' is not an integer")
-        else:
-            if num in (1, 2):
-                return num
-            print("Number must be 1 or 2\n")
-def GetLength(prompt):
-    '''Prompt the user and get the required length.  Return (L, s)
-    where L is the length in m and s is the original string the user
-    typed in.
-    '''
-    while True:
-        num, unit = GetNumber(prompt, low=0, low_open=True, use_unit=True)
-        if not unit.strip():
-            unit = default_unit
-        prefix, u = ParseUnitString(unit, allowed_length_units, strict=False)
-        if u in allowed_length_units:
-            return (
-                flt(num) * flt(prefix) * flt(allowed_length_units[u]),
-                str(flt(num)) + " " + unit,
-            )
-        else:
-            print(f"'{unit}' is unrecognized unit -- try again.")
-def GetFormGeometry():
-    default = 1
-    form = {
-        1: Slab(),
-        2: Cylinder(),
-        3: HorizontalCylinder(),
-        4: Sphere(),
-    }
-    while True:
-        print(
-            dedent(
-                f'''
-        Specify the geometry of the form you'll pour the concrete into:
+                if not (1 <= g.digits <= 15):
+                    Error("-d argument must be between 1 and 15")
+        x = flt(0)
+        x.N = g.digits
+    def HeaderInfo():
+        if g.dbg:
+            return
+        u = sorted(allowed_length_units.keys())
+        units = " ".join(u)
+        print(dedent(f'''
+        This script will help with the following concrete mixing problems:
+            1.  Using premixed bags of concrete mix.
+            2.  Mixing cement, sand, and aggregate.
+         
+        The following form shapes are supported:
             1.  Rectangular slab
             2.  Cylinder
-            3.  Partial horizontal cylinder
-            4.  Partial sphere
-        [Default is {default}] --> ''',
-                end="",
-            )
-        )
-        s = input("").strip()
-        if s.lower() == "q":
-            exit(0)
-        try:
-            if s:
-                num = int(s)
+            3.  Partially-filled horizontal cylinder
+            4.  Partially-filled sphere
+         
+        You'll be prompted for the relevant dimensions of the form.  You can use the
+        following units (along with any valid SI prefix):
+            {t.units}{units}{t.n}
+        {t.default}'{default_unit}'{t.n} is the default unit if no unit string is appended.
+        '''))
+    def GetProblem():
+        default = 1
+        while True:
+            print(dedent(f'''
+            Specify problem:
+                1.  Calculate number of bags of ready-mix
+                2.  Calculate cement, sand, gravel mixture
+            [Default is {default}] --> '''), end="")
+            s = input("").strip()
+            if s.lower() == "q":
+                exit(0)
             else:
-                num = default
-        except Exception:
-            print(f"'{s}' is not an integer")
-        else:
-            if num in (1, 2, 3, 4):
-                return form[num]
-            print("Number must be {min(form)} to {max(form)}, inclusive")
+                try:
+                    if s:
+                        num = int(s)
+                    else:
+                        num = default
+                        t.print(f"\n{t.note}Selected 1")
+                except Exception:
+                    t.print(f"{t.err}'{s}' is not an integer (must be 1 or 2)")
+                    continue
+                if num in (1, 2):
+                    return num
+                t.print(f"{t.err}Number must be 1 or 2\n")
+    def GetFormGeometry():
+        default = 1
+        form = {
+            1: Slab(),
+            2: Cylinder(),
+            3: HorizontalCylinder(),
+            4: Sphere(),
+        }
+        while True:
+            print(dedent(f'''
+            Specify the geometry of the form you'll pour the concrete into:
+                1.  Rectangular slab
+                2.  Cylinder
+                3.  Partial horizontal cylinder
+                4.  Partial sphere
+            [Default is {t.default}{default}{t.n}] --> '''), end="")
+            s = input("").strip()
+            if s.lower() == "q":
+                exit(0)
+            try:
+                if s:
+                    num = int(s)
+                else:
+                    num = default
+                    t.print(f"\n{t.note}Selected 1")
+            except Exception:
+                t.print(f"{t.err}'{s}' is not an integer")
+            else:
+                if num in (1, 2, 3, 4):
+                    return form[num]
+                t.print(f"{t.err}Number must be {min(form)} to {max(form)}, inclusive")
+    def GetLength(prompt):
+        '''Prompt the user and get the required length.  Return (L, s)
+        where L is the length in m and s is the original string the user
+        typed in.
+        '''
+        while True:
+            num, unit = GetNumber(prompt, low=0, low_open=True, use_unit=True)
+            if not unit.strip():
+                unit = default_unit
+            try:
+                prefix, u = ParseUnitString(unit, allowed_length_units, strict=True)
+            except ValueError:
+                t.print(f"{t.err}'{unit}' is an unrecognized unit -- try again.")
+                continue
+            if u in allowed_length_units:
+                return (flt(num)*flt(prefix)*flt(allowed_length_units[u]), str(flt(num)) + " " + unit)
+
+if 0: #xx
+    form = HorizontalCylinder()
+    form.GetDimensions()
+    exit()
+
 if __name__ == "__main__":
-    indent = " " * 4
+    indent = " "*4
     Initialization()
     HeaderInfo()
     problem = GetProblem() if not g.dbg else 2
@@ -410,7 +398,7 @@ if __name__ == "__main__":
         a, sa, b, sb = 2, "2 m", 1, "1 m"
         # Set up the desired dimensions
         length, s_length = ft_per_m, "1 ft"
-        dia, s_dia = flt(2 * ft_per_m), "2 ft"
+        dia, s_dia = flt(2*ft_per_m), "2 ft"
         pct, s_pct = flt(100), "100"
         number = 1
         if isinstance(form, Slab):
@@ -443,8 +431,8 @@ if __name__ == "__main__":
     # Calculate results
     volume_m3 = flt(form.GetVolume())
     v_m = volume_m3
-    v_ft = flt(volume_m3 / m3_per_ft3)
-    v_yd = flt(volume_m3 / (27 * m3_per_ft3))
+    v_ft = flt(volume_m3/m3_per_ft3)
+    v_yd = flt(volume_m3/(27*m3_per_ft3))
     # Print answer
     if problem == 1:  # Ready-mix
         print("For the concrete form of:")
@@ -453,14 +441,14 @@ if __name__ == "__main__":
             print("%s%s" % (indent, i))
         s = "{indent}Volume = {v_m} m3 = {v_ft} ft3 = {v_yd} yd3".format(**locals())
         print(s)
-        M_kg = flt(volume_m3 * premix_yield_kg_per_m3)
-        M_lb = flt(M_kg * lb_per_kg)
-        n_60, n_80 = str(M_lb / 60), str(M_lb / 80)
+        M_kg = flt(volume_m3*premix_yield_kg_per_m3)
+        M_lb = flt(M_kg*lb_per_kg)
+        n_60, n_80 = str(M_lb/60), str(M_lb/80)
         m_kg, m_lb = [str(i) for i in (M_kg, M_lb)]
-        w_L = flt(M_kg * water_L_per_kg_of_concrete)
+        w_L = flt(M_kg*water_L_per_kg_of_concrete)
         v_water_L = str(w_L)
-        v_water_gal = str(gal_per_L * w_L)
-        v_water_qt = str(gal_per_L * w_L * 4)
+        v_water_gal = str(gal_per_L*w_L)
+        v_water_qt = str(gal_per_L*w_L*4)
         print(f'''
     This is {m_kg} kg = {m_lb} lb of cured concrete.
     Water required is {v_water_L} liters = {v_water_gal} gal = {v_water_qt} qt
@@ -472,7 +460,7 @@ if __name__ == "__main__":
         print("%s%s" % (indent, form.name))
         for i in form.Characteristics():
             print("%s%s" % (indent, i))
-        v_sh = str(volume_m3 * shovel_per_m3)
+        v_sh = str(volume_m3*shovel_per_m3)
         print(
             dedent(f'''
         {indent}Volume of finished concrete
@@ -480,42 +468,42 @@ if __name__ == "__main__":
         ''')
         )
         wcmr = str(water_to_cement_mass_ratio)
-        v_mix_m3 = flt(volume_m3 * dry_components_factor)
-        v_cement_m3 = flt(v_mix_m3 * vol_ratio_cement)
-        v_sand_m3 = flt(v_mix_m3 * vol_ratio_sand)
-        v_gravel_m3 = flt(v_mix_m3 * vol_ratio_gravel)
+        v_mix_m3 = flt(volume_m3*dry_components_factor)
+        v_cement_m3 = flt(v_mix_m3*vol_ratio_cement)
+        v_sand_m3 = flt(v_mix_m3*vol_ratio_sand)
+        v_gravel_m3 = flt(v_mix_m3*vol_ratio_gravel)
         # Calculate the total mass of cured concrete
         k = flt(1000)  # Because sp gr is in g/cc
-        M_cement_kg = flt(k * v_mix_m3 * vol_ratio_cement * cement_specific_gravity)
-        M_sand_kg = flt(k * v_mix_m3 * vol_ratio_sand * sand_specific_gravity)
-        M_gravel_kg = flt(k * v_mix_m3 * vol_ratio_gravel * gravel_specific_gravity)
-        M_water_kg = flt(water_to_cement_mass_ratio * M_cement_kg)
+        M_cement_kg = flt(k*v_mix_m3*vol_ratio_cement*cement_specific_gravity)
+        M_sand_kg = flt(k*v_mix_m3*vol_ratio_sand*sand_specific_gravity)
+        M_gravel_kg = flt(k*v_mix_m3*vol_ratio_gravel*gravel_specific_gravity)
+        M_water_kg = flt(water_to_cement_mass_ratio*M_cement_kg)
         M_kg = flt(M_cement_kg + M_sand_kg + M_gravel_kg + M_water_kg)
-        M_lb = flt(M_kg * lb_per_kg)
+        M_lb = flt(M_kg*lb_per_kg)
         m_kg = str(M_kg)
         m_lb = str(M_lb)
         w_L = str(M_water_kg)
-        w_gal = str(M_water_kg * gal_per_L)
-        w_b = str(M_water_kg * gal_per_L / (5 * bucket_ratio))
+        w_gal = str(M_water_kg*gal_per_L)
+        w_b = str(M_water_kg*gal_per_L/(5*bucket_ratio))
         # Liters
-        c_L = str(k * v_mix_m3 * vol_ratio_cement)
-        s_L = str(k * v_mix_m3 * vol_ratio_sand)
-        g_L = str(k * v_mix_m3 * vol_ratio_gravel)
+        c_L = str(k*v_mix_m3*vol_ratio_cement)
+        s_L = str(k*v_mix_m3*vol_ratio_sand)
+        g_L = str(k*v_mix_m3*vol_ratio_gravel)
         # Cubic feet
         k = flt(35.3147)  # Converts m3 to ft3
-        c_ft3 = str(k * v_mix_m3 * vol_ratio_cement)
-        s_ft3 = str(k * v_mix_m3 * vol_ratio_sand)
-        g_ft3 = str(k * v_mix_m3 * vol_ratio_gravel)
+        c_ft3 = str(k*v_mix_m3*vol_ratio_cement)
+        s_ft3 = str(k*v_mix_m3*vol_ratio_sand)
+        g_ft3 = str(k*v_mix_m3*vol_ratio_gravel)
         # 5 gallon bucket
-        k = flt(264.172 / (5 * bucket_ratio))  # m3 to gal, then scaled by bucket volume
-        c_b = str(k * v_mix_m3 * vol_ratio_cement)
-        s_b = str(k * v_mix_m3 * vol_ratio_sand)
-        g_b = str(k * v_mix_m3 * vol_ratio_gravel)
+        k = flt(264.172/(5*bucket_ratio))  # m3 to gal, then scaled by bucket volume
+        c_b = str(k*v_mix_m3*vol_ratio_cement)
+        s_b = str(k*v_mix_m3*vol_ratio_sand)
+        g_b = str(k*v_mix_m3*vol_ratio_gravel)
         # #2 shovel
         k = flt(shovel_per_m3)
-        c_sh = str(k * v_mix_m3 * vol_ratio_cement)
-        s_sh = str(k * v_mix_m3 * vol_ratio_sand)
-        g_sh = str(k * v_mix_m3 * vol_ratio_gravel)
+        c_sh = str(k*v_mix_m3*vol_ratio_cement)
+        s_sh = str(k*v_mix_m3*vol_ratio_sand)
+        g_sh = str(k*v_mix_m3*vol_ratio_gravel)
         # Sums
         S_L = str(sum([flt(i) for i in (c_L, s_L, g_L)]))
         S_ft3 = str(sum([flt(i) for i in (c_ft3, s_ft3, g_ft3)]))

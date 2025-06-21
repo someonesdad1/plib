@@ -395,22 +395,19 @@ if 1:  # Parsing
                     return (x, unit)
                 return None
     def ParseUnitString(x, allowed_units, strict=True):
-        '''This routine will take a string x and return a tuple (prefix,
-        unit) where prefix is a power of ten gotten from the SI prefix
-        found in x and unit is one of the allowed_units strings.
-        allowed_units must be an iterable container.  Note things are
-        case-sensitive.  prefix will either be a float or an integer.
+        '''This routine will take a string x and return a tuple (prefix, unit) where
+        prefix is a power of ten gotten from the SI prefix found in x and unit is one of
+        the allowed_units strings.  allowed_units must be an iterable container.  Note
+        things are case-sensitive.  prefix will either be a float or an integer.
         
-        The typical use case is where ParseUnit() has been used to
-        separate a number and unit.  Then ParseUnitString() can be used to
-        parse the returned unit string to get the SI prefix actual unit
-        string.  Note parsing of composite units (such as m/s) must take
-        place outside this function.
+        The typical use case is where ParseUnit() has been used to separate a number and
+        unit.  Then ParseUnitString() can be used to parse the returned unit string to
+        get the SI prefix actual unit string.  Note parsing of composite units (such as
+        m/s) must take place outside this function.
         
-        If strict is True, then one of the strings in allowed_units must
-        be anchored at the right end of x.  If strict is False, then the
-        strings in allowed_units do not have to be present in x; in this
-        case, (1, "") will be returned.
+        If strict is True, then one of the strings in allowed_units must be anchored at
+        the right end of x.  If strict is False, then the strings in allowed_units do
+        not have to be present in x; in this case, (1, "") will be returned.
         '''
         # Define the allowed SI prefixes
         si = {
