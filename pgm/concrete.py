@@ -255,6 +255,7 @@ if 1:  # Classes for shapes
             self.diameter, self.diameter_orig = GetLength("Diameter of sphere? ")
             self.percent = GetNumber("Filled to percent of diameter? ", low=0, low_open=True,
                                      high=100, use_unit=False)
+            self.percent_orig = str(self.percent)
             self.how_many = GetNumber("How many of them? ", numtype=int, low=1, default=1, allow_quit=True)
         def Characteristics(self):
             return (
