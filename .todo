@@ -19,9 +19,6 @@
                   "liquid cooled heatsink" on Amazon)
         - Water-cooled heat sink
 
-    - pgm/concrete.py
-        - Broken; needs to update to color.py
-
     - Circular imports between util.py, f.py, color.py
         - See https://rollbar.com/blog/how-to-fix-circular-import-in-python/#, as it
           looks like a decent discussion
@@ -73,7 +70,7 @@
         - Read & parse my shell function files and search for matches to remind me of
           using
 
-    - dpdb.py
+https://www.youtube.com/watch?v=liw4rKC0PjU    - dpdb.py
         - When debugging, the return value string gets truncated with '...'.  This can
           be a pain when e.g. the return value is a ufloat, as you can't see the value.
           Make it use up the available width or see if a debugger option can be used to
