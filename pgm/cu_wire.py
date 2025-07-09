@@ -46,6 +46,7 @@ if 1:  # Header
         from u import u, ParseUnit
         from f import flt, ceil
         from dpprint import PP
+        import termtables as tt
         pp = PP()   # Get pprint with current screen width
         if 0:
             import debug
@@ -407,13 +408,14 @@ if 1:  # Utility
         d["-r"] = False  # Include resistivities
         d["-t"] = False  # Print equivalence table
         d["-v"] = False  # Print voltage drop table
+        d["-V"] = False  # Print voltage drop table for silicone wire
         try:
-            optlist, args = getopt.getopt(sys.argv[1:], "aCceFfhHrtv")
+            optlist, args = getopt.getopt(sys.argv[1:], "aCceFfhHrtvV")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in optlist:
-            if o[1] in list("aCceFfrtv"):
+            if o[1] in list("aCceFfrtvV"):
                 d[o] = not d[o]
             elif o == "-h":
                 Usage(status=0)
@@ -456,7 +458,8 @@ if 1:  # Utility
             -H  Print detailed help message
             -r  Include resistivities in output
             -t  Show table for big wire equivalents
-            -v  Show voltage drop table
+            -V  Show voltage drop table
+            -v  Show voltage drop table for silicone wire
         '''[1:-1]))
         exit(status)
 if 1:  # Core functionality
@@ -489,7 +492,7 @@ if 1:  # Core functionality
         )
         w, indent, o = 14, " "*4, []
         t.rel = t("sky")
-        print(f"\nResistivities in nΩ·m @ 20 °C   {t.rel}[Rel. to Cu]{t.n}")
+        print(f"\nResistivities in nΩ·m @ 20 °C   {t.rel}[Relative to Cu]{t.n}")
         cu = flt(17.241)
         with cu:
             cu.N = 3
@@ -970,24 +973,23 @@ if 1:  # Core functionality
         "Cuddled eng string"
         return Strip(fp.engsic(x))
     def PrintTable(n, m, step=1, others=[]):
-        "Print the copper wire table from AWG n to m in the indicated steps"
+        'Print the copper wire table from AWG n to m in the indicated steps'
         if 0:
-            print(
-                dedent(f'''
+            print(dedent(f'''
                     Diameter    Res/length    Length/mass  Area     Amps     Freq  Break
              AWG  mils    mm    Ω/ft    Ω/m   ft/lb   m/kg  mm²  Chass  Pwr   kHz   lbf
             ----  ----- ------ ------  -----  -----  ----- ----- ----- ----- ----- -----
-            ''')[:-1].replace("!", " ")
-            )
+            ''')[:-1].replace("!", " "))
         else:
-            print(f"Copper wire table (annealed copper)")
-            print(
-                dedent(f'''
+            t.print(f"{t.ornl}Copper wire table (annealed copper)")
+            print(f"    For 90 °C insulation rating and about 30 °C ambient")
+            print(f"    About 30 °C ambient (86 °F, 303 K)")
+            print()
+            print(dedent(f'''
                                                         Chass      j
             AWG    ∅ mm      Ω/m     m/kg       mm²       A      A/mm²
             ---    ----     -----    ----      -----    -----    -----
-            ''')
-            )
+            '''))
         sizes = sorted(set(list(range(n, m, step)) + others))
         for n in sizes:
             PrintLine(n)
@@ -1238,10 +1240,12 @@ if 1:  # Core functionality
                 mm = round(AWG(n) * 25.4, 3)
                 print(mm, intercept[n])
             exit()
-    def PrintVoltageDropTable():
+    def VoltageDropTable():
         w, wc = 79, 6
-        print(f"{'Voltage Drop Table for Copper Wire':^{w}s}")
-        print(f"{'Drop in mV/m for given % of chassis current in A':^{w}s}\n")
+        print(f"{t.ornl}{'Voltage Drop Table for Copper Wire':^{w}s}{t.n}")
+        print(f"{'Drop in mV/m for given % of chassis current in A':^{w}s}")
+        print(f"{'Note:  insulation rating about 90 °C':^{w}s}")
+        print(f"{'Use -v option for silicone wire':^{w}s}\n")
         print(f"AWG    Chass ", end="")
         pct = (5, 10, 20, 30, 40, 50, 60, 80, 100)
         for p in pct:
@@ -1273,6 +1277,53 @@ if 1:  # Core functionality
             if n in popular_sizes and not d["-C"]:
                 print(f"{t.n}", end="")
             print()
+    def VoltageDropTableSilicone():
+        'Print the voltage drop table for silicone wire'
+        w = 85
+        t.print(f"{t.ornl}{'Voltage Drop Table for Copper Wire with Silicone Insulation':^{w}s}")
+        print(f"{'Drop in mV/m for given % of chassis current in A':^{w}s}")
+        print(f"{'Ambient temperature about 30 °C or 86 °F':^{w}s}")
+        data = (
+            # AWG, dia_mm, mΩ/m, Chassis current in A
+            (0, 8.25, 0.322, 449),
+            (2, 6.54, 0.513, 333),
+            (4, 5.19, 0.815, 248),
+            (6, 4.11, 1.3, 181),
+            (8, 3.26, 2.06, 134),
+            (10, 2.59, 3.28, 87.2),
+            (12, 2.05, 5.21, 66.6),
+            (14, 1.63, 8.28, 49.9),
+            (16, 1.29, 13.2, 36.6),
+            (18, 1.02, 21, 31.8),
+            (20, 0.813, 33.2, 23.6),
+            (22, 0.643, 53.2, 17.6),
+            (24, 0.511, 84.2, 13.5),
+        )
+        pct = (10, 20, 30, 40, 50, 60, 70, 80, 90, 100)
+        x = flt(0)
+        x.rtz = False
+        # Thin double termtables style
+        header = "AWG mm mΩ/m Chass 10% 20% 30% 40% 50% 60% 70% 80% 90% 100%".split()
+        header = [f" {i} " for i in header]
+        C = {6: t.lipl, 10: t.yell, 12: t.grnl, 16: t.ornl}
+        o = []
+        for awg, dia_mm, res, i_chass in data:
+            clr = C[awg] if awg in C else ""
+            q = []
+            q.append(f"{clr}{awg:2d} ")
+            with x:
+                x.N = 2
+                q.append(f"{clr}{flt(dia_mm)}{t.n}")
+                q.append(f"{clr}{flt(res)}{t.n} ")
+                q.append(f"{clr}{flt(i_chass)}{t.n} ")
+            for p in pct:
+                i = p/100*i_chass   # Current in A
+                V = int(i*res)      # Voltage drop per m in mV
+                q.append(f"{clr}{V}{t.n} ")
+            o.append(q)
+        # Print the table
+        L = len(header)
+        tt.print(o, header=header, padding=(0, 0), style=tt.styles.thin_double, alignment="r"*L)
 
 if __name__ == "__main__":
     d = {}  # Options dictionary
@@ -1291,8 +1342,10 @@ if __name__ == "__main__":
         PrintTable(-3, 25, step=1)
     elif d["-t"]:
         PrintBigTable()
+    elif d["-V"]:
+        VoltageDropTable()
     elif d["-v"]:
-        PrintVoltageDropTable()
+        VoltageDropTableSilicone()
     else:
         if args:
             if args[0] == "a":

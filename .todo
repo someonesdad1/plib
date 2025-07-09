@@ -5,7 +5,23 @@
         - Example:  The license.txt uses text content I downloaded in 2021.  Alas, you
           can get the same file from the website, but it's not a plain text file, so
           they won't compare directly.
-        - 'diff -w'
+        - 'diff -w' partially works
+        - A heuristic that could provide a guide
+            - ASCIIfy the text
+            - Change all punctuation to space characters except '.', "'", and '-'
+            - Change all whitespace to space characters
+            - Use dpstr.Tokenize to get a bunch of words
+            - Remove all space characters
+            - Contractions https://editorsmanual.com/
+                - don’t didn’t isn’t wasn’t aren’t weren’t hasn’t haven’t hadn’t can’t
+                  couldn’t shan’t shouldn’t won’t wouldn’t mightn’t mustn’t oughtn’t
+                  needn’t could’ve should’ve would’ve might’ve must’ve I’m you’re she’s
+                  he’s it’s we’re they’re I’ve you’ve we’ve they’ve I’ll you’ll he’ll
+                  she’ll it’ll we’ll they’ll I’d you’d she’d he’d it’d we’d they’d
+                  that’s that’ve that’d which’ve who’s who’re who’ve who’d who’ll what’s
+                  what’re what’ll where’s where’d when’s why’s why’d how’s here’s
+                  there’s there’ll there’d someone’s somebody’s one’s nobody’s
+                 something’s nothing’s let’s ma’am o’clock 'tis
 
     - pgm/fet_current.py
         - Script to model the current you can realistically get from a MOSFET
@@ -17,7 +33,13 @@
               current limit with different heat sinks.
                 - You can get a water-cooled aluminum heat sink for $15 or so (search
                   "liquid cooled heatsink" on Amazon)
-        - Water-cooled heat sink
+        - The output should be maximum continuous current (given ambient temperature and
+          allowed silicon temperature) at following conditions
+            - No heat sink 
+            - Passive heat sink with estimated thermal resistance
+            - Water-cooled heat sink
+        - In fact, the output could be a table of current for a representative set of
+          thermal resistances
 
     - Circular imports between util.py, f.py, color.py
         - See https://rollbar.com/blog/how-to-fix-circular-import-in-python/#, as it
@@ -45,8 +67,10 @@
             - Fix up chromaticity directory's stuff
         - TRM needs a way to ensure all attribute access returns "" when .on is False.
             - https://realpython.com/python-getter-setter/
-            - Probably the easiest way is to use __getattr__ and __setattr__ in the above web
-              page's example of a point
+            - https://stackoverflow.com/questions/11637293/iterate-over-object-attributes-in-python
+              (see answer by Nathan) Use vars() to get all the attributes of an instance
+              (methods are ignored).  The known used ones are ignored; all the others
+              that are strings should be set to "".
         - Add support to /plib/g/g.py
         - Use "grep -l '\<fg\>' *.py" to identify all files in /plib tree that use the old style
           color.py calls and update them to the modern form.
@@ -70,7 +94,7 @@
         - Read & parse my shell function files and search for matches to remind me of
           using
 
-https://www.youtube.com/watch?v=liw4rKC0PjU    - dpdb.py
+    - dpdb.py
         - When debugging, the return value string gets truncated with '...'.  This can
           be a pain when e.g. the return value is a ufloat, as you can't see the value.
           Make it use up the available width or see if a debugger option can be used to
@@ -314,14 +338,6 @@ https://www.youtube.com/watch?v=liw4rKC0PjU    - dpdb.py
     - pgm/goto.py
         - Add -o option that opens Explorer on a selection's directory.  Use case:  'g -o hp' would
           open Explorer on the HP catalog directory.
-
-    - diet
-        - Hacker's diet is sound, but too wordy.  I also don't care to use spreadsheets.  However,
-          the moving average plot of weight is a good idea and this would likely best be done by
-          using standard control chart techniques.
-        - Write a script that collects the weight data, then prints out relevant control details.
-          It can also include graphs, but I suspect the simple text report will be all that's
-          needed.
 
     - units
         - GNU units is a good program, but I don't care for its command line interface.  Turn it

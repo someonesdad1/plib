@@ -1,5 +1,5 @@
 #!/usr/bin/python
-"""TODO
+'''TODO
     - Feb  5 2024:  'ls --color=always | columnize.py' doesn't work right
       in /plib
     - Columnize(['a'], indent=" "*4) has an exception
@@ -8,13 +8,12 @@
       continue, as it often breaks some application and you can't see your
       output.  Typical message is "ValueError: Cannot fit longest string
       (118 characters) on screen"
-
+      
 Function to turn a sequence into columns
 
 Run the module as a script to columnize stdin.  Use -h to get a usage
 statement.
-"""
-
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -35,60 +34,58 @@ if 1:  # Header
         import re
     if 1:  # Custom imports
         from dpprint import PP
-
         pp = PP()  # COLUMNS-aware version of pprint.pprint
 if 1:  # Core functionality
-
     def Columnize(seq, **kw):
-        """Returns a list of strings with the elements of the sequence seq
+        '''Returns a list of strings with the elements of the sequence seq
         (if components are not strings, they will be converted to strings
         using str) formatted in columnar format.  Elements of seq that
         won't fit in a column either generate an exception if trunc is
         False or get truncated if trunc is True.
-
+        
         The keyword arguments are (default values are in square brackets):
-
+        
         align  [left]   How to align the string in each column.  Can be
                         "left" or "<", "center" or "^", or "right" or ">".
-
+                        
         col_width [0]   Specify the column width to use.  If nonzero, then
                         this overrides the calculation of the column width.
-
+                        
         columns [0]     Number of columns to format the strings into.  If
                         it's zero, it will be figured out from the length
                         of the largest string and the screen width.
-
+                        
         debug           If True, print out debug information.
-
+        
         esc [True]      Strip out ANSI escape sequences when calculating string
                         lengths.  This allows you to display colored text in
                         columns.
-
+                        
         horiz   [False] If True, the sequence is listed from
                         left-to-right; the default is top-to-bottom.  The
                         "shape" of both outputs will be the same.
-
-
+                        
+                        
         indent [None]   If defined, then it is a string to prepend to each
                         line.
-
+                        
         sep     [" "]   String to use to separate columns.
-
+        
         to_string [False]  If true, convert the array that would be
                         returned to a single string with the rows
                         separated by newlines.
-
+                        
         trunc   [False] If True, truncate a string to get it to fit into a
                         column.  If False, an exception is raised if a
                         string is too long for a column.
-
+                        
         width   [0]     Specify the width of the screen.  If it's zero,
                         then get it from the COLUMNS environment variable
                         if it exists; if it doesn't exist, use 79.  If
                         columns is given instead, then width is set to
                         accommodate the desired output.
-        """
-        """
+        '''
+        '''
         Implementation details:  the formatting of the left-to-right
         format is straightforward.  The top-to-bottom format is a little
         more difficult.  Here's an example that shows how the algorithm
@@ -109,15 +106,15 @@ if 1:  # Core functionality
         Finally, in the iteration loop, we need to use a correction factor
         for when we append the empty string for the gap rather than a
         sequence element.
-        """
+        '''
         if not seq:
             return [""]
         # Check keywords
         allowed = set(
             (
-                """
+                '''
             align col_width columns debug esc horiz ignore indent sep
-            to_string trunc width""".split()
+            to_string trunc width'''.split()
             )
         )
         for k in kw:
@@ -147,7 +144,6 @@ if 1:  # Core functionality
         if esc:
             # Regular expression to recognize ANSI escape sequences
             r = re.compile(r"(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]")
-
             def Len(s):
                 "Returns the length of a string s after removing the escape sequences"
                 # This is same as Len in util.py, but avoids a circular import
@@ -277,21 +273,17 @@ if 1:  # Core functionality
         if to_string:
             s = "\n".join(s)
         return s
-
-
 if __name__ == "__main__":
     # Running as a script provides a utility similar to pr.
     import sys
     import getopt
     from wrap import dedent
     from lwtest import run, assert_equal, raises, Assert
-
     requested_columns = 0
     column_width = 0
     alignment = "left"
     separator = " "
     truncate = False
-
     def TestBasicBehavior():
         strings = ["12345678"] * 30
         result = Columnize(strings, width=80, col_width=9)
@@ -301,13 +293,12 @@ if __name__ == "__main__":
         expected = [row] * 3 + ["".join(e * 6).rstrip()]
         # Check they're the same
         Assert(result == expected)
-
     def TestHoriz():
         seq = [str(i) for i in range(32)]
         result = Columnize(seq, width=20, columns=4, horiz=False)
         expected = [
             i.lstrip()
-            for i in """
+            for i in '''
             0    8    16   24
             1    9    17   25
             2    10   18   26
@@ -315,11 +306,11 @@ if __name__ == "__main__":
             4    12   20   28
             5    13   21   29
             6    14   22   30
-            7    15   23   31"""[1:].split("\n")
+            7    15   23   31'''[1:].split("\n")
         ]
         Assert(result == expected)
         result = Columnize(seq, width=20, columns=4, horiz=True)
-        s = """
+        s = '''
             0    1    2    3
             4    5    6    7
             8    9    10   11
@@ -327,7 +318,7 @@ if __name__ == "__main__":
             16   17   18   19
             20   21   22   23
             24   25   26   27
-            28   29   30   31"""[1:]
+            28   29   30   31'''[1:]
         expected = [i.lstrip() for i in s.split("\n")]
         Assert(result == expected)
         # Now check that we can use the to_string keyword to get a string
@@ -336,57 +327,52 @@ if __name__ == "__main__":
             seq, width=20, columns=4, horiz=True, to_string=True
         )
         Assert(string == "\n".join(expected))
-
     def TestIdentityXfm():
         seq = [str(i) for i in range(12)]
         result = Columnize(seq, ignore=True)
         Assert(seq == result)
-
     def TestSeparator():
         seq = [str(i) for i in range(12)]
         result = Columnize(seq, width=12, columns=4, sep="|")
         expected = [
             i.lstrip()
-            for i in """
+            for i in '''
             0 |3 |6 |9
             1 |4 |7 |10
-            2 |5 |8 |11"""[1:].split("\n")
+            2 |5 |8 |11'''[1:].split("\n")
         ]
         Assert(result == expected)
-
     def TestIndent():
         seq = [str(i) for i in range(12)]
         result = Columnize(seq, width=18, columns=4, indent="yyy")
         expected = [
             i.lstrip()
-            for i in """
+            for i in '''
             yyy0   3   6   9
             yyy1   4   7   10
-            yyy2   5   8   11"""[1:].split("\n")
+            yyy2   5   8   11'''[1:].split("\n")
         ]
         Assert(result == expected)
-
     def TestTruncation():
         seq = [str(i) for i in range(12)]
         result = Columnize(seq, col_width=1, columns=4, trunc=True)
         expected = [
             i.lstrip()
-            for i in """
+            for i in '''
             0 3 6 9
             1 4 7 1
-            2 5 8 1"""[1:].split("\n")
+            2 5 8 1'''[1:].split("\n")
         ]
         Assert(result == expected)
-
     def TestAlignment():
         seq = [str(i) for i in range(12)]
         result = Columnize(seq, col_width=10, columns=4, sep="|")
         expected = [
             i.lstrip()
-            for i in """
+            for i in '''
             0         |3         |6         |9
             1         |4         |7         |10
-            2         |5         |8         |11"""[1:].split("\n")
+            2         |5         |8         |11'''[1:].split("\n")
         ]
         Assert(result == expected)
         # Show this is the same as left alignment
@@ -408,10 +394,10 @@ if __name__ == "__main__":
         result = Columnize(seq, col_width=10, columns=4, sep="|", align=">")
         expected = [
             i
-            for i in """
+            for i in '''
             0|         3|         6|         9
             1|         4|         7|        10
-            2|         5|         8|        11"""[1:].split("\n")
+            2|         5|         8|        11'''[1:].split("\n")
         ]
         expected = [
             "         0|         3|         6|         9",
@@ -421,11 +407,10 @@ if __name__ == "__main__":
         Assert(result == expected)
         result = Columnize(seq, col_width=10, columns=4, sep="|", align="right")
         Assert(result == expected)
-
     def Usage(status=1):
         name = sys.argv[0]
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {name} [options] [file1 ...]
           Prints in columns.  The number of columns is made a maximum to fit
           into the current screen width given in the COLUMNS environment
@@ -454,10 +439,9 @@ if __name__ == "__main__":
                 Truncate each string if needed to fit into the column width.
             -w n
                 Set the column width.
-        """)
+        ''')
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = "left"  # Alignment
         d["-c"] = 0  # Requested number of columns
@@ -499,7 +483,6 @@ if __name__ == "__main__":
             elif o == "-w":
                 d["-w"] = abs(int(a))
         return args
-
     def GetInput(files):
         if not files:
             lines = [i.rstrip() for i in sys.stdin.readlines()]
@@ -508,19 +491,18 @@ if __name__ == "__main__":
             for file in files:
                 lines += [i.rstrip() for i in open(file).readlines()]
         return lines
-
     def Fit(lines, d):
-        """Find out how many LINES and COLUMNS we have for the screen.
+        '''Find out how many LINES and COLUMNS we have for the screen.
         Then adjust the parameters to Columnize to get the lines to
         fit on the screen; truncate as necessary.
-
+        
         The basic task will be to get the resulting lines of the
         output to fit into LINES - 3 lines, as I use a prompt of 2
         lines (this lets me see an empty line at top, so that I know
         something hasn't scrolled off screen).  The canonical example
         of use of this feature is to get a long ls listing to fit on
         the screen.
-        """
+        '''
         separator = " "
         width = int(os.environ["COLUMNS"]) - 1
         length = int(os.environ["LINES"]) - 2
@@ -549,7 +531,6 @@ if __name__ == "__main__":
         for i in s:
             print(i)
         exit(0)
-
     d = {}
     files = ParseCommandLine(d)
     if d["--test"]:

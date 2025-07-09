@@ -366,6 +366,7 @@ if 1:  # Getting numbers
             
             low         Lowest allowed value.  [None]
             
+            high        Highest allowed value.  [None]
             
             low_open    Boolean; if True, then the low end of the acceptance interval is open.
                         [False]

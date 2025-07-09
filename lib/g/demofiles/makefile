@@ -1,6 +1,5 @@
 # Makefile to construct the examples in the output directory.  You'll
-# want to have the g.py et. al. files in your PYTHONPATH.  The PYTHON
-# environment variable is used to get to the executable.
+# want to have the g.py et. al. files in your PYTHONPATH.
 
 files = \
 	out/4x6_card.ps \
@@ -43,31 +42,31 @@ files = \
 	out/white.ps
 all:  $(files)
 out/%.ps: %.py
-	$(PYTHON) $<
+	python $<
 out/center_contrast1.ps: center_contrast.py
-	$(PYTHON) $<
+	python $<
 out/center_contrast2.ps: center_contrast.py
-	$(PYTHON) $<
+	python $<
 out/color_by_color.ps: color_tables.py
-	$(PYTHON) $<
+	python $<
 out/color_by_name.ps: color_tables.py
-	$(PYTHON) $<
+	python $<
 out/eng_grid1_1.ps: eng_grid.py
-	$(PYTHON) $<
+	python $<
 out/eng_grid1_2.ps: eng_grid.py
-	$(PYTHON) $<
+	python $<
 out/eng_grid1_3.ps: eng_grid.py
-	$(PYTHON) $<
+	python $<
 out/eng_grid2_2.ps: eng_grid.py
-	$(PYTHON) $<
+	python $<
 out/eng_grid2_3.ps: eng_grid.py
-	$(PYTHON) $<
+	python $<
 out/eng_grid21.ps: eng_grid.py
-	$(PYTHON) $<
+	python $<
 out/font_gallery1.ps: font_gallery.py
-	$(PYTHON) $<
+	python $<
 out/font_gallery2.ps: font_gallery.py
-	$(PYTHON) $<
+	python $<
 clean:
 	rm -f $(files)
 # vim: noet

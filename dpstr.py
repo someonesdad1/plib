@@ -863,8 +863,8 @@ if 1:  # Core functionality
                     word = []
                 out.append(c)
         if word:
-            out.append("".join(word))
-        if check and "".join(out) != s:
+            out.append(''.join(word))
+        if check and ''.join(out) != s:
             raise ValueError("Invariant s == ''.join(out) is not True")
         return out
     def GetLeadingChars(s, chars=None):
