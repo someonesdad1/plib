@@ -1,7 +1,6 @@
-"""
+'''
 Recursive grep
-"""
-
+'''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
@@ -31,18 +30,14 @@ if 1:  # Custom imports
     from wrap import dedent, wrap
     from color import t as T, RegexpDecorate
     from lwtest import run, raises, assert_equal, Assert
-
     if 0:
         import debug
-
         debug.SetDebugger()
 if 1:  # Global variables
     P = pathlib.Path
     ii = isinstance
-
     class g:  # Global variable container
         pass
-
     # If stdout is a TTY
     g.istty = sys.stdout.isatty()
     # Identify when we're on a Windows file system
@@ -58,23 +53,20 @@ if 1:  # Global variables
     g.debug = False
     # Regex decorator
     g.rd = RegexpDecorate()
-
-
 def EnableColor(state=0):
-    """state is 0, 1 or 2.  If 0, color is enabled when stdout is a TTY.
+    '''state is 0, 1 or 2.  If 0, color is enabled when stdout is a TTY.
     If 1, color is enabled for all output.  If 2, color is disabled.
-    """
+    '''
     if 0:  # Old color stuff
         C = color.C
         S = color.Style(color.lred, color.black)
         g.PrintMatch = partial(color.PrintMatch, style=S)
     else:
-
         def Decorate(line, mo):
-            """mo will either be a match object with a compiled regexp or a
+            '''mo will either be a match object with a compiled regexp or a
             string if d['-t'] is True.  Make sure the g.rd object has this
             regex/string's signature in its style dict.
-            """
+            '''
             fg, bg = T("yell"), T.n
             if ii(mo, str):
                 g.rd.register(re.compile(mo), fg, bg)
@@ -85,24 +77,18 @@ def EnableColor(state=0):
                 g.rd(line + "\n")
             else:
                 g.rd(line)
-
         g.PrintMatch = Decorate
     if state == 0:  # Color if stdout is a TTY
-
         def f(x):
             return x if g.istty else ""
-
         if not g.istty:
             g.PrintMatch = lambda x, y: print(x)
     elif state == 1:  # Color always
-
         def f(x):
             return x
     elif state == 2:  # Color off
-
         def f(x):
             return ""
-
         g.PrintMatch = lambda x, y: print(x)
     else:
         raise ValueError("Programming bug:  state has bad value")
@@ -113,13 +99,9 @@ def EnableColor(state=0):
     g.ba = f(T("blk"))  # Background color
     g.dbg = f(T("cyn"))  # Debug information color
     g.n = f(T.n)  # Normal printing
-
-
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
-
-
 def Debug(*m, **kw):
     "Print colored debug information"
     if not g.debug:
@@ -128,14 +110,9 @@ def Debug(*m, **kw):
     m = list(m)
     m.append(f"{g.n}")
     print(*m, **kw)
-
-
 def Manpage():
     pgm = f"python {g.name}"
-    print(
-        dedent(
-            f"""
- 
+    print(dedent(f'''
     Simplest use case
  
       You are probably familiar with the grep tool, which searches for matches
@@ -166,7 +143,7 @@ def Manpage():
       *.py').
  
       If you search text files with a particular set of extensions frequently,
-      it's easy to add a new option to {name} that will search for files with
+      it's easy to add a new option to {g.name} that will search for files with
       those extensions:  modify the patterns variable in GetFileList() (it
       holds the relevant glob patterns) and add the option in
       ParseCommandLine().  This is useful in software projects where you work
@@ -243,7 +220,7 @@ def Manpage():
       file systems like Windows, where x.cpp, x.Cpp, x.cPp, etc. can all refer
       to the same file, which is handled by compiling the regular expressions
       to ignore case.  The rglob() command has no option to ignore case.
-
+      
       The -e option with nothing else prints a list of files that would be
       searched.  If you invoke it with the arguments '-eVh .', you should get
       essentially the same output you'd get with a 'find . -type f' command
@@ -283,17 +260,11 @@ def Manpage():
         Depends on what files you created.
       {g.pgm} -l xyzzy      # Lists no files, as 'xyzzy' not in any
       {g.pgm} -L xyzzy      # Lists all files, as 'xyzzy' not in any
- 
-    """,
-            n=4,
-        )
-    )
+    '''))
     exit(0)
-
-
 def Usage(d, status=1):
     print(
-        dedent(f"""
+        dedent(f'''
     {g.name} [options] regexp [dir1 [dir2 ...]]
       Recursively searches the indicated directories for files with
       content that match the given regexp.  If no directories are given,
@@ -318,11 +289,9 @@ def Usage(d, status=1):
       -V          Include revision control directories in search
       -v          Invert the sense of matching to show non-matching lines
       -x regexp + Ignore these matches to the file names
-      """)
+      ''')
     )
     exit(status)
-
-
 def ParseCommandLine(d):
     d["-C"] = 0  # Don't use color
     d["-c"] = False  # Find C/C++ source files
@@ -380,10 +349,8 @@ def ParseCommandLine(d):
         g.debug = True
     Debug(f"Command line: '{sys.argv}'")
     return args
-
-
 def GetRegexp(regexp):
-    """regexp is the string that was passed on the command line."""
+    '''regexp is the string that was passed on the command line.'''
     regexps = []
     if d["-f"]:
         # Regular expressions are in a set of files
@@ -410,25 +377,21 @@ def GetRegexp(regexp):
         else:
             regexps = [re.compile(regexp)]
     return regexps
-
-
 def IsHidden(head, tail):
-    """If the components of head or tail are hidden, return True.  Note we
+    '''If the components of head or tail are hidden, return True.  Note we
     assume directory paths are separated by '/' characters.  head is a
     directory entry and tail is a file name.
-    """
+    '''
     if tail.startswith("."):
         return True
     for dir in head.split("/"):
         if dir.startswith(".") and dir != "." and dir != "..":
             return True
     return False
-
-
 def FilterRegexps(files, d):
-    """Use the command line options to filter the files and directories to
+    '''Use the command line options to filter the files and directories to
     get the list of files to process.
-    """
+    '''
     dregexps = [re.compile(i) for i in d["-d"]]
     xregexps = [re.compile(i) for i in d["-x"]]
     # Filter out the files and directories we don't want
@@ -462,38 +425,30 @@ def FilterRegexps(files, d):
                     break
         files = keep
     return files
-
-
 def PrintFilesToBeSearched():
     "Print the files to stdout and exit"
     for i in d["files"]:
         print(i)
     exit(0)
-
-
 def LineMatch(line, regexps):
-    """Return a list of the match objects if there are one or more matches
+    '''Return a list of the match objects if there are one or more matches
     with the regexps.  Return an empty list for no matches.
-    """
+    '''
     mo_list = []
     for r in regexps:
         mo = r.search(line)
         if mo:
             mo_list.append(mo)
     return mo_list
-
-
 def StripCurrDir(s):
     assert ii(s, P)
     t = str(s)
     t = t[2:] if t.startswith("./") else t
     return P(t)
-
-
 def ListFiles():
-    """This lists the files that have (d["-l"]) or don't have (d["-L"]) the
+    '''This lists the files that have (d["-l"]) or don't have (d["-L"]) the
     regexps to search for.
-    """
+    '''
     if d["-l"]:
         # List files that match one or more the regexps
         matches = []  # Store (file, match_count)
@@ -534,19 +489,15 @@ def ListFiles():
                 continue
     else:
         raise Exception("Programming error")
-
-
 def RmLinefeed(line):
     while line and line[-1] == "\n":
         line = line[:-1]
     return line
-
-
 def GetAllFiles():
-    """Return a deque of all the files to search.  The -d option will contain
+    '''Return a deque of all the files to search.  The -d option will contain
     a list of regexps for directories to ignore, so every file has to be run
     by these regexps.
-    """
+    '''
     files = deque()
     for dir in d["dirs"]:
         p = P(dir)
@@ -559,8 +510,6 @@ def GetAllFiles():
     # Remove any './' from the front of the files
     files = deque([StripCurrDir(i) for i in files])
     return files
-
-
 def CompileRegularExpressions():
     "Compile regular expressions for options"
     d["-d"] = [re.compile(i, g.I) for i in d["-d"]]
@@ -568,10 +517,8 @@ def CompileRegularExpressions():
     d["-x"] = [re.compile(i, g.I) for i in d["-x"]]
     if d["-f"]:
         r = open(d["-f"]).read().split("\n")
-
         def f(x):
             return x if d["-F"] else x.strip()
-
         d["cmd_regexps"] = [re.compile(f(i), g.I) for i in r]
     # Python files
     d["python_regexps"] = [re.compile(r"\.py$", re.I)]
@@ -583,14 +530,12 @@ def CompileRegularExpressions():
         re.compile(r"\.hpp$", re.I),
         re.compile(r"\.ino$", re.I),
     ]
-
-
 def Remove(files, regexps, dir=False):
-    """For the deque files, remove those elements that are matched by any
+    '''For the deque files, remove those elements that are matched by any
     regex in regexps.  Return a deque of the remaining files.  If dir is
     True, search on the directory component; otherwise, just search on the
     file name.
-    """
+    '''
     assert ii(files, deque)
     out = deque()
     while files:
@@ -606,13 +551,11 @@ def Remove(files, regexps, dir=False):
         if keep_this_file:
             out.append(file)
     return out
-
-
 def Keep(files, regexps):
-    """For the deque files, keep those elements that are matched by any
+    '''For the deque files, keep those elements that are matched by any
     regex in regexps.  Return a deque of the matched files.  Unlike Remove(),
     only the name part of the path is compared to the regexp.
-    """
+    '''
     assert ii(files, deque)
     out = deque()
     while files:
@@ -628,17 +571,13 @@ def Keep(files, regexps):
         if keep_this_file:
             out.append(file)
     return out
-
-
 def FilterFiles():
-    """Remove files from d["files"] that aren't germane to the search."""
-
+    '''Remove files from d["files"] that aren't germane to the search.'''
     def Dump(msg):
         if g.debug:
             Debug(msg)
             for line in Columnize([str(i) for i in d["files"]], indent=" " * 2):
                 Debug(f"  {str(line)}")
-
     assert ii(d["files"], deque)
     Dump("Original list of files:")
     # -g files to keep
@@ -677,12 +616,10 @@ def FilterFiles():
         Debug("List of files after filtering:")
         for line in Columnize([str(i) for i in d["files"]], indent=" " * 2):
             Debug(f"  {str(line)}")
-
-
 def Search():
-    """For the given regexps, find matching text lines in the indicated
+    '''For the given regexps, find matching text lines in the indicated
     files.
-    """
+    '''
     # The results list will contain (file, lineno, line, match_object) for
     # regex searches or (file, lineno, line, matched_string) for -t plain
     # text searches.
@@ -753,8 +690,6 @@ def Search():
                         print(f"{line}")
                     else:
                         g.PrintMatch(line, mo if d["-t"] else mo.re)
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     EnableColor()

@@ -159,8 +159,7 @@ if 1:  # Core functionality
             # The following abbreviations can also be words that end
             # a sentence; you can exclude them if you wish by setting the
             # keyword full to False.
-            s = set(
-                '''
+            s = set('''
                     
                 add. admin. am. ann. art. bull. class. conn. dim. fig.
                 math. mod. no. off. pa. pass. path. pop. sept. sing. west.
