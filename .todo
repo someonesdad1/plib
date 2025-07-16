@@ -1,5 +1,15 @@
 /plib/.todo
 
+    - pgm/draintank.py
+        - Add the inverse problem:  given an orifice diameter and height, calculate the
+          volume of the tank if you know the time it takes to drain.
+
+    - pgm/bucket.py
+        - Output units
+            - If user chooses default rounding, he gets
+                - If output units are mm, round to nearest mm
+                - If output units are inches, round to nearest 0.05 inches
+
     - Need a text comparing tool that mostly ignores whitespace.
         - tcmp.py or cmpt.py
         - Example:  The license.txt uses text content I downloaded in 2021.  Alas, you
@@ -21,7 +31,7 @@
                   that’s that’ve that’d which’ve who’s who’re who’ve who’d who’ll what’s
                   what’re what’ll where’s where’d when’s why’s why’d how’s here’s
                   there’s there’ll there’d someone’s somebody’s one’s nobody’s
-                 something’s nothing’s let’s ma’am o’clock 'tis
+                  something’s nothing’s let’s ma’am o’clock 'tis
 
     - pgm/fet_current.py
         - Script to model the current you can realistically get from a MOSFET
@@ -192,11 +202,12 @@
         - Probably the single most significant meme I've found useful in a lifetime of
           troubleshooting is "there's a unique physical cause of this problem you're
           seeing".  
-            - This notion is useful in the context of a group of humans with a
-              variety of experiences trying to quickly find/fix a problem.  Less
-              technical or experienced people can generate wacky or multiple-cause
-              suggestions and can cause a waste of precious resources, so core needs
-              are objectivity, experience, and good leadership.
+            - This notion is useful in the context of a group of humans with a variety
+              of experiences trying to quickly find/fix a problem.  Less technical or
+              experienced people can generate wacky or multiple-cause suggestions and
+              can cause a waste of precious resources, so core needs are objectivity,
+              experience, being driven from carefully-collected data, and good
+              leadership.
             - Other methods are things that provide contrast, temporal coincidence,
               is/is not characteristics, polling the experts/web, using knowledge to
               rule things out (but can be dangerous and make you overlook something)

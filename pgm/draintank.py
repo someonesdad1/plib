@@ -1,8 +1,20 @@
-"""
+'''
+
+ToDo
+    - Problems to add
+        - Inverse problem:  given an orifice diameter and height, calculate the volume
+          of the tank if you know the time it takes to drain.
+        - Tapered tank that's a frustum of a rectangular pyramid (practical example is
+          the water tank in our RV trailer)
+        - Pyramid whose cross section is a Regular polygon 
+        - Include a taper for the sides of a frustum
+        - These more general problems should be pretty easy to compute with numpy
+          methods without having to do the symbolic integrations of the equations
+
+
 Time to drain a tank of water
     Ref. https://en.wikipedia.org/wiki/Torricelli%27s_law
-"""
-
+'''
 if 1:  # Header
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -22,34 +34,29 @@ if 1:  # Header
     from pathlib import Path as P
     import sys
     from pdb import set_trace as xx
-
     # Custom imports
     from wrap import wrap, dedent
     from color import Color, TRM as t
     from f import flt, pi, sqrt
     import u
-
     # Global variables
     ii = isinstance
     W = int(os.environ.get("COLUMNS", "80")) - 1
     L = int(os.environ.get("LINES", "50"))
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options]
           Interactive script to calculate the time it takes to drain a tank.
         Options:
             -h      Print a manpage
-        """)
+        ''')
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-d"] = 3  # Number of significant digits
         try:
@@ -73,10 +80,7 @@ if 1:  # Utility
         x = flt(0)
         x.n = d["-d"]
         return args
-
-
 if 1:  # Core functionality
-
     def GetNumber(prompt, units, default=None):
         "Return (input, value_in_SI)"
         while True:
@@ -98,23 +102,20 @@ if 1:  # Core functionality
                     print(e)
                     print("Try again")
 
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
-    print(
-        dedent("""
+    print(dedent('''
     Calculate the time to drain a tank of water (or fluids with viscosities near water) through a
     hole.  You'll be asked for a tank volume in m³, a height in m, and a drain hole diameter in m.
     If you want to use other units, append them to the number you type in.
-
+    
     The discharge coefficient is the fraction of the ideal mass flow capable through the hole; it's
     a fraction of ρ*dV/dt with typical values for sharp holes around 0.6 to 0.65.
-
+    
     Example:  a 50 gallon drum of water 1 m high with a 1 inch hole hole in the bottom will take
     1.8 minutes.
-
-    """)
+    ''')
     )
     # All units are SI
     #   V = Volume of tank
@@ -132,7 +133,7 @@ if __name__ == "__main__":
         Hs, h = "1 m", flt(1) * u.u("m")
         Ds, d = "1 in", flt(1) * u.u("in")
         Cs, μ = "0.65", flt(0.65)
-        # Gives 1.8 minutes
+        # Gives 1.83 minutes
     else:
         # This estimate was made for our sprayer draining through a chunk
         # of 1-1/4 inch pipe and it feels about right.
@@ -140,7 +141,7 @@ if __name__ == "__main__":
         Hs, h = "10 in", flt(10) * u.u("in")
         Ds, d = "1.38 in", flt(1.38) * u.u("in")
         Cs, μ = "0.65", flt(0.65)
-        # Gives 34 s
+        # Gives 34.3 s
     g = 9.8  # Acceleration of gravity in m/s²
     A = pi * d**2 / 4  # Area in m²
     t = μ * V / A * sqrt(2 / (h * g))  # Time to drain tank in s

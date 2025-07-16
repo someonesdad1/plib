@@ -2,12 +2,15 @@
 
 ToDo
     - Use termtables to print output reports
+        - Colorize units:  mm: blu, inch: yel
+    - For interactive use, print results then prompt for new output units & steps
     - Look at using g.x global variables instead of those in dict d
     - Support uncertainity in the bucket measurements
     - Supply a formatting option for the output length measurements.  I usually use my
       metric tape measure and the practical limit of marking with an ultrafine Sharpie
       is about 1 mm.  Thus, I'd want to specify ".0f" as the formatting spec.  Or, this
       can be an integer for the round() function.
+        - Default behavior:  mm rounds to nearest mm, inch rounds to 0.05 inches
 
 Print out volume calibration marks for a bucket
     See the bucket.pdf document for a derivation of the formula used.
