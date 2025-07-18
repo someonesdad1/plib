@@ -4,13 +4,26 @@ ToDo
     - Problems to add
         - Inverse problem:  given an orifice diameter and height, calculate the volume
           of the tank if you know the time it takes to drain.
-        - Tapered tank that's a frustum of a rectangular pyramid (practical example is
-          the water tank in our RV trailer)
-        - Pyramid whose cross section is a Regular polygon 
-        - Include a taper for the sides of a frustum
-        - These more general problems should be pretty easy to compute with numpy
-          methods without having to do the symbolic integrations of the equations
-
+        - Right frustum
+            - Specify A1 = A(h1) and A2 = A(h2), h1 != h2 (areas at two heights)
+            - Volume is then Δh/3*(A1 + A1 + sqrt(A1*A2))
+            - Examples
+                - Conical
+                - Rectangular:  water tank in our RV, pond
+                - Regular polygon
+        - Elliptical horizontal tank like tanker truck (includes horizontal cylinder)
+            - Dished or flat ends
+        - Numerical integration with numpy should be straightforward
+        - Plumbing connected to drain, such as in our trailer.  This will require
+          estimating the friction losses for each of the components.  This problem
+          solution is needed, as our trailer's tank drains much more slowly than if
+          there was a 12 mm hole in the bottom (the diameter of the tubing).
+            - The trailer's tank calculation is for a cylinder and given a volume of 26
+              gal, height of 3 inches, hole diameter of 12 mm, and default coefficient
+              of discharge gives 15.4 minute to drain.  I'd guess it takes more like 45
+              minutes, though I haven't measured this on one fell swoop.  First 5
+              gallons took about 5.5 minute to drain; as the water drops, the head also
+              drops and each unit volume will take longer.
 
 Time to drain a tank of water
     Ref. https://en.wikipedia.org/wiki/Torricelli%27s_law
@@ -147,7 +160,7 @@ if 1:  # Core functionality
         #   h = Height of fluid at start of discharge
         #   D = Drain hole diameter
         #   μ = Coefficient of discharge
-        problem = 1
+        problem = 0
         if problem == 0:
             g.Vs, g.V = GetNumber("What is volume? ", "m³")
             g.hs, g.h = GetNumber("What is height? ", "m")

@@ -1,7 +1,7 @@
 /plib/.todo
 
     - pgm/draintank.py
-        - Add the inverse problem:  given an orifice diameter and height, calculate the
+        - Inverse problem:  given an orifice diameter and height, calculate the
           volume of the tank if you know the time it takes to drain.
 
     - pgm/bucket.py
