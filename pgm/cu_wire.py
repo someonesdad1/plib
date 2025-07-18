@@ -103,7 +103,7 @@ if 1:  # Utility
         print(msg, file=sys.stderr)
         exit(status)
     def Manpage():
-        rho = f"{resistivity * 1e9:.5g}"
+        rho = f"{resistivity*1e9:.5g}"
         print(dedent(f'''
                                   Copper Wire Table
                                   -----------------
@@ -513,7 +513,7 @@ if 1:  # Core functionality
         PN.dimensions[u.dim("Ω*m")] = "nΩ*m"
         "Utility functions"
         def Report(R, d, L, rho):
-            r = rho * rhoCu
+            r = rho*rhoCu
             print(
                 '''Results:
         R = {R}
@@ -530,16 +530,16 @@ if 1:  # Core functionality
             if not choices:
                 raise Exception("Bug in program")
             print("Select which variable:")
-            i = Choice(choices, indent=" " * 3)
+            i = Choice(choices, indent=" "*3)
             return choices[i]
         def fR(d, L, rho):
-            return 4 * L * rho / (pi * d**2)
+            return 4*L*rho/(pi*d**2)
         def fd(R, L, rho):
-            return sqrt(4 * L * rho / (pi * R))
+            return sqrt(4*L*rho/(pi*R))
         def fL(d, R, rho):
-            return R * pi * d**2 / (4 * rho)
+            return R*pi*d**2/(4*rho)
         def frho(d, R, L):
-            return R * pi * d**2 / (4 * L)
+            return R*pi*d**2/(4*L)
         def GetLength(msg):
             while True:
                 value, unit = GetNumber(
@@ -580,7 +580,7 @@ if 1:  # Core functionality
             while True:
                 try:
                     print("Select which variable to solve for:")
-                    i, s = Choice(choices, indent=" " * 3)
+                    i, s = Choice(choices, indent=" "*3)
                     break
                 except Exception as e:
                     print(e)
@@ -596,7 +596,7 @@ if 1:  # Core functionality
                 L = Length.get("What is length of wire? ")
                 string, value = GetWireDiameter(default_unit=lu)
                 d = PN(str(value) + " " + lu)
-                R = fR(d, L, rho * rhoCu)
+                R = fR(d, L, rho*rhoCu)
                 R.units = "Ω"
             elif i == 1:  # Diameter
                 ShowResistivities()
@@ -611,7 +611,7 @@ if 1:  # Core functionality
                     "What is resistance in Ω? ", low=0, low_open=True, use_unit=True
                 )
                 R = PN(str(value) + "Ω")
-                d = fd(R, L, rho * rhoCu)
+                d = fd(R, L, rho* rhoCu)
                 d.units = lu
             elif i == 2:  # Length
                 string, value = GetWireDiameter(default_unit=lu)
@@ -627,7 +627,7 @@ if 1:  # Core functionality
                     low_open=True,
                     default="1",
                 )
-                L = fL(d, R, rho * rhoCu)
+                L = fL(d, R, rho*rhoCu)
                 L.units = lu
             elif i == 3:  # Resistivity
                 string, value = GetWireDiameter(default_unit=lu)
@@ -637,13 +637,13 @@ if 1:  # Core functionality
                 )
                 R = PN(str(value) + " " + unit)
                 L = Length.get("What is length of wire? ")
-                rho = frho(d, R, L) / rhoCu  # Note it's dimensionless
+                rho = frho(d, R, L)/rhoCu  # Note it's dimensionless
             else:
                 raise Exception("Bug in program")
             Report(R, d, L, rho)
             exit(0)
         else:
-            rho = resistivity * PN(1, "ohm m")  # Copper resistivity
+            rho = resistivity*PN(1, "ohm m")  # Copper resistivity
             # Solve for a 1 m piece of 12 gauge copper wire
             # Resistance
             L = PN("1 m")
@@ -682,24 +682,24 @@ if 1:  # Core functionality
         slope = -0.820  # Common to each curve
         assert diameter_m > 0
         assert temperature in (60, 75, 90)
-        ld = log(diameter_m * 1000) / log(10)
+        ld = log(diameter_m*1000)/log(10)
         if ld < 0.21:
             # Constant current density
             jmax = 10**0.85
         elif ld < 0.315:
             # One curve in this region
-            jmax = 10 ** (slope * ld + 1.032)
+            jmax = 10**(slope*ld + 1.032)
         elif ld < 0.41:
             ld = ld - 0.315
             dx = 0.095
             y = 0.775
             if temperature == 60:
-                slope = (0.75 - y) / dx
+                slope = (0.75 - y)/dx
             elif temperature == 75:
-                slope = (0.82 - y) / dx
+                slope = (0.82 - y)/dx
             else:
-                slope = (0.87 - y) / dx
-            jmax = 10 ** (y + ld * slope)
+                slope = (0.87 - y)/dx
+            jmax = 10**(y + ld*slope)
         else:
             if temperature == 60:
                 b = 1.106  # y-intercept of fitted line
@@ -707,7 +707,7 @@ if 1:  # Core functionality
                 b = 1.203
             else:
                 b = 1.264
-            jmax = 10 ** (ld * slope + b)
+            jmax = 10**(ld*slope + b)
         # Debug check of jmax
         if jmax > 10**0.93:  # Note:  max y value at ld = 0.41
             msg = (
@@ -934,7 +934,7 @@ if 1:  # Core functionality
             D, d, A_ratio = EquivalentArea(N, N + i)
             # print(f"    {A_ratio} of (n + {i}) gauge")
             s = f"n + {i}"
-            D_ratio = flt(D / d)
+            D_ratio = flt(D/d)
             print(f"  {s:^6s}   {A_ratio!s:^{w}s}       {D_ratio!s:^{w}s}")
     def NEC():
         '''Return a dictionary containing NEC-allowed currents for copper
@@ -1070,7 +1070,7 @@ if 1:  # Core functionality
         fp.digits(4)
         if awg in popular_sizes and isatty and not no_color:
             print(f"{popular_sizes[awg]}", end="")
-        Print(f"{Size(awg):>4s}  ")
+        Print(f"{Size(awg):>4s}")
         dia_in = AWG(awg)
         nec = NEC()
         # Ampacity data
@@ -1078,10 +1078,11 @@ if 1:  # Core functionality
         wt = GetAmpacityData()
         if str(awg) in wt:
             dia_in, chassis_A, pwr_A, f_Hz, brk = wt[str(awg)]
-            dia_m = dia_in / 39.37
-            area_m2 = pi * dia_m**2 / 3
-            Print(f"{g(chassis_A):>5s} ")
-            Print(f"{g(pwr_A):>5s} ")
+            dia_m = dia_in/39.37
+            area_m2 = pi*dia_m**2/3
+            if 0:
+                Print(f"{g(chassis_A):>5s} ")
+                Print(f"{g(pwr_A):>5s} ")
             # Note we use the NEC-mandated values when the wire size fits
             if int(awg) in nec:
                 a60, a75, a90 = nec[int(awg)]
@@ -1093,11 +1094,11 @@ if 1:  # Core functionality
                     for i in range(3):
                         Print(f"{'':>7s}  ")
                 else:
-                    Print(f"{g(1e6 * MaxCurrentDensity(dia_m, 60) * area_m2):>7s}  ")
-                    Print(f"{g(1e6 * MaxCurrentDensity(dia_m, 75) * area_m2):>7s}  ")
-                    Print(f"{g(1e6 * MaxCurrentDensity(dia_m, 90) * area_m2):>7s}  ")
+                    Print(f"{g(1e6*MaxCurrentDensity(dia_m, 60)*area_m2):>7s}  ")
+                    Print(f"{g(1e6*MaxCurrentDensity(dia_m, 75)*area_m2):>7s}  ")
+                    Print(f"{g(1e6*MaxCurrentDensity(dia_m, 90)*area_m2):>7s}")
             Print(f"{g(Preece(awg)):>7s}")
-            Print(f"{g(Onderdonk(awg, 1)):>8s}")
+            Print(f"{g(Onderdonk(awg, 1)):>8s} ")
             Print(f"{g(Onderdonk(awg, 0.032)):>8s}")
         if awg in popular_sizes and isatty and not no_color:
             print(f"{t.n}", end="")
@@ -1107,28 +1108,21 @@ if 1:  # Core functionality
         Ampacity data for copper wire (currents in amperes, ambient temperature
         around normal room temperatures of 20 °C)
          
-                            --------- NEC ---------   -------- Fusing -------
-                             Insulation rating, °C               Onderdonk     
-         AWG  Chass  Pwr      60       75       90    Preece    1 s     32 ms
-        ----  ----- -----   -----    -----    -----   ------   -----    -----
+               --------- NEC ---------   -------- Fusing -------
+                Insulation rating, °C               Onderdonk     
+         AWG     60       75       90    Preece    1 s     32 ms
+        ----   -----    -----    -----   ------   -----    -----
         '''[1:]))
         for awg in range(0, 41, 2):
             PrintAmpacityLine(awg)
-        print()
-        print(dedent(f'''
-        Chass is the maximum current for a single isolated wire in air (current density
-        varies with wire diameter).  Pwr uses a current density of 2.82 A/mm².  Use the
-        -H option for more details.
-        '''))
     def AmpacityDataNew():
         # Colors to use
         t.title = t.ornl
         t.si = t.yell
         t.insul = t.lavl
-        print(dedent(f'''
-        {t.title}Maximum current in A for single copper wire in air{t.n}
-            Ambient temperature about 30 °C (86 °F, 303 K)
-        '''))
+        s = "       "
+        t.print(f"{t.title}{s}Maximum current in A for single copper wire in air")
+        print(f"{s}  Ambient temperature about 30 °C (86 °F, 303 K)")
         def f(s, clr=None):
             if clr is not None:
                 return f"{clr}{s}{t.n}"
@@ -1160,7 +1154,6 @@ if 1:  # Core functionality
                 i = ChassisCurrent(dia_mm, T - Tambient)
                 row.append(f(i, t.si if T == 200 else ""))
             data.append(row)
-        print()
         print(" "*37, f"{t.lavl}Insulation rating, °C{t.n}")
         tt.print(data, header, style=" "*15, alignment="c"*ncols)
         print()
@@ -1237,7 +1230,7 @@ if 1:  # Core functionality
             from util import AWG
             
             for n in intercept:
-                mm = round(AWG(n) * 25.4, 3)
+                mm = round(AWG(n)*25.4, 3)
                 print(mm, intercept[n])
             exit()
     def VoltageDropTable():
@@ -1253,7 +1246,7 @@ if 1:  # Core functionality
         print()
         print(f"---    ----- ", end="")
         for p in pct:
-            print(f"{'-' * (wc - 2):^{wc}s} ", end="")
+            print(f"{'-'*(wc - 2):^{wc}s} ", end="")
         print()
         sizes = sorted(set(list(range(0, 41, 2))))
         amp_data = GetAmpacityData()
@@ -1263,23 +1256,23 @@ if 1:  # Core functionality
         for n in sizes:
             item = amp_data[str(n)]
             dia_in, i_chass = item[0:2]
-            dia_m = dia_in / 39.37
-            area_m2 = pi * (dia_m / 2) ** 2
-            r_ohm_per_m = flt(resistivity / area_m2)
+            dia_m = dia_in/39.37
+            area_m2 = pi*(dia_m/2)**2
+            r_ohm_per_m = flt(resistivity/area_m2)
             if n in popular_sizes and not d["-C"]:
                 print(f"{popular_sizes[n]}", end="")
             print(f"{n:2d}     ", end="")
             print(f"{flt(i_chass)!s:^5s} ", end="")
             for p in pct:
-                i = p / 100 * i_chass
-                V = int(i * r_ohm_per_m * 1000)
+                i = p/100*i_chass
+                V = int(i*r_ohm_per_m*1000)
                 print(f"{V:^{wc}d} ", end="")
             if n in popular_sizes and not d["-C"]:
                 print(f"{t.n}", end="")
             print()
     def VoltageDropTableSilicone():
         'Print the voltage drop table for silicone wire'
-        w = 85
+        w = 73
         t.print(f"{t.ornl}{'Voltage Drop Table for Copper Wire with Silicone Insulation':^{w}s}")
         print(f"{'Drop in mV/m for given % of chassis current in A':^{w}s}")
         print(f"{'Ambient temperature about 30 °C or 86 °F':^{w}s}")
@@ -1304,7 +1297,7 @@ if 1:  # Core functionality
         x.rtz = False
         # Thin double termtables style
         header = "AWG mm mΩ/m Chass 10% 20% 30% 40% 50% 60% 70% 80% 90% 100%".split()
-        header = [f" {i} " for i in header]
+        header = [f" {t.lill}{i} " for i in header]
         C = {6: t.lipl, 10: t.yell, 12: t.grnl, 16: t.ornl}
         o = []
         for awg, dia_mm, res, i_chass in data:
@@ -1323,13 +1316,15 @@ if 1:  # Core functionality
             o.append(q)
         # Print the table
         L = len(header)
-        tt.print(o, header=header, padding=(0, 0), style=tt.styles.thin_double, alignment="r"*L)
+        tt.print(o, header=header, padding=(0, 0), style=None, alignment="c"*L)
 
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
     if d["-a"]:
         AmpacityData()
+        print()
+        VoltageDropTableSilicone()
         print()
         AmpacityDataNew()
     elif d["-e"]:
