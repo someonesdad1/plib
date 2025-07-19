@@ -1,7 +1,6 @@
-"""
+'''
 Find files that use color.py
-"""
-
+'''
 if 1:  # Header
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -22,30 +21,25 @@ if 1:  # Header
     import sys
     import re
     from pdb import set_trace as xx
-
     # Custom imports
     from get import GetLines
     from wrap import wrap, dedent
-
     # Global variables
     ii = isinstance
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options] etc.
           Explanations...
         Options:
             -h      Print a manpage
-        """)
+        ''')
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = False
         try:
@@ -59,8 +53,6 @@ if 1:  # Utility
             elif o in ("-h", "--help"):
                 Usage(status=0)
         return args
-
-
 if 1:  # Core functionality
     r = re.compile(
         r"from\s+color\s+import|"
@@ -73,7 +65,6 @@ if 1:  # Core functionality
         r"from\s+kolor\s+import|"
         r"import\s.*kolor"
     )
-
     def ProcessFile(file):
         "Return True if it has the regexp"
         lines = GetLines(file, script=True)
@@ -81,7 +72,6 @@ if 1:  # Core functionality
             if r.search(line):
                 return True
         return False
-
     def ProcessDir(dir, recursive=False):
         print(f"{dir}: ", end=" ")
         old = os.getcwd()
@@ -95,8 +85,6 @@ if 1:  # Core functionality
                 n += 1
         print(f" <{n}>")
         os.chdir(old)
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
