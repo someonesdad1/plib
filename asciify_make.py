@@ -86,8 +86,8 @@ if 1:  # Utility
             description string contains one of the following languages,
             as they don't share symbols with English.
             '''
-            languages = set(
-                '''
+            languages = set('''
+            
                 adlam admetos aegean afghani ahom anatolian arabian
                 arabic armenian avestan balinese bamum bassa batak
                 bengali bhaiksuki bopomofo brahmi buginese buhid
@@ -114,7 +114,7 @@ if 1:  # Utility
                 tagbanwa tai takri tamil tangut telugu tetragram thaana
                 thai tibetan tifinagh tirhuta turkic ugaritic vai vedic
                 wancho warang xiangqi yi zanabazar
-     
+            
                 alchemical astrological bottom dentistry digram domino
                 element emoji face input integral person recycling
                 shorthand sideways signwriting symbol

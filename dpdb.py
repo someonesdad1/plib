@@ -51,17 +51,20 @@ This module extends the python debugger pdb.py Features:
               file.
 '''
 ##∞test∞# none #∞test∞#
-from pdb import Pdb
-import code
-import linecache
-import re
-import sys
-import inspect
-from color import Color, Trm, TRM as t, RegexpDecorate
-from pathlib import Path
-from f import flt, cpx
-from decimal import Decimal
-from columnize import Columnize
+if 1:  # Imports
+    from decimal import Decimal
+    from fractions import Fraction
+    from pathlib import Path
+    from pdb import Pdb
+    import code
+    import inspect
+    import linecache
+    import re
+    import sys
+    # Custom modules
+    from color import Color, t, RegexpDecorate
+    from columnize import Columnize
+    from f import flt, cpx
 if 1:  # Functions to set up colorizing strings
     def All():
         "Fancier set of colors"
@@ -253,6 +256,8 @@ class DPdb(Pdb):
                 c = t.float
             elif ii(val, Decimal):
                 c = t.Decimal
+            elif ii(val, Fraction):
+                c = t.Fraction
             elif ii(val, str):
                 c = t.string
                 is_str = True
@@ -260,11 +265,24 @@ class DPdb(Pdb):
                 c = t.bytes
             elif ii(val, bytearray):
                 c = t.bytearray
-            if is_str:
-                # Strings get shown by repr()
-                print(f"  {c}{name:{w}s} = {val!r}{t.N}")
+            elif ii(val, list):
+                c = t.list
+            elif ii(val, tuple):
+                c = t.tuple
+            elif val is None:
+                c = t.none
+            # Print the color coding
+            show_all = False    # If True, color the whole line
+            if is_str: # Strings get shown by repr()
+                if show_all:
+                    print(f"  {c}{name:{w}s} = {val!r}{t.N}")
+                else:
+                    print(f"  {name:{w}s} = {c}{val!r}{t.N}")
             else:
-                print(f"  {c}{name:{w}s} = {val}{t.N}")
+                if show_all:
+                    print(f"  {c}{name:{w}s} = {val}{t.N}")
+                else:
+                    print(f"  {name:{w}s} = {c}{val}{t.N}")
         def get_frame_of_interest(self):
             '''Return the stack frame that's current in the thing being
             debugged.
@@ -303,7 +321,7 @@ class DPdb(Pdb):
                 return fr
     if 1:  # New debugger commands
         def do_clr(self, var):  # Set colorizing state
-            "Set colorizing:  0 = None, 1 = line number, 2 = all"
+            'Set colorizing:  0 = None, 1 = line number, 2 = all'
             global color_choice
             try:
                 value = int(var)
@@ -324,20 +342,23 @@ class DPdb(Pdb):
             "Clear the screen"
             print("\x1b[H\x1b[2J\x1b[3J")
         def do_o(self, arg):  # Dump local variables
-            "Dump local variables (extra arg shows color key)"
+            'Dump local variables with color key (arg ignored)'
             if 1:  # Define our own colors
-                t = Trm()
                 c = color_choice != NoColors
-                t.title = t("whtl") if c else ""
-                t.bool = t("pnkl") if c else ""
-                t.float = t("brnl") if c else ""
-                t.flt = t("redl") if c else ""
-                t.cpx = t("viol") if c else ""
-                t.int = t("magl") if c else ""
-                t.Decimal = t("trq") if c else ""
-                t.string = t("sky") if c else ""
-                t.bytes = t("ornl") if c else ""
-                t.bytearray = t("lwnl") if c else ""
+                t.title = t.whtl if c else ""
+                t.bool = t.pnkl if c else ""
+                t.float = t.grnl if c else ""
+                t.flt = t.redl if c else ""
+                t.cpx = t.viol if c else ""
+                t.int = t.magl if c else ""
+                t.Decimal = t.trq if c else ""
+                t.Fraction = t.brnl if c else ""
+                t.string = t.cynl if c else ""
+                t.bytes = t.ornl if c else ""
+                t.bytearray = t.lwnl if c else ""
+                t.list = t.royl if c else ""
+                t.tuple = t.lavl if c else ""
+                t.none = t.gry if c else ""
                 t.N = t.n if c else ""
             if 1:  # Get local variables
                 fr = self.get_frame_of_interest()
@@ -346,7 +367,7 @@ class DPdb(Pdb):
                     print("No local variables in this frame")
                     return
             if 1:  # Print the local variable dictionary
-                print(f"{t.title}Local variables (extra arg for color key):{t.N}")
+                print(f"{t.title}Local variables:{t.N}")
                 # Get length of longest name
                 w = max(len(i) for i in di)
                 # Print the variables
@@ -354,14 +375,18 @@ class DPdb(Pdb):
                     self.Decorate(name, di[name], t, w)
                 breakpoint()
                 # Print a key
-                if arg and c:
-                    t.print("Color coding:  ", end="")
+                if c:
                     print(
                         f"{t.int}int{t.N} "
                         f"{t.float}float{t.N} "
                         f"{t.flt}flt{t.N} "
                         f"{t.cpx}cpx{t.N} "
                         f"{t.Decimal}Decimal{t.N} "
+                        f"{t.Fraction}Fraction{t.N} "
+                        "    "
+                        f"{t.list}list{t.N} "
+                        f"{t.tuple}tuple{t.N} "
+                        f"{t.none}None{t.N} "
                         f"{t.string}str{t.N} "
                         f"{t.bool}bool{t.N} "
                         f"{t.bytes}bytes{t.N} "

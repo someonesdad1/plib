@@ -2098,6 +2098,7 @@ if 1:  # Global variables
     Measuring an angle with a sine bar	Lautard, Guy	TMBR#3:98
     Measuring Angles	MEISTER, HORST	PiM-Dec.'96, ZZ
     Measuring hole size with a rod	Lautard, Guy	TMBR#1:10
+    Rattle measurements	Lautard, Guy	TMBR#1:10
     Measuring hole size with taper leaf gages	Lautard, Guy	TMBR#1:10
     Measuring lathe saddle movement with	Lautard, Guy	HTIM:8
     Measuring Long Fits		HSM'86:S/O18

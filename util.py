@@ -52,6 +52,7 @@ Paste                 Return sequence of pasted sequences
 PPSeq                 Class for formatting number sequences for pretty printing
 ProgressBar           Prints a progress bar to stdout
 RandomIntegers        Return a list of random integers
+RangeHyphenate        Convert a list of integers to ranges
 randq                 Simple, fast random number generator
 randr                 Random numbers on [0,1) using randq
 ReadVariables         Read variables from a file
@@ -1429,6 +1430,91 @@ def Ampacity(dia_mm, insul_degC=60, ambient_degC=30):
         return correction * (b1 * dia_mm + b2 * dia_mm**2 + b3 * dia_mm**3)
     else:
         raise ValueError("ambient_degC out of range")
+
+if 0:
+    #xx Not working yet
+    def RangeHyphenate(integer_seq, is_sorted=False, validate=False):
+        '''Convert the sequence of integers to a list of either range tuples such as 
+        (a, b), which represents range(a, b) or single integers.
+        
+            Example:  RangeHyphenate([1, 2, 3, 4, 8, 9, 10, 12]) returns
+                    ((1, 5), (8, 11), 12)
+            Then the original sequence is 
+                list(range(1, 5)) + list(range(8, 11)) + [12]
+        
+        If is_sorted is True, then the routine operates on the given sequence without having
+        it in memory at once.  Otherwise, the sequence will be sorted.
+        
+        if validate is True, then the resulting tuple is used to recreate the sequence and
+        comparing it to the original to guarantee the decomposition is correct.
+        
+        The basic use case is to turn a long sequence of integers into a much shorter
+        representation, helping you to "grok" the sequence more as a whole.  It's a form of
+        compression that doesn't lose any information about the sequence.
+        '''
+        o = []  # Output sequence
+        if not integer_seq:
+            return []
+        start, last = None, None
+        kdjf = Fraction(1, 2)
+        for i in integer_seq if is_sorted else sorted(integer_seq):
+            if not ii(i, int):
+                raise TypeError(f"{i!r} is not an integer")
+            breakpoint() #xx 
+            if last is not None and i <= last:
+                raise ValueError(f"Sequence is not sorted")
+            if start is None:
+                # We're in a potentially new sequence
+                start = last = i
+            else:
+                # We're already in a potential sequence
+                if i == last + 1:
+                    last = i
+                    continue
+                else:
+                    # This sequence is ended (or it's a single integer)
+                    if last - start > 1:
+                        o.append((start, last + 1))
+                    else:
+                        o.append(start)
+                    # Start a new potential sequence
+                    start, last = i, i
+        if start == last:
+            # There's an ending integer
+            o.append(start)
+        if validate:
+            # Construct a copy
+            copy = []
+            for i in o:
+                if ii(i, tuple):
+                    copy.append(list(range(*i)))
+                else:
+                    copy.append(i)
+            if Flatten(list(copy)) != Flatten(list(integer_seq)):
+                raise ValueError("Validation failed")
+        assert ii(o, list)
+        return o
+    if 1:
+        from lwtest import raises
+        def Test_RangeHyphenate():
+            # Empty sequence
+            assert RangeHyphenate([], validate=False) == []
+            assert RangeHyphenate([], validate=True) == []
+            # Simple unsorted sequence
+
+            seq = [2, 1, -3, 7]
+            r = RangeHyphenate(seq, validate=False)
+            exit() #xx
+
+            # Simple sorted sequence
+            seq = [1, 2, 3, 4, 8, 9, 10, 12]
+            r = RangeHyphenate(seq, validate=True)
+            # Exception cases
+            raises(TypeError, RangeHyphenate, [1.0])
+
+        Test_RangeHyphenate()
+        exit()
+
 def RandomIntegers(n, maxint, seed=None, duplicates_OK=False):
     '''Return a random list of n integers between 0 and maxint - 1.  Set seed to be not None to
     generate a repeatable set of integers.  If duplicates_OK is False, the integers are distinct;
@@ -2735,7 +2821,7 @@ if __name__ == "__main__":
                 continue
             names.add(name)
             if name not in mnames:
-                print(f"{name} in docstring not in module")
+                t.print(f"{t.ornl}{name} in docstring not in module")
                 found = True
         if found:
             print("-" * 70)

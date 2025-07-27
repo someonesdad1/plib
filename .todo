@@ -1,5 +1,30 @@
 /plib/.todo
 
+    - pgm/texthash.py
+        - Purpose:  provide a hash of a text file that ignores whitespace
+        - Use case:  identify a file's text, ignoring line endings
+        - Hashing:  uses sha512 by default
+            - Option -3 uses sha3_512
+            - Option -m uses MD5
+        - ASCIIfies the text (converts Unicode characters to their ASCII
+          near-equivalents; this conversion is idiosyncratic)
+            - Example:  '©' is ASCIIfied to '(C)'
+            - Use option -a to convert to 7-bit clean ASCII text
+            - Use option -i to convert file to all lowercase
+            - Use option -I to not perform the ASCIIfication
+
+    - asciify.py
+        - Add -a option which converts the text file to a 7-bit clean ASCII format.
+          This is needed because my conversion choices were idiosyncratic to my own
+          tastes and things like α β ɣ Δ are not converted.  These Unicode characters
+          can be converted to things like <alpha>, <beta>, <gamma>, <DELTA>, etc.
+        - The self-test for this feature doesn't need to check all letters, but it does
+          need to show that it's 7-bit clean
+
+    - pgm/hsm.py & tmbr.py
+        - Both should be collapsed into just hsm.py.  Add -t option to hsm.py so that
+          only TMBR references are found.  Then delete tmbr.py and tmbr_data.py.
+
     - pgm/draintank.py
         - Inverse problem:  given an orifice diameter and height, calculate the
           volume of the tank if you know the time it takes to drain.
