@@ -47,6 +47,7 @@ if 1:  # Header
         t.l5 = t.grnl
 if 1:  # Data
         # LED characteristics
+        # GN = get.GetNumbers (returns a list of numbers)
         g.i_mA = GN("0.5 1 2 5 10 15 20 25 30")
         g.LED5 = {
             # V in V array, i in mA array
@@ -200,6 +201,8 @@ if 1:  # Core functionality
         if d["-p"]:
             print()
     def Solve(color, operating_voltage_V, resistor_power_rating_W):
+        '''color is a string identifying the color (e.g., r, re, red).
+        '''
         P = resistor_power_rating_W
         # Formatting tool
         FP = FPFormat(num_digits=3)
@@ -207,30 +210,30 @@ if 1:  # Core functionality
         FP.trailing_decimal_point(False)
         # Set up interpolation functions
         if d["-3"]:
-            V = LED3[GetColor(color)]
+            V = g.LED3[GetColor(color)]
         else:
-            V = LED5[GetColor(color)]
-        V2i = LinearInterpFunction(V, i_mA)
-        i2V = LinearInterpFunction(i_mA, V)
+            V = g.LED5[GetColor(color)]
+        V2i = LinearInterpFunction(V, g.i_mA)
+        i2V = LinearInterpFunction(g.i_mA, V)
         # Define currents to print out
         I = list(frange("0.5", "1", "0.1"))
         I.extend(range(1, 31, 1))
         # Make an array of [i, V, voltage - V, R, Ro, pct_pwr]
         o = []
         for curr in I:
-            i = curr / 1000  # Current in A
+            i = curr/1000  # Current in A
             Vd = i2V(curr)  # Voltage drop across diode
             Vr = operating_voltage_V - Vd  # Voltage drop across resistor
             if Vr > 0:
-                R = Vr / i  # Actual resistance needed
+                R = Vr/i  # Actual resistance needed
                 Ro = FindClosest(R)  # Closest on-hand resistor
-                power = i**2 * R  # Actual resistor power
-                pct = flt(100 * power / P)  # Actual power percent
+                power = i**2*R  # Actual resistor power
+                pct = flt(100*power/P)  # Actual power percent
                 if Ro is None:
                     o.append([curr, Vd, Vr, fp(R), pct, "-", "-"])
                 else:
-                    powero = i**2 * Ro  # On-hand resistor power
-                    pcto = flt(100 * powero / P)  # On-hand power percent
+                    powero = i**2*Ro  # On-hand resistor power
+                    pcto = flt(100*powero/P)  # On-hand power percent
                     o.append([curr, Vd, Vr, fp(R), pct, fp(Ro), pcto])
         PrintResults(color, operating_voltage_V, resistor_power_rating_W, o)
     def Details():

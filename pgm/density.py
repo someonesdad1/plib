@@ -1245,6 +1245,7 @@ if 1:  # Header
         Hay, pressed                                   ; .38         ; glo 390
         Hemp                                           ; 1.48        ; aes 172
         Hemp                                           ; 1.5         ; aes 182
+        Human                                          ; 1.05        ; web
         Hops, moist                                    ; .56         ; glo 390
         Ice                                            ; .917        ; aes 178
         Ice, 0 °C                                      ; .9          ; aes 177

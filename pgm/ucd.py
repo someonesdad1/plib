@@ -1,9 +1,8 @@
-"""
+'''
 Provide the ucd dictionary, a container of the Unicode Character Database (UCD)
     I constructed this dictionary as an adjunct to the uni.py script, my searching tool to get
     information on Unicode characters.
-"""
-
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -33,25 +32,23 @@ if 1:  # Header
     if 1:  # Custom imports
         if 0:
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
         ii = isinstance
         __all__ = ["ucd"]
 if 1:  # Utility
     pass
-
-
 def GetVersion():
-    """Get which XML file to build the pickled data file.  From what I've read, you can use versions
-    of the UCD that are later than that which python uses, but not earlier ones.
-
+    '''Get which XML file to build the pickled data file.  From what I've read, you can
+    use versions of the UCD that are later than that which python uses, but not earlier
+    ones.
+        
     You can find these files at https://www.unicode.org/Public with the latest in
-    UCD/latest/ucdxml.  I recommend the non-Unihan file unless you need the extra Chinese
-    characters.  The documentation for the contents of this file is in UAX #42
-    http://www.unicode.org/reports/tr42.  The grouped file results in a data file size about an
-    order of magnitude less than the flat XML file.
-    """
+    UCD/latest/ucdxml.  I recommend the non-Unihan file unless you need the extra
+    Chinese characters.  The documentation for the contents of this file is in UAX #42
+    http://www.unicode.org/reports/tr42.  The grouped file results in a data file size
+    about an order of magnitude less than the flat XML file.
+    '''
     v = unicodedata.unidata_version  # Which version of UCD python is using
     if v == "11.0.0":
         return P("ucd.nounihan.grouped.ver11.xml")
@@ -60,26 +57,21 @@ def GetVersion():
     elif v == "13.0.0":
         return P("ucd.nounihan.grouped.ver13.xml")
     elif v == "14.0.0":
+        # Aug 2025:  python 3.11.5 which I'm using (conda-forge) uses this version
         return P("ucd.nounihan.grouped.ver14.xml")
     else:
         raise ValueError(f"{v} is unsupported Unicode version")
-
-
 input_file = GetVersion()
-
 # The pickle file will contain the persisted UCD dictionary in ucd.
 pickle_file = P("/plib/pgm/ucd.pickle")
-
 # The UCD dictionary.
 ucd = {}
-
-how_to_get_datafile = """
+how_to_get_datafile = '''
   Download the ucd.nounihan.grouped.xml file from http://www.unicode.org/Public/UCD/latest/ucdxml/.
   Change the global variable input_file to point to this file.
-""".strip()
-
+'''.strip()
 # Description of the data structure we will construct (it's stored in the ucd dictionary)
-doc = """
+doc = '''
 Structure of data in the python ucd dictionary constructed on
 %s
     Types:
@@ -143,14 +135,11 @@ ucd = {
         ...
     ],
 }
-""" % asctime()
-
+''' % asctime()
 if 1:  # Core functionality
-
     def RemoveNS(s):
         loc = s.find("}")
         return s if loc == -1 else s[loc + 1 :]
-
     def Blocks(child, ucd):
         ucd["blocks"] = d = []
         for i in child:
@@ -158,7 +147,6 @@ if 1:  # Core functionality
             e = tuple([int(a["first-cp"], 16), int(a["last-cp"], 16), a["name"]])
             d.append(e)
         ucd["blocks"] = tuple(ucd["blocks"])
-
     def NamedSequences(child, ucd):
         ucd["named-sequences"] = d = []
         for i in child:
@@ -166,7 +154,6 @@ if 1:  # Core functionality
             e = tuple([a["cps"], a["name"]])
             d.append(e)
         ucd["named-sequences"] = tuple(ucd["named-sequences"])
-
     def StandardizedVariants(child, ucd):
         ucd["standardized-variants"] = d = []
         for i in child:
@@ -174,26 +161,23 @@ if 1:  # Core functionality
             e = tuple([a["cps"], a["desc"], a["when"]])
             d.append(e)
         ucd["named-sequences"] = tuple(ucd["named-sequences"])
-
     def GetNamespace(tag):
-        """tag is the root node's tag and contains the namespace; e.g.
+        '''tag is the root node's tag and contains the namespace; e.g.
         '{http://www.unicode.org/ns/2003/ucd/1.0}ucd'.  Parse it out and
         return it.
-        """
+        '''
         s = tag[tag.find("{") + 1 :]
         return s[: s.find("}")]
-
     def GetItem(name, parent, ucd):
         "Return the item in a sequence with no further interpretation."
         ucd[name] = d = []
         for child in parent:
             d.append(child.attrib)
         ucd[name] = tuple(ucd[name])
-
     def Group(group, parent, ucd):
-        """group is an integer, parent is the XML branch of characters, ucd
+        '''group is an integer, parent is the XML branch of characters, ucd
         is the database dictionary.
-        """
+        '''
         ucd["groups"][group] = parent.attrib
         for child in parent:
             d = child.attrib
@@ -211,7 +195,6 @@ if 1:  # Core functionality
                 if group not in ucd["reserved"]:
                     ucd["reserved"][group] = []
                 ucd["reserved"][group].append(d)
-
     def BuildDataFile(input_file, pickle_file, dbg=False):
         global ucd
         if dbg:
@@ -262,13 +245,10 @@ if 1:  # Core functionality
                 for i, group in enumerate(child):
                     Group(i, group, ucd)
         print("ucd dictionary constructed from %s" % input_file)
-
     def BuildPickleFile():
         BuildDataFile(input_file, pickle_file)
         with open(pickle_file, "wb") as f:
             pickle.dump(ucd, f, pickle.HIGHEST_PROTOCOL)
-
-
 if __name__ == "__main__":
     # Run as a script:  construct the needed pickle file for the python version being used
     try:

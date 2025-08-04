@@ -18,6 +18,7 @@ Entry = namedtuple("Entry", "title artist url comment")
 favorites = '''
 
     Angie ; Rolling Stones ; oWRr03VcA-0 ;
+    Attack ; Basil Poledouris ; am941eWzy3s&list=RDam941eWzy3s&start_radio=1 ; French horns, banjo, & syncopation
     Bach: Toccata and Fugue in D Minor ; Amy Turk ; oPmKRtWta4E ;
     Bach: Toccata and Fugue in D Minor ; Canadian Brass ; _Cst9lV5PPg ;
     Beethoven's 7th ; Bernstein ; Rw-KtQLdRT4 ; 2nd movement at 14:33 is my favorite
@@ -39,6 +40,7 @@ favorites = '''
     Scheherazade (1st movement) ; Rimsky-Korsakov ; 6dDk6aft4JU ;
     Stairway to Heaven ; Led Zeppelin ; QkF3oxziUI4 ; 
     The Good, The Bad, and the Ugly ; Danish National Symphony ; enuOArEfqGo ; 
+    Hymn to Red October ; Basil Poledouris ; 5IyngX5mojc&list=RD5IyngX5mojc&start_radio=1 ;
     This is a Man's World ; PMJ, Morgan James ; mPimt0Zu_To ; 
     Vltava (The Moldau) ; Smetana ; l6kqu2mk-Kw ; 
     Volga Boatmen ; ; qsovBF4N27Q ;
@@ -248,6 +250,7 @@ songs = '''
     Que Sera Sera ; Doris Day ; xZbKHDPPrrc ; 
     Queen of Hearts ; Juice Newton ; P0DK-0fIKCw ; 
     Question ; Moody Blues ; tmOZFAYeurY ; 
+    Quigley Down Under (main theme) ; Basil Poledouris ; xAYb30J_UOI&list=RDxAYb30J_UOI&start_radio=1 ;
     Rainy Days and Monday ; Carpenters ; PjFoQxjgbrs ; 
     Rainy Night in Georgia ; Brook Benton ; bDRbF80NKDU ; 
     Rawhide ; Frankie Laine ; _EjbzCX3enA ; 

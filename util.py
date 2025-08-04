@@ -98,7 +98,7 @@ if 1:  # Header
         from collections.abc import Iterable
         from decimal import Decimal
         from fractions import Fraction
-        from itertools import chain, groupby
+        from itertools import chain, count, groupby
         from itertools import cycle, zip_longest, product
         from operator import itemgetter
         from pathlib import Path as P
@@ -132,6 +132,16 @@ if 1:  # Header
         ii = isinstance
         nl = "\n"
         fsig_lock = threading.Lock()
+    if 1:  # Debugging help
+        class G:
+            pass
+        g = G()
+        g.dbg = False
+        def Dbg(*p, **kw):
+            if g.dbg:
+                print(f"{t.dbg}", end="")
+                print(*p, **kw)
+                print(f"{t.N}", end="")
 def US_states():
     "Return dictionary of US state abbreviations"
     a = '''AK AL AR AZ CA CO CT DE FL GA HI IA ID IL IN KS KY LA MA MD ME MI MN MO MS MT NC ND NE
@@ -1431,88 +1441,68 @@ def Ampacity(dia_mm, insul_degC=60, ambient_degC=30):
     else:
         raise ValueError("ambient_degC out of range")
 
-if 0:
-    #xx Not working yet
-    def RangeHyphenate(integer_seq, is_sorted=False, validate=False):
-        '''Convert the sequence of integers to a list of either range tuples such as 
-        (a, b), which represents range(a, b) or single integers.
-        
-            Example:  RangeHyphenate([1, 2, 3, 4, 8, 9, 10, 12]) returns
-                    ((1, 5), (8, 11), 12)
-            Then the original sequence is 
-                list(range(1, 5)) + list(range(8, 11)) + [12]
-        
-        If is_sorted is True, then the routine operates on the given sequence without having
-        it in memory at once.  Otherwise, the sequence will be sorted.
-        
-        if validate is True, then the resulting tuple is used to recreate the sequence and
-        comparing it to the original to guarantee the decomposition is correct.
-        
-        The basic use case is to turn a long sequence of integers into a much shorter
-        representation, helping you to "grok" the sequence more as a whole.  It's a form of
-        compression that doesn't lose any information about the sequence.
+if 1:
+    def Ranges(seq, validate=False):
+        '''seq is a sequence of integers.  This function will return the sequence as a
+        list of either 2-tuples or single integers.  The 2-tuples represent the
+        arguments to range() to reproduce the original sequence of integers.  If
+        validate is True, the returned list will be validated by reproducing the
+        original sequence.
+
+        Examples
+            [1, 2, 3, 5] --> [(1, 4), 5]
+            [1, 3, 2, 5] --> [1, 3, 2, 5]
+         
+        The intended use case is a form of "compression" for long sequences and an index
+        case is the set of Unicode codepoints, where I wanted to see how much shorter
+        such a representation is than the set of integers.
+
+        The algorithm is derived from 
+        https://stackoverflow.com/questions/3429510/pythonic-way-to-convert-a-list-of-integers-into-a-string-of-comma-separated-range/3430231#3430231
+        and is the 7 Aug 2010 answer.
         '''
-        o = []  # Output sequence
-        if not integer_seq:
-            return []
-        start, last = None, None
-        kdjf = Fraction(1, 2)
-        for i in integer_seq if is_sorted else sorted(integer_seq):
-            if not ii(i, int):
-                raise TypeError(f"{i!r} is not an integer")
-            breakpoint() #xx 
-            if last is not None and i <= last:
-                raise ValueError(f"Sequence is not sorted")
-            if start is None:
-                # We're in a potentially new sequence
-                start = last = i
-            else:
-                # We're already in a potential sequence
-                if i == last + 1:
-                    last = i
-                    continue
-                else:
-                    # This sequence is ended (or it's a single integer)
-                    if last - start > 1:
-                        o.append((start, last + 1))
-                    else:
-                        o.append(start)
-                    # Start a new potential sequence
-                    start, last = i, i
-        if start == last:
-            # There's an ending integer
-            o.append(start)
         if validate:
-            # Construct a copy
-            copy = []
+            orig = list(seq)    # Copy of original sequence
+        # Make sure all the elements of seq are integers
+        if not all(ii(i, int) for i in seq):
+            raise TypeError(f"Not all elements of seq are integers")
+        f = lambda x,c=count(): next(c) - x
+        G = (list(x) for _, x in groupby(seq, f))
+        # Convert into pairs of numbers for range()
+        o = []
+        for i in list(G):
+            o.append((i[0], i[-1] + 1)) if len(i) > 1 else o.append(i[0])
+        if validate:
+            p = []
             for i in o:
-                if ii(i, tuple):
-                    copy.append(list(range(*i)))
-                else:
-                    copy.append(i)
-            if Flatten(list(copy)) != Flatten(list(integer_seq)):
+                p.append(list(range(i[0], i[1]))) if ii(i, tuple) else p.append(i)
+            if Flatten(p) != orig:
                 raise ValueError("Validation failed")
-        assert ii(o, list)
         return o
+
     if 1:
         from lwtest import raises
-        def Test_RangeHyphenate():
+        def Test_Ranges():
             # Empty sequence
-            assert RangeHyphenate([], validate=False) == []
-            assert RangeHyphenate([], validate=True) == []
+            assert Ranges([], validate=False) == []
+            assert Ranges([], validate=True) == []
             # Simple unsorted sequence
-
             seq = [2, 1, -3, 7]
-            r = RangeHyphenate(seq, validate=False)
-            exit() #xx
-
-            # Simple sorted sequence
-            seq = [1, 2, 3, 4, 8, 9, 10, 12]
-            r = RangeHyphenate(seq, validate=True)
+            r = Ranges(seq)
+            assert r == seq
+            # Algorithm author's example
+            seq = [1, 2, 3, 4, 6, 7, 8, 9, 12, 13, 19, 20, 22, 23, 40, 44]
+            r = Ranges(seq)
+            assert r == [(1, 5), (6, 10), (12, 14), (19, 21), (22, 24), 40, 44]
+            # Equal elements
+            seq = [2, 2, 2, 2]
+            r = Ranges(seq)
+            assert r == seq
             # Exception cases
-            raises(TypeError, RangeHyphenate, [1.0])
+            raises(TypeError, Ranges, [1.0, 1.1, 1.2, 1.3, 2.0, 3.0, 4.0])
+            raises(TypeError, Ranges, ["1"])
 
-        Test_RangeHyphenate()
+        Test_Ranges()
         exit()
 
 def RandomIntegers(n, maxint, seed=None, duplicates_OK=False):
