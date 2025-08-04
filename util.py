@@ -52,7 +52,7 @@ Paste                 Return sequence of pasted sequences
 PPSeq                 Class for formatting number sequences for pretty printing
 ProgressBar           Prints a progress bar to stdout
 RandomIntegers        Return a list of random integers
-RangeHyphenate        Convert a list of integers to ranges
+Ranges                Convert a list of integers to ranges
 randq                 Simple, fast random number generator
 randr                 Random numbers on [0,1) using randq
 ReadVariables         Read variables from a file
@@ -1441,70 +1441,43 @@ def Ampacity(dia_mm, insul_degC=60, ambient_degC=30):
     else:
         raise ValueError("ambient_degC out of range")
 
-if 1:
-    def Ranges(seq, validate=False):
-        '''seq is a sequence of integers.  This function will return the sequence as a
-        list of either 2-tuples or single integers.  The 2-tuples represent the
-        arguments to range() to reproduce the original sequence of integers.  If
-        validate is True, the returned list will be validated by reproducing the
-        original sequence.
+def Ranges(seq, validate=False):
+    '''seq is a sequence of integers.  This function will return the sequence as a
+    list of either 2-tuples or single integers.  The 2-tuples represent the
+    arguments to range() to reproduce the original sequence of integers.  If
+    validate is True, the returned list will be validated by reproducing the
+    original sequence.
 
-        Examples
-            [1, 2, 3, 5] --> [(1, 4), 5]
-            [1, 3, 2, 5] --> [1, 3, 2, 5]
-         
-        The intended use case is a form of "compression" for long sequences and an index
-        case is the set of Unicode codepoints, where I wanted to see how much shorter
-        such a representation is than the set of integers.
+    Examples
+        [1, 2, 3, 5] --> [(1, 4), 5]
+        [1, 3, 2, 5] --> [1, 3, 2, 5]
+     
+    The intended use case is a form of "compression" for long sequences and an index
+    case is the set of Unicode codepoints, where I wanted to see how much shorter
+    such a representation is than the set of integers.
 
-        The algorithm is derived from 
-        https://stackoverflow.com/questions/3429510/pythonic-way-to-convert-a-list-of-integers-into-a-string-of-comma-separated-range/3430231#3430231
-        and is the 7 Aug 2010 answer.
-        '''
-        if validate:
-            orig = list(seq)    # Copy of original sequence
-        # Make sure all the elements of seq are integers
-        if not all(ii(i, int) for i in seq):
-            raise TypeError(f"Not all elements of seq are integers")
-        f = lambda x,c=count(): next(c) - x
-        G = (list(x) for _, x in groupby(seq, f))
-        # Convert into pairs of numbers for range()
-        o = []
-        for i in list(G):
-            o.append((i[0], i[-1] + 1)) if len(i) > 1 else o.append(i[0])
-        if validate:
-            p = []
-            for i in o:
-                p.append(list(range(i[0], i[1]))) if ii(i, tuple) else p.append(i)
-            if Flatten(p) != orig:
-                raise ValueError("Validation failed")
-        return o
-
-    if 1:
-        from lwtest import raises
-        def Test_Ranges():
-            # Empty sequence
-            assert Ranges([], validate=False) == []
-            assert Ranges([], validate=True) == []
-            # Simple unsorted sequence
-            seq = [2, 1, -3, 7]
-            r = Ranges(seq)
-            assert r == seq
-            # Algorithm author's example
-            seq = [1, 2, 3, 4, 6, 7, 8, 9, 12, 13, 19, 20, 22, 23, 40, 44]
-            r = Ranges(seq)
-            assert r == [(1, 5), (6, 10), (12, 14), (19, 21), (22, 24), 40, 44]
-            # Equal elements
-            seq = [2, 2, 2, 2]
-            r = Ranges(seq)
-            assert r == seq
-            # Exception cases
-            raises(TypeError, Ranges, [1.0, 1.1, 1.2, 1.3, 2.0, 3.0, 4.0])
-            raises(TypeError, Ranges, ["1"])
-
-        Test_Ranges()
-        exit()
-
+    The algorithm is derived from 
+    https://stackoverflow.com/questions/3429510/pythonic-way-to-convert-a-list-of-integers-into-a-string-of-comma-separated-range/3430231#3430231
+    and is the 7 Aug 2010 answer.
+    '''
+    if validate:
+        orig = list(seq)    # Copy of original sequence
+    # Make sure all the elements of seq are integers
+    if not all(ii(i, int) for i in seq):
+        raise TypeError(f"Not all elements of seq are integers")
+    f = lambda x,c=count(): next(c) - x
+    G = (list(x) for _, x in groupby(seq, f))
+    # Convert into pairs of numbers for range()
+    o = []
+    for i in list(G):
+        o.append((i[0], i[-1] + 1)) if len(i) > 1 else o.append(i[0])
+    if validate:
+        p = []
+        for i in o:
+            p.append(list(range(i[0], i[1]))) if ii(i, tuple) else p.append(i)
+        if Flatten(p) != orig:
+            raise ValueError("Validation failed")
+    return o
 def RandomIntegers(n, maxint, seed=None, duplicates_OK=False):
     '''Return a random list of n integers between 0 and maxint - 1.  Set seed to be not None to
     generate a repeatable set of integers.  If duplicates_OK is False, the integers are distinct;
@@ -2103,6 +2076,26 @@ if __name__ == "__main__":
     # Need to have version, as SizeOf stuff changed between 3.7 and 3.9
     vi = sys.version_info
     ver = f"{vi[0]}.{vi[1]}"
+    def Test_Ranges():
+        # Empty sequence
+        assert Ranges([], validate=False) == []
+        assert Ranges([], validate=True) == []
+        # Simple unsorted sequence
+        seq = [2, 1, -3, 7]
+        r = Ranges(seq)
+        assert r == seq
+        # Algorithm author's example
+        seq = [1, 2, 3, 4, 6, 7, 8, 9, 12, 13, 19, 20, 22, 23, 40, 44]
+        r = Ranges(seq)
+        assert r == [(1, 5), (6, 10), (12, 14), (19, 21), (22, 24), 40, 44]
+        # Equal elements
+        seq = [2, 2, 2, 2]
+        r = Ranges(seq)
+        assert r == seq
+        # Exception cases
+        raises(TypeError, Ranges, [Fraction(1, 2)])
+        raises(TypeError, Ranges, [1.0])
+        raises(TypeError, Ranges, ["1"])
     def Test_len():
         # Note the Unicode '∞' in the third line.
         tststring = dedent('''
@@ -2922,6 +2915,7 @@ if __name__ == "__main__":
             cmath
             combinations
             cycle
+            Dbg
             debug
             Decimal
             dedent
@@ -2933,6 +2927,9 @@ if __name__ == "__main__":
             Fraction
             frange
             fsig_lock
+            g
+            G
+            count
             glob
             groupby
             hashlib
