@@ -39,6 +39,7 @@ if 1:   # Header
             import debug
             debug.SetDebugger()
         # Color coding
+        from color import t
         try:
             from color import PrintMatch, lred, black, Style
             MatchStyle = Style(lred, black)
@@ -57,6 +58,8 @@ if 1:   # Header
             from ucd import ucd
         except ImportError:
             ucd = None
+    if 1:   # Global variables
+        t.section = t.purl
 def GetCharacterSet(d):
     'Return the set of integers cpset, representing the valid Unicode codepoints'
     # 0x110000 is 1,114,112 and 0x10000 is 65536 == 2**16
@@ -250,8 +253,8 @@ Data on codepoint U+{cp:0X} = character {c}
             f = decomp.split()
             if f[0][0] == "<":
                 f = f[1:]
-            t = " ".join(chr(int(i, 16)) for i in f)
-            print(f"  Decomposition = {decomp} = {t}")
+            u = " ".join(chr(int(i, 16)) for i in f)
+            print(f"  Decomposition = {decomp} = {u}")
         except Exception:
             pass
     print("  Encodings:")
@@ -644,85 +647,66 @@ def Usage(d, status=1):
     name = pathlib.PurePath(sys.argv[0]).name
     eng = ("Don't r" if d["-e"] else "R") + "emove non-English characters."
     col = ("Don't p" if d["-c"] else "P") + "rint in color."
-    print(
-        f'''
-Usage:  {name} [options] r1 [r2 ...]
-  Look up r1 in the Unicode character database.  If r1 is a codepoint
-  number (hex by default; use -d for decimal), then print out data on
-  that character.  Otherwise, it's a python regular expression to search
-  for Unicode characters whose description matches that expression (if
-  it's a single character, look up that character's data).  Repeat for
-  other arguments.  If the argument contains a hyphen, a range of
-  codepoints is printed; a colon means to start at the first codepoint
-  and print the second number of codepoints.  Searches are
-  case-insensitive.
-  
-  Version data:
-    ucd.py's data:      {ucd["version"].replace("Unicode", "")}
-    Python unicodedata:  {unicodedata.unidata_version}
-    
-Examples:
-  python {name} α β ɣ
-      Show details on the first three Greek lower-case letters.
-  python {name} -d 10:4
-      Show the four characters starting at ASCII 10 (line feed).
-      Note the lowest codepoint is printed last.
-  python {name} 'digit one'
-      Show characters whose descriptions contain 'digit one'.
-  python {name} -e 'digit one'
-      Same except remove non-English languages.
-  python {name} -D 
-      Show all valid Unicode characters.
-  python {name} -s √αβɣδ café
-      Show names for the indicated characters in the words.
-Options:
-  -a  Use all valid Unicode characters.  The default set uses the
-      Basic Multilingual Plane up to U+FFFF.
-'''[:-1]
-    )
+    print(dedent(f'''
+    {t.section}Usage:  {name} [options] r1 [r2 ...]{t.n}
+      Look up r1 in the Unicode character database.  If r1 is a codepoint number (hex by
+      default; use -d for decimal), then print out data on that character.  Otherwise,
+      it's a python regular expression to search for Unicode characters whose
+      description matches that expression (if it's a single character, look up that
+      character's data).  Repeat for other arguments.  If the argument contains a
+      hyphen, a range of codepoints is printed; a colon means to start at the first
+      codepoint and print the second number of codepoints.  Searches are
+      case-insensitive.
+      
+      Version data:
+        ucd.py's data:      {ucd["version"].replace("Unicode", "")}
+        Python unicodedata:  {unicodedata.unidata_version}
+    {t.section}Examples:{t.n}
+      python {name} α β ɣ
+          Show details on the first three Greek lower-case letters.
+      python {name} -d 10:4
+          Show the four characters starting at ASCII 10 (line feed).
+          Note the lowest codepoint is printed last.
+      python {name} 'digit one'
+          Show characters whose descriptions contain 'digit one'.
+      python {name} -e 'digit one'
+          Same except remove non-English languages.
+      python {name} -D 
+          Show all valid Unicode characters.
+      python {name} -s √αβɣδ café
+          Show names for the indicated characters in the words.
+    {t.section}Options:{t.n}
+      -a  Use all valid Unicode characters.  The default set uses the
+          Basic Multilingual Plane up to U+FFFF.
+    '''))
     if ucd is not None:
         print("  -b  Dump block information")
-    print(
-        f'''
-  -c  {col}
-  -D  Print the descriptions of all valid Unicode characters.
-  -d  Numbers on command line are decimal (hex is the default).
-  -e  {eng}
-  -g  Like -D, but organize by category
-  -P  Print out characters that are valid python symbols
-  -p  Print out characters that are valid python symbols (<U+03E2)
-  -s  Print the data on the characters in the command line strings
-  -t  Force a textual lookup (e.g., without this 'face' is
-      interpreted as a hex number).
-  -v  Verbose printing (show database characteristics and extra help).
-  
-Some useful Unicode characters:
-  ¹/₁₆ ¹/₈ ³/₁₆ ¹/₄ ⁵/₁₆ ³/₈ ⁷/₁₆ ¹/₂ ⁹/₁₆ ⁵/₈ ¹¹/₁₆ ³/₄ ¹³/₁₆ ⁷/₈ ¹⁵/₁₆ 
-  ¹/₃₂ ³/₃₂ ⁵/₃₂ ⁷/₃₂ ⁹/₃₂ ¹¹/₃₂ ¹³/₃₂ ¹⁵/₃₂ ¹⁷/₃₂ ¹⁹/₃₂ ²¹/₃₂ ²³/₃₂ ²⁵/₃₂
-  ²⁷/₃₂ ²⁹/₃₂ ³¹/₃₂     ¹/₆₄ ³/₆₄ ⁵/₆₄ ⁷/₆₄ ⁹/₆₄ ¹¹/₆₄ ¹³/₆₄ ¹⁵/₆₄ ¹⁷/₆₄
-  ¹⁹/₆₄ ²¹/₆₄ ²³/₆₄ ²⁵/₆₄ ²⁷/₆₄ ²⁹/₆₄ ³¹/₆₄ ³³/₆₄ ³⁵/₆₄ ³⁷/₆₄ ³⁹/₆₄ ⁴¹/₆₄
-  ⁴³/₆₄ ⁴⁵/₆₄ ⁴⁷/₆₄ ⁴⁹/₆₄ ⁵¹/₆₄ ⁵³/₆₄ ⁵⁵/₆₄ ⁵⁷/₆₄ ⁵⁹/₆₄ ⁶¹/₆₄ ⁶³/₆₄ 
-  ° Ω θ μ π · × ÷ √ α β ɣ δ Δ ɛ ϵ ϶ ν ξ ψ φ ϕ ζ λ ρ σ τ χ ω Γ Φ Ξ Λ Σ ♠ ♣ ♥ ♦
-  ± ∞ ∂ ∫ ∼ ∝ ∓ ∍ ∊ ∈ ∉ ∅ ∃ « » ∀ ∡ ∠ ∟ ∥ ∦ ℝ ℂ ℤ ℕ ℚ ℐ ℛ ⊙ ⊗ ⊕ ⊉ ⊈ ⊇ ⊆ ⊅ ⊄ ⊃ ⊂
-  ≅ ≤ ≥ ≪ ≫ ≈ ≠ ≡ ≢ ≝ ≟ ∧ ∨ ∩ ∪ ∴ ⅛ ¼ ⅜ ½ ⅝ ¾ ⅞ ⍈ █ ∎
-  © ® ← ↑ → ↓ ↔ ↕ ↖ ↗ ↘ ↙ ↺ ↻ ⇐ ⇑ ⇒ ⇓ ⇔ ⇦ ⇧ ⇨ ⇩ ⭍ ⭠ ⭡ ⭢ ⭣ ⭤ ⭥ ⭮ ⭯ ￪ ￬
-  Superscripts: ⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ⁱⁿ
-  Subscripts:   ₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐₑₕᵢⱼₖₗₘₙₒₚᵣₛₜᵤᵥₓᵦᵩ
-'''[1:-1]
-    )
-    '''
-    https://www.unicode.org/reporting.html  unicode@unicode.org On 28
-    May 2021 I subscribed to the Unicode mailing list.  When I am
-    confirmed, submit an enhancement request for all letters, numbers,
-    and punctuation symbols as subscripts and superscripts.  I've been
-    wanting this for years, as I am unable to properly display physical
-    units.
-    '''
+    print(dedent(f'''
+      -c  {col}
+      -D  Print the descriptions of all valid Unicode characters.
+      -d  Numbers on command line are decimal (hex is the default).
+      -e  {eng}
+      -g  Like -D, but organize by category
+      -P  Print out characters that are valid python symbols
+      -p  Print out characters that are valid python symbols (<U+03E2)
+      -s  Print the data on the characters in the command line strings
+      -t  Force a textual lookup (e.g., without this 'face' is
+          interpreted as a hex number).
+      -v  Verbose printing (show database characteristics and extra help).
+    {t.section}Some useful Unicode characters:{t.n}
+      ⅛ ¼ ⅜ ½ ⅝ ¾ ⅞   ¹/₈ ¹/₄ ³/₈ ¹/₂ ⁵/₈ ³/₄ ⁷/₈  ¹/₁₆ ³/₁₆ ⁵/₁₆ ⁷/₁₆ ⁹/₁₆ ¹¹/₁₆ ¹³/₁₆ ¹⁵/₁₆ 
+      ° ± ∞ ∂ Ω θ μ π Δ ɛ ϵ ϶ · ∴ × ÷ √ ∫ ∼ ∝ ∓ ∈ ∉ ∅ ∃ « » ∀ ∡ ∠ ∟ ∥ ∦ ℝ ℂ ℤ ℕ ℚ ℐ ℛ
+      Αα Ββ Γγ Δδ Εε Ζζ Ηη Θθ Ιι Κκ Λλ Μμ Νν Ξξ Οο Ππ Ρρ Σσς Ττ Υυ Φφ Χχ Ψψ Ωω
+      ≅ ≤ ≥ ≪ ≫ ≈ ≠ ≡ ≢ ≝ ≟ ∧ ∨ ∩ ∪ ⊙ ⊗ ⊕ ⊉ ⊈ ⊇ ⊆ ⊅ ⊄ ⊃ ⊂
+      © ® ← ↑ → ↓ ↔ ↕ ↖ ↗ ↘ ↙ ↺ ↻ ⇐ ⇑ ⇒ ⇓ ⇔ ⇦ ⇧ ⇨ ⇩ ⭍ ⭠ ⭡ ⭢ ⭣ ⭤ ⭥ ⭮ ⭯ ￪ ￬ ⍈ █ ∎
+      Superscripts: ⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ⁱⁿ Subscripts:   ₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐₑₕᵢⱼₖₗₘₙₒₚᵣₛₜᵤᵥₓᵦᵩ
+    '''))
+    print(dedent(f'''
+      Superscripts: ⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ⁱⁿ Subscripts:   ₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐₑₕᵢⱼₖₗₘₙₒₚᵣₛₜᵤᵥₓᵦᵩ
+    '''))
     if not d["-v"]:
         exit(status)
-    print(
-        dedent(
-            f'''
+    print(dedent(f'''
             
     - You'll get extra information on characters if you download and
       install the Unicode Character Database, but it's not required.
@@ -763,9 +747,7 @@ Some useful Unicode characters:
       editor.  A month ago I upgraded my terminal to the latest version
       (also less than 6 months old and it has pretty good Unicode
       support too).  It's hit or miss with the other command line tools
-      I use.'''[1:]
-        )
-    )
+      I use.'''))
     exit(status)
 def PythonSymbols(d):
     "Print allowed python symbols"

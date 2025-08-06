@@ -23,7 +23,7 @@ if 1:  # Header
         import pickle
         from time import asctime
         import os
-        from pathlib import Path as P
+        from pathlib import Path
         import re
         import sys
         import unicodedata
@@ -51,19 +51,19 @@ def GetVersion():
     '''
     v = unicodedata.unidata_version  # Which version of UCD python is using
     if v == "11.0.0":
-        return P("ucd.nounihan.grouped.ver11.xml")
+        return Path("ucd.nounihan.grouped.ver11.xml")
     elif v == "12.0.0":
-        return P("ucd.nounihan.grouped.ver12.1.xml")
+        return Path("ucd.nounihan.grouped.ver12.1.xml")
     elif v == "13.0.0":
-        return P("ucd.nounihan.grouped.ver13.xml")
+        return Path("ucd.nounihan.grouped.ver13.xml")
     elif v == "14.0.0":
         # Aug 2025:  python 3.11.5 which I'm using (conda-forge) uses this version
-        return P("ucd.nounihan.grouped.ver14.xml")
+        return Path("ucd.nounihan.grouped.ver14.xml")
     else:
         raise ValueError(f"{v} is unsupported Unicode version")
 input_file = GetVersion()
 # The pickle file will contain the persisted UCD dictionary in ucd.
-pickle_file = P("/plib/pgm/ucd.pickle")
+pickle_file = Path("/plib/pgm/ucd.pickle")
 # The UCD dictionary.
 ucd = {}
 how_to_get_datafile = '''

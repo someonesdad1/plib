@@ -56,7 +56,7 @@ if 1:  # Utility functions to vet data
             print()
 if 1:  # Core functionality
     def IsAbbreviation(w, no_period=False, full=False):
-        '''Returns True if w is an abbreviation; case is ignored.  
+        '''Returns True if w is an abbreviation; case is ignored.
     
         no_period:  If True, all '.' characters are removed from w and the abbreviations.
     
@@ -67,74 +67,70 @@ if 1:  # Core functionality
             # Cache our set of abbreviation strings
             data = '''
             
-                a.c. a.d. a.k.a. a.m. a.s.a.p. abbr. abbrev. abol.  aborig.
-                abr. abr. abstr. acad. acc. acct. accts. addr. adj.  adjs.
-                adm. admon. adv. advb. amer. anal. anat. annot. anon.  apoc.
-                app. appl. approx. appt. apr. apt. arb. arch. assoc.  astr.
-                astrol. astron. att. attrib. aug. auth. ave.
+                a.c. a.d. a.k.a. a.m. a.s.a.p. abbr. abbrev. abol. aborig.  abr. abr.
+                abstr. acad. acc. acct. accts. add. addr. adj. adjs.  adm. admin. admon.
+                adv. advb. amer. anal. anat. ann. annot. anon. apoc.  app. appl. approx.
+                appt. apr. apt. arb. arch. assoc. astr.  astrol. astron. att. attrib.
+                aug. auth. ave.
                 
-                b. b.c. b.c.e. b.o. b.t.u. b.y.o.b. betw. bibliog. biochem.
-                biog. biogr. biol. bk. bks. blvd. bot. brit. bur.
+                b. b.c. b.c.e. b.o. b.t.u. b.y.o.b. betw. bibliog. biochem.  biog.
+                biogr. biol. bk. bks. blvd. bot. brit. bull. bur.
                 
-                c. c.e. c.e.o. c.o.d. c.p.u. ca. cal. calc. calif. camb.  cap.
-                capt. cath. cent. ceram. cert. certif. cf. ch. chap.  char.
-                chas. chem. chr. chron. chronol. circ. cl. cmdr. co.
-                col. coll. colloq. com. comm. comp. compl. conc.  concr. conf.
-                conj. consol. const. constr. cont. contrib.  conv. convtrov.
-                coron. corp. corr. corresp. cp. cpd. cpl.  cr. crim. crit. ct.
-                cycl.
+                c. c.e. c.e.o. c.o.d. c.p.u. ca. cal. calc. calif. camb. cap.  capt.
+                cath. cent. ceram. cert. certif. cf. ch. chap. char.  chas. chem. chr.
+                chron. chronol. circ. cl. cmdr. co.  col. coll. colloq. com. comm. comp.
+                compl. conn. conc. concr. conf.  conj. consol. const. constr. cont.
+                contrib. conv. convtrov.  coron. corp. corr. corresp. cp. cpd. cpl. cr.
+                crim. crit. ct.  cycl.
                 
-                d.a. d.c. d.i.y. d.o.a. dan. dat. deb. dec. def. deliv. dem.
-                dep. dept. deriv. derog. descr. devel. dial. dict. diff.
-                dis. disc. dist. div. dr.
+                d.a. d.c. d.i.y. d.o.a. dan. dat. deb. dec. def. deliv. dem.  dep. dept.
+                deriv. derog. descr. devel. dial. dict. diff.  dim. dis. disc. dist.
+                div. dr.
                 
-                e. e.g. e.s.p. e.t.a. e.v.p. ea. eccl. eccles. ecol. econ.
-                ed. educ. edw. electr. elem. emph. encycl. eng. enq. entom.
-                equip. esp. esq. est. et.al. et.seq. etc. etym. etymol. euphem.
-                eval. exc. exch. exec. exper.
+                e. e.g. e.s.p. e.t.a. e.v.p. ea. eccl. eccles. ecol. econ.  ed. educ.
+                edw. electr. elem. emph. encycl. eng. enq. entom.  equip. esp. esq. est.
+                et.al. et.seq. etc. etym. etymol. euphem.  eval. exc. exch. exec. exper.
                 
-                f. f.b.i. fab. fam. famil. feb. fem. ff. fl. floz. fr. freq.
-                fri. fut.
+                f. f.b.i. fab. fam. famil. feb. fem. ff. fig. fl. floz. fr. freq.  fri.
+                fut.
                 
-                g.i. gal. gen. geo. geog. geogr. geol. geom. ger. gov. govt.
-                gr.
+                g.i. gal. gen. geo. geog. geogr. geol. geom. ger. gov. govt.  gr.
                 
                 h. h.p. handbk. hebr. hist. hort. hosp. hr. hrs. hydrol.
                 
-                i.d. i.e. i.q. i.u.d. ib. ibid. illustr. impt. inc. ind.
-                indef. indir. industr. infl. inorg. inq. inst. instr. intr.
-                intro. introd. inv. invoc. ir. irreg. ital.
+                i.d. i.e. i.q. i.u.d. ib. ibid. illustr. impt. inc. ind.  indef. indir.
+                industr. infl. inorg. inq. inst. instr. intr.  intro. introd. inv.
+                invoc. ir. irreg. ital.
                 
-                j.d. jan. jap. jr. jrnl. jud. judg. jul. jun. jurisd.
-                jurispr.
+                j.d. jan. jap. jr. jrnl. jud. judg. jul. jun. jurisd.  jurispr.
                 
-                l. lab. lang. langs. lat. lb. lbf. lett. lex. libr. lit. ll.
-                ln. lt. ltd.
+                l. lab. lang. langs. lat. lb. lbf. lett. lex. libr. lit. ll.  ln. lt.
+                ltd.
                 
-                m. m.d. m.p. mach. mag. magn. maj. manuf. mar. masc.  mass.
-                meas. mech. med. messrs. mil. min. misc. mlle. mlles.  mme.
-                mmes. mo. mon. mr. mrs. ms. mss. mssrs. mt. mtg. myth.
+                m. m.d. m.p. mach. mag. magn. maj. manuf. mar. masc. mass. math. meas.
+                mech. med. messrs. mil. min. misc. mlle. mlles. mme. mmes. mod. mo.
+                mon. mr. mrs. ms. mss. mssrs. mt. mtg. myth.
                 
-                n. n.b. n.e. n.s.w. n.w. n.y. n.z. narr. nat. naut. nav.
-                nec. neurol. nom. nov. nucl.
+                n. n.b. n.e. n.s.w. n.w. n.y. n.z. narr. nat. naut. nav. nec. neurol.
+                no. nom. nov. nucl.
                 
-                o.d. o.e.d. o.k. o.t. obj. obs. observ. occas. oct. 
-                offic. opp. opt. ord. org. orig. oz.
+                o.d. o.e.d. o.k. o.t. obj. obs. observ. occas. oct. offic. opp. opt.
+                ord. org. orig. oz.
                 
-                p. p.a. p.e. p.m. p.o. p.s. perf. pers. ph.d.
-                pharm. phil. philos. phys. pict. pl. plur. pm. poet. pol.
-                polit. poss. posth. postm. pp. ppb. ppl. ppm. pr. pract.
-                prec. pred. pref. prep. pres. pres. prim. princ. priv. prob.
-                prob. proc. prod. prof. pron. prop. prov. pt. pt. publ. pvt.
+                p. p.a. p.e. p.m. p.o. p.s. perf. pers. ph.d. pa. pharm. phil. philos.
+                phys. pict. pl. plur. pm. poet. pol. polit. pop. poss. posth. postm. pp.
+                ppb. ppl. ppm. pr. pract. prec. pred. pref. prep. pres. pres. prim.
+                princ. priv. prob. prob. proc. prod. prof. pron. prop. prov. pt. pt.
+                publ. pvt.
                 
                 q. q.e.d. q.v. qt. quot.
                 
                 r. r.a.f. r.c. r.n. r.s.v.p. rad. rd. re. rec. ref. rel.
                 rep. repr. ret. rev.
                 
-                s. s.e. s.t.p. s.u.v. s.v. s.v.p. s.w. s.w. sat. sci. sep.
-                sess. sgt. sim. soc. sp. spec. sr. ss. st. st. stat. str.
-                subj. subord. subscr. subst. symp. syst.
+                s. s.e. s.t.p. s.u.v. s.v. s.v.p. s.w. s.w. sat. sci. sep. sept. sess.
+                sgt. sim. sing. soc. sp. spec. sr. ss. st. st. stat. str. subj. subord.
+                subscr. subst. sun. symp. syst.
                 
                 t. t.b. taxon. techn. technol. tel. telegr. teleph. temp.
                 theol. thu. tr. trad. trans. transl. trav. treas. trib.
@@ -146,7 +142,7 @@ if 1:  # Core functionality
                 v. v.p. v.r. va. vac. var. vbl. veg. vet. vet. vic.
                 viz. voc. vol. vols. vs. vulg.
                 
-                w. w.c. w.m.d. wed. wk. wkly. wks. writ.
+                w. w.c. w.m.d. w.v. wed. west. wk. wkly. wks. writ.
                 
                 yearbk. yng. yr. yrs.
                 
