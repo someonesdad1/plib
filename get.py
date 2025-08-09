@@ -50,6 +50,8 @@ if 1:  # Header
         import u
         from f import flt
         from columnize import Columnize
+        from dpprint import PP
+        pp = PP()   # Get pprint with current screen width
         try:
             from uncertainties import ufloat_fromstr, UFloat
             have_unc = True
@@ -111,107 +113,71 @@ if 1:  # Getting text, lines, bytes
         else:
             raise TypeError("Type of 'thing' not recognized")
         return s
-    if 0:  # Phase out if nothing breaks
-        def GetLines1(
-            thing,
-            enc=None,
-            ignore=None,
-            script=False,
-            ignore_empty=False,
-            strip=False,
-            nonl=False,
-        ):
-            r'''Return text from thing, which is
-               string      It's a file name.  If get a read exception, then
-                           use string itself for the text.
-               bytes
-               stream
-            If enc is not None, then it's the encoding to read the file and it is
-            read as binary.  Keywords are (for bool (b), action is if True):
-            
-               nonl          b If True, remove trailing newline
-               script        b If True, ignore comment lines
-               strip         b If True, strip off whitespace from each line.  If
-                             strip is True, it also implies nonl is True, even if
-                             it is set False.
-               ignore_empty  b If True, ignore empty (whitespace only) lines
-               
-               ignore          Either None or a sequence of strings that are
-                               compiled to regular expressions and are lines
-                               that are to be ignored.
-                               
-               If you want to use strip or script as True, then you must also set
-               ignore to the empty list.
-               
-               Example:
-                   s = """# Comment
-                   ## Another comment
-                   Line 1
-                       Line 2
-                   """
-                   r = [r"^\s*#"]
-                   lines = GetLines(s, ignore=r)
-                   print(f"lines {list(lines)}")
-               outputs
-                   lines ['Line 1', '    Line 2', '']
-               The call GetLines(s, script=True) does the same thing.
-            '''
-            def Filter(line):
-                if ignore is None:
-                    return True
-                for r in ignore:
-                    if re.search(r, line):
-                        return False  # Don't keep this line
-                return True  # Keep this line
-            if ignore is not None and (ii(ignore, str) or not ii(ignore, Iterable)):
-                raise TypeError("ignore must be an iterable")
-            if script and ignore is not None:
-                ignore.append(r"^\s*#")
-            if ignore_empty and ignore is not None:
-                ignore.append(r"^\s*$")
-            got = GetText(thing, enc=enc)
-            if ii(got, bytes):
-                if enc:
-                    lines = got.decode(enc).split("\n")
-                else:
-                    lines = got.decode().split("\n")
-            elif ii(got, str):
-                lines = got.split("\n")
-            else:
-                raise TypeError("GetText() didn't return bytes or string")
-            if not nonl:
-                lines = [i + "\n" for i in lines]  # Add back newlines to each line
-            lines = list(filter(Filter, lines))
-            if strip:
-                lines = [i.strip() for i in lines]
-            return lines
-    def GetLines(
-        thing,
-        enc=None,
-        ignore=[],
-        script=False,
-        ignore_empty=False,
-        strip=False,
-        nonl=False,
-    ):
-        r'''Return text from thing, which is
+    def GetLinesFromString(mystring, ignore=[], script=False, ignore_empty=False,
+                           strip=False, lstrip=False, rstrip=False):
+        '''Return list of lines (with no newline)  from mystring, which is a string.
+
+           ignore           A list of strings that are compiled to regular expressions
+                            and are lines that are to be ignored (they can also be
+                            compiled regular expressions)
+           script           If True, ignore comment lines
+           ignore_empty     If True, ignore empty (whitespace only) lines
+           strip            If True, sets lstrip and rstrip to True
+           lstrip           If True, strip off whitespace from left side
+           rstrip           If True, strip off whitespace from right side
+        The primary use case is to process a variable in a script which represents a set
+        of lines of text.
+        '''
+        if not ii(ignore, (list, tuple)):
+            raise TypeError("ignore must be a list or tuple")
+        def Filter(line):
+            'Return True if this line should be kept'
+            if not ignore:
+                return True
+            for r in ignore:
+                if re.search(r, line):
+                    return False  # Don't keep this line
+            return True  # Keep this line
+        if script:
+            ignore.append(r"^\s*#")
+        if ignore_empty:
+            ignore.append(r"^\s*$")
+        if not mystring:
+            return []
+        if strip:
+            lstrip = rstrip = True
+        o = []
+        for line in mystring.split("\n"):
+            if lstrip:
+                line = line.lstrip()
+            if rstrip:
+                line = line.rstrip()
+            o.append(line)
+        o = list(filter(Filter, o))
+        return o
+
+
+    def GetLines(thing, enc=None, ignore=[], script=False, ignore_empty=False,
+                 strip=False, nonl=False):
+        '''Return text from thing, which is
            string      It's a file name.  If get a read exception, then
                        use string itself for the text.  "-" means stdin.
-           bytes
+           bytes       or
            stream
-        If enc is not None, then it's the encoding to read the file and it is
-        read as binary.  Keywords are (for bool (b), action is if True):
+
+        If enc is not None, then it's the encoding to read the file and it is read as
+        binary.  Keywords are (for bool (b), action is if True):
         
            nonl          b If True, remove trailing newline
            script        b If True, ignore comment lines
-           strip         b If True, strip off whitespace from each line.  If
-                           strip is True, it also implies nonl is True, even if
-                           it is set False.
+           strip         b If True, strip off whitespace from each line.  If strip
+                           is True, it also implies nonl is True, even if it is set
+                           to False.
            ignore_empty  b If True, ignore empty (whitespace only) lines
            
-           ignore          A list of strings that are compiled to regular
-                           expressions and are lines that are to be ignored.
-                           
+           ignore          A list of strings that are compiled to regular expressions
+                            and are lines that are to be ignored (they can also be
+                            compiled regular expressions)
            Example:
                s = """# Comment
                ## Another comment
@@ -661,7 +627,7 @@ if 1:  # Getting numbers
                 lst.append(x)
         return lst
     def GetNumberArray(string, row=False, numtype=float):
-        r'''Return a list of vectors gotten from the indicated multiline string.
+        '''Return a list of vectors gotten from the indicated multiline string.
         The numbers are separated on each line by whitespace.  If row is
         True, then the vectors are row vectors.  Lines in string matching
         the regular expression with '^\s*#' are ignored.  If string is empty or
@@ -1259,6 +1225,33 @@ if __name__ == "__main__":
             r = ("^ *#",)
             lines = GetLines(s, ignore=r, nonl=True)
             Assert(lines == ["Line 1", "  Line 2"])
+        def Test_GetLinesFromString():
+            u = " "*2
+            s = [
+                u, 
+                u + "@abc" + u,
+                u + "def ghi" + u,
+                u + "jkl mno" + u,
+                u
+            ]
+            data = '\n'.join(s)
+            # Default behavior
+            o = GetLinesFromString(data)
+            assert(o == s)
+            # Left strip
+            o = GetLinesFromString(data, lstrip=True)
+            assert(o == [i.lstrip() for i in s])
+            # Right strip
+            o = GetLinesFromString(data, strip=True)
+            assert(o == [i.strip() for i in s])
+            # Ignore blank lines
+            o = GetLinesFromString(data, ignore_empty=True)
+            assert(o == s[1:-1])
+            # Ignore script lines
+            data1 = data + "\n# Script line"
+            o = GetLinesFromString(data1, script=True)
+            assert(o == s[1:-1])
+#yy
         def TestGetLines():
             # Test with stream
             sio = StringIO(S)

@@ -1,5 +1,13 @@
 /plib/.todo
 
+    - wrap.py
+        - Numerous bugs in code
+        - A very common need is to dedent help text.  Add a function printwrap(*s) that takes each
+          string s, removes leading and trailing whitespace, dedents the text, and prints it wrapped
+          to 1 minus the current number of columns.  Embedded control lines can be things like
+          '.on', '.off', '.indent = n', etc.  The overall state is remembered until '.reset' is seen
+          or the keyword reset is True.  'paragraph_sep' keyword defaults to '\n\n'.
+
     - pgm/texthash.py
         - Purpose:  provide a hash of a text file that ignores whitespace
         - Use case:  identify a file's text, ignoring line endings
@@ -1310,13 +1318,6 @@ Inactive
           this should be something made with the g library that could be taken to a printer and
           printed in color on some heavy plastic.  I'd want at least two of these, one for over the
           toolboxes and one for over the lathe; and maybe one for my office.
-
-    - wrap.py
-        - A very common need is to dedent help text.  Add a function printwrap(*s) that takes each
-          string s, removes leading and trailing whitespace, dedents the text, and prints it wrapped
-          to 1 minus the current number of columns.  Embedded control lines can be things like
-          '.on', '.off', '.indent = n', etc.  The overall state is remembered until '.reset' is seen
-          or the keyword reset is True.  'paragraph_sep' keyword defaults to '\n\n'.
 
     - gg
         - Project to look at rewriting the g library to output in SVG

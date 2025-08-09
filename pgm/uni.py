@@ -645,18 +645,19 @@ def ParseCommandLine(d):
     return args
 def Usage(d, status=1):
     name = pathlib.PurePath(sys.argv[0]).name
-    eng = ("Don't r" if d["-e"] else "R") + "emove non-English characters."
-    col = ("Don't p" if d["-c"] else "P") + "rint in color."
+    eng = ("Don't r" if d["-e"] else "R") + "emove non-English characters"
+    col = ("Don't p" if d["-c"] else "P") + "rint in color"
     print(dedent(f'''
     {t.section}Usage:  {name} [options] r1 [r2 ...]{t.n}
       Look up r1 in the Unicode character database.  If r1 is a codepoint number (hex by
       default; use -d for decimal), then print out data on that character.  Otherwise,
       it's a python regular expression to search for Unicode characters whose
       description matches that expression (if it's a single character, look up that
-      character's data).  Repeat for other arguments.  If the argument contains a
-      hyphen, a range of codepoints is printed; a colon means to start at the first
-      codepoint and print the second number of codepoints.  Searches are
-      case-insensitive.
+      character's data).  Repeat for other arguments.  
+
+      If the argument contains a hyphen, a range of codepoints is printed; a colon means
+      to start at the first codepoint and print the second number of codepoints.
+      Searches are case-insensitive.
       
       Version data:
         ucd.py's data:      {ucd["version"].replace("Unicode", "")}
@@ -677,10 +678,9 @@ def Usage(d, status=1):
           Show names for the indicated characters in the words.
     {t.section}Options:{t.n}
       -a  Use all valid Unicode characters.  The default set uses the
-          Basic Multilingual Plane up to U+FFFF.
-    '''))
+          Basic Multilingual Plane up to U+FFFF.'''))
     if ucd is not None:
-        print("  -b  Dump block information")
+        print("  -b  Dump block information", end="")
     print(dedent(f'''
       -c  {col}
       -D  Print the descriptions of all valid Unicode characters.
@@ -699,11 +699,7 @@ def Usage(d, status=1):
       Αα Ββ Γγ Δδ Εε Ζζ Ηη Θθ Ιι Κκ Λλ Μμ Νν Ξξ Οο Ππ Ρρ Σσς Ττ Υυ Φφ Χχ Ψψ Ωω
       ≅ ≤ ≥ ≪ ≫ ≈ ≠ ≡ ≢ ≝ ≟ ∧ ∨ ∩ ∪ ⊙ ⊗ ⊕ ⊉ ⊈ ⊇ ⊆ ⊅ ⊄ ⊃ ⊂
       © ® ← ↑ → ↓ ↔ ↕ ↖ ↗ ↘ ↙ ↺ ↻ ⇐ ⇑ ⇒ ⇓ ⇔ ⇦ ⇧ ⇨ ⇩ ⭍ ⭠ ⭡ ⭢ ⭣ ⭤ ⭥ ⭮ ⭯ ￪ ￬ ⍈ █ ∎
-      Superscripts: ⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ⁱⁿ Subscripts:   ₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐₑₕᵢⱼₖₗₘₙₒₚᵣₛₜᵤᵥₓᵦᵩ
-    '''))
-    print(dedent(f'''
-      Superscripts: ⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ⁱⁿ Subscripts:   ₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐₑₕᵢⱼₖₗₘₙₒₚᵣₛₜᵤᵥₓᵦᵩ
-    '''))
+      Superscripts: ⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ⁱⁿ Subscripts:   ₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐₑₕᵢⱼₖₗₘₙₒₚᵣₛₜᵤᵥₓᵦᵩ'''))
     if not d["-v"]:
         exit(status)
     print(dedent(f'''

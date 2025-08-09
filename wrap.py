@@ -1,7 +1,8 @@
 '''
 TODO
     - Use abbreviations.py instead of class Abbr.
-    - Bug:  Wrapping 'which is equal to (x - 1)!  if x is an integer.' will
+    - Bug:  Example3() doesn't work right
+    - Bug:  Wrapping 'which is equal to (x - 1)! if x is an integer.' will
       result in two spaces after the '!'.  Look at the next letter of the
       sentence and don't double space if it's not a capital.
     - Use the -H string from /plib/pgm/goto.py as an example of the typical
@@ -473,8 +474,9 @@ if __name__ == "__main__":
         if 1: #xx
             print(f"Got  = {got!r}")
             print(f"Want = {want!r}")
-            exit()
-        Assert(got == want)
+            if 0:
+                Assert(got == want)
+                exit()
     def TestDoubleLineSpacing():
         s = '''
         Mr. Bennet missed his second daughter exceedingly; his affection
@@ -515,19 +517,8 @@ if __name__ == "__main__":
         Assert(dedent(x) == "a\nb")
         # Make sure an embedded blank line is retained, but leading and trailing empty lines are
         # deleted.
-        x = '''
-        
-        
-        
-        
-        a
-        
-        b
-        
-        
-        
-        
-        '''
+        x = ("\n        \n        \n        \n        \n        a\n        \n        b\n"
+             "\n        \n        \n        \n        ")
         Assert(dedent(x) == "a\n\nb")
     def TestDedent():
         if 1:   # Remove leading spaces from a string
@@ -602,14 +593,12 @@ if __name__ == "__main__":
             Sep()
             w = Wrap()
             print("Wrapped to width 50 with an indent of 10 (text width = 40):")
-            w.indent = " " * (10 - 1)
+            w.indent = " "*(10 - 1)
             w.width = 50
-            print(
-                '''
-            1         2         3         4         5         6         7 
-    ....+....|....+....|....+....|....+....|....+....|....+....|....+....|....+....
-    '''[1:].rstrip()
-            )
+            print(dedent('''
+                     1         2         3         4         5         6         7 
+            ....+....|....+....|....+....|....+....|....+....|....+....|....+....|....+....
+            '''))
             print(w(s))
         def Example4():
             Sep()

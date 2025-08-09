@@ -1,4 +1,25 @@
 '''
+
+ToDo
+    - ucd.py
+        - ucd.py to /plib, create /plib/data directory, and store the relevant
+          ucd.nounihan.verxx.xml files there, along with their associated pickle files
+        - The unicode module's unicodedata.unidata_version tells you which Unicode
+          version that python is using
+        - When you know the version python needs, the appropriate pickle file is loaded
+        - ucd.load() uses the current python version to determine which pickle to load
+          to get the needed Unicode data
+    - Once ucd.py is "normed", change asciify.py so that _ascii_translate has a string
+      for every Unicode character
+        - The control characters will be <nul>, <ht>, <vt>, <ff>, <cr>, <nl>, etc.
+        - Things like Greek characters will be <alpha> or <Alpha>
+        - Things like Æ will become <AE>, È and É will become E.  Other things are
+          harder and will parse the Unicode name to try to get an ASCII letter:
+            - U+ab54 is "LATIN SMALL LETTER CHI WITH LOW RIGHT RING" and would be <chi>
+            - U+10b5 is "GEORGIAN CAPITAL LETTER KHAR" and would be <KHAR>
+    - This will be a lot of work, but once done it will guarantee and any Unicode text
+      can be ASCIIfied.
+
 Change Unicode characters to nearest ASCII equivalents.
 
 For an overview of the transliteration that this script provides, run the following
