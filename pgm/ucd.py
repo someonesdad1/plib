@@ -1,7 +1,26 @@
 '''
-Provide the ucd dictionary, a container of the Unicode Character Database (UCD)
-    I constructed this dictionary as an adjunct to the uni.py script, my searching tool to get
-    information on Unicode characters.
+
+- Provide the ucd dictionary, a container of the Unicode Character Database (UCD)
+    - I constructed this dictionary as an adjunct to the uni.py script, my searching
+      tool to get information on Unicode characters.
+    - The dictionary's keys are
+        - aliases
+        - blocks
+        - chars
+        - cjk-radicals
+        - doc
+        - emoji-sources
+        - groups
+        - named-sequences
+        - namespace
+        - normalization-corrections
+        - reserved
+        - standardized-variants
+        - version
+        - xml_file
+- Codepoints()
+    - Returns a set of the valid codepoint integers for the currently-used ucd.* file.
+
 '''
 if 1:  # Header
     if 1:  # Copyright, license
@@ -249,6 +268,7 @@ if 1:  # Core functionality
         BuildDataFile(input_file, pickle_file)
         with open(pickle_file, "wb") as f:
             pickle.dump(ucd, f, pickle.HIGHEST_PROTOCOL)
+
 if __name__ == "__main__":
     # Run as a script:  construct the needed pickle file for the python version being used
     try:
@@ -260,3 +280,4 @@ else:
     # Loaded as module:  load the ucd dictionary
     with open(pickle_file, "rb") as f:
         ucd = pickle.load(f)
+    breakpoint() #xx 

@@ -1,5 +1,8 @@
 /plib/.todo
 
+    - pgm/lsg.py
+        - Update this too per todo items, as it should become my preferred tool over st
+
     - wrap.py
         - Numerous bugs in code
         - A very common need is to dedent help text.  Add a function printwrap(*s) that takes each

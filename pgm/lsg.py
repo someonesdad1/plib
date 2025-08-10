@@ -1,15 +1,17 @@
-"""
+'''
 TODO
 
 - Vision
     - Primary purpose
         - Quickly get a picture of a git repository directory's state
-        - Output looks like that of ls
+        - Output looks like that of a plain ls listing
         - Color is used to flag important facts
-            - lip is an uncommitted change
-            - grn is a newly-added file
-            - trq is a renamed file
-
+            - lip:  uncommitted change
+            - grn:  newly-added file
+            - trq:  renamed file
+            - wht:  unchanged file
+            - ornl: untracked file
+            
     - My main use case for this command is when I'm in a directory of a git repository, I want to
       quickly get a picture of the directory's state:
         - Files in repository:  M, T, A, D, R, C, U letters from status command used to color the
@@ -22,18 +24,18 @@ TODO
             - R     Renamed
             - T     File type changed (regular file, symlink, submodule)
     - Add the -r option to descend into subdirectories
+    - Don't show unchanged files unless -u is used
+    - With command line arguments beyond dir, these are file globbing expressions
     - I'd also like to see a recursive listing of all untracked files that are not ignored.  This
       is because I could have forgotten to add some to the repository.
-
-
 
 Show git repository file status for current directory
     git status:
         -u Show untracked files
         --ignored
-
+        
         -s Short format
-
+        
     Gets XY code:
         ' ' = unmodified
         M = modified
@@ -43,7 +45,7 @@ Show git repository file status for current directory
         R = renamed
         C = copied (if config option status.renames is set to "copies")
         U = updated but unmerged
-
+        
         X          Y     Meaning
         -------------------------------------------------
                  [AMD]   not updated
@@ -73,12 +75,12 @@ Show git repository file status for current directory
         -------------------------------------------------
     ?? means untracked
     !! means ignored
-
+    
 ---------------------------------------------------------------------------
 Notes from lsg.py outline:
 
     Script to list status of git repository's files
-
+    
     - Need a tool for git that lists files like lsh
         - Key states:  clean, modified (staged, not stages), ignored, not
         tracked, deleted, added but not checked in
@@ -87,13 +89,13 @@ Notes from lsg.py outline:
             - Need -r to see at and below current directory
         - Branch and root of repository always shown at end
     - Options
-
+    
         - -a    Show all
         - -i    Show ignored
         - -c    Show unchanged but tracked
         - -r    Recursive
         - -w    Show whole repository state
-
+        
     - Also use output of 'git shortlog -sn' for repository names
     - Primary use cases
         - Show the untracked files
@@ -117,8 +119,7 @@ Notes from lsg.py outline:
         - grn:   tracked, unchanged
         - mag:   tracked, changed
         - gryl:  ignored
-"""
-
+'''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
@@ -147,17 +148,14 @@ if 1:  # Custom imports
     from columnize import Columnize
     from wsl import wsl  # wsl is True if we're running under WSL
     from dpprint import PP
-
     pp = PP()
     if 0:
         import debug
-
         debug.SetDebugger()
 if 1:  # Global variables
     P = pathlib.Path
     ii = isinstance
     dbg = False
-
     class St(Enum):
         # States for git status -s forms
         unmodified = auto()
@@ -168,7 +166,6 @@ if 1:  # Global variables
         unmerged = auto()
         untracked = auto()
         ignored = auto()
-
     # Map state to name and color
     sc = {
         St.ignored: ["Ignored", t("gry")],  # ?
@@ -185,7 +182,6 @@ if 1:  # Global variables
     else:
         git = "c:/bin/git_2_35_1_2/bin/git.exe"  # cygwin's git
 if 1:  # Utility
-
     def NoColor():
         global sc
         sc = {
@@ -198,14 +194,12 @@ if 1:  # Utility
             St.deleted: ["Deleted", ""],  # d
             St.modified: ["Modified", ""],  # m
         }
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options] [dir]
           If directory dir is in a git repository, show the state of the files
           at and below dir.  dir defaults to '.'.
@@ -216,10 +210,9 @@ if 1:  # Utility
             -h      Print a manpage
             -i      Show ignored files
             -v      Don't show cwd & root
-        """)
+        ''')
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = False  # Allow everything to be shown
         d["-c"] = True  # Color
@@ -243,7 +236,6 @@ if 1:  # Utility
         if not d["-c"]:
             NoColor()
         return dir
-
     def Dbg(*p, **kw):
         if not dbg:
             return
@@ -261,10 +253,7 @@ if 1:  # Utility
             print(ind, end="")
             print(*p, **kw)
             print(f"{t.n}")
-
-
 if 1:  # Core functionality
-
     def GetGitRoot():
         "Return the root of the repository or None"
         # https://stackoverflow.com/questions/15715825/how-do-you-get-the-git-repositorys-name-in-some-git-repository
@@ -283,19 +272,16 @@ if 1:  # Core functionality
             cp = subprocess.run(cmd, capture_output=True)
         p = cp.stdout.decode().rstrip()
         return p
-
     def GetData(dir):
-        """Change to the repository's root directory to run the status command.
+        '''Change to the repository's root directory to run the status command.
         This will result in a list of files relative to the root.  Then select
         only the files that are in dir or below.
-        """
-
+        '''
         def Split(s):
-            """Split into two chunks at position 2.  Input is in the form
+            '''Split into two chunks at position 2.  Input is in the form
             'xy name' where x and y are letters or space characters.
-            """
+            '''
             return s[:2], P(s[2:].strip()).resolve()
-
         # Change our directory to the repository root so that x.resolve() works
         root = GetGitRoot()
         cwd = os.getcwd()
@@ -352,14 +338,13 @@ if 1:  # Core functionality
             Dbg(f"\nMade relative to '{dir}'")
             Dbg(r, seq=True, ind=ind)
         return r
-
     def Keep(x):
-        """x is a tuple of (str, Path).  Return True if the Path should be
+        '''x is a tuple of (str, Path).  Return True if the Path should be
         shown in the listing.
-
+        
         This will be the case if x[1].relative_to(dir) doesn't raise an
         exception.
-        """
+        '''
         if not ii(x[1], pathlib.Path):
             raise Exception("'{x[1]}' is not a pathlib.Path object")
         p = x[1].resolve()
@@ -371,12 +356,11 @@ if 1:  # Core functionality
             return True
         # It must be relative to dir
         return str(p).startswith(str(dir))
-
     def ProcessData(r):
-        """r will be tuples of ("XY", "name").  Return a dict of the changed
+        '''r will be tuples of ("XY", "name").  Return a dict of the changed
         data.  Keys will be the lowercase change code (e.g. "m" for
         modified) and values will be the list of file names.
-        """
+        '''
         # Put into dict by type
         di = defaultdict(list)
         for code, name in r:
@@ -416,7 +400,6 @@ if 1:  # Core functionality
                 pp(n[i])
             Dbg()
         return n
-
     def ShowRoot():
         "Show the repository root and current directory in color"
         w = 20
@@ -434,7 +417,6 @@ if 1:  # Core functionality
         if d["-c"]:
             print(f"{t.n}", end="")
         print()
-
     def PrintReport(di):
         for key in sc:  # This gets us the print order we want
             if key in di and len(di[key]):
@@ -455,8 +437,6 @@ if 1:  # Core functionality
                         print(f"  {i}")
                     print()
                 print(f"{t.n}", end="")
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     if 1:  # Setup
