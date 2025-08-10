@@ -116,7 +116,7 @@ if 1:  # Getting text, lines, bytes
     def GetLinesFromString(mystring, ignore=[], script=False, ignore_empty=False,
                            strip=False, lstrip=False, rstrip=False):
         '''Return list of lines (with no newline)  from mystring, which is a string.
-
+        
            ignore           A list of strings that are compiled to regular expressions
                             and are lines that are to be ignored (they can also be
                             compiled regular expressions)
@@ -155,8 +155,6 @@ if 1:  # Getting text, lines, bytes
             o.append(line)
         o = list(filter(Filter, o))
         return o
-
-
     def GetLines(thing, enc=None, ignore=[], script=False, ignore_empty=False,
                  strip=False, nonl=False):
         '''Return text from thing, which is
@@ -164,7 +162,7 @@ if 1:  # Getting text, lines, bytes
                        use string itself for the text.  "-" means stdin.
            bytes       or
            stream
-
+        
         If enc is not None, then it's the encoding to read the file and it is read as
         binary.  Keywords are (for bool (b), action is if True):
         
@@ -1251,7 +1249,6 @@ if __name__ == "__main__":
             data1 = data + "\n# Script line"
             o = GetLinesFromString(data1, script=True)
             assert(o == s[1:-1])
-#yy
         def TestGetLines():
             # Test with stream
             sio = StringIO(S)
