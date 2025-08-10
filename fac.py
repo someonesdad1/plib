@@ -39,6 +39,8 @@ if 1:  # Core functionality
         # Get list of prime factors
         s = r.stdout.decode("UTF-8").strip().split(":")[1].strip().split()
         factors = deque(int(i) for i in s)
+        if not factors:
+            factors = deque([1])
         d = defaultdict(int)
         while factors:
             n = factors.popleft()
@@ -156,7 +158,7 @@ if __name__ == "__main__":
                 s = "  "
             else:
                 if not ii(n, int) or n < 1:
-                    Warn(f"{item!r} is not a positive integer > 0")
+                    t.print(f"{t.err}{item!r} is not a positive integer > 0")
                     return
             factors = Factor(int(round(n, 0) if is_float else n), u=True)
             N = int(round(n, 0))
