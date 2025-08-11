@@ -1,4 +1,4 @@
-"""
+'''
 DP's notes:
     - Downloaded Sat 23 Dec 2023
         - From https://github.com/Solomoriah/WConio2/WConio2.py The
@@ -12,15 +12,12 @@ DP's notes:
     - This stops with an exception in a console-based python 3.9.10 under
       cygwin, but works in Winpython 3.10.4, even in a mintty terminal
       running bash.
-"""
 
-# ---------------------------------------------------------------------------
-"""
 WConio2.py -- Windows Console I/O Module
     This is version 2 of the WConio console io module.  It uses the ctypes
     module, and thus does not need a subordinate C module, making it more
     portable and easier to install.
-"""
+'''
 if 1:  # Global variables
     __version__ = "2.0"
     BLACK = 0
@@ -128,7 +125,6 @@ if 1:  # Imports
     # connect to kernel32.dll, which actually does all the business.
     import sys
     import ctypes
-
     try:
         from ctypes import windll
         from ctypes.wintypes import *
@@ -152,22 +148,17 @@ if 1:  # Imports
     # this is meant to deal with that
     if sys.version_info >= (3, 0):
         _A_BLANK = " "
-
         def _fixkey(ch):
             return ch.encode()
     else:
         _A_BLANK = b" "
-
         def _fixkey(ch):
             return ch
-
     kernel32 = windll.kernel32
     LPSECURITY_ATTRIBUTES = ctypes.c_void_p
 if 1:  # Internal functions
-
     class error(Exception):
         pass
-
     class CONSOLE_SCREEN_BUFFER_INFO(ctypes.Structure):
         _fields_ = [
             ("dwSize", ctypes.wintypes._COORD),
@@ -176,26 +167,22 @@ if 1:  # Internal functions
             ("srWindow", ctypes.wintypes._SMALL_RECT),
             ("dwMaximumWindowSize", ctypes.wintypes._COORD),
         ]
-
     class CONSOLE_CURSOR_INFO(ctypes.Structure):
         _fields_ = [
             ("dwSize", DWORD),
             ("bVisible", BOOL),
         ]
-
     class Char(ctypes.Union):
         _fields_ = [
             ("UnicodeChar", WCHAR),
             ("AsciiChar", CHAR),
         ]
-
     class CHAR_INFO(ctypes.Structure):
         _anonymous_ = ("Char",)
         _fields_ = [
             ("Char", Char),
             ("Attributes", WORD),
         ]
-
     def _getconhandle(pszName):
         return HANDLE(
             kernel32.CreateFileW(
@@ -208,16 +195,13 @@ if 1:  # Internal functions
                 HANDLE(None),
             )
         )
-
     def _getconout():
         hConOut = _getconhandle("CONOUT$")
         if hConOut == HANDLE(-1):
             raise error("_getconout() failed")
         return hConOut
-
     def _releaseconout(h):
         return BOOL(kernel32.CloseHandle(h))
-
     def _setcursortype(cur_t):
         cci = CONSOLE_CURSOR_INFO()
         hConOut = _getconout()
@@ -233,7 +217,6 @@ if 1:  # Internal functions
             cci.bVisible = BOOL(1)
         kernel32.SetConsoleCursorInfo(hConOut, ctypes.byref(cci))
         _releaseconout(hConOut)
-
     def _getscreeninfo():
         csbi = CONSOLE_SCREEN_BUFFER_INFO()
         hConOut = _getconout()
@@ -242,7 +225,6 @@ if 1:  # Internal functions
             return csbi
         _releaseconout(hConOut)
         raise error("_getscreeninfo() failed")
-
     def _conputs(pszText):
         hConOut = _getconout()
         kernel32.WriteConsoleA(
@@ -253,10 +235,7 @@ if 1:  # Internal functions
             None,
         )
         _releaseconout(hConOut)
-
-
 if 1:  # Control functions
-
     def gettextinfo():
         csbi = _getscreeninfo()
         return (
@@ -272,22 +251,17 @@ if 1:  # Control functions
             csbi.dwCursorPosition.X,
             csbi.dwCursorPosition.Y,
         )
-
-
 if 1:  # Cursor functions
-
     def wherex():
         csbi = _getscreeninfo()
         if csbi is not None:
             return csbi.dwCursorPosition.X
         raise error("GetScreenInfo Failed")
-
     def wherey():
         csbi = _getscreeninfo()
         if csbi is not None:
             return csbi.dwCursorPosition.Y
         raise error("GetScreenInfo Failed")
-
     def gotoxy(x, y):
         coord = ctypes.wintypes._COORD()
         hConOut = _getconout()
@@ -295,7 +269,6 @@ if 1:  # Cursor functions
         coord.Y = y
         kernel32.SetConsoleCursorPosition(hConOut, coord)
         _releaseconout(hConOut)
-
     def setcursortype(cur_t):
         if cur_t == 0:
             _setcursortype(_NOCURSOR)
@@ -303,7 +276,6 @@ if 1:  # Cursor functions
             _setcursortype(_NORMALCURSOR)
         elif cur_t == 2:
             _setcursortype(_SOLIDCURSOR)
-
     def highvideo():
         hConOut = _getconout()
         csbi = _getscreeninfo()
@@ -311,7 +283,6 @@ if 1:  # Cursor functions
             hConOut, WORD(csbi.wAttributes | FOREGROUND_INTENSITY)
         )
         return
-
     def lowvideo():
         hConOut = _getconout()
         csbi = _getscreeninfo()
@@ -319,15 +290,11 @@ if 1:  # Cursor functions
             hConOut,
             WORD((csbi.wAttributes | FOREGROUND_INTENSITY) - FOREGROUND_INTENSITY),
         )
-
     def textattr(newattr):
         hConOut = _getconout()
         kernel32.SetConsoleTextAttribute(hConOut, WORD(newattr))
         _releaseconout(hConOut)
-
-
 if 1:  # Text i/o functions
-
     def clreol():
         hConOut = _getconout()
         csbi = _getscreeninfo()
@@ -346,7 +313,6 @@ if 1:  # Text i/o functions
             LPDWORD(ctypes.c_ulong(0)),
         )
         _releaseconout(hConOut)
-
     def clrscr():
         hConOut = _getconout()
         csbi = _getscreeninfo()
@@ -369,7 +335,6 @@ if 1:  # Text i/o functions
         )
         kernel32.SetConsoleCursorPosition(hConOut, coord)
         _releaseconout(hConOut)
-
     def delline():
         srSource = ctypes.wintypes._SMALL_RECT()
         ciFill = CHAR_INFO()
@@ -391,7 +356,6 @@ if 1:  # Text i/o functions
             dwDest,
             ctypes.byref(ciFill),
         )
-
     def insline():
         srSource = ctypes.wintypes._SMALL_RECT()
         ciFill = CHAR_INFO()
@@ -413,7 +377,6 @@ if 1:  # Text i/o functions
             dwDest,
             ctypes.byref(ciFill),
         )
-
     def gettext(left, top, right, bottom):
         srSource = ctypes.wintypes._SMALL_RECT()
         dwBufferSize = ctypes.wintypes._COORD()
@@ -449,7 +412,6 @@ if 1:  # Text i/o functions
             return buf
         _releaseconout(hConOut)
         raise error("gettext() failed.")
-
     def puttext(left, top, right, bottom, source):
         srDest = ctypes.wintypes._SMALL_RECT()
         dwBufferSize = ctypes.wintypes._COORD()
@@ -472,14 +434,11 @@ if 1:  # Text i/o functions
             ctypes.byref(srDest),
         )
         _releaseconout(hConOut)
-
     def settitle(title):
         if kernel32.SetConsoleTitleW(title) == 0:
             raise error("settitle failed")
-
     def kbhit():
         return BOOL(msvcrt.kbhit())
-
     def getch():
         rc = ord(ctypes.c_char(msvcrt.getch()).value)
         try:
@@ -487,7 +446,6 @@ if 1:  # Text i/o functions
         except:
             ch = "\0"
         return (rc, ch)
-
     def putch(ch):
         if type(ch) is int:
             ch = chr(ch).encode(encoding="UTF-8")
@@ -496,20 +454,15 @@ if 1:  # Text i/o functions
         else:
             ch = str(ch).encode(encoding="UTF-8")
         msvcrt.putch(ch)
-
     def ungetch(ch):
         if type(ch) is int:
             msvcrt.ungetch(_fixkey(chr(ch).encode("utf8")))
         else:
             msvcrt.ungetch(_fixkey(ch))
-
-
 if 1:  # Public functions
-
     def cputs(s):
         for c in s:
             putch(c)
-
     def getkey():
         n, c = getch()
         # 0xE0 is 'grey' keys.  change this if you don't like
@@ -521,7 +474,6 @@ if 1:  # Public functions
                 return __keydict[n]
             return "key%x" % n
         return c
-
     def cgets(l):
         s = ""
         c = getkey()
@@ -538,76 +490,61 @@ if 1:  # Public functions
                     putch(c)
             c = getkey()
         return s
-
     def textmode():
         textattr(LIGHTGRAY)
         clrscr()
         setcursortype(_NORMALCURSOR)
-
     def textcolor(c):
         bgcolor = gettextinfo()[4] & 0x00F0
         textattr(c | bgcolor)
-
     def textbackground(c):
         fgcolor = gettextinfo()[4] & 0x000F
         textattr((c << 4) | fgcolor)
-
     def getche():
         rc, s = getch()
         if s:
             putch(s)
         return (rc, s)
-
     def normvideo():
         textattr(gettextinfo()[5])
-
     def movetext(left, top, right, bottom, destleft, desttop):
         s = gettext(left, top, right, bottom)
         puttext(
             destleft, desttop, right + (destleft - left), bottom + (desttop - top), s
         )
-
     class WCFile:
         def __init__(self):
             self.closed = 0
             self.mode = "r+"
             self.name = "<WConio>"
             self.softspace = 0
-
         def close(self):
             pass
-
         def flush(self):
             pass
-
         def isatty(self):
             return 1
-
         def read(self, size=1):
             if size <= 1:
                 return getch()[1]
             else:
                 return cgets(size)
-
         def readline(self, size=0):
             rc = cgets(size)
             if size:
                 rc = rc[:size]
             return rc
-
         def readlines(self, sizehint=0):
             "readlines() is pure nonsense for WConio, so this just calls readline."
             return readline(self, sizehint)
-
         def write(self, str):
             cputs(str)
-
         def writelines(self, l):
             for i in l:
                 cputs(i)
-
     File = WCFile()  # we just keep one of these around, so the
-    del WCFile  # class constructor gets used just once.
+    del WCFile       # class constructor gets used just once.
+
 if __name__ == "__main__":
     print("Press any key to exit")
     while not kbhit():
