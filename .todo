@@ -1,19 +1,23 @@
 /plib/.todo
 
     - pgm/ucd.py
-        - ucd dictionary
-            - Add 'codepoints' entry, which is a set of all the valid codepoint
+        - Move the ucd data to /plib/lib/ucd
+            - Put the code to build the ucd dictionary in the /plib/lib/ucd/ucd_get.py
+              script.  This script builds the pickle file for the relevant Unicode
+              version.
+            - ucd dictionary
+                - Add 'codepoints' entry, which is a set of all the valid codepoint
                   integers, gotten from the XML file
-        - ucd.py should construct ucd from the pickled file
-        - ucd_get.py
-            - Given a major unicode version number, gets the appropriate
-              'ucd.nounihan.grouped.xml' from the downloaded file from e.g.
-              https://www.unicode.org/Public/16.0.0/ucdxml/ucd.nounihan.grouped.zip.
-              This gets renamed ucd.nounihan.grouped.ver16.xml.
-            - This then is scanned and turned into the ucd dictionary's data, then is 
-              pickled as ucd.16.pickle.
-            - The XML files are checked in, but the pickle files are rebuilt as needed
-              by running ucd_get.py.
+            - ucd_get.py
+                - Given a major unicode version number, gets the appropriate
+                'ucd.nounihan.grouped.xml' from the downloaded file from e.g.
+                https://www.unicode.org/Public/16.0.0/ucdxml/ucd.nounihan.grouped.zip.
+                This gets renamed ucd.nounihan.grouped.ver16.xml.
+                - This then is scanned and turned into the ucd dictionary's data, then is 
+                pickled as ucd.16.pickle.
+                - The XML files are checked in, but the pickle files are rebuilt as needed
+                by running ucd_get.py.
+        - ucd.py gets its data by loading from the relevant pickle file
 
     - asciify.py
         - Vision:  the new codepoints entry can be used to modify asciify.py to allow it
@@ -21,7 +25,16 @@
           uniform and readable manner.  This will be done by using the name attribute of
           the Unicode data to get an ASCII form, such as
             - ξ:  GREEK SMALL LETTER XI --> <xi>
-            - ἀ:  GREEK SMALL LETTER ALPHA WITH PSILI --> <alpha_psili>
+            - ἀ:  GREEK SMALL LETTER ALPHA WITH PSILI --> <alpha+1f00>
+                - This might become <alpha+1f00>, which shows that it's a lowercase
+                  Greek letter and includes the codepoint number.
+            - Ἀ:  GREEK CAPITAL LETTER ALPHA WITH PSILI
+                - This might become <ALPHA+1f08>, which shows that it's a capital Greek
+                  letter
+            - ᱳ:   OL CHIKI LETTER LO --> <lo+1c73>
+                - This would be the general pattern:  lower case unless "capital" in
+                  name
+            - This will require a function that can parse the name string
         - Add -a option which converts the text file to a 7-bit clean ASCII format.
           This is needed because my conversion choices were idiosyncratic to my own
           tastes and things like α β ɣ Δ are not converted.  These Unicode characters
