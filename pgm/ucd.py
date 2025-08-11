@@ -49,6 +49,7 @@ if 1:  # Header
         from collections import OrderedDict
         from pprint import pprint as pp
     if 1:  # Custom imports
+        from color import t
         if 0:
             import debug
             debug.SetDebugger()
@@ -57,6 +58,25 @@ if 1:  # Header
         __all__ = ["ucd"]
 if 1:  # Utility
     pass
+def GetXMLFileName(version):
+    '''Return the XML file of the indicated Unicode version, where version is an int.
+    Example:  GetXMLFileName(14) returns "ucd.nounihan.grouped.ver14.xml".
+    '''
+    cwd = os.getcwd()
+    os.chdir("/plib/pgm")
+    p = Path(".")
+    # Get candidate XML files
+    files = [str(i) for i in p.glob(r"ucd.*xml")]
+    for file in files:
+        if str(version) in str(file):
+            return file
+    t.print(f"{t.redl}{str(version)!r} not found in XML file names")
+    exit(1)
+
+import sys
+print(GetXMLFileName(sys.argv[1]))
+exit() #xx
+
 def GetVersion():
     '''Get which XML file to build the pickled data file.  From what I've read, you can
     use versions of the UCD that are later than that which python uses, but not earlier
@@ -264,18 +284,14 @@ if 1:  # Core functionality
                 for i, group in enumerate(child):
                     Group(i, group, ucd)
         print("ucd dictionary constructed from %s" % input_file)
-    def BuildPickleFile():
+    def BuildPickleFiles():
         BuildDataFile(input_file, pickle_file)
         with open(pickle_file, "wb") as f:
             pickle.dump(ucd, f, pickle.HIGHEST_PROTOCOL)
 
 if __name__ == "__main__":
-    # Run as a script:  construct the needed pickle file for the python version being used
-    try:
-        os.remove(pickle_file)
-    except FileNotFoundError:
-        pass
-    BuildPickleFile()
+    # Run as a script:  build the pickle files for the xml files
+    BuildPickleFiles()
 else:
     # Loaded as module:  load the ucd dictionary
     with open(pickle_file, "rb") as f:
