@@ -1,0 +1,8 @@
+Directory created 11 Aug 2025
+
+Purpose:  provide the tools to 1) acquire the Unicode nounihan grouped XML files and 2)
+pickle these files to datafiles the /plib/ucd.py can use to load the appropriate data
+for the Unicode version being used.
+
+This allows simple usage for using the module /plib/ucd.py, which provides a dictionary
+of data on the Unicode version.

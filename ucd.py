@@ -1,5 +1,12 @@
 '''
 
+ToDo
+    - Load ucd dictionary from /plib/lib/ucd/ pickle file
+        - Version found from unicodedata.unidata_version (Unicode version python is
+          using)
+    - Add codepoints key to ucd dict.  This is the set of valid codepoint integers for
+      this version of Unicode.
+
 - Provide the ucd dictionary, a container of the Unicode Character Database (UCD)
     - I constructed this dictionary as an adjunct to the uni.py script, my searching
       tool to get information on Unicode characters.
@@ -18,8 +25,6 @@
         - standardized-variants
         - version
         - xml_file
-- Codepoints()
-    - Returns a set of the valid codepoint integers for the currently-used ucd.* file.
 
 '''
 if 1:  # Header
