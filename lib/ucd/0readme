@@ -4,5 +4,10 @@ Purpose:  provide the tools to 1) acquire the Unicode nounihan grouped XML files
 pickle these files to datafiles the /plib/ucd.py can use to load the appropriate data
 for the Unicode version being used.
 
+I have decided to not include any XML files from before Unicode 11, as they would not be
+relevant because of the python versions I'm using.  Currently under WSL, I use python
+3.11.5, dated 27Aug2023 and packaged by conda-forge; this version of python uses the Unicode
+14 version.
+
 This allows simple usage for using the module /plib/ucd.py, which provides a dictionary
 of data on the Unicode version.
