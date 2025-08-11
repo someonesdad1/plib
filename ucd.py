@@ -61,8 +61,6 @@ if 1:  # Header
     if 1:  # Global variables
         ii = isinstance
         __all__ = ["ucd"]
-if 1:  # Utility
-    pass
 def GetXMLFileName(version):
     '''Return the XML file of the indicated Unicode version, where version is an int.
     Example:  GetXMLFileName(14) returns "ucd.nounihan.grouped.ver14.xml".
@@ -106,81 +104,83 @@ def GetVersion():
         return Path("ucd.nounihan.grouped.ver14.xml")
     else:
         raise ValueError(f"{v} is unsupported Unicode version")
-input_file = GetVersion()
-# The pickle file will contain the persisted UCD dictionary in ucd.
-pickle_file = Path("/plib/pgm/ucd.pickle")
-# The UCD dictionary.
-ucd = {}
-how_to_get_datafile = '''
-  Download the ucd.nounihan.grouped.xml file from http://www.unicode.org/Public/UCD/latest/ucdxml/.
-  Change the global variable input_file to point to this file.
-'''.strip()
-# Description of the data structure we will construct (it's stored in the ucd dictionary)
-doc = '''
-Structure of data in the python ucd dictionary constructed on
-%s
-    Types:
-        .i = integer
-        .s = string
-        .d = dict keyed by a string and whose values are strings
-    cp = codepoint = integer
-    attributes will be a dictionary keyed by strings with string values
-    (i.e., they're the attrib attribute of the XML Element objects).
-ucd = {
-    "namespace" : "http://www.unicode.org/ns/2003/ucd/1.0",
-    "version" : "Unicode x.x.x",
-    "groups" : {
-        groupID.i : {attributes.d},
-        ...
-    },
-    "chars" : {
-        cp : [groupID.i, attributes.d],
-        ...
-    },
-    "blocks" : [  # Note blocks are not contiguous
-        # A block is a group of codepoints with sequential numbers.
-        [cp_start.i, cp_end.i, name.s],
-        ...
-    ],
-    "named-sequences" : [
-        [name.s, (cp0.i, cp1.i, ...)],
-        ...
-    ],
-    "reserved" : {
-        # Some groups will have reserved intervals.  Example:  see the
-        # Greek codepoints around 0370.
-        groupID.i : [attributes0.d, ...],
-        ...
-    },
-    "aliases" : {
-        # Some codepoints have aliases.
-        cp : [attributes0.d, attributes1.d, ...],
-        ...
-    },
-    # Note:  the following are left in pretty much the raw data form
-    # because I don't have any use for them.
-    "normalization-corrections" : [   # size = 6
-        {data0},
-        {data1},
-        ...
-    ],
-    "standardized-variants" : [   # size = 1309
-        {data0},
-        {data1},
-        ...
-    ],
-    "cjk-radicals" : [   # size = 239
-        {data0},
-        {data1},
-        ...
-    ],
-    "emoji-sources" : [   # size = 722
-        {data0},
-        {data1},
-        ...
-    ],
-}
-''' % asctime()
+
+if 0:
+    input_file = GetVersion()
+    # The pickle file will contain the persisted UCD dictionary in ucd.
+    pickle_file = Path("/plib/pgm/ucd.pickle")
+    # The UCD dictionary.
+    ucd = {}
+    how_to_get_datafile = '''
+      Download the ucd.nounihan.grouped.xml file from http://www.unicode.org/Public/UCD/latest/ucdxml/.
+      Change the global variable input_file to point to this file.
+    '''.strip()
+    # Description of the data structure we will construct (it's stored in the ucd dictionary)
+    doc = '''
+    Structure of data in the python ucd dictionary constructed on
+    %s
+        Types:
+            .i = integer
+            .s = string
+            .d = dict keyed by a string and whose values are strings
+        cp = codepoint = integer
+        attributes will be a dictionary keyed by strings with string values
+        (i.e., they're the attrib attribute of the XML Element objects).
+    ucd = {
+        "namespace" : "http://www.unicode.org/ns/2003/ucd/1.0",
+        "version" : "Unicode x.x.x",
+        "groups" : {
+            groupID.i : {attributes.d},
+            ...
+        },
+        "chars" : {
+            cp : [groupID.i, attributes.d],
+            ...
+        },
+        "blocks" : [  # Note blocks are not contiguous
+            # A block is a group of codepoints with sequential numbers.
+            [cp_start.i, cp_end.i, name.s],
+            ...
+        ],
+        "named-sequences" : [
+            [name.s, (cp0.i, cp1.i, ...)],
+            ...
+        ],
+        "reserved" : {
+            # Some groups will have reserved intervals.  Example:  see the
+            # Greek codepoints around 0370.
+            groupID.i : [attributes0.d, ...],
+            ...
+        },
+        "aliases" : {
+            # Some codepoints have aliases.
+            cp : [attributes0.d, attributes1.d, ...],
+            ...
+        },
+        # Note:  the following are left in pretty much the raw data form
+        # because I don't have any use for them.
+        "normalization-corrections" : [   # size = 6
+            {data0},
+            {data1},
+            ...
+        ],
+        "standardized-variants" : [   # size = 1309
+            {data0},
+            {data1},
+            ...
+        ],
+        "cjk-radicals" : [   # size = 239
+            {data0},
+            {data1},
+            ...
+        ],
+        "emoji-sources" : [   # size = 722
+            {data0},
+            {data1},
+            ...
+        ],
+    }
+    ''' % asctime()
 if 1:  # Core functionality
     def RemoveNS(s):
         loc = s.find("}")
@@ -296,9 +296,16 @@ if 1:  # Core functionality
             pickle.dump(ucd, f, pickle.HIGHEST_PROTOCOL)
 
 if __name__ == "__main__":
+    def GetPickleFileName(version):
+        'Return the pickle file name to open for the given integer version'
+        s, x = "ucd.", ".pickle"
+        return f"lib/ucd/ucd.{version}.pickle"
     # Run as a script:  build the pickle files for the xml files
-    BuildPickleFiles()
-else:
+    #BuildPickleFiles()
+#else:
     # Loaded as module:  load the ucd dictionary
+    version = int(unicodedata.unidata_version.split(".")[0])
+    pickle_file = GetPickleFileName(version)
     with open(pickle_file, "rb") as f:
         ucd = pickle.load(f)
+    print(len(ucd))
