@@ -1,5 +1,34 @@
 /plib/.todo
 
+    - pgm/ucd.py
+        - ucd dictionary
+            - Add 'codepoints' entry, which is a set of all the valid codepoint
+                  integers, gotten from the XML file
+        - ucd.py should construct ucd from the pickled file
+        - ucd_get.py
+            - Given a major unicode version number, gets the appropriate
+              'ucd.nounihan.grouped.xml' from the downloaded file from e.g.
+              https://www.unicode.org/Public/16.0.0/ucdxml/ucd.nounihan.grouped.zip.
+              This gets renamed ucd.nounihan.grouped.ver16.xml.
+            - This then is scanned and turned into the ucd dictionary's data, then is 
+              pickled as ucd.16.pickle.
+            - The XML files are checked in, but the pickle files are rebuilt as needed
+              by running ucd_get.py.
+
+    - asciify.py
+        - Vision:  the new codepoints entry can be used to modify asciify.py to allow it
+          to turn arbitrary Unicode data (up to U+FFFF) into plain ASCII text in a
+          uniform and readable manner.  This will be done by using the name attribute of
+          the Unicode data to get an ASCII form, such as
+            - ξ:  GREEK SMALL LETTER XI --> <xi>
+            - ἀ:  GREEK SMALL LETTER ALPHA WITH PSILI --> <alpha_psili>
+        - Add -a option which converts the text file to a 7-bit clean ASCII format.
+          This is needed because my conversion choices were idiosyncratic to my own
+          tastes and things like α β ɣ Δ are not converted.  These Unicode characters
+          can be converted to things like <alpha>, <beta>, <gamma>, <DELTA>, etc.
+        - The self-test for this feature doesn't need to check all letters, but it does
+          need to show that it's 7-bit clean
+
     - pgm/lsg.py
         - Update this too per todo items, as it should become my preferred tool over st
 
@@ -24,13 +53,6 @@
             - Use option -i to convert file to all lowercase
             - Use option -I to not perform the ASCIIfication
 
-    - asciify.py
-        - Add -a option which converts the text file to a 7-bit clean ASCII format.
-          This is needed because my conversion choices were idiosyncratic to my own
-          tastes and things like α β ɣ Δ are not converted.  These Unicode characters
-          can be converted to things like <alpha>, <beta>, <gamma>, <DELTA>, etc.
-        - The self-test for this feature doesn't need to check all letters, but it does
-          need to show that it's 7-bit clean
 
     - pgm/hsm.py & tmbr.py
         - Both should be collapsed into just hsm.py.  Add -t option to hsm.py so that
@@ -654,9 +676,6 @@
         - Update to new color.py
         - Check outputs in xyz.odt
             - Change "oC" to something with the degree symbol
-
-    - pgm
-        - Move 'ucd.nounihan.grouped.ver11.xml' to 'ucd.11.xml' to take up less space
 
     - pgm/chemical_names.py
         - /hobbyutil/science/chemical_names.pdf

@@ -28,7 +28,7 @@ def GetXMLFileName(version):
         13: "13.0.0",
         14: "14.0.0",
         15: "15.1.0",
-        16: "1k.0.0",
+        16: "16.0.0",
     }
     head = "https://www.unicode.org/Public"
     file = "ucd.nounihan.grouped.zip"

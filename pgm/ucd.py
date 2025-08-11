@@ -73,9 +73,10 @@ def GetXMLFileName(version):
     t.print(f"{t.redl}{str(version)!r} not found in XML file names")
     exit(1)
 
-for i in range(11, 17):
-    print(GetXMLFileName(i))
-exit() #xx
+if 0: #xx
+    for i in range(11, 17):
+        print(GetXMLFileName(i))
+    exit() #xx
 
 def GetVersion():
     '''Get which XML file to build the pickled data file.  From what I've read, you can
@@ -296,4 +297,3 @@ else:
     # Loaded as module:  load the ucd dictionary
     with open(pickle_file, "rb") as f:
         ucd = pickle.load(f)
-    breakpoint() #xx 
