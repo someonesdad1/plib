@@ -35,6 +35,11 @@ def GetXMLFileName(version):
     ver = versions[version]
     url = f"{head}/{ver}/ucdxml/{file}"
     return url
+
+for i in range(11, 17):
+    print(GetXMLFileName(i))
+exit() #xx
+
 def ShowURLs():
     t.print(f"{t.title}Zipped XML data files for UCD nounihan, grouped:")
     for i in range(6, 17):

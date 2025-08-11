@@ -73,8 +73,8 @@ def GetXMLFileName(version):
     t.print(f"{t.redl}{str(version)!r} not found in XML file names")
     exit(1)
 
-import sys
-print(GetXMLFileName(sys.argv[1]))
+for i in range(11, 17):
+    print(GetXMLFileName(i))
 exit() #xx
 
 def GetVersion():
