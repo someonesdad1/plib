@@ -1,13 +1,116 @@
 Directory created 11 Aug 2025
 
-Purpose:  provide the tools to 1) acquire the Unicode nounihan grouped XML files and 2)
-pickle these files to datafiles the /plib/ucd.py can use to load the appropriate data
-for the Unicode version being used.
+12 Aug 2025 Plan
 
-I have decided to not include any XML files from before Unicode 11, as they would not be
-relevant because of the python versions I'm using.  Currently under WSL, I use python
-3.11.5, dated 27Aug2023 and packaged by conda-forge; this version of python uses the Unicode
-14 version.
+    I will keep on-hand only two files from https://www.unicode.org/Public/16.0.0/ucdxml/:
 
-This allows simple usage for using the module /plib/ucd.py, which provides a dictionary
-of data on the Unicode version.
+        ucd.all.flat.zip 9.6 MB (224 MB uncompressed)
+        ucd.nounihan.flat.zip 1.0 MB (67 MB uncompressed)
+
+    IMPORTANT
+
+        When looked at with vim and folding, you'll see the major subdivisions in the
+        XML file and it will be pretty obvious where the main stuff is to focus on.
+
+    These will be processed by ucd_get.py and produce two corresponding pickled data
+    files for the ucd dictionary.  I suspect most of the added stuff in the all file is
+    for CJK UNIFIED IDEOGRAPH stuff, but not all of them are.  For example, U+E007A is
+    TAG LATIN SMALL LETTER Z added at 3.1, so it's been around a while.  All my work
+    could likely be handled by the nounihan file.
+
+    Here are the major divisions in the XML file with the indicated number of lines
+                                 nounihan      all 
+        repertoire                  59244   156732
+        blocks                        338      338
+        named-sequences               461      461
+        normalization-corrections       6        6
+        standardized-variants        2048     2048
+        cjk-radicals                  246      246
+        emoji-sources                 722      722
+        do-not-emit                   299      299
+
+    which shows that they differ only with the addition of 156732 - 59244 = 97488
+    additional characters.
+
+    These files are apparently backwards compatible and each <char cp=...> in the list
+    has its first attribute of age, showing which Unicode version it was introduced
+    (with 1.1 probably being the first version).  Thus, if desired, for a particular
+    python version, the set can be reduced by trimming by this age field.
+
+    Thus, when a new Unicode version becomes available, the two "all" and "nounihan"
+    flat files can be downloaded and the ucd_get.py builds the pickle files from the
+    latest version.
+
+Purpose
+
+    These XML files will be processed to produce the pickled ucd dictionary, which will
+    provide the relevant data from the XML files to python scripts.  Currently, my
+    only use for this dictionary is the /plib/pgm/uni.py script, which I use to look
+    up details on Unicode characters.
+
+Redesign
+
+    The original ucd.py version read the grouped data, but this is a maintenance
+    headache, as looking at the code years later is very confusing if you don't know the
+    XML structure.
+
+    This will be fixed by using the flat XML version and use a UniChar class instance to
+    hold the relevant data.  I envision the following keys for this dictionary:
+
+        integers        All valid codepoints from the repertoire section
+        "block"         Function to return a block name, argument is codepoint
+
+---------------------------------------------------------------------------
+Details of XML file contents
+
+LineFeed
+    <char cp="000A" age="1.1" na="" JSN="" gc="Cc" ccc="0" dt="none" dm="#" nt="None"
+        nv="NaN" bc="B" bpt="n" bpb="#" Bidi_M="N" bmg="" suc="#" slc="#" stc="#" uc="#" lc="#"
+        tc="#" scf="#" cf="#" jt=" U" jg="No_Joining_Group" ea="N" lb="LF" sc="Zyyy" scx="Zyyy"
+        Dash="N" WSpace="Y" Hyphen="N" QMark="N" Radical="N" Ideo="N" UIdeo="N" IDSB="N"
+        IDST="N" hst="NA" DI="N" ODI="N" Alpha="N" OAlpha="N" Upper="N" OUpper="N" Lower="N"
+        OLower="N" Math="N" OMath="N" Hex="N" AHex="N" NChar="N" VS="N" Bidi_C="N" Join_C="N"
+        Gr_Base="N" Gr_Ext="N" OGr_Ext="N" Gr_Link="N" STerm="N" Ext="N" Term="N" Dia=" N"
+        Dep="N" IDS="N" OIDS="N" XIDS="N" IDC="N" OIDC="N" XIDC="N" SD="N" LOE="N" Pat_WS="Y"
+        Pat_Syn="N" GCB="LF" WB="LF" SB="LF" CE="N" Comp_Ex="N" NFC_QC="Y" NFD_QC="Y"
+        NFKC_QC="Y" NFKD_QC="Y" XO_NF C="N" XO_NFD="N" XO_NFKC="N" XO_NFKD="N" FC_NFKC="#"
+        CI="N" Cased="N" CWCF="N" CWCM="N" CWKCF="N" CWL="N" CWT="N" CWU="N" NFKC_CF="#"
+        InSC="Other" InPC="NA" PCM="N" vo="R" RI="N" blk="ASCII" isc=" " na1="LINE FEED (LF)"
+        Emoji="N" EPres="N" EMod="N" EBase="N" EComp="N" ExtPict="N" NFKC_SCF="#"
+        ID_Compat_Math_Start="N" ID_Compat_Math_Continue="N" IDSU="N" InCB="None" MCM="N">
+
+            <name-alias alias="END OF LINE" type="control"/>
+            <name-alias alias="EOL" type="abbreviation"/>
+            <name-alias alias="LF" type="abbreviation"/>
+            <name-alias alias="LINE FEED" type="control"/>
+            <name-alias alias="NEW LINE" type="control"/>
+            <name-alias alias="NL" type="abbreviation"/>
+    </char>
+
+"A"
+    <char cp="0041" age="1.1" na="LATIN CAPITAL LETTER A" JSN="" gc="Lu" ccc="0" dt="none"
+        dm="#" nt="None" nv="NaN" bc="L" bpt="n" bpb="#" Bidi_M="N" bmg="" suc="#"
+        slc="0061" stc="#" uc="#" lc="0061 "tc="#" scf="0061" cf="0061" jt="U"
+        jg="No_Joining_Group" ea="Na" lb="AL" sc="Latn" scx="Latn" Dash="N" WSpace="N"
+        Hyphen="N" QMark="N" Radical="N" Ideo="N" UIdeo="N" IDSB="N" IDST="N" hst="NA"
+        DI="N" ODI="N" Alpha="Y" OAlpha="N" Upper="Y" OUpper="N" Lower="N" OLower="N"
+        Math="N" OMath="N" Hex="Y" AHex="Y" NChar="N" VS="N" Bidi_C="N" Join_C="N"
+        Gr_Base="Y" Gr_Ext="N" OGr_Ext="N" Gr_Link=" N" STerm="N" Ext="N" Term="N" Dia="N"
+        Dep="N" IDS="Y" OIDS="N" XIDS="Y" IDC="Y" OIDC="N" XIDC="Y" SD="N" LOE="N"
+        Pat_WS="N" Pat_Syn="N" GCB="XX" WB="LE" SB="UP" CE="N" Comp_Ex="N" NFC_QC="Y"
+        NFD_QC="Y" NFKC_QC="Y" NFKD_QC="Y" XO_NFC="N" XO_NFD="N" XO_NFKC="N" XO_NFKD="N"
+        FC_NFKC="#" CI="N" Cased="Y" CWCF="Y" CWCM="Y" CWKCF="Y" CWL="Y" CWT="N" CWU="N"
+        NFKC_CF="0061" InSC="Other" InPC="NA" PCM="N" vo="R" RI="N" blk="ASCII" isc=""
+        na1="" Emoji="N" EPres="N" EMod="N" EBase="N" EComp="N" ExtPict="N" NFKC_SCF="0061"
+        ID_Compat_Math_Start="N" ID_Compat_Math_Continue="N" IDSU="N" InCB="None " MCM="N"/>
+
+Core fields/data
+    char
+        cp      Codepoint, the hex digits of the integer identifying the character
+        age     Unicode version it was introduced
+        na      Name
+    name-alias
+        alias   Another name
+        type    Type of the name
+
+Note the linefeed has an empty na field, so you must look at the aliases to get a name.
