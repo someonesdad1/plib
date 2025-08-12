@@ -1,6 +1,6 @@
 _pgminfo = '''
 <oo 
-    Convert numbers on command line to hex
+    Convert numbers on command line to base 8, 10, 16
 oo>
 <oo cr Copyright © 2025 Don Peterson oo>
 <oo cat utility oo>
@@ -23,13 +23,22 @@ if 1:   # Utility
     def Usage(status=0):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] arg1 [arg2...]
-          Convert arguments to hex integer form.  For negative integers, use '--' to
-          indicate there are no more options.
+          Convert arguments to base 8, 10, 16 forms.  For negative integers, use '--' to
+          indicate there are no more options.  A leading "0x", "h", or "H" indicate a
+          hex number.  A leading "0" or "0o" indicate an octal integer.  An appended
+          ":n" indicates a base n number.
+        Examples:  
+          1.  '10 10.0 10.273 012 0o12 0xa ha Ha' are all forms of the number 10
+          2.  '10 10.0 10.273 012 0o12 0xa ha Ha' are all forms of the number 10
         Options
+          -S    Sort the output by largest to smallest
+          -s    Sort the output by smallest to largest
           -x    Don't include "0x" in hex form
         '''))
         exit(status)
     def ParseCommandLine(d):
+        d["-S"] = False     # Sort the output by largest to smallest
+        d["-S"] = False     # Sort the output by smallest to largest
         d["-x"] = False
         if len(sys.argv) < 2:
             Usage()
@@ -45,6 +54,8 @@ if 1:   # Utility
                 Usage()
         return args
 if 1:   # Core functionality
+    def GetInteger(arg):
+        'Return arg as an integer'
     def Convert(arg):
         s = arg.strip()
         sign = "-" if s[0] == "-" else ""

@@ -1,5 +1,8 @@
 /plib/.todo
 
+    - pgm/int.py
+        - 0x88 should be a valid input
+
     - pgm/tool_angles.py [material_regex]
         - Codify the practical stuff in "Manual of Lath Operation" (my 1973 reprint from
           Sears, published by Clausing) for the tool angles to grind single point

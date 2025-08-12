@@ -46,6 +46,7 @@ if 1:  # Header
         from collections.abc import Iterable
         from io import StringIO
         from fractions import Fraction
+        from decimal import Decimal
     if 1:   # Custom imports
         import u
         from f import flt
@@ -63,7 +64,7 @@ if 1:  # Header
         except ImportError:
             have_f = False
         try:
-            from mpmath import mpc
+            from mpmath import mpc, mpf
             have_mpmath = True
         except ImportError:
             have_mpmath = False
@@ -900,6 +901,62 @@ if 1:  # Getting numbers
         else:
             # Choose seq[i - 1] or seq[i], whichever is closest to x
             return seq[i - 1] if dist(x, seq[i - 1]) < dist(x, seq[i]) else seq[i]
+    def GetInt(arg):
+        '''Convert arg to an integer.  arg can be a number or a string.  Allowed string
+        forms are:
+            27      Base 10 integer
+            27.073  27 as a floating point number
+            0b11    Base 2 integer
+            033     Base 8 integer
+            0o33    Base 8 integer
+            0x1b    Base 16 integer
+            h1b     Base 16 integer
+            H1b     Base 16 integer
+            a:b     a is a base b number (b is in one of the previous forms)
+        '''
+        if ii(arg, str) and not arg:
+            raise ValueError("arg cannot be the empty string")
+        n, sign = None, ""
+        try:
+            # This will handle ints, floats, mpmath.mpf, Fraction, and Decimal types
+            return int(arg)
+        except Exception:
+            pass
+        if not ii(arg, str):
+            raise TypeError("arg must be a string")
+        # Didn't convert, so try the specialized forms
+        if arg.startswith("0"):
+            second_letter = arg[1]
+            if second_letter.lower() == "o":
+                return int(arg[2:], 8)
+            elif second_letter.lower() == "h":
+                return int(arg[2:], 16)
+            elif second_letter.lower() == "b":
+                return int(arg[2:], 2)
+            else:
+                return int(arg[2:], 8)
+        elif arg.lower().startswith("h"):
+            return int(arg[1:], 16)
+        elif "." in arg or "e" in arg.lower():
+            return int(float(arg))
+        elif ":" in arg:
+            try:
+                a, b = arg.split(":")
+            except Exception:
+                raise ValueError(f"{arg!r} is of improper form")
+            try:
+                b = int(b)
+                if not (2 <= b <= 36):
+                    raise Exception()
+            except Exception:
+                raise ValueError(f"In {arg!r} (a:b), the base b must be 2-36")
+            try:
+                return int(a, b)
+            except Exception:
+                raise ValueError(f"{arg!r} is of improper a:b form (a is bad)")
+        else:
+            raise ValueError(f"{arg!r} is of improper form")
+
 if 1:  # Getting choices
     def GetChoice(
         seq, default=1, indent=None, col=False, instream=None, outstream=None
@@ -2065,6 +2122,16 @@ if __name__ == "__main__":
             #
             Assert(GetClosest(101, seq) == 100)
             Assert(GetClosest(1e300, seq) == 100)
+        def TestGetInt():
+            raises(ValueError, GetInt, "")
+            Assert(GetInt(1) == 1)
+            Assert(GetInt("1") == 1)
+            Assert(GetInt(1.1) == 1)
+            Assert(GetInt("1.1") == 1)
+            Assert(GetInt(Decimal("1.1")) == 1)
+            Assert(GetInt(Fraction(1, 1)) == 1)
+            if have_mpmath:
+                Assert(GetInt(mpf("1.1")) == 1)
     if 1:  # Getting choices
         def TestGetChoice():
             seq = ["a", "b", "c"]
