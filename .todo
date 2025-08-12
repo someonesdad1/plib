@@ -1,6 +1,21 @@
 /plib/.todo
 
-    - pgm/ucd.py
+    - pgm/tool_angles.py [material_regex]
+        - Codify the practical stuff in "Manual of Lath Operation" (my 1973 reprint from
+          Sears, published by Clausing) for the tool angles to grind single point
+          cutting tools.  The script should take a regex and look up the desired angles
+        - The -l option can be used to show a listing of the supported materials
+        - The -m option causes output in metric units
+        - Outputs
+            - Front clearance
+            - Side clearance
+            - Back rake
+            - Side rake
+            - Cutting speed in ft/min or m/s
+            - Feed:  roughing and finishing in mil/rev or mm/rev
+            - Lubricant
+            - Depth of cut for a light duty lathe
+
 
     - asciify.py
         - Vision:  the new codepoints entry can be used to modify asciify.py to allow it

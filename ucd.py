@@ -296,13 +296,13 @@ if 1:  # Core functionality
             pickle.dump(ucd, f, pickle.HIGHEST_PROTOCOL)
 
 if __name__ == "__main__":
+    print("ucd.py cannot be run as a script")
+    exit(1)
+else:
     def GetPickleFileName(version):
         'Return the pickle file name to open for the given integer version'
         s, x = "ucd.", ".pickle"
         return f"lib/ucd/ucd.{version}.pickle"
-    # Run as a script:  build the pickle files for the xml files
-    #BuildPickleFiles()
-#else:
     # Loaded as module:  load the ucd dictionary
     version = int(unicodedata.unidata_version.split(".")[0])
     pickle_file = GetPickleFileName(version)

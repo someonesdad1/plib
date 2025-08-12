@@ -269,6 +269,7 @@ if 1:   # Functions moved to here from ucd.py
                 ucd["reserved"][group].append(d)
     def BuildDataFile(input_file, pickle_file, dbg=False):
         global ucd
+        tag_warning = False
         if dbg:
             input_file = input_file + ".shortened"
         tree = ET.parse(input_file)
@@ -302,8 +303,10 @@ if 1:   # Functions moved to here from ucd.py
         for child in root:
             tag = RemoveNS(child.tag)
             if tag not in tags:
+                if not tag_warning:
+                    t.print(f"  {t.redl}{tag!r} is unrecognized tag")
+                    tag_warning = True
                 continue
-                #raise ValueError(f"{tag!r} is Unrecognized tag")
             if tag == "blocks":
                 Blocks(child, ucd)
             elif tag in no_process:
@@ -317,11 +320,13 @@ if 1:   # Functions moved to here from ucd.py
                 ucd["groups"] = {}
                 for i, group in enumerate(child):
                     Group(i, group, ucd)
-        print("ucd dictionary constructed from %s" % g.input_file)
+        # Construct ucd["codepoints"], which is a set of valid integer values for the
+        # codepoints in this version
+        ucd["codepoints"] = set(ucd["chars"].keys())
+        print(f"  ucd dictionary constructed from {g.input_file}")
+        print(f"  {len(ucd['codepoints'])} = {hex(len(ucd['codepoints']))} codepoints")
     def BuildPickleFiles():
-        if Path(g.pickle_file).exists():
-            return
-        print("Processing", g.input_file)
+        t.print(f"{t.sky}Processing", g.input_file)
         BuildDataFile(g.input_file, g.pickle_file)
         with open(g.pickle_file, "wb") as f:
             pickle.dump(ucd, f, pickle.HIGHEST_PROTOCOL)
@@ -340,9 +345,12 @@ if __name__ == "__main__":
             16: f"{s}16{x}",
         }
         return d[version]
+    overwrite = True if len(sys.argv) > 1 else False
     for version in range(11, 17):
         g.input_file = GetXMLFileName(version)
         g.pickle_file = f"ucd.{version}.pickle"
+        if Path(g.pickle_file).exists() and not overwrite:
+            continue
         BuildPickleFiles()
 else:
     # Loaded as module:  load the ucd dictionary
