@@ -323,8 +323,10 @@ if 1:   # Functions moved to here from ucd.py
         # Construct ucd["codepoints"], which is a set of valid integer values for the
         # codepoints in this version
         ucd["codepoints"] = set(ucd["chars"].keys())
+        # ucd["n"] is the number of valid codepoints
+        ucd["n"] = n = len(ucd["codepoints"])
         print(f"  ucd dictionary constructed from {g.input_file}")
-        print(f"  {len(ucd['codepoints'])} = {hex(len(ucd['codepoints']))} codepoints")
+        print(f"  {n} = {hex(n)} codepoints")
     def BuildPickleFiles():
         t.print(f"{t.sky}Processing", g.input_file)
         BuildDataFile(g.input_file, g.pickle_file)
