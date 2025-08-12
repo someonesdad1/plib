@@ -106,19 +106,9 @@ def GetVersion():
         raise ValueError(f"{v} is unsupported Unicode version")
 
 if 0:
-    input_file = GetVersion()
-    # The pickle file will contain the persisted UCD dictionary in ucd.
-    pickle_file = Path("/plib/pgm/ucd.pickle")
-    # The UCD dictionary.
-    ucd = {}
-    how_to_get_datafile = '''
-      Download the ucd.nounihan.grouped.xml file from http://www.unicode.org/Public/UCD/latest/ucdxml/.
-      Change the global variable input_file to point to this file.
-    '''.strip()
-    # Description of the data structure we will construct (it's stored in the ucd dictionary)
+    # Description of the ucd dictionary 
     doc = '''
-    Structure of data in the python ucd dictionary constructed on
-    %s
+    Structure of data in the python ucd dictionary
         Types:
             .i = integer
             .s = string
@@ -308,4 +298,3 @@ else:
     pickle_file = GetPickleFileName(version)
     with open(pickle_file, "rb") as f:
         ucd = pickle.load(f)
-    print(len(ucd))

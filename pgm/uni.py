@@ -33,8 +33,8 @@ if 1:   # Header
         import sys
         import unicodedata
         from collections import defaultdict
-        from textwrap import dedent
     if 1:   # Custom imports
+        from wrap import dedent
         if 0:
             import debug
             debug.SetDebugger()
@@ -240,13 +240,11 @@ def PrintCodepointDetails(cp, d):
         name = ASCII_name(cp)
     else:
         name = unicodedata.name(c)
-    print(
-        f'''
-Data on codepoint U+{cp:0X} = character {c}
-  Decimal = {cp}, octal = {cp:o}, binary = {cp:b}
-  Name = {name}
-  Allowed in python symbol = {sym}'''[1:]
-    )
+    print(dedent(f'''
+    Data on codepoint U+{cp:0X} = character {c}
+      Decimal = {cp}, octal = {cp:o}, binary = {cp:b}
+      Name = {name}
+      Allowed in python symbol = {sym}'''))
     decomp = unicodedata.decomposition(c)
     if decomp:
         try:
