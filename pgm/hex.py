@@ -56,10 +56,11 @@ if 1:   # Core functionality
             if "e" in s or "E" in s:
                 h = f"{sign + hex(int(float(s)))}"
             else:
-                h = f"{sign + hex(int(s))}"))
+                h = f"{sign + hex(int(s))}"
         except Exception:
             t.print(f"{t.ornl}Couldn't convert {arg.strip()!r}")
-        g.results.append((a, h)
+        else:
+            g.results.append((a, h))
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
