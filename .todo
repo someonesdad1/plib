@@ -1,14 +1,24 @@
 /plib/.todo
 
     - pgm/int.py
+        - Should use /usr/bin/factor for factoring, as it's much better than my python
+          stuff
         - 0x88 should be a valid input
+        - Show numbers with 0b/0o/0x and in different colors to make it easier to
+          recognize them
+        - Add -d option for number of digits in floating point stuff (default 4)
+        - Use mpmath if available for calculations
+        - Example 173081513
+            - Binary form causes line to overflow
+            - Factorial is too large for floating point, so use mpmath or put log in red
 
     - pgm/tool_angles.py [material_regex]
         - Codify the practical stuff in "Manual of Lath Operation" (my 1973 reprint from
           Sears, published by Clausing) for the tool angles to grind single point
           cutting tools.  The script should take a regex and look up the desired angles
-        - The -l option can be used to show a listing of the supported materials
-        - The -m option causes output in metric units
+        - -l shows a listing of the supported materials
+        - -m option causes output in metric units
+        - -v shows bitmap that illustrates the angles
         - Outputs
             - Front clearance
             - Side clearance
@@ -18,7 +28,6 @@
             - Feed:  roughing and finishing in mil/rev or mm/rev
             - Lubricant
             - Depth of cut for a light duty lathe
-
 
     - asciify.py
         - Vision:  the new codepoints entry can be used to modify asciify.py to allow it
