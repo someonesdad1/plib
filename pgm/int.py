@@ -1,7 +1,6 @@
-"""
+'''
 Prints out facts about integers
-"""
-
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -32,10 +31,8 @@ if 1:  # Header
         from color import TRM as t
         import primes
     if 1:  # Global variables
-
         class g:
             pass
-
         g.max_num_to_use = 100  # For sum of squares and cubes
         # The following variable holds a list of primes
         g.primes = None
@@ -43,7 +40,6 @@ if 1:  # Header
         # this number will be the square of the largest prime less than max_prime.
         g.max_prime = int(1e6)
 if 1:  # Utility
-
     def GetColors():
         # Colors for printing
         if d["-c"]:
@@ -57,14 +53,12 @@ if 1:  # Utility
             g.lg = t("royl")  # Logarithms
             g.b = t("trq")  # Bases
             g.r = t("pnk")  # Roots
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status):
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options] num1 [num2 ...]
           Prints out information on the integers num1, num2, ...
         Options
@@ -80,10 +74,9 @@ if 1:  # Utility
                     number.  n is the maximum number to use.  The computation time
                     can be long if n is significantly above 100.
             -t      Include triple sums in sums of squares and cubes.
-        """)
+        ''')
         )
         exit(status)
-
     def ParseCommandLine():
         d["-a"] = None  # All numbers from 2 to n
         d["-c"] = False  # Use color
@@ -124,13 +117,9 @@ if 1:  # Utility
             Error("Can only use one of -p and -P")
         GetColors()
         return args
-
-
 if 1:  # Core functionality
-
     def Search(n, k):
         N = g.max_num_to_use
-
         def Find(n, power):
             m = power
             for i in range(1, N + 1):
@@ -139,13 +128,11 @@ if 1:  # Core functionality
                         print("  %d^%d + %d^%d\n" % (i, m, j, m))
                     if j**m - i**m == n:
                         print("  %d^%d - %d^%d\n" % (j, m, i, m))
-
         print(str(n) + "\n")
         for i in range(2, k + 1):
             Find(n, i)
-
     def GetPrimeFactors(n):
-        """Get the prime factors of n.  The items returned are:
+        '''Get the prime factors of n.  The items returned are:
             - A boolean; if True, the number was factorable (it will be false
               if n is too large to factor).
             - A boolean; if True, the number is prime.
@@ -153,7 +140,7 @@ if 1:  # Core functionality
             - A list of the actual factors (will be empty if n is prime).
         Note:  we use int around elements from the prime array because it's
         possible that they're numpy integers and we want python integers.
-        """
+        '''
         num, msg, factorable, is_prime = (
             n,
             f"  {g.w}Prime factorization:{t.n}",
@@ -170,11 +157,10 @@ if 1:  # Core functionality
         s = " * ".join(s.split())
         msg += f" {g.f}" + s + f"{t.n}"
         return (factorable, is_prime, msg, factors)
-
     def AllFactors(n, factors):
-        """Construct a string representing all the factors of n, given the
+        '''Construct a string representing all the factors of n, given the
         prime factors of n in the list factors.
-        """
+        '''
         assert len(factors) > 1
         all_factors = set([])
         for factor in factors:
@@ -190,7 +176,6 @@ if 1:  # Core functionality
         m = " ".join(str(i) for i in numbers)
         msg = f"  {g.w}All Factors [{len(all_factors)}]:  {g.fa}{m}{t.n}"
         return msg
-
     def Factors(n):
         "Print out all factors of n"
         factorable, is_prime, msg, factors = GetPrimeFactors(n)
@@ -201,18 +186,16 @@ if 1:  # Core functionality
                 print(AllFactors(n, factors))
             else:
                 print(str(AllFactors(n, factors)).replace("L", ""))
-
     def Logarithms(n):
         l, ln, l2 = math.log10(n), math.log(n), math.log(n) / math.log(2)
         print(
             f"  {g.lg}Logarithms:  log = %.10f, ln = %.10f, log2 = %.10f{t.n}"
             % (l, ln, l2)
         )
-
     def DecimalToBase(num, base):
-        """Convert a decimal integer num to a string in base base.  Tested with
+        '''Convert a decimal integer num to a string in base base.  Tested with
         random integers from 10 to 10,000 digits in bases 2 to 36 inclusive.
-        """
+        '''
         if not 2 <= base <= 36:
             raise ValueError("Base must be between 2 and 36.")
         if num == 0:
@@ -228,7 +211,6 @@ if 1:  # Core functionality
         # line out for slightly better performance.
         assert int(in_base, base) == n
         return sign + in_base
-
     def Bases(n):
         bases = (2, 3, 8, 12, 16, 36)
         print(f"  {g.b}Bases:  ", end="")
@@ -237,10 +219,8 @@ if 1:  # Core functionality
             assert int(base_str, base) == n
             print("%d:%s " % (base, base_str), end="")
         print(f"{t.n}")
-
     def Search(n, max_number_to_use=100):
         N = g.max_num_to_use
-
         def Find(n, power):
             m = power
             for i in range(1, N + 1):
@@ -249,15 +229,13 @@ if 1:  # Core functionality
                         print("  %d^%d + %d^%d\n" % (i, m, j, m))
                     if j**m - i**m == n:
                         print("  %d^%d - %d^%d\n" % (j, m, i, m))
-
         print(str(n) + "\n")
         for i in range(2, k + 1):
             Find(n, i)
-
     def Sums(n):
-        """Print out any sums of squares or sum of cubes (up to three terms) or
+        '''Print out any sums of squares or sum of cubes (up to three terms) or
         difference of squares or cubes that compose n.
-        """
+        '''
         N, s = d["-s"], []  # N is the max number to use
         if d["-o"]:
             a, b = "", ""
@@ -288,15 +266,13 @@ if 1:  # Core functionality
             else:
                 print(msg)
                 print("".join(s).rstrip())
-
     def Roots(n):
         print(f"  {g.r}Roots:  ", end="")
         for i in range(2, 10):
             print("%d:%.3f " % (i, math.pow(n, 1 / i)), end="")
         print(f"{t.n}")
-
     def Factorial(n):
-        """When n > 50, we'll print a floating point approximation."""
+        '''When n > 50, we'll print a floating point approximation.'''
         print("  Factorial:  ", end="")
         if n > 170:
             # We need to print the logarithm of the factorial because the
@@ -314,7 +290,6 @@ if 1:  # Core functionality
                 print(str(float(f)), " log = ", math.log10(float(f)))
             else:
                 print(f, " log = ", math.log10(float(f)))
-
     def CheckNumber(number):
         try:
             n = int(number)
@@ -326,7 +301,6 @@ if 1:  # Core functionality
         except ValueError:
             print(f"'{number}' isn't an integer", file=sys.stderr)
             return None
-
     def PrintProperties(n):
         print(f"{g.n}{n}{t.n}")
         Bases(n)
@@ -336,7 +310,6 @@ if 1:  # Core functionality
         Factorial(n)
         if d["-s"]:
             Sums(n)
-
 
 if __name__ == "__main__":
     d = {}  # Dictionary for command line options

@@ -1,10 +1,9 @@
-"""
+'''
 
 ToDo
-    - Use /usr/bin/factor to do factoring of large integers, as it's much
-      faster than this python code.  See code for hc.py, as it uses it in
-      that script.
-
+    - Use /usr/bin/factor to do factoring; if it fails, fall back on this module's
+      routines
+      
 Contains various routines related to prime numbers and factors.
 
 If you run this file as a script, it will print out prime numbers and
@@ -12,8 +11,7 @@ factors.
 
 Note:  there is a limit to the largest prime you can factor, as you'll
 get a memory error.  It is on the order of 1e9, at least on my machine.
-"""
-
+'''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2011 Don Peterson #∞copyright∞#
@@ -38,245 +36,220 @@ if 1:  # Standard imports
     from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import dedent
-    from color import TRM as t
+    from color import t
 if 1:  # Global variables
     P = pathlib.Path
     ii = isinstance
-    t.p = t("redl")
-    t.N = t("grnl")
+    t.p = t.redl
+    t.N = t.grnl
     nl = "\n"
-    __all__ = """AllFactors Factor FactorList FormatFactors IsPrime
+    __all__ = '''AllFactors Factor FactorList FormatFactors IsPrime
                  PrimeList PrimeNumberSieve Primes FactorGenerator
-              """.split()
+              '''.split()
     d = {"-c": False}
-
-
-def IsPositiveInteger(n, msg):
-    if n < 1 or not ii(n, int):
-        raise ValueError(msg)
-
-
-def FactorGenerator(N):
-    """This is a generator that factors an integer N.  We get a list of
-    possible factors that are primes less than N.  Then we reverse the
-    list and test each factor to see if it divides N.
-
-    Example:  for N = 84, returns [7, 3, 2, 2].
-    """
-    IsPositiveInteger(N, "N must be an integer > 0")
-    n = N
-    for i in reversed(Primes(n)):
-        while n > 1 and n % i == 0:
-            yield i  # i is a factor of n
-            n //= i
-        if n == 1:
-            break
-
-
-def PrimeList(m, n):
-    """Return a list of the primes that are between n and m inclusively."""
-    IsPositiveInteger(n, "n must be an integer > 0")
-    IsPositiveInteger(m, "m must be an integer > 0")
-    if m > n:
-        m, n = n, m
-    p = Primes(n + 1)
-    # Find the last prime that is < m.  Put the lowest primes at the
-    # end so we can efficiently use pop().
-    p.reverse()
-    while p and p[-1] < m:
-        p.pop()
-    p.reverse()
-    return p
-
-
-def PrimeNumberSieve(n=0):
-    """Provides an infinite generator that generates primes.  From
-    http://code.activestate.com/recipes/577318-infinite-list-of-primes-yay/?in=lang-pythonhttp://code.activestate.com/recipes/577318-infinite-list-of-primes-yay/?in=lang-python
-    If n is nonzero, the generator is terminated when it reaches n.
-    """
-    if n:
-        IsPositiveInteger(n, "n must be an integer > 0")
-    D = {}
-    yield 2
-    for q in itertools.islice(itertools.count(3), 0, None, 2):
-        p = D.pop(q, None)
-        if p is None:
-            D[q * q] = q
-            if n and q > n:
+if 1:  # Core functionality
+    def IsPositiveInteger(n, msg):
+        if n < 1 or not ii(n, int):
+            raise ValueError(msg)
+    def FactorGenerator(N):
+        '''This is a generator that factors an integer N.  We get a list of
+        possible factors that are primes less than N.  Then we reverse the
+        list and test each factor to see if it divides N.
+        
+        Example:  for N = 84, returns [7, 3, 2, 2].
+        '''
+        IsPositiveInteger(N, "N must be an integer > 0")
+        n = N
+        for i in reversed(Primes(n)):
+            while n > 1 and n % i == 0:
+                yield i  # i is a factor of n
+                n //= i
+            if n == 1:
                 break
-            yield q
-        else:
-            x = p + q
-            while x in D or not (x & 1):
-                x += p
-            D[x] = p
-
-
-def IsPrime(n):
-    """Return True if n is prime; False otherwise."""
-    IsPositiveInteger(n, "n must be an integer > 0")
-    return False if Factor(n) else True
-
-
-def Factor(n, check=False):
-    """Return a dictionary of the factors of n; the values are the power of
-    each factor.  If a number is prime, an empty dictionary is returned.
-    If check is True, the calculated factors are multiplied together
-    to verify that the original number is gotten.
-    """
-    IsPositiveInteger(n, "n must be an integer > 0")
-    if n < 4:
-        return {}
-    factors, d = list(FactorGenerator(n)), collections.defaultdict(int)
-    if check and factors and reduce(operator.mul, factors) != n:
-        raise RuntimeError("Bug in Factor for n = %d" % n)
-    if factors == [n]:
-        return dict(d)  # n is prime
-    for i in factors:  # Populate d with factors
-        d[i] += 1
-    return dict(d)
-
-
-def FactorList(n, check=False):
-    """Return a sorted list of the prime factors of n.  The list will be
-    empty if n is prime.  If check is True, the calculated factors are
-    multiplied together to verify that the original number is gotten.
-    """
-    IsPositiveInteger(n, "n must be an integer > 0")
-    factors = sorted(list(FactorGenerator(n)))
-    if check and factors and reduce(operator.mul, factors) != n:
-        raise RuntimeError("Bug in FactorList for n = %d" % n)
-    return factors
-
-
-def FormatFactors(n, plain=False, factor_dict=None):
-    """Returns a string of the prime factors of n.  The form is e.g.  '168:
-    2³·3·7'.  If n is prime, just the number is returned with no colon
-    character.  If factor_dict is given, use it instead of calculating d
-    again.  If plain is True, then return '168: 2^3 3 7'.  ANSI colors are
-    used unless output is not to a terminal.
-    """
-    e = dict(zip(list("0123456789"), list("⁰¹²³⁴⁵⁶⁷⁸⁹")))
-
-    def E(exp):
-        "Return integer exp as string of exponent characters"
-        return "".join([e[i] for i in str(exp)])
-
-    IsPositiveInteger(n, "n must be an integer > 0")
-    if factor_dict is not None:
-        D = factor_dict
-    else:
-        D = Factor(n)
-    if not D:
-        return f"{t.p}{n}{t.n}" if d["-c"] else f"{n}"
-    keys = sorted(list(D.keys()))
-    N, s = f"{t.N}{n}{t.n}: ", []
-    for key in keys:
-        if D[key] > 1:
-            if plain:
-                # s.append("%d^%d" % (key, D[key]))
-                s.append(f"{key}^{D[key]}")
+    def PrimeList(m, n):
+        '''Return a list of the primes that are between n and m inclusively.'''
+        IsPositiveInteger(n, "n must be an integer > 0")
+        IsPositiveInteger(m, "m must be an integer > 0")
+        if m > n:
+            m, n = n, m
+        p = Primes(n + 1)
+        # Find the last prime that is < m.  Put the lowest primes at the
+        # end so we can efficiently use pop().
+        p.reverse()
+        while p and p[-1] < m:
+            p.pop()
+        p.reverse()
+        return p
+    def PrimeNumberSieve(n=0):
+        '''Provides an infinite generator that generates primes.  From
+        http://code.activestate.com/recipes/577318-infinite-list-of-primes-yay/?in=lang-pythonhttp://code.activestate.com/recipes/577318-infinite-list-of-primes-yay/?in=lang-python
+        If n is nonzero, the generator is terminated when it reaches n.
+        '''
+        if n:
+            IsPositiveInteger(n, "n must be an integer > 0")
+        D = {}
+        yield 2
+        for q in itertools.islice(itertools.count(3), 0, None, 2):
+            p = D.pop(q, None)
+            if p is None:
+                D[q*q] = q
+                if n and q > n:
+                    break
+                yield q
             else:
-                s.append(f"{key}{E(D[key])}")
+                x = p + q
+                while x in D or not (x & 1):
+                    x += p
+                D[x] = p
+    def IsPrime(n):
+        '''Return True if n is prime; False otherwise.'''
+        IsPositiveInteger(n, "n must be an integer > 0")
+        return False if Factor(n) else True
+    def Factor(n, check=False):
+        '''Return a dictionary of the factors of n; the values are the power of
+        each factor.  If a number is prime, an empty dictionary is returned.
+        If check is True, the calculated factors are multiplied together
+        to verify that the original number is gotten.
+        '''
+        IsPositiveInteger(n, "n must be an integer > 0")
+        if n < 4:
+            return {}
+        factors, d = list(FactorGenerator(n)), collections.defaultdict(int)
+        if check and factors and reduce(operator.mul, factors) != n:
+            raise RuntimeError("Bug in Factor for n = %d" % n)
+        if factors == [n]:
+            return dict(d)  # n is prime
+        for i in factors:  # Populate d with factors
+            d[i] += 1
+        return dict(d)
+    def FactorList(n, check=False):
+        '''Return a sorted list of the prime factors of n.  The list will be
+        empty if n is prime.  If check is True, the calculated factors are
+        multiplied together to verify that the original number is gotten.
+        '''
+        IsPositiveInteger(n, "n must be an integer > 0")
+        factors = sorted(list(FactorGenerator(n)))
+        if check and factors and reduce(operator.mul, factors) != n:
+            raise RuntimeError("Bug in FactorList for n = %d" % n)
+        return factors
+    def FormatFactors(n, plain=False, factor_dict=None):
+        '''Returns a string of the prime factors of n.  The form is e.g.  '168:
+        2³·3·7'.  If n is prime, just the number is returned with no colon
+        character.  If factor_dict is given, use it instead of calculating d
+        again.  If plain is True, then return '168: 2^3 3 7'.  ANSI colors are
+        used unless output is not to a terminal.
+        '''
+        e = dict(zip(list("0123456789"), list("⁰¹²³⁴⁵⁶⁷⁸⁹")))
+        def E(exp):
+            "Return integer exp as string of exponent characters"
+            return "".join([e[i] for i in str(exp)])
+        IsPositiveInteger(n, "n must be an integer > 0")
+        if factor_dict is not None:
+            D = factor_dict
         else:
-            s.append("%d" % key)
-    char = " " if plain else "·"
-    return N + char.join(s)
-
-
-def AllFactors(n):
-    "Return a list of all factors of n if n is not prime"
-    IsPositiveInteger(n, "n must be an integer > 0")
-    assert n > 1
-    factors = list(FactorGenerator(n))
-    all_factors = set(factors)
-    for num_factors in range(2, len(factors)):
-        for comb in itertools.combinations(factors, num_factors):
-            all_factors.add(reduce(operator.mul, comb))
-    return list(sorted(list(all_factors)))
-
-
-def Primes(n, show=False, new_algorithm=True):
-    """Returns a list of primes < n.  If show is True, print out the
-    sieve's contents for each iteration (show only works for old algorithm).
-    Set new_algorithm to False to use the old algorithm.
-
-    For n == 10**6, the new algorithm is about 16 ms, twice as fast as the old.
-    """
-    IsPositiveInteger(n, "n must be an integer > 0")
-    if new_algorithm:
-        # New algorithm
-        # From https://stackoverflow.com/questions/2068372/ ...
-        #      fastest-way-to-list-all-primes-below-n/33356284#33356284
-        # Downloaded Mon 20 Nov 2023 08:21:39 AM
-        # For arguments > about 400, this algorithm is faster than the old
-        # and for large arguments (10**6) it's about twice as fast.
-        zero = bytearray([False])
-        size = n // 3 + (n % 6 == 2)
-        sieve = bytearray([True]) * size
-        sieve[0] = False
-        for i in range(int(n**0.5) // 3 + 1):
-            if sieve[i]:
-                k = 3 * i + 1 | 1
-                start = (k * k + 4 * k - 2 * k * (i & 1)) // 3
-                sieve[(k * k) // 3 :: 2 * k] = zero * (
-                    (size - (k * k) // 3 - 1) // (2 * k) + 1
-                )
-                sieve[start :: 2 * k] = zero * ((size - start - 1) // (2 * k) + 1)
-        ans = [2, 3]
-        poss = itertools.chain.from_iterable(
-            itertools.zip_longest(*[range(i, n, 6) for i in (1, 5)])
-        )
-        ans.extend(itertools.compress(poss, sieve))
-        return ans
-    else:
-        # Old algorithm
-        # http://stackoverflow.com/questions/2068372/ ...
-        #     fastest-way-to-list-all-primes-below-n-in-python/3035188#3035188
-        def Show(count, sieve):
-            if show:
-                # Make a string of 0's and 1's
-                s = str([0 + i for i in sieve])
-                if not count:
-                    # Print a ruler
-                    print(" " * 4, ("    .    |") * (len(sieve) // 10))
-                print(
-                    "%3d " % count,
-                    s[1:-1]
-                    .replace(",", "")
-                    .replace(" ", "")
-                    .replace("0", " ")
-                    .replace("1", "x"),
-                )
-
-        sieve = [True] * (n // 2)  # Boolean array representing odd numbers
-        if show:
-            Show(0, sieve)
-        # Iterate from 3 to sqrt(n), odd numbers only
-        for i in range(3, int(n**0.5) + 1, 2):
-            # If this element's value is true, then set each multiple of i to
-            # false by using the proper stride.  This is very fast because it
-            # will all be done in C code.  The RHS is the tricky part -- it's
-            # the remaining number of items in the Boolean array.
-            if sieve[i // 2]:
-                sieve[i * i // 2 :: i] = [False] * ((n - i * i - 1) // (2 * i) + 1)
+            D = Factor(n)
+        if not D:
+            return f"{t.p}{n}{t.n}" if d["-c"] else f"{n}"
+        keys = sorted(list(D.keys()))
+        N, s = f"{t.N}{n}{t.n}: ", []
+        for key in keys:
+            if D[key] > 1:
+                if plain:
+                    # s.append("%d^%d" % (key, D[key]))
+                    s.append(f"{key}^{D[key]}")
+                else:
+                    s.append(f"{key}{E(D[key])}")
+            else:
+                s.append("%d" % key)
+        char = " " if plain else "·"
+        return N + char.join(s)
+    def AllFactors(n):
+        "Return a list of all factors of n if n is not prime"
+        IsPositiveInteger(n, "n must be an integer > 0")
+        assert n > 1
+        factors = list(FactorGenerator(n))
+        all_factors = set(factors)
+        for num_factors in range(2, len(factors)):
+            for comb in itertools.combinations(factors, num_factors):
+                all_factors.add(reduce(operator.mul, comb))
+        return list(sorted(list(all_factors)))
+    def Primes(n, show=False, new_algorithm=True):
+        '''Returns a list of primes < n.  If show is True, print out the
+        sieve's contents for each iteration (show only works for old algorithm).
+        Set new_algorithm to False to use the old algorithm.
+        
+        For n == 10**6, the new algorithm is about 16 ms, twice as fast as the old.
+        '''
+        IsPositiveInteger(n, "n must be an integer > 0")
+        if new_algorithm:
+            # New algorithm
+            # From https://stackoverflow.com/questions/2068372/ ...
+            #      fastest-way-to-list-all-primes-below-n/33356284#33356284
+            # Downloaded Mon 20 Nov 2023 08:21:39 AM
+            # For arguments > about 400, this algorithm is faster than the old
+            # and for large arguments (10**6) it's about twice as fast.
+            zero = bytearray([False])
+            size = n // 3 + (n % 6 == 2)
+            sieve = bytearray([True]) * size
+            sieve[0] = False
+            for i in range(int(n**0.5) // 3 + 1):
+                if sieve[i]:
+                    k = 3 * i + 1 | 1
+                    start = (k * k + 4 * k - 2 * k * (i & 1)) // 3
+                    sieve[(k * k) // 3 :: 2 * k] = zero * (
+                        (size - (k * k) // 3 - 1) // (2 * k) + 1
+                    )
+                    sieve[start :: 2 * k] = zero * ((size - start - 1) // (2 * k) + 1)
+            ans = [2, 3]
+            poss = itertools.chain.from_iterable(
+                itertools.zip_longest(*[range(i, n, 6) for i in (1, 5)])
+            )
+            ans.extend(itertools.compress(poss, sieve))
+            return ans
+        else:
+            # Old algorithm
+            # http://stackoverflow.com/questions/2068372/ ...
+            #     fastest-way-to-list-all-primes-below-n-in-python/3035188#3035188
+            def Show(count, sieve):
                 if show:
-                    Show(i, sieve)
-        return [2] + [2 * i + 1 for i in range(1, n // 2) if sieve[i]]
-
-
+                    # Make a string of 0's and 1's
+                    s = str([0 + i for i in sieve])
+                    if not count:
+                        # Print a ruler
+                        print(" " * 4, ("    .    |") * (len(sieve) // 10))
+                    print(
+                        "%3d " % count,
+                        s[1:-1]
+                        .replace(",", "")
+                        .replace(" ", "")
+                        .replace("0", " ")
+                        .replace("1", "x"),
+                    )
+            sieve = [True] * (n // 2)  # Boolean array representing odd numbers
+            if show:
+                Show(0, sieve)
+            # Iterate from 3 to sqrt(n), odd numbers only
+            for i in range(3, int(n**0.5) + 1, 2):
+                # If this element's value is true, then set each multiple of i to
+                # false by using the proper stride.  This is very fast because it
+                # will all be done in C code.  The RHS is the tricky part -- it's
+                # the remaining number of items in the Boolean array.
+                if sieve[i // 2]:
+                    sieve[i * i // 2 :: i] = [False] * ((n - i * i - 1) // (2 * i) + 1)
+                    if show:
+                        Show(i, sieve)
+            return [2] + [2 * i + 1 for i in range(1, n // 2) if sieve[i]]
 if __name__ == "__main__":
     # If run as a script, list primes and factors.
     from lwtest import Assert, run
     import getopt
-
     def Test():
         # The following list came from
         # https://primes.utm.edu/lists/small/1000.txt, downloaded on 9 Mar
         # 2022.
         primes = [
             int(i)
-            for i in """
+            for i in '''
             2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 89
             97 101 103 107 109 113 127 131 137 139 149 151 157 163 167 173 179
             181 191 193 197 199 211 223 227 229 233 239 241 251 257 263 269 271
@@ -350,7 +323,7 @@ if __name__ == "__main__":
             7541 7547 7549 7559 7561 7573 7577 7583 7589 7591 7603 7607 7621
             7639 7643 7649 7669 7673 7681 7687 7691 7699 7703 7717 7723 7727
             7741 7753 7757 7759 7789 7793 7817 7823 7829 7841 7853 7867 7873
-            7877 7879 7883 7901 7907 7919""".split()
+            7877 7879 7883 7901 7907 7919'''.split()
         ]
         if 1:
             # Check that Primes() constructs an identical list to primes
@@ -366,27 +339,23 @@ if __name__ == "__main__":
             # Test Factor() over a reasonable number range
             for i in range(2, 10000):
                 Factor(i, check=True)
-
     if 1:  # Utility
-
         def Error(*msg, status=1):
             print(*msg, file=sys.stderr)
             exit(status)
-
         def Usage():
             name = sys.argv[0]
-            print(
-                dedent(rf"""
+            print(dedent(rf'''
             Usage:  {name} n [m]
               Prints primes and factors for numbers <= n or between n and m.  Each
               number is printed on a separate line with its factors; if it is prime,
               no factors and no ":" character are printed.
             Options
-              -C        Compact form (output is on one line)
+              -b        Compact form (output is on one line)
               -c        Do not print in color
               --test    Run self-tests
               -p        Only show the primes
-              -u        Use plain ASCII printout
+              -u        Use plain ASCII printout (i.e., no Unicode exponents)
             Examples
               - Show the factors of 64:
                   {name} 64 64
@@ -394,12 +363,11 @@ if __name__ == "__main__":
                   {name} 1000 | grep -v ":"
               - Show all numbers less than 100000 that have 911 as a factor:
                   {name} 100000 | grep "\<911\>"
-            """)
+            ''')
             )
             exit(1)
-
         def ParseCommandLine(d):
-            d["-C"] = False  # Compact
+            d["-b"] = False  # Compact
             d["-c"] = True  # Use color
             d["-d"] = False  # Debug sent to stderr
             d["-p"] = False  # Only show primes
@@ -407,21 +375,24 @@ if __name__ == "__main__":
             if len(sys.argv) < 2:
                 Usage()
             try:
-                opts, args = getopt.getopt(sys.argv[1:], "Ccdhptu")
+                opts, args = getopt.getopt(sys.argv[1:], "bcdhptu", ["test"])
             except getopt.GetoptError as e:
                 print(str(e))
                 exit(1)
             for o, a in opts:
-                if o[1] in list("Ccdpu"):
+                if o[1] in list("bcdpu"):
                     d[o] = not d[o]
                 elif o in ("-h", "--help"):
                     Usage(status=0)
                 elif o == "-t":
                     exit(run(globals(), halt=True)[0])
+                elif o == "--test":
+                    Test()
+                    exit()
             if not d["-c"]:
-                t.p = t.n = t.N = ""
+                t.p = t.N = ""
+                t.on = False
             return args
-
     if 1:
         d = {}  # Options dictionary
         args = ParseCommandLine(d)
@@ -431,8 +402,8 @@ if __name__ == "__main__":
             m, n = [int(i) for i in args]
         if m < 1 or n < 1:
             raise ValueError("n and m must be integers greater than 0")
-        t = "" if d["-p"] else ","
-        end = f"{t} " if d["-C"] else "\n"
+        u = "" if d["-p"] else ","
+        end = f"{u} " if d["-b"] else "\n"
         for i in range(m, n + 1):
             if i == n:
                 end = ""
@@ -441,5 +412,5 @@ if __name__ == "__main__":
                 if ":" in s:
                     continue
             print(s, end=end)
-        if not d["-p"]:
+        if d["-p"]:
             print()

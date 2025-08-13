@@ -1,5 +1,20 @@
 /plib/.todo
 
+    - bitfield.py
+        - Using a bytearray seems to me to be the most logical and simplest way to
+          implement these things
+            - All bits set:  all(x)
+            - Any bit set:  any(x)
+        - Then there only needs to be the class bitfield
+        - Include the methods to persist to a file in lib/bitfield
+
+    - primes.py
+        - Use /usr/bin/factor to do the factoring, as it will be much faster and capable
+          of handling much larger numbers.  It also can do all of the script's arguments 
+          in one call.
+        - Construct and pickle a bitfield that "remembers" the primes so that an
+          IsPrime(*args) function is fast and returns True if all arguments are prime
+
     - pgm/int.py
         - Should use /usr/bin/factor for factoring, as it's much better than my python
           stuff
