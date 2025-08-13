@@ -289,130 +289,123 @@ class bitfield(int):
             raise ValueError("val must be an integer >= 0")
         self._value = int(val & self)
 class bbitfield:
-    '''This is a bitfield implemented with the most logical data structure, the
-    bytearray, a mutable sequence of bytes.
+    '''This is a bitfield implemented with a bytearray, a mutable sequence of bytes.
+    Byte 0 is the first byte, byte 1 is the second, etc.  A two-byte bitfield would
+    have the bytes
+    
+          76543210 fedcba98     <-- bitfield index for bit
+             0        1         <-- byte number
+        0b00000000·00000000
+          7      0 7      0     <-- array bit numbers
+    
+    The array bit numbers are gotten from the bitfield number by a divmod() call.
+    
+    where the dot denotes a byte boundary.  The right byte contains bits 0-7 and the
+    left byte contains 8-15.  The bit numbering runs from 0 to n - 1, where n is the
+    number of bits in the bitfield.
+    
+    Setting and clear individual bits is straightforward and relatively fast, but
+    setting all bits to 0 or 1 is time consuming because each byte in the array needs
+    to be changed.
     '''
-    def __init__(self, num_bits, all_ones=False):
-        '''Array of bits from 0 to num_bits - 1.  Initialized to all zeros unless
+    def __init__(self, nbits, all_ones=False):
+        '''Array of bits from 0 to nbits - 1.  Initialized to all zeros unless
         all_ones is True.
         '''
         if not isinstance(num_bits, int):
             raise TypeError("num_bits must be an int > 0")
         if num_bits <= 0:
             raise ValueError("num_bits must be > 0")
-        self._n = num_bits
+        self._nbits = num_bits
         self._size = num_bits//8
         if self._size < num_bits//8:
             self._size += 1
         self._bytes = bytearray[num_bytes]
-    def __get_index(self, bit_position):
-        '''Return a tuple (i, j).  i is the byte the bit is in.  j is the bit position
-        in that byte.,
-        '''
-        # Check that bit_position asked for is in the range of this bitfield
-        if not (0 <= bit_position <= self._n - 1):
-            raise ValueError(f"bit_position must be >= 0 and <= {self._n - 1}")
-        # Return the needed tuple
-        return divmod(bit_position, 8)
-    def is_set(self, bit_position):
-        byte, bit = self.__get_index(bit_position)
-        c = self._bytes[byte]
-
-        return not (not (ord(self.bitstr[row][byte]) & (1 << bit)))
-    def is_clear(self, bit_position):
-        return not self.is_set(bit_position)
-    def set_bit(self, bit_position):
-        self.__set_bit(bit_position, 1)
-    def clear_bit(self, bit_position):
-        self.__set_bit(bit_position, 0)
-    def __set_bit(self, bit_position, value):
-        row, byte, bit = self.__get_index(bit_position)
-        s = self.bitstr
-        assert value == 0 or value == 1
-        if value == 1:
-            new_byte = chr(ord(s[row][byte]) | (1 << bit))
-        else:
-            new_byte = chr(ord(s[row][byte]) & (~(1 << bit)))
-        if byte == 0:
-            if len(s[row]) > 1:
-                s[row] = new_byte + s[row][1:]
-            else:
-                s[row] = new_byte
-        elif byte == self.num_bytes_in_row - 1:
-            s[row] = s[row][:-1] + new_byte
-        else:
-            s[row] = s[row][:byte] + new_byte + s[row][byte + 1 :]
-        assert len(s[row]) == self.num_bytes_in_row
-    def set_bit_range(self, start, end):
-        "Set a range of bits"
-        if start > end:
-            raise ValueError("start must be less than end")
-        for bit_position in range(start, end + 1):
+    if 1:   # Internal-only methods
+        def __is_valid_bit_position(self, bit_position):
+            if not (0 <= bit_position <= self._n - 1):
+                raise ValueError(f"bit_position must be >= 0 and <= {self._n - 1}")
+        def __get_index(self, bit_position):
+            '''Return a tuple (i, j).  i is the byte the bit is in.  j is the bit position
+            in that byte.
+            '''
+            self.__is_valid_bit_position(bit_position)
+            return divmod(bit_position, 8)
+        def __set_bit(self, bit_position, value):
+            byte, bit = self.__get_index(bit_position)
+            if bool(value):     # Set the bit
+                self._bytes[byte] |= (1 << bit)
+            else:               # Clear the bit
+                self._bytes[byte] &= ~(1 << bit)
+    if 1:   # Methods
+        def set_all(self, value=False):
+            for i in range(self._size):
+                self._bytes[i] = 0xff if value else 0
+        def is_set(self, bit_position):
+            byte, bit = self.__get_index(bit_position)
+            return bool(self._bytes[byte] & (1 << bit))
+        def is_clear(self, bit_position):
+            return not self.is_set(bit_position)
+        def set_bit(self, bit_position):
             self.__set_bit(bit_position, 1)
-    def clear_bit_range(self, start, end):
-        for bit_position in range(start, end + 1):
+        def clear_bit(self, bit_position):
             self.__set_bit(bit_position, 0)
-    def set_to_zeros(self):
-        self.bitstr = []
-        for i in range(self.num_rows):
-            self.bitstr.append(self.zero)
-    def set_to_ones(self):
-        self.bitstr = []
-        for i in range(self.num_rows):
-            self.bitstr.append(self.one)
-    def __within_range(self, bit_position):
-        if (
-            not ii(bit_position, int)
-            or bit_position < 0
-            or bit_position > self.num_bits - 1
-        ):
-            raise ValueError(
-                "bit position must be >= 0 and <= %d" % (self.num_bits - 1)
-            )
-    def __repr__(self):
-        '''Returns binary representation with LSB to right.  Set self.dot
-        to nonzero to use an alternative form from 1's and 0's that's
-        sometimes easier to read.
-        '''
-        str = ""
-        on = "1"
-        off = "0"
-        if self.dot:
-            on = "|"
-            off = "."
-        for i in range(self.num_bits - 1, -1, -1):
-            if self.is_set(i):
-                str = str + on
-            else:
-                str = str + off
-        return str
-    def num_bytes_used(self):
-        tmp = self.num_bytes_in_row * self.num_rows
-        try:
-            retval = int(tmp)
-        except ValueError:
-            retval = tmp
-        return retval
-    def __eq__(self, o):
-        if type(o) != type(self):
-            raise ValueError("object is not a bitfield")
-        if o.num_bits != self.num_bits:
-            return False
-        for i in range(self.num_rows):
-            if o.bitstr[i] != self.bitstr[i]:
+        def set_bit_range(self, start, end):
+            'Set a range of bits'
+            if start > end:
+                raise ValueError("start must be less than end")
+            for bit_position in range(start, end + 1):
+                self.__set_bit(bit_position, 1)
+        def clear_bit_range(self, start, end):
+            'Clear a range of bits'
+            if start > end:
+                raise ValueError("start must be less than end")
+            for bit_position in range(start, end + 1):
+                self.__set_bit(bit_position, 0)
+        def size(self):
+            'Returns number of bits in bitfield'
+            return self._size
+    if 1:   # Object methods
+        def __len__(self):
+            'Returns number of bits in bitfield'
+            return self._size
+        def __repr__(self):
+            '''Returns binary representation with LSB to right.  Set self.dot
+            to nonzero to use an alternative form from 1's and 0's that's
+            sometimes easier to read.
+            '''
+            str = ""
+            on = "1"
+            off = "0"
+            if self.dot:
+                on = "|"
+                off = "."
+            for i in range(self.num_bits - 1, -1, -1):
+                if self.is_set(i):
+                    str = str + on
+                else:
+                    str = str + off
+            return str
+        def __eq__(self, o):
+            if type(o) != type(self):
+                raise ValueError("object is not a bbitfield")
+            if o.num_bits != self.num_bits:
                 return False
-        return True
-    def __cmp__(self, o):
-        "Implements ==, != only"
-        if type(o) != type(self):
-            raise ValueError("object is not a bitfield")
-        if o.num_bits != self.num_bits:
-            return 1
-        match = 0
-        for i in range(self.num_rows):
-            if o.bitstr[i] != self.bitstr[i]:
+            for i in range(self.num_rows):
+                if o.bitstr[i] != self.bitstr[i]:
+                    return False
+            return True
+        def __cmp__(self, o):
+            "Implements ==, != only"
+            if type(o) != type(self):
+                raise ValueError("object is not a bbitfield")
+            if o.num_bits != self.num_bits:
                 return 1
-        return 0
+            match = 0
+            for i in range(self.num_rows):
+                if o.bitstr[i] != self.bitstr[i]:
+                    return 1
+            return 0
 
 if __name__ == "__main__":
     import sys
