@@ -23,12 +23,14 @@ if 1:   # Header
         ##∞what∞#
         ##∞test∞# run #∞test∞#
         pass
-    if 1:   # Imports
+    if 1:   # Standard imports
         import os
         import sys
         import subprocess
         import tempfile
         from pathlib import Path
+    if 1:   # Custom imports
+        from util import NumBitsInByte
         if len(sys.argv) > 1:
             import debug
             debug.SetDebugger()
@@ -305,6 +307,17 @@ if 1:   # Classes
         These times indicate that this data structure could be handy for sparse bit
         arrays.  An example would be a datafile contining 1e9 bits that would indicate
         the prime numbers:  if primes[n] is True, then n is a prime.
+
+        Properties
+          n         Number of bits in the bitfield
+          numbytes  Number of bytes in the bitfield
+          excess    Unused bits in the last byte of the bytestring
+        
+        Attributes
+          dot       Set to True for an easier to read string form
+        
+        Invariants
+            self.n + self.excess = 8*self.bytes
         '''
         def __init__(self, nbits, all_ones=False):
             '''Array of bits from 0 to nbits - 1.  Initialized to all zeros unless
@@ -315,8 +328,9 @@ if 1:   # Classes
             if self._nbits <= 0:
                 raise ValueError("nbits must be > 0")
             self._nbytes = self._nbits//8
-            if nbits % 8:
+            if self._nbits % 8:
                 self._nbytes += 1
+            self._excess = self._nbytes*8 - self._nbits
             self._bytes = bytearray(self._nbytes)
             if all_ones:
                 self.set_all(1)
@@ -358,6 +372,10 @@ if 1:   # Classes
                     self._bytes[i] = 0xff if value else 0
             def num_set(self):
                 'Return the number of bits set'
+                count = 0
+                for i in self._bytes:
+                    count += 
+
             def dump(self, binary=True):
                 '''Use /usr/bin/xxd to produce a dump to stdout (if binary is False, it
                 will be a hexdump).
@@ -372,8 +390,17 @@ if 1:   # Classes
                 os.unlink(file.name)
         if 1:   # Properties
             @property
-            def n(self):    # Number of bits
+            def numbytes(self):
+                'Number of bytes'
                 return self._nbits
+            @property
+            def n(self):
+                'Number of bits'
+                return self._nbits
+            @property
+            def excess(self):
+                'Number of excess bits in last byte'
+                return self._excess
         if 1:   # Object methods
             def __len__(self):
                 'Returns number of bits in bitfield'

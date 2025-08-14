@@ -1,5 +1,11 @@
 /plib/.todo
 
+    - bits.py
+        - Move bitfield.py to this file
+        - Add functions that manipulate bits:
+            - util:NumBitsInByte()
+            - ReverseBitsInByte
+
     - bitfield.py
         - Using a bytearray seems to me to be the most logical and simplest way to
           implement these things
