@@ -47,6 +47,7 @@ IsTextFile            Heuristic to see if a file is a text file
 ItemCount             Summarize a sequence with counts of each item
 Len                   Return the length of a string with ANSI escape sequences removed
 Now                   Time or datetime as now
+NumBitsInByte         Returns a dict to count bits
 ParseComplex          Split a complex number string into re, im strings
 Paste                 Return sequence of pasted sequences
 PPSeq                 Class for formatting number sequences for pretty printing
@@ -1440,14 +1441,13 @@ def Ampacity(dia_mm, insul_degC=60, ambient_degC=30):
         return correction * (b1 * dia_mm + b2 * dia_mm**2 + b3 * dia_mm**3)
     else:
         raise ValueError("ambient_degC out of range")
-
 def Ranges(seq, validate=False):
     '''seq is a sequence of integers.  This function will return the sequence as a
     list of either 2-tuples or single integers.  The 2-tuples represent the
     arguments to range() to reproduce the original sequence of integers.  If
     validate is True, the returned list will be validated by reproducing the
     original sequence.
-
+    
     Examples
         [1, 2, 3, 5] --> [(1, 4), 5]
         [1, 3, 2, 5] --> [1, 3, 2, 5]
@@ -1455,7 +1455,7 @@ def Ranges(seq, validate=False):
     The intended use case is a form of "compression" for long sequences and an index
     case is the set of Unicode codepoints, where I wanted to see how much shorter
     such a representation is than the set of integers.
-
+    
     The algorithm is derived from 
     https://stackoverflow.com/questions/3429510/pythonic-way-to-convert-a-list-of-integers-into-a-string-of-comma-separated-range/3430231#3430231
     and is the 7 Aug 2010 answer.
@@ -1717,6 +1717,13 @@ class Now:
     def cdate(self):
         dy, mo, yr = self._dt
         return f"{dy}{mo}{yr}"
+def NumBitsInByte():
+    'Returns a dict to count bits in a byte:  d = NumBitsInByte() and d[0xff] = 8'
+    if not hasattr(NumBitsInByte, "dict"):
+        NumBitsInByte.dict, bits_in_nibble = {}, tuple(bin(i).count('1') for i in range(16))
+        for i in range(0x100):
+            NumBitsInByte.dict[i] = bits_in_nibble[i & 0x0f] + bits_in_nibble[i >> 4]
+    return NumBitsInByte.dict
 def DoubleFactorial(n):
     '''Returns n!! which is defined to be the product from k = 0 to k = int(n/2) - 1 of (n - 2*k).
     Since we ensure that n is an integer, this function should never fail, but of course it will
@@ -2076,6 +2083,10 @@ if __name__ == "__main__":
     # Need to have version, as SizeOf stuff changed between 3.7 and 3.9
     vi = sys.version_info
     ver = f"{vi[0]}.{vi[1]}"
+    def Test_NumBitsInByte():
+        d = NumBitsInByte()
+        for i in d:
+            assert d[i] == bin(i).count("1")  # Count 1's in binary represention
     def Test_Ranges():
         # Empty sequence
         assert Ranges([], validate=False) == []
