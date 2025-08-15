@@ -1,6 +1,23 @@
 '''
+
+Todo
+    - Keep the bitfield based on integers; though it's slow, it could work well for
+      sparse bitfields and has the advantage that you can look at is an an integer.
+    - Also keep bbitfield, as its implementation is fast, as it's all underlying C code.
+    - If possible, define an abstract interface for a bitfield and make both
+      implementations conform to them so that they are interchangeable.  There should
+      also be functions to convert them into each other.
+
 Implements a class that allows you to create large bitfields.  The bits are numbered
-from 0 to n - 1, where n is the size of the bitfield.  There are three implementations:  
+from 0 to n - 1, where n is the size of the bitfield.  The use case is to allow you to
+keep track of a large number of boolean values.  For example, you could create a
+bitfield that would contain True values when the index of a bit is a prime number.  If
+you want a richer interface to a sequence of binary bits, you might want to look at
+https://pypi.org/project/bitstring/.
+
+The implementation is simple and is based on a bytearray.  
+
+There are three implementations:  
     - sbitfield uses a list of string characters 
     - bitfield is derived from an integer
     - bbitfield uses a bytearray
@@ -372,9 +389,13 @@ if 1:   # Classes
                     self._bytes[i] = 0xff if value else 0
             def num_set(self):
                 'Return the number of bits set'
-                count = 0
+                count, di = 0, NumBitsInByte()
                 for i in self._bytes:
-                    count += 
+                    count += di[i]
+                if self.excess:     # Correct for partial last byte
+                    b = self._bytes[-1]
+
+                return count
 
             def dump(self, binary=True):
                 '''Use /usr/bin/xxd to produce a dump to stdout (if binary is False, it

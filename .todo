@@ -1,14 +1,36 @@
 /plib/.todo
 
+    - bitarray
+        - Add programing details to my python helpfile
+        - Note `from bitarray.util import gen_primes` generates primes using the Sieve
+          of Eratosthenes.  Also see examples/sieve.py and examples/dyn_sieve.py.
+            - sieve.py computes all primes up to 1e9 in 13.2 s, up to 1e10 in 153 s.
+              This means that this bitarray could be stored in 1.25 GB and would give
+              fast searching for primality, but it's probably not sensible to store such
+              large things on disk, as they aren't needed very often.
+            - I'd probably limit it to 1e8, as that takes less that 1 s to compute and
+              means a 12.5 MB file.  In fact, it mostly means that primes.py should just
+              compute things and store things in a bitarray.
+        - See examples/gene.py for using bitarray to encode a gene
+
     - bits.py
         - Move bitfield.py to this file
         - Add functions that manipulate bits:
             - util:NumBitsInByte()
             - ReverseBitsInByte
+        - bitarray module (https://github.com/ilanschnell/bitarray)
+            - This module would be perfect for a fixed-size integer
+          implementation for general use in python.  Call the signed version ints and
+          the unsigned version intu.
+            - A nice feature is the "Variable bit length prefix codes", which takes a
+              dict mapping symbols to bitarrays
+        - Add a function xxd() that uses xxd to do dump an object to stdout that can be
+          converted into a bytes object.  You can choose binary or hex and the -a option
+          is used to compress the output, which is valuable for sparse arrays.
 
     - bitfield.py
         - Using a bytearray seems to me to be the most logical and simplest way to
-          implement these things
+          implement these things in pure python
             - All bits set:  all(x)
             - Any bit set:  any(x)
         - Then there only needs to be the class bitfield
@@ -34,7 +56,7 @@
             - Factorial is too large for floating point, so use mpmath or put log in red
 
     - pgm/tool_angles.py [material_regex]
-        - Codify the practical stuff in "Manual of Lath Operation" (my 1973 reprint from
+        - Codify the practical stuff in "Manual of Lathe Operation" (my 1973 reprint from
           Sears, published by Clausing) for the tool angles to grind single point
           cutting tools.  The script should take a regex and look up the desired angles
         - -l shows a listing of the supported materials
