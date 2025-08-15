@@ -27,10 +27,17 @@ if 1:   # Header
             import debug
             debug.SetDebugger()
     if 1:  # Global variables
-        t.err = t("ornl")
-        t.bld = t("grnl")
-        t.nz = t("redl")
-        t.dry = t("sky")
+        class G:
+            pass
+        g = G()
+        # Colors
+        t.err = t.ornl  # Error messages
+        t.bld = t.grnl  # Print build message & why invokes
+        t.nz = t.redl   # Nonzero status
+        t.dry = t.sky   # Dry run
+        t.boundary = t.yell
+        # Boundary for invocations
+        g.boundary = f"{t.boundary}{'-'*90}{t.n}"
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -71,21 +78,23 @@ if 1:   # Utility
                 in the terminal window.
           -s t  Sleep time t in s between checking file times.  t can be a
                 floating point number.  Default is {st} seconds.
+          -v    Show details of why invoked & time from starting
         ''')
         )
         exit(status)
     def ParseCommandLine(d):
-        d["-n"] = False  # Dry run
-        d["-q"] = False  # Quiet mode
-        d["-s"] = 1.0  # Default sleep time in s
+        d["-n"] = False     # Dry run
+        d["-q"] = False     # Quiet mode
+        d["-s"] = 1.0       # Default sleep time in s
+        d["-v"] = False     # Verbose:  show why triggered
         try:
-            optlist, filename = getopt.getopt(sys.argv[1:], "hnqs:")
+            optlist, filename = getopt.getopt(sys.argv[1:], "hnqs:v")
         except getopt.GetoptError as e:
             msg, option = e
             print(msg)
             exit(1)
         for o, a in optlist:
-            if o[1] in "nq":
+            if o[1] in "nqv":
                 d[o] = not d[o]
             if o == "-s":
                 try:
@@ -162,7 +171,9 @@ if 1:   # Core functionality
             if tm_src <= tm_dest:
                 return
         # Execute commands because source is newer than destination
-        t.print(f"{t.bld}{src!r} is newer than {dest!r} [{GetTime(d)}]")
+        print(g.boundary)
+        if d["-v"]:
+            t.print(f"{t.bld}{src!r} is newer than {dest!r} [{GetTime(d)}]")
         for cmd in cmdlist:
             if d["-n"]:
                 t.print(f"{t.sky}Dry run:  {cmd!r} [{GetTime(d)}]")
