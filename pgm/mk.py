@@ -23,6 +23,8 @@ if 1:   # Header
     if 1:   # Custom imports
         from wrap import dedent
         from color import TRM as t
+        from timer import Stopwatch
+        from dptime import NiceET
         if 0:
             import debug
             debug.SetDebugger()
@@ -36,8 +38,10 @@ if 1:   # Header
         t.nz = t.redl   # Nonzero status
         t.dry = t.sky   # Dry run
         t.boundary = t.yell
-        # Boundary for invocations
-        g.boundary = f"{t.boundary}{'-'*90}{t.n}"
+        # Boundary string for invocations
+        g.boundary = "-"
+        # Width of screen
+        W = int(os.environ.get("COLUMNS", "80")) - 1
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -70,6 +74,7 @@ if 1:   # Utility
           Then run 'python mk.py kfile'.  When a.py changes, the makefile will be run,
           causing the changed a.py script to run.
         Options
+          -d n  Number of digits for elapsed times [{d['-d']}]
           -h    Print this message
           -n    Dry run:  echo the commands that would be executed but don't
                 call them.
@@ -83,6 +88,7 @@ if 1:   # Utility
         )
         exit(status)
     def ParseCommandLine(d):
+        d["-d"] = 4         # Number of digits in elapsed time
         d["-n"] = False     # Dry run
         d["-q"] = False     # Quiet mode
         d["-s"] = 1.0       # Default sleep time in s
@@ -96,7 +102,15 @@ if 1:   # Utility
         for o, a in optlist:
             if o[1] in "nqv":
                 d[o] = not d[o]
-            if o == "-s":
+            elif o == "-d":
+                try:
+                    d[o] = int(a)
+                    if not (1 <= d[o] <= 15):
+                        raise ValueError()
+                except ValueError:
+                    msg = "{o} option's argument must be an integer between 1 and 15"
+                    Error(msg)
+            elif o == "-s":
                 try:
                     d["-s"] = float(a)
                     if d["-s"] < 0:
@@ -104,7 +118,7 @@ if 1:   # Utility
                 except ValueError:
                     msg = "-s option's argument must be a number >= 0"
                     Error(msg)
-            if o == "-h":
+            elif o == "-h":
                 Usage(d, status=0)
         if not filename:
             # Construct a default mk file and see if it exists in the
@@ -144,6 +158,17 @@ if 1:   # Core functionality
             t /= 60
             s = "min"
         return "%.1f %s" % (t, s)
+    def Boundary(src, dest):
+        # Construct a boundary string with the elapsed time in it
+        b = g.boundary*W
+        # Get elapsed time
+        et = NiceET(g.sw())
+        half = W//2
+        middle = f" {NiceET(g.sw())} "
+        left = right = g.boundary*(half - len(middle)//2)
+        t.print(f"{t.boundary}{left + middle + right}")
+        if d["-v"]:
+            t.print(f"{t.bld}{src!r} is newer than {dest!r}")
     def Execute(cmd, d):
         '''cmd is of the form (src, dest, cmdlist) where src is the source
         file, dest is the destination file, and cmdlist is the set of
@@ -171,9 +196,7 @@ if 1:   # Core functionality
             if tm_src <= tm_dest:
                 return
         # Execute commands because source is newer than destination
-        print(g.boundary)
-        if d["-v"]:
-            t.print(f"{t.bld}{src!r} is newer than {dest!r} [{GetTime(d)}]")
+        Boundary(src, dest)
         for cmd in cmdlist:
             if d["-n"]:
                 t.print(f"{t.sky}Dry run:  {cmd!r} [{GetTime(d)}]")
@@ -187,6 +210,7 @@ if 1:   # Core functionality
 if __name__ == "__main__":
     d = {}  # Options dictionary
     d["start"] = time.time()
+    g.sw = Stopwatch()
     filename = ParseCommandLine(d)
     GetLines(filename, d)
     while True:

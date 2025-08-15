@@ -228,14 +228,14 @@ if 1:  # Classes
             sw.reset()  # Start the timer over again
         '''
         def __init__(self):
-            self.timer = Timer()
+            self._start = None
             self.reset()
         def __call__(self):
             "Returns the elapsed time in s as a flt"
-            return self.timer.et
+            return flt(time.time() - self._start)
         def reset(self):
             "Start the timer over; handy so an instance can be reused"
-            self.timer.start
+            self._start = time.time()
     class FNTime(object):
         def __init__(self):
             pass

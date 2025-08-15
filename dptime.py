@@ -75,12 +75,6 @@ if 1:  # Core functionality
                     return f"{y} {use}"
                 else:
                     return f"{y.engsi}{use}"
-if 1:
-    x = 13.4356789
-    for tm in (x*u("us"), x*u("ms"), x, 10*x, x*u("hr"), x*u("day"),
-               x*u("month"), x*u("yr"), 74.3*x*u("yr"), 100*x*u("yr"), 1e7*x*u("yr")):
-        print(f"{RoundOff(tm)!s:20s} {NiceET(flt(tm))}")
-    exit()
 
 if __name__ == "__main__":
     print(f"dpdate() returns:  {dpdate()!r}")
