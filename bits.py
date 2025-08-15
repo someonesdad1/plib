@@ -7,6 +7,7 @@ oo>
 <oo test run oo>
 <oo todo
 
+- See https://graphics.stanford.edu/%7Eseander/bithacks.html
 - Find the fixed integer implementation for hc and include it here
 - Move bitfield.py's classes into this file
 - bitarray ('pip install bitarray') is a similar tool and probably worth 
@@ -23,6 +24,13 @@ if 1:  # Header
     if 1:   # Standard imports
         pass
     if 1:   # Custom imports
+        have_bitarray = False
+        try:
+            from bitarray import bitarray
+            from bitarray.util import int2ba, ba2int
+            have_bitarray = True
+        except ImportError:
+            pass
         if 0:
             import debug
             debug.SetDebugger()
@@ -31,14 +39,15 @@ if 1:  # Header
 if 1:   # Functions
     def IntBitReverse(x):
         'Return the integer x with its bits reversed'
-        # Easy implementation for routine integers, but could be inefficient for large
-        # integers because it converts to a string representation.  This would be faster
-        # and more efficient using C, assuming the whole integer's bits are in
-        # contiguous memory.
         if not isinstance(x, int):
             raise TypeError("x must be an integer")
-        sign = "-" if x < 0 else ""
-        return int(f"{sign}0b" + ''.join(reversed(f"{abs(x):b}")), 2)
+        sign = -1 if x < 0 else 1
+        if have_bitarray:
+            a = int2ba(x)
+            a.reverse()
+            return sign*ba2int(a)
+        else:
+            return sign*int(f"0b" + ''.join(reversed(f"{abs(x):b}")), 2)
     def ByteReverseDict():
         '''Return a dictionary that reverses the bits in a byte.  Example:
             di = ByteReverseDict()
@@ -58,6 +67,13 @@ if 1:   # Functions
                 di[i] = f(i)
             ByteReverseDict.dict = di
         return ByteReverseDict.dict
+
+if 1:
+    d = ByteReverseDict()
+    for x in range(2, 256):
+        #print(x, IntBitReverse(x))
+        assert d[x] == IntBitReverse(x), f"{d[x]} {IntBitReverse(x)}"
+    exit()
 
 if __name__ == "__main__":
     from lwtest import run, Assert, raises

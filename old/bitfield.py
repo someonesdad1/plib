@@ -1,5 +1,13 @@
 '''
 
+14 Aug 2025 
+    - I downloaded bitarray (pip install bitarray) and `python -c 'import bitarray;
+      bitarray.test()'` passed.  It is implemented in C so it's fast and has much more
+      power and speed than the pure python bitfield.py stuff I've written.
+        - Author's webpage is http://ilan.schnell-web.net/ and email
+          ilanschnell@gmail.com.
+        - I think it obviates the work in this file, so I'm moving it to /plib/old.
+
 Todo
     - Keep the bitfield based on integers; though it's slow, it could work well for
       sparse bitfields and has the advantage that you can look at is an an integer.
@@ -54,7 +62,7 @@ if 1:   # Header
     if 1:   # Global variables
         ii = isinstance
         __all__ = ["sbitfield", "bitfield", "bbitfield"]
-if 0:   # Obsolete classes
+if 1:   # Obsolete classes
     class sbitfield(object):
         '''Lets you define arbitrary bit fields.   All bit fields can be initialized to all
         zeros or all ones.  If you choose to use a large bit field, the most time consuming
@@ -298,7 +306,7 @@ if 1:   # Classes
         For large bitfields, the display method of choice is probably the dump() method,
         as this uses /usr/bin/xxd to send a binary or hex dump to stdout and, if most
         bits are zero, this won't be a large listing because the -a option is used.
-
+        
         Timing 14 Aug 2025 on my 4 core Windows box new in 2016 under WSL using python
         3.11.5 to create a new bitfield:
             10**6 bits:  time = 0.0107 ms
@@ -314,7 +322,7 @@ if 1:   # Classes
             Set 10**8 bits:  time = 0.419 s
             Set 10**9 bits:  time = 3.98 s
             Set 10**10 bits:  time = 42.5 s
-
+        
         Times to set 1% of the bits:
             10**6 bits:  time = 0.00281 s to set 10**4 bits
             10**7 bits:  time = 0.0269 s to set 10**5 bits
@@ -324,7 +332,7 @@ if 1:   # Classes
         These times indicate that this data structure could be handy for sparse bit
         arrays.  An example would be a datafile contining 1e9 bits that would indicate
         the prime numbers:  if primes[n] is True, then n is a prime.
-
+        
         Properties
           n         Number of bits in the bitfield
           numbytes  Number of bytes in the bitfield
@@ -387,16 +395,6 @@ if 1:   # Classes
                 'Set all bits to the indicated value'
                 for i in range(len(self._bytes)):
                     self._bytes[i] = 0xff if value else 0
-            def num_set(self):
-                'Return the number of bits set'
-                count, di = 0, NumBitsInByte()
-                for i in self._bytes:
-                    count += di[i]
-                if self.excess:     # Correct for partial last byte
-                    b = self._bytes[-1]
-
-                return count
-
             def dump(self, binary=True):
                 '''Use /usr/bin/xxd to produce a dump to stdout (if binary is False, it
                 will be a hexdump).
@@ -476,7 +474,7 @@ if 1:   # Classes
                         return 1
                 return 0
 
-if 1: #xx
+if 0: #xx
     import timer
     tm = timer.Timer()
     # Measure time to set a string of bits that's 10% of size of bitfield

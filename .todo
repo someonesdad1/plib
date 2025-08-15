@@ -13,8 +13,11 @@
               compute things and store things in a bitarray.
         - See examples/gene.py for using bitarray to encode a gene
 
+    - intf.py
+        - Fixed size integer module
+        - Should it be derived from int?
+
     - bits.py
-        - Move bitfield.py to this file
         - Add functions that manipulate bits:
             - util:NumBitsInByte()
             - ReverseBitsInByte
