@@ -4,18 +4,13 @@ _pgminfo = '''
 oo>
 <oo cr Copyright © 2025 Don Peterson oo>
 <oo cat utility oo>
-<oo test run oo>
+<oo test -t oo>
 <oo todo
 
-- See https://graphics.stanford.edu/%7Eseander/bithacks.html
-- Find the fixed integer implementation for hc and include it here
-- Move bitfield.py's classes into this file
-- bitarray ('pip install bitarray') is a similar tool and probably worth 
-  looking at, as it's mature and implemented in C.  You can specify the endianness of
-  the representation, use sequence semantics (e.g. slice assignment and deletion), + and
-  * operators, 'in' operator, len(), and bitwise operations ~ & | ^ << >>.  It also has
-  frozenbitarray objects that are hashable.
-  https://github.com/ilanschnell/bitarray 
+- bitarray implementation of fixed-size integers for python
+    - Probably should derive from int
+    - Allow signed (default) or unsigned
+- See https://graphics.stanford.edu/%7Eseander/bithacks.html for ideas
 
 oo>
 '''
@@ -43,7 +38,7 @@ if 1:   # Functions
             raise TypeError("x must be an integer")
         sign = -1 if x < 0 else 1
         if have_bitarray:
-            a = int2ba(x)
+            a = int2ba(abs(x))
             a.reverse()
             return sign*ba2int(a)
         else:
@@ -67,30 +62,47 @@ if 1:   # Functions
                 di[i] = f(i)
             ByteReverseDict.dict = di
         return ByteReverseDict.dict
-
-if 1:
-    d = ByteReverseDict()
-    for x in range(2, 256):
-        #print(x, IntBitReverse(x))
-        assert d[x] == IntBitReverse(x), f"{d[x]} {IntBitReverse(x)}"
-    exit()
+if 1:   # Fixed-size integers
+    class intf(int):
+        def new(cls, value, numbits, unsigned=False):
+            self._x = bitarray(numbits)
+            self._u = bool(unsigned)
+            self._sign = -1 if value < 0 else 1
+            # Get our value
+            instance = super().__new__(cls, value)
 
 if __name__ == "__main__":
     from lwtest import run, Assert, raises
-    def Test_ReverseBitsInByte():
-        di = ByteReverseDict()
-        for i in range(256):
-            Assert(f"{i:08b}" == ''.join(reversed(f"{di[i]:08b}")))
-    def Test_IntBitReverse():
-        raises(TypeError, IntBitReverse, 1.2)
-        Assert(IntBitReverse(0b0) == 0b0)
-        Assert(IntBitReverse(0b1) == 0b1)
-        Assert(IntBitReverse(-0b1) == -0b1)
-        Assert(IntBitReverse(0b11000000) == 0b11)
-        Assert(IntBitReverse(-0b11000000) == -0b11)
-        # Test some bigger integers
-        for i in range(100):
-            x = int("0x1" + "0"*i, 16)
-            Assert(IntBitReverse(x) == 1)
-            Assert(IntBitReverse(-x) == -1)
-    exit(run(globals(), halt=True)[0])
+    from columnize import Columnize
+    from color import t
+    import sys
+    if 1:   # Self-tests
+        def Test_ReverseBitsInByte():
+            di = ByteReverseDict()
+            for i in range(256):
+                Assert(f"{i:08b}" == ''.join(reversed(f"{di[i]:08b}")))
+        def Test_IntBitReverse():
+            raises(TypeError, IntBitReverse, 1.2)
+            Assert(IntBitReverse(0b0) == 0b0)
+            Assert(IntBitReverse(0b1) == 0b1)
+            Assert(IntBitReverse(-0b1) == -0b1)
+            Assert(IntBitReverse(0b11000000) == 0b11)
+            Assert(IntBitReverse(-0b11000000) == -0b11)
+            # Test some bigger integers
+            for i in range(100):
+                x = int("0x1" + "0"*i, 16)
+                Assert(IntBitReverse(x) == 1)
+                Assert(IntBitReverse(-x) == -1)
+    def Demo():
+        t.print(f"{t.purl}Demo of some functions in {sys.argv[0]}")
+        o = []
+        for x in range(0, 49):
+            w = len(int2ba(x))
+            o.append(f"{x:3d} {x:0{w}b} {IntBitReverse(x):0{w}b}")
+        t.print(f"{t.ornl}Bit reversing")
+        for i in Columnize(o, indent=" "*2):
+            print(i)
+    if len(sys.argv) > 1 and sys.argv[1] == "-t":
+        exit(run(globals(), halt=True)[0])
+    Demo()
+    print("Use -t option to run self-tests")

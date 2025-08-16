@@ -98,16 +98,15 @@ if 1:  # Header
                 exit(run(globals(), halt=True)[0])
         
             run()
-                Finds test functions and execute them.  Its single argument
-                must be a dictionary containing the names and their
-                associated function objects.  Set verbose=True to see which
-                functions will be executed and their execution order.
+                Finds test functions and execute them.  Its single argument must be a
+                dictionary containing the names and their associated function objects.
+                Set verbose=True to see which functions will be executed and their
+                execution order.
         
             Assert() 
-                Works like python's assert statement, but can drop you into
-                the debugger if so instructed.  Type 'up' to go to the
-                failed Assert() line.  Since dropping into the debugger is
-                a common need, there are multiple ways:
+                Works like python's assert statement, but can drop you into the debugger
+                if so instructed.  Type 'up' to go to the failed Assert() line.  Since
+                dropping into the debugger is a common need, there are multiple ways:
  
                     - Set the debug keyword to True
                     - Include a command line argument
@@ -115,27 +114,26 @@ if 1:  # Header
                     - Set the environment variable 'Assert' to the nonempty
                       string
  
-                Note Assert() and assert_equal() do not pay attention to
-                __debug__, unlike python's assert statement.
+                Note Assert() and assert_equal() do not pay attention to __debug__,
+                unlike python's assert statement.
         
             ToDoMessage()
-                Causes a colored message to be printed to stdout to remind
-                you of something that needs to be done.
+                Causes a colored message to be printed to stdout to remind you of
+                something that needs to be done.
         
-            My motivation for generating this lightweight testrunner framework
-            was my frustration with the unittest module in conjunction with the
-            way I develop code.  I write my unit tests before or during code
-            development and often need to drop into the debugger or add a print
-            statement to see what's going wrong.  The unittest module traps
-            stdout and makes this painful to do.  I liked some of the available
-            testrunners like nose or pytest, but I decided that if I was going
-            to add a new dependency, it might as well be a dependency I could
-            tune to my own preferences.  The other major desire was to allow
-            fairly comprehensive coverage of comparing numerical results.
+            My motivation for generating this lightweight testrunner framework was my
+            frustration with the unittest module in conjunction with the way I develop
+            code.  I write my unit tests before or during code development and often
+            need to drop into the debugger or add a print statement to see what's going
+            wrong.  The unittest module traps stdout and makes this painful to do.  I
+            liked some of the available testrunners like nose or pytest, but I decided
+            that if I was going to add a new dependency, it might as well be a
+            dependency I could tune to my own preferences.  The other major desire was
+            to allow fairly comprehensive coverage of comparing numerical results.
         
-            This tool was derived from some nice code by Raymond Hettinger 8
-            May 2008: http://code.activestate.com/recipes/572194/.  I'm
-            grateful Raymond put it out there for other folks.
+            This tool was derived from some nice code by Raymond Hettinger 8 May 2008:
+            http://code.activestate.com/recipes/572194/.  I'm grateful Raymond put it
+            out there for other folks.
         ''')
     __all__ = [
         "Assert",

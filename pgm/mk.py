@@ -34,6 +34,8 @@ if 1:   # Header
         g = G()
         # Colors
         t.err = t.ornl  # Error messages
+        t.usage = t.purl
+        t.code = t.sky
         t.bld = t.grnl  # Print build message & why invokes
         t.nz = t.redl   # Nonzero status
         t.dry = t.sky   # Dry run
@@ -49,13 +51,13 @@ if 1:   # Utility
     def Usage(d, status=1):
         st = d["-s"]
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] [kfile]
+        {t.usage}Usage:  {sys.argv[0]} [options] [kfile]{t.n}
           Monitors the files given on the separate lines of the text file kfile and when the
           source file is newer than the destination file, a command is invoked with the
           indicated target.  The lines of kfile must be of the forms (blank lines ignored
           and {t.yel}note the commas{t.n})
-              # This is a comment
-              src, dest, cmd
+              {t.code}# This is a comment
+              src, dest, cmd{t.n}
           where src is the name of the source file, dest is the name of the destination
           file, and cmd is a command list to execute when src is newer than dest.  cmd can
           be a list of commands separated by ';' characters.
@@ -63,17 +65,17 @@ if 1:   # Utility
           If no kfile is given on the command line, the script's name has '.py' removed and
           '.mk' substituted; this file is looked for in the current directory and used if it
           is found.
-        Example
+        {t.usage}Example{t.n}
           Run a python script a.py when the script changes.  Put the following into a
           makefile:
-            all:
+            {t.code}all:
                 @touch makefile
-                python a.py
+                python a.py{t.n}
           Put the following into 'kfile'
-            a.py, makefile, make
+            {t.code}a.py, makefile, make{t.n}
           Then run 'python mk.py kfile'.  When a.py changes, the makefile will be run,
           causing the changed a.py script to run.
-        Options
+        {t.usage}Options{t.n}
           -d n  Number of digits for elapsed times [{d['-d']}]
           -h    Print this message
           -n    Dry run:  echo the commands that would be executed but don't

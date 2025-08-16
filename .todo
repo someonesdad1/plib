@@ -1,5 +1,11 @@
 /plib/.todo
 
+    - latin1
+        - Make this a script in ~/.0rc/bin that converts latin1 files to utf8.
+        - /usr/bin/iconv -f iso-8859-1 -t utf-8 "$@" does it once the file is renamed,
+          but it is streamed to stdout, so some checking has to be done.  Also use
+          /usr/bin/file to verify it's really latin1.
+
     - bitarray
         - Add programing details to my python helpfile
         - Note `from bitarray.util import gen_primes` generates primes using the Sieve

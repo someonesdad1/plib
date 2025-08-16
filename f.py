@@ -5,21 +5,23 @@ TODO
         - This also means removing the c attribute
     - Use fmt.py for formatting
     - cbrt, exp2 not in namespace
-    -flt
-        - rlz doesn't remove 0 for negative numbers
+    - i18n:  does the radix change depending on localization settings?  Should
+      transparently handle "," for locales that don't use the period.  On my system,
+      'locale -a' returns C C.utf8 POSIX, so testing may be problematic.
+    - rlz doesn't remove 0 for negative numbers
     - cpx:
-        - .t property:  tuple display.  z=cpx(1,1) --> "(1,1)".  Use wide
-      attribute .w for "(1, 1)".  .w also gets "1 + i" form.
+        - .t property:  tuple display.  z=cpx(1,1) --> "(1,1)".  Use wide attribute .w
+          for "(1, 1)".  .w also gets "1 + i" form.
         - .w property:  wide display
         - Special forms:  1+i, i, -i, etc.
         
 Module for calculations with real and complex numbers
 
-    The reals are of type flt (derived from float) and the complex numbers
-    are of type cpx (derived from complex).
+    The reals are of type flt (derived from float) and the complex numbers are of type
+    cpx (derived from complex).
     
-    Their primary feature is that you'll only see 3 digits when you print
-    them as a string:
+    Their primary feature is that you'll only see 3 digits when you print them as a
+    string:
     
         from f import flt, cpx, asin
         a = 1/3
@@ -42,38 +44,38 @@ Module for calculations with real and complex numbers
     Other flt/cpx features are
     
         - flt and cpx instances can contain arbitrary attributes
-        - They are immutable and hashable.  They hash to the same values as
-          their corresponding float and complex values.
-        - Equality comparisons can be made to a chosen number of digits.
-          This can be useful in decision-making contexts.
+        - They are immutable and hashable.  They hash to the same values as their
+          corresponding float and complex values.
+        - Equality comparisons can be made to a chosen number of digits.  This can be
+          useful in decision-making contexts with information that comes from physical
+          measurements.
           
-    The motivation for these types is doing calculations with numbers
-    derived from physical measurements; it's rare to need more than a few
-    digits in the results.  This module's string interpolations help you
-    see the basic behavior of a calculation without seeing lots of digits
-    that don't contain useful information.
+    The motivation for these types is doing calculations with numbers derived from
+    physical measurements because it's rare to need more than a few digits in the
+    displayed results.  This module's string interpolations help you see the basic
+    behavior of a calculation without seeing lots of digits that don't contain useful
+    information.
     
-    Behind the scenes the calculations are done with python's standard
-    floats and complex numbers, so the usual 16 or so digits are there if
-    you want them.  If you need calculation speed or minimum memory use,
-    stick with python floats and complex numbers, as this module is slower
-    and uses Decimal objects, which use substantially more memory.
+    Behind the scenes the calculations are done with python's standard floats and
+    complex numbers, so the usual 16 or so digits are there if you want them.  If you
+    need calculation speed or minimum memory use, stick with python floats and complex
+    numbers, as this module is slower and uses Decimal objects, which use substantially
+    more memory.
     
-    The flt and cpx types are convenient for casual computations in e.g.
-    the python REPL.
+    The flt and cpx types are convenient for casual computations in e.g. the python
+    REPL.
     
     - Interpolated digits
     
-        Set the flt or cpx N attribute to the number of digits you wish to
-        work with.  All instances then string interpolate to that number of
-        digits.  When you want an instance to have a different number of
-        digits, use the n attribute, which affects the instance only.  Set
-        the instance's n attribute to zero to get the default behavior
-        back.
+        Set the flt or cpx N attribute to the number of digits you wish to work with.
+        All instances then string interpolate to that number of digits.  When you want
+        an instance to have a different number of digits, use the n attribute, which
+        affects the instance only.  Set the instance's n attribute to zero to get the
+        default behavior back.
         
-        flt and cpx object are context managers, so you can change any
-        class or instance attributes in a context manager block, then get
-        back where you were after the block exits.
+        flt and cpx object are context managers, so you can change any class or instance
+        attributes in a context manager block, then get back where you were after the
+        block exits.
         
             z = cpx(3.45678, 8.76543)
             print(z)
@@ -92,64 +94,60 @@ Module for calculations with real and complex numbers
             9.42242∠68.4775°
             (3.46+8.77j)
             
-        A lock makes the context manager thread-safe, but can also cause
-        deadlocks, so only use short chunks of code in with blocks.
+        A lock makes the context manager thread-safe, but can also cause deadlocks, so
+        only use short chunks of code in with blocks.
         
-    - Closure
+    - Closure (in a set theory context, not a computer science content)
     
         By design, binary operations with flt and cpx instances will return
-        corresponding flt and cpx instances when used with other number
-        types.  This fits the use case for these objects, which was to be
-        used with numbers derived from physical measurements, letting you
-        only see the relevant information in a problem.
+        corresponding flt and cpx instances when used with other number types.  This
+        fits the use case for these objects, which was to be used with numbers derived
+        from physical measurements, letting you only see the relevant information in a
+        problem.
         
-        This behavior can give results you don't expect.  For example, a
-        flt instance multiplied by a Decimal or Fraction instance will
-        result in a flt instance.  Since Decimal and Fraction objects can
-        contain more information than a flt, this closure behavior can lose
-        information.
+        This behavior can give results you don't expect.  For example, a flt instance
+        multiplied by a Decimal or Fraction instance will result in a flt instance.
+        Since Decimal and Fraction objects can contain more information than a flt, this
+        closure behavior can lose information.
         
     - Attributes common to flt and cpx
-        - f:  The interactive python interpreter (REPL) and debugger use
-          repr() for the default string interpolation of values.  When
-          using these tools, set the flt or cpx instance's f attribute to
-          True.  This interchanges the output of the repr() and str() functions,
-          letting you see the limited digits string form in the interpreter and
-          debugger.
+        - f:  The interactive python interpreter (REPL) and debugger use repr() for the
+          default string interpolation of values.  When using these tools, set the flt
+          or cpx instance's f attribute to True.  This interchanges the output of the
+          repr() and str() functions, letting you see the limited digits string form in
+          the interpreter and debugger.
         - eng:  Returns the engineering interpolation of the number.
         - h:  Returns a help string useful in the debugger and python REPL.
         - r:  Returns repr() regardless of the f attribute.
         - s:  Returns str() regardless of the f attribute.
         - sci:  Returns the number in scientific notation.
-        - sigcomp:  Sets the number of digits to compare for equality.
-          Each value is rounded to this value before comparison.
-        - t:  Returns a date/time string.  While not a floating point
-          computation tool, I often use this during computations.
+        - sigcomp:  Sets the number of digits to compare for equality.  Each value is
+          rounded to this value before comparison.
+        - t:  Returns a date/time string.  While not a floating point computation tool,
+          I often use this during computations, particularly in a REPL.
         - rtz:  If True, remove trailing zeros in interpolated strings.
-        - rtdp:  If True, remove a trailing radix (decimal point) if it is
-          the last character in an interpolation.
-        - rlz:  If True, remove a leading zero.  Thus, if x = flt(1/4) and
-          x.rlz is True, then str(x) will be ".25".
-        - u:  Use Unicode characters in eng/sci string interpolation.  If
-          x = flt(1e5*pi), then x.eng is "3.14✕10⁵" if x.u is True.
+        - rtdp:  If True, remove a trailing radix (decimal point) if it is the last
+          character in an interpolation.
+        - rlz:  If True, remove a leading zero.  Thus, if x = flt(1/4) and x.rlz is
+          True, then str(x) will be ".25".
+        - u:  Use Unicode characters in eng/sci string interpolation.  If x =
+          flt(1e5*pi), then x.eng is "3.14✕10⁵" if x.u is True.
           
       - Attributes of cpx
-        - rad:  If True, use radians for angle in polar form, degrees if
-          False.
+        - rad:  If True, use radians for angle in polar form, degrees if False
         - real:  Real part
         - imag:  Imaginary part
         - i:  If True, use "a+bi" str() form
         - p:  If True, use polar form
         - nz:  If True, don't show zero components
         
-    - Factory behavior:  You can call a flt or cpx instance with an
-      argument suitable for their constructors and you'll get another
-      instance of that type.  If a flt has a nonzero n attribute, it is
-      copied into the new instance.
+    - Factory behavior:  You can call a flt or cpx instance with an argument suitable
+      for their constructors and you'll get another instance of that type.  If a flt has
+      a nonzero n attribute, it is copied into the new instance.
       
-    - Delegator:  A Delegator object ensures the proper math/cmath
-      functions are called.  Thus, you can call sin(0.1) and sin(0.1j) and
-      not get an exception.  Similarly, sqrt(2) and sqrt(-2) work.
+    - Delegator:  A Delegator object ensures the proper math/cmath functions are called.
+      Thus, you can call sin(0.1) and sin(0.1j) and not get an exception.  Similarly,
+      sqrt(2) and sqrt(-2) work.
       
 '''
 if 1:  # Header
