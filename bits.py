@@ -30,7 +30,7 @@ if 1:  # Header
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
-        pass
+        ii = isinstance
 if 1:   # Functions
     def IntBitReverse(x):
         'Return the integer x with its bits reversed'
@@ -63,13 +63,208 @@ if 1:   # Functions
             ByteReverseDict.dict = di
         return ByteReverseDict.dict
 if 1:   # Fixed-size integers
-    class intf(int):
-        def new(cls, value, numbits, unsigned=False):
+    class intf:
+
+        '''This class implements immutable fixed-size integers.  
+
+        Properties
+            - n     number of bits making up the integer; mutable
+            - u     Unsigned if true 
+
+        Features
+
+        - Implemented with bitarray, so fast and can have arbitrary size
+        - Immutable
+        - Closure:  inst1 and inst2 combined via a binary operature will return another 
+          intf; result.n = max(isnt1.n, inst2.n)
+            - Otherwise, in an operation with another numeric type, the instance is
+              converted to and int and the operation proceeds
+        - Arithmetic is 2's complement
+
+        Their primary use case is to simulate n-bit integer functionality.  If a binary
+        operation is performed with two intf objects, a bitf instance will be returned
+        with the number of bits of the largest number of bits of the two operands.
+
+        Operations can be performed with other numerical objects, but the same intf
+        instance type will be returned, regardless of the numerical type of the other
+        operand.  Thus, a regular python integer or float can be added to an intf
+        instance, but the integer or float will first be converted to the same type of
+        intf object; thus, an intf object is returned.
+
+        Integer methods (from int(0).__dir__(); the ones that should be implemented are
+        the ones detailed in `pd int`)
+
+            Should implement
+
+            Don't need to implement
+
+                __class__
+                __getattribute__
+                __getnewargs__
+                __getstate__
+                __init__
+                __init_subclass__
+                __new__
+                __reduce__
+                __reduce_ex__
+                __setattr__
+                __subclasshook__
+
+        '''
+        def __init__(self, value, numbits=32, unsigned=False):
+            if not ii(numbits, int):
+                raise TypeError("numbits must be an integer")
+            if numbits < 1:
+                raise ValueError("numbits must be > 0")
+            try:
+                val = int(value)
+            except Exception:
+                raise TypeError("value must be an object that can be converted to an integer")
+            # Mask off val to numbits
             self._x = bitarray(numbits)
             self._u = bool(unsigned)
             self._sign = -1 if value < 0 else 1
-            # Get our value
-            instance = super().__new__(cls, value)
+        if 1:   # Methods
+            def __abs__(self):
+                pass
+            def __add__(self, value):
+                pass
+            def __and__(self, value):
+                pass
+            def __bool__(self):
+                pass
+            def __ceil__(self):
+                pass
+            def __del__(self):
+                pass
+            def __dir__(self):
+                pass
+            def __divmod__(self, value):
+                pass
+            def __eq__(self, value):
+                pass
+            def __float__(self):
+                pass
+            def __floor__(self):
+                pass
+            def __floordiv__(self, value):
+                pass
+            def __ge__(self, value):
+                pass
+            def __gt__(self, value):
+                pass
+            def __hash__(self):
+                pass
+            def __index__(self):
+                pass
+            def __int__(self):
+                pass
+            def __invert__(self):
+                pass
+            def __le__(self, value):
+                pass
+            def __lshift__(self, value):
+                pass
+            def __lt__(self, value):
+                pass
+            def __mod__(self, value):
+                pass
+            def __mul__(self, value):
+                pass
+            def __ne__(self, value):
+                pass
+            def __neg__(self):
+                pass
+            def __or__(self, value):
+                pass
+            def __pos__(self):
+                pass
+            def __pow__(self, value, mod=None):
+                pass
+            def __radd__(self, value):
+                pass
+            def __rand__(self, value):
+                pass
+            def __rdivmod__(self, value):
+                pass
+            def __rfloordiv__(self, value):
+                pass
+            def __rlshift__(self, value):
+                pass
+            def __rmod__(self, value):
+                pass
+            def __rmul__(self, value):
+                pass
+            def __ror__(self, value):
+                pass
+            def __round__(self):
+                pass
+            def __rpow__(self, value, mod=None):
+                pass
+            def __rrshift__(self, value):
+                pass
+            def __rshift__(self, value):
+                pass
+            def __rsub__(self, value):
+                pass
+            def __rtruediv__(self, value):
+                pass
+            def __rxor__(self, value):
+                pass
+            def __sizeof__(self):
+                pass
+            def __sub__(self, value):
+                pass
+            def __truediv__(self, value):
+                pass
+            def __trunc__(self):
+                pass
+            def __xor__(self, value):
+                pass
+            def as_integer_ratio(self):
+                pass
+            def bit_count(self):
+                pass
+            def bit_length(self):
+                pass
+            def conjugate(self):
+                pass
+            def denominator(self):
+                pass
+            def imag(self):
+                pass
+            def numerator(self):
+                pass
+            def real(self):
+                pass
+        if 1:   # String, bytes & interpolation methods
+            def __doc__(self):
+                pass
+            def __format__(self, format_spec):
+                pass
+            def __repr__(self):
+                pass
+            def __str__(self):
+                pass
+            def from_bytes(self, bytes, byteorder='big', signed=False):
+                pass
+            def to_bytes(self, length=1, byteorder='big', signed=False):
+                pass
+        if 1:   # Properties
+            pass
+        if 1:   # Notes on two's complement
+            '''
+            
+            [1] https://en.wikipedia.org/wiki/Two%27s_complement
+            [2] https://crystal.uta.edu/~carroll/cse2441/uploads/52503FE6-36D0-C662-55FF-CD571EA08D09_.pdf
+            [3] https://www.electronicsmedia.info/2024/02/10/twos-complement/
+
+            '''
+
+    if 1: #xx
+        x = intf(12, 8)
+        print(x)
+        exit()
 
 if __name__ == "__main__":
     from lwtest import run, Assert, raises
