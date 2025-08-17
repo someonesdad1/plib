@@ -76,11 +76,6 @@ def GetXMLFileName(version):
     t.print(f"{t.redl}{str(version)!r} not found in XML file names")
     exit(1)
 
-if 0: #xx
-    for i in range(11, 17):
-        print(GetXMLFileName(i))
-    exit() #xx
-
 def GetVersion():
     '''Get which XML file to build the pickled data file.  From what I've read, you can
     use versions of the UCD that are later than that which python uses, but not earlier
@@ -292,7 +287,7 @@ else:
     def GetPickleFileName(version):
         'Return the pickle file name to open for the given integer version'
         s, x = "ucd.", ".pickle"
-        return f"lib/ucd/ucd.{version}.pickle"
+        return f"/plib/lib/ucd/ucd.{version}.pickle"
     # Loaded as module:  load the ucd dictionary
     version = int(unicodedata.unidata_version.split(".")[0])
     pickle_file = GetPickleFileName(version)

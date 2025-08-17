@@ -63,6 +63,18 @@ if 1:   # Functions
             ByteReverseDict.dict = di
         return ByteReverseDict.dict
 if 1:   # Fixed-size integers
+    class lbitarray(bitarray):
+        '''bitarray that has string interpolation with the least significant bit on the
+        right.
+        '''
+        def __new__(cls, ba):
+            c = ba.copy()
+            c.reverse()
+            instance = super().__new__(cls, c)
+            return instance
+        def __repr__(self):
+            s = super().__repr__()
+            return s.replace("'", "'0b", 1)
     class intf:
 
         '''This class implements immutable fixed-size integers.  
@@ -124,7 +136,7 @@ if 1:   # Fixed-size integers
             constructor allows.
 
         '''
-        def __init__(self, value, numbits=32, unsigned=False, strict=False):
+        def __init__(self, value, numbits=32, unsigned=False):
             if not ii(numbits, int):
                 raise TypeError("numbits must be an integer")
             if numbits < 1:
@@ -288,7 +300,9 @@ if 1:   # Fixed-size integers
             '''
 
 if 1: #xx
-    x = intf(12, 13, strict=1)
+    x = intf(12)
+    print(x)
+    x = intf(12, 8)
     print(x)
     exit()
 
