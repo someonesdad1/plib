@@ -17,7 +17,7 @@ oo>
  
 if 1:  # Header
     if 1:   # Standard imports
-        pass
+        import logging
     if 1:   # Custom imports
         have_bitarray = False
         try:
@@ -91,39 +91,59 @@ if 1:   # Fixed-size integers
         instance, but the integer or float will first be converted to the same type of
         intf object; thus, an intf object is returned.
 
-        Integer methods (from int(0).__dir__(); the ones that should be implemented are
-        the ones detailed in `pd int`)
+        Here's some code that can get around a feature of bitarray that causes their
+        string interpolation to result in the usual binary representation of numbers,
+        something that would be desirable for this intf class:
 
-            Should implement
+            The new class only needs to change the repr() method.
 
-            Don't need to implement
+                from bitarray import bitarray
+                from bitarray.util import int2ba
+                class lbitarray(bitarray):
+                    def __new__(cls, ba):
+                        c = ba.copy()
+                        c.reverse()
+                        instance = super().__new__(cls, c)
+                        return instance
+                    def __repr__(self):
+                        s = super().__repr__()
+                        return ("l" + s).replace("'", "'0b", 1)
+                a = int2ba(13)
+                b = lbitarray(a)
+                print(f"int2ba(13) --> {a}")
+                print(f"lint2ba(13) --> {b}")
+                print(f"repr(lint2ba(13)) --> {repr(b)}")
 
-                __class__
-                __getattribute__
-                __getnewargs__
-                __getstate__
-                __init__
-                __init_subclass__
-                __new__
-                __reduce__
-                __reduce_ex__
-                __setattr__
-                __subclasshook__
+            This outputs
+                int2ba(13) --> bitarray('1101')
+                lint2ba(13) --> lbitarray('0b1011')
+                repr(lint2ba(13)) --> lbitarray('0b1011')
+
+            This would be easy to modify to get 0b, 0o, 0d, and 0x outputs for the
+            strings.  In fact, the more general case is to allow any base that the int
+            constructor allows.
 
         '''
-        def __init__(self, value, numbits=32, unsigned=False):
+        def __init__(self, value, numbits=32, unsigned=False, strict=False):
             if not ii(numbits, int):
                 raise TypeError("numbits must be an integer")
             if numbits < 1:
                 raise ValueError("numbits must be > 0")
+            self._numbits = numbits
             try:
                 val = int(value)
             except Exception:
                 raise TypeError("value must be an object that can be converted to an integer")
+            base = 2**(numbits - 1)
+            if not (-base <= value <= base - 1):
+                logging.warn(f"intf:  value outside {numbits} bits range")
+            self._signed = not bool(unsigned)
             # Mask off val to numbits
-            self._x = bitarray(numbits)
-            self._u = bool(unsigned)
-            self._sign = -1 if value < 0 else 1
+            self._x = int2ba(val)
+            if len(self._x) < numbits:
+                self._x += bitarray(0)*(numbits - len(self._x))
+            elif len(self._x) > numbits:
+                self._x = self._x[0:numbits]
         if 1:   # Methods
             def __abs__(self):
                 pass
@@ -245,26 +265,32 @@ if 1:   # Fixed-size integers
             def __repr__(self):
                 pass
             def __str__(self):
-                pass
+                s =  str(self._x)[11:-2]
+                if self._signed:
+                    return f"intf{self.n}(0b{s})"
+                else:
+                    return f"intu{self.n}(0b{s})"
             def from_bytes(self, bytes, byteorder='big', signed=False):
                 pass
             def to_bytes(self, length=1, byteorder='big', signed=False):
                 pass
         if 1:   # Properties
-            pass
+            @property
+            def n(self):
+                return self._numbits
         if 1:   # Notes on two's complement
             '''
             
             [1] https://en.wikipedia.org/wiki/Two%27s_complement
             [2] https://crystal.uta.edu/~carroll/cse2441/uploads/52503FE6-36D0-C662-55FF-CD571EA08D09_.pdf
             [3] https://www.electronicsmedia.info/2024/02/10/twos-complement/
-
+            
             '''
 
-    if 1: #xx
-        x = intf(12, 8)
-        print(x)
-        exit()
+if 1: #xx
+    x = intf(12, 13, strict=1)
+    print(x)
+    exit()
 
 if __name__ == "__main__":
     from lwtest import run, Assert, raises
