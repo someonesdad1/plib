@@ -8,6 +8,8 @@ This repository is a collection of python stuff I've written since 1998.
 * `plib/pgm` holds scripts that are separate programs
 * `plib/tests` holds test scripts for modules that don't have their tests built in
 * `plib/g` holds a python graphics library that outputs PostScript
+* `plib/doc` holds things related to documentation
+* `plib/lib` holds things that support a few of the modules in `plib`
 
 Click on the following links to get more information:
 
@@ -29,6 +31,18 @@ Click on the following links to get more information:
     * Remove specialized modules that are better stored elsewhere
     * 0what.py returns useful output for all modules
     * Fix old color.py dependencies (kolor.py) in /plib/pgm
+
+### Formatting
+
+I used the black formatter to try out and was pleased with its speed.  When I worked on
+large projects in industry, I appreciated the attempt to standardize source code
+formatting (and saw otherwise intelligent people almost get into fistfights over
+something as trivial as tabs versus spaces for indentation).  I eventually figured out I
+didn't care for its output for my own projects.  Alas, one day I accidentally did
+something like `black *.py` and it recursively formatted all my python scripts.  Not
+tragic, but also not how I like to see my files.  If you see a script with no blank
+lines between functions/classes and ''' for the multiline strings, this is my preferred
+formatting.
 
 ## Caution
 

@@ -63,10 +63,9 @@ if 1:   # Functions
             ByteReverseDict.dict = di
         return ByteReverseDict.dict
     def IntToBase(n, b, msd_first=True):
-        '''Convert positive integer n to any integer base b > 1.  Return a
-        tuple of integers with the most significant digit at the 0th
-        position in the list if msd_first is True; otherwise, the most significant digit
-        is last in the list.
+        '''Convert positive integer n to any integer base b > 1.  Return a tuple of
+        integers with the most significant digit at the 0th position in the list if
+        msd_first is True; otherwise, the most significant digit is last in the list.
         
         Examples:
             IntToBase(10017, 82) --> (1, 40, 13)
@@ -118,16 +117,15 @@ if 1:   # Classes
                 self._base = value
 if 1:   # Fixed-size integers
     class Int:
-
         '''This class implements immutable fixed-size integers.  You supply the number
         of bits to the constructor and this defines the maximum size of the integer.
         The integer can be signed or unsigned.
-
+        
         Properties
             - nbits         Number of bits making up the integer
             - unsigned      Unsigned if True 
             - base          2-36 for string interpolation
-
+        
         Int's use case is to simulate n-bit integer functionality.  If a binary
         operation is performed with two Int objects, an Int instance will be returned
         with the number of bits of the largest number of bits of the two operands.
@@ -300,7 +298,7 @@ if 1:   # Fixed-size integers
             
             '''
 
-if 0: #xx
+if 1: #xx
     x = Int(12)
     print(x)
     x = Int(12, 8)
