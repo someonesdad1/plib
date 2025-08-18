@@ -7,7 +7,7 @@ oo>
 <oo test -t oo>
 <oo todo
 
-- bitarray implementation of fixed-size integers for python
+- Fixed-size integers for python
     - Probably should derive from int
     - Allow signed (default) or unsigned
 - See https://graphics.stanford.edu/%7Eseander/bithacks.html for ideas
@@ -62,78 +62,75 @@ if 1:   # Functions
                 di[i] = f(i)
             ByteReverseDict.dict = di
         return ByteReverseDict.dict
-if 1:   # Fixed-size integers
-    class lbitarray(bitarray):
+    def IntToBase(n, b, msd_first=True):
+        '''Convert positive integer n to any integer base b > 1.  Return a
+        tuple of integers with the most significant digit at the 0th
+        position in the list if msd_first is True; otherwise, the most significant digit
+        is last in the list.
+        
+        Examples:
+            IntToBase(10017, 82) --> (1, 40, 13)
+                Check:  13*82**0 + 40*82**1 + 1*82**2 = 10017
+            IntToBase(10017, 82, msd_first=False) --> (1, 40, 13)
+        
+        For string interpolation of these returned tuples of integers, the basencode
+        module can be used (https://github.com/prawnydagrate/basencode).
+        
+        Adapted from highest score answer to 
+        https://stackoverflow.com/questions/2267362/how-to-convert-an-integer-to-a-string-in-any-base/74324587#74324587
+        '''
+        if not isinstance(n, int) or not isinstance(b, int):
+            raise TypeError("n and b must be integers")
+        if b < 2:
+            raise ValueError("b must be > 1")
+        if n == 0:
+            return (0,)
+        digits = []
+        while n:
+            digits.append(n % b)
+            n //= b
+        return tuple(digits[::-1]) if msd_first else tuple(digits)
+if 1:   # Classes
+    class rbitarray(bitarray):
         '''bitarray that has string interpolation with the least significant bit on the
-        right.
+        right and you can choose the base to display in.
         '''
         def __new__(cls, ba):
             c = ba.copy()
             c.reverse()
             instance = super().__new__(cls, c)
+            instance._base = 2
             return instance
         def __repr__(self):
             s = super().__repr__()
             return s.replace("'", "'0b", 1)
-    class intf:
+        if 1:   # Properties
+            @property
+            def base(self):
+                'Return the base the integer is displayed in'
+                return self._base
+            @base.setter
+            def base(self, value):
+                if not ii(value, int):
+                    raise TypeError("value must be an int > 0")
+                if value < 1:
+                    raise ValueeError("value must be > 0")
+                self._base = value
+if 1:   # Fixed-size integers
+    class Int:
 
-        '''This class implements immutable fixed-size integers.  
+        '''This class implements immutable fixed-size integers.  You supply the number
+        of bits to the constructor and this defines the maximum size of the integer.
+        The integer can be signed or unsigned.
 
         Properties
-            - n     number of bits making up the integer; mutable
-            - u     Unsigned if true 
+            - nbits         Number of bits making up the integer
+            - unsigned      Unsigned if True 
+            - base          2-36 for string interpolation
 
-        Features
-
-        - Implemented with bitarray, so fast and can have arbitrary size
-        - Immutable
-        - Closure:  inst1 and inst2 combined via a binary operature will return another 
-          intf; result.n = max(isnt1.n, inst2.n)
-            - Otherwise, in an operation with another numeric type, the instance is
-              converted to and int and the operation proceeds
-        - Arithmetic is 2's complement
-
-        Their primary use case is to simulate n-bit integer functionality.  If a binary
-        operation is performed with two intf objects, a bitf instance will be returned
+        Int's use case is to simulate n-bit integer functionality.  If a binary
+        operation is performed with two Int objects, an Int instance will be returned
         with the number of bits of the largest number of bits of the two operands.
-
-        Operations can be performed with other numerical objects, but the same intf
-        instance type will be returned, regardless of the numerical type of the other
-        operand.  Thus, a regular python integer or float can be added to an intf
-        instance, but the integer or float will first be converted to the same type of
-        intf object; thus, an intf object is returned.
-
-        Here's some code that can get around a feature of bitarray that causes their
-        string interpolation to result in the usual binary representation of numbers,
-        something that would be desirable for this intf class:
-
-            The new class only needs to change the repr() method.
-
-                from bitarray import bitarray
-                from bitarray.util import int2ba
-                class lbitarray(bitarray):
-                    def __new__(cls, ba):
-                        c = ba.copy()
-                        c.reverse()
-                        instance = super().__new__(cls, c)
-                        return instance
-                    def __repr__(self):
-                        s = super().__repr__()
-                        return ("l" + s).replace("'", "'0b", 1)
-                a = int2ba(13)
-                b = lbitarray(a)
-                print(f"int2ba(13) --> {a}")
-                print(f"lint2ba(13) --> {b}")
-                print(f"repr(lint2ba(13)) --> {repr(b)}")
-
-            This outputs
-                int2ba(13) --> bitarray('1101')
-                lint2ba(13) --> lbitarray('0b1011')
-                repr(lint2ba(13)) --> lbitarray('0b1011')
-
-            This would be easy to modify to get 0b, 0o, 0d, and 0x outputs for the
-            strings.  In fact, the more general case is to allow any base that the int
-            constructor allows.
 
         '''
         def __init__(self, value, numbits=32, unsigned=False):
@@ -141,21 +138,25 @@ if 1:   # Fixed-size integers
                 raise TypeError("numbits must be an integer")
             if numbits < 1:
                 raise ValueError("numbits must be > 0")
-            self._numbits = numbits
             try:
                 val = int(value)
             except Exception:
                 raise TypeError("value must be an object that can be converted to an integer")
-            base = 2**(numbits - 1)
-            if not (-base <= value <= base - 1):
-                logging.warn(f"intf:  value outside {numbits} bits range")
-            self._signed = not bool(unsigned)
-            # Mask off val to numbits
-            self._x = int2ba(val)
-            if len(self._x) < numbits:
-                self._x += bitarray(0)*(numbits - len(self._x))
-            elif len(self._x) > numbits:
-                self._x = self._x[0:numbits]
+            if 1:   # Set attributes
+                self._nbits = n = numbits
+                self._unsigned = bool(unsigned)
+                self._base = 2**n if self._unsigned else 2**(n - 1)
+                self._sign = 1
+                if not self._unsigned and val < 0:
+                    self._sign = -1
+                val = abs(val)
+            if 1:   # Truncate val if necessary
+                if not (-self._base <= val <= self._base - 1):
+                    logging.warn(f"Int:  truncated because value outside {numbits} bits range")
+                    val &= self._base
+            if 1:   # Set the Int's value
+                self._value = val
+                
         if 1:   # Methods
             def __abs__(self):
                 pass
@@ -279,7 +280,7 @@ if 1:   # Fixed-size integers
             def __str__(self):
                 s =  str(self._x)[11:-2]
                 if self._signed:
-                    return f"intf{self.n}(0b{s})"
+                    return f"Int{self.n}(0b{s})"
                 else:
                     return f"intu{self.n}(0b{s})"
             def from_bytes(self, bytes, byteorder='big', signed=False):
@@ -299,10 +300,10 @@ if 1:   # Fixed-size integers
             
             '''
 
-if 1: #xx
-    x = intf(12)
+if 0: #xx
+    x = Int(12)
     print(x)
-    x = intf(12, 8)
+    x = Int(12, 8)
     print(x)
     exit()
 
@@ -312,7 +313,17 @@ if __name__ == "__main__":
     from color import t
     import sys
     if 1:   # Self-tests
-        def Test_ReverseBitsInByte():
+        def Test_IntToBase():
+            raises(TypeError, IntToBase, 1.2, 2)
+            raises(TypeError, IntToBase, 2, 1.2)
+            raises(ValueError, IntToBase, 2, 1)
+            Assert(IntToBase(0, 2) == (0,))
+            Assert(IntToBase(1, 2) == (1,))
+            Assert(IntToBase(2, 2) == (1, 0))
+            Assert(IntToBase(2, 2, msd_first=False) == (0, 1))
+            Assert(IntToBase(10017, 82) == (1, 40, 13))
+            Assert(IntToBase(10017, 82, msd_first=False) == (13, 40, 1))
+        def Test_ByteReverseDict():
             di = ByteReverseDict()
             for i in range(256):
                 Assert(f"{i:08b}" == ''.join(reversed(f"{di[i]:08b}")))
@@ -328,15 +339,16 @@ if __name__ == "__main__":
                 x = int("0x1" + "0"*i, 16)
                 Assert(IntBitReverse(x) == 1)
                 Assert(IntBitReverse(-x) == -1)
-    def Demo():
-        t.print(f"{t.purl}Demo of some functions in {sys.argv[0]}")
-        o = []
-        for x in range(0, 49):
-            w = len(int2ba(x))
-            o.append(f"{x:3d} {x:0{w}b} {IntBitReverse(x):0{w}b}")
-        t.print(f"{t.ornl}Bit reversing")
-        for i in Columnize(o, indent=" "*2):
-            print(i)
+    if 1:   # Demo
+        def Demo():
+            t.print(f"{t.purl}Demo of some functions in {sys.argv[0]}")
+            o = []
+            for x in range(0, 49):
+                w = len(int2ba(x))
+                o.append(f"{x:3d} {x:0{w}b} {IntBitReverse(x):0{w}b}")
+            t.print(f"{t.ornl}Bit reversing")
+            for i in Columnize(o, indent=" "*2):
+                print(i)
     if len(sys.argv) > 1 and sys.argv[1] == "-t":
         exit(run(globals(), halt=True)[0])
     Demo()
