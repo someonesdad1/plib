@@ -1,11 +1,10 @@
-"""
+'''
 TODO:
     - Use Unicode for fractions
     - Use flt for floating point ease
-
+    
 Generates sequences of numbers
-"""
-
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -26,24 +25,21 @@ if 1:  # Header
         import getopt
         from string import ascii_letters, digits, punctuation
         from fractions import Fraction
-
-        # from math import *
+        from math import *
         from pdb import set_trace as xx
     if 1:  # Custom imports
         from wrap import dedent
         from frange import frange, Rational as R
-        from f import *
+        from f import flt
         from sig import sig
         from columnize import Columnize
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(d, status=1):
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options] n [m [inc]]
           Generate an arithmetical progression from n to m in steps of inc.  If only n is given,
           the sequence goes from 1 to int(n).  inc defaults to 1.  The arguments n, m, and inc can
@@ -69,10 +65,9 @@ if 1:  # Utility
                 are in scope.  Unless the result of an expression is an
                 integer, the results will be floating point (i.e., fractions
                 will be evaluated away).
-        """)
+        ''')
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-0"] = False  # 0-based sequences
         d["-b"] = 10  # Output base
@@ -123,18 +118,15 @@ if 1:  # Utility
         if not d["-t"] and len(args) not in range(1, 4):
             Usage(d)
         return args
-
-
 if 1:  # Core functionality
-
     def int2base(x, base):
-        """Converts the integer x to a string representation in a given
+        '''Converts the integer x to a string representation in a given
         base.  base may be from 2 to 94.
-
+        
         Method by Alex Martelli
         http://stackoverflow.com/questions/2267362/convert-integer-to-a-string-in-a-given-numeric-base-in-python
         Modified slightly by DP.
-        """
+        '''
         if not (2 <= base <= len(int2base.digits)):
             msg = "base must be between 2 and %d inclusive" % len(int2base.digits)
             raise ValueError(msg)
@@ -155,17 +147,13 @@ if 1:  # Core functionality
             answer.append("-")
         answer.reverse()
         return "".join(answer)
-
     int2base.digits = digits + ascii_letters + punctuation
-
     def GetParameters(args, d):
-        """Return n, m, inc as strings, suitably processed as
+        '''Return n, m, inc as strings, suitably processed as
         expressions if the -x option was used.
-        """
-
+        '''
         def f(x):
             return repr(eval(x, globals())) if d["-x"] else x
-
         if len(args) == 1:
             n, m, inc = "0" if d["-0"] else "1", f(args[0]), "1"
         elif len(args) == 2:
@@ -173,13 +161,10 @@ if 1:  # Core functionality
         else:
             n, m, inc = [f(i) for i in args]
         return (n, m, inc)
-
     def ShowExamples(d):
         "Print some examples"
-
         def P(seq):
             print(" ".join(seq))
-
         # dd will be a copy of d but with -e set to True
         dd = d.copy()
         dd["-e"] = True
@@ -228,34 +213,27 @@ if 1:  # Core functionality
         print(f % "'-p abc -s .png  1 4'  ", end="")
         P(Integers(1, 4, 1, d))
         exit(0)
-
     def IsFloatingPointString(s):
         return s.find(".") != -1 or s.lower().find("e") != -1
-
     def IsFractionString(s):
         return s.find("/") != -1
-
     def Fractions(n, m, inc, d):
         o = []
         for i in frange(n, m, inc, impl=R, return_type=R, include_end=d["-e"]):
             o.append(d["-p"] + str(i) + d["-s"])
         return o
-
     def FloatingPoint(n, m, inc, d):
         o = []
         for i in frange(n, m, inc, return_type=flt, include_end=d["-e"]):
             if i <= float(m):
                 o.append(d["-p"] + str(i) + d["-s"])
         return o
-
     def Integers(n, m, inc, d):
         o = []
         for i in frange(n, m, inc, return_type=int, include_end=d["-e"]):
             s = int2base(i, d["-b"]) if d["-b"] else str(i)
             o.append(d["-p"] + s + d["-s"])
         return o
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

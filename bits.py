@@ -26,6 +26,12 @@ if 1:  # Header
             have_bitarray = True
         except ImportError:
             pass
+        have_basencode = False
+        try:
+            from basencode import Number
+            have_basencode = True
+        except ImportError:
+            pass
         if 0:
             import debug
             debug.SetDebugger()
@@ -89,32 +95,36 @@ if 1:   # Functions
             digits.append(n % b)
             n //= b
         return tuple(digits[::-1]) if msd_first else tuple(digits)
-if 1:   # Classes
-    class rbitarray(bitarray):
-        '''bitarray that has string interpolation with the least significant bit on the
-        right and you can choose the base to display in.
+    def rBitarray(ba, base=2):
+        '''Display a bitarray with the least significant bit on the right in base.
+        Example:
+            ba = int2ba(70)
+            for b in range(2, 21):
+                print(b, rBitarray(ba, b))
+          produces
+            2 rbitarray«2»('1000110')
+            3 rbitarray«3»('2121')
+            4 rbitarray«4»('1012')
+            5 rbitarray«5»('240')
+            6 rbitarray«6»('154')
+            7 rbitarray«7»('130')
+            8 rbitarray«8»('106')
+            9 rbitarray«9»('77')
+            10 rbitarray«10»('70')
+            11 rbitarray«11»('64')
+            12 rbitarray«12»('5a')
+            13 rbitarray«13»('55')
+            14 rbitarray«14»('50')
+            15 rbitarray«15»('4a')
+            16 rbitarray«16»('46')
+            17 rbitarray«17»('42')
+            18 rbitarray«18»('3g')
+            19 rbitarray«19»('3d')
+            20 rbitarray«20»('3a')
         '''
-        def __new__(cls, ba):
-            c = ba.copy()
-            c.reverse()
-            instance = super().__new__(cls, c)
-            instance._base = 2
-            return instance
-        def __repr__(self):
-            s = super().__repr__()
-            return s.replace("'", "'0b", 1)
-        if 1:   # Properties
-            @property
-            def base(self):
-                'Return the base the integer is displayed in'
-                return self._base
-            @base.setter
-            def base(self, value):
-                if not ii(value, int):
-                    raise TypeError("value must be an int > 0")
-                if value < 1:
-                    raise ValueeError("value must be > 0")
-                self._base = value
+        i = Number(ba2int(ba))
+        s = i.repr_in_base(base)
+        return f"rbitarray«{base}»('{i.repr_in_base(base)}')"
 if 1:   # Fixed-size integers
     class Int:
         '''This class implements immutable fixed-size integers.  You supply the number
