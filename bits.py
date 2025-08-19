@@ -8,8 +8,6 @@ oo>
 <oo todo
 
 - Fixed-size integers for python
-    - Probably should derive from int
-    - Allow signed (default) or unsigned
 - See https://graphics.stanford.edu/%7Eseander/bithacks.html for ideas
 
 oo>
@@ -28,7 +26,7 @@ if 1:  # Header
             pass
         have_basencode = False
         try:
-            from basencode import Number
+            import basencode
             have_basencode = True
         except ImportError:
             pass
@@ -76,7 +74,7 @@ if 1:   # Functions
         Examples:
             IntToBase(10017, 82) --> (1, 40, 13)
                 Check:  13*82**0 + 40*82**1 + 1*82**2 = 10017
-            IntToBase(10017, 82, msd_first=False) --> (1, 40, 13)
+            IntToBase(10017, 82, msd_first=False) --> (13, 40, 1)
         
         For string interpolation of these returned tuples of integers, the basencode
         module can be used (https://github.com/prawnydagrate/basencode).
@@ -99,33 +97,21 @@ if 1:   # Functions
         '''Display a bitarray with the least significant bit on the right in base.
         Example:
             ba = int2ba(70)
-            for b in range(2, 21):
+            for b in (2, 5, 7, 8, 11, 16, 49):
                 print(b, rBitarray(ba, b))
           produces
-            2 rbitarray«2»('1000110')
-            3 rbitarray«3»('2121')
-            4 rbitarray«4»('1012')
-            5 rbitarray«5»('240')
-            6 rbitarray«6»('154')
-            7 rbitarray«7»('130')
-            8 rbitarray«8»('106')
-            9 rbitarray«9»('77')
-            10 rbitarray«10»('70')
-            11 rbitarray«11»('64')
-            12 rbitarray«12»('5a')
-            13 rbitarray«13»('55')
-            14 rbitarray«14»('50')
-            15 rbitarray«15»('4a')
-            16 rbitarray«16»('46')
-            17 rbitarray«17»('42')
-            18 rbitarray«18»('3g')
-            19 rbitarray«19»('3d')
-            20 rbitarray«20»('3a')
+            2 rBitarray«2»('1000110')
+            5 rBitarray«5»('240')
+            7 rBitarray«7»('130')
+            8 rBitarray«8»('106')
+            11 rBitarray«11»('64')
+            16 rBitarray«16»('46')
+            49 rBitarray«17»('1l')
         '''
-        i = Number(ba2int(ba))
+        i = basencode.Number(ba2int(ba))
         s = i.repr_in_base(base)
-        return f"rbitarray«{base}»('{i.repr_in_base(base)}')"
-if 1:   # Fixed-size integers
+        return f"rBitarray«{base}»('{i.repr_in_base(base)}')"
+if 0:   # Fixed-size integers
     class Int:
         '''This class implements immutable fixed-size integers.  You supply the number
         of bits to the constructor and this defines the maximum size of the integer.
@@ -139,7 +125,7 @@ if 1:   # Fixed-size integers
         Int's use case is to simulate n-bit integer functionality.  If a binary
         operation is performed with two Int objects, an Int instance will be returned
         with the number of bits of the largest number of bits of the two operands.
-
+        
         '''
         def __init__(self, value, numbits=32, unsigned=False):
             if not ii(numbits, int):
@@ -307,13 +293,12 @@ if 1:   # Fixed-size integers
             [3] https://www.electronicsmedia.info/2024/02/10/twos-complement/
             
             '''
-
-if 1: #xx
-    x = Int(12)
-    print(x)
-    x = Int(12, 8)
-    print(x)
-    exit()
+    if 0: #xx
+        x = Int(12)
+        print(x)
+        x = Int(12, 8)
+        print(x)
+        exit()
 
 if __name__ == "__main__":
     from lwtest import run, Assert, raises
@@ -350,14 +335,24 @@ if __name__ == "__main__":
     if 1:   # Demo
         def Demo():
             t.print(f"{t.purl}Demo of some functions in {sys.argv[0]}")
-            o = []
-            for x in range(0, 49):
-                w = len(int2ba(x))
-                o.append(f"{x:3d} {x:0{w}b} {IntBitReverse(x):0{w}b}")
-            t.print(f"{t.ornl}Bit reversing")
-            for i in Columnize(o, indent=" "*2):
-                print(i)
+            ind = " "*2
+            if 1:   # Bit reversing
+                o = []
+                for x in range(0, 25):
+                    w = len(int2ba(x))
+                    o.append(f"{x:3d} {x:0{w}b} → {IntBitReverse(x):0{w}b}")
+                t.print(f"{t.ornl}Bit reversing:  IntBitReverse(x)")
+                for i in Columnize(o, indent=" "*2):
+                    print(i)
+            if 1:   # Showing a bitarray in a desired base using rBitarray
+                t.print(f"{t.ornl}Showing a bitarray in a desired base using rBitarray()")
+                ba = int2ba(70)
+                for b in (2, 5, 7, 8, 10, 11, 16, 49):
+                    print(f"{ind}{b:2d}  {rBitarray(ba, b)}")
+            if 1:   # Integer representation in any base
+                t.print(f"{t.ornl}Convert an integer to any base using IntToBase()")
+                print(f"{ind}IntToBase(10017, 82) --> {IntToBase(10017, 82)}")
+                print(f"{ind}  Check:  13*82**0 + 40*82**1 + 1*82**2 = 13 + 3280 + 6724 = 10017")
     if len(sys.argv) > 1 and sys.argv[1] == "-t":
         exit(run(globals(), halt=True)[0])
     Demo()
-    print("Use -t option to run self-tests")
