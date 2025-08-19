@@ -2067,34 +2067,6 @@ class astr(str):
 def alen(s):
     'Function to get the length of a string, ignoring any ANSI escape sequences'
     return len(astr.r.sub("", s))
-def int2base(x, base):
-    '''Converts the integer x to a string representation in a given
-    base.  base may be from 2 to 94.
-    
-    Method by Alex Martelli
-    http://stackoverflow.com/questions/2267362/convert-integer-to-a-string-in-a-given-numeric-base-in-python
-    Modified slightly by DP.
-    '''
-    if not hasattr(int2base, digits):
-        int2base.digits = digits + ascii_letters + punctuation
-    if not (2 <= base <= len(int2base.digits)):
-        msg = "base must be between 2 and %d inclusive" % len(int2base.digits)
-        raise ValueError(msg)
-    if not isinstance(x, (int, str)):
-        raise ValueError("Argument x must be an integer or string")
-    if isinstance(x, str):
-        x = int(x)
-    sign = -1 if x < 0 else 1
-    if x == 0:
-        return "0"
-    x, answer = abs(x), []
-    while x:
-        answer.append(int2base.digits[x % base])
-        x //= base
-    if sign < 0:
-        answer.append("-")
-    answer.reverse()
-    return ''.join(answer)
 
 if __name__ == "__main__":
     # Missing tests for: Ignore Debug, GetString
@@ -2113,11 +2085,6 @@ if __name__ == "__main__":
     # Need to have version, as SizeOf stuff changed between 3.7 and 3.9
     vi = sys.version_info
     ver = f"{vi[0]}.{vi[1]}"
-    def Test_int2base():
-        Assert(int2base(0, 10) == "0")
-        Assert(int2base(10, 10) == "10")
-        Assert(int2base(90, 90) == "10")
-        Assert(int2base(90**2, 90) == "100")
     def Test_NumBitsInByte():
         d = NumBitsInByte()
         for i in d:
