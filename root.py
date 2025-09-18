@@ -97,8 +97,6 @@ References ([x:y:z] means page y in reference x or page z in the PDF form)
     
 ---------------------------------------------------------------------------
     
-Notes
-    
 Division by multiplication & subtraction
 
     https://www.cs.princeton.edu/courses/archive/fall12/cos323/notes/cos323_f12_lecture02_rootfinding.pdf

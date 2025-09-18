@@ -1,4 +1,4 @@
-"""
+'''
 Generators that are floating point analogs of range()
     frange(start, stop, step)
         Best to initialize with string representations of floating point
@@ -10,13 +10,13 @@ Generators that are floating point analogs of range()
             0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9
         If start contains a '/' character, impl and return_type
         parameters are set to Rational.
-
+        
     ifrange(start, stop, step)
         Generator that works similarly to frange, but is a simpler
         implementation.  Must be used with 12 or less significant figures.
         Requires roundoff.RoundOff; if not present, the module still works
         but this function won't be available.
-
+        
     lrange(start_decade, stop_decade)
         Useful for producing sequences that can be used for log-log plotting.
         Can also return numpy arrays.  Examples:
@@ -29,7 +29,7 @@ Generators that are floating point analogs of range()
                 sys.stdout.write(str(i) + " ")
         results in
             1 2 5 10 20 50 100 200 500
-
+            
     A convenience function Sequence(string) is supplied that will return
     a list from the specifications in the string.  Example:
         Sequence('1:1.5:0.1   5:1:-1  1/4:3/4:1/8')
@@ -37,8 +37,7 @@ Generators that are floating point analogs of range()
         [1, 1.1, 1.2, 1.3, 1.4, 1.5,
         5, 4, 3, 2, 1,
         1/4, 3/8, 1/2, 5/8, 3/4]
-"""
-
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -72,13 +71,11 @@ if 1:  # Header
         from color import t
         from roundoff import RoundOff
         from f import flt
-
         # For convenience, frange will return a flt by default.  Change this to
         # float if you really want a float (note a flt is derived from float).
         ret_type = flt
         try:
             import numpy
-
             have_numpy = True
         except ImportError:
             have_numpy = False
@@ -86,13 +83,10 @@ if 1:  # Header
         __all__ = "frange ifrange lrange Rational Sequence".split()
         # Regular expression to split strings on whitespace
         split_ws = re.compile(r"\s+")
-
-
 class Rational(Fraction):
-    """The Rational class is a fractions.Fraction object except that it has a conventional proper
+    '''The Rational class is a fractions.Fraction object except that it has a conventional proper
     fraction string representation.
-    """
-
+    '''
     def __str__(self):
         n, d = abs(self.numerator), abs(self.denominator)
         s = ["-"] if self.numerator * self.denominator < 0 else [""]
@@ -104,8 +98,6 @@ class Rational(Fraction):
                 s.extend([str(ip), "-"])
             s.extend([str(remainder), "/", str(d)])
         return "".join(s)
-
-
 def frange(
     start,
     stop=None,
@@ -115,7 +107,7 @@ def frange(
     strict=True,
     include_end=False,
 ):
-    """A floating point generator analog of range.  start, stop, and step are either python floats,
+    '''A floating point generator analog of range.  start, stop, and step are either python floats,
     integers, or strings representing floating point numbers (or any other object that impl can
     convert to an object that behaves with numerical semantics).  The iterates returned will be of
     type return_type, which should be a function that converts the impl type to the desired type.
@@ -124,34 +116,34 @@ def frange(
     return_type.  If strict is True, this is not allowed.  If strict is False, the conversion will
     be tried.  Setting strict to False may allow some number types to work with other number types,
     however, the burden is on the user to determine if frange still behaves as expected.
-
+    
     If include_end is True, then the step is added to the stop number.  This allows you to get e.g.
     an inclusive list of integers.  However, for floating point values, you may get a number one
     step beyond the stopping point.  Examples:
-
+    
         frange("1", "3", "0.9") returns 1.0, 1.9, 2.8
-
+        
     but
-
+    
         frange("1", "3", "0.9" include_end=True) returns 1.0 1.9 2.8 3.7
-
+        
     Python's Decimal class is used for the default implementation, but you can choose it to be e.g.
     floats if you wish (however, you'll then have the typical naive implementation seen all over
     the web).  Consult http://www.python.org/dev/peps/pep-0327/ and the decimal module's
     documentation to learn more about why a float implementation is naive.
-
+    
     To help ensure you get the output you want, use strings for start, stop and step.  This is the
     "proper" way to initialize Decimals with non-integer values.  start, stop, and step can be
     python floating point numbers if you wish, but you may not get the sequence you expect.  For an
     example, compare the output of frange(9.6001, 9.601, 0.0001) and frange("9.6001", "9.601",
     "0.0001").  Most users will probably expect the output from the second form, which excludes the
     stop value like range does.
-
+    
     Examples of use (also look at the unit tests):
         a = list(frange("0.125", "1", ".125"))
     results in a being
         [0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875]
-
+        
     Alternatively, you can use python fractions in frange because they have the proper numerical
     semantics.  A convenience class called Rational is provided in this module because it allows
     fractions to be printed in their customary proper form.
@@ -160,32 +152,28 @@ def frange(
     results in b being
         [1/8, 1/4, 3/8, 1/2, 5/8, 3/4, 7/8]
     and we also have a == b is True.
-
+    
     The happy accident of a == b being True is only because these decimal fractions can be
     represented exactly in binary floating point.  This is not true in general:
         c = list(frange("0.1", "1", "0.1"))
         d = list(frange("1/10", "1", "1/10", impl=R, return_type=R))
     results in c == d being False.
-
+    
     Print out c to see why c and d are not equal (this is practically the canonical example of the
     problems with binary floating point for us humans that love decimal arithmetic).
-
+    
     A convenience is that if '/' is in the string for start, all the numbers are interpreted as
     Rational objects.
-    """
-
+    '''
     def ceil(x):
         i = int(abs(x))
         if x > i:
             i += 1
         return (-1 if x < 0 else 1) * i
-
     if isinstance(start, str) and "/" in start:
         impl = return_type = Rational
-
     def init(x):
         return impl(repr(x)) if isinstance(x, float) else impl(x)
-
     start = init(start)
     if stop is not None:
         stop = init(stop)
@@ -211,14 +199,12 @@ def frange(
                     raise
                 yield return_type(str(start))
             start += step
-
-
 def lrange(start_decade, end_decade, dx=1, x=1, mantissas=None):
-    """Provides a logarithmic analog to the frange function.  Returns a list of values with
+    '''Provides a logarithmic analog to the frange function.  Returns a list of values with
     logarithmic spacing.
-
+    
     Example:  lrange(0, 2, mantissas=[1, 2, 5]) returns [1, 2, 5, 10, 20, 50].
-    """
+    '''
     msg = "%s must be an integer"
     if not isinstance(start_decade, Integral):
         raise ValueError(msg % "start_decade")
@@ -238,22 +224,20 @@ def lrange(start_decade, end_decade, dx=1, x=1, mantissas=None):
     for exp in range(start_decade, end_decade):
         values += [i * 10**exp for i in mantissas]
     return values
-
-
 def Sequence(s):
-    """Return a sequence of numbers based on the specifications in s.  Specifications are separated
+    '''Return a sequence of numbers based on the specifications in s.  Specifications are separated
     by whitespace characters and are of the forms
         a
         a:b
         a:b:c
     where a is the starting number and b is the ending number.  The increment is 1 unless c is
     given.  Unlike python's range function, the endpoint is included in the sequence.
-
+    
     Example:  Sequence('1:1.5:0.1   5:1:-1  1/4:3/4:1/8') returns
         [1, 1.1, 1.2, 1.3, 1.4, 1.5,
          5, 4, 3, 2, 1,
          1/4, 3/8, 1/2, 5/8, 3/4]
-    """
+    '''
     out = []
     for spec in split_ws.split(s):
         spec = spec.strip()
@@ -272,52 +256,43 @@ def Sequence(s):
             msg = "'{}' is a bad sequence specification"
             raise ValueError(msg.format(spec))
         out += list(frange(a, b, c, include_end=True))
-
     def MakeIntIfPossible(x):
         i = int(x)
         if i == x:
             return i
         return x
-
     return [MakeIntIfPossible(i) for i in out]
-
-
 def ifrange(start, stop, step=1):
-    """Provides an iterator similar to frange but with a simpler implementation.  Use with
+    '''Provides an iterator similar to frange but with a simpler implementation.  Use with
     integers, floats, and Rationals.  You should rely on no more than 12 significant figures in the
     returned numbers.
-    """
+    '''
     for i in itertools.count(start, step):
         x = RoundOff(i)
         if x >= stop:
             return
         yield x
-
-
 if __name__ == "__main__":
     if 1:  # Global variables
         d = {}  # Options dictionary
         P = pathlib.Path
         ii = isinstance
     if 1:  # Module's base code
-
         def Error(msg, status=1):
             print(msg, file=sys.stderr)
             exit(status)
-
         def Usage(d, status=1):
             name = sys.argv[0]
             print(
-                dedent(f"""
+                dedent(f'''
             Usage:  {name} [options] etc.
               Explanations...
              
             Options:
               --test      Run internal self tests
-            """)
+            ''')
             )
             exit(status)
-
         def ParseCommandLine(d):
             d["--test"] = False  # Run self tests
             try:
@@ -333,48 +308,39 @@ if __name__ == "__main__":
             # if not args:
             #    Usage(d)
             return args
-
     if 1:  # Test code
         if 1:  # Global variables
             n, N = 10, 100000  # "Large" numbers
             s = "9.6001 9.6002 9.6003 9.6004 9.6005 9.6006 9.6007 9.6008 9.6009"
             eps = 1.0 / 10**sys.float_info.dig
-
         def Test_Normal_one_parameter():
             got = list(frange(str(n)))
             expected = [float(i) for i in range(n)]
             Assert(got == expected)
-
         def Test_Normal_one_parameter_Decimals():
             got = list(frange(str(n), return_type=Decimal))
             expected = [Decimal(i) for i in range(n)]
             Assert(got == expected)
-
         def Test_Normal_two_parameters():
             got = list(frange(str(n // 2), str(n)))
             expected = [float(i) for i in range(n // 2, n)]
             Assert(got == expected)
-
         def Test_Normal_two_parameters_Decimals():
             got = list(frange(str(n // 2), str(n), return_type=Decimal))
             expected = [Decimal(i) for i in range(n // 2, n)]
             Assert(got == expected)
-
         def Test_Normal_three_parameters():
             got = list(frange("9.6001", "9.601", "0.0001"))
             expected = [float(i) for i in s.split()]
             Assert(got == expected)
-
         def Test_Normal_three_parameters_Decimals():
             got = list(frange("9.6001", "9.601", "0.0001", return_type=Decimal))
             expected = [Decimal(i) for i in s.split()]
             Assert(got == expected)
-
         def Test_Counting_down():
             got = list(frange(str(n), "0", "-1"))
             expected = [float(i) for i in range(n, 0, -1)]
             Assert(got == expected)
-
         def Test_Numbers_outside_float_range():
             s = "e-28000"
             got = list(frange("1" + s, "4" + s, "1" + s, return_type=Decimal))
@@ -384,12 +350,10 @@ if __name__ == "__main__":
             got = list(frange("1" + s, "4" + s, "1" + s, return_type=Decimal))
             expected = [Decimal("1E28000"), Decimal("2E28000"), Decimal("3E28000")]
             Assert(got == expected)
-
         def Test_Sequence_of_complex_numbers():
             got = list(complex(0, i) for i in frange(str(n)))
             expected = [complex(0, i) for i in range(n)]
             Assert(got == expected)
-
         def Test_mpmath():
             try:
                 from mpmath import mpf, mpc, mp, arange
@@ -424,7 +388,6 @@ if __name__ == "__main__":
                 )
                 expected = [mpf(i) for i in s.split()]
                 Assert(got == expected)
-
         def Test_numpy():
             if not have_numpy:
                 return
@@ -441,7 +404,6 @@ if __name__ == "__main__":
             got = frange(start, stop, step, impl=float)
             expected = numpy.arange(start, stop, step)
             Assert(list(got) == list(expected))
-
         def Test_fractions():
             # The following test case shows that frange can be used with a python Fraction to
             # return a sequence of Fractions.
@@ -455,7 +417,6 @@ if __name__ == "__main__":
             # There are small differences between the numbers; we use eps to detect failures.
             for i, j in zip(got, expected):
                 Assert(abs(i - j) <= eps)
-
         def Test_include_end():
             # Test with integers
             res = list(frange("1", "3", return_type=int))
@@ -467,7 +428,6 @@ if __name__ == "__main__":
             Assert(res == [1.0, 1.9, 2.8])
             res = list(frange("1", "3", "0.9", include_end=True))
             Assert(res == [1.0, 1.9, 2.8, 3.7])
-
         def Test_doctest_examples():
             # Basic frange tests
             got = list(frange("0", "1", "0.1"))
@@ -502,13 +462,11 @@ if __name__ == "__main__":
             got = lrange(0, 2, dx=2)
             expected = [1, 3, 5, 7, 9, 10, 30, 50, 70, 90]
             Assert(got == expected)
-
         def Test_Rational():
             R = Rational
             got = [i for i in frange("1", "4", ".6", impl=R, return_type=R)]
             expected = [R(1, 1), R(8, 5), R(11, 5), R(14, 5), R(17, 5)]
             Assert(got == expected)
-
         def Test_flt():
             o = flt(1)
             # Should get floats back by default
@@ -520,7 +478,6 @@ if __name__ == "__main__":
             got = list(frange(1, o(5.7), o(0.51), return_type=flt))
             Assert(str(got) == str(expected))
             Assert(all([ii(i, flt) for i in got]))
-
         def Test_ifrange():
             # Basic tests
             got = list(ifrange(0, 1, 0.1))
@@ -539,21 +496,18 @@ if __name__ == "__main__":
             got = list(ifrange(0, 1, R(1, 8)))
             expected = [Fraction(i) for i in "0 1/8 1/4 3/8 1/2 5/8 3/4 7/8".split()]
             Assert(got == expected)
-
     if 1:  # Example code
-
         def Sixteenths():
             print(
-                dedent(f"""
+                dedent(f'''
             Example of frange:  printing sixteenths:
             for i in frange("1/16", 2, 1/16):
                 print(f"  {{i!s:10s}} {{i!r}}")
             
-            """)
+            ''')
             )
             for i in frange("1/16", 2, 1 / 16):
                 print(f"  {i!s:10s} {i!r}")
-
     args = ParseCommandLine(d)
     if d["--test"]:
         exit(run(globals(), regexp=r"Test_", halt=1)[0])

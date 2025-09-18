@@ -1,22 +1,21 @@
-"""
+'''
 
 Returns a dictionary cpi_data for the average US CPI (consumer price index) from 1913 to the present
 
     Gets the average CPI number from the table at the indicated website.  Note that the average calculated
     from the tables' entries for early years doesn't match the yearly average; still, I've chosen to use the
     table's average column (zero-based column 13) rather than compute the average.
-
+    
     Each of the numbers in the table can be used to compare costs for the things we need to live over time.
     Let's compare the year 1967 to 2023.  The yearly average for 1967 is 33.4 and the yearly average for 2023
     is 305.  The ratio of these two numbers 305/33.4 = 9.1.  This tells me that something that cost me $1 in
     1967 would probably cost around $9 in 2023.
-
+    
     Visit https://www.bls.gov/opub/hom/cpi/ to learn more about the CPI.  The US Bureau of Labor and
     Statistics collects about 94000 prices and 8000 rental housing unit quotes monthly and condenses the
     information into an estimate of what it costs to live in an urban environment.
-
-"""
-
+    
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -37,12 +36,13 @@ if 1:  # Header
         from color import t
         from f import flt
         from columnize import Columnize
-
 # From https://www.inflationdata.com/inflation/Consumer_Price_Index/HistoricalCPI.aspx?reloaded%3Dtrue#Table
 #         Jan     Feb     Mar     Apr     May     Jun     Jul     Aug     Sep     Oct     Nov     Dec    Year
-# Updated 25 Nov 2024
-data = """
-2024	308.417	310.326	312.332	313.548	314.069	314.175	314.540	314.796	315.301	315.664
+# Updated 18 Sep 2025
+                                # Note the separators are tab characters
+data = '''
+2025	317.671	319.082	319.799	320.795	321.465	322.561	323.048	323.976
+2024	308.417	310.326	312.332	313.548	314.069	314.175	314.540	314.796	315.301	315.664	315.493	315.605	313.689
 2023	299.170	300.840	301.836	303.363	304.127	305.109	305.691	307.026	307.789	307.671	307.051	306.746	304.702
 2022	281.148	283.716	287.504	289.109	292.296	296.311	296.276	296.171	296.808	298.012	297.711	296.797	292.655
 2021	261.582	263.014	264.877	267.054	269.195	271.696	273.003	273.567	274.310	276.589	277.948	278.802	270.970
@@ -154,14 +154,12 @@ data = """
 1915	10.100	10.000	9.900	10.000	10.100	10.100	10.100	10.100	10.100	10.200	10.300	10.300	10.100
 1914	10.000	9.900	9.900	9.800	9.900	9.900	10.000	10.200	10.200	10.100	10.200	10.100	10.000
 1913	9.800	9.800	9.800	9.800	9.700	9.800	9.900	9.900	10.000	10.000	10.100	10.000	9.900
-"""
-
-
+'''
 def CPI_Data(use_partial=True, show=False):
-    """Return a dictionary that maps integer year to average inflation for the year.  If use_partial is True,
+    '''Return a dictionary that maps integer year to average inflation for the year.  If use_partial is True,
     then calculate the mean of the given data even if a line only has a partial number of entries.  Otherwise,
     use the last entry on the line if the line has 14 fields.  If show is True, print the data to stdout.
-    """
+    '''
     out, t.bad = [], t("ornl")
     for i, line in enumerate(data.split("\n")):
         if not line.strip():
@@ -194,14 +192,11 @@ def CPI_Data(use_partial=True, show=False):
         for i in Columnize(s):
             print(i)
     return di
-
-
 cpi_data = CPI_Data(show=False)
 
 if __name__ == "__main__":
     import sys
     import statistics
-
     def ShowYearlyRatio():
         "Print a table that shows the yearly ratio"
         out = []
@@ -250,5 +245,4 @@ if __name__ == "__main__":
         print(f"  Minimum               {min(st)}")
         print(f"  Maximum               {max(st)}")
         print(f"  Range                 {max(st) - min(st)}")
-
     ShowYearlyRatio()

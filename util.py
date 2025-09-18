@@ -1106,10 +1106,12 @@ def StringToNumbers(s, sep=" ", handle_i=True):
         else:
             seq.extend(line.split())
     return tuple([ConvertToNumber(i, handle_i=handle_i) for i in seq])
-def hyphen_range(s, sorted=False):
+def hyphen_range(s):
     '''Takes a set of range specifications of the form "a-b" and returns a list of
     integers between a and b inclusive.  The string s will be separated on whitespace
     after commas are replaced by spaces.
+    
+    See unrange() for doing the opposite thing.
     
     Examples:
         "" returns []
@@ -1161,6 +1163,81 @@ def hyphen_range(s, sorted=False):
             except Exception:
                 raise ValueError(msg.format(item))
     return o
+def unrange(seq, sort_first=False, sep="－"):
+    '''Turn a sequence of integers seq into a collection of ranges and return as a string.  It
+    provides a string summary of the ranges in the sequence.  See unrange_real() for sequences of
+    real numbers.
+    
+    If sort_first is True, the sequence is sorted before processing.  The sep string is used to
+    separate a number range.
+    
+    Examples:
+        seq = [1, 5, 6, 7, 3, 4, 8, 10, 11, 12]
+        unrange(seq, sort_first=True)  outputs 1 3－8 10－12
+        unrange(seq, sort_first=False) outputs 1 5－7 3－4 8 10－12
+        seq = [-1, -5, -6, -7, -3, -4, -8, -10, -11, -12]
+        unrange(seq, sort_first=True)  outputs -12－-10 -8－-3 -1
+        unrange(seq, sort_first=False) outputs -1 -5 -6 -7 -3 -4 -8 -10 -11 -12
+    '''
+    if not seq:
+        return ""
+    dq = deque(sorted(seq)) if sort_first else deque(seq)
+    in_sequence = False
+    lastx = dq.popleft()
+    out = [lastx]
+    while dq:
+        x = dq.popleft()
+        if not ii(x, int):
+            raise TypeError(f"{x!r} is not an integer")
+        if not in_sequence and x == out[-1] + 1:
+            in_sequence = True
+        elif in_sequence:
+            if x != lastx + 1:
+                in_sequence = False
+                out.extend([sep, lastx])
+                # Restart for the next range
+                out.append(x)
+        else:
+            out.append(x)
+        lastx = x
+    if in_sequence:
+        out.extend([sep, lastx])
+    s = " ".join([str(i) for i in out])
+    u = s.replace(" " + sep + " ", sep)
+    return u
+def unrange_real(seq, sort_first=False, sep="┅"):
+    '''Turn a sequence of numbers seq into a collection of ranges and return as a string.  It
+    provides a string summary of the ranges in the sequence.  See unrange() for sequences of
+    integers.
+    
+    If sort_first is True, the sequence is sorted before processing.  The sep string is used to
+    separate a number range.
+    
+    Note:  no knowledge about the sequence elements being real numbers is used; the only
+    operation used is ordering by the >= operator.  Thus, any sequence of items that can be
+    ordered by >= can be converted to a range.
+    
+    Examples:
+        seq = [1.0, 2.2, 3.1, 2.7, 8.1]
+        unrange_real(seq, sort_first=True)  outputs 1.0┅8.1
+        unrange_real(seq, sort_first=False) outputs 1.0┅3.1 2.7┅8.1
+    '''
+    if not seq:
+        return ""
+    dq = deque(sorted(seq)) if sort_first else deque(seq)
+    out, seq = [], []
+    while dq:
+        x = dq.popleft()
+        seq = [x]
+        while dq and dq[0] >= seq[-1]:
+            seq.append(dq.popleft())
+        s = f"{seq[0]}"
+        if len(seq) > 1:
+            s += f"{sep}{seq[-1]}"
+        out.append(s)
+        if not dq:
+            break  # Finished
+    return " ".join(out)
 def grouper(data, mapper, reducer=None):
     '''Simple map/reduce for data analysis.
     
@@ -1821,81 +1898,6 @@ def ParseComplex(numstring):
             else:
                 raise ValueError(msg)
     return (first, second)
-def unrange(seq, sort_first=False, sep="┅"):
-    '''Turn a sequence of integers seq into a collection of ranges and return as a string.  It
-    provides a string summary of the ranges in the sequence.  See unrange_real() for sequences of
-    real numbers.
-    
-    If sort_first is True, the sequence is sorted before processing.  The sep string is used to
-    separate a number range.
-    
-    Examples:
-        seq = [1, 5, 6, 7, 3, 4, 8, 10, 11, 12]
-        unrange(seq, sort_first=True)  outputs 1 3┅8 10┅12
-        unrange(seq, sort_first=False) outputs 1 5┅7 3┅4 8 10┅12
-        seq = [-1, -5, -6, -7, -3, -4, -8, -10, -11, -12]
-        unrange(seq, sort_first=True)  outputs -12┅-10 -8┅-3 -1
-        unrange(seq, sort_first=False) outputs -1 -5 -6 -7 -3 -4 -8 -10 -11 -12
-    '''
-    if not seq:
-        return ""
-    dq = deque(sorted(seq)) if sort_first else deque(seq)
-    in_sequence = False
-    lastx = dq.popleft()
-    out = [lastx]
-    while dq:
-        x = dq.popleft()
-        if not ii(x, int):
-            raise TypeError(f"{x!r} is not an integer")
-        if not in_sequence and x == out[-1] + 1:
-            in_sequence = True
-        elif in_sequence:
-            if x != lastx + 1:
-                in_sequence = False
-                out.extend([sep, lastx])
-                # Restart for the next range
-                out.append(x)
-        else:
-            out.append(x)
-        lastx = x
-    if in_sequence:
-        out.extend([sep, lastx])
-    s = " ".join([str(i) for i in out])
-    u = s.replace(" " + sep + " ", sep)
-    return u
-def unrange_real(seq, sort_first=False, sep="┅"):
-    '''Turn a sequence of numbers seq into a collection of ranges and return as a string.  It
-    provides a string summary of the ranges in the sequence.  See unrange() for sequences of
-    integers.
-    
-    If sort_first is True, the sequence is sorted before processing.  The sep string is used to
-    separate a number range.
-    
-    Note:  no knowledge about the sequence elements being real numbers is used; the only
-    operation used is ordering by the >= operator.  Thus, any sequence of items that can be
-    ordered by >= can be converted to a range.
-    
-    Examples:
-        seq = [1.0, 2.2, 3.1, 2.7, 8.1]
-        unrange_real(seq, sort_first=True)  outputs 1.0┅8.1
-        unrange_real(seq, sort_first=False) outputs 1.0┅3.1 2.7┅8.1
-    '''
-    if not seq:
-        return ""
-    dq = deque(sorted(seq)) if sort_first else deque(seq)
-    out, seq = [], []
-    while dq:
-        x = dq.popleft()
-        seq = [x]
-        while dq and dq[0] >= seq[-1]:
-            seq.append(dq.popleft())
-        s = f"{seq[0]}"
-        if len(seq) > 1:
-            s += f"{sep}{seq[-1]}"
-        out.append(s)
-        if not dq:
-            break  # Finished
-    return " ".join(out)
 def Unique(seq):
     '''Generator to return only the unique elements in sequence.  The order of the items in the
     sequence is maintained.

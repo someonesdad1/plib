@@ -156,6 +156,8 @@ if 1:  # Header
             }
             # The following data came from the Bureau of Labor Statistics page
             # https://data.bls.gov/pdq/SurveyOutputServlet.  Select
+                # As typical for the web, this link no longer works as of 18 Sep 2025
+                # A calculator is here:  https://www.bls.gov/data/inflation_calculator.htm
             #   "Table Format"
             #   "Original Data Value"
             #   "All years"

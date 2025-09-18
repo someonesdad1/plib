@@ -5,47 +5,48 @@ ToDo
     - Use /usr/bin/factor to do factoring; if it fails, fall back on this module's
       routines
 '''
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    ##∞copyright∞# Copyright (C) 2011 Don Peterson #∞copyright∞#
-    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    ##∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    ##∞license∞#
-    ##∞what∞#
-    #
-    ##∞what∞#
-    ##∞test∞# --test #∞test∞#
-    pass
-if 1:  # Standard imports
-    import collections
-    import itertools
-    import math
-    import operator
-    import pathlib
-    import subprocess
-    import sys
-    from functools import reduce
-if 1:  # Custom imports
-    have_bitarray = False
-    try:
-        from bitarray.util import ones
-        have_bitarray = True
-    except ImportError:
+if 1:  # Header
+    if 1:  # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        ##∞copyright∞# Copyright (C) 2011 Don Peterson #∞copyright∞#
+        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        ##∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        ##∞license∞#
+        ##∞what∞#
+        #
+        ##∞what∞#
+        ##∞test∞# --test #∞test∞#
         pass
-    from wrap import dedent
-    from color import t
-if 1:  # Global variables
-    P = pathlib.Path
-    ii = isinstance
-    t.p = t.redl
-    t.N = t.grnl
-    nl = "\n"
-    __all__ = '''AllFactors Factor FactorList FormatFactors IsPrime
-                 PrimeList PrimeNumberSieve Primes FactorGenerator
-              '''.split()
-    d = {"-c": False}
+    if 1:  # Standard imports
+        import collections
+        import itertools
+        import math
+        import operator
+        import pathlib
+        import subprocess
+        import sys
+        from functools import reduce
+    if 1:  # Custom imports
+        have_bitarray = False
+        try:
+            from bitarray.util import ones
+            have_bitarray = True
+        except ImportError:
+            pass
+        from wrap import dedent
+        from color import t
+    if 1:  # Global variables
+        P = pathlib.Path
+        ii = isinstance
+        t.p = t.redl
+        t.N = t.grnl
+        nl = "\n"
+        __all__ = '''AllFactors Factor FactorList FormatFactors IsPrime
+                     PrimeList PrimeNumberSieve Primes FactorGenerator
+                  '''.split()
+        d = {"-c": False}
 if 1:  # Core functionality
     def IsPositiveInteger(n, msg):
         if n < 1 or not ii(n, int):

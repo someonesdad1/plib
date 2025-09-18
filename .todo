@@ -37,14 +37,6 @@
           converted into a bytes object.  You can choose binary or hex and the -a option
           is used to compress the output, which is valuable for sparse arrays.
 
-    - bitfield.py
-        - Using a bytearray seems to me to be the most logical and simplest way to
-          implement these things in pure python
-            - All bits set:  all(x)
-            - Any bit set:  any(x)
-        - Then there only needs to be the class bitfield
-        - Include the methods to persist to a file in lib/bitfield
-
     - primes.py
         - Use /usr/bin/factor to do the factoring, as it will be much faster and capable
           of handling much larger numbers.  It also can do all of the script's arguments 
@@ -224,7 +216,18 @@
         - Change it to only do searching in specified python functions.  A use case is
           to e.g. see if the function uses the math module.
 
-    - pgm/ds.py
+    - pgm/ds.py and pgm/eb.py
+        - eb.py:  Add a syntax that lets you see documents by subject
+            - E.g., aliased to dss
+            - 'dss math' shows you math books.  Then if there are child subjects, you're
+              prompted for those.
+            - Otherwise, when you reach a terminal leaf, you can be prompted for a regex
+              or just enter . to see everything
+        - ds.py:  can use subjects too
+        - Both could use a short argument form like a:b where a is the regex for the
+          subject and b is the regex for the title.
+        - I'd like to see uniform naming of the files:  title - author last name - year
+
         - Need a feature to define default documents so they open on the first search.
             - Example:  I have 3 versions of the HP427A manual:  1970, 1972, 1983.  The 1983 one
               covers my instrument best, but it can take time to render in Sumatra.  I'd like to
