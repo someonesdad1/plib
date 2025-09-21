@@ -1,5 +1,22 @@
 /plib/.todo
 
+    - primes.py
+        - Core bug:  Most of the functions are untested. 
+        - Use /usr/bin/factor to do the factoring, as it will be much faster and capable
+          of handling much larger numbers.  It also can do all of the script's arguments 
+          in one call.
+        - Construct and pickle a bitfield that "remembers" the primes so that an
+          IsPrime(*args) function is fast and returns True if all arguments are prime
+
+    - Tangent scale
+        - K&E sold one more than a century ago
+        - Simple to make in g library
+            - Make a number of them that fit on one piece of paper:  4, 5, 6, 8, 10
+              inches
+            - Another demo file for the g library
+        - Put in a hobbyutil PDF file that describes and contains a number of different
+          useful drafting scales 
+
     - latin1
         - Make this a script in ~/.0rc/bin that converts latin1 files to utf8.
         - /usr/bin/iconv -f iso-8859-1 -t utf-8 "$@" does it once the file is renamed,
@@ -36,13 +53,6 @@
         - Add a function xxd() that uses xxd to do dump an object to stdout that can be
           converted into a bytes object.  You can choose binary or hex and the -a option
           is used to compress the output, which is valuable for sparse arrays.
-
-    - primes.py
-        - Use /usr/bin/factor to do the factoring, as it will be much faster and capable
-          of handling much larger numbers.  It also can do all of the script's arguments 
-          in one call.
-        - Construct and pickle a bitfield that "remembers" the primes so that an
-          IsPrime(*args) function is fast and returns True if all arguments are prime
 
     - pgm/int.py
         - Should use /usr/bin/factor for factoring, as it's much better than my python
