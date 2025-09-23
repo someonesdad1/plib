@@ -1,15 +1,14 @@
-"""
+'''
 Python module to produce drawings rendered in Postscript
     Functions beginning with _ aren't intended to be called by the user.
-
+    
     Bug 25 Oct 2012:  The global init_ellipse is initialized only once.
         This caused a problem in /math/probability_plots/probplot.py where
         two different plots were being generated to different files.  In
         the second file, the ellipse_ps definition was missing.  These
         global variables should be reset, probably when ginitialize is
         called.
-"""
-
+'''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     # ∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
@@ -31,10 +30,8 @@ if 1:  # Custom imports
     import go
     from wrap import dedent
     from gco import *  # Module that contains our constants
-
     if 0:
         import debug
-
         debug.SetDebugger()
 if 1:  # Global variables
     pyver = sys.version_info[0]
@@ -85,7 +82,6 @@ if 1:  # Global variables
     init_path_circle = no
     init_fractions = no
 if 1:  # Functions that change the graphics state
-
     def ginitialize(stream, wrap_in_PJL=0):
         Entering("ginitialize")
         global output_stream
@@ -103,13 +99,11 @@ if 1:  # Functions that change the graphics state
         out("20 setmiterlimit\n\n")
         reset()
         Leaving()
-
     def reset():
         Entering("reset")
         _SetDefaultGraphicsState()
         _SetStateFromGS(new_page=yes)
         Leaving()
-
     def gclose():
         Entering("gclose")
         if sent_PJL == yes:
@@ -127,7 +121,6 @@ if 1:  # Functions that change the graphics state
         global output_stream
         output_stream = None  # Now it can be garbage collected
         Leaving()
-
     def SetOrientation(orientation=portrait, units=inches):
         Entering("SetOrientation(%s, %s)" % (INV[orientation], INV[units]))
         if orientation not in allowed_orientations:
@@ -140,7 +133,6 @@ if 1:  # Functions that change the graphics state
         _SetStateFromGS(new_page=yes)
         comment("End orientation reset")
         Leaving()
-
     def ScaleDash(Factor=1):
         Entering("ScaleDash(%s)" % _f(Factor))
         factor = float(Factor)
@@ -150,7 +142,6 @@ if 1:  # Functions that change the graphics state
         gs[g_line].scaleDash(factor)
         gs[g_fill].line.scaleDash(factor)
         Leaving()
-
     def ScaleDashAutomatically(yes_or_no):
         Entering("ScaleDashAutomatically(%s)" % INV[yes_or_no])
         global gs
@@ -159,13 +150,11 @@ if 1:  # Functions that change the graphics state
         else:
             gs[g_scale_line_type] = no
         Leaving()
-
     def NewPage():
         Entering("NewPage")
         out("showpage\n")
         _SetStateFromGS(new_page=yes)
         Leaving()
-
     def grey(Value=0.0):
         Entering("grey(%s)" % _f(Value))
         value = float(Value)
@@ -173,12 +162,10 @@ if 1:  # Functions that change the graphics state
             raise gException("Grey value must be between 0.0 and 1.0")
         Leaving()
         return (value, value, value)
-
     def gray(Value=0.0):
         Entering("gray(%s)" % _f(Value))
         Leaving()
         return grey(Value)
-
     def LineWidth(Width):
         Entering("LineWidth(%s)" % _f(Width))
         width = float(Width)
@@ -188,7 +175,6 @@ if 1:  # Functions that change the graphics state
         gs[g_line].width[g_value] = width
         gs[g_line].width[g_changed] = yes
         Leaving()
-
     def LineFillWidth(Width):
         Entering("LineFillWidth(%s)" % _f(Width))
         width = float(Width)
@@ -198,7 +184,6 @@ if 1:  # Functions that change the graphics state
         gs[g_fill].line.width[g_value] = width
         gs[g_fill].line.width[g_changed] = yes
         Leaving()
-
     def LineType(dash_type):
         Entering("LineType(%s)" % INV[dash_type])
         if not isinstance(dash_type, Int):
@@ -211,7 +196,6 @@ if 1:  # Functions that change the graphics state
         # Make sure we update the lines for the next line fill drawn
         gs[g_fill].line.dash_type[g_changed] = yes
         Leaving()
-
     def LineFillType(dash_type):
         Entering("LineFillType(%s)" % INV[dash_type])
         if not isinstance(dash_type, Int):
@@ -225,19 +209,16 @@ if 1:  # Functions that change the graphics state
         # The following makes sure we update the lines for the next border drawn
         gs[g_line].dash_type[g_changed] = yes
         Leaving()
-
     def LineColor(color):
         Entering("LineColor(%s)" % go.Color(color).colorName())
         global gs
         gs[g_line].color = go.Color(color)
         Leaving()
-
     def FillColor(color):
         Entering("FillColor(%s)" % go.Color(color).colorName())
         global gs
         gs[g_fill].setColor(go.Color(color))
         Leaving()
-
     def GradientFill(color, Angle=0.0, factor=1.0):
         Entering(
             "GradientFill(%s, angle=%s, factor=%s)"
@@ -245,7 +226,6 @@ if 1:  # Functions that change the graphics state
         )
         global gs
         from math import fmod
-
         angle = fmod(float(Angle), 360.0)
         if angle < 0:
             angle = angle + 360.0
@@ -255,7 +235,6 @@ if 1:  # Functions that change the graphics state
         if gs[g_fill].gradient_factor <= 0:
             raise gException("factor must be > 0")
         Leaving()
-
     def SetColor(color):
         Entering("SetColor(%s)" % go.Color(color).colorName())
         global gs
@@ -263,7 +242,6 @@ if 1:  # Functions that change the graphics state
         FillColor(color)
         TextColor(color)
         Leaving()
-
     def LineCap(cap):
         Entering("LineCap(%s)" % INV[cap])
         assert isinstance(cap, Int)
@@ -274,7 +252,6 @@ if 1:  # Functions that change the graphics state
         gs[g_line].cap[g_changed] = yes
         out("%d setlinecap\n" % line_caps[cap])
         Leaving()
-
     def LineJoin(join):
         Entering("LineJoin(%s)" % INV[join])
         assert isinstance(join, Int)
@@ -285,31 +262,26 @@ if 1:  # Functions that change the graphics state
         gs[g_line].join[g_changed] = yes
         out("%d setlinejoin\n" % line_joins[join])
         Leaving()
-
     def LineOn():
         Entering("LineOn")
         global gs
         gs[g_line].on = yes
         Leaving()
-
     def LineOff():
         Entering("LineOff")
         global gs
         gs[g_line].on = no
         Leaving()
-
     def FillOn():
         Entering("FillOn")
         global gs
         gs[g_fill].on = yes
         Leaving()
-
     def FillOff():
         Entering("FillOff")
         global gs
         gs[g_fill].on = no
         Leaving()
-
     def FillType(fill_type):
         Entering("FillType(%s)" % INV[fill_type])
         if fill_type not in allowed_fill_types:
@@ -317,7 +289,6 @@ if 1:  # Functions that change the graphics state
         global gs
         gs[g_fill].setType(fill_type)
         Leaving()
-
     def TextName(text_name):
         Entering("TextName(%s)" % text_name)
         if text_name not in allowed_font_names:
@@ -326,7 +297,6 @@ if 1:  # Functions that change the graphics state
         gs[g_font].name[g_value] = text_name
         gs[g_font].name[g_changed] = yes
         Leaving()
-
     def TextSize(text_size):
         Entering("TextSize(%s)" % _f(text_size))
         size = float(text_size)
@@ -336,21 +306,18 @@ if 1:  # Functions that change the graphics state
         gs[g_font].size[g_value] = size
         gs[g_font].size[g_changed] = yes
         Leaving()
-
     def TextColor(text_color):
         Entering("TextColor %s" % repr(text_color))
         global gs
         gs[g_font].color = go.Color(text_color)
         Leaving()
-
     def rotate(angle_in_degrees):
-        """For a rotation of t, the xfm equations are:
+        '''For a rotation of t, the xfm equations are:
         x' =  x*cos(t) + y*sin(t)
         y' = -x*sin(t) + y*cos(t)
-        """
+        '''
         global gs
         from math import sin, cos, pi
-
         Entering("rotate(%s)" % _f(angle_in_degrees))
         angle = float(angle_in_degrees)
         out("%s rotate\n" % _f(angle))
@@ -371,7 +338,6 @@ if 1:  # Functions that change the graphics state
             # converted to device space immediately.)
             raise gException("Transformation issued while path exists")
         Leaving()
-
     def translate(X, Y):
         Entering("translate(%s, %s)" % (_f(X), _f(Y)))
         x = float(X)
@@ -384,16 +350,15 @@ if 1:  # Functions that change the graphics state
         if p != None and not p.isEmpty() and error_xfm_path == yes:
             raise gException("Transformation issued while path exists")
         Leaving()
-
     def scale(X, Y=None, reset=no):
-        """If reset == yes, it means the line & font objects should reset
+        '''If reset == yes, it means the line & font objects should reset
         themselves to their default values before the scaling.  This lets us
         handle e.g. an orientation change, which typically includes a units
         change (normal behavior would e.g. be to scale a size that's already
         been scaled).
-
+        
         If Y is None, then it is an isotropic scaling.
-        """
+        '''
         global gs
         x = float(X)
         if Y is None:
@@ -419,22 +384,18 @@ if 1:  # Functions that change the graphics state
         if p != None and not p.isEmpty() and error_xfm_path == yes:
             raise gException("Transformation issued while path exists")
         Leaving()
-
     def getGS():
-        """Returns a copy of the graphics state."""
+        '''Returns a copy of the graphics state.'''
         Entering("getGS")
         import copy
-
         Leaving()
         return copy.deepcopy(gs)
-
     def SetGS(new_GS):
         Entering("SetGS")
         global gs
         gs = new_GS
         _SetStateFromGS(new_page=yes)
         Leaving()
-
     def push():
         Entering("push")
         global push_count
@@ -442,7 +403,6 @@ if 1:  # Functions that change the graphics state
         out("gsave\n")
         gs_stack.append(getGS())
         Leaving()
-
     def pop():
         Entering("pop")
         global push_count
@@ -455,7 +415,6 @@ if 1:  # Functions that change the graphics state
         gs = gs_stack[-1]
         del gs_stack[-1]
         Leaving()
-
     def ScaleLineWidth(scale_width):
         Entering("ScaleLineWidth(%s)" % INV[scale_width])
         global gs
@@ -466,7 +425,6 @@ if 1:  # Functions that change the graphics state
         else:
             gs[g_scale_line_width] = no
         Leaving()
-
     def ScaleTextSize(scale_size):
         Entering("ScaleTextSize(%s)" % INV[scale_size])
         global gs
@@ -477,7 +435,6 @@ if 1:  # Functions that change the graphics state
         else:
             gs[g_scale_font_size] = no
         Leaving()
-
     def LineFill(angle, separation=0, phase=0.0):
         Entering(
             "LineFill(angle=%s, sep=%s, phase=%s)"
@@ -488,22 +445,19 @@ if 1:  # Functions that change the graphics state
         gs[g_fill].separation = float(separation)
         gs[g_fill].phase = float(phase)
         Leaving()
-
     def clip(path=None):
         Entering("clip")
         _clip(path, eoclip=no)
         Leaving()
-
     def eoclip(path=None):
         Entering("eoclip")
         _clip(path, eoclip=yes)
         Leaving()
-
     def _clip(path=None, eoclip=no):
-        """Note we issue a newpath after the clip, since Postscript doesn't
+        '''Note we issue a newpath after the clip, since Postscript doesn't
         execute an implicit newpath after a clip command unlike it does after
         fill or stroke.
-        """
+        '''
         if path == None:
             path = gs[g_current_path]
             if path == None:
@@ -518,22 +472,20 @@ if 1:  # Functions that change the graphics state
         out("%sclip newpath\n" % prefix)
         NewPath()
         Leaving()
-
     def SetPageSize(page_size):
-        """Allows the user to set the page size.  page_size can either be an
+        '''Allows the user to set the page size.  page_size can either be an
         integer constant like paper_letter, paper_A4, etc. or it can be a
         sequence of size 2 (width, height) where width and height are in
         the current units.
-
+        
         Note:  ISO_paper in gco.py provides a utility function to provide this
         tuple for any valid ISO paper size.
         xx:  But this function returns the size in points, so a conversion tool
         or optional parameter must be used.
-        """
+        '''
         Entering("SetPageSize()")
         raise NotImplemented()
         Leaving()
-
     def ClipRectangle(x0, y0, x1, y1):
         Entering("ClipRectangle(%s, %s, %s, %s)" % tuple(map(_f, (x0, y0, x1, y1))))
         p = go.Path()
@@ -544,12 +496,10 @@ if 1:  # Functions that change the graphics state
         p.close()
         _clip(p)
         Leaving()
-
     def unclip():
         Entering("unclip")
         out("initclip\n")
         Leaving()
-
     def comment(comment, linefeed=no):
         Entering("comment('%s', linefeed=%s)" % (comment, INV[linefeed]))
         if not isinstance(comment, String):
@@ -558,7 +508,6 @@ if 1:  # Functions that change the graphics state
             out("\n")
         out("%% %s\n" % comment)
         Leaving()
-
     def move(X, Y):
         Entering("move(x=%s, y=%s)" % (_f(X), _f(Y)))
         global gs
@@ -567,7 +516,6 @@ if 1:  # Functions that change the graphics state
         out("%s %s moveto\n" % (_f(x), _f(y)))
         gs[g_current_point] = (x, y)
         Leaving()
-
     def rmove(X, Y):
         Entering("rmove(x=%s, y=%s)" % (_f(X), _f(Y)))
         global gs
@@ -578,15 +526,11 @@ if 1:  # Functions that change the graphics state
         out("%s %s moveto %s %s rmoveto\n" % (_f(x0), _f(y0), _f(x), _f(y)))
         gs[g_current_point] = (x + x0, y + y0)
         Leaving()
-
     def inline(str):
         Entering("inline '%s'" % str)
         out("%inline\n" + str + "\n")
         Leaving()
-
-
 if 1:  # Functions that put marks on the page
-
     def line(X0, Y0, X, Y):
         Entering("line(%s, %s, %s, %s)" % tuple(map(_f, (X0, Y0, X, Y))))
         global gs
@@ -599,7 +543,6 @@ if 1:  # Functions that put marks on the page
         out("%s %s moveto %s %s lineto stroke\n" % (_f(x0), _f(y0), _f(x), _f(y)))
         gs[g_current_point] = (x, y)
         Leaving()
-
     def rline(X, Y):
         Entering("rline(%s, %s)" % (_f(X), _f(Y)))
         global gs
@@ -611,7 +554,6 @@ if 1:  # Functions that put marks on the page
         out("%s %s rlineto stroke\n" % (_f(x), _f(y)))
         gs[g_current_point] = (x, y)
         Leaving()
-
     def rectangle(Width, Height):
         Entering("rectangle(width=%s, height=%s)" % (_f(Width), _f(Height)))
         _CheckCurrentPoint()
@@ -631,14 +573,12 @@ if 1:  # Functions that put marks on the page
         gs[g_current_path] = None
         _DrawAndFill(p)
         Leaving()
-
     def _DrawAndFill(p):
-        """Given a path, fill it if filling is on, then stroke the outline."""
+        '''Given a path, fill it if filling is on, then stroke the outline.'''
         Entering("_DrawAndFill")
         _FillPath(p)
         DrawPath(p)
         Leaving()
-
     def RoundedRectangle(Width, Height, Corner_diam):
         Entering(
             "RoundedRectangle(width=%s, height=%s, diam=%s)"
@@ -677,26 +617,22 @@ if 1:  # Functions that put marks on the page
         gs[g_current_path] = None
         _DrawAndFill(p)
         Leaving()
-
     def circle(diameter):
         Entering("circle(%s)" % _f(diameter))
         EllipticalArc(diameter, diameter, 0.0, 360.0)
         Leaving()
-
     def ellipse(major_diameter, minor_diameter):
         Entering(
             "ellipse(maj_dia=%s, min_dia=%s)" % (_f(major_diameter), _f(minor_diameter))
         )
         EllipticalArc(major_diameter, minor_diameter, 0.0, 360.0)
         Leaving()
-
     def arc(diameter, start, stop):
         Entering(
             "arc(diam=%s, start=%s, stop=%s)" % tuple(map(_f, (diameter, start, stop)))
         )
         EllipticalArc(diameter, diameter, start, stop)
         Leaving()
-
     def EllipticalArc(major_diam, minor_diam, start, stop):
         Entering(
             "EllipticalArc(maj_dia=%s, min_dia=%s, start=%s, stop=%s)"
@@ -730,14 +666,13 @@ if 1:  # Functions that put marks on the page
         str = "%s %s %s %s %s %s ellipse " % args
         _DrawAndFill((str, bb))
         Leaving()
-
     def stext(text_string):
-        """This function is the same as text(), except it finds escaped
+        '''This function is the same as text(), except it finds escaped
         hex values in the string and causes them to be interpreted in the
         symbol font.  Thus, for example, the command
             stext("67 \\b0C")
         will cause one to see 67 deg C, where deg is the degree symbol.
-        """
+        '''
         # Find any escaped hex values in the text.
         mo = escaped_char.search(text_string)
         if not mo:
@@ -760,7 +695,6 @@ if 1:  # Functions that put marks on the page
             mo = escaped_char.search(text_string)
         if text_string != "":
             text(text_string)
-
     # TODO: Condense these three text functions into one function and use an
     # optional parameter to provide the justification.
     def text(text):
@@ -771,17 +705,14 @@ if 1:  # Functions that put marks on the page
             Leaving()
             return
         _CheckCurrentPoint()
-
         def EscapeParentheses(text):
             text = text.replace("(", r"\(")
             Leaving()
             return text.replace(")", r"\)")
-
         _Color(gs[g_font].color)
         gs[g_font].update(out)
         out("(%s) show\n" % EscapeParentheses(text))
         Leaving()
-
     def ctext(text):
         Entering("ctext('%s')" % text)
         if not isinstance(text, String):
@@ -799,7 +730,6 @@ if 1:  # Functions that put marks on the page
         s = (_f(x), text, _f(y), text)
         out("%s (%s) stringwidth pop 2 div sub %s moveto (%s) show\n" % s)
         Leaving()
-
     def rtext(text):
         Entering("rtext('%s')" % text)
         if not isinstance(text, String):
@@ -817,7 +747,6 @@ if 1:  # Functions that put marks on the page
         s = (_f(x), text, _f(y), text)
         out("%s (%s) stringwidth pop sub %s moveto (%s) show\n" % s)
         Leaving()
-
     def TextLines(lines, spacing=0):
         Entering("TextLines(%d lines, spacing=%s)" % (len(lines), _f(spacing)))
         if not isinstance(lines, (list, tuple)):
@@ -836,13 +765,12 @@ if 1:  # Functions that put marks on the page
             out("%s %s moveto (%s) show\n" % (_f(x), _f(y), line))
             y = y - spc
         Leaving()
-
     def TextCircle(text, diameter, center_angle=90, inside=no):
-        """Draw text around the current point in a circle of specified
+        '''Draw text around the current point in a circle of specified
         diameter.  The text will be centered around center_angle.  If inside
         is yes, then it will be drawn inside the circle; otherwise, it will
         be drawn on the outside of the circle.
-        """
+        '''
         global init_text_circle
         Entering(
             "TextCircle('%s', diam=%s, center_angle=%s, inside=%s)"
@@ -882,7 +810,6 @@ if 1:  # Functions that put marks on the page
         out(str)
         pop()
         Leaving()
-
     def TextPath(text, path, Offset=0.0):
         global init_path_circle
         Entering(
@@ -911,7 +838,6 @@ if 1:  # Functions that put marks on the page
         path.setPath(out)
         out("(%s) %s pathtext\n" % (text, _f(offset)))
         Leaving()
-
     def TextFraction(Numerator, Denominator):
         global init_fractions
         if isinstance(Numerator, Int):
@@ -935,7 +861,6 @@ if 1:  # Functions that put marks on the page
         gs[g_font].update(out)
         out("(%s) (%s) fractionshow\n" % (numerator, denominator))
         Leaving()
-
     def RegularPolygon(diameter, num_sides, start_angle=0, draw=yes):
         Entering(
             "RegularPolygon(diam=%s, num_sides=%s, start_angle=%s)"
@@ -957,7 +882,6 @@ if 1:  # Functions that put marks on the page
             return
         xcenter, ycenter = gs[g_current_point]
         from math import sin, cos, pi
-
         p = go.Path()
         offset_radians = start_angle * pi / 180
         for n in range(num_sides):
@@ -985,27 +909,24 @@ if 1:  # Functions that put marks on the page
         # Leave the current point at the center of the polygon
         Leaving()
         return p
-
-
 if 1:  # Dealing with bitmaps via the Python Imaging Library
-
     def picture(image_object, width, height, stretch=no):
-        """Places a bitmap image at the current point (which will be the
+        '''Places a bitmap image at the current point (which will be the
         lower left corner of the picture) and makes the picture span a
         rectangle of size (width, height).  The width and height are in the
         current units.  If stretch is yes, then the picture is stretched to
         fit in the box defined by the current point and the width and height.
-
+        
         The image variable can be either be a filename or a PIL image object.
-
+        
         If you don't have the Python Imaging library (PIL), you can get an
         open-source version from http://www.pythonware.com/products/pil/.
-
+        
             Update May 2022:  the PIL went defunct around 2011; you can
             check out https://python-pillow.org for a replacement.  Sadly,
             Fredrik Lundh, a long-time python contributor, passed away in
             Nov 2021.
-        """
+        '''
         try:
             from PIL import Image, PSDraw
         except:
@@ -1046,15 +967,11 @@ if 1:  # Dealing with bitmaps via the Python Imaging Library
         # PIL library.
         p.image(bounding_box, image)
         Leaving()
-
-
 if 1:  # Functionality dealing with paths
-
     def PathAddPoint(X, Y):
         Entering("PathAddPoint(%s, %s)" % (_f(X), _f(Y)))
         PathAdd((X, Y), path_point)
         Leaving()
-
     def PathAddPoints(points):
         if not isinstance(points, (list, tuple)):
             raise gException("Must input a list or tuple of points")
@@ -1066,11 +983,10 @@ if 1:  # Functionality dealing with paths
             y = float(point[1])
             PathAddPoint(x, y)
         Leaving()
-
     def PathAdd(o, object_type=path_point, move=no):
-        """Add a point, arc, or Bezier curve to the path.  If move is yes, we
+        '''Add a point, arc, or Bezier curve to the path.  If move is yes, we
         start a new subpath.
-        """
+        '''
         Entering("PathAdd(%s)" % repr(o))
         global gs
         if not isinstance(o, tuple):
@@ -1102,13 +1018,11 @@ if 1:  # Functionality dealing with paths
             g.move()
         g.add(obj)
         Leaving()
-
     def PathMove(o, object_type):
-        """Add a new object, but start a new subpath (leaving the old one open)."""
+        '''Add a new object, but start a new subpath (leaving the old one open).'''
         Entering("PathMove(%s)" % repr(o))
         raise NotImplemented()
         Leaving()
-
     def PathClose():
         Entering("PathClose")
         p = gs[g_current_path]
@@ -1116,21 +1030,17 @@ if 1:  # Functionality dealing with paths
             raise gException("No current path")
         p.close()
         Leaving()
-
     def NewPath():
         Entering("NewPath")
         global gs
         gs[g_current_path] = go.Path()
         Leaving()
-
     def GetPath():
         # Returns a copy of the current path
         import copy
-
         Entering("GetPath")
         Leaving()
         return copy.deepcopy(gs[g_current_path])
-
     def SetPath(p):
         Entering("SetPath")
         global gs
@@ -1138,15 +1048,14 @@ if 1:  # Functionality dealing with paths
             raise gException("Not a path")
         gs[g_current_path] = p
         Leaving()
-
     def DrawPath(path=None):
-        """path can be two types:  a path object or a tuple containing
+        '''path can be two types:  a path object or a tuple containing
         information about an elliptical arc to fill.  The data in the tuple
         are: (str, ((xll, yll), (xur, yur))) where str contains the ellipse
         parameters.  The remaining tuple contains a pair of points
         representing the lower left and upper right points of the bounding
         box.
-        """
+        '''
         global gs
         if path == None:
             path = gs[g_current_path]
@@ -1175,44 +1084,35 @@ if 1:  # Functionality dealing with paths
         out("stroke\n")
         gs[g_current_path] = None
         Leaving()
-
     def FillPath(p=None):
         Entering("FillPath")
         _FillPath(p, "fill")
         Leaving()
-
     def EoFillPath(p=None):
         Entering("EoFillPath")
         _FillPath(p, "eofill")
         Leaving()
-
-
 if 1:  # Utility & debugging functions
-
     def DebugOn():
         global debugging
         debugging = yes
         Entering("DebugOn")
         Leaving()
-
     def DebugOff():
         Entering("DebugOff")
         global debugging
         debugging = no
         Leaving()
-
     def TraceOn():
         global tracing
         tracing = yes
         Entering("TraceOn")
         Leaving()
-
     def TraceOff():
         Entering("TraceOff")
         global tracing
         tracing = no
         Leaving()
-
     def Entering(str):
         if tracing == yes:
             global trace_indent
@@ -1220,14 +1120,12 @@ if 1:  # Utility & debugging functions
             s = " " * trace_indent
             trace_stream.write(s + str + "\n")
             trace_indent += trace_indent_incr
-
     def Leaving():
         if tracing == yes:
             global trace_indent
             trace_indent = max(trace_indent - trace_indent_incr, 0)
-
     def DumpGS():
-        """Print the graphics state to stdout; useful for debugging."""
+        '''Print the graphics state to stdout; useful for debugging.'''
         Entering("DumpGS")
         # Invert the global symbol dictionary
         g = globals()
@@ -1249,42 +1147,34 @@ if 1:  # Utility & debugging functions
                 continue
             debug_stream.write("  %-20s %d:   %s\n" % (symbol, number, repr(value)))
         Leaving()
-
     def hsv2rgb(H, S, V):
         Entering("hsv2rgb(%s, %s, %s)" % (_f(H), _f(S), _f(V)))
         c = go.Color(black)
         c.setHSV(H, S, V)
         Leaving()
         return c.getRGB()
-
     def rgb2hsv(color):
-        """color is expected to be a tuple of 3 floats."""
+        '''color is expected to be a tuple of 3 floats.'''
         if not isinstance(color, tuple) and len(color) != 3:
             raise gException("You must pass in a color tuple")
         Entering("rgb2hsv(%s)" % go.Color(color).colorName())
         c = go.Color(color)
         Leaving()
         return c.getHSV()
-
-
 if 1:  # Utility functions that don't need to be called by the user
-
     def _maxmin(a, b, c):
-        """Return a tuple of the maximum and minimum of the three values."""
+        '''Return a tuple of the maximum and minimum of the three values.'''
         return (max(a, b, c), min(a, b, c))
-
     def _SetDefaultGraphicsState():
         import copy
-
         global gs
         gs = copy.deepcopy(gs_default)
-
     def _SetStateFromGS(new_page=no):
-        """Output the necessary Postscript to set the current Postscript
+        '''Output the necessary Postscript to set the current Postscript
         environment from this module's graphics state.  If a new page is
         indicated, set the orientation and units from the gs dictionary's
         values; default to portrait and inches.
-        """
+        '''
         Entering("_SetStateFromGS(new_page=%s)" % INV[new_page])
         global gs
         out("initmatrix ")
@@ -1319,11 +1209,10 @@ if 1:  # Utility functions that don't need to be called by the user
         if gs[g_current_clip_path] != None:
             gs[g_current_clip_path].setpath()
         Leaving()
-
     def _Color(color):
-        """We'll send out a Postscript color command only if the passed-in
+        '''We'll send out a Postscript color command only if the passed-in
         color object doesn't match the current color object.
-        """
+        '''
         global gs
         if color.color == gs[g_current_color].color:
             Entering("_Color:  no color change needed")
@@ -1333,17 +1222,14 @@ if 1:  # Utility functions that don't need to be called by the user
         Entering("_Color:  color changed to %s" % color.colorName())
         gs[g_current_color] = color
         Leaving()
-
     def _Line_cap():
         Entering("_Line_cap")
         out("%d setlinecap\n" % line_caps[gs[g_line_cap]])
         Leaving()
-
     def _Line_join():
         Entering("_Line_join")
         out("%d setlinejoin\n" % line_joins[gs[g_line_join]])
         Leaving()
-
     def _Clipping():
         Entering("_Clipping")
         if gs[g_current_path] == None:
@@ -1352,13 +1238,11 @@ if 1:  # Utility functions that don't need to be called by the user
         _Update[g_current_path]()
         out("clip\n")
         Leaving()
-
     def _Current_point():
         Entering("_Current_point")
         x, y = gs[g_current_point]
         out("%s %s moveto\n" % (_f(x), _f(y)))
         Leaving()
-
     def _RoundRect(w, h, r):
         Entering("_RoundRect")
         _CheckCurrentPoint()
@@ -1372,7 +1256,6 @@ if 1:  # Utility functions that don't need to be called by the user
         out(" %s %s lineto" % (x, y + r))
         out(" %s %s %s 180 270 arc" % (x + r, y + r, r))
         Leaving()
-
     def _CheckCurrentPoint():
         if gs[g_current_point] == None:
             raise gException("Current point undefined")
@@ -1380,9 +1263,8 @@ if 1:  # Utility functions that don't need to be called by the user
         y = _f(gs[g_current_point][1])
         Entering("_CheckCurrentPoint (is (%s, %s))" % (x, y))
         Leaving()
-
     def _ConstantTable(stream):
-        """Print out a table of the constants"""
+        '''Print out a table of the constants'''
         g = globals()
         table = {}
         # Invert the global dictionary
@@ -1393,26 +1275,23 @@ if 1:  # Utility functions that don't need to be called by the user
         constants.sort()
         for c in constants:
             stream.write("%-35s %d\n" % (table[c], c))
-
     def _Rotation(x, y, theta):
-        """Convenience function to return a tuple of (x', y') of (x, y)
+        '''Convenience function to return a tuple of (x', y') of (x, y)
         rotated by an angle of theta degrees.
-        """
+        '''
         from math import sin, cos, pi
-
         t = theta * pi / 180
         s = sin(t)
         c = cos(t)
         return (x * c + y * s, -x * s + y * c)
-
     def _FillPath(path, type_of_PS_fill="fill"):
-        """path can be two types:  a path object or a tuple containing
+        '''path can be two types:  a path object or a tuple containing
         information about an elliptical arc to fill.  The data in the tuple
         are: (str, ((xll, yll), (xur, yur))) where str contains the ellipse
         parameters.  The remaining tuple contains a pair of points
         representing the lower left and upper right points of the bounding
         box.
-        """
+        '''
         if path == None:
             path = gs[g_current_path]
             Entering("_FillPath:  using current path")
@@ -1446,22 +1325,20 @@ if 1:  # Utility functions that don't need to be called by the user
             raise gException("Unrecognized fill type")
         gs[g_current_path] = None
         Leaving()
-
     def _LineFillRegion(path):
-        """This routine fills the interior of a region with the current fill
+        '''This routine fills the interior of a region with the current fill
         line.  We set the path and clip to it.  Then we position a
         coordinate system at the lower left corner of the bounding box and
         rotate the required line angle.  We then draw lines from (-r, y) to
         (r, y) for each required y value; r is the diagonal length of the
         bounding box; this guarantees we'll cover the original clipping
         region.
-
+        
         See _FillPath() for a description of the incoming path parameter
         (it can be a tuple (ellipse) or Path object).
-        """
+        '''
         Entering("_LineFillRegion")
         from math import sqrt
-
         g = gs[g_fill]
         phase = g.phase
         separation = g.separation
@@ -1502,11 +1379,10 @@ if 1:  # Utility functions that don't need to be called by the user
             y = y - separation
         pop()
         Leaving()
-
     def DumpNamespace(stream, remove_colors=no, remove_fonts=no):
-        """Prints a sorted list of symbols in the global namespace.  Remove
+        '''Prints a sorted list of symbols in the global namespace.  Remove
         names that begin with "_".  Also print the object's value.
-        """
+        '''
         g = globals()
         List = []
         for key in g.keys():
@@ -1537,9 +1413,8 @@ if 1:  # Utility functions that don't need to be called by the user
             else:
                 obj_type = repr(obj)
             stream.write("%-30s %s\n" % (item, obj_type))
-
     def _GradientFillRegion(path):
-        """We'll fill the passed-in path with a gradient.  To do this, we
+        '''We'll fill the passed-in path with a gradient.  To do this, we
         do a gsave and set the clipping region with the path, then set the
         path.  We then draw thin rectangles rotated at the proper angle
         that interpolate between the two gradient colors.  The methods we
@@ -1550,13 +1425,12 @@ if 1:  # Utility functions that don't need to be called by the user
         The tension is between providing too many boxes (and bloating the
         output stream) and not providing enough boxes, making the printed
         transition too discrete.
-
+        
         See _FillPath() for a description of the incoming path parameter.
-        """
+        '''
         global gs
         Entering("_GradientFillRegion")
         from math import sqrt
-
         push()
         if isinstance(path, tuple):
             # Elliptical arc case
@@ -1574,7 +1448,6 @@ if 1:  # Utility functions that don't need to be called by the user
         theta = gs[g_fill].gradient_angle
         rotate(gs[g_fill].gradient_angle)
         r = sqrt(xb * xb + yb * yb)  # Length of the bounding box's diagonal
-
         # Get the y limits of where we should draw boxes in the rotated
         # coordinate system.  The box at y0 will be drawn with the gradient
         # (bottom) color and the box at y1 will be drawn with the current
@@ -1594,14 +1467,11 @@ if 1:  # Utility functions that don't need to be called by the user
         else:
             raise gException("Internal error:  theta not in range 0 to 360")
         height = y1 - y0  # Height of the rotated box we'll draw short boxes in
-
         top_color = gs[g_fill].color
         bottom_color = gs[g_fill].gradient_color
-
         # Calculate how many boxes to draw.  This is empirically found by
         # what looks good on my printer.  You may want to modify the
         # points_per_box value to get acceptable appearance on your printer.
-
         points_per_box = 3.6  # Gives a box every 0.05 inches on paper
         a, b, c, d, e, f = gs[g_ctm]
         # Transform (r, height) back to the original dimensions in points
@@ -1621,15 +1491,12 @@ if 1:  # Utility functions that don't need to be called by the user
         bottom_color = gs[g_fill].gradient_color
         LineOff()
         FillOn()
-
         # We need solid fills temporarily so we can call _FillPath() and not
         # get infinite recursion.
         gs[g_fill].type = solid_fill
-
         # Also keep track of current solid fill color so we can reset it.  We
         # need to set it to the current box's color because _Color() needs it.
         fill_color = gs[g_fill].color
-
         # Now draw boxes of height dy from y=y0 to y=y1.  To make sure we cover
         # the region, the boxes will have x coordinates from -r to r.
         dy = height / num_boxes
@@ -1651,12 +1518,10 @@ if 1:  # Utility functions that don't need to be called by the user
         gs[g_fill].type = gradient_fill
         gs[g_fill].color = fill_color
         Leaving()
-
-
 if 1:  # Symbol naming
     # The original symbols were mixed camel case, but I prefer regular
     # camel case today.
-    mixed = """
+    mixed = '''
         clipRectangle debugOff debugOn drawPath ellipticalArc
         eoFillPath fillColor fillOff fillOn fillPath fillType getPath
         gradientFill lineCap lineColor lineFill lineFillType
@@ -1666,17 +1531,16 @@ if 1:  # Symbol naming
         scaleDashAutomatically scaleLineWidth scaleTextSize setColor
         setGS setOrientation setPageSize setPath textCircle textColor
         textFraction textLines textName textPath textSize traceOff
-        traceOn""".split()
+        traceOn'''.split()
     for old in mixed:
         new = old[0].upper() + old[1:]
         exec(f"{old} = {new}")
 if 1:  # Miscellaneous
-
     def tst():
-        """Utility function for a quick test file.  This should produce a
+        '''Utility function for a quick test file.  This should produce a
         filled annulus; the fill is a gradient from blue to pink and the
         label inside the annulus is in yellow text along a circle.
-        """
+        '''
         stream = open("a.ps", "w")
         ginitialize(stream, wrap_in_PJL=no)
         SetOrientation(portrait, mm)
@@ -1696,35 +1560,28 @@ if 1:  # Miscellaneous
         TextSize(10)
         TextCircle("Example of gradient fill", 85, inside=no)
         gclose()
-
     def SetUp(file, orientation=portrait, units=mm):
-        """Convenience function to set up the drawing environment and return
+        '''Convenience function to set up the drawing environment and return
         the output stream.
-        """
+        '''
         stream = open(file, "w")
         ginitialize(stream)
         SetOrientation(orientation, units)
         return stream
-
     Setup = SetUp
-
     class Monitor(object):
-        """This class is used solely to check the push_count variable at
+        '''This class is used solely to check the push_count variable at
         exit.
-        """
-
+        '''
         def __del__(self):
             if push_count:
                 print("Warning:  push count is %d" % push_count)
-
     monitor = Monitor()
-
 if __name__ == "__main__":
     # Print usage help
-    print(
-        dedent(f'''
+    print(dedent(f'''
     Suggested usage for g library:
-
+    
     def SetUp(file, orientation=landscape, units=mm):
         """Convenience function to set up the drawing environment and return a
         file object to the output stream.
@@ -1733,7 +1590,7 @@ if __name__ == "__main__":
         ginitialize(ofp, wrap_in_PJL=0)
         setOrientation(orientation, units)
         return ofp
-
+        
     # Draw a line and circle to locate things
     LineWidth(1)
     FillColor(red)
@@ -1749,5 +1606,4 @@ if __name__ == "__main__":
     # We are back to old state.  Draw a circle at the origin.
     move(0, 0)
     circle(5)       # Draw a circle 5 mm in diameter
-    ''')
-    )
+    '''))

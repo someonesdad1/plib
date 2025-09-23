@@ -1,4 +1,4 @@
-"""
+'''
 Constants for the g.py module
     Copyright (c) 2011 Don Peterson
     Contact:  gmail.com@someonesdad1
@@ -24,32 +24,24 @@ Constants for the g.py module
     liability, whether in contract, strict liability, or tort (including
     negligence or otherwise) arising in any way out of the use of this
     software, even if advised of the possibility of such damage.
-"""
-
+'''
 from textwrap import dedent as Dedent
-
 if 1:  # Exceptions
-
     class gException(Exception):
         pass
-
     class NotImplemented(gException):
         pass
-
-
 if 1:  # Constants
     # We'll use a dictionary to keep track of the relationship between the
     # integer and variable name (this can help with debugging).
     varnames = {}
     # Temporary variables and functions to make constants like enums
     index = 100
-
     def Inc(name):  # Helper function
         global index, varnames
         index = index + 1
         varnames[index] = name
         return index
-
     inf = 1e38  # Roughly +infinity for Postscript
     no = Inc("no")
     yes = Inc("yes")
@@ -474,16 +466,14 @@ if 1:  # Clean up
     del index
     del Inc
 if 1:  # Convenience function to calculate ISO paper sizes
-
     def ISO_paper(n, format):
-        """Return a tuple of (width, height) for ISO paper sizes.  The
+        '''Return a tuple of (width, height) for ISO paper sizes.  The
         dimensions are in points.  The format parameter must be "A", "B", or
         "C" and n must be an integer between 0 and 10.  The width and height
         are given in points.  The formulas are taken from
         http://www.cl.cam.ac.uk/~mgk25/iso-paper.html.
-        """
+        '''
         import math
-
         if n < 0 or n > 10 or int(n) != n:
             raise Exception("n must be an integer >=  and <= 10")
         # The following formulas give the paper dimensions in m
@@ -500,8 +490,6 @@ if 1:  # Convenience function to calculate ISO paper sizes
             raise Exception("Unrecognized ISO paper format")
         m_to_points = 2845.2756  # Conversion factor
         return (int(width * m_to_points), int(height * m_to_points))
-
-
 if 1:  # Dictionaries used to translate and validate values
     paper_sizes = {  # (width, height) in portrait mode in points
         paper_letter: (8.5 * 72, 11.0 * 72),
@@ -509,14 +497,12 @@ if 1:  # Dictionaries used to translate and validate values
         paper_ledger: (11.0 * 72, 17.0 * 72),
         paper_A4: ISO_paper(4, "A"),
     }
-
     allowed_orientations = {  # Gives rotation angle
         portrait: 0,
         seascape: 90,
         inverse_portrait: 180,
         landscape: 270,
     }
-
     allowed_units = {  # Convenience array of scaling factors.  These factors
         # convert back to the default Postscript units, which
         # are points.
@@ -526,14 +512,12 @@ if 1:  # Dictionaries used to translate and validate values
         cm: 72.0 / 2.54,
         ft: 72.0 * 12,
     }
-
     allowed_fill_types = {
         no_fill: no_fill,
         solid_fill: solid_fill,
         line_fill: line_fill,
         gradient_fill: gradient_fill,
     }
-
     dashes = {  # Maps dash types to their Postscript setdash values.  These
         # sizes are in the Postscript default units, which are points.
         # The first number is the length of the first dash, the second
@@ -547,19 +531,16 @@ if 1:  # Dictionaries used to translate and validate values
         dash_dot_dot: [10, 2, 2, 2, 2, 2],
         scale_factor: 1.0,  # Used to scale the dash sizes
     }
-
     line_caps = {
         cap_butt: 0,
         cap_round: 1,
         cap_projecting: 2,
     }
-
     line_joins = {
         join_miter: 0,
         join_round: 1,
         join_bevel: 2,
     }
-
     allowed_font_names = {
         Sans: "Helvetica",
         SansBold: "Helvetica-Bold",
@@ -628,12 +609,10 @@ if 1:  # Dictionaries used to translate and validate values
         UniversCondensedBoldItalic: "Univers-Condensed-BoldItalic",
         Dingbats: "ZapfDingbats",
     }
-
     # The ps dictionary is used to save a little space in the output Postscript
     # file by aliasing the Postscript commands with single characters.  Of
     # course, this makes the output file impossible to read easily, so you'll
     # want to set translate_PS to no for debugging the Postscript output.
-
     translate_PS = yes
     ps = {
         "arc": "",
@@ -679,7 +658,6 @@ if 1:  # Dictionaries used to translate and validate values
         "stroke": "",
         "translate": "",
     }
-
     if translate_PS == yes:
         # Set the values to single letters
         value = ord("A")
@@ -692,13 +670,10 @@ if 1:  # Dictionaries used to translate and validate values
         # Use the full Postscript names
         for key in ps.keys():
             ps[key] = key
-
     # The INV dictionary will contain a mapping from integer value to the
     # constant's name.  This will help with debugging output by giving
     # symbolic names, rather than integers.
-
     INV = {}
-
     g = globals()
     for key in g.keys():
         if type(g[key]) == type(0):
@@ -711,18 +686,16 @@ if 1:  # PostScript chunks
     # Note they aren't output unless functions that use them are called.
 
     # Code to draw an ellipse.  From the Blue Book, pg. 137.
-
-    ellipse_ps = """
+    ellipse_ps = '''
         /edct 8 dict def edct /mtrx matrix put /ellipse { edct begin /ea
         exch def /sa exch def /md exch def /Md exch def /y exch def /x exch
         def /sm mtrx currentmatrix def newpath x y translate Md 2 div md 2
         div scale 0 0 1 sa ea arc sm setmatrix end } def
-    """
+    '''
 
     # This is code to put text in a circle, from the Adobe Blue Book, pg 167
     # (names were shortened).
-
-    circ_text_ps = """
+    circ_text_ps = '''
         % Text on a circular path
         /outsidecircletext
         { circtextdict
@@ -741,7 +714,6 @@ if 1:  # PostScript chunks
             grestore
         end
         } def
-
         /insidecircletext
         { circtextdict
         begin
@@ -759,7 +731,6 @@ if 1:  # PostScript chunks
             grestore
         end
         } def
-
         /circtextdict 16 dict def
         circtextdict
         begin
@@ -779,7 +750,6 @@ if 1:  # PostScript chunks
             grestore
             halfangle 2 mul neg rotate
             } def
-
             /insideplacechar {
             /char exch def
             /halfangle char findhalfangle def
@@ -794,11 +764,10 @@ if 1:  # PostScript chunks
             } def
             /pi 3.1415926 def
         end
-    """
+    '''
 
     # From Adobe Blue Book pg 171:  Postscript code to print text along a path
-
-    path_text_ps = """
+    path_text_ps = '''
         /pathtextdict 26 dict def
         /pathtext
         { pathtextdict begin
@@ -863,10 +832,10 @@ if 1:  # PostScript chunks
         /setdist setdist charwidth add def
         } def
         end
-    """
+    '''
 
     # From Adobe Blue Book pg 161:  Postscript code to print fractions
-    fraction_text_ps = """
+    fraction_text_ps = '''
         /fractiondict 5 dict def
         /fractionshow {
         fractiondict begin
@@ -889,13 +858,10 @@ if 1:  # PostScript chunks
             regularfont setfont
         end
         } def
-    """
-
-
+    '''
 class Colors:
     def __init__(self):
-        self.colors = Dedent(
-            """
+        self.colors = Dedent('''
         aliceblue           darkolivegreen      lightgray           plum
         antiquewhite        darkorange          lightgrey           plum1
         aquamarine          darkorchid          lightpink           plum2
@@ -967,31 +933,25 @@ class Colors:
         violet              wheat3              yellow              yellow4
         violetred           wheat4              yellow1             yellowgreen
         wheat
-        """.rstrip()[1:]
-        )
-
+        '''.rstrip()[1:])
     def __str__(self):
         return self.colors
-
-
 if 1:  # Print colors to get a listing of colors
     colors = Colors()
+
 if __name__ == "__main__":
     import sys
     import re
     from pdb import set_trace as xx
     from columnize import Columnize
-
     if 0:
         import debug
-
         debug.SetDebugger()
     if 1:
-
         def GetNamesOfConstants(sort_by_number=True):
-            """Return a string representing the name of the constants that are
+            '''Return a string representing the name of the constants that are
             represented by integers.
-            """
+            '''
             if 1:  # Check for missing numbers (could be bug)
                 k = list(varnames.keys())
                 assert k == sorted(k)
@@ -1011,11 +971,9 @@ if __name__ == "__main__":
                     for name, num in items:
                         s.append(f"{name}: {num}")
                 return s
-
         def WriteNamesOfConstants(file):
             def P(x):
                 print(x, file=f)
-
             f = open(file, "w")
             s = "Names & values of constants in gco.py"
             P(s)
@@ -1025,7 +983,6 @@ if __name__ == "__main__":
             P("")
             for i in Columnize(GetNamesOfConstants(False)):
                 P(i)
-
         WriteNamesOfConstants("gco.constants")
     # If run as a script, search for the constants that contain the
     # regexp(s) on the command line.
