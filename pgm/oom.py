@@ -338,6 +338,7 @@ if 1:  # Raw data from https://en.wikipedia.org/wiki/Orders_of_magnitude_(length
     8.95 m 		 Longest long jump by a human being (Mike Powell)
     10 m 		 Average length of human digestive tract
     10 m 		 Wavelength of the highest shortwave radio frequency, 30 MHz
+    10 m 		 Telephone pole
     11 m 		 Approximate width of a doubles tennis court
     12 m 		 Length of a whale shark, largest living fish
     12 m 		 Wingspan of a Quetzalcoatlus, a pterosaur
