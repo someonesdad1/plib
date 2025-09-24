@@ -1,5 +1,25 @@
 /plib/.todo
 
+    - Angle square
+        - Use g.py to make a drawing of what I'd like to have
+        - It will fit full scale on a letter size piece of paper, including the heel
+          scale
+        - It could be engraved on 3/16" thick aluminum sheet.  This would fit into a
+          slot in the heel which would be pinned with 3 or 4 1/16" spring pins.  Simple
+          and cheap construction.
+        - Make a design I'd like
+            - Degrees scale with numbering in both directions so you don't have to
+              mentally get the complement (see if it's too busy, as you might make more
+              errors)
+            - Tangent scale graduated in 1000*tan(theta) (just north of the slot)
+            - x**2 or x**3 Gunter scale next to the degree scale
+            - mm scale on the side
+            - Decimal and fractional inches on the outside heel
+            - No cutout so you have a place to make pencil notes
+            - 1/8 inch (3.25 mm) holes for key centering tasks
+            - 0.067 inch diameter holes for pencil marks like ripping widths
+            - 2 holes in heel for a string support as a plumb bob
+
     - primes.py
         - Core bug:  Most of the functions are untested. 
         - Use /usr/bin/factor to do the factoring, as it will be much faster and capable
