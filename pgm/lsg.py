@@ -166,16 +166,16 @@ if 1:  # Global variables
         unmerged = auto()
         untracked = auto()
         ignored = auto()
-    # Map state to name and color
+    # Map state to name and color   (the letter is the XY letters from 'git status'
     sc = {
-        St.ignored: ["Ignored", t("gry")],  # ?
-        St.unmodified: ["Unmodified", t("wht")],  # ''
-        St.untracked: ["Untracked", t("ornl")],  # !
-        St.unmerged: ["Unmerged", t("cynl")],  # u
-        St.renamed: ["Renamed", t("yel")],  # r
-        St.added: ["Added", t("mag")],  # a
-        St.deleted: ["Deleted", t("lip")],  # d
-        St.modified: ["Modified", t("grnl")],  # m
+        St.ignored:     ["Ignored",     t("lavl")], # ?
+        St.unmodified:  ["Unmodified",  t("wht", attr="it")],  # ''
+        St.untracked:   ["Untracked",   t("ornl")], # !
+        St.unmerged:    ["Unmerged",    t("cynl")], # u
+        St.renamed:     ["Renamed",     t("yell")], # r
+        St.added:       ["Added",       t("magl")], # a
+        St.deleted:     ["Deleted",     t("redl")], # d
+        St.modified:    ["Modified",    t("grnl")], # m
     }
     if wsl:
         git = "/usr/bin/git"
@@ -198,8 +198,7 @@ if 1:  # Utility
         print(*msg, file=sys.stderr)
         exit(status)
     def Usage(status=1):
-        print(
-            dedent(f'''
+        print(dedent(f'''
         Usage:  {sys.argv[0]} [options] [dir]
           If directory dir is in a git repository, show the state of the files
           at and below dir.  dir defaults to '.'.
@@ -210,8 +209,13 @@ if 1:  # Utility
             -h      Print a manpage
             -i      Show ignored files
             -v      Don't show cwd & root
-        ''')
-        )
+        Colors:
+        '''))
+        print(f"    ", end=" ")
+        for i in sc:
+            name, clr = sc[i]
+            print(f"{clr}{name}{t.n} ", end=" ")
+        print()
         exit(status)
     def ParseCommandLine(d):
         d["-a"] = False  # Allow everything to be shown
@@ -418,6 +422,7 @@ if 1:  # Core functionality
             print(f"{t.n}", end="")
         print()
     def PrintReport(di):
+        no_output = True
         for key in sc:  # This gets us the print order we want
             if key in di and len(di[key]):
                 if len(di[key]) == 1 and not di[key][0]:
@@ -426,6 +431,7 @@ if 1:  # Core functionality
                     continue
                 name, clr = sc[key]
                 print(f"{clr}{name}")
+                no_output = False
                 try:
                     for i in Columnize(di[key], indent=" " * 2):
                         print(i)
@@ -437,6 +443,9 @@ if 1:  # Core functionality
                         print(f"  {i}")
                     print()
                 print(f"{t.n}", end="")
+        if no_output:
+            print(f"{t.whtl}Note:  Unchanged checked-in files not shown.  Use -i to")
+            t.print("see ignored files.")
 if __name__ == "__main__":
     d = {}  # Options dictionary
     if 1:  # Setup

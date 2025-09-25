@@ -1,24 +1,24 @@
 /plib/.todo
 
-    - Angle square
-        - Use g.py to make a drawing of what I'd like to have
-        - It will fit full scale on a letter size piece of paper, including the heel
-          scale
-        - It could be engraved on 3/16" thick aluminum sheet.  This would fit into a
-          slot in the heel which would be pinned with 3 or 4 1/16" spring pins.  Simple
-          and cheap construction.
-        - Make a design I'd like
-            - Degrees scale with numbering in both directions so you don't have to
-              mentally get the complement (see if it's too busy, as you might make more
-              errors)
-            - Tangent scale graduated in 1000*tan(theta) (just north of the slot)
-            - x**2 or x**3 Gunter scale next to the degree scale
-            - mm scale on the side
-            - Decimal and fractional inches on the outside heel
-            - No cutout so you have a place to make pencil notes
-            - 1/8 inch (3.25 mm) holes for key centering tasks
-            - 0.067 inch diameter holes for pencil marks like ripping widths
-            - 2 holes in heel for a string support as a plumb bob
+    - pgm/gh.py
+        - Uses ds.py
+        - Keeps track of the local github repositories 
+        - Most convenient would be a /gh directory instead with each repository cloned
+          there.  But existing ones might not be easily moved, so a work-around would be
+          a softlink.
+
+    - pgm/pushpop.py
+        - Script to find annoying push/pop miscounts in g.py scripts.  It would search
+          by functions and find places where something was forgotten.
+        - In a redesign, I would make the graphics state or some other variable a
+          context manager so such behavior would be easy to use and see
+
+    - pgm/books.py
+        - Keeps track of the technical books I have so I can look up by author,
+          category, or words in the title.
+        - Prints out entries in the form I like to use in the reference tables in my
+          documents.
+        - Also remember to include the stuff in /ebooks.
 
     - primes.py
         - Core bug:  Most of the functions are untested. 
@@ -125,9 +125,6 @@
           can be converted to things like <alpha>, <beta>, <gamma>, <DELTA>, etc.
         - The self-test for this feature doesn't need to check all letters, but it does
           need to show that it's 7-bit clean
-
-    - pgm/lsg.py
-        - Update this too per todo items, as it should become my preferred tool over st
 
     - wrap.py
         - Numerous bugs in code

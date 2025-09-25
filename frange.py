@@ -98,15 +98,7 @@ class Rational(Fraction):
                 s.extend([str(ip), "-"])
             s.extend([str(remainder), "/", str(d)])
         return "".join(s)
-def frange(
-    start,
-    stop=None,
-    step=None,
-    return_type=ret_type,
-    impl=Decimal,
-    strict=True,
-    include_end=False,
-):
+def frange(start, stop=None, step=None, return_type=ret_type, impl=Decimal, strict=True, include_end=False):
     '''A floating point generator analog of range.  start, stop, and step are either python floats,
     integers, or strings representing floating point numbers (or any other object that impl can
     convert to an object that behaves with numerical semantics).  The iterates returned will be of
