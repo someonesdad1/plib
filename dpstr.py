@@ -10,6 +10,7 @@ String utilities
     CommonPrefix     Return a common prefix of a sequence of strings
     CommonSuffix     Return a common suffix of a sequence of strings
     FilterStr        Return a function that removes characters from strings
+    FindAll          Find all locations of a substring in a string
     FindFirstIn      Find first item in sequence in a given set
     FindLastIn       Find last item in sequence in a given set
     FindFirstNotIn   Find first item not in sequence in a given set
@@ -258,6 +259,22 @@ if 1:  # Core functionality
         def rev(s):  # Reverse the string s
             return f([f(list(i)) for i in reversed(s)])
         return rev(CommonPrefix([rev(i) for i in seq]))
+    def FindAll(s, substr="∞"):
+        '''Generator to find all locations of substr in string.
+        https://stackoverflow.com/questions/52452911/finding-all-positions-of-a-character-in-a-string
+        I picked this because python's str.find is done in C code so this will be fast.
+        
+        An example of use is to let you only see a chunk of a file between two
+        occurrences of ∞:
+            s = open(file).read()
+            start, finish = list(FindAll(s))
+            print(s[start + 1:finish])
+        You'll get an exception if there aren't two ∞ characters in the file.
+        '''
+        loc = s.find(substr)
+        while loc != -1:
+            yield loc
+            loc = s.find(substr, loc + 1)
     def FindFirstIn(s, items, invert=False):
         '''Return smallest integer i such that s[i] is in items or else None.  If invert
         is True, find the smallest integer i such that s[i] is not in items.
@@ -518,7 +535,7 @@ if 1:  # Core functionality
             The numbers specify cutting the string at the indicated columns (numbering
             is 0-based).  Example: for the input string "hello there", using the fields
             of [3, 7] will return the tuple of strings ("hel", "lo t", "here").
-
+        
                 "hello there"
                  01234567890
                  
