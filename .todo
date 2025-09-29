@@ -1,11 +1,24 @@
 /plib/.todo
 
-    - pgm/gh.py
-        - Uses ds.py
-        - Keeps track of the local github repositories 
-        - Most convenient would be a /gh directory instead with each repository cloned
-          there.  But existing ones might not be easily moved, so a work-around would be
-          a softlink.
+    - cephes
+        - What happened to the cephes.dll I had?  I must have deleted it for some
+          reason, but it definitely should be kept around to give fast calculation of
+          various mathematical functions.
+        - Search for it back in time...
+
+    - tt
+        - Simple and fast text processing tool
+            - My mp (pgm/tsub.py) and Dev/tp.py don't work right
+        - Keep it simple, write it in awk
+        - My key needs are the following commands
+            - ..date  Inserts current date/time
+            - ..on  Turn text output on
+            - ..off  Turn text output off
+            - ..include file  Insert the contents of a file
+            - ..sinclude file  Insert the contents of a file, but no error if it's not there
+        - The '..' is used because mp gets errors on files like my family history file.
+          This large file would have e.g. .38 or .45 at the beginning of the line and
+          the tool choked.
 
     - pgm/pushpop.py
         - Script to find annoying push/pop miscounts in g.py scripts.  It would search
