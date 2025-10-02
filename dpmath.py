@@ -77,231 +77,8 @@ if 1:  # Polynomial utilities
         c.reverse()
         return c[1:]
 if 1:  # Spirals
-    def SpiralArcLength(a, theta, degrees=False):
-        '''Calculate the arc length of an Archimedian spiral from angle 0 to theta.
-        theta is in radians unless degrees is True.  The number a is the constant in the
-        polar equation for the spiral r = a*theta.  The formula is exact because it is
-        from an integration.
-        '''
-        if a <= 0:
-            raise ValueError("a must be > 0")
-        theta = radians(flt(theta)) if degrees else flt(theta)
-        A = sqrt(theta*theta + 1)
-        return flt(a)/2*(theta*A + math.log(theta + A))
-    def ApproximateSpiralArcLength(ID, OD, thickness):
-        '''Return (length, number_of_layers) for a spiral roll of material
-        given the inside and outside diameters with a uniform thickness.  The
-        three parameters must be measured in the same units and the returned
-        number will be in the same units.
-        
-        The smaller thickness*(OD - ID) is, the better the approximation.
-        
-        Algorithm:  we approximate the length of a fine-pitched spiral by a
-        circle with the diameter equal to the in-between diameter of the spiral
-        by the circle's circumference.
-        '''
-        if ID < 0 or ID >= OD:
-            raise ValueError("ID must be >= 0 and < OD")
-        if OD <= 0:
-            raise ValueError("OD must be > 0")
-        if thickness <= 0:
-            raise ValueError("thickness must be > 0")
-        if 1:
-            # New and simpler algorithm:  calculate the number of turns from 
-            #     n = math.ceil((OD - ID/(2*thickness))
-            # Sum the circumference of the n approximate circles that evenly fit
-            # in between ID and OD.
-            deltaD, length = (OD - ID)/n, 0
-            for i in range(n):
-                length += math.pi*(ID + i*deltaD)
-            return length
-        else:   # Old algorithm that's not working
-            n = (OD - ID)/thickness
-            if n < 1:
-                raise ValueError("Number of turns is < 1")
-            length, number_of_layers = flt(0), 0
-            for diameter in frange(ID, OD, 2*thickness):
-                D = diameter + thickness  # Use in-between diameter
-                length += math.pi*D
-                number_of_layers += 1
-            return (length, number_of_layers)
-if 1:  # Core functionality
-    def AlmostEqual(a, b, rel_err=2e-15, abs_err=5e-323):
-        '''Determine whether floating-point values a and b are equal to
-        within a (small) rounding error; return True if almost equal and
-        False otherwise.  The default values for rel_err and abs_err are
-        chosen to be suitable for platforms where a float is represented
-        by an IEEE 754 double.  They allow an error of between 9 and 19
-        ulps.
-        
-        This routine comes from the Lib/test/test_cmath.py in the python
-        distribution; the function was called almostEqualF.
-        '''
-        # Special values testing
-        if math.isnan(a):
-            return math.isnan(b)
-        if math.isinf(a):
-            return a == b
-        # If both a and b are zero, check whether they have the same sign
-        # (in theory there are examples where it would be legitimate for a
-        # and b to have opposite signs; in practice these hardly ever
-        # occur).
-        if not a and not b:
-            return math.copysign(float(1), a) == math.copysign(float(1), b)
-        # If a - b overflows, or b is infinite, return False.  Again, in
-        # theory there are examples where a is within a few ulps of the
-        # max representable float, and then b could legitimately be
-        # infinite.  In practice these examples are rare.
-        try:
-            absolute_error = abs(b - a)
-        except OverflowError:
-            return False
-        else:
-            return absolute_error <= max(abs_err, rel_err*abs(a))
-    def polar(x, y, deg=False):
-        '''Return the polar coordinates for the given rectangular
-        coordinates.  If deg is True, angle measure is in degrees;
-        otherwise, angles are in radians.
-        '''
-        r2d = 180/math.pi if deg else 1
-        return (math.hypot(x, y), math.atan2(y, x)*r2d)
-    def rect(r, theta, deg=False):
-        '''Return the rectangular coordinates for the given polar
-        coordinates.  If deg is True, angle measure is in degrees;
-        otherwise, angles are in radians.
-        '''
-        d2r = math.pi/180 if deg else 1
-        return (r*math.cos(theta*d2r), r*math.sin(theta*d2r))
-    def isqrt(x):
-        '''Integer square root.  This calculation is done with integers, so it
-        can calculate square roots for large numbers that would overflow the
-        normal square root function.
-        
-        From
-        http://code.activestate.com/recipes/577821-integer-square-root-function/
-        '''
-        if x < 0:
-            raise ValueError("Square root not defined for negative numbers")
-        n = int(x)
-        if n == 0:
-            return 0
-        a, b = divmod(bitlength(n), 2)
-        x = 2**(a + b)
-        while True:
-            y = (x + n//x)//2
-            if y >= x:
-                return x
-            x = y
-    def inverse_normal_cdf(p):
-        '''Compute the inverse CDF for the normal distribution.  Absolute
-        value of the relative error is less than 1.15e-9.
-        
-        Retrieved 28 Feb 2012 from
-        http://home.online.no/~pjacklam/notes/invnorm/impl/field/ltqnorm.txt.
-        This link was provided by the algorithm's developer:
-        http://home.online.no/~pjacklam/notes/invnorm/.
-        
-        DP:  I've made minor changes to formatting, etc.
-        
-        ---------------------------------------------------------------------------
-        Original docstring:
-        
-        Modified from the author's original perl code (original comments follow
-        below) by dfield@yahoo-inc.com.  May 3, 2004.
-        
-        Lower tail quantile for standard normal distribution function.
-        
-        This function returns an approximation of the inverse cumulative
-        standard normal distribution function.  I.e., given P, it returns
-        an approximation to the X satisfying P = Pr{Z <= X} where Z is a
-        random variable from the standard normal distribution.
-        
-        The algorithm uses a minimax approximation by rational functions
-        and the result has a relative error whose absolute value is less
-        than 1.15e-9.
-        
-        Author:      Peter John Acklam
-        Time-stamp:  2000-07-19 18:26:14
-        E-mail:      pjacklam@online.no
-        WWW URL:     http://home.online.no/~pjacklam
-        '''
-        if not (0 < p < 1):
-            raise ValueError(
-                "Argument to inverse_normal_cdf must be in open interval (0,1)"
-            )
-        # Coefficients in rational approximations.
-        a = (
-            -3.969683028665376e01,
-            2.209460984245205e02,
-            -2.759285104469687e02,
-            1.383577518672690e02,
-            -3.066479806614716e01,
-            2.506628277459239e00,
-        )
-        b = (
-            -5.447609879822406e01,
-            1.615858368580409e02,
-            -1.556989798598866e02,
-            6.680131188771972e01,
-            -1.328068155288572e01,
-        )
-        c = (
-            -7.784894002430293e-03,
-            -3.223964580411365e-01,
-            -2.400758277161838e00,
-            -2.549732539343734e00,
-            4.374664141464968e00,
-            2.938163982698783e00,
-        )
-        d = (
-            7.784695709041462e-03,
-            3.224671290700398e-01,
-            2.445134137142996e00,
-            3.754408661907416e00,
-        )
-        # Define break-points
-        plow = 0.02425
-        phigh = 1 - plow
-        # Rational approximation for lower region:
-        if p < plow:
-            q = math.sqrt(-2*math.log(p))
-            num = ((((c[0]*q + c[1])*q + c[2])*q + c[3])*q + c[4])*q + c[5]
-            den = (((d[0]*q + d[1])*q + d[2])*q + d[3])*q + 1
-            return num/den
-            # Original code:
-            # return ((((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) /
-            #        ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1))
-        # Rational approximation for upper region:
-        if phigh < p:
-            q = math.sqrt(-2*math.log(1 - p))
-            num = ((((c[0]*q + c[1])*q + c[2])*q + c[3])*q + c[4])*q + c[5]
-            den = (((d[0]*q + d[1])*q + d[2])*q + d[3])*q + 1
-            return num/den
-            # Original code:
-            # return -((((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) /
-            #         ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1))
-        # Rational approximation for central region:
-        q = p - 0.5
-        r = q*q
-        num = (((((a[0]*r + a[1])*r + a[2])*r + a[3])*r + a[4])*r + a[5])*q
-        den = ((((b[0]*r + b[1])*r + b[2])*r + b[3])*r + b[4])*r + 1
-        return num/den
-        # Original code:
-        # return ((((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q /
-        #        (((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1))
-    def invnormal_as(p):
-        '''26.2.22 from Abramowitz and Stegun; absolute error is < 3e-3.'''
-        if not (0 < p < 1):
-            raise ValueError("p must be in (0, 1)")
-        if p > 0.5:
-            sign = 1
-            p = 1 - p
-        else:
-            sign = -1
-        t = math.sqrt(math.log(1/p**2))
-        return sign*(t - (2.30753 + 0.27061*t)/(1 + 0.99229*t + 0.04481*t**2))
-    if 1:  # Archimedean spirals
-        ''' Length of an Archimedian spiral
+    ''' 
+        Length of an Archimedian spiral
         
         Motivation:  How much toilet paper is on a roll?  One way to measure it
         would be to roll it out.  This is perhaps the most accurate method.  But
@@ -379,7 +156,123 @@ if 1:  # Core functionality
         
             t = 2*pi*a
             a = t/(2*pi)
+    '''
+    def SpiralArcLength(a, theta, degrees=False):
+        '''Calculate the arc length of an Archimedian spiral from angle 0 to theta.
+        theta is in radians unless degrees is True.  The number a is the constant in the
+        polar equation for the spiral r = a*theta.  The formula is exact because it is
+        from an integration.
         '''
+        if a <= 0:
+            raise ValueError("a must be > 0")
+        theta = radians(flt(theta)) if degrees else flt(theta)
+        A = sqrt(theta*theta + 1)
+        return flt(a)/2*(theta*A + math.log(theta + A))
+    def ApproximateSpiralArcLength(ID, OD, thickness):
+        '''Return (length, number_of_layers) for a spiral roll of material
+        given the inside and outside diameters with a uniform thickness.  The
+        three parameters must be measured in the same units and the returned
+        number will be in the same units.
+        
+        The smaller thickness*(OD - ID) is, the better the approximation.
+        
+        Algorithm:  we approximate the length of a fine-pitched spiral by a
+        circle with the diameter equal to the in-between diameter of the spiral
+        by the circle's circumference.
+        '''
+        if ID < 0 or ID >= OD:
+            raise ValueError("ID must be >= 0 and < OD")
+        if OD <= 0:
+            raise ValueError("OD must be > 0")
+        if thickness <= 0:
+            raise ValueError("thickness must be > 0")
+        if 1:
+            # Simpler algorithm:  calculate the number of turns from 
+            #     n = math.ceil((OD - ID/(2*thickness))
+            # then sum the circumferences of the n approximate circles that fit
+            # in between ID and OD.
+            n = math.ceil((OD - ID)/(2*thickness))
+            deltaD, length = (OD - ID)/n, 0
+            for i in range(n):
+                length += math.pi*(ID + i*deltaD)
+            return length
+        else:   # Old algorithm that's not working
+            n = (OD - ID)/thickness
+            if n < 1:
+                raise ValueError("Number of turns is < 1")
+            length, number_of_layers = flt(0), 0
+            for diameter in frange(ID, OD, 2*thickness):
+                D = diameter + thickness  # Use in-between diameter
+                length += math.pi*D
+                number_of_layers += 1
+            return (length, number_of_layers)
+if 1:  # Core functionality
+    def AlmostEqual(a, b, rel_err=2e-15, abs_err=5e-323):
+        '''Determine whether floating-point values a and b are equal to
+        within a (small) rounding error; return True if almost equal and
+        False otherwise.  The default values for rel_err and abs_err are
+        chosen to be suitable for platforms where a float is represented
+        by an IEEE 754 double.  They allow an error of between 9 and 19
+        ulps.
+        
+        This routine comes from the Lib/test/test_cmath.py in the python
+        distribution; the function was called almostEqualF.
+        '''
+        # Special values testing
+        if math.isnan(a):
+            return math.isnan(b)
+        if math.isinf(a):
+            return a == b
+        # If both a and b are zero, check whether they have the same sign
+        # (in theory there are examples where it would be legitimate for a
+        # and b to have opposite signs; in practice these hardly ever
+        # occur).
+        if not a and not b:
+            return math.copysign(float(1), a) == math.copysign(float(1), b)
+        # If a - b overflows, or b is infinite, return False.  Again, in
+        # theory there are examples where a is within a few ulps of the
+        # max representable float, and then b could legitimately be
+        # infinite.  In practice these examples are rare.
+        try:
+            absolute_error = abs(b - a)
+        except OverflowError:
+            return False
+        else:
+            return absolute_error <= max(abs_err, rel_err*abs(a))
+    def polar(x, y, deg=False):
+        '''Return the polar coordinates for the given rectangular
+        coordinates.  If deg is True, angle measure is in degrees;
+        otherwise, angles are in radians.
+        '''
+        r2d = 180/math.pi if deg else 1
+        return (math.hypot(x, y), math.atan2(y, x)*r2d)
+    def rect(r, theta, deg=False):
+        '''Return the rectangular coordinates for the given polar
+        coordinates.  If deg is True, angle measure is in degrees;
+        otherwise, angles are in radians.
+        '''
+        d2r = math.pi/180 if deg else 1
+        return (r*math.cos(theta*d2r), r*math.sin(theta*d2r))
+    def isqrt(x):
+        '''Integer square root.  This calculation is done with integers, so it
+        can calculate square roots for large numbers that would overflow the
+        normal square root function.
+        
+        From
+        http://code.activestate.com/recipes/577821-integer-square-root-function/
+        '''
+        if x < 0:
+            raise ValueError("Square root not defined for negative numbers")
+        n = int(x)
+        if n == 0:
+            return 0
+        a, b = divmod(n.bit_length(), 2)
+        x = 2**(a + b)
+        while True:
+            y = (x + n//x)//2
+            if y >= x:
+                return x
+            x = y
     def CountBits(num):
         'Return (n_on, n_off), the number of on and off bits in the integer |num|'
         if not isinstance(num, int):
@@ -720,28 +613,52 @@ if 1:  # Core functionality
         else:
             y = seq[0]
         return y
-    def LengthOfRopeOnDrum(dia, width, flange_dia, barrel_dia):
-        '''Return the length of rope of diameter dia that will fit on a
-        winch drum of diameter barrel_dia.  The width of winding area is
-        width and the maximum diameter of the drum's flange is flange_dia.
-        These variables are in inches and the output length is in ft.
+    def LengthOfRopeOnDrum(rope_dia_in, width_in, flange_dia_in, barrel_dia_in):
+        '''Return the length of rope of diameter rope_dia_in that will fit on a winch
+        drum of diameter barrel_dia.  The width of winding area is width and the maximum
+        diameter of the drum's flange is flange_dia.  These variables are in inches and
+        the output length is in ft.  Formula from Sampson Rope Users Manual pg. 28.
         
         Here's a post on math.stackexchange that discusses this problem
         https://math.stackexchange.com/questions/3853557/how-to-calculate-the-length-of-cable-on-a-winch-given-the-rotations-of-the-drum
         '''
-        # Formula from Sampson Rope Users Manual pg. 28.  Note the formula
-        # is for all input variables in inches and output length in feet.
-        A = width
-        B = flange_dia
-        C = barrel_dia
-        rope_dia = dia
-        L = flt(A*(B**2 - C**2)/(15.3*rope_dia**2))
+        L = flt(width_in*(flange_dia_in**2 - barrel_dia_in**2)/(15.3*rope_dia_in**2))
         return L
+    def PythagoreanSum(x, y, epsilon=1e-9):
+        '''Computes sqrt(x**2 + y**2) using a cubically-convergent algorithm from Moler and
+        Morrison 1983 (IBM J. Res. Develop. vol 27, no. 6, Nov 1983.  The algorithm is
+        terminated when abs((p[i] - p[i-1])/p[i]) is less than abs(epsilon).  With floats,
+        it will never need more than three iterations.
+        
+        The benefit of this algorithm is that it avoids pernicious overflows or underflows
+        caused by using the naive formula sqrt(x**2 + y**2).  It's also robust.  It's
+        particularly fast when the magnitude of x and y different significantly.
+        '''
+        if not x and not y:
+            return 0
+        p, q, n, plast = max(abs(x), abs(y)), min(abs(x), abs(y)), 0, None
+        while q:
+            r = (q/p)**2
+            s = r/(4 + r)
+            p = p + 2*s*p
+            q = s*q
+            n += 1
+            if plast is not None:   # Check for convergence
+                diff = abs((p - plast)/p)
+                if diff < abs(epsilon):
+                    break
+                #print(f"{n}: p = {p} q = {q}   diff = {diff}")
+            plast = p
+        return p
+
 if __name__ == "__main__":
     from lwtest import run, raises, assert_equal, Assert
     from f import flt, tau, radians, log, sqrt
     from random import randint
+    from color import t
     eps = 1e-15
+    def Test_PythagoreanSum():
+        assert_equal(PythagoreanSum(3, 4, epsilon=1e-16), 5, abstol=eps)
     def Test_polyeval():
         Assert(polyeval((3, 2, 1), 6) == 51)
         Assert(polyeval((1, 2, 3), 6, lowest_first=False) == 51)
@@ -783,122 +700,6 @@ if __name__ == "__main__":
         while n < n0**8:
             Assert(isqrt(n*n) == n)
             n = 3*n // 2
-    def Test_invnorm():
-        '''I used scipy from a winpython36 installation to generate
-        100 test points.
-        '''
-        tol_ack = 1.15e-9
-        data = '''
-            0.01 -2.3263478740408408
-            0.02 -2.053748910631823
-            0.03 -1.880793608151251
-            0.04 -1.75068607125217
-            0.05 -1.6448536269514729
-            0.06 -1.5547735945968535
-            0.07 -1.4757910281791706
-            0.08 -1.4050715603096329
-            0.09 -1.3407550336902165
-            0.1 -1.2815515655446004
-            0.11 -1.2265281200366098
-            0.12 -1.1749867920660904
-            0.13 -1.1263911290388007
-            0.14 -1.0803193408149558
-            0.15 -1.0364333894937898
-            0.16 -0.994457883209753
-            0.17 -0.9541652531461943
-            0.18 -0.915365087842814
-            0.19 -0.8778962950512288
-            0.2 -0.8416212335729142
-            0.21 -0.8064212470182404
-            0.22 -0.7721932141886848
-            0.23 -0.7388468491852137
-            0.24 -0.7063025628400874
-            0.25 -0.6744897501960817
-            0.26 -0.643345405392917
-            0.27 -0.6128129910166272
-            0.28 -0.5828415072712162
-            0.29 -0.5533847195556729
-            0.3 -0.5244005127080409
-            0.31 -0.4958503473474533
-            0.32 -0.46769879911450823
-            0.33 -0.4399131656732338
-            0.34 -0.41246312944140473
-            0.35 -0.38532046640756773
-            0.36 -0.3584587932511938
-            0.37 -0.33185334643681663
-            0.38 -0.3054807880993974
-            0.39 -0.27931903444745415
-            0.4 -0.2533471031357997
-            0.41 -0.22754497664114948
-            0.42 -0.20189347914185088
-            0.43 -0.17637416478086135
-            0.44 -0.15096921549677725
-            0.45 -0.12566134685507402
-            0.46 -0.10043372051146975
-            0.47 -0.0752698620998299
-            0.48 -0.05015358346473367
-            0.49 -0.02506890825871106
-            0.5 0.0
-            0.51 0.02506890825871106
-            0.52 0.05015358346473367
-            0.53 0.0752698620998299
-            0.54 0.10043372051146988
-            0.55 0.12566134685507416
-            0.56 0.1509692154967774
-            0.57 0.1763741647808612
-            0.58 0.20189347914185074
-            0.59 0.22754497664114934
-            0.6 0.2533471031357997
-            0.61 0.27931903444745415
-            0.62 0.3054807880993974
-            0.63 0.33185334643681663
-            0.64 0.3584587932511938
-            0.65 0.38532046640756773
-            0.66 0.41246312944140495
-            0.67 0.4399131656732339
-            0.68 0.4676987991145084
-            0.69 0.4958503473474532
-            0.7 0.5244005127080407
-            0.71 0.5533847195556727
-            0.72 0.5828415072712162
-            0.73 0.6128129910166272
-            0.74 0.643345405392917
-            0.75 0.6744897501960817
-            0.76 0.7063025628400874
-            0.77 0.7388468491852137
-            0.78 0.7721932141886848
-            0.79 0.8064212470182404
-            0.8 0.8416212335729143
-            0.81 0.8778962950512289
-            0.82 0.9153650878428138
-            0.83 0.9541652531461943
-            0.84 0.994457883209753
-            0.85 1.0364333894937898
-            0.86 1.0803193408149558
-            0.87 1.1263911290388007
-            0.88 1.1749867920660904
-            0.89 1.2265281200366105
-            0.9 1.2815515655446004
-            0.91 1.3407550336902165
-            0.92 1.4050715603096329
-            0.93 1.475791028179171
-            0.94 1.5547735945968535
-            0.95 1.6448536269514722
-            0.96 1.7506860712521692
-            0.97 1.8807936081512509
-            0.98 2.0537489106318225
-            0.99 2.3263478740408408
-        '''[1:-1]
-        for line in data.split("\n"):
-            if not line.strip():
-                continue
-            p, exact = [float(i) for i in line.split()]
-            approx = inverse_normal_cdf(p)
-            if p != 0.5:
-                rel_error = abs((approx - exact)/exact)
-                Assert(rel_error < tol_ack)
-            else:
-                Assert(abs(approx - exact) < tol_ack)
     def Test_Archimedean_exact():
         # a = 1, one revolution
         a, theta = 1, 2*math.pi
@@ -909,7 +710,6 @@ if __name__ == "__main__":
         # Get ValueError for a < 0
         raises(ValueError, SpiralArcLength, -1, 1)
     def Test_Archimedean_approximation():
-        return #xx
         # Approximation:  for a large diameter circle, one revolution of a
         # fine-pitch spiral should be nearly equal to the circumference.
         a, n_revolutions = 1, 10000
@@ -923,6 +723,7 @@ if __name__ == "__main__":
         circumference = D*math.pi
         assert_equal(circumference, arc_len, reltol=1e-8)
     def Test_Archimedean_approximate_formula():
+        t.print(f"{t.ornl}dpmath.py:  Test_Archimedean_approximate_formula is broken") #xx
         return #xx
         ID, OD = 1, 2
         thickness = 0.001
@@ -930,7 +731,7 @@ if __name__ == "__main__":
         diameters = list(frange("1", "2", str(pitch)))
         # Sum the circumferences
         estL1 = sum([dia*math.pi for dia in diameters])
-        estL2 = ApproximateSpiralArcLength(ID, OD, thickness)[0]
+        estL2 = ApproximateSpiralArcLength(ID, OD, thickness)
         # estL1 = 2354.6236938655497, estL2 = 2356.194490192345, within 0.067%
         assert_equal(estL1, estL2, reltol=0.002)
         # Now compare to exact formula
@@ -1145,7 +946,7 @@ if __name__ == "__main__":
         Assert(signum(5) == 1)
         Assert(signum(0) == 0)
         t = float
-        Assert(isinstance(signum(5, ret_type=t), t))
+        Assert(isinstance(signum(5, return_type=t), t))
     def TestPercentile():
         s = sorted(
             [  # NIST gauge study data from

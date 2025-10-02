@@ -1,86 +1,78 @@
-"""
+'''
 Provides probability functions used in basic statistics
 
-    Use the convenience instances normal, chisq, F, binomial, student_t,
-    and poisson.  Call the cdf() method for the CDF and icdf() method for
-    the inverse CDF.  When needed, degree of freedom arguments come first.
-
+    Use the convenience instances normal, chisq, F, binomial, student_t, and poisson.
+    Call the cdf() method for the CDF and icdf() method for the inverse CDF.  When
+    needed, degree of freedom arguments come first.
+    
     Examples
-
-        1) What is the probability of a standard normal deviate being -1.8
-           and 1.8 standard deviations from the mean?
-
+    
+        1) What is the probability of a standard normal deviate being -1.8 and 1.8
+           standard deviations from the mean?
+           
                 print(normal.cdf(-1.8)) --> 0.0359
                 print(normal.cdf(1.8))  --> 0.964
-
-           As expected, they sum to unit probability.  For more digits, set
-           the N attribute of a flt instance to a higher number:
-
+                
+           As expected, they sum to unit probability.  For more digits, set the N
+           attribute of a flt instance to a higher number:
+           
                 flt(0).N = 8
                 print(normal.cdf(-1.8)) --> 0.035930319
                 print(normal.cdf(1.8))  --> 0.96406968
-
-        2) A linear regression ANOVA had an F statistic ratio of 31.2 with
-           df1 = 12 and df2 = 4.  What is the significance level?
-
+                
+        2) A linear regression ANOVA had an F statistic ratio of 31.2 with df1 = 12 and
+           df2 = 4.  What is the significance level?
+           
                 print(F.cdf(12, 4, 31.2)) --> 0.998
-
-           You'd thus expect no effect to have an F value this large only
-           once in 500 times, so the regression is likely significant.
-
+                
+           You'd thus expect no effect to have an F value this large only once in 500
+           times, so the regression is likely significant.
+           
     Implementation
-
+    
         The implementation uses S. Moshier's cephes library functions from
         https://netlib.org/cephes (the double precision library).
-
-        Other distributions and special functions can be added by editing
-        the construction of the cephes.dll DLL in cephes/makefile, then
-        adding calling support in this module.  The DLL build is specific
-        to cygwin and cygwin's python 3.7; other environments will need
-        different tools.
-
-        Method overview:  ctypes.cdll.LoadLibrary() is used to get a handle
-        to the DLL.  This is used in each of the classes derived from the
-        Prob class to access the needed compiled C functions in cephes.dll.
-        It's important to specify the C types of the C function's input
-        parameters (the .argtypes attribute) and the C function's return
-        type (the .restype attribute), otherwise things will seem to work
-        but the numbers will be wrong.
-
-        Testing:  run this module with the --test option to run the
-        self-tests.  These tests include a TestUsing_mpmath() function that
-        will compare Moshier's functions' output to those of mpmath.
-        mpmath's ncdf, incomplete gamma, and incomplete beta functions
-        provide arbitrary-precision checks of Moshier's functions and
-        results agree to around 2e-16, which is typical IEEE floating point
-        precision levels.
-
-        Precision:  Moshier's documentation indicates worst-case conditions
-        from his domain tests should give around 9 digits of precision in
-        terms of relative error and usually 14 or more.  Even 9 digits is
-        well beyond what is needed for practical work, which most of the
-        time only needs two or three digits.
-
-        For making important decisions where the cost of a mistake is
-        significant, I'd recommend backing up this module's results with a
-        calculation by mpmath AND looking up things in a trusted printed
-        reference.  Then get a coworker to check your results.  Mistakes
-        are often caused by lack of standardization and documentation
-        (stuff found on the web is often particularly crappy).  For
-        example, that table you're using might be for one-sided tests, but
-        the authors decided to make it a double-sided test -- and they
-        don't label their assumptions or give you a picture of the
-        integrand's graph being evaluated.  Another example is the
-        significance level is in % but you assumed it wasn't or vice versa.
-        In the 70's and 80's when I did a fair bit of experimental work, my
-        favorite statistics reference was Crow, "Statistics Manual", 1955
-        (republished by Dover in 1960) because it was both terse and
-        carefully labeled.  "Biometrika Tables" by Pearson and Hartley is
-        also good, but you'll want to make sketches of the functions being
-        integrated on the tables you're using.
-
-"""
-
+        
+        Other distributions and special functions can be added by editing the
+        construction of the cephes.dll DLL in cephes/makefile, then adding calling
+        support in this module.  The DLL build is specific to cygwin and cygwin's python
+        3.7; other environments will need different tools.
+        
+        Method overview:  ctypes.cdll.LoadLibrary() is used to get a handle to the DLL.
+        This is used in each of the classes derived from the Prob class to access the
+        needed compiled C functions in cephes.dll.  It's important to specify the C
+        types of the C function's input parameters (the .argtypes attribute) and the C
+        function's return type (the .restype attribute), otherwise things will seem to
+        work but the numbers will be wrong.
+        
+        Testing:  run this module with the --test option to run the self-tests.  These
+        tests include a TestUsing_mpmath() function that will compare Moshier's
+        functions' output to those of mpmath.  mpmath's ncdf, incomplete gamma, and
+        incomplete beta functions provide arbitrary-precision checks of Moshier's
+        functions and results agree to around 2e-16, which is typical IEEE floating
+        point precision levels.
+        
+        Precision:  Moshier's documentation indicates worst-case conditions from his
+        domain tests should give around 9 digits of precision in terms of relative error
+        and usually 14 or more.  Even 9 digits is well beyond what is needed for
+        practical work, which most of the time only needs two or three digits.
+        
+        For making important decisions where the cost of a mistake is significant, I'd
+        recommend backing up this module's results with a calculation by mpmath (and
+        scipy if desired ) AND looking up things in a trusted printed reference.  Then
+        get a coworker to check your results.  Mistakes are often caused by lack of
+        standardization and documentation (stuff found on the web is often particularly
+        crappy).  For example, that table you're using might be for one-sided tests, but
+        the authors decided to make it a double-sided test -- and they don't label their
+        assumptions or give you a picture of the integrand's graph being evaluated.
+        Another example is the significance level is in % but you assumed it wasn't or
+        vice versa.  In the 70's and 80's when I did a fair bit of experimental work, my
+        favorite statistics reference was Crow, "Statistics Manual", 1955 (republished
+        by Dover in 1960) because it was both terse and carefully labeled.  "Biometrika
+        Tables" by Pearson and Hartley is also good, but you'll want to make sketches of
+        the functions being integrated on the tables you're using.
+        
+'''
 if 1:  # Header
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -101,54 +93,47 @@ if 1:  # Header
     from pathlib import Path as P
     import sys
     from pdb import set_trace as xx
-
     # Custom imports
     from wrap import wrap, dedent
     from color import Color, TRM as t
     from f import flt
     from lwtest import run, raises, assert_equal, Assert
     from frange import frange
-
     try:
         import mpmath
-
         have_mpmath = True
     except ImportError:
         have_mpmath = False
     if 0:
         import debug
-
         debug.SetDebugger()
     # Global variables
     ii = isinstance
     W = int(os.environ.get("COLUMNS", "80")) - 1
     L = int(os.environ.get("LINES", "50"))
-    __all__ = """normal chisq F binomial student_t poisson
-            Prob Normal Chisq Fdist Binomial StudentT Poisson""".split()
+    __all__ = '''normal chisq F binomial student_t poisson
+            Prob Normal Chisq Fdist Binomial StudentT Poisson'''.split()
     # Colors
     t.ti = t("grnl")
     t.hdr = t("purl")
     t.first = t("sky")
     t.warn = t("ornl")
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options] dist
           Print basic statistics tables.  dist should be:  normal,
           chisq, or t.
         Options:
             -h      Print a manpage
             -i      Print inverse CDF.
-        """)
+        ''')
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-i"] = False  # Print inverse CDF
         d["-d"] = 4  # Number of significant digits
@@ -175,42 +160,35 @@ if 1:  # Utility
             elif o in ("-h", "--help"):
                 Usage(status=0)
         return args
-
-
 if 1:  # Classes
     # Distributions:  normal, chisq, F, binomial, t, Poisson
     class Prob:
-        """Call instance.cdf() or instance.icdf() with appropriate
+        '''Call instance.cdf() or instance.icdf() with appropriate
         arguments for the distribution.
-        """
-
+        '''
         def __init__(self, dll):
             self.dll = dll
-
         def cdf(self):
             "Return the cumulative distribution function"
             raise TypeError("Abstract method")
-
         def icdf(self):
             "Return the inverse cumulative distribution function"
             raise TypeError("Abstract method")
-
         def check_p(self, p, full=False):
-            """Verify that a probability p has acceptable values.  p must
+            '''Verify that a probability p has acceptable values.  p must
             be on (0, 1) if full is False and on [0, 1] if full is True.
-            """
+            '''
             if full:
                 if not (0 <= p <= 1):
                     raise ValueError("p must be on [0, 1]")
             else:
                 if not (0 < p < 1):
                     raise ValueError("p must be on (0, 1)")
-
         def check_df(self, df, allow_zero=False):
-            """Verify a degrees of freedom variable, which must be an
+            '''Verify a degrees of freedom variable, which must be an
             integer > 0 if allow_zero is False and >= 0 if allow_zero is
             True.
-            """
+            '''
             if not ii(df, int):
                 raise TypeError("Argument must be an integer")
             if allow_zero:
@@ -219,7 +197,6 @@ if 1:  # Classes
             else:
                 if df <= 0:
                     raise ValueError("Argument must be > 0")
-
     class Normal(Prob):
         def __init__(self, dll):
             super().__init__(dll)
@@ -229,15 +206,12 @@ if 1:  # Classes
             self._icdf = self.dll.ndtri
             self._icdf.argtypes = [c_double]
             self._icdf.restype = c_double
-
         def cdf(self, x):
             return flt(self._cdf(x))
-
         def icdf(self, p):
             if not (0 < p < 1):
                 raise ValueError("p must be on (0, 1)")
             return flt(self._icdf(p))
-
     class Chisq(Prob):
         def __init__(self, dll):
             super().__init__(dll)
@@ -247,18 +221,15 @@ if 1:  # Classes
             self._icdf = self.dll.chdtri
             self._icdf.argtypes = [c_double, c_double]
             self._icdf.restype = c_double
-
         def cdf(self, df, x):
             self.check_df(df)
             return flt(self._cdf(df, x))
-
         def icdf(self, df, p):
             # Note the cephes inverse is of the complemented CDF (i.e.,
             # area under the right-hand tail), so we call with 1 - p.
             self.check_df(df)
             self.check_p(p)
             return flt(self._icdf(df, 1 - p))
-
     class Fdist(Prob):
         def __init__(self, dll):
             super().__init__(dll)
@@ -268,14 +239,12 @@ if 1:  # Classes
             self._icdf = self.dll.fdtri
             self._icdf.argtypes = [c_int, c_int, c_double]
             self._icdf.restype = c_double
-
         def cdf(self, df1, df2, x):
             if x <= 0:
                 raise ValueError("x must be > 0")
             self.check_df(df1)
             self.check_df(df2)
             return flt(self._cdf(df1, df2, x))
-
         def icdf(self, df1, df2, p):
             # Note the cephes inverse is of the complemented CDF (i.e.,
             # area under the right-hand tail), so we call with 1 - p.
@@ -283,7 +252,6 @@ if 1:  # Classes
             self.check_df(df2)
             self.check_p(p)
             return flt(self._icdf(df1, df2, 1 - p))
-
     class Binomial(Prob):
         def __init__(self, dll):
             super().__init__(dll)
@@ -293,23 +261,20 @@ if 1:  # Classes
             self._icdf = self.dll.bdtri
             self._icdf.argtypes = [c_int, c_int, c_double]
             self._icdf.restype = c_double
-
         def cdf(self, k, n, p):
             self.check_df(k, allow_zero=True)
             self.check_df(n)
             self.check_p(p, full=True)
             return flt(self._cdf(k, n, p))
-
         def icdf(self, k, n, p):
-            """Returns the binomial event probability such that the sum of
+            '''Returns the binomial event probability such that the sum of
             the terms of 0 to k for size n is equal to the cumulative
             probability p.
-            """
+            '''
             self.check_df(k, allow_zero=True)
             self.check_df(n)
             self.check_p(p, full=True)
             return flt(self._icdf(k, n, p))
-
     class StudentT(Prob):
         def __init__(self, dll):
             super().__init__(dll)
@@ -319,16 +284,13 @@ if 1:  # Classes
             self._icdf = self.dll.stdtri
             self._icdf.argtypes = [c_int, c_double]
             self._icdf.restype = c_double
-
         def cdf(self, df, x):
             self.check_df(df)
             return flt(self._cdf(df, x))
-
         def icdf(self, df, p):
             self.check_df(df)
             self.check_p(p)
             return flt(self._icdf(df, p))
-
     class Poisson(Prob):
         def __init__(self, dll):
             super().__init__(dll)
@@ -338,19 +300,15 @@ if 1:  # Classes
             self._icdf = self.dll.pdtri
             self._icdf.argtypes = [c_int, c_double]
             self._icdf.restype = c_double
-
         def cdf(self, k, λ):
             self.check_df(k, allow_zero=True)
             if λ < 0:
                 raise ValueError("λ must be >= 0")
             return flt(self._cdf(k, λ))
-
         def icdf(self, k, p):
             self.check_df(k, allow_zero=True)
             self.check_p(p)
             return flt(self._icdf(k, p))
-
-
 if 1:  # Convenience class instances
     _dll = cdll.LoadLibrary("/plib/cephes.dll")
     normal = Normal(_dll)
@@ -360,7 +318,6 @@ if 1:  # Convenience class instances
     student_t = StudentT(_dll)
     poisson = Poisson(_dll)
 if 1:  # Test functions
-
     def TestNormal():
         x = flt(0.51)
         a = normal.cdf(x)
@@ -373,7 +330,6 @@ if 1:  # Test functions
         # Illegal stuff
         raises(ValueError, normal.icdf, 0)
         raises(ValueError, normal.icdf, 1)
-
     def TestChisq():
         x, df = flt(0.554), 5
         # Should get CDF around 0.01
@@ -385,7 +341,6 @@ if 1:  # Test functions
         raises(TypeError, chisq.cdf, 5.0, 0)
         raises(ValueError, chisq.icdf, 5, 0)
         raises(ValueError, chisq.icdf, 5, 1)
-
     def TestF():
         x, df1, df2 = flt(8.75), 5, 6
         # Should get CDF around 0.99
@@ -398,7 +353,6 @@ if 1:  # Test functions
         raises(TypeError, F.cdf, 5, 0.0, 1)
         raises(ValueError, F.icdf, 5, 6, 0)
         raises(ValueError, F.icdf, 5, 6, 1)
-
     def TestBinomial():
         p, k, n = flt(0.75), 2, 4
         # We can calculate the probability from
@@ -420,7 +374,6 @@ if 1:  # Test functions
         raises(TypeError, binomial.icdf, 5, 0.0, 1)
         raises(ValueError, binomial.icdf, 2, 3, -0.1)
         raises(ValueError, binomial.icdf, 2, 3, 1.1)
-
     def TestStudentT():
         x, df = flt(4.032), 5
         p = student_t.cdf(df, x)
@@ -439,12 +392,10 @@ if 1:  # Test functions
         raises(TypeError, student_t.icdf, 5.0, 0.5)
         raises(ValueError, student_t.icdf, 5, 0)
         raises(ValueError, student_t.icdf, 5, 1)
-
     def TestPoisson():
         λ, k = 0.5, 1
         # CDF is exp(-λ)*(1 + λ)
         from f import exp
-
         expected = exp(-λ) * (1 + λ)
         got = poisson.cdf(k, λ)
         Assert(expected == got)
@@ -456,7 +407,6 @@ if 1:  # Test functions
         raises(TypeError, poisson.icdf, 5.0, 0.5)
         raises(ValueError, poisson.icdf, 5, 0)
         raises(ValueError, poisson.icdf, 5, 1)
-
     def TestUsing_mpmath():
         if not have_mpmath:
             t.print(f"{t.warn}{sys.argv[0]}:  mpmath not available for testing")
@@ -522,11 +472,8 @@ if 1:  # Test functions
                         )
                     )
                     assert_equal(cdf1, cdf2, abstol=eps)
-
-
 if 1:  # Table functions
     X = flt(0)
-
     def Table(name):
         X.N = d["-d"]
         X.rtz = X.rtdp = False
@@ -542,18 +489,15 @@ if 1:  # Table functions
             ChiSquareTable()
         else:
             Error(f"{name!r} not recognized")
-
     def NormalTable():
         c0 = 4  # Width of first column
         w = (W - c0) // 10  # Width of numerical columns
-
         def Hdr():
             t.print(f"{t.ti}{'Normal CDF':^{W}s}")
             print(" " * c0, end=f"{t.hdr}")
             for i in range(10):
                 print(f"{i / 100!s:^{w}s}", end="")
             t.print()
-
         Hdr()
         done = False
         for i in frange("0.0", "4.1", "0.1", return_type=flt):
@@ -572,11 +516,9 @@ if 1:  # Table functions
             print()
             if done:
                 break
-
     def InvNormalTable():
         c0 = 6  # Width of first column
         w = (W - c0) // 10  # Width of numerical columns
-
         # Percentage point table
         def NormHdr():
             t.print(f"{t.ti}{'Inverse Normal CDF':^{W}s}")
@@ -584,7 +526,6 @@ if 1:  # Table functions
             for i in range(10):
                 print(f"{i / 100!s:^{w}s}", end="")
             t.print()
-
         NormHdr()
         for i in frange("0.0", "1.0", "0.1", return_type=flt):
             for j in frange("0", "0.1", "0.01"):
@@ -620,7 +561,6 @@ if 1:  # Table functions
             z = normal.icdf(p)
             print(f"{z!s:^{w}s}", end="")
         print()
-
     def TTable():
         c0 = 4  # Width of first column
         sigpct = (20, 15, 10, 5, 2.5, 1, 0.5, 0.1)
@@ -640,7 +580,6 @@ if 1:  # Table functions
                 cv = student_t.icdf(df, 1 - p / 100)
                 print(f"{cv!s:^{w}s}", end="")
             print()
-
     def ChiSquareTable():
         c0 = 4  # Width of first column
         sigpct = (50, 30, 20, 10, 5, 2, 1, 0.1)
@@ -659,8 +598,6 @@ if 1:  # Table functions
                 cv = chisq.icdf(df, 1 - p / 100)
                 print(f"{cv!s:^{w}s}", end="")
             print()
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

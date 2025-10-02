@@ -1,21 +1,40 @@
 /plib/.todo
 
+    - pgm/lf.py
+        - If a function isn't matched on the command line, the argument becomes a regex
+          to search for in the list of functions and its first line is printed
+
     - cephes
         - What happened to the cephes.dll I had?  I must have deleted it for some
           reason, but it definitely should be kept around to give fast calculation of
           various mathematical functions.
-        - Search for it back in time...
+        - This is the last commit that had the cephes directory in it:
+            - commit 3df32ae4cfef4e6c0617c465f472266309df99d5
+            - Author: Don Peterson <someonesdad1@gmail.com>
+            - Date:   Thu Nov 16 17:36:48 2023 +0000
+        - I have put it under lib and I will see if I can get it to work under WSL.  If 
+          so, it should be documented and maintained in both WSL and cygwin, as it's a
+          useful way to get special functions.  Even though scipy is available under WSL
+          and that would probably be the preferred way to get special functions, having
+          cephes will occasionally be useful for things like independent verification of
+          some result or providing a fast library for e.g. hc.py.
 
-    - tt
+    - tt:  texttool
         - Simple and fast text processing tool
             - My mp (pgm/tsub.py) and Dev/tp.py don't work right
-        - Keep it simple, write it in awk
+        - Note:  I wrote tp.py for the family history project and it pretty much does
+          what's needed, though it's such a useful tool that if it was written in awk,
+          it would be much faster than python.
         - My key needs are the following commands
-            - ..date  Inserts current date/time
+            - Date/time macros
+                - ..date  Inserts current date such as 12 Jan 2025
+                - ..time  Inserts current time such as 08:23:16 am
+                - ..datetime  Inserts current date/time such as 12 Jan 2025 08:23:16 am
             - ..on  Turn text output on
             - ..off  Turn text output off
             - ..include file  Insert the contents of a file
             - ..sinclude file  Insert the contents of a file, but no error if it's not there
+            - ..include and ..sinclude need to act recursively
         - The '..' is used because mp gets errors on files like my family history file.
           This large file would have e.g. .38 or .45 at the beginning of the line and
           the tool choked.
@@ -238,6 +257,8 @@
             - The old stuff is dated May 2021.  Update to Jun 2025.
 
     - color.py
+        - Need Lighten() and Darken() to keep a color's hue, but adjust things up or
+          down
         - /plib/rgb
             - Fix up chromaticity directory's stuff
         - TRM needs a way to ensure all attribute access returns "" when .on is False.
@@ -574,13 +595,19 @@
         - Check current stock of resistors and make sure all are covered
 
     - lwtest.py
-        - For easier writing/grouping of test cases, it would be nice to be able to nest testing
-          functions and have them found and executed rather than having to call each nested
-          function.  This shouldn't be on by default, but turned on by a keyword to run().
-        - Write a utility function FindTestFunctions(*files) that finds test functions and returns
-          them in a list in the order they were found in a file.  This handles the use case of
-          making a demo by setting the regexp to "^Demo_" and running the functions in the order
-          they were encountered in the file.
+        - When assert_equal prints out an error message, figure out how to colorize
+          the failed line before all the lines in lwtest.py.  This points you quickly
+          to the failing line in your code.  The traceback is gotten at line 234.
+          It could be made specific to the AssertionError type by removing all the 
+          tracebacks that are in lwtest.py.
+        - For easier writing/grouping of test cases, it would be nice to be able to nest
+          testing functions and have them found and executed rather than having to call
+          each nested function.  This shouldn't be on by default, but turned on by a
+          keyword to run().
+        - Write a utility function FindTestFunctions(*files) that finds test functions
+          and returns them in a list in the order they were found in a file.  This
+          handles the use case of making a demo by setting the regexp to "^Demo_" and
+          running the functions in the order they were encountered in the file.
             - Example
 
                     def x():
