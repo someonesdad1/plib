@@ -1,9 +1,5 @@
 /plib/.todo
 
-    - pgm/lf.py
-        - If a function isn't matched on the command line, the argument becomes a regex
-          to search for in the list of functions and its first line is printed
-
     - tt:  texttool
         - Simple and fast text processing tool
             - My mp (pgm/tsub.py) and Dev/tp.py don't work right
