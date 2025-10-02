@@ -4,21 +4,6 @@
         - If a function isn't matched on the command line, the argument becomes a regex
           to search for in the list of functions and its first line is printed
 
-    - cephes
-        - What happened to the cephes.dll I had?  I must have deleted it for some
-          reason, but it definitely should be kept around to give fast calculation of
-          various mathematical functions.
-        - This is the last commit that had the cephes directory in it:
-            - commit 3df32ae4cfef4e6c0617c465f472266309df99d5
-            - Author: Don Peterson <someonesdad1@gmail.com>
-            - Date:   Thu Nov 16 17:36:48 2023 +0000
-        - I have put it under lib and I will see if I can get it to work under WSL.  If 
-          so, it should be documented and maintained in both WSL and cygwin, as it's a
-          useful way to get special functions.  Even though scipy is available under WSL
-          and that would probably be the preferred way to get special functions, having
-          cephes will occasionally be useful for things like independent verification of
-          some result or providing a fast library for e.g. hc.py.
-
     - tt:  texttool
         - Simple and fast text processing tool
             - My mp (pgm/tsub.py) and Dev/tp.py don't work right
@@ -105,6 +90,18 @@
         - Add a function xxd() that uses xxd to do dump an object to stdout that can be
           converted into a bytes object.  You can choose binary or hex and the -a option
           is used to compress the output, which is valuable for sparse arrays.
+
+    - cephes
+        - I deleted it in late 2023 based on a binary search with git revisions.
+            - This is the last commit that had the cephes directory in it:
+                - commit 3df32ae4cfef4e6c0617c465f472266309df99d5
+                - Author: Don Peterson <someonesdad1@gmail.com>
+                - Date:   Thu Nov 16 17:36:48 2023 +0000
+        - I likely felt that it wasn't worth keeping, as mpmath and scipy can do
+          the things needed.
+        - I put it in /plib/Dev/cephes.zip (not checked in)
+        - If I want to resurrect it, it needs to be built for both cygwin and WSL.
+          cygwin is simple, but WSL is harder (look at the 0readme file in the zipfile)
 
     - pgm/int.py
         - Should use /usr/bin/factor for factoring, as it's much better than my python
