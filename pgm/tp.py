@@ -85,12 +85,12 @@ if 1:   # Utility
         '''
         g.command_line_regex = re.compile(r, re.I|re.X)
     def GetColors():
-        t.Hash = t.lavl
+        t.Hash = t.sky
         t.On = t.grnl
-        t.Off = t.yell
+        t.Off = t.redl
         t.Toggle = t.denl
         t.Include = t.ornl
-        t.Sinclude = t.brnl
+        t.Sinclude = t.magl
         #
         t.err = t.redl
         t.dbg = t.trqd if g.dbg else ""
@@ -253,9 +253,9 @@ if 1:   # Classes
             'Set up needed stuff to work as a module'
             GetRegex()
             GetColors()
-            d["-d"] = False
-            d["-l"] = False
-            d["-o"] = False
+            #d["-d"] = False
+            #d["-l"] = False
+            #d["-o"] = False
         def __call__(self):     # Process our lines
             def Pr(color, line):
                 t.print(f"{color}[{self.file}:{self.linenum}]: {line.strip()}", file=self.stream)
@@ -267,6 +267,7 @@ if 1:   # Classes
                 Error(f"{token!r} is a bad token")
             for line in self.lines:
                 self.linenum += 1
+                ftoken = None
                 if 1:   # Look for a command match
                     mo = g.command_line_regex.search(line)
                     if mo:  # Only change the state
@@ -342,8 +343,9 @@ if 1:   # Classes
                             line = line[:loc] + "4030 N. Shamrock Ave., Boise ID"+ line[loc + macrolen:]
                         elif macro == f"{g.macro_char}phon":
                             line = line[:loc] + "208-409-5134"+ line[loc + macrolen:]
-                if Text.on and not d["-l"]:
-                    print(line, file=self.stream)
+                if Text.on and (not d["-l"]):
+                    if ftoken is None:
+                        print(line, file=self.stream)
 
 if __name__ == "__main__":
     files = ParseCommandLine(d)
