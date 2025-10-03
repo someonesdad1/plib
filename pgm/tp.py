@@ -80,7 +80,7 @@ if 1:   # Utility
             {a}({p}include{s})|
             {a}({p}sinclude{s})
         '''
-        g.r = re.compile(r, re.I|re.X)
+        g.command_line_regex = re.compile(r, re.I|re.X)
     def GetColors():
         t.Hash = t.lavl
         t.On = t.grnl
@@ -159,9 +159,9 @@ if 1:   # Utility
             that such strings interfere with the content of your files.  In this case,
             you can use the -p (for 'prefix') and -s (for 'suffix') options to change
             the command strings.  These strings will be inserted in the regex in the
-            global variable g.r, so you'll want to escape with a backslash any
-            characters that have special meaning to python regular.  You may need two
-            backslashes, depending on your shell.
+            global variable g.command_line_regex, so you'll want to escape with a
+            backslash any characters that have special meaning to python regular.  You
+            may need two backslashes, depending on your shell.
 
         '''))
         exit(0)
@@ -254,7 +254,7 @@ if 1:   # Classes
                 Error(f"{token!r} is a bad token")
             for line in self.lines:
                 self.linenum += 1
-                mo = g.r.search(line)
+                mo = g.command_line_regex.search(line)
                 if mo:  # Only change the state
                     # Remove the None elements in groups
                     groups = set([i for i in mo.groups() if i is not None])
