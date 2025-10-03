@@ -1,5 +1,9 @@
 /plib/.todo
 
+    - ~/dp/emoji
+        - These are from https://gist.github.com/rxaviers/7360908
+        - Put in a script emoji.py to help find them
+
     - tt:  texttool
         - Simple and fast text processing tool
             - My mp (pgm/tsub.py) and Dev/tp.py don't work right

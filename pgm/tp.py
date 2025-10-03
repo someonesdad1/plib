@@ -10,6 +10,15 @@ _pgminfo = '''
     .include file   Include the text in a file
     .sinclude file  Include the text in a file; no error if file not found
 
+    Macro expansion:
+        🟦date    Current date like '13 Jan 2025'
+        🟦time    Current time like '09:26:16 am'
+        🟦dttm    Current date/time like '01 Oct 2025 09:26:47 am Wed'
+        🟦ema1    My email address 'someonesdad1@gmail.com'
+        🟦ema2    My alternate email address 'clinkcalfrub@protonmail.com'
+        🟦addr    My address '4030 N. Shamrock Ave., Boise ID 83713'
+        🟦phon    My phone '208-409-5134'
+
 oo>
 <oo cr Copyright © 2025 Don Peterson oo>
 <oo cat oo>
@@ -32,14 +41,6 @@ oo>
             -     print("a")
             - .}
         - Debugging mode shows when macro changes
-        - Default macros
-            - 🟦date Current date like '13 Jan 2025'
-            - 🟦time Current time like '09:26:16 am'
-            - 🟦datetime Current time like '01 Oct 2025 09:26:47 am Wed'
-            - 🟦email My email address 'someonesdad1@gmail.com'
-            - 🟦emailalt My alternate email address 'clinkcalfrub@protonmail.com'
-            - 🟦addr My address '4030 N. Shamrock Ave., Boise ID 83713'
-            - 🟦phone My phone '208-409-5134'
 
 oo>
 '''
@@ -55,6 +56,7 @@ if 1:  # Header
         from get import GetLines
         from wrap import dedent
         from color import Color, t
+        import dt
         if 0:
             import debug
             debug.SetDebugger()
@@ -66,11 +68,12 @@ if 1:  # Header
         g.dbg = False
         g.file = 0      # File being processed
         g.on = True     # Output state
+        g.macro_char = chr(0x1f7e6) # 🟦 (sj in vim) 
         ii = isinstance
 if 1:   # Utility
     def GetRegex():
-        'Construct the regex that identifies a command line'
-        # The following regex identifies a command line
+        'Construct the regexes that identify command lines and macros'
+        # Command line regex
         a, p, s = r"^\s*", d["-p"], d["-s"]
         r = rf'''
             {a}({p}\#{s})|
@@ -169,11 +172,21 @@ if 1:   # Utility
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] file1 [file2...]
           Read in the indicated text files and look for lines with the leading tokens
-          '.on', '.off', and '.toggle'.  These turn the text output on and off or toggle
-          the output state.  The lines from the text files are then printed to stdout
-          when the state is "on".  Use '-' to read input from stdin.  Use '.include' and
-          '.sinclude' to include files; the latter one won't stop the script if the file
-          isn't there.  Use '.#' for a comment line that won't go to stdout.
+          to control output (use '-' to read from stdin):
+            .#              Comment line, not sent to stdout
+            .on             Output is turned on
+            .off            Output is turned off
+            .toggle         Output state is toggled
+            .include file   Include the text in a file
+            .sinclude file  Include the text in a file; no error if file not found
+          Macro expansion:
+            {g.macro_char}date    Current date like '13 Jan 2025'
+            {g.macro_char}time    Current time like '09:26:16 am'
+            {g.macro_char}dttm    Current date/time like '01 Oct 2025 09:26:47 am Wed'
+            {g.macro_char}ema1    My email address
+            {g.macro_char}ema2    My alternate email address
+            {g.macro_char}addr    My address
+            {g.macro_char}phon    My phone
         Options:
             -d      Include the command lines in color in the output
             -h      More detailed help
@@ -254,63 +267,83 @@ if 1:   # Classes
                 Error(f"{token!r} is a bad token")
             for line in self.lines:
                 self.linenum += 1
-                mo = g.command_line_regex.search(line)
-                if mo:  # Only change the state
-                    # Remove the None elements in groups
-                    groups = set([i for i in mo.groups() if i is not None])
-                    if len(groups) != 1:
-                        Error(f"{t.redl}[{self.file}:{self.linenum}]:  "
-                              f"Line bad (more than one group):\n  {line}{t.n}")
-                    token = groups.pop()
-                    ftoken = FixToken(token)
-                    if ftoken == "#":
-                        Dbg(f"[{self.file}:{self.linenum}] {line!r}")
-                        if d["-l"]:     # Print only this line with a token
-                            Pr(t.Hash, line)
-                            continue
-                    elif ftoken == "on":
-                        Dbg(f"[{self.file}:{self.linenum}]:{line!r}")
-                        Text.on = True
-                        if d["-l"]:     # Print only this line with a token
-                            Pr(t.On, line)
-                            continue
-                    elif ftoken == "off":
-                        Dbg(f"[{self.file}:{self.linenum}] {line!r}")
-                        Text.on = False
-                        if d["-l"]:     # Print only this line with a token
-                            Pr(t.Off, line)
-                            continue
-                    elif ftoken == "toggle":
-                        Dbg(f"[{self.file}:{self.linenum}] {line!r}")
-                        Text.on = not Text.on
-                        if d["-l"]:     # Print only this line with a token
-                            Pr(t.Toggle, line)
-                            continue
-                    elif ftoken == "include" or ftoken == "sinclude":
-                        Dbg(f"[{self.file}:{self.linenum}] {line!r}")
-                        # Get filename
-                        loc, m = line.find(token), len(token)
-                        file = line[loc + m:].strip()
-                        p = P(file)
-                        msg = f"[{self.file}:{self.linenum}]:  file {file!r} doesn't exist"
-                        if ftoken == "include" and not p.exists():
-                            Error(msg)
-                        elif ftoken == "sinclude" and not p.exists():
-                            Dbg(msg)
-                        if d["-l"]:     # Print only this line with a token
-                            if ftoken == "include":
-                                Pr(t.Include, line)
-                            else:
-                                Pr(t.Sinclude, line)
-                        if ftoken == "include" or (ftoken == "sinclude" and p.exists()):
-                            # Recursively process this file
-                            txt = Text(file)
-                            txt()
-                    else:
-                        Error(f"{t.redl}[{self.file}:{self.linenum}]:  {token!r} is unrecognized{t.n}")
-                else:
-                    if Text.on and not d["-l"]:
-                        print(line, file=self.stream)
+                if 1:   # Look for a command match
+                    mo = g.command_line_regex.search(line)
+                    if mo:  # Only change the state
+                        # Remove the None elements in groups
+                        groups = set([i for i in mo.groups() if i is not None])
+                        if len(groups) != 1:
+                            Error(f"{t.redl}[{self.file}:{self.linenum}]:  "
+                                f"Line bad (more than one group):\n  {line}{t.n}")
+                        token = groups.pop()
+                        ftoken = FixToken(token)
+                        if ftoken == "#":
+                            Dbg(f"[{self.file}:{self.linenum}] {line!r}")
+                            if d["-l"]:     # Print only this line with a token
+                                Pr(t.Hash, line)
+                                continue
+                        elif ftoken == "on":
+                            Dbg(f"[{self.file}:{self.linenum}]:{line!r}")
+                            Text.on = True
+                            if d["-l"]:     # Print only this line with a token
+                                Pr(t.On, line)
+                                continue
+                        elif ftoken == "off":
+                            Dbg(f"[{self.file}:{self.linenum}] {line!r}")
+                            Text.on = False
+                            if d["-l"]:     # Print only this line with a token
+                                Pr(t.Off, line)
+                                continue
+                        elif ftoken == "toggle":
+                            Dbg(f"[{self.file}:{self.linenum}] {line!r}")
+                            Text.on = not Text.on
+                            if d["-l"]:     # Print only this line with a token
+                                Pr(t.Toggle, line)
+                                continue
+                        elif ftoken == "include" or ftoken == "sinclude":
+                            Dbg(f"[{self.file}:{self.linenum}] {line!r}")
+                            # Get filename
+                            loc, m = line.find(token), len(token)
+                            file = line[loc + m:].strip()
+                            p = P(file)
+                            msg = f"[{self.file}:{self.linenum}]:  file {file!r} doesn't exist"
+                            if ftoken == "include" and not p.exists():
+                                Error(msg)
+                            elif ftoken == "sinclude" and not p.exists():
+                                Dbg(msg)
+                            if d["-l"]:     # Print only this line with a token
+                                if ftoken == "include":
+                                    Pr(t.Include, line)
+                                else:
+                                    Pr(t.Sinclude, line)
+                            if ftoken == "include" or (ftoken == "sinclude" and p.exists()):
+                                # Recursively process this file
+                                txt = Text(file)
+                                txt()
+                        else:
+                            Error(f"{t.redl}[{self.file}:{self.linenum}]:  {token!r} is unrecognized{t.n}")
+                if 1:   # Look for a macro match
+                    loc = line.find(g.macro_char)
+                    if loc != -1:
+                        # The macro length is the blue box character plus 4 characters
+                        macrolen = 5
+                        macro = line[loc:loc + macrolen]
+                        if macro == f"{g.macro_char}date":
+                            line = line[:loc] + dt.date() + line[loc + macrolen:]
+                        elif macro == f"{g.macro_char}time":
+                            line = line[:loc] + dt.time() + line[loc + macrolen:]
+                        elif macro == f"{g.macro_char}dttm":
+                            line = line[:loc] + dt.dttm() + line[loc + macrolen:]
+                        elif macro == f"{g.macro_char}ema1":
+                            line = line[:loc] + "someonesdad1@gmail.com"+ line[loc + macrolen:]
+                        elif macro == f"{g.macro_char}ema2":
+                            line = line[:loc] + "clinkcalfrub@protonmail.com"+ line[loc + macrolen:]
+                        elif macro == f"{g.macro_char}addr":
+                            line = line[:loc] + "4030 N. Shamrock Ave., Boise ID"+ line[loc + macrolen:]
+                        elif macro == f"{g.macro_char}phon":
+                            line = line[:loc] + "208-409-5134"+ line[loc + macrolen:]
+                if Text.on and not d["-l"]:
+                    print(line, file=self.stream)
 
 if __name__ == "__main__":
     files = ParseCommandLine(d)
