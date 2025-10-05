@@ -226,18 +226,111 @@ if 1:   # Utility
         GetRegex()
         return args
 if 1:   # Classes
+    class Line(str):
+        '''Contain the string from a line of text.
+        '''
+        def __new__(cls, line, file, linenum):
+            value = Line.ProcessMacros(line)
+            instance = super().__new__(cls, value)
+            instance.file = file
+            instance.linenum = linenum
+            return instance
+        @classmethod
+        def ProcessMacros(cls, line):
+            'Substitute for macros, returning the new string'
+            keystr = "🟦"
+            loc = line.find(keystr)
+            while loc != -1:
+                # The macro length is the blue box character plus 4 characters
+                mlen = len(keystr) + 4
+                macro = line[loc:loc + mlen]
+                if 1:   # Use match syntax, available for >= python 3.10
+                    match macro:
+                        case "🟦date":
+                            s = dt.date()
+                        case "🟦time":
+                            s = dt.time()
+                        case "🟦dttm":
+                            s = dt.dttm()
+                        case "🟦ema1":
+                            s = "someonesdad1@gmail.com"
+                        case "🟦ema2":
+                            s = "clinkcalfrub@protonmail.com"
+                        case "🟦addr":
+                            s = "4030 N. Shamrock Ave., Boise ID"
+                        case "🟦phon":
+                            s = "208-409-5134"
+                        case _:
+                            raise ValueError(f"{keystr}{macro} is an unrecognized macro")
+                else:   # Use older syntax
+                    if macro == f"{keystr}date":
+                        s = dt.date()
+                    elif macro == f"{keystr}time":
+                        s = dt.time()
+                    elif macro == f"{keystr}dttm":
+                        s = dt.dttm()
+                    elif macro == f"{keystr}ema1":
+                        s = "someonesdad1@gmail.com"
+                    elif macro == f"{keystr}ema2":
+                        s = "clinkcalfrub@protonmail.com"
+                    elif macro == f"{keystr}addr":
+                        s = "4030 N. Shamrock Ave., Boise ID"
+                    elif macro == f"{keystr}phon":
+                        s = "208-409-5134"
+                    else:
+                        raise ValueError(f"{keystr}{macro} is an unrecognized macro")
+                line = line[:loc] + s + line[loc + mlen:]
+                loc = line.find(keystr)
+            return line
+
+    if 0:   # Test Line
+        l = Line("Hi there 🟦ema2", "abc.txt", 40)
+        print(l)
+        exit()
+
+
     class Text:
-        '''Send text from file to output stream, interpreting the control lines
-        to turn output on and off.
+        '''Process a text file by interpreting the control lines to turn output on and off.
+        Usage:
+            txt = Text(file, out)
+            <set desired attributes
+            out = txt.GetProcessedLines()
+        out is a list of tuples of the form
+            (control_line, Line instance)
+            {
+                "lines":    List of the output lines
+                "ctrl":     List of the control lines
+            }
+        out["ctrl"] contains tuples of the following form
+            (file, linenum, line's string)
+        type is an integer:
+            1   Normal line of text
+            2   Control line:  .off         Ignore following lines
+            3   Control line:  .on          Save the following lines
+            4   Control line:  .toggle      Toggle the on/off state
+            5   Control line:  .#           Comment line; ignore
+            6   Control line:  .include     Include a file
+            7   Control line:  .sinclude    Include a file; no error if not there
+        Attributes (set to True to get indicated behavior):
+            dbg:        Include the command lines in color in the output
+            list:       List only file:line of the tokens
+            start_off:  Start with Text.on off
+            color:      Decorate control lines with color
+        The output lines will be decorated with escape sequences so they print in color.
+
+        Send text from file to output stream, interpreting the control lines
+        to turn output on and off.  Send the processed text to the output stream by
+        calling the instance as a function:
+            out = io.StringIO()
+            txt = Text(file, out)
+            txt()
+            lines = out.getvalue().split("\n")
         '''
         on = True    # Output sent to stream if True
         def __init__(self, file, off=False, stream=sys.stdout):
             self.file = file
             self.stream = stream
-            if file == "-":
-                s = sys.stdin.read()
-            else:
-                s = open(file).read()
+            s = sys.stdin.read() if file == "-" else open(file).read()
             # If last character of s is a newline, remove it so we don't wind up with an
             # extra blank line
             if s[-1] == "\n":
@@ -327,7 +420,7 @@ if 1:   # Classes
                     loc = line.find(g.macro_char)
                     if loc != -1:
                         # The macro length is the blue box character plus 4 characters
-                        macrolen = 5
+                        macrolen = len(g.macro_char) + 4
                         macro = line[loc:loc + macrolen]
                         if macro == f"{g.macro_char}date":
                             line = line[:loc] + dt.date() + line[loc + macrolen:]
@@ -343,9 +436,8 @@ if 1:   # Classes
                             line = line[:loc] + "4030 N. Shamrock Ave., Boise ID"+ line[loc + macrolen:]
                         elif macro == f"{g.macro_char}phon":
                             line = line[:loc] + "208-409-5134"+ line[loc + macrolen:]
-                if Text.on and (not d["-l"]):
-                    if ftoken is None:
-                        print(line, file=self.stream)
+                if Text.on and (not d["-l"]) and ftoken is None:
+                    print(line, file=self.stream)
 
 if __name__ == "__main__":
     files = ParseCommandLine(d)

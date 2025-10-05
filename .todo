@@ -1,28 +1,34 @@
 /plib/.todo
 
+    - pgm/cpi.py
+        - Add another option that takes a year and prints a table of 1 to 10 values for
+          1000's, 100's, 10's, and 1's to convert forward from another year.
+
     - ~/dp/emoji
         - These are from https://gist.github.com/rxaviers/7360908
         - Put in a script emoji.py to help find them
 
     - tt:  texttool
-        - Simple and fast text processing tool
-            - My mp (pgm/tsub.py) and Dev/tp.py don't work right
-        - Note:  I wrote tp.py for the family history project and it pretty much does
-          what's needed, though it's such a useful tool that if it was written in awk,
-          it would be much faster than python.
+        - tp.py works well to give .on/.off processing and some simple macros like
+          '.date'.  However, it's an order of magnitude slower than an awk script.
         - My key needs are the following commands
             - Date/time macros
                 - ..date  Inserts current date such as 12 Jan 2025
                 - ..time  Inserts current time such as 08:23:16 am
                 - ..datetime  Inserts current date/time such as 12 Jan 2025 08:23:16 am
+            - ..#  Acts as a comment
             - ..on  Turn text output on
             - ..off  Turn text output off
             - ..include file  Insert the contents of a file
             - ..sinclude file  Insert the contents of a file, but no error if it's not there
             - ..include and ..sinclude need to act recursively
-        - The '..' is used because mp gets errors on files like my family history file.
-          This large file would have e.g. .38 or .45 at the beginning of the line and
-          the tool choked.
+        - The '..' leader is used to avoid strange behavior in corner cases if things
+          like '.on' are in a file.
+        - A core thing that tp.py does is the Text
+          class easily processes the .include stuff with a recursive call and this works
+          nicely to keep track of the lines in the input file.  The way to do this in
+          awk is use a local variable in the function, which is simply an unused
+          parameter.
 
     - pgm/pushpop.py
         - Script to find annoying push/pop miscounts in g.py scripts.  It would search
