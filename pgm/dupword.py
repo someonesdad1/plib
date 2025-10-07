@@ -115,8 +115,6 @@ if 1:   # Core functionality
         for i, line in enumerate(lines):
             for word in line.split():
                 o.append(Word(word, i + 1))
-        if 0:   #xx
-            print(o)
         # Analyze these words
         for i in range(len(o)):
             if not i:
@@ -130,11 +128,6 @@ if 1:   # Core functionality
             if (a and b) and (a == b):
                 t.print(f"{t.sky}[{file}:{o[i - 1].linenum}]:  {o[i - 1]}")
                 continue
-
-if 0:   # xx
-    s = '"Hello,"'
-    print(RemovePunc(s))
-    exit()
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
