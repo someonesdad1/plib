@@ -5,51 +5,53 @@ Todo
     - Missing tests for GetString, WordID
     - Consider upper & lower keywords for Keep and Remove
     
-String utilities
-    Chop             Return a string chopped into equal parts
-    CommonPrefix     Return a common prefix of a sequence of strings
-    CommonSuffix     Return a common suffix of a sequence of strings
-    FilterStr        Return a function that removes characters from strings
-    FindAll          Find all locations of a substring in a string
-    FindFirstIn      Find first item in sequence in a given set
-    FindLastIn       Find last item in sequence in a given set
-    FindFirstNotIn   Find first item not in sequence in a given set
-    FindLastNotIn    Find last item not in sequence in a given set
-    FindDiff         Return where two strings first differ
-    FindStrings      Find locations of a sequence of strings in a string
-    FindSubstring    Return indexes of substring in string
-    GetChoice        Return choice from a set of choices (minimizes typing)
-    GetLeadingChars  Return leading characters of a string
-    GetTrailingChars Return trailing characters of a string
-    GetTransFunc     Return a function that translates strings
-    GetString        Return string from user that matches choices
-    IgnoreFilter     Return a function which removes ignored strings
-    IsASCII          Return True if string is all ASCII characters
-    Keep             Return items in sequence that are in keep sequence
-    KeepFilter       Returns a function that keeps a set of items in a sequence
-    KeepOnlyLetters  Replace all non-word characters with spaces
-    Len              Length of string with ANSI escape sequences removed
-    ListInColumns    Obsolete (use columnize.py)
-    MatchCap         Match string capitalization
-    MultipleReplace  Replace multiple patterns in a string
-    ReadData         Read data from a multiline string
-    Remove           Return items from sequence not in the remove sequence
-    RemoveASCII      Remove all ASCII characters from a string
-    RemoveComment    Remove '#.*$' from a string
-    RemoveFilter     Functional form of Remove (it's a closure)
-    RemoveWhitespace Remove whitespace from a string
-    RmEsc            Remove ANSI escape strings from string arguments
-    Scramble         Randomly shuffle words in a string
-    soundex          Return 4-character soundex value for a string
-    SoundSimilar     Return True if two strings sound similar
-    SpellCheck       Spell check a sequence of words
-    SplitOnNewlines  Split on \r, \n, or \r\n
-    StringSplit      Pick out specified fields of a string
-    Str              String class whose len() ignores ANSI escape sequences
-    TimeStr          Readable string for time() in s
-    Tokenize         Return a list of tokens from tokenizing a string
-    Trim             Remove characters from a string
-    WordID           Return an ID string that is somewhat pronounceable
+Chop                Return a string chopped into equal parts
+CommonPrefix        Return a common prefix of a sequence of strings
+CommonSuffix        Return a common suffix of a sequence of strings
+FilterStr           Return a function that removes characters from strings
+FindAll             Find all locations of a substring in a string
+FindFirstIn         Find first item in sequence in a given set
+FindLastIn          Find last item in sequence in a given set
+FindFirstNotIn      Find first item not in sequence in a given set
+FindLastNotIn       Find last item not in sequence in a given set
+FindDiff            Return where two strings first differ
+FindStrings         Find locations of a sequence of strings in a string
+FindSubstring       Return indexes of substring in string
+GetChoice           Return choice from a set of choices (minimizes typing)
+GetStartingChars    Return starting characters of a string
+GetEndingChars      Return ending characters of a string
+GetTransFunc        Return a function that translates strings
+GetString           Return string from user that matches choices
+IgnoreFilter        Return a function which removes ignored strings
+IsASCII             Return True if string is all ASCII characters
+Keep                Return items in sequence that are in keep sequence
+KeepFilter          Returns a function that keeps a set of items in a sequence
+KeepOnlyLetters     Replace all non-word characters with spaces
+Len                 Length of string with ANSI escape sequences removed
+ListInColumns       Obsolete (use columnize.py)
+MatchCap            Match string capitalization
+MultipleReplace     Replace multiple patterns in a string
+ReadData            Read data from a multiline string
+Remove              Return items from sequence not in the remove sequence
+RemoveASCII         Remove all ASCII characters from a string
+RemoveComment       Remove '#.*$' from a string
+RemoveEndingChars   Remove ending characters from a string
+RemoveStartingChars Remove ending characters from a string
+RemoveFilter        Functional form of Remove (it's a closure)
+RemoveWhitespace    Remove whitespace from a string
+RmEsc               Remove ANSI escape strings from string arguments
+Scramble            Randomly shuffle words in a string
+soundex             Return 4-character soundex value for a string
+SoundSimilar        Return True if two strings sound similar
+SpellCheck          Spell check a sequence of words
+SplitOnNewlines     Split on \r, \n, or \r\n
+StringSplit         Pick out specified fields of a string
+Str                 String class whose len() ignores ANSI escape sequences
+TimeStr             Readable string for time() in s
+Tokenize            Return a list of tokens from tokenizing a string
+Trim                Remove characters from a string
+WordID              Return an ID string that is somewhat pronounceable
+
 Token naming conversions:
     cw2mc            Cap-words to mixed-case
     cw2us            Cap-words to underscore
@@ -396,6 +398,21 @@ if 1:  # Core functionality
         because it's done by C code.
         '''
         return ''.join(s.split())
+    def RemoveEndingChars(s, chars=""):
+        'Remove any ending characters in chars from s and return the result'
+        if not s or not chars:
+            return s
+        while s and s[-1] in set(chars):
+            s = s[:-1]
+        return s
+    def RemoveStartingChars(s, chars=""):
+        'Remove any starting characters in chars from s and return the result'
+        if not s or not chars:
+            return s
+        i = 0
+        while s[i] in set(chars):
+            i += 1
+        return s[i:]
     def FilterStr(remove, replacements):
         '''Return a function that removes the characters in sequence remove from other
         strings and replaces them with corresponding characters in the sequence
@@ -884,8 +901,8 @@ if 1:  # Core functionality
         if check and ''.join(out) != s:
             raise ValueError("Invariant s == ''.join(out) is not True")
         return out
-    def GetLeadingChars(s, chars=None):
-        '''Return the string defining the leading characters in the string s.  If chars
+    def GetStartingChars(s, chars=None):
+        '''Return the string defining the starting characters in the string s.  If chars
         is not None, use it as the set of allowed leading characters.  If chars is None,
         then return the leading whitespace characters, which are defined by the re
         module's '\\s' metacharacters.
@@ -898,11 +915,11 @@ if 1:  # Core functionality
             return mo.groups()[0] if mo else ""
         else:
             S = set(chars)
-            t = re.escape("".join(S))
+            t = re.escape(''.join(S))
             r = re.compile(f"^([{t}]+).*$", re.M)
             mo = r.match(s)
             return mo.groups()[0] if mo else ""
-    def GetTrailingChars(s, chars=None):
+    def GetEndingChars(s, chars=None):
         '''Return the string defining the trailing characters in the string s.  If chars
         is not None, use it as the set of allowed trailing characters.  If chars is
         None, then return the leading whitespace characters, which are defined by the re
@@ -916,7 +933,7 @@ if 1:  # Core functionality
             return mo.groups()[0] if mo else ""
         else:
             S = set(chars)
-            t = re.escape("".join(S))
+            t = re.escape(''.join(S))
             r = re.compile(f"([{t}]+)$", re.M)
             mo = r.search(s)
             return mo.groups()[0] if mo else ""
@@ -1258,24 +1275,24 @@ if __name__ == "__main__":
             "\n",
             "\t\r\n\f    \t\t\t",
         ):
-            Assert(GetLeadingChars(u) == u)
-            Assert(GetLeadingChars(u + "a") == u)
-            Assert(GetTrailingChars(u) == u)
-            Assert(GetTrailingChars("a" + u) == u)
+            Assert(GetStartingChars(u) == u)
+            Assert(GetStartingChars(u + "a") == u)
+            Assert(GetEndingChars(u) == u)
+            Assert(GetEndingChars("a" + u) == u)
         # Define custom sets of whitespace
         if 1:  # Leading
-            Assert(GetLeadingChars("  \t  a", chars="z") == "")
-            Assert(GetLeadingChars("  \t  a", chars="\t") == "")
-            Assert(GetLeadingChars("  \t  a", chars=" ") == "  ")
+            Assert(GetStartingChars("  \t  a", chars="z") == "")
+            Assert(GetStartingChars("  \t  a", chars="\t") == "")
+            Assert(GetStartingChars("  \t  a", chars=" ") == "  ")
             ws, u = ".;:", ".;..:::."
-            a = GetLeadingChars(u + "a", chars=ws)
+            a = GetStartingChars(u + "a", chars=ws)
             Assert(a == u)
         if 1:  # Trailing
-            Assert(GetTrailingChars("a  \t  ", chars="z") == "")
-            Assert(GetTrailingChars("a  \t  ", chars="\t") == "")
-            Assert(GetTrailingChars("a  \t  ", chars=" ") == "  ")
+            Assert(GetEndingChars("a  \t  ", chars="z") == "")
+            Assert(GetEndingChars("a  \t  ", chars="\t") == "")
+            Assert(GetEndingChars("a  \t  ", chars=" ") == "  ")
             ws, u = ".;:", ".;..:::."
-            a = GetTrailingChars("a" + u, chars=ws)
+            a = GetEndingChars("a" + u, chars=ws)
             Assert(a == u)
     def Test_Tokenize():
         Assert(Tokenize("", check=True) == [])
@@ -1431,6 +1448,24 @@ if __name__ == "__main__":
         s = "a b\tc\nd\re\ff\vg"
         t = RemoveWhitespace(s)
         Assert(t == "abcdefg")
+    def Test_RemoveEndingChars():
+        s = "a b\tc\nd\re\ff\vg"
+        e = " b\tc\nd\re\ff\vg"
+        v = RemoveEndingChars(s, s)
+        Assert(v == "")
+        v = RemoveEndingChars(s, e)
+        Assert(v == "a")
+        v = RemoveEndingChars(s, "")
+        Assert(v == s)
+    def Test_RemoveStartingChars():
+        s = "a b\tc\nd\re\ff\vg"
+        e = "a b\tc\nd\re\ff\v"
+        v = RemoveEndingChars(s, s)
+        Assert(v == "")
+        v = RemoveStartingChars(s, e)
+        Assert(v == "g")
+        v = RemoveStartingChars(s, "")
+        Assert(v == s)
     def Test_FindDiff():
         s1 = "hello"
         s2 = "hello there"
@@ -1604,12 +1639,12 @@ if __name__ == "__main__":
                 f"FindSubtring({mystring!r}, {substring!r}) = "
                 f"{FindSubstring(mystring, substring)}"
             )
-            # GetLeadingChars, GetTrailingChars
+            # GetStartingChars, GetEndingChars
             s = "this STRING HAS UPPER AND LOWER CASE letters"
             chars = string.ascii_lowercase
             print(
-                f"GetLeadingChars({s!r},\n {' '*15}{chars!r}) = "
-                f"{GetLeadingChars(s, chars)}"
+                f"GetStartingChars({s!r},\n {' '*15}{chars!r}) = "
+                f"{GetStartingChars(s, chars)}"
             )
             # IsASCII
             s, u = "abc", "∞"

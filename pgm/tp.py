@@ -10,14 +10,15 @@ _pgminfo = '''
     🟦include file   Include the text in a file
     🟦sinclude file  Include the text in a file; no error if file not found
 
-    Macro expansion:
-        🟦date    Current date like '13 Jan 2025'
-        🟦time    Current time like '09:26:16 am'
-        🟦dttm    Current date/time like '01 Oct 2025 09:26:47 am Wed'
-        🟦ema1    My email address 'someonesdad1@gmail.com'
-        🟦ema2    My alternate email address 'clinkcalfrub@protonmail.com'
-        🟦addr    My address '4030 N. Shamrock Ave., Boise ID 83713'
-        🟦phon    My phone '208-409-5134'
+    Inline abbreviations:
+
+    🟦date    Current date like '13 Jan 2025'
+    🟦time    Current time like '09:26:16 am'
+    🟦dttm    Current date/time like '01 Oct 2025 09:26:47 am Wed'
+    🟦ema1    My email address 'someonesdad1@gmail.com'
+    🟦ema2    My alternate email address 'clinkcalfrub@protonmail.com'
+    🟦addr    My address '4030 N. Shamrock Ave., Boise ID 83713'
+    🟦phon    My phone '208-409-5134'
 
     The 🟦 character was chosen to mark control lines because it's very visible on my
     white on black terminals and it's unlikely to be used in anything I write.
@@ -28,19 +29,15 @@ oo>
 <oo test none oo>
 <oo todo oo>
 '''
- 
 if 1:  # Header
     if 1:   # Standard imports
         from pathlib import Path as P
         import getopt
-        import io
-        import os
         import re
         import sys
     if 1:   # Custom imports
-        from get import GetLines
         from wrap import dedent
-        from color import Color, t
+        from color import t
         import dt
         if 0:
             import debug
@@ -91,7 +88,7 @@ if 1:   # Utility
         print(f"{t.N}", end="")
         exit(status)
     def Manpage():
-        print(dedent(f'''
+        print(dedent('''
         
         This script is used to turn on & off chunks of text in a text document.  Here's
         some example text in a file named 'myfile'
@@ -318,31 +315,30 @@ if 1:   # Classes
                 if 1:   # Look for a macro match
                     loc = line.find(g.macro_char)
                     macrolen = len(g.macro_char) + 4
-                    def Fix(s):
-                        return line[:loc] + s + line[loc + macrolen:]
                     while loc != -1:
                         # The macro length is the blue box character plus 4 characters
                         macro = line[loc:loc + macrolen]
                         if macro == f"{g.macro_char}date":
-                            line = Fix(dt.date())
+                            s = dt.date()
                         elif macro == f"{g.macro_char}time":
-                            line = Fix(dt.time())
+                            s = dt.time()
                         elif macro == f"{g.macro_char}dttm":
-                            line = Fix(dt.dttm())
+                            s = dt.dttm()
                         elif macro == f"{g.macro_char}ema1":
-                            line = Fix("someonesdad1@gmail.com")
+                            s = "someonesdad1@gmail.com"
                         elif macro == f"{g.macro_char}ema2":
-                            line = Fix("clinkcalfrub@protonmail.com")
+                            s = "clinkcalfrub@protonmail.com"
                         elif macro == f"{g.macro_char}addr":
-                            line = Fix("4030 N. Shamrock Ave., Boise ID")
+                            s = "4030 N. Shamrock Ave., Boise ID"
                         elif macro == f"{g.macro_char}phon":
-                            line = Fix("208-409-5134")
+                            s = "208-409-5134"
                         else:
                             break
+                        line = line[:loc] + s + line[loc + macrolen:]
                         loc = line.find(g.macro_char)
-                if Text.on and (not d["-l"]) and ftoken is None:
+                if Text.on and (not d["-l"]) and (ftoken is None):
                     print(line, file=self.stream)
-        
+
 if __name__ == "__main__":
     files = ParseCommandLine(d)
     for file in files:
