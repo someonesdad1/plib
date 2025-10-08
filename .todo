@@ -1,33 +1,5 @@
 /plib/.todo
 
-    - tt:  texttool
-        - tp.py works well to give .on/.off processing and some simple macros like
-          '.date'.  However, it's an order of magnitude slower than an awk script.
-        - My key needs are the following commands
-            - Date/time macros
-                - ..date  Inserts current date such as 12 Jan 2025
-                - ..time  Inserts current time such as 08:23:16 am
-                - ..datetime  Inserts current date/time such as 12 Jan 2025 08:23:16 am
-            - ..#  Acts as a comment
-            - ..on  Turn text output on
-            - ..off  Turn text output off
-            - ..include file  Insert the contents of a file
-            - ..sinclude file  Insert the contents of a file, but no error if it's not there
-            - ..include and ..sinclude need to act recursively
-        - The '..' leader is used to avoid strange behavior in corner cases if things
-          like '.on' are in a file.
-        - A core thing that tp.py does is the Text
-          class easily processes the .include stuff with a recursive call and this works
-          nicely to keep track of the lines in the input file.  The way to do this in
-          awk is use a local variable in the function, which is simply an unused
-          parameter.
-
-    - pgm/pushpop.py
-        - Script to find annoying push/pop miscounts in g.py scripts.  It would search
-          by functions and find places where something was forgotten.
-        - In a redesign, I would make the graphics state or some other variable a
-          context manager so such behavior would be easy to use and see
-
     - pgm/books.py
         - Keeps track of the technical books I have so I can look up by author,
           category, or words in the title.
@@ -80,9 +52,9 @@
             - util:NumBitsInByte()
             - ReverseBitsInByte
         - bitarray module (https://github.com/ilanschnell/bitarray)
-            - This module would be perfect for a fixed-size integer
-          implementation for general use in python.  Call the signed version ints and
-          the unsigned version intu.
+            - This module would be perfect for a fixed-size integer implementation for
+              general use in python.  Call the signed version ints and the unsigned
+              version intu.
             - A nice feature is the "Variable bit length prefix codes", which takes a
               dict mapping symbols to bitarrays
         - Add a function xxd() that uses xxd to do dump an object to stdout that can be
