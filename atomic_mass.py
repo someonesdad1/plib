@@ -1,7 +1,6 @@
-"""
+'''
 Calculate the molecular mass of a chemical formula
-"""
-
+'''
 if 1:  # Header
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -20,14 +19,12 @@ if 1:  # Header
     import re
     from pathlib import Path as P
     import sys
-
     # Custom imports
     from lwtest import run, raises, assert_equal, Assert
     from f import flt
     from wrap import wrap, dedent
     from color import Color, TRM as t
     from columnize import Columnize
-
     # Global variables
     ii = isinstance
     atomic_mass = {
@@ -145,14 +142,12 @@ if 1:  # Header
         "Zr": flt(91.224),
     }
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options] formula1 [formula2...]
           Print the molecular mass of chemical formulas.  Examples:
             H: 1.008 g/mol
@@ -161,10 +156,9 @@ if 1:  # Utility
         Options:
             -d n    Number of digits in result [{d["-d"]}]
             -t      Print atomic mass table
-        """)
+        ''')
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-d"] = 4  # Number of digits in result
         d["-t"] = False  # Print table
@@ -195,7 +189,6 @@ if 1:  # Utility
         if d["-t"]:
             PrintTable()
         return args
-
     def Test():
         m = CalculateMass("H")
         Assert(m == atomic_mass["H"])
@@ -323,10 +316,7 @@ if 1:  # Utility
             91.224,
         )
         Assert(CalculateMass(a) == sum(b))
-
-
 if 1:  # Core functionality
-
     def PrintTable():
         out, w = [], 70
         for i in atomic_mass:
@@ -346,7 +336,6 @@ if 1:  # Core functionality
         for i in Columnize(out, col_width=15):
             print(i)
         exit(0)
-
     def Find_closing_paren(tokens):
         count = 0
         for index, tok in enumerate(tokens):
@@ -357,7 +346,6 @@ if 1:  # Core functionality
             elif tok == "(":
                 count += 1
         raise ValueError("unmatched parentheses")
-
     def Parse(tokens, stack, dict):
         if len(tokens) == 0:
             return sum(stack)
@@ -371,20 +359,16 @@ if 1:  # Core functionality
         else:
             stack.append(dict[tok])
         return Parse(tokens[1:], stack, dict)
-
     def CalculateMass(formula):
         tokens = re.findall(r"[A-Z][a-z]*|\d+|\(|\)", formula)
         if not tokens:
             raise Exception("Empty")
         return Parse(tokens, [], atomic_mass)
-
     def GetMass(formula):
         try:
             print(f"{formula}: {CalculateMass(formula)} g/mol")
         except Exception as e:
             print(f"{formula!r} is an incorrect formula")
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

@@ -1,19 +1,5 @@
 '''
 Contains various routines related to prime numbers and factoring.
-
-ToDo
-    - Use /usr/bin/factor to do factoring; if it fails, fall back on this module's
-      routines
-    - Primes(2) returns nothing.  It's doing what it was asked to do, return all primes
-      less than the argument.  However, This means FactorGenerator(2) returns [], which
-      is wrong.
-    - Need test routines
-    - bitarray.gen_primes()
-        - Version 3.7.2 generates 1e8 primes in 0.37 s, 1e9 in 5.7 s
-        - Construct and pickle a bitarray that "remembers" the primes so that an
-      IsPrime(*args) function is fast and returns True if all arguments are prime.
-      Need version 3.7 of bitfield for this, but I have 3.6.1.
-
 '''
 if 1:  # Header
     if 1:  # Copyright, license
@@ -40,6 +26,10 @@ if 1:  # Header
     if 1:  # Custom imports
         have_bitarray = False
         try:
+            # The bitarray module is used for fast bitfield manipulations.  If you get
+            # version 3.7 or later, it also includes a bitarray.util.gen_primes() method
+            # that is a fast sieve for primes.  bitarry is fast because it's in compiled
+            # C code.  https://github.com/ilanschnell/bitarray
             from bitarray.util import ones, gen_primes
             have_bitarray = True
         except ImportError:
@@ -49,8 +39,8 @@ if 1:  # Header
         from multiset import Multiset
     if 1:  # Global variables
         ii = isinstance
-        t.p = t.redl
-        t.N = t.grnl
+        t.prime = t.redl
+        t.number = t.skyl
         nl = "\n"
         __all__ = '''AllFactors Factor FactorList FormatFactors IsPrime
                      PrimeList PrimeNumberSieve Primes FactorGenerator
@@ -168,9 +158,9 @@ if 1:  # Core functionality
         else:
             D = Factor(n)
         if not D:
-            return f"{t.p}{n}{t.n}" if d["-c"] else f"{n}"
+            return f"{t.prime}{n}{t.n}" if d["-c"] else f"{n}"
         keys = sorted(list(D.keys()))
-        N, s = f"{t.N}{n}{t.n}: ", []
+        N, s = f"{t.number}{n}{t.n}: ", []
         for key in keys:
             if D[key] > 1:
                 if plain:
@@ -271,6 +261,7 @@ if __name__ == "__main__":
     # If run as a script, list primes and factors.
     from lwtest import Assert, run, raises
     import getopt
+    from columnize import Columnize
     if 1:   # Test routines
         def Test_Primes():
             s = "2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 89 97"
@@ -358,6 +349,7 @@ if __name__ == "__main__":
               no factors and no ":" character are printed.
             Options
               -b        Compact form (output is on one line)
+              -C        Print in columns
               -c        Do not print in color
               -t        Run self-tests
               -p        Only show the primes
@@ -373,27 +365,28 @@ if __name__ == "__main__":
             )
             exit(1)
         def ParseCommandLine(d):
-            d["-b"] = False  # Compact
-            d["-c"] = True  # Use color
-            d["-d"] = False  # Debug sent to stderr
-            d["-p"] = False  # Only show primes
-            d["-u"] = True  # Use Unicode exponents
+            d["-b"] = False     # Compact
+            d["-C"] = False     # Print in columns
+            d["-c"] = True      # Use color
+            d["-d"] = False     # Debug sent to stderr
+            d["-p"] = False     # Only show primes
+            d["-u"] = True      # Use Unicode exponents
             if len(sys.argv) < 2:
                 Usage()
             try:
-                opts, args = getopt.getopt(sys.argv[1:], "bcdhptu")
+                opts, args = getopt.getopt(sys.argv[1:], "bCcdhptu")
             except getopt.GetoptError as e:
                 print(str(e))
                 exit(1)
             for o, a in opts:
-                if o[1] in list("bcdpu"):
+                if o[1] in list("bCcdpu"):
                     d[o] = not d[o]
                 elif o in ("-h", "--help"):
                     Usage(status=0)
-                elif o == "-t":
+                elif o == "-t":     # Run selftests
                     exit(run(globals(), halt=True)[0])
             if not d["-c"]:
-                t.p = t.N = ""
+                t.prime = t.number = ""
                 t.on = False
             return args
     if 1:
@@ -407,13 +400,30 @@ if __name__ == "__main__":
             raise ValueError("n and m must be integers greater than 0")
         u = "" if d["-p"] else ","
         end = f"{u} " if d["-b"] else "\n"
-        for i in range(m, n + 1):
-            if i == n:
-                end = ""
-            s = FormatFactors(i) if d["-u"] else FormatFactors(i, plain=True)
-            if d["-p"]:  # Primes only
-                if ":" in s:
-                    continue
-            print(s, end=end)
+        o = []
         if d["-p"]:
-            print()
+            # This is pretty speedy, as it gives the primes less than 1 billion in
+            # 1.7 seconds.
+            L = PrimeList(m, n)
+            if d["-C"]:
+                for i in Columnize(str(j) for j in L):
+                    print(i)
+            else:
+                for i in L:
+                    print(i)
+        else:
+            for i in range(m, n + 1):
+                if i == n:
+                    end = ""
+                s = FormatFactors(i) if d["-u"] else FormatFactors(i, plain=True)
+                if d["-p"]:  # Primes only
+                    if ":" in s:
+                        continue
+                o.append(s)
+                if not d["-C"]:
+                    print(s, end=end)
+            if d["-C"]:
+                for i in Columnize(o):
+                    print(i)
+            elif d["-p"]:
+                print()

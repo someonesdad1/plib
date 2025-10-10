@@ -1,5 +1,13 @@
 /plib/.todo
 
+    - GNU units
+        - Use a python script to prettify the output
+            - 'Definition: 1e5 Pa = 100000 kg / m s^2' --> 10⁵ Pa = 100000 kg//m·s²
+        - Colorize things
+        - When ? is used, have a filter to only show favorite units
+        - Internally, use 'units -d 15' to calculate to 15 digits
+        - Maintain a history; .h invokes it with a pager
+
     - pgm/books.py
         - Keeps track of the technical books I have so I can look up by author,
           category, or words in the title.
