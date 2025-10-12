@@ -1066,9 +1066,8 @@ if 1:  # Tokenizing
     class pnc(str):
         def __new__(cls, value):
             return super(pnc, cls).__new__(cls, value)
-    def Tokenize(s, wordchars=letters, otherchars=others, check=True, wordtype=wrd,
-                 punctype=pnc):
-        '''Return a deque out that contains all the word tokens in the string s.  The tokenizing
+    def Tokenize(s, wordchars=letters, otherchars=others, check=True, wordtype=wrd, punctype=pnc):
+        '''Return a deque 'out' that contains all the word tokens in the string s.  The tokenizing
         process is such that ''.join(out) is the same string as s (this is verified if check is
         True and raises an exception if it isn't).  wordchars and otherchars must be sequences of
         letters (sets preferred) so that "in" works on detecting whether a letter is in the

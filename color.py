@@ -1517,7 +1517,7 @@ class RegexpDecorate:
         for line in open(file).readlines():
             rd(line)    # Lines with matches are printed to stdout
             
-        Can als be done with
+        Can also be done with
             rd(open(file))
             
     Suppose you have python files in a directory "mydir" and you're interested in knowing how many

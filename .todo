@@ -38,19 +38,6 @@
           but it is streamed to stdout, so some checking has to be done.  Also use
           /usr/bin/file to verify it's really latin1.
 
-    - bitarray
-        - Add programing details to my python helpfile
-        - Note `from bitarray.util import gen_primes` generates primes using the Sieve
-          of Eratosthenes.  Also see examples/sieve.py and examples/dyn_sieve.py.
-            - sieve.py computes all primes up to 1e9 in 13.2 s, up to 1e10 in 153 s.
-              This means that this bitarray could be stored in 1.25 GB and would give
-              fast searching for primality, but it's probably not sensible to store such
-              large things on disk, as they aren't needed very often.
-            - I'd probably limit it to 1e8, as that takes less that 1 s to compute and
-              means a 12.5 MB file.  In fact, it mostly means that primes.py should just
-              compute things and store things in a bitarray.
-        - See examples/gene.py for using bitarray to encode a gene
-
     - intf.py
         - Fixed size integer module
         - Should it be derived from int?
