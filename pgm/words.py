@@ -70,20 +70,23 @@ if 1:   # Utility
         Usage:  {sys.argv[0]} [options] file1 [file2...]
           Count the words in the given files, splitting on whitespace.  Include the
           total number of words and the percentage contribution of each file.
+        Options:
+          -d n  Number of digits for statistics [{flt(0).N}]
+          -s    Supress statistics
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-a"] = False     # Need description
+        d["-s"] = True      # Include statistics
         d["-d"] = 3         # Number of significant digits
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "") 
+            opts, args = getopt.getopt(sys.argv[1:], "d:hs") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("a"):
+            if o[1] in list("s"):
                 d[o] = not d[o]
             elif o == "-d":
                 try:
@@ -94,6 +97,7 @@ if 1:   # Utility
                     Error(f"-d option's argument must be an integer between 1 and 15")
             elif o == "-h":
                 Usage()
+        flt(0).N = d["-d"]
         GetColors()
         return args
 if 1:   # Core functionality
@@ -119,7 +123,7 @@ if 1:   # Core functionality
         return v
 
     def Report(lst):
-        w_filename, w_numwords, total, sp, data = 0, 0, 0, " "*2, []
+        w_filename, w_numwords, total, sp, data, n = 0, 0, 0, " "*2, [], len(lst)
         if 1:   # Get column widths
             for filename, numwords in lst:
                 data.append(numwords)
@@ -141,10 +145,6 @@ if 1:   # Core functionality
                 if numwords > maxword:
                     maxword = numwords
                     maxfile = filename
-        if 1:   # Get statistics
-            mean = flt(statistics.mean(data))
-            stdev = flt(statistics.stdev(data))
-            l, m, h = [flt(i) for i in statistics.quantiles(data, n=4)]
         if 1:   # Report
             t.print(f"{t.whtl}{'Words':>{w_numwords}s}{sp}{'File':^{w_filename}s}{sp}{'Percent':{wmax_pct}s}")
             for filename, numwords in sorted(lst):
@@ -152,19 +152,29 @@ if 1:   # Core functionality
                 pct = RoundOff(pct, digits=2, convert=True)
                 p = ConvertPercentage(pct)
                 c = t.wht
-                if numwords == minword:
+                if numwords == minword and n > 1:
                     c = t.red
-                elif numwords == maxword:
+                elif numwords == maxword and n > 1:
                     c = t.grn
                 t.print(f"{c}{numwords:{w_numwords}d}{sp}{filename:{w_filename}s}{sp}{p:{wmax_pct}s}")
-            t.print(f"{t.yell}{total:{w_numwords}d}{sp}{'Total':{w_filename}s}")
-            # Statistics
-            print(f"{t.sky}  mean             {mean}")
-            print(f"  stdev            {stdev}")
-            print(f"  s/xbar           {stdev/mean}")
-            print(f"  25% quantile     {l}")
-            print(f"  50% quantile     {m}")
-            print(f"  75% quantile     {h}")
+            if n > 1:
+                if total >= 1000:
+                    # Get total in cuddled SI notation
+                    N = flt(total).engsic
+                    t.print(f"{t.yell}{total:{w_numwords}d}{sp}{'Total':s} ({N})")
+                else:
+                    t.print(f"{t.yell}{total:{w_numwords}d}{sp}{'Total':{w_filename}s}")
+                if d["-s"]:    # Get statistics
+                    mean = flt(statistics.mean(data))
+                    stdev = flt(statistics.stdev(data))
+                    l, m, h = [flt(i) for i in statistics.quantiles(data, n=4)]
+                    # Print statistics
+                    print(f"{t.brnl}  mean             {mean}")
+                    t.print(f"{t.sky}  stdev            {stdev}")
+                    print(f"  s/xbar           {stdev/mean}")
+                    print(f"  25% quantile     {l}")
+                    t.print(f"{t.trq}  50% quantile     {m}")
+                    print(f"  75% quantile     {h}")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
