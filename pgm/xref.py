@@ -1,21 +1,21 @@
-"""
+'''
 TODO:
+
     - -I:
         - Include a histogram of token lengths
         - Print the top 10 tokens by frequency
     - -T:  same as -t, but include the token counts (same output as
       /pylib/pgm/tokenize1.py).
-
+      
     - Consider wrapping the long lines so that it all fits into the
       number of COLUMNS present.
-
+      
     - Consider changing output to one line per token if there's only one
       file.  For neatness, this would require the spacing for the tokens
       to match the longest token, which could be problematic.
     - Total match count on token's line in parentheses
-
-"""
-
+    
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -44,10 +44,8 @@ if 1:  # Header
         from columnize import Columnize
         from globalcontainer import Global, Variable, Constant
         from color import t
-
         if 0:
             import debug
-
             debug.SetDebugger()  # Start debugger on unhandled exception
     if 1:  # Global variables
         ii = isinstance
@@ -59,17 +57,14 @@ if 1:  # Header
         G.ro.default_dict = "/words/words.default"
         t.warn = t("ornl")
 if 1:  # Utility
-
     def eprint(*p, **kw):
         print(*p, **kw, file=sys.stderr)
-
     def Error(msg, status=1):
         eprint(msg)
         exit(status)
-
     def PrintManpage():
         print(
-            dedent(f"""
+            dedent(f'''
         NAME
             xref.py - produce a cross reference of tokens in a set of text files
         
@@ -92,7 +87,7 @@ if 1:  # Utility
             dictionary is a list of tokens separated by whitespace that give
             the correct spelling of the tokens.  Letter case is ignored.
             Any misspelled tokens are printed to stdout.
-
+            
             Tokens that begin with a digit are ignored unless the -N option
             is given.
             
@@ -237,13 +232,12 @@ if 1:  # Utility
         
         NOTES
             Please send bug reports/improvements to someonesdad1@gmail.com.
-        """)
+        ''')
         )
-
     def Usage(status=1, quiet=False):
         "Print usage statement and exit"
         name = sys.argv[0]
-        s = dedent(f"""
+        s = dedent(f'''
         Usage:  {name} [options] [file1 [file2...]]
         A token cross-referencing and spell checking tool.  Use '-' as a file
         argument to tokenize stdin.
@@ -268,14 +262,13 @@ if 1:  # Utility
             Default dictionary = '{G.ro.default_dict}'
             
             Tokens are split in a line on python whitespace characters.
-        """)
+        ''')
         if not quiet:
             print(s)
             exit(status)
         # Make a list of the options to find disconnects between Usage
         # and ParseCommandLine
         Usage.s = set([i for i in s.split() if i[0] == "-" and len(i) == 2])
-
     def ParseCommandLine(d):
         "Parse command line and return arguments"
         d["-@"] = False  # Get file list from stdin, one per line
@@ -318,29 +311,25 @@ if 1:  # Utility
         opts = set([i for i in d if i[0] == "-" and len(i) == 2])
         if opts != Usage.s:
             eprint(
-                dedent(f"""
+                dedent(f'''
             {t.warn}xref.py has a disconnect between the options in the dict opt
             and those listed in Usage():
               In ParseCommandLine, not in Usage:  {" ".join(opts - Usage.s)}
               In Usage, not in ParseCommandLine:  {" ".join(Usage.s - opts)}{t.n}
-            """)
+            ''')
             )
             exit(2)
         if not args and not d["-@"]:
             Usage()
         return args
-
-
 if 1:  # Core functionality
-
     def GetWords(s):
         "Return a set of words in the multiline string s"
         return set(s.split())
-
     def Keywords():
         "Return a set of programming keywords"
         # C/C++/shell
-        t = """
+        t = '''
         abs acos acosh acosl alloc amode argc argv asctime asin asinh asinl
         atan atan2 atan2l atanh atanl atexit atof atoi atol bitset bool
         boolalpha brk bsearch calloc ceil ceill cerr cgets chdir chmod cin
@@ -372,10 +361,10 @@ if 1:  # Core functionality
         strtok strtol strtoul struct strupr strxfrm substr swprintf tanh
         tanhl tanl tmpfile tmpnam toascii tolower toupper trunc typedef
         typename tzset ultoa undef ungetc ungetch unitbuf unset uppercase va
-        vfprintf vfscanf vprintf vscanf vsprintf vsscanf wcstombs wctomb"""
+        vfprintf vfscanf vprintf vscanf vsprintf vsscanf wcstombs wctomb'''
         s = GetWords(t)
         # Python
-        t = """
+        t = '''
         and ascii bytearray bytes callable chr classmethod cmath cmp
         copysign def delattr delitem delslice dict dir divmod eq eval
         excepthook frozenset gamma getattr getitem getslice getstate globals
@@ -383,29 +372,26 @@ if 1:  # Core functionality
         locals lshift max memoryview min mul ord or radd rcmp rdiv rdivmod
         repr rlshift rmod rmul rop ror rpow rrshift rshift rsub rxor setattr
         setitem setslice setstate staticmethod tuple ufloat UFloat umath
-        uncertainties vars xor xrange zip"""
+        uncertainties vars xor xrange zip'''
         # From 3.9's keyword.kwlist:
-        t += """
+        t += '''
             False None True and as assert async await break class continue
             def del elif else except finally for from global if import in
             is lambda nonlocal not or pass raise return try while with
             yield
-        """
+        '''
         s.update(GetWords(t))
         return s
-
     def GetContractions():
-        """Return a set of contraction words"""
-        s = """I ain aren couldn daren daresn dasn didn er finna gimme giv
+        '''Return a set of contraction words'''
+        s = '''I ain aren couldn daren daresn dasn didn er finna gimme giv
             gonna gotta hadn hasn howdy isn ll ma mayn mightn mustn ne needn
-            ol oughtn shan shouldn st tis twas wasn wouldn"""
+            ol oughtn shan shouldn st tis twas wasn wouldn'''
         return GetWords(s)
-
     def GetFiles():
         "Read in the files to process from stdin, one file per line"
         files = [i.strip() for i in sys.stdin.read().split("\n") if i.strip()]
         return [i for i in files if i[0] != "#"]  # Removed 'commented' files
-
     def NumReferences(token: str):
         "Return the number of line references this token has"
         n = 0
@@ -413,14 +399,11 @@ if 1:  # Core functionality
         for i in t:
             n += len(t[i])
         return n
-
     def RemoveDigits(token: str) -> str:
         return token if d["-g"] else token.translate(RemoveDigits.translate_dict)
-
     RemoveDigits.translate_dict = {}
     for i in string.digits:
         RemoveDigits.translate_dict[ord(i)] = None
-
     def SplitCompositeToken(token: str) -> list:
         "Return a list of the split words in token"
         # Replace each '_' with a space, then insert a space before each
@@ -438,15 +421,12 @@ if 1:  # Core functionality
             new.append(char)
         s = "".join(new)
         return s.lower().split() if d["-i"] else s.split()
-
     SplitCompositeToken.capitals = set(string.ascii_uppercase)
-
     def Non7BitCharacters():
         "Return a list of any non-7bit characters in the tokens"
         all_chars = set("".join(set(d["tokens"])))
         chars = list(sorted([i for i in all_chars if ord(i) > 0x7E]))
         return chars
-
     def PrintReport():
         D = d["tokens"]
         # D is dict with key of token and value of dict with keys of
@@ -477,7 +457,6 @@ if 1:  # Core functionality
                 eprint(f"{t.warn}  {' '.join(u)}{t.n}")
         if d["-I"]:  # Print information statistics
             PrintStatistics()
-
     def PrintStatistics():
         T = d["tokens"]
         numtokens = len(T)  # Total number of tokens
@@ -495,24 +474,23 @@ if 1:  # Core functionality
                 if len(T[t][k]) == 1:
                     tok_one_ref += 1
         print(
-            dedent(f"""
+            dedent(f'''
         Statistics:
             Tokens with one reference    = {tok_one_ref}
             Maximum number of references = {max_refs} (token = '{max_t}')
             Total number of tokens       = {numtokens}
-        """)
+        ''')
         )
         PrintHistogram()
-
     def PrintHistogram():
         T = set(d["tokens"])
         lengths = [len(i) for i in T]
         hist = dict(Counter(lengths))
         print(
-            dedent("""
+            dedent('''
         Token lengths by count of number of tokens:
           Length           Count
-          ------           -----""")
+          ------           -----''')
         )
         for i in range(1, max(hist) + 1):
             count = hist.get(i, 0)
@@ -532,7 +510,6 @@ if 1:  # Core functionality
         for i in s:
             o.append(i[1])
         print(w(" ".join(o)))
-
     def GetWordlists():
         if not d["-c"]:
             d["wordlist"].update(Keywords())
@@ -547,7 +524,6 @@ if 1:  # Core functionality
         if d["-i"]:
             # Change all words to lowercase
             d["wordlist"] = set(i.lower() for i in d["wordlist"])
-
     def SpellCheck():
         "Print misspelled words"
         GetWordlists()
@@ -569,7 +545,6 @@ if 1:  # Core functionality
                     print(t)
             elif misspelled:
                 print(t)
-
     def ProcessFile(file: str) -> None:
         "Read in this file's tokens and put them into d['tokens']"
         if file == "-":
@@ -577,21 +552,20 @@ if 1:  # Core functionality
         else:
             stream, name = open(file), file
         Xref(stream, name, preserve_case=d["-i"], mydict=d["tokens"])
-
     def Xref(stream, filename, preserve_case=True, mydict={}):
-        """Build a dictionary of the tokens from stream, which will be read
+        '''Build a dictionary of the tokens from stream, which will be read
         a line at a time.  mydict = dict(token: fdict) where fdict is
         dict(filename: set of line numbers where token was found).
         Stream is named by filename and will usually be the stream from
         open(filename), but it might be something else like the stdin stream
         which was labeled "stdin".
-
+        
         The punctuation and control characters in the line are replaced
         with space characters, then each line is split on whitespace.  The
         tokens are inserted into the dictionary, which is returned.
         Multiple calls with a dictionary allow cross-referencing tokens in
         multiple files.
-        """
+        '''
         if not hasattr(Xref, "punct"):
             # Construct a regexp that can be used to replace punctuation
             # with space characters for subsequent tokenizing.  '_' is
@@ -599,7 +573,6 @@ if 1:  # Core functionality
             punct = string.punctuation.replace("_", "")
             p = [re.escape(i) for i in punct]
             Xref.punct = re.compile("|".join(p))
-
         def ProcessLine(line, linenum):
             line = line.rstrip("\n\r").replace("\t", " ")
             line = Xref.punct.sub(" ", line)  # Replace punct w/ space
@@ -618,7 +591,6 @@ if 1:  # Core functionality
                     mydict[word][filename] = set()
                 if linenum not in mydict[word][filename]:
                     mydict[word][filename].add(linenum)
-
         # Read the lines from the stream
         linenum = 0
         line = stream.readline()
@@ -627,8 +599,6 @@ if 1:  # Core functionality
             ProcessLine(line, linenum)
             line = stream.readline()
         return mydict
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

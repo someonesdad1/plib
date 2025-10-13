@@ -1,6 +1,8 @@
 '''
 TODO:
 
+    - Tokenize:  add a wspc class that identifies whitespace characters as separate from
+      punctuation.  A nl class could also be used specifically for newlines.
     - GetNumber uses the boolean use_unit to allow the user to append a unit string.  Change it to
       also allow use_unit to be a string; then a unit string, if appended, must have the same
       dimensions as the given string.
@@ -731,7 +733,7 @@ if 1:  # Getting numbers
                 done = True
             else:
                 unit.append(i)
-        return ("".join(reversed(num)), ("".join(reversed(unit))).strip())
+        return (''.join(reversed(num)), (''.join(reversed(unit))).strip())
     def ParseUnitString(x, allowed_units, strict=True):
         '''This routine will take a string x and return a tuple (prefix,
         unit) where prefix is a power of ten gotten from the SI prefix
@@ -957,7 +959,6 @@ if 1:  # Getting numbers
                 raise ValueError(f"{arg!r} is of improper a:b form (a is bad)")
         else:
             raise ValueError(f"{arg!r} is of improper form")
-
 if 1:  # Getting choices
     def GetChoice(
         seq, default=1, indent=None, col=False, instream=None, outstream=None
@@ -1010,7 +1011,7 @@ if 1:  # Tokenizing
         if sep is not None:
             return sep.join(lines).split(sep)
         else:
-            return " ".join(lines).split()
+            return ' '.join(lines).split()
     def GetTokens(*things, sep=None, enc=None):
         '''Similar to GetWords(), but this is a generator so that arbitrarily large sets of files
         or streams can be processed.
@@ -1049,7 +1050,7 @@ if 1:  # Tokenizing
                 if not line or line[0] == "#":
                     continue
                 lines.append(line)
-            s = " ".join(lines)
+            s = ' '.join(lines)
             if case == "upper":
                 s = s.upper()
             elif case == "lower":
@@ -1073,9 +1074,9 @@ if 1:  # Tokenizing
         letters (sets preferred) so that "in" works on detecting whether a letter is in the
         sequence.
         
-        The returned deque is made up of non-empty strings of a) words with letters and b)
-        non-letters.  These strings will be wordtype and punctype, respectively, which are derived
-        from str.
+        The returned deque is made up of non-empty strings of a) words with letters and
+        b) non-letters.  These strings will be instances of wrd and pnc, respectively,
+        which are derived from str.
         
         Example:  Tokenize("To be, or not to be:") returns
         
@@ -1090,11 +1091,12 @@ if 1:  # Tokenizing
             '''
             seq1.append(char)
             if seq2:
-                p = "".join(seq2)  # Coalesce into a single string
+                p = ''.join(seq2)  # Coalesce into a single string
                 if p:
                     out.append(seq2type(p))
                 seq2.clear()
         inp, out, word, punc = deque(s), deque(), deque(), deque()
+        # Process the string s each character at a time
         while inp:
             char = inp.popleft()
             if char in letters or char in otherchars:
@@ -1104,11 +1106,11 @@ if 1:  # Tokenizing
                 # It's a punctuation character
                 Handle(char, punc, word, wordtype)
         if word:
-            out.append(wordtype("".join(word)))
+            out.append(wordtype(''.join(word)))
         if punc:
-            out.append(punctype("".join(punc)))
+            out.append(punctype(''.join(punc)))
         if check:
-            t = "".join(out)
+            t = ''.join(out)
             if t != s:
                 print(f"Orig:  {repr(s)}")
                 print(f"New :  {repr(t)}")
@@ -1119,7 +1121,7 @@ if 1:  # Miscellaneous
         "Return True if all characters in iterable seq are punctuation"
         if not hasattr(IsPunctuation, "punc"):
             # Get punctuation characters
-            other_punc = "".join(
+            other_punc = ''.join(
                 [
                     chr(i)
                     for i in (
@@ -2271,7 +2273,7 @@ if __name__ == "__main__":
             Assert(tk == expected)
     if 1:  # Miscellaneous
         def TestIsPunctuation():
-            other_punc = "".join(
+            other_punc = ''.join(
                 [
                     chr(i)
                     for i in (
