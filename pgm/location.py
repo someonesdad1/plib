@@ -68,15 +68,16 @@ if 1:   # Utility
         exit(status)
     def Usage(status=0):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] etc.
-          Turn 🟨Description (lat,long)🟨 into gfm links to Google maps.
-        Options:
-            -h      Print a manpage
+        Usage:  {sys.argv[0]} [options] file1 [file2...]
+          Turn 🟨Description (lat,long)🟨 into gfm links to Google maps.  All file input
+          is printed to stdout.
         '''))
         exit(status)
     def ParseCommandLine(d):
         d["-a"] = False     # Need description
         d["-d"] = 3         # Number of significant digits
+        if len(sys.argv) < 2:
+            Usage()
         try:
             opts, args = getopt.getopt(sys.argv[1:], "h") 
         except getopt.GetoptError as e:
@@ -98,17 +99,42 @@ if 1:   # Utility
         return args
 if 1:   # Core functionality
     def ProcessLine(line):
+        '''Example:  🟨Description (lat,long)🟨 will become [Description](X) where
+        X is 'https://www.google.com/maps/search/?api=1&query=latitude,longitude',
+        a Google map URL to that location.
+        '''
         mo = g.r.search(line)
-        breakpoint() #xx 
-        if mo:  # Substitute for the indicated link
-            breakpoint() #xx
-            head, tail = x
-        print(line, end="")
+        if not mo:
+            print(line)
+            return
+        des, lat, lon = mo.groups()
+        des = des.strip()
+        if None in (des, lat, lon):
+            print(line)
+            return
+        # Have a match
+        a, b = mo.span()
+        start, end = line[:a], line[b:]
+        s = "https://www.google.com/maps/search/?api=1&query="
+        new_line = f"{start} [{des}]({s}{lat},{lon}) {end}"
+        print(new_line)
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
-    args = ParseCommandLine(d)
-    g.r = re.compile(r"🟨(.*)🟨")
-    lines = open("aa").readlines()
-    for line in lines:
-        ProcessLine(line)
+    files = ParseCommandLine(d)
+    # regex to extract components of a location URL
+    g.r = re.compile(r'''
+        🟨\ *                       # Starting trigger string
+        (?P<des>[^(]*)              # Description
+        \(                          # Beginning parenthesis
+        (?P<lat>[+-]?\d+\.\d+)      # Latitude
+        , *                         # Comma
+        (?P<lon>[+-]?\d+\.\d+)      # Longitude
+        \)                          # Ending parenthesis
+        \ *🟨                       # Ending trigger string
+    ''', re.X)
+    for file in files:
+        lines = open(file).readlines()
+        for line in lines:
+            line = line.rstrip("\n")    # Remove newline
+            ProcessLine(line)

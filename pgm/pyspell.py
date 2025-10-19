@@ -1,11 +1,10 @@
-"""
+'''
 
 ToDo
     - Use /plib/Dev/tokenize/contractions.py to help find tokens before the ' character
-
+    
 Print out misspelled tokens in source code files.
-"""
-
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -35,46 +34,38 @@ if 1:  # Header
         from columnize import Columnize
         import timer
         import get
-
         if 0:
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
-
         class G:
             pass
-
         g = G()
         g.dbg = False
+        g.words = "/gh/words/words.univ"
         ii = isinstance
 if 1:  # Utility
-
     def GetColors():
         t.err = t("redl")
         t.dbg = t("lill") if g.dbg else ""
         t.N = t.n if g.dbg else ""
-
     def GetScreen():
         "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
             int(os.environ.get("COLUMNS", "80")) - 1,
         )
-
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="")
             print(*p, **kw)
             print(f"{t.N}", end="")
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=0):
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options] file1 [file2...]
           Tokenize the indicated source code files and list the tokens that may be misspelled.
         Options:
@@ -82,10 +73,9 @@ if 1:  # Utility
                     otherwise)
             -b      Print a bare list of words (no file information)
             -c      Print a columnized list of the words with no file information
-        """)
+        ''')
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = False  # Don't ignore certain /plib files
         d["-b"] = False  # Print a bare list of tokens (no file information)
@@ -101,45 +91,34 @@ if 1:  # Utility
             if o[1] in list("abc"):
                 d[o] = not d[o]
         return args
-
-
 if 1:  # Classes
-
     class Token(str):
         "Hold words so they can be sorted in dictionary order"
-
         def __new__(cls, value, file_number):
             instance = super().__new__(cls, value)
             instance.n = file_number
             return instance
-
         def __str__(self):
             return super().__str__()
-
         def __repr__(self):
             return super().__str__() + f"<{self.n}>"
-
         def __lt__(self, other):
             return self.lower() < other.lower()
-
-
 if 1:  # Core functionality
-
     def GetWordlist():
         "Load the default set of words"
         g.wordlist = set()
         # Remove any underscores
-        for w in open("/donrepo/words/words.univ").read().split():
+        for w in open(g.words).read().split():
             g.wordlist.add(w.replace("_", ""))
         # Load the ancillary set
-        file = P("/donrepo/plib/pgm/pyspell.words")
+        file = P("/plib/pgm/pyspell.words")
         if not file.exists():
             Error(f"{file} doesn't exist")
         words = get.GetLines(
             file, script=True, ignore_empty=True, strip=True, nonl=True
         )
         g.wordlist.update(set(words))
-
     def SplitOnCapitals(word):
         assert "_" not in word
         capitals = set("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
@@ -150,7 +129,6 @@ if 1:  # Core functionality
         for i in word:
             o.append(f" {i}") if i in capitals else o.append(f"{i}")
         return "".join(o).split()
-
     def FilterFiles(files):
         "Filter out certain files unless -a was used"
         # First convert all strings to pathlib.Path objects
@@ -180,13 +158,12 @@ if 1:  # Core functionality
                 continue
             keep.append(file)
         return keep
-
     def IsMisspelled(word):
-        """Check the indicated word for a misspelling.  Split it on '_' if it contains
+        '''Check the indicated word for a misspelling.  Split it on '_' if it contains
         underscores.  If not, split it on uppercase letters and spell check each token.
         The spell checking method is to first see if it's in the set of words.  If not,
         change the word to all lowercase.
-        """
+        '''
         if "_" in word:
             bad = []
             for w in word.split("_"):
@@ -200,7 +177,6 @@ if 1:  # Core functionality
                 if word not in g.wordlist and word.lower() not in g.wordlist:
                     return True
             return False
-
     def PrintTokensInColumns(words):
         "Print the words in columns"
         o = []
@@ -209,11 +185,9 @@ if 1:  # Core functionality
         for i in Columnize(o):
             print(i)
         exit(0)
-
     def SortTokens(words):
         "Sort the tokens in dictionary order"
         return list(sorted(words))
-
     def Report(misspelled, files):
         if not misspelled:
             return
@@ -229,8 +203,6 @@ if 1:  # Core functionality
             print(f"\nFile numbers:")
             for i, file in enumerate(files):
                 print(f"{i:^6d}   {file}")
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     files = ParseCommandLine(d)
