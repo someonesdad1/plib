@@ -1,5 +1,9 @@
 /plib/.todo
 
+    - location.py
+        - Use in gfm files:  convert 🟨link description (lat,long)🟨 to a Google map
+          link
+
     - spell.py
         - General spelling checker for text files
         - Use get.Tokenize(); ignore contractions and possessives
