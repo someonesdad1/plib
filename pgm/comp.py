@@ -322,16 +322,16 @@ if 1:  # Data
             15:9:?    Capacitor, 0.977 uF, 200 V, 1970's Electrocube salvaged from Ithaca lock-in   capacitor
             15:10:?      
         Box 16
-            16:1:?    Ring terminal, blue, #10   terminal
-            16:2:?    Ring terminal, blue, #8   terminal
-            16:3:?    Spade terminal, blue, #10   terminal
-            16:4:?    Spade terminal, blue, #10   terminal
-            16:5:?    Spade terminal, blue, #8   terminal
-            16:6:?    Spade terminal, blue, #8   terminal
-            16:7:?    Spade terminal, red, #8   terminal
-            16:8:?      
-            16:9:?    Spade terminal, red, #6   terminal
-            16:10:?      
+            16:1:M    Ring terminal, blue, #10   terminal
+            16:2:M    Ring terminal, blue, #8   terminal
+            16:3:M    Spade terminal, blue, #10   terminal
+            16:4:M    Spade terminal, blue, #10   terminal
+            16:5:M    Spade terminal, blue, #8   terminal
+            16:6:M    Spade terminal, blue, #8   terminal
+            16:7:M    Spade terminal, red, #8   terminal
+            16:8:M    1/4" Faston terminal, male, 10-12 ga   terminal
+            16:9:M    Spade terminal, red, #6   terminal
+            16:10:M   1/4" Faston terminal, female, 12-14 ga   terminal
         Box 17
             17:1:?    Resistor, precision, 1 kohm, HP from June 1968, 0.1%   resistor
             17:2:?    Resistor, precision, 1.001 kohm, HP from June 1968, 0.0075%   resistor

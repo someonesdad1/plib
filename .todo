@@ -1,15 +1,5 @@
 /plib/.todo
 
-    - location.py
-        - Use in gfm files:  convert 🟨link description (lat,long)🟨 to a Google map
-          link
-
-    - spell.py
-        - General spelling checker for text files
-        - Use get.Tokenize(); ignore contractions and possessives
-        - Build a good custom dictionary that captures most of the common stuff I use
-        - Process each file separately
-
     - GNU units
         - Use a python script to prettify the output
             - 'Definition: 1e5 Pa = 100000 kg / m s^2' --> 10⁵ Pa = 100000 kg//m·s²
@@ -26,19 +16,10 @@
           documents.
         - Also remember to include the stuff in /ebooks.
 
-    - primes.py
-        - Core bug:  Most of the functions are untested. 
-        - Use /usr/bin/factor to do the factoring, as it will be much faster and capable
-          of handling much larger numbers.  It also can do all of the script's arguments 
-          in one call.
-        - Construct and pickle a bitfield that "remembers" the primes so that an
-          IsPrime(*args) function is fast and returns True if all arguments are prime
-
     - Tangent scale
         - K&E sold one more than a century ago
         - Simple to make in g library
-            - Make a number of them that fit on one piece of paper:  4, 5, 6, 8, 10
-              inches
+            - Make a number of them that fit on one piece of paper:  4, 5, 6, 8, 10 inches
             - Another demo file for the g library
         - Put in a hobbyutil PDF file that describes and contains a number of different
           useful drafting scales 

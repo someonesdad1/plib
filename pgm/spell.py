@@ -26,22 +26,26 @@ if 1:  # Header
         import pathlib
         import string
         import sys
-        from pdb import set_trace as xx
     if 1:  # Custom imports
         from wrap import dedent
         from asciify import Asciify
         import get
         from columnize import Columnize
     if 1:  # Global variables
+        class G:
+            pass
+        g = G()
+        g.letters = set(string.ascii_letters)
         wordlist = {
             # This is used as my personal wordlist for stuff that shows up in my stuff
             # frequently
             "additional": "/words/words.additional",
-            0: "/words/words.ngsl.experimental",
-            1: "/words/words.beale.2of12inf",
-            2: "/words/words.univ",
+            0: None,
+            1: "/words/words.ngsl.experimental",
+            2: "/words/words.beale.2of12inf",
+            3: "/words/words.univ",
         }
-        default_wordlist = 1
+        default_wordlist = 2
 if 1:  # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -58,11 +62,13 @@ if 1:  # Utility
           characters and tokenizing on whitespace.  Use '-' to read stdin.
           Default wordlist is {wl}.  Case is ignored by default.
         Options:
-          -0    Basic dictionary          {P(wordlist[0])}
-          -1    Medium-size dictionary    {P(wordlist[1])}
-          -2    Large dictionary          {P(wordlist[2])}
+          -0    No dictionary
+          -1    Basic dictionary          {P(wordlist[1])}
+          -2    Medium-size dictionary    {P(wordlist[2])}
+          -3    Large dictionary          {P(wordlist[3])}
           -a    Apply Asciify() to tokens
-          -d    Don't remove digit characters in tokens
+          -D    Don't remove digit characters in tokens
+          -d f  Use file f as an adjunct dictionary (can have more than one)
           -h    Don't replace hyphen with space
           -i    Don't ignore case of tokens
           -k    Columnize output
@@ -77,7 +83,8 @@ if 1:  # Utility
         d["-1"] = False
         d["-2"] = False
         d["-a"] = False
-        d["-d"] = True
+        d["-D"] = True
+        d["-d"] = set()
         d["-h"] = False
         d["-i"] = True
         d["-k"] = False
@@ -85,55 +92,69 @@ if 1:  # Utility
         d["-s"] = False
         d["-u"] = False
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "012adhiknsu")
+            opts, args = getopt.getopt(sys.argv[1:], "0123aDd:hiknsu")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("012adhiknsu"):
+            if o[1] in list("0123aDhiknsu"):
                 d[o] = not d[o]
+            elif o[1] == "d":
+                d[o].add(a)
         if not d["-0"] and not d["-1"] and not d["-2"]:
             d["-" + str(default_wordlist)] = True
         if not args:
             Usage(d)
         return args
 if 1:  # Core functionality
-    def BuildTranslate(d):
-        '''Construct the d["trans"] dictionary used to translate the strings to be ready to
-        tokenize.  This replaces punctuation and whitespace with spaces and deletes digits.
-        '''
-        d["trans"] = t = {}
-        for c in string.punctuation:
-            t[ord(c)] = " "
-        for c in string.whitespace:
-            if c == " ":
-                continue
-            t[ord(c)] = " "
-        if d["-d"]:
-            for c in string.digits:
-                t[ord(c)] = None
-        if d["-h"]:
-            del t[ord("-")]
     def GetWordlists(d):
         # regex ignores comments; convert to lowercase if d["-i"] is True
         regex = r"^\s*#"
         wl = set()
-        wl.update(get.GetWords(wordlist["additional"], ignore=[regex]))
-        if d["-0"]:
-            wl.update(get.GetWords(wordlist[0], ignore=[regex]))
-        if d["-1"]:
-            wl.update(get.GetWords(wordlist[1], ignore=[regex]))
-        if d["-2"]:
-            wl.update(get.GetWords(wordlist[2], ignore=[regex]))
+        if not d["-0"]:
+            wl.update(get.GetWords(wordlist["additional"], ignore=[regex]))
+            for i in "-1 -2 -3".split():
+                n = int(i[1:])
+                wl.update(get.GetWords(wordlist[n], ignore=[regex]))
+        for file in d["-d"]:
+            wl.update(get.GetWords(file, ignore=[regex]))
         if d["-i"]:
             wl = set([i.lower() for i in wl])
         d["words"] = wl
+    def BuildTranslate(d):
+        '''Construct the d["trans"] dictionary used to translate the strings to be ready to
+        tokenize.  This replaces punctuation and whitespace with spaces and deletes digits.
+        Also creates the d["letters"] dictionary used to translate string to remove the
+        plain ASCII letters.
+        '''
+        if 1:   # Make d["trans"]
+            d["trans"] = u = {}
+            for c in string.punctuation:
+                u[ord(c)] = " "
+            for c in string.whitespace:
+                if c == " ":
+                    continue
+                u[ord(c)] = " "
+            if d["-D"]:
+                for c in string.digits:
+                    u[ord(c)] = None
+            if d["-h"]:
+                del u[ord("-")]
+        if 1:   # Make d["letters"]
+            d["letters"] = u = {}
+            for c in string.ascii_letters:
+                u[ord(c)] = None
+    def Non7bit(word):
+        'Return False if word has non-7-bit character in it'
+        return bool(word.translate(d["letters"]))
     def ProcessFile(file, d):
         s = sys.stdin.read() if file == "-" else open(file).read()
         if d["-i"]:
             s = s.lower()
-        t = s.translate(d["trans"])
-        for word in t.split():
+        u = s.translate(d["trans"])
+        for word in u.split():
+            if d["-u"] and Non7bit(word):     # Don't allow words with non-7-bit characters
+                continue
             w = Asciify(word) if d["-a"] else word
             if d["-a"] and w != word:
                 W = f"{w} ({word})"
@@ -156,6 +177,14 @@ if 1:  # Core functionality
         else:
             for i in sorted(words):
                 print(i)
+
+if 0:   # xx
+    d = {"-D":0, "-h":0}
+    BuildTranslate(d)
+    s = "🟤🟣🟢🟡🟠🔵🔴⚫"
+    print(Non7bit(s))
+    exit()
+
 if __name__ == "__main__":
     d = {}  # Options dictionary
     files = ParseCommandLine(d)
