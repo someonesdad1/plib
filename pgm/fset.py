@@ -23,7 +23,7 @@ if 1:  # Header
     if 1:  # Custom imports
         from wrap import dedent
         from get import GetWordlist
-        if 0:
+        if 1:
             import debug       
             debug.SetDebugger()
     if 1:  # Global variables
@@ -45,6 +45,69 @@ if 1:  # Utility
         The second use case uses the same basic set operations, but first parses the
         input file into tokens by splitting on whitespace.
 
+        Here are two example files that will illustrate the behaviors:
+
+        file1:
+            This is file1
+            One common line
+            One uncommon line
+        file2:
+            This is file2
+            Another uncommon line
+            One common line
+
+        Running the script with the various operands (op) gives the following results:
+
+            ne  -> True
+            eq  -> False
+            el  -> False
+            di  ->
+                One uncommon line
+                This is file1
+            sd  ->
+                Another uncommon line
+                One uncommon line
+                This is file1
+                This is file2
+            in  ->
+                One uncommon line
+            is  -> False
+            un  -> 
+                Another uncommon line
+                One common line
+                One uncommon line
+                This is file1
+                This is file2
+
+        Running the script with the various operands (op) gives the following results
+        when the -w option is used:
+            ne  -> True
+            eq  -> False
+            el  -> False
+            di  ->
+                file1
+            sd  ->
+                Another
+                file1
+                file2
+            in  ->
+                One
+                This
+                common
+                is
+                line
+                uncommon
+            is  -> False
+            un  -> 
+                Another
+                One
+                This
+                common
+                file1
+                file2
+                is
+                line
+                uncommon
         '''))
         exit(0)
     def ParseCommandLine():
@@ -83,24 +146,24 @@ if 1:  # Utility
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] op file1 file2 [file3 ...]
           where op is the operation:
-            ne               Lines in file1 are != to the lines in following files
-            eq               Lines in file1 are == to the lines in following files
-            el               file1 contains the string given as file2 as an element
-            di               Lines in file1 that are not in the following files
-            sd             * Lines that are in file1 or the remaining files, but
+            ne        B      Lines in file1 are != to the lines in following files
+            eq        B      Lines in file1 are == to the lines in following files
+            el        B      file1 contains the string given as file2 as an element
+            di        L      Lines in file1 that are not in the following files
+            sd       +L      Lines that are in file1 or the remaining files, but
                                 not both (symmetric difference)
-            in               Lines that are common to all files
-            ps             * Determine whether file1 is a proper subset of
+            in        L      Lines that are common to all files (intersection)
+            is       +B      Determine whether file1 is a proper subset of
                                 remaining files
-            un               Lines that are in any of the files
+            un        L      Lines that are in any of the files (union)
           Performs operations on the lines of a file as if they were members of a set.  In
-          the operations marked with '*', file2 and subsequent files will be collapsed into
-          one set of lines.
+          the operations marked with '+', file2 and subsequent files will be collapsed into
+          one set of lines.  
         
-          ne, eq, el, and is return Boolean values and also indicate the state by returning
-          0 for true and 1 for false (i.e., their exit codes).  The other operations return
-          the resulting lines.  They will be stripped of leading and trailing whitespace if
-          you use the -w option.
+          ne, eq, el, and is return Boolean values (B) and also indicate the state by
+          returning 0 for true and 1 for false (i.e., their exit codes).  The other
+          operations return the resulting lines (L).  They will be stripped of leading
+          and trailing whitespace if you use the -w option.
         
           Output is sent to stdout and is sorted; use the -s option if you don't
           want the lines sorted (they will be in an indeterminate order, however,
@@ -221,7 +284,8 @@ if __name__ == "__main__":
         if d["-s"]:
             results = sorted(results)
         for line in results:
-            if line[-1] == "\n":
-                print(line, end="")
-            else:
-                print(line)
+            if line:
+                if line[-1] == "\n":
+                    print(line, end="")
+                else:
+                    print(line)
