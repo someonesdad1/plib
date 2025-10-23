@@ -152,6 +152,8 @@ if 1:  # Core functionality
         if d["-i"]:
             s = s.lower()
         u = s.translate(d["trans"])
+        if d["-l"]: # Remove hypertext links
+            breakpoint() #xx 
         for word in u.split():
             if d["-u"] and Non7bit(word):     # Don't allow words with non-7-bit characters
                 continue

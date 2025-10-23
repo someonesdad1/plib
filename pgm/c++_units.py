@@ -1,18 +1,17 @@
-"""
+'''
 
 TODO
     - Convert to python 3 syntax
     - Write test cases
     - Include documentation file
     - Indent to standard hdr style
-
+    
 Generate a C++ include file that can be used for type-safe numerical
 computation with units.
 
 This script was derived as part of the UnitsC++ project at
 http://sourceforge.net/projects/unitscpp/
-"""
-
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -35,10 +34,8 @@ if 1:  # Header
     if 1:  # Custom imports
         from wrap import wrap, dedent
         from color import Color, TRM as t
-
         if 1:
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
         ii = isinstance
@@ -81,11 +78,11 @@ if 1:  # Header
             units_namespace: "",
             numerical_type: "double",
             class_identifier: "class",  # Gets around bug in ctags 5.7
-            needed_includes: dedent("""
+            needed_includes: dedent('''
         #include <ostream>
         #include <sstream>
         #include <string>
-        """),
+        '''),
         }
         # Other string constants
         header_begin = "HeaderBegin"
@@ -97,7 +94,7 @@ if 1:  # Header
         indent = "    "
         nl = "\n"
         # Configuration file example
-        configuration_file_contents = dedent("""
+        configuration_file_contents = dedent('''
         # Empty configuration file for C++ units include file generation.  The
         # method is based on the ideas in Barton and Nackman, "Scientific and
         # Engineering C++", Addison-Wesley, 1994, ISBN 0201533936.  Also see
@@ -127,10 +124,10 @@ if 1:  # Header
         # Note:  if you use a namespace via UnitsNamespace (see below), your
         # code added here will not be in the namespace (contrast this to the
         # Trailer section).
-
+        
         HeaderBegin
         HeaderEnd
-
+        
         #----------------------------------------------------------------------
         # Basic settings (these lines are optional)
         #
@@ -145,12 +142,12 @@ if 1:  # Header
         # NumericalType is the type you plan to use for numerical
         #   calculations.  Defaults to 'double'.  You may use any type
         #   that has the appropriate semantics.
-
+        
         IncludeFileName     =
         UnitsClass          = Units
         UnitsNamespace      =
         NumericalType       = double
-
+        
         #----------------------------------------------------------------------
         # Fundamental dimensions (these lines are required)
         #
@@ -191,9 +188,9 @@ if 1:  # Header
         # fundamental SI units defined for you.  This is a convenience so you
         # don't have to define them here (but they'll show up in the include
         # file). 
-
+        
         %(fundamental)s
-
+        
         #----------------------------------------------------------------------
         # Derived units (these lines are optional)
         #
@@ -222,9 +219,9 @@ if 1:  # Header
         #   DerivedUnit = Area = Length**(-2)
         #
         # Note:  Length**0 is the same as 1.
-
+        
         %(derived)s
-
+        
         #----------------------------------------------------------------------
         # Constants (these lines are optional)
         #
@@ -240,9 +237,9 @@ if 1:  # Header
         #
         # You may omit the keyword const, which will mean you'll have a global
         # variable whose value may be changed later.
-
+        
         %(constants)s
-
+        
         #----------------------------------------------------------------------
         # Trailer text (these lines are optional)
         #
@@ -252,14 +249,13 @@ if 1:  # Header
         #
         # Note if you define a namespace via UnitsNamespace, your code added
         # here _will_ be in the namespace.
-
+        
         TrailerBegin
         TrailerEnd
-        """)
-
+        ''')
         # The following strings are used when the -s option is given.
         # Customize them to your own needs.
-        s_fundamental = dedent("""
+        s_fundamental = dedent('''
         Unit = Mass
         Unit = Length
         Unit = Time
@@ -269,9 +265,8 @@ if 1:  # Header
         Unit = LuminousIntensity
         Unit = Angle
         Unit = SolidAngle
-        """)
-
-        s_derived = dedent("""
+        ''')
+        s_derived = dedent('''
         DerivedUnit = Dimensionless = 1
         DerivedUnit = Avogadro = 1/Quantity
         DerivedUnit = Area = Length^2
@@ -297,13 +292,13 @@ if 1:  # Header
         DerivedUnit = Power = Energy/Time
         DerivedUnit = GravitationalConstant = Force*Length^2/Mass^2
         DerivedUnit = Action = Energy*Time
-
+        
         DerivedUnit = SpecificVolume = Volume/Mass
         DerivedUnit = SpecificEnergy = Energy/Mass
         DerivedUnit = SpecificHeatCapacity = Energy/(Mass*Temperature)
         DerivedUnit = ThermalConductivity = Power/(Length*Temperature)
         DerivedUnit = Entropy = Energy/Temperature
-
+        
         DerivedUnit = Charge = Current*Time
         DerivedUnit = Voltage = Power/Current
         DerivedUnit = ElectricFieldStrength = Voltage/Length
@@ -322,14 +317,13 @@ if 1:  # Header
         DerivedUnit = MagneticMoment = Energy/MagneticFluxDensity
         DerivedUnit = ElectrochemicalConstant = Charge/Quantity
         DerivedUnit = ChargeToMass = Charge/Mass
-
+        
         DerivedUnit = LuminousFlux = LuminousIntensity*SolidAngle
         DerivedUnit = Luminance = LuminousIntensity/Area
         DerivedUnit = Illuminance = LuminousFlux/Area
         DerivedUnit = RadiantIntensity = Power/SolidAngle
-        """)
-
-        s_constants = dedent("""
+        ''')
+        s_constants = dedent('''
         Constant = const NT tera = 1e12;
         Constant = const NT giga = 1e9;
         Constant = const NT mega = 1e6;
@@ -342,7 +336,7 @@ if 1:  # Header
         Constant = const NT pico = 1e-12;
         Constant = const NT femto = 1e-15;
         Constant = const NT atto = 1e-18;
-
+        
         Constant = const Mass kg = 1;
         Constant = const Length m = 1;
         Constant = const Time s = 1;
@@ -367,7 +361,7 @@ if 1:  # Header
         Constant = const MagneticFlux Wb = 1*V*s;
         Constant = const MagneticFluxDensity T = 1*Wb/(m*m);
         Constant = const Inductance H = 1*Wb/A;
-
+        
         Constant = const Mass g = 1e-3*kg;
         Constant = const Mass mg = milli*g;
         Constant = const Mass ug = micro*g;
@@ -376,7 +370,7 @@ if 1:  # Header
         Constant = const Mass amu = 1.66053873e-27*kg;
         Constant = const Mass ton = 2000*lbm;
         Constant = const Mass tonne = 1000*kg;
-
+        
         Constant = const Length km = kilo*m;
         Constant = const Length cm = centi*m;
         Constant = const Length mm = milli*m;
@@ -395,7 +389,7 @@ if 1:  # Header
         Constant = const Length nauticalmile = 1852*m;
         Constant = const Length lightyear = 9.4607305e+15*m;
         Constant = const Length au = 1.4959787e+11*m;
-
+        
         Constant = const Time ms = 1e-3*s;
         Constant = const Time us = 1e-6*s;
         Constant = const Time ns = 1e-9*s;
@@ -406,16 +400,16 @@ if 1:  # Header
         Constant = const Time week = 7*day;
         Constant = const Time year = 365.2422*day;
         Constant = const Time month = 30.43685*day;
-
+        
         Constant = const Temperature degC = 1*K;
         Constant = const Temperature degF = 5/9*K;
-
+        
         Constant = const Angle mradian = 1e-3*radian;
         Constant = const Angle uradian = 1e-6*radian;
         Constant = const Angle deg = 1.745329251994330e-02*radian;
         Constant = const Angle degree = 1*deg;
         Constant = const Angle degrees = 1*degree;
-
+        
         Constant = const Area m2 = 1*m*m;
         Constant = const Area mm2 = 1*mm*mm;
         Constant = const Area cm2 = 1*cm*cm;
@@ -424,7 +418,7 @@ if 1:  # Header
         Constant = const Area hectare = 1e4*m2;
         Constant = const Area acre = 4046.8726*m2;
         Constant = const Area barn = 1e-28*m2;
-
+        
         Constant = const Volume m3 = 1*m*m2;
         Constant = const Volume cm3 = 1*cm*cm2;
         Constant = const Volume cc = 1*cm3;
@@ -438,16 +432,16 @@ if 1:  # Header
         Constant = const Volume gal = 0.0037854118*m3;
         Constant = const Volume gallon = 1*gal;
         Constant = const Volume quart = gallon/4;
-
+        
         Constant = const Velocity mph = mile/hour;
         Constant = const Velocity knot = nauticalmile/hour;
         Constant = const Velocity fps = foot/s;
-
+        
         Constant = const Frequency kHz = kilo*Hz;
         Constant = const Frequency MHz = mega*Hz;
         Constant = const Frequency GHz = giga*Hz;
         Constant = const Frequency rpm = 1/minute;
-
+        
         Constant = const FlowRate gps = gal/s;
         Constant = const FlowRate gpm = gal/minute;
         Constant = const FlowRate gph = gal/hour;
@@ -455,10 +449,10 @@ if 1:  # Header
         Constant = const FlowRate cfm = ft3/minute;
         Constant = const FlowRate lps = l/s;
         Constant = const FlowRate lpm = l/minute;
-
+        
         Constant = const Force lbf = 4.4482216*N;
         Constant = const Force dyne = 10*micro*N;
-
+        
         Constant = const Pressure MPa = mega*Pa;
         Constant = const Pressure GPa = giga*Pa;
         Constant = const Pressure atm = 101325*Pa;
@@ -472,7 +466,7 @@ if 1:  # Header
         Constant = const Pressure torr = 133.322368*Pa;
         Constant = const Pressure inH2O = 249.08891*Pa;
         Constant = const Pressure ftH2O = 12*inH2O;
-
+        
         Constant = const Energy erg = 1*dyne*cm;
         Constant = const Energy cal = 4.1868*J;
         Constant = const Energy kcal = kilo*cal;
@@ -481,24 +475,24 @@ if 1:  # Header
         Constant = const Energy MeV = mega*eV;
         Constant = const Energy GeV = giga*eV;
         Constant = const Energy btu = 1055.0559*J;
-
+        
         Constant = const Current MA = mega*A;
         Constant = const Current kA = kilo*A;
         Constant = const Current mA = milli*A;
         Constant = const Current uA = micro*A;
         Constant = const Current nA = nano*A;
         Constant = const Current pA = pico*A;
-
+        
         Constant = const Capacitance pF = pico*F;
         Constant = const Capacitance nF = nano*F;
         Constant = const Capacitance uF = micro*F;
         Constant = const Capacitance mF = milli*F;
-
+        
         Constant = const Inductance mH = milli*H;
         Constant = const Inductance uH = micro*H;
-
+        
         Constant = const MagneticFluxDensity gauss = 1e-4*T;
-
+        
         Constant = const Acceleration AccelerationOfGravity = 9.80665*m/(s*s);
         Constant = const GravitationalConstant GravitationConstant = 6.67428e-11*N*m2/(kg*kg);
         Constant = const Density DensityOfWater = 1*g/cc;
@@ -525,21 +519,20 @@ if 1:  # Header
         Constant = const Mass MoonMass = 7.3483e22*kg;
         Constant = const Length MoonRadius = 1738*km;
         Constant = const Length MoonDistance = 3.844e8*m;
-        """)
-
-        include_file = dedent("""
+        ''')
+        include_file = dedent('''
         typedef %(NumericalType)s NT;   // Number Type
-
+        
         template<%(IPAR)s>
         %(class_identifier)s %(UnitsClass)s
         {
             public:
                 %(UnitsClass)s(NT value_=NT(0)) : value(value_) {}
-
+                
                 // This turns the class into a function object that allows
                 // the user to easily get at the value.
                 NT operator()() const { return value; }
-
+                
                 // Helper function to get a text representation of the
                 // object's dimensions.  It is static because the
                 // representation is known at compile time.
@@ -549,225 +542,225 @@ if 1:  # Header
                     s << %(OUTSTREAM)s;
                     return s.str();
                 }
-
+                
                 // Helper function for unit conversions.
                 NT to(const %(UnitsClass)s & u) const
                 {
                     return value/u.value;
                 }
-
+                
                 %(UnitsClass)s & operator=(const %(UnitsClass)s & rhs)
                 {
                     value = rhs.value;
                     return *this;
                 }
-
+                
                 // Arithmetic operators
                 %(UnitsClass)s & operator+=(const %(UnitsClass)s & rhs)
                 {
                     value += rhs.value;
                     return *this;
                 }
-
+                
                 %(UnitsClass)s & operator-=(const %(UnitsClass)s & rhs)
                 {
                     value -= rhs.value;
                     return *this;
                 }
-
+                
                 Units & operator*=(const NT & rhs)
                 {
                     value *= rhs;
                     return *this;
                 }
-
+                
                 Units & operator/=(const NT & rhs)
                 {
                     value /= rhs;
                     return *this;
                 }
-
+                
             private:
                 NT value;
         };
-
-
+        
+        
         // Addition
         template <%(IPAR)s>
         const %(UNIT)s operator+(const %(UNIT)s & lhs, const %(UNIT)s & rhs)
         {
             return %(UNIT)s(lhs() + rhs());
         }
-
-
+        
+        
         // Subtraction
         template <%(IPAR)s>
         const %(UNIT)s operator-(const %(UNIT)s & lhs, const %(UNIT)s & rhs)
         {
             return %(UNIT)s(lhs() - rhs());
         }
-
-
+        
+        
         // Multiplication
         template <%(IPAR)s>
         const %(UNIT)s operator*(const NT & lhs, const %(UNIT)s & rhs)
         {
             return %(UNIT)s(lhs*rhs());
         }
-
+        
         template <%(IPAR)s>
         const %(UNIT)s operator*(const %(UNIT)s & lhs, const NT & rhs)
         {
             return rhs*lhs;
         }
-
+        
         template <%(IPARmul)s>
         const %(UnitsClass)s<%(PARaPb)s> operator*(const %(UnitsClass)s<%(PARa)s> & lhs, const %(UnitsClass)s<%(PARb)s> & rhs)
         {
             return %(UnitsClass)s<%(PARaPb)s>(lhs()*rhs());
         }
-
-
+        
+        
         // Division
         template <%(IPAR)s>
         const %(UNIT)s operator/(const %(UNIT)s & lhs, const NT & rhs)
         {
             return %(UNIT)s(lhs()/rhs);
         }
-
+        
         template <%(IPAR)s>
         const %(mUNIT)s operator/(const NT & lhs, const %(UNIT)s & rhs)
         {
             return %(mUNIT)s(lhs/rhs());
         }
-
+        
         template <%(IPARmul)s>
         const %(UnitsClass)s<%(PARaMb)s> operator/(const %(UnitsClass)s<%(PARa)s> & lhs, const %(UnitsClass)s<%(PARb)s> & rhs)
         {
             return %(UnitsClass)s<%(PARaMb)s>(lhs()/rhs());
         }
-
-
+        
+        
         // Comparisons
         template <%(IPAR)s>
         bool operator==(const %(UNIT)s & lhs, const %(UNIT)s & rhs)
         {
             return (lhs() == rhs());
         }
-
+        
         template <%(IPAR)s>
         bool operator==(const %(UNIT)s & lhs, const NT & rhs)
         {
             return (lhs() == rhs);
         }
-
+        
         template <%(IPAR)s>
         bool operator==(const NT & lhs, const %(UNIT)s & rhs)
         {
             return (lhs == rhs());
         }
-
+        
         template <%(IPAR)s>
         bool operator!=(const %(UNIT)s & lhs, const %(UNIT)s & rhs)
         {
             return not (lhs() == rhs());
         }
-
+        
         template <%(IPAR)s>
         bool operator!=(const %(UNIT)s & lhs, const NT & rhs)
         {
             return not (lhs() == rhs);
         }
-
+        
         template <%(IPAR)s>
         bool operator!=(const NT & lhs, const %(UNIT)s & rhs)
         {
             return not (lhs == rhs());
         }
-
-
+        
+        
         // Ordering
         template <%(IPAR)s>
         bool operator<=(const %(UNIT)s & lhs, const %(UNIT)s & rhs)
         {
             return lhs() <= rhs();
         }
-
+        
         template <%(IPAR)s>
         bool operator<=(const %(UNIT)s & lhs, const NT & rhs)
         {
             return (lhs() <= rhs);
         }
-
+        
         template <%(IPAR)s>
         bool operator<=(const NT & lhs, const %(UNIT)s & rhs)
         {
             return (lhs <= rhs());
         }
-
-
+        
+        
         template <%(IPAR)s>
         bool operator>=(const %(UNIT)s & lhs, const %(UNIT)s & rhs)
         {
             return lhs() >= rhs();
         }
-
+        
         template <%(IPAR)s>
         bool operator>=(const %(UNIT)s & lhs, const NT & rhs)
         {
             return (lhs() >= rhs);
         }
-
+        
         template <%(IPAR)s>
         bool operator>=(const NT & lhs, const %(UNIT)s & rhs)
         {
             return (lhs >= rhs());
         }
-
-
+        
+        
         template <%(IPAR)s>
         bool operator<(const %(UNIT)s & lhs, const %(UNIT)s & rhs)
         {
             return lhs() < rhs();
         }
-
+        
         template <%(IPAR)s>
         bool operator<(const %(UNIT)s & lhs, const NT & rhs)
         {
             return (lhs() < rhs);
         }
-
+        
         template <%(IPAR)s>
         bool operator<(const NT & lhs, const %(UNIT)s & rhs)
         {
             return (lhs < rhs());
         }
-
-
+        
+        
         template <%(IPAR)s>
         bool operator>(const %(UNIT)s & lhs, const %(UNIT)s & rhs)
         {
             return lhs() > rhs();
         }
-
+        
         template <%(IPAR)s>
         bool operator>(const %(UNIT)s & lhs, const NT & rhs)
         {
             return (lhs() > rhs);
         }
-
+        
         template <%(IPAR)s>
         bool operator>(const NT & lhs, const %(UNIT)s & rhs)
         {
             return (lhs > rhs());
         }
-
+        
         template <%(IPAR)s>
         std::ostream & operator<<(std::ostream & s, const %(UNIT)s & rhs)
         {
             return s << rhs();
         }
-
+        
         // operator>> is not provided because the unit type can not be
         // created at runtime in any reasonable fashion.  This means there is
         // no easy way to serialize unit objects.
@@ -782,17 +775,15 @@ if 1:  # Header
         // where the base unit m has already been defined.  This requires you
         // to i) know the unit type at compile time and ii) assume its value
         // is in terms of the base type.
-        """)
+        ''')
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         name = sys.argv[0]
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {name} [options] [configuration_file]
           Writes an include file that can be used for type-safe C++ numerical
           computations with units.  The configuration_file controls the contents
@@ -811,10 +802,9 @@ if 1:  # Utility
                   added to the output along with common derived units and
                   constants.  Edit this script to customize the output for
                   your own needs.
-        """)
+        ''')
         )
         exit(status)
-
     def ParseCommandLine():
         if len(sys.argv) < 2:
             Usage()
@@ -839,28 +829,20 @@ if 1:  # Utility
         if len(args) != 1:
             Usage()
         return args[0]
-
-
 if 1:  # Classes
-
     class U:
-        """Perform dimension arithmetic for arbitrary units.  This class is
+        '''Perform dimension arithmetic for arbitrary units.  This class is
         used to calculate the fundamental unit representation for derived units.
-        """
-
+        '''
         def __init__(self, d):
             self.d = tuple(d)
-
         def __repr__(self):
             # return "%s," % join(["%d" % int(i) for i in self.d], ",")
             return ",".join([f"{int(i)}" for i in self.d])
-
         def __mul__(self, b):
             return U([self.d[i] + b.d[i] for i in range(len(self.d))])
-
         def __div__(self, b):
             return U([self.d[i] - b.d[i] for i in range(len(self.d))])
-
         def __pow__(self, b):
             if not ii(b, int):
                 raise TypeError("Bad exponent:  " + repr(b))
@@ -879,17 +861,13 @@ if 1:  # Classes
                 for i in range(b - 1):
                     x *= self
             return x
-
-
 if 1:  # Core functionality
-
     def ReadConfigFile(config_file):
         try:
             lines = open(config_file).readlines()
             return lines
         except Exception:
             Error(f"Error:  couldn't read config file {config_file!r}")
-
     def RemoveComments(lines):
         # Remove comments and empty lines by reading backwards through the file
         for i in range(len(lines) - 1, -1, -1):
@@ -900,12 +878,11 @@ if 1:  # Core functionality
                 del lines[i]
         lines = [line.strip() for line in lines]
         return lines
-
     def GetSection(lines, StartString, EndString):
-        """Find the text between lines with StartString and EndString on
+        '''Find the text between lines with StartString and EndString on
         them.  Return the text between them and delete the associated lines
         from the lines list.
-        """
+        '''
         StartString += nl  # The lines from the file have newlines at the end
         EndString += nl
         start = end = -1
@@ -930,7 +907,6 @@ if 1:  # Core functionality
             return join(header, nl)
         else:
             return None
-
     def Split(line, char="="):
         "Split on the first indicated character"
         if char not in line:
@@ -939,27 +915,24 @@ if 1:  # Core functionality
         key = line[:position].strip()
         value = line[position + 1 :].strip()
         return [key, value]
-
     def ParseLine(line):
-        """Parse on the first '=' character on the line."""
+        '''Parse on the first '=' character on the line.'''
         if "=" not in line:
             Error("Error:  configuration file line missing '=':\n{line}")
         position = line.find("=")
         key = line[:position].strip()
         value = line[position + 1 :].strip()
         return [key, value]
-
     def ParseUnit(line, string):
-        """Make sure there's an '=' character and two tokens."""
+        '''Make sure there's an '=' character and two tokens.'''
         if "=" not in string:
             Error("Error:  configuration file line missing '=':\n{line}")
         name, symbol = Split(string, "=")
         return name + "=" + symbol
-
     def ProcessLines(lines):
-        """Fill the output_strings global with the relevant information,
+        '''Fill the output_strings global with the relevant information,
         ready to be printed out to the include file.
-        """
+        '''
         global output_strings
         AllowedKeys = (
             units_class,
@@ -982,7 +955,6 @@ if 1:  # Core functionality
                 output_strings[constant].append(value)
             else:
                 output_strings[key] = value
-
     def CheckData():
         # Check for duplicates in fundamental units.
         # Form is Unit = Length
@@ -1018,11 +990,10 @@ if 1:  # Core functionality
                 Error("Error:  {key!r} is a duplicated constant")
             else:
                 units[key] = 0
-
     def MakeMap():
-        """Make a map that contains all the variables needed for outputting
+        '''Make a map that contains all the variables needed for outputting
         the include file.
-        """
+        '''
         m = {}
         for key in output_strings[parameters]:
             m[key] = output_strings[parameters][key]
@@ -1031,18 +1002,15 @@ if 1:  # Core functionality
         m[outstream] = output_strings[outstream]
         m[class_identifier] = output_strings[class_identifier]
         return m
-
     def MakeTemplateParameters():
         def f(s, number_of_dimensions):
             string = range(1, number_of_dimensions + 1)
             string = [s % i for i in string]
             return join(string, ", ")
-
         def g(s, number_of_dimensions):
             string = range(1, number_of_dimensions + 1)
             string = [s % (i, i) for i in string]
             return join(string, ", ")
-
         global output_strings
         number_of_dimensions = len(output_strings[fundamental])
         d = {}
@@ -1061,7 +1029,6 @@ if 1:  # Core functionality
         d["UNIT"] = "%s<%s>" % (output_strings[units_class], d["PAR"])
         d["mUNIT"] = "%s<%s>" % (output_strings[units_class], d["MPAR"])
         output_strings[parameters] = d
-
     def BuildNeededStrings():
         global output_strings
         # String for dumping unit's dimensions
@@ -1098,7 +1065,6 @@ if 1:  # Core functionality
                 )
             names_to_pos[name] = i + 1
         output_strings[typedefs] = s
-
         # Build derived typedefs
         def Derived(derived_unit_string):
             name, expression = Split(derived_unit_string, "=")
@@ -1116,7 +1082,6 @@ if 1:  # Core functionality
             else:
                 s = "typedef %s<%s> %s;%s" % (output_strings[units_class], tp, name, nl)
             return s
-
         n = len(output_strings[derived])
         s = ""
         for item in output_strings[derived]:
@@ -1127,7 +1092,6 @@ if 1:  # Core functionality
         for string in output_strings[constant]:
             s += string + nl
         output_strings[constants] = s + nl
-
     def WriteIncludeFile():
         s = output_strings[include_file_name]
         of = sys.stdout
@@ -1163,14 +1127,13 @@ if 1:  # Core functionality
         print("#endif //" + t)
         if s:
             of.close()
-
     def ConstructFundamentalUnits():
-        """Our basic procedure is to compile expressions that create the
+        '''Our basic procedure is to compile expressions that create the
         fundamental unit names objects in our local scope, then put the objects
         into the dictionary keyed by "Units" in the output_strings global
         dictionary.  We'll use these to evaluate the expressions for derived
         units.
-        """
+        '''
         global output_strings
         n = len(output_strings[fundamental])
         d = {}  # Dictionary for our fundamental objects
@@ -1193,9 +1156,8 @@ if 1:  # Core functionality
         if len(d) == 0:
             Error("Need at least one Unit statement in configuration file")
         output_strings[Units] = d
-
     def ConstructDerivedUnits():
-        """The procedure here is analogous to what was done in
+        '''The procedure here is analogous to what was done in
         ConstructFundamentalUnits, except we'll construct strings to be
         compile that contain the expressions the user put into the
         configuration file.  We'll then get the dimensions of the
@@ -1205,7 +1167,7 @@ if 1:  # Core functionality
         determine whether they are legitimate (i.e., we don't have to
         write a parser).  The U class captures the semantics of combining
         the units' dimensions.
-        """
+        '''
         global output_strings
         num_fund = len(output_strings[fundamental])
         # First, put the fundamental units into our local namespace.  This
@@ -1240,8 +1202,6 @@ if 1:  # Core functionality
             d[name] = U(result.d)
             locals()[name] = d[name]
         output_strings[Units] = d
-
-
 if __name__ == "__main__":
     config_file = ParseCommandLine()
     lines = ReadConfigFile(config_file)

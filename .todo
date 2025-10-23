@@ -2259,10 +2259,16 @@ g library
     - SVG replacement for g library
         - Use Inkscape as viewer for the stuff I generate
         - A huge weakness with the g library is that there's no GSView available anymore -- it was
-          an excellent tool and disappeared with no warning.  The POS that replaced it was horribly
-          underpowered and that seems to have disappeared too.
+          an excellent tool and disappeared with no warning.  The POS that replaced it is horribly
+          underpowered.
         - A core fact is SVG is XML and it can be put into an HTML page.  This means a browser can
           be used to view the output.
+        - I first want to focus on simple drawing stuff, as that's what most of my use
+          of the g library has been:  lines, circles, rectangles, ellipses, paths, and
+          text.  
+            - A core desire is a reusable library of items, such as a linear scale.
+              This should get written once, then have attributes to let you adjust
+              things as desired.
         - Consider writing it
             - https://www.codedrome.com/svg-library-in-python/
             - This might outline a good approach and something I can write myself.  It might even
