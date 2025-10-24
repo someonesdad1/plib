@@ -30,6 +30,7 @@ if 1:  # Header
         from wrap import dedent
         from asciify import Asciify
         import get
+        import url as URL
         from columnize import Columnize
     if 1:  # Global variables
         class G:
@@ -72,6 +73,7 @@ if 1:  # Utility
           -h    Don't replace hyphen with space
           -i    Don't ignore case of tokens
           -k    Columnize output
+          -l    Remove hypertext links before spell checking
           -n    Shows tokens in dictionary
           -s    Only print the number misspelled
           -u    Ignore tokens with non-7-bit characters
@@ -88,16 +90,17 @@ if 1:  # Utility
         d["-h"] = False
         d["-i"] = True
         d["-k"] = False
+        d["-l"] = False
         d["-n"] = False
         d["-s"] = False
         d["-u"] = False
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "0123aDd:hiknsu")
+            opts, args = getopt.getopt(sys.argv[1:], "0123aDd:hiklnsu")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("0123aDhiknsu"):
+            if o[1] in list("0123aDhiklnsu"):
                 d[o] = not d[o]
             elif o[1] == "d":
                 d[o].add(a)
@@ -149,11 +152,15 @@ if 1:  # Core functionality
         return bool(word.translate(d["letters"]))
     def ProcessFile(file, d):
         s = sys.stdin.read() if file == "-" else open(file).read()
+        # If -i option used, convert to lowercase
         if d["-i"]:
             s = s.lower()
+        # Remove hypertext links
+        if d["-l"]:
+            for url in URL.GetURLs(s):
+                s = s.replace(url, "")
+        # Break the string into tokens
         u = s.translate(d["trans"])
-        if d["-l"]: # Remove hypertext links
-            breakpoint() #xx 
         for word in u.split():
             if d["-u"] and Non7bit(word):     # Don't allow words with non-7-bit characters
                 continue
