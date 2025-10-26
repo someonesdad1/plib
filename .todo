@@ -1,13 +1,14 @@
 /plib/.todo
+    
+    - spell
+        - A basic problem of the existing tool is that I sometimes can't find the
+          offending misspelled word
+        - The need is to isolate a misspelled word to a line in the file (better even
+          would be line and column).  This could be done by changing get.Tokenize to
+          include the line number and offset in each wrd/pnc object.  This should be
+          fast, as in the 'while inp' loop each character is popped and all that's
+          needed is to find the newlines and increment/reset line and column counters.
 
-    - GNU units
-        - Use a python script to prettify the output
-            - 'Definition: 1e5 Pa = 100000 kg / m s^2' --> 10⁵ Pa = 100000 kg//m·s²
-        - Colorize things
-        - When ? is used, have a filter to only show favorite units
-        - Internally, use 'units -d 15' to calculate to 15 digits.  Then display is
-          given by flt variables.
-        - Maintain a history; .h invokes it with a pager
 
     - pgm/books.py
         - Keeps track of the technical books I have so I can look up by author,
@@ -1173,12 +1174,6 @@ Inactive
           (admittedly inefficent, but simple to write a state machine).
         - p 142 of the AWK book gives an RPN calculator example.  
 
-    - Death:
-        - Plan for my death
-        - Disposition of any property
-        - Send email to certain friends
-        - Identifying scars/characteristics 
-
     - Time calculations
         - I like the time calculation feature in hc.  Often, I'd like to be able to do something
           like enter a data 7Nov2022 and subtract off 12 years.  It would be nice to have a
@@ -1188,11 +1183,6 @@ Inactive
     - /plib/pgm/cu_wire.py
         - Add -l option that lets you specify a length (defaults to m) and the script prints out the
           resistance of this length of wire.
-
-    - tp.awk
-        - Conditionals
-            - '.on x' and '.on !x' use env var x
-            - '.if x', '.else', '.endif'
 
     - Chemical names
         - https://someonesdad1.github.io/hobbyutil/science/chemical_names.pdf

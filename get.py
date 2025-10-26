@@ -1,16 +1,15 @@
 '''
 TODO:
 
-    - Tokenize:  add a wspc class that identifies whitespace characters as separate from
-      punctuation.  A nl class could also be used specifically for newlines.
-    - GetNumber uses the boolean use_unit to allow the user to append a unit string.  Change it to
-      also allow use_unit to be a string; then a unit string, if appended, must have the same
-      dimensions as the given string.
-    - GetLine needs a keep=[] keyword argument to be used on lines that aren't removed by the
-      ignore argument.
+    - GetNumber uses the boolean use_unit to allow the user to append a unit string.
+      Change it to also allow use_unit to be a string; then a unit string, if appended,
+      must have the same dimensions as the given string.
+    - GetLine needs a keep=[] keyword argument to be used on lines that aren't removed
+      by the ignore argument.
     - GetLine1 staged to be removed by commenting out
     - See if GetLines and GetLines1 can be combined
-    - Add number kw to GetLines which then causes a list of tuples (linenum, str) to be returned
+    - Add number kw to GetLines which then causes a list of tuples (linenum, str) to be
+      returned
     - Add Zn to GetNumbers
     - Change GetFraction to also handle integers
     
@@ -46,6 +45,7 @@ if 1:  # Header
         import sys
         from collections import deque
         from collections.abc import Iterable
+        from enum import Enum
         from io import StringIO
         from fractions import Fraction
         from decimal import Decimal
@@ -82,7 +82,7 @@ if 1:  # Header
             "ÊÉÈÇÆÅÄÃÂÁÀ"
         )
         __all__ = '''
-                GetText GetLines1 GetLines GetTextLines GetLine GetNumberedLines GetBinary
+                GetText GetLines GetTextLines GetLine GetNumberedLines GetBinary
                 GetNumber GetNumber GetNumberArray GetFraction ParseUnit ParseUnitString GetComplex
                 GetChoice
                 GetWords GetTokens GetWordlist wrd pnc Tokenize
@@ -1061,10 +1061,11 @@ if 1:  # Tokenizing
                 s = s.translate("".maketrans(dict(zip(p, " "*len(p)))))
             words.update(set(s.split()))
         return words
-    class wrd(str):
+    # Classes for tokenizing
+    class wrd(str):     # Words
         def __new__(cls, value):
             return super(wrd, cls).__new__(cls, value)
-    class pnc(str):
+    class pnc(str):     # Punctuation
         def __new__(cls, value):
             return super(pnc, cls).__new__(cls, value)
     def Tokenize(s, wordchars=letters, otherchars=others, check=True, wordtype=wrd, punctype=pnc):
@@ -2216,22 +2217,21 @@ if __name__ == "__main__":
             Assert(wl == set(t.upper().split()))
         def TestTokenize():
             s = "To be, or not to be:"
-            t = list(Tokenize(s))
+            u = list(Tokenize(s))
             Assert(
-                t
-                == ["To", " ", "be", ", ", "or", " ", "not", " ", "to", " ", "be", ":"]
+                u == ["To", " ", "be", ", ", "or", " ", "not", " ", "to", " ", "be", ":"]
             )
             for i in (0, 2, 4, 6, 8, 10):
-                Assert(ii(t[i], wrd))
-                Assert(ii(t[i + 1], pnc))
+                Assert(ii(u[i], wrd))
+                Assert(ii(u[i + 1], pnc))
             # Handles empty string
             s = ""
-            t = Tokenize(s)
-            Assert(t == deque())
+            u = Tokenize(s)
+            Assert(u == deque())
             # Handles string of spaces
             s, a = "   ", "a"
-            t = Tokenize(s + a + s)
-            Assert(t == deque([s, a, s]))
+            u = Tokenize(s + a + s)
+            Assert(u == deque([s, a, s]))
             s = "This is a sentence; it's a compound-sentence!  There's a reasonable amt of punc."
             tk = Tokenize(s)
             expected = deque(
