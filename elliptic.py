@@ -1,27 +1,26 @@
-"""
+'''
 Complete elliptic functions
     From Robert Weaver's website:
         http://electronbunker.sasktelwebsite.net/CalcMethods2c.html
-
+        
     Bob commented in an email that it's more efficient to calculate
     these functions using the arithmetic-geometric mean as used in the
     Nagaoka function in calculating the inductance of coils.  He sent me
     his javascript implementations of those, so I've included them too
     (they are used by default).  Change use_series to True to use the
     series calculation method.
-
+    
     The series algorithm comes from
     http://electronbunker.sasktelwebsite.net/DL/KelvinEllipticCalcs.pdf.
     These are included here to allow checks of the faster algorithms.
-
+    
     Update May 2022:  the above URLs are defunct.
-
+    
     28 Oct 2022:  The formula from
     http://paulbourke.net/geometry/ellipsecirc/python.code is a
     quadratically-converging algorithm for the circumference of an ellipse
     and is fast.  I made it the basis of the default EllipticE function.
-"""
-
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -45,12 +44,11 @@ if 1:  # Header
         debug = False
         use_series = False
 if use_series:
-
     def EllipticK(k, eps=1e-15):
-        """Calculate the complete elliptic integral of the first kind with
+        '''Calculate the complete elliptic integral of the first kind with
         modulus k.  Uses series expansion; based on Dwight's formulas 773.2
         & 773.3.  Translated from Basic code by Robert Weaver, 2009-10-26.
-        """
+        '''
         kp2 = 1 - k * k
         kp = math.sqrt(kp2)  # complementary modulus
         count, value = 1, 0
@@ -86,12 +84,11 @@ if use_series:
         if debug:
             print("EllipticK(%.6f) =" % k, value, "in", count, "steps")
         return value
-
     def EllipticE(k, eps=1e-15):
-        """Calculate the complete elliptic integral of the second kind with
+        '''Calculate the complete elliptic integral of the second kind with
         modulus k.  Uses series expansion.  Based on H. B. Dwight's formulae
         774.2 & 774.3.  Adapted from Basic code by Robert Weaver, 2009-10-26
-        """
+        '''
         kp2 = 1 - k * k
         kp = math.sqrt(kp2)  # complementary modulus
         m, count = (1 - kp) / (1 + kp), 1
@@ -134,12 +131,11 @@ if use_series:
             print("EllipticE(%.6f) =" % k, sum, "in", count, "steps")
         return value
 else:
-
     def EllipticK(k):
-        """Returns the complete elliptic integral of the 1st kind for
+        '''Returns the complete elliptic integral of the 1st kind for
         modulus k.
         The integral is \int_0^{\pi/2} 1/\sqrt(1 - m*\sin^2 t) dt
-        """
+        '''
         Assert(0 <= k <= 1)
         m, a = k * k, 1
         b = math.sqrt(1 - m)
@@ -151,14 +147,13 @@ else:
             b = math.sqrt(a * b)
             a = ao
         return math.pi / (a + a)
-
     def EllipticE(k, weaver=True):
-        """Returns the complete elliptic integral of the 2nd kind for
+        '''Returns the complete elliptic integral of the 2nd kind for
         modulus k.  If weaver is True, use Bob Weaver's implementation.
         Otherwise the fast algorithm in EllipseCircumference is used.
-
+        
         The integral is \int_0^{\pi/2} \sqrt(1 - k*\sin^2 t) dt
-        """
+        '''
         Assert(0 <= k <= 1)
         if k == 1:
             return 1
@@ -177,26 +172,24 @@ else:
             return E * math.pi / (a + a)
         else:
             raise ValueError("oops")
-
-
 def EllipseCircumference(A, B, debug=False):
-    """Calculate the circumference of an ellipse with major diameter A and
+    '''Calculate the circumference of an ellipse with major diameter A and
     minor diameter B.  Relative accuracy is about 0.5^53 (about 1e-16).
     Downloaded Mon 26 May 2014 from
     http://paulbourke.net/geometry/ellipsecirc/python.code; also see the
     page http://paulbourke.net/geometry/ellipsecirc/.  This series
     converges quadratically and was first proposed by J. Ivory in 1798 (see
     https://en.wikipedia.org/wiki/James_Ivory_(mathematician)).
-
+    
     The formula for the circumference of an ellipse is 2*a*E(e) where a is
     the major semidiameter, e is the eccentricity, and E is the complete
     elliptic integral of the second kind.  Thus, this function can also be
     used to calculate E.
-
+    
     A quick check showed that Ivory's formula iterates about half as
     much as Weaver's EllipticE.  Since they agree in the tests to
     floating point precision, this method is preferred.
-    """
+    '''
     if A < 0 or B < 0:
         raise ValueError("A and B must be >= 0")
     # Note the original formula is in terms of the 'semi-axes';
@@ -216,33 +209,27 @@ def EllipseCircumference(A, B, debug=False):
             val = math.pi * (math.pow(a + b, 2) - s) / (x + y)
             t.print(f"{t.dbg}EllipseCircumference({A}, {B}, {val}")
     return math.pi * (math.pow(a + b, 2) - s) / (x + y)
-
-
 if __name__ == "__main__":
-    """
+    '''
     Testing strategy: There are three basic methods used to validate the
     complete elliptic integrals of the first and second kinds:
             * Compare to elliptic functions from pycephes
             * Compare to elliptic functions from scipy
             * Compare to elliptic functions from mpmath
-    """
+    '''
     from lwtest import run, assert_equal, raises
     from pdb import set_trace as xx
-
     try:
         from scipy.special import ellipk as spellipk, ellipe as spellipe
-
         have_scipy = True
     except Exception:
         have_scipy = False
     try:
         from mpmath import ellipk as mpellipk, ellipe as mpellipe
-
         have_mpmath = True
     except Exception:
         have_mpmath = False
     pi = math.pi
-
     def TestUsingPycephes():
         # Routines from pycephes (python translation of Moshier's elliptic
         # functions).
@@ -299,9 +286,8 @@ if __name__ == "__main__":
             9.37499997197644278445e-2,
             2.49999999999888314361e-1,
         )
-
         def polevl(x, coef):
-            """polevl(x, coef)
+            '''polevl(x, coef)
             Evaluates the polynomial
                                     2          N
                 y  =  C  + C x + C x  +...+ C x
@@ -310,7 +296,7 @@ if __name__ == "__main__":
                                                                     N
             coef[1] = C   , etc.
                     N-1
-            """
+            '''
             x = float(x)
             ans = float(coef[0])
             i = len(coef) - 1
@@ -320,13 +306,12 @@ if __name__ == "__main__":
                 index += 1
                 i -= 1
             return ans
-
         def p1evl(x, coef):
-            """p1evl(x, coef)
+            '''p1evl(x, coef)
                                                     N
             Same as polevl except the coefficient of C  is 1.0 and thus
             omitted from the array coef.
-            """
+            '''
             x = float(x)
             ans = x + coef[0]
             i = len(coef) - 1
@@ -336,11 +321,10 @@ if __name__ == "__main__":
                 index += 1
                 i -= 1
             return ans
-
         def ellpe(x):
-            """ellpe(x)
+            '''ellpe(x)
             Complete elliptic integral of the first kind.
-            """
+            '''
             x = 1.0 - x  # Was added in the ellpe.c file that was used by scipy.
             # This lets the function return values that agree
             # with Abramowitz & Stegun.
@@ -349,11 +333,10 @@ if __name__ == "__main__":
                     return 1.0
                 raise Exception("Domain error")
             return polevl(x, Pe) - math.log(x) * (x * polevl(x, Qe))
-
         def ellpk(x):
-            """ellpk(x)
+            '''ellpk(x)
             Complete elliptic integral of the second kind.
-            """
+            '''
             x = 1.0 - x  # Was added in the ellpe.c file that was used by scipy.
             # This lets the function return values that agree
             # with Abramowitz & Stegun.
@@ -366,7 +349,6 @@ if __name__ == "__main__":
                     raise Exception("Singularity")
                 else:
                     return C1 - 0.5 * math.log(x)
-
         def EllipticTest(weaver, pycephes, use_series_imp=False):
             # Check Weaver's function against pycephes
             max_diff = 0
@@ -380,12 +362,10 @@ if __name__ == "__main__":
                 else:
                     max_diff = max(max_diff, diff)
             Assert(max_diff < 1e-15)
-
         EllipticTest(EllipticK, ellpk)
         EllipticTest(EllipticK, ellpk)
         EllipticTest(EllipticE, ellpe, use_series_imp=False)
         EllipticTest(EllipticE, ellpe, use_series_imp=True)
-
     def TestUsingScipyMpmath():
         def EllipticTest(weaver, scipys, use_series_imp=False):
             # Check Weaver's function against SciPy's
@@ -401,7 +381,6 @@ if __name__ == "__main__":
                 else:
                     max_diff = max(max_diff, diff)
             Assert(max_diff < 1e-15)
-
         if have_scipy:
             t.print(f"{t.dbg}Testing using scipy in elliptic.py")
             EllipticTest(EllipticK, spellipk, use_series_imp=False)
@@ -418,12 +397,10 @@ if __name__ == "__main__":
             EllipticTest(EllipticE, mpellipe, use_series_imp=True)
         else:
             t.print(f"{t.dbg}Not tested using mpmath in elliptic.py")
-
     def TestUsingBourke():
         # Compare using EllipseCircumference to Weaver's
         def E(a, b):
             return EllipseCircumference(a, b) / (2 * a)
-
         a = 1
         for i in range(1, 101):
             b = i / 100
@@ -431,5 +408,4 @@ if __name__ == "__main__":
             ecc = math.sqrt(1 - (b / a) ** 2)
             i_weaver = EllipticE(ecc)
             Assert(abs((i_bourke - i_weaver) / i_weaver) < 1e-15)
-
     exit(run(globals())[0])

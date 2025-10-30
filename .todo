@@ -1,5 +1,15 @@
 /plib/.todo
     
+    - Compact calendar
+        - Excellent planning tool
+        - https://davidseah.com/compact-calendar-use-notes/
+        - See start in /doc/Booklets/CompactCalendar
+        - Print on a single sheet of paper (grayscale is fine)
+        - Include week & day numbers down left side in different font
+        - Three letters for month
+        - Choose starting date, as some projects e.g. start late in year
+        - See ~/dp/compact_calendar.jpg
+
     - spell
         - A basic problem of the existing tool is that I sometimes can't find the
           offending misspelled word
@@ -1123,6 +1133,25 @@
         - http://oeis.org/A000084/a000084_2.pdf
 
 Inactive
+
+    - Dealing with action items
+        - http://patrickrhone.com/dashplus/ 
+        - Can this be set up to be used in vim?  It would be great if vim recognizes
+          multiple-character bullets, but my guess is it will be impossible.  Then it
+          will need an external script I'll have to write.
+        - Note the below items can be made with single Unicode characters
+            - They will need suitable vim abbreviations
+            - Or let the external script substitute them for multiple characters
+        - Active
+        + Done
+        → Waiting
+        ← Delegated
+        * Thought
+        ⇔ Travel
+        = Unassigned
+        ⇒ Unassigned
+        ⇐ Unassigned
+        # Unassigned
 
     - pgm/pur.py    Keep track of purchases
         - Example:  when did I last buy a set of 357 batteries?

@@ -291,7 +291,7 @@ songs = '''
     They Call the Wind Mariah ; Harv Presnel ; ByqYEzugleE ;
     They Call the Wind Mariah ; Smothers Brothers ; wFHh0Rs34v0 ;
     This is a Man's World ; James Brown ; wd1-HM234DE ; 
-    Those Were The Days ; Mary Hopkins ; y3KEhWTnWvE ; 
+    Those Were The Days ; Mary Hopkins ; RDJnxTT7XXMPA ; 
     Time Won't Let Me ; Outsiders ; 3yQERVphWhY ; 
     Today (1964) ; Christy Minstrels ; 3cELsUMcQdc ; 
     Torn Between Two Lovers ; ; TzGbvTl4mpg ; 

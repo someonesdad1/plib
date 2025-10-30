@@ -1,4 +1,4 @@
-'''
+m''
     
 ToDo
     - Convert Spinner to a class so the instance is thread-safe

@@ -50,10 +50,15 @@ if 1:  # Core functionality
     def IsPositiveInteger(n, msg):
         if n < 1 or not ii(n, int):
             raise ValueError(msg)
-    def FactorGenerator(n):
-        'A generator that returns the prime factors an integer n'
+    def FactorGenerator(n, big=True):
+        '''A generator that returns the prime factors an integer n.  If big is True,
+        then the routine uses /usr/bin/factor to allow factoring much bigger numbers
+        than a sieve can handle.  However, using /usr/bin/factor forks a process and 
+        it will be slow if you want to factor a bunch of numbers; in the latter case,
+        set big to False.
+        '''
         IsPositiveInteger(n, "n must be an integer > 0")
-        if 0:
+        if not big:
             # Get a list of possible factors that are primes less than n.  Then reverse
             # the list and test each factor to see if it divides n.
             for i in reversed(Primes(n)):
@@ -102,20 +107,25 @@ if 1:  # Core functionality
                 while x in D or not (x & 1):
                     x += p
                 D[x] = p
-    def IsPrime(n):
-        '''Return True if n is prime; False otherwise.'''
+    def IsPrime(n, fast=False):
+        '''Return True if n is prime; False otherwise.  If fast is True, then a sieve is
+        used instead of /usr/bin/factor.
+        '''
         IsPositiveInteger(n, "n must be an integer > 0")
-        return False if Factor(n) else True
-    def Factor(n, check=False):
-        '''Return a dictionary of the factors of n; the values are the power of
-        each factor.  If a number is prime, an empty dictionary is returned.
-        If check is True, the calculated factors are multiplied together
-        to verify that the original number is gotten.
+        return False if Factor(n, big=not fast) else True
+    def Factor(n, check=False, big=True, return_tuple=False):
+        '''Return a dictionary of the factors of n; the values are the power of each
+        factor.  If a number is prime, an empty dictionary is returned.  If check is
+        True, the calculated factors are multiplied together to verify that the original
+        number is gotten.  big is passed to FactorGenerator to use /usr/bin/factor.
+        If return_tuple is True, return a tuple of the factors.
         '''
         IsPositiveInteger(n, "n must be an integer > 0")
         if n < 4:
             return {}
-        factors, d = list(FactorGenerator(n)), collections.defaultdict(int)
+        factors, d = list(FactorGenerator(n, big=big)), collections.defaultdict(int)
+        if return_tuple:
+            return tuple(factors)
         if check and factors and reduce(operator.mul, factors) != n:
             raise RuntimeError("Bug in Factor for n = %d" % n)
         if factors == [n]:
@@ -123,10 +133,11 @@ if 1:  # Core functionality
         for i in factors:  # Populate d with factors
             d[i] += 1
         return dict(d)
-    def FactorList(n, check=False, incl_if_prime=False):
+    def FactorList(n, check=False, incl_if_prime=False, big=True):
         '''Return a sorted list of the prime factors of n.  The list will be empty if n
         is prime.  If check is True, the calculated factors are multiplied together to
-        verify that the original number is gotten.
+        verify that the original number is gotten.  big is passed to FactorGenerator to
+        use /usr/bin/factor.
         
         If incl_if_prime is True and n is prime, then n will be returned.  This handles
         the case when you're looking for the common factors of a set of integers and you
@@ -135,7 +146,7 @@ if 1:  # Core functionality
         return 2, so you'd use FactorList(2, incl_if_prime=True).
         '''
         IsPositiveInteger(n, "n must be an integer > 0")
-        factors = sorted(list(FactorGenerator(n)))
+        factors = sorted(list(FactorGenerator(n, big=big)))
         if check and factors and reduce(operator.mul, factors) != n:
             raise RuntimeError("Bug in FactorList for n = %d" % n)
         if not factors and incl_if_prime:
@@ -172,11 +183,11 @@ if 1:  # Core functionality
                 s.append("%d" % key)
         char = " " if plain else "·"
         return N + char.join(s)
-    def AllFactors(n):
+    def AllFactors(n, big=True):
         "Return a list of all factors of n if n is not prime"
         IsPositiveInteger(n, "n must be an integer > 0")
         assert n > 1
-        factors = list(FactorGenerator(n))
+        factors = list(FactorGenerator(n, big=big))
         all_factors = set(factors)
         for num_factors in range(2, len(factors)):
             for comb in itertools.combinations(factors, num_factors):
@@ -311,11 +322,14 @@ if __name__ == "__main__":
             Assert(d == [2, 2])
         def Test_FormatFactors():
             s = FormatFactors(168)
-            Assert(s == "\x1b[38;2;1;255;1m168\x1b[38;2;192;192;192m\x1b[48;2;0;0;0m\x1b[0m: 2³·3·7")
+            expected = '\x1b[38;2;175;223;255m168\x1b[38;2;192;192;192m\x1b[48;2;0;0;0m\x1b[0m: 2³·3·7'
+            Assert(s == expected)
             s = FormatFactors(168, plain=True)
-            Assert(s == "\x1b[38;2;1;255;1m168\x1b[38;2;192;192;192m\x1b[48;2;0;0;0m\x1b[0m: 2^3 3 7")
+            expected = '\x1b[38;2;175;223;255m168\x1b[38;2;192;192;192m\x1b[48;2;0;0;0m\x1b[0m: 2^3 3 7'
+            Assert(s == expected)
             s = FormatFactors(13)
-            Assert(s == "\x1b[38;2;255;1;1m13\x1b[38;2;192;192;192m\x1b[48;2;0;0;0m\x1b[0m")
+            expected = '\x1b[38;2;255;1;1m13\x1b[38;2;192;192;192m\x1b[48;2;0;0;0m\x1b[0m'
+            Assert(s == expected)
         def Test_AllFactors():
             s = AllFactors(2)
             Assert(s == [])
