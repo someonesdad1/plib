@@ -1,5 +1,20 @@
 /plib/.todo
     
+    - pynomo on pypi https://pypi.org/project/PyNomo/
+        - Library to generate PDF nomograms
+        - Doc tutorial at
+          https://lefakkomies.github.io/pynomo-doc/tutorials/tutorials.html gives a 
+        - https://www.projectrho.com/nomogram/cad.html
+
+    - nowshash
+        - Tool that hashes UTF8 text files by removing whitespace characters.  The use
+          case is to allow a text file hash to remain constant even if it is edited, but
+          only if only whitespace characters are added.
+        - pgm/sha.py uses the -w option to do this, but does it on the binary bytes of a
+          file, which may or may not be relevant.  For example, in an Open Office
+          document, it's not very useful because the text is compressed inside a zip
+          container.
+
     - Compact calendar
         - Excellent planning tool
         - https://davidseah.com/compact-calendar-use-notes/
@@ -550,6 +565,8 @@
           serial number of the relevant experimental equipment
 
     - hc.py
+        - If the full stack isn't visible, give a clue that this is so by colorizing the
+          first-displayed "n:"
         - Add conversions
             - mm and in
             - lb and kg
