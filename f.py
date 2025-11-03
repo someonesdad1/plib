@@ -4,6 +4,10 @@ TODO
     - Remove use of color.py stuff (let fmt.py handle this)
         - This also means removing the c attribute
     - Use fmt.py for formatting
+        - Foratting should also include a fixed number of decimals like f"{x:.3f}" and
+          allow decimal point lineup like fpformat.py does
+            - Look at changing the architecture and putting all the formatting into
+              fmt.py.  Then the flt methods just call into fmt.py.
     - cbrt, exp2 not in namespace
     - i18n:  does the radix change depending on localization settings?  Should
       transparently handle "," for locales that don't use the period.  On my system,
