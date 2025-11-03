@@ -2,8 +2,8 @@
 Construct a graphic that shows the relative sizes of the various sizes
 of paper.
 
-You'll need to download the g library from
-http://code.google.com/p/pygraphicsps/ if you wish to run this script.
+You'll need to download the g library from https://github.com/someonesdad1/plib/lib/g if
+you wish to run this script.
 '''
 if 1:  # Header
     if 1:  # Copyright, license
