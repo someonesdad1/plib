@@ -1,7 +1,6 @@
-"""
+'''
 Information on Clausing 5914 lathe
-"""
-
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -30,84 +29,29 @@ if 1:  # Header
     if 1:  # Global variables
         ii = isinstance
         w = int(os.environ.get("COLUMNS", "80")) - 1
-        tpi = [
-            4,
-            4.5,
-            5,
-            5.5,
-            5.75,
-            6,
-            6.5,
-            6.75,
-            7,
-            8,
-            9,
-            10,
-            11,
-            11.5,
-            12,
-            13,
-            13.5,
-            14,
-            16,
-            18,
-            20,
-            22,
-            23,
-            24,
-            26,
-            27,
-            28,
-            32,
-            36,
-            40,
-            44,
-            46,
-            48,
-            52,
-            54,
-            56,
-            64,
-            72,
-            80,
-            88,
-            92,
-            96,
-            104,
-            108,
-            112,
-            128,
-            144,
-            160,
-            176,
-            184,
-            192,
-            208,
-            216,
-            224,
-        ]
+        tpi = [flt(i) for i in '''
+            4 4.5 5 5.5 5.75 6 6.5 6.75 7 8 9 10 11 11.5 12 13 13.5 14 16 18 20 22 23 24
+            26 27 28 32 36 40 44 46 48 52 54 56 64 72 80 88 92 96 104 108 112 128 144
+            160 176 184 192 208 216 224'''.split()]
         x = flt(0)
         x.N = 4
         t.mm = t("sky")
-        t.inch = t("lwnl")
+        t.inch = t("grnl")
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options] 
           Show Clausing lathe information.
         Options:
             -h      Print a manpage
             -m      Print in metric dimensions
-        """)
+        ''')
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-m"] = False
         d["-d"] = 4  # Number of significant digits
@@ -134,13 +78,9 @@ if 1:  # Utility
                 # Set up a handler to drop us into the debugger on an
                 # unhandled exception
                 import debug
-
                 debug.SetDebugger()
         return args
-
-
 if 1:  # Core functionality
-
     def Threading_tpi():
         def f(x):
             "Return suitable string for tpi value"
@@ -153,24 +93,20 @@ if 1:  # Core functionality
                 return str(i) + "½"
             elif x - i == 3 / 4:
                 return str(i) + "¾"
-
-        print(f"{t.inch}Threading tpi:")
+        t.print(f"{t.inch}Threading tpi:")
         for line in Columnize([f(i) for i in tpi], col_width=8, indent=" " * 4):
             print(line)
-
     def Threading_pitch_mils():
         print("Pitch in mils:")
         p = list(flt(1 / i) for i in tpi)
         for line in Columnize([f"{i}" for i in p], col_width=8, indent=" " * 4):
             print(line)
-
     def Threading_mm():
-        print(f"{t.mm}Pitch in mm:")
+        t.print(f"{t.mm}Pitch in mm:")
         p = list(flt(25.4 / i) for i in tpi)
         for line in Columnize([f"{i}" for i in p], col_width=8, indent=" " * 4):
             print(line)
         t.print(end="")
-
     def Print_feeds():
         def Print(data, in_or_out):
             feed = []
@@ -179,20 +115,19 @@ if 1:  # Core functionality
                     feed.append(flt(j))
             feed = list(sorted(feed))
             if d["-m"]:
-                print(f"{t.mm}Feeds with slide gear {in_or_out} (μm/rev):")
+                t.print(f"{t.mm}Feeds with slide gear {in_or_out} (μm/rev):")
                 for line in Columnize(
                     [f"{i * 1000}" for i in feed], col_width=8, indent=" " * 4
                 ):
                     print(line)
             else:
-                print(f"{t.inch}Feeds with slide gear {in_or_out} (mils/rev):")
+                t.print(f"{t.inch}Feeds with slide gear {in_or_out} (mils/rev):")
                 for line in Columnize(
                     [f"{i * 1000}" for i in feed], col_width=8, indent=" " * 4
                 ):
                     print(line)
             t.print(end="")
-
-        data_slide_gear_in = """
+        data_slide_gear_in = '''
             0.03670 0.01830 0.00920
             0.03260 0.01630 0.00810
             0.02930 0.01470 0.00730
@@ -202,8 +137,8 @@ if 1:  # Core functionality
             0.02180 0.01090 0.00540
             0.02260 0.01130 0.00560
             0.02440 0.01220 0.00610
-        """.strip()
-        data_slide_gear_out = """
+        '''.strip()
+        data_slide_gear_out = '''
             0.00460 0.00220 0.00110
             0.00410 0.00200 0.00094
             0.00360 0.00180 0.00092
@@ -213,17 +148,16 @@ if 1:  # Core functionality
             0.00270 0.00136 0.00068
             0.00280 0.00140 0.00070
             0.00300 0.00150 0.00076
-        """.strip()
+        '''.strip()
         Print(data_slide_gear_in, "in")
         Print(data_slide_gear_out, "out")
-
     def Metric_threads():
         "Show common coarse metric threads"
-        metric = """
+        metric = '''
             2-0.4 3-0.5 4-0.7 5-0.8 6-1 8-1.25 10-1.5 12-1.75 16-2 20-2.5
             24-3
-        """
-        print(f"{t.mm}Common coarse metric threads")
+        '''
+        t.print(f"{t.mm}Common coarse metric threads")
         for i in Columnize(metric.split(), columns=4, col_width=12, indent=" " * 4):
             print(i)
         # Page 23 of Colvin & Stanley's "Screw Thread Kinks", Hill
@@ -240,25 +174,20 @@ if 1:  # Core functionality
         # to cut an approximate metric thread on the Clausing lathe.
         # Particularly for short engagements like a nut, this can be a
         # useful method.
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
     m = 25.4
-    print(
-        dedent(
-            f"""
+    t.print(dedent(f'''
     {t("ornl")}Clausing 5914 12x36 lathe{t.n}
-
+    
     Swing over bed              {t.inch} 6.08 in{t.n} {t.mm}    {6.08 * m:5.1f} mm{t.n}
         Maximum diameter        {t.inch}12.16 in{t.n} {t.mm}    {12.16 * m:5.1f} mm{t.n}
     Swing over cross slide      {t.inch} 3.72 in{t.n} {t.mm}    {3.72 * m:5.1f} mm{t.n}
         Maximum diameter        {t.inch} 7.44 in{t.n} {t.mm}    {7.44 * m:5.1f} mm{t.n}
     Hole through headstock      {t.inch} 1.38 in{t.n} {t.mm}    {1.38 * m:5.1f} mm{t.n}
-    """[1:]
-        )
-    )
+    Variable speed              {t.purl}52-280 rpm in back gear, 360-2000 rpm normal
+    '''[1:]))
     if d["-m"]:
         Threading_tpi()
         Threading_mm()
