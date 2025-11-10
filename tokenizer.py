@@ -140,7 +140,6 @@ if 1:   # Utility
         w = min(w, 20)  # Limit it to 20 characters maximum
         for word in sorted(misspelled):
             print(f"  {word:{w}s}  {' '.join(misspelled[word])}")
-
 if 1:   # PrintTokens
     def PrintTokens(o, colorize=False, linenum=False):
         '''o is a sequence of tokens that is produced by Tokenizer().  Print them to

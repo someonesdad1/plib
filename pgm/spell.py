@@ -21,6 +21,7 @@ if 1:  # Header
         ##∞test∞# #∞test∞#
         pass
     if 1:  # Imports & globals
+        from collections import defaultdict
         import getopt
         import os
         import pathlib
@@ -30,8 +31,10 @@ if 1:  # Header
         from wrap import dedent
         from asciify import Asciify
         import get
+        import tokenizer
         import url as URL
         from columnize import Columnize
+        from color import t
     if 1:  # Global variables
         class G:
             pass
@@ -68,6 +71,8 @@ if 1:  # Utility
           -2    Medium-size dictionary    {P(wordlist[2])}
           -3    Large dictionary          {P(wordlist[3])}
           -a    Apply Asciify() to tokens
+          -C    Don't print line or column number in misspelled words
+          -c    Don't print column number in misspelled words
           -D    Don't remove digit characters in tokens
           -d f  Use file f as an adjunct dictionary (can have more than one)
           -h    Don't replace hyphen with space
@@ -84,7 +89,10 @@ if 1:  # Utility
         d["-0"] = False
         d["-1"] = False
         d["-2"] = False
+        d["-3"] = False
         d["-a"] = False
+        d["-C"] = False
+        d["-c"] = False
         d["-D"] = True
         d["-d"] = set()
         d["-h"] = False
@@ -95,21 +103,21 @@ if 1:  # Utility
         d["-s"] = False
         d["-u"] = False
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "0123aDd:hiklnsu")
+            opts, args = getopt.getopt(sys.argv[1:], "0123aCcDd:hiklnsu")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("0123aDhiklnsu"):
+            if o[1] in list("0123aCcDhiklnsu"):
                 d[o] = not d[o]
             elif o[1] == "d":
                 d[o].add(a)
-        if not d["-0"] and not d["-1"] and not d["-2"]:
+        if not d["-0"] and not d["-1"] and not d["-2"] and not d["-3"]:
             d["-" + str(default_wordlist)] = True
         if not args:
             Usage(d)
         return args
-if 1:  # Core functionality
+if 0:  # Old functionality
     def GetWordlists(d):
         # regex ignores comments; convert to lowercase if d["-i"] is True
         regex = r"^\s*#"
@@ -186,22 +194,62 @@ if 1:  # Core functionality
         else:
             for i in sorted(words):
                 print(i)
-
-if 0:   # xx
-    d = {"-D":0, "-h":0}
-    BuildTranslate(d)
-    s = "🟤🟣🟢🟡🟠🔵🔴⚫"
-    print(Non7bit(s))
-    exit()
+if 1:  # New functionality
+    def GetSpellingDictionary():
+        'Return a set of words'
+        words = set()
+        lines = []
+        if d["-1"]:
+            words.update(set(get.GetLines("/words/words.ngsl.experimental", nonl=True)))
+        if d["-2"]:
+            words.update(set(get.GetLines("/words/words.beale.2of12inf", nonl=True)))
+        if d["-3"]:
+            words.update(set(get.GetLines("/words/words.univ", nonl=True)))
+        for f in d["-d"]:
+            words.update(set(get.GetLines(f, nonl=True)))
+        if d["-i"]:
+            words = set(i.lower() for i in words)
+        words.discard("")
+        return words
+    def SpellCheckFile(words, file):
+        s = open(file).read().lower() if d["-i"] else open(file).read()
+        tokens = tokenizer.Tokenizer(s)
+        misspelled = defaultdict(list)
+        for token in tokens:
+            if not isinstance(token, tokenizer.wrd):
+                continue
+            if token not in words:
+                if d["-c"]:
+                    misspelled[token].append(f"{token.linenum + 1}")
+                else:
+                    misspelled[token].append(f"{token.linenum + 1}:{token.column + 1}")
+        if misspelled:
+            t.print(f"{t.ornl}{file}")
+            # Get maximum word length so locations can be lined up
+            w = 0
+            for word in misspelled:
+                w = max(w, len(word))
+            w = min(w, 20)  # Limit it to 20 characters maximum
+            for word in sorted(misspelled):
+                if d["-C"]:
+                    print(f"  {word:{w}s}")
+                else:
+                    print(f"  {word:{w}s}  {' '.join(misspelled[word])}")
 
 if __name__ == "__main__":
     d = {}  # Options dictionary
     files = ParseCommandLine(d)
-    BuildTranslate(d)
-    GetWordlists(d)
-    data = []
-    d["correct"] = set()
-    d["incorrect"] = set()
-    for file in files:
-        ProcessFile(file, d)
-    Report(d)
+    if 0:   
+        # Old methods
+        BuildTranslate(d)
+        GetWordlists(d)
+        data = []
+        d["correct"] = set()
+        d["incorrect"] = set()
+        for file in files:
+            ProcessFile(file, d)
+        Report(d)
+    else:
+        words = GetSpellingDictionary()
+        for file in files:
+            SpellCheckFile(words, file)
