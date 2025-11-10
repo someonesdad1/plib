@@ -3,7 +3,8 @@
     - pynomo on pypi https://pypi.org/project/PyNomo/
         - Library to generate PDF nomograms
         - Doc tutorial at
-          https://lefakkomies.github.io/pynomo-doc/tutorials/tutorials.html gives a 
+          https://lefakkomies.github.io/pynomo-doc/tutorials/tutorials.html gives a
+          vehicle gas economy calculator
         - https://www.projectrho.com/nomogram/cad.html
 
     - nowshash
