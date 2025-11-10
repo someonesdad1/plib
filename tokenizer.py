@@ -23,6 +23,7 @@ _pgminfo = '''
 '''
 if 1:  # Header
     if 1:   # Standard imports
+        from collections import defaultdict
         from enum import Enum
         import getopt
         import io
@@ -34,6 +35,7 @@ if 1:  # Header
     if 1:   # Custom imports
         from wrap import dedent
         from color import t
+        from get import GetLines
         from lwtest import Assert, run
         from dpprint import PP
         import timer
@@ -55,11 +57,11 @@ if 1:  # Header
         g.ws = {"\t": "␉", "\r": "␍", "\x0b": "␋", "\x0c": "␌"}
         # Colors
         t.wrd = t.wht
-        t.dig = t.lwn
-        t.nln = t.whtl
-        t.ws = t.ornl
-        t.pnc = t.denl
-        t.oth = t("blk", "cynl")
+        t.dig = t.grnl
+        t.nln = t.lip
+        t.ws = t("whtl", "blul")
+        t.pnc = t.purl
+        t.oth = t("blk", "yell")
         t.linenum = t("gry", "#000030")
 if 1:   # Utility
     def out(*s):
@@ -83,23 +85,24 @@ if 1:   # Utility
           This provides a demonstration of the Tokenizer() functions abilities.  Use "-"
           to read from stdin.
         Options:
-            -h      Print a manpage
             -T      Print tokenizing timing information for each file
+            -s      Demonstrate a spell checking task
             -t      Run self-tests
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-T"] = False     # Tokenizing timeing
+        d["-s"] = False     # Demonstrate spell checking
+        d["-T"] = False     # Tokenizing timing
         d["-t"] = False     # Run self-tests
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "hTt") 
+            opts, args = getopt.getopt(sys.argv[1:], "hsTt") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("Tt"):
+            if o[1] in list("sTt"):
                 d[o] = not d[o]
             elif o == "-h":
                 Usage()
@@ -118,6 +121,26 @@ if 1:   # Utility
         print(f"  Number of tokens = {tokens}")
         print(f"  File size = {len(s)} UTF-8 characters (not bytes)")
         print(f"  Tokenizing rate = {tokens/time} tokens/s")
+    def SpellCheck(file):
+        'Print misspelled words in file with their location'
+        words = set(i.lower() for i in GetLines("/words/words.default", nonl=True))
+        tokens = Tokenizer(open(file).read().lower())
+        misspelled = defaultdict(list)
+        for word in tokens:
+            if not ii(word, wrd):
+                continue
+            if word not in words:
+                misspelled[word].append(f"{word.linenum + 1}:{word.column + 1}")
+        if misspelled:
+            t.print(f"{t.ornl}{file}")
+        # Get maximum word length so locations can be lined up
+        w = 0
+        for word in misspelled:
+            w = max(w, len(word))
+        w = min(w, 20)  # Limit it to 20 characters maximum
+        for word in sorted(misspelled):
+            print(f"  {word:{w}s}  {' '.join(misspelled[word])}")
+
 if 1:   # PrintTokens
     def PrintTokens(o, colorize=False, linenum=False):
         '''o is a sequence of tokens that is produced by Tokenizer().  Print them to
@@ -347,11 +370,12 @@ if 1:   # Tokenizer
         
         Each of these token string types contain the line number and column number that
         it starts on in the original text string along with the offset of the string.
+        Note all of these numbers are zero-based.
          
         The basic use case of this function is to tokenize UTF-8 encoded text into
         words, whitespace, and punctuation.  I use it in conjunction with a spell
         checker that gives me the line number and column number of misspelled words. 
-
+        
         To use, you must store sets of characters in the following containers:
             Tokenizer.wrd    Characters in words
             Tokenizer.dig    Characters in numbers
@@ -457,6 +481,8 @@ if __name__ == "__main__":
     for file in files:
         if d["-T"]:
             MeasureTiming(file)
+        elif d["-s"]:
+            SpellCheck(file)
         else:
             o = Tokenizer(sys.stdin.read() if file == "-" else open(file).read())
             PrintTokens(o, colorize=True)

@@ -7,28 +7,10 @@
           vehicle gas economy calculator
         - https://www.projectrho.com/nomogram/cad.html
 
-    - nowshash
-        - Tool that hashes UTF8 text files by removing whitespace characters.  The use
-          case is to allow a text file hash to remain constant even if it is edited, but
-          only if only whitespace characters are added.
-        - pgm/sha.py uses the -w option to do this, but does it on the binary bytes of a
-          file, which may or may not be relevant.  For example, in an Open Office
-          document, it's not very useful because the text is compressed inside a zip
-          container.
-
-    - Compact calendar
-        - Excellent planning tool
-        - https://davidseah.com/compact-calendar-use-notes/
-        - See start in /doc/Booklets/CompactCalendar
-        - Print on a single sheet of paper (grayscale is fine)
-        - Include week & day numbers down left side in different font
-        - Three letters for month
-        - Choose starting date, as some projects e.g. start late in year
-        - See ~/dp/compact_calendar.jpg
-
     - spell
         - A basic problem of the existing tool is that I sometimes can't find the
-          offending misspelled word
+          offending misspelled word (problem occurs in family history stuff, as there's
+          lots of files and words)
         - The need is to isolate a misspelled word to a line in the file (better even
           would be line and column).  This could be done by changing get.Tokenize to
           include the line number and offset in each wrd/pnc object.  This should be
