@@ -1,5 +1,32 @@
 /plib/.todo
+
+    - pgm/hsm.py & tmbr.py
+        - Both should be collapsed into just hsm.py.  Add -t option to hsm.py so that
+          only TMBR references are found.  Then delete tmbr.py and tmbr_data.py.
     
+    - asciify.py
+        - Vision:  the new codepoints entry can be used to modify asciify.py to allow it
+          to turn arbitrary Unicode data (up to U+FFFF) into plain ASCII text in a
+          uniform and readable manner.  This will be done by using the name attribute of
+          the Unicode data to get an ASCII form, such as
+            - ξ:  GREEK SMALL LETTER XI --> <xi>
+            - ἀ:  GREEK SMALL LETTER ALPHA WITH PSILI --> <alpha+1f00>
+                - This might become <alpha+1f00>, which shows that it's a lowercase
+                  Greek letter and includes the codepoint number.
+            - Ἀ:  GREEK CAPITAL LETTER ALPHA WITH PSILI
+                - This might become <ALPHA+1f08>, which shows that it's a capital Greek
+                  letter
+            - ᱳ:   OL CHIKI LETTER LO --> <lo+1c73>
+                - This would be the general pattern:  lower case unless "capital" in
+                  name
+            - This will require a function that can parse the name string
+        - Add -a option which converts the text file to a 7-bit clean ASCII format.
+          This is needed because my conversion choices were idiosyncratic to my own
+          tastes and things like α β ɣ Δ are not converted.  These Unicode characters
+          can be converted to things like <alpha>, <beta>, <gamma>, <DELTA>, etc.
+        - The self-test for this feature doesn't need to check all letters, but it does
+          need to show that it's 7-bit clean
+
     - pgm/tri.py
         - Needs to use color.py (and maybe updated to python 3)
 
@@ -10,31 +37,12 @@
           vehicle gas economy calculator
         - https://www.projectrho.com/nomogram/cad.html
 
-    - spell
-        - A basic problem of the existing tool is that I sometimes can't find the
-          offending misspelled word (problem occurs in family history stuff, as there's
-          lots of files and words)
-        - The need is to isolate a misspelled word to a line in the file (better even
-          would be line and column).  This could be done by changing get.Tokenize to
-          include the line number and offset in each wrd/pnc object.  This should be
-          fast, as in the 'while inp' loop each character is popped and all that's
-          needed is to find the newlines and increment/reset line and column counters.
-
-
     - pgm/books.py
         - Keeps track of the technical books I have so I can look up by author,
           category, or words in the title.
         - Prints out entries in the form I like to use in the reference tables in my
           documents.
         - Also remember to include the stuff in /ebooks.
-
-    - Tangent scale
-        - K&E sold one more than a century ago
-        - Simple to make in g library
-            - Make a number of them that fit on one piece of paper:  4, 5, 6, 8, 10 inches
-            - Another demo file for the g library
-        - Put in a hobbyutil PDF file that describes and contains a number of different
-          useful drafting scales 
 
     - latin1
         - Make this a script in ~/.0rc/bin that converts latin1 files to utf8.
@@ -59,18 +67,6 @@
         - Add a function xxd() that uses xxd to do dump an object to stdout that can be
           converted into a bytes object.  You can choose binary or hex and the -a option
           is used to compress the output, which is valuable for sparse arrays.
-
-    - cephes
-        - I deleted it in late 2023 based on a binary search with git revisions.
-            - This is the last commit that had the cephes directory in it:
-                - commit 3df32ae4cfef4e6c0617c465f472266309df99d5
-                - Author: Don Peterson <someonesdad1@gmail.com>
-                - Date:   Thu Nov 16 17:36:48 2023 +0000
-        - I likely felt that it wasn't worth keeping, as mpmath and scipy can do
-          the things needed.
-        - I put it in /plib/Dev/cephes.zip (not checked in)
-        - If I want to resurrect it, it needs to be built for both cygwin and WSL.
-          cygwin is simple, but WSL is harder (look at the 0readme file in the zipfile)
 
     - pgm/int.py
         - Should use /usr/bin/factor for factoring, as it's much better than my python
@@ -101,29 +97,6 @@
             - Lubricant
             - Depth of cut for a light duty lathe
 
-    - asciify.py
-        - Vision:  the new codepoints entry can be used to modify asciify.py to allow it
-          to turn arbitrary Unicode data (up to U+FFFF) into plain ASCII text in a
-          uniform and readable manner.  This will be done by using the name attribute of
-          the Unicode data to get an ASCII form, such as
-            - ξ:  GREEK SMALL LETTER XI --> <xi>
-            - ἀ:  GREEK SMALL LETTER ALPHA WITH PSILI --> <alpha+1f00>
-                - This might become <alpha+1f00>, which shows that it's a lowercase
-                  Greek letter and includes the codepoint number.
-            - Ἀ:  GREEK CAPITAL LETTER ALPHA WITH PSILI
-                - This might become <ALPHA+1f08>, which shows that it's a capital Greek
-                  letter
-            - ᱳ:   OL CHIKI LETTER LO --> <lo+1c73>
-                - This would be the general pattern:  lower case unless "capital" in
-                  name
-            - This will require a function that can parse the name string
-        - Add -a option which converts the text file to a 7-bit clean ASCII format.
-          This is needed because my conversion choices were idiosyncratic to my own
-          tastes and things like α β ɣ Δ are not converted.  These Unicode characters
-          can be converted to things like <alpha>, <beta>, <gamma>, <DELTA>, etc.
-        - The self-test for this feature doesn't need to check all letters, but it does
-          need to show that it's 7-bit clean
-
     - wrap.py
         - Numerous bugs in code
         - A very common need is to dedent help text.  Add a function printwrap(*s) that takes each
@@ -131,24 +104,6 @@
           to 1 minus the current number of columns.  Embedded control lines can be things like
           '.on', '.off', '.indent = n', etc.  The overall state is remembered until '.reset' is seen
           or the keyword reset is True.  'paragraph_sep' keyword defaults to '\n\n'.
-
-    - pgm/texthash.py
-        - Purpose:  provide a hash of a text file that ignores whitespace
-        - Use case:  identify a file's text, ignoring line endings
-        - Hashing:  uses sha512 by default
-            - Option -3 uses sha3_512
-            - Option -m uses MD5
-        - ASCIIfies the text (converts Unicode characters to their ASCII
-          near-equivalents; this conversion is idiosyncratic)
-            - Example:  '©' is ASCIIfied to '(C)'
-            - Use option -a to convert to 7-bit clean ASCII text
-            - Use option -i to convert file to all lowercase
-            - Use option -I to not perform the ASCIIfication
-
-
-    - pgm/hsm.py & tmbr.py
-        - Both should be collapsed into just hsm.py.  Add -t option to hsm.py so that
-          only TMBR references are found.  Then delete tmbr.py and tmbr_data.py.
 
     - pgm/draintank.py
         - Inverse problem:  given an orifice diameter and height, calculate the

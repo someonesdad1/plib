@@ -1,8 +1,7 @@
-"""
+'''
 Month names and numbers
     Use DaysPerMonth() to get the number of days in a month.
-"""
-
+'''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
@@ -122,7 +121,6 @@ if 1:  # Global variables
         }
     )
 if 1:  # Core functions
-
     def DaysPerMonth(month, leap_year=False):
         days_per_month = {
             1: 31,
@@ -143,22 +141,18 @@ if 1:  # Core functions
         elif isinstance(month, int):
             n = month
         return days_per_month[n] + bool(leap_year)
-
     def GetDate(s):
-        """Return a date.Date object given the string s in the form
+        '''Return a date.Date object given the string s in the form
         11Feb2023.
-        """
+        '''
         u = s.replace(" ", "")
         u = "0" + u if len(u) == 8 else u
         day = int(u[:2])
         month = months(u[2:5])
         year = int(u[5:])
         return datetime.date(year, month, day)
-
-
 if __name__ == "__main__":
     from lwtest import run
-
     def Test():
         assert months[1] == "Jan"
         assert months[2] == "Feb"
@@ -215,5 +209,4 @@ if __name__ == "__main__":
         assert DaysPerMonth(12) == 31
         #
         assert GetDate("11Feb2023") == datetime.date(2023, 2, 11)
-
     exit(run(globals(), halt=1)[0])
