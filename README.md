@@ -4,33 +4,33 @@
 
 This repository is a collection of python stuff I've written since 1998.  
 
-* `plib` holds modules that are intended to be used by other scripts
-* `plib/pgm` holds scripts that are separate programs
-* `plib/tests` holds test scripts for modules that don't have their tests built in
-* `plib/g` holds a python graphics library that outputs PostScript
-* `plib/doc` holds things related to documentation
-* `plib/lib` holds things that support a few of the modules in `plib`
+- `plib` holds modules that are intended to be used by other scripts
+- `plib/pgm` holds scripts that are separate programs
+- `plib/tests` holds test scripts for modules that don't have their tests built in
+- `plib/g` holds a python graphics library that outputs PostScript
+- `plib/doc` holds things related to documentation
+- `plib/lib` holds things that support a few of the modules in `plib`
 
 Click on the following links to get more information:
 
-* [plib](doc/modules.html) Information on plib's modules
-* [pgm](doc/pgm.html) Information on plib/pgm's scripts
-* [lib](doc/lib.html) Information on plib/lib's content
-* [roadmap](doc/roadmap.html) How I plan to change things in this repository
+- [plib](doc/modules.html) Information on plib's modules
+- [pgm](doc/pgm.html) Information on plib/pgm's scripts
+- [lib](doc/lib.html) Information on plib/lib's content
+- [roadmap](doc/roadmap.html) How I plan to change things in this repository
 
 ## Roadmap for 2025
 
-* Create HTML pages to make it easier to browse/find content
-    * Alphabetized
-    * By subject
-    * Things I think are of interest
-* /plib
-    * Lint & format the files
-    * Make self-tests up-to-date and ensure all pass with python 3.11
-    * Standardize on an open source license
-    * Remove specialized modules that are better stored elsewhere
-    * 0what.py returns useful output for all modules
-    * Fix old color.py dependencies (kolor.py) in /plib/pgm
+- Create HTML pages to make it easier to browse/find content
+    - Alphabetized
+    - By subject
+    - Things I think are of interest
+- /plib
+    - Lint & format the files
+    - Make self-tests up-to-date and ensure all pass with python 3.11
+    - Standardize on an open source license
+    - Remove specialized modules that are better stored elsewhere
+    - 0what.py returns useful output for all modules
+    - Find and fix old color.py dependencies (kolor.py) in /plib/pgm
 
 ### Formatting
 
@@ -51,7 +51,7 @@ written over the years for my own use.  There's some useful functionality in her
 it's fairly tightly coupled.  This means if you find a script you like and want to move
 it somewhere else, you may find that it's dependent on a number of other modules.  This
 will be annoying and possibly a lot of work to fix.  This repository on my system is
-`/plib` and my `PYTHONPATH` variable is `"/plib:/plib/g"`; thus this repository is the
+`/plib` and my `PYTHONPATH` variable is `"/plib:/plib/g"`.  This repository is the
 only code I use outside of what's in the python distribution. 
 
 # Tools
@@ -61,7 +61,7 @@ only code I use outside of what's in the python distribution.
 The g.py and other files in the g directory are a python wrapper over PostScript for
 making drawings.  I wrote it in 2001 because there wasn't anything available at the time
 to do such tasks.  It has been used for thousands of tasks over that time with
-essentially no changes except for when a python change or external library changed,
+essentially no changes except for when python changed or an external library changed,
 requiring a fix in the g.py script.
 
 ## 0what.py
@@ -91,14 +91,17 @@ that had the problem, letting you figure out what went wrong.
 
 Here are a few of the modules/scripts I use a lot or provide useful techniques.
 
-* get.py
+- get.py
     - Get text, lines, tokens, words, binary content, etc. from files.  I use GetLines
       and GetTextLines the most.
+    - tokenizer.py has a useful tokenizer that, unlike get.Tokenize(), has the line an
+      column number in the input file where the token came from (this is useful for e.g.
+      a spell checker, as the user can be told where the word is in a large input file).
 
-* util.py
+- util.py
     - Numerous utility functions.
 
-* pgm/prun.py
+- pgm/prun.py
     - I use this to develop python scripts in a terminal window.  When the script's
       modification time changes by saving the script in the editor window (a different
       terminal window), the script is run, allowing you to see the results without
@@ -107,7 +110,7 @@ Here are a few of the modules/scripts I use a lot or provide useful techniques.
       option to launch a browser showing you a diff of the previous and latest outputs
       so you can see what changed.
 
-* color.py
+- color.py
     - Contains three key classes (Color, Trm, and ColorName) to deal with color
       definitions and generating escape codes for using color in text in output to a
       terminal.  This file went through a large revision in March/April 2022, as I
@@ -124,27 +127,21 @@ Here are a few of the modules/scripts I use a lot or provide useful techniques.
       color and provides Unicode support, and the not-quite-as-good Windows Terminal
       running bash under WSL.
 
-* lwtest.py
+- lwtest.py
     - Lightweight test runner adapted from a nice tool by Raymond Hettinger.  I use this
-      for testing of my python modules.  I don't like python's unittest module because
+      for testing my python modules.  I don't like python's unittest module because
       it intercepts the standard streams, so you can't introduce breakpoints to see what
       is happening (or I'm ignorant of a suitable method).  I liked nose and pytest, but
       I wanted to minimize dependencies, so I rolled my own. 
 
-* f.py
+- f.py
     - Provides flt and cpx types, derived from float and complex, respectively.  Their
       advantage is that they only show 3 significant figures by default, stopping digit
       diarrhea with the usual float or complex calculations.  This file is still under
       development -- but I use the flt() objects a lot for routine calculations because
       they are so convenient for calculating things based on measurements.  
 
-* prob.py
-    - Provides cumulative distribution functions and their inverses for common
-      statistical tests.  This module calls into a DLL made from S. Moshier's cephes
-      library functions in C for the mathematical functions using python's ctypes
-      module. 
-
-* matrix.py
+- matrix.py
     - While numpy provides matrices, it's occasionally nice to have a pure-python module
       to deal with matrices.  The `matrix.py` module is derived from a public domain
       lightweight matrix module (version 3.0.0 of pymatrix gotten on 15 Jul 2019).  The
@@ -154,27 +151,20 @@ Here are a few of the modules/scripts I use a lot or provide useful techniques.
       matrices that use mpmath.mpi interval numbers, which are handy for quantifying
       roundoff issues in matrix calculations.
 
-* pgm/uni.py
+- pgm/uni.py
     - This is a script that allows you to look up Unicode characters, either by
       codepoint string or looking for a particular string in the character's
       description.  I use this script a lot when writing scripts and working in a
       terminal.
 
-* pgm/goto.py
+- pgm/goto.py
     - This script keeps track of strings and lets you find them by either typing in
       their number from a list or using a short alias.  I use this to keep track of
       directories, project files, videos, and a bunch of other stuff.  One of the hidden
       benefits is that the datafile used for the projects, directories, etc. can have a
       line commented out, meaning you'll be able to remember where the directory/project
       is years later.  My computer has around 2 million files and it's impossible to
-      remember where everything is.  I wrote this in the late 1990's a number of friends
-      at work told me they couldn't live without the script.  I use it constantly at the
-      command line.
+      remember where everything is.  I wrote this in the late 1990's and a number of
+      friends at work told me they couldn't live without the script.  I use it
+      constantly at the command line.
 
-# Lessons
-
-Two core lessons I have to learn over and over again are 
-
-* Document your data structures in detail
-* Find someway to index that large list of documents you'll write over time: what they do and where
-  they are.

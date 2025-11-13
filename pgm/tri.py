@@ -1,13 +1,6 @@
 '''
 TODO
-
-    - Get rid of sig and use flt
-        - Note:  putting sides of 1, 1, 1e-8 results in a division by zero
-          exception because the area evaluates to zero.  Thus, it would be
-          better to perform the calculations with Decimal or mpmath numbers,
-          rounding to the needed figures at the end.
-    - Uncertainies:  Enable explicitly with -u option
-        - Allow a+-b, a+/-b, a(b) for uncertainties
+    - 
         
 Solve a triangle
 '''
@@ -29,25 +22,23 @@ if 1:  # Header
         import sys
         import os
         import getopt
-        from decimal import Decimal, localcontext
-        from pdb import set_trace as xx
         from pprint import pprint as pp
     if 1:  # Custom imports
-        import decimalmath as DM
-        from f import flt
+        #from decimal import Decimal, localcontext
+        from f import *
         from wrap import dedent
         from color import t
-        if 1:  # xx
-            try:
-                # If you wish to add uncertainties to numbers, you'll need to install
-                # the uncertainties library from
-                # http://pypi.python.org/pypi/uncertainties/.
-                from uncertainties import ufloat, AffineScalarFunc
-                from uncertainties.umath import asin, acos, sqrt, sin, cos
-                have_unc = True
-            except ImportError:
-                from math import acos, sqrt, sin, cos
-                have_unc = False
+        from lwtest import Assert
+        # For convenience, this script will utilize the python uncertainties module if
+        # present you include variable expressions like '5.0(3)', '5+-0.3' or '5+/-0.3'.
+        try:
+            # If you wish to add uncertainties to numbers, you'll need to install
+            # the uncertainties library from # http://pypi.python.org/pypi/uncertainties/.
+            from uncertainties import ufloat, UFloat, ufloat_fromstr
+            from uncertainties.umath import *
+            have_unc = True
+        except ImportError:
+            have_unc = False
         if 0:  # xx
             import debug
             debug.SetDebugger()
@@ -64,11 +55,17 @@ if 1:  # Utility
         print(*msg, file=sys.stderr)
         exit(status)
     def Usage(status=1):
+        u = "is" if have_unc else "is not"
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] datafile
           Solve a triangle given the requisite sides and angles.  Here, "solving"
           means that the three angles and three sides of the triangle will be
-          printed in the report.
+          printed in the report.  You can use uncertainties in your input numbers 
+          like '5.0(3)', '5+-0.3' or '5+/-0.3' if the python uncertainties library
+          is present (it {u} present).
+        Note:
+          The inscribed circle is located by the angle bisectors.  The circumscribed
+          circle is located by the perpendicular bisectors of the sides.
         Options:
           -d n  Set the number of significant digits for the report [{d["-d"]}]
           -e    Show input parameters from datafile
@@ -116,12 +113,12 @@ if 1:  # Utility
         )
         exit(0)
     def ParseCommandLine():
-        d["-d"] = 3
-        d["-e"] = False  # Echo input values
-        d["-h"] = False  # Show manpage
-        d["-i"] = False  # Use interactive prompts to get data
-        d["-s"] = False  # Print sample datafile
-        d["-t"] = False  # Run self tests
+        d["-d"] = 3         # Number of significant figures
+        d["-e"] = False     # Echo input values
+        d["-h"] = False     # Show manpage
+        d["-i"] = False     # Use interactive prompts to get data
+        d["-s"] = False     # Print sample datafile
+        d["-t"] = False     # Run self tests
         # Use degrees as the default angle measure.  If you want to use
         # radians as the default, change this to False.
         d["deg"] = True
@@ -137,10 +134,10 @@ if 1:  # Utility
             elif o == "-d":
                 try:
                     d["-d"] = int(a)
-                    if d["-d"] < 1:
+                    if not (1 <= d["-d"] <= 15):
                         raise Exception()
                 except Exception:
-                    Error("-d option must be integer > 0")
+                    Error("-d option must be integer between 1 and 15 inclusive")
         if d["-h"]:
             Manpage()
         elif d["-t"]:
@@ -149,6 +146,10 @@ if 1:  # Utility
             Datafile()
         if not args and not d["-i"]:
             Usage()
+        x = flt(0)
+        x.N = d["-d"]
+        x.rtz = True
+        x.rtdp = True
         return args
 if 1:  # Core functionality
     def Datafile():
@@ -165,18 +166,16 @@ if 1:  # Core functionality
         sss
         S1 = 1
         S2 = 1
-        S3 = 1.2
+        S3 = 1.02
         
         # Results:
         # Triangle solution (to 3 figures):
-        # Sides                     1               1               1.2            
-        # Angles                    53.2°           53.2°           73.2°          
-        # Area                      0.479
-        # Perimeter                 3.2
-        # Inscribed circle¹         r = 0.299, d = 0.598
-        # Circumscribed circle²     r = 0.625, d = 1.25
-        # ¹ Center located by angle bisectors.
-        # ² Center located by perpendicular bisectors of the sides.
+        # Sides                     1               1               1.02           
+        # Angles                    59.3°           59.3°           61.3°          
+        # Area                      0.439
+        # Perimeter                 3.02
+        # Inscribed circle          r = 0.291, d = 0.581
+        # Circumscribed circle      r = 0.581, d = 1.16
         ''')
         )
         exit(0)
@@ -200,30 +199,41 @@ if 1:  # Core functionality
         return v
     def InterpretNum(s, vars):
         '''s is a number string or expression.  Evaluate the string and
-        return a Decimal number.  Raise an exception if the number is 0 or
+        return a flt or ufloat.  Raise an exception if the number is 0 or
         less.
         '''
         # Get vars into our local namespace
         for k in vars:
             exec("%s = vars['%s']" % (k, k))
+        # If it has a "(" in it, first see if it can be converted to a ufloat
+        if "(" in s or "+-" in s or "+/-" in s:
+            try:
+                x = ufloat_fromstr(s)
+                return x
+            except Exception as e:
+                pass
         try:
             # See if it can be interpreted as a number directly
-            x = Decimal(s)
+            x = flt(s)
             if x <= 0:
                 raise CannotBeZero("Value must be greater than zero")
             return x
+        except ValueError:
+            pass
         except CannotBeZero:
-            Error(f"'{s}' must be > 0")
+            Error(f"{s!r} must be > 0")
         except Exception:
             pass
         try:
             # It's not a number, so see if it's an expression
-            x = Decimal(eval(s))
+            x = flt(eval(s))
             if x <= 0:
                 raise CannotBeZero("Value must be greater than zero")
             return x
+        except CannotBeZero:
+            Error(f"{s!r} must be > 0")
         except Exception as e:
-            Error("Can't evaluate '%s'\n  Error:  %s" % (s, str(e)))
+            Error(f"Can't evaluate {s!r}\n  Error:  {e}")
     def GetDataInteractively():
         '''Note:  local variables are named with two leading underscores to allow them 
         to not be confused with the variables the user types in.
@@ -243,7 +253,6 @@ if 1:  # Core functionality
                         __x = int(__v)
                         if not (1 <= __x <= 15):
                             raise Exception()
-                        sig.digits = __x
                         break
                     except Exception as e:
                         print("Must be an integer between 1 and 15")
@@ -337,10 +346,10 @@ if 1:  # Core functionality
                             print("Number not correct:  %s" % str(e))
             __d["vars"] = CleanDict(locals())
         else:
-            # For debugging:  sss problem with sides 3, 4, 5
+            # For debugging:  sss problem with sides 3, 4, 5.0(1)
             __d["problem_type"] = "sss"
-            __d["vars"] = {'S1': Decimal('3'), 'S2': Decimal('4'), 'S3': Decimal('5')}
-        print()
+            __d["vars"] = {'S1': flt('3'), 'S2': flt('4'), 'S3': ufloat_fromstr('5.0(1)')}
+        #print()
     def ReadDatafile(datafile):
         if d["-e"]:
             t.print(f"{t.i}Problem's lines from datafile:")
@@ -382,7 +391,6 @@ if 1:  # Core functionality
         d["vars"] = CleanDict(locals())
         del d["vars"]["datafile"]
     def SolveProblem():
-        "Note the solution is done with Decimal arithmetic"
         # Get our needed variables
         v = d["vars"].get
         S1 = v("S1", 0)
@@ -391,31 +399,48 @@ if 1:  # Core functionality
         A1 = v("A1", 0)
         A2 = v("A2", 0)
         A3 = v("A3", 0)
+        if 1:
+            # A hack:  if any of these six variables is a ufloat, then the non-ufloats must
+            # be converted to floats to allow expressions like a + b to work.
+            have_ufloat = False
+            for i in "S1 S2 S3 A1 A2 A3".split():
+                x = eval(i)
+                if ii(x, UFloat):
+                    have_ufloat = True
+                    break
+            if have_ufloat:
+                S1 = float(S1) if ii(S1, flt) else S1
+                S2 = float(S2) if ii(S2, flt) else S2
+                S3 = float(S3) if ii(S3, flt) else S3
+                A1 = float(A1) if ii(A1, flt) else A1
+                A2 = float(A2) if ii(A2, flt) else A2
+                A3 = float(A3) if ii(A3, flt) else A3
+                global pi
+                pi = float(pi) if ii(pi, flt) else pi
         # Function to convert angle measure to radians if needed
-        f = lambda x: DM.pi() * x / 180 if d["deg"] else x
+        f = lambda x: radians(x) if d["deg"] else x
         prob = d["problem_type"]
-        pi = DM.pi()
         try:
             if prob == "sss":
                 # Law of cosines to find two angles, angle law to find third.
-                A1 = DM.acos((S2**2 + S3**2 - S1**2) / (2 * S2 * S3))
-                A2 = DM.acos((S1**2 + S3**2 - S2**2) / (2 * S1 * S3))
+                A1 = acos((S2**2 + S3**2 - S1**2)/(2*S2*S3))
+                A2 = acos((S1**2 + S3**2 - S2**2)/(2*S1*S3))
                 A3 = pi - A1 - A2
             elif prob == "ssa":
                 # Law of sines to find the other two angles and remaining
                 # side.  Note it can have two solutions (the second solution's
                 # data will be in the variables S1_2, S2_2, etc.).
                 A1 = f(A1)  # Make sure angle is in radians
-                arg = S2 / S1 * DM.sin(A1)
+                arg = S2/S1*sin(A1)
                 if abs(arg) > 1:
                     print("No solution:  sine law gives asin argument > 1")
                     print(f"  S1 = {S1}")
                     print(f"  S2 = {S2}")
-                    print(f"  A1 = {A1} radians = {A1 * 180 / pi}°")
+                    print(f"  A1 = {A1} radians = {A1*180/pi}°")
                     exit(1)
-                A2 = DM.asin(arg)
+                A2 = asin(arg)
                 A3 = pi - A1 - A2
-                S3 = S2 * DM.sin(A3) / DM.sin(A2)
+                S3 = S2*sin(A3)/sin(A2)
                 # Check for other solution
                 A1_2 = A1
                 A2_2 = pi - A2
@@ -429,14 +454,14 @@ if 1:  # Core functionality
                     # Second solution is possible
                     S1_2 = S1
                     S2_2 = S2
-                    S3_2 = S2_2 * DM.sin(A3_2) / DM.sin(A2_2)
+                    S3_2 = S2_2*sin(A3_2)/sin(A2_2)
             elif prob == "sas":
                 # Law of cosines to find third side; law of sines to find
                 # another angle; angle law for other angle.  Note we rename
                 # the incoming angle to be consistent with a solution diagram.
                 A3 = f(A1)  # Make sure angle is in radians
-                S3 = DM.sqrt(S1**2 + S2**2 - 2 * S1 * S2 * DM.cos(A3))
-                A2 = DM.asin(S2 * DM.sin(A3) / S3)
+                S3 = sqrt(S1**2 + S2**2 - 2*S1*S2*cos(A3))
+                A2 = asin(S2*sin(A3)/S3)
                 A1 = pi - A2 - A3
             elif prob == "asa":
                 # Third angle from angle law; law of sines for other two
@@ -446,16 +471,16 @@ if 1:  # Core functionality
                 A2 = f(A2)  # Make sure angle is in radians
                 A3 = pi - A1 - A2
                 S3 = S1
-                S2 = S3 * DM.sin(A2) / DM.sin(A3)
-                S1 = S3 * DM.sin(A1) / DM.sin(A3)
+                S2 = S3*sin(A2)/sin(A3)
+                S1 = S3*sin(A1)/sin(A3)
             elif prob == "saa":
                 # Third angle from angle law; law of sines for other two
                 # sides.
                 A1 = f(A1)  # Make sure angle is in radians
                 A2 = f(A2)  # Make sure angle is in radians
                 A3 = pi - A1 - A2
-                S2 = S1 * DM.sin(A2) / DM.sin(A1)
-                S3 = S1 * DM.sin(A3) / DM.sin(A1)
+                S2 = S1*sin(A2)/sin(A1)
+                S3 = S1*sin(A3)/sin(A1)
             else:
                 raise ValueError("Bug:  unrecognized problem")
         except UnboundLocalError as e:
@@ -471,22 +496,7 @@ if 1:  # Core functionality
             Error(msg)
         # Collect solution information
         solution = {}
-        vars = set(
-            (
-                "S1",
-                "S2",
-                "S3",
-                "A1",
-                "A2",
-                "A3",
-                "S1_2",
-                "S2_2",
-                "S3_2",
-                "A1_2",
-                "A2_2",
-                "A3_2",
-            )
-        )
+        vars = set("S1 S2 S3 A1 A2 A3 S1_2 S2_2 S3_2 A1_2 A2_2 A3_2".split())
         for k in vars:
             try:
                 exec(f"solution['{k}'] = {k}", None, locals())
@@ -533,7 +543,6 @@ if 1:  # Core functionality
         http://www.mathsisfun.com/algebra/trig-solving-triangles.html
         '''
         eps = 1e-14
-        pi = DM.pi()
         radians = lambda x: x * pi / 180
         d["angle_measure"] = radians(1)
         # sss
@@ -545,9 +554,9 @@ if 1:  # Core functionality
         d["problem_type"] = "sss"
         SolveProblem()
         k = d["solution"]
-        assert abs(k["A1"] - DM.acos(77 / 112)) < eps
+        assert abs(k["A1"] - acos(77 / 112)) < eps
         assert abs(k["A2"] - (pi - k["A3"] - k["A1"])) < eps
-        assert abs(k["A3"] - DM.acos(1 / 4)) < eps
+        assert abs(k["A3"] - acos(1 / 4)) < eps
         # ssa
         d["vars"] = {
             "S1": 8,
@@ -557,17 +566,17 @@ if 1:  # Core functionality
         d["problem_type"] = "ssa"
         SolveProblem()
         k = d["solution"]
-        a2 = DM.asin(13 * sin(radians(31)) / 8)
+        a2 = asin(13*sin(radians(31)) / 8)
         assert abs(k["A2"] - a2) < eps
         a3 = pi - k["A2"] - k["A1"]
         assert abs(k["A3"] - a3) < eps
-        assert abs(k["S3"] - DM.sin(a3) * 8 / DM.sin(radians(31))) < eps
+        assert abs(k["S3"] - sin(a3)*8/sin(radians(31))) < eps
         # Check other solution
-        a2_2 = pi - DM.asin(13 * DM.sin(radians(31)) / 8)
+        a2_2 = pi - asin(13*sin(radians(31))/8)
         assert abs(k["A2_2"] - a2_2) < eps
         a3_2 = pi - k["A2_2"] - k["A1_2"]
         assert abs(k["A3_2"] - a3_2) < eps
-        assert abs(k["S3_2"] - DM.sin(a3_2) * 8 / DM.sin(radians(31))) < eps
+        assert abs(k["S3_2"] - sin(a3_2)*8/sin(radians(31))) < eps
         # sas
         d["vars"] = {
             "S1": 5,
@@ -586,8 +595,8 @@ if 1:  # Core functionality
         d["problem_type"] = "asa"
         SolveProblem()
         k = d["solution"]
-        assert abs(k["S2"] - 9 * DM.sin(radians(34)) / DM.sin(radians(70))) < eps
-        assert abs(k["S1"] - 9 * DM.sin(radians(76)) / DM.sin(radians(70))) < eps
+        assert abs(k["S2"] - 9*sin(radians(34))/sin(radians(70))) < eps
+        assert abs(k["S1"] - 9*sin(radians(76))/sin(radians(70))) < eps
         assert abs(k["A3"] - radians(70)) < eps
         # saa
         d["vars"] = {
@@ -599,13 +608,13 @@ if 1:  # Core functionality
         SolveProblem()
         k = d["solution"]
         assert abs(k["A3"] - radians(83)) < eps
-        assert abs(k["S2"] - 7 * DM.sin(radians(35)) / DM.sin(radians(62))) < eps
-        assert abs(k["S3"] - 7 * DM.sin(radians(83)) / DM.sin(radians(62))) < eps
+        assert abs(k["S2"] - 7*sin(radians(35))/sin(radians(62))) < eps
+        assert abs(k["S3"] - 7*sin(radians(83))/sin(radians(62))) < eps
         print("Tests passed")
         exit(0)
     def GetOtherFacts(s1, s2, s3, a1, a2, a3, d):
         '''Calculate the other relevant measures of the triangle.'''
-        A = s1 * s2 * DM.sin(a3) / 2
+        A = s1*s2*sin(a3)/2
         s = (s1 + s2 + s3) / 2
         r = A / s
         R = s1 * s2 * s3 / (4 * A)
@@ -614,19 +623,19 @@ if 1:  # Core functionality
         d["r_inscribed"] = r
         d["R_circumscribed"] = R
     def F(x):
-        "Format Decimal x by removing trailing zeros and decimal point"
-        s = str(+x)
-        while s and s[0] != 0 and s[-1] == "0":
-            s = s[:-1]
-        if s[-1] == ".":
-            s = s[:-1]
-        return s
+        'Format x'
+        if ii(x, (float, flt, int)):
+            return str(x)
+        elif ii(x, UFloat):
+            return f"{x:.1uS}"
+        else:
+            raise TypeError("Bug")
     def Report():
         S, w = d["solution"], 15
         dm = "°" if d["deg"] else " "
         S1, S2, S3, A1, A2, A3 = [S[i] for i in "S1 S2 S3 A1 A2 A3".split()]
         GetOtherFacts(S1, S2, S3, A1, A2, A3, d)
-        dm, rad, pi = " ", "(radians)", DM.pi()
+        dm, rad = " ", "(radians)"
         if d["deg"]:
             dm = "°"
             rad = " " * len("(radians)")
@@ -638,22 +647,20 @@ if 1:  # Core functionality
         di = d["r_inscribed"] * 2
         D = d["R_circumscribed"] * 2
         p = d["perimeter"]
-        # Check that needed types are Decimal
+        # Check that needed types are flt
         for i in "S1 S2 S3 A1 A2 A3 r R di D p".split():
-            assert ii(eval(i), Decimal), f"{i} is not Decimal"
+            assert ii(eval(i), (flt, float, UFloat)), f"{i} is not a flt, float, or UFloat"
         title = f"Triangle solution (to {n} figure{'s' if n > 1 else ''})"
         def ShowSolution():
-            print(
-                dedent(f'''
+            print(dedent(f'''
             {title}:
             Sides                     {F(S1):{w}s} {F(S2):{w}s} {F(S3):{w}s}
             Angles {rad}          {F(A1) + dm:{w}s} {F(A2) + dm:{w}s} {F(A3) + dm:{w}s}
-            Area                      {area}
-            Perimeter                 {p}
-            Inscribed circle¹         r = {r}, d = {di}
-            Circumscribed circle²     r = {R}, d = {D}
-            ''')
-            )
+            Area                      {F(area)}
+            Perimeter                 {F(p)}
+            Inscribed circle          r = {F(r)}, d = {F(di)}
+            Circumscribed circle      r = {F(R)}, d = {F(D)}
+            '''))
         ShowSolution()
         # Check for second solution (only for ssa problem)
         if "S1_2" in S:
@@ -668,14 +675,10 @@ if 1:  # Core functionality
             di = d["r_inscribed"] * 2
             D = d["R_circumscribed"] * 2
             p = d["perimeter"]
-            # Check that needed types are Decimal
+            # Check that needed types are flt
             for i in "S1 S2 S3 A1 A2 A3 r R di D p".split():
-                assert ii(eval(i), Decimal), f"{i} is not Decimal"
+                assert ii(eval(i), (flt, float, UFloat)), f"{i} is not a flt, float, or UFloat"
             ShowSolution()
-        print(dedent('''
-        ¹ Center located by angle bisectors.
-        ² Center located by perpendicular bisectors of the sides.
-        '''))
         # Check for reasonableness
         if A1 == 0 or A2 == 0 or A3 == 0:
             print("\nThis is a degenerate triangle since one or more angles are zero")
@@ -688,7 +691,5 @@ if __name__ == "__main__":
         GetDataInteractively()
     else:
         ReadDatafile(datafile)
-    with localcontext() as ctx:
-        ctx.prec = d["-d"]
-        SolveProblem()
-        Report()
+    SolveProblem()
+    Report()

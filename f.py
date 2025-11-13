@@ -1,6 +1,10 @@
 '''
 
 TODO
+    - Bug in pgm/tri.py
+        - Get SyntaxWarning to stderr when S3 is a ufloat.  It is likely caused by no
+          constructor in the Base class, as it's trying to convert '1.02(5)' to a float
+          when it's really a ufloat().
     - Remove use of color.py stuff (let fmt.py handle this)
         - This also means removing the c attribute
     - Use fmt.py for formatting
@@ -486,7 +490,10 @@ class flt(Base, float):
     def __new__(cls, value):
         if ii(value, str) and "∞" in value:
             value = value.replace("∞", "inf")
-        instance = super().__new__(cls, value)
+        try:
+            instance = super().__new__(cls, value)
+        except ValueError:
+            return None
         instance._check()
         # Make sure formatter is set to current value of N
         Base._fmt.n = Base._digits
@@ -1221,6 +1228,7 @@ if 1:  # Get math/cmath functions into this namespace
     #   both:  e inf nan pi tau
     #   cmath: infj nanj
     from math import inf, pi, e, tau, nan
+    from cmath import infj, nanj
     # Dummy usages to avoid linter message
     inf
     pi
