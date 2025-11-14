@@ -27,9 +27,6 @@
         - The self-test for this feature doesn't need to check all letters, but it does
           need to show that it's 7-bit clean
 
-    - pgm/tri.py
-        - Needs to use color.py (and maybe updated to python 3)
-
     - pynomo on pypi https://pypi.org/project/PyNomo/
         - Library to generate PDF nomograms
         - Doc tutorial at

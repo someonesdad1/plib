@@ -23,7 +23,7 @@ if 1:  # Header
     if 1:  # Custom imports
         from wrap import dedent
         from get import GetWordlist
-        if 1:
+        if 0:
             import debug       
             debug.SetDebugger()
     if 1:  # Global variables

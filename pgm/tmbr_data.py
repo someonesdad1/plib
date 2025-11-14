@@ -1,4 +1,4 @@
-"""
+'''
 This is from http://machinistindex.com/Metalworking_index_2000.txt
 downloaded 28 Jan 2020 (site is defunct as of Aug 2021).  This information
 is used to produce the 'data' variable for tmbr.py.  data is a tuple of
@@ -9,9 +9,9 @@ element of the tuple is
 
 #1 means the first volume of TMBR.  67 is the page number this topic is
 on.
-"""
+'''
 
-raw_data = """
+raw_data = '''
 ! Joe Landau's Metalworking Index 2000 Edition, covering 
 ! "Home Shop Machinist" through 1999
 ! "Projects in Metal" magazines through-1998
@@ -3734,7 +3734,7 @@ Zap an Import-Build It Yourself	BARBOUR, J. O., JR.	PiM Apr.'97 30
 Z-axis Downfeed for a Mill-drill Machine	MUELLER, FRAN O.	PiM-Feb.'91,12
 Zero Set Micrometer Dial	GROSJEAN, W. C.	PiM-Jun.'90,7
 Zinc Aluminum Alloy Sleeve Bearings for a Dividing head Upgrade	CLARKE, THEODORE M	HSM'99:S/O  60
-"""
+'''
 
 # Get lines:  each field separated by tab characters
 lines, l = [], raw_data.split("\n")
