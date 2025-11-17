@@ -4,6 +4,15 @@
         - Both should be collapsed into just hsm.py.  Add -t option to hsm.py so that
           only TMBR references are found.  Then delete tmbr.py and tmbr_data.py.
     
+    - licenses.py
+        - Currently, the text is in /pylib/licenses
+        - Make a new directory lib/licenses
+            - The old stuff is dated May 2021.  Update to the latest files.
+        - License proliferation
+            - github on 17Nov2025 recommends apache2, gpl3, mit, bsd 2-clause, bsd
+              3-clause, boost1, CC zero 1 universal, eclipse2, gnu affero 3, gpl2,
+              lgpl2.1, mozilla2, unlicense
+
     - asciify.py
         - Vision:  the new codepoints entry can be used to modify asciify.py to allow it
           to turn arbitrary Unicode data (up to U+FFFF) into plain ASCII text in a
@@ -40,6 +49,14 @@
         - Prints out entries in the form I like to use in the reference tables in my
           documents.
         - Also remember to include the stuff in /ebooks.
+        - Syntax
+            - x:regex Search for regex only in category x:
+                - a Author
+                - t Title
+                - p Publisher
+                - y Year
+                - c Category:  cm:  math, cs:  science, ca:  astronomy, cp:  physics,
+                  ce:  electrical.  Note:  this could also be a -c option.
 
     - latin1
         - Make this a script in ~/.0rc/bin that converts latin1 files to utf8.
@@ -116,7 +133,8 @@
         - tcmp.py or cmpt.py
         - Example:  The license.txt uses text content I downloaded in 2021.  Alas, you
           can get the same file from the website, but it's not a plain text file, so
-          they won't compare directly.
+          they won't compare directly.  And if there's different indentation and
+          linefeed breaks, a 'diff -w' won't work.
         - 'diff -w' partially works
         - A heuristic that could provide a guide
             - ASCIIfy the text
@@ -134,6 +152,7 @@
                   what’re what’ll where’s where’d when’s why’s why’d how’s here’s
                   there’s there’ll there’d someone’s somebody’s one’s nobody’s
                   something’s nothing’s let’s ma’am o’clock 'tis
+        - Figure out a scoring scheme that measures how close two documents are
 
     - pgm/fet_current.py
         - Script to model the current you can realistically get from a MOSFET
@@ -168,11 +187,6 @@
             - ts:  'ts -m' doesn't work
         - Plan
             - Retire tsub.py, as it's not used in /plib or /plib/pgm
-
-    - licenses.py
-        - Currently, the text is in /pylib/licenses
-        - Make a new directory lib/licenses
-            - The old stuff is dated May 2021.  Update to Jun 2025.
 
     - color.py
         - Need Lighten() and Darken() to keep a color's hue, but adjust things up or

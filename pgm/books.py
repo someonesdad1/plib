@@ -1,5 +1,5 @@
 '''
-PBS list of 100 great read books in the US.  
+PBS list of 100 great to read books in the US.  
     https://www.pbs.org/the-great-american-read/books/#/
 '''
 from color import t
