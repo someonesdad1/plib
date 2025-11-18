@@ -94,14 +94,12 @@ if 1:  # Header
             debug.SetDebugger()
     if 1:  # Global variables
         ii = isinstance
-        required_keys = set(("D", "d", "h", "input_units", "offset", "shape"))
-        optional_keys = set(("title",))
-        separator = "-"*70
-        # Control how numbers with uncertainties are printed
-        if 0:
-            unc = ".1uS"    # E.g. 275(2)
-        else:
-            unc = ".1uP"    # E.g. 275±2
+        class G:
+            pass
+        g = G()
+        g.required_keys = set(("D", "d", "h", "input_units", "offset", "shape"))
+        g.optional_keys = set(("title",))
+        g.separator = "-"*70
 if 1:  # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -114,12 +112,14 @@ if 1:  # Utility
           are given, then input is taken from them rather than by prompting the user.  A
           separate report is printed to stdout for each datafile.
         Options:
+          -D      Show the input file's line colorized in the output
           -d n    Number of significant figures in report. [{d["-d"]}]
           -f      Print a sample datafile
           -h      Print this help
           -m      Use mm for input and output length measurements
           -r s    Formatting spec for length output (example:  '.0f' prints lengths in
                   mm to the nearest mm)
+          -s      Don't use the short form for uncertainty expressions
           -u      Allow uncertainty expressions in numerical values
         Note:
             If you use -u and use interactive input mode, if you type in e.g. '9 m' for
@@ -131,17 +131,19 @@ if 1:  # Utility
         )
         exit(status)
     def ParseCommandLine(d):
+        d["-D"] = False # Show the datefile's line to help with debugging
         d["-d"] = 4     # Number of display digits
         d["-m"] = False # Use mm
         d["-r"] = None  # Length formatting string
+        d["-s"] = False # Don't use short form for uncertainties
         d["-u"] = False # Allow uncertainties
         try:
-            opts, datafiles = getopt.getopt(sys.argv[1:], "d:fhmr:u")
+            opts, datafiles = getopt.getopt(sys.argv[1:], "Dd:fhmr:su")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in "mu":
+            if o[1] in "Dmus":
                 d[o] = not d[o]
             if o in ("-d",):
                 try:
@@ -160,6 +162,10 @@ if 1:  # Utility
         x = flt(0)
         x.N = d["digits"] = d["-d"]
         x.rtz = x.rtdp = True
+        if d["-s"]:     # Control how numbers with uncertainties are printed
+            g.unc = ".1uP"    # E.g. 275±2
+        else:
+            g.unc = ".1uS"    # E.g. 275(2)
         return datafiles
 if 1:  # Core functionality
     def RoundArea(D):
@@ -471,7 +477,7 @@ if 1:  # Core functionality
         the ones that are missing.
         '''
         missing = []
-        for key in required_keys:
+        for key in g.required_keys:
             if key not in opts:
                 missing.append(key)
         if opts["shape"] == "square":
@@ -487,19 +493,19 @@ if 1:  # Core functionality
         if ii(opts["D"][1], (float, flt, int)):
             print(indent, "D =", flt(opts["D"][1]), opts["D"][2])
         else:
-            print(indent, f"D = {opts['D'][1]:{unc}} {opts['D'][2]}")
+            print(indent, f"D = {opts['D'][1]:{g.unc}} {opts['D'][2]}")
         if ii(opts["d"][1], (float, flt, int)):
             print(indent, "d =", flt(opts["d"][1]), opts["d"][2])
         else:
-            print(indent, f"d = {opts['d'][1]:{unc}} {opts['d'][2]}")
+            print(indent, f"d = {opts['d'][1]:{g.unc}} {opts['d'][2]}")
         if ii(opts["h"][1], (float, flt, int)):
             print(indent, "h =", flt(opts["h"][1]), opts["h"][2])
         else:
-            print(indent, f"h = {opts['h'][1]:{unc}} {opts['h'][2]}")
+            print(indent, f"h = {opts['h'][1]:{g.unc}} {opts['h'][2]}")
         if ii(opts["offset"][1], (float, flt, int, str)):
             print(indent, "offset =", flt(opts["offset"][1]), opts["offset"][2])
         else:
-            print(indent, f"offset = {opts['offset'][1]:{unc}} {opts['offset'][2]}")
+            print(indent, f"offset = {opts['offset'][1]:{g.unc}} {opts['offset'][2]}")
         print(indent, "digits =", opts["digits"])
         x = flt(0)
         x.N = opts["digits"]
@@ -508,7 +514,7 @@ if 1:  # Core functionality
             if ii(opts["r"][1], (float, flt, int)):
                 print(indent, "r =", flt(opts["r"][1]), opts["r"][2])
             else:
-                print(indent, f"r = {opts['r'][1]:{unc}} {opts['r'][2]}")
+                print(indent, f"r = {opts['r'][1]:{g.unc}} {opts['r'][2]}")
         # Print total volume in some common units
         if ii(opts["V"], (float, flt)):
             V = flt(opts["V"])
@@ -521,7 +527,7 @@ if 1:  # Core functionality
             print(indent, "Volume:")
             for unit in ("liters", "gallons", "ft3", "in3"):
                 u = unit[:-1] + "³" if unit in "ft3 in3".split() else unit
-                print(indent, " "*3, f"{V*to(unit):{unc}} {u}")
+                print(indent, " "*3, f"{V*to(unit):{g.unc}} {u}")
         print()
     def CalculateVolume(opts):
         '''Set opts["V"] equal to the volume of the bucket in m3.  Also
@@ -546,14 +552,6 @@ if 1:  # Core functionality
         print("Bucket volume calibration (", s, ")", sep="")
         if d["datafile"] is not None:
             print(" "*3, "Datafile =", d["datafile"])
-    def PrintReport(d):
-        PrintHeader(d)
-        PrintInputValues(d)
-        for vu, lu, s in Report.data:
-            d["output_volume_units"] = vu
-            d["output_length_units"] = lu
-            d["volume_steps"] = s
-            PrintCalibrations(d)
     def PrintCalibrations(d):
         '''Print a table of calibrations in units of d["output_volume_units"]
         and in steps of d["steps"].  The linear distance measure will be in
@@ -610,13 +608,13 @@ if 1:  # Core functionality
                 if ii(L, (float, flt)):
                     print(f"{d['indent']}{d['v']!s:^{d['wv']}s}{d['l']!s:^{d['wl']}s}")
                 else:
-                    s = f"{l:{unc}}"
+                    s = f"{l:{g.unc}}"
                     print(f"{d['indent']}{d['v']!s:^{d['wv']}s}{s:^{d['wl']}s}")
             else:
                 if ii(L, (float, flt)):
                     print(f"{d['indent']}{d['v']!s:^{d['wv']}s}{d['l']!s:^{d['wl']}s}")
                 else:
-                    s = f"{L:{unc}}"
+                    s = f"{L:{g.unc}}"
                     print(f"{d['indent']}{d['v']!s:^{d['wv']}s}{s:^{d['wl']}s}")
             vx_m3 += v_step_m3
     def CalibrationMark(opts):
@@ -650,6 +648,10 @@ if 1:  # Core functionality
             if len(f) != 2:
                 raise ValueError(f"Unrecognized number")
             name, value = f
+            # Strip off any comment
+            loc = value.find("#")
+            if loc != -1:
+                value = value[:loc]
             s = f"ufloat_fromstr(value)"
             try:
                 x = eval(s)
@@ -669,7 +671,8 @@ if 1:  # Core functionality
         else:   # Allow uncertainties
             _lines = open(file, "r").read().split("\n")
             for _line in _lines:
-                #t.print(f"{t.cynl}{_line}")
+                if d["-D"]:     # Debugging:  show the source file's line
+                    t.print(f"{t.cynl}{_line}")
                 if _line.strip().startswith("#"):
                     continue
                 try:
@@ -784,6 +787,14 @@ if 1:  # Core functionality
         Report.data.
         '''
         Report.data.append((output_volume_units, output_length_units, volume_steps))
+    def PrintReport(d):
+        PrintHeader(d)
+        PrintInputValues(d)
+        for vu, lu, s in Report.data:
+            d["output_volume_units"] = vu
+            d["output_length_units"] = lu
+            d["volume_steps"] = s
+            PrintCalibrations(d)
 if __name__ == "__main__":
     d = {
         "output_volume_units": "m3",
@@ -800,7 +811,7 @@ if __name__ == "__main__":
             CalculateVolume(opts)
             PrintReport(opts)
             if len(datafiles) > 1:
-                print(separator, sep="")
+                print(g.separator, sep="")
     else:
         Interactive(d)
         CalculateVolume(d)
