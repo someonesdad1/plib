@@ -32,6 +32,7 @@ if 1:  # Header
         from color import t
         from lwtest import Assert
         from dpprint import PP
+        from util import Len
         pp = PP()   # Get pprint with current screen width
         if 0:
             import debug
@@ -97,18 +98,19 @@ if 1:   # Utility
         '''))
         exit(status)
     def ParseCommandLine(d):
+        d["-2"] = False # Use 2 columns
         d["-s"] = 5     # Start day
         d["-w"] = 0     # How many weeks
         #if len(sys.argv) < 2:
         #    Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "hs:w:") 
+            opts, args = getopt.getopt(sys.argv[1:], "2hs:w:") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         GetGlobals()
         for o, a in opts:
-            if o[1] in list(""):
+            if o[1] in list("2"):
                 d[o] = not d[o]
             elif o == "-s":
                 d[o] = int(a)
@@ -132,36 +134,58 @@ if 1:   # Core functionality
         day = min(sourcedate.day, calendar.monthrange(year, month)[1])
         return DT.date(year, month, day)
     def PrintCompactCalendar(dt):
-        dow, lines = dt.weekday(), g.lines
+        def GetWeeks(lines):
+            'lines is number of lines, dt is starting date'
+            nonlocal dt, col_width
+            o, hdr = [], f"{t.daynames}{' '.join(g.daysheader)}{t.n}"
+            while Len(hdr) < col_width:
+                hdr = hdr + " "
+            o.append(hdr)
+            lines -= 1
+            while lines:
+                has_one = False
+                ln = []
+                for i in range(7):
+                    if dt == today:
+                        ln.append(f"{t.today}{dt.day:2d}{t.n}")
+                        if dt.day == 1:
+                            has_one = True
+                    elif dt.day == 1:
+                        has_one = True
+                        ln.append(f"{t.day1}{dt.day:2d}{t.n}")
+                    elif dt.weekday() in (5, 6):
+                        ln.append(f"{t.satsun}{dt.day:2d}{t.n}")
+                    else:
+                        ln.append(f"{t.day}{dt.day:2d}{t.n}")
+                    dt += g.oneday
+                if has_one:
+                    ln.append(f"{t.date}{g.months[dt.month]} {dt.year}{t.n}")
+                s = ' '.join(ln)
+                while Len(s) < col_width:
+                    s = s + " "
+                o.append(s)
+                lines -= 1
+            return o
+
+        dow, lines = dt.weekday(), g.lines - 1
+        col_width = 29
         today = DT.date.today()
         if d["-w"]:
-            lines = d["-w"] + 2
+            lines = d["-w"] + 1
         # If the day of the week of dt is not at the proper starting day, decrement it
         # until it is
         while dt.weekday() != d["-s"]:
             dt -= g.oneday
-        t.print(f"{t.daynames}{' '.join(g.daysheader)}")
-        lines -= 2
-        # Now print the weeks
-        while lines:
-            has_one = False
-            for i in range(7):
-                if dt == today:
-                    print(f"{t.today}{dt.day:2d}{t.n}", end=" ")
-                    if dt.day == 1:
-                        has_one = True
-                elif dt.day == 1:
-                    has_one = True
-                    print(f"{t.day1}{dt.day:2d}{t.n}", end=" ")
-                elif dt.weekday() in (5, 6):
-                    print(f"{t.satsun}{dt.day:2d}{t.n}", end=" ")
-                else:
-                    print(f"{t.day}{dt.day:2d}{t.n}", end=" ")
-                dt += g.oneday
-            if has_one:
-                print(f"{t.date}{g.months[dt.month]} {dt.year}{t.n}", end="")
-            print()
-            lines -= 1
+        o1 = GetWeeks(lines) # Weeks for column 1
+        o2 = GetWeeks(lines) # Weeks for column 2
+        if d["-2"]:
+            sep = " "*10
+            sep = [sep]*len(o1)
+            for a, b, c in zip(o1, sep, o2):
+                print(a + b + c)
+        else:
+            for i in o1:
+                print(i)
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
