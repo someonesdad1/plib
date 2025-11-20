@@ -1,5 +1,36 @@
 /plib/.todo
 
+    - wrap.py
+        - Numerous bugs in code
+        - A common need is to dedent help text.  Add a function wrapit(s) that takes a
+          string s and provides a minilanguage:
+            - '.out expr' turns output on & off (on & off as words work too)
+                - '.out off' is good for providing documentation in the string
+            - '.on expr' turns formatting on
+            - '.off expr' turns it off (i.e., output things verbatim)
+            - '.indent n' for n integer >= 0
+            - '.save varname' saves the state
+            - '.restore varname' restores the state
+            - '.psep value' paragrahph separator (\n\n is default)
+            - Default behavior is to first remove common leading whitespace from all
+              lines, just as dedent() does.  An empty newline will match the indentation
+              of the previous or following lines.
+
+    - pgm/books.py
+        - Keeps track of the technical books I have so I can look up by author,
+          category, or words in the title.
+        - Prints out entries in the form I like to use in the reference tables in my
+          documents.
+        - Also remember to include the stuff in /ebooks.
+        - Syntax
+            - x:regex Search for regex only in category x:
+                - a Author
+                - t Title
+                - p Publisher
+                - y Year
+                - c Category:  cm:  math, cs:  science, ca:  astronomy, cp:  physics,
+                  ce:  electrical.  Note:  this could also be a -c option.
+
     - pgm/hsm.py & tmbr.py
         - Both should be collapsed into just hsm.py.  Add -t option to hsm.py so that
           only TMBR references are found.  Then delete tmbr.py and tmbr_data.py.
@@ -42,21 +73,6 @@
           https://lefakkomies.github.io/pynomo-doc/tutorials/tutorials.html gives a
           vehicle gas economy calculator
         - https://www.projectrho.com/nomogram/cad.html
-
-    - pgm/books.py
-        - Keeps track of the technical books I have so I can look up by author,
-          category, or words in the title.
-        - Prints out entries in the form I like to use in the reference tables in my
-          documents.
-        - Also remember to include the stuff in /ebooks.
-        - Syntax
-            - x:regex Search for regex only in category x:
-                - a Author
-                - t Title
-                - p Publisher
-                - y Year
-                - c Category:  cm:  math, cs:  science, ca:  astronomy, cp:  physics,
-                  ce:  electrical.  Note:  this could also be a -c option.
 
     - latin1
         - Make this a script in ~/.0rc/bin that converts latin1 files to utf8.
@@ -111,23 +127,9 @@
             - Lubricant
             - Depth of cut for a light duty lathe
 
-    - wrap.py
-        - Numerous bugs in code
-        - A very common need is to dedent help text.  Add a function printwrap(*s) that takes each
-          string s, removes leading and trailing whitespace, dedents the text, and prints it wrapped
-          to 1 minus the current number of columns.  Embedded control lines can be things like
-          '.on', '.off', '.indent = n', etc.  The overall state is remembered until '.reset' is seen
-          or the keyword reset is True.  'paragraph_sep' keyword defaults to '\n\n'.
-
     - pgm/draintank.py
         - Inverse problem:  given an orifice diameter and height, calculate the
           volume of the tank if you know the time it takes to drain.
-
-    - pgm/bucket.py
-        - Output units
-            - If user chooses default rounding, he gets
-                - If output units are mm, round to nearest mm
-                - If output units are inches, round to nearest 0.05 inches
 
     - Need a text comparing tool that mostly ignores whitespace.
         - tcmp.py or cmpt.py
