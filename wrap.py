@@ -1,6 +1,12 @@
 '''
+
 TODO
     - Use abbreviations.py instead of class Abbr.
+        - Search https://en.wikipedia.org/wiki/Category:Lists_of_abbreviations, as it
+          should be straightforward to get a comprehensive list of abbreviations.
+            - This also allows for constructing a file of acronyms from
+              https://en.wikipedia.org/wiki/Category:Lists_of_acronyms
+
     - Bug:  Example3() doesn't work right
     - Bug:  Wrapping 'which is equal to (x - 1)! if x is an integer.' will
       result in two spaces after the '!'.  Look at the next letter of the

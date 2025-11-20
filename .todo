@@ -11,10 +11,12 @@
             - '.indent n' for n integer >= 0
             - '.save varname' saves the state
             - '.restore varname' restores the state
-            - '.psep value' paragrahph separator (\n\n is default)
+            - '.psep value' paragraph separator (\n\n is default)
             - Default behavior is to first remove common leading whitespace from all
               lines, just as dedent() does.  An empty newline will match the indentation
               of the previous or following lines.
+        - Question:  can the heavy lifting be done adequately with the textwrap
+          module?
 
     - pgm/books.py
         - Keeps track of the technical books I have so I can look up by author,

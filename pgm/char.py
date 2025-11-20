@@ -1,17 +1,16 @@
-"""
+'''
 
 - Change the letters printout to the following form:
     Lower   a b c d e f g h i j k l m n o p q r s t u v w x y z
     Upper   A B C D E F G H I J K L M N O P   R S T U V W   Y Z
   This makes it easier to see the missing characters.  Do the same for the
   digits.  Put in a line of '- ' strings to show where the characters go.
-
+  
 ---------------------------------------------------------------------------
 Classifies the characters in one or more files by type (e.g., lowercase
 letters, digits, etc.) and prints out a table of the characters present
 in the file(s).  Reads stdin if no files are given on the command line.
-"""
-
+'''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
@@ -34,13 +33,11 @@ if 1:  # Imports
     from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import dedent, wrap
-    from color import Color, Trm
-
-    t = Trm()
+    from color import t
 if 1:  # Global variables
     ii = isinstance
     enc = "UTF-8"
-    encodings = """
+    encodings = '''
         1125 273 437 646 850 852 855 857 858 860 861 862 863 865 866 869
         8859 932 936 949 950 CP-GR CP-IS EBCDIC-CP-BE EBCDIC-CP-CH
         EBCDIC-CP-HE IBM037 IBM039 IBM273 IBM424 IBM437 IBM500 IBM775
@@ -79,20 +76,16 @@ if 1:  # Global variables
         utf_16_be utf_16_le utf_32 utf_32_be utf_32_le utf_7 utf_8
         utf_8_sig windows-1250 windows-1251 windows-1252 windows-1253
         windows-1254 windows-1255 windows-1256 windows-1257 windows-1258
-    """
+    '''
     # Construct a dictionary containing the encodings we'll allow and their
     # standard names.
     allowed = {}
-
     def replace1(x):
         return x.replace("_", "")
-
     def replace2(x):
         return x.replace("-", "")
-
     def replace(x):
         return replace1(replace2(x))
-
     for word in encodings.lower().split():
         try:
             " ".encode(word)
@@ -105,10 +98,9 @@ if 1:  # Global variables
             allowed[replace2(word)] = word
             allowed[replace(word)] = word
 if 1:  # Utility
-
     def Usage(status=1):
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options] [file1 [file2...]]
           Lists the characters used in the indicated files.  Use - as a file
           name to read stdin.  Assumes text files are encoded in {enc}; use -b
@@ -125,10 +117,9 @@ if 1:  # Utility
                     not important and hyphens and underscores in the name can
                     be removed.  Defaults to {d["-e"]}.
             -u      Only print out the Unicode characters with their codepoints
-        """)
+        ''')
         )
         exit(status)
-
     def ParseCommandLine():
         d["-8"] = False  # Show all of the 8-bit characters
         d["-a"] = False  # Limit printout to 7-bit ASCII characters
@@ -201,9 +192,9 @@ if 1:  # Utility
                 d[o] = not d[o]
             elif o in ("-E",):
                 print(
-                    dedent(f"""
+                    dedent(f'''
                 Allowed encodings:
-                {wrap(encodings)}""")
+                {wrap(encodings)}''')
                 )
                 exit(0)
             elif o in ("-e",):
@@ -215,31 +206,26 @@ if 1:  # Utility
         if not args and not d["-8"]:
             Usage()
         return args
-
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
-
-
 if 1:  # Core functionality
-
     def GetEncoding(encoding):
-        """Return an allowed encoding name for a string identifying one of
+        '''Return an allowed encoding name for a string identifying one of
         python's supported encodings.  These can be the standard names in
         the documentation but with hyphens and/or underscores optionally
         removed.  Case is ignored.  None is returned if the encoding name
         isn't recognized.
-        """
+        '''
         e = encoding.lower()
         if e in allowed:
             return allowed[e]
         return None
         return replace(encoding.lower()) in allowed
-
     def GetCharacterCounts():
-        """Read in all the characters and construct a dictionary that
+        '''Read in all the characters and construct a dictionary that
         contains the Unicode codepoint values as keys and counts as values.
-        """
+        '''
         characters = []
         # To accumulate data, use a bytearray for binary data; list of
         # strings otherwise.
@@ -270,11 +256,10 @@ if 1:  # Core functionality
                 d["char_counts"][char] += 1
             else:
                 d["char_counts"][ord(char)] += 1
-
     def Categorize():
-        """Compute a dictionary d["cat"] containing the category number
+        '''Compute a dictionary d["cat"] containing the category number
         of each of the characters in the string d["characters"].
-        """
+        '''
         d["cat"] = cat = defaultdict(set)
         for char in d["characters"]:
             if d["-b"]:
@@ -299,26 +284,24 @@ if 1:  # Core functionality
                     cat[7].add(char)
                 else:
                     cat[8].add(char)
-
     def PrintCounts():
         C, D = d["char_counts"], d["ctrl"]
         chars = list(C.keys())
         chars.sort()
         print(
-            dedent("""
+            dedent('''
           Codepoint             Count
         Decimal   Hex      Decimal    Hex      Character
         -------  ------ ---------- ---------   ---------
-        """)
+        ''')
         )
         for c in chars:
             char, count = D[c] if c in D else chr(c), C[c]
             print(f"{c:7d}{c:8x}{count:11}{count:10x}{char:^18s}")
-
     def Translate(chars):
-        """Convert any control characters in chars into their symbolic
+        '''Convert any control characters in chars into their symbolic
         form.
-        """
+        '''
         out = []
         for c in chars:
             if ord(c) in d["ctrl"]:
@@ -326,11 +309,10 @@ if 1:  # Core functionality
             else:
                 out.append(c)
         return " ".join(out)
-
     def PrintCharacters(characters, indent):
-        """Fit the characters in the existing line width; wrap to the next
+        '''Fit the characters in the existing line width; wrap to the next
         lines if needed.  indent is the number of spaces to indent.
-        """
+        '''
         s = ""
         maxwidth = d["width"] - len(indent) - 1
         for c in characters.split():
@@ -343,7 +325,6 @@ if 1:  # Core functionality
                 s = ""
         if s:
             print(s)
-
     def PrintUnicode(results):
         found = False
         for i, cat, chars in results:
@@ -364,7 +345,6 @@ if 1:  # Core functionality
             print(f"  {n: 6d}", end=sep)
             print(f"0o{n:07o}")
             # Print hex, decimal, octal
-
     def PrintResults():
         res = []
         for key, val in d["cat"].items():
@@ -382,11 +362,11 @@ if 1:  # Core functionality
             1: "roy",  # Ctrl
             2: "cynl",  # Lowercase
             3: "ornl",  # Uppercase
-            4: "lwnl",  # Decimal digits
+            4: "yell",  # Decimal digits
             5: "magl",  # Punctuation
             6: "wht",  # Remaining 7-bit characters
             7: "yell",  # 8-bit with high bit set
-            8: "purl",  # Other Unicode
+            8: "grnl",  # Other Unicode
         }
         for i, cat, chars in res:
             characters = Translate(chars)
@@ -398,8 +378,6 @@ if 1:  # Core functionality
             PrintCharacters(characters, " " * w)
             if d["-C"]:
                 print(f"{t.n}", end="")
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     d["files"] = ParseCommandLine()
