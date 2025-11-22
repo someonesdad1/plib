@@ -61,19 +61,21 @@ if 1:   # Data
     #   Side clearance, ° 
     #   Back rake, ° 
     #   Side rake, ° 
+    #                                          Clearance      Rake
+    #                            Speed          Fr Side    Back    Side
     material = '''
-    Cast iron;50;8;10;5;12
-    Stainless steel;40;10;12;16.5;10
-    Copper;120;12;14;16.5;20
-    Brass;200 to 600;8;10;0;0
-    Harder copper alloys;80-120;12;10;10;0 to -2
-    Hard bronze;40 to 100;8;10;0;0 to -2
-    Aluminum;200 to 800;8;12;35;15
-    Monel & nickel;100;13;15;8;14
-    Phenol plastics (Bakelite);100;8;12;0;0
-    Other plastics;200;10;14;0 to 5;0
-    Formica;200 to 300;10;15;16.5;10
-    Hard rubber;150;15;20;0;0
+    Cast iron;                      50;          8; 10;      5;      12
+    Stainless steel;                40;         10; 12;   16.5;      10
+    Copper;                         120;        12; 14;   16.5;      20
+    Brass;                          200 to 600;  8; 10;      0;       0
+    Harder copper alloys;           80-120;     12; 10;     10; 0 to -2
+    Hard bronze;                    40 to 100;   8; 10;      0; 0 to -2
+    Aluminum;                       200 to 800;  8; 12;     35;      15
+    Monel & nickel;                 100;        13; 15;      8;      14
+    Phenol plastics (Bakelite);     100;         8; 12;      0;       0
+    Other plastics;                 200;        10; 14; 0 to 5;       0
+    Formica;                        200 to 300; 10; 15;   16.5;      10
+    Hard rubber;                    150;        15; 20;      0;       0
     '''
 if 1:   # Utility
     def GetColors():

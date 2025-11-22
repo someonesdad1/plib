@@ -11,7 +11,9 @@ oo>
 <oo test none oo>
 <oo todo
 
-    - Use up existing screen space to provide a compact calendar
+    - Add '-m file' option, which has one date per line; causes those lines to be
+      marked.  Can have two extra arguments on the line, which will be the color to
+      print the date in.
 
 oo>
 '''
@@ -108,11 +110,10 @@ if 1:   # Utility
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
-        GetGlobals()
         for o, a in opts:
             if o[1] in list("2"):
                 d[o] = not d[o]
-            elif o == "-s":
+            elif o[1] == "s":
                 d[o] = int(a)
                 if not (0 <= d[o] <= 6):
                     Error("-s option must be an integer between 0 and 6")
@@ -123,6 +124,7 @@ if 1:   # Utility
                     Error(f"-w option must be an integer")
             elif o == "-h":
                 Usage()
+        GetGlobals()
         return args
 if 1:   # Core functionality
     def add_months(sourcedate, months):
