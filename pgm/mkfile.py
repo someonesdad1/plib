@@ -1,7 +1,12 @@
-"""
-Make a file of specified size
-"""
+'''
 
+TODO
+    - Add -a option that forces file to be an ASCII text file from 0x20 to 0x7e
+    - Add -t option that forces file to be a Unicode text file
+        - Run from 0x20 to 0xffff
+
+Make a file of specified size
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -27,11 +32,9 @@ if 1:  # Header
         from wrap import dedent
         from lwtest import Assert
 if 1:  # Utility
-
     def Error(*s):
         print(*s, file=sys.stderr)
         exit(1)
-
     def InterpretSize(s):
         multiplier = 1
         if s[-1] == "k":
@@ -48,7 +51,6 @@ if 1:  # Utility
         except Exception:
             Error("'%s':  bad size specifier" % s)
         return size
-
     def ParseCommandLine(d):
         d["-b"] = None
         d["-r"] = False
@@ -83,10 +85,9 @@ if 1:  # Utility
             Usage()
         size = InterpretSize(args[0])
         return [size] + args[1:]
-
     def Usage(status=1):
         print(
-            dedent(f"""
+            dedent(f'''
         Usage: {sys.argv[0]} [options] size filename [n]
           Makes a file of specified size.  size is in bytes and can have the SI suffixes k, M, or G (no
           space between the letter and number).  If n is given, make that many file copies by adding 0,
@@ -100,20 +101,15 @@ if 1:  # Utility
           -r        Fill with pseudorandom bytes (uses random module)
           -s seed   Seed for the -r random number generator
           -u        Same as -r except os.urandom() is used
-        """)
+        ''')
         )
         exit(status)
-
-
 if 1:  # Core functionality
-
     def RandomBytes(n):
         for i in range(n):
             yield "{:02x}".format(random.randint(0, 255))
-
     def MakeFile(size, filename):
         chunksize = int(1e5)
-
         def WriteBytes(stream, byte, number_of_bytes, random_bytes):
             if random_bytes == 1:
                 if 0:
@@ -138,7 +134,6 @@ if 1:  # Core functionality
                 stream.write(secrets.token_bytes(number_of_bytes))
             else:
                 stream.write(bytearray([byte] * number_of_bytes))
-
         random_bytes = 3  # secrets.token_bytes() method
         if d["-b"] is not None:
             random_bytes = 0
@@ -158,8 +153,6 @@ if 1:  # Core functionality
             WriteBytes(ofp, byte_value, chunksize, random_bytes)
         if remainder:
             WriteBytes(ofp, byte_value, remainder, random_bytes)
-
-
 if __name__ == "__main__":
     d = {}
     args = ParseCommandLine(d)

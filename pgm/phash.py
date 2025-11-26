@@ -104,7 +104,6 @@ if 1:  # Utility
 if 1:  # Core functionality
     def TextHash(file):
         'Return the hex form of the SHA512 hash of a text file with all whitespace removed'
-        h = hashlib.sha512()
         h = hashlib.sha256()
         text = RemoveWhitespace(open(file, "r").read())
         h.update(text.encode())

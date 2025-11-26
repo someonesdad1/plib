@@ -94,7 +94,7 @@ Here are a few of the modules/scripts I use a lot or provide useful techniques.
 - get.py
     - Get text, lines, tokens, words, binary content, etc. from files.  I use GetLines
       and GetTextLines the most.
-    - tokenizer.py has a useful tokenizer that, unlike get.Tokenize(), has the line an
+    - tokenizer.py has a useful tokenizer that, unlike get.Tokenize(), has the line and
       column number in the input file where the token came from (this is useful for e.g.
       a spell checker, as the user can be told where the word is in a large input file).
 
@@ -139,7 +139,7 @@ Here are a few of the modules/scripts I use a lot or provide useful techniques.
       advantage is that they only show 3 significant figures by default, stopping digit
       diarrhea with the usual float or complex calculations.  This file is still under
       development -- but I use the flt() objects a lot for routine calculations because
-      they are so convenient for calculating things based on measurements.  
+      they are convenient for calculating things based on measurements.  
 
 - matrix.py
     - While numpy provides matrices, it's occasionally nice to have a pure-python module
@@ -164,7 +164,7 @@ Here are a few of the modules/scripts I use a lot or provide useful techniques.
       benefits is that the datafile used for the projects, directories, etc. can have a
       line commented out, meaning you'll be able to remember where the directory/project
       is years later.  My computer has around 2 million files and it's impossible to
-      remember where everything is.  I wrote this in the late 1990's and a number of
-      friends at work told me they couldn't live without the script.  I use it
-      constantly at the command line.
+      remember where everything is (even if I wasn't chronologically gifted).  I wrote
+      this in the late 1990's and a number of friends at work told me they couldn't live
+      without the script.  I use it constantly at the command line.
 

@@ -89,6 +89,9 @@ if 1:  # Header
     from wrap import dedent
     # Global variables
     ii = isinstance
+    if 0:
+        import debug
+        debug.SetDebugger()
 if 1:  # Classes
     class NameConvert:
         'Convert programming naming styles, "Python Cookbook" pg. 91'
@@ -394,23 +397,25 @@ if 1:  # Core functionality
         return func
     def RemoveWhitespace(s):
         '''Remove whitespace characters from the string s.  Whitespace characters are:
-        space, tab, linefeed, return, formfeed and vertical tab.  This method is fast
-        because it's done by C code.
+        space " ", tab "\t", linefeed "\n", return "\r", formfeed "\f", and vertical tab
+        "\v".  This method is fast because it's done by C code.
+        https://mark-summerfield.github.io/01_nows.html
         '''
         return ''.join(s.split())
     def RemoveEndingChars(s, chars=""):
         'Remove any ending characters in chars from s and return the result'
         if not s or not chars:
             return s
-        while s and s[-1] in set(chars):
+        S = set(chars)
+        while s and s[-1] in S:
             s = s[:-1]
         return s
     def RemoveStartingChars(s, chars=""):
         'Remove any starting characters in chars from s and return the result'
         if not s or not chars:
             return s
-        i = 0
-        while s[i] in set(chars):
+        i, S = 0, set(chars)
+        while s[i] in S:
             i += 1
         return s[i:]
     def FilterStr(remove, replacements):

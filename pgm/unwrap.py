@@ -1,12 +1,11 @@
-"""
+'''
 
 Todo
     - No args means print -h output
     - Use '-' to read from stdin
-
+    
 Convert a text file to word processor form
-"""
-
+'''
 if 1:  # Header
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -26,16 +25,12 @@ if 1:  # Header
     import sys
     from io import StringIO
     from pdb import set_trace as xx
-
     # Custom imports
     from wrap import wrap, dedent
-
     # Global variables
     ii = isinstance
-
     class G:
         pass
-
     g = G()
     g.nl = "\n"
     # The following string is used to flag locations of verbatim text
@@ -43,7 +38,7 @@ if 1:  # Header
     # followed by the string representation of an integer.
     g.key_start = "\x00key"
     # Abbreviations and titles need one space after them.
-    g.abbreviations = """
+    g.abbreviations = '''
             a acad acc acct ad addr adj adv al alt approx apr assn asst at
             attn aug ave b betw bros c ca cal cca cent cf ch chas chem cit
             cm co conc corp cp ct ctrl cu cwt d dec dept devt diff dist div
@@ -56,17 +51,15 @@ if 1:  # Header
             refl reg rev s sc scil sec sep sept seq ser sic sing so sp sq
             sr st stat syn t tbsp tem temp thos tsp u ult univ unkn v var
             vb viz vol vols vs vt vulg w wk wm wt x y yd yr yrs z
-        """
-    g.titles = """
+        '''
+    g.titles = '''
             capt col comdr cpl dr gen gov hon lt maj mme mr mrs ms mt prof
             pvt sgt ste
-        """
+        '''
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         name = sys.argv[0]
         colon = d["-k"]
@@ -75,7 +68,7 @@ if 1:  # Utility
         on, off = d["verbatim_begin"].strip(), d["verbatim_end"].strip()
         print(
             dedent(
-                f"""
+                f'''
         Usage:  {name} [options] [file1 [file2]]
           Removes hard line breaks from input text so that paragraphs are
           indicated by one newline.  The use case is to change text into a
@@ -98,11 +91,10 @@ if 1:  # Utility
             -n      Don't remove trailing newlines.
             -p n    Number of newlines after a paragraph. [{bl}]
             -s n    Number of spaces between sentences. [{ns}]
-        """[1:-1]
+        '''[1:-1]
             )
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-k"] = 2  # Number of spaces after colon
         d["-n"] = True  # Remove any trailing newlines
@@ -141,10 +133,7 @@ if 1:  # Utility
         d["abbreviations"] = set(g.abbreviations.split())
         d["titles"] = set(g.titles.split())
         return args
-
-
 if 0:
-
     def GetStringFromClipboard():  # Input from clipboard
         if have_gtk:
             cb = gtk.clipboard_get()
@@ -156,7 +145,6 @@ if 0:
         else:
             Error("No clipboard connection")
         return s
-
     def SendStringToClipboard(s):
         if have_gtk:
             clipboard = gtk.clipboard_get()
@@ -167,14 +155,11 @@ if 0:
             win32clipboard.EmptyClipboard()
             win32clipboard.SetClipboardText(s)
             win32clipboard.CloseClipboard()
-
-
 if 1:  # Core functionality
-
     def CheckVerbatimBlockMarks(d):
-        """Verify there's an equal number of beginning and ending block
+        '''Verify there's an equal number of beginning and ending block
         marks.
-        """
+        '''
         s, b, e = d["text"], d["verbatim_begin"], d["verbatim_end"]
         n_begin = s.count(b)
         n_end = s.count(e)
@@ -182,21 +167,20 @@ if 1:  # Core functionality
             b, e = b.strip(), e.strip()
             msg = "Unmatched verbatim block markers '{b}' and '{e}'"
             Error(msg.format(**locals()))
-
     def RemoveVerbatimBlocks(d):
-        """Remove the verbatim blocks from the input string and replace
+        '''Remove the verbatim blocks from the input string and replace
         them with tokens that we can use to put them back in later.
-        """
+        '''
         CheckVerbatimBlockMarks(d)
         d["verbatim"] = {}
         # Make a regular expression that can be used to remove the blocks.
         b, e = d["verbatim_begin"], d["verbatim_end"]
         r = re.compile(
-            r"""
+            r'''
             {0}     # Match the verbatim_begin string
             (.*?)   # Non-greedy match of everything; put in group
             {1}     # Match the verbatim_end string
-        """.format(b, e),
+        '''.format(b, e),
             re.S | re.X,
         )
         count = 0
@@ -215,25 +199,21 @@ if 1:  # Core functionality
                 d["text"] = "".join(t)
             else:
                 break
-
     def EndsInHyphen(word):
-        """This function is present to allow you to use other characters to
+        '''This function is present to allow you to use other characters to
         indicate hyphenation.  For example, the Unicode code points U+2010
         and U+2011 might be considered hyphens also.
-        """
+        '''
         return word[-1] in "-"
-
     def EndsInColon(word):
         return word[-1] == ":"
-
     def IsEndOfSentence(word):
         return word[-1] == "."
-
     def IsAbbreviationOrTitle(word, next_word, d):
-        """word ends in '.'; return True if it's an abbreviation or title
+        '''word ends in '.'; return True if it's an abbreviation or title
         and, thus, doesn't require an extra space after it because it's not
         the end of a sentence.
-        """
+        '''
         assert word[-1] == "."
         w = word[:-1].lower()
         is_capital = ord("A") <= ord(next_word[0]) <= ord("Z")
@@ -245,11 +225,10 @@ if 1:  # Core functionality
         if w in d["titles"]:
             return is_capital
         return False
-
     def ProcessParagraph(p):
-        """Convert a paragraph p to a sequence of words and join by spaces.
+        '''Convert a paragraph p to a sequence of words and join by spaces.
         Unhyphenate words that end in a hyphen character.
-        """
+        '''
         words, q = p.replace(g.nl, " ").split(), []
         n = len(words)
         had_hyphen = False
@@ -295,18 +274,14 @@ if 1:  # Core functionality
             else:
                 q.append(word)
         return " ".join(q)
-
     def GetText():
         "Read input stream's data"
         d["text"] = d["in"].read()
-
     def GetParagraphs(d):
         "Generator to split the input text into paragraphs"
         r = re.compile(r"\n\n+", re.S)
         for i in r.split(d["text"]):
             yield i
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

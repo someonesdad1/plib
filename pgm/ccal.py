@@ -48,7 +48,6 @@ if 1:  # Header
 if 1:   # Utility
     def GetGlobals():
         GetColors()
-        g.lines, g.columns = GetScreen()
         g.oneday = DT.timedelta(days=1)
         g.oneweek = DT.timedelta(days=7)
         g.daysheader = deque("Mo Tu We Th Fr Sa Su".split())
@@ -105,6 +104,7 @@ if 1:   # Utility
         d["-w"] = 0     # How many weeks
         #if len(sys.argv) < 2:
         #    Usage()
+        g.lines, g.columns = GetScreen()
         try:
             opts, args = getopt.getopt(sys.argv[1:], "2hs:w:") 
         except getopt.GetoptError as e:

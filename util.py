@@ -31,6 +31,7 @@ fsig                  Return string of float to specified number of digits
 getch                 Block until a key is pressed
 GetHash               Get a file's hash as a hex string
 GetLeadingString      Return the leading string from another string
+GetSize               Return number of bytes used by a container (recursive method)
 GetTrailingString     Return the trailing string from another string
 GroupByN              Group items from a sequence by n items at a time
 grouper               Function to group data
@@ -38,7 +39,6 @@ HeatIndex             Effect of temperature and humidity
 Height                Predict a child's adult height
 hyphen_range          Returns list of integers specified as ranges
 IdealGas              Calculate ideal gas P, v, T (v is specific volume)
-int2base              String interpolation for integer in base 2 to 94
 IsBinaryFile          Heuristic to see if a file is a binary file
 IsConvexPolygon       Is seq of 2-D points a convex polygon?
 IsCygwinSymlink       Returns True if a file is a cygwin symlink
@@ -107,6 +107,7 @@ if 1:  # Header
         from random import seed
         from reprlib import repr as Repr
         from string import digits, ascii_letters, punctuation
+        import inspect
         import math
         import os
         import platform
@@ -186,6 +187,36 @@ def GetLeadingString(string, prefix=" "):
         else:
             break
     return np * prefix
+def GetSize(obj, seen=None):
+    'Recursively finds size of objects in bytes'
+    # Taken from https://github.com/bosswissam/pysize/blob/master/pysize.py
+    size = sys.getsizeof(obj)
+    if seen is None:
+        seen = set()
+    obj_id = id(obj)
+    if obj_id in seen:
+        return 0
+    # Important mark as seen *before* entering recursion to gracefully handle
+    # self-referential objects
+    seen.add(obj_id)
+    if hasattr(obj, '__dict__'):
+        for cls in obj.__class__.__mro__:
+            if '__dict__' in cls.__dict__:
+                d = cls.__dict__['__dict__']
+                if inspect.isgetsetdescriptor(d) or inspect.ismemberdescriptor(d):
+                    size += GetSize(obj.__dict__, seen)
+                break
+    if isinstance(obj, dict):
+        size += sum((GetSize(v, seen) for v in obj.values()))
+        size += sum((GetSize(k, seen) for k in obj.keys()))
+    elif hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes, bytearray)):
+        try:
+            size += sum((GetSize(i, seen) for i in obj))
+        except TypeError:
+            raise TypeError(f"nable to get size of {obj}")
+    if hasattr(obj, '__slots__'): # can have __slots__ with __dict__
+        size += sum(GetSize(getattr(obj, s), seen) for s in obj.__slots__ if hasattr(obj, s))
+    return size
 def GetTrailingString(string, suffix=" "):
     '''Return the trailing string from string, made up of one or more groups of the
     indicated string suffix.
@@ -2082,6 +2113,7 @@ if __name__ == "__main__":
     import math
     import sys
     from itertools import zip_longest
+    from collections import namedtuple
     seed(2**64)  # Make test sequences repeatable
     show_coverage = len(sys.argv) > 1
     # Need to have version, as SizeOf stuff changed between 3.7 and 3.9
@@ -2205,23 +2237,23 @@ if __name__ == "__main__":
         Assert(s == f"1.0{sep}8.1")
     def Test_unrange():
         sep, f = "┅", unrange
-        s = f([], sort_first=False)
+        s = f([], sort_first=False, sep=sep)
         Assert(s == "")
-        s = f([1], sort_first=False)
+        s = f([1], sort_first=False, sep=sep)
         Assert(s == "1")
-        s = f([1, 2], sort_first=False)
+        s = f([1, 2], sort_first=False, sep=sep)
         Assert(s == f"1{sep}2")
-        s = f([1, 2, 4], sort_first=False)
+        s = f([1, 2, 4], sort_first=False, sep=sep)
         Assert(s == f"1{sep}2 4")
-        s = f([1, 3, 4, 5, 6, 7, 8, 10, 11, 12], sort_first=False)
+        s = f([1, 3, 4, 5, 6, 7, 8, 10, 11, 12], sort_first=False, sep=sep)
         Assert(s == f"1 3{sep}8 10{sep}12")
         n = 10000
-        s = f(range(1, n), sort_first=False)
+        s = f(range(1, n), sort_first=False, sep=sep)
         Assert(s == f"1{sep}{n - 1}")
         seq = [-i for i in (1, 3, 4, 5, 6, 7, 8, 10, 11, 12)]
-        s = f(seq, sort_first=False)
+        s = f(seq, sort_first=False, sep=sep)
         Assert(s == "-1 -3 -4 -5 -6 -7 -8 -10 -11 -12")
-        s = f(seq, sort_first=True)
+        s = f(seq, sort_first=True, sep=sep)
         Assert(s == f"-12{sep}-10 -8{sep}-3 -1")
     def Test_Cumul():
         for a in ([], [0], [0, 1]):
@@ -2915,6 +2947,100 @@ if __name__ == "__main__":
         TestCommonVectorsAndMatrixes()
         TestGetDesiredType()
         TestTransposeOfTransposeIsOriginal()
+    def TestGetSize():
+        # Run a few simple cases from pysize's tests (I ran the full set of tests before
+        # utilizing the code.  From https://github.com/bosswissam/pysize
+        #
+        # Empty sequences
+        for i in ([], (), deque(), set()):
+            Assert(sys.getsizeof(i) == GetSize(i))
+        # list of collections
+        collection_list = [[], {}, ()]
+        pointer_byte_size = 8*len(collection_list)
+        empty_list_size = sys.getsizeof([])
+        empty_tuple_size = sys.getsizeof(())
+        empty_dict_size = sys.getsizeof({})
+        expected_size = empty_list_size*2 + empty_tuple_size + empty_dict_size + pointer_byte_size
+        assert_equal(expected_size, GetSize(collection_list))
+        # no double counting
+        rep = ["test1"]
+        obj = [rep, rep]
+        obj2 = [rep]
+        assert_equal(GetSize(obj), GetSize(obj2) + 8)
+        # gracefully handles self referential objects
+        class Test(object):
+            pass
+        obj = Test()
+        obj.prop = obj
+        obj2 = Test()
+        assert_equal(GetSize(obj), GetSize(obj.prop))
+        # strings_pv3_compat
+        test_string = "abc"
+        assert_equal(sys.getsizeof(test_string), GetSize(test_string))
+        # custom_class
+        class Point(object):
+            def __init__(self, x, y):
+                self.x = x
+                self.y = y
+        point = Point(3, 4)
+        assert_equal(GetSize(point),
+                     sys.getsizeof(point) +
+                     sys.getsizeof(point.__dict__) +
+                     sys.getsizeof('x') +
+                     sys.getsizeof(3) +
+                     sys.getsizeof('y') +
+                     sys.getsizeof(4))
+        # namedtuple
+        Point = namedtuple('Point', ['x', 'y'])
+        point = Point(3, 4)
+        assert_equal(GetSize(point),
+                        sys.getsizeof(point) +
+                        sys.getsizeof(3) +
+                        sys.getsizeof(4))
+        # st_subclass_of_namedtuple
+        class Point(namedtuple('Point', ['x', 'y'])):
+            pass
+        point = Point(3, 4)
+        assert_equal(GetSize(point),
+                        sys.getsizeof(point) +
+                        sys.getsizeof(point.__dict__) +
+                        sys.getsizeof(3) +
+                        sys.getsizeof(4))
+        # subclass_of_namedtuple_with_slots
+        class Point(namedtuple('Point', ['x', 'y'])):
+            __slots__ = ()
+        point = Point(3, 4)
+        assert_equal(GetSize(point),
+                        sys.getsizeof(point) +
+                        sys.getsizeof(3) +
+                        sys.getsizeof(4))
+        # slots
+        class slots1(object):
+            __slots__ = ["number1"]
+            def __init__(self, number1):
+                self.number1 = number1
+        class slots2(object):
+            __slots__ = ["number1", "number2"]
+            def __init__(self, number1,number2):
+                self.number1 = number1
+                self.number2 = number2
+        class slots3(object):
+            __slots__ = ["number1", "number2", "number3"]
+            def __init__(self, number1, number2, number3):
+                self.number1 = number1
+                self.number2 = number2
+                self.number3 = number3
+        s1 = slots1(7)
+        s2 = slots2(3, 4)
+        s3 = slots3(4, 5, 6)
+        version_addition = 0
+        if hasattr(sys.version_info, 'major') and sys.version_info.major == 3:
+            version_addition = 4
+        # base 40 for the class, 28 per integer, +8 per element
+        assert_equal(GetSize(s2), GetSize(s1) + 28 + 4 + version_addition)
+        assert_equal(GetSize(s3), GetSize(s2) + 28 + 4 + version_addition)
+        assert_equal(GetSize(s3), GetSize(s1) + 56 + 8 + version_addition * 2) # *2 for the num of variables in difference
+
     # Make sure the docstring list of names is up-to-date'
     check_names = False
     check_names = True
@@ -2950,6 +3076,7 @@ if __name__ == "__main__":
             groupby
             hashlib
             ii
+            inspect
             islice
             itemgetter
             Iterable
@@ -2957,6 +3084,7 @@ if __name__ == "__main__":
             math
             Miscellaneous
             mpmath
+            namedtuple
             nl
             OrderedDict
             os

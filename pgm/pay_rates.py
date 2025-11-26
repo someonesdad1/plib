@@ -1,7 +1,6 @@
-"""
+'''
 Print out a table of revenue in k$ vs time and pay rate.
-"""
-
+'''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
@@ -25,8 +24,6 @@ if 1:  # Global variables
     fmt_kdollars = "%5.1f "
     deduction_pct = 0
     total_weeks = 26
-
-
 def Header(first_line):
     print(first_line)
     print(" " * 32, "Pay rate $/hr")
@@ -34,8 +31,6 @@ def Header(first_line):
     for rate in rates:
         print("%6d" % rate, end=" ")
     print()
-
-
 def GrossPay():
     Header("Gross Pay in k$\n")
     for weeks in range(1, total_weeks + 1):
@@ -45,8 +40,6 @@ def GrossPay():
             print(fmt_kdollars % dollars, end=" ")
         print()
     print()
-
-
 def NetPay():
     Header("Net Pay in k$ (deductions = %d%%)\n" % deduction_pct)
     for weeks in range(1, total_weeks + 1):
@@ -57,10 +50,8 @@ def NetPay():
             print(fmt_kdollars % dollars, end=" ")
         print()
     print()
-
-
 def DiffPay():
-    """This is the difference from making $50k/yr = $24/hr net."""
+    '''This is the difference from making $50k/yr = $24/hr net.'''
     Header("Differential Net Pay in k$ (deductions = %d%%)\n" % deduction_pct)
     for weeks in range(1, total_weeks + 1):
         print(fmt_start_line % (weeks, int(weeks / 4.0)), end=" ")
@@ -72,8 +63,6 @@ def DiffPay():
             print(fmt_kdollars % dollars, end=" ")
         print()
     print()
-
-
 def YearlyPay():
     print("Yearly pay in k$ (deductions = %d%%)\n" % deduction_pct)
     print("$/hr     Gross    Net")
@@ -82,12 +71,10 @@ def YearlyPay():
         gross = rate * 2.08
         net = gross * (100 - deduction_pct) / 100.0
         print("%3d      %5.1f  %5.1f" % (rate, gross, net))
-
-
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} inc_tax_pct
           where inc_tax_pct is total withholding percentage you'll experience.
         Example:  
@@ -95,7 +82,7 @@ if __name__ == "__main__":
           work for 6 weeks, your net pay will be $11.5k.  Check:  6 weeks
           at 40 hours per week is 240 hours.  $80/hr time 240 hr is $19.2k.
           60% of this is $11.52k.
-        """)
+        ''')
         )
         exit(1)
     deduction_pct = float(sys.argv[1])

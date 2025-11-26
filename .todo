@@ -18,6 +18,9 @@
         - Question:  can the heavy lifting be done adequately with the textwrap
           module?
 
+    - pgm/mkfile.py
+        - Add -t option that forces file to be a Unicode text file
+
     - pgm/books.py
         - Keeps track of the technical books I have so I can look up by author,
           category, or words in the title.
@@ -157,6 +160,16 @@
                   there’s there’ll there’d someone’s somebody’s one’s nobody’s
                   something’s nothing’s let’s ma’am o’clock 'tis
         - Figure out a scoring scheme that measures how close two documents are
+            - Use rapidfuzz https://github.com/rapidfuzz/RapidFuzz.  This works very
+              well and checked two copies of pnp that differed by perhaps 10 letters or
+              so in 3.7 s and returned 99.99840298032908 (fuzzywuzzy only returned an
+              integer, which is why I uninstalled it).
+            - Quick heuristic
+                - Replace all characters above 0x7f with spaces
+                - Change all punctuation to space characters except '.', "'", and '-'
+                - Change all whitespace to space characters
+                - Change all control characters to space characters
+                - Use fuzz metric to compare
 
     - pgm/fet_current.py
         - Script to model the current you can realistically get from a MOSFET
