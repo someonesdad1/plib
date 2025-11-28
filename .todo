@@ -1,5 +1,30 @@
 /plib/.todo
 
+    - vp utility
+        - Just like goto.py picking things, except it lets you select one or more files
+          to be opened in vi.  This would save me a lot of time because heavily-used
+          files are opened quickly.  Allow numbers and regexps on the command line,
+          opening on one-only matches and prompting for number input on multiple
+          matches.  
+        - See if goto.py can be modified to provide this functionality
+        - .vprc file
+            - Fields
+                - Only one
+                    - File to open
+                - Two
+                    - 0: Alternate name
+                    - 1: File
+                - Three
+                    - 0: Alternate name
+                    - 1: Alias
+                    - 2: File
+                - Four
+                    - 0: Alternate name
+                    - 1: Alias
+                    - 2: File
+                    - 3: Color to use 'fg bg attr' (defaults to normal), uses clr's
+                      names only.  attr can be it or ul
+
     - wrap.py
         - Numerous bugs in code
         - A common need is to dedent help text.  Add a function wrapit(s) that takes a
@@ -78,6 +103,42 @@
           https://lefakkomies.github.io/pynomo-doc/tutorials/tutorials.html gives a
           vehicle gas economy calculator
         - https://www.projectrho.com/nomogram/cad.html
+
+    - Serial stuff
+        - It would be handy to write a hobbyist document that addresses the basics of
+          serial communications.  This would revolve around the serial communications
+          used on Arduinos.  There's a goodly bit of confusion around terms like UART,
+          RS-232, and the voltage levels involved.  Another interesting part is learning
+          to use an oscilloscope to decode a serial signal.
+
+    - Test equipment
+        - There are four basic instruments that get used a lot on the bench:  DMM,
+          scope, power supply, function generator.  It would be handy to have a basic
+          document that outlines the use of these four instruments.
+        - Other instruments
+            - LCR meter
+            - DC load
+            - Variac
+            - Clamp-on ammeter
+            - Analog meters
+            - Shunts
+            - Analog AC voltmeter
+        - I'd discuss my background as an electrical hobbyist a bit.  The only "real"
+          course in electrical stuff was a network theory course taken in college,
+          typically a junior-level EE course that focused on solving circuit equations
+          (typically differential equations) gotten from voltage & current laws and the
+          time-dependent behavior, using things like Laplace and Fourier transforms.
+          This was good background for theoretical stuff, but had no associated lab or
+          practical stuff.  The same teacher invited me to sit in on his communications
+          course a couple of years later and I took in about 2/3 of that before
+          stopping (it was an excellent course and where I first used the HP 3400A RMS
+          voltmeter).  Then it was "teach yourself".  25 years at HP let me get to know
+          some very good EEs who helped me with things as needed and one lunch course
+          taught by a local univerity teacher (EE for Non-EEs) was excellent.  But none
+          of the course stuff looked much at the practical stuff, which had to be
+          learned on your own.  Advice:  learn basic DC stuff really well, as much of it
+          will "port" over to AC behavior too, particularly when RMS measurements are
+          used.
 
     - latin1
         - Make this a script in ~/.0rc/bin that converts latin1 files to utf8.
