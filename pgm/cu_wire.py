@@ -116,10 +116,10 @@ if 1:  # Utility
         (i.e., not a tensor), you can calculate the resistance of a chunk of material
         with 
         
-            R = ρ*A/L
+            R = ρ*L/A
         
         where R is the resistance in Ω, ρ is the resistivity in Ω·m, A is the
-        conductor's cross-sectional area in m, and L is the conductor's length in m.
+        conductor's cross-sectional area in m², and L is the conductor's length in m.
         
         Unfortunately, the US still uses AWG, a gauge system to state wire size instead
         of diameter measurements.  AWG is American Wire Gauge [1].  Given an AWG number

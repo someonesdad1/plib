@@ -125,6 +125,13 @@ if 1:   # Utility
                     Dbg(f"    {t.sky}{arg}")
         if not d["-f"]:
             Error("You must supply at least one configuration file")
+        else:
+            # Only process each configuration file once
+            out = []
+            for file in d["-f"]:
+                if file not in out:
+                    out.append(file)
+            d["-f"] = out
         return args
 if 1:   # Classes
     class Line:
@@ -179,7 +186,6 @@ if 1:   # Classes
                 print(f"  [{self.file}:{self.linenum}] {self.format!r} is a bad formatting string")
                 return
             raise Exception("Bug because self.IsOK() was False")
-
 if 1:   # Core functionality
     def CheckConfigFiles(files):
         '''Read all the lines of the config files and examine each line.  If a line
@@ -219,13 +225,19 @@ if 1:   # Core functionality
     def ReadConfigFile(file):
         'Return a list of the valid lines'
         lines = open(file).read().split("\n")
+        out = []
         for i, line in enumerate(lines):
             line = line.strip()
             if not line or line.startswith("#"):
                 continue
             fields = [i.strip(" ") for i in line.strip().split(";")]
             ln = Line(file, i + 1, fields)
-            print(ln)
+            out.append(ln)
+        return out
+    def ProcessLines(lines, regexps):
+        '''For each line in lines, display them to the user and prompt for the ones to
+        use.  Filter by the passed-in regular expressions (they are ANDed together).
+        '''
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
@@ -235,4 +247,5 @@ if __name__ == "__main__":
     else:
         lines = []
         for file in d["-f"]:
-            lines.append(ReadConfigFile(file))
+            lines.extend(ReadConfigFile(file))
+        choices = ProcessLines(lines)
