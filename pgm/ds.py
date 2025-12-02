@@ -110,7 +110,7 @@ if 1:  # Header
                 "hpj": "/ebooks/hpj/ds.hpj.ignore",
             }
         # Colors for output
-        t.dir = t("sky")  # Contrast for directory portion
+        t.dir = t("gry")  # Contrast for directory portion
         t.match = t("ornl")  # Color for matches
 if 1:  # Utility
     def Dbg(*p, **kw):
