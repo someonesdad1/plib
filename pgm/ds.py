@@ -142,7 +142,8 @@ if 1:  # Utility
           -j    Search HP Journal and Bench Brief files (note:  consider
                 using the hpj.py script for such searches)
           -k    Regex is a keyword; open the associated docs
-          -x    Same as -I but include /ebooks
+          -x    Same as -I
+          -X    Same as -I but include /ebooks
         Long options
           --exec n
             Name of index file for usage statement.  Choices are:
@@ -151,18 +152,19 @@ if 1:  # Utility
         )
         exit(status)
     def ParseCommandLine(d):
-        d["-I"] = d["-x"] = False  # If True, then generate indexes
+        d["-X"] = False  # If True, then generate indexes including /ebooks
+        d["-I"] = d["-x"] = False  # If True, then generate indexes without /ebooks
         d["-i"] = False  # If True, then case-sensitive search
         d["-j"] = False  # Show HPJ matches
         d["-k"] = False  # Open files indicated by keyword
         try:
-            optlist, args = getopt.getopt(sys.argv[1:], "hIijkx", ["exec="])
+            optlist, args = getopt.getopt(sys.argv[1:], "hIijkXx", ["exec="])
         except getopt.GetoptError as e:
             msg, option = e
             print(msg)
             exit(1)
         for o, a in optlist:
-            if o[1] in list("Iijkx"):
+            if o[1] in list("IijkXx"):
                 d[o] = not d[o]
             elif o == "--exec":
                 d["--exec"] = a
@@ -218,7 +220,7 @@ if 1:  # Core functionality
             Dbg(f"{len(df.files)} files ({tm} s)")
             DumpIndexFile(g.index_files["bk"], df)
         if 1:  # ebooks
-            if d["-x"]:
+            if d["-X"]:
                 Dbg("Indexing ebooks:", end="  ")
                 start = flt(time())
                 df = Dirfiles("/ebooks", clear=True)
