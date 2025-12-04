@@ -718,7 +718,7 @@ if 1:  # Utility
             print(str(e))
             exit(1)
         for o, a in optlist:
-            if o[1] in "aCcdehilov":
+            if o[1] in "aCcdeilov":
                 d[o] = not d[o]
             elif o in ("-b",):
                 d["-b"] = int(a)
