@@ -61,7 +61,7 @@ if 1:   # Utility
         )
     def Dbg(*p, **kw):
         if g.dbg:
-            print(f"{t.dbg}", end="")
+            print(f"{t.dbg}+ ", end="")
             print(*p, **kw)
             print(f"{t.N}", end="")
     def Warn(*msg, status=1):
@@ -72,9 +72,19 @@ if 1:   # Utility
     def Usage(status=0):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] N dir 
-          Build N zip files containing the files in directory dir.  When you include the
-          prefix with -p, the zip files are actually constructed; otherwise, you get a
-          report on the results.  Using -R also constructs the zip files.
+          Build N zip files containing the files in directory dir.  If you attach an 'M'
+          or 'G' to N with no space, then it means to construct each zip file with about
+          N MB or N GB in it (the number N can be a float).  When you include the prefix
+          with -p, the zip files are actually constructed; otherwise, you get a summary
+          report on the names of the zipfiles (numbered by integers) and their
+          uncompressed sizes.  Using -R also constructs the zip files.
+        Examples
+          '{sys.argv[0]} 2 dir'
+            The report will show the uncompressed size of the two zipfiles this command
+            will make.  If you include the -r option, you'll see the name of each file
+            and its uncompressed size in bytes.
+          '{sys.argv[0]} -i "^.*.py$" 1 dir'
+            Construct 1 zip file containing the python files in directory dir.
         Options
           -d        Turn on debugging output
           -i regex  Only include files that match the regex; more than one -i allowed
@@ -92,8 +102,8 @@ if 1:   # Utility
         d["-R"] = None      # Construct zip files from this file
         d["-r"] = False     # Produce report file to stdout
         d["-x"] = []        # Regexes of files to ignore
-        if len(sys.argv) < 2:
-            Usage()
+        #if len(sys.argv) < 2:
+        #    Usage()
         try:
             opts, args = getopt.getopt(sys.argv[1:], "di:p:hR:rx:") 
         except getopt.GetoptError as e:
@@ -113,6 +123,8 @@ if 1:   # Utility
         GetColors()
         Dbg("Debugging on")
         Dbg(f"Command line: {sys.argv}")
+        if not args:
+            Usage()
         return args
 if 1:   # Core functionality
     def GetFilelistDeque():
@@ -122,7 +134,7 @@ if 1:   # Core functionality
         cwd = Path(".").cwd()
         os.chdir("cache")
         p, dq, total_size = Path("."), deque(), 0
-        for i, pth in enumerate(p.glob("*")):
+        for i, pth in enumerate(p.glob("**/*")):
             size = pth.stat().st_size
             total_size += size
             dq.append((pth, size))
@@ -163,15 +175,42 @@ if 1:   # Core functionality
             with zipfile.ZipFile(f"{prefix}{key}.zip", "w") as zf:
                 for file, size in filedict[key]:
                     zf.write(f"cache/{file}")
+    def GetFileList(directory):
+        'Return a list of (file_size, file_name) elements'
+        filelist = []
+        for file in directory.glob("**/*"):
+            filelist.append((file.stat().st_size, file))
+        filelist = list(sorted(filelist))
+        pp(filelist)
+        exit()
+        return filelist
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
-    args = ParseCommandLine(d)
-    prefix = None
-    N = abs(int(args[0]))
-    Assert(N > 0)
-    if len(args) == 2:
-        prefix = args[1].strip()
+    if 1:   # Get the command line information
+        args = ParseCommandLine(d)
+        # Get number of zipfiles or their size in bytes
+        g.prefix = None
+        g.size = None
+        g.size_units = ""
+        N = args[0].strip()
+        if N.endswith("M") or N.endswith("G"):
+            g.size_units = "B"
+            lastchar = N[-1]
+            multiplier = 1e6 if lastchar == "M" else 1e9
+            N = N[:-1]
+            g.size = abs(flt(N))*multiplier
+        else:
+            g.size = abs(int(N))
+        Dbg(f"{args[0]!r} gives size of {g.size}{g.size_units}")
+        # Get the directory for the files
+        g.dir = Path(args[1].strip())
+        if not g.dir.exists() or not g.dir.is_dir():
+            Error(f"{t.err}{str(g.dir)!r} is not a directory or doesn't exist{t.n}")
+        Dbg(f"Directory is {str(g.dir)!r}")
+    if 1:   # Construct a list of the files
+        # Each entry in the following list will be (filename, size_in_bytes)
+        filelist = GetFileList(g.dir)
     filedict = ConstructFileDict(N)
     if prefix:
         ConstructZipFiles(filedict)
