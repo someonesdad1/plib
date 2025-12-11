@@ -7,6 +7,11 @@ if 1:  # Data
     todo = dedent('''
     comp.py ToDo list
 
+    - Boxes
+        - Color code the box numbers
+            - yell My existing plastic boxes
+            - cynl The Plano box
+            - ornl Cardboard boxes devoted to e.g. MPJA or Proto Supply parts
     - Inventory
         - Quantities
         - Symbols:  M = many, F = few, * = few or none and need to order
@@ -354,7 +359,7 @@ if 1:  # Data
             18:3:?    1N5817G Schottky diode, 20 PIV, 1 A   diode
             18:4:?    AGC fuse holder, panel mount   fuse
             18:4:?    2 A AGC slo-blo fuses   fuse
-            18:5:?    IRF630 N-ch MOSFET 200 V 9 A 0.29 Ω transistor TO-220
+            18:5:?    IRF630 N-ch MOSFET 200 V 9 A 290 mΩ 62 °C/W TO-220
             18:5:?    Socket, 8-pin DIP   socket
             18:6:?    16 pin ZIF socket   socket
             18:6:?    Jumper, 0.1 inch   jumper
@@ -545,9 +550,9 @@ if 1:  # Data
             29:1:?      
             29:2:?    BNC jacks & hardware   connector
             29:3:?    2N7000 MOSFET transistor TO92 60 V 200 mA   MOS
-            29:4:?    Normally closed thermostats, MPJA 38152   thermostat
+            29:4:?    Normally closed thermostats 40, 50, 60, 65[5]150 °C, MPJA 38152   thermostat
             29:5:?    Rubber tips & plugs for banana test leads   probe
-            29:6:?    Normally open thermostats, MPJA 35719   thermostat
+            29:6:?    Normally open thermostats 40, 50, 60, 65[5]150 °C, MPJA 35719   thermostat
             29:7:?    Standard toggle switch safety cover   switch
             29:8:?    Hamon 0.1 and 0.01 divider parts   misc
             29:9:?      

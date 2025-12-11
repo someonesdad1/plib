@@ -1,5 +1,15 @@
 /plib/.todo
 
+    - pgm/inst.py
+        - Database script for acquired instruments
+            - Date purchased, price, model number, serial number, key specs, where
+              bought, calibration data, etc.
+
+    - datetime objects
+        - Nice class with properties to give the string forms of dates & times the way I
+          like to see them
+        - Perhaps Julian day basis behind them so can do date arithmetic
+
     - vp utility
         - Just like goto.py picking things, except it lets you select one or more files
           to be opened in vi.  This would save me a lot of time because heavily-used

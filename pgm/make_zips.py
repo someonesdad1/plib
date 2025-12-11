@@ -113,7 +113,10 @@ if 1:   # Utility
             if o[1] in list("dr"):
                 d[o] = not d[o]
             elif o in ("-i", "-x"):
-                d[o].append(a)
+                try:
+                    d[o].append(re.compile(a))
+                except Exception:
+                    Error(f"{a!r} is a bad regex")
             elif o == "-p":
                 d[o] = a
             elif o == "-h":
@@ -121,25 +124,27 @@ if 1:   # Utility
         if d["-d"]:
             g.dbg = True
         GetColors()
-        Dbg("Debugging on")
-        Dbg(f"Command line: {sys.argv}")
+        Dbg(f"Debugging on; command line: {sys.argv}")
         if not args:
             Usage()
         return args
 if 1:   # Core functionality
-    def GetFilelistDeque():
-        '''Assumes we're in a directory where the files to be packaged are in the
-        directory ./cache
-        '''
-        cwd = Path(".").cwd()
-        os.chdir("cache")
-        p, dq, total_size = Path("."), deque(), 0
-        for i, pth in enumerate(p.glob("**/*")):
-            size = pth.stat().st_size
-            total_size += size
-            dq.append((pth, size))
-        os.chdir(cwd)
-        return total_size, dq
+    def GetFileList(directory):
+        'Return a list of (file_size, file_name) elements sorted largest first'
+        filelist = []
+        for file in directory.glob("**/*"):
+            filelist.append((file.stat().st_size, file))
+        filelist = list(sorted(filelist, reverse=True))
+        if g.dbg:
+            Dbg("Sorted contents of filelist in GetFileList()")
+            for i in filelist:
+                Dbg(" ", i)
+        return filelist
+    def ConstructZipFiles(filedict):
+        for key in filedict:
+            with zipfile.ZipFile(f"{prefix}{key}.zip", "w") as zf:
+                for file, size in filedict[key]:
+                    zf.write(f"cache/{file}")
     def ConstructFileDict(N):
         '''Return a dict indexed by file number containing a list of (file, size)
         entries that indicate what will be zipped into each zip file.
@@ -153,8 +158,33 @@ if 1:   # Core functionality
                 file, size = dq.popleft()
                 this_file_size += size
                 filedict[filenum].append((file, size))
+        return filedict
+    def FilterFiles(filelist):
+        'Keep the files as indicated by the command line options'
+        # filelist is list of (size_in_bytes, filename)
+        # -i list:  regexes to keep
+        keep = []
+        Dbg("Filtering")
+        for r in d["-i"]:
+            Dbg(f"  Checking for {t.yell}{r}")
+            for sz, filename in filelist:
+                # Note we only use the regex on the name part of the Path object
+                if r.search(str(filename.name)):
+                    keep.append((sz, filename))
+                    Dbg(f"  Kept {str(filename)!r}")
+        filelist = keep
+        # -x list:  regexes to ignore
+        keep = []
+        for r in d["-x"]:
+            for sz, filename in filelist:
+                if r.search(filename):
+                    Dbg("  Ignored {str(filename)!r}")
+                    continue
+                keep.append((sz, filename))
+        return keep
+    def Report(filelist):
         # Print the file list summary
-        print("Summary of size of each zip file:")
+        print("Summary of size of each zip file")
         x = flt(0)
         x.N = 2
         x.rtz = False
@@ -169,48 +199,42 @@ if 1:   # Core functionality
         if d["-r"]:     # Report these files to stdout
             for i in report:
                 print(i)
-        return filedict
-    def ConstructZipFiles(filedict):
-        for key in filedict:
-            with zipfile.ZipFile(f"{prefix}{key}.zip", "w") as zf:
-                for file, size in filedict[key]:
-                    zf.write(f"cache/{file}")
-    def GetFileList(directory):
-        'Return a list of (file_size, file_name) elements'
-        filelist = []
-        for file in directory.glob("**/*"):
-            filelist.append((file.stat().st_size, file))
-        filelist = list(sorted(filelist))
-        pp(filelist)
-        exit()
-        return filelist
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     if 1:   # Get the command line information
         args = ParseCommandLine(d)
-        # Get number of zipfiles or their size in bytes
+    if d["-R"]:
+        ConstructZipFromList()
+        exit()
+    if 1: # Get number of zipfiles or their size in bytes
         g.prefix = None
         g.size = None
         g.size_units = ""
         N = args[0].strip()
+        Dbg(f"Parsing of command line:")
         if N.endswith("M") or N.endswith("G"):
             g.size_units = "B"
             lastchar = N[-1]
             multiplier = 1e6 if lastchar == "M" else 1e9
             N = N[:-1]
             g.size = abs(flt(N))*multiplier
+            Dbg(f"  {t.purl}{args[0]!r} gives zip file size of {g.size.engsi}{g.size_units}")
         else:
             g.size = abs(int(N))
-        Dbg(f"{args[0]!r} gives size of {g.size}{g.size_units}")
+            Dbg(f"  {t.magl}{args[0]!r} gives number of zip files as {g.size}")
         # Get the directory for the files
         g.dir = Path(args[1].strip())
         if not g.dir.exists() or not g.dir.is_dir():
             Error(f"{t.err}{str(g.dir)!r} is not a directory or doesn't exist{t.n}")
-        Dbg(f"Directory is {str(g.dir)!r}")
-    if 1:   # Construct a list of the files
-        # Each entry in the following list will be (filename, size_in_bytes)
-        filelist = GetFileList(g.dir)
-    filedict = ConstructFileDict(N)
-    if prefix:
-        ConstructZipFiles(filedict)
+        Dbg(f"  {t.brnl}Directory is {str(g.dir)!r}")
+    if 1:   # Construct a list of the files to zip
+        # Each entry in the following list will be (size_in_bytes, filename) sorted from
+        # smallest to largest
+        g.filelist = GetFileList(g.dir)
+        # Filter the files as instructed
+        g.filelist = FilterFiles(g.filelist)
+    if d["-p"]:
+        ConstructZipFiles(g.filelist, d["-p"])
+    else:
+        Report(g.filelist)
