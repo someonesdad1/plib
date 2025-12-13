@@ -559,6 +559,7 @@ if 1:  # Data
 
         Box 30
             30:1:?    Dupont jumper wires, assorted, 100 mm   connector
+            30:1:19   100 μF 35 V surface mount capacitors   capacitor
             30:1:?    AC volts multi-function meter (line voltage & current measurement)   meter
             30:2:?    ZK-TD2 timer module $4.6 ea banggood 19Nov2021 /elec/projects/TimerBox.odt   module
             30:3:?    IRFZ44N N-ch MOSFET 55 V 49 A 17.5 mΩ 62 °C/W TO220   MOS
