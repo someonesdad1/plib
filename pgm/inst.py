@@ -103,15 +103,20 @@ if 1:   # Classes
     class Instrument:
         numfields = 7
         def __init__(self, line):
+            self.line = line
             f = [i.strip() for i in line.strip().split(";")]
             if len(f) != Instrument.numfields:
                 raise ValueError(f"{line!r} doesn't have {Instrument.numfields} fields")
-            self.model, self.mfg, self.sn, self.received, self.price, self.category, self.description = f 
-            self.price = flt(self.price)
-            assert self.price >= 0
+            self.model, self.mfg, self.sn, self.received, self.cost, self.category, self.description = f 
+            self.cost = flt(self.cost)
+            assert self.cost >= 0
             assert self.category in g.categories
         def __str__(self):
-            return f"{self.mfg} {self.model}"
+            s = (f"{t.ornl}{self.model}{t.n} {self.mfg} {t.yel}${self.cost}{t.n} " +
+                 f"{t.grn}{self.received}{t.n} {t.sky}{self.description}{t.n}")
+            return s
+        def __lt__(self, other):
+            return self.model < other.model
 if 1:   # Utility
     def GetColors():
         t.stuff = t.lill
@@ -163,9 +168,6 @@ if 1:   # Utility
             exit(0)
         GetColors()
         return args
-if 1:   # Core functionality
-    def DumpData():
-        pass
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
@@ -176,8 +178,32 @@ if __name__ == "__main__":
             continue
         i = Instrument(line)
         instruments.append(i)
-    if 1:
+    if 0:   # Show the Instrument instances
         for i in instruments:
             print(i)
         exit()
     args = ParseCommandLine(d)
+    # Get candidates from first regex
+    found = []
+    regex = args.pop(0)
+    r = re.compile(regex, re.I if d["-i"] else 0)
+    for i in instruments:
+        if r.search(i.line):
+            found.append(i)
+    if not found:
+        exit()
+    # Don't keep unless remaining regexes match
+    regexes = [re.compile(i, re.I if d["-i"] else 0) for i in args]
+    keep = []
+    for instrument in sorted(found):
+        matched = True
+        for r in regexes:
+            if not r.search(instrument.line):
+                matched = False
+                break
+        if matched:
+            keep.append(instrument)
+    for instrument in keep:
+        print(instrument)
+                
+            
