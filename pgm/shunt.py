@@ -1,127 +1,127 @@
-"""
-Given a resistance R, print out the operating characteristics for various
-power levels.
-"""
+_pgminfo = '''
+<oo desc
+    Show properties of on-hand shunts
+oo>
+<oo cr Copyright © 2025 Don Peterson oo>
+<oo license
+    Licensed under the Open Software License version 3.0.
+    See http://opensource.org/licenses/OSL-3.0.
+oo>
+<oo cat Put_category_here oo>
+<oo test none oo>
+<oo todo
 
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    ##∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
-    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    ##∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    ##∞license∞#
-    ##∞what∞#
-    # Print operating characteristics for a shunt resistance
-    ##∞what∞#
-    ##∞test∞# #∞test∞#
-    pass
-if 1:  # Standard imports
-    import getopt
-    import os
-    import pathlib
-    import sys
-    from pdb import set_trace as xx
-if 1:  # Custom imports
-    from wrap import wrap, dedent
-    from f import flt
-    from color import C
-if 1:  # Global variables
-    P = pathlib.Path
-    ii = isinstance
+    - List of todo items here
 
-    class g:
-        pass
-
-    g.r = C.lgrn
-    g.p = C.lmag
-    g.i = C.lred
-    g.v = C.lyel
-    g.n = C.norm
-if 1:  # Utility
-
-    def Error(*msg, status=1):
-        print(*msg, file=sys.stderr)
-        exit(status)
-
-    def Usage(status=1):
-        print(
-            dedent(f"""
-        Usage:  {sys.argv[0]} [options] R1 [R2 ...]
-          Given one or more shunt resistances in ohms, print out their
-          operating characteristics at various powers.
-        Options:
-            -h      Print a manpage
-        """)
+oo>
+'''
+ 
+if 1:  # Header
+    if 1:   # Standard imports
+        from collections import deque
+        from pathlib import Path as P
+        import getopt
+        import os
+        import re
+        import sys
+    if 1:   # Custom imports
+        from f import flt
+        from wrap import dedent
+        from color import t
+        from lwtest import Assert
+        from dpprint import PP
+        import termtables as tt
+        pp = PP()   # Get pprint with current screen width
+        if 0:
+            import debug
+            debug.SetDebugger()
+    if 1:   # Global variables
+        class G:
+            pass
+        g = G()
+        g.dbg = False
+        ii = isinstance
+if 1:   # Shunt data
+    # Fields:  ID, manufacturer, model, rating in A, drop in mV, note
+    data = '''
+    GS1; ?; ?; 200; 100; From Greg Sali, in oak box for Westinghouse 50 A 100 mV shunt, probably from 1940's or before
+    S100; ?; ?; 100; 50;
+    S200; ?; ?; 200; 50;
+    S300; Qeco; SWO300; 300; 50;
+    S25; Weston; ?; 25; 50;
+    S75-1; ?; ?; 75; 50; ebay 2010
+    S75-2; ?; ?; 75; 50; ebay 2010
+    S75-3; ?; ?; 75; 50; ebay 2010
+    Si1; Simpson; ?; 10; 100; ebay 2022
+    Si2; Simpson; ?; 10; 100; ebay >= 2022
+    SF10; Fluke; 80J-10; 10; 100; ebay 2022
+    '''
+if 1:   # Utility
+    def GetColors():
+        t.stuff = t.lill
+        t.err = t.redl
+        t.dbg = t.lill if g.dbg else ""
+        t.N = t.n if g.dbg else ""
+    def GetScreen():
+        'Return (LINES, COLUMNS)'
+        return (
+            int(os.environ.get("LINES", "50")),
+            int(os.environ.get("COLUMNS", "80")) - 1
         )
+    def Dbg(*p, **kw):
+        if g.dbg:
+            print(f"{t.dbg}", end="")
+            print(*p, **kw)
+            print(f"{t.N}", end="")
+    def Warn(*msg, status=1):
+        print(*msg, file=sys.stderr)
+    def Error(*msg, status=1):
+        Warn(*msg)
         exit(status)
-
+    def Usage(status=0):
+        print(dedent(f'''
+        Usage:  {sys.argv[0]} [options]
+          Display my shunt numbering and properties.
+        '''))
+        exit(status)
     def ParseCommandLine(d):
-        d["-a"] = False
-        d["-d"] = 3  # Number of significant digits
-        if len(sys.argv) < 2:
-            Usage()
+        d["-a"] = False     # Need description
+        d["-d"] = 3         # Number of significant digits
+        #if len(sys.argv) < 2:
+        #    Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:h")
+            opts, args = getopt.getopt(sys.argv[1:], "h") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("a"):
+            if o[1] in list(""):
                 d[o] = not d[o]
-            elif o in ("-d",):
+            elif o == "-d":
                 try:
-                    d["-d"] = int(a)
-                    if not (1 <= d["-d"] <= 15):
+                    d[o] = int(a)
+                    if not (1 <= d[o] <= 15):
                         raise ValueError()
                 except ValueError:
-                    msg = "-d option's argument must be an integer between 1 and 15"
-                    Error(msg)
-            elif o in ("-h", "--help"):
-                Usage(status=0)
-        x = flt(0)
-        x.n = 2
-        x.rtz = x.rtdp = 3
+                    Error(f"-d option's argument must be an integer between 1 and 15")
+            elif o == "-h":
+                Usage()
+        GetColors()
         return args
-
-
-if 1:  # Core functionality
-
-    def PrintR(R):
-        powers = {
-            1 / 8: "1/8",
-            1 / 4: "1/4",
-            1 / 2: "1/2",
-            1: "1",
-            2.5: "2.5",
-            5: "5",
-            10: "10",
-            25: "25",
-            50: "50",
-            100: "100",
-        }
-        s = f"{R} Ω"
-        w = 4
-        print(f"{g.r}R = {s:10s}{g.n}")
-        print(
-            f"{'':{w}s}{g.p}Power, W{g.n}       "
-            f"{g.i}Current, A{g.n}      "
-            f"{g.v}Voltage, V{g.n}"
-        )
-        for P, Ps in powers.items():
-            i = (flt(P) / R) ** 0.5
-            V = P / i
-            print(
-                f"{'':{w + 1}s}{g.p}{Ps:^8s}{g.n}     "
-                f"{g.i}{i!s:^12s}{g.n}    "
-                f"{g.v}{V!s:^12s}{g.n}"
-            )
-        if len(args) > 1:
-            print()
-
+if 1:   # Core functionality
+    def DisplayShuntData():
+        o = [["Symbol", "Manufacturer", "Amperes", "mV"]]
+        for shunt in data.split("\n"):
+            shunt = shunt.strip()
+            if not shunt or shunt[0] == "#":
+                continue
+            f = shunt.split(";")
+            Assert(len(f) == 6)
+            id, mfg, model, A, drop_mV, note = f
+            o.append([f"{id}", f"{mfg}", f"{A}", f"{drop_mV}"])
+        tt.print(o, style=" "*15, alignment="lcrr")
 
 if __name__ == "__main__":
-    d = {}  # Options dictionary
+    d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    for R in args:
-        PrintR(flt(R))
+    DisplayShuntData()
