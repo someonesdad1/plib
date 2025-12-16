@@ -1,4 +1,4 @@
-"""
+'''
 Calculate spindle RPM from material and diameter
 
 Primary reference will be MH 19th ed pg 1697 to 1731.  Most of such tables
@@ -33,13 +33,12 @@ The materials I'm most interested in are
         Stainless, austenitic
         Stainless, martensitic
         Tool (water hardening, annealed)
-
+        
 Turning:  1706-1713
 Milling:  1716-1722
 Drilling: 1725-1731 (includes reaming)
 
-"""
-
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -63,12 +62,14 @@ if 1:  # Header
         from wrap import dedent
         from color import t
         from f import flt, pi
+        import termtables as tt
+        if 1:
+            import debug
+            debug.SetDebugger()
         # from columnize import Columnize
     if 1:  # Global variables
-
         class G:
             pass
-
         g = G()  # Storage for global variables as attributes
         g.dbg = False
         t.dbg = t("lill") if g.dbg else ""
@@ -78,7 +79,7 @@ if 1:  # Header
         g.L = int(os.environ.get("LINES", "50"))
 if 1:  # Cutting data
     if 1:  # Cutting data from https://physics.byu.edu
-        """
+        '''
         Taken from https://physics.byu.edu/courses/experimental/docs/physics240/toolspeeds.pdf
         For HSS tools
     
@@ -156,9 +157,9 @@ if 1:  # Cutting data
             3/4         140         200
             7/8         100         200
             1           100         150
-        """
+        '''
     if 1:  # Cutting data from Morse
-        """
+        '''
         "Machinist's Practical Guide", copyright 1929, 1963-1970, 1973-1974
         A small handbook I probably got in the 1970's
     
@@ -200,9 +201,9 @@ if 1:  # Cutting data
             Slab milling, heavy         8
             Sawing                      0.5 to 1
             Thread milling              0.5 to 1
-        """
+        '''
     if 1:  # Cutting data from Cleveland
-        """
+        '''
         From Grandpa's lathe, it's a small PVC circular "slide rule"
         Copyright 1947
     
@@ -213,17 +214,17 @@ if 1:  # Cutting data
         For larger drills on other side, sfpm
             60, 80, 90, 100 for "Cle-forge"
             30, 50          for carbon steel
-        """
+        '''
     if 1:  # Cutting data from MH 27th ed
-        """
+        '''
         Ref. table 1 on pg 1027
         For HSS, feed is 12 mils/rev and a 125 mil depth of cut; see page 1036
         for an adjustment table.  NOTE THESE NUMBERS ARE FOR A TOOL LIFE OF 15
         MINUTES.  I would probably divide the recommended surface speeds by 2
         to get more realistic home shop numbers.
-        """
+        '''
     if 1:  # Cutting data from MH 19th ed
-        """
+        '''
         Opinion:  This is probably the most reliable information to use.  The
         27th ed. clearly expands on the same material & words, but is more
         tedious to digest, probably because most of the focus is on throughput
@@ -234,20 +235,20 @@ if 1:  # Cutting data
     
         pg 1703 states reaming speeds should be about 2/3 those of drilling
         with a feed of 1.5 to 4 mils per flute per rev.
-        """
+        '''
     if 1:  # Cutting data from Tubal Cain
-        """
+        '''
         This is probably the most practical information, particularly
         because it is aimed at the HSM, not production people.  First use
         these numbers, then contrast them to MH 19th ed numbers.
-
+        
         Inspection of the table shows the numbers are proportional to
         diameter, so the assumption is a constant surface speed.  
-
+        
         We have sfpm = pi*D*R/12 where D is diameter in inches and R is
         RPM.  Thus, R = 12*sfpm/(pi*D).  Use the 1 inch diameter row;
         multiply the table RPM by 0.2618 (pi/12) to get the sfpm:
-
+        
                             SFPM            Ratio
             i  Group   Rough   Finish       F/R
             0    A      20       25         1.25
@@ -255,9 +256,9 @@ if 1:  # Cutting data
             2    C      65       75         1.15
             3    D      120      140        1.17
             4    E      600      785        1.31
-
+            
         For mental computation, use R = 4*sfpm/D.
-        """
+        '''
         tubal = {
             # Group, sfpm, f/r ratio
             "A": (20, 1.25),
@@ -285,20 +286,17 @@ if 1:  # Cutting data
             "Plastics": "D",
         }
 if 1:  # Utility
-
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="")
             print(*p, **kw)
             print(f"{t.N}", end="")
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options] diameter [material]
           For the given diameter, show the needed spindle speed for
           turning, milling, and drilling.  With no arguments, print out a
@@ -306,26 +304,24 @@ if 1:  # Utility
         Options:
             -d n    Number of digits [{d["-d"]}]
             -h      Print a manpage
-            -l      List the materials
-        """)
+        ''')
         )
         exit(status)
-
-    def ParseCommandLine(d):
-        d["-a"] = False  # Describe this option
-        d["-d"] = 2  # Number of significant digits
+    def ParseCommandLine(opts):
+        opts["-m"] = False     # Diameters are in mm
+        opts["-d"] = 3         # Number of significant digits
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:h")
+            Opts, args = getopt.getopt(sys.argv[1:], "d:hm")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
-        for o, a in opts:
-            if o[1] in list("a"):
-                d[o] = not d[o]
+        for o, a in Opts:
+            if o[1] in list("m"):
+                opts[o] = not opts[o]
             elif o == "-d":
                 try:
-                    d[o] = int(a)
-                    if not (1 <= d[o] <= 15):
+                    opts[o] = int(a)
+                    if not (1 <= opts[o] <= 15):
                         raise ValueError()
                 except ValueError:
                     msg = "-d option's argument must be an integer between 1 and 15"
@@ -333,50 +329,19 @@ if 1:  # Utility
             elif o == "-h":
                 Usage(status=0)
         x = flt(0)
-        x.N = d["-d"]
+        x.N = opts["-d"]
         return args
-
-
 if 1:  # Core functionality
-
-    def GetData(dia, matl=None):
-        pass
-
-    def Table():
-        dia = (
-            0.05,
-            0.1,
-            0.2,
-            0.3,
-            0.4,
-            0.5,
-            0.6,
-            0.7,
-            0.8,
-            0.9,
-            1,
-            1.2,
-            1.4,
-            1.6,
-            1.8,
-            2,
-            2.5,
-            3,
-            3.5,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-        )
+    def TableOld():
+        # Diameters in mils
+        dia = list(flt(int(i)/1000) for i in '''
+            20 40 60 80 100 125 150 200 250 313 375 438 500 625 750 813 875 938 1000
+            1125 1250 1375 1500 1750 2000 2500 3000 3500 4000 5000 6000
+        '''.split())
         ltr = "A B C D E".split()
         print("Turning speed for various materials (ref. Tubal Cain)\n")
         w0, w1, a = 10, 10, ">"
-        gap = " " * 2
+        gap = " "*2
         c = {
             "A": t("seal"),
             "B": t("purl"),
@@ -393,7 +358,7 @@ if 1:  # Core functionality
             print(f"{D!s:^{w0}s}", end=gap)
             for l in ltr:
                 sfpm, ratio = tubal[l]
-                rpm = flt(12 * sfpm / (pi * D))
+                rpm = flt(12*sfpm/(pi*D))
                 print(f"{c[l]}{rpm!s:{a}{w1}s}{t.n}", end="")
             print()
         # Print material key
@@ -403,12 +368,63 @@ if 1:  # Core functionality
                 if tubal_matl[i] == l:
                     matls.append(i)
             t.print(f"{c[l]}{l}:  {'; '.join(matls)}")
-
+    def Table(diameters):
+        '''Print the table for the indicated diameters.  Dimensions are in inches unless
+        the -m option was used.  diameters is a list of strings.
+        '''
+        # Construct the diameters in inches
+        dia = []
+        for d in diameters:
+            di = flt(d)
+            if opts["-m"]:
+                di /= 25.4
+            dia.append(di)
+        # Column colors
+        cols = {
+            "E": t.sky,
+            "D": t.yel,
+            "C": t.mag,
+            "B": t.wht,
+            "A": t.wht,
+        }
+        E, D, C, N = cols["E"], cols["D"], cols["C"], t.n
+        data = [
+            ["",       "",   "",             "",             f"{C}Bakelite{N}",  "",          ""],
+            ["",       "",   "",             "",             f"{C}Red brass{N}", "Monel",     "Hard"],
+            ["",       "",   "",             f"{D}Brass",    f"{C}Copper{N}",    "Drill rod", "cast"],
+            ["Inches", "mm", f"{E}Aluminum", f"{D}Plastics", f"{C}Steel{N}",     "SST",       "iron"],
+            ["------", "--", f"{E}--------", f"{D}--------", f"{C}---------{N}", "---------", "----"],
+            #                 E               D               C                  B            A
+        ]
+        for d in dia:
+            o = []
+            o.append(f"{d}")    # Diameter in inches
+            if d >= 0.15:
+                o.append(f"{d*25.4:.0f}")   # Diameter in mm
+            else:
+                o.append(f"{d*25.4:.1f}")   # Diameter in mm
+            for i in "E D C B A".split():
+                spd = flt(12*tubal[i][0]/(pi*d))
+                with spd:
+                    spd.N = 2
+                    rpm = cols[i] + str(spd)
+                o.append(rpm)
+            data.append(o)
+        s = t.ornl
+        data.append(["", f"{s}SFPM", "600", "120", "65",     "40", "20"]),
+        data.append(["", f"{s}m/s", "3", "0.61", "0.33",     "0.2", "0.1"]),
+        t.print(f"{t.grnl}Rough turning speeds (finish speeds about 20% higher)")
+        tt.print(data, style=" "*15, alignment="rrrrrrr")
 
 if __name__ == "__main__":
-    d = {}  # Options dictionary
-    args = ParseCommandLine(d)
-    if 0 and args:
-        GetData(*args)
+    opts = {}  # Options dictionary
+    args = ParseCommandLine(opts)
+    if args:
+        # Print for given diameter
+        Table(args)
     else:
-        Table()
+        dia = list(str(flt(int(i)/1000)) for i in '''
+            20 40 60 80 100 125 150 200 250 313 375 438 500 625 750 813 875 938 1000
+            1125 1250 1375 1500 1750 2000 2500 3000 3500 4000 5000 6000
+            '''.split())
+        Table(dia)

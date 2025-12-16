@@ -1,5 +1,21 @@
 /plib/.todo
 
+    - Foredom toolpost drilling
+        - Mount handpiece with chuck in boring bar holder
+        - Make a holder for the Foredom motor that screws to the wooden tooling holder
+          across the lathe bed
+        - Devise a process to get the drilling axis exactly centered and parallel to the
+          rotation axis
+        - Drill some holes with the 1 mm drills 
+        - Adapting the other handpiece (sent off email to Foredom to see if it's safe to
+          machine off 30 mils from the OD)
+            - Other possibilities:
+            - Make a new aluminum holder for the Aloris tool holder
+            - Make a 1.025" boring bar holder like grandpa made
+            - Make a 1/2" aluminum plate with a 1/2" chunk of keystock to hold in the
+              tool holder.  Use two screwed clamps made from some 3/4 inch plate and
+              bored on the lathe.
+
     - pgm/inst.py
         - Database script for acquired instruments
             - Date purchased, price, model number, serial number, key specs, where
