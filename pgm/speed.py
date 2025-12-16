@@ -62,7 +62,10 @@ if 1:  # Header
         from wrap import dedent
         from color import t
         from f import flt, pi
-        import termtables as tt
+        try:
+            import termtables as tt
+        except ImportError:
+            pass
         if 1:
             import debug
             debug.SetDebugger()
@@ -304,19 +307,21 @@ if 1:  # Utility
         Options:
             -d n    Number of digits [{d["-d"]}]
             -h      Print a manpage
+            -p      Generate a plot
         ''')
         )
         exit(status)
     def ParseCommandLine(opts):
         opts["-m"] = False     # Diameters are in mm
         opts["-d"] = 3         # Number of significant digits
+        opts["-p"] = False     # Plot
         try:
-            Opts, args = getopt.getopt(sys.argv[1:], "d:hm")
+            Opts, args = getopt.getopt(sys.argv[1:], "d:hmp")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in Opts:
-            if o[1] in list("m"):
+            if o[1] in list("mp"):
                 opts[o] = not opts[o]
             elif o == "-d":
                 try:
@@ -328,6 +333,8 @@ if 1:  # Utility
                     Error(msg)
             elif o == "-h":
                 Usage(status=0)
+        if opts["-p"]:
+            PlotGraph()
         x = flt(0)
         x.N = opts["-d"]
         return args
@@ -415,6 +422,29 @@ if 1:  # Core functionality
         data.append(["", f"{s}m/s", "3", "0.61", "0.33",     "0.2", "0.1"]),
         t.print(f"{t.grnl}Rough turning speeds (finish speeds about 20% higher)")
         tt.print(data, style=" "*15, alignment="rrrrrrr")
+    def PlotGraph():
+        from pylab import pi, loglog, array, show, grid, xlabel, ylabel
+        from pylab import legend, title, savefig
+        dia = array((0.02, 0.1, 0.2, 0.5, 1, 2, 5, 6))
+        lbl = {
+            600: ("Aluminum", "--"),
+            120: ("Brass, plastics", "-."),
+            65: ("Bakelite, red brass, Cu, steel", "-"),
+            40: ("Monel, drill rod, SST", ":"),
+            20: ("Hard cast iron", "--"),
+        }
+        for sfpm in (600, 120, 65, 40, 20):
+            rpm = 12*sfpm/(pi*dia)
+            l, s = lbl[sfpm]
+            loglog(dia, rpm, "k" + s, label=l)
+        grid()
+        xlabel("Diameter, inches")
+        ylabel("Speed, RPM")
+        legend(loc="upper right")
+        title("Spindle speed versus diameter")
+        #show()
+        savefig("cutting_speed.png", dpi=600)
+        exit()
 
 if __name__ == "__main__":
     opts = {}  # Options dictionary
