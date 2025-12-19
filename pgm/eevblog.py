@@ -35,6 +35,7 @@ if 1:   # Header
         import getopt
         import os
         import re
+        import string
         import sys
         import subprocess
     if 1:   # Custom imports
@@ -44,6 +45,8 @@ if 1:   # Header
         from lwtest import Assert
         from dpprint import PP
         from months import months
+        from columnize import Columnize
+        import dpstr
         pp = PP()   # Get pprint with current screen width
         if 0:
             import debug
@@ -55,6 +58,7 @@ if 1:   # Header
         g.dbg = False
         g.browser = "/mnt/c/Program Files/Mozilla Firefox/firefox.exe"
         g.data = "/plib/pgm/eevblog.txt"
+        g.remove = dpstr.RemoveFilter(string.punctuation + string.digits)
         ii = isinstance
 if 1:   # Classes
     class Line:
@@ -112,6 +116,7 @@ if 1:   # Utility
             -n      Limit to number of URLs to open [{d["-n"]}]
             -p      Print the matched URLs
             -o      Open the matched URLs
+            -W n    Ignore keywords that appear less than n times [{d["-W"]}]
             -w      Show keywords with number of title hits
         '''))
         exit(status)
@@ -120,11 +125,12 @@ if 1:   # Utility
         d["-i"] = True      # Don't ignore case
         d["-n"] = 5         # Limit to number of URLs to open
         d["-o"] = False     # Open the matched URLs
+        d["-W"] = 1         # Ignore keywords that appear less than this number
         d["-w"] = False     # Show keywords
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "b:hion:w") 
+            opts, args = getopt.getopt(sys.argv[1:], "b:hion:W:w") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -140,7 +146,7 @@ if 1:   # Utility
                     g.browser = "/mnt/c/Program Files/Mozilla Firefox/firefox.exe"
                 else:
                     Error(f"{a!r} is an unknown browser")
-            elif o == "-n":
+            elif o == "-n" or o == "-W":
                 try:
                     d[o] = int(a)
                     if d[o] <= 0:
@@ -218,22 +224,33 @@ if 1:   # Core functionality
         return keep
     def OpenURL(url):
         subprocess.run([g.browser, url])
+    def RemovePunc(word):
+        return g.remove(word)
     def Keywords(items):
         'Print keywords and their counts'
         wordrefs = defaultdict(list)
         ignore = '''- + 0 1 2 3 4 5 6 7 8 9 the a & to of and is vs an with is vs for an
                     in on are at i do from can my from / you '''.split()
         for item in items:
-            for i in item.title.split():
-                if i not in ignore:
-                    wordrefs[i.lower()].append(item)
+            for i in item.title.lower().split():
+                if i in ignore:
+                    continue
+                i = g.remove(i)     # Remove digits and punctuation
+                if len(i) == 1:
+                    continue
+                wordrefs[i].append(item)
         # Create list of (count, token)
         refs = []
         for i in wordrefs:
             refs.append((len(wordrefs[i]), i))
         # Report
+        items = []
         for n, item in sorted(refs, key=lambda x: x[0]):
-            print(n, item)
+            if n < d["-W"]:
+                continue
+            items.append(f"{n} {item}")
+        for i in Columnize(items):
+            print(i)
 
 if __name__ == "__main__":  
     d = {}      # Options dictionary
