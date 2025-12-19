@@ -101,10 +101,11 @@ if 1:   # Utility
         exit(status)
     def Usage(status=0):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] [regex1 [regex2...]]
+        Usage:  {sys.argv[0]} [options] [regex1 [regex2...]] [o]
           Search EEVblog titles for regex1; AND together with any following regexes.
           Note case is ignored by default.  Use -o to open the relevant URLs in the
-          default browser (FireFox).
+          default browser (FireFox) or, if you use an o at the end of the command line,
+          it's the same as typing -o..
         Options:
             -b x    Change browser:  c for Chrome, e for Edge, f for Firefox
             -i      Don't ignore case
@@ -149,6 +150,11 @@ if 1:   # Utility
             elif o == "-h":
                 Usage()
         GetColors()
+        # Check to see if o is the last argument; if it is, set -o to True
+        if len(args) > 1:
+            if args[-1] == "o":
+                args.pop()
+                d["-o"] = True
         return args
 if 1:   # Core functionality
     def GetData():
