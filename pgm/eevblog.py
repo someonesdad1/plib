@@ -29,7 +29,7 @@ if 1:   # Header
         #∞test∞# #∞test∞#
         pass
     if 1:   # Standard imports
-        from collections import deque
+        from collections import defaultdict
         from pathlib import Path as P
         from datetime import date
         import getopt
@@ -64,7 +64,7 @@ if 1:   # Classes
             # Split into title and url
             loc = line.find("<http")
             if loc == -1:
-                breakpoint() #xx 
+                Error("Bad line:  {line!r}")
             self.title = line[:loc].strip()
             self.url = line[loc:].strip().replace("<", "").replace(">", "")
             # Get the date from the URL
@@ -111,6 +111,7 @@ if 1:   # Utility
             -n      Limit to number of URLs to open [{d["-n"]}]
             -p      Print the matched URLs
             -o      Open the matched URLs
+            -w      Show keywords with number of title hits
         '''))
         exit(status)
     def ParseCommandLine(d):
@@ -118,15 +119,16 @@ if 1:   # Utility
         d["-i"] = True      # Don't ignore case
         d["-n"] = 5         # Limit to number of URLs to open
         d["-o"] = False     # Open the matched URLs
+        d["-w"] = False     # Show keywords
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "b:hion:") 
+            opts, args = getopt.getopt(sys.argv[1:], "b:hion:w") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("ceio"):
+            if o[1] in list("ceiow"):
                 d[o] = not d[o]
             elif o == "-b":
                 if a == "c":
@@ -152,7 +154,7 @@ if 1:   # Core functionality
     def GetData():
         'Return a list of the relevant EEVblog lines'
         lines = open(g.data).read()
-        lines = [i.strip() for i in data.split("\n")]
+        lines = [i.strip() for i in lines.split("\n")]
         # Get rid of top junk
         while True:
             if lines[0] == "*Blog links to every Episode:*":
@@ -210,19 +212,30 @@ if 1:   # Core functionality
         return keep
     def OpenURL(url):
         subprocess.run([g.browser, url])
-
-if 0:
-    url = "https://someonesdad1.github.io/hobbyutil/project_list.html"
-    b = "/mnt/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"
-    b = "/mnt/c/Program Files/Mozilla Firefox/firefox.exe"
-    b = "/mnt/c/Program Files (x86/Google/Chrome/Application/chrome.exe"
-    subprocess.run([b, url])
-    exit()
+    def Keywords(items):
+        'Print keywords and their counts'
+        wordrefs = defaultdict(list)
+        ignore = '''- + 0 1 2 3 4 5 6 7 8 9 the a & to of and is vs an with is vs for an
+                    in on are at i do from can my from / you '''.split()
+        for item in items:
+            for i in item.title.split():
+                if i not in ignore:
+                    wordrefs[i.lower()].append(item)
+        # Create list of (count, token)
+        refs = []
+        for i in wordrefs:
+            refs.append((len(wordrefs[i]), i))
+        # Report
+        for n, item in sorted(refs, key=lambda x: x[0]):
+            print(n, item)
 
 if __name__ == "__main__":  
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
     g.items = GetData()
+    if d["-w"]:
+        Keywords(g.items)
+        exit()
     for regex in args:
         g.items = FilterItems(g.items, regex)
     if g.items:
@@ -232,5 +245,5 @@ if __name__ == "__main__":
     if d["-o"]:
         n = d["-n"]
         for item in g.items[:n]:
-            print(f"{url}")
+            print(f"{item.url}")
             OpenURL(item.url)
