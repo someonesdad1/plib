@@ -110,7 +110,7 @@ if 1:   # Utility
         return args
 if 1:   # Core functionality
     def DisplayShuntData():
-        o = [["Symbol", "Manufacturer", "Amperes", "mV"]]
+        o = [["Symbol", "Manufacturer", "Amperes", "mV", "mΩ"]]
         for shunt in data.split("\n"):
             shunt = shunt.strip()
             if not shunt or shunt[0] == "#":
@@ -118,8 +118,9 @@ if 1:   # Core functionality
             f = shunt.split(";")
             Assert(len(f) == 6)
             id, mfg, model, A, drop_mV, note = f
-            o.append([f"{id}", f"{mfg}", f"{A}", f"{drop_mV}"])
-        tt.print(o, style=" "*15, alignment="lcrr")
+            R_mohm = str(flt(drop_mV)/flt(A))
+            o.append([f"{id}", f"{mfg}", f"{A}", f"{drop_mV}", f"{R_mohm}"])
+        tt.print(o, style=" "*15, alignment="lcrrr")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary

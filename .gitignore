@@ -11,6 +11,9 @@
 *.tmp
 .~lock*#
 
+lib/licenses/
+yr.py
+
 .local_profile
 .p
 .vi
