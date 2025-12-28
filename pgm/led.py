@@ -70,8 +70,7 @@ if 1:  # Utility
         print(*msg, file=sys.stderr)
         exit(status)
     def Usage(status=1):
-        print(
-            dedent(f'''
+        print(dedent(f'''
         Usage:  {sys.argv[0]} [options] color voltage
           Print the resistance to put in series with an LED to allow it to
           run at the given voltage at various currents.  Colors can be grn,
@@ -83,9 +82,9 @@ if 1:  # Utility
           -3      Use 3 mm LED data (5 mm is default)
           -h      Print more detailed help and LED data used
           -p      Print tables for common resistor power ratings
+          -t      Same as -h
           -w p    Resistor rated power in W [{d["-w"]}]
-        ''')
-        )
+        '''))
         exit(status)
     def ParseCommandLine(d):
         d["-a"] = False  # Show all the current choices
@@ -95,7 +94,7 @@ if 1:  # Utility
         d["-p"] = False  # Print for range of powers
         d["-w"] = 0.25  # Default resistor power in W
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "3acd:hpw:")
+            opts, args = getopt.getopt(sys.argv[1:], "3acd:hptw:")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -117,7 +116,7 @@ if 1:  # Utility
                         raise ValueError()
                 except ValueError:
                     Error("-w option's argument must be > 0")
-            elif o in ("-h", "--help"):
+            elif o in ("-h", "-t", "--help"):
                 Details()
         single_letter = False
         if len(args) == 1 and len(args[0]) == 1:

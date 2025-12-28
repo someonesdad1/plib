@@ -11,7 +11,10 @@ oo>
 <oo test none oo>
 <oo todo
 
-    - Build list of instrument data
+    - Add an option that dumps detailed information for each instrument that I often
+      look up.  This can be free-form text stored in each Instrument instance.  For
+      example, when I use the L&N 0.1 Ω standard, I need to know the maximum DC and AC
+      currents allowed through it (3 A RMS to maintain a 10 ppm calibration).
 
 oo>
 '''
@@ -163,11 +166,10 @@ if 1:   # Utility
                 d[o] = not d[o]
             elif o == "-h":
                 Usage()
-        if d["-d"]:
-            DumpData()
-            exit(0)
         GetColors()
         return args
+if 1:   # Core functionality
+    pass
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
@@ -178,11 +180,11 @@ if __name__ == "__main__":
             continue
         i = Instrument(line)
         instruments.append(i)
-    if 0:   # Show the Instrument instances
+    args = ParseCommandLine(d)
+    if d["-d"]:   # Dump the Instrument instances
         for i in instruments:
             print(i)
         exit()
-    args = ParseCommandLine(d)
     # Get candidates from first regex
     found = []
     regex = args.pop(0)

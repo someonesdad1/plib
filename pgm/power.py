@@ -1,7 +1,6 @@
-"""
+'''
 Print out the cost of electrical power.
-"""
-
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -29,43 +28,36 @@ if 1:  # Header
         from u import u, ParseUnit, dim
         from color import t
         import matrix
-
         if 0:
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
         ii = isinstance
-
-
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
-
-
 def Manpage():
-    print(
-        dedent(f"""
+    print(dedent(f'''
     This script prints out the cost of electrical power for a constant load.  The assumptions are
         
         - Your cost for electrical power is a constant
         - The power dissipation of the load is constant
         - The power factor is 1
-
+        
     The output is a table that gives the cost as a function of how many hours per day you run the
     load.
-
+    
     Example
     -------
-
+    
         I have two 22 inch square box fans that run at 70 W on high, as measured by a Kill-a-Watt
         meter.  I use these fans to pull cool outside air into and through the house during the
         summer to cool the walls, floor, and ceiling of the house.  These fans typically run from
         about 10 pm to 9 am each day.  
-
+        
         I use this script to print out a cost table with the command line arguments of '2*70'.
         The table printed is 
-
+        
             Cost of electrical power:  input is '2*70'
               Cost basis is 11.6 ¢ per kW*hr
               Input power is = 140 W = 0.19 hp
@@ -80,12 +72,12 @@ def Manpage():
             <snip>
               23      37¢       $2.6      $11       $140  
               24      39¢       $2.7      $12       $140  
-
+              
         The command line argument '2*70' shows that you can use python syntax to compute the
         desired power.  The math module's symbols are in scope.  Since I run the fans from 10 pm
         to 9 am, the total time is 11 hours per day.  My power cost is 18¢ per day or $5.4 per
         month.  
-
+        
         Contrast this to my air conditioning unit, whose minimum circuit current specification on
         the label is nearly 25 A at 240 V RMS, which is 6 kW of power.  On hot days where I live
         (at and above 105 °F), the air conditioner can run continuously and be unable to cool the
@@ -94,7 +86,7 @@ def Manpage():
         air conditioner for 6 hours at 6 kW and an assumed power factor of 0.9 costs $3.7 per day.
         A month of such temperatures and power use would cause a significant increase in my
         electric bill.
-
+        
         Those cheap box fans are used to avoid using the air conditioner.  At night, I use the
         fans to draw cool air in at one end of the house and exhaust it at the other end of the
         house.  The goal is to get turbulent cool airflow and use it to cool off the ceiling,
@@ -103,18 +95,16 @@ def Manpage():
         Phoenix AZ uses this method along with an airflow meter to measure the flow velocity.  He
         also opens cupboard doors, closet doors, etc. to disrupt laminar air flow and cool these
         volumes off also.
-
+        
     Power factor:  It is assumed the power factor is unity unless you use the -p option.  If you
     are not familiar with the concept of power factor and real versus apparent power, see
     https://en.wikipedia.org/wiki/Power_factor.  The cost numbers in the table are scaled by the
     power factor.  Typical consumers aren't dinged for non-unity power factors, but industrial
     users are unless they install power factor correction circuitry.  
-
-    """)
+    
+    ''')
     )
     exit(0)
-
-
 def Usage(status=0):
     dpkWhr = flt(d["-r"])
     cent_per_kWhr = dpkWhr * 100
@@ -122,7 +112,7 @@ def Usage(status=0):
     with dpkWhr:
         dpkWhr.N = 4
         print(
-            dedent(f"""
+            dedent(f'''
     Usage:  {sys.argv[0]} [options] p1 [p2 ...]
       Prints out various period costs of electrical power for the rate of {100 * flt(d["-r"])}¢/(kW*hr) for a
       given power p1, p2, ... in watts.  The current cost of electrical power as of {d["date"]}
@@ -143,11 +133,9 @@ def Usage(status=0):
       -i        Print the consumption of various instruments
       -r C      Change the cost per kW*hr to C dollars
       -t        Show some costs for typical appliances
-        """)
+        ''')
         )
     exit(status)
-
-
 def ParseCommandLine(d):
     # From https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_a
     d["date"] = "May 2024"  # Month/year of above webpage revision
@@ -206,8 +194,6 @@ def ParseCommandLine(d):
     if not args:
         Usage()
     return args
-
-
 def F(x):
     "For flt x, if str has trailing decimal point, remove it"
     assert ii(x, flt)
@@ -215,24 +201,20 @@ def F(x):
     if s[-1] == ".":
         s = s[:-1]
     return s
-
-
 def Money(amount, time_period):
-    """Print in dollars if the amount is greater than 1; in cents if
+    '''Print in dollars if the amount is greater than 1; in cents if
     less than 1.
-    """
+    '''
     i, t = " " * 4, time_period
     a = amount if amount >= 1 else 100 * amount
     return f"{i}${F(a)} per {t}" if amount >= 1 else f"{i}{F(a)}¢ per {t}"
-
-
 def Lighting():
     print(
-        dedent("""
+        dedent('''
     Lighting electrical power consumption, W
       From https://en.wikipedia.org/wiki/Lumen_%28unit%29
       Accessed 25 Jan 2017
-
+      
              Incandescent
     Lumens   Non-halogen  Halogen   CFL         LED 
        90        15          6      2-3          3  
@@ -244,11 +226,11 @@ def Lighting():
      2400       150                 30-52       30  
      3100       200                 49-75       32  
      4000       300                 75-100      40.5  
-
+     
     Luminous efficiency
         https://en.wikipedia.org/wiki/Luminous_efficacy#Examples_2
         # = 120 V, @ = 230 V, [I have rounded to 2 figures]
-
+        
                                     lm/W        %
     Combustion, gas mantle           1-2        0.15-0.3
     100 W tungsten incand. #         18         2.6
@@ -265,11 +247,9 @@ def Lighting():
     LP Na                            100-200    15-29
     Truncated 5800 K black body      251        37
     Ideal, green 555 nm              683        100
-
-    """)
+    
+    ''')
     )
-
-
 def Instruments():
     fp = FPFormat()  # Use to line up cost decimal points
     inst = {
@@ -290,12 +270,12 @@ def Instruments():
         "HP 428B     Clamp-on ammeter": 50,
     }
     print(
-        dedent(f"""
+        dedent(f'''
     Cost to run various instruments (power supplies in quiescent state)
-
+    
     Instrument                       Power, W     ¢/day     $/month
     ------------------------------   --------     -----     -------
-    """)
+    ''')
     )
     kWhr_cost = flt(d["-r"])  # Cost of a kW*hr in $
     J_per_kWhr = 3600000  # A kW*hr is 3600000 J
@@ -317,8 +297,6 @@ def Instruments():
         monthly_total += mo
     print(f"\nMonthly cost to run all of these is ${monthly_total}")
     print(f"Cost of power is ${d['-r']} per kW*hr = {dpj} $/J")
-
-
 def TypicalAppliances():
     # Most of this data from https://generatorist.com/power-consumption-of-household-appliances
     items = [
@@ -361,16 +339,14 @@ def TypicalAppliances():
         cost = cents_day * power_W
         dollars = cost / 100
         print(f"{name:{w}s}  {int(power_W):4d}     {dollars!s:^11s}")
-
-
 def PowerCostByState():
-    """Return a dict keyed by state with value of average cost in cents per
+    '''Return a dict keyed by state with value of average cost in cents per
     kW*hr.
-    """
+    '''
     # Residential power costs from https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_a
     # Downloaded 22 Oct 2021
     # Average cost in cents per kW*hr
-    data = """
+    data = '''
         10.24 	Washington 
         10.41 	Idaho 
         10.86 	Nevada 
@@ -422,7 +398,7 @@ def PowerCostByState():
         22.85 	Massachusetts 
         23.42 	Alaska 
         33.24 	Hawaii 
-    """
+    '''
     pc = {}
     for line in data.split("\n"):
         line = line.strip()
@@ -432,8 +408,6 @@ def PowerCostByState():
         print(flt(cost), state)
         pc[state] = flt(cost)
     return pc
-
-
 def Power(power_expr):
     # Times in seconds
     hour = flt(3600)
@@ -514,8 +488,6 @@ def Power(power_expr):
                 f"{item[3]:^{w[3]}s}{gap}"
                 f"{item[4]:^{w[4]}s}"
             )
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

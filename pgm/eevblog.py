@@ -111,13 +111,19 @@ if 1:   # Utility
           default browser (FireFox) or, if you use an o at the end of the command line,
           it's the same as typing -o..
         Options:
-            -b x    Change browser:  c for Chrome, e for Edge, f for Firefox
+          'power supply noise'
+            This search shows episode 594 on how to measure power supply ripple and
+            noise.  Also look up HP Application Note AN90 from 1967 (and AN90B from 
+            Agilent in 2000).
+        Options:
+            -b x    Change browser:  c = Chrome, e = Edge, f = Firefox
             -i      Don't ignore case
             -n      Limit to number of URLs to open [{d["-n"]}]
-            -p      Print the matched URLs
             -o      Open the matched URLs
+            -u      Print the matched URLs
             -W n    Ignore keywords that appear less than n times [{d["-W"]}]
             -w      Show keywords with number of title hits
+        Video links at https://www.eevblog.com/episodes/
         '''))
         exit(status)
     def ParseCommandLine(d):
@@ -125,17 +131,18 @@ if 1:   # Utility
         d["-i"] = True      # Don't ignore case
         d["-n"] = 5         # Limit to number of URLs to open
         d["-o"] = False     # Open the matched URLs
+        d["-u"] = False     # Print matched URLs
         d["-W"] = 1         # Ignore keywords that appear less than this number
         d["-w"] = False     # Show keywords
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "b:hion:W:w") 
+            opts, args = getopt.getopt(sys.argv[1:], "b:hion:uW:w") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("ceiow"):
+            if o[1] in list("ceiouw"):
                 d[o] = not d[o]
             elif o == "-b":
                 if a == "c":
@@ -264,7 +271,8 @@ if __name__ == "__main__":
     if g.items:
         for item in g.items:
             print(item)
-        t.print(f"{t.brnl}Video links at https://www.eevblog.com/episodes/")
+            if d["-u"]:
+                t.print(f"  {t.lill}{item.url}")
     if d["-o"]:
         n = d["-n"]
         for item in g.items[:n]:

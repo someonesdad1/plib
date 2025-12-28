@@ -991,8 +991,10 @@ if 1:  # Core functionality
             ---    ----     -----    ----      -----    -----    -----
             '''))
         sizes = sorted(set(list(range(n, m, step)) + others))
+        wt = GetAmpacityData()
         for n in sizes:
-            PrintLine(n)
+            if str(n) in wt:
+                PrintLine(n)
     def PrintLine(awg):
         fp.digits(3)
         special = awg in popular_sizes and isatty and not no_color

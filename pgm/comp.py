@@ -198,7 +198,7 @@ if 1:  # Data
             7:1:?    C battery holder (holds one battery)   battery
             7:1:?    Zener 1/2 W: 3.3 4.7 5.1 6.2 7.5 8.2 9.1 10 12 15 18 24 27 30 V   zener
             7:2:?    Various AGC fuses   fuse
-            7:3:?    Small silicon diodes (probably 1N4148), adhesive on leads (from SK)   diode
+            7:3:?    Small silicon diodes (probably 1N4148), adhesive on leads (from Steve K.)   diode
             7:4:?    DC micromotor, 1 rev/s at 6 VDC, 10 mA no load current, 100 mA under load   misc
             7:5:?    1N4004 diode 400 PIV, 1 A   diode
             7:5:?    Round fluorescent starters, two pin   opto
@@ -530,7 +530,7 @@ if 1:  # Data
         Box 28
             28:1:?    Connector pair, locking 8-pin MPJA 32426   connector
             28:2:?    Connector pair, locking 8-pin MPJA 32426   connector
-            28:3:?    1N4007 diode   diode
+            28:3:?    1N4007 diode 1000 V PIV, 1 A   diode
             28:4:?      
             28:5:?    Red boot 35 mm alligator clips MPJA 16452   misc
             28:6:?    Rubber feet   hardware
