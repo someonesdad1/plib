@@ -209,8 +209,7 @@ def Money(amount, time_period):
     a = amount if amount >= 1 else 100 * amount
     return f"{i}${F(a)} per {t}" if amount >= 1 else f"{i}{F(a)}¢ per {t}"
 def Lighting():
-    print(
-        dedent('''
+    print(dedent('''
     Lighting electrical power consumption, W
       From https://en.wikipedia.org/wiki/Lumen_%28unit%29
       Accessed 25 Jan 2017
@@ -240,43 +239,40 @@ def Lighting():
     Carbon arc                       2-7        0.3-1
     Xenon arc                        30-90      4.4-14
     Mercury-xenon arc                50-55      7.3-8
-    HP Hg vapor arc                  58-78      8.5-11
+    High pressure mercury vapor      58-78      8.5-11
     9-32 W CFL                       46-75      8-11
     T8 fl. tube, elec. ballast       80-100     12-15
-    HP Na                            85-150     12-22
-    LP Na                            100-200    15-29
+    High pressure sodium             85-150     12-22
+    Low pressure sodium              100-200    15-29
     Truncated 5800 K black body      251        37
     Ideal, green 555 nm              683        100
-    
-    ''')
-    )
+    '''))
 def Instruments():
     fp = FPFormat()  # Use to line up cost decimal points
     inst = {
         # Item:  power in W
-        # "HP 427A     Voltmeter": 0.06,
-        # "HP 3435A    Digital multimeter": 2,
-        # "HP 3466A    Digital multimeter": 2,
-        # "HP 3400A    RMS voltmeter": 7,
-        "HP E3615A   Power supply": 7,
-        "B&K 8500    DC Load": 9,
-        "B&K 4052    Function generator": 13,
-        # "B&K 2556A   Oscilloscope": 20,
-        "B&K 9130    Power supply": 20,
-        # "HP 3456A    Voltmeter": 21,
-        "HP 6038A    Power supply": 34,
-        "HP 6033A    Power supply": 38,
-        "HP 54601B   Oscilloscope": 50,
-        "HP 428B     Clamp-on ammeter": 50,
+        "HP 427A      Voltmeter": 0.06,
+        "HP 400EL     AC Voltmeter": 6,
+        "HP 3435A     Digital multimeter": 2,
+        "HP 3466A     Digital multimeter": 2,
+        "HP 3400A     RMS voltmeter": 7,
+        "HP E3615A    Power supply": 7,
+        "B&K 8500     DC Load": 9,
+        "FY9600       Function generator": 3,
+        "B&K 9130     Power supply": 20,
+        "HP 6038A     Power supply": 34,
+        "HP 6033A     Power supply": 38,
+        "HP 6115A     Power supply": 19,
+        "HP 6236B     Power supply": 19,
+        "HP 54601B    Oscilloscope": 50,
+        "Rigol DHO804 Oscilloscope": 35,
     }
-    print(
-        dedent(f'''
+    print(dedent(f'''
     Cost to run various instruments (power supplies in quiescent state)
     
     Instrument                       Power, W     ¢/day     $/month
     ------------------------------   --------     -----     -------
-    ''')
-    )
+    '''))
     kWhr_cost = flt(d["-r"])  # Cost of a kW*hr in $
     J_per_kWhr = 3600000  # A kW*hr is 3600000 J
     dpj = kWhr_cost / J_per_kWhr  # Cost of power in $/J
@@ -298,7 +294,7 @@ def Instruments():
     print(f"\nMonthly cost to run all of these is ${monthly_total}")
     print(f"Cost of power is ${d['-r']} per kW*hr = {dpj} $/J")
 def TypicalAppliances():
-    # Most of this data from https://generatorist.com/power-consumption-of-household-appliances
+    # Most of these data from https://generatorist.com/power-consumption-of-household-appliances
     items = [
         ("100 W light bulb", 100),
         ("75 W light bulb", 75),

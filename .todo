@@ -1,5 +1,10 @@
 /plib/.todo
 
+    - PC board trace resistance calculator
+        - Common Cu thicknesses are in oz/ft2 with 1 oz/ft2 being 35 μm thick.  Widths
+          are often in 10 mil steps.  Use -t to set the thickness and default to 35 μm.
+          Default length units are mm, but you can use in, mil, etc.
+
     - Foredom toolpost drilling
         - Mount handpiece with chuck in boring bar holder
         - Make a holder for the Foredom motor that screws to the wooden tooling holder

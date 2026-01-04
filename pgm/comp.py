@@ -499,7 +499,7 @@ if 1:  # Data
             25:4:M    Red 5 mm LED   LED
             25:5:M    Blue 5 mm LED   LED
             25:6:M    Yellow 5 mm LED   LED
-            25:6:1    High gain μV/mV amplifier module, gain 1.5 to 1000   IC
+            25:6:1    High gain μV/mV amplifier module, MPJA 35489, gain 1.5 to 1000   IC
             25:7:M    White 5 mm LED   LED
             25:8:M    Miniature DPDT center-off toggle switches 6 A 120 V   switch
         Box 26
@@ -513,7 +513,7 @@ if 1:  # Data
             26:8:?    2 channel push stereo/speaker connectors, red & black, panel mount   terminal
             26:9:?    5 pin mini connector, bulkhead, 10 mm, male & female   connector
             26:9:?    DPDT emergency switch, mushroom head, mechanical latching in activated position   switch
-            26:10:?    High gain μV/mV amplifier module, gain 1.5 to 1000   amplifier
+            26:10:?    High gain μV/mV amplifier module, MPJA 35489, gain 1.5 to 1000   amplifier
             26:11:?    Encoder from MPJA with pushbutton switch   misc
             26:12:?      
             26:13:?    0.6 Ω wirewound resistor 1% 3 W MPJA 27042   resistor
