@@ -1,19 +1,23 @@
 '''
 
-Returns a dictionary cpi_data for the average US CPI (consumer price index) from 1913 to the present
+Returns a dictionary cpi_data for the average US CPI (consumer price index) from 1913 to
+the present
 
-    Gets the average CPI number from the table at the indicated website.  Note that the average calculated
-    from the tables' entries for early years doesn't match the yearly average; still, I've chosen to use the
-    table's average column (zero-based column 13) rather than compute the average.
+    Gets the average CPI number from the table at the indicated website.  Note that the
+    average calculated from the tables' entries for early years doesn't match the yearly
+    average; still, I've chosen to use the table's average column (zero-based column 13)
+    rather than compute the average.
     
-    Each of the numbers in the table can be used to compare costs for the things we need to live over time.
-    Let's compare the year 1967 to 2023.  The yearly average for 1967 is 33.4 and the yearly average for 2023
-    is 305.  The ratio of these two numbers 305/33.4 = 9.1.  This tells me that something that cost me $1 in
-    1967 would probably cost around $9 in 2023.
+    Each of the numbers in the table can be used to compare costs for the things we need
+    to live over time.  Let's compare the year 1967 to 2023.  The yearly average for
+    1967 is 33.4 and the yearly average for 2023 is 305.  The ratio of these two numbers
+    305/33.4 = 9.1.  This tells me that something that cost me $1 in 1967 would probably
+    cost around $9 in 2023.
     
-    Visit https://www.bls.gov/opub/hom/cpi/ to learn more about the CPI.  The US Bureau of Labor and
-    Statistics collects about 94000 prices and 8000 rental housing unit quotes monthly and condenses the
-    information into an estimate of what it costs to live in an urban environment.
+    Visit https://www.bls.gov/opub/hom/cpi/ to learn more about the CPI.  The US Bureau
+    of Labor and Statistics collects about 94000 prices and 8000 rental housing unit
+    quotes monthly and condenses the information into an estimate of what it costs to
+    live in an urban environment.
     
 '''
 if 1:  # Header
@@ -38,10 +42,10 @@ if 1:  # Header
         from columnize import Columnize
 # From https://www.inflationdata.com/inflation/Consumer_Price_Index/HistoricalCPI.aspx?reloaded%3Dtrue#Table
 #         Jan     Feb     Mar     Apr     May     Jun     Jul     Aug     Sep     Oct     Nov     Dec    Year
-# Updated 18 Sep 2025
-                                # Note the separators are tab characters
+# Updated 04 Jan 2026 11:10:38 am Sun
+# Note the separators are tab characters
 data = '''
-2025	317.671	319.082	319.799	320.795	321.465	322.561	323.048	323.976
+2025	317.671	319.082	319.799	320.795	321.465	322.561	323.048	323.976	324.800	324.461	324.122
 2024	308.417	310.326	312.332	313.548	314.069	314.175	314.540	314.796	315.301	315.664	315.493	315.605	313.689
 2023	299.170	300.840	301.836	303.363	304.127	305.109	305.691	307.026	307.789	307.671	307.051	306.746	304.702
 2022	281.148	283.716	287.504	289.109	292.296	296.311	296.276	296.171	296.808	298.012	297.711	296.797	292.655
