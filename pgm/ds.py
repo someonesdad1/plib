@@ -218,7 +218,6 @@ if 1:  # Core functionality
             Dbg(f"{len(df.files)} files ({tm} s)")
             DumpIndexFile(g.index_files["bk"], df)
         if 1:  # ebooks
-            breakpoint() #xx 
             if d["-X"]:
                 Dbg("Indexing ebooks:", end="  ")
                 start = flt(time())
