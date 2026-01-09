@@ -82,6 +82,7 @@ if 1:  # Data
             1:16:1    RS Chime, 1.5-3 V, 30-60 mA, two tone, + RED, -BLK, connect WHT to + for sound   sound
             1:17:M    Buzzer, mechanical 3 V 10 mA MPJA 34102 48 
             1:18:1    Piezo buzzer All El. <= 20 Vpp, AVX mfg   sound
+
         Box 2
             2:1:?    LEDs, misc (high brightness, UV)   opto LED
             2:2:?    120 VAC neon indicator in threaded housing   opto
@@ -111,6 +112,7 @@ if 1:  # Data
             2:17:?    Luxeon star, 1 W, white   LED LED
             2:17:?    MPQ2222A Motorola, quad NPN transistor (HP 1858-0112)   NPN
             2:18:?    7 segment LEDs   opto LED
+
         Box 3
             3:1:?    Cable clamps   misc
             3:1:?    Captured fastener, right angle   fastener
@@ -128,6 +130,7 @@ if 1:  # Data
             3:10:?    Fasteners, nylon   fastener
             3:11:?    Fasteners, nylon   fastener
             3:12:?    Fasteners   fastener
+
         Box 4
             4:1:?    2N5114 transistor, P-channel JFET, < 75 ohm, 30 V, 500 mW   FET transistor
             4:1:?    4-pin transistor socket   socket
@@ -172,19 +175,21 @@ if 1:  # Data
             5:11:?    Switch, rocker   switch
             5:12:?    Switch, rocker   switch
             5:12:?    Switch, small microswitches   switch
+
         Box 6
-            6:1:?    4 mm banana jacks, mostly salvaged HP   banana
-            6:2:?    CalTest 4 mm shrouded banana plug, fastener, red and black   banana
-            6:3:?    CalTest 4 mm banana plug, red or black   banana
-            6:4:?    CalTest 4 mm banana plug, no fastener needed, red or black   banana
-            6:5:?    4 mm banana jacks, salvaged, red and black, single and double   banana
-            6:6:?    4 mm banana jacks, tall, red and black   banana
-            6:7:?    4 mm banana jacks, mostly salvaged HP   banana
+            6:1:?    4 mm banana jacks, mostly salvaged HP   jack
+            6:2:?    CalTest 4 mm shrouded banana plug, fastener, red and black   plug
+            6:3:?    CalTest 4 mm banana plug, red or black   plug
+            6:4:?    CalTest 4 mm banana plug, no fastener needed, red or black   plug
+            6:5:?    4 mm banana jacks, salvaged, red and black, single and double   jack
+            6:6:?    4 mm banana jacks, tall, red and black   jack
+            6:7:?    4 mm banana jacks, mostly salvaged HP   jack
             6:8:?    Red pin jacks   jack
-            6:9:?    Misc. banana plugs   banana
-            6:10:?    Ground banana jacks, nickel plated   banana
-            6:11:?    CalTest low profile banana jacks, black   banana
-            6:12:?    CalTest low profile banana jacks, red   banana
+            6:9:?    Misc. banana plugs   plug
+            6:10:?    Ground banana jacks, nickel plated   jack
+            6:11:?    CalTest low profile banana jacks, black   jack
+            6:12:?    CalTest low profile banana jacks, red   jack
+
         Box 7
             7:1:?    1N3600 silicon diode 100 PIV, 200 mA   diode
             7:1:?    1N4004 diode 400 PIV, 1 A   diode
@@ -215,6 +220,8 @@ if 1:  # Data
             7:11:?    Precision resistor, 200.9 ohms   resistor
             7:12:?    MPJA level sensors   sensor
             7:12:?    Incandescent flashlight bulbs   opto
+            7:12:?    Small incandescent bulb (old Heathkit fn gen) 66 Ω   opto
+
         Box 8
             8:1:?    Pot, 10 ohm, 10 turn PC mount   pot
             8:2:?    Pot, 20 ohm, 10 turn PC mount   pot
@@ -240,6 +247,7 @@ if 1:  # Data
             8:16:?    Pot, 1 Mohm, 10 turn PC mount   pot
             8:17:?    Pot, 2 Mohm, 10 turn PC mount   pot
             8:18:?    World War 2 1/4" pot shaft waterproof feedthrough   hardware
+
         Box 9
             9:1:?    Socket, transistor, TO-92   socket
             9:2:?    Relay, 12 V, DPDT, latching   relay switch
@@ -267,6 +275,7 @@ if 1:  # Data
             10:8:?    Pot, 250 kohm, PC mount, finger dial   pot
             10:9:?    Pot, 50 kohm, PC mount, finger dial   pot
             10:10:?    Pot, 480 ohm, PC mount, finger dial   pot
+
         Box 11
             11:1:?    Capacitor, adjustable, 3 to 9 pF   capacitor
             11:2:?    Power jack, takes 5.5/2.1 mm plug, also plugs   jack
@@ -279,6 +288,7 @@ if 1:  # Data
             11:9:?    LF353 Dual JFET op amp, 8-pin DIP   opamp
             11:9:?    PT27311 current transformer, 30-200 kHz   transformer
             11:10:?    Photosensitive resistors from 1960's HP differential voltmeter   opto
+
         Box 12
             12:1:?    Chunk of broken UV glass   opto
             12:2:?    Frosted neon bulbs, short   opto
@@ -291,6 +301,7 @@ if 1:  # Data
             12:8:?    Various disk capacitors   capacitor
             12:9:?    Diodes   diode
             12:10:?    Capacitor, 10 nF, bypass   capacitor
+
         Box 13
             13:1:?      
             13:2:?      
@@ -302,6 +313,7 @@ if 1:  # Data
             13:8:?      
             13:9:?      
             13:10:?      
+
         Box 14
             14:1:?    Various inductors (coils) around 0.5 uH   inductor
             14:2:?    Various inductors (coils) around 0.2 uH   inductor
@@ -326,6 +338,7 @@ if 1:  # Data
             15:8:?    Capacitor, 2 uF, 200 V, 1970's Electrocube salvaged from Ithaca lock-in   capacitor
             15:9:?    Capacitor, 0.977 uF, 200 V, 1970's Electrocube salvaged from Ithaca lock-in   capacitor
             15:10:?      
+
         Box 16
             16:1:M    Ring terminal, blue, #10   terminal
             16:2:M    Ring terminal, blue, #8   terminal
@@ -337,6 +350,7 @@ if 1:  # Data
             16:8:M    1/4" Faston terminal, male, 10-12 ga   terminal
             16:9:M    Spade terminal, red, #6   terminal
             16:10:M   1/4" Faston terminal, female, 12-14 ga   terminal
+
         Box 17
             17:1:?    Resistor, precision, 1 kohm, HP from June 1968, 0.1%   resistor
             17:2:?    Resistor, precision, 1.001 kohm, HP from June 1968, 0.0075%   resistor
@@ -351,6 +365,7 @@ if 1:  # Data
             17:8:?    Resistor, power, 25.49 mohm, Dale, 10 W   resistor
             17:9:?    Resistor, precision, 89.975 kohm, HP from Mar 1966, 0.02%   resistor
             17:10:?    Resistor, power, Dale, 0.1337 ohm, about 3 W, three resistors in parallel   resistor
+
         Box 18
             18:1:?    AGC fuse holder, end   fuse
             18:2:?    Pins, gold-plated, and matching sockets   pin
@@ -370,6 +385,7 @@ if 1:  # Data
             18:11:?    2N7000 MOSFET transistor TO92 60 V 200 mA   MOS
             18:12:?    IC tube pin (closes IC antistatic tube off)   misc
             18:12:?    0.2 A AGC-size fuse for Aneng 870 DMM   fuse
+
         Box 19
             19:1:2    LF353 dual JFET op amp, 8-pin DIP   opamp
             19:2:M    LM224 quad op amp, 14-pin DIP   opamp
@@ -425,21 +441,23 @@ if 1:  # Data
             20:12:2   LM317T adjustable voltage regulator, TO-220   linear
             20:12:1   7818C voltage regulator TO220   linear
             20:12:2   HP 1826-0393, LM317T, TO-220   linear
+
         Box 21
             21:1:?    Alligator clips   misc
-            21:2:?    BNC all-female tees and angles   adapter BNC
-            21:3:?    BNC splices (male and female)   adapter BNC
-            21:4:?    BNC tees   adapter BNC
-            21:5:?    BNC female to double banana plug   adapter BNC
-            21:6:?    BNC male to double banana jack   adapter BNC
-            21:7:?    Sheathed banana (female) to unsheathed banana plug   adapter banana
+            21:2:?    BNC all-female tees and angles   adapter
+            21:3:?    BNC splices (male and female)   adapter
+            21:4:?    BNC tees   adapter
+            21:5:?    BNC female to double banana plug   adapter
+            21:6:?    BNC male to double banana jack   adapter
+            21:7:?    Sheathed banana (female) to unsheathed banana plug   adapter
             21:8:?    Photodiode with BNC mount   opto
             21:8:?    UHF male to BNC female adapter   adapter BNC
             21:8:?    BNC female to N male   adapter BNC
-            21:9:?    Dual banana plugs   banana
-            21:10:?    BNC 50 ohm terminators and feedthroughs   adapter BNC
-            21:11:?    Banana jack to 120 VAC ground male   adapter banana
-            21:12:?    Lug to banana jack adapter   adapter banana
+            21:9:?    Dual banana plugs   plug
+            21:10:?    BNC 50 ohm terminators and feedthroughs   adapter
+            21:11:?    Banana jack to 120 VAC ground male   adapter
+            21:12:?    Lug to banana jack adapter   adapter
+
         Box 22
             22:1:?    PICDEM lab parts -- short wires   misc
             22:2:?    PICDEM lab parts -- jumpers   jumper
@@ -451,7 +469,8 @@ if 1:  # Data
             22:8:?    PICDEM lab parts -- resistor   resistor
             22:9:?    PICDEM lab parts -- resistor   resistor
             22:10:?    PICDEM lab parts -- 10 uF cap   capacitor
-        Box 23 is he cardboard box of resistors
+
+        Box 23 is the cardboard box of resistors
             23:1:?    inductor (coil), 2 uH, 0.77 ohm   inductor
             23:1:?    inductor (coil), 150 uH, 4.41 ohm   inductor
             23:1:?    inductor (coil), 10 uH, 0.72 ohm   inductor
@@ -464,21 +483,22 @@ if 1:  # Data
             23:1:?    inductor (coil), 1.5 uH, 0.36 ohm   inductor
             23:1:?    inductor (coil), 1 mH, 15 ohm   inductor
             23:1:?    FET, 100 A (Rch < 1 mohm if Vgs > 5.39 V)   FET transistor
+
         Box 24
             24:1:?    Various small batteries   battery
             24:2:?    Precision current transformer 50 A = 10 mA, 20 Hz to 20 kHz banggood 991591   ferrite transformer
             24:3:?    16-pin DIP header (socket) for 8 resistor-type components   socket
             24:4:?    Super capacitors   capacitor
             24:5:?    Mercury switch, 2 A rating   switch
-            24:6:10   LED, white, 10 mm   [opto/LED]
+            24:6:10   LED, white, 10 mm   opto
             24:7:M    Black and yellow wire nuts
             24:8:?    9812 regulators TO220   IC
             24:9:?    MPJA stereo amp 3 W/channel 33087   amplifier
-            24:10:?    
-            24:11:?    
+            24:10:2   DPDT 20 A toggle switch   switch
+            24:11:?    Full wave diode bridge
             24:12:?    
             24:13:?    Fahnestock clips   terminal
-            24:14:?    
+            24:14:?    5.5/2.1 mm jacks, PC mount MPJA 38134   connector
             24:15:?    LTC1968 RMS-to-DC converter 500 kHz   IC
             24:16:?    Rubber feet   hardware
             24:17:?    DPDT toggle switch   switch
@@ -502,6 +522,7 @@ if 1:  # Data
             25:6:1    High gain μV/mV amplifier module, MPJA 35489, gain 1.5 to 1000   IC
             25:7:M    White 5 mm LED   LED
             25:8:M    Miniature DPDT center-off toggle switches 6 A 120 V   switch
+
         Box 26
             26:1:?    8 and 10 pin SIP, resistor, 1k   resistor
             26:2:?    10 pin SIP, resistor, 1.5k   resistor
@@ -521,12 +542,14 @@ if 1:  # Data
             26:15:?    91 MΩ resistor   resistor
             26:15:?    10k, 50k, and 100k NTC thermistors 5%   thermistor
             26:15:?    200 mA fuses for Aneng 8009 meter   fuse
+
         Box 27
             27:1:?    3 mm LED, yellow, 2.04 V @ 10 mA   LED
             27:2:?    3 mm LED, green, 2.02 V @ 10 mA   LED
             27:3:?    3 mm LED, red, 1.91 V @ 10 mA   LED
             27:4:?    3 mm LED, blue, 2.99 V @ 10 mA   LED
             27:5:?    3 mm LED, white, 2.96 V @ 10 mA   LED
+
         Box 28
             28:1:?    Connector pair, locking 8-pin MPJA 32426   connector
             28:2:?    Connector pair, locking 8-pin MPJA 32426   connector
@@ -535,19 +558,21 @@ if 1:  # Data
             28:5:?    Red boot 35 mm alligator clips MPJA 16452   misc
             28:6:?    Rubber feet   hardware
             28:7:?      
-            28:8:?    Banana plugs, screw attach MPJA 30045   banana
+            28:8:?    Banana plugs, screw attach MPJA 30045   plug
             28:9:?    DPDT on-on mini toggle switch MPJA 31886   switch
             28:10:?    Black boot 35 mm alligator clips MPJA 16453   misc
             28:11:?      
             28:12:?      
             28:13:?      
-            28:14:?    Dual banana jack MPJA 14492   banana
+            28:14:?    Dual banana jack MPJA 14492   jack
             28:15:?    Feed-throughs   connector
             28:16:?      
             28:17:?    Plastic tips for Soldapullt   misc
-            28:18:?    Dual banana jack MPJA 14492   banana
+            28:18:?    Dual banana jack MPJA 14492   jack
+
         Box 29
-            29:1:?      
+            29:1:?    Dual banana jack MPJA 14492   jack
+            29:1:?    BNC jacks & hardware (in plastic bag)   connector
             29:2:?    BNC jacks & hardware   connector
             29:3:?    2N7000 MOSFET transistor TO92 60 V 200 mA   MOS
             29:4:?    Normally closed thermostats 40, 50, 60, 65[5]150 °C, MPJA 38152   thermostat
@@ -566,12 +591,14 @@ if 1:  # Data
             30:4:7    Buck converter banggood 30Dec2019 $1.2   PCB
             30:5:?    5 V relay, 2.5 mA @ 5 V, 15 A 125 V (new 7 Aug 2017 banggood)   relay
             30:6:?    12 V 10 A relay, 60 mA closed (new 19 May 2022, Amazon, $2)   relay
+
         Box 31
             31:1:?    Header 1x10 pin   socket
             31:2:?    Header 2x3 pin   socket
             31:3:?    Header 1x10 pin   socket
             31:4:?    Header 1x6 pin   socket
             31:5:?    Header 1x8 pin   socket
+
         Box 32
             32:1:?    Capacitor, 100 nF, 25 V, part no. 104M5C806   capacitor
             32:2:?      
@@ -586,6 +613,25 @@ if 1:  # Data
             32:11:?      
             32:12:?      
             32:13:M   Boost converter 2 A 2-24 V banggood 2017/2020 ~80¢   PCB
+
+        Box 33
+            33:1:? IEC type C jack MPJA 37461   jack
+            33:2:? 
+            33:3:? 
+            33:4:? 
+            33:5:? 
+            33:6:? 
+            33:7:? 
+            33:8:? 
+            33:9:? 
+            33:10:? 
+            33:11:? 
+            33:12:? 
+            33:14:? 
+            33:15:? 
+            33:16:? 
+            33:17:? 
+            33:18:? 
 
     ''')
     if 0:  # For testing/debugging
@@ -963,7 +1009,6 @@ if __name__ == "__main__":
             b = list(sorted(set(u[i])))
             t.print(f"{t.box}{i:2d}: {t.compartment}{' '.join(str(j) for j in b)}")
     elif d["-l"]:  # Show allowed keywords
-        print("Keywords:")
         # Put each keyword into a dict with its count
         KW = defaultdict(int)
         for item in items:
@@ -974,7 +1019,7 @@ if __name__ == "__main__":
         w = len(str(max_count))  # Needed printing width
         # Print sorted alphabetically
         o, o1, max_count = [], [], 0
-        print("Keywords sorted alphabetically (number is count):")
+        t.print(f"{t.brnl}Keywords sorted alphabetically (number is count):")
         for name in sorted(KW, key=str.lower):
             count = KW[name]
             o.append(f"{count:{w}d} {name}")
@@ -982,7 +1027,7 @@ if __name__ == "__main__":
         for item in Columnize(o):
             print(item)
         # Print sorted numerically
-        print("\nKeywords sorted by count:")
+        t.print(f"\n{t.brnl}Keywords sorted by count:")
         o = []
         for count, name in sorted(o1):
             o.append(f"{count:{w}d} {name}")

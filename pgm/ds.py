@@ -127,8 +127,7 @@ if 1:  # Utility
     def Usage(d, status=1):
         name = sys.argv[0]
         name = d["--exec"]
-        print(
-            dedent(f'''
+        print(dedent(f'''
         Usage:  {name} [options] regexp [re1 re2...]
           Open a document if it's the only match to the regexp.  Otherwise print out the matches
           and choose which ones to display.  When choosing, you can select multiple numbers by
@@ -148,15 +147,14 @@ if 1:  # Utility
           --exec n
             Name of index file for usage statement.  Choices are:
               {" ".join(g.index_files.keys())}
-        ''')
-        )
+        '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-X"] = False  # If True, then generate indexes including /ebooks
         d["-I"] = d["-x"] = False  # If True, then generate indexes without /ebooks
         d["-i"] = False  # If True, then case-sensitive search
         d["-j"] = False  # Show HPJ matches
         d["-k"] = False  # Open files indicated by keyword
+        d["-X"] = False  # If True, then generate indexes including /ebooks
         try:
             optlist, args = getopt.getopt(sys.argv[1:], "hIijkXx", ["exec="])
         except getopt.GetoptError as e:
@@ -172,7 +170,7 @@ if 1:  # Utility
                     Error(f"'{a}' not an index")
             elif o == "-h":
                 Usage(d, 0)
-        if d["-I"] or d["-x"]:
+        if d["-I"] or d["-x"] or d["-X"]:
             g.dbg = True
             GenerateIndexFiles(d)
         if d["-j"]:
@@ -220,6 +218,7 @@ if 1:  # Core functionality
             Dbg(f"{len(df.files)} files ({tm} s)")
             DumpIndexFile(g.index_files["bk"], df)
         if 1:  # ebooks
+            breakpoint() #xx 
             if d["-X"]:
                 Dbg("Indexing ebooks:", end="  ")
                 start = flt(time())
