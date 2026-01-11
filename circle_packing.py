@@ -1,16 +1,16 @@
 '''
 Information on circle packing
-
-This module's data came from http://hydra.nat.uni-magdeburg.de/packing/cci/ in 2014,
-giving solutions for N up to 1500.  As of 11 Jan 2026, the list is extended to 5000, but
-the numbers aren't contiguous, particularly at the high end.  I have chosen not to
-update to the latest data because the information isn't easy to extract from the web
-page and its utility is dubious unless you're e.g. doing research in the field.
-
-The main web page to visit is http://packomania.com/; both pages appear to belong to
-Eckard Sprecht eckard.specht@physik.uni-magdeburg.de.  I had an email from Sprecht on 10
-Jan 2026 saying "you have all permissions to store, transform and handle the data presented
-at packomania.com. The website can be considered as an open source."  
+    - This module's data came from http://hydra.nat.uni-magdeburg.de/packing/cci/ in
+      2014, giving solutions for N up to 1500.  As of 11 Jan 2026, the list is extended
+      to 5000, but the numbers aren't contiguous, particularly at the high end.  I have
+      chosen not to update to the latest data because the information isn't easy to
+      extract from the web page and its utility is dubious unless you're e.g. doing
+      research in the field.
+    - The main web page to visit is http://packomania.com/; both pages appear to belong
+      to Eckard Sprecht eckard.specht@physik.uni-magdeburg.de.  I had an email from
+      Sprecht on 10 Jan 2026 saying "you have all permissions to store, transform and
+      handle the data presented at packomania.com. The website can be considered as an
+      open source."  
 
 '''
 if 1:  # Header
@@ -39,49 +39,22 @@ if 1:  # Header
         from wrap import dedent
         from sig import sig
         from lwtest import Assert
+        from color import t
+        import termtables as tt
+        if 0:
+            import debug
+            debug.SetDebugger()
 if 1:  # Global variables
     '''
     Data from the web page http://hydra.nat.uni-magdeburg.de/packing/cci
-    (downloaded 13 Apr 2014).  Here are definitions of terms:
-    
-    0  N
-        The number of circles; colors correspond to active researchers in
-        the past, see "References" at the bottom of the pag
-    1  radius
-        of the circles in the container circle, the latter has always a
-        *radius* of
-    2  distance
-        packing of circles in a circle is equivalent to distributing
-        points in a circle; the latter are then the circle centers. "distance"
-        is here the greatest distance of these point
-    3  ratio
-        = 1/radius; an orange field means that David W. Cantrell's
-        conjectured upper bound is violate
-    4  density
-        ratio of total area occupied by the circles to container area (for
-        an infinite hexagonal packing you get the well-known value rho =
-        Pi/(2*sqrt(3))=0.90689968211
-    5  contacts
-        number of contacts between circles and container and between the
-        circles themselves, respectively
-    6  loose
-        number of circles that have still degrees of freedom for a
-        movement inside the container (so called "rattlers"
-    7  boundary
-        number of circles that have contact to the container (rattlers too
-        if possible
-    8  symmetry group
-        of the packing (Schonfliess notation); if field is empty then
-        the packing has symmetry element C
-    9  reference
-        for the best known packing so far
-    10 records
-        the sequence of N's that establish density record
+    (downloaded 13 Apr 2014).
     '''
     oops = -1
     # The data are taken from the web page http://hydra.nat.uni-magdeburg.de/packing/cci
-    # This site was still active on 10 Jan 2026.
-    # The fields are # tab-separated.  Note this covers the numbers N from 1 to 1500 inclusive.
+    # This site was still active on 10 Jan 2026; however, I have not updated the
+    # information as few people need even all of the information here.  The fields are
+    # tab-separated. 
+
     data = dedent('''
     N 	radius 	distance 	ratio 	density 	contacts 	loose 	boundary 	symmetry group 	reference
     1 	1.000000000000000000000000000000 		1.0000000000000000000000000000 	1.000000000000000000000000000000 	1 		1 		
@@ -1587,118 +1560,218 @@ if 1:  # Global variables
     1500 	0.024136953276953005272501460056 	0.049467911215626035710238172068 	41.4302496477400378941120499724 	0.873888770240718629467810495615 	121 	1259 	4 		[31]
     ''')
     man = dedent('''
+    The website that's a source for these data is http://packomania.com/; in particular
+    the site http://hydra.nat.uni-magdeburg.de/packing/cci/cci.html.
+
     N
-        The number of circles; colors correspond to active researchers in
-        the past, see "References" at the bottom of the pag
+        The number of circles
     radius
-        of the circles in the container circle, the latter has always a
-        *radius* of
+        Radius of the circles in the containing unit circle.
     distance
-        packing of circles in a circle is equivalent to distributing
-        points in a circle; the latter are then the circle centers. "distance"
-        is here the greatest distance of these point
+        Packing of circles in a circle is equivalent to distributing points in a circle;
+        the latter are then the circle centers. "distance" is here the greatest distance
+        of these points. For a more detailed explanation, please see
+        http://hydra.nat.uni-magdeburg.de/packing/equiv.html.
     ratio
-        = 1/radius; an orange field means that David W. Cantrell's
-        conjectured upper bound is violate
+        Is equal to 1/radius.
     density
-        ratio of total area occupied by the circles to container area (for
-        an infinite hexagonal packing you get the well-known value rho =
-        Pi/(2*sqrt(3))=0.90689968211
+        Ratio of total area occupied by the circles to container area (for an infinite
+        hexagonal packing you get the well-known value ρ = pi/(2*sqrt(3))=0.90689968211)
     contacts
-        number of contacts between circles and container and between the
-        circles themselves, respectively
+        Number of contacts between circles and container and between the circles
+        themselves, respectively.
     loose
-        number of circles that have still degrees of freedom for a
-        movement inside the container (so called "rattlers"
+        Number of circles that have degrees of freedom for a movement inside the
+        container (so called "rattlers").
     boundary
-        number of circles that have contact to the container (rattlers too
-        if possible
+        Number of circles that have container contact (rattlers too if possible).
     symmetry group
-        of the packing (Schonfliess notation); if field is empty then
-        the packing has symmetry element C
+        Symmetry group of the packing (Schönfliess notation); if field is empty then the
+        packing has symmetry element C1.
     reference
-        for the best known packing so fa
-    records
-        the sequence of N 's that establish density record
-        
+        Reference number of the currently best known packing.
     References:
-    [1]   S. Kravitz, Packing cylinders into cylindrical containers, Math. Mag. 40 (1967) 2, 65-71.
-    [2]   U. Pirl, Der Mindestabstand von n in der Einheitskreisscheibe gelegenen Punkten, Math. Nachr. 40 (1969), 111-124.
-    [3]   M. Goldberg, Packing of 14, 16, 17 and 20 circles in a circle, Math. Mag. 44 (1971) 3, 134-139.
-    [4]   G.E. Reis, Dense Packing of Equal Circles within a Circle, Math. Mag. 48 (1975) 1, 33-37.
-    [5]   H. Melissen, Densest Packing of Eleven Congruent Circles in a Circle, Geom. Dedicata 50 (1994), 15-25.
-    [6]   R.L. Graham, B.D. Lubachevsky, Dense packings of 3k(k+1)+1 equal disks in a circle for k = 1, 2, 3, 4 and 5, Proc. First Int. Conf. "Computing and Combinatorics" COCOON'95, Springer Lecture Notes in Computer Science 959 (1996), 303-312.
-    [7]   B.D. Lubachevsky, R.L. Graham, Curved Hexagonal Packings of Equal Disks in a Circle, Discrete Comput. Geom. 18 (1997), 179-194.
-    [8]   R.L. Graham, B.D. Lubachevsky, K.J. Nurmela, P.R.J. Ostergard, Dense Packings of Congruent Circles in a Circle, Discrete Mathematics 181 (1998), 139-154.
-    [9]   F. Fodor, The Densest Packing of 19 Congruent Circles in a Circle, Geom. Dedicata 74 (1999), 139-145.
-    [10]  F. Fodor, The Densest Packing of 12 Congruent Circles in a Circle, Beitrage zur Algebra und Geometrie, Contributions to Algebra and Geometry 41 (2000) ?, 401-409.
-    [11]  F. Fodor, The Densest Packing of 13 Congruent Circles in a Circle, Beitrage zur Algebra und Geometrie, Contributions to Algebra and Geometry 44 (2003) 2, 431-440.
-    [12]  http://www.buddenbooks.com/jb/pack/circle/n64.htm, An Improved Packing of 64 Circles in a Circle, January 2004.
-    [13]  A. Grosso, A.R.M.J.U. Jamali, M. Locatelli, F. Schoen, Solving the problem of packing equal and unequal circles in a circular container, Optimization Online, March 2008, http://www.optimization-online.org/DB_HTML/2008/06/1999.html.
-    [14]  , private communication, October 2008-December 2009.
-    [15]  , sci.math forum, http://groups.google.com/group/sci.math/msg/54d62f05d3b35d42.
-    [16]  Zh. Lu, W. Huang, PERM for solving circle packing problem, Computers & Operations Research 35 (2008), 1742-1755.
-    [17]  Huang Wenqi, Ye Tao, Quasi-physical algorithm for the equal circles packing problem, In Chinese. J. Sys. Sci. & Math. Scis. 28 (2008) 8, 993-1001.
-    [18]  J. Donovan.
-    [19]  C.O. Lopez, J.E. Beasley, A heuristic for the circle packing problem with a variety of containers, European Journal of Operational Research 214 (2011) 3, 512-525.
-    [31]  , program cci, 1999-2010
+        Note:  the references were copied as text on 11 Jan 2026, but unfortunately some of
+        them are rendered as bitmaps so the N numbers can be in the associated author's color.
+        See http://hydra.nat.uni-magdeburg.de/packing/cci/cci.html for the names.
+        [1]  S. Kravitz, Packing cylinders into cylindrical containers, Math. Mag. 40 (1967)
+             2, 65–71.
+        [2]  U. Pirl, Der Mindestabstand von n in der Einheitskreisscheibe gelegenen Punkten,
+             Math. Nachr. 40 (1969), 111–124.
+        [3]  M. Goldberg, Packing of 14, 16, 17 and 20 circles in a circle, Math. Mag. 44
+             (1971) 3, 134–139.
+        [4]  G.E. Reis, Dense Packing of Equal Circles within a Circle, Math. Mag. 48 (1975)
+             1, 33–37.
+        [5]  H. Melissen, Densest Packing of Eleven Congruent Circles in a Circle, Geom.
+             Dedicata 50 (1994), 15–25.
+        [6]  R.L. Graham, B.D. Lubachevsky, Dense packings of 3k(k+1)+1 equal disks in a
+             circle for k = 1, 2, 3, 4 and 5, Proc. First Int. Conf. "Computing and
+             Combinatorics" COCOON'95, Springer Lecture Notes in Computer Science 959
+             (1996), 303–312.
+        [7]  B.D. Lubachevsky, R.L. Graham, Curved Hexagonal Packings of Equal Disks in a
+             Circle, Discrete Comput. Geom. 18 (1997), 179–194.
+        [8]  R.L. Graham, B.D. Lubachevsky, K.J. Nurmela, P.R.J. Östergård, Dense Packings
+             of Congruent Circles in a Circle, Discrete Mathematics 181 (1998), 139–154.
+        [9]  F. Fodor, The Densest Packing of 19 Congruent Circles in a Circle, Geom.
+             Dedicata 74 (1999), 139–145.
+        [10] F. Fodor, The Densest Packing of 12 Congruent Circles in a Circle, Beiträge
+             zur Algebra und Geometrie, Contributions to Algebra and Geometry 41 (2000) ?,
+             401–409.
+        [11] F. Fodor, The Densest Packing of 13 Congruent Circles in a Circle, Beiträge
+             zur Algebra und Geometrie, Contributions to Algebra and Geometry 44 (2003) 2,
+             431–440.
+        [12] , An Improved Packing of 64 Circles in a Circle, January 2004.
+        [13] A. Grosso, A.R.M.J.U. Jamali, M. Locatelli, F. Schoen, Solving the problem of
+             packing equal and unequal circles in a circular container, Optimization
+             Online, March 2008.
+        [14] , private communication, October 2008–December 2009.
+        [15] , sci.math forum.
+        [16] Zh. Lü, W. Huang, PERM for solving circle packing problem, Computers &
+             Operations Research 35 (2008), 1742–1755.
+        [17] Huang Wenqi, Ye Tao, Quasi-physical algorithm for the equal circles packing
+             problem, In Chinese. J. Sys. Sci. & Math. Scis. 28 (2008) 8, 993–1001.
+        [18] J. Donovan.
+        [19] C.O. López, J.E. Beasley, A heuristic for the circle packing problem with a
+             variety of containers, European Journal of Operational Research 214 (2011)
+             3, 512–525.
+        [20] Yuri Stoyan, Georgiy Yaskov, private communication, 2008(?).
+        [21] Xiangjing Lai, Jin-Kao Hao, Dong Yue, Zhipeng Lu, Zhang-Hua Fu (), private
+             communication, Sep. 2021.
+        [22] , Geometric Batch Optimization for Packing Equal Circles in a Circle Problem
+             on Large Scale , 2023.
+        [23] , Searching for the maximal packing fraction of hard disks confined by a
+             circular cavity through replica exchange/event chain Monte Carlo, The Journal
+             of Chemical Physics 161 (2024) 4, 044110.
+        [24] , private communication, May 2024.
+        [25] , private communication, November–December 2024.
+        [31] , program cci, 1999–2024.
     ''')
 if 1:  # Utility
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
-    def Usage(d, status=1):
+    def Manpage():
+        print(dedent(f'''
+        Here's a practical example of the use of this script.
+
+        I have a toroidal current transformer with a hole of diameter 16 mm through it.
+        How many turns of 1.9 mm outside diameter wire can I get through this hole?
+
+        This script prints out the maximum known number of equal-diameter circles that
+        can be fit inside a unit circle.  Here, we'll assume our unit circle is the 16
+        mm diameter hole, so the radius of this unit circle is 8 mm.  The ratio we need
+        to call the script with is the wire radius divided by the unit circle's radius.
+        This is (1.9/2)/8 = 0.119, which of course is the same as the ratio of the two
+        diameters.
+
+        If you print out a table using the arguments of "-T 60", you'll see the value of
+        R for n = 56 being 0.119.  This tells me I should be able to get about 56 turns
+        through the coil.  
+
+        If you instead call the script with the arguments "-w 16 1.9", you'll get the
+        report
+
+            Hole diameter   = 16
+            Wire diameter   = 1.9
+            Diameter ratio  = 0.119
+            Number of wires = 57
+            Theoretical ratio = 0.1184
+
+        which 
+        '''))
+        exit(status)
+    def Usage(status=1):
         name = sys.argv[0]
         digits = d["-d"]
-        print(
-            dedent(f'''
+        print(dedent(f'''
         Usage:  {name} [options] n1 [n2 ...]
-        Give data on packing n1, n2, ... circles into a unit circle.
+          Give data on packing n1, n2, ... circles into a unit circle.  If there are no
+          "loose" cirles (rattles), the loose line will be printed in color to alert you.
+          Important:  remember the diameter of a unit circle is 2; in most practical
+          problems, we're interested in the diameters of the circles, so be careful of
+          not making an error of factor 2.  For the -w wire problem, the two arguments
+          are D and d, the hole diameter and wire diameter, respectively.
         Options:
-        -a        Print all records.
-        -d n      Print results to the indicated number of digits. [{digits}]
-        -r        Print key and references.
-        -s        Show the raw data table; floating point numbers are shown to the number of digits
+          -a        Print all records
+          -d n      Print results to the indicated number of digits. [{digits}]
+          -n n      Print records from 1 to n
+          -r        Print key and references
+          -s        Show the raw data table; floating point numbers are shown to the number of digits
                     specified by the -d option.
-        ''')
-        )
+          -T n      Same as -t but no key
+          -t n      Print out in table form up to element n (include a key)
+          -w        Wire problem:  how many wires of diameter d can fit through a circle
+                    of diameter D.  The two command line arguments are D and d, in that
+                    order.
+        Note:
+          The raw data in the script are given to 30 significant figures.  If you need
+          that much significance, either look at the source code or call
+          circle_packing.GetData() with use_flt=False and you'll get the Decimal
+          instances with the full precision.
+        '''))
         exit(status)
-    def ParseCommandLine(d):
-        d["-a"] = False
-        d["-d"] = 4
-        d["-s"] = False
+    def ParseCommandLine():
+        d["-a"] = False     # Print all records
+        d["-d"] = 3         # Number of significant digits
+        d["-n"] = None      # Show records 1 to n
+        d["-s"] = False     # Show raw data
+        d["-T"] = None      # Table form up to d["-T"] items
+        d["-t"] = None      # Table form up to d["-t"] items
+        d["-w"] = False     # Wire problem
         try:
-            optlist, args = getopt.getopt(sys.argv[1:], "ad:rs")
+            optlist, args = getopt.getopt(sys.argv[1:], "ad:n:rsT:t:w")
         except getopt.GetoptError as e:
             msg, option = e
             print(msg)
             exit(1)
-        for opt in optlist:
-            if opt[0] == "-a":
-                d["-a"] = not d["-a"]
-            elif opt[0] == "-d":
-                d["-d"] = int(opt[1])
-                if d["-d"] < 1 or d["-d"] > 15:
+        for o, a in optlist:
+            if o[1] in "asw":
+                d[o] = not d[o]
+            elif o == "-d":
+                d[o] = int(a)
+                if d[o] < 1 or d[o] > 15:
                     Error("Number of digits must be between 1 and 15.")
-            elif opt[0] == "-r":
+            elif o == "-n":
+                d[o] = int(a)
+                if d[o] < 1 or d[o] > 1500:
+                    Error("n must be between 1 and 1500.")
+            elif o == "-r":
                 print(man)
                 exit(0)
-            elif opt[0] == "-s":
-                d["-s"] = not d["-s"]
-        if not (d["-a"] or d["-s"]) and len(args) < 1:
+            elif o == "-t" or o == "-T":
+                d[o] = int(a)
+                if d[o] < 1 or d[o] > 1500:
+                    Error("n must be between 1 and 1500.")
+        x = flt(0)
+        x.N = d["-d"]
+        x.rtz = x.rtdp = True
+        ok = d["-a"] or d["-n"] or d["-s"] or d["-t"] or d["-T"]
+        if not ok and len(args) < 1:
             Usage(d)
         return args
 if 1:  # Core functionality
+    def TableKey():
+        print(dedent(f'''
+        Table key:
+          N         Number of contained circles
+          R         Radius of contained circles
+          Dist      Greatest distance between circles' centers
+          Ratio     1/R
+          ρ         Ratio of circles' area to container area
+          Contacts  Number of contacts between circles and container
+          Loose     Number of circles inside that can move
+          ∂         Number of circles touching container
+        '''))
     def GetData(use_flt=True, limit_size=None, check=True):
         '''Return a dictionary of the data with the integer N as the key and a
         namedtuple as the value.  If use_flt is True, then the floating point strings
-
+        
         use_flt     If True, strings will be returned as flt; otherwise, they will be a
                     Decimal instance that maintain the full significance.
-
+        
         limit_size  If not None, then it must be an integer that limits the number of
                     entries in the returned dictionary.
-
+        
         check       If True, check types and appropriateness of each entry as
                     appropriate.
         '''
@@ -1716,6 +1789,7 @@ if 1:  # Core functionality
             reference''')
         numtype = flt if use_flt else Decimal
         limit_size = None if limit_size is None else abs(int(limit_size))
+        Assert(limit_size is None or limit_size > 0)
         for i, line in enumerate(data.split("\n")):
             if not i:   # Ignore the first line
                 continue
@@ -1723,34 +1797,22 @@ if 1:  # Core functionality
             Assert(len(f) == 10)    # Must have 10 fields
             N = int(f[0])
             radius = numtype(f[1])
-            try:
-                distance = numtype(f[2])
-            except Exception:
-                distance = oops
+            distance = numtype(f[2])
             ratio = numtype(f[3])
             density = numtype(f[4])
             contacts = int(f[5])
             try:
                 loose = int(f[6])
-            except Exception:
-                loose = oops
+            except ValueError:
+                loose = 0
             boundary = int(f[7])
             symmetry = f[8].strip()
             try:
                 reference = int(f[9].strip().replace("[", "").replace("]", ""))
             except Exception:
-                reference = None
-            e = Entry(
-                radius,
-                distance,
-                ratio,
-                density,
-                contacts,
-                loose,
-                boundary,
-                symmetry,
-                reference,
-            )
+                reference = 0
+            e = Entry(radius, distance, ratio, density, contacts, loose, boundary,
+                      symmetry, reference)
             results[N] = e
             if check:
                 Assert(isinstance(N, int))
@@ -1764,56 +1826,117 @@ if 1:  # Core functionality
                 Assert(isinstance(e.symmetry, str))
                 Assert(isinstance(e.reference, int) or e.reference is None)
         return results
-
-    d = GetData()
-    exit()
-
-    def Report(n, R, d):
-        r, dist, ratio, density = [sig(i) for i in R[:4]]
+    def Report(n, R):
+        try:
+            r, dist, ratio, density = [sig(i) for i in R[:4]]
+        except ValueError as e:
+            # This should only happen for n == 1:  dist is None
+            r, dist, ratio, density = [sig(R[0]), "--", sig(R[2]), sig(R[3])]
+            special = True
         contacts, loose, boundary, group, ref = R[4:]
-        loose = "" if loose == oops else loose
-        dist = "" if R[1] == -1 else dist
+        if not group:
+            group = "C1"
         f = (r, dist, ratio, density, contacts, loose, boundary, group, ref)
         w, sp, h = max([len(str(i)) for i in f]), "  ", "  "
-        print(
-            dedent(f'''
-        Packing {n} circles into a unit circle:
-        {h}{r:{w}}{sp}Circle radius
-        {h}{dist:{w}}{sp}Largest distance between centers
-        {h}{ratio:{w}}{sp}Ratio (= 1/radius)
-        {h}{density:{w}}{sp}Density (circle area to container area)
-        {h}{contacts:<{w}}{sp}Contacts (number of contacts between circles & container)
-        {h}{loose:<{w}}{sp}Loose (number of circles within that can move "rattlers")
-        {h}{boundary:<{w}}{sp}Boundary (number of circles with container contact)
-        {h}{group:{w}}{sp}Symmetry group (Schonfliess)
-        {h}{ref:{w}}{sp}Reference
-        ''')
-        )
-    def ShowRecord(n, result, d):
+        if ref is None:
+            ref = "--"
+        t.l = t.wht if loose else t.purl
+        print(dedent(f'''
+            {t.ornl}Packing {t.grnl}{n}{t.ornl} circles into a unit circle:{t.n}
+            {h}{r:{w}}{sp}Circle radius
+            {h}{dist:{w}}{sp}Largest distance between centers
+            {h}{ratio:{w}}{sp}Ratio (= 1/radius)
+            {h}{density:{w}}{sp}Density (circle area to container area)
+            {h}{contacts:<{w}}{sp}Contacts (number of contacts between circles & container)
+            {h}{t.l}{loose:<{w}}{sp}Loose (number of circles within unit circle that can move = rattlers){t.n}
+            {h}{boundary:<{w}}{sp}Boundary (number of circles with container contact)
+            {h}{group:{w}}{sp}Symmetry group (Schönfliess)
+            {h}{ref:<{w}}{sp}Reference
+        '''))
+    def ShowRecord(n, result):
         print(n, end=" ")
-        for i in [sig(j) for j in result[:4]]:
-            print(i, end=" ")
+        for i in range(4):
+            result[i] = "--" if not result[i] else sig(result[i])
+            print(result[i], end=" ")
         result[7] = "--" if not result[7] else result[7]
         result[8] = "--" if not result[8] else result[8]
         print(" ".join([str(i).strip() for i in result[4:9]]))
+    def WireProblem(hole_diameter, wire_diameter):
+        '''Given a hole and wire diameter, how many wires can be fit through the hole?
+        The two arguments must be in the same length units and wire_diameter must be
+        less than hole_diameter.
+        '''
+        if hole_diameter <= 0:
+            Error("hole_diameter must be > 0")
+        if wire_diameter <= 0:
+            Error("wire_diameter must be > 0")
+        ratio = wire_diameter/hole_diameter
+        if ratio > 1:
+            Error("wire_diameter must be <= hole_diameter")
+        # Solution method:  Search for the smallest N such that ratio <= R.
+        found = None
+        for N in results:
+            entry = results[N]
+            if entry.radius <= ratio:
+                found = N, entry
+                break
+        if found:
+            N, entry = found
+            w, s = 25, " "*1
+            print(f"{'Hole diameter':{w}s}{s}{hole_diameter}")
+            print(f"{'Wire diameter':{w}s}{s}{wire_diameter}")
+            print(f"{'Diameter ratio':{w}s}{s}{ratio}")
+            t.print(f"{t.ornl}{'Number of wires':{w}s}{s}{t.grnl}{N}")
+            with entry.radius:
+                entry.radius.N = d["-d"] + 1
+                print(f"{'Theoretical ratio':{w}s}{s}{entry.radius}")
+
+                
+
+    def Table(n):
+        header = [
+            "N",        # Number of circles that fit into this unit circle
+            "R",        # Radius of the N circles that can be fit in this unit circle
+            "Dist",     # Greatest distance between circles' centers
+            "Ratio",    # 1/R
+            "ρ",        # Area of circles as fraction of unit circle's area
+            "Contacts", # Contacts between circles & container and between circles
+            "Loose",    # Number of circles that can moved around
+            "∂",        # Number of circles that have container contact
+        ]
+        out = []
+        for i in range(1, n + 1):
+            nt = results[i]
+            o = [i, nt.radius, nt.distance, nt.ratio, nt.density, nt.contacts, nt.loose, nt.boundary]
+            out.append([str(j) for j in o])
+        tt.print(out, header, padding=(1, 1), style=" "*15, alignment="c"*8)
 
 if __name__ == "__main__":
     d = {}
-    args = ParseCommandLine(d)
-    results = Parse()
-    breakpoint() #xx
-
+    args = ParseCommandLine()
+    results = GetData()
     sig.digits = d["-d"]
-    if d["-a"]:
-        # Print all results
-        for i in range(1, len(results) + 1):
-            Report(i, results[i], d)
+    if d["-a"] or d["-n"]:
+        n = len(results) if d["-a"] else d["-n"]
+        for i in range(1, n + 1):
+            Report(i, results[i])
     elif d["-s"]:
-        # Show the records in table form
+        # Show the records in crude table form
         print("N radius distance ratio density contacts loose boundary symmetry ref")
         n = len(results) + 1
         for i in range(1, n):
-            ShowRecord(i, list(results[i]), d)
+            ShowRecord(i, list(results[i]))
+    elif d["-t"] or d["-T"]:
+        # Show the records in more readable table form
+        if d["-T"]:
+            Table(d["-T"])
+        else:
+            Table(d["-t"])
+            TableKey()
+    elif d["-w"]:
+        hole_diameter = flt(args[0])
+        wire_diameter = flt(args[1])
+        WireProblem(hole_diameter, wire_diameter)
     else:
         for arg in args:
             try:
@@ -1822,4 +1945,4 @@ if __name__ == "__main__":
                 Error("'%s' is not an integer." % arg)
             if n < 1 or n > len(results) - 1:
                 Error("n must be > 0 and <= %d" % len(results))
-            Report(n, results[n], d)
+            Report(n, results[n])
