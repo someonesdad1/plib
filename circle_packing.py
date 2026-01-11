@@ -1,8 +1,46 @@
 '''
 Information on circle packing
 
-    Old stuff:
+This module's data came from http://hydra.nat.uni-magdeburg.de/packing/cci/ in 2014,
+giving solutions for N up to 1500.  As of 11 Jan 2026, the list is extended to 5000, but
+the numbers aren't contiguous, particularly at the high end.  I have chosen not to
+update to the latest data because the information isn't easy to extract from the web
+page and its utility is dubious unless you're e.g. doing research in the field.
 
+The main web page to visit is http://packomania.com/; both pages appear to belong to
+Eckard Sprecht eckard.specht@physik.uni-magdeburg.de.  I had an email from Sprecht on 10
+Jan 2026 saying "you have all permissions to store, transform and handle the data presented
+at packomania.com. The website can be considered as an open source."  
+
+'''
+if 1:  # Header
+    if 1:  # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        ##∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        ##∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        ##∞license∞#
+        ##∞what∞#
+        # Circle packing information
+        ##∞what∞#
+        ##∞test∞# #∞test∞#
+        pass
+    if 1:  # Imports
+        from collections import namedtuple, defaultdict
+        import sys
+        import os
+        import getopt
+        from decimal import Decimal, getcontext
+    if 1:  # Custom imports
+        import requests
+        from f import flt
+        from wrap import dedent
+        from sig import sig
+        from lwtest import Assert
+if 1:  # Global variables
+    '''
     Data from the web page http://hydra.nat.uni-magdeburg.de/packing/cci
     (downloaded 13 Apr 2014).  Here are definitions of terms:
     
@@ -39,31 +77,7 @@ Information on circle packing
         for the best known packing so far
     10 records
         the sequence of N's that establish density record
-'''
-if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # Circle packing information
-        ##∞what∞#
-        ##∞test∞# #∞test∞#
-        pass
-    if 1:  # Imports
-        from collections import namedtuple
-        import sys
-        import os
-        import getopt
-    if 1:  # Custom imports
-        import requests
-        from wrap import dedent
-        from sig import sig
-if 0:  # Global variables
+    '''
     oops = -1
     # The data are taken from the web page http://hydra.nat.uni-magdeburg.de/packing/cci
     # This site was still active on 10 Jan 2026.
@@ -1629,55 +1643,6 @@ if 0:  # Global variables
     [19]  C.O. Lopez, J.E. Beasley, A heuristic for the circle packing problem with a variety of containers, European Journal of Operational Research 214 (2011) 3, 512-525.
     [31]  , program cci, 1999-2010
     ''')
-if 1:  # Get data
-    '''
-
-    To get the latest version of the data file:
-
-    - file1 = /plib/circle_packing.data
-    - file2 = /plib/circle_packing.txt
-    - Go to http://hydra.nat.uni-magdeburg.de/packing/cci and save the web page as a
-      plain text file named /plib/circle_packing.data.  Check this version into git.
-    - When /plib/circle_packing.py runs, it looks for file1; if file1's
-      time stamp is later than file2's, then file1 is read, parsed, and saved as a new
-      file2.
-
-    Suggestions to web page owner:
-        - Provide a CSV file of only the packing data
-        - Change the file's encoding to UTF8, which is nearly universal today
-        - Try to remove any Unicode characters to get the file to be 7-bit clean.  For
-          example, when the file is converted to UTF8, there are 0x96 characters which
-          are special to latin1, but meaningless in UTF8.  It looks like this character
-          was probably being used as a hyphen.
-
-    Note the head cells of the tables are links to text files that contain that
-    particular column.
-
-    '''
-    def GetData():
-        '''Return a dictionary of the data:  key = integer number, value = named tuple.
-        Column data (base URL = http://hydra.nat.uni-magdeburg.de/packing/cci/txt/)
-            Radius          radius.txt
-            distance        distance.txt
-            ratio           ratio.txt
-            density         density.txt
-            contacts        contacts.txt
-            loose           loose.txt
-            boundary        boundary.txt
-            symmetry_group  symmetry.txt
-            author          author.txt
-        '''
-        def Get(name):
-            url = "http://hydra.nat.uni-magdeburg.de/packing/cci/txt/"
-            s = requests.get(url + name).content
-            s = s.decode()  # Change into UTF8 string
-            return s
-        radius = Get("radius.txt")
-        print(radius)
-
-    GetData()
-    exit()
-
 if 1:  # Utility
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
@@ -1724,30 +1689,58 @@ if 1:  # Utility
             Usage(d)
         return args
 if 1:  # Core functionality
-    def Parse():
-        results = {}
+    def GetData(use_flt=True, limit_size=None, check=True):
+        '''Return a dictionary of the data with the integer N as the key and a
+        namedtuple as the value.  If use_flt is True, then the floating point strings
+
+        use_flt     If True, strings will be returned as flt; otherwise, they will be a
+                    Decimal instance that maintain the full significance.
+
+        limit_size  If not None, then it must be an integer that limits the number of
+                    entries in the returned dictionary.
+
+        check       If True, check types and appropriateness of each entry as
+                    appropriate.
+        '''
+        getcontext().prec = 30  # Decimal context to preserve number of digits
+        results = defaultdict(namedtuple)
+        Entry = namedtuple("Entry", '''
+            radius
+            distance
+            ratio
+            density
+            contacts
+            loose
+            boundary
+            symmetry
+            reference''')
+        numtype = flt if use_flt else Decimal
+        limit_size = None if limit_size is None else abs(int(limit_size))
         for i, line in enumerate(data.split("\n")):
-            if not i:
+            if not i:   # Ignore the first line
                 continue
             f = line.split("\t")
-            assert len(f) == 10
+            Assert(len(f) == 10)    # Must have 10 fields
             N = int(f[0])
-            radius = float(f[1])
+            radius = numtype(f[1])
             try:
-                distance = float(f[2])
+                distance = numtype(f[2])
             except Exception:
                 distance = oops
-            ratio = float(f[3])
-            density = float(f[4])
+            ratio = numtype(f[3])
+            density = numtype(f[4])
             contacts = int(f[5])
             try:
                 loose = int(f[6])
             except Exception:
                 loose = oops
             boundary = int(f[7])
-            symmetry_group = f[8].strip()
-            reference = f[9].strip()
-            results[N] = (
+            symmetry = f[8].strip()
+            try:
+                reference = int(f[9].strip().replace("[", "").replace("]", ""))
+            except Exception:
+                reference = None
+            e = Entry(
                 radius,
                 distance,
                 ratio,
@@ -1755,10 +1748,26 @@ if 1:  # Core functionality
                 contacts,
                 loose,
                 boundary,
-                symmetry_group,
+                symmetry,
                 reference,
             )
+            results[N] = e
+            if check:
+                Assert(isinstance(N, int))
+                Assert(isinstance(e.radius, numtype))
+                Assert(isinstance(e.distance, numtype) or e.distance is None)
+                Assert(isinstance(e.ratio, numtype))
+                Assert(isinstance(e.density, numtype))
+                Assert(isinstance(e.contacts, int))
+                Assert(isinstance(e.loose, int))
+                Assert(isinstance(e.boundary, int))
+                Assert(isinstance(e.symmetry, str))
+                Assert(isinstance(e.reference, int) or e.reference is None)
         return results
+
+    d = GetData()
+    exit()
+
     def Report(n, R, d):
         r, dist, ratio, density = [sig(i) for i in R[:4]]
         contacts, loose, boundary, group, ref = R[4:]
