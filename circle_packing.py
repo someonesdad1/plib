@@ -1,8 +1,11 @@
-"""
+'''
 Information on circle packing
+
+    Old stuff:
+
     Data from the web page http://hydra.nat.uni-magdeburg.de/packing/cci
     (downloaded 13 Apr 2014).  Here are definitions of terms:
-
+    
     0  N
         The number of circles; colors correspond to active researchers in
         the past, see "References" at the bottom of the pag
@@ -33,38 +36,39 @@ Information on circle packing
         of the packing (Schonfliess notation); if field is empty then
         the packing has symmetry element C
     9  reference
-        for the best known packing so fa
+        for the best known packing so far
     10 records
-        the sequence of N 's that establish density record
-"""
-
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    ##∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    ##∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    ##∞license∞#
-    ##∞what∞#
-    # Circle packing information
-    ##∞what∞#
-    ##∞test∞# #∞test∞#
-    pass
-if 1:  # Imports
-    import sys
-    import os
-    import getopt
-    from pdb import set_trace as xx
-if 1:  # Custom imports
-    from wrap import dedent
-    from sig import sig
-if 1:  # Global variables
+        the sequence of N's that establish density record
+'''
+if 1:  # Header
+    if 1:  # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        ##∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        ##∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        ##∞license∞#
+        ##∞what∞#
+        # Circle packing information
+        ##∞what∞#
+        ##∞test∞# #∞test∞#
+        pass
+    if 1:  # Imports
+        from collections import namedtuple
+        import sys
+        import os
+        import getopt
+    if 1:  # Custom imports
+        import requests
+        from wrap import dedent
+        from sig import sig
+if 0:  # Global variables
     oops = -1
-    # The data are taken from the web page
-    # http://hydra.nat.uni-magdeburg.de/packing/cci; the fields are
-    # tab-separated.
-    data = dedent("""
+    # The data are taken from the web page http://hydra.nat.uni-magdeburg.de/packing/cci
+    # This site was still active on 10 Jan 2026.
+    # The fields are # tab-separated.  Note this covers the numbers N from 1 to 1500 inclusive.
+    data = dedent('''
     N 	radius 	distance 	ratio 	density 	contacts 	loose 	boundary 	symmetry group 	reference
     1 	1.000000000000000000000000000000 		1.0000000000000000000000000000 	1.000000000000000000000000000000 	1 		1 		
     2 	0.500000000000000000000000000000 	2.000000000000000000000000000000 	2.0000000000000000000000000000 	0.500000000000000000000000000000 	3 		2 	D2 	[2]
@@ -1567,8 +1571,8 @@ if 1:  # Global variables
     1498 	0.024160146433992760901776879445 	0.049516621699153698599912180678 	41.3904776087376437021851671363 	0.874401588216535735272618455870 	138 	1222 	4 		[31]
     1499 	0.024156106473034430898938180165 	0.049508136769145901013688248352 	41.3973999127841420947730685566 	0.874692702424927323042986701612 	2294 	73 	85 		[31]
     1500 	0.024136953276953005272501460056 	0.049467911215626035710238172068 	41.4302496477400378941120499724 	0.873888770240718629467810495615 	121 	1259 	4 		[31]
-    """)
-    man = dedent("""
+    ''')
+    man = dedent('''
     N
         The number of circles; colors correspond to active researchers in
         the past, see "References" at the bottom of the pag
@@ -1602,7 +1606,7 @@ if 1:  # Global variables
         for the best known packing so fa
     records
         the sequence of N 's that establish density record
-
+        
     References:
     [1]   S. Kravitz, Packing cylinders into cylindrical containers, Math. Mag. 40 (1967) 2, 65-71.
     [2]   U. Pirl, Der Mindestabstand von n in der Einheitskreisscheibe gelegenen Punkten, Math. Nachr. 40 (1969), 111-124.
@@ -1624,132 +1628,172 @@ if 1:  # Global variables
     [18]  J. Donovan.
     [19]  C.O. Lopez, J.E. Beasley, A heuristic for the circle packing problem with a variety of containers, European Journal of Operational Research 214 (2011) 3, 512-525.
     [31]  , program cci, 1999-2010
-    """)
+    ''')
+if 1:  # Get data
+    '''
 
+    To get the latest version of the data file:
 
-def Parse():
-    results = {}
-    for i, line in enumerate(data.split("\n")):
-        if not i:
-            continue
-        f = line.split("\t")
-        assert len(f) == 10
-        N = int(f[0])
-        radius = float(f[1])
-        try:
-            distance = float(f[2])
-        except Exception:
-            distance = oops
-        ratio = float(f[3])
-        density = float(f[4])
-        contacts = int(f[5])
-        try:
-            loose = int(f[6])
-        except Exception:
-            loose = oops
-        boundary = int(f[7])
-        symmetry_group = f[8].strip()
-        reference = f[9].strip()
-        results[N] = (
-            radius,
-            distance,
-            ratio,
-            density,
-            contacts,
-            loose,
-            boundary,
-            symmetry_group,
-            reference,
+    - file1 = /plib/circle_packing.data
+    - file2 = /plib/circle_packing.txt
+    - Go to http://hydra.nat.uni-magdeburg.de/packing/cci and save the web page as a
+      plain text file named /plib/circle_packing.data.  Check this version into git.
+    - When /plib/circle_packing.py runs, it looks for file1; if file1's
+      time stamp is later than file2's, then file1 is read, parsed, and saved as a new
+      file2.
+
+    Suggestions to web page owner:
+        - Provide a CSV file of only the packing data
+        - Change the file's encoding to UTF8, which is nearly universal today
+        - Try to remove any Unicode characters to get the file to be 7-bit clean.  For
+          example, when the file is converted to UTF8, there are 0x96 characters which
+          are special to latin1, but meaningless in UTF8.  It looks like this character
+          was probably being used as a hyphen.
+
+    Note the head cells of the tables are links to text files that contain that
+    particular column.
+
+    '''
+    def GetData():
+        '''Return a dictionary of the data:  key = integer number, value = named tuple.
+        Column data (base URL = http://hydra.nat.uni-magdeburg.de/packing/cci/txt/)
+            Radius          radius.txt
+            distance        distance.txt
+            ratio           ratio.txt
+            density         density.txt
+            contacts        contacts.txt
+            loose           loose.txt
+            boundary        boundary.txt
+            symmetry_group  symmetry.txt
+            author          author.txt
+        '''
+        def Get(name):
+            url = "http://hydra.nat.uni-magdeburg.de/packing/cci/txt/"
+            s = requests.get(url + name).content
+            s = s.decode()  # Change into UTF8 string
+            return s
+        radius = Get("radius.txt")
+        print(radius)
+
+    GetData()
+    exit()
+
+if 1:  # Utility
+    def Error(msg, status=1):
+        print(msg, file=sys.stderr)
+        exit(status)
+    def Usage(d, status=1):
+        name = sys.argv[0]
+        digits = d["-d"]
+        print(
+            dedent(f'''
+        Usage:  {name} [options] n1 [n2 ...]
+        Give data on packing n1, n2, ... circles into a unit circle.
+        Options:
+        -a        Print all records.
+        -d n      Print results to the indicated number of digits. [{digits}]
+        -r        Print key and references.
+        -s        Show the raw data table; floating point numbers are shown to the number of digits
+                    specified by the -d option.
+        ''')
         )
-    return results
-
-
-def Error(msg, status=1):
-    print(msg, file=sys.stderr)
-    exit(status)
-
-
-def Usage(d, status=1):
-    name = sys.argv[0]
-    digits = d["-d"]
-    print(
-        dedent(f"""
-    Usage:  {name} [options] n1 [n2 ...]
-      Give data on packing n1, n2, ... circles into a unit circle.
-    Options:
-      -a        Print all records.
-      -d n      Print results to the indicated number of digits. [{digits}]
-      -r        Print key and references.
-      -s        Show the raw data table; floating point numbers are shown to the number of digits
-                specified by the -d option.
-    """)
-    )
-    exit(status)
-
-
-def ParseCommandLine(d):
-    d["-a"] = False
-    d["-d"] = 4
-    d["-s"] = False
-    try:
-        optlist, args = getopt.getopt(sys.argv[1:], "ad:rs")
-    except getopt.GetoptError as e:
-        msg, option = e
-        print(msg)
-        exit(1)
-    for opt in optlist:
-        if opt[0] == "-a":
-            d["-a"] = not d["-a"]
-        elif opt[0] == "-d":
-            d["-d"] = int(opt[1])
-            if d["-d"] < 1 or d["-d"] > 15:
-                Error("Number of digits must be between 1 and 15.")
-        elif opt[0] == "-r":
-            print(man)
-            exit(0)
-        elif opt[0] == "-s":
-            d["-s"] = not d["-s"]
-    if not (d["-a"] or d["-s"]) and len(args) < 1:
-        Usage(d)
-    return args
-
-
-def Report(n, R, d):
-    r, dist, ratio, density = [sig(i) for i in R[:4]]
-    contacts, loose, boundary, group, ref = R[4:]
-    loose = "" if loose == oops else loose
-    dist = "" if R[1] == -1 else dist
-    f = (r, dist, ratio, density, contacts, loose, boundary, group, ref)
-    w, sp, h = max([len(str(i)) for i in f]), "  ", "  "
-    print(
-        dedent(f"""
-    Packing {n} circles into a unit circle:
-    {h}{r:{w}}{sp}Circle radius
-    {h}{dist:{w}}{sp}Largest distance between centers
-    {h}{ratio:{w}}{sp}Ratio (= 1/radius)
-    {h}{density:{w}}{sp}Density (circle area to container area)
-    {h}{contacts:<{w}}{sp}Contacts (number of contacts between circles & container)
-    {h}{loose:<{w}}{sp}Loose (number of circles within that can move "rattlers")
-    {h}{boundary:<{w}}{sp}Boundary (number of circles with container contact)
-    {h}{group:{w}}{sp}Symmetry group (Schonfliess)
-    {h}{ref:{w}}{sp}Reference
-    """)
-    )
-
-
-def ShowRecord(n, result, d):
-    print(n, end=" ")
-    for i in [sig(j) for j in result[:4]]:
-        print(i, end=" ")
-    result[7] = "--" if not result[7] else result[7]
-    result[8] = "--" if not result[8] else result[8]
-    print(" ".join([str(i).strip() for i in result[4:9]]))
-
+        exit(status)
+    def ParseCommandLine(d):
+        d["-a"] = False
+        d["-d"] = 4
+        d["-s"] = False
+        try:
+            optlist, args = getopt.getopt(sys.argv[1:], "ad:rs")
+        except getopt.GetoptError as e:
+            msg, option = e
+            print(msg)
+            exit(1)
+        for opt in optlist:
+            if opt[0] == "-a":
+                d["-a"] = not d["-a"]
+            elif opt[0] == "-d":
+                d["-d"] = int(opt[1])
+                if d["-d"] < 1 or d["-d"] > 15:
+                    Error("Number of digits must be between 1 and 15.")
+            elif opt[0] == "-r":
+                print(man)
+                exit(0)
+            elif opt[0] == "-s":
+                d["-s"] = not d["-s"]
+        if not (d["-a"] or d["-s"]) and len(args) < 1:
+            Usage(d)
+        return args
+if 1:  # Core functionality
+    def Parse():
+        results = {}
+        for i, line in enumerate(data.split("\n")):
+            if not i:
+                continue
+            f = line.split("\t")
+            assert len(f) == 10
+            N = int(f[0])
+            radius = float(f[1])
+            try:
+                distance = float(f[2])
+            except Exception:
+                distance = oops
+            ratio = float(f[3])
+            density = float(f[4])
+            contacts = int(f[5])
+            try:
+                loose = int(f[6])
+            except Exception:
+                loose = oops
+            boundary = int(f[7])
+            symmetry_group = f[8].strip()
+            reference = f[9].strip()
+            results[N] = (
+                radius,
+                distance,
+                ratio,
+                density,
+                contacts,
+                loose,
+                boundary,
+                symmetry_group,
+                reference,
+            )
+        return results
+    def Report(n, R, d):
+        r, dist, ratio, density = [sig(i) for i in R[:4]]
+        contacts, loose, boundary, group, ref = R[4:]
+        loose = "" if loose == oops else loose
+        dist = "" if R[1] == -1 else dist
+        f = (r, dist, ratio, density, contacts, loose, boundary, group, ref)
+        w, sp, h = max([len(str(i)) for i in f]), "  ", "  "
+        print(
+            dedent(f'''
+        Packing {n} circles into a unit circle:
+        {h}{r:{w}}{sp}Circle radius
+        {h}{dist:{w}}{sp}Largest distance between centers
+        {h}{ratio:{w}}{sp}Ratio (= 1/radius)
+        {h}{density:{w}}{sp}Density (circle area to container area)
+        {h}{contacts:<{w}}{sp}Contacts (number of contacts between circles & container)
+        {h}{loose:<{w}}{sp}Loose (number of circles within that can move "rattlers")
+        {h}{boundary:<{w}}{sp}Boundary (number of circles with container contact)
+        {h}{group:{w}}{sp}Symmetry group (Schonfliess)
+        {h}{ref:{w}}{sp}Reference
+        ''')
+        )
+    def ShowRecord(n, result, d):
+        print(n, end=" ")
+        for i in [sig(j) for j in result[:4]]:
+            print(i, end=" ")
+        result[7] = "--" if not result[7] else result[7]
+        result[8] = "--" if not result[8] else result[8]
+        print(" ".join([str(i).strip() for i in result[4:9]]))
 
 if __name__ == "__main__":
     d = {}
     args = ParseCommandLine(d)
     results = Parse()
+    breakpoint() #xx
+
     sig.digits = d["-d"]
     if d["-a"]:
         # Print all results

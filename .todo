@@ -1,5 +1,23 @@
 /plib/.todo
 
+    - fs.py command
+        - Search a set of directories for regexes for file names
+        - Put a library module in /plib to support this use case.  This makes it easy to
+          build specific commands.
+        - Adopt needed stuff from ds.py
+        - Use nightly cron to keep up to date
+        - Support the option I want in ds.py:  sometimes a single file like a specific
+          3400A manual should be opened on the search; the options should be displayed
+          only if e.g. -a for all is used
+        - py command
+            - Does regex search for names of python scripts.  Use -x option to index.
+        - pic command
+            - Does regex search for names of image files.  Use -x option to index.
+        - ALTERNATIVE
+            - Do a nightly search with a python script to locate all relevant files I
+              have in all the directories I'm likely to use.  Then the search script
+              just searches this file, which should be fast.
+
     - PC board trace resistance calculator
         - Common Cu thicknesses are in oz/ft2 with 1 oz/ft2 being 35 μm thick.  Widths
           are often in 10 mil steps.  Use -t to set the thickness and default to 35 μm.
