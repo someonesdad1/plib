@@ -513,6 +513,7 @@ if 1:  # Data
         Box 25
             25:1:M    5 mm RGB LEDs (12 cents each from banggood)   LED
             25:1:4    GR precision wirewound resistors (1, 10, 100, 1000 kΩ) from 1656 impedance bridge   resistor
+            25:1:4    Vishay precision 2 MΩ foil resistor   resistor
             25:2:13   650 nm laser 5 mW, 5 V, two wires   opto
             25:2:1    LM34 temperature IC   IC
             25:3:M    Green 5 mm LED   LED

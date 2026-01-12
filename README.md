@@ -35,35 +35,42 @@ not implemented yet):
 
 ### Formatting
 
-I used the black formatter to try out and was pleased with its speed.  When I worked on
-large projects in industry, I appreciated the attempt to standardize source code
-formatting (and saw otherwise intelligent people almost get into fistfights over
-something as trivial as tabs versus spaces for indentation).  I eventually figured out I
-didn't care for its output for my own projects.  Alas, one day I accidentally did
-something like `black *.py` and it recursively formatted all my python scripts.  Not
-tragic, but also not how I like to see my files.  If you see a script with no blank
-lines between functions/classes and ''' for the multiline strings, this is my preferred
-formatting.
+One day I accidentally formatted every python file in this tree with the black
+formatter.  I like the idea of standard formatting on large projects, but I also don't
+care for the black formatter's default choices.  I've been slowly correcting this
+mistake.  You'll see files with """ for the multiline strings and this is the formatting
+by the black formatting.  I prefer using ''' and the "fixed" files will be this way.  I
+also don't like blank lines between things because vertical real estate has always been
+the most precious on terminals and I always use a folding editor. 
 
 ## Caution
 
-The set of files in this directory are a core set of python modules and scripts I've
-written over the years for my own use.  There's some useful functionality in here, but
-it's fairly tightly coupled.  This means if you find a script you like and want to move
-it somewhere else, you may find that it's dependent on a number of other modules.  This
-will be annoying and possibly a lot of work to fix.  This repository on my system is
-`/plib` and my `PYTHONPATH` variable is `"/plib:/plib/g"`.  This repository is the
-only code I use outside of what's in the python distribution. 
+- The set of files in this directory are a core set of python modules and scripts I've
+  written over the years for my own use.  There's some useful functionality in here, but
+  it's fairly tightly coupled.  This means if you find a script you like and want to
+  move it somewhere else, you may find that it's dependent on a number of other modules.
+  This will be annoying and possibly a lot of work to fix.  This repository on my system
+  is `/plib` and my `PYTHONPATH` variable is `"/plib:/plib/g"`.  This repository is the
+  only code I use outside of what's in the python distribution. 
+- I work a lot in a bash terminal and use the /plib/color.py module to provide ANSI
+  escape sequences to colorize text output.  I used to provide -c options to turn on
+  colorization, but later I just thought that virtually everything I do is in a 24-bit
+  color terminal and the days of monochrome terminals is essentially over.  However, if
+  you use the modules/scripts in this directory, this may cause a hardship for you.
+  Currently, there's no easy way to avoid it, but coming up with a fix is on my todo
+  list.
 
 # Tools
 
 ## PostScript drawing tool
 
 The g.py and other files in the g directory are a python wrapper over PostScript for
-making drawings.  I wrote it in 2001 because there wasn't anything available at the time
-to do such tasks.  It has been used for thousands of tasks over that time with
-essentially no changes except for when python changed or an external library changed,
-requiring a fix in the g.py script.
+making drawings.  I wrote it over Thanksgiving vacation in 2001 because there wasn't
+anything available at the time to do such tasks.  It has been used for thousands of
+tasks over that time with essentially no changes except for when python changed or an
+external library changed, requiring a fix in the g.py script.  I'd like to update it to
+use SVG, but writing such library code is a lot of work and I'm not sure it would be
+worth the effort for the return.
 
 ## 0what.py
 
@@ -79,14 +86,15 @@ string (see `trigger.py`) that tells `0test.py` how to run its tests.  If you ru
 tests will print out messages.  Use the -v option to see each test's output.  The
 default output tells you the files that fail self-tests and need to be worked on.
 
-
 ## Assert()
 
-I use this function in lwtest.py a lot while writing code because I set the Assert
-environment variable to a nonempty string, causing this function to drop into the
+I use this function in lwtest.py (see below) a lot while writing code because I set the
+Assert environment variable to a nonempty string, causing this function to drop into the
 debugger when its argument is False.  I use it to evaluate incoming parameters or
 invariants in a function.  When the debugger is called, you enter "up" to go to the line
-that had the problem, letting you figure out what went wrong.
+that had the problem, letting you figure out what went wrong.  lwtest.py in turn was
+written because the standard testing framework in python intercepts the standard
+streams, meaning you can't use the debugger.
 
 # Most useful
 
@@ -165,7 +173,5 @@ Here are a few of the modules/scripts I use a lot or provide useful techniques.
       benefits is that the datafile used for the projects, directories, etc. can have a
       line commented out, meaning you'll be able to remember where the directory/project
       is years later.  My computer has around 2 million files and it's impossible to
-      remember where everything is (even if I wasn't chronologically gifted).  I wrote
-      this in the late 1990's and a number of friends at work told me they couldn't live
-      without the script.  I use it constantly at the command line.
+      remember where everything is (even if I wasn't chronologically gifted).
 

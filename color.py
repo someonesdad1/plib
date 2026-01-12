@@ -1484,7 +1484,7 @@ else:
 TRM = Trm()
 t = TRM  # I use 't' so much it should be defined
 TRM.cn = CN
-if 1:
+if 1:  # Add standard names based on resistor color code as t's attributes
     '''Add a number of attributes to the t instance giving the regular and light colors in the
     color table using my standard names.
     '''
