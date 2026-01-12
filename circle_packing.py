@@ -1647,6 +1647,14 @@ if 1:  # Global variables
         [31] , program cci, 1999–2024.
     ''')
 if 1:  # Utility
+    def GetColors():
+        t.N = t.magl
+        t.R = t.yell
+        t.Dist = t.wht
+        t.ρ = t.sky
+        t.Contacts = t.pnkl
+        t.Loose = t.ornl
+        t.Boundary = t.brnl
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
@@ -1659,14 +1667,14 @@ if 1:  # Utility
 
         This script prints out the maximum known number of equal-diameter circles that
         can be fit inside a unit circle.  Here, we'll assume our unit circle is the 16
-        mm diameter hole, so the radius of this unit circle is 8 mm.  The ratio we need
-        to call the script with is the wire radius divided by the unit circle's radius.
-        This is (1.9/2)/8 = 0.119, which of course is the same as the ratio of the two
-        diameters.
+        mm diameter hole.  We need to find the number of circles N that have a radius of
+        1.9/16 = 0.119.  Note the ratio of the diameters is the same as the ratio of the
+        corresponding radii.
 
         If you print out a table using the arguments of "-T 60", you'll see the value of
-        R for n = 56 being 0.119.  This tells me I should be able to get about 56 turns
-        through the coil.  
+        R for N = 56 being 0.119.  This tells me I should be able to get about 56 turns
+        through the coil.  R is the radius of the N equal-diameter circles that can fit
+        in a unit circle.
 
         If you instead call the script with the arguments "-w 16 1.9", you'll get the
         report
@@ -1677,23 +1685,34 @@ if 1:  # Utility
             Number of wires = 57
             Theoretical ratio = 0.1184
 
-        which 
+        which tells me that 57 wires is the number where the "theoretical ratio" is less
+        than the diameter ratio.  Here, this "theoretical ratio" is the radius R in the
+        -t report.
+
+        With the same 1.9 mm diameter wire, how many wires can be passed through a small
+        current transformer with a hole diameter of 5.1 mm?  Using the arguments "-w 5.1
+        1.9", you'll get that 5 wires can be put through the hole.  This in fact is
+        correct, as I was just barely able to do this, needing to put silicone grease on
+        the tip of the wire for the last turn as well as in the remaining space for this
+        wire.  It was a tight fit, but I was able to make it work.  This is an
+        experimental demonstration that the script's data can give practical results.
         '''))
-        exit(status)
+        exit(0)
     def Usage(status=1):
         name = sys.argv[0]
         digits = d["-d"]
         print(dedent(f'''
         Usage:  {name} [options] n1 [n2 ...]
           Give data on packing n1, n2, ... circles into a unit circle.  If there are no
-          "loose" cirles (rattles), the loose line will be printed in color to alert you.
-          Important:  remember the diameter of a unit circle is 2; in most practical
-          problems, we're interested in the diameters of the circles, so be careful of
-          not making an error of factor 2.  For the -w wire problem, the two arguments
-          are D and d, the hole diameter and wire diameter, respectively.
+          "loose" circles (rattlers), the loose line will be printed in color to alert
+          you.  Important:  remember the diameter of a unit circle is 2; in most
+          practical problems, we're interested in the diameters of the circles, so be
+          careful of not making an error of factor 2.  For the -w wire problem, the two
+          arguments are D and d, the hole diameter and wire diameter, respectively.
         Options:
           -a        Print all records
           -d n      Print results to the indicated number of digits. [{digits}]
+          -h        Show a manpage with a practical example
           -n n      Print records from 1 to n
           -r        Print key and references
           -s        Show the raw data table; floating point numbers are shown to the number of digits
@@ -1719,7 +1738,7 @@ if 1:  # Utility
         d["-t"] = None      # Table form up to d["-t"] items
         d["-w"] = False     # Wire problem
         try:
-            optlist, args = getopt.getopt(sys.argv[1:], "ad:n:rsT:t:w")
+            optlist, args = getopt.getopt(sys.argv[1:], "ad:hn:rsT:t:w")
         except getopt.GetoptError as e:
             msg, option = e
             print(msg)
@@ -1731,6 +1750,8 @@ if 1:  # Utility
                 d[o] = int(a)
                 if d[o] < 1 or d[o] > 15:
                     Error("Number of digits must be between 1 and 15.")
+            elif o == "-h":
+                Manpage()
             elif o == "-n":
                 d[o] = int(a)
                 if d[o] < 1 or d[o] > 1500:
@@ -1740,28 +1761,17 @@ if 1:  # Utility
                 exit(0)
             elif o == "-t" or o == "-T":
                 d[o] = int(a)
-                if d[o] < 1 or d[o] > 1500:
-                    Error("n must be between 1 and 1500.")
+                if d[o] < 0 or d[o] > 1500:
+                    Error("Argument must be between 0 and 1500.")
         x = flt(0)
         x.N = d["-d"]
-        x.rtz = x.rtdp = True
-        ok = d["-a"] or d["-n"] or d["-s"] or d["-t"] or d["-T"]
+        x.rtz = x.rtdp = False
+        ok = d["-a"] or d["-n"] or d["-s"] or d["-t"] is not None or d["-T"] is not None
         if not ok and len(args) < 1:
-            Usage(d)
+            Usage()
+        GetColors()
         return args
 if 1:  # Core functionality
-    def TableKey():
-        print(dedent(f'''
-        Table key:
-          N         Number of contained circles
-          R         Radius of contained circles
-          Dist      Greatest distance between circles' centers
-          Ratio     1/R
-          ρ         Ratio of circles' area to container area
-          Contacts  Number of contacts between circles and container
-          Loose     Number of circles inside that can move
-          ∂         Number of circles touching container
-        '''))
     def GetData(use_flt=True, limit_size=None, check=True):
         '''Return a dictionary of the data with the integer N as the key and a
         namedtuple as the value.  If use_flt is True, then the floating point strings
@@ -1890,26 +1900,44 @@ if 1:  # Core functionality
             with entry.radius:
                 entry.radius.N = d["-d"] + 1
                 print(f"{'Theoretical ratio':{w}s}{s}{entry.radius}")
-
-                
-
+    def TableKey():
+        print()
+        print(dedent(f'''
+        {t(attr="ul")}Table key{t.n}:
+          {t.N}N         Number of contained circles{t.n}
+          {t.R}R         Radius of contained circles{t.n}
+          {t.Dist}Dist      Greatest distance between contained circles' centers{t.n}
+          {t.ρ}ρ         Ratio of contained circles' area to container area{t.n}
+          {t.Contacts}Contacts  Number of contacts between circles and container{t.n}
+          {t.Loose}Loose     Number of circles inside that can move (rattlers){t.n}
+          {t.Boundary}∂         Number of circles touching containing circle's boundary{t.n}
+        '''))
     def Table(n):
+        if not n:
+            n = len(results)
         header = [
-            "N",        # Number of circles that fit into this unit circle
-            "R",        # Radius of the N circles that can be fit in this unit circle
-            "Dist",     # Greatest distance between circles' centers
-            "Ratio",    # 1/R
-            "ρ",        # Area of circles as fraction of unit circle's area
-            "Contacts", # Contacts between circles & container and between circles
-            "Loose",    # Number of circles that can moved around
-            "∂",        # Number of circles that have container contact
+            f"{t.N}N",
+            f"{t.R}R",
+            f"{t.Dist}Dist",
+            f"{t.ρ}ρ",
+            f"{t.Contacts}Contacts",
+            f"{t.Loose}Loose",
+            f"{t.Boundary}∂{t.n}",
         ]
         out = []
         for i in range(1, n + 1):
             nt = results[i]
-            o = [i, nt.radius, nt.distance, nt.ratio, nt.density, nt.contacts, nt.loose, nt.boundary]
-            out.append([str(j) for j in o])
-        tt.print(out, header, padding=(1, 1), style=" "*15, alignment="c"*8)
+            s = nt.loose if nt.loose else ""
+            o = [f"{t.N}{i}", 
+                 f"{t.R}{nt.radius}",
+                 f"{t.Dist}{nt.distance}",
+                 f"{t.ρ}{nt.density}",
+                 f"{t.Contacts}{nt.contacts}",
+                 f"{t.Loose}{s}",
+                 f"{t.Boundary}{nt.boundary}{t.n}"
+            ]
+            out.append(o)
+        tt.print(out, header, padding=(1, 1), style=" "*15, alignment="c"*len(header))
 
 if __name__ == "__main__":
     d = {}
@@ -1926,7 +1954,7 @@ if __name__ == "__main__":
         n = len(results) + 1
         for i in range(1, n):
             ShowRecord(i, list(results[i]))
-    elif d["-t"] or d["-T"]:
+    elif d["-t"] is not None or d["-T"] is not None:
         # Show the records in more readable table form
         if d["-T"]:
             Table(d["-T"])

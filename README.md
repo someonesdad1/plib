@@ -1,6 +1,6 @@
 # plib
 
-[plib](https://github.com/someonesdad1/plib) Last updated 28 Feb 2025 
+[plib](https://github.com/someonesdad1/plib) Last updated 12 Jan 2026
 
 This repository is a collection of python stuff I've written since 1998.  
 
@@ -11,7 +11,8 @@ This repository is a collection of python stuff I've written since 1998.
 - `plib/doc` holds things related to documentation
 - `plib/lib` holds things that support a few of the modules in `plib`
 
-Click on the following links to get more information:
+Click on the following links to get more information (note:  this structure is planned but
+not implemented yet):
 
 - [plib](doc/modules.html) Information on plib's modules
 - [pgm](doc/pgm.html) Information on plib/pgm's scripts
