@@ -1,10 +1,8 @@
-"""
+'''
 bama is a dict of keys "manufacturer" with a set of values of model numbers as of
 24 Nov 2024 on https://bama.edebris.com/manuals/.
-"""
-
+'''
 import re
-
 bama = {
     "3h-industries": ["swinger two"],
     "aade": ["dfd103"],
@@ -5630,9 +5628,7 @@ if __name__ == "__main__":
     import getopt
     import os
     import sys
-
     if 1:  # Utility
-
         def LeadingSpaces(s):
             "Return the number of space characters at the beginning of string s"
             if not s:
@@ -5645,22 +5641,18 @@ if __name__ == "__main__":
                 else:
                     break
             return count
-
         def IsBlankOrSpaces(s):
             "For string s, return True if it's empty or contains only spaces"
             empty, only_spaces = set(), set(" ")
             return set(s) == empty or set(s) == only_spaces
-
         def dedent(s):
             '''For the multiline string s, remove common leading space characters.  The use case is for
             help strings in scripts, allowing arbitrary leading and trailing newlines that are removed.
             Example:  dedent(s) for
-                s = """
-
+                s = '''
                 Line 1
                 Line 2
-
-                """
+                '''
             will return 'Line 1\n  Line 2'.
             '''
             # If s is the empty string, return the empty string
@@ -5696,15 +5688,13 @@ if __name__ == "__main__":
                 lines = [i[n:] for i in lines]
             # Return the dedented string
             return "\n".join(lines)
-
         def Error(*msg, status=1):
             print(*msg, file=sys.stderr)
             exit(status)
-
         def Usage(status=0):
             pgm = sys.argv[0]
             print(
-                dedent(f"""
+                dedent(f'''
             Usage:  {pgm} [options] regex1 [regex2...]
               Search for manufacturers & model numbers on BAMA.  Searches are 
               case insensitive.  Regular expressions are python's re module's
@@ -5724,10 +5714,9 @@ if __name__ == "__main__":
               '{pgm} -m simpson .'
                 Show only instruments from manufacturers with 'simpson' in
                 their name.
-            """)
+            ''')
             )
             exit(status)
-
         def ParseCommandLine(d):
             d["-l"] = False  # Only list manufacturers
             d["-m"] = None  # Search only for this manufacturer
@@ -5745,18 +5734,14 @@ if __name__ == "__main__":
                 elif o in ("-m",):
                     d[o] = a
             return args
-
     if 1:  # Searching functionality
-
         def Search(regex):
             regex_printed = False
-
             def PrintRegex():
                 nonlocal regex_printed
                 if not regex_printed:
                     print(f"Search term = {regex!r}")
                     regex_printed = True
-
             r, mfg, model = re.compile(regex, re.I), [], defaultdict(list)
             indent = " " * 2
             # Find manufacturers that match
@@ -5785,8 +5770,6 @@ if __name__ == "__main__":
                 for mfg in model:
                     for inst in model[mfg]:
                         print(f"{indent * 2}{inst} ({mfg})")
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

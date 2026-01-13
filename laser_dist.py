@@ -90,17 +90,17 @@ def DistAcrossRiver(AB, BD, AC, BC, AD, eps=1e-4):
             Eps = ToUnc(eps)
             # Estimate partial derivatives
             da = (CD((1 + Eps)*AB, BD, AC, BC, AD) - CD_est)/(Eps*AB)
-            db = (CD(AB, (1 + Eps) * BD, AC, BC, AD) - CD_est)/(Eps*BD)
-            dc = (CD(AB, BD, (1 + Eps) * AC, BC, AD) - CD_est)/(Eps*AC)
-            dd = (CD(AB, BD, AC, (1 + Eps) * BC, AD) - CD_est)/(Eps*BC)
-            de = (CD(AB, BD, AC, BC, (1 + Eps) * AD) - CD_est)/(Eps*AD)
+            db = (CD(AB, (1 + Eps)*BD, AC, BC, AD) - CD_est)/(Eps*BD)
+            dc = (CD(AB, BD, (1 + Eps)*AC, BC, AD) - CD_est)/(Eps*AC)
+            dd = (CD(AB, BD, AC, (1 + Eps)*BC, AD) - CD_est)/(Eps*BC)
+            de = (CD(AB, BD, AC, BC, (1 + Eps)*AD) - CD_est)/(Eps*AD)
     CD_est = CD(AB, BD, AC, BC, AD)
     # Estimate partial derivatives
     da = (CD((1 + eps)*AB, BD, AC, BC, AD) - CD_est)/(eps*AB)
-    db = (CD(AB, (1 + eps) * BD, AC, BC, AD) - CD_est)/(eps*BD)
-    dc = (CD(AB, BD, (1 + eps) * AC, BC, AD) - CD_est)/(eps*AC)
-    dd = (CD(AB, BD, AC, (1 + eps) * BC, AD) - CD_est)/(eps*BC)
-    de = (CD(AB, BD, AC, BC, (1 + eps) * AD) - CD_est)/(eps*AD)
+    db = (CD(AB, (1 + eps)*BD, AC, BC, AD) - CD_est)/(eps*BD)
+    dc = (CD(AB, BD, (1 + eps)*AC, BC, AD) - CD_est)/(eps*AC)
+    dd = (CD(AB, BD, AC, (1 + eps)*BC, AD) - CD_est)/(eps*BC)
+    de = (CD(AB, BD, AC, BC, (1 + eps)*AD) - CD_est)/(eps*AD)
     return CD_est, da, db, dc, dd, de
 def CrownMolding(wall_angle, crown_angle):
     '''Given a molding that must be fit to a given wall_angle, the

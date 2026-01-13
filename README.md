@@ -11,17 +11,17 @@ This repository is a collection of python stuff I've written since 1998.
 - `plib/doc` holds things related to documentation
 - `plib/lib` holds things that support a few of the modules in `plib`
 
-Click on the following links to get more information (note:  this structure is planned but
-not implemented yet):
+Click on the following links to get more information (**note:  this structure is planned but
+not implemented yet**):
 
 - [plib](doc/modules.html) Information on plib's modules
 - [pgm](doc/pgm.html) Information on plib/pgm's scripts
 - [lib](doc/lib.html) Information on plib/lib's content
 - [roadmap](doc/roadmap.html) How I plan to change things in this repository
 
-## Roadmap for 2025
+## Plans for 2026
 
-- Create HTML pages to make it easier to browse/find content
+- Create above HTML pages to make it easier to browse/find content
     - Alphabetized
     - By subject
     - Things I think are of interest
@@ -41,7 +41,8 @@ care for the black formatter's default choices.  I've been slowly correcting thi
 mistake.  You'll see files with """ for the multiline strings and this is the formatting
 by the black formatting.  I prefer using ''' and the "fixed" files will be this way.  I
 also don't like blank lines between things because vertical real estate has always been
-the most precious on terminals and I always use a folding editor. 
+the most precious on terminals and I always use a folding editor, so it's not a hardship
+to see vertically-compressed files. 
 
 ## Caution
 
