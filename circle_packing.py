@@ -151,6 +151,7 @@ if __name__ == "__main__":
     if 1:  # Imports
         from collections import namedtuple, defaultdict
         from decimal import Decimal, getcontext
+        from math import modf
         import sys
         import os
         import getopt
@@ -167,10 +168,12 @@ if __name__ == "__main__":
             debug.SetDebugger()
     if 1:  # Utility
         def GetColors():
+            t.Title = t.redl
             t.N = t.magl
             t.R = t.yell
             t.Dist = t.wht
-            t.ρ = t.sky
+            t.Ratio = t.wht
+            t.Density = t.sky
             t.Contacts = t.pnkl
             t.Loose = t.ornl
             t.Boundary = t.brnl
@@ -179,42 +182,17 @@ if __name__ == "__main__":
             exit(status)
         def Manpage():
             print(dedent(f'''
-            Here's a practical example of the use of this script.
-    
-            I have a toroidal current transformer with a hole of diameter 16 mm through it.
-            How many turns of 1.9 mm outside diameter wire can I get through this hole?
-    
-            This script prints out the maximum known number of equal-diameter circles that
-            can be fit inside a unit circle.  Here, we'll assume our unit circle is the 16
-            mm diameter hole.  We need to find the number of circles N that have a radius of
-            1.9/16 = 0.119.  Note the ratio of the diameters is the same as the ratio of the
-            corresponding radii.
-    
-            If you print out a table using the arguments of "-T 60", you'll see the value of
-            R for N = 56 being 0.119.  This tells me I should be able to get about 56 turns
-            through the coil.  R is the radius of the N equal-diameter circles that can fit
-            in a unit circle.
-    
-            If you instead call the script with the arguments "-w 16 1.9", you'll get the
-            report
-    
-                Hole diameter   = 16
-                Wire diameter   = 1.9
-                Diameter ratio  = 0.119
-                Number of wires = 57
-                Theoretical ratio = 0.1184
-    
-            which tells me that 57 wires is the number where the "theoretical ratio" is less
-            than the diameter ratio.  Here, this "theoretical ratio" is the radius R in the
-            -t report.
-    
-            With the same 1.9 mm diameter wire, how many wires can be passed through a small
-            current transformer with a hole diameter of 5.1 mm?  Using the arguments "-w 5.1
-            1.9", you'll get that 5 wires can be put through the hole.  This in fact is
-            correct, as I was just barely able to do this, needing to put silicone grease on
-            the tip of the wire for the last turn as well as in the remaining space for this
-            wire.  It was a tight fit, but I was able to make it work.  This is an
-            experimental demonstration that the script's data can give practical results.
+            Here are some problems solved by the use of this script.
+             
+            {t.ornl}Winding a toroidal transformer{t.n}
+                I have a small toroidal current transformer with a hole of diameter 5.1
+                mm through it.  How many turns of 1.9 mm outside diameter wire can I get
+                through this hole?  Run the script with arguments "-w 16 1.9" and you'll
+                get that the number of wires (turns) is 5.  This is correct, as I was
+                just barely able to do this, needing to put silicone grease on the tip
+                of the wire for the last turn as well as in the remaining space for this
+                wire.  It was a tight fit, but I was able to make it work.
+
             '''))
             exit(0)
         def Usage(status=1):
@@ -222,24 +200,27 @@ if __name__ == "__main__":
             digits = d["-d"]
             print(dedent(f'''
             Usage:  {name} [options] n1 [n2 ...]
-              Give data on packing n1, n2, ... circles into a unit circle.  If there are no
-              "loose" circles (rattlers), the loose line will be printed in color to alert
-              you.  Important:  remember the diameter of a unit circle is 2; in most
-              practical problems, we're interested in the diameters of the circles, so be
-              careful of not making an error of factor 2.  For the -w wire problem, the two
-              arguments are D and d, the hole diameter and wire diameter, respectively.
+              Give data on packing n1, n2, ... circles into a unit circle.  n1, n2, etc.
+              are interpreted as integers, but if they contain "." or "e" or "E", they
+              are interpreted as floating point numbers; a fractional part 0.5 or larger
+              is rounded up.  Sign is ignored.
+              
+              If there are no "loose" circles (rattlers), the Loose column is empty.
+              {t.purl}Important{t.n}:  remember the diameter of a unit circle is 2; in
+              most practical problems, we're interested in the diameters of the circles,
+              so be careful of not making an error of factor 2.
             Options:
               -a        Print all records
               -d n      Print results to the indicated number of digits. [{digits}]
-              -h        Show a manpage with a practical example
+              -h        Show some examples of use
               -n n      Print records from 1 to n
               -r        Print key and references
               -s        Show the raw data table; floating point numbers are shown to the number of digits
                         specified by the -d option.
-              -T n      Same as -t but no key
-              -t n      Print out in table form up to element n (include a key)
+              -T n      Print out in table form up to element n (include a key)
+              -t n      Print out in table form up to element n
               -w        Wire problem:  how many wires of diameter d can fit through a circle
-                        of diameter D.  The two command line arguments are D and d, in that
+                        of diameter D?  The two command line arguments are D and d, in that
                         order.
             '''))
             exit(status)
@@ -286,96 +267,22 @@ if __name__ == "__main__":
             GetColors()
             return args
     if 1:  # Core functionality
-        def GetData(use_flt=True, limit_size=None, check=True):
-            '''Return a dictionary of the data with the integer N as the key and a
-            namedtuple as the value.  If use_flt is True, then the floating point strings
-            
-            use_flt     If True, strings will be returned as flt; otherwise, they will be a
-                        Decimal instance that maintain the full significance.
-            
-            limit_size  If not None, then it must be an integer that limits the number of
-                        entries in the returned dictionary.
-            
-            check       If True, check types and appropriateness of each entry as
-                        appropriate.
-            '''
-            getcontext().prec = 30  # Decimal context to preserve number of digits
-            results = defaultdict(namedtuple)
-            Entry = namedtuple("Entry", '''
-                radius
-                distance
-                ratio
-                density
-                contacts
-                loose
-                boundary
-                symmetry
-                reference''')
-            numtype = flt if use_flt else Decimal
-            limit_size = None if limit_size is None else abs(int(limit_size))
-            Assert(limit_size is None or limit_size > 0)
-            for i, line in enumerate(data.split("\n")):
-                if not i:   # Ignore the first line
-                    continue
-                f = line.split("\t")
-                Assert(len(f) == 10)    # Must have 10 fields
-                N = int(f[0])
-                radius = numtype(f[1])
-                distance = numtype(f[2])
-                ratio = numtype(f[3])
-                density = numtype(f[4])
-                contacts = int(f[5])
-                try:
-                    loose = int(f[6])
-                except ValueError:
-                    loose = 0
-                boundary = int(f[7])
-                symmetry = f[8].strip()
-                try:
-                    reference = int(f[9].strip().replace("[", "").replace("]", ""))
-                except Exception:
-                    reference = 0
-                e = Entry(radius, distance, ratio, density, contacts, loose, boundary,
-                          symmetry, reference)
-                results[N] = e
-                if check:
-                    Assert(isinstance(N, int))
-                    Assert(isinstance(e.radius, numtype))
-                    Assert(isinstance(e.distance, numtype) or e.distance is None)
-                    Assert(isinstance(e.ratio, numtype))
-                    Assert(isinstance(e.density, numtype))
-                    Assert(isinstance(e.contacts, int))
-                    Assert(isinstance(e.loose, int))
-                    Assert(isinstance(e.boundary, int))
-                    Assert(isinstance(e.symmetry, str))
-                    Assert(isinstance(e.reference, int) or e.reference is None)
-            return results
-        def Report(n, R):
-            try:
-                r, dist, ratio, density = [sig(i) for i in R[:4]]
-            except ValueError as e:
-                # This should only happen for n == 1:  dist is None
-                r, dist, ratio, density = [sig(R[0]), "--", sig(R[2]), sig(R[3])]
-                special = True
-            contacts, loose, boundary, group, ref = R[4:]
-            if not group:
-                group = "C1"
-            f = (r, dist, ratio, density, contacts, loose, boundary, group, ref)
-            w, sp, h = max([len(str(i)) for i in f]), "  ", "  "
-            if ref is None:
-                ref = "--"
-            t.l = t.wht if loose else t.purl
+        def Report(n):
+            'n is the number of circles'
+            R = results[n]
+            _, radius, distance, ratio, density, contacts, loose, boundary, symmetry, reference = R
+            w = max(len(str(i)) for i in R[:-1])
+            h, sp = " "*2, " "*2
             print(dedent(f'''
-                {t.ornl}Packing {t.grnl}{n}{t.ornl} circles into a unit circle:{t.n}
-                {h}{r:{w}}{sp}Circle radius
-                {h}{dist:{w}}{sp}Largest distance between centers
-                {h}{ratio:{w}}{sp}Ratio (= 1/radius)
-                {h}{density:{w}}{sp}Density (circle area to container area)
-                {h}{contacts:<{w}}{sp}Contacts (number of contacts between circles & container)
-                {h}{t.l}{loose:<{w}}{sp}Loose (number of circles within unit circle that can move = rattlers){t.n}
-                {h}{boundary:<{w}}{sp}Boundary (number of circles with container contact)
-                {h}{group:{w}}{sp}Symmetry group (Schönfliess)
-                {h}{ref:<{w}}{sp}Reference
+                {t.Title}Packing {t.N}{n}{t.Title} circles into a unit circle:{t.n}
+                {h}{t.R}{radius!s:{w}}{sp}Circle radius{t.n}
+                {h}{t.Dist}{distance!s:{w}}{sp}Largest distance between centers{t.n}
+                {h}{t.Ratio}{ratio!s:{w}}{sp}Ratio (= 1/radius){t.n}
+                {h}{t.Density}{density!s:{w}}{sp}Density (circle area to container area){t.n}
+                {h}{t.Contacts}{contacts:<{w}}{sp}Contacts (number of contacts between circles & container){t.n}
+                {h}{t.Loose}{loose:<{w}}{sp}Loose (number of circles within unit circle that can move = rattlers){t.n}
+                {h}{t.Boundary}{boundary:<{w}}{sp}Boundary (number of circles with container contact){t.n}
+                {h}{symmetry:{w}}{sp}Symmetry group (Schönfliess)
             '''))
         def ShowRecord(n, result):
             print(n, end=" ")
@@ -421,10 +328,10 @@ if __name__ == "__main__":
               {t.N}N         Number of contained circles{t.n}
               {t.R}R         Radius of contained circles{t.n}
               {t.Dist}Dist      Greatest distance between contained circles' centers{t.n}
-              {t.ρ}ρ         Ratio of contained circles' area to container area{t.n}
+              {t.Density}Density         Ratio of contained circles' area to container area{t.n}
               {t.Contacts}Contacts  Number of contacts between circles and container{t.n}
               {t.Loose}Loose     Number of circles inside that can move (rattlers){t.n}
-              {t.Boundary}∂         Number of circles touching containing circle's boundary{t.n}
+              {t.Boundary}Boundary         Number of circles touching containing circle's boundary{t.n}
             '''))
         def Table(n):
             if not n:
@@ -433,10 +340,10 @@ if __name__ == "__main__":
                 f"{t.N}N",
                 f"{t.R}R",
                 f"{t.Dist}Dist",
-                f"{t.ρ}ρ",
+                f"{t.Density}Density",
                 f"{t.Contacts}Contacts",
                 f"{t.Loose}Loose",
-                f"{t.Boundary}∂{t.n}",
+                f"{t.Boundary}Boundary{t.n}",
             ]
             out = []
             for i in range(1, n + 1):
@@ -445,7 +352,7 @@ if __name__ == "__main__":
                 o = [f"{t.N}{i}", 
                      f"{t.R}{nt.radius}",
                      f"{t.Dist}{nt.distance}",
-                     f"{t.ρ}{nt.density}",
+                     f"{t.Density}{nt.density}",
                      f"{t.Contacts}{nt.contacts}",
                      f"{t.Loose}{s}",
                      f"{t.Boundary}{nt.boundary}{t.n}"
@@ -457,10 +364,14 @@ if __name__ == "__main__":
     args = ParseCommandLine()
     results = GetData()
     sig.digits = d["-d"]
-    if d["-a"] or d["-n"]:
-        n = len(results) if d["-a"] else d["-n"]
-        for i in range(1, n + 1):
-            Report(i, results[i])
+    if d["-a"]:
+        for i in results:
+            Report(i)
+    elif d["-n"]:
+        for i, j in enumerate(results):
+            Report(j)
+            if i >= d["-n"]:
+                break
     elif d["-s"]:
         # Show the records in crude table form
         print("N radius distance ratio density contacts loose boundary symmetry ref")
@@ -471,9 +382,9 @@ if __name__ == "__main__":
         # Show the records in more readable table form
         if d["-T"]:
             Table(d["-T"])
+            TableKey()
         else:
             Table(d["-t"])
-            TableKey()
     elif d["-w"]:
         hole_diameter = flt(args[0])
         wire_diameter = flt(args[1])
@@ -481,9 +392,20 @@ if __name__ == "__main__":
     else:
         for arg in args:
             try:
-                n = int(arg)
+                if "." in arg or "e" in arg.lower():
+                    # It's a float, so round to the nearest integer.  If the fractional
+                    # part is 0.5 or larger, round up; otherwise round down.
+                    fp, ip = modf(abs(float(arg)))
+                    if fp >= 0.5:
+                        n = int(ip + 1)
+                    else:
+                        n = int(ip)
+                else:
+                    n = abs(int(arg))
             except Exception:
                 Error("'%s' is not an integer." % arg)
-            if n < 1 or n > len(results) - 1:
-                Error("n must be > 0 and <= %d" % len(results))
-            Report(n, results[n])
+            if n < 1:
+                Error("n cannot be zero")
+            if n not in results:
+                Error(f"{n} is not in the dictionary")
+            Report(n)
