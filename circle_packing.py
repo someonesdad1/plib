@@ -9,7 +9,7 @@ Module to encapsulate circle packing information
     The following keyword parameters can control the nature of the dictionary you get
     returned
 
-    N           An integer representing the maximum number of elements in the dictionary
+    maxsize     An integer representing the maximum number of elements in the dictionary
                 to be returned.  If N is 0, all elements will be returned.
 
     numtype     The floating point number type used to contain the information.  
@@ -23,14 +23,13 @@ Module to encapsulate circle packing information
                 interpolation.  You can use any suitable numerical type that can convert
                 the raw strings.
 
-    The nametuple returned in the dictionary has the following elements (nt means the
-    numtype given above)
+    The nametuple returned in the dictionary has the following elements:
 
     N           int     The number of circles
-    radius      nt      The radius of the circles in the unit circle
-    distance    nt      The largest distance between the circles
-    ratio       nt      The reciprocal of the radius
-    density     nt      Ratio of circles' area to area of unit circle
+    radius      numtype The radius of the circles in the unit circle
+    distance    numtype The largest distance between the circles
+    ratio       numtype The reciprocal of the radius
+    density     numtype Ratio of circles' area to area of unit circle
     contacts    int     Number of tangent points between all the circles
     loose       int     Number of circles whose center can move before contacting another circle
     boundary    int     Number of circles that are tangent to the unit circle
@@ -171,10 +170,10 @@ if 1:  # Core functionality
         '''
         return [i.radius for i in data.values()]
     def WireProblem(diameter1, diameter2):
-        '''Given a hole and wire diameter, how many wires can be fit through the hole?
+        '''Given a hole and wire diameters, how many wires will fit through the hole?
         The two arguments must be in the same length units; the wire diameter is the
-        smaller of the two.  Returns the namedtuple containing the solution or None if
-        there is no solution.
+        smaller of the two.  Returns the namedtuple containing the solution or None for
+        no solution.
         '''
         if not diameter1 or not diameter2:
             raise ValueError("Diameter arguments cannot be zero")
@@ -184,12 +183,11 @@ if 1:  # Core functionality
         data = GetData()
         if ratio > 1/2:
             return data[1]
-        # Method of solution:  get the list of radii in sorted order, then search for
-        # the leftmost value that is greater than the diameter ratio.  This is done by
-        # binary search using the bisect module.
+        # Method of solution:  get the list of radii in sorted order by reversing, then
+        # search for the leftmost value that is greater than the diameter ratio.  This
+        # is done by binary search using the bisect module.
         radii = GetRadii(data)
-        revradii = list(reversed(radii))   # Put in canonical sorted order
-        def find_gt(a, x):
+        def find_gt(a, x):  # This is from the bisect manpage
             'Find leftmost value greater than x and return its index in original list'
             i = bisect.bisect_right(a, x)
             if i != len(a):
@@ -197,7 +195,7 @@ if 1:  # Core functionality
                 return len(radii) - i
             raise ValueError
         try:
-            N = find_gt(revradii, ratio)
+            N = find_gt(list(reversed(radii)), ratio)
             return data[N]
         except ValueError:
             return None
@@ -416,15 +414,15 @@ if __name__ == "__main__":
             ]
             out = []
             for i in range(1, n + 1):
-                nt = results[i]
-                s = nt.loose if nt.loose else ""
+                item = results[i]
+                s = item.loose if item.loose else ""
                 o = [f"{t.N}{i}", 
-                     f"{t.R}{nt.radius}",
-                     f"{t.Dist}{nt.distance}",
-                     f"{t.Density}{nt.density}",
-                     f"{t.Contacts}{nt.contacts}",
+                     f"{t.R}{item.radius}",
+                     f"{t.Dist}{item.distance}",
+                     f"{t.Density}{item.density}",
+                     f"{t.Contacts}{item.contacts}",
                      f"{t.Loose}{s}",
-                     f"{t.Boundary}{nt.boundary}{t.n}"
+                     f"{t.Boundary}{item.boundary}{t.n}"
                 ]
                 out.append(o)
             tt.print(out, header, padding=(1, 1), style=" "*15, alignment="c"*len(header))
