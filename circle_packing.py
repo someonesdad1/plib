@@ -67,25 +67,30 @@ Module to encapsulate circle packing information
 
     ---------------------------------------------------------------------------
 
-    I don't need this type of information very often, but occasionally it's useful.  One
-    example of use is figuring out how many wires can be put through a hole.  If you
-    have a selection of different wire diameters, then you're probably on your own to
-    solve it experimentally.  However, in my case, I was interested in seeing how many
-    turns I could get through the center hole of a small toroidal current transformer.
-    The hole diameter was 5.1 mm and the outside diameter of the silicone rubber
-    insulation of the 22 AWG wire was 1.9 mm.  With the script arguments "-w 5.1 1.9",
-    you'll find that 5 wires can be put through the hole.  This was correct, as I was
-    just barely able to do this:  I had to put silicone grease on the tip of the wire
-    for the last turn as well as in the remaining space through the hole for this wire.
-    It was a tight fit, but I was able to make it work.  This demonstrates that the
-    script can give practical results.
+    Here's a practical example of use.  I have a small toroidal current transformer with a 
+    central hole of diameter 5.1 mm.  How many wires with an outside diameter of 1.9 mm
+    can I fit through this hole?  With the script arguments "-w 5.1 1.9", the results
+    are
 
-    The little current transformer in the previous paragraph sells on Amazon for around
-    $2 each, with 5 in a bag.  These are nominally rated at 5 A and they come on a PC
-    board with an LM358 op amp and a 10-turn pot to control the gain.  The bandwidth is
-    around 3 kHz.  These make inexpensive monitors for AC line current at up to about 5
-    A and you can get resolution down to around 10 mA.  Thus, this is a good tool for
-    monitoring lower AC currents in appliances.
+        Hole diameter             5.10
+        Wire diameter             1.90
+        Diameter ratio            0.373
+        Number of wires           5        <--
+        Theoretical ratio         0.3702
+
+    I was just barely able to get 5 wires through the transformer's hole:  I had to put
+    silicone grease on the tip of the wire for the last turn as well as in the remaining
+    space through the hole for this wire.  It was a tight fit, but I was able to make it
+    work.
+
+    Another way of solving this problem is to calculate the diameter ratio.  Here, it's
+    0.373.  Then use the script arguments "-t 50" to see a table of the first 50
+    elements.  Scan the R column for a number close to 0.373 and you'll spot N = 5
+    quickly.
+
+    Another similar problem was how many turns could I get of 5.7 mm diameter wire
+    through a 16 mm diameter hole.  The ratio is 0.356 and the table from the previous
+    paragraph shows that I might get 6 wires through.
 
 '''
 if 1:  # Header
@@ -104,6 +109,7 @@ if 1:  # Header
         pass
     if 1:  # Imports
         from collections import namedtuple
+        import bisect
         import csv
     if 1:  # Custom imports
         from f import flt
@@ -122,30 +128,79 @@ if 1:  # Core functionality
         The numbers that contain decimal points will be converted to the numtype type
         keyword.  If numtype is None, they will remain as the original strings.
         '''
-        if numtype is None:
-            numtype = lambda x: x
-        file = "circle_packing.csv"
-        data = {}
-        with open(file, newline='') as csvfile:
-            reader = csv.reader(csvfile)
-            count = 0
-            for row in reader:
-                N = int(row[0])
-                radius = numtype(row[1])
-                distance = numtype(row[2])
-                ratio = numtype(row[3])
-                density = numtype(row[4])
-                contacts = int(row[5])
-                loose = int(row[6])
-                boundary = int(row[7])
-                symmetry = row[8]
-                reference = row[9]
-                data[N] = Entry(N, radius, distance, ratio, density, contacts, loose,
-                                boundary, symmetry, reference)
-                count += 1
-                if maxsize and count >= maxsize:
-                    break
+        # See if we can use a cached version
+        if hasattr(GetData, "flt"):
+            data = GetData.flt
+        elif hasattr(GetData, "decimal"):
+            data = GetData.decimal
+        elif hasattr(GetData, "none"):
+            data = GetData.none
+        else:
+            if numtype is None:
+                numtype = lambda x: x
+            file = "circle_packing.csv"
+            data = {}
+            with open(file, newline='') as csvfile:
+                reader = csv.reader(csvfile)
+                for row in reader:
+                    N = int(row[0])
+                    radius    = numtype(row[1])
+                    distance  = numtype(row[2])
+                    ratio     = numtype(row[3])
+                    density   = numtype(row[4])
+                    contacts  = int(row[5])
+                    loose     = int(row[6])
+                    boundary  = int(row[7])
+                    symmetry  = row[8]
+                    reference = row[9]
+                    data[N]   = Entry(N, radius, distance, ratio, density, contacts, loose,
+                                    boundary, symmetry, reference)
+            # Cache the data
+            if numtype is flt:
+                GetData.flt = data
+            elif numtype is Decimal:
+                GetData.decimal = data
+            elif numtype is None:
+                GetData.none = data
+        if maxsize:
+            data = dict(list(data.items())[:abs(maxsize)])
         return data
+    def GetRadii(data):
+        '''data is a dict returned by GetData().  Return a list of the radius elements
+        of each namedtuple.
+        '''
+        return [i.radius for i in data.values()]
+    def WireProblem(diameter1, diameter2):
+        '''Given a hole and wire diameter, how many wires can be fit through the hole?
+        The two arguments must be in the same length units; the wire diameter is the
+        smaller of the two.  Returns the namedtuple containing the solution or None if
+        there is no solution.
+        '''
+        if not diameter1 or not diameter2:
+            raise ValueError("Diameter arguments cannot be zero")
+        ratio = abs(diameter1)/abs(diameter2)
+        if ratio > 1:
+            ratio = 1/ratio
+        data = GetData()
+        if ratio > 1/2:
+            return data[1]
+        # Method of solution:  get the list of radii in sorted order, then search for
+        # the leftmost value that is greater than the diameter ratio.  This is done by
+        # binary search using the bisect module.
+        radii = GetRadii(data)
+        revradii = list(reversed(radii))   # Put in canonical sorted order
+        def find_gt(a, x):
+            'Find leftmost value greater than x and return its index in original list'
+            i = bisect.bisect_right(a, x)
+            if i != len(a):
+                # Return the index in the original list
+                return len(radii) - i
+            raise ValueError
+        try:
+            N = find_gt(revradii, ratio)
+            return data[N]
+        except ValueError:
+            return None
 
 if __name__ == "__main__":
     if 1:  # Imports
@@ -163,7 +218,7 @@ if __name__ == "__main__":
         from lwtest import Assert
         from color import t
         import termtables as tt
-        if 0:
+        if 1:
             import debug
             debug.SetDebugger()
     if 1:  # Utility
@@ -219,8 +274,8 @@ if __name__ == "__main__":
               -T n      Print out in table form up to element n (include a key)
               -t n      Print out in table form up to element n
               -w        Wire problem:  how many wires of diameter d can fit through a circle
-                        of diameter D?  The two command line arguments are D and d, in that
-                        order.
+                        of diameter D?  The two command line arguments are D and d and
+                        can be in either order (d is the smaller of the 2).
             '''))
             exit(status)
         def ParseCommandLine():
@@ -232,7 +287,7 @@ if __name__ == "__main__":
             d["-t"] = None      # Table form up to d["-t"] items
             d["-w"] = False     # Wire problem
             try:
-                optlist, args = getopt.getopt(sys.argv[1:], "ad:hn:sT:t:w")
+                optlist, args = getopt.getopt(sys.argv[1:], "ad:n:sT:t:w", "test")
             except getopt.GetoptError as e:
                 msg, option = e
                 print(msg)
@@ -244,8 +299,6 @@ if __name__ == "__main__":
                     d[o] = int(a)
                     if d[o] < 1 or d[o] > 15:
                         Error("Number of digits must be between 1 and 15.")
-                elif o == "-h":
-                    Manpage()
                 elif o == "-n":
                     d[o] = int(a)
                     if d[o] < 1 or d[o] > 1500:
@@ -254,14 +307,41 @@ if __name__ == "__main__":
                     d[o] = int(a)
                     if d[o] < 0 or d[o] > 1500:
                         Error("Argument must be between 0 and 1500.")
+                elif o == "--test":
+                    Test()
             x = flt(0)
             x.N = d["-d"]
             x.rtz = x.rtdp = False
             ok = d["-a"] or d["-n"] or d["-s"] or d["-t"] is not None or d["-T"] is not None
+            GetColors()
+            Test()  # Run unit tests every time, as they aren't demanding
             if not ok and len(args) < 1:
                 Usage()
-            GetColors()
             return args
+    if 1:  # Tests
+        def Test():
+            def TestWireProblem():
+                Assert(WireProblem(1, 1).N == 1)
+                Assert(WireProblem(1, 0.5).N == 1)
+                Assert(WireProblem(1, 0.465).N == 2)
+                Assert(WireProblem(1, 0.464).N == 3)
+                Assert(WireProblem(1, 0.414).N == 4)
+                Assert(WireProblem(1, 0.370).N == 5)
+                Assert(WireProblem(1, 0.333).N == 7)
+                Assert(WireProblem(1, 0.302).N == 8)
+                Assert(WireProblem(1, 0.276).N == 9)
+                Assert(WireProblem(1, 0.262).N == 10)
+            def TestGetData():
+                data = GetData()
+                Assert(len(data) >= 2735)
+                entry = data[4]
+                Assert(isinstance(entry.radius, flt))
+                Assert(entry.radius == 2**0.5 - 1)
+                Assert(entry.distance == 2**0.5)
+                Assert(entry.contacts == 8)
+                Assert(entry.boundary == 4)
+            TestWireProblem()
+            TestGetData()
     if 1:  # Core functionality
         def Report(n):
             'n is the number of circles'
@@ -286,35 +366,30 @@ if __name__ == "__main__":
             for i in R[:-1]:
                 print(i, end=" ")
             print()
-        def WireProblem(hole_diameter, wire_diameter):
-            '''Given a hole and wire diameter, how many wires can be fit through the hole?
-            The two arguments must be in the same length units and wire_diameter must be
-            less than hole_diameter.
-            '''
+        def SolveWireProblem(hole_diameter, wire_diameter):
+            'Given a hole and wire diameter, how many wires fit through the hole?'
             if hole_diameter <= 0:
                 Error("hole_diameter must be > 0")
             if wire_diameter <= 0:
                 Error("wire_diameter must be > 0")
-            ratio = wire_diameter/hole_diameter
+            entry = WireProblem(hole_diameter, wire_diameter)
+            ratio = hole_diameter/wire_diameter
             if ratio > 1:
-                Error("wire_diameter must be <= hole_diameter")
-            # Solution method:  Search for the smallest N such that ratio <= R.
-            found = None
-            for N in results:
-                entry = results[N]
-                if entry.radius <= ratio:
-                    found = N, entry
-                    break
-            if found:
-                N, entry = found
+                ratio = 1/ratio
+            if entry:
                 w, s = 25, " "*1
                 print(f"{'Hole diameter':{w}s}{s}{hole_diameter}")
                 print(f"{'Wire diameter':{w}s}{s}{wire_diameter}")
                 print(f"{'Diameter ratio':{w}s}{s}{ratio}")
-                t.print(f"{t.ornl}{'Number of wires':{w}s}{s}{t.grnl}{N}")
-                with entry.radius:
-                    entry.radius.N = d["-d"] + 1
+                t.print(f"{t.ornl}{'Number of wires':{w}s}{s}{t.grnl}{entry.N}")
+                if isinstance(entry.radius, flt):
+                    with entry.radius:
+                        entry.radius.N = d["-d"] + 1    # Print one more digit for resolution
+                        print(f"{'Theoretical ratio':{w}s}{s}{entry.radius}")
+                else:
                     print(f"{'Theoretical ratio':{w}s}{s}{entry.radius}")
+            else:
+                print("No solution")
         def TableKey():
             print()
             print(dedent(f'''
@@ -379,9 +454,8 @@ if __name__ == "__main__":
         else:
             Table(d["-t"])
     elif d["-w"]:
-        hole_diameter = flt(args[0])
-        wire_diameter = flt(args[1])
-        WireProblem(hole_diameter, wire_diameter)
+        hole_diameter, wire_diameter = flt(args[0]), flt(args[1])
+        SolveWireProblem(hole_diameter, wire_diameter)
     else:
         for arg in args:
             try:
