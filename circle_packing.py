@@ -214,7 +214,6 @@ if __name__ == "__main__":
               -d n      Print results to the indicated number of digits. [{digits}]
               -h        Show some examples of use
               -n n      Print records from 1 to n
-              -r        Print key and references
               -s        Show the raw data table; floating point numbers are shown to the number of digits
                         specified by the -d option.
               -T n      Print out in table form up to element n (include a key)
@@ -233,7 +232,7 @@ if __name__ == "__main__":
             d["-t"] = None      # Table form up to d["-t"] items
             d["-w"] = False     # Wire problem
             try:
-                optlist, args = getopt.getopt(sys.argv[1:], "ad:hn:rsT:t:w")
+                optlist, args = getopt.getopt(sys.argv[1:], "ad:hn:sT:t:w")
             except getopt.GetoptError as e:
                 msg, option = e
                 print(msg)
@@ -251,9 +250,6 @@ if __name__ == "__main__":
                     d[o] = int(a)
                     if d[o] < 1 or d[o] > 1500:
                         Error("n must be between 1 and 1500.")
-                elif o == "-r":
-                    print(man)
-                    exit(0)
                 elif o == "-t" or o == "-T":
                     d[o] = int(a)
                     if d[o] < 0 or d[o] > 1500:
@@ -278,20 +274,18 @@ if __name__ == "__main__":
                 {h}{t.R}{radius!s:{w}}{sp}Circle radius{t.n}
                 {h}{t.Dist}{distance!s:{w}}{sp}Largest distance between centers{t.n}
                 {h}{t.Ratio}{ratio!s:{w}}{sp}Ratio (= 1/radius){t.n}
-                {h}{t.Density}{density!s:{w}}{sp}Density (circle area to container area){t.n}
+                {h}{t.Density}{density!s:{w}}{sp}Density (circles' area to container area){t.n}
                 {h}{t.Contacts}{contacts:<{w}}{sp}Contacts (number of contacts between circles & container){t.n}
                 {h}{t.Loose}{loose:<{w}}{sp}Loose (number of circles within unit circle that can move = rattlers){t.n}
                 {h}{t.Boundary}{boundary:<{w}}{sp}Boundary (number of circles with container contact){t.n}
                 {h}{symmetry:{w}}{sp}Symmetry group (Schönfliess)
             '''))
-        def ShowRecord(n, result):
+        def ShowRecord(n):
+            R = results[n]
             print(n, end=" ")
-            for i in range(4):
-                result[i] = "--" if not result[i] else sig(result[i])
-                print(result[i], end=" ")
-            result[7] = "--" if not result[7] else result[7]
-            result[8] = "--" if not result[8] else result[8]
-            print(" ".join([str(i).strip() for i in result[4:9]]))
+            for i in R[:-1]:
+                print(i, end=" ")
+            print()
         def WireProblem(hole_diameter, wire_diameter):
             '''Given a hole and wire diameter, how many wires can be fit through the hole?
             The two arguments must be in the same length units and wire_diameter must be
@@ -375,9 +369,8 @@ if __name__ == "__main__":
     elif d["-s"]:
         # Show the records in crude table form
         print("N radius distance ratio density contacts loose boundary symmetry ref")
-        n = len(results) + 1
-        for i in range(1, n):
-            ShowRecord(i, list(results[i]))
+        for i in results:
+            ShowRecord(i)
     elif d["-t"] is not None or d["-T"] is not None:
         # Show the records in more readable table form
         if d["-T"]:
