@@ -37,7 +37,7 @@ def dttm():
     return f"{date()} {time()}"
 def tm24():
     'Time in 24 hour mode'
-    return strftime(f"%H:%M:%S")
+    return strftime("%H:%M:%S")
 def Dttm24():
     'Date/time in 24 hr mode = 12Feb2022-08:50:00'
     return f"{Date()}-{tm24()}"

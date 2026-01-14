@@ -91,7 +91,7 @@ Color coordinates and transformations
 '''
 if 1:  # Imports
     from util import IsIterable
-    from lwtest import run, raises, assert_equal, Assert
+    from lwtest import run, Assert
 if 1:  # Utility
     def Dot(a, b, n=None):
         "Dot product of two sequences (n is number of decimal places to round to)"
@@ -101,7 +101,7 @@ if 1:  # Utility
         return sum([i * j for i, j in zip(a, b)])
     def Clamp(a):
         "Clamp all values onto [0, 1]"
-        f = lambda x: min(max(0.0, x), 1.0)
+        def f(x): min(max(0.0, x), 1.0)
         if IsIterable(a):
             return tuple([f(i) for i in a])
         else:
@@ -182,8 +182,7 @@ if 1:  # Core functionality
         rgb = Dot(r1, XYZ), Dot(r2, XYZ), Dot(r3, XYZ)
         # Round the results and gamma compress
         sRGB = [round(GammaCompressed(i), n) for i in rgb]
-        # Clip to [0, 1]
-        clip = lambda x: min(1, max(x, 0))
+        def clip(x): min(1, max(x, 0))  # Clip to [0, 1]
         sRGB = [clip(i) for i in sRGB]
         return tuple(sRGB)
     def XYZ_to_xy(XYZ):
@@ -226,6 +225,7 @@ if 1:  # L*a*b*
         c = (L + 16) / 116
         Y = Yn * g(c)
         Z = Zn * g(c - b / 200)
+        return X, Y, Z
 if 1:  # L*u*v*
     # CIE's 1976 space that aims at representing perceptual differences
     # better
@@ -303,6 +303,7 @@ if 1:  # Other functionality
     def uv_to_xy(uv):
         # u, v are 1960 CIE chromaticity coordinates
         # [efg] under 1960 CIE chromaticity diagram
+        u, v = uv
         s = 2 * u - 8 * v + 4
         x = 3 * u / s
         y = 2 * v / s
@@ -313,9 +314,11 @@ if 1:  # Other functionality
         # The advantage of the 1976 chromaticity diagram is that the
         # distance between the points is approximately proportional to a
         # human's perceived color difference.
+        u1, v1 = u1v1
         s = 9 * u1 / 2 - 12 * v1 + 9
         x = (27 * u1 / 4) / s
         y = 3 * v1 / s
+        return x, y
     def u1v1_to_xyz(u1v1):
         # [efg] under 1976 CIE u'v' chromaticity diagram
         u1, v1 = u1v1

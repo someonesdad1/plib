@@ -138,13 +138,11 @@ if __name__ == "__main__":
     if 1:  # Imports
         # Standard library modules
         import getopt
-        import os
         import pathlib
         import sys
-        from pdb import set_trace as xx
     if 1:  # Custom modules
-        from wrap import wrap, dedent, indent, Wrap
-        from lwtest import run, raises, assert_equal
+        from wrap import dedent
+        from lwtest import run
         from columnize import Columnize
         from color import t
     if 1:  # Global variables
@@ -216,16 +214,6 @@ if __name__ == "__main__":
             R40 = [10, 10.6, 11.2, 11.8, 12.5, 13.2, 14, 15, 16, 17, 18, 19, 20, 21.2,
                 22.4, 23.6, 25, 26.5, 28, 30, 31.5, 33.5, 35.5, 37.5, 40, 42.5, 45, 47.5,
                 50, 53, 56, 60, 63, 67, 71, 75, 80, 85, 90, 95, 100]
-            Ra10 = [10, 12.5, 16, 20, 25, 32, 40, 50, 63, 80, 100]
-            Ra20 = [10, 11, 12.5, 14, 16, 18, 20, 22, 25, 28, 32,36, 40, 45, 50, 56, 63,
-                    71, 80, 90, 100]
-            Ra40 = [10, 10.5, 11, 12, 12.5, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 24,
-                    25, 26, 28, 30, 32, 34, 36, 38, 40, 42, 45, 48, 50, 53, 56, 60, 63,
-                    67, 71, 75, 80, 85, 90, 95, 100]
-            Rb5 = [10, 15, 25, 40, 60, 100]
-            Rb10 = [10, 12, 15, 20, 25, 30, 40, 50, 60, 80, 100]
-            Rb20 = [10, 11, 12, 14, 16, 18, 20, 22, 25, 28, 30, 35, 40, 45, 50, 50, 55,
-                    60, 70, 80, 90, 100]
             def f(x):
                 'Return sequence x multiplied by 10'
                 return [10*i for i in x]
@@ -293,7 +281,7 @@ if __name__ == "__main__":
                     for i in Columnize(s, indent=" "*4, col_width = 6, horiz=True):
                         print(i)
         def PlotSeries():
-            from pylab import plot, grid, xlabel, ylabel, legend, title, show
+            from pylab import plot, grid, xlabel, ylabel, legend, title, show, log10
             from functools import partial
 
             s = "."

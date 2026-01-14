@@ -1,6 +1,6 @@
 '''
 Use /usr/bin/factor to provide the prime factorization of integers
-    Factor(3141596, u=True) produces 2²·37·21227
+    Factor(3141596, unicode=True) produces 2²·37·21227
     Factor(3141596) produces 2^2*37*21227
 '''
 if 1:  # Header
@@ -23,10 +23,10 @@ if 1:  # Header
     if 1:  # Global variables
         ii = isinstance
 if 1:  # Core functionality
-    def Factor(x, u=False):
-        '''Return the string representing the prime factorization of integer x.  If u is
-        True, use Unicode to represent the factorization.  Return None if something goes
-        wrong.
+    def Factor(x, unicode=False):
+        '''Return the string representing the prime factorization of integer x.  If
+        unicode is True, use Unicode to represent the factorization.  Return None if
+        something goes wrong.
         '''
         e = dict(zip(list(range(10)), "⁰¹²³⁴⁵⁶⁷⁸⁹"))    # Unicode representation
         if not (ii(x, int)):
@@ -56,7 +56,7 @@ if 1:  # Core functionality
         assert eval(r) == x
         r = r.replace("**", "^")
         # Return the needed value
-        if u:
+        if unicode:
             # Unicode form
             o = []
             for i in d:
@@ -76,8 +76,8 @@ if __name__ == "__main__":
     if 1:  # Header
         if 1:   # Standard imports
             import getopt
+            import os
             import sys
-            from math import *
         if 1:   # Custom imports
             from wrap import dedent
             from color import t
@@ -100,12 +100,12 @@ if __name__ == "__main__":
                 "2^97*3^48*5^24*7^16*11^9*13^7*17^5*19^5*23^4*29^3*31^3*"
                 "37^2*41^2*43^2*47^2*53*59*61*67*71*73*79*83*89*97"
             )
-            Assert(Factor(x, u=False) == s)
+            Assert(Factor(x, unicode=False) == s)
             s = (
                 "2⁹⁷·3⁴⁸·5²⁴·7¹⁶·11⁹·13⁷·17⁵·19⁵·23⁴·29³·31³·37²·41²·"
                 "43²·47²·53·59·61·67·71·73·79·83·89·97"
             )
-            Assert(Factor(x, u=True) == s)
+            Assert(Factor(x, unicode=True) == s)
     if 1:   # Utility
         def GetColors():
             t.convert = t.purl
@@ -160,7 +160,7 @@ if __name__ == "__main__":
                 if not ii(n, int) or n < 1:
                     t.print(f"{t.err}{item!r} is not a positive integer > 0")
                     return
-            factors = Factor(int(round(n, 0) if is_float else n), u=True)
+            factors = Factor(int(round(n, 0) if is_float else n), unicode=True)
             N = int(round(n, 0))
             is_prime = factors == str(N)
             # Print results

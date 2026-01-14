@@ -263,11 +263,9 @@ def NumberOfDerangements(n):
 if __name__ == "__main__":
     import math
     from itertools import combinations, permutations
-    import sys
     from partitions import partitions_cs
     from stirling import Stirling1, Stirling2
-    from lwtest import run, assert_equal, raises, Assert
-    from pdb import set_trace as xx
+    from lwtest import run, assert_equal, raises
 
     def Test_gcd():
         assert_equal(gcd(0, 1), 1)

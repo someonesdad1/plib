@@ -27,7 +27,6 @@ if 1:  # Header
         ##∞test∞# None #∞test∞#
         pass
     if 1:  # Standard imports
-        from pathlib import Path as P
         import sys
     if 1: # Custom imports
         from color import t

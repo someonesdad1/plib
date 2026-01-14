@@ -20,11 +20,7 @@ if 1:  # Header
         import time
     if 1:  # Custom imports
         from f import flt
-        from wrap import dedent
-        from color import t
-        from lwtest import Assert
         from u import u
-        from roundoff import RoundOff
         if 0:
             import debug
             debug.SetDebugger()
@@ -37,7 +33,7 @@ if 1:  # Core functionality
         return s
     def dptime():
         "Return the time in a format like '7:14:16 am'"
-        ampm = time.strftime(f"%p").lower()
+        ampm = time.strftime("%p").lower()
         s = time.strftime(f"%I:%M:%S {ampm}")
         if s[0] == "0":
             s = s[1:]

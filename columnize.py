@@ -203,7 +203,7 @@ if 1:  # Core functionality
             num_in_column[-(i + 1)] -= 1
         if debug:
             print("Keyword dictionary:")
-            pprint(kw)
+            pp(kw)
             print("screen width  = ", width)
             print("col_width     = ", col_width)
             print("total_width   = ", total_width)
@@ -278,7 +278,7 @@ if __name__ == "__main__":
     import sys
     import getopt
     from wrap import dedent
-    from lwtest import run, assert_equal, raises, Assert
+    from lwtest import run, Assert
     requested_columns = 0
     column_width = 0
     alignment = "left"
@@ -506,7 +506,6 @@ if __name__ == "__main__":
         separator = " "
         width = int(os.environ["COLUMNS"]) - 1
         length = int(os.environ["LINES"]) - 2
-        maxlen = max([len(i) for i in lines])
         n = int(len(lines) // length)
         # Calculate truncation.  The formula for total width W is
         # n*cw+(n-1)*sep where n is number of columns, cw is column

@@ -78,10 +78,7 @@ if 1:  # Header
         from collections import deque
         from fractions import Fraction
         from functools import partial
-        from pdb import set_trace as xx
     if 1:  # Custom imports
-        from decimalmath import *
-        from wrap import dedent
         from columnize import Columnize
         from color import t
         if 0:
@@ -367,7 +364,7 @@ if 1:  # Functions
                 z = eval(n)
                 if show:
                     print(f"{n:{w}s}   {Type(z)}")
-            except Exception as e:
+            except Exception:
                 print(u.format(**locals()))
         def OneArg(name, x, y, us=""):
             n = f"x.{us}{name}{us}(y)"
@@ -376,7 +373,7 @@ if 1:  # Functions
                 z = eval(n)
                 if show:
                     print(f"{n:{w}s}   {Type(z)}")
-            except Exception as e:
+            except Exception:
                 print(u.format(**locals()))
         def TwoArgs(name, x, y, z, us=""):
             n = f"x.{us}{name}{us}(y, z)"
@@ -385,7 +382,7 @@ if 1:  # Functions
                 u = eval(n)
                 if show:
                     print(f"{n:{w}s}   {Type(z)}")
-            except Exception as e:
+            except Exception:
                 print(u.format(**locals()))
         print("Missing stuff:  format getattribute")
         if 1:  # Functions with double underscores
@@ -496,7 +493,7 @@ if __name__ == "__main__":
             # Use mpmath (http://mpmath.org/) to generate the numbers to test
             # against.  Assume mpmath's algorithms are correct.
             import mpmath as mp
-            from lwtest import run, raises, assert_equal, Assert
+            from lwtest import run, raises, Assert
         if 1:  # Global variables
             getcontext = decimal.getcontext
             localcontext = decimal.localcontext
@@ -565,8 +562,8 @@ if __name__ == "__main__":
         def Test_infection():
             "Verify that the supported operations return a dec object"
             x = dec("1.234")
-            L1, L2 = dec("11001"), dec("11101")  # Logical arguments
-            two = dec(2)
+            L1, L2 = dec("11001"), dec("11101")  # noqa
+            two = dec(2)    # noqa
             for y in (True, 3, 3.456, D("3.456"), dec("3.456"), Fraction(1, 2)):
                 # Zero arguments, non-logical
                 for i in '''__abs__ exp normalize __copy__ ln radix __neg__ log10
@@ -575,11 +572,11 @@ if __name__ == "__main__":
                             to_integral_value copy_negate next_plus
                             '''.split():
                     r = eval(f"x.{i}()")
-                    Assert(type(r) == type(x))
+                    Assert(type(r) is type(x))
                 # Zero arguments, logical arguments
                 for i in '''logical_invert'''.split():
                     r = eval(f"L1.{i}()")
-                    Assert(type(r) == type(L1))
+                    Assert(type(r) is type(L1))
                 # One argument, non-logical
                 for i in '''__add__ __rsub__ __deepcopy__ __rtruediv__ max
                             __floordiv__ __sub__ max_mag __mod__ __truediv__
@@ -598,7 +595,7 @@ if __name__ == "__main__":
                             r = eval(f"x.{i}(two)")
                         else:
                             r = eval(f"x.{i}(y)")
-                        Assert(type(r) == type(x))
+                        Assert(type(r) is type(x))
                 # One argument, logical arguments
                 for i in '''logical_and logical_or logical_xor rotate
                             shift'''.split():
@@ -606,7 +603,7 @@ if __name__ == "__main__":
                         r = eval(f"L1.{i}(two)")
                     else:
                         r = eval(f"L1.{i}(L2)")
-                    Assert(type(r) == type(L1))
+                    Assert(type(r) is type(L1))
         def Test_strict():
             x = dec("1.234567890123456789")
             s = "1.2"

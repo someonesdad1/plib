@@ -90,7 +90,7 @@ def Clear():
 
 
 if __name__ == "__main__":
-    from lwtest import run, Assert, raises
+    from lwtest import run, Assert
     from io import StringIO
     from f import flt
 

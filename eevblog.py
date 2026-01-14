@@ -34,10 +34,7 @@ if 1:  # Header
         from pathlib import Path as P
         import re
         import sys
-        import time
-        from pprint import pprint as pp
     if 1:  # Custom imports
-        import requests
         from dptime import dpdatetime
         from color import t
 
@@ -67,7 +64,7 @@ if 1:  # Core functionality
             if title[-1] == '"':
                 title = title[:-1]
             # title can have double and single quotes in them, so escape them
-            title1 = title.replace('"', '\\"').replace("'", "\\'")
+            title = title.replace('"', '\\"').replace("'", "\\'")
             # Standardize on 'EEVblog'
             title = title.replace("EEVBlog", "EEVblog")
             # Standardize the numbering
@@ -126,8 +123,6 @@ if 1:  # Core functionality
         r_url = re.compile(f'^<a href="({url}.*?)"')
         # regex to get title
         r_title = re.compile(r'title="(.*?)"')
-        # Get the datafile's lines
-        lines = datafile.read_text().split("\n")
         o = []
         for line in datafile.read_text().split("\n"):
             line = line.strip()

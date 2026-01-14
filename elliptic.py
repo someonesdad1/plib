@@ -20,6 +20,7 @@ Complete elliptic functions
     http://paulbourke.net/geometry/ellipsecirc/python.code is a
     quadratically-converging algorithm for the circumference of an ellipse
     and is fast.  I made it the basis of the default EllipticE function.
+    (still available as of 14 Jan 2026)
 '''
 if 1:  # Header
     if 1:  # Copyright, license
@@ -217,8 +218,7 @@ if __name__ == "__main__":
             * Compare to elliptic functions from scipy
             * Compare to elliptic functions from mpmath
     '''
-    from lwtest import run, assert_equal, raises
-    from pdb import set_trace as xx
+    from lwtest import run
     try:
         from scipy.special import ellipk as spellipk, ellipe as spellipe
         have_scipy = True
@@ -357,7 +357,7 @@ if __name__ == "__main__":
                 w, sp = weaver(k), pycephes(k**2)
                 try:
                     diff = abs(w - sp) / sp
-                except DivisionByZeroError:
+                except ZeroDivisionError:
                     continue
                 else:
                     max_diff = max(max_diff, diff)
@@ -369,14 +369,13 @@ if __name__ == "__main__":
     def TestUsingScipyMpmath():
         def EllipticTest(weaver, scipys, use_series_imp=False):
             # Check Weaver's function against SciPy's
-            use_series = use_series_imp
             max_diff = 0
             for deg in range(0, 81, 1):
                 k = math.sin(deg * math.pi / 180)
                 w, sp = weaver(k), scipys(k**2)
                 try:
                     diff = abs(w - sp) / sp
-                except DivisionByZeroError:
+                except ZeroDivisionError:
                     continue
                 else:
                     max_diff = max(max_diff, diff)

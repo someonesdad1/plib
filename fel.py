@@ -1,5 +1,9 @@
 """
 
+- 14 Jan 2026:  What is the use case for this script?  I don't understand why bytes
+  would be used, as any python file would be UTF-8 and this format is easy to find the blank
+  lines.  I'm going to move it to old.
+
 - 26 Jul 2022: this worked under 3.7, but not under 3.9
 
 Module to find empty lines in a bytes stream
@@ -30,15 +34,12 @@ if 1:  # Header
     from collections import deque, namedtuple
     from token import tok_name
     from tokenize import tokenize
-    import getopt
-    import os
     import pathlib
     import sys
-    from pdb import set_trace as xx
 
     # Custom imports
-    from wrap import wrap, dedent
-    from color import TRM as t
+    from wrap import dedent
+    from color import t
 
     # Global variables
     P = pathlib.Path
@@ -139,15 +140,16 @@ if __name__ == "__main__":
     '''
     if 1:  # A comment
     # Comment with a blank line
-  
+
     # Comment with a blank line
- 
+
     import os
- 
+
     a = kjdf kdf jdkieoroj dfkuj
     print(a)
     """)
     stream = BytesIO(s.encode())
     # ln = GetEmptyLines(stream, debug=sys.stderr)
     ln = GetEmptyLines(stream)
+    print(ln)
     Assert(ln == (6, 8, 10))

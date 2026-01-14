@@ -25,19 +25,12 @@ if 1:  # Copyright, license
     ##∞test∞# run #∞test∞#
     pass
 if 1:  # Imports
-    from collections import deque, defaultdict
+    from collections import deque
     import pathlib
     import re
-    import sys
-    from itertools import filterfalse
-    from pdb import set_trace as xx
-    from pprint import pprint as pp
 if 1:  # Custom imports
-    from columnize import Columnize
-
     if 0:
         import debug
-
         debug.SetDebugger()
 if 1:  # Global variables
     ii = isinstance
@@ -82,7 +75,6 @@ def Remove(pathseq, match=[], search=[], ic=False, dir=False):
             if p.is_dir():
                 continue
             parts = [p.parts[-1]]  # File name portion
-        match_found, search_found = False, False
         if M:
             found = False
             for part in parts:
@@ -172,10 +164,7 @@ def IsVCDir(dir):
 
 
 if __name__ == "__main__":
-    from lwtest import run, raises, assert_equal, Assert
-    import math
-    import os
-    from sig import sig
+    from lwtest import run, Assert
 
     def Test_GetDirs():
         dirs = GetDirs("/plib")

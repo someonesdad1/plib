@@ -16,15 +16,9 @@
             - All must pass lint (use #noqa sparingly, only as needed)
         - By 31 Mar 2026 all self tests must pass and only a small set of files can be
           without testing
+        - What's with elements.py and elements1.py?
         - /plib/0lint_list
 
-            - circle_packing_data.py
-            - cmddecode.py
-            - color.py
-            - colorcoord.py
-            - columnize.py
-            - combinatorial.py
-            - constant.py
             - cpi_data.py
             - cuncertainties.py
             - dbg.py

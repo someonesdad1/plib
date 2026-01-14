@@ -657,7 +657,7 @@ class flt(Base, float):
             return operator.truediv(flt(1), self) * other
         def __rfloordiv__(self, other):
             "other//self"
-            return flt(floor((flt(1) / self) * other))
+            return flt(math.floor((flt(1) / self) * other))
         def __rmod__(self, other):
             "other % self"
             return self.__mod__(other, self)
@@ -892,8 +892,8 @@ class cpx(Base, complex):
         "Return polar form"
         def f(x):
             return Base.wrap(x, self)
-        r, theta = [flt(i) for i in polar(self)]
-        theta *= 1 if self.rad else 180 / pi
+        r, theta = [flt(i) for i in cmath.polar(self)]
+        theta *= 1 if self.rad else 180 / math.pi
         deg = "" if self.rad else "°"
         sp = " " if self.w else ""
         if repr:
@@ -1229,12 +1229,14 @@ if 1:  # Get math/cmath functions into this namespace
     #   cmath: infj nanj
     from math import inf, pi, e, tau, nan
     from cmath import infj, nanj
-    # Dummy usages to avoid linter message
-    inf
-    pi
-    e
-    tau
-    nan
+    if 1:   # Dummy usages to avoid linter message
+        inf
+        pi
+        e
+        tau
+        nan
+        infj
+        nanj
     # Change constants' type to flt
     constants = "e pi tau".split()
     for i in constants:
@@ -2077,164 +2079,164 @@ if __name__ == "__main__":
             Assert(z.s == "0")
             z._reset()
     def Test_functions():
-        '''Test the functions using python 3.7.12.  The focus is that the
-        correct types are returned, as the numerical values will have been
-        tested well with python's tests.
+        '''Test the functions.  The focus is that the correct types are returned, as the
+        numerical values will have been tested well with python's tests.
         '''
         x = flt(3.389)
         y = flt(1.412)
         a, i = 0.8813735870195429, cpx(0, 1)
         tf, tc, ti = type(x), type(i), type(1)
+        # noqa has been put on these lines because 'ruff check' declares them undefined
         if 1:  # acos
-            Assert(type(acos(0)) is tf)
-            Assert(type(acos(i)) is tc)
+            Assert(type(acos(0)) is tf)         # noqa
+            Assert(type(acos(i)) is tc)         # noqa
         if 1:  # acosh
-            raises(ValueError, acosh, 0.1)
-            Assert(type(acosh(1)) is tf)
-            Assert(type(acosh(i)) is tc)
+            raises(ValueError, acosh, 0.1)          # noqa
+            Assert(type(acosh(1)) is tf)            # noqa
+            Assert(type(acosh(i)) is tc)            # noqa
         if 1:  # asin
-            Assert(type(asin(0)) is tf)
-            Assert(type(asin(i)) is tc)
+            Assert(type(asin(0)) is tf)         # noqa
+            Assert(type(asin(i)) is tc)         # noqa
         if 1:  # asinh
-            Assert(type(asinh(0)) is tf)
-            Assert(type(asinh(i)) is tc)
+            Assert(type(asinh(0)) is tf)            # noqa
+            Assert(type(asinh(i)) is tc)            # noqa
         if 1:  # atan
-            Assert(type(atan(0)) is tf)
-            raises(ValueError, atan, i)
+            Assert(type(atan(0)) is tf)         # noqa
+            raises(ValueError, atan, i)         # noqa
         if 1:  # atan2
-            Assert(type(atan2(0, 0)) is tf)
+            Assert(type(atan2(0, 0)) is tf)         # noqa
         if 1:  # atanh
-            Assert(type(atanh(0)) is tf)
-            Assert(type(atanh(i)) is tc)
-            raises(ValueError, atanh, 1)
+            Assert(type(atanh(0)) is tf)            # noqa
+            Assert(type(atanh(i)) is tc)            # noqa
+            raises(ValueError, atanh, 1)            # noqa
         if 1:  # ceil
-            Assert(type(ceil(x)) is ti)
-            raises(TypeError, ceil, i)
+            Assert(type(ceil(x)) is ti)         # noqa
+            raises(TypeError, ceil, i)          # noqa
         if 1:  # copysign
-            Assert(type(copysign(x, 1)) is tf)
-            Assert(type(copysign(x, -1)) is tf)
+            Assert(type(copysign(x, 1)) is tf)          # noqa
+            Assert(type(copysign(x, -1)) is tf)         # noqa
         if 1:  # cos
-            Assert(type(cos(0)) is tf)
-            Assert(type(cos(i)) is tc)
+            Assert(type(cos(0)) is tf)          # noqa
+            Assert(type(cos(i)) is tc)          # noqa
         if 1:  # cosh
-            Assert(type(cosh(0)) is tf)
-            Assert(type(cosh(i)) is tc)
+            Assert(type(cosh(0)) is tf)         # noqa
+            Assert(type(cosh(i)) is tc)         # noqa
         if 1:  # degrees
-            Assert(type(degrees(pi)) is tf)
-            raises(TypeError, degrees, i)
+            Assert(type(degrees(pi)) is tf)         # noqa
+            raises(TypeError, degrees, i)           # noqa
         if 1:  # divmod
-            q, rem = divmod(x, y)
+            q, rem = divmod(x, y)           # noqa
             Assert(q == 2 and ii(q, int))
             Assert(rem == x - 2 * y and type(rem) is tf)
             Assert(q * y + x % y == x)
         if 1:  # erf
-            Assert(type(erf(x)) is tf)
-            raises(TypeError, erf, i)
+            Assert(type(erf(x)) is tf)          # noqa
+            raises(TypeError, erf, i)           # noqa
         if 1:  # erfc
-            Assert(type(erfc(x)) is tf)
-            raises(TypeError, erfc, i)
+            Assert(type(erfc(x)) is tf)         # noqa
+            raises(TypeError, erfc, i)          # noqa
         if 1:  # exp
-            Assert(type(exp(0)) is tf)
-            Assert(type(exp(i)) is tc)
+            Assert(type(exp(0)) is tf)          # noqa
+            Assert(type(exp(i)) is tc)          # noqa
         if 1:  # expm1
-            Assert(type(expm1(0)) is tf)
-            raises(TypeError, expm1, i)
+            Assert(type(expm1(0)) is tf)            # noqa
+            raises(TypeError, expm1, i)         # noqa
         if 1:  # fabs
-            Assert(type(fabs(x)) is tf)
-            raises(TypeError, fabs, i)
+            Assert(type(fabs(x)) is tf)         # noqa
+            raises(TypeError, fabs, i)          # noqa
         if 1:  # factorial
-            Assert(factorial(3) == 6)
-            raises(ValueError, factorial, -1)
+            Assert(factorial(3) == 6)           # noqa
+            raises(ValueError, factorial, -1)           # noqa
             # The following line is commented out because using factorial()
             # with floats is deprecated.
             # raises(ValueError, factorial, x)
-            raises(TypeError, factorial, i)
+            raises(TypeError, factorial, i)         # noqa
         if 1:  # floor
-            Assert(type(floor(x)) is ti)
-            raises(TypeError, floor, i)
+            Assert(type(floor(x)) is ti)            # noqa
+            raises(TypeError, floor, i)         # noqa
         if 1:  # fmod
-            Assert(type(fmod(x, y)) is tf)
-            raises(TypeError, fmod, i, y)
+            Assert(type(fmod(x, y)) is tf)          # noqa
+            raises(TypeError, fmod, i, y)           # noqa
         if 1:  # frexp
-            a, b = frexp(x)
+            a, b = frexp(x)         # noqa
             Assert(type(a) is tf)
             Assert(type(b) is ti)
-            raises(TypeError, frexp, i)
+            raises(TypeError, frexp, i)         # noqa
         if 1:  # fsum
-            Assert(type(fsum([x, y])) is tf)
-            raises(TypeError, fsum, [i, y])
+            Assert(type(fsum([x, y])) is tf)            # noqa
+            raises(TypeError, fsum, [i, y])         # noqa
         if 1:  # gamma
-            Assert(type(gamma(x)) is tf)
-            raises(TypeError, gamma, i)
+            Assert(type(gamma(x)) is tf)            # noqa
+            raises(TypeError, gamma, i)         # noqa
         if 1:  # hypot
-            Assert(type(hypot(x, y)) is tf)
-            raises(TypeError, hypot, i, x)
+            Assert(type(hypot(x, y)) is tf)         # noqa
+            raises(TypeError, hypot, i, x)          # noqa
         if 1:  # isclose
-            Assert(type(isclose(x, y)) is bool)
-            Assert(type(isclose(i, y)) is bool)
+            Assert(type(isclose(x, y)) is bool)         # noqa
+            Assert(type(isclose(i, y)) is bool)         # noqa
         if 1:  # isfinite
-            Assert(type(isfinite(x)) is bool)
+            Assert(type(isfinite(x)) is bool)           # noqa
         if 1:  # isinf
-            Assert(isinf(flt("inf")))
+            Assert(isinf(flt("inf")))           # noqa
         if 1:  # isnan
-            Assert(isnan(flt("nan")))
+            Assert(isnan(flt("nan")))           # noqa
         if 1:  # ldexp
-            Assert(ldexp(x, 4) == x * 2**4)
+            Assert(ldexp(x, 4) == x * 2**4)         # noqa
         if 1:  # lgamma
-            Assert(type(lgamma(x)) is tf)
-            raises(TypeError, lgamma, i)
+            Assert(type(lgamma(x)) is tf)           # noqa
+            raises(TypeError, lgamma, i)            # noqa
         if 1:  # log
-            Assert(type(log(x)) is tf)
-            Assert(type(log(i)) is tc)
+            Assert(type(log(x)) is tf)          # noqa
+            Assert(type(log(i)) is tc)          # noqa
         if 1:  # log10
-            Assert(type(log10(x)) is tf)
-            Assert(type(log10(i)) is tc)
+            Assert(type(log10(x)) is tf)            # noqa
+            Assert(type(log10(i)) is tc)            # noqa
         if 1:  # log1p
-            Assert(type(log1p(x)) is tf)
-            raises(TypeError, log1p, i)
+            Assert(type(log1p(x)) is tf)            # noqa
+            raises(TypeError, log1p, i)         # noqa
         if 1:  # log2
-            Assert(type(log2(x)) is tf)
-            raises(TypeError, log2, i)
+            Assert(type(log2(x)) is tf)         # noqa
+            raises(TypeError, log2, i)          # noqa
         if 1:  # modf
-            a, b = modf(x)
+            a, b = modf(x)          # noqa
             Assert(type(a) is tf and type(b) is tf)
-            raises(TypeError, modf, i)
+            raises(TypeError, modf, i)          # noqa
         if 1:  # phase
-            Assert(type(phase(x)) is tf)
-            Assert(type(phase(i)) is tf)
+            Assert(type(phase(x)) is tf)            # noqa
+            Assert(type(phase(i)) is tf)            # noqa
         if 1:  # polar
-            a, b = polar(i)
+            a, b = polar(i)         # noqa
             Assert(type(a) is tf and type(b) is tf)
         if 1:  # pow
-            Assert(type(pow(x, y)) is tf)
-            raises(TypeError, pow, i, x)
-            raises(TypeError, pow, x, i)
+            Assert(type(pow(x, y)) is tf)           # noqa
+            raises(TypeError, pow, i, x)            # noqa
+            raises(TypeError, pow, x, i)            # noqa
         if 1:  # radians
-            Assert(type(radians(x)) is tf)
-            raises(TypeError, radians, i)
+            Assert(type(radians(x)) is tf)          # noqa
+            raises(TypeError, radians, i)           # noqa
         if 1:  # rect
-            Assert(type(rect(x, y)) is tc)
+            Assert(type(rect(x, y)) is tc)          # noqa
         if 1:  # remainder
-            Assert(type(remainder(x, y)) is tf)
+            Assert(type(remainder(x, y)) is tf)         # noqa
         if 1:  # sin
-            Assert(type(sin(x)) is tf)
-            Assert(type(sin(i)) is tc)
+            Assert(type(sin(x)) is tf)          # noqa
+            Assert(type(sin(i)) is tc)          # noqa
         if 1:  # sinh
-            Assert(type(sinh(x)) is tf)
-            Assert(type(sinh(i)) is tc)
+            Assert(type(sinh(x)) is tf)         # noqa
+            Assert(type(sinh(i)) is tc)         # noqa
         if 1:  # sqrt
-            Assert(type(sqrt(x)) is tf)
-            Assert(type(sqrt(-x)) is tc)
-            Assert(type(sqrt(i)) is tc)
+            Assert(type(sqrt(x)) is tf)         # noqa
+            Assert(type(sqrt(-x)) is tc)            # noqa
+            Assert(type(sqrt(i)) is tc)         # noqa
         if 1:  # tan
-            Assert(type(tan(x)) is tf)
-            Assert(type(tan(i)) is tc)
+            Assert(type(tan(x)) is tf)          # noqa
+            Assert(type(tan(i)) is tc)          # noqa
         if 1:  # tanh
-            Assert(type(tanh(x)) is tf)
-            Assert(type(tanh(i)) is tc)
+            Assert(type(tanh(x)) is tf)         # noqa
+            Assert(type(tanh(i)) is tc)         # noqa
         if 1:  # trunc
-            Assert(type(trunc(x)) is ti)
-            raises(TypeError, trunc, i)
+            Assert(type(trunc(x)) is ti)            # noqa
+            raises(TypeError, trunc, i)         # noqa
     def Test_ParseComplex():
         test_cases = {
             # Pure imaginaries

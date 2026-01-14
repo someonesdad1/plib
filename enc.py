@@ -8,9 +8,41 @@ Utility encoding tool
     only practically use a few; choose this small set to be the standard
     and add an option that lets you expand the set of codecs.
     
-    Here's a book that does a fairly good job of explaining Unicode and
-    some problems (written by a non-native English speaker):
-    https://unicodebook.readthedocs.io/index.html
+    The book https://unicodebook.readthedocs.io/index.html does a fairly good job of
+    explaining Unicode and some problems (written by a non-native English speaker).
+
+    14 Jan 2026:  Data from https://w3techs.com/technologies/overview/character_encoding
+
+        Web page's name   Frequency      Python codec name
+        ---------------   ---------      -----------------
+        UTF-8                98.9%          utf_8
+        ISO-8859-1           1.0%           latin_1             English (Central/eastern Europe)
+        Windows-1252         0.3%           cp1252              English (Western Europe)
+        Windows-1251         0.2%           cp1251              Russian/Baltic
+        EUC-JP               0.1%           euc_jp              Japanese
+        EUC-KR               0.1%           euc_kr              Korean
+        Shift JIS            0.1%           shift_jis           Japanese
+
+    Here are my notes from this same page in 2019:
+
+        Web page's name   Frequency      Python codec name
+        ---------------   ---------      -----------------
+        UTF-8                94.3%          utf_8
+        ISO-8859-1           2.8%           latin_1
+        Windows-1251         0.9%           cp1251
+        Windows-1252         0.5%           cp1252
+        Shift JIS            0.3%           shift_jis
+        GB2312               0.2%           gb2312
+        EUC-KR               0.2%           euc_kr
+        EUC-JP               0.1%           euc_jp
+        ISO-8859-2           0.1%           iso8859_2
+        GBK                  0.1%           gbk
+        Windows-1250         0.1%           cp1250
+        Big5                 0.1%           big5
+        ISO-8859-9           0.1%           iso8859_9
+        ISO-8859-15          0.1%           iso8859_15
+
+
 '''
 if 1:  # Header
     if 1:  # Copyright, license
@@ -33,7 +65,6 @@ if 1:  # Header
         from pathlib import Path
         import csv
         import getopt
-        import os
         import subprocess
         import sys
     if 1:  # Custom imports
@@ -62,10 +93,11 @@ if 1:  # Utility
           by finding which python codecs module encodings don't raise an exception.
           Note there is no way in general to determine the encoding of a file.
           
-          ISO8859 encodings are still pretty common; use the -u option to convert them
-          to UTF-8, overwriting the original file.  This will be done as safely as
-          possible, first converting the file to a UTF-8 form, checking that the
-          original can be removed, the renaming the converted file to the original name.
+          ISO8859 (latin1) encodings are still pretty common; use the -u option to
+          convert them to UTF-8, overwriting the original file.  This will be done as
+          safely as possible, first converting the file to a UTF-8 form, checking that
+          the original can be removed, the renaming the converted file to the original
+          name.
           
           Use the -o option to change the encoding of a file.
           
@@ -111,7 +143,7 @@ if 1:  # Utility
                     Error(f"'{a}' is not a recognized encoding")
                 d[o] = a
         if d["-o"] is not None and len(args) != 2:
-            Error(f"Two arguments needed with -o option")
+            Error("Two arguments needed with -o option")
         return args
 if 1:  # Core functionality
     def ConstructEncodingData():
@@ -419,6 +451,15 @@ if 1:  # Core functionality
             print(f"'{file}' possible encodings:")
             for line in Columnize([i for i in enc if i], indent=" " * 2):
                 print(line)
+    def GetEncoding(mybytes, enc_seq):
+        enc = []
+        for e in enc_seq:
+            try:
+                mybytes.decode(e)
+                enc.append(e)
+            except (UnicodeDecodeError, LookupError):
+                pass
+        return enc
     def Encode(files):
         '''Encode the input file to the encoding specified by the -o option.'''
         ifile, ofile = files
@@ -445,9 +486,6 @@ if 1:  # Core functionality
             name = name.lower()
             primary.add(name)
             other = [i.lower() for i in other.split(",")]
-            if 0:
-                print(f"{red}{row}{norm}")
-                print(f"  {grn}{name}{norm}  {cyn}{other}{norm}")
             for key in other:
                 if not key:
                     continue
@@ -494,11 +532,11 @@ if 1:  # Core functionality
         if files:
             print(f'''Using '{d["-d"]}' codec for decoding''')
             if success:
-                print(f"Successfully decoded:")
+                print("Successfully decoded:")
                 for line in Columnize(success, indent=" " * 2):
                     print(line)
             if failure:
-                print(f"Failed to decode:")
+                print("Failed to decode:")
                 for line in Columnize(failure, indent=" " * 2):
                     print(line)
     def UsageHints():
@@ -528,7 +566,7 @@ if 1:  # Core functionality
         '''Convert file (a Path instance) to UTF8 and overwrite the original.  Return
         0 if successful.
         '''
-        e, status = "latin-1", 0
+        e = "latin-1"
         if not Is8859(file):
             t.print(f"{t.redl}{str(file)!r} is not ISO8859 encoded", file=sys.stderr)
             return 1
@@ -540,7 +578,6 @@ if 1:  # Core functionality
         with open(newfile, "w") as f:
             f.write(s)
         # Verify the UTF-8 form encodes back to the original
-        bs = s.encode(e)
         if s.encode(e) != mybytes:
             t.print(f"{t.redl}{str(file)!r} did not re-encode to original data", file=sys.stderr)
             return 2
@@ -582,4 +619,4 @@ if __name__ == "__main__":
             print(line)
     else:
         for file in files:
-            Convert8859(P(file)) if d["-u"] else CheckEncoding(file)
+            Convert8859(Path(file)) if d["-u"] else CheckEncoding(file)

@@ -18,12 +18,10 @@ if 1:  # Header
         ##∞test∞# #∞test∞#
         pass
     if 1:  # Standard imports
-        from collections import deque
         from pathlib import Path as P
         import getopt
         import os
         import re
-        import subprocess
         import sys
     if 1:  # Custom imports
         from lwtest import Assert
@@ -31,11 +29,8 @@ if 1:  # Header
         from dpprint import PP
 
         pp = PP()  # Screen width aware form of pprint.pprint
-        from get import GetLines
         from wrap import dedent
         from util import IsIterable
-        from wsl import wsl  # wsl is True when running under WSL Linux
-        # from columnize import Columnize
     if 1:  # Global variables
 
         class G:
@@ -143,7 +138,7 @@ if 1:  # Core functionality
         # Our working directory is an invariant
         cwd = os.getcwd()
         # regex is a C-type token name between asterisks
-        r = re.compile(f"\*([A-Za-z_][A-Za-z0-9_]*)\*")
+        r = re.compile("\*([A-Za-z_][A-Za-z0-9_]*)\*")
         tags = ["help-tags\ttags\t1"]
         # Change to the output directory so there will be no directory names in the file's name
         os.chdir(dir)

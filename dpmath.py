@@ -25,7 +25,6 @@ if 1:  # Header
     if 1:  # Imports
         import math
         import string
-        import sys
         from fractions import Fraction
     if 1:  # Custom imports
         from frange import frange
@@ -332,7 +331,7 @@ if 1:  # Core functionality
             a = string.digits + string.ascii_letters
             int2base.digits = a + string.punctuation
         if not ii(base, int):
-            raise TypeError(f"base must be an integer")
+            raise TypeError("base must be an integer")
         if not (2 <= base <= len(int2base.digits)):
             n = len(int2base.digits)
             raise ValueError(f"base must be between 2 and {n} inclusive")
@@ -357,7 +356,7 @@ if 1:  # Core functionality
             a = string.digits + string.ascii_letters
             base2int.digits = a + string.punctuation
         if not ii(base, int):
-            raise TypeError(f"base must be an integer")
+            raise TypeError("base must be an integer")
         if not (2 <= base <= len(base2int.digits)):
             n = len(int2base.digits)
             raise ValueError(f"base must be between 2 and {n} inclusive")
@@ -653,7 +652,7 @@ if 1:  # Core functionality
 
 if __name__ == "__main__":
     from lwtest import run, raises, assert_equal, Assert
-    from f import flt, tau, radians, log, sqrt
+    from f import flt, radians, sqrt
     from random import randint
     from color import t
     eps = 1e-15
@@ -717,7 +716,7 @@ if __name__ == "__main__":
         arc_len = SpiralArcLength(a, theta) - SpiralArcLength(a, theta - math.tau)
         L_D = SpiralArcLength(a, n_revolutions*math.tau)
         L_d = SpiralArcLength(a, (n_revolutions - 1)*math.tau)
-        arc_length = L_D - L_d
+        arc_length = L_D - L_d  # noqa
         pitch = a*math.tau
         D = (2*n_revolutions - 1)*pitch
         circumference = D*math.pi
@@ -751,7 +750,7 @@ if __name__ == "__main__":
         # is 4712.4.  Note the exact length is between the two
         # estimates.
     def Test_Archimedean_toilet_paper_roll():
-        return
+        return  #xx
         '''A roll of toilet paper has an ID of 42 mm, an OD of 130 mm, and a thickness
         of about 0.125 mm.  Each sheet is 101x96 mm with the 101 mm dimension
         perpendicular to the perforations.  The manufacturer states there are 18 rolls
@@ -766,17 +765,16 @@ if __name__ == "__main__":
         num_rolls = 18
         ID, OD = 60, 130
         width, thickness = 96, 0.125
-        pitch = 2*thickness
-        length_actual = 425*101
+        pitch = 2*thickness # noqa
+        length_actual = 425*101 # noqa
         # Since we know the stated length, use the approximate formula
         # to calculate what the thickness must be.
         length = ApproximateSpiralArcLength(ID, OD, thickness)[0]
-        length_ft = length*0.00328084
-        breakpoint() #xx 
+        length_ft = length*0.00328084   # noqa
         # The area per roll is the exact_length times the 101 mm
         # dimension
         area_per_roll = length*width
-        area_per_roll_ft2 = area_per_roll*1.07639e-05
+        area_per_roll_ft2 = area_per_roll*1.07639e-05   # noqa
         total_area = num_rolls*area_per_roll
         A_calc_ft2 = total_area*1.07639e-05
         A_exact_ft2 = flt("815")
@@ -792,7 +790,7 @@ if __name__ == "__main__":
             for i in range(100):
                 x = randint(0, int(1e6))
                 # Note the following call also checks the result
-                s = DecimalToBase(x, base, check_result=True)
+                DecimalToBase(x, base, check_result=True)
     def TestInt():
         data = (
             ("0b11", 3),

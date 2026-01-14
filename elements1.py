@@ -15,8 +15,6 @@ oo>
  
 if 1:  # Header
     if 1:   # Standard imports
-        from collections import deque
-        from pathlib import Path as P
         import csv
         import getopt
         import os
@@ -26,7 +24,6 @@ if 1:  # Header
         from f import flt
         from wrap import dedent
         from color import t
-        from lwtest import Assert
         from columnize import Columnize
         from dpprint import PP
         pp = PP()   # Get pprint with current screen width

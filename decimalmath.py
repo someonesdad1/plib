@@ -1,7 +1,6 @@
 """
 
 - To Do
-    - Convert to modern color.py
     - Add a complex Decimal number and modify the elementary functions to
       take either real or complex arguments.  The tests should duplicate
       the math/cmath functions' behaviors to e.g. 15 figures.
@@ -713,8 +712,7 @@ if __name__ == "__main__":
     import mpmath as mp
     import math
     from random import uniform, seed
-    from pdb import set_trace as xx
-    from wrap import wrap, dedent, indent, Wrap
+    from wrap import dedent
     from lwtest import run, raises, assert_equal, Assert
     from functools import partial
 

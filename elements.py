@@ -26,16 +26,14 @@ if 1:  # Header
         pass
     if 1:  # Standard imports
         import getopt
-        import os
         import re
         import string
         import sys
         import webbrowser
-        from pprint import pprint as pp
-        from collections import deque, namedtuple
+        from collections import namedtuple
     if 1:  # Custom imports
-        from wrap import wrap, dedent
-        from color import Color, TRM as t
+        from wrap import dedent
+        from color import t
         from lwtest import Assert
         from columnize import Columnize
         from f import flt
@@ -394,9 +392,7 @@ if 1:  # Utility
         print(*msg, file=sys.stderr)
         exit(status)
     def Manpage():
-        print(
-            dedent(
-                f'''
+        print(dedent('''
         This script is intended to let you see physical properties of the elements through the
         following features:
             
@@ -687,7 +683,6 @@ if 1:  # Core functionality
         e = d["el"][num]
         i, w = " " * 4, 20
         Da2yg = 1.66053906660
-        Da2kg = Da2yg * 1e-27
         print(f"{Name} ({e.sym})    Z = {e.Z}")
         # Atomic weight
         aw = ToFlt(e.aw_Da)
@@ -779,8 +774,8 @@ if 1:  # Core functionality
             "at 25 °C and 100 kPa"
         )
         print(f"{t.rad}[209]{t.n} means the atomic weight of the most stable isotope")
-        print(f"(1125) means a predicted property")
-        print(f"1 Da is 1.66054×10⁻²⁴ g (i.e., yg)")
+        print("(1125) means a predicted property")
+        print("1 Da is 1.66054×10⁻²⁴ g (i.e., yg)")
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

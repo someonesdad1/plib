@@ -26,11 +26,9 @@ if 1:  # Copyright, license
 if 1:  # Imports
     import math
     import cmath
-    import os
     import sys
     import uncertainties.umath as um
     from uncertainties import ufloat, UFloat
-    from pdb import set_trace as xx
 
     # The uncertainties correlated_values_norm function requires numpy
     # to be present.
@@ -185,7 +183,6 @@ class cufloat(object):
         )
 
     def __ne__(self, other):
-        z = Convert(other)
         return not (self == other)
 
     def copy(self):
@@ -395,8 +392,12 @@ def Convert(x):
     else:
         raise TypeError("'%s' is an improper type" % str(x))
 
-
 if __name__ == "__main__":
+    import sys
+    from lwtest import run, assert_equal, raises
+
+    eps = 1e-15
+    ii = isinstance
 
     def Examples():
         # Print some examples
@@ -427,10 +428,8 @@ if __name__ == "__main__":
         i_deg = ufloat(-89.3, 0.2)  # Current phase angle in degrees
         ir = sig(1e6 * iR)
         id = sig(-i_deg)
-        r = sig(R)
         vc = sig(Vc)
         theta = -i_deg * math.pi / 180
-        theta_ = sig(theta)
         vx, vy = Vc * um.cos(theta), Vc * um.sin(theta)
         vx_, vy_ = sig(vx), sig(vy)
         V = cufloat(vx.nominal_value, vx.std_dev, vy.nominal_value, vy.std_dev)
@@ -463,14 +462,6 @@ if __name__ == "__main__":
             Z magnitude = {zm} kohms
             Z phase angle = {ztheta_deg}°""")
         )
-
-
-if __name__ == "__main__":
-    import sys
-    from lwtest import run, assert_equal, raises, Assert
-
-    eps = 1e-15
-    ii = isinstance
 
     def cufloat_rel_eq(a, b, eps=eps):
         """a and b are cufloats.  Return True if they are less than
@@ -665,13 +656,13 @@ if __name__ == "__main__":
         assert_equal(x / y, cufloat(0.44, sx, 0.08, sy))
 
     def Test_init():
-        z = cufloat(0)
-        z = cufloat(0.0)
-        z = cufloat(1)
-        z = cufloat(1.0)
-        z = cufloat(1, 2)
-        z = cufloat(1, 2, 3)
-        z = cufloat(1, 2, 3, 4)
+        cufloat(0)
+        cufloat(0.0)
+        cufloat(1)
+        cufloat(1.0)
+        cufloat(1, 2)
+        cufloat(1, 2, 3)
+        cufloat(1, 2, 3, 4)
         raises(TypeError, cufloat, 1j)
         raises(TypeError, cufloat, ufloat(1, 1))
         raises(TypeError, cufloat, cufloat(1))
@@ -681,10 +672,7 @@ if __name__ == "__main__":
     if 1:  # Imports
         # Standard library modules
         import getopt
-        import os
-        import pathlib
         import sys
-        from pdb import set_trace as xx
     if 1:  # Custom modules
         from wrap import dedent
         from lwtest import run, raises, assert_equal

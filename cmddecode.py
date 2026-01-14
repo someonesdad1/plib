@@ -60,9 +60,7 @@ if 1:  # Copyright, license
     pass
 if 1:  # Imports
     import re
-    import sys
     from collections import defaultdict
-    from pdb import set_trace as xx
 
 
 class CommandDecode:
@@ -107,7 +105,6 @@ class CommandDecode:
 
     def __str__(self):
         s = " ".join(sorted(self.commands))
-        ic = "ignore_case=True"
         return f"CommandDecode({s}, ignore_case={self.ignore_case})"
 
     def __call__(self, user_string):

@@ -58,7 +58,7 @@ if 1:  # Core functionality
             print(f"{msg}", file=sys.stderr)
 
         # Get keywords
-        ignore_common = kw.get("ignore_common", True)
+        #ignore_common = kw.get("ignore_common", True)
         show_unreadable = kw.get("show_unreadable", True)
         recursive = kw.get("recursive", False)
         verbose = kw.get("verbose", False)
@@ -122,7 +122,6 @@ if __name__ == "__main__":
         import sys
     if 1:  # Custom imports
         from wrap import dedent
-        from color import t
 
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)

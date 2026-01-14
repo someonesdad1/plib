@@ -17,8 +17,6 @@ if 1:  # Copyright, license
     pass
 if 1:  # Imports
     import sys
-if 1:  # Custom imports
-    from wrap import dedent
 
 
 class _Const:
@@ -59,9 +57,7 @@ class _Const:
 
 sys.modules[__name__] = _Const()
 if __name__ == "__main__":
-    from lwtest import run, raises, assert_equal, Assert
-    from pdb import set_trace as xx
-    from pprint import pprint as pp
+    from lwtest import run, raises, Assert
 
     def Init():
         sys.modules[__name__] = _Const()

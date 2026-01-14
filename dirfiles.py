@@ -222,7 +222,7 @@ class Dirfiles(object):
         Returns the number of files removed.
         """
         ic = kw.get("ic", False)
-        remove, count = [], 0
+        remove = []
         for regex in regexps:
             r = re.compile(regex, re.I) if ic else re.compile(regex)
             for elem in self.files:
@@ -322,9 +322,8 @@ class Dirfiles(object):
 if __name__ == "__main__":
     import os
     import pathlib
-    from lwtest import run, assert_equal, raises, Assert
+    from lwtest import run, raises, Assert
     from threading import Thread, Lock
-    from pdb import set_trace as xx
 
     P = pathlib.Path
     image_list = "img1.png img2.png".split()

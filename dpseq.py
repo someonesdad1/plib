@@ -47,7 +47,6 @@ if 1:  # Header
     if 1:  # Custom imports
         from f import flt
         from lwtest import Assert, raises
-        from wrap import dedent
         from color import t
         if 0:
             import debug
@@ -218,7 +217,7 @@ if 1:  # Core functionality
                     try:
                         seq[index]
                     except Exception:
-                        raise ValueError(f"'resolved' is not an index for seq")
+                        raise ValueError("'resolved' is not an index for seq")
                 else:
                     raise ValueError("Closest item is unresolvable")
             # Return the closest value
@@ -234,13 +233,13 @@ if 1:  # Core functionality
                 return sseq[-1]
             else:
                 # Use binary search
-                l = find_le(x, sseq)  # l is sseq element, not index
+                L = find_le(x, sseq)  # L is sseq element, not index
                 r = find_ge(x, sseq)  # r is sseq element, not index
-                if l == r:
-                    return l
+                if L == r:
+                    return L
                 else:
-                    diff_low, diff_high = abs(x - l), abs(x - r)
-                    return l if diff_low <= diff_high else r
+                    diff_low, diff_high = abs(x - L), abs(x - r)
+                    return L if diff_low <= diff_high else r
 
 if __name__ == "__main__":
     from functools import partial
@@ -322,7 +321,7 @@ if __name__ == "__main__":
                     return flt((x + y) ** 0.5)
             seq = (Pt(0, 0), Pt(-3, 6), Pt(4, 8), Pt(2, 0))
             f = partial(GetClosest, is_sorted=None)
-            metric = lambda a, b: a.dist(b)
+            def metric(a, b): a.dist(b)
             Assert(f(Pt(0.1, 0.1), seq, distance=metric) == Pt(0, 0))
             Assert(f(Pt(-0.1, -0.1), seq, distance=metric) == Pt(0, 0))
             Assert(f(Pt(-100, 0.1), seq, distance=metric) == Pt(-3, 6))

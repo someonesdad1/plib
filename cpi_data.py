@@ -199,7 +199,6 @@ def CPI_Data(use_partial=True, show=False):
 cpi_data = CPI_Data(show=False)
 
 if __name__ == "__main__":
-    import sys
     import statistics
     def ShowYearlyRatio():
         "Print a table that shows the yearly ratio"

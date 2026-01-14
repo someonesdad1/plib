@@ -63,7 +63,6 @@ if 1:  # Header
         ##∞test∞# ignore #∞test∞#
         pass
     if 1:   # Standard imports
-        import types
         import sys
         import traceback as TB
         import os
@@ -251,7 +250,7 @@ if 1:   # Core functionality
                     else:
                         print(t(color), end="")
                 elif ii(color, Color):
-                    print(f"t(color)", end="")
+                    print(f"{t(color)}", end="")
                 else:
                     raise TypeError(f"'{color}' is not a string or Color instance")
             for name, value in zip(names, variables):
@@ -277,10 +276,10 @@ if 1:   # Core functionality
             fn, ln, method, call = stack
             fmt = "{fn}[{ln}] in {method}:  {msg}\n"
             if stream == sys.stdout and color is not None:
-                c.fg(color)
+                print(t(color), end="")
             stream.write(fmt.format(**locals()))
             if stream == sys.stdout and color is not None:
-                c.normal()
+                print(t.n, end="")
     def DumpException(fr_include=None, fr_ignore=None, var_include=None, var_ignore=None,
                       num_levels=0, hl={}, stream=sys.stdout):
         '''Print the traceback information followed by a listing of the
