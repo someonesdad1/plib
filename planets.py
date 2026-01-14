@@ -3,7 +3,6 @@ Library for solar system planetary data.  Class Planet instances have their
 attributes given in base SI units.  Run as a script to print data to
 stdout.
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -57,14 +56,12 @@ if 1:  # Classes
             self.esc_vel = None  # Escape velocity km/s
             self.tilt = None  # Axial tilt
             self.rot_per = None  # Rotation period, days
-
         def calc(self):
             # Calculate other attributes
             self.circum = 2 * pi * self.eq_radius
             self.area = 4 * pi * self.eq_radius**2
             self.vol = 4 / 3 * pi * self.eq_radius**3
             self.spgr = self.mass * 1000 / (self.vol * 1e6)  # Convert to g/cc
-
         def __str__(self):
             scale = 1
             if d["-r"] is not None:
@@ -108,10 +105,8 @@ if 1:  # Classes
                     Axial tilt                  {degrees(self.tilt)}°
                     Rotation period             {self.rot_per.engsi}s = {self.rot_per / day_to_s} days
                 """)
-
         def __repr__(self):
             return str(self)
-
     class Mercury(Planet):
         def __init__(self):
             self.name = "Mercury"
@@ -128,7 +123,6 @@ if 1:  # Classes
             self.esc_vel = flt(4.25)
             self.tilt = flt(radians(0))
             self.rot_per = flt(58.646225) * day_to_s
-
     class Venus(Planet):
         def __init__(self):
             self.name = "Venus"
@@ -145,7 +139,6 @@ if 1:  # Classes
             self.esc_vel = flt(10.36)
             self.tilt = flt(radians(177.3))
             self.rot_per = flt(243.0187) * day_to_s
-
     class Earth(Planet):
         def __init__(self):
             self.name = "Earth"
@@ -162,7 +155,6 @@ if 1:  # Classes
             self.esc_vel = flt(11.18)
             self.tilt = flt(radians(23.44))
             self.rot_per = flt(0.99726968) * day_to_s
-
     class Mars(Planet):
         def __init__(self):
             self.name = "Mars"
@@ -179,7 +171,6 @@ if 1:  # Classes
             self.esc_vel = flt(5.02)
             self.tilt = flt(radians(25.19))
             self.rot_per = flt(1.02595675) * day_to_s
-
     class Jupiter(Planet):
         def __init__(self):
             self.name = "Jupiter"
@@ -196,7 +187,6 @@ if 1:  # Classes
             self.esc_vel = flt(59.54)
             self.tilt = flt(radians(3.12))
             self.rot_per = flt(0.41354) * day_to_s
-
     class Saturn(Planet):
         def __init__(self):
             self.name = "Saturn"
@@ -213,7 +203,6 @@ if 1:  # Classes
             self.esc_vel = flt(35.49)
             self.tilt = flt(radians(26.73))
             self.rot_per = flt(0.44401) * day_to_s
-
     class Uranus(Planet):
         def __init__(self):
             self.name = "Uranus"
@@ -230,7 +219,6 @@ if 1:  # Classes
             self.esc_vel = flt(21.29)
             self.tilt = flt(radians(97.86))
             self.rot_per = flt(0.71833) * day_to_s
-
     class Neptune(Planet):
         def __init__(self):
             self.name = "Neptune"
@@ -247,19 +235,15 @@ if 1:  # Classes
             self.esc_vel = flt(23.71)
             self.tilt = flt(radians(28.32))
             self.rot_per = flt(0.67125) * day_to_s
-
-
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Manpage():
         print(
             dedent(f"""
         Data from https://en.wikipedia.org/wiki/List_of_gravitationally_rounded_objects_of_the_Solar_System#Planets
-
+        
         Semimajor axis
             Though this is related to the orbital ellipse, it's essentially the mean
             distance of the planet from the sun, as the planets' orbits are not very
@@ -306,7 +290,6 @@ if 1:  # Utility
         """)
         )
         exit(0)
-
     def Usage(status=1):
         print(
             dedent(f"""
@@ -324,7 +307,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-d"] = 3  # Number of significant digits
         d["-e"] = False  # Relative to Earth
@@ -361,8 +343,6 @@ if 1:  # Utility
         if not args:
             Usage()
         return args
-
-
 if 1:  # Core functionality
     planets = {
         "Mercury": Mercury(),
@@ -384,7 +364,6 @@ if 1:  # Core functionality
         "u": "Uranus",
         "n": "Neptune",
     }
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

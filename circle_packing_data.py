@@ -21,9 +21,11 @@ if 1:  # Header
     if 1:   # Standard imports
         from pathlib import Path as P
         import csv
+        import sys
     if 1:   # Custom imports
         import requests
         from color import t
+        from wrap import dedent
         if 0:
             import debug
             debug.SetDebugger()
@@ -153,8 +155,21 @@ if 1:   # Core functionality
             print(f"  Number read    = {count}")
             print(f"  Number written = {g.lines}")
             exit(1)
+    def UpdateMessage():
+        print(dedent("""
+        This script shouldn't be run until you know the web page 
+        http://hydra.nat.uni-magdeburg.de/packing/cci/cci.html has been updated (the
+        last update date is given as e.g. 'Last update: 25-Dec-2024' at the top of the
+        page).  When you want to update the data, you must:
+
+            - Delete the directory /tmp/circle_packing_data
+            - Run this script with any command line argument
+        """))
 
 if __name__ == "__main__":
+    if len(sys.argv) == 1:
+        UpdateMessage()
+        exit(0)
     # Make a temporary directory in /tmp
     if not g.tmp.exists():
         g.tmp.mkdir()
