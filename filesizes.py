@@ -118,8 +118,7 @@ def FileInfo(names, gethash=hashlib.sha1):
 if __name__ == "__main__":
     import sys
     from wrap import dedent
-    from lwtest import run, assert_equal, raises
-    from pdb import set_trace as xx
+    from lwtest import run
 
     def ShowExample(pattern):
         print(

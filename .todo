@@ -16,7 +16,14 @@
             - All must pass lint (use #noqa sparingly, only as needed)
         - By 31 Mar 2026 all self tests must pass and only a small set of files can be
           without testing
-        - What's with elements.py and elements1.py?
+        - Huh?
+            - What's with elements.py and elements1.py?
+            - Move format_numbers.py stuff to fmt.py if it's not already there, then
+              obsolete
+            - fpformat.py:  keep or move all to fmt.py or f.py?
+            - fraction.py:  move to fmt.py
+            - fsig.py:  is it used anywhere?  Otherwise move to old.  There's an
+              util.fsig, so make fsig.py obsolete.
         - /plib/0lint_list
 
             - cpi_data.py

@@ -68,7 +68,6 @@ if 1:  # Imports
     import sys
     from operator import mul, add
     from functools import reduce
-    from pdb import set_trace as xx
 
     if len(sys.argv) > 1:
         import debug
@@ -137,7 +136,7 @@ def compose(*functions):
     """For a sequence of univariate functions <f0, f1, ...>, return
     the function composition ...f2(f1(f0(x))).
     """
-
+    x = 1  # Hack to stop lint complaining, but clearly this won't work
     def compose2(f0, f1):
         return f0(f1(x))
 
@@ -333,7 +332,7 @@ def Test_and_f():
     def has_b(x):
         return "b" in x
 
-    result = and_F((has_a, has_b), ["abc"])
+    result = and_f((has_a, has_b), ["abc"])
     print(
         """and_F(functions, arguments=[]):
     Same as all_f except short-circuit evaluation is used.

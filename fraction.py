@@ -200,8 +200,8 @@ def ToFraction(string):
         f = s.split("-")
         if len(f) != 2:
             raise ValueError(f"'{string}' not proper fractional form")
-        I, frac = f
-        return sign * (int(I) + ConvertFraction(frac))
+        i, frac = f
+        return sign * (int(i) + ConvertFraction(frac))
     else:
         return sign * ConvertFraction(s)
 

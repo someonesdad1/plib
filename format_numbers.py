@@ -12,10 +12,10 @@ to read.
 from decimal import Decimal
 from fpformat import FPFormat
 from fractions import Fraction
-from math import pi
+#from math import pi
 from sig import sig
 from string import ascii_letters
-from uncertainties import ufloat
+#from uncertainties import ufloat
 from uncertainties.core import Variable
 from roundoff import RoundOff
 

@@ -115,6 +115,7 @@ class Fsig:
         rlz       b   Remove leading 0 before decimal point if True [False]
         tsafe     b   Thread-safe if True [True]
         psafe     b   Process-safe if True [True]
+        '''
 
 if __name__ == "__main__":
     # A few test cases

@@ -34,16 +34,13 @@ if 1:  # Copyright, license
 if 1:  # Standard imports
     import getopt
     import math
-    import os
     import pathlib
     import sys
     from fractions import Fraction
     import decimal
-    from pdb import set_trace as xx
 if 1:  # Custom imports
-    from wrap import wrap, dedent
+    from wrap import dedent
     from f import flt, cpx
-    from decorators import TraceExecution
 
     try:
         import mpmath
@@ -206,7 +203,7 @@ if 1:  # Core functionality
         if not x:
             return Fraction(0, 1)
         if reltol is not None and not (0 < reltol <= 1):
-            raise ValueError(f"reltol must be > 0 and <= 1")
+            raise ValueError("reltol must be > 0 and <= 1")
         S = [flt, float, int, Fraction]
         S += [mpmath.mpf] if _have_mpmath else []
         if not ii(x, tuple(S)):
@@ -340,7 +337,7 @@ if 1:  # Core functionality
 
 if __name__ == "__main__":
     from wrap import dedent
-    from lwtest import run, raises, assert_equal, Assert
+    from lwtest import run, raises, Assert
 
     def Test_SigFigFloat():
         x, f = 0, SigFigFloat
@@ -476,7 +473,6 @@ if __name__ == "__main__":
             (1e-14, (130161051938194, 41431549628009)),  # **
             # ** better (smaller denom) approximation than RationalApprox
         ):
-            g = f(pi, max_denom=p[1])
             Assert(f(pi, max_denom=p[1]) == Fraction(*p))
 
     exit(run(globals(), regexp=r"Test_", halt=1)[0])

@@ -36,20 +36,20 @@
           attribute.
         - angle_measure attribute can be "deg", "rad", "grad", "rev",
           "turn".
-
+          
 ---------------------------------------------------------------------------
 class Fmt:  Format floating point numbers
     This module provides string interpolation ("formatting") for integer,
     floating point, and complex number types.  A Fmt instance can format
     int, float, decimal.Decimal, mpmath.mpf, and fractions.Fraction number
     types.
-
+    
     Run the module as a script to see example output.  See Terminal Notes
     below.
-
+    
     The attributes of a Fmt instance provide more control over the
     formatting:
-
+    
         n       Sets the number of displayed digits.  For floats, the
                 maximum is 15; for mpmath and Decimal, it's controlled by
                 the context's precision.
@@ -71,9 +71,9 @@ class Fmt:  Format floating point numbers
         rtdp    If True, remove the trailing radix if it ends the string.
         spc     If True, use " " as leading character if number >= 0
         sign    If True, always include the number's sign
-
+        
     Complex number attributes:
-
+    
         imag_unit   String to use for the imaginary unit.
         polar       If True, use polar coordinates.
         deg         If True, output degrees in polar coordinates.
@@ -81,7 +81,7 @@ class Fmt:  Format floating point numbers
         ul          If True, underline the argument in polar form.
         comp        If True, display as (re,im) form, (re, im) if cuddled
                     False.
-
+                    
     Thread safety
         Fmt is deliberately not thread-safe.  This means if you call the
         methods of the same instance in two different threads, you'll get
@@ -90,11 +90,11 @@ class Fmt:  Format floating point numbers
         manager, but the cost is that Fmt is then not able to be pickled.
         Most of my applications are single-threaded and I prefer to have
         the ability to pickle things if desired.
-
+        
         One solution to a multithreading application is to give each thread
         its own Fmt() instance:  one way to do this is to create one
         instance, then make a copy using the copy() method.
-
+        
     Terminal Notes
         This script is intended to be used with other scripts in the plib
         directory.  You can get the needed tools at
@@ -105,15 +105,14 @@ class Fmt:  Format floating point numbers
         what the Demo() function's output looks like on my screen.  Other
         terminals may need hacking on color.py to get things to work
         correctly.
-
+        
     How it works
         The TakeApart class takes apart numbers into their component parts
         (prepare() and disassemble() methods).  Then the Fmt instance uses
         the TakeApart instance to supply the needed parts of the number and
         builds the desired interpolation string.
-
+        
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -136,30 +135,23 @@ if 1:  # Header
         import locale
         import math
         import os
-        import string
         import sys
-        import subprocess
         import threading
-        from collections import deque, namedtuple
-        from pprint import pprint as pp
-        from pdb import set_trace as xx
+        from collections import deque
     if 1:  # Custom imports
         from wrap import dedent
-
         try:
             # Note:  mpmath is optional, but I suggest you use it because
             # it handles numbers much larger and smaller than standard
             # python tools and it has numerous special functions defined
             # over the complex plane.
             import mpmath
-
             have_mpmath = True
         except ImportError:
             have_mpmath = False
         try:
             # Used in FmtIV class
             from uncertainties import ufloat, ufloat_fromstr
-
             have_unc = True
         except ImportError:
             have_unc = False
@@ -169,36 +161,36 @@ if 1:  # Header
         D = Decimal = decimal.Decimal
         F = Fraction = fractions.Fraction
         ii = isinstance
-        __all__ = "Fmt TakeApart fmt ta".split()
+        # Exported symbols:
+        #   Fmt is the formatting class
+        #   TakeApart is a class that takes apart numbers into string components
+        #   fmt is a convenience instance of Fmt
+        __all__ = "Fmt TakeApart fmt".split()
 if 1:  # Utility
-
-    def Assert(cond, debug=False, msg=""):
-        """Similar to assert, but you'll be dropped into the debugger on an
-        exception if debug is True, Assert.debug is True, or 'Assert' is
-        a nonempty environment string.  If msg is not empty, it's printed
-        out.
-        """
-        if not hasattr(Assert, "debug"):
-            Assert.debug = False
+    # This is from lwtest.py and is inserted here to avoid a circular import
+    def Assert(cond, msg="", debug=False):
+        '''Replacement for assert but it can't be optimized out.  If debug is True,
+        Assert.debug is True, or 'Assert' is a nonempty environment string, you'll be
+        dropped into a debugger.  If msg is not empty, it's printed out.
+        '''
         if not cond:
             if debug or Assert.debug or os.environ.get("Assert", ""):
+                # Print colorized message to stdout and start debugger
                 if msg:
-                    print(msg, file=sys.stderr)
+                    t.print(f"{t('magl')}{msg}", file=sys.stderr)
                 print("Type 'up' to go to line that failed", file=sys.stderr)
                 breakpoint()
             else:
                 raise AssertionError(msg)
-
-
+    Assert.debug = False
 class TakeApart:
     """Take apart a number into its components to prepare for string
     interpolation.  Handles int, float, Decimal, mpf, and Fractions.
     The core implementation is in disassemble(), which depends on
     prepare().
-
+    
     This code is not thread-safe, so only use one instance with one thread.
     """
-
     def __init__(self):
         self._thread_id = threading.get_ident()
         self.supported = [int, float, Decimal, Fraction]
@@ -206,7 +198,6 @@ class TakeApart:
             self.supported.append(mpmath.mpf)
         self.supported = tuple(self.supported)
         self.reset()
-
     def reset(self):
         "Clear attributes used for number disassembly"
         self.number = None  # Number argument to __call__()
@@ -217,7 +208,6 @@ class TakeApart:
         self.radix = None  # Decimal point defined by locale
         self.e = None  # Integer power of 10 of number
         self.dq = None  # Deque of significand's digits without dp
-
     def copy(self):
         "Return a copy of this instance"
         ta = TakeApart()
@@ -231,7 +221,6 @@ class TakeApart:
         if self.dq is not None:
             ta.dq = self.dq.copy()
         return ta
-
     def __str__(self):
         if self.number is None:
             return "Call disassemble(value, n) first"
@@ -248,7 +237,6 @@ class TakeApart:
                 return "".join(self.dq)
             else:
                 return self.sign.strip() + "".join(self.dq)
-
     def __call__(self, x, n, all=False):
         if self._thread_id != threading.get_ident():
             print(
@@ -270,7 +258,6 @@ class TakeApart:
         elif have_mpmath and ii(x, mpmath.mpf):
             n = min(n, mpmath.mp.dps)
         self.disassemble(x, n, all=all)
-
     def prepare(self, value, n: int, all=False):
         """Return a canonical representation of a number value.  n is an
         integer describing the number of decimal digits we will want.  To
@@ -278,30 +265,30 @@ class TakeApart:
         digits available; the n + 1 digits allows for banker's rounding (i.e.,
         round-to-even) of the significand to n digits.  If all is True, we
         return all of the number's digits.
-
+        
         The returned representation will be a tuple of the form
-
+        
             (neg, digits, radix, e)
-
+            
         where
-
+        
             Value   Type    Definition
             ------  ----    ------------------------------------------------
             neg      b      Number is negative if True
             digits   s      Decimal digits of significand with no radix
             radix    s      Decimal point either "." or ","
             e        i      Power of 10 exponent.  None if value is integer.
-
+            
         where b is Boolean, s is string, and i is integer.
-
+        
         Improper values:
             inf     (False, "inf", None, None)
             -inf    (True, "inf", None, None)
             nan     (None, "nan", None, None)
-
+            
         Integer values:
             (neg, digits, None, None)
-
+            
         This method will check constraints/invariants and raise an
         exception if improper behavior is detected.
         """
@@ -309,7 +296,6 @@ class TakeApart:
             raise ValueError("n must be an integer > 0")
         if value is None:
             raise ValueError("value must not be None")
-
         def special(value, typ):
             if value == typ("inf"):
                 return (False, "inf", None, None)
@@ -321,7 +307,6 @@ class TakeApart:
             ):
                 return (None, "nan", None, None)
             return None
-
         not_supported = TypeError(f"{value!r} is an unsupported type")
         if not ii(value, self.supported):
             raise not_supported
@@ -428,11 +413,10 @@ class TakeApart:
                     Assert(ii(value, (float, Fraction, Decimal)))
                 Assert(ii(e, int))
         return result
-
     def disassemble(self, value, n, all=False):
         """Disassemble the number value into this instance's attributes.
         The basic information returned is:
-
+        
         self.number     Original value
         self.normal     Boolean:  True for int/float, false for inf/nan
         self.int        Boolean:  True for int, False for float
@@ -441,23 +425,23 @@ class TakeApart:
         self.radix      Decimal point (defined by locale)
         self.e          Integer containing the numbers base 10 exponent
         self.dq         Deque containing self.n digits
-
+        
         The deque self.dq contains the self.n digits that will be displayed.
         The last digit of the deque is rounded using half-even rounding:  if
         the (n+1)st digit is 5, the last digit is rounded up if the last digit
         is odd.
-
+        
         If the number is inf/nan (self.normal is False), then self.dq will
         contain the string "nan" or "inf"; everything else is None.  If it's
         the string "inf", then self.sign will be either "-" or "".
-
+        
         If the number is an integer, the deque will contain the first self.n
         digits followed by the necessary remaining zeroes.  self.sign is also
         set; everything else is None.
-
+        
         Otherwise, the number is a floating point number and the deque contains
         the desired self.n digits with the other attributes set appropriately.
-
+        
         If all is True, then n is ignored and all of the digits in the
         deque are returned.
         """
@@ -499,7 +483,6 @@ class TakeApart:
         Assert(self.sign == "-" or self.sign == " ")
         Assert(self.radix == "." or self.radix == ",")
         Assert(ii(self.e, int))
-
     def round(self, value, dq: deque, n: int):
         """Return the deque dq of digits rounded to n digits.  Use half-even
         rounding:  the last digit is rounded up if the following digit is
@@ -603,8 +586,6 @@ class TakeApart:
             dq.pop()
             self.e += 1
         return dq
-
-
 class Fmt:
     def __init__(self, n=3):
         "n is the number of digits to format to"
@@ -653,7 +634,6 @@ class Fmt:
         self._superscripts = dict(zip("-+0123456789", "⁻⁺⁰¹²³⁴⁵⁶⁷⁸⁹"))
         # Set to default state
         self.reset()
-
     def reset(self):
         "Reset attributes to default state"
         self.n = self._n_init
@@ -683,7 +663,6 @@ class Fmt:
         # See constructor for why these must be floats
         Assert(ii(self._low, float))
         Assert(ii(self._high, float))
-
     def copy(self):
         "Return a copy of the current instance"
         fmt = Fmt(self.n)
@@ -697,12 +676,11 @@ class Fmt:
         fmt.ta = TakeApart()
         # For this to work, fmt.ta(number) must be called before
         # disassembling any number.
-
     def toD(self, value) -> Decimal:
         """Convert value to a Decimal object.  Supported types are int,
         float, Fraction, Decimal, str, mpmath.mpf, and any other type
         that gives a value from str(value).
-
+        
         Note: if value is an mpmath.mpf number, it may be much larger than
         a default Decimal instance can hold (Decimal's default exponent
         goes up to 1e6).  Raise a ValueError exception to explain the
@@ -723,13 +701,11 @@ class Fmt:
         else:
             # This can fail on big mpf numbers
             return D(str(value))
-
     def GetUnicodeExponent(self, e):
         o = ["✕10"]
         for c in str(e):
             o.append(self._superscripts[c])
         return "".join(o)
-
     def trim(self, dq):
         "Implement rtz, rtdp, and rlz for significand dq in deque"
         Assert(ii(dq, deque))
@@ -742,12 +718,10 @@ class Fmt:
             if dq[0] == "0" and dq[1] == self._dp:
                 dq.popleft()  # Remove leading 0
         return dq
-
     def none_bug(self, var, name):
         "Raise exception if var is None"
         if var is None:
             raise Exception(f"fmt.{var} is None")
-
     def clamp_n(self, value, n) -> int:
         "Clamp n to reasonable values"
         if ii(value, float):
@@ -759,7 +733,6 @@ class Fmt:
             return min(n, mpmath.mp.dps)
         else:
             return n
-
     def significand(self, value) -> str:
         "Return a string for the value's significand"
         if ii(value, float):
@@ -776,24 +749,23 @@ class Fmt:
         sign = self.ta.sign.strip()
         dq.insert(1, self.dp)
         return sign + "".join(dq)
-
     def __call__(self, value, fmt=None, n=None, width=None) -> str:
         """Format value with the default formatter.  n overrides self.n
         digits and must be > 0.  fmt can be "fix", "fixed", "sci", "eng",
         "engsi", or "engsic" for real numbers.  If it is None, then
         self.default is used.
-
+        
         If n is not None, it is an integer > 0 that overrides the self.n
         setting.
-
+        
         If value is an integer, fmt can be "dec", "hex", "oct", or "bin".
-
+        
         If width is not None, it is the desired string width when self.brief is
         True; note that a best effort will be made, but the returned string may
         be larger than the desired width.
         """
         if width is not None:
-            raise Exception(f"width keyword not supported yet")  # xx
+            raise Exception("width keyword not supported yet")  # xx
         if 1:  # Check arguments
             if n is not None:
                 if not ii(n, int):
@@ -829,23 +801,22 @@ class Fmt:
             return self.Real(value, fmt=fmt, n=n, width=width)
         else:
             raise TypeError(f"{value!r} is an unsupported type")
-
     def fmtint(self, value, fmt=None, width=None, mag=False):
         """Format an integer value.  If fmt is None, the default self.int
         formatting is used.  Other values for fmt are "hex", "oct", "dec",
         and "bin", which cause 0x, 0o, 0d, or 0b to be prepended.
         self.sign and self.spc are honored.
-
+        
         width is the number of spaces the string must fit into.  If it is
         None, then the number of COLUMNS - 1 is used.
-
+        
         mag if True is used to provide a [~10ⁿ] string at the end to
         indicate the magnitude of the number.
-
+        
         width is only used if self.brief is True.
         """
         if width is not None:
-            raise Exception(f"width keyword not supported yet")  # xx
+            raise Exception("width keyword not supported yet")  # xx
         if not ii(value, int):
             raise TypeError("value must be an int")
         if value < 0:
@@ -903,10 +874,8 @@ class Fmt:
             split = n // 2
             left, right = deque(lst[:split]), deque(lst[split:])
             Assert(len(left) + len(right) == n)
-
             def dqlen():
                 return len(left) + len(right) + len(self.ellipsis) + len(sgn)
-
             while True:
                 # Remove a character from the larger of the two deques
                 if len(left) > len(right):
@@ -935,10 +904,9 @@ class Fmt:
                 """)
                 raise Exception(msg)
             return u
-
     def Int(self, value, fmt=None, n=None, width=None) -> str:
         if width is not None:
-            raise Exception(f"width keyword not supported yet")  # xx
+            raise Exception("width keyword not supported yet")  # xx
         n = n if n is not None else self.n
         fmt = fmt if fmt is None else self.int
         Assert(ii(value, int))
@@ -948,14 +916,13 @@ class Fmt:
             sgn = ""
         s = sgn + "".join(self.ta.dq)
         return s
-
     def fixed(self, value, n=None, width=None) -> str:
         """Return a fixed point representation simulating an HP calculator.
         Example:  if value = 72.8435 and n = 3, then '72.844' is returned.
         Here, n represents the number of digits after the decimal point.
         """
         if width is not None:
-            raise Exception(f"width keyword not supported yet")  # xx
+            raise Exception("width keyword not supported yet")  # xx
         n = n if n is not None else self.n
         n = self.clamp_n(value, n)
         if self.low is not None and 0 < abs(value) < self.low:
@@ -1024,7 +991,6 @@ class Fmt:
                 k += 1
             dq.insert(1, self.dp)
             return sign + "".join(dq)
-
     def fix(self, value, n=None, width=None) -> str:
         """Return a fixed point representation using significant figures.
         Example:  if value = 72.8435 and n = 3, then '72.8' is returned.
@@ -1032,7 +998,7 @@ class Fmt:
         string.
         """
         if width is not None:
-            raise Exception(f"width keyword not supported yet")  # xx
+            raise Exception("width keyword not supported yet")  # xx
         n = n if n is not None else self.n
         n = self.clamp_n(value, n)
         if self.low is not None and 0 < abs(value) < self.low:
@@ -1089,11 +1055,10 @@ class Fmt:
         dq = self.trim(dq)
         s = "".join(dq)
         return s
-
     def sci(self, value, n=None, width=None) -> str:
         "Return a scientific format representation"
         if width is not None:
-            raise Exception(f"width keyword not supported yet")  # xx
+            raise Exception("width keyword not supported yet")  # xx
         n = n if n is not None else self.n
         n = self.clamp_n(value, n)
         self.ta(value, n)
@@ -1107,51 +1072,48 @@ class Fmt:
         self.ta.dq = self.trim(self.ta.dq)  # Implement rtz, rtdp, rlz
         s = sgn + "".join(self.ta.dq) + exponent
         return s
-
-        # Handle the case when self.brief is True
-        if width is None:
-            raise ValueError(f"width cannot be None if fmt.brief is True")
-        if 1:  # Get m = number of digits that can be in significand
-            m = width
-            if self.u:
-                m -= 3  # For '×10'
-            else:
-                m -= 1  # For 'e'
-            m -= len(str(self.ta.e))  # For exponent's digits
-            m -= 1  # For decimal point
-            m -= len(self.ellipsis)  # For ellipsis
-            m = max(2, m)  # Must have at least two characters
-        if len(dq) <= m:  # We can return it with no more work
-            # Insert locale's decimal point
-            dq.insert(1, self.dp)
-            dq = self.trim(dq)  # Implement rtz, rtdp, rlz
-            s = sgn + "".join(dq) + exponent
-            return s
-        # Significand needs digits removed.  Split significand and remove
-        # middle digits to get needed width.
-        middle = len(dq) // 2
-        left = deque(list(dq)[:middle])
-        right = deque(list(dq)[middle:])
-
-        def Len():
-            return len(left) + len(right)
-
-        while Len() > m:
-            if len(left) >= len(right):
-                left.pop()
-            else:
-                right.popleft()
-        Assert(Len() <= m)
-        # Insert decimal point and ellipsis
-        if len(left) == 1:
-            left.append(self.dp)
-            left.append(self.ellipsis)
-        else:
-            right.insert(0, self.ellipsis)
-            left.insert(1, self.dp)
-        s = sgn + "".join(left) + "".join(right) + exponent
-        return s
-
+        if 0:   # Handle the case when self.brief is True
+            if width is None:
+                raise ValueError("width cannot be None if fmt.brief is True")
+            if 1:  # Get m = number of digits that can be in significand
+                m = width
+                if self.u:
+                    m -= 3  # For '×10'
+                else:
+                    m -= 1  # For 'e'
+                m -= len(str(self.ta.e))  # For exponent's digits
+                m -= 1  # For decimal point
+                m -= len(self.ellipsis)  # For ellipsis
+                m = max(2, m)  # Must have at least two characters
+          # Commented out to avoid lint error:  dq undefined
+          # if len(dq) <= m:  # We can return it with no more work
+          #     # Insert locale's decimal point
+          #     dq.insert(1, self.dp)
+          #     dq = self.trim(dq)  # Implement rtz, rtdp, rlz
+          #     s = sgn + "".join(dq) + exponent
+          #     return s
+          # # Significand needs digits removed.  Split significand and remove
+          # # middle digits to get needed width.
+          # middle = len(dq) // 2
+          # left = deque(list(dq)[:middle])
+          # right = deque(list(dq)[middle:])
+          # def Len():
+          #     return len(left) + len(right)
+          # while Len() > m:
+          #     if len(left) >= len(right):
+          #         left.pop()
+          #     else:
+          #         right.popleft()
+          # Assert(Len() <= m)
+          # # Insert decimal point and ellipsis
+          # if len(left) == 1:
+          #     left.append(self.dp)
+          #     left.append(self.ellipsis)
+          # else:
+          #     right.insert(0, self.ellipsis)
+          #     left.insert(1, self.dp)
+          # s = sgn + "".join(left) + "".join(right) + exponent
+          # return s
     def eng(self, value, fmt="eng", n=None, width=None) -> str:
         """Return an engineering format representation.  Suppose value
         is 31415.9 and n is 3.  Then fmt can be:
@@ -1160,27 +1122,27 @@ class Fmt:
             "engsic" returns "31.4k" (the SI prefix is cuddled)
         Note:  cuddling is invalid SI syntax, but it's sometimes useful in
         program output.
-
+        
         If width is not None and self.brief is True, try to fit the string
         into width characters by removing digits to the right of the
         decimal point.  Example:
-
+        
             x = 34567800.0
             width = 8
             eng    = '34.567e6'
             eng    = '34.5✕10⁶' with self.u == True
             engsi  = '34.567 M'
             engsic = '34.5678M'
-
+            
         Note that you may get a string longer than the desired width
         because you'd lose information otherwise.  Example:  in the
         previous example, if the width is changed to 5, you'll get
-
+        
             eng       = '34e6'    len = 4
             eng       = '34✕10⁶'  len = 6 with self.u == True
             engsi     = '34 M'    len = 4
             engsic    = '34.5M'   len = 5
-
+            
         In the first and third lines, the length would have been 5 except
         it's OK to remove the decimal point.  In the second line, there's
         no way to remove another digit from the significand without ruining
@@ -1188,7 +1150,7 @@ class Fmt:
         changed, turning the notation into plain scientific).
         """
         if width is not None:
-            raise Exception(f"width keyword not supported yet")  # xx
+            raise Exception("width keyword not supported yet")  # xx
         n = n if n is not None else self.n
         n = self.clamp_n(value, n)
         self.ta(value, n)
@@ -1228,7 +1190,6 @@ class Fmt:
         else:
             raise ValueError(f"'{fmt}' is an unrecognized format")
         return "".join(dq)
-
         if self.brief:
             width = W if width is None else width
             # dq holds the eng significand
@@ -1249,7 +1210,6 @@ class Fmt:
             # Remove LSDs from significand to get width goal
             while len("".join(dq)) > width and dq[-1] != self.ta.dp:
                 dq.pop()
-
     def unc(self, x, u, fmt="fix", intv=False) -> str:
         """Return a string form analogous to the shorthand form used for
         uncertainty:  e.g. '1.23(4)' where '1.23' is x and the '4' is
@@ -1330,10 +1290,9 @@ class Fmt:
                         k += 1
                 sig.insert(k, us)
         return "".join(sig)
-
     def Real(self, value, fmt=None, n=None, width=None) -> str:
         if width is not None:
-            raise Exception(f"width keyword not supported yet")  # xx
+            raise Exception("width keyword not supported yet")  # xx
         n = n if n is not None else self.n
         fmt = fmt if fmt is not None else self.default
         if fmt == "fix":
@@ -1346,13 +1305,12 @@ class Fmt:
             return self.eng(value, fmt=fmt, n=n, width=width)
         else:
             raise ValueError(f"{fmt!r} is an unknown format")
-
     def Complex(self, value, fmt=None, n=None, width=None) -> str:
         """value is a complex number.  Return a string in the form of
         'a + bi'.
         """
         if width is not None:
-            raise Exception(f"width keyword not supported yet")  # xx
+            raise Exception("width keyword not supported yet")  # xx
         n = n if n is not None else self.n
         if fmt is not None:
             if fmt not in "fix fixed sci eng engsi engsic".split():
@@ -1408,44 +1366,35 @@ class Fmt:
             s = "" if self.cuddled else " "
             ret = f"{sr}{s}{sign}{s}{si}{self._imag_unit}"
             return ret
-
     if 1:  # Properties
-
         @property  # Default formatting method
         def default(self) -> str:
             self.none_bug(self._default, "default")
             return self._default
-
         @default.setter
         def default(self, value):
             if value not in "fix fixed sci eng engsi engsic".split():
                 raise TypeError("value must be fix, sci, eng, engsi, or engsi")
             self._default = value
-
         @property  # Decimal point string
         def dp(self) -> str:
             self.none_bug(self._dp, "dp")
             return self._dp
-
         @dp.setter
         def dp(self, value):
             if not ii(value, str) or len(value) > 1 or value not in ".,":
                 raise TypeError("Decimal point must be either '.' or ','")
             self._dp = value
-
         @property  # Use "sci" format if abs(x) is >= high and not None
         def high(self):
             return self._high
-
         @high.setter
         def high(self, value):
             # Note this must be a float (see notes in constructor)
             self._high = None if value is None else abs(float(str(value)))
-
         @property  # How to format integers with self.fmtint()
         def int(self):
             return self._int
-
         @int.setter
         def int(self, value):
             s = "hex oct dec bin"
@@ -1455,139 +1404,108 @@ class Fmt:
                 if value not in s.split():
                     raise ValueError(f"value must be one of {s}")
                 self._int = None if value == "dec" else value
-
         @property  # Use "sci" format if abs(x) is < low and not None
         def low(self):
             return self._low
-
         @low.setter
         def low(self, value):
             # Note this must be a float (see notes in constructor)
             self._low = None if value is None else abs(float(str(value)))
-
         @property  # Number of digits wanted in interpolation, an int > 0
         def n(self) -> int:
             self.none_bug(self._n, "n")
             return self._n
-
         @n.setter
         def n(self, value):
             if not (ii(value, int) or value <= 0):
                 raise ValueError("value must be integer > 0")
             self._n = value
-
         @property  # (bool) Remove trailing zeros after radix if True
         def rtz(self) -> bool:
             self.none_bug(self._rtz, "rtz")
             return self._rtz
-
         @rtz.setter
         def rtz(self, value):
             self._rtz = bool(value)
-
         @property  # (bool) Remove trailing radix if True
         def rtdp(self) -> bool:
             self.none_bug(self._rtdp, "rtdp")
             return self._rtdp
-
         @rtdp.setter
         def rtdp(self, value):
             self._rtdp = bool(value)
-
         @property  # (bool) Remove leading zero if True
         def rlz(self) -> bool:
             self.none_bug(self._rlz, "rlz")
             return self._rlz
-
         @rlz.setter
         def rlz(self, value):
             self._rlz = bool(value)
-
         @property  # Always include numbers' sign
         def sign(self) -> bool:
             self.none_bug(self._sign, "sign")
             return self._sign
-
         @sign.setter
         def sign(self, value):
             self._sign = bool(value)
-
         @property  # Add " " to numbers >= 0 where "-" goes
         def spc(self) -> bool:
             self.none_bug(self._spc, "spc")
             return self._spc
-
         @spc.setter
         def spc(self, value):
             self._spc = bool(value)
-
         @property  # (bool) Use Unicode in "sci" and "eng" formats if True
         def u(self) -> bool:
             self.none_bug(self._u, "u")
             return self._u
-
         @u.setter
         def u(self, value):
             self._u = bool(value)
-
     if 1:  # Complex number properties
-
         @property  # Imaginary unit string
         def imag_unit(self) -> str:
             self.none_bug(self._imag_unit, "imag_unit")
             return self._imag_unit
-
         @imag_unit.setter
         def imag_unit(self, value):
             Assert(ii(value, str) and len(value) > 0)
             self._imag_unit = value
-
         @property  # (bool) Show complex numbers in polar form
         def polar(self) -> bool:
             self.none_bug(self._polar, "polar")
             return self._polar
-
         @polar.setter
         def polar(self, value):
             self._polar = bool(value)
-
         @property  # (bool) Show complex number's angles in degrees
         def deg(self) -> bool:
             self.none_bug(self._deg, "deg")
             return self._deg
-
         @deg.setter
         def deg(self, value):
             self._deg = bool(value)
-
         @property  # (bool) Use '1+2i' form if True, '1 + 2i' form if False
         def cuddled(self) -> bool:
             self.none_bug(self._cuddled, "cuddled")
             return self._cuddled
-
         @cuddled.setter
         def cuddled(self, value):
             self._cuddled = bool(value)
-
         @property  # (bool) Underline the argument when displaying polar form
         def ul(self) -> bool:
             self.none_bug(self._ul, "ul")
             return self._ul
-
         @ul.setter
         def ul(self, value):
             self._ul = bool(value)
-
         @property  # (bool) Show complex number in (re,im) form
         def comp(self) -> bool:
             self.none_bug(self._comp, "comp")
             return self._comp
-
         @comp.setter
         def comp(self, value):
             self._comp = bool(value)
-
-
 class FmtIV:
     """Utilities for dealing with mpmath interval numbers.  Call the
     instance to:
@@ -1595,20 +1513,18 @@ class FmtIV:
         - Convert short form like 2[1] to interval number iv.mpf([1, 3])
         - Convert interval number to short form like 2[1]
     """
-
     def __init__(self, n=1):
         # n is number of digits to show in "uncertainty" portion, where
         # here "uncertainty" means the halfwidth of the interval.
         assert ii(n, int) and n > 0
         assert have_mpmath and have_unc
         self.n = n
-
     def __call__(self, x):
         """Action depends on type of x:
         list, tuple:    convert to mpmath.iv.mpf (must be 2 numbers)
         string:         x[y] short form of interval number
         mpmath.iv.mpf:  Convert to x[y] short form string
-
+        
         The easy way to do this stuff is to use the facilities of the
         uncertainties library.
         """
@@ -1642,20 +1558,11 @@ class FmtIV:
         else:
             m = "x must be list or tuple of two floats, string, or interval number"
             raise TypeError(m)
-
-
 # Convenience Fmt instance
 fmt = Fmt()
 # Convenience FmtIV instance
 if have_mpmath and have_unc:
     fmtiv = FmtIV()
-
-# Development area
-if 0 and __name__ == "__main__":
-    f = FmtIV()
-    x = iv.mpf((0, 2))
-    print(f(x))
-    exit()
 
 if __name__ == "__main__":
     if 1:  # Header
@@ -1663,17 +1570,14 @@ if __name__ == "__main__":
         from functools import partial
         from decimal import localcontext
         from math import pi
-        import getopt
         import os
         import pathlib
         import sys
-
         # Custom imports
         from color import t
         from lwtest import run, raises
         from wrap import dedent
         import decimalmath
-
         # Global variables
         Fraction = fractions.Fraction
         P = pathlib.Path
@@ -1690,7 +1594,6 @@ if __name__ == "__main__":
         t.si = t("magl") if u else ""  # Engsi notation
         t.em = t("purl") if u else ""  # Emphasis
         t.err = t("redl") if u else ""  # Error in digits
-
     def Demo():
         f = fmt
         t.print(
@@ -1744,7 +1647,7 @@ if __name__ == "__main__":
         )
         # Change scientific notation thresholds
         t.print(f'{t.em}fmt="sci"  Scientific notation')
-        print(f"Change transition thresholds to scientific notation:")
+        print("Change transition thresholds to scientific notation:")
         f.high = 1e6
         f.low = 1e-6
         t.print(f"  {t.f}f.high{t.n} = {t.sci}{f.sci(f.high, n=1)}")
@@ -1784,7 +1687,7 @@ if __name__ == "__main__":
         t.print(f"  {t.f}f(pi*1e-27){t.n} = {t.fix}{f(pi * 1e-27)}")
         t.print(f"  {t.f}f(pi*1e57){t.n} = {t.fix}{f(pi * 1e57)}")
         print(
-            dedent(f"""
+            dedent("""
         Large and small enough numbers will still require scientific notation (the
         default processing switches to scientific notation if an interpolation takes
         up more than a fourth of the screen area).""")
@@ -1809,20 +1712,16 @@ if __name__ == "__main__":
             x = mpmath.mpf(100)
             y = mpmath.fac(x)
             z = y**y
-            print(
-                dedent(f"""
+            print(dedent("""
             mpmath lets you calculate y = x**x where x is 100!:
             y = {fmt(z)} (the exponent is 1.47e160)
-            """)
-            )
+            """))
         else:
-            print(
-                dedent(f"""
+            print(dedent("""
             If you install mpmath, you can handle/format large numbers.  For example,
             if x = 100!, then x**x is a large number with an exponent of 1.47e160 and
             fmt(x**x) will format the number properly.
-            """)
-            )
+            """))
         # Decimals with lots of digits
         n = 20
         t.print(
@@ -1895,28 +1794,23 @@ if __name__ == "__main__":
         t.print(f"{sp}{s:{w}s} {t.f}{fmt(z)}{t.n}  (fmt.cuddled True)")
         fmt.cuddled = False
         t.print(f"{sp}{'':{w}s} {t.f}{fmt(z)}{t.n} (fmt.cuddled False)")
-        t.print(f"The fmt.ul underlining won't work unless your terminal supports it.")
+        t.print("The fmt.ul underlining won't work unless your terminal supports it.")
         if W < 79:
             print("[Need a screen width of at least 80 for acceptable Demo() output]")
-
     if 1:  # Test code
-
         def GetDefaultFmtInstance():
             "Make sure test environment is set up in a repeatable fashion"
             fmt = Fmt()
             fmt.n = 3
             return fmt
-
         def Test_prepare():
             """TakeApart.prepare() is the core functionality needed for
             string interpolation for supported number types.
             """
             ta = TakeApart()
             n = 3
-
             def f(x):
                 return ta.prepare(x, n)
-
             if 1:  # int
                 Assert(f(0) == (False, "0", None, None))
                 for s in "1 2 10 20 1234567890".split():
@@ -2078,17 +1972,14 @@ if __name__ == "__main__":
                                 print(f"nstr = {s}")
                                 exit()
                         Assert(f(x) == expected)
-
         def Test_disassemble():
             """TakeApart.disassemble() is used for all string interpolation, so
             show it works for the basic tasks.
             """
             ta = TakeApart()
-
             def f(x, n):
                 ta.disassemble(x, n)
                 return "".join(ta.dq)
-
             if 1:  # Integer
                 x = 12345600
                 for n, expected in (
@@ -2132,7 +2023,6 @@ if __name__ == "__main__":
                             Assert(ta.sign == " ")
                             Assert(f(-x, n) == expected)
                             Assert(ta.sign == "-")
-
         def Test_Basics():
             f = GetDefaultFmtInstance()
             for x, result in (
@@ -2209,7 +2099,6 @@ if __name__ == "__main__":
             Assert(f(-x, n=5) == "-1.0000")
             Assert(f(-x, n=6) == "-0.999999")
             Assert(f(-x, n=7) == "-0.9999990")
-
         def Test_toD():
             f = GetDefaultFmtInstance().toD
             # int and str
@@ -2250,7 +2139,6 @@ if __name__ == "__main__":
                 with decimal.localcontext() as ctx:
                     ctx.prec = n
                     Assert(f(x) == D(2) ** D(1 / 2))
-
         def Test_Fixed():
             f = GetDefaultFmtInstance()
             # Test with a float
@@ -2384,7 +2272,6 @@ if __name__ == "__main__":
                         exit()
                     Assert(f(x, fmt="fixed", n=n) == expected)
                     Assert(f(-x, fmt="fixed", n=n) == "-" + expected)
-
         def Test_Fix():
             def TestTrimming():
                 f = GetDefaultFmtInstance()
@@ -2417,9 +2304,8 @@ if __name__ == "__main__":
                 x = -31.41
                 f.dp = ","
                 Assert(f(x) == "-31,4")
-                with raises(TypeError) as y:
+                with raises(TypeError):
                     f.dp = "q"
-
             def TestHuge(n, digits=3):
                 f = GetDefaultFmtInstance()
                 f.n = digits
@@ -2431,7 +2317,6 @@ if __name__ == "__main__":
                     Assert(s == "3.14e999999")
                 else:
                     Assert(s.startswith("3140"))
-
             def TestTiny(n, digits=3):
                 f = GetDefaultFmtInstance()
                 f.n = digits
@@ -2443,7 +2328,6 @@ if __name__ == "__main__":
                     Assert(s == "3.14e-999999")
                 else:
                     Assert(s.endswith("0314"))
-
             def TestLotsOfDigits(n, digits=3):
                 f = GetDefaultFmtInstance()
                 f.n = digits
@@ -2456,7 +2340,6 @@ if __name__ == "__main__":
                     Assert(s == t)
                     s = f(x, n=n)
                     Assert(s == t)
-
             def TestBigInteger(n):
                 d = ["1234567890"] * n
                 s = "".join(d)
@@ -2478,7 +2361,6 @@ if __name__ == "__main__":
                     f.high = None
                     t = f(x, fmt="fix")
                     Assert(t == "3.06e9983")
-
             def Test_spc():
                 "Test .spc and .sign"
                 f = GetDefaultFmtInstance()
@@ -2497,7 +2379,6 @@ if __name__ == "__main__":
                 x = -0.2846
                 s = f(x)
                 Assert(s == "-0.285")
-
             def Test_rlz():
                 f = GetDefaultFmtInstance()
                 x = 0.2846
@@ -2514,7 +2395,6 @@ if __name__ == "__main__":
                 x *= -1
                 s = f.fix(x)
                 Assert(s == "-.285")
-
             for n in (
                 999999,  # Largest exponent allowed by default Decimal context
                 100,
@@ -2529,7 +2409,6 @@ if __name__ == "__main__":
             TestBigInteger(20)
             Test_spc()
             Test_rlz()
-
         def Test_Eng():
             old_dps = None
             if have_mpmath:
@@ -2620,7 +2499,6 @@ if __name__ == "__main__":
                     Assert(s == "-300f")
             if old_dps is not None:
                 mpmath.mp.dps = old_dps
-
         def Test_Sci():
             fmt = GetDefaultFmtInstance()
             x = D("3.141592653589793e+99")
@@ -2636,7 +2514,6 @@ if __name__ == "__main__":
             x = D("3.9e21")
             fmt.n = 1
             Assert(fmt(x) == "4.e21")
-
         def Test_Unc():
             fmt = GetDefaultFmtInstance()
             x = 1.23456
@@ -2677,7 +2554,6 @@ if __name__ == "__main__":
                 fmt.unc(x, u)
                 == "0.00000000000000000000000000000000000000000000000001234(6)"
             )
-
         def Test_Big():
             """The Fmt object uses Decimal numbers to do the formatting.  This
             works for most stuff, but will fail when dealing with exponents
@@ -2691,7 +2567,6 @@ if __name__ == "__main__":
             x = mpmath.mpf(mpmath.pi) ** (10**50)
             s = "1.81e49714987269413385435126828829089887365167832438044"
             Assert(fmt(x, n=3) == s)
-
         def Test_Default():
             "Verify the default formatting attribute works"
             fmt = Fmt()
@@ -2706,12 +2581,11 @@ if __name__ == "__main__":
             Assert(fmt(x) == "31.4 k")
             fmt.default = "engsic"
             Assert(fmt(x) == "31.4k")
-
         def Test_TakeApart():
             mpf = mpmath.mpf if have_mpmath else float
             if 1:  # Show supported types get the same string interpolation
                 # Function to convert an Apart to a string
-                g = lambda x: "".join(x[:4]) + f"e{x[4]}"
+                def g(x): "".join(x[:4]) + f"e{x[4]}"
                 k, u, m = 5, "1.23456", 300
                 ta = TakeApart()
                 for n in range(1, 10):
@@ -2823,7 +2697,6 @@ if __name__ == "__main__":
                 print(f"{sp}{'mpf':{w}s} {TA(mpf(s[1:]))}")
                 print(f"{sp}{'Decimal':{w}s} {TA(D(s[1:]))}")
                 print(f"{sp}{'Fraction':{w}s} {TA(f.fromdecimal(D(s[1:])))}")
-
         def Test_Int():
             f = GetDefaultFmtInstance()
             x = 32768
@@ -2838,51 +2711,29 @@ if __name__ == "__main__":
             # Setting default works
             f.int = "hex"
             Assert(f.fmtint(x) == hex(x))
-
         def Test_Brief():
-            return
-            # Integers
-            GetDefaultFmtInstance()
-            fmt.brief = True
-            x = 12345678901234567891234567890123456789123456789
-            result = fmt.fmtint(x, width=10, mag=0)
-            Assert(result == "12345⋯6789")
-            result = fmt.fmtint(x, width=5, mag=0)
-            Assert(result == "12⋯89")
-            x = -x
-            result = fmt.fmtint(x, width=10)
-            Assert(result == "-1234⋯789")
-            result = fmt.fmtint(x, width=5)
-            Assert(result == "-1⋯9")
-            raises(ValueError, fmt.fmtint, x, width=3)
-            if 1:  # Test mag
-                result = fmt.fmtint(x, width=15, mag=True)
-                Assert(result == "-123⋯89 |10⁴⁶|")
-            # Floats
-            print("xx Test_Brief:  need to write float code")  # xx
-
+            if 0:   # The 'width' keyword is not supported yet
+                # Integers
+                GetDefaultFmtInstance()
+                fmt.brief = True
+                x = 12345678901234567891234567890123456789123456789
+                result = fmt.fmtint(x, width=10, mag=0)
+                Assert(result == "12345⋯6789")
+                result = fmt.fmtint(x, width=5, mag=0)
+                Assert(result == "12⋯89")
+                x = -x
+                result = fmt.fmtint(x, width=10)
+                Assert(result == "-1234⋯789")
+                result = fmt.fmtint(x, width=5)
+                Assert(result == "-1⋯9")
+                raises(ValueError, fmt.fmtint, x, width=3)
+                if 1:  # Test mag
+                    result = fmt.fmtint(x, width=15, mag=True)
+                    Assert(result == "-123⋯89 |10⁴⁶|")
+                # Floats
+                print("xx Test_Brief:  need to write float code")  # xx
     if 1:  # Module's base code
-
-        def Error(msg, status=1):
-            print(msg, file=sys.stderr)
+        if len(sys.argv) > 1 and sys.argv[1] == "--test":
+            status, msg = run(globals(), regexp=r"Test_", halt=1)
             exit(status)
-
-        def ParseCommandLine(d):
-            d["--test"] = False  # Run self tests
-            try:
-                opts, args = getopt.getopt(sys.argv[1:], "h", "test".split())
-            except getopt.GetoptError as e:
-                print(str(e))
-                exit(1)
-            for o, a in opts:
-                if o in ("-h", "--help"):
-                    Usage(d, status=0)
-                elif o == "--test":
-                    d["--test"] = True
-            return args
-
-    args = ParseCommandLine(d)
-    if d["--test"]:
-        exit(run(globals(), regexp=r"Test_", halt=1, verbose=0)[0])
-    else:
         Demo()

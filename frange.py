@@ -58,7 +58,6 @@ if 1:  # Header
     if 1:  # Imports
         import getopt
         import itertools
-        import os
         import pathlib
         import re
         import sys
@@ -67,7 +66,7 @@ if 1:  # Header
         from fractions import Fraction
     if 1:  # Custom imports
         from wrap import dedent
-        from lwtest import run, raises, assert_equal, Assert
+        from lwtest import run, Assert
         from color import t
         from roundoff import RoundOff
         from f import flt
@@ -348,10 +347,10 @@ if __name__ == "__main__":
             Assert(got == expected)
         def Test_mpmath():
             try:
-                from mpmath import mpf, mpc, mp, arange
+                from mpmath import mpf, mpc, mp
             except ImportError:
                 t.print(
-                    f"{t('ornl')}{__file__}:  Warning:  mpmath not tested{norm}",
+                    f"{t.ornl}{__file__}:  Warning:  mpmath not tested{t.n}",
                     file=sys.stderr,
                 )
             else:
@@ -491,7 +490,7 @@ if __name__ == "__main__":
     if 1:  # Example code
         def Sixteenths():
             print(
-                dedent(f'''
+                dedent('''
             Example of frange:  printing sixteenths:
             for i in frange("1/16", 2, 1/16):
                 print(f"  {{i!s:10s}} {{i!r}}")

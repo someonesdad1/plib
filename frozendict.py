@@ -1,26 +1,24 @@
 """
 Class to make frozen dictionaries
-    This code is derived from the routine by Oren Tirosh dated 16 May
-    2005 at
-    http://code.activestate.com/recipes/414283-frozen-dictionaries/.
-    On 10 Jun 2021 the above link states that this code is licensed
-    under the Python Software Foundation License.
 
-    I downloaded this code on Fri 25 Jul 2014 04:53:59 PM and made the
-    following modifications
+    This code is derived from the routine by Oren Tirosh dated 16 May 2005 at
+    http://code.activestate.com/recipes/414283-frozen-dictionaries/.  On 10 Jun 2021 the
+    above link states that this code is licensed under the Python Software Foundation
+    License.
 
-        * Included the modification by Ero Carrera (in the above web
-          page's comments) to get it to work with mutable contents.
-        * Added some unit tests.
-        * Changed the _blocked_attribute method to let things work with
+    I downloaded this code on Fri 25 Jul 2014 04:53:59 PM and made the following
+    modifications
+
+        - Included the modification by Ero Carrera (in the above web page's comments) to
+          get it to work with mutable contents.
+        - Added some unit tests.
+        - Changed the _blocked_attribute method to let things work with
           unittest.assertRaises.
-        * Checked that a frozendict can be made from a defaultdict or
-          OrderedDict.
-        * The copy.copy() method in Carrera's code isn't necessary, as
-          it's a shallow copy which can be done by dict.copy().
-        * Unit tests are in /pylib/test/frozendict_test.py.  On 10 Jun
-          2021 I moved the unit test code into this file (run it as a
-          script to run the tests).
+        - Checked that a frozendict can be made from a defaultdict or OrderedDict.
+        - The copy.copy() method in Carrera's code isn't necessary, as it's a shallow
+          copy which can be done by dict.copy().
+        - Unit tests are in /pylib/test/frozendict_test.py.  On 10 Jun 2021 I moved the
+          unit test code into this file (run it as a script to run the tests).
 """
 
 if 1:  # Copyright, license
@@ -75,7 +73,6 @@ class frozendict(dict):
         try:
             return self._cached_hash
         except AttributeError:
-            items = self.items()
             # Soren Lovborg commented that a faster O(n) routine would
             # be the following:
             self._cached_hash = hash(frozenset(self.items()))
@@ -102,7 +99,7 @@ if __name__ == "__main__":
     if 1:  # Imports
         from collections import defaultdict, OrderedDict
     if 1:  # Custom imports
-        from lwtest import run, assert_equal, raises, Assert
+        from lwtest import run, raises
     if 1:  # Global variables
         mydict = {"a": [1, 2], "b": {1: 2, 2: [3, 4]}}
         d = frozendict(mydict)

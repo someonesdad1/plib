@@ -5,29 +5,29 @@ Format floating point numbers in a variety of ways
     3.  I recommend use of the fmt.py module for python 3 stuff.
 """
 
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    ##∞copyright∞# Copyright (C) 2008, 2012 Don Peterson #∞copyright∞#
-    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    ##∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    ##∞license∞#
-    ##∞what∞#
-    # <programming> Obsolete formatter for floating point numbers.  Use
-    # fmt.py as a replacement.
-    ##∞what∞#
-    ##∞test∞# ["test/fpformat_test.py"] #∞test∞#
-    pass
-if 1:  # Imports
-    import sys
-    from os import name as platform
-if 1:  # Global variables
-    # These variables can be used to control the characters that appear in
-    # output.
-    decimal_point = "."
-    exponent_character = "e"
-    imaginary_unit = "i"
+if 1:  # Header
+    if 1:  # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        ##∞copyright∞# Copyright (C) 2008, 2012 Don Peterson #∞copyright∞#
+        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        ##∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        ##∞license∞#
+        ##∞what∞#
+        # <programming> Obsolete formatter for floating point numbers.  Use
+        # fmt.py as a replacement.
+        ##∞what∞#
+        ##∞test∞# ["test/fpformat_test.py"] #∞test∞#
+        pass
+    if 1:  # Imports
+        pass
+    if 1:  # Global variables
+        # These variables can be used to control the characters that appear in
+        # output.
+        decimal_point = "."
+        exponent_character = "e"
+        imaginary_unit = "i"
 
 
 class FPFormat:
@@ -258,7 +258,6 @@ class FPFormat:
     def _eng(self, number):
         "Engineering format for a floating point number"
         efmt = "%%0%dd" % max(0, self.expdigits)
-        n = max(self.num_digits - 1, 0)
         significand, exponent = self.sci(number).split(exponent_character)
         significand_rounded = abs(float(significand))
         if self.expsign:
