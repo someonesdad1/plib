@@ -5,58 +5,58 @@ script is only used to print copies of the licenses to stdout.
 ----------------------------------------------------------------------
 Replace license statements in files.
 '''
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    ##∞copyright∞# Copyright (C) 2014, 2021 Don Peterson #∞copyright∞#
-    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    ##∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    ##∞license∞#
-    ##∞what∞#
-    # <utility> Replace license statements in files
-    ##∞what∞#
-    ##∞test∞# ignore #∞test∞#
-    pass
-if 1:  # Imports
-    import getopt
-    import os
-    import pathlib
-    import re
-    import shutil
-    import sys
-    import time
-if 1:  # Custom imports
-    from color import t
-    from wrap import dedent
-    from license_data import licenses
-if 1:  # Global variables
-    P = pathlib.Path
-    # Trigger string for replacements
-    trigger = "#∞#"
-    # Regexp used to identify the string to be replaced
-    regexp = re.compile(r"%s(.*?)%s" % (trigger, trigger), re.S)
-    # The following are too short to warrant a separate header file
-    short_choices = ("bsd", "mit", "pd", "wol", "rem")
-    backup_extension = ".bak"
-    nl = "\n"
-    descr = {
-        "rem": "  Remove any existing license text",
-        "afl3": "  Academic Free License 3.0",
-        "apache2": "  Apache License 2.0",
-        "bsd3": "  BSD 3-clause license",
-        "ccsa4": "* Creative Commons Attribution-ShareAlike 4.0",
-        "gpl2": "* GNU Public License version 2",
-        "gpl3": "* GNU Public License version 3",
-        "lgpl2": "- Lesser GNU Public License version 2.1",
-        "lgpl3": "- Lesser GNU Public License version 3",
-        "mit": "  MIT License",
-        "nposl3": "* Non-Profit Open Software License 3.0",
-        "osl3": "* Open Software License 3.0",
-        "pd": "  Public domain release",
-        "wol": "  Wide-open License",
-    }
-    analysis = None
+if 1:  # Header
+    if 1:  # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        ##∞copyright∞# Copyright (C) 2014, 2021 Don Peterson #∞copyright∞#
+        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        ##∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        ##∞license∞#
+        ##∞what∞#
+        # <utility> Replace license statements in files
+        ##∞what∞#
+        ##∞test∞# ignore #∞test∞#
+        pass
+    if 1:  # Imports
+        import getopt
+        import pathlib
+        import re
+        import shutil
+        import sys
+        import time
+    if 1:  # Custom imports
+        from color import t
+        from wrap import dedent
+        from license_data import licenses
+    if 1:  # Global variables
+        P = pathlib.Path
+        # Trigger string for replacements
+        trigger = "#∞#"
+        # Regexp used to identify the string to be replaced
+        regexp = re.compile(r"%s(.*?)%s" % (trigger, trigger), re.S)
+        # The following are too short to warrant a separate header file
+        short_choices = ("bsd", "mit", "pd", "wol", "rem")
+        backup_extension = ".bak"
+        nl = "\n"
+        descr = {
+            "rem": "  Remove any existing license text",
+            "afl3": "  Academic Free License 3.0",
+            "apache2": "  Apache License 2.0",
+            "bsd3": "  BSD 3-clause license",
+            "ccsa4": "* Creative Commons Attribution-ShareAlike 4.0",
+            "gpl2": "* GNU Public License version 2",
+            "gpl3": "* GNU Public License version 3",
+            "lgpl2": "- Lesser GNU Public License version 2.1",
+            "lgpl3": "- Lesser GNU Public License version 3",
+            "mit": "  MIT License",
+            "nposl3": "* Non-Profit Open Software License 3.0",
+            "osl3": "* Open Software License 3.0",
+            "pd": "  Public domain release",
+            "wol": "  Wide-open License",
+        }
+        analysis = None
 if 1:  # Utility
     def eprint(*p, **kw):
         "Print to stderr"
@@ -67,7 +67,7 @@ if 1:  # Utility
     def Usage(d, status=1):
         name = sys.argv[0]
         choices = sorted(descr.keys())
-        lic, fmt = [], "    %-8s %s"
+        lic = []
         lic = nl.join(lic)
         bak = backup_extension
         cmnt = d["-c"]
@@ -164,7 +164,7 @@ if 1:  # Core functionality
         '''For each file in files, ensure that it is readable and has the
         requisite string for substitution.
         '''
-        bad, se = False, sys.stderr
+        bad = False
         for file in files:
             p = P(file)
             if not p.isfile():

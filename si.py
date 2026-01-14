@@ -163,7 +163,6 @@ if 1:  # Core functionality
             else:
                 raise ValueError("'%s' is not a recognized SI prefix" % x)
         elif ii(x, (int, float)) or (have_mpmath and ii(x, M.mpf)):
-            sgn = -1 if x < 0 else 1
             no_match = (x, None, None)
             if not x:
                 return (x, 0, "")

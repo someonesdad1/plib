@@ -21,7 +21,7 @@ if 1:  # Header
         ##∞test∞# ignore #∞test∞#
         pass
     if 1:  # Standard imports
-        from pprint import pprint as pp
+        pass
     if 1:  # Custom imports
         from color import Color, t
         from lwtest import Assert
@@ -139,7 +139,7 @@ if 1:  # Utility
             #   - Cache in GetCIETable.data
             checked = []
             Σx = Σy = Σz = 0
-            f = lambda x: round(x, 6)
+            def f(x): round(x, 6)
             for wl, d in data:
                 Σx += d[0]
                 Σy += d[1]
@@ -166,7 +166,7 @@ if 1:  # Utility
             di = {}
             for wl, cmf in GetCIETable():
                 di[wl] = cmf
-            f = lambda x, n: round(x, n)
+            def f(x, n): round(x, n)
             for wl in range(380, 779, 5):
                 start, end = di[wl], di[wl + 5]
                 slope = [f((j - i) / 5, 10) for i, j in zip(start, end)]
@@ -203,7 +203,7 @@ if 1:  # Core functionality
         else:
             raise ValueError(f"Wavelength {wl_nm} is not in [380, 780] wl_nm")
         if gamma < 0:
-            raise ValueError(f"gamma must be >= 0")
+            raise ValueError("gamma must be >= 0")
         # Intensity i falls off near vision limits
         i, u, v = 1, 0.3, 0.7
         if wl_nm > 700:
@@ -287,12 +287,11 @@ if 1:  # Core functionality
             msg = f"'{wl_nm}' isn't an integer wavelength in [380, 780]"
             raise ValueError(msg)
         XYZ = di[wl]
-        f = lambda x, n: round(x, n)
+        def f(x, n): round(x, n)
         t = sum(XYZ)
         n = 4
         return (f(XYZ[0] / t, n), f(XYZ[1] / t, n))
 if __name__ == "__main__":
-    from lwtest import run
     from rgbdata import color_data
     from util import VisualCount, TemplateRound
     from columnize import Columnize
@@ -336,8 +335,6 @@ if __name__ == "__main__":
         for nm in range(380, 781, step_nm):
             colornum = wl2rgb(nm, gamma=gamma)
             s = colornum.xrgb
-            T = colornum.irgb
-            u = colornum.ihsv
             out.append(f"{t(s)}{nm}{t.n}")
             count += 1
             o = Columnize(out, indent=" " * 2, horiz=True)

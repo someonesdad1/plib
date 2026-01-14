@@ -23,9 +23,7 @@ if 1:  # Copyright, license
 if 1:  # Standard imports
     from fractions import Fraction
     from decimal import Decimal, getcontext
-    from pdb import set_trace as xx
 if 1:  # Custom imports
-    from wrap import wrap, dedent
     from f import flt, cpx
 
     try:
@@ -129,8 +127,7 @@ def SigFigFloat(x, strict=False, maxsigfig=16):
 
 
 if __name__ == "__main__":
-    from wrap import dedent
-    from lwtest import run, raises, assert_equal, Assert
+    from lwtest import run, raises, Assert
 
     def Test_SigFigFloat():
         x, f = 0, SigFigFloat

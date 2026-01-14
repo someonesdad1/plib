@@ -82,7 +82,7 @@ Stirling1 = Memoize(s)
 Stirling2 = Memoize(S)
 
 if __name__ == "__main__":
-    from lwtest import run, raises, assert_equal, Assert
+    from lwtest import run, Assert
 
     def Test_first_kind():
         """Numbers from https://oeis.org/A008275 (See the triangle down

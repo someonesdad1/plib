@@ -115,19 +115,19 @@ if 1:  # Core functionality
         if exact:
             # Compute the ISO sizes from formulas
             a, b, c = 1/2**(1/2), 1/2, 1000
-            A = lambda n: (c*a**(n + b), c*a**(n - b))
-            B = lambda n: (c*a**n, c*a**(n - 1))
-            C = lambda n: (c*a**(n + b/2), c*a**(n - 3*b/2))
+            def A(n): (c*a**(n + b), c*a**(n - b))
+            def B(n): (c*a**n, c*a**(n - 1))
+            def C(n): (c*a**(n + b/2), c*a**(n - 3*b/2))
             ISO = {}
             for n in range(11):
-                ISO[f"A{n}"] = A(n)
-                ISO[f"B{n}"] = B(n)
-                ISO[f"C{n}"] = C(n)
+                ISO["A{n}"] = A(n)
+                ISO["B{n}"] = B(n)
+                ISO["C{n}"] = C(n)
             # Manually handle the other sizes
-            ISO[f"4A0"] = A(-2)
-            ISO[f"2A0"] = A(-1)
-            ISO[f"2B0"] = B(-1)
-            ISO[f"2C0"] = C(-1)
+            ISO["4A0"] = A(-2)
+            ISO["2A0"] = A(-1)
+            ISO["2B0"] = B(-1)
+            ISO["2C0"] = C(-1)
         sizes.update(ISO)
         # Check the ISO sizes in the table:  This is a gross check to catch things like
         # unintended edits.
@@ -143,21 +143,18 @@ if 1:  # Core functionality
 
 if __name__ == "__main__":  
     # Print a table of paper sizes
-    from color import t
-    import termtables as tt
     if 1:  # Header
         if 1:   # Standard imports
-            from collections import deque
-            from pathlib import Path as P
             import getopt
             import os
-            import re
             import sys
         if 1:   # Custom imports
             from f import flt
             from wrap import dedent
             from lwtest import Assert
             from dpprint import PP
+            from color import t
+            import termtables as tt
             pp = PP()   # Get pprint with current screen width
             if 0:
                 import debug
@@ -217,7 +214,7 @@ if __name__ == "__main__":
                         if not (1 <= d[o] <= 15):
                             raise ValueError()
                     except ValueError:
-                        Error(f"-d option's argument must be an integer between 1 and 15")
+                        Error("-d option's argument must be an integer between 1 and 15")
                 elif o == "-h":
                     Usage()
             x = flt(0)

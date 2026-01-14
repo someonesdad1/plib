@@ -2,7 +2,8 @@
 Wire information
 
     These functions were written over the last few decades.  
-    I consider
+    I consider the stuff in the Deprecated section to be stuff that can go away or go to
+    a file in the old directory.
 
 '''
 if 1:  # Header
@@ -268,7 +269,6 @@ if 1:  # Deprecated or obsolete stuff
             Pwr.append(item.pwr.val)
         from pylab import plot, loglog, xlabel, ylabel, title, text
         from pylab import legend, grid, show, array, savefig, axvline
-        from f import pi
         dia, chass, pwr = [array(i) for i in (Dia, Chass, Pwr)]
         p = plot
         p = loglog
@@ -397,10 +397,10 @@ if 1:  # Core functionality
         if material not in matl:
             raise ValueError(f"Material '{material}' not recognized")
         factor, density_factor = matl[material]
-        data[conductivity] = data[conductivity]/factor
-        data[resistivity] = data[resistivity]*factor
-        data[resistivity] = data[resistivity]*factor
-        data[density] = data[density]*density_factor
+        data["conductivity"] = data["conductivity"]/factor
+        data["resistivity"] = data["resistivity"]*factor
+        data["resistivity"] = data["resistivity"]*factor
+        data["density"] = data["density"]*density_factor
         return data
     def EquivalentArea(n, m):
         '''Given a size n in AWG of a wire, return (D, d, ratio) where D is the
@@ -472,10 +472,6 @@ if 1:  # Core functionality
             raise ValueError("n must be an integer in [-3, 56]")
         # We use a table lookup for 40 gauge or larger and a formula for 41 to
         # 56 gauge.
-        try:
-            data = getattr(AWG, "data")
-        except AttributeError:
-            pass
         if n <= 40:
             d = AWG.data[n + 3] / 1e5
             d = RoundOff(d, 4) if n <= 30 else RoundOff(d, 5)
@@ -680,7 +676,6 @@ if 1:  # Core functionality
         return flt(10**log_i_A)
 
 if __name__ == "__main__":
-    import sys
     from lwtest import run, raises, assert_equal, Assert
     x = flt(0)
     def TestChassisCurrent():

@@ -142,5 +142,5 @@ if __name__ == "__main__":
     if k is not None and k < 1:
         print("k must be > 0")
         exit(1)
-    for i in partitionss(n, k):
+    for i in partitions(n, k):
         print(" ".join([str(j) for j in i]))

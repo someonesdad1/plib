@@ -56,14 +56,12 @@ if 1:  # Header
         import getopt
         import os
         import re
-        from pathlib import Path as P
         import sys
-        from pdb import set_trace as xx
         from zipfile import ZipFile
     # Custom imports
     if 1:
         from wrap import dedent
-        from color import Color, TRM as t
+        from color import t
 
         if 0:
             import debug
@@ -89,7 +87,6 @@ if 1:  # Core functionality
         OO Writer document.  It contains two lines and the second line is
         searched with a regular expression.  file can be a filename or stream.
         """
-        r = re.compile(r"(Object \d+)")
         # Get the XML data
         if ii(file, str):  # It's a file name
             data = open(file).read()
@@ -114,7 +111,6 @@ if 1:  # Core functionality
         expression.  If zf is None, file is a regular file; otherwise, it's in
         a ZipFile instance.
         """
-        a = "annotation"
         if zf:
             stream = zf.open(file)
         else:
@@ -208,9 +204,7 @@ if 1:  # Utility
         exit(status)
 
     def Help():
-        print(
-            dedent(
-                rf"""
+        print(dedent("""
         The script's purpose
         --------------------
 

@@ -58,19 +58,19 @@ Provides probability functions used in basic statistics
         practical work, which most of the time only needs two or three digits.
         
         For making important decisions where the cost of a mistake is significant, I'd
-        recommend backing up this module's results with a calculation by mpmath (and
-        scipy if desired ) AND looking up things in a trusted printed reference.  Then
-        get a coworker to check your results.  Mistakes are often caused by lack of
-        standardization and documentation (stuff found on the web is often particularly
-        crappy).  For example, that table you're using might be for one-sided tests, but
-        the authors decided to make it a double-sided test -- and they don't label their
-        assumptions or give you a picture of the integrand's graph being evaluated.
-        Another example is the significance level is in % but you assumed it wasn't or
-        vice versa.  In the 70's and 80's when I did a fair bit of experimental work, my
-        favorite statistics reference was Crow, "Statistics Manual", 1955 (republished
-        by Dover in 1960) because it was both terse and carefully labeled.  "Biometrika
-        Tables" by Pearson and Hartley is also good, but you'll want to make sketches of
-        the functions being integrated on the tables you're using.
+        recommend backing up this module's results with a calculation by mpmath AND
+        looking up things in a trusted printed reference.  Then get a coworker to check
+        your results.  Mistakes are often caused by lack of standardization and
+        documentation (stuff found on the web is often particularly crappy).  For
+        example, that table you're using might be for one-sided tests, but the authors
+        decided to make it a double-sided test -- and they don't label their assumptions
+        or give you a picture of the integrand's graph being evaluated.  Another example
+        is the significance level is in % but you assumed it wasn't or vice versa.  In
+        the 70's and 80's when I did a fair bit of experimental work, my favorite
+        statistics reference was Crow, "Statistics Manual", 1955 (republished by Dover
+        in 1960) because it was both terse and carefully labeled.  "Biometrika Tables"
+        by Pearson and Hartley is also good, but you'll want to make sketches of the
+        functions being integrated on the tables you're using.
         
 '''
 if 1:  # Header
@@ -90,12 +90,10 @@ if 1:  # Header
     from ctypes import cdll, c_double, c_int, c_short
     import getopt
     import os
-    from pathlib import Path as P
     import sys
-    from pdb import set_trace as xx
     # Custom imports
-    from wrap import wrap, dedent
-    from color import Color, TRM as t
+    from wrap import dedent
+    from color import t
     from f import flt
     from lwtest import run, raises, assert_equal, Assert
     from frange import frange
@@ -322,10 +320,10 @@ if 1:  # Test functions
         x = flt(0.51)
         a = normal.cdf(x)
         Assert(a == 0.6949742691024806)
-        Assert(type(a) == type(x))
+        Assert(type(a) is type(x))
         # Show the inverse gives x
         i = normal.icdf(a)
-        Assert(type(i) == type(x))
+        Assert(type(i) is type(x))
         Assert(i == x)
         # Illegal stuff
         raises(ValueError, normal.icdf, 0)

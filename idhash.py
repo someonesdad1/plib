@@ -34,7 +34,6 @@ if 1:  # Header
     ##∞test∞# ignore #∞test∞#
     # Imports
     import hashlib
-    import sys
     from getpass import getpass
     from string import whitespace
     from wrap import dedent
@@ -80,6 +79,7 @@ def HashAnswer(answer, hash, truncate=None, passes=2):
     found a suitable collision for that hash.
     """
     hash_string = answer
+    hashlib.md5(b"")
     for i in range(passes):
         h = eval(f"hashlib.{hash}()")
         h.update(hash_string.encode("utf8"))
@@ -105,6 +105,14 @@ def NumberOfPasses():
 
 if __name__ == "__main__":
     from color import t
+    questions = [
+        "Vernon's phone number?",
+        "DLN of Zazu's youngest daughter?",
+        "Phone extension?",
+        "Phone password?",
+        "Gary E.'s password?",
+        "Dave R.'s old computer's password?",
+    ]
     if 0:
         # The old version of this file used SHA-1, but it is no longer considered
         # secure.
@@ -117,7 +125,7 @@ if __name__ == "__main__":
         # 7512c8ea046f930c6cb8c805ecf5c988f44ea9ad
         hashfunc = "sha1"
         vis = False
-        answer, hash = ID_Hash(questions, visible=vis, show=vis, hash=hashfunc)
+        answer, hash = ID_Hash(questions, visible=vis, show=vis, hash=hashfunc) # noqa
         print("Using", hashfunc, "hash")
         print("Hash =", hash)
         print("Orig = 7512c8ea046f930c6cb8c805ecf5c988f44ea9ad")
@@ -125,14 +133,6 @@ if __name__ == "__main__":
         dbg = False
         dbg = True
         passes = NumberOfPasses()
-        questions = [
-            "Vernon's phone number?",
-            "DLN of Zazu's youngest daughter?",
-            "Phone extension?",
-            "Phone password?",
-            "Gary E.'s password?",
-            "Dave R.'s old computer's password?",
-        ]
         if dbg:
             answer = AnswerQuestions([], test="aaaaaa")
         else:

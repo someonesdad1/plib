@@ -20,13 +20,11 @@ if 1:  # Header
     if 1:  # Standard imports
         import getopt
         import os
-        from pathlib import Path as P
         import sys
     if 1:  # Custom imports
         from wrap import dedent
         from color import t
         from f import flt, radians, degrees, pi
-        from u import u
     if 1:  # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
@@ -63,7 +61,6 @@ if 1:  # Classes
             self.vol = 4 / 3 * pi * self.eq_radius**3
             self.spgr = self.mass * 1000 / (self.vol * 1e6)  # Convert to g/cc
         def __str__(self):
-            scale = 1
             if d["-r"] is not None:
                 p = planets[trans[d["-r"]]]
                 return dedent(f"""
@@ -241,7 +238,7 @@ if 1:  # Utility
         exit(status)
     def Manpage():
         print(
-            dedent(f"""
+            dedent("""
         Data from https://en.wikipedia.org/wiki/List_of_gravitationally_rounded_objects_of_the_Solar_System#Planets
         
         Semimajor axis
@@ -367,7 +364,7 @@ if 1:  # Core functionality
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
-    print(f"Physical data on the planets")
+    print("Physical data on the planets")
     print(f"  Data to {d['-d']} figures (use -d option to change)")
     if d["-r"]:
         t.print(

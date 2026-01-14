@@ -24,9 +24,7 @@ if 1:  # Header
     if 1:  # Standard imports
         import getopt
         import os
-        import pathlib
         import sys
-        from collections import deque
     if 1:  # Custom imports
         from rgbdata import color_data
         from wrap import dedent

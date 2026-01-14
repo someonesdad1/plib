@@ -5,7 +5,7 @@ Update 20 Oct 2025 10:36:46 am Mon
 
 interval3 is https://github.com/joshwatson/interval3 and is a fork of Jacob Page's
 original python 2 project on PyPi.  I originally ignored it because I thought it was
-a port to python 3, but it miserably fails it's self-tests when run.  However, it uses
+a port to python 3, but it miserably fails its self-tests when run.  However, it uses
 the doctest library (which I dislike) and uses 'print x' syntax, which will fail under
 python 3.  I like the beginning examples, supporting strings and times besides the usual
 numbers, so this could be a good tool to rewrite as a python 3 library module.  Note
@@ -202,7 +202,6 @@ if 1:  # Imports
     import datetime
     import sys
     from decimal import Decimal
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     try:
         import mpmath as mp
@@ -599,12 +598,12 @@ class Rng(object):
                         return False if value > self.b else True
     def __repr__(self):
         infinity = "oo"  # Unicode infinity symbol is \u221e
-        l, r = "(" if self.lopen else "[", ")" if self.ropen else "]"
+        L, r = "(" if self.lopen else "[", ")" if self.ropen else "]"
         a, b = self.a, self.b
         a = "-" + infinity if a == -inf else self.a
         b = infinity if b == inf else self.b
         i = " integer" if self.int else ""
-        return "Rng<{l}{a}, {b}{r}{i}>".format(**locals())
+        return "Rng<{L}{a}, {b}{r}{i}>".format(**locals())
 class Eps(Rng):
     '''This is a convenience subclass of Rng to be used to construct
     ranges about a floating point value using half-widths.  Three
@@ -881,7 +880,7 @@ class Interval(object):
         '''
         # Algorithm from python documentation on bisect module,
         # "Searching Sorted Lists".
-        a, n = self.ranges, len(self.ranges)
+        a = self.ranges
         i = bisect.bisect_right(a, x)
         return i - 1 if (i and x in a[i - 1]) else None
     def copy(self):
@@ -1096,7 +1095,7 @@ if 0:
             print(f"{type(x)} < {type(y)} not supported")
 if __name__ == "__main__":
     import sys
-    from lwtest import run, raises, assert_equal, Assert
+    from lwtest import run, raises, Assert
     def TestRange():
         # One parameter
         a, stop = [], 5
@@ -1122,7 +1121,7 @@ if __name__ == "__main__":
         # Test using -inf
         a, start, stop, inc = [], 0, 10, -1
         result = [-i for i in range(stop)]
-        for i in Range(0, -inf, -1):
+        for i in Range(start, -inf, inc):
             if i <= -stop:
                 break
             a.append(i)
@@ -1579,15 +1578,15 @@ if __name__ == "__main__":
         Assert(1 in r)
         Assert(2 not in r)
     def TestInClosedInterval():
-        l, r = False, False
+        L, r = False, False
         R = (
-            Rng(1, 3, lopen=l, ropen=r),
-            Rng(1.0, 3, lopen=l, ropen=r),
-            Rng(1, 3.0, lopen=l, ropen=r),
-            Rng(1.0, 3.0, lopen=l, ropen=r),
-            Rng(Decimal(1), 3, lopen=l, ropen=r),
-            Rng(1, Decimal(3), lopen=l, ropen=r),
-            Rng(Decimal(1), Decimal(3), lopen=l, ropen=r),
+            Rng(1, 3, lopen=L, ropen=r),
+            Rng(1.0, 3, lopen=L, ropen=r),
+            Rng(1, 3.0, lopen=L, ropen=r),
+            Rng(1.0, 3.0, lopen=L, ropen=r),
+            Rng(Decimal(1), 3, lopen=L, ropen=r),
+            Rng(1, Decimal(3), lopen=L, ropen=r),
+            Rng(Decimal(1), Decimal(3), lopen=L, ropen=r),
         )
         for r in R:
             Assert(1 in r)
@@ -1601,15 +1600,15 @@ if __name__ == "__main__":
             Assert(3.0 in r)
             Assert(Decimal("3.0") in r)
     def TestInHalfOpenIntervalOnLeft():
-        l, r = True, False
+        L, r = True, False
         R = (
-            Rng(1, 3, lopen=l, ropen=r),
-            Rng(1.0, 3, lopen=l, ropen=r),
-            Rng(1, 3.0, lopen=l, ropen=r),
-            Rng(1.0, 3.0, lopen=l, ropen=r),
-            Rng(Decimal(1), 3, lopen=l, ropen=r),
-            Rng(1, Decimal(3), lopen=l, ropen=r),
-            Rng(Decimal(1), Decimal(3), lopen=l, ropen=r),
+            Rng(1, 3, lopen=L, ropen=r),
+            Rng(1.0, 3, lopen=L, ropen=r),
+            Rng(1, 3.0, lopen=L, ropen=r),
+            Rng(1.0, 3.0, lopen=L, ropen=r),
+            Rng(Decimal(1), 3, lopen=L, ropen=r),
+            Rng(1, Decimal(3), lopen=L, ropen=r),
+            Rng(Decimal(1), Decimal(3), lopen=L, ropen=r),
         )
         for r in R:
             Assert(1 not in r)
@@ -1623,15 +1622,15 @@ if __name__ == "__main__":
             Assert(3.0 in r)
             Assert(Decimal("3.0") in r)
     def TestInHalfOpenIntervalOnRight():
-        l, r = False, True
+        L, r = False, True
         R = (
-            Rng(1, 3, lopen=l, ropen=r),
-            Rng(1.0, 3, lopen=l, ropen=r),
-            Rng(1, 3.0, lopen=l, ropen=r),
-            Rng(1.0, 3.0, lopen=l, ropen=r),
-            Rng(Decimal(1), 3, lopen=l, ropen=r),
-            Rng(1, Decimal(3), lopen=l, ropen=r),
-            Rng(Decimal(1), Decimal(3), lopen=l, ropen=r),
+            Rng(1, 3, lopen=L, ropen=r),
+            Rng(1.0, 3, lopen=L, ropen=r),
+            Rng(1, 3.0, lopen=L, ropen=r),
+            Rng(1.0, 3.0, lopen=L, ropen=r),
+            Rng(Decimal(1), 3, lopen=L, ropen=r),
+            Rng(1, Decimal(3), lopen=L, ropen=r),
+            Rng(Decimal(1), Decimal(3), lopen=L, ropen=r),
         )
         for r in R:
             Assert(1 in r)
@@ -1645,15 +1644,15 @@ if __name__ == "__main__":
             Assert(3.0 not in r)
             Assert(Decimal("3.0") not in r)
     def TestInOpenInterval():
-        l, r = True, True
+        L, r = True, True
         R = (
-            Rng(1, 3, lopen=l, ropen=r),
-            Rng(1.0, 3, lopen=l, ropen=r),
-            Rng(1, 3.0, lopen=l, ropen=r),
-            Rng(1.0, 3.0, lopen=l, ropen=r),
-            Rng(Decimal(1), 3, lopen=l, ropen=r),
-            Rng(1, Decimal(3), lopen=l, ropen=r),
-            Rng(Decimal(1), Decimal(3), lopen=l, ropen=r),
+            Rng(1, 3, lopen=L, ropen=r),
+            Rng(1.0, 3, lopen=L, ropen=r),
+            Rng(1, 3.0, lopen=L, ropen=r),
+            Rng(1.0, 3.0, lopen=L, ropen=r),
+            Rng(Decimal(1), 3, lopen=L, ropen=r),
+            Rng(1, Decimal(3), lopen=L, ropen=r),
+            Rng(Decimal(1), Decimal(3), lopen=L, ropen=r),
         )
         for r in R:
             Assert(1 not in r)
@@ -1886,7 +1885,7 @@ if __name__ == "__main__":
         documentation).
         '''
         from time import time
-        from random import uniform, randint
+        from random import uniform
         size, a = int(10**5), 10**6
         d = []
         for i in range(size):

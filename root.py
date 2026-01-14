@@ -837,7 +837,8 @@ if 0:  # Crenshaw
         def Dbg(s, end="\n"):
             if dbgstream:
                 for i in s.split("\n"):
-                    g.dbgstream.write("+ {0}{1}".format(i, end))
+                    pass
+                    #g.dbgstream.write("+ {0}{1}".format(i, end))
         def F(*args, **kw):
             '''Parameters args:  the first element is x and is mandatory.  The following parameters are
             passed to the function f.  The keyword dictionary must contain a dictionary named opts; it
@@ -1194,7 +1195,7 @@ if 1:  # Polynomials
             rn = r**(1/n)
             def f(x, k):
                 if have_mpmath and isinstance(x, mpmath.mpc):
-                    return rn*(mpmath.cos((x + 2*k*mpmath.pi)/n) + 1j * μPmath.sin((x + 2*k*mpmath.pi)/n))
+                    return rn*(mpmath.cos((x + 2*k*mpmath.pi)/n) + 1j * mpmath.sin((x + 2*k*mpmath.pi)/n))
                 else:
                     return rn*(math.cos((x + 2*k*math.pi)/n) + 1j * math.sin((x + 2*k*math.pi)/n))
             roots = f(x, 0), f(x, 1), f(x, 2), f(x, 3)
@@ -1336,7 +1337,7 @@ if 1:  # Demo code
         x = FindRoots(myfunc, 10, a, b, tol=tol)[0]
         Assert(abs(x - expected) < 1e-15)
         if 1:   # Prints out a comparison of float/mpf for polynomial routines
-            from mpmath import mpf, mpc, mp
+            from mpmath import mpf, mp
             from color import t
             t.print(f"{t.whtl}Demo that Quadratic, Cubic, Quartic work for mpmath numbers")
             a, b, c, d, e = 1, 1, 1, 1, 1

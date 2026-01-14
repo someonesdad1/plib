@@ -6,13 +6,9 @@ Note the licenses' text is in /pylib/licenses.
 '''
 ##∞test∞# ignore #∞test∞#
 import collections
-import difflib
-import hashlib
 import pathlib
 import requests
-import io
 import sys
-from pdb import set_trace as xx
 # Custom modules
 if len(sys.argv) > 1:
     import debug
@@ -62,7 +58,7 @@ urls = {
 }
 # Fill licenses from the licenses directory
 P = pathlib.Path
-p = P("/pylib/licenses")
+p = P("/plib/lib/licenses")
 def get(x):
     return open(x).read()
 for h in p.glob("*.header"):

@@ -37,30 +37,8 @@ if 1:  # Imports
     from string import whitespace
 if 1:  # Custom imports
     from wrap import dedent
-    from color import TRM as t
+    from color import t
 
-    if 0:
-        # Try to import the color.py module to allow highlighting missing
-        # files in color to make them easier to see.  If you don't have the
-        # module, it won't be an error (you'll just get uncolored output).
-        _have_color = False
-        try:
-            import color as c
-
-            _have_color = True
-        except ImportError:
-
-            class Dummy:  # Make a dummy color object to swallow function calls
-                def fg(self, *p, **kw):
-                    pass
-
-                def normal(self, *p, **kw):
-                    pass
-
-                def __getattr__(self, name):
-                    pass
-
-            c = Dummy()
     t.missing = t("whtl", "redl")
     t.notrel = t("whtl", "magl")
     t.embedded = t("grnl")
@@ -117,15 +95,15 @@ def Usage(d, status=1):
     print(
         dedent(f"""
     Usage:  {name} [options] file1 [file2...]
-      For each Open Office document file given on the command line, print
-      out any image files that the document file has links to.  Highlight
-      any missing image (mark with '{missing}').
+
+      For each Open Office document file given on the command line, print out any image
+      files that the document file has links to.  Highlight any missing image (mark with
+      '{missing}').
       
-      Image files that are not at or below the same directory as the
-      document file will be marked '{notrel}'.  This is done so that
-      creating a zip file containing one or more Open Office files will
-      have the documents display their images properly when the package is
-      unzipped.  You may need to create some hard or soft links to the
+      Image files that are not at or below the same directory as the document file will
+      be marked '{notrel}'.  This is done so that creating a zip file containing one or
+      more Open Office files will have the documents display their images properly when
+      the package is unzipped.  You may need to create some hard or soft links to the
       image files for this to work properly.
       
       Image files have extensions:
@@ -135,28 +113,21 @@ def Usage(d, status=1):
         eps  met  pcx  ppm  sdd  tga
       Open Office document files have extensions
         .odb .odg .odp .ods .odt .ott
-      
     Options
-      -e
-        Also print the names of embedded image files.
-      -l
-        Just list the encountered Open Office files (i.e., don't list
-        their image files).
-      -m
-        Print only missing or not relative image files.
-      -r
-        Each 'file' on the command line is a directory.  Recursively search
-        it for Open Office files and print the images in the files found.
-        If no directories are given on the command line, search the
-        current directory tree by default.
-      
+      -e    Also print the names of embedded image files.
+      -l    Just list the encountered Open Office files (i.e., don't list
+            their image files).
+      -m    Print only missing or not relative image files.
+      -r    Each 'file' on the command line is a directory.  Recursively search it for
+            Open Office files and print the images in the files found.  If no
+            directories are given on the command line, search the current directory tree
+            by default.
     Examples
-      - '{shortname} -r' will show all the OO files and their images at
-        and below the current directory.
-      - '{shortname} -l' will do the same, but only display the file
-        names.
-      - '{shortname} -r dir' will show all the OO files and their images
-        at below the directory dir.
+      - '{shortname} -r' will show all the OO files and their images at and below the
+        current directory.
+      - '{shortname} -l' will do the same, but only display the file names.
+      - '{shortname} -r dir' will show all the OO files and their images at below the
+        directory dir.
     """)
     )
     exit(status)
@@ -371,12 +342,6 @@ def ProcessFile(oofile, d):
     if not os.path.isfile(oofile):
         err("'%s' is not a file%s" % (oofile, nl))
         return
-    if 0:
-        colors = {
-            "missing": (c.lwhite, c.red),
-            "notrel": (c.lwhite, c.magenta),
-            "embedded": c.lgreen,
-        }
     image_files = GetImages(oofile, ignore_embedded=not d["-e"])
     if not image_files and not d["-m"]:
         # List the file
@@ -400,7 +365,7 @@ def ProcessFile(oofile, d):
             s = t.notrel
         if some_missing:
             s = t.missing
-        t.print(oofile)
+        t.print(s + oofile)
         return
     if d["-m"]:
         # image_files can be empty or only contain embedded files, in

@@ -22,7 +22,7 @@ To Do
     - Study responses of my voltmeters (Aneng, HP, scopes) and have an option that predicts what
       they would measure for the waveform.  This would require knowing the frequency or period of
       the stored waveform.
-
+      
 Consider developing built-in waveforms for the ones that are in the B&K 4052 function generator:
 
     - sine
@@ -59,7 +59,7 @@ Consider developing built-in waveforms for the ones that are in the B&K 4052 fun
       have the functionals that the instruments would measure.  This would of course take a goodly
       amount of experimentation, but it would be handy to get waveform objects for numerical
       calculations and then be able to experimentally verify the results.
-
+      
 ---------------------------------------------------------------------------
 
 Module to create periodic waveforms as numpy arrays
@@ -95,33 +95,33 @@ Module to create periodic waveforms as numpy arrays
             - Peak-to-peak voltage
             - 0-to-peak voltage
             - Average responding voltmeter voltage
-
+            
     Example code:
-
+    
         # Create a sine wave with 11 points per period
         w = Waveform("sin", 11)
         y = w(2)   # Get an array containing two periods
         print(y)
-
+        
     results in:
-
+    
         [ 0.     0.541  0.91   0.99   0.756  0.282 -0.282 -0.756 -0.99
         -0.91  -0.541  0.     0.541  0.91   0.99   0.756  0.282 -0.282
         -0.756 -0.99  -0.91  -0.541]
-
+        
     Note:  you may be surprised that the last point of the waveform doesn't return to zero (this is
     intentional so that multiple periods can be created by concatenating the raw data).  If you need
     this, use something like
-
+    
         y = w(2 + (1 + eps)/w.size)
-
+        
     where eps is a small number (1e-10 might be a good choice).  This avoids roundoff problems with
     floating point arithmetic compared to the naive expression w*(2 + 1/w.size).
-
+    
     The Waveform object always internally stores one period of the waveform.  The object's attributes
     can be used to change the characteristics of the returned numpy array that represents the
     waveform.  Example:
-
+    
         w = Waveform("sin", 21)
             Returns a Waveform object with 21 points per period that
             represents a sine wave of amplitude 1.
@@ -133,51 +133,50 @@ Module to create periodic waveforms as numpy arrays
             how the zero attribute is set; see the discussion on clipping
             below.
         print(w)
-
+        
     results in:
-
+    
         Waveform(
         [0.00, 1.27, 2.42, 3.36, 4.00, 4.29, 4.19, 3.72, 2.92, 1.87, 0.641,
         0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00]
         )
-
+        
     Note the difference in the outputs of print(w) and print(w()).
-
+    
     Clipping
     --------
-
+    
     Clipping is done with respect to the deviations of the waveform's points above and below the mean.
     Here's how it works.  Calculate the distance d for the waveform w as
-
+    
         d = max(w) - mean(w)
-
+        
     This is the distance the largest point in the waveform is above the mean.  Then clip any points
     above ymax = mean(w) + d*w.pclip to be ymax.  Treat the points below the mean analogously with
     w.nclip.
-
+    
     This clipping can leave small positive or negative values where you would expect zero; this is
     caused by rounding errors.  This can be demonstrated by the following code:
-
+    
         w = Waveform("sin", 20)
         w.nclip = 0
         w.zero = None
         x, y = w.xy(1)
         print(y)
-
+        
     which produces
-
+    
         [  0.000e+00   3.090e-01   5.878e-01   8.090e-01   9.511e-01
         1.000e+00   9.511e-01   8.090e-01   5.878e-01   3.090e-01
         1.225e-16  -1.388e-17  -1.388e-17  -1.388e-17  -1.388e-17
         -1.388e-17  -1.388e-17  -1.388e-17  -1.388e-17  -1.388e-17]
-
+        
     If the zero attribute is set to (-1e-15, 1e-15), the following output is produced:
-
+    
         [ 0.     0.309  0.588  0.809  0.951  1.     0.951  0.809  0.588
         0.309  0.    -0.    -0.    -0.    -0.    -0.    -0.    -0.
         -0.    -0.   ]
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -207,16 +206,12 @@ if 1:  # Header
         from lwtest import Assert
         from sig import sig as _sig
         import plotext as plt
-
         if len(sys.argv) > 1:
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
-
         class G:
             pass
-
         flt = f.flt
         g = G()
         g.dbg = False
@@ -226,12 +221,9 @@ if 1:  # Header
         g.have_scipy = False
         try:
             from scipy.interpolate import interp1d
-
             g.have_scipy = True
         except ImportError:
             pass
-
-
 class Waveform(object):
     _names = set(
         (
@@ -253,7 +245,6 @@ class Waveform(object):
             "unknown",
         )
     )
-
     def __init__(self, x, **kw):
         """Create a Waveform object by the following constructors:
             Waveform(name)
@@ -268,7 +259,7 @@ class Waveform(object):
                 The numpy array will be flattened.
             Waveform(waveform_object)
                 Creates a copy of an existing Waveform object.
-
+                
         Keywords
             size        int     Number of points per period [100]
             freq        float   Frequency [1].  Can also be a string with an SI prefix as suffix.
@@ -281,13 +272,13 @@ class Waveform(object):
             duty        float   Duty cycle on [0, 100] [50]
             dc          float   DC offset [0]
             ndig        int     Number of digits to display [3]
-
+            
             leftge      bool    ...
             rightle     bool    ...
             posclip     bool    Defines positive clipping limit
             negclip     bool    Defines negative clipping limit
-
-
+            
+            
         """
         self.reset()
         if ii(x, str):  # Initialize with a name
@@ -298,7 +289,6 @@ class Waveform(object):
             pass
         else:  # Must be an iterable
             pass
-
         if len(args) == 1:
             # Initializing with another Waveform object, array or iterable
             if isinstance(args[0], Waveform):
@@ -333,7 +323,6 @@ class Waveform(object):
             self._make()
         else:
             raise ValueError("Constructor requires 1 or 2 arguments")
-
     def reset(self, other=None):
         """Reset attributes to default values.  If other is given, it's another Waveform object,
         so use its attributes to set self's.
@@ -365,7 +354,6 @@ class Waveform(object):
                 # Don't do any rounding
                 self._zero = None
         self._x = None
-
     def _make(self):
         # Construct the waveform from the given information.
         n, X, pi = self._size, lambda n: np.arange(n) / n, np.pi
@@ -398,7 +386,6 @@ class Waveform(object):
             right = np.zeros(nright)
             self._data = np.concatenate((left, right))
         elif self._name == "triangle":
-
             def GetSides(nleft, nright):
                 if nleft < nright:
                     # Left side up must go from 0 to just less than 1.
@@ -413,7 +400,6 @@ class Waveform(object):
                     xleft = np.arange(nleft) / (nleft - 1)
                     xright = 1 - np.arange(1, nright + 1) / (nright + 1)
                 return np.concatenate((xleft, xright))
-
             # Left-hand side
             if 0:
                 nleft = self._size // 4
@@ -450,7 +436,6 @@ class Waveform(object):
             raise RuntimeError("Bug:  unknown waveform name")
         assert len(self._data) == self._size
         self._data = self._adjust_zero(self._data)
-
     def xfm(self, f, *args):
         """Apply a function f to the data in the array to transform the
         data.  f is a function that can operate on a numpy array; if
@@ -463,7 +448,6 @@ class Waveform(object):
         else:
             self._data = f(self._data)
         self._name = "unknown"
-
     def _adjust_zero(self, y):
         """Set any array elements in y that are near zero to zero as
         specified by the pair of numbers in self._zero.  Note that the
@@ -478,7 +462,6 @@ class Waveform(object):
         s = np.bitwise_and(y > 0, y < pos)  # Positive numbers
         y = (~s) * y
         return y
-
     def __str__(self):
         """Convert the Waveform object to a string representation.
         This string will include all of the numpy data in the
@@ -487,7 +470,6 @@ class Waveform(object):
         """
         x, y = self.xy()
         return "Waveform(\n" + _sig(y, self._ndig) + "\n)"
-
     def __repr__(self):
         """Same as __str__ but includes the attribute values."""
         x, y = self.xy()
@@ -504,7 +486,6 @@ class Waveform(object):
             s += fmt % (i[1:], t)
         s += ")"
         return s
-
     def xy(self, num_periods=1):
         """Returns a tuple (x, y) where x and y are numpy vectors.  x
         represents the abscissa values and y represents num_periods
@@ -530,14 +511,12 @@ class Waveform(object):
         y = self._adjust_zero(y)
         x = num_periods * np.arange(len(y)) / len(y)
         return (x, y)
-
     def __call__(self, num_periods=1):
         """When a Waveform object w is called with a number, the data
         array with num_periods is generated and returned.  Thus, for
         example, to get 4.5 periods of the waveform, call w(4.5).
         """
         return self.xy(num_periods)[1]
-
     def _clip(self, y):
         """Clip the waveform between the maximum and minimum values.
         First, divide the waveform into top and bottom portions around
@@ -566,7 +545,6 @@ class Waveform(object):
             g = y < mean - M
             y = g * (mean - M) + (~g) * y
         return y
-
     def _gate(self, y):
         """Given the array y, which is a copy of self._data, apply the
         gating rules and return the modified array.
@@ -591,7 +569,6 @@ class Waveform(object):
                     t = np.bitwise_and(s > n0, s < n1)
             y *= ~t
         return y
-
     def __neg__(self):
         """Unary negation:  multiplies the internal numpy array of the
         data by -1.  The waveform type is "unknown" after this
@@ -600,7 +577,6 @@ class Waveform(object):
         self._data = -self._data
         self._name = "unknown"
         return self
-
     def __mul__(self, const):
         """Scale the waveform object by the given constant.  If the
         const is another Waveform object, it is resampled to the same
@@ -616,10 +592,8 @@ class Waveform(object):
             self._data = self._adjust_zero(self._data)
         self._name = "unknown"
         return self
-
     def __rmul__(self, const):
         return self.__mul__(const)
-
     def __add__(self, other):
         """Adding two Waveform objects results in another Waveform
         object that is a concatenation of the two arrays; note we use
@@ -648,10 +622,8 @@ class Waveform(object):
         self._name = "unknown"
         self._data = self._adjust_zero(self._data)
         return self
-
     def __radd__(self, other):
         return other.__add__(self)
-
     def __sub__(self, other):
         """Similar to addition except the other array is negated."""
         if isinstance(other, Iterable):
@@ -675,10 +647,8 @@ class Waveform(object):
         self._name = "unknown"
         self._data = self._adjust_zero(self._data)
         return self
-
     def __rsub__(self, other):
         return other.__sub__(self)
-
     def _resample(self, n):
         """Use scipy's interp1d function to interpolate the waveform
         to a new size.  The waveform type is turned into "unknown".
@@ -692,7 +662,6 @@ class Waveform(object):
         self._x = np.linspace(0, self._x.max(), n)
         self._data = f(self._x)
         self._data = self._adjust_zero(self._data)
-
     def periodize(self, num_periods):
         """Replace self._data with a concatenation of num_periods (can be a float) of self._data.
         The waveform type is turned into "unknown".
@@ -710,7 +679,6 @@ class Waveform(object):
         self._x = num_periods * np.arange(n) / n
         self._name = "unknown"
         self._data = self._adjust_zero(self._data)
-
     def normalize(self):
         """Scale the amplitude of the data points so that the largest
         value in absolute value is unity.  The waveform type is turned
@@ -720,7 +688,6 @@ class Waveform(object):
         self._data /= factor
         self._data = self._adjust_zero(self._data)
         self._name = "unknown"
-
     def _GetName(self, name):
         """name is a string.  Find if name uniquely identifies a
         string in Waveform._names; if so, return it.  If it isn't
@@ -738,108 +705,86 @@ class Waveform(object):
             else:
                 return tuple(d[name])
         return None
-
     # Attributes
     def _get_ampl(self):
         return self._ampl
-
     def _set_ampl(self, ampl):
         self._ampl = float(ampl)
         if self._ampl <= 0:
             raise ValueError("ampl must be > 0")
-
     doc = dedent("""
         Setting the amplitude scales all of the points of the waveform
         by this value. [1]
     """)
     ampl = property(_get_ampl, _set_ampl, None, doc)
-
     def _get_data(self):
         return self._data.copy()
-
     doc = dedent("""
         Returns the raw data representing one period of the waveform.
         This is a read-only attribute.
     """)
     data = property(_get_data, None, None, doc)
-
     def _get_pclip(self):
         return self._pclip
-
     def _set_pclip(self, pclip):
         self._pclip = float(pclip)
         if not (0 <= self._pclip <= 1):
             raise ValueError("pclip must be in [0, 1]")
-
     doc = dedent("""
         Clips the upper portion of the waveform at a specified fraction
         of the "positive" amplitude.  See the discussion on clipping in
         the documentation PDF.  [1]
     """)
     pclip = property(_get_pclip, _set_pclip, None, doc)
-
     def _get_nclip(self):
         return self._nclip
-
     def _set_nclip(self, nclip):
         self._nclip = float(nclip)
         if not (0 <= self._nclip <= 1):
             raise ValueError("nclip must be in [0, 1]")
-
     doc = dedent("""
         Clips the lower portion of the waveform at a specified fraction
         of the "negative" amplitude.  See the discussion on clipping in
         the documentation PDF.  [1]
     """)
     nclip = property(_get_nclip, _set_nclip, None, doc)
-
     def _get_dc(self):
         return self._dc
-
     def _set_dc(self, dc):
         self._dc = float(dc)
-
     doc = dedent("""
         Adds a constant to each point of the waveform.  (The name comes
         from an electrical signal having a DC offset.) [0]
     """)
     dc = property(_get_dc, _set_dc, None, doc)
-
     def _get_duty(self):
         return self._duty
-
     def _set_duty(self, duty):
         if not (0 <= float(duty) <= 1):
             raise ValueError("duty must be in [0, 1]")
         self._duty = float(duty)
         if self._name != "unknown":
             self._make()
-
     doc = dedent("""
         Duty cycle for square waves and pulses; this is the fraction of
         the period that the square wave is positive or the pulse is
         nonzero. [0.5]
     """)
     duty = property(_get_duty, _set_duty, None, doc)
-
     def _get_kind(self):
         return self._kind
-
     def _set_kind(self, kind):
         if not isinstance(kind, (str, int, float)):
             raise ValueError("kind must be a string or number")
         self._kind = kind
-
     doc = dedent("""
         Sets the type of interpolation to use (see the documentation
         for scipy.interpolate.interp1d for allowed values).  This
         attribute is only needed for resampling.  ["linear"]
     """)
     kind = property(_get_kind, _set_kind, None, doc)
-
     def _get_gates(self):
         return self._gates
-
     def _set_gates(self, gates):
         """gates must be an iterable of pairs of numbers."""
         ve = ValueError("gates must be an iterable of pairs of numbers")
@@ -865,7 +810,6 @@ class Waveform(object):
         except RuntimeError:
             raise ValueError(msg)
         self._gates = gates
-
     doc = dedent("""
         Is an iterable of pairs of numbers (a, b) where both a and b
         must be in [0, 1] and a <= b.  The waveform's points between
@@ -874,10 +818,8 @@ class Waveform(object):
         [None]
     """)
     gates = property(_get_gates, _set_gates, None, doc)
-
     def _get_rle(self):
         return self._rle
-
     def _set_rle(self, rle):
         """rle is a Boolean.  If it is True, then the gating
         comparison for the right-hand portion is <=; otherwise, it is
@@ -885,17 +827,14 @@ class Waveform(object):
         """
         self._rle = True if rle else False
         return self._rle
-
     doc = dedent("""
         A Boolean used in gating.  If True, the comparison used
         for the left-hand index is <=; otherwise, the comparison
         is <.  [True]
     """)
     rle = property(_get_rle, _set_rle, None, doc)
-
     def _get_lge(self):
         return self._lge
-
     def _set_lge(self, lge):
         """lge is a Boolean.  If it is True, then the gating
         comparison for the left-hand portion is >=; otherwise, it is
@@ -903,33 +842,27 @@ class Waveform(object):
         """
         self._lge = True if lge else False
         return self._lge
-
     doc = dedent("""
         A Boolean used in gating.  If True, the comparison
         used for the left-hand index is >=; otherwise, the
         comparison is >.  [True]
     """)
     lge = property(_get_lge, _set_lge, None, doc)
-
     def _get_ndig(self):
         return self._ndig
-
     def _set_ndig(self, ndig):
         if int(ndig) < 1:
             raise ValueError("ndig must be integer > 0")
         self._ndig = int(ndig)
-
     doc = dedent("""
         The number of significant figures to use when
         converting the data array to a string via str()
         or repr().  [3]
     """)
     ndig = property(_get_ndig, _set_ndig, None, doc)
-
     def _get_size(self):
         assert self._size == len(self._data)
         return self._size
-
     def _set_size(self, size):
         n = int(size)
         if n < 2:
@@ -940,7 +873,6 @@ class Waveform(object):
         else:
             self._size = n
             self._make()
-
     doc = dedent("""
         The number of points in the waveform.  If you set
         this to a new value, the waveform is regenerated
@@ -949,10 +881,8 @@ class Waveform(object):
         (thus, you need to have scipy installed).
     """)
     size = property(_get_size, _set_size, None, doc)
-
     def _get_x(self):
         return self._x.copy()
-
     doc = dedent("""
         Returns a numpy array that represents the abscissas
         of the stored waveform (remember, the stored waveform
@@ -960,20 +890,16 @@ class Waveform(object):
         half-open interval [0, 1).
     """)
     x = property(_get_x, None, None, doc)
-
     def _get_y(self):
         return self._data.copy()
-
     doc = dedent("""
         Returns a numpy array that represents the ordinates
         of the stored waveform (remember, the stored waveform
         represents one period).
     """)
     y = property(_get_y, None, None, doc)
-
     def _get_zero(self):
         return self._zero
-
     def _set_zero(self, zero):
         """zero must either be None or a tuple of numbers.  If a
         tuple, the first number must be negative or zero and the
@@ -995,7 +921,6 @@ class Waveform(object):
                 raise ValueError(msg)
             self._zero = (n, p)
         self._data = self._adjust_zero(self._data)
-
     doc = dedent("""
         Is a tuple (-a, b) such that negative numbers between
         -a and 0 are set to zero; positive numbers between 0 and
@@ -1004,15 +929,10 @@ class Waveform(object):
         made. [(-1e-15, 1e-15)]
     """)
     zero = property(_get_zero, _set_zero, None, doc)
-
     def _get_max(self):
         pass
-
     del doc
-
-
 if 1:  # Plot some examples (needs matplotlib)
-
     def PlotExamples():
         if len(sys.argv) > 1 and sys.argv[1] == "test":
             RunSelftests()
@@ -1188,20 +1108,16 @@ if 1:  # Plot some examples (needs matplotlib)
         grid()
         savefig(filename % name, dpi=dpi)
         print(name, end=" ")
-
-
 if 1:  # Other routines
-
     def GetScreen():
         "Return terminal screen size (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
             int(os.environ.get("COLUMNS", "80")) - 1,
         )
-
     def Plot(waveform, **kw):
         """Print an ASCII plot of the waveform, a Waveform instance.  Keywords are:
-
+        
         diag        Diagonal size plot area as fraction of whole terminal [1]
         aspect      Aspect ratio:  1 = square, 0.5 = tall rectangle, 1.5 = wide, 0 means to
                     use the existing window's aspect ratio [0]
@@ -1213,7 +1129,7 @@ if 1:  # Other routines
         xlabel      Label for x axis
         ylabel      Label for y axis
         title       Plot title
-
+        
         """
         W, H = plt.terminal_size()  # Terminal window width and height
         diagonal = f.floor(f.sqrt(W**2 + H**2))
@@ -1270,8 +1186,6 @@ if 1:  # Other routines
         if ylabel is not None:
             plt.ylabel(ylabel)
         plt.show()
-
-
 if __name__ == "__main__":
     lines, columns = GetScreen()
     shape = "sine"

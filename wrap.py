@@ -442,7 +442,6 @@ wrap = Wrap()  # Convenience instance
 if __name__ == "__main__":
     # Run the selftests
     from lwtest import run, Assert
-    import sys
     def Dump(s):
         "Print a multiline string to stdout"
         for i in s.split("\n"):

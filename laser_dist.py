@@ -54,7 +54,6 @@ def DistAcrossRiver(AB, BD, AC, BC, AD, eps=1e-4):
         
     (Of course, it won't be a square in general).  A coordinate system is put on the image
     such that AB is in the +y direction and B is at the origin.
-
     '''
     assert AB > 0 and BD > 0 and AC > 0 and BC > 0 and AD > 0
     def AngleViaCosLaw(c, a, b):
@@ -122,7 +121,6 @@ if 0:
 
 if __name__ == "__main__":
     from lwtest import run, assert_equal, Assert
-    from sig import sig
     try:
         from uncertainties import ufloat
         from uncertainties.umath import cos, acos, sin, asin, tan, atan, sqrt

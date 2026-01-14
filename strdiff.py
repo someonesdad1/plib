@@ -17,8 +17,7 @@ if 1:  # Copyright, license
     ##∞test∞# run #∞test∞#
     pass
 if 1:  # Standard imports
-    import sys
-    from pdb import set_trace as xx
+    pass
 if 1:  # Custom imports
     from f import flt
 if 1:  # Core functionality

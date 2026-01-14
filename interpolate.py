@@ -97,7 +97,6 @@ if 1:  # Core functionality
         '''
         # Make sure X is sorted
         x, y = zip(*sorted(zip(X, Y)))
-        a = LinearInterp(x[0], x, y, check=True, ret_type=ret_type)
         def Func(arg):
             return LinearInterp(arg, x, y, ret_type=ret_type)
         return Func

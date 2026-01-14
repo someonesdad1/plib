@@ -7,12 +7,12 @@ NOTE:  (25 Aug 2021)
     using the f.py module.
 
 Todo, bugs:
-    * sig.rtz works on fixed but not scientific
-    * Add sig.rtdp to remove trailing decimal point.
-    * Add a copy method to SigFig so that it's easy to get a formatter
+    - sig.rtz works on fixed but not scientific
+    - Add sig.rtdp to remove trailing decimal point.
+    - Add a copy method to SigFig so that it's easy to get a formatter
       that is just slightly changed from an existing one, without
       changing the original.
-    * The integer attribute isn't implemented.  If it's True, make the
+    - The integer attribute isn't implemented.  If it's True, make the
       object get formatted as an integer, not a float.  Raise an
       exception if fit is True while integer is also True.
 """
@@ -38,13 +38,11 @@ if 1:  # Copyright, license
     pass
 if 1:  # Imports
     from fractions import Fraction
-    from pprint import pprint as pp
     import decimal
     import locale
     import math
     import os
     import re
-    import sys
     import sys
 if 1:  # Global variables
     s = """
@@ -1667,7 +1665,7 @@ class SigFig(object):
         # "3.4" would evaluate correctly as an expression, but if
         # fp_type was decimal.Decimal, it would be evaluated here, not
         # further down the food chain like it should.
-        if fp_type == float:
+        if fp_type is float:
             try:
                 val = eval(s, glo, loc)  # Evaluate the input string verbatim
                 return (val, "")
@@ -2437,7 +2435,7 @@ def Examples():
 if __name__ == "__main__":
     import sys
     import traceback as tb
-    from lwtest import run, assert_equal, raises, Assert
+    from lwtest import run, assert_equal, raises
 
     if len(sys.argv) == 1:
         Examples()
@@ -2545,7 +2543,6 @@ if __name__ == "__main__":
         if _have_mpmath:
             # Check with mpmath matrices and vectors ('list' needed to
             # work with python 3, as range is an iterator there).
-            v = mp.matrix(list(range(5)))
             check(sig._is_iterable(mp.matrix(list(range(5)))), True)
             check(sig._is_iterable(mp.matrix(3, 2)), True)
 
@@ -3009,10 +3006,7 @@ if __name__ == "__main__":
 
     def Test_complex_polar():
         sig.reset()
-        z = _Complex(Dec("0"), Dec("0"))
         x1 = _Complex(Dec("1.2345"), Dec("-9.8765"))
-        x2 = _Complex(Dec("1.2345"), Dec("0"))
-        x3 = _Complex(Dec("0"), Dec("-1.2345"))
         sig.imag_polar = True
         sig.imag_deg_sym = "*"
         # Can get angle in degrees
@@ -3124,7 +3118,7 @@ if __name__ == "__main__":
                     break
                 else:
                     # We'll get an exception here if sig somehow fails
-                    sig(mylist)
+                    sig(mylist)     # noqa
 
     def Test_atan2():
         """Run some sanity checks against mpmath.  If a command line
@@ -3133,7 +3127,6 @@ if __name__ == "__main__":
         """
         if not _have_mpmath:
             return
-        import sys
         import mpmath as mp
         import random
 

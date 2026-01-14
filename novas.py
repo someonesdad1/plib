@@ -1,4 +1,6 @@
 """
+readeph() is undefined and it's not caught in self tests
+
 This script is a python translation of the NOVAS-C 2.0.1 software in C
 from the U.S. Naval Observatory.  See
 http://aa.usno.navy.mil/software/novas/novas_c/novasc_info.html.
@@ -41,7 +43,7 @@ if 1:  # Copyright, license
     ##∞test∞# run #∞test∞#
     pass
 if 1:  # Imports
-    from math import pi, fabs, fmod, sin, cos, atan2, asin, sqrt
+    import math
 if 1:  # Global variables
     ii = isinstance
     PSI_COR = 0.0
@@ -57,10 +59,10 @@ if 1:  # Global variables
     EARTHRAD = 6378.140
     F = 0.00335281
     OMEGA = 7.292115e-5
-    TWOPI = 2 * pi
-    RAD2SEC = 3600 * 180 / pi
-    DEG2RAD = pi / 180
-    RAD2DEG = 180 / pi
+    TWOPI = 2 * math.pi
+    RAD2SEC = 3600 * 180 / math.pi
+    DEG2RAD = math.pi / 180
+    RAD2DEG = 180 / math.pi
     # The following three dictionaries are used to represent the structures
     # that were in novas.h.
     #
@@ -198,8 +200,8 @@ def solarsystem(tjd, body, origin, pos, vel):
     p = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
     if tlast_ss == 0.0:
         oblr = obl * TWOPI / 360.0
-        sine_ss = sin(oblr)
-        cose_ss = cos(oblr)
+        sine_ss = math.sin(oblr)
+        cose_ss = math.cos(oblr)
         tmass_ss = 1.0
         for i in range(4):
             tmass_ss += 1.0 / pm[i]
@@ -224,14 +226,14 @@ def solarsystem(tjd, body, origin, pos, vel):
     else:
         return 2
     if origin == 0:
-        if fabs(tjd - tlast_ss) >= 1.0e-06:
+        if math.fabs(tjd - tlast_ss) >= 1.0e-06:
             for i in range(3):
                 pbary_ss[i] = vbary_ss[i] = 0.0
             for i in range(4):
                 dlon = pl[i] + pn[i] * (tjd - T0)
-                dlon = fmod(dlon, TWOPI)
-                sinl = sin(dlon)
-                cosl = cos(dlon)
+                dlon = math.fmod(dlon, TWOPI)
+                sinl = math.sin(dlon)
+                cosl = math.cos(dlon)
                 x = pa[i] * cosl
                 y = pa[i] * sinl * cose_ss
                 z = pa[i] * sinl * sine_ss
@@ -323,7 +325,7 @@ def sun_eph(jd, ra, dec, dis):
     u = 0.0
     arg = 0.0
     lon = 0.0
-    lat = 0.0
+    #lat = 0.0
     t = 0.0
     t2 = 0.0
     emean = 0.0
@@ -332,24 +334,23 @@ def sun_eph(jd, ra, dec, dis):
     u = (jd - T0) / 3652500.0
     for i in range(50):
         arg = sun_con[i]["alpha"] + sun_con[i]["nu"] * u
-        sum_lon += sun_con[i]["l"] * sin(arg)
-        sum_r += sun_con[i]["r"] * cos(arg)
+        sum_lon += sun_con[i]["l"] * math.sin(arg)
+        sum_r += sun_con[i]["r"] * math.cos(arg)
     lon = 4.9353929 + 62833.1961680 * u + factor * sum_lon
-    lon = fmod(lon, TWOPI)
+    lon = math.fmod(lon, TWOPI)
     while lon < 0.0:
         lon += TWOPI
-    lat = 0.0
     dis[0] = 1.0001026 + factor * sum_r
     t = u * 100.0
     t2 = t * t
     emean = (0.001813 * t2 * t - 0.00059 * t2 - 46.8150 * t + 84381.448) / RAD2SEC
-    sin_lon = sin(lon)
-    ra[0] = atan2((cos(emean) * sin_lon), cos(lon)) * RAD2DEG
-    ra[0] = fmod(ra[0], 360.0)
+    sin_lon = math.sin(lon)
+    ra[0] = math.atan2((math.cos(emean) * sin_lon), math.cos(lon)) * RAD2DEG
+    ra[0] = math.fmod(ra[0], 360.0)
     if ra[0] < 0.0:
         ra[0] += 360.0
     ra[0] = ra[0] / 15.0
-    dec[0] = asin(sin(emean) * sin_lon) * RAD2DEG
+    dec[0] = math.asin(math.sin(emean) * sin_lon) * RAD2DEG
     return
 
 
@@ -520,7 +521,7 @@ def app_planet(tjd, ss_object, earth, ra, dec, dis):
         return error
     bary_to_geo(pos1, peb, pos2, lighttime)
     t3 = tdb - lighttime
-    while fabs(t3 - t2) > 1.0e-8:
+    while math.fabs(t3 - t2) > 1.0e-8:
         t2 = t3
         error = ephemeris(t2, ss_object, BARYC, pos1, vel1)
         if error:
@@ -803,7 +804,7 @@ def topo_planet(tjd, ss_object, earth, deltat, location, ra, dec, dis):
         return error
     bary_to_geo(pos1, pob, pos2, lighttime)
     t3 = tdb - lighttime
-    while fabs(t3 - t2) > 1.0e-8:
+    while math.fabs(t3 - t2) > 1.0e-8:
         t2 = t3
         error = ephemeris(t2, ss_object, BARYC, pos1, vel1)
         if error:
@@ -969,7 +970,7 @@ def virtual_planet(tjd, ss_object, earth, ra, dec, dis):
         return error
     bary_to_geo(pos1, peb, pos2, lighttime)
     t3 = tdb - lighttime
-    while fabs(t3 - t2) > 1.0e-8:
+    while math.fabs(t3 - t2) > 1.0e-8:
         t2 = t3
         error = ephemeris(t2, ss_object, BARYC, pos1, vel1)
         if error:
@@ -1237,7 +1238,7 @@ def local_planet(tjd, ss_object, earth, deltat, location, ra, dec, dis):
         return error
     bary_to_geo(pos1, pb, pos2, lighttime)
     t3 = tdb - lighttime
-    while fabs(t3 - t2) > 1.0e-8:
+    while math.fabs(t3 - t2) > 1.0e-8:
         t2 = t3
         error = ephemeris(t2, ss_object, BARYC, pos1, vel1)
         if error:
@@ -1374,7 +1375,7 @@ def astro_planet(tjd, ss_object, earth, ra, dec, dis):
         return error
     bary_to_geo(pos1, peb, pos2, lighttime)
     t3 = tdb - lighttime
-    while fabs(t3 - t2) > 1.0e-8:
+    while math.fabs(t3 - t2) > 1.0e-8:
         t2 = t3
         error = ephemeris(t2, ss_object, BARYC, pos1, vel1)
         if error:
@@ -1410,7 +1411,7 @@ def mean_star(tjd, earth, ra, dec, mra, mdec):
         "parallax": 0.0,
         "radialvelocity": 0.0,
     }
-    newmra = fmod(ra, 24.0)
+    newmra = math.fmod(ra, 24.0)
     if newmra < 0.0:
         newmra += 24.0
     newdec = dec
@@ -1438,7 +1439,7 @@ def mean_star(tjd, earth, ra, dec, mra, mdec):
         return 1
     else:
         iter += 1
-    while (fabs(newmra - oldmra) > 1.0e-10) and (fabs(newdec - olddec) > 1.0e-9):
+    while (math.fabs(newmra - oldmra) > 1.0e-10) and (math.fabs(newdec - olddec) > 1.0e-9):
         oldmra = newmra
         olddec = newdec
         tempstar["ra"] = oldmra
@@ -1494,7 +1495,7 @@ def sidereal_time(jd_high, jd_low, ee, gst):
         + 8640184.812866 * t_hi
         + 3155760000.0 * t_hi
     )
-    gst[0] = fmod((st / 3600.0), 24.0)
+    gst[0] = math.fmod((st / 3600.0), 24.0)
     if gst[0] < 0.0:
         gst[0] += 24.0
     return
@@ -1550,8 +1551,8 @@ def spin(st, pos1, pos2):
     xy = [0.0]
     YY = [0.0]
     str = st * 15.0 * DEG2RAD
-    cosst = cos(str)
-    sinst = sin(str)
+    cosst = math.cos(str)
+    sinst = math.sin(str)
     XX = cosst
     yx = -sinst
     xy = sinst
@@ -1593,15 +1594,15 @@ def terra(locale, st, pos, vel):
     sinst = [0.0]
     cosst = [0.0]
     df2 = (1.0 - F) * (1.0 - F)
-    sinphi = sin(locale["latitude"] * DEG2RAD)
-    cosphi = cos(locale["latitude"] * DEG2RAD)
-    c = 1.0 / sqrt(cosphi * cosphi + df2 * sinphi * sinphi)
+    sinphi = math.sin(locale["latitude"] * DEG2RAD)
+    cosphi = math.cos(locale["latitude"] * DEG2RAD)
+    c = 1.0 / math.sqrt(cosphi * cosphi + df2 * sinphi * sinphi)
     s = df2 * c
     ach = EARTHRAD * c + (locale["height"] / 1000.0)
     ash = EARTHRAD * s + (locale["height"] / 1000.0)
     stlocl = (st[0] * 15.0 + locale["longitude"]) * DEG2RAD
-    sinst = sin(stlocl)
-    cosst = cos(stlocl)
+    sinst = math.sin(stlocl)
+    cosst = math.cos(stlocl)
     pos[0] = ach * cosphi * cosst
     pos[1] = ach * cosphi * sinst
     pos[2] = ash * sinphi
@@ -1640,7 +1641,7 @@ def earthtilt(tjd, mobl, tobl, eq, dpsi, deps):
         0.0,
     ]
     t_earthtilt = (tjd[0] - T0) / 36525.0
-    if fabs(tjd[0] - tjd_last_earthtilt) > 1.0e-6:
+    if math.fabs(tjd[0] - tjd_last_earthtilt) > 1.0e-6:
         nutation_angles(t_earthtilt, dp_earthtilt, de_earthtilt)
     #  de_earthtilt = [-8.9202358306507428] -8.73336
     #  dp_earthtilt = [4.9305120849267148] 3.65856
@@ -1657,8 +1658,8 @@ def earthtilt(tjd, mobl, tobl, eq, dpsi, deps):
     mean_obliq /= 3600.0
     true_obliq /= 3600.0
     fund_args(t_earthtilt, args)
-    eq_eq = d_psi * cos(mean_obliq * DEG2RAD) + (
-        0.00264 * sin(args[4]) + 0.000063 * sin(2.0 * args[4])
+    eq_eq = d_psi * math.cos(mean_obliq * DEG2RAD) + (
+        0.00264 * math.sin(args[4]) + 0.000063 * math.sin(2.0 * args[4])
     )
     eq_eq /= 15.0
     tjd_last_earthtilt = tjd[0]
@@ -1671,6 +1672,8 @@ def earthtilt(tjd, mobl, tobl, eq, dpsi, deps):
 
 
 def cel_pole(del_dpsi, del_deps):
+    global PSI_COR
+    global EPS_COR
     PSI_COR = del_dpsi
     EPS_COR = del_deps
     return
@@ -1696,7 +1699,7 @@ def get_earth(tjd, earth, tdb, bary_earthp, bary_earthv, helio_earthp, helio_ear
     earth_num = 0
     dummy = [0.0]
     secdiff = [0.0]
-    if fabs(tjd - tjd_last_get_earth) > 1.0e-6:
+    if math.fabs(tjd - tjd_last_get_earth) > 1.0e-6:
         tdb2tdt(tjd, dummy, secdiff)
         time1_get_earth = tjd + secdiff[0] / 86400.0
         earth_num = earth["number"]
@@ -1741,7 +1744,7 @@ def bary_to_geo(pos, earthvector, pos2, lighttime):
     for j in range(3):
         pos2[j] = pos[j] - earthvector[j]
     sum_of_squares = pos2[0] * pos2[0] + pos2[1] * pos2[1] + pos2[2] * pos2[2]
-    lighttime[0] = sqrt(sum_of_squares) / C
+    lighttime[0] = math.sqrt(sum_of_squares) / C
     return
 
 
@@ -1772,8 +1775,8 @@ def sun_field(pos, earthvector, pos2):
         0.0,
     ]
     c = (C * MAU) / 86400.0
-    p1mag = sqrt(pos[0] * pos[0] + pos[1] * pos[1] + +pos[2] * pos[2])
-    pemag = sqrt(
+    p1mag = math.sqrt(pos[0] * pos[0] + pos[1] * pos[1] + +pos[2] * pos[2])
+    pemag = math.sqrt(
         earthvector[0] * earthvector[0]
         + earthvector[1] * earthvector[1]
         + earthvector[2] * earthvector[2]
@@ -1782,14 +1785,14 @@ def sun_field(pos, earthvector, pos2):
         p1hat[j] = pos[j] / p1mag
         pehat[j] = earthvector[j] / pemag
     cosd = -pehat[0] * p1hat[0] - pehat[1] * p1hat[1] - pehat[2] * p1hat[2]
-    if fabs(cosd) > 0.9999999999:
+    if math.fabs(cosd) > 0.9999999999:
         for j in range(3):
             pos2[j] = pos[j]
     else:
-        sind = sqrt(1.0 - cosd * cosd)
+        sind = math.sqrt(1.0 - cosd * cosd)
         b = pemag * sind
         bm = b * MAU
-        pqmag = sqrt(p1mag * p1mag + pemag * pemag - 2.0 * p1mag * pemag * cosd)
+        pqmag = math.sqrt(p1mag * p1mag + pemag * pemag - 2.0 * p1mag * pemag * cosd)
         zfinl = pemag * cosd
         zinit = -p1mag + zfinl
         xifinl = zfinl / b
@@ -1799,8 +1802,8 @@ def sun_field(pos, earthvector, pos2):
             * GS
             / (bm * c * c)
             * (
-                xifinl / sqrt(1.0 + pow(xifinl, 2.0))
-                - xiinit / sqrt(1.0 + pow(xiinit, 2.0))
+                xifinl / math.sqrt(1.0 + pow(xifinl, 2.0))
+                - xiinit / math.sqrt(1.0 + pow(xiinit, 2.0))
             )
         )
         delphp = delphi / (1.0 + (pemag / pqmag))
@@ -1822,15 +1825,15 @@ def aberration(pos, ve, lighttime, pos2):
     q = [0.0]
     r = [0.0]
     if lighttime == 0.0:
-        p1mag = sqrt(mag3vec(pos))
+        p1mag = math.sqrt(mag3vec(pos))
         lighttime = p1mag / C
     else:
         p1mag = lighttime[0] * C
-    vemag = sqrt(mag3vec(ve))
+    vemag = math.sqrt(mag3vec(ve))
     beta = vemag / C
     dot = pos[0] * ve[0] + pos[1] * ve[1] + pos[2] * ve[2]
     cosd = dot / (p1mag * vemag)
-    gammai = sqrt(1.0 - beta * beta)
+    gammai = math.sqrt(1.0 - beta * beta)
     p = beta * cosd
     q = (1.0 + p / (1.0 + gammai)) * lighttime[0]
     r = 1.0 + p
@@ -1894,12 +1897,12 @@ def precession(tjd1, pos, tjd2, pos2):
     zeta0 /= RAD2SEC
     zee /= RAD2SEC
     theta /= RAD2SEC
-    cz0 = cos(zeta0)
-    sz0 = sin(zeta0)
-    ct = cos(theta)
-    st = sin(theta)
-    cz = cos(zee)
-    sz = sin(zee)
+    cz0 = math.cos(zeta0)
+    sz0 = math.sin(zeta0)
+    ct = math.cos(theta)
+    st = math.sin(theta)
+    cz = math.cos(zee)
+    sz = math.sin(zee)
     XX = cz0 * ct * cz - sz0 * sz
     yx = -sz0 * ct * cz - cz0 * sz
     zx = -st * cz
@@ -1937,12 +1940,12 @@ def nutate(tjd, fn, pos, pos2):
     psi = [0.0]
     eps = [0.0]
     earthtilt(tjd, oblm, oblt, eqeq, psi, eps)
-    cobm = cos(oblm[0] * DEG2RAD)
-    sobm = sin(oblm[0] * DEG2RAD)
-    cobt = cos(oblt[0] * DEG2RAD)
-    sobt = sin(oblt[0] * DEG2RAD)
-    cpsi = cos(psi[0] / RAD2SEC)
-    spsi = sin(psi[0] / RAD2SEC)
+    cobm = math.cos(oblm[0] * DEG2RAD)
+    sobm = math.sin(oblm[0] * DEG2RAD)
+    cobt = math.cos(oblt[0] * DEG2RAD)
+    sobt = math.sin(oblt[0] * DEG2RAD)
+    cpsi = math.cos(psi[0] / RAD2SEC)
+    spsi = math.sin(psi[0] / RAD2SEC)
     XX = cpsi
     yx = -spsi * cobm
     zx = -spsi * sobm
@@ -2754,8 +2757,8 @@ def nutation_angles(t, longnutation, obliqnutation):
     i = 0
     for ii in range(0, 10, 2):
         angle = a[nav1[ii]] * (nav1[1 + ii] + 1)
-        c[i] = cos(angle)
-        s[i] = sin(angle)
+        c[i] = math.cos(angle)
+        s[i] = math.sin(angle)
         i += 1
     i = 5
     for ii in range(0, 10, 2):
@@ -2824,7 +2827,7 @@ def fund_args(t, a):
         -33.75704593375351 + t * (3.614285992671591e-5 + 3.878509448876288e-8 * t)
     )
     for i in range(5):
-        a[i] = fmod(a[i], TWOPI)
+        a[i] = math.fmod(a[i], TWOPI)
         if a[i] < 0.0:
             a[i] += TWOPI
     return
@@ -2832,7 +2835,7 @@ def fund_args(t, a):
 
 def vector2radec(pos, ra, dec):
     xyproj = [0.0]
-    xyproj = sqrt(pos[0] * pos[0] + pos[1] * pos[1])
+    xyproj = math.sqrt(pos[0] * pos[0] + pos[1] * pos[1])
     if xyproj == 0.0 and pos[2] == 0:
         ra[0] = 0.0
         dec[0] = 0.0
@@ -2845,17 +2848,17 @@ def vector2radec(pos, ra, dec):
             dec[0] = 90.0
         return 2
     else:
-        ra[0] = atan2(pos[1], pos[0]) * RAD2SEC / 54000.0
-        dec[0] = atan2(pos[2], xyproj) * RAD2SEC / 3600.0
+        ra[0] = math.atan2(pos[1], pos[0]) * RAD2SEC / 54000.0
+        dec[0] = math.atan2(pos[2], xyproj) * RAD2SEC / 3600.0
         if ra[0] < 0.0:
             ra[0] += 24.0
     return 0
 
 
 def radec2vector(ra, dec, dist, vector):
-    vector[0] = dist[0] * cos(DEG2RAD * dec[0]) * cos(DEG2RAD * 15.0 * ra[0])
-    vector[1] = dist[0] * cos(DEG2RAD * dec[0]) * sin(DEG2RAD * 15.0 * ra[0])
-    vector[2] = dist[0] * sin(DEG2RAD * dec[0])
+    vector[0] = dist[0] * math.cos(DEG2RAD * dec[0]) * math.cos(DEG2RAD * 15.0 * ra[0])
+    vector[1] = dist[0] * math.cos(DEG2RAD * dec[0]) * math.sin(DEG2RAD * 15.0 * ra[0])
+    vector[2] = dist[0] * math.sin(DEG2RAD * dec[0])
     return
 
 
@@ -2877,10 +2880,10 @@ def starvectors(star, pos, vel):
     dist = RAD2SEC / paralx
     r = (star["ra"]) * 15.0 * DEG2RAD
     d = (star["dec"]) * DEG2RAD
-    cra = cos(r)
-    sra = sin(r)
-    cdc = cos(d)
-    sdc = sin(d)
+    cra = math.cos(r)
+    sra = math.sin(r)
+    cdc = math.cos(d)
+    sdc = math.sin(d)
     pos[0] = dist * cdc * cra
     pos[1] = dist * cdc * sra
     pos[2] = dist * sdc
@@ -2905,11 +2908,11 @@ def tdb2tdt(tdb, tdtjd, secdiff):
     m = (357.51716 + 0.985599987 * tdays) * 3600.0
     L = (280.46435 + 0.985609100 * tdays) * 3600.0
     lj = (34.40438 + 0.083086762 * tdays) * 3600.0
-    m = fmod(m, rev) / RAD2SEC
-    L = fmod(L, rev) / RAD2SEC
-    lj = fmod(lj, rev) / RAD2SEC
-    e = m + ecc * sin(m) + 0.5 * ecc * ecc * sin(2.0 * m)
-    secdiff[0] = 1.658e-3 * sin(e) + 20.73e-6 * sin(L - lj)
+    m = math.fmod(m, rev) / RAD2SEC
+    L = math.fmod(L, rev) / RAD2SEC
+    lj = math.fmod(lj, rev) / RAD2SEC
+    e = m + ecc * math.sin(m) + 0.5 * ecc * ecc * math.sin(2.0 * m)
+    secdiff[0] = 1.658e-3 * math.sin(e) + 20.73e-6 * math.sin(L - lj)
     tdtjd[0] = tdb - secdiff[0] / 86400.0
     return
 
@@ -2952,9 +2955,9 @@ def ephemeris(tjd, cel_obj, origin, pos, vel):
             error += 10
     elif cel_obj["type"] == 1:
         mp_number = cel_obj["number"]
-        name_len = len(cel_obj["name"])
+        #name_len = len(cel_obj["name"])
         mp_name = cel_obj["name"]
-        posvel = readeph(mp_number, mp_name, tjd, err)
+        posvel = readeph(mp_number, mp_name, tjd, err)  # xx Not defined
         if err[0]:
             return 20 + err[0]
         if origin == 0:
@@ -3016,7 +3019,7 @@ def transform_hip(hipparcos, fk5):
     scratch["catalog"] = "SCR"
     scratch["ra"] = hipparcos["ra"] / 15.0
     scratch["promora"] = hipparcos["promora"] / (
-        150.0 * cos(hipparcos["dec"] * DEG2RAD)
+        150.0 * math.cos(hipparcos["dec"] * DEG2RAD)
     )
     scratch["promodec"] = hipparcos["promodec"] / 10.0
     scratch["parallax"] = hipparcos["parallax"] / 1000.0
@@ -3074,10 +3077,10 @@ def transform_cat(option, date_incat, incat, date_newcat, newcat_id, newcat):
     dist = RAD2SEC / paralx
     r = incat["ra"] * 54000.0 / RAD2SEC
     d = incat["dec"] * 3600.0 / RAD2SEC
-    cra = cos(r)
-    sra = sin(r)
-    cdc = cos(d)
-    sdc = sin(d)
+    cra = math.cos(r)
+    sra = math.sin(r)
+    cdc = math.cos(d)
+    sdc = math.sin(d)
     pos1[0] = dist * cdc * cra
     pos1[1] = dist * cdc * sra
     pos1[2] = dist * sdc
@@ -3102,20 +3105,20 @@ def transform_cat(option, date_incat, incat, date_newcat, newcat_id, newcat):
             vel1[j] = vel2[j]
         precession(jd_incat, pos1, jd_newcat, pos2)
         precession(jd_incat, vel1, jd_newcat, vel2)
-    xyproj = sqrt(pos2[0] * pos2[0] + pos2[1] * pos2[1])
-    r = atan2(pos2[1], pos2[0])
-    d = atan2(pos2[2], xyproj)
+    xyproj = math.sqrt(pos2[0] * pos2[0] + pos2[1] * pos2[1])
+    r = math.atan2(pos2[1], pos2[0])
+    d = math.atan2(pos2[2], xyproj)
     newcat["ra"] = r * RAD2SEC / 54000.0
     newcat["dec"] = d * RAD2SEC / 3600.0
     if newcat["ra"] < 0.0:
         newcat["ra"] += 24.0
-    dist = sqrt(pos2[0] * pos2[0] + pos2[1] * pos2[1] + pos2[2] * pos2[2])
+    dist = math.sqrt(pos2[0] * pos2[0] + pos2[1] * pos2[1] + pos2[2] * pos2[2])
     paralx = RAD2SEC / dist
     newcat["parallax"] = paralx
-    cra = cos(r)
-    sra = sin(r)
-    cdc = cos(d)
-    sdc = sin(d)
+    cra = math.cos(r)
+    sra = math.sin(r)
+    cdc = math.cos(d)
+    sdc = math.sin(d)
     pmr = -vel2[0] * sra + vel2[1] * cra
     pmd = -vel2[0] * cra * sdc - vel2[1] * sra * sdc + vel2[2] * cdc
     rvl = vel2[0] * cra * cdc + vel2[1] * sra * cdc + vel2[2] * sdc
@@ -3125,8 +3128,8 @@ def transform_cat(option, date_incat, incat, date_newcat, newcat_id, newcat):
     if newcat["parallax"] <= 1.01e-7:
         newcat["parallax"] = 0.0
         newcat["radialvelocity"] = incat["radialvelocity"]
-    strcpy(newcat["catalog"], newcat_id)
-    strcpy(newcat["starname"], incat["starname"])
+    #newcat_id = newcat["catalog"]
+    incat["starname"] = newcat["starname"]
     newcat["starnumber"] = incat["starnumber"]
     return
 
@@ -3146,7 +3149,7 @@ def equ2hor(tjd, deltat, x, y, location, ra, dec, ref_option, zd, az, rar, decr)
     coslat = [0.0]
     sinlon = [0.0]
     coslon = [0.0]
-    sindc = [0.0]
+    #sindc = [0.0]
     cosdc = [0.0]
     sinra = [0.0]
     cosra = [0.0]
@@ -3207,14 +3210,14 @@ def equ2hor(tjd, deltat, x, y, location, ra, dec, ref_option, zd, az, rar, decr)
     sidereal_time(ujd, 0.0, ee, gast)
     rar[0] = ra
     decr[0] = dec
-    sinlat = sin(location["latitude"] * DEG2RAD)
-    coslat = cos(location["latitude"] * DEG2RAD)
-    sinlon = sin(location["longitude"] * DEG2RAD)
-    coslon = cos(location["longitude"] * DEG2RAD)
-    sindc = sin(dec * DEG2RAD)
-    cosdc = cos(dec * DEG2RAD)
-    sinra = sin(ra * 15.0 * DEG2RAD)
-    cosra = cos(ra * 15.0 * DEG2RAD)
+    sinlat = math.sin(location["latitude"] * DEG2RAD)
+    coslat = math.cos(location["latitude"] * DEG2RAD)
+    sinlon = math.sin(location["longitude"] * DEG2RAD)
+    coslon = math.cos(location["longitude"] * DEG2RAD)
+    #sindc = math.sin(dec * DEG2RAD)
+    cosdc = math.cos(dec * DEG2RAD)
+    sinra = math.sin(ra * 15.0 * DEG2RAD)
+    cosra = math.cos(ra * 15.0 * DEG2RAD)
     uze[0] = coslat * coslon
     uze[1] = coslat * sinlon
     uze[2] = sinlat
@@ -3229,43 +3232,43 @@ def equ2hor(tjd, deltat, x, y, location, ra, dec, ref_option, zd, az, rar, decr)
     pnsw(0.0, gast, x, y, uwe, uw)
     p[0] = cosdc * cosra
     p[1] = cosdc * sinra
-    p[2] = sindc
+    p[2] = math.sindc
     pz = p[0] * uz[0] + p[1] * uz[1] + p[2] * uz[2]
     pn = p[0] * un[0] + p[1] * un[1] + p[2] * un[2]
     pw = p[0] * uw[0] + p[1] * uw[1] + p[2] * uw[2]
-    proj = sqrt(pn * pn + pw * pw)
+    proj = math.sqrt(pn * pn + pw * pw)
     if proj > 0.0:
-        az[0] = -atan2(pw, pn) * RAD2DEG
+        az[0] = -math.atan2(pw, pn) * RAD2DEG
     if az[0] < 0.0:
         az[0] += 360.0
     if az[0] >= 360.0:
         az[0] -= 360.0
-    zd[0] = atan2(proj, pz) * RAD2DEG
+    zd[0] = math.atan2(proj, pz) * RAD2DEG
     if ref_option != 0:
         zd0 = zd[0]
         # Do-while
         zd1 = zd[0]
         refr = refract(location, ref_option, zd[0])
         zd[0] = zd0 - refr
-        while fabs(zd[0] - zd1) > 5.0e-5:
+        while math.fabs(zd[0] - zd1) > 5.0e-5:
             zd1 = zd[0]
             refr = refract(location, ref_option, zd[0])
             zd[0] = zd0 - refr
         # End do-while
         if refr > 0.0 and zd[0] > 0.01:
-            cosr = cos(refr * DEG2RAD)
-            prlen = sin(zd0 * DEG2RAD) / sin(zd[0] * DEG2RAD)
-            rlen = sqrt(1.0 + prlen * prlen - 2.0 * prlen * cosr)
+            cosr = math.cos(refr * DEG2RAD)
+            prlen = math.sin(zd0 * DEG2RAD) / math.sin(zd[0] * DEG2RAD)
+            rlen = math.sqrt(1.0 + prlen * prlen - 2.0 * prlen * cosr)
             for j in range(3):
                 pr[j] = (p[j] + rlen * uz[j]) / prlen
-            proj = sqrt(pr[0] * pr[0] + pr[1] * pr[1])
+            proj = math.sqrt(pr[0] * pr[0] + pr[1] * pr[1])
             if proj > 0.0:
-                rar[0] = atan2(pr[1], pr[0]) * RAD2DEG / 15.0
+                rar[0] = math.atan2(pr[1], pr[0]) * RAD2DEG / 15.0
             if rar[0] < 0.0:
                 rar[0] += 24.0
             if rar[0] >= 24.0:
                 rar[0] -= 24.0
-            decr[0] = atan2(pr[2], proj) * RAD2DEG
+            decr[0] = math.atan2(pr[2], proj) * RAD2DEG
     return
 
 
@@ -3283,10 +3286,10 @@ def refract(location, ref_option, zd_obs):
             p = location["pressure"]
             t = location["temperature"]
         else:
-            p = 1010.0 * exp(-location["height"] / s)
+            p = 1010.0 * math.exp(-location["height"] / s)
             t = 10.0
         h = 90.0 - zd_obs
-        r = 0.016667 / tan((h + 7.31 / (h + 4.4)) * DEG2RAD)
+        r = 0.016667 / math.tan((h + 7.31 / (h + 4.4)) * DEG2RAD)
         refr = r * (0.28 * p / (t + 273.0))
     return refr
 
@@ -3306,7 +3309,7 @@ def cal_date(tjd, year, month, day, hour):
     djd = [0.0]
     djd = tjd + 0.5
     jd = djd
-    hour[0] = fmod(djd, 1.0) * 24.0
+    hour[0] = math.fmod(djd, 1.0) * 24.0
     k = jd + 68569
     n = 4 * k / 146097
     k = k - (146097 * n + 3) / 4
@@ -3321,8 +3324,7 @@ def cal_date(tjd, year, month, day, hour):
 
 
 if __name__ == "__main__":
-    import sys
-    from lwtest import run, assert_equal
+    from lwtest import run
 
     def Test():
         """This is the file checkout-st.c file from the original NOVAS-C

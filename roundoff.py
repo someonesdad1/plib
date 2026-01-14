@@ -34,13 +34,11 @@ if 1:  # Copyright, license
     pass
 if 1:  # Imports
     import sys
-    import re
     from decimal import Decimal, localcontext
     from fractions import Fraction
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     try:
-        from uncertainties import ufloat, UFloat
+        from uncertainties import UFloat    
         _have_unc = True
     except ImportError:
         _have_unc = False
@@ -124,7 +122,6 @@ def RoundOff(number, digits=12, convert=False):
     elif _have_mpmath and ii(number, mpmath.mpc):
         re = Decimal(mpmath.nstr(number.real, mpmath.mp.dps))
         im = Decimal(mpmath.nstr(number.imag, mpmath.mp.dps))
-        old_dps = mpmath.mp.dps
         with localcontext() as ctx:
             ctx.prec = digits
             re = +re
@@ -190,7 +187,7 @@ def TemplateRound(x, template, up=True):
     sign = 1 if x >= 0 else -1
     if sign < 0:
         up = not up
-    nt = type(x) if type(x) != int else float
+    nt = type(x) if type(x) is int else float
     # Find out how many template "units" there are in x
     y = int(abs(x / template) + nt("0.5")) * abs(template)
     # Do rounding as needed
@@ -204,7 +201,7 @@ def TemplateRound(x, template, up=True):
 if __name__ == "__main__":
     from math import pi
     from wrap import dedent
-    from lwtest import run, raises, assert_equal, Assert
+    from lwtest import run, Assert
     def Test_RoundOff():
         Assert(RoundOff(745.6998719999999) == 745.699872)
         Assert(RoundOff(745.6998719999999, 5) == 745.70)

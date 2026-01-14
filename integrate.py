@@ -1,7 +1,6 @@
 """
 Pure-python numerical integration routines
 """
-
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2011, 2017 Don Peterson #∞copyright∞#
@@ -16,8 +15,6 @@ if 1:  # Copyright, license
     ##∞what∞#
     ##∞test∞# run #∞test∞#
     pass
-
-
 def Simpson(f, a, b, n):
     """Integrate f over the interval [a, b] with n points via Simpson's
     rule.  f is a univariate function.
@@ -31,8 +28,6 @@ def Simpson(f, a, b, n):
         else:
             sum += 4 * f(a + i * h)
     return h / 3 * (f(a) + sum + f(b))
-
-
 def Trapezoidal(f, a, b, n):
     """Integrate f over the interval [a, b] with n points via the
     trapezoidal rule.  From Bartsch, "Handbook of Mathematical Formulas",
@@ -44,12 +39,10 @@ def Trapezoidal(f, a, b, n):
     for i in range(n):
         sum += 2 * f(a + i * h)
     return (f(a) + sum + f(b)) * h / 2
-
-
 def Trapezoid_nme(f, a, b, integral_old, n):
     """Returns an estimate of the integral of f(x) from a to b using 2^n
     points and given that integral_old is the estimate from 2^(n-1) points.
-
+    
     From "Numerical Methods in Engineering with Python", 2nd ed. by Jaan
     Kiusalaas, 2010, ISBN: 9780521191326.
     """
@@ -65,8 +58,6 @@ def Trapezoid_nme(f, a, b, integral_old, n):
             sum, x = sum + f(x), x + h
         integral_new = (integral_old + h * sum) / 2
     return integral_new
-
-
 def Trapezoid_nr(f, a, b, n, s=[0]):
     """trapzd routine from Numerical Recipes in C, pg 137, sec. 4.2.
     Note they use a static variable s to contain the values of the previous
@@ -88,8 +79,6 @@ def Trapezoid_nr(f, a, b, n, s=[0]):
             x += delta
         s[0] = (s[0] + (b - a) * sum / tnm) / 2
     return s[0]
-
-
 def Trapezoid(f, a, b, eps=1e-6, itmax=50):
     """Driver to use the Trapezoid_nr routine to calculate the integral of
     f(x) from a to b to within less than relative error eps.
@@ -104,9 +93,8 @@ def Trapezoid(f, a, b, eps=1e-6, itmax=50):
                 return s
         olds = s
     raise ValueError("Too many iterations")
-
-
 def _CheckParameters(f, a, b, n, neven=False):
+    """Check the parameters for the above functions"""
     if not callable(f):
         raise ValueError("f must be a univariate function")
     if not isinstance(n, int):
@@ -119,22 +107,17 @@ def _CheckParameters(f, a, b, n, neven=False):
     if a >= b:
         raise ValueError("Must have a < b")
 
-
 if __name__ == "__main__":
-    from lwtest import run, assert_equal, raises
-
+    from lwtest import run
     # Integrate x**2 from 0 to 3:  exact answer is 9
     def f(x):
         return x**2
-
     N = [10**i for i in range(1, 6)]
     a, b, exact_answer = 0, 3, 9
-
     def TestSimpson():
         for n in N:
             integral = Simpson(f, a, b, n)
             assert abs(integral - exact_answer) < 1e-12
-
     def TestTrapezoidal():
         result = {
             10: 9.045,
@@ -146,5 +129,4 @@ if __name__ == "__main__":
         for n in N:
             integral = Trapezoidal(f, a, b, n)
             assert integral == result[n]
-
     exit(run(globals(), halt=1)[0])

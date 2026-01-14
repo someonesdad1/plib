@@ -35,8 +35,8 @@ if 1:  # Header
 
     # Custom imports
     from f import flt
-    from wrap import dedent, indent
-    from lwtest import run, assert_equal, raises
+    from wrap import dedent
+    from lwtest import run
     from color import t as U
 
     # Global variables
@@ -1132,7 +1132,7 @@ if 1:  # Core functionality
                 print(f"  {t:3d}    {mV:6.2f}    {mV_pred:6.2f}    {'--':>4s}")
         print(
             dedent(
-                f"""
+                """
  
         Conclusion:  for the approximate use of a type K thermocouple and DMM using
         the DMM's jacks as the reference junction temperature, the correction for the
@@ -1159,7 +1159,7 @@ if __name__ == "__main__":
             Error(f"{deg_scale!r} is an unrecognized temperature unit")
     if len(args) == 2:
         if not len(args[1]) == 1 and args[1].upper() not in "CFKR":
-            _Error("'{}' is an unrecognized temperature scale".format(args[1]))
+            Error("'{}' is an unrecognized temperature scale".format(args[1]))
         deg_scale = args[1].upper()
     d["tc_type"], d["deg_scale"] = tc_type, deg_scale
     Temperature()

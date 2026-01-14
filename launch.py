@@ -261,10 +261,10 @@ if 1:  # Core functionality
                 # Running under Windows in Windows Subsystem for Linux.  The method is to use
                 # explorer.exe to open files.  To get this to work, we have to cd to the file's
                 # directory.  It appears Explorer returns 1 under all conditions.
-                r = subprocess.run(f"explorer.exe {filename}", shell=True)
+                subprocess.run(f"explorer.exe {filename}", shell=True)
             elif g.system == "cygwin":
                 # Must be cygwin; file can be opened with cygstart.exe.
-                r = subprocess.run(f"cygstart {filename}", shell=True)
+                subprocess.run(f"cygstart {filename}", shell=True)
             elif g.system == "linux":
                 # Older method worked a decade or two ago, needs to be tested on a Linux box
                 subprocess.call(("xdg-open", filename))

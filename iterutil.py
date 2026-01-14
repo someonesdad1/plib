@@ -45,7 +45,6 @@ if 1:  # Imports
     import operator
     import random
     import itertools as it
-    from pdb import set_trace as xx
 
 
 def take(iterable, n):
@@ -277,10 +276,8 @@ def IterSubclasses(cls, seen=None):
 
 
 if __name__ == "__main__":
-    import sys
     from lwtest import run, assert_equal, Assert
     from frange import frange
-    from pdb import set_trace as xx
 
     n, m = 20, 5
 

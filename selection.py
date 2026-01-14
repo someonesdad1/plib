@@ -18,10 +18,10 @@ if 1:  # Header
     ##∞what∞#
     ##∞test∞# ignore #∞test∞#
     # Standard imports
-    from collections import deque
+    pass
 
     # Custom imports
-    from lwtest import run, raises, assert_equal, Assert
+    from lwtest import Assert
 
     # Global variables
     ii = isinstance
@@ -159,7 +159,7 @@ if 1:  # Core functionality
 
 
 if __name__ == "__main__":
-    from lwtest import run, assert_equal, raises
+    from lwtest import run, raises
 
     def TestForm1():
         f, z = Form1, [0]

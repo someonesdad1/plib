@@ -94,7 +94,6 @@ if __name__ == "__main__":
 
     def TestConversions():
         k0 = 273.15  # 0 °C in K
-        p0 = 9 / 5  # Number of °F in K
         c0 = 32  # Freezing point of water in °F
         r0 = 459.67  # 0 °C in °R
         reltol = 1e-13

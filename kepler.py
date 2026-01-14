@@ -126,7 +126,7 @@ def Kepler(m, e, abstol=1e-8, algorithm=3):
                 if m < math.pi:
                     trial = (6 * m) ** (1 / 3)
                 else:  # Hyperbolic w/ 5th & higher-order terms predominant
-                    trial = asinh(m / e)
+                    trial = math.asinh(m / e)
             curr = trial
         if e < 1:
             err = curr - e * math.sin(curr) - m
@@ -196,7 +196,7 @@ def Show(m, e, p):
 
 
 if __name__ == "__main__":
-    from lwtest import run, assert_equal
+    from lwtest import run
     from frange import frange
 
     def TestCases():

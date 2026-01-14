@@ -27,9 +27,9 @@ class TextCompare:
         self.old = old
         self.new = new
         if not isinstance(old, str):
-            raise TypeError(f"old must be a text string")
+            raise TypeError("old must be a text string")
         if not isinstance(new, str):
-            raise TypeError(f"new must be a text string")
+            raise TypeError("new must be a text string")
         self._hex_offsets = False
         self._ignore_case = False
 
@@ -41,7 +41,7 @@ class TextCompare:
     @property
     def diff(self):
         "Return a string showing how to convert old to new"
-        F, O = ("x", "0x") if self.x else ("d", "")  # Format for offsets
+        F, o = ("x", "0x") if self.x else ("d", "")  # Format for offsets
         f = io.StringIO()
         print("To convert old to new:", file=f)
         old = self.normalize(self.old)
@@ -51,14 +51,14 @@ class TextCompare:
             tag, o1, o2, n1, n2 = o
             if tag == "replace":
                 print(
-                    f"{tag} {O}{o1:{F}}:{O}{o2:{F}} {old[o1:o2]!r} "
-                    f"with {O}{n1:{F}}:{O}{n2:{F}} {new[n1:n2]!r}",
+                    f"{tag} {o}{o1:{F}}:{o}{o2:{F}} {old[o1:o2]!r} "
+                    f"with {o}{n1:{F}}:{o}{n2:{F}} {new[n1:n2]!r}",
                     file=f,
                 )
             elif tag == "delete":
-                print(f"{tag} {O}{o1:{F}}:{O}{o2:{F}} = {old[o1:o2]!r}", file=f)
+                print(f"{tag} {o}{o1:{F}}:{o}{o2:{F}} = {old[o1:o2]!r}", file=f)
             elif tag == "insert":
-                print(f"{tag} at {O}{o1:{F}}:  {new[n1:n2]!r}", file=f)
+                print(f"{tag} at {o}{o1:{F}}:  {new[n1:n2]!r}", file=f)
         return f.getvalue().rstrip()
 
     @property
@@ -122,7 +122,7 @@ if __name__ == "__main__":
     from pdb import set_trace as xx
 
     # Custom modules
-    from lwtest import run, raises, assert_equal
+    from lwtest import run
     from wrap import dedent
 
     # Try to import the color.py module; if not available, the script

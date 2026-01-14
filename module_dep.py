@@ -27,17 +27,13 @@ Other policies enforced by this script are:
 ##∞test∞# ignore #∞test∞#
 if 1:  # Standard imports
     import getopt
-    import io
     import os
     import pathlib
     import re
     import sys
     from collections import defaultdict
-    from pprint import pprint as pp
-    from pdb import set_trace as xx
 if 1:  # Custom imports
-    from wrap import wrap, dedent, indent, Wrap
-    from columnize import Columnize
+    from wrap import dedent
 if 1:  # Global variables
     P = pathlib.Path
     # This will collect bad import lines that need fixing
@@ -64,7 +60,6 @@ if 1:  # Utility
             Print a manpage.
         """)
         )
-        print(s.format(**locals()))
         exit(status)
 
     def ParseCommandLine(d):
@@ -228,7 +223,6 @@ if 1:  # Core functionality
         where P is a pathlib.Path instance.
         """
         assert all([str(i).endswith(".py") for i in modules])
-        module_names = [i.name[:-3] for i in modules]
         out = defaultdict(list)
         for file in sources:
             try:

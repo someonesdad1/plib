@@ -1,5 +1,4 @@
 /plib/.todo
-
     - Core /plib work
         - 13 Jan 2026:  finished the last needed update to color.py.  kolor.py moved to
           old.
@@ -11,6 +10,12 @@
               check both formatting and linting.  I'll probably create a makefile that 
               does this for both directories.  It will be such that any output is a
               violation of the policies, indicating action needed.
+            - A severe problem with 'ruff format' is the mess it makes of some math
+              formulas.  For example, look at julian.EclipticObliquity().  There needs
+              to be some meta-information like '# noqa-start' and '# noqa-end' to
+              protect some code, as it becomes unreadable AND it takes quite a bit of
+              time to fix things.  Most programmers don't mess with math formulas (or
+              they use simple formulas), so they never see the problem.  
         - By 28 Feb 2026:
             - Run lint ('ruff check') and 'ruff format' on all python files in /plib.
             - All must pass lint (use #noqa sparingly, only as needed)
@@ -25,116 +30,21 @@
             - fsig.py:  is it used anywhere?  Otherwise move to old.  There's an
               util.fsig, so make fsig.py obsolete.
             - geometry.py:  need test case for Quadrilateral()
-        - /plib/0lint_list
-
-            - cpi_data.py
-            - cuncertainties.py
-            - dbg.py
-            - debug.py
-            - decimalmath.py
-            - decorators.py
-            - detectutf8.py
-            - dirfiles.py
-            - dpdecimal.py
-            - dpmath.py
-            - dppath.py
-            - dpprint.py
-            - dpseq.py
-            - dptags.py
-            - dptime.py
-            - dt.py
-            - e.py
-            - edit.py
-            - eevblog.py
-            - eevblog_data.py
-            - elements.py
-            - elements1.py
-            - elliptic.py
-            - enc.py
-            - f.py
-            - fac.py
-            - fel.py
-            - filesizes.py
-            - flatten.py
-            - fmt.py
-            - fnl.py
-            - format_numbers.py
-            - fpformat.py
-            - frac.py
-            - fraction.py
-            - frange.py
-            - frozendict.py
-            - fsig.py
-            - gauge_sizes.py
-            - geom_prim.py
-            - geometry.py
-            - get.py
-            - globalcontainer.py
-            - hd.py
-            - hexdump.py
-            - idhash.py
-            - integrate.py
-            - interpolate.py
-            - interval.py
-            - interval_proto.py
-            - iso.py
-            - iterutil.py
-            - julian.py
-            - just.py
-            - kepler.py
-            - laser_dist.py
-            - launch.py
-            - license.py
-            - license_data.py
-            - linscale.py
-            - listmath.py
-            - lngamma.py
-            - loo.py
-            - matrix.py
-            - meeus.py
-            - module_dep.py
-            - months.py
-            - mpfmt.py
-            - novas.py
-            - ooeqn.py
-            - papersize.py
-            - partitions.py
-            - pdiff.py
-            - planets.py
-            - prob.py
-            - readability.py
-            - repl.py
-            - rgb.py
-            - rgbview.py
-            - root.py
-            - roundoff.py
-            - ruler.py
-            - selection.py
-            - shop_util.py
-            - si.py
-            - sig.py
-            - sigfig.py
-            - sizes.py
-            - solarsys.py
-            - stirling.py
-            - strdiff.py
-            - tee.py
-            - temperature.py
-            - textcompare.py
-            - thermocouple.py
-            - timer.py
-            - tokenizer.py
-            - tw.py
-            - ucd.py
-            - uk.py
-            - url.py
-            - util.py
-            - water.py
-            - waveform.py
-            - wire.py
-            - wl2rgb.py
-            - wordparse.py
-            - wrap.py
+            - integrate.py:  need tests for Trapezoid_nme, Trapezoid_nr, Trapezoid
+            - Find all 'from x import *' type of imports and get rid of them except
+              where it's really needed (do this before linting in /plib/pgm).  Use
+              "grep -l 'import \*' pgm/*.py" for this.
+            - laser_dist.py fails its selftest
+            - module_dep.py:  keep or move to old?
+            - mpfmt.py:  absorb into fmt.py and obsolete
+            - partitions.py:  needs some tests
+            - prob.py:  decide whether to keep.  Needs the cephes DLL.
+            - rgb.py, rgbdata.py, rgbview.py:  keep any of these or obsolete?
+            - shoputil.py:  move to other relevant files (see docstring)
+            - sizes.py:  make all the floats be flt types
+            - tee.py:  rename Print to teeprint and move to e.g. util.py.  Note it's
+              only used so far in 0test.py.
+            - waveform.py needs a goodly amount of work to fix lint problems
 
     - yapf
         - https://github.com/google/yapf

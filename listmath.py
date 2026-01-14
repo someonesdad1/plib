@@ -22,7 +22,6 @@ if 1:  # Header
         import math
         import os
         import platform
-        import sys
     if 1:  # Custom imports
         from color import t
         from dpprint import PP

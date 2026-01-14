@@ -40,9 +40,7 @@ sequence passed to the constructor.
 # See http://opensource.org/licenses/OSL-3.0.
 #
 ##∞test∞# ignore #∞test∞#
-import sys
 from bisect import bisect_right
-from pdb import set_trace as xx
 if 0:
     import debug
     debug.SetDebugger()
@@ -53,7 +51,7 @@ def LeastRightmost(x, seq):
     Adapted from find_le() in the section 'Searching Sorted Lists' in
     the bisect module's documentation.
     '''
-    index = bisect_right(a, x)
+    index = bisect_right(seq, x)
     return index - 1 if index else None
 class Interval(object):
     '''Encapsulate an object or 2-sequence of objects so that they can

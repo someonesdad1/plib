@@ -566,13 +566,13 @@ if 1:  # Earth-related calculations
         """
         T = (jd - 2451545.0) / 36525  # Julian centuries
         # Mean elongation of the moon from the sun
-        D = 297.85036 + 445267.111480 * T - 0.0019142 * T * T + T * T * T / 189474
+        # D = 297.85036 + 445267.111480 * T - 0.0019142 * T * T + T * T * T / 189474
         # Mean anomaly of the sun (earth)
-        M = 357.52772 + 35999.050340 * T - 0.0001603 * T * T - T * T * T / 300000
+        # M = 357.52772 + 35999.050340 * T - 0.0001603 * T * T - T * T * T / 300000
         # Mean anomaly of the moon
-        m = 134.96298 + 477198.867398 * T + 0.0086972 * T * T + T * T * T / 56250
+        # m = 134.96298 + 477198.867398 * T + 0.0086972 * T * T + T * T * T / 56250
         # Moon's argument of latitude
-        F = 93.27191 + 483202.017538 * T - 0.0036825 * T * T + T * T * T / 327270
+        # F = 93.27191 + 483202.017538 * T - 0.0036825 * T * T + T * T * T / 327270
         # Longitude of ascending node of moon's mean orbit on ecliptic
         Omega = 125.04452 - 1934.136261 * T + 0.0020708 * T * T + T * T * T / 450000
         # Mean longitude of sun
@@ -690,7 +690,7 @@ if 1:  # Sun
         # Mean anomaly of sun in radians
         M = Normalize(radians(357.52911 + 35999.05029 * T + 0.0001537 * T * T))
         # Eccentricity of earth's orbit
-        e = 0.016708634 - 0.000042037 * T - 0.0000001267 * T * T
+        # e = 0.016708634 - 0.000042037 * T - 0.0000001267 * T * T
         # Sun's equation of center in radians
         C = radians(
             (1.914602 - 0.004817 * T - 0.000014 * T * T) * sin(M)
@@ -702,9 +702,9 @@ if 1:  # Sun
         # equinox of the date
         L = Normalize(L0 + C)
         # Sun's true anomaly in radians
-        nu = Normalize(M + C)
+        # nu = Normalize(M + C)
         # Sun's radius vector in AU
-        R = 1.000001018 * (1 - e * e) / (1 + e * cos(radians(nu)))
+        # R = 1.000001018 * (1 - e * e) / (1 + e * cos(radians(nu)))
         # Calculate the sun's apparent longitude in radians, referred to
         # the true equinox of the date, correcting for nutation and
         # aberration.
@@ -1267,7 +1267,6 @@ if __name__ == "__main__":
         # Page 147:  Obliquity of the ecliptic; example 28.b pg 185.
         eps = EclipticObliquity(JulianAstro(10, 13, 1992))
         Assert(fabs(degrees(eps) - 23.44023) < 1e-5)
-        jd = JulianAstro(1, 1, 2050)
 
     def TestSunPosition():
         # Page 165:  solar coordinates

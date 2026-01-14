@@ -193,14 +193,10 @@ if 1:  # Standard imports
     import colorsys
     from decimal import Decimal
     from fractions import Fraction
-    import getopt
-    import os
     import pathlib
     import sys
     from pdb import set_trace as xx
 if 1:  # Custom imports
-    from wrap import wrap, dedent
-    from f import flt
     from clr import Clr
 
     if 0:
@@ -209,9 +205,7 @@ if 1:  # Custom imports
         debug.SetDebugger()
     if 1:
         # Print a warning about using this obsolete file
-        print(
-            f"WARNING:  /plib/rgb.txt imported:  it's an obsolete file", file=sys.stderr
-        )
+        print("WARNING:  /plib/rgb.txt imported:  it's an obsolete file", file=sys.stderr)
     else:
         raise Exception("This file shouldn't be used")
 if 1:  # Global variables
@@ -277,7 +271,7 @@ if 1:  # Classes
                 except Exception:
                     raise e
                 # They must be the same type
-                if not all([type(i) == type(s[0]) for i in s]):
+                if not all([type(i) is type(s[0]) for i in s]):
                     msg = "The components of x are not the same type"
                     raise TypeError(msg)
                 # Convert them to Decimals
@@ -384,7 +378,6 @@ if 1:  # Classes
             m = [j - i for i, j in zip(a, b)]  # Slopes
             new = [i + slope * t for i, slope in zip(a, m)]
             # They should all be on [0, 1]
-            ok = all([0 <= i <= 1 for i in new])
             assert all([0 <= i <= 1 for i in new])
             # Convert to rgb space
             if typ == "hsv":

@@ -54,16 +54,16 @@ if 1:  # Classes
             "engsi" = engineering with an SI prefix appended
             "engsic" = "engsi" with the prefix cuddled
             """
-            if ii(x, M.mpc):
+            if ii(x, mpmath.mpc):
                 r, i = x.real, x.imag
-                assert ii(r, M.mpf) and ii(i, M.mpf)
+                assert ii(r, mpmath.mpf) and ii(i, mpmath.mpf)
                 sgn = "-" if i < 0 else "+"
                 re = self(r, fmt=fmt, n=n)
                 im = self(abs(i), fmt=fmt, n=n)
                 u = " " if self.cuddled else ""
                 s = f"{re}{u}{sgn}{u}{im}{self.imag_unit}"
                 return s
-            elif ii(x, (M.mpf, int)):
+            elif ii(x, (mpmath.mpf, int)):
                 sgn, m, e = self.sigexp(x)
                 s = str(m)
                 u = sgn + s[0] + self.radix + s[1:]
@@ -153,7 +153,7 @@ def TestTakeApart():
     mpf = mpmath.mpf if have_mpmath else float
     if 1:  # Show supported types get the same string interpolation
         # Function to convert an Apart to a string
-        g = lambda x: "".join(x[:4]) + f"e{x[4]}"
+        def g(x): "".join(x[:4]) + f"e{x[4]}"
         k, u, m = 5, "1.23456", 300
         for n in range(1, 10):
             TA = partial(TakeApart, n=n)

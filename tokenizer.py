@@ -174,7 +174,7 @@ if 1:   # PrintTokens
                         next_token = o[i + 1]
                         print(f"{t.linenum}{next_token.line:{w}d}{t.n} ", end="")
                 else:
-                    print(f"␤")
+                    print("␤")
                     if i < ntokens - 1 and linenum:
                         next_token = o[i + 1]
                         print(f"{next_token.line:{w}d} ", end="")
@@ -210,10 +210,10 @@ if 1:   # Testing functions
         if 1:   # String with no newline
             o = Tokenizer("a1\b \t\f\r")
             Assert(o == ['a', '1', '\x08', ' \t\x0c\r'])
-            Assert(type(o[0]) == wrd)
-            Assert(type(o[1]) == dig)
-            Assert(type(o[2]) == oth)
-            Assert(type(o[3]) == wht)
+            Assert(type(o[0]) is wrd)
+            Assert(type(o[1]) is dig)
+            Assert(type(o[2]) is oth)
+            Assert(type(o[3]) is wht)
         if 1:   # String with one newline
             o = Tokenizer("\n")
             Assert(o == ['\n'])
@@ -230,12 +230,12 @@ if 1:   # Testing functions
             o = Tokenizer("a1.\x0c∞\n")
             Assert(o == ['a', '1', '.', '\x0c', '∞', '\n'])
             # Check types
-            Assert(type(o[0]) == wrd)
-            Assert(type(o[1]) == dig)
-            Assert(type(o[2]) == pnc)
-            Assert(type(o[3]) == wht)
-            Assert(type(o[4]) == oth)
-            Assert(type(o[5]) == nln)
+            Assert(type(o[0]) is wrd)
+            Assert(type(o[1]) is dig)
+            Assert(type(o[2]) is pnc)
+            Assert(type(o[3]) is wht)
+            Assert(type(o[4]) is oth)
+            Assert(type(o[5]) is nln)
             # Check linenum, column, offset
             # Element 0 is a 'a' wrd
             Assert(o[0].linenum == 0)

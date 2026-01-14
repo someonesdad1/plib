@@ -19,7 +19,6 @@ if 1:  # Header
     ##∞test∞# ignore #∞test∞#
     # Imports
     from time import time, localtime, gmtime, struct_time, strftime
-    from pdb import set_trace as xx
 
     # Global variables
     ii = isinstance
@@ -70,7 +69,6 @@ class ISO(object):
 
 
 if __name__ == "__main__":
-    from collections import namedtuple
     from wrap import dedent
 
     def P(t, iso):

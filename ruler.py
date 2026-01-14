@@ -118,8 +118,8 @@ if __name__ == "__main__":
     if args:
         if args[0] == "-h":
             print(f"Usage: {sys.argv[0]} [num1 [num2...]]")
-            print(f"  Ruler demo from /plib/ruler.py module")
-            print(f"  No arguments show all ruler types")
+            print("  Ruler demo from /plib/ruler.py module")
+            print("  No arguments show all ruler types")
         elif args[0] == "a":
             # This is needed because my 'r' bash function can then show all
             # the rulers with 'a' as the argument.

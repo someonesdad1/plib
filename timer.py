@@ -66,7 +66,6 @@ if 1:  # Header
     import time
     import decimal
     from textwrap import dedent
-    from pdb import set_trace as xx
     # Custom imports
     from f import flt
     from u import u
@@ -248,7 +247,6 @@ if 1:  # Classes
             d = datetime.datetime.now()
             if short:
                 from months import months
-                m = months[d.month]
                 s = f"{d.day}{months[d.month]}"
             else:
                 s = (
@@ -365,7 +363,6 @@ if 1:  # Convenience instances
     fnt = FNTime()
     sw = Stopwatch()
 if __name__ == "__main__":
-    import re
     from fmt import fmt
     from color import t as C
     from f import sqrt
@@ -438,7 +435,7 @@ if __name__ == "__main__":
             t1, t2 = Timer.ns(), Timer.ns()
             r.append(D(t2 - t1) / to_ns)
         mean, sdev = stats(r)
-        print(f"Estimate of time.perf_counter_ns practical resolution:")
+        print("Estimate of time.perf_counter_ns practical resolution:")
         print(f"  Sample size = {n}")
         print(f"  Mean = {fmt(mean * to_ns, n=2)} ns")
         print(f"  Std dev = {fmt(sdev * to_ns, n=2)} ns")

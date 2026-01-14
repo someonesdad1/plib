@@ -37,9 +37,9 @@ if 1:  # Header
     from functools import partial
 
     # Custom imports
-    from u import u, fromto
-    from wrap import wrap, dedent
-    from color import Color, TRM as t
+    from u import u
+    from wrap import dedent
+    from color import t
     from f import flt, log10, sqrt
 
     # Import the python uncertainties library if it is available.
@@ -677,10 +677,9 @@ if 1:  # Core functionality
 
 
 if __name__ == "__main__":
-    from lwtest import run, raises, assert_equal, Assert
+    from lwtest import run, raises, Assert
 
     def TestFrictionFactor():
-        x = flt(0)
         Assert(str(FrictionFactor(1, 1e6, 0.01)) == "0.038")
         Assert(str(FrictionFactor(1, 1e4, 0.1)) == "0.103")
 

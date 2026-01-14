@@ -3434,7 +3434,7 @@ if __name__ == "__main__":
             # is_orthogonal
             with Testing():
                 a, e = pi / 4, 1e-10
-                from math import cos, sin
+                from math import cos, sin   # noqa
                 m = matrix(
                     """# Element of SO(3) (rotation about z axis)
                             cos(a) sin(a) 0

@@ -188,15 +188,14 @@ if 1:  # Header
     import io
     import os
     import pathlib
-    import readline  # History and command editing
-    import rlcompleter  # Command completion
+    import readline  # History and command editing  # noqa
+    import rlcompleter  # Command completion    # noqa
     import subprocess
     import sys
     import tempfile
     import time
-    from pdb import set_trace as xx
     # Custom imports
-    from wrap import wrap, dedent, indent, Wrap
+    from wrap import wrap, dedent
     from columnize import Columnize
     # import kolor as C
     from color import TRM as t
@@ -268,7 +267,6 @@ if 1:  # Core functionality
             raise TypeError("string must be a str object")
         # We'll edit this string in a new temporary file in the
         # current directory.
-        cwd = console.cwd
         tempname = tempfile.mkstemp(
             prefix="repl", suffix=".py", dir=console.cwd, text=True
         )[1]
@@ -280,39 +278,37 @@ if 1:  # Core functionality
         return newstring
     def GetSymbols():
         "Return a dict of favorite symbols"
-        from pprint import pprint as pp
-        from decimal import Decimal as D, getcontext as ctx
-        from dpdecimal import dec
-        from pathlib import Path as P
-        from fractions import Fraction as F
-        from pdb import set_trace as xx
+        from pprint import pprint as pp # noqa
+        from decimal import Decimal as D, getcontext as ctx # noqa
+        from dpdecimal import dec   # noqa
+        #from pathlib import Path as P
+        from fractions import Fraction as F  # noqa
         try:
-            from u import u, dim, to
+            from u import u, dim, to    # noqa
         except ImportError:
             pass
         try:
-            from uncertainties import ufloat as uf
+            from uncertainties import ufloat as uf  # noqa
         except ImportError:
             pass
         try:
-            from matrix import Matrix, vector
+            from matrix import Matrix, vector   # noqa
         except ImportError:
             pass
         # NOTE:  Edit Special() to change the built-in commands.  You also
         # need to edit IsCommand() for the command to be recognized as
         # special.
         try:
-            from f import acos, acosh, asin, asinh, atan, atan2, atanh
-            from f import ceil, copysign, cos, cosh
-            from f import cpx, dedent, degrees, erf, erfc
-            from f import exp, expm1, fabs, factorial, floor, flt, fmod
-            from f import frexp, fsum, gamma, gcd, hypot, inf, infj
-            from f import isclose, isfinite, isinf, isnan, ldexp, lgamma
-            from f import log, log10, log1p, log2, modf, nan, nanj, phase
-            from f import pi, polar, pow, radians, rect, remainder, sin
-            from f import sinh, sqrt, tan, tanh, tau, trunc
-            # I comment this out because it overshadows the edit command
-            from f import e
+            from f import acos, acosh, asin, asinh, atan, atan2, atanh  # noqa
+            from f import ceil, copysign, cos, cosh     # noqa
+            from f import cpx, dedent, degrees, erf, erfc   # noqa
+            from f import exp, expm1, fabs, factorial, floor, flt, fmod     # noqa
+            from f import frexp, fsum, gamma, gcd, hypot, inf, infj     # noqa
+            from f import isclose, isfinite, isinf, isnan, ldexp, lgamma    # noqa
+            from f import log, log10, log1p, log2, modf, nan, nanj, phase   # noqa
+            from f import pi, polar, pow, radians, rect, remainder, sin     # noqa
+            from f import sinh, sqrt, tan, tanh, tau, trunc     # noqa
+            from f import e     # noqa
             i = cpx(0, 1)
             i.i = True
             i.f = True
@@ -567,7 +563,6 @@ if 1:  # Special commands
                 )
             elif cmd == "x":
                 # Run stringbuffer
-                fn = "<stringbuffer>"
                 if not console.stringbuffer:
                     Print("String buffer is empty")
                     return

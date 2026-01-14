@@ -1,7 +1,7 @@
 """
 Julian day routines
     From Meeus, "Astronomical Formulae for Calculators"
-
+    
     Julian(month, day, year)            Integer Julian day number
     Julian1(datestring)                 Integer Julian day number, but
                                         takes string arg "YYYYMMDD"
@@ -9,26 +9,25 @@ Julian day routines
     Also:
             JulianAstroDateTime(year, month, day, hour, minute, second)
             JulianAstroDT(datetime.datetime_instance)
-
+            
     JulianToDate(julian_day)            Returns month, day, year tuple
     DayOfWeek(month, day, year)         0 = Sunday
     DayOfYear(month, day, year)         1 to 365 (366 in leap year)
     IsValidDate(month, day, year)       Returns True if date is valid Gregorian
     IsLeapYear(year)                    Returns True if year is leap year
     NumDaysInMonth(month, year)
-
+    
     The JulianAstro function returns the astronomical form and is
     returned as a floating point number.  The astronomical Julian day
     begins at Greenwich mean noon.  The Julian() function returns the
     more usual Julian day as an integer; it is gotten from the
     astronomical form by adding 0.55 and taking the integer part.
-
+    
     DecodeDateString() is used to decode date strings of the form
     '24Mar2023:20:33:18.0'.  These are used by the hc.py calculator
     program for date arithmetic.
-
+    
 """
-
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 1998 Don Peterson #∞copyright∞#
@@ -45,17 +44,12 @@ if 1:  # Copyright, license
     # Standard libraries
     import datetime
     import math
-    import re
-
     # Custom libraries
     import months
     import iso
     from lwtest import Assert
-
     # Global variables
     ii = isinstance
-
-
 def NumDaysInMonth(month, year):
     if month == 2:
         return 29 if IsLeapYear(year) else 28
@@ -65,12 +59,10 @@ def NumDaysInMonth(month, year):
         return 31
     else:
         raise ValueError("Bad month")
-
-
 def DecodeDay(day):
     """Return a tuple of (hr, min, sec) given a decimal day.  Example:
     DecodeDay(1.5) returns (12, 0, 0.0).
-
+    
     Important:  this is conventional time, not Julian astronomical type
     days.
     """
@@ -81,8 +73,6 @@ def DecodeDay(day):
     fp -= min / (24 * 60)
     sec = 24 * 3600 * fp
     return (hr, min, sec)
-
-
 def JulianToDate(julian_day):
     """From Meeus, "Astronomical Algorithms", pg 63."""
     if julian_day < 0:
@@ -109,8 +99,6 @@ def JulianToDate(julian_day):
         year = int(C - 4715)
     hr, min, sec = DecodeDay(day)
     return month, day, year, hr, min, sec
-
-
 def DayOfYear(month, day, year):
     if IsLeapYear(year):
         n = int((275 * month) // 9 - ((month + 9) // 12) + int(day) - 30)
@@ -118,18 +106,12 @@ def DayOfYear(month, day, year):
         n = int((275 * month) // 9 - 2 * ((month + 9) // 12) + int(day) - 30)
     Assert(1 <= n <= 366)
     return n
-
-
 def DayOfWeek(month, day, year):
     julian = int(JulianAstro(month, int(day), year) + 1.5)
     return julian % 7
-
-
 def IsLeapYear(year):
     # Ref. Meeus pg 62
     return True if (year % 400 == 0) or (year % 4 == 0 and year % 100 != 0) else False
-
-
 def IsValidDate(month, day, year):
     """Returns True if the year is later than 1752 and the month and day
     numbers are valid.
@@ -166,15 +148,13 @@ def IsValidDate(month, day, year):
             if day > 31:
                 return False
     return True
-
-
 def JulianAstro(month, day, year):
     """Returns the Julian astronomical day number; it's always a
     floating point number.  month must be an integer from 1 to 12, day
     can be an integer or float, and year must be an integer.  Note that
     day 1.0 means 12 noon on the first day of the month; 1.5 means
     midnight.  Here, the time is Greenwich mean time (GMT).
-
+    
     Note:  because of the PITA of dealing with daylight saving time and
     local times, this day parameter assumes it's a day for GMT.  When
     calculating time differences in days, this distinction doesn't matter,
@@ -196,8 +176,6 @@ def JulianAstro(month, day, year):
         B = 2 - A + A // 4
         julian += B
     return float(julian)
-
-
 def JulianAstroDateTime(year, month, day, hour, minute, second):
     """Same as JulianAstro.  All arguments must be integers.  hour must be
     on [0, 24).
@@ -214,8 +192,6 @@ def JulianAstroDateTime(year, month, day, hour, minute, second):
         microsecond = 0
     dt = datetime.datetime(year, month, day, hour, minute, second, microsecond)
     return JulianAstroDT(dt)
-
-
 def JulianAstroDT(datetime_instance):
     """Same as JulianAstro but uses a datetime.datetime instance to define
     the time.  This is a convenience because you just construct a normal
@@ -233,13 +209,9 @@ def JulianAstroDT(datetime_instance):
     day_fraction -= 0.5
     jdi += day_fraction
     return jdi
-
-
 def Julian(month, day, year):
     """Returns the integer Julian day for the given date."""
     return int(JulianAstro(month, day, year) + 0.55)
-
-
 def Julian1(s):
     """Returns the integer Julian date when given a string s in the form
     YYYYMMDD.
@@ -247,8 +219,6 @@ def Julian1(s):
     Assert(len(s) == 8)
     year, month, day = int(s[0:4]), int(s[4:6]), int(s[6:8])
     return Julian(month, day, year)
-
-
 def JulianNow():
     "Return Julian astronomical day number for now in current local time"
     tm = iso.time()
@@ -260,13 +230,9 @@ def JulianNow():
     h, m, s = [int(i) for i in tm.split(":")]
     jd += (h + (m + s / 60) / 60) / 24
     return jd
-
-
 def JulianToday():
     "Return Julian astronomical day number for beginning of today"
     return int(JulianNow())
-
-
 def DecodeDateString(s):
     """The string s can have the following forms:
         '24Mar2023'
@@ -275,7 +241,6 @@ def DecodeDateString(s):
     These are converted to an astronomical Julian day number.  Returns None
     if s is not a suitable date string.
     """
-
     def DecodeDate(dt):
         Assert(len(dt) > 4)
         digits = set("0123456789")
@@ -292,7 +257,6 @@ def DecodeDateString(s):
         # Get year
         year = int("".join(d[3:]))
         return (year, month, day)
-
     def DecodeTime(tm):
         "Return number of days of the time on [0.5, 1.5)"
         try:
@@ -311,7 +275,6 @@ def DecodeDateString(s):
             return hours / 24 + 0.5
         except Exception:
             return None
-
     s = s.strip().lower()
     if not s:
         return None
@@ -334,8 +297,6 @@ def DecodeDateString(s):
         # '24Mar2023' form
         year, month, day = DecodeDate(s)
         return Julian(month, day, year)
-
-
 if 0 and __name__ == "__main__":
     # Test area
     month, day, year = 4, 24, 2023
@@ -345,13 +306,9 @@ if 0 and __name__ == "__main__":
     print(JulianAstroDateTime(year, month, day, hour, minute, second))
     print(JulianNow())
     exit()
-
-
 if __name__ == "__main__":
-    from lwtest import run, raises, assert_equal
-    from pdb import set_trace as xx
+    from lwtest import run, assert_equal
     import sys
-
     def TestDecodeDateString():
         x = DecodeDateString("24Mar2023")
         assert_equal(x, 2460028)
@@ -361,7 +318,6 @@ if __name__ == "__main__":
         x = DecodeDateString("@17:38")
         now = JulianToday()
         assert_equal(round(x - now, 9), expected)
-
     def TestJulian():
         assert_equal(Julian(12, 31, 1989), 2447892)
         assert_equal(Julian1("19891231"), 2447892)
@@ -371,7 +327,6 @@ if __name__ == "__main__":
         assert_equal(Julian1("17760704"), 2369916)
         assert_equal(Julian(2, 29, 2000), 2451604)
         assert_equal(Julian1("20000229"), 2451604)
-
     def TestJulianAstro():
         # Test case, pg 61 of Meeus:  27 Jan 333 at 12 pm == 1842713.0
         expected = 1842713.0
@@ -403,16 +358,13 @@ if __name__ == "__main__":
                 year, month = int(y), int(m)
                 day = float(d)
                 assert_equal(JulianAstro(month, day, year), expected)
-
     def TestDayOfWeek():
         assert_equal(DayOfWeek(11, 13, 1949), 0)
         assert_equal(DayOfWeek(5, 30, 1998), 6)
         assert_equal(DayOfWeek(6, 30, 1954), 3)
-
     def TestDayOfYear():
         assert_equal(DayOfYear(11, 14, 1978), 318)
         assert_equal(DayOfYear(4, 22, 1980), 113)
-
     def TestJulianToDate():
         eps = 1e-5
         month, day, year, hr, min, sec = JulianToDate(2436116.31)
@@ -429,17 +381,6 @@ if __name__ == "__main__":
         assert_equal(month, 5)
         assert_equal(year, -584)
         assert_equal(abs(day), 28.63, abstol=eps)
-
-    def TestNumDaysInMonth():
-        yr = 1999
-        DIM = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-        for mo, dim in enumerate(DIM):
-            Assert(NumDaysInMonth(mo + 1, yr) == dim)
-        yr = 2000
-        DIM = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-        for mo, dim in enumerate(DIM):
-            Assert(NumDaysInMonth(mo + 1, yr) == dim)
-
     def TestNumericalInit():
         data = (
             # Test vectors from Meeus pg 61 & 62
@@ -459,7 +400,6 @@ if __name__ == "__main__":
         for y, m, d, jd in data:
             jul = JulianAstro(m, d, y)
             Assert(jd - jul == 0)
-
     def TestStringInit():
         data = (
             # Test points from Meeus pg 62
@@ -475,11 +415,14 @@ if __name__ == "__main__":
             ("29Feb-1000", 1355866.5),
             ("1.5Jan-4712", 0.0),
         )
-
+        data
     def TestDecodeDay():
         Assert(DecodeDay(1.5) == (12, 0, 0))
-
     def TestNumDaysInMonth():
+        yr = 1999
+        DIM = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+        for mo, dim in enumerate(DIM):
+            Assert(NumDaysInMonth(mo + 1, yr) == dim)
         y = 2000
         months = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
         for m, days in zip(range(1, 13), months):
@@ -488,13 +431,11 @@ if __name__ == "__main__":
         months = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
         for m, days in zip(range(1, 13), months):
             Assert(NumDaysInMonth(m, y) == days)
-
     def TestIsLeapYear():
         for y in (1700, 1800, 1900, 2100, 2001):
             Assert(not IsLeapYear(y))
         for y in (1600, 2000, 2400, 2004):
             Assert(IsLeapYear(y))
-
     def TestIsValidDate():
         for m, d, y in (
             (1, 1, 1753),
@@ -520,7 +461,6 @@ if __name__ == "__main__":
             (12, 32),
         ):
             Assert(not IsValidDate(m, d, 2001))
-
     if len(sys.argv) > 1:
         print(f"{JulianNow()}")
     else:

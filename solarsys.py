@@ -51,20 +51,14 @@ if 1:  # Header
         ##∞test∞# #∞test∞#
         pass
     if 1:  # Standard imports
-        from collections import defaultdict
-        from pprint import pprint as pp
         import getopt
-        import math
         import os
         import re
-        from pathlib import Path as P
         import sys
     if 1:  # Custom imports
-        from wrap import wrap, dedent
-        from color import Color, TRM as t
-        from lwtest import Assert, assert_equal
+        from wrap import dedent
+        from color import t
         import f
-        from u import u
         from columnize import Columnize
 
         if 0:
@@ -384,7 +378,7 @@ if 1:  # Get data
             di["vel"] = [2 * f.pi * r / orb for r, orb in zip(di["r"], di["orb"])]
         if 0:
             # Dump to 1 figure to check things
-            x = flt(0)
+            x = f.flt(0)
             x.N, x.high, x.low = 1, 1000, 0.01
             for i in di:
                 s = [str(j) for j in di[i]]
@@ -644,7 +638,6 @@ if 1:  # Core functionality
         tilt = f.flt(7.25)  # Axial tilt to ecliptic, °
         moons = f.Unk("?")
         T = f.flt(5778)  # Mean surface temperature, K
-        ld = f.Unk("?")
         #
         u, w = " " * 4, 10
         print(f"{t.sun}{'Sun'}{t.n}")
@@ -824,7 +817,7 @@ if __name__ == "__main__":
         PrintSun()
     # Print color code
     if objects and not d["-s"]:
-        print(f"Color code: ", end=" ")
+        print("Color code: ", end=" ")
         print(f"{t.planet}Planet{t.n}", end=" ")
         print(f"{t.dwarf}Dwarf planet{t.n}", end=" ")
         print(f"{t.tno}TNO{t.n}", end=" ")

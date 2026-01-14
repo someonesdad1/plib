@@ -5,8 +5,6 @@ Provide commonly-used sizes.
 ##∞test∞# ignore #∞test∞#
 from columnize import Columnize
 from frange import frange
-from sig import sig
-from pdb import set_trace as xx
 
 __all__ = (
     "negative_gauges number_drills letter_drills clausing_lathe_tpi "

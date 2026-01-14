@@ -48,11 +48,7 @@ if 1:  # Header
         from time import asctime
         import os
         from pathlib import Path
-        import re
-        import sys
         import unicodedata
-        from collections import OrderedDict
-        from pprint import pprint as pp
     if 1:  # Custom imports
         from color import t
         if 0:
@@ -65,7 +61,6 @@ def GetXMLFileName(version):
     '''Return the XML file of the indicated Unicode version, where version is an int.
     Example:  GetXMLFileName(14) returns "ucd.nounihan.grouped.ver14.xml".
     '''
-    cwd = os.getcwd()
     os.chdir("/plib/pgm")
     p = Path(".")
     # Get candidate XML files
@@ -275,7 +270,7 @@ if 1:  # Core functionality
                 for i, group in enumerate(child):
                     Group(i, group, ucd)
         print("ucd dictionary constructed from %s" % input_file)
-    def BuildPickleFiles():
+    def BuildPickleFiles(input_file):
         BuildDataFile(input_file, pickle_file)
         with open(pickle_file, "wb") as f:
             pickle.dump(ucd, f, pickle.HIGHEST_PROTOCOL)
@@ -286,7 +281,6 @@ if __name__ == "__main__":
 else:
     def GetPickleFileName(version):
         'Return the pickle file name to open for the given integer version'
-        s, x = "ucd.", ".pickle"
         return f"/plib/lib/ucd/ucd.{version}.pickle"
     # Loaded as module:  load the ucd dictionary
     version = int(unicodedata.unidata_version.split(".")[0])

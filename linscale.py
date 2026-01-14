@@ -87,10 +87,8 @@ if 1:  # Copyright, license
     ##∞test∞# ignore #∞test∞#
     pass
 if 1:  # Imports
-    import sys
     import g
     import math
-    from pdb import set_trace as xx
 if 1:  # Global variables
     debug = 0
     wrap_in_PJL = 0

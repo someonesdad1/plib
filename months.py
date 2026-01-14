@@ -17,7 +17,6 @@ if 1:  # Copyright, license
     pass
 if 1:  # Imports
     import datetime
-    import string
     from bidict import bidict
 if 1:  # Global variables
     # Names of the months

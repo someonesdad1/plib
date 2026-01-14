@@ -66,7 +66,6 @@ if 1:  # Header
         from pathlib import Path as P
         import re
         import sys
-        from pprint import pprint as pp
         from textwrap import dedent
     if 1:  # Custom imports
         import requests
@@ -224,7 +223,7 @@ if __name__ == "__main__":
         # Get an exception on an unreachable url
         url = "https://kdfjopeurte.3095uoleorj.eorijeor/kdjfdkfj.html"
         status, sc, exc = URL_is_unreadable(url)
-        Assert(status and sc == None and exc)
+        Assert(status and sc is None and exc)
         # Get a non-200 status
         url = "http://www.ndt-ed.org/GeneralResources/IACS/IACS.htm"
         status, sc, exc = URL_is_unreadable(url)
@@ -240,7 +239,7 @@ if __name__ == "__main__":
     def Manpage():
         Dbg("Showing manpage")
         print(
-            dedent(f'''
+            dedent('''
         This script evolved as a tool to validate the URLs used in a file.
         The first functionality was to find URLs in text files, such as a
         python script.  This is done by using a regex (regular expression)
@@ -455,7 +454,7 @@ if __name__ == "__main__":
         Dbg(f"In URLsInFile({file!r})")
         # Only process a file once
         if file in d["files"]:
-            Dbg(f"  This file already processed")
+            Dbg("  This file already processed")
             return
         else:
             d["files"].add(file)

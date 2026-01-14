@@ -100,13 +100,12 @@ if 1:  # Header
         from collections.abc import Iterable
         from decimal import Decimal
         from fractions import Fraction
-        from itertools import chain, count, groupby
+        from itertools import chain, groupby
         from itertools import cycle, zip_longest, product
         from operator import itemgetter
         from pathlib import Path as P
         from random import seed
         from reprlib import repr as Repr
-        from string import digits, ascii_letters, punctuation
         import inspect
         import math
         import os
@@ -1574,8 +1573,8 @@ def Ranges(seq, validate=False):
         orig = list(seq)    # Copy of original sequence
     # Make sure all the elements of seq are integers
     if not all(ii(i, int) for i in seq):
-        raise TypeError(f"Not all elements of seq are integers")
-    f = lambda x,c=count(): next(c) - x
+        raise TypeError("Not all elements of seq are integers")
+    def f(x, c): next(c) - x
     G = (list(x) for _, x in groupby(seq, f))
     # Convert into pairs of numbers for range()
     o = []

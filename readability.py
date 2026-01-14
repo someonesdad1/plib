@@ -44,7 +44,7 @@ ToDo
         - Consider an option that prints out x where x =
           math.ceil(log(characters)) and x is a superscript after the file
           name.
-
+          
 Observations
     - I tried to use a Readability class, but performance fell by about a
       factor of 2 or more, so I retained the function-based approach.
@@ -101,7 +101,7 @@ Observations
               writing and your reader
         - Hemingway:  "I write one page of masterpiece to ninety-one pages
           of shit.  I try to put the shit in the wastebasket."
-
+          
 Algorithms
     - Gunning Fog Index
         - From http://en.wikipedia.org/wiki/Gunning_Fog_Index
@@ -215,9 +215,8 @@ Algorithms
             - 3. Subtract the answer from 20.
         - "The FORCAST Readability Formula." Pennsylvania State University
           Nutrition Center, Bridge to Excellence Conference, 1992.
-
+          
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -236,7 +235,6 @@ if 1:  # Header
         from math import sqrt
         import getopt
         import os
-        from pathlib import Path as P
         import re
         import string
         import sys
@@ -244,13 +242,11 @@ if 1:  # Header
     if 1:  # Custom imports
         import get
         import dpstr
-        from wrap import wrap, dedent
-        from color import Color, TRM as t
+        from wrap import dedent
+        from color import t
         from lwtest import Assert
-
-        if 1:
+        if 0:
             import debug
-
             debug.SetDebugger()
         common_abbreviations = set("mr mrs ms dr no mssr st ave".split())
         # Load a dictionary of number of syllables if available (otherwise,
@@ -295,11 +291,9 @@ if 1:  # Header
         t.dbg = t("lill")
         t.err = t("redl")
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
             dedent(f"""
@@ -309,7 +303,7 @@ if 1:  # Utility
         )
         if dbg:
             print(
-                dedent(f"""
+                dedent("""
         C    = number of characters in words
         W    = number of words
         CW   = number of complex words (3 or more syllables)
@@ -318,7 +312,7 @@ if 1:  # Utility
             )
         print(
             dedent(
-                f"""
+                """
           FKRE = Flesch-Kincaid Reading Ease
             0-100, higher numbers mean easier to read
         The following numbers are the approximate reading level in US grade level:
@@ -329,19 +323,15 @@ if 1:  # Utility
           SMOG = SMOG Index
           FORC = FORCAST Readability Formula
         See the comments in the program code for formulas and references.
-        """,
-                n=6,
-            )
-        )
+        """))
         print(
-            dedent(f"""
+            dedent("""
         Options
           -d    Turn on debug printing
           -p    Print to one decimal place (integer is default)
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-d"] = False  # Debug output
         d["-p"] = False  # Print to 1 decimal place
@@ -361,17 +351,14 @@ if 1:  # Utility
             global dbg
             dbg = True
         return files
-
-
 if 1:  # Manpage
-
     def Manpage():
         print(
-            dedent(f"""
-
+            dedent("""
+            
         Readability Estimates
         ---------------------
-
+        
             For an introduction, see https://en.wikipedia.org/wiki/Readability.  This
             module contains a class Readability that can take input from files or
             streams that results in plain ASCII text with words separated by
@@ -380,14 +367,14 @@ if 1:  # Manpage
             to calculate various estimates of how readable a selection of text is.
             Because this is based on only the text content, the visual layout of the
             text is ignored.
-
+            
             I recommend you experiment with the different methods and decide on which
             tools best meet your needs.  Reading the above wikipedia page should give
             enough background on the methods.
-
+            
         Opinions
         --------
-
+        
             My primary use of a few of these formulas is to assess the approximate
             reading level of my written material.  I went through a typical academic
             curriculum, doing research and writing reports and papers.
@@ -408,24 +395,24 @@ if 1:  # Manpage
             paper, they likely won't read the rest of your material.  If you want to
             make an impact, keep the executive summary short and provide the details
             in an appendix.
-
+            
             After retiring, I would occasionally do consulting work for an electronic
             test company, writing and editing user manuals and marketing
             communications.  This further showed the need for more careful writing,
             so I routinely used the precursor of this library to analyze every piece
             of writing I was responsible for.  It must have helped, as they used my
             writing services for over a decade.
-
+            
             I settled on the Flesch-Kincaid grade level (FKGL) in integer form as the
             most practical guide to reading ease.  I read somewhere that "Reader's
             Digest" had a FKGL of around 8th grade and I used this as a target for
             most of my writing.  
-
+            
         Examples
         --------
-
+        
             I ran the readability.py script on the following software license texts:
-
+            
                 afl3       Academic Free License 3.0
                 apache2    Apache License 2.0
                 bsd3       BSD 3-clause license
@@ -438,9 +425,9 @@ if 1:  # Manpage
                 osl3       Open Software License 3.0
                 pd         Public domain release
                 wol        Wide-open License
-
+                
             and got the following results:
-
+            
                 FOG   ARI    CL  FKRE  FKGL  SMOG
                  20    17    14    28    16    17  aa.afl3
                  21    18    15    24    17    18  aa.apache2
@@ -454,19 +441,19 @@ if 1:  # Manpage
                  24    21    14    19    20    20  aa.osl3
                  20    17    14    30    17    17  aa.pd
                  17    17    18    25    16    15  aa.wol
-
+                 
             These were likely all written by lawyers and would all be considered 
             difficult documents for the general reader by virtue of their FKRE being
             about 30 or less.
-
+            
             As an example of a hard-to-read page because of the medical terminology,
             run the script on the page
             https://en.wikipedia.org/wiki/Cholangiocarcinoma.  This gave a Fog of 35
             and a FKGL of 32.
-
+            
         Reference data
         --------------
-
+        
         https://outreach.ou.edu/educational-services/education/edutas/comp-center-landing-page/knowledgebases/program-evaluation-knowledgebase/task-1-write-report/fog-index/
             - Discusses Gunning Fog and Flesch-Kincaid grade level
             - Gives the Fog following grade levels for these magazines:
@@ -486,7 +473,7 @@ if 1:  # Manpage
               reading ease (Flesch).  The rationale is that the newspaper
               won't be read if a person has to labor over it as if doing
               school research.
-
+              
         https://www.wyliecomm.com/2021/11/measure-reading-levels-with-readability-indexes/
             - Flesch reading ease
                 - reading_ease = 206.835 – (1.015*words_per_sentence) – (84.6*syllables_per_word)
@@ -534,17 +521,14 @@ if 1:  # Manpage
         """)
         )
         exit(0)
-
-
 if 1:  # Basic routines
-
     def GuessSyllables(word, letters_only=False):
         """Guess the number of syllables in a word.
-
+        
         If letters_only is True, then an exception is raised if any
         punctuation characters are found in the word.  This is intended to
         ensure that you're not e.g. examining program code.
-
+        
         From pyflesch.py script by Seb Bacon.  Downloaded 5 Feb 2023
         https://github.com/sebbacon/pyflesch/blob/master/pyflesch.py.
         I have edited the algorithm.
@@ -608,7 +592,6 @@ if 1:  # Basic routines
             syl += 1
         syl += len(spl)
         return syl if syl else 1
-
     def EndOfSentence(word):
         "Return 1 if the word is the end of a sentence"
         if not word:
@@ -624,12 +607,11 @@ if 1:  # Basic routines
             word = word[:-1]
         word = word.lower()
         return False if word in common_abbreviations else True
-
     def StripNonletters(word):
         """Remove letters not in "abcdefghijklmnopqrstuvwxyz" from the end
         of the word.  Note this ignores non-letters in the middle of the
         word.
-
+        
         Example:  "object.data!" will return "object.data".  With
         non-letter data in the middle of a word, it's likely the word came
         from program code or a mistake.
@@ -637,7 +619,6 @@ if 1:  # Basic routines
         while len(word) and word[-1] not in "abcdefghijklmnopqrstuvwxyz":
             word = word[:-1]
         return word
-
     def CountSyllables(word):
         num = 0
         try:
@@ -650,20 +631,18 @@ if 1:  # Basic routines
         except Exception:
             num = GuessSyllables(word)
         return num
-
     def PrintHeader():
         if dbg:
             print("     C      W    CW     OS    SY  SENT   FOG   ARI", end=" ")
             print("   CL  FKRE  FKGL  SMOG  FORC")
         else:
-            print("  FOG   ARI    CL  FKRE  FKGL  SMOG  FORC")
-
+            #print("  FOG   ARI    CL  FKRE  FKGL  SMOG  FORC")
+            print("  FOG    CL  FKRE  FKGL  SMOG  FORC")
     def PrintResults(stats, file):
-        (characters, words, complex_words, one_syllable_words, syllables, sentences) = (
-            stats
-        )
+        (characters, words, complex_words, one_syllable_words, syllables, sentences,
+            wordlist) = stats
         fog = GunningFogIndex(words, sentences, complex_words)
-        ari = AutomatedReadabilityIndex(characters, words, sentences)
+        #ari = AutomatedReadabilityIndex(characters, words, sentences)
         cl = ColemanLiauIndex(characters, words, sentences)
         fkre = FleschKincaidReadingEase(words, syllables, sentences)
         fkgl = FleschKincaidGradeLevel(words, syllables, sentences)
@@ -671,10 +650,14 @@ if 1:  # Basic routines
         forc = FORCASTReadabilityFormula(words, one_syllable_words)
         if dbg:
             print("%6d %6d %5d %6d %5d %5d" % stats, end=" ")
-        fmt = "%5.1f " * 7
-        print(fmt % (fog, ari, cl, fkre, fkgl, smog, forc), end=" ")
+        if 0:
+            # Original with ARI
+            fmt = "%5.1f " * 7
+            #print(fmt % (fog, ari, cl, fkre, fkgl, smog, forc), end=" ")
+        else:
+            fmt = "%5.1f " * 6
+            print(fmt % (fog, cl, fkre, fkgl, smog, forc), end=" ")
         print(file)
-
     def GetTextInfo(text):
         """For a string of text, return a TextInfo namedtuple."""
         Assert(ii(text, str))
@@ -712,18 +695,14 @@ if 1:  # Basic routines
         for i in s[:-1]:
             Assert(i >= 0)
         return TextInfo(*s)
-
-
 if 1:  # Readability metric algorithms
-
     def GunningFogIndex(words, sentences, complex_words):
         ASL = words / sentences
         PCW = 100 * complex_words / words
         return 0.4 * (ASL + PCW)
-
     def ARI(characters, words, sentences):
         """Automated readability index for English text.
-
+        
         See https://en.wikipedia.org/wiki/Automated_readability_index.  An
         advantage of this metric is that it is easy to calculate.  The
         returned value is interpreted as a US grade level.  Note this is
@@ -736,10 +715,9 @@ if 1:  # Readability metric algorithms
         if ari < 0:
             raise ValueError("ARI is < 0")
         return ari
-
     def ColemanLiauIndex(characters, words, sentences):
         """Return an estimate of the US grade level.
-
+        
         See https://en.wikipedia.org/wiki/Coleman%E2%80%93Liau_index.
         Formula is
             CL = 0.0588*L - 0.296*S - 15.8
@@ -748,25 +726,19 @@ if 1:  # Readability metric algorithms
             S = 100*sentences/words
         """
         return 5.89 * characters / words - 0.3 * sentences / (100 * words) - 15.8
-
     def FleschKincaidReadingEase(words, syllables, sentences):
         ASW = syllables / words
         ASL = words / sentences
         return 206.835 - 1.015 * ASL - 84.6 * ASW
-
     def FleschKincaidGradeLevel(words, syllables, sentences):
         ASL = words / sentences
         ASW = syllables / words
         return 0.39 * ASL + 11.8 * ASW - 15.59
-
     def SMOGIndex(complex_words, sentences):
         return sqrt(30 * complex_words / sentences) + 3
-
     def FORCASTReadabilityFormula(words, one_syllable_words):
         N = words / 150
         return 20 - (one_syllable_words / N) / 10
-
-
 if 0:  # Dale-Chall stuff (not working yet)
     """https://en.wikipedia.org/wiki/Dale%E2%80%93Chall_readability_formula
     makes the point that "Regular plurals of nouns, regular past tense
@@ -776,7 +748,6 @@ if 0:  # Dale-Chall stuff (not working yet)
     set of unique words?  I'd need the original reference to determine
     this.  Hence, this stuff is commented out until this is resolved.
     """
-
     def DaleChall(text, textinfo):
         "Return score from Dale-Chall formula"
         easywords = DaleChallWords()
@@ -804,7 +775,6 @@ if 0:  # Dale-Chall stuff (not working yet)
             t.print(f"{t.dbg}raw score            = {score}")
             t.print(f"{t.dbg}score                = {final_score}")
         return final_score
-
     def DaleChallGrade(score):
         "Return grade level associated with score"
         Assert(score >= 0)
@@ -822,7 +792,6 @@ if 0:  # Dale-Chall stuff (not working yet)
             return 15
         else:
             return 16
-
     def DaleChallWords(to_lower=True):
         """Return a set of words from the Dale-Chall list of words.  If
         to_lower is True, convert the words to lowercase.  See
@@ -851,13 +820,9 @@ if 0:  # Dale-Chall stuff (not working yet)
                 data = data.lower()
                 DaleChallWords.words = set(data.split())
         return DaleChallWords.words
-
-
 if 1:  # Test routines
-
     def TestGunningFogIndex():
         raise Exception("Needs to be written")
-
     def TestCL():
         # Text from # https://en.wikipedia.org/wiki/Coleman%E2%80%93Liau_index
         text = """
@@ -877,7 +842,7 @@ if 1:  # Test routines
         # The CL index should be (0.0588*537 - 0.296*4.20 - 15.8 = 14.5
         # There are L = letters/words*100 = 537
         # S = sentences/words*100 = 4.20
-
+        text    # xx Gets rid of lint message, but this routine needs fixing
     def TestText():
         # 49% through Tom Sawyer
         return """About midnight Joe awoke, and called the boys.  There was a brooding
@@ -902,7 +867,6 @@ if 1:  # Test routines
             right over the boys' heads.  They clung together in terror, in the thick
             gloom that followed.  A few big rain-drops fell pattering upon the
             leaves."""
-
     def Test_GuessSyllables_function():
         """22 Sep 2010 DP:  this function provides a check of the
         GuessSyllables() function's output.  The word_syllables dictionary from
@@ -911,7 +875,7 @@ if 1:  # Test routines
         school like CMU.  This function prints out the histogram of the (actual
         - predicted) number of syllables.  This gives the following results
         for the words.py file included with this script:
-
+        
             -2 0.11%
             -1 6.54%
             0 83.56%
@@ -920,13 +884,12 @@ if 1:  # Test routines
             3 0.04%
             4 0.01%
             5 0.00%
-
+            
         The bottom line is that the GuessSyllables function is correct 84% of
         the time and only off by one syllable 16% of the time.  I think
         this is excellent performance for a relatively simple algorithm.
         """
         from words import word_syllables
-
         d, n = {}, len(word_syllables)
         for i in word_syllables:
             actual, calculated = word_syllables[i], GuessSyllables(i)
@@ -939,19 +902,16 @@ if 1:  # Test routines
         keys.sort()
         for i in keys:
             print(i, "%.2f%%" % (100.0 * d[i] / n))
-
-
 if 1:  # Library functions
-
-    def GunningFogIndex(textinfo):
+    def GunningFogIndex_(textinfo):
         """Returns a number indicating the approximate US grade level
         necessary to read a text selection.  See
         https://en.wikipedia.org/wiki/Gunning_fog_index for details.
-
+        
             - words is the word count
             - sentences is the number of sentences
             - complex_words are words of >= 3 syllables
-
+            
         The above web page's algorithm says to ignore proper nouns, jargon,
         or compound words.  It also says to ignore common suffixes such as
         -es, -ed, -ing, etc.  I've chosen to ignore this because it would
@@ -963,11 +923,11 @@ if 1:  # Library functions
         percent_complex_words = 100 * ti.complex_words / ti.words
         return 0.4 * (average_sentence_length + percent_complex_words)
 
-
-s = TestText()
-ti = GetTextInfo(s)
-print(GunningFogIndex(ti))
-exit()
+if 0:
+    s = TestText()
+    ti = GetTextInfo(s)
+    print(GunningFogIndex(ti))
+    exit()
 
 if __name__ == "__main__":
     d = {}  # Options dictionary

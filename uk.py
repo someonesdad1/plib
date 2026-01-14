@@ -2116,7 +2116,7 @@ if 1:  # Utility
 
     def Manpage():
         print(
-            dedent(f"""
+            dedent("""
           Caution:  inspect the results carefully, as different senses of the words may not
           require the substitution given, particularly with older text.  Here's are some examples
           from "Pride and Prejudice" (a good test case), there are numerous cases like this:  

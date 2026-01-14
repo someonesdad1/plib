@@ -20,11 +20,10 @@ if 1:  # Header
     # Standard imports
     import os
     from textwrap import TextWrapper as TextWrapperOrig
-    from pdb import set_trace as xx
 
     # Custom imports
     from dpstr import Len
-    from color import Color, TRM as t
+    from color import t
 
     # Global variables
     ii = isinstance

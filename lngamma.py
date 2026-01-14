@@ -60,12 +60,8 @@ def lngamma(z):
 
 if __name__ == "__main__":
     from frange import frange
-    from lwtest import run, assert_equal, raises
-    import sys
-    import color as C
-
-    # Color for warnings
-    yel, norm = C.fg(C.yellow, s=1), C.normal(s=1)
+    from lwtest import run, assert_equal
+    from color import t
 
     def TestReal():
         tol = 1e-10
@@ -88,7 +84,7 @@ if __name__ == "__main__":
         try:
             from mpmath import ln, gamma
         except ImportError:
-            print(f"{yel}Warning:  TestComplex in lngamma_test.py not run{norm}")
+            t.print(f"{t.yel}Warning:  TestComplex in lngamma_test.py not run")
             return
         start, stop, step = 0, 10, 1
         eps = 3e-10

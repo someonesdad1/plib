@@ -18,7 +18,6 @@ the line.  Justify PNP to 79 spaces and you'll see why.
 ##∞test∞# ignore #∞test∞#
 if 1:
     from abbreviations import IsAbbreviation
-    from dpstr import KeepFilter
     import string
 
     punctuation = set(string.punctuation)
@@ -73,10 +72,4 @@ def Justify(s, width, brk="\n\n"):
 if 1:
     s = open("pnp").read()
     print(Justify(s, 79), end="")
-    exit()
-
-if 0:
-    keep = KeepFilter(punctuation)
-    s = open("big.txt").read()
-    TokenEnds(s)
     exit()
