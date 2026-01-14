@@ -27,14 +27,10 @@ if 1:   # Header
     import sys
     import time
     import getopt
-    import os
     from ucd import ucd
     from textwrap import dedent
     from itertools import combinations, chain
-    from columnize import Columnize
-    from pprint import pprint as pp
     from collections import defaultdict
-    from pdb import set_trace as xx
     if 0:
         import debug
         debug.SetDebugger()
@@ -183,20 +179,20 @@ if 1:  # Utility
     def flatten(listOfLists):
         "Flatten one level of nesting"
         return chain.from_iterable(listOfLists)
-        def Usage(d, status=1):
-            name = sys.argv[0]
-            print(
-                dedent(
-                    f'''
-            Usage:  {name} [options] [output_file]
-        
-            -d dbg      Debug level
-            -f          Force a rebuild
-            -s          Set select to True
-            '''[1:-1]
-                )
+    def Usage(d, status=1):
+        name = sys.argv[0]
+        print(
+            dedent(
+                f'''
+        Usage:  {name} [options] [output_file]
+    
+        -d dbg      Debug level
+        -f          Force a rebuild
+        -s          Set select to True
+        '''[1:-1]
             )
-            exit(status)
+        )
+        exit(status)
     def ParseCommandLine(d):
         d["-d"] = 0
         d["-f"] = False
@@ -977,7 +973,7 @@ if 1:  # Make the files
             s.append((cp, repr(decomp[cp])))
         for cp, c in sorted(s):
             print(f"    0x{cp:x}: {c},", file=f)
-        print(dedent(f'''
+        print(dedent('''
         }}
         if __name__ == "__main__": 
             import sys

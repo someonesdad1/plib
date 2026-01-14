@@ -1,5 +1,4 @@
 '''
-
 Todo:
     - Harvest from https://en.wikipedia.org/wiki/Lists_of_abbreviations
     
@@ -172,12 +171,10 @@ if 1:  # Core functionality
             if full and w.strip().lower() in IsAbbreviation.full:
                 return True
             return w.strip().lower() in IsAbbreviation.abbrev
-
 if __name__ == "__main__":
     if 1:  # Custom modules
         from lwtest import run, Assert
     def Test_IsAbbreviation():
-        f = IsAbbreviation
         Assert(IsAbbreviation("zeitschr."))
         Assert(IsAbbreviation("ZeiTscHr."))
         Assert(IsAbbreviation("ZEITSCHR."))

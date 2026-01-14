@@ -1,7 +1,6 @@
 """
 Identify file differences between /plib and /pylib.
 """
-
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
@@ -20,34 +19,25 @@ if 1:  # Copyright, license
     pass
 if 1:  # Standard modules
     import getopt
-    import os
     import pathlib
     import sys
 if 1:  # Custom modules
     from cmddecode import CommandDecode
     from wrap import dedent
     from columnize import Columnize
-
-    # Debugging stuff
-    from pdb import set_trace as xx
-
     if 0:
         import debug
-
         debug.SetDebugger()  # Start debugger on unhandled exception
 if 1:  # Global variables
     commands = "report details diff".split()
     P = pathlib.Path
 if 1:  # Utility
-
     def eprint(*p, **kw):
         "Print to stderr"
         print(*p, **kw, file=sys.stderr)
-
     def Error(msg, status=1):
         eprint(msg)
         exit(status)
-
     def Usage(d, status=1):
         name = sys.argv[0]
         print(
@@ -64,7 +54,6 @@ if 1:  # Utility
             )
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = False  # Show all
         try:
@@ -78,10 +67,7 @@ if 1:  # Utility
         if not args:
             Usage(d)
         return args
-
-
 if 1:  # Core functionality
-
     def GetCommand(cmd):
         c = CommandDecode(commands)
         candidates = c(cmd)
@@ -92,7 +78,6 @@ if 1:  # Core functionality
         else:
             eprint(f"Command '{cmd}' not recognized")
         exit(1)
-
     def GetFiles():
         "Return dictionaries keyed by file name (value is pathlib.Path)"
         pl = set(P("/plib").glob("*.py"))
@@ -103,16 +88,11 @@ if 1:  # Core functionality
         for i in py:
             pylib[i.name] = i
         return plib, pylib
-
-
 if 1:  # Core functions
-
     def Details():
         pass
-
     def Missing():
         pass
-
     def Report():
         plib, pylib = GetFiles()
         common = set(plib) & set(pylib)
@@ -120,7 +100,6 @@ if 1:  # Core functions
             m = f"No common files ({len(plib)} in plib, {len(pylib)} in pylib"
             print(m)
         print("Common: ", common)
-
     def Diff():
         plib, pylib = GetFiles()
         common = set(plib) & set(pylib)
@@ -134,8 +113,6 @@ if 1:  # Core functions
             print("Files that differ between /plib and /pylib:")
             for line in Columnize(o, indent="  "):
                 print(line)
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     dispatch = {

@@ -44,15 +44,13 @@ if 1:  # Header
     import pathlib
     import subprocess
     import sys
-    from pdb import set_trace as xx
     # Custom imports
     from tee import Print
-    from wrap import wrap, dedent, indent, Wrap
+    from wrap import dedent
     from columnize import Columnize
     from timer import Timer, fnt
     from color import TRM as t
     import trigger
-    import dpstr
     if 0:
         import debug
         debug.SetDebugger()  # Start debugger on unhandled exception
@@ -241,7 +239,7 @@ class TestRunner:
             if t is None:
                 self.not_run += 1
                 if d["-v"]:
-                    print(f"{file}: no test to run")
+                    print(f"{dir}: no test to run")
                 return
             files = [t]
         else:
@@ -315,7 +313,6 @@ def ShowWhatWillBeDone(tr, items):
     print(f"{t('grn')}", end="")
     Show("Files with tests to run:", run)
     t.out()
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     items = [P(i) for i in ParseCommandLine(d)]

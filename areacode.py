@@ -3,7 +3,6 @@ Provides areacode.areacodes, a dictionary that maps a 3 digit integer North
 America areacode into a string detailing its location.  This same
 information is in the list areacode.areacodelist.
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -21,11 +20,9 @@ if 1:  # Header
     if 1:  # Standard imports
         import getopt
         import os
-        from pathlib import Path as P
         import re
         import sys
     if 1:  # Custom imports
-        from columnize import Columnize
         from wrap import dedent, HangingIndent
         from util import unrange
     if 1:  # Global variables
@@ -528,11 +525,9 @@ if 1:  # Header
         }
         areacodelist = [f"{i!s} {j}" for i, j in areacodes.items()]
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
             dedent(f"""
@@ -554,7 +549,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = False  # Show all area codes
         d["-i"] = True  # Ignore case
@@ -585,14 +579,10 @@ if 1:  # Utility
             ShowMissing()
             exit(0)
         return args
-
-
 if 1:  # Core functionality
-
     def Print(s):
         "Print lines with hanging indent"
         print(HangingIndent(s, indent=" " * 4))
-
     def FindRegex(regex):
         "Given the regex, find lines that match"
         r = re.compile(regex)
@@ -601,7 +591,6 @@ if 1:  # Core functionality
             if r.search(i):
                 found.append(i)
         return found
-
     def ShowMissing():
         # Find the numbers not present
         all = set(range(200, 1000))
@@ -612,8 +601,6 @@ if 1:  # Core functionality
         s = unrange(missing)
         for i in s.split():
             print(f"    {i}")
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     regexps = ParseCommandLine(d)

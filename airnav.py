@@ -5,7 +5,6 @@ Module to perform various navigation tasks
     1 degree of arc along a great circle is 60 nm
     TC = true course = course angle measured clockwise from a meridian
 """
-
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2002 Don Peterson #∞copyright∞#
@@ -21,11 +20,9 @@ if 1:  # Copyright, license
     ##∞test∞# run #∞test∞#
     pass
 if 1:  # Imports
-    from math import pi, log, sin, cos, tan, atan2, sqrt
+    from math import pi, log, sin, cos, tan, acos, atan2, sqrt
 if 1:  # Global variables
     _tol = sqrt(1e-15)
-
-
 def TrueCourseAndDistance(lat1, lon1, lat2, lon2):
     """Calculates the true course (rhumbline direction) and distance
     between two points on earth's surface.  Returns a list consisting
@@ -46,8 +43,6 @@ def TrueCourseAndDistance(lat1, lon1, lat2, lon2):
         tc = atan2(dlon_E, dphi) % two_pi
         d = sqrt(q * q * dlon_E * dlon_E + s * s)
     return tc, d
-
-
 def FindRhumblineDestination(tc, d, lat0, lon0):
     """Will return the tuple (lat, lon) that gives the position of the
     point that will be reached on a true course of tc for a distance
@@ -61,29 +56,24 @@ def FindRhumblineDestination(tc, d, lat0, lon0):
     dlon = -d * sin(tc) / q
     lon = ((lon0 + dlon + pi) % (2 * pi)) - pi
     return lat, lon
-
-
 def GreatCircleDistance(lat1, lon1, lat2, lon2):
     """Returns the great circle distance between two points.  All
     numbers are in radians.
     """
     return acos(sin(lat1) * sin(lat2) + cos(lat1) * cos(lat2) * cos(lon1 - lon2))
-
-
 def InitialCourseBetweenPoints(lat1, lon1, lat2, lon2):
     x = sin(lon1 - lon2) * cos(lat2)
     y = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(lon1 - lon2)
     tc = atan2(x, y) % (2 * pi)
     return tc
-
-
 def CalcUnknownWindDirection(course, heading, tas, gs):
     """Returns the wind direction (from) and speed given the other
     factors.  Speed units must be the same but are otherwise arbitrary.
     The angles are measured in radians.  tas is true airspeed, gs is
     ground speed, and ws is wind speed.
     """
-    dt, dh, s, tpi = tas - gs, heading - course, sin(dh / 2), 2 * pi
+    dh = heading - course
+    dt, s, tpi = tas - gs, sin(dh / 2), 2 * pi
     ws = sqrt(dt * dt + 4 * tas * gs * s * s)
     wd = course + atan2(tas * sin(dh), tas * cos(dh) - gs)
     if wd < 0:
@@ -91,15 +81,11 @@ def CalcUnknownWindDirection(course, heading, tas, gs):
     elif wd > 2 * pi:
         wd = wd - tpi
     return wd, ws
-
-
 if __name__ == "__main__":
     from lwtest import run
-
     tol = 1e-15
     two_pi = 2 * pi
     pi_4 = pi / 4
-
     def TestTrueCourseAndDistance():
         # Test TrueCourseAndDistance()
         deg2rad = pi / 180
@@ -115,17 +101,14 @@ if __name__ == "__main__":
         nm = d / deg2rad * 60.0
         dd = abs(nm - 53.3028423162)
         assert dtc <= 1e-8 and dd <= 1e-8
-
     def TestFindRhumblineDestination():
         lat, lon = FindRhumblineDestination(1.38446, 0.62965, 0.592539, 2.06647)
         dlat = abs(lat - 0.709187891592)
         dlon = abs(lon - 1.28776164456)
         assert dlat <= 1e-10 and dlon <= 1e-10
-
     def TestInitialCourseBetweenPoints():
         tc = (
             InitialCourseBetweenPoints(0.592539, 2.06647, 0.709186, 1.287762) * 180 / pi
         )
         assert abs(tc - 65.892091214) <= 1e-10
-
     exit(run(globals())[0])

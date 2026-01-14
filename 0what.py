@@ -1,10 +1,9 @@
 """
 ToDo
     - Make the printout fit the screen with a hanging indent
-
+    
 Show the what strings for python scripts
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -27,13 +26,10 @@ if 1:  # Header
         import os
         import pathlib
         import re
-        import subprocess
         import sys
-        from pdb import set_trace as xx
     if 1:  # Custom imports
         import trigger
-        from wrap import wrap, dedent, indent, Wrap
-        from lwtest import run, raises, assert_equal, Assert
+        from wrap import wrap, dedent
         from color import t
         from columnize import Columnize
     if 1:  # Global variables
@@ -47,11 +43,9 @@ if 1:  # Header
         # Generate escape codes even if stdout isn't a TTY
         t.always = True
 if 1:  # Utility
-
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
-
     def Usage(d, status=1):
         name = sys.argv[0]
         print(
@@ -70,7 +64,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-C"] = False  # Show categories
         d["-c"] = False  # Report by categories
@@ -91,10 +84,7 @@ if 1:  # Utility
         if not args:
             Usage(d)
         return args
-
-
 if 1:  # Core functionality
-
     def FormatWhat(what, indent=" " * 2):
         """Return (what, category) where what is the wrapped string
         without '#' leaders and category is the category string or None.
@@ -116,7 +106,6 @@ if 1:  # Core functionality
             categories.add(category)
         s = rcat.sub("", s).strip()
         return (s, category)
-
     def ProcessFile(file):
         """Return (file, ts, category) where ts is the trigger string
         for 'what'.  If there is no trigger string, ts is None.  If
@@ -135,7 +124,6 @@ if 1:  # Core functionality
             return EntryType(file, what, category)
         else:
             return None
-
     def GetDirectoryFiles(dir):
         glb = dir.rglob if d["-r"] else dir.glob
         files = []
@@ -144,7 +132,6 @@ if 1:  # Core functionality
             if data is not None:
                 files.append(data)
         return files
-
     def DumpFiles(seq):
         for file in seq:
             f, tr, cat = file
@@ -155,7 +142,6 @@ if 1:  # Core functionality
         print("Categories:")
         for i in sorted(categories):
             print(f"  {i.capitalize()}")
-
     def GetFiles(args):
         """Return a sequence of files from the files/directories given on
         the command line.  args is a sequence of file or directory names
@@ -179,13 +165,11 @@ if 1:  # Core functionality
         if d["-d"]:
             DumpFiles(tu)
         return tu
-
     def ReportByCategory(files):
         def Header(s):
             width = int(os.environ.get("COLUMNS", 79)) - 5
             h = "-" * ((width - len(s) - 1) // 2)
             return f"{t.sep}{h} {s.capitalize()} {h}{t.n}"
-
         di = defaultdict(list)
         for item in files:
             di[item.category] += [item]
@@ -196,7 +180,6 @@ if 1:  # Core functionality
                 p = item.p
                 print(f"{t.py}{p!s}{t.n}")
                 print(wrap(item.what))
-
     def ShowMissingCategory(files):
         missing = []
         for item in files:
@@ -206,7 +189,6 @@ if 1:  # Core functionality
             print("Files missing a category:")
             for line in Columnize(sorted(missing), indent=" " * 4):
                 print(line)
-
     def ShowCategories(files):
         categories = []
         for item in files:
@@ -216,7 +198,6 @@ if 1:  # Core functionality
         print("List of categories:")
         for line in Columnize(sorted(categories), indent=" " * 4):
             print(line)
-
     def ShowListing(files):
         "Print a listing of all files"
         empty = "Program description string"
@@ -236,8 +217,6 @@ if 1:  # Core functionality
                 print(f"{name:{w}s} {what}")
         if missing:
             t.print(f"{t.mt}This color means a 'what' string is missing")
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
