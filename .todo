@@ -1,5 +1,30 @@
 /plib/.todo
 
+    - yapf
+        - https://github.com/google/yapf
+        - Install with 'pip install git+https://github.com/google/yapf.git'
+            - This lets you run commands via 'PYTHONPATH=DIR python DIR/yapf [options] ...'
+
+    - ruff
+        - I know this tool will be fast and be a good tool for maintaining a bunch of
+          code because formatting standards are important.  Thus, carefully test the
+          linting and formatting features and see if I can adapt to the way it works.
+        - Set /plib/ruff.toml as my formatting standard
+        - Formatting problems (PEP-8 standards)
+            - Ensure my dbl command works properly on such files; this then isn't a
+              blocking factor, as a function can be set up to call dbl after formatting
+              with ruff
+            - The "airy" math formulas bug me quite a bit because they use up so much
+              space and I like the closeness to represent strength of operator
+              precedence.  But I may just have to live with it.
+        - Need to really understand this tool because it will be both a linter and
+          a formatter
+        - I know it will be fast and if I can get it to format things close to what I
+          want, I'll use it, as it makes it nearly trivial to keep code formatted.
+        - I don't plan to use pyproject.toml, as this is (apparently) intended for
+          packages going to PyPi.  I'll just use a /plib/ruff.toml file to control
+          linting and formatting behavior.
+
     - fs.py command
         - Search a set of directories for regexes for file names
         - Put a library module in /plib to support this use case.  This makes it easy to

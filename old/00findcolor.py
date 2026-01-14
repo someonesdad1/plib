@@ -88,6 +88,6 @@ if 1:  # Core functionality
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
-    dirs = (".", "pgm", "rgb", "test")
+    dirs = (".", "pgm", "test")
     for dir in dirs:
         ProcessDir(dir)

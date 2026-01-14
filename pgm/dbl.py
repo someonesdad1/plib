@@ -73,7 +73,7 @@ if 1:  # Utility
             elif o == "-h":
                 Usage()
         return files
-if 1:  # Core functionality
+if 0:  # Obsolete
     def ProcessFileOrig(file):
         '''Use regex matching to remove blank lines.
         
@@ -91,10 +91,7 @@ if 1:  # Core functionality
         else:
             s = re.sub(r"\n\n+", "\n", s)
         print(s)
-    def ProcessFile(file):
-        lines = sys.stdin.read() if file == "-" else open(file).read()
-        for line in lines.split("\n"):
-            ProcessLine(line)
+if 1:  # Core functionality
     def IsComment(line):
         return line.strip()[0] == "#"
     def ProcessLine(line):
@@ -176,6 +173,10 @@ if 1:  # Core functionality
     def Reset():
         ProcessLine.previous_line = None
         ProcessLine.multiline = False
+    def ProcessFile(file):
+        lines = sys.stdin.read() if file == "-" else open(file).read()
+        for line in lines.split("\n"):
+            ProcessLine(line)
 
 if __name__ == "__main__":
     d = {}  # Options dictionary
@@ -187,4 +188,3 @@ if __name__ == "__main__":
         for file in files:
             Reset()
             ProcessFile(file)
-            

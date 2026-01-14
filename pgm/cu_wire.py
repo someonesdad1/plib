@@ -1,12 +1,13 @@
 '''
 TODO:
 
-    - Remove old color stuff (oc)
+    - Compare with stuff in /plib/wire.py and move/delete relevant stuff
+    - Remove old color stuff 
+    - sig & fpformat needed?
     - Change default output to SI units only
     - Get -i working, the interactive determination of L, D, ρ, R.  Use u.py library so common
       units can be input.
     - Add -L option to specify a length.  Then table should print resistance of that length.
-    - Finish MIL5088(gauge, ΔT) function.
     - In -a printout, Freq is mentioned, so this column needs to be printed.
     - In ampacity, discuss NEC briefly
 

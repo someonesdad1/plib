@@ -136,7 +136,7 @@ if 1:  # Core functionality
             data = GetData.none
         else:
             if numtype is None:
-                numtype = lambda x: x
+                numtype = lambda x: x   # noqu
             file = "circle_packing.csv"
             data = {}
             with open(file, newline='') as csvfile:
@@ -202,14 +202,12 @@ if 1:  # Core functionality
 
 if __name__ == "__main__":
     if 1:  # Imports
-        from collections import namedtuple, defaultdict
-        from decimal import Decimal, getcontext
+        from collections import namedtuple
+        from decimal import Decimal
         from math import modf
         import sys
-        import os
         import getopt
     if 1:  # Custom imports
-        import requests
         from f import flt
         from wrap import dedent
         from sig import sig
