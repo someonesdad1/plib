@@ -2,7 +2,7 @@
 A dictionary that is an invertible function
     Keys and values must be unique in "both directions".  Call the instance
     as if it were a function to go in the reverse direction.
-
+    
     Here's how to initialize from a dict:
         categories = bidict()
         categories.update(
@@ -17,15 +17,14 @@ A dictionary that is an invertible function
                 'wood':     7,
             }
         )
-
+        
     Then
         categories["metal"] returns 3
         categories(3) returns "metal"
-
+        
     Use categories.invert() to get a new bidict object where the inverse
     mapping is the "forward" mapping.
 """
-
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2009, 2011, 2014 Don Peterson #∞copyright∞#
@@ -42,8 +41,6 @@ if 1:  # Copyright, license
     ##∞what∞#
     ##∞test∞# run #∞test∞#
     pass
-
-
 class bidict(dict):
     def __init__(self, *p, **kw):
         # Implementation:  keep the inverse mapping in self._inv.
@@ -57,37 +54,31 @@ class bidict(dict):
             try:
                 if value in self._inv:
                     raise ValueError("'%s' is a duplicate value" % value)
-            except TypeError as e:
+            except TypeError:
                 # Probably a mutable object
                 raise TypeError("Can't put '%s' into a bidict" % value)
             self._inv[value] = key
-
     def __setitem__(self, key, value):
         self._check()
         if value in self._inv:
             raise ValueError("'%s' is duplicate value" % value)
         self.super.__setitem__(key, value)
         self._inv[value] = key
-
     def __delitem__(self, key):
         self._check()
         value = self[key]
         self.super.__delitem__(key)
         del self._inv[value]
-
     def __call__(self, value):
         "Return the key that corresponds to value."
         return self._inv[value]
-
     def _check(self):
         if self._frozen:
             raise ValueError("bidict is frozen")
-
     def clear(self):
         self._check()
         self.super.clear()
         self._inv.clear()
-
     def invert(self):
         """Return a new bidict object that has the dictionaries
         reversed.
@@ -95,7 +86,6 @@ class bidict(dict):
         b = bidict(self._inv)
         b._inv = dict(self)
         return b
-
     def pop(self, key, default=None):
         self._check()
         if key in self:
@@ -106,25 +96,21 @@ class bidict(dict):
             raise KeyError("No entry for key '%s'" % key)
         else:
             return default
-
     def popitem(self):
         self._check()
         key, value = self.super.popitem()
         del self._inv[value]
         return key, value
-
     def copy(self):
         b = bidict()
         b.super.update(self.super.copy())
         b._inv = self._inv.copy()
         return b
-
     def setdefault(self, key, default=None):
         self._check()
         if key not in self:
             self[key] = default
         return self[key]
-
     def update(self, *p, **kw):
         self._check()
         if p:
@@ -143,34 +129,25 @@ class bidict(dict):
                 raise ValueError("'%s' is a duplicate value" % value)
             self[key] = value
             self._inv[value] = key
-
     def __str__(self):
         return "".join(("bidict", self.super.__str__()))
-
     def _set_frozen(self, frozen):
         self._frozen = bool(frozen)
-
     def _get_frozen(self, frozen):
         return self._frozen
-
     frozen = property(_get_frozen, _set_frozen)
-
-
 # Convenience instance that maps month names to number and vice versa
 months = bidict(
     zip("jan feb mar apr may jun jul aug sep oct nov dec".split(), range(1, 13))
 )
 if __name__ == "__main__":
-    from lwtest import run, assert_equal, raises
-    from pdb import set_trace as xx
-
+    from lwtest import run, raises
     def init():
         keys, values = ["jan", "feb"], [1, 2]
         d = dict(zip(keys, values))
         bd = bidict(d)
         Check(bd, keys, values)
         return keys, values, bd
-
     def Check(bd, keys, values):
         assert isinstance(bd, bidict)
         for i in bd:
@@ -179,17 +156,14 @@ if __name__ == "__main__":
             assert i in values
         assert set(bd.keys()) == set(bd._inv.values())
         assert set(bd.values()) == set(bd._inv.keys())
-
     def TestLookup():
         keys, values, bd = init()
         assert bd["jan"] == 1
         assert bd(1) == "jan"
-
     def TestKeysAndValues():
         keys, values, bd = init()
         assert set(values) == set(bd.values())
         assert set(keys) == set(bd.keys())
-
     def TestAddDeleteNewValue():
         keys, values, bd = init()
         bd["mar"] = 3
@@ -201,12 +175,10 @@ if __name__ == "__main__":
         del keys[-1]
         del values[-1]
         Check(bd, keys, values)
-
     def TestSwapDictionaries():
         keys, values, bd = init()
         rev_bd = bd.invert()
         Check(rev_bd, values, keys)
-
     def TestMethods():
         keys, values, bd = init()
         assert set(bd.items()) == set(zip(keys, values))
@@ -238,7 +210,6 @@ if __name__ == "__main__":
         raises(KeyError, b2.__getitem__, "xyz")
         # Get key error for accessing nonexistent value
         raises(KeyError, b2, 1000)
-
     def TestCannotUseMutableObject():
         keys, values, bd = init()
         d = dict([("jan", [1])])
@@ -246,7 +217,6 @@ if __name__ == "__main__":
         # OK to use a tuple
         d = dict([("jan", (1,))])
         bidict(d)
-
     def TestUpdate():
         keys, values, bd = init()
         # Update with dict
@@ -269,11 +239,9 @@ if __name__ == "__main__":
         keys, values, bd = init()
         d = {"new": [1, 2]}
         raises(TypeError, bd.update, d)
-
     def TestFrozen():
         keys, values, bd = init()
         bd.frozen = True
         with raises(ValueError):
             del bd["jan"]
-
     exit(run(globals())[0])

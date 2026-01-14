@@ -133,21 +133,20 @@ if 1:   # Core functionality
         print(f"Wrote CSV file {t.sky}{cfile} ({g.lines} lines)")
     def ReadCSVFile(cfile):
         'Read in the file to verify it reads correctly'
-        data = {}
         with open(cfile, newline='') as csvfile:
             reader = csv.reader(csvfile)
             count = 0
             for row in reader:
-                N = int(row[0])
-                radius = float(row[1])
-                distance = float(row[2])
-                ratio = float(row[3])
-                density = float(row[4])
-                contacts = int(row[5])
-                loose = int(row[6])
-                boundary = int(row[7])
-                symmetry = row[8]
-                reference = row[9]
+                N = int(row[0])             # noqa
+                radius = float(row[1])      # noqa
+                distance = float(row[2])    # noqa
+                ratio = float(row[3])       # noqa
+                density = float(row[4])     # noqa
+                contacts = int(row[5])      # noqa
+                loose = int(row[6])         # noqa
+                boundary = int(row[7])      # noqa
+                symmetry = row[8]           # noqa
+                reference = row[9]          # noqa
                 count += 1
         # Make sure we read in the same number of lines we wrote
         if count != g.lines:

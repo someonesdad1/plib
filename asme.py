@@ -2,7 +2,6 @@
 Provides a thread class that will calculate the dimensions of Unified
 National thread forms in inches.  Formulas taken from ASME B1.1-1989.
 """
-
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2007, 2021 Don Peterson #∞copyright∞#
@@ -19,18 +18,15 @@ if 1:  # Copyright, license
     pass
 if 1:  # Custom imports
     from f import flt
-
-
 class UnifiedThread:
     """Initialize with basic diameter in inches, threads per inch,
     class, and length of engagement in units of the basic diameter.
     You'll need to refer to the ASME standard for lengths of engagement
     greater than 1.5 times the major diameter.
-
+    
     Note the ASME standard formulas are, in general, not dimensionally
     consistent.
     """
-
     def __init__(self, basic_diameter, tpi, Class=2, length_of_engagement=1):
         if basic_diameter <= 0:
             raise ValueError("Basic diameter must be > 0")
@@ -49,12 +45,10 @@ class UnifiedThread:
         self.H = flt(3**0.5 / 2 * self.P)
         self.Class = Class
         self.length_of_engagement = flt(length_of_engagement)
-
     def Allowance(self):
         if self.Class == 3:
             return flt(0)
         return flt(0.3 * self.Class2PDtol())
-
     def Class2PDtol(self):
         return flt(
             0.0015
@@ -64,25 +58,20 @@ class UnifiedThread:
                 + 10 * self.P ** (2 / 3)
             )
         )
-
     def Dmax(self):
         "External thread max major diameter"
         return flt(self.D - self.Allowance())
-
     def Dmin(self):
         "External thread min major diameter"
         c = flt(0.09) if self.Class == 1 else flt(0.06)
         return flt(self.Dmax() - c * self.P ** (2 / 3))
-
     def Emax(self):
         "External thread max pitch diameter"
         return flt(self.D - self.Allowance() - 3 * 3**0.5 * self.P / 8)
-
     def Emin(self):
         "External thread min pitch diameter"
         c = flt(3 / 2) if self.Class == 1 else flt(1) if self.Class == 2 else flt(3 / 4)
         return flt(self.Emax() - c * self.Class2PDtol())
-
     def dmax(self):
         "Internal thread max minor diameter"
         if self.Class in (1, 2):
@@ -103,11 +92,9 @@ class UnifiedThread:
             else:
                 tol = max(tol, 0.120 * self.P)
         return flt(tol + self.dmin())
-
     def dmin(self):
         "Internal thread min minor diameter"
         return flt(self.D - 5 * 3**0.5 * self.P / 8)
-
     def emax(self):
         "Internal thread max pitch diameter"
         c = (
@@ -118,55 +105,45 @@ class UnifiedThread:
             else flt(0.975)
         )
         return flt(self.emin() + c * self.Class2PDtol())
-
     def emin(self):
         "Internal thread min pitch diameter"
         return flt(self.dmin() + 3**0.5 / 4 * self.P)
-
     def dext(self):
         "External thread minor diameter"
         return flt(2 * (self.Dmax() / 2 - 17 / 24 * self.H))
-
     def Dint(self):
         "Internal thread major diameter"
         return flt(self.D)
-
     def __str__(self):
         return f"UnifiedThread(D={self.D}, tpi={1 / self.P})"
-
     def TapDrill(self, percent_thread=75):
         if not (0 <= percent_thread <= 100):
             raise ValueError("percent_thread must be between 0 and 100.")
         # A 100% thread is one with height of 6/8 of H
         h = (6 / 8) * self.H * percent_thread / 100
         return flt(self.D - 2 * h)
-
     def SellersRecommendedTPI(self):
         """Returns the recommended threads per inch via a formula from
         Sellers (proposed in 1864).  In "Handbook of Small Tools", 1908, pg
         7, is given the formula for pitch of a US Standard thread; the
         formula is due to Sellers:
-
+        
             pitch in inches = a*sqrt(D + 5/8) - 0.175
-
+            
         where D is the screw diameter in inches and a is 0.24.  This
         applies for D >= 1/4 inch.  For smaller D's, use a = 0.23.
         """
         a = 0.23 if self.D < 1 / 4 else 0.24
         pitch = a * (self.D + 5 / 8) ** 0.5 - 0.175
         return flt(1 / pitch)
-
     def DoubleDepth(self):
         "Returns the double depth of the unified thread in inches"
         return flt(3.0 / 2 * self.H)
-
     def NumberSize(self, n):
         """A convenience function to return the diameter in inches of a
         number-size thread.  abs(n) is used.
         """
         return flt(0.06 + 0.013 * abs(n))
-
-
 """
 
 Machinery's Handbook 5th ed. 1919 on page 1015 gives some early formulas
@@ -181,7 +158,7 @@ symbols.
     RD = basic root diameter
     A = tpi + 40
     B = 0.112/A
-
+    
 Screws
     Maximum external diameter = basic external diameter
     Maximum pitch diameter    = basic pitch diameter
@@ -205,7 +182,7 @@ diameter of the screw is 0.3344 - 0.168/A or 0.3314.  Thus:
     MH 5th ed.:      0.3314 to 0.3344, diff = 0.0030
     PD this script:  0.3287 to 0.3331, diff = 0.0044
     Differences:     0.0027    0.0013
-
+    
 The 1919 tolerances were a bit tighter and the dimensions differed by a mil
 or two.
 
@@ -214,15 +191,13 @@ Bigger differences are in the major diameter:
     MH 5th ed.:         0.3690 to 0.3750, diff = 0.0060
     This script:        0.3642 to 0.3737, diff = 0.0095
     Differences:        0.0048    0.0013
-
+    
 These differences are small and for casual work, you could still use the
 dimensions from a more than a century ago and get good work.
 
 """
-
 if __name__ == "__main__":
-    from lwtest import run, raises, assert_equal
-
+    from lwtest import run
     def Test_asme():
         eps = flt(0.0001)
         # Check the formulas on a 1/4-20 thread
@@ -262,5 +237,4 @@ if __name__ == "__main__":
         assert abs(u.TapDrill(percent_thread=75) - 0.2013) <= eps
         assert abs(u.SellersRecommendedTPI() - 20.2) <= 0.01
         assert abs(u.DoubleDepth() - 0.065) <= eps
-
     exit(run(globals())[0])

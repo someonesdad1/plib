@@ -136,7 +136,7 @@ if 1:  # Core functionality
             data = GetData.none
         else:
             if numtype is None:
-                numtype = lambda x: x   # noqu
+                numtype = lambda x: x   # noqa
             file = "circle_packing.csv"
             data = {}
             with open(file, newline='') as csvfile:

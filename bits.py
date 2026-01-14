@@ -6,20 +6,18 @@ oo>
 <oo cat utility oo>
 <oo test -t oo>
 <oo todo
-
 - Fixed-size integers for python
 - See https://graphics.stanford.edu/%7Eseander/bithacks.html for ideas
-
 oo>
 '''
  
 if 1:  # Header
     if 1:   # Standard imports
         import logging
+        import string
     if 1:   # Custom imports
         have_bitarray = False
         try:
-            from bitarray import bitarray
             from bitarray.util import int2ba, ba2int
             have_bitarray = True
         except ImportError:
@@ -46,7 +44,7 @@ if 1:   # Functions
             a.reverse()
             return sign*ba2int(a)
         else:
-            return sign*int(f"0b" + ''.join(reversed(f"{abs(x):b}")), 2)
+            return sign*int("0b" + ''.join(reversed(f"{abs(x):b}")), 2)
     def ByteReverseDict():
         '''Return a dictionary that reverses the bits in a byte.  Example:
             di = ByteReverseDict()
@@ -66,36 +64,35 @@ if 1:   # Functions
                 di[i] = f(i)
             ByteReverseDict.dict = di
         return ByteReverseDict.dict
-def int2base(x, base):
-    '''Converts the integer x to a string representation in a given base.  base may be
-    from 2 to 94.  Example:  int2base("0xdeadbeef", 90) --> 
-
-    '''
-    if not hasattr(int2base, digits):
-        int2base.digits = digits + ascii_letters + punctuation
-    if not (2 <= base <= len(int2base.digits)):
-        raise ValueError(f"base must be between 2 and {len(int2base.digits)}"))
-    if not isinstance(x, (int, str)):
-        raise ValueError("Argument x must be an integer or string")
-    if have_basencode:   
-        pass
-    else:   
-        # Method by Alex Martelli
-        # http://stackoverflow.com/questions/2267362/convert-integer-to-a-string-in-a-given-numeric-base-i
-        # Modified slightly
-        if isinstance(x, str):
-            x = int(x)
-        sign = -1 if x < 0 else 1
-        if x == 0:
-            return "0"
-        x, answer = abs(x), []
-        while x:
-            answer.append(int2base.digits[x % base])
-            x //= base
-        if sign < 0:
-            answer.append("-")
-        answer.reverse()
-        return ''.join(answer)
+    def int2base(x, base):
+        '''Converts the integer x to a string representation in a given base.  base may be
+        from 2 to 94.  Example:  int2base("0xdeadbeef", 90) --> 
+        '''
+        if not hasattr(int2base, "digits"):
+            int2base.digits = string.digits + string.ascii_letters + string.punctuation
+        if not (2 <= base <= len(int2base.digits)):
+            raise ValueError(f"base must be between 2 and {len(int2base.digits)}")
+        if not isinstance(x, (int, str)):
+            raise ValueError("Argument x must be an integer or string")
+        if have_basencode:   
+            pass
+        else:   
+            # Method by Alex Martelli
+            # http://stackoverflow.com/questions/2267362/convert-integer-to-a-string-in-a-given-numeric-base-i
+            # Modified slightly
+            if isinstance(x, str):
+                x = int(x)
+            sign = -1 if x < 0 else 1
+            if x == 0:
+                return "0"
+            x, answer = abs(x), []
+            while x:
+                answer.append(int2base.digits[x % base])
+                x //= base
+            if sign < 0:
+                answer.append("-")
+            answer.reverse()
+            return ''.join(answer)
     def IntToBase(n, b, msd_first=True):
         '''Convert positive integer n to any integer base b > 1.  Return a tuple of
         integers with the most significant digit at the 0th position in the list if
@@ -129,7 +126,7 @@ def int2base(x, base):
             ba = int2ba(70)
             for b in (2, 5, 7, 8, 11, 16, 49):
                 print(b, rBitarray(ba, b))
-          produces
+            produces
             2 rBitarray«2»('1000110')
             5 rBitarray«5»('240')
             7 rBitarray«7»('130')
@@ -139,7 +136,6 @@ def int2base(x, base):
             49 rBitarray«17»('1l')
         '''
         i = basencode.Number(ba2int(ba))
-        s = i.repr_in_base(base)
         return f"rBitarray«{base}»('{i.repr_in_base(base)}')"
 if 0:   # Fixed-size integers
     class Int:
@@ -329,7 +325,7 @@ if 0:   # Fixed-size integers
         x = Int(12, 8)
         print(x)
         exit()
-
+        
 if __name__ == "__main__":
     from lwtest import run, Assert, raises
     from columnize import Columnize
@@ -391,3 +387,4 @@ if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "-t":
         exit(run(globals(), halt=True)[0])
     Demo()
+    

@@ -18,15 +18,6 @@
           without testing
         - /plib/0lint_list
 
-            - asme.py
-            - atm.py
-            - atomic_mass.py
-            - bama.py
-            - banner.py
-            - bidict.py
-            - bits.py
-            - changed_datafile.py
-            - circle_packing.py
             - circle_packing_data.py
             - cmddecode.py
             - color.py

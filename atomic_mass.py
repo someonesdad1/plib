@@ -15,15 +15,13 @@ if 1:  # Header
     ##∞test∞# --test #∞test∞#
     # Standard imports
     import getopt
-    import os
     import re
-    from pathlib import Path as P
     import sys
     # Custom imports
-    from lwtest import run, raises, assert_equal, Assert
+    from lwtest import run, Assert
     from f import flt
-    from wrap import wrap, dedent
-    from color import Color, TRM as t
+    from wrap import dedent
+    from color import t
     from columnize import Columnize
     # Global variables
     ii = isinstance
@@ -367,7 +365,7 @@ if 1:  # Core functionality
     def GetMass(formula):
         try:
             print(f"{formula}: {CalculateMass(formula)} g/mol")
-        except Exception as e:
+        except Exception:
             print(f"{formula!r} is an incorrect formula")
 if __name__ == "__main__":
     d = {}  # Options dictionary

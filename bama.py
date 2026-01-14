@@ -5623,10 +5623,10 @@ bama = {
     ],
     "zentro": ["7941"],
 }
+
 if __name__ == "__main__":
     from collections import defaultdict, deque
     import getopt
-    import os
     import sys
     if 1:  # Utility
         def LeadingSpaces(s):
@@ -5646,7 +5646,7 @@ if __name__ == "__main__":
             empty, only_spaces = set(), set(" ")
             return set(s) == empty or set(s) == only_spaces
         def dedent(s):
-            '''For the multiline string s, remove common leading space characters.  The use case is for
+            """For the multiline string s, remove common leading space characters.  The use case is for
             help strings in scripts, allowing arbitrary leading and trailing newlines that are removed.
             Example:  dedent(s) for
                 s = '''
@@ -5654,7 +5654,7 @@ if __name__ == "__main__":
                 Line 2
                 '''
             will return 'Line 1\n  Line 2'.
-            '''
+            """
             # If s is the empty string, return the empty string
             if not s.strip():
                 return ""
@@ -5770,7 +5770,6 @@ if __name__ == "__main__":
                 for mfg in model:
                     for inst in model[mfg]:
                         print(f"{indent * 2}{inst} ({mfg})")
-if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
     for regex in args:

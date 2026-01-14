@@ -19,7 +19,6 @@ if 1:  # Copyright, license
     pass
 if 1:  # Imports
     import sys
-    import os
     import getopt
     from wrap import dedent
 if 1:   # Utility
@@ -91,7 +90,6 @@ if 1:   # Core functionality
             if ord(char) < 32 or ord(char) > 126:
                 char = " "
             i = ord(char) - 32
-            bytes = []
             lines = Banner.letters[i][0]
             # print("Lines = 0x%08x" % lines)
             out[0].append(((lines & (0xFF << 24)) >> 24) & 0xFF)
