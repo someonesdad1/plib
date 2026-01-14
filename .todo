@@ -1,5 +1,22 @@
 /plib/.todo
 
+    - Core /plib work
+        - 13 Jan 2026:  finished the last needed update to color.py.  kolor.py moved to
+          old.
+        - I'm slowly reaching the state of deciding to use ruff, both for linting and
+          formatting.  I don't like some of the details of the final style choices, but 
+          I can live with them.  I'll likely run dbl when I edit a file, but I'll
+          probably leave the other annoying things alone.
+            - The real reason for using ruff is the speed will let it be used easily to
+              check both formatting and linting.  I'll probably create a makefile that 
+              does this for both directories.  It will be such that any output is a
+              violation of the policies, indicating action needed.
+        - By 28 Feb 2026:
+            - Run lint ('ruff check') and 'ruff format' on all python files in /plib.
+            - All must pass lint (use #noqa sparingly, only as needed)
+        - By 31 Mar 2026 all self tests must pass and only a small set of files can be
+          without testing
+
     - yapf
         - https://github.com/google/yapf
         - Install with 'pip install git+https://github.com/google/yapf.git'
