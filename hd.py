@@ -16,9 +16,7 @@ if 1:  # Copyright, license
     ##∞test∞# run #∞test∞#
     pass
 if 1:  # Imports
-    import sys
     from io import StringIO, BytesIO
-    from pdb import set_trace as xx
 if 1:  # Global variables
     # Global variable convenience container
     class G:
@@ -105,8 +103,7 @@ def hexdump(text, n=None, offset=0, out=None, encoding="utf-8"):
 
 
 if __name__ == "__main__":
-    import sys
-    from lwtest import run, assert_equal, raises, Assert
+    from lwtest import run, assert_equal, raises
     from wrap import dedent
 
     def TestBasic():

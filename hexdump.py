@@ -75,7 +75,6 @@ def hexdump(obj, offset=0, length=0, asc=True, out=None, encoding="UTF-8"):
     else:
         raise e
     # Set our variables
-    bytes_read = 0
     bytes_printed = 0
     line_address = 0
     bytes_per_line, line_length = 16, 41
@@ -83,11 +82,9 @@ def hexdump(obj, offset=0, length=0, asc=True, out=None, encoding="UTF-8"):
     # Correct for the offset
     if offset:
         in_stream.read(offset)
-        bytes_read = offset
         line_address = offset
     data = in_stream.read(bytes_per_line)  # First line of data
     while data:
-        bytes_read = len(data)
         Print(f"{line_address:08x}: ")
         line_address += bytes_per_line
         line = []
@@ -119,9 +116,8 @@ def hexdump(obj, offset=0, length=0, asc=True, out=None, encoding="UTF-8"):
 
 
 if __name__ == "__main__":
-    from lwtest import run, assert_equal, raises
+    from lwtest import run
     from io import StringIO
-    from pdb import set_trace as xx
 
     def Test():
         hd = hexdump

@@ -112,7 +112,7 @@ class Global:
 
     @staticmethod
     def str():
-        s, d = [f"Global class variables:"], Global.__dict__
+        s, d = ["Global class variables:"], Global.__dict__
         for i in sorted(d):
             if i in ("str", "repr"):
                 continue
@@ -128,13 +128,10 @@ class Global:
 if __name__ == "__main__":
     # Standard library modules
     import getopt
-    import os
-    import pathlib
     import sys
-    from pdb import set_trace as xx
 
     # Custom modules
-    from lwtest import run, assert_equal, raises, Assert
+    from lwtest import run, assert_equal, raises
     from wrap import wrap, dedent
 
     try:
@@ -279,9 +276,9 @@ if __name__ == "__main__":
             g2.ro = Constant()
             g2.ro.x = -44.3
             g2.ro.y = [0.1, "xy"]
-            print(f"str(g2) doesn't produce a dump (no __str__ method):")
+            print("str(g2) doesn't produce a dump (no __str__ method):")
             print(f"  {str(g2)}")
-            print(f"Instead, use Global's staticmethod str():")
+            print("Instead, use Global's staticmethod str():")
             print(f"{Global.str()}")
             # We get an exception trying to change a readonly attribute
             s = dedent("""

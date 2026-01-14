@@ -3,27 +3,28 @@ Dictionary of various gauge sizes for sheet and wire
     A gauge size of -1 means 00, -2 means 000, etc.
 """
 
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    ##∞copyright∞# Copyright (C) 2013 Don Peterson #∞copyright∞#
-    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    ##∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    ##∞license∞#
-    ##∞what∞#
-    # <shop> Dictionary of various gauge sizes for sheet and wire.  Also
-    # has the function WireGauge() to get drill sizes from 1 to 80.
-    ##∞what∞#
-    ##∞test∞# --test #∞test∞#
-    pass
-if 1:  # Imports
-    from pdb import set_trace as xx
-if 1:  # Custom imports
-    from f import flt
-if 1:  # Global variables
-    __all__ = "gauges GetGauge WireGauge".split()
-    gauges, urls = {}, {}
+if 1:  # Header
+    if 1:  # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        ##∞copyright∞# Copyright (C) 2013 Don Peterson #∞copyright∞#
+        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        ##∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        ##∞license∞#
+        ##∞what∞#
+        # <shop> Dictionary of various gauge sizes for sheet and wire.  Also
+        # has the function WireGauge() to get drill sizes from 1 to 80.
+        ##∞what∞#
+        ##∞test∞# --test #∞test∞#
+        pass
+    if 1:  # Imports
+        pass
+    if 1:  # Custom imports
+        from f import flt
+    if 1:  # Global variables
+        __all__ = "gauges GetGauge WireGauge".split()
+        gauges, urls = {}, {}
 
 
 def WireGauge(num, mm=False):
@@ -539,7 +540,6 @@ if 1:  # Data
     synonyms = {
         "Brown & Sharpe Gauge": "AWG",
         "American Wire Gauge": "AWG",
-        "Brown & Sharpe Gauge": "AWG",
         "Stubs' Iron Wire Gauge": "Birmingham wire gauge",
         "Cocker's Wire Gauge": "Whitworth's wire gauge",
         "Roebling": "Washburn & Moen wire gauge",

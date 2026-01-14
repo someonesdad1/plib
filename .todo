@@ -24,6 +24,7 @@
             - fraction.py:  move to fmt.py
             - fsig.py:  is it used anywhere?  Otherwise move to old.  There's an
               util.fsig, so make fsig.py obsolete.
+            - geometry.py:  need test case for Quadrilateral()
         - /plib/0lint_list
 
             - cpi_data.py

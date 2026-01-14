@@ -44,8 +44,6 @@ if 1:  # Header
         import string
         import sys
         from collections import deque
-        from collections.abc import Iterable
-        from enum import Enum
         from io import StringIO
         from fractions import Fraction
         from decimal import Decimal

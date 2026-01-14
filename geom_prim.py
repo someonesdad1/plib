@@ -34,9 +34,7 @@ if 1:  # Header
     ##∞test∞# run #∞test∞#
     # Standard imports
     import sys
-    import traceback
-    from math import pi, e
-    from pdb import set_trace as xx
+    from math import pi
 
     # Custom imports
     use_sig = True
@@ -50,41 +48,41 @@ if 1:  # Header
     try:
         # Note these will replace all of math's symbols except pi and e
         from uncertainties.umath import (
-            acos,
-            acosh,
-            asin,
-            asinh,
-            atan,
-            atan2,
-            atanh,
-            ceil,
-            copysign,
-            cos,
-            cosh,
-            degrees,
-            exp,
-            fabs,
-            factorial,
-            floor,
-            fmod,
-            frexp,
-            fsum,
-            hypot,
-            isinf,
-            isnan,
-            ldexp,
-            log,
-            log10,
-            log1p,
-            modf,
-            pow,
-            radians,
-            sin,
-            sinh,
-            sqrt,
-            tan,
-            tanh,
-            trunc,
+            acos,       # noqa
+            acosh,      # noqa
+            asin,       # noqa
+            asinh,      # noqa
+            atan,       # noqa
+            atan2,      # noqa
+            atanh,      # noqa
+            ceil,       # noqa
+            copysign,   # noqa
+            cos,        # noqa
+            cosh,       # noqa
+            degrees,    # noqa
+            exp,        # noqa
+            fabs,       # noqa
+            factorial,  # noqa
+            floor,      # noqa
+            fmod,       # noqa
+            frexp,      # noqa
+            fsum,       # noqa
+            hypot,      # noqa
+            isinf,      # noqa
+            isnan,      # noqa
+            ldexp,      # noqa
+            log,        # noqa
+            log10,      # noqa
+            log1p,      # noqa
+            modf,       # noqa
+            pow,        # noqa
+            radians,    # noqa
+            sin,        # noqa
+            sinh,       # noqa
+            sqrt,       # noqa
+            tan,        # noqa
+            tanh,       # noqa
+            trunc,      # noqa
         )
         from uncertainties import ufloat, UFloat
 
@@ -242,26 +240,26 @@ class Ctm(object):
         #
         # Then D was substituted for the determinant expression in
         # each term.
-        a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p = self.GetCTM()
+        a, b, c, d, e, f, g, h, i, j, k, L, m, n, o, p = self.GetCTM()
         D = (
             d * g * j * m
             - c * h * j * m
             - d * f * k * m
             + b * h * k * m
-            + c * f * l * m
-            - b * g * l * m
+            + c * f * L * m
+            - b * g * L * m
             - d * g * i * n
             + c * h * i * n
             + d * e * k * n
             - a * h * k * n
-            - c * e * l * n
-            + a * g * l * n
+            - c * e * L * n
+            + a * g * L * n
             + d * f * i * o
             - b * h * i * o
             - d * e * j * o
             + a * h * j * o
-            + b * e * l * o
-            - a * f * l * o
+            + b * e * L * o
+            - a * f * L * o
             - c * f * i * p
             + b * g * i * p
             + c * e * j * p
@@ -273,26 +271,26 @@ class Ctm(object):
             raise ValueError("Singular CTM")
         m = [
             # Row 0
-            (-(h * k * n) + g * l * n + h * j * o - f * l * o - g * j * p + f * k * p)
+            (-(h * k * n) + g * L * n + h * j * o - f * L * o - g * j * p + f * k * p)
             / D,
-            (d * k * n - c * l * n - d * j * o + b * l * o + c * j * p - b * k * p) / D,
+            (d * k * n - c * L * n - d * j * o + b * L * o + c * j * p - b * k * p) / D,
             (-(d * g * n) + c * h * n + d * f * o - b * h * o - c * f * p + b * g * p)
             / D,
-            (d * g * j - c * h * j - d * f * k + b * h * k + c * f * l - b * g * l) / D,
+            (d * g * j - c * h * j - d * f * k + b * h * k + c * f * L - b * g * L) / D,
             # Row 1
-            (h * k * m - g * l * m - h * i * o + e * l * o + g * i * p - e * k * p) / D,
-            (-(d * k * m) + c * l * m + d * i * o - a * l * o - c * i * p + a * k * p)
+            (h * k * m - g * L * m - h * i * o + e * L * o + g * i * p - e * k * p) / D,
+            (-(d * k * m) + c * L * m + d * i * o - a * L * o - c * i * p + a * k * p)
             / D,
             (d * g * m - c * h * m - d * e * o + a * h * o + c * e * p - a * g * p) / D,
-            (-(d * g * i) + c * h * i + d * e * k - a * h * k - c * e * l + a * g * l)
+            (-(d * g * i) + c * h * i + d * e * k - a * h * k - c * e * L + a * g * L)
             / D,
             # Row 2
-            (-(h * j * m) + f * l * m + h * i * n - e * l * n - f * i * p + e * j * p)
+            (-(h * j * m) + f * L * m + h * i * n - e * L * n - f * i * p + e * j * p)
             / D,
-            (d * j * m - b * l * m - d * i * n + a * l * n + b * i * p - a * j * p) / D,
+            (d * j * m - b * L * m - d * i * n + a * L * n + b * i * p - a * j * p) / D,
             (-(d * f * m) + b * h * m + d * e * n - a * h * n - b * e * p + a * f * p)
             / D,
-            (d * f * i - b * h * i - d * e * j + a * h * j + b * e * l - a * f * l) / D,
+            (d * f * i - b * h * i - d * e * j + a * h * j + b * e * L - a * f * L) / D,
             # Row 3
             (g * j * m - f * k * m - g * i * n + e * k * n + f * i * o - e * j * o) / D,
             (-(c * j * m) + b * k * m + c * i * n - a * k * n - b * i * o + a * j * o)
@@ -1437,7 +1435,7 @@ class Line(Ctm):
             self._p, self._q = p, q
         elif ii(q, (tuple, list)):
             if len(q) != 3:
-                raise ValueError(msg)
+                raise ValueError("q must have 3 elements")
             if tuple(q) == (0, 0, 0):
                 raise ValueError("Not all direction numbers can be zero")
             a, b, c = q
@@ -1624,13 +1622,13 @@ class Line(Ctm):
             Dxz = n1z * n2x - n1x * n2z
             Dyz = n1z * n2y - n1y * n2z
             if Dxy:
-                s = -(-(n1y * x1) + n1y * x2 + n1x * y1 - n1x * y2) / Dxy
+                #s = -(-(n1y * x1) + n1y * x2 + n1x * y1 - n1x * y2) / Dxy
                 t = -(-(n2y * x1) + n2y * x2 + n2x * y1 - n2x * y2) / Dxy
             elif Dxz:
-                s = -(-(n1z * x1) + n1z * x2 + n1x * z1 - n1x * z2) / Dxz
+                #s = -(-(n1z * x1) + n1z * x2 + n1x * z1 - n1x * z2) / Dxz
                 t = -(-(n2z * x1) + n2z * x2 + n2x * z1 - n2x * z2) / Dxz
             elif Dyz:
-                s = -(-(n1z * y1) + n1z * y2 + n1y * z1 - n1y * z2) / Dyz
+                #s = -(-(n1z * y1) + n1z * y2 + n1y * z1 - n1y * z2) / Dyz
                 t = -(-(n2z * y1) + n2z * y2 + n2y * z1 - n2y * z2) / Dyz
             else:
                 # Lines don't intersect
@@ -2153,12 +2151,12 @@ def Det3(matrix):
 
 def Det4(matrix):
     """Calculate a 4x4 determinant."""
-    a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p = matrix
+    a, b, c, d, e, f, g, h, i, j, k, L, m, n, o, p = matrix
     # Expand along first row
     return (
-        a * Det3((f, g, h, j, k, l, n, o, p))
-        + -b * Det3((e, g, h, i, k, l, m, o, p))
-        + c * Det3((e, f, h, i, j, l, m, n, p))
+        a * Det3((f, g, h, j, k, L, n, o, p))
+        + -b * Det3((e, g, h, i, k, L, m, o, p))
+        + c * Det3((e, f, h, i, j, L, m, n, p))
         + -d * Det3((e, f, g, i, j, k, m, n, o))
     )
 
@@ -2170,7 +2168,7 @@ if __name__ == "__main__":
 
         # Custom imports
         from f import flt
-        from lwtest import *
+        from lwtest import assert_equal, run
 
         # Global variables
         # The following is a "random" matrix that I made up; it has no
@@ -2621,27 +2619,27 @@ if __name__ == "__main__":
         M = L.copy
         assert_equal(L, M)
         # Intersections
-        O, i, j = Point(0, 0, 0), Point(1, 0, 0), Point(0, 1, 0)
+        o, i, j = Point(0, 0, 0), Point(1, 0, 0), Point(0, 1, 0)
         if True:
             # Line and point
-            L = Line(O, i)
-            assert_equal(L.intersect(O), O)
+            L = Line(o, i)
+            assert_equal(L.intersect(o), o)
             assert_equal(L.intersect(j), None)
             L, p = Line(i, j), Point(1 / 2, 1 / 2, 0)
-            assert_equal(L.intersect(O), None)
+            assert_equal(L.intersect(o), None)
             assert_equal(L.intersect(p), p)
             # Line and line
             if True:
                 # Coincident parallel lines
-                L = Line(O, i)
+                L = Line(o, i)
                 assert_equal(L.intersect(L), L)
                 # Two intersecting lines in the xy plane
                 L1 = Line(i, j)
-                L2 = Line(O, Point(1, 1, 0))
+                L2 = Line(o, Point(1, 1, 0))
                 assert_equal(L1.intersect(L2), Point(1 / 2, 1 / 2, 0))
         # Check dot product
-        Li, Lj, Lk, a = Line(O, i), Line(O, j), Line(O, Point(0, 0, 1)), 3
-        L1, L2 = Line(O, Point(a, a, a)), Line(O, Point(-a, -a, -a))
+        Li, Lj, Lk, a = Line(o, i), Line(o, j), Line(o, Point(0, 0, 1)), 3
+        L1, L2 = Line(o, Point(a, a, a)), Line(o, Point(-a, -a, -a))
         if True:
             # Simple orthogonal checks
             assert_equal(Li.dot(Lj), 0)
@@ -2674,19 +2672,19 @@ if __name__ == "__main__":
         Ctm._neg = False
         Ctm._elev = False
         # Plane from 3 points
-        O, i, j, k = (Point(0, 0, 0), Point(1, 0, 0), Point(0, 1, 0), Point(0, 0, 1))
-        xy = Plane(O, i, j)  # Go around polygon ccw
+        o, i, j, k = (Point(0, 0, 0), Point(1, 0, 0), Point(0, 1, 0), Point(0, 0, 1))
+        xy = Plane(o, i, j)  # Go around polygon ccw
         assert_equal(xy.dc, (0, 0, 1))
-        pl = Plane(O, j, i)  # Go around polygon cw
+        pl = Plane(o, j, i)  # Go around polygon cw
         assert_equal(pl.dc, (0, 0, -1))
         # Plane from point and two lines
-        ln1, ln2 = Line(O, i), Line(O, j)
+        ln1, ln2 = Line(o, i), Line(o, j)
         pl = Plane(k, ln1, ln2)
         assert_equal(pl.dc, (0, 0, 1))
         assert_equal(pl.p, k)
         assert_equal(pl.q, Point(0, 0, 2))
         # Plane from point and plane
-        xy = Plane(O, i, j)  # Is xy plane
+        xy = Plane(o, i, j)  # Is xy plane
         pt = Point(0, 0, 1)
         pl = Plane(pt, xy)
         assert_equal(pl.dc, (0, 0, 1))
@@ -2695,9 +2693,9 @@ if __name__ == "__main__":
         pl1 = Plane(pl)
         assert_equal(pl, pl1)
         # Plane from point and line
-        pl = Plane(O, Line(O, k))
+        pl = Plane(o, Line(o, k))
         assert_equal(pl.dc, (0, 0, 1))  # Is xy plane
-        assert_equal(pl.p, O)
+        assert_equal(pl.p, o)
         assert_equal(pl.q, k)
         # Plane from two lines that intersect
         o, i, k = Point(0, 0, 0), Point(1, 0, 0), Point(0, 0, 1)
@@ -2716,24 +2714,24 @@ if __name__ == "__main__":
         pl = Plane(ln1, ln2)
         assert_equal(pl, xy)
         # Copy
-        pl = Plane(O, i, j)
+        pl = Plane(o, i, j)
         pl1 = pl.copy
         assert_equal(pl, pl1)
         # Properties
         if True:
-            pl = Plane(O, i, j)
+            pl = Plane(o, i, j)
             # Direction cosines of unit normal
             assert_equal(pl.dc, (0, 0, 1))
             # Hessian normal form p value
-            pl = Plane(O, i, j)
+            pl = Plane(o, i, j)
             assert_equal(pl.dnd, 0)
             pl = Plane(k, Point(1, 0, 1), Point(0, 1, 1))
             assert_equal(pl.dnd, 1)
         # Intersections
         if True:
             # Plane and point
-            pl = Plane(O, i, j)
-            assert_equal(pl.intersect(O), O)
+            pl = Plane(o, i, j)
+            assert_equal(pl.intersect(o), o)
             assert_equal(pl.intersect(k), None)
             # Plane and line
             if True:
@@ -2742,26 +2740,26 @@ if __name__ == "__main__":
                 ln = Line(p1, k)
                 assert_equal(pl.intersect(ln), None)
                 # Intersects in a point
-                ln = Line(O, Point(1, 0, 1))
-                assert_equal(pl.intersect(ln), O)
+                ln = Line(o, Point(1, 0, 1))
+                assert_equal(pl.intersect(ln), o)
                 # Intersects in a line (the line is in the plane)
-                ln = Line(i, O)
+                ln = Line(i, o)
                 assert_equal(pl.intersect(ln), ln)
             # Plane and plane
             if True:
                 # xy plane and xz plane
-                pl1, pl2 = Plane(O, i, j), Plane(O, i, Point(1, 0, 1))
-                ln = Line(O, i)
+                pl1, pl2 = Plane(o, i, j), Plane(o, i, Point(1, 0, 1))
+                ln = Line(o, i)
                 assert_equal(pl1.intersect(pl2), ln)
                 # Vertical planes through origin at right angles
-                pl1 = Plane(O, Point(1, -1, 0), Point(1, -1, 1))
-                pl2 = Plane(O, Point(1, 1, 0), Point(1, 1, 1))
-                ln = Line(O, k)
+                pl1 = Plane(o, Point(1, -1, 0), Point(1, -1, 1))
+                pl2 = Plane(o, Point(1, 1, 0), Point(1, 1, 1))
+                ln = Line(o, k)
                 assert_equal(pl1.intersect(pl2), ln)
                 # Parallel planes, equal
                 assert_equal(pl1.intersect(pl1), pl1)
                 # Parallel planes, don't intersect
-                pl1 = Plane(O, i, j)  # xy plane
+                pl1 = Plane(o, i, j)  # xy plane
                 pl2 = Plane(Point(0, 0, 1), Point(1, 0, 1), Point(0, 1, 1))
                 assert_equal(pl1.intersect(pl2), None)
         # dist
@@ -2777,7 +2775,7 @@ if __name__ == "__main__":
             # Two planes
             pl = Plane(Point(0, 0, 1), Point(1, 0, 1), Point(0, 1, 1))
             assert_equal(xy.dist(pl), 1)
-            pl = Plane(O, i, j)
+            pl = Plane(o, i, j)
             assert_equal(xy.dist(pl), 0)
 
     exit(run(globals(), halt=True)[0])
