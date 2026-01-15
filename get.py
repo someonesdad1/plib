@@ -625,10 +625,10 @@ if 1:  # Getting numbers
                     x = int(s)
                 lst.append(x)
         return lst
-    def GetNumberArray(string, row=False, numtype=float):
+    def GetNumberArray(string, numtype=float):
         '''Return a list of vectors gotten from the indicated multiline string.
-        The numbers are separated on each line by whitespace.  If row is
-        True, then the vectors are row vectors.  Lines in string matching
+        The numbers are separated on each line by whitespace.  
+        Lines in string matching
         the regular expression with '^\s*#' are ignored.  If string is empty or
         only whitespace, then [[]] is returned.  ValueError will be raised if a
         row contains a different number of elements than the others.
@@ -639,35 +639,29 @@ if 1:  # Getting numbers
                 1 2 3
                 4 5 6
                 """
-            then GetNumberArray(s) returns [[1, 4], [2, 5], [3, 6]].
-            GetNumberArray(s, row=True) returns [[1, 2, 3], [4, 5, 6]].
+            then GetNumberArray(s, numtype=int) returns [[1, 2, 3], [4, 5, 6]].
         '''
         if not string.strip():
             return [[]]
         strings = []
-        # Put valid lines into strings
-        for line in string.strip().split("\n"):
-            if line.strip()[0] == "#":
-                continue
-            strings.append(line)
-        nrows = len(strings)
-        # Get number of columns and verify all rows have the same number of
-        # columns
-        cols = [i.split() for i in strings]
-        ncols = len(cols[0])
-        if not all([len(i) == ncols for i in cols]):
-            raise ValueError(f"Not all rows have {ncols} elements")
-        # Get number array
-        A = []
-        for myrow in strings:
-            a = [numtype(i) for i in myrow.split()]
-            A.append(a)
-        if row:
-            return A  # Return row vectors
-        if ncols == 1 or nrows == 1:
-            return A  # Special case of one column or row vector
-        # Use transpose to return column vectors
-        return [list(i) for i in zip(*A)]
+        if 1:   # Put valid lines into strings
+            for line in string.strip().split("\n"):
+                if not line.strip() or line.strip()[0] == "#":
+                    continue
+                strings.append(line)
+            nrows = len(strings)
+        if 1:   # Get number of columns and verify all rows have the same number of
+                # columns
+            cols = [i.split() for i in strings]
+            ncols = len(cols[0])
+            if not all([len(i) == ncols for i in cols]):
+                raise ValueError(f"Not all rows have {ncols} elements")
+        if 1:   # Get number array
+            A = []
+            for myrow in strings:
+                a = [numtype(i) for i in myrow.split()]
+                A.append(a)
+            return A
     def GetFraction(s):
         '''Return a Fraction object if string s contains a '/' and can be
         interpreted as an improper or proper fraction or if it can be
@@ -1953,52 +1947,50 @@ if __name__ == "__main__":
             Assert(all([ii(i, Fraction) for i in L]))
             Assert(L == [Fraction(3, 8), Fraction(7, 16), Fraction(1, 2)])
         def TestGetNumberArray():
-            s = '''
-                1 2 3
-                4 5 6
-            '''
-            # Empty string
-            a = GetNumberArray("")
-            Assert(a == [[]])
-            a = GetNumberArray(" \t\n \v\r")
-            Assert(a == [[]])
-            # Simple string
-            t = "1"
-            a = GetNumberArray(t)
-            Assert(a == [[1.0]])
-            Assert(isinstance(a[0][0], float))
-            a = GetNumberArray(t, numtype=int)
-            Assert(a == [[1]])
-            Assert(isinstance(a[0][0], int))
-            # Single column vector
-            t = '''
-                1
-                2
-            '''
-            a = GetNumberArray(t)
-            Assert(a == [[1.0], [2.0]])
-            # Single row vector
-            t = "1 2"
-            a = GetNumberArray(t)
-            Assert(a == [[1.0, 2.0]])
-            # Default gets column vector of floats
-            a = GetNumberArray(s)
-            Assert(a == [[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]])
-            Assert(isinstance(a[0][0], float))
-            # Gets column vector of ints
-            a = GetNumberArray(s, numtype=int)
-            Assert(a == [[1, 4], [2, 5], [3, 6]])
-            Assert(isinstance(a[0][0], int))
-            # Get row vector of ints
-            a = GetNumberArray(s, row=True, numtype=int)
-            Assert(a == [[1, 2, 3], [4, 5, 6]])
-            # Bad data gets exception
-            s = '''
-                1 2 3
-                4 5  
-            '''
-            with raises(ValueError):
+            if 1:   # Empty string
+                a = GetNumberArray("")
+                Assert(a == [[]])
+                a = GetNumberArray(" \t\n \v\r")
+                Assert(a == [[]])
+            if 1:   # Simple string; check numtype functionality
+                t = "1"
+                a = GetNumberArray(t)
+                Assert(a == [[1.0]])
+                Assert(isinstance(a[0][0], float))
+                a = GetNumberArray(t, numtype=int)
+                Assert(a == [[1]])
+                Assert(isinstance(a[0][0], int))
+            if 1:   # Single column vector
+                t = '''
+                    1
+                    2
+                '''
+                a = GetNumberArray(t)
+                Assert(a == [[1.0], [2.0]])
+            if 1:   # Single row vector
+                t = "1 2"
+                a = GetNumberArray(t)
+                Assert(a == [[1.0, 2.0]])
+            if 1:   # A two-dimensional matrix
+                s = '''
+                    1 2 3
+                    4 5 6
+                '''
+                # Default gets row vector of floats
                 a = GetNumberArray(s)
+                Assert(a == [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
+                Assert(isinstance(a[0][0], float))
+                # Get row vector of ints
+                a = GetNumberArray(s, numtype=int)
+                Assert(a == [[1, 2, 3], [4, 5, 6]])
+                Assert(isinstance(a[0][0], int))
+                # Bad data gets exception
+                s = '''
+                    1 2 3
+                    4 5  
+                '''
+                with raises(ValueError):
+                    a = GetNumberArray(s)
         def TestGetFraction():
             e = Fraction(5, 4)
             for i in (
