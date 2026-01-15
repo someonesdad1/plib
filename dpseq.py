@@ -41,6 +41,7 @@ if 1:  # Header
         ##∞test∞# run #∞test∞#
         pass
     if 1:  # Standard imports
+        from collections import Counter
         from fractions import Fraction
         import bisect
         import operator
@@ -240,10 +241,53 @@ if 1:  # Core functionality
                 else:
                     diff_low, diff_high = abs(x - L), abs(x - r)
                     return L if diff_low <= diff_high else r
+    def GetDuplicates(seq, convert=False):
+        '''Return a list of the items in the sequence that are duplicates.  If you only
+        want to know whether a sequence has duplicates, you can construct a set with it;
+        if the size of the set is less than the size of the sequence, there are
+        duplicates. A disadvantage is that the elements of the sequence must be
+        hashable.
+
+        If convert is True and if the sequence has nonhashable elements, it will fall
+        through to a second algorithm that's potentially slow, but will do the job
+        correctly.  If the sequence is a structure like a deque, the algorithm will be
+        potentially inefficient because deques are not intended for random access.  In
+        this case, it could be worthwhile to convert the sequence to a list; the cost is
+        the extra memory for the list.
+        '''
+        try:
+            counts = Counter(seq)
+            duplicates = [item for item, count in counts.items() if count > 1]
+            return duplicates
+        except TypeError:
+            # This probably occurred because an element of seq wasn't hashable, a
+            # requirement of Counter, which is a dict subclass
+            pass
+        # Iterate through the sequence and see if any element's index is not equal
+        # to its current position, meaning it occurred already for a lower index.
+        duplicates = []
+        for i, item in enumerate(list(seq) if convert else seq):
+            if item in seq[:i]:
+                duplicates.append(item)
+        return duplicates
+
+if 0:
+    class G:
+        def __init__(self, x):
+            self.x = x
+        def __str__(self):
+            return f"<{self.x}>"
+        def __repr__(self):
+            return str(self)
+    a, b, c = G(1), G(5), [1, 3]
+    my_list = ["8", 1, 2, 3, 2, 4, 1, a, b, a, c, "8"]
+    print(my_list)
+    print(GetDuplicates(my_list))
+    exit()
 
 if __name__ == "__main__":
     from functools import partial
-    from lwtest import run, assert_equal
+    from lwtest import run, assert_equal, Assert
     g.dbg = True
     GetColors()
     g.dbg = False  # Turn g.dbg on to see debug printing
@@ -321,11 +365,24 @@ if __name__ == "__main__":
                     return flt((x + y) ** 0.5)
             seq = (Pt(0, 0), Pt(-3, 6), Pt(4, 8), Pt(2, 0))
             f = partial(GetClosest, is_sorted=None)
-            def metric(a, b): a.dist(b)
+            def metric(a, b): return a.dist(b)
             Assert(f(Pt(0.1, 0.1), seq, distance=metric) == Pt(0, 0))
             Assert(f(Pt(-0.1, -0.1), seq, distance=metric) == Pt(0, 0))
             Assert(f(Pt(-100, 0.1), seq, distance=metric) == Pt(-3, 6))
             Assert(f(Pt(0, 1000), seq, distance=metric) == Pt(4, 8))
             Assert(f(Pt(1, 0), seq, distance=metric) == Pt(0, 0))
             Assert(f(Pt(1.0001, 0), seq, distance=metric) == Pt(2, 0))
+    if 0:
+        def Test_GetDuplicates():
+            class G:
+                def __init__(self, x):
+                    self.x = x
+                def __str__(self):
+                    return f"<{self.x}>"
+                def __repr__(self):
+                    return str(self)
+            a, b, c = G(1), G(5), [1, 3]
+            seq = ["8", 1, 2, 3, 2, 4, 1, a, b, a, c, "8"]
+            duplicates = GetDuplicates(seq)
+            Assert(duplicates == [2, 1, a, "8"])
     exit(run(globals(), halt=True)[0])

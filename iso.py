@@ -16,7 +16,7 @@ if 1:  # Header
     # <utility> Provides the ISO object to provide current date and time
     # in standard ISO format.
     ##∞what∞#
-    ##∞test∞# ignore #∞test∞#
+    ##∞test∞# notest #∞test∞#
     # Imports
     from time import time, localtime, gmtime, struct_time, strftime
 

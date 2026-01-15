@@ -58,7 +58,7 @@ if 1:  # Header
     # <programming> Provides objects that help with program timing.  Run as
     # a script to see example output.
     ##∞what∞#
-    ##∞test∞# ignore #∞test∞#
+    ##∞test∞# notest #∞test∞#
     # Standard imports
     from decimal import Decimal
     from fractions import Fraction

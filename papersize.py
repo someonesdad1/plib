@@ -116,9 +116,9 @@ if 1:  # Core functionality
         if exact:
             # Compute the ISO sizes from formulas
             a, b, c = 1/2**(1/2), 1/2, 1000
-            def A(n): (c*a**(n + b), c*a**(n - b))
-            def B(n): (c*a**n, c*a**(n - 1))
-            def C(n): (c*a**(n + b/2), c*a**(n - 3*b/2))
+            def A(n): return (c*a**(n + b), c*a**(n - b))
+            def B(n): return (c*a**n, c*a**(n - 1))
+            def C(n): return (c*a**(n + b/2), c*a**(n - 3*b/2))
             ISO = {}
             for n in range(11):
                 ISO["A{n}"] = A(n)

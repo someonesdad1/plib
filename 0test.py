@@ -324,90 +324,85 @@ def ShowWhatWillBeDone(tr, items):
     print(f"{t('grn')}", end="")
     Show("Files with tests to run:", run)
     t.out()
-def GetTestString(file, exc_on_none=True):
-    '''Return the test string for this file; the valid returned strings are:
-      ""        No g.teststr found in file      --> Needs attention
-      "empty"   g.teststr found, but no data    --> Needs attention
-      "notest"  This file doesn't need to be tested
-      "run"     Run the file as a script to test
-      "-t"      Run as script with this argument to test
-      "--test"  Ditto
-      "['test/abc.py']"    A list of testing scripts to be run
-    If exc_on_none is True, then a ValueError exception is raised on a file with
-    "" or "empty".
-    '''
-    found = None
-    dq = deque(get.GetLines(file,  ignore_empty=True))
-    linenum = 0
-    while dq:
-        line = dq.popleft()
-        linenum += 1
-        loc = line.find(g.teststr)
-        if loc == -1:
-            continue
-        Dbg(f"Found {g.teststr!r} on line {linenum}:  {t.lill}{line!r}")
-        line = line[loc + len(g.teststr):].strip()   # Strip off leading junk
-        # Must have a second g.teststr at end of line
-        loc = line.find(g.teststr)
-        if loc == -1:
-            msg = f"{t.ornl}{file}:  missing {t.lill}{g.teststr!r}{t.ornl} at end of line {linenum}{t.n}"
-            raise ValueError(msg)
-        found = line[:loc].strip()
-        Dbg(f"Test string = {found!r}")
-        break
-    # Check that we have a valid value
-    msg = ""
-    if found is None:
-        msg = f"{t.ornl}{file}:  no test string{t.n}"
-    elif not found:
-        msg = f"{t.ornl}{file}:  empty test string{t.n}"
-    elif found == "empty":
-        msg = f"{t.ornl}{file}:  empty test string{t.n}"
-    elif found == "notest":
-        pass
-    elif found in ("run", "-t", "--test"):
-        pass
-    elif found.startswith("["):
-        try:
-            eval(found)
-        except SyntaxError:
-            msg = f"{t.ornl}{file}:  bad list syntax: {t.lill}{found!r}{t.n}"
-    if msg:
-        if 0:   # Use this to stop on a missing test string
-            raise ValueError(msg)
-        else:   # Use this to just print a message and finish processing
-            print(msg)
-    return found
-def GetTestStrings(dir):
-    'Return a deque of named tuples with test information'
-    o = []
-    p = P(dir)
-    files = p.glob("*.py")
-    for file in files:
-        tstr = GetTestString(file)
-        o.append(Test(dir, str(file), tstr))
-    return deque(o)
-def Report():
-    'Show file test string by category'
-    dq, d = GetTestStrings("."), defaultdict(list)
-    while dq:
-        item = dq.popleft()
-        d[item.tstr].append(str(item.file))
-    for i in d:
-        if i.startswith("["):
-            continue
-        t.print(f"{t.grn}{i}")
-        for j in Columnize(d[i], indent=" "*4):
-            print(j)
-
-if 0:
-    f = "a.py"
-    s = GetTestString(f)
-    t.print(f"{f}: got {t.yel}{s!r}")
-    exit()
-if 1:
-    Report()
-    exit()
+if 1:  # Identify files that need testing
+    def GetTestString(file, exc_on_none=True):
+        '''Return the test string for this file; the valid returned strings are:
+        ""        No g.teststr found in file      --> Needs attention
+        "empty"   g.teststr found, but no data    --> Needs attention
+        "notest"  This file doesn't need to be tested
+        "run"     Run the file as a script to test
+        "-t"      Run as script with this argument to test
+        "--test"  Ditto
+        "['test/abc.py']"    A list of testing scripts to be run
+        If exc_on_none is True, then a ValueError exception is raised on a file with
+        "" or "empty".
+        '''
+        found = None
+        dq = deque(get.GetLines(file,  ignore_empty=True))
+        linenum = 0
+        while dq:
+            line = dq.popleft()
+            linenum += 1
+            loc = line.find(g.teststr)
+            if loc == -1:
+                continue
+            Dbg(f"Found {g.teststr!r} on line {linenum}:  {t.lill}{line!r}")
+            line = line[loc + len(g.teststr):].strip()   # Strip off leading junk
+            # Must have a second g.teststr at end of line
+            loc = line.find(g.teststr)
+            if loc == -1:
+                msg = f"{t.ornl}{file}:  missing {t.lill}{g.teststr!r}{t.ornl} at end of line {linenum}{t.n}"
+                raise ValueError(msg)
+            found = line[:loc].strip()
+            Dbg(f"Test string = {found!r}")
+            break
+        # Check that we have a valid value
+        msg = ""
+        if found is None:
+            msg = f"{t.ornl}{file}:  no test string{t.n}"
+        elif not found:
+            msg = f"{t.ornl}{file}:  empty test string{t.n}"
+        elif found == "empty":
+            msg = f"{t.ornl}{file}:  empty test string{t.n}"
+        elif found == "notest":
+            pass
+        elif found in ("run", "-t", "--test"):
+            pass
+        elif found.startswith("["):
+            try:
+                eval(found)
+            except SyntaxError:
+                msg = f"{t.ornl}{file}:  bad list syntax: {t.lill}{found!r}{t.n}"
+        if msg:
+            if 0:   # Use this to stop on a missing test string
+                raise ValueError(msg)
+            else:   # Use this to just print a message and finish processing
+                print(msg)
+        return found
+    def GetTestStrings(dir):
+        'Return a deque of named tuples with test information'
+        o = []
+        p = P(dir)
+        files = p.glob("*.py")
+        for file in files:
+            tstr = GetTestString(file)
+            o.append(Test(dir, str(file), tstr))
+        return deque(o)
+    def Report():
+        'Show file test string by category'
+        dq, d = GetTestStrings("."), defaultdict(list)
+        while dq:
+            item = dq.popleft()
+            d[item.tstr].append(str(item.file))
+        for i in d:
+            #if i.startswith("["):
+            #    continue
+            t.print(f"{t.grn}{i}")
+            for j in Columnize(sorted(d[i]), indent=" "*4):
+                print(j)
+    if 1:
+        Report()
+        exit()
 
 if __name__ == "__main__":
     d = {}  # Options dictionary

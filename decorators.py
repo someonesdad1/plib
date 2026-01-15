@@ -17,7 +17,7 @@ if 1:  # Copyright, license
     ##∞what∞#
     # <utility> Various function decorators
     ##∞what∞#
-    ##∞test∞# ignore #∞test∞#
+    ##∞test∞# notest #∞test∞#
     pass
 if 1:  # Imports
     import sys

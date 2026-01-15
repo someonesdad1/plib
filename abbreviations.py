@@ -21,7 +21,7 @@ oo>
 <oo todo oo>
 '''
 if 1:  # Header
-    ##∞test∞# notest #∞test∞#
+    ##∞test∞# run #∞test∞#
     if 1:  # Imports
         from collections import defaultdict
     if 1:  # Custom imports
@@ -55,21 +55,17 @@ if 1:  # Utility functions to vet data
             print(" ".join(sorted(items[fl])))
             print()
 if 1:  # Core functionality
-    def IsAbbreviation(w, no_period=False, full=False):
-        '''Returns True if w is an abbreviation; case is ignored.
-    
-        no_period:  If True, all '.' characters are removed from w and the abbreviations.
-    
-        full:  If True the set is enhanced by abbreviations that can also be words that
-        end a sentence.
+    def IsAbbreviation(word, no_period=False):
+        '''Returns True if word is an abbreviation; case is ignored.  If no_period is True,
+        all '.' characters are removed from word and the abbreviations.
         '''
         if not hasattr(IsAbbreviation, "abbrev"):
             # Cache our set of abbreviation strings
             data = '''
             
-                a.c. a.d. a.k.a. a.m. a.s.a.p. abbr. abbrev. abol. aborig.  abr. abr.
-                abstr. acad. acc. acct. accts. add. addr. adj. adjs.  adm. admin. admon.
-                adv. advb. amer. anal. anat. ann. annot. anon. apoc.  app. appl. approx.
+                a.c. a.d. a.k.a. a.m. a.s.a.p. abbr. abbrev. abol. aborig. abr.  abstr.
+                acad. acc. acct. accts. add. addr. adj. adjs.  adm. admin. admon.  adv.
+                advb. amer. anal. anat. ann. annot. anon. apoc.  app. appl. approx.
                 appt. apr. apt. arb. arch. assoc. astr.  astrol. astron. att. attrib.
                 aug. auth. ave.
                 
@@ -119,28 +115,26 @@ if 1:  # Core functionality
                 
                 p. p.a. p.e. p.m. p.o. p.s. perf. pers. ph.d. pa. pharm. phil. philos.
                 phys. pict. pl. plur. pm. poet. pol. polit. pop. poss. posth. postm. pp.
-                ppb. ppl. ppm. pr. pract. prec. pred. pref. prep. pres. pres. prim.
-                princ. priv. prob. prob. proc. prod. prof. pron. prop. prov. pt. pt.
-                publ. pvt.
+                ppb. ppl. ppm. pr. pract. prec. pred. pref. prep. pres. prim.  princ.
+                priv. prob. proc. prod. prof. pron. prop. prov. pt.  publ. pvt.
                 
                 q. q.e.d. q.v. qt. quot.
                 
-                r. r.a.f. r.c. r.n. r.s.v.p. rad. rd. re. rec. ref. rel.
-                rep. repr. ret. rev.
+                r. r.a.f. r.c. r.n. r.s.v.p. rad. rd. re. rec. ref. rel.  rep. repr.
+                ret. rev.
                 
-                s. s.e. s.t.p. s.u.v. s.v. s.v.p. s.w. s.w. sat. sci. sep. sept. sess.
-                sgt. sim. sing. soc. sp. spec. sr. ss. st. st. stat. str. subj. subord.
-                subscr. subst. sun. symp. syst.
+                s. s.e. s.t.p. s.u.v. s.v. s.v.p. s.w. sat. sci. sep. sept. sess.  sgt.
+                sim. sing. soc. sp. spec. sr. ss. st. stat. str. subj. subord.  subscr.
+                subst. symp. syst.
                 
-                t. t.b. taxon. techn. technol. tel. telegr. teleph. temp.
-                theol. thu. tr. trad. trans. transl. trav. treas. trib.
-                trig. trop. tue. typog.
+                t. t.b. taxon. techn. technol. tel. telegr. teleph. temp.  theol. thu.
+                tr. trad. trans. transl. trav. treas. trib.  trig. trop. tue. typog.
                 
-                u.k. u.s. u.s.a. u.s.a.f. u.s.c.g. u.s.m.c. u.s.n. u.s.s.r.
-                univ. unkn. unoffic. usu.
+                u.k. u.s. u.s.a. u.s.a.f. u.s.c.g. u.s.m.c. u.s.n. u.s.s.r.  univ. unkn.
+                unoffic. usu.
                 
-                v. v.p. v.r. va. vac. var. vbl. veg. vet. vet. vic.
-                viz. voc. vol. vols. vs. vulg.
+                v. v.p. v.r. va. vac. var. vbl. veg. vet. vic.  viz. voc. vol.  vols.
+                vs. vulg.
                 
                 w. w.c. w.m.d. w.v. wed. west. wk. wkly. wks. writ.
                 
@@ -150,43 +144,43 @@ if 1:  # Core functionality
                 
             '''
             IsAbbreviation.abbrev = set(data.split())
-            IsAbbreviation.abbrev_noperiod = set(i.replace(".", "") for i in IsAbbreviation.abbrev)
-        if full and not hasattr(IsAbbreviation, "full"):
-            # The following abbreviations can also be words that end
-            # a sentence; you can exclude them if you wish by setting the
-            # keyword full to False.
-            s = set('''
-                    
-                add. admin. am. ann. art. bull. class. conn. dim. fig.
-                math. mod. no. off. pa. pass. path. pop. sept. sing. west.
-                wed. sat. sun.
-                
-                '''.split())
-            IsAbbreviation.full = s
-            IsAbbreviation.full_noperiod = set(i.replace(".", "") for i in s)
+            IsAbbreviation.abbrev_noperiod = set(data.replace(".", "").split())
+            if 0:
+                # Use this to detect duplicates in the data string
+                items = data.split()
+                for i, item in enumerate(items):
+                    if not i:
+                        continue
+                    if item == items[i - 1]:
+                        print(f"Duplicated:  {item!r}")
         if no_period:
-            if full and w.strip().lower() in IsAbbreviation.full_noperiod:
-                return True
-            return w.strip().lower() in IsAbbreviation.abbrev_noperiod
+            return word.strip().lower() in IsAbbreviation.abbrev_noperiod
         else:
-            if full and w.strip().lower() in IsAbbreviation.full:
-                return True
-            return w.strip().lower() in IsAbbreviation.abbrev
+            return word.strip().lower() in IsAbbreviation.abbrev
+
 if __name__ == "__main__":
     if 1:  # Custom modules
         from lwtest import run, Assert
+    def Test_IsAbbreviation_Data():
+        '''Test for data consistency:
+        '''
+        # This is the set of abbreviations
+        a = IsAbbreviation.abbrev
+        # This is the set of abbreviations with no '.' characters
+        anp = IsAbbreviation.abbrev_noperiod
+
+        w = 10
+        for i in sorted(a):
+            print(f"{i:{w}s} {i.replace('.', ''):{w}s}")
+
     def Test_IsAbbreviation():
         Assert(IsAbbreviation("zeitschr."))
         Assert(IsAbbreviation("ZeiTscHr."))
         Assert(IsAbbreviation("ZEITSCHR."))
         Assert(not IsAbbreviation("zzeitschr."))
-        # Test full
-        Assert(not IsAbbreviation("sun."))
-        Assert(IsAbbreviation("sun.", full=True))
         # Test no_period
         Assert(IsAbbreviation("zeitschr", no_period=True))
         Assert(IsAbbreviation("ZeiTscHr", no_period=True))
         Assert(IsAbbreviation("ZEITSCHR", no_period=True))
         Assert(not IsAbbreviation("zzeitschr", no_period=True))
-        # Test full
     exit(run(globals(), halt=1)[0])

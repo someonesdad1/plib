@@ -467,12 +467,20 @@
         - Fast Python package and project manager
         - By creators of ruff
 
+    - Command line tools that could be handy to have in speedy form (e.g., write in rust
+      or C)
+        - columnize, uncolumnize 
+
     - Learn rust
         - Rust apparently is a good CLI toolkit
             - Write a cli:  https://rust-cli.github.io/book/tutorial/index.html
         - Install:  https://www.rust-lang.org/tools/install
             - WSL:  "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
         - Book:  https://www.rust-lang.org/learn
+
+    - dbl.py
+        - It should find the 'if __name__ == "__main__":' line and make sure there's a
+          newline before it
 
     - pgm/ptoken.py python_file fn_name regex
          - Script to take a set of python scripts and print out the tokens that match

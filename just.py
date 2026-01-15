@@ -15,7 +15,7 @@ the line.  Justify PNP to 79 spaces and you'll see why.
 
 """
 
-##∞test∞# ignore #∞test∞#
+##∞test∞# notest #∞test∞#
 if 1:
     from abbreviations import IsAbbreviation
     import string

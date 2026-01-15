@@ -4,7 +4,7 @@ encapsulated using the License class, which provides various features.
 
 Note the licenses' text is in /pylib/licenses.
 '''
-##∞test∞# ignore #∞test∞#
+##∞test∞# notest #∞test∞#
 import collections
 import pathlib
 import requests

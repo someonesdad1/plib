@@ -25,7 +25,7 @@ if 1:  # Header
         # <utility> Launch files with their registered applications.  Works
         # on cygwin/Linux/Windows.
         ##∞what∞#
-        ##∞test∞# ignore #∞test∞#
+        ##∞test∞# notest #∞test∞#
         pass
     if 1:  # Standard imports
         from pathlib import Path as P

@@ -2,7 +2,7 @@
 On-hand resistors
 """
 
-##∞test∞# ignore #∞test∞#
+##∞test∞# notest #∞test∞#
 import bisect
 
 # This tuple is a sorted sequence of on-hand resistors

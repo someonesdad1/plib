@@ -154,7 +154,7 @@ def TestTakeApart():
     mpf = mpmath.mpf if have_mpmath else float
     if 1:  # Show supported types get the same string interpolation
         # Function to convert an Apart to a string
-        def g(x): "".join(x[:4]) + f"e{x[4]}"
+        def g(x): return "".join(x[:4]) + f"e{x[4]}"
         k, u, m = 5, "1.23456", 300
         for n in range(1, 10):
             TA = partial(TakeApart, n=n)

@@ -16,7 +16,7 @@ if 1:  # Header
     # <electrical> Provides EIA resistor values (based on IEC 60063
     # preferred numbers).
     ##∞what∞#
-    ##∞test∞# ignore #∞test∞#
+    ##∞test∞# notest #∞test∞#
     # Custom imports
     from roundoff import RoundOff
 

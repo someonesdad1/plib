@@ -14,7 +14,7 @@ if 1:  # Header
         ##∞what∞#
         # Prints out math/cmath functions and their syntax
         ##∞what∞#
-        ##∞test∞# ignore #∞test∞#
+        ##∞test∞# notest #∞test∞#
         pass
     if 1:  # Standard imports
         from collections import namedtuple

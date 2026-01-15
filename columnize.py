@@ -273,6 +273,33 @@ if 1:  # Core functionality
         if to_string:
             s = "\n".join(s)
         return s
+    def Uncolumnize(seq, in_sorted_order=False):
+        '''Given a sequence of strings, uncolumnize them and return a single-line string.
+        Here's an example: Suppose the following list of files was on your screen:
+
+            atm.py             columnize.py       fmt.py             primes.py
+            atomic_mass.py     cuncertainties.py  frange.py          prob.py
+            bits.py            e.py               gauge_sizes.py     roundoff.py
+            color.py           filesizes.py       globalcontainer.py sig.py
+
+        This was a list of certain files in /plib that was printed by using Columnize.
+        To Uncolumnize this list, you split each line on whitespace, then append each 
+        line's elements to a new list.  Set in_sorted_order to True to have the list sorted.
+        '''
+        o = []
+        for line in seq:
+            o.extend(line.split())
+        return list(sorted(o)) if in_sorted_order else o
+
+if 0: #xx
+    s = ["atm.py             columnize.py       fmt.py             primes.py",
+         "atomic_mass.py     cuncertainties.py  frange.py          prob.py",
+         "bits.py            e.py               gauge_sizes.py     roundoff.py",
+         "color.py           filesizes.py       globalcontainer.py sig.py",]
+    o = Uncolumnize(s, sort=1)
+    pp(o)
+    exit()
+
 if __name__ == "__main__":
     # Running as a script provides a utility similar to pr.
     import sys
@@ -412,76 +439,68 @@ if __name__ == "__main__":
         print(
             dedent(f'''
         Usage:  {name} [options] [file1 ...]
-          Prints in columns.  The number of columns is made a maximum to fit
-          into the current screen width given in the COLUMNS environment
-          variable less one character.  If no files are given on the command
-          line, input is taken from stdin.
-         
+          Prints in columns.  The number of columns is made a maximum to fit into the
+          current screen width given in the COLUMNS environment variable less one
+          character.  If no files are given on the command line, input is taken from
+          stdin.
         Options
-            -a s
-                Align each column as indicated by s:  left or <, center or ^,
-                right or >.
-            -c n
-                Force number of columns to be n.  Resulting line length
-                ignores COLUMNS; no strings are truncated.
-            -e
-                Ignore ANSI escape sequences (e.g., terminal color codes).
-            -f
-                Adjust column width and number of columns to attempt to get
-                the output within the given number of LINES and COLUMNS.
-            -h
-                Print this help message
-            -i s
-                Indent each output line with the string s.
-            -s s
-                Separate each column with the string s.
-            -t
-                Truncate each string if needed to fit into the column width.
-            -w n
-                Set the column width.
+            -a s    Align each column as indicated by s:  left or <, center or ^,
+                    right or >.
+            -c n    Force number of columns to be n.  Resulting line length ignores
+                    COLUMNS; no strings are truncated.
+            -e      Ignore ANSI escape sequences (e.g., terminal color codes).
+            -f      Adjust column width and number of columns to attempt to get the
+                    output within the given number of LINES and COLUMNS.
+            -h      Print this help message
+            -i s    Indent each output line with the string s.
+            -k s    Separate each column with the string s.
+            -s      Sort the sequence when uncolumnizing (implies -u)
+            -t      Truncate each string if needed to fit into the column width.
+            -U      Same as supplying -u and -s
+            -u      Uncolumnize the input into one line of data
+            -w n    Set the column width.
         ''')
         )
         exit(status)
-    def ParseCommandLine(d):
-        d["-a"] = "left"  # Alignment
-        d["-c"] = 0  # Requested number of columns
-        d["-e"] = False  # Ignore ANSI escape sequences
-        d["-f"] = False  # Fit into available screen
-        d["-i"] = None  # Indent string
-        d["-s"] = " "  # Separator
-        d["-t"] = False  # Truncate
-        d["-w"] = 0  # Column width
-        d["--test"] = False  # Run self tests
+    def ParseCommandLine():
+        d["-a"] = "left"    # Alignment
+        d["-c"] = 0         # Requested number of columns
+        d["-e"] = False     # Ignore ANSI escape sequences
+        d["-f"] = False     # Fit into available screen
+        d["-i"] = None      # Indent string
+        d["-k"] = " "       # Separator
+        d["-s"] = False     # Sort the uncolumnized data
+        d["-t"] = False     # Truncate
+        d["-U"] = False     # Uncolumnize and sort
+        d["-u"] = False     # Uncolumnize
+        d["-w"] = 0         # Column width
+        d["--test"] = False # Run self tests
         try:
-            optlist, args = getopt.getopt(sys.argv[1:], "a:c:efhi:s:tw:", "test")
+            optlist, args = getopt.getopt(sys.argv[1:], "a:c:efhi:k:stUuw:", "test")
         except getopt.GetoptError as str:
             msg, option = str
             print(msg)
             exit(1)
         for o, a in optlist:
-            if o == "-a":
-                d["-a"] = a
+            if o[1] in "efstUu":
+                d[o] = not d[o]
+            elif o[1] in "aik":
+                d[o] = a
             elif o == "-c":
-                d["-c"] = int(a)
-                if d["-c"] <= 0:
+                d[o] = int(a)
+                if d[o] <= 0:
                     print("Number of columns must be > 0", file=sys.stderr)
                     exit(1)
-            elif o == "-e":
-                d["-e"] = not d["-e"]
-            elif o == "-f":
-                d["-f"] = not d["-f"]
             elif o == "-h":
-                Usage(0)
-            elif o == "-i":
-                d["-i"] = a
-            elif o == "-s":
-                d["-s"] = a
-            elif o == "--test":
-                d["--test"] = True
-            elif o == "-t":
-                d["-t"] = not d["-t"]
+                Usage()
+            elif o in ("--test",):
+                exit(run(globals(), halt=1)[0])
             elif o == "-w":
-                d["-w"] = abs(int(a))
+                d[o] = abs(int(a))
+        if d["-U"]:
+            d["-u"] = d["-s"] = True
+        if d["-s"]:
+            d["-u"] = True
         return args
     def GetInput(files):
         if not files:
@@ -491,7 +510,7 @@ if __name__ == "__main__":
             for file in files:
                 lines += [i.rstrip() for i in open(file).readlines()]
         return lines
-    def Fit(lines, d):
+    def Fit(lines):
         '''Find out how many LINES and COLUMNS we have for the screen.
         Then adjust the parameters to Columnize to get the lines to
         fit on the screen; truncate as necessary.
@@ -530,34 +549,38 @@ if __name__ == "__main__":
         for i in s:
             print(i)
         exit(0)
-    d = {}
-    files = ParseCommandLine(d)
-    if d["--test"]:
-        exit(run(globals(), halt=1)[0])
-    lines = GetInput(files)
-    if d["-f"]:
-        Fit(lines, d)
-    else:
-        if d["-c"]:
-            kw = {
-                "align": d["-a"],
-                "col_width": d["-w"],
-                "columns": d["-c"],
-                "esc": d["-e"],
-                "indent": d["-i"],
-                "sep": d["-s"],
-                "trunc": d["-t"],
-            }
+    if 1:   # Main code
+        d = {}
+        files = ParseCommandLine()
+        if d["--test"]:
+            exit(run(globals(), halt=1)[0])
+        lines = GetInput(files)
+        if d["-f"]:
+            Fit(lines)
+        elif d["-u"]:
+            o = Uncolumnize(lines, in_sorted_order=d["-s"])
+            print(' '.join(o))
         else:
-            kw = {
-                "align": d["-a"],
-                "col_width": d["-w"],
-                "esc": d["-e"],
-                "indent": d["-i"],
-                "sep": d["-s"],
-                "trunc": d["-t"],
-                "width": int(os.environ["COLUMNS"]) - 1,
-            }
-        s = Columnize(lines, **kw)
-        for i in s:
-            print(i)
+            if d["-c"]:
+                kw = {
+                    "align": d["-a"],
+                    "col_width": d["-w"],
+                    "columns": d["-c"],
+                    "esc": d["-e"],
+                    "indent": d["-i"],
+                    "sep": d["-k"],
+                    "trunc": d["-t"],
+                }
+            else:
+                kw = {
+                    "align": d["-a"],
+                    "col_width": d["-w"],
+                    "esc": d["-e"],
+                    "indent": d["-i"],
+                    "sep": d["-k"],
+                    "trunc": d["-t"],
+                    "width": int(os.environ["COLUMNS"]) - 1,
+                }
+            s = Columnize(lines, **kw)
+            for i in s:
+                print(i)

@@ -2,7 +2,7 @@
 Detect when Windows-style path names are needed (on_windows is True)
 """
 
-##∞test∞# ignore #∞test∞#
+##∞test∞# notest #∞test∞#
 import sys
 
 systems = {

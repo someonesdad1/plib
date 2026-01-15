@@ -16,7 +16,7 @@ if 1:  # Header
     # Provides Select(), a function to help a user specify a set of
     # integers.
     ##∞what∞#
-    ##∞test∞# ignore #∞test∞#
+    ##∞test∞# notest #∞test∞#
     # Standard imports
     pass
 

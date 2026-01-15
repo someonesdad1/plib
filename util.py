@@ -1574,7 +1574,7 @@ def Ranges(seq, validate=False):
     # Make sure all the elements of seq are integers
     if not all(ii(i, int) for i in seq):
         raise TypeError("Not all elements of seq are integers")
-    def f(x, c): next(c) - x
+    def f(x, c): return next(c) - x
     G = (list(x) for _, x in groupby(seq, f))
     # Convert into pairs of numbers for range()
     o = []

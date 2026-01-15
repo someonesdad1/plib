@@ -1,7 +1,7 @@
 '''
 Date/time strings for now() I use a lot
 '''
-##∞test∞# ignore #∞test∞#
+##∞test∞# notest #∞test∞#
 from time import strftime
 def Date():
     'Date = 12Feb2022'

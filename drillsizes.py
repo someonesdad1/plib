@@ -2,7 +2,7 @@
 Provides dictionaries that relate US customary drill sizes to diameters
 in inches.
 """
-##∞test∞# ignore #∞test∞#
+##∞test∞# notest #∞test∞#
 
 letter_drills = {
     "A": 0.234,

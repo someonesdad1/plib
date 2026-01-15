@@ -46,7 +46,7 @@ if 1:  # Header
         # <programming> Change Unicode characters to nearest ASCII
         # equivalents.  For example, é and è would be changed to e.
         ##∞what∞#
-        ##∞test∞# ignore #∞test∞#
+        ##∞test∞# notest #∞test∞#
         # Testing with the following script is disabled until it can be fixed
         ##∞Test∞# ["test/asciify_test.py"] #∞Test∞#
         pass

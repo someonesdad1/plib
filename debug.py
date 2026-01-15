@@ -60,7 +60,7 @@ if 1:  # Header
         # <programming> Debugging aids (taken from the "Python Cookbook" and
         # Beazley's "Python Essential Reference", 4th edition).
         ##∞what∞#
-        ##∞test∞# ignore #∞test∞#
+        ##∞test∞# notest #∞test∞#
         pass
     if 1:   # Standard imports
         import sys

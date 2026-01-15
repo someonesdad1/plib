@@ -12,7 +12,7 @@ if 1:  # Copyright, license
     # <programming> Get the next character typed at the keyboard.  Works
     # on Posix systems.
     ##∞what∞#
-    ##∞test∞# ignore #∞test∞#
+    ##∞test∞# notest #∞test∞#
     pass
 if 1:  # Imports
     import sys

@@ -19,7 +19,7 @@ driving force behind this transliteration, primarily because I am not a linguist
 
 '''
 if 1:   # Header
-    ##∞test∞# ignore #∞test∞#
+    ##∞test∞# notest #∞test∞#
     import unicodedata as U
     import re
     import pickle

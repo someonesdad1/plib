@@ -24,7 +24,7 @@ Other policies enforced by this script are:
       UTF-8 encoded.
 """
 
-##∞test∞# ignore #∞test∞#
+##∞test∞# notest #∞test∞#
 if 1:  # Standard imports
     import getopt
     import os

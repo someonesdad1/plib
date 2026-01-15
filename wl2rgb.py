@@ -18,7 +18,7 @@ if 1:  # Header
         ##∞what∞#
         # Convert between RGB and light wavelength in nm; other color utilities.
         ##∞what∞#
-        ##∞test∞# ignore #∞test∞#
+        ##∞test∞# notest #∞test∞#
         pass
     if 1:  # Standard imports
         pass
@@ -139,7 +139,7 @@ if 1:  # Utility
             #   - Cache in GetCIETable.data
             checked = []
             Σx = Σy = Σz = 0
-            def f(x): round(x, 6)
+            def f(x): return round(x, 6)
             for wl, d in data:
                 Σx += d[0]
                 Σy += d[1]
@@ -166,7 +166,7 @@ if 1:  # Utility
             di = {}
             for wl, cmf in GetCIETable():
                 di[wl] = cmf
-            def f(x, n): round(x, n)
+            def f(x, n): return round(x, n)
             for wl in range(380, 779, 5):
                 start, end = di[wl], di[wl + 5]
                 slope = [f((j - i) / 5, 10) for i, j in zip(start, end)]

@@ -157,26 +157,26 @@ if 1:  # Core functionality
         wrds = set(s3.split())
         if 1:  # Specific fixups
             # Remove ' or " at beginning of word
-            def f(x): x.startswith("'") or x.startswith('"')
+            def f(x): return x.startswith("'") or x.startswith('"')
             a = list(filter(f, wrds))
             for i in a:
                 wrds.add(i[1:])
                 wrds.remove(i)
             # Remove .' at end of word
-            def f(x): x.endswith(".'")
+            def f(x): return x.endswith(".'")
             a = list(filter(f, wrds))
             for i in a:
                 wrds.add(i[:-2])
                 wrds.remove(i)
             # Remove . at end of word
-            def f(x): x.endswith(".")
+            def f(x): return x.endswith(".")
             a = list(filter(f, wrds))
             for i in a:
                 wrds.add(i[:-1])
                 wrds.remove(i)
             # Remove ' at end of word
             if 1:
-                def f(x): x.endswith("'")
+                def f(x): return x.endswith("'")
                 a = list(filter(f, wrds))
                 for i in a:
                     wrds.add(i[:-1])

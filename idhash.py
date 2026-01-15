@@ -31,7 +31,7 @@ if 1:  # Header
     # <programming> Hashes answers to a set of questions to provide a
     # secure hash value.
     ##∞what∞#
-    ##∞test∞# ignore #∞test∞#
+    ##∞test∞# notest #∞test∞#
     # Imports
     import hashlib
     from getpass import getpass

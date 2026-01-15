@@ -15,7 +15,7 @@ if 1:  # Copyright, license
     # 1998.  There were over 1200 files in the /pylib directory tree, so I
     # had to do a lot of trimming.
     ##∞what∞#
-    ##∞test∞# ignore #∞test∞#
+    ##∞test∞# notest #∞test∞#
     pass
 if 1:  # Standard modules
     import getopt

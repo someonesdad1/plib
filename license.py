@@ -17,7 +17,7 @@ if 1:  # Header
         ##∞what∞#
         # <utility> Replace license statements in files
         ##∞what∞#
-        ##∞test∞# ignore #∞test∞#
+        ##∞test∞# notest #∞test∞#
         pass
     if 1:  # Imports
         import getopt

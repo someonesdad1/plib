@@ -58,7 +58,7 @@ if 1:  # Header
         # exception are possible encodings.  Also lets you change a file's
         # encoding like iconv.
         ##∞what∞#
-        ##∞test∞# ignore #∞test∞#
+        ##∞test∞# notest #∞test∞#
         pass
     if 1:  # Imports
         from collections import defaultdict

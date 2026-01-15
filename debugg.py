@@ -16,7 +16,7 @@ if 1:  # Header
     # <programming> SetDebugger() from debug.py to avoid circular
     # import from color.py.
     ##∞what∞#
-    ##∞test∞# ignore #∞test∞#
+    ##∞test∞# notest #∞test∞#
     # Standard imports
     import sys
     import traceback as TB

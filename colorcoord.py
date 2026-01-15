@@ -102,7 +102,7 @@ if 1:  # Utility
         return sum([i * j for i, j in zip(a, b)])
     def Clamp(a):
         "Clamp all values onto [0, 1]"
-        def f(x): min(max(0.0, x), 1.0)
+        def f(x): return min(max(0.0, x), 1.0)
         if IsIterable(a):
             return tuple([f(i) for i in a])
         else:
@@ -183,7 +183,7 @@ if 1:  # Core functionality
         rgb = Dot(r1, XYZ), Dot(r2, XYZ), Dot(r3, XYZ)
         # Round the results and gamma compress
         sRGB = [round(GammaCompressed(i), n) for i in rgb]
-        def clip(x): min(1, max(x, 0))  # Clip to [0, 1]
+        def clip(x): return min(1, max(x, 0))  # Clip to [0, 1]
         sRGB = [clip(i) for i in sRGB]
         return tuple(sRGB)
     def XYZ_to_xy(XYZ):

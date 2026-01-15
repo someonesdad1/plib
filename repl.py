@@ -178,7 +178,7 @@ if 1:  # Header
     # you want to see), so you don't see all the annoying digits common
     # in floating point calculations.
     ##∞what∞#
-    ##∞test∞# ignore #∞test∞#
+    ##∞test∞# notest #∞test∞#
     # Standard imports
     from atexit import register
     from collections import defaultdict
