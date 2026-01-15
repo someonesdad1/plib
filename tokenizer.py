@@ -18,11 +18,11 @@ _pgminfo = '''
         See http://opensource.org/licenses/OSL-3.0.
     oo>
     <oo cat utility oo>
-    <oo test -t oo>
+    <oo test --test oo>
     <oo todo oo>
 '''
 if 1:  # Header
-    ##∞test∞# -t #∞test∞#
+    ##∞test∞# --test #∞test∞#
     if 1:   # Standard imports
         from collections import defaultdict
         from enum import Enum
@@ -92,13 +92,13 @@ if 1:   # Utility
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-s"] = False     # Demonstrate spell checking
-        d["-T"] = False     # Tokenizing timing
-        d["-t"] = False     # Run self-tests
+        d["-s"] = False         # Demonstrate spell checking
+        d["-T"] = False         # Tokenizing timing
+        d["--test"] = False     # Run self-tests
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "hsTt") 
+            opts, args = getopt.getopt(sys.argv[1:], "hsTt", "test") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -107,7 +107,9 @@ if 1:   # Utility
                 d[o] = not d[o]
             elif o == "-h":
                 Usage()
-        if d["-t"]:
+            elif o == "--test":
+                d[o] = not d[o]
+        if d["--test"]:
             exit(run(globals(), halt=True)[0])
         return args
     def MeasureTiming(file):

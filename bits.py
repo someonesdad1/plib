@@ -4,7 +4,7 @@ _pgminfo = '''
 oo>
 <oo cr Copyright © 2025 Don Peterson oo>
 <oo cat utility oo>
-<oo test -t oo>
+<oo test --test oo>
 <oo todo
 - Fixed-size integers for python
 - See https://graphics.stanford.edu/%7Eseander/bithacks.html for ideas
@@ -12,7 +12,7 @@ oo>
 '''
  
 if 1:  # Header
-    ##∞test∞# -t #∞test∞#
+    ##∞test∞# --test #∞test∞#
     if 1:   # Standard imports
         import logging
         import string
@@ -385,7 +385,7 @@ if __name__ == "__main__":
                 t.print(f"{t.ornl}Convert an integer to any base using IntToBase()")
                 print(f"{ind}IntToBase(10017, 82) --> {IntToBase(10017, 82)}")
                 print(f"{ind}  Check:  13*82**0 + 40*82**1 + 1*82**2 = 13 + 3280 + 6724 = 10017")
-    if len(sys.argv) > 1 and sys.argv[1] == "-t":
+    if len(sys.argv) > 1 and sys.argv[1] == "--test":
         exit(run(globals(), halt=True)[0])
     Demo()
     

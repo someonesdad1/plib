@@ -1,9 +1,8 @@
 """
 This file contains a collection of named colors organized by hue.  It was produced by a script
-that I wrote but can no longer find.
-6976 total colors
+that I wrote but can no longer find.  6976 total colors
 """
-##∞test∞# none #∞test∞#
+##∞test∞# notest #∞test∞#
 
 colorhues = {
     "blu": {

@@ -2,14 +2,14 @@
 
 [plib](https://github.com/someonesdad1/plib) Last updated 12 Jan 2026
 
-This repository is a collection of python stuff I've written since 1998.  
+This repository is a collection of python modules and scripts.
 
-- `plib` holds modules that are intended to be used by other scripts
-- `plib/pgm` holds scripts that are separate programs
-- `plib/tests` holds test scripts for modules that don't have their tests built in
-- `plib/g` holds a python graphics library that outputs PostScript
-- `plib/doc` holds things related to documentation
-- `plib/lib` holds things that support a few of the modules in `plib`
+- `plib` has modules that are intended to be used by other scripts
+- `plib/pgm` has scripts that are separate programs
+- `plib/tests` has test scripts for modules that don't have their tests built in
+- `plib/g` has a python graphics library that outputs PostScript
+- `plib/doc` has things related to documentation
+- `plib/lib` has things that support a few of the modules in `plib`
 
 Click on the following links to get more information (**note:  this structure is planned but
 not implemented yet**):
@@ -19,7 +19,15 @@ not implemented yet**):
 - [lib](doc/lib.html) Information on plib/lib's content
 - [roadmap](doc/roadmap.html) How I plan to change things in this repository
 
-## Plans for 2026
+## 2026 work in progress
+
+- /plib core work
+    - 14 Jan 2026 All python files have a legitmate teststr 
+    - Next
+        - Combine ignore with notest
+        - Study all notest category files and add any appropriate tests
+        - Run all tests.  Make need a "broken" category, which would help with figuring
+          out todo lists.
 
 - Create above HTML pages to make it easier to browse/find content
     - Alphabetized

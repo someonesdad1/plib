@@ -24,7 +24,7 @@ if 1:  # Header
         ##∞what∞#
         # Dbg() debug printing function
         ##∞what∞#
-        ##∞test∞# None #∞test∞#
+        ##∞test∞# notest #∞test∞#
         pass
     if 1:  # Standard imports
         import sys

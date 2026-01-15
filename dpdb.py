@@ -50,7 +50,7 @@ This module extends the python debugger pdb.py Features:
               python version.  That's why I try to make my changes in this
               file.
 '''
-##∞test∞# none #∞test∞#
+##∞test∞# notest #∞test∞#
 if 1:  # Imports
     from decimal import Decimal
     from fractions import Fraction

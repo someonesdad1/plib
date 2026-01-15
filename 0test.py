@@ -38,10 +38,10 @@ if 1:  # Header
         #   "--test"    Run script with the '--test' option.
         #   A list of strings specifies one or more test files to run.
         ##∞what∞#
-        ##∞test∞# none #∞test∞#
+        ##∞test∞# notest #∞test∞#
         pass
     if 1:  # Standard imports
-        from collections import namedtuple, deque
+        from collections import namedtuple, deque, defaultdict
         import getopt
         import os
         import pathlib
@@ -378,7 +378,6 @@ def GetTestString(file, exc_on_none=True):
         else:   # Use this to just print a message and finish processing
             print(msg)
     return found
-
 def GetTestStrings(dir):
     'Return a deque of named tuples with test information'
     o = []
@@ -386,8 +385,20 @@ def GetTestStrings(dir):
     files = p.glob("*.py")
     for file in files:
         tstr = GetTestString(file)
-        o.append(Test(dir, file, tstr))
+        o.append(Test(dir, str(file), tstr))
     return deque(o)
+def Report():
+    'Show file test string by category'
+    dq, d = GetTestStrings("."), defaultdict(list)
+    while dq:
+        item = dq.popleft()
+        d[item.tstr].append(str(item.file))
+    for i in d:
+        if i.startswith("["):
+            continue
+        t.print(f"{t.grn}{i}")
+        for j in Columnize(d[i], indent=" "*4):
+            print(j)
 
 if 0:
     f = "a.py"
@@ -395,7 +406,7 @@ if 0:
     t.print(f"{f}: got {t.yel}{s!r}")
     exit()
 if 1:
-    dq = GetTestStrings(".")
+    Report()
     exit()
 
 if __name__ == "__main__":
