@@ -38,7 +38,7 @@ if 1:  # Header
         ##∞what∞#
         # Program description string
         ##∞what∞#
-        ##∞test∞# #∞test∞#
+        ##∞test∞# notest #∞test∞#
         pass
     if 1:  # Standard imports
         from collections import deque

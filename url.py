@@ -59,7 +59,7 @@ if 1:  # Header
         ##∞what∞#
         # Search text files for defunct URLs
         ##∞what∞#
-        ##∞test∞# #∞test∞#
+        ##∞test∞# notest #∞test∞#
         pass
     if 1:  # Standard imports
         import getopt

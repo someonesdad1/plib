@@ -4,6 +4,7 @@ number of lowercase extensions casually used for various datafiles.
 
 Constructed by /plib/build/extensions/build.py Sun Dec  3 08:49:08 2023
 """
+##∞test∞# notest #∞test∞#
 
 extensions = {
     ".!bt": ("BitTorrent Incomplete Download file",),

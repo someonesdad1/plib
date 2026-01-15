@@ -31,7 +31,7 @@ if 1:  # Header
         # <utility> Print warning message to stderr about a library file
         # being modified.
         ##∞what∞#
-        ##∞test∞# #∞test∞#
+        ##∞test∞# notest #∞test∞#
         pass
     if 1:  # Standard imports
         from pathlib import Path

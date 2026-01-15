@@ -15,7 +15,7 @@ if 1:  # Header
         ##∞what∞#
         # Solar system planetary data
         ##∞what∞#
-        ##∞test∞# #∞test∞#
+        ##∞test∞# notest #∞test∞#
         pass
     if 1:  # Standard imports
         import getopt

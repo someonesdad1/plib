@@ -30,6 +30,7 @@ Finds trigger strings in text files
         
     and call t.write() to write the information back to the file.
 """
+##∞test∞# notest #∞test∞#
 import pathlib
 import re
 P = pathlib.Path
@@ -79,7 +80,6 @@ class Trigger(dict):
             t = r.findall(self.text)
             if not t:
                 msg = f"Trigger '{trigger}' only occurred once"
-                breakpoint() #xx 
                 raise ValueError(msg)
             elif len(t) != 1 or trigger in self:
                 msg = f"{p}:  More than one string for trigger '{trigger}'"

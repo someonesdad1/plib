@@ -12,6 +12,7 @@ oo>
 '''
  
 if 1:  # Header
+    ##∞test∞# -t #∞test∞#
     if 1:   # Standard imports
         import logging
         import string

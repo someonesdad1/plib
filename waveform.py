@@ -189,7 +189,7 @@ if 1:  # Header
         ##∞what∞#
         # Module to get various waveforms as numpy arrays.
         ##∞what∞#
-        ##∞test∞# #∞test∞#
+        ##∞test∞# notest #∞test∞#
         pass
     if 1:  # Standard imports
         import math

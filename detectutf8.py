@@ -19,7 +19,7 @@ if 1:  # Header
         # an exception, the file is not encoded UTF-8.  This may be inefficient
         # for lots of large files, but it's the only method guaranteed to work.
         ##∞what∞#
-        ##∞test∞# #∞test∞#
+        ##∞test∞# notest #∞test∞#
         pass
     if 1:  # Standard imports
         from pathlib import Path as P

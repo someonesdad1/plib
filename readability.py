@@ -229,7 +229,7 @@ if 1:  # Header
         ##∞what∞#
         # Calculate various readability indices for a set of files
         ##∞what∞#
-        ##∞test∞# #∞test∞#
+        ##∞test∞# notest #∞test∞#
         pass
     if 1:  # Standard imports
         from math import sqrt

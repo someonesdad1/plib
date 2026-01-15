@@ -16,7 +16,7 @@ if 1:  # Header
     # Same as python's textwrap module except the length of strings
     # ignores ANSI escape sequences.
     ##∞what∞#
-    ##∞test∞# #∞test∞#
+    ##∞test∞# notest #∞test∞#
     # Standard imports
     import os
     from textwrap import TextWrapper as TextWrapperOrig

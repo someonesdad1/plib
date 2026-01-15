@@ -18,6 +18,7 @@ _pgminfo = '''
     oo>
 '''
 if 1:  # Header
+    ##∞test∞# notest #∞test∞#
     if 1:   # Standard imports
         from pathlib import Path as P
         import csv

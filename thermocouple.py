@@ -27,7 +27,7 @@ if 1:  # Header
     ##∞what∞#
     # Print thermocouple tables
     ##∞what∞#
-    ##∞test∞# #∞test∞#
+    ##∞test∞# notest #∞test∞#
     # Standard Imports
     import sys
     import getopt

@@ -34,6 +34,7 @@ Usage:
     
 Run this file as a script to see a demonstration.
 """
+##∞test∞# notest #∞test∞#
 if 1:   # Header
     import hashlib
     import os

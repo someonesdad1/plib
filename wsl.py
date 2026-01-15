@@ -4,7 +4,6 @@ in the environment.
 
     This identifies that we're running under the Windows Subsystem for Linux.
 """
-
+##∞test∞# notest #∞test∞#
 import os
-
 wsl = bool(int(os.environ.get("dpwsl", 0)))

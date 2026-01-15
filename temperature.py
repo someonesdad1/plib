@@ -14,7 +14,7 @@ if 1:  # Header
         ##∞what∞#
         # Temperature conversions
         ##∞what∞#
-        ##∞test∞# #∞test∞#
+        ##∞test∞# notest #∞test∞#
         pass
     if 1:  # Standard imports
         pass

@@ -22,7 +22,7 @@ if 1:  # Header
         ##∞what∞#
         # Module to get element information.  Also see the elements1.py module.
         ##∞what∞#
-        ##∞test∞# #∞test∞#
+        ##∞test∞# notest #∞test∞#
         pass
     if 1:  # Standard imports
         import getopt

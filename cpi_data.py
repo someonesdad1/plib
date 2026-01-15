@@ -32,7 +32,7 @@ if 1:  # Header
         ##∞what∞#
         # Returns a dictionary of the US consumer price index
         ##∞what∞#
-        ##∞test∞# #∞test∞#
+        ##∞test∞# notest #∞test∞#
         pass
     if 1:  # Standard imports
         pass

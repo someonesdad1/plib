@@ -7,6 +7,7 @@
 # progenitor of much of this information was the rgb.txt file on 
 # early XWindows systems.
 
+##∞test∞# notest #∞test∞#
 from color import Color
 
 # Fields are:

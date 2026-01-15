@@ -16,6 +16,7 @@ oo>
 oo>
 '''
 if 1:  # Header
+    ##∞test∞# notest #∞test∞#
     from f import flt
     from lwtest import Assert
     from roundoff import RoundOff

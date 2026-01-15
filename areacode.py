@@ -15,7 +15,7 @@ if 1:  # Header
         ##∞what∞#
         # Program description string
         ##∞what∞#
-        ##∞test∞# #∞test∞#
+        ##∞test∞# notest #∞test∞#
         pass
     if 1:  # Standard imports
         import getopt

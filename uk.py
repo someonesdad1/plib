@@ -19,7 +19,7 @@ if 1:  # Header
         ##∞what∞#
         # Convert between UK and US spellings
         ##∞what∞#
-        ##∞test∞# #∞test∞#
+        ##∞test∞# notest #∞test∞#
         pass
     if 1:  # Standard imports
         from pathlib import Path as P

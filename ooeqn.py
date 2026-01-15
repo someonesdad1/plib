@@ -49,7 +49,7 @@ if 1:  # Header
         # Module to get the text content of the mathematical equations in an Open
         # Document file.
         ##∞what∞#
-        ##∞test∞# #∞test∞#
+        ##∞test∞# notest #∞test∞#
         pass
     # Standard imports
     if 1:

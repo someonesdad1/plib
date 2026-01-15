@@ -14,7 +14,7 @@ if 1:  # Header
         ##∞what∞#
         # SI constants
         ##∞what∞#
-        ##∞test∞# #∞test∞#
+        ##∞test∞# notest #∞test∞#
         pass
     if 1:  # Standard imports
         import math

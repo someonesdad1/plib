@@ -22,6 +22,7 @@ _pgminfo = '''
     <oo todo oo>
 '''
 if 1:  # Header
+    ##∞test∞# -t #∞test∞#
     if 1:   # Standard imports
         from collections import defaultdict
         from enum import Enum

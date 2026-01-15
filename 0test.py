@@ -20,58 +20,69 @@ Testing automation tool
     
 """
 if 1:  # Header
-    # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    ##∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
-    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    ##∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    ##∞license∞#
-    ##∞what∞#
-    # <utility> Run self tests of python scripts with a test trigger string:
-    #   <empty>     Missing; probably needs a test written.
-    #   "none"      Has no test and shouldn't be listed.
-    #   "ignore"    Has no test; list as ignored file.
-    #   "run"       Run the script to run the self-tests.
-    #   "--test"    Run script with the '--test' option.
-    #   A list of strings specifies one or more test files to run.
-    ##∞what∞#
-    ##∞test∞# none #∞test∞#
-    # Standard imports
-    import getopt
-    import os
-    import pathlib
-    import subprocess
-    import sys
-    # Custom imports
-    from tee import Print
-    from wrap import dedent
-    from columnize import Columnize
-    from timer import Timer, fnt
-    from color import TRM as t
-    import trigger
-    if 0:
-        import debug
-        debug.SetDebugger()  # Start debugger on unhandled exception
-    try:
-        import pycodestyle
-        have_pycodestyle = True
-    except ImportError:
-        have_pycodestyle = False
-    # Global variables
-    P = pathlib.Path
-    # Set up for color printing
-    t.fail = t("redl")
-    t.ok = t("grnl")
-    t.ign = t("roy")
-    t.dbg = t("purl")
-    t.cyn = t("cynl")  # Directories
-    t.grn = t("grnl")  # For files we'll run
-    t.yel = t("yell")  # For files we'll run
-    t.sty = t("ornl")  # Style errors/warnings
-    # Files to ignore
-    ignore = set((P("/plib/trigger.py"),))
+    if 1:  # Copyright & license
+        # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        ##∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
+        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        ##∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        ##∞license∞#
+        ##∞what∞#
+        # <utility> Run self tests of python scripts with a test trigger string:
+        #   <empty>     Missing; probably needs a test written.
+        #   "none"      Has no test and shouldn't be listed.
+        #   "ignore"    Has no test; list as ignored file.
+        #   "run"       Run the script to run the self-tests.
+        #   "--test"    Run script with the '--test' option.
+        #   A list of strings specifies one or more test files to run.
+        ##∞what∞#
+        ##∞test∞# none #∞test∞#
+        pass
+    if 1:  # Standard imports
+        from collections import namedtuple, deque
+        import getopt
+        import os
+        import pathlib
+        import subprocess
+        import sys
+    if 1:  # Custom imports
+        import get
+        from tee import Print
+        from wrap import dedent
+        from columnize import Columnize
+        from timer import Timer, fnt
+        from color import TRM as t
+        import trigger
+        if 0:
+            import debug
+            debug.SetDebugger()  # Start debugger on unhandled exception
+    if 1:  # Global variables
+        P = pathlib.Path
+        class G:
+            pass
+        g = G()
+        g.dbg = 0
+        g.teststr = "#∞test∞#"      # Marks a test directive in a python script
+        # Various colors for output
+        t.failed = t.red
+        t.passed = t.grn
+        t.dbg = t.sky
+        # Named tuples
+        if 1:   # Test information
+            # This core data structure holds the name of each file in a directory along
+            # with the tstr = test_string, describing how this file is to be tested.
+            # Here are the different types that can be found:
+            #  +  ""          Null; no g.teststr found in the file
+            #  +  "empty"     No string between the g.teststr locations
+            #     "notest"    No test needs to be run for this file
+            #     "run"       Run the file to run the self tests
+            #     "-t"        Run the file with this argument to test
+            #     "--test"    Ditto
+            #     "['test/abc.py']"    A list of testing scripts to be run
+            # + means that file needs attention (an exception will be raised)
+            Test = namedtuple("Test", "dir file tstr")
 if 1:  # Utility
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
@@ -268,11 +279,11 @@ class TestRunner:
                 if d["-v"]:
                     print(f"{file}: no test to run")
 def Dbg(*p, **kw):
-    if not d["-d"]:
+    if not g.dbg:
         return
     print(f"{t.dbg}", end="")
     print(*p, **kw)
-    t.out()
+    print(f"{t.n}", end="")
 def ShowWhatWillBeDone(tr, items):
     # Categories of trigger strings
     empty, none, ignore, run = [], [], [], []
@@ -313,6 +324,80 @@ def ShowWhatWillBeDone(tr, items):
     print(f"{t('grn')}", end="")
     Show("Files with tests to run:", run)
     t.out()
+def GetTestString(file, exc_on_none=True):
+    '''Return the test string for this file; the valid returned strings are:
+      ""        No g.teststr found in file      --> Needs attention
+      "empty"   g.teststr found, but no data    --> Needs attention
+      "notest"  This file doesn't need to be tested
+      "run"     Run the file as a script to test
+      "-t"      Run as script with this argument to test
+      "--test"  Ditto
+      "['test/abc.py']"    A list of testing scripts to be run
+    If exc_on_none is True, then a ValueError exception is raised on a file with
+    "" or "empty".
+    '''
+    found = None
+    dq = deque(get.GetLines(file,  ignore_empty=True))
+    linenum = 0
+    while dq:
+        line = dq.popleft()
+        linenum += 1
+        loc = line.find(g.teststr)
+        if loc == -1:
+            continue
+        Dbg(f"Found {g.teststr!r} on line {linenum}:  {t.lill}{line!r}")
+        line = line[loc + len(g.teststr):].strip()   # Strip off leading junk
+        # Must have a second g.teststr at end of line
+        loc = line.find(g.teststr)
+        if loc == -1:
+            msg = f"{t.ornl}{file}:  missing {t.lill}{g.teststr!r}{t.ornl} at end of line {linenum}{t.n}"
+            raise ValueError(msg)
+        found = line[:loc].strip()
+        Dbg(f"Test string = {found!r}")
+        break
+    # Check that we have a valid value
+    msg = ""
+    if found is None:
+        msg = f"{t.ornl}{file}:  no test string{t.n}"
+    elif not found:
+        msg = f"{t.ornl}{file}:  empty test string{t.n}"
+    elif found == "empty":
+        msg = f"{t.ornl}{file}:  empty test string{t.n}"
+    elif found == "notest":
+        pass
+    elif found in ("run", "-t", "--test"):
+        pass
+    elif found.startswith("["):
+        try:
+            eval(found)
+        except SyntaxError:
+            msg = f"{t.ornl}{file}:  bad list syntax: {t.lill}{found!r}{t.n}"
+    if msg:
+        if 0:   # Use this to stop on a missing test string
+            raise ValueError(msg)
+        else:   # Use this to just print a message and finish processing
+            print(msg)
+    return found
+
+def GetTestStrings(dir):
+    'Return a deque of named tuples with test information'
+    o = []
+    p = P(dir)
+    files = p.glob("*.py")
+    for file in files:
+        tstr = GetTestString(file)
+        o.append(Test(dir, file, tstr))
+    return deque(o)
+
+if 0:
+    f = "a.py"
+    s = GetTestString(f)
+    t.print(f"{f}: got {t.yel}{s!r}")
+    exit()
+if 1:
+    dq = GetTestStrings(".")
+    exit()
+
 if __name__ == "__main__":
     d = {}  # Options dictionary
     items = [P(i) for i in ParseCommandLine(d)]

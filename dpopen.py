@@ -18,7 +18,7 @@ if 1:  # Header
         ##∞what∞#
         # Module to open a file with its registered application
         ##∞what∞#
-        ##∞test∞# #∞test∞#
+        ##∞test∞# notest #∞test∞#
         pass
     if 1:  # Standard imports
         from pathlib import Path as P

@@ -16,7 +16,7 @@ if 1:  # Header
         ##∞what∞#
         # Return text of Pride and Prejudice
         ##∞what∞#
-        ##∞test∞# #∞test∞#
+        ##∞test∞# notest #∞test∞#
         pass
     if 1:  # Standard imports
         import getopt

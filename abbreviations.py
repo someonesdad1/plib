@@ -21,6 +21,7 @@ oo>
 <oo todo oo>
 '''
 if 1:  # Header
+    ##∞test∞# notest #∞test∞#
     if 1:  # Imports
         from collections import defaultdict
     if 1:  # Custom imports

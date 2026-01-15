@@ -5,6 +5,7 @@ typically 7-bit ASCII text but with differing whitespace.  Run as a
 script to compare two files.
 """
 
+##∞test∞# notest #∞test∞#
 import difflib
 import hashlib
 import io

@@ -40,7 +40,7 @@ if 1:  # Header
         # Provide the ucd dictionary, a container of the Unicode Character Database (UCD)
         # used with the uni.py script.
         ##∞what∞#
-        ##∞test∞# #∞test∞#
+        ##∞test∞# notest #∞test∞#
         pass
     if 1:  # Standard imports
         import xml.etree.ElementTree as ET

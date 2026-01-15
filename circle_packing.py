@@ -104,7 +104,7 @@ if 1:  # Header
         ##∞what∞#
         # Circle packing information
         ##∞what∞#
-        ##∞test∞# #∞test∞#
+        ##∞test∞# notest #∞test∞#
         pass
     if 1:  # Imports
         from collections import namedtuple

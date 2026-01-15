@@ -158,7 +158,7 @@ if 1:  # Getting text, lines, bytes
         return o
     def GetLines(thing, enc=None, ignore=[], script=False, ignore_empty=False,
                  strip=False, nonl=False):
-        '''Return text from thing, which is
+        '''Return list of strings from thing, which is
            string      It's a file name.  If get a read exception, then
                        use string itself for the text.  "-" means stdin.
            bytes       or

@@ -89,6 +89,7 @@ Color coordinates and transformations
         - https://www.w3.org/TR/css-color-4 is a good document on color in CSS and the specs
         
 '''
+##∞test∞# notest #∞test∞#
 if 1:  # Imports
     from util import IsIterable
     from lwtest import run, Assert

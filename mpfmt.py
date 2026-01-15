@@ -2,6 +2,7 @@
 String interpolation for numbers when mpmath is available
 """
 
+##∞test∞# notest #∞test∞#
 from lwtest import run, Assert
 from collections import namedtuple, deque
 import decimal

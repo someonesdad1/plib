@@ -2,6 +2,7 @@
 bama is a dict of keys "manufacturer" with a set of values of model numbers as of
 24 Nov 2024 on https://bama.edebris.com/manuals/.
 '''
+##∞test∞# notest #∞test∞#
 import re
 bama = {
     "3h-industries": ["swinger two"],

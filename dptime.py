@@ -14,7 +14,7 @@ if 1:  # Header
         ##∞what∞#
         # Provides dptime(), a function that returns the date and time as I like to see it.
         ##∞what∞#
-        ##∞test∞# #∞test∞#
+        ##∞test∞# notest #∞test∞#
         pass
     if 1:  # Standard imports
         import time
