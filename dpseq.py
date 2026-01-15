@@ -56,7 +56,7 @@ if 1:  # Header
         class G:
             pass
         g = G()
-        g.dbg = True
+        g.dbg = False
         ii = isinstance
 if 1:  # Utility
     def GetColors():
@@ -70,14 +70,14 @@ if 1:  # Utility
             print(f"{t.N}", end="")
 if 1:  # Core functionality
     def find_le(x, seq):
-        "Find rightmost value less than or equal to x"
+        "Find rightmost value less than or equal to x; seq must be sorted"
         # From bisect module documentation
         i = bisect.bisect_right(seq, x)
         if i:
             return seq[i - 1]
         raise ValueError
     def find_ge(x, seq):
-        "Find leftmost item greater than or equal to x"
+        "Find leftmost item greater than or equal to x; seq must be sorted"
         # From bisect module documentation
         i = bisect.bisect_left(seq, x)
         if i != len(seq):
@@ -119,7 +119,7 @@ if 1:  # Core functionality
             yield int(round(a + i * dx, 0))
     def fDistribute(n, a=0, b=1, impl=float):
         '''Generator to return n impl instances on [a, b] inclusive. A common use case is an
-        interpolation parameter on [0, 1].  Examples:
+        interpolation parameter on [0, 1].  This is for floating point numbers.  Examples:
             fd = fDistribute
             fd(3) --> [0.0, 0.5, 1.0]
             fd(3, 1, 2) --> [1.0, 1.5, 2.0]
@@ -222,8 +222,7 @@ if 1:  # Core functionality
                 else:
                     raise ValueError("Closest item is unresolvable")
             # Return the closest value
-            if g.dbg:
-                Dbg(f"{t('ornl')}  Answer = {seq[index]}")
+            Dbg(f"{t('ornl')}  Answer = {seq[index]}")
             return seq[index]
         else:
             # Use binary search on a sorted array
@@ -277,9 +276,18 @@ if 1:  # Core functionality
 if __name__ == "__main__":
     from functools import partial
     from lwtest import run, assert_equal, Assert
-    g.dbg = True
     GetColors()
     g.dbg = False  # Turn g.dbg on to see debug printing
+    def Test_find():
+        # Test find_le and find_ge; though these came from the python manpage on the
+        # bisect module, they need to be proved working.
+        N = 10
+        seq = list(range(N))
+        for i in range(N):
+            n = find_le(i, seq)
+            Assert(n == i)
+            n = find_ge(i, seq)
+            Assert(n == i)
     def Test_iDistribute():
         def Dist(seq):
             "Return distances between numbers in seq"

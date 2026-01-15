@@ -169,9 +169,7 @@ if __name__ == "__main__":
         # This is the set of abbreviations with no '.' characters
         anp = IsAbbreviation.abbrev_noperiod
 
-        w = 10
-        for i in sorted(a):
-            print(f"{i:{w}s} {i.replace('.', ''):{w}s}")
+        b = [i.replace(".", "") for i in a]
 
     def Test_IsAbbreviation():
         Assert(IsAbbreviation("zeitschr."))

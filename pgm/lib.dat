@@ -1333,3 +1333,16 @@ def SetUp(file, orientation=portrait, units=inches, wrap_in_PJL=False):
     ginitialize(ofp, wrap_in_PJL)
     setOrientation(orientation, units)
     return ofp
+@@--------------------------------------------------------------------
+transpose ; Utility ; python
+How to calculate the 2D transpose of a list of lists
+Suppose A = [[1, 4], [2, 5], [3, 6]] and suppose this represents the two column
+vectors (note you read out in row-major order)
+    1   4
+    2   5
+    3   6
+The transpose is [list(i) for i in zip(*A)], which gives [[1, 2, 3], [4, 5, 6]]; in
+row-major order, this is.
+    1   2   3
+    4   5   6
+These matrixes are transposes of each other.
