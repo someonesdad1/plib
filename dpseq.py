@@ -247,13 +247,16 @@ if 1:  # Core functionality
         if the size of the set is less than the size of the sequence, there are
         duplicates. A disadvantage is that the elements of the sequence must be
         hashable.
-
+        
+        Both of the algorithms in this function are O(n) where n is the size of the
+        sequence.
+        
         If convert is True and if the sequence has nonhashable elements, it will fall
         through to a second algorithm that's potentially slow, but will do the job
         correctly.  If the sequence is a structure like a deque, the algorithm will be
-        potentially inefficient because deques are not intended for random access.  In
-        this case, it could be worthwhile to convert the sequence to a list; the cost is
-        the extra memory for the list.
+        potentially inefficient for a large deque because deques are not intended for
+        random access.  In this case, it could be worthwhile to convert the sequence to
+        a list; the cost is the extra memory for the list.
         '''
         try:
             counts = Counter(seq)
@@ -270,20 +273,6 @@ if 1:  # Core functionality
             if item in seq[:i]:
                 duplicates.append(item)
         return duplicates
-
-if 0:
-    class G:
-        def __init__(self, x):
-            self.x = x
-        def __str__(self):
-            return f"<{self.x}>"
-        def __repr__(self):
-            return str(self)
-    a, b, c = G(1), G(5), [1, 3]
-    my_list = ["8", 1, 2, 3, 2, 4, 1, a, b, a, c, "8"]
-    print(my_list)
-    print(GetDuplicates(my_list))
-    exit()
 
 if __name__ == "__main__":
     from functools import partial
@@ -372,17 +361,22 @@ if __name__ == "__main__":
             Assert(f(Pt(0, 1000), seq, distance=metric) == Pt(4, 8))
             Assert(f(Pt(1, 0), seq, distance=metric) == Pt(0, 0))
             Assert(f(Pt(1.0001, 0), seq, distance=metric) == Pt(2, 0))
-    if 0:
-        def Test_GetDuplicates():
-            class G:
-                def __init__(self, x):
-                    self.x = x
-                def __str__(self):
-                    return f"<{self.x}>"
-                def __repr__(self):
-                    return str(self)
-            a, b, c = G(1), G(5), [1, 3]
-            seq = ["8", 1, 2, 3, 2, 4, 1, a, b, a, c, "8"]
-            duplicates = GetDuplicates(seq)
-            Assert(duplicates == [2, 1, a, "8"])
+    def Test_GetDuplicates():
+        class G:
+            def __init__(self, x):
+                self.x = x
+            def __str__(self):
+                return f"<{self.x}>"
+            def __repr__(self):
+                return str(self)
+        a, b, c = G(1), G(5), [1, 3]
+        seq1 = ("8", 3, 4, 3, a, b, a,    "8") # Hashable
+        seq2 = ("8", 3, 4, 3, a, b, a, c, "8") # Not hashable
+        if 1:   # Use the Counter implementation
+            duplicates = GetDuplicates(seq1)
+            Assert(duplicates == ["8", 3, a])
+        if 1:   # Use the slower second implementation
+            duplicates = GetDuplicates(seq2)
+            # Note results same but order different
+            Assert(duplicates == [3, a, "8"])
     exit(run(globals(), halt=True)[0])
