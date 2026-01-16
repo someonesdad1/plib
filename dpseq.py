@@ -261,7 +261,32 @@ if 1:  # Core functionality
         for some discussion of the nature of this problem.  The usual suspects in
         nonhashability are the mutable data types like lists, dictionaries, sets, and
         deques.
+
+        There are two algorithms here.  The first uses collections.Counter, which is a
+        dictionary -- and means the elements of seq have to be hashable.  Here's some
+        example code showing you what it does:
+        
+            seq = [3, 4, 5, 3, 3, "a"]
+            di =  Counter(seq)
+            print(di)
+              --> Counter({3: 3, 4: 1, 5: 1, 'a': 1})
+
+        This shows that the element 3 occurred 3 times, 4, 5, and "a" once.  In the code
+        below, the duplicates are any elements with a count larger than 1; the list
+        comprehension picks these out.
+
+        The second algorithm looks at each element in the list (starting from the left)
+        and then asks if that element is in the remaining list to the right; if so, it's
+        a duplicate.  Let seq = [0, 1, 2, 3].  Starting at index i = 1, get seq[i - 1]
+        which is seq[0] and see if it's also in seq[1:].  Then do the same for index 2,
+        etc.  The sequence of examination is
+            element: 0, remaining sequence: [1, 2, 3]
+            element: 1, remaining sequence: [2, 3]
+            element: 2, remaining sequence: [3]
+
         '''
+        # First algorithm:  will fail if seq contains a non-hashable element like a
+        # list, dict, or set.
         try:
             counts = Counter(seq)
             duplicates = [item for item, count in counts.items() if count > 1]
@@ -270,15 +295,8 @@ if 1:  # Core functionality
             # This probably occurred because an element of seq wasn't hashable, a
             # requirement of Counter, which is a dict subclass
             pass
-        '''
-        For 1e5, here's the timing in s for these algorithms:
-            Using sublists: 39
-            Using filter:
-        '''
+        # Second algorithm
         seq = list(seq) if convert else seq     # Convert to list if desired
-        # Let seq = [0, 1, 2, 3].  Starting at index 1, get seq[i - 1] and see if it
-        # is duplicated in seq[i:].  Do again for index 2 and to the end of the
-        # array.  This is about twice as fast as the filter method below.
         duplicates = []
         for i in range(1, len(seq)):
             if seq[i - 1] in seq[i:]:
