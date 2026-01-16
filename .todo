@@ -46,6 +46,9 @@
               only used so far in 0test.py.
             - waveform.py needs a goodly amount of work to fix lint problems
 
+    - Move the stuff in cygwin's /tools directory to a repository on github, first
+      making sure everything compiles and works.
+
     - ruff
         - I know this tool will be fast and be a good tool for maintaining a bunch of
           code because formatting standards are important.  Thus, carefully test the

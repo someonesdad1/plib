@@ -240,49 +240,245 @@ if 1:  # Core functionality
                 else:
                     diff_low, diff_high = abs(x - L), abs(x - r)
                     return L if diff_low <= diff_high else r
-    def GetDuplicates(seq, convert=False):
-        '''Return a list of the items in the sequence that are duplicates.  If you only
-        want to know whether a sequence has duplicates, you can construct a set with it;
-        if the size of the set is less than the size of the sequence, there are
-        duplicates. A disadvantage is that the elements of the sequence must be
-        hashable.
+    def GetDupNodup(seq, type_important=False):
+        '''Return (nodup, dup) where nodup is a list of the items in seq that are not
+        duplicates and dup is a list of the items that were duplicates.  The order of
+        the items in dup and nodup are the same as they were in seq.  The algorithm
+        maintains the invariant len(nodup) + len(dup) == len(seq).
         
-        Both of the algorithms in this function are O(n) where n is the size of the
-        sequence.
+        If type_important is True, then the items must be equal AND have the same type
+        to be considered a duplicate.  Example:  in python, 1 == 1.0, but type(1) is not
+        the same as type(1.0).  There may be times when you'd want to consider the
+        integer 1 not being equal to the floating point 1.0, which is why this keyword
+        argument is present.
         
-        If convert is True and if the sequence has nonhashable elements, it will fall
-        through to a second algorithm that's potentially slow, but will do the job
-        correctly.  If the sequence is a structure like a deque, the algorithm will be
-        potentially inefficient for a large deque because deques are not intended for
-        random access.  In this case, it could be worthwhile to convert the sequence to
-        a list; the cost is the extra memory for the list.
-
-        See https://code.activestate.com/recipes/52560-remove-duplicates-from-a-sequence/
-        for some discussion of the nature of this problem.  The usual suspects in
-        nonhashability are the mutable data types like lists, dictionaries, sets, and
-        deques.
-
-        There are two algorithms here.  The first uses collections.Counter, which is a
-        dictionary -- and means the elements of seq have to be hashable.  Here's some
-        example code showing you what it does:
+        Examples:
+            GetDupNodup([1, 2, 3, 1, 2, 4]) --> [1, 2, 3, 4], [1, 2]
+            GetDupNodup([1, 2, 3]) --> [1, 2, 3], []
+            GetDupNodup([]) --> [], []
+            GetDupNodup([1, 1, 1.0, 1.0], type_important=True) --> [1, 1.0], [1, 1.0]
+            GetDupNodup([1, 1, 1.0, 1.0]) --> [1], [1, 1.0, 1.0]
         
-            seq = [3, 4, 5, 3, 3, "a"]
-            di =  Counter(seq)
-            print(di)
-              --> Counter({3: 3, 4: 1, 5: 1, 'a': 1})
+        This is an O(n²) algorithm because it does not rely on the elements being hashable.  
+        Note it also keeps the order of the items found in the original sequence.
+        This algorithm works well on small sequences (say, hundreds to thousands of
+        items), but is not recommended for larger sequences because it will be slow.
+        '''
+        '''
+        There are some processing nuances to this algorithm.  Let's use the above
+        example of [1, 2, 3, 1, 2, 4].  The answer given above is [1, 2, 3, 4] is nodup
+        and [1, 2] is dup.
 
-        This shows that the element 3 occurred 3 times, 4, 5, and "a" once.  In the code
-        below, the duplicates are any elements with a count larger than 1; the list
-        comprehension picks these out.
+        One way of writing this algorithm would be the following code that might be
+        written by a beginning programmer (I'll ignore the type constraint):
 
-        The second algorithm looks at each element in the list (starting from the left)
-        and then asks if that element is in the remaining list to the right; if so, it's
-        a duplicate.  Let seq = [0, 1, 2, 3].  Starting at index i = 1, get seq[i - 1]
-        which is seq[0] and see if it's also in seq[1:].  Then do the same for index 2,
-        etc.  The sequence of examination is
-            element: 0, remaining sequence: [1, 2, 3]
-            element: 1, remaining sequence: [2, 3]
-            element: 2, remaining sequence: [3]
+            seq = [1, 2, 3, 1, 2, 4]
+            n = len(seq)
+            rev = False
+            if rev:
+                seq = list(reversed(seq))
+            dup, nodup = [], []
+            for i in range(n):
+                item = seq[i]
+                remainder = seq[i+1:]
+                found = False
+                for j in range(len(remainder)):
+                    otheritem = remainder[j]
+                    if otheritem == item:
+                        found = True
+                        break
+                if found:
+                    dup.append(item)
+                else:
+                    nodup.append(item)
+            print("seq   =", seq)
+            if rev:
+                print("dup   =", list(reversed(dup)))
+                print("nodup =", list(reversed(nodup)))
+            else:
+                print("dup   =", dup)
+                print("nodup =", nodup)
+
+        If you run this code, you'll get 
+            seq   = [1, 2, 3, 1, 2, 4]
+            dup   = [1, 2]
+            nodup = [3, 1, 2, 4]
+        Note the nodup list is not what was promised above.  If you follow the
+        algorithm, you'll see that the first item processed is seq[0], a 1, and 
+        the first step looks for 1 in the remaining sequence [2, 3, 1, 2, 4] and finds
+        it at index 2.  Thus, found is True and seq[0] is added to dup.  But this is the
+        "wrong" 1 to add, because now it means the 1 at index 3 will be the 1 that is in
+        the nondup list.  So the order of processing is important.
+
+        You might think that you could reverse the list and you'd get the correct
+        answer.  Try it by setting rev to True; you'll get 
+
+            seq   = [4, 2, 1, 3, 2, 1]
+            dup   = [1, 2]
+            nodup = [1, 2, 3, 4]
+
+        This is the output we wanted, but the list(reversed()) call duplicates the input
+        list seq, using more memory.  Since this algorithm should only be used on
+        smaller arrays anyway, this probably isn't too bad of a penalty.  However, if
+        you were writing this in C, you'd likely be using pointer arithmetic so you
+        could operate on the original array without having to make a copy.  
+
+        We can utilize python's ability to use negative indexes into arrays to
+        facilitate our processing the list in the "backwards" order without reversing
+        it.  Here's the sequence with the relevant index values
+
+             0  1  2  3  4  5       Positive indexes
+            [4, 2, 1, 3, 2, 1]
+            -6 -5 -4 -3 -2 -1       Negative indexes
+
+        You can get the positive indexes with range(n).  The negative indexes can be
+        gotten with reversed(range(-n, 0)) where n is the length of the sequence.  For
+        our seq, n is 6 and list(reversed(range(-n, 0))) is [-1, -2, -3, -4, -5, -6].
+        Thus, we'll start with -1, get the remainder of the array from -2 to -6 and
+        search it for duplicates.  The only twist is that we have to reverse the indexes
+        because the -6 index element is more left array element than the -2 index.
+
+        Let's try this approach:
+
+            seq = [1, 2, 3, 1, 2, 4]
+            n = len(seq)
+            dup, nodup = [], []
+            for i in reversed(range(-n, 0)):
+                item = seq[i]
+                remainder = seq[-n:i]
+                found = False
+                for j in range(len(remainder)):
+                    otheritem = remainder[j]
+                    if otheritem == item:
+                        found = True
+                        break
+                if found:
+                    dup.append(item)
+                else:
+                    nodup.append(item)
+            print("seq   =", seq)
+            print("dup   =", list(reversed(dup)))
+            print("nodup =", list(reversed(nodup)))
+
+        We get
+
+            seq   = [1, 2, 3, 1, 2, 4]
+            dup   = [1, 2]
+            nodup = [1, 2, 3, 4]
+
+        which is what we wanted.
+
+        I started with the above code and experimented and added test cases until I had
+        the following:
+
+            def f(seq, type_important=False):
+                n = len(seq)
+                dup, nodup = [], []
+                for i in reversed(range(-n, 0)):
+                    item, remainder, found = seq[i], seq[-n:i], False
+                    for j in range(len(remainder)):
+                        otheritem = remainder[j]
+                        if ((type_important and type(otheritem) is type(item) and otheritem == item)
+                                    or 
+                                (otheritem == item)):
+                            found = True
+                            break
+                    dup.append(item) if found else nodup.append(item)
+                if len(dup) != len(nodup) and len(dup) + len(nodup) != n:
+                    raise RuntimeError("Bug in this function")
+                print("seq   =", seq)
+                print("dup   =", list(reversed(dup)))
+                print("nodup =", list(reversed(nodup)))
+
+            s = [
+                [],
+                [None],
+                [None, None],
+                [1],
+                [1, 1],
+                [1, 1.0],
+                [1, 2, 3, 1, 2, 4],
+                [1, 2, 3],
+                "Hello",
+                b"Hello",
+                [1, 1, 1.0, 1.0],
+            ]
+            for i in s:
+                f(i)
+                print()
+            print("With type_important=True")
+            f(s[-1], type_important=1)
+
+        This is in fact the finished code and I used the test cases in s for testing the
+        function too.
+
+        This is one of those algorithms that has a few subtle nuances, but you can do
+        nearly everything you need to for development by using a small example test case
+        like [1, 2, 3, 1, 2, 4] and working out the pointer arithmetic.
+
+        '''
+        n, dup, nodup = len(seq), [], []
+        if not n:
+            return nodup, dup
+        for i in reversed(range(-n, 0)):
+            item, remainder, found = seq[i], seq[-n:i], False
+            for j in range(len(remainder)):
+                otheritem = remainder[j]
+                if ((type_important and type(otheritem) is type(item) and otheritem == item)
+                            or 
+                        (otheritem == item)):
+                    found = True
+                    break
+            dup.append(item) if found else nodup.append(item)
+        if len(dup) != len(nodup) and len(dup) + len(nodup) != n:
+            raise RuntimeError("Bug in this function")
+        return (list(reversed(nodup)), list(reversed(dup)))
+
+    def GetDuplicates(seq):
+        '''Return a list of the items in the sequence seq that are duplicates.  
+
+        Examples:  
+            GetDuplicates([1, 2, 3, 1, 2, 4]) --> [1, 2]
+            GetDuplicates([1, 2, 3]) --> []
+            GetDuplicates([]) --> []
+            GetDuplicates([1, 1, 1, 1.0, 1.0, 1.0]) --> [1]
+            
+        Caution:  be aware of the behavior of the last example, caused because in python
+        hash(1) == hash(1.0).  For some problems, you may not want to consider the
+        integer 1 and the floating point number 1.0 the same thing.  To handle this
+        issue, you can use the nonhashable keyword; see below.
+
+        If you only want to know if seq has duplicates, the simplest way is to see if
+        'len(seq) == len(set(seq))' is True, but this requires the elements of seq to be
+        hashable.  Common nonhashable things are mutable things like lists,
+        dictionaries, sets, deques, etc.  The reason for them being nonhashable is that
+        they could change their contents during the program's lifetime, meaning the
+        elements' hash values will change.
+        
+        The first algorithm in this function is O(n) where n is the size of the
+        sequence.  It only works if all the elements in seq are hashable.  It uses
+        collections.Counter, which uses a dictionary to count the objects.
+
+        If seq contains nonhashable elements, the first algorithm will fail and the 
+        second algorithm is used, which is O(n²).  This is because it is essentially
+
+            duplicates = []
+            for i, item in enumerate(seq):
+                for item1 in seq[i:]:
+                    if item == item1 and item not in duplicates:
+                        duplicates.append(item)
+
+        https://stackoverflow.com/questions/9835762/how-do-i-find-the-duplicates-in-a\
+        -list-and-create-another-list-with-them, posted by georg gives more concise
+        but equivalent list comprehensions:
+
+            no_duplicates = [x for i, x in enumerate(seq) if x not in seq[:i]]
+            duplicates =    [x for i, x in enumerate(seq) if x     in seq[:i]]
+        
+        Here's an illustration.  Suppose seq = [0, 1, 2, 3, 4, 1].  The first step
+        gets seq[0] = 0 and asks if seq[0] is in the remaining [1, 2, 3, 4, 1].  No.
+        The next step gets seq[1] = 1 and asks if seq[1] is in the remaining
+        [2, 3, 4, 1].  Yes, so it's put into the duplicates list.  And so on.
 
         '''
         # First algorithm:  will fail if seq contains a non-hashable element like a
@@ -296,7 +492,6 @@ if 1:  # Core functionality
             # requirement of Counter, which is a dict subclass
             pass
         # Second algorithm
-        seq = list(seq) if convert else seq     # Convert to list if desired
         duplicates = []
         for i in range(1, len(seq)):
             if seq[i - 1] in seq[i:]:
@@ -400,7 +595,7 @@ if __name__ == "__main__":
             Assert(f(Pt(1, 0), seq, distance=metric) == Pt(0, 0))
             Assert(f(Pt(1.0001, 0), seq, distance=metric) == Pt(2, 0))
     def Test_GetDuplicates():
-        if 0:   # Basic testing
+        if 1:   # Basic testing
             class G:
                 def __init__(self, x):
                     self.x = x
@@ -411,13 +606,13 @@ if __name__ == "__main__":
             a, b, c = G(1), G(5), [1, 3]
             seq1 = ("8", 3, 4, 3, a, b, a,    "8") # Hashable
             seq2 = ("8", 3, 4, 3, a, b, a, c, "8") # Not hashable
-            if 1:   # Use the Counter implementation
-                duplicates = GetDuplicates(seq1)
-                Assert(duplicates == ["8", 3, a])
-            if 1:   # Use the slower second implementation
-                duplicates = GetDuplicates(seq2)
-                # Note results same but order different
-                Assert(duplicates == [3, a, "8"])
+            expected = ["8", 3, a]
+            # Use the Counter implementation
+            duplicates = GetDuplicates(seq1)
+            Assert(duplicates == expected)
+            # Use the slower second implementation
+            duplicates = GetDuplicates(seq2)
+            Assert(duplicates == expected)
         if 1:   # Test with large sequences
             # Lotsa numbers with one duplicate at end
             n, dup = 10**6, 1.0
@@ -429,4 +624,28 @@ if __name__ == "__main__":
             seq = [float(i) for i in range(n)] + [dup, [0, 1]]
             duplicates = GetDuplicates(seq)
             Assert(duplicates == [dup])
+    def Test_GetDupNodup():
+        testcases = (
+            # Function input, expected return value
+            ([], ([], [])),
+            ([None], ([None], [])),
+            ([None, None], ([None], [None])),
+            ([1], ([1], [])),
+            ([1, 1], ([1], [1])),
+            ([1, 1.0], ([1],[1.0])),
+            ([1, 2, 3, 1, 2, 4], ([1, 2, 3, 4], [1, 2])),
+            ([1, 2, 3], ([1, 2, 3], [])),
+            ("Hello", (['H', 'e', 'l', 'o'], ['l'])),
+            (b"Hello", ([72, 101, 108, 111], [108])),
+            ([1, 1, 1.0, 1.0], ([1], [1, 1.0, 1.0])),
+        )
+        f = GetDupNodup
+        for seq, expected in testcases:
+            result = f(seq)
+            Assert(result == expected)
+            #t.print(f"{t.yel}{seq}    {t.purl}{result}")
+        # With type_important
+        result = f(testcases[-1][0], type_important=1)
+        Assert(result == ([1], [1, 1.0, 1.0]))
+        #print(f(testcases[-1][0], type_important=1))
     exit(run(globals(), halt=True)[0])

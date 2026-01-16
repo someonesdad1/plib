@@ -3,11 +3,11 @@
 # 2026 work in progress
 
 - Jan 2026 /plib core work
-    - Make sure all python files have a proper test string (describes how to run file's
-      tests)
-        - These are:  run (running the script runs the tests), notest (no test for this
-          module), testdir (run corresponding file in /plib/test), and run with the
-          --test argument
+    - All modules have a proper test string (describes how to run file's tests):
+        - run (running the script runs the tests)
+        - notest (no test for this module)
+        - testdir (run corresponding file in /plib/test)
+        - '--test' means run the module with the '--test' argument
     - Regularize testing environment
         - Vision
             - Launch testing (e.g., run make)
