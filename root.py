@@ -161,7 +161,7 @@ if 1:  # Header
         ##∞what∞#
         # <math> Root finding routines
         ##∞what∞#
-        ##∞test∞# ["test/root_test.py"] #∞test∞#
+        ##∞test∞# testdir #∞test∞#
         pass
     if 1:  # Imports
         import decimal

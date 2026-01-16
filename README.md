@@ -1,6 +1,45 @@
 # plib
 
-[plib](https://github.com/someonesdad1/plib) Last updated 12 Jan 2026
+# 2026 work in progress
+
+- Jan 2026 /plib core work
+    - Make sure all python files have a proper test string (describes how to run file's
+      tests)
+        - These are:  run (running the script runs the tests), notest (no test for this
+          module), testdir (run corresponding file in /plib/test), and run with the
+          --test argument
+    - Regularize testing environment
+        - Vision
+            - Launch testing (e.g., run make)
+            - Only output message is Pass or Fail
+            - If Fail, then 'cat test_results' to see what happened
+            - Try to move all test code to module (can test directory go away?)
+    - Currently failing
+        - run
+            - dirfiles.py
+            - dpmath.py
+            - laser_dist.py
+            - matrix.py
+            - util.py
+        - testdir
+            - Look at results; much of test code is passing and could probably stand
+              being integrated with the module, as it makes things easier.
+
+
+## Plan
+- Create HTML pages to make it easier to browse/find content
+    - Alphabetized
+    - By subject
+    - Things I think are of interest
+- /plib
+    - Update self-tests and ensure they pass
+    - Standardize on an open source license
+    - Remove specialized modules that are better stored elsewhere
+    - 0what.py returns useful output for all modules
+
+# Description
+
+[plib](https://github.com/someonesdad1/plib)
 
 This repository is a collection of python modules and scripts.
 
@@ -18,28 +57,6 @@ not implemented yet**):
 - [pgm](doc/pgm.html) Information on plib/pgm's scripts
 - [lib](doc/lib.html) Information on plib/lib's content
 - [roadmap](doc/roadmap.html) How I plan to change things in this repository
-
-## 2026 work in progress
-
-- /plib core work
-    - 14 Jan 2026 All python files have a legitmate teststr 
-    - Next
-        - Combine ignore with notest
-        - Study all notest category files and add any appropriate tests
-        - Run all tests.  Make need a "broken" category, which would help with figuring
-          out todo lists.
-
-- Create above HTML pages to make it easier to browse/find content
-    - Alphabetized
-    - By subject
-    - Things I think are of interest
-- /plib
-    - Lint & format the files
-    - Make self-tests up-to-date and ensure all pass with python 3.11
-    - Standardize on an open source license
-    - Remove specialized modules that are better stored elsewhere
-    - 0what.py returns useful output for all modules
-    - Find and fix old color.py dependencies (kolor.py) in /plib/pgm
 
 ### Formatting
 

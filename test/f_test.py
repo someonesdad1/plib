@@ -6,37 +6,28 @@ import io
 import math
 import operator as op
 import sys
-
 # Custom libraries
 from lwtest import run, raises, assert_equal
 from color import TRM as t
-
 t.r = t("redl")
 try:
     import numpy
-
     _have_numpy = True
 except ImportError:
     _have_numpy = False
 if len(sys.argv) > 1:
     import debug
-
     debug.SetDebugger()
-
 flt, cpx, Base = f.flt, f.cpx, f.Base
 filename = __file__
 pi = f.pi  # Handy constant
 ii = isinstance
-
-
 def Assert(x):  # Because the assert statement can't be overridden
     "Drop into debugger if script has an argument"
     if len(sys.argv) > 1 and not x:
         xx()
     else:
         assert x
-
-
 def Init(n=1):
     """Make sure test environment is set up and return convenience
     instances.
@@ -50,8 +41,6 @@ def Init(n=1):
     x.x = False
     cpx.i = False
     return x if n == 1 else (x, z)
-
-
 def TestBasics():
     x = Init()
     Assert(x == pi)
@@ -67,8 +56,6 @@ def TestBasics():
     x.n = 4
     Assert(repr(x) == "3.142")
     Assert(str(x) == repr(math.pi))
-
-
 def TestAttributes():
     def Test_f():  # Flips str() and repr()
         x, z = Init(2)
@@ -88,7 +75,6 @@ def TestAttributes():
         Assert(repr(x) == x.s)
         Assert(str(z) == z.r)
         Assert(repr(z) == z.s)
-
     def Test_h():  # Returns the help string
         x, z = Init(2)
         for i in (x, z):
@@ -98,7 +84,6 @@ def TestAttributes():
             got = sys.stdout.getvalue()
             sys.stdout = so
             Assert(len(got.split("\n")) > 3)
-
     def Test_n():  # Sets number of significant figures
         "Note n can be 0 or None (both imply 15 digits)"
         x = Init()
@@ -114,7 +99,6 @@ def TestAttributes():
         for i in ("3", "0.1", "0.0", 1j):
             with raises(ValueError):
                 x.n = i
-
     def Test_r():  # Returns repr() of the number, regardles of f attribute
         x, z = Init(2)
         expected = repr(x)
@@ -130,7 +114,6 @@ def TestAttributes():
         z.f = True
         Assert(z.r == expected)
         z.f = False
-
     def Test_s():  # Returns str() of the number, regardles of f attribute
         x, z = Init(2)
         x.f = False
@@ -144,17 +127,14 @@ def TestAttributes():
             Assert(I.s == Is)
             Assert(str(I) == Ir)  # str() --> repr() (flipped)
             Assert(repr(I) == Is)  # repr() --> str() (flipped)
-
     def Test_formatting():
         from f import _have_Formatter
-
         if _have_Formatter:
             x = Init() * 1e4
             Assert(x.sci == "3.14e4")
             Assert(x.eng == "31.4e3")
             Assert(x.si == "31.4 k")
             Assert(x.sic == "31.4k")
-
     Test_f()
     Test_h()
     Test_n()
@@ -171,17 +151,14 @@ def TestAttributes():
             exit()
         # Gives attributes: f h n r s
         # Gives formatting attributes: eng sci si sic
-
-
 def Test_flt_arithmetic():
     """Make sure that the flt class "infects" calculations by returning
     a flt for arithmetic operations.
-
+    
     This won't happen for e.g. x = flt(1), y = mpmath.mpf(1) because y*x
     returns an mpmath.mpf type since mpmath's code intercepts the
     operation.  However, x*y returns a flt.
     """
-
     def Real():
         x = Init()
         y = flt(1 / pi)
@@ -231,7 +208,6 @@ def Test_flt_arithmetic():
         z = x
         z -= y
         Assert(z == x - y)
-
     def Complex():
         # flt with python complex numbers on the right-hand side
         x = Init()
@@ -246,11 +222,8 @@ def Test_flt_arithmetic():
             expected = o(float(x), c)
             Assert(isinstance(y, cpx))
             Assert(y == expected)
-
     Real()
     Complex()
-
-
 def Test_cpx_arithmetic():
     """Make sure that the cpx class "infects" calculations by returning
     a cpx for all arithmetic operations.
@@ -302,11 +275,8 @@ def Test_cpx_arithmetic():
     z = Z
     z -= y
     Assert(z == Z - y)
-
-
 def TestRound():
     n = 6
-
     def Real():
         x = Init()
         # Use python's built-in round
@@ -319,7 +289,6 @@ def TestRound():
         expected = 3.14159
         Assert(isinstance(y, flt))
         Assert(y == expected)
-
     def Complex():
         x = Init()
         z = cpx(x, 1 / x)
@@ -336,11 +305,8 @@ def TestRound():
         # value of x is pi and that the built-in with one less than x.n
         # will work.  It may not work in general.
         Assert(y == round(pi, x.n - 1))
-
     Real()
     Complex()
-
-
 def TestInfection():
     "Show flt & cpx infect commutatively"
     x, z = Init(), cpx(pi, -pi)
@@ -351,8 +317,6 @@ def TestInfection():
             Assert(isinstance(o(x, y), flt))
             Assert(isinstance(o(y, z), cpx))
             Assert(isinstance(o(z, y), cpx))
-
-
 def Test_numpy():
     if not _have_numpy:
         print(f"{t.r}{filename}:  ** Did not test flt/cpx with numpy **{t.n}")
@@ -365,8 +329,6 @@ def Test_numpy():
     Assert(y == x * s)
     x *= a[0]
     Assert(x == s * pi)
-
-
 def TestDelegator():
     # Test that Delegator.iscomplex returns True when any argument or
     # part of an Iterable argument is complex.
@@ -378,8 +340,6 @@ def TestDelegator():
     assert not F(a=1)
     assert F(a=1j)
     assert F(a=1, b=1j)
-
-
 def TestMathFunctions1():
     "Spot checks"
     tol = 1e-14  # Tolerance for isclose() tests
@@ -465,12 +425,10 @@ def TestMathFunctions1():
             y = x ** cpx(x)
             Assert(isinstance(y, f.cpx))
             Assert(y == complex(x) ** complex(x))
-
-
 def TestMathFunctions2():
     """The functions to be tested here are from python 3.9.4.  The list
     was produced by the /pylib/listmath.py script.
-
+    
     These tests will be a little more systematic than the previous
     function.  The objectives are:
         * See that the function is available
@@ -478,7 +436,6 @@ def TestMathFunctions2():
         * The right type is returned (flt or cpx)
     """
     not_tested = []  # For message about functions not tested
-
     def TestBoth():
         """
         Both in math and cmath
@@ -547,7 +504,6 @@ def TestMathFunctions2():
             Assert(y1 == y2)
             Assert(ii(y1, cpx))
             Assert(ii(y2, complex))
-
     def TestMathOnly():
         """
         Only in math
@@ -680,7 +636,6 @@ def TestMathFunctions2():
         Assert(y1 == y2)
         Assert(ii(y1, flt))
         Assert(ii(y2, float))
-
     def TestCMathOnly():
         """
         Only in cmath
@@ -714,7 +669,6 @@ def TestMathFunctions2():
         Assert(y1 == y2 == z)
         Assert(ii(y1, cpx))
         Assert(ii(y2, complex))
-
     def TestBooleans():
         a = 1.6
         x, z = flt(a), cpx(a, a)
@@ -730,7 +684,6 @@ def TestMathFunctions2():
         # isnan
         Assert(f.isnan(rnan) is True)
         Assert(f.isnan(cnan) is True)
-
     TestBoth()
     TestMathOnly()
     TestCMathOnly()
@@ -741,7 +694,5 @@ def TestMathFunctions2():
             f"{t.r}{__file__}:  math/cmath stuff not in this python version:\n"
             f"    {' '.join(s)}{t.n}"
         )
-
-
 if __name__ == "__main__":
     exit(run(globals(), halt=1)[0])

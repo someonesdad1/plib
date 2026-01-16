@@ -325,17 +325,17 @@ def ShowWhatWillBeDone(tr, items):
     Show("Files with tests to run:", run)
     t.out()
 if 1:  # Identify files that need testing
-    def GetTestString(file, exc_on_none=True):
+    def GetTestString(file, exception_on_none=True):
         '''Return the test string for this file; the valid returned strings are:
-        ""        No g.teststr found in file      --> Needs attention
-        "empty"   g.teststr found, but no data    --> Needs attention
-        "notest"  This file doesn't need to be tested
-        "run"     Run the file as a script to test
-        "-t"      Run as script with this argument to test
-        "--test"  Ditto
-        "['test/abc.py']"    A list of testing scripts to be run
-        If exc_on_none is True, then a ValueError exception is raised on a file with
-        "" or "empty".
+            ""        No g.teststr found in file      --> Needs attention
+            "empty"   g.teststr found, but no data    --> Needs attention
+            "notest"  This file doesn't need to be tested
+            "run"     Run the file as a script to test
+            "-t"      Run as script with -t option
+            "--test"  Run as script with --test option
+            "testdir" Look in /plib/test for appropriately named script
+        If exception_on_none is True, then a ValueError exception is raised on a file
+        with "" or "empty".
         '''
         found = None
         dq = deque(get.GetLines(file,  ignore_empty=True))
@@ -360,19 +360,12 @@ if 1:  # Identify files that need testing
         msg = ""
         if found is None:
             msg = f"{t.ornl}{file}:  no test string{t.n}"
-        elif not found:
+        elif not found or found == "empty":
             msg = f"{t.ornl}{file}:  empty test string{t.n}"
-        elif found == "empty":
-            msg = f"{t.ornl}{file}:  empty test string{t.n}"
-        elif found == "notest":
+        elif found in ("run", "-t", "--test", "notest", "testdir"):
             pass
-        elif found in ("run", "-t", "--test"):
-            pass
-        elif found.startswith("["):
-            try:
-                eval(found)
-            except SyntaxError:
-                msg = f"{t.ornl}{file}:  bad list syntax: {t.lill}{found!r}{t.n}"
+        else:
+            raise ValueError(f"{found!r} is an unrecognized value")
         if msg:
             if 0:   # Use this to stop on a missing test string
                 raise ValueError(msg)
@@ -391,15 +384,16 @@ if 1:  # Identify files that need testing
     def Report():
         'Show file test string by category'
         dq, d = GetTestStrings("."), defaultdict(list)
+        total_files = len(dq)
         while dq:
             item = dq.popleft()
             d[item.tstr].append(str(item.file))
         for i in d:
-            #if i.startswith("["):
-            #    continue
-            t.print(f"{t.grn}{i}")
+            n = len(d[i])
+            t.print(f"{t.grn}{i}{t.n} ({n} items)")
             for j in Columnize(sorted(d[i]), indent=" "*4):
                 print(j)
+        print(f"{total_files} total python files")
     if 1:
         Report()
         exit()

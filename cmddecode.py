@@ -56,7 +56,7 @@ if 1:  # Copyright, license
     # is a unique match, and many means more than one match.  The
     # constructor lets you choose to ignore the command's case or not.
     ##∞what∞#
-    ##∞test∞# ["test/cmddecode_test.py"] #∞test∞#
+    ##∞test∞# testdir #∞test∞#
     pass
 if 1:  # Imports
     import re

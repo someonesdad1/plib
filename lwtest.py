@@ -36,7 +36,7 @@ if 1:  # Header
     # my python module's regression tests, as I was dissatisfied with
     # python's unittest and I've never liked doctest.
     ##∞what∞#
-    ##∞test∞# ["test/lwtest_test.py"] #∞test∞#
+    ##∞test∞# testdir #∞test∞#
     # Origin
     # Derived from some nice code by Raymond Hettinger 8 May 2008:
     # http://code.activestate.com/recipes/572194/.  Downloaded 27 Jul

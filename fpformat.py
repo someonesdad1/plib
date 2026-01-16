@@ -18,7 +18,7 @@ if 1:  # Header
         # <programming> Obsolete formatter for floating point numbers.  Use
         # fmt.py as a replacement.
         ##∞what∞#
-        ##∞test∞# ["test/fpformat_test.py"] #∞test∞#
+        ##∞test∞# testdir #∞test∞#
         pass
     if 1:  # Imports
         pass
