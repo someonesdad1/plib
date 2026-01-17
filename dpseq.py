@@ -242,7 +242,7 @@ if 1:  # Core functionality
                     return L if diff_low <= diff_high else r
     def GetDupNodup(seq, type_important=False):
         '''Return (nodup, dup) where nodup is a list of the items in seq that are not
-        duplicates and dup is a list of the items that were duplicates.  The order of
+        duplicates and dup is a list of the items that are duplicates.  The order of
         the items in dup and nodup are the same as they were in seq.  The algorithm
         maintains the invariant len(nodup) + len(dup) == len(seq).
         
@@ -257,21 +257,29 @@ if 1:  # Core functionality
             GetDupNodup([1, 2, 3]) --> [1, 2, 3], []
             GetDupNodup([]) --> [], []
             GetDupNodup([1, 1, 1.0, 1.0], type_important=True) --> [1, 1.0], [1, 1.0]
-            GetDupNodup([1, 1, 1.0, 1.0]) --> [1], [1, 1.0, 1.0]
+            GetDupNodup([1, 1, 1.0, 1.0])                      --> [1], [1, 1.0, 1.0]
         
         This is an O(n²) algorithm because it does not rely on the elements being hashable.  
         Note it also keeps the order of the items found in the original sequence.
         This algorithm works well on small sequences (say, hundreds to thousands of
         items), but is not recommended for larger sequences because it will be slow.
+        On my computer that was new in 2015 and was fairly inexpensive using python
+        3.11.5, a list of n integers with an extra 1 at the end was timed with
+        timeit.timeit() and the results were:
+         
+            log(n) = 3:  0.0141 s
+            log(n) = 4:  1.42 s
+            log(n) = 5:  148 s
+        going up by a factor of 10² each time -- as expected.
         '''
         '''
         There are some processing nuances to this algorithm.  Let's use the above
         example of [1, 2, 3, 1, 2, 4].  The answer given above is [1, 2, 3, 4] is nodup
         and [1, 2] is dup.
-
+        
         One way of writing this algorithm would be the following code that might be
         written by a beginning programmer (I'll ignore the type constraint):
-
+        
             seq = [1, 2, 3, 1, 2, 4]
             n = len(seq)
             rev = False
@@ -298,7 +306,7 @@ if 1:  # Core functionality
             else:
                 print("dup   =", dup)
                 print("nodup =", nodup)
-
+        
         If you run this code, you'll get 
             seq   = [1, 2, 3, 1, 2, 4]
             dup   = [1, 2]
@@ -309,37 +317,37 @@ if 1:  # Core functionality
         it at index 2.  Thus, found is True and seq[0] is added to dup.  But this is the
         "wrong" 1 to add, because now it means the 1 at index 3 will be the 1 that is in
         the nondup list.  So the order of processing is important.
-
+        
         You might think that you could reverse the list and you'd get the correct
         answer.  Try it by setting rev to True; you'll get 
-
+        
             seq   = [4, 2, 1, 3, 2, 1]
             dup   = [1, 2]
             nodup = [1, 2, 3, 4]
-
+        
         This is the output we wanted, but the list(reversed()) call duplicates the input
         list seq, using more memory.  Since this algorithm should only be used on
         smaller arrays anyway, this probably isn't too bad of a penalty.  However, if
         you were writing this in C, you'd likely be using pointer arithmetic so you
         could operate on the original array without having to make a copy.  
-
+        
         We can utilize python's ability to use negative indexes into arrays to
         facilitate our processing the list in the "backwards" order without reversing
         it.  Here's the sequence with the relevant index values
-
+        
              0  1  2  3  4  5       Positive indexes
             [4, 2, 1, 3, 2, 1]
             -6 -5 -4 -3 -2 -1       Negative indexes
-
+        
         You can get the positive indexes with range(n).  The negative indexes can be
         gotten with reversed(range(-n, 0)) where n is the length of the sequence.  For
         our seq, n is 6 and list(reversed(range(-n, 0))) is [-1, -2, -3, -4, -5, -6].
         Thus, we'll start with -1, get the remainder of the array from -2 to -6 and
         search it for duplicates.  The only twist is that we have to reverse the indexes
         because the -6 index element is more left array element than the -2 index.
-
+        
         Let's try this approach:
-
+        
             seq = [1, 2, 3, 1, 2, 4]
             n = len(seq)
             dup, nodup = [], []
@@ -359,18 +367,18 @@ if 1:  # Core functionality
             print("seq   =", seq)
             print("dup   =", list(reversed(dup)))
             print("nodup =", list(reversed(nodup)))
-
+        
         We get
-
+        
             seq   = [1, 2, 3, 1, 2, 4]
             dup   = [1, 2]
             nodup = [1, 2, 3, 4]
-
+        
         which is what we wanted.
-
+        
         I started with the above code and experimented and added test cases until I had
         the following:
-
+        
             def f(seq, type_important=False):
                 n = len(seq)
                 dup, nodup = [], []
@@ -389,7 +397,7 @@ if 1:  # Core functionality
                 print("seq   =", seq)
                 print("dup   =", list(reversed(dup)))
                 print("nodup =", list(reversed(nodup)))
-
+        
             s = [
                 [],
                 [None],
@@ -408,14 +416,13 @@ if 1:  # Core functionality
                 print()
             print("With type_important=True")
             f(s[-1], type_important=1)
-
+        
         This is in fact the finished code and I used the test cases in s for testing the
         function too.
-
+        
         This is one of those algorithms that has a few subtle nuances, but you can do
         nearly everything you need to for development by using a small example test case
         like [1, 2, 3, 1, 2, 4] and working out the pointer arithmetic.
-
         '''
         n, dup, nodup = len(seq), [], []
         if not n:
@@ -433,10 +440,9 @@ if 1:  # Core functionality
         if len(dup) != len(nodup) and len(dup) + len(nodup) != n:
             raise RuntimeError("Bug in this function")
         return (list(reversed(nodup)), list(reversed(dup)))
-
     def GetDuplicates(seq):
         '''Return a list of the items in the sequence seq that are duplicates.  
-
+        
         Examples:  
             GetDuplicates([1, 2, 3, 1, 2, 4]) --> [1, 2]
             GetDuplicates([1, 2, 3]) --> []
@@ -447,7 +453,7 @@ if 1:  # Core functionality
         hash(1) == hash(1.0).  For some problems, you may not want to consider the
         integer 1 and the floating point number 1.0 the same thing.  To handle this
         issue, you can use the nonhashable keyword; see below.
-
+        
         If you only want to know if seq has duplicates, the simplest way is to see if
         'len(seq) == len(set(seq))' is True, but this requires the elements of seq to be
         hashable.  Common nonhashable things are mutable things like lists,
@@ -458,20 +464,20 @@ if 1:  # Core functionality
         The first algorithm in this function is O(n) where n is the size of the
         sequence.  It only works if all the elements in seq are hashable.  It uses
         collections.Counter, which uses a dictionary to count the objects.
-
+        
         If seq contains nonhashable elements, the first algorithm will fail and the 
         second algorithm is used, which is O(n²).  This is because it is essentially
-
+        
             duplicates = []
             for i, item in enumerate(seq):
                 for item1 in seq[i:]:
                     if item == item1 and item not in duplicates:
                         duplicates.append(item)
-
+        
         https://stackoverflow.com/questions/9835762/how-do-i-find-the-duplicates-in-a\
         -list-and-create-another-list-with-them, posted by georg gives more concise
         but equivalent list comprehensions:
-
+        
             no_duplicates = [x for i, x in enumerate(seq) if x not in seq[:i]]
             duplicates =    [x for i, x in enumerate(seq) if x     in seq[:i]]
         
@@ -479,7 +485,6 @@ if 1:  # Core functionality
         gets seq[0] = 0 and asks if seq[0] is in the remaining [1, 2, 3, 4, 1].  No.
         The next step gets seq[1] = 1 and asks if seq[1] is in the remaining
         [2, 3, 4, 1].  Yes, so it's put into the duplicates list.  And so on.
-
         '''
         # First algorithm:  will fail if seq contains a non-hashable element like a
         # list, dict, or set.
