@@ -513,4 +513,12 @@ if __name__ == "__main__":
             result = f(testcases[-1][0], type_important=1)
             Assert(result == ([1], [1, 1.0, 1.0]))
             #print(f(testcases[-1][0], type_important=1))
+    if 1:
+        print("xx Bug in DupNodup with type_important=1:")
+        seq = [1, 1, 1.0, 1.0]
+        seq = [1, 1.0]
+        print(f"seq = {seq}")
+        t.print(f"Got       {t.sky}{DupNodup(seq, type_important=1)}")
+        t.print(f"Should be {t.ornl}([1, 1.0], [])")
+        exit()
     exit(run(globals(), halt=True)[0])
