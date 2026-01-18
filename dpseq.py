@@ -49,7 +49,6 @@ if 1:  # Header
         ##∞test∞# run #∞test∞#
         pass
     if 1:  # Standard imports
-        from collections import Counter
         from fractions import Fraction
         import bisect
         import operator
@@ -65,8 +64,8 @@ if 1:  # Header
         g = G()
         g.dbg = False
         ii = isinstance
-        __all__ = tuple("find_le find_ge iDistribute fDistribute GetClosest Hashable
-                         DupNodupd".split())
+        __all__ = tuple('''find_le find_ge iDistribute fDistribute GetClosest Hashable
+                         DupNodupd'''.split())
 if 1:  # Core functionality
     def find_le(x, seq):
         "Find rightmost value less than or equal to x; seq must be sorted"
