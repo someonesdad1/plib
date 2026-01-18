@@ -2,7 +2,7 @@
 
 # 2026 work in progress
 
-- Jan 2026 /plib core work
+- Jan 2026 /plib work
     - All modules have a proper test string (describes how to run file's tests):
         - run (running the script runs the tests)
         - notest (no test for this module)
@@ -10,14 +10,13 @@
         - '--test' means run the module with the '--test' argument
     - Regularize testing environment
         - Vision
-            - Launch testing (e.g., run make)
+            - Launch testing with one command (e.g., run make)
             - Only output message is Pass or Fail
                 - Fail messages go into 0test.fail
                 - Pass messages go into 0test.pass
             - Try to move all test code to module (can test directory go away?)
     - Currently failing
         - run
-            - dirfiles.py
             - dpmath.py
             - laser_dist.py
             - matrix.py

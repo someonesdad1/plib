@@ -73,6 +73,7 @@ if 1:  # Header
     except ImportError:
         have_mpmath = False
     # Global variables
+    _modname = "<lwtest.py>"
     __doc__ = dedent('''
         Lightweight testrunner framework
             from lwtest import run, raises, assert_equal, Assert, Debugger
@@ -185,7 +186,7 @@ if 1:  # Core functionality
         if broken:
             # Get the name of the file that called us
             file = traceback.extract_stack()[0][0]
-            print(f"{t('ornl')}! {file}:  Error:  tests are broken{t.n}")
+            print(f"{t.ornl}{_modname}! {file}:  Error:  tests are broken{t.n}")
             return (1, "Tests are broken")
         # Find test functions in names_dict to run.  Note we don't allow
         # "_lwtest" to end the name; this lets you use a variable like
@@ -209,7 +210,7 @@ if 1:  # Core functionality
         pass_count = fail_count = 0
         fail_messages = []
         if verbose:
-            print("Test functions in {}:".format(filename), file=stream)
+            print("{} Test functions in {}:".format(_modname, filename), file=stream)
         nl = "\n"
         start_time = time()
         # Run the test functions
@@ -222,7 +223,7 @@ if 1:  # Core functionality
             except TypeError as e:
                 # Probably trying to run the module.
                 if str(e) == '''TypeError("'module' object is not callable",)''':
-                    print("xx lwtest.py:  need to test TypeError catch")
+                    print(f"xx {_modname}:  need to test TypeError catch")
                 else:
                     raise
             except Exception as e:
@@ -608,60 +609,59 @@ if 1:  # Checking functions
         elif debug:
             breakpoint()
         else:
-            print(fail, file=sys.stderr)
-    def Assert(cond, msg="", debug=False):
+            print(_modname, fail, file=sys.stderr)
+    def Assert(condition, msg="", debug=False):
         '''Replacement for assert but it can't be optimized out.  If debug is True, Assert.debug is
         True, or 'Assert' is a nonempty environment string, you'll be dropped into a debugger.  If
         msg is not empty, it's printed out.
         '''
-        if not cond:
+        if not condition:
             if debug or Assert.debug or os.environ.get("Assert", ""):
                 # Print colorized message to stdout and start debugger
                 if msg:
-                    t.print(f"{t('magl')}{msg}", file=sys.stderr)
+                    t.print(f"{t.magl}{_modname} {msg}", file=sys.stderr)
                 print("Type 'up' to go to line that failed", file=sys.stderr)
                 breakpoint()
             else:
                 raise AssertionError(msg)
     Assert.debug = False
+
 if __name__ == "__main__":
-    t.h = t("lill")
-    t.w = t("whtl")
-    print(
-        dedent(
-            f'''
-    {t("yell")}lwtest:  Lightweight test framework -- typical usage:{t.n}
-        from lwtest import run, assert_equal, raises
+    t.h = t.lill
+    t.kw = t.ornl
+    t.d = t.grn
+    t.u = t.denl
+    print(dedent(f'''
+    {t.sky}lwtest:  Lightweight test framework -- typical usage:{t.whtl}
+        from lwtest import run, assert_equal, raises, Assert
         # Name your test functions e.g. "def Test_*()"
         if __name__ == "__main__":
-            {t.h}failed, messages = run(globals()){t.n}
+            failed, messages = run(globals()){t.n}
     
     {t.h}run(){t.n}'s keyword arguments (default value in square brackets):
     
-        {t.w}broken{t.n}    If True, testing is acknowledged to be broken and a warning message to this
-                  effect is printed. [False]
-        {t.w}verbose{t.n}   Print the function names as they are executed [False]
-        {t.w}halt{t.n}      Stop at the first failure [False]
-        {t.w}regexp{t.n}    Regular expression that identifies a test function ["{id_test_function_regexp}"]
-        {t.w}reopts{t.n}    Regular expression's options [re.I]
-        {t.w}stream{t.n}    Where to send output [stdout].  None = no output.
+        {t.kw}broken{t.n}    If True, testing is acknowledged to be broken and a warning message to this
+                  effect is printed. [{t.d}False{t.n}]
+        {t.kw}verbose{t.n}   Print the function names as they are executed [{t.d}False{t.n}]
+        {t.kw}halt{t.n}      Stop at the first failure [{t.d}False{t.n}]
+        {t.kw}regexp{t.n}    Regular expression that identifies a test function [{t.d}"{id_test_function_regexp}"{t.n}]
+        {t.kw}reopts{t.n}    Regular expression's options [{t.d}re.I{t.n}]
+        {t.kw}stream{t.n}    Where to send output [{t.d}stdout{t.n}].  None = no output.
     
     Utility functions:
         Check that two numbers are close:
-            assert_equal(a, b, reltol=None, abstol=None, use_min=False)
+            {t.u}assert_equal{t.n}(a, b, reltol=None, abstol=None, use_min=False)
         Check that something raises an exception:
-            raises(exception_object, func, *p, **kw)
-            raises(sequence_of_exception_objects, func, *p, **kw)
-            with raises(exception_object):
+            {t.u}raises{t.n}(exception_object, func, *p, **kw)
+            {t.u}raises{t.n}(sequence_of_exception_objects, func, *p, **kw)
+            with {t.u}raises{t.n}(exception_object):
                 <code that must raise an exception>
         Send a colored reminder message to stdout:
-            ToDoMessage(message, prefix="+", color="yel")
+            {t.u}ToDoMessage{t.n}(message, prefix="+", color="yel")
             
-        {t.h}Assert(condition, msg){t.n}
+        {t.u}Assert{t.n}(condition, msg="", debug=False)
             Is like assert but can't be optimized out.  The debug keyword argument if True drops
             you into the debugger if condition is False (type 'u' to go to the line that failed)
             and msg is printed in color to stderr.  You can also get this behavior if the
             environment variable Assert is not empty.
-    '''[1:].rstrip()
-        )
-    )
+    '''[1:].rstrip()))
