@@ -25,6 +25,18 @@ ToDo
             - Nested sequence:  produces 2D matrix
             
 Functions for dealing with sequences.
+    DupNodup() timing results on my 11 year old 4-core computer running python 3.11.5 under WSL
+         n    Time
+        1e3:  700 μs
+        1e4:  6.7 ms
+        1e5:  72 ms
+        1e6:  740 ms
+        1e7:  8.6 s
+    DupNodupSlow() timing        
+         n    Time 
+        1e3:  19 ms
+        1e4:  1.9 s
+        1e5:  200 s
 '''
 if 1:  # Header
     if 1:  # Copyright, license
@@ -48,7 +60,6 @@ if 1:  # Header
     if 1:  # Custom imports
         from f import flt
         from lwtest import Assert, raises
-        from color import t
         if 0:
             import debug
             debug.SetDebugger()
@@ -58,16 +69,6 @@ if 1:  # Header
         g = G()
         g.dbg = False
         ii = isinstance
-if 1:  # Utility
-    def GetColors():
-        t.err = t("redl")
-        t.dbg = t("lill") if g.dbg else ""
-        t.N = t.n if g.dbg else ""
-    def Dbg(*p, **kw):
-        if g.dbg:
-            print(f"{t.dbg}", end="")
-            print(*p, **kw)
-            print(f"{t.N}", end="")
 if 1:  # Core functionality
     def find_le(x, seq):
         "Find rightmost value less than or equal to x; seq must be sorted"
@@ -258,18 +259,29 @@ if 1:   # Finding duplicates in sequences
             # e.g. the hash of 1 and the hash of 1.0 when stored in a Hashable instance.
             # If this doesn't work (e.g. in some other python instantiation), then the
             # DupNodup() algorithm won't work correctly.
-            typ_hash = hash(self.object)
+            def H(hsh):
+                'Format a hash in hex'
+                sign = "-" if hsh < 0 else ""
+                return f"{sign}0x{hex(abs(hsh))}"
             if self.typ:
-                return typ_hash
+                repr_hash = hash(repr(self.object))
+                Dbg(f"  A: {self.object!r} repr_hash is {H(repr_hash)}")
+                return repr_hash
             try:
-                return hash(self.object)
+                regular_hash = hash(self.object)
+                Dbg(f"  B: {self.object!r} hash is {H(regular_hash)}")
+                return regular_hash
             except TypeError:
-                return typ_hash
+                Dbg(f"  C (exception): {self.object!r} hash is {H(repr_hash)}")
+                return repr_hash
         def __eq__(self, other):
             eqval = (self.object == other.object)
             if self.typ:
                 return (eqval and (type(self) is type(other)))
             return eqval
+        def __repr__(self):
+            h = hex(id(self))
+            return f"<{h} {self.object!r}>"
         if 0:  # Only needed when debugging
             def __str__(self):
                 h = hash(self)
@@ -278,66 +290,6 @@ if 1:   # Finding duplicates in sequences
                 return f"{t.sky}H<{s}{h}{t.n}>"
             def __repr__(self):
                 return str(self)
-    def DupNodup(seq, type_important=False):
-        '''Return (nodup, dup) where both are lists.  nodup has the elements in seq that
-        are not duplicates.  dup contains the elements that are duplicates of earlier
-        elements in the list.  Both dup and nodup maintain the order of the elements in
-        the original sequence.
-        
-        If type_important is True, then itemA and itemB are defined to be duplicates iff
-        both 'itemA == itemB' and 'type(itemA) is type(itemB)' expressions are True.
-        This is useful in situations where e.g. you don't want the integer 1 and the
-        floating point 1.0 values to be considered equal.
-
-        Warnings
-            - The algorithm in this function uses a set of the elements in seq to
-              identify duplicate items.  To ensure this works with unhashable objects,
-              all of the objects are encapsulated in the Hashable class.  For DupNodup()
-              to work correctly, the contents of all the items in seq cannot change
-              while DupNodup() is processing; otherwise, you'll get incorrect results.
-              This is especially important in programs with multiple threads, so you'd
-              probably want to use a lock just before calling this function.
-            - Each element of seq is accessed in a loop.  If seq is a type like a large
-              deque, you may want to convert it to a list for better performance.
-        
-        The algorithm effectively creates two copies of the list seq (one copy in dup
-        and nodup and one copy in the set seen).  The extra memory of these auxiliary
-        structures allows this to be an O(n) algorithm.
-        
-        The following code was used to time this routine:
-        
-            from f import flt
-            x = flt(0)
-            x.N = 2     # Show only two figures
-            for b, s in ((True, "Type not important"), (False, "Type important")):
-                print(s)
-                for i in (3, 4, 5, 6, 7):
-                    seq = list(range(10**i)) + [0.0]  # seq has one duplicate
-                    tm = timeit.timeit('DupNodup(seq, type_important=b)', globals=globals(), number=1)
-                    print(f"  1e{i}:  {flt(tm).engsi}s")
-        
-        Timing results on my 11 year old 4-core computer running python 3.11.5 under WSL
-        (first column is size of sequence); you can see it's O(n):
-
-            1e3:  700 μs
-            1e4:  6.7 ms
-            1e5:  72 ms     (DupNodupSlow() takes nearly 15 times longer)
-            1e6:  740 ms
-            1e7:  8.6 s
-        '''
-        n, dup, nodup, seen = len(seq), [], [], set()
-        Dbg(f"seq = {seq}")
-        for i in range(n):
-            item, sitem = seq[i], Hashable(seq[i],typ=type_important)
-            if sitem in seen:
-                dup.append(item)
-            else:
-                Dbg(f"  {t.gry}{item} not a duplicate")
-                nodup.append(item)
-            seen.add(sitem)
-        Dbg(f"  dup = {dup}")
-        Dbg(f"nodup = {nodup}")
-        return (nodup, dup)
     def DupNodupSlow(seq, type_important=False):
         '''Return (nodup, dup) where both are lists.  nodup has the elements in seq that
         are not duplicates.  dup contains the elements that are duplicates of earlier
@@ -350,23 +302,12 @@ if 1:   # Finding duplicates in sequences
         floating point 1.0 values to be considered equal.
         
         This algorithm is labeled "Slow" because it's O(n²).  However, it works OK on
-        small sequences on the order of 1000 or less elements.  Timing for integer
-        sequence operation was (showing the increase in time by 100 for each 10 times
-        increase in size):
-        
-             n    Time 
-            1e3:  19 ms
-            1e4:  1.9 s
-            1e5:  200 s
+        small sequences on the order of 1000 or less elements.
         '''
-        # This is one of those algorithms that has a few subtle nuances, but you can do
-        # nearly everything you need to for development by using a small example test case
-        # like [1, 2, 3, 1, 2, 4] and working out the pointer arithmetic, just like
-        # you'd do in C.
         n, dup, nodup = len(seq), [], []
         if not n:
             return (nodup, dup)
-        for i in reversed(range(-n, 0)):
+        for i in reversed(range(-n, 0)):  # Work from back to front to keep order
             item, remainder, found = seq[i], seq[-n:i], False
             for j in range(len(remainder)):
                 otheritem = remainder[j]
@@ -381,144 +322,216 @@ if 1:   # Finding duplicates in sequences
         if len(dup) != len(nodup) and len(dup) + len(nodup) != n:
             raise RuntimeError("Bug in this function")
         return (list(reversed(nodup)), list(reversed(dup)))
+    def DupNodup(seq, type_important=False):
+        '''Return (nodup, dup) where both are lists.  nodup has the elements in seq that
+        are not duplicates.  dup contains the elements that are duplicates of earlier
+        elements in the list.  Both dup and nodup maintain the order of the elements in
+        the original sequence.
+        
+        If type_important is True, then itemA and itemB are defined to be duplicates iff
+        both 'itemA == itemB' and 'type(itemA) is type(itemB)' expressions are True.
+        This is useful in situations where e.g. you don't want the integer 1 and the
+        floating point 1.0 values to be considered equal.
+        
+        Warnings
+            - The algorithm in this function uses a set of the elements in seq to
+              identify duplicate items.  To ensure this works with unhashable objects,
+              all of the objects are encapsulated in the Hashable class.  For DupNodup()
+              to work correctly, the contents of all the items in seq cannot change
+              while DupNodup() is processing; otherwise, you'll get incorrect results.
+              This is especially important in programs with multiple threads, so you'd
+              probably want to use a lock just before calling this function.
+            - Each element of seq is accessed in a loop.  If seq is a type like a large
+              deque, you may want to convert it to a list for better performance.
+        
+        The algorithm effectively creates two copies of the list seq (one copy in dup
+        and nodup and one copy in the set seen).  The extra memory of these auxiliary
+        structures allows this to be an O(n) algorithm.
+        '''
+        n, dup, nodup, seen = len(seq), [], [], set()
+        Dbg(f"seq = {seq}")
+        for i in range(n):
+            item, sitem = seq[i], Hashable(seq[i],typ=type_important)
+            Dbg(f"Processing item {i} = {type(item)}({item})")
+            if sitem in seen:
+                Dbg(f"  {t.redl}{item} is a duplicate")
+                dup.append(item)
+            else:
+                Dbg(f"  {t.gry}{item} not a duplicate")
+                nodup.append(item)
+            seen.add(sitem)
+        Dbg(f"  dup = {dup}")
+        Dbg(f"nodup = {nodup}")
+        return (nodup, dup)
 
 if __name__ == "__main__":
+    import f
+    import timeit
     from functools import partial
+    from collections import deque
     from lwtest import run, assert_equal, Assert
-    GetColors()
-    g.dbg = False  # Turn g.dbg on to see debug printing
-    def Test_find():
-        # Test find_le and find_ge; though these came from the python manpage on the
-        # bisect module, they need to be proved working.
-        N = 10
-        seq = list(range(N))
-        for i in range(N):
-            n = find_le(i, seq)
-            Assert(n == i)
-            n = find_ge(i, seq)
-            Assert(n == i)
-    def Test_iDistribute():
-        def Dist(seq):
-            "Return distances between numbers in seq"
-            out = []
-            for i in range(1, len(seq)):
-                out.append(abs(seq[i] - seq[i - 1]))
-            return out
-        a, b = 0, 255
-        if 1:
-            for n in range(2, 256):
-                s = iDistribute(n, a, b)
-                if s is None:
-                    print(f"n = {n} no solution")
-                    continue
-                d = list(set(Dist(list(s))))
-                if len(d) > 1 and n > 2:
-                    assert_equal(len(d), 2)
-                    assert_equal(abs(d[0] - d[1]), 1)
-        for n in range(257, 265):
-            raises(ValueError, list, iDistribute(n, a, b))
-    def Test_GetClosest():
-        low, high = -3, 6
-        seq = (4, low, high, 1)  # Unsorted sequence
-        sseq = (low, 1, 4, high)  # Sorted sequence
-        if 1:
-            # Test for each type of is_sorted.  This makes sure they each get the same results,
-            # except when the unresolved keyword is different.
-            for k in (None, False, True):
-                f = partial(GetClosest, is_sorted=k)
-                seq = sseq if k else seq
-                if k is None:
-                    raises(ValueError, f, -1e99, seq, unresolved=None)
-                    raises(ValueError, f, 1e99, seq, unresolved=None)
-                    Assert(f(-1e99, seq) == seq[0])
-                    Assert(f(1e99, seq) == seq[0])
-                else:
-                    Assert(f(-1e99, seq) == low)
-                    Assert(f(1e99, seq) == high)
-                Assert(f(-40, seq) == low)
-                Assert(f(-4, seq) == low)
-                # Note x can be a float also
-                Assert(f(-4.0, seq) == low)
-                Assert(f(-3, seq) == low)
-                Assert(f(-2, seq) == low)
-                Assert(f(-1, seq) == low)
-                Assert(f(0, seq) == 1)
-                Assert(f(1, seq) == 1)
-                Assert(f(2, seq) == 1)
-                Assert(f(3, seq) == 4)
-                Assert(f(4, seq) == 4)
-                Assert(f(5, seq) == 4)
-                Assert(f(6, seq) == high)
-                Assert(f(7, seq) == high)
-                Assert(f(20, seq) == high)
-                Assert(f(100, seq) == high)
-        if 1:
-            # Test with objects that are more complicated than numbers.  Here, the objects are 2D
-            # Cartesian points with the Euclidean distance as the metric.
-            class Pt:
-                def __init__(self, x, y):
-                    self.x = x
-                    self.y = y
-                def __eq__(self, other):
-                    return self.x == other.x and self.y == other.y
-                def __str__(self):
-                    return f"Pt({self.x}, {self.y})"
-                def __repr__(self):
-                    return str(self)
-                def dist(self, other):
-                    x = (self.x - other.x) ** 2
-                    y = (self.y - other.y) ** 2
-                    return flt((x + y) ** 0.5)
-            seq = (Pt(0, 0), Pt(-3, 6), Pt(4, 8), Pt(2, 0))
-            f = partial(GetClosest, is_sorted=None)
-            def metric(a, b): return a.dist(b)
-            Assert(f(Pt(0.1, 0.1), seq, distance=metric) == Pt(0, 0))
-            Assert(f(Pt(-0.1, -0.1), seq, distance=metric) == Pt(0, 0))
-            Assert(f(Pt(-100, 0.1), seq, distance=metric) == Pt(-3, 6))
-            Assert(f(Pt(0, 1000), seq, distance=metric) == Pt(4, 8))
-            Assert(f(Pt(1, 0), seq, distance=metric) == Pt(0, 0))
-            Assert(f(Pt(1.0001, 0), seq, distance=metric) == Pt(2, 0))
-    def Test_GetDupNodup():
-        testcases = (
-            # Function input, expected return value
-            ([], 
-                ([], [])),
-            ([None], 
-                ([None], [])),
-            ([None, None], 
-                ([None], [None])),
-            ([1], 
-                ([1], [])),
-            ([1, 1], 
-                ([1], [1])),
-            ([1, 1.0], 
-                ([1],[1.0])),
-            ([1, 2, 3, 1, 2, 4], 
-                ([1, 2, 3, 4], [1, 2])),
-            ([1, 2, 3], 
-                ([1, 2, 3], [])),
-            ("Hello", 
-                (['H', 'e', 'l', 'o'], ['l'])),
-            (b"Hello", 
-                ([72, 101, 108, 111], [108])),
-            ([1, 1, 1.0, 1.0], 
-                ([1], [1, 1.0, 1.0])),
-        )
-        for f in (DupNodup, DupNodupSlow):
+    from color import t
+    t.dbg = False
+    if 1:  # Utility
+        def GetColors():
+            t.err = t("redl")
+            t.dbg = t("lill") if g.dbg else ""
+            t.N = t.n if g.dbg else ""
+        def Dbg(*p, **kw):
+            if g.dbg:
+                print(f"{t.dbg}", end="")
+                print(*p, **kw)
+                print(f"{t.N}", end="")
+        g.dbg = False  # Turn g.dbg on to see debug printing
+        def MeasureTiming():
+            x = f.flt(0)
+            x.N = 2     # Show only two figures
+            global seq, b
+            print("DupNodup")
+            for b, seq in ((True, "Type not important"), (False, "Type important")):
+                print(f"  {seq}")
+                for i in (3, 4, 5, 6):
+                    seq = list(range(10**i)) + [0.0]  # seq has one duplicate
+                    tm = timeit.timeit('DupNodup(seq, type_important=b)', globals=globals(), number=1)
+                    print(f"    1e{i}:  {flt(tm).engsi}s")
+            print("DupNodupSlow")
+            for b, seq in ((True, "Type not important"), (False, "Type important")):
+                print(f"  {seq}")
+                for i in (2, 3, 4):
+                    seq = list(range(10**i)) + [0.0]  # seq has one duplicate
+                    tm = timeit.timeit('DupNodupSlow(seq, type_important=b)', globals=globals(), number=1)
+                    print(f"    1e{i}:  {flt(tm).engsi}s")
+    if 1:  # Testing functions
+        def Test_find():
+            # Test find_le and find_ge; though these came from the python manpage on the
+            # bisect module, they need to be proved working.
+            N = 10
+            seq = list(range(N))
+            for i in range(N):
+                n = find_le(i, seq)
+                Assert(n == i)
+                n = find_ge(i, seq)
+                Assert(n == i)
+        def Test_iDistribute():
+            def Dist(seq):
+                "Return distances between numbers in seq"
+                out = []
+                for i in range(1, len(seq)):
+                    out.append(abs(seq[i] - seq[i - 1]))
+                return out
+            a, b = 0, 255
+            if 1:
+                for n in range(2, 256):
+                    s = iDistribute(n, a, b)
+                    if s is None:
+                        print(f"n = {n} no solution")
+                        continue
+                    d = list(set(Dist(list(s))))
+                    if len(d) > 1 and n > 2:
+                        assert_equal(len(d), 2)
+                        assert_equal(abs(d[0] - d[1]), 1)
+            for n in range(257, 265):
+                raises(ValueError, list, iDistribute(n, a, b))
+        def Test_GetClosest():
+            low, high = -3, 6
+            seq = (4, low, high, 1)  # Unsorted sequence
+            sseq = (low, 1, 4, high)  # Sorted sequence
+            if 1:
+                # Test for each type of is_sorted.  This makes sure they each get the same results,
+                # except when the unresolved keyword is different.
+                for k in (None, False, True):
+                    f = partial(GetClosest, is_sorted=k)
+                    seq = sseq if k else seq
+                    if k is None:
+                        raises(ValueError, f, -1e99, seq, unresolved=None)
+                        raises(ValueError, f, 1e99, seq, unresolved=None)
+                        Assert(f(-1e99, seq) == seq[0])
+                        Assert(f(1e99, seq) == seq[0])
+                    else:
+                        Assert(f(-1e99, seq) == low)
+                        Assert(f(1e99, seq) == high)
+                    Assert(f(-40, seq) == low)
+                    Assert(f(-4, seq) == low)
+                    # Note x can be a float also
+                    Assert(f(-4.0, seq) == low)
+                    Assert(f(-3, seq) == low)
+                    Assert(f(-2, seq) == low)
+                    Assert(f(-1, seq) == low)
+                    Assert(f(0, seq) == 1)
+                    Assert(f(1, seq) == 1)
+                    Assert(f(2, seq) == 1)
+                    Assert(f(3, seq) == 4)
+                    Assert(f(4, seq) == 4)
+                    Assert(f(5, seq) == 4)
+                    Assert(f(6, seq) == high)
+                    Assert(f(7, seq) == high)
+                    Assert(f(20, seq) == high)
+                    Assert(f(100, seq) == high)
+            if 1:
+                # Test with objects that are more complicated than numbers.  Here, the objects are 2D
+                # Cartesian points with the Euclidean distance as the metric.
+                class Pt:
+                    def __init__(self, x, y):
+                        self.x = x
+                        self.y = y
+                    def __eq__(self, other):
+                        return self.x == other.x and self.y == other.y
+                    def __str__(self):
+                        return f"Pt({self.x}, {self.y})"
+                    def __repr__(self):
+                        return str(self)
+                    def dist(self, other):
+                        x = (self.x - other.x) ** 2
+                        y = (self.y - other.y) ** 2
+                        return flt((x + y) ** 0.5)
+                seq = (Pt(0, 0), Pt(-3, 6), Pt(4, 8), Pt(2, 0))
+                f = partial(GetClosest, is_sorted=None)
+                def metric(a, b): return a.dist(b)
+                Assert(f(Pt(0.1, 0.1), seq, distance=metric) == Pt(0, 0))
+                Assert(f(Pt(-0.1, -0.1), seq, distance=metric) == Pt(0, 0))
+                Assert(f(Pt(-100, 0.1), seq, distance=metric) == Pt(-3, 6))
+                Assert(f(Pt(0, 1000), seq, distance=metric) == Pt(4, 8))
+                Assert(f(Pt(1, 0), seq, distance=metric) == Pt(0, 0))
+                Assert(f(Pt(1.0001, 0), seq, distance=metric) == Pt(2, 0))
+        def Test_GetDupNodup():
+            testcases = (
+                # (function input, 
+                #       expected (nodup, dup))
+                ([], 
+                    ([], [])),
+                ([None], 
+                    ([None], [])),
+                ([None, None], 
+                    ([None], [None])),
+                ([1], 
+                    ([1], [])),
+                ([1, 1], 
+                    ([1], [1])),
+                ([1, 1.0], 
+                    ([1],[1.0])),
+                ([1, 2, 3, 1, 2, 4], 
+                    ([1, 2, 3, 4], [1, 2])),
+                ([1, 2, 3], 
+                    ([1, 2, 3], [])),
+                ("Hello", 
+                    (['H', 'e', 'l', 'o'], ['l'])),
+                (b"Hello", 
+                    ([72, 101, 108, 111], [108])),
+                ([1, 1, 1.0, 1.0], 
+                    ([1], [1, 1.0, 1.0])),
+            )
             for seq, expected in testcases:
-                result = f(seq)
+                result = DupNodup(seq)
                 Assert(result == expected)
-                #t.print(f"{t.yel}{seq}    {t.purl}{result}")
-            # With type_important
-            result = f(testcases[-1][0], type_important=1)
+                result = DupNodup(tuple(seq))
+                Assert(result == expected)
+                result = DupNodup(deque(seq))
+                Assert(result == expected)
+            # Testing with type_important
+            seq = [1, 1, 1.0, 1.0]
+            result = DupNodup(seq, type_important=False)
             Assert(result == ([1], [1, 1.0, 1.0]))
-            #print(f(testcases[-1][0], type_important=1))
-    if 1:
-        print("xx Bug in DupNodup with type_important=1:")
-        seq = [1, 1, 1.0, 1.0]
-        seq = [1, 1.0]
-        print(f"seq = {seq}")
-        t.print(f"Got       {t.sky}{DupNodup(seq, type_important=1)}")
-        t.print(f"Should be {t.ornl}([1, 1.0], [])")
-        exit()
+            result = DupNodup(seq, type_important=True)
+            Assert(result == ([1, 1.0], [1, 1.0]))
+    GetColors()
     exit(run(globals(), halt=True)[0])
