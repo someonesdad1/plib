@@ -32,7 +32,6 @@ if 1:  # Header
         import re
         import sys
         from io import StringIO
-        from pdb import set_trace as xx
         from pprint import pprint as pp
         from itertools import filterfalse as remove
     # Custom imports

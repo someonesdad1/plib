@@ -6,7 +6,7 @@ TODO
         - You then define variables c1, c2, c, v1, v2, v
         - concentrations can be plain or have % appended
         - conc_unit = "%" or "" (used in output report)
-        - vol_unit = "xxxx"
+        - vol_unit = "yyyy"
         - Input data are printed, then report of results is given
     -
     - Allow calculations via either mass or volume basis

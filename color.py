@@ -2162,7 +2162,7 @@ if __name__ == "__main__":
             c2 = Color(88, 233, 73, bpc=n)
             n1, n2 = Color.downshift(c1, c2)
             Assert(n1.bpc == n and n2.bpc == n)
-        # xx Need to test with space = "hsv", "hls"
+        # ∞∞ Need to test with space = "hsv", "hls"
         def Test_dist():
             n = 8
             m = 2**n - 1

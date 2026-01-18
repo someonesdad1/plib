@@ -1,5 +1,4 @@
 """
-xx Update to new color.py:  get rid of PrintMatch
 """
 
 if 1:  # Copyright, license
@@ -22,7 +21,6 @@ if 1:  # Imports
     import re
 if 1:  # Custom imports
     from wrap import dedent
-    # from color import PrintMatch
 if 1:  # Global variables
     chemical_data = dedent("""
     Acetic ether	Ethyl acetate	C2H5O2C2H3
@@ -678,7 +676,6 @@ def SearchLine(regexps, line, d):
         mo = r.search(line)
         if mo:
             print(line)
-            # PrintMatch(line, r)
             return
 
 

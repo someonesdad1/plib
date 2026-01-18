@@ -21,7 +21,6 @@ if 1:  # Imports
     import sys
     from fractions import Fraction
     from time import strftime
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from sympy import sympify
     from wrap import dedent
@@ -64,7 +63,7 @@ def Functions(*p):
     Otherwise, list syntax for each non-obvious function.
     """
     if p:
-        xx()
+        breakpoint() #∞∞
     else:
         f = """
             acos acosh asin asinh atan atan2 atanh bei ber bernoulli besseli

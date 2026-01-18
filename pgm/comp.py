@@ -644,7 +644,6 @@ if 1:  # Header
     if 1:  # Imports
         from collections import defaultdict
         from functools import cmp_to_key
-        from pdb import set_trace as xx
         from pprint import pprint as pp
         import csv
         import getopt

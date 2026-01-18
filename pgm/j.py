@@ -20,7 +20,6 @@ if 1:  # Header
     import pathlib
     import sys
     from collections import deque
-    from pdb import set_trace as xx
     # Custom imports
     from wrap import dedent
     from color import TRM as t

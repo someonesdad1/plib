@@ -5,7 +5,6 @@
 import re
 import sys
 from lwtest import run, assert_equal
-from pdb import set_trace as xx
 
 atomic_mass = {
     "Ac": 227.0,

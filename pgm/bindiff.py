@@ -60,7 +60,6 @@ if 1:  # Imports
     import string
     import sys
     from io import StringIO
-    from pdb import set_trace as xx
 if 1:  # Global variables
     file1G = ""
     file2G = ""

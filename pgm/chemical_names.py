@@ -953,8 +953,6 @@ if 1:  # Core functionality
         assert w0 + w1 + w2 <= g.W
         for item in results:
             old, new, formula = [i.strip() for i in item]
-            if old == "Reinecke's salt":
-                breakpoint()  # xx
             s0 = Trunc(old, w0, sep)
             s1 = Trunc(new, w1, sep)
             s2 = Trunc(formula, w2, sep).rstrip()

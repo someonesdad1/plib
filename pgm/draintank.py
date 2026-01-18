@@ -46,7 +46,6 @@ if 1:  # Header
     import os
     from pathlib import Path as P
     import sys
-    from pdb import set_trace as xx
     # Custom imports
     from wrap import wrap, dedent
     from color import t

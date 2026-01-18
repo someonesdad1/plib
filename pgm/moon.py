@@ -78,7 +78,6 @@ if 1:  # Header
         import getopt
         import sys
         import time
-        from pdb import set_trace as xx
     if 1:  # Custom imports
         from wrap import dedent
         from meeus import IsDST

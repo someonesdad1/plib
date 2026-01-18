@@ -21,7 +21,6 @@ if 1:  # Imports
     import getopt
     import glob
     from collections import defaultdict
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import dedent
     from columnize import Columnize

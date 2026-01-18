@@ -20,7 +20,6 @@ if 1:  # Imports
     import os
     import sys
     import subprocess
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import dedent
     from color import t

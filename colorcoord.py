@@ -340,7 +340,7 @@ if __name__ == "__main__":
     def Test_RGB():
         # Not working yet
         t.print(f"{t.ornl}Test_RGB() not working yet")
-        return  # xx
+        return  # ∞∞
         def Test_XYZ_to_rgb():
             # [poyn] pg 9
             r = XYZ_to_rgb((0.64, 0.33, 0.03))

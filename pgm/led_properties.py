@@ -61,7 +61,6 @@ if 1:  # Imports
     import getopt
     import os
     import sys
-    from pdb import set_trace as xx
 if 1:  # For plotting
     # For plots
     from pylab import *

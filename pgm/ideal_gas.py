@@ -105,7 +105,6 @@ if 1:  # Imports
     import sys
     import os
     import getopt
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import dedent
     from color import t

@@ -28,7 +28,6 @@ if 1:  # Imports
     import os
     import getopt
     import re
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import dedent
     from color import t

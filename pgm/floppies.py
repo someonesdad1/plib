@@ -20,7 +20,6 @@ if 1:  # Header
     from pathlib import Path as P
     import re
     import sys
-    from pdb import set_trace as xx
     # Custom imports
     from wrap import wrap, dedent
     from color import Color, t, RegexpDecorate

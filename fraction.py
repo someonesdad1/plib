@@ -1,5 +1,5 @@
 """
-xx Move to fmt.py
+∞∞ Move to fmt.py
 
 FormatFraction
   Return the string form of a fraction using Unicode subscript and superscript

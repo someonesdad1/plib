@@ -1384,7 +1384,7 @@ if __name__ == "__main__":
         Assert(MatchCap("", "") == "")
         Assert(MatchCap(t, "") == "")
         # No letters in s just gets t back if length sufficient
-        Assert(MatchCap("∞∞∞∞∞∞", t) == t)
+        Assert(MatchCap("......", t) == t)
         # Idempotent
         Assert(MatchCap(t, t) == t)
         Assert(MatchCap("", "") == "")
@@ -1589,7 +1589,7 @@ if __name__ == "__main__":
     def Demo():
         "Demonstrate the various functions to stdout"
         print(f"{t('ornl')}Demo of /plib/dpstr.py functions{t('skyl')}")
-        if 0:  # xx
+        if 0:  # ∞∞
             # Chop
             s = "abcdefghij"
             print(f"Chop({s!r}, 3) = {Chop(s, 3)}")

@@ -8,6 +8,14 @@
         - notest (no test for this module)
         - testdir (run corresponding file in /plib/test)
         - '--test' means run the module with the '--test' argument
+    - Mark places that need work
+        - xx is no longer appropriate because it pops up in numerous other contexts
+        - ∞∞ would be easy to add in my editor:  abbreviate it
+        - Urgency
+            - Low       ∞∞
+            - Medium    ∞∞∞
+            - High      ∞∞∞∞
+        Could include a priority 1, 2, 3 to indicate urgency
     - Regularize testing environment
         - Vision
             - Launch testing with one command (e.g., run make)
@@ -17,7 +25,6 @@
             - Try to move all test code to module (can test directory go away?)
     - Currently failing
         - run
-            - dpmath.py
             - laser_dist.py
             - matrix.py
             - util.py

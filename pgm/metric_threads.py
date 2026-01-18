@@ -49,7 +49,6 @@ if 1:  # Header
         import os
         import sys
         import util
-        from pdb import set_trace as xx
     if 1:  # Custom imports
         from f import flt, cos, acos, pi, tan, radians
         from wrap import dedent

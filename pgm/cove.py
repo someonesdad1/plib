@@ -1,6 +1,6 @@
 """
 TODO:
-    * -i option doesn't work
+    - -i option doesn't work
 
     Calculate the angle to set a table saw fence to cut a cove.  See
     cove.pdf for more details.
@@ -24,7 +24,6 @@ if 1:  # Imports
     import os
     import getopt
     from math import sqrt, acos, atan, pi, tan
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import dedent
 if 1:  # Global variables

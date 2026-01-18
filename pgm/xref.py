@@ -577,7 +577,7 @@ if 1:  # Core functionality
             line = line.rstrip("\n\r").replace("\t", " ")
             line = Xref.punct.sub(" ", line)  # Replace punct w/ space
             line = line if not preserve_case else line.lower()
-            # xx Why not use str.split(); it should do the same thing.
+            # ∞∞  Why not use str.split(); it should do the same thing.
             words = re.split("  *", line)
             for word in words:
                 if not word:

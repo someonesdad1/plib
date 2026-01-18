@@ -20,7 +20,6 @@ if 1:  # Imports
     import getopt
     import string
     import os
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from f import flt
     from wrap import dedent

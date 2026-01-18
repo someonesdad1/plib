@@ -36,7 +36,6 @@ if 1:  # Header
         import os
         from pathlib import Path as P
         import sys
-        from pdb import set_trace as xx
         from functools import partial
     if 1:  # Custom imports
         from wrap import wrap, dedent
@@ -201,7 +200,7 @@ if 1:  # Core functionality
             else:
                 print("Leave one variable undefined")
             if dbg:
-                exit(0)  # xx
+                exit(0)  # ∞∞
 
     def PitchRattle():
         pass

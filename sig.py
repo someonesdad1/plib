@@ -3200,7 +3200,7 @@ if __name__ == "__main__":
             (1, "12350(60)"),
             (2, "12300(600)"),
             (3, "12000(6000)"),
-            # xx I've commented out the following test case.  For some
+            # ∞∞ I've commented out the following test case.  For some
             # reason, it works under 2.7/3.4 when this file is run as a
             # script, but when run using nosetests, it fails because the
             # string is "12300+/-60000" instead of what's shown.  I've used

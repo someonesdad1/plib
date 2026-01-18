@@ -38,7 +38,6 @@ if 1:  # Standard imports
     import sys
     import time
     from textwrap import dedent
-    from pdb import set_trace as xx
     from time import strftime as ft, sleep
 if 1:  # Custom imports
     import pdiff

@@ -22,7 +22,6 @@ if 1:  # Imports
     import sys
     import getopt
     import os
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import dedent
     from lwtest import Assert

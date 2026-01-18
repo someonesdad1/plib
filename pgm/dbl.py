@@ -166,7 +166,7 @@ if 1:  # Core functionality
                     ProcessLine.multiline = double
                 else:
                     print(f"---------- BUG ------------")
-                    breakpoint()  # xx
+                    breakpoint()  # ∞∞
         else:
             print(line)
             ProcessLine.previous_line = line

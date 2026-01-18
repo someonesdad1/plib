@@ -26,7 +26,6 @@ if 1:  # Header
         import subprocess
         import sys
         import time
-        from pdb import set_trace as xx
     if 1:  # Custom imports
         from wrap import dedent
         import color as C

@@ -2557,7 +2557,7 @@ if 1:  # Utility functions
             raise TypeError("Unrecognized floating point type")
 if 0:  # Test/development area
     a = matrix("1 2\n3 4")
-    breakpoint()  # xx
+    breakpoint()  # ∞∞
     a[0, 0] = 789
     print(a)
     exit()

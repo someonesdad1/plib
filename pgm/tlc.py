@@ -25,7 +25,6 @@ if 1:  # Imports
     import getopt
     import pathlib
     from glob import glob
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import dedent
     from color import C

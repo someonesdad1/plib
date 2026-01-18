@@ -28,7 +28,6 @@ if 1:  # Header
         import sys
         from fractions import Fraction
         import getopt
-        from pdb import set_trace as xx
     if 1:  # Custom imports
         from get import GetNumber
         from wrap import dedent

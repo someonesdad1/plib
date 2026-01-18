@@ -32,7 +32,6 @@ if 1:  # Imports
     import getopt
     import pathlib
     import sys
-    from pdb import set_trace as xx
     from pprint import pprint as pp
 if 1:  # Custom imports
     from wrap import dedent

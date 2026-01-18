@@ -23,7 +23,6 @@ if 1:  # Imports
     import glob
     import os
     from pprint import pprint as pp
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import dedent
     from f import flt

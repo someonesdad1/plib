@@ -24,7 +24,6 @@ if 1:  # Imports
     import sys
     import getopt
     from io import BytesIO, StringIO
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import dedent
     from dpstr import Chop

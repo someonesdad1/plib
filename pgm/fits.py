@@ -25,7 +25,6 @@ if 1:  # Header
         import sys
         import os
         import getopt
-        from pdb import set_trace as xx
         from fractions import Fraction as F
     if 1:  # Custom imports
         from wrap import dedent

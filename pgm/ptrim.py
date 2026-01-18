@@ -171,7 +171,7 @@ if __name__ == "__main__":
         ProcessLine.chars = "".join(set(d["-c"] if d["-c"] else " "))
     if 0:
         line = " aa∞ \t\v\n\n"
-        ProcessLine(line, "xx")
+        ProcessLine(line, "∞∞")
         exit()
     for file in files:
         g.line = 1

@@ -765,7 +765,7 @@ class Fmt:
         be larger than the desired width.
         """
         if width is not None:
-            raise Exception("width keyword not supported yet")  # xx
+            raise Exception("width keyword not supported yet")  # ∞∞
         if 1:  # Check arguments
             if n is not None:
                 if not ii(n, int):

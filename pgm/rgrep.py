@@ -15,7 +15,6 @@ if 1:  # Copyright, license
     ##∞test∞# ["rgrep_test.py"] #∞test∞#
     pass
 if 1:  # Imports
-    from pdb import set_trace as xx
     from textwrap import dedent
     import getopt
     import os

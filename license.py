@@ -1,5 +1,5 @@
 '''
-xx Make the license header substitution part of trigger.py.  Then this
+∞∞ Make the license header substitution part of trigger.py.  Then this
 script is only used to print copies of the licenses to stdout.
 
 ----------------------------------------------------------------------

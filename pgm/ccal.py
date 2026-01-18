@@ -51,7 +51,7 @@ if 1:   # Utility
         g.oneday = DT.timedelta(days=1)
         g.oneweek = DT.timedelta(days=7)
         g.daysheader = deque("Mo Tu We Th Fr Sa Su".split())
-        g.months = "xxx Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split()
+        g.months = "yyy Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split()
         for i in range(d["-s"]):
             g.daysheader.rotate(-1)
         GetScreen()

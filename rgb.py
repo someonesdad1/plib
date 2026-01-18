@@ -726,7 +726,7 @@ if __name__ == "__main__":
         raises(ValueError, ColorNum, "#00000g")
         raises(ValueError, ColorNum, "@00000g")
         raises(ValueError, ColorNum, "$00000g")
-        raises(ValueError, ColorNum, b"xxxx")
+        raises(ValueError, ColorNum, b"bbbb")
 
     def TestColorNumInterpolate():
         a = ColorNum((0, 0, 0))

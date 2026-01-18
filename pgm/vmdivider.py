@@ -28,7 +28,6 @@ if 1:  # Header
         import getopt
         import os
         import sys
-        from pdb import set_trace as xx
     if 1:  # Custom imports
         from wrap import dedent
         from resistors import resistors, FindClosest

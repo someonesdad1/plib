@@ -1,4 +1,4 @@
-# xx Move to dpmath
+# ∞∞ Move to dpmath
 
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py

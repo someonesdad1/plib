@@ -21,7 +21,6 @@ if 1:  # Imports
     import os
     import getopt
     from functools import partial
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import dedent, wrap
     from get import GetNumber

@@ -476,7 +476,7 @@ if __name__ == "__main__":
         w.opp = "\n"*4
         got = w(s)
         want = '\n'.join(u)
-        if 1: #xx
+        if 1: #∞∞ 
             print(f"Got  = {got!r}")
             print(f"Want = {want!r}")
             if 0:

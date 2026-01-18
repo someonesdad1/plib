@@ -30,7 +30,6 @@ if 1:  # Header
         import sys
         from math import *
         from itertools import combinations
-        from pdb import set_trace as xx
     if 1:  # Custom imports
         from bidict import bidict
         from wrap import dedent
@@ -1016,12 +1015,12 @@ if 1:  # Core functionality
                     row.append(r.pop(0))
                 for i in Columnize(row, indent=" " * 4, horiz=True, sep=" " * 8):
                     print(i)
-            # xx Note this illuminates one or more bugs in Columnize, as this doesn't print as
+            # ∞∞ Note this illuminates one or more bugs in Columnize, as this doesn't print as
             # I would wish.
             print("\nCrappy display due to bug in columnize.Columnize")
 
 
-if 0:  # xx
+if 0:  # ∞∞ 
     ListOnhand()
     exit()
 

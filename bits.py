@@ -320,7 +320,7 @@ if 0:   # Fixed-size integers
             [3] https://www.electronicsmedia.info/2024/02/10/twos-complement/
             
             '''
-    if 0: #xx
+    if 0: #∞∞
         x = Int(12)
         print(x)
         x = Int(12, 8)

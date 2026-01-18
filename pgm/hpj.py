@@ -58,7 +58,6 @@ if 1:
     import textwrap
     from pathlib import Path as P
     from collections import defaultdict, namedtuple
-    from pdb import set_trace as xx
 
     # Custom imports
     from wsl import wsl
@@ -5140,7 +5139,7 @@ if 1:  # Data
             "1993",
             "12",
             "A Firmware Architecture for Multiple High-Performance Measurements",
-            "The HP 894xxA vector signal analyzers perform fast, sophisticated measurements on complex waveforms. The firmware architecture provides access to multiple processors to meet the high-performance requirements while allowing individual measurements to share common features and protocol",
+            "The HP 894..A vector signal analyzers perform fast, sophisticated measurements on complex waveforms. The firmware architecture provides access to multiple processors to meet the high-performance requirements while allowing individual measurements to share common features and protocol",
             ["Dennis P. O'Brien"],
             "17-30",
             "",
@@ -29864,7 +29863,7 @@ if 1:  # Data
         1974-11-12.pdf:  Troubleshooting transistorized circuits faster (uses octopus); Good letter to editor about octopus tester in previous issue
         1975-01-02.pdf:  All about power supplies; Isolating power supply drift
         1975-03-04.pdf:  How to remove ICs
-        1976-09-12.pdf:  Troubleshooting 626xxJ series DC power supplies
+        1976-09-12.pdf:  Troubleshooting 626..J series DC power supplies
         1977-01-02.pdf:  Glossary of IC terms
         1977-03-04.pdf:  Digital signature analysis
         1977-05-08.pdf:  Fast L-C measurements; Logic tester has unambiguous display; Direct-reading ohmmeter needs no calibration; Microprocessor buzz words; Nut holder (kink in solder pounded into nut)

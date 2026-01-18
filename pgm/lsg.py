@@ -141,7 +141,6 @@ if 1:  # Standard imports
     import subprocess
     import sys
     from collections import defaultdict
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import wrap, dedent
     from color import TRM as t

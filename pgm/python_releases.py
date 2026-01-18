@@ -21,7 +21,6 @@ if 1:  # Copyright, license
     pass
 if 1:  # Imports
     from datetime import date
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import dedent
     from bidict import bidict

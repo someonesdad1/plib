@@ -213,13 +213,13 @@ if 1:   # Core functionality
             
             Some possible forms of s are
                 'watch((x,))'
-                'watch((x,), color="xxx")'
+                'watch((x,), color="abc")'
                 'watch([x,])'
-                'watch([x,], color="xxx")'
+                'watch([x,], color="abc")'
                 'watch((x, y))'
-                'watch((x, y), color="xxx")'
+                'watch((x, y), color="abc")'
                 'watch([x, y])'
-                'watch([x, y], color="xxx")'
+                'watch([x, y], color="abc")'
             The first four forms need to return ("x",) or ["x"]; the second
             four need to return ("x", "y") or ["x", "y"].
             '''

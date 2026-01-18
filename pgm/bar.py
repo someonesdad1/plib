@@ -20,7 +20,6 @@ if 1:  # Imports
     import os
     import getopt
     from math import pi, sqrt
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import dedent
     from columnize import Columnize

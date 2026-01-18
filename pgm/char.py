@@ -30,7 +30,6 @@ if 1:  # Imports
     import getopt
     import string
     from collections import defaultdict
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import dedent, wrap
     from color import t

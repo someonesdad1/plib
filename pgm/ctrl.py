@@ -21,7 +21,6 @@ if 1:  # Imports
     import os
     import string
     import sys
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from columnize import Columnize
     from wrap import dedent

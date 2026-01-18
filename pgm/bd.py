@@ -69,7 +69,6 @@ if 1:  # Header
     from pathlib import Path as P
     import sys
     import enum
-    from pdb import set_trace as xx
 
     # Custom imports
     from wrap import wrap, dedent

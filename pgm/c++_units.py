@@ -1144,7 +1144,6 @@ if 1:  # Core functionality
             # Construct the string to compile
             s = "%s = U((%s))" % (name, repr(U(t)))
             try:
-                breakpoint()  # xx
                 c = compile(s, "", "single")
                 eval(c)  # Evaluate it in our local namespace
                 # Get the object created and put into our dictionary
@@ -1175,7 +1174,6 @@ if 1:  # Core functionality
         # to keep the tasks separate.
         for name in output_strings[Units]:
             try:
-                breakpoint()  # xx
                 s = "%s = U((%s))" % (name, output_strings[Units][name])
                 c = compile(s, "", "single")
                 eval(c)

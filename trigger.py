@@ -112,7 +112,7 @@ class Trigger(dict):
             trig = f"{self.start}{trigger}{self.end}"
             repl = f"{trig}{self[trigger]}{trig}"
             self.text = r.sub(repl, self.text)
-        # xx Need to test write functionality
+        # ∞∞ Need to test write functionality
         print("New text")
         pp(self.text)
         exit()

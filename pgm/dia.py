@@ -41,7 +41,6 @@ if 1:  # Header
     from fractions import Fraction
     from math import *
     from decimal import Decimal
-    from pdb import set_trace as xx
 
     # Custom imports
     from wrap import dedent

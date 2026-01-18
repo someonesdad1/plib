@@ -37,8 +37,6 @@ from itertools import combinations
 from geom_prim import Ctm, Point, Line, Plane, V, UseUnicode
 import color
 
-from pdb import set_trace as xx
-
 if 0:
     import debug
 

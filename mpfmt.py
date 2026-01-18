@@ -73,7 +73,7 @@ if 1:  # Classes
                 elif fmt == "sci":
                     return f"{sgn}{s[0] + self.radix + s[1:]}e{e}"
                 elif fmt == "eng":
-                    # xx Need to adjust exponent
+                    # ∞∞ Need to adjust exponent
                     return f"{sgn}{s[0] + self.radix + s[1:]}e{e}"
                 elif fmt == "engsi":
                     return f"{sgn}{s[0] + self.radix + s[1:]}e{e}"

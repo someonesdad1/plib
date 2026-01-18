@@ -445,7 +445,7 @@ if 1:  # Utility
             tilt      ≈0.30° = 300m°            Axial tilt
             moons     0                         Number of moons
             T         94 K = 94 K               Mean surface temperature
-            ld        xx                        Log discriminant
+            ld        yy                        Log discriminant
          
         Because SI prefixes can be useful in interpreting results, the values are followed by the
         significand with an appended SI prefix to the units.

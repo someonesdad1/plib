@@ -45,9 +45,6 @@ if 1:  # Imports & globals
         C = Dummy()
         _have_color = False
 
-    # Debugging stuff
-    from pdb import set_trace as xx
-
     if 0:
         import debug
 

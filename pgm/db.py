@@ -27,7 +27,6 @@ if 1:  # Imports
     import os
     import sys
     from math import sqrt, log10 as log
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import dedent
     from columnize import Columnize

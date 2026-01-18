@@ -302,13 +302,13 @@ if 1:  # RMS formula validation
         Check(w.Vpp, 2 + DC)
         Check(w.Vpk, 1 + DC)
         Check(w.CF, math.sqrt(2))
-        # xx Why is this failing?  The Vaa value should be the DC value plus the 2/pi for the no DC
+        # ∞∞ Why is this failing?  The Vaa value should be the DC value plus the 2/pi for the no DC
         # offset case.
         # w.Vaa = 2.002002002002001
         # 2/pi = 0.6366197723675814
         # 2/pi + DC = 2.6366197723675815
         w = Waveform("sine", n=100, DC=DC)
-        breakpoint()  # xx
+        breakpoint()  #∞∞
         Check(w.Vaa, 2 / math.pi + DC, p=0)
 
 
@@ -936,7 +936,7 @@ if 1:  # Core functionality
         elif "a" in kw:
             pass
 
-        exit()  # xx
+        exit()  # ∞∞ 
 
 
 if 0:

@@ -291,7 +291,7 @@ if 1:  # Core functionality
             o.extend(line.split())
         return list(sorted(o)) if in_sorted_order else o
 
-if 0: #xx
+if 0: #∞∞
     s = ["atm.py             columnize.py       fmt.py             primes.py",
          "atomic_mass.py     cuncertainties.py  frange.py          prob.py",
          "bits.py            e.py               gauge_sizes.py     roundoff.py",

@@ -21,7 +21,6 @@ if 1:  # Header
         import os
         import pathlib
         import sys
-        from pdb import set_trace as xx
     if 1:  # Custom imports
         from wrap import wrap, dedent
         from f import flt

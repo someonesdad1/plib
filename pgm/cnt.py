@@ -41,14 +41,12 @@ if 1:  # Imports
     import sys
     from collections import defaultdict
     from pprint import pprint as pp
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import dedent
     from columnize import Columnize
     from fpformat import FPFormat
     from roundoff import RoundOff
     from color import TRM as T
-    from pdb import set_trace as xx
 
     if 0:
         import debug

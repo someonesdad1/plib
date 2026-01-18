@@ -17,7 +17,6 @@ if 1:  # Header
         pass
     if 1:  # Imports
         from collections import namedtuple, OrderedDict
-        from pdb import set_trace as xx
     if 1:  # Custom imports
         from f import flt
         from wrap import dedent

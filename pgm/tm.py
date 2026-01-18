@@ -21,7 +21,6 @@ if 1:  # Standard imports
     import os
     import pathlib
     import sys
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import wrap, dedent, indent, Wrap
     from globalcontainer import Global, Variable, Constant

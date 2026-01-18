@@ -58,7 +58,6 @@ Test hashing speeds of some hash algorithms.
 from __future__ import print_function, division
 from timeit import timeit
 import sys
-from pdb import set_trace as xx
 
 py3 = sys.version_info.major == 3
 

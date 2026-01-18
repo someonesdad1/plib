@@ -6,7 +6,7 @@ Decorate color specifications
         - d = real on [0, 1]
             - .123
             - 0.123
-        - Hex string form @#$xxyyzz
+        - Hex string form @#$aabbcc
         - Single integer on interval [0, 2**24)
             - i i i    or    i, i, i     or   i; i; i
             - d d d    or    d, d, d     or   d; d; d
@@ -40,7 +40,6 @@ if 1:  # Header
     if 1:  # Standard imports
         from collections import deque
         from pathlib import Path as P
-        from pdb import set_trace as xx
         import getopt
         import math
         import os
@@ -245,7 +244,7 @@ if 1:  # Core functionality
         '''
         flags = re.I | re.X
         regexps = (
-            # [@#$]xxyyzz form
+            # [@#$]aabbcc form
             R(r"([@#$][0-9a-f]{6})", flags),
             # Three integers or floats separated by commas
             R(rf"({s},\s*{s},\s*{s})", flags),

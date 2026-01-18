@@ -25,7 +25,6 @@ if 1:  # Imports
     import os
     import subprocess
     import sys
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import dedent
     cold = False  # Use old color methods

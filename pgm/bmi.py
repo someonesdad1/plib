@@ -15,7 +15,6 @@ if 1:  # Header
     if 1:  # Imports
         import sys
         import getopt
-        from pdb import set_trace as xx
     if 1:  # Custom imports
         from columnize import Columnize
         from wrap import dedent

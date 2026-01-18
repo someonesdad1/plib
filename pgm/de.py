@@ -36,7 +36,6 @@ if 1:  # Header
         from math import *
         from fractions import Fraction
         from bisect import bisect_left, bisect_right
-        from pdb import set_trace as xx
     if 1:  # Custom imports
         from wrap import dedent
         from frange import frange, Rational

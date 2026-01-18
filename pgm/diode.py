@@ -979,7 +979,7 @@ if 1:  # Core functionality
                         print(f"  v2 = {v2} at i = {ihigh.engsi}A")
                         print(f"  Diodes = {Diodes}")
                         if v1 * v2 > 0:
-                            exit()  # xx
+                            exit()  # ∞∞ 
                 i, num_iterations = root.Crenshaw(ilow, ihigh, f, eps=eps, dbg=stream)
                 # Get the voltage drop across the diodes
                 v = 0

@@ -17,7 +17,6 @@ if 1:  # Copyright, license
 if 1:  # Imports
     import getopt
     import sys
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import dedent
     from sig import sig

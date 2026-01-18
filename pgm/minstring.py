@@ -21,7 +21,6 @@ if 1:  # Imports
     import sys
     from collections import defaultdict
     from pprint import pprint as pp
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import dedent
     from columnize import Columnize

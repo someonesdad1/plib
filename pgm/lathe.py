@@ -20,7 +20,6 @@ if 1:  # Header
         import os
         from pathlib import Path as P
         import sys
-        from pdb import set_trace as xx
     if 1:  # Custom imports
         from columnize import Columnize
         from color import t
@@ -170,7 +169,7 @@ if 1:  # Core functionality
         # pitch.  Desired metric pitches from above are:  0.4, 0.5, 0.7,
         # 0.8, 1, 1.25, 1.5, 1.75, 2, 2.5, 3.
         #
-        # xx Need to print out a table summarizing how to use this method
+        # ∞∞ Need to print out a table summarizing how to use this method
         # to cut an approximate metric thread on the Clausing lathe.
         # Particularly for short engagements like a nut, this can be a
         # useful method.

@@ -21,7 +21,6 @@ if 1:  # Standard imports
     import pathlib
     import sys
     import enum
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import wrap, dedent
     from color import C
@@ -297,7 +296,7 @@ if 1:  # Classes and types
             "Return the key name symbol"
             f = self.key.split("-")
             if self.key == "Shift-Command-Down Arrow":
-                xx()  # xx
+                breakpoint()  # ∞∞
             for item in f:
                 i = item.strip()
                 items.append(d[i] if i in d else i)
@@ -307,7 +306,7 @@ if 1:  # Classes and types
             items = [f"{self.key:40s}{' ' * 5}"]
             f = self.key.split("-")
             if self.key == "Shift-Command-Down Arrow":
-                xx()  # xx
+                breakpoint()  # ∞∞
             for item in f:
                 i = item.strip()
                 items.append(self._sym[i] if i in self._sym else i)

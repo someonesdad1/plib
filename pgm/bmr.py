@@ -120,8 +120,8 @@ if 1:  # Core functionality
             h is height in m
             y is age in years
             a is activity level in (1, 2, 3, 4)
-        Test case:  should return xxxxxx for m = 70 kg, h = 1.75 m, y = 70 years, a = 1, and for a
-        male.  For a female, it should return xxxxxx.
+        Test case:  should return yyyyyy for m = 70 kg, h = 1.75 m, y = 70 years, a = 1, and for a
+        male.  For a female, it should return yyyyyy.
         """
         kcal = 10 * m + 625 * h - 5 * y
         if female:
