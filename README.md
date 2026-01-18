@@ -12,7 +12,8 @@
         - Vision
             - Launch testing (e.g., run make)
             - Only output message is Pass or Fail
-            - If Fail, then 'cat test_results' to see what happened
+                - Fail messages go into 0test.fail
+                - Pass messages go into 0test.pass
             - Try to move all test code to module (can test directory go away?)
     - Currently failing
         - run
@@ -24,7 +25,6 @@
         - testdir
             - Look at results; much of test code is passing and could probably stand
               being integrated with the module, as it makes things easier.
-
 
 ## Plan
 - Create HTML pages to make it easier to browse/find content

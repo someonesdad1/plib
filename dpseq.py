@@ -241,12 +241,7 @@ if 1:  # Core functionality
 if 1:   # Finding duplicates in sequences
     if 1:   # Notes
         '''
-        Finding duplicates in sequences in python has more nuances than e.g. finding
-        duplicates in arrays in C.  Two reasons for this are 1) sequences can be
-        heterogeneous and 2) some items in a sequence may not be hashable, meaning they
-        can't be put into a dictionary or set.  
-        
-        One approach to this problem is to use the nice facilities of lists:
+        An obvious approach to this problem is to use the facilities of lists:
         
             def FindDuplicates(seq):
                 seqcopy = list(seq)
@@ -255,47 +250,47 @@ if 1:   # Finding duplicates in sequences
                     dup.append(item) if item in seqcopy else nodup.append(item)
                 return (nodup, dup)
         
-        It's elegantly simple, understandable, and obviously correct.  Unfortunately it's
-        O(n²) because looking at each element in the list with pop() is O(n) and the 'item
-        in seqcopy' is an implicit for loop.
+        It's simple, understandable, and obviously correct.  Unfortunately it's O(n²)
+        because looking at each element in the list with pop() is O(n) and the 'item in
+        seqcopy' is an implicit for loop.
         
-        The fix for this is to copy the sequence into a set, which has no duplicates.  Then
-        we'd use something like
+        A fix for this is to copy the sequence into a set, which has no duplicates.  Then
+        we'd use
         
-            setcopy = set(seq)  # Contains items in seq that are not duplicates
-            n, nodup, dup = len(seqcopy), [], []
-            for i in range(n):
-                item = seq[i]
-                dup.append(item) if item in setcopy else nodup.append(item)
-            return (nodup, dup)
+            def FindDuplicates(seq):
+                seen = set(seq)  # Contains items in seq that are not duplicates
+                n, nodup, dup = len(seqcopy), [], []
+                for i in range(n):
+                    item = seq[i]
+                    dup.append(item) if item in seen else nodup.append(item)
+                return (nodup, dup)
         
-        which is also simple, understandable, and obviously correct.  It's also O(n) with
-        the extra cost of more memory for the set.  Unfortunately, it fails if seq contains
-        a nonhashable element.  Nonhashable things are mutable items that can change over
-        time, such as lists, sets, and dictionaries.  Unfortunately, they are also core data
-        structures used constantly in python code.
+        which is also simple, understandable, obviously correct, and O(n).  An extra
+        cost is more memory for the set.  Unfortunately, it fails with an exception if
+        seq contains a nonhashable element.  Nonhashable things are mutable items that
+        can change over time, such as lists, sets, and dictionaries.
         
-        The function DupNodup fixes this hashability problem by using a helper class
-        Hashable that makes every object hashable.  Now the set seen can keep track of the
-        seq elements seen to identify duplicates and the algorithm is O(n).  The helper
-        class uses __slots__ to minimize memory use.
+        The function DupNodup below fixes this hashability problem by using a helper class
+        Hashable that makes every object hashable.  The helper class uses __slots__ to
+        minimize memory use.
         
-            n, dup, nodup, seen = len(seq), [], [], set()
-            for i in range(n):
-                item = seq[i]
-                sitem = Hashable(seq[i])    # I've left out a detail in the actual function
-                dup.append(item) if sitem in seen else nodup.append(item)
-                seen.add(sitem)
-            return (nodup, dup)
+            def FindDuplicates(seq):
+                n, dup, nodup, seen = len(seq), [], [], set()
+                for i in range(n):
+                    item = seq[i]
+                    sitem = Hashable(seq[i])
+                    dup.append(item) if sitem in seen else nodup.append(item)
+                    seen.add(sitem)
+                return (nodup, dup)
         
-        It's also understandable, correct, and O(n) because seeing if something is in a set
-        and adding an item to a set are both O(1).  The extra "cost" is the memory of the
+        It's understandable, correct, and O(n) because seeing if something is in a set
+        and adding an item to a set are both O(1).  The extra cost is the memory of the
         two copies of the original sequence: dup/nodup and the set.
         '''
     class Hashable:
-        '''Encapsulates an object and simulates it being hashable by defining a __hash__
-        method.  It is your responsibility to ensure that the items being stored don't
-        change while being processed or you'll get incorrect results.
+        '''Encapsulate an object and make it hashable by defining a __hash__ method.  It
+        is your responsibility to ensure that the items being stored don't change while
+        being processed or you'll get incorrect results.
         '''
         __slots__ = ("object", "typ")
         def __init__(self, object, typ=False):
@@ -309,60 +304,53 @@ if 1:   # Finding duplicates in sequences
             # e.g. the hash of 1 and the hash of 1.0 when stored in a Hashable instance.
             # If this doesn't work (e.g. in some other python instantiation), then the
             # DupNodup() algorithm won't work correctly.
-            def H(hsh):
-                'Format a hash in hex'
-                sign = "-" if hsh < 0 else ""
-                return f"{sign}0x{hex(abs(hsh))}"
             if self.typ:
-                repr_hash = hash(repr(self.object))
-                Dbg(f"  A: {self.object!r} repr_hash is {H(repr_hash)}")
-                return repr_hash
+                return hash(repr(self.object))
             try:
-                regular_hash = hash(self.object)
-                Dbg(f"  B: {self.object!r} hash is {H(regular_hash)}")
-                return regular_hash
+                return hash(self.object)
             except TypeError:
-                Dbg(f"  C (exception): {self.object!r} hash is {H(repr_hash)}")
-                return repr_hash
+                return hash(repr(self.object))
         def __eq__(self, other):
             eqval = (self.object == other.object)
             if self.typ:
                 return (eqval and (type(self) is type(other)))
             return eqval
-        def __repr__(self):
-            h = hex(id(self))
-            return f"<{h} {self.object!r}>"
-        if 0:  # Only needed when debugging
-            def __str__(self):
-                h = hash(self)
-                s = "-" if h < 0 else ""
-                h = hex(abs(h))
-                return f"{t.sky}H<{s}{h}{t.n}>"
-            def __repr__(self):
-                return str(self)
     def DupNodup(seq, type_important=False):
-
-        '''seq is a sequence.  Return (nodup, dup) where nodup and dup are lists.  nodup
+        '''seq is a sequence; returns (nodup, dup) where nodup and dup are lists.  nodup
         has the elements in seq that are not duplicates.  dup contains the elements that
         are duplicates of earlier elements in the list.  Both dup and nodup maintain the
         order of the elements in the original sequence.
-        
+
         If type_important is True, then itemA and itemB are defined to be duplicates iff
         both 'itemA == itemB' and 'type(itemA) is type(itemB)' expressions are True.
         This is useful in situations where e.g. you don't want the integer 1 and the
         floating point 1.0 values to be considered equal (in python, '1 == 1.0' is
         True).
         
+        Examples:
+            DupNodup([1, 2, 3, 1, 4, 1.0]) returns 
+                nodup = [1, 2, 3, 4]
+                dup   = [1, 1.0]
+            because 1 == 1.0, so the second 1 and the 1.0 in seq are considered
+            duplicates.
+
+            DupNodup([1, 2, 3, 1, 4, 1.0], type_important=True) returns 
+                nodup = [1, 2, 3, 4, 1.0]
+                dup   = [1]
+            because type_important=True means two items aren't duplicates unless they
+            are equal and have the same type.
+        
         Warnings
             - The algorithm in this function uses a set of the elements in seq to
               identify duplicate items.  To ensure this works with unhashable objects,
-              all of the objects are encapsulated in the Hashable class.  For DupNodup()
-              to work correctly, the contents of all the items in seq cannot change
-              while DupNodup() is processing; otherwise, you'll get incorrect results.
-              This is especially important in programs with multiple threads, so you'd
-              probably want to use a lock just before calling this function.
+              the objects are encapsulated in the Hashable class.  For DupNodup() to
+              work correctly, the contents of all the items in seq cannot change while
+              DupNodup() is processing; otherwise, you'll get incorrect results.  This
+              is important in programs with multiple threads, so you'd probably want to
+              use a lock just before calling this function.
             - Each element of seq is accessed in a loop.  If seq is a type like a large
-              deque, you may want to convert it to a list for better performance.
+              deque, you may want to convert it to a list for better performance
+              (accessing the middle of a deque is O(n), not like O(1) for a list).
         
         The algorithm effectively creates two copies of the list seq (one copy in dup
         and nodup and one copy in the set seen).  The extra memory of these auxiliary
