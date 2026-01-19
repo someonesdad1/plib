@@ -100,7 +100,7 @@ if 1:  # Header
         from collections.abc import Iterable
         from decimal import Decimal
         from fractions import Fraction
-        from itertools import chain, groupby
+        from itertools import chain, groupby, count
         from itertools import cycle, zip_longest, product
         from operator import itemgetter
         from pathlib import Path as P
@@ -1566,16 +1566,37 @@ def Ranges(seq, validate=False):
     such a representation is than the set of integers.
     
     The algorithm is derived from 
-    https://stackoverflow.com/questions/3429510/pythonic-way-to-convert-a-list-of-integers-into-a-string-of-comma-separated-range/3430231#3430231
-    and is the 7 Aug 2010 answer.
+    https://stackoverflow.com/questions/3429510/pythonic-way-to-convert-a-list-\
+    of-integers-into-a-string-of-comma-separated-range/3430231#3430231
+    and is the 7 Aug 2010 answer due to John La Rooy.  It's a neat solution and I 
+    thank La Rooy and StackOverflow for posting the answer.
+
+        Content of above link
+        # Source - https://stackoverflow.com/a
+        # Posted by John La Rooy, modified by community. See post 'Timeline' for change history
+        # Retrieved 2026-01-18, License - CC BY-SA 2.5
+
+        >>> from itertools import count, groupby
+        >>> L=[1, 2, 3, 4, 6, 7, 8, 9, 12, 13, 19, 20, 22, 23, 40, 44]
+        >>> G=(list(x) for _,x in groupby(L, lambda x,c=count(): next(c)-x))
+        >>> print ",".join("-".join(map(str,(g[0],g[-1])[:len(g)])) for g in G)
+        1-4,6-9,12-13,19-20,22-23,40,44
+    
+    Note 18 Jan 2026:  this function was broken when the selftests ran.  I attribute the
+    cause to 'ruff check' telling me to get rid of the lambda function I had; so I
+    defined the function f(x, c) instead and the linter was happy.  But things broke a
+    week or so later when I ran the self tests.  Thus, I'll use the original code with
+    the lambda in the generator.
+
     '''
     if validate:
         orig = list(seq)    # Copy of original sequence
     # Make sure all the elements of seq are integers
     if not all(ii(i, int) for i in seq):
         raise TypeError("Not all elements of seq are integers")
-    def f(x, c): return next(c) - x
-    G = (list(x) for _, x in groupby(seq, f))
+    # This is the same code used in the StackOverflow solution, substituting seq for L.
+    # And things work again.
+    G = (list(x) for _,x in groupby(seq, lambda x,c=count(): next(c)-x))
     # Convert into pairs of numbers for range()
     o = []
     for i in list(G):
@@ -2128,6 +2149,7 @@ if __name__ == "__main__":
         assert Ranges([], validate=True) == []
         # Simple unsorted sequence
         seq = [2, 1, -3, 7]
+        breakpoint() #∞∞ 
         r = Ranges(seq)
         assert r == seq
         # Algorithm author's example

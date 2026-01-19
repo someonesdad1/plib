@@ -24,9 +24,7 @@
                 - Pass messages go into 0test.pass
             - Try to move all test code to module (can test directory go away?)
     - Currently failing
-        - run
-            - matrix.py
-            - util.py
+        - run (all fixed)
         - testdir
             - Look at results; much of test code is passing and could probably stand
               being integrated with the module, as it makes things easier.
