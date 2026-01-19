@@ -61,9 +61,13 @@ if 1:   # Utility
     def Usage(status=0):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] n file [function]
-          Run the script in file n times and report the elapsed time.  If function is given,
-          import the file and run the function, reporting on the function's timing.  You
-          can leave n out if you wish and it will default to 1.
+          Run the script in file n times and report the elapsed time.  If function is
+          given, import the file and run the function, reporting on the function's
+          timing.  You can leave n out if you wish and it will default to 1.
+           
+          Caution:  if you're timing a function, you'd be wise to make n a reasonably
+          large number (the python timeit module uses 1e6 as the default) to average out
+          the problems with a multitasking system.
         Options:
             -d      Set number of significant figures [{d["-d"]}]
             -v      Turn on debugging comments
@@ -159,9 +163,10 @@ if 1:   # Core functionality
         cmd = f"{filename}.{g.func}()"
         # Do the timing
         tm = timeit(cmd, globals=locals(), number=g.n)
-        tm = flt(tm)
+        tm = flt(tm)/g.n
         # Report
-        t.print(f"Time to run {g.func!r} {g.n} {s} = {t.ornl}{tm.engsi}s")
+        u = "Mean t" if g.n > 1 else "T"
+        t.print(f"{u}ime to run {g.func!r} {g.n} {s} = {t.ornl}{tm.engsi}s")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary

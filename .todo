@@ -70,6 +70,12 @@
               only used so far in 0test.py.
             - waveform.py needs a goodly amount of work to fix lint problems
 
+    - pgm/python_perf.py
+        - Update to modern formatting
+        - Use color.py and f.flt/f.cpx
+        - Include a -c option to turn off color
+        - mpmath stuff in e.g. t.magl?
+
     - Move the stuff in cygwin's /tools directory to a repository on github, first
       making sure everything compiles and works.
 
