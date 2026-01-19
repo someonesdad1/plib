@@ -25,7 +25,6 @@
             - Try to move all test code to module (can test directory go away?)
     - Currently failing
         - run
-            - laser_dist.py
             - matrix.py
             - util.py
         - testdir

@@ -1,4 +1,4 @@
-"""
+'''
 
 ToDo
     - Matrix.replace(self, n, vector, c=False) doesn't work right.  These
@@ -23,7 +23,7 @@ ToDo
             - Linear regression example
             
 Matrix module
-"""
+'''
 if 1:  # Header
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -94,13 +94,13 @@ if 1:  # Header
         debug.SetDebugger()
     # Global variables
     __version__ = "8Jul2022"
-    __all__ = """
+    __all__ = '''
             cross dot Flatten have_mpmath have_sympy have_unc
             Matrices Matrix matrix MatrixContext random_matrix RoundOff
-            vector""".split()
+            vector'''.split()
     ii = isinstance
 class Matrix:
-    """Matrix object supporting basic linear algebra operations.  Rows
+    '''Matrix object supporting basic linear algebra operations.  Rows
     and columns are numbered starting from 0.  The preferred methods
     for accessing matrix elements are m[i, j] or m(i, j) where i is the
     row and j is the column.  A matrix with one row or column is a row
@@ -116,7 +116,7 @@ class Matrix:
         in_place.  Most methods will return a new matrix object, but
         sometimes you want the operation done on the current instance,
         in which case set ip to True.
-    """
+    '''
     _str = False  # If True, switch role of str() and repr()
     EqDigits = None  # Num digits for == comparison (overrides eqdigits)
     def __init__(self, rows, cols, fill=0):
@@ -131,9 +131,9 @@ class Matrix:
         self._eqdigits = None
     if 1:  # Math methods
         def __add__(self, other):
-            """Returns self + other; other can be a compatible matrix or
+            '''Returns self + other; other can be a compatible matrix or
             scalar.
-            """
+            '''
             if ii(other, Matrix):  # Matrix addition
                 if self.r != other.r or self.c != other.c:
                     raise TypeError("Cannot add matrices of different sizes")
@@ -162,9 +162,9 @@ class Matrix:
             "Return True if self and other are equal element-wise"
             return self.equals(other)
         def __floordiv__(self, other):
-            """Allows self//other where other is a scalar.  Not defined if
+            '''Allows self//other where other is a scalar.  Not defined if
             other is a matrix.
-            """
+            '''
             if ii(other, Matrix):
                 raise TypeError("// not defined for two matrices")
             else:
@@ -173,7 +173,7 @@ class Matrix:
                 except Exception:
                     raise TypeError(f"Cannot divide matrix by {type(other)}")
         def __getitem__(self, key):
-            """Enables self[i, j] indexing and assignment.  You can also use
+            '''Enables self[i, j] indexing and assignment.  You can also use
             slices to get rows, columns, and submatrices:
                 m[i:]       Returns row i as vector
                 m[:j]       Returns column j as vector
@@ -186,7 +186,7 @@ class Matrix:
             If key is an integer and self is a vector, then self[key]
             returns the indicated component.  Otherwise, self[i] returns row
             i as a row vector.
-            """
+            '''
             if ii(key, (tuple, list)):
                 row, col = key
                 return self._grid[row][col]
@@ -264,10 +264,10 @@ class Matrix:
             else:
                 raise TypeError("key is an invalid type")
         def __hash__(self):
-            """A matrix is inherently a mutable container, but we also want
+            '''A matrix is inherently a mutable container, but we also want
             it to be stored in other containers, so we'll define the hash
             value to be the id of the instance.
-            """
+            '''
             return hash(id(self))
         def __iter__(self):
             "Iteration: for row, col, element in self"
@@ -275,9 +275,9 @@ class Matrix:
                 for col in range(self.c):
                     yield row, col, self[row, col]
         def __mul__(self, other):
-            """Multiply by another matrix or a scalar.  If the result is a
+            '''Multiply by another matrix or a scalar.  If the result is a
             1 by 1 matrix, the number is returned instead of the matrix.
-            """
+            '''
             if ii(other, Matrix):
                 if self.c != other.r:
                     raise TypeError("Incompatible sizes for multiplication")
@@ -295,10 +295,10 @@ class Matrix:
             "Returns a copy of +self"
             return self.map(lambda x: +x)
         def __pow__(self, other):
-            """Returns self**other.  other can be any integer; if 0, the
+            '''Returns self**other.  other can be any integer; if 0, the
             identity matrix is returned.  If other is negative, the inverse
             matrix is raised to the abs(other) power.
-            """
+            '''
             if not ii(other, int):
                 raise TypeError("Only integer powers are supported")
             if not self.is_square:
@@ -327,7 +327,7 @@ class Matrix:
             "Return other/matrix = other*matrix.i"
             return other * self.i
         def __setitem__(self, key, value):
-            """Set the indicated matrix element to value.  You can address
+            '''Set the indicated matrix element to value.  You can address
             row i and column j by indexing as [i, j] or (i, j).
             
             If key is an integer, you can replace the indicated row with a
@@ -336,7 +336,7 @@ class Matrix:
             
             If key is an integer and self is a vector, the indicated element
             will be changed.
-            """
+            '''
             self._check_frozen()
             if ii(key, (tuple, list)):  # Set a single element
                 nr, nc = self.r, self.c
@@ -377,9 +377,9 @@ class Matrix:
         def __str__(self):
             return self._repr() if self.f else self._string()
         def __sub__(self, other):
-            """Subtract a matrix or scalar from the current matrix and return
+            '''Subtract a matrix or scalar from the current matrix and return
             the result.
-            """
+            '''
             if ii(other, Matrix):
                 # Matrix subtraction
                 if self.r != other.r or self.c != other.c:
@@ -394,10 +394,10 @@ class Matrix:
                         "Cannot subtract {} from a matrix".format(type(other))
                     )
         def __truediv__(self, other):
-            """Allows self/other where other is a scalar or a matrix.  If
+            '''Allows self/other where other is a scalar or a matrix.  If
             self and other are square matrices of the same size, returns
             self*other.i.
-            """
+            '''
             if ii(other, Matrix):
                 # Must have self and other square and of the same size
                 if not self.is_square or not other.is_square:
@@ -412,9 +412,9 @@ class Matrix:
                     raise TypeError("Cannot divide matrix by {}".format(type(other)))
     if 1:  # Other methods
         def add(self, n, m, constant=1, c=False):
-            """In-place row or column operation.  Adds constant times row m
+            '''In-place row or column operation.  Adds constant times row m
             to row n or constant times column m to column n.
-            """
+            '''
             self._check_frozen()
             if c:
                 n = n + self.c if n < 0 else n
@@ -431,13 +431,13 @@ class Matrix:
                     )
                 ]
         def cholesky(self, ip=False):
-            """Cholesky decomposition into a lower triangular matrix.  If ip
+            '''Cholesky decomposition into a lower triangular matrix.  If ip
             is True, perform the decomposition in-place; otherwise, return
             the lower triangular matrix.  self must be Hermitian and
             positive-definite (i.e., z.t*M*z must be > 0 for every nonzero
             column vector z where z ϵ ℂ^n).  All of a matrix's eigenvalues
             are positive if and only if the matrix is positive-definite.
-            """
+            '''
             # From http://rosettacode.org/wiki/Cholesky_decomposition
             L = [[0] * self.r for _ in range(self.r)]
             try:
@@ -466,14 +466,14 @@ class Matrix:
                 return m
             self._grid = m._grid
         def chop(self, tol=100 * sys.float_info.epsilon):
-            """Remove small floating point matrix elements and replace them
+            '''Remove small floating point matrix elements and replace them
             with zero.  If a real or imaginary component of a matrix element
             has an absolute value less than or equal to tol, replace that
             component with zero.  Other things like integers or Fraction
             instances will be left alone, regardless of their magnitude.
             
             Note this method works in-place on the current matrix.
-            """
+            '''
             def f(x):
                 return 0 if abs(x) <= tol else x
             def ch(x):
@@ -498,9 +498,9 @@ class Matrix:
             with Flatten(self):
                 self._grid = [ch(i) for i in self._grid]
         def cofactor(self, row, col):
-            """Return the cofactor, which is the determinant of the matrix with
+            '''Return the cofactor, which is the determinant of the matrix with
             the indicated row and column removed, scaled by (-1)**(row + col).
-            """
+            '''
             row = row + self.r if row < 0 else row
             col = col + self.c if col < 0 else col
             # Note the minor is the determinant
@@ -519,7 +519,7 @@ class Matrix:
                         )
             return self.t.row(*n).t
         def decorate(self, decorations):
-            """Return a matrix of strings that contain the results of
+            '''Return a matrix of strings that contain the results of
             applying the elements of decorations to the elements of the self
             matrix.
             
@@ -543,7 +543,7 @@ class Matrix:
                 . . . .
                 . . . .
             which shows the nonzero elements more clearly.
-            """
+            '''
             m = self.copy
             m._flatten()
             L = m._grid
@@ -567,7 +567,7 @@ class Matrix:
             m._nested()
             return m
         def delete(self, n, c=False):
-            """Delete the indicated row or column from the current matrix and
+            '''Delete the indicated row or column from the current matrix and
             return the row or column as a vector.
             
             Example:  for the matrix
@@ -583,7 +583,7 @@ class Matrix:
             and the matrix becomes the column vector
                 2
                 4
-            """
+            '''
             self._check_frozen()
             if c:
                 n = n + self.c if n < 0 else n
@@ -612,7 +612,7 @@ class Matrix:
                 v._copy_attr(self)
                 return v
         def equals(self, other, tol=None):
-            """Returns True if self and other are identically-sized matrices
+            '''Returns True if self and other are identically-sized matrices
             and their corresponding elements agree to within tol.  The test
             is abs(i - j) <= tol where i and j are matrix elements, so it
             also works on complex matrices.  If tol is omitted, perform an
@@ -623,7 +623,7 @@ class Matrix:
             number of digits by rounding off; the smaller of the two eqdigits
             values is used.  If Matrix.eqdigits is not None, then it is used
             irrespective of the instance.eqdigits values.
-            """
+            '''
             if not ii(other, Matrix):
                 raise TypeError("other must be a Matrix instance")
             if self.r != other.r or self.c != other.c:
@@ -642,7 +642,7 @@ class Matrix:
                 # Simple equality test
                 return all([i == j for i, j in zip(s, o)])
         def find(self, *items, tol=None, reltol=None):
-            """Returns a list of (row, col) tuples indicating where the items
+            '''Returns a list of (row, col) tuples indicating where the items
             are found in the matrix.  If tol is not None, an item's index is
             returned if abs(item - element) <= tol.  The same is true for
             reltol, except the comparison is
@@ -661,7 +661,7 @@ class Matrix:
             figures by default, so most comparisons should work as expected (12
             digits was chosen because it is beyond the significance of most
             physical measurements).
-            """
+            '''
             found = []
             if tol is None and reltol is None:
                 for row, col, x in self:
@@ -689,14 +689,14 @@ class Matrix:
                             found.append([row, col])
             return found
         def float(self, ip=False):
-            """Return a new matrix with each element x converted to a float
+            '''Return a new matrix with each element x converted to a float
             if the imaginary part of the element is zero.  If ip is True, do
             this in-place for the current matrix.
             
             Note:  this method differs from setting self.numtype=float
             because the conversion only happens if the element's imaginary
             part is zero.
-            """
+            '''
             def Float(x):
                 if ii(x, complex) and not x.imag:
                     return x.real
@@ -707,7 +707,7 @@ class Matrix:
             m.map(Float, ip=True)
             return None if ip else m
         def insert(self, n, c=False, Vector=None, fill=0):
-            """Inserts a new row or column before the indicated row or
+            '''Inserts a new row or column before the indicated row or
             column n, counting from top to bottom for rows and left to right
             for columns.  Set n to self.r to insert after the bottom row or
             self.c to insert after the rightmost column.  The new elements
@@ -732,7 +732,7 @@ class Matrix:
             Calling insert(2, c=True) results in
                 1 2 0
                 3 4 0
-            """
+            '''
             self._check_frozen()
             if c:
                 concat = True if n == self.c else False
@@ -770,13 +770,13 @@ class Matrix:
                     self._grid.insert(n, v._grid[0])
                 self._r += 1
         def int(self, ip=False):
-            """Return a new matrix with each element x converted to an integer
+            '''Return a new matrix with each element x converted to an integer
             if int(x) == x.  If ip is True, do this for the current matrix.
             
             Note:  this method differs from setting self.numtype=int because
             the conversion only happens if the matrix value and its integer
             value are equal.
-            """
+            '''
             def Int(x):
                 try:
                     return int(x) if int(x) == x else x
@@ -788,11 +788,11 @@ class Matrix:
             m.map(lambda x: Int(x) if Int(x) == x else x, ip=True)
             return None if ip else m
         def is_diagonal(self, tol=None):
-            """Return True if the matrix is a diagonal matrix.  If tol is
+            '''Return True if the matrix is a diagonal matrix.  If tol is
             not None, then each off-diagonal element x must satisfy
             abs(x) <= tol to return True.  If tol is None, then each
             off-diagonal element x must satisfy x == 0 to return True.
-            """
+            '''
             f = (lambda x: x != 0) if tol is None else (lambda x: abs(x) > tol)
             m = self.lower(incl_diag=False)
             nonzero = any([f(i) for i in m.l])
@@ -802,11 +802,11 @@ class Matrix:
             nonzero = any([f(i) for i in m.l])
             return not nonzero
         def join(self, m, c=False):
-            """Join a matrix m to self.  If c is False, m and self must have
+            '''Join a matrix m to self.  If c is False, m and self must have
             the same number of rows and m is joined on the right side of
             self.  If c is True, m and self must have the same number of
             columns and m is joined on the bottom side of self.
-            """
+            '''
             if not ii(m, Matrix):
                 raise TypeError("m must be a Matrix instance")
             self._check_frozen()
@@ -825,11 +825,11 @@ class Matrix:
                     self._grid[i].extend(m._grid[i])
                 self._c += m._c
         def lower(self, ip=False, incl_diag=True, fill=0):
-            """Return the lower triangular matrix and include the diagonal
+            '''Return the lower triangular matrix and include the diagonal
             if incl_diag is True.  The upper off-diagonal elements will be
             set to fill.  If ip is True, perform this operation on the current
             matrix and return None.
-            """
+            '''
             if not self.is_square:
                 raise TypeError("Matrix must be square")
             if ip:
@@ -845,7 +845,7 @@ class Matrix:
                             m[i, j] = fill
             return None if ip else m
         def map(self, func, n=None, c=False, ip=False):
-            """Returns a new matrix by applying the univariate function func to
+            '''Returns a new matrix by applying the univariate function func to
             each element.  If in-place is True, do this for the current
             instance and return None.
             
@@ -854,7 +854,7 @@ class Matrix:
             apply the map to row n.  If n is a sequence, it is applied to
             each of the indicated rows or columns.  If c is False, it means
             apply to a row; if it is True, apply to column n.
-            """
+            '''
             if ip:
                 self._check_frozen()
             m = self.copy
@@ -906,9 +906,9 @@ class Matrix:
             "Syntactic sugar to map a univariate function to column(s)"
             self.map(func, n, c=True, ip=True)
         def minor(self, row, col):
-            """Returns the minor, which is the determinant of the matrix with
+            '''Returns the minor, which is the determinant of the matrix with
             the indicated row and column deleted.
-            """
+            '''
             if not self.is_square:
                 raise TypeError("Can only return a minor for a square matrix")
             m = self.copy
@@ -945,10 +945,10 @@ class Matrix:
                 # Replacing a row is easy, as the whole list can be done
                 self._grid[n1] = vector.flat
         def resize(self, r, c, fill=0):
-            """Resize this matrix in-place to have r rows and c columns.  New
+            '''Resize this matrix in-place to have r rows and c columns.  New
             elements will have the value fill.  If size is reduced, some
             elements may be lost.
-            """
+            '''
             self._check_frozen()
             if not ii(r, int) and not ii(c, int):
                 raise TypeError("r and c must be integers")
@@ -969,7 +969,7 @@ class Matrix:
             self._grid = [list(i) for i in zip_longest(*([iter(L)] * c))]
             self._r, self._c = r, c
         def rotate(self, n=1, c=False, ip=False):
-            """Rotate n rows down (or n columns right if c is True).  If n
+            '''Rotate n rows down (or n columns right if c is True).  If n
             is negative, then rows are rotated up and columns are rotated
             left.
             
@@ -985,7 +985,7 @@ class Matrix:
                 3 1 2
                 6 4 5
                 9 7 8
-            """
+            '''
             if not n:
                 return self if ip else self.copy
             n = -n  # Needed to get the correct direction
@@ -1015,11 +1015,11 @@ class Matrix:
                     m._grid = L
                     return m
         def round(self, ip=False):
-            """If instance.eqdigits or Matrix.EqDigits are set, round the
+            '''If instance.eqdigits or Matrix.EqDigits are set, round the
             matrix elements to the indicated number of digits.  Note that
             Matrix.EqDigits overrides instance.eqdigits.  Otherwise, do
             nothing.  If ip is True, do in-place.
-            """
+            '''
             eqdigits = None
             if self.eqdigits:
                 eqdigits = self.eqdigits
@@ -1072,7 +1072,7 @@ class Matrix:
                 n = n + self.r if n < 0 else n
                 self._grid[n] = [b * i for i in self._grid[n]]
         def solve(self, b=None, numtype=None, aug=False):
-            """Given a vector b, solve the equation m*x = b and return x as a
+            '''Given a vector b, solve the equation m*x = b and return x as a
             vector of the same shape (row or column) as b.  If numtype is not
             None, then self and b are coerced to the indicated type before
             computation.  The returned vector will have the same attributes as
@@ -1081,7 +1081,7 @@ class Matrix:
             For convenience, self can be an augmented matrix by setting aug
             to True.  Then self must be an n x (n+1) matrix where the last
             column is the b vector.
-            """
+            '''
             if aug:
                 if self.c != self.r + 1:
                     raise TypeError("Improper augmented matrix")
@@ -1118,12 +1118,12 @@ class Matrix:
                 m = m + self.r if m < 0 else m
                 self._grid[n], self._grid[m] = self._grid[m], self._grid[n]
         def split(self, n, c=False):
-            """Returns two matrices; the first one will include the rows or
+            '''Returns two matrices; the first one will include the rows or
             columns from 0 to n; the second will be the remainder.  A ValueError
             exception will be raised if n indicates the last row or column, as
             None would have to be returned for the second matrix.  The original
             matrix is unchanged.
-            """
+            '''
             C = self._c
             if not ii(n, int):
                 raise TypeError("n must be an integer")
@@ -1149,11 +1149,11 @@ class Matrix:
             else:
                 return row_split(self, n)
         def upper(self, ip=False, incl_diag=True, fill=0):
-            """Return the upper triangular matrix and include the diagonal
+            '''Return the upper triangular matrix and include the diagonal
             if incl_diag is True.  The lower off-diagonal elements will be
             fill.  If ip is True, perform this operation on the current
             matrix and return None.
-            """
+            '''
             if not self.is_square:
                 raise TypeError("Matrix must be square")
             if ip:
@@ -1189,10 +1189,10 @@ class Matrix:
                     list(i) for i in zip_longest(*([iter(self._grid)] * self.c))
                 ]
         def _get_eqdigits(self, other=None):
-            """Return the eqdigits value to use for a comparison.  If
+            '''Return the eqdigits value to use for a comparison.  If
             Matrix.EqDigits is not None, return it.  Otherwise, return the
             smaller of self.eqdigits and other.eqdigits.
-            """
+            '''
             if Matrix.EqDigits is not None:
                 if not ii(Matrix.EqDigits, int):
                     raise TypeError("Matrix.eqdigits must be an integer")
@@ -1210,11 +1210,11 @@ class Matrix:
                     else:
                         return min(self._eqdigits, other._eqdigits)
         def _get_type_dict(self):
-            """Return a dictionary whose keys are the string form of the
+            '''Return a dictionary whose keys are the string form of the
             type() of an object.  The values are (symbol, description) where
             symbol is the string representing the type and description is
             a short explanation.
-            """
+            '''
             return OrderedDict(
                 (
                     ("©", "cpx"),
@@ -1240,7 +1240,7 @@ class Matrix:
                 )
             )
         def _string(self):
-            """Return the string form of the matrix.  If self.digits is not
+            '''Return the string form of the matrix.  If self.digits is not
             zero, then floats, Decimals, complex, and cpx numbers will
             be rounded off to the indicated number of digits.  The returned
             string is formatted to print to the console compactly.
@@ -1253,7 +1253,7 @@ class Matrix:
             Warning:  Decimal() numbers with more digits than the platform's
             float will not be formatted correctly; it is recommended you not
             use more than 12 digits.
-            """
+            '''
             def Rnd(x):
                 digits = (
                     Matrix.EqDigits
@@ -1316,7 +1316,7 @@ class Matrix:
                 return s
         @staticmethod
         def from_list(p, **kw):
-            """Instantiate a matrix from a list or tuple p.  These are the
+            '''Instantiate a matrix from a list or tuple p.  These are the
             valid forms:
             
             Size not given
@@ -1343,7 +1343,7 @@ class Matrix:
             M([1, 2, 3, 4], size=(2, 2)) returns the matrix
                 1 2
                 3 4
-            """
+            '''
             size = kw.get("size", None)
             numtype = kw.get("numtype", None)
             if size is None:  # Form A or B
@@ -1381,14 +1381,14 @@ class Matrix:
             raise TypeError("Improper arguments")
         @staticmethod
         def from_string(s, rowsep=None, colsep=None, expr=None, numtype=None):
-            """Instantiate a matrix from a string.
+            '''Instantiate a matrix from a string.
             
             Examples:
                 matrix("1 2\\n3 4") returns the 2x2 matrix
                     1 2
                     3 4
                 as does matrix("1 2;3 4", ";").
-            """
+            '''
             s = Matrix.condition_string(s)
             rows = s.strip().split(rowsep) if rowsep else s.strip().splitlines()
             m = Matrix(len(rows), len(rows[0].split(colsep)))
@@ -1398,14 +1398,14 @@ class Matrix:
             return m
         @staticmethod
         def getnum(x, **kw):
-            """Returns the number x; if it is a string, the method tries to
+            '''Returns the number x; if it is a string, the method tries to
             identify it and return it in the most appropriate form.
             Keywords:
             
             numtype     Coerce number to this type.
             expr        (globals(), locals()) tuple of dicts for eval when
                         x is a string.
-            """
+            '''
             numtype = kw.get("numtype", None)
             expr = kw.get("expr", None)
             if expr is not None and ii(x, str):
@@ -1443,10 +1443,10 @@ class Matrix:
                 return int(x)
         @staticmethod
         def hilbert(n):
-            """Return an n x n Hilbert matrix.  For element [i, j], the value
+            '''Return an n x n Hilbert matrix.  For element [i, j], the value
             is 1/(i + j + 1).  Note that the matrix is explicitly set to use
             the Fraction numerical type.
-            """
+            '''
             m = Matrix(n, n)
             m._numtype = Fraction
             for i in range(n):
@@ -1519,25 +1519,27 @@ class Matrix:
                 raise TypeError("Conversion not supported")
         @staticmethod
         def from_sympy(m):
-            """m must be a sympy.Matrix object.  This function returns
+            '''m must be a sympy.Matrix object.  This function returns
             a matrix.Matrix object.
-            """
+            '''
             d = vars(m)
             M = Matrix(d["rows"], d["cols"])
             with Flatten(M):
-                M._grid = d["_mat"]
+                # sympy has the d['_rep'] DomainMatrix object that stores the matrix.
+                # The following converts it to a flat list.
+                M._grid = list(d["_rep"].iter_values())
             return M
         @staticmethod
         def to_sympy(m):
-            """m must be a matrix.Matrix instance.  Returns a SymPy matrix
+            '''m must be a matrix.Matrix instance.  Returns a SymPy matrix
             from m.
-            """
+            '''
             return sympy.Matrix(m.nl)
         @staticmethod
         def from_mpmath(m):
-            """m must be a mpmath.matrix object.  This function returns
+            '''m must be a mpmath.matrix object.  This function returns
             a matrix.Matrix object from it.
-            """
+            '''
             return matrix(m.tolist())
         @staticmethod
         def to_mpmath(m):
@@ -1569,9 +1571,9 @@ class Matrix:
     if 1:  # Class methods
         @classmethod
         def set_default_state(cls):
-            """This method sets the Matrix class variables to a default
+            '''This method sets the Matrix class variables to a default
             state.
-            """
+            '''
             Matrix._str = False
             Matrix.EqDigits = None
         @classmethod
@@ -1607,13 +1609,13 @@ class Matrix:
             self.resize(self.r, value)
         @property
         def cofactors(self):
-            """Returns the matrix of cofactors.  The cofactor [i, j] of a
+            '''Returns the matrix of cofactors.  The cofactor [i, j] of a
             square matrix is the determinant of the matrix with row i and
             column j deleted, multiplied by (-1)**(i + j).
             
             The transpose of the cofactors matrix (i.e., adjugate) divided by
             the determinant is the inverse of the original matrix.
-            """
+            '''
             m = Matrix(self.r, self.c)
             for row, col, element in self:
                 m[row, col] = self.cofactor(row, col)
@@ -1688,7 +1690,7 @@ class Matrix:
                     yield self[row, col]
         @property
         def f(self):
-            """The f attribute is used to control what the __str__() and
+            '''The f attribute is used to control what the __str__() and
             __repr__() methods return.  If f is set to False (the default),
             then __str__() returns the string form that makes the matrix
             look as you'd write it on paper and __repr__() returns a string
@@ -1701,7 +1703,7 @@ class Matrix:
             __str__() form; to do this, set the f attribute to True and
             the __str__ and __repr__ behaviors are swapped.  This can be
             done in the debugger with the command '!m.f = True'.
-            """
+            '''
             return Matrix._str
         @f.setter
         def f(self, value):
@@ -1714,16 +1716,16 @@ class Matrix:
                 return list(m._grid)
         @property
         def frozen(self):
-            """The frozen attribute lets you make a matrix read-only by
+            '''The frozen attribute lets you make a matrix read-only by
             setting the attribute to True.
-            """
+            '''
             return self._frozen
         @frozen.setter
         def frozen(self, frozen):
             self._frozen = bool(frozen)
         @property
         def grid(self):
-            """Get a reference to the matrix instance's internal nested list
+            '''Get a reference to the matrix instance's internal nested list
             storage for the elements.
             
             ********************** WARNING **********************
@@ -1734,13 +1736,13 @@ class Matrix:
             Conversely, if a matrix operation changes the matrix, then
             the list you have may no longer have references to the grid's
             elements.  This could lead to hard-to-find bugs.
-            """
+            '''
             return self._grid
         @grid.setter
         def grid(self, grd):
-            """Replace the self._grid nested list.  The new nested list grd
+            '''Replace the self._grid nested list.  The new nested list grd
             must match the old one in size.
-            """
+            '''
             self._check_frozen()
             if len(grd) != self.r:
                 raise TypeError("grd must have {} rows".format(self.r))
@@ -1764,14 +1766,14 @@ class Matrix:
             return inverse
         @property
         def is_col_vector(self):
-            """Returns True if matrix is a column vector"""
+            '''Returns True if matrix is a column vector'''
             return self.c == 1
         @property
         def is_correl(self):
-            """Return True if matrix could be a correlation matrix.  The
+            '''Return True if matrix could be a correlation matrix.  The
             diagonal elements must be 1, the matrix must be symmetric, and
             the off-diagonal elements must be in [-1, 1].
-            """
+            '''
             if not self.is_symmetric:
                 return False
             if not all([i == 1 for i in self.diag.l]):
@@ -1782,12 +1784,12 @@ class Matrix:
             return True
         @property
         def is_hermitian(self):
-            """Return True if matrix is Hermitian (i.e., it's the same as its
+            '''Return True if matrix is Hermitian (i.e., it's the same as its
             conjugate transpose).  A Hermitian matrix has real eigenvalues
             and can be diagonalized by a unitary matrix.  A Hermitian matrix
             is also called self-adjoint.  A unitary matrix is Hermitian and
             its adjoint (conjugate transpose) is its inverse.
-            """
+            '''
             eqdigits = self._get_eqdigits()
             def f(x):
                 if eqdigits is not None:
@@ -1824,7 +1826,7 @@ class Matrix:
             return all([ii(i, int) for i in self.l])
         @property
         def is_invertible(self):
-            """Returns True if this matrix has an inverse."""
+            '''Returns True if this matrix has an inverse.'''
             try:
                 self.i
                 return True
@@ -1832,11 +1834,11 @@ class Matrix:
                 return False
         @property
         def is_pos_def(self):
-            """Return True if the matrix is positive-definite.  self must be
+            '''Return True if the matrix is positive-definite.  self must be
             Hermitian and z.t*self*z must be > 0 for every nonzero column
             vector z where z ϵ ℂ^n.  All of a matrix's eigenvalues are
             positive if and only if the matrix is positive-definite.
-            """
+            '''
             # Do some relatively quick checks first
             if not self.is_square or not self.is_hermitian:
                 return False
@@ -1851,11 +1853,11 @@ class Matrix:
                 return False
         @property
         def is_orthogonal(self):
-            """Return True if this matrix is orthogonal (rows and columns
+            '''Return True if this matrix is orthogonal (rows and columns
             are orthogonal unit vectors).  The transpose of an orthogonal
             matrix is equal to its inverse.  The determinant of an orthogonal
             matrix is either +1 or -1.
-            """
+            '''
             if not self.is_square:
                 return False
             return self.t == self.i
@@ -1865,9 +1867,9 @@ class Matrix:
             return any([ii(i, complex) for i in self.l])
         @property
         def is_normal(self):
-            """Return True if the matrix is a normal matrix.  A normal
+            '''Return True if the matrix is a normal matrix.  A normal
             matrix can be diagonalized by a unitary matrix.
-            """
+            '''
             if not self.is_square:
                 return False
             a = self.adjoint
@@ -1882,11 +1884,11 @@ class Matrix:
             return self.r == 1
         @property
         def is_skew(self):
-            """Returns True if matrix m is skew-symmetric (m.t == -m).
+            '''Returns True if matrix m is skew-symmetric (m.t == -m).
             If m and n are skew-symmetric, then so is m + n and a scalar
             times m.  m.trace is zero.  The non-zero eigenvalues of a
             skew-symmetric matrix are pure imaginary.
-            """
+            '''
             return self.t == -self
         @property
         def is_square(self):
@@ -1894,10 +1896,10 @@ class Matrix:
             return self.r == self.c
         @property
         def is_symmetric(self):
-            """Return True if matrix is symmetric (i.e., it's equal to its
+            '''Return True if matrix is symmetric (i.e., it's equal to its
             transpose).  A real symmetric matrix can be diagonalized by an
             orthogonal matrix.
-            """
+            '''
             if not self.is_square:
                 return False
             try:
@@ -1952,30 +1954,30 @@ class Matrix:
             return self._grid.copy()
         @property
         def norm(self):
-            """Returns the Frobenius norm for the matrix.  A matrix norm is
+            '''Returns the Frobenius norm for the matrix.  A matrix norm is
             useful to bound the absolute value of the largest eigenvalue;
             it's between the reciprocal of the norm of the inverse matrix
             and the norm of the matrix.
-            """
+            '''
             try:
                 return math.sqrt(sum(i * i for i in self.list))
             except TypeError:
                 return csqrt(sum(i * i for i in self.list))
         @property
         def numtype(self):
-            """Returns the numerical type of the elements or None if it is not
+            '''Returns the numerical type of the elements or None if it is not
             set.  Even though numtype might be set to a specific numerical
             type, it doesn't mean all the elements of the matrix have this type
             because subsequent operations can change the elements' type.   If
             you want to have the elements be all one type, set numtype to the
             desired type and all the elements will be coerced to that type.
-            """
+            '''
             return self._numtype
         @numtype.setter
         def numtype(self, numerical_type):
-            """Sets the numerical type of the matrix.  Set to None to have no
+            '''Sets the numerical type of the matrix.  Set to None to have no
             specific type for the elements.
-            """
+            '''
             self._check_frozen()
             if numerical_type is not None:
                 with Flatten(self):
@@ -2021,14 +2023,14 @@ class Matrix:
             return m
         @property
         def eqdigits(self):
-            """The eqdigits attribute is used to control comparisons of matrix
+            '''The eqdigits attribute is used to control comparisons of matrix
             elements as numbers.  If it is not None, then two matrix
             elements are declared equal if they are the same number after
             rounding to the indicated number of digits.
             
             If Matrix.EqDigits is not None, it takes precedence over instance
             eqdigits values when comparisons are made.
-            """
+            '''
             return self._eqdigits
         @eqdigits.setter
         def eqdigits(self, value):
@@ -2072,11 +2074,11 @@ class Matrix:
             return sum(self.diag.list)
         @property
         def type(self):
-            """Returns a matrix containing strings representing the types of
+            '''Returns a matrix containing strings representing the types of
             the elements of self.
-            """
+            '''
             def T(x):
-                """Return abbreviated string form of type of x"""
+                '''Return abbreviated string form of type of x'''
                 d = {
                     "str": '"',
                     "int": "ℤ",
@@ -2117,10 +2119,10 @@ class Matrix:
             return self.map(T)
         @property
         def types(self):
-            """Return a string showing the symbols used to codify matrix
+            '''Return a string showing the symbols used to codify matrix
             element types.  Use this string to help you understand the
             symbols shown when you use the .type attribute on a matrix.
-            """
+            '''
             d, L = self._get_type_dict(), ["Type decorations:"]
             for k, v in d.items():
                 L.append("    {}    {}".format(k, v))
@@ -2134,7 +2136,7 @@ class Matrix:
             m._copy_attr(self)
             return m
 class MatrixContext:
-    """Thread-safe context manager to save the class variable state of
+    '''Thread-safe context manager to save the class variable state of
     Matrix and restore it on exit.
     
     Example of use:  Suppose you're in the middle of a calculation with
@@ -2155,7 +2157,7 @@ class MatrixContext:
     acceptable syntax, but the c variable is None.  This was deliberate
     to avoid having a reference to the isolated class variables' values
     before the with block was entered.
-    """
+    '''
     def __init__(self):
         self.lock = Lock()
     def __enter__(self):
@@ -2165,7 +2167,7 @@ class MatrixContext:
         Matrix.set_state(self.state)
         self.lock.release()
 class Flatten:
-    """Context manager to convert the Matrix object's internal storage
+    '''Context manager to convert the Matrix object's internal storage
     for elements to a flattened list to facilitate processing, then back
     to a nested list after processing is finished.
     
@@ -2175,7 +2177,7 @@ class Flatten:
     
         with Flatten(self):
             self._grid = [f(i) for i in self._grid]
-    """
+    '''
     def __init__(self, m):
         "m is a Matrix instance"
         self.m = m
@@ -2185,7 +2187,7 @@ class Flatten:
         self.m._nested()
 if 1:  # Utility functions
     def matrix(*p, **kw):
-        """Convenience function for instantiating Matrix objects.  Examples:
+        '''Convenience function for instantiating Matrix objects.  Examples:
         Integer
           matrix(4):  Return an identity matrix of size 4
           matrix(4, fill=x):  Return size 4 square matrix filled with x
@@ -2202,7 +2204,7 @@ if 1:  # Utility functions
             matrix(1, 2, 3, 4) returns a row vector
         Stream
           Reads the stream; use the string form in the stream.
-        """
+        '''
         size = kw.get("size", None)
         fill = kw.get("fill", 0)
         m = None
@@ -2271,7 +2273,7 @@ if 1:  # Utility functions
         assert ii(m._grid, list)
         return m
     def vector(*p, **kw):
-        """Convenience function for instantiating row and column
+        '''Convenience function for instantiating row and column
         vectors.  Returns a row vector by default; set keyword "c" to
         True to get a column vector.
         
@@ -2290,7 +2292,7 @@ if 1:  # Utility functions
         vector(1) and vector(1, c=True) both return the 1x1 matrix [1].
         
         vector(2, fill=0) returns [0 0]
-        """
+        '''
         c = kw.get("c", False)
         fill = kw.get("fill", None)
         # Get q, the sequence of vector components
@@ -2319,7 +2321,7 @@ if 1:  # Utility functions
     def random_matrix(
         r, c=None, integer=None, normal=None, uniform=None, seed=None, cmplx=False
     ):
-        """Returns an r x c  matrix filled with random numbers.  If c is
+        '''Returns an r x c  matrix filled with random numbers.  If c is
         not given, the matrix is r x r.  If no keywords are given, the
         elements are random floats in [0, 1).
         
@@ -2330,7 +2332,7 @@ if 1:  # Utility functions
                             standard deviation s.
             seed            Seed for the random number generator.
             cmplx           Generate complex numbers.
-        """
+        '''
         random.seed(seed) if seed is not None else random.seed()
         if c is None:
             c = r
@@ -2379,11 +2381,11 @@ if 1:  # Utility functions
         m._nested()
         return m
     def dot(u, v):
-        """Returns <u, v>, the scalar product of vectors u and v.  Note
+        '''Returns <u, v>, the scalar product of vectors u and v.  Note
         that the vectors can be of any equal size and it is not
         necessary that one be a row vector and the other a column
         vector.
-        """
+        '''
         if not u.is_vector or not v.is_vector:
             raise TypeError("u and v must be vectors")
         if u.len != v.len:
@@ -2404,11 +2406,11 @@ if 1:  # Utility functions
         w[2, 0] = u[0, 0] * v[1, 0] - u[1, 0] * v[0, 0]
         return w
     def get_row_echelon_form(matrix, mirror=None):
-        """Determine the row echelon form of the matrix using the forward
+        '''Determine the row echelon form of the matrix using the forward
         phase of the Gauss-Jordan elimination algorithm. If a mirror matrix
         is supplied, we apply the same sequence of row operations to it.
         Neither matrix is altered in-place; instead copies are returned.
-        """
+        '''
         matrix = matrix.copy
         mirror = mirror.copy if mirror else None
         det_multiplier = 1
@@ -2449,12 +2451,12 @@ if 1:  # Utility functions
                         mirror.add(row, top_row, multiplier)
         return matrix, mirror, det_multiplier
     def get_reduced_row_echelon_form(matrix, mirror=None):
-        """Determine the reduced row echelon form of the matrix using the
+        '''Determine the reduced row echelon form of the matrix using the
         Gauss-Jordan elimination algorithm. If a mirror matrix is supplied,
         the same sequence of row operations will be applied to it. Note
         that neither matrix is altered in-place; instead copies are
         returned.
-        """
+        '''
         # Forward phase: determine the row echelon form.
         matrix, mirror, ignore = get_row_echelon_form(matrix, mirror)
         # The backward phase of the algorithm. For each row, starting at the
@@ -2472,7 +2474,7 @@ if 1:  # Utility functions
                     break
         return matrix, mirror
     def RoundOff(number, digits=12, convert=False):
-        """Round the significand of number to the indicated number of digits
+        '''Round the significand of number to the indicated number of digits
         and return the rounded number (integers and Fractions are returned
         untransformed).  number can be an int, float, Decimal, Fraction or
         complex number.
@@ -2502,7 +2504,7 @@ if 1:  # Utility functions
             x = math.pi/6
             math.sin(x) = 0.49999999999999994
             RoundOff(math.sin(x)) = 0.5
-        """
+        '''
         if ii(number, (int, Fraction)):
             return number
         if have_unc and ii(number, UFloat):
@@ -2609,11 +2611,11 @@ if __name__ == "__main__":
     if have_mpmath:
         Type.d["<class 'mpmath.ctx_mp_python.mpf'>"] = "mpf"
     class Testing:
-        """Context manager to ensure a consistent Matrix class
+        '''Context manager to ensure a consistent Matrix class
         state before and after entry.  This helps ensure tests are isolated,
         as changing a class variable in one test function can cause side
         effects in other tests.
-        """
+        '''
         def set_state(self):
             SetupGlobalTestData()
             Matrix.set_default_state()
@@ -3073,10 +3075,10 @@ if __name__ == "__main__":
                     n.insert(n.c, c=True, Vector=v)
                     assert_equal(n, matrix("1 2 5\n3 4 6"))
         def test_delete():
-            """1 2 3
+            '''1 2 3
             4 5 6
             7 8 9
-            """
+            '''
             with Testing():
                 m = matrix("1 2 3\n4 5 6\n7 8 9")
                 # delete rows
@@ -3390,9 +3392,9 @@ if __name__ == "__main__":
                 m = matrix("1 2\n3 4.")
                 Assert(not m.is_int)
         def test_boolean_attributes():
-            """These need to be tested with both simple == tests and the
+            '''These need to be tested with both simple == tests and the
             eqdigits tests, both from the instance and from Matrix.EqDigits.
-            """
+            '''
             # is_symmetric
             with Testing():
                 m, e = Matrix(2, 2, fill=1), 1e-4
@@ -3436,10 +3438,10 @@ if __name__ == "__main__":
                 a, e = pi / 4, 1e-10
                 from math import cos, sin   # noqa
                 m = matrix(
-                    """# Element of SO(3) (rotation about z axis)
+                    '''# Element of SO(3) (rotation about z axis)
                             cos(a) sin(a) 0
                             -sin(a) cos(a) 0
-                            0      0      1""",
+                            0      0      1''',
                     expr=(globals(), locals()),
                 )
                 # Note:  m*m.t has diagonal elements of 1.0000000000000002,
@@ -3528,16 +3530,13 @@ if __name__ == "__main__":
                         Assert(x == 1 and type(x) is t)
                 Matrix.use_Complex = False
                 # Show we can coerce types with numtype where meaningful
-                τ.print(f"{τ.ornl}Bug in matrix.py:3786 ignored; needs fixing")
-                if 0:
-                    for x in (1, 1.0, Decimal(1), Fraction(1)):
-                        for t in (int, float, Decimal, Fraction):
-                            try:
-                                breakpoint() #xx 
-                                Assert(type(gn(x, t)) is t)
-                            except TypeError:
-                                # Can't convert Fraction to Decimal
-                                Assert(type(x) is Fraction and t == Decimal)
+                for x in (1, 1.0, Decimal(1), Fraction(1)):
+                    for t in (int, float, Decimal, Fraction):
+                        try:
+                            Assert(type(gn(x, numtype=t)) is t)
+                        except TypeError:
+                            # Can't convert Fraction to Decimal
+                            Assert(type(x) is Fraction and t == Decimal)
                 # Convert values with uncertainty
                 if have_unc:
                     for s in "1.00(3) 1+/-0.03 1+-0.03 1±0.03".split():
@@ -3592,8 +3591,8 @@ if __name__ == "__main__":
                     Assert(i not in a)
         def test_conj():
             with Testing():
-                s = """1+1j  2.+2.j
-                    3-3j 3/4"""
+                s = '''1+1j  2.+2.j
+                    3-3j 3/4'''
                 m = matrix(s)
                 M = m.conj
                 Assert(M[0:] == matrix("1-1j 2-2j"))
@@ -3831,7 +3830,7 @@ if __name__ == "__main__":
             with Testing():
                 m = matrix("1 2\n3 4")
                 m.frozen = True
-                s = """
+                s = '''
                     m[0, 0] = 0
                     m.add(0, 1, 2)
                     m.delete(0)
@@ -3843,7 +3842,7 @@ if __name__ == "__main__":
                     m.scale(0, 1)
                     m.scale(0, 1, c=True)
                     m.resize(0, 1)
-                    m.swap(0, 1)"""
+                    m.swap(0, 1)'''
                 for i in s.strip().split("\n"):
                     exec("with raises(TypeError): {}".format(i.strip()))
         def test_call():
@@ -3902,11 +3901,11 @@ if __name__ == "__main__":
                 m[1, 3] = 2.0
                 d = [(0, "."), (int, lambda x: x)]
                 n = m.decorate(d)
-                s = """
+                s = '''
                     .   . 1.0   .
                     .   .   . 2.0
                     .   .   .   .
-                    .   .   .   ."""[1:]
+                    .   .   .   .'''[1:]
                 Assert(str(n) == dedent(s))
         def test_grid():
             with Testing():
@@ -3993,9 +3992,9 @@ if __name__ == "__main__":
                 n.upper(ip=True, incl_diag=False)
                 Assert(n == matrix("0 2\n0 0"))
         def test_mpmath_sympy():
-            """Show we can convert a simple matrix.Matrix to mpmath and
+            '''Show we can convert a simple matrix.Matrix to mpmath and
             sympy matrices and back.
-            """
+            '''
             if have_mpmath:
                 with Testing():
                     m = matrix("1 2\n3 4")
@@ -4036,16 +4035,16 @@ if __name__ == "__main__":
                     p = m.from_mpmath(mpmath.cholesky(mp_m))
                     Assert(p == n)
                 # 4x4 matrix
-                a = matrix("""
+                a = matrix('''
                 18  22   54   42
                 22  70   86   62
                 54  86  174  134
-                42  62  134  106""")
-                b = matrix("""
+                42  62  134  106''')
+                b = matrix('''
                 4.24264    0.00000    0.00000    0.00000
                 5.18545    6.56591    0.00000    0.00000
                 12.72792    3.04604    1.64974    0.00000
-                9.89949    1.62455    1.84971    1.39262""")
+                9.89949    1.62455    1.84971    1.39262''')
                 a.eqdigits = 6  # Equal to within 6 figures
                 Assert(a.cholesky() == b)
                 # Not positive-definite matrix
