@@ -816,7 +816,7 @@ class Fmt:
         width is only used if self.brief is True.
         """
         if width is not None:
-            raise Exception("width keyword not supported yet")  # xx
+            raise Exception("width keyword not supported yet")  # ∞∞
         if not ii(value, int):
             raise TypeError("value must be an int")
         if value < 0:
@@ -906,7 +906,7 @@ class Fmt:
             return u
     def Int(self, value, fmt=None, n=None, width=None) -> str:
         if width is not None:
-            raise Exception("width keyword not supported yet")  # xx
+            raise Exception("width keyword not supported yet")  # ∞∞
         n = n if n is not None else self.n
         fmt = fmt if fmt is None else self.int
         Assert(ii(value, int))
@@ -922,7 +922,7 @@ class Fmt:
         Here, n represents the number of digits after the decimal point.
         """
         if width is not None:
-            raise Exception("width keyword not supported yet")  # xx
+            raise Exception("width keyword not supported yet")  # ∞∞
         n = n if n is not None else self.n
         n = self.clamp_n(value, n)
         if self.low is not None and 0 < abs(value) < self.low:
@@ -955,7 +955,7 @@ class Fmt:
             try:
                 ending_digit = s[last_digit]
             except Exception as e:
-                breakpoint()  # xx
+                breakpoint()  # ∞∞
                 pass
             sentinel = int(s[last_digit + 1])
             # Truncate at n digits past the decimal point
@@ -998,7 +998,7 @@ class Fmt:
         string.
         """
         if width is not None:
-            raise Exception("width keyword not supported yet")  # xx
+            raise Exception("width keyword not supported yet")  # ∞∞
         n = n if n is not None else self.n
         n = self.clamp_n(value, n)
         if self.low is not None and 0 < abs(value) < self.low:
@@ -1058,7 +1058,7 @@ class Fmt:
     def sci(self, value, n=None, width=None) -> str:
         "Return a scientific format representation"
         if width is not None:
-            raise Exception("width keyword not supported yet")  # xx
+            raise Exception("width keyword not supported yet")  # ∞∞
         n = n if n is not None else self.n
         n = self.clamp_n(value, n)
         self.ta(value, n)
@@ -1150,7 +1150,7 @@ class Fmt:
         changed, turning the notation into plain scientific).
         """
         if width is not None:
-            raise Exception("width keyword not supported yet")  # xx
+            raise Exception("width keyword not supported yet")  # ∞∞
         n = n if n is not None else self.n
         n = self.clamp_n(value, n)
         self.ta(value, n)
@@ -1292,7 +1292,7 @@ class Fmt:
         return "".join(sig)
     def Real(self, value, fmt=None, n=None, width=None) -> str:
         if width is not None:
-            raise Exception("width keyword not supported yet")  # xx
+            raise Exception("width keyword not supported yet")  # ∞∞
         n = n if n is not None else self.n
         fmt = fmt if fmt is not None else self.default
         if fmt == "fix":
@@ -1310,7 +1310,7 @@ class Fmt:
         'a + bi'.
         """
         if width is not None:
-            raise Exception("width keyword not supported yet")  # xx
+            raise Exception("width keyword not supported yet")  # ∞∞
         n = n if n is not None else self.n
         if fmt is not None:
             if fmt not in "fix fixed sci eng engsi engsic".split():
@@ -2731,7 +2731,7 @@ if __name__ == "__main__":
                     result = fmt.fmtint(x, width=15, mag=True)
                     Assert(result == "-123⋯89 |10⁴⁶|")
                 # Floats
-                print("xx Test_Brief:  need to write float code")  # xx
+                print("∞∞ Test_Brief:  need to write float code")  # ∞∞
     if 1:  # Module's base code
         if len(sys.argv) > 1 and sys.argv[1] == "--test":
             status, msg = run(globals(), regexp=r"Test_", halt=1)

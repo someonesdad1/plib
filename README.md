@@ -3,11 +3,12 @@
 # 2026 work in progress
 
 - Jan 2026 /plib work
-    - All modules have a proper test string (describes how to run file's tests):
-        - run (running the script runs the tests)
-        - notest (no test for this module)
-        - testdir (run corresponding file in /plib/test)
-        - '--test' means run the module with the '--test' argument
+    - --test things that need fixing
+        - primes.py
+        - prob.py
+        - bits.py
+        - sig.py
+        - wrap.py
     - Mark places that need work
         - xx is no longer appropriate because it pops up in numerous other contexts
         - ∞∞ would be easy to add in my editor:  abbreviate it

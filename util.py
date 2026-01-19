@@ -3136,7 +3136,6 @@ if __name__ == "__main__":
             util_simlink
             ver
             vi
-            xx
             zip_longest
             _have_mpmath
             __

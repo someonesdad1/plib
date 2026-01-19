@@ -56,13 +56,14 @@ if 1:  # Header
             '''.split()
             )
         )
-        # This is the string we'll search for
-        g.s = r"\b∞∞\b"
-        # Regular expression to find '∞∞'.
-        g.r = re.compile(g.s)
-        # Regular expression to find '∞∞' in string with newlines.  This is
-        # quickly used to scan a whole file.
-        g.R = re.compile(g.s, re.M)
+        if 0:
+            # This is the string we'll search for
+            g.s = r"\b∞∞\b"
+            # Regular expression to find '∞∞'.
+            g.r = re.compile(g.s)
+            # Regular expression to find '∞∞' in string with newlines.  This is
+            # quickly used to scan a whole file.
+            g.R = re.compile(g.s, re.M)
 if 1:  # Utility
     def Usage(status=1):
         name = sys.argv[0]
@@ -70,13 +71,9 @@ if 1:  # Utility
             dedent(
                 f'''
         Usage:  {name} [item1 [item2 ...]]
-          Searches files or directories given on the command line for the
-          string {d["-x"]!r} and prints out the name of those that contain it.  If
-          the item is a directory, typical source files are printed if they
-          contain {d["-x"]!r}.
-          
-          If no files are given on the command line, then the program
-          searches files that are typical source code file names.
+          Searches files or directories given on the command line for the string
+          {d["-x"]!r} and prints out the name of those that contain it.  If the item is
+          a directory, typical source files are printed if they contain {d["-x"]!r}.
         Options:
           -n    Print the line number and line where {d["-x"]!r} occurs
           -r    Recursively descend directories
@@ -101,10 +98,7 @@ if 1:  # Utility
             if o[1] in "nrs":
                 d[o] = not d[o]
             if o == "-x":
-                d["-x"] = a
-                g.s = rf"\b{a}\b"
-                g.r = re.compile(g.s)
-                g.R = re.compile(g.s, re.M)
+                d[o] = a
             if o == "-h":
                 Usage()
         if d["-s"]:
@@ -112,6 +106,11 @@ if 1:  # Utility
             for i in Columnize(g.source, indent=" " * 2):
                 print(i)
             exit(0)
+        if d["-x"]:
+            g.s = rf"\b{d['-x']}\b"
+            g.s = rf"{d['-x']}"
+            g.r = re.compile(g.s)
+            g.R = re.compile(g.s, re.M)
         if not files:
             Usage()
         return files
@@ -127,7 +126,7 @@ if 1:  # Core functionality
             return True
         return False
     def SearchFile(file, dir, d):
-        "Search the given file for '∞∞'"
+        "Search the given file for d['-x']"
         assert ii(file, P)
         if str(file) in g.files_to_ignore:
             return
@@ -163,6 +162,7 @@ if 1:  # Core functionality
         if file.name in g.files_to_ignore:
             return
         s = file.read_text()
+        # See if it's in the file at all
         if not g.R.search(s):
             return
         # Search each line

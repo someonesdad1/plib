@@ -3913,14 +3913,14 @@ if __name__ == "__main__":
                 m.grid = [[5, 6], [7, 8]]
                 Assert(m == matrix("5 6\n7 8"))
         def test_Complex_formatting():
-            if 1:  # xx
+            if 1:  # ∞∞
                 with Testing():
                     Matrix.EqDigits = 3
                     z = cpx(1, -1 / 3)
                     z.i = 1
                     # Normal display
                     Assert(str(z) == "1-0.333i")
-                    if 0:  # Need fix xx
+                    if 0:  # Need fix ∞∞
                         z.wide = True
                         Assert(str(z) == "1 - 0.333i")
                         z.wide = False
@@ -3935,18 +3935,18 @@ if __name__ == "__main__":
                     z.p = True
                     z.rad = True
                     Assert(str(z) == "1.05∠-0.322")
-                    if 0:  # Need fix xx
+                    if 0:  # Need fix ∞∞
                         z.wide = True
                         Assert(str(z) == "1.05 ∠ -0.322")
                         z.wide = False
                     # Polar display with degrees
                     z.rad = False
                     Assert(str(z) == "1.05∠-18.4°")
-                    if 0:  # Need fix xx
+                    if 0:  # Need fix ∞∞
                         z.wide = True
                         Assert(str(z) == "1.05 ∠ -18.4°")
                         z.wide = False
-            if 0:  # xx
+            if 0:  # ∞∞
                 with Testing():
                     # Special forms
                     Matrix.EqDigits = 3
