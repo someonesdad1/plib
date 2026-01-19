@@ -2149,7 +2149,6 @@ if __name__ == "__main__":
         assert Ranges([], validate=True) == []
         # Simple unsorted sequence
         seq = [2, 1, -3, 7]
-        breakpoint() #∞∞ 
         r = Ranges(seq)
         assert r == seq
         # Algorithm author's example
