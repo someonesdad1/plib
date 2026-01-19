@@ -16,7 +16,6 @@ if 1:  # Header
     if 1:   # Standard imports
         from pathlib import Path as P
         import getopt
-        import importlib
         import os
         import sys
         from timeit import timeit
@@ -71,7 +70,7 @@ if 1:   # Utility
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-d"] = 3         # Number of significant digits
+        d["-d"] = 2         # Number of significant digits
         d["-v"] = False     # Dbg on
         if len(sys.argv) < 2:
             Usage()
@@ -94,6 +93,7 @@ if 1:   # Utility
                 Usage()
         x = flt(0)
         x.N = d["-d"]
+        x.rtz = x.rtdp = False
         if d["-v"]:
             g.dbg = True
         GetColors()
@@ -149,31 +149,19 @@ if 1:   # Core functionality
         for i in range(g.n):
             with timer.Timer() as tm:
                 subprocess.run(cmd, capture_output=True)
-            t.print(f"{i}: Time to run {g.file!r} = {t.ornl}{tm.et.engsi}s")
+            t.print(f"{i}: Time to run {g.file!s} = {t.ornl}{tm.et.engsi}s")
     def ExecuteFunction():
         sf = str(g.file)
         filename = sf.replace(".py", "") if sf.endswith(".py") else sf
         s = "time" if g.n == 1 else "times"
-        if 0:
-            import_ = f"from {filename} import {g.func}"
-            cmd = f"{filename}.{g.func}()"
-            Dbg("Execute function:")
-            Dbg(f"  Command = {cmd!r}")
-            Dbg(f"  locals()= {locals()}")
-            exec("from ax import f", globals())
-            breakpoint() # ∞∞ 
-            cmd = f"f()"
-            tm = timeit.timeit(cmd, number=g.n)
-            tm = flt(tm)
-            t.print(f"Time to run {g.func!r} {g.n} {s} = {t.ornl}{tm.engsi}s")
-        else:
-            global ax
-            ax = importlib.import_module("ax")
-            global f
-            f = ax.f
-            breakpoint() # ∞∞ 
-            tm = timeit("f()", globals=globals(), number=g.n)
-            
+        # Put the file into our local namespace
+        exec(f"import {filename}")
+        cmd = f"{filename}.{g.func}()"
+        # Do the timing
+        tm = timeit(cmd, globals=locals(), number=g.n)
+        tm = flt(tm)
+        # Report
+        t.print(f"Time to run {g.func!r} {g.n} {s} = {t.ornl}{tm.engsi}s")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
