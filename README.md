@@ -9,13 +9,11 @@
         - bits.py
         - sig.py
         - wrap.py
-    - Mark places that need work
-        - xx is no longer appropriate because it pops up in numerous other contexts
-        - ∞∞ would be easy to add in my editor:  abbreviate it
-        - Urgency
-            - Low       ∞∞
-            - Medium    ∞∞∞
-            - High      ∞∞∞∞
+    - Mark places that need work with ∞∞ 
+        - Urgency (add these as -u option to xx.py
+            - Low       ∞∞      -u 3 
+            - Medium    ∞∞∞     -u 2 
+            - High      ∞∞∞∞    -u 1 
         Could include a priority 1, 2, 3 to indicate urgency
     - Regularize testing environment
         - Vision

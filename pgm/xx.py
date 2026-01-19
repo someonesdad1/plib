@@ -67,9 +67,7 @@ if 1:  # Header
 if 1:  # Utility
     def Usage(status=1):
         name = sys.argv[0]
-        print(
-            dedent(
-                f'''
+        print(dedent(f'''
         Usage:  {name} [item1 [item2 ...]]
           Searches files or directories given on the command line for the string
           {d["-x"]!r} and prints out the name of those that contain it.  If the item is
@@ -79,9 +77,7 @@ if 1:  # Utility
           -r    Recursively descend directories
           -s    Print source code file extensions examined
           -x x  Set the trigger string to look for [{d["-x"]!r}]
-        '''[1:-1]
-            )
-        )
+        '''))
         exit(status)
     def ParseCommandLine(d):
         d["-n"] = False  # Print line number & line

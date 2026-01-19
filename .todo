@@ -1,5 +1,7 @@
 /plib/.todo
     - Core /plib work
+        - I like the _pgminfo variable in new files, as it doesn't interfere with
+          __doc__ strings and it can be set up to not have any Unicode characters in it.
         - 13 Jan 2026:  finished the last needed update to color.py.  kolor.py moved to
           old.
         - I'm slowly reaching the state of deciding to use ruff, both for linting and
@@ -21,6 +23,28 @@
             - All must pass lint (use #noqa sparingly, only as needed)
         - By 31 Mar 2026 all self tests must pass and only a small set of files can be
           without testing
+        - Licensing
+            - I'm toying with converting everything to GPL3 or MIT license
+            - https://www.choosingalicense.com/ has a simple wizard to help choose a
+              license.  The questions are
+                - Project type:  library, app, website/web app, doc
+                - Commericial use?  yes or no
+                - Others:  use any license, use same license, must share their changes
+                - Patent protection:  yes or no
+                - Attribution:  required, nice, not important
+            - For me, the above wizard gave for 
+                - Library/framework, app, or doc:  commercial:yes, must use same license, include
+                  patent protection, require attribution:  GPL3
+            - I need to identify what I really want
+                - Attribution
+                - Use in commercial software
+                - Keep it copyleft or user can use any license of their choice
+            - See https://www.gnu.org/licenses/gpl-howto.html
+                - According to this page, I'd need to include a license notice in each
+                  file after the copyright notice.
+                - A copy of the GNU license should be in COPYING
+                - It's important to have an email contact, but I wouldn't want this in
+                  every file
         - Huh?
             - What's with elements.py and elements1.py?
             - Move format_numbers.py stuff to fmt.py if it's not already there, then
