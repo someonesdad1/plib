@@ -1534,7 +1534,7 @@ if __name__ == "__main__":
         else:
             raise TypeError("Both a and b must be flt or cpx")
     def Test_flt_derived_classes():
-        return  # These classes broke somehow ∞∞ 1
+        return  # These classes broke somehow ∞∞1
         # Nothing
         x = Nothing("")
         Assert(str(x) == "--")

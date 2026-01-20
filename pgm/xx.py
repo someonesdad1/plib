@@ -17,6 +17,7 @@ if 1:  # Header
         ##∞test∞# #∞test∞#
         pass
     if 1:  # Imports
+        from collections import defaultdict
         import sys
         import os
         import getopt
@@ -26,6 +27,8 @@ if 1:  # Header
         from wrap import dedent
         from color import t
         from columnize import Columnize
+        from dpprint import PP
+        pp = PP()   # Get pprint with current screen width
     if 1:   # Global variables
         class G:
             pass
@@ -44,6 +47,18 @@ if 1:  # Header
         # File globbing expressions for the default files to search
         g.source = list(sorted(''' *.bas *.c *.cpp *.cxx *.f *.f90 *.h *.hxx *.ino
             *.java *.pro *.py ?akefile *.awk *.sh *.bash '''.split()))
+if 1:  # Classes
+    class Search:
+        'Encapsulates the search results by file'
+        def __init__(self, file):
+            self.file = file
+            self.lines = []
+        def add(self, item):
+            self.lines.append(item)
+        def __str__(self):
+            return f"Search<{self.file!s}>"
+        def __repr__(self):
+            return str(self)
 if 1:  # Utility
     def Manpage():
         print(dedent(f'''
@@ -52,6 +67,8 @@ if 1:  # Utility
             '∞∞1' is a high priority task
             '∞∞2' is a medium priority task
             '∞∞3' is a low priority task
+
+        Use -p to get a summary list of the files by the marker priority
 
         When working on a specific project, I'll use a marker with a suffix letter like
         '∞∞q' to mark a number of locations of specific files.  These should be
@@ -76,6 +93,7 @@ if 1:  # Utility
           -L    Same as -l except print all on one line
           -l    Only print the file name if it contains the marker string
           -n    Include the line number
+          -p    Print summary report of prioritized files
           -r    Recursively descend directories
           -s    Print source code file extensions examined
           -u s  Suffix string for the marker string
@@ -86,18 +104,19 @@ if 1:  # Utility
         d["-L"] = False  # Only print file name if marker string is found, no newline
         d["-l"] = False  # Only print file name if marker string is found
         d["-n"] = False  # Print line number & line
+        d["-p"] = False  # Print summary report of prioritized files
         d["-r"] = False  # Recursive for directories
         d["-s"] = False  # Print list of regexps used
         d["-u"] = 0      # Priority number
         d["-x"] = "∞∞"   # String to search for
         try:
-            optlist, files = getopt.getopt(sys.argv[1:], "hLlnrsu:x:")
-        except getopt.GetoptError as str:
-            msg, option = str
+            optlist, files = getopt.getopt(sys.argv[1:], "hLlnprsu:x:")
+        except getopt.GetoptError as mystr:
+            msg, option = mystr
             print(msg)
             sys.exit(1)
         for o, a in optlist:
-            if o[1] in "Llnrs":
+            if o[1] in "Llnprs":
                 d[o] = not d[o]
             if o == "-x":
                 d[o] = a
@@ -112,7 +131,7 @@ if 1:  # Utility
             exit(0)
         if d["-u"]:
             s, priority = d["-x"], d["-u"]
-            if 1 <= n <= 3:
+            if 1 <= priority <= 3:
                 d["-x"] = s + str(priority)
             else:
                 Error("-u option must be 1, 2, or 3")
@@ -124,6 +143,7 @@ if 1:  # Utility
         if not files:
             Usage()
         GetColors()
+        g.results = []  # This is used for -p option
         return files
 if 1:  # Core functionality
     def Ignore(line):
@@ -184,13 +204,17 @@ if 1:  # Core functionality
             return
         # Search each line
         results = []
+        srch = Search(file)
         for i, line in enumerate(s.split("\n")):
             if Ignore(line):
                 continue
             mo = g.r.search(line)
             if mo:
+                srch.add((i + 1, line))     # Save it in the class for -p
                 results.append((i + 1, line))
-        if results:
+        if d["-p"]:
+            g.results.append(srch)
+        elif results:
             if d["-n"]:     # Number the lines
                 t.print(f"{t.file}{file}{t.colon}:")
                 for linenum, line in results:
@@ -203,6 +227,37 @@ if 1:  # Core functionality
                 name = f"{t.name}{file}{t.colon}:{t.n}" if names else ""
                 for linenum, line in results:
                     print(f"{name}{line}")
+    def PriorityReport():
+        '''g.results contains the searched results.  Print out the files by their 
+        priority.
+        '''
+        # Construct a dictionary of priority numbers with the files as values
+        di = defaultdict(list)
+        for srch in g.results:
+            file = srch.file
+            for ln, line in srch.lines:
+                loc = line.find(d["-x"])
+                if loc == -1:
+                    t.print(f"{t.redl}Bug in PriorityReport:  {d['-x']!r} not in line:\n {line!r}")
+                    breakpoint() 
+                remainder = line[loc + len(d["-x"]):]
+                if not remainder:
+                    continue    # No integer
+                # Priority is integer just past the marker string
+                try:
+                    priority = int(remainder[0])
+                except Exception:
+                    continue
+                di[priority].append(str(file))
+        # Print report
+        c = {1: t.ornl, 2: t.sky, 3: t.gry}
+        for i in sorted(di):
+            if di[i]:
+                print(f"{c[i]}Priority {i}")
+                for j in Columnize(sorted(set(di[i])), indent=" "*2):
+                    print(j)
+                t.print(end="")
+        exit() # ∞∞
 
 if __name__ == "__main__":
     d = {}  # Options dictionary
@@ -210,5 +265,7 @@ if __name__ == "__main__":
     show_names = len(files) > 1
     for p in [P(i) for i in files]:
         FileSearch(p, names=show_names) if p.is_file() else DirSearch(p)
-    if files and d["-L"]:
+    if d["-L"] and files:
         print()
+    if d["-p"]:
+        PriorityReport()
