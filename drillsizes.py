@@ -1,6 +1,6 @@
 """
 
-∞∞ Construct a single function that lets you get these dictionaries in either inch or mm
+∞∞2 Construct a single function that lets you get these dictionaries in either inch or mm
 format.
 
 Provides dictionaries that relate US customary drill sizes to diameters

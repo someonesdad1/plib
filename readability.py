@@ -822,6 +822,7 @@ if 0:  # Dale-Chall stuff (not working yet)
         return DaleChallWords.words
 if 1:  # Test routines
     def TestGunningFogIndex():
+        # ∞∞3 Needs to be written
         raise Exception("Needs to be written")
     def TestCL():
         # Text from # https://en.wikipedia.org/wiki/Coleman%E2%80%93Liau_index
@@ -842,7 +843,7 @@ if 1:  # Test routines
         # The CL index should be (0.0588*537 - 0.296*4.20 - 15.8 = 14.5
         # There are L = letters/words*100 = 537
         # S = sentences/words*100 = 4.20
-        text    # ∞∞ Gets rid of lint message, but this routine needs fixing
+        text    # ∞∞3 This routine needs to be written
     def TestText():
         # 49% through Tom Sawyer
         return """About midnight Joe awoke, and called the boys.  There was a brooding

@@ -296,7 +296,7 @@ if 1:  # Classes and types
             "Return the key name symbol"
             f = self.key.split("-")
             if self.key == "Shift-Command-Down Arrow":
-                breakpoint()  # ∞∞
+                breakpoint()
             for item in f:
                 i = item.strip()
                 items.append(d[i] if i in d else i)
@@ -306,7 +306,7 @@ if 1:  # Classes and types
             items = [f"{self.key:40s}{' ' * 5}"]
             f = self.key.split("-")
             if self.key == "Shift-Command-Down Arrow":
-                breakpoint()  # ∞∞
+                breakpoint()
             for item in f:
                 i = item.strip()
                 items.append(self._sym[i] if i in self._sym else i)

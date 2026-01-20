@@ -1,7 +1,7 @@
 """
-∞∞ This functionality should be moved to fmt.py
+∞∞2 This functionality should be moved to fmt.py
 
-∞∞ A number like 3.14e-34 needs to be changed to a power of 10
+∞∞2 A number like 3.14e-34 needs to be changed to a power of 10
 
 ----------------------------------------------------------------------
 Module to format numbers using Unicode characters to make them easier

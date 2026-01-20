@@ -1485,6 +1485,8 @@ class ColorName(dict):
 # Define default ColorName instance
 CN = ColorName()
 if wsl:
+    # ∞∞1  This line gets a ResourceWarning error message (ignored exception) in sig.py
+    # when run with '--test' option.  These names should be hard coded into this file.
     CN.load("/plib/colornames0")
 else:
     CN.load("d:/cygwin64/plib/colornames0")
@@ -3380,9 +3382,7 @@ if __name__ == "__main__":
             ShortNames()
             print()
             ShowAttributes()
-            print(
-                "\nUse d for examples, 't[4|8|24]' for color table, l for short name properties,"
-            )
+            print("\nUse d for examples, 't[4|8|24]' for color table, l for short name properties,")
             print("otherwise interpret the color specifier")
         elif first_char == "t":  # Show 4, 8, or 24 bit color table
             ColorTable(int(cmds[0][1:]))

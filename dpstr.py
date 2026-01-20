@@ -1588,8 +1588,8 @@ if __name__ == "__main__":
         Assert(SplitOnNewlines("1\n2\r\n3\r") == ["1", "2", "3", ""])
     def Demo():
         "Demonstrate the various functions to stdout"
-        print(f"{t('ornl')}Demo of /plib/dpstr.py functions{t('skyl')}")
-        if 0:  # ∞∞
+        t.print(f"{t('ornl')}Demo of /plib/dpstr.py functions")
+        if 1:
             # Chop
             s = "abcdefghij"
             print(f"Chop({s!r}, 3) = {Chop(s, 3)}")

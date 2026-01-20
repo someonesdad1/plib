@@ -311,12 +311,6 @@ if 0:   # Fixed-size integers
             [3] https://www.electronicsmedia.info/2024/02/10/twos-complement/
             
             '''
-    if 0: #∞∞
-        x = Int(12)
-        print(x)
-        x = Int(12, 8)
-        print(x)
-        exit()
         
 if __name__ == "__main__":
     from lwtest import run, Assert, raises

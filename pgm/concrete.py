@@ -370,11 +370,6 @@ if 1:  # Utility
             if u in allowed_length_units:
                 return (flt(num)*flt(prefix)*flt(allowed_length_units[u]), str(flt(num)) + " " + unit)
 
-if 0: #∞∞
-    form = HorizontalCylinder()
-    form.GetDimensions()
-    exit()
-
 if __name__ == "__main__":
     indent = " "*4
     Initialization()

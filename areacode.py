@@ -1,6 +1,6 @@
 """
 ToDo
-    - ∞∞ 
+    - ∞∞2
         - Make this a true module; move miscellaneous stuff to "if name ==" section.
         - Add a quickie test routine to ensure that it does the basics
 

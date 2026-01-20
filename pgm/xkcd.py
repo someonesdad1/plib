@@ -118,7 +118,8 @@ if 1:  # Core functionality
         s = f"{p}{i!s}"
         print(f"{s:21s} {di[i]}")
     def PrintResults(keyword):
-        breakpoint()  # ∞∞
+        breakpoint()
+
 if __name__ == "__main__":
     d = {}  # Options dictionary
     di = GetDict()

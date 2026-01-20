@@ -60,7 +60,7 @@ if 1:  # Deprecated or obsolete stuff
         
         The code is from an Open Office macro I wrote in BASIC.
         
-        ∞∞ Update this to use the chassis current values from
+        ∞∞2 Update this to use the chassis current values from
         pgm/cu_wire.py.
         '''
         warnings.warn("MaxCurrentDensity() is deprecated", Warning)
@@ -120,7 +120,7 @@ if 1:  # Deprecated or obsolete stuff
         plot of the data and the fitted piecewise-linear models.  Note the
         models are conservative with respect to the wikipedia tabulation.
         
-        ∞∞ Update this to use the chassis current values from
+        ∞∞2 Update this to use the chassis current values from
         pgm/cu_wire.py.
         '''
         warnings.warn("Ampacity() is deprecated", Warning)
@@ -235,7 +235,6 @@ if 1:  # Deprecated or obsolete stuff
                 f_kHz = flt((0.066 / δ) ** 2 / 1000)
                 # Check that calculated and table values are close
                 alpha = 0.07
-                alpha = 0.5  # ∞∞ Temp to see table
                 if not (1 - alpha < freq / f_kHz < 1 + alpha):
                     print(freq / f_kHz, awg)
                     exit()

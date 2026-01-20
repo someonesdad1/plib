@@ -1,6 +1,8 @@
 """
 Finds trigger strings in text files
 
+    ∞∞1 Convert to new _pgminfo form
+
     Run as a script to see an example.
     
     The basic purpose is to provide the ability to find and update
@@ -112,7 +114,7 @@ class Trigger(dict):
             trig = f"{self.start}{trigger}{self.end}"
             repl = f"{trig}{self[trigger]}{trig}"
             self.text = r.sub(repl, self.text)
-        # ∞∞ Need to test write functionality
+        # ∞∞3 Need to test write functionality
         print("New text")
         pp(self.text)
         exit()

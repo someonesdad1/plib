@@ -477,7 +477,7 @@ if __name__ == "__main__":
         w.opp = "\n"*4
         got = w(s)
         want = '\n'.join(u)
-        if 0: #∞∞ This test case fails
+        if 0: #∞∞3 This test case fails
             print(f"Got  = {got!r}")
             print(f"Want = {want!r}")
             if 1:

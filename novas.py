@@ -2957,7 +2957,7 @@ def ephemeris(tjd, cel_obj, origin, pos, vel):
         mp_number = cel_obj["number"]
         #name_len = len(cel_obj["name"])
         mp_name = cel_obj["name"]
-        posvel = readeph(mp_number, mp_name, tjd, err)  # ∞∞ Not defined
+        posvel = readeph(mp_number, mp_name, tjd, err)  # ∞∞3 Not defined
         if err[0]:
             return 20 + err[0]
         if origin == 0:

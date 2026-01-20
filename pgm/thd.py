@@ -1936,7 +1936,7 @@ if 1:  # Core functionality
             H.n = max(d["-d"] - 1, 1)
             Print("Tensile area, in^2 or mm^2", AS, AS * mm_per_in * mm_per_in)
         # Thread shear area
-        # ∞∞ Note:  this prints out values that cannot be right.
+        # ∞∞2 Note:  this prints out values that cannot be right.
         if 0:
             print("Min. thread shear area (in^2 or mm^2)")
             ASn = pi / p * A.Dmin() * (p / 2 + 0.57735 * (A.Dmin() - A.emax()))
@@ -2044,7 +2044,7 @@ if 1:  # Core functionality
                 TA_MM2 = f"{AS * mm_per_in**2}"
 
         # Thread shear area
-        # ∞∞ Note:  this prints out values that cannot be right.
+        # ∞∞2 Note:  this prints out values that cannot be right.
         if 0:
             print("Min. thread shear area (in^2 or mm^2)")
             ASn = pi / p * A.Dmin() * (p / 2 + 0.57735 * (A.Dmin() - A.emax()))

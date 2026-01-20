@@ -407,7 +407,7 @@ if 1:  # Core functionality
         if cmd == ".":
             pass
         elif cmd == "dbg":
-            breakpoint()  # ∞∞
+            breakpoint()
             return
         elif cmd == "digits":
             if CheckArgs():

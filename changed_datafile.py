@@ -1,6 +1,6 @@
 """
 
-∞∞ Make a module
+∞∞2 Make a module
 
 This module lets an application have a function run when a file's contents
 or modification time changes.

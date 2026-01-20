@@ -39,7 +39,7 @@ if 1:  # Header
             have_unc = True
         except ImportError:
             have_unc = False
-        if 0:  # ∞∞ 
+        if 0:
             import debug
             debug.SetDebugger()
     if 1:  # Global variables

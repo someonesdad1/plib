@@ -1,4 +1,8 @@
 # Name strings to Color instance mapping 3 May 2022
+# ∞∞1 This file for some reason gets a strange error when running other scripts.  It is
+# loaded by color.py line 1488 and results in an Exception that is ignored:
+# ResourceWarning: unclosed file <_io.TextIOWrapper name='/plib/colornames0' mode='r' encoding='utf-8'>
+# Run 'p sig.py --test' and you'll see it.
 #
 #    This file is my basic set of colors for use in terminal programs with the color.py
 #    module.

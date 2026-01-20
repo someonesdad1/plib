@@ -1,6 +1,6 @@
 '''
 
-∞∞ Move utility stuff to script area; make a true module; add test code
+∞∞3 Move utility stuff to script area; make a true module; add test code
 
 This module contains the function Banner() which can be used to print
 a banner message like the UNIX banner(1) function.

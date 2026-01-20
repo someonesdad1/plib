@@ -32,76 +32,90 @@ if 1:  # Header
         g = G()
         P = pathlib.Path
         ii = isinstance
-        # Color highlighting
-        t.file = t.yel
         # There are some files that can be ignored:
-        g.files_to_ignore = set(
-            (
+        g.files_to_ignore = set((
                 "word_syllables.py",
                 "words.py",
                 "words",
                 "asciify_make.py",
                 "xx.py",
                 "bama.py",
-            )
-        )
+            ))
         # File globbing expressions for the default files to search
-        g.source = list(
-            sorted(
-                '''
-                
-                *.bas *.c *.cpp *.cxx *.f *.f90 *.h *.hxx *.ino *.java *.pro
-                *.py ?akefile *.awk *.sh *.bash
-                
-            '''.split()
-            )
-        )
-        if 0:
-            # This is the string we'll search for
-            g.s = r"\b∞∞\b"
-            # Regular expression to find '∞∞'.
-            g.r = re.compile(g.s)
-            # Regular expression to find '∞∞' in string with newlines.  This is
-            # quickly used to scan a whole file.
-            g.R = re.compile(g.s, re.M)
+        g.source = list(sorted(''' *.bas *.c *.cpp *.cxx *.f *.f90 *.h *.hxx *.ino
+            *.java *.pro *.py ?akefile *.awk *.sh *.bash '''.split()))
 if 1:  # Utility
+    def Manpage():
+        print(dedent(f'''
+        As of 20 Jan 2026, my current marker policies are:
+            '∞∞' is the default marker string
+            '∞∞1' is a high priority task
+            '∞∞2' is a medium priority task
+            '∞∞3' is a low priority task
+
+        When working on a specific project, I'll use a marker with a suffix letter like
+        '∞∞q' to mark a number of locations of specific files.  These should be
+        considered temporary.
+
+        However, long-term markers can be made with various strings.  For example, a
+        future envisioned project named 'alpha' could have the marker '∞∞alpha'.
+        '''))
+        exit()
     def Usage(status=1):
         name = sys.argv[0]
         print(dedent(f'''
         Usage:  {name} [item1 [item2 ...]]
-          Searches files or directories given on the command line for the string
-          {d["-x"]!r} and prints out the name of those that contain it.  If the item is
-          a directory, typical source files are printed if they contain {d["-x"]!r}.
+          Searches files or directories given on the command line for the marker string
+          and prints out the lines of those that contain it.  If the item is a directory,
+          typical source files are searched (use -s to see the source file types).
+        Defaults for the marker string d["-x"]:
+          ∞∞ is the default marker string.  Use -u to set a modifying suffix string.
+          For example, priority markers could use the 1, 2, 3 suffixes.
         Options:
-          -n    Print the line number and line where {d["-x"]!r} occurs
+          -h    Show my current policies for my source files
+          -L    Same as -l except print all on one line
+          -l    Only print the file name if it contains the marker string
+          -n    Include the line number
           -r    Recursively descend directories
           -s    Print source code file extensions examined
-          -x x  Set the trigger string to look for [{d["-x"]!r}]
+          -u s  Suffix string for the marker string
+          -x x  Set the marker string to look for [{d["-x"]!r}]
         '''))
         exit(status)
     def ParseCommandLine(d):
+        d["-L"] = False  # Only print file name if marker string is found, no newline
+        d["-l"] = False  # Only print file name if marker string is found
         d["-n"] = False  # Print line number & line
         d["-r"] = False  # Recursive for directories
         d["-s"] = False  # Print list of regexps used
+        d["-u"] = 0      # Priority number
         d["-x"] = "∞∞"   # String to search for
         try:
-            optlist, files = getopt.getopt(sys.argv[1:], "hnrsx:")
+            optlist, files = getopt.getopt(sys.argv[1:], "hLlnrsu:x:")
         except getopt.GetoptError as str:
             msg, option = str
             print(msg)
             sys.exit(1)
         for o, a in optlist:
-            if o[1] in "nrs":
+            if o[1] in "Llnrs":
                 d[o] = not d[o]
             if o == "-x":
                 d[o] = a
+            if o == "-u":
+                d[o] = int(a)
             if o == "-h":
-                Usage()
+                Manpage()
         if d["-s"]:
             print("List of type of source code files searched:")
             for i in Columnize(g.source, indent=" " * 2):
                 print(i)
             exit(0)
+        if d["-u"]:
+            s, priority = d["-x"], d["-u"]
+            if 1 <= n <= 3:
+                d["-x"] = s + str(priority)
+            else:
+                Error("-u option must be 1, 2, or 3")
         if d["-x"]:
             g.s = rf"\b{d['-x']}\b"
             g.s = rf"{d['-x']}"
@@ -109,6 +123,7 @@ if 1:  # Utility
             g.R = re.compile(g.s, re.M)
         if not files:
             Usage()
+        GetColors()
         return files
 if 1:  # Core functionality
     def Ignore(line):
@@ -145,6 +160,12 @@ if 1:  # Core functionality
         if results:
             print(pth)
             print("\n".join(results))
+    def GetColors():
+        # Color highlighting
+        t.file = t.yel      # -n file name
+        t.name = t.gry      # Inline file name
+        t.colon = t.redl
+        t.ln = t.purl    # Line number
     def DirSearch(dir):
         assert ii(dir, P) and dir.is_dir()
         glb = dir.rglob if d["-r"] else dir.glob
@@ -152,8 +173,8 @@ if 1:  # Core functionality
             for file in glb(glob_pattern):
                 if file.is_dir():
                     continue
-                FileSearch(file)
-    def FileSearch(file):
+                FileSearch(file, names=True)
+    def FileSearch(file, names=False):
         assert ii(file, P) and file.is_file()
         if file.name in g.files_to_ignore:
             return
@@ -170,16 +191,24 @@ if 1:  # Core functionality
             if mo:
                 results.append((i + 1, line))
         if results:
-            if d["-n"]:
-                print(f"{t.file}{file}:{t.n}")
+            if d["-n"]:     # Number the lines
+                t.print(f"{t.file}{file}{t.colon}:")
                 for linenum, line in results:
-                    print(f"{linenum:6d}:  {line}")
-            else:
+                    print(f"  {t.ln}{linenum}{t.colon}:{t.n}{line}")
+            elif d["-l"] or d["-L"]:
                 # Just print the file name
-                print(f"{file}")
+                print(f"{file}", end=" " if d["-L"] else "\n")
+            else:
+                # Print each line
+                name = f"{t.name}{file}{t.colon}:{t.n}" if names else ""
+                for linenum, line in results:
+                    print(f"{name}{line}")
 
 if __name__ == "__main__":
     d = {}  # Options dictionary
     files = ParseCommandLine(d)
+    show_names = len(files) > 1
     for p in [P(i) for i in files]:
-        FileSearch(p) if p.is_file() else DirSearch(p)
+        FileSearch(p, names=show_names) if p.is_file() else DirSearch(p)
+    if files and d["-L"]:
+        print()

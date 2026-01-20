@@ -200,7 +200,7 @@ if 1:  # Core functionality
             else:
                 print("Leave one variable undefined")
             if dbg:
-                exit(0)  # ∞∞
+                exit(0)
 
     def PitchRattle():
         pass

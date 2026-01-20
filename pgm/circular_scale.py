@@ -90,7 +90,7 @@ def GetDefaultSettings(tick_levels_supported=6):
         "angle_offset": [0] * n,
         # Arrows are drawn in a radial direction.  The tip style controls
         # the size and type of arrow tip.
-        # ∞∞ Arrows are not working yet
+        # ∞∞3 Arrows are not working yet
         "arrow_linewidth": [0.01, 0.8, 0.7, 0.6],
         "arrow_color": [black] * n,
         "arrow_tip_style": [0] * n,
@@ -299,7 +299,7 @@ class CircularScale:
         pop()
 
 
-# ∞∞ DrawArrow is not working yet
+# ∞∞3 DrawArrow is not working yet
 #    def DrawArrow(self, level, point1, point2, size, style, polar=True,
 #                  filled=True):
 #        '''Draw an arrow starting at point1 = (r1, theta1) and going to

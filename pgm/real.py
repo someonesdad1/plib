@@ -63,7 +63,7 @@ def Functions(*p):
     Otherwise, list syntax for each non-obvious function.
     """
     if p:
-        breakpoint() #∞∞
+        breakpoint()
     else:
         f = """
             acos acosh asin asinh atan atan2 atanh bei ber bernoulli besseli

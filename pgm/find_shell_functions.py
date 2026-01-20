@@ -133,7 +133,8 @@ if 1:  # Core functionality
         "Print the function report"
         sentinel = None
         dq = deque(sorted(function_set))
-        breakpoint() #∞∞  
+        if 1:
+            breakpoint()
         dq.append(sentinel)  # Identifies end of deque
         results = []
         while dq:

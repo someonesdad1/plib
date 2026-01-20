@@ -119,7 +119,6 @@ def compose(*functions):
     '''For a sequence of univariate functions <f0, f1, ...>, return
     the function composition ...f2(f1(f0(x))).
     '''
-    x = 1  # Hack to stop lint complaining, but clearly this won't work
     def compose2(f0, f1):
         return f0(f1(x))
     return reduce(compose2, functions)
@@ -173,8 +172,7 @@ def Test_apply_each():
         return a * b * c
     a = range(5, 8)
     result = list(apply_each((A, B), a))
-    print(
-        '''apply_each(function_list, argument_list):
+    print('''apply_each(function_list, argument_list):
     This higher-order function returns a function that applies each
     of a list of functions to a set of arguments; each function must
     take the same number of arguments.  Here, we'll define two
@@ -301,8 +299,7 @@ def Test_or_f():
     def has_d(x):
         return "d" in x
     result = or_f((has_a, has_d), set("abc"))
-    print(
-        '''or_f(functions, arguments=[]):
+    print('''or_f(functions, arguments=[]):
     Same as any_f except short-circuit evaluation is used.
     Returns True or False, representing the Boolean sum of each
     function call.  If functions is the sequence
@@ -317,7 +314,11 @@ def Test_or_f():
     is in the string argument.
     '''[:-4].format(**locals())
     )
+
 if __name__ == "__main__":
+    from lwtest import run
+    status, msg = run(globals(), regexp=r"Test_", halt=1)
+    exit(status)
     lines = ["{}".format(i) for i in range(20)]
     def f1(x):
         return int(x) % 2 == 0

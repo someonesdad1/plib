@@ -1015,14 +1015,9 @@ if 1:  # Core functionality
                     row.append(r.pop(0))
                 for i in Columnize(row, indent=" " * 4, horiz=True, sep=" " * 8):
                     print(i)
-            # ∞∞ Note this illuminates one or more bugs in Columnize, as this doesn't print as
+            # ∞∞1 Note this illuminates one or more bugs in Columnize, as this doesn't print as
             # I would wish.
             print("\nCrappy display due to bug in columnize.Columnize")
-
-
-if 0:  # ∞∞ 
-    ListOnhand()
-    exit()
 
 if __name__ == "__main__":
     d = {}  # Options dictionary

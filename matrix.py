@@ -2557,12 +2557,7 @@ if 1:  # Utility functions
                     return z
         else:
             raise TypeError("Unrecognized floating point type")
-if 0:  # Test/development area
-    a = matrix("1 2\n3 4")
-    breakpoint()  # ∞∞
-    a[0, 0] = 789
-    print(a)
-    exit()
+
 if __name__ == "__main__":
     from lwtest import run, raises, assert_equal, Assert
     from fractions import Fraction
@@ -3913,7 +3908,7 @@ if __name__ == "__main__":
                 m.grid = [[5, 6], [7, 8]]
                 Assert(m == matrix("5 6\n7 8"))
         def test_Complex_formatting():
-            if 1:  # ∞∞
+            if 1:
                 with Testing():
                     Matrix.EqDigits = 3
                     z = cpx(1, -1 / 3)
@@ -3946,7 +3941,7 @@ if __name__ == "__main__":
                         z.wide = True
                         Assert(str(z) == "1.05 ∠ -18.4°")
                         z.wide = False
-            if 0:  # ∞∞
+            if 1:
                 with Testing():
                     # Special forms
                     Matrix.EqDigits = 3

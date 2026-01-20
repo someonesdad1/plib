@@ -577,7 +577,7 @@ if 1:  # Core functionality
             line = line.rstrip("\n\r").replace("\t", " ")
             line = Xref.punct.sub(" ", line)  # Replace punct w/ space
             line = line if not preserve_case else line.lower()
-            # ∞∞  Why not use str.split(); it should do the same thing.
+            # ∞∞2  Why not use str.split(); it should do the same thing.
             words = re.split("  *", line)
             for word in words:
                 if not word:
@@ -599,6 +599,7 @@ if 1:  # Core functionality
             ProcessLine(line, linenum)
             line = stream.readline()
         return mydict
+
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

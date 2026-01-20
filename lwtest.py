@@ -229,7 +229,7 @@ if 1:  # Core functionality
             except TypeError as e:
                 # Probably trying to run the module.
                 if str(e) == '''TypeError("'module' object is not callable",)''':
-                    print(f"∞∞ {_modname}:  need to test TypeError catch")
+                    print(f"∞∞2 {_modname}:  need to test TypeError catch")
                 else:
                     raise
             except Exception as e:

@@ -3075,14 +3075,7 @@ if __name__ == "__main__":
             (1, "12350(60)"),
             (2, "12300(600)"),
             (3, "12000(6000)"),
-            # ∞∞ I've commented out the following test case.  For some
-            # reason, it works under 2.7/3.4 when this file is run as a
-            # script, but when run using nosetests, it fails because the
-            # string is "12300+/-60000" instead of what's shown.  I've used
-            # the --pdb option to nose and it indeed evaluates to this, so
-            # it will take some debugging to figure out the cause (I'm
-            # betting it's some kind of race condition.
-            # (4, "12350+/-60000"), # Overflows to standard display
+            (4, "12350+/-60000"), # Overflows to standard display
         )
         for i, expected in T:
             check(sig(U(1.23456789e4, 6 * 10**i)), expected)

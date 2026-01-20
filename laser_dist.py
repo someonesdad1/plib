@@ -213,7 +213,7 @@ if __name__ == "__main__":
         # The easiest test case is where spring angle is 0° and where the wall angle is
         # a right angle (θ = 90°).  Then the miter angle is 45° and the bevel angle is 0°. 
         t.print(f"{t.ornl}CrownMolding function is not correct")
-        return #∞∞
+        return #∞∞2  Bug in TestCrownMolding()
         wall, spring = 90, 0
         miter, bevel = CrownMolding(wall, spring)
         print(f"wall = {wall}, spring = {spring}")

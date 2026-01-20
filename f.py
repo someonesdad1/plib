@@ -1324,7 +1324,7 @@ if 1:  # Classes derived from flt for physical data; needed for solarsys.py
             return "?"
         def __repr__(self):
             return "Unk('?')"
-# ∞∞ These got broken; problem appears in f.py line 699 __eq__
+# ∞∞1 These got broken; problem appears in f.py line 699 __eq__
 if 0:  # Classes derived from flt for physical data
     class Nothing(flt):
         '''Represent a 'None' number.  Can be initialized with None,
@@ -1534,7 +1534,7 @@ if __name__ == "__main__":
         else:
             raise TypeError("Both a and b must be flt or cpx")
     def Test_flt_derived_classes():
-        return  # These classes broke somehow ∞∞ 
+        return  # These classes broke somehow ∞∞ 1
         # Nothing
         x = Nothing("")
         Assert(str(x) == "--")
