@@ -3,18 +3,14 @@
 # 2026 work in progress
 
 - Jan 2026 /plib work
-    - --test things that need fixing
-        - primes.py
-        - prob.py
-        - bits.py
-        - sig.py
-        - wrap.py
     - Mark places that need work with ∞∞ 
         - Urgency (add these as -u option to xx.py
             - Low       ∞∞      -u 3 
             - Medium    ∞∞∞     -u 2 
             - High      ∞∞∞∞    -u 1 
         Could include a priority 1, 2, 3 to indicate urgency
+    - Start converting files to newer `_pgminfo` metadata format, as it will be easier
+      to process, particularly if every /plib/*.py file is a module
     - Regularize testing environment
         - Vision
             - Launch testing with one command (e.g., run make)

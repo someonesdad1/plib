@@ -158,7 +158,7 @@ if 1:  # Getting text, lines, bytes
         return o
     def GetLines(thing, enc=None, ignore=[], script=False, ignore_empty=False,
                  strip=False, nonl=False):
-        '''Return list of strings from thing, which is
+        r'''Return list of strings from thing, which is
            string      It's a file name.  If get a read exception, then
                        use string itself for the text.  "-" means stdin.
            bytes       or
@@ -626,7 +626,7 @@ if 1:  # Getting numbers
                 lst.append(x)
         return lst
     def GetNumberArray(string, numtype=float):
-        '''Return a list of vectors gotten from the indicated multiline string.
+        r'''Return a list of vectors gotten from the indicated multiline string.
         The numbers are separated on each line by whitespace.  
         Lines in string matching
         the regular expression with '^\s*#' are ignored.  If string is empty or
@@ -816,7 +816,7 @@ if 1:  # Getting numbers
         if not ii(s, str):
             raise TypeError("Parameter s must be a string")
         u = s.lower().replace("j", "i")
-        u = re.sub("\s*", "", u)  # Remove all whitespace
+        u = re.sub(r"\s*", "", u)  # Remove all whitespace
         if not u:
             return None
         if not u.endswith("i"):

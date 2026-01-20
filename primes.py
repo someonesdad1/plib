@@ -388,7 +388,7 @@ if __name__ == "__main__":
             if len(sys.argv) < 2:
                 Usage()
             try:
-                opts, args = getopt.getopt(sys.argv[1:], "bCcdhptu")
+                opts, args = getopt.getopt(sys.argv[1:], "bCcdhpu", "test")
             except getopt.GetoptError as e:
                 print(str(e))
                 exit(1)
@@ -397,7 +397,7 @@ if __name__ == "__main__":
                     d[o] = not d[o]
                 elif o in ("-h", "--help"):
                     Usage(status=0)
-                elif o == "-t":     # Run selftests
+                elif o == "--test":     # Run selftests
                     exit(run(globals(), halt=True)[0])
             if not d["-c"]:
                 t.prime = t.number = ""

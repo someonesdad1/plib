@@ -23,12 +23,6 @@ if 1:  # Header
             have_bitarray = True
         except ImportError:
             pass
-        have_basencode = False
-        try:
-            import basencode
-            have_basencode = True
-        except ImportError:
-            pass
         if 0:
             import debug
             debug.SetDebugger()
@@ -75,25 +69,22 @@ if 1:   # Functions
             raise ValueError(f"base must be between 2 and {len(int2base.digits)}")
         if not isinstance(x, (int, str)):
             raise ValueError("Argument x must be an integer or string")
-        if have_basencode:   
-            pass
-        else:   
-            # Method by Alex Martelli
-            # http://stackoverflow.com/questions/2267362/convert-integer-to-a-string-in-a-given-numeric-base-i
-            # Modified slightly
-            if isinstance(x, str):
-                x = int(x)
-            sign = -1 if x < 0 else 1
-            if x == 0:
-                return "0"
-            x, answer = abs(x), []
-            while x:
-                answer.append(int2base.digits[x % base])
-                x //= base
-            if sign < 0:
-                answer.append("-")
-            answer.reverse()
-            return ''.join(answer)
+        # Method by Alex Martelli
+        # http://stackoverflow.com/questions/2267362/convert-integer-to-a-string-in-a-given-numeric-base-i
+        # Modified slightly
+        if isinstance(x, str):
+            x = int(x)
+        sign = -1 if x < 0 else 1
+        if x == 0:
+            return "0"
+        x, answer = abs(x), []
+        while x:
+            answer.append(int2base.digits[x % base])
+            x //= base
+        if sign < 0:
+            answer.append("-")
+        answer.reverse()
+        return ''.join(answer)
     def IntToBase(n, b, msd_first=True):
         '''Convert positive integer n to any integer base b > 1.  Return a tuple of
         integers with the most significant digit at the 0th position in the list if

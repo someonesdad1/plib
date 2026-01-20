@@ -1,6 +1,12 @@
 '''
 TODO:
 
+    - Consider removing color.py stuff, as I see a weird exception warning in it 
+      about a nonclosed file when CN (ColorName() instance) tries to load
+      /gh/plib/colornames0.  To debug such things, you need the debugger, but I usually
+      can't load the debugger when color.py is involved, likely due to a circular
+      import.
+
     - https://pycodestyle.pycqa.org/en/latest/advanced.html#automated-tests
       tells how to add automated code style testing for conformance.  Add
       it to the self tests as an option to run.

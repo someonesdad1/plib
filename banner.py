@@ -1,4 +1,7 @@
 '''
+
+∞∞ Move utility stuff to script area; make a true module; add test code
+
 This module contains the function Banner() which can be used to print
 a banner message like the UNIX banner(1) function.
 
@@ -71,42 +74,7 @@ if 1:   # Utility
         if len(args) < 1:
             Usage(d)
         return args
-if 1:   # Core functionality
-    def Banner(string, char_to_use):
-        '''Prints the string using the character given in char_to_use.
-        Example:  Banner("banner", "l") produces
-        
-             lll
-              ll
-              ll      lllll   ll lll  ll lll  lllll  ll lll
-              lllll       l   lll ll  lll ll ll    l  lll ll
-              ll  ll llllll   ll  ll  ll  ll lllllll  ll
-              ll  ll l   ll   ll  ll  ll  ll ll       ll
-             llllll  lllll l  ll  ll  ll  ll  lllll  llll
-        '''
-        out = [[], [], [], [], [], [], [], []]  # 8 lines of data
-        for ltr in range(len(string)):
-            char = string[ltr]
-            if ord(char) < 32 or ord(char) > 126:
-                char = " "
-            i = ord(char) - 32
-            lines = Banner.letters[i][0]
-            # print("Lines = 0x%08x" % lines)
-            out[0].append(((lines & (0xFF << 24)) >> 24) & 0xFF)
-            out[1].append(((lines & (0xFF << 16)) >> 16) & 0xFF)
-            out[2].append(((lines & (0xFF << 8)) >> 8) & 0xFF)
-            out[3].append(lines & 0xFF)
-            lines = Banner.letters[i][1]
-            # print("Lines = 0x%08x" % lines)
-            out[4].append(((lines & (0xFF << 24)) >> 24) & 0xFF)
-            out[5].append(((lines & (0xFF << 16)) >> 16) & 0xFF)
-            out[6].append(((lines & (0xFF << 8)) >> 8) & 0xFF)
-            out[7].append(lines & 0xFF)
-        for element in out:
-            for byte in element:
-                PrintByteLine(byte, char_to_use)
-            print()
-        print()
+if 1:   # Data
     ''' The array Banner.letters contains the information on how to print each character
     between 32 and 126, inclusive.  There are 8 bytes for each character and each byte
     represents one line of the font.  The high byte of the first number is the first
@@ -147,6 +115,42 @@ if 1:   # Core functionality
         (0x0000FC98, 0x3064FC00), (0x0C181830, 0x18180C00), (0x10101000, 0x10101000),
         (0x60303018, 0x30306000), (0x66980000, 0x00000000),
     )
+if 1:   # Core functionality
+    def Banner(string, char_to_use):
+        '''Prints the string using the character given in char_to_use.
+        Example:  Banner("banner", "l") produces
+        
+             lll
+              ll
+              ll      lllll   ll lll  ll lll  lllll  ll lll
+              lllll       l   lll ll  lll ll ll    l  lll ll
+              ll  ll llllll   ll  ll  ll  ll lllllll  ll
+              ll  ll l   ll   ll  ll  ll  ll ll       ll
+             llllll  lllll l  ll  ll  ll  ll  lllll  llll
+        '''
+        out = [[], [], [], [], [], [], [], []]  # 8 lines of data
+        for ltr in range(len(string)):
+            char = string[ltr]
+            if ord(char) < 32 or ord(char) > 126:
+                char = " "
+            i = ord(char) - 32
+            lines = Banner.letters[i][0]
+            # print("Lines = 0x%08x" % lines)
+            out[0].append(((lines & (0xFF << 24)) >> 24) & 0xFF)
+            out[1].append(((lines & (0xFF << 16)) >> 16) & 0xFF)
+            out[2].append(((lines & (0xFF << 8)) >> 8) & 0xFF)
+            out[3].append(lines & 0xFF)
+            lines = Banner.letters[i][1]
+            # print("Lines = 0x%08x" % lines)
+            out[4].append(((lines & (0xFF << 24)) >> 24) & 0xFF)
+            out[5].append(((lines & (0xFF << 16)) >> 16) & 0xFF)
+            out[6].append(((lines & (0xFF << 8)) >> 8) & 0xFF)
+            out[7].append(lines & 0xFF)
+        for element in out:
+            for byte in element:
+                PrintByteLine(byte, char_to_use)
+            print()
+        print()
     def PrintByteLine(byte, char_to_use):
         for i in range(8):
             if byte & (1 << (8 - i)):

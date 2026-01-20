@@ -1,4 +1,9 @@
 """
+ToDo
+    - ∞∞ 
+        - Make this a true module; move miscellaneous stuff to "if name ==" section.
+        - Add a quickie test routine to ensure that it does the basics
+
 Provides areacode.areacodes, a dictionary that maps a 3 digit integer North
 America areacode into a string detailing its location.  This same
 information is in the list areacode.areacodelist.

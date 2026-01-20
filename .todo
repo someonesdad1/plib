@@ -1,5 +1,42 @@
 /plib/.todo
     - Core /plib work
+        - Huh?
+            - dpdata.py:  be a single repository for all the files with data:
+              drillsizes.py, eia.py, elements.py ?, papersize.py, planets.py,
+              resistors.py, rgb.py, sizes.py, solarsys.py, gauge_sizes.py,
+              atomic_mass.py, e.py, constant.py, months.py, water.py
+                - electrical.py could be a file for electrical data
+            - edit.py:  move it to util.py & delete file
+            - fac.py's contents can move to primes.py
+            - dt.py and dptime.py have duplication
+            - What's with elements.py and elements1.py?
+            - Move format_numbers.py stuff to fmt.py if it's not already there, then
+              obsolete
+            - fpformat.py:  keep or move all to fmt.py or f.py?
+            - fraction.py:  move to fmt.py
+            - fsig.py:  is it used anywhere?  Otherwise move to old.  There's an
+              util.fsig, so make fsig.py obsolete.
+            - geometry.py:  need test case for Quadrilateral()
+            - integrate.py:  need tests for Trapezoid_nme, Trapezoid_nr, Trapezoid
+            - Find all 'from x import *' type of imports and get rid of them except
+              where it's really needed (do this before linting in /plib/pgm).  Use
+              "grep -l 'import \*' pgm/*.py" for this.
+            - laser_dist.py fails its selftest
+            - module_dep.py:  keep or move to old?
+            - mpfmt.py:  absorb into fmt.py and obsolete
+            - partitions.py:  needs some tests
+            - prob.py:  decide whether to keep.  Needs the cephes DLL.
+            - rgb.py, rgbdata.py, rgbview.py:  keep any of these or obsolete?
+            - shoputil.py:  move to other relevant files (see docstring)
+            - sizes.py:  make all the floats be flt types
+            - tee.py:  rename Print to teeprint and move to e.g. util.py.  Note it's
+              only used so far in 0test.py.
+            - waveform.py needs a goodly amount of work to fix lint problems
+        - Module usage statistics
+            - It would be nice to use some scheme to keep track of which modules get
+              the most use.  It could be something as simple as open(file,
+              "wa").write("myname.py") that is triggered if an environment variable is
+              define.
         - I like the _pgminfo variable in new files, as it doesn't interfere with
           __doc__ strings and it can be set up to not have any Unicode characters in it.
         - 13 Jan 2026:  finished the last needed update to color.py.  kolor.py moved to
@@ -45,30 +82,16 @@
                 - A copy of the GNU license should be in COPYING
                 - It's important to have an email contact, but I wouldn't want this in
                   every file
-        - Huh?
-            - What's with elements.py and elements1.py?
-            - Move format_numbers.py stuff to fmt.py if it's not already there, then
-              obsolete
-            - fpformat.py:  keep or move all to fmt.py or f.py?
-            - fraction.py:  move to fmt.py
-            - fsig.py:  is it used anywhere?  Otherwise move to old.  There's an
-              util.fsig, so make fsig.py obsolete.
-            - geometry.py:  need test case for Quadrilateral()
-            - integrate.py:  need tests for Trapezoid_nme, Trapezoid_nr, Trapezoid
-            - Find all 'from x import *' type of imports and get rid of them except
-              where it's really needed (do this before linting in /plib/pgm).  Use
-              "grep -l 'import \*' pgm/*.py" for this.
-            - laser_dist.py fails its selftest
-            - module_dep.py:  keep or move to old?
-            - mpfmt.py:  absorb into fmt.py and obsolete
-            - partitions.py:  needs some tests
-            - prob.py:  decide whether to keep.  Needs the cephes DLL.
-            - rgb.py, rgbdata.py, rgbview.py:  keep any of these or obsolete?
-            - shoputil.py:  move to other relevant files (see docstring)
-            - sizes.py:  make all the floats be flt types
-            - tee.py:  rename Print to teeprint and move to e.g. util.py.  Note it's
-              only used so far in 0test.py.
-            - waveform.py needs a goodly amount of work to fix lint problems
+
+    - color.py
+        - I get enough problems related to color.py that it might make sense to have a
+          much simpler module to get escape strings for color printing.  I often can't
+          use the debugger because of (probably) a circular import.
+            - I'd just like to have a class instance that would have the requisite
+              colors I use and an attribute to turn the escape codes on and off all at
+              once.
+        - colornames0:  it might make more sense to have a python module define these
+          colors
 
     - pgm/python_perf.py
         - Update to modern formatting
@@ -402,6 +425,8 @@
         - The problem is caused by module1 being partially initialized that tries to
           import something from module2; in turn, module2 is partially initialized while
           using something from module1
+        - This argues a bit for getting color.py out of f.py; let some formatting
+          library handle the color work
 
     - Text substitution
         - I currently have:  ts, tsub

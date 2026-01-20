@@ -776,6 +776,7 @@ if 1:  # Core functionality
         print(f"{t.rad}[209]{t.n} means the atomic weight of the most stable isotope")
         print("(1125) means a predicted property")
         print("1 Da is 1.66054×10⁻²⁴ g (i.e., yg)")
+
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

@@ -1435,7 +1435,13 @@ class ColorName(dict):
         if clear:
             self.clear()
         vars = {}
-        for line in open(file).read().split("\n"):
+        try:
+            fd = open(file)
+            contents = fd.read()
+        except Exception as e:
+            print(f"color.py exception reading colornames0: {e}")
+            exit(1)
+        for line in contents.split("\n"):
             line = line.strip()
             if not line or line[0] == "#":
                 continue
@@ -1443,6 +1449,7 @@ class ColorName(dict):
                 a, b = line.split(ColorName.sep)
                 name = eval(a)
                 if self._normalize:
+                    print("color.py exception reading colornames0:  normalization not implemented yet")
                     raise Exception("Normalization not implemented yet")
                 c = eval(b, None, locals())
                 try:
@@ -1454,6 +1461,7 @@ class ColorName(dict):
                 if "=" in line and ColorName.allow_exec:
                     exec(line)
                 else:
+                    print(f"color.py exception reading colornames0:  illegal line:\n'{line}'")
                     raise ValueError(f"Illegal line:\n'{line}'")
     def split(self, name):
         '''A name string can be made up of multiple names separated by one

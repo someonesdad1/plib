@@ -41,8 +41,6 @@ Utility encoding tool
         Big5                 0.1%           big5
         ISO-8859-9           0.1%           iso8859_9
         ISO-8859-15          0.1%           iso8859_15
-
-
 '''
 if 1:  # Header
     if 1:  # Copyright, license

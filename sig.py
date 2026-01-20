@@ -5,7 +5,7 @@ NOTE:  (25 Aug 2021)
     better met by the flt and cpx objects in the f.py module.  I am slowly
     converting the hundreds of my python scripts that used sig.py over to
     using the f.py module.
-
+    
 Todo, bugs:
     - sig.rtz works on fixed but not scientific
     - Add sig.rtdp to remove trailing decimal point.
@@ -16,7 +16,6 @@ Todo, bugs:
       object get formatted as an integer, not a float.  Raise an
       exception if fit is True while integer is also True.
 """
-
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2012 Don Peterson #∞copyright∞#
@@ -44,6 +43,8 @@ if 1:  # Imports
     import os
     import re
     import sys
+    import warnings
+    warnings.filterwarnings("error")
 if 1:  # Global variables
     s = """
     Represent a number to a specified number of significant figures
@@ -150,7 +151,6 @@ if 1:  # Custom imports
     if _defaults["use_numpy"]:
         try:
             import numpy as np
-
             _have_numpy = True
         except ImportError:
             pass
@@ -158,7 +158,6 @@ if 1:  # Custom imports
     if _defaults["use_mpmath"]:
         try:
             import mpmath as mp
-
             _have_mpmath = True
         except ImportError:
             pass
@@ -166,17 +165,13 @@ if 1:  # Custom imports
     if _defaults["use_uncertainties"]:
         try:
             import uncertainties as unc
-
             _have_uncertainties = True
         except ImportError:
             pass
-
-
 class SigFig(object):
     """Default settings for the class.  For Boolean settings, the
     description is for when the setting is True.
     """
-
     _digits = 3  # Significant figures (see doc)
     _dp = locale.localeconv()["decimal_point"]
     _dp_position = 0  # Decimal point position (need sig.fit too)
@@ -224,7 +219,6 @@ class SigFig(object):
     _unc_sep = "+/-"  # Separator for long form
     _unc_pre = "("  # Left separator for short form
     _unc_post = ")"  # Right separator for short form
-
     def __init__(self):
         """Set our instance attributes from the class attributes."""
         self.stack = []  # Keeps track of pushed states
@@ -271,7 +265,6 @@ class SigFig(object):
             (.*)$           # Optional ending unit string
         """)
         self.reset()
-
     def reset(self):
         """Set the object's attributes to their default values."""
         # The attributes that begin with underscores are properties
@@ -319,7 +312,6 @@ class SigFig(object):
         self.unc_pre = SigFig._unc_pre
         self.unc_post = SigFig._unc_post
         self.check()
-
     def __call__(self, *par):
         """This method is the user's primary interface with the
         object.  There can be one or two parameters.  The first
@@ -357,7 +349,6 @@ class SigFig(object):
             elif 0 and isinstance(x, mp.iv.mpf):
                 # Interval numbers have been effectively unsupported by
                 # mpmath, so this code won't be used anymore.
-
                 # This is a hack to work with mpmath 0.18, as it doesn't
                 # work as documented (i.e., the .a, .b attributes don't
                 # work)
@@ -375,7 +366,6 @@ class SigFig(object):
                     )
                 x = self._convert_number(x, name="x")
             return self._sig(x, digits)
-
     def _sig_uncertainty(self, x, digits, digits_override=False):
         """Handle the case where x is a ufloat from the uncertainties
         module.  If digits_override is True, then use the digits
@@ -527,20 +517,18 @@ class SigFig(object):
                 return answer
         else:
             return U
-
     def _fmt_int(self, x):
         """Format the integer x.  If you have sig.integer set to 2 and
         you want to see commas in the output, you'll have to set a
         locale.  One such command could be:
-
+        
             locale.setlocale(locale.LC_ALL, '')
-
+            
         You could also put the above line in this function; I didn't
         do this because I didn't want the sig module changing the
         locale.
         """
         return format(x, "n")
-
     def _remove_decimal_point(self, s):
         """Remove the decimal point.  Hopefully, this will work
         correctly in any locale, but it could be a bug if the decimal
@@ -550,7 +538,6 @@ class SigFig(object):
         s = s.replace(".", "").replace(",", "")
         s = s.replace(self.dp, "")
         return s
-
     def _sig_complex(self, x, digits):
         """Handle the case where x is a complex number."""
         if not isinstance(x, _Complex):
@@ -558,7 +545,6 @@ class SigFig(object):
         if self._fit:
             return self._sig_complex_fit(x, digits)
         return self._sig_complex_no_fit(x, digits)
-
     def _sig_complex_fit(self, x, digits):
         """The string needs to be fit into self._fit spaces."""
         if not isinstance(digits, int):
@@ -580,7 +566,6 @@ class SigFig(object):
                 s = s.rjust(abs(old_fit))
         self._fit = old_fit
         return s
-
     def _sig_complex_no_fit(self, x, digits):
         """Format a complex that doesn't need to be fitted into a
         specified number of spaces.
@@ -662,7 +647,6 @@ class SigFig(object):
                     # It's zero
                     s.append(self._sig(0, digits))
         return "".join(s)
-
     def _sig(self, x, digits):
         """Format the number x to digits significant figures.
         digits can be an int, Decimal, Fraction, or a float (if a
@@ -751,7 +735,6 @@ class SigFig(object):
                 return s
         else:
             return self._format(x, digits)
-
     def _format(self, x, digits):
         """This method does the actual formatting."""
         if _have_mpmath:
@@ -881,13 +864,11 @@ class SigFig(object):
             if self.idp:
                 z.append(self.dp)
             return self._Rtz(sgn + "".join(z))
-
     def push(self):
         """Push the current attributes onto a stack.  Remove and use
         them with the pop() method.
         """
         self.stack.append(self.__dict__.copy())
-
     def pop(self, n=1):
         """Note it's not an error to pop past the end of the stack."""
         if isinstance(n, str) and n == "all":
@@ -897,7 +878,6 @@ class SigFig(object):
                 self.__dict__ = self.stack.pop()
             except IndexError:
                 pass
-
     def _Rtz(self, s):
         """Remove trailing zeros from the string s if self.rtz is
         True and s contains a decimal point (so we don't mess
@@ -908,7 +888,6 @@ class SigFig(object):
         while s[-1] == "0" and self.dp in s:
             s = s[:-1]
         return s
-
     def AlignDP(self, num, width=None, position=None, digits=None):
         """Fit the string into a stated width with the decimal point
         at the 0-based position starting from the left.  width
@@ -916,15 +895,15 @@ class SigFig(object):
         self.dp_position setting.  Note the number significant figures
         in the result may be reduced to get it to fit into the given
         space.
-
+        
         The intent is to let you have a field of known width where the
         decimal points line up -- this is useful when displaying
         information that varies over a few orders of magnitude.  The
         routine will display "-.-" for numbers outside the displayable
         range.
-
+        
         Algorithm:
-
+        
             0 1 2 3 4 5 6 7 8 9
            +-------------------+
            | | | | | |.| | | | |
@@ -933,18 +912,18 @@ class SigFig(object):
                       |
                       dp
            |<----------------->| = w
-
+           
         String index of decimal point = dp
         Width of whole string = w
         Number of spots to left of decimal place  = dp
         Number of spots to right of decimal place = r = w - dp - 1
-
+        
         Allowed forms:
             1.  sig with a decimal point
             2.  sig with no decimal point
         Scientific format isn't allowed, so if the number can't fit
         in the given space, "-.-" is displayed.
-
+        
         Numbers displayable are:
             if x < 1:
                 abs(x) > 10**r
@@ -1021,12 +1000,10 @@ class SigFig(object):
         if len(s) <= w:
             return s
         raise ValueError("width of %d too small" % w)
-
     def _convert_to_array(self, x):
         """Return None if x isn't a string and can't be converted to
         an array of numbers.  Otherwise return a list of the numbers.
         """
-
         def clean(x):
             sp = " "
             x = x.lower().strip()
@@ -1035,7 +1012,6 @@ class SigFig(object):
             x = x.replace(";", sp)
             x = x.replace("\n", sp)
             return x.strip()
-
         if not isinstance(x, str):
             return None
         x = clean(x)
@@ -1046,12 +1022,10 @@ class SigFig(object):
                 s.append(n)
             return s
         return None
-
     def _append_zeros(self, z, num_zeros):
         while num_zeros:
             z.append("0")
             num_zeros -= 1
-
     def _justify(self, s, spaces):
         """While len(s) < spaces, add space characters until len(s) ==
         spaces.  If spaces > 0, prepend; otherwise, append.
@@ -1063,7 +1037,6 @@ class SigFig(object):
             while len(s) < abs(spaces):
                 s += " "
         return s
-
     def _seq(self, x, digits):
         """x is an iterable and should contain number objects.  We'll
         recursively process the contained components.  Since this
@@ -1092,7 +1065,6 @@ class SigFig(object):
             s = s.replace("[", "{")
             s = s.replace("]", "}")
         return s
-
     def check(self):
         """Check our attributes for allowed values and types.  This
         method is run in the constructor, but isn't used after that
@@ -1223,7 +1195,6 @@ class SigFig(object):
         assert isinstance(self.unc_sep, str)
         assert isinstance(self.unc_pre, str)
         assert isinstance(self.unc_post, str)
-
     def _is_iterable(self, x):
         """Identify an iterable by its behavior.  Note:  we define a
         string as a non-iterable because it's not a container of number
@@ -1237,7 +1208,6 @@ class SigFig(object):
             return True
         except TypeError:
             return False
-
     def __str__(self):
         s = ["SigFig object at 0x" + hex(id(self)) + ":"]
         d = self.__dict__.copy()
@@ -1257,7 +1227,6 @@ class SigFig(object):
         for key in keys:
             s.append("  {0:{1}} = {2}".format(key, maxlen, repr(d[key])))
         return "\n".join(s)
-
     def _check_float(self, val, name, none_allowed=False):
         """Raise a TypeError exception if val is not an object type
         that can be converted to a Decimal or Fraction object.  Note
@@ -1272,16 +1241,13 @@ class SigFig(object):
         if not isinstance(val, types):
             msg = "{0} attribute is improper type".format(name)
             raise TypeError(msg)
-
     def _convert_fraction(self, val):
         """val is a Fraction object; convert it to a Decimal object."""
         if not isinstance(val, Fraction):
             raise TypeError("Argument must be a Fraction")
         return Dec(val.numerator) / Dec(val.denominator)
-
     def _convert_number(self, val, name=""):
         """Return val as a Decimal, int, or _Complex."""
-
         def FloatToDec(value):
             # Conversion of a float to a Decimal number isn't
             # trivial.  I've provided a number of different
@@ -1327,7 +1293,6 @@ class SigFig(object):
             else:
                 raise ValueError("Bad algorithm choice")
             return retval
-
         #
         retval = val
         if isinstance(val, str):
@@ -1378,16 +1343,15 @@ class SigFig(object):
         if not isinstance(retval, (Dec, int, _Complex)):
             raise TypeError("Bug:  not Decimal, int or _Complex")
         return retval
-
     def _ConvertFractionToDecimal(self, x):
         """x is a string that contains '/'.  Convert it to a Decimal
         floating point type (Decimal is used to not lose any
         precision).  fraction.  It must be one of the following forms:
-
+        
             a/b         Improper fraction
             a-b/c       Mixed fraction
             a+b/c       Mixed fraction
-
+            
         Note the + or - signs are NOT interpreted as arithmetic
         operators; they are just used to separate the integer and
         fractional parts.
@@ -1416,7 +1380,6 @@ class SigFig(object):
             return sign * (Dec(int(intpart)) + Dec(num) / Dec(denom))
         except ValueError:
             raise ValueError(msg)
-
     def _set_digits(self, digits):
         if isinstance(digits, int):
             if digits < 1:
@@ -1436,10 +1399,8 @@ class SigFig(object):
                 self._digits = self._convert_number(digits, "digits")
             if self._digits <= 0:
                 raise ValueError("digits must be > 0")
-
     def _get_digits(self):
         return self._digits
-
     digits = property(
         _get_digits,
         _set_digits,
@@ -1449,33 +1410,23 @@ class SigFig(object):
             "converted to an integer > 0."
         ),
     )
-
     def _set_low(self, low):
         self._low = self._convert_number(low, "low")
-
     def _get_low(self):
         return self._low
-
     low = property(_get_low, _set_low, doc="Set low")
-
     def _set_high(self, high):
         self._high = self._convert_number(high, "high")
-
     def _get_high(self):
         return self._high
-
     high = property(_get_high, _set_high, doc="Set high")
-
     def _set_fit(self, fit):
         if not isinstance(fit, int):
             raise ValueError("fit must be an integer")
         self._fit = fit
-
     def _get_fit(self):
         return self._fit
-
     fit = property(_get_fit, _set_fit, doc="Set fit")
-
     def _set_unicode(self, uni):
         self._unicode = bool(uni)
         # If we're using Unicode, set the symbols appropriately
@@ -1483,12 +1434,9 @@ class SigFig(object):
             self.unc_sep = chr(0xB1)  # Plus-minus sign
             self.imag_polar_sep = chr(0x2221)  # Measured angle
             self.imag_deg_sym = chr(0xB0)  # Degree sign
-
     def _get_unicode(self):
         return self._unicode
-
     unicode = property(_get_unicode, _set_unicode, doc="Set Unicode")
-
     def _get_decimal(self, x, name=""):
         """Convert x to a Decimal type."""
         T = x
@@ -1512,16 +1460,15 @@ class SigFig(object):
                 msg = "'{0}' is an unsupported type"
                 raise TypeError(msg.format(name))
         return T
-
     def _TemplateRound(self, x, template):
         """Rounds a number x to the nearest value specified by template.
         Example:  if x = 1.234 and template = 0.05, the rounded value
         will be 1.25.
-
+        
         We allow template to be an integer, although the _sig routine
         will never call us with an integer template because the
         integer will be specifying the number of significant figures.
-
+        
         template can also be a fraction.  If you change how the string
         is displayed, be aware that you might want the fraction to
         represent a valid python expression.  Thus, "1+3/16" will
@@ -1571,17 +1518,16 @@ class SigFig(object):
         else:
             T = self._get_decimal(template, name="template")
             return str(sign * int(abs(x) / T + Dec("0.5")) * T)
-
     def Interpret(self, S, fp_type=float, glo=None, loc=None, strict=True):
         """This is a general routine to interpret a string S as a number or
         an assignment.  The routine returns a tuple (x, u) where
-
+        
             1.  x is an int, u is unit
             2.  x is an fp_type, u is unit
             3.  x is a ufloat, u is unit
             4.  x is assigned name, u is value
             5.  x is None, u is an error message
-
+            
         Parameters are:
             fp_type         Number type converted to if S can't be
                             interpreted as an integer.
@@ -1589,9 +1535,9 @@ class SigFig(object):
             glo             Dictionary for locals for evaluation
             strict          Assignment can be made only to valid python
                             identifiers.
-
+                            
         Examples of the allowed forms for S are:
-
+        
             34 u            Integer
             3.4u            Floating point
             3.4[0.1]u       Mean 3.4 with uncertainty of 0.1
@@ -1602,11 +1548,11 @@ class SigFig(object):
             a = 4           Assignment (strict = True), no unit
             a = b*c/d       Assignment (strict = True) w/ expr, no unit
             b*c/d           Expression (no unit allowed)
-
+            
         All whitespace is removed from S before processing, so
         "number" forms like "3 . 4" or "3. 4 (  1 ) e- 4 m/s" would be
         evaluated as expected.
-
+        
         The numbers can include an optional string u that will be
         interpreted as the physical units of the number.  A number
         will first be interpreted as an integer; if that fails, then
@@ -1616,13 +1562,13 @@ class SigFig(object):
         uncertainty is ignored.  Note the units string u can have
         optional whitespace between it and the number part of the
         string.
-
+        
         The units string u should not contain any of the characters
         "()[]"; if it does, then this routine may fail to properly
         interpret the whole string.  No units are allowed in
         assignments or expressions because they are evaluated by the
         python interpreter.
-
+        
         The assignment is interpreted and if the loc dictionary is not
         None, this assignment is put into that dictionary.  If strict
         is True, then assignment can only be to names that are valid
@@ -1630,24 +1576,24 @@ class SigFig(object):
         subsequent expression evaluations because the expressions are
         evaluated with the glo dictionary as globals and the loc
         dictionary as locals.
-
+        
         If you use the uncertainty notation but the uncertainties
         module isn't installed, the uncertainty portion will just be
         ignored.
-
+        
         This routine may look like a "kitchen sink" utility, but I
         wrote it because it captures the behaviors I need for getting
         input from users in my programs.  The ability to define
         variables, evaluate python expressions, and define numbers
         with uncertainty covers virtually all of the cases I need for
         numerical input from a user (except for complex numbers).
-
+        
         Note there's a "cost" associated with this routine:  some
         things that are not valid numbers can be interpreted as
         numbers with units.  For example, the string "3.4.4" will be
         interpreted as the floating point number 3.4 with an
         uncertainty string of ".4".
-
+        
         Here's an outline of the algorithm used.  If the string s
         contains "[", "]", "(", ")", "+-", or "+/-", then it is picked
         apart as an uncertainty.  If it has an "=" sign in
@@ -1838,13 +1784,10 @@ class SigFig(object):
                 except ValueError:
                     return (fp_type(value), unit)
             return (None, "Can't interpret '%s'" % S)
-
-
 class _Complex(object):
     """Container class for complex numbers.  We handle python complex
     numbers and mpmath complex numbers.
     """
-
     def __init__(self, *par):
         s = SigFig()
         if len(par) == 1:  # Single number object
@@ -1864,16 +1807,12 @@ class _Complex(object):
         elif len(par) == 2:  # Re & Im components
             self._real = s._convert_number(par[0])
             self._imag = s._convert_number(par[1])
-
     def _get_real(self):
         return self._real
-
     def _get_imag(self):
         return self._imag
-
     real = property(_get_real, None, doc="Returns real part")
     imag = property(_get_imag, None, doc="Returns imag part")
-
     def __str__(self):
         s = []
         s.append(str(self.real))
@@ -1886,22 +1825,17 @@ class _Complex(object):
             s.append(t)
             s.append("i")
         return "".join(s)
-
     def __repr__(self):
         return "_Complex(" + self.__str__() + ")"
-
-
 sig = SigFig()  # This definition has to be after _Complex is defined
-
-
 def GetSigFig(s, inttzsig=False):
     """Return the number of significant figures in the string s which
     represents either a base 10 integer or a floating point number.  If
     inttzsig is True, then trailing zeros on integers are significant.
-
+    
     Numbers with uncertainties can also be used, as illustrated in the
     following forms:
-
+    
         1.23(1)
         1.23+/-0.01
         1.23+-0.01
@@ -1910,10 +1844,10 @@ def GetSigFig(s, inttzsig=False):
         (1.23+/-0.01)e-12
         (1.23+-0.01)e-12
         (1.23±0.01)e-12
-
+        
     A leading sign '+' or '-'
     is ignored.  Some examples are:
-
+    
                         Number of
         String      significant figures
          0                  1
@@ -1929,22 +1863,20 @@ def GetSigFig(s, inttzsig=False):
          1.2(1)e3           2
          100                1       (if inttzsig=False)
          100                3       (if inttzsig=True)
-
+         
     For short-form uncertainties, note that an expression like
     1.2345(1000) would really only have about two significant figures,
     but such interpretation is beyond this function's scope.
-
+    
     Trailing 0 characters on integers are ambiguous in terms of
     significance and all, some, or none may be significant.  To avoid
     this ambiguity, use scientific notation.
     """
     e = ValueError("'{}' is an illegal number form".format(s))
-
     def RemoveSign(str):
         if str and str[0] in "+-":
             return str[1:]
         return str
-
     def RemoveUncertainty(str):
         """The following form examples are allowed:
         1.23(1)             Short form
@@ -1967,19 +1899,16 @@ def GetSigFig(s, inttzsig=False):
             left, right = str.split("±")
             return left
         return str
-
     def rtz(str):  # Remove trailing zeros
         while len(str) > 1 and str.endswith("0"):
             str = str[:-1]
         return str
-
     def rlz(str):  # Remove leading zeros
         while len(str) > 1 and str.startswith("0") and not str.endswith("."):
             str = str[1:]
         if len(str) > 2 and str.startswith("0."):
             str = str[2:]
         return str
-
     def Canonicalize(s):
         """Remove any uncertainty, spaces, sign, and exponent and return
         the significand.
@@ -2006,7 +1935,6 @@ def GetSigFig(s, inttzsig=False):
         if t.count(".") > 1:
             raise e
         return t
-
     # --------------------
     if not isinstance(s, str):
         raise ValueError("Argument must be a string")
@@ -2029,8 +1957,6 @@ def GetSigFig(s, inttzsig=False):
     if set(t) != set("0"):
         t = rlz(t)
     return len(t)
-
-
 if 1:
     """
     The polar display of complex numbers needs the atan2 function for
@@ -2119,8 +2045,6 @@ if 1:  # Globals for pi()
     _zero, _one, _two, _three, _four = [D(_i) for _i in range(5)]
     _nan, _inf = D("NaN"), D("inf")
     _precision_increment = 2
-
-
 def pi():
     """Compute pi to the current precision using Decimal numbers"""
     # pi() a modified version of pi() in dmath.py v0.9.1 and
@@ -2145,8 +2069,6 @@ def pi():
             t = (t * n) / d
             s += t
     return +s
-
-
 if 1:  # atan for Decimal numbers
     """
     atan() uses the Maclaurin series (nested form) to evaluate the ArcTan of
@@ -2212,8 +2134,6 @@ if 1:  # atan for Decimal numbers
      instead of x, substitute one in above t formula for x and work the
      algebra. Your final answer should be abs(t) < (2-sqrt(3))
     """
-
-
 def _atan(x):
     """Returns the inverse tangent of x.  x must be a Decimal.
     Returns an angle in radians from -pi/2 to pi/2.
@@ -2256,8 +2176,6 @@ def _atan(x):
                 if isNegative:
                     retval = -retval
     return retval
-
-
 def atan2(y, x):
     """Returns the inverse tangent of y/x in the proper quadrant.
     x and y are Decimal numbers.
@@ -2315,15 +2233,12 @@ def atan2(y, x):
                     else:
                         retval = a - pi()
     return retval
-
-
 def Examples():
     """Print some examples of use."""
     sig.reset()
     uc = "UNICODE"
     if uc in os.environ:
         sig.unicode = bool(os.environ[uc])
-
     def P(*args, **kw):
         """Print a sequence of items by converting them to strings."""
         sep = kw.setdefault("sep", " ")
@@ -2331,7 +2246,6 @@ def Examples():
         print(sep.join([str(i) for i in args]), end="")
         if nl:
             print()
-
     def f(x, digits, n=7, low=1e-3, high=1e6):
         sig.low = low
         sig.high = high
@@ -2342,7 +2256,6 @@ def Examples():
         for i in range(n):
             P("  ", sig(x * 10**-i, digits))
         P()
-
     def Adjust(x, h=7):
         P("Fit to a stated number of spaces (%d significant digits):" % sig.digits)
         s = "1234567890" * 10
@@ -2354,7 +2267,6 @@ def Examples():
             sig.fit = -sp
             P("  %3d '%s'" % (-sp, sig(x)))
         P("   sp ", s[:h])
-
     s = "Examples of sig() behaviors"
     P(s)
     P("-" * len(s))
@@ -2431,19 +2343,16 @@ def Examples():
         for i in msg.strip().split("\n"):
             P(i.strip())
 
-
 if __name__ == "__main__":
     import sys
     import traceback as tb
     from lwtest import run, assert_equal, raises
-
     if len(sys.argv) == 1:
         Examples()
         exit(0)
     elif len(sys.argv) == 2 and sys.argv[1] != "--test":
         print("Use --test to run self tests")
         exit(1)
-
     def Init():
         """We set the SigFig class variables here so that the default
         settings the user chooses won't affect the tests.
@@ -2485,7 +2394,6 @@ if __name__ == "__main__":
         SigFig._unc_post = ")"
         global sig
         sig = SigFig()  # Uses our settings
-
     def check(got, expected):
         if got != expected:
             # Print the line number that failed and continue
@@ -2494,7 +2402,6 @@ if __name__ == "__main__":
     Got     : '{2}'
     Expected: '{3}\' """.format(st[1], st[3], got, expected)
             assert 1 == 0, msg
-
     def Test_check_float():
         sig.reset()
         # We'll get a TypeError exception if it fails
@@ -2507,7 +2414,6 @@ if __name__ == "__main__":
         f(Dec("1"), nm)
         f(Fraction("1/2"), nm)
         raises(TypeError, f, [], nm)
-
     def Test_helper_functions():
         sig.reset()
         nm = "unit test"
@@ -2538,14 +2444,19 @@ if __name__ == "__main__":
             check(sig._is_iterable(np.array(a)), True)
             a.shape = (2, 2)  # Square array
             check(sig._is_iterable(np.array(a)), True)
-            a = np.matrix(a)  # Can iterate on matrix
-            check(sig._is_iterable(np.array(a)), True)
+            if 0:
+                # 19 Jan 2026:  this was commented out because of a pending deprecation
+                # warning from
+                # /home/dpbin/miniconda3/envs/11/lib/python3.11/site-packages/numpy/matrixlib/defmatrix.py
+                # line 117:  "the matrix subclass is not the recommended way to
+                # represent matrices or deal with linear algebra
+                a = np.matrix(a)  # Can iterate on matrix
+                check(sig._is_iterable(np.array(a)), True)
         if _have_mpmath:
             # Check with mpmath matrices and vectors ('list' needed to
             # work with python 3, as range is an iterator there).
             check(sig._is_iterable(mp.matrix(list(range(5)))), True)
             check(sig._is_iterable(mp.matrix(3, 2)), True)
-
     def Test_format_zero():
         sig.reset()
         # Can format 0 correctly
@@ -2559,7 +2470,6 @@ if __name__ == "__main__":
         check(sig(0, 2), "0.0")
         sig.dp = ","
         check(sig(0, 2), "0,0")
-
     def Test_change_dp_string():
         sig.reset()
         # Can change string used for decimal point
@@ -2572,7 +2482,6 @@ if __name__ == "__main__":
         check(sig(x, 2), "120,")
         check(sig(-x, 2), "-120,")
         sig.reset()
-
     def Test_format_positive_numbers():
         sig.reset()
         x = 123
@@ -2582,7 +2491,6 @@ if __name__ == "__main__":
         check(sig(x / 100, 2), "1.2")
         check(sig(x / 1000, 2), "0.12")
         check(sig(x / 10000, 2), "0.012")
-
     def Test_format_negative_numbers():
         sig.reset()
         x = 123
@@ -2592,7 +2500,6 @@ if __name__ == "__main__":
         check(sig(-x / 100, 2), "-1.2")
         check(sig(-x / 1000, 2), "-0.12")
         check(sig(-x / 10000, 2), "-0.012")
-
     def Test_underflow_overflow():
         sig.reset()
         x = 123
@@ -2610,7 +2517,6 @@ if __name__ == "__main__":
         check(sig(x * 1e-11, 2), "0.0000000012")
         sig.high = 1e12
         check(sig(x * 1e9, 2), "120000000000.")
-
     def Test_num_digits_in_exponent():
         sig.reset()
         x = 123
@@ -2641,7 +2547,6 @@ if __name__ == "__main__":
         sig.edigits = 5
         check(sig(-x / 10000, 2), "-1.2e-00002")
         sig.reset()
-
     def Test_idp_feature():
         sig.reset()
         x = 123
@@ -2659,7 +2564,6 @@ if __name__ == "__main__":
         check(sig(-x, 2), "-120.")
         sig.idp = False
         check(sig(-x, 2), "-120")
-
     def Test_fit_feature():
         sig.reset()
         x = 123
@@ -2728,7 +2632,6 @@ if __name__ == "__main__":
         check(sig(-x, 2), " -1.2e-8")
         sig.fit = -8
         check(sig(-x, 2), "-1.2e-8 ")
-
     def Test_sign_feature():
         sig.reset()
         sig.sign = True
@@ -2743,7 +2646,6 @@ if __name__ == "__main__":
         check(sig(0, 1), "0.")
         check(sig(1, 1), "1.")
         sig.reset()
-
     def Test_rtz_feature():
         sig.reset()
         x = 1.23
@@ -2751,7 +2653,6 @@ if __name__ == "__main__":
         check(sig(x, 5), "1.2300")
         sig.rtz = True
         check(sig(x, 5), "1.23")
-
     def Test_lead_zero_feature():
         sig.reset()
         sig.lead_zero = True
@@ -2764,7 +2665,6 @@ if __name__ == "__main__":
         sig.separator = " "
         check(sig((0.1, 0.2), 2), "(.10 .20)")
         check(sig([0.1, 0.2], 2), "[.10 .20]")
-
     def Test_check():
         # Since most of the attributes don't have getters/setters,
         # ensure that a faulty attribute setting can be detected by
@@ -2786,12 +2686,10 @@ if __name__ == "__main__":
         sig.dp = 0
         raises(TypeError, sig.check)
         sig.dp = "."
-
     def Test_separator_feature():
         sig.reset()
         sig.separator = ";"
         check(sig([0.1, 0.2], 2), "[0.10;0.20]")
-
     def Test_digits_attribute():
         sig.reset()
         x = 1.23456789
@@ -2816,13 +2714,11 @@ if __name__ == "__main__":
             raise RuntimeError("Exception expected")
         except ValueError:
             pass
-
     def Test_string_argument():
         sig.reset()
         s = "1.234"
         check(sig(s, 4), s)
         check(sig(s, 2), "1.2")
-
     def Test_sequences():
         sig.reset()
         x = (1.234, -2.234)
@@ -2834,7 +2730,6 @@ if __name__ == "__main__":
         check(sig(x, 2), "(1.2 -2.2)")
         check(sig(list(x), 2), "[1.2 -2.2]")
         check(sig(["1.2345", (-9.87654, 1.2e-9)], 2), "[1.2 (-9.9 1.2e-9)]")
-
     def Test_getters_and_setters():
         sig.reset()
         d = Dec("5.2")
@@ -2858,19 +2753,16 @@ if __name__ == "__main__":
         # The following test works because 0.5 is exact as a binary
         # floating number.
         check(sig.low, 1 / Dec(2))
-
     def Test_zero_limit_threshold():
         sig.reset()
         sig.zero_limit = 1e-1
         check(sig(0.0999, 3), "0.00")
-
     def Test_none_handled_correctly():
         sig.reset()
         sig.ignore_none = False
         raises(ValueError, sig, None, 1)
         sig.ignore_none = True
         check(sig(None, 1), "0.")
-
     def Test_can_iterate_on_numpy_arrays():
         sig.reset()
         if not _have_numpy:
@@ -2880,7 +2772,6 @@ if __name__ == "__main__":
         check(sig(x, 2), "[1.2, -2.2]")
         sig.separator = " "
         check(sig(x, 2), "[1.2 -2.2]")
-
     def Test_fractions():
         sig.reset()
         # Fractions as strings:  test _ConvertFractionToDecimal
@@ -2910,7 +2801,6 @@ if __name__ == "__main__":
         check(sig("2+3/16", f), t)
         check(sig("+2-3/16", f), t)
         check(sig("+2+3/16", f), t)
-
     def Test_string_array():
         sig.reset()
         s = """1.2345 1-1/4 3-4i -12.222j
@@ -2919,7 +2809,6 @@ if __name__ == "__main__":
         """
         r = "[1.2 1.2 3.0-4.0i -12.i -2.1 3.0 4.0 5.0 -12000.]"
         check(sig(s, 2), r)
-
     def Test_template_rounding():
         sig.reset()
         x, xs, ts, r, rs, rf = 1.234, "1.234", "1.25", 0.05, "0.05", "1/20"
@@ -2951,7 +2840,6 @@ if __name__ == "__main__":
         check(sig(x, Fraction(1, 16)), "55/16")
         check(sig("17/64", Fraction(1, 16)), "1/4")
         check(sig("1+3/16", Fraction(3, 16)), "9/8")
-
     def Test_complex_rectangular():
         sig.reset()
         z = _Complex(Dec("0"), Dec("0"))
@@ -3003,7 +2891,6 @@ if __name__ == "__main__":
         check(sig(x1, 2), "None")
         sig.fit = 2
         check(sig(x1, 2), "No")
-
     def Test_complex_polar():
         sig.reset()
         x1 = _Complex(Dec("1.2345"), Dec("-9.8765"))
@@ -3028,7 +2915,6 @@ if __name__ == "__main__":
         sig.imag_polar_sep = "|"
         sig.imag_pre = sig.imag_post = ""
         check(sig(x1, 2), "10|-1.4")
-
     def Test_complex_pair():
         sig.reset()
         sig.digits = 2
@@ -3044,12 +2930,10 @@ if __name__ == "__main__":
         check(sig(x1), "C(1.2,-9.9)")
         check(sig(x2), "C(1.2,0.0)")
         check(sig(x3), "C(0.0,-1.2)")
-
     def Test_Decimal_mpmath():
         sig.reset()
         # Check Decimal and mpmath number types
         sig.reset()
-
         def ExtPrec(D=None):
             """D is the number type."""
             sig.reset()
@@ -3075,7 +2959,6 @@ if __name__ == "__main__":
             check(sig(x, 21), "3." + ("3" * 20))
             # Check negative numbers work
             check(sig(-x, 2), "-3.3")
-
         # Decimal
         d = 30
         with decimal.localcontext() as ctx:
@@ -3085,7 +2968,6 @@ if __name__ == "__main__":
         if _have_mpmath:
             mp.mp.dps = d
             ExtPrec(mp.mpf)
-
     def Test_large_floats():
         sig.reset()
         x = Dec("1.23456e123456")
@@ -3094,14 +2976,13 @@ if __name__ == "__main__":
         check(sig(x, 2), "1.2e+123456")
         sig.edigits = 10
         check(sig(x, 2), "1.2e+0000123456")
-
     def Test_deep_nesting():
         """Show we don't get any exceptions using sig on a deeply-nested
         list, at least until the python's parser stack overflows.
-
+        
         Note:  I haven't figured out how to get this to run successfully on
         python 3; it works on python 2.6.5 and 2.7.2.
-
+        
         When this runs, you'll see the message 's_push: parser stack
         overflow' sent to stdout.  This is normal and indicates the parser
         failed.
@@ -3119,7 +3000,6 @@ if __name__ == "__main__":
                 else:
                     # We'll get an exception here if sig somehow fails
                     sig(mylist)     # noqa
-
     def Test_atan2():
         """Run some sanity checks against mpmath.  If a command line
         parameter is passed, it is the number of digits of precision to use.
@@ -3129,7 +3009,6 @@ if __name__ == "__main__":
             return
         import mpmath as mp
         import random
-
         digits, rnd_range = 20, 1000
         prec = 10 * (D(10) ** D(-digits))  # Relative precision decision limit
         a = rnd_range
@@ -3137,16 +3016,13 @@ if __name__ == "__main__":
             # Check against mpmath if available
             M = mp.mpf
             decimal.getcontext().prec = mp.mp.dps = digits
-
             def check(got, expected):
                 if abs(got - expected) > prec:
                     s = "Test failure\nGot = {0}\nExpected = {1}"
                     s = s.format(str(got), str(expected))
                     assert 1 == 0, s
-
             def mp2d(x):
                 return D(str(x))
-
             random.seed(123)
             for i in range(100):
                 xs, ys = str(random.uniform(-a, a)), str(random.uniform(-a, a))
@@ -3164,7 +3040,6 @@ if __name__ == "__main__":
         check(atan2(_one, -_one), 3 * pi() / 4)
         check(atan2(-_one, _one), -pi() / 4)
         check(atan2(-_one, -_one), -3 * pi() / 4)
-
     def Test_uncertainties():
         if not _have_uncertainties:
             return
@@ -3240,7 +3115,6 @@ if __name__ == "__main__":
         # round the uncertainty before formatting it).
         check(sig(U(51.4, 0.099)), "51.4(1)")
         check(sig(U(51.4, 0.99)), "51.(1)")
-
     def Test_GetSigFig():
         data = """
             # Various forms of 0
@@ -3359,11 +3233,9 @@ if __name__ == "__main__":
         raises(ValueError, GetSigFig, "1..e2")
         # Show that GetSigFig works with strings from Decimal objects
         from decimal import Decimal
-
         n = 50
         x = Decimal("1." + "1" * n)
         assert_equal(GetSigFig(str(x)), n + 1)
-
     def Test_integer():
         sig.reset()
         x = 894574979375947
@@ -3384,7 +3256,6 @@ if __name__ == "__main__":
             got = sig(x)
             check(got, "894,574,979,375,947")
             locale.setlocale(locale.LC_ALL, orig_locale)
-
     def Test_dp_fit():
         sig.reset()
         sig.digits = 3
@@ -3412,7 +3283,6 @@ if __name__ == "__main__":
             x = num * ten**i
             got = sig(x)
             check(got, expected[i])
-
     def Test_InterpretNumber():
         bad = (None, "")
         test_cases = (  # String, expected return value
@@ -3537,7 +3407,6 @@ if __name__ == "__main__":
                     check(got[0], None)
                 else:
                     check(got, expected)
-
     def Test_Unicode():
         sig = SigFig()
         sig.reset()
@@ -3558,7 +3427,6 @@ if __name__ == "__main__":
             x = U(123.456789, 6)
             sig.idp = True
             check(sig(x, 1), "100.±6.")
-
     def Test_mpmath_interval():
         """This is written to work with mpmath 0.18 inteval numbers.  Note it
         doesn't work with mpmath 0.19.
@@ -3570,6 +3438,5 @@ if __name__ == "__main__":
         x = mp.mpi(0.1)
         s = sig(x)
         assert_equal(s, "<0.100, 0.100>")
-
     Init()
     exit(run(globals(), halt=True)[0])

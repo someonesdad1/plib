@@ -15,7 +15,7 @@ if 1:  # Header
         ##∞what∞#
         # Provide Factor(x), which factors integers using /usr/bin/factor
         ##∞what∞#
-        ##∞test∞# notest #∞test∞#
+        ##∞test∞# --test #∞test∞#
         pass
     if 1:  # Standard imports
         from collections import deque, defaultdict
@@ -132,23 +132,26 @@ if __name__ == "__main__":
               it is converted to an integer with int(round(x, 0)).
             Options:
                 -h      Print a manpage
-                -t      Run selftests
+                --test  Run selftests
             '''))
             exit(status)
         def ParseCommandLine(d):
+            do_test = False
             if len(sys.argv) < 2:
                 Usage()
             try:
-                opts, args = getopt.getopt(sys.argv[1:], "ht") 
+                opts, args = getopt.getopt(sys.argv[1:], "h", "test") 
             except getopt.GetoptError as e:
                 print(str(e))
                 exit(1)
             for o, a in opts:
                 if o == "-h":
                     Usage()
-                elif o == "-t":
-                    exit(run(globals(), halt=True)[0])
+                elif o == "--test":
+                    do_test = True
             GetColors()
+            if do_test:
+                exit(run(globals(), halt=True)[0])
             return args
     if 1:   # Core functionality
         def Report(n):
