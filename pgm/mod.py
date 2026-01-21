@@ -99,28 +99,10 @@ if 1:  # Utility
           must belong (example: '1y-2y' means the file changed between 1 and 2 years
           ago).
             
-          Certain files and directories are ignored (see the default containers in the
-          ParseCommandLine() function).  For example, the common version control
-          repository directories such as .hg, .git, and .bzr are ignored.
-            
-          The -l option causes the file's age to be appended.  The indentation is a
-          function of the time unit used:  the farther to the right it is, the older the
-          file is.
-        Examples (mydir is the mydirectory to search):
-            - Find all files:
-                    {short_name} i mydir
-            - Find files that changed in the last week:
-                    {short_name} 1w mydir
-            - Find files that changed between one and two weeks ago:
-                    {short_name} 1w-2w mydir     or       {short_name} 2w-1w mydir
-            - Find files that changed more than 1 week ago:
-                    {short_name} 1w-i mydir      or       {short_name} i-1w mydir
-            - Find files that didn't change more than 1 week ago:
-                    {short_name} -n 1w-i mydir
         Options
             -c  Include commonly-named files (.vi, *.pyc, etc.)
             -d  Turn debug printing on (see how files/directories are processed)
-            -h  This help
+            -H  Show some examples of use
             -l  Decorate output with time since last change
             -m  Include ignored directories (repositories, etc.)
             -n  Show files that have not changed
@@ -131,7 +113,30 @@ if 1:  # Utility
             -x regexp    Ignore files that match regexp (more than one -x OK)
         '''))
         exit(status)
-    def ParseCommandLine(d):
+    def Examples():
+        print(dedent(f'''
+
+        Certain files and directories are ignored (see the default containers in the
+        ParseCommandLine() function).  For example, common version control repository
+        directories such as .hg, .git, and .bzr are ignored.  Files like object files,
+        swap files, etc. are ignored.  Typical picture file extensions like .bmp, .jpg,
+        etc. are ignored unless you use the -p option.
+
+        Some examples (mydir is the mydirectory to search):
+
+        - Find all files
+            'i mydir'       Use '-t i mydir' to see most recent last
+            '-r i mydir'    to recursively descend into mydir
+        - Find files that changed in the last week
+            '1w mydir'
+        - Find files that changed between one and two weeks ago:
+            '1w-2w mydir'    or    '2w-1w mydir'
+        - Find files that changed more than 1 week ago:
+            '1w-i mydir'    or     'i-1w mydir'
+        - Find files that didn't change more than 1 week ago:
+            '-n 1w-i mydir'
+        '''))
+    def ParseCommandLine():
         d["-c"] = False     # Include commonly-named files (.vi, *.pyc, etc.)
         d["-d"] = False     # Turn debug printing on (see how files/directories are processed)
         d["-l"] = False     # Decorate output with time since last change
@@ -378,16 +383,16 @@ if 1:  # Core functionality
         for age_s, file in results:
             if d["-l"]:
                 age_str = FmtTimeDiff(age_s) if d["-l"] else ""
-                n = maxlen - len(file)
-                print(file, " "*n, age_str)
+                n = maxlen - len(str(file))
+                print(str(file), " "*n, age_str)
             else:
-                print(file)
+                print(str(file))
 
 if __name__ == "__main__":
     nl, inf = "\n", 1e20  # inf is infinite time into the past
     d = {}  # Options dictionary
     d["now"] = time.time()
-    args = ParseCommandLine(d)
+    args = ParseCommandLine()
     d["age_interval"] = GetTime(args[0])
     results = []    # Container of (age_in_s, file) items
     for dir in args[1:]:
