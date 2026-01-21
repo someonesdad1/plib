@@ -53,6 +53,8 @@ if 1:  # Header
     if 1:  # Custom imports
         from wrap import dedent
         from color import t
+        from u import u
+        from f import flt
         if 0:
             import debug
             debug.SetDebugger()
@@ -84,6 +86,29 @@ if 1:  # Utility
     def Error(*msg, status=1):
         Warn(*msg)
         exit(status)
+    def Examples():
+        print(dedent(f'''
+        Certain files and directories are ignored (see the default containers in the
+        ParseCommandLine() function); use -m if you want to include them.  For example,
+        common version control repository directories such as .hg, .git, and .bzr are
+        ignored.  Files like object files, swap files, etc. are ignored (use -c to see
+        them if you don't want to ignore them).  Typical picture file extensions like
+        .bmp, .jpg, etc. are ignored unless you use the -p option.
+
+        Some examples (mydir is the mydirectory to search):
+
+        - Find all files
+            'i mydir'       Use '-t i mydir' to see most recent last
+            '-r i mydir'    Use -r to recursively descend into mydir
+        - Find files that changed in the last week
+            '1w mydir'
+        - Find files that changed between one and two weeks ago:
+            '1w-2w mydir'    or    '2w-1w mydir'
+        - Find files that changed more than 1 week ago:
+            '1w-i mydir'    or     'i-1w mydir'
+        - Find files that didn't change more than 1 week ago:
+            '-n 1w-i mydir'
+        '''))
     def Usage(status=0):
         name = sys.argv[0]
         short_name = os.path.split(name)[1]
@@ -94,11 +119,10 @@ if 1:  # Utility
           directories.  age is a number with an optional letter suffix:
               s   seconds       M   minutes         h   hours
               w   weeks         m   months          y   years
-              d   days [default]                    i   infinite time in past
-          age can contain a hyphen specifying a time interval to which the printed files
-          must belong (example: '1y-2y' means the file changed between 1 and 2 years
-          ago).
-            
+              d   days          i   infinite time in past
+          If no suffix is used, days are the default units.  age can contain a hyphen
+          specifying a time interval to which the printed files must belong (example:
+          '1y-2y' means the file changed between 1 and 2 years ago).
         Options
             -c  Include commonly-named files (.vi, *.pyc, etc.)
             -d  Turn debug printing on (see how files/directories are processed)
@@ -113,29 +137,6 @@ if 1:  # Utility
             -x regexp    Ignore files that match regexp (more than one -x OK)
         '''))
         exit(status)
-    def Examples():
-        print(dedent(f'''
-
-        Certain files and directories are ignored (see the default containers in the
-        ParseCommandLine() function).  For example, common version control repository
-        directories such as .hg, .git, and .bzr are ignored.  Files like object files,
-        swap files, etc. are ignored.  Typical picture file extensions like .bmp, .jpg,
-        etc. are ignored unless you use the -p option.
-
-        Some examples (mydir is the mydirectory to search):
-
-        - Find all files
-            'i mydir'       Use '-t i mydir' to see most recent last
-            '-r i mydir'    to recursively descend into mydir
-        - Find files that changed in the last week
-            '1w mydir'
-        - Find files that changed between one and two weeks ago:
-            '1w-2w mydir'    or    '2w-1w mydir'
-        - Find files that changed more than 1 week ago:
-            '1w-i mydir'    or     'i-1w mydir'
-        - Find files that didn't change more than 1 week ago:
-            '-n 1w-i mydir'
-        '''))
     def ParseCommandLine():
         d["-c"] = False     # Include commonly-named files (.vi, *.pyc, etc.)
         d["-d"] = False     # Turn debug printing on (see how files/directories are processed)
@@ -200,11 +201,9 @@ if 1:  # Utility
         if d["-d"]:  # Debug print the settings
             g.dbg = t.dbg = True
             GetColors()
-            for key in sorted("-n now -t -w -m -p -l -x -r -c".split()):
-                if key == "now":
-                    Dbg("  {} =".format(key), d[key], "s since 1 Jan 1970")
-                else:
-                    Dbg("  {} =".format(key), d[key])
+            Dbg("Debug printing turned on")
+            Dbg("  Arguments = {args!r}")
+            Dbg("  Options = {d!r}")
         GetColors()
         return args
 if 1:  # Core functionality
@@ -237,11 +236,11 @@ if 1:  # Core functionality
             "H": s_per_hr,
             "d": s_per_day,
             "D": s_per_day,
-            "w": 7 * s_per_day,
-            "W": 7 * s_per_day,
-            "m": days_per_year / 12 * s_per_day,
-            "y": days_per_year * s_per_day,
-            "Y": days_per_year * s_per_day,
+            "w": 7*s_per_day,
+            "W": 7*s_per_day,
+            "m": days_per_year/12*s_per_day,
+            "y": days_per_year*s_per_day,
+            "Y": days_per_year*s_per_day,
             "i": inf,
             "I": inf,
         }
@@ -261,7 +260,7 @@ if 1:  # Core functionality
             elif a[-1] not in suffixes:
                 Error("'{}' is an illegal time suffix".format(a[-1]))
             try:
-                t = float(a[:-1]) * suffixes[a[-1]]
+                t = flt(a[:-1]) * suffixes[a[-1]]
             except ValueError:
                 Error(fmt.format(a))
             return t
@@ -387,6 +386,32 @@ if 1:  # Core functionality
                 print(str(file), " "*n, age_str)
             else:
                 print(str(file))
+    def ConvertAge(seconds):
+        assert seconds >= 0
+        if seconds < u("minute"):
+            return f"{seconds} s"
+        elif seconds < u("hr"):
+            return f"{seconds/u('minute')} min"
+        elif seconds < u("day"):
+            return f"{seconds/u('hr')} hr"
+        elif seconds < u("week"):
+            return f"{seconds/u('day')} day"
+        elif seconds < u("month"):
+            return f"{seconds/u('week')} wk"
+        elif seconds < u("year"):
+            return f"{seconds/u('month')} mo"
+        else:
+            return f"{seconds/u('year')} yr"
+    def DisplayAge():
+        'Convert back to more familiar time units'
+        if len(d["age_interval"]) == 2:
+            start, end = d["age_interval"]
+            s, e = ConvertAge(start), ConvertAge(end)
+            t.print(f"{t.purl}Age argument was {s}, {e}", file=sys.stderr)
+        else:
+            start = d["age_interval"][0]
+            s = ConvertAge(start)
+            t.print(f"{t.purl}Age argument was {s}", file=sys.stderr)
 
 if __name__ == "__main__":
     nl, inf = "\n", 1e20  # inf is infinite time into the past
@@ -402,3 +427,4 @@ if __name__ == "__main__":
         t.print(f"{t.purl}Most recent file is last", file=sys.stderr)
     else:
         t.print(f"{t.purl}File order is that encountered in tree traverse", file=sys.stderr)
+    DisplayAge()
