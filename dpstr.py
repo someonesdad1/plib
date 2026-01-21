@@ -8,6 +8,7 @@ Todo
 Chop                Return a string chopped into equal parts
 CommonPrefix        Return a common prefix of a sequence of strings
 CommonSuffix        Return a common suffix of a sequence of strings
+Decorate            Return a decorated form of a string; make whitespace easier to see
 FilterStr           Return a function that removes characters from strings
 FindAll             Find all locations of a substring in a string
 FindFirstIn         Find first item in sequence in a given set
@@ -1136,6 +1137,15 @@ if 1:  # Core functionality
         def f(s):
             return s.translate(tt)
         return f
+    def Decorate(s):
+        'Return a decorated form of a string, making whitespace easier to see'
+        if not hasattr(Decorate, "trans"):
+            # Make translation dictionary
+            di = dict(((ord(" "), "·"), (ord("\t"), "␉"),
+                       (ord("\n"), "␤"), (ord("\r"), "␍"),
+                       (ord("\f"), "␌"), (ord("\v"), "␋")))
+            Decorate.trans = "".maketrans(di)
+        return s.translate(Decorate.trans)
 
 if __name__ == "__main__":
     from lwtest import run, raises, Assert
@@ -1143,6 +1153,9 @@ if __name__ == "__main__":
     import os
     from sig import sig
     from color import TRM as t
+    def Test_Decorate():
+        s = "yyy \t\n\r\f\vzzz"
+        Assert(Decorate(s) == "yyy·␉␤␍␌␋zzz")
     def Test_IgnoreFilter():
         seq = [ "Bob", "bob", "bobwhite", "Carol", "carol", "Alice" ]
         # Empty sequence is identity function
@@ -1682,7 +1695,9 @@ if __name__ == "__main__":
         s = "StuVwxyz"
         u = "abcd"
         print(f"MatchCap({s!r}, {u!r}) = {MatchCap(s, u)!r}")
-        # MultipleReplace
+        # Decorate
+        s = " \t\n\r\f\v"
+        print(f"Decorate({s!r}) = {Decorate(s)!r}")
         t.print(end="")
     if len(sys.argv) > 1:
         Demo()
