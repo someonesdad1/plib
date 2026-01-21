@@ -1,7 +1,13 @@
 """
 Finds trigger strings in text files
 
-    ∞∞1 Convert to new _pgminfo form
+    ∞∞1 Convert to new _pgminfo form.  
+
+    The advantage of the new form is it's a single string variable at or near the
+    beginning of the file and it doesn't interfere with the docstring.
+
+
+    ---------------------------------------------------------------------------
 
     Run as a script to see an example.
     

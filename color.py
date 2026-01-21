@@ -646,7 +646,7 @@ class Color:
                 return d / 3 ** (1 / 2)
         @classmethod
         def downshift(cls, c1, c2):
-            "Return two Color instances with the same bpc"
+            "Return two Color instances with the same bpc (bits per color)"
             if not ii(c1, Color) or not ii(c2, Color):
                 raise TypeError("c1 and c2 need to be Color instances")
             bpc = min(c1.bpc, c2.bpc)
@@ -1435,12 +1435,12 @@ class ColorName(dict):
         if clear:
             self.clear()
         vars = {}
-        try:
+        if 1:   # Takes care of a strange bug giving a warning on "ResourceWarning:
+                # unclosed file <_io.TextIOWrapper name='/plib/colornames0' mode='r'
+                # encoding='utf-8'>"
             fd = open(file)
             contents = fd.read()
-        except Exception as e:
-            print(f"color.py exception reading colornames0: {e}")
-            exit(1)
+            fd.close()
         for line in contents.split("\n"):
             line = line.strip()
             if not line or line[0] == "#":
@@ -1485,8 +1485,6 @@ class ColorName(dict):
 # Define default ColorName instance
 CN = ColorName()
 if wsl:
-    # ∞∞1  This line gets a ResourceWarning error message (ignored exception) in sig.py
-    # when run with '--test' option.  These names should be hard coded into this file.
     CN.load("/plib/colornames0")
 else:
     CN.load("d:/cygwin64/plib/colornames0")
@@ -2172,7 +2170,6 @@ if __name__ == "__main__":
             c2 = Color(88, 233, 73, bpc=n)
             n1, n2 = Color.downshift(c1, c2)
             Assert(n1.bpc == n and n2.bpc == n)
-        # ∞∞ Need to test with space = "hsv", "hls"
         def Test_dist():
             n = 8
             m = 2**n - 1

@@ -25,7 +25,7 @@ if 1:  # Header
         import re
     if 1:   # Custom imports
         from wrap import dedent
-        from color import t
+        from color import t, Color
         from columnize import Columnize
         from dpprint import PP
         pp = PP()   # Get pprint with current screen width
@@ -250,14 +250,23 @@ if 1:  # Core functionality
                     continue
                 di[priority].append(str(file))
         # Print report
-        c = {1: t.ornl, 2: t.sky, 3: t.gry}
-        for i in sorted(di):
-            if di[i]:
-                print(f"{c[i]}Priority {i}")
-                for j in Columnize(sorted(set(di[i])), indent=" "*2):
-                    print(j)
-                t.print(end="")
-        exit() # ∞∞
+        def C(x):  return t(Color(x))
+        c = {1: t("whtl", "royd"), 2: C(0.6), 3: C(0.3)}
+        if 0:   # By priority
+            for i in sorted(di):
+                if di[i]:
+                    print(f"{c[i]}Priority {i}")
+                    for j in Columnize(sorted(set(di[i])), indent=" "*2):
+                        print(j)
+                    t.print(end="")
+        else:   # Columnized, prioritized by color
+            o = []
+            for i in di:
+                for file in set(di[i]):
+                    o.append([file, f"{c[i]}{file}{t.n}"])
+            o = [i[1] for i in sorted(o)]
+            for i in Columnize(o):
+                print(i)
 
 if __name__ == "__main__":
     d = {}  # Options dictionary
