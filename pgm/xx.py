@@ -29,6 +29,9 @@ if 1:  # Header
         from columnize import Columnize
         from dpprint import PP
         pp = PP()   # Get pprint with current screen width
+        if 0:
+            import debug
+            debug.SetDebugger()
     if 1:   # Global variables
         class G:
             pass
@@ -100,7 +103,7 @@ if 1:  # Utility
           -x x  Set the marker string to look for [{d["-x"]!r}]
         '''))
         exit(status)
-    def ParseCommandLine(d):
+    def ParseCommandLine():
         d["-L"] = False  # Only print file name if marker string is found, no newline
         d["-l"] = False  # Only print file name if marker string is found
         d["-n"] = False  # Print line number & line
@@ -198,7 +201,11 @@ if 1:  # Core functionality
         assert ii(file, P) and file.is_file()
         if file.name in g.files_to_ignore:
             return
-        s = file.read_text()
+        try:
+            s = file.read_text()
+        except Exception:
+            print(f"Couldn't read {str(file)!r}")
+            return 
         # See if it's in the file at all
         if not g.R.search(s):
             return
@@ -270,7 +277,7 @@ if 1:  # Core functionality
 
 if __name__ == "__main__":
     d = {}  # Options dictionary
-    files = ParseCommandLine(d)
+    files = ParseCommandLine()
     show_names = len(files) > 1
     for p in [P(i) for i in files]:
         FileSearch(p, names=show_names) if p.is_file() else DirSearch(p)

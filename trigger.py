@@ -187,6 +187,8 @@ class PgmInfo(dict):
         self.mykeys = []        # Remember key order
         for i in s:
             f = i.split(PgmInfo.sep)
+            if len(f) != 2:
+                raise ValueError(f"Field {i!r} is missing separator {PgmInfo.sep!r}")
             Assert(len(f) == 2)
             key = f[0].strip()
             self.mykeys.append(key)
@@ -222,7 +224,9 @@ class PgmInfo(dict):
         return "\n" + u
 
 if __name__ == "__main__":
-    import lwtest
+    from lwtest import run, Assert
+    from wrap import dedent
+    from pprint import pprint as pp
     if 0:   # Demonstration of the old trigger code
         from pprint import pprint as pp
         from lwtest import raises
@@ -310,5 +314,40 @@ if __name__ == "__main__":
         SingleTriggerStringException()
         ReplaceText()
         Teardown()
-    failed, messages = run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)
+    if 1:   # Tests of new formulation
+        def TestPgmInfoClass():
+            '''This demonstrates that the default _pgminfo string in my boilerplate file
+            can successfully be parsed by the PgmInfo class.
+            '''
+            nl = "\n"
+            s = nl + dedent('''
+                <oo desc ∞
+                    Type program description here
+                oo>
+                <oo cr ∞ Copyright © 2026 Don Peterson oo>
+                <oo license ∞
+                    Licensed under the Open Software License version 3.0.
+                    See http://opensource.org/licenses/OSL-3.0.
+                oo>
+                <oo cat ∞ category oo>
+                <oo test ∞ none oo>
+                <oo todo ∞
+
+                    - List of todo items here
+
+                oo>
+            ''')
+            pi = PgmInfo(s)
+            Assert(isinstance(pi, dict))
+            # Check the dictionary's entries
+            Assert(pi["cat"] == " category ")
+            Assert(pi["cr"] == " Copyright © 2026 Don Peterson ")
+            Assert(pi["desc"] == "\n    Type program description here\n")
+            Assert(pi["license"] == "\n    Licensed under the Open Software License version 3.0.\n"
+                                    "    See http://opensource.org/licenses/OSL-3.0.\n")
+            Assert(pi["test"] == " none ")
+            Assert(pi["todo"] == "\n\n    - List of todo items here\n\n")
+            # Verify the reconstruction of the original string puts it back together 
+            Assert(str(pi) == s + nl)
+    failed, messages = run(globals(), halt=1, verbose=0)
     exit(failed)
