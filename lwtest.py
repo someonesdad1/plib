@@ -634,25 +634,31 @@ if 1:  # Checking functions
 
 if __name__ == "__main__":
     t.h = t.lill
-    t.kw = t.ornl
+    t.k = t.purl
     t.d = t.grn
     t.u = t.denl
     print(dedent(f'''
-    {t.sky}lwtest:  Lightweight test framework -- typical usage:{t.whtl}
+    {t.yel}lwtest:  Lightweight test framework -- typical usage:{t.n}
         from lwtest import run, assert_equal, raises, Assert
         # Name your test functions e.g. "def Test_*()"
         if __name__ == "__main__":
-            failed, messages = run(globals()){t.n}
-    
-    {t.h}run(){t.n}'s keyword arguments (default value in square brackets):
-    
-        {t.kw}broken{t.n}    If True, testing is acknowledged to be broken and a warning message to this
-                  effect is printed. [{t.d}False{t.n}]
-        {t.kw}verbose{t.n}   Print the function names as they are executed [{t.d}False{t.n}]
-        {t.kw}halt{t.n}      Stop at the first failure [{t.d}False{t.n}]
-        {t.kw}regexp{t.n}    Regular expression that identifies a test function [{t.d}"{id_test_function_regexp}"{t.n}]
-        {t.kw}reopts{t.n}    Regular expression's options [{t.d}re.I{t.n}]
-        {t.kw}stream{t.n}    Where to send output [{t.d}stdout{t.n}].  None = no output.
+            {t.ornl}num_failed, messages = run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0){t.n}
+
+            {t.k}broken{t.n}      If True, testing code is acknowledged to be broken; a warning
+                        message is printed and tests are not run.  [{t.d}False{t.n}]
+            {t.k}dbg{t.n}         If True, don't handle exceptions (allows you to trap them in a
+                        debugger).  Also can set the environment variable 'dbg' to do
+                        this. [{t.d}False{t.n}]
+            {t.k}verbose{t.n}     Print the function names as they are executed.  [{t.d}False{t.n}]
+            {t.k}halt{t.n}        Stop at the first failure.  [{t.d}False{t.n}]
+            {t.k}quiet{t.n}       If True, no output.  [{t.d}False{t.n}]
+            {t.k}regexp{t.n}      Regular expression that identifies a test function.  Default
+                        is in global variable id_test_function_regexp.
+            {t.k}reopts{t.n}      Regular expression's options. [{t.d}re.I{t.n}]
+            {t.k}stream{t.n}      Where to send output [{t.d}stdout{t.n}].  None = no output.
+            {t.k}nomsg{t.n}       If True, return only the integer 'failed'.
+
+            exit(num_failed)      # Nonzero status if 1 or more unhandled exceptions
     
     Utility functions:
         Check that two numbers are close:

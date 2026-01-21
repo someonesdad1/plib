@@ -135,90 +135,180 @@ class Trigger(dict):
         raise self.not_allowed
     def update(self, other=None):
         raise self.not_allowed
+class PgmInfo(dict):
+    '''Take the _pgminfo string apart and store it as a dictionary, giving access to the
+    fields.   Note the number of fields is fixed and must be the stated number or an
+    exception will occur.  To store the data back to a stream (e.g., a file being
+    modified), print the instance to the stream.
+
+    For this string
+        _pgminfo = """
+        <oo desc ∞
+            Type program description here
+        oo>
+        <oo cr ∞ Copyright © 2026 Don Peterson oo>
+        <oo license ∞   
+            Licensed under the Open Software License version 3.0.
+            See http://opensource.org/licenses/OSL-3.0.
+        oo>
+        <oo cat ∞ category oo>
+        <oo test ∞ none oo>
+        <oo todo ∞
+
+            - List of todo items here
+
+        oo>
+        """
+    the returned dictionary will be:
+        {'cat': ' category ',
+        'cr': ' Copyright © 2026 Don Peterson ',
+        'desc': '\n    Type program description here\n',
+        'license': '   \n'
+                    '    Licensed under the Open Software License version 3.0.\n'
+                    '    See http://opensource.org/licenses/OSL-3.0.\n',
+        'test': ' none ',
+        'todo': '\n\n    - List of todo items here\n\n'}
+    '''
+    begin, end, sep = "<oo ", "oo>", "∞"
+    regex = "(" + begin + r".*?[ \n]" + end + ")"
+    numfields = 6
+    def __init__(self, pgminfo):
+        self.pgminfo = pgminfo
+        s = self.parse(pgminfo)
+        Assert(len(s) == PgmInfo.numfields)
+        if 0:   # Print out the separated string list
+            print(f"{t.lill}Parsed string:")
+            for i, u in enumerate(s):
+                print(f"{i}: {u!r}")
+            t.print(end="")
+            exit()
+        # Get our keys & values
+        key_value_pairs = []    # Use for dict constructor
+        self.mykeys = []        # Remember key order
+        for i in s:
+            f = i.split(PgmInfo.sep)
+            Assert(len(f) == 2)
+            key = f[0].strip()
+            self.mykeys.append(key)
+            value = f[1].replace(PgmInfo.end.lstrip(), "")
+            key_value_pairs.append((key, value))
+        if 0:
+            print(f"Key-value pairs:\n{t.sky}", end="")
+            pp(key_value_pairs)
+            t.print()
+        # Construct our dict
+        self.super = super(PgmInfo, self)
+        self.super.__init__(key_value_pairs)
+        if 0:
+            print(f"Dump of dict:\n{t.lill}", end="")
+            pp(self)
+            t.print()
+        # Dump reconstituted string in color ornl
+        if 0:
+            print(f"{t.ornl}", end="")
+            print(Decorate(str(self)))
+            t.print()
+    def parse(self, pgminfo):
+        'Return a list of the groups'
+        a = re.split(PgmInfo.regex, pgminfo, flags=re.S)
+        b = [i for i in a if i != "\n" and i]
+        return [i.replace(PgmInfo.begin, "").replace(PgmInfo.end, "") for i in b]
+    def __str__(self):
+        'Return form that will be stored in a file'
+        b, e, sep, u = PgmInfo.begin, PgmInfo.end, PgmInfo.sep, ""
+        for key in self.mykeys:
+            n = "" if self[key].startswith("\n") else " "
+            u += b + key + " " + sep + self[key] + e + "\n"
+        return "\n" + u
+
 if __name__ == "__main__":
-    from pprint import pprint as pp
-    from lwtest import raises
-    p = None
-    def Setup():
-        global p
-        p = pathlib.Path("/plib/trigger.tmpfile")
-    def Teardown():
-        p.unlink()
-        assert not p.is_file()
-    def Separator():
-        print(f"{'-' * 70}")
-    def CheckDisabled():
-        "Show that the disabled methods result in an exception"
-        text = "Dummy text"
-        p.write_text(text)
-        t = Trigger()
-        t(p)  # Load the file
-        key = "dummy"
-        for i in (
-            (t.get, key),
-            (t.pop, key),
-            (t.setdefault, key),
-            (t.popitem,),
-            (t.update,),
-        ):
-            raises(ValueError, *i)
-    def ShowStrings():
-        text = """
-        #∞who∞#
-            This is the text between the trigger string pair.
-            It can be multiple lines.  All of the whitespace
-            is included.
-        #∞who∞#
-        #∞what∞# The text can be one line. #∞what∞# 
-        """
-        print(f"Demo of {__file__}'s Trigger() object:\n")
-        print("Here's our text:")
-        print(text)
-        p.write_text(text)
-        t = Trigger()
-        t(p)  # Load the file
-        print("Here's the dictionary of extracted strings:\n")
-        pp(t)
-    def SingleTriggerStringException():
-        Separator()
-        text = "#∞how∞#"
-        p.write_text(text)
-        t = Trigger()
-        print("You'll get a ValueError for a single trigger string:")
-        print(f"  (suppose file contains {text!r})")
-        try:
-            t(p)  # Try to load the file
-        except ValueError as e:
-            print(f"  {e}")
-    def ReplaceText():
-        Separator()
-        text = """
-        #∞who∞# 
-            Who's text on
-            multiple lines.
-        #∞who∞#
-        #∞what∞# What's text on one line. #∞what∞# 
-        """
-        p.write_text(text)
-        print("Showing how text can be replaced.  We'll exchange the 'who'")
-        print("and 'what' values.\n")
-        print("Original string:")
-        pp(text)
-        print()
-        t = Trigger()
-        t(p)  # Get our contents
-        # Swap who and what strings
-        tmp = t["who"]
-        t["who"] = t["what"]
-        t["what"] = tmp
-        t.write()
-        t.clear()
-        t(p)  # Get our contents
-        print("Swapped strings:")
-        pp(t)
-    Setup()
-    CheckDisabled()
-    ShowStrings()
-    SingleTriggerStringException()
-    ReplaceText()
-    Teardown()
+    import lwtest
+    if 0:   # Demonstration of the old trigger code
+        from pprint import pprint as pp
+        from lwtest import raises
+        p = None
+        def Setup():
+            global p
+            p = pathlib.Path("/plib/trigger.tmpfile")
+        def Teardown():
+            p.unlink()
+            assert not p.is_file()
+        def Separator():
+            print(f"{'-' * 70}")
+        def CheckDisabled():
+            "Show that the disabled methods result in an exception"
+            text = "Dummy text"
+            p.write_text(text)
+            t = Trigger()
+            t(p)  # Load the file
+            key = "dummy"
+            for i in (
+                (t.get, key),
+                (t.pop, key),
+                (t.setdefault, key),
+                (t.popitem,),
+                (t.update,),
+            ):
+                raises(ValueError, *i)
+        def ShowStrings():
+            text = """
+            #∞who∞#
+                This is the text between the trigger string pair.
+                It can be multiple lines.  All of the whitespace
+                is included.
+            #∞who∞#
+            #∞what∞# The text can be one line. #∞what∞# 
+            """
+            print(f"Demo of {__file__}'s Trigger() object:\n")
+            print("Here's our text:")
+            print(text)
+            p.write_text(text)
+            t = Trigger()
+            t(p)  # Load the file
+            print("Here's the dictionary of extracted strings:\n")
+            pp(t)
+        def SingleTriggerStringException():
+            Separator()
+            text = "#∞how∞#"
+            p.write_text(text)
+            t = Trigger()
+            print("You'll get a ValueError for a single trigger string:")
+            print(f"  (suppose file contains {text!r})")
+            try:
+                t(p)  # Try to load the file
+            except ValueError as e:
+                print(f"  {e}")
+        def ReplaceText():
+            Separator()
+            text = """
+            #∞who∞# 
+                Who's text on
+                multiple lines.
+            #∞who∞#
+            #∞what∞# What's text on one line. #∞what∞# 
+            """
+            p.write_text(text)
+            print("Showing how text can be replaced.  We'll exchange the 'who'")
+            print("and 'what' values.\n")
+            print("Original string:")
+            pp(text)
+            print()
+            t = Trigger()
+            t(p)  # Get our contents
+            # Swap who and what strings
+            tmp = t["who"]
+            t["who"] = t["what"]
+            t["what"] = tmp
+            t.write()
+            t.clear()
+            t(p)  # Get our contents
+            print("Swapped strings:")
+            pp(t)
+        Setup()
+        CheckDisabled()
+        ShowStrings()
+        SingleTriggerStringException()
+        ReplaceText()
+        Teardown()
+    failed, messages = run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)
+    exit(failed)
