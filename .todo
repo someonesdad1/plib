@@ -15,7 +15,6 @@
         - pgm is awfully crowded.  Should I have a number of subdirectories?  Some
           candidates would be
             - shop elec math sci util lang_or_text color
-
         - See if every file can have a gist element in _pgminfo:  this would be a one
           line description of the file's field and purpose.  This would be first and be
           just before the description, which could contain descriptive details.

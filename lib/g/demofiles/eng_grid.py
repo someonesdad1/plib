@@ -137,17 +137,13 @@ def PageGrid(file, increment=0.2):
         move(0, y)
         rline(box_width, 0)
         y += dy
+
 if 1:
     Grid("out/eng_grid1_1.ps", 0.1)
+    Grid("out/eng_grid2_1.ps", 0.2)
     GrayOffset(0.1)
     Grid("out/eng_grid1_2.ps", 0.1)
     GrayOffset(0.2)
     Grid("out/eng_grid1_3.ps", 0.1)
-if 1:
-    Grid("out/eng_grid21.ps")
-    GrayOffset(0.1)
-    Grid("out/eng_grid2_2.ps", 0.1)
-    GrayOffset(0.2)
-    Grid("out/eng_grid2_3.ps", 0.1)
 PageLines("out/lines.ps")
 PageGrid("out/grid.ps")

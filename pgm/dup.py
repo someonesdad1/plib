@@ -31,6 +31,7 @@ if 1:  # Header
         ##∞test∞# #∞test∞#
         pass
     if 1:  # Imports
+        from pathlib import Path as P
         import sys
         import os
         import getopt
@@ -41,20 +42,39 @@ if 1:  # Header
     if 1:  # Custom imports
         from wrap import dedent
         from color import t
-        try:
-            import color as C
-            have_color = True
-        except ImportError:
-            have_color = False
     if 1:  # Global variables
-        _debug = False
+        class G:
+            pass
+        g = G()
+        g.dbg = False
         # Hashing method to use on files
         hash = hashlib.sha1
 if 1:  # Classes
     class IgnoreThisFile(Exception):
         pass
 if 1:  # Utility
-    def Usage(d, status=1):
+    def GetColors():
+        t.stuff = t.lill
+        t.err = t.redl
+        t.dbg = t.lill if g.dbg else ""
+        t.N = t.n if g.dbg else ""
+    def GetScreen():
+        'Return (LINES, COLUMNS)'
+        return (
+            int(os.environ.get("LINES", "50")),
+            int(os.environ.get("COLUMNS", "80")) - 1
+        )
+    def Dbg(*p, **kw):
+        if g.dbg:
+            print(f"{t.dbg}", end="")
+            print(*p, **kw)
+            print(f"{t.N}", end="")
+    def Warn(*msg, status=1):
+        print(*msg, file=sys.stderr)
+    def Error(*msg, status=1):
+        Warn(*msg)
+        exit(status)
+    def Usage(status=1):
         name = sys.argv[0]
         dashb = d["-b"]
         print(
@@ -70,8 +90,7 @@ if 1:  # Utility
           hash all of the files' bytes (takes longer to process).
         Options
           -b s    Read s bytes to compute hash.  0 = compare all bytes
-          -c      Use color in output
-          -d      Debug output to stderr
+          -d      Debug output 
           -F      Same as -f, but print full path to file
           -f      Find duplicate file names
           -g      Include git directories in the search
@@ -87,19 +106,9 @@ if 1:  # Utility
         ''')
         )
         exit(status)
-    def Debug(*s, **kw):
-        stream = kw.setdefault("file", sys.stderr)
-        ends = kw.setdefault("end", "\n")
-        if _debug:
-            print(*s, **kw)
-    def Error(*s, **kw):
-        stream = kw.setdefault("file", sys.stderr)
-        ends = kw.setdefault("end", "\n")
-        print(*s, file=stream, end=ends)
-        exit(1)
-    def ParseCommandLine(d):
-        d["-b"] = 4096  # Bytes to read to compute hash
-        d["-c"] = False  # Use color if True
+    def ParseCommandLine():
+        d["-b"] = 4096   # Bytes to read to compute hash
+        d["-c"] = True   # Use color if True
         d["-d"] = False  # Show debug information
         d["-F"] = False  # Find duplicate file names, print full path
         d["-f"] = False  # Find duplicate file names
@@ -109,7 +118,7 @@ if 1:  # Utility
         d["-l"] = False  # Dereference symbolic links
         d["-m"] = False  # Do not ignore Mercurial directories
         d["-r"] = False  # Disable recursion
-        d["-t"] = -1  # Threshold for size, in bytes
+        d["-t"] = -1     # Threshold for size, in bytes
         d["-x"] = set()  # File regexps to ignore
         d["-X"] = set()  # Directory regexps to ignore
         d["-z"] = False  # Do not ignore zero-length files
@@ -153,39 +162,37 @@ if 1:  # Utility
                 except Exception:
                     Error("'%s' is a bad regular expression" % opt[1])
         if d["-d"]:
-            global _debug
-            _debug = True
-        if not have_color:
-            d["-c"] = False
+            g.dbg = True
+        GetColors()
         if not dirs:
-            Usage(d, 1)
-        Debug("Options set from command line:")
-        keys = list(d.keys())
-        keys.sort()
-        for k in keys:
-            Debug("%4s%-4s %s" % (" ", k, d[k]))
+            Usage(1)
+        if d["-d"]:
+            Dbg("Options set from command line:")
+            keys = list(d.keys())
+            keys.sort()
+            for k in keys:
+                Dbg(f"  {k:4s} {d[k]}")
         return dirs
 if 1:  # Core functionality
     def GetSize(s):
         '''Return the size in bytes from the string s.  Note s can have k,
         M, G, or T appended (interpret as decimal SI prefixes).
         '''
-        msg = "'%s' is a bad threshold specification" % s
+        msg = f"{s!r} is a bad threshold specification"
         si = {"k": 3, "M": 6, "G": 9, "T": 12}
         s, factor = s.replace(" ", ""), 1
         if s[-1] in si:
-            factor = int(10 ** si[s[-1]])
+            factor = int(10**si[s[-1]])
             s = s[:-1]
         try:
             i = float(s)
         except Exception:
             Error(msg)
-        return int(factor * i)
-    def ProcessDir(dirnum, dir, d):
+        return int(factor*i)
+    def ProcessDir(dirnum, dir):
         '''Return a dictionary containing the information on the files in
         the directory dir.  dirnum is an integer indicating the order on
-        the command line.  dir is a single directory.  d is the settings
-        dictionary.
+        the command line.  dir is a single directory as a Pathlib.  
         
         The returned dictionary has the form (s=string, i=integer, b=bool):
         {
@@ -200,8 +207,16 @@ if 1:  # Core functionality
             ...
         }
         '''
+        if not dir.exists():
+            print(f"{t.redl}Directory {str(dir)!r} doesn't exist", file=sys.stderr)
+            return
         # Get a list of all the files
-        dirfiles = []
+        files = []
+        pattern = "*" if d["-r"] else "**/*"
+        for file in dir.glob(pattern):
+            print(file)
+        return
+
         for root, dirs, files in os.walk(dir):
             root = root.replace("\\", "/")
             # Check to see if any of the components of the root path are
@@ -213,28 +228,28 @@ if 1:  # Core functionality
                         if regex.search(field):
                             raise IgnoreThisFile()
             except IgnoreThisFile:
-                Debug("Ignoring directory (-X):  ", root)
+                Dbg("Ignoring directory (-X):  ", root)
                 continue
             dir_fields = set(dir_fields)
             # Check for directories that we'll ignore by default
             if ".hg" in dir_fields and not d["-m"]:
-                Debug("Ignoring Mercurial directory:  ", root)
+                Dbg("Ignoring Mercurial directory:  ", root)
                 continue  # Ignore Mercurial directories
             if ".git" in dir_fields and not d["-g"]:
-                Debug("Ignoring git directory:  ", root)
+                Dbg("Ignoring git directory:  ", root)
                 continue  # Ignore Mercurial directories
             def dotted(x):
                 x.startswith(".") and x != "."
             if any([dotted(i) for i in dir_fields]) and not d["-h"]:
-                Debug("Ignoring hidden directory:  ", root)
+                Dbg("Ignoring hidden directory:  ", root)
                 continue  # Ignore hidden directories
             # Check that each file doesn't match the -X regexps -- if no
-            # matches, then add to the dirfiles sequence.
+            # matches, then add to the files sequence.
             for f in files:
                 # If it's a soft link, ignore it unless d["-l"] is set
                 s = os.path.join(root, f).replace("\\", "/")
                 if os.path.islink(s) and not d["-l"]:
-                    Debug("Ignoring soft link:  ", s)
+                    Dbg("Ignoring soft link:  ", s)
                     continue
                 found = False
                 for regex in d["-x"]:
@@ -245,15 +260,15 @@ if 1:  # Core functionality
                         # Remove any leading './' (makes a little easier
                         # to read the names).
                         s = s[2:]
-                    dirfiles.append(s)
+                    files.append(s)
                 else:
-                    Debug("Ignoring file (-x):  ", s)
+                    Dbg("Ignoring file (-x):  ", s)
             if d["-r"]:
                 break
         if d["-f"]:
             # Create a dictionary keyed by the file's name
             filedict = defaultdict(list)
-            for i in dirfiles:
+            for i in files:
                 path, name = os.path.split(i)
                 filedict[name] += [path]
             return filedict
@@ -262,7 +277,7 @@ if 1:  # Core functionality
             # The values are (filename, inode_number, dirnum, is_softlink).
             hashdict = defaultdict(list)
             count = 0
-            for filename in dirfiles:
+            for filename in files:
                 count += 1
                 m = hash()
                 try:
@@ -282,20 +297,20 @@ if 1:  # Core functionality
                 islink = os.path.islink(filename)
                 key = (digest, size)
                 value = (filename, inode, dirnum, islink)
-                Debug(key, value)
+                Dbg(key, value)
                 if not size:
                     # Zero-length file
                     if d["-z"] and size > d["-t"]:
                         hashdict[key].append(value)
                     else:
-                        Debug("Ignoring zero-length file:  ", filename)
+                        Dbg("Ignoring zero-length file:  ", filename)
                 else:
                     # Nonzero length
                     if size > d["-t"]:
                         hashdict[key].append(value)
                     else:
                         # It's below the size threshold in d["-t"]
-                        Debug("Ignoring file below threshold:  ", filename)
+                        Dbg("Ignoring file below threshold:  ", filename)
             return hashdict
     def GetColor(size):
         '''Return a color indicating file size.'''
@@ -307,7 +322,7 @@ if 1:  # Core functionality
             return t.redl
     def PrintSize(size, stream, d):
         t.print(f"{GetColor(size)}{size}", file=stream, end="")
-    def ReportDuplicate(item, d, stream):
+    def ReportDuplicate(item, stream):
         '''item is a list of tuples (length > 1) that contain duplicated
         information.  Print this information to the indicated stream and
         end with a blank line.
@@ -354,8 +369,8 @@ if 1:  # Core functionality
             print("  %d:  %s" % (dirnumber, filename), file=stream)
         # Make sure there's a blank line to separate duplicate information
         print("", file=stream)
-    def ReportDuplicates(fileinfo, d, stream=sys.stdout):
-        '''fileinfo is a dictionary with keys (hash, size) and values that
+    def ReportDuplicates(stream=sys.stdout):
+        '''g.fileinfo is a dictionary with keys (hash, size) and values that
         are a list of tuples(filename, lstat_info, dirnumber).  d is the
         options dictionary.  stream is where to print the results.
         
@@ -363,12 +378,12 @@ if 1:  # Core functionality
         information.  It can be due to either a copy of a file or a hard
         link.
         '''
-        for i in fileinfo:
-            if len(fileinfo[i]) > 1:
-                ReportDuplicate(fileinfo[i], d, stream)
-    def ReportDuplicateFilenames(fileinfo, d, stream=sys.stdout):
+        for i in g.fileinfo:
+            if len(g.fileinfo[i]) > 1:
+                ReportDuplicate(g.fileinfo[i], stream)
+    def ReportDuplicateFilenames(stream=sys.stdout):
         duplicates = []
-        for key, value in fileinfo.items():
+        for key, value in g.fileinfo.items():
             if len(value) > 1:
                 duplicates.append((key, value))
         duplicates.sort()
@@ -388,14 +403,14 @@ if 1:  # Core functionality
 
 if __name__ == "__main__":
     d = {}  # Options dictionary
-    dirs = ParseCommandLine(d)
-    fileinfo = defaultdict(list)
+    dirs = ParseCommandLine()
+    g.fileinfo = defaultdict(list)
     for dirnum, dir in enumerate(dirs):
-        di = ProcessDir(dirnum + 1, dir, d)
+        di = ProcessDir(dirnum + 1, P(dir))
         if di:
             for key, value in di.items():
-                fileinfo[key] += value
+                g.fileinfo[key] += value
     if d["-f"]:
-        ReportDuplicateFilenames(fileinfo, d)
+        ReportDuplicateFilenames()
     else:
-        ReportDuplicates(fileinfo, d)
+        ReportDuplicates()
