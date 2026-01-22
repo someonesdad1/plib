@@ -1,8 +1,4 @@
 """
-
-Fix
-    -
-
 Print out color names with a regex in the name
 """
 

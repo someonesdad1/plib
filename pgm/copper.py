@@ -1,5 +1,5 @@
 """
-Print out copper pipe sizes.
+Print out copper pipe sizes
 """
 
 if 1:  # Copyright, license

@@ -1,6 +1,5 @@
 """
-Remove printable characters from the lines of the text files (or stdin)
-and report on which lines have control characters or Unicode characters.
+Identify lines with control or Unicode characters
 """
 
 if 1:  # Copyright, license

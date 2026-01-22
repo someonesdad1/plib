@@ -1,7 +1,6 @@
-"""
-Prints out combinations & permutations of command line arguments.
-"""
-
+'''
+Prints out combinations & permutations of command line arguments
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -27,45 +26,39 @@ if 1:  # Header
         from wrap import wrap, dedent
         from color import t
         from f import flt
-
         try:
             import mpmath
             from mpmath.libmp import to_str
-
             have_mpmath = True
         except ImportError:
             have_mpmath = False
         if 0:
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
-
         class G:
             pass
-
         g = G()
         ii = isinstance
         g.n = None  # number of objects
         g.k = None  # k at a time
 if 1:  # Utility
-
     def Manpage():
         c = t("lill")
         print(
-            dedent(f"""
-
+            dedent(f'''
+            
         This script will compute permutations if it's named perm.py and will computer combinations
         if it's named comb.py.
-
+        
         One use case of this script is to print out the permutations of a set of words that you 
         want to use as a password.  Suppose you run the script /plib/pgm/password.py with the
         arguments '-s 0 5 5 6 4', which means to print five lines of 5 words that contain 4 to 6
         characters.  You select the line 'many break girl market fate' and you want to see all the
         permutations of these words taken 3 at a time.  You use the command 
-
+        
             python perm.py -c -k 3 -s " " many break girl market fate
-
+            
         and you'll get 60 permutations.  One of the permutations was 'fate break market' and I
         might choose that as a password by changing it to 'fate breaks market'.  In 2024 this would
         be considered a barely acceptable password with 18 characters and 10 unique characters.  My
@@ -74,9 +67,9 @@ if 1:  # Utility
         as having 94 bits.  While I could probably memorize the latter, I can guarantee I'd have
         forgotten it in a month unless I used it a lot.  I'd stand a better chance of remembering
         'fate breaks market', as I'd just have to remind myself with the first word.
-
+        
         Some other examples:
-
+        
         Print the permutations of the letters 'rgb'
             python perm.py rgb
             prints 3! = 6 items
@@ -95,20 +88,17 @@ if 1:  # Utility
                 {c}rgb rgh rgs rgv rbh rbs rbv rhs rhv rsv
                 gbh gbs gbv ghs ghv gsv bhs bhv bsv hsv{t.n}
                 20 combinations
-        """)
+        ''')
         )
         exit(0)
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage():
         which = "combinations" if comb else "permutations"
         formula = "C(n, k)" if comb else "P(n, k)"
         k = None if comb else "n"
-        print(
-            dedent(f"""
+        print(dedent(f'''
         Usage:  {sys.argv[0]} [options] A [B...]
           Prints out {which} of command line arguments.  A is a string and if it's the only
           argument, then its letters are used as the elements.  Otherwise the set of n arguments
@@ -117,36 +107,27 @@ if 1:  # Utility
         Notation
           n = number of letters in A or number of arguments if > 1
           k = number of items to take for each subset
-        """)
+        ''')
         )
         ex = "-k 2 -s '|' my dog has fleas"
         if comb:
-            print(
-                dedent(f"""
+            print(dedent(f'''
             C(n, k) = combinations of n objects taken k at a time
-                    = n!/((n - k)!*k!)""")
-            )
-            print(
-                dedent(f"""
+                    = n!/((n - k)!*k!)'''))
+            print(dedent(f'''
             Example:  The arguments {ex!r} will print out all the combinations of
               the four words that contain two words.
-            """)
-            )
+            '''))
         else:
-            print(
-                dedent(f"""
+            print(dedent(f'''
             P(n, k) = all permutations of the size k subsets taken from all the n elements
                     = n!/(n - k)!
-            P(n)    = P(n, n) = n!""")
-            )
-            print(
-                dedent(f"""
+            P(n)    = P(n, n) = n!'''))
+            print(dedent(f'''
             Example:  The arguments {ex!r} will print out all the permutations of
               the four words that contain two words.
-            """)
-            )
-        print(
-            dedent(f"""
+            '''))
+        print(dedent(f'''
         Options (default in square brackets):
           -c    Don't print in columns
           -f    Print output even if number of items is large (over 10!)
@@ -158,10 +139,8 @@ if 1:  # Utility
           -s x  Separator string for grouped items [""]
           --sum     The arguments are numbers; show all sums
           --prod    The arguments are numbers; show all products
-        """)
-        )
+        '''))
         exit(0)
-
     def ParseCommandLine(d):
         d["-c"] = True  # Print in columns
         d["-f"] = False  # Force output for large numbers
@@ -214,16 +193,12 @@ if 1:  # Utility
             elif o == "--prod":
                 Sums(args, product=True)
         return args
-
-
 if 1:  # Core functionality
-
     def Product(*args):
         product = flt(1)
         for i in args:
             product *= flt(i)
         return product
-
     def Sums(args, product=False):
         "Print a sorted list of all the possible sums/products of the numbers on the command line"
         print(
@@ -242,7 +217,6 @@ if 1:  # Core functionality
         for i in Columnize(sorted(o), col_width=10, horiz=True):
             print(i)
         exit(0)
-
     def PrintOutput(func, name, objects):
         count = 0
         if g.k is None and func == combinations:
@@ -261,11 +235,10 @@ if 1:  # Core functionality
             for i in out:
                 print(i)
         print(f"{count} {name}")
-
     def GetHowMany(numobjects, k):
-        """Calculate the number of combinations or permutations of numobjects taken k at
+        '''Calculate the number of combinations or permutations of numobjects taken k at
         a time.  This will return an integer, float, or mpmath.mpf.
-        """
+        '''
         n = numobjects
         if have_mpmath:
             f, F = mpmath.factorial, mpmath.fac
@@ -297,21 +270,17 @@ if 1:  # Core functionality
             p = p // f(k) if comb else p
             assert ii(p, int)
         return p
-
     def Magnitude(n):
         assert ii(n, int) and n > 0
         s = str(n)
         m, e = s[0], len(s)
         e = len(s)
         return f"{m}e{e}"
-
     def JustPrintNumber():
         s = str(GetHowMany(g.n, g.k))
         if s.endswith(".0"):
             s = s[:-2]
         print(f"{s} {'combinations' if comb else 'permutations'}")
-
-
 if __name__ == "__main__":
     # Options dictionary
     d = {"name": P(sys.argv[0]).name.replace(".py", "")}

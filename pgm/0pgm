@@ -1,0 +1,448 @@
+This file is a collection of the one line descriptions of these files I'm thinking of
+calling a gist in the _pgminfo data.  Once these are gotten, a token can be entered that
+identifies the directory name that this application should go into; here are current
+candidates:
+
+- shop
+- elec
+- math
+- sci
+- util
+- lang or text
+- color
+
+2by.py	Information on standard '2 by' lumber
+6033.py	6033A power supply utility
+7bit.py	Show non-7-bit characters in file (read either as UTF-8 or binary)
+7seg_words.py	Show words made from 7-segment letters
+7segment.py	Draw 7 segment and alphanumeric displays
+8500.py	Operation of B&K 8500 DC load
+abspath.py	Return the paths on the command line as absolute paths
+acro.py	Find acronyms in a text file
+alias.py	Show current shell aliases.  Assumes stdin contains list of 'alias' commands.
+anagram.py	Finding anagrams
+anagrams_make.py	Construct the anagrams text file
+analyze.py	Print word statistics for each file
+arecibo.py	Various binary messages for extraterrestrial communication
+asc.py	Prints out ASCII characters
+attenuator.py	Script to design tee and pi attenuators.
+ball.py	Turning a ball on the lathe:  calculations via the incremental cut method
+bar.py	Print out mass of bar stock
+barlow.py	Construct a copy of Barlow's tables
+basic_english.py	Show words froms stdin that aren't from basic usage
+bat.py	Print out battery data
+bc.py	Cartesian coordinates of bolt holes on a circle
+bd.py	Prints hex dumps of the differences between two files
+bend.py	Bend allowance computation for sheet metal
+bgrep.py	Search for a pattern in a binary file
+bigfiles.py	Find files above a specified size
+bindiff.py	Print the binary differences between two files
+bitrate.py	Print periods of various bit rates
+bmi.py	Calculate body mass index for a given mass and height
+bmr.py	Estimate daily energy need
+bode.py	Given a transfer function, generate a Bode plot
+books.py	PBS list of 100 great to read books in the US
+braces.py	Examine files for unmatched pairs of characters
+british.py	Identify British spellings in files on command line
+bucket.py	Print out volume calibration marks for a bucket
+buptime.py	Print the time it takes to do a backup
+busy.py	Loads a CPU with n busy/wait tasks
+c++_units.py	C++ for type-safe numerical computation with units
+c2py.py	Translate C code to python
+calendar_oo.py	Generate text to import into OO and formatted as a calendar
+cap.py	Get an image from the clipboard and save it
+cat.py	Python version of UNIX cat program with SHA1 validation of parts
+cc.py	Print the resistor color code or interpret it
+ccal.py	Print a compact calendar
+cdec.py	Decorate color specifications
+chain.py	Chain drilling calculations
+char.py	Classifies UTF-8 characters in files by type
+chass.py	MIL5088L tables for maximum currents in copper conductors for aeronautical vehicles
+chemical_names.py	Translate old chemical names
+chemical_resistance.py	Print the chemical resistance of various plastics
+chemname.py	Search for a chemical name in a database of old and new names
+choice.py	Choose one or more files and send them to stdout
+chop.py	Print files' contents to the screen, fitting to screen width
+circ3.py	Find the radius of a circle given three points
+circle.py	Interactive script for circle calculations
+circular_scale.py	Plot circular scales (e.g., make a circular slide rule)
+clean.py	Remove various files that don't need to be kept around (e.g., object files)
+clover.py	Print sizes of Clover lapping/grinding compounds
+cmdl.py	Script to output Mac keyboard commands in various ways
+cnt.py	Count 8-bit characters in a stream or file
+col.py	Fixup for cygwin man pages
+collapse.py	Collapse multiple blank lines to one blank line
+color_interpolate.py	Interpolate between colors and show on console
+colorsearch.py	Print out color names with a regex in the name
+comb.py	Prints out combinations & permutations of command line arguments
+comb_perm_table.py	Generate a sorted table of the number of combinations/permutations
+comp.py	Search for text in my electronic components database
+concordance.py	Print a word concordance for a file
+concrete.py	Script to help with mixing concrete
+cone.py	Sheet metal cones
+const.py	Display values of physical constants
+constants_nist.py	Print a histogram of sig figs for physical constants
+conv.py	Convert BMP files to PNG files
+convert_temperature.py	Temperature conversion utility
+copper.py	Print out copper pipe sizes
+core.py	List GNU core utilities
+cost_of_driving.py	Driving costs given $/gallon fuel cost and miles/gallon of car
+cove.py	Calculate the angle to set a table saw fence to cut a cove
+cpi.py	Consumer price index utility
+cracktime.py	Estimate crack time for a password
+critical.py	Critical data for various materials
+cruft.py	Generate n sentences of gibberish
+cstrip.py	Removes comments, includes, and blank lines from C/C++ files
+csym.py	Print out valid C/C++ symbols in files
+ctrl.py	Identify lines with control or Unicode characters
+cu_resistivity.py	Plot the resistivity of copper as a function of temperature
+cu_wire.py	Output a copper wire table
+current_date.py	Show current date/time
+cut.py	Solve a one-dimensional cutting stock problem
+date.py	
+days.py	
+db.py	
+dbl.py	
+dd.py	
+ddiff.py	
+de.py	
+dec.py	
+density.py	
+dep.py	
+dia.py	
+diet.py	
+diode.py	
+dircmp.py	
+divider.py	
+dividing_head.py	
+dmm.py	
+double.py	
+dpindent.py	
+draintank.py	
+drill.py	
+ds.py	
+dup.py	
+duplines.py	
+dupword.py	
+eevblog.py	
+ellcircum.py	
+emoji.py	
+energy.py	
+env.py	
+envcmp.py	
+ev.py	
+exp.py	
+ext.py	
+extension.py	
+extract.py	
+factors.py	
+fcut.py	
+fet_current.py	
+fhg.py	
+filecomb.py	
+filesize.py	
+find_shell_functions.py	
+fish.py	
+fish_mt.py	
+fit.py	
+fits.py	
+fix.py	
+fld.py	
+floppies.py	
+folio.py	
+food.py	
+fromto.py	
+frustum.py	
+fseq.py	
+fset.py	
+fshuffle.py	
+ftouch.py	
+func.py	
+gasoline.py	
+gauge.py	
+gb.py	
+gitignore.py	
+goto.py	
+grab.py	
+gres.py	
+guess_password.py	
+halflife.py	
+hammer.py	
+hash_speeds.py	
+hashcmp.py	
+hct.py	
+hdr.py	
+hex.py	
+hexagon.py	
+hgs.py	
+hist.py	
+holes.py	
+hp.py	
+hpj.py	
+hsm.py	
+html2txt.py	
+html_tokens.py	
+htmlstrip.py	
+hues.py	
+ideal_gas.py	
+igor.py	
+igor.sibilant_c.py	
+impedance.py	
+indent.py	
+indent_mk.py	
+inst.py	
+int.py	
+int_float_timing.py	
+inverted_index.py	
+ipa.py	
+iv_mag.py	
+ixfm.py	
+j.py	
+julian_day.py	
+knurl.py	
+knurl_table.py	
+kw.py	
+latex_skeleton.py	
+lathe.py	
+lc.py	
+ldir.py	
+led.py	
+led_properties.py	
+lensort.py	
+level.py	
+lf.py	
+li.py	
+lib.py	
+linreg.py	
+lnk.py	
+load.py	
+loc.py	
+location.py	
+lock.py	
+locstrings.py	
+log.py	
+logic.py	
+logs.py	
+long.py	
+lookup.py	
+lsg.py	
+lsh.py	
+lshuffle.py	
+lump.py	
+machine.py	
+make_zips.py	
+man.py	
+manufy.py	
+mass.py	
+match.py	
+mathfuncs.py	
+mc2.py	
+md5.py	
+messaging.py	
+metric_threads.py	
+minimum_c.py	
+minstring.py	
+mixture.py	
+mk.py	
+mkfile.py	
+mkpy.py	
+mm.py	
+mod.py	
+mon.py	
+monitor.py	
+moon.py	
+mort.py	
+most_used_commands.py	
+movies.py	
+mpg.py	
+mw.py	
+mysys.py	
+mytimeit.py	
+nails.py	
+ncss.py	
+nl.py	
+nospc.py	
+note.py	
+ohm.py	
+onderdonk.py	
+oneline.py	
+oo_color_palette.py	
+oom.py	
+oring.py	
+otp.py	
+outlet_combinations.py	
+paper.py	
+paper_sizes.py	
+paper_weight.py	
+partitions.py	
+pascal_triangle.py	
+password.py	
+pay_rates.py	
+pb.py	
+pcs.py	
+pdf.py	
+pdiff.py	
+pdoc.py	
+perfect_random.py	
+perm.py	
+personality.py	
+pfind.py	
+ph.py	
+phash.py	
+phonenum.py	
+pic.py	
+pill.py	
+pipe_sizes.py	
+planets.py	
+platfrm.py	
+plot_impedance.py	
+pmake.py	
+png.py	
+poly.py	
+population.py	
+power.py	
+pressure_loss.py	
+products.py	
+profit.py	
+proj.py	
+propane.py	
+prun.py	
+pscript.py	
+pspell.py	
+pspell_extra.py	
+ptrim.py	
+pulley.py	
+pxref.py	
+pycodestyle_filter.py	
+pyinfo.py	
+pyspell.py	
+pythagorean_triples.py	
+python_perf.py	
+python_releases.py	
+python_symbols.py	
+pytok.py	
+pyver.py	
+rand.py	
+random_phrase.py	
+ranword.py	
+rat.py	
+rattle.py	
+rbl.py	
+rcc.py	
+readability.py	
+real.py	
+relay.py	
+rename.py	
+renum.py	
+resistivity.py	
+resistor.py	
+resistor_color_code.py	
+resize.py	
+reverse.py	
+rgrep.py	
+rm_multiple_lines.py	
+rms.py	
+rod.py	
+rope.py	
+rpo.py	
+rs22812.py	
+rtd.py	
+scale.py	
+scope.py	
+scramble.py	
+seg.py	
+seq.py	
+sfpm.py	
+sha.py	
+shear.py	
+shellcheck.py	
+shoesize.py	
+shortwave.py	
+shunt.py	
+simple.py	
+size.py	
+slopes.py	
+socket_holder.py	
+sockets.py	
+solder.py	
+songs.py	
+sortbashfunc.py	
+sp.py	
+space.py	
+spc_to_underscore.py	
+speed.py	
+spell.py	
+spht.py	
+spiral.py	
+split.py	
+spring.py	
+sprinklers.py	
+sq_cu.py	
+sqrtcoding.py	
+srt.py	
+stripansi.py	
+sunriseset.py	
+sw.py	
+sz.py	
+tags.py	
+taper.py	
+tapered_link.py	
+tapers.py	
+tc.py	
+td.py	
+temper.py	
+temperature_ref.py	
+temperature_table.py	
+termtables_demo.py	
+test_for_numpy.py	
+test_hash.py	
+textwrap_demo.py	
+thd.py	
+thermal_emf.py	
+thermistor.py	
+thermistor_fit.py	
+thes.py	
+thk.py	
+tlc.py	
+tm.py	
+tmbr.py	
+tmbr_data.py	
+tmp.py	
+tok.py	
+tools.py	
+torque.py	
+tp.py	
+tree.py	
+tri.py	
+trimming.py	
+trip.py	
+tsub.py	
+tx.py	
+uni.py	
+unwrap.py	
+uri.py	
+usb.py	
+vmdivider.py	
+weather.py	
+weed.py	
+wheatstone.py	
+where.py	
+wl.py	
+wlcmp.py	
+wood.py	
+wordfreq.py	
+words.py	
+words_syllables.py	
+words_syllables_make.py	
+wrench.py	
+x.py	
+xkcd.py	
+xref.py	
+xx.py	
+xyz.py	
+yr.py	
+ysi.py	
+yt.py	
+zener.py	
+
+vim:  noet ts=30

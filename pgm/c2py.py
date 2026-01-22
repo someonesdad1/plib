@@ -4,22 +4,23 @@ TODO
     * Change lines with // to #
 
 Translate C code to python
-    This script will do some of the work, but you'll still be left with
-    some hand translation for pointer stuff and to handle gotos (so it
-    works best on C code with no gotos and few pointers).
+
+    This script will do some of the work, but you'll still be left with some hand
+    translation for pointer stuff and to handle gotos (so it works best on C code with
+    no gotos and few pointers).
 
     Here's how the script works:
 
-    * Comments are converted to python comments.
-    * All lines have the ending ';' removed.
-    * It is an error if any line subsequently contains a ';' character,
-      as this might indicate more than one statement per line.
-    * '&&' is changed to ' and ' and '||' is changed to ' or '.
-    * 'else if' --> 'elif'
-    * 'else' --> 'else:'
-    * An 'if ()' statement is translated into 'if():'.  Note the
-      translation will be wrong if there are multiple tests inside the
-      parentheses; these will cause a python error and be easy to find.
+    - Comments are converted to python comments.
+    - All lines have the ending ';' removed.
+    - It is an error if any line subsequently contains a ';' character, as this might
+      indicate more than one statement per line.
+    - '&&' is changed to ' and ' and '||' is changed to ' or '.
+    - 'else if' --> 'elif'
+    - 'else' --> 'else:'
+    - An 'if ()' statement is translated into 'if():'.  Note the translation will be
+      wrong if there are multiple tests inside the parentheses; these will cause a
+      python error and be easy to find.
 
     Lines are otherwise left alone, so things like #include and #define
     statements will be in the resulting text.

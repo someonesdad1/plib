@@ -1,3 +1,6 @@
+'''
+Print the chemical resistance of various plastics
+'''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2015 Don Peterson #∞copyright∞#
@@ -41,8 +44,6 @@ if 1:  # Global variables
         "Tecalor/Torlon": "",
         "UHMW": "Ultra-high molecular weight polyethylene",
     }
-
-
 def GetData():
     """Return (plastics, chemicals) where plastics is a list of the
     plastics' names and chemicals is a list of lists:
@@ -62,7 +63,6 @@ def GetData():
     # converted to US usage.  Minor editing has been done to fix small
     # problems.  Data downloaded 27 Jun 2015.
     #
-
     # Legend:
     # A = No Attack, possibly slight absorption.  Negligible effect on
     #     mechanical properties.
@@ -78,7 +78,6 @@ def GetData():
     #
     # Where aqueous solutions are shown the concentration as a weight %
     # is given.
-
     data = dedent("""
     Material;Concentration (weight %);ABS;Acetal;Acrylic;CAB;CPVC;ECTFE (Halar);Fluorosint;HDPE;Nylon 6/6;PEEK;PET;Polycarbonate;Polypropylene;Polysulfone;PPS;PVC Type 1;PVC Type 2;PVDF;PTFE;Tecalor/Torlon;UHMW
     Acetaldehyde (aq);40;D;A;D;*;D;*;A;C;B;A;A;*;C;*;A;D;D;D;A;A;A
@@ -226,13 +225,9 @@ def GetData():
         else:
             plastics = d[2:]
     return plastics, chemicals
-
-
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
-
-
 def Usage(d, status=1):
     name = sys.argv[0]
     print(
@@ -272,8 +267,6 @@ def Usage(d, status=1):
     """)
     )
     exit(status)
-
-
 def ParseCommandLine(d):
     try:
         opts, args = getopt.getopt(sys.argv[1:], "h")
@@ -286,8 +279,6 @@ def ParseCommandLine(d):
     if not args:
         Usage(d)
     return args
-
-
 def GetChemicals(regexp, d):
     """Return a list of the chemicals whose name matches the regexp."""
     try:
@@ -300,8 +291,6 @@ def GetChemicals(regexp, d):
         if mo:
             found.append(i)
     return found
-
-
 def FindChemRes(cmd, regexp, d):
     """cmd is a, b, c, or d.  Print the plastics that are resistant to the
     chemicals that match the regexp.
@@ -325,8 +314,6 @@ def FindChemRes(cmd, regexp, d):
             print(name)
             for i in found:
                 print("  {}".format(plastics[i]))
-
-
 def ShowChemicals(args, d):
     if len(args) > 1:
         matching_chemicals = GetChemicals(args[1], d)
@@ -343,16 +330,12 @@ def ShowChemicals(args, d):
                 # It's a string
                 name = "{} {}".format(name, conc)
         print(name)
-
-
 def ShowPlastics(d):
     for i in d["plastics"]:
         print(i)
         details = plastic_details[i]
         if details:
             print("  {}".format(details))
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     d["ratings"] = {

@@ -1,4 +1,5 @@
 '''
+Examine files for unmatched pairs of characters
     
 Todo
     - Change architecture:  no exception for parity error.  Focus on getting test data

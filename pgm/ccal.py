@@ -1,6 +1,6 @@
 _pgminfo = '''
 <oo desc
-    Compact calendar
+    Print a compact calendar
 oo>
 <oo cr Copyright © 2025 Don Peterson oo>
 <oo license

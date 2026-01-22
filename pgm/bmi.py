@@ -1,3 +1,7 @@
+'''
+Calculate body mass index for a given mass and height
+'''
+
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py

@@ -1,14 +1,26 @@
 /plib/.todo
 
-    - FIND THE LASERJET CALENDAR APPLICATION!!  It printed a desired number of weeks for
-      my pocket dori and is exactly the tool I want to have.  I probably wrote it in
-      early Nov 2025 and printed out 4 months of some dori sheets.  Now it's 20 Jan 2026
-      and I need a new sheet.  This should wind up as an application named dori.py in 
-      /plib/pgm. 
+    - pgm/dori.py:  compact calendar for pocket dori
+        - 12 weeks = 3 months
+        - Do on 2 folios on one side of the sheet.  This gives a calendar and one blank
+          folio, which is quite a bit of room for my needs.
+    - Utility to fix python file formatting:  fix """ stuff and delete blank lines.  Run
+      the fix first on a copy and make sure the script still works before making the
+      change.
 
 21 Jan 2026 13:33:38 pm Wed
 
     - Core /plib work
+        - pgm is awfully crowded.  Should I have a number of subdirectories?  Some
+          candidates would be
+            - shop
+            - elec
+            - math
+            - sci
+            - util
+        - See if every file can have a gist element in _pgminfo:  this would be a one
+          line description of the file's field and purpose.  This would be first and be
+          just before the description, which could contain descriptive details.
         - Huh?
             - dpdata.py:  be a single repository for all the files with data:
               drillsizes.py, eia.py, elements.py ?, papersize.py, planets.py,
