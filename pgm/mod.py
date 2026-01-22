@@ -55,6 +55,8 @@ if 1:  # Header
         from color import t
         from u import u
         from f import flt
+        from dpprint import PP
+        pp = PP()   # Get pprint with current screen width
         if 0:
             import debug
             debug.SetDebugger()
@@ -298,6 +300,32 @@ if 1:  # Core functionality
             if ext in d["picture_extensions"]:
                 return True
         return False
+    def ConvertAge(seconds):
+        assert seconds >= 0
+        if seconds < u("minute"):
+            return f"{seconds} s"
+        elif seconds < u("hr"):
+            return f"{seconds/u('minute')} min"
+        elif seconds < u("day"):
+            return f"{seconds/u('hr')} hr"
+        elif seconds < u("week"):
+            return f"{seconds/u('day')} day"
+        elif seconds < u("month"):
+            return f"{seconds/u('week')} wk"
+        elif seconds < u("year"):
+            return f"{seconds/u('month')} mo"
+        else:
+            return f"{seconds/u('year')} yr"
+    def DisplayAge():
+        'Convert back to more familiar time units'
+        if len(d["age_interval"]) == 2:
+            start, end = d["age_interval"]
+            s, e = ConvertAge(start), ConvertAge(end)
+            t.print(f"{t.purl}Age argument was {s}, {e}", file=sys.stderr)
+        else:
+            start = d["age_interval"][0]
+            s = ConvertAge(start)
+            t.print(f"{t.purl}Age argument was {s}", file=sys.stderr)
     def FmtTimeDiff(td):
         '''Return s, minutes, hours, days, weeks, months, years for
         a time difference td in seconds.
@@ -367,9 +395,10 @@ if 1:  # Core functionality
         for file in dir.glob(pattern):
             if IgnoreDirectory(*file.parts) and not d["-m"]:
                 continue
-            result = ProcessFile(file)
-            if result is not None:
-                results.append(result)
+            if file.is_file():
+                result = ProcessFile(file)
+                if result is not None:
+                    results.append(result)
         return results
     def PrintReport(results):
         'results = ([age_in_s, file], ...)'
@@ -386,32 +415,6 @@ if 1:  # Core functionality
                 print(str(file), " "*n, age_str)
             else:
                 print(str(file))
-    def ConvertAge(seconds):
-        assert seconds >= 0
-        if seconds < u("minute"):
-            return f"{seconds} s"
-        elif seconds < u("hr"):
-            return f"{seconds/u('minute')} min"
-        elif seconds < u("day"):
-            return f"{seconds/u('hr')} hr"
-        elif seconds < u("week"):
-            return f"{seconds/u('day')} day"
-        elif seconds < u("month"):
-            return f"{seconds/u('week')} wk"
-        elif seconds < u("year"):
-            return f"{seconds/u('month')} mo"
-        else:
-            return f"{seconds/u('year')} yr"
-    def DisplayAge():
-        'Convert back to more familiar time units'
-        if len(d["age_interval"]) == 2:
-            start, end = d["age_interval"]
-            s, e = ConvertAge(start), ConvertAge(end)
-            t.print(f"{t.purl}Age argument was {s}, {e}", file=sys.stderr)
-        else:
-            start = d["age_interval"][0]
-            s = ConvertAge(start)
-            t.print(f"{t.purl}Age argument was {s}", file=sys.stderr)
 
 if __name__ == "__main__":
     nl, inf = "\n", 1e20  # inf is infinite time into the past
