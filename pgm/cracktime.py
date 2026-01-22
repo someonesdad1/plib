@@ -107,6 +107,8 @@ if 1:  # Utility
                 Usage()
         GetColors()
         g.W, g.L = GetScreen()
+        x = flt(0)
+        x.N = d["-d"]
         return args
 if 1:  # Core functionality
     def Calculate(N, P, Hz):
@@ -116,10 +118,10 @@ if 1:  # Core functionality
         num_passwds = 0
         for i in range(1, P):
             num_passwds += N**i
-        crack_time_s = num_passwds / Hz
+        crack_time_s = num_passwds/Hz
         age_of_universe = flt(13.8e9 * u("years"))
         if crack_time_s > age_of_universe:
-            crack_time = crack_time_s / age_of_universe
+            crack_time = crack_time_s/age_of_universe
             aou = True
         else:
             crack_time = AdjustTimeUnits(crack_time_s, un=True)
@@ -127,15 +129,11 @@ if 1:  # Core functionality
         # Report
         print(f"N  = {N} = number of symbols in set")
         print(f"P  = {P} = maximum number of symbols in password")
-        print(f"Hz = {P} computation operations per second")
+        Hz.u = True
+        print(f"Hz = {Hz.sci} computation operations per second")
         if aou:
-            print(f"t = {crack_time_s} s = time to crack password in s")
-            with crack_time:
-                crack_time.u = True
-                crack_time.N = 2
-                print(
-                    f"  = {crack_time.sci} in units of the estimated age of the universe"
-                )
+            print(f"t = {crack_time_s.sci} s = time to crack password in s")
+            print(f"  = {crack_time.sci} in units of the estimated age of the universe")
         else:
             print(f"t = {crack_time_s} s = time to crack password = {crack_time}")
 if __name__ == "__main__":

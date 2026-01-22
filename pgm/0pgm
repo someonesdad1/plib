@@ -6,10 +6,13 @@ candidates:
 - shop
 - elec
 - math
+- geom
 - sci
 - util
 - lang or text
 - color
+- health/medicine
+- diy
 
 2by.py	Information on standard '2 by' lumber
 6033.py	6033A power supply utility

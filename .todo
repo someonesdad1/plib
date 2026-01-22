@@ -4,6 +4,7 @@
         - 12 weeks = 3 months
         - Do on 2 folios on one side of the sheet.  This gives a calendar and one blank
           folio, which is quite a bit of room for my needs.
+        - Put in small text "dori.py" so I know where the script is
     - Utility to fix python file formatting:  fix """ stuff and delete blank lines.  Run
       the fix first on a copy and make sure the script still works before making the
       change.
@@ -13,11 +14,8 @@
     - Core /plib work
         - pgm is awfully crowded.  Should I have a number of subdirectories?  Some
           candidates would be
-            - shop
-            - elec
-            - math
-            - sci
-            - util
+            - shop elec math sci util lang_or_text color
+
         - See if every file can have a gist element in _pgminfo:  this would be a one
           line description of the file's field and purpose.  This would be first and be
           just before the description, which could contain descriptive details.
@@ -53,6 +51,7 @@
             - tee.py:  rename Print to teeprint and move to e.g. util.py.  Note it's
               only used so far in 0test.py.
             - waveform.py needs a goodly amount of work to fix lint problems
+            - pgm/dia.py:  move all the size information to a module in /plib
         - Module usage statistics
             - It would be nice to use some scheme to keep track of which modules get
               the most use.  It could be something as simple as open(file,
@@ -112,7 +111,14 @@
               colors I use and an attribute to turn the escape codes on and off all at
               once.
         - colornames0:  it might make more sense to have a python module define these
-          colors
+          colors. Or just stick them directly in color.py
+        - Write a script that searches for the following color names to identify old
+          kolor.py stuff still around.  It will also have a line with "import" and
+          "color".
+            - yellow, green, white, red, cyan, magenta, black
+            - lyellow, lgreen, lwhite, lred, lcyan, lmagenta
+            - Look for '.fg' and '.bg' and 'C.' when there's a line that contains
+              'import' and 'color'
 
     - pgm/python_perf.py
         - Update to modern formatting

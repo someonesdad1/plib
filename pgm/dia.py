@@ -1,4 +1,4 @@
-"""
+'''
 
 - To do
     - This script and de.py need to have functionalities combined
@@ -17,10 +17,9 @@
     - Update color
         - Change the printout to show negative deviations in red and
           positive deviations in green
-
+          
 General-purpose diameter/length finding utility.
-"""
-
+'''
 if 1:  # Header
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -41,37 +40,31 @@ if 1:  # Header
     from fractions import Fraction
     from math import *
     from decimal import Decimal
-
     # Custom imports
     from wrap import dedent
     from u import u, ParseUnit
     from frange import frange, Sequence
     from sig import sig
     from f import flt
-
     if 1:
         have_color = True
         from color import Color, TRM as t
-
         t.always = True
     else:
         try:
             import color as c
-
             have_color = True
         except ImportError:
             have_color = False
     # Global variables
     ii = isinstance
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Manpage():
         print(
-            dedent(f"""
+            dedent(f'''
         I use this script as a helper for shop tasks.  Here are some examples:
  
             - Form a circle from wire: I have some music wire that I want to form into a circle of
@@ -122,14 +115,13 @@ if 1:  # Utility
             MH    "Machinery's Handbook", 19th ed., 1971 (1973 printing)
             TAD   "Universal Reference Calculator", TAD Inc., 1964
         or various web sites attributed in the code.
-        """)
+        ''')
         )
         exit(0)
-
     def Usage(d, status=1):
         name, tol = sys.argv[0], d["-t"]
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {name} [options] diameter [unit]
           Identifies dimensions that might be close to some "standard" size, such as fractions of
           an inch, numbered drills, millimeters, or on-hand socket sizes.  Use -f to include the
@@ -158,10 +150,9 @@ if 1:  # Utility
                     the indicated percentage.
             -t p    Tolerance in % for searching [{tol}]
             -u u    Default measurement unit [{d["-u"]}]
-        """)
+        ''')
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = False  # Show all dimensions
         d["-c"] = True  # Show results in color
@@ -221,9 +212,8 @@ if 1:  # Utility
         if not (d["-a"] or d["-k"]) and not args:
             Usage(d)
         return args
-
     def RoundOff(number, digits=14):
-        """Round the significand of number to the indicated number of digits
+        '''Round the significand of number to the indicated number of digits
         and return the number suitably rounded (integers are return
         untransformed).  The desire is to round things such as:
             745.6998719999999  --> 745.699872
@@ -236,7 +226,7 @@ if 1:  # Utility
         physical constants listed at NIST to about 14 significant figures).
         However, be careful if you set digits to much less than 15, as you may
         lose some significance in some of the conversion factors.
-        """
+        '''
         # Format the number to a string using scientific notation and pick off
         # the significand, which will be a string representing a number between
         # 1 and 10.  This is converted to a Decimal, which is then passed to
@@ -257,25 +247,23 @@ if 1:  # Utility
         if e < 0:
             return float(significand / factor)
         return float(significand * factor)
-
     def SignSignificandExponent(x, digits=15):
-        """Returns a tuple (sign, mantissa, exponent) of a floating point
+        '''Returns a tuple (sign, mantissa, exponent) of a floating point
         number x.
-        """
+        '''
         s = ("%%.%de" % digits) % abs(float(x))
         return (1 - 2 * (x < 0), float(s[0 : digits + 2]), int(s[digits + 3 :]))
-
     def SignificantFiguresS(value, digits=3, exp_compress=True):
-        """Returns a string representing the number value rounded to
+        '''Returns a string representing the number value rounded to
         a specified number of significant figures.  The number is
         converted to a string, then rounded and returned as a string.
         If you want it back as a number, use float() on the string.
         If exp_compress is true, the exponent has leading zeros
         removed.
-
+        
         The following types of printouts can be gotten using this function
         and native python formats:
-
+        
                 A              B               C               D
             3.14e-12       3.14e-012       3.14e-012       3.14e-012
             3.14e-11       3.14e-011       3.14e-011       3.14e-011
@@ -302,12 +290,12 @@ if 1:  # Utility
             3.14e+10       3.14e+010       3.14e+010   31400000000.0
             3.14e+11       3.14e+011       3.14e+011  314000000000.0
             3.14e+12       3.14e+012       3.14e+012       3.14e+012
-
+            
         A:  SignificantFiguresS(x, 3)
         B:  SignificantFiguresS(x, 3, 0)
         C:  "%.3g" % x
         D:  float(SignificantFiguresS(x, 3))
-        """
+        '''
         if digits < 1 or digits > 15:
             msg = "Number of significant figures must be >= 1 and <= 15"
             raise ValueError(msg)
@@ -316,28 +304,22 @@ if 1:  # Utility
         neg = "-" if sign < 0 else ""
         e = "e%+d" % exponent if exp_compress else "e%+04d" % exponent
         return neg + (fmt % significand) + e
-
     def SignificantFigures(value, figures=3):
-        """Rounds a value to specified number of significant figures.
+        '''Rounds a value to specified number of significant figures.
         Returns a float.
-        """
+        '''
         return float(SignificantFiguresS(value, figures))
-
-
 if 1:  # Size information
-
     class Size(object):
-        """Encapsulate a diameter or length of something in meters."""
-
+        '''Encapsulate a diameter or length of something in meters.'''
         tolerance_pct = None
         # Set to a dictionary of string to color conversions to get color
         # console printing.
         colors = None
-
         def __init__(self, category, size, dia):
-            """category and size are strings; dia is a float or int that is the
+            '''category and size are strings; dia is a float or int that is the
             diameter in m.
-            """
+            '''
             assert ii(category, str)
             assert ii(size, str)
             assert ii(dia, (int, float))
@@ -347,9 +329,8 @@ if 1:  # Size information
             if not dia or dia < 0:
                 raise ValueError("dia must be > 0")
             self._allowed = (Size, int, float)
-
         def color(self):
-            """Set a color to use for printing out."""
+            '''Set a color to use for printing out.'''
             if 1:
                 if Size.colors is not None:
                     if " skt" in self._category:
@@ -366,61 +347,49 @@ if 1:  # Size information
                         c.fg(Size.colors[self._category])
                     else:
                         c.normal()
-
         @property
         def category(self):
             return self._category
-
         @property
         def size(self):
             return self._size
-
         @property
         def dia(self):
             return self._dia
-
         def _check_type(self, other):
             if not ii(other, self._allowed):
                 raise TypeError("'other' must be a Size object or number")
-
         def __lt__(self, other):
             self._check_type(other)
             if ii(other, Size):
                 return self._dia < other._dia
             else:
                 return self._dia < other
-
         def __le__(self, other):
             self._check_type(other)
             if ii(other, Size):
                 return self._dia <= other._dia
             else:
                 return self._dia <= other
-
         def __eq__(self, other):
             self._check_type(other)
             if ii(other, Size):
                 return self._dia == other._dia
             else:
                 return self._dia == other
-
         def __ne__(self, other):
             return not (self._dia == other._dia)
-
         def __str__(self):
             return "Size(" + self._category + ", " + self._size + ")"
-
         def __repr__(self):
             return str(self)
-
         def within(self, x):
-            """Return True if x is within the set tolerance of this object's
+            '''Return True if x is within the set tolerance of this object's
             diameter.
-            """
+            '''
             tol = Size.tolerance_pct / 100
             low, high = (1 - tol) * self._dia, (1 + tol) * self._dia
             return low <= x <= high
-
     def GetData(opts):
         'Create a list of Size objects and put in opts["sizes"]'
         # MH = Machinery's Handbook, 19th ed.
@@ -459,91 +428,15 @@ if 1:  # Size information
         d = []  # List of Size objects
         Check.debug = True  # If True, do simple checking of entered data
         # Number drills 1-80
-        sizes = Check(
-            (
-                0,
-                2280,
-                2210,
-                2130,
-                2090,
-                2055,
-                2040,
-                2010,
-                1990,
-                1960,
-                1935,
-                1910,
-                1890,
-                1850,
-                1820,
-                1800,
-                1770,
-                1730,
-                1695,
-                1660,
-                1610,
-                1590,
-                1570,
-                1540,
-                1520,
-                1495,
-                1470,
-                1440,
-                1405,
-                1360,
-                1285,
-                1200,
-                1160,
-                1130,
-                1110,
-                1100,
-                1065,
-                1040,
-                1015,
-                995,
-                980,
-                960,
-                935,
-                890,
-                860,
-                820,
-                810,
-                785,
-                760,
-                730,
-                700,
-                670,
-                635,
-                595,
-                550,
-                520,
-                465,
-                430,
-                420,
-                410,
-                400,
-                390,
-                380,
-                370,
-                360,
-                350,
-                330,
-                320,
-                310,
-                293,
-                280,
-                260,
-                250,
-                240,
-                225,
-                210,
-                200,
-                180,
-                160,
-                145,
-                135,
-            )
-        )
+        sizes = Check((
+                0, 2280, 2210, 2130, 2090, 2055, 2040, 2010, 1990, 1960, 1935, 1910,
+                1890, 1850, 1820, 1800, 1770, 1730, 1695, 1660, 1610, 1590, 1570, 1540,
+                1520, 1495, 1470, 1440, 1405, 1360, 1285, 1200, 1160, 1130, 1110, 1100,
+                1065, 1040, 1015, 995, 980, 960, 935, 890, 860, 820, 810, 785, 760, 730,
+                700, 670, 635, 595, 550, 520, 465, 430, 420, 410, 400, 390, 380, 370,
+                360, 350, 330, 320, 310, 293, 280, 260, 250, 240, 225, 210, 200, 180,
+                160, 145, 135,
+        ))
         for i, sz in enumerate(sizes):
             if not i:
                 continue
@@ -552,61 +445,13 @@ if 1:  # Size information
             d.append(s)
         # AWG (MH pg 464), units are 1e-5 inches.  Also known as the Brown &
         # Sharpe Gauge.
-        sizes = Check(
-            (
-                32490,
-                28930,
-                25760,
-                22940,
-                20430,
-                18190,
-                16200,
-                14430,
-                12850,
-                11440,
-                10190,
-                9070,
-                8080,
-                7200,
-                6410,
-                5710,
-                5080,
-                4530,
-                4030,
-                3590,
-                3200,
-                2850,
-                2530,
-                2260,
-                2010,
-                1790,
-                1590,
-                1420,
-                1260,
-                1130,
-                1000,
-                893,
-                795,
-                708,
-                630,
-                561,
-                500,
-                445,
-                396,
-                353,
-                314,
-                280,
-                249,
-                222,
-                198,
-                176,
-                157,
-                140,
-                124,
-                111,
-                99,
-            )
-        )
+        sizes = Check((
+                32490, 28930, 25760, 22940, 20430, 18190, 16200, 14430, 12850, 11440,
+                10190, 9070, 8080, 7200, 6410, 5710, 5080, 4530, 4030, 3590, 3200, 2850,
+                2530, 2260, 2010, 1790, 1590, 1420, 1260, 1130, 1000, 893, 795, 708,
+                630, 561, 500, 445, 396, 353, 314, 280, 249, 222, 198, 176, 157, 140,
+                124, 111, 99,
+        ))
         for i, sz in enumerate(sizes):
             dia_m = RoundOff(1e-5 * sz * u("inches"))
             s = Size("AWG", str(i), dia_m)
@@ -625,61 +470,12 @@ if 1:  # Size information
             d.append(Size("AWG", "6/0", dia_m))
         # US Steel wire gauge [MH pg 463, 464] (also known as Washburn & Moen,
         # American Steel and Wire Company gauge, and Roebling Wire Gauge).
-        sizes = Check(
-            (
-                3065,
-                2830,
-                2625,
-                2437,
-                2253,
-                2070,
-                1920,
-                1770,
-                1620,
-                1483,
-                1350,
-                1205,
-                1055,
-                915,
-                800,
-                720,
-                625,
-                540,
-                475,
-                410,
-                348,
-                317,
-                286,
-                258,
-                230,
-                204,
-                181,
-                173,
-                162,
-                150,
-                140,
-                132,
-                128,
-                118,
-                104,
-                95,
-                90,
-                85,
-                80,
-                75,
-                70,
-                66,
-                62,
-                60,
-                58,
-                55,
-                52,
-                50,
-                48,
-                46,
-                44,
-            )
-        )
+        sizes = Check((
+                3065, 2830, 2625, 2437, 2253, 2070, 1920, 1770, 1620, 1483, 1350, 1205,
+                1055, 915, 800, 720, 625, 540, 475, 410, 348, 317, 286, 258, 230, 204,
+                181, 173, 162, 150, 140, 132, 128, 118, 104, 95, 90, 85, 80, 75, 70, 66,
+                62, 60, 58, 55, 52, 50, 48, 46, 44,
+        ))
         name = "Washburn & Moen wire gauge"
         for i, sz in enumerate(sizes):
             dia_m = RoundOff(1e-4 * sz * u("inches"))
@@ -701,38 +497,11 @@ if 1:  # Size information
             dia_m = RoundOff(0.331 * u("inches"))
             d.append(Size(name, "2/0", dia_m))
         # Sheet steel 3-27
-        sizes = Check(
-            (
-                0,
-                0,
-                0,
-                2391,
-                2242,
-                2092,
-                1943,
-                1793,
-                1644,
-                1495,
-                1345,
-                1196,
-                1046,
-                897,
-                747,
-                673,
-                598,
-                538,
-                478,
-                418,
-                359,
-                329,
-                299,
-                269,
-                239,
-                209,
-                179,
+        sizes = Check((
+                0, 0, 0, 2391, 2242, 2092, 1943, 1793, 1644, 1495, 1345, 1196, 1046,
+                897, 747, 673, 598, 538, 478, 418, 359, 329, 299, 269, 239, 209, 179,
                 164,
-            )
-        )
+        ))
         for i, sz in enumerate(sizes):
             if i < 3:
                 continue
@@ -742,47 +511,11 @@ if 1:  # Size information
                 d.append(s)
         # Birmingham Gauge [MH pg 463, 464] (aka Stub's Iron Wire Gauge; do not
         # confuse with Stub's Steel Wire Gauge).
-        sizes = Check(
-            (
-                3400,
-                3000,
-                2840,
-                2590,
-                2380,
-                2200,
-                2030,
-                1800,
-                1650,
-                1480,
-                1340,
-                1200,
-                1090,
-                950,
-                830,
-                720,
-                650,
-                580,
-                490,
-                420,
-                350,
-                320,
-                280,
-                250,
-                220,
-                200,
-                180,
-                160,
-                140,
-                130,
-                120,
-                100,
-                90,
-                80,
-                70,
-                50,
-                40,
-            )
-        )
+        sizes = Check((
+                3400, 3000, 2840, 2590, 2380, 2200, 2030, 1800, 1650, 1480, 1340, 1200,
+                1090, 950, 830, 720, 650, 580, 490, 420, 350, 320, 280, 250, 220, 200,
+                180, 160, 140, 130, 120, 100, 90, 80, 70, 50, 40,
+        ))
         name = "Birmingham Gauge"
         for i, sz in enumerate(sizes):
             dia_m = RoundOff(1e-4 * sz * u("inches"))
@@ -800,90 +533,14 @@ if 1:  # Size information
             dia_m = RoundOff(0.38 * u("inches"))
             d.append(Size(name, "2/0", dia_m))
         # Stubs Steel Wire Gauge [MH pg 463, 464]
-        sizes = Check(
-            (
-                227,
-                219,
-                212,
-                207,
-                204,
-                201,
-                199,
-                197,
-                194,
-                191,
-                188,
-                185,
-                182,
-                180,
-                178,
-                175,
-                172,
-                168,
-                164,
-                161,
-                157,
-                155,
-                153,
-                151,
-                148,
-                146,
-                143,
-                139,
-                134,
-                127,
-                120,
-                115,
-                112,
-                110,
-                108,
-                106,
-                103,
-                101,
-                99,
-                97,
-                95,
-                92,
-                88,
-                85,
-                81,
-                79,
-                77,
-                75,
-                72,
-                69,
-                66,
-                63,
-                58,
-                55,
-                50,
-                45,
-                42,
-                41,
-                40,
-                39,
-                38,
-                37,
-                36,
-                35,
-                33,
-                32,
-                31,
-                30,
-                29,
-                27,
-                26,
-                24,
-                23,
-                22,
-                20,
-                18,
-                16,
-                15,
-                14,
+        sizes = Check( (
+                227, 219, 212, 207, 204, 201, 199, 197, 194, 191, 188, 185, 182, 180,
+                178, 175, 172, 168, 164, 161, 157, 155, 153, 151, 148, 146, 143, 139,
+                134, 127, 120, 115, 112, 110, 108, 106, 103, 101, 99, 97, 95, 92, 88,
+                85, 81, 79, 77, 75, 72, 69, 66, 63, 58, 55, 50, 45, 42, 41, 40, 39, 38,
+                37, 36, 35, 33, 32, 31, 30, 29, 27, 26, 24, 23, 22, 20, 18, 16, 15, 14,
                 13,
-            )
-        )
+        ))
         name = "Stub's Steel Wire Gauge"
         for i, sz in enumerate(sizes):
             dia_m = RoundOff(1e-3 * sz * u("inches"))
@@ -891,57 +548,11 @@ if 1:  # Size information
             if full:
                 d.append(s)
         # Music Wire Gauge [MH pg 464] (also known as Piano Wire Gauge)
-        sizes = Check(
-            (
-                9,
-                10,
-                11,
-                12,
-                13,
-                14,
-                16,
-                18,
-                20,
-                22,
-                24,
-                26,
-                29,
-                31,
-                33,
-                35,
-                37,
-                39,
-                41,
-                43,
-                45,
-                47,
-                49,
-                51,
-                55,
-                59,
-                63,
-                67,
-                71,
-                75,
-                80,
-                85,
-                90,
-                95,
-                100,
-                106,
-                112,
-                118,
-                124,
-                130,
-                138,
-                146,
-                154,
-                162,
-                170,
-                180,
-            ),
-            neg_slope=False,
-        )
+        sizes = Check((
+                9, 10, 11, 12, 13, 14, 16, 18, 20, 22, 24, 26, 29, 31, 33, 35, 37, 39,
+                41, 43, 45, 47, 49, 51, 55, 59, 63, 67, 71, 75, 80, 85, 90, 95, 100,
+                106, 112, 118, 124, 130, 138, 146, 154, 162, 170, 180,
+        ), neg_slope=False)
         name = "Music Wire Gauge"
         for i, sz in enumerate(sizes):
             dia_m = RoundOff(1e-3 * sz * u("inches"))
@@ -961,49 +572,11 @@ if 1:  # Size information
             dia_m = RoundOff(0.008 * u("inches"))
             d.append(Size(name, "2/0", dia_m))
         # Manufacturer's standard gauge for steel sheet [MH pg 466]
-        sizes = Check(
-            (
-                0,
-                0,
-                0,
-                2391,
-                2242,
-                2092,
-                1943,
-                1793,
-                1644,
-                1495,
-                1345,
-                1196,
-                1046,
-                897,
-                747,
-                673,
-                598,
-                538,
-                478,
-                418,
-                359,
-                329,
-                299,
-                269,
-                239,
-                209,
-                179,
-                164,
-                149,
-                135,
-                120,
-                105,
-                97,
-                90,
-                82,
-                75,
-                67,
-                64,
-                60,
-            )
-        )
+        sizes = Check((
+                0, 0, 0, 2391, 2242, 2092, 1943, 1793, 1644, 1495, 1345, 1196, 1046,
+                897, 747, 673, 598, 538, 478, 418, 359, 329, 299, 269, 239, 209, 179,
+                164, 149, 135, 120, 105, 97, 90, 82, 75, 67, 64, 60,
+        ))
         name = "Mfr's standard gauge for steel sheet"
         for i, sz in enumerate(sizes):
             if i < 3:
@@ -1013,42 +586,11 @@ if 1:  # Size information
             if full:
                 d.append(s)
         # Galvanized sheet gauge [MH pg 466]
-        sizes = Check(
-            (
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                1681,
-                1532,
-                1382,
-                1233,
-                1084,
-                934,
-                785,
-                710,
-                635,
-                575,
-                516,
-                456,
-                396,
-                366,
-                336,
-                306,
-                276,
-                247,
-                217,
-                202,
-                187,
-                172,
-                157,
-                142,
-                134,
-            )
-        )
+        sizes = Check((
+                0, 0, 0, 0, 0, 0, 0, 1681, 1532, 1382, 1233, 1084, 934, 785, 710, 635,
+                575, 516, 456, 396, 366, 336, 306, 276, 247, 217, 202, 187, 172, 157,
+                142, 134,
+        ))
         name = "Galvanized sheet gauge"
         for i, sz in enumerate(sizes):
             if i < 8:
@@ -1058,36 +600,10 @@ if 1:  # Size information
             if full:
                 d.append(s)
         # Zinc sheet gauge [MH pg 466]
-        sizes = Check(
-            (
-                0,
-                0,
-                0,
-                6,
-                8,
-                10,
-                12,
-                14,
-                16,
-                18,
-                20,
-                24,
-                28,
-                32,
-                36,
-                40,
-                45,
-                50,
-                55,
-                60,
-                70,
-                80,
-                90,
-                100,
-                125,
-            ),
-            neg_slope=False,
-        )
+        sizes = Check((
+                0, 0, 0, 6, 8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 36, 40, 45, 50, 55,
+                60, 70, 80, 90, 100, 125,
+        ), neg_slope=False)
         name = "Zinc sheet gauge"
         for i, sz in enumerate(sizes):
             if i < 3:
@@ -1097,61 +613,12 @@ if 1:  # Size information
             if full:
                 d.append(s)
         # British standard wire gauge [MH pg 464]
-        sizes = Check(
-            (
-                3240,
-                3000,
-                2760,
-                2520,
-                2320,
-                2120,
-                1920,
-                1760,
-                1600,
-                1440,
-                1280,
-                1160,
-                1040,
-                920,
-                800,
-                720,
-                640,
-                560,
-                480,
-                400,
-                360,
-                320,
-                280,
-                240,
-                220,
-                200,
-                180,
-                164,
-                148,
-                136,
-                124,
-                116,
-                108,
-                100,
-                92,
-                84,
-                76,
-                68,
-                60,
-                52,
-                48,
-                44,
-                40,
-                36,
-                32,
-                28,
-                24,
-                20,
-                16,
-                12,
-                10,
-            )
-        )
+        sizes = Check((
+                3240, 3000, 2760, 2520, 2320, 2120, 1920, 1760, 1600, 1440, 1280, 1160,
+                1040, 920, 800, 720, 640, 560, 480, 400, 360, 320, 280, 240, 220, 200,
+                180, 164, 148, 136, 124, 116, 108, 100, 92, 84, 76, 68, 60, 52, 48, 44,
+                40, 36, 32, 28, 24, 20, 16, 12, 10,
+        ))
         name = "British Standard Wire Gauge"
         for i, sz in enumerate(sizes):
             dia_m = RoundOff(1e-4 * sz * u("inches"))
@@ -1174,38 +641,12 @@ if 1:  # Size information
             d.append(Size(name, "2/0", dia_m))
         # Hypodermic needles, 7-34 (is equal to the Birminham gauge)
         # From https://en.wikipedia.org/wiki/Needle_gauge_comparison_chart
-        sizes = Check(
-            (
-                0.18,
-                0.165,
-                0.148,
-                0.134,
-                0.12,
-                0.109,
-                0.095,
-                0.083,
-                0.072,
-                0.065,
-                0.058,
-                0.050,
-                0.042,
-                0.03575,
-                0.03225,
-                0.02825,
-                0.02525,
-                0.02225,
-                0.02025,
-                0.01825,
-                0.01625,
-                0.01425,
-                0.01325,
-                0.01225,
-                0.01025,
-                0.00925,
-                0.00825,
-                0.00725,
-            )
-        )
+        sizes = Check((
+                0.18, 0.165, 0.148, 0.134, 0.12, 0.109, 0.095, 0.083, 0.072, 0.065,
+                0.058, 0.050, 0.042, 0.03575, 0.03225, 0.02825, 0.02525, 0.02225,
+                0.02025, 0.01825, 0.01625, 0.01425, 0.01325, 0.01225, 0.01025, 0.00925,
+                0.00825, 0.00725,
+        ))
         name = "Hypodermic needle"
         for i, sz in enumerate(sizes):
             dia_m = RoundOff(sz * u("inches"))
@@ -1314,8 +755,8 @@ if 1:  # Size information
             s = Size("US pipe", sz, dia_m)
             d.append(s)
         # Millimeters
-        for i in Sequence("""0.1:1:0.1 1.5:25:0.5 26:50 55:100:5 110:300:10
-                        350:1000:50"""):
+        for i in Sequence('''0.1:1:0.1 1.5:25:0.5 26:50 55:100:5 110:300:10
+                        350:1000:50'''):
             dia_m = float(i) * u("mm")
             s = Size("Millimeters", str(i), dia_m)
             d.append(s)
@@ -1429,11 +870,10 @@ if 1:  # Size information
             d.append(s)
         opts["sizes"] = d
         Sockets(opts)
-
     def Sockets(opts):
-        """Add the measured diameters of my shop's sockets, bushings, etc. to
+        '''Add the measured diameters of my shop's sockets, bushings, etc. to
         the list.
-        """
+        '''
         d = []
         # Harbor Freight bushing set
         sizes = [
@@ -1790,486 +1230,65 @@ if 1:  # Size information
             d.append(Size(name, sz, dia_m))
             d.append(Size("(length) " + name, sz, length_m))
         opts["sizes"].extend(d)
-
     def Renard(s):
-        """Return the Renard series for s where s is one of R5, R10, R20,
+        '''Return the Renard series for s where s is one of R5, R10, R20,
         R40, R80, R'10, R'20, R'40, R"5, R"10, R"20.  The R' numbers are
         "medium rounded" and the R" numbers are "most rounded".
-
+        
         See https://en.wikipedia.org/wiki/Renard_series.  Charles Renard
         proposed the system in 1877.  It was adopted in 1952 as standard
         ISO 3.
-
+        
         The nominal formula for series with number n is 10**(i/n) for i from 0
         to n; the values need to be rounded and it's not a simple rounding
         algorithm.
-        """
+        '''
         d = {
             "R5": [1, 1.6, 2.5, 4, 6.3],
             "R10": [1, 1.25, 1.6, 2, 2.5, 3.15, 4, 5, 6.3, 8],
-            "R20": [
-                1,
-                1.25,
-                1.6,
-                2,
-                2.5,
-                3.15,
-                4,
-                5,
-                6.3,
-                8,
-                1.12,
-                1.4,
-                1.8,
-                2.24,
-                2.8,
-                3.55,
-                4.5,
-                5.6,
-                7.1,
-                9,
-            ],
-            "R40": [
-                1,
-                1.25,
-                1.6,
-                2,
-                2.5,
-                3.15,
-                4,
-                5,
-                6.3,
-                8,
-                1.06,
-                1.32,
-                1.7,
-                2.12,
-                2.65,
-                3.35,
-                4.25,
-                5.3,
-                6.7,
-                8.5,
-                1.12,
-                1.4,
-                1.8,
-                2.24,
-                2.8,
-                3.55,
-                4.5,
-                5.6,
-                7.1,
-                9,
-                1.18,
-                1.5,
-                1.9,
-                2.36,
-                3,
-                3.75,
-                4.75,
-                6,
-                7.5,
-                9.5,
-            ],
-            "R80": [
-                1,
-                1.25,
-                1.6,
-                2,
-                2.5,
-                3.15,
-                4,
-                5,
-                6.3,
-                8,
-                1.03,
-                1.28,
-                1.65,
-                2.06,
-                2.58,
-                3.25,
-                4.12,
-                5.15,
-                6.5,
-                8.25,
-                1.06,
-                1.32,
-                1.7,
-                2.12,
-                2.65,
-                3.35,
-                4.25,
-                5.3,
-                6.7,
-                8.5,
-                1.09,
-                1.36,
-                1.75,
-                2.18,
-                2.72,
-                3.45,
-                4.37,
-                5.45,
-                6.9,
-                8.75,
-                1.12,
-                1.4,
-                1.8,
-                2.24,
-                2.8,
-                3.55,
-                4.5,
-                5.6,
-                7.1,
-                9,
-                1.15,
-                1.45,
-                1.85,
-                2.3,
-                2.9,
-                3.65,
-                4.62,
-                5.8,
-                7.3,
-                9.25,
-                1.18,
-                1.5,
-                1.9,
-                2.36,
-                3,
-                3.75,
-                4.75,
-                6,
-                7.5,
-                9.5,
-                1.22,
-                1.55,
-                1.95,
-                2.43,
-                3.07,
-                3.87,
-                4.87,
-                6.15,
-                7.75,
-                9.75,
-            ],
+            "R20": [1, 1.25, 1.6, 2, 2.5, 3.15, 4, 5, 6.3, 8, 1.12, 1.4, 1.8,
+                2.24, 2.8, 3.55, 4.5, 5.6, 7.1, 9, ],
+            "R40": [1, 1.25, 1.6, 2, 2.5, 3.15, 4, 5, 6.3, 8, 1.06, 1.32, 1.7, 2.12,
+                2.65, 3.35, 4.25, 5.3, 6.7, 8.5, 1.12, 1.4, 1.8, 2.24, 2.8, 3.55, 4.5,
+                5.6, 7.1, 9, 1.18, 1.5, 1.9, 2.36, 3, 3.75, 4.75, 6, 7.5, 9.5, ],
+            "R80": [1, 1.25, 1.6, 2, 2.5, 3.15, 4, 5, 6.3, 8, 1.03, 1.28, 1.65, 2.06,
+                2.58, 3.25, 4.12, 5.15, 6.5, 8.25, 1.06, 1.32, 1.7, 2.12, 2.65, 3.35,
+                4.25, 5.3, 6.7, 8.5, 1.09, 1.36, 1.75, 2.18, 2.72, 3.45, 4.37, 5.45,
+                6.9, 8.75, 1.12, 1.4, 1.8, 2.24, 2.8, 3.55, 4.5, 5.6, 7.1, 9, 1.15, 1.45,
+                1.85, 2.3, 2.9, 3.65, 4.62, 5.8, 7.3, 9.25, 1.18, 1.5, 1.9, 2.36, 3, 3.75,
+                4.75, 6, 7.5, 9.5, 1.22, 1.55, 1.95, 2.43, 3.07, 3.87, 4.87, 6.15, 7.75,
+                9.75],
             # Medium rounded
             "R'10": [1, 1.25, 1.6, 2, 2.5, 3.2, 4, 5, 6.3, 8],
-            "R'20": [
-                1,
-                1.25,
-                1.6,
-                2,
-                2.5,
-                3.2,
-                4,
-                5,
-                6.3,
-                8,
-                1.1,
-                1.4,
-                1.8,
-                2.2,
-                2.8,
-                3.6,
-                4.5,
-                5.6,
-                7.1,
-                9,
-            ],
-            "R'40": [
-                1,
-                1.25,
-                1.6,
-                2,
-                2.5,
-                3.2,
-                4,
-                5,
-                6.3,
-                8,
-                1.05,
-                1.3,
-                1.7,
-                2.1,
-                2.6,
-                3.4,
-                4.2,
-                5.3,
-                6.7,
-                8.5,
-                1.1,
-                1.4,
-                1.8,
-                2.2,
-                2.8,
-                3.6,
-                4.5,
-                5.6,
-                7.1,
-                9,
-                1.2,
-                1.5,
-                1.9,
-                2.4,
-                3,
-                3.8,
-                4.8,
-                6,
-                7.5,
-                9.5,
-            ],
+            "R'20": [1, 1.25, 1.6, 2, 2.5, 3.2, 4, 5, 6.3, 8, 1.1, 1.4, 1.8, 2.2, 2.8, 3.6,
+                4.5, 5.6, 7.1, 9, ],
+            "R'40": [ 1, 1.25, 1.6, 2, 2.5, 3.2, 4, 5, 6.3, 8, 1.05, 1.3, 1.7, 2.1, 2.6, 3.4,
+                4.2, 5.3, 6.7, 8.5, 1.1, 1.4, 1.8, 2.2, 2.8, 3.6, 4.5, 5.6, 7.1, 9, 1.2, 1.5,
+                1.9, 2.4, 3, 3.8, 4.8, 6, 7.5, 9.5],
             # Most rounded
             'R"5': [1, 1.5, 2.5, 4, 6],
             'R"10': [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8],
-            'R"20': [
-                1,
-                1.2,
-                1.5,
-                2,
-                2.5,
-                3,
-                4,
-                5,
-                6,
-                8,
-                1,
-                1.2,
-                1.5,
-                2,
-                2.5,
-                3,
-                4,
-                5,
-                6,
-                8,
-            ],
+            'R"20': [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8],
         }
         u = d[s]
         u.sort()
         return u
-
     def E_Series(n):
-        e24 = [
-            10,
-            12,
-            15,
-            18,
-            22,
-            27,
-            33,
-            39,
-            47,
-            56,
-            68,
-            82,
-            11,
-            13,
-            16,
-            20,
-            24,
-            30,
-            36,
-            43,
-            51,
-            62,
-            75,
-            91,
-        ]
-        e192 = [
-            100,
-            121,
-            147,
-            178,
-            215,
-            261,
-            316,
-            383,
-            464,
-            562,
-            681,
-            825,
-            101,
-            123,
-            149,
-            180,
-            218,
-            264,
-            320,
-            388,
-            470,
-            569,
-            690,
-            835,
-            102,
-            124,
-            150,
-            182,
-            221,
-            267,
-            324,
-            392,
-            475,
-            576,
-            698,
-            845,
-            104,
-            126,
-            152,
-            184,
-            223,
-            271,
-            328,
-            397,
-            481,
-            583,
-            706,
-            856,
-            105,
-            127,
-            154,
-            187,
-            226,
-            274,
-            332,
-            402,
-            487,
-            590,
-            715,
-            866,
-            106,
-            129,
-            156,
-            189,
-            229,
-            277,
-            336,
-            407,
-            493,
-            597,
-            723,
-            876,
-            107,
-            130,
-            158,
-            191,
-            232,
-            280,
-            340,
-            412,
-            499,
-            604,
-            732,
-            887,
-            109,
-            132,
-            160,
-            193,
-            234,
-            284,
-            344,
-            417,
-            505,
-            612,
-            741,
-            898,
-            110,
-            133,
-            162,
-            196,
-            237,
-            287,
-            348,
-            422,
-            511,
-            619,
-            750,
-            909,
-            111,
-            135,
-            164,
-            198,
-            240,
-            291,
-            352,
-            427,
-            517,
-            626,
-            759,
-            920,
-            113,
-            137,
-            165,
-            200,
-            243,
-            294,
-            357,
-            432,
-            523,
-            634,
-            768,
-            931,
-            114,
-            138,
-            167,
-            203,
-            246,
-            298,
-            361,
-            437,
-            530,
-            642,
-            777,
-            942,
-            115,
-            140,
-            169,
-            205,
-            249,
-            301,
-            365,
-            442,
-            536,
-            649,
-            787,
-            953,
-            117,
-            142,
-            172,
-            208,
-            252,
-            305,
-            370,
-            448,
-            542,
-            657,
-            796,
-            965,
-            118,
-            143,
-            174,
-            210,
-            255,
-            309,
-            374,
-            453,
-            549,
-            665,
-            806,
-            976,
-            120,
-            145,
-            176,
-            213,
-            258,
-            312,
-            379,
-            459,
-            556,
-            673,
-            816,
-            988,
-        ]
+        e24 = [10, 12, 15, 18, 22, 27, 33, 39, 47, 56, 68, 82, 11, 13, 16, 20, 24, 30,
+            36, 43, 51, 62, 75, 91]
+        e192 = [100, 121, 147, 178, 215, 261, 316, 383, 464, 562, 681, 825, 101, 123, 149,
+            180, 218, 264, 320, 388, 470, 569, 690, 835, 102, 124, 150, 182, 221, 267,
+            324, 392, 475, 576, 698, 845, 104, 126, 152, 184, 223, 271, 328, 397, 481,
+            583, 706, 856, 105, 127, 154, 187, 226, 274, 332, 402, 487, 590, 715, 866,
+            106, 129, 156, 189, 229, 277, 336, 407, 493, 597, 723, 876, 107, 130, 158,
+            191, 232, 280, 340, 412, 499, 604, 732, 887, 109, 132, 160, 193, 234, 284,
+            344, 417, 505, 612, 741, 898, 110, 133, 162, 196, 237, 287, 348, 422, 511,
+            619, 750, 909, 111, 135, 164, 198, 240, 291, 352, 427, 517, 626, 759, 920,
+            113, 137, 165, 200, 243, 294, 357, 432, 523, 634, 768, 931, 114, 138, 167,
+            203, 246, 298, 361, 437, 530, 642, 777, 942, 115, 140, 169, 205, 249, 301,
+            365, 442, 536, 649, 787, 953, 117, 142, 172, 208, 252, 305, 370, 448, 542,
+            657, 796, 965, 118, 143, 174, 210, 255, 309, 374, 453, 549, 665, 806, 976,
+            120, 145, 176, 213, 258, 312, 379, 459, 556, 673, 816, 988, ]
         e24.sort()
         e192.sort()
         e24 = [RoundOff(i / 10) for i in e24]
@@ -2288,12 +1307,9 @@ if 1:  # Size information
             return e192
         else:
             raise ValueError("'{}' is bad n value".format(n))
-
-
 if 1:  # Core functionality
-
     def ImproperFraction(f):
-        """Return a string form of an improper faction."""
+        '''Return a string form of an improper faction.'''
         if ii(f, int):
             return str(f)
         if not ii(f, Fraction):
@@ -2302,11 +1318,10 @@ if 1:  # Core functionality
             return str(f)
         ip, remainder = divmod(f.numerator, f.denominator)
         return "{}-{}/{}".format(ip, remainder, f.denominator)
-
     def Check(seq, neg_slope=True):
-        """If Check.debug is True, check that the sequence is monotonic (used
+        '''If Check.debug is True, check that the sequence is monotonic (used
         to detect typing errors).
-        """
+        '''
         if not Check.debug:
             return seq
         for i, num in enumerate(seq):
@@ -2321,22 +1336,20 @@ if 1:  # Core functionality
                     msg = str(num) + " is <= " + str(seq[i - 1])
                     raise ValueError(msg)
         return seq
-
     def Search(dia_in_m, d):
-        """Return a sorted container of all the sizes that match the indicated
+        '''Return a sorted container of all the sizes that match the indicated
         diameter.
-        """
+        '''
         found = []
         for sz in d["sizes"]:
             if sz.within(dia_in_m):
                 found.append(sz)
         found.sort()
         return found
-
     def DimensionlessNumbers():
-        """Return a list of the dimensionless numbers.  Note they'll be Size
+        '''Return a list of the dimensionless numbers.  Note they'll be Size
         objects.
-        """
+        '''
         d = []
         # Renard numbers
         for series, name in (
@@ -2379,11 +1392,10 @@ if 1:  # Core functionality
             sz = Size("sqrt(2)**{}".format(i), str(val), val)
             d.append(sz)
         return d
-
     def Dimensionless(value, d):
-        """value is a dimensionless number.  Get its exponent and significand
+        '''value is a dimensionless number.  Get its exponent and significand
         and print dimensionless numbers that are close to it.
-        """
+        '''
         u = "{:.15e}".format(abs(value))
         s, e = u.split("e")
         exponent = int(e)
@@ -2396,11 +1408,11 @@ if 1:  # Core functionality
         # Print report
         tolerance = d["-t"]
         print(
-            dedent(f"""
+            dedent(f'''
         Search for dimensionless number = {value}
         Significand = {significand}
         Search tolerance = {tolerance}%
-        Found values:""")
+        Found values:''')
         )
         # Get maximum size of size strings
         maxsz = 0
@@ -2412,9 +1424,8 @@ if 1:  # Core functionality
             print("  ", "{0:{1}}".format(str(sz), maxsz), end=" " * 4)
             print(item.category)
         exit()
-
     def Report(value, unit, d):
-        """Print a report of the nearest numbers."""
+        '''Print a report of the nearest numbers.'''
         if d["-d"]:
             Dimensionless(value, d)
             return
@@ -2459,7 +1470,6 @@ if 1:  # Core functionality
                 print(t.n, end="")
             else:
                 c.normal()
-
     def ShowAll(d):
         if d["-d"]:
             # Show the dimensionless numbers
@@ -2488,11 +1498,10 @@ if 1:  # Core functionality
                         print(t.n, end="")
                     else:
                         c.normal()
-
     def StringForm(number, d):
-        """Return the string form of the number rounded to the indicated number
+        '''Return the string form of the number rounded to the indicated number
         of significant figures.
-        """
+        '''
         val = RoundOff(SignificantFigures(number, d["-n"]))
         s = str(val)
         # Remove trailing zeros
@@ -2502,7 +1511,6 @@ if 1:  # Core functionality
         if s[-1] == ".":
             s = s[:-1]
         return s
-
     def ShowSockets(d):
         all = d["sizes"]
         all.sort()
@@ -2520,8 +1528,6 @@ if 1:  # Core functionality
                     print(t.n, end="")
                 else:
                     c.normal()
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
