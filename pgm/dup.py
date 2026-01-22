@@ -98,7 +98,7 @@ if 1:  # Utility
           -L      Don't report hard links
           -l      Follow symbolic links
           -m      Include Mercurial directories
-          -r      Do not act recursively.
+          -r      Act recursively
           -t n    Ignore files <= n bytes (OK to append k, M, G, T)
           -x re   Ignore specified file regexp.  Can have multiple -x's.
           -X re   Ignore specified directory regexp.  Can have multiple -X's.
@@ -117,17 +117,24 @@ if 1:  # Utility
         d["-L"] = False  # Do not report hard links
         d["-l"] = False  # Dereference symbolic links
         d["-m"] = False  # Do not ignore Mercurial directories
-        d["-r"] = False  # Disable recursion
+        d["-r"] = False  # Enable recursion
         d["-t"] = -1     # Threshold for size, in bytes
         d["-x"] = set()  # File regexps to ignore
         d["-X"] = set()  # Directory regexps to ignore
         d["-z"] = False  # Do not ignore zero-length files
-        # Ignore some common files I use
-        d["-x"].add(re.compile(r"\.vi"))
-        d["-x"].add(re.compile(r"\.z"))
-        d["-x"].add(re.compile(r"\.todo"))
-        d["-x"].add(re.compile(r"z"))
-        d["-x"].add(re.compile(r"a"))
+        if 0:   # Ignore some common files I use
+            d["-x"].add(re.compile(r"\.vi"))
+            d["-x"].add(re.compile(r"\.z"))
+            d["-x"].add(re.compile(r"\.todo"))
+            d["-x"].add(re.compile(r"z"))
+            d["-x"].add(re.compile(r"a"))
+        if 1:   # Ignore some common directories
+            d["-X"].add(re.compile(r"\.ruff_cache"))
+            d["-X"].add(re.compile(r"\.cache"))
+            d["-X"].add(re.compile(r"\.gnupg"))
+            d["-X"].add(re.compile(r"\.local"))
+            d["-X"].add(re.compile(r"\.ssh"))
+            d["-X"].add(re.compile(r"\.vimfiles"))
         try:
             optlist, dirs = getopt.getopt(sys.argv[1:], "b:cdFfghLlmrt:x:X:z")
         except getopt.GetoptError as str:
@@ -139,11 +146,11 @@ if 1:  # Utility
                 d[o] = not d[o]
             elif o == "-b":
                 try:
-                    d["-b"] = int(opt[1])
+                    d[o] = int(a)
                 except Exception:
-                    Error("'%s' is a bad integer" % opt[1])
-                if d["-b"] < 0:
-                    Error("-b option's argument must be >= 0" % opt[1])
+                    Error(f"{a!r} is a bad integer for {o} option")
+                if d[o] < 0:
+                    Error(f"{o} option's argument must be >= 0")
             elif o == "-F":
                 d["-F"] = True
                 d["-f"] = True
@@ -168,9 +175,7 @@ if 1:  # Utility
             Usage(1)
         if d["-d"]:
             Dbg("Options set from command line:")
-            keys = list(d.keys())
-            keys.sort()
-            for k in keys:
+            for k in d.keys():
                 Dbg(f"  {k:4s} {d[k]}")
         return dirs
 if 1:  # Core functionality
@@ -212,105 +217,92 @@ if 1:  # Core functionality
             return
         # Get a list of all the files
         files = []
-        pattern = "*" if d["-r"] else "**/*"
+        pattern = "**/*" if d["-r"] else "*"
         for file in dir.glob(pattern):
-            print(file)
-        return
-
-        for root, dirs, files in os.walk(dir):
-            root = root.replace("\\", "/")
+            if file.is_dir():
+                continue
+            #for root, dirs, files in os.walk(dir):
+            #root = root.replace("\\", "/")
             # Check to see if any of the components of the root path are
             # directories we should ignore.
-            dir_fields = root.split("/")
+            #dir_fields = root.split("/")
+            dir_fields = file.parts[:-1]  # :-1 gets rid of the file name
             try:
                 for regex in d["-X"]:
                     for field in dir_fields:
                         if regex.search(field):
                             raise IgnoreThisFile()
             except IgnoreThisFile:
-                Dbg("Ignoring directory (-X):  ", root)
+                Dbg("Ignoring file because it has an ignored directory (-X):  ", file)
                 continue
             dir_fields = set(dir_fields)
-            # Check for directories that we'll ignore by default
-            if ".hg" in dir_fields and not d["-m"]:
-                Dbg("Ignoring Mercurial directory:  ", root)
-                continue  # Ignore Mercurial directories
-            if ".git" in dir_fields and not d["-g"]:
-                Dbg("Ignoring git directory:  ", root)
-                continue  # Ignore Mercurial directories
-            def dotted(x):
-                x.startswith(".") and x != "."
-            if any([dotted(i) for i in dir_fields]) and not d["-h"]:
-                Dbg("Ignoring hidden directory:  ", root)
-                continue  # Ignore hidden directories
-            # Check that each file doesn't match the -X regexps -- if no
-            # matches, then add to the files sequence.
-            for f in files:
-                # If it's a soft link, ignore it unless d["-l"] is set
-                s = os.path.join(root, f).replace("\\", "/")
-                if os.path.islink(s) and not d["-l"]:
-                    Dbg("Ignoring soft link:  ", s)
+            if 1:   # Check for directories that we'll ignore by default
+                if ".hg" in dir_fields and not d["-m"]:
+                    Dbg("Ignoring Mercurial directory:  ", file)
+                    continue  # Ignore Mercurial directories
+                if ".git" in dir_fields and not d["-g"]:
+                    Dbg("Ignoring git directory:  ", file)
+                    continue  # Ignore Mercurial directories
+                def dotted(x):
+                    x.startswith(".") and x != "."
+                if any([dotted(i) for i in dir_fields]) and not d["-h"]:
+                    Dbg("Ignoring hidden directory:  ", file)
+                    continue  # Ignore hidden directories
+            if 1:   # Check if it's a soft link
+                if file.is_symlink() and not d["-l"]:
+                    Dbg("Ignoring soft link:  ", file)
                     continue
+            if 1:   # Check for d["-x"] matching
                 found = False
                 for regex in d["-x"]:
-                    if regex.search(f):
+                    if regex.search(file):
                         found = True
+                        break
                 if not found:
-                    if s[0:2] == "./":
-                        # Remove any leading './' (makes a little easier
-                        # to read the names).
-                        s = s[2:]
-                    files.append(s)
+                    files.append(file)
                 else:
                     Dbg("Ignoring file (-x):  ", s)
-            if d["-r"]:
-                break
-        if d["-f"]:
-            # Create a dictionary keyed by the file's name
+        if d["-f"]:     # Look for duplicate names
             filedict = defaultdict(list)
             for i in files:
-                path, name = os.path.split(i)
-                filedict[name] += [path]
+                filedict[file.name] += [file.parent]
             return filedict
         else:
-            # Create a dictionary with the file's (hash, size) as the key.
+            # Create a dictionary with the file's (hashlib.sha1 value, size) as the key.
             # The values are (filename, inode_number, dirnum, is_softlink).
             hashdict = defaultdict(list)
             count = 0
-            for filename in files:
+            for file in files:
                 count += 1
-                m = hash()
+                m = hashlib.sha1()
                 try:
                     if d["-b"]:
-                        m.update(open(filename, "rb").read(d["-b"]))
+                        m.update(open(file, "rb").read(d["-b"]))
                     else:
-                        m.update(open(filename, "rb").read())
+                        m.update(open(file, "rb").read())
                 except IOError:
-                    # Either the file isn't readable or it's an orphaned soft
-                    # link.
-                    print("Couldn't open '%s'" % filename, file=sys.stderr)
+                    # Either the file isn't readable or it's an orphaned soft link
+                    t.print(f"{t.redl}Couldn't open '%s'" % file, file=sys.stderr)
                     continue
-                st = os.stat(filename) if d["-l"] else os.lstat(filename)
+                st = file.stat() if d["-l"] else file.lstat()
                 size = st[stat.ST_SIZE]
                 digest = m.hexdigest()
                 inode = st[stat.ST_INO]
-                islink = os.path.islink(filename)
+                is_softlink = file.is_symlink()
                 key = (digest, size)
-                value = (filename, inode, dirnum, islink)
+                value = (file, inode, dirnum, is_softlink)
                 Dbg(key, value)
                 if not size:
                     # Zero-length file
                     if d["-z"] and size > d["-t"]:
                         hashdict[key].append(value)
                     else:
-                        Dbg("Ignoring zero-length file:  ", filename)
+                        Dbg("Ignoring zero-length file:  ", file)
                 else:
-                    # Nonzero length
-                    if size > d["-t"]:
+                    if size > d["-t"]:  # Greater than size threshold
                         hashdict[key].append(value)
                     else:
-                        # It's below the size threshold in d["-t"]
-                        Dbg("Ignoring file below threshold:  ", filename)
+                        Dbg("Ignoring file below size threshold:  ", file)
             return hashdict
     def GetColor(size):
         '''Return a color indicating file size.'''
@@ -367,12 +359,12 @@ if 1:  # Core functionality
         print(" bytes):", file=stream)
         for filename, lstat_info, dirnumber, islink in item:
             print("  %d:  %s" % (dirnumber, filename), file=stream)
-        # Make sure there's a blank line to separate duplicate information
-        print("", file=stream)
+        if 0:   # Blank line to separate duplicate information
+            print("", file=stream)
     def ReportDuplicates(stream=sys.stdout):
-        '''g.fileinfo is a dictionary with keys (hash, size) and values that
-        are a list of tuples(filename, lstat_info, dirnumber).  d is the
-        options dictionary.  stream is where to print the results.
+        '''g.fileinfo is a dictionary with keys (hashlib.sha1 value, size) and values
+        that are a list of tuples(filename, lstat_info, dirnumber).  d is the options
+        dictionary.  stream is where to print the results.
         
         If a value list contains more than one tuple, this is duplicated
         information.  It can be due to either a copy of a file or a hard
