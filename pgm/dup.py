@@ -1,9 +1,9 @@
 '''
 
-∞∞ 
-    - Rewrite using pathlib stuff
+∞∞2
+    - Eliminate use of os stuff; rewrite using pathlib
     - Eliminate -b option.  Calculate hash from 4096 bytes and if they are the same,
-      calculate for whole file.
+      calculate for whole file (first compare size, as that's the fastest).
 
 Finds duplicate files in directory trees
     The algorithm used is to walk the directory tree(s) using os.walk().
@@ -386,8 +386,10 @@ if 1:  # Core functionality
 if __name__ == "__main__":
     d = {}  # Options dictionary
     dirs = ParseCommandLine()
+    # Remove any duplicates in dirs
+    dup, nodup = DupNodupHashable(dirs)
     g.fileinfo = defaultdict(list)
-    for dirnum, dir in enumerate(dirs):
+    for dirnum, dir in enumerate(nodup):
         di = ProcessDir(dirnum + 1, P(dir))
         if di:
             for key, value in di.items():
