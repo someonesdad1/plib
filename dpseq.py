@@ -316,10 +316,13 @@ if 1:   # Finding duplicates in sequences
                 return (eqval and (type(self) is type(other)))
             return eqval
     def DupNodup(seq, type_important=False):
-        '''seq is a sequence; returns (nodup, dup) where nodup and dup are lists.  nodup
+        '''seq is a sequence; returns (dup, nodup) where dup and nodup are lists.  nodup
         has the elements in seq that are not duplicates.  dup contains the elements that
         are duplicates of earlier elements in the list.  Both dup and nodup maintain the
         order of the elements in the original sequence.
+
+        This function will work on arbitrary sequences.  If you know the sequence only
+        contains hashable objects, use DupNodupHashable().
 
         If type_important is True, then itemA and itemB are defined to be duplicates iff
         both 'itemA == itemB' and 'type(itemA) is type(itemB)' expressions are True.
@@ -361,7 +364,19 @@ if 1:   # Finding duplicates in sequences
             item, sitem = seq[i], Hashable(seq[i], typ=type_important)
             dup.append(item) if sitem in seen else nodup.append(item)
             seen.add(sitem)
-        return (nodup, dup)
+        return (dup, nodup)
+    def DupNodupHashable(seq, type_important=False):
+        '''seq is a sequence; returns (dup, nodup) where dup and nodup are lists.  nodup
+        has the elements in seq that are not duplicates.  dup contains the elements that
+        are duplicates of earlier elements in the list.  Both dup and nodup maintain the
+        order of the elements in the original sequence.  You'll get a TypeError
+        exception if seq contains an unhashable object.
+        '''
+        n, dup, nodup, seen = len(seq), [], [], set()
+        for i in range(n):
+            dup.append(seq[i]) if seq[i] in seen else nodup.append(seq[i])
+            seen.add(seq[i])
+        return (dup, nodup)
 
 if __name__ == "__main__":
     import f
@@ -499,34 +514,36 @@ if __name__ == "__main__":
                 ([], 
                     ([], [])),
                 ([None], 
-                    ([None], [])),
+                    ([], [None])),
                 ([None, None], 
                     ([None], [None])),
                 ([1], 
-                    ([1], [])),
+                    ([], [1])),
                 ([1, 1], 
                     ([1], [1])),
                 ([1, 1.0], 
-                    ([1],[1.0])),
+                    ([1.0],[1])),
                 ([1, 2, 3, 1, 2, 4], 
-                    ([1, 2, 3, 4], [1, 2])),
+                    ([1, 2], [1, 2, 3, 4])),
                 ([1, 2, 3], 
-                    ([1, 2, 3], [])),
+                    ([], [1, 2, 3])),
                 ("Hello", 
-                    (['H', 'e', 'l', 'o'], ['l'])),
+                    (['l'], ['H', 'e', 'l', 'o'])),
                 (b"Hello", 
-                    ([72, 101, 108, 111], [108])),
+                    ([108], [72, 101, 108, 111])),
                 ([1, 1, 1.0, 1.0], 
-                    ([1], [1, 1.0, 1.0])),
+                    ([1, 1.0, 1.0], [1])),
             )
             for seq, expected in testcases:
                 for typ in (list, tuple, deque):
                     result = DupNodup(typ(seq))
                     Assert(result == expected)
+                    result = DupNodupHashable(typ(seq))
+                    Assert(result == expected)
             # Testing with type_important
             seq = [1, 1, 1.0, 1.0]
             result = DupNodup(seq, type_important=False)
-            Assert(result == ([1], [1, 1.0, 1.0]))
+            Assert(result == ([1, 1.0, 1.0], [1]))
             result = DupNodup(seq, type_important=True)
             Assert(result == ([1, 1.0], [1, 1.0]))
     GetColors()
