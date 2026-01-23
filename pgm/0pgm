@@ -40,9 +40,9 @@ bend.py	Bend allowance computation for sheet metal
 bgrep.py	Search for a pattern in a binary file
 bigfiles.py	Find files above a specified size
 bindiff.py	Print the binary differences between two files
-bitrate.py	Print periods of various bit rates
+bitrate.py	Print periods of various serial port bit rates
 bmi.py	Calculate body mass index for a given mass and height
-bmr.py	Estimate daily energy need
+bmr.py	Estimate daily energy need (basic metabolic requirement)
 bode.py	Given a transfer function, generate a Bode plot
 books.py	PBS list of 100 great to read books in the US
 braces.py	Examine files for unmatched pairs of characters

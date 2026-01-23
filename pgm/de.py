@@ -1,8 +1,8 @@
-"""
+'''
 
 ToDo
     - Add a -D option that only looks at drill sizes
-
+    
 ---------------------------------------------------------------------------
 Print out a decimal equivalents table.
 
@@ -10,8 +10,7 @@ There are two primary behaviors:
     - A typical fractions of an inch to decimal inches table is printed.
     - An extensive table of fractions, mm, and various gauges is printed
       (this is similar to the spreadsheet printout on my shop wall).
-"""
-
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -30,7 +29,6 @@ if 1:  # Header
         import getopt
         import os
         import sys
-
         # The following is done so the math library functions are in scope for
         # expressions.
         from math import *
@@ -47,10 +45,8 @@ if 1:  # Header
         import color
         from color import t
         import sizes
-
         if 1:
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
         L = int(os.environ.get("COLUMNS", "80")) - 1
@@ -108,14 +104,12 @@ if 1:  # Header
         for gn in GN:
             assert len(GN[gn]) <= maxlen
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Manpage():
         print(
-            dedent(f"""
+            dedent(f'''
         This script takes as input a size (in inches by default) and prints out sizes close to this
         value.  Examples are fractions of an inch, tap drills for common thread sizes, sheet metal
         and wire gauges, Allen wrench sizes, etc.
@@ -164,14 +158,13 @@ if 1:  # Utility
             dquarter         lightyear        nauticalmiles    yds
             earthradius
         The u.py module is used to process these units and it's easy to add other units to your tastes.
-        """)
+        ''')
         )
         exit(0)
-
     def Usage(d, status=1):
         name = sys.argv[0]
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {name} [options] [size [unit]]
           Search for a given size and prints out various common & gauge sizes near the given size.  Tap
           drills are given for common thread sizes at 75% (recommended for soft metals and plastics)
@@ -196,10 +189,9 @@ if 1:  # Utility
           -t    Show fractions of an inch table.
           -w    Show metric and inch wrench sizes
           -x    Show extended table.
-        """)
+        ''')
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = True  # If True, show all gauges
         d["-c"] = True  # Colorize output
@@ -255,12 +247,9 @@ if 1:  # Utility
         if not args and not tbl:
             Usage(d)
         return args
-
-
 if 1:  # Core functionality
-
     def WrenchSizes(d):
-        """Print a table showing metric and inch wrench sizes."""
+        '''Print a table showing metric and inch wrench sizes.'''
         MM, out = list(range(5, 23)) + [24, 27, 30, 32, 36, 38, 41, 46, 50], []
         inch = list(frange("3/16", "3/2", "1/16")) + list(frange("3/2", "17/8", "1/8"))
         print("Wrench size comparisons", end=" ")
@@ -292,11 +281,10 @@ if 1:  # Core functionality
         for i in out:
             print(i)
         exit(0)
-
     def FmtFrac(f, indents=default_indents):
-        """Format a fraction as a string 'numerator/denominator'.  The
+        '''Format a fraction as a string 'numerator/denominator'.  The
         indents are how many spaces the 16th, 32nd, and 64th rows get.
-        """
+        '''
         N, D = f.numerator, f.denominator
         before = " " * indents[D]
         after = " " * (max_indent - indents[D])
@@ -307,7 +295,6 @@ if 1:  # Core functionality
         if N == 1 and D == 1:
             s = "1"
         return "{0}{1:<5s} {2}".format(before, s, after)
-
     def PrintNormalTable(d):
         out, denom, n, N = [], 64, d["-d"], t.n
         length = None
@@ -330,7 +317,6 @@ if 1:  # Core functionality
             out.append(s)
         for i in Columnize(out):
             print(i)
-
     def PrintMMtoInchTable(d):
         out = []
         c = t("denl") if d["-c"] else ""
@@ -344,32 +330,27 @@ if 1:  # Core functionality
             out.append(f"{c}{flt(i)!s:4s}{t.n} {flt(i / 25.4)!s:{w}s}")
         for i in Columnize(out):
             print(i)
-
     def MakeTable(dictionary, identifier):
-        """From the indicated dictionary, construct a table of
+        '''From the indicated dictionary, construct a table of
             (dia_inches, gauge, identifier)
         for the indicated items.
-        """
+        '''
         s = []
         for gauge in dictionary:
             s.append([dictionary[gauge], sizes.TranslateGauge(gauge), identifier])
         return s
-
     def Lathe(lathe_tpi):
         s = []
         for tpi in lathe_tpi:
             dia = round(1 / tpi, 6)
             s.append([dia, str(tpi), GN["lathe"]])
         return s
-
     def TapDrills(d):
-        """Calculate the 50% and 75% tap drills for commonly-used threads."""
+        '''Calculate the 50% and 75% tap drills for commonly-used threads.'''
         from asme import UnifiedThread as UT
-
         # Number thread major diameter in inches
         def nt(n):
             return round(0.06 + 0.013 * n, 4)
-
         s = []
         # ----------------------------------------------------------------------
         # Inch-based threads
@@ -557,9 +538,8 @@ if 1:  # Core functionality
             d = round(float(wrench) / 25.4, 4)
             s.append([d, "{} set scr".format(size), GN["set"]])
         return s
-
     def GetMetricSizes(d):
-        """Make a list of metric sizes."""
+        '''Make a list of metric sizes.'''
         s = []
         # 0.5 mm resolution up to 13 mm (typical 25-piece drill set)
         for mm in frange("0", "13.1", "0.5"):
@@ -568,9 +548,8 @@ if 1:  # Core functionality
         for mm in range(14, 300):
             s.append([round(mm / 25.4, 8), "{} mm".format(mm), "mm"])
         return s
-
     def BuildExtendedTable(args, d):
-        """Return a list with elements
+        '''Return a list with elements
             (dia_inches, gauge, identifier)
         where
             dia_inches is a float
@@ -578,7 +557,7 @@ if 1:  # Core functionality
             identifier is a string to identify the origin (e.g. "AWG")
         If args is not empty, search for the sizes that are within range of the
         stated size.
-        """
+        '''
         s = MakeTable(sizes.number_drills, GN["#"])
         s.extend(MakeTable(sizes.letter_drills, GN["ltr"]))
         s.extend(Lathe(sizes.clausing_lathe_tpi))
@@ -611,7 +590,6 @@ if 1:  # Core functionality
             F.append([float(f), str(f), GN["frac"]])
         s.extend(F)
         return s
-
     def SortTable(table, column_number):
         if column_number == 0:
             return sorted(table)
@@ -623,7 +601,6 @@ if 1:  # Core functionality
             return [(j, k, i) for i, j, k in s]
         else:
             raise ValueError("Column number {} is bad".format(column_number))
-
     def NumberSizeScrew(args):
         'Return dia in inches if args[0] begins with "#" else None'
         if len(args) != 1:
@@ -637,7 +614,6 @@ if 1:  # Core functionality
         except Exception:
             Error("'{args[0]}' is a bad number size")
         return round(0.06 + n * 0.013, 4)
-
     def PrintExtendedTable(args, d):
         # Build dictionary for colors to use.  Note:  at the moment, this isn't
         # used except for printing the matches.
@@ -685,24 +661,16 @@ if 1:  # Core functionality
         # wider.
         s = SortTable(s, d["-s"])  # Sort order desired
         if args:
-            print(
-                dedent(
-                    """
+            print(dedent('''
             Size         Inches        mm        Category                      %dev
         -----------     --------     -------     --------                      ----
-        """[1:-1]
-                )
-            )
+        '''[1:-1]))
             fmt = "{{:^14s}}  {{:8s}}     {{:8s}}    {{:{}s}}  {{}}".format(maxlen)
         else:
-            print(
-                dedent(
-                    """
+            print(dedent('''
             Size         Inches        mm        Category
         -----------     --------     -------     --------
-        """[1:-1]
-                )
-            )
+        '''[1:-1]))
             fmt = "{:^14s}  {:8s}     {:8s}    {}"
         for dia, identifier, name in s:
             if args:
@@ -722,8 +690,6 @@ if 1:  # Core functionality
                     print(t.n, end="")
             else:
                 print(fmt.format(identifier, sig(dia), sig(dia * 25.4), name))
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

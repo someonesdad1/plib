@@ -7,6 +7,8 @@ Note:  if you use this for your own use, you'll want to make sure the
 code uses the proper datetime.tzinfo object for your location.  This is
 done by providing the location in a constructor call to ZoneInfo().
 
+∞∞1 Need to finish this script
+
 - Command line not needed for current time
 - Command line arithmetic
     - 'x - 42u'
@@ -114,40 +116,33 @@ if 1:   # Utility
     def Usage(status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] [expr]
+          Show the current date/time.  If expr is given, it allows addition and
+          subtraction of times from 'now', the current date/time.  Time unit
+          abbreviations are the first letters of the words seconds, minutes, hours,
+          days, weeks, months, years, and centuries.
 
-          Show the current date/time.  If expr is given, it allows addition
-          and subtraction of times from 'now', the current date/time.  Time
-          unit abbreviations are the first letters of the words seconds,
-          minutes, hours, days, weeks, months, years, and centuries.
-
-          Allowed forms of expr:  +nu and -nu where n is a number and u is
-          an optional cuddled time unit letter.
-
+          Allowed forms of expr:  +nu and -nu where n is a number and u is an optional
+          cuddled time unit letter.
         Examples:
           '-3y' 
             Shows the date/time 3 years ago
-
-          '-t 1Jun1950 +70y'
-
-            Shows 70 years after 1 Jun 1950.  You know the result should be
-            about in the year 2020, but the actual result is controlled by
-            the underlying time calculational library.  Here, it's the
-            python datetime library.
-
+          '-n 1Jun1950 +70y'
+            Shows 70 years after 1 Jun 1950.  You know the result should be about in the
+            year 2020, but the actual result is controlled by the underlying time
+            calculation library.  Here, it's the python datetime library.
         Options:
           -d num  Number of decimals in Julian day numbers [{d["-d"]}]
           -f num  Select date/time format
-                  0   Long    18Nov2023 10:52:59 am Sat
-                  1   Short   18Nov2023
-                  2   Zulu    18Nov2023 10:52:59 GMT
-                  3   24 hr   18Nov2023 14:52:59 Sat
-                  4   Julian  2460267.4570023147 JD
+                  l   Long    18Nov2023 10:52:59 am Sat
+                  s   Short   18Nov2023
+                  z   Zulu    18Nov2023 10:52:59 GMT
+                  h   24 hr   18Nov2023 14:52:59 Sat
+                  j   Julian  2460267.4570023147 JD
           -H      Print a manpage
           -h      Print usage
           -n s    Define the current date/time
-          -u ltr  Output in these time units (first letter of seconds,
-                  minutes, hours, days, weeks, months, years, and
-                  centuries)
+          -u s    Output in these time units (first letter of seconds, minutes, hours,
+                  days, weeks, months, years, and centuries)
         Time format
             18Nov2023:10:52:59.123 
             - Case of the three month letters is ignored
@@ -211,6 +206,7 @@ if 1:   # Core functionality
         elif d["-f"] == 3:      # 18Nov2023 14:52:59 Sat
             pass
         elif d["-f"] == 4:      # 2460267.4570023147 JD
+            pass
         else:
             raise RuntimeError(f"Bad d['-f'] value of {d['-f']}")
 
@@ -219,7 +215,6 @@ if 1:   # Core functionality
         Note this ignores the -n option.
         '''
         PrintDate(datetime.now(zi))
-
 
 if __name__ == "__main__":
     d = {}      # Options dictionary

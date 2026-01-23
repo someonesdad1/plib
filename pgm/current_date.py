@@ -14,11 +14,12 @@ if 1:  # Header
         ##∞what∞#
         # Show current date/time
         ##∞what∞#
-        ##∞test∞# #∞test∞#
+        ##∞test∞# --test #∞test∞#
         pass
     if 1:  # Standard imports
         from pathlib import Path as P
         from datetime import datetime, timedelta
+        from itertools import permutations
         import getopt
         import os
         import re
@@ -29,36 +30,37 @@ if 1:  # Header
         from dpprint import PP
         pp = PP()
         from color import t
-        from u import u
+        import u
         from f import flt
         import julian
         from get import GetLines, ParseUnit
         from wrap import dedent
+        from lwtest import Assert
         if 0:
             import debug
             debug.SetDebugger()
         # from columnize import Columnize
     if 1:  # Global variables
-        class G:
-            # Storage for global variables as attributes
+        class G: # Storage for global variables as attributes
             pass
         g = G()
         g.dbg = False
-        t.dbg = t("lill")
         ii = isinstance
 if 1:  # Utility
     def GetColors():
         "Colors for printed line"
-        t.dow = t("lip")
-        t.date = t("ornl")
-        t.time = t("yell")
-        t.ampm = t("yell")
-        t.z = t("gryl")
-        t.qtr = t("grn")
-        t.sec = t("royl")
-        t.jd = t("olv")
-        t.wk = t("mag")
-        t.doy = t("lipl")
+        t.dow = t("lip") if g.dbg else ""
+        t.date = t("ornl") if g.dbg else ""
+        t.time = t("yell") if g.dbg else ""
+        t.ampm = t("yell") if g.dbg else ""
+        t.z = t("gryl") if g.dbg else ""
+        t.qtr = t("grn") if g.dbg else ""
+        t.sec = t("royl") if g.dbg else ""
+        t.jd = t("olv") if g.dbg else ""
+        t.wk = t("mag") if g.dbg else ""
+        t.doy = t("lipl") if g.dbg else ""
+        t.dbg = t("lill") if g.dbg else ""
+        t.N = t.n if g.dbg else ""
     def GetScreen():
         "Return (LINES, COLUMNS)"
         return (
@@ -68,52 +70,44 @@ if 1:  # Utility
     g.W, g.L = GetScreen()
     def Dbg(*p, **kw):
         if g.dbg:
-            print(f"{t.dbg}", end="", file=Dbg.file)
-            k = kw.copy()
-            k["file"] = Dbg.file
-            print(*p, **k)
-            print(f"{t.n}", end="", file=Dbg.file)
-    Dbg.file = sys.stderr  # Debug printing to stderr by default
-    def Error(*msg, status=1):
+            print(f"{t.dbg}", end="")
+            print(*p, **kw)
+            print(f"{t.N}", end="")
+    def Warn(*msg, status=1):
         print(*msg, file=sys.stderr)
+    def Error(*msg, status=1):
+        Warn(*msg)
         exit(status)
     def Manpage():
-        print(
-            dedent(f'''
+        print(dedent(f'''
         Day, date and time should be as you expect.  Other fields are:
         
-            - [....Z] is the HHMM offset from Universal Coordinated Time
-            - Qx is the quarter of the year
+            - [HHMMZ] is the HHMM offset from Universal Coordinated Time
+            - Qx is the quarter of the year.  Note you may occasionally see Q5 if the
+              date is 31 Dec.
             - x/365 is the day number of the indicated year
             - x/52 is the week number
             - x s is the number of seconds since the epoch (1 Jan 1970)
             - JDx is the astronomical Julian day
             
-        The time units are those allowed by the /plib/u.py script.  Run
-        'python /plib/u.py time' to see the supported time units:
-        
-        ''')
-        )
+        The time units are those allowed by the /plib/u.py script.  Run 'python
+        /plib/u.py time' to see the supported time units:
+        '''))
         cmd = [sys.executable, "/plib/u.py", "Time"]
         r = subprocess.run(cmd, capture_output=True)
         if r.returncode:
             Error("Running u.py got an error")
+        print()
         print(r.stdout.decode())
-        print(
-            dedent(f'''
-         See?
-        ''')
-        )
         exit(0)
     def Usage(status=1):
         GetColors()
-        print(
-            dedent(f'''
-        Usage:  {sys.argv[0]} [options] [offset [unit]]
+        print(dedent(f'''
+        Usage:  {sys.argv[0]} [options] [offset [unit] [ago]]
           Show the indicated date/time on one line.  If offset is given, it must be an
-          integer or float.  unit is an optional time unit (defaults to day, use -h to
-          see details).  offset is added to the current time.  The fields in the output
-          are in different colors and are:
+          integer or float.  unit is an optional time unit (defaults to day, use -H to
+          see supported units).  offset is added to the current time.  The fields in the
+          output are in different colors and are:
             {t.dow}Day of week (3 letters{t.n})
             {t.date}Day, month (3 letters), year{t.n}
             {t.time}Time (am or pm){t.n}
@@ -123,20 +117,22 @@ if 1:  # Utility
             {t.doy}Day number (out of 365 or 366){t.n}
             {t.sec}Time in s from 1 Jan 1970{t.n}
             {t.jd}Julian astronomical date{t.n}
+          The script called with no arguments prints out analogous information to what
+          /usr/bin/date prints.
         Examples
           - '{sys.argv[0]} -- -3 wk' shows the time/date 3 weeks ago
           - '{sys.argv[0]} 0' shows the current time/date
-          - Let x be the value in s printed out by the previous command.
-            '{sys.argv[0]} -- -x s' should be within hours of the date of the
-            epoch.
+
+          - Let Q be the value in s printed out by the previous command.  '{sys.argv[0]}
+            -- -Q s' should be within hours of the date of the epoch, which is 1 Jan
+            1970, the starting date of UNIX.
         Options
             -D      Turn on debugging
             -H      Print a manpage
             -s      Short output
-        ''')
-        )
+        '''))
         exit(status)
-    def ParseCommandLine(d):
+    def ParseCommandLine():
         d["-D"] = False  # Turn on debug
         d["-s"] = False  # Short output
         if len(sys.argv) < 2:
@@ -165,7 +161,7 @@ if 1:  # Core functionality
         date/time.
         
         Note:  GNU units says there's 31556925.9746784 s in a year, as does
-        the u("year") call.  This is a tropical year = 365.242198781 days.
+        the u.u("year") call.  This is a tropical year = 365.242198781 days.
         '''
         dt = datetime.now()  # datetime instance
         Dbg(f"now = {dt} = {time.time()} s")
@@ -173,9 +169,11 @@ if 1:  # Core functionality
         try:
             # Get factor to convert offset to SI (seconds).  If no units
             # are given, they default to days.
-            factor = u(units) if units else u("day")
+            factor = u.u(units) if units else u.u("day")
         except Exception as e:
             Error(f"Exception:  {e}")
+        # Remove commas, allowing pasting a time in s from the command's output
+        user_offset = user_offset.replace(",", "")
         offset_s = float(user_offset)*factor
         td = timedelta(seconds=offset_s)
         Dbg(f"user_offset = {user_offset}, units = {units}")
@@ -229,12 +227,86 @@ if 1:  # Core functionality
             # Julian day is given to 5 decimal places, as this is a resolution of 0.9 s
             print(f"{t.jd}JD{jd:,.5f} ", end="")
             t.print()
+    def GetArguments(args):
+        '''args is a list of unique strings; get the command line arguments
+        (non-options) and put them into
+          g.offset    (flt)     Offset in seconds
+          g.units     (str)     Units the user used to specify the offset
+        If one of the arguments is "ago", then g.offset is set to a negative value.
+        There are no duplicates and the order isn't relevant.
+        '''
+        g.units = "s"
+        Dbg(f"Parsing command line args = {args!r}")
+        if not args:
+            raise ValueError("Empty argument list")
+        if not (1 <= len(args) <= 3):
+            raise ValueError("Too many arguments on command line")
+        # Look for "ago"
+        negative = 1
+        if "ago" in args:
+            negative = -1
+            args.remove("ago")
+            Dbg("Found 'ago'")
+            Dbg(f"Remaining args are {args!r}")
+        # Find the first element that can be converted to a flt for offset
+        offset = None
+        for i, item in enumerate(args):
+            try:
+                Dbg(f"Inspecting args[{i}] = {item!r}")
+                offset = flt(item.replace(",", ""))
+                if offset is None:
+                    raise ValueError()
+                Dbg(f"It converted to flt = {offset}")
+                break
+            except ValueError:
+                Dbg(f"It's not a flt")
+        if offset is None:
+            raise ValueError("No number for time on the command line")
+        else:
+            offset *= negative
+            Dbg(f"offset is {offset}")
+            args.remove(args[i])
+            Dbg(f"Remaining args are {args!r}")
+        # Now there should only be an optional unit left
+        factor, units = 1, None
+        if args:
+            units = args.pop(0)
+        if units is not None:
+            # See if it's recognized by u module
+            dim = u.dim(units)
+            if dim is None or str(dim) != 'Dim("T")':
+                raise ValueError(f"{units!r} is not recognized as a time unit")
+            factor = flt(u.u(units))  # Converts time in units to SI seconds
+            g.units = units
+        else:
+            g.units = "s"
+        Assert(not args)
+        # Now we can construct the desired offset
+        g.offset = offset*factor
+
 if __name__ == "__main__":
+    from lwtest import raises, run
+    def Test_GetArguments():
+        a, b, c = "2.2", "yr", "ago"
+        expected = -69425237.14429249
+        for i in permutations((a, b, c)):
+            GetArguments(list(i))
+            Assert(g.offset == expected)
+            Assert(g.units == "yr")
+        for i in permutations((a, b)):
+            GetArguments(list(i))
+            Assert(g.offset == -expected)
+            Assert(g.units == "yr")
+        GetArguments([a])
+        Assert(g.offset == 2.2)
+        Assert(g.units == "s")
+        raises(ValueError, GetArguments, [])
+    if "--test" in sys.argv:
+        exit(run(globals(), regexp=r"^[Tt]est_", halt=1)[0])
     d = {}  # Options dictionary
-    args = ParseCommandLine(d)
-    if len(args) == 1:
-        PrintDateTime(args[0])
-    elif len(args) == 2:
-        PrintDateTime(*args)
-    else:
-        Error("Only 1 or 2 arguments allowed (second must be a time unit)")
+    args = list(set(ParseCommandLine()))
+    try:
+        GetArguments(args)
+    except ValueError as e:
+        Error(e)
+    PrintDateTime()
