@@ -365,7 +365,7 @@ if 1:  # Identify files that need testing
         elif found in ("run", "-t", "--test", "notest", "testdir"):
             pass
         else:
-            raise ValueError(f"{found!r} is an unrecognized value")
+            raise ValueError(f"{found!r} is an unrecognized value in {file!r}")
         if msg:
             if 0:   # Use this to stop on a missing test string
                 raise ValueError(msg)

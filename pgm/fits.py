@@ -19,7 +19,7 @@ if 1:  # Header
         ##∞what∞#
         # Calculate shaft/hole fits
         ##∞what∞#
-        ##∞test∞# ignore #∞test∞#
+        ##∞test∞# notest #∞test∞#
         pass
     if 1:  # Imports
         import sys

@@ -12,7 +12,7 @@ if 1:  # Copyright, license
     ##∞what∞#
     # Recursive grep
     ##∞what∞#
-    ##∞test∞# ["rgrep_test.py"] #∞test∞#
+    ##∞test∞# notest #∞test∞#
     pass
 if 1:  # Imports
     from textwrap import dedent
