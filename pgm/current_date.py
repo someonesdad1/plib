@@ -287,7 +287,8 @@ if 1:  # Core functionality
 if __name__ == "__main__":
     from lwtest import raises, run
     def Test_GetArguments():
-        a, b, c = "2.2", "yr", "ago"
+        # Acceptable arguments all work
+        a, b, c, d = "2.2", "yr", "ago", "yikes"
         expected = -69425237.14429249
         for i in permutations((a, b, c)):
             GetArguments(list(i))
@@ -300,7 +301,15 @@ if __name__ == "__main__":
         GetArguments([a])
         Assert(g.offset == 2.2)
         Assert(g.units == "s")
-        raises(ValueError, GetArguments, [])
+        # Bad forms
+        # No argument is an exception
+        raises(ValueError, GetArguments, [])    # Empty arguments
+        raises(ValueError, GetArguments, list((a, b, c, d)))        # Too many args
+        raises(ValueError, GetArguments, list(("2.2.2", b, c)))     # Bad flt
+        raises(ValueError, GetArguments, list((a, "ZZ", c)))        # Bad time unit
+        raises(ValueError, GetArguments, list((a, "ZZ")))           # Bad time unit
+        raises(ValueError, GetArguments, list((a, "agoo")))         # Bad time unit
+
     if "--test" in sys.argv:
         exit(run(globals(), regexp=r"^[Tt]est_", halt=1)[0])
     d = {}  # Options dictionary
