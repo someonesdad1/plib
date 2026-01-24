@@ -4,21 +4,25 @@
 
 - Jan 2026 /plib work
     - Mark places that need work with ∞∞ (∞∞1 high priority, etc.)
-    - _pgminfo
+    - `_pgminfo`
         - Start converting files to newer `_pgminfo` metadata format, as it will be
           easier to process, particularly if every /plib/*.py file is a module
+        - Encapsulated in /plib/gist.py
+        - Also provides the sorely needed gist element, a one line description of the
+          file
     - Regularize testing environment
         - Vision
-            - Launch testing with one command (e.g., run make)
+            - Launch testing with one command (e.g., run make or a particular script)
             - Only output message is Pass or Fail
                 - Fail messages go into 0test.fail
                 - Pass messages go into 0test.pass
             - Try to move all test code to module (can test directory go away?)
-    - Currently failing
-        - run (all fixed)
-        - testdir
-            - Look at results; much of test code is passing and could probably stand
-              being integrated with the module, as it makes things easier.
+            - Every module/script when run or run with --test returns 0 if tests pass or
+              > 0 if test fails
+            - Only '<oo test oo>' forms allowed:  run, notest, --test, testdir, None
+            - test director:  look at results; much of test code is passing and could
+              probably stand being integrated with the module, as it makes things
+              easier.
 
 ## Plan
 - Create HTML pages to make it easier to browse/find content
