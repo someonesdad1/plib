@@ -49,16 +49,16 @@ if 1:  # Header
 if 1:  # Utility
     def GetColors():
         "Colors for printed line"
-        t.dow = t("lip") if g.dbg else ""
-        t.date = t("ornl") if g.dbg else ""
-        t.time = t("yell") if g.dbg else ""
-        t.ampm = t("yell") if g.dbg else ""
-        t.z = t("gryl") if g.dbg else ""
-        t.qtr = t("grn") if g.dbg else ""
-        t.sec = t("royl") if g.dbg else ""
-        t.jd = t("olv") if g.dbg else ""
-        t.wk = t("mag") if g.dbg else ""
-        t.doy = t("lipl") if g.dbg else ""
+        t.dow = t("lip")
+        t.date = t("ornl")
+        t.time = t("yell")
+        t.ampm = t("yell")
+        t.z = t("gryl")
+        t.qtr = t("grn")
+        t.sec = t("royl")
+        t.jd = t("olv")
+        t.wk = t("mag")
+        t.doy = t("lipl")
         t.dbg = t("lill") if g.dbg else ""
         t.N = t.n if g.dbg else ""
     def GetScreen():
@@ -120,10 +120,11 @@ if 1:  # Utility
           The script called with no arguments prints out analogous information to what
           /usr/bin/date prints.
         Examples
-          - '{sys.argv[0]} -- -3 wk' shows the time/date 3 weeks ago
           - '{sys.argv[0]} 0' shows the current time/date
+          - '{sys.argv[0]} 3 wk ago' shows the time/date 3 weeks ago
+          - '{sys.argv[0]} 1 yr' shows the time/date 1 year from today
 
-          - Let Q be the value in s printed out by the previous command.  '{sys.argv[0]}
+          - Let Q be the value in s printed out by the argument '0'.  '{sys.argv[0]}
             -- -Q s' should be within hours of the date of the epoch, which is 1 Jan
             1970, the starting date of UNIX.
         Options
@@ -149,37 +150,29 @@ if 1:  # Utility
                 Manpage()
             elif o == "-h":
                 Usage()
-        if len(args) not in (1, 2):
+        if len(args) not in (1, 2, 3):
             Usage()
         if d["-D"]:
             g.dbg = True
         GetColors()
         return args
 if 1:  # Core functionality
-    def PrintDateTime(user_offset, units=None):
-        '''Construct the single-line string representing the user's desired
-        date/time.
+    def PrintDateTime():
+        '''Construct the single-line string representing the user's desired date/time.
+        g.offset is the time offset in s and g.unit is the time unit the user used.
         
         Note:  GNU units says there's 31556925.9746784 s in a year, as does
         the u.u("year") call.  This is a tropical year = 365.242198781 days.
         '''
+        Dbg("PrintDateTime()")
         dt = datetime.now()  # datetime instance
-        Dbg(f"now = {dt} = {time.time()} s")
+        Dbg(f"  now = {dt} = {time.time()} s")
         # Get a time_delta for the offset
-        try:
-            # Get factor to convert offset to SI (seconds).  If no units
-            # are given, they default to days.
-            factor = u.u(units) if units else u.u("day")
-        except Exception as e:
-            Error(f"Exception:  {e}")
-        # Remove commas, allowing pasting a time in s from the command's output
-        user_offset = user_offset.replace(",", "")
-        offset_s = float(user_offset)*factor
-        td = timedelta(seconds=offset_s)
-        Dbg(f"user_offset = {user_offset}, units = {units}")
-        # Add the offset
+        td = timedelta(seconds=g.offset)
+        Dbg(f"  User offset = {g.offset} s")
+        # Add the offset to now (it's negative to go into the past)
         dt += td
-        Dbg(f"Time with offset = {dt}")
+        Dbg(f"  Time with offset = {dt}")
         # Get struct for strftime
         ts = dt.timestamp()  # ts is a float in s, same as returned by time.time()
         tm = time.localtime(ts)  # tm is a struct time
@@ -202,7 +195,7 @@ if 1:  # Core functionality
                 year, mo, day, int(hour), int(minute), int(sec)
             )
             ly = julian.IsLeapYear(year)  # Boolean for leap year
-            qtr = (mo // 3) + 1  # Quarter of year
+            qtr = (mo//3) + 1  # Quarter of year
             doy = int(time.strftime("%j", tm))  # Day of the year
         if 0:
             pp(locals())
@@ -246,27 +239,27 @@ if 1:  # Core functionality
         if "ago" in args:
             negative = -1
             args.remove("ago")
-            Dbg("Found 'ago'")
-            Dbg(f"Remaining args are {args!r}")
+            Dbg("  Found 'ago'")
+            Dbg(f"  Remaining args are {args!r}")
         # Find the first element that can be converted to a flt for offset
         offset = None
         for i, item in enumerate(args):
             try:
-                Dbg(f"Inspecting args[{i}] = {item!r}")
+                Dbg(f"  Inspecting args[{i}] = {item!r}")
                 offset = flt(item.replace(",", ""))
                 if offset is None:
                     raise ValueError()
-                Dbg(f"It converted to flt = {offset}")
+                Dbg(f"  It converted to flt = {offset}")
                 break
             except ValueError:
-                Dbg(f"It's not a flt")
+                Dbg(f"  It's not a flt")
         if offset is None:
             raise ValueError("No number for time on the command line")
         else:
             offset *= negative
-            Dbg(f"offset is {offset}")
+            Dbg(f"  offset is {offset}")
             args.remove(args[i])
-            Dbg(f"Remaining args are {args!r}")
+            Dbg(f"  Remaining args are {args!r}")
         # Now there should only be an optional unit left
         factor, units = 1, None
         if args:
@@ -283,6 +276,8 @@ if 1:  # Core functionality
         Assert(not args)
         # Now we can construct the desired offset
         g.offset = offset*factor
+        Dbg(f"  offset = {g.offset}")
+        Dbg(f"  units  = {g.units}")
 
 if __name__ == "__main__":
     from lwtest import raises, run
@@ -302,8 +297,7 @@ if __name__ == "__main__":
         Assert(g.offset == 2.2)
         Assert(g.units == "s")
         # Bad forms
-        # No argument is an exception
-        raises(ValueError, GetArguments, [])    # Empty arguments
+        raises(ValueError, GetArguments, [])                        # Empty arguments
         raises(ValueError, GetArguments, list((a, b, c, d)))        # Too many args
         raises(ValueError, GetArguments, list(("2.2.2", b, c)))     # Bad flt
         raises(ValueError, GetArguments, list((a, "ZZ", c)))        # Bad time unit
