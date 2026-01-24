@@ -143,7 +143,7 @@ ext.py	Find all file extensions used in a directory tree
 extension.py	Print out descriptions of file name extensions
 extract.py	Extract specified 1-based lines from files
 
-factors.py	
+factors.py	Print all the factors of an integer
 fcut.py	
 fet_current.py	
 fhg.py	
