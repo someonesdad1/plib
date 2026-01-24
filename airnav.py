@@ -1,10 +1,14 @@
-"""
+'''
 Module to perform various navigation tasks
-  Reference:  Aviation Formulary V1.20 by Ed Williams
-  Definitions:
-    1 degree of arc along a great circle is 60 nm
-    TC = true course = course angle measured clockwise from a meridian
-"""
+    Reference:  Aviation Formulary V1.20 by Ed Williams
+        Note:  Williams has a web page that still accessible as of 24 Jan 2026 and
+        is https://www.edwilliams.org/avform147.htm.  Version 1.47 of the formulary is
+        dated 26 May 2013.  The changes are undated after 1.17, which was in 1998.
+        Note:  downloaded the 1.47 web page and put it in ~/projects/aviation_formulary.
+    Definitions:
+        1 degree of arc along a great circle is 60 nm
+        TC = true course = course angle measured clockwise from a meridian
+'''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2002 Don Peterson #∞copyright∞#
@@ -24,11 +28,11 @@ if 1:  # Imports
 if 1:  # Global variables
     _tol = sqrt(1e-15)
 def TrueCourseAndDistance(lat1, lon1, lat2, lon2):
-    """Calculates the true course (rhumbline direction) and distance
+    '''Calculates the true course (rhumbline direction) and distance
     between two points on earth's surface.  Returns a list consisting
     of the true course and the distance, both in radians.  All arguments
     are expected to be in radians.
-    """
+    '''
     two_pi, pi_4 = 2 * pi, pi / 4
     dlon_W = (lon2 - lon1) % two_pi
     dlon_E = (lon1 - lon2) % two_pi
@@ -44,11 +48,11 @@ def TrueCourseAndDistance(lat1, lon1, lat2, lon2):
         d = sqrt(q * q * dlon_E * dlon_E + s * s)
     return tc, d
 def FindRhumblineDestination(tc, d, lat0, lon0):
-    """Will return the tuple (lat, lon) that gives the position of the
+    '''Will return the tuple (lat, lon) that gives the position of the
     point that will be reached on a true course of tc for a distance
     of d starting from (lat0, lon0).  All arguments are expected to
     be in radians.
-    """
+    '''
     lat = lat0 + d * cos(tc)
     dphi = log(tan(lat / 2 + pi / 4) / tan(lat0 / 2 + pi / 4))
     s = lat - lat0
@@ -57,9 +61,9 @@ def FindRhumblineDestination(tc, d, lat0, lon0):
     lon = ((lon0 + dlon + pi) % (2 * pi)) - pi
     return lat, lon
 def GreatCircleDistance(lat1, lon1, lat2, lon2):
-    """Returns the great circle distance between two points.  All
+    '''Returns the great circle distance between two points.  All
     numbers are in radians.
-    """
+    '''
     return acos(sin(lat1) * sin(lat2) + cos(lat1) * cos(lat2) * cos(lon1 - lon2))
 def InitialCourseBetweenPoints(lat1, lon1, lat2, lon2):
     x = sin(lon1 - lon2) * cos(lat2)
@@ -67,11 +71,11 @@ def InitialCourseBetweenPoints(lat1, lon1, lat2, lon2):
     tc = atan2(x, y) % (2 * pi)
     return tc
 def CalcUnknownWindDirection(course, heading, tas, gs):
-    """Returns the wind direction (from) and speed given the other
+    '''Returns the wind direction (from) and speed given the other
     factors.  Speed units must be the same but are otherwise arbitrary.
     The angles are measured in radians.  tas is true airspeed, gs is
     ground speed, and ws is wind speed.
-    """
+    '''
     dh = heading - course
     dt, s, tpi = tas - gs, sin(dh / 2), 2 * pi
     ws = sqrt(dt * dt + 4 * tas * gs * s * s)
@@ -81,6 +85,7 @@ def CalcUnknownWindDirection(course, heading, tas, gs):
     elif wd > 2 * pi:
         wd = wd - tpi
     return wd, ws
+
 if __name__ == "__main__":
     from lwtest import run
     tol = 1e-15

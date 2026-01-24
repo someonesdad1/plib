@@ -82,7 +82,6 @@ if 1:  # Header
     if 1:   # Custom imports
         from wrap import dedent
         from color import t
-        from lwtest import Assert
         from dpprint import PP
         pp = PP()   # Get pprint with current screen width
         if 0:
@@ -179,72 +178,29 @@ if 1:   # Classes
                 u += Gist.begin + sp + key + sp + Gist.sep + self[key] + Gist.end + "\n"
             return "\n" + u
 
-if 1:   # Experiment to parse elements
-    from lwtest import raises
-    def TestGist():
-        if 1:   # Empty string
-            s = ""
-            gi = Gist(s)
-            Assert(str(gi) == "")
-            Assert(len(gi) == 0)
-        if 1:   # One field
-            s = "<oo a ∞ a_value oo>"
-            gi = Gist(s, [])
-            Assert(gi["a"] == " a_value ")
-            Assert(str(gi) == '\n<oo a ∞ a_value oo>\n')
-            Assert(len(gi) == 1)
-            # Only one split on separator
-            s = "<oo a ∞ ∞ a_value oo>"
-            gi = Gist(s, [])
-            Assert(gi["a"] == " ∞ a_value ")
-        if 1:   # Two fields
-            s = dedent('''
-                <oo a ∞ a_value oo>
-                <oo b ∞ b_value
-                oo>
-            ''')
-            gi = Gist(s, [])
-            Assert(gi["a"] == " a_value ")
-            Assert(gi["b"] == " b_value\n")
-            Assert(str(gi) == '\n<oo a ∞ a_value oo>\n<oo b ∞ b_value\noo>\n')
-            Assert(len(gi) == 2)
-            # Things work when strict == False
-            gi = Gist(s, keywords=[], strict=False)
-            gi = Gist(s, keywords=["a"], strict=False)
-            gi = Gist(s, keywords=["b"], strict=False)
-            gi = Gist(s, keywords=["a", "b"], strict=False)
-            # Except because "c" not in dictionary
-            raises(ValueError, Gist, s, keywords="c".split(), strict=False)
-            raises(ValueError, Gist, s, keywords="b c".split(), strict=False)
-            raises(ValueError, Gist, s, keywords="a b c".split(), strict=False)
-            # Problems when strict == True
-            gi = Gist(s, keywords="a b".split(), strict=True)   # No exception
-            raises(ValueError, Gist, s, keywords=[], strict=True)
-            raises(ValueError, Gist, s, keywords=["a"], strict=True)
-            raises(ValueError, Gist, s, keywords="a c".split())
-            raises(ValueError, Gist, s, keywords="c".split())
-        if 1:   # Bad constructor data
-            pass
-
-        if 1:   # Different class variables
-            Gist.begin, Gist.end, Gist.sep = ">oo", "<oo", "©"
-            s = ">oo a © a_value <oo"
-            gi = Gist(s, [])
-            expected = " a_value "
-            Assert(gi["a"] == expected)
-            # Back to defaults
-            Gist.begin, Gist.end, Gist.sep = "<oo", "oo>", "∞"
-            s = "<oo a ∞ a_value oo>"
-            Assert(gi["a"] == expected)
-
-    TestGist()
-    exit() #∞∞
-
+if 0:   # Experiment to parse elements
+    s = dedent('''
+        <oo desc ∞
+            Type program description here
+        oo>
+        <oo cr ∞ Copyright © 2026 Don Peterson oo>
+        <oo license ∞
+            Licensed under the Open Software License version 3.0.
+            See http://opensource.org/licenses/OSL-3.0.
+        oo>
+        <oo cat ∞ category oo>
+        <oo test ∞ none oo>
+        <oo todo ∞
+        
+            - List of todo items here
+        
+        oo>
+    ''')
     t.even = t.wht
     t.odd = t.whtl
     t.key = t.ornl
     t.value = t.sky
-    s = S.strip()
+    s = s.strip()
     if 1:   # Step 1:  separate into fields
         begin, end = "<oo", "oo>"
         fields = []
@@ -286,7 +242,7 @@ if 1:   # Experiment to parse elements
             t.print(f"{t.key}{key}{t.n}:  {t.value}{value!r}")
     exit()
 
-if 1:
+if 0:
     class Gist_(dict):
         '''Take a gist string apart and store it as a dictionary, giving access to the
         fields of the gist string.   To store the data back to a stream (e.g., a file
@@ -364,27 +320,68 @@ if 1:
             return "\n" + u
 
 if __name__ == "__main__":  
-    from lwtest import run, Assert
+    from lwtest import run, raises, Assert
     from wrap import dedent
-
-    def Test_GistInit():
-        nl = "\n"
+    def Test_Gist_Basics():
+        if 1:   # Empty string
+            s = ""
+            gi = Gist(s)
+            Assert(str(gi) == "")
+            Assert(len(gi) == 0)
+        if 1:   # Type of sequence unimportant
+            for i in (tuple(), {}, set(), ""):
+                Gist("", i)
+            # But keywords argument can't be nonempty with an empty gist string
+            raises(ValueError, Gist, "", "abc")
+        if 1:   # One field
+            s = "<oo a ∞ a_value oo>"
+            gi = Gist(s, [])
+            Assert(gi["a"] == " a_value ")
+            Assert(str(gi) == '\n<oo a ∞ a_value oo>\n')
+            Assert(len(gi) == 1)
+            # Only one split on separator
+            s = "<oo a ∞ ∞ a_value oo>"
+            gi = Gist(s, [])
+            Assert(gi["a"] == " ∞ a_value ")
+    def Test_Gist_TwoFields():
         s = dedent('''
-        <oo desc ∞
-            Type program description here
-        oo>
-        <oo cr ∞ Copyright © 2026 Don Peterson oo>
-        <oo license ∞
-            Licensed under the Open Software License version 3.0.
-            See http://opensource.org/licenses/OSL-3.0.
-        oo>
-        <oo cat ∞ category oo>
-        <oo test ∞ none oo>
-        <oo todo ∞
+            <oo a ∞ a_value oo>
+            <oo b ∞ b_value
+            oo>
+        ''')
+        gi = Gist(s, [])
+        Assert(gi["a"] == " a_value ")
+        Assert(gi["b"] == " b_value\n")
+        Assert(str(gi) == '\n<oo a ∞ a_value oo>\n<oo b ∞ b_value\noo>\n')
+        Assert(len(gi) == 2)
+        # Things work when strict == False
+        gi = Gist(s, keywords=[], strict=False)
+        gi = Gist(s, keywords=["a"], strict=False)
+        gi = Gist(s, keywords=["b"], strict=False)
+        gi = Gist(s, keywords=["a", "b"], strict=False)
+        # Exception because "c" not in dictionary
+        raises(ValueError, Gist, s, keywords="c".split(), strict=False)
+        raises(ValueError, Gist, s, keywords="b c".split(), strict=False)
+        raises(ValueError, Gist, s, keywords="a b c".split(), strict=False)
+        # Problems when strict == True
+        gi = Gist(s, keywords="a b".split(), strict=True)   # No exception
+        raises(ValueError, Gist, s, keywords=[], strict=True)
+        raises(ValueError, Gist, s, keywords=["a"], strict=True)
+        raises(ValueError, Gist, s, keywords="a c".split())
+        raises(ValueError, Gist, s, keywords="c".split())
+    def Test_Gist_BadConstructorData():
+        raises(TypeError, Gist, 1)
+        raises(TypeError, Gist, 1.0)
+        raises(TypeError, Gist, b'')
 
-            - List of todo items here
-
-        oo>''')
-        gist = Gist(s)
-        Assert(str(gist) == nl + s + nl)
+    def Test_DifferentClassVariables():
+        Gist.begin, Gist.end, Gist.sep = ">oo", "<oo", "©"
+        s = ">oo a © a_value <oo"
+        gi = Gist(s, [])
+        expected = " a_value "
+        Assert(gi["a"] == expected)
+        # Back to defaults
+        Gist.begin, Gist.end, Gist.sep = "<oo", "oo>", "∞"
+        s = "<oo a ∞ a_value oo>"
+        Assert(gi["a"] == expected)
     exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])

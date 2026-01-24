@@ -8,6 +8,15 @@
     - Utility to fix python file formatting:  fix """ stuff and delete blank lines.  Run
       the fix first on a copy and make sure the script still works before making the
       change.
+    - Later python version
+        - I'm using 3.11.5, made in Aug 2023.  
+        - https://www.python.org/downloads/ shows end of life of 3.11 in about 1.5
+          years.
+        - Looking at the releases chart, I'd be OK with upgrading to 3.13 or 3.14.  
+            - 3.13 went to bugfix in 3Q2024 and support ends late 3Q2029.
+            - 3.14 went to bugfix in 3Q2024 and support ends late 3Q2030.
+        - I'd like to be able to use conda to switch between python versions being used
+          with one of them my default
 
 21 Jan 2026 13:33:38 pm Wed
 
