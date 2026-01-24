@@ -98,12 +98,11 @@ if 1:   # Classes
     class Gist(dict):
         'Take a gist string apart and store it as a dictionary'
         begin, end, sep = "<oo", "oo>", "∞"
-        def __init__(self, gist, keywords=[], strict=True):
+        def __init__(self, gist, keywords=[], strict=False):
             '''gist is the string to parse to get the dictionary elements.  If keywords
             is not empty, then it's a list of strings that must be keywords in the gist
-            string or an exception will be raised.  If strict is True, then an invariant
-            is checked by joining the list of parsed strings with newlines; this should 
-            match the gist argument.
+            string or an exception will be raised.  If strict is True, then the set of
+            keyword strings in keywords must match the keys of the Gist dictionary.
             '''
             # Check class variables
             if not all(ii(i, str) for i in (Gist.begin, Gist.end, Gist.sep)):
@@ -160,6 +159,9 @@ if 1:   # Classes
             for kw in self.keywords:
                 if kw not in self:
                     raise ValueError(f"{kw!r} not a keyword in Gist dictionary")
+            if strict:
+                if set(self) != set(keywords):
+                    raise ValueError(f"Gist keys do not match those strings in keywords list")
             # See that we can reconstruct ourself via str()
             if self.strict and str(self) != "\n" + self.gist + "\n":
                 raise ValueError("Can't reconstruct gist string (strict == True)")
@@ -206,11 +208,24 @@ if 1:   # Experiment to parse elements
             Assert(gi["b"] == " b_value\n")
             Assert(str(gi) == '\n<oo a ∞ a_value oo>\n<oo b ∞ b_value\noo>\n')
             Assert(len(gi) == 2)
-            gi = Gist(s, [], strict=True)   # No exception
+            # Things work when strict == False
+            gi = Gist(s, keywords=[], strict=False)
+            gi = Gist(s, keywords=["a"], strict=False)
+            gi = Gist(s, keywords=["b"], strict=False)
+            gi = Gist(s, keywords=["a", "b"], strict=False)
+            # Except because "c" not in dictionary
+            raises(ValueError, Gist, s, keywords="c".split(), strict=False)
+            raises(ValueError, Gist, s, keywords="b c".split(), strict=False)
+            raises(ValueError, Gist, s, keywords="a b c".split(), strict=False)
+            # Problems when strict == True
             gi = Gist(s, keywords="a b".split(), strict=True)   # No exception
-            gi = Gist(s, keywords="a".split(), strict=True)     # No exception
+            raises(ValueError, Gist, s, keywords=[], strict=True)
+            raises(ValueError, Gist, s, keywords=["a"], strict=True)
             raises(ValueError, Gist, s, keywords="a c".split())
             raises(ValueError, Gist, s, keywords="c".split())
+        if 1:   # Bad constructor data
+            pass
+
         if 1:   # Different class variables
             Gist.begin, Gist.end, Gist.sep = ">oo", "<oo", "©"
             s = ">oo a © a_value <oo"
