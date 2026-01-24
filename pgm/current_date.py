@@ -80,15 +80,18 @@ if 1:  # Utility
         exit(status)
     def Manpage():
         print(dedent(f'''
+        Example long form output:
+            23 Jan 2026 05:09:48 pm Fri [-0700Z] Q1 3/52 23/365 1,769,213,388 s JD2,461,063.71514
+        
         Day, date and time should be as you expect.  Other fields are:
         
             - [HHMMZ] is the HHMM offset from Universal Coordinated Time
             - Qx is the quarter of the year.  Note you may occasionally see Q5 if the
               date is 31 Dec.
-            - x/365 is the day number of the indicated year
-            - x/52 is the week number
-            - x s is the number of seconds since the epoch (1 Jan 1970)
-            - JDx is the astronomical Julian day
+            - D/365 is the day number of the indicated year
+            - W/52 is the week number
+            - Q s is the number of seconds since the epoch (1 Jan 1970)
+            - JDjd is the astronomical Julian day
             
         The time units are those allowed by the /plib/u.py script.  Run 'python
         /plib/u.py time' to see the supported time units:
@@ -120,13 +123,11 @@ if 1:  # Utility
           The script called with no arguments prints out analogous information to what
           /usr/bin/date prints.
         Examples
+          - '{sys.argv[0]} -s 0' shows the current time/date in short form (similar to
+            the output of /usr/bin/date)
           - '{sys.argv[0]} 0' shows the current time/date
           - '{sys.argv[0]} 3 wk ago' shows the time/date 3 weeks ago
           - '{sys.argv[0]} 1 yr' shows the time/date 1 year from today
-
-          - Let Q be the value in s printed out by the argument '0'.  '{sys.argv[0]}
-            -- -Q s' should be within hours of the date of the epoch, which is 1 Jan
-            1970, the starting date of UNIX.
         Options
             -D      Turn on debugging
             -H      Print a manpage
