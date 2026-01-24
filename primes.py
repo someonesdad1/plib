@@ -146,12 +146,12 @@ if 1:  # Core functionality
         return 2, so you'd use FactorList(2, incl_if_prime=True).
         '''
         IsPositiveInteger(n, "n must be an integer > 0")
-        factors = sorted(list(FactorGenerator(n, big=big)))
-        if check and factors and reduce(operator.mul, factors) != n:
+        prime_factors = sorted(list(FactorGenerator(n, big=big)))
+        if check and prime_factors and reduce(operator.mul, prime_factors) != n:
             raise RuntimeError("Bug in FactorList for n = %d" % n)
-        if not factors and incl_if_prime:
+        if not prime_factors and incl_if_prime:
             return [n]
-        return factors
+        return prime_factors
     def FormatFactors(n, plain=False, factor_dict=None):
         '''Returns a string of the prime factors of n.  The form is e.g.  '168:
         2³·3·7'.  If n is prime, just the number is returned with no colon
@@ -183,16 +183,24 @@ if 1:  # Core functionality
                 s.append("%d" % key)
         char = " " if plain else "·"
         return N + char.join(s)
-    def AllFactors(n, big=True):
-        "Return a list of all factors of n if n is not prime"
+    def AllFactors(n, big=True, split=False):
+        '''Return a list of the prime and composite factors of n if split is False.  If
+        split is True, return (A, B) where A is a list of the prime factors of n and B
+        is a list of all the composite factors of n.  Both lists will be empty if n is
+        prime.
+        '''
         IsPositiveInteger(n, "n must be an integer > 0")
         assert n > 1
-        factors = list(FactorGenerator(n, big=big))
-        all_factors = set(factors)
-        for num_factors in range(2, len(factors)):
-            for comb in itertools.combinations(factors, num_factors):
-                all_factors.add(reduce(operator.mul, comb))
-        return list(sorted(list(all_factors)))
+        prime_factors = list(FactorGenerator(n, big=big))
+        composite_factors = set()
+        for num_factors in range(2, len(prime_factors)):
+            for comb in itertools.combinations(prime_factors, num_factors):
+                composite_factors.add(reduce(operator.mul, comb))
+        composite = list(sorted(list(composite_factors)))
+        if split:
+            return (prime_factors, composite)
+        else:
+            return list(sorted(set(prime_factors + composite)))
     def Primes(n):
         'Returns a list of primes < n'
         # Install bitarray version 3.7 or later for faster performance
@@ -335,6 +343,9 @@ if __name__ == "__main__":
             Assert(s == [])
             s = AllFactors(120)
             Assert(s == [2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 24, 30, 40, 60])
+            # Test with split
+            s = AllFactors(100, split=True)
+            Assert(s == ([2, 2, 5, 5], [4, 10, 20, 25, 50]))
         def Test_Reduce():
             raises(ValueError, Reduce, *(0, 1))   # Has 0 element
             for s in (tuple(), (1,), (2,), (4,), (1, 2, 3)):
