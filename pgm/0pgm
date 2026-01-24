@@ -123,6 +123,7 @@ divider.py	Design a voltage divider
 dividing_head.py	Calculate characteristics of a dividing head
 dmm.py	Calculate uncertainty from a DMM reading
 double.py	Double space text files
+double_letter.py              Identify 2 & 3 letter sequences not in /plib files 
 dpindent.py	Indenting script for text files used as outlines
 draintank.py	Time to drain a tank of water
 drill.py	Print out a table of drill sizes

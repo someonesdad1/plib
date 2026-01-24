@@ -98,14 +98,71 @@ if 1:   # Classes
     class Gist(dict):
         'Take a gist string apart and store it as a dictionary'
         begin, end, sep = "<oo", "oo>", "∞"
-        def __init__(self, gist, keywords=[]):
-            self.gist = gist
-            self.keywords = keywords
-            # Initial checks
+        def __init__(self, gist, keywords=[], strict=True):
+            '''gist is the string to parse to get the dictionary elements.  If keywords
+            is not empty, then it's a list of strings that must be keywords in the gist
+            string or an exception will be raised.  If strict is True, then an invariant
+            is checked by joining the list of parsed strings with newlines; this should 
+            match the gist argument.
+            '''
+            # Check class variables
             if not all(ii(i, str) for i in (Gist.begin, Gist.end, Gist.sep)):
                 raise TypeError("Gist class variables must be strings")
+            if not all(bool(i) for i in (Gist.begin, Gist.end, Gist.sep)):
+                raise ValueError("Gist class variables must not be empty")
             if not (Gist.begin != Gist.end != Gist.sep):
                 raise ValueError("Gist class variables must be unequal")
+            # Check arguments
+            if not ii(gist, str):
+                raise TypeError("gist argument must be a string")
+            if keywords:
+                if not all(ii(i, str) for i in keywords):
+                    raise TypeError("keywords elements must be strings")
+            # Store our data
+            self.gist = gist.strip()
+            self.keywords = keywords
+            self.super = super(Gist, self)
+            # Handle the empty case
+            if not self.gist:
+                if self.keywords:
+                    raise ValueError(f"Empty gist string, but keywords not empty")
+                self.super.__init__(tuple())
+                return
+            self.strict = strict
+            if 1:   # Get our key/value pairs
+                r = "(" + Gist.begin + ".*?" + Gist.end + ")"
+                fields = []
+                for item in re.split(r, self.gist, re.S):
+                    u = item.strip()
+                    if not u:   # Ignore bare newlines
+                        continue
+                    fields.append(u)
+                # Check an invariant
+                if strict:
+                    s = '\n'.join(fields)
+                    if s != self.gist:
+                        raise ValueError("Bug: can't reconstruct invariant")
+            if 1:   # Parse each field by splitting on Gist.sep
+                key_value_pairs = []
+                for i, field in enumerate(fields):
+                    field = field.replace(Gist.begin, "").replace(Gist.end, "")
+                    f = field.split(Gist.sep, 1)
+                    if len(f) != 2:
+                        msg = (f"Error:  field {i} didn't split on {Gist.sep!r} into 2 parts:\n"
+                            f"field = {field!r}")
+                        raise ValueError(msg)
+                    key, value = f
+                    key = key.strip()
+                    key_value_pairs.append((key, value))
+            # Initialize the dictionary
+            self.super.__init__(key_value_pairs)
+            # Check that we have the required fields
+            for kw in self.keywords:
+                if kw not in self:
+                    raise ValueError(f"{kw!r} not a keyword in Gist dictionary")
+            # See that we can reconstruct ourself via str()
+            if self.strict and str(self) != "\n" + self.gist + "\n":
+                raise ValueError("Can't reconstruct gist string (strict == True)")
         def __str__(self):
             '''Returns a string representing the Gist instance.  This string
             representation will be close to what was encountered in the constructor's
@@ -113,22 +170,61 @@ if 1:   # Classes
             will be in the same order they were in the original gist string, guaranteed
             by the LIFO order of dict's storage.
             '''
-    gi = Gist("", [])
+            if not self:
+                return ""
+            u, sp = "", " "
+            for key in self:
+                u += Gist.begin + sp + key + sp + Gist.sep + self[key] + Gist.end + "\n"
+            return "\n" + u
 
 if 1:   # Experiment to parse elements
-    S = dedent('''
-    <oo desc ∞
-        Module to get the gist data in a file
-    oo>
-    <oo cr ∞ Copyright © 2026 Don Peterson oo>
-    <oo license ∞
-        Licensed under the Open Software License version 3.0.
-        See http://opensource.org/licenses/OSL-3.0.
-    oo>
-    <oo cat ∞ util oo>
-    <oo test ∞ run oo>
-    <oo todo ∞ oo>
-    ''')
+    from lwtest import raises
+    def TestGist():
+        if 1:   # Empty string
+            s = ""
+            gi = Gist(s)
+            Assert(str(gi) == "")
+            Assert(len(gi) == 0)
+        if 1:   # One field
+            s = "<oo a ∞ a_value oo>"
+            gi = Gist(s, [])
+            Assert(gi["a"] == " a_value ")
+            Assert(str(gi) == '\n<oo a ∞ a_value oo>\n')
+            Assert(len(gi) == 1)
+            # Only one split on separator
+            s = "<oo a ∞ ∞ a_value oo>"
+            gi = Gist(s, [])
+            Assert(gi["a"] == " ∞ a_value ")
+        if 1:   # Two fields
+            s = dedent('''
+                <oo a ∞ a_value oo>
+                <oo b ∞ b_value
+                oo>
+            ''')
+            gi = Gist(s, [])
+            Assert(gi["a"] == " a_value ")
+            Assert(gi["b"] == " b_value\n")
+            Assert(str(gi) == '\n<oo a ∞ a_value oo>\n<oo b ∞ b_value\noo>\n')
+            Assert(len(gi) == 2)
+            gi = Gist(s, [], strict=True)   # No exception
+            gi = Gist(s, keywords="a b".split(), strict=True)   # No exception
+            gi = Gist(s, keywords="a".split(), strict=True)     # No exception
+            raises(ValueError, Gist, s, keywords="a c".split())
+            raises(ValueError, Gist, s, keywords="c".split())
+        if 1:   # Different class variables
+            Gist.begin, Gist.end, Gist.sep = ">oo", "<oo", "©"
+            s = ">oo a © a_value <oo"
+            gi = Gist(s, [])
+            expected = " a_value "
+            Assert(gi["a"] == expected)
+            # Back to defaults
+            Gist.begin, Gist.end, Gist.sep = "<oo", "oo>", "∞"
+            s = "<oo a ∞ a_value oo>"
+            Assert(gi["a"] == expected)
+
+    TestGist()
+    exit() #∞∞
+
     t.even = t.wht
     t.odd = t.whtl
     t.key = t.ornl
