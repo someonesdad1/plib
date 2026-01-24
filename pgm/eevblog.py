@@ -1,6 +1,6 @@
 '''
 
-Searches for keywords in the EEVblog video titles.
+Searches for keywords in the EEVblog video titles
 
 To use this script, you must
     - Go to the page https://www.eevblog.com/episodes in your browser and save it as a

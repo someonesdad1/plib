@@ -1,15 +1,14 @@
-"""
+'''
 Show regex matches on lines in files
     For the files given on the command line, find the regular expression
     given on the command line (take input from stdin if no files given).
     Then decorate each line with a found string.  Print all lines; the
     color shows where the matches were.
-
+    
     In other words, it's the GNU grep tool that prints all lines of the
     files out and decorates the matches in color.  The name is 'dec',
     which is short for decorate.
-"""
-
+'''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2013 Don Peterson #∞copyright∞#
@@ -32,10 +31,8 @@ if 1:  # Custom imports
     from wrap import dedent
     from color import t
 if 1:  # Global variables
-
     class G:
         pass
-
     g = G()
     # Define the colors to use
     t.filename = t.magl
@@ -45,8 +42,6 @@ if 1:  # Global variables
     # Keep track of number of lines printed
     g.lines_printed = 0
     g.lines_default = 25
-
-
 def Usage(d, status=1):
     name = sys.argv[0]
     try:
@@ -54,7 +49,7 @@ def Usage(d, status=1):
     except KeyError:
         lines = g.lines_default
     print(
-        dedent(f"""
+        dedent(f'''
     Usage:  {name} [options] regexp [file1 [file2 ...]]
       Decorate a regexp in a text stream.  Behaves like GNU grep in
       searching for a regular expression.  However, all lines of each of the
@@ -67,11 +62,9 @@ def Usage(d, status=1):
       -p    Page the output at {lines} lines (uses LINES environment variable
             if present; {g.lines_default} if not).
       -n    Show line numbers
-    """)
+    ''')
     )
     exit(status)
-
-
 def ParseCommandLine(d):
     d["-f"] = False
     d["-g"] = False
@@ -97,12 +90,10 @@ def ParseCommandLine(d):
     if not args:
         Usage(d)
     return args
-
-
 def CheckMatches(line, regexp):
-    """Look for all matches of regexp in the line and return a list of
+    '''Look for all matches of regexp in the line and return a list of
     the beginning and ending indexes of the matches.
-    """
+    '''
     matches = []
     mo = regexp.search(line)
     while mo:
@@ -111,20 +102,16 @@ def CheckMatches(line, regexp):
         matches.append(end)
         mo = regexp.search(line, end + 1)
     return matches
-
-
 def ProcessLine(line, linenum, regexp, d, file=None):
     def ShowLineNumber():
         if d["-n"]:  # Show line numbers
             print(f"{t.numbers}{str(linenum)}", end="")
             fg(c_colon)
             t.print(f"{t.colon}:")
-
     def ShowFileName():
         if file is not None:  # Color the file name
             print(f"{t.filename}{file}", end="")
             print(f"{t.colon}:{t.n}", end="")
-
     matched = CheckMatches(line, regexp)
     if matched:  # Color highlight the line where the matches are
         matched = [0] + matched
@@ -149,8 +136,6 @@ def ProcessLine(line, linenum, regexp, d, file=None):
             ShowLineNumber()
             print(line)
             g.lines_printed += 1
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     files = ParseCommandLine(d)

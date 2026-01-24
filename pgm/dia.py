@@ -18,7 +18,7 @@
         - Change the printout to show negative deviations in red and
           positive deviations in green
           
-General-purpose diameter/length finding utility.
+General-purpose diameter/length finding utility
 '''
 if 1:  # Header
     # Copyright, license

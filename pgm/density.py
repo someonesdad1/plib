@@ -1,4 +1,4 @@
-"""
+'''
 TODO
 
     - -d doesn't work for range data (e.g., human urine is 1-1.03)
@@ -22,12 +22,11 @@ TODO
       page numbers.
     - Make sure that categories can be gotten by typing in any suitable
       abbreviation of the string
-
+      
 Utility to find density of materials by name or value.  Run with no
 command line argument to get a manpage.  Also see the density.pdf
 file that came in the density.zip package.
-"""
-
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -49,17 +48,13 @@ if 1:  # Header
         import re
         from collections import defaultdict
         from pprint import pprint as pp
-
         if 1:
             import debug
-
             debug.SetDebugger()
     if 1:  # Custom imports
         from wrap import dedent, wrap
-
         # Use flt objects to get rid of the dependency on the sig module
         from f import flt
-
         float = flt
         # from sig import sig
         from u import u, to, fromto, ParseUnit
@@ -74,10 +69,11 @@ if 1:  # Header
         ignore_ref_sim = True
         # If True, ignore the powderhandling data
         ignore_pwdrh = False
+if 1:  # Density data
         # The following density information came from a variety of sources.
         # See the material following this table for the details on the
         # references.
-        data = """
+        data = '''
         # Name                                           g/cc          Ref
     
         category = metal
@@ -2087,49 +2083,48 @@ if 1:  # Header
         Sulfur dioxide (20 °C & 1 atm)                  ; 0.002661    ; aes 38
         Tungsten hexafluoride                          ; 0.0124      ; wp
         Xenon (20 °C & 1 atm)                           ; 0.005455    ; aes 38
-        """
-
+        '''
         references = {
-            "aes": dedent("""
+            "aes": dedent('''
                     Bolz & Tuve, "Handbook of Tables for Applied Engineering
-                    Science", 2nd ed., CRC Press, 1973."""),
-            "asm": dedent("""
+                    Science", 2nd ed., CRC Press, 1973.'''),
+            "asm": dedent('''
                     American Society of Metals, "Metals Handbook", Vol. 1,
-                    8th ed., 1961 (9th printing, Aug 1977)."""),
-            "ceh": dedent("""
+                    8th ed., 1961 (9th printing, Aug 1977).'''),
+            "ceh": dedent('''
                     Perry (ed.), "Chemical Engineers' Handbook", 5th ed.,
-                    McGraw-Hill, 1973."""),
-            "el": dedent("""Emsley, "The Elements", Oxford, 1989."""),
-            "glo": dedent("""Glover, "Pocket Ref", Sequoia Publishing, 1993."""),
-            "hcp": dedent("""
+                    McGraw-Hill, 1973.'''),
+            "el": dedent('''Emsley, "The Elements", Oxford, 1989.'''),
+            "glo": dedent('''Glover, "Pocket Ref", Sequoia Publishing, 1993.'''),
+            "hcp": dedent('''
                     Weast (ed.), "CRC Handbook of Chemistry and Physics",
-                    CRC, 59th ed., 1978."""),
-            "hep": dedent("""
+                    CRC, 59th ed., 1978.'''),
+            "hep": dedent('''
                     Koshkin & Shirkevich, "Handbook of Elementary Physics",
-                    3rd ed., MIR Publishers, 1977."""),
-            "mar": dedent("""
+                    3rd ed., MIR Publishers, 1977.'''),
+            "mar": dedent('''
                     Marks, "Standard Handbook for Mechanical Engineers",
-                    7th ed., McGraw-Hill, 1967."""),
+                    7th ed., McGraw-Hill, 1967.'''),
             "dp": "Measured by script author",
-            "mh": dedent("""
+            "mh": dedent('''
                     Oberg, Jones, Horton, "Machinery's Handbook", 21st
-                    ed., Industrial Press, 1979."""),
-            "pht": dedent("""
+                    ed., Industrial Press, 1979.'''),
+            "pht": dedent('''
                     "Physics Hypertextbook", http://physics.info/density
-                    (various pages accessed on various dates)"""),
-            "pvc": dedent("""
+                    (various pages accessed on various dates)'''),
+            "pvc": dedent('''
                     http://www.pvc.org/en/p/specific-gravity-density
-                    (accessed 13 Nov 2018)"""),
-            "pwdrh": dedent("""
+                    (accessed 13 Nov 2018)'''),
+            "pwdrh": dedent('''
                     https://www.powderhandling.com.au/bulk-density-chart,
-                    (accessed 2 Jul 2021)"""),
-            "sim": dedent("""
+                    (accessed 2 Jul 2021)'''),
+            "sim": dedent('''
                     http://www.simetric.co.uk/si_materials.htm
-                    (accessed 27 Jan 2013)"""),
+                    (accessed 27 Jan 2013)'''),
             "web": "From web, location and date not noted.",
-            "wp": dedent("""
+            "wp": dedent('''
                     Wikipedia http://en.wikipedia.org, accessed various
-                    pages on various dates."""),
+                    pages on various dates.'''),
         }
         categories = (
             "all",
@@ -2142,7 +2137,7 @@ if 1:  # Header
             "wood",
         )
         # The following list is for the quick list -l option.
-        quick_list = """
+        quick_list = '''
         Aluminum                                       ; 2.70        ; aes 117
         Brass, leaded free-machining                   ; 8.50        ; asm 52
         Bronze, phosphor                               ; 8.88        ; mar 6-7
@@ -2240,10 +2235,9 @@ if 1:  # Header
         Oxygen (20 °C & 1 atm)                         ; 0.001331    ; aes 38
         Propane (20 °C & 1 atm)                        ; 0.00183     ; aes 38
         Steam (H2O) saturated (100 °C & 1 atm)         ; 0.0005977   ; aes 18
-        """[1:-1]
-
+        '''[1:-1]
         # From https://www.powderhandling.com.au/bulk-density-chart/
-        pwdrh_data = dedent("""
+        pwdrh_data = dedent('''
         Abrasive compound                              ; 2.371       ; pwdrh
         Abrasive mix                                   ; 2.451       ; pwdrh
         Acetate                                        ; 0.561       ; pwdrh
@@ -2807,107 +2801,86 @@ if 1:  # Header
         Zinc carbonate                                 ; 0.561       ; pwdrh
         Zinc oxide                                     ; 0.881       ; pwdrh
         Zinc powder                                    ; 3.364       ; pwdrh
-        """)
+        ''')
 if 1:  # Utility
-
     def Usage(d, status=1):
         name = sys.argv[0]
         digits = d["-d"]
         tol = d["-t"]
         def_unit = d["-u"]
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {name} [options] [cmd [unit]]
-          Look up material densities or find materials within a specified density
-          range.  cmd can be a number or a string.
+          Look up material densities or find materials within a specified density range.
+          cmd can be a number or a string.  Typical uses:
+            - Identify a material from its measured density (this is approximate, as
+              densities given in the literature can vary substantially)
+            - Find the density of a substance
+            - Find substances that are close in density to a given density
+            - Work with density units that are convenient to you (it's easy to add new
+              units if your favorite isn't present)
+          If cmd is a number, it is interpreted as a density and the script will print
+          out materials that are within {tol}% of the indicated density (use the -t option
+          to change this tolerance).  The number will be interpreted in the indicated
+          unit if it is given; if unit is not present, g/cc is assumed (since the
+          density of water is about 1 g/cc, this number is also the specific gravity
+          (i.e., relative to the density of water)).  Since some densities are stored
+          internally as a range, the tolerance is ignored for such densities and only
+          printed if cmd lies within the indicated range.
         
-          Typical uses:
-            * Identify a material from its measured density (this is approximate,
-              as densities given in the literature can vary substantially).
-            * Find the density of a substance.
-            * Find substances that are close in density to a given density.
-            * Work with density units that are convenient to you (it's easy to add
-              new units if your favorite isn't present).
-        
-          If cmd is a number, it is interpreted as a density and the script will
-          print out materials that are within 5% of the indicated density (use
-          the -t option to change this tolerance).  The number will be
-          interpreted in the indicated unit if it is given; if unit is not
-          present, g/cc is assumed (since the density of water is about 1 g/cc,
-          this number is also the specific gravity (i.e., relative to the
-          density of water)).  Since some densities are stored internally as a
-          range, the tolerance is ignored for such densities and only printed if
-          cmd lies within the indicated range.
-        
-          If cmd is a string, then it is a python regular expression that is used
-          to search for densities of materials whose names match this expression.
-          The search is case-insensitive.  If unit is given when cmd is a string,
-          it is interpreted as the input unit.
+          If cmd is a string, then it is a python regular expression that is used to
+          search for densities of materials whose names match this expression.  The
+          search is case-insensitive.  If unit is given when cmd is a string, it is
+          interpreted as the input unit.
         
           All densities in the script are at about 20 degrees C and 1 atm pressure
           unless otherwise stated in the description.
         
-          You can limit the output information by restricting the search to a
-          particular category with the -c option.  For example, you might want to
-          search only for metals with an indicated density.  Use the -C option to
-          see the allowed category numbers (you can also use a few letters of the
-          category name).
+          You can limit the output information by restricting the search to a particular
+          category with the -c option.  For example, you might want to search only for
+          metals with an indicated density.  Use the -C option to see the allowed
+          category numbers (you can also use a few letters of the category name).
         
-          When a solution is given in %, this is a mass percent.  The mass of the
-          solute is that percentage of the total mass of solution.  For example, a
-          15% sodium chloride solution has 15 g of NaCl for every 100 g of
-          solution.
-        
+          When a solution is given in %, this is a mass percent.  The mass of the solute
+          is that percentage of the total mass of solution.  For example, a 15% sodium
+          chloride solution has 15 g of NaCl for every 100 g of solution.
         Examples:
             python density.py .
                 Show densities of all materials in g/cc, sorted by density.  Use -n
                 to sort by name.
-        
             python density.py -u lb/ft3 -t 3 2500 kg/m3
                 Show materials that are within 3% of a density of 2500 kg/m3.  Show
                 the displayed densities in pounds per cubic foot.
-        
             python density.py -u "82*ug/cc" "hydrogen|helium|air"
                 Show gases containing the indicated strings relative to the density
                 of hydrogen.  You can see from the results that the only materials
                 that are "lighter than air" are hydrogen, helium, and heated air.
-        
         Options:
-            -C
-                Print out the allowed category numbers and names.
-            -c category
-                Limit the search to the indicated category number.  You can instead
+          -C    Print out the allowed category numbers and names.
+          -c n  Limit the search to the indicated category number n.  You can instead
                 use the first few letters of the category name.
-            -d digits
-                Define the number of significant figures to print the output
-                report.  Trailing zeros of numbers are removed (even if they
-                are significant) for easier reading.  [Default = {digits}]
-            -n
-                Sort output by the material's name (by default, the output is
-                sorted by density).
-            -R
-                Print the list of references
-            -q
-                Print a quick list
-            -r density_expr
-                Print results relative to the given density in density_expr.
-                density_expr must be an integer or floating point number (in string
-                form) followed by the desired density unit (one or more separating
-                spaces between the number and units are optional).  An example of an
-                acceptable density_expr is "82e-6 ug/mL".
-            -s
-                Summary report of the script's internal density data.
-            -t tol
-                Change the search tolerance for when cmd is a number (the tolerance
-                is ignored when cmd is a string).  The materials printed are those
-                that lie within cmd +/- tol where tol is in percent.  If the cmd
-                value is within a range, the range is printed.  [Default = {tol}%]
-            -u unit
-                Set the output unit for the density.  [Default = {def_unit}]
-            """)
+          -d n  Define the number of significant figures to print the output report. 
+                Trailing zeros of numbers are removed (even if they are significant) for
+                easier reading.  [Default = {digits}]
+          -n    Sort output by the material's name (by default, the output is sorted by
+                density).
+          -R    Print the list of references
+          -q    Print a quick list
+
+          -r e  Print results relative to the given density in expression e.  e must be
+                an integer or floating point number (in string form) followed by the
+                desired density unit (one or more separating spaces between the number
+                and units are optional).  An example of an acceptable density_expr is
+                "82e-6 ug/mL".
+          -s    Summary report of the script's internal density data
+          -t t  Change the search tolerance for when cmd is a number (the tolerance is
+                ignored when cmd is a string).  The materials printed are those that lie
+                within cmd +/- t where t is in percent.  If the cmd value is within a
+                range, the range is printed.  [Default = {tol}%]
+          -u u  Set the output unit u for the density.  [Default = {def_unit}]
+            ''')
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-c"] = 0  # Category to print
         d["-d"] = 4  # Number of significant digits
@@ -2970,7 +2943,7 @@ if 1:  # Utility
                 print()
                 wrap.i = ""
                 print(
-                    wrap(f"""
+                    wrap(f'''
                 Most web references that provide density tables have
                 poor scholarship because they don't attribute their sources.
                 It's not uncommon to come across sites that appear to copy
@@ -2980,17 +2953,17 @@ if 1:  # Utility
                 research literature.  This script's data should demonstrate
                 that there's a goodly variation of density numbers when
                 multiple sources are consulted.
-                """)
+                ''')
                 )
                 print()
                 print(
-                    wrap(f"""
+                    wrap(f'''
                 The references I've given are ones I have on-hand.  For more
                 careful work, you might want to look for a copy of the
                 Smithsonian Physical Tables book, although it is dated.  For
                 critical work, mistrust the handbooks and go directly to the
                 research literature.
-                """)
+                ''')
                 )
                 exit(0)
             elif o == "-r":  # Print relative to a given density
@@ -3035,11 +3008,10 @@ if 1:  # Utility
                 Usage(d)
         # sig.rtz = True  # Remove trailing zeros from numbers
         return args
-
     def GetCategory(s):
-        """See if we can identify the category number from the string s;
+        '''See if we can identify the category number from the string s;
         partial matches OK.
-        """
+        '''
         found, s = [], s.lower()
         for i, cat in enumerate(categories):
             if cat.find(s) == 0:
@@ -3048,22 +3020,18 @@ if 1:  # Utility
             return found[0]
         else:
             return None
-
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
-
-
 if 1:  # Core functionality
-
     def GetData(d):
-        """Return a tuple of the material data; each entry will be
+        '''Return a tuple of the material data; each entry will be
            (name, spgr, ref, cat)
         where name is a string, spgr is the density in g/cc, ref is an
         integer which indicates which reference the number came from, and
         cat is the category number.  Note that spgr is a string that
         either represents a float or two floats separated by a hyphen.
-        """
+        '''
         # Process data global variable
         lines = data.split("\n")
         densities = set()
@@ -3103,26 +3071,24 @@ if 1:  # Core functionality
             print("Longest name:")
             print(a[-1])
         return densities
-
     def InterpretDensity(s):
-        """Return a tuple of (low, high) or (nominal, None) that
+        '''Return a tuple of (low, high) or (nominal, None) that
         represents the density in g/cc given in the string s.
-        """
+        '''
         if "-" in s:
             t = tuple([float(i) for i in s.split("-")])
         else:
             t = (float(s), None)
         return t
-
     def Report(results, d):
-        """results will be a sequence of the form:
+        '''results will be a sequence of the form:
             [('Steel, stainless, 440', '0.00770', 'asm 52'),
              ('Steel, stainless, 17-4PH', '0.00780', 'asm 52'),
             ...
             ]
         I.e., tuples of the form (name, density, reference).
         d is the options dictionary.
-        """
+        '''
         if not results:
             print("No matches")
             return
@@ -3161,12 +3127,11 @@ if 1:  # Core functionality
                     # t = "{indent}{name:{maxname}} {s:^{maxs}} {ref:^{maxref}}"
                     t = "{indent}{name:{maxname}} {s:^{maxs}}  {ref}"
                     print(t.format(**locals()))
-
     def FindDensity(density, unit, d):
-        """density is the density in the user wants to search for.
+        '''density is the density in the user wants to search for.
         unit is the string that specifies the units the density are in;
         note we must convert density to g/cc.  d is the options dictionary.
-        """
+        '''
         tolerance = d["-t"] / 100
         relative_to = d["-r"]
         sort_by_name = d["-n"]
@@ -3212,15 +3177,14 @@ if 1:  # Core functionality
                 s = str(low) + "-" + str(high)
             results[i] = (name, s, ref)
         Report(results, d)
-
     def PerformTextSearch(cmd, unit, d):
-        """cmd is a text string representing a python regular expression.
+        '''cmd is a text string representing a python regular expression.
         Find all materials whose description match this regular
         expression.  unit is the string to convert the output display to.
         d is the options dictionary.  If cmd can't be compiled as a
         regular expression, then it will just be used for a
         case-insensitive string search.
-        """
+        '''
         relative_to = d["-r"]
         sort_by_name = d["-n"]
         if unit is not None:
@@ -3264,13 +3228,12 @@ if 1:  # Core functionality
                 s = str(low) + "-" + str(high)
             results[i] = (name, s, ref)
         Report(results, d)
-
     def SummaryReport(d):
-        """Show:
+        '''Show:
         - Number of items in data
         - Number of items in each material category
         - Min & max density value
-        """
+        '''
         materials, counts, fi = GetData(d), defaultdict(int), sys.float_info
         min_density, max_density = fi.max, -fi.max
         for name, density, ref, category in materials:
@@ -3289,16 +3252,15 @@ if 1:  # Core functionality
         max_density = str(max_density)
         # Print report
         print(
-            dedent(f"""
+            dedent(f'''
         {n} data entries
         {min_density} = minimum density in g/cc
         {max_density} = maximum density in g/cc
-        Count by material category:""")
+        Count by material category:''')
         )
         for index, count in counts.items():
             s = categories[index] if index else "no category"
             print("    {count:5} {s}".format(**locals()))
-
     def QuickList(d):
         # Parse the quick list string to tuples of
         # (name, low_spgr, high_spgr, ref).
@@ -3322,8 +3284,6 @@ if 1:  # Core functionality
                 results.append((name, spgr, ref))
         Report(results, d)
         exit(0)
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     cmd, unit = ParseCommandLine(d)

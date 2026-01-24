@@ -1,4 +1,4 @@
-"""
+'''
 
 If no arguments are given, print a table of the circumference of an ellipse
 with a major diameter of 1 as a function of the eccentricity.  This table
@@ -17,12 +17,12 @@ The formula for the ellipse circumference C is
 
     C = 4 a\int_0^{\pi/2}\sqrt{1 - \epsilon^2 \sin^2 \theta} d\theta
       = 4 a E(\epsilon)
-
+      
 where E is the complete elliptic integral of the second kind.  The
 eccentricity is related to a and the semiminor diameter b:
 
     \epsilon = \sqrt{1 - b^2/a^2}
-
+    
 Warning:  there is annoyingly no standardization in the definition of
 elliptic integrals for the modulus, so if you get incorrect results,
 suspect you should have used either the square or square root.
@@ -31,8 +31,7 @@ There are two simple checks for the plotted function.  First, the
 circumference of a unit circle (eps == 0) must be 2*pi.  Second, when the
 eccentricity is 1, the ellipse is a flat line and the circumference is 4.
 
-"""
-
+'''
 if 1:  # Header
     if 1:  # Standard imports
         import sys
@@ -48,23 +47,19 @@ if 1:  # Header
         t.hdr = t("royl")
         t.ecc = t("magl")
 if 1:  # Utility
-
     def E(eps):
-        """Return the complete elliptical integral of the second kind for
+        '''Return the complete elliptical integral of the second kind for
         an ellipse with unity major diameter and eccentricity eps.
-        """
+        '''
         Assert(0 <= eps <= 1)
         a = 1 / 2
         b = a * (1 - eps**2)
         return EllipseCircumference(2 * a, 2 * b)
-
-
 if 1:  # Core functionality
-
     def rational(x):
-        """Rational approximation for complete elliptic integral of the second
+        '''Rational approximation for complete elliptic integral of the second
         kind, https://www.exstrom.com/math/elliptic/ellipint.html.
-        """
+        '''
         Assert(0 <= x <= 1)
         x2 = x  # The web page uses x**2, but scipy's ellipe uses x
         if 1:
@@ -73,7 +68,6 @@ if 1:  # Core functionality
             x4 = x2 * x2
             G = (x4 - 28 * x2 + 64) / (4 * x4 - 40 * x2 + 64)
         return (1 - x2 * G / 4) * pi / 2
-
     def Plot():
         ecc, c = [], []
         a = 1 / 2
@@ -124,14 +118,13 @@ if 1:  # Core functionality
         errorbar(x, 2 + bar_length, yerr=0.05)
         text(1.003 * x, 2 + bar_length / 2, f"{100 * bar_length:.0f}%")
         savefig("ellcircum.png")
-
     def Table():
         print(
-            dedent(f"""
+            dedent(f'''
         {t.title}Circumference C(eps) of an ellipse with unit major diameter
             eps = eccentricity = sqrt(1 - b**2), b = minor diameter{t.n}
-
-        """)
+            
+        ''')
         )
         w = 6
         # Header
@@ -149,13 +142,10 @@ if 1:  # Core functionality
                 c = E(eps)
                 print(f"{c:^{w}.4f}", end=" ")
             print()
-
-
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         Table()
     else:
         from pylab import *
         from scipy.special import ellipe as E
-
         Plot()

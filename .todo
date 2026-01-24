@@ -119,6 +119,12 @@
             - Look for '.fg' and '.bg' and 'C.' when there's a line that contains
               'import' and 'color'
 
+    - usage.py
+        - Mini-formatting language for usage statements and general script output to a
+          terminal
+        - Make it easy to indent and dedent, wrap, and colorize or markup text
+            - Pick some Unicode symbols to turn formatting on/off
+
     - pgm/python_perf.py
         - Update to modern formatting
         - Use color.py and f.flt/f.cpx
@@ -129,28 +135,25 @@
       making sure everything compiles and works.
 
     - ruff
-        - I know this tool will be fast and be a good tool for maintaining a bunch of
-          code because formatting standards are important.  Thus, carefully test the
-          linting and formatting features and see if I can adapt to the way it works.
+        - I'm still ambivalent about the formatting, particularly when I've seen how
+          badly it screws up formatting of math expressions and can turn short code into
+          long code
         - Set /plib/ruff.toml as my formatting standard
-        - Formatting problems (PEP-8 standards)
-            - Ensure my dbl command works properly on such files; this then isn't a
-              blocking factor, as a function can be set up to call dbl after formatting
-              with ruff
-            - The "airy" math formulas bug me quite a bit because they really mess up
-              the readability of formulas ( and I like the closeness to represent
-              strength of operator precedence.  But I may just have to live with it.
-        - Need to really understand this tool because it will be both a linter and a
-          formatter
-        - I know it will be fast and if I can get it to format things close to what I
-          want, I'll use it, as it makes it nearly trivial to keep code formatted.
-        - I don't plan to use pyproject.toml, as this is (apparently) intended for
-          packages going to PyPi.  I'll just use a /plib/ruff.toml file to control
-          linting and formatting behavior.
+        - Opinions
+            - Linting is good
+            - Formatting problems (PEP-8 standards)
+                - Ensure my dbl command works properly on such files; this then isn't a
+                  blocking factor, as a function can be set up to call dbl after
+                  formatting with ruff
+                - The "airy" math formulas bug me quite a bit because they really mess
+                  up the readability of formulas ( and I like the closeness to represent
+                  strength of operator precedence.  There doesn't seem to be any way to
+                  fix this.
     - yapf
         - https://github.com/google/yapf
         - Install with 'pip install git+https://github.com/google/yapf.git'
-            - This lets you run commands via 'PYTHONPATH=DIR python DIR/yapf [options] ...'
+            - This lets you run commands via 'PYTHONPATH=DIR python DIR/yapf [options]
+              ...'
 
     - fs.py command
         - Search a set of directories for regexes for file names

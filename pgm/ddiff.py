@@ -1,11 +1,10 @@
-"""
+'''
 TODO
     - Change {1} to <1> to quantify differences
     - Mute the colors a bit
-
+    
 Compare the contents of two directories
-"""
-
+'''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
@@ -30,10 +29,8 @@ if 1:  # Custom imports
     from color import Color, TRM as t
     from columnize import Columnize
     import strdiff
-
     if 0:
         import debug
-
         debug.SetDebugger()
 if 1:  # Global variables
     P = pathlib.Path
@@ -46,7 +43,6 @@ if 1:  # Global variables
     t.di = t("lip")  # Difference metric
     debug = False
 if 1:  # Utility
-
     def Debug(*p, **kw):
         if debug:
             k = kw.copy()
@@ -54,14 +50,12 @@ if 1:  # Utility
             print(f"{t.dbg}", **k)
             print(*p, **kw)
             print(f"{t.n}", **k)
-
     def Error(*p, status=1):
         print(*p, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options] dir1 dir2
           Compare the two directories and print out the file differences.
           The file comparisons are first made by size, then by a hash if
@@ -80,10 +74,9 @@ if 1:  # Utility
             -k      Don't use color in printout to a terminal
             -d      Print debug information
             -r      Recursive compare
-        """)
+        ''')
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-1"] = True  # Print out dir1 stuff
         d["-2"] = True  # Print out dir2 stuff
@@ -109,22 +102,17 @@ if 1:  # Utility
         if not d["-k"]:
             t.l = t.r = t.d = t.dbg = t.nr = t.di = ""
         return dirs
-
     def CleanUp():
         "Make sure ANSI colors are off"
         if d["-k"]:
             print(f"{t.n}", end="")
-
-
 if 1:  # Core functionality
-
     def GetFiles(dir):
         p = P(dir)
         s = p.rglob("*") if d["-r"] else p.glob("*")
         s = [i.relative_to(dir) for i in s]
         s = [i for i in s if (dir / i).is_file()]
         return s
-
     def Hash(file):
         "Return a hash string or None if couldn't read"
         h = hashlib.sha256()
@@ -136,11 +124,10 @@ if 1:  # Core functionality
                 print(f"Error on file '{file}'", file=sys.stderr)
                 print(f"  {e}", file=sys.stderr)
             return None
-
     def Diffs(common, dirleft, dirright):
-        """Return a set of the files that are in both directories, but
+        '''Return a set of the files that are in both directories, but
         differ.
-        """
+        '''
         diffs, noread = [], []
         for file in common:
             left = dirleft / file
@@ -173,7 +160,6 @@ if 1:  # Core functionality
                 Debug(f"  right:  {right_hash[:n]}")
                 diffs.append(file)
         return set(diffs), set(noread)
-
     def GetDecorator(item):
         left = open(dirleft / item, "rb").read()
         right = open(dirright / item, "rb").read()
@@ -182,10 +168,8 @@ if 1:  # Core functionality
         frac = strdiff.DiffFrac(left, right)
         digit = strdiff.DiffDigit(frac, len(left))
         return f"{t.di}<{digit}>{t.n}"
-
     def Report(only_in_left, only_in_right, diffs, noread):
         indent = " " * 2
-
         def P(title, myset, decorate=False):
             print(title)
             items = sorted(list(myset))
@@ -194,7 +178,6 @@ if 1:  # Core functionality
             for i in Columnize(items, indent=indent):
                 print(i)
             print(f"{t.n}", end="")
-
         if noread:
             P(f"{t.nr}Files that couldn't be read", noread)
         if d["-1"] and only_in_left:
@@ -203,13 +186,8 @@ if 1:  # Core functionality
             P(f"{t.r}Files only in {dirright}", only_in_right)
         if d["-c"] and diffs:
             GetDecorator.color = t.d
-            P(
-                f"{t.d}Common files that differ ({t.di}<1>{t.d} to "
-                f"{t.di}<9>{t.d} quantify differences)",
-                diffs,
-                decorate=True,
-            )
-
+            P(f"{t.d}Common files that differ ({t.di}<1>{t.d} to "
+              f"{t.di}<9>{t.d} quantify differences)", diffs, decorate=True,)
 
 if __name__ == "__main__":
     d = {}  # Options dictionary
@@ -219,4 +197,4 @@ if __name__ == "__main__":
     only_in_right = right - left
     common = left & right
     diffs, noread = Diffs(common, dirleft, dirright)
-    Report(only_in_left, only_in_right, diffs, noread)
+    Report(only_in_left, only_in_right, diffs, noread )

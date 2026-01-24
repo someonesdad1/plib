@@ -53,7 +53,8 @@ if 1:  # Utility
         Usage:  {sys.argv[0]} [options] [file1 [file2 ...]]
           Delete blank lines from files.  Note a blank line is a line with no whitespace
           on it except for a newline.  Assumes stdin for no files.  If you include files
-          on the command line, use '-' for stdin.
+          on the command line, use '-' for stdin.  All filtered lines are sent to
+          stdout.
         Options:
             -1      Collapse multiple blank lines to one
         '''))

@@ -20,6 +20,7 @@ candidates:
 7seg_words.py	Show words made from 7-segment letters
 7segment.py	Draw 7 segment and alphanumeric displays
 8500.py	Operation of B&K 8500 DC load
+
 abspath.py	Return the paths on the command line as absolute paths
 acro.py	Find acronyms in a text file
 alias.py	Show current shell aliases.  Assumes stdin contains list of 'alias' commands.
@@ -29,6 +30,7 @@ analyze.py	Print word statistics for each file
 arecibo.py	Various binary messages for extraterrestrial communication
 asc.py	Prints out ASCII characters
 attenuator.py	Script to design tee and pi attenuators.
+
 ball.py	Turning a ball on the lathe:  calculations via the incremental cut method
 bar.py	Print out mass of bar stock
 barlow.py	Construct a copy of Barlow's tables
@@ -50,6 +52,7 @@ british.py	Identify British spellings in files on command line
 bucket.py	Print out volume calibration marks for a bucket
 buptime.py	Print the time it takes to do a backup
 busy.py	Loads a CPU with n busy/wait tasks
+
 c++_units.py	C++ for type-safe numerical computation with units
 c2py.py	Translate C code to python
 calendar_oo.py	Generate text to import into OO and formatted as a calendar
@@ -102,42 +105,44 @@ cu_resistivity.py	Plot the resistivity of copper as a function of temperature
 cu_wire.py	Output a copper wire table
 current_date.py	Show current date/time
 cut.py	Solve a one-dimensional cutting stock problem
-date.py	
-days.py	
-db.py	
-dbl.py	
-dd.py	
-ddiff.py	
-de.py	
-dec.py	
-density.py	
-dep.py	
-dia.py	
-diet.py	
-diode.py	
-dircmp.py	
-divider.py	
-dividing_head.py	
-dmm.py	
-double.py	
-dpindent.py	
-draintank.py	
-drill.py	
-ds.py	
-dup.py	
-duplines.py	
-dupword.py	
-eevblog.py	
-ellcircum.py	
-emoji.py	
-energy.py	
-env.py	
-envcmp.py	
-ev.py	
-exp.py	
-ext.py	
-extension.py	
-extract.py	
+
+days.py	Show number of days from a reference date
+db.py	Print dB information and a conversion table
+dbl.py	Delete blank lines from files (particularly python files)
+dd.py	Double depths of vee threads
+ddiff.py	Compare the contents of two directories
+de.py	Show decimal equivalents and look up nearby sizes
+dec.py	Decorate a regexp in a text stream
+density.py	Find density of materials by name or value
+dep.py	Find python library dependencies
+dia.py	Diameter/length finding utility
+diet.py	Information relevant to a diet
+diode.py	Measured voltage & current relationships of various diodes
+dircmp.py	Compare two directories
+divider.py	Design a voltage divider
+dividing_head.py	Calculate characteristics of a dividing head
+dmm.py	Calculate uncertainty from a DMM reading
+double.py	Double space text files
+dpindent.py	Indenting script for text files used as outlines
+draintank.py	Time to drain a tank of water
+drill.py	Print out a table of drill sizes
+ds.py	Open a document file
+dup.py	Find duplicate files in directory trees
+duplines.py	Finds duplicate lines in one or more files
+dupword.py	Find duplicated like 'the the' is duplicated (but 'The the' is not)
+
+eevblog.py	Search for keywords in the EEVblog video titles
+ellcircum.py	Circumference of an ellipse with unit major diameter
+emoji.py	Search for github markdown emojis supported by pandoc 3.8
+energy.py	Script to help with estimating daily food energy needs
+env.py	Print environment variables
+envcmp.py	Compare shell environment variables and functions
+ev.py	Old C program for calculating film camera information
+exp.py	Keep track of experiments
+ext.py	Find all file extensions used in a directory tree
+extension.py	Print out descriptions of file name extensions
+extract.py	Extract specified 1-based lines from files
+
 factors.py	
 fcut.py	
 fet_current.py	
@@ -161,6 +166,7 @@ fset.py
 fshuffle.py	
 ftouch.py	
 func.py	
+
 gasoline.py	
 gauge.py	
 gb.py	
@@ -169,6 +175,7 @@ goto.py
 grab.py	
 gres.py	
 guess_password.py	
+
 halflife.py	
 hammer.py	
 hash_speeds.py	
@@ -187,6 +194,7 @@ html2txt.py
 html_tokens.py	
 htmlstrip.py	
 hues.py	
+
 ideal_gas.py	
 igor.py	
 igor.sibilant_c.py	
@@ -200,11 +208,14 @@ inverted_index.py
 ipa.py	
 iv_mag.py	
 ixfm.py	
+
 j.py	
 julian_day.py	
+
 knurl.py	
 knurl_table.py	
 kw.py	
+
 latex_skeleton.py	
 lathe.py	
 lc.py	
@@ -232,6 +243,7 @@ lsg.py
 lsh.py	
 lshuffle.py	
 lump.py	
+
 machine.py	
 make_zips.py	
 man.py	
@@ -261,11 +273,13 @@ mpg.py
 mw.py	
 mysys.py	
 mytimeit.py	
+
 nails.py	
 ncss.py	
 nl.py	
 nospc.py	
 note.py	
+
 ohm.py	
 onderdonk.py	
 oneline.py	
@@ -274,6 +288,7 @@ oom.py
 oring.py	
 otp.py	
 outlet_combinations.py	
+
 paper.py	
 paper_sizes.py	
 paper_weight.py	
@@ -325,6 +340,7 @@ python_releases.py
 python_symbols.py	
 pytok.py	
 pyver.py	
+
 rand.py	
 random_phrase.py	
 ranword.py	
@@ -350,6 +366,7 @@ rope.py
 rpo.py	
 rs22812.py	
 rtd.py	
+
 scale.py	
 scope.py	
 scramble.py	
@@ -387,6 +404,7 @@ stripansi.py
 sunriseset.py	
 sw.py	
 sz.py	
+
 tags.py	
 taper.py	
 tapered_link.py	
@@ -421,11 +439,14 @@ trimming.py
 trip.py	
 tsub.py	
 tx.py	
+
 uni.py	
 unwrap.py	
 uri.py	
 usb.py	
+
 vmdivider.py	
+
 weather.py	
 weed.py	
 wheatstone.py	
@@ -438,14 +459,17 @@ words.py
 words_syllables.py	
 words_syllables_make.py	
 wrench.py	
+
 x.py	
 xkcd.py	
 xref.py	
 xx.py	
 xyz.py	
+
 yr.py	
 ysi.py	
 yt.py	
+
 zener.py	
 
 vim:  noet ts=30

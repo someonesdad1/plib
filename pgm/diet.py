@@ -1,5 +1,5 @@
-"""
-Information relevant to a diet.
+'''
+Information relevant to a diet
 
 Food info to add
     - peanuts
@@ -8,9 +8,8 @@ Food info to add
     - steak, hamburger
     - celery
     - pickled beets:  29 g per serving = 15 Cal or 52 Cal/100 g
-
-"""
-
+    
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -41,72 +40,63 @@ if 1:  # Header
         from columnize import Columnize
         import u
         import get
-
         if 0:
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
-
         class G:
             pass
-
         g = G()
         g.dbg = False
         ii = isinstance
 if 1:  # Utility
-
     def GetColors():
         t.err = t("redl")
         t.dbg = t("lill") if g.dbg else ""
         t.N = t.n if g.dbg else ""
-
     def GetScreen():
         "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
             int(os.environ.get("COLUMNS", "80")) - 1,
         )
-
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="")
             print(*p, **kw)
             print(f"{t.N}", end="")
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Manpage():
         print(
-            dedent(f"""
+            dedent(f'''
         There is no magic to losing weight, just as there is no magic to gaining it.  If you
         consider the body as a closed system, then what you breathe and eat are closely related to
         what you put on, take off, and excrete on a daily basis.  In my opinion, the keys are
-
+        
             - Get the motivation to lose weight
             - Figure out how to keep that motivation over the long term
             - Eat the proper mixture of nutrients to stay healthy
             - Change your eating habits to avoid the behaviors that made you gain too much weight
-
+            
         Unfortunately, most dietary information uses the screwball "food calorie", which is a kcal
         if you've got a technical background.  A regular calorie is 4.18 J.  I will use the food
         calorie as the basic unit, call it Calorie, and denote it by the symbol C.  I will also
         use pounds for weight because it is the most common unit used by non-technical people in
         the US.
-
+        
         An important constant is 3500 C/lb.  This is the energy content of fat that your body
         collects when it has too much food, storing it for later when food isn't plentiful.  The
         basic strategy of weight loss is that you have a target value for the weight WL you want to
         lose and you decide on how much energy to reduce in your daily intake, which I'll call ED
         for energy deficit in Calories/day.
-
+        
         If you can maintain the daily energy deficit, the simple arithmetic gives the number of
         days it will take to lose your target weight:  (3500 C/lb)*(WL in lb)/(ED in C/day).  If
         you cancel out the units, you'll see you're left with days.  More importantly, I can tell
         you from real experience that it works exactly as written.
-
+        
             Suppose you choose ED = 500 C/day.  Then in 7 days you'll lose 1 pound of fat.  Thus,
             you can probably do the arithmetic in your head to see how long this weight loss is
             going to take.  If it's, say, 25 pounds, then it's going to take you 25 weeks or about
@@ -115,18 +105,18 @@ if 1:  # Utility
             time.  That shouldn't surprise you, as you probably put the weight on at about the
             same leisurely pace.  Alas, it's painless to put it on, but takes willpower and
             commitment to take it off.
-
+            
         There are various formulas to estimate your daily energy need based on your height, age,
         gender, weight, and activity level.  You can look up things like the Harris-Benedict
         formula or the Institute of Medicine equation (published in 2002; see
         https://en.wikipedia.org/wiki/Institute_of_Medicine_Equation).  I've used both equations.
-
+        
         Once you know your daily energy need, discuss with your doctor
-
+        
             - What a reasonable weight goal should be for you.  The doc will probably base this on
               both your current BMI and what you both agree would be a good target BMI.
             - What daily energy deficit ED is reasonable for you.  
-
+            
         Example:  My starting BMI (body mass index, see below) was 25.5 and my BMI goal was 22,
         which is right in the middle of the "normal" range.  This required me losing 25 lb of
         weight.  My daily energy need is about 2000 C.  My original planning goal was to have a
@@ -140,7 +130,7 @@ if 1:  # Utility
               off two of the three diabetes medicines he has me on.  He was emphatic about this
               because one of these medicines is something he's not fond of, having seen
               complications with it.
-
+              
         Your daily weight fluctuates quite a bit because of the air, water, and food you take in
         and the stuff you excrete out.  It's not meaningful to measure your weight every day
         because of these fluctuations.  Walker in the "Hacker's Diet" suggest a moving average to
@@ -149,14 +139,14 @@ if 1:  # Utility
         and urinating.  It told me what I needed to know and I didn't need to write the weight
         down, as it was easy to remember.  It was also easy to see if I was making progress by the
         measurement made a week later.
-
+        
         My core tactic once I had committed to weight loss was to rigidly follow this rule:  after
         I've eaten the allowed amount of food for my planned meal, stop.  Do not eat anything else
         until at least an hour after I've finished my meal.
-
+        
         The surprising result of doing this is that I was never hungry after I waited that hour.
         My key faulty habit over a lifetime was over-eating because I didn't feel full.  
-
+        
         Other tactics I use:
             - I take a multivitamin and a single vitamin C tablet once per week.  Make sure you're
               also getting proper levels of protein, fiber, and other nutrients.
@@ -188,39 +178,38 @@ if 1:  # Utility
               yourself how to get out of the habit of eating them.
             - Find interesting things to do to keep your mind occupied so you think less about
               eating.
-
+              
         Meal "planning" is mostly about knowing the food energy content of foods.  I prefer to put
         everything in a specific energy form, which allows comparison and estimation of how
         much energy I'm getting in a serving.  Here, the specific energy measure I use is food
         calories per unit mass, specifically Calories per 100 grams.  You'll want to have a small
         scale and use it to be able to judge about 100 g of food by eye.  This script prints out a
         table of specific energy and you'll want to modify it to fit your choices.
-
+        
         During the holidays and when we eat at restaurants or other people's houses, I try to be
         sensible, but I don't bend overboard to follow my strict diet.  One day of
         over-consumption while dieting isn't going to kill your gradual weight loss program as
         long as you don't make it a habit.
-
+        
         John Walker published on the web his book "The Hacker's Diet", which is freely-available
         from http://www.fourmilab.ch/hackdiet.  For my tastes, the content is excellent, but the
         presentation is a bit wordy.  The American Heart Association has some good basic
         information on a healthy diet at
         https://www.heart.org/-/media/AHA/H4GM/PDF-Files/How-much-should-i-eat-Infographic-PDF.pdf.
-
+        
         BMI is calculated from m/h² where m is mass in kg and h is height in m.  General guidelines for
         BMI are
             Underweight		< 18.5
             Normal		    18.5 to 25
             Overweight		25 to 30
             Obese 		    > 30
-
-        """)
+            
+        ''')
         )
         exit(0)
-
     def Usage(status=0):
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options] [cmd]
           Print out information relevant to a diet.
           e     Estimate daily food energy need
@@ -232,10 +221,9 @@ if 1:  # Utility
           f     Specific energy list of common foods
         Options:
             -h      Print a manpage
-        """)
+        ''')
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = False  # Need description
         d["-d"] = 3  # Number of significant digits
@@ -262,13 +250,10 @@ if 1:  # Utility
         x.N = d["-d"]
         x.rtz = True
         return args
-
-
 if 1:  # Core functionality
-
     def GetData():
         "Return a dict of food name to specific energy"
-        data = """
+        data = '''
             apple 52
             banana 89
             bell pepper 26
@@ -318,7 +303,7 @@ if 1:  # Core functionality
             Wheat Thins 452
             white bread 231 # 60 C in one slice
             yellow squash 16
-        """
+        '''
         fd = {}
         for i in data.split("\n"):
             i = i.strip()
@@ -330,11 +315,9 @@ if 1:  # Core functionality
             j = i.split()
             fd[" ".join(j[:-1])] = int(j[-1])
         return fd
-
     g.low = 60
     g.med = 100
     g.hi = 400
-
     def ColorCoding(energy):
         if energy > g.hi:
             return t.ornl
@@ -344,14 +327,12 @@ if 1:  # Core functionality
             return t.grnl
         else:
             return t.whtl
-
     def ColorKey():
         C = ColorCoding
         print(
             f"{t.n}Color key:  {C(g.low)}< {g.low}, {C(g.med)}< {g.med}, "
             f"{C(g.hi)}< {g.hi}, {t.n}else {C(500)}this"
         )
-
     def PrintTable():
         fd = GetData()
         d = list(fd.items())
@@ -373,28 +354,24 @@ if 1:  # Core functionality
         for i in Columnize(o):
             print(i)
         ColorKey()
-
     def Breakfast():
         print(
-            dedent(f"""
-        """)
+            dedent(f'''
+        ''')
         )
-
     def Lunch():
         print(
-            dedent(f"""
-        """)
+            dedent(f'''
+        ''')
         )
-
     def Dinner():
         print(
-            dedent(f"""
-        """)
+            dedent(f'''
+        ''')
         )
-
     def Metabolism():
         print(
-            dedent(f"""
+            dedent(f'''
         The Harris-Benedict formula for basal metabolic rate from the early 1900's is (revised by
         Mifflin and St Jeor in 1990)
         
@@ -446,13 +423,12 @@ if 1:  # Core functionality
         The equation is 662 - 9.53(70) + 15.91(70)(1.11) + 539.6(1.75), which is 662 - 667.1 +
         1236.2 + 994.3 or 2225.4 Calories.  I'd round this to 2200 Calories per day.
         
-        """)
+        ''')
         )
-
     def GetDailyEnergyNeed():
-        """Show daily Calories needed given mass, height, and age.  The calculation is based on
+        '''Show daily Calories needed given mass, height, and age.  The calculation is based on
         the Institute of Medicine equation published in 2002.
-        """
+        '''
         print(
             "You'll be prompted for mass, height, and age.  Enter different units if desired."
         )
@@ -465,7 +441,7 @@ if 1:  # Core functionality
             s = "What is mass in lb?"
             mass, unit = get.GetNumber(s, default=150, use_unit=True)
             if unit:
-                if u.u(unit, dim=True)[1] != u.u("m", dim=True)[1]:
+                if u.u(unit, dim=True)[1] != u.u("g", dim=True)[1]:
                     print("You must use a mass unit")
                     continue
                 m = mass * u.u(unit)  # Mass in kg
@@ -502,7 +478,7 @@ if 1:  # Core functionality
         # Get y, the age in years
         done = False
         while no_test and not done:
-            y = get.GetNumber("What is age in years? ", default=75, low=18, high=100)
+            y = get.GetNumber("What is age in years? ", default=75, low=18, high=120)
             years = f"{y} years"
             done = True
         if not no_test:
@@ -537,12 +513,9 @@ if 1:  # Core functionality
             print(
                 f"{i}{level:{w1}s}{' ' * w}{eer_men!s:^{w2}s}{' ' * w}{eer_women!s:^{w3}s}"
             )
-
-
 if 0:
     GetDailyEnergyNeed()
     exit()
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
