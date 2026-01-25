@@ -81,7 +81,9 @@ if 1:  # Header
         import importlib
         import pathlib
         import re
+        import textwrap
     if 1:   # Custom imports
+        import dpstr
         from wrap import dedent
         from color import t
         from dpprint import PP
@@ -179,18 +181,13 @@ if 1:   # Classes
             for key in self:
                 u += Gist.begin + sp + key + sp + Gist.sep + self[key] + Gist.end + "\n"
             return "\n" + u
-
-if 1:   # Utility functions
-    def GetGistString(file, varname="_pgminfo"):
-        '''Return the Gist string for this file (a string or pathname.Path instance).
-        varname is the name of the global variable used to hold the gist, a string.
-        None is returned if varname can't be read.
-        '''
-        # If the import method eventually has a problem, define the use_import keyword
-        # and write the second method.
-        use_import = True
-        filename = str(file) if isinstance(file, pathlib.Path) else file
-        if use_import:
+        @classmethod
+        def GetGistString(cls, file, varname="_pgminfo"):
+            '''Return the Gist string for a file (a string or pathname.Path instance).
+            varname is the name of the global variable used to hold the gist, a string.
+            None is returned if varname can't be read.
+            '''
+            filename = str(file) if isinstance(file, pathlib.Path) else file
             if filename.endswith(".py"):
                 filename = filename[:-3]
             global GetGist_imported_module
@@ -200,8 +197,16 @@ if 1:   # Utility functions
                 return var
             except Exception:
                 return None
-        else:
-            pass
+        @classmethod
+        def UnindentString(cls, giststr):
+            '''Return (n, unindented) where n is an integer indicating how many spaces
+            each line in the string giststr is indented.  unindented is giststr with
+            this common indentation removed.
+            '''
+            n = dpstr.CountLeadingSpaces(giststr)
+            u = dpstr.PrepareMultilineString(giststr)
+            unindented = textwrap.dedent(u)
+            return (n, unindented)
 
 if 0:   # Test area for code development
     g = GetGist("aa.py", varname="_aainfo", use_import=True)
@@ -250,8 +255,18 @@ if 0:   # Test area for code development
 if __name__ == "__main__":  
     from lwtest import run, raises, Assert
     from wrap import dedent
+    def Test_UnindentString():
+        nl = "\n"
+        s = Gist.GetGistString("gist.py")
+        n, u = Gist.UnindentString(s)
+        expected = (nl + "<oo desc ∞\n    Module to get the gist data in a file\noo>\n"
+            "<oo cr ∞ Copyright © 2026 Don Peterson oo>\n<oo license ∞\n"
+            "    Licensed under the Open Software License version 3.0.\n"
+            "    See http://opensource.org/licenses/OSL-3.0.\noo>\n<oo cat ∞ util oo>\n"
+            "<oo test ∞ run oo>\n<oo todo ∞ oo>" + nl)
+        Assert(s == expected)
     def Test_GetGistString():
-        s = GetGistString("gist.py")
+        s = Gist.GetGistString("gist.py")
         Assert(s == _pgminfo)
     def Test_Gist_Basics():
         if 1:   # Empty string
