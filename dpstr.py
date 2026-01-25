@@ -8,6 +8,7 @@ Todo
 Chop                Return a string chopped into equal parts
 CommonPrefix        Return a common prefix of a sequence of strings
 CommonSuffix        Return a common suffix of a sequence of strings
+CountLeadingSpaces  Return number of common leadings spaces in a multiline string
 Decorate            Return a decorated form of a string; make whitespace easier to see
 FilterStr           Return a function that removes characters from strings
 FindAll             Find all locations of a substring in a string
@@ -37,7 +38,7 @@ Remove              Return items from sequence not in the remove sequence
 RemoveASCII         Remove all ASCII characters from a string
 RemoveComment       Remove '#.*$' from a string
 RemoveEndingChars   Remove ending characters from a string
-RemoveStartingChars Remove ending characters from a string
+RemoveStartingChars Remove starting characters from a string
 RemoveFilter        Functional form of Remove (it's a closure)
 RemoveWhitespace    Remove whitespace from a string
 RmEsc               Remove ANSI escape strings from string arguments
@@ -396,8 +397,64 @@ if 1:  # Core functionality
         def func(s):
             return Remove(s, remove)
         return func
+    def CountLeadingSpaces(s, trim_start=True, trim_end=True):
+        '''Return the number of common leading space characters in the multiline string
+        s.  The use case for this is a multiline string in an indented function in which
+        you want all the lines aligned to the left margin.  You would do this by getting
+        the number of spaces n returned by this function, then removing that number of
+        leading spaces from each line in the sequence.  You'd do this by 
+
+            s = PrepareMultilineString(s)
+         
+        A common pattern for defining a multiline function in a string is such as the
+        following
+        
+        x = """
+            Line1
+            Line2
+        """
+
+        and we want the returned multiline string array to be ["····Line1", "····Line2"]
+        (spaces replaced with '·' characters).  This would require removing everything
+        up to the first newline (including the newline), then removing the trailing
+        spaces up to the last newline, then removing the last newline.  Then if you use
+        split("\n") on the string, you get the two lines you expect andd this function
+        will tell you there are 4 leading spaces.
+        '''
+        n, nl, sp = bool(trim_start) + bool(trim_end), "\n", " "
+        if s.count(nl) < n:
+            raise ValueError("Not enough newline characters in multiline string s")
+        if trim_start or trim_end:
+            x = PrepareMultilineString(s, trim_start=True, trim_end=True)
+            lines = x.split(nl)
+        else:
+            lines = s.split(nl)
+        # Count number of leading space characters on each line
+        spacecharset = set([sp])
+        counts = [len(GetStartingChars(line, chars=spacecharset)) for line in lines]
+        return min(set(counts))
+    def PrepareMultilineString(s, trim_start=True, trim_end=True):
+        '''Prepare the string s by removing leading spaces up to the first newline, then
+        the first newline, the trailing leading spaces, and the trailing leading
+        newline, then return the string.
+        '''
+        n, nl, sp = bool(trim_start) + bool(trim_end), "\n", " "
+        if s.count(nl) < n:
+            raise ValueError("Not enough newline characters in multiline string s")
+        dq = deque(s)
+        if trim_start:
+            while dq and dq[0] == sp:
+                dq.popleft()
+            if dq and dq[0] == nl:
+                dq.popleft()
+        if trim_end:
+            while dq and dq[-1] == sp:
+                dq.pop()
+            if dq and dq[-1] == nl:
+                dq.pop()
+        return ''.join(list(dq))
     def RemoveWhitespace(s):
-        '''Remove whitespace characters from the string s.  Whitespace characters are:
+        '''Remove all whitespace characters from the string s.  Whitespace characters are:
         space " ", tab "\t", linefeed "\n", return "\r", formfeed "\f", and vertical tab
         "\v".  This method is fast because it's done by C code.
         https://mark-summerfield.github.io/01_nows.html
@@ -1147,6 +1204,33 @@ if 1:  # Core functionality
             Decorate.trans = "".maketrans(di)
         return s.translate(Decorate.trans)
 
+if 0:
+    x = """
+        Line1
+         a
+          b
+           c
+            d
+        Line2
+            a
+            b
+            c
+                d
+    """
+    n = CountLeadingSpaces(x)
+    s = PrepareMultilineString(x)
+    for line in s.split("\n"):
+        print(line[n:])
+    exit()
+
+    dq = deque(x)
+    print(dq)
+    print()
+    x = ''.join(list(dq))
+    x = x.replace(" ", "·")
+    print(x)
+    exit()
+
 if __name__ == "__main__":
     from lwtest import run, raises, Assert
     import math
@@ -1599,6 +1683,43 @@ if __name__ == "__main__":
         Assert(len(s) == 2 and "cAt" in s and "hurse" in s)
     def Test_SplitOnNewlines():
         Assert(SplitOnNewlines("1\n2\r\n3\r") == ["1", "2", "3", ""])
+    def Test_CountLeadingSpaces():
+        m, nl = 10, "\n"
+        u = " "*m
+        s = f"{u}{nl}{u}line1{nl}{u}line2{nl}{u}"
+        n = CountLeadingSpaces(s)
+        Assert(n == m)
+        n = CountLeadingSpaces(s, trim_end=False)
+        Assert(n == m)
+        n = CountLeadingSpaces(s, trim_start=False)
+        Assert(n == m)
+        # Too few newlines
+        raises(ValueError, CountLeadingSpaces, u)
+        raises(ValueError, CountLeadingSpaces, u + nl)
+    def Test_PrepareMultilineString():
+        u, nl = " "*10, "\n"
+        s = f"{u}\n{u}line1\n{u}line2\n{u}"
+        if 1:   # Normal usage
+            x = PrepareMultilineString(s)
+            lines = x.split("\n")
+            Assert(len(lines) == 2)
+            Assert(lines[0] == u + "line1")
+            Assert(lines[1] == u + "line2")
+        if 1:   # Use only trim_start = True
+            x = PrepareMultilineString(s, trim_end=False)
+            lines = x.split("\n")
+            Assert(lines[0] == u + "line1")
+            Assert(lines[1] == u + "line2")
+            Assert(lines[2] == u)
+        if 1:   # Use only trim_end = True
+            x = PrepareMultilineString(s, trim_start=False)
+            lines = x.split("\n")
+            Assert(lines[0] == u)
+            Assert(lines[1] == u + "line1")
+            Assert(lines[2] == u + "line2")
+        # Too few newlines
+        raises(ValueError, PrepareMultilineString, u)
+        raises(ValueError, PrepareMultilineString, u + nl)
     def Demo():
         "Demonstrate the various functions to stdout"
         t.print(f"{t('ornl')}Demo of /plib/dpstr.py functions")
