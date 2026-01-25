@@ -78,6 +78,7 @@ oo>
  
 if 1:  # Header
     if 1:   # Standard imports
+        import importlib
         import re
     if 1:   # Custom imports
         from wrap import dedent
@@ -183,8 +184,24 @@ if 1:   # Utility functions that use Gist objects
         '''Return the Gist instance for this file.  The variable name to get is varname.
         If use_import is True, then import the file and get the relevant variable
         directly.  Otherwise, read in the file's text and try to parse it out manually.
+        A requirement for this function to work is that there must be only space
+        characters in the leading indentation of the lines in the string variable named
+        by varname.
         '''
+        if use_import:
+            modname = file
+            if file.endswith(".py"):
+                modname = file[:-3]
+            global GetGist_imported_module
+            GetGist_imported_module = importlib.import_module(modname)
+            var = eval(f"GetGist_imported_module.{varname}")
+            print(var)
+        else:
+            pass
+
 if 1:   # Test area for code development
+    g = GetGist("aa.py", varname="_aainfo", use_import=True)
+
     # Test objective:  show that an indented string can still be processed normally
     # The following shows the indentation messes up the output string form.  This
     # indicates that the common leading indent string of each line has to be found.
@@ -204,10 +221,22 @@ if 1:   # Test area for code development
         <oo test ∞ run oo>
         <oo todo ∞ oo>
     '''
+    import dpstr
     from textwrap import dedent as Dedent
-    print(x)
-    print("-"*80)
-    print(Dedent(x))
+    nl = "\n"
+    n = dpstr.CountLeadingSpaces(x)
+    lines = dpstr.PrepareMultilineString(x).split(nl)
+    if 1:
+        # The following demonstrates successful dedenting
+        for i in range(len(lines)):
+            lines[i] = lines[i][n:]
+            #print(lines[i])
+    a = repr(nl + nl.join(lines) + nl)
+    #t.print(f"{t.ornl}{a}")
+    u = Dedent(x)
+    b = repr(u)
+    #t.print(f"{t.purl}{b}")
+    assert(a == b)
     if 0:
         gist = Gist(x)
         pp(gist)
