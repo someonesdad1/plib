@@ -33,6 +33,7 @@ Len                 Length of string with ANSI escape sequences removed
 ListInColumns       Obsolete (use columnize.py)
 MatchCap            Match string capitalization
 MultipleReplace     Replace multiple patterns in a string
+PrepareMultilineString  Helper function to trim leading & trailing whitespace
 ReadData            Read data from a multiline string
 Remove              Return items from sequence not in the remove sequence
 RemoveASCII         Remove all ASCII characters from a string
