@@ -79,6 +79,7 @@ oo>
 if 1:  # Header
     if 1:   # Standard imports
         import importlib
+        import pathlib
         import re
     if 1:   # Custom imports
         from wrap import dedent
@@ -179,27 +180,30 @@ if 1:   # Classes
                 u += Gist.begin + sp + key + sp + Gist.sep + self[key] + Gist.end + "\n"
             return "\n" + u
 
-if 1:   # Utility functions that use Gist objects
-    def GetGist(file, varname="_pgminfo", use_import=False):
-        '''Return the Gist instance for this file.  The variable name to get is varname.
-        If use_import is True, then import the file and get the relevant variable
-        directly.  Otherwise, read in the file's text and try to parse it out manually.
-        A requirement for this function to work is that there must be only space
-        characters in the leading indentation of the lines in the string variable named
-        by varname.
+if 1:   # Utility functions
+    def GetGistString(file, varname="_pgminfo"):
+        '''Return the Gist string for this file (a string or pathname.Path instance).
+        varname is the name of the global variable used to hold the gist, a string.
+        None is returned if varname can't be read.
         '''
+        # If the import method eventually has a problem, define the use_import keyword
+        # and write the second method.
+        use_import = True
+        filename = str(file) if isinstance(file, pathlib.Path) else file
         if use_import:
-            modname = file
-            if file.endswith(".py"):
-                modname = file[:-3]
+            if filename.endswith(".py"):
+                filename = filename[:-3]
             global GetGist_imported_module
-            GetGist_imported_module = importlib.import_module(modname)
-            var = eval(f"GetGist_imported_module.{varname}")
-            print(var)
+            try:
+                GetGist_imported_module = importlib.import_module(filename)
+                var = eval(f"GetGist_imported_module.{varname}")
+                return var
+            except Exception:
+                return None
         else:
             pass
 
-if 1:   # Test area for code development
+if 0:   # Test area for code development
     g = GetGist("aa.py", varname="_aainfo", use_import=True)
 
     # Test objective:  show that an indented string can still be processed normally
@@ -246,6 +250,9 @@ if 1:   # Test area for code development
 if __name__ == "__main__":  
     from lwtest import run, raises, Assert
     from wrap import dedent
+    def Test_GetGistString():
+        s = GetGistString("gist.py")
+        Assert(s == _pgminfo)
     def Test_Gist_Basics():
         if 1:   # Empty string
             s = ""
@@ -298,7 +305,6 @@ if __name__ == "__main__":
         raises(TypeError, Gist, 1)
         raises(TypeError, Gist, 1.0)
         raises(TypeError, Gist, b'')
-
     def Test_DifferentClassVariables():
         Gist.begin, Gist.end, Gist.sep = ">oo", "<oo", "©"
         s = ">oo a © a_value <oo"
