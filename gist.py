@@ -1,11 +1,34 @@
 '''
 
 Defines a Gist class to get gists from a string
+    Use:  The default class parses a string such as
+        
+            _pgminfo = """
+                <oo desc ∞ Module description oo>
+                <oo cr ∞ Your copyright message oo>
+                <oo lic ∞ Your license message oo>
+                <oo cat ∞ category oo>
+                <oo test ∞ how_to_run_selftest oo>
+                <oo todo ∞ free_for_ToDo_items oo>
+            """
+        
+        When instantiated with such a string, the Gist class becomes a dictionary that
+        gives you access to the text in each field.  Here, "<oo" and "oo>" delimit
+        fields and ∞ separates the dictionary's keywords from the values:
+        
+            gist = Gist(_pgminfo)
+            print(gist["desc"])
+        
+        prints the string " Module description ".
+        
+        You can modify the dictionary as needed, then write the modified form to a
+        stream by e.g. "print(str(gist), file=stream)".
+        
     Vision
-
+        
         The Gist class will be the basis of the information about my python scripts and
         modules.  The core information will be
-
+        
             gist:   One line description of the purpose
             cat:    Category of the module.  These are the core subjects used to
                     classify both modules and scripts.
@@ -14,18 +37,18 @@ Defines a Gist class to get gists from a string
             todo:   Things that need to be done to this file
             cr:     Copyright statement
             lic:    License for the use of this file
-
+        
         The primary motivation of using the Gist class is to standardize the information
         in my modules and scripts to allow automated indexing, checking, and testing.
-
+        
     Description
         A Gist object is a dictionary that contains the text in a string handed to the
         constructor.  The use case is to provide textual information on the description,
         copyright, license, category, and ToDo items in python modules and scripts.
         There's also information on how to test the module or script.
-
+        
         A gist string is 
-
+        
             <gist> ::= <element>+
             <element> ::= <begin> <spc> <key> <spc> <sep> <ws>* <value> <ws>* <end>
             <begin> ::= <char>+         Start of the element
@@ -47,13 +70,13 @@ Defines a Gist class to get gists from a string
         Based on these definitions, the Gist class uses them to define a regular
         expression to split a string into a sequence of <element> tokens.  This sequence
         is used to produce a dictionary relating keywords to descriptions.
-
+        
     Use
         While the Gist class can be used directly, it's easy to subclass for special
         uses as needed.  As of this writing, I don't have a particular need at the
         moment, but I can foresee possible needs in the future; subclassing would allow
         for new functionality without breaking the existing stuff.
-
+        
         As an example, a python module that for some reason cannot have a global gist
         string like _pgminfo (the string I use by default) can instead have the same
         information string commented out at the beginning of the file, surrounded by
@@ -63,13 +86,14 @@ Defines a Gist class to get gists from a string
 
 '''
 _pgminfo = '''
-<oo desc ∞
-    Module to get the gist data in a file
-oo>
-<oo cr ∞ Copyright © 2026 Don Peterson oo>
-<oo license ∞
-    Licensed under the Open Software License version 3.0.
-    See http://opensource.org/licenses/OSL-3.0.
+<oo gist ∞ Module to get the gist data in a file
+<oo desc ∞ See docstring oo>
+<oo copy ∞ Copyright © 2026 Don Peterson oo>
+<oo lic ∞ 
+    MIT License
+    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+    The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 oo>
 <oo cat ∞ util oo>
 <oo test ∞ run oo>
@@ -85,7 +109,6 @@ if 1:  # Header
     if 1:   # Custom imports
         import dpstr
         from wrap import dedent
-        from color import t
         from dpprint import PP
         pp = PP()   # Get pprint with current screen width
         if 0:
@@ -207,50 +230,21 @@ if 1:   # Classes
             u = dpstr.PrepareMultilineString(giststr)
             unindented = textwrap.dedent(u)
             return (n, unindented)
-
-if 0:   # Test area for code development
-    g = GetGist("aa.py", varname="_aainfo", use_import=True)
-
-    # Test objective:  show that an indented string can still be processed normally
-    # The following shows the indentation messes up the output string form.  This
-    # indicates that the common leading indent string of each line has to be found.
-    # I'm going to unilaterally assume that the indentation is only done with space
-    # characters; any tab characters found in the indentation will result in an
-    # exception.
-    x = '''
-        <oo desc ∞
-            Module to get the gist data in a file
-        oo>
-        <oo cr ∞ Copyright © 2026 Don Peterson oo>
-        <oo license ∞
-            Licensed under the Open Software License version 3.0.
-            See http://opensource.org/licenses/OSL-3.0.
-        oo>
-        <oo cat ∞ util oo>
-        <oo test ∞ run oo>
-        <oo todo ∞ oo>
-    '''
-    import dpstr
-    from textwrap import dedent as Dedent
-    nl = "\n"
-    n = dpstr.CountLeadingSpaces(x)
-    lines = dpstr.PrepareMultilineString(x).split(nl)
-    if 1:
-        # The following demonstrates successful dedenting
-        for i in range(len(lines)):
-            lines[i] = lines[i][n:]
-            #print(lines[i])
-    a = repr(nl + nl.join(lines) + nl)
-    #t.print(f"{t.ornl}{a}")
-    u = Dedent(x)
-    b = repr(u)
-    #t.print(f"{t.purl}{b}")
-    assert(a == b)
-    if 0:
-        gist = Gist(x)
-        pp(gist)
-        print(gist)
-    exit()
+        @classmethod
+        def DefaultGist(cls):
+            return dedent('''
+                <oo gist ∞ One line description of file/module oo>
+                <oo desc ∞ Description oo>
+                <oo copy ∞ Copyright © 2026 Don Peterson oo>
+                <oo lic ∞ 
+                    MIT License
+                    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+                    The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+                    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+                oo>
+                <oo cat ∞ category oo>
+                <oo test ∞ notest oo>
+                <oo todo ∞ Todo items oo>'''[1:])
 
 if __name__ == "__main__":  
     from lwtest import run, raises, Assert
@@ -258,13 +252,10 @@ if __name__ == "__main__":
     def Test_UnindentString():
         nl = "\n"
         s = Gist.GetGistString("gist.py")
-        n, u = Gist.UnindentString(s)
-        expected = (nl + "<oo desc ∞\n    Module to get the gist data in a file\noo>\n"
-            "<oo cr ∞ Copyright © 2026 Don Peterson oo>\n<oo license ∞\n"
-            "    Licensed under the Open Software License version 3.0.\n"
-            "    See http://opensource.org/licenses/OSL-3.0.\noo>\n<oo cat ∞ util oo>\n"
-            "<oo test ∞ run oo>\n<oo todo ∞ oo>" + nl)
-        Assert(s == expected)
+        if 1:   # Convert to an indented string
+            u = nl.join(" "*4 + i for i in s.split(nl))
+        n, v = Gist.UnindentString(u)
+        Assert(s == nl + v + nl)
     def Test_GetGistString():
         s = Gist.GetGistString("gist.py")
         Assert(s == _pgminfo)

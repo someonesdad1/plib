@@ -88,7 +88,6 @@ if 1:  # Header
     import time
     # Custom imports
     from f import flt
-    from color import t
     from wrap import dedent
     # Global variables
     ii = isinstance
@@ -708,10 +707,8 @@ if 1:  # Core functionality
                         )
             lines.append(s)
         assert len(lines) == num_rows
-        t.print(
-            f"{t('ornl')}dpstr.ListInColumns is obsolete.  Use columnize.Columnize.",
-            file=sys.stderr,
-        )
+        msg = "dpstr.ListInColumns is obsolete.  Use columnize.Columnize."
+        raise ValueError(msg)
         return lines
     def MultipleReplace(text, patterns, flags=0):
         '''Replace multiple patterns in the string text.  patterns is a dictionary whose
@@ -1205,39 +1202,12 @@ if 1:  # Core functionality
             Decorate.trans = "".maketrans(di)
         return s.translate(Decorate.trans)
 
-if 0:
-    x = """
-        Line1
-         a
-          b
-           c
-            d
-        Line2
-            a
-            b
-            c
-                d
-    """
-    n = CountLeadingSpaces(x)
-    s = PrepareMultilineString(x)
-    for line in s.split("\n"):
-        print(line[n:])
-    exit()
-
-    dq = deque(x)
-    print(dq)
-    print()
-    x = ''.join(list(dq))
-    x = x.replace(" ", "·")
-    print(x)
-    exit()
-
 if __name__ == "__main__":
     from lwtest import run, raises, Assert
     import math
     import os
     from sig import sig
-    from color import TRM as t
+    from color import t
     def Test_Decorate():
         s = "yyy \t\n\r\f\vzzz"
         Assert(Decorate(s) == "yyy·␉␤␍␌␋zzz")
@@ -1444,8 +1414,7 @@ if __name__ == "__main__":
         u = RmEsc(s)
         Assert(Len(s) == len(u))
     def Test_ReadData():
-        data = '''
-                    #
+        data = ''' #
                     9 , 680  ,  2100  , 0  ,    750
                     10,  680  ,  2100  , 250    ,750
         '''
