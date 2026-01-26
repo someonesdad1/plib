@@ -1,5 +1,32 @@
 '''
      
+New design
+
+    0test.py [dir or file]+
+
+    class TestRun
+        - Directories will be searched for python files.  All subsequent files will be
+          each made into a TestRun instance.  This holds the file name and figures out
+          how to run the file's test when the runtest() method is called.  stdout and
+          stderr are saved to attributes along with the exit code of the test.
+        - Each instance gets a reference to a timer, which is uses to measure how long
+          its test takes to run and put into the et[s] attribute.
+   
+    class TestRunner
+        - Takes a list of directories and/or files and constructs a TestRun object for
+          each file.
+        - Knows how to report a summary when testing is finished.
+
+    Thoughts
+        - Use /plib/.0test as a cache of the last testing information, keeping file
+          hash, timedate of test, and test result.  This would allow avoiding running a
+          test if the file passed last time and the hash hasn't changed.  In fact, the
+          cache dict is exposed to each TestRun instance so it can decide what to do
+          when runtest() is called.
+
+---------------------------------------------------------------------------
+Old design
+
 TODO
     - Look at changing default behavior:  'python 0test.py' looks for every python file
       in the current file and runs its self tests.  This means keeping things up to
