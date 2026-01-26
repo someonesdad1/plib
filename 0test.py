@@ -1,45 +1,43 @@
-"""
+'''
      
 TODO
     - Look at changing default behavior:  'python 0test.py' looks for every python file
-      in the current file and runs its self tests.  This makes keeping things up to
+      in the current file and runs its self tests.  This means keeping things up to
       date.
         - Cache the file's hash in a hidden data file so that if the hash hasn't
           changed, then the test isn't run.
             - A -f option can override this
     - Trigger string policy
-        - None means the file has no testing and shouldn't be listed
-        - Empty means its missing and probably needs something
-        - Ignore means the file is ignored for testing purposes
-    - Log file should have date-time in name.
+        - 'run', '--test', 'notest', 'testdir' are the allowed choices
+        - An empty trigger string results in an exception
+    - Commands
+        - scan:  print a report on the trigger string of each file
+        - test:  Run the tests
      
 Testing automation tool
-    This script will examine the test trigger strings of the indicated
-    files and run their indicated tests.  See the description of these
-    strings below.
+    This script will examine the gist strings of the indicated files and run their
+    indicated tests.  See the description of these strings below.
     
-"""
+'''
 if 1:  # Header
-    if 1:  # Copyright & license
-        # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # <utility> Run self tests of python scripts with a test trigger string:
-        #   <empty>     Missing; probably needs a test written.
-        #   "none"      Has no test and shouldn't be listed.
-        #   "ignore"    Has no test; list as ignored file.
-        #   "run"       Run the script to run the self-tests.
-        #   "--test"    Run script with the '--test' option.
-        #   A list of strings specifies one or more test files to run.
-        ##∞what∞#
-        ##∞test∞# notest #∞test∞#
-        pass
+    if 1:  # Gist
+        _pgminfo = '''
+            <oo gist ∞ Run the tests of the indicated python files oo>
+            <oo desc ∞ 
+                This script will examine the gist strings of the indicated files and run their
+                indicated tests.
+            oo>
+            <oo copy ∞ Copyright © 2026 Don Peterson oo>
+            <oo lic ∞ 
+                MIT License
+                Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+                The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+                THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+            oo>
+            <oo cat ∞ utility oo>
+            <oo test ∞ notest oo>
+            <oo todo ∞ Todo items oo>
+        '''
     if 1:  # Standard imports
         from collections import namedtuple, deque, defaultdict
         import getopt
@@ -90,14 +88,13 @@ if 1:  # Utility
     def Usage(status=1):
         name = P(sys.argv[0])
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {name} [options] file1 [file2...]
-          Find the python scripts with self-test information in them and run
-          the self-tests.  If one of the command arguments is a directory, 
-          all of its python files have their self tests run.  Example:
-          an argument of '.' runs the tests on all the files in the current
-          directory.  Normally, only test failures cause output; use -v to
-          show each of the files that is being run.
+          Find the python scripts with self-test information in them and run the
+          self-tests.  If one of the command arguments is a directory, all of its python
+          files have their self tests run.  Example: an argument of '.' runs the tests
+          on all the files in the current directory.  Normally, only test failures cause
+          output; use -v to show each of the files that is being run.
         Options:
           -d    Show what will be done and exit
           -r    Recursively search for files
@@ -105,7 +102,7 @@ if 1:  # Utility
           -S    Like -s, but print the style errors
           -v    Verbose mode:  show what's being tested
           -w    Don't filter out nuisance warnings
-        """)
+        ''')
         )
         exit(status)
     def ParseCommandLine(d):
@@ -117,14 +114,14 @@ if 1:  # Utility
         d["-v"] = False  # Verbose:  show ignored
         d["-w"] = False  # Don't filter out warnings
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "dqrsSvw")
+            opts, args = getopt.getopt(sys.argv[1:], "dhqrsSvw")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
             if o[1] in list("dqrSsvw"):
                 d[o] = not d[o]
-        if not args:
+        if not args or o == "-h":
             Usage()
         if (d["-s"] or d["-S"]) and not have_pycodestyle:
             print("Warning:  pycodestyle not installed", file=sys.stderr)
@@ -226,7 +223,7 @@ class TestRunner:
                                     print(line, file=sys.stderr)
             if (d["-s"] or d["-S"]) and have_pycodestyle:
                 # Run style test
-                ignore = """E1 E2 E3 E5 W2""".split()
+                ignore = '''E1 E2 E3 E5 W2'''.split()
                 if d["-S"]:
                     style = pycodestyle.StyleGuide(quiet=False, ignore=ignore)
                 else:
@@ -394,10 +391,7 @@ if 1:  # Identify files that need testing
             for j in Columnize(sorted(d[i]), indent=" "*4):
                 print(j)
         print(f"{total_files} total python files")
-    if 1:
-        Report()
-        exit()
-
+        
 if __name__ == "__main__":
     d = {}  # Options dictionary
     items = [P(i) for i in ParseCommandLine(d)]
@@ -424,19 +418,13 @@ if __name__ == "__main__":
         if tr.total:
             tm = timer.et
             tm.n = 2
-            s = (
-                f"(test time = {tm / 60} minutes)"
-                if tm > 60
-                else f"(took {tm} seconds)"
-            )
+            s = f"(test time = {tm/60} minutes)" if tm > 60 else f"(took {tm} seconds)"
             print(f"{t('lav')}Test results {s}:")
             T, F, N = tr.total, tr.failed, tr.not_run
             ok = T - F - N
-            print(
-                f"""  {t.ok}{ok} OK{t.n}, """
-                f"""{t.fail}{F} failed{t.n}, """
-                f"""{t.ign}{N} not tested{t.n}"""
-            )
+            print(f'''  {t.ok}{ok} OK{t.n}, '''
+                f'''{t.fail}{F} failed{t.n}, '''
+                f'''{t.ign}{N} not tested{t.n}''')
     logfile_stream.close()
     Print.streams.clear()
     print = Print.print
