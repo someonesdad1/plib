@@ -6,27 +6,36 @@ Module to perform various navigation tasks
         dated 26 May 2013.  The changes are undated after 1.17, which was in 1998.
         Note:  downloaded the 1.47 web page and put it in ~/projects/aviation_formulary.
     Definitions:
-        1 degree of arc along a great circle is 60 nm
+        1 degree of arc along a great circle is 60 nautical miles
         TC = true course = course angle measured clockwise from a meridian
 '''
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    ##∞copyright∞# Copyright (C) 2002 Don Peterson #∞copyright∞#
-    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    ##∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    ##∞license∞#
-    ##∞what∞#
-    # <miscellaneous> Module to perform various air navigation tasks.
-    # The reference used is the Aviation Formulary V1.20 by Ed Williams.
-    ##∞what∞#
-    ##∞test∞# run #∞test∞#
-    pass
-if 1:  # Imports
-    from math import pi, log, sin, cos, tan, acos, atan2, sqrt
-if 1:  # Global variables
-    _tol = sqrt(1e-15)
+if 1:  # Header
+    _pgminfo = '''
+        <oo gist ∞ Module for air navigation calculations oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2002 Don Peterson oo>
+        <oo lic ∞ 
+            MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo cat ∞ util oo>
+        <oo test ∞ run oo>
+        <oo todo ∞ 
+
+            - Update to 1.47 version of formulary
+            - Switch to using flt?
+            - Change _tol to g.tol
+            - Fix docstrings of functions (e.g. TrueCourseAndDistance returns a tuple,
+              not a list)
+
+        oo>
+    '''
+    if 1:  # Imports
+        from math import pi, log, sin, cos, tan, acos, atan2, sqrt
+    if 1:  # Global variables
+        _tol = sqrt(1e-15)
 def TrueCourseAndDistance(lat1, lon1, lat2, lon2):
     '''Calculates the true course (rhumbline direction) and distance
     between two points on earth's surface.  Returns a list consisting

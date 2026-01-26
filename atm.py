@@ -1,10 +1,4 @@
-"""
-TODO
-
-- Change reduced stuff in brackets to be % of sea level.  Using the SI
-  prefixes unadorned is confusing.
-  
-----------------------------------------------------------------------
+'''
 Calculate atmospheric properties
     Adapted from http://www.pdas.com/programs/atmos.f90 (included below).
     
@@ -20,22 +14,30 @@ Calculate atmospheric properties
     J/(mol*K).  See equation 33b in the NASA paper.
     
     [eq 33] is equation 33 in the paper and [5] refers to page 5.
-"""
+'''
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2010 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # <science> Calculate standard atmosphere characteristics.
-        # Equations taken from a 1976 NASA document.
-        ##∞what∞#
-        ##∞test∞# --test #∞test∞#
-        pass
+    _pgminfo = '''
+        <oo gist ∞ Calculate atmospheric properties oo>
+        <oo desc ∞ Calculate standard atmosphere characteristics.  The equations are
+            taken from a 1976 NASA document.
+        oo>
+        <oo copy ∞ Copyright © 2010 Don Peterson oo>
+        <oo lic ∞ 
+            MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo cat ∞ science oo>
+        <oo test ∞ --test oo>
+        <oo todo ∞ 
+
+            - Change reduced stuff in brackets to be % of sea level.  Using the SI
+              prefixes unadorned is confusing.
+            - Change globals to g.var form
+
+        oo>
+    '''
     if 1:  # Imports
         import getopt
         import sys
@@ -66,7 +68,7 @@ if 1:  # Header
         g0 = 9.80665
 if 1:  # Original FORTRAN code
     def _Code():
-        """Original FORTRAN90 code from http://www.pdas.com/programs/atmos.f90.
+        '''Original FORTRAN90 code from http://www.pdas.com/programs/atmos.f90.
         See http://www.pdas.com/atmos.htm.
         !+
         SUBROUTINE Atmosphere(alt, sigma, delta, theta)
@@ -141,7 +143,7 @@ if 1:  # Original FORTRAN code
         sigma=delta/theta                                           ! density ratio
         RETURN
         END Subroutine Atmosphere   ! -----------------------------------------------
-        """
+        '''
 if 1:  # Utility
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
@@ -151,7 +153,7 @@ if 1:  # Utility
         digits = d["-d"]
         print(
             dedent(
-                f"""
+                f'''
         Usage:  {name} altitude [unit]
           Prints the density, pressure, and temperature for altitudes between
           -5 and 86 km.  From the 1976 NASA standard atmosphere.
@@ -161,7 +163,7 @@ if 1:  # Utility
         Options:
           -d n      Number of significant figures. [{digits}]
           -t        Print a table of the standard atmosphere in km heights
-        """[1:-1]
+        '''[1:-1]
             )
         )
         exit(status)
@@ -196,7 +198,7 @@ if 1:  # Utility
         return args
 if 1:  # Core functionality
     def atm(altitude_km):
-        """Returns a dictionary of the SI properties of air at the given
+        '''Returns a dictionary of the SI properties of air at the given
         geometric height, which is 0 for sea-level.  The returned
         dictionary is
             {
@@ -209,7 +211,7 @@ if 1:  # Core functionality
                 "mean free path"    : mfp,   # m
             }
         The values returned will be floating point numbers.
-        """
+        '''
         z_km = float(altitude_km)
         if not (-5 <= z_km <= 86):
             raise ValueError("altitude_km must be between -5 and 86 km")
@@ -322,7 +324,7 @@ if 1:  # Core functionality
         # Print results
         T.c = T("ornl")
         print(
-            dedent(f"""
+            dedent(f'''
         1976 Standard atmosphere properties at {Z_km} km ({Z_ft} ft, {Z_mi} mi):
           [Reduced values with respect to sea level are in color]
           Density                 = {D_SI} kg/m^3             [{T.c}{d0}{T.n}]
@@ -341,16 +343,16 @@ if 1:  # Core functionality
           Dynamic viscosity       = {MU_SI}(N*s/m^2)
           Kinematic viscosity     = {NU_SI}(m^2/s)
           Mean free path          = {MFP_SI}m                    [{T.c}{mfp0}{T.n}]
-        """)
+        ''')
         )
     def PrintTable(args, d):
         n = d["-d"] + 8
         e = fp.engsic
         fmt = "{z_km:5d} {d:^{n}s} {p:^{n}s} {t:^{n}s} {g:^{n}s} {Cs:^{n}s}"
-        header = dedent("""
+        header = dedent('''
         Height  Density      Pressure      Temp      Acc. grav.   Speed of Sound
           km     kg/m3          Pa          K            m/s2         m/s
-        """)
+        ''')
         print(header)
         for z_km in range(-5, 31):
             prop = atm(z_km)
@@ -363,7 +365,7 @@ if 1:  # Core functionality
         print(header)
 if 1:  # Another properties function
     def atm2(hm):
-        """Return (T, p, ρ) where
+        '''Return (T, p, ρ) where
             T is absolute temperature in K
             p is pressure in Pa
             ρ is density in kg/m³
@@ -371,9 +373,9 @@ if 1:  # Another properties function
         
         The height hm can either be a flt (from f.py) instance with optional length dimensions or
         can be a number convertible to a float.  The allowed range for hm is 0 to 85 km.
-        """
+        '''
         # Formulas from http://nebula.wsimg.com/ab321c1edd4fa69eaa94b5e8e769b113?AccessKeyId=AF1D67CEBF3A194F66A3&disposition=0&alloworigin=1
-        """
+        '''
         Calculation of Earth's atmospheric properties
  
         Text from the web page:
@@ -434,7 +436,7 @@ if 1:  # Another properties function
             σ = ρ/ρ0 (Density Ratio)
             μ = Dynamic Viscosity
             ν = μ/ρ = Kinematic Viscosity
-        """
+        '''
         # Sea level values
         T0 = flt(288.15, "K")  # Temperature (15 °C)
         p0 = flt(101325, "Pa")  # Pressure
@@ -534,7 +536,7 @@ if 1:  # Another properties function
             print(i)
 if 1:  # Unit tests
     def GetReferenceData():
-        """Return the altitude in km, along with sigma = reduced density,
+        '''Return the altitude in km, along with sigma = reduced density,
         delta = reduced pressure, theta = reduced temperature (reduced means
         divided by the sea level values).
         
@@ -544,7 +546,7 @@ if 1:  # Unit tests
             sigma = reduced density     =  0.601166010
             delta = reduced pressure    =  0.533414602
             theta = reduced temperature =  0.887300014
-        """
+        '''
         # Note:  this script used to run the atm command, which was the
         # atm.f90 code.  Now it just returns the above numbers.
         h_km, sigma, delta, theta = 5, 0.601166010, 0.533414602, 0.887300014
@@ -566,7 +568,7 @@ if 1:  # Unit tests
         assert_equal(P, d["pressure"], reltol=eps)
         assert_equal(T, d["temperature"], reltol=eps)
     def Test_atm_2():
-        """The following data came from table 1 in "U.S. Standard
+        '''The following data came from table 1 in "U.S. Standard
         Atmosphere 1976" published by NASA.  The columns used in the
         table are
             2       Z, geometrical height in m
@@ -577,10 +579,10 @@ if 1:  # Unit tests
         Thus, the atm() function fits the NASA paper's data to better
         than 1 part in 10,000 at the tested points; this is a pretty
         good indication that the algorithm is correct.
-        """
+        '''
         def RelDiffPct(a, b):
             return 100 * (a - b) / b
-        data = """
+        data = '''
         # Col  2       3            6         9
             -4996   320.65      1.7768e3    1.9305e0
             -3997   314.15      1.5955e3    1.7693e0
@@ -593,7 +595,7 @@ if 1:  # Unit tests
             30041   226.55      1.1896e1    1.8294e-2
             49990   270.65      7.9877e-1   1.0281e-3
         #  100389   199.53      2.3144e-4   3.935e-7
-        """[1:].rstrip()
+        '''[1:].rstrip()
         flt(0).n = 2
         rd = RelDiffPct
         o = []

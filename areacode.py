@@ -1,27 +1,29 @@
-"""
-ToDo
-    - ∞∞2
-        - Make this a true module; move miscellaneous stuff to "if name ==" section.
-        - Add a quickie test routine to ensure that it does the basics
+'''
 
 Provides areacode.areacodes, a dictionary that maps a 3 digit integer North
 America areacode into a string detailing its location.  This same
 information is in the list areacode.areacodelist.
-"""
+'''
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # Program description string
-        ##∞what∞#
-        ##∞test∞# notest #∞test∞#
-        pass
+    _pgminfo = '''
+        <oo gist ∞ Map area code to location oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2023 Don Peterson oo>
+        <oo lic ∞ 
+            MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo cat ∞ util oo>
+        <oo test ∞ notest oo>
+        <oo todo ∞ 
+
+            - ∞∞2 Make this a true module; move miscellaneous stuff to "if name ==" section.
+            - Add a quickie test routine to ensure that it does the basics
+
+        oo>
+    '''
     if 1:  # Standard imports
         import getopt
         import os
@@ -535,7 +537,7 @@ if 1:  # Utility
         exit(status)
     def Usage(status=1):
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options] regex1 [regex2...]
           Search for areacodes with a regular expression (expressions are
           OR'd together).  All North American codes from 200-999 are present.
@@ -551,7 +553,7 @@ if 1:  # Utility
             -m      Show missing codes
         Information screen-scraped from
         https://en.wikipedia.org/wiki/List_of_North_American_Numbering_Plan_area_codes
-        """)
+        ''')
         )
         exit(status)
     def ParseCommandLine(d):

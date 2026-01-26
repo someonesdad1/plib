@@ -1,27 +1,37 @@
 '''
-Todo:
-    - Harvest from https://en.wikipedia.org/wiki/Lists_of_abbreviations
     
 Determine if a string is an English abbreviation (case ignored)
-  Use:  from abbreviations import IsAbbreviation
-        IsAbbreviation(w: str) -> bool
+
+    Use:  from abbreviations import IsAbbreviation
+            IsAbbreviation(w: str) -> bool
         
-Source:  I put together this list over a period of time from a variety of
-searches and manual construction.  The typical method is to search for a
-string in text that ends in "." that's not a word in a dictionary.
+    Source:  I put together this list over a period of time from a variety of
+    searches and manual construction.  The typical method is to search for a
+    string in text that ends in "." that's not a word in a dictionary.
     
 '''
-_pgminfo = '''
-<oo desc
-    Module to help find abbreviations and acronyms and construct a glossary.
-oo>
-<oo cr Copyright © 2025 Don Peterson oo>
-<oo cat util oo>
-<oo test none oo>
-<oo todo oo>
-'''
 if 1:  # Header
-    ##∞test∞# run #∞test∞#
+    _pgminfo = '''
+        <oo gist ∞ Find abbreviations and acronyms oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2025 Don Peterson oo>
+        <oo lic ∞ 
+            MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo cat ∞ text oo>
+        <oo test ∞ run oo>
+        <oo todo ∞ 
+            - Harvest from https://en.wikipedia.org/wiki/Lists_of_abbreviations
+            - Test data consistency
+            - Provide a global variable that's the set of abbreviations; utility
+              functions can lowercase this set or remove periods
+            - Identify abbreviations that are also common words that might appear at the
+              end of a sentence (e.g. 'west.' or 'vet.')?
+        oo>
+    '''
     if 1:  # Imports
         from collections import defaultdict
     if 1:  # Custom imports
@@ -159,8 +169,7 @@ if 1:  # Core functionality
             return word.strip().lower() in IsAbbreviation.abbrev
 
 if __name__ == "__main__":
-    if 1:  # Custom modules
-        from lwtest import run, Assert
+    from lwtest import run, Assert
     def Test_IsAbbreviation_Data():
         '''Test for data consistency:
         '''
@@ -168,9 +177,7 @@ if __name__ == "__main__":
         a = IsAbbreviation.abbrev
         # This is the set of abbreviations with no '.' characters
         anp = IsAbbreviation.abbrev_noperiod
-
         b = [i.replace(".", "") for i in a]
-
     def Test_IsAbbreviation():
         Assert(IsAbbreviation("zeitschr."))
         Assert(IsAbbreviation("ZeiTscHr."))
