@@ -80,7 +80,7 @@ if 1:  # Header
         oo>
     '''
     if 1:   # Standard imports
-        from collections import namedtuple, defaultdict
+        from collections import namedtuple, defaultdict, deque
         import contextlib
         import getopt
         import io
@@ -89,6 +89,7 @@ if 1:  # Header
     if 1:   # Custom imports
         import termtables as tt
         import roundoff
+        from cmddecode import CommandDecode
         from lwtest import run, Assert
         from f import flt
         from wrap import dedent
@@ -97,7 +98,7 @@ if 1:  # Header
         from uncertainties import ufloat, ufloat_fromstr
         from dpprint import PP
         pp = PP()   # Get pprint with current screen width
-        if 1:
+        if 0:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
@@ -106,6 +107,8 @@ if 1:  # Header
         g = G()     # Holder for global variables
         ii = isinstance
         g.C12_atomic_mass = ufloat_fromstr("11.9999999958(36)") # g/mol
+        g.max_digits = 6
+        g.digits = 3    # Default number of digits
         # Named tuple for raw data
           # Z    = <int> Atomic number
           # sym  = <str> Symbol
@@ -117,6 +120,9 @@ if 1:  # Header
         NT1 = namedtuple("AM1", "Z sym mn ram ic sam note")
         # Named tuple for atomic mass data
         NT2 = namedtuple("AM2", "Z sym am")
+        # Colors
+        t.hdr = t.purl
+        t.err = t.ornl
 if 1:  # NIST data
     def _Parse(s):
         'Given the string s from the NIST data, convert it to an appropriate type'
@@ -139,9 +145,12 @@ if 1:  # NIST data
         for i in str(massnum):
             o.append(e[int(i)])
         return ''.join(o) + symbol
-    def GetRawData(file="/plib/atomic_mass.data"):
+    def GetRawData(file="/plib/atomic_mass.data", Z_begin=0, Z_end=0):
         '''Return a list of namedtuples containing the NIST data on atomic mass for the
-        common isotopes of the elements.  The data are
+        common isotopes of the elements.  Z_begin and Z_end control which elements are
+        put into the returned list.
+        
+        The data are
           Z    = <int> Atomic number
           sym  = <str> Symbol
           mn   = <int> Mass number
@@ -172,6 +181,10 @@ if 1:  # NIST data
         11.9999999958(36) g/mol (from http://physics.nist.gov/constants with 2018 CODATA
         adjustment).
         '''
+        if not isinstance(Z_begin, int) and isinstance(Z_end, int):
+            raise TypeError(f"Z_begin and Z_end must be integers > 0")
+        if not (Z_begin <= Z_end):
+            raise ValueError(f"Z_begin must be <= Z_end")
         if 1:   # Parse the atomic_mass.data file
             lines = [i.strip() for i in open("atomic_mass.data").read().split("\n")]
             # Position on the first data line
@@ -198,73 +211,102 @@ if 1:  # NIST data
                         break
                     else:
                         lines.pop(0)
+        # Trim the list if needed
+        if Z_begin or Z_end:
+            def include(x):
+                return (Z_begin <= x <= Z_end)
+            o = []
+            for item in data:
+                if include(item.Z):
+                    o.append(item)
+            data = o
         return data
-    def PrintRawData(*z, spc=False):
+    def PrintRawData(*z, spc=False, Z_begin=0, Z_end=0):
         '''z is a list of Z values to print.  if spc is True, insert blank lines between
-        the elements.
+        the elements.  Z_begin and Z_end control which elements are printed.
         '''
-        data = GetRawData()
+        data = GetRawData(Z_begin=Z_begin, Z_end=Z_end)
         # Print data with termtables
-        hdr = f"{t.skyl}Z Sym RelAtMass IsoComp StdAtMass{t.n}".split()
-        nbs = "•"
-        el = [nbs]*len(hdr)  # Empty line (a nbs that will be replaced)
-        o, last = [hdr], None
+        hdr = f"{t.hdr}Z Sym RelAtMass IsoComp StdAtMass{t.n}".split()
+        o, lastZ = [hdr], None
         for i in data:
-            a, lf = [], False
-            if str(i.Z) != last:
-                if last:
-                    lf = True
-                a.append(str(i.Z))
-                last = str(i.Z)
+            row = []
+            if lastZ is None:
+                row.append(str(i.Z))
+                lastZ = i.Z
             else:
-                a.append(" "*3)
-            a.append(_Symbol(i.sym, i.mn))
-            a.append(f"{i.ram:.1uS}")
+                if i.Z != lastZ:
+                    row.append(str(i.Z))
+                    lastZ = i.Z
+                else:
+                    row.append("")
+            row.append(_Symbol(i.sym, i.mn))
+            row.append(f"{i.ram:.1uS}")
             if ii(i.ic, (int, str)):
-                a.append(str(i.ic))
+                row.append(str(i.ic))   # It's 1 or ''
             else:
-                a.append(f"{i.ic:.1uS}")
+                row.append(f"{i.ic:.1uS}")  # It's a ufloat
             if ii(i.sam, (list, str)):
-                a.append(str(i.sam))
+                row.append(str(i.sam))  # It's a list of a single number
             else:
-                a.append(f"{i.sam:.1uS}")
+                row.append(f"{i.sam:.1uS}") # It's a ufloat
             if not z or i.Z in z:
-                if lf and spc:
-                    o.append(el)
-                o.append(a)
+                o.append(row)
         o.append(hdr)
-        if 1:
-            # termtables has a bug in that it won't print a column consisting of spaces.
-            # Here, we'll capture printing to stdout and change the nonbreaking space to
-            # a space character.
+        if spc:
+            # This first was used to fix a bug in termtables, but here it will be used
+            # to insert line breaks between the elements to make the table easier to
+            # read.
             f = io.StringIO()
             with contextlib.redirect_stdout(f):
                 tt.print(o, padding=(0, 0), style=" "*15, alignment="ccrrr")
-            s = f.getvalue().replace(nbs, " ")
-            print(s, end="")
+            lines = f.getvalue().split("\n")
+            # Process the lines:  split and get the first token; if it's an integer
+            # after the first integer, insert a newline.
+            o, dq, first = [], deque(lines), True
+            while dq:
+                line = dq.popleft()
+                f = line.split()
+                if f and f[0].endswith("Z"):
+                    # It's the header or trailer
+                    print(line)
+                    continue
+                else:
+                    if not f:
+                        break
+                    try:
+                        Z = int(f[0])
+                        if not first:
+                            print()
+                        first = False
+                        print(line)
+                    except ValueError:
+                        print(line)
+        else:
+            tt.print(o, padding=(0, 0), style=" "*15, alignment="ccrrr")
         if z:
             return
         # Print explanation
         print()
-        print(dedent('''
+        print(dedent(f'''
         These data came from
         https://www.nist.gov/pml/atomic-weights-and-isotopic-compositions-relative-atomic-masses.
         Click on "All Elements" and "Linearized ASCII Output"; the "All isotopes" box
         wasn't checked, giving the more common isotopes only.
         
         The symbols are
-          Z     Atomic number
+          {t.hdr}Z{t.n}     Atomic number
         
           The element's symbol includes the mass number of the isotope.
         
-          RelAtMass is the atomic mass with its associated uncertainty.  Here, relative
+          {t.hdr}RelAtMass{t.n} is the atomic mass with its associated uncertainty.  Here, relative
           means the mass is relative to the ¹²C atom (in the nuclear and atomic ground
           state), which has a mass of 11.9999999958(36) g/mol.
         
-          IsoComp is the isotope composition most commonly found in the laboratory and
+          {t.hdr}IsoComp{t.n} is the isotope composition most commonly found in the laboratory and
           may not represent the composition of the Earth's crust.
         
-          StdAtMass is the standard atomic mass, given as an interval in square brackets
+          {t.hdr}StdAtMass{t.n} is the standard atomic mass, given as an interval in square brackets
           or as a single number.  A single number in brackets is used for the most
           stable isotope of a radioactive element.
         
@@ -272,20 +314,19 @@ if 1:  # NIST data
           normal short-form syntax:  '0.0759(4)' means '0.0759 ± 0.0004'.
         
         '''))
-    def GetAtomicMassData(digits=4):
+    def GetAtomicMassData(digits=g.digits, Z_begin=0, Z_end=0):
         '''Return a list of named tuples of data for each element.  The tuples are NT2 =
         namedtuple("AM2", "Z sym am").  The am element (the atomic mass) will be a flt
         rounded to the stated number of digits.  For elements with atomic number higher
         than 94 (plutonium), the am element will be an integer that is rounded off from
         the mean of the isotopic masses.
         '''
-        digits_max = 6
-        msg = f"digits must be an int between 1 and {digits_max}"
+        msg = f"digits must be an int between 1 and {g.max_digits}"
         if not isinstance(digits, int):
             raise TypeError(msg)
-        if not (1 <= digits <= digits_max):
+        if not (1 <= digits <= g.max_digits):
             raise ValueError(msg)
-        data = GetRawData()
+        data = GetRawData(Z_begin=Z_begin, Z_end=Z_end)
         def GetAtomicMass(Z, items):
             '''Return the atomic mass as a flt for this element with atomic number Z.
             items is a list of the named tuples for each isotope.
@@ -347,28 +388,28 @@ if 1:  # NIST data
             am = flt(roundoff.RoundOff(am, digits))
             if am:
                 am.n = digits
-                am.rtz = False
+                #am.rtz = False
             else:
                 am.n = 1
-                am.rtz = am.rtdp = True
+                #am.rtz = am.rtdp = True
             o.append(NT2(Z, el.sym, am))
         return o
-    def GetAtomicMassDict(digits=4):
+    def GetAtomicMassDict(digits=g.digits, Z_begin=0, Z_end=0):
         '''Returns a dictionary keyed by the element's symbol with the element's
         relative atomic mass as the value.
         '''
         di = {}
-        for item in GetAtomicMassData(digits=digits):
+        for item in GetAtomicMassData(digits=digits, Z_begin=0, Z_end=0):
             di[item.sym] = item.am
         return di
 
-    if 0:
-        if 0:
+    if 0: #∞∞ 
+        if 1:
             #PrintRawData()
-            PrintRawData(1, 2, 4, 6, 43, 96, spc=1)
+            PrintRawData(1, 2, 4, 6, 43, 96, spc=1, Z_begin=2, Z_end=45)
             #PrintRawData(*range(95, 120), spc=1)
         else:
-            for i in GetAtomicMassData(digits=3):
+            for i in GetAtomicMassData(digits=3, Z_begin=10, Z_end=30):
                 print(f"{i.Z:3d}      {i.sym:2s}      {i.am!s}")
         exit()
 
@@ -549,7 +590,7 @@ if 1:  # Molecular mass
         prints out '158.161'.  As a convenience, the Unicode subscript and superscript
         characters are translated to the normal ASCII digit characters.
         '''
-        def __init__(self, digits=4):
+        def __init__(self, digits=g.digits):
             '''The keyword digits is an integer to round the atomic mass calculations
             to and can be from 1 to 6.
             '''
@@ -600,6 +641,7 @@ if 1:  # Molecular mass
             return self._parse(tokens[1:], stack, dict)
 
 if __name__ == "__main__":
+    # Dictionary to relate atomic number to element symbol
     elem2z = {
         "H": 1, "He": 2, "Li": 3, "Be": 4, "B": 5, "C": 6, "N": 7, "O": 8, "F": 9, "Ne":
         10, "Na": 11, "Mg": 12, "Al": 13, "Si": 14, "P": 15, "S": 16, "Cl": 17, "Ar":
@@ -617,8 +659,13 @@ if __name__ == "__main__":
         "Sg": 106, "Bh": 107, "Hs": 108, "Mt": 109, "Ds": 110, "Rg": 111, "Cn": 112,
         "Nh": 113, "Fl": 114, "Mc": 115, "Lv": 116, "Ts": 117, "Og": 118,
     }
+    # Insert the lowercase forms of the elements too
+    keys, values = [i.lower() for i in elem2z], list(elem2z.values())
+    elem2z.update(zip(keys, values))
+    # Make a cmddecode object to identify user's elements
+    cmddec = CommandDecode(keys, ignore_case=True)
     def Test_MolecularMass():
-        digits = 6
+        digits = g.max_digits
         di = GetAtomicMassDict(digits=digits)
         mm = MolecularMass(digits=digits)
         # Check the mass of each element
@@ -651,51 +698,90 @@ if __name__ == "__main__":
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] cmd [arguments]
           cmd
-           f    Print the atomic mass of the formula(s) as arguments
+           f    Print the molecular mass of the formula(s) as arguments (case is
+                important, unlike for the 'r' and 't' commands)
            r    Print the raw atomic mass table from NIST showing isotope data.
                 Arguments can be atomic number or symbol.
            t    Print an atomic mass table
-          Print the molecular mass of chemical formulas.  Examples:
-            'f H' prints 1.008 g/mol
-            'f -d 6 H2O' prints 18.0151 g/mol
-            'f Ca(C2H3O2)2' prints 158.2 g/mol
-            'r Pd' prints the six common isotopes of Pd
-            'r 1 6' prints the raw data for hydrogen and carbon
+        Examples:
+          'f -d 6 H2O' prints 18.0151 g/mol ('H₂O' and 'H²O' also work)
+          'f Ca(C₂H₃O₂)₂' prints 158.2 g/mol
+          'r Pd' prints the six common isotopes of Pd
+          'r 1 6' prints the raw data for hydrogen and carbon ('r h c' also works)
+          't hg fe' prints a columnar table with Hg and Fe highlighted in color, 
+              showing you how far apart in atomic number they are
         Options:
-            -d n    Number of digits in result [{d["-d"]}]
-            -t      Print atomic mass table
+            -b n    Begin the output Z at this number
+            -d n    Number of digits in result [{d["-d"]}] (1 to {g.max_digits})
+            -e n    End the output Z at this number
+            -s      Insert lines between elements (r command only)
+            -u      Limit output to elements at and below U (Z = 92); this is equivalent
+                    to using '-e 92'.
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-d"] = 4         # Number of digits in result
+        d["-b"] = 0         # Begin output Z at this number
+        d["-d"] = g.digits  # Number of digits in result
+        d["-e"] = 0         # End output Z at this number
+        d["-s"] = False     # Insert lines between elements
         d["-t"] = False     # Print table
+        d["-u"] = False     # Limit elements to Z <= 92
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "d:", ["help", "test"])
+            opts, args = getopt.getopt(sys.argv[1:], "b:d:e:su", ["help", "test"])
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list(""):
+            if o[1] in list("su"):
                 d[o] = not d[o]
-            elif o in ("-d",):
+            elif o in ("-b", "-e"):
                 try:
-                    d["-d"] = int(a)
-                    if not (1 <= d["-d"] <= 15):
+                    d[o] = abs(int(a))
+                except ValueError:
+                    msg = f"{o} option's argument must be an integer"
+                    Error(msg)
+            elif o == "-d":
+                try:
+                    d[o] = int(a)
+                    if not (1 <= d[o] <= g.max_digits):
                         raise ValueError()
                 except ValueError:
-                    msg = "-d option's argument must be an integer between 1 and 15"
+                    msg = f"{o} option's argument must be an integer between 1 and 15"
                     Error(msg)
             elif o in ("-h", "--help"):
                 Usage(status=0)
             elif o in ("--test",):
                 exit(run(globals(), halt=True)[0])
+        if d["-u"]:
+            if d["-e"]:
+                d["-e"] = min(d["-e"], 92)
+            else:
+                d["-e"] = 92
         x = flt(0)
         x.N = d["-d"]
+        x.rtz = x.rtdp = True
         if d["-t"]:
             PrintTable()
         return args
+    def GetCommandArgs(args):
+        'Return the arguments as a list of atomic numbers'
+        z = []
+        for arg in args:
+            items = cmddec(arg)
+            if len(items) == 1:
+                z.append(elem2z[arg])  # It's a symbol
+            elif len(items) > 1:
+                t.print(f"{t.err}{arg!r} doesn't identify a unique element")
+                exit(1)
+            else:   # It must be an integer
+                try:
+                    z.append(int(arg))
+                except Exception:
+                    t.print("{t.err}{arg!r}:  non-integer argument in {args!r}")
+                    exit(1)
+        return z
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
     cmd = args.pop(0)
@@ -705,22 +791,14 @@ if __name__ == "__main__":
             print(f"{arg} = {mm.mass(arg)} g/mol")
     elif cmd == "r":
         if args:
-            z = []
-            for arg in args:
-                if arg in elem2z:   # It's a symbol
-                    z.append(elem2z[arg])
-                else:   # It must be an integer
-                    try:
-                        z.append(int(arg))
-                    except Exception:
-                        print("Non-integer argument in {args!r}")
-                        exit(1)
-            PrintRawData(*z, spc=True)
+            z = GetCommandArgs(args)
+            PrintRawData(*z, spc=d["-s"], Z_begin=d["-b"], Z_end=d["-e"])
         else:
-            PrintRawData(spc=True)
+            PrintRawData(spc=d["-s"], Z_begin=d["-b"], Z_end=d["-e"])
     elif cmd == "t":
+        z = GetCommandArgs(args)
         # Print in columnar form
-        o, items = [], GetAtomicMassData(digits=d["-d"])
+        o, items = [], GetAtomicMassData(digits=d["-d"], Z_begin=d["-b"], Z_end=d["-e"])
         # Get width of each of the 3 elements
         wz, wsym, wam = 0, 0, 0
         for item in items:
@@ -728,7 +806,10 @@ if __name__ == "__main__":
             wsym = max(wz, len(str(item.sym)))
             wam = max(wz, len(str(item.am)))
         for nt in items:
-            o.append(f"{nt.Z:{wz}d} {nt.sym:{wsym}s} {nt.am!s:{wam}s}")
+            s = f"{nt.Z:{wz}d} {nt.sym:{wsym}s} {nt.am!s:{wam}s}"
+            if nt.Z in z:   # Decorate it in color if user specified it
+                s = t.hdr + s + t.n
+            o.append(s)
         for i in Columnize(o, sep=" "*4):
             print(i)
     else:
