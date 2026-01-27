@@ -38,6 +38,7 @@ if 1:  # Header
         import re
         import sys
     if 1:   # Custom imports
+        import termtables as tt
         from lwtest import run, Assert
         from f import flt
         from wrap import dedent
@@ -3035,6 +3036,7 @@ if 1:  # NIST data 26 Jan 2026
         '''
         NT = namedtuple("AM", "N sym mn ram ic saw note")
         def Parse(s):
+            'Given the string s from the NIST data, convert it to an appropriate type'
             a, b = s.split("=")
             if "(" in b:
                 value = ufloat_fromstr(b.replace("#", ""))
@@ -3048,50 +3050,90 @@ if 1:  # NIST data 26 Jan 2026
                 except Exception:
                     value = b.strip()
             return a, value
-        # Parse the atomic_mass.data file
-        lines = [i.strip() for i in open("atomic_mass.data").read().split("\n")]
-        # Position on the first data line
-        while lines:
-            if lines[0].startswith("Atomic Number ="):
-                break
-            else:
-                lines.pop(0)
-        # Get the records for each isotope
-        n, data = 7, []
-        while lines:
-            record = lines[0:n]
-            del lines[0:n]
-            #print(record)
-            o = []
-            for i, item in enumerate(record):
-                a, b = Parse(item)
-                o.append(b)
-                #print(f"{a} {b!r}")
-            data.append(NT(*o))
-            # Position on next record's first line
+        def Symbol(symbol, massnum):
+            'Return e.g. ⁹⁶Mo when symbol is "Mo" and massnum is 96'
+            e, o = "⁰¹²³⁴⁵⁶⁷⁸⁹", []
+            for i in str(massnum):
+                o.append(e[int(i)])
+            return ''.join(o) + symbol
+
+        if 1:   # Parse the atomic_mass.data file
+            lines = [i.strip() for i in open("atomic_mass.data").read().split("\n")]
+            # Position on the first data line
             while lines:
                 if lines[0].startswith("Atomic Number ="):
                     break
                 else:
                     lines.pop(0)
-        last = 1
-        w, v = 20, 15
+            # Get the records for each isotope
+            n, data = 7, []
+            while lines:
+                record = lines[0:n]
+                del lines[0:n]
+                #print(record)
+                o = []
+                for i, item in enumerate(record):
+                    a, b = Parse(item)
+                    o.append(b)
+                    #print(f"{a} {b!r}")
+                data.append(NT(*o))
+                # Position on next record's first line
+                while lines:
+                    if lines[0].startswith("Atomic Number ="):
+                        break
+                    else:
+                        lines.pop(0)
+        # Print data with termtables
+        hdr = "Z Sym RelAtMass IsoComp StdAtMass".split()
+        o, last = [hdr], None
         for i in data:
-            if i.N != last:
-                if ii(i.ic, int):
-                    print(f"{i.N!s:3s} {i.sym:2s} {i.ram:{w}.1uS} {i.ic:>{v}d}")
-                elif not i.ic:
-                    print(f"{i.N!s:3s} {i.sym:2s} {i.ram:{w}.1uS} {i.ic}")
-                else:
-                    print(f"{i.N!s:3s} {i.sym:2s} {i.ram:{w}.1uS} {i.ic:{v}.1uS}")
-                last = i.N
+            a = []
+            if str(i.N) != last:
+                a.append(str(i.N))
+                last = str(i.N)
             else:
-                if ii(i.ic, int):
-                    print(f"{'':3s} {'':2s} {i.ram:{w}.1uS} {i.ic:>{v}d}")
-                elif not i.ic:
-                    print(f"{'':3s} {'':2s} {i.ram:{w}.1uS} {i.ic}")
-                else:
-                    print(f"{'':3s} {'':2s} {i.ram:{w}.1uS} {i.ic:{v}.1uS}")
+                a.append(" "*3)
+            a.append(Symbol(i.sym, i.mn))
+            a.append(f"{i.ram:.1uS}")
+            if ii(i.ic, (int, str)):
+                a.append(str(i.ic))
+            else:
+                a.append(f"{i.ic:.1uS}")
+            if ii(i.saw, (list, str)):
+                a.append(str(i.saw))
+            else:
+                a.append(f"{i.saw:.1uS}")
+            o.append(a)
+        o.append(hdr)
+        tt.print(o, padding=(0, 0), style=" "*15, alignment="ccrrr")
+        # Print explanation
+        print()
+        print(dedent('''
+        These data came from
+        https://www.nist.gov/pml/atomic-weights-and-isotopic-compositions-relative-atomic-masses.
+        Click on "All Elements" and "Linearized ASCII Output"; the "All isotopes" box
+        wasn't checked, giving the more common isotopes only.
+
+        The symbols are
+          Z     Atomic number
+
+          The element's symbol includes the mass number of the isotope.
+
+          RelAtMass is the atomic mass with its associated uncertainty.  Here, relative
+          means the mass is relative to the ¹²C atom (in the nuclear and atomic ground
+          state), which has a mass of 11.9999999958(36) g/mol.
+
+          IsoComp is the isotope composition most commonly found in the laboratory and
+          may not represent the composition of the Earth's crust.
+
+          StdAtMass is the standard atomic mass, given as an interval in square brackets
+          or as a single number.  A single number in brackets is used for the most
+          stable isotope of a radioactive element.
+
+          A number in parentheses is a standard uncertainty of the measured value in the
+          normal short-form syntax:  '0.0759(4)' means '0.0759 ± 0.0004'.
+
+        '''))
 
     GetRawData()
     exit()
