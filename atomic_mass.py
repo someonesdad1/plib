@@ -1,16 +1,12 @@
 '''
-Calculate the molecular mass of a chemical formula
 
-https://www.nist.gov/pml/atomic-weights-and-isotopic-compositions-relative-atomic-masses
-gives an ASCII linearized table of the elements if you click on "All Elements" and
-"Linearized".  This is a comprehensive table
-
-
+1.  Stored data on the atomic mass of elements
+2.  Calculate the molecular mass of a chemical formula
 
 '''
 if 1:  # Header
     _pgminfo = '''
-        <oo gist ∞ Calculate the molecular mass of a chemical formula oo>
+        <oo gist ∞ Atomic mass data oo>
         <oo desc ∞ oo>
         <oo copy ∞ Copyright © 2026 Don Peterson oo>
         <oo lic ∞ 
@@ -33,7 +29,7 @@ if 1:  # Header
         oo>
     '''
     if 1:   # Standard imports
-        from collections import namedtuple
+        from collections import namedtuple, defaultdict
         import getopt
         import re
         import sys
@@ -55,6 +51,19 @@ if 1:  # Header
             pass
         g = G()     # Holder for global variables
         ii = isinstance
+        g.C12_at_mass = ufloat_fromstr("11.9999999958(36)")
+        # Named tuple for raw data
+          # Z    = <int> Atomic number
+          # sym  = <str> Symbol
+          # mn   = <int> Mass number
+          # ram  = <unc> Relative atomic mass
+          # ic   = <unc> Isotopic composition
+          # saw  = <list> Standard atomic weight (may be a float)
+          # note = <str> Notes
+        NT1 = namedtuple("AM1", "Z sym mn ram ic saw note")
+        # Named tuple for atomic mass data
+        NT2 = namedtuple("AM2", "Z sym am")
+if 1:   # Old set of data
         g.atomic_mass = {
             # From https://gist.github.com/Rhomboid/5994999
             # Downloaded Tue 12 Aug 2014 02:23:51 PM
@@ -169,27 +178,38 @@ if 1:  # Header
             "Zn": flt(65.39),
             "Zr": flt(91.224),
         }
-if 1:  # NIST data 26 Jan 2026 
-    # From web page
-    # https://www.nist.gov/pml/atomic-weights-and-isotopic-compositions-relative-atomic-masses
-    # Click on "All Elements", then "Linearized ASCII Output" to get these data (do not
-    # click on "All isotopes".  The file /plib/atomic_mass.data will contain this
-    # information, updated irregularly.
-    # 
-    # The relative atomic mass is relative to the ground state of carbon 12, which is 
-    # 11.9999999958(36) g/mol (from http://physics.nist.gov/constants with 2018 CODATA
-    # adjustment).
-
+if 1:  # NIST data
+    def _Parse(s):
+        'Given the string s from the NIST data, convert it to an appropriate type'
+        a, b = s.split("=")
+        if "(" in b:
+            value = ufloat_fromstr(b.replace("#", ""))
+        elif "[" in b:
+            value = [flt(i) for i in eval(b)]
+        elif "." in b:
+            value = flt(b)
+        else:
+            try:
+                value = int(b.strip())
+            except Exception:
+                value = b.strip()
+        return a, value
+    def _Symbol(symbol, massnum):
+        'Return e.g. ⁹⁶Mo when symbol is "Mo" and massnum is 96'
+        e, o = "⁰¹²³⁴⁵⁶⁷⁸⁹", []
+        for i in str(massnum):
+            o.append(e[int(i)])
+        return ''.join(o) + symbol
     def GetRawData(file="/plib/atomic_mass.data"):
         '''Return a list of namedtuples containing the NIST data on atomic mass for the
-        elements.  The data are
-        N    = <int> Atomic number
-        sym  = <str> Symbol
-        mn   = <int> Mass number
-        ram  = <unc> Relative atomic mass
-        ic   = <unc> Isotopic composition
-        saw  = <list> Standard atomic weight
-        note = <str> Notes:
+        common isotopes of the elements.  The data are
+          Z    = <int> Atomic number
+          sym  = <str> Symbol
+          mn   = <int> Mass number
+          ram  = <unc> Relative atomic mass
+          ic   = <unc> Isotopic composition
+          saw  = <list> Standard atomic weight
+          note = <str> Notes:
            g  Geological materials are known in which the element has an isotopic
               composition outside the limits for normal material. The difference
               between the atomic weight of the element in such materials and that
@@ -202,30 +222,17 @@ if 1:  # NIST data 26 Jan 2026
               a more precise standard atomic weight being given; the tabulated
               atomic-weight value and uncertainty should be applicable to normal
               materials.
+         
+        The data are from https://www.nist.gov/pml/atomic-weights-and-isotopic-\
+        compositions-relative-atomic-masses.  Click on "All Elements", then "Linearized
+        ASCII Output" to get these data (do not click on "All isotopes".  The file
+        /plib/atomic_mass.data will contain this information, updated irregularly
+        (last download was 26 Jan 2026).
+    
+        The relative atomic mass is relative to the ground state of carbon 12, which is
+        11.9999999958(36) g/mol (from http://physics.nist.gov/constants with 2018 CODATA
+        adjustment).
         '''
-        NT = namedtuple("AM", "N sym mn ram ic saw note")
-        def Parse(s):
-            'Given the string s from the NIST data, convert it to an appropriate type'
-            a, b = s.split("=")
-            if "(" in b:
-                value = ufloat_fromstr(b.replace("#", ""))
-            elif "[" in b:
-                value = [flt(i) for i in eval(b)]
-            elif "." in b:
-                value = flt(b)
-            else:
-                try:
-                    value = int(b.strip())
-                except Exception:
-                    value = b.strip()
-            return a, value
-        def Symbol(symbol, massnum):
-            'Return e.g. ⁹⁶Mo when symbol is "Mo" and massnum is 96'
-            e, o = "⁰¹²³⁴⁵⁶⁷⁸⁹", []
-            for i in str(massnum):
-                o.append(e[int(i)])
-            return ''.join(o) + symbol
-
         if 1:   # Parse the atomic_mass.data file
             lines = [i.strip() for i in open("atomic_mass.data").read().split("\n")]
             # Position on the first data line
@@ -242,27 +249,30 @@ if 1:  # NIST data 26 Jan 2026
                 #print(record)
                 o = []
                 for i, item in enumerate(record):
-                    a, b = Parse(item)
+                    a, b = _Parse(item)
                     o.append(b)
                     #print(f"{a} {b!r}")
-                data.append(NT(*o))
+                data.append(NT1(*o))
                 # Position on next record's first line
                 while lines:
                     if lines[0].startswith("Atomic Number ="):
                         break
                     else:
                         lines.pop(0)
+        return data
+    def PrintRawData():
+        data = GetRawData()
         # Print data with termtables
         hdr = "Z Sym RelAtMass IsoComp StdAtMass".split()
         o, last = [hdr], None
         for i in data:
             a = []
-            if str(i.N) != last:
-                a.append(str(i.N))
-                last = str(i.N)
+            if str(i.Z) != last:
+                a.append(str(i.Z))
+                last = str(i.Z)
             else:
                 a.append(" "*3)
-            a.append(Symbol(i.sym, i.mn))
+            a.append(_Symbol(i.sym, i.mn))
             a.append(f"{i.ram:.1uS}")
             if ii(i.ic, (int, str)):
                 a.append(str(i.ic))
@@ -282,29 +292,67 @@ if 1:  # NIST data 26 Jan 2026
         https://www.nist.gov/pml/atomic-weights-and-isotopic-compositions-relative-atomic-masses.
         Click on "All Elements" and "Linearized ASCII Output"; the "All isotopes" box
         wasn't checked, giving the more common isotopes only.
-
+        
         The symbols are
           Z     Atomic number
-
+        
           The element's symbol includes the mass number of the isotope.
-
+        
           RelAtMass is the atomic mass with its associated uncertainty.  Here, relative
           means the mass is relative to the ¹²C atom (in the nuclear and atomic ground
           state), which has a mass of 11.9999999958(36) g/mol.
-
+        
           IsoComp is the isotope composition most commonly found in the laboratory and
           may not represent the composition of the Earth's crust.
-
+        
           StdAtMass is the standard atomic mass, given as an interval in square brackets
           or as a single number.  A single number in brackets is used for the most
           stable isotope of a radioactive element.
-
+        
           A number in parentheses is a standard uncertainty of the measured value in the
           normal short-form syntax:  '0.0759(4)' means '0.0759 ± 0.0004'.
-
+        
         '''))
+    def GetAtomicMassData(digits=4):
+        '''Return a named tuple of data for each isotope.  The data in the raw data
+        table are rounded to the indicated number of digits.  
+        
+        '''
+        data = GetRawData()
+        # Organize data by atomic number
+        byZ = defaultdict(list)
+        for i in data:
+            byZ[i.Z].append(i)
+        # For each element, get its atomic mass by summing the mass of the isotopes by
+        # their fractional abundance to get a weighted average.
+        o = []
+        for Z in byZ:
+            am = flt(0)
+            if Z == 43: breakpoint() # ∞∞ 
+            for item in byZ[Z]:
+                if ii(item.ic, int):
+                    assert item.ic == 1
+                    am = flt(item.saw.n)
+                    break
+                elif ii(item.ic, str):
+                    assert not item.ic
+                    am = flt(item.saw.replace("[", "").replace("]", ""))
+                    break
+                else:
+                    ic = item.ic.n
+                ra = flt(item.ram.n)
+                term = ra*ic
+                am += term
+                am.n = digits
+                #print(Z, "ra =", ra, "ic =", ic, "term =", term, "am =", am)
+            el = byZ[Z][0]
+            o.append(NT2(Z, el.sym, am))
+        for i in o:
+            print(i.Z, i.sym, i.am)
 
-    GetRawData()
+    t.print(f"{t.redl}Need to fix case when item.saw is a list")
+    #PrintRawData()
+    GetAtomicMassData()
     exit()
 
 if 1:  # Core functionality
