@@ -279,6 +279,12 @@ if 1:  # NIST data
         than 94 (plutonium), the am element will be an integer that is rounded off from
         the mean of the isotopic masses.
         '''
+        digits_max = 6
+        msg = f"digits must be an int between 1 and {digits_max}"
+        if not isinstance(digits, int):
+            raise TypeError(msg)
+        if not (1 <= digits <= digits_max):
+            raise ValueError(msg)
         data = GetRawData()
         def GetAtomicMass(Z, items):
             '''Return the atomic mass as a flt for this element with atomic number Z.
@@ -347,8 +353,16 @@ if 1:  # NIST data
                 am.rtz = am.rtdp = True
             o.append(NT2(Z, el.sym, am))
         return o
+    def GetAtomicMassDict(digits=4):
+        '''Returns a dictionary keyed by the element's symbol with the element's
+        relative atomic mass as the value.
+        '''
+        di = {}
+        for item in GetAtomicMassData(digits=digits):
+            di[item.sym] = item.am
+        return di
 
-    if 1:
+    if 0:
         if 0:
             #PrintRawData()
             PrintRawData(1, 2, 4, 6, 43, 96, spc=1)
@@ -473,62 +487,120 @@ if 1:   # Old set of data
             "Zn": flt(65.39),
             "Zr": flt(91.224),
         }
-if 1:  # Core functionality
-    def PrintTable():
-        out, w = [], 70
-        for i in g.atomic_mass:
-            out.append(f"{i:2s} {g.atomic_mass[i]!s:>6s}")
-        t.print(f"{t('purl')}{'Atomic masses in g/mol':^{w}s}")
-        for i in Columnize(out, col_width=15):
-            print(i)
-        # Now print sorted by mass
-        m = []
-        for i in g.atomic_mass:
-            m.append((g.atomic_mass[i], i))
-        out = []
-        for mass, name in sorted(m):
-            out.append(f"{mass!s:>6s} {name:2s}")
-        print()
-        t.print(f"{t('grn')}{'Sorted by mass in g/mol:':^{w}s}")
-        for i in Columnize(out, col_width=15):
-            print(i)
-        exit(0)
-    def Find_closing_paren(tokens):
-        count = 0
-        for index, tok in enumerate(tokens):
-            if tok == ")":
-                count -= 1
-                if count == 0:
-                    return index
-            elif tok == "(":
-                count += 1
-        raise ValueError("unmatched parentheses")
-    def Parse(tokens, stack, dict):
-        if len(tokens) == 0:
-            return sum(stack)
-        tok = tokens[0]
-        if tok == "(":
-            end = Find_closing_paren(tokens)
-            stack.append(Parse(tokens[1:end], [], dict))
-            return Parse(tokens[end + 1 :], stack, dict)
-        elif tok.isdigit():
-            stack[-1] *= int(tok)
-        else:
-            stack.append(dict[tok])
-        return Parse(tokens[1:], stack, dict)
-    def CalculateMass(formula):
-        tokens = re.findall(r"[A-Z][a-z]*|\d+|\(|\)", formula)
-        if not tokens:
-            raise Exception("Empty")
-        return Parse(tokens, [], g.atomic_mass)
-    def GetMass(formula):
-        try:
-            print(f"{formula}: {CalculateMass(formula)} g/mol")
-        except Exception:
-            print(f"{formula!r} is an incorrect formula")
+if 1:  # Molecular mass
+    if 1:  # Old functionality
+        def PrintTable():
+            out, w = [], 70
+            for i in g.atomic_mass:
+                out.append(f"{i:2s} {g.atomic_mass[i]!s:>6s}")
+            t.print(f"{t('purl')}{'Atomic masses in g/mol':^{w}s}")
+            for i in Columnize(out, col_width=15):
+                print(i)
+            # Now print sorted by mass
+            m = []
+            for i in g.atomic_mass:
+                m.append((g.atomic_mass[i], i))
+            out = []
+            for mass, name in sorted(m):
+                out.append(f"{mass!s:>6s} {name:2s}")
+            print()
+            t.print(f"{t('grn')}{'Sorted by mass in g/mol:':^{w}s}")
+            for i in Columnize(out, col_width=15):
+                print(i)
+            exit(0)
+        def Find_closing_paren(tokens):
+            count = 0
+            for index, tok in enumerate(tokens):
+                if tok == ")":
+                    count -= 1
+                    if count == 0:
+                        return index
+                elif tok == "(":
+                    count += 1
+            raise ValueError("unmatched parentheses")
+        def Parse(tokens, stack, dict):
+            if len(tokens) == 0:
+                return sum(stack)
+            tok = tokens[0]
+            if tok == "(":
+                end = Find_closing_paren(tokens)
+                stack.append(Parse(tokens[1:end], [], dict))
+                return Parse(tokens[end + 1 :], stack, dict)
+            elif tok.isdigit():
+                stack[-1] *= int(tok)
+            else:
+                stack.append(dict[tok])
+            return Parse(tokens[1:], stack, dict)
+        def CalculateMass(formula):
+            tokens = re.findall(r"[A-Z][a-z]*|\d+|\(|\)", formula)
+            if not tokens:
+                raise Exception("Empty")
+            return Parse(tokens, [], g.atomic_mass)
+        def GetMass(formula):
+            try:
+                print(f"{formula}: {CalculateMass(formula)} g/mol")
+            except Exception:
+                print(f"{formula!r} is an incorrect formula")
+    class MolecularMass:
+        '''Calculate the molecular mass of a chemical formula.  Example:
+        the mass of Ca(C₂H₃O₂)₂ = Ca(C2H3O2)2 is 
+            mm = MolecularMass(6)
+            print(mm.mass("Ca(C₂H₃O₂)₂"))
+        prints out '158.161'.  As a convenience, the Unicode subscript and superscript
+        characters are translated to the normal ASCII digit characters.
+        '''
+        def __init__(self, digits=4):
+            '''The keyword digits is an integer to round the atomic mass calculations
+            to and can be from 1 to 6.
+            '''
+            self.di = GetAtomicMassDict(digits=digits)
+            self.digits = digits
+            # Make a helper to translate subscripts
+            self.tr = ''.maketrans("₀₁₂₃₄₅₆₇₈₉⁰¹²³⁴⁵⁶⁷⁸⁹", "01234567890123456789")
+        def mass(self, formula):
+            "Returns the formula's molecular mass in g/mol or raises an exception"
+            # The algorithm for this calculation came from
+            # https://gist.github.com/Rhomboid/5994999
+            if not isinstance(formula, str):
+                raise TypeError("formula must be a string")
+            try:
+                mm = self._calculate_mass(formula)
+                mm.n = self.digits
+                return mm
+            except Exception:
+                raise ValueError(f"{formula!r} is an incorrect formula")
+        def _calculate_mass(self, formula):
+            tokens = re.findall(r"[A-Z][a-z]*|\d+|\(|\)", formula.translate(self.tr))
+            if not tokens:
+                raise ValueError("Empty formula")
+            return self._parse(tokens, [], self.di)
+        def _find_closing_paren(self, tokens):
+            count = 0
+            for index, tok in enumerate(tokens):
+                if tok == ")":
+                    count -= 1
+                    if not count:
+                        return index
+                elif tok == "(":
+                    count += 1
+            raise ValueError("unmatched parentheses")
+        def _parse(self, tokens, stack, dict):
+            if not tokens:
+                return sum(stack)
+            tok = tokens[0]
+            if tok == "(":
+                end = self._find_closing_paren(tokens)
+                stack.append(self._parse(tokens[1:end], [], dict))
+                return self._parse(tokens[end + 1 :], stack, dict)
+            elif tok.isdigit():
+                stack[-1] *= int(tok)
+            else:
+                stack.append(dict[tok])
+            return self._parse(tokens[1:], stack, dict)
 
 if 1:
-    PrintTable()
+    mm = MolecularMass(digits=6)
+    print(mm.mass("Ca(C₂H₃O₂)₂"))
     exit()
 
 if __name__ == "__main__":
