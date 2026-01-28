@@ -725,10 +725,18 @@ if __name__ == "__main__":
                 o[tf.test].append(tf.file)
             # Print out by test string category
             if o:
-                for i in o:
-                    t.print(f"{t.ornl}{i}")
-                    for j in Columnize([str(k) for k in o[i]], indent=" "*2, sep=" "*2):
+                s = "Python file 'test' string in gist"
+                t.print(f"{t.yell}{s:^{g.W - 10}s}")
+                for key in o:
+                    t.print(f"{t.ornl}{key}")
+                    p = [str(k) for k in o[key]]    # Get file's string
+                    if key is None:
+                        print(f"{t.denl}", end="")
+                    elif key == "notest":
+                        print(f"{t.purl}", end="")
+                    for j in Columnize([str(k) for k in o[key]], indent=" "*2, sep=" "*2):
                         print(j)
+                    t.print(end="")
 
     if 1:   # Get input
         d = {

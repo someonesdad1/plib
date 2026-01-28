@@ -2043,14 +2043,6 @@ if 1:  # Utility functions
             seq2 = rgb2
         d = [(i - j) ** 2 for i, j in zip(seq1, seq2)]
         return math.isqrt(sum(d))
-if 1:  # Prototyping area
-    if __name__ == "__main__":  #∞∞
-        if 1:
-            import debug
-            debug.SetDebugger()
-        # Develop t.list() method
-        t.list()
-        exit()
 
 if 0:  # Prototyping area
     # Develop new escape-code styles for RegexpDecorate.register()
@@ -2062,6 +2054,7 @@ if 0:  # Prototyping area
     rd.register(r, match_style, nomatch_style)
     rd(s, insert_nl=True)
     exit()
+
 if __name__ == "__main__":
     import getopt
     from lwtest import run, raises, Assert
