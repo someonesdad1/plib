@@ -593,14 +593,15 @@ if __name__ == "__main__":
         print = Print.print
         sys.stderr = saved
     if 1:   # Utility
+        def ShowColors(msg):
+            t.list(msg)
         def GetColors():
             t.failed = t("whtl", "redl")
             t.passed = t.grnl
             t.notest = t.roy
             t.file = t.brnl
             t.err = t.redl
-            t.dbg = t.lill if g.dbg else ""
-            t.dbg1 = t.brnl if g.dbg else ""
+            t.dbg = t.lill
             t.N = t.n if g.dbg else ""
         def GetScreen():
             'Return (LINES, COLUMNS)'
@@ -654,23 +655,27 @@ if __name__ == "__main__":
             if d["-d"]:
                 g.dbg = True
             GetColors()
+            g.L, g.W = GetScreen()
+            if not args:
+                Usage()
             if g.dbg:   # Dump command line and options dictionary
-                Dbg(f"Command line:  {t.dbg1}{sys.argv!r}")
-                Dbg()
+                Dbg(f"Command line:  {t.file}{sys.argv!r}")
                 Dbg("Options dictionary:")
                 for key in d:
-                    Dbg(f"  {key}:  {t.dbg1}{d[key]!r}")
-                Dbg()
+                    Dbg(f"  {key}:  {t.file}{d[key]!r}")
+                Dbg("Defined attributes for t:")
+                ShowColors("")
+                Dbg("-"*g.W)
             return args
     if 1:   # Core functionality
         def List(args):
-            pass
+            Dbg(f"List({t.file}{args}{t.dbg})")
         def Action(args):
-            pass
+            Dbg(f"Action({t.file}{args}{t.dbg})")
         def Test(args):
-            pass
+            Dbg(f"Test({t.file}{args}{t.dbg})")
         def Report(args):
-            pass
+            Dbg(f"Report({t.file}{args}{t.dbg})")
     if 1:   # Get input
         d = {
             # This will hold the test results, keyed by file name
@@ -679,8 +684,6 @@ if __name__ == "__main__":
         }      # Options dictionary
         cmds = cmddecode.CommandDecode("list action test report".split())
         args = ParseCommandLine(d)
-        if not args:
-            Usage()
         cmd = args.pop(0)
         c = cmds(cmd)
         if len(c) == 1:

@@ -1323,7 +1323,7 @@ class Trm:
                 k["end"] = ""
             print(*p, **k)
             print(self.n, **k)
-        def list(self, ignore_std=True):
+        def list(self, msg=None, ignore_std=True):
             'Print defined color attributes to stdout'
             std = set('''
                 blk blu brn cyn den grn gry lav lil lip lwn mag n  olv orn pnk pur red
@@ -1349,10 +1349,14 @@ class Trm:
                 except Exception:
                     pass
             if o:
-                if ignore_std:
-                    print("class Trm color attributes ignoring standard ones:")
+                if msg is not None:
+                    if msg.strip():
+                        print(msg)
                 else:
-                    print("class Trm color attributes:")
+                    if ignore_std:
+                        print("class Trm color attributes ignoring standard ones:")
+                    else:
+                        print("class Trm color attributes:")
                 for i in Columnize(o, indent="  ", sep=" "*4):
                     print(i)
 
