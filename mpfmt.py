@@ -226,10 +226,6 @@ def TestTakeApart():
         print(f"{sp}{'Decimal':{w}s} {TA(D(s[1:]))}")
         print(f"{sp}{'Fraction':{w}s} {TA(f.fromdecimal(D(s[1:])))}")
 
-
-TestTakeApart()
-exit()
-
 if __name__ == "__main__":
     fmt = Fmt()
     print(fmt.TakeApart(-39578574))

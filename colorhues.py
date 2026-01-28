@@ -1,9 +1,8 @@
-"""
+'''
 This file contains a collection of named colors organized by hue.  It was produced by a script
 that I wrote but can no longer find.  6976 total colors
-"""
+'''
 ##∞test∞# notest #∞test∞#
-
 colorhues = {
     "blu": {
         "dark blue": "#00035b",
@@ -7012,19 +7011,17 @@ colorhues = {
         "Medium Forest Green": "#6b8e23",
     },
 }
-
 if __name__ == "__main__":
     from wl2rgb import rgb2wl
     from color import t, Color
     from util import unrange
     from wrap import dedent
-
     def ByWavelength():
         print(
-            dedent("""
+            dedent('''
         The following printout shows the "wavelengths" in nm making up each of the "hues" in the
         colorhues dict: 
-        """)
+        ''')
         )
         o = {}
         for hue in colorhues:
@@ -7043,7 +7040,7 @@ if __name__ == "__main__":
             u = u.replace("-", " ")
             v = u.split()
             print(f"  {hue:8s}:  {v[0]}-{v[-1]}")
-        """Results
+        '''Results
             The following printout shows the "wavelengths" in nm making up each of the "hues" in the
             colorhues dict: 
             blu 433-450
@@ -7077,23 +7074,22 @@ if __name__ == "__main__":
             viomag  :  399-418 †
             yel     :  569-590 †
             yelgrn  :  530-567 †
-
+            
         Rearrangement
             - Here's the table with the non-overlapping ranges:
-
+            
             433-450 451-476 478-495 495-505 506-529 530-567 569-590 592-608 609-625 627-640
             blu     cynblu  cyn     grncyn  grn     yelgrn  yel     ornyel  orn     redorn
-
+            
         Conclusions
             - I've marked the 'good' ranges in the above table with †; the problematic ones are
               the red and magenta, marked with *.
-        """
-
+        '''
     def ByHue():
         print(
-            dedent("""
+            dedent('''
         The following printout shows the hues making up each of the "hues" in the colorhues dict: 
-        """)
+        ''')
         )
         o = {}
         for hue in colorhues:
@@ -7108,7 +7104,7 @@ if __name__ == "__main__":
             u = unrange(s, sort_first=True)
             o[hue] = u
             print(f"  {hue:8s} {u}")
-        """
+        '''
         Results
             The following printout shows the hues making up each of the "hues" in the colorhues dict: 
             blu      158┅177
@@ -7126,42 +7122,41 @@ if __name__ == "__main__":
             viomag   192┅201 189┅191
             yel      37┅48
             yelgrn   49┅69
-
+            
         The 188 for red is definitely wrong, as it's a violet color.
-
+        
         Have /plib/rgb/build/build.py construct the colorhues dict 
-        """
-
+        '''
     ByHue()
-
-d = {
-    # Use x % 255 to get hue
-    "red": (244, 258),
-    "redorn": (5, 15),
-    "orn": (16, 26),
-    "ornyel": (27, 36),
-    "yel": (37, 48),
-    "yelgrn": (49, 69),
-    "grn": (70, 97),
-    "grncyn": (97, 118),
-    "cyn": (119, 136),
-    "cynblu": (137, 154),
-    "blu": (155, 177),
-    "vio": (178, 187),
-    "viomag": (189, 201),
-    "mag": (202, 222),
-    "magred": (223, 243),
-}
-for name in d:
-    a, b = d[name]
-    print(f"{name:6s}", end=" ")
     if 0:
-        for i in range(a, b + 1):
-            h = i % 255
-            c = Color(h, 255, 255, hsv=True)
-            print(f"{t(c)}{i % 255:3d}{t.n}", end=" ")
-        print()
-    else:
-        h1, h2 = [i % 255 for i in (a, b)]
-        c1, c2 = Color(h1, 255, 255, hsv=True), Color(h2, 255, 255, hsv=True)
-        t.print(f"{t(c1)}{h1:03d} {t(c2)}{h2:03d}")
+        d = {
+            # Use x % 255 to get hue
+            "red": (244, 258),
+            "redorn": (5, 15),
+            "orn": (16, 26),
+            "ornyel": (27, 36),
+            "yel": (37, 48),
+            "yelgrn": (49, 69),
+            "grn": (70, 97),
+            "grncyn": (97, 118),
+            "cyn": (119, 136),
+            "cynblu": (137, 154),
+            "blu": (155, 177),
+            "vio": (178, 187),
+            "viomag": (189, 201),
+            "mag": (202, 222),
+            "magred": (223, 243),
+        }
+        for name in d:
+            a, b = d[name]
+            print(f"{name:6s}", end=" ")
+            if 0:
+                for i in range(a, b + 1):
+                    h = i % 255
+                    c = Color(h, 255, 255, hsv=True)
+                    print(f"{t(c)}{i % 255:3d}{t.n}", end=" ")
+                print()
+            else:
+                h1, h2 = [i % 255 for i in (a, b)]
+                c1, c2 = Color(h1, 255, 255, hsv=True), Color(h2, 255, 255, hsv=True)
+                t.print(f"{t(c1)}{h1:03d} {t(c2)}{h2:03d}")

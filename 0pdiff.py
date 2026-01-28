@@ -113,6 +113,7 @@ if 1:  # Core functions
             print("Files that differ between /plib and /pylib:")
             for line in Columnize(o, indent="  "):
                 print(line)
+
 if __name__ == "__main__":
     d = {}  # Options dictionary
     dispatch = {

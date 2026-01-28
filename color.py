@@ -1329,7 +1329,9 @@ class Trm:
                 blk blu brn cyn den grn gry lav lil lip lwn mag n  olv orn pnk pur red
                 roy sea sky trq vio wht yel'''.split())
             # Get the other standard names from colornames0
-            lines = open("colornames0").read().split("\n")
+            with open("colornames0") as fp:
+                lines = fp.read().split("\n")
+                fp.close()
             while lines:
                 line = lines.pop(0).strip()
                 if not line:

@@ -68,14 +68,6 @@ New design
         - Each instance gets a reference to a timer, which is uses to measure how long
           its test takes to run and put into the et[s] attribute.
    
-    class TestRunner
-        - Takes a list of files and constructs a TestFile object for each file.
-        - Actions:
-            - scan
-            - test
-            - report
-        - Get working with single process, then use multiprocessing for faster execution
-
     Thoughts
         - Use /plib/.0test as a cache of the last testing information, keeping file
           hash, timedate of test, and test result.  This would allow avoiding running a
@@ -129,6 +121,7 @@ if 1:  # Header
         import pathlib
         import subprocess
         import sys
+        import time
     if 1:  # Custom imports
         import cmddecode
         import get
@@ -150,26 +143,45 @@ if 1:  # Header
         g = G()
         g.dbg = False
 if 1:  # Classes 
-    class File:
-        '''Holds the name of a python file that will be tested.
+    class TestFile:
+        '''Holds the name of a python file that will be tested.  Gets the file's hash,
+        runs the test, and stores the results.  Typical usage is
+
+            file = TestFile(myfilename)
+            status, myinstance = file.run()  # Run this file's test
+            status will be "fail" or "pass'
+            myinstance is the TestFile instance, useful for the calling context to store
+            away in a persistence container.
+
+        Information stored in this class as attributes:
+            - file      pathlib.Path to file
+            - hash      SHA-1 hash of first 4 kB of file
+            - test      Gist keyword indicating how to test
+            - retcode   "fail" or "pass" ("pass" only if status == 0)
+            - status    Integer return code of running the test
+            - et        Elapsed time in s to run test
+            - tm        Date/time string when test was run
+            - stdout    String the test code sent to stdout
+            - stderr    String the test code sent to stderr
         '''
         bytes_to_hash = 4096
         def __init__(self, file):
             self.file = P(file)
             self.hash = self.get_hash()
+            self.test = None
+            self.status = None
+            self.stdout = None
+            self.stderr = None
+            self.retcode = None
             # Get file's gist
             s = gist.Gist.GetGistString(self.file)
             try:
                 mygist = gist.Gist(s)
             except Exception:
-                t.print(f"{t.err}No gist in {file}")
-                exit(1)
+                Dbg(f"{t.err}No gist in {file}")
+                return
             # This file's method of testing
             self.test = mygist["test"].strip()
-            # Other attributes
-            self.failed = None
-            self.stdout = None
-            self.stderr = None
         def run(self, *args):
             'Return (status, self) where status is "pass", "fail", "notest"'
             if self.test == "notest":
@@ -178,23 +190,25 @@ if 1:  # Classes
                 cmd = [sys.executable, self.file]
                 if self.test == "--test":
                     cmd += ["--test"]
+                self.tm = time.asctime()
+                start = time.time()             # Time from epoch in s
                 r = subprocess.run(cmd, capture_output=True)
-                self.failed = r.returncode
+                self.et = time.time() - start   # Elapsed time in s for test to run
+                self.status = r.returncode
                 self.stdout = r.stdout
                 self.stderr = r.stderr
-                self.returncode = "fail" if self.failed else "pass"
-                return ("fail" if self.failed else "pass", self)
+                self.retcode = "fail" if self.status else "pass"
+                return self.retcode
             else:
                 raise ValueError(f"Bug:  {self.test!r} not coded yet")
         def get_hash(self):
             m = hashlib.sha1()
-            fp = self.file.open("rb")
-            bytes = fp.read(File.bytes_to_hash)
-            fp.close()
+            with self.file.open("rb") as fp:
+                bytes = fp.read(TestFile.bytes_to_hash)
             m.update(bytes)
             return m.hexdigest()
         def __str__(self):
-            return f"File<{self.file}>"
+            return f"TestFile<{self.file}>"
         def __repr__(self):
             return str(self)
         def dump(self, verbose=False):
@@ -203,11 +217,14 @@ if 1:  # Classes
             'notest' in color and highlighting 'fail' in bright red.  If verbose is true
             and there's output to stderr, it will be highlighted in color too.
             '''
+            if self.status is None:
+                t.print(f"{t.err}Test has not been run yet")
+                return
             if self.test == "notest":
                 msg = f"{str(self.file)!r} ({t.notest}{self.test}{t.n}) "
             else:
                 msg = f"{str(self.file)!r} ({self.test}) "
-            msg += f"{t.failed}fail{t.n}" if self.failed else "pass"
+            msg += f"{t.failed}fail{t.n}" if self.retcode == "failed" else "pass"
             print(msg)
             if verbose:
                 if self.stdout:
@@ -555,6 +572,7 @@ if 0:  # Old utility
 
 if __name__ == "__main__":
     import cmddecode
+    import gist
     if 0:   # Old functionality
         d = {}  # Options dictionary
         items = [P(i) for i in ParseCommandLine(d)]
@@ -601,6 +619,7 @@ if __name__ == "__main__":
             t.notest = t.roy
             t.file = t.brnl
             t.err = t.redl
+            t.warn = t.ornl
             t.dbg = t.lill
             t.N = t.n if g.dbg else ""
         def GetScreen():
@@ -668,14 +687,49 @@ if __name__ == "__main__":
                 Dbg("-"*g.W)
             return args
     if 1:   # Core functionality
-        def List(args):
-            Dbg(f"List({t.file}{args}{t.dbg})")
+        def ReadCache():
+            Dbg(f"{t.warn}Need to write ReadCache()")
+        def SaveCache():
+            Dbg(f"{t.warn}Need to write SaveCache()")
         def Action(args):
             Dbg(f"Action({t.file}{args}{t.dbg})")
         def Test(args):
             Dbg(f"Test({t.file}{args}{t.dbg})")
         def Report(args):
             Dbg(f"Report({t.file}{args}{t.dbg})")
+
+        def List(args):
+            Dbg(f"List({t.file}{args}{t.dbg})")
+            files = [P(i) for i in args]
+            items_to_test = []
+            if len(files) == 1 and files[0].is_dir():
+                dir = files[0]
+                for file in sorted(dir.glob("*.py")):
+                    tf = TestFile(file)
+                    items_to_test.append(tf)
+                Dbg(f"Got {len(items_to_test)} files in directory {dir}")
+            else:
+                # It must be a list of files to check
+                if not all(i.is_file() for i in files):
+                    Error("For multiple arguments, all must be files")
+                # Create TestFile instance for each file
+                for file in files:
+                    tf = TestFile(file)
+                    items_to_test.append(tf)
+                Dbg(f"Got {len(items_to_test)} files")
+            if not items_to_test:
+                Error(f"{t.err}No files found to test{t.n}")
+            # Classify these files
+            o = defaultdict(list)
+            for tf in items_to_test:
+                o[tf.test].append(tf.file)
+            # Print out by test string category
+            if o:
+                for i in o:
+                    t.print(f"{t.ornl}{i}")
+                    for j in Columnize([str(k) for k in o[i]], indent=" "*2, sep=" "*2):
+                        print(j)
+
     if 1:   # Get input
         d = {
             # This will hold the test results, keyed by file name
@@ -685,9 +739,12 @@ if __name__ == "__main__":
         cmds = cmddecode.CommandDecode("list action test report".split())
         args = ParseCommandLine(d)
         cmd = args.pop(0)
-        c = cmds(cmd)
-        if len(c) == 1:
-            command = c[0]
+        got = cmds(cmd)
+        ReadCache()
+        if len(got) == 1:
+            command = got[0]
+            if not args:
+                args = ["."]
             if command == "list":
                 List(args)
             elif command == "action":
@@ -698,6 +755,7 @@ if __name__ == "__main__":
                 Report(args)
         else:
             Error(f"{cmd!r} not recognized")
+        SaveCache()
 
 if 0:
     test = []

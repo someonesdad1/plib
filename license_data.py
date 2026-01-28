@@ -60,7 +60,9 @@ urls = {
 P = pathlib.Path
 p = P("/plib/lib/licenses")
 def get(x):
-    return open(x).read()
+    with open(x) as fp:
+        s = fp.read()
+    return s
 for h in p.glob("*.header"):
     header = get(h)
     f = P(str(h).replace(".header", ""))
