@@ -119,24 +119,23 @@ if 1:  # Classes
             # This file's method of testing
             self.test = mygist["test"].strip()
             # Other attributes
-            self.status = None
+            self.failed = None
             self.stdout = None
             self.stderr = None
         def run(self, *args):
             'Return (status, self) where status is "pass", "fail", "notest"'
             if self.test == "notest":
-                Dbg(f"run:  {str(self.file)!r} is notest")
                 return ("notest", self)
             elif self.test == "run" or self.test == "--test":
                 cmd = [sys.executable, self.file]
                 if self.test == "--test":
                     cmd += ["--test"]
                 r = subprocess.run(cmd, capture_output=True)
-                self.status = r.returncode
+                self.failed = r.returncode
                 self.stdout = r.stdout
                 self.stderr = r.stderr
-                self.returncode = "fail" if self.status else "pass"
-                return ("pass" if not self.status else "fail", self)
+                self.returncode = "fail" if self.failed else "pass"
+                return ("fail" if not self.failed else "pass", self)
             else:
                 raise ValueError(f"Bug:  {self.test!r} not coded yet")
         def get_hash(self):
@@ -150,15 +149,23 @@ if 1:  # Classes
             return f"File<{self.file}>"
         def __repr__(self):
             return str(self)
-        def dbgdump(self):
-            'Print state after run() to stdout'
-            msg = f"Testing:  {t.file}{str(self.file)!r}{t.dbg} ({self.test}) "
-            msg += f"{t.failed}fail" if self.status else f"{t.passed}pass"
-            Dbg(msg)
-            if self.stdout:
-                Dbg(f"  stdout ={t.n} {self.stdout}")
-            if self.stderr:
-                Dbg(f"  stderr ={t.pnk} {self.stderr}")
+        def dump(self, verbose=False):
+            '''Print the state after the test run.  If verbose is True, include the
+            contents of stdout and stderr.  The output is plain text except for showing
+            'notest' in color and highlighting 'fail' in bright red.  If verbose is true
+            and there's output to stderr, it will be highlighted in color too.
+            '''
+            if self.test == "notest":
+                msg = f"{str(self.file)!r} ({t.notest}{self.test}{t.n}) "
+            else:
+                msg = f"{str(self.file)!r} ({self.test}) "
+            msg += f"{t.failed}fail{t.n}" if self.failed else "pass"
+            print(msg)
+            if verbose:
+                if self.stdout:
+                    print(f"  stdout = {self.stdout}")
+                if self.stderr:
+                    t.print(f"  stderr ={t.pnk} {self.stderr}")
 
     class TestRunner:
         '''Initialize with a list of files.  Each file will be examined for a gist to
@@ -539,8 +546,9 @@ if __name__ == "__main__":
         sys.stderr = saved
     if 1:   # Utility
         def GetColors():
-            t.failed = t.redl
+            t.failed = t("blk", "redl")
             t.passed = t.grnl
+            t.notest = t.roy
             t.file = t.brnl
             t.err = t.redl
             t.dbg = t.lill if g.dbg else ""
@@ -608,13 +616,17 @@ if __name__ == "__main__":
         pass
     d = {}      # Options dictionary
     files = ParseCommandLine(d)
-if 0:
+if 1:
     test = []
     for file in files:
         tst = File(file)
         test.append(tst)
+    # Perform the tests and report
+    for item in test:
+        status, instance = item.run()
+        instance.dump()
 else:   # Prototyping stuff
     f = File("abbreviations.py")
     code, instance = f.run()
-    instance.dbgdump()
+    instance.dump()
     exit()
