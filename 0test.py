@@ -74,6 +74,7 @@ if 1:  # Header
     '''
     if 1:  # Standard imports
         from collections import namedtuple, deque, defaultdict
+        import enum
         import getopt
         import hashlib
         import os
@@ -88,6 +89,8 @@ if 1:  # Header
         from columnize import Columnize
         from timer import Timer, fnt
         from color import t
+        from dpprint import PP
+        pp = PP()   # Get pprint with current screen width
         if 0:
             import debug
             debug.SetDebugger()  # Start debugger on unhandled exception
@@ -97,6 +100,7 @@ if 1:  # Header
             pass
         g = G()
         g.dbg = False
+        g.dbg = True #∞∞ 
 if 1:  # Classes 
     class File:
         '''Holds the name of a python file that will be tested.
@@ -107,28 +111,55 @@ if 1:  # Classes
             self.hash = self.get_hash()
             # Get file's gist
             s = gist.Gist.GetGistString(self.file)
-            mygist = gist.Gist(s)
+            try:
+                mygist = gist.Gist(s)
+            except Exception:
+                t.print(f"{t.err}No gist in {file}")
+                exit(1)
             # This file's method of testing
             self.test = mygist["test"].strip()
+            # Other attributes
+            self.status = None
+            self.stdout = None
+            self.stderr = None
         def run(self, *args):
-            '''Return (status, teststr, file) where status is an integer >= 0 (0 means
-            the test passed), teststr is e.g. "notest",  and file is the Path object for
-            the file.
-            '''
+            'Return (status, self) where status is "pass", "fail", "notest"'
             if self.test == "notest":
-                return (0, self.test, self.file)
+                Dbg(f"run:  {str(self.file)!r} is notest")
+                return ("notest", self)
+            elif self.test == "run" or self.test == "--test":
+                cmd = [sys.executable, self.file]
+                if self.test == "--test":
+                    cmd += ["--test"]
+                r = subprocess.run(cmd, capture_output=True)
+                self.status = r.returncode
+                self.stdout = r.stdout
+                self.stderr = r.stderr
+                self.returncode = "fail" if self.status else "pass"
+                return ("pass" if not self.status else "fail", self)
             else:
-                raise ValueError("Bug:  not coded yet")
+                raise ValueError(f"Bug:  {self.test!r} not coded yet")
         def get_hash(self):
             m = hashlib.sha1()
-            bytes = self.file.open("rb").read(File.bytes_to_hash)
+            fp = self.file.open("rb")
+            bytes = fp.read(File.bytes_to_hash)
+            fp.close()
             m.update(bytes)
             return m.hexdigest()
+        def __str__(self):
+            return f"File<{self.file}>"
+        def __repr__(self):
+            return str(self)
+        def dbgdump(self):
+            'Print state after run() to stdout'
+            msg = f"Testing:  {t.file}{str(self.file)!r}{t.dbg} ({self.test}) "
+            msg += f"{t.failed}fail" if self.status else f"{t.passed}pass"
+            Dbg(msg)
+            if self.stdout:
+                Dbg(f"  stdout ={t.n} {self.stdout}")
+            if self.stderr:
+                Dbg(f"  stderr ={t.pnk} {self.stderr}")
 
-    s = File("0test.py")
-    print(s.run())
-    exit()
-        
     class TestRunner:
         '''Initialize with a list of files.  Each file will be examined for a gist to
         determine how the file is to be tested.  Each file with a proper way of testing
@@ -466,7 +497,7 @@ if 0:  # Old utility
         "Return a log file name that ends in .0test"
         suffix = fnt() + ".0test"
         return P(".testlog") / suffix
-        
+
 if __name__ == "__main__":
     import cmddecode
     if 0:   # Old functionality
@@ -508,8 +539,9 @@ if __name__ == "__main__":
         sys.stderr = saved
     if 1:   # Utility
         def GetColors():
-            t.failed = t.red
-            t.passed = t.grn
+            t.failed = t.redl
+            t.passed = t.grnl
+            t.file = t.brnl
             t.err = t.redl
             t.dbg = t.lill if g.dbg else ""
             t.dbg1 = t.brnl if g.dbg else ""
@@ -576,3 +608,13 @@ if __name__ == "__main__":
         pass
     d = {}      # Options dictionary
     files = ParseCommandLine(d)
+if 0:
+    test = []
+    for file in files:
+        tst = File(file)
+        test.append(tst)
+else:   # Prototyping stuff
+    f = File("abbreviations.py")
+    code, instance = f.run()
+    instance.dbgdump()
+    exit()
