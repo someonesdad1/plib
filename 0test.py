@@ -1,7 +1,55 @@
 '''
      
 New design
-    0test.py cmd
+    - 0test.py cmd
+        - list      Show test state of all files
+        - action    Show files I need to take action on
+        - test      Run the tests (any arguments are files or directories)
+        - report    Show results of last run (cached data)
+    - ToDo
+        - Get commands working
+        - Implement the cache for better testing speed
+        - Use multiprocessing for faster testing
+
+    - list [single dir or list of files]
+        - Show categorized list of all python files
+            - Have a gist:  Required keywords: gist test.  The test values are:
+                - Ignored:  notest
+                - Have selftest:  run, --test
+                - Unrecognized gist
+            - Missing gist
+                - In ignore file
+                - Not in ignore file
+    - action [single dir or list of files]
+        - Purpose:  show me files I need to take action on:
+            - test string
+                - notest? are types that might need some selftests
+                - '' missing a test spec
+                - <nogist> at all and not being ignored
+        - Defaults to '.'.  Shows a colorized list of all python files:
+            - gryl      Has selftests
+            - gry       Is notest
+            - ornl      Doesn't contain a gist and isn't in ignore list
+        - A color key is printed at the bottom.
+
+    - test [single dir or list of files]
+        - Purpose:  run the tests in the dirs or the specified files
+        - Defaults to '.'.  Runs the selftests.  Use -v for verbosity level:
+            - 0 (default)  Will only print out failed tests
+            - 1 Includes notest files
+            - 2 Shows for all tested files
+        - Caches test results
+            - Creates a dict 'results'
+                - key = filename
+                - value = (file's hash (first 4k bytes), last_test_time, last_test_status)
+            - The dict is only written to if the last test of the file passed
+            - This dict is used to quickly decide if a file needs to be tested again
+            - No error if file isn't present when script is run
+            - File is written after each run; the dict is pickled
+
+
+
+
 
         Each file with a gist & testing instructions is run.  A class holds each file
         and captures its stdout, stderr, and return status.  A status of 0 means the 
@@ -82,6 +130,7 @@ if 1:  # Header
         import subprocess
         import sys
     if 1:  # Custom imports
+        import cmddecode
         import get
         import gist
         from tee import Print
@@ -100,7 +149,6 @@ if 1:  # Header
             pass
         g = G()
         g.dbg = False
-        g.dbg = True #∞∞ 
 if 1:  # Classes 
     class File:
         '''Holds the name of a python file that will be tested.
@@ -135,7 +183,7 @@ if 1:  # Classes
                 self.stdout = r.stdout
                 self.stderr = r.stderr
                 self.returncode = "fail" if self.failed else "pass"
-                return ("fail" if not self.failed else "pass", self)
+                return ("fail" if self.failed else "pass", self)
             else:
                 raise ValueError(f"Bug:  {self.test!r} not coded yet")
         def get_hash(self):
@@ -546,7 +594,7 @@ if __name__ == "__main__":
         sys.stderr = saved
     if 1:   # Utility
         def GetColors():
-            t.failed = t("blk", "redl")
+            t.failed = t("whtl", "redl")
             t.passed = t.grnl
             t.notest = t.roy
             t.file = t.brnl
@@ -573,50 +621,82 @@ if __name__ == "__main__":
         def Usage(status=0):
             print(dedent(f'''
             Usage:  {sys.argv[0]} [options] cmd [args]
-              Excecute the indicated testing commands:
-                scan [dirs]   Identify files to be tested
-                test            Test the cached file names
-                report          Report on the last test run
+              X is a single directory or a list of files
+                list X      Show test state of all files
+                action X    Show files that need action
+                test X      Run the tests on the files
+                report X    Report on the last test run
             Options:
-              -x re   Regex for files to ignore
+              -i file   File with list of files to ignore
+              -x r      Regex for files to ignore
             '''))
             exit(status)
         def ParseCommandLine(d):
-            d["-v"] = False     # Debug mode
-            d["-d"] = 3         # Number of significant digits
+            d["-v"] = 0         # Verbosity level
+            d["-d"] = False     # Turn debug on
             if len(sys.argv) < 2:
                 Usage()
             try:
-                opts, args = getopt.getopt(sys.argv[1:], "hv") 
+                opts, args = getopt.getopt(sys.argv[1:], "dhv:") 
             except getopt.GetoptError as e:
                 print(str(e))
                 exit(1)
             for o, a in opts:
-                if o[1] in list("v"):
+                if o[1] in list("d"):
                     d[o] = not d[o]
-                elif o == "-d":
+                elif o == "-v":
                     try:
                         d[o] = int(a)
-                        if not (1 <= d[o] <= 15):
-                            raise ValueError()
                     except ValueError:
-                        Error(f"-d option's argument must be an integer between 1 and 15")
+                        Error(f"-d option's argument must be an integer")
                 elif o == "-h":
                     Usage()
-            if d["-v"]:
+            if d["-d"]:
                 g.dbg = True
             GetColors()
-            if g.dbg:   # Dump options dictionary
+            if g.dbg:   # Dump command line and options dictionary
                 Dbg(f"Command line:  {t.dbg1}{sys.argv!r}")
+                Dbg()
                 Dbg("Options dictionary:")
                 for key in d:
                     Dbg(f"  {key}:  {t.dbg1}{d[key]!r}")
+                Dbg()
             return args
     if 1:   # Core functionality
-        pass
-    d = {}      # Options dictionary
-    files = ParseCommandLine(d)
-if 1:
+        def List(args):
+            pass
+        def Action(args):
+            pass
+        def Test(args):
+            pass
+        def Report(args):
+            pass
+    if 1:   # Get input
+        d = {
+            # This will hold the test results, keyed by file name
+            # Values are the File instance
+            "cache": {}
+        }      # Options dictionary
+        cmds = cmddecode.CommandDecode("list action test report".split())
+        args = ParseCommandLine(d)
+        if not args:
+            Usage()
+        cmd = args.pop(0)
+        c = cmds(cmd)
+        if len(c) == 1:
+            command = c[0]
+            if command == "list":
+                List(args)
+            elif command == "action":
+                Action(args)
+            elif command == "test":
+                Test(args)
+            elif command == "report":
+                Report(args)
+        else:
+            Error(f"{cmd!r} not recognized")
+
+if 0:
     test = []
     for file in files:
         tst = File(file)
@@ -625,8 +705,3 @@ if 1:
     for item in test:
         status, instance = item.run()
         instance.dump()
-else:   # Prototyping stuff
-    f = File("abbreviations.py")
-    code, instance = f.run()
-    instance.dump()
-    exit()

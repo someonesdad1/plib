@@ -166,6 +166,7 @@ if 1:  # Header
         from string import hexdigits
     # Custom imports
     if 1:
+        from columnize import Columnize
         from wsl import wsl
         from wrap import dedent
         import get
@@ -1322,6 +1323,39 @@ class Trm:
                 k["end"] = ""
             print(*p, **k)
             print(self.n, **k)
+        def list(self, ignore_std=True):
+            'Print defined color attributes to stdout'
+            std = set('''
+                blk blu brn cyn den grn gry lav lil lip lwn mag n  olv orn pnk pur red
+                roy sea sky trq vio wht yel'''.split())
+            # Get the other standard names from colornames0
+            lines = open("colornames0").read().split("\n")
+            while lines:
+                line = lines.pop(0).strip()
+                if not line:
+                    continue
+                if line.strip()[0] == "#":
+                    continue
+                s = line.split(":")[0].replace("'", "")
+                std.add(s)
+            o = []
+            for i in sorted(dir(self)):
+                s = eval(f"self.{i}")
+                try:
+                    if s.startswith("\x1b["):
+                        if ignore_std and i in std:
+                            continue
+                        o.append(f"{s}t.{i}{t.n}")
+                except Exception:
+                    pass
+            if o:
+                if ignore_std:
+                    print("class Trm color attributes ignoring standard ones:")
+                else:
+                    print("class Trm color attributes:")
+                for i in Columnize(o, indent="  ", sep=" "*4):
+                    print(i)
+
     if 1:  # Writable properties
         @property
         def on(self):
@@ -2003,6 +2037,15 @@ if 1:  # Utility functions
             seq2 = rgb2
         d = [(i - j) ** 2 for i, j in zip(seq1, seq2)]
         return math.isqrt(sum(d))
+if 1:  # Prototyping area
+    if __name__ == "__main__":  #∞∞
+        if 1:
+            import debug
+            debug.SetDebugger()
+        # Develop t.list() method
+        t.list()
+        exit()
+
 if 0:  # Prototyping area
     # Develop new escape-code styles for RegexpDecorate.register()
     s = "Hello world"
