@@ -1193,7 +1193,7 @@ def hyphen_range(s):
             except Exception:
                 raise ValueError(msg.format(item))
     return o
-def unrange(seq, sort_first=False, sep="－"):
+def unrange(seq, sort_first=False, sep="─"):   # Note ─ is required for e.g. -4 to -1
     '''Turn a sequence of integers seq into a collection of ranges and return as a string.  It
     provides a string summary of the ranges in the sequence.  See unrange_real() for sequences of
     real numbers.
@@ -1201,12 +1201,12 @@ def unrange(seq, sort_first=False, sep="－"):
     If sort_first is True, the sequence is sorted before processing.  The sep string is used to
     separate a number range.
     
-    Examples:
+    Examples: | represents the sep character
         seq = [1, 5, 6, 7, 3, 4, 8, 10, 11, 12]
-        unrange(seq, sort_first=True)  outputs 1 3－8 10－12
-        unrange(seq, sort_first=False) outputs 1 5－7 3－4 8 10－12
+        unrange(seq, sort_first=True)  outputs 1 3|8 10|12
+        unrange(seq, sort_first=False) outputs 1 5|7 3|4 8 10|12
         seq = [-1, -5, -6, -7, -3, -4, -8, -10, -11, -12]
-        unrange(seq, sort_first=True)  outputs -12－-10 -8－-3 -1
+        unrange(seq, sort_first=True)  outputs -12|-10 -8|-3 -1
         unrange(seq, sort_first=False) outputs -1 -5 -6 -7 -3 -4 -8 -10 -11 -12
     '''
     if not seq:

@@ -142,6 +142,7 @@ if 1:  # Header
             pass
         g = G()
         g.dbg = False
+        g.items_to_test = None
 if 1:  # Classes 
     class TestFile:
         '''Holds the name of a python file that will be tested.  Gets the file's hash,
@@ -178,7 +179,7 @@ if 1:  # Classes
             try:
                 mygist = gist.Gist(s)
             except Exception:
-                Dbg(f"{t.err}No gist in {file}")
+                Dbg(f"{t.warn}No gist in {file} (TestFile constructor)")
                 return
             # This file's method of testing
             self.test = mygist["test"].strip()
@@ -198,9 +199,11 @@ if 1:  # Classes
                 self.stdout = r.stdout
                 self.stderr = r.stderr
                 self.retcode = "fail" if self.status else "pass"
+                Dbg(f"{self.file!s} {self.retcode}")
                 return self.retcode
             else:
-                raise ValueError(f"Bug:  {self.test!r} not coded yet")
+                #raise ValueError(f"Bug:  {self.test!r} not coded yet")
+                pass
         def get_hash(self):
             m = hashlib.sha1()
             with self.file.open("rb") as fp:
@@ -647,6 +650,7 @@ if __name__ == "__main__":
                 test X      Run the tests on the files
                 report X    Report on the last test run
             Options:
+              -d        Turn on debugging
               -i file   File with list of files to ignore
               -x r      Regex for files to ignore
             '''))
@@ -693,21 +697,22 @@ if __name__ == "__main__":
             Dbg(f"{t.warn}Need to write SaveCache()")
         def Action(args):
             Dbg(f"Action({t.file}{args}{t.dbg})")
-        def Test(args):
-            Dbg(f"Test({t.file}{args}{t.dbg})")
         def Report(args):
             Dbg(f"Report({t.file}{args}{t.dbg})")
 
-        def List(args):
-            Dbg(f"List({t.file}{args}{t.dbg})")
+        def GetFiles(args):
+            Dbg(f"GetFiles({t.file}{args}{t.dbg})")
             files = [P(i) for i in args]
-            items_to_test = []
+            g.items_to_test = []
             if len(files) == 1 and files[0].is_dir():
                 dir = files[0]
                 for file in sorted(dir.glob("*.py")):
+                    if str(file) == "repl.py":
+                        Dbg(f"{t.err}Skipping repl.py")
+                        continue
                     tf = TestFile(file)
-                    items_to_test.append(tf)
-                Dbg(f"Got {len(items_to_test)} files in directory {dir}")
+                    g.items_to_test.append(tf)
+                Dbg(f"Got {len(g.items_to_test)} files in directory {dir}")
             else:
                 # It must be a list of files to check
                 if not all(i.is_file() for i in files):
@@ -715,13 +720,16 @@ if __name__ == "__main__":
                 # Create TestFile instance for each file
                 for file in files:
                     tf = TestFile(file)
-                    items_to_test.append(tf)
-                Dbg(f"Got {len(items_to_test)} files")
-            if not items_to_test:
+                    g.items_to_test.append(tf)
+                Dbg(f"Got {len(g.items_to_test)} files")
+            if not g.items_to_test:
                 Error(f"{t.err}No files found to test{t.n}")
+
+        def List(args):
+            Dbg(f"List({t.file}{args}{t.dbg})")
             # Classify these files
             o = defaultdict(list)
-            for tf in items_to_test:
+            for tf in g.items_to_test:
                 o[tf.test].append(tf.file)
             # Print out by test string category
             if o:
@@ -737,22 +745,33 @@ if __name__ == "__main__":
                     for j in Columnize([str(k) for k in o[key]], indent=" "*2, sep=" "*2):
                         print(j)
                     t.print(end="")
+            t.print(f"{t.trq}{len(g.items_to_test)} files processed")
+        def Test(args):
+            Dbg(f"Test({t.file}{args}{t.dbg})")
+            for tf in g.items_to_test:
+                tf.run()
 
+    if 0:
+        test = []
+        for file in files:
+            tst = File(file)
+            test.append(tst)
+        # Perform the tests and report
+        for item in test:
+            status, instance = item.run()
+            instance.dump()
     if 1:   # Get input
-        d = {
-            # This will hold the test results, keyed by file name
-            # Values are the File instance
-            "cache": {}
-        }      # Options dictionary
+        d = { }     # Options dictionary
         cmds = cmddecode.CommandDecode("list action test report".split())
         args = ParseCommandLine(d)
         cmd = args.pop(0)
         got = cmds(cmd)
-        ReadCache()
+        #ReadCache()
         if len(got) == 1:
             command = got[0]
             if not args:
                 args = ["."]
+            GetFiles(args)
             if command == "list":
                 List(args)
             elif command == "action":
@@ -763,14 +782,8 @@ if __name__ == "__main__":
                 Report(args)
         else:
             Error(f"{cmd!r} not recognized")
-        SaveCache()
+            pass
+        if d["-d"]:
+            t.list()
+        #SaveCache()
 
-if 0:
-    test = []
-    for file in files:
-        tst = File(file)
-        test.append(tst)
-    # Perform the tests and report
-    for item in test:
-        status, instance = item.run()
-        instance.dump()

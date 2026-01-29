@@ -1,5 +1,10 @@
 /plib/.todo
 
+    - unasciify:  transliterate an ASCII string to make it impossible to search for with
+      grep, but easy to read.  Thus, e.g., i would go to ì.  It would include a seed to 
+      randomize the choices.  /plib/asciify.test is the perfect data file to use for
+      this.
+
     - pgm/dori.py:  compact calendar for pocket dori
         - 12 weeks = 3 months
         - Do on 2 folios on one side of the sheet.  This gives a calendar and one blank

@@ -39,9 +39,14 @@ if 1:  # Header
             The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
             THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         oo>
+        <oo ind ∞ 8 indent oo>
         <oo cat ∞ util oo>
         <oo test ∞ run oo>
-        <oo todo ∞ oo>
+        <oo todo ∞ 
+            - ∞∞1 Include an 'ind' field that defines the indent level of the gist in the
+              file.  This gets around the vagaries of removing and putting the
+              whitespace back.
+        oo>
     '''
     if 1:   # Standard imports
         import importlib
@@ -160,6 +165,7 @@ if 1:   # Classes
                     The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
                     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
                 oo>
+                <oo ind ∞ 8 indent oo>
                 <oo cat ∞ category oo>
                 <oo test ∞ notest oo>
                 <oo todo ∞ Todo items oo>'''[1:])

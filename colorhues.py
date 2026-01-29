@@ -7017,12 +7017,10 @@ if __name__ == "__main__":
     from util import unrange
     from wrap import dedent
     def ByWavelength():
-        print(
-            dedent('''
+        print(dedent('''
         The following printout shows the "wavelengths" in nm making up each of the "hues" in the
         colorhues dict: 
-        ''')
-        )
+        '''))
         o = {}
         for hue in colorhues:
             di = colorhues[hue]
@@ -7086,11 +7084,9 @@ if __name__ == "__main__":
               the red and magenta, marked with *.
         '''
     def ByHue():
-        print(
-            dedent('''
+        print(dedent('''
         The following printout shows the hues making up each of the "hues" in the colorhues dict: 
-        ''')
-        )
+        '''))
         o = {}
         for hue in colorhues:
             di = colorhues[hue]
@@ -7127,7 +7123,10 @@ if __name__ == "__main__":
         
         Have /plib/rgb/build/build.py construct the colorhues dict 
         '''
-    ByHue()
+    if 0:
+        ByHue()
+    else:
+        ByWavelength()
     if 0:
         d = {
             # Use x % 255 to get hue
