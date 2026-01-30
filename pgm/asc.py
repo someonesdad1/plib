@@ -1,10 +1,6 @@
-"""
-
-TODO
-
+'''
 Prints out ASCII characters
-"""
-
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -29,13 +25,10 @@ if 1:  # Header
         from dpprint import PP
         from wrap import dedent
         from wsl import wsl  # wsl is True when running under WSL Linux
-
         pp = PP()  # Screen width aware form of pprint.pprint
     if 1:  # Global variables
-
         class Global:
             pass
-
         g = Global()
         if 0:
             g.dbg = True
@@ -49,24 +42,60 @@ if 1:  # Header
         g.column_width = 9
         g.number_of_columns = 8
         g.c = True  # Colorize
+        g.symbols = False   # If true, print g.decorations
+        g.decorations = '''
+            00 nul   ␀   null
+            01 soh   ␁   start of heading
+            02 stx   ␂   start of text
+            03 etx   ␃   end of text
+            04 eot   ␄   end of transmission
+            05 enq   ␅   enquiry
+            06 ack   ␆   acknowledge
+            07 bel   ␇   bell
+            08 bs    ␈   backspace
+            09 ht    ␉   horizontal tabulation
+            0a nl    ␤   newline
+            0b vt    ␋   vertical tabulation
+            0c ff    ␌   form feed
+            0d cr    ␍   carriage return
+            0e so    ␎   shift out
+            0f si    ␏   shift in
+            10 dle   ␐   data link escape
+            11 dc1   ␑   device control one
+            12 dc2   ␒   device control two
+            13 dc3   ␓   device control three
+            14 dc4   ␔   device control four
+            15 nak   ␕   negative acknowledge
+            16 syn   ␖   synchronous idle
+            17 etb   ␗   end of transmission block
+            18 can   ␘   cancel
+            19 em    ␙   end of medium
+            1a sub   ␚   substitute
+            1b esc   ␛   escape
+            1c fs    ␜   file separator
+            1d gs    ␝   group separator
+            1e rs    ␞   record separator
+            1f us    ␟   unit separator
+            ------
+            20 spc   ␠   space
+            7f del   ␡   delete
+        '''
 if 1:  # Utility
-
     def GetScreen():
         "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
             int(os.environ.get("COLUMNS", "80")) - 1,
         )
-
     def GetColors():
-        t.dbg = t("cyn")
-        t.err = t("redl")
-        t.dec = t("sky")
-        t.hex = t("wht")
-        t.oct = t("olv")
-        t.bin = t("yeld")
-        t.chr = t("yell")
-
+        t.dbg = t.cyn if g.c else ""
+        t.err = t.redl if g.c else ""
+        t.dec = t.sky if g.c else ""
+        t.hex = t.wht if g.c else ""
+        t.oct = t.purl if g.c else ""
+        t.bin = t.orn if g.c else ""
+        t.chr = t.wht if g.c else ""
+        t.N = t.n if g.c else ""
     def Dbg(*p, **kw):
         if g.dbg:
             if 0:
@@ -74,24 +103,19 @@ if 1:  # Utility
                 k = kw.copy()
                 k["file"] = Dbg.file
                 print(*p, **k)
-                print(f"{t.n}", end="", file=Dbg.file)
+                print(f"{t.N}", end="", file=Dbg.file)
             else:
                 print(f"{t.dbg}", end="")
                 k = kw.copy()
                 print(*p, **k)
                 t.print(f"", end="")
-
     Dbg.file = sys.stdout
-
     def Error(msg, status=1):
         print(msg)
         exit(status)
-
     def Usage():
         name = sys.argv[0]
-        print(
-            dedent(
-                f"""
+        print(dedent(f'''
         Usage: {name} [options] [offset [numchars]]
           Prints the ASCII/Unicode character set starting at the indicated offset 
           for the indicated number of characters (default 0x100).
@@ -100,32 +124,32 @@ if 1:  # Utility
           '0x', octal numbers with '0o', and binary numbers with '0b'.
            
           The character 0x7f is printed as a red block, as it typically
-          won't display as a single characters.
+          won't display as a single character.
         Options
-          -B    Print the 256 binary characters
+          -B    Print the 256 binary characters, one per line
           -b    Print a binary listing
           -c    Don't colorize
           -d    Print in decimal
           -h    Print this help
           -l    Print the lower 128 characters
           -o    Print octal characters
+          -s    Show symbols & names for 0x0 to 0x20
           -u    Print the upper 128 characters
           -x    Print in hex (default)
         Example
             {name} 0x10a8*2
           will print a table of Unicode characters starting at 0x2150.
           These are Unicode fractions symbols such as 1/7, 1/9, 1/10, etc.
-          and a variety of arrows and math symbols."""[1:]
+          and a variety of arrows and math symbols.'''[1:]
             )
         )
         exit(1)
-
     def ParseCommandLine():
+        lower_upper = False
         try:
-            optlist, args = getopt.getopt(sys.argv[1:], "Bbcdhloux")
-        except getopt.GetoptError as st:
-            msg, option = st
-            print(msg)
+            optlist, args = getopt.getopt(sys.argv[1:], "Bbcdhlosux")
+        except getopt.GetoptError as e:
+            print(f"{sys.argv[0]}:  {e}")
             sys.exit(1)
         lower, upper = 0, 256
         for o, a in optlist:
@@ -140,10 +164,14 @@ if 1:  # Utility
             elif o == "-h":
                 Usage()
             elif o == "-l":
+                lower_upper = True
                 lower, upper = 0, 128
             elif o == "-o":
                 g.octal = True
+            elif o == "-s":
+                g.symbols = True
             elif o == "-u":
+                lower_upper = True
                 lower, upper = 128, 256
             elif o == "-x":
                 g.Binary = g.binary = g.decimal = g.octal = False
@@ -185,15 +213,16 @@ if 1:  # Utility
                 if i.startswith("_"):
                     continue
                 Dbg(f"  g.{i} = {eval(f'g.{i}')}")
+        if lower_upper:
+            return lower, upper
         return g.offset, g.offset + g.numchars
-
-
 if 1:  # Core functionality
-
+    def ColorCoding():
+        t.print(f"{t.whtl}Colors: {t.dec}dec {t.hex}hex {t.oct}oct {t.bin}bin")
     def Integer(s):
-        """Convert the string s to an integer.  Allow prefixes such as 0x,
+        '''Convert the string s to an integer.  Allow prefixes such as 0x,
         0b, 0o.
-        """
+        '''
         s, base = s.lower(), 10
         if s.startswith("0b"):
             base = 2
@@ -202,51 +231,52 @@ if 1:  # Core functionality
         elif s.startswith("0x"):
             base = 16
         return int(s, base)
-
     def PrintBinary():
         for i in range(lower, upper):
             c = i + g.offset
-            s = " " * 4  # Spacing to make things easier to read
+            s = " "*4  # Spacing to make things easier to read
             print(
-                f"{t.dec}{c:3d}{t.n}{s}"
-                f"{t.hex}0x{c:02x}{t.n}{s}"
-                f"{t.oct}0o{c:03o}{t.n}{s}"
-                f"{t.bin}0b{c:08b}{t.n}{s}"
-                f"{t.chr}{chr(c)}{t.n}"
+                f"{t.dec}{c:3d}{t.N}{s}"
+                f"{t.hex}0x{c:02x}{t.N}{s}"
+                f"{t.oct}0o{c:03o}{t.N}{s}"
+                f"{t.bin}0b{c:08b}{t.N}{s}"
+                f"{t.chr}{chr(c)}{t.N}"
             )
-
+        ColorCoding()
     def PrintBinaryListing():
         for i in range(0x100):
             c = i + g.offset
             print(chr(c))
         print()
-
     def PrintTable(lower, upper):
-        ctrl = """
+        ctrl = '''
                 nul soh stx etx eot enq ack bel bs ht nl vt ff cr so si dle dc1
                 dc2 dc3 dc4 nak syn etb can em sub esc fs gs rs us sp
-        """.split()
+        '''.split()
         out = []
         for i in range(lower, upper):
             c = ctrl[i] if i <= ord(" ") else chr(i)
             # Handle the special case of char == 0xf7, which doesn't print correctly.  We
             # replace it with a space with a red background.
-            c = f"{t('redl', 'redl')} {t.n}" if i == 0x7F else c
+            c = f"{t('redl', 'redl')} {t.N}" if i == 0x7F else c
             if g.decimal:
-                out.append(f"{t.dec}{i:3d}{t.n} {t.chr}{c:3s}{t.n}")
+                out.append(f"{t.dec}{i:3d}{t.N} {t.chr}{c:3s}{t.N}")
             elif g.octal:
-                out.append(f"{t.oct}{i:03o}{t.n} {t.chr}{c:3s}{t.n}")
+                out.append(f"{t.oct}{i:03o}{t.N} {t.chr}{c:3s}{t.N}")
             else:
-                out.append(f"{t.hex}{i:02x}{t.n} {t.chr}{c:3s}{t.n}")
+                out.append(f"{t.hex}{i:02x}{t.N} {t.chr}{c:3s}{t.N}")
         for i in Columnize(out, col_width=g.column_width, columns=g.number_of_columns):
             print(i)
-
-
+    def PrintSymbols():
+        print(dedent(g.decorations))
+        
 if __name__ == "__main__":
     lower, upper = ParseCommandLine()
     if g.binary:
         PrintBinary()
     elif g.Binary:
         PrintBinaryListing()
+    elif g.symbols:
+        PrintSymbols()
     else:
         PrintTable(lower, upper)

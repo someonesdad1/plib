@@ -1,9 +1,24 @@
 /plib/.todo
 
-    - unasciify:  transliterate an ASCII string to make it impossible to search for with
-      grep, but easy to read.  Thus, e.g., i would go to ì.  It would include a seed to 
-      randomize the choices.  /plib/asciify.test is the perfect data file to use for
-      this.
+    - hd.py
+        - Module that works, but turn it into a utility hexdump routine
+        - Today, my 'hd' command executes /usr/bin/hd, but I'd like to use my own
+          utility because I want some extra features
+            - Color highlighting of nul, nl, cr/nl
+            - If UTF-8, also show other whitespace
+            - In hex area, use underlining to show Unicode characters, next one italics,
+              next underlined, etc.  Or alternate gry & whtl
+            - In ASCII character area, show ␊␍␌␋␉␈␛
+        - Specify decoding
+            - UTF-8 is used virtually all the time
+            - latin1 is about the only other encoding I see and it's a fraction of 1%
+        - Have autoskip like xxd's -a
+        - Use color decorating
+            - nl in (blk, yell)
+            - 00 in gry or maybe blk with option
+            - ASCII letters 
+            - 8-bit Unicode
+            - Unicode
 
     - pgm/dori.py:  compact calendar for pocket dori
         - 12 weeks = 3 months

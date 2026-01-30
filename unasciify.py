@@ -24,14 +24,10 @@ if 1:  # Header
         <oo todo ∞ 
             
             - ∞∞2 Useful utility for shrouding ASCII text
-            - The selection of characters is random (os.urandom()) unless a seed is
-              provided.  This means you'll essentially never get the same encoding
-              twice.
-            - asciify.test has a good selection of some Unicode characters to use
-                - Example:  the digit 0 has four different good choices (at least they
-                  look good on the WSL Windows Terminal screen font).  The character A
-                  has '𝐀ḀȂȀĂĀ𝘈ȦÅ𝐴𝔸𝘼𝑨𝙰𝖠ẠẢẤẦẨẪẬẮẰẲẴẶÀÁÂÃÄÅǍ𝗔ǞǠǺ', a wide variety of
-                  choices.  
+            - Testing needs
+                - Make sure there are no plain ASCII characters in the transliterated
+                  text
+                - Verify random & repeatable behavior
 
         oo>
     '''
@@ -176,60 +172,6 @@ if 0:   # Transliteration data
         print(f"{s}}}")
         exit() #∞∞ 
 
-if 1:   # Utility
-    def GetColors():
-        t.stuff = t.lill
-        t.err = t.redl
-        t.dbg = t.lill if g.dbg else ""
-        t.N = t.n if g.dbg else ""
-    def GetScreen():
-        'Return (LINES, COLUMNS)'
-        return (
-            int(os.environ.get("LINES", "50")),
-            int(os.environ.get("COLUMNS", "80")) - 1
-        )
-    def Dbg(*p, **kw):
-        if g.dbg:
-            print(f"{t.dbg}", end="")
-            print(*p, **kw)
-            print(f"{t.N}", end="")
-    def Warn(*msg, status=1):
-        print(*msg, file=sys.stderr)
-    def Error(*msg, status=1):
-        Warn(*msg)
-        exit(status)
-    def Usage(status=0):
-        print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] etc.
-          Explanations...
-        Options:
-          -h      Print a manpage
-        '''))
-        exit(status)
-    def ParseCommandLine(d):
-        d["-a"] = False     # Need description
-        d["-d"] = 3         # Number of significant digits
-        if len(sys.argv) < 2:
-            Usage()
-        try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:h") 
-        except getopt.GetoptError as e:
-            print(str(e))
-            exit(1)
-        for o, a in opts:
-            if o[1] in list("a"):
-                d[o] = not d[o]
-            elif o == "-d":
-                try:
-                    d[o] = int(a)
-                    if not (1 <= d[o] <= 15):
-                        raise ValueError()
-                except ValueError:
-                    Error(f"-d option's argument must be an integer between 1 and 15")
-            elif o == "-h":
-                Usage()
-        GetColors()
-        return args
 if 1:   # Get transliteration table
     def GetTransliterationTable(seed=None):
         """Return a translation table tt that you can use with str.translate(tt) to get
@@ -259,33 +201,38 @@ if 1:   # Get transliteration table
             td[key] = random.choice(di[key])
         return ''.maketrans(td)
 
-    # Dictionary of allowed translations from ASCII to Unicode
+    # Dictionary of allowed translations from ASCII to Unicode.  A guide to the
+    # characters I've picked is that they must be approximately the same width as the
+    # character they are replacing; otherwise things like formatted tables get changed.
+    # For example, the full width characters from U+FF01 to U+FF5E have been left out
+    # because they significantly change formatting.
     GetTransliterationTable.choices = {
-        "'": "❛ʼʽˊ′ʹ‵‘’‛❜ʻ",
-        '"': '🙷“”‟❞˝ˮ″‶🙶ʺ',
-        "(": "⦅⟮❨﹙❪",
-        ")": "⟯⦆❩﹚❫",
-        "<": "˂≺＜",
-        ">": "˃≻＞",
-        "[": "⦋【〔⦗〘〚⟦⟬",
-        "]": "⦌】〕⦘〙〛⟧⟭",
-        "{": "﹛⦃❴",
-        "}": "⦄❵﹜",
+        "'": "ʼ′ʹ‘’‛❜",
+        '"': '🙷”❞ˮ″ʺ',
+        "(": "⦅⟮❨❪",
+        ")": "⟯⦆❩❫",
+        "<": "˂≺",
+        ">": "˃≻",
+        "[": "⦋⦗⟦⟬",
+        "]": "⦌⦘⟧⟭",
+        "{": "⦃❴",
+        "}": "⦄❵",
         ",": "⹁⸲⸴",
-        "-": "⁃┄┅⹃┈┉₋⑉╌╍‐‑‒–—−﹘˗­",
+        "-": "⁃‐‑‒–—−­",
         ".": "⸼․",
-        ";": "︔﹔⸵⁏",
-        ":": "⦂꞉ː︓∶˸",
-        "?": "❓❔︖",
-        "!": "ǃ❕︕",
+        ";": "⸵⁏",
+        ":": "꞉ː∶˸",
+        "?": "⁇",
+        "!": "ǃ",
         "/": "⁄⧸∕",
-        "\\": "⧵∖⧹﹨",
+        "\\": "⧵∖⧹",
         "|": "∣⏐⍿",
-        "$": "﹩💲",
+       #"$": "💲",
+        "%": "٪",
         "&": "🙴🙵",
         "*": "∗🞯🞰✱✲🞱🞲🞳🞴🞵🞶✻✼✽🞷⁎",
-        "+": "＋➕✚✛🞡🞢🞣🞤🞥🞦🞧⨥﹢᛭",
-        "=": "﹦꞊₌＝",
+        "+": "✚✛🞡🞢🞣🞤🞥🞦🞧⨥᛭",
+        "=": "꞊₌",
         "_": "ˍ",
         "~": "∾∽∼",
         "0": "𝟢𝟬𝟎𝟶",
@@ -312,38 +259,38 @@ if 1:   # Get transliteration table
         "f": "𝚏𝐟𝘧𝖿𝑓𝙛𝗳",    #"𝚏ƒḟ𝐟𝘧𝒻𝖿𝑓𝙛𝓯𝗳",
         "G": "ĜĠǴ𝙶",    #"ĜĞ𝒢ĢĠǦǴ𝙶",
         "g": "𝚐𝐠𝘨𝗀𝑔𝙜ǥ𝗴",    #"ᶃ𝚐ĝğ𝐠ḡģġ𝘨𝗀𝑔𝙜ǥǧ𝗴ǵ",
-        "H": "𝙃𝐇𝘏𝗛𝖧Ɦ𝑯𝙷𝐻",    #"𝙃𝐇ℍ𝘏𝗛ȞḤĤⱧ𝖧ḨꞪḪḦ𝑯𝙷𝐻",
+        "H": "𝙃𝐇𝘏𝗛𝖧𝙷𝐻",    #"𝙃𝐇ℍ𝘏𝗛ȞḤĤⱧ𝖧ḨꞪḪḦ𝑯𝙷𝐻",
         "h": "𝗁𝒉ℎ𝚑𝙝𝐡𝘩𝗵",    #"𝗁𝒉ℎ𝚑𝕙ẖ𝙝ȟ𝐡ḣħⱨ𝘩ḩḫḧḥĥ𝗵",
-        "I": "İÌÍÎ𝙸",    #"ĨĪĬİỈỊÌÍÎÏ𝙸",
-        "i": "𝒊𝚒𝐢𝔦𝘪𝗂ⅈị𝑖𝙞𝗶",    #"ȉ𝒊ȋ𝖎𝚒ᶖ𝐢𝔦ĩ𝘪īḭĭḯ𝒾𝗂ⅈỉịǐ𝑖𝙞ìíîï𝗶",
-        "J": "Ĵ𝕁𝙹",    #"𝐉𝖩Ĵ𝐽𝕁𝙅𝓙𝗝𝙹",
-        "j": "𝚓𝐣𝘫𝗃ⅉ𝑗𝙟𝗷",    #"𝒋𝚓ʝ𝐣𝔧𝘫ĵ𝒿𝗃ɉⅉ𝑗𝙟ǰ𝓳𝗷ⱼ",
-        "K": "𝐊𝘒ƘK𝖪𝙆𝗞Ⱪ𝙺",    #"𝐊𝘒Ƙ𝒦K𝖪ḰḲḴĶ𝐾ꝀꝂꝄ𝙆𝓚𝗞ǨⱩ𝙺",
+        "I": "İÌÍÎ𝙸І",    #"ĨĪĬİỈỊÌÍÎÏ𝙸",
+        "i": "𝚒𝐢𝔦𝘪𝗂𝑖𝙞𝗶",    #"ȉ𝒊ȋ𝖎𝚒ᶖ𝐢𝔦ĩ𝘪īḭĭḯ𝒾𝗂ⅈỉịǐ𝑖𝙞ìíîï𝗶",
+        "J": "Ĵ𝕁𝙹Јꓙ",    #"Јꓙ𝐉𝖩Ĵ𝐽𝕁𝙅𝓙𝗝𝙹",
+        "j": "𝚓𝐣𝘫𝗃ⅉ𝑗𝙟𝗷ј",    #"ј𝒋𝚓ʝ𝐣𝔧𝘫ĵ𝒿𝗃ɉⅉ𝑗𝙟ǰ𝓳𝗷ⱼ",
+        "K": "𝐊𝘒ƘK𝖪𝙆𝗞𝙺",    #"𝐊𝘒Ƙ𝒦K𝖪ḰḲḴĶ𝐾ꝀꝂꝄ𝙆𝓚𝗞ǨⱩ𝙺",
         "k": "𝒌𝚔𝐤𝘬𝗄𝑘𝙠𝗸",    #"ᶄ𝒌𝚔ƙꞣ𝐤𝘬ḱḳḵķꝁꝃ𝗄ꝅ𝑘𝙠ǩⱪ𝗸",
         "L": "𝐋𝘓𝙻𝖫𝐿𝙇𝗟Ⅼ",    #"𝐋ℒ𝘓𝙻Ĺ𝖫ꞭḶḸḺḼȽĽ𝐿ĿŁĻ𝙇Ꝉ𝓛𝗟ⱢⅬ",
         "l": "𝒍𝚕𝐥𝗅𝑙𝗹ⅼ",    #"ᶅ𝒍ꞎ𝖑ℓ𝚕ƚ𝐥𝘭ȴḹḻḷḽľļŀ𝓁łĺ𝗅ꝉ𝑙𝙡ɫɬɭ𝓵𝗹ⅼ",
-        "M": "𝙼𝕄",    #"𝙼𝕄",
+        "M": "ᛗΜ𝙼𝕄",    #"ᛗΜ𝙼𝕄",
         "m": "𝚖𝕞",    #"𝚖𝕞",
-        "N": "ŇŃÑℕ𝙽",    #"ŅŇŃÑℕ𝙽",
+        "N": "ŇŃÑℕ𝙽Ν",    #"ŅŇŃÑℕ𝙽Ν",
         "n": "𝗇𝑛𝙣𝗻",    #"ńṅņ𝗇ṇṉŉṋň𝑛𝙣ñǹ𝗻",
-        "O": "ŌŎŐÒÓÔÖÕ",    #"ŌŎŐƠÒÓÔỌỎỐỒỔỖỘỚÖỜÕỠỞỢ",
-        "o": "𝒐𝚘𝐨𝘰𝗈𝙤",    #"ōȍȏ𝒐ŏ𝚘őơ𝐨ȫ𝔬ȭȯ𝘰ȱ𝗈ọỏṏốṑồổṓỗộǒớờởøỡợ𝙤òóṍõöôⱺ𝗼ǿ",
+        "O": "ŌŎŐÒÓÔÖÕΟО",    #"ŌŎŐƠÒÓÔỌỎỐỒỔỖỘỚÖỜÕỠỞỢΟО",
+        "o": "𝒐𝚘𝐨𝘰𝗈𝙤οоօ",    #"ōȍȏ𝒐ŏ𝚘őơ𝐨ȫ𝔬ȭȯ𝘰ȱ𝗈ọỏṏốṑồổṓỗộǒớờởøỡợ𝙤òóṍõöôⱺ𝗼ǿοоօ",
         "P": "𝐏𝘗Ƥ𝖯𝑃𝙋𝗣𝑷𝙿",    #"𝐏𝘗ℙƤ𝒫𝖯𝑃𝙋ꝐꝒṔṖⱣ𝗣𝑷𝙿",
         "p": "𝒑𝚙𝐩𝘱𝗉𝑝𝙥𝗽",    #"𝒑𝚙𝐩𝔭𝘱𝗉ꝑṕṗ𝑝𝙥ᵱ𝗽",
         "Q": "𝐐𝘘𝖰𝑄𝙌𝗤𝑸",    #"𝐐𝘘𝒬𝖰𝑄𝙌𝓠𝗤𝑸",
         "q": "𝙦𝗊𝐪𝘲𝒒𝑞𝚚𝗾",    #"𝙦𝓆𝗊ɋ𝐪𝔮𝘲𝒒𝑞𝖖ꝗ𝚚𝗾",
         "R": "𝚁𝑅Ɍ𝙍𝐑𝘙𝗥𝖱𝑹",    #"𝚁Ř𝑅Ɍ𝙍Ȑ𝐑ȒŔŖṘ𝘙ṞṜṚⱤ𝗥𝖱𝑹",
         "r": "𝒓𝚛𝐫𝘳𝗋𝑟𝙧𝗿",    #"ȑ𝒓ȓ𝚛𝐫𝘳𝗋ŕŗṙřṛṝ𝑟ṟ𝙧𝗿",
-        "S": "𝐒𝘚𝒮𝖲𝑆𝙎𝓢𝗦𝑺",    #"𝐒Ș𝘚Ꞩ𝒮𝖲𝑆𝕊𝙎ⱾŚŜŞṠŠ𝓢ṤṢ𝗦ṦṨ𝑺",
+        "S": "𝐒𝘚𝖲𝑆𝙎𝗦𝑺",    #"𝐒Ș𝘚Ꞩ𝒮𝖲𝑆𝕊𝙎ⱾŚŜŞṠŠ𝓢ṤṢ𝗦ṦṨ𝑺",
         "s": "𝘀𝗌𝒔𝚜𝑠𝙨𝐬𝘴",    #"𝘀ʂᶊ𝗌ś𝒔𝖘ș𝚜ŝş𝑠ṡṥṣṧ𝙨ꞩṩ𝐬šᵴ𝘴ȿ",
         "T": "𝚃𝑇𝙏𝐓𝘛𝗧Ƭ𝖳𝑻",    #"𝚃𝑇𝙏𝐓Ț𝘛ŢŤŦ𝗧ṪƬṬƮṰṮ𝖳𝑻",
         "t": "𝘁𝒕𝚝𝐭𝘵𝗍𝑡𝙩",    #"𝘁𝒕ẗ𝖙ț𝚝ƫ𝐭𝔱𝘵𝗍𝑡ţť𝙩ṫṭṯṱ",
         "U": "ÚÛÙŪŬŮŰ",    #"ŨƯÚÜÛÙỦỤỨỪŪỬŬỮŮỰŰ",
-        "u": "𝘂𝐮𝘶𝑢𝙪𝒖𝚞𝗎ùúû",    #"𝘂ȕȗ𝐮𝘶ꭎꭒ𝑢ũ𝙪ūŭůűṳṵṷṹṻ𝒖𝚞𝗎ǔǖǘǚǜụủứừửữựùúûü",
+        "u": "𝘂𝐮𝘶𝑢𝙪𝒖𝚞𝗎υ",    #"𝘂ȕȗ𝐮𝘶ꭎꭒ𝑢ũ𝙪ūŭůűṳṵṷṹṻ𝒖𝚞𝗎ǔǖǘǚǜụủứừửữựùúûüυ",
         "V": "𝐕𝘝𝖵𝑉𝙑𝗩𝑽",    #"𝐕𝘝𝖵𝑉𝕍𝙑𝗩Ṽ𝑽Ṿ",
         "v": "𝘃𝗏𝒗𝚟𝑣𝙫𝐯ⱱ𝘷",    #"𝘃˅𝗏𝒗𝚟𝑣𝙫𝐯ṿⱱ𝘷ṽ",
         "W": "ẀẂẄ𝚆𝕎Ŵ",    #"ẀẂẄ𝚆𝕎Ŵ",
-        "w": "𝚠𝕨ŵ",    #"𝚠𝕨ŵ",
+        "w": "𝚠𝕨ŵԝ",    #"𝚠𝕨ŵԝ",
         "X": "𝚇𝐗𝘟𝖷𝑋𝕏𝗫𝑿",    #"𝚇ẊẌ𝐗𝘟𝖷𝑋𝕏𝗫𝑿",
         "x": "𝘅𝓍𝗑𝒙𝚡𝑥𝙭𝐱𝘹",    #"𝘅ẋ⛌ᶍ𝓍𝗑ẍꭖꭗꭘꭙ𝒙𝖝𝚡𝑥⤫⤬𝙭𝐱𝘹",
         "Y": "𝒀𝑌𝙔𝐘𝘠𝗬Ƴ𝖸",    #"𝒀𝑌Ɏ𝕐ỸẎ𝙔𝐘Ý𝘠Ÿ𝗬ỲƳỴỶȲ𝖸Ŷ",
@@ -352,31 +299,101 @@ if 1:   # Get transliteration table
         "z": "𝘇𝒛𝚣𝐳ƶ𝘻𝓏𝗓𝑧𝙯ᵶ",    #"𝘇ʐẑẓẕ𝒛𝚣ȥ𝐳ƶ𝘻𝓏𝗓𝑧ⱬ𝙯ᵶźżž",
     }
 
-if 1:   # Prototyping area
-    gtt = GetTransliterationTable
-    pnp = '''
-Glenda got the socsec report for 2026 monthly income:
-    Me :  3164 - 223 = 2941
-    Her:  1582 - 223 = 1359
-          -----------------
-          4746   446   4300
+if __name__ == "__main__":  
+    from color import t
+    if 1:   # Utility
+        def GetColors():
+            t.stuff = t.lill
+            t.err = t.redl
+            t.dbg = t.lill if g.dbg else ""
+            t.N = t.n if g.dbg else ""
+        def GetScreen():
+            'Return (LINES, COLUMNS)'
+            return (
+                int(os.environ.get("LINES", "50")),
+                int(os.environ.get("COLUMNS", "80")) - 1
+            )
+        def Dbg(*p, **kw):
+            if g.dbg:
+                print(f"{t.dbg}", end="")
+                print(*p, **kw)
+                print(f"{t.N}", end="")
+        def Warn(*msg, status=1):
+            print(*msg, file=sys.stderr)
+        def Error(*msg, status=1):
+            Warn(*msg)
+            exit(status)
+        def Usage(status=0):
+            print(dedent(f'''
+            Usage:  {sys.argv[0]} [options] 
+              Transliterate incoming ASCII text to Unicode.  If no arguments are given,
+              input is from stdin.  The transliteration dictionary is random every time
+              the script is called unless you set the seed with -s.
+            Options:
+              -h    Print a manpage
+              -s n  Seed for the random number generator (makes the output repeatable
+                    for the same input)
+            '''))
+            exit(status)
+        def ParseCommandLine(d):
+            d["-s"] = None      # Seed for random number generator
+            #if len(sys.argv) < 2:
+            #    Usage()
+            try:
+                opts, args = getopt.getopt(sys.argv[1:], "hs:") 
+            except getopt.GetoptError as e:
+                print(str(e))
+                exit(1)
+            for o, a in opts:
+                if o[1] in list(""):
+                    d[o] = not d[o]
+                elif o == "-s":
+                    d[o] = a
+                elif o == "-h":
+                    Usage()
+            GetColors()
+            return args
+    if 0:   # Prototyping area
+        # It appears random.SystemRandom doesn't produce truly random sequences.
+        # This makes me believe it probably does.
+        for i in range(20):
+            r = random.SystemRandom(0)
+            print(r.random())
+        exit()
 
-Yearly amounts
-    Gross income    12*4746     56952   57k
-    Net income      12*4300     51600   52k
-    Medicare cost   12*446       5352   5.4k
-
-    Equivalent hourly wage to when I was working:  yearly gross income divided by 2080
-    hours:  12*4746/2080 = 27.38'''[1:]
-    tt1 = gtt(0)
-    tt2 = gtt(0)
-    print(pnp)
-    print()
-    print(pnp.translate(tt1))
-    print()
-    print(pnp.translate(tt2))
-    exit()
-
-if __name__ == "__main__":
+    if 0:   # Prototyping area
+        gtt = GetTransliterationTable
+        s = '''
+        Maximum current in A for single copper wire in air
+            Ambient temperature about 30 °C (86 °F, 303 K)
+                                        Insulation rating, °C
+    AWG     mm    mΩ/m   m/kg    60     75     90    100    200    250
+    ----   ----   ----   ----   ----   ----   ----   ----   ----   ----
+    4/0    11.7   .161   1.05   310    381    442    478    750    856
+        '''[1:]
+        tt1 = gtt()
+        tt2 = gtt()
+        dbg = 0
+        t.norm = t.ornl if dbg else ""
+        t.t1 = t.purl if dbg else ""
+        t.t2 = t.sky if dbg else ""
+        t.print(f"{t.norm}{s}")
+        print()
+        t.print(f"{t.t1}{s.translate(tt1)}")
+        print()
+        t.print(f"{t.t2}{s.translate(tt2)}")
+        exit()
+    # ---------------------------------------------------------------------------
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
+    if not args:
+        s = sys.stdin.read().encode()  # Make it UTF-8
+    else:
+        s = ""
+        for file in args:
+            with open(file) as fp:
+                s += fp.read()
+                fp.close()
+    # Transliterate and print
+    tt = GetTransliterationTable(seed=d["-s"])
+    print(s.translate(tt))

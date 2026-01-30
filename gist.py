@@ -326,7 +326,7 @@ if __name__ == "__main__":
                     try:
                         opts, args = getopt.getopt(sys.argv[1:], "ad:h") 
                     except getopt.GetoptError as e:
-                        print(str(e))
+                        print(f"{sys.argv[0]}:  {e}")
                         exit(1)
                     for o, a in opts:
                         if o[1] in list("a"):
