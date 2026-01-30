@@ -43,43 +43,6 @@ if 1:  # Header
         g.number_of_columns = 8
         g.c = True  # Colorize
         g.symbols = False   # If true, print g.decorations
-        g.decorations = '''
-            00 nul   ␀   null
-            01 soh   ␁   start of heading
-            02 stx   ␂   start of text
-            03 etx   ␃   end of text
-            04 eot   ␄   end of transmission
-            05 enq   ␅   enquiry
-            06 ack   ␆   acknowledge
-            07 bel   ␇   bell
-            08 bs    ␈   backspace
-            09 ht    ␉   horizontal tabulation
-            0a nl    ␤   newline
-            0b vt    ␋   vertical tabulation
-            0c ff    ␌   form feed
-            0d cr    ␍   carriage return
-            0e so    ␎   shift out
-            0f si    ␏   shift in
-            10 dle   ␐   data link escape
-            11 dc1   ␑   device control one
-            12 dc2   ␒   device control two
-            13 dc3   ␓   device control three
-            14 dc4   ␔   device control four
-            15 nak   ␕   negative acknowledge
-            16 syn   ␖   synchronous idle
-            17 etb   ␗   end of transmission block
-            18 can   ␘   cancel
-            19 em    ␙   end of medium
-            1a sub   ␚   substitute
-            1b esc   ␛   escape
-            1c fs    ␜   file separator
-            1d gs    ␝   group separator
-            1e rs    ␞   record separator
-            1f us    ␟   unit separator
-            ------
-            20 spc   ␠   space
-            7f del   ␡   delete
-        '''
 if 1:  # Utility
     def GetScreen():
         "Return (LINES, COLUMNS)"
@@ -268,8 +231,54 @@ if 1:  # Core functionality
         for i in Columnize(out, col_width=g.column_width, columns=g.number_of_columns):
             print(i)
     def PrintSymbols():
-        print(dedent(g.decorations))
-        
+        bl = t.blul
+        c  = t.cynl
+        m  = t.magl
+        o  = t.ornl
+        O  = t.n
+        p  = t.lipl
+        r  = t.redl
+        s  = t.sky
+        w  = t.whtl
+        y  = t.yell
+        print(dedent(f'''
+            {bl}00 nul   ␀   null{O}
+            01 soh   ␁   start of heading
+            02 stx   ␂   start of text
+            03 etx   ␃   end of text
+            04 eot   ␄   end of transmission
+            05 enq   ␅   enquiry
+            06 ack   ␆   acknowledge
+            07 bel   ␇   bell                   {c}\\a{w}
+            08 bs    ␈   backspace              {c}\\b{p}
+            09 ht    ␉   horizontal tab         {c}\\t{m}  *{r}
+            0a nl    ␤   newline                {c}\\n{m}  *{p}
+            0b vt    ␋   vertical tab           {c}\\v{m}  *{p}
+            0c ff    ␌   form feed              {c}\\f{m}  *{o}
+            0d cr    ␍   carriage return{O}        {c}\\r{m}  *{O}
+            0e so    ␎   shift out
+            0f si    ␏   shift in
+            10 dle   ␐   data link escape
+            11 dc1   ␑   device control one
+            12 dc2   ␒   device control two
+            13 dc3   ␓   device control three
+            14 dc4   ␔   device control four
+            15 nak   ␕   negative acknowledge
+            16 syn   ␖   synchronous idle
+            17 etb   ␗   end of transmission block
+            18 can   ␘   cancel
+            19 em    ␙   end of medium
+            1a sub   ␚   substitute{y}
+            1b esc   ␛   escape{O}
+            1c fs    ␜   file separator
+            1d gs    ␝   group separator
+            1e rs    ␞   record separator
+            1f us    ␟   unit separator{s}
+            20 spc   ␠   space{O}
+            7f del   ␡   delete
+            {m}*{O} indicates whitespace in python
+        '''))
+
 if __name__ == "__main__":
     lower, upper = ParseCommandLine()
     if g.binary:
