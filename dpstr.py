@@ -490,27 +490,14 @@ if 1:  # Core functionality
         # Only keep the strings in seq
         myseq, o = [i for i in seq if isinstance(i, str)], []
         if ANDed:
-            for regex in regexes:
+            for pattern in regexes:
                 myseq = list(filter(lambda x: re.search(pattern, x, re_flags), myseq))
             return myseq
         else:
-            for regex in regexes:
+            for pattern in regexes:
                 o.extend(list(filter(lambda x: re.search(pattern, x, re_flags), myseq)))
             # Remove duplicates
-            return DupNodupHashable(o)[1]
-
-    def Test_FilterSeqRegex():
-        from lwtest import Assert
-        # With no regexes, it's the identity unless the sequence contains a non-string
-        s1 = "str1 str2 str3 str4 str5".split()
-        s2 = "str1 str2 str3 str4 str5".split() + [10]
-        Assert(FilterSeqRegex([]) == [])
-        Assert(FilterSeqRegex(s1, regexes=[]) == s1)
-        Assert(FilterSeqRegex(s2, regexes=[]) == s1)
-
-    Test_FilterSeqRegex()
-    exit(-1)
-
+            return dpseq.DupNodupHashable(o)[1]
     def FilterStr(remove, replacements):
         '''Return a function that removes the characters in sequence remove from other
         strings and replaces them with corresponding characters in the sequence
@@ -1754,6 +1741,21 @@ if __name__ == "__main__":
         Assert(f([" ", " "], trailing=True) == 2)
         Assert(f([" ", "other stuff", " "]) == 1)
         Assert(f([" ", "other stuff", " "], trailing=True) == 1)
+    def Test_FilterSeqRegex():
+        from lwtest import Assert
+        # With no regexes, it's the identity unless the sequence contains a non-string
+        s = "str1 str2 str3 str4 str5"
+        s1 = s.split()
+        s2 = s1 + [10]
+        Assert(FilterSeqRegex([]) == [])
+        Assert(FilterSeqRegex(s1, regexes=[]) == s1)
+        Assert(FilterSeqRegex(s2, regexes=[]) == s1)
+        # ANDing the regexes
+        Assert(FilterSeqRegex(s1, regexes=["[123]", "[1]"]) == ["str1"])
+        # ORing the regexes
+        Assert(FilterSeqRegex(s1, regexes=["[123]", "[1]"], ANDed=False) == ["str1", "str2", "str3"])
+        # re flag works
+        Assert(FilterSeqRegex(s.upper().split(), regexes=["str1"], re_flags=re.I) == ["STR1"])
     def Demo():
         "Demonstrate the various functions to stdout"
         t.print(f"{t('ornl')}Demo of /plib/dpstr.py functions")

@@ -1525,12 +1525,14 @@ bama = {
 }
 
 if __name__ == "__main__":
-    from collections import defaultdict, deque
-    from columnize import Columnize
-    import getopt
-    import re
-    import sys
-    from dpstr import CountLeadingSpaces
+    if 1:   # Standard imports
+        from collections import defaultdict, deque
+        import getopt
+        import re
+        import sys
+    if 1:   # Custom imports
+        import dpstr
+        from columnize import Columnize
     if 1:  # Utility
         def IsBlankOrSpaces(s):
             "For string s, return True if it's empty or contains only spaces"
@@ -1564,7 +1566,7 @@ if __name__ == "__main__":
                     break
                 lines.pop()
             # Get sequence of the number of leading spaces on each line
-            numspaces = [CountLeadingSpaces(i) for i in lines]
+            numspaces = [dpstr.CountLeadingSpaces(i) for i in lines]
             # Bare newlines are considered to have infinite spaces.  The following emulates this by making
             # them appear to have max(numspaces) + 1 spaces.
             m = max(numspaces)
@@ -1625,9 +1627,13 @@ if __name__ == "__main__":
         def ListManufacturers(args):
             "The regexes in args are ANDed together"
             mfg = set(bama.keys())
-            breakpoint() # ∞∞ 
-            for pattern in args:
-                mfg = list(filter(lambda x: re.search(pattern, x, re.I), mfg))
+            if 0:
+                # Original
+                for pattern in args:
+                    mfg = list(filter(lambda x: re.search(pattern, x, re.I), mfg))
+            else:
+                # dpstr library function
+                mfg = dpstr.FilterSeqRegex(mfg, regexes=args, re_flags=re.I)
             for i in Columnize(sorted(mfg)):
                 print(i)
         def ListModelNumbers(args):
