@@ -29,6 +29,7 @@ if 1:  # Header
         <oo test ∞ notest oo>
         <oo todo ∞ 
 
+            - ԝ U+051 isn't in database
             - ucd.py
                 - ucd.py to /plib, create /plib/data directory, and store the relevant
                   ucd.nounihan.verxx.xml files there, along with their associated pickle
@@ -42,7 +43,7 @@ if 1:  # Header
             - Once ucd.py is "normed", change asciify.py so that _ascii_translate has a
               string for every Unicode character
                 - The control characters will be <nul>, <ht>, <vt>, <ff>, <cr>, <nl>,
-                  etc.
+                  etc. or things like ␀, ␉, ␋, ␌, ␍, ␤.
                 - Things like Greek characters will be <alpha> or <Alpha>
                 - Things like Æ will become <AE>, È and É will become E.  Other things
                   are harder and will parse the Unicode name to try to get an ASCII
@@ -50,9 +51,8 @@ if 1:  # Header
                     - U+ab54 is "LATIN SMALL LETTER CHI WITH LOW RIGHT RING" and would
                       be <chi>
                     - U+10b5 is "GEORGIAN CAPITAL LETTER KHAR" and would be <KHAR>
-            - This will be a lot of work, but once done it will guarantee and any
-              Unicode text can be ASCIIfied.
-
+            - This will be a lot of work, but once done it will guarantee any Unicode
+              text can be ASCIIfied.
         oo>
     '''
     if 1:  # Global variables
@@ -233,6 +233,8 @@ if 1:  # Header
             0x1D0: "i",
             0x1D1: "O",
             0x1D2: "o",
+            0x3C5: "u",
+            0x51D: "w",
             0x1D2C: "A",
             0x1D2E: "B",
             0x1D30: "D",

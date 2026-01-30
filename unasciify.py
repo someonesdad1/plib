@@ -268,7 +268,7 @@ if 1:   # Get transliteration table
         "K": "𝐊𝘒ƘK𝖪𝙆𝗞𝙺",    #"𝐊𝘒Ƙ𝒦K𝖪ḰḲḴĶ𝐾ꝀꝂꝄ𝙆𝓚𝗞ǨⱩ𝙺",
         "k": "𝒌𝚔𝐤𝘬𝗄𝑘𝙠𝗸",    #"ᶄ𝒌𝚔ƙꞣ𝐤𝘬ḱḳḵķꝁꝃ𝗄ꝅ𝑘𝙠ǩⱪ𝗸",
         "L": "𝐋𝘓𝙻𝖫𝐿𝙇𝗟Ⅼ",    #"𝐋ℒ𝘓𝙻Ĺ𝖫ꞭḶḸḺḼȽĽ𝐿ĿŁĻ𝙇Ꝉ𝓛𝗟ⱢⅬ",
-        "l": "𝒍𝚕𝐥𝗅𝑙𝗹ⅼ",    #"ᶅ𝒍ꞎ𝖑ℓ𝚕ƚ𝐥𝘭ȴḹḻḷḽľļŀ𝓁łĺ𝗅ꝉ𝑙𝙡ɫɬɭ𝓵𝗹ⅼ",
+        "l": "𝚕𝑙𝓁",    #"ᶅ𝒍ꞎ𝖑ℓ𝚕ƚ𝐥𝘭ȴḹḻḷḽľļŀ𝓁łĺ𝗅ꝉ𝑙𝙡ɫɬɭ𝓵𝗹ⅼ",
         "M": "ᛗΜ𝙼𝕄",    #"ᛗΜ𝙼𝕄",
         "m": "𝚖𝕞",    #"𝚖𝕞",
         "N": "ŇŃÑℕ𝙽Ν",    #"ŅŇŃÑℕ𝙽Ν",
@@ -387,7 +387,7 @@ if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
     if not args:
-        s = sys.stdin.read().encode()  # Make it UTF-8
+        s = sys.stdin.read()
     else:
         s = ""
         for file in args:
