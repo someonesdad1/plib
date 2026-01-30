@@ -1,6 +1,6 @@
 '''
 
-- Look at making AutoIndent a context manager.  Then something like
+- Make AutoIndent a context manager.  Then something like
     with AutoIndent() as f:
         do stuff
   and reconnection of stdout would be automatic.

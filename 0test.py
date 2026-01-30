@@ -47,34 +47,7 @@ New design
             - No error if file isn't present when script is run
             - File is written after each run; the dict is pickled
 
-
-
-
-
-        Each file with a gist & testing instructions is run.  A class holds each file
-        and captures its stdout, stderr, and return status.  A status of 0 means the 
-        test passed and > 0 means a failure.  All the test data are cached to a file.
-        The testing commands are
-
-        scan [dirs]     Show the different categories of gists
-        test files      Run the tests on each file and cache results
-        report [cmd]    Report on the last test run
-
-    class TestFile
-        - Holds a single file for testing purposes
-        - Running a test captures & caches stdout, stderr, return status
-        - The file's current hash is gotten and if it hasn't changed from the last run,
-          this file isn't tested.
-        - Each instance gets a reference to a timer, which is uses to measure how long
-          its test takes to run and put into the et[s] attribute.
-   
-    Thoughts
-        - Use /plib/.0test as a cache of the last testing information, keeping file
-          hash, timedate of test, and test result.  This would allow avoiding running a
-          test if the file passed last time and the hash hasn't changed.  In fact, the
-          cache dict is exposed to each TestRun instance so it can decide what to do
-          when runtest() is called.
-
+    --------------------------------------------------------------------------- 
     Old design
             - Look at changing default behavior:  'python 0test.py' looks for every
               python file in the current file and runs its self tests.  This means
@@ -766,7 +739,7 @@ if __name__ == "__main__":
         args = ParseCommandLine(d)
         cmd = args.pop(0)
         got = cmds(cmd)
-        #ReadCache()
+        ReadCache()
         if len(got) == 1:
             command = got[0]
             if not args:
@@ -783,7 +756,5 @@ if __name__ == "__main__":
         else:
             Error(f"{cmd!r} not recognized")
             pass
-        if d["-d"]:
-            t.list()
-        #SaveCache()
+        SaveCache()
 

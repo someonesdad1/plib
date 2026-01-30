@@ -11,6 +11,7 @@ CommonSuffix        Return a common suffix of a sequence of strings
 CountLeadingSpaces  Return number of common leadings spaces in a multiline string
 Decorate            Return a decorated form of a string; make whitespace easier to see
 FilterStr           Return a function that removes characters from strings
+FilterSeqRegex      Return a sequence of strings filtered by regexes
 FindAll             Find all locations of a substring in a string
 FindFirstIn         Find first item in sequence in a given set
 FindLastIn          Find last item in sequence in a given set
@@ -29,6 +30,7 @@ IsASCII             Return True if string is all ASCII characters
 Keep                Return items in sequence that are in keep sequence
 KeepFilter          Returns a function that keeps a set of items in a sequence
 KeepOnlyLetters     Replace all non-word characters with spaces
+CountLeadingSpaces  Return the number of leading or trailing spaces in a string
 Len                 Length of string with ANSI escape sequences removed
 ListInColumns       Obsolete (use columnize.py)
 MatchCap            Match string capitalization
@@ -64,36 +66,39 @@ Token naming conversions:
     us2mc            Underscore to mixed-case
 '''
 if 1:  # Header
-    # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    ##∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
-    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    ##∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    ##∞license∞#
-    ##∞what∞#
-    # <programming> A number of utilities that deal with strings.
-    ##∞what∞#
-    ##∞test∞# run #∞test∞#
-    # Standard imports
-    from collections import deque, defaultdict
-    from itertools import filterfalse
-    import os
-    import random
-    import re
-    import string
-    import struct
-    import sys
-    import time
-    # Custom imports
-    from f import flt
-    from wrap import dedent
-    # Global variables
-    ii = isinstance
-    if 0:
-        import debug
-        debug.SetDebugger()
+    _pgminfo = '''
+        <oo gist ∞ String utilities oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2021 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ text oo>
+        <oo test ∞ run oo>
+        <oo todo ∞ oo>
+    '''
+    if 1:   # Standard imports
+        from collections import deque, defaultdict
+        from itertools import filterfalse
+        import os
+        import random
+        import re
+        import string
+        import struct
+        import sys
+        import time
+    if 1:   # Custom imports
+        import dpseq
+        from f import flt
+        from wrap import dedent
+    if 1:   # Global variables
+        ii = isinstance
+        if 0:
+            import debug
+            debug.SetDebugger()
 if 1:  # Classes
     class NameConvert:
         'Convert programming naming styles, "Python Cookbook" pg. 91'
@@ -476,6 +481,36 @@ if 1:  # Core functionality
         while s[i] in S:
             i += 1
         return s[i:]
+    def FilterSeqRegex(seq, regexes=[], ANDed=True, re_flags=re.NOFLAG):
+        '''Return a sequence of strings filtered by regexes.  The regexes are ANDed
+        together by default; set ANDed to False to OR the regexes.  If the regexes are
+        ORed together, no duplicates are returned.  In both cases, the returned strings
+        are in the same relative order as they were in seq.
+        '''
+        # Only keep the strings in seq
+        myseq, o = [i for i in seq if isinstance(i, str)], []
+        if ANDed:
+            for regex in regexes:
+                myseq = list(filter(lambda x: re.search(pattern, x, re_flags), myseq))
+            return myseq
+        else:
+            for regex in regexes:
+                o.extend(list(filter(lambda x: re.search(pattern, x, re_flags), myseq)))
+            # Remove duplicates
+            return DupNodupHashable(o)[1]
+
+    def Test_FilterSeqRegex():
+        from lwtest import Assert
+        # With no regexes, it's the identity unless the sequence contains a non-string
+        s1 = "str1 str2 str3 str4 str5".split()
+        s2 = "str1 str2 str3 str4 str5".split() + [10]
+        Assert(FilterSeqRegex([]) == [])
+        Assert(FilterSeqRegex(s1, regexes=[]) == s1)
+        Assert(FilterSeqRegex(s2, regexes=[]) == s1)
+
+    Test_FilterSeqRegex()
+    exit(-1)
+
     def FilterStr(remove, replacements):
         '''Return a function that removes the characters in sequence remove from other
         strings and replaces them with corresponding characters in the sequence
@@ -595,6 +630,20 @@ if 1:  # Core functionality
         c = [chr(i) for i in range(256)]
         t = "".join([i if i in allowed else " " for i in c])
         return s.translate(t)
+    def CountLeadingSpaces(s, trailing=False):
+        '''Return the number of leading spaces in string s.  Set trailing to True to
+        count the trailing spaces.  Note this will also work if s is a sequence.
+        '''
+        if not s:
+            return 0
+        dq, count = deque(s), 0
+        while dq:
+            c = dq.pop() if trailing else dq.popleft()
+            if c == " ":
+                count += 1
+            else:
+                break
+        return count
     def StringSplit(fields, string, remainder=True, strict=True):
         '''Pick out the specified fields of the string and return them as a tuple of
         strings.  fields can be either a format string or a list/tuple of numbers.
@@ -1690,6 +1739,21 @@ if __name__ == "__main__":
         # Too few newlines
         raises(ValueError, PrepareMultilineString, u)
         raises(ValueError, PrepareMultilineString, u + nl)
+    def Test_CountLeadingSpaces():
+        f = CountLeadingSpaces
+        Assert(not f(""))
+        for i in range(5):
+            Assert(f(" "*i) == i)
+            Assert(f(" "*i + "hello") == i)
+            Assert(f(" "*i, trailing=True) == i)
+            Assert(f(" "*i + "hello" + " "*i, trailing=True) == i)
+        # Show it also works with a sequence
+        Assert(f([]) == 0)
+        Assert(f([" "]) == 1)
+        Assert(f([" ", " "]) == 2)
+        Assert(f([" ", " "], trailing=True) == 2)
+        Assert(f([" ", "other stuff", " "]) == 1)
+        Assert(f([" ", "other stuff", " "], trailing=True) == 1)
     def Demo():
         "Demonstrate the various functions to stdout"
         t.print(f"{t('ornl')}Demo of /plib/dpstr.py functions")

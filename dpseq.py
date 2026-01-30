@@ -238,6 +238,22 @@ if 1:  # Core functionality
                 else:
                     diff_low, diff_high = abs(x - L), abs(x - r)
                     return L if diff_low <= diff_high else r
+if 1:   # Get numbers
+    def GetNum(seq, typ=int):
+        '''Return a list of numbers found in sequence seq.  The intent is that all the
+        elements of seq that can be converted to a number of type typ will be returned
+        in the list.  Examples:
+            seq = ("1", "2.", 3., "four")
+            GetNum(seq) --> [1, 3]
+            GetNum(seq, typ=float) --> [1.0, 2.0, 3.0]
+            GetNum(seq, typ=Decimal) --> [Decimal(1), Decimal(2), Decimal(3)]
+        '''
+        def Num(x):
+            try:
+                return typ(x)
+            except Exception:
+                return None
+        return [i for i in map(Num, seq) if i is not None]
 if 1:   # Finding duplicates in sequences
     if 1:   # Notes
         '''
@@ -385,6 +401,7 @@ if __name__ == "__main__":
     from collections import deque
     from lwtest import run, assert_equal, Assert
     from color import t
+    from decimal import Decimal as D
     t.dbg = False
     if 1:  # Utility
         def GetColors():
@@ -546,5 +563,14 @@ if __name__ == "__main__":
             Assert(result == ([1, 1.0, 1.0], [1]))
             result = DupNodup(seq, type_important=True)
             Assert(result == ([1, 1.0], [1, 1.0]))
+        def Test_GetNum():
+            Assert(GetNum([]) == [])
+            Assert(GetNum(tuple()) == [])
+            s = ["1", "2.", 3, 4., "five"]
+            Assert(GetNum(s) == [1, 3, 4])
+            Assert(GetNum(s, typ=float) == [1.0, 2.0, 3.0, 4.0])
+            Assert(GetNum(s, typ=flt) == [1.0, 2.0, 3.0, 4.0])
+            Assert(GetNum(s, typ=D) == [D(1), D(2), D(3), D(4)])
+            Assert(GetNum(["1.0093753795"], typ=flt) == [1.0093753795])
     GetColors()
     exit(run(globals(), halt=True)[0])

@@ -7,6 +7,7 @@ Defines a Gist class to get gists from a string
                 <oo desc ∞ Module details oo>
                 <oo copy ∞ Copyright message oo>
                 <oo lic ∞ License message oo>
+                <oo ind ∞ 8 indent oo>
                 <oo cat ∞ category oo>
                 <oo test ∞ How to file's self-tests oo>
                 <oo todo ∞ To Do list for this code oo>
@@ -33,8 +34,7 @@ if 1:  # Header
         <oo gist ∞ Module to get the gist data in a text file oo>
         <oo desc ∞ See docstring oo>
         <oo copy ∞ Copyright © 2026 Don Peterson oo>
-        <oo lic ∞ 
-            MIT License
+        <oo lic ∞ MIT License
             Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
             The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
             THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -53,6 +53,7 @@ if 1:  # Header
         import pathlib
         import re
     if 1:   # Custom imports
+        import dpseq
         import dpstr
         from wrap import dedent
         from dpprint import PP
@@ -159,8 +160,7 @@ if 1:   # Classes
                 <oo gist ∞ One line description of file/module oo>
                 <oo desc ∞ Description oo>
                 <oo copy ∞ Copyright © 2026 Don Peterson oo>
-                <oo lic ∞ 
-                    MIT License
+                <oo lic ∞ MIT License
                     Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
                     The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
                     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -169,6 +169,57 @@ if 1:   # Classes
                 <oo cat ∞ category oo>
                 <oo test ∞ notest oo>
                 <oo todo ∞ Todo items oo>'''[1:])
+    class StdGist(Gist):
+        '''This is intended to be the standard gist instance for the python files on my
+        computer system.  The required keywords are:
+            gist    One line description of file/module
+            desc    Description of the file/module
+            copy    Copyright string
+            lic     License string
+            ind     Indentation level (integer >= 0)
+            cat     Category of contents (e.g., utility, math, text, etc.)
+            test    How to run the file/module's self-tests
+            todo    Things that need to be done to the file/module
+        '''
+        def __init__(self, gist, keywords="gist desc copy lic ind cat test todo".split()):
+            super().__init__(gist, keywords=keywords) 
+            # Validate our entries
+            if 1:   # gist
+                gist = self["gist"].strip()
+                if not gist:
+                    raise ValueError("gist value cannot be empty")
+            if 1:   # desc
+                pass    # Description can be empty
+            if 1:   # copy
+                c = self["copy"].strip()
+                if not ("Copyright" in c):
+                    raise ValueError("copy value must have 'Copyright'")
+                if not dpseq.GetNum(c):
+                    raise ValueError("copy value must have an integer for year")
+                if "Don Peterson" not in c:
+                    raise ValueError("copy value must 'Don Peterson'")
+            if 1:   # lic
+                lic = self["lic"].strip()
+                if "MIT License" not in lic:
+                    raise ValueError("lic value must be the MIT License")
+            if 1:   # ind
+                ind = self["ind"].strip()
+                indent = dpseq.GetNum(ind)
+                if not len(indent):
+                    raise ValueError("ind value must have an integer")
+                if indent[0] < 0:
+                    raise ValueError("ind value must be >= 0")
+            if 1:   # cat
+                cat = self["cat"].strip()
+                if not cat:
+                    raise ValueError("cat value must not be empty")
+            if 1:   # test
+                test = self["test"].strip()
+                if not test:
+                    raise ValueError("test value must not be empty")
+                allowed = "notest run --test".split()
+                if test not in allowed:
+                    raise ValueError("test value must be one of {allowed}")
 
 if __name__ == "__main__":  
     import edit

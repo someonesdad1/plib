@@ -1,26 +1,19 @@
-"""
-ToDo
-    - Make the printout fit the screen with a hanging indent
-    
-Show the what strings for python scripts
-"""
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # <utility> Show the 'what' strings for python scripts.  These are
-        # the strings in each script describing the purpose of the script.
-        ##∞what∞#
-        ##∞test∞# notest #∞test∞#
-        pass
-    if 1:  # Imports
-        # Standard library modules
+    _pgminfo = '''
+        <oo gist ∞ Show the gist strings for python scripts oo>
+        <oo desc ∞ Description oo>
+        <oo copy ∞ Copyright © 2021 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ category oo>
+        <oo test ∞ notest oo>
+        <oo todo ∞ Todo items oo>
+    '''
+    if 1:  # Standard imports
         from collections import deque, defaultdict, namedtuple
         import getopt
         import os
@@ -49,7 +42,7 @@ if 1:  # Utility
     def Usage(d, status=1):
         name = sys.argv[0]
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {name} [options] [files...]
           Show the 'what' trigger string for each python file.  A command line
           argument can also be a directory, in which case all python files in
@@ -61,7 +54,7 @@ if 1:  # Utility
           -m    Show files missing a category
           -r    Act recursively
           -s    Ignore category and sort by filename
-        """)
+        ''')
         )
         exit(status)
     def ParseCommandLine(d):
@@ -86,9 +79,9 @@ if 1:  # Utility
         return args
 if 1:  # Core functionality
     def FormatWhat(what, indent=" " * 2):
-        """Return (what, category) where what is the wrapped string
+        '''Return (what, category) where what is the wrapped string
         without '#' leaders and category is the category string or None.
-        """
+        '''
         s = what.strip()
         lines = s.split("\n")
         # Remove beginning '#'
@@ -107,11 +100,11 @@ if 1:  # Core functionality
         s = rcat.sub("", s).strip()
         return (s, category)
     def ProcessFile(file):
-        """Return (file, ts, category) where ts is the trigger string
+        '''Return (file, ts, category) where ts is the trigger string
         for 'what'.  If there is no trigger string, ts is None.  If
         there was a category in the trigger string, it is returned in
         the string category or is None.
-        """
+        '''
         if not hasattr(ProcessFile, "tr"):
             ProcessFile.tr = trigger.Trigger()
         di = ProcessFile.tr
@@ -143,13 +136,13 @@ if 1:  # Core functionality
         for i in sorted(categories):
             print(f"  {i.capitalize()}")
     def GetFiles(args):
-        """Return a sequence of files from the files/directories given on
+        '''Return a sequence of files from the files/directories given on
         the command line.  args is a sequence of file or directory names
         The returned sequence will be of the form:
             (filename, what_string)
         where filename is a pathlib.Path object and what_string is the
         what string for that file or None if there wasn't a what string.
-        """
+        '''
         files = []
         for item in args:
             p = P(item)
@@ -217,6 +210,7 @@ if 1:  # Core functionality
                 print(f"{name:{w}s} {what}")
         if missing:
             t.print(f"{t.mt}This color means a 'what' string is missing")
+
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

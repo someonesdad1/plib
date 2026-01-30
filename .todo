@@ -1,25 +1,30 @@
 /plib/.todo
 
-    - hd.py
-        - Module that works, but turn it into a utility hexdump routine
-        - Today, my 'hd' command executes /usr/bin/hd, but I'd like to use my own
-          utility because I want some extra features
-            - Color highlighting of nul, nl, cr/nl
-            - If UTF-8, also show other whitespace
-            - In hex area, use underlining to show Unicode characters, next one italics,
-              next underlined, etc.  Or alternate gry & whtl
-            - In ASCII character area, show ␊␍␌␋␉␈␛
-        - Specify decoding
-            - UTF-8 is used virtually all the time
-            - latin1 is about the only other encoding I see and it's a fraction of 1%
-        - Have autoskip like xxd's -a
-        - Use color decorating
-            - nl in (blk, yell)
-            - 00 in gry or maybe blk with option
-            - ASCII letters 
-            - 8-bit Unicode
-            - Unicode
-
+    - Finding python functions/classes/scripts
+        - I have so many that a helper script would be valuable to narrow down and find
+          suitable functions/classes/scripts.  I envision something that could use the
+          gist to get the function descriptions.  Or the functions themselves could have
+          a gist attribute that is easily harvested.  The indexing function would build
+          a cache to search when the script is run, just like ds.py
+        - The function gist could be 'keywords ∞∞ description' where the keywords would
+          be separated by space characters.
+    - debug.py
+        - Prototyping:  see if debug.exit() can be used in sections where I'm
+          prototyping things.  This causes an exit(), but also prints it's location to
+          stderr and stdout everytime to identify what file is causing the problem
+          (i.e., has the exit() call and it's imported somewhere).
+            - A simpler approach is to use 'exit(-1)'; this causes a return status of
+              255 and my shell prompt will tell you the command failed; you then execute
+              "fgrep 'exit(-1)' *.py" and you'll find the offending line.
+        - Rethink it as a global development tool, as I virtually never use it except
+          for SetDebugger
+        - Turn debug.on with env variable Debug (just like Assert)
+            - Then e.g. turning g.dbg on in scripts no longer needed?
+        - AutoIndent should be a context manager
+        - Environment variables
+            - sdb for SetDebugger
+            - dbg for turning on debugging
+            - ai for autoindent
     - pgm/dori.py:  compact calendar for pocket dori
         - 12 weeks = 3 months
         - Do on 2 folios on one side of the sheet.  This gives a calendar and one blank
@@ -38,16 +43,10 @@
         - I'd like to be able to use conda to switch between python versions being used
           with one of them my default
 
-21 Jan 2026 13:33:38 pm Wed
-
-    - Core /plib work
-        - pgm is awfully crowded.  Should I have a number of subdirectories?  Some
-          candidates would be
-            - shop elec math sci util lang_or_text color
-        - See if every file can have a gist element in _pgminfo:  this would be a one
-          line description of the file's field and purpose.  This would be first and be
-          just before the description, which could contain descriptive details.
-        - Huh?
+    - /plib work
+        - Subdirectories: shop elec math sci util lang_or_text color
+        - Gist in every python file
+        - Needs work/inspection
             - dpdata.py:  be a single repository for all the files with data:
               drillsizes.py, eia.py, elements.py ?, papersize.py, planets.py,
               resistors.py, rgb.py, sizes.py, solarsys.py, gauge_sizes.py,
@@ -66,8 +65,8 @@
             - geometry.py:  need test case for Quadrilateral()
             - integrate.py:  need tests for Trapezoid_nme, Trapezoid_nr, Trapezoid
             - Find all 'from x import *' type of imports and get rid of them except
-              where it's really needed (do this before linting in /plib/pgm).  Use
-              "grep -l 'import \*' pgm/*.py" for this.
+              where it's really needed (do this before linting in /plib/pgm).  Use "grep
+              -l 'import \*' pgm/*.py" for this.
             - laser_dist.py fails its selftest
             - module_dep.py:  keep or move to old?
             - mpfmt.py:  absorb into fmt.py and obsolete
@@ -81,55 +80,13 @@
             - waveform.py needs a goodly amount of work to fix lint problems
             - pgm/dia.py:  move all the size information to a module in /plib
         - Module usage statistics
-            - It would be nice to use some scheme to keep track of which modules get
-              the most use.  It could be something as simple as open(file,
+            - It would be nice to use some scheme to keep track of which modules get the
+              most use.  It could be something as simple as open(file,
               "wa").write("myname.py") that is triggered if an environment variable is
-              define.
-        - I like the _pgminfo variable in new files, as it doesn't interfere with
-          __doc__ strings and it can be set up to not have any Unicode characters in it.
-        - 13 Jan 2026:  finished the last needed update to color.py.  kolor.py moved to
-          old.
-        - I'm slowly reaching the state of deciding to use ruff, both for linting and
-          formatting.  I don't like some of the details of the final style choices, but 
-          I can live with them.  I'll likely run dbl when I edit a file, but I'll
-          probably leave the other annoying things alone.
-            - The real reason for using ruff is the speed will let it be used easily to
-              check both formatting and linting.  I'll probably create a makefile that 
-              does this for both directories.  It will be such that any output is a
-              violation of the policies, indicating action needed.
-            - A severe problem with 'ruff format' is the mess it makes of some math
-              formulas.  For example, look at julian.EclipticObliquity().  There needs
-              to be some meta-information like '# noqa-start' and '# noqa-end' to
-              protect some code, as it becomes unreadable AND it takes quite a bit of
-              time to fix things.  Most programmers don't mess with math formulas (or
-              they use simple formulas), so they never see the problem.  
-        - By 28 Feb 2026:
-            - Run lint ('ruff check') and 'ruff format' on all python files in /plib.
-            - All must pass lint (use #noqa sparingly, only as needed)
-        - By 31 Mar 2026 all self tests must pass and only a small set of files can be
-          without testing
-        - Licensing
-            - I'm toying with converting everything to GPL3 or MIT license
-            - https://www.choosingalicense.com/ has a simple wizard to help choose a
-              license.  The questions are
-                - Project type:  library, app, website/web app, doc
-                - Commericial use?  yes or no
-                - Others:  use any license, use same license, must share their changes
-                - Patent protection:  yes or no
-                - Attribution:  required, nice, not important
-            - For me, the above wizard gave for 
-                - Library/framework, app, or doc:  commercial:yes, must use same license, include
-                  patent protection, require attribution:  GPL3
-            - I need to identify what I really want
-                - Attribution
-                - Use in commercial software
-                - Keep it copyleft or user can use any license of their choice
-            - See https://www.gnu.org/licenses/gpl-howto.html
-                - According to this page, I'd need to include a license notice in each
-                  file after the copyright notice.
-                - A copy of the GNU license should be in COPYING
-                - It's important to have an email contact, but I wouldn't want this in
-                  every file
+              defined.
+        - ruff as of 30 Jan 2026
+            - I won't use the formatter until they fix the mess it makes with formulas
+            - Linting works well
 
     - airnav.py
         - I based this on version 1.20 of the aviation formulary; it's now at version
@@ -144,6 +101,10 @@
           indenting works to show you the overall structure & sections.
 
     - color.py
+        - Idea:  define t.Sky(str) to make str be formatted in t.sky color; i.e., you
+          capitalize the color name and it's a function; after the call, the color is
+          turned back to what it was.  An optional argument of clear=False can be used
+          to erase the stack, always returning you to the t.n color.
         - I get enough problems related to color.py that it might make sense to have a
           much simpler module to get escape strings for color printing.  I often can't
           use the debugger because of (probably) a circular import.
@@ -165,6 +126,7 @@
           terminal
         - Make it easy to indent and dedent, wrap, and colorize or markup text
             - Pick some Unicode symbols to turn formatting on/off
+        - Module should also have the ability to spell check Usage statements in scripts
 
     - pgm/python_perf.py
         - Update to modern formatting
@@ -196,6 +158,25 @@
             - This lets you run commands via 'PYTHONPATH=DIR python DIR/yapf [options]
               ...'
 
+    - hd.py
+        - Module that works, but turn it into a utility hexdump routine
+        - Today, my 'hd' command executes /usr/bin/hd, but I'd like to use my own
+          utility because I want some extra features
+            - Color highlighting of nul, nl, cr/nl
+            - If UTF-8, also show other whitespace
+            - In hex area, use underlining to show Unicode characters, next one italics,
+              next underlined, etc.  Or alternate gry & whtl
+            - In ASCII character area, show ␊␍␌␋␉␈␛
+        - Specify decoding
+            - UTF-8 is used virtually all the time
+            - latin1 is about the only other encoding I see and it's a fraction of 1%
+        - Have autoskip like xxd's -a
+        - Use color decorating
+            - nl in (blk, yell)
+            - 00 in gry or maybe blk with option
+            - ASCII letters 
+            - 8-bit Unicode
+            - Unicode
     - fs.py command
         - Search a set of directories for regexes for file names
         - Put a library module in /plib to support this use case.  This makes it easy to
