@@ -23,7 +23,9 @@ if 1:  # Header
         <oo test ∞ --test oo>
         <oo todo ∞ 
             
-            - ∞∞2 Useful utility for shrouding ASCII text
+            - ∞∞2 Move this functionality to asciify.py under the -u option.  This also
+              allows for some testing, as a plain ASCII file will go to Unicode and
+              should come back being the same ASCII or something's wrong.
             - Testing needs
                 - Make sure there are no plain ASCII characters in the transliterated
                   text
