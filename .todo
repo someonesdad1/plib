@@ -1,5 +1,9 @@
 /plib/.todo
 
+    - bash functions
+        - I have over 320 functions, way too many to remember.  I need some way of
+          starting the rarely-used ones by e.g. showing me the category and letting me
+          look through a list.
     - Finding python functions/classes/scripts
         - I have so many that a helper script would be valuable to narrow down and find
           suitable functions/classes/scripts.  I envision something that could use the
