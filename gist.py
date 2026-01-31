@@ -221,6 +221,16 @@ if 1:   # Classes
                 if test not in allowed:
                     raise ValueError("test value must be one of {allowed}")
 
+if 1:   # Prototyping a function gist
+    def PrototypedFunction(args, case_important=False):
+        pass
+    PrototypedFunction.gist = '''
+        A fngist element is used to describe a function to allow it to be indexed by
+        automatic tools.  
+
+       ∞ This area for various space-separated keywords
+    '''
+
 if __name__ == "__main__":  
     import edit
     import sys

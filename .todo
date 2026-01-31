@@ -25,6 +25,7 @@
             - sdb for SetDebugger
             - dbg for turning on debugging
             - ai for autoindent
+        - dbg.py should be merged with this file
     - pgm/dori.py:  compact calendar for pocket dori
         - 12 weeks = 3 months
         - Do on 2 folios on one side of the sheet.  This gives a calendar and one blank
@@ -1468,6 +1469,9 @@ Inactive
         - un "LETTER M" |grep '\<M\>' yields a list of things that look like the basic ASCII letter
           m.
         - Also combine this with the mappings in asciify.py.
+        - Add -u option:  Takes a line input like "f0 9f 9f a6" or "\xf0\x9f\x9f\xa6"
+          and knows it's a UTF-8 encoding, so returns the appropriate character.
+        - Add -n n option:  prints n characters around the one on the command line
 
     - pgm/readability.py
         - Add an option to let you see the histograms of the readability elements: word length,

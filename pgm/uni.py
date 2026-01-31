@@ -678,7 +678,7 @@ def Usage(d, status=1):
       -a  Use all valid Unicode characters.  The default set uses the
           Basic Multilingual Plane up to U+FFFF.'''))
     if ucd is not None:
-        print("  -b  Dump block information", end="")
+        print("  -b  Dump block information")
     print(dedent(f'''
       -c  {col}
       -D  Print the descriptions of all valid Unicode characters.
