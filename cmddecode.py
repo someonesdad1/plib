@@ -1,133 +1,139 @@
 '''
 Decode user command strings, even if they are incomplete.
 
-This module provides the CommandDecode object which, when initialized
-with a sequence of allowed command strings, will allow you to find a
-given command string when given just a prefix of the string.  If there
-is enough of the command string given, you'll get a unique string in
-return.  Otherwise, you'll get a list of candidates that matched.
-Getting an empty sequence in return means the given string didn't match
-anything.  The comparisons can be made on a case-insensitive basis if
-you wish.
+    This module provides the CommandDecode object which, when initialized
+    with a sequence of allowed command strings, will allow you to find a
+    given command string when given just a prefix of the string.  If there
+    is enough of the command string given, you'll get a unique string in
+    return.  Otherwise, you'll get a list of candidates that matched.
+    Getting an empty sequence in return means the given string didn't match
+    anything.  The comparisons can be made on a case-insensitive basis if
+    you wish.
 
-Example usage:
+    Example usage:
 
-    s = set(("one", "two", "three"))
-    c, prompt = CommandDecode(s), "> "
-    print(". to list choices, q to exit")
-    while True:
-        cmd = input(prompt)
-        if cmd == "q":
-            break
-        elif cmd == ".":
-            for i in c.commands:
-                print(i, end=" ")
-            print()
-        else:
-            x = c(cmd)
-            if not x:
-                print(f"'{cmd}' unrecognized")
-            elif len(x) == 1:
-                print(f"'{cmd}' was an exact match to '{x[0]}'")
+        s = set(("one", "two", "three"))
+        c, prompt = CommandDecode(s), "> "
+        print(". to list choices, q to exit")
+        while True:
+            cmd = input(prompt)
+            if cmd == "q":
+                break
+            elif cmd == ".":
+                for i in c.commands:
+                    print(i, end=" ")
+                print()
             else:
-                x.sort()
-                print(f"'{cmd}' is ambiguous:  {x}")
-                
-    # Results for different user inputs:
-    c("o") --> gives ["one"]
-    c("t") --> gives ["two", "three"]
-    c("x") --> gives []
-    
-Run this file as a script to get an interactive demo.
+                x = c(cmd)
+                if not x:
+                    print(f"'{cmd}' unrecognized")
+                elif len(x) == 1:
+                    print(f"'{cmd}' was an exact match to '{x[0]}'")
+                else:
+                    x.sort()
+                    print(f"'{cmd}' is ambiguous:  {x}")
+                    
+        # Results for different user inputs:
+        c("o") --> gives ["one"]
+        c("t") --> gives ["two", "three"]
+        c("x") --> gives []
+        
+    Run this file as a script to get an interactive demo.
 '''
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    ##∞copyright∞# Copyright (C) 2006 Don Peterson #∞copyright∞#
-    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    ##∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    ##∞license∞#
-    ##∞what∞#
-    # <programming> Decode user command strings.  When initialized with
-    # a sequence of command strings, calling the object with a string
-    # will return a list of 0, 1 or many strings.  0 means no match, 1
-    # is a unique match, and many means more than one match.  The
-    # constructor lets you choose to ignore the command's case or not.
-    ##∞what∞#
-    ##∞test∞# testdir #∞test∞#
-    pass
-if 1:  # Imports
-    import re
-    from collections import defaultdict
-class CommandDecode:
-    '''Instantiate the class with a sequence of command strings.  Then
-    call the object with a command candidate; the returned list will
-    have either 0, 1, or multiple commands that matched.
+if 1:  # Header
+    _pgminfo = '''
+        <oo gist ∞ Decode user command strings oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2006 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ utility  oo>
+        <oo test ∞ testdir oo>
+        <oo todo ∞ 
+            
+            - ∞∞1 Move tests from /plib/test to this file
+            
+        oo>
     '''
-    def __init__(self, commands, ignore_case=False):
-        '''commands is a sequence that contains a unique set of strings.
-        If you set ignore_case to True, then the commands will all be
-        converted to lower case; if this lower-case set doesn't contain
-        the same number of elements as commands, then you'll get a
-        ValueError.
+    if 1:  # Standard imports
+        import re
+        from collections import defaultdict
+    if 1:  # Custom imports
+        pass
+if 1:   # Classes
+    class CommandDecode:
+        '''Instantiate the class with a sequence of command strings.  Then
+        call the object with a command candidate; the returned list will
+        have either 0, 1, or multiple commands that matched.
         '''
-        self.ignore_case = ignore_case
-        # See if we can convert commands to a set
-        try:
-            c = set(commands)
-            if len(c) != len(commands):
-                raise ValueError("commands container has replicates")
-        except TypeError:
-            raise ValueError("commands must be a sequence of strings")
-        if not c:
-            raise ValueError("commands must contain at least one command")
-        if ignore_case:
-            self.commands = set([i.lower() for i in c])
-            if len(self.commands) != len(commands):
-                msg = "Some commands are not unique after conversion to lower case"
-                raise ValueError(msg)
-        else:
-            self.commands = c
-        self.commands.discard("")
-        # Build index dictionary; each key is the first letter of the
-        # command and each element is a list of commands that have that
-        # first letter.
-        self.index = defaultdict(list)
-        for cmd in self.commands:
-            first_char = cmd[0]
-            self.index[first_char].append(cmd)
-        self.first_char_list = self.index.keys()
-    def __str__(self):
-        s = " ".join(sorted(self.commands))
-        return f"CommandDecode({s}, ignore_case={self.ignore_case})"
-    def __call__(self, user_string):
-        if not isinstance(user_string, str):
-            raise ValueError("Input must be a string")
-        s = user_string.strip()
-        if not s:
-            return []
-        if self.ignore_case:
-            s = s.lower()
-        if s in self.commands:
-            return [user_string]
-        first_char = s[0]
-        if first_char not in self.first_char_list:
-            return []
-        possible_commands = self.index[first_char]
-        if self.ignore_case:
-            regexp = re.compile("^" + s, re.I)
-        else:
-            regexp = re.compile("^" + s)
-        matches = []
-        for cmd in possible_commands:
-            if regexp.match(cmd):
-                matches.append(cmd)
-        if len(matches) == 0:
-            return []
-        if len(matches) == 1:
-            return [matches[0]]
-        return matches
+        def __init__(self, commands, ignore_case=False):
+            '''commands is a sequence that contains a unique set of strings.
+            If you set ignore_case to True, then the commands will all be
+            converted to lower case; if this lower-case set doesn't contain
+            the same number of elements as commands, then you'll get a
+            ValueError.
+            '''
+            self.ignore_case = ignore_case
+            # See if we can convert commands to a set
+            try:
+                c = set(commands)
+                if len(c) != len(commands):
+                    raise ValueError("commands container has replicates")
+            except TypeError:
+                raise ValueError("commands must be a sequence of strings")
+            if not c:
+                raise ValueError("commands must contain at least one command")
+            if ignore_case:
+                self.commands = set([i.lower() for i in c])
+                if len(self.commands) != len(commands):
+                    msg = "Some commands are not unique after conversion to lower case"
+                    raise ValueError(msg)
+            else:
+                self.commands = c
+            self.commands.discard("")
+            # Build index dictionary; each key is the first letter of the
+            # command and each element is a list of commands that have that
+            # first letter.
+            self.index = defaultdict(list)
+            for cmd in self.commands:
+                first_char = cmd[0]
+                self.index[first_char].append(cmd)
+            self.first_char_list = self.index.keys()
+        def __str__(self):
+            s = " ".join(sorted(self.commands))
+            return f"CommandDecode({s}, ignore_case={self.ignore_case})"
+        def __call__(self, user_string):
+            if not isinstance(user_string, str):
+                raise ValueError("Input must be a string")
+            s = user_string.strip()
+            if not s:
+                return []
+            if self.ignore_case:
+                s = s.lower()
+            if s in self.commands:
+                return [user_string]
+            first_char = s[0]
+            if first_char not in self.first_char_list:
+                return []
+            possible_commands = self.index[first_char]
+            if self.ignore_case:
+                regexp = re.compile("^" + s, re.I)
+            else:
+                regexp = re.compile("^" + s)
+            matches = []
+            for cmd in possible_commands:
+                if regexp.match(cmd):
+                    matches.append(cmd)
+            if len(matches) == 0:
+                return []
+            if len(matches) == 1:
+                return [matches[0]]
+            return matches
+
 if __name__ == "__main__":
     # Demonstrate the class; use some typical UNIX program names.
     cmds, d = (

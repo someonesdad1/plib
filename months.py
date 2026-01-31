@@ -20,54 +20,10 @@ if 1:  # Imports
     from bidict import bidict
 if 1:  # Global variables
     # Names of the months
-    Months = set(
-        (
-            "Jan",
-            "Feb",
-            "Mar",
-            "Apr",
-            "May",
-            "Jun",
-            "Jul",
-            "Aug",
-            "Sep",
-            "Oct",
-            "Nov",
-            "Dec",
-        )
-    )
-    Months_lc = set(
-        (
-            "jan",
-            "feb",
-            "mar",
-            "apr",
-            "may",
-            "jun",
-            "jul",
-            "aug",
-            "sep",
-            "oct",
-            "nov",
-            "dec",
-        )
-    )
-    Months_uc = set(
-        (
-            "JAN",
-            "FEB",
-            "MAR",
-            "APR",
-            "MAY",
-            "JUN",
-            "JUL",
-            "AUG",
-            "SEP",
-            "OCT",
-            "NOV",
-            "DEC",
-        )
-    )
+    s = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec"
+    Months = set(s.split())
+    Months_lc = set(s.lower().split())
+    Months_uc = set(s.upper().split())
     # Bi-directional mappings between month number and 3-letter string name
     months = bidict(
         {

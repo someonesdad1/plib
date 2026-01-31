@@ -101,6 +101,27 @@
           indenting works to show you the overall structure & sections.
 
     - color.py
+        - Rearchitect?
+            - I think the overwhelming use of the color.py module is for getting
+              colorized output to the terminal
+            - Because of this, make color.py only provide the TRM/Trm/t thingies
+            - t() can figure out a color from a decimal (implies a gray), a tuple
+              of integers or floats, or a string like "#ffffff".  Today, it will
+              virtually always be 24 bit color.
+            - Put the other less-used stuff in e.g. colorother.py or somesuch.
+            - Develop a module named regexdecorate.py so that its needed functionality
+              is in one place and is well-tested and always works.
+            - Another module can be colorstyle.py, which allows you to define styles.
+              These can then be used to define attributes to t.  The t attribute holds
+              the style data, which allows it to be updated dynamically.
+            - Other modules color*.py define other related stuff
+            - I very much like the 24 colornames I've chosen.  I think they can be
+              tweaked a bit.  For example, vio, lav, lil, and pur are pretty close and
+              might need some tweaks.  
+                - I might define "primary" colors to be red, grn, blu, mag, cyn, and
+                  yel.  That's 6 colors, implying that I should have about 4 of each 
+                  type spread over the visible spectrum.  This will need to be shown
+                  as the output of a script before making final choices.
         - Idea:  define t.Sky(str) to make str be formatted in t.sky color; i.e., you
           capitalize the color name and it's a function; after the call, the color is
           turned back to what it was.  An optional argument of clear=False can be used

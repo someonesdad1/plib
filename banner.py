@@ -1,29 +1,28 @@
-'''
+if 1:   # Header
+    _pgminfo = '''
+        <oo gist ∞ Banner messages oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2005 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ utility oo>
+        <oo test ∞ notest oo>
+        <oo todo ∞ 
 
-∞∞3 Move utility stuff to script area; make a true module; add test code
+            - ∞∞3 Move utility stuff to script area; make a true module; add test code
+            - 28 Jul 2014 update:  added Raymond Hettinger's banner code.
 
-This module contains the function Banner() which can be used to print
-a banner message like the UNIX banner(1) function.
-
-28 Jul 2014 update:  added Raymond Hettinger's banner code.
-'''
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    ##∞copyright∞# Copyright (C) 2005 Don Peterson #∞copyright∞#
-    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    ##∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    ##∞license∞#
-    ##∞what∞#
-    # <utility> Print banner messages
-    ##∞what∞#
-    ##∞test∞# notest #∞test∞#
-    pass
-if 1:  # Imports
-    import sys
-    import getopt
-    from wrap import dedent
+        oo>
+    '''
+    if 1:   # Standard imports
+        import getopt
+        import sys
+    if 1:   # Custom imports
+        from wrap import dedent
 if 1:   # Utility
     def Error(msg, status=1):
         print(msg, file=sys.stderr)

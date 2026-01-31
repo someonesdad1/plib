@@ -1531,6 +1531,7 @@ if __name__ == "__main__":
         import re
         import sys
     if 1:   # Custom imports
+        from color import t
         import dpstr
         from columnize import Columnize
     if 1:  # Utility
@@ -1586,11 +1587,14 @@ if __name__ == "__main__":
             exit(status)
         def Usage(status=0):
             pgm = sys.argv[0]
+            count = sum(len(i) for i in bama.values())
             print(dedent(f'''
             Usage:  {pgm} [options] regex1 [regex2...]
               Search for manufacturers & model numbers on BAMA.  Searches are case insensitive.
-              Regular expressions are python syntax and are ANDed together.
+              Regular expressions are python syntax and are ANDed together.  There are {count}
+              models in the database.
             Options:
+                -i          Don't ignore case
                 -l          Only list manufacturers
                 -m name     Search only in this manufacturer's name (string, not regex).
                             You can have more than one -m option.
@@ -1607,72 +1611,93 @@ if __name__ == "__main__":
             '''))
             exit(status)
         def ParseCommandLine(d):
+            d["-i"] = False  # Don't ignore case
             d["-l"] = False  # Only list manufacturers
             d["-m"] = []     # Search only for these manufacturers
             d["-n"] = False  # Only list model numbers
             if len(sys.argv) < 2:
                 Usage()
             try:
-                opts, args = getopt.getopt(sys.argv[1:], "lm:n")
+                opts, args = getopt.getopt(sys.argv[1:], "ilm:n")
             except getopt.GetoptError as e:
                 print(str(e))
                 exit(1)
             for o, a in opts:
-                if o[1] in list("ln"):
+                if o[1] in list("iln"):
                     d[o] = not d[o]
                 elif o in ("-m",):
                     d[o] = a
             return args
     if 1:  # Searching functionality
+        def GetManufacturers(args):
+            "The regexes in args are ANDed together"
+            flag = re.NOFLAG if d["-i"] else re.I
+            return dpstr.FilterSeqRegex(bama.keys(), regexes=args, re_flags=flag)
         def ListManufacturers(args):
             "The regexes in args are ANDed together"
-            mfg = set(bama.keys())
-            if 0:
-                # Original
-                for pattern in args:
-                    mfg = list(filter(lambda x: re.search(pattern, x, re.I), mfg))
-            else:
-                # dpstr library function
-                mfg = dpstr.FilterSeqRegex(mfg, regexes=args, re_flags=re.I)
-            for i in Columnize(sorted(mfg)):
+            for i in Columnize(sorted(GetManufacturers(args))):
                 print(i)
+            t.print(f"{t.sky}Printed {len(o)} manufacturers")
         def ListModelNumbers(args):
-            breakpoint() # ∞∞ 
-        def Search(regex):
-            regex_printed = False
-            def PrintRegex():
-                nonlocal regex_printed
-                if not regex_printed:
-                    print(f"Search term = {regex!r}")
-                    regex_printed = True
-            r, mfg, model = re.compile(regex, re.I), [], defaultdict(list)
-            indent = " " * 2
-            # Find manufacturers that match
-            if not d["-n"]:
+            "The regexes in args are ANDed together"
+            values = []
+            for i in bama.values():
+                values.extend(i)
+            flag = re.NOFLAG if d["-i"] else re.I
+            o = dpstr.FilterSeqRegex(values, regexes=args, re_flags=flag)
+            for i in Columnize(sorted(o)):
+                print(i)
+            t.print(f"{t.sky}Printed {len(o)} model numbers")
+        def Search(di, regex):
+            '''Search the dictionary (keyed by manufacturer) for the model numbers that
+            match the regex.  Return a list of strings in the form "<matched_string>
+            (mfr)".
+            '''
+            o = []
+            try:
+                r = re.compile(regex, re.NOFLAG if d["-i"] else re.I)
+            except Exception as e:
+                Error(f"Couldn't compile regex {regex!r}\n  {e}")
+            for key in di:
+                for value in di[key]:
+                    if r.search(value):
+                        o.append(f"{value} ({key})")
+            return o
+            if 0: # Old method
+                regex_printed = False
+                def PrintRegex():
+                    nonlocal regex_printed
+                    if not regex_printed:
+                        print(f"Search term = {regex!r}")
+                        regex_printed = True
+                r, mfg, model = re.compile(regex, re.I), [], defaultdict(list)
+                indent = " " * 2
+                # Find manufacturers that match
+                if not d["-n"]:
+                    for name in bama:
+                        if r.search(name):
+                            mfg.append(name)
+                    if mfg:
+                        PrintRegex()
+                        print(f"{indent}Manufacturers that matched:")
+                        for m in mfg:
+                            print(f"{indent * 2}{m}")
+                    if d["-l"]:  # Only list manufacturers
+                        return
+                # Find model numbers that match
                 for name in bama:
-                    if r.search(name):
-                        mfg.append(name)
-                if mfg:
+                    if d["-m"]:
+                        if d["-m"] not in name:
+                            continue
+                    for m in bama[name]:
+                        if r.search(m):
+                            model[name].append(m)
+                if model:
                     PrintRegex()
-                    print(f"{indent}Manufacturers that matched:")
-                    for m in mfg:
-                        print(f"{indent * 2}{m}")
-                if d["-l"]:  # Only list manufacturers
-                    return
-            # Find model numbers that match
-            for name in bama:
-                if d["-m"]:
-                    if d["-m"] not in name:
-                        continue
-                for m in bama[name]:
-                    if r.search(m):
-                        model[name].append(m)
-            if model:
-                PrintRegex()
-                print(f"{indent}Models that matched:")
-                for mfg in model:
-                    for inst in model[mfg]:
-                        print(f"{indent * 2}{inst} ({mfg})")
+                    print(f"{indent}Models that matched:")
+                    for mfg in model:
+                        for inst in model[mfg]:
+                            print(f"{indent * 2}{inst} ({mfg})")
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
     if d["-l"]:
@@ -1680,5 +1705,22 @@ if __name__ == "__main__":
     elif d["-n"]:
         ListModelNumbers(args)
     else:
+        # Get the dictionary to search
+        if d["-m"]:
+            di = {}
+            for mfg in d["-m"]:
+                if mfg in bama:
+                    di[mfg] = bama[mfg]
+                else:
+                    t.print(f"{t.ornl}{mfg!r} not found in data")
+            if not di:
+                print("-m options failed to return any manufacturers")
+                exit(1)
+        else:
+            di = bama
+        results = []
         for regex in args:
-            Search(regex)
+            results.extend(Search(di, regex))
+        # Print report
+        for i in Columnize(sorted(set(results))):
+            print(i)

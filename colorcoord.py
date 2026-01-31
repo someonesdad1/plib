@@ -1,7 +1,4 @@
 '''
-Todo ∞∞2
-    - Need tests for all the functions
-    
 Color coordinates and transformations
     - Your thumb at the end of your arm subtends 2°; your fist is 10°.
     - Chances are, if you get some RGB color data, it's probably in the sRGB color space.  For
@@ -89,24 +86,42 @@ Color coordinates and transformations
         - https://www.w3.org/TR/css-color-4 is a good document on color in CSS and the specs
         
 '''
-##∞test∞# notest #∞test∞#
-if 1:  # Imports
-    from util import IsIterable
-    from lwtest import run, Assert
+if 1:  # Header
+    _pgminfo = '''
+        <oo gist ∞ Color coordinates and transformations oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2026 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ color oo>
+        <oo test ∞ run oo>
+        <oo todo ∞
+
+            - ∞∞2 Need tests of all functions
+
+        oo>
+    '''
+    if 1:  # Standard imports
+        pass
+    if 1:  # Custom imports
+        from util import IsIterable
+        from lwtest import run, Assert
 if 1:  # Utility
     def Dot(a, b, n=None):
         "Dot product of two sequences (n is number of decimal places to round to)"
         Assert(len(a) == len(b))
         if n:
-            return sum([round(i * j, n) for i, j in zip(a, b)])
-        return sum([i * j for i, j in zip(a, b)])
+            return sum([round(i*j, n) for i, j in zip(a, b)])
+        return sum([i*j for i, j in zip(a, b)])
     def Clamp(a):
         "Clamp all values onto [0, 1]"
-        def f(x): return min(max(0.0, x), 1.0)
-        if IsIterable(a):
-            return tuple([f(i) for i in a])
-        else:
-            return f(a)
+        def f(x): 
+            return min(max(0.0, x), 1.0)
+        return tuple([f(i) for i in a]) if IsIterable(a) else f(a)
 if 1:  # Core functionality
     def xy_to_sRGB(xy, Y=1):
         def f(x):
@@ -114,22 +129,23 @@ if 1:  # Core functionality
         XYZ = xy_to_XYZ(xy, Y)
         return f(XYZ_to_sRGB(XYZ))
     def sRGB_to_XYZ(srgb, hires=False):
-        '''Returns a tuple of XYZ values for an sRGB tuple.  All values in srgb must be on [0, 1].
-        sRGB to CIE XYZ from https://en.wikipedia.org/wiki/SRGB#From_sRGB_to_CIE_XYZ
+        '''Returns a tuple of XYZ values for an sRGB tuple.  All values in srgb must be
+        on [0, 1].  sRGB to CIE XYZ from
+        https://en.wikipedia.org/wiki/SRGB#From_sRGB_to_CIE_XYZ
         
-        - srgb components must be on [0, 1].  If 8-bit numbers, divide by 255 to put on this
-          range.
-        - Use "gamma-expanded" values if the component is > 0.04; otherwise divide the component
-          by 12.92.
-        - Transform to XYZ space with a matrix transformation.
+            - srgb components must be on [0, 1].  If 8-bit numbers, divide by 255 to put
+              on this range.
+            - Use "gamma-expanded" values if the component is > 0.04; otherwise divide
+              the component by 12.92.
+            - Transform to XYZ space with a matrix transformation.
         
-        Test values:  Let sRGB = (0.2, 0.5, 0.8).  Transform each component x to be ((x +
-        0.055)/1.055)**2.4, giving (0.033104766570885055, 0.21404114048223255, 0.6038273388553378)
-        = (a, b, c).  The matrix multiplication is
+        Test values:  Let sRGB = (0.2, 0.5, 0.8).  Transform each component x to be ((x
+        + 0.055)/1.055)**2.4, giving (0.033104766570885055, 0.21404114048223255,
+        0.6038273388553378) = (a, b, c).  The matrix multiplication is
         
-        X = 0.4124*a + 0.3576*b + 0.1805*c
-        Y = 0.2126*a + 0.7152*b + 0.0722*c
-        Z = 0.0193*a + 0.1192*b + 0.9505*c
+            X = 0.4124*a + 0.3576*b + 0.1805*c
+            Y = 0.2126*a + 0.7152*b + 0.0722*c
+            Z = 0.0193*a + 0.1192*b + 0.9505*c
         
         giving (0.19918435223366782, 0.20371663091121825, 0.6000905115222988).  The routine rounds
         this to 4 figures.

@@ -1,34 +1,35 @@
 #!/usr/bin/python
-'''TODO
-    - Feb  5 2024:  'ls --color=always | columnize.py' doesn't work right
-      in /plib
-    - Columnize(['a'], indent=" "*4) has an exception
-    - Columnize raises a ValueError exception when something is too long.
-      There should be an option to just print this line anyway and
-      continue, as it often breaks some application and you can't see your
-      output.  Typical message is "ValueError: Cannot fit longest string
-      (118 characters) on screen"
-      
+'''
 Function to turn a sequence into columns
-
-Run the module as a script to columnize stdin.  Use -h to get a usage
-statement.
+    - Run the module as a script to columnize stdin.  Use -h to get a usage statement.
 '''
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2012 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # <programming> Function to turn a sequence into columns.  Similar
-        # in output to the pr command for printing in columns.
-        ##∞what∞#
-        ##∞test∞# --test #∞test∞#
-        pass
+    _pgminfo = '''
+        <oo gist ∞ Turn a sequence into columns for printing oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2012 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ text oo>
+        <oo test ∞ --test oo>
+        <oo todo ∞ 
+        
+            - 'res l' displays a serious bug
+            - Feb  5 2024:  'ls --color=always | columnize.py' doesn't work right in
+              /plib
+            - Columnize(['a'], indent=" "*4) has an exception
+            - Columnize raises a ValueError exception when something is too long.  There
+              should be an option to just print this line anyway and continue, as it
+              often breaks some application and you can't see your output.  Typical
+              message is "ValueError: Cannot fit longest string (118 characters) on
+              screen"
+        
+        oo>
+    '''
     if 1:  # Standard imports
         import os
         import re
@@ -37,11 +38,10 @@ if 1:  # Header
         pp = PP()  # COLUMNS-aware version of pprint.pprint
 if 1:  # Core functionality
     def Columnize(seq, **kw):
-        '''Returns a list of strings with the elements of the sequence seq
-        (if components are not strings, they will be converted to strings
-        using str) formatted in columnar format.  Elements of seq that
-        won't fit in a column either generate an exception if trunc is
-        False or get truncated if trunc is True.
+        '''Returns a list of strings with the elements of the sequence seq (if
+        components are not strings, they will be converted to strings using str)
+        formatted in columnar format.  Elements of seq that won't fit in a column either
+        generate an exception if trunc is False or get truncated if trunc is True.
         
         The keyword arguments are (default values are in square brackets):
         
@@ -86,37 +86,30 @@ if 1:  # Core functionality
                         accommodate the desired output.
         '''
         '''
-        Implementation details:  the formatting of the left-to-right
-        format is straightforward.  The top-to-bottom format is a little
-        more difficult.  Here's an example that shows how the algorithm
-        was gotten.  Suppose we want to print the numbers in range(18) in
-        7 columns of a specified width.  The output will need to look as
-        follows, as this shape matches the left-to-right output:
+        Implementation details:  the formatting of the left-to-right format is
+        straightforward.  The top-to-bottom format is a little more difficult.  Here's
+        an example that shows how the algorithm was gotten.  Suppose we want to print
+        the numbers in range(18) in 7 columns of a specified width.  The output will
+        need to look as follows, as this shape matches the left-to-right output:
      
             0   3   6   9   12  14  16
             1   4   7   10  13  15  17
             2   5   8   11  .   .   .
      
-        where '.' denotes the gap.  The number of full rows is
-        int(n/columns) where n = len(seq) and columns is the number of
-        columns).  Here, clearly, we need 3 rows to properly print; thus,
-        the gap is (rows*columns - n).  Then we need to account for the
-        number of numbers to print in each column; the vector for this is
-        [3, 3, 3, 3, 2, 2, 2] (see the code for how it's constructed).
-        Finally, in the iteration loop, we need to use a correction factor
-        for when we append the empty string for the gap rather than a
-        sequence element.
+        where '.' denotes the gap.  The number of full rows is int(n/columns) where n =
+        len(seq) and columns is the number of columns).  Here, clearly, we need 3 rows
+        to properly print; thus, the gap is (rows*columns - n).  Then we need to account
+        for the number of numbers to print in each column; the vector for this is [3, 3,
+        3, 3, 2, 2, 2] (see the code for how it's constructed).  Finally, in the
+        iteration loop, we need to use a correction factor for when we append the empty
+        string for the gap rather than a sequence element.
         '''
         if not seq:
             return [""]
         # Check keywords
-        allowed = set(
-            (
-                '''
+        allowed = set(('''
             align col_width columns debug esc horiz ignore indent sep
-            to_string trunc width'''.split()
-            )
-        )
+            to_string trunc width'''.split()))
         for k in kw:
             if k not in allowed:
                 raise ValueError(f"'{k}' is an unknown keyword")
@@ -276,12 +269,12 @@ if 1:  # Core functionality
     def Uncolumnize(seq, in_sorted_order=False):
         '''Given a sequence of strings, uncolumnize them and return a single-line string.
         Here's an example: Suppose the following list of files was on your screen:
-
+        
             atm.py             columnize.py       fmt.py             primes.py
             atomic_mass.py     cuncertainties.py  frange.py          prob.py
             bits.py            e.py               gauge_sizes.py     roundoff.py
             color.py           filesizes.py       globalcontainer.py sig.py
-
+        
         This was a list of certain files in /plib that was printed by using Columnize.
         To Uncolumnize this list, you split each line on whitespace, then append each 
         line's elements to a new list.  Set in_sorted_order to True to have the list sorted.

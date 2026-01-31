@@ -1,6 +1,4 @@
-"""
-
-∞∞2 Make a module
+'''
 
 This module lets an application have a function run when a file's contents
 or modification time changes.
@@ -13,81 +11,102 @@ or modification time changes.
     called, letting the application e.g. update the output screen by
     reading in the changed variables from the data file.
     
-How it works:  The CheckFile function is run in another process and calls
-the callback function when the datafile changes (either its MD5 hash or
-modification time).
+    How it works:  The CheckFile function is run in another process and calls
+    the callback function when the datafile changes (either its MD5 hash or
+    modification time).
 
-Usage:
+    Usage:
 
-    # file = datafile name
-    # Callback = callback function to be called when datafile changes
-    
-    import changed_datafile
-    import multiprocessing as mp
-    
-    # Use an integer variable to tell the child process to exit
-    done = mp.Value("i", 0)
-    
-    p = mp.Process(target=changed_datafile.CheckFile,
-                   args=(file, Callback, done))
-    p.start()
-        ... run main application code ...
-    done.value = 1  # This signals child process to return
-    p.join()        # Main process blocks until child process returns
-    
-Run this file as a script to see a demonstration.
-"""
-##∞test∞# notest #∞test∞#
+        # file = datafile name
+        # Callback = callback function to be called when datafile changes
+        
+        import changed_datafile
+        import multiprocessing as mp
+        
+        # Use an integer variable to tell the child process to exit
+        done = mp.Value("i", 0)
+        
+        p = mp.Process(target=changed_datafile.CheckFile,
+                    args=(file, Callback, done))
+        p.start()
+            ... run main application code ...
+        done.value = 1  # This signals child process to return
+        p.join()        # Main process blocks until child process returns
+        
+    Run this file as a script to see a demonstration.
+'''
 if 1:   # Header
-    import hashlib
-    import os
-    import time
-    ii = isinstance
-def CheckFile(file, func, done, hash=False):
-    """Call the function func when the hash or mtime of file changes.
-    done is a multiprocessing.Value variable for an integer; when it is
-    True, this function returns.  Note func has no arguments.
-    
-    file can be a string or a pathlib.Path instance.
-    
-    Set CheckFile.delay in seconds to control how often the check is
-    made.  You can experiment with the value to get the application
-    response you need.
-    
-    Set CheckFile.dbg to True for debug printing to stdout.
-    """
-    def GetFileState(file, hash):
-        if hash:
-            m = hashlib.md5()
-            b = open(file, "rb").read() if ii(file, str) else p.read_bytes()
-            m.update(b)
-            return m.digest()
-        else:
-            m = os.stat(file) if ii(file, str) else file.stat()
-            return m.st_mtime
-    if CheckFile.dbg:
-        print(f"CheckFile child process started (pid = {os.getpid()})")
-        print(f"  file = {file!r}")
-        print(f"  func = {func}")
-        print(f"  done = {done.value}\n")
-    if done.value:
+    _pgminfo = '''
+        <oo gist ∞ Run a function when a file changes oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2025 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ category oo>
+        <oo test ∞ notest oo>
+        <oo todo ∞
+
+            - ∞∞3 Make this a module
+
+        oo>
+    '''
+    if 1:   # Standard imports
+        import hashlib
+        import os
+        import time
+    if 1:   # Custom imports
+        pass
+if 1:   # Core functionality
+    def CheckFile(file, func, done, hash=False):
+        '''Call the function func when the hash or mtime of file changes.
+        done is a multiprocessing.Value variable for an integer; when it is
+        True, this function returns.  Note func has no arguments.
+        
+        file can be a string or a pathlib.Path instance.
+        
+        Set CheckFile.delay in seconds to control how often the check is
+        made.  You can experiment with the value to get the application
+        response you need.
+        
+        Set CheckFile.dbg to True for debug printing to stdout.
+        '''
+        def GetFileState(file, hash):
+            if hash:
+                m = hashlib.md5()
+                b = open(file, "rb").read() if isinstance(file, str) else p.read_bytes()
+                m.update(b)
+                return m.digest()
+            else:
+                m = os.stat(file) if isinstance(file, str) else file.stat()
+                return m.st_mtime
         if CheckFile.dbg:
-            print("\nCheckFile child process exiting immediately")
-        return
-    old_state = GetFileState(file, hash)
-    while True:
+            print(f"CheckFile child process started (pid = {os.getpid()})")
+            print(f"  file = {file!r}")
+            print(f"  func = {func}")
+            print(f"  done = {done.value}\n")
         if done.value:
             if CheckFile.dbg:
-                print(f"\nCheckFile child process exiting (pid = {os.getpid()})")
+                print("\nCheckFile child process exiting immediately")
             return
-        time.sleep(CheckFile.delay)
-        new_state = GetFileState(file, hash)
-        if new_state != old_state:
-            func()  # Alert other process file changed
-            old_state = new_state
+        old_state = GetFileState(file, hash)
+        while True:
+            if done.value:
+                if CheckFile.dbg:
+                    print(f"\nCheckFile child process exiting (pid = {os.getpid()})")
+                return
             time.sleep(CheckFile.delay)
-CheckFile.delay = 0.5
-CheckFile.dbg = False
+            new_state = GetFileState(file, hash)
+            if new_state != old_state:
+                func()  # Alert other process file changed
+                old_state = new_state
+                time.sleep(CheckFile.delay)
+    CheckFile.delay = 0.5
+    CheckFile.dbg = False
+
 if __name__ == "__main__":
     from timer import sw
     import multiprocessing as mp
