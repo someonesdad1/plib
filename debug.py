@@ -1,10 +1,4 @@
 '''
-
-- Make AutoIndent a context manager.  Then something like
-    with AutoIndent() as f:
-        do stuff
-  and reconnection of stdout would be automatic.
-  
 Debugging tools
     Set debug.on to True to debug.
     
@@ -48,20 +42,28 @@ Debugging tools
         D. Beazley, "Python Essential Reference", 4th ed. (Kindle version)
 '''
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2009, 2014 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # <programming> Debugging aids (taken from the "Python Cookbook" and
-        # Beazley's "Python Essential Reference", 4th edition).
-        ##∞what∞#
-        ##∞test∞# notest #∞test∞#
-        pass
+    _pgminfo = '''
+        <oo gist ∞ oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2009, 2014 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ utility oo>
+        <oo test ∞ notest oo>
+        <oo todo ∞ 
+
+            - Make AutoIndent a context manager.  Then something like
+                with AutoIndent() as f:
+                    do stuff
+                and reconnection of stdout would be automatic.
+            - ∞∞1 Enable things with an environment variable e.g. 'Debug=1'
+  
+        oo>
+    '''
     if 1:   # Standard imports
         import sys
         import traceback as TB
@@ -566,7 +568,7 @@ if __name__ == "__main__":
     if 1:  # watch and trace
         print(dedent(f'''
         {t.ti}watch() and trace(){t.n}
- 
+         
         These function calls can be put inside functions to allow you to
         watch how objects change their values.  Note the convenience of
         colorizing the output (you could add logic that changed the color
@@ -576,40 +578,35 @@ if __name__ == "__main__":
         )
         def test1():
             x, y = 17, -44.3
-            watch((x, y), color="grnl")
+            watch((x, y), color="grn")
             trace("Trace message")
         class A:
             def f(self):
                 s = "a string"
-                watch((s,), color="magl")
+                watch((s,), color="mag")
         test1()
         a = A()
         a.f()
         Sep()
     if 1:  # Demonstrate an unhandled exception
-        print(
-            dedent(f'''
+        print( dedent(f'''
         {t.ti}Demonstrate an unhandled exception{t.n}
- 
+         
         This example shows how DumpException() prints a backtrace followed by
         printing the local variables for each of the stack frames.  If you have
         the color.py module, you'll see the variables 'data' and 'thing'
         highlighted in color.
- 
-        ''')
-        )
+        '''))
         TestDump()
         Sep()
     if 1:  # Demonstrate tracing to a stream
-        print(
-            dedent(f'''
+        print(dedent(f'''
         {t.ti}Demonstrate tracing to a stream{t.n}
- 
+        
         This example shows how @ShowFunctionCall decorates a function to allow
         function calls and their return values to be monitored.  If the global
         variable enable_tracing is False, there's no output and little overhead
         is added.
- 
         ''')
         )
         enable_tracing = True
@@ -626,12 +623,10 @@ if __name__ == "__main__":
     if 1:  # DumpArgs function
         print(dedent(f'''
         {t.ti}DumpArgs function demo{t.n}
- 
+         
         The following code demonstrates the DumpArgs function, a
         decorator that will dump a function's arguments.
- 
-        ''')
-        )
+        '''))
         @DumpArgs
         def func(a, b):
             print("  Inside func:  a =", a)
@@ -662,7 +657,7 @@ if __name__ == "__main__":
         Autoindent isn't affected by debug.on.
  
         '''))
-        sys.stdout = AutoIndent(indent=f"{t('sky')}|{t.n}   ")
+        sys.stdout = AutoIndent(indent=f"{t('sky')}·{t.n} ")
         def A():
             print("Entered A()")
             print("Do something...")

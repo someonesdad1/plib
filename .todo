@@ -1,5 +1,10 @@
 /plib/.todo
 
+    - todo.py
+        - Finds the ∞∞ strings that are prioritized and makes up a todo list from them
+            - ∞∞1 is highest priority
+        - Should just work first for /plib and /plib/pgm if no args and in the /plib
+          tree
     - bash functions
         - I have over 320 functions, way too many to remember.  I need some way of
           starting the rarely-used ones by e.g. showing me the category and letting me
@@ -106,6 +111,21 @@
           indenting works to show you the overall structure & sections.
 
     - color.py
+        - Styles
+            - Pass t.styles() a dict; the dict's names become attribute names with the
+              associated formatting.  You add them with t.push(dict) and take them off
+              with t.pop().  This lets you have a subroutine use its own set of colors,
+              then let the calling routine resume its colors.
+            - Would it make sense to derive t from dict?  Then colors would always have
+              to be gotten like t["name"], which is clumsy in f-strings.  Attribute
+              access is cleaner syntactically.
+            - Could a t instance also be a primitive text formatter?  This could have a
+              method t.fmt(s) that would process the passed string to identify
+              formatting commands and color style changes.
+                - With a trigger string such as .., new colors could be put in text
+                  with commands like ..abc>, where abc is a defined style or color.  The
+                  > would be the termination character.  Or, it might be even simpler
+                  with esc being the start and esc being the end.
         - Rearchitect?
             - I think the overwhelming use of the color.py module is for getting
               colorized output to the terminal
