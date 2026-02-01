@@ -1,19 +1,22 @@
-'''
-
-Description here
-
-'''
-_pgminfo = '''
-<oo 
-    desc
-oo>
-<oo cr Copyright © 2025 Don Peterson oo>
-<oo cat oo>
-<oo test none oo>
-<oo todo oo>
-'''
- 
 if 1:  # Header
+    _pgminfo = '''
+        <oo gist ∞ oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2026 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ category oo>
+        <oo test ∞ notest oo>
+        <oo todo ∞ 
+
+            -- ∞∞1 What was this file's purpose (it looks like a refactoring)?
+
+        oo>
+    '''
     ##∞test∞# notest #∞test∞#
     if 1:   # Standard imports
         import csv
@@ -36,8 +39,7 @@ if 1:  # Header
             pass
         g = G()
         g.dbg = False
-        ii = isinstance
-        __all__ = "attributes elements symbols Element".split()
+        __all__ = "elements symbols Element".split()
 if 1:   # Classes
     class Element:
         attributes = None   # Will hold the attributes' names and definitions dict
@@ -124,7 +126,7 @@ if 1:   # Classes
                     c = t.brnl
                 else:
                     c = ""
-                if ii(di[i], str) and di[i] == "--":
+                if isinstance(di[i], str) and di[i] == "--":
                     o.append(f"{t.none}{i} = {t.n}")
                 else:
                     o.append(f"{c}{i} = {di[i]} {u}{t.n}" if u else f"{c}{i} = {di[i]}{t.n}")

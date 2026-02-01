@@ -1,4 +1,4 @@
-"""
+'''
 
 Construct the python module /plib/eevblog_data.py that lets the EEVblog episodes from
 https://www.eevblog.com/episodes/ be searched.  The /plib/pgm/eev.py script can be used to do
@@ -9,27 +9,27 @@ Instructions to create the needed data for this script:
     - Press ctrl-U to view the page source
     - Select all the text and go to /home/don/dp and save it in a file using vi in 'eevblog.data'
     - Run this script and it will create /plib/eevblog_data.py
-
+    
 Import this module and the eevblog global variable will be a dictionary with the episode's title
 as the key and the value will be the relevant URL.  Note that as of 1 Jan 2025 not all the early
 titles load pages with a video link.
 
-"""
-
+'''
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # Program description string
-        ##∞what∞#
-        ##∞test∞# notest #∞test∞#
-        pass
+    _pgminfo = '''
+        <oo gist ∞ Construct the python module /plib/eevblog_data.py oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2024 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ elec oo>
+        <oo test ∞ notest oo>
+        <oo todo ∞ oo>
+    '''
     if 1:  # Standard imports
         from pathlib import Path as P
         import re
@@ -37,27 +37,23 @@ if 1:  # Header
     if 1:  # Custom imports
         from dptime import dpdatetime
         from color import t
-
         if 0:
             import debug
-
             debug.SetDebugger()
 if 1:  # Core functionality
-
     class Title:
-        """Class to regularize the title.  Note there are a number of things needing fixes, as
+        '''Class to regularize the title.  Note there are a number of things needing fixes, as
         the website was written by a human, not a script.
-        """
-
+        '''
         def __init__(self, title):
-            """We'll standardize on the following properties
+            '''We'll standardize on the following properties
             n           EEVblog number (most are numbered in sequence).  None if no number.
             title       Basic title with no 'EEVblog dddd -'.
             part        Part number (<= numparts), None if not a multipart
             numparts    Number of parts, None if not a multipart
-
+            
             The __str__ form is what should be used to print the title to the screen.
-            """
+            '''
             # Remove leading and trailing " characters
             if title[0] == '"':
                 title = title[1:]
@@ -104,18 +100,16 @@ if 1:  # Core functionality
                 return
             # Set our title
             self.title = title
-
         def __str__(self):
             return self.title
-
     def CreateModule():
-        """Create the /plib/eevblog_data.py module file that has a dict of titles and the relevant
+        '''Create the /plib/eevblog_data.py module file that has a dict of titles and the relevant
         URL to the web page.
-
+        
         To create this, load the url in the browser, view the source, copy it to the clipboard, then
         pasted it to /home/don/dp/eevblog.data.  This function will open it and create the module from
         it.
-        """
+        '''
         url = "https://www.eevblog.com/"
         module = P("/plib/eevblog_data.py")
         datafile = P("/home/don/dp/eevblog.data")
@@ -153,7 +147,6 @@ if 1:  # Core functionality
                 title = Title(title)
                 print(f'{" " * 4}"{title!s}": "{page_url}",', file=f)
             print("}", file=f)
-
 
 if __name__ == "__main__":
     CreateModule()

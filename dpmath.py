@@ -1,28 +1,34 @@
-'''
-Todo
-    - Change to std form
-    - SignSignificandExponent:  allow it to also process Decimal and mpmath numbers.  Also change
-      the significand to be a string instead of a float; this allows it to be used with mpmath and
-      Decimal numbers.  First check what python scripts under plib would be affected by this type
-      change.
-      
-Math-related functions
-'''
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # <math> Math-related functions
-        ##∞what∞#
-        ##∞test∞# run #∞test∞#
-        pass
-    if 1:  # Imports
+    _pgminfo = '''
+        <oo gist ∞ Math-related functions oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2014 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ math oo>
+        <oo test ∞ run oo>
+        <oo todo ∞ 
+
+            - ∞∞2 Write docstring so pydoc works on it
+            - SpiralArcLength() and RollArcLength() are duplicated in pgm/spiral,
+              although this module would be a good location for the spiral-related
+              functions
+            - SignSignificandExponent:  allow it to also process Decimal and mpmath
+              numbers.  Also change the significand to be a string instead of a float;
+              this allows it to be used with mpmath and Decimal numbers.  First check
+              what python scripts under plib would be affected by this type change.
+            - Polynomial stuff:  itertool's examples (e.g. polynomial_eval) may have
+              more efficient/standard implementations that can replace this stuff.
+              Could also be customized to return flt instead of float, although the
+              general techniques are type-unaware.
+
+        oo>
+    '''
+    if 1:  # Standard imports
         import math
         import string
         from fractions import Fraction

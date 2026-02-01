@@ -55,24 +55,21 @@ Provides dec(Decimal) objects with custom string interpolation
     decimal.BasicContext and decimal.ExtendedContext instances used a precision of nine.
 '''
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # <math> Provides a dec object that is derived from decimal.Decimal but
-        # has custom string interpolation, letting you only see a few
-        # significant figures.  It also "infects" calculations with its type,
-        # providing a number class for general-purpose calculations without the
-        # limitations of the float type.
-        ##∞what∞#
-        ##∞test∞# run #∞test∞#
-        pass
-    if 1:  # Imports
+    _pgminfo = '''
+        <oo gist ∞ Provides Decimal objects with custom string interpolation oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2021 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ math oo>
+        <oo test ∞ run oo>
+        <oo todo ∞ oo>
+    '''
+    if 1:  # Standard imports
         import decimal
         import locale
         from collections import deque
@@ -92,8 +89,6 @@ if 1:  # Header
     if 1:  # Global variables
         ii = isinstance
         D = decimal.Decimal
-        class g:
-            pass
 if 1:  # Classes
     class dec(decimal.Decimal):
         '''Provides decimal.Decimal numbers with custom string interpolation.
@@ -350,7 +345,6 @@ if 1:  # Functions
         w = 25
         u = "Error:  {n:{w}s}: {e}"
         def Type(z):
-            global g
             s = str(type(z))[1:-1].replace("class", "").replace("'", "").strip()
             if s == "decimal.Decimal":
                 s = t.grnl + s + t.n
@@ -485,6 +479,7 @@ if 1:  # Functions
         f = [F(i) for i in ctx.traps]
         for i in Columnize(f, indent=indent * 2):
             print(i)
+
 if __name__ == "__main__":
     if 1:  # Header
         if 1:  # Imports

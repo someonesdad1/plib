@@ -4,22 +4,32 @@ Use /usr/bin/factor to provide the prime factorization of integers
     Factor(3141596) produces 2^2*37*21227
 '''
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # Provide Factor(x), which factors integers using /usr/bin/factor
-        ##∞what∞#
-        ##∞test∞# --test #∞test∞#
-        pass
+    _pgminfo = '''
+        <oo gist ∞ Use /usr/bin/factor to factor integers oo>
+        <oo desc ∞ 
+            Benefit:  handles large integers; weakness is speed for lots of
+            factorings
+        oo>
+        <oo copy ∞ Copyright © 2023 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ math oo>
+        <oo test ∞ --test oo>
+        <oo todo ∞ 
+        
+            - ∞∞2 Move to primes.py?
+        
+        oo>
+    '''
     if 1:  # Standard imports
         from collections import deque, defaultdict
         import subprocess
+    if 1:  # Custom imports
+        pass
     if 1:  # Global variables
         ii = isinstance
 if 1:  # Core functionality

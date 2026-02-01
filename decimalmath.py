@@ -1,142 +1,133 @@
-"""
-
-- To Do
-    - Add a complex Decimal number and modify the elementary functions to
-      take either real or complex arguments.  The tests should duplicate
-      the math/cmath functions' behaviors to e.g. 15 figures.
-    - Here are the functions in cmath that need to be support complex
-      numbers
-        - Trig
-            - acos(x)
-            - asin(x)
-            - atan(x)
-            - cos(x)
-            - sin(x)
-            - tan(x)
-            - phase(x)
-            - polar(x)
-            - rect(r, phi)
-        - Hyperbolic
-            - acosh(x)
-            - asinh(x)
-            - atanh(x)
-            - cosh(x)
-            - sinh(x)
-            - tanh(x)
-        - Exponential, logarithmic
-            - exp(x)
-            - log(x[, base])
-            - log10(x)
-        - Other
-            - sqrt(x)
-            - isfinite(x)
-            - isinf(x)
-            - isnan(x)
-            - isclose(a, b, *, rel_tol=1e-09, abs_tol=0.0)
-            - pi
-            - e
-            - tau
-            - inf
-            - infj
-            - nan
-            - nanj
-
+'''
 Elementary functions for the python Decimal library
-
-Opinion:  if you need arbitrary precision floating point calculations, I
-suggest using mpmath instead of this module because:
-    - Real and complex numbers are supported
-    - Most functions are defined over the complex plane
-    - mpmath has been around for 15 years and has a good track record
-
-"""
-
+    - Opinion:  if you need arbitrary precision floating point calculations, I suggest
+      using mpmath instead of this module because:
+        - Real and complex numbers are supported
+        - Most functions are defined over the complex plane
+        - mpmath has been around for 15 years and has a good track record
+'''
 if 1:  # Header
-    # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    ##∞copyright∞# Copyright (C) 2006, 2012 Don Peterson #∞copyright∞#
-    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    ##∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    ##∞license∞#
-    ##∞what∞#
-    # <math> Elementary math functions for the python Decimal library.
-    # Provides a number of the real-valued functions that are in the math
-    # module.
-    ##∞what∞#
-    ##∞test∞# run #∞test∞#
-    # Imports
-    import decimal
-    import math
+    _pgminfo = '''
+        <oo gist ∞ Elementary functions for the python Decimal library oo>
+        <oo desc ∞ 
+            Provides a number of the real-valued functions that are in the math module
+        oo>
+        <oo copy ∞ Copyright © 2006, 2012 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ category oo>
+        <oo test ∞ run oo>
+        <oo todo ∞
 
-    # Custom imports
-    from wrap import dedent
+            - Add a complex Decimal number and modify the elementary functions to take
+              either real or complex arguments.  The tests should duplicate the
+              math/cmath functions' behaviors to e.g. 15 figures.
+            - Here are the functions in cmath that need to be support complex numbers
+                - Trig
+                    - acos(x)
+                    - asin(x)
+                    - atan(x)
+                    - cos(x)
+                    - sin(x)
+                    - tan(x)
+                    - phase(x)
+                    - polar(x)
+                    - rect(r, phi)
+                - Hyperbolic
+                    - acosh(x)
+                    - asinh(x)
+                    - atanh(x)
+                    - cosh(x)
+                    - sinh(x)
+                    - tanh(x)
+                - Exponential, logarithmic
+                    - exp(x)
+                    - log(x[, base])
+                    - log10(x)
+                - Other
+                    - sqrt(x)
+                    - isfinite(x)
+                    - isinf(x)
+                    - isnan(x)
+                    - isclose(a, b, *, rel_tol=1e-09, abs_tol=0.0)
+                    - pi
+                    - e
+                    - tau
+                    - inf
+                    - infj
+                    - nan
+                    - nanj
 
-    if 0:
-        import debug
-
-        debug.SetDebugger()
-    # Global variables
-    ii = isinstance
-    __all__ = """
-            acos acosh asin asinh atan atan2 atanh ceil copysign cos cosh
-            degrees e exp expm1 f2d fabs FindRoot floor fmod hypot isclose
-            IsDecimal isfinite isinf isnan log log10 log1p log2 modf pi pow
-            radians remainder sin sinh sqrt tan tanh tau trunc
-            inf ninf nan Dec
-            """.split()
-    Dec = decimal.Decimal
-    zero, one, two, three, four, nine, ten = [Dec(i) for i in (0, 1, 2, 3, 4, 9, 10)]
-    half = Dec("0.5")
-    inf, ninf, nan = Dec("inf"), Dec("-inf"), Dec("nan")
-    precision_increment = 4
-    __doc__ = dedent("""
-        Elementary functions for the python Decimal library.
-        
-        Function      Domain            Range
-        --------      ------            -----
-        acos        -1 to 1           0 to pi
-        asin        -1 to 1           -pi/2 to pi/2
-        atan        -oo to oo         -pi/2 to pi/2
-        atan2       Two arguments     -pi to pi
-        cos         Any real          -1 to 1
-        exp         Any real          (0, oo]
-        ln          Any real > 0      -oo to oo
-        log10       Any real > 0      -oo to oo
-        pi          --                --
-        pow         Two arguments     -oo to oo
-        sin         Any real          -1 to 1
-        sqrt        Any real > 0      Real > 0
-        tan         Any real          -oo to oo
-        
-        The calculation strategy of this module is to calculate pi, exp, sin,
-        and cos by power series; the code for these is taken from examples in
-        the Decimal documentation.  The remaining functions can be calculated
-        from these core functions using a root-finding function.
-        
-        This module has been tested with:
-        
-            python 2.6.5 with mpmath 0.12
-            python 3.2.2 with mpmath 0.17
-            Python 2.7.16 cygwin with mpmath 1.0.0
-            Python 3.7.4 cygwin with mpmath 1.1.0
-            Python 3.7.10 cygwin with mpmath 1.1.0
-        
-        mpmath (http://code.google.com/p/mpmath/) is not needed for normal
-        use; it is used to provide reference values for testing.
-        """)
+        oo>
+    '''
+    if 1:   # Standard imports
+        import decimal
+        import math
+    if 1:   # Custom imports
+        from wrap import dedent
+        if 0:
+            import debug
+            debug.SetDebugger()
+    if 1:   # Global variables
+        ii = isinstance
+        __all__ = '''
+                acos acosh asin asinh atan atan2 atanh ceil copysign cos cosh
+                degrees e exp expm1 f2d fabs FindRoot floor fmod hypot isclose
+                IsDecimal isfinite isinf isnan log log10 log1p log2 modf pi pow
+                radians remainder sin sinh sqrt tan tanh tau trunc
+                inf ninf nan Dec
+                '''.split()
+        Dec = decimal.Decimal
+        zero, one, two, three, four, nine, ten = [Dec(i) for i in (0, 1, 2, 3, 4, 9, 10)]
+        half = Dec("0.5")
+        inf, ninf, nan = Dec("inf"), Dec("-inf"), Dec("nan")
+        precision_increment = 4
+        __doc__ = dedent('''
+            Elementary functions for the python Decimal library.
+            
+            Function      Domain            Range
+            --------      ------            -----
+            acos        -1 to 1           0 to pi
+            asin        -1 to 1           -pi/2 to pi/2
+            atan        -oo to oo         -pi/2 to pi/2
+            atan2       Two arguments     -pi to pi
+            cos         Any real          -1 to 1
+            exp         Any real          (0, oo]
+            ln          Any real > 0      -oo to oo
+            log10       Any real > 0      -oo to oo
+            pi          --                --
+            pow         Two arguments     -oo to oo
+            sin         Any real          -1 to 1
+            sqrt        Any real > 0      Real > 0
+            tan         Any real          -oo to oo
+            
+            The calculation strategy of this module is to calculate pi, exp, sin,
+            and cos by power series; the code for these is taken from examples in
+            the Decimal documentation.  The remaining functions can be calculated
+            from these core functions using a root-finding function.
+            
+            This module has been tested with:
+            
+                python 2.6.5 with mpmath 0.12
+                python 3.2.2 with mpmath 0.17
+                Python 2.7.16 cygwin with mpmath 1.0.0
+                Python 3.7.4 cygwin with mpmath 1.1.0
+                Python 3.7.10 cygwin with mpmath 1.1.0
+            
+            mpmath (http://code.google.com/p/mpmath/) is not needed for normal
+            use; it is used to provide reference values for testing.
+            ''')
 if 1:  # Utility functions
-
     def IsDecimal(*x):
         for i, val in enumerate(x):
             if not ii(val, Dec):
                 msg = f"Argument {i + 1} '{val}' is not Decimal type"
                 raise ValueError(msg)
-
-
 if 1:  # Constants
-
     def pi():
         "Returns pi to the current precision"
         # Algorithm from Decimal documentation's recipes
@@ -150,16 +141,11 @@ if 1:  # Constants
                 t = (t * n) / d
                 s += t
         return +s  # Force rounding to current precision
-
     def tau():
         return two * pi()
-
     def e():
         return exp(one)
-
-
 if 1:  # Trigonometric
-
     def sin(x):
         "Returns the sine of x; x is in radians"
         IsDecimal(x)
@@ -184,10 +170,9 @@ if 1:  # Trigonometric
                 sign *= -1
                 s += num / fact * sign
         return +s  # Force rounding to current precision
-
     def cos(x):
         "Returns the cosine of x; x is in radians"
-        """
+        '''
         Implementation note:  an argument proportional to pi/2 is
         problematic because the cosine of such an angle is zero.  However,
         for the default precision of 28 digits, the power series below will
@@ -200,7 +185,7 @@ if 1:  # Trigonometric
         A further problem is that a large integer multiplied by pi/2 should
         also have a cosine that is zero, but this gets harder to detect
         because the fractional part has fewer digits.
-        """
+        '''
         IsDecimal(x)
         if not x:
             return one
@@ -227,14 +212,12 @@ if 1:  # Trigonometric
         if abs(s) < eps:
             return 0
         return +s
-
     def tan(x):
         "Returns the tangent of x; x is in radians"
         IsDecimal(x)
         if x == zero:
             return zero
         return sin(x) / cos(x)
-
     def asin(x):
         "Returns the inverse sine (in radians) of x"
         # The algorithm uses the root finder with the sine function as
@@ -265,7 +248,6 @@ if 1:  # Trigonometric
             assert (math.sin(low) - float(x)) * (math.sin(high) - float(x)) < 0
             root = FindRoot(low, high, lambda t: sin(t) - x)[0]
         return +root  # Force rounding to current precision
-
     def acos(x):
         "Returns the inverse cosine (in radians) of x"
         # The algorithm uses the root finder with the cosine function as
@@ -290,7 +272,6 @@ if 1:  # Trigonometric
             assert (math.cos(low) - float(x)) * (math.cos(high) - float(x)) < 0
             root = FindRoot(low, high, lambda t: cos(t) - x)[0]
         return +root  # Force rounding to current precision
-
     def atan(x):
         "Returns the inverse tangent (in radians) of x"
         # The algorithm uses the root finder with the tangent function as
@@ -316,11 +297,10 @@ if 1:  # Trigonometric
             assert (math.tan(low) - float(x)) * (math.tan(high) - float(x)) < 0
             root = FindRoot(low, high, lambda t: tan(t) - x)[0]
         return +root  # Force rounding to current precision
-
     def atan2(y, x):
-        """Returns the inverse tangent of y/x (in radians) and gets the
+        '''Returns the inverse tangent of y/x (in radians) and gets the
         correct quadrant.
-        """
+        '''
         IsDecimal(x, y)
         Pi = pi()
         if x == zero:
@@ -340,27 +320,20 @@ if 1:  # Trigonometric
             s = 1 if y > zero else -1
             theta = s * Pi - theta
         return +theta
-
     def degrees(x):
         IsDecimal(x)
         return x * 180 / pi()
-
     def radians(x):
         IsDecimal(x)
         return x * pi() / 180
-
     def hypot(x, y):
         IsDecimal(x, y)
         return sqrt(x * x + y * y)
-
-
 if 1:  # Exponential and logarithmic
-
     def exp(x):
         "Returns e raised to the power of x"
         IsDecimal(x)
         return x.exp()
-
     def expm1(x):
         "exp(x) - 1, avoiding loss of significance for small x"
         IsDecimal(x)
@@ -377,14 +350,12 @@ if 1:  # Exponential and logarithmic
                 term *= x
                 s += term / fact
         return +s  # Force rounding to current precision
-
     def log10(x):
         "Returns the base 10 logarithm of x"
         IsDecimal(x)
         if x <= zero:
             raise ValueError("Argument must be > 0")
         return x.log10()
-
     def log(x, base=None):
         "Returns the logarithm of x to the indicated base (e if base is None)"
         # Use the native method, as the old method was to use a root finder
@@ -402,15 +373,13 @@ if 1:  # Exponential and logarithmic
             return ln
         else:
             return ln / log(base)
-
     def log2(x):
         IsDecimal(x)
         return log(x, base=two)
-
     def log1p(x):
-        """Returns log(1 + x) and is accurate when x << 1.  If x > 0.1, will
+        '''Returns log(1 + x) and is accurate when x << 1.  If x > 0.1, will
         raise an exception because convergence is very slow.
-        """
+        '''
         # The Maclaurin expansion is
         #     x - x**2/2 + x**3/3 - x**4/4 + x**5/5 - x**6/6 + ...
         IsDecimal(x)
@@ -429,7 +398,6 @@ if 1:  # Exponential and logarithmic
                 s += term
                 print(s)
         return +s  # Force rounding to current precision
-
     def pow(y, x):
         "Returns y raised to the power x"
         if not ii(x, (Dec, int)):
@@ -466,41 +434,30 @@ if 1:  # Exponential and logarithmic
             else:
                 retval = exp(x * log(y))
         return +retval  # Force rounding to current precision
-
-
 if 1:  # Hyperbolic
-
     def cosh(x):
         IsDecimal(x)
         y = exp(x)
         return (y + one / y) / two
-
     def acosh(x):
         IsDecimal(x)
         return log(x + sqrt(x * x - one))
-
     def sinh(x):
         IsDecimal(x)
         y = exp(x)
         return (y - one / y) / two
-
     def asinh(x):
         IsDecimal(x)
         return log(x + sqrt(x * x + one))
-
     def tanh(x):
         IsDecimal(x)
         y = exp(x)
         a = one / y
         return (y - a) / (y + a)
-
     def atanh(x):
         IsDecimal(x)
         return log((one + x) / (one - x)) / two
-
-
 if 1:  # Miscellaneous
-
     def sqrt(x):
         "Returns the square root of x"
         IsDecimal(x)
@@ -511,35 +468,30 @@ if 1:  # Miscellaneous
         if x == one:
             return one
         return x.sqrt()
-
     def ceil(x):
         "Smallest integer > x"
         IsDecimal(x)
         return 0 if x == zero else -int(-x) if x < 0 else int(x) + 1
-
     def floor(x):
         "Largest integer < x"
         IsDecimal(x)
         return 0 if x == zero else -int(-x) - 1 if x < 0 else int(x)
-
     def copysign(x, y):
         IsDecimal(x)
         return x.copy_sign(y)
-
     def f2d(x):
-        """Convert a floating point number x to a Decimal.  See the
+        '''Convert a floating point number x to a Decimal.  See the
         decimal module's documentation for warnings about doing such
         things.
-        """
+        '''
         if not ii(x, (float, str)):
             raise ValueError("x needs to be a float or string")
         if ii(x, float):
             return Dec("0").from_float(x)
         else:
             return Dec(x)
-
     def FindRoot(x0, x2, f, maxit=50, show=False):
-        """Returns (root, n, eps)
+        '''Returns (root, n, eps)
         root    Root of f(x) == 0 where x0 <= root <= x2
         n       Number of iterations to converge
         eps     Estimated precision of answer.  The iteration terminates if
@@ -550,11 +502,11 @@ if 1:  # Miscellaneous
         maxit   Maximum number of iterations.  Raises a ValueError
                 exception if maxit is exceeded.
         show    If True, print out intermediate values.
-
+        
         Reference:  "All Problems Are Simple" by Jack Crenshaw, Embedded
         Systems Programming, May, 2002, pg 7-14.  Translated from Jack's C
         code on 20 May 2003.
-
+        
         Algorithm:  Inverse parabolic interpolation algorithm to find the
         roots.  Jack states this routine will converge rapidly on most
         functions, typically adding 4 digits to the solution on each
@@ -563,11 +515,11 @@ if 1:  # Miscellaneous
         horizontally-opening parabola is fitted to the points.  The
         parabola's root's abscissa is gotten, and the iteration is
         repeated.
-
+        
         Note:  Jack commented that this routine was written by some unknown
         genius at IBM and was in IBM's FORTRAN library code in the 1960's.
         Jack has done quite a bit of work to popularize it.
-        """
+        '''
         # We'll find the value to a precision that is 10**(-n + 1) where
         # n is the current number of Decimal digits.  Note:  we add 1
         # because there are two guard digits and, if 1 wasn't added, some
@@ -640,55 +592,47 @@ if 1:  # Miscellaneous
             if show:
                 print(xm)
         raise ValueError(f"FindRoot:  no convergence after {maxit} iterations")
-
     def fabs(x):
         IsDecimal(x)
         return -x if x < zero else x if x > zero else zero
-
     def fmod(x, y):
-        """fmod is the floating point analog of x % y.  It tells you the
+        '''fmod is the floating point analog of x % y.  It tells you the
         remainder after subtracting an integer number of y's from x.
-        """
+        '''
         IsDecimal(x, y)
         return (-1 if x < 0 else 1) * (abs(x) - int(abs(x / y)) * abs(y))
-
     def isinf(x):
         IsDecimal(x)
         return x == inf or x == ninf
-
     def isnan(x):
         IsDecimal(x)
         ctx = getcontext()
         return ctx.is_qnan(x) or ctx.is_snan(x)
-
     def isfinite(x):
         IsDecimal(x)
         return not isinf(x) and not isnan(x)
-
     def isclose(a, b, rel_tol=zero, abs_tol=zero):
-        """Returns True of a and b are close to each other.  Note this used
+        '''Returns True of a and b are close to each other.  Note this used
         different keyword defaults than math.isclose().
-        """
+        '''
         IsDecimal(a, b, rel_tol, abs_tol)
         abmax = max(abs(a), abs(b))
         return abs(a - b) <= max(rel_tol * abmax, abs_tol)
-
     def modf(x):
         "Return (fractional_part, integer_part)"
         IsDecimal(x)
         ip = Dec(floor(abs(x)))
         fp = abs(x) - ip
         return (fp.copy_sign(x), ip.copy_sign(x))
-
     def remainder(x, y):
-        """Returns x - n*y where n is the closest integer to x/y.  If x/y is
+        '''Returns x - n*y where n is the closest integer to x/y.  If x/y is
         halfway between two integers, it's rounded to the nearest even integer.
         The sign is the same as the original dividend.
-
+        
         remainder() produces a number on the closed interval [-y/2, y/2].  See
         https://stackoverflow.com/questions/26671975/why-do-we-need-ieee-754-remainder#27378075
         for a trigonometric example.
-        """
+        '''
         IsDecimal(x)
         IsDecimal(y)
         fp, ip = modf(abs(x / y))
@@ -699,12 +643,10 @@ if 1:  # Miscellaneous
         elif fp > half:
             ip += 1
         return sign * (abs(x) - ip * abs(y))
-
     def trunc(x):
         IsDecimal(x)
         sign = -1 if x < 0 else 1 if x > 0 else 0
         return sign * int(abs(x))
-
 
 if __name__ == "__main__":
     # Use mpmath (http://mpmath.org/) to generate the numbers to test
@@ -715,7 +657,6 @@ if __name__ == "__main__":
     from wrap import dedent
     from lwtest import run, raises, assert_equal, Assert
     from functools import partial
-
     getcontext = decimal.getcontext
     localcontext = decimal.localcontext
     mp.mp.dps = getcontext().prec
@@ -723,7 +664,6 @@ if __name__ == "__main__":
     pio2, pio3, pio4, pio6 = Pi / two, Pi / three, Pi / four, Pi / Dec(6)
     eps = ten * ten ** (-Dec(getcontext().prec))
     AssertNearlyEqual = partial(assert_equal, reltol=eps)
-
     def Test_pi():
         s = repr(mp.pi())
         x = eval(s.replace("mpf", "Dec"))
@@ -735,7 +675,6 @@ if __name__ == "__main__":
             s_calc = str(pi())[:-1]
             s_exact = "3.14159265358979323846264338327950288419716939937510"
             assert_equal(s_calc, s_exact)
-
     def Test_trig():
         if 1:  # Regular functions
             # sin
@@ -780,7 +719,6 @@ if __name__ == "__main__":
             AssertNearlyEqual(atan2(one, -one), three * pio4)
             AssertNearlyEqual(atan2(-one, one), -pio4)
             AssertNearlyEqual(atan2(-one, -one), -three * pio4)
-
     def Test_log():
         s = repr(mp.log("0.5"))
         x = eval(s.replace("mpf", "decimal.Decimal"))
@@ -795,7 +733,6 @@ if __name__ == "__main__":
         raises(ValueError, log, -one)
         # Use the Decimal instance's method
         AssertNearlyEqual(log(half), half.ln())
-
     def Test_log10():
         AssertNearlyEqual(log10(half), mp.log10("0.5"))
         AssertNearlyEqual(log10(one), zero)
@@ -804,7 +741,6 @@ if __name__ == "__main__":
         raises(ValueError, log10, -one)
         # Use the Decimal instance's method
         AssertNearlyEqual(log10(half), half.log10())
-
     def Test_pow():
         AssertNearlyEqual(pow(four, half), two)
         AssertNearlyEqual(pow(two, -two), one / four)
@@ -814,7 +750,6 @@ if __name__ == "__main__":
         AssertNearlyEqual(pow(-three, three), Dec(-27))
         AssertNearlyEqual(pow(-three, -three), -one / Dec(27))
         raises(ValueError, pow, -two, 1 / three)
-
     def Test_sqrt():
         AssertNearlyEqual(sqrt(zero), zero)
         AssertNearlyEqual(sqrt(one), one)
@@ -825,7 +760,6 @@ if __name__ == "__main__":
         raises(ValueError, sqrt, -two)
         # Use the Decimal instance's method
         AssertNearlyEqual(sqrt(half), half.sqrt())
-
     def Test_hyperbolic():
         if 1:  # Regular functions
             # sinh
@@ -853,7 +787,6 @@ if __name__ == "__main__":
             AssertNearlyEqual(atanh(zero), zero)
             AssertNearlyEqual(atanh(one / Pi), Dec(str(mp.atanh(str(one / Pi)))))
             raises(decimal.DivisionByZero, atanh, one)
-
     def Test_floor_ceil():
         # Zero
         Assert(floor(zero) == 0)
@@ -870,7 +803,6 @@ if __name__ == "__main__":
         x = -Pi * Dec("1e20")
         Assert(floor(x) == int(x) - 1)
         Assert(ceil(x) == int(x))
-
     def Test_copysign():
         # Check with integers
         Assert(copysign(one, 1) == one)
@@ -886,15 +818,12 @@ if __name__ == "__main__":
         Assert(copysign(-one, -one) == -one)
         Assert(copysign(zero, one) == zero)
         Assert(copysign(zero, -one) == -zero)
-
     def Test_fabs():
         Assert(fabs(zero) == zero)
         Assert(fabs(one) == one)
         Assert(fabs(-one) == one)
-
     def Test_fmod():
         "Compare to results from math.fmod"
-
         def test(a, b):
             x, y = Dec(a), Dec(b)
             dr = fmod(x, y)
@@ -902,7 +831,6 @@ if __name__ == "__main__":
             fr = f2d(math.fmod(X, Y))
             Assert(isclose(dr, fr, rel_tol=Dec("1e-9")))
             Assert(isclose(dr, x % y, rel_tol=Dec("1e-9")))
-
         test(*"98.61 7.73".split())
         test(*"98.61 -7.73".split())
         test(*"-98.61 7.73".split())
@@ -913,7 +841,6 @@ if __name__ == "__main__":
         # Requires Decimals
         raises(ValueError, fmod, one, 2)
         raises(ValueError, fmod, 1, two)
-
     def Test_isinf_isnan_isfinite():
         # isinf
         Assert(isinf(inf))
@@ -930,7 +857,6 @@ if __name__ == "__main__":
         Assert(not isfinite(inf))
         Assert(not isfinite(ninf))
         Assert(not isfinite(nan))
-
     def Test_isclose():
         a, b = one, one + Dec("1e-10")
         # Using default values
@@ -943,7 +869,6 @@ if __name__ == "__main__":
         # Using abs_tol
         Assert(isclose(a, b, abs_tol=Dec("1e-10")))
         Assert(not isclose(a, b, abs_tol=Dec("1e-11")))
-
     def Test_modf():
         with decimal.localcontext() as ctx:
             ctx.prec = 15
@@ -952,7 +877,6 @@ if __name__ == "__main__":
                 fp, ip = modf(s)
                 Assert(fp == +f2d(ffp))
                 Assert(ip == +f2d(fip))
-
     def Test_remainder():
         "Use randomly-generated numbers"
         n, x = 100, 1000
@@ -973,7 +897,6 @@ if __name__ == "__main__":
                 exit(1)
             else:
                 Assert(isclose(fresult, dresult, rel_tol=reltol))
-
     def Test_trunc():
         for i in range(100):
             x = Dec("0.1") + Dec(i)
@@ -982,16 +905,12 @@ if __name__ == "__main__":
             x = -x
             t = trunc(x)
             Assert(t == -i)
-
     def Test_FindRoot():
         with decimal.localcontext() as ctx:
             ctx.prec = 100
             two = Dec(2)
-
             def f(x):
                 return x**two - two
-
             root, n, eps = FindRoot(Dec("1.4"), Dec("1.5"), f)
             Assert(root**two - two <= eps)
-
     exit(run(globals())[0])

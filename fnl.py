@@ -1,319 +1,311 @@
 '''
-Some higher-order functions useful for text processing.  Reference:
-D. Mertz, "Text Processing in Python" (see http://gnosis.cx/TPiP/).
 
-A higher-order function is a function that returns another function or
-takes functions as arguments.
+Some higher-order functions useful for text processing.  Reference: D. Mertz, "Text
+Processing in Python" (see http://gnosis.cx/TPiP/).
 
-This module redefines Mertz's one-liners to become regular functions
-with a bit of documentation.  This helped me understand what they were
-intended to do.
+A higher-order function is a function that returns another function or takes functions
+as arguments.
 
-When run as a script, examples will be printed to stdout showing
-functionality.
+This module redefines Mertz's one-liners to become regular functions with a bit of
+documentation.  This helped me understand what they were intended to do.
 
-Example from Mertz's book (search for '#*------ Boolean algebra of
-composed functions ------#'):
+When run as a script, examples will be printed to stdout showing functionality.
 
-    Suppose you had four functions that process a line of text: f1, f2,
-    f3, and f4.  These functions return Boolean values.  You want each
-    line x of your input text to have (f1(x) or f2(x) be true along with
-    (f3(x) or f4(x)) also true.  This could be done as follows:
+Example from Mertz's book (search for '#*------ Boolean algebra of composed functions
+------#'):
+
+    Suppose you had four functions that process a line of text: f1, f2, f3, and f4.
+    These functions return Boolean values.  You want each line x of your input text to
+    have (f1(x) or f2(x) be true along with (f3(x) or f4(x)) also true.  This could be
+    done as follows:
         satisfied = all(any_f(f1, f2), any_f(f3, f4))
         selected = filter(satisfied, lines)
     or the last line could be the more readable
         selected = [line in lines if satisfied(line)]
 '''
-if 1:  # License
-    # These "trigger strings" can be managed with trigger.py
-    ##∞license∞#
-    # Note: David Mertz's site https://gnosis.cx/TPiP/ appears to state
-    # (downloaded on 10 Jun 2021) that the book's copyright is owned by
-    # Addison-Wesley, but the code samples are released into the public
-    # domain.  Because of this, the following license text is deemed
-    # appropriate.
-    #
-    # This is free and unencumbered software released into the public
-    # domain.
-    #
-    # Anyone is free to copy, modify, publish, use, compile, sell, or
-    # distribute this software, either in source code form or as a
-    # compiled binary, for any purpose, commercial or non-commercial,
-    # and by any means.
-    #
-    # In jurisdictions that recognize copyright laws, the author or
-    # authors of this software dedicate any and all copyright interest
-    # in the software to the public domain.  We make this dedication for
-    # the benefit of the public at large and to the detriment of our
-    # heirs and successors.  We intend this dedication to be an overt
-    # act of relinquishment in perpetuity of all present and future
-    # rights to this software under copyright law.
-    #
-    # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-    # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-    # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-    # NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY
-    # CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
-    # CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-    # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-    ##∞license∞#
-    ##∞what∞#
-    # <programming> Functional programming examples from D. Mertz, "Text
-    # Processing in Python" (see http://gnosis.cx/TPiP).
-    ##∞what∞#
-    ##∞test∞# notest #∞test∞#
-    pass
-if 1:  # Imports
-    import sys
-    from operator import mul, add
-    from functools import reduce
-    if len(sys.argv) > 1:
-        import debug
-        debug.SetDebugger()
-''' The reduce function as used here can be written as
-def reduce(function, seq):
-    it = iter(seq)
-    value = next(it)
-    for element in it:
-        value = function(value, element)
-    return value
-'''
-def apply(f, p, kw={}):
-    '''apply() was a function in python 2; it's not in python 3.
-    apply(f, (a, b, c)) returns f(a, b, c).  In python 3, you use
-    the asterisk notation on f directly.
+if 1:  # Header
+    _pgminfo = '''
+        <oo gist ∞ Functions for text processing oo>
+        <oo desc ∞ 
+
+            Note this stuff is derived from David Mertz's code from
+            https://gnosis.cx/TPiP downloaded on 10 Jun 2021) which states that the code
+            samples are in the public domain.  By putting my copyright on it doesn't
+            mean I originated Mertz's code; it's just there to make sure the attribution
+            stuff remains in any derived works so that the fact that is derived from
+            Mertz's work is noted.
+
+        oo>
+        <oo copy ∞ Copyright © 2021 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ utility oo>
+        <oo test ∞ notest oo>
+        <oo todo ∞ 
+        
+            - ∞∞3 Decide whether to keep intact or move to /plib/old
+        
+        oo>
     '''
-    return f(*p, **kw)
-def apply_each(functions, x=[]):
-    '''Apply a sequence of univariate functions to an argument x and
-    return the list [f0(x), f1(x), ...].  Note the functions can take no
-    argument.
+    if 1:  # Standard imports
+        import sys
+        from operator import mul, add
+        from functools import reduce
+    if 1:  # Custom imports
+        if len(sys.argv) > 1:
+            import debug
+            debug.SetDebugger()
+    if 1:  # Global variables
+        pass
+if 1:   # Core functionality
+    ''' The reduce function as used here can be written as
+    def reduce(function, seq):
+        it = iter(seq)
+        value = next(it)
+        for element in it:
+            value = function(value, element)
+        return value
     '''
-    return list(map(apply, functions, [x] * len(functions)))
-def bools(seq):
-    '''Return a list of True or False elements corresponding to each
-    element of seq.
-    '''
-    return [bool(i) for i in seq]
-def bool_each(functions, x=[]):
-    '''Return a list of True or False elements corresponding to each
-    application of the sequence of functions called with the argument
-    x.
-    '''
-    return bools(apply_each(functions, x))
-def all_f(functions, x=[]):
-    '''Return True if all of the univariate functions evaluated at x
-    return True; return False otherwise.  Note x must be a sequence
-    (this is needed because of the ultimate call to apply_each).
-    '''
-    if not functions:
-        return False
-    return all(bool_each(functions, x))
-def any_f(functions, x=[]):
-    '''Return True if any of the univariate functions evaluated at x
-    return True; return False otherwise.  Note x must be a sequence
-    (this is needed because of the ultimate call to apply_each).
-    '''
-    return any(bool_each(functions, x))
-def compose(*functions):
-    '''For a sequence of univariate functions <f0, f1, ...>, return
-    the function composition ...f2(f1(f0(x))).
-    '''
-    def compose2(f0, f1):
-        return f0(f1(x))
-    return reduce(compose2, functions)
-def and_f(functions, x):
-    '''Same as all_f except short-circuit evaluation is used:
-    returns f0(x) and f1(x) and f2(x) and ...  Short-circuit
-    evaluation means the function will return as soon as a False
-    function value is detected.
-    
-    This function is to be preferred over all_f() when the functions in
-    functions do not have any side effects, because execution will
-    generally be faster.  Use all_f when you want all of the functions
-    to be evaluated (e.g., they have some desired side effect).
-    '''
-    def g(y):
-        return False
-    if not functions:
-        return g
-    flag = True
-    for f in functions:
-        flag &= bool(f(x))
-        if not flag:
+    def apply(f, p, kw={}):
+        '''apply() was a function in python 2; it's not in python 3.
+        apply(f, (a, b, c)) returns f(a, b, c).  In python 3, you use
+        the asterisk notation on f directly.
+        '''
+        return f(*p, **kw)
+    def apply_each(functions, x=[]):
+        '''Apply a sequence of univariate functions to an argument x and
+        return the list [f0(x), f1(x), ...].  Note the functions can take no
+        argument.
+        '''
+        return list(map(apply, functions, [x] * len(functions)))
+    def bools(seq):
+        '''Return a list of True or False elements corresponding to each
+        element of seq.
+        '''
+        return [bool(i) for i in seq]
+    def bool_each(functions, x=[]):
+        '''Return a list of True or False elements corresponding to each
+        application of the sequence of functions called with the argument
+        x.
+        '''
+        return bools(apply_each(functions, x))
+    def all_f(functions, x=[]):
+        '''Return True if all of the univariate functions evaluated at x
+        return True; return False otherwise.  Note x must be a sequence
+        (this is needed because of the ultimate call to apply_each).
+        '''
+        if not functions:
+            return False
+        return all(bool_each(functions, x))
+    def any_f(functions, x=[]):
+        '''Return True if any of the univariate functions evaluated at x
+        return True; return False otherwise.  Note x must be a sequence
+        (this is needed because of the ultimate call to apply_each).
+        '''
+        return any(bool_each(functions, x))
+    def compose(*functions):
+        '''For a sequence of univariate functions <f0, f1, ...>, return
+        the function composition ...f2(f1(f0(x))).
+        '''
+        def compose2(f0, f1):
+            return f0(f1(x))
+        return reduce(compose2, functions)
+    def and_f(functions, x):
+        '''Same as all_f except short-circuit evaluation is used:
+        returns f0(x) and f1(x) and f2(x) and ...  Short-circuit
+        evaluation means the function will return as soon as a False
+        function value is detected.
+        
+        This function is to be preferred over all_f() when the functions in
+        functions do not have any side effects, because execution will
+        generally be faster.  Use all_f when you want all of the functions
+        to be evaluated (e.g., they have some desired side effect).
+        '''
+        def g(y):
+            return False
+        if not functions:
             return g
-    def h(y):
-        True
-    return h
-def or_f(functions, x):
-    '''Same as any_f except short-circuit evaluation is used:
-    returns f0(x) or f1(x) or f2(x) or ...  Short-circuit evaluation
-    means the function will return as soon as a True function value
-    is detected.
-    
-    This function is to be preferred over any_f() when the functions in
-    functions do not have any side effects, because execution will
-    generally be faster.  Use any_f when you want all of the functions
-    to be evaluated (e.g., they have some desired side effect).
-    '''
-    rv = False
-    for f in functions:
-        rv |= bool(f(x))
-        if rv:
-            return True
-    return False
-def ident(x):
-    '''Identity function; returns its argument.'''
-    return x
-def Test_apply_each():
-    def A(a, b, c):
-        return a + b + c
-    def B(a, b, c):
-        return a * b * c
-    a = range(5, 8)
-    result = list(apply_each((A, B), a))
-    print('''apply_each(function_list, argument_list):
-    This higher-order function returns a function that applies each
-    of a list of functions to a set of arguments; each function must
-    take the same number of arguments.  Here, we'll define two
-    functions: A sums the arguments and B returns their product:
-        def A(a, b, c): return a + b + c
-        def B(a, b, c): return a * b * c
-    Then
+        flag = True
+        for f in functions:
+            flag &= bool(f(x))
+            if not flag:
+                return g
+        def h(y):
+            True
+        return h
+    def or_f(functions, x):
+        '''Same as any_f except short-circuit evaluation is used:
+        returns f0(x) or f1(x) or f2(x) or ...  Short-circuit evaluation
+        means the function will return as soon as a True function value
+        is detected.
+        
+        This function is to be preferred over any_f() when the functions in
+        functions do not have any side effects, because execution will
+        generally be faster.  Use any_f when you want all of the functions
+        to be evaluated (e.g., they have some desired side effect).
+        '''
+        rv = False
+        for f in functions:
+            rv |= bool(f(x))
+            if rv:
+                return True
+        return False
+    def ident(x):
+        '''Identity function; returns its argument.'''
+        return x
+    def Test_apply_each():
+        def A(a, b, c):
+            return a + b + c
+        def B(a, b, c):
+            return a * b * c
         a = range(5, 8)
-        print(list(apply_each((A, B), a)))
-        returns {result} because 5 + 6 + 7 = 18 and 5*6*7 = 210.
-    '''[:-4].format(**locals())
-    )
-def Test_bools():
-    a = (0, 1, 2)
-    result = bools(a)
-    print(
-        '''bools(seq):
-    Returns a list of True or False elements for the sequence seq; is
-    equivalent to [bool(i) for i in seq].
-        bools({a})
-    returns {result}.
-    '''[:-4].format(**locals())
-    )
-def Test_bool_each():
-    def A(a, b, c):
-        return a + b + c
-    def B(a, b, c):
-        return a * b * c
-    a = range(5, 8)
-    result = bool_each((A, B), a)
-    print(
-        '''bool_each(function_list, argument_list):
-    Return a list of True or False elements that result from applying
-    bool() to the return of each function call with the indicated
-    parameters.  Using the results of the apply_each example, we get
-    {result}.
-    '''[:-4].format(**locals())
-    )
-def Test_compose():
-    def square(x):
-        return x * x
-    def add3(x):
-        return x + 3
-    f, x = compose(add3, square), 2
-    result = f(2)
-    print(
-        '''compose(*functions):
-    Returns a function representing the function composition of the
-    functions in the sequence functions.  If functions is the sequence
-    <f0, f1, f2, ...>, the returned function is
-        f(x) = ...f2(f1(f0(x)))
-    Here, the function f0 squares its argument and f1 adds 3 to its
-    argument.  We thus get f(x) = x*x + 3 and the numerical result for
-    x = {x} is {result}.
-    '''[:-4].format(**locals())
-    )
-def Test_all_f():
-    def has_a(x):
-        return "a" in x
-    def has_b(x):
-        return "b" in x
-    result = all_f((has_a, has_b), ["abc"])
-    print(
-        '''all_f(functions, arguments=[]):
-    Returns True or False, representing the Boolean product of each
-    function call.  If functions is the sequence
-    <f0, f1, f2, ...>, the returned value is
-        f(x) = bool(f0(arguments))*bool(f1(arguments))*...
-    Suppose we have the two functions
+        result = list(apply_each((A, B), a))
+        print('''apply_each(function_list, argument_list):
+        This higher-order function returns a function that applies each
+        of a list of functions to a set of arguments; each function must
+        take the same number of arguments.  Here, we'll define two
+        functions: A sums the arguments and B returns their product:
+            def A(a, b, c): return a + b + c
+            def B(a, b, c): return a * b * c
+        Then
+            a = range(5, 8)
+            print(list(apply_each((A, B), a)))
+            returns {result} because 5 + 6 + 7 = 18 and 5*6*7 = 210.
+        '''[:-4].format(**locals())
+        )
+    def Test_bools():
+        a = (0, 1, 2)
+        result = bools(a)
+        print(
+            '''bools(seq):
+        Returns a list of True or False elements for the sequence seq; is
+        equivalent to [bool(i) for i in seq].
+            bools({a})
+        returns {result}.
+        '''[:-4].format(**locals())
+        )
+    def Test_bool_each():
+        def A(a, b, c):
+            return a + b + c
+        def B(a, b, c):
+            return a * b * c
+        a = range(5, 8)
+        result = bool_each((A, B), a)
+        print(
+            '''bool_each(function_list, argument_list):
+        Return a list of True or False elements that result from applying
+        bool() to the return of each function call with the indicated
+        parameters.  Using the results of the apply_each example, we get
+        {result}.
+        '''[:-4].format(**locals())
+        )
+    def Test_compose():
+        def square(x):
+            return x * x
+        def add3(x):
+            return x + 3
+        f, x = compose(add3, square), 2
+        result = f(2)
+        print(
+            '''compose(*functions):
+        Returns a function representing the function composition of the
+        functions in the sequence functions.  If functions is the sequence
+        <f0, f1, f2, ...>, the returned function is
+            f(x) = ...f2(f1(f0(x)))
+        Here, the function f0 squares its argument and f1 adds 3 to its
+        argument.  We thus get f(x) = x*x + 3 and the numerical result for
+        x = {x} is {result}.
+        '''[:-4].format(**locals())
+        )
+    def Test_all_f():
         def has_a(x):
             return "a" in x
         def has_b(x):
             return "b" in x
-    Then all_f((has_a, has_b), ["abc"]) returns {result} because 'a'
-    and 'b' are both in the string argument.
-    '''[:-4].format(**locals())
-    )
-def Test_any_f():
-    def has_a(x):
-        return "a" in x
-    def has_d(x):
-        return "d" in x
-    result = any_f((has_a, has_d), ["abc"])
-    print(
-        '''any_f(functions, arguments=[]):
-    Returns True or False, representing the Boolean product of each
-    function call.  If functions is the sequence
-    <f0, f1, f2, ...>, the returned value is
-        f(x) = bool(f0(arguments))*bool(f1(arguments))*...
-    Suppose we have the two functions
+        result = all_f((has_a, has_b), ["abc"])
+        print(
+            '''all_f(functions, arguments=[]):
+        Returns True or False, representing the Boolean product of each
+        function call.  If functions is the sequence
+        <f0, f1, f2, ...>, the returned value is
+            f(x) = bool(f0(arguments))*bool(f1(arguments))*...
+        Suppose we have the two functions
+            def has_a(x):
+                return "a" in x
+            def has_b(x):
+                return "b" in x
+        Then all_f((has_a, has_b), ["abc"]) returns {result} because 'a'
+        and 'b' are both in the string argument.
+        '''[:-4].format(**locals())
+        )
+    def Test_any_f():
         def has_a(x):
             return "a" in x
         def has_d(x):
             return "d" in x
-    Then any_f((has_a, has_d), ["abc"]) returns {result} because 'a'
-    and 'b' are both in the string argument.
-    '''[:-4].format(**locals())
-    )
-def Test_and_f():
-    def has_a(x):
-        return "a" in x
-    def has_b(x):
-        return "b" in x
-    result = and_f((has_a, has_b), ["abc"])
-    print(
-        '''and_F(functions, arguments=[]):
-    Same as all_f except short-circuit evaluation is used.
-    Returns True or False, representing the Boolean product of each
-    function call.  If functions is the sequence
-    <f0, f1, f2, ...>, the returned value is
-        f(x) = bool(f0(arguments))*bool(f1(arguments))*...
-    Suppose we have the two functions
+        result = any_f((has_a, has_d), ["abc"])
+        print(
+            '''any_f(functions, arguments=[]):
+        Returns True or False, representing the Boolean product of each
+        function call.  If functions is the sequence
+        <f0, f1, f2, ...>, the returned value is
+            f(x) = bool(f0(arguments))*bool(f1(arguments))*...
+        Suppose we have the two functions
+            def has_a(x):
+                return "a" in x
+            def has_d(x):
+                return "d" in x
+        Then any_f((has_a, has_d), ["abc"]) returns {result} because 'a'
+        and 'b' are both in the string argument.
+        '''[:-4].format(**locals())
+        )
+    def Test_and_f():
         def has_a(x):
             return "a" in x
         def has_b(x):
             return "b" in x
-    Then conjoin((has_a, has_b), ["abc"]) returns {result} because 'a'
-    and 'b' are both in the string argument.
-    '''[:-4].format(**locals())
-    )
-def Test_or_f():
-    def has_a(x):
-        return "a" in x
-    def has_d(x):
-        return "d" in x
-    result = or_f((has_a, has_d), set("abc"))
-    print('''or_f(functions, arguments=[]):
-    Same as any_f except short-circuit evaluation is used.
-    Returns True or False, representing the Boolean sum of each
-    function call.  If functions is the sequence
-    <f0, f1, f2, ...>, the returned value is
-        f(x) = bool(f0(arguments))*bool(f1(arguments))*...
-    Suppose we have the two functions
+        result = and_f((has_a, has_b), ["abc"])
+        print(
+            '''and_F(functions, arguments=[]):
+        Same as all_f except short-circuit evaluation is used.
+        Returns True or False, representing the Boolean product of each
+        function call.  If functions is the sequence
+        <f0, f1, f2, ...>, the returned value is
+            f(x) = bool(f0(arguments))*bool(f1(arguments))*...
+        Suppose we have the two functions
+            def has_a(x):
+                return "a" in x
+            def has_b(x):
+                return "b" in x
+        Then conjoin((has_a, has_b), ["abc"]) returns {result} because 'a'
+        and 'b' are both in the string argument.
+        '''[:-4].format(**locals())
+        )
+    def Test_or_f():
         def has_a(x):
             return "a" in x
         def has_d(x):
             return "d" in x
-    Then or_f((has_a, has_d), set("abc")) returns {result} because 'a'
-    is in the string argument.
-    '''[:-4].format(**locals())
-    )
+        result = or_f((has_a, has_d), set("abc"))
+        print('''or_f(functions, arguments=[]):
+        Same as any_f except short-circuit evaluation is used.
+        Returns True or False, representing the Boolean sum of each
+        function call.  If functions is the sequence
+        <f0, f1, f2, ...>, the returned value is
+            f(x) = bool(f0(arguments))*bool(f1(arguments))*...
+        Suppose we have the two functions
+            def has_a(x):
+                return "a" in x
+            def has_d(x):
+                return "d" in x
+        Then or_f((has_a, has_d), set("abc")) returns {result} because 'a'
+        is in the string argument.
+        '''[:-4].format(**locals())
+        )
 
 if __name__ == "__main__":
     from lwtest import run

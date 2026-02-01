@@ -1,72 +1,29 @@
-"""
-- Todo
-    - fmt.unc()
-        - Add support for eng, engsi, engsic
-    - Large numbers
-        - mpmath can calculate fac(1e1000); it's log is 1.00e1002.  Thus
-          log(log(x)) could be a way to get reasonably-sized numbers to
-          help you see the magnitude.
-        - 100!**100! can be calculated with mpmath, but the exponent is
-          1.47e160.  Need to develop a notation to handle large numbers.
-        - Use log: ((1.47e160))
-        - Use sci notation in exponent:  1.47e((1e160))
-        - Power tower:  10↑↑n == 10**10**...**10, n times
-        - "order" of magnitude n:  how many times you have to take log of a
-          number to get a result between 1 and 10.  Could call this
-          "biglog".  See https://en.wikipedia.org/wiki/Super-logarithm
-    - width
-        - Add width attribute; remove width from method calls
-            - Set to 0 for normal behavior.  Larger integer specifies the
-              desired width.
-        - Need an algorithm to make interpolations fit in a desired width.
-          Must be on a best effort basis, as it will be impossible for some
-          numbers.  Example 100!**100! won't fit into e.g. 60 columns
-          because the exponent is 160 digits long.
-            - See notes above about large number notations
-        - Typical abbreviation will use ellipsis ⋯ (U+22EF) and truncate
-          middle digits to get things to fit
-    - Angle measures:  use plain ASCII for polar forms.  Support radians,
-      degrees, gradians, and revolutions.
-        - form:  x (a u) where x is the magnitude, a is the angle, and u is
-          the angular unit (e.g., rad, deg, grad, rev).
-        - Other angle measures:  arcmin, arcsec, hour angle (24 per rev),
-          point (1/8 of right angle), binary degree (256 per rev), quadrant
-          (90°), sextant (60°).
-        - Could allow for a custom angle measure with a custom_angle
-          attribute.
-        - angle_measure attribute can be "deg", "rad", "grad", "rev",
-          "turn".
-          
----------------------------------------------------------------------------
+'''
 class Fmt:  Format floating point numbers
-    This module provides string interpolation ("formatting") for integer,
-    floating point, and complex number types.  A Fmt instance can format
-    int, float, decimal.Decimal, mpmath.mpf, and fractions.Fraction number
-    types.
+
+    This module provides string interpolation ("formatting") for integer, floating
+    point, and complex number types.  A Fmt instance can format int, float,
+    decimal.Decimal, mpmath.mpf, and fractions.Fraction number types.
     
-    Run the module as a script to see example output.  See Terminal Notes
-    below.
+    Run the module as a script to see example output.  See Terminal Notes below.
     
-    The attributes of a Fmt instance provide more control over the
-    formatting:
+    The attributes of a Fmt instance provide more control over the formatting:
     
-        n       Sets the number of displayed digits.  For floats, the
-                maximum is 15; for mpmath and Decimal, it's controlled by
-                the context's precision.
-        default String for default floating point formatting (fix, fixed,
-                sci, eng, engsi, engsic)
+        n       Sets the number of displayed digits.  For floats, the maximum is 15;
+                for mpmath and Decimal, it's controlled by the context's precision.
+
+        default String for default floating point formatting (fix, fixed, sci, eng,
+                engsi, engsic)
         int     How to format integers (None is str(), dec, hex, oct, bin)
         dp      Sets the radix (decimal point) string (use '.' or ',').
-        low     Numbers below this value are displayed with scientific
-                notation.  None means all small numbers are displayed
-                in fixed point.
-        high    Numbers above this value are displayed with scientific
-                notation.  None means all large numbers are displayed
-                in fixed point.
-        u       If True, display scientific and engineering notations with
-                Unicode such as 3.14✕10⁶.
-        rlz     If True, remove leading zero digit in fixed point strings.
-                Example:  -0.284 is "-0.284" if False, "-.284" if True.
+        low     Numbers below this value are displayed with scientific notation.
+                None means all small numbers are displayed in fixed point.
+        high    Numbers above this value are displayed with scientific notation.
+                None means all large numbers are displayed in fixed point.
+        u       If True, display scientific and engineering notations with Unicode
+                such as 3.14✕10⁶.
+        rlz     If True, remove leading zero digit in fixed point strings.  Example:
+                -0.284 is "-0.284" if False, "-.284" if True.
         rtz     If True, remove trailing zero digits.
         rtdp    If True, remove the trailing radix if it ends the string.
         spc     If True, use " " as leading character if number >= 0
@@ -79,41 +36,88 @@ class Fmt:  Format floating point numbers
         deg         If True, output degrees in polar coordinates.
         cuddled     If True, use '2+3i' form; if False, use '2 + 3i' form.
         ul          If True, underline the argument in polar form.
-        comp        If True, display as (re,im) form, (re, im) if cuddled
-                    False.
+        comp        If True, display as (re,im) form, (re, im) if cuddled False.
                     
     Thread safety
-        Fmt is deliberately not thread-safe.  This means if you call the
-        methods of the same instance in two different threads, you'll get
-        unpredictable and probably wrong results.  This could be fixed by
-        e.g. using a thread.Lock instance and turning Fmt into a context
-        manager, but the cost is that Fmt is then not able to be pickled.
-        Most of my applications are single-threaded and I prefer to have
+        Fmt is deliberately not thread-safe.  This means if you call the methods of the
+        same instance in two different threads, you'll get unpredictable and probably
+        wrong results.  This could be fixed by e.g. using a thread.Lock instance and
+        turning Fmt into a context manager, but the cost is that Fmt is then not able to
+        be pickled.  Most of my applications are single-threaded and I prefer to have
         the ability to pickle things if desired.
         
-        One solution to a multithreading application is to give each thread
-        its own Fmt() instance:  one way to do this is to create one
-        instance, then make a copy using the copy() method.
+        One solution to a multithreading application is to give each thread its own
+        Fmt() instance:  one way to do this is to create one instance, then make a copy
+        using the copy() method.
         
     Terminal Notes
-        This script is intended to be used with other scripts in the plib
-        directory.  You can get the needed tools at
-        https://github.com/someonesdad1/plib.  I use this script in a bash
-        terminal in a cygwin environment using the mintty terminal emulator
-        and it works as written.  It also works in the WSL environment with
-        the more limited Windows Terminal.  Look at /plib/pictures/fmt.png to see
-        what the Demo() function's output looks like on my screen.  Other
-        terminals may need hacking on color.py to get things to work
-        correctly.
+        This script is intended to be used with other scripts in the plib directory.
+        You can get the needed tools at https://github.com/someonesdad1/plib.  I use
+        this script in a bash terminal in a cygwin environment using the mintty terminal
+        emulator and it works as written.  It also works in the WSL environment with the
+        more limited Windows Terminal.  Other terminals may need hacking on color.py to
+        get things to work correctly.
         
     How it works
-        The TakeApart class takes apart numbers into their component parts
-        (prepare() and disassemble() methods).  Then the Fmt instance uses
-        the TakeApart instance to supply the needed parts of the number and
-        builds the desired interpolation string.
+        The TakeApart class takes apart numbers into their component parts (prepare()
+        and disassemble() methods).  Then the Fmt instance uses the TakeApart instance
+        to supply the needed parts of the number and builds the desired interpolation
+        string.
         
-"""
+'''
 if 1:  # Header
+    _pgminfo = '''
+        <oo gist ∞ Format floating point numbers oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2008, 2012, 2021 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ utility oo>
+        <oo test ∞ --test oo>
+        <oo todo ∞
+        
+            - fmt.unc()
+                - Add support for eng, engsi, engsic
+            - Add decimal point alignment like fpformat.py
+            - Large numbers
+                - mpmath can calculate fac(1e1000); it's log is 1.00e1002.  Thus
+                  log(log(x)) could be a way to get reasonably-sized numbers to help you
+                  see the magnitude.
+                - 100!**100! can be calculated with mpmath, but the exponent is
+                  1.47e160.  Need to develop a notation to handle large numbers.
+                - Use log: ((1.47e160))
+                - Use sci notation in exponent:  1.47e((1e160))
+                - Power tower:  10↑↑n == 10**10**...**10, n times
+                - "order" of magnitude n:  how many times you have to take log of a
+                  number to get a result between 1 and 10.  Could call this "biglog".
+                  See https://en.wikipedia.org/wiki/Super-logarithm
+            - width
+                - Add width attribute; remove width from method calls
+                    - Set to 0 for normal behavior.  Larger integer specifies the
+                      desired width.
+                - Need an algorithm to make interpolations fit in a desired width.  Must
+                  be on a best effort basis, as it will be impossible for some numbers.
+                  Example 100!**100! won't fit into e.g. 60 columns because the exponent
+                  is 160 digits long.
+                    - See notes above about large number notations
+                - Typical abbreviation will use ellipsis ⋯ (U+22EF) and truncate middle
+                  digits to get things to fit
+            - Angle measures:  use plain ASCII for polar forms.  Support radians,
+              degrees, gradians, and revolutions.
+                - form:  x (a u) where x is the magnitude, a is the angle, and u is the
+                  angular unit (e.g., rad, deg, grad, rev).
+                - Other angle measures:  arcmin, arcsec, hour angle (24 per rev), point
+                  (1/8 of right angle), binary degree (256 per rev), quadrant (90°),
+                  sextant (60°).
+                - Could allow for a custom angle measure with a custom_angle attribute.
+                - angle_measure attribute can be "deg", "rad", "grad", "rev", "turn".
+        
+        oo>
+    '''
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
         ##∞copyright∞# Copyright (C) 2008, 2012, 2021 Don Peterson #∞copyright∞#
@@ -184,13 +188,13 @@ if 1:  # Utility
                 raise AssertionError(msg)
     Assert.debug = False
 class TakeApart:
-    """Take apart a number into its components to prepare for string
+    '''Take apart a number into its components to prepare for string
     interpolation.  Handles int, float, Decimal, mpf, and Fractions.
     The core implementation is in disassemble(), which depends on
     prepare().
     
     This code is not thread-safe, so only use one instance with one thread.
-    """
+    '''
     def __init__(self):
         self._thread_id = threading.get_ident()
         self.supported = [int, float, Decimal, Fraction]
@@ -259,7 +263,7 @@ class TakeApart:
             n = min(n, mpmath.mp.dps)
         self.disassemble(x, n, all=all)
     def prepare(self, value, n: int, all=False):
-        """Return a canonical representation of a number value.  n is an
+        '''Return a canonical representation of a number value.  n is an
         integer describing the number of decimal digits we will want.  To
         do this, the canonical representation must have at least n + 1
         digits available; the n + 1 digits allows for banker's rounding (i.e.,
@@ -291,7 +295,7 @@ class TakeApart:
             
         This method will check constraints/invariants and raise an
         exception if improper behavior is detected.
-        """
+        '''
         if not (ii(n, int) and n > 0):
             raise ValueError("n must be an integer > 0")
         if value is None:
@@ -414,7 +418,7 @@ class TakeApart:
                 Assert(ii(e, int))
         return result
     def disassemble(self, value, n, all=False):
-        """Disassemble the number value into this instance's attributes.
+        '''Disassemble the number value into this instance's attributes.
         The basic information returned is:
         
         self.number     Original value
@@ -444,7 +448,7 @@ class TakeApart:
         
         If all is True, then n is ignored and all of the digits in the
         deque are returned.
-        """
+        '''
         # Put this instance into a known state
         self.reset()
         # Get the basic string interpolation data for the supported number types
@@ -484,11 +488,11 @@ class TakeApart:
         Assert(self.radix == "." or self.radix == ",")
         Assert(ii(self.e, int))
     def round(self, value, dq: deque, n: int):
-        """Return the deque dq of digits rounded to n digits.  Use half-even
+        '''Return the deque dq of digits rounded to n digits.  Use half-even
         rounding:  the last digit is rounded up if the following digit is
         greater than 5.  If the following digit is 5, the last digit is rounded
         up if it is odd.
-        """
+        '''
         # Integers are special cases.  For example, 123 can be rounded to 2
         # digits, but an integer < 10 cannot.
         if ii(self.number, int) and len(str(abs(self.number))) <= n:
@@ -504,7 +508,7 @@ class TakeApart:
         # Get the (n+1)st digit, which is used as the sentinel for rounding
         sentinel = int(r[0])
         if 1:  # Handle an exceptional case
-            """
+            '''
             Example is fmt(float(0.99), n=2, fmt="fix")):  dq contains
             '98999999999999999' and s becomes '98'.  Using the sentinel
             to round will produce 0.99 instead of the expected 1.0.
@@ -560,7 +564,7 @@ class TakeApart:
             This is one of those rare bugs that is only found by testing at
             edge cases.  It was found in Test_Basics() and it was sheer luck
             that I chose both 0.99 and 16 digits.
-            """
+            '''
             add_one = 0  # This is used below
             if len(str(int(r) + 1)) > len(r):
                 add_one = 1
@@ -677,7 +681,7 @@ class Fmt:
         # For this to work, fmt.ta(number) must be called before
         # disassembling any number.
     def toD(self, value) -> Decimal:
-        """Convert value to a Decimal object.  Supported types are int,
+        '''Convert value to a Decimal object.  Supported types are int,
         float, Fraction, Decimal, str, mpmath.mpf, and any other type
         that gives a value from str(value).
         
@@ -685,7 +689,7 @@ class Fmt:
         a default Decimal instance can hold (Decimal's default exponent
         goes up to 1e6).  Raise a ValueError exception to explain the
         problem.
-        """
+        '''
         if ii(value, (int, float)):
             return D(value)
         elif ii(value, D):
@@ -750,7 +754,7 @@ class Fmt:
         dq.insert(1, self.dp)
         return sign + "".join(dq)
     def __call__(self, value, fmt=None, n=None, width=None) -> str:
-        """Format value with the default formatter.  n overrides self.n
+        '''Format value with the default formatter.  n overrides self.n
         digits and must be > 0.  fmt can be "fix", "fixed", "sci", "eng",
         "engsi", or "engsic" for real numbers.  If it is None, then
         self.default is used.
@@ -763,7 +767,7 @@ class Fmt:
         If width is not None, it is the desired string width when self.brief is
         True; note that a best effort will be made, but the returned string may
         be larger than the desired width.
-        """
+        '''
         if width is not None:
             raise Exception("width keyword not supported yet")  # ∞∞2
         if 1:  # Check arguments
@@ -802,7 +806,7 @@ class Fmt:
         else:
             raise TypeError(f"{value!r} is an unsupported type")
     def fmtint(self, value, fmt=None, width=None, mag=False):
-        """Format an integer value.  If fmt is None, the default self.int
+        '''Format an integer value.  If fmt is None, the default self.int
         formatting is used.  Other values for fmt are "hex", "oct", "dec",
         and "bin", which cause 0x, 0o, 0d, or 0b to be prepended.
         self.sign and self.spc are honored.
@@ -814,7 +818,7 @@ class Fmt:
         indicate the magnitude of the number.
         
         width is only used if self.brief is True.
-        """
+        '''
         if width is not None:
             raise Exception("width keyword not supported yet")  # ∞∞2
         if not ii(value, int):
@@ -894,14 +898,14 @@ class Fmt:
                     break
             u = sgn + "".join(left) + self.ellipsis + "".join(right) + m
             if len(u) > L:
-                msg = dedent(f"""
+                msg = dedent(f'''
                 Bug in algorithm:
                   L = {L}
                   result = {u!r}
                   len(result) = {len(u)}
                   min_length = {min_length}
                   m = {m!r}  (len = {len(m)})
-                """)
+                ''')
                 raise Exception(msg)
             return u
     def Int(self, value, fmt=None, n=None, width=None) -> str:
@@ -917,10 +921,10 @@ class Fmt:
         s = sgn + "".join(self.ta.dq)
         return s
     def fixed(self, value, n=None, width=None) -> str:
-        """Return a fixed point representation simulating an HP calculator.
+        '''Return a fixed point representation simulating an HP calculator.
         Example:  if value = 72.8435 and n = 3, then '72.844' is returned.
         Here, n represents the number of digits after the decimal point.
-        """
+        '''
         if width is not None:
             raise Exception("width keyword not supported yet")  # ∞∞2
         n = n if n is not None else self.n
@@ -992,11 +996,11 @@ class Fmt:
             dq.insert(1, self.dp)
             return sign + "".join(dq)
     def fix(self, value, n=None, width=None) -> str:
-        """Return a fixed point representation using significant figures.
+        '''Return a fixed point representation using significant figures.
         Example:  if value = 72.8435 and n = 3, then '72.8' is returned.
         Here, n represents the number of significant digits in the return
         string.
-        """
+        '''
         if width is not None:
             raise Exception("width keyword not supported yet")  # ∞∞2
         n = n if n is not None else self.n
@@ -1115,7 +1119,7 @@ class Fmt:
           # s = sgn + "".join(left) + "".join(right) + exponent
           # return s
     def eng(self, value, fmt="eng", n=None, width=None) -> str:
-        """Return an engineering format representation.  Suppose value
+        '''Return an engineering format representation.  Suppose value
         is 31415.9 and n is 3.  Then fmt can be:
             "eng"    returns "31.4e3"
             "engsi"  returns "31.4 k"
@@ -1148,7 +1152,7 @@ class Fmt:
         no way to remove another digit from the significand without ruining
         the engineering notation (i.e., the exponent would need to be
         changed, turning the notation into plain scientific).
-        """
+        '''
         if width is not None:
             raise Exception("width keyword not supported yet")  # ∞∞2
         n = n if n is not None else self.n
@@ -1211,12 +1215,12 @@ class Fmt:
             while len("".join(dq)) > width and dq[-1] != self.ta.dp:
                 dq.pop()
     def unc(self, x, u, fmt="fix", intv=False) -> str:
-        """Return a string form analogous to the shorthand form used for
+        '''Return a string form analogous to the shorthand form used for
         uncertainty:  e.g. '1.23(4)' where '1.23' is x and the '4' is
         the indication of the uncertainty u.  If intv is True, use the form
         '1.23[4]', which indicates an interval from e.g. a roundoff error.
         Only 'fix' and 'sci' are allowed format types.
-        """
+        '''
         if 1:  # Check parameters
             if fmt is None:
                 fmt = self.default
@@ -1306,9 +1310,9 @@ class Fmt:
         else:
             raise ValueError(f"{fmt!r} is an unknown format")
     def Complex(self, value, fmt=None, n=None, width=None) -> str:
-        """value is a complex number.  Return a string in the form of
+        '''value is a complex number.  Return a string in the form of
         'a + bi'.
-        """
+        '''
         if width is not None:
             raise Exception("width keyword not supported yet")  # ∞∞2
         n = n if n is not None else self.n
@@ -1507,27 +1511,26 @@ class Fmt:
         def comp(self, value):
             self._comp = bool(value)
 class FmtIV:
-    """Utilities for dealing with mpmath interval numbers.  Call the
-    instance to:
+    '''Utilities for dealing with mpmath interval numbers.  Call the instance to:
         - Convert a list or tuple of two numbers to an interval number
         - Convert short form like 2[1] to interval number iv.mpf([1, 3])
         - Convert interval number to short form like 2[1]
-    """
+    '''
     def __init__(self, n=1):
-        # n is number of digits to show in "uncertainty" portion, where
-        # here "uncertainty" means the halfwidth of the interval.
+        '''n is number of digits to show in "uncertainty" portion, where
+        "uncertainty" means the halfwidth of the interval.
+        '''
         assert ii(n, int) and n > 0
         assert have_mpmath and have_unc
         self.n = n
     def __call__(self, x):
-        """Action depends on type of x:
-        list, tuple:    convert to mpmath.iv.mpf (must be 2 numbers)
-        string:         x[y] short form of interval number
-        mpmath.iv.mpf:  Convert to x[y] short form string
-        
-        The easy way to do this stuff is to use the facilities of the
-        uncertainties library.
-        """
+        '''Action depends on type of x:
+            list, tuple     Convert to mpmath.iv.mpf (must be 2 numbers)
+            string          x[y] short form of interval number
+            mpmath.iv.mpf   Convert to x[y] short form string
+        The easy way to do this stuff is to use the facilities of the uncertainties
+        library.
+        '''
         if ii(x, (list, tuple)):
             # Two numbers, convert to interval number
             return mpmath.iv.mpf(x)
@@ -1597,23 +1600,23 @@ if __name__ == "__main__":
     def Demo():
         f = fmt
         t.print(
-            dedent(f"""
+            dedent(f'''
         {t.t}Demonstration of Fmt class features:  {t.em}f = Fmt(){t.n}
             Formatting (string interpolation) is gotten by calling the Fmt instance
             as a function:  {t.f}f(x){t.n}.  x can be an integer, real, or complex number.
-        """)
+        ''')
         )
         s = "pi*1e5"
         x = eval(s)
         # Standard formatting
         print(
-            dedent(f"""
+            dedent(f'''
         {t.t}Usual python float formatting:{t.n}  x = {s}
             repr(x) = str(x) = {t.u}{x!s}{t.n}
             Though accurate, there are too many digits for easy comprehension.  The
             Fmt class defaults to showing {f.n} digits and the trailing radix helps
             you identify that it's a floating point number.
-        """)
+        ''')
         )
         t.print(f'{t.em}fmt="fix":  Shows desired number of figures')
         print(
@@ -1687,19 +1690,19 @@ if __name__ == "__main__":
         t.print(f"  {t.f}f(pi*1e-27){t.n} = {t.fix}{f(pi * 1e-27)}")
         t.print(f"  {t.f}f(pi*1e57){t.n} = {t.fix}{f(pi * 1e57)}")
         print(
-            dedent("""
+            dedent('''
         Large and small enough numbers will still require scientific notation (the
         default processing switches to scientific notation if an interpolation takes
-        up more than a fourth of the screen area).""")
+        up more than a fourth of the screen area).''')
         )
         f.high = 1e6
         f.low = 1e-6
         # Big exponents
         print(
-            dedent(f"""
+            dedent(f'''
         {t.em}Big numbers{t.n}   {t.t}Fixed point, scientific, and engineering formatting should work
         for numbers of arbitrary magnitudes as long as an exception isn't encountered.
-        """)
+        ''')
         )
         t.print(f"  {t.f}f(Decimal('1e999999')){t.n} = {t.sci}{f(D('1e999999'))}")
         t.print(f"  {t.f}f(Decimal('1e-999999')){t.n} = {t.sci}{f(D('1e-999999'))}")
@@ -1712,25 +1715,25 @@ if __name__ == "__main__":
             x = mpmath.mpf(100)
             y = mpmath.fac(x)
             z = y**y
-            print(dedent("""
+            print(dedent('''
             mpmath lets you calculate y = x**x where x is 100!:
             y = {fmt(z)} (the exponent is 1.47e160)
-            """))
+            '''))
         else:
-            print(dedent("""
+            print(dedent('''
             If you install mpmath, you can handle/format large numbers.  For example,
             if x = 100!, then x**x is a large number with an exponent of 1.47e160 and
             fmt(x**x) will format the number properly.
-            """))
+            '''))
         # Decimals with lots of digits
         n = 20
         t.print(
-            dedent(f"""
+            dedent(f'''
         {t.em}Digits{t.n}  {t.t}You can ask for any number of digits, but the maximum given will be
         a number consistent with the numerical type's precision.  A float is good to
         about 15 digits.  Decimal and mpmath numbers depend on the current context's
         precision.  The expression evaluated is y = 100000*sin(pi/4):
-        """)
+        ''')
         )
         with decimal.localcontext() as ctx:
             ctx.prec = n
@@ -1751,24 +1754,24 @@ if __name__ == "__main__":
             n = 7
             t.print(f"  engsic(y) to {n} digits = {t.si}{f(x, 'engsic', n=n)}")
         t.print(
-            dedent(f"""
+            dedent(f'''
         {t.em}SI notation{t.n}    The {t.f}f.engsi{t.n} method supplies an SI prefix after the number to
         indicate the number's magnitude.  You can then append a physical unit string
         to get proper SI syntax:  {t.u}{f(x, "engsi")}Ω{t.n}.  {t.f}f.engsic{t.n} does the same except the prefix
         is cuddled: {t.u}{f(x, "engsic")}Ω{t.n} (incorrect SI syntax, but sometimes useful).
-        """)
+        ''')
         )
         # Complex numbers
         z = complex(3.45678, -6.78901)
         fmt.imag_unit = "j"
         t.print(
-            dedent(f"""
+            dedent(f'''
         {t.em}Complex numbers{t.n}    These are handled by formatting each floating point
         component separately.  Let z = complex(3.45678, -6.78901):
             str(z) = {t.f}{str(z)}{t.n}
             fmt(z) = {t.f}{fmt(z)}{t.n}
         Use the Fmt object's attributes to change the formatted form:
-        """)
+        ''')
         )
         w, sp = 25, " " * 4
         fmt.imag_unit = "i"
@@ -1804,9 +1807,9 @@ if __name__ == "__main__":
             fmt.n = 3
             return fmt
         def Test_prepare():
-            """TakeApart.prepare() is the core functionality needed for
+            '''TakeApart.prepare() is the core functionality needed for
             string interpolation for supported number types.
-            """
+            '''
             ta = TakeApart()
             n = 3
             def f(x):
@@ -1973,9 +1976,9 @@ if __name__ == "__main__":
                                 exit()
                         Assert(f(x) == expected)
         def Test_disassemble():
-            """TakeApart.disassemble() is used for all string interpolation, so
+            '''TakeApart.disassemble() is used for all string interpolation, so
             show it works for the basic tasks.
-            """
+            '''
             ta = TakeApart()
             def f(x, n):
                 ta.disassemble(x, n)
@@ -2555,12 +2558,12 @@ if __name__ == "__main__":
                 == "0.00000000000000000000000000000000000000000000000001234(6)"
             )
         def Test_Big():
-            """The Fmt object uses Decimal numbers to do the formatting.  This
+            '''The Fmt object uses Decimal numbers to do the formatting.  This
             works for most stuff, but will fail when dealing with exponents
             beyond around a million, the default for Decimal.  This should only
             happen for mpmath.mpf numbers.  In this case, simple sci
             formatting is done.
-            """
+            '''
             if not have_mpmath:
                 return
             mpmath.mp.dps = 50

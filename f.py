@@ -1,27 +1,5 @@
 '''
 
-TODO
-    - Bug in pgm/tri.py
-        - Get SyntaxWarning to stderr when S3 is a ufloat.  It is likely caused by no
-          constructor in the Base class, as it's trying to convert '1.02(5)' to a float
-          when it's really a ufloat().
-    - Remove use of color.py stuff (let fmt.py handle this)
-        - This also means removing the c attribute
-    - Use fmt.py for formatting
-        - Foratting should also include a fixed number of decimals like f"{x:.3f}" and
-          allow decimal point lineup like fpformat.py does
-            - Look at changing the architecture and putting all the formatting into
-              fmt.py.  Then the flt methods just call into fmt.py.
-    - cbrt, exp2 not in namespace
-    - i18n:  does the radix change depending on localization settings?  Should
-      transparently handle "," for locales that don't use the period.  On my system,
-      'locale -a' returns C C.utf8 POSIX, so testing may be problematic.
-    - rlz doesn't remove 0 for negative numbers
-    - cpx:
-        - .t property:  tuple display.  z=cpx(1,1) --> "(1,1)".  Use wide attribute .w
-          for "(1, 1)".  .w also gets "1 + i" form.
-        - .w property:  wide display
-        - Special forms:  1+i, i, -i, etc.
         
 Module for calculations with real and complex numbers
 
@@ -159,6 +137,48 @@ Module for calculations with real and complex numbers
       
 '''
 if 1:  # Header
+    _pgminfo = '''
+        <oo gist ∞ Module for calculations with real and complex numbers oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2021 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ math oo>
+        <oo test ∞ run oo>
+        <oo todo ∞
+        
+            - ∞∞1 Strategic f.py changes:  remove any colorizing etc. and move
+              formatting to fmt.py.  Remove c attribute. 
+            - Use fmt.py for formatting
+                - Remove use of color.py stuff (let fmt.py handle this)
+                    - This also means removing the c attribute
+                - Foratting should also include a fixed number of decimals like
+                  f"{x:.3f}" and allow decimal point lineup like fpformat.py does
+                    - Look at changing the architecture and putting all the formatting
+                      into fmt.py.  Then the flt methods just call into fmt.py.
+            - Bugs
+                - pgm/tri.py
+                    - Get SyntaxWarning to stderr when S3 is a ufloat.  It is likely
+                      caused by no constructor in the Base class, as it's trying to
+                      convert '1.02(5)' to a float when it's really a ufloat().
+                - cbrt, exp2 not in namespace
+                - i18n:  does the radix change depending on localization settings?
+                  Should transparently handle "," for locales that don't use the period.
+                  On my system, 'locale -a' returns C C.utf8 POSIX, so testing may be
+                  problematic.
+                - rlz doesn't remove 0 for negative numbers
+                - cpx:
+                    - .t property:  tuple display.  z=cpx(1,1) --> "(1,1)".  Use wide
+                      attribute .w for "(1, 1)".  .w also gets "1 + i" form.
+                    - .w property:  wide display
+                    - Special forms:  1+i, i, -i, etc.
+        
+        oo>
+    '''
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright © 2021 Don Peterson #∞copyright∞#

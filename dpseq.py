@@ -1,28 +1,5 @@
 '''
 
-ToDo
-    - Add smatrix class
-        - Simple matrices from sequences:  for manipulation only
-        - Uses flat sequences with a size or a nested sequence
-        - Primarily to get transpose, as this is an often-needed use case
-            - Let m be a matrix, m.t is transpose
-            - for i in m.t.rows:
-                - Then i is a row vector you can do something with
-            - But then
-                - for i in m.cols:
-                    - do something with column
-                - is exactly what's desired
-                - m.cols returns an iterator
-        - Rows and columns are lists with an extra attribute
-            - This allows e.g. two columns a = [1, 2, 3] and b = [4, 5, 6] to be combined using
-              a + b to result in the matrix [a.t, b.t].
-        - row() and col() methods to get stated rows and columns
-        - Holds arbitrary objects, so numpy isn't a good choice
-        - Aim at composition and decomposition, not numerical computation
-        - Constructor
-            - Sequence:  produces row vector by default; use column kw for column vector
-            - Sequence with matrix size tuple:  produces matrix
-            - Nested sequence:  produces 2D matrix
             
 Functions for dealing with sequences.
     Jan 2026:  DupNodup() timing results on my 11 year old 4-core computer running
@@ -35,19 +12,46 @@ Functions for dealing with sequences.
         1e7:  8.6 s
 '''
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # Functions for dealing with sequences
-        ##∞what∞#
-        ##∞test∞# run #∞test∞#
-        pass
+    _pgminfo = '''
+        <oo gist ∞ Functions for dealing with sequences oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2024 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ utility oo>
+        <oo test ∞ run oo>
+        <oo todo ∞ 
+
+            - Add smatrix class
+                - Simple matrices from sequences:  for manipulation only
+                - Uses flat sequences with a size or a nested sequence
+                - Primarily to get transpose, as this is an often-needed use case
+                    - Let m be a matrix, m.t is transpose
+                    - for i in m.t.rows:
+                        - Then i is a row vector you can do something with
+                    - But then
+                        - for i in m.cols:
+                            - do something with column
+                        - is exactly what's desired
+                        - m.cols returns an iterator
+                - Rows and columns are lists with an extra attribute
+                    - This allows e.g. two columns a = [1, 2, 3] and b = [4, 5, 6] to be
+                      combined using a + b to result in the matrix [a.t, b.t].
+                - row() and col() methods to get stated rows and columns
+                - Holds arbitrary objects, so numpy isn't a good choice
+                - Aim at composition and decomposition, not numerical computation
+                - Constructor
+                    - Sequence:  produces row vector by default; use column kw for
+                      column vector
+                    - Sequence with matrix size tuple:  produces matrix
+                    - Nested sequence:  produces 2D matrix
+
+        oo>
+    '''
     if 1:  # Standard imports
         from fractions import Fraction
         import bisect
@@ -63,9 +67,6 @@ if 1:  # Header
             pass
         g = G()
         g.dbg = False
-        ii = isinstance
-        __all__ = tuple('''find_le find_ge iDistribute fDistribute GetClosest Hashable
-                         DupNodupd'''.split())
 if 1:  # Core functionality
     def find_le(x, seq):
         "Find rightmost value less than or equal to x; seq must be sorted"
@@ -100,7 +101,7 @@ if 1:  # Core functionality
         
         If you need a sequence of n floating point values, see util.fDistribute().
         '''
-        if not (ii(a, int) and ii(b, int) and ii(n, int)):
+        if not (isinstance(a, int) and isinstance(b, int) and isinstance(n, int)):
             raise TypeError("Arguments must be integers")
         if a >= b:
             raise ValueError("Must have a < b")
@@ -130,11 +131,11 @@ if 1:  # Core functionality
         '''
         # Check arguments
         msg = "n must be an integer > 1"
-        if not ii(n, int):
+        if not isinstance(n, int):
             raise TypeError(msg)
         if n < 2:
             raise ValueError(msg)
-        if not ii(a, (int, impl)) or not ii(b, (int, impl)):
+        if not isinstance(a, (int, impl)) or not isinstance(b, (int, impl)):
             raise TypeError("a and b must be either an integer or impl")
         if not (a < b):
             raise ValueError("Must have a < b")
@@ -144,7 +145,7 @@ if 1:  # Core functionality
             x = x0 + (impl(i) / impl(n - 1)) * dx
             # Check invariants
             assert a <= x <= b
-            assert ii(x, impl)
+            assert isinstance(x, impl)
             # Return value
             yield x
     def GetClosest(x, seq, is_sorted=False, key=None, distance=operator.sub, unresolved=0):

@@ -56,6 +56,9 @@ if 1:  # Header
         <oo test ∞ notest oo>
         <oo todo ∞ 
 
+            - Stack dump should have a keyword to turn colorizing on
+                - Could be a good example of using color styles, which would be 
+                  t variable names that get resolved through a dict
             - Make AutoIndent a context manager.  Then something like
                 with AutoIndent() as f:
                     do stuff

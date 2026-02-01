@@ -1,10 +1,5 @@
 '''
 
-Todo
-    - Convert token naming conversions to a class
-    - Missing tests for GetString, WordID
-    - Consider upper & lower keywords for Keep and Remove
-    
 Chop                Return a string chopped into equal parts
 CommonPrefix        Return a common prefix of a sequence of strings
 CommonSuffix        Return a common suffix of a sequence of strings
@@ -78,7 +73,13 @@ if 1:  # Header
         <oo ind ∞ 8 indent oo>
         <oo cat ∞ text oo>
         <oo test ∞ run oo>
-        <oo todo ∞ oo>
+        <oo todo ∞
+
+            - ∞∞2 Missing tests for GetString, WordID
+            - Convert token naming conversions to a class
+            - Consider upper & lower keywords for Keep and Remove
+    
+        oo>
     '''
     if 1:   # Standard imports
         from collections import deque, defaultdict
@@ -419,42 +420,48 @@ if 1:  # Core functionality
             Line2
         """
 
+        or x = "\n    Line1\n    Line2\n        "
+
         and we want the returned multiline string array to be ["····Line1", "····Line2"]
         (spaces replaced with '·' characters).  This would require removing everything
         up to the first newline (including the newline), then removing the trailing
         spaces up to the last newline, then removing the last newline.  Then if you use
-        split("\n") on the string, you get the two lines you expect andd this function
+        split("\n") on the string, you get the two lines you expect and this function
         will tell you there are 4 leading spaces.
         '''
-        n, nl, sp = bool(trim_start) + bool(trim_end), "\n", " "
-        if s.count(nl) < n:
-            raise ValueError("Not enough newline characters in multiline string s")
-        if trim_start or trim_end:
-            x = PrepareMultilineString(s, trim_start=True, trim_end=True)
-            lines = x.split(nl)
-        else:
-            lines = s.split(nl)
-        # Count number of leading space characters on each line
+        if not isinstance(s, str):
+            raise TypeError("Argument s must be a string")
+        nl, sp = "\n", " "
         spacecharset = set([sp])
+        if trim_start or trim_end:
+            x = PrepareMultilineString(s, trim_start=trim_start, trim_end=trim_end)
+        else:
+            # No trimming, so just count the leading space characters
+            return len(GetStartingChars(s, chars=spacecharset))
+        # Break into lines and count spaces on each line
+        lines = s.split(nl)
+        # Count number of leading space characters on each line
         counts = [len(GetStartingChars(line, chars=spacecharset)) for line in lines]
         return min(set(counts))
     def PrepareMultilineString(s, trim_start=True, trim_end=True):
-        '''Prepare the string s by removing leading spaces up to the first newline, then
-        the first newline, the trailing leading spaces, and the trailing leading
-        newline, then return the string.
+        '''If trim_start, remove leading spaces of s up to the first newline, then
+        remove the first newline.  If trim_end, remove trailing spaces of s up to the
+        last newline, then remove the last newline.  Return the string.
         '''
-        n, nl, sp = bool(trim_start) + bool(trim_end), "\n", " "
+        n, nl, sp = bool(trim_start) + bool(trim_end) - 1, "\n", " "
         if s.count(nl) < n:
             raise ValueError("Not enough newline characters in multiline string s")
         dq = deque(s)
         if trim_start:
             while dq and dq[0] == sp:
                 dq.popleft()
+            # All leading spaces removed; check for newline
             if dq and dq[0] == nl:
                 dq.popleft()
         if trim_end:
             while dq and dq[-1] == sp:
                 dq.pop()
+            # All trailing spaces removed; check for newline
             if dq and dq[-1] == nl:
                 dq.pop()
         return ''.join(list(dq))
@@ -617,20 +624,6 @@ if 1:  # Core functionality
         c = [chr(i) for i in range(256)]
         t = "".join([i if i in allowed else " " for i in c])
         return s.translate(t)
-    def CountLeadingSpaces(s, trailing=False):
-        '''Return the number of leading spaces in string s.  Set trailing to True to
-        count the trailing spaces.  Note this will also work if s is a sequence.
-        '''
-        if not s:
-            return 0
-        dq, count = deque(s), 0
-        while dq:
-            c = dq.pop() if trailing else dq.popleft()
-            if c == " ":
-                count += 1
-            else:
-                break
-        return count
     def StringSplit(fields, string, remainder=True, strict=True):
         '''Pick out the specified fields of the string and return them as a tuple of
         strings.  fields can be either a format string or a list/tuple of numbers.
@@ -1689,19 +1682,6 @@ if __name__ == "__main__":
         Assert(len(s) == 2 and "cAt" in s and "hurse" in s)
     def Test_SplitOnNewlines():
         Assert(SplitOnNewlines("1\n2\r\n3\r") == ["1", "2", "3", ""])
-    def Test_CountLeadingSpaces():
-        m, nl = 10, "\n"
-        u = " "*m
-        s = f"{u}{nl}{u}line1{nl}{u}line2{nl}{u}"
-        n = CountLeadingSpaces(s)
-        Assert(n == m)
-        n = CountLeadingSpaces(s, trim_end=False)
-        Assert(n == m)
-        n = CountLeadingSpaces(s, trim_start=False)
-        Assert(n == m)
-        # Too few newlines
-        raises(ValueError, CountLeadingSpaces, u)
-        raises(ValueError, CountLeadingSpaces, u + nl)
     def Test_PrepareMultilineString():
         u, nl = " "*10, "\n"
         s = f"{u}\n{u}line1\n{u}line2\n{u}"
@@ -1725,22 +1705,30 @@ if __name__ == "__main__":
             Assert(lines[2] == u + "line2")
         # Too few newlines
         raises(ValueError, PrepareMultilineString, u)
-        raises(ValueError, PrepareMultilineString, u + nl)
     def Test_CountLeadingSpaces():
         f = CountLeadingSpaces
-        Assert(not f(""))
-        for i in range(5):
-            Assert(f(" "*i) == i)
-            Assert(f(" "*i + "hello") == i)
-            Assert(f(" "*i, trailing=True) == i)
-            Assert(f(" "*i + "hello" + " "*i, trailing=True) == i)
-        # Show it also works with a sequence
-        Assert(f([]) == 0)
-        Assert(f([" "]) == 1)
-        Assert(f([" ", " "]) == 2)
-        Assert(f([" ", " "], trailing=True) == 2)
-        Assert(f([" ", "other stuff", " "]) == 1)
-        Assert(f([" ", "other stuff", " "], trailing=True) == 1)
+        if 1:   # Show it works if no trimming done
+            Assert(f("", trim_start=False, trim_end=False) == 0)
+            Assert(f(" ", trim_start=False, trim_end=False) == 1)
+            Assert(f("  ", trim_start=False, trim_end=False) == 2)
+            Assert(f("   ", trim_start=False, trim_end=False) == 3)
+            Assert(f(" \n", trim_start=False, trim_end=False) == 1)
+            Assert(f(" \n\n", trim_start=False, trim_end=False) == 1)
+            Assert(f(" \n\n\n", trim_start=False, trim_end=False) == 1)
+            Assert(f("  \n", trim_start=False, trim_end=False) == 2)
+        if 1:   # Show it works for left trimming
+            Assert(f(" ", trim_start=True, trim_end=False) == 1)
+            Assert(f(" \n", trim_start=True, trim_end=False) == 0)
+            Assert(f("  \n", trim_start=True, trim_end=False) == 0)
+            Assert(f("   \n", trim_start=True, trim_end=False) == 0)
+            Assert(f(" \n ", trim_start=True, trim_end=False) == 1)
+            Assert(f("  \n ", trim_start=True, trim_end=False) == 1)
+            Assert(f("  \n  ", trim_start=True, trim_end=False) == 2)
+        if 1:   # Show it works for right trimming
+            Assert(f(" ", trim_start=False, trim_end=True) == 1)
+            Assert(f("\n  ", trim_start=False, trim_end=True) == 0)
+            Assert(f(" \n  ", trim_start=False, trim_end=True) == 1)
+            Assert(f("  \n  ", trim_start=False, trim_end=True) == 2)
     def Test_FilterSeqRegex():
         from lwtest import Assert
         # With no regexes, it's the identity unless the sequence contains a non-string

@@ -68,19 +68,25 @@ Provides a sequence of density instances
         
 '''
 if 1:  # Header
-    if 1:   # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright © 2022 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # Sequence of densities of materials
-        ##∞what∞#
-        ##∞test∞# run #∞test∞#
-        pass
+    _pgminfo = '''
+        <oo gist ∞ A sequence of attributed density numbers oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2013, 2022 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ science oo>
+        <oo test ∞ run oo>
+        <oo todo ∞ 
+
+            - Change category to enum
+            - Should Density class be changed to a namedtuple with enums?
+
+        oo>
+    '''
     if 1:   # Standard imports
         import re
     if 1:   # Custom imports
@@ -90,8 +96,7 @@ if 1:  # Header
     # Global variables
     ii = isinstance
     categories = bidict()
-    categories.update(
-        {
+    categories.update( {
             "": 0,
             "gas": 1,
             "liquid": 2,
@@ -100,8 +105,7 @@ if 1:  # Header
             "misc": 5,
             "plastic": 6,
             "wood": 7,
-        }
-    )
+    })
 if 1:  # References
     references = {  # All references are indexed by 3-letter strings
         # Primary references

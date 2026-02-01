@@ -4,29 +4,28 @@ program assumes that the diameters, lengths, and thicknesses all have the same p
 unit.
 
 Examples:
-
     1.  I have a toilet paper roll.  The paper is 0.068 mm thick, the roll is 120 mm in
         outside diameter, and the inside diameter is 44 mm.  What is the length of paper
         on the roll?
-
+        
             Choose problem 1; enter t = 0.068, D = 120, d = 44.  Get
                 n = 558.824 turns
                 L = 143959 mm = 144 m
-
+                
     2.  How big in diameter will be 1000 turns of sheet metal 0.01 units thick?
-
+    
             Choose problem 3; enter number of turns n and thickness t.  Get
                 L = 31415.9
                 D = 20
-
+                
     3.  I have a piece of 2" steel pipe that has an ID of 2.07 inches.  If a US dollar
         bill is 6.1 inches long, 2.61 inches wide, and 0.0043 inches thick, how many 
         dollar bills could I roll up and put into the pipe?
-
+        
             Choose problem 1 and input t = 0.004, D = 2.07, d= 0.  Get
                 L = 782.6"
                 n = 240.7
-
+                
         If we take int(782.6/6.1), we get 128 bills.  Practically, there are some
         physical limitations that would reduce this number.  The bills couldn't be wound
         tightly starting from zero radius.  You'd also probably want to use some tape to
@@ -36,29 +35,29 @@ Examples:
         estimate by 10-20% and declare the amount to be 100 bills.  Thus, if the bills
         were $100 bills, a 2 inch pipe could then store $10k for every 2.7 inches of
         length.
-
+        
     4.  Suppose I want to design a phonograph pen tester that will draw a line on paper
         in the shape of a spiral.  The pen writes a line 0.5 mm wide and I want there to
         be 0.25 mm between the lines.  Therefore, I pick the thickness t to be 0.75 mm.
         I'll start the line at a diameter of d = 25 mm and stop the line at a diameter
         of D = 1500 mm.  Calculate the drawn length by calling the script with '-1 1500
         25 0.75':
-
+        
             Outside diameter    = 1500
             Inside diameter     = 25
             Thickness           = 0.75
             Number of turns     = 983.33333
             Length              = 2355540.2
             Angle               = 6178.4656 rad = 354000°
-
+            
         Divide the length by 1000 to get 2356 m.  By turning the paper over, I can draw
         a line of 4.7 km on one sheet of paper.  I estimate it will take about 3 s to
         draw 200 mm, so the pen speed is about 70 mm/s.  The time to draw 2356 m is then
         2355540/70 = 33650 s or 9.3 hours.
-
+        
         The tester would need to know the radius of the pen to be able to keep the
         linear speed of the rotating paper constant.
-
+        
 '''
 if 1:  # Header
     if 1:  # Copyright, license
@@ -700,3 +699,4 @@ if 1 and __name__ == "__main__":
         s.PrintReport()
     else:
         Usage()
+        

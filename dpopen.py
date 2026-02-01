@@ -7,19 +7,20 @@ Provides RegisteredOpen(), which lets you open a file with its registered applic
     
 '''
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # Module to open a file with its registered application
-        ##∞what∞#
-        ##∞test∞# notest #∞test∞#
-        pass
+    _pgminfo = '''
+        <oo gist ∞ Open a file with its registered application oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2024 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ utility oo>
+        <oo test ∞ notest oo>
+        <oo todo ∞ oo>
+    '''
     if 1:  # Standard imports
         from pathlib import Path as P
         import os
@@ -28,15 +29,15 @@ if 1:  # Header
     if 1:  # Custom imports
         from wsl import wsl  # wsl is True when running under WSL Linux
     if 1:  # Global variables
-        ii = isinstance
+        pass
 if 1:  # Core functionality
     def RegisteredOpen(file):
         '''Open the indicated file with its registered application.  file must be a string
         or a Path instance.
         '''
-        if ii(file, str):
+        if isinstance(file, str):
             p = P(file)
-        elif ii(file, P):
+        elif isinstance(file, P):
             p = file
         else:
             raise TypeError(f"{file} must be a string or a pathlib.Path instance")
@@ -61,6 +62,7 @@ if 1:  # Core functionality
             print(f"{e}")
         finally:
             os.chdir(cwd)
+
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         print(f"Usage: {sys.argv[0]} [file1 [file2 ...]]")

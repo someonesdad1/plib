@@ -5,6 +5,8 @@
             - ∞∞1 is highest priority
         - Should just work first for /plib and /plib/pgm if no args and in the /plib
           tree
+    - h bash function
+        - Modify it to do 'pd s' if s is one of my /plib modules
     - bash functions
         - I have over 320 functions, way too many to remember.  I need some way of
           starting the rarely-used ones by e.g. showing me the category and letting me
@@ -18,6 +20,7 @@
         - The function gist could be 'keywords ∞∞ description' where the keywords would
           be separated by space characters.
     - debug.py
+        - Function:  'debug' prints to stdout a bunch of help on how to debug things
         - Prototyping:  see if debug.exit() can be used in sections where I'm
           prototyping things.  This causes an exit(), but also prints it's location to
           stderr and stdout everytime to identify what file is causing the problem
@@ -54,8 +57,21 @@
           with one of them my default
 
     - /plib work
+        - A benefit of standardizing on the 'if 1:  # Header' in all files is that it
+          allows an automated tool to inspect that each of the used "fields" is present.
+          This in turn allows other tools to do code introspection and analysis.
+        - Remove __all__ stuff:  this so easily gets out of date.  Figure out how to
+          just remove the stuff that doesn't need to be in the global namespace.
         - Subdirectories: shop elec math sci util lang_or_text color
         - Gist in every python file
+            - gist command
+                - gist      List all files: gists on one line; regex gets subset
+                - kw        List all cat keywords used; -v includes the files
+                - test      List all test keywords used; -v includes the files
+                - todo      List all todo items, sorted by priority (use num as regex)
+        - Reference data:  a number of the files contain links to information sources
+          (e.g., density.py).  These need to be checked on a periodic basis and flagged
+          for when they go defunct.  A gist field could be added to handle this case.
         - Needs work/inspection
             - dpdata.py:  be a single repository for all the files with data:
               drillsizes.py, eia.py, elements.py ?, papersize.py, planets.py,

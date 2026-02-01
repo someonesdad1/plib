@@ -43,21 +43,24 @@ Utility encoding tool
         ISO-8859-15          0.1%           iso8859_15
 '''
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞# <utility> Utility encoding tool.  It reads a file and
-        # decodes it with various codecs; the ones that don't raise an
-        # exception are possible encodings.  Also lets you change a file's
-        # encoding like iconv.
-        ##∞what∞#
-        ##∞test∞# notest #∞test∞#
-        pass
+    _pgminfo = '''
+        <oo gist ∞ Utility encoding tool oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2019 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ utility oo>
+        <oo test ∞ notest oo>
+        <oo todo ∞ 
+        
+            - ∞∞2 enc.py needs self-tests
+        
+        oo>
+    '''
     if 1:  # Imports
         from collections import defaultdict
         from pathlib import Path
@@ -73,76 +76,11 @@ if 1:  # Header
             import debug
             debug.SetDebugger()  # Start debugger on unhandled exception
     if 1:  # Global variables
-        # This list comes from the most frequently used web page encodings.
-        # I've kept English and western European codecs, getting rid of
-        # Asian, Turkish, Russian, etc. encodings.  ASCII is detected
-        # separately.
+        # This list comes from the most frequently used web page encodings.  I've kept
+        # English and western European codecs, getting rid of Asian, Turkish, Russian,
+        # etc. encodings.  ASCII is detected separately.
         use_first = '''utf_8 latin_1 cp1252 iso8859_2 cp1250 iso8859_15'''.split()
         aliases, primary = None, None
-if 1:  # Utility
-    def Error(msg, status=1):
-        print(msg, file=sys.stderr)
-        exit(status)
-    def Usage(d, status=1):
-        name = sys.argv[0]
-        print(dedent(f'''
-        Usage:  {name} [options] file1 [file2 ...]
-          Try to identify the encoding of the file(s) on the command line.  This is done
-          by finding which python codecs module encodings don't raise an exception.
-          Note there is no way in general to determine the encoding of a file.
-          
-          ISO8859 (latin1) encodings are still pretty common; use the -u option to
-          convert them to UTF-8, overwriting the original file.  This will be done as
-          safely as possible, first converting the file to a UTF-8 form, checking that
-          the original can be removed, the renaming the converted file to the original
-          name.
-          
-          Use the -o option to change the encoding of a file.
-          
-          Other tools handy to deal with encodings are the UNIX file command (uses
-          heuristics to identify file types) and the iconv encoding/decoding tool.
-        Options (case of enc string is ignored):
-          -a        Try all encodings
-          -d enc    Use the indicated encoding on file1 to decode it
-          -h        Show some usage hints
-          -l        List the allowed encoding strings
-          -o enc    Encode file1 with the indicated encoding and write it to the second
-                    file on the command line.
-          -u        If the file is ISO8859-1, convert it to UTF-8 and overwrite the
-                    original file.
-          -x        Show the non-ASCII characters in the file.  Decodes with UTF-8
-                    unless you give a -d option.  The characters are sorted.
-          -X        Same as -x, but show codepoints
-        ''')
-        )
-        exit(status)
-    def ParseCommandLine(d):
-        d["-a"] = False  # Try all encodings
-        d["-d"] = None   # Which encoding to use
-        d["-l"] = False  # List allowed encodings
-        d["-o"] = None   # Encode file on command line with this encoding
-        d["-u"] = False  # If ISO8859, convert each file to UTF-8 and overwrite
-        d["-x"] = False  # Show the non-ASCII characters in the file
-        d["-X"] = False  # Same as -x, but show codepoints
-        if len(sys.argv) < 2:
-            Usage(d)
-        try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:hlo:uxX", "help")
-        except getopt.GetoptError as e:
-            print(str(e))
-            exit(1)
-        for o, a in opts:
-            if o[1] in list("aluxX"):
-                d[o] = not d[o]
-            elif o in ("-h", "--help"):
-                UsageHints()
-            elif o in ("-d", "-o"):
-                if a.lower() not in valid_encodings:
-                    Error(f"'{a}' is not a recognized encoding")
-                d[o] = a
-        if d["-o"] is not None and len(args) != 2:
-            Error("Two arguments needed with -o option")
-        return args
 if 1:  # Core functionality
     def ConstructEncodingData():
         '''This function can be called to print a dict to stdout that builds
@@ -154,6 +92,18 @@ if 1:  # Core functionality
         https://w3techs.com/technologies/overview/character_encoding.  I've
         used this page's data to determine the encoding priority by this
         script.  Here are the frequencies in %:
+
+        Data from 1 Feb 2026: 
+            Web page's name   Frequency      Python codec name
+            ---------------   ---------      -----------------
+            UTF-8                98.9%          utf_8
+            ISO-8859-1           0.9%           latin_1
+            Windows-1252         0.3%           cp1252      West European
+            Windows-1251         0.2%           cp1251      Cyrillic
+            EUC-JP               0.1%           euc_jp      Extended Unix Code Japanese
+            EUC-KR               0.1%           euc_kr      Extended Unix Code Korean
+            Shift JIS            0.1%           shift_jis   Japanese
+            All others were less than 0.1%
         
         Data from 9 Jun 2021:
             Web page's name   Frequency      Python codec name
@@ -600,6 +550,69 @@ if __name__ == "__main__":
     valid_encodings = set()
     valid_encodings.update(primary)
     valid_encodings.update(aliases)
+    if 1:  # Utility
+        def Error(msg, status=1):
+            print(msg, file=sys.stderr)
+            exit(status)
+        def Usage(d, status=1):
+            name = sys.argv[0]
+            print(dedent(f'''
+            Usage:  {name} [options] file1 [file2 ...]
+              Try to identify the encoding of the file(s) on the command line.  This is done
+              by finding which python codecs module encodings don't raise an exception.
+              Note there is no way in general to determine the encoding of a file.
+            
+              ISO8859 (latin1) encodings are still pretty common; use the -u option to
+              convert them to UTF-8, overwriting the original file.  This will be done
+              as safely as possible, first converting the file to a UTF-8 form, checking
+              that the original can be removed, the renaming the converted file to the
+              original name.
+            
+              Use the -o option to change the encoding of a file.
+            
+              Other tools handy to deal with encodings are the UNIX file command (uses
+              heuristics to identify file types) and the iconv encoding/decoding tool.
+            Options (case of enc string is ignored):
+              -a        Try all encodings
+              -d enc    Use the indicated encoding on file1 to decode it
+              -h        Show some usage hints
+              -l        List the allowed encoding strings
+              -o enc    Encode file1 with the indicated encoding and write it to the second
+                        file on the command line.
+              -u        If the file is ISO8859-1, convert it to UTF-8 and overwrite the
+                        original file.
+              -x        Show the non-ASCII characters in the file.  Decodes with UTF-8
+                        unless you give a -d option.  The characters are sorted.
+              -X        Same as -x, but show codepoints
+            '''))
+            exit(status)
+        def ParseCommandLine(d):
+            d["-a"] = False  # Try all encodings
+            d["-d"] = None   # Which encoding to use
+            d["-l"] = False  # List allowed encodings
+            d["-o"] = None   # Encode file on command line with this encoding
+            d["-u"] = False  # If ISO8859, convert each file to UTF-8 and overwrite
+            d["-x"] = False  # Show the non-ASCII characters in the file
+            d["-X"] = False  # Same as -x, but show codepoints
+            if len(sys.argv) < 2:
+                Usage(d)
+            try:
+                opts, args = getopt.getopt(sys.argv[1:], "ad:hlo:uxX", "help")
+            except getopt.GetoptError as e:
+                print(str(e))
+                exit(1)
+            for o, a in opts:
+                if o[1] in list("aluxX"):
+                    d[o] = not d[o]
+                elif o in ("-h", "--help"):
+                    UsageHints()
+                elif o in ("-d", "-o"):
+                    if a.lower() not in valid_encodings:
+                        Error(f"'{a}' is not a recognized encoding")
+                    d[o] = a
+            if d["-o"] is not None and len(args) != 2:
+                Error("Two arguments needed with -o option")
+            return args
     d = {}  # Options dictionary
     files = ParseCommandLine(d)
     if d["-o"]:
