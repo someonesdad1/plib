@@ -1,34 +1,34 @@
-"""
+'''
 Container for global variables
     This module provides the class Global which provides a container for
     global variables.
-
+    
         import globalcontainer
-
+        
         G = globalcontainer.Global()
-
+        
         # Define our global variables
         G.operation_name = "Check status"
         G.number_of_units = 17
-
+        
     The __str__ and __repr__ methods are defined so that print(G) will
     list the global variable names and their values to stdout.
-
+    
     If you instead use the line
-
+    
         G = globalcontainer.GlobalContainer
-
+        
     the variables defined will be class variables rather than instance
     variables.  For printing, you can use the Global.str() and
     Global.repr() methods.
-
+    
     There are two auxiliary classes Variable and Constant that can be
     used if you wish.  Constant is defined so that you can assign to it
     once; later attempts to assign to a Constant attribute will result
     in an exception (the idea is due to A. Martelli, given on page 192
     of the Python Cookbook, 2002 edition).  These two classes let you
     define "blocks" in the Global's set of attributes:
-
+    
         G.display = Constant()
         G.display.lines = 51        # This variable is readonly
         G.display.columns = 80      # This variable is readonly
@@ -36,18 +36,43 @@ Container for global variables
         G.keyboard = Variable()
         G.keyboard.keys = 26
         G.keyboard.leds = [1, 2, 3]
-
+        
     The naming of the blocks can help with remembering where things are.
-
+    
     Note the assignment to G.display.colors is a list, which is a
     mutable object.  The list's contents can be changed, but you won't
     be able to bind a different list to the object without getting an
     exception.  If you want it to be immutable, use e.g. a tuple,
     frozenset, etc.
-
+    
     Run the module as a script to get examples of use.
-"""
-
+'''
+if 1:  # Header
+    _pgminfo = '''
+        <oo gist ∞ Container for global variables oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2021 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ utility oo>
+        <oo test ∞ --test oo>
+        <oo todo ∞ 
+        
+            - ∞∞2 Start using this file for global variables in modules
+            - Colorize the demo printout
+        
+        oo>
+    '''
+    if 1:  # Standard imports
+        pass
+    if 1:  # Custom imports
+        pass
+    if 1:  # Global variables
+        pass
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
@@ -62,100 +87,70 @@ if 1:  # Copyright, license
     ##∞what∞#
     ##∞test∞# --test #∞test∞#
     pass
-
-
-class ReadOnlyError(Exception):
-    pass
-
-
-class Descr:
-    "Provide str() and repr() methods"
-
-    def __init__(self, indent=" " * 2):
-        self.__indent__ = indent
-
-    def __str__(self):
-        name = type(self).__name__
-        s, d = [f"{name}({hex(id(self))}):"], self.__dict__
-        for i in sorted(d):
-            if not i.startswith("__") and not i.endswith("__"):
-                s.append("{}{} = {}".format(self.__indent__, i, repr(d[i])))
-        return "\n".join(s)
-
-    def __repr__(self):
-        return self.__str__()
-
-
-class Variable(Descr):
-    def __init__(self, indent=" " * 4):
-        super().__init__(indent)
-
-
-class Constant(Descr):
-    def __init__(self, indent=" " * 4):
-        super().__init__(indent)
-
-    def __setattr__(self, name, value):
-        if name in self.__dict__:
-            msg = f"The constant '{name}' is read-only"
-            raise ReadOnlyError(msg)
-        self.__dict__[name] = value
-
-    def __delattr__(self, name):
-        if name in self.__dict__:
-            msg = f"The constant '{name}' is read-only"
-            raise ReadOnlyError(msg)
-
-
-class Global:
-    "Container for global variables as instance attributes"
-
-    @staticmethod
-    def str():
-        s, d = ["Global class variables:"], Global.__dict__
-        for i in sorted(d):
-            if i in ("str", "repr"):
-                continue
-            if not i.startswith("__") and not i.endswith("__"):
-                s.append("{}{} = {}".format(" " * 2, i, repr(d[i])))
-        return "\n".join(s)
-
-    @staticmethod
-    def repr():
-        return Global.str()
-
+if 1:  # Classes
+    class ReadOnlyError(Exception):
+        pass
+    class Descr:
+        "Provide str() and repr() methods"
+        def __init__(self, indent=" " * 2):
+            self.__indent__ = indent
+        def __str__(self):
+            name = type(self).__name__
+            s, d = [f"{name}({hex(id(self))}):"], self.__dict__
+            for i in sorted(d):
+                if not i.startswith("__") and not i.endswith("__"):
+                    s.append("{}{} = {}".format(self.__indent__, i, repr(d[i])))
+            return "\n".join(s)
+        def __repr__(self):
+            return self.__str__()
+    class Variable(Descr):
+        def __init__(self, indent=" " * 4):
+            super().__init__(indent)
+    class Constant(Descr):
+        def __init__(self, indent=" " * 4):
+            super().__init__(indent)
+        def __setattr__(self, name, value):
+            if name in self.__dict__:
+                msg = f"The constant '{name}' is read-only"
+                raise ReadOnlyError(msg)
+            self.__dict__[name] = value
+        def __delattr__(self, name):
+            if name in self.__dict__:
+                msg = f"The constant '{name}' is read-only"
+                raise ReadOnlyError(msg)
+    class Global:
+        "Container for global variables as instance attributes"
+        @staticmethod
+        def str():
+            s, d = ["Global class variables:"], Global.__dict__
+            for i in sorted(d):
+                if i in ("str", "repr"):
+                    continue
+                if not i.startswith("__") and not i.endswith("__"):
+                    s.append("{}{} = {}".format(" " * 2, i, repr(d[i])))
+            return "\n".join(s)
+        @staticmethod
+        def repr():
+            return Global.str()
 
 if __name__ == "__main__":
-    # Standard library modules
-    import getopt
-    import sys
-
-    # Custom modules
-    from lwtest import run, assert_equal, raises
-    from wrap import wrap, dedent
-
-    try:
-        from lwtest import run, raises, assert_equal
-
-        _have_lwtest = True
-    except ImportError:
-        # Get it from
-        # https://someonesdad1.github.io/hobbyutil/prog/lwtest.zip
-        _have_lwtest = False
+    if 1:   # Standard library modules
+        import getopt
+        import sys
+    if 1:   # Custom modules
+        from lwtest import run, assert_equal, raises
+        from wrap import wrap, dedent
     if 1:  # Script base code
-
         def Error(msg, status=1):
             print(msg, file=sys.stderr)
             exit(status)
-
         def Usage(d, status=1):
             name = sys.argv[0]
-            s = dedent(f"""
-        Usage:  {name}
-          Show example of use.  Use --test option to run tests.""")
+            s = dedent(f'''
+            Usage:  {name}
+              Show example of use.  Use --test option to run tests.''')
             print(s)
             exit(status)
-
         def ParseCommandLine(d):
             d["--test"] = False
             try:
@@ -170,7 +165,6 @@ if __name__ == "__main__":
                     d["--test"] = True
             wrap.indent = " " * 4
             return args
-
     if 1:  # Test code
         one, two, three, four, five = 1, 2.0, "3", 4 + 0j, 5
         g = Global()
@@ -181,7 +175,6 @@ if __name__ == "__main__":
         g.ro.x = four
         g.rw = Variable()
         g.rw.y = five
-
         def Test_read_write():
             "This exercises the simple globals that are read/write"
             assert isinstance(g.one, int)
@@ -190,7 +183,6 @@ if __name__ == "__main__":
             assert_equal(g.one, one)
             assert_equal(g.two, two)
             assert_equal(g.three, three)
-
         def Test_more():
             "Tests using Constant and Variable classes"
             # Read only feature
@@ -203,12 +195,10 @@ if __name__ == "__main__":
             assert g.rw.y == five
             g.rw.y = five + 1
             assert g.rw.y == five + 1
-
     if 1:  # Example code
-
         def Example_Instance():
             print("Example 1:  Using an Instance")
-            s = dedent("""
+            s = dedent('''
                 g1 = Global()
                 g1.rw = Variable()
                 g1.rw.a = 33
@@ -218,7 +208,7 @@ if __name__ == "__main__":
                 g1.ro1.y = [0.1, "xy"]
                 g1.ro2 = Constant()
                 g1.ro2.w = 395375
-                g1.ro2.z = (-1e17, "blithering")""")
+                g1.ro2.z = (-1e17, "blithering")''')
             print("  Code:")
             for line in s.split("\n"):
                 print(f"    {line}")
@@ -235,10 +225,10 @@ if __name__ == "__main__":
             g1.ro2.z = (-1e17, "blithering")
             print(g1)
             # We get an exception trying to change a readonly attribute
-            s = dedent("""
+            s = dedent('''
             with raises(ReadOnlyError):
                 g1.ro1.x = 48
-                print("Didn't get expected exception")""")
+                print("Didn't get expected exception")''')
             print("Using the following code to check readonly:")
             for line in s.split("\n"):
                 print(f"    {line}")
@@ -249,11 +239,10 @@ if __name__ == "__main__":
             print(f"You shouldn't see '{msg}'")
             print("End of Example 1")
             print("-" * 70)
-
         def Example_UsingClassVariables():
             print("Example 2:  Using Class Variables")
-            s = dedent("""
-                g2 = Global
+            s = dedent('''
+                g2 = Global()
                 g2.rw = Variable()
                 g2.rw.a = 33
                 g2.rw.b = "a string"
@@ -264,7 +253,7 @@ if __name__ == "__main__":
                 print(f"  {str(g2)}")
                 print(f"Instead, use Global's staticmethod str():")
                 print(f"{Global.str()}")
-            """)
+            ''')
             print("  Code:")
             for line in s.split("\n"):
                 print(f"    {line}")
@@ -281,10 +270,10 @@ if __name__ == "__main__":
             print("Instead, use Global's staticmethod str():")
             print(f"{Global.str()}")
             # We get an exception trying to change a readonly attribute
-            s = dedent("""
+            s = dedent('''
                 with raises(ReadOnlyError):
                     g2.ro.x = 48
-                    print("Didn't get expected exception")""")
+                    print("Didn't get expected exception")''')
             print("Using the following code to check readonly:")
             for line in s.split("\n"):
                 print(f"    {line}")
@@ -294,7 +283,6 @@ if __name__ == "__main__":
                 print("Didn't get expected exception")
             print(f"You shouldn't see '{msg}'")
             print("End of Example 2")
-
     # ----------------------------------------------------------------------
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

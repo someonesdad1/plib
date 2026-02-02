@@ -1,100 +1,105 @@
 '''
 Hex dump utility
 '''
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    ##∞copyright∞# Copyright (C) 2008, 2017 Don Peterson #∞copyright∞#
-    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    ##∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    ##∞license∞#
-    ##∞what∞#
-    # <utility> Hex dump utility
-    ##∞what∞#
-    ##∞test∞# run #∞test∞#
-    pass
-if 1:  # Imports
-    from io import StringIO, BytesIO
-if 1:  # Global variables
-    # Global variable convenience container
-    class G:
-        bytes_per_line = 16
-        nonprintable_char = ord(".")
-        ii = isinstance
-def hexdump(text, n=None, offset=0, out=None, encoding="utf-8"):
-    '''Return an ASCII string hexdump of text.  text can be either a
-    string, bytes, or bytearray.  If n is not None, limit the number of
-    bytes in the output to that number.  Start the dump at the indicated
-    offset.  If out is not None, then it must be a stream, so send the
-    ASCII hexdump string to the stream and return None.  If text is a
-    string object, then it is decoded into a bytes object using the
-    indicated encoding.
-    
-    This routine has been tested with python 2.7.6 and 3.4.0.
+if 1:  # Header
+    _pgminfo = '''
+        <oo gist ∞ Hex dump utility oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2008, 2017 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ utility oo>
+        <oo test ∞ run oo>
+        <oo todo ∞ oo>
     '''
-    stream = StringIO() if out is None else out
-    # Check argument types
-    if not hasattr(stream, "write"):
-        raise TypeError("out must be a stream-like object")
-    if n is not None and not isinstance(n, int):
-        raise TypeError("n must be an integer")
-    if not isinstance(offset, int):
-        raise TypeError("offset must be an integer")
-    if not isinstance(encoding, str):
-        raise TypeError("encoding must be a string")
-    def OutputLine(mybytes, offset):
-        if len(mybytes) == 0:
-            return
-        stream.write("{:08x}  ".format(offset))
-        # Print the hex values
-        for i in range(G.bytes_per_line):
-            if i < len(mybytes):
-                c = mybytes[i]
-                stream.write("{:02x} ".format(c))
-            else:
-                stream.write("   ")
-            if i == 7:
-                stream.write(" ")
-        stream.write(" | ")
-        # Print the ASCII representation
-        for i in range(G.bytes_per_line):
-            if i < len(mybytes):
-                c = mybytes[i]
-                if 32 <= c < 128:
-                    stream.write("%c" % c)
+    if 1:  # Standard imports
+        from io import StringIO, BytesIO
+    if 1:  # Custom imports
+        pass
+    if 1:  # Global variables
+        class G:
+            pass
+        g = G()
+        g.bytes_per_line = 16
+        g.nonprintable_char = ord(".")
+if 1:  # Core functionality
+    def hexdump(text, n=None, offset=0, out=None, encoding="utf-8"):
+        '''Return an ASCII string hexdump of text.  text can be either a
+        string, bytes, or bytearray.  If n is not None, limit the number of
+        bytes in the output to that number.  Start the dump at the indicated
+        offset.  If out is not None, then it must be a stream, so send the
+        ASCII hexdump string to the stream and return None.  If text is a
+        string object, then it is decoded into a bytes object using the
+        indicated encoding.
+        
+        This routine has been tested with python 2.7.6 and 3.4.0.
+        '''
+        stream = StringIO() if out is None else out
+        # Check argument types
+        if not hasattr(stream, "write"):
+            raise TypeError("out must be a stream-like object")
+        if n is not None and not isinstance(n, int):
+            raise TypeError("n must be an integer")
+        if not isinstance(offset, int):
+            raise TypeError("offset must be an integer")
+        if not isinstance(encoding, str):
+            raise TypeError("encoding must be a string")
+        def OutputLine(mybytes, offset):
+            if len(mybytes) == 0:
+                return
+            stream.write("{:08x}  ".format(offset))
+            # Print the hex values
+            for i in range(g.bytes_per_line):
+                if i < len(mybytes):
+                    c = mybytes[i]
+                    stream.write("{:02x} ".format(c))
                 else:
-                    stream.write("%c" % G.nonprintable_char)
-        stream.write("\n")
-    # Turn input into bytes
-    if isinstance(text, str):
-        try:
-            text = text.encode(encoding)
-        except UnicodeDecodeError:
-            # This can happen under python 2 when 8-bit characters
-            # are in text.
-            text = bytearray(text)
-    elif not isinstance(text, (bytes, bytearray)):
-        raise TypeError("text must be a string or bytes/bytearray")
-    # Convert the bytes to a stream object using io.BytesIO for
-    # convenience.
-    src = BytesIO(text)
-    n = 2**31 if n is None else n
-    if offset:
-        src.read(offset)
-    mybytes = src.read(G.bytes_per_line)
-    count = 0
-    while len(mybytes) != 0:
-        if len(mybytes) + count >= n:
-            mybytes = mybytes[: n - count]
-        OutputLine(mybytes, offset)
-        count = count + len(mybytes)
-        if count >= n:
-            break
-        mybytes = src.read(G.bytes_per_line)
-        offset = offset + G.bytes_per_line
-    if out is None:
-        return stream.getvalue()
+                    stream.write("   ")
+                if i == 7:
+                    stream.write(" ")
+            stream.write(" | ")
+            # Print the ASCII representation
+            for i in range(g.bytes_per_line):
+                if i < len(mybytes):
+                    c = mybytes[i]
+                    if 32 <= c < 128:
+                        stream.write("%c" % c)
+                    else:
+                        stream.write("%c" % g.nonprintable_char)
+            stream.write("\n")
+        # Turn input into bytes
+        if isinstance(text, str):
+            try:
+                text = text.encode(encoding)
+            except UnicodeDecodeError:
+                # This can happen under python 2 when 8-bit characters
+                # are in text.
+                text = bytearray(text)
+        elif not isinstance(text, (bytes, bytearray)):
+            raise TypeError("text must be a string or bytes/bytearray")
+        # Convert the bytes to a stream object using io.BytesIO for
+        # convenience.
+        src = BytesIO(text)
+        n = 2**31 if n is None else n
+        if offset:
+            src.read(offset)
+        mybytes = src.read(g.bytes_per_line)
+        count = 0
+        while len(mybytes) != 0:
+            if len(mybytes) + count >= n:
+                mybytes = mybytes[: n - count]
+            OutputLine(mybytes, offset)
+            count = count + len(mybytes)
+            if count >= n:
+                break
+            mybytes = src.read(g.bytes_per_line)
+            offset = offset + g.bytes_per_line
+        if out is None:
+            return stream.getvalue()
 
 if __name__ == "__main__":
     from lwtest import run, assert_equal, raises

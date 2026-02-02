@@ -1,40 +1,37 @@
 '''
-TODO:
-
-    - GetNumber uses the boolean use_unit to allow the user to append a unit string.
-      Change it to also allow use_unit to be a string; then a unit string, if appended,
-      must have the same dimensions as the given string.
-    - GetLine needs a keep=[] keyword argument to be used on lines that aren't removed
-      by the ignore argument.
-    - GetLine1 staged to be removed by commenting out
-    - See if GetLines and GetLines1 can be combined
-    - Add number kw to GetLines which then causes a list of tuples (linenum, str) to be
-      returned
-    - Add Zn to GetNumbers
-    - Change GetFraction to also handle integers
-    
-Module for a) getting data from files, strings, and streams, b) getting numbers interactively from
-user.
-
+Module for a) getting data from files, strings, and streams, b) getting numbers
+interactively from user.
 '''
 if 1:  # Header
-    if 1:   # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # <programming> Module for getting data from files, strings, and
-        # streams.  An example is reading a text file, getting all the lines
-        # except for those that match a sequence of regular expressions.
-        # Other examples are getting all the words (tokens) from a file or a
-        # set of numbers.  Handles a number of common programming tasks.
-        ##∞what∞#
-        ##∞test∞# run #∞test∞#
-        pass
+    _pgminfo = '''
+        <oo gist ∞ Get data from files, strings, and streams oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2019 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ utility oo>
+        <oo test ∞ run oo>
+        <oo todo ∞ 
+        
+            - ∞∞1 Add function summary to docstring for pydoc
+            - GetNumber uses the boolean use_unit to allow the user to append a unit
+              string.  Change it to also allow use_unit to be a string; then a unit
+              string, if appended, must have the same dimensions as the given string.
+            - GetLine needs a keep=[] keyword argument to be used on lines that aren't
+              removed by the ignore argument.
+            - GetLine1 staged to be removed by commenting out
+            - See if GetLines and GetLines1 can be combined
+            - Add number kw to GetLines which then causes a list of tuples (linenum,
+              str) to be returned
+            - Add Zn to GetNumbers
+            - Change GetFraction to also handle integers
+        
+        oo>
+    '''
     if 1:   # Standard imports
         import bisect
         import locale
@@ -1229,13 +1226,15 @@ if 1:  # Miscellaneous
         return count
 
 if __name__ == "__main__":
-    # Regression tests
-    if 1:  # Initialization
+    if 1:  # Standard imports
         from collections import deque
+        from io import StringIO
+    if 1:  # Custom imports
         from wrap import dedent
         from lwtest import run, raises, Assert
-        from io import StringIO
+    if 1:  # Global variables
         text_file, S = None, None
+    if 1:  # Initialization
         def SetUp():
             global text_file, S
             text_file = P("get.test")

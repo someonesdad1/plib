@@ -57,6 +57,11 @@
           with one of them my default
 
     - /plib work
+        - Standardize on 'import x' instead of 'from x import y'.  The reason is because
+          then someone reading the code then knows where the relevant token is coming
+          from, rather than having to figure it out -- which can sometimes be time
+          consuming in large complicated code.  But it's OK in the code after the 
+          if __name__ == "__main__":  section.
         - A benefit of standardizing on the 'if 1:  # Header' in all files is that it
           allows an automated tool to inspect that each of the used "fields" is present.
           This in turn allows other tools to do code introspection and analysis.

@@ -1,7 +1,6 @@
-"""
+'''
 SI prefixes
-"""
-
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -22,29 +21,25 @@ if 1:  # Header
     if 1:  # Custom imports
         from fmt import fmt
         from f import flt
-
         have_mpmath = False
         try:
             import mpmath as M
-
             have_mpmath = True
         except ImportError:
             pass
     if 1:  # Global variables
         ii = isinstance
 if 1:  # Classes
-
     class SI(dict):
-        """Class to present a bidict behavior for both SI prefix strings and exponents.  Index as
+        '''Class to present a bidict behavior for both SI prefix strings and exponents.  Index as
         a dictionary with an SI prefix string and you'll have the corresponding base 10 logarithm
         returned.  Call as a function with an integer representing the base 10 logarithm of the
         prefix and you'll have the corresponding prefix returned.
-
+        
         An incorrect string or integer will result in a KeyError exception.
-
+        
         Use pure=True in constructor to avoid the 'd c da h" prefixes.
-        """
-
+        '''
         def __init__(self, pure=False):
             self.update(
                 {
@@ -112,44 +107,39 @@ if 1:  # Classes
                         2: "h",
                     }
                 )
-
         def __call__(self, x):
             return self.d[x]
-
-
 if 1:  # Core functionality
-
     def GetSIExponent(e: int):
-        """Return None if not (-24 <= e <= 26).  Otherwise, return the nearest integer that is a
+        '''Return None if not (-24 <= e <= 26).  Otherwise, return the nearest integer that is a
         suitable exponent division by 3.
-        """
+        '''
         if not (-24 <= e <= 26):
             return None
         e = 24 if e > 24 else e
         while abs(e) % 3 != 0:
             e -= 1
         return e
-
     def GetSI(x, eng=False):
-        """
+        '''
         - Call with a single character string that is an SI prefix and you'll have the
           corresponding power of 10 returned.  An unrecognized SI string results in an exception.
-
+          
         - Call with a number (integer or float) and a tuple (x, t, p) will be returned:
             x is the original number
             t is the number's significand (a number in the interval [1, 10)
             p is the appropriate SI prefix
-
+            
           If x is 0, then (x, 0, "") is returned.
-
+          
           If x is in (1/1000, 1000), then (x, x, "") is returned.
-
+          
           If x is not within a factor of 1000 of the largest or smallest SI prefix, then None is
           returned for t and p.  The exception is when x is 0, in which case (x, 0, "") will be
           returned.  If x is in (1/1000, 1000), then (x, x, "") is returned if eng is True.
-
+          
           If eng is True, then the prefixes d, c, da, and h are not allowed.
-        """
+        '''
         if ii(x, str):
             if not x:
                 return 1
@@ -186,13 +176,12 @@ if 1:  # Core functionality
             return (x, t, p)
         else:
             raise ValueError("x must be string, float (mpmath.mpf OK too), or integer")
-
     def GetSISuffix(s, eng=False):
-        """Return (s1, sisuffix) where s1 is the string s with the SI suffix sisuffix removed.
+        '''Return (s1, sisuffix) where s1 is the string s with the SI suffix sisuffix removed.
         Leading and trailing whitespace are first removed from s.
-
+        
         If eng is True, then the prefixes d, c, da, and h are not allowed.
-
+        
         Examples:                                   Returns
             GetSISuffix("")                         ("", "")
             GetSISuffix("   ")                      ("", "")
@@ -200,7 +189,7 @@ if 1:  # Core functionality
             GetSISuffix("wirhwuda")                 ("wirhwu", "da")
             GetSISuffix("wirhwuda", eng=True)       ("wirhwuda", "")
             GetSISuffix("wirhwux")                  ("wirhwux", "")
-        """
+        '''
         s1 = s.strip()
         if not s1:
             return ("", "")
@@ -214,23 +203,22 @@ if 1:  # Core functionality
             if s1.endswith(prefix):
                 return (s1[: -len(prefix)].strip(), prefix)
         return (s1, "")
-
     def NumberWithSISuffix(s, eng=False):
-        """Return a flt form of the string s.  When s has an SI prefix as a suffix, include its
+        '''Return a flt form of the string s.  When s has an SI prefix as a suffix, include its
         magnitude.  If eng is True, then the prefixes d, c, da, and h are not allowed.  If a
         suitable flt form can't be returned, raise ValueError.
-
+        
         The use case is scripts that request user input.  For example, when working with
         capacitance, microfarads is a common unit and it's handy to let the user type in '10 u' or
         '10u' to a prompt to indicate 10e-6 as a shorthand.  This also allows the shorthand 'u' to
         mean '1u'.
-
+        
         Examples:
             - '1.2k' and '1.2 k' will return flt(1.2)*1000.
             - 'k' and '   k   ' will return flt(1000).
             - 'xyz' will raise an exception even though the last character is a valid SI prefix
               because the conversion of 'xy' to flt will fail.
-        """
+        '''
         sx, si = s.strip(), SI(pure=eng)
         number, suffix = GetSISuffix(sx, eng=eng)
         x = flt(number)
@@ -241,13 +229,12 @@ if 1:  # Core functionality
                 msg = f"{suffix!r} is not a valid SI prefix"
                 raise ValueError(msg)
         return x
-
     def PerformConversion(s):
-        """If the string s contains 'e', then convert to SI engineering notation.
+        '''If the string s contains 'e', then convert to SI engineering notation.
         If it contains an SI prefix, convert it to 'e' notation.
-
+        
         Examples:  '3.4e7' returns '34M'.  '34M' returns '3.4e7'.
-        """
+        '''
         # Remove any trailing SI prefix
         n = GetSignificantFigures(s)
         if "e" in s:
@@ -270,18 +257,15 @@ if 1:  # Core functionality
             else:
                 # Assume it's an integer
                 return flt(s).engsi
-
     def GetSignificantFigures(s, rtz=False):
-        """Given a string s representing a floating point number, determine how
+        '''Given a string s representing a floating point number, determine how
         many significant figures it has.  If rtz is True, remove trailing
         zeroes.
-        """
-
+        '''
         def Fix(s):
             for i in "+- .,":
                 s = s.replace(i, "")
             return s
-
         # Remove any SI prefix
         u = s
         for i in si:
@@ -308,11 +292,10 @@ if 1:  # Core functionality
                 u.pop()
             t = "".join(u)
         return len(t)
-
     def ConvertSI(s):
-        """String s can end in an SI prefix and the remaining characters must
+        '''String s can end in an SI prefix and the remaining characters must
         represent a float.  Return a flt instance for the represented number.
-        """
+        '''
         if s == "inf":
             return flt("inf")
         elif s == "-inf":
@@ -329,39 +312,31 @@ if 1:  # Core functionality
         s = s[:-1]  # Remove prefix letter
         x = flt(s) * 10 ** si[prefix]
         return x
-
-
 # Convenience instance
 si = SI(pure=True)
-
 if __name__ == "__main__":
     import getopt
     import sys
     from lwtest import Assert, raises
     from wrap import dedent
-
     if 0:
         import debug
-
         debug.SetDebugger()
     if 1:  # Utility
-
         def Error(*msg, status=1):
             print(*msg, file=sys.stderr)
             exit(status)
-
         def Usage(status=1):
             print(
-                dedent(f"""
+                dedent(f'''
             Usage:  {sys.argv[0]} [options] expr1 [expr2 ...]
               Convert expressions to and from SI-prefix forms.  If no
               expressions are given, print out a table of SI prefixes.
             Options:
                 -t      Put tabs in the table output
-            """)
+            ''')
             )
             exit(status)
-
         def ParseCommandLine(d):
             d["-t"] = False  # Tabs in printed table
             try:
@@ -375,9 +350,7 @@ if __name__ == "__main__":
                 if o == "-h":
                     Usage(0)
             return args
-
     if 1:  # Tests
-
         def RunSelfTests():
             global si
             si = SI(pure=False)
@@ -506,7 +479,6 @@ if __name__ == "__main__":
             raises(ValueError, NumberWithSISuffix, "1da", eng=True)
             # Reset global variable
             si = SI(pure=True)
-
     if 1:  # Run self tests
         RunSelfTests()
     # Script behavior
