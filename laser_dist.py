@@ -3,21 +3,27 @@ Routines to help with triangulation.  The uncertainties module is used
 if it's available.
 '''
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2010 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # <math> Routines to help with triangulation.  Will use the
-        # uncertainties module if it's available.
-        ##∞what∞#
-        ##∞test∞# run #∞test∞#
-        pass
-    if 1:  # Imports
+    _pgminfo = '''
+        <oo gist ∞ Routines to help with triangulation oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2010 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ math oo>
+        <oo test ∞ run oo>
+        <oo todo ∞ 
+
+            - ∞∞1 CrownMolding() is not correct
+            - ∞∞2 CrownMolding() can go to some shop module.  DistAcrossRiver() can go
+              to some math utility module.
+
+        oo>
+    '''
+    if 1:  # Standard imports
         from math import cos, acos, sin, asin, tan, atan, sqrt, radians, degrees
     if 1:  # Custom imports
         from f import flt
@@ -31,7 +37,8 @@ if 1:  # Header
             from uncertainties.umath import cos, acos, sin, asin, tan, atan, sqrt
         except ImportError:
             pass
-        ii = isinstance
+    if 1:  # Global variables
+        pass
 if 1:  # Core functionality
     def DistAcrossRiver(AB, BD, AC, BC, AD, eps=1e-4):
         '''Returns a 5-tuple of (x, ∂x/∂(AB), ∂x/∂(BD), etc.).  ∂x/∂(AB) is an estimate of
@@ -76,15 +83,15 @@ if 1:  # Core functionality
                 BAD = AngleViaCosLaw(BD, AB, AD)
                 CAD = CAB - BAD
                 CD2 = sqrt(AC*AC + AD*AD - 2*AC*AD*cos(CAD))
-            if ii(AB, (ufloat_t, ufloat_f)):
+            if isinstance(AB, (ufloat_t, ufloat_f)):
                 return (CD1 + CD2)/2
             else:
                 return flt((CD1 + CD2)/2)
         def ToUnc(x):
-            if ii(x, ufloat_t):
+            if isinstance(x, ufloat_t):
                 return x
             return ufloat(x, 0)
-        if any(ii(i, ufloat_t) for i in (AB, BD, AC, BC, AD)):
+        if any(isinstance(i, ufloat_t) for i in (AB, BD, AC, BC, AD)):
             # Make them all ufloats
             AB, BD, AC, BC, AD = [ToUnc(i) for i in (AB, BD, AC, BC, AD)]
             if 1:

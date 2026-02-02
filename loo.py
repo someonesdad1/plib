@@ -1,4 +1,4 @@
-"""
+'''
 Library routine to find picture files linked or embedded in an Open
 Office document.  call GetOOFilePictures(oofile) with the path to an
 OO file and you'll get a list of image files in that document.
@@ -8,413 +8,369 @@ files will be printed to stdout.  Missing image files and image files
 that aren't relative to the document's location will be flagged.
 
 This is done by a heuristic rather than parsing the XML.
-"""
-
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    ##∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    ##∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    ##∞license∞#
-    ##∞what∞#
-    # <utility> Find picture files in Open Office files.  I find it
-    # useful because I always link in pictures rather than copy them
-    # into the OO document (this saves space).  However, when the
-    # pictures aren't in a subdirectory below the location of the OO
-    # file, you can have a problem when you distribute the OO file and
-    # its pictures to a user.  This script heads off this problem.
-    ##∞what∞#
-    ##∞test∞# notest #∞test∞#
-    pass
-if 1:  # Imports
-    import sys
-    import getopt
-    import os
-    import zipfile
-    from re import sub
-    from string import whitespace
-if 1:  # Custom imports
-    from wrap import dedent
-    from color import t
-
-    t.missing = t("whtl", "redl")
-    t.notrel = t("whtl", "magl")
-    t.embedded = t("grnl")
-if 1:  # Global variables
-    out = sys.stdout.write
-    err = sys.stderr.write
-    broken_link = "[missing]"
-    notrel_image = "[not relative]"
-    nl = "\n"
-    # File extensions that indicate a picture.  This list came from
-    # https://wiki.openoffice.org/wiki/Documentation/OOo3_User_Guides/Getting_Started/File_formats
-    _raw_ext = """
-    bmp  gif  pbm  pgm  psd  sgf  tif  wmf
-    dxf  jpeg pcd  plt  ras  sgv  tiff xbm
-    emf  jpg  pct  png  sda  svm  vor  xpm
-    eps  met  pcx  ppm  sdd  tga
-    """
-    ext = []
-    for i in _raw_ext.split(nl):
-        ext += ["." + j.lower() for j in i.split()]
-    _picture_ext = set((ext))
-    try:
-        del ext, i, j
-    except NameError:  # j will be local on python 3
+'''
+if 1:  # Header
+    _pgminfo = '''
+        <oo gist ∞ Find picture files linked/embedded in OO documents oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2014 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ utility oo>
+        <oo test ∞ notest oo>
+        <oo todo ∞ oo>
+    '''
+    if 1:  # Standard imports
+        import sys
+        import getopt
+        import os
+        import zipfile
+        from re import sub
+        from string import whitespace
+    if 1:  # Custom imports
+        from wrap import dedent
+        from color import t
+    if 1:  # Global variables
+        t.missing = t("whtl", "redl")
+        t.notrel = t("whtl", "magl")
+        t.embedded = t.grnl
+        out = sys.stdout.write
+        err = sys.stderr.write
+        broken_link = "[missing]"
+        notrel_image = "[not relative]"
+        nl = "\n"
+        # File extensions that indicate a picture.  This list came from
+        # https://wiki.openoffice.org/wiki/Documentation/OOo3_User_Guides/Getting_Started/File_formats
+        _raw_ext = '''
+            bmp  gif  pbm  pgm  psd  sgf  tif  wmf
+            dxf  jpeg pcd  plt  ras  sgv  tiff xbm
+            emf  jpg  pct  png  sda  svm  vor  xpm
+            eps  met  pcx  ppm  sdd  tga
+        '''
+        ext = []
+        for i in _raw_ext.split(nl):
+            ext += ["." + j.lower() for j in i.split()]
+        _picture_ext = set((ext))
+        del ext, i
+        # File extensions for Open Office documents.  Add to this list if
+        # there are additional files you want searched.
+        _oo_ext = set((
+                ".odb",  # OO Base database
+                ".odg",  # OO Draw drawing
+                ".odp",  # OO Impress presentation
+                ".ods",  # OO Calc spreadsheet
+                ".odt",  # OO Writer document
+                ".ott",  # OO Writer template document
+            ))
+if 1:   # Classes
+    class ZipfileError(Exception):
         pass
-    # File extensions for Open Office documents.  Add to this list if
-    # there are additional files you want searched.
-    _oo_ext = set(
-        (
-            ".odb",  # OO Base database
-            ".odg",  # OO Draw drawing
-            ".odp",  # OO Impress presentation
-            ".ods",  # OO Calc spreadsheet
-            ".odt",  # OO Writer document
-            ".ott",  # OO Writer template document
-        )
-    )
-
-
-class ZipfileError(Exception):
-    pass
-
-
-def Error(*msg, status=1):
-    print(*msg, file=sys.stderr)
-    exit(status)
-
-
-def Usage(d, status=1):
-    name = sys.argv[0]
-    shortname = os.path.split(sys.argv[0])[1]
-    missing = broken_link
-    notrel = notrel_image
-    print(
-        dedent(f"""
-    Usage:  {name} [options] file1 [file2...]
-
-      For each Open Office document file given on the command line, print out any image
-      files that the document file has links to.  Highlight any missing image (mark with
-      '{missing}').
-      
-      Image files that are not at or below the same directory as the document file will
-      be marked '{notrel}'.  This is done so that creating a zip file containing one or
-      more Open Office files will have the documents display their images properly when
-      the package is unzipped.  You may need to create some hard or soft links to the
-      image files for this to work properly.
-      
-      Image files have extensions:
-        bmp  gif  pbm  pgm  psd  sgf  tif  wmf
-        dxf  jpeg pcd  plt  ras  sgv  tiff xbm
-        emf  jpg  pct  png  sda  svm  vor  xpm
-        eps  met  pcx  ppm  sdd  tga
-      Open Office document files have extensions
-        .odb .odg .odp .ods .odt .ott
-    Options
-      -e    Also print the names of embedded image files.
-      -l    Just list the encountered Open Office files (i.e., don't list
-            their image files).
-      -m    Print only missing or not relative image files.
-      -r    Each 'file' on the command line is a directory.  Recursively search it for
-            Open Office files and print the images in the files found.  If no
-            directories are given on the command line, search the current directory tree
-            by default.
-    Examples
-      - '{shortname} -r' will show all the OO files and their images at and below the
-        current directory.
-      - '{shortname} -l' will do the same, but only display the file names.
-      - '{shortname} -r dir' will show all the OO files and their images at below the
-        directory dir.
-    """)
-    )
-    exit(status)
-
-
-def ParseCommandLine(d):
-    d["-e"] = False  # Don't ignore embedded pictures
-    d["-l"] = False  # Only list OO file names
-    d["-m"] = False  # Missing pictures only
-    d["-r"] = False  # Recursive search
-    if len(sys.argv) < 2:
-        Usage(d)
-    try:
-        optlist, args = getopt.getopt(sys.argv[1:], "elmr")
-    except getopt.GetoptError as e:
-        msg, option = e
-        Error(msg)
-        exit(1)
-    for opt in optlist:
-        if opt[0] == "-e":
-            d["-e"] = True
-        if opt[0] == "-l":
-            d["-l"] = True
-            d["-r"] = True  # Implies a recursive search
-        if opt[0] == "-m":
-            d["-m"] = True
-        if opt[0] == "-r":
-            d["-r"] = True
-    if d["-r"]:
-        if not args:
-            args = ["."]
-    elif not args:
-        Error("Need at least one Open Office file")
-    return args
-
-
-def _Extract(filename, s):
-    """_Extract the image tag at the beginning of the string s."""
-    k = "href="
-    loc = s.find(k)
-    if loc == -1:
-        raise ZipfileError("Missing href in '%s'" % filename)
-    start = loc + 1 + len(k)
-    s = s[start:]
-    end = s.find('"', 1)
-    if loc == -1:
-        raise ZipfileError("Missing ending quote in '%s'" % filename)
-    path = s[:end]
-    dir, file = os.path.split(path)
-    name, ext = os.path.splitext(file)
-    if ext in _picture_ext:
-        # Remove the leading '..'
-        if path.startswith("../"):
-            path = path[3:]
-        return path
-
-
-def _ProcessZipObject(zipobj, filename):
-    """zipobj is an open ZipFile object.  Open the file filename in
-    the zip archive, read in its bytes, and search them for image tags.
-    """
-    s = zipobj.open(filename).read()
-    s = s.decode("UTF-8")
-    tag_begin, tag_end = "<draw:image xlink:href", "/>"
-    loc = s.find(tag_begin)
-    found_files = []
-    while loc != -1:
-        s = s[loc:]
-        end = s.find(tag_end)
-        if end == -1:
-            raise ZipfileError("No end for '%s'" % filename)
-        o = _Extract(filename, s[:end])
-        if o is not None:
-            if o.startswith("file:///"):
-                o = o[8:]
-            found_files.append(o)
-        s = s[end:]
-        loc = s.find("<draw:image xlink:href")
-    return found_files
-
-
-def IsOOFile(file):
-    """Return True if file has the name of an Open Office document
-    file.
-    """
-    path, filename = os.path.split(file)
-    name, ext = os.path.splitext(filename)
-    return ext.lower() in _oo_ext
-
-
-def GetOOFilePictures(oofile):
-    """Return a sequence of the picture files included in the given
-    Open Office file.  If oofile contains a path, it will be made the
-    current directory (and the old current directory will be restored
-    before exiting).
-
-    Each returned item is a tuple of the form
-        (path, state)
-    where path is either a relative to the oofile's directory or
-    an absolute path.
-
-    state is a string of one of the following values:  "", "missing",
-    "notrel".  "missing" means a link that points to a file that isn't
-    present in the file system.  "notrel" means it's a path that is
-    not at or below the directory containing the Open Office file.  An
-    empty string means it's neither "missing" or "notrel".
-    """
-    olddir = os.getcwd()
-    path, file = os.path.split(oofile)
-    if path:
-        os.chdir(path)
-    try:
-        # This is done by a heuristic that reads the XML text for the tag
-        # that precedes an image link.  The routine can't tell the
-        # difference between an embedded picture and a linked picture.
-        # The files are either relative to the Open Office file's location
-        # or will be absolute file system paths.
-        z, found_files = zipfile.ZipFile(oofile, "r"), []
-        for i in z.namelist():
-            # Only search XML files
-            if i.lower().endswith(".xml"):
-                found_files += _ProcessZipObject(z, i)
-        # Examine each file and determine if it's OK, missing, not
-        # relative, or embedded.
-        found, currdir = [], Normalize(os.getcwd())
-        for file in found_files:
-            if IsEmbeddedImage(file):
-                found.append((file, "embedded"))
-            elif not os.path.isfile(file):
-                found.append((file, "missing"))
-            else:
-                relpath = Normalize(os.path.relpath(file, currdir))
-                if os.path.isabs(relpath) or relpath.startswith(".."):
-                    found.append((file, "notrel"))
-                else:
-                    found.append((file, ""))
-    finally:
-        os.chdir(olddir)
-    return tuple(found)
-
-
-def keep(s, chars, incl_ws=False):
-    """Returns the string s after keeping only the characters in chars.
-    If incl_ws is True, then whitespace characters are added to chars
-    (this is useful for processing text files).
-    """
-    chars = chars + whitespace if incl_ws else chars
-    c = "[^{}]".format("".join(list(set(chars))))
-    return sub(c, "", s)
-
-
-def J(*p):
-    """Join the components of the sequence p into a path and Normalize
-    it to have forward slashes.
-    """
-    return Normalize(os.path.join(*p))
-
-
-def Normalize(path):
-    """Use forward slashes in file names."""
-    return path.replace("\\", "/")
-
-
-def IsEmbeddedImage(path):
-    """If the path is of the form e.g.
-    Pictures/1000000000000233000000FE20974D73.png
-    then it's probably an embedded image, so return True.  Note we
-    ignore the extension.  This is a heuristic.
-    """
-    dir, file = os.path.split(path)
-    name, ext = os.path.splitext(file)
-    k = keep(name, "1234567890abcdefABCDEF")
-    if dir == "Pictures" and k == name:
-        return True
-    return False
-
-
-def GetImages(file, ignore_embedded=True):
-    olddir, image_files = os.getcwd(), []
-    path, name = os.path.split(file)
-    if path:
-        os.chdir(path)
-    try:
+if 1:   # Core functionality
+    def _Extract(filename, s):
+        '''_Extract the image tag at the beginning of the string s.'''
+        k = "href="
+        loc = s.find(k)
+        if loc == -1:
+            raise ZipfileError("Missing href in '%s'" % filename)
+        start = loc + 1 + len(k)
+        s = s[start:]
+        end = s.find('"', 1)
+        if loc == -1:
+            raise ZipfileError("Missing ending quote in '%s'" % filename)
+        path = s[:end]
+        dir, file = os.path.split(path)
+        name, ext = os.path.splitext(file)
+        if ext in _picture_ext:
+            # Remove the leading '..'
+            if path.startswith("../"):
+                path = path[3:]
+            return path
+    def _ProcessZipObject(zipobj, filename):
+        '''zipobj is an open ZipFile object.  Open the file filename in
+        the zip archive, read in its bytes, and search them for image tags.
+        '''
+        s = zipobj.open(filename).read()
+        s = s.decode("UTF-8")
+        tag_begin, tag_end = "<draw:image xlink:href", "/>"
+        loc = s.find(tag_begin)
+        found_files = []
+        while loc != -1:
+            s = s[loc:]
+            end = s.find(tag_end)
+            if end == -1:
+                raise ZipfileError("No end for '%s'" % filename)
+            o = _Extract(filename, s[:end])
+            if o is not None:
+                if o.startswith("file:///"):
+                    o = o[8:]
+                found_files.append(o)
+            s = s[end:]
+            loc = s.find("<draw:image xlink:href")
+        return found_files
+    def IsOOFile(file):
+        '''Return True if file has the name of an Open Office document
+        file.
+        '''
+        path, filename = os.path.split(file)
+        name, ext = os.path.splitext(filename)
+        return ext.lower() in _oo_ext
+    def GetOOFilePictures(oofile):
+        '''Return a sequence of the picture files included in the given
+        Open Office file.  If oofile contains a path, it will be made the
+        current directory (and the old current directory will be restored
+        before exiting).
+        
+        Each returned item is a tuple of the form
+            (path, state)
+        where path is either a relative to the oofile's directory or
+        an absolute path.
+        
+        state is a string of one of the following values:  "", "missing",
+        "notrel".  "missing" means a link that points to a file that isn't
+        present in the file system.  "notrel" means it's a path that is
+        not at or below the directory containing the Open Office file.  An
+        empty string means it's neither "missing" or "notrel".
+        '''
+        olddir = os.getcwd()
+        path, file = os.path.split(oofile)
+        if path:
+            os.chdir(path)
         try:
-            image_files = GetOOFilePictures(name)
-        except ZipfileError as e:
-            err("Error for file '%s':%s" % (path, nl))
-            err("  %s%s" % (e, nl))
-            image_files = []
-        except zipfile.BadZipfile:
-            if not os.path.isdir(file):
-                err("Error:  '%s' is not an Open Office file%s" % (file, nl))
-            image_files = []
-    finally:
-        os.chdir(olddir)
-        # If d["-e"] is not set (i.e., ignore embedded images), then
-        # remove the embedded images.
-        if ignore_embedded:
-            non_embedded = []
-            for i in image_files:
-                name, state = i
-                if not (state == "missing" and IsEmbeddedImage(name)):
-                    non_embedded.append(i)
-            image_files = non_embedded
-        return image_files
-
-
-def ProcessFile(oofile, d):
-    """Print out any linked image files in the Open Office file
-    oofile.  d is the options directory.
-    """
-    if not os.path.isfile(oofile):
-        err("'%s' is not a file%s" % (oofile, nl))
-        return
-    image_files = GetImages(oofile, ignore_embedded=not d["-e"])
-    if not image_files and not d["-m"]:
-        # List the file
+            # This is done by a heuristic that reads the XML text for the tag
+            # that precedes an image link.  The routine can't tell the
+            # difference between an embedded picture and a linked picture.
+            # The files are either relative to the Open Office file's location
+            # or will be absolute file system paths.
+            z, found_files = zipfile.ZipFile(oofile, "r"), []
+            for i in z.namelist():
+                # Only search XML files
+                if i.lower().endswith(".xml"):
+                    found_files += _ProcessZipObject(z, i)
+            # Examine each file and determine if it's OK, missing, not
+            # relative, or embedded.
+            found, currdir = [], Normalize(os.getcwd())
+            for file in found_files:
+                if IsEmbeddedImage(file):
+                    found.append((file, "embedded"))
+                elif not os.path.isfile(file):
+                    found.append((file, "missing"))
+                else:
+                    relpath = Normalize(os.path.relpath(file, currdir))
+                    if os.path.isabs(relpath) or relpath.startswith(".."):
+                        found.append((file, "notrel"))
+                    else:
+                        found.append((file, ""))
+        finally:
+            os.chdir(olddir)
+        return tuple(found)
+    def keep(s, chars, incl_ws=False):
+        '''Returns the string s after keeping only the characters in chars.
+        If incl_ws is True, then whitespace characters are added to chars
+        (this is useful for processing text files).
+        '''
+        chars = chars + whitespace if incl_ws else chars
+        c = "[^{}]".format("".join(list(set(chars))))
+        return sub(c, "", s)
+    def J(*p):
+        '''Join the components of the sequence p into a path and Normalize
+        it to have forward slashes.
+        '''
+        return Normalize(os.path.join(*p))
+    def Normalize(path):
+        '''Use forward slashes in file names.'''
+        return path.replace("\\", "/")
+    def IsEmbeddedImage(path):
+        '''If the path is of the form e.g.
+        Pictures/1000000000000233000000FE20974D73.png
+        then it's probably an embedded image, so return True.  Note we
+        ignore the extension.  This is a heuristic.
+        '''
+        dir, file = os.path.split(path)
+        name, ext = os.path.splitext(file)
+        k = keep(name, "1234567890abcdefABCDEF")
+        if dir == "Pictures" and k == name:
+            return True
+        return False
+    def GetImages(file, ignore_embedded=True):
+        olddir, image_files = os.getcwd(), []
+        path, name = os.path.split(file)
+        if path:
+            os.chdir(path)
+        try:
+            try:
+                image_files = GetOOFilePictures(name)
+            except ZipfileError as e:
+                err("Error for file '%s':%s" % (path, nl))
+                err("  %s%s" % (e, nl))
+                image_files = []
+            except zipfile.BadZipfile:
+                if not os.path.isdir(file):
+                    err("Error:  '%s' is not an Open Office file%s" % (file, nl))
+                image_files = []
+        finally:
+            os.chdir(olddir)
+            # If d["-e"] is not set (i.e., ignore embedded images), then
+            # remove the embedded images.
+            if ignore_embedded:
+                non_embedded = []
+                for i in image_files:
+                    name, state = i
+                    if not (state == "missing" and IsEmbeddedImage(name)):
+                        non_embedded.append(i)
+                image_files = non_embedded
+            return image_files
+    def ProcessFile(oofile, d):
+        '''Print out any linked image files in the Open Office file
+        oofile.  d is the options directory.
+        '''
+        if not os.path.isfile(oofile):
+            err("'%s' is not a file%s" % (oofile, nl))
+            return
+        image_files = GetImages(oofile, ignore_embedded=not d["-e"])
+        if not image_files and not d["-m"]:
+            # List the file
+            print(oofile)
+            return
+        some_missing = any([i[1] == "missing" for i in image_files])
+        some_notrel = any([i[1] == "notrel" for i in image_files])
+        some_embedded = any([i[1] == "embedded" for i in image_files])
+        if d["-m"] and not (some_missing or some_notrel):
+            # If we're only supposed to list missing stuff and this OO
+            # file had neither, then return.
+            return
+        if d["-l"]:
+            # Only list the OO files, not their contents.  We'll color
+            # code them to indicate missing or notrel content.  "missing"
+            # takes precedence over "notrel" and both take precedence over
+            # "embedded".
+            if some_embedded:
+                s = t.embedded
+            if some_notrel:
+                s = t.notrel
+            if some_missing:
+                s = t.missing
+            t.print(s + oofile)
+            return
+        if d["-m"]:
+            # image_files can be empty or only contain embedded files, in
+            # which case we should return.
+            if not image_files:
+                return
+            if all([IsEmbeddedImage(i[0]) for i in image_files]):
+                return
         print(oofile)
-        return
-    some_missing = any([i[1] == "missing" for i in image_files])
-    some_notrel = any([i[1] == "notrel" for i in image_files])
-    some_embedded = any([i[1] == "embedded" for i in image_files])
-    if d["-m"] and not (some_missing or some_notrel):
-        # If we're only supposed to list missing stuff and this OO
-        # file had neither, then return.
-        return
-    if d["-l"]:
-        # Only list the OO files, not their contents.  We'll color
-        # code them to indicate missing or notrel content.  "missing"
-        # takes precedence over "notrel" and both take precedence over
-        # "embedded".
-        if some_embedded:
-            s = t.embedded
-        if some_notrel:
-            s = t.notrel
-        if some_missing:
-            s = t.missing
-        t.print(s + oofile)
-        return
-    if d["-m"]:
-        # image_files can be empty or only contain embedded files, in
-        # which case we should return.
-        if not image_files:
+        for name, state in image_files:
+            if IsEmbeddedImage(name) and not d["-e"]:
+                continue
+            if d["-m"] and not state:
+                continue
+            print(" " * 4, name, end=" ")
+            if state == "missing":
+                t.print(f"{t.missing}[{state}]")
+            elif state == "notrel":
+                t.print(f"{t.notrel}[{state}]")
+            elif state == "embedded":
+                t.print(f"{t.embedded}[{state}]")
+            else:
+                print(f"[{state}]")
+    def ProcessDirectory(directory, d):
+        if not os.path.isdir(directory):
+            err("'%s' is not a directory%s" % (directory, nl))
             return
-        if all([IsEmbeddedImage(i[0]) for i in image_files]):
-            return
-    print(oofile)
-    for name, state in image_files:
-        if IsEmbeddedImage(name) and not d["-e"]:
-            continue
-        if d["-m"] and not state:
-            continue
-        print(" " * 4, name, end=" ")
-        if state == "missing":
-            t.print(f"{t.missing}[{state}]")
-        elif state == "notrel":
-            t.print(f"{t.notrel}[{state}]")
-        elif state == "embedded":
-            t.print(f"{t.embedded}[{state}]")
-        else:
-            print(f"[{state}]")
-
-
-def ProcessDirectory(directory, d):
-    if not os.path.isdir(directory):
-        err("'%s' is not a directory%s" % (directory, nl))
-        return
-    # The loop will visit each directory in directory's tree
-    for root, dirs, files in os.walk(directory):
-        chunks = Normalize(root).split("/")
-        if ".hg" in chunks or "RCS" in chunks or "rcs" in chunks:
-            continue  # Ignore Mercurial and RCS directories
-        for file in files:
-            name, ext = os.path.splitext(file)
-            if ext in _oo_ext:
-                oofile = J(root, file)
-                if oofile[:2] == "./":  # Remove './' prefix
-                    oofile = oofile[2:]
-                ProcessFile(oofile, d)
-
-
-def SearchDirectories(directories, d):
-    for directory in directories:
-        ProcessDirectory(directory, d)
-
+        # The loop will visit each directory in directory's tree
+        for root, dirs, files in os.walk(directory):
+            chunks = Normalize(root).split("/")
+            if ".hg" in chunks or "RCS" in chunks or "rcs" in chunks:
+                continue  # Ignore Mercurial and RCS directories
+            for file in files:
+                name, ext = os.path.splitext(file)
+                if ext in _oo_ext:
+                    oofile = J(root, file)
+                    if oofile[:2] == "./":  # Remove './' prefix
+                        oofile = oofile[2:]
+                    ProcessFile(oofile, d)
+    def SearchDirectories(directories, d):
+        for directory in directories:
+            ProcessDirectory(directory, d)
 
 if __name__ == "__main__":
+    def Error(*msg, status=1):
+        print(*msg, file=sys.stderr)
+        exit(status)
+    def Usage(d, status=1):
+        name = sys.argv[0]
+        shortname = os.path.split(sys.argv[0])[1]
+        missing = broken_link
+        notrel = notrel_image
+        print(dedent(f'''
+        Usage:  {name} [options] file1 [file2...]
+          For each Open Office document file given on the command line, print out any
+          image files that the document file has links to.  Highlight any missing image
+          (mark with '{missing}').
+        
+          Image files that are not at or below the same directory as the document file
+          will be marked '{notrel}'.  This is done so that creating a zip file
+          containing one or more Open Office files will have the documents display their
+          images properly when the package is unzipped.  You may need to create some
+          hard or soft links to the image files for this to work properly.
+        Image files have extensions:
+          bmp  gif  pbm  pgm  psd  sgf  tif  wmf
+          dxf  jpeg pcd  plt  ras  sgv  tiff xbm
+          emf  jpg  pct  png  sda  svm  vor  xpm
+          eps  met  pcx  ppm  sdd  tga
+        Open Office document files have extensions
+          .odb .odg .odp .ods .odt .ott
+        Options
+          -e    Also print the names of embedded image files.
+          -l    Just list the encountered Open Office files (i.e., don't list
+                their image files).
+          -m    Print only missing or not relative image files.
+          -r    Each 'file' on the command line is a directory.  Recursively search it for
+                Open Office files and print the images in the files found.  If no
+                directories are given on the command line, search the current directory tree
+                by default.
+        Examples
+          - '{shortname} -r' will show all the OO files and their images at and below the
+              current directory.
+          - '{shortname} -l' will do the same, but only display the file names.
+          - '{shortname} -r dir' will show all the OO files and their images at below the
+              directory dir.
+        ''')
+        )
+        exit(status)
+    def ParseCommandLine(d):
+        d["-e"] = False  # Don't ignore embedded pictures
+        d["-l"] = False  # Only list OO file names
+        d["-m"] = False  # Missing pictures only
+        d["-r"] = False  # Recursive search
+        if len(sys.argv) < 2:
+            Usage(d)
+        try:
+            optlist, args = getopt.getopt(sys.argv[1:], "elmr")
+        except getopt.GetoptError as e:
+            msg, option = e
+            Error(msg)
+            exit(1)
+        for opt in optlist:
+            if opt[0] == "-e":
+                d["-e"] = True
+            if opt[0] == "-l":
+                d["-l"] = True
+                d["-r"] = True  # Implies a recursive search
+            if opt[0] == "-m":
+                d["-m"] = True
+            if opt[0] == "-r":
+                d["-r"] = True
+        if d["-r"]:
+            if not args:
+                args = ["."]
+        elif not args:
+            Error("Need at least one Open Office file")
+        return args
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
     d["start_dir"] = os.getcwd()

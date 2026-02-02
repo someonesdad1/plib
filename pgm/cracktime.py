@@ -116,10 +116,11 @@ if 1:  # Core functionality
         Assert(ii(P, int) and P > 0)
         Assert(ii(Hz, flt) and Hz > 0)
         num_passwds = 0
-        for i in range(1, P):
+        for i in range(1, P + 1):
             num_passwds += N**i
         crack_time_s = num_passwds/Hz
-        age_of_universe = flt(13.8e9 * u("years"))
+        # Age of univers is 4.35e17 s = 13.8e9 years
+        age_of_universe = flt(13.8e9*u("years"))
         if crack_time_s > age_of_universe:
             crack_time = crack_time_s/age_of_universe
             aou = True
@@ -143,7 +144,7 @@ if __name__ == "__main__":
     P = int(args[1])
     Hz = args[2].strip()
     if Hz[-1] in "QRYZEPTGMk":
-        Hz = flt(Hz[:-1]) * GetSI(Hz[-1])
+        Hz = flt(Hz[:-1])*GetSI(Hz[-1])
     else:
         Hz = flt(Hz)
     Calculate(N, P, Hz)

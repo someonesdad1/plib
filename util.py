@@ -46,6 +46,7 @@ IsHomogeneous         Returns True if a sequence is homogeneous
 IsIterable            Determines if you can iterate over an object
 IsTextFile            Heuristic to see if a file is a text file
 ItemCount             Summarize a sequence with counts of each item
+IterateOverSubclasses Generator to return subclasses
 Len                   Return the length of a string with ANSI escape sequences removed
 Now                   Time or datetime as now
 NumBitsInByte         Returns a dict to count bits
@@ -257,6 +258,26 @@ def ItemCount(seq, n=None):
         items[item] += 1
     s = sorted(items.items(), key=itemgetter(1), reverse=True)
     return s if n is None else s[:n]
+def IterateOverSubclasses(cls, seen=None):
+    '''Iterator over all subclasses of a given class, in depth first order.  If not
+    None, seen should be a set that will contain the class names already seen.
+    Downloaded Tue 12 Aug 2014 from http://code.activestate.com/recipes/576949; URL
+    defunct as of 2 Feb 2026
+    '''
+    if not isinstance(cls, type):
+        raise TypeError("IterateOverSubclasses must be called with new-style classes")
+    if seen is None:
+        seen = set()
+    try:
+        subs = cls.__subclasses__()
+    except TypeError:  # Fails only when cls is type
+        subs = cls.__subclasses__(cls)
+    for sub in subs:
+        if sub not in seen:
+            seen.add(sub)
+            yield sub
+            for sub in IterateOverSubclasses(sub, seen):
+                yield sub
 def VisualCount(seq, n=None, char="*", width=None, indent=0):
     '''Return a list of strings representing a histogram of the items in the iterable seq.  If the
     values in the sequence can be sorted, the histogram will be shown by increasing item value;
@@ -2593,6 +2614,20 @@ if __name__ == "__main__":
         c = ["f"]
         s = Paste(a, b, c)
         Assert(s == ["a\td\tf", "b\te\t", "1\t\t"])
+    def Test_IterateOverSubclasses():
+            class A: pass
+            class B(A): pass
+            class C(A): pass
+            class D(C): pass
+            class E(C): pass
+            x = E()
+            r = [str(i) for i in IterateOverSubclasses(A)]
+            # Expected
+            s = "<class '__main__.Test_IterateOverSubclasses.<locals>."
+            expected = []
+            for i in "BCDE":
+                expected.append(s + i + "'>")
+            Assert(r == expected)
     def Test_ItemCount():
         f, F = ItemCount, Fraction
         raises(Exception, f, 1)

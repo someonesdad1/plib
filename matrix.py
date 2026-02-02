@@ -25,2166 +25,2167 @@ ToDo
 Matrix module
 '''
 if 1:  # Header
-    # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    ##∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
-    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    ##∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    ##∞license∞#
-    ##∞what∞#
-    # <math> Matrix module.  This module is a derivative work of the 3.0.0
-    # version of pymatrix, gotten on 15 Jul 2019 from
-    # https://github.com/dmulholl/pymatrix.git.
-    ##∞what∞#
-    ##∞test∞# run #∞test∞#
-    # Attribution:  This module is derived from Darren Mulholland's
-    # Pymatrix, which he put into the public domain.
-    # Standard imports
-    from cmath import sqrt as csqrt
-    from collections import OrderedDict
-    from collections.abc import Iterable
-    from decimal import Decimal, localcontext
-    from fractions import Fraction
-    from functools import reduce, partial
-    from itertools import zip_longest, starmap
-    from threading import Lock
-    from os import environ
-    import math
-    import operator
-    import random
-    import sys
-    import textwrap
-    # Custom imports
-    from f import flt, cpx, ParseComplex
-    from color import t as τ
-    PC = ParseComplex()
-    # You can decide here whether you want this module to support
-    # mpmath, the python uncertainties library, or sympy.
-    # Alternately, you can define the environment variables
-    # MATRIX_MPMATH, MATRIX_UNCERTAINTIES, or MATRIX_SYMPY to have these
-    # libraries imported if you don't hard-code the import.
-    get_mpmath = "MATRIX_MPMATH" in environ
-    get_uncertainties = "MATRIX_UNCERTAINTIES" in environ
-    get_sympy = "MATRIX_SYMPY" in environ
-    have_mpmath = False
-    have_unc = False
-    have_sympy = False
-    if 1 or get_mpmath:
-        try:
-            import mpmath
-            have_mpmath = True
-        except ImportError:
-            pass
-    if 1 or get_uncertainties:
-        try:
-            from uncertainties import ufloat, UFloat, ufloat_fromstr
-            have_unc = True
-        except ImportError:
-            pass
-    if 0 or get_sympy:
-        try:
-            import sympy
-            have_sympy = True
-        except ImportError:
-            pass
-    if 0:
-        import debug
-        debug.SetDebugger()
-    # Global variables
-    __version__ = "8Jul2022"
-    __all__ = '''
-            cross dot Flatten have_mpmath have_sympy have_unc
-            Matrices Matrix matrix MatrixContext random_matrix RoundOff
-            vector'''.split()
-    ii = isinstance
-class Matrix:
-    '''Matrix object supporting basic linear algebra operations.  Rows
-    and columns are numbered starting from 0.  The preferred methods
-    for accessing matrix elements are m[i, j] or m(i, j) where i is the
-    row and j is the column.  A matrix with one row or column is a row
-    or column vector and the indexing scheme lets you get at a vector's
-    elements with one index.
-    
-    A number of methods use the following keyword arguments:
-    
-        bool(c) is used to indicate the operation is with respect to
-        columns rather than rows.
-        
-        bool(ip) is used to indicate the operation should be done
-        in_place.  Most methods will return a new matrix object, but
-        sometimes you want the operation done on the current instance,
-        in which case set ip to True.
+    _pgminfo = '''
+        <oo gist ∞ Matrix module oo>
+        <oo desc ∞ 
+            This module is a derivative work of the 3.0.0 version of pymatrix, gotten on
+            15 Jul 2019 from https://github.com/dmulholl/pymatrix.git.
+        oo>
+        <oo copy ∞ Copyright © 2019 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ math oo>
+        <oo test ∞ run oo>
+        <oo todo ∞ oo>
     '''
-    _str = False  # If True, switch role of str() and repr()
-    EqDigits = None  # Num digits for == comparison (overrides eqdigits)
-    def __init__(self, rows, cols, fill=0):
-        if not ii(rows, int) or not ii(cols, int):
-            raise TypeError("rows and cols must be integers")
-        self._r = rows  # Integer
-        self._c = cols  # Integer
-        # The basic data structure is a nested list for the elements
-        self._grid = [[fill for i in range(cols)] for j in range(rows)]
-        self._numtype = None
-        self._frozen = False
-        self._eqdigits = None
-    if 1:  # Math methods
-        def __add__(self, other):
-            '''Returns self + other; other can be a compatible matrix or
-            scalar.
-            '''
-            if ii(other, Matrix):  # Matrix addition
-                if self.r != other.r or self.c != other.c:
-                    raise TypeError("Cannot add matrices of different sizes")
-                m = Matrix(self.r, self.c)
-                with Flatten(self):
-                    M1 = self._grid
-                with Flatten(other):
-                    M2 = other._grid
-                m._grid = list(starmap(operator.add, zip(M1, M2)))
-                m._nested()
-                m._copy_attr(self)
-                return m
-            else:  # Scalar addition
-                try:
-                    return self.map(lambda x: x + other)
-                except Exception:
-                    raise TypeError("Cannot add {} to a matrix".format(type(other)))
-        def __call__(self, i, j=None):
-            "Notationally equivalent to m[i] or m[i, j]"
-            return self[i] if j is None else self[i, j]
-        def __contains__(self, item):
-            "Returns True if item is in matrix"
-            with Flatten(self):
-                return item in self._grid
-        def __eq__(self, other):
-            "Return True if self and other are equal element-wise"
-            return self.equals(other)
-        def __floordiv__(self, other):
-            '''Allows self//other where other is a scalar.  Not defined if
-            other is a matrix.
-            '''
-            if ii(other, Matrix):
-                raise TypeError("// not defined for two matrices")
-            else:
-                try:
-                    return self.map(lambda x: x // other)
-                except Exception:
-                    raise TypeError(f"Cannot divide matrix by {type(other)}")
-        def __getitem__(self, key):
-            '''Enables self[i, j] indexing and assignment.  You can also use
-            slices to get rows, columns, and submatrices:
-                m[i:]       Returns row i as vector
-                m[:j]       Returns column j as vector
-                m[i:j]      Returns rows i through j inclusive as submatrix
-                m[:i:j]     Returns columns i through j inclusive as submatrix
-            Negative indexes are supported like in python sequences.
-            
-            self(i, j) works the same as self[i, j].
-            
-            If key is an integer and self is a vector, then self[key]
-            returns the indicated component.  Otherwise, self[i] returns row
-            i as a row vector.
-            '''
-            if ii(key, (tuple, list)):
-                row, col = key
-                return self._grid[row][col]
-            elif ii(key, slice):
-                i, j, k = key.start, key.stop, key.step
-                # Check that only allowed slice forms are present
-                if not (
-                    (i is not None and j is None and k is None)
-                    or (i is None and j is not None and k is None)
-                    or (i is not None and j is not None and k is None)
-                    or (i is None and j is not None and k is not None)
-                ):
-                    raise ValueError("Slice '{}' is invalid".format(key))
-                if j is None and k is None:  # [i:]
-                    # Return row i
-                    nr = self.r
-                    i = i + nr if i < 0 else i
-                    if not (0 <= i < nr):
-                        raise ValueError(
-                            "index must be between 0 and {}".format(nr - 1)
-                        )
-                    return self.row(i)
-                elif i is None and k is None:  # [:j]
-                    # Return column j
-                    nc = self.c
-                    j = j + nc if j < 0 else j
-                    if not (0 <= j < nc):
-                        raise ValueError(
-                            "index must be between 0 and {}".format(nc - 1)
-                        )
-                    return self.col(j)
-                elif k is None:  # [i:j]
-                    # Return rows i to j
-                    nr = self.r
-                    i = i + nr if i < 0 else i
-                    j = j + nr if j < 0 else j
-                    if not (0 <= i < nr):
-                        raise ValueError(
-                            "First index must be between 0 and {}".format(nr - 1)
-                        )
-                    if not (i <= j < nr):
-                        raise ValueError(
-                            "Second index must be between 0 and {}".format(nr - 1)
-                        )
-                    if i >= j:
-                        raise ValueError("First index must be < second")
-                    m = matrix(self._grid[i : j + 1])
-                    m._copy_attr(self)
-                    return m
-                elif i is None:  # [:j:k]
-                    # Return columns j to k
-                    nc = self.c
-                    j = j + nc if j < 0 else j
-                    k = k + nc if k < 0 else k
-                    if not (0 <= j < nc):
-                        raise ValueError("index must be between 0 and {}".format(nc))
-                    if not (0 <= k < nc):
-                        raise ValueError("index must be between 0 and {}".format(nc))
-                    if j >= k:
-                        raise ValueError("First index must be < second")
-                    m = matrix(self.t._grid[j : k + 1]).t
-                    m._copy_attr(self)
-                    return m
-                else:
-                    raise ValueError("Slice '{}' is invalid".format(key))
-            elif ii(key, int):
-                if self.is_vector:
-                    with Flatten(self):
-                        return self._grid[key]  # Return vector component
-                else:
-                    # Return matrix row as a row vector
-                    m = matrix([self._grid[key]])
-                    m._copy_attr(self)
-                    return m
-            else:
-                raise TypeError("key is an invalid type")
-        def __hash__(self):
-            '''A matrix is inherently a mutable container, but we also want
-            it to be stored in other containers, so we'll define the hash
-            value to be the id of the instance.
-            '''
-            return hash(id(self))
-        def __iter__(self):
-            "Iteration: for row, col, element in self"
-            for row in range(self.r):
-                for col in range(self.c):
-                    yield row, col, self[row, col]
-        def __mul__(self, other):
-            '''Multiply by another matrix or a scalar.  If the result is a
-            1 by 1 matrix, the number is returned instead of the matrix.
-            '''
-            if ii(other, Matrix):
-                if self.c != other.r:
-                    raise TypeError("Incompatible sizes for multiplication")
-                m = Matrix(self.r, other.c)
-                for row, col, x in m:
-                    for r, c in zip(self.row(row), other.col(col)):
-                        m[row, col] += r[2] * c[2]
-                return m[0, 0] if m.size == (1, 1) else m
-            else:
-                return self.map(lambda x: x * other)
-        def __neg__(self):
-            "Return a new matrix with all elements negated"
-            return self.map(lambda x: -x)
-        def __pos__(self):
-            "Returns a copy of +self"
-            return self.map(lambda x: +x)
-        def __pow__(self, other):
-            '''Returns self**other.  other can be any integer; if 0, the
-            identity matrix is returned.  If other is negative, the inverse
-            matrix is raised to the abs(other) power.
-            '''
-            if not ii(other, int):
-                raise TypeError("Only integer powers are supported")
-            if not self.is_square:
-                raise TypeError("The matrix must be square to raise to a power")
-            if not other:
-                return self.identity(self.r)
-            else:
-                m = self.copy if other > 0 else self.i
-                n = m.copy
-                for i in range(abs(other) - 1):
-                    m = m * n
-                m._copy_attr(self)
-                return m
-        def __radd__(self, other):
-            "Allows for scalar + matrix"
-            return self + other
-        def __repr__(self):
-            return self._string() if self.f else self._repr()
-        def __rmul__(self, other):
-            "Allows for scalar*matrix"
-            return self * other
-        def __rsub__(self, other):
-            "Allows for scalar - matrix"
-            return -self + other
-        def __rtruediv__(self, other):
-            "Return other/matrix = other*matrix.i"
-            return other * self.i
-        def __setitem__(self, key, value):
-            '''Set the indicated matrix element to value.  You can address
-            row i and column j by indexing as [i, j] or (i, j).
-            
-            If key is an integer, you can replace the indicated row with a
-            list or vector as long as the number of elements in value is
-            equal to the number of columns.
-            
-            If key is an integer and self is a vector, the indicated element
-            will be changed.
-            '''
-            self._check_frozen()
-            if ii(key, (tuple, list)):  # Set a single element
-                nr, nc = self.r, self.c
-                row, col = key
-                row = row + nr if row < 0 else row
-                col = col + nc if col < 0 else col
-                if not (0 <= row < nr):
-                    raise ValueError("row must be 0 to {}".format(nr - 1))
-                if not (0 <= col < nc):
-                    raise ValueError("col must be 0 to {}".format(nc - 1))
-                self._grid[row][col] = value
-            elif ii(key, int):
-                # This is either to insert a new row or change the element
-                # of a vector.
-                if self.is_vector:
-                    key = key + self.len if key < 0 else key
-                    if 0 <= key < self.len:
-                        with Flatten(self):
-                            self._grid[key] = value
-                    else:
-                        raise ValueError("Vector index of {} is bad".format(key))
-                else:
-                    msg = "value must be a {{}} with {} elements".format(self.c)
-                    if ii(value, Matrix):
-                        if not value.is_vector and value.len != self.c:
-                            raise TypeError(msg.format("vector"))
-                        v = value.l
-                    else:
-                        try:
-                            v = list(value)
-                            if len(v) != self.c:
-                                raise Exception()
-                        except Exception:
-                            raise TypeError(msg.format("list"))
-                    self._grid[key] = v
-            else:
-                raise TypeError("Need tuple or int for key for assignment")
-        def __str__(self):
-            return self._repr() if self.f else self._string()
-        def __sub__(self, other):
-            '''Subtract a matrix or scalar from the current matrix and return
-            the result.
-            '''
-            if ii(other, Matrix):
-                # Matrix subtraction
-                if self.r != other.r or self.c != other.c:
-                    raise TypeError("Cannot subtract matrices of different sizes")
-                return -other + self
-            else:
-                # Assume it's a number to subtract from each element
-                try:
-                    return self.map(lambda x: x - other)
-                except Exception:
-                    raise TypeError(
-                        "Cannot subtract {} from a matrix".format(type(other))
-                    )
-        def __truediv__(self, other):
-            '''Allows self/other where other is a scalar or a matrix.  If
-            self and other are square matrices of the same size, returns
-            self*other.i.
-            '''
-            if ii(other, Matrix):
-                # Must have self and other square and of the same size
-                if not self.is_square or not other.is_square:
-                    raise TypeError("Self and other must be square matrices")
-                if self.r != other.r:
-                    raise TypeError("Self and other must be the same size")
-                return self * other.i
-            else:
-                try:
-                    return self.map(lambda x: x / other)
-                except Exception:
-                    raise TypeError("Cannot divide matrix by {}".format(type(other)))
-    if 1:  # Other methods
-        def add(self, n, m, constant=1, c=False):
-            '''In-place row or column operation.  Adds constant times row m
-            to row n or constant times column m to column n.
-            '''
-            self._check_frozen()
-            if c:
-                n = n + self.c if n < 0 else n
-                m = m + self.c if m < 0 else m
-                for i in range(self.r):
-                    self[i, n] += constant * self[i, m]
-            else:
-                n = n + self.r if n < 0 else n
-                m = m + self.r if m < 0 else m
-                self._grid[n] = [
-                    i + j
-                    for i, j in zip(
-                        [i * constant for i in self._grid[m]], self._grid[n]
-                    )
-                ]
-        def cholesky(self, ip=False):
-            '''Cholesky decomposition into a lower triangular matrix.  If ip
-            is True, perform the decomposition in-place; otherwise, return
-            the lower triangular matrix.  self must be Hermitian and
-            positive-definite (i.e., z.t*M*z must be > 0 for every nonzero
-            column vector z where z ϵ ℂ^n).  All of a matrix's eigenvalues
-            are positive if and only if the matrix is positive-definite.
-            '''
-            # From http://rosettacode.org/wiki/Cholesky_decomposition
-            L = [[0] * self.r for _ in range(self.r)]
+    if 1:  # Standard imports
+        from cmath import sqrt as csqrt
+        from collections import OrderedDict
+        from collections.abc import Iterable
+        from decimal import Decimal, localcontext
+        from fractions import Fraction
+        from functools import reduce, partial
+        from itertools import zip_longest, starmap
+        from threading import Lock
+        from os import environ
+        import math
+        import operator
+        import random
+        import sys
+        import textwrap
+    if 1:  # Custom imports
+        from f import flt, cpx, ParseComplex
+        from color import t as τ
+        # You can decide here whether you want this module to support mpmath, the python
+        # uncertainties library, or sympy.  Alternately, you can define the environment
+        # variables MATRIX_MPMATH, MATRIX_UNCERTAINTIES, or MATRIX_SYMPY to have these
+        # libraries imported if you don't hard-code the import.
+        get_mpmath = "MATRIX_MPMATH" in environ
+        get_uncertainties = "MATRIX_UNCERTAINTIES" in environ
+        get_sympy = "MATRIX_SYMPY" in environ
+        have_mpmath = False
+        have_unc = False
+        have_sympy = False
+        if 1 or get_mpmath:
             try:
-                for i, (Ai, Li) in enumerate(zip(self.nl, L)):
-                    for j, Lj in enumerate(L[: i + 1]):
-                        s = sum(Li[k] * Lj[k] for k in range(j))
-                        # Note we must use math.sqrt because x**0.5 can
-                        # return a complex result.
-                        try:
-                            Li[j] = (
-                                math.sqrt(Ai[i] - s)
-                                if (i == j)
-                                else (1 / Lj[j] * (Ai[j] - s))
-                            )
-                        except TypeError:
-                            Li[j] = (
-                                csqrt(Ai[i] - s)
-                                if (i == j)
-                                else (1 / Lj[j] * (Ai[j] - s))
-                            )
-            except (ValueError, ZeroDivisionError):
-                raise TypeError("Matrix not positive-definite or Hermitian")
-            m = matrix(L)
-            if not ip:
-                m._copy_attr(self)
-                return m
-            self._grid = m._grid
-        def chop(self, tol=100 * sys.float_info.epsilon):
-            '''Remove small floating point matrix elements and replace them
-            with zero.  If a real or imaginary component of a matrix element
-            has an absolute value less than or equal to tol, replace that
-            component with zero.  Other things like integers or Fraction
-            instances will be left alone, regardless of their magnitude.
+                import mpmath
+                have_mpmath = True
+            except ImportError:
+                pass
+        if 1 or get_uncertainties:
+            try:
+                from uncertainties import ufloat, UFloat, ufloat_fromstr
+                have_unc = True
+            except ImportError:
+                pass
+        if 0 or get_sympy:
+            # I don't import sympy by default because it tends to slow things down
+            try:
+                import sympy
+                have_sympy = True
+            except ImportError:
+                pass
+        if 0:
+            import debug
+            debug.SetDebugger()
+    if 1:  # Global variables
+        PC = ParseComplex()
+        __version__ = "8Jul2022"
+        __all__ = '''
+                cross dot Flatten have_mpmath have_sympy have_unc
+                Matrices Matrix matrix MatrixContext random_matrix RoundOff
+                vector'''.split()
+if 1:  # Classes
+    class Matrix:
+        '''Matrix object supporting basic linear algebra operations.  Rows
+        and columns are numbered starting from 0.  The preferred methods
+        for accessing matrix elements are m[i, j] or m(i, j) where i is the
+        row and j is the column.  A matrix with one row or column is a row
+        or column vector and the indexing scheme lets you get at a vector's
+        elements with one index.
+        
+        A number of methods use the following keyword arguments:
+        
+            bool(c) is used to indicate the operation is with respect to
+            columns rather than rows.
             
-            Note this method works in-place on the current matrix.
-            '''
-            def f(x):
-                return 0 if abs(x) <= tol else x
-            def ch(x):
-                if ii(x, complex):
-                    return complex(f(x.real), f(x.imag))
-                elif ii(x, cpx):
-                    return cpx(f(x.real), f(x.imag))
-                elif have_mpmath and ii(x, mpmath.mpc):
-                    return mpmath.mpc(f(x.real), f(x.imag))
-                elif ii(x, float):
-                    return float(f(x))
-                elif ii(x, flt):
-                    return flt(f(x))
-                elif have_mpmath and ii(x, mpmath.mpf):
-                    return f(x)
-                elif have_unc and ii(x, UFloat):
-                    raise TypeError("Can't chop an uncertain number")
-                elif ii(x, Decimal):
-                    return f(x)
-                else:
-                    return x
-            with Flatten(self):
-                self._grid = [ch(i) for i in self._grid]
-        def cofactor(self, row, col):
-            '''Return the cofactor, which is the determinant of the matrix with
-            the indicated row and column removed, scaled by (-1)**(row + col).
-            '''
-            row = row + self.r if row < 0 else row
-            col = col + self.c if col < 0 else col
-            # Note the minor is the determinant
-            return pow(-1, row + col) * self.minor(row, col)
-        def col(self, *n):
-            "Returns the indicated columns as a new matrix"
-            for i in n:
-                if i < 0:
-                    k = self.c + i
-                    if not (0 <= k < self.c):
-                        raise ValueError("n must be between -1 and {}".format(-self.c))
-                else:
-                    if not (0 <= i < self.c):
-                        raise ValueError(
-                            "n must be between 0 and {}".format(self.c - 1)
-                        )
-            return self.t.row(*n).t
-        def decorate(self, decorations):
-            '''Return a matrix of strings that contain the results of
-            applying the elements of decorations to the elements of the self
-            matrix.
-            
-            decorations is a sequence of 2-tuples (a, b).  a can be a type,
-            number, or string and when a matrix element matches a (using ==),
-            b is substituted for it.  If b is callable as a function,
-            b(element) is substituted.
-            
-            Example:  suppose we have m which is a sparse 4x4 matrix:
-                0.0 0.0 1.0 0.0
-                0.0 0.0 0.0 2.0
-                0.0 0.0 0.0 0.0
-                0.0 0.0 0.0 0.0
-            This is hard to read because of all the 0 symbols.  We can
-            change the 0.0 elements to '.' and convert the floats to
-            integers to make things easier to read.  To do this, set
-            d = [(0, "."), (float, lambda x: int(x))] and call
-            print(m.decorate(d)) to get
-                . . 1 .
-                . . . 2
-                . . . .
-                . . . .
-            which shows the nonzero elements more clearly.
-            '''
-            m = self.copy
-            m._flatten()
-            L = m._grid
-            for i, item in enumerate(L):
-                for key, value in decorations:
-                    if item == key:
-                        L[i] = value  # Substitution
-                        break
-                    # See if it's of this type
+            bool(ip) is used to indicate the operation should be done
+            in_place.  Most methods will return a new matrix object, but
+            sometimes you want the operation done on the current instance,
+            in which case set ip to True.
+        '''
+        _str = False  # If True, switch role of str() and repr()
+        EqDigits = None  # Num digits for == comparison (overrides eqdigits)
+        def __init__(self, rows, cols, fill=0):
+            if not isinstance(rows, int) or not isinstance(cols, int):
+                raise TypeError("rows and cols must be integers")
+            self._r = rows  # Integer
+            self._c = cols  # Integer
+            # The basic data structure is a nested list for the elements
+            self._grid = [[fill for i in range(cols)] for j in range(rows)]
+            self._numtype = None
+            self._frozen = False
+            self._eqdigits = None
+        if 1:  # Math methods
+            def __add__(self, other):
+                '''Returns self + other; other can be a compatible matrix or
+                scalar.
+                '''
+                if isinstance(other, Matrix):  # Matrix addition
+                    if self.r != other.r or self.c != other.c:
+                        raise TypeError("Cannot add matrices of different sizes")
+                    m = Matrix(self.r, self.c)
+                    with Flatten(self):
+                        M1 = self._grid
+                    with Flatten(other):
+                        M2 = other._grid
+                    m._grid = list(starmap(operator.add, zip(M1, M2)))
+                    m._nested()
+                    m._copy_attr(self)
+                    return m
+                else:  # Scalar addition
                     try:
-                        if ii(item, key):
-                            if callable(value):
-                                L[i] = value(item)  # Call a function
-                            else:
-                                L[i] = value  # Substitution
-                        break
-                    except TypeError:
-                        # key probably isn't a type
-                        pass
-            m._grid = L
-            m._nested()
-            return m
-        def delete(self, n, c=False):
-            '''Delete the indicated row or column from the current matrix and
-            return the row or column as a vector.
-            
-            Example:  for the matrix
-                1 2
-                3 4
-            calling delete(0) results in the matrix becoming the row vector
-                3 4
-            and returns the row vector
-                1 2
-            Calling delete(0, c=True) returns the column vector
-                1
-                3
-            and the matrix becomes the column vector
-                2
-                4
-            '''
-            self._check_frozen()
-            if c:
-                n = n + self.c if n < 0 else n
-                if self.is_col_vector:
-                    raise TypeError("Can't remove a column from a column vector")
-                if not (0 <= n < self.c):
-                    raise ValueError("n must be between 0 and {}".format(self.c - 1))
-                # Used delete_row() on the transpose
-                m = self.t
-                cv = m._grid.pop(n)  # cv is a list
-                m._r -= 1
-                self._grid = m.t._grid  # Put the reduced matrix back
-                cv = vector(*cv).t  # Convert it to a column vector
-                self._c -= 1
-                cv._copy_attr(self)
-                return cv
-            else:
-                n = n + self.r if n < 0 else n
-                if self.is_row_vector:
-                    raise TypeError("Can't remove a row from a row vector")
-                if not (0 <= n < self.r):
-                    raise ValueError("n must be between 0 and {}".format(self.r - 1))
-                r = self._grid.pop(n)
-                self._r -= 1
-                v = vector(*r)
-                v._copy_attr(self)
-                return v
-        def equals(self, other, tol=None):
-            '''Returns True if self and other are identically-sized matrices
-            and their corresponding elements agree to within tol.  The test
-            is abs(i - j) <= tol where i and j are matrix elements, so it
-            also works on complex matrices.  If tol is omitted, perform an
-            equality check (==) on corresponding elements instead.
-            
-            If the eqdigits attribute of self or other is not None, then it is
-            used to compare the corresponding matrix elements to the indicated
-            number of digits by rounding off; the smaller of the two eqdigits
-            values is used.  If Matrix.eqdigits is not None, then it is used
-            irrespective of the instance.eqdigits values.
-            '''
-            if not ii(other, Matrix):
-                raise TypeError("other must be a Matrix instance")
-            if self.r != other.r or self.c != other.c:
-                return False
-            s, o = self.l, other.l
-            if tol is not None:
-                t = [abs(i - j) <= tol for i, j in zip(s, o)]
-                return all(t)
-            # Get the value of eqdigits to use
-            eqdigits = self._get_eqdigits(other)
-            if eqdigits is not None:
-                def f(x):
-                    return RoundOff(x, digits=eqdigits)
-                return all([f(i) == f(j) for i, j in zip(s, o)])
-            else:
-                # Simple equality test
-                return all([i == j for i, j in zip(s, o)])
-        def find(self, *items, tol=None, reltol=None):
-            '''Returns a list of (row, col) tuples indicating where the items
-            are found in the matrix.  If tol is not None, an item's index is
-            returned if abs(item - element) <= tol.  The same is true for
-            reltol, except the comparison is
-                abs((item - element)/element) <= reltol
-            if element is nonzero or
-                abs((item - element)/item) <= reltol
-            if element is zero.
-            
-            All items will be checked and all locations of elements that match
-            any of the items will be returned.
-            
-            Note:  the function RoundOff is used to fix annoying problems with
-            floating point numbers.  For example, if an element is 1.01 and you
-            use a tolerance of 0.01, the difference from 1 may be calculated as
-            0.010000000000000009.  The RoundOff function rounds this to 12
-            figures by default, so most comparisons should work as expected (12
-            digits was chosen because it is beyond the significance of most
-            physical measurements).
-            '''
-            found = []
-            if tol is None and reltol is None:
-                for row, col, x in self:
-                    for item in items:
-                        if x == item:
-                            found.append([row, col])
-            elif tol is not None:
-                for row, col, x in self:
-                    for item in items:
-                        t = RoundOff(abs(x - item))
-                        if t <= tol:
-                            found.append([row, col])
-            else:
-                for row, col, x in self:
-                    for item in items:
-                        t = RoundOff(abs(x - item))
-                        t = (
-                            RoundOff(abs(t / x))
-                            if x
-                            else RoundOff(abs(t / item))
-                            if item
-                            else 0
-                        )
-                        if t <= reltol:
-                            found.append([row, col])
-            return found
-        def float(self, ip=False):
-            '''Return a new matrix with each element x converted to a float
-            if the imaginary part of the element is zero.  If ip is True, do
-            this in-place for the current matrix.
-            
-            Note:  this method differs from setting self.numtype=float
-            because the conversion only happens if the element's imaginary
-            part is zero.
-            '''
-            def Float(x):
-                if ii(x, complex) and not x.imag:
-                    return x.real
-                return x
-            if ip:
-                self._check_frozen()
-            m = self if ip else self.copy
-            m.map(Float, ip=True)
-            return None if ip else m
-        def insert(self, n, c=False, Vector=None, fill=0):
-            '''Inserts a new row or column before the indicated row or
-            column n, counting from top to bottom for rows and left to right
-            for columns.  Set n to self.r to insert after the bottom row or
-            self.c to insert after the rightmost column.  The new elements
-            are filled with the value of fill.
-            
-            If Vector is not None, then the vector's values are inserted into
-            the row or column.  The vector can be either a row or column vector
-            as long as it has the correct number of elements for the target row
-            or column.
-            
-            Examples:  for the matrix
-                1 2
-                3 4
-            calling insert(0) adds a new row of zeros before row 0 to give
-                0 0
-                1 2
-                3 4
-            Calling insert(2) results in
-                1 2
-                3 4
-                0 0
-            Calling insert(2, c=True) results in
-                1 2 0
-                3 4 0
-            '''
-            self._check_frozen()
-            if c:
-                concat = True if n == self.c else False
-                n = n + self.c if n < 0 else n
-                if not (0 <= n < self.c) and not concat:
-                    raise ValueError("n must be between 0 and {}".format(self.c - 1))
-                if Vector is not None:
-                    if Vector.len != self.r:
-                        raise TypeError("Vector must have {} elements".format(self.r))
-                    v = Vector if Vector.is_col_vector else Vector.t
+                        return self.map(lambda x: x + other)
+                    except Exception:
+                        raise TypeError("Cannot add {} to a matrix".format(type(other)))
+            def __call__(self, i, j=None):
+                "Notationally equivalent to m[i] or m[i, j]"
+                return self[i] if j is None else self[i, j]
+            def __contains__(self, item):
+                "Returns True if item is in matrix"
+                with Flatten(self):
+                    return item in self._grid
+            def __eq__(self, other):
+                "Return True if self and other are equal element-wise"
+                return self.equals(other)
+            def __floordiv__(self, other):
+                '''Allows self//other where other is a scalar.  Not defined if
+                other is a matrix.
+                '''
+                if isinstance(other, Matrix):
+                    raise TypeError("// not defined for two matrices")
                 else:
-                    v = vector(self.r, c=True, fill=fill)
-                # Operate on the transpose so we can use insert for rows
-                m = self.t
-                if concat:
-                    m.insert(self.c, c=False, Vector=v)
-                else:
-                    m.insert(n, c=False, Vector=v)
-                self._grid = m.t._grid
-                self._c += 1
-            else:
-                concat = True if n == self.r else False
-                n = n + self.r if n < 0 else n
-                if not (0 <= n < self.r) and not concat:
-                    raise ValueError("n must be between 0 and {}".format(self.r - 1))
-                if Vector is not None:
-                    if Vector.len != self.c:
-                        raise TypeError("Vector must have {} elements".format(self.c))
-                    v = Vector if Vector.is_row_vector else Vector.t
-                else:
-                    v = vector(self.c, fill=fill)
-                if concat:
-                    self._grid.append(v._grid[0])
-                else:
-                    self._grid.insert(n, v._grid[0])
-                self._r += 1
-        def int(self, ip=False):
-            '''Return a new matrix with each element x converted to an integer
-            if int(x) == x.  If ip is True, do this for the current matrix.
-            
-            Note:  this method differs from setting self.numtype=int because
-            the conversion only happens if the matrix value and its integer
-            value are equal.
-            '''
-            def Int(x):
-                try:
-                    return int(x) if int(x) == x else x
-                except TypeError:
-                    return x
-            if ip:
-                self._check_frozen()
-            m = self if ip else self.copy
-            m.map(lambda x: Int(x) if Int(x) == x else x, ip=True)
-            return None if ip else m
-        def is_diagonal(self, tol=None):
-            '''Return True if the matrix is a diagonal matrix.  If tol is
-            not None, then each off-diagonal element x must satisfy
-            abs(x) <= tol to return True.  If tol is None, then each
-            off-diagonal element x must satisfy x == 0 to return True.
-            '''
-            f = (lambda x: x != 0) if tol is None else (lambda x: abs(x) > tol)
-            m = self.lower(incl_diag=False)
-            nonzero = any([f(i) for i in m.l])
-            if nonzero:
-                return False
-            m = self.upper(incl_diag=False)
-            nonzero = any([f(i) for i in m.l])
-            return not nonzero
-        def join(self, m, c=False):
-            '''Join a matrix m to self.  If c is False, m and self must have
-            the same number of rows and m is joined on the right side of
-            self.  If c is True, m and self must have the same number of
-            columns and m is joined on the bottom side of self.
-            '''
-            if not ii(m, Matrix):
-                raise TypeError("m must be a Matrix instance")
-            self._check_frozen()
-            if c:
-                if self.c != m.c:
-                    raise TypeError("m must have {} columns".format(self.c))
-                M, m = self.t, m.t
-                for i in range(self.c):
-                    M._grid[i].extend(m._grid[i])
-                self._grid = M.t._grid
-                self._r += m._r
-            else:
-                if self.r != m.r:
-                    raise TypeError("m must have {} rows".format(self.r))
-                for i in range(self.r):
-                    self._grid[i].extend(m._grid[i])
-                self._c += m._c
-        def lower(self, ip=False, incl_diag=True, fill=0):
-            '''Return the lower triangular matrix and include the diagonal
-            if incl_diag is True.  The upper off-diagonal elements will be
-            set to fill.  If ip is True, perform this operation on the current
-            matrix and return None.
-            '''
-            if not self.is_square:
-                raise TypeError("Matrix must be square")
-            if ip:
-                self._check_frozen()
-            m = self if ip else self.copy
-            for i in range(self.r):
-                for j in range(self.c):
-                    if incl_diag:
-                        if j > i:
-                            m[i, j] = fill
+                    try:
+                        return self.map(lambda x: x // other)
+                    except Exception:
+                        raise TypeError(f"Cannot divide matrix by {type(other)}")
+            def __getitem__(self, key):
+                '''Enables self[i, j] indexing and assignment.  You can also use
+                slices to get rows, columns, and submatrices:
+                    m[i:]       Returns row i as vector
+                    m[:j]       Returns column j as vector
+                    m[i:j]      Returns rows i through j inclusive as submatrix
+                    m[:i:j]     Returns columns i through j inclusive as submatrix
+                Negative indexes are supported like in python sequences.
+                
+                self(i, j) works the same as self[i, j].
+                
+                If key is an integer and self is a vector, then self[key]
+                returns the indicated component.  Otherwise, self[i] returns row
+                i as a row vector.
+                '''
+                if isinstance(key, (tuple, list)):
+                    row, col = key
+                    return self._grid[row][col]
+                elif isinstance(key, slice):
+                    i, j, k = key.start, key.stop, key.step
+                    # Check that only allowed slice forms are present
+                    if not (
+                        (i is not None and j is None and k is None)
+                        or (i is None and j is not None and k is None)
+                        or (i is not None and j is not None and k is None)
+                        or (i is None and j is not None and k is not None)
+                    ):
+                        raise ValueError("Slice '{}' is invalid".format(key))
+                    if j is None and k is None:  # [i:]
+                        # Return row i
+                        nr = self.r
+                        i = i + nr if i < 0 else i
+                        if not (0 <= i < nr):
+                            raise ValueError(
+                                "index must be between 0 and {}".format(nr - 1)
+                            )
+                        return self.row(i)
+                    elif i is None and k is None:  # [:j]
+                        # Return column j
+                        nc = self.c
+                        j = j + nc if j < 0 else j
+                        if not (0 <= j < nc):
+                            raise ValueError(
+                                "index must be between 0 and {}".format(nc - 1)
+                            )
+                        return self.col(j)
+                    elif k is None:  # [i:j]
+                        # Return rows i to j
+                        nr = self.r
+                        i = i + nr if i < 0 else i
+                        j = j + nr if j < 0 else j
+                        if not (0 <= i < nr):
+                            raise ValueError(
+                                "First index must be between 0 and {}".format(nr - 1)
+                            )
+                        if not (i <= j < nr):
+                            raise ValueError(
+                                "Second index must be between 0 and {}".format(nr - 1)
+                            )
+                        if i >= j:
+                            raise ValueError("First index must be < second")
+                        m = matrix(self._grid[i : j + 1])
+                        m._copy_attr(self)
+                        return m
+                    elif i is None:  # [:j:k]
+                        # Return columns j to k
+                        nc = self.c
+                        j = j + nc if j < 0 else j
+                        k = k + nc if k < 0 else k
+                        if not (0 <= j < nc):
+                            raise ValueError("index must be between 0 and {}".format(nc))
+                        if not (0 <= k < nc):
+                            raise ValueError("index must be between 0 and {}".format(nc))
+                        if j >= k:
+                            raise ValueError("First index must be < second")
+                        m = matrix(self.t._grid[j : k + 1]).t
+                        m._copy_attr(self)
+                        return m
                     else:
-                        if j >= i:
-                            m[i, j] = fill
-            return None if ip else m
-        def map(self, func, n=None, c=False, ip=False):
-            '''Returns a new matrix by applying the univariate function func to
-            each element.  If in-place is True, do this for the current
-            instance and return None.
-            
-            n and c restrict the operation, if present.  n can either be a
-            number or a sequence of numbers.  If it's a number, it means to
-            apply the map to row n.  If n is a sequence, it is applied to
-            each of the indicated rows or columns.  If c is False, it means
-            apply to a row; if it is True, apply to column n.
-            '''
-            if ip:
-                self._check_frozen()
-            m = self.copy
-            if n is None:
-                # Whole matrix
-                with Flatten(m):
-                    m._grid = [func(i) for i in m._grid]
-                if ip:
-                    self._grid = m._grid
-                return None if ip else m
-            elif ii(n, int):
-                # Single row or column
-                if not (0 <= n < self.c if c else self.r):
-                    raise ValueError(
-                        "n must be between 0 and {}".format(self.c if c else self.r)
-                    )
-                # Modify row or column n
-                m = m.t if c else m
-                m._grid[n] = [func(i) for i in m._grid[n]]
-                m = m.t if c else m
-                if ip:
-                    self._grid = m._grid
-                    return
-                return m
-            elif not ii(n, str) and ii(n, Iterable):
-                # Multiple rows or columns
-                for i in n:
-                    m.map(func, i, c=c, ip=ip)
-                if ip:
-                    self._grid = m._grid
-                    return
-                return m
-            else:
-                raise TypeError("n must be an integer or sequence")
-        def maprow(self, func, n=None, ip=False):
-            "Syntactic sugar to map a univariate function to row(s)"
-            if ip:
-                self.map(func, n, ip=True)
-            return self.map(func, n, ip=False)
-        def mapcol(self, func, n=None, ip=False):
-            "Syntactic sugar to map a univariate function to row(s)"
-            if ip:
-                self.map(func, n, c=True, ip=True)
-            return self.map(func, n, c=True, ip=False)
-        def maprowip(self, func, n=None):
-            "Syntactic sugar to in-place map a univariate function to row(s)"
-            self.map(func, n, ip=True)
-        def mapcolip(self, func, n=None):
-            "Syntactic sugar to map a univariate function to column(s)"
-            self.map(func, n, c=True, ip=True)
-        def minor(self, row, col):
-            '''Returns the minor, which is the determinant of the matrix with
-            the indicated row and column deleted.
-            '''
-            if not self.is_square:
-                raise TypeError("Can only return a minor for a square matrix")
-            m = self.copy
-            m.delete(row)
-            m.delete(col, c=True)
-            return m.det
-        def replace(self, n, vector, c=False):
-            "Replace row or column n with the given vector"
-            self._check_frozen()
-            # t is number of columns if c is True else it's number of rows
-            t = self.c if c else self.r
-            # q is the number of elements that vector must have
-            q = self.r if c else self.c
-            # If n is negative, we're counting from the rightmost for a
-            # column vector or from the bottom for a row vector.
-            n1 = n + t if n < 0 else n
-            # Make sure n1 is a valid row or column number
-            if not (0 <= n1 <= (self.c if c else self.r)):
-                raise ValueError(f"{n} is not a valid column reference")
-            if not vector.is_vector:
-                raise TypeError("vector must be a vector")
-            if vector.len != q:
-                raise TypeError(f"vector must have {q} elements")
-            if c:
-                if 1:
-                    a = self.t
-                    a._grid[n1] = vector.flat
-                    self._grid = a._grid
+                        raise ValueError("Slice '{}' is invalid".format(key))
+                elif isinstance(key, int):
+                    if self.is_vector:
+                        with Flatten(self):
+                            return self._grid[key]  # Return vector component
+                    else:
+                        # Return matrix row as a row vector
+                        m = matrix([self._grid[key]])
+                        m._copy_attr(self)
+                        return m
                 else:
-                    # Do this by indexing
-                    for i in range(vector.len):
-                        pass
-            else:
-                # Replacing a row is easy, as the whole list can be done
-                self._grid[n1] = vector.flat
-        def resize(self, r, c, fill=0):
-            '''Resize this matrix in-place to have r rows and c columns.  New
-            elements will have the value fill.  If size is reduced, some
-            elements may be lost.
-            '''
-            self._check_frozen()
-            if not ii(r, int) and not ii(c, int):
-                raise TypeError("r and c must be integers")
-            if r < 1 or c < 1:
-                raise ValueError("r and c must be > 0")
-            # Flatten self._grid
-            L = list(Matrix._Flatten(self._grid))
-            # Get new length
-            n, N = r * c, len(L)
-            if N > n:
-                L = L[:n]
-            elif N < n:
-                L.extend([fill] * (n - N))
-            # Change type if needed
-            if self.numtype is not None:
-                L = [self.numtype(i) for i in L]
-            # Convert self._grid to nested list
-            self._grid = [list(i) for i in zip_longest(*([iter(L)] * c))]
-            self._r, self._c = r, c
-        def rotate(self, n=1, c=False, ip=False):
-            '''Rotate n rows down (or n columns right if c is True).  If n
-            is negative, then rows are rotated up and columns are rotated
-            left.
-            
-            Examples:  If m is
-                1 2 3
-                4 5 6
-                7 8 9
-            then m.rotate() returns
-                4 5 6
-                1 2 3
-                7 8 9
-            and m.rotate(c=True) returns
-                3 1 2
-                6 4 5
-                9 7 8
-            '''
-            if not n:
-                return self if ip else self.copy
-            n = -n  # Needed to get the correct direction
-            N = self.c if c else self.r
-            n = N + n if n < 0 else n
-            n %= N
-            assert n >= 0
-            if not n:
-                return self if ip else self.copy
-            L = self.t.nl if c else self.nl
-            for i in range(n):
-                r = L.pop(0)
-                L.append(r)
-            # Reassemble
-            if c:
+                    raise TypeError("key is an invalid type")
+            def __hash__(self):
+                '''A matrix is inherently a mutable container, but we also want
+                it to be stored in other containers, so we'll define the hash
+                value to be the id of the instance.
+                '''
+                return hash(id(self))
+            def __iter__(self):
+                "Iteration: for row, col, element in self"
+                for row in range(self.r):
+                    for col in range(self.c):
+                        yield row, col, self[row, col]
+            def __mul__(self, other):
+                '''Multiply by another matrix or a scalar.  If the result is a
+                1 by 1 matrix, the number is returned instead of the matrix.
+                '''
+                if isinstance(other, Matrix):
+                    if self.c != other.r:
+                        raise TypeError("Incompatible sizes for multiplication")
+                    m = Matrix(self.r, other.c)
+                    for row, col, x in m:
+                        for r, c in zip(self.row(row), other.col(col)):
+                            m[row, col] += r[2] * c[2]
+                    return m[0, 0] if m.size == (1, 1) else m
+                else:
+                    return self.map(lambda x: x * other)
+            def __neg__(self):
+                "Return a new matrix with all elements negated"
+                return self.map(lambda x: -x)
+            def __pos__(self):
+                "Returns a copy of +self"
+                return self.map(lambda x: +x)
+            def __pow__(self, other):
+                '''Returns self**other.  other can be any integer; if 0, the
+                identity matrix is returned.  If other is negative, the inverse
+                matrix is raised to the abs(other) power.
+                '''
+                if not isinstance(other, int):
+                    raise TypeError("Only integer powers are supported")
+                if not self.is_square:
+                    raise TypeError("The matrix must be square to raise to a power")
+                if not other:
+                    return self.identity(self.r)
+                else:
+                    m = self.copy if other > 0 else self.i
+                    n = m.copy
+                    for i in range(abs(other) - 1):
+                        m = m * n
+                    m._copy_attr(self)
+                    return m
+            def __radd__(self, other):
+                "Allows for scalar + matrix"
+                return self + other
+            def __repr__(self):
+                return self._string() if self.f else self._repr()
+            def __rmul__(self, other):
+                "Allows for scalar*matrix"
+                return self * other
+            def __rsub__(self, other):
+                "Allows for scalar - matrix"
+                return -self + other
+            def __rtruediv__(self, other):
+                "Return other/matrix = other*matrix.i"
+                return other * self.i
+            def __setitem__(self, key, value):
+                '''Set the indicated matrix element to value.  You can address
+                row i and column j by indexing as [i, j] or (i, j).
+                
+                If key is an integer, you can replace the indicated row with a
+                list or vector as long as the number of elements in value is
+                equal to the number of columns.
+                
+                If key is an integer and self is a vector, the indicated element
+                will be changed.
+                '''
+                self._check_frozen()
+                if isinstance(key, (tuple, list)):  # Set a single element
+                    nr, nc = self.r, self.c
+                    row, col = key
+                    row = row + nr if row < 0 else row
+                    col = col + nc if col < 0 else col
+                    if not (0 <= row < nr):
+                        raise ValueError("row must be 0 to {}".format(nr - 1))
+                    if not (0 <= col < nc):
+                        raise ValueError("col must be 0 to {}".format(nc - 1))
+                    self._grid[row][col] = value
+                elif isinstance(key, int):
+                    # This is either to insert a new row or change the element
+                    # of a vector.
+                    if self.is_vector:
+                        key = key + self.len if key < 0 else key
+                        if 0 <= key < self.len:
+                            with Flatten(self):
+                                self._grid[key] = value
+                        else:
+                            raise ValueError("Vector index of {} is bad".format(key))
+                    else:
+                        msg = "value must be a {{}} with {} elements".format(self.c)
+                        if isinstance(value, Matrix):
+                            if not value.is_vector and value.len != self.c:
+                                raise TypeError(msg.format("vector"))
+                            v = value.l
+                        else:
+                            try:
+                                v = list(value)
+                                if len(v) != self.c:
+                                    raise Exception()
+                            except Exception:
+                                raise TypeError(msg.format("list"))
+                        self._grid[key] = v
+                else:
+                    raise TypeError("Need tuple or int for key for assignment")
+            def __str__(self):
+                return self._repr() if self.f else self._string()
+            def __sub__(self, other):
+                '''Subtract a matrix or scalar from the current matrix and return
+                the result.
+                '''
+                if isinstance(other, Matrix):
+                    # Matrix subtraction
+                    if self.r != other.r or self.c != other.c:
+                        raise TypeError("Cannot subtract matrices of different sizes")
+                    return -other + self
+                else:
+                    # Assume it's a number to subtract from each element
+                    try:
+                        return self.map(lambda x: x - other)
+                    except Exception:
+                        raise TypeError(
+                            "Cannot subtract {} from a matrix".format(type(other))
+                        )
+            def __truediv__(self, other):
+                '''Allows self/other where other is a scalar or a matrix.  If
+                self and other are square matrices of the same size, returns
+                self*other.i.
+                '''
+                if isinstance(other, Matrix):
+                    # Must have self and other square and of the same size
+                    if not self.is_square or not other.is_square:
+                        raise TypeError("Self and other must be square matrices")
+                    if self.r != other.r:
+                        raise TypeError("Self and other must be the same size")
+                    return self * other.i
+                else:
+                    try:
+                        return self.map(lambda x: x / other)
+                    except Exception:
+                        raise TypeError("Cannot divide matrix by {}".format(type(other)))
+        if 1:  # Other methods
+            def add(self, n, m, constant=1, c=False):
+                '''In-place row or column operation.  Adds constant times row m
+                to row n or constant times column m to column n.
+                '''
+                self._check_frozen()
+                if c:
+                    n = n + self.c if n < 0 else n
+                    m = m + self.c if m < 0 else m
+                    for i in range(self.r):
+                        self[i, n] += constant * self[i, m]
+                else:
+                    n = n + self.r if n < 0 else n
+                    m = m + self.r if m < 0 else m
+                    self._grid[n] = [
+                        i + j
+                        for i, j in zip(
+                            [i * constant for i in self._grid[m]], self._grid[n]
+                        )
+                    ]
+            def cholesky(self, ip=False):
+                '''Cholesky decomposition into a lower triangular matrix.  If ip
+                is True, perform the decomposition in-place; otherwise, return
+                the lower triangular matrix.  self must be Hermitian and
+                positive-definite (i.e., z.t*M*z must be > 0 for every nonzero
+                column vector z where z ϵ ℂ^n).  All of a matrix's eigenvalues
+                are positive if and only if the matrix is positive-definite.
+                '''
+                # From http://rosettacode.org/wiki/Cholesky_decomposition
+                L = [[0] * self.r for _ in range(self.r)]
+                try:
+                    for i, (Ai, Li) in enumerate(zip(self.nl, L)):
+                        for j, Lj in enumerate(L[: i + 1]):
+                            s = sum(Li[k] * Lj[k] for k in range(j))
+                            # Note we must use math.sqrt because x**0.5 can
+                            # return a complex result.
+                            try:
+                                Li[j] = (
+                                    math.sqrt(Ai[i] - s)
+                                    if (i == j)
+                                    else (1 / Lj[j] * (Ai[j] - s))
+                                )
+                            except TypeError:
+                                Li[j] = (
+                                    csqrt(Ai[i] - s)
+                                    if (i == j)
+                                    else (1 / Lj[j] * (Ai[j] - s))
+                                )
+                except (ValueError, ZeroDivisionError):
+                    raise TypeError("Matrix not positive-definite or Hermitian")
                 m = matrix(L)
-                m._copy_attr(self)
-                if ip:
-                    self._grid = m.t.nl
-                else:
-                    return m.t
-            else:
-                if ip:
-                    self._grid = L
-                else:
-                    m = self.copy
-                    m._grid = L
-                    return m
-        def round(self, ip=False):
-            '''If instance.eqdigits or Matrix.EqDigits are set, round the
-            matrix elements to the indicated number of digits.  Note that
-            Matrix.EqDigits overrides instance.eqdigits.  Otherwise, do
-            nothing.  If ip is True, do in-place.
-            '''
-            eqdigits = None
-            if self.eqdigits:
-                eqdigits = self.eqdigits
-                if Matrix.EqDigits:
-                    eqdigits = min(self.eqdigits, Matrix.EqDigits)
-            if Matrix.EqDigits:
-                eqdigits = Matrix.EqDigits
-            if eqdigits:
-                assert eqdigits > 0
-                f = partial(RoundOff, digits=eqdigits)
-                if ip:
-                    self.map(f, ip=True)
-                else:
-                    return self.map(f)
-            else:
                 if not ip:
-                    return self.copy
-        def row(self, *n):
-            "Returns the indicated row(s) as a new matrix"
-            # Validate n's components
-            for i in n:
-                if i < 0:
-                    k = self.r + i
-                    if not (0 <= k < self.r):
-                        raise ValueError("n must be between -1 and {}".format(-self.r))
-                else:
-                    if not (0 <= i < self.r):
-                        raise ValueError(
-                            "n must be between 0 and {}".format(self.r - 1)
-                        )
-            s = []
-            for i in n:
-                i = self.r + i if i < 0 else i
-                s.append(self._grid[i])
-            if len(n) == 1:
-                m = vector(s[0])
-            else:
-                m = matrix(s)
-            m._copy_attr(self)
-            return m
-        def scale(self, n, b, c=False):
-            "Multiply row or column n by the constant b"
-            self._check_frozen()
-            if c:
-                n = n + self.c if n < 0 else n
-                m = self.t
-                m._grid[n] = [b * i for i in m._grid[n]]
-                self._grid = m.t._grid
-            else:
-                n = n + self.r if n < 0 else n
-                self._grid[n] = [b * i for i in self._grid[n]]
-        def solve(self, b=None, numtype=None, aug=False):
-            '''Given a vector b, solve the equation m*x = b and return x as a
-            vector of the same shape (row or column) as b.  If numtype is not
-            None, then self and b are coerced to the indicated type before
-            computation.  The returned vector will have the same attributes as
-            self.
-            
-            For convenience, self can be an augmented matrix by setting aug
-            to True.  Then self must be an n x (n+1) matrix where the last
-            column is the b vector.
-            '''
-            if aug:
-                if self.c != self.r + 1:
-                    raise TypeError("Improper augmented matrix")
-                M = self.copy
-                B = M.delete(self.c - 1, c=True)
-                if numtype is not None:
-                    M.numtype = numtype
-                    B.numtype = numtype
-                x = M.i * B
-            else:
-                if not b.is_vector:
-                    raise TypeError("b must be a vector")
-                if numtype is not None:
-                    M, B = self.copy, b.copy
-                    M.numtype, B.numtype = numtype, numtype
-                    x = (M.i * B.t).t if B.is_row_vector else M.i * B
-                else:
-                    x = (self.i * b.t).t if b.is_row_vector else self.i * b
-            x._copy_attr(self)
-            return x
-        def swap(self, n, m, c=False):
-            "In-place swap of the two indicated rows or columns"
-            self._check_frozen()
-            if n == m:
-                return
-            if c:
-                n = n + self.c if n < 0 else n
-                m = m + self.c if m < 0 else m
-                M = self.t
-                M._grid[n], M._grid[m] = M._grid[m], M._grid[n]
-                self._grid = M.t._grid
-            else:
-                n = n + self.r if n < 0 else n
-                m = m + self.r if m < 0 else m
-                self._grid[n], self._grid[m] = self._grid[m], self._grid[n]
-        def split(self, n, c=False):
-            '''Returns two matrices; the first one will include the rows or
-            columns from 0 to n; the second will be the remainder.  A ValueError
-            exception will be raised if n indicates the last row or column, as
-            None would have to be returned for the second matrix.  The original
-            matrix is unchanged.
-            '''
-            C = self._c
-            if not ii(n, int):
-                raise TypeError("n must be an integer")
-            def row_split(M, n):
-                if n < 0 or n >= M.r - 1:
-                    if M.is_row_vector:
-                        raise TypeError("Can't split a row vector on rows")
-                    raise ValueError("n must be >= 0 and < {}".format(M.r - 1))
-                m1, m2 = matrix(M._grid[: n + 1]), matrix(M._grid[n + 1 :])
-                m1._copy_attr(self)
-                m2._copy_attr(self)
-                return m1, m2
-            if c:
-                if n < 0 or n >= C - 1:
-                    if self.is_col_vector:
-                        raise TypeError("Can't split a column vector on columns")
-                    raise ValueError("n must be >= 0 and < {}".format(c - 1))
-                # Do column split by using row method on transpose
-                m1, m2 = row_split(self.t, n)
-                m1._copy_attr(self)
-                m2._copy_attr(self)
-                return m1.t, m2.t
-            else:
-                return row_split(self, n)
-        def upper(self, ip=False, incl_diag=True, fill=0):
-            '''Return the upper triangular matrix and include the diagonal
-            if incl_diag is True.  The lower off-diagonal elements will be
-            fill.  If ip is True, perform this operation on the current
-            matrix and return None.
-            '''
-            if not self.is_square:
-                raise TypeError("Matrix must be square")
-            if ip:
-                self._check_frozen()
-            m = self if ip else self.copy
-            for i in range(self.r):
-                for j in range(self.c):
-                    if incl_diag:
-                        if j < i:
-                            m[i, j] = fill
-                    else:
-                        if j <= i:
-                            m[i, j] = fill
-            return None if ip else m
-    if 1:  # Private methods
-        def _check_frozen(self):
-            if self.frozen:
-                raise TypeError("Cannot modify a frozen matrix or vector")
-        def _copy_attr(self, m):
-            "Copy the attributes of the matrix m to self"
-            if not ii(m, Matrix):
-                raise TypeError("m must be a Matrix instance")
-            self.numtype = m._numtype
-            self.frozen = m._frozen
-            self.eqdigits = m._eqdigits
-        def _flatten(self):
-            "Convert self._grid to a flat list"
-            self._grid = Matrix._Flatten(self._grid)
-        def _nested(self):
-            "Convert self._grid to a nested list"
-            if not ii(self._grid[0], list):
-                self._grid = [
-                    list(i) for i in zip_longest(*([iter(self._grid)] * self.c))
-                ]
-        def _get_eqdigits(self, other=None):
-            '''Return the eqdigits value to use for a comparison.  If
-            Matrix.EqDigits is not None, return it.  Otherwise, return the
-            smaller of self.eqdigits and other.eqdigits.
-            '''
-            if Matrix.EqDigits is not None:
-                if not ii(Matrix.EqDigits, int):
-                    raise TypeError("Matrix.eqdigits must be an integer")
-                if Matrix.EqDigits < 1:
-                    raise ValueError("Matrix.eqdigits must be > 0")
-                return Matrix.EqDigits
-            if other is None:
-                return self._eqdigits
-            else:
-                if self._eqdigits is None:
-                    return other._eqdigits
-                else:
-                    if other._eqdigits is None:
-                        return self._eqdigits
-                    else:
-                        return min(self._eqdigits, other._eqdigits)
-        def _get_type_dict(self):
-            '''Return a dictionary whose keys are the string form of the
-            type() of an object.  The values are (symbol, description) where
-            symbol is the string representing the type and description is
-            a short explanation.
-            '''
-            return OrderedDict(
-                (
-                    ("©", "cpx"),
-                    ("ℂ", "complex"),
-                    ("D", "Decimal"),
-                    ("ℝ", "Float"),
-                    ("ℚ", "Fraction"),
-                    ("F", "Function"),
-                    ("ℤ", "Integer"),
-                    ("λ", "lambda function"),
-                    ("]", "List"),
-                    ("𝕄", "Matrix"),
-                    ("f", "Method"),
-                    ("Λ", "mpmath ivmpf"),
-                    ("∇", "mpmath mpc"),
-                    ("Δ", "mpmath mpf"),
-                    ('"', "String"),
-                    ("𝕊", "sympy object"),
-                    (")", "Tuple"),
-                    ("±", "Uncertainties variable"),
-                    ("?", "Unknown"),
-                    ("𝕍", "Vector"),
-                )
-            )
-        def _string(self):
-            '''Return the string form of the matrix.  If self.digits is not
-            zero, then floats, Decimals, complex, and cpx numbers will
-            be rounded off to the indicated number of digits.  The returned
-            string is formatted to print to the console compactly.
-            
-            Example:  with self.digits set to 2,
-                str(matrix("2.817 3/4 Decimal('1.2345') 38.277-4.50911j"))
-            will return
-                '2.8       3/4       1.2 (38-4.5j)'
-                
-            Warning:  Decimal() numbers with more digits than the platform's
-            float will not be formatted correctly; it is recommended you not
-            use more than 12 digits.
-            '''
-            def Rnd(x):
-                digits = (
-                    Matrix.EqDigits
-                    if Matrix.EqDigits is not None
-                    else self._eqdigits
-                    if self._eqdigits is not None
-                    else None
-                )
-                if digits:
-                    if ii(x, (float, Decimal)):
-                        return str(RoundOff(float(x), digits))
-                    elif ii(x, complex):
-                        return str(RoundOff(x, digits))
-                    else:
-                        return str(x)
-                else:
-                    if ii(x, complex):
-                        return str(cpx(x))
-                    return str(x)
-            with Flatten(self):
-                maxlen = max(len(Rnd(i)) for i in self._grid)
-            string = "\n".join(
-                " ".join(Rnd(e).rjust(maxlen) for e in row) for row in self._grid
-            )
-            return textwrap.dedent(string)
-        def _repr(self):
-            if self._frozen:
-                s = "<*{} {}x{} 0x{:x}*>"
-            else:
-                s = "<{} {}x{} 0x{:x}>"
-            return s.format(self.__class__.__name__, self.r, self.c, id(self))
-    if 1:  # Static methods
-        # These are methods associated with matrices that do not require an
-        # instance of the Matrix class.
-        @staticmethod
-        def condition_string(s):
-            r'''If s is a multiline string, remove all lines of the form
-            ^\w*#.*$.  This allows a data string to contain python-style
-            comments, which is handy for documentation.
-            
-            This allows a matrix to be defined such as:
-                matrix("""
-                    # Data from 13 Jan experiment with PM voltage = 677 V and
-                    # using photon counter 6.
-                    # Bias, mV    Gate init.       Counts
-                        162         274             2450
-                        120         180             3254
-                        223         375             3802
-                        131         205             2838
-                """)
-            '''
-            s = s.strip()
-            if "\n" in s:
-                n = []
-                for line in s.split("\n"):
-                    if line and line.strip()[0] != "#":
-                        n.append(line)
-                return "\n".join(n)
-            else:
-                return s
-        @staticmethod
-        def from_list(p, **kw):
-            '''Instantiate a matrix from a list or tuple p.  These are the
-            valid forms:
-            
-            Size not given
-                A:  Nested list:  A single argument is a list [L1, L2, ...,
-                Ln] where each of the L's is a sequence of length m.  This
-                will result in a matrix of n rows and m columns.
-                
-                B:  Flat list with no size, which will return a row vector.
-                
-            Size given
-                C:  Flat list with size ([1, 2, 3, 4], size=(2, 2))
-                
-            Examples:  M = Matrix.from_list
-            
-            M([[1, 2, 3]]) and M([1, 2, 3]) return the row vector
-                1 2 3
-            M([[1], [2], [3]]) returns the column vector
-                1
-                2
-                3
-            M([[1, 2, 3], [4, 5, 6]]) returns the matrix
-                1 2 3
-                4 5 6
-            M([1, 2, 3, 4], size=(2, 2)) returns the matrix
-                1 2
-                3 4
-            '''
-            size = kw.get("size", None)
-            numtype = kw.get("numtype", None)
-            if size is None:  # Form A or B
-                assert ii(p, (list, tuple))
-                if ii(p[0], (list, tuple)):  # Form A (nested list)
-                    r, c = len(p), len(p[0])
-                    if not all([len(i) == c for i in p]):
-                        raise TypeError(f"Not all rows have {c} elements")
-                    m = Matrix(r, c)
-                    m._grid = p
-                    if numtype is not None:
-                        m.numtype = numtype
+                    m._copy_attr(self)
                     return m
-                else:  # Form B:  flat sequence; return a row vector
-                    m = Matrix(1, len(p))
-                    m._grid = [p]
-                    return m
-            else:
-                # Form C
-                e = TypeError("size keyword must be a tuple of two integers")
-                try:
-                    r, c = size
-                except ValueError:
-                    raise e
-                if not (ii(r, int) and ii(c, int)):
-                    raise e
-                m = Matrix(r, c)
-                with Flatten(m):
-                    m._grid = p
-                if len(m.l) != r * c:
-                    raise TypeError("List needs {} elements".format(r * c))
-                if numtype is not None:
-                    m.numtype = numtype
+                self._grid = m._grid
+            def chop(self, tol=100 * sys.float_info.epsilon):
+                '''Remove small floating point matrix elements and replace them
+                with zero.  If a real or imaginary component of a matrix element
+                has an absolute value less than or equal to tol, replace that
+                component with zero.  Other things like integers or Fraction
+                instances will be left alone, regardless of their magnitude.
+                
+                Note this method works in-place on the current matrix.
+                '''
+                def f(x):
+                    return 0 if abs(x) <= tol else x
+                def ch(x):
+                    if isinstance(x, complex):
+                        return complex(f(x.real), f(x.imag))
+                    elif isinstance(x, cpx):
+                        return cpx(f(x.real), f(x.imag))
+                    elif have_mpmath and isinstance(x, mpmath.mpc):
+                        return mpmath.mpc(f(x.real), f(x.imag))
+                    elif isinstance(x, float):
+                        return float(f(x))
+                    elif isinstance(x, flt):
+                        return flt(f(x))
+                    elif have_mpmath and isinstance(x, mpmath.mpf):
+                        return f(x)
+                    elif have_unc and isinstance(x, UFloat):
+                        raise TypeError("Can't chop an uncertain number")
+                    elif isinstance(x, Decimal):
+                        return f(x)
+                    else:
+                        return x
+                with Flatten(self):
+                    self._grid = [ch(i) for i in self._grid]
+            def cofactor(self, row, col):
+                '''Return the cofactor, which is the determinant of the matrix with
+                the indicated row and column removed, scaled by (-1)**(row + col).
+                '''
+                row = row + self.r if row < 0 else row
+                col = col + self.c if col < 0 else col
+                # Note the minor is the determinant
+                return pow(-1, row + col) * self.minor(row, col)
+            def col(self, *n):
+                "Returns the indicated columns as a new matrix"
+                for i in n:
+                    if i < 0:
+                        k = self.c + i
+                        if not (0 <= k < self.c):
+                            raise ValueError("n must be between -1 and {}".format(-self.c))
+                    else:
+                        if not (0 <= i < self.c):
+                            raise ValueError(
+                                "n must be between 0 and {}".format(self.c - 1)
+                            )
+                return self.t.row(*n).t
+            def decorate(self, decorations):
+                '''Return a matrix of strings that contain the results of
+                applying the elements of decorations to the elements of the self
+                matrix.
+                
+                decorations is a sequence of 2-tuples (a, b).  a can be a type,
+                number, or string and when a matrix element matches a (using ==),
+                b is substituted for it.  If b is callable as a function,
+                b(element) is substituted.
+                
+                Example:  suppose we have m which is a sparse 4x4 matrix:
+                    0.0 0.0 1.0 0.0
+                    0.0 0.0 0.0 2.0
+                    0.0 0.0 0.0 0.0
+                    0.0 0.0 0.0 0.0
+                This is hard to read because of all the 0 symbols.  We can
+                change the 0.0 elements to '.' and convert the floats to
+                integers to make things easier to read.  To do this, set
+                d = [(0, "."), (float, lambda x: int(x))] and call
+                print(m.decorate(d)) to get
+                    . . 1 .
+                    . . . 2
+                    . . . .
+                    . . . .
+                which shows the nonzero elements more clearly.
+                '''
+                m = self.copy
+                m._flatten()
+                L = m._grid
+                for i, item in enumerate(L):
+                    for key, value in decorations:
+                        if item == key:
+                            L[i] = value  # Substitution
+                            break
+                        # See if it's of this type
+                        try:
+                            if isinstance(item, key):
+                                if callable(value):
+                                    L[i] = value(item)  # Call a function
+                                else:
+                                    L[i] = value  # Substitution
+                            break
+                        except TypeError:
+                            # key probably isn't a type
+                            pass
+                m._grid = L
+                m._nested()
                 return m
-            raise TypeError("Improper arguments")
-        @staticmethod
-        def from_string(s, rowsep=None, colsep=None, expr=None, numtype=None):
-            '''Instantiate a matrix from a string.
-            
-            Examples:
-                matrix("1 2\\n3 4") returns the 2x2 matrix
+            def delete(self, n, c=False):
+                '''Delete the indicated row or column from the current matrix and
+                return the row or column as a vector.
+                
+                Example:  for the matrix
                     1 2
                     3 4
-                as does matrix("1 2;3 4", ";").
-            '''
-            s = Matrix.condition_string(s)
-            rows = s.strip().split(rowsep) if rowsep else s.strip().splitlines()
-            m = Matrix(len(rows), len(rows[0].split(colsep)))
-            for i, row in enumerate(rows):
-                for j, x in enumerate(row.split(colsep)):
-                    m[i, j] = Matrix.getnum(x, expr=expr, numtype=numtype)
-            return m
-        @staticmethod
-        def getnum(x, **kw):
-            '''Returns the number x; if it is a string, the method tries to
-            identify it and return it in the most appropriate form.
-            Keywords:
-            
-            numtype     Coerce number to this type.
-            expr        (globals(), locals()) tuple of dicts for eval when
-                        x is a string.
-            '''
-            numtype = kw.get("numtype", None)
-            expr = kw.get("expr", None)
-            if expr is not None and ii(x, str):
-                # Assume x is an expression to be evaluated with globals
-                # dictionary expr[0] and locals dictionary expr[1].
-                if not ii(expr, (list, tuple)) and len(expr) != 2:
-                    raise ValueError("expr must be sequence of 2 dicts or None")
-                return eval(x, expr[0], expr[1])
-            if numtype is not None:
-                return Matrix.NumberConvert(x, numtype)
-            if not ii(x, str):
-                return x  # Assume it's already some form of number
-            # It's a string, so see if we can identify it
-            if (
-                "complex" in x or "cpx" in x or "Fraction" in x or "Decimal" in x
-            ) and ")" in x:
-                return eval(x)
-            elif "i" in x.lower() or "j" in x.lower():
-                re, im = PC(x)
-                return cpx(re, im)
-            elif have_mpmath and ("mpf" in x or "mpc" in x):
-                return eval(x)
-            elif have_unc and ("(" in x or "+/-" in x or "+-" in x or "±" in x):
-                if "+-" in x:
-                    # "+-" is not part of the uncertainties library, but I use
-                    # it enough to warrant putting it in getnum().
-                    return ufloat_fromstr(x.replace("+-", "+/-"))
+                calling delete(0) results in the matrix becoming the row vector
+                    3 4
+                and returns the row vector
+                    1 2
+                Calling delete(0, c=True) returns the column vector
+                    1
+                    3
+                and the matrix becomes the column vector
+                    2
+                    4
+                '''
+                self._check_frozen()
+                if c:
+                    n = n + self.c if n < 0 else n
+                    if self.is_col_vector:
+                        raise TypeError("Can't remove a column from a column vector")
+                    if not (0 <= n < self.c):
+                        raise ValueError("n must be between 0 and {}".format(self.c - 1))
+                    # Used delete_row() on the transpose
+                    m = self.t
+                    cv = m._grid.pop(n)  # cv is a list
+                    m._r -= 1
+                    self._grid = m.t._grid  # Put the reduced matrix back
+                    cv = vector(*cv).t  # Convert it to a column vector
+                    self._c -= 1
+                    cv._copy_attr(self)
+                    return cv
                 else:
-                    return ufloat_fromstr(x)
-            elif "/" in x:
-                return Fraction(x)
-            elif "." in x or "e" in x:
-                return flt(x)
-            else:
-                return int(x)
-        @staticmethod
-        def hilbert(n):
-            '''Return an n x n Hilbert matrix.  For element [i, j], the value
-            is 1/(i + j + 1).  Note that the matrix is explicitly set to use
-            the Fraction numerical type.
-            '''
-            m = Matrix(n, n)
-            m._numtype = Fraction
-            for i in range(n):
-                for j in range(n):
-                    m[i, j] = Fraction(1, i + j + 1)
-            return m
-        @staticmethod
-        def identity(n):
-            "Return an n x n identity matrix"
-            m = Matrix(n, n)
-            for i in range(n):
-                m[i, i] = 1
-            return m
-        @staticmethod
-        def NumberConvert(x, T):
-            "Convert the number x to the type T"
-            # Note some conversions will lose numerical information; these
-            # are marked with '# **' in case you'd like to change them.
-            def extract(s):
-                "Return the portion of s between single quotes"
-                s = s[s.find("'") + 1 :]
-                return s[: s.find("'")]
-            if have_unc and T == ufloat:
-                if ii(x, complex):
-                    return ufloat(x.real, 0)  # **
-                elif ii(x, (Fraction, Decimal)):
-                    return ufloat(float(x), 0)  # **
-                elif ii(x, UFloat):
-                    return x
-                return ufloat(x, 0)
-            elif T is complex:
-                if have_unc and ii(x, UFloat):
-                    return complex(x.nominal_value, 0)  # **
-                return complex(x, 0)  # **
-            elif ii(x, flt):
-                if T is Decimal or T is Fraction:
-                    return T(x.r)
-                return T(x)
-            elif ii(x, float):
-                if T is Decimal or T is Fraction:
-                    return T(str(x))
-                return T(x)
-            elif ii(x, complex):
-                if T is Decimal or T is Fraction:
-                    return T(str(x.real))  # **
-                return T(x.real)  # **
-            elif ii(x, Fraction):
-                if T is Decimal:
-                    return Decimal(x.numerator) / Decimal(x.denominator)
-                elif have_mpmath and T is mpmath.mpf:
-                    return mpmath.mpf(x.numerator) / mpmath.mpf(x.denominator)
-            elif ii(x, Decimal):
-                if have_mpmath and T is mpmath.mpf:
-                    n, d = x.as_integer_ratio()
-                    return mpmath.mpf(n) / mpmath.mpf(d)
-            elif have_mpmath and ii(x, mpmath.mpf):
-                if T is Fraction:
-                    return Fraction(extract(str(x)))
-                elif T is Decimal:
-                    return Decimal(extract(str(x)))
-            elif have_unc and ii(x, UFloat):
-                if T is complex:
-                    return complex(x.nominal_value, 0)  # **
-                if T is Fraction or T is Decimal:
-                    return T(str(x.nominal_value))  # **
-                return T(x.nominal_value)  # **
-            try:
-                return T(x)
-            except Exception:
-                raise TypeError("Conversion not supported")
-        @staticmethod
-        def from_sympy(m):
-            '''m must be a sympy.Matrix object.  This function returns
-            a matrix.Matrix object.
-            '''
-            d = vars(m)
-            M = Matrix(d["rows"], d["cols"])
-            with Flatten(M):
-                # sympy has the d['_rep'] DomainMatrix object that stores the matrix.
-                # The following converts it to a flat list.
-                M._grid = list(d["_rep"].iter_values())
-            return M
-        @staticmethod
-        def to_sympy(m):
-            '''m must be a matrix.Matrix instance.  Returns a SymPy matrix
-            from m.
-            '''
-            return sympy.Matrix(m.nl)
-        @staticmethod
-        def from_mpmath(m):
-            '''m must be a mpmath.matrix object.  This function returns
-            a matrix.Matrix object from it.
-            '''
-            return matrix(m.tolist())
-        @staticmethod
-        def to_mpmath(m):
-            "Returns an mpmath matrix from m"
-            return mpmath.matrix(m.nl)
-        @staticmethod
-        def _Flatten(L):
-            "Flatten every sequence in L and return a list"
-            # Adapted from code by Kevin L. Sitze on 2010-11-25.  From
-            # http://code.activestate.com/recipes/577470-fast-flatten-with-depth-control-and-oversight-over/?in=lang-python
-            lt = (list, tuple)
-            is_seq = lt if callable(lt) else lambda x: ii(x, lt)
-            r, s = [], []
-            s.append((0, L))
-            while s:
-                i, L = s.pop()
-                while i < len(L):
-                    while is_seq(L[i]):
-                        if not L[i]:
-                            break
-                        else:
-                            s.append((i + 1, L))
-                            L = L[i]
-                            i = 0
-                    else:
-                        r.append(L[i])
-                    i += 1
-            return r
-    if 1:  # Class methods
-        @classmethod
-        def set_default_state(cls):
-            '''This method sets the Matrix class variables to a default
-            state.
-            '''
-            Matrix._str = False
-            Matrix.EqDigits = None
-        @classmethod
-        def get_state(cls):
-            "Save the class variables in a dictionary and return it."
-            d = {}
-            d["_str"] = Matrix._str
-            d["EqDigits"] = Matrix.EqDigits
-            return d
-        @classmethod
-        def set_state(cls, state_dict):
-            for key, value in state_dict.items():
-                exec("Matrix.{} = value".format(key))
-    if 1:  # Properties
-        @property
-        def adjoint(self):
-            "Returns the Hermitian conjugate matrix"
-            def C(x):
-                return x.conjugate() if ii(x, complex) else x
-            return self.t.map(C)
-        @property
-        def adjugate(self):
-            "Returns the adjugate matrix (transpose of cofactors)"
-            return self.cofactors.t
-        @property
-        def c(self):
-            "Returns the number of columns in the matrix"
-            return self._c
-        @c.setter
-        def c(self, value):
-            "Sets the number of columns in the matrix"
-            self._check_frozen()
-            self.resize(self.r, value)
-        @property
-        def cofactors(self):
-            '''Returns the matrix of cofactors.  The cofactor [i, j] of a
-            square matrix is the determinant of the matrix with row i and
-            column j deleted, multiplied by (-1)**(i + j).
-            
-            The transpose of the cofactors matrix (i.e., adjugate) divided by
-            the determinant is the inverse of the original matrix.
-            '''
-            m = Matrix(self.r, self.c)
-            for row, col, element in self:
-                m[row, col] = self.cofactor(row, col)
-            m._copy_attr(self)
-            return m
-        @property
-        def cols(self):
-            "Returns a column iterator for each column in the matrix"
-            for col in range(self.c):
-                yield self.col(col)
-        @property
-        def conj(self):
-            "Returns a new matrix with elements that are complex conjugates"
-            m = self.copy
-            for row, col, element in self:
-                if ii(m[row, col], complex):
-                    m[row, col] = m[row, col].conjugate()
-            m._copy_attr(self)
-            return m
-        @property
-        def copy(self):
-            "Returns a copy of the matrix"
-            m = Matrix(self.r, self.c)
-            m._grid = self._grid.copy()
-            # Need to explicitly make copies of the rows too
-            for i in range(m.r):
-                m._grid[i] = self._grid[i].copy()
-            m._copy_attr(self)
-            return m
-        @property
-        def det(self):
-            "Returns the determinant of the matrix"
-            if not self.is_square:
-                raise TypeError("Non-square matrix does not have determinant")
-            ref, _, multiplier = get_row_echelon_form(self)
-            ref_det = reduce(operator.mul, ref.diag.l)
-            eqdigits = Matrix.EqDigits if Matrix.EqDigits is not None else self.eqdigits
-            det = ref_det / multiplier
-            det = det if ref_det else 0
-            return RoundOff(det, digits=eqdigits) if eqdigits else det
-        @property
-        def diag(self):
-            "Return the diagonal of the matrix as a row vector"
-            if not self.is_square:
-                raise TypeError("Matrix must be square to return diagonal")
-            d = []
-            for i in range(self.r):
-                d.append(self[i, i])
-            return vector(d)
-        @diag.setter
-        def diag(self, seq):
-            "Set the diagonal elements to those of seq, a list, or vector"
-            self._check_frozen()
-            if not self.is_square:
-                raise TypeError("Matrix must be square to set diagonal")
-            if not ii(seq, (list, tuple)) and (ii(seq, Matrix) and not seq.is_vector):
-                raise TypeError("seq must be list, tuple, or vector")
-            e = TypeError("seq must be of length {}".format(self.r))
-            if ii(seq, Matrix):
-                if seq.len != self.r:
-                    raise e
-            else:
-                if len(seq) != self.r:
-                    raise e
-            for i in range(self.r):
-                self._grid[i][i] = seq[i]
-        @property
-        def elements(self):
-            "Returns an iterator over the matrix's elements"
-            for row in range(self.r):
-                for col in range(self.c):
-                    yield self[row, col]
-        @property
-        def f(self):
-            '''The f attribute is used to control what the __str__() and
-            __repr__() methods return.  If f is set to False (the default),
-            then __str__() returns the string form that makes the matrix
-            look as you'd write it on paper and __repr__() returns a string
-            such as '<Matrix 2x2 0xffcf0b50>'.
-            
-            When using the debugger and you type the command 'p m' where m
-            is a Matrix instance, you see the __repr__ form of the matrix.
-            A similar thing happens when you type '>>> m' at the interactive
-            python prompt.  In such cases, you'd probably rather see the
-            __str__() form; to do this, set the f attribute to True and
-            the __str__ and __repr__ behaviors are swapped.  This can be
-            done in the debugger with the command '!m.f = True'.
-            '''
-            return Matrix._str
-        @f.setter
-        def f(self, value):
-            Matrix._str = bool(value)
-        @property
-        def flat(self):
-            "Returns a flattened list of a copy of the matrix elements"
-            m = self.copy
-            with Flatten(m):
-                return list(m._grid)
-        @property
-        def frozen(self):
-            '''The frozen attribute lets you make a matrix read-only by
-            setting the attribute to True.
-            '''
-            return self._frozen
-        @frozen.setter
-        def frozen(self, frozen):
-            self._frozen = bool(frozen)
-        @property
-        def grid(self):
-            '''Get a reference to the matrix instance's internal nested list
-            storage for the elements.
-            
-            ********************** WARNING **********************
-            
-            This is a potentially risky attribute to use because you will
-            have references to the data in the matrix instance.  If you
-            change the list, you'll change the data in the matrix.
-            Conversely, if a matrix operation changes the matrix, then
-            the list you have may no longer have references to the grid's
-            elements.  This could lead to hard-to-find bugs.
-            '''
-            return self._grid
-        @grid.setter
-        def grid(self, grd):
-            '''Replace the self._grid nested list.  The new nested list grd
-            must match the old one in size.
-            '''
-            self._check_frozen()
-            if len(grd) != self.r:
-                raise TypeError("grd must have {} rows".format(self.r))
-            try:
-                cols_ok = all([len(i) == self.c for i in grd])
-            except Exception:
-                raise TypeError("grd is not a nested list")
-            if not cols_ok:
-                raise TypeError("grd must have {} columns".format(self.c))
-            self._grid = grd
-        @property
-        def i(self):
-            "Returns the inverse matrix"
-            if not self.is_square:
-                raise TypeError("Non-square matrix cannot have an inverse")
-            identity = Matrix.identity(self.r)
-            rref, inverse = get_reduced_row_echelon_form(self, identity)
-            if rref != identity:
-                raise TypeError("Matrix is non-invertible")
-            inverse._copy_attr(self)
-            return inverse
-        @property
-        def is_col_vector(self):
-            '''Returns True if matrix is a column vector'''
-            return self.c == 1
-        @property
-        def is_correl(self):
-            '''Return True if matrix could be a correlation matrix.  The
-            diagonal elements must be 1, the matrix must be symmetric, and
-            the off-diagonal elements must be in [-1, 1].
-            '''
-            if not self.is_symmetric:
-                return False
-            if not all([i == 1 for i in self.diag.l]):
-                return False
-            lst = self.lower(incl_diag=False).l
-            if not all([-1 <= i <= 1 for i in lst]):
-                return False
-            return True
-        @property
-        def is_hermitian(self):
-            '''Return True if matrix is Hermitian (i.e., it's the same as its
-            conjugate transpose).  A Hermitian matrix has real eigenvalues
-            and can be diagonalized by a unitary matrix.  A Hermitian matrix
-            is also called self-adjoint.  A unitary matrix is Hermitian and
-            its adjoint (conjugate transpose) is its inverse.
-            '''
-            eqdigits = self._get_eqdigits()
-            def f(x):
-                if eqdigits is not None:
-                    return RoundOff(x, digits=eqdigits)
-                else:
-                    return x
-            def C(x, y):
-                "Return True if x and y are complex conjugates"
-                try:
-                    if not ii(x, complex) and not ii(y, complex):
-                        return f(x) == f(y)
-                    a = complex(x)
-                    b = complex(y)
-                    return (f(a.real) == f(b.real)) and (f(a.imag) == -f(b.imag))
-                except Exception:
+                    n = n + self.r if n < 0 else n
+                    if self.is_row_vector:
+                        raise TypeError("Can't remove a row from a row vector")
+                    if not (0 <= n < self.r):
+                        raise ValueError("n must be between 0 and {}".format(self.r - 1))
+                    r = self._grid.pop(n)
+                    self._r -= 1
+                    v = vector(*r)
+                    v._copy_attr(self)
+                    return v
+            def equals(self, other, tol=None):
+                '''Returns True if self and other are identically-sized matrices
+                and their corresponding elements agree to within tol.  The test
+                is abs(i - j) <= tol where i and j are matrix elements, so it
+                also works on complex matrices.  If tol is omitted, perform an
+                equality check (==) on corresponding elements instead.
+                
+                If the eqdigits attribute of self or other is not None, then it is
+                used to compare the corresponding matrix elements to the indicated
+                number of digits by rounding off; the smaller of the two eqdigits
+                values is used.  If Matrix.eqdigits is not None, then it is used
+                irrespective of the instance.eqdigits values.
+                '''
+                if not isinstance(other, Matrix):
+                    raise TypeError("other must be a Matrix instance")
+                if self.r != other.r or self.c != other.c:
                     return False
-            if not self.is_square:
-                return False
-            try:
-                # Compare elements pairwise with the transpose.  Note we use
-                # the lower triangular matrices, which means we make less
-                # than half the comparisons if we used the full matrix.
-                s = self.lower(incl_diag=False).l
-                t = self.t.lower(incl_diag=False).l
-                if not all([C(i, j) for i, j in zip(s, t)]):
-                    return False
-                # The diagonal elements must also be non-complex
-                return all([not ii(i, complex) for i in self.diag.l])
-            except Exception:
-                return False
-        @property
-        def is_int(self):
-            "Return True if all matrix elements are integers."
-            return all([ii(i, int) for i in self.l])
-        @property
-        def is_invertible(self):
-            '''Returns True if this matrix has an inverse.'''
-            try:
-                self.i
-                return True
-            except TypeError:
-                return False
-        @property
-        def is_pos_def(self):
-            '''Return True if the matrix is positive-definite.  self must be
-            Hermitian and z.t*self*z must be > 0 for every nonzero column
-            vector z where z ϵ ℂ^n.  All of a matrix's eigenvalues are
-            positive if and only if the matrix is positive-definite.
-            '''
-            # Do some relatively quick checks first
-            if not self.is_square or not self.is_hermitian:
-                return False
-            # We have to check that self isn't a zero matrix, as the
-            # cholesky() algorithm won't raise an exception in this case.
-            if self == Matrix(self.r, self.r):
-                return False
-            try:
-                self.cholesky()
-                return True
-            except TypeError:
-                return False
-        @property
-        def is_orthogonal(self):
-            '''Return True if this matrix is orthogonal (rows and columns
-            are orthogonal unit vectors).  The transpose of an orthogonal
-            matrix is equal to its inverse.  The determinant of an orthogonal
-            matrix is either +1 or -1.
-            '''
-            if not self.is_square:
-                return False
-            return self.t == self.i
-        @property
-        def is_complex(self):
-            "Return True if the matrix has complex elements"
-            return any([ii(i, complex) for i in self.l])
-        @property
-        def is_normal(self):
-            '''Return True if the matrix is a normal matrix.  A normal
-            matrix can be diagonalized by a unitary matrix.
-            '''
-            if not self.is_square:
-                return False
-            a = self.adjoint
-            return self * a == a * self
-        @property
-        def is_real(self):
-            "Return True if the matrix has no complex elements"
-            return not any([ii(i, complex) for i in self.l])
-        @property
-        def is_row_vector(self):
-            "Returns True if matrix is a row vector"
-            return self.r == 1
-        @property
-        def is_skew(self):
-            '''Returns True if matrix m is skew-symmetric (m.t == -m).
-            If m and n are skew-symmetric, then so is m + n and a scalar
-            times m.  m.trace is zero.  The non-zero eigenvalues of a
-            skew-symmetric matrix are pure imaginary.
-            '''
-            return self.t == -self
-        @property
-        def is_square(self):
-            "Return True if matrix is a square matrix"
-            return self.r == self.c
-        @property
-        def is_symmetric(self):
-            '''Return True if matrix is symmetric (i.e., it's equal to its
-            transpose).  A real symmetric matrix can be diagonalized by an
-            orthogonal matrix.
-            '''
-            if not self.is_square:
-                return False
-            try:
-                # Compare elements pairwise with the transpose.  Note we use
-                # the lower triangular matrices, which means we make less
-                # than half the comparisons if we used the full matrix.
-                s = self.lower(incl_diag=False).l
-                t = self.t.lower(incl_diag=False).l
-                eqdigits = self._get_eqdigits()
+                s, o = self.l, other.l
+                if tol is not None:
+                    t = [abs(i - j) <= tol for i, j in zip(s, o)]
+                    return all(t)
+                # Get the value of eqdigits to use
+                eqdigits = self._get_eqdigits(other)
                 if eqdigits is not None:
                     def f(x):
                         return RoundOff(x, digits=eqdigits)
-                    return all([f(i) == f(j) for i, j in zip(s, t)])
+                    return all([f(i) == f(j) for i, j in zip(s, o)])
                 else:
-                    return all([i == j for i, j in zip(s, t)])
-            except Exception:
-                return False
-        @property
-        def is_unitary(self):
-            "Returns True if the matrix is unitary"
-            if not self.is_square:
-                return False
-            return self.adjoint == self.i
-        @property
-        def is_vector(self):
-            "Returns True if matrix is a row or column vector"
-            return self.is_row_vector or self.is_col_vector
-        @property
-        def len(self):
-            "Returns the number of elements in the matrix"
-            return self.r * self.c
-        @property
-        def l(self):  # noqa
-            "Synonym for self.flat"
-            return self.flat
-        @property
-        def list(self):
-            "Synonym for self.flat"
-            return self.flat
-        @property
-        def mag(self):
-            "Returns the Euclidean length of the vector"
-            if not self.is_vector:
-                raise TypeError("mag can be used on vectors only")
-            try:
-                return math.sqrt(sum(e**2 for _, _, e in self))
-            except TypeError:
-                return abs(csqrt(sum(e**2 for _, _, e in self)))
-        @property
-        def nl(self):
-            "Return a copy of the nested list of the matrix's elements"
-            return self._grid.copy()
-        @property
-        def norm(self):
-            '''Returns the Frobenius norm for the matrix.  A matrix norm is
-            useful to bound the absolute value of the largest eigenvalue;
-            it's between the reciprocal of the norm of the inverse matrix
-            and the norm of the matrix.
-            '''
-            try:
-                return math.sqrt(sum(i * i for i in self.list))
-            except TypeError:
-                return csqrt(sum(i * i for i in self.list))
-        @property
-        def numtype(self):
-            '''Returns the numerical type of the elements or None if it is not
-            set.  Even though numtype might be set to a specific numerical
-            type, it doesn't mean all the elements of the matrix have this type
-            because subsequent operations can change the elements' type.   If
-            you want to have the elements be all one type, set numtype to the
-            desired type and all the elements will be coerced to that type.
-            '''
-            return self._numtype
-        @numtype.setter
-        def numtype(self, numerical_type):
-            '''Sets the numerical type of the matrix.  Set to None to have no
-            specific type for the elements.
-            '''
-            self._check_frozen()
-            if numerical_type is not None:
-                with Flatten(self):
+                    # Simple equality test
+                    return all([i == j for i, j in zip(s, o)])
+            def find(self, *items, tol=None, reltol=None):
+                '''Returns a list of (row, col) tuples indicating where the items
+                are found in the matrix.  If tol is not None, an item's index is
+                returned if abs(item - element) <= tol.  The same is true for
+                reltol, except the comparison is
+                    abs((item - element)/element) <= reltol
+                if element is nonzero or
+                    abs((item - element)/item) <= reltol
+                if element is zero.
+                
+                All items will be checked and all locations of elements that match
+                any of the items will be returned.
+                
+                Note:  the function RoundOff is used to fix annoying problems with
+                floating point numbers.  For example, if an element is 1.01 and you
+                use a tolerance of 0.01, the difference from 1 may be calculated as
+                0.010000000000000009.  The RoundOff function rounds this to 12
+                figures by default, so most comparisons should work as expected (12
+                digits was chosen because it is beyond the significance of most
+                physical measurements).
+                '''
+                found = []
+                if tol is None and reltol is None:
+                    for row, col, x in self:
+                        for item in items:
+                            if x == item:
+                                found.append([row, col])
+                elif tol is not None:
+                    for row, col, x in self:
+                        for item in items:
+                            t = RoundOff(abs(x - item))
+                            if t <= tol:
+                                found.append([row, col])
+                else:
+                    for row, col, x in self:
+                        for item in items:
+                            t = RoundOff(abs(x - item))
+                            t = (
+                                RoundOff(abs(t / x))
+                                if x
+                                else RoundOff(abs(t / item))
+                                if item
+                                else 0
+                            )
+                            if t <= reltol:
+                                found.append([row, col])
+                return found
+            def float(self, ip=False):
+                '''Return a new matrix with each element x converted to a float
+                if the imaginary part of the element is zero.  If ip is True, do
+                this in-place for the current matrix.
+                
+                Note:  this method differs from setting self.numtype=float
+                because the conversion only happens if the element's imaginary
+                part is zero.
+                '''
+                def Float(x):
+                    if isinstance(x, complex) and not x.imag:
+                        return x.real
+                    return x
+                if ip:
+                    self._check_frozen()
+                m = self if ip else self.copy
+                m.map(Float, ip=True)
+                return None if ip else m
+            def insert(self, n, c=False, Vector=None, fill=0):
+                '''Inserts a new row or column before the indicated row or
+                column n, counting from top to bottom for rows and left to right
+                for columns.  Set n to self.r to insert after the bottom row or
+                self.c to insert after the rightmost column.  The new elements
+                are filled with the value of fill.
+                
+                If Vector is not None, then the vector's values are inserted into
+                the row or column.  The vector can be either a row or column vector
+                as long as it has the correct number of elements for the target row
+                or column.
+                
+                Examples:  for the matrix
+                    1 2
+                    3 4
+                calling insert(0) adds a new row of zeros before row 0 to give
+                    0 0
+                    1 2
+                    3 4
+                Calling insert(2) results in
+                    1 2
+                    3 4
+                    0 0
+                Calling insert(2, c=True) results in
+                    1 2 0
+                    3 4 0
+                '''
+                self._check_frozen()
+                if c:
+                    concat = True if n == self.c else False
+                    n = n + self.c if n < 0 else n
+                    if not (0 <= n < self.c) and not concat:
+                        raise ValueError("n must be between 0 and {}".format(self.c - 1))
+                    if Vector is not None:
+                        if Vector.len != self.r:
+                            raise TypeError("Vector must have {} elements".format(self.r))
+                        v = Vector if Vector.is_col_vector else Vector.t
+                    else:
+                        v = vector(self.r, c=True, fill=fill)
+                    # Operate on the transpose so we can use insert for rows
+                    m = self.t
+                    if concat:
+                        m.insert(self.c, c=False, Vector=v)
+                    else:
+                        m.insert(n, c=False, Vector=v)
+                    self._grid = m.t._grid
+                    self._c += 1
+                else:
+                    concat = True if n == self.r else False
+                    n = n + self.r if n < 0 else n
+                    if not (0 <= n < self.r) and not concat:
+                        raise ValueError("n must be between 0 and {}".format(self.r - 1))
+                    if Vector is not None:
+                        if Vector.len != self.c:
+                            raise TypeError("Vector must have {} elements".format(self.c))
+                        v = Vector if Vector.is_row_vector else Vector.t
+                    else:
+                        v = vector(self.c, fill=fill)
+                    if concat:
+                        self._grid.append(v._grid[0])
+                    else:
+                        self._grid.insert(n, v._grid[0])
+                    self._r += 1
+            def int(self, ip=False):
+                '''Return a new matrix with each element x converted to an integer
+                if int(x) == x.  If ip is True, do this for the current matrix.
+                
+                Note:  this method differs from setting self.numtype=int because
+                the conversion only happens if the matrix value and its integer
+                value are equal.
+                '''
+                def Int(x):
+                    try:
+                        return int(x) if int(x) == x else x
+                    except TypeError:
+                        return x
+                if ip:
+                    self._check_frozen()
+                m = self if ip else self.copy
+                m.map(lambda x: Int(x) if Int(x) == x else x, ip=True)
+                return None if ip else m
+            def is_diagonal(self, tol=None):
+                '''Return True if the matrix is a diagonal matrix.  If tol is
+                not None, then each off-diagonal element x must satisfy
+                abs(x) <= tol to return True.  If tol is None, then each
+                off-diagonal element x must satisfy x == 0 to return True.
+                '''
+                f = (lambda x: x != 0) if tol is None else (lambda x: abs(x) > tol)
+                m = self.lower(incl_diag=False)
+                nonzero = any([f(i) for i in m.l])
+                if nonzero:
+                    return False
+                m = self.upper(incl_diag=False)
+                nonzero = any([f(i) for i in m.l])
+                return not nonzero
+            def join(self, m, c=False):
+                '''Join a matrix m to self.  If c is False, m and self must have
+                the same number of rows and m is joined on the right side of
+                self.  If c is True, m and self must have the same number of
+                columns and m is joined on the bottom side of self.
+                '''
+                if not isinstance(m, Matrix):
+                    raise TypeError("m must be a Matrix instance")
+                self._check_frozen()
+                if c:
+                    if self.c != m.c:
+                        raise TypeError("m must have {} columns".format(self.c))
+                    M, m = self.t, m.t
+                    for i in range(self.c):
+                        M._grid[i].extend(m._grid[i])
+                    self._grid = M.t._grid
+                    self._r += m._r
+                else:
+                    if self.r != m.r:
+                        raise TypeError("m must have {} rows".format(self.r))
+                    for i in range(self.r):
+                        self._grid[i].extend(m._grid[i])
+                    self._c += m._c
+            def lower(self, ip=False, incl_diag=True, fill=0):
+                '''Return the lower triangular matrix and include the diagonal
+                if incl_diag is True.  The upper off-diagonal elements will be
+                set to fill.  If ip is True, perform this operation on the current
+                matrix and return None.
+                '''
+                if not self.is_square:
+                    raise TypeError("Matrix must be square")
+                if ip:
+                    self._check_frozen()
+                m = self if ip else self.copy
+                for i in range(self.r):
+                    for j in range(self.c):
+                        if incl_diag:
+                            if j > i:
+                                m[i, j] = fill
+                        else:
+                            if j >= i:
+                                m[i, j] = fill
+                return None if ip else m
+            def map(self, func, n=None, c=False, ip=False):
+                '''Returns a new matrix by applying the univariate function func to
+                each element.  If in-place is True, do this for the current
+                instance and return None.
+                
+                n and c restrict the operation, if present.  n can either be a
+                number or a sequence of numbers.  If it's a number, it means to
+                apply the map to row n.  If n is a sequence, it is applied to
+                each of the indicated rows or columns.  If c is False, it means
+                apply to a row; if it is True, apply to column n.
+                '''
+                if ip:
+                    self._check_frozen()
+                m = self.copy
+                if n is None:
+                    # Whole matrix
+                    with Flatten(m):
+                        m._grid = [func(i) for i in m._grid]
+                    if ip:
+                        self._grid = m._grid
+                    return None if ip else m
+                elif isinstance(n, int):
+                    # Single row or column
+                    if not (0 <= n < self.c if c else self.r):
+                        raise ValueError(
+                            "n must be between 0 and {}".format(self.c if c else self.r)
+                        )
+                    # Modify row or column n
+                    m = m.t if c else m
+                    m._grid[n] = [func(i) for i in m._grid[n]]
+                    m = m.t if c else m
+                    if ip:
+                        self._grid = m._grid
+                        return
+                    return m
+                elif not isinstance(n, str) and isinstance(n, Iterable):
+                    # Multiple rows or columns
+                    for i in n:
+                        m.map(func, i, c=c, ip=ip)
+                    if ip:
+                        self._grid = m._grid
+                        return
+                    return m
+                else:
+                    raise TypeError("n must be an integer or sequence")
+            def maprow(self, func, n=None, ip=False):
+                "Syntactic sugar to map a univariate function to row(s)"
+                if ip:
+                    self.map(func, n, ip=True)
+                return self.map(func, n, ip=False)
+            def mapcol(self, func, n=None, ip=False):
+                "Syntactic sugar to map a univariate function to row(s)"
+                if ip:
+                    self.map(func, n, c=True, ip=True)
+                return self.map(func, n, c=True, ip=False)
+            def maprowip(self, func, n=None):
+                "Syntactic sugar to in-place map a univariate function to row(s)"
+                self.map(func, n, ip=True)
+            def mapcolip(self, func, n=None):
+                "Syntactic sugar to map a univariate function to column(s)"
+                self.map(func, n, c=True, ip=True)
+            def minor(self, row, col):
+                '''Returns the minor, which is the determinant of the matrix with
+                the indicated row and column deleted.
+                '''
+                if not self.is_square:
+                    raise TypeError("Can only return a minor for a square matrix")
+                m = self.copy
+                m.delete(row)
+                m.delete(col, c=True)
+                return m.det
+            def replace(self, n, vector, c=False):
+                "Replace row or column n with the given vector"
+                self._check_frozen()
+                # t is number of columns if c is True else it's number of rows
+                t = self.c if c else self.r
+                # q is the number of elements that vector must have
+                q = self.r if c else self.c
+                # If n is negative, we're counting from the rightmost for a
+                # column vector or from the bottom for a row vector.
+                n1 = n + t if n < 0 else n
+                # Make sure n1 is a valid row or column number
+                if not (0 <= n1 <= (self.c if c else self.r)):
+                    raise ValueError(f"{n} is not a valid column reference")
+                if not vector.is_vector:
+                    raise TypeError("vector must be a vector")
+                if vector.len != q:
+                    raise TypeError(f"vector must have {q} elements")
+                if c:
+                    if 1:
+                        a = self.t
+                        a._grid[n1] = vector.flat
+                        self._grid = a._grid
+                    else:
+                        # Do this by indexing
+                        for i in range(vector.len):
+                            pass
+                else:
+                    # Replacing a row is easy, as the whole list can be done
+                    self._grid[n1] = vector.flat
+            def resize(self, r, c, fill=0):
+                '''Resize this matrix in-place to have r rows and c columns.  New
+                elements will have the value fill.  If size is reduced, some
+                elements may be lost.
+                '''
+                self._check_frozen()
+                if not isinstance(r, int) and not isinstance(c, int):
+                    raise TypeError("r and c must be integers")
+                if r < 1 or c < 1:
+                    raise ValueError("r and c must be > 0")
+                # Flatten self._grid
+                L = list(Matrix._Flatten(self._grid))
+                # Get new length
+                n, N = r * c, len(L)
+                if N > n:
+                    L = L[:n]
+                elif N < n:
+                    L.extend([fill] * (n - N))
+                # Change type if needed
+                if self.numtype is not None:
+                    L = [self.numtype(i) for i in L]
+                # Convert self._grid to nested list
+                self._grid = [list(i) for i in zip_longest(*([iter(L)] * c))]
+                self._r, self._c = r, c
+            def rotate(self, n=1, c=False, ip=False):
+                '''Rotate n rows down (or n columns right if c is True).  If n
+                is negative, then rows are rotated up and columns are rotated
+                left.
+                
+                Examples:  If m is
+                    1 2 3
+                    4 5 6
+                    7 8 9
+                then m.rotate() returns
+                    4 5 6
+                    1 2 3
+                    7 8 9
+                and m.rotate(c=True) returns
+                    3 1 2
+                    6 4 5
+                    9 7 8
+                '''
+                if not n:
+                    return self if ip else self.copy
+                n = -n  # Needed to get the correct direction
+                N = self.c if c else self.r
+                n = N + n if n < 0 else n
+                n %= N
+                assert n >= 0
+                if not n:
+                    return self if ip else self.copy
+                L = self.t.nl if c else self.nl
+                for i in range(n):
+                    r = L.pop(0)
+                    L.append(r)
+                # Reassemble
+                if c:
+                    m = matrix(L)
+                    m._copy_attr(self)
+                    if ip:
+                        self._grid = m.t.nl
+                    else:
+                        return m.t
+                else:
+                    if ip:
+                        self._grid = L
+                    else:
+                        m = self.copy
+                        m._grid = L
+                        return m
+            def round(self, ip=False):
+                '''If instance.eqdigits or Matrix.EqDigits are set, round the
+                matrix elements to the indicated number of digits.  Note that
+                Matrix.EqDigits overrides instance.eqdigits.  Otherwise, do
+                nothing.  If ip is True, do in-place.
+                '''
+                eqdigits = None
+                if self.eqdigits:
+                    eqdigits = self.eqdigits
+                    if Matrix.EqDigits:
+                        eqdigits = min(self.eqdigits, Matrix.EqDigits)
+                if Matrix.EqDigits:
+                    eqdigits = Matrix.EqDigits
+                if eqdigits:
+                    assert eqdigits > 0
+                    f = partial(RoundOff, digits=eqdigits)
+                    if ip:
+                        self.map(f, ip=True)
+                    else:
+                        return self.map(f)
+                else:
+                    if not ip:
+                        return self.copy
+            def row(self, *n):
+                "Returns the indicated row(s) as a new matrix"
+                # Validate n's components
+                for i in n:
+                    if i < 0:
+                        k = self.r + i
+                        if not (0 <= k < self.r):
+                            raise ValueError("n must be between -1 and {}".format(-self.r))
+                    else:
+                        if not (0 <= i < self.r):
+                            raise ValueError(
+                                "n must be between 0 and {}".format(self.r - 1)
+                            )
+                s = []
+                for i in n:
+                    i = self.r + i if i < 0 else i
+                    s.append(self._grid[i])
+                if len(n) == 1:
+                    m = vector(s[0])
+                else:
+                    m = matrix(s)
+                m._copy_attr(self)
+                return m
+            def scale(self, n, b, c=False):
+                "Multiply row or column n by the constant b"
+                self._check_frozen()
+                if c:
+                    n = n + self.c if n < 0 else n
+                    m = self.t
+                    m._grid[n] = [b * i for i in m._grid[n]]
+                    self._grid = m.t._grid
+                else:
+                    n = n + self.r if n < 0 else n
+                    self._grid[n] = [b * i for i in self._grid[n]]
+            def solve(self, b=None, numtype=None, aug=False):
+                '''Given a vector b, solve the equation m*x = b and return x as a
+                vector of the same shape (row or column) as b.  If numtype is not
+                None, then self and b are coerced to the indicated type before
+                computation.  The returned vector will have the same attributes as
+                self.
+                
+                For convenience, self can be an augmented matrix by setting aug
+                to True.  Then self must be an n x (n+1) matrix where the last
+                column is the b vector.
+                '''
+                if aug:
+                    if self.c != self.r + 1:
+                        raise TypeError("Improper augmented matrix")
+                    M = self.copy
+                    B = M.delete(self.c - 1, c=True)
+                    if numtype is not None:
+                        M.numtype = numtype
+                        B.numtype = numtype
+                    x = M.i * B
+                else:
+                    if not b.is_vector:
+                        raise TypeError("b must be a vector")
+                    if numtype is not None:
+                        M, B = self.copy, b.copy
+                        M.numtype, B.numtype = numtype, numtype
+                        x = (M.i * B.t).t if B.is_row_vector else M.i * B
+                    else:
+                        x = (self.i * b.t).t if b.is_row_vector else self.i * b
+                x._copy_attr(self)
+                return x
+            def swap(self, n, m, c=False):
+                "In-place swap of the two indicated rows or columns"
+                self._check_frozen()
+                if n == m:
+                    return
+                if c:
+                    n = n + self.c if n < 0 else n
+                    m = m + self.c if m < 0 else m
+                    M = self.t
+                    M._grid[n], M._grid[m] = M._grid[m], M._grid[n]
+                    self._grid = M.t._grid
+                else:
+                    n = n + self.r if n < 0 else n
+                    m = m + self.r if m < 0 else m
+                    self._grid[n], self._grid[m] = self._grid[m], self._grid[n]
+            def split(self, n, c=False):
+                '''Returns two matrices; the first one will include the rows or
+                columns from 0 to n; the second will be the remainder.  A ValueError
+                exception will be raised if n indicates the last row or column, as
+                None would have to be returned for the second matrix.  The original
+                matrix is unchanged.
+                '''
+                C = self._c
+                if not isinstance(n, int):
+                    raise TypeError("n must be an integer")
+                def row_split(M, n):
+                    if n < 0 or n >= M.r - 1:
+                        if M.is_row_vector:
+                            raise TypeError("Can't split a row vector on rows")
+                        raise ValueError("n must be >= 0 and < {}".format(M.r - 1))
+                    m1, m2 = matrix(M._grid[: n + 1]), matrix(M._grid[n + 1 :])
+                    m1._copy_attr(self)
+                    m2._copy_attr(self)
+                    return m1, m2
+                if c:
+                    if n < 0 or n >= C - 1:
+                        if self.is_col_vector:
+                            raise TypeError("Can't split a column vector on columns")
+                        raise ValueError("n must be >= 0 and < {}".format(c - 1))
+                    # Do column split by using row method on transpose
+                    m1, m2 = row_split(self.t, n)
+                    m1._copy_attr(self)
+                    m2._copy_attr(self)
+                    return m1.t, m2.t
+                else:
+                    return row_split(self, n)
+            def upper(self, ip=False, incl_diag=True, fill=0):
+                '''Return the upper triangular matrix and include the diagonal
+                if incl_diag is True.  The lower off-diagonal elements will be
+                fill.  If ip is True, perform this operation on the current
+                matrix and return None.
+                '''
+                if not self.is_square:
+                    raise TypeError("Matrix must be square")
+                if ip:
+                    self._check_frozen()
+                m = self if ip else self.copy
+                for i in range(self.r):
+                    for j in range(self.c):
+                        if incl_diag:
+                            if j < i:
+                                m[i, j] = fill
+                        else:
+                            if j <= i:
+                                m[i, j] = fill
+                return None if ip else m
+        if 1:  # Private methods
+            def _check_frozen(self):
+                if self.frozen:
+                    raise TypeError("Cannot modify a frozen matrix or vector")
+            def _copy_attr(self, m):
+                "Copy the attributes of the matrix m to self"
+                if not isinstance(m, Matrix):
+                    raise TypeError("m must be a Matrix instance")
+                self.numtype = m._numtype
+                self.frozen = m._frozen
+                self.eqdigits = m._eqdigits
+            def _flatten(self):
+                "Convert self._grid to a flat list"
+                self._grid = Matrix._Flatten(self._grid)
+            def _nested(self):
+                "Convert self._grid to a nested list"
+                if not isinstance(self._grid[0], list):
                     self._grid = [
-                        Matrix.NumberConvert(i, numerical_type) for i in self._grid
+                        list(i) for i in zip_longest(*([iter(self._grid)] * self.c))
                     ]
-            self._numtype = numerical_type
-        @property
-        def r(self):
-            "Returns the number of rows in the matrix"
-            return self._r
-        @r.setter
-        def r(self, value):
-            "Sets the number of rows in the matrix"
-            self._check_frozen()
-            self.resize(value, self.c)
-        @property
-        def rank(self):
-            "Returns the rank of the matrix = number of linearly independent rows"
-            rank = 0
-            for row in self.ref.rows:
-                for element in row:
-                    if element != 0:
-                        rank += 1
-                        break
-            return rank
-        @property
-        def ref(self):
-            "Returns the row echelon form of the matrix"
-            m = get_row_echelon_form(self)[0]
-            m._copy_attr(self)
-            return m
-        @property
-        def rows(self):
-            "Returns a row iterator for each row in the matrix"
-            for row in range(self.r):
-                yield self.row(row)
-        @property
-        def rref(self):
-            "Returns the reduced row echelon form of the matrix"
-            m = get_reduced_row_echelon_form(self)[0]
-            m._copy_attr(self)
-            return m
-        @property
-        def eqdigits(self):
-            '''The eqdigits attribute is used to control comparisons of matrix
-            elements as numbers.  If it is not None, then two matrix
-            elements are declared equal if they are the same number after
-            rounding to the indicated number of digits.
-            
-            If Matrix.EqDigits is not None, it takes precedence over instance
-            eqdigits values when comparisons are made.
-            '''
-            return self._eqdigits
-        @eqdigits.setter
-        def eqdigits(self, value):
-            self._check_frozen()
-            if value is not None and not ii(value, int):
-                raise TypeError("value must be an integer")
-            if value is not None and value < 1:
-                raise ValueError("value must be > 0")
-            self._eqdigits = value
-        @property
-        def size(self):
-            "Returns (number of rows, number of columns)"
-            return self.r, self.c
-        @size.setter
-        def size(self, value):
-            "Set the size of the matrix; value must be a 2-sequence of ints"
-            self._check_frozen()
-            e = TypeError("value must be a 2-sequence of ints")
-            if not ii(value, (list, tuple)):
-                raise e
-            if not ii(value[0], int) and not ii(value[1], int):
-                raise e
-            self.resize(*value)
-        @property
-        def sum(self):
-            "Returns the sum of all the elements"
-            with Flatten(self):
-                return sum(self._grid)
-        @property
-        def t(self):
-            "Returns the transpose as a new matrix"
-            m = self.copy
-            # map(lambda *x: x, *seq) should also work
-            m._grid = [list(i) for i in zip(*m._grid)]
-            m._r, m._c = self.c, self.r
-            m._copy_attr(self)
-            return m
-        @property
-        def trace(self):
-            "Returns the sum of the diagonal elements"
-            return sum(self.diag.list)
-        @property
-        def type(self):
-            '''Returns a matrix containing strings representing the types of
-            the elements of self.
-            '''
-            def T(x):
-                '''Return abbreviated string form of type of x'''
-                d = {
-                    "str": '"',
-                    "int": "ℤ",
-                    "float": "ℝ",
-                    "method": "f",
-                    "decimal.Decimal": "D",
-                    "fractions.Fraction": "ℚ",
-                    "complex": "ℂ",
-                    "cpx": "ℂ",
-                    "uncertainties.core.Variable": "±",
-                    "list": "]",
-                    "tuple": ")",
-                    "mpmath.ctx_mp_python.mpf": "Δ",
-                    "mpmath.ctx_mp_python.mpc": "∇",
-                    "mpmath.ctx_iv.ivmpf": "Λ",
-                }
-                if " <lambda> " in str(x):
-                    return "λ"
-                if str(x).startswith("<function "):
-                    return "F"
-                if str(type(x)).startswith("<class 'sympy"):
-                    return "𝕊"
+            def _get_eqdigits(self, other=None):
+                '''Return the eqdigits value to use for a comparison.  If
+                Matrix.EqDigits is not None, return it.  Otherwise, return the
+                smaller of self.eqdigits and other.eqdigits.
+                '''
+                if Matrix.EqDigits is not None:
+                    if not isinstance(Matrix.EqDigits, int):
+                        raise TypeError("Matrix.eqdigits must be an integer")
+                    if Matrix.EqDigits < 1:
+                        raise ValueError("Matrix.eqdigits must be > 0")
+                    return Matrix.EqDigits
+                if other is None:
+                    return self._eqdigits
+                else:
+                    if self._eqdigits is None:
+                        return other._eqdigits
+                    else:
+                        if other._eqdigits is None:
+                            return self._eqdigits
+                        else:
+                            return min(self._eqdigits, other._eqdigits)
+            def _get_type_dict(self):
+                '''Return a dictionary whose keys are the string form of the
+                type() of an object.  The values are (symbol, description) where
+                symbol is the string representing the type and description is
+                a short explanation.
+                '''
+                return OrderedDict(
+                    (
+                        ("©", "cpx"),
+                        ("ℂ", "complex"),
+                        ("D", "Decimal"),
+                        ("ℝ", "Float"),
+                        ("ℚ", "Fraction"),
+                        ("F", "Function"),
+                        ("ℤ", "Integer"),
+                        ("λ", "lambda function"),
+                        ("]", "List"),
+                        ("𝕄", "Matrix"),
+                        ("f", "Method"),
+                        ("Λ", "mpmath ivmpf"),
+                        ("∇", "mpmath mpc"),
+                        ("Δ", "mpmath mpf"),
+                        ('"', "String"),
+                        ("𝕊", "sympy object"),
+                        (")", "Tuple"),
+                        ("±", "Uncertainties variable"),
+                        ("?", "Unknown"),
+                        ("𝕍", "Vector"),
+                    )
+                )
+            def _string(self):
+                '''Return the string form of the matrix.  If self.digits is not
+                zero, then floats, Decimals, complex, and cpx numbers will
+                be rounded off to the indicated number of digits.  The returned
+                string is formatted to print to the console compactly.
+                
+                Example:  with self.digits set to 2,
+                    str(matrix("2.817 3/4 Decimal('1.2345') 38.277-4.50911j"))
+                will return
+                    '2.8       3/4       1.2 (38-4.5j)'
+                    
+                Warning:  Decimal() numbers with more digits than the platform's
+                float will not be formatted correctly; it is recommended you not
+                use more than 12 digits.
+                '''
+                def Rnd(x):
+                    digits = (
+                        Matrix.EqDigits
+                        if Matrix.EqDigits is not None
+                        else self._eqdigits
+                        if self._eqdigits is not None
+                        else None
+                    )
+                    if digits:
+                        if isinstance(x, (float, Decimal)):
+                            return str(RoundOff(float(x), digits))
+                        elif isinstance(x, complex):
+                            return str(RoundOff(x, digits))
+                        else:
+                            return str(x)
+                    else:
+                        if isinstance(x, complex):
+                            return str(cpx(x))
+                        return str(x)
+                with Flatten(self):
+                    maxlen = max(len(Rnd(i)) for i in self._grid)
+                string = "\n".join(
+                    " ".join(Rnd(e).rjust(maxlen) for e in row) for row in self._grid
+                )
+                return textwrap.dedent(string)
+            def _repr(self):
+                if self._frozen:
+                    s = "<*{} {}x{} 0x{:x}*>"
+                else:
+                    s = "<{} {}x{} 0x{:x}>"
+                return s.format(self.__class__.__name__, self.r, self.c, id(self))
+        if 1:  # Static methods
+            # These are methods associated with matrices that do not require an
+            # instance of the Matrix class.
+            @staticmethod
+            def condition_string(s):
+                r'''If s is a multiline string, remove all lines of the form
+                ^\w*#.*$.  This allows a data string to contain python-style
+                comments, which is handy for documentation.
+                
+                This allows a matrix to be defined such as:
+                    matrix("""
+                        # Data from 13 Jan experiment with PM voltage = 677 V and
+                        # using photon counter 6.
+                        # Bias, mV    Gate init.       Counts
+                            162         274             2450
+                            120         180             3254
+                            223         375             3802
+                            131         205             2838
+                    """)
+                '''
+                s = s.strip()
+                if "\n" in s:
+                    n = []
+                    for line in s.split("\n"):
+                        if line and line.strip()[0] != "#":
+                            n.append(line)
+                    return "\n".join(n)
+                else:
+                    return s
+            @staticmethod
+            def from_list(p, **kw):
+                '''Instantiate a matrix from a list or tuple p.  These are the
+                valid forms:
+                
+                Size not given
+                    A:  Nested list:  A single argument is a list [L1, L2, ...,
+                    Ln] where each of the L's is a sequence of length m.  This
+                    will result in a matrix of n rows and m columns.
+                    
+                    B:  Flat list with no size, which will return a row vector.
+                    
+                Size given
+                    C:  Flat list with size ([1, 2, 3, 4], size=(2, 2))
+                    
+                Examples:  M = Matrix.from_list
+                
+                M([[1, 2, 3]]) and M([1, 2, 3]) return the row vector
+                    1 2 3
+                M([[1], [2], [3]]) returns the column vector
+                    1
+                    2
+                    3
+                M([[1, 2, 3], [4, 5, 6]]) returns the matrix
+                    1 2 3
+                    4 5 6
+                M([1, 2, 3, 4], size=(2, 2)) returns the matrix
+                    1 2
+                    3 4
+                '''
+                size = kw.get("size", None)
+                numtype = kw.get("numtype", None)
+                if size is None:  # Form A or B
+                    assert isinstance(p, (list, tuple))
+                    if isinstance(p[0], (list, tuple)):  # Form A (nested list)
+                        r, c = len(p), len(p[0])
+                        if not all([len(i) == c for i in p]):
+                            raise TypeError(f"Not all rows have {c} elements")
+                        m = Matrix(r, c)
+                        m._grid = p
+                        if numtype is not None:
+                            m.numtype = numtype
+                        return m
+                    else:  # Form B:  flat sequence; return a row vector
+                        m = Matrix(1, len(p))
+                        m._grid = [p]
+                        return m
+                else:
+                    # Form C
+                    e = TypeError("size keyword must be a tuple of two integers")
+                    try:
+                        r, c = size
+                    except ValueError:
+                        raise e
+                    if not (isinstance(r, int) and isinstance(c, int)):
+                        raise e
+                    m = Matrix(r, c)
+                    with Flatten(m):
+                        m._grid = p
+                    if len(m.l) != r * c:
+                        raise TypeError("List needs {} elements".format(r * c))
+                    if numtype is not None:
+                        m.numtype = numtype
+                    return m
+                raise TypeError("Improper arguments")
+            @staticmethod
+            def from_string(s, rowsep=None, colsep=None, expr=None, numtype=None):
+                '''Instantiate a matrix from a string.
+                
+                Examples:
+                    matrix("1 2\\n3 4") returns the 2x2 matrix
+                        1 2
+                        3 4
+                    as does matrix("1 2;3 4", ";").
+                '''
+                s = Matrix.condition_string(s)
+                rows = s.strip().split(rowsep) if rowsep else s.strip().splitlines()
+                m = Matrix(len(rows), len(rows[0].split(colsep)))
+                for i, row in enumerate(rows):
+                    for j, x in enumerate(row.split(colsep)):
+                        m[i, j] = Matrix.getnum(x, expr=expr, numtype=numtype)
+                return m
+            @staticmethod
+            def getnum(x, **kw):
+                '''Returns the number x; if it is a string, the method tries to
+                identify it and return it in the most appropriate form.
+                Keywords:
+                
+                numtype     Coerce number to this type.
+                expr        (globals(), locals()) tuple of dicts for eval when
+                            x is a string.
+                '''
+                numtype = kw.get("numtype", None)
+                expr = kw.get("expr", None)
+                if expr is not None and isinstance(x, str):
+                    # Assume x is an expression to be evaluated with globals
+                    # dictionary expr[0] and locals dictionary expr[1].
+                    if not isinstance(expr, (list, tuple)) and len(expr) != 2:
+                        raise ValueError("expr must be sequence of 2 dicts or None")
+                    return eval(x, expr[0], expr[1])
+                if numtype is not None:
+                    return Matrix.NumberConvert(x, numtype)
+                if not isinstance(x, str):
+                    return x  # Assume it's already some form of number
+                # It's a string, so see if we can identify it
+                if (
+                    "complex" in x or "cpx" in x or "Fraction" in x or "Decimal" in x
+                ) and ")" in x:
+                    return eval(x)
+                elif "i" in x.lower() or "j" in x.lower():
+                    re, im = PC(x)
+                    return cpx(re, im)
+                elif have_mpmath and ("mpf" in x or "mpc" in x):
+                    return eval(x)
+                elif have_unc and ("(" in x or "+/-" in x or "+-" in x or "±" in x):
+                    if "+-" in x:
+                        # "+-" is not part of the uncertainties library, but I use
+                        # it enough to warrant putting it in getnum().
+                        return ufloat_fromstr(x.replace("+-", "+/-"))
+                    else:
+                        return ufloat_fromstr(x)
+                elif "/" in x:
+                    return Fraction(x)
+                elif "." in x or "e" in x:
+                    return flt(x)
+                else:
+                    return int(x)
+            @staticmethod
+            def hilbert(n):
+                '''Return an n x n Hilbert matrix.  For element [i, j], the value
+                is 1/(i + j + 1).  Note that the matrix is explicitly set to use
+                the Fraction numerical type.
+                '''
+                m = Matrix(n, n)
+                m._numtype = Fraction
+                for i in range(n):
+                    for j in range(n):
+                        m[i, j] = Fraction(1, i + j + 1)
+                return m
+            @staticmethod
+            def identity(n):
+                "Return an n x n identity matrix"
+                m = Matrix(n, n)
+                for i in range(n):
+                    m[i, i] = 1
+                return m
+            @staticmethod
+            def NumberConvert(x, T):
+                "Convert the number x to the type T"
+                # Note some conversions will lose numerical information; these
+                # are marked with '# **' in case you'd like to change them.
+                def extract(s):
+                    "Return the portion of s between single quotes"
+                    s = s[s.find("'") + 1 :]
+                    return s[: s.find("'")]
+                if have_unc and T == ufloat:
+                    if isinstance(x, complex):
+                        return ufloat(x.real, 0)  # **
+                    elif isinstance(x, (Fraction, Decimal)):
+                        return ufloat(float(x), 0)  # **
+                    elif isinstance(x, UFloat):
+                        return x
+                    return ufloat(x, 0)
+                elif T is complex:
+                    if have_unc and isinstance(x, UFloat):
+                        return complex(x.nominal_value, 0)  # **
+                    return complex(x, 0)  # **
+                elif isinstance(x, flt):
+                    if T is Decimal or T is Fraction:
+                        return T(x.r)
+                    return T(x)
+                elif isinstance(x, float):
+                    if T is Decimal or T is Fraction:
+                        return T(str(x))
+                    return T(x)
+                elif isinstance(x, complex):
+                    if T is Decimal or T is Fraction:
+                        return T(str(x.real))  # **
+                    return T(x.real)  # **
+                elif isinstance(x, Fraction):
+                    if T is Decimal:
+                        return Decimal(x.numerator) / Decimal(x.denominator)
+                    elif have_mpmath and T is mpmath.mpf:
+                        return mpmath.mpf(x.numerator) / mpmath.mpf(x.denominator)
+                elif isinstance(x, Decimal):
+                    if have_mpmath and T is mpmath.mpf:
+                        n, d = x.as_integer_ratio()
+                        return mpmath.mpf(n) / mpmath.mpf(d)
+                elif have_mpmath and isinstance(x, mpmath.mpf):
+                    if T is Fraction:
+                        return Fraction(extract(str(x)))
+                    elif T is Decimal:
+                        return Decimal(extract(str(x)))
+                elif have_unc and isinstance(x, UFloat):
+                    if T is complex:
+                        return complex(x.nominal_value, 0)  # **
+                    if T is Fraction or T is Decimal:
+                        return T(str(x.nominal_value))  # **
+                    return T(x.nominal_value)  # **
                 try:
-                    if x.is_vector:
-                        return "𝕍"
-                except AttributeError:
-                    pass
-                if ii(x, Matrix):
-                    return "𝕄"
-                s = str(type(x))
-                loc = s.find("'")
-                s = s[loc + 1 :]
-                loc = s.find("'")
-                s = s[:loc]
-                if s in d:
-                    return d[s]
-                return "?"
-            return self.map(T)
-        @property
-        def types(self):
-            '''Return a string showing the symbols used to codify matrix
-            element types.  Use this string to help you understand the
-            symbols shown when you use the .type attribute on a matrix.
-            '''
-            d, L = self._get_type_dict(), ["Type decorations:"]
-            for k, v in d.items():
-                L.append("    {}    {}".format(k, v))
-            return "\n".join(L)
-        @property
-        def uvec(self):
-            "Returns a unit vector in the same direction."
-            if not self.is_vector:
-                raise TypeError("uvec can be used on vectors only")
-            m = self / self.mag
-            m._copy_attr(self)
-            return m
-class MatrixContext:
-    '''Thread-safe context manager to save the class variable state of
-    Matrix and restore it on exit.
-    
-    Example of use:  Suppose you're in the middle of a calculation with
-    the class variable settings you want, but you're interrupted with
-    another calculation that needs to use different values for the class
-    variables.  You can do this new calculation by
-    
-        with MatrixContext():
-            <do calculations>
-            
-    Whatever settings you make to the Matrix class variables within the
-    with block are forgotten after the block is finished.  A threading
-    module Lock object is used and will cause another thread to block
-    indefinitely until the lock can be acquired; because of this, you
-    should make the context block as short as you can.
-    
-    Note __enter__ returns None, so that 'with MatrixContext() as c' is
-    acceptable syntax, but the c variable is None.  This was deliberate
-    to avoid having a reference to the isolated class variables' values
-    before the with block was entered.
-    '''
-    def __init__(self):
-        self.lock = Lock()
-    def __enter__(self):
-        self.lock.acquire()
-        self.state = Matrix.get_state()
-    def __exit__(self, type, value, traceback):
-        Matrix.set_state(self.state)
-        self.lock.release()
-class Flatten:
-    '''Context manager to convert the Matrix object's internal storage
-    for elements to a flattened list to facilitate processing, then back
-    to a nested list after processing is finished.
-    
-    An example of use where self is a Matrix instance and f is a
-    univariate function to apply to each element in the matrix.  This is
-    used internally in the Matrix class implementation.
-    
-        with Flatten(self):
-            self._grid = [f(i) for i in self._grid]
-    '''
-    def __init__(self, m):
-        "m is a Matrix instance"
-        self.m = m
-    def __enter__(self):
-        self.m._flatten()
-    def __exit__(self, type, value, traceback):
-        self.m._nested()
+                    return T(x)
+                except Exception:
+                    raise TypeError("Conversion not supported")
+            @staticmethod
+            def from_sympy(m):
+                '''m must be a sympy.Matrix object.  This function returns
+                a matrix.Matrix object.
+                '''
+                d = vars(m)
+                M = Matrix(d["rows"], d["cols"])
+                with Flatten(M):
+                    # sympy has the d['_rep'] DomainMatrix object that stores the matrix.
+                    # The following converts it to a flat list.
+                    M._grid = list(d["_rep"].iter_values())
+                return M
+            @staticmethod
+            def to_sympy(m):
+                '''m must be a matrix.Matrix instance.  Returns a SymPy matrix
+                from m.
+                '''
+                return sympy.Matrix(m.nl)
+            @staticmethod
+            def from_mpmath(m):
+                '''m must be a mpmath.matrix object.  This function returns
+                a matrix.Matrix object from it.
+                '''
+                return matrix(m.tolist())
+            @staticmethod
+            def to_mpmath(m):
+                "Returns an mpmath matrix from m"
+                return mpmath.matrix(m.nl)
+            @staticmethod
+            def _Flatten(L):
+                "Flatten every sequence in L and return a list"
+                # Adapted from code by Kevin L. Sitze on 2010-11-25.  From
+                # http://code.activestate.com/recipes/577470-fast-flatten-with-depth-control-and-oversight-over/?in=lang-python
+                lt = (list, tuple)
+                is_seq = lt if callable(lt) else lambda x: isinstance(x, lt)
+                r, s = [], []
+                s.append((0, L))
+                while s:
+                    i, L = s.pop()
+                    while i < len(L):
+                        while is_seq(L[i]):
+                            if not L[i]:
+                                break
+                            else:
+                                s.append((i + 1, L))
+                                L = L[i]
+                                i = 0
+                        else:
+                            r.append(L[i])
+                        i += 1
+                return r
+        if 1:  # Class methods
+            @classmethod
+            def set_default_state(cls):
+                '''This method sets the Matrix class variables to a default
+                state.
+                '''
+                Matrix._str = False
+                Matrix.EqDigits = None
+            @classmethod
+            def get_state(cls):
+                "Save the class variables in a dictionary and return it."
+                d = {}
+                d["_str"] = Matrix._str
+                d["EqDigits"] = Matrix.EqDigits
+                return d
+            @classmethod
+            def set_state(cls, state_dict):
+                for key, value in state_dict.items():
+                    exec("Matrix.{} = value".format(key))
+        if 1:  # Properties
+            @property
+            def adjoint(self):
+                "Returns the Hermitian conjugate matrix"
+                def C(x):
+                    return x.conjugate() if isinstance(x, complex) else x
+                return self.t.map(C)
+            @property
+            def adjugate(self):
+                "Returns the adjugate matrix (transpose of cofactors)"
+                return self.cofactors.t
+            @property
+            def c(self):
+                "Returns the number of columns in the matrix"
+                return self._c
+            @c.setter
+            def c(self, value):
+                "Sets the number of columns in the matrix"
+                self._check_frozen()
+                self.resize(self.r, value)
+            @property
+            def cofactors(self):
+                '''Returns the matrix of cofactors.  The cofactor [i, j] of a
+                square matrix is the determinant of the matrix with row i and
+                column j deleted, multiplied by (-1)**(i + j).
+                
+                The transpose of the cofactors matrix (i.e., adjugate) divided by
+                the determinant is the inverse of the original matrix.
+                '''
+                m = Matrix(self.r, self.c)
+                for row, col, element in self:
+                    m[row, col] = self.cofactor(row, col)
+                m._copy_attr(self)
+                return m
+            @property
+            def cols(self):
+                "Returns a column iterator for each column in the matrix"
+                for col in range(self.c):
+                    yield self.col(col)
+            @property
+            def conj(self):
+                "Returns a new matrix with elements that are complex conjugates"
+                m = self.copy
+                for row, col, element in self:
+                    if isinstance(m[row, col], complex):
+                        m[row, col] = m[row, col].conjugate()
+                m._copy_attr(self)
+                return m
+            @property
+            def copy(self):
+                "Returns a copy of the matrix"
+                m = Matrix(self.r, self.c)
+                m._grid = self._grid.copy()
+                # Need to explicitly make copies of the rows too
+                for i in range(m.r):
+                    m._grid[i] = self._grid[i].copy()
+                m._copy_attr(self)
+                return m
+            @property
+            def det(self):
+                "Returns the determinant of the matrix"
+                if not self.is_square:
+                    raise TypeError("Non-square matrix does not have determinant")
+                ref, _, multiplier = get_row_echelon_form(self)
+                ref_det = reduce(operator.mul, ref.diag.l)
+                eqdigits = Matrix.EqDigits if Matrix.EqDigits is not None else self.eqdigits
+                det = ref_det / multiplier
+                det = det if ref_det else 0
+                return RoundOff(det, digits=eqdigits) if eqdigits else det
+            @property
+            def diag(self):
+                "Return the diagonal of the matrix as a row vector"
+                if not self.is_square:
+                    raise TypeError("Matrix must be square to return diagonal")
+                d = []
+                for i in range(self.r):
+                    d.append(self[i, i])
+                return vector(d)
+            @diag.setter
+            def diag(self, seq):
+                "Set the diagonal elements to those of seq, a list, or vector"
+                self._check_frozen()
+                if not self.is_square:
+                    raise TypeError("Matrix must be square to set diagonal")
+                if not isinstance(seq, (list, tuple)) and (isinstance(seq, Matrix) and not seq.is_vector):
+                    raise TypeError("seq must be list, tuple, or vector")
+                e = TypeError("seq must be of length {}".format(self.r))
+                if isinstance(seq, Matrix):
+                    if seq.len != self.r:
+                        raise e
+                else:
+                    if len(seq) != self.r:
+                        raise e
+                for i in range(self.r):
+                    self._grid[i][i] = seq[i]
+            @property
+            def elements(self):
+                "Returns an iterator over the matrix's elements"
+                for row in range(self.r):
+                    for col in range(self.c):
+                        yield self[row, col]
+            @property
+            def f(self):
+                '''The f attribute is used to control what the __str__() and
+                __repr__() methods return.  If f is set to False (the default),
+                then __str__() returns the string form that makes the matrix
+                look as you'd write it on paper and __repr__() returns a string
+                such as '<Matrix 2x2 0xffcf0b50>'.
+                
+                When using the debugger and you type the command 'p m' where m
+                is a Matrix instance, you see the __repr__ form of the matrix.
+                A similar thing happens when you type '>>> m' at the interactive
+                python prompt.  In such cases, you'd probably rather see the
+                __str__() form; to do this, set the f attribute to True and
+                the __str__ and __repr__ behaviors are swapped.  This can be
+                done in the debugger with the command '!m.f = True'.
+                '''
+                return Matrix._str
+            @f.setter
+            def f(self, value):
+                Matrix._str = bool(value)
+            @property
+            def flat(self):
+                "Returns a flattened list of a copy of the matrix elements"
+                m = self.copy
+                with Flatten(m):
+                    return list(m._grid)
+            @property
+            def frozen(self):
+                '''The frozen attribute lets you make a matrix read-only by
+                setting the attribute to True.
+                '''
+                return self._frozen
+            @frozen.setter
+            def frozen(self, frozen):
+                self._frozen = bool(frozen)
+            @property
+            def grid(self):
+                '''Get a reference to the matrix instance's internal nested list
+                storage for the elements.
+                
+                ********************** WARNING **********************
+                
+                This is a potentially risky attribute to use because you will
+                have references to the data in the matrix instance.  If you
+                change the list, you'll change the data in the matrix.
+                Conversely, if a matrix operation changes the matrix, then
+                the list you have may no longer have references to the grid's
+                elements.  This could lead to hard-to-find bugs.
+                '''
+                return self._grid
+            @grid.setter
+            def grid(self, grd):
+                '''Replace the self._grid nested list.  The new nested list grd
+                must match the old one in size.
+                '''
+                self._check_frozen()
+                if len(grd) != self.r:
+                    raise TypeError("grd must have {} rows".format(self.r))
+                try:
+                    cols_ok = all([len(i) == self.c for i in grd])
+                except Exception:
+                    raise TypeError("grd is not a nested list")
+                if not cols_ok:
+                    raise TypeError("grd must have {} columns".format(self.c))
+                self._grid = grd
+            @property
+            def i(self):
+                "Returns the inverse matrix"
+                if not self.is_square:
+                    raise TypeError("Non-square matrix cannot have an inverse")
+                identity = Matrix.identity(self.r)
+                rref, inverse = get_reduced_row_echelon_form(self, identity)
+                if rref != identity:
+                    raise TypeError("Matrix is non-invertible")
+                inverse._copy_attr(self)
+                return inverse
+            @property
+            def is_col_vector(self):
+                '''Returns True if matrix is a column vector'''
+                return self.c == 1
+            @property
+            def is_correl(self):
+                '''Return True if matrix could be a correlation matrix.  The
+                diagonal elements must be 1, the matrix must be symmetric, and
+                the off-diagonal elements must be in [-1, 1].
+                '''
+                if not self.is_symmetric:
+                    return False
+                if not all([i == 1 for i in self.diag.l]):
+                    return False
+                lst = self.lower(incl_diag=False).l
+                if not all([-1 <= i <= 1 for i in lst]):
+                    return False
+                return True
+            @property
+            def is_hermitian(self):
+                '''Return True if matrix is Hermitian (i.e., it's the same as its
+                conjugate transpose).  A Hermitian matrix has real eigenvalues
+                and can be diagonalized by a unitary matrix.  A Hermitian matrix
+                is also called self-adjoint.  A unitary matrix is Hermitian and
+                its adjoint (conjugate transpose) is its inverse.
+                '''
+                eqdigits = self._get_eqdigits()
+                def f(x):
+                    if eqdigits is not None:
+                        return RoundOff(x, digits=eqdigits)
+                    else:
+                        return x
+                def C(x, y):
+                    "Return True if x and y are complex conjugates"
+                    try:
+                        if not isinstance(x, complex) and not isinstance(y, complex):
+                            return f(x) == f(y)
+                        a = complex(x)
+                        b = complex(y)
+                        return (f(a.real) == f(b.real)) and (f(a.imag) == -f(b.imag))
+                    except Exception:
+                        return False
+                if not self.is_square:
+                    return False
+                try:
+                    # Compare elements pairwise with the transpose.  Note we use
+                    # the lower triangular matrices, which means we make less
+                    # than half the comparisons if we used the full matrix.
+                    s = self.lower(incl_diag=False).l
+                    t = self.t.lower(incl_diag=False).l
+                    if not all([C(i, j) for i, j in zip(s, t)]):
+                        return False
+                    # The diagonal elements must also be non-complex
+                    return all([not isinstance(i, complex) for i in self.diag.l])
+                except Exception:
+                    return False
+            @property
+            def is_int(self):
+                "Return True if all matrix elements are integers."
+                return all([isinstance(i, int) for i in self.l])
+            @property
+            def is_invertible(self):
+                '''Returns True if this matrix has an inverse.'''
+                try:
+                    self.i
+                    return True
+                except TypeError:
+                    return False
+            @property
+            def is_pos_def(self):
+                '''Return True if the matrix is positive-definite.  self must be
+                Hermitian and z.t*self*z must be > 0 for every nonzero column
+                vector z where z ϵ ℂ^n.  All of a matrix's eigenvalues are
+                positive if and only if the matrix is positive-definite.
+                '''
+                # Do some relatively quick checks first
+                if not self.is_square or not self.is_hermitian:
+                    return False
+                # We have to check that self isn't a zero matrix, as the
+                # cholesky() algorithm won't raise an exception in this case.
+                if self == Matrix(self.r, self.r):
+                    return False
+                try:
+                    self.cholesky()
+                    return True
+                except TypeError:
+                    return False
+            @property
+            def is_orthogonal(self):
+                '''Return True if this matrix is orthogonal (rows and columns
+                are orthogonal unit vectors).  The transpose of an orthogonal
+                matrix is equal to its inverse.  The determinant of an orthogonal
+                matrix is either +1 or -1.
+                '''
+                if not self.is_square:
+                    return False
+                return self.t == self.i
+            @property
+            def is_complex(self):
+                "Return True if the matrix has complex elements"
+                return any([isinstance(i, complex) for i in self.l])
+            @property
+            def is_normal(self):
+                '''Return True if the matrix is a normal matrix.  A normal
+                matrix can be diagonalized by a unitary matrix.
+                '''
+                if not self.is_square:
+                    return False
+                a = self.adjoint
+                return self * a == a * self
+            @property
+            def is_real(self):
+                "Return True if the matrix has no complex elements"
+                return not any([isinstance(i, complex) for i in self.l])
+            @property
+            def is_row_vector(self):
+                "Returns True if matrix is a row vector"
+                return self.r == 1
+            @property
+            def is_skew(self):
+                '''Returns True if matrix m is skew-symmetric (m.t == -m).
+                If m and n are skew-symmetric, then so is m + n and a scalar
+                times m.  m.trace is zero.  The non-zero eigenvalues of a
+                skew-symmetric matrix are pure imaginary.
+                '''
+                return self.t == -self
+            @property
+            def is_square(self):
+                "Return True if matrix is a square matrix"
+                return self.r == self.c
+            @property
+            def is_symmetric(self):
+                '''Return True if matrix is symmetric (i.e., it's equal to its
+                transpose).  A real symmetric matrix can be diagonalized by an
+                orthogonal matrix.
+                '''
+                if not self.is_square:
+                    return False
+                try:
+                    # Compare elements pairwise with the transpose.  Note we use
+                    # the lower triangular matrices, which means we make less
+                    # than half the comparisons if we used the full matrix.
+                    s = self.lower(incl_diag=False).l
+                    t = self.t.lower(incl_diag=False).l
+                    eqdigits = self._get_eqdigits()
+                    if eqdigits is not None:
+                        def f(x):
+                            return RoundOff(x, digits=eqdigits)
+                        return all([f(i) == f(j) for i, j in zip(s, t)])
+                    else:
+                        return all([i == j for i, j in zip(s, t)])
+                except Exception:
+                    return False
+            @property
+            def is_unitary(self):
+                "Returns True if the matrix is unitary"
+                if not self.is_square:
+                    return False
+                return self.adjoint == self.i
+            @property
+            def is_vector(self):
+                "Returns True if matrix is a row or column vector"
+                return self.is_row_vector or self.is_col_vector
+            @property
+            def len(self):
+                "Returns the number of elements in the matrix"
+                return self.r * self.c
+            @property
+            def l(self):  # noqa
+                "Synonym for self.flat"
+                return self.flat
+            @property
+            def list(self):
+                "Synonym for self.flat"
+                return self.flat
+            @property
+            def mag(self):
+                "Returns the Euclidean length of the vector"
+                if not self.is_vector:
+                    raise TypeError("mag can be used on vectors only")
+                try:
+                    return math.sqrt(sum(e**2 for _, _, e in self))
+                except TypeError:
+                    return abs(csqrt(sum(e**2 for _, _, e in self)))
+            @property
+            def nl(self):
+                "Return a copy of the nested list of the matrix's elements"
+                return self._grid.copy()
+            @property
+            def norm(self):
+                '''Returns the Frobenius norm for the matrix.  A matrix norm is
+                useful to bound the absolute value of the largest eigenvalue;
+                it's between the reciprocal of the norm of the inverse matrix
+                and the norm of the matrix.
+                '''
+                try:
+                    return math.sqrt(sum(i * i for i in self.list))
+                except TypeError:
+                    return csqrt(sum(i * i for i in self.list))
+            @property
+            def numtype(self):
+                '''Returns the numerical type of the elements or None if it is not
+                set.  Even though numtype might be set to a specific numerical
+                type, it doesn't mean all the elements of the matrix have this type
+                because subsequent operations can change the elements' type.   If
+                you want to have the elements be all one type, set numtype to the
+                desired type and all the elements will be coerced to that type.
+                '''
+                return self._numtype
+            @numtype.setter
+            def numtype(self, numerical_type):
+                '''Sets the numerical type of the matrix.  Set to None to have no
+                specific type for the elements.
+                '''
+                self._check_frozen()
+                if numerical_type is not None:
+                    with Flatten(self):
+                        self._grid = [
+                            Matrix.NumberConvert(i, numerical_type) for i in self._grid
+                        ]
+                self._numtype = numerical_type
+            @property
+            def r(self):
+                "Returns the number of rows in the matrix"
+                return self._r
+            @r.setter
+            def r(self, value):
+                "Sets the number of rows in the matrix"
+                self._check_frozen()
+                self.resize(value, self.c)
+            @property
+            def rank(self):
+                "Returns the rank of the matrix = number of linearly independent rows"
+                rank = 0
+                for row in self.ref.rows:
+                    for element in row:
+                        if element != 0:
+                            rank += 1
+                            break
+                return rank
+            @property
+            def ref(self):
+                "Returns the row echelon form of the matrix"
+                m = get_row_echelon_form(self)[0]
+                m._copy_attr(self)
+                return m
+            @property
+            def rows(self):
+                "Returns a row iterator for each row in the matrix"
+                for row in range(self.r):
+                    yield self.row(row)
+            @property
+            def rref(self):
+                "Returns the reduced row echelon form of the matrix"
+                m = get_reduced_row_echelon_form(self)[0]
+                m._copy_attr(self)
+                return m
+            @property
+            def eqdigits(self):
+                '''The eqdigits attribute is used to control comparisons of matrix
+                elements as numbers.  If it is not None, then two matrix
+                elements are declared equal if they are the same number after
+                rounding to the indicated number of digits.
+                
+                If Matrix.EqDigits is not None, it takes precedence over instance
+                eqdigits values when comparisons are made.
+                '''
+                return self._eqdigits
+            @eqdigits.setter
+            def eqdigits(self, value):
+                self._check_frozen()
+                if value is not None and not isinstance(value, int):
+                    raise TypeError("value must be an integer")
+                if value is not None and value < 1:
+                    raise ValueError("value must be > 0")
+                self._eqdigits = value
+            @property
+            def size(self):
+                "Returns (number of rows, number of columns)"
+                return self.r, self.c
+            @size.setter
+            def size(self, value):
+                "Set the size of the matrix; value must be a 2-sequence of ints"
+                self._check_frozen()
+                e = TypeError("value must be a 2-sequence of ints")
+                if not isinstance(value, (list, tuple)):
+                    raise e
+                if not isinstance(value[0], int) and not isinstance(value[1], int):
+                    raise e
+                self.resize(*value)
+            @property
+            def sum(self):
+                "Returns the sum of all the elements"
+                with Flatten(self):
+                    return sum(self._grid)
+            @property
+            def t(self):
+                "Returns the transpose as a new matrix"
+                m = self.copy
+                # map(lambda *x: x, *seq) should also work
+                m._grid = [list(i) for i in zip(*m._grid)]
+                m._r, m._c = self.c, self.r
+                m._copy_attr(self)
+                return m
+            @property
+            def trace(self):
+                "Returns the sum of the diagonal elements"
+                return sum(self.diag.list)
+            @property
+            def type(self):
+                '''Returns a matrix containing strings representing the types of
+                the elements of self.
+                '''
+                def T(x):
+                    '''Return abbreviated string form of type of x'''
+                    d = {
+                        "str": '"',
+                        "int": "ℤ",
+                        "float": "ℝ",
+                        "method": "f",
+                        "decimal.Decimal": "D",
+                        "fractions.Fraction": "ℚ",
+                        "complex": "ℂ",
+                        "cpx": "ℂ",
+                        "uncertainties.core.Variable": "±",
+                        "list": "]",
+                        "tuple": ")",
+                        "mpmath.ctx_mp_python.mpf": "Δ",
+                        "mpmath.ctx_mp_python.mpc": "∇",
+                        "mpmath.ctx_iv.ivmpf": "Λ",
+                    }
+                    if " <lambda> " in str(x):
+                        return "λ"
+                    if str(x).startswith("<function "):
+                        return "F"
+                    if str(type(x)).startswith("<class 'sympy"):
+                        return "𝕊"
+                    try:
+                        if x.is_vector:
+                            return "𝕍"
+                    except AttributeError:
+                        pass
+                    if isinstance(x, Matrix):
+                        return "𝕄"
+                    s = str(type(x))
+                    loc = s.find("'")
+                    s = s[loc + 1 :]
+                    loc = s.find("'")
+                    s = s[:loc]
+                    if s in d:
+                        return d[s]
+                    return "?"
+                return self.map(T)
+            @property
+            def types(self):
+                '''Return a string showing the symbols used to codify matrix
+                element types.  Use this string to help you understand the
+                symbols shown when you use the .type attribute on a matrix.
+                '''
+                d, L = self._get_type_dict(), ["Type decorations:"]
+                for k, v in d.items():
+                    L.append("    {}    {}".format(k, v))
+                return "\n".join(L)
+            @property
+            def uvec(self):
+                "Returns a unit vector in the same direction."
+                if not self.is_vector:
+                    raise TypeError("uvec can be used on vectors only")
+                m = self / self.mag
+                m._copy_attr(self)
+                return m
+    class MatrixContext:
+        '''Thread-safe context manager to save the class variable state of
+        Matrix and restore it on exit.
+        
+        Example of use:  Suppose you're in the middle of a calculation with
+        the class variable settings you want, but you're interrupted with
+        another calculation that needs to use different values for the class
+        variables.  You can do this new calculation by
+        
+            with MatrixContext():
+                <do calculations>
+                
+        Whatever settings you make to the Matrix class variables within the
+        with block are forgotten after the block is finished.  A threading
+        module Lock object is used and will cause another thread to block
+        indefinitely until the lock can be acquired; because of this, you
+        should make the context block as short as you can.
+        
+        Note __enter__ returns None, so that 'with MatrixContext() as c' is
+        acceptable syntax, but the c variable is None.  This was deliberate
+        to avoid having a reference to the isolated class variables' values
+        before the with block was entered.
+        '''
+        def __init__(self):
+            self.lock = Lock()
+        def __enter__(self):
+            self.lock.acquire()
+            self.state = Matrix.get_state()
+        def __exit__(self, type, value, traceback):
+            Matrix.set_state(self.state)
+            self.lock.release()
+    class Flatten:
+        '''Context manager to convert the Matrix object's internal storage
+        for elements to a flattened list to facilitate processing, then back
+        to a nested list after processing is finished.
+        
+        An example of use where self is a Matrix instance and f is a
+        univariate function to apply to each element in the matrix.  This is
+        used internally in the Matrix class implementation.
+        
+            with Flatten(self):
+                self._grid = [f(i) for i in self._grid]
+        '''
+        def __init__(self, m):
+            "m is a Matrix instance"
+            self.m = m
+        def __enter__(self):
+            self.m._flatten()
+        def __exit__(self, type, value, traceback):
+            self.m._nested()
 if 1:  # Utility functions
     def matrix(*p, **kw):
         '''Convenience function for instantiating Matrix objects.  Examples:
@@ -2229,12 +2230,12 @@ if 1:  # Utility functions
         else:
             if len(p) == 1:
                 q = p[0]
-                if ii(q, int):
+                if isinstance(q, int):
                     if "fill" in kw:
                         m = Matrix(q, q, fill=fill)
                     else:
                         m = Matrix.identity(q)
-                elif ii(q, (list, tuple)):
+                elif isinstance(q, (list, tuple)):
                     # Either a flat or nested list
                     q = list(q)
                     if len(Matrix._Flatten(q)) > len(p):
@@ -2245,12 +2246,12 @@ if 1:  # Utility functions
                     else:
                         m = Matrix.from_list(q, **kw)
                         assert m.r == 1 and m.c == len(p)
-                elif ii(q, str):
+                elif isinstance(q, str):
                     m = Matrix.from_string(q, **kw)
                 elif hasattr(q, "read"):
                     # It's a stream
                     s = q.read()
-                    if ii(s, bytes):
+                    if isinstance(s, bytes):
                         s = s.decode()
                     if not s:
                         raise ValueError("Empty stream")
@@ -2258,7 +2259,7 @@ if 1:  # Utility functions
             else:
                 # Either p is a sequence or p is a list of two or three
                 # strings.
-                if ii(p[0], str):
+                if isinstance(p[0], str):
                     s = p[0]
                     sep = p[1]
                     linesep = p[2] if len(p) > 2 else "\n"
@@ -2270,7 +2271,7 @@ if 1:  # Utility functions
                 else:
                     m = Matrix.from_list(list(p), **kw)
                     assert m.r == 1 and m.c == len(p)
-        assert ii(m._grid, list)
+        assert isinstance(m._grid, list)
         return m
     def vector(*p, **kw):
         '''Convenience function for instantiating row and column
@@ -2303,13 +2304,13 @@ if 1:  # Utility functions
             m = Matrix(1, q[0], fill=fill)
         else:
             if len(q) == 1:
-                if ii(q[0], str):
+                if isinstance(q[0], str):
                     # Form D with string
                     q = [Matrix.getnum(i, **kw) for i in q[0].split()]
                 elif hasattr(q[0], "read"):
                     # Form D with stream
                     s = q[0].read()
-                    if ii(s, bytes):
+                    if isinstance(s, bytes):
                         s = s.decode()
                     if not s:
                         raise ValueError("Empty stream")
@@ -2318,9 +2319,7 @@ if 1:  # Utility functions
             assert m.r == 1
             assert m._grid == [q]
         return m.t if c else m
-    def random_matrix(
-        r, c=None, integer=None, normal=None, uniform=None, seed=None, cmplx=False
-    ):
+    def random_matrix(r, c=None, integer=None, normal=None, uniform=None, seed=None, cmplx=False):
         '''Returns an r x c  matrix filled with random numbers.  If c is
         not given, the matrix is r x r.  If no keywords are given, the
         elements are random floats in [0, 1).
@@ -2505,46 +2504,46 @@ if 1:  # Utility functions
             math.sin(x) = 0.49999999999999994
             RoundOff(math.sin(x)) = 0.5
         '''
-        if ii(number, (int, Fraction)):
+        if isinstance(number, (int, Fraction)):
             return number
-        if have_unc and ii(number, UFloat):
+        if have_unc and isinstance(number, UFloat):
             return number
-        if ii(number, complex):
+        if isinstance(number, complex):
             re = RoundOff(number.real, digits=digits)
             im = RoundOff(number.imag, digits=digits)
             return complex(re, im)
         can_convert = False
-        if convert and not ii(number, Decimal):
+        if convert and not isinstance(number, Decimal):
             try:
                 float(number)
                 can_convert = True
             except ValueError:
                 pass
-        if ii(number, float) or (convert and can_convert):
+        if isinstance(number, float) or (convert and can_convert):
             # Convert to a decimal, then back to a float
             x = Decimal(number)
             with localcontext() as ctx:
                 ctx.prec = digits
                 x = +x
                 return float(x)
-        elif ii(number, complex):
+        elif isinstance(number, complex):
             return complex(
                 RoundOff(number.real, digits=digits, convert=True),
                 RoundOff(number.imag, digits=digits, convert=True),
             )
-        elif ii(number, Decimal):
+        elif isinstance(number, Decimal):
             with localcontext() as ctx:
                 ctx.prec = digits
                 number = +number
                 return number
-        elif have_mpmath and ii(number, mpmath.mpf):
+        elif have_mpmath and isinstance(number, mpmath.mpf):
             x = Decimal(mpmath.nstr(number, mpmath.mp.dps))
             with localcontext() as ctx:
                 ctx.prec = digits
                 x = +x
                 s = str(x)
                 return mpmath.mpf(s)
-        elif have_mpmath and ii(number, mpmath.mpc):
+        elif have_mpmath and isinstance(number, mpmath.mpc):
             re = Decimal(mpmath.nstr(number.real, mpmath.mp.dps))
             im = Decimal(mpmath.nstr(number.imag, mpmath.mp.dps))
             with localcontext() as ctx:
@@ -2559,31 +2558,32 @@ if 1:  # Utility functions
             raise TypeError("Unrecognized floating point type")
 
 if __name__ == "__main__":
-    from lwtest import run, raises, assert_equal, Assert
-    from fractions import Fraction
-    from decimal import Decimal
-    from math import log10, pi, exp, sqrt
-    from textwrap import dedent
-    import sys
-    import io
-    name = sys.argv[0]
-    ii = isinstance
-    # Import libraries if matrix.py is using them
-    if have_unc:
-        from uncertainties import ufloat, ufloat_fromstr, UFloat
-        from uncertainties.core import Variable as ufloat_t
-    else:
-        print(f"{name}:  uncertainties not tested")
-    if have_mpmath:
-        import mpmath
-        mpf, mpc = mpmath.mpf, mpmath.mpc
-    else:
-        print(f"{name}:  mpmath not tested")
-    if have_sympy:
-        from sympy import Matrix as spmatrix  # noqa
-    else:
-        print(f"{name}:  sympy not tested")
+    if 1:  # Standard imports
+        from decimal import Decimal
+        from fractions import Fraction
+        from math import log10, pi, exp, sqrt
+        from textwrap import dedent
+        import io
+        import sys
+    if 1:  # Custom imports
+        from lwtest import run, raises, assert_equal, Assert
+        # Import libraries if matrix.py is using them
+        if have_unc:
+            from uncertainties import ufloat, ufloat_fromstr, UFloat
+            from uncertainties.core import Variable as ufloat_t
+        else:
+            print(f"{name}:  uncertainties not tested")
+        if have_mpmath:
+            import mpmath
+            mpf, mpc = mpmath.mpf, mpmath.mpc
+        else:
+            print(f"{name}:  mpmath not tested")
+        if have_sympy:
+            from sympy import Matrix as spmatrix  # noqa
+        else:
+            print(f"{name}:  sympy not tested")
     if 1:  # Global variables
+        name = sys.argv[0]
         Fl = Matrix._Flatten
     def Type(t):
         "Return a uniform name for a type t"
@@ -3719,10 +3719,10 @@ if __name__ == "__main__":
                 m = matrix("1 2\n3 4")
                 m.numtype = float
                 Assert(m == matrix("1. 2.\n3. 4."))
-                Assert(all(ii(i, float) for i in m.list))
+                Assert(all(isinstance(i, float) for i in m.list))
                 m.resize(2, 3)
                 Assert(m == matrix("1. 2. 3.\n4. 0. 0."))
-                Assert(all(ii(i, float) for i in m.list))
+                Assert(all(isinstance(i, float) for i in m.list))
                 # Exception on bad data
                 raises(TypeError, m.resize, 1, 1.0)
                 raises(TypeError, m.resize, 1.0, 1)
@@ -3765,13 +3765,13 @@ if __name__ == "__main__":
                 m1, m2 = m.split(0)
                 Assert(m1 == matrix("1 2"))
                 Assert(m2 == matrix("3 4"))
-                Assert(all(ii(i, float) for i in m1.list))
-                Assert(all(ii(i, float) for i in m2.list))
+                Assert(all(isinstance(i, float) for i in m1.list))
+                Assert(all(isinstance(i, float) for i in m2.list))
                 m1, m2 = m.split(0, c=True)
                 Assert(m1 == matrix("1\n3"))
                 Assert(m2 == matrix("2\n4"))
-                Assert(all(ii(i, float) for i in m1.list))
-                Assert(all(ii(i, float) for i in m2.list))
+                Assert(all(isinstance(i, float) for i in m1.list))
+                Assert(all(isinstance(i, float) for i in m2.list))
                 # Check exceptions
                 raises(TypeError, m.split, 0.0)
                 raises(ValueError, m.split, -1)
@@ -3883,10 +3883,10 @@ if __name__ == "__main__":
                 Assert(n[1, 0] == 22 + 7j)
                 Assert(n[1, 1] == 77)
                 n.float(ip=True)
-                Assert(n[0, 0] == 14 and ii(n[0, 0], float))
-                Assert(n[1, 1] == 77 and ii(n[1, 1], float))
-                Assert(ii(n[0, 1], complex))
-                Assert(ii(n[1, 0], complex))
+                Assert(n[0, 0] == 14 and isinstance(n[0, 0], float))
+                Assert(n[1, 1] == 77 and isinstance(n[1, 1], float))
+                Assert(isinstance(n[0, 1], complex))
+                Assert(isinstance(n[1, 0], complex))
         def test_decorate():
             with Testing():
                 m = Matrix(4, 4)

@@ -1,111 +1,116 @@
-"""
-Pure-python numerical integration routines
-"""
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    ##∞copyright∞# Copyright (C) 2011, 2017 Don Peterson #∞copyright∞#
-    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    ##∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    ##∞license∞#
-    ##∞what∞#
-    # <math> Pure-python numerical integration routines:  Simpson's
-    # and trapezoidal methods provided.
-    ##∞what∞#
-    ##∞test∞# run #∞test∞#
-    pass
-def Simpson(f, a, b, n):
-    """Integrate f over the interval [a, b] with n points via Simpson's
-    rule.  f is a univariate function.
-    """
-    _CheckParameters(f, a, b, n, neven=True)
-    h = (b - a) / float(n)
-    sum = 0
-    for i in range(1, n):
-        if i % 2 == 0:
-            sum += 2 * f(a + i * h)
-        else:
-            sum += 4 * f(a + i * h)
-    return h / 3 * (f(a) + sum + f(b))
-def Trapezoidal(f, a, b, n):
-    """Integrate f over the interval [a, b] with n points via the
-    trapezoidal rule.  From Bartsch, "Handbook of Mathematical Formulas",
-    Academic Press, 1974, page 361.
-    """
-    _CheckParameters(f, a, b, n)
-    h = (b - a) / float(n)
-    sum = 0
-    for i in range(n):
-        sum += 2 * f(a + i * h)
-    return (f(a) + sum + f(b)) * h / 2
-def Trapezoid_nme(f, a, b, integral_old, n):
-    """Returns an estimate of the integral of f(x) from a to b using 2^n
-    points and given that integral_old is the estimate from 2^(n-1) points.
-    
-    From "Numerical Methods in Engineering with Python", 2nd ed. by Jaan
-    Kiusalaas, 2010, ISBN: 9780521191326.
-    """
-    _CheckParameters(f, a, b, n)
-    if n == 1:
-        integral_new = (f(a) + f(b)) * (b - a) / 2
-    else:
-        n = 2 ** (n - 2)  # Number of new points
-        h = (b - a) / n  # Spacing of new points
-        x = a + h / 2  # Coordinate of first new point
+if 1:  # Header
+    _pgminfo = '''
+        <oo gist ∞ Pure-python numerical integration routines oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2011, 2017 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ math oo>
+        <oo test ∞ run oo>
+        <oo todo ∞ oo>
+    '''
+    if 1:  # Standard imports
+        pass
+    if 1:  # Custom imports
+        from f import flt
+    if 1:  # Global variables
+        pass
+if 1:  # Core functionality
+    def Simpson(f, a, b, n):
+        '''Integrate f over the interval [a, b] with n points via Simpson's
+        rule.  f is a univariate function.
+        '''
+        _CheckParameters(f, a, b, n, neven=True)
+        h = (b - a)/float(n)
+        sum = 0
+        for i in range(1, n):
+            if i % 2 == 0:
+                sum += 2*f(a + i*h)
+            else:
+                sum += 4*f(a + i*h)
+        return flt(h/3*(f(a) + sum + f(b)))
+    def Trapezoidal(f, a, b, n):
+        '''Integrate f over the interval [a, b] with n points via the
+        trapezoidal rule.  From Bartsch, "Handbook of Mathematical Formulas",
+        Academic Press, 1974, page 361.
+        '''
+        _CheckParameters(f, a, b, n)
+        h = (b - a)/float(n)
         sum = 0
         for i in range(n):
-            sum, x = sum + f(x), x + h
-        integral_new = (integral_old + h * sum) / 2
-    return integral_new
-def Trapezoid_nr(f, a, b, n, s=[0]):
-    """trapzd routine from Numerical Recipes in C, pg 137, sec. 4.2.
-    Note they use a static variable s to contain the values of the previous
-    call; we emulate that with the parameter s -- you don't need to pass in
-    anything for s.
-    """
-    if n == 1:
-        s[0] = (b - a) * (f(a) + f(b)) / 2
-    else:
-        it = 1
-        for i in range(1, n - 1):
-            it <<= 1
-        tnm = it
-        delta = (b - a) / tnm
-        x = a + delta / 2
-        sum = 0
-        for i in range(1, it + 1):
-            sum += f(x)
-            x += delta
-        s[0] = (s[0] + (b - a) * sum / tnm) / 2
-    return s[0]
-def Trapezoid(f, a, b, eps=1e-6, itmax=50):
-    """Driver to use the Trapezoid_nr routine to calculate the integral of
-    f(x) from a to b to within less than relative error eps.
-    """
-    # Any number that is unlikely to be the average of the function at
-    # its endpoints will do here.
-    olds = -1e-30
-    for i in range(1, itmax + 1):
-        s = Trapezoid_nr(f, a, b, i)
-        if i > 5:
-            if abs(s - olds) < eps * abs(olds) or (s == 0 and olds == 0):
-                return s
-        olds = s
-    raise ValueError("Too many iterations")
-def _CheckParameters(f, a, b, n, neven=False):
-    """Check the parameters for the above functions"""
-    if not callable(f):
-        raise ValueError("f must be a univariate function")
-    if not isinstance(n, int):
-        raise TypeError("n must be an integer")
-    if neven and (n < 2 or n % 2 != 0):
-        raise ValueError("n must be an even integer >= 2")
-    else:
-        if n <= 1:
-            raise ValueError("n must be an integer > 1")
-    if a >= b:
-        raise ValueError("Must have a < b")
+            sum += 2*f(a + i*h)
+        return flt((f(a) + sum + f(b))*h/2)
+    def Trapezoid_nme(f, a, b, integral_old, n):
+        '''Returns an estimate of the integral of f(x) from a to b using 2^n
+        points and given that integral_old is the estimate from 2^(n-1) points.
+        
+        From "Numerical Methods in Engineering with Python", 2nd ed. by Jaan
+        Kiusalaas, 2010, ISBN: 9780521191326.
+        '''
+        _CheckParameters(f, a, b, n)
+        if n == 1:
+            integral_new = (f(a) + f(b))*(b - a)/2
+        else:
+            n = 2 ** (n - 2)  # Number of new points
+            h = (b - a)/n  # Spacing of new points
+            x = a + h/2  # Coordinate of first new point
+            sum = 0
+            for i in range(n):
+                sum, x = sum + f(x), x + h
+            integral_new = (integral_old + h*sum)/2
+        return flt(integral_new)
+    def Trapezoid_nr(f, a, b, n, s=[0]):
+        '''trapzd routine from Numerical Recipes in C, pg 137, sec. 4.2.
+        Note they use a static variable s to contain the values of the previous
+        call; we emulate that with the parameter s -- you don't need to pass in
+        anything for s.
+        '''
+        if n == 1:
+            s[0] = (b - a)*(f(a) + f(b))/2
+        else:
+            it = 1
+            for i in range(1, n - 1):
+                it <<= 1
+            tnm = it
+            delta = (b - a)/tnm
+            x = a + delta/2
+            sum = 0
+            for i in range(1, it + 1):
+                sum += f(x)
+                x += delta
+            s[0] = (s[0] + (b - a)*sum/tnm)/2
+        return flt(s[0])
+    def Trapezoid(f, a, b, eps=1e-6, itmax=50):
+        '''Driver to use the Trapezoid_nr routine to calculate the integral of
+        f(x) from a to b to within less than relative error eps.
+        '''
+        # Any number that is unlikely to be the average of the function at
+        # its endpoints will do here.
+        olds = -1e-30
+        for i in range(1, itmax + 1):
+            s = Trapezoid_nr(f, a, b, i)
+            if i > 5:
+                if abs(s - olds) < eps*abs(olds) or (s == 0 and olds == 0):
+                    return flt(s)
+            olds = s
+        raise ValueError("Too many iterations")
+    def _CheckParameters(f, a, b, n, neven=False):
+        '''Check the parameters for the above functions'''
+        if not callable(f):
+            raise ValueError("f must be a univariate function")
+        if not isinstance(n, int):
+            raise TypeError("n must be an integer")
+        if neven and (n < 2 or n % 2 != 0):
+            raise ValueError("n must be an even integer >= 2")
+        else:
+            if n <= 1:
+                raise ValueError("n must be an integer > 1")
+        if a >= b:
+            raise ValueError("Must have a < b")
 
 if __name__ == "__main__":
     from lwtest import run

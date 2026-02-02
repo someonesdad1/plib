@@ -37,6 +37,60 @@ if 1:  # Header
         from f import flt
     if 1:  # Global variables
         ii = isinstance
+if 1:  # Classes
+    class bitvector(int):
+        '''This convenience class is an integer that lets you get its bit
+        values using indexing or slices.
+        
+        Examples:
+            x = bitvector(9)
+            x[3] returns 1
+            x[2] returns 0
+            x[2:3] returns 2
+            x[123] returns 0    # Arbitrary bits can be addressed
+            x[-1] raises an IndexError
+            
+        Suggested from python 2 code given by Ross Rogers at
+        (http://stackoverflow.com/questions/147713/how-do-i-manipulate-bits-in-python)
+        dated 29 Sep 2008.
+        '''
+        def __repr__(self):
+            return "bitvector({})".format(self)
+        def _validate_slice(self, slice):
+            '''Check the slice object for valid values; raises an IndexError if
+            it's improper.  Return (start, stop) where the values are valid
+            indices into the binary value.  Note that start and stop values can
+            be any integers >= 0 as long as start is less than or equal to
+            stop.
+            '''
+            start, stop, step = slice.start, slice.stop, slice.step
+            # Check start
+            if start is None:
+                start = 0
+            elif start < 0:
+                raise IndexError("Slice start cannot be < 0")
+            # Check stop
+            if stop is None:
+                stop = int(math.log(self)/math.log(2))
+            elif stop < 0:
+                raise IndexError("Slice stop cannot be < 0")
+            if step is not None:
+                raise IndexError("Slice step must be None")
+            if start > stop:
+                raise IndexError("Slice start must be <= stop")
+            return start, stop
+        def __getitem__(self, key):
+            if isinstance(key, slice):
+                start, stop = self._validate_slice(key)
+                return bitvector((self >> start) & (2 ** (stop - start + 1) - 1))
+            else:
+                try:
+                    index = int(key)
+                except Exception:
+                    raise IndexError("'{}' is an invalid index".format(key))
+                if index < 0:
+                    raise ValueError("Negative bit index not allowed")
+                return bitvector((self & 2**index) >> index)
 if 1:  # Polynomial utilities
     # These routines were originally from
     # http://www.physics.rutgers.edu/~masud/computing/ in the file
@@ -346,59 +400,6 @@ if 1:  # Core functionality
         else:
             # Use built-in bin()
             return "-" + bin(n)[3:] if n < 0 else bin(n)[2:]
-    class bitvector(int):
-        '''This convenience class is an integer that lets you get its bit
-        values using indexing or slices.
-        
-        Examples:
-            x = bitvector(9)
-            x[3] returns 1
-            x[2] returns 0
-            x[2:3] returns 2
-            x[123] returns 0    # Arbitrary bits can be addressed
-            x[-1] raises an IndexError
-            
-        Suggested from python 2 code given by Ross Rogers at
-        (http://stackoverflow.com/questions/147713/how-do-i-manipulate-bits-in-python)
-        dated 29 Sep 2008.
-        '''
-        def __repr__(self):
-            return "bitvector({})".format(self)
-        def _validate_slice(self, slice):
-            '''Check the slice object for valid values; raises an IndexError if
-            it's improper.  Return (start, stop) where the values are valid
-            indices into the binary value.  Note that start and stop values can
-            be any integers >= 0 as long as start is less than or equal to
-            stop.
-            '''
-            start, stop, step = slice.start, slice.stop, slice.step
-            # Check start
-            if start is None:
-                start = 0
-            elif start < 0:
-                raise IndexError("Slice start cannot be < 0")
-            # Check stop
-            if stop is None:
-                stop = int(math.log(self)/math.log(2))
-            elif stop < 0:
-                raise IndexError("Slice stop cannot be < 0")
-            if step is not None:
-                raise IndexError("Slice step must be None")
-            if start > stop:
-                raise IndexError("Slice start must be <= stop")
-            return start, stop
-        def __getitem__(self, key):
-            if isinstance(key, slice):
-                start, stop = self._validate_slice(key)
-                return bitvector((self >> start) & (2 ** (stop - start + 1) - 1))
-            else:
-                try:
-                    index = int(key)
-                except Exception:
-                    raise IndexError("'{}' is an invalid index".format(key))
-                if index < 0:
-                    raise ValueError("Negative bit index not allowed")
-                return bitvector((self & 2**index) >> index)
     def bin2gray(bits):
         '''bits will be a string representing a binary number with the most
         significant bit at index 0; for example, the integer 13 would be
@@ -484,12 +485,13 @@ if 1:  # Core functionality
         s = ("%%.%de" % digits) % abs(float(x))
         return (1 - 2*(x < 0), float(s[0 : digits + 2]), int(s[digits + 3 :]))
     def signum(x, return_type=int):
-        "Return a number -1, 0, or 1 representing the sign of x"
-        if x < 0:
-            return return_type(-1)
+        'Return a number -1, 0, or 1 representing the sign of x'
+        if not x:
+            return return_type(0)
         elif x > 0:
             return return_type(1)
-        return return_type(0)
+        else:
+            return return_type(-1)
     def Percentile(seq, fraction):
         '''Return the indicated fraction of a sequence seq of sorted
         values.  fraction will be converted to be in [0, 1].
@@ -851,8 +853,7 @@ if __name__ == "__main__":
         Assert(signum(-5) == -1)
         Assert(signum(5) == 1)
         Assert(signum(0) == 0)
-        t = float
-        Assert(isinstance(signum(5, return_type=t), t))
+        Assert(isinstance(signum(5, return_type=float), float))
     def TestPercentile():
         s = sorted(
             [  # NIST gauge study data from
