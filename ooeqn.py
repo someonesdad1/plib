@@ -1,4 +1,4 @@
-"""
+'''
 
 Module to get the text content of the mathematical equations in an Open
 Document file.
@@ -32,63 +32,54 @@ Plan
         - Change '`=`' and '`=' to '='
     - Print the resulting lines out
     - Once this works, do it all from the zipped .odt file
-
-"""
-
+    
+'''
 if 1:  # Header
-    # Copyright, license
-    if 1:
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # Module to get the text content of the mathematical equations in an Open
-        # Document file.
-        ##∞what∞#
-        ##∞test∞# notest #∞test∞#
-        pass
-    # Standard imports
-    if 1:
+    _pgminfo = '''
+        <oo gist ∞ Get text from math equations in OO document oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2022 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ category oo>
+        <oo test ∞ notest oo>
+        <oo todo ∞ oo>
+    '''
+    if 1:  # Standard imports
         import getopt
         import os
         import re
         import sys
         from zipfile import ZipFile
-    # Custom imports
-    if 1:
+    if 1:  # Custom imports
         from wrap import dedent
         from color import t
-
         if 0:
             import debug
-
             debug.SetDebugger()
-    # Global variables
-    if 1:
-        ii = isinstance
+    if 1:  # Global variables
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
         # Colors
-        t.docname = t("grnl")
-        t.hyphens = t("yell")
-        t.objname = t("ornl")
-        t.noeqns = t("magl")
+        t.docname = t.grnl
+        t.hyphens = t.yell
+        t.objname = t.ornl
+        t.noeqns = t.magl
 if 1:  # Core functionality
-
     def GetObjects(file):
-        """Return a list of the object directories we'll need to search.  These
+        '''Return a list of the object directories we'll need to search.  These
         are the objects as they are encountered in the document.
-
+        
         The assumption is that file is the unmodified content.xml file from an
         OO Writer document.  It contains two lines and the second line is
         searched with a regular expression.  file can be a filename or stream.
-        """
+        '''
         # Get the XML data
-        if ii(file, str):  # It's a file name
+        if isinstance(file, str):  # It's a file name
             data = open(file).read()
         else:  # It's a stream
             data = file.read()
@@ -104,13 +95,12 @@ if 1:  # Core functionality
                 found.add(i)
                 objects.append(i)
         return objects
-
     def GetEquation(file, zf=None):
-        """file is the name of the 'Object d/content.xml' where d is an
+        '''file is the name of the 'Object d/content.xml' where d is an
         integer.  Read the data, searching for the 'StarMath 5.0' regular
         expression.  If zf is None, file is a regular file; otherwise, it's in
         a ZipFile instance.
-        """
+        '''
         if zf:
             stream = zf.open(file)
         else:
@@ -127,15 +117,14 @@ if 1:  # Core functionality
             return None
         eq = data[0:loc]
         return eq
-
     def FixUnicode(eq):
-        """Standard LaTeX doesn't work with Unicode very well because it was written
+        '''Standard LaTeX doesn't work with Unicode very well because it was written
         before Unicode appeared.  This function, however, will substitute strings
         that will get the same result inside the math environment.
-
+        
         NOTE:  You'll probably want to modify this mapping to fit your needs, as I only
         put in enough to get the results I wanted on the document I was processing.
-        """
+        '''
         di = {
             "Γ": r" \Gamma ",
             "Δ": r" \Delta ",
@@ -161,11 +150,10 @@ if 1:  # Core functionality
         for i in di:
             eq = eq.replace(i, di[i])
         return eq
-
     def AdjustEquation(eq):
         "Make a number of adjustments to make it easier to convert to LaTeX"
-        greek = """alpha beta chi delta epsilon eta gamma iota kappa lambda mu nu
-                omega phi pi psi rho sigma tau theta upsilon xi zeta""".split()
+        greek = '''alpha beta chi delta epsilon eta gamma iota kappa lambda mu nu
+                omega phi pi psi rho sigma tau theta upsilon xi zeta'''.split()
         # Change Greek letters to LaTeX form
         for i in greek:
             j = f"%{i}"
@@ -195,19 +183,15 @@ if 1:  # Core functionality
         eq = eq.replace("&ge;", r" \ge ")
         eq = FixUnicode(eq)
         return eq
-
-
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Help():
-        print(dedent("""
+        print(dedent('''
         The script's purpose
         --------------------
-
+        
         This script is used to print the text in equation objects in Open Document files.
         
         My primary use case for this script is to help me convert Open Document files to LaTeX.
@@ -218,43 +202,43 @@ if 1:  # Utility
         "adjust" means make some conversions to LaTeX that are easy enough to make without having
         to write a full parser.  For example, if the OO math text contains the string "+-", this is
         converted to \pm, which is LaTeX's equivalent.
-
+        
         This script's input files must be Open Document format file(s).  In addition, they must use
         the "StarMath 5.0" annotation in the XML.  I have tested this script on files produced by
         Open Office version 4.1.6.  I tested it on documents from Writer (word processor), Calc
         (spreadsheet), Impress (presentations), and Draw (drawing program).  I'll call these types
         of documents OO documents.
-
+        
         I wrote this script to convert a reference document I wrote a few decades ago to LaTeX.
         This document contained 1113 equations (and about 500 other OLE objects) and the task would
         have been a daunting amount of labor to type the new equations into a *.tex file from
         scratch.  It was still a lot of work, but not as much as doing it from scratch because OO's
         math syntax has similarities to LaTeX -- and once you're fluent in both it's pretty easy to
         translate the equation text in your text editor.  This script did a lot of the work.
-
+        
         NOTE:  It's likely you'll have to hack on this script to get it to work on your own files.
         FixUnicode() is probably one function you'll want to look at. 
-
+        
         Algorithm
         ---------
-
+        
         While I haven't read the Open Document specification, I long ago did a hex dump of an OO
         file and noted that the first two characters were PK, meaning it used zip compression.
         Unzipping the file, you'll see a standard structure.  The only things that concern us here
         are the top-level content.xml file and each ObjectX directory, where X is an integer.
-
+        
         If you peruse https://en.wikipedia.org/wiki/OpenDocument_technical_specification, it states
         that formulas (i.e., equations) are represented as MathML.  If you read
         https://en.wikipedia.org/wiki/MathML#Example_and_comparison_to_other_formats, you'll see
         how the <annotation> XML tag can be used to utilize other non-XML equation formats, such as
         Star Office 5.0.  
-
+        
         This python script is purely heuristic, based on the text I found in the OO documents I
         unzipped.  Thus, it may not work for you -- but it shouldn't be too hard to look at the
         differences/exceptions and figure out how to get things to work.
-
+        
         Here are the steps:
-
+        
             - Open the document as a zipfile using zipfile.ZipFile
             - Get a list of the object directories in the zipfile.  These match the regexp
               r"Object\d+"; keep only one copy of this name.  Note these are in the order they are
@@ -263,20 +247,20 @@ if 1:  # Utility
                 - If there's a "StarMath 5.0" equation object, get its text.
             - Return a list of (a, b) objects where a is the ObjectX string and b is the equation's
               text.
-
+              
         If you run this file as a script, the above list of objects is printed out in a
         easy-to-consume form with ANSI color coding to show the file name and ObjectX string.
-
+        
         Finding the ObjectX directories used a simple regular expression; finding the equation's
         text used simple string manipulations.
-
+        
         Dependencies
         ------------
-
+        
         If you want to run this script, it is dependent on a few files from
         https://github.com/someonesdad1/plib.   These are in the section near the top of the file
         labeled '# Custom imports'.  If you don't want to use these features, they can be removed:
-
+        
             - In the global variables section, add the line 'class t: pass' after the line with '#
               Color'.
             - Remove 'dedent' from print statements (you'll want to manually adjust the argument
@@ -285,10 +269,10 @@ if 1:  # Utility
             - Change lines with t.print() to print().
             - Change the line 'lines = GetLines(file)' to 'open(file).read().split("\n")' if file
               is a string or 'file.read().split("\n")' if file is a stream.
-
+              
         Notes
         -----
-
+        
         In 2014 I contacted Henrik Just, the author of Writer2LaTeX.  Henrik used my reference
         document as a test case for his tool and commented that it helped him find a number of
         errors.  I wasn't able to use it to get LaTeX output at the time.  In Sep 2022, I decided
@@ -297,31 +281,29 @@ if 1:  # Utility
         content.  Since I've long been a believer in separating content from presentation (e.g.,
         the MVC pattern), I've always wanted the document in LaTeX, but was gun-shy of the amount
         of manual work it would take for conversion.  
-
+        
         It turns out the process wasn't as daunting as I thought it would be.  I used the following
         process
-
+        
             - Save the file as a UTF-8-encoded text file to get the document's text.
             - Using a text editor, format this text into paragraphs suitable for LaTeX.
-
-        """.rstrip()
+            
+        '''.rstrip()
             )
         )
         exit(0)
-
     def Usage(status=1):
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options] odfile1 [odfile2...]
             Print out the equations' text in the Open Document files.
         Options:
             -a      Adjust the text for conversion to LaTeX
             -h      Details on how the script works
             -r      Print repr() form of equations rather than str()
-        """)
+        ''')
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = False  # Adjust the equations for LaTeX
         d["-h"] = False  # Print detailed help
@@ -339,7 +321,6 @@ if 1:  # Utility
         if d["-h"]:
             Help()
         return files
-
     def PrintDocumentObjects(document):
         try:
             hyphens = "-" * (W - 2)
@@ -376,13 +357,11 @@ if 1:  # Utility
         except Exception as e:
             print(f"{document}:  Error:  {e}", file=sys.stderr)
 
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     files = ParseCommandLine(d)
     for file in files:
         PrintDocumentObjects(file)
-
 if 0:  # Generate a list of Objects in document order
     o = GetObjects("content.xml")
     # print(f"Found {len(o)} candidates")

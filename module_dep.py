@@ -1,4 +1,4 @@
-"""
+'''
 This module finds all the python files in /plib, then searches all
 other directories for python files and finds those that import /plib
 modules.
@@ -7,102 +7,59 @@ This script will fail on lines like the following:
 
     from modulename import (x,
         y, z)
-
+        
 because it uses a regexp on each line.  Because of this, a function will
 detect lines like 'from modulename import (x,' and stop with an error.
 The suggested fix is to rewrite things as:
 
     from modulename import x
     from modulename import y, z
-
+    
 I feel it's better to just use 'import modulename', but sometimes the
 above style is useful to reduce the length of symbol names.
 
 Other policies enforced by this script are:
-
-    * The python files and modules must either be plain ASCII text or
-      UTF-8 encoded.
-"""
-
-##∞test∞# notest #∞test∞#
-if 1:  # Standard imports
-    import getopt
-    import os
-    import pathlib
-    import re
-    import sys
-    from collections import defaultdict
-if 1:  # Custom imports
-    from wrap import dedent
-if 1:  # Global variables
-    P = pathlib.Path
-    # This will collect bad import lines that need fixing
-    bad = set()
-if 1:  # Utility
-
-    def eprint(*p, **kw):
-        "Print to stderr"
-        print(*p, **kw, file=sys.stderr)
-
-    def Error(msg, status=1):
-        eprint(msg)
-        exit(status)
-
-    def Usage(d, status=1):
-        name = sys.argv[0]
-        print(
-            dedent(f"""
-        Usage:  {name} [options] etc.
-        Explanations...
-        
-        Options:
-          -h
-            Print a manpage.
-        """)
-        )
-        exit(status)
-
-    def ParseCommandLine(d):
-        d["-a"] = False
-        d["-d"] = 3  # Number of significant digits
-        if len(sys.argv) < 2:
-            Usage(d)
-        try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:h")
-        except getopt.GetoptError as e:
-            print(str(e))
-            exit(1)
-        for o, a in opts:
-            if o in ("-a",):
-                d["-a"] = not d["-a"]
-            elif o in ("-d",):
-                try:
-                    d["-d"] = int(a)
-                    if not (1 <= d["-d"] <= 15):
-                        raise ValueError()
-                except ValueError:
-                    msg = "-d option's argument must be an integer between 1 and 15"
-                    Error(msg)
-            elif o in ("-h", "--help"):
-                Usage(d, status=0)
-        if len(args) < 2:
-            Usage(d)
-        return args
-
-
+    - The python files and modules must either be plain ASCII text or UTF-8
+'''
+if 1:  # Header
+    _pgminfo = '''
+        <oo gist ∞ Find module usage oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2022 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ category oo>
+        <oo test ∞ notest oo>
+        <oo todo ∞ oo>
+    '''
+    if 1:  # Standard imports
+        import getopt
+        import os
+        import pathlib
+        import re
+        import sys
+        from collections import defaultdict
+    if 1:  # Custom imports
+        from wrap import dedent
+    if 1:  # Global variables
+        P = pathlib.Path
+        # This will collect bad import lines that need fixing
+        bad = set()
 if 1:  # Core functionality
-
     def GetModuleNames() -> set:
         "Return set of module names"
         # Assumes we're in the correct directory
         return set(P(".").glob("*.py"))
-
     def GetSourceFiles(modules: set) -> set:
         "Get all source files that are not modules"
         ignore = set(
             [
                 P(i)
-                for i in """
+                for i in '''
             pgm/words.py 
             pgm/words_syllables.py
             interval/interval_orig.py
@@ -112,14 +69,12 @@ if 1:  # Core functionality
             regress/kupper/kupper.py
             regress/wesley_phoa/1D_nonlinear_regress.py
             regress/wesley_phoa/mathutil.py
-        """.split()
+        '''.split()
             ]
         )
-
         # Ignore files in these directories
         def f(x):
             return P(x).rglob("*.py")
-
         ignore.update(f("crenshaw"))
         ignore.update(f("g/demo"))
         ignore.update(f("g/gnew/demo"))
@@ -134,11 +89,10 @@ if 1:  # Core functionality
         p = P(".")
         source = set(p.rglob("*.py"))
         return source - ignore - modules
-
     def ProcessFile(file):
-        """Read the file's lines and only keep those lines that have 'import'
+        '''Read the file's lines and only keep those lines that have 'import'
         in them.
-        """
+        '''
         keep = []
         for line in open(file):
             if line.find("import") != -1:
@@ -156,18 +110,15 @@ if 1:  # Core functionality
                 ):
                     keep.append(line)
         return keep
-
     def Used(line, modules):
         found = []
         for m in modules:
             if m in line:
                 found.append(m)
         return found
-
     def NotAComment(line):
         s = line.lstrip()
         return s and s[0] != "#"
-
     def GetFilesImportLines(file: P) -> list:
         "Return lines that aren't comments that contain 'import'"
         lines = []
@@ -182,7 +133,6 @@ if 1:  # Core functionality
                         msg = f"{file}:  '{line}'"
                         bad.add(msg)
         return lines
-
     GetFilesImportLines.r = re.compile(r"^\s*import |^\s*from\s+.*\s+import\s+")
     GetFilesImportLines.regexps = (
         re.compile(r"\bprint\s+[^(]"),
@@ -192,22 +142,19 @@ if 1:  # Core functionality
         re.compile(r"\bexcept\s*\w+,\b"),
         re.compile(r"\bunicode\b"),
     )
-
     def BadImportLine(line, file):
-        """Stop on a bad import line like
+        '''Stop on a bad import line like
             'from x import (y, z, '
         that doesn't contain ')'.
-        """
+        '''
         assert "import" in line
         if "(" in line and ")" not in line:
             bad.add(str(file))
-
     def FileUsesModule(import_lines: list, module: P, file: P) -> bool:
         def ScrubLine(line):
             'Replace "(", ")", and "," with space characters'
             s = " "
             return line.replace("(", s).replace(")", s).replace(",", s)
-
         name_token = module.name[:-3]
         for line in import_lines:
             BadImportLine(line, file)
@@ -215,13 +162,12 @@ if 1:  # Core functionality
             if name_token in tokens:
                 return True
         return False
-
     def GetUsed(modules: set, sources: set) -> dict:
-        """Return a dict of module names with the list of the file(s)
+        '''Return a dict of module names with the list of the file(s)
         in sources that import that name.  An example entry would be:
             P("sig.py"): [P("pgm/file1.py"), P("pgm/file2.py"), ...],
         where P is a pathlib.Path instance.
-        """
+        '''
         assert all([str(i).endswith(".py") for i in modules])
         out = defaultdict(list)
         for file in sources:
@@ -236,9 +182,50 @@ if 1:  # Core functionality
                 if FileUsesModule(import_lines, module, file):
                     out[module].append(file)
         return out
-
-
 if __name__ == "__main__":
+    if 1:  # Utility
+        def Warn(*p, **kw):
+            'Print to stderr'
+            print(*p, **kw, file=sys.stderr)
+        def Error(msg, status=1):
+            Warn(msg)
+            exit(status)
+        def Usage(d, status=1):
+            name = sys.argv[0]
+            print(dedent(f'''
+            Usage:  {name} [options] etc.
+            Explanations...
+            Options:
+            -h
+                Print a manpage.
+            '''))
+            exit(status)
+        def ParseCommandLine(d):
+            d["-a"] = False
+            d["-d"] = 3  # Number of significant digits
+            if len(sys.argv) < 2:
+                Usage(d)
+            try:
+                opts, args = getopt.getopt(sys.argv[1:], "ad:h")
+            except getopt.GetoptError as e:
+                print(str(e))
+                exit(1)
+            for o, a in opts:
+                if o in ("-a",):
+                    d["-a"] = not d["-a"]
+                elif o in ("-d",):
+                    try:
+                        d["-d"] = int(a)
+                        if not (1 <= d["-d"] <= 15):
+                            raise ValueError()
+                    except ValueError:
+                        msg = "-d option's argument must be an integer between 1 and 15"
+                        Error(msg)
+                elif o in ("-h", "--help"):
+                    Usage(d, status=0)
+            if len(args) < 2:
+                Usage(d)
+            return args
     d = {}  # Options dictionary
     os.chdir("/plib")
     modules = GetModuleNames()

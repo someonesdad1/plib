@@ -2,19 +2,20 @@
 Contains various routines related to prime numbers and factoring.
 '''
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2011 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        #
-        ##∞what∞#
-        ##∞test∞# --test #∞test∞#
-        pass
+    _pgminfo = '''
+        <oo gist ∞ Prime numbers and factoring oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2011 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ math oo>
+        <oo test ∞ --test oo>
+        <oo todo ∞ oo>
+    '''
     if 1:  # Standard imports
         import collections
         import itertools
@@ -38,17 +39,17 @@ if 1:  # Header
         from color import t
         from multiset import Multiset
     if 1:  # Global variables
-        ii = isinstance
         t.prime = t.redl
         t.number = t.skyl
         nl = "\n"
         __all__ = '''AllFactors Factor FactorList FormatFactors IsPrime
                      PrimeList PrimeNumberSieve Primes FactorGenerator
+                     RemoveCommonFactors
                   '''.split()
         d = {"-c": False}
 if 1:  # Core functionality
     def IsPositiveInteger(n, msg):
-        if n < 1 or not ii(n, int):
+        if n < 1 or not isinstance(n, int):
             raise ValueError(msg)
     def FactorGenerator(n, big=True):
         '''A generator that returns the prime factors an integer n.  If big is True,
@@ -246,14 +247,14 @@ if 1:  # Core functionality
                 itertools.zip_longest(*[range(i, n, 6) for i in (1, 5)]))
             ans.extend(itertools.compress(poss, sieve))
             return ans
-    def Reduce(*integers):
+    def RemoveCommonFactors(*integers):
         '''Return a tuple of the input integers with common factors removed.
         This implementation requires the multiset on PyPi:  'pip install multiset'.
         Examples:
-            Reduce(*(1, 2, 4, 8)) returns (1, 2, 4, 8).
-            Reduce(*(2, 6, 8, 2)) returns (1, 3, 4, 1).
-            Reduce(*(300, 400)) returns (3, 4).
-            Reduce(*(6, 8, 10)) returns (3, 4, 5).
+            RemoveCommonFactors(*(1, 2, 4, 8)) returns (1, 2, 4, 8).
+            RemoveCommonFactors(*(2, 6, 8, 2)) returns (1, 3, 4, 1).
+            RemoveCommonFactors(*(300, 400)) returns (3, 4).
+            RemoveCommonFactors(*(6, 8, 10)) returns (3, 4, 5).
         '''
         # Special cases
         if not integers or len(integers) == 1:
@@ -346,20 +347,20 @@ if __name__ == "__main__":
             # Test with split
             s = AllFactors(100, split=True)
             Assert(s == ([2, 2, 5, 5], [4, 10, 20, 25, 50]))
-        def Test_Reduce():
-            raises(ValueError, Reduce, *(0, 1))   # Has 0 element
+        def Test_RemoveCommonFactors():
+            raises(ValueError, RemoveCommonFactors, *(0, 1))   # Has 0 element
             for s in (tuple(), (1,), (2,), (4,), (1, 2, 3)):
-                r = Reduce(*s)
+                r = RemoveCommonFactors(*s)
                 Assert(r == s)
             #
             k = (1, 1, 1)
             for i in range(2, 20):
                 s = [2*j for j in k]
-                r = Reduce(*s)
+                r = RemoveCommonFactors(*s)
                 Assert(r == k)
             #
             s = (2, 4, 12, 8, 4, 2)
-            r = Reduce(*s)
+            r = RemoveCommonFactors(*s)
             Assert(r == (1, 2, 6, 4, 2, 1))
     if 1:  # Utility
         def Error(*msg, status=1):

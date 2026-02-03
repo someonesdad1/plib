@@ -1,13 +1,12 @@
 '''
 Calculate readability statistics for a set of files
 
-    I use this script to estimate the Flesch-Kincaid US grade level (FKGL)
-    for the text files on the command line.  For my own writing, I aim to
-    have an FKGL score of <= 8 for general writing and <= 12 for technical
-    writing.
+    I use this script to estimate the Flesch-Kincaid US grade level (FKGL) for the text
+    files on the command line.  For my own writing, I aim to have an FKGL score of <= 8
+    for general writing and <= 12 for technical writing.
     
-    Hemingway:  "I write one page of masterpiece to ninety-one pages of
-    shit.  I try to put the shit in the wastebasket."
+    Hemingway:  "I write one page of masterpiece to ninety-one pages of shit.  I try to
+    put the shit in the wastebasket."
     
     Some references on writing:
         - Malcom Forbes, "How to Write a Business Letter"
@@ -17,19 +16,17 @@ Calculate readability statistics for a set of files
         - Chicago Manual of Style
         
         
-https://en.wikipedia.org/wiki/Readability#Using_the_readability_formulas
+    https://en.wikipedia.org/wiki/Readability#Using_the_readability_formulas
 
-    Most experts agree that simple readability formulas like Flesch–Kincaid
-    grade-level can be highly misleading. Even though the traditional
-    features like the average sentence length have high correlation with
-    reading difficulty, the measure of readability is much more complex.
-    The artificial intelligence, data-driven approach (see above) was
-    studied to tackle this shortcoming.
-    
-While I recognize the complexity of the task to "measure" readability, the
-simplicity of the formulas like those used in this script are attractive
-compared to the work needed to generate the AI tools mentioned in the
-wikipedia article.
+        Most experts agree that simple readability formulas like Flesch–Kincaid
+        grade-level can be highly misleading. Even though the traditional features like
+        the average sentence length have high correlation with reading difficulty, the
+        measure of readability is much more complex.  The artificial intelligence,
+        data-driven approach (see above) was studied to tackle this shortcoming.
+        
+    While I recognize the complexity of the task to "measure" readability, the
+    simplicity of the formulas like those used in this script are attractive compared to
+    the work needed to generate the AI tools mentioned in the wikipedia article.
 
 '''
 if 1:  # Header
@@ -166,7 +163,7 @@ if 1:  # Utility
         unreadable.  Nevertheless, I've found the FKGL statistic works well for
         assessing plain prose in ASCII text form.
         
-        If you use the -e option, you can see the characters, words, etc.  given to 2
+        If you use the -e option, you can see the characters, words, etc. given to 2
         significant figures, making easier to estimate other statistics.
          
         Some FKGL examples

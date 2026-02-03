@@ -1,26 +1,30 @@
-"""
+'''
 Dump the colors in rgbdata.py's list to stdout
     They are decorated with their ANSI escape codes and will display in a
     24-bit color terminal.  In a mintty terminal full-screen on cygwin with
     548 columns and 157 lines, all 6743 of these colored strings are shown
     at the same time on my 4k monitor (there are over 10000 in the
     rgbdata.py file, but there are many duplicates.
-"""
-
+'''
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # Program description string
-        ##∞what∞#
-        ##∞test∞# notest #∞test∞#
-        pass
+    _pgminfo = '''
+        <oo gist ∞ Dump the colors in rgbdata.py's list to stdout oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2022 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ utility oo>
+        <oo test ∞ notest oo>
+        <oo todo ∞ 
+        
+            - ∞∞3 This could be merged with the main code in rgbdata.py
+        
+        oo>
+    '''
     if 1:  # Standard imports
         import getopt
         import os
@@ -29,62 +33,13 @@ if 1:  # Header
         from rgbdata import color_data
         from wrap import dedent
         from color import Color, t
-if 1:  # Utility
-
-    def Error(*msg, status=1):
-        print(*msg, file=sys.stderr)
-        exit(status)
-
-    def Usage(status=1):
-        print(
-            dedent(f"""
-        Usage:  {sys.argv[0]} [options] sort_order
-          Print the colors' hex string to stdout wrapped in its 24-bit ANSI escape code.  RGB hex
-          values are shown in lower case; upper case is used for HSV.
-          
-          The sort order is given by the order of the letters of "rgb", "hsv", or "HLS".
-          Unfortunately, the 's' in 'hls' and 'hsv' mean different things, though they both are
-          described by 'saturation'.  Example: "hvs" means to sort by hue first, followed by
-          value, and finally by saturation.
-        Options:
-            -d      Truncate data for debugging
-            -h      Show hsv values
-            -l      Show HLS values
-            -r      Show rgb values (default)
-        """)
-        )
-        exit(status)
-
-    def ParseCommandLine(d):
-        d["-d"] = False  # Debug:  truncate the data for debugging
-        d["-h"] = False  # Show hsv values
-        d["-l"] = False  # Show HLS values
-        d["-r"] = False  # Show rgb values
-        try:
-            opts, args = getopt.getopt(sys.argv[1:], "dhlr")
-        except getopt.GetoptError as e:
-            print(str(e))
-            exit(1)
-        for o, a in opts:
-            if o[1] in list("dhlr"):
-                d[o] = not d[o]
-        if not args:
-            Usage()
-        if not d["-h"] and not d["-l"] and not d["-r"]:
-            d["-r"] = True
-        sort_order = CheckSortLetters(args[0])
-        return sort_order
-
-
 if 1:  # Core functionality
-
     def CheckSortLetters(letters):
         allowed = [set("rgb"), set("hsv"), set("HLS")]
         s = set(letters)
         if s not in allowed:
             Error("sort_order must be orderings of 'rgb', 'hsv', or 'HLS'")
         return letters
-
     def GetColors(sort_order):
         "Return a sorted list of rgb.Color objects"
         colors = [i[2] for i in color_data]
@@ -93,7 +48,6 @@ if 1:  # Core functionality
         # Sort the data
         sorted_colors = list(Color.Sort(colors, keys=sort_order))
         return sorted_colors
-
     def DumpColors(colors):
         size = len(colors)
         w = int(os.environ.get("COLUMNS", "80"))
@@ -122,9 +76,49 @@ if 1:  # Core functionality
                 print()
         duplicates = size - len(used)
         print(f"\n{count} colors printed ({duplicates} duplicates)")
-
-
 if __name__ == "__main__":
+    if 1:  # Utility
+        def Error(*msg, status=1):
+            print(*msg, file=sys.stderr)
+            exit(status)
+        def Usage(status=1):
+            print(
+                dedent(f'''
+            Usage:  {sys.argv[0]} [options] sort_order
+            Print the colors' hex string to stdout wrapped in its 24-bit ANSI escape code.  RGB hex
+            values are shown in lower case; upper case is used for HSV.
+            
+            The sort order is given by the order of the letters of "rgb", "hsv", or "HLS".
+            Unfortunately, the 's' in 'hls' and 'hsv' mean different things, though they both are
+            described by 'saturation'.  Example: "hvs" means to sort by hue first, followed by
+            value, and finally by saturation.
+            Options:
+                -d      Truncate data for debugging
+                -h      Show hsv values
+                -l      Show HLS values
+                -r      Show rgb values (default)
+            ''')
+            )
+            exit(status)
+        def ParseCommandLine(d):
+            d["-d"] = False  # Debug:  truncate the data for debugging
+            d["-h"] = False  # Show hsv values
+            d["-l"] = False  # Show HLS values
+            d["-r"] = False  # Show rgb values
+            try:
+                opts, args = getopt.getopt(sys.argv[1:], "dhlr")
+            except getopt.GetoptError as e:
+                print(str(e))
+                exit(1)
+            for o, a in opts:
+                if o[1] in list("dhlr"):
+                    d[o] = not d[o]
+            if not args:
+                Usage()
+            if not d["-h"] and not d["-l"] and not d["-r"]:
+                d["-r"] = True
+            sort_order = CheckSortLetters(args[0])
+            return sort_order
     d = {}  # Options dictionary
     sort_order = ParseCommandLine(d)
     colors = GetColors(sort_order)

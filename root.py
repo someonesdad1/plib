@@ -1,74 +1,4 @@
 '''
-
-TODO
-    - Remove args & kw from everything except Crenshaw and Bisection
-        - These are used for more complicated cases
-        - Ridders, Brent, ITP for speedy evaluations & single-argument functions
-    - Add fp=float, dbg=None, args=[], kw={} to each call
-        - Modify each line to make sure each number is type fp
-        - If dbg is not None, it's a stream to send debugging messages to
-        - Put in the necessary Dbg calls
-        - Equip function calls with args & kw
-    - Primary routines
-        - Ridders, Brent, and Rootfinder are the fastest on the cos(x)-x example.  All
-          things being equal, the simplest and shortest code should be preferred.
-    - The beginning root bracketing of each method could be a separate function called
-      RootIsBracketed(a, b, f) which raises an exception if it's not bracketed
-    - Standardization
-        - (a, b) brackets root, f for function name
-        - Functions should have same args & kw
-        - Rename epsilon to something that is specific to complex numbers
-        - dbg should be a boolean that causes debugging output to stderr so that you can
-          see convergence
-    - Debugging
-        - Use dbg == stream in function calls to turn it on
-        - Colorized output goes to stream
-        - Done with Dbg()
-    - Jack's convergence observation
-        - Figure out the slightly better criterion used in Crenshaw and add it to both
-          RootFinder and kbrent.
-    - fp argument
-        - See if every routine can be given an fp keyword argument; this would be the
-          floating point type to use for the calculations.  Default to flt.  Does this
-          change by virtue of e.g. needing a math module inside the functions?  If so,
-          then float may be the only real choice.
-        - No, math module not used in root finding modules (except ceil in bisect())
-
-    - Change printing stuff to use f-strings, as they are easier to read
-    - Each routine should make use of a debug stream passed into the function.  Watching
-      an algorithm converge or diverge is helpful to understand what's going on.
-        - Use some standardized color names in the module for debugging output
-            - grnl abscissa
-            - yell ordinate
-            - ornl for convergence quality
-    - Quadratic, etc.
-        - It's possible that this code will work without modifications on both
-          floats/complex and mpf/mpc numbers.  If so, point this out.
-        - Consider converting the routines to use Decimal numbers
-    - Write a test routine that sets up a number of different problems and reports on
-      the time each method uses, number of iterations, and goodness of answer.  This
-      could obviously uncover some things that might not work right, as they should give
-      the same answers.  This would make a good addition to the testing strategy.
-    - Ostrokowksi
-        - Uses tol as a relative convergence number rather than absolute like the other
-          methods.  This probably should be standardized to an absolute number.
-        - Include fp, args, kw
-
-    - Recommendations
-        - Many of us probably work with problems whose information comes from physical
-          measurements.  Such data are likely to only have a few digits of relevance.
-          Since today's computers are so fast, you can probably find your root
-          adequately with the simple bisection algorithm.
-        - Start with bisection because it's reliable.  Switch to other methods when you
-          run into problems.  Brent and RootFinder and the same basic algorith; Ridders
-          is similar but uses a different interpolation function.  
-        - https://www.cs.princeton.edu/courses/archive/fall12/cos323/notes/cos323_f12_lecture02_rootfinding.pdf
-          is a good overview of the basics.  The three pictures on page 9 show some of
-          the things that can go wrong:  1) a root at a tangent point, 2) a singularity,
-          and 3) a pathological case.  Construct some test cases using these cases.
-
----------------------------------------------------------------------------
-
 Root Finding Routines
 
     - Ridders, Brent, ITP are for single argument functions and are intended to be fast
@@ -84,95 +14,166 @@ Root Finding Routines
         - fp type to use float, flt, mpmath.mpf, or Decimal math types
         - itmax to control maximum number of iterations
 
-References ([x:y:z] means page y in reference x or page z in the PDF form)
-    
-    [1] Various emails with Jack Crenshaw around 2014
-    
-    [2] J. Kiusalaas, "Numerical Methods in Engineering with Python", Cambridge
-        University Press, 2005.  You can download the book's algorithms from
-        http://www.cambridge.org/us/download_file/202203/.
-    
-    [3] W. Press, et. al., "Numerical Recipes in C", 2nd ed., Cambridge University
-        Press, 1992.
-    
----------------------------------------------------------------------------
-    
-Division by multiplication & subtraction
+    - Recommendations
+        - Many of us probably work with problems whose information comes from physical
+          measurements.  Such data are likely to only have a few digits of relevance.
+          Since today's computers are so fast, you can probably find your root nicely
+          with bisection.
+        - Start with bisection because it's reliable.  Switch to other methods when you
+          run into problems.  Brent and RootFinder and the same basic algorithm; Ridders
+          is similar but uses a different interpolation function.  
+        - https://www.cs.princeton.edu/courses/archive/fall12/cos323/notes/cos323_f12_lecture02_rootfinding.pdf
+          is a good overview of the basics.  The three pictures on page 9 show some of
+          the things that can go wrong:  1) a root at a tangent point, 2) a singularity,
+          and 3) a pathological case.  Construct some test cases using these cases.
 
-    https://www.cs.princeton.edu/courses/archive/fall12/cos323/notes/cos323_f12_lecture02_rootfinding.pdf
-    notes that in some computers a hardware divide is not available, so division can be
-    simulated in software by using Newton-Raphson iteration using only multiplication
-    and subtraction:
+    References ([x:y:z] means page y in reference x or page z in the PDF form)
+        
+        [1] Various emails with Jack Crenshaw around 2014
+        
+        [2] J. Kiusalaas, "Numerical Methods in Engineering with Python", Cambridge
+            University Press, 2005.  You can download the book's algorithms from
+            http://www.cambridge.org/us/download_file/202203/.
+        
+        [3] W. Press, et. al., "Numerical Recipes in C", 2nd ed., Cambridge University
+            Press, 1992.
     
-        a/b = a*(1/b)
-        f(x) = 1/x - b = 0  Solve f(x) = 0 to get reciprocal of b
-        f'(x) = -1/x**2
-        x[n+1] = x - (1/x - b)/(-1/x**2)   (Here x = x[n])
-               = x*(2 - b*x)
-    
-    Example:  calculate 3/5.  a = 3 and b = 5.  Start with x = 0.1.  Some python code
-    for this iteration is (this calculates 1/b)
-    
-        x, b = 0.1, 5
-        tol = 1e-15     # Roughly floating point precision
-        for i in range(20):
-            xnew = x*(2 - b*x)
-            print(f"{i:2d} {xnew:.15f}")
-            if abs(x - xnew) < tol:
-                break
-            x = xnew
-    
-    which prints out the calculation of 1/5 as
-    
-        0 0.150000000000000
-        1 0.187500000000000
-        2 0.199218750000000
-        3 0.199996948242188
-        4 0.199999999953434
-        5 0.200000000000000
-        6 0.200000000000000
-    
-    Here's another example:  calculate 42.7/6.2.  Use 0.1 as a starting value to get an
-    iterative calculation of 1/6.2:
-    
-        0 0.138000000000000
-        1 0.157927200000000
-        2 0.161220196900992
-        3 0.161290292091457
-        4 0.161290322580639
-        5 0.161290322580645
-        6 0.161290322580645
-    
-    But the starting value is important:  try the same problem but start with x = 7.
-    The algorithm diverges and results in -∞.  This is a well-known weakness of
-    Newton-Raphson root-finding, as it is unstable when the function's derivative is a
-    small number.  Here, f'(7) is about -0.02.
+    Division by multiplication & subtraction
+
+        https://www.cs.princeton.edu/courses/archive/fall12/cos323/notes/cos323_f12_lecture02_rootfinding.pdf
+        notes that in some computers a hardware divide is not available, so division can be
+        simulated in software by using Newton-Raphson iteration using only multiplication
+        and subtraction:
+        
+            a/b = a*(1/b)
+            f(x) = 1/x - b = 0  Solve f(x) = 0 to get reciprocal of b
+            f'(x) = -1/x**2
+            x[n+1] = x - (1/x - b)/(-1/x**2)   (Here x = x[n])
+                = x*(2 - b*x)
+        
+        Example:  calculate 3/5.  a = 3 and b = 5.  Start with x = 0.1.  Some python code
+        for this iteration is (this calculates 1/b)
+        
+            x, b = 0.1, 5
+            tol = 1e-15     # Roughly floating point precision
+            for i in range(20):
+                xnew = x*(2 - b*x)
+                print(f"{i:2d} {xnew:.15f}")
+                if abs(x - xnew) < tol:
+                    break
+                x = xnew
+        
+        which prints out the calculation of 1/5 as
+        
+            0 0.150000000000000
+            1 0.187500000000000
+            2 0.199218750000000
+            3 0.199996948242188
+            4 0.199999999953434
+            5 0.200000000000000
+            6 0.200000000000000
+        
+        Here's another example:  calculate 1/6.2.  Use 0.1 as a starting value to get an
+        iterative calculation of 1/6.2:
+        
+            0 0.138000000000000
+            1 0.157927200000000
+            2 0.161220196900992
+            3 0.161290292091457
+            4 0.161290322580639
+            5 0.161290322580645
+            6 0.161290322580645
+        
+        But the starting value is important:  try the same problem but start with x = 7.
+        The algorithm diverges and results in -∞.  This is a well-known weakness of
+        Newton-Raphson root-finding, as it is unstable when the function's derivative is a
+        small number.  Here, f'(7) is about -0.02.
     
 '''
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2006, 2010 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # <math> Root finding routines
-        ##∞what∞#
-        ##∞test∞# testdir #∞test∞#
-        pass
-    if 1:  # Imports
+    _pgminfo = '''
+        <oo gist ∞ Root-finding routines oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2006, 2010 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ math oo>
+        <oo test ∞ testdir oo>
+        <oo todo ∞
+        
+            - Remove args & kw from everything except Crenshaw and Bisection
+                - These are used for more complicated cases
+                - Ridders, Brent, ITP for speedy evaluations & single-argument functions
+            - Add fp=float, dbg=None, args=[], kw={} to each call
+                - Modify each line to make sure each number is type fp
+                - If dbg is not None, it's a stream to send debugging messages to
+                - Put in the necessary Dbg calls
+                - Equip function calls with args & kw
+            - Primary routines
+                - Ridders, Brent, and Rootfinder are the fastest on the cos(x)-x
+                  example.  All things being equal, the simplest and shortest code
+                  should be preferred.
+            - Construct some test cases from the pathological behaviors at
+              https://www.cs.princeton.edu/courses/archive/fall12/cos323/notes/cos323_f12_lecture02_rootfinding.pdf
+            - The beginning root bracketing of each method could be a separate function
+              called RootIsBracketed(a, b, f) which raises an exception if it's not
+              bracketed
+            - Standardization
+                - (a, b) brackets root, f for function name
+                - Functions should have same args & kw
+                - Rename epsilon to something that is specific to complex numbers
+                - dbg should be a boolean that causes debugging output to stderr so that
+                  you can see convergence
+            - Debugging
+                - Use dbg == stream in function calls to turn it on
+                - Colorized output goes to stream
+                - Done with Dbg()
+            - Jack's convergence observation
+                - Figure out the slightly better criterion used in Crenshaw and add it
+                  to both RootFinder and kbrent.
+            - fp argument
+                - See if every routine can be given an fp keyword argument; this would
+                  be the floating point type to use for the calculations.  Default to
+                  flt.  Does this change by virtue of e.g. needing a math module inside
+                  the functions?  If so, then float may be the only real choice.
+                - No, math module not used in root finding modules (except ceil in
+                  bisect())
+            - Change printing stuff to use f-strings, as they are easier to read
+            - Each routine should make use of a debug stream passed into the function.
+              Watching an algorithm converge or diverge is helpful to understand what's
+              going on.
+                - Use some standardized color names in the module for debugging output
+                    - grnl abscissa
+                    - yell ordinate
+                    - ornl for convergence quality
+            - Quadratic, etc.
+                - It's possible that this code will work without modifications on both
+                  floats/complex and mpf/mpc numbers.  If so, point this out.
+                - Consider converting the routines to use Decimal numbers
+            - Write a test routine that sets up a number of different problems and
+              reports on the time each method uses, number of iterations, and goodness
+              of answer.  This could obviously uncover some things that might not work
+              right, as they should give the same answers.  This would make a good
+              addition to the testing strategy.
+            - Ostrokowksi
+                - Uses tol as a relative convergence number rather than absolute like
+                  the other methods.  This probably should be standardized to an
+                  absolute number.
+                - Include fp, args, kw
+        
+        oo>
+    '''
+    if 1:  # Standard imports
         import decimal
         import math
         import numbers
         import sys
     if 1:  # Custom imports
         from color import t
-        from lwtest import Assert
-        from wrap import dedent
-        from timer import Timer
         from f import flt
         try:
             import mpmath
@@ -184,12 +185,12 @@ if 1:  # Header
             debug.SetDebugger()
     if 1:  # Global variables
         t.dbg = t.skyl   # Color for debugging output
-if 1:  # Root finders that don't need derivative
+if 1:  # Root finders that don't need a derivative (but you must bracket the root)
     def Crenshaw(a, b, f, tol=1e-6, itmax=50, fp=float, dbg=None, args=[], kw={}):
         '''Return (root, num_iterations) where root is a root of the function f() that
         lies in the interval [a, b] and num_iterations is the number of iterations it
         took to find the root.
-
+        
         a       Start of bracketing interval
         b       End of bracketing interval
         f       Function to evaluate.  If it needs more than one argument or keyword
@@ -299,14 +300,14 @@ if 1:  # Root finders that don't need derivative
     def Bisection(a, b, f, tol=1e-6, itmax=None, switch=False, fp=float, dbg=None, args=[], kw={}):
         '''Returns (root, num_it) (the root and number of iterations) by finding a root
         of f(x) = 0 by bisection.  The root must be bracketed in [a, b].  Adapted from
-        [2:145:154].
-
+        Kiusalaas [2:145:154].
+        
         switch      If True, an exception will be raised if the function appears to be
                     increasing during bisection.  Be careful with this, as the
                     polynomial test case converges just fine with bisection, but will
                     cause an exception if switch is True.  It is intended to handle the
                     case where the number being converged on is a singularity.
-
+        
         itmax       Limit the number of iterations to this value if not None.  Since the
                     number of iterations is N = log2(|a - b|/tol), setting itmax to less
                     than N will lose precision.  
@@ -321,22 +322,22 @@ if 1:  # Root finders that don't need derivative
         
         Example
         -------
-
+        
         The function cos(x) - x can be shown to have a root at 0.739 radians by
         continuously pressing the cos key on a calculator, which finds the root by
         iteration (see Whittaker & Robinson, "The Calculus of Observations", p. 81,
         1924).
-
+        
             from math import pi, cos
             Bisection(0, pi/2, lambda x: cos(x) - x) --> (0.7390855007577259, 21)
-
+        
         Method
         ------
-
+        
         If the root is bracketed and the function is continuous, bisection is guaranteed
         to converge because of the intermediate value theorem.  It may also try to
         converge on a singularity.  
-
+        
         The method is conceptually simple to understand: draw a line between the two
         bracketing points and look at the midpoint.  Choose the new interval containing
         the midpoint and the other point that evaluates to the opposite sign.  Repeat
@@ -482,7 +483,7 @@ if 1:  # Root finders that don't need derivative
         raise ValueError(f"Number of iterations exceeded {itmax}")
     def ITP(a, b, f, tol=1e-6, itmax=50, k1=None, k2=2, n0=1, fp=float):
         '''Return (root, num_iterations) for the root of the function f.
-
+        
         a       Start of bracketing interval
         b       End of bracketing interval
         f       Function (univariate) to evaluate
@@ -491,7 +492,7 @@ if 1:  # Root finders that don't need derivative
         itmax   Maximum number of iterations; if exceeded, a ValueError will be raised
         fp      Number type to do the calculations with (float, Decimal, mpmath.mpf
                 supported)
-
+        
         Translation into python of John Burkardt's C routine (see
         https://people.sc.fsu.edu/~jburkardt/f_src/zero_itp/zero_itp.html, last modified
         2 Mar 2024).  All variables are C doubles except nh and nmax, which are integer.
@@ -562,7 +563,7 @@ if 1:  # Root finders that don't need derivative
                 - x_itp = x_b - σ*βₖ where
                     - βₖ = min(ϵ*2**(noh + n0 - j) - (b - a)/2, abs(x_t - x_b))
                 - (j not defined, but used in the pseudocode)
-
+        
         '''
         a, b, tol = fp(a), fp(b), fp(tol)
         if a == b:
@@ -641,7 +642,7 @@ if 1:  # Root finders that need derivative
                 raise ValueError(f"Number of iterations exceeded {itmax}")
     def Ostrowski(x, f, fderiv, tol=1e-6, itmax=50, fp=float):
         '''Returns (root, num_iterations) for the root of the function f(x).
-
+        
         x           Initial guess for the root
         f           The function f(x)
         fderiv      The first derivative of f
@@ -691,7 +692,7 @@ if 1:  # Searching intervals for roots by sign changes
         fp      Floating point type to do calculations with
         args    Extra arguments for f
         kw      Extra keyword arguments for f
-
+        
         Divide [a, b] into n subintervals and examine each one for a zero crossing.
         Idea from [3:352].
         '''
@@ -768,7 +769,7 @@ if 1:  # Searching intervals for roots by sign changes
     def BracketRoots(f, x1, x2, itmax=50, fp=float, args=[], kw={}):
         '''Given a function f and an initial interval [x1, x2], expand the interval
         geometrically until a root is bracketed or the number of iterations exceeds
-        itmax.  Return (a, b), where the interval [a, b]  brackets a root.  If the
+        itmax.  Return (a, b), where the interval [a, b] brackets a root.  If the
         maximum number of iterations is exceeded, an exception is raised.
         
         fp      Floating point type to use
@@ -782,25 +783,22 @@ if 1:  # Searching intervals for roots by sign changes
         if x1 > x2:
             x1, x2 = x2, x1
         if args:
-            f1, f2 = (
-                (f(x1, *args, **kw), f(x2, *args, **kw))
-                if kw
-                else (f(x1, *args), f(x2, *args))
-            )
+            f1, f2 = ((f(x1, *args, **kw), f(x2, *args, **kw)) if kw
+                        else (f(x1, *args), f(x2, *args)))
         else:
             f1, f2 = (f(x1, **kw), f(x2, **kw)) if kw else (f(x1), f(x2))
         factor, count = fp("1.6"), 0
         while True:
-            if f1 * f2 < zero:
+            if f1*f2 < zero:
                 return (x1, x2)
             if abs(f1) < abs(f2):
-                x1 += factor * (x1 - x2)
+                x1 += factor*(x1 - x2)
                 if args:
                     f1 = f(x1, *args, **kw) if kw else f(x1, *args)
                 else:
                     f1 = f(x1, **kw) if kw else f(x1)
             else:
-                x2 += factor * (x2 - x1)
+                x2 += factor*(x2 - x1)
                 if args:
                     f2 = f(x2, *args, **kw) if kw else f(x2, *args)
                 else:
@@ -880,9 +878,9 @@ if 0:  # Crenshaw
             def dx(x):
                 diff = abs(x - d["xlast"])
                 if d["xlast"]:
-                    return diff / d["xlast"]
+                    return diff/d["xlast"]
                 elif x:
-                    return diff / x
+                    return diff/x
                 else:
                     return 0
             if args:
@@ -896,7 +894,7 @@ if 0:  # Crenshaw
                 "f(x): x = {x:.{p}g}, y = {y:.{p}g}, Y min/max: "
                 "[{ymin:.{p}g}, {ymax:.{p}g}]".format(**locals())
             )
-            d["converged"] = abs(y) < d["eps"] * (ymax - ymin) and dx(x) < eps
+            d["converged"] = abs(y) < d["eps"]*(ymax - ymin) and dx(x) < eps
             return y
         Dbg(
             '''Crenshaw() called with:
@@ -920,7 +918,7 @@ if 0:  # Crenshaw
             Dbg("--> Converged to " + str((x3, 0)))
             return (x3, 0)
         # If the signs are the same, we were given bad initial values of x1, x3
-        if y3 * y1 > 0.0:
+        if y3*y1 > 0.0:
             raise ValueError("Root not bracketed")
         for i in range(itmax):
             x2 = (x3 + x1)/2  # Bisection step
@@ -929,11 +927,11 @@ if 0:  # Crenshaw
             if not y2 or d["converged"]:
                 Dbg("--> Converged to " + str((x2, i + 1)))
                 return (x2, i + 1)
-            if y2 * y1 > 0:  # Relabel to keep the root between x1 and x2.
+            if y2*y1 > 0:  # Relabel to keep the root between x1 and x2.
                 x1, x3, y1, y3 = x3, x1, y3, y1
             # Attempt a parabolic interpolation.
             y21, y32, y31 = y2 - y1, y3 - y2, y3 - y1
-            if y3 * y31 < 2 * y2 * y21:
+            if y3*y31 < 2*y2*y21:
                 # Do another bisection
                 x3, y3 = x2, y2
                 Dbg("Can't use parabolic; x3 now {x3:.{p}g}".format(**locals()))
@@ -941,15 +939,15 @@ if 0:  # Crenshaw
                 # Parabolic interpolation
                 try:
                     # y21 and y31 cannot be zero, but y32 might.
-                    b, c = (x2 - x1)/y21, (y21 - y32)/(y32 * y31)
-                    xm = x1 - b * y1 * (1 - c * y2)
+                    b, c = (x2 - x1)/y21, (y21 - y32)/(y32*y31)
+                    xm = x1 - b*y1*(1 - c*y2)
                     ym = F(xm, opts=d)
                     Dbg("Parabolic xm = {xm:.{p}g}, ym = {ym:.{p}g}".format(**locals()))
                     if not ym or d["converged"]:
                         Dbg("--> Converged to " + str((xm, i + 1)))
                         return (xm, i + 1)
                     # Relabel to keep root between x1 and x2.
-                    if ym * y1 < 0:
+                    if ym*y1 < 0:
                         x3, y3 = xm, ym
                     else:
                         x1, y1, x3, y3 = xm, ym, x2, y2
@@ -1047,7 +1045,7 @@ if 1:  # Polynomials
         -------
             The cubic equation x**3 + x**2 + x + 1 = 0 has the roots -1, i, and -i, as
             can be shown from expanding (x + 1)(x + i)(x - i).
-
+        
             for i in Cubic(1, 1, 1, 1):
                 print(i)
             prints
@@ -1062,7 +1060,7 @@ if 1:  # Polynomials
                 1j
                 -1j
             showing how the Pound() function eliminates the small real parts.
-
+        
             Note
                 for i in Cubic(1, 1, 1, 1, force_real=True):
                     print(i)
@@ -1072,9 +1070,9 @@ if 1:  # Polynomials
                 -6.93889390391e-17
             which is probably *not* what you want because it throws important information
             away.
-
+        
         ----------------------------------------------------------------------
-
+        
         The following Mathematica commands were used to generate the code for the cubic
         and quartic routines.
         
@@ -1195,9 +1193,9 @@ if 1:  # Polynomials
             rn = r**(1/n)
             def f(x, k):
                 if have_mpmath and isinstance(x, mpmath.mpc):
-                    return rn*(mpmath.cos((x + 2*k*mpmath.pi)/n) + 1j * mpmath.sin((x + 2*k*mpmath.pi)/n))
+                    return rn*(mpmath.cos((x + 2*k*mpmath.pi)/n) + 1j*mpmath.sin((x + 2*k*mpmath.pi)/n))
                 else:
-                    return rn*(math.cos((x + 2*k*math.pi)/n) + 1j * math.sin((x + 2*k*math.pi)/n))
+                    return rn*(math.cos((x + 2*k*math.pi)/n) + 1j*math.sin((x + 2*k*math.pi)/n))
             roots = f(x, 0), f(x, 1), f(x, 2), f(x, 3)
             if force_real:
                 return tuple([i.real for i in roots])
@@ -1218,194 +1216,204 @@ if 1:  # Polynomials
         if force_real:
             return tuple([i.real for i in roots])
         return tuple(Pound(i, adjust) for i in roots)
-if 1:  # Utility
-    def Ceil(x, fp):
-        'Ceiling function for type fp:  float, flt, mpf, Decimal'
-        if fp is float or fp is flt:
-            return int(math.ceil(x))
-        elif have_mpmath and fp is mpmath.mpf:
-            return int(mpmath.ceil(x))
-        elif fp is decimal.Decimal and x is decimal.Decimal:
-            return int(x.to_integral_exact(rounding=decimal.ROUND_CEILING))
-        else:
-            raise TypeError(f"Type {fp} not supported")
-    def Log2(x, fp):
-        'Base 2 logarithm function for type fp:  float, flt, mpf, Decimal'
-        if fp is float or fp is flt:
-            return math.log2(x)
-        elif have_mpmath and fp is mpmath.mpf:
-            return mpmath.log(x)/mpmath.log(2)
-        elif fp is decimal.Decimal:
-            assert x is decimal.Decimal
-            return x.ln(x)/x.ln(2)
-        else:
-            raise TypeError(f"Type {fp} not supported")
-    def IsBracketed(a, b, f, fp=float):
-        '''Check that a and b bracket a root of f(x); raise ValueError if not.  Return
-        the values (fp(f(a)), fp(f(b))) for convenience and to avoid recalculating them.
-        '''
-        fa, fb = fp(f(a)), fp(f(b))
-        if fa*fb > 0:
-            raise ValueError(f"a = {a} and b = {b} do not bracket a root of f")
-        return (fa, fb)
-    def Pound(z, adjust=True, ratio=2.5e-15):
-        '''Turn z into a real if z.imag is small enough relative to the z.real and
-        adjust is True.  Do the analogous thing for a nearly pure imaginary number.
-        
-        The name comes from imagining the complex number is a nail which a light tap
-        from a hammer makes it lie parallel to either the real or imaginary axis.
-        
-        Set adjust to False so that only pure real or imaginary numbers are converted.
-        
-        Examples
-            Pound(-6.9e-17+1j) --> 1j
-            Pound(1-6.9e-17j) --> 1.0
-            Pound(-6.9e-17+1j, ratio=1e-20) --> (-6.9e-17+1j)
-            Pound(-6.9e-14+1j) --> (-6.9e-14+1j)
-        '''
-        if not isinstance(z, complex):
-            if have_mpmath and not isinstance(z, mpmath.mpc):
-                return z
-            else:
-                return z
-        if z.real and not z.imag:
-            return z.real
-        elif not z.real and z.imag:
-            return 1j*z.imag
-        # Adjust if the z.real/z.imag or z.imag/z.real ratio is small enough, otherwise
-        # return z unchanged
-        if adjust and z.real and abs(z.imag/z.real) <= ratio:
-            return z.real
-        elif adjust and z.imag and abs(z.real/z.imag) <= ratio:
-            return 1j*z.imag
-        else:
-            return z
-    def Dbg(*p, **kw):
-        'Used to print colorized debugging information to stream'
-        file = kw.get("file", None)
-        if file is None:
-            return
-        # file must be a suitable stream
-        print(f"{t.dbg}", end="", file=file)
-        print(*p, **kw)
-        print(f"{t.n}", end="", file=file)
-if 1:  # Demo code
-    def Check():
-        '''This function runs each routine to find the solution of f(x) = 0 where the
-        function f(x) is cos(x) - x.  If it completes without an exception, this shows
-        the routines got the same numerical value.  It's not intended to be the unit
-        test code (see test/root_test.py for that), but rather to be a tool to detect
-        when accidental changes have occurred to this file.
-        '''
-        def myfunc(x):
-            return x - math.cos(x)
-        tol = 1e-16
-        x0, x1 = 0, math.pi/2
-        methods = (
-            (Bisection, "Bisection"), 
-            (Crenshaw, "Crenshaw"),
-            (Ridders, "Ridders"),
-            (Brent, "Brent"),
-            (ITP, "ITP"),
-        )
-        expected = "0.739085133215161"
-        for func, name in methods:
-            x, m = func(x0, x1, myfunc, tol=tol)
-            Assert(f"{x:.15f}" == expected)
-        # FindRoots has a different calling pattern and it returns a tuple of roots
-        # found
-        x = FindRoots(myfunc, 10, x0, x1, tol=tol)
-        Assert(f"{x[0]:.15f}" == expected)
-    def MpmathCheck():
-        'This checks that mpmath numbers can be used with the routines'
-        def myfunc(x):
-            return x - math.cos(x)
-        tol = mpmath.mpf("1e-16")
-        methods = (
-            (Bisection, "Bisection"), 
-            (Crenshaw, "Crenshaw"),
-            (Ridders, "Ridders"),
-            (Brent, "Brent"),
-            (ITP, "ITP"),
-        )
-        expected = mpmath.mpf("0.739085133215161")
-        for func, name in methods:
-            a, b = mpmath.mpf(0), mpmath.pi
-            x, m = func(a, b, myfunc, tol=tol)
-            Assert(abs(x - expected) < 1e-15)
-        # FindRoots has a different calling pattern and it returns a tuple of roots found
-        x = FindRoots(myfunc, 10, a, b, tol=tol)[0]
-        Assert(abs(x - expected) < 1e-15)
-        if 1:   # Prints out a comparison of float/mpf for polynomial routines
-            from mpmath import mpf, mp
-            from color import t
-            t.print(f"{t.whtl}Demo that Quadratic, Cubic, Quartic work for mpmath numbers")
-            a, b, c, d, e = 1, 1, 1, 1, 1
-            mp.dps = 16
-            A, B, C, D, E = mpf(1), mpf(1), mpf(1), mpf(1), mpf(1)
-            if 1:
-                t.print(f"{t.ornl}Quadratic")
-                for i in Quadratic(a, b, c):
-                    print(i)
-                print(f"{t.lill}", end="")
-                for i in Quadratic(A, B, C):
-                    print(i)
-                t.print()
-            if 1:
-                t.print(f"{t.ornl}Cubic")
-                for i in Cubic(a, b, c, d):
-                    print(i)
-                print(f"{t.lill}", end="")
-                for i in Cubic(A, B, C, D):
-                    print(i)
-                t.print()
-            if 1:
-                t.print(f"{t.ornl}Quartic")
-                for i in Quartic(a, b, c, d, e):
-                    print(i)
-                print(f"{t.lill}", end="")
-                for i in Quartic(A, B, C, D, E):
-                    print(i)
-                t.print()
-    def Demo():
-        if 0:
-            MpmathCheck()
-        Check()
-        print(dedent('''
-        Print out the results of calculating the root to cos(x) - x = 0; both the number of 
-        iterations and timing are printed.
-        '''))
-        tm = Timer()
-        tm.u = 1e6  # Set timer's units to μs
-        x0, x1 = 0, math.pi/2
-        tol, n, fmt, tfmt, ind = 1e-16, 1000, ".15f", ".2g", " "*4
-        def myfunc(x):
-            return x - math.cos(x)
-        print(f"{ind}Tolerance = {tol}, number of evaluations for timing = {n}")
-        for func, name, fp, nfp in (
-                (Bisection, "Bisection", float, "float"), 
-                (Bisection, "Bisection", mpmath.mpf, "mpf"), 
-                (Bisection, "Bisection", flt, "flt"), 
-                (Crenshaw, "Crenshaw", float, "float"),
-                (Crenshaw, "Crenshaw", mpmath.mpf, "mpf"),
-                (Crenshaw, "Crenshaw", flt, "flt"),
-                (Ridders, "Ridders", float, "float"),
-                (Brent, "Brent", float, "float"),
-                (ITP, "ITP", float, "float"),
-                ):
-            count = 0
-            tm.start
-            for i in range(n):
-                x, m = func(x0, x1, myfunc, tol=tol, fp=fp)
-                count += m
-            tm.stop
-            print(f"{ind}{name:10s}:  Got {float(x):{fmt}} in {count//n:3d} steps, {tm.et/n:{tfmt}} μs {nfp}")
-        # FindRoots uses a different syntax
-        tm.start
-        for i in range(n):
-            x = FindRoots(myfunc, 10, x0, x1, tol=tol)
-        tm.stop
-        print(f"{ind}FindRoots :  Got {x[0]:{fmt}} in  ?  steps, {tm.et/n:{tfmt}} μs")
 
 if __name__ == "__main__":
+    from lwtest import Assert
+    from wrap import dedent
+    from timer import Timer
+    if 1:  # Utility
+        def Ceil(x, fp):
+            'Ceiling function for type fp:  float, flt, mpf, Decimal'
+            if fp is float or fp is flt:
+                return int(math.ceil(x))
+            elif have_mpmath and fp is mpmath.mpf:
+                return int(mpmath.ceil(x))
+            elif fp is decimal.Decimal and x is decimal.Decimal:
+                return int(x.to_integral_exact(rounding=decimal.ROUND_CEILING))
+            else:
+                raise TypeError(f"Type {fp} not supported")
+        def Log2(x, fp):
+            'Base 2 logarithm function for type fp:  float, flt, mpf, Decimal'
+            if fp is float or fp is flt:
+                return math.log2(x)
+            elif have_mpmath and fp is mpmath.mpf:
+                return mpmath.log(x)/mpmath.log(2)
+            elif fp is decimal.Decimal:
+                assert x is decimal.Decimal
+                return x.ln(x)/x.ln(2)
+            else:
+                raise TypeError(f"Type {fp} not supported")
+        def IsBracketed(a, b, f, fp=float):
+            '''Check that a and b bracket a root of f(x); raise ValueError if not.  Return
+            the values (fp(f(a)), fp(f(b))) for convenience and to avoid recalculating them.
+            '''
+            fa, fb = fp(f(a)), fp(f(b))
+            if fa*fb > 0:
+                raise ValueError(f"a = {a} and b = {b} do not bracket a root of f")
+            return (fa, fb)
+        def Pound(z, adjust=True, ratio=2.5e-15):
+            '''Turn z into a real if z.imag is small enough relative to the z.real and
+            adjust is True.  Do the analogous thing for a nearly pure imaginary number.
+            
+            The name comes from imagining the complex number is a nail which a light tap
+            from a hammer makes it lie parallel to either the real or imaginary axis.
+            
+            Set adjust to False so that only pure real or imaginary numbers are converted.
+            
+            Examples
+                Pound(-6.9e-17+1j) --> 1j
+                Pound(1-6.9e-17j) --> 1.0
+                Pound(-6.9e-17+1j, ratio=1e-20) --> (-6.9e-17+1j)
+                Pound(-6.9e-14+1j) --> (-6.9e-14+1j)
+            '''
+            if not isinstance(z, complex):
+                if have_mpmath and not isinstance(z, mpmath.mpc):
+                    return z
+                else:
+                    return z
+            if z.real and not z.imag:
+                return z.real
+            elif not z.real and z.imag:
+                return 1j*z.imag
+            # Adjust if the z.real/z.imag or z.imag/z.real ratio is small enough, otherwise
+            # return z unchanged
+            if adjust and z.real and abs(z.imag/z.real) <= ratio:
+                return z.real
+            elif adjust and z.imag and abs(z.real/z.imag) <= ratio:
+                return 1j*z.imag
+            else:
+                return z
+        def Dbg(*p, **kw):
+            'Used to print colorized debugging information to stream'
+            file = kw.get("file", None)
+            if file is None:
+                return
+            # file must be a suitable stream
+            print(f"{t.dbg}", end="", file=file)
+            print(*p, **kw)
+            print(f"{t.n}", end="", file=file)
+    if 1:  # Demo code
+        def Check():
+            '''This function runs each routine to find the solution of f(x) = 0 where the
+            function f(x) is cos(x) - x.  If it completes without an exception, this shows
+            the routines got the same numerical value.  It's not intended to be the unit
+            test code (see test/root_test.py for that), but rather to be a tool to detect
+            when accidental changes have occurred to this file.
+            '''
+            def myfunc(x):
+                return x - math.cos(x)
+            tol = 1e-16
+            x0, x1 = 0, math.pi/2
+            methods = (
+                (Bisection, "Bisection"), 
+                (Crenshaw, "Crenshaw"),
+                (Ridders, "Ridders"),
+                (Brent, "Brent"),
+                (ITP, "ITP"),
+            )
+            expected = "0.739085133215161"
+            for func, name in methods:
+                x, m = func(x0, x1, myfunc, tol=tol)
+                Assert(f"{x:.15f}" == expected)
+            # FindRoots has a different calling pattern and it returns a tuple of roots
+            # found
+            x = FindRoots(myfunc, 10, x0, x1, tol=tol)
+            Assert(f"{x[0]:.15f}" == expected)
+        def MpmathCheck():
+            'This checks that mpmath numbers can be used with the routines'
+            def myfunc(x):
+                return x - math.cos(x)
+            tol = mpmath.mpf("1e-16")
+            methods = (
+                (Bisection, "Bisection"), 
+                (Crenshaw, "Crenshaw"),
+                (Ridders, "Ridders"),
+                (Brent, "Brent"),
+                (ITP, "ITP"),
+            )
+            expected = mpmath.mpf("0.739085133215161")
+            for func, name in methods:
+                a, b = mpmath.mpf(0), mpmath.pi
+                if name == "ITP":
+                    # mpmath is set to 15 digits, but takes 55 iterations to converge
+                    # for ITP
+                    x, m = func(a, b, myfunc, tol=tol, itmax=60)
+                else:
+                    x, m = func(a, b, myfunc, tol=tol)
+                Assert(abs(x - expected) < 1e-15)
+            # FindRoots has a different calling pattern and it returns a tuple of roots found
+            x = FindRoots(myfunc, 10, a, b, tol=tol)[0]
+            Assert(abs(x - expected) < 1e-15)
+            if 1:   # Prints out a comparison of float/mpf for polynomial routines
+                from mpmath import mpf, mp
+                t.print(f"{t.whtl}Demo that Quadratic, Cubic, Quartic work for mpmath numbers")
+                a, b, c, d, e = 1, 1, 1, 1, 1
+                mp.dps = 16
+                A, B, C, D, E = mpf(1), mpf(1), mpf(1), mpf(1), mpf(1)
+                if 1:
+                    t.print(f"{t.ornl}Quadratic")
+                    for i in Quadratic(a, b, c):
+                        print("float ", i)
+                    print(f"{t.lill}", end="")
+                    for i in Quadratic(A, B, C):
+                        print("mpmath", i)
+                    t.print()
+                if 1:
+                    t.print(f"{t.ornl}Cubic")
+                    for i in Cubic(a, b, c, d):
+                        print("float ", i)
+                    print(f"{t.lill}", end="")
+                    for i in Cubic(A, B, C, D):
+                        print("mpmath", i)
+                    t.print()
+                if 1:
+                    t.print(f"{t.ornl}Quartic")
+                    for i in Quartic(a, b, c, d, e):
+                        print("float ", i)
+                    print(f"{t.lill}", end="")
+                    for i in Quartic(A, B, C, D, E):
+                        print("mpmath", i)
+                    t.print()
+        def Demo():
+            MpmathCheck()
+            Check()
+            print(dedent('''
+            Print out the results of calculating the root to cos(x) - x = 0; both the number of 
+            iterations and timing are printed.
+            '''))
+            tm = Timer()
+            tm.u = 1e6  # Set timer's units to μs
+            x0, x1 = 0, math.pi/2
+            tol, n, fmt, tfmt, ind = 1e-16, 1000, ".15f", ".2g", " "*4
+            # Set up flt so that the high threshold for sci is 10000
+            x = flt(0)
+            x.high = 100000
+            def myfunc(x):
+                return x - math.cos(x)
+            print(f"{ind}Tolerance = {tol}, number of evaluations for timing = {n}")
+            for func, name, fp, nfp in (
+                    (Bisection, "Bisection", float, "float"), 
+                    (Bisection, "Bisection", mpmath.mpf, "mpf"), 
+                    (Bisection, "Bisection", flt, "flt"), 
+                    (Crenshaw, "Crenshaw", float, "float"),
+                    (Crenshaw, "Crenshaw", mpmath.mpf, "mpf"),
+                    (Crenshaw, "Crenshaw", flt, "flt"),
+                    (Ridders, "Ridders", float, "float"),
+                    (Brent, "Brent", float, "float"),
+                    (ITP, "ITP", float, "float"),
+                    ):
+                count = 0
+                tm.start
+                for i in range(n):
+                    x, m = func(x0, x1, myfunc, tol=tol, fp=fp)
+                    count += m
+                tm.stop
+                print(f"{ind}{name:10s}:  Got {float(x):{fmt}} in {count//n:3d} steps, "
+                      f"{flt(tm.et/n)!s:>6s} μs {nfp}")
+            # FindRoots uses a different syntax
+            tm.start
+            for i in range(n):
+                x = FindRoots(myfunc, 10, x0, x1, tol=tol)
+            tm.stop
+            print(f"{ind}FindRoots :  Got {x[0]:{fmt}} in  ?  steps, {flt(tm.et/n)!s:>6s} μs")
     Demo()

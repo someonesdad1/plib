@@ -1,22 +1,23 @@
-"""
+'''
 Library for solar system planetary data.  Class Planet instances have their
 attributes given in base SI units.  Run as a script to print data to
 stdout.
-"""
+'''
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # Solar system planetary data
-        ##∞what∞#
-        ##∞test∞# notest #∞test∞#
-        pass
+    _pgminfo = '''
+        <oo gist ∞ Library for solar system planetary data oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2023 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ sci oo>
+        <oo test ∞ notest oo>
+        <oo todo ∞ oo>
+    '''
     if 1:  # Standard imports
         import getopt
         import os
@@ -26,14 +27,13 @@ if 1:  # Header
         from color import t
         from f import flt, radians, degrees, pi
     if 1:  # Global variables
-        ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
         AU_to_m = 1.495978707e11  # Astronomical unit to m
         yr_to_s = 31556925.9746784  # Year to seconds
         day_to_s = 86400  # Day to seconds
-        t.r = t("ornl")
-        t.nr = t("trql")
+        t.r = t.ornl
+        t.nr = t.trql
 if 1:  # Classes
     # Planetary data from
     # https://en.wikipedia.org/wiki/List_of_gravitationally_rounded_objects_of_the_Solar_System#Planets
@@ -63,7 +63,7 @@ if 1:  # Classes
         def __str__(self):
             if d["-r"] is not None:
                 p = planets[trans[d["-r"]]]
-                return dedent(f"""
+                return dedent(f'''
                 {self.name} 
                     Semimajor axis              {t.r}{self.semimajor / p.semimajor}{t.n}
                     Eccentricity                {t.nr}{self.eccentricity}{t.n}
@@ -81,9 +81,9 @@ if 1:  # Classes
                     Escape velocity             {t.r}{self.esc_vel / p.esc_vel}{t.n}
                     Axial tilt                  {t.nr}{degrees(self.tilt)}°{t.n}
                     Rotation period             {t.r}{self.rot_per / p.rot_per}{t.n}
-                """)
+                ''')
             else:
-                return dedent(f"""
+                return dedent(f'''
                 {self.name}
                     Semimajor axis              {self.semimajor.engsi}m = {self.semimajor.sci} m
                     Eccentricity                {self.eccentricity}
@@ -101,7 +101,7 @@ if 1:  # Classes
                     Escape velocity             {self.esc_vel} km/s
                     Axial tilt                  {degrees(self.tilt)}°
                     Rotation period             {self.rot_per.engsi}s = {self.rot_per / day_to_s} days
-                """)
+                ''')
         def __repr__(self):
             return str(self)
     class Mercury(Planet):
@@ -238,7 +238,7 @@ if 1:  # Utility
         exit(status)
     def Manpage():
         print(
-            dedent("""
+            dedent('''
         Data from https://en.wikipedia.org/wiki/List_of_gravitationally_rounded_objects_of_the_Solar_System#Planets
         
         Semimajor axis
@@ -284,12 +284,12 @@ if 1:  # Utility
         Rotation period (sidereal)
             Time for one rotation about its rotation axis of the planet with respect
             to the fixed stars.
-        """)
+        ''')
         )
         exit(0)
     def Usage(status=1):
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options] [planet_letters]
           Print out planetary data.  Planet letters are the first letter of
           the planet's name (use h for Mercury).  Use 'a' to show all
@@ -301,7 +301,7 @@ if 1:  # Utility
             -e      Relative to Earth (short for '-r e')
             -h      Print a manpage
             -r p    Print numbers relative to planet p (first letter)
-        """)
+        ''')
         )
         exit(status)
     def ParseCommandLine(d):
@@ -361,6 +361,7 @@ if 1:  # Core functionality
         "u": "Uranus",
         "n": "Neptune",
     }
+
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

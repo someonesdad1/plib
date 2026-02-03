@@ -1,30 +1,31 @@
-_pgminfo = '''
-<oo desc
-    Call PaperSizes() to get a dictionary of common paper sizes in mm.  The floating 
-    point sizes are returned as type f.flt, which shows you 3 figures of the value by
-    default (the flt class is derived from float).
-oo>
-<oo cr Copyright © 2025 Don Peterson oo>
-<oo license
-    Licensed under the Open Software License version 3.0.
-    See http://opensource.org/licenses/OSL-3.0.
-oo>
-<oo cat Put_category_here oo>
-<oo test none oo>
-<oo todo
-    - 
-oo>
-'''
 if 1:  # Header
-    ##∞test∞# notest #∞test∞#
-    from f import flt
-    from lwtest import Assert
-    from roundoff import RoundOff
-    from dpprint import PP
-    pp = PP()   # Get pprint with current screen width
-    if 0:
-        import debug
-        debug.SetDebugger()
+    _pgminfo = '''
+        <oo gist ∞ Get a dictionary of paper sizes oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2025 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ category oo>
+        <oo test ∞ notest oo>
+        <oo todo ∞ oo>
+    '''
+    if 1:  # Standard imports
+        pass
+    if 1:  # Custom imports
+        from f import flt
+        from lwtest import Assert
+        from roundoff import RoundOff
+        from dpprint import PP
+        pp = PP()   # Get pprint with current screen width
+        if 0:
+            import debug
+            debug.SetDebugger()
+    if 1:  # Global variables
+        pass
 if 1:  # Core functionality
     def PaperSizes(scale=1, exact=False, digits=12):
         '''Return a dictionary keyed by a paper size string; the values are the width

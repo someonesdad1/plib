@@ -1,8 +1,7 @@
-"""
+'''
 Display values of physical constants
     Requires /plib/pgm/constants.codata.2018 for data
-"""
-
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -33,10 +32,8 @@ if 1:  # Header
         from u import u, FormatUnit
         from roundoff import SigFig
     if 1:  # Global variables
-
         class G:
             pass
-
         g = G()  # Storage for global variables as attributes
         if 1:  # Debugging helpers
             g.dbg = False
@@ -49,13 +46,12 @@ if 1:  # Header
         # Most important constants to print by default
         g.important = set(
             int(i)
-            for i in """
+            for i in '''
             1 9 22 37 42 43 48 49 53 73 83 94 111 119 121 191 236 243 253
             258 265 275 296 317 318 319 320 321 347 348 
-        """.split()
+        '''.split()
         )
 if 1:  # Utility
-
     def GetColors():
         c = bool(d["-c"])
         if c:
@@ -64,21 +60,18 @@ if 1:  # Utility
         t.exact = t("grnb") if c else ""  # Exact numbers
         t.err = t("redl") if c else ""  # Error
         t.N = t.n if c else ""
-
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="")
             print(*p, **kw)
             print(f"{t.N}", end="")
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Manpage():
         print(
             dedent(
-                f"""
+                f'''
         The constants come from [1] and were downloaded 28 Aug 2021; they represent the 2018
         CODATA adjustments.
  
@@ -101,22 +94,21 @@ if 1:  # Utility
         feel for the magnitude.  If you use the -E option, the absolute power of 10 of the number
         must be 12 or less for an SI prefix to be used.  This is because it's sometimes hard to
         remember some of the SI prefixes that are very small or large.
-
+        
         Color coding is used to flag exact and dimensionless values.  Warning:  if -d is not set
         to 0, the values flagged as exact are only exact to the number of digits in -d.  Set -d to
         0 to see the exact number.
  
         References
             [1] https://physics.nist.gov/cuu/Constants/Table/allascii.txt
-
-        """.rstrip()
+            
+        '''.rstrip()
             )
         )
         exit(0)
-
     def Usage(status=1):
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options] [regex1 [regex2...]]
           With no arguments, print out common physical constants.  If arguments are given, they
           are regular expressions to print out constants that the regexs match (they are OR'd
@@ -131,10 +123,9 @@ if 1:  # Utility
                       1 = kg*m/(s**2*K)
                       2 = kg·m·s⁻²·K⁻¹
                       3 = kg·m//s²·K
-        """)
+        ''')
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = False  # Show all constants
         d["-c"] = False  # Use color in output
@@ -177,17 +168,14 @@ if 1:  # Utility
             flt(0).N = 1  # Avoid a software problem
         GetColors()
         return args
-
-
 if 1:  # Core functionality
-
     def GetData():
-        """Split into the following fields:
+        '''Split into the following fields:
         Name of constant    0-59
         Value               60-84
         Uncertainty         85-109
         Unit                110-end
-        """
+        '''
         file = "/plib/pgm/constants.codata.2018"
         lines = GetLines(file, script=True, ignore_empty=True, strip=True, nonl=True)
         # Put data into dict g.data
@@ -218,20 +206,18 @@ if 1:  # Core functionality
                 g.data[num] = (name, x, F(unit), sigfig)
             else:
                 g.data[num] = (name, x, "", sigfig)
-
     def Fmt(item):
-        """Format the constant item to be a left-justified string with
+        '''Format the constant item to be a left-justified string with
         attached unit.  item is a tuple (name, x, unit, sigfig) with
         name a string, x a ufloat, unit a string, and sigfig an int.
-
+        
         If d["-d"] is zero, then x will remain a ufloat and with be printed
         in standard short form.  If the uncertainty is zero, it will be the
         string form of a standard float.
-
+        
         If d["-d"] is not zero, then the value is given to that many
         decimal places by converting the ufloat's nominal value to a flt.
-        """
-
+        '''
         def Fix(s):
             # Need to fix units like rkg mkg ykg nkg akg qkg μkg
             s = s.replace("rkg", "yg")
@@ -242,7 +228,6 @@ if 1:  # Core functionality
             s = s.replace("qkg", "rg")
             s = s.replace("μkg", "mg")
             return s
-
         name, x, unit, sigfig = item
         unit = "Ω" if unit == "ohm" else unit
         Assert(ii(x, UFloat))
@@ -279,19 +264,21 @@ if 1:  # Core functionality
                     return s
             else:
                 y = flt(x.n)
-                y.n = sigfig
+                try:
+                    y.n = sigfig
+                except ValueError:
+                    y.n = 1 if sigfig < 1 else 15
                 s = f"{y!s} {unit}"
                 if not s.startswith("-"):
                     s = " " + s
                 return s
-
     def PrintData(items):
-        """Dump the data; items is a sequence of the integer numbers of the constants that should
+        '''Dump the data; items is a sequence of the integer numbers of the constants that should
         be shown.  These integers are the keys in g.data.
-
+        
         g.data is a dict with keys of list number and the values are
             (name, value, formatted_unit, significant_figures).
-        """
+        '''
         # Get max column width needed
         w = 0
         for item in items:
@@ -312,7 +299,6 @@ if 1:  # Core functionality
         # Color key
         if d["-c"]:
             t.print(f"Colors:  {t.exact}Exact value{t.n}     {t.nodim}Dimensionless")
-
 
 if __name__ == "__main__":
     d = {}  # Options dictionary

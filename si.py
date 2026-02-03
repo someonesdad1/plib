@@ -1,20 +1,18 @@
-'''
-SI prefixes
-'''
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2014, 2023 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # SI constants
-        ##∞what∞#
-        ##∞test∞# notest #∞test∞#
-        pass
+    _pgminfo = '''
+        <oo gist ∞ SI prefixes oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2014, 2023 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ sci oo>
+        <oo test ∞ --test oo>
+        <oo todo ∞ oo>
+    '''
     if 1:  # Standard imports
         import math
         from collections import deque
@@ -28,7 +26,7 @@ if 1:  # Header
         except ImportError:
             pass
     if 1:  # Global variables
-        ii = isinstance
+        pass
 if 1:  # Classes
     class SI(dict):
         '''Class to present a bidict behavior for both SI prefix strings and exponents.  Index as
@@ -140,7 +138,7 @@ if 1:  # Core functionality
           
           If eng is True, then the prefixes d, c, da, and h are not allowed.
         '''
-        if ii(x, str):
+        if isinstance(x, str):
             if not x:
                 return 1
             if len(x) > 2:
@@ -152,11 +150,11 @@ if 1:  # Core functionality
                 return 10 ** si[x]
             else:
                 raise ValueError("'%s' is not a recognized SI prefix" % x)
-        elif ii(x, (int, float)) or (have_mpmath and ii(x, M.mpf)):
+        elif isinstance(x, (int, float)) or (have_mpmath and isinstance(x, M.mpf)):
             no_match = (x, None, None)
             if not x:
                 return (x, 0, "")
-            if ii(x, (int, float)):
+            if isinstance(x, (int, float)):
                 e = int(math.floor(math.log10(x)))
             else:
                 e = int(M.floor(M.log10(x)))
@@ -169,7 +167,7 @@ if 1:  # Core functionality
             assert correction in (0, 1, 2)
             # Get significand
             t = fmt.significand(abs(x))
-            t = M.mpf(t) if have_mpmath and ii(x, M.mpf) else float(t)
+            t = M.mpf(t) if have_mpmath and isinstance(x, M.mpf) else float(t)
             # Adjust exponent to be a power of 3
             p = si(e1)
             t *= 10**correction
@@ -224,7 +222,7 @@ if 1:  # Core functionality
         x = flt(number)
         if suffix:
             try:
-                x *= 10 ** si[suffix]
+                x *= 10**si[suffix]
             except IndexError:
                 msg = f"{suffix!r} is not a valid SI prefix"
                 raise ValueError(msg)
@@ -252,7 +250,7 @@ if 1:  # Core functionality
             if si_prefix_found:
                 if not s.endswith(si_prefix_found):
                     raise ValueError(f"{s!r} doesn't end with {si_prefix_found!r}")
-                x = float(s[:-1]) * 10 ** si[si_prefix_found]
+                x = float(s[:-1])*10**si[si_prefix_found]
                 return fmt.sci(x, n=n)
             else:
                 # Assume it's an integer
@@ -310,14 +308,15 @@ if 1:  # Core functionality
         if not found:
             return flt(s)
         s = s[:-1]  # Remove prefix letter
-        x = flt(s) * 10 ** si[prefix]
+        x = flt(s)*10**si[prefix]
         return x
-# Convenience instance
-si = SI(pure=True)
+if 1:   # Convenience instance
+    si = SI(pure=True)
+
 if __name__ == "__main__":
     import getopt
     import sys
-    from lwtest import Assert, raises
+    from lwtest import Assert, raises, run
     from wrap import dedent
     if 0:
         import debug
@@ -327,37 +326,38 @@ if __name__ == "__main__":
             print(*msg, file=sys.stderr)
             exit(status)
         def Usage(status=1):
-            print(
-                dedent(f'''
+            print(dedent(f'''
             Usage:  {sys.argv[0]} [options] expr1 [expr2 ...]
               Convert expressions to and from SI-prefix forms.  If no
               expressions are given, print out a table of SI prefixes.
             Options:
                 -t      Put tabs in the table output
-            ''')
-            )
+                --test  Run self-tests
+            '''))
             exit(status)
         def ParseCommandLine(d):
             d["-t"] = False  # Tabs in printed table
             try:
-                opts, args = getopt.getopt(sys.argv[1:], "ht")
+                opts, args = getopt.getopt(sys.argv[1:], "ht", "test")
             except getopt.GetoptError as e:
                 print(str(e))
                 exit(1)
             for o, a in opts:
                 if o[1] in list("t"):
                     d[o] = not d[o]
-                if o == "-h":
+                elif o == "-h":
                     Usage(0)
+                elif o == "--test":
+                    exit( run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
             return args
     if 1:  # Tests
-        def RunSelfTests():
+        def Test_Me():
             global si
             si = SI(pure=False)
             # float
             a = 6.2
             for e in range(-25, 28):
-                b = a * 10**e
+                b = a*10**e
                 e1 = GetSIExponent(e)
                 expected_p = None
                 if e1 in si.values():
@@ -368,7 +368,7 @@ if __name__ == "__main__":
                     Assert(p == expected_p)
                     Assert(correction in (0, 1, 2))
                     x1 = round(float(t), 2)
-                    b1 = 10**correction * round(float(fmt.significand(t)), 2)
+                    b1 = 10**correction*round(float(fmt.significand(t)), 2)
                     Assert(str(x1) == str(b1))
                 else:
                     if e < -24 or e > 25:
@@ -380,7 +380,7 @@ if __name__ == "__main__":
             # mpmath
             a = M.mpf(6.2)
             for e in range(-25, 28):
-                b = a * 10**e
+                b = a*10**e
                 e1 = GetSIExponent(e)
                 expected_p = None
                 if e1 in si.values():
@@ -391,7 +391,7 @@ if __name__ == "__main__":
                     Assert(p == expected_p)
                     Assert(correction in (0, 1, 2))
                     x1 = round(M.mpf(t), 2)
-                    b1 = 10**correction * round(M.mpf(fmt.significand(t)), 2)
+                    b1 = 10**correction*round(M.mpf(fmt.significand(t)), 2)
                     Assert(str(x1) == str(b1))
                 else:
                     if e < -24 or e > 25:
@@ -402,35 +402,13 @@ if __name__ == "__main__":
                         raise Exception("Bug")
             # Prefixes
             di = {
-                "": 0,
-                "d": -1,
-                "c": -2,
-                "m": -3,
-                "μ": -6,
-                "u": -6,
-                "n": -9,
-                "p": -12,
-                "f": -15,
-                "a": -18,
-                "z": -21,
-                "y": -24,
-                "r": -27,
-                "q": -30,
-                "da": 1,
-                "h": 2,
-                "k": 3,
-                "M": 6,
-                "G": 9,
-                "T": 12,
-                "P": 15,
-                "E": 18,
-                "Z": 21,
-                "Y": 24,
-                "R": 27,
-                "Q": 30,
+                "": 0, "d": -1, "c": -2, "m": -3, "μ": -6, "u": -6, "n": -9, "p": -12,
+                "f": -15, "a": -18, "z": -21, "y": -24, "r": -27, "q": -30, "da": 1,
+                "h": 2, "k": 3, "M": 6, "G": 9, "T": 12, "P": 15, "E": 18, "Z": 21,
+                "Y": 24, "R": 27, "Q": 30,
             }
             for prefix in di:
-                expected = 10 ** di[prefix]
+                expected = 10**di[prefix]
                 Assert(expected == GetSI(prefix, eng=False))
             # Not allowed prefix when eng is True
             for i in ("d", "c", "da", "h"):
@@ -465,22 +443,20 @@ if __name__ == "__main__":
             Assert(GetSISuffix("±-1.23e-87k") == ("±-1.23e-87", "k"))
             Assert(GetSISuffix("±-1.23e-87 k") == ("±-1.23e-87", "k"))
             # Test NumberWithSISuffix
+            Assert(NumberWithSISuffix("") == None)
+            Assert(NumberWithSISuffix("  ") == None)
+            Assert(NumberWithSISuffix("xK") == None)
+            Assert(NumberWithSISuffix("1K") == None)
             x = NumberWithSISuffix("1.2k")
             Assert(x == 1200)
-            Assert(ii(x, flt))
+            Assert(isinstance(x, flt))
             Assert(NumberWithSISuffix("1.2 k") == 1200)
             Assert(NumberWithSISuffix("1.2 d") == 0.12)
             Assert(NumberWithSISuffix("1.2 da") == 12)
             Assert(NumberWithSISuffix("  -1.2 k") == -1200)
-            raises(ValueError, NumberWithSISuffix, "")
-            raises(ValueError, NumberWithSISuffix, "  ")
-            raises(ValueError, NumberWithSISuffix, "xK")
-            raises(ValueError, NumberWithSISuffix, "1K")
-            raises(ValueError, NumberWithSISuffix, "1da", eng=True)
+            raises(TypeError, NumberWithSISuffix, "1da", eng=True)
             # Reset global variable
             si = SI(pure=True)
-    if 1:  # Run self tests
-        RunSelfTests()
     # Script behavior
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

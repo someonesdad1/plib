@@ -1,63 +1,54 @@
-"""
+'''
 Generate an HTML difference of two files and launch in browser
     Note the tempfile used is not cleaned up.
-"""
-
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    ##∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
-    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    ##∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    ##∞license∞#
-    ##∞what∞#
-    # <utility> Generate an HTML difference of two files and launch in
-    # browser.
-    ##∞what∞#
-    ##∞test∞# notest #∞test∞#
-    pass
-if 1:  # Imports
-    import difflib
-    import getopt
-    import sys
-    import tempfile
-    from textwrap import dedent
-if 1:  # Custom imports
-    from launch import Launch
-if 1:  # Global variables
-    nl = "\n"
-    ii = isinstance
+'''
+if 1:  # Header
+    _pgminfo = '''
+        <oo gist ∞ Two file HTML difference oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2021 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ utility oo>
+        <oo test ∞ notest oo>
+        <oo todo ∞ oo>
+    '''
+    if 1:  # Standard imports
+        import difflib
+        import getopt
+        import sys
+        import tempfile
+    if 1:  # Custom imports
+        from launch import Launch
+    if 1:  # Global variables
+        pass
 if 1:  # Core functionality
-
     def ShowDifference(old_str, new_str):
         h = difflib.HtmlDiff()
-        s = h.make_file(old_str.split(nl), new_str.split(nl))
+        s = h.make_file(old_str.split("\n"), new_str.split("\n"))
         fd, name = tempfile.mkstemp(suffix=".html", dir="/tmp/dontmp")
         open(name, "w").write(s)
         Launch(name)
         # This leaves the temporary file because there's no easy way to
         # determine when the browser is finished looking at it.
 
-
 if __name__ == "__main__":
-
+    from wrap import dedent
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(d, status=1):
-        print(
-            dedent(
-                f"""
+        print(dedent(f'''
         Usage:  {sys.argv[0]} [options] file1 file2
           Show an HTML difference between the two files in a browser.
         Options:
-          -i   Ignore case"""[1:]
-            )
-        )
+          -i   Ignore case
+        '''))
         exit(status)
-
     def ParseCommandLine(d):
         d["-i"] = False
         try:
@@ -73,14 +64,12 @@ if __name__ == "__main__":
         if len(args) != 2:
             Usage(d)
         return args
-
     def GetFile(file):
         s = open(file, "rb").read()
-        if ii(s, bytes):
+        if isinstance(s, bytes):
             s = s.decode()
         assert isinstance(s, str)
         return s
-
     d = {}  # Options dictionary
     file1, file2 = ParseCommandLine(d)
     old, new = GetFile(file1), GetFile(file2)

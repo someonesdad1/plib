@@ -107,6 +107,7 @@ if 1:  # Header
         from pathlib import Path as P
         from random import seed
         from reprlib import repr as Repr
+        import hashlib
         import inspect
         import math
         import os

@@ -1,5 +1,13 @@
 /plib/.todo
 
+    - words.py
+        - I need a module that gives me a list of words
+        - This should have two functions
+            - GetSetOfWords(id, lower=False)
+                - id is a string that identifies which file in /words/words.* is used
+            - GetSyllablesDict()
+                - Handles lowercase words only
+                - Returns an int or a tuple of ints
     - todo.py
         - Finds the ∞∞ strings that are prioritized and makes up a todo list from them
             - ∞∞1 is highest priority

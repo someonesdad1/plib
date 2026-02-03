@@ -1,109 +1,60 @@
-"""
+'''
 Library to calculate common readability estimates
 
-ToDo
-    - Needed options
-        - Warn when a file contains non-ASCII characters
-        - ASCIIfy the file's data
-        - Remove a set of words from a file or sequence
-        - Change ';' to '.'.  In most prose, this is probably appropriate
-          unless it's usage like 'France, 3; UK, 2;...'.  Note that speech
-          never uses a semicolon.
-    - Colorize the results for grade level.  There are two target
-      audiences:
-        - Educated adults (e.g., has a college degree)
-            - purl:  easy (<= grade 7)
-            - grnl:  standard (<= grade 8-10)
-            - yell:  medium (<= grade 11-12)
-            - ornl:  medium-hard (<= grade 13-16)   College
-            - redl:  hard (> grade 16)              Graduate school
-        - Average adult
-            - purl:  easy (<= grade 5)
-            - grnl:  standard (<= grade 6-8)
-            - yell:  medium (<= grade 9-10)
-            - ornl:  medium-hard (<= grade 11-12)
-            - redl:  hard (> grade 12)
-    - Include in the manpage the scores from a number of popular texts such
-      as pnp, Tom Sawyer, etc.
-        - 22 Jul 2021:  "Pride and Prejudice" has a FKGL of around 12th
-          grade, senior in high school.  "Tom Sawyer" is about 8th grade
-          level.  A surprise was Andy Weir's "The Martian" is about 5th
-          grade level.  It's an eminently readable book and I wouldn't have
-          guessed it would have such a low readability score.  It's
-          probably a combination of lots of short sentences and avoiding
-          the use of long words.
-    - This should be both my readability script and a library.
-        - Default
-            - Fog
-            - FKGL
-        - Optional
-            - ARI
-            - CL
-            - FRES
-            - SMOG
-        - Consider an option that prints out x where x =
-          math.ceil(log(characters)) and x is a superscript after the file
-          name.
-          
 Observations
-    - I tried to use a Readability class, but performance fell by about a
-      factor of 2 or more, so I retained the function-based approach.
-    - Readability is a complicated topic and can be pretty subjective, as
-      it depends on many things.
+    - I tried to use a Readability class, but performance fell by about a factor of 2 or
+      more, so I retained the function-based approach.
+    - Readability is a complicated topic and can be pretty subjective, as it depends on
+      many things.
       https://scholarworks.wmich.edu/cgi/viewcontent.cgi?referer=https://en.wikipedia.org/&httpsredir=1&article=1792&context=reading_horizons
       explains some of the complexities.  For my needs, I've found that the
-      Flesch-Kincaid grade level is easy to compute and works well for the
-      documents I evaluate and write.  These documents are aimed at
-      educated adults, often with a technical background.
-    - 10 Nov 2019:  I spent time producing the words_syllables.py script,
-      which is basically what used to be in the old words.py file from
-      about 15 years ago; it's made from a CMU corpus in the NLTK (see the
-      script /pylib/pgm/words_syllables_make.py).  The dictionary lookup of
-      the number of syllables decreased the run time on
-      /ebooks/kindle/Twain/*.txt from 52.4 s to 6.6 s, so having the
-      dictionaries is worth the half second or so they take to load.
+      Flesch-Kincaid grade level is easy to compute and works well for the documents I
+      evaluate and write.  These documents are aimed at educated adults, often with a
+      technical background.
+    - 10 Nov 2019:  I spent time producing the words_syllables.py script, which is
+      basically what used to be in the old words.py file from about 15 years ago; it's
+      made from a CMU corpus in the NLTK (see the script
+      /pylib/pgm/words_syllables_make.py).  The dictionary lookup of the number of
+      syllables decreased the run time on /ebooks/kindle/Twain/*.txt from 52.4 s to 6.6
+      s, so having the dictionaries is worth the half second or so they take to load.
     - 22 Sep 2010
-        - Added test of GuessSyllables().  Changed output to just print
-          nearest integer; this better reflects the approximate nature of
-          the numbers.
-        - You should be cautious in applying the results of a program like
-          this.  Reading scores are only rough guides; they cannot measure
-          many things that are relevant to reading comprehension.  If you
-          don't believe this, the clearest argument I can give you is to
-          have you randomly shuffle the words in each sentence of a
-          document.  Virtually all documents will now be unintelligible,
-          yet the typical readability scores will be unchanged.  These
-          scores know nothing about semantics or syntax, the
-          formatting/font of the text, how nice it's visually organized, or
-          the background and interest of the reader.  These (and many
-          other) things are relevent to reading comprehension, yet are
+        - Added test of GuessSyllables().  Changed output to just print nearest integer;
+          this better reflects the approximate nature of the numbers.
+        - You should be cautious in applying the results of a program like this.
+          Reading scores are only rough guides; they cannot measure many things that are
+          relevant to reading comprehension.  If you don't believe this, the clearest
+          argument I can give you is to have you randomly shuffle the words in each
+          sentence of a document.  Virtually all documents will now be unintelligible,
+          yet the typical readability scores will be unchanged.  These scores know
+          nothing about semantics or syntax, the formatting/font of the text, how nice
+          it's visually organized, or the background and interest of the reader.  These
+          (and many other) things are relevent to reading comprehension, yet are
           obviously beyond the ken of a computer program.
     - I use this script as a guide to how well I am writing
         - My writing targets in grade level
             - General reader:  8
             - Technical document for educated readers:  12
-        - It took me many years to get out of the habit of writing with the
-          style I learned in academia.  This was OK in graduate school, but
-          in the real, practical world, it turns readers off and lowers
-          comprehension.
-        - A core realization in my industrial career was that I needed to
-          get my message across to busy executives and decision makers in
-          half a page of paper with easy-to-read prose.  Put the gory
-          details in an appendix.
+        - It took me many years to get out of the habit of writing with the style I
+          learned in academia.  This was OK in graduate school, but in the real,
+          practical world, it turns readers off and lowers comprehension.
+        - A core realization in my industrial career was that I needed to get my message
+          across to busy executives and decision makers in half a page of paper with
+          easy-to-read prose.  Put the gory details in an appendix.
         - Read good references on clear writing
             - Malcom Forbes "How to Write a Business Letter"
-            - "How to Write Clearly" by Edward Thompson, Editor-in-Chief,
-              Reader's Digest
+            - "How to Write Clearly" by Edward Thompson, Editor-in-Chief, Reader's
+              Digest
             - "Writing that Works" by Kenneth Roman and Joel Raphaelson
             - Strunk & White
             - Chicago Manual of Style
-            - Getting the details right means you care about the craft of
-              writing and your reader
-        - Hemingway:  "I write one page of masterpiece to ninety-one pages
-          of shit.  I try to put the shit in the wastebasket."
+            - Getting the details right means you care about the craft of writing and
+              your reader
+        - Hemingway:  "I write one page of masterpiece to ninety-one pages of shit.  I
+          try to put the shit in the wastebasket."
           
 Algorithms
     - Gunning Fog Index
+        - Basis:  words/sentence & complex_words/words
         - From http://en.wikipedia.org/wiki/Gunning_Fog_Index
         - Method
             - 1. Take a full passage that is around 100 words (do not omit
@@ -124,6 +75,7 @@ Algorithms
           example, the word spontaneous is generally not considered to be a
           difficult word, even though it has four syllables.
     - Automated Readability Index
+        - Basis:  characters/word & words/sentence
         - From http://en.wikipedia.org/wiki/Automated_Readability_Index
         - Method
             - 1. Divide the number of characters by the number of words,
@@ -133,6 +85,7 @@ Algorithms
             - 3. Add A and B together, and subtract 21.43.
             - Index = (4.71*characters/word) + (0.5*words/sentence) - 21.43
     - Coleman-Liau Index
+        - Basis:  characters/word & sentences)/(100*words)
         - From http://en.wikipedia.org/wiki/Coleman-Liau_Index
         - Method
             - 1. Divide the number of characters by the number of words,
@@ -143,6 +96,7 @@ Algorithms
             - Index = (5.89*characters/word) - (0.3*sentences)/(100*words)
               - 15.8
     - Flesch Reading Ease Score = FRES
+        - Basis:  total_syllables/total_words & total_words/total_sentences
         - From http://en.wikipedia.org/wiki/Flesch-Kincaid_Readability_Test
         - Scores passages on a scale of 0-100 (can be > 100 and < 0 for
           pathological cases). Higher scores indicate material that is
@@ -166,6 +120,7 @@ Algorithms
           The US DoD uses the Reading Ease test as the standard test of
           readability for its documents and forms.
     - Flesch-Kincaid Grade Level = FKGL
+        - Basis:  total_syllables/total_words & total_words/total_sentences
         - From http://en.wikipedia.org/wiki/Flesch-Kincaid_Readability_Test
         - An obvious use for readability tests is in the field of
           education.  The "Flesch-Kincaid Grade Level Formula" translates
@@ -183,6 +138,7 @@ Algorithms
           example, a score of 6.1 would indicate that the text is
           understandable by an average student in 6th grade.
     - SMOG Index
+        - Basis:  complex_words/sentences, complex word is >= 3 syllables
         - From http://en.wikipedia.org/wiki/SMOG_Index
         - McLaughlin, G. (1969), "SMOG grading: A new readability formula",
           Journal of Reading, 12 (8) 639-646
@@ -199,6 +155,7 @@ Algorithms
             - 3. Take the square root of the resultant number.
             - 4. Add 3 to the resultant number.
     - FORCAST Readability Formula
+        - Basis:  one_syllable_words/150_word_passage
         - From http://agcomwww.tamu.edu/market/training/power/readabil.html
         - FORCAST is a new readability formula designed especially for
           technical materials. It is not meant for traditional high school
@@ -216,21 +173,82 @@ Algorithms
         - "The FORCAST Readability Formula." Pennsylvania State University
           Nutrition Center, Bridge to Excellence Conference, 1992.
           
-"""
+'''
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2005, 2023 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # Calculate various readability indices for a set of files
-        ##∞what∞#
-        ##∞test∞# notest #∞test∞#
-        pass
+    _pgminfo = '''
+        <oo gist ∞ Calculate common readability estimates oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2005, 2023 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ utility oo>
+        <oo test ∞ notest oo>
+        <oo todo ∞
+        
+            - Key changes
+                - This is really a library.  pgm/readability.py is the script I use for
+                  analysis of files.
+                - -c option to colorize the output:  5 or 6 levels maximum.  This would
+                  take a list of files on the command line and print a columnized output
+                  with them color coded to indicate readability level.
+                - Metrics need some checking
+                    - The metrics should raise an exception on suspicious materials.
+                      For example, take an easy-to-read document like "The Martian" and
+                      substitute 'x' for all vowels.  This script outputs
+                        - FOG    CL  FKRE  FKGL  SMOG  FORC
+                        -   8     9    74     6     8    10  martian.txt
+                        -   4     9   100     0     3     5  xx_all_vowels
+                    - The only valid words in the file are "psych pry wryly why by fly
+                      hm dry try sky fry my"
+
+            - Needed options
+                - Warn when a file contains non-ASCII characters
+                - ASCIIfy the file's data
+                - Remove a set of words from a file or sequence
+                - Change ';' to '.'.  In most prose, this is probably appropriate unless
+                  it's usage like 'France, 3; UK, 2;...'.  Note that speech never uses a
+                  semicolon.
+            - Colorize the results for grade level.  There are two target audiences:
+                - Educated adults (e.g., has a college degree)
+                    - blul:  easy (<= grade 7)
+                    - grnl:  standard (<= grade 8-10)
+                    - yell:  medium (<= grade 11-12)
+                    - ornl:  medium-hard (<= grade 13-16)   College
+                    - redl:  hard (> grade 16)              Graduate school
+                - Average adult
+                    - blul:  easy (<= grade 5)
+                    - grnl:  standard (<= grade 6-8)
+                    - yell:  medium (<= grade 9-10)
+                    - ornl:  medium-hard (<= grade 11-12)
+                    - redl:  hard (> grade 12)
+            - Include in the manpage the scores from a number of popular texts such as
+              pnp, Tom Sawyer, etc.
+                - 22 Jul 2021:  "Pride and Prejudice" has a FKGL of around 12th grade,
+                  senior in high school.  "Tom Sawyer" is about 8th grade level.  A
+                  surprise was Andy Weir's "The Martian" is about 5th grade level.  It's
+                  an eminently readable book and I wouldn't have guessed it would have
+                  such a low readability score.  It's probably a combination of lots of
+                  short sentences and avoiding the use of long words.
+                - This script could benefit by printing out associated statistics of the
+                  text too, such as sentence length, word length, etc.
+            - This should be both my readability script and a library.
+                - Default
+                    - Fog
+                    - FKGL
+                - Optional
+                    - ARI
+                    - CL
+                    - FRES
+                    - SMOG
+                - Consider an option that prints out x where x =
+                  math.ceil(log(characters)) and x is a superscript after the file name.
+          
+        oo>
+    '''
     if 1:  # Standard imports
         from math import sqrt
         import getopt
@@ -245,7 +263,7 @@ if 1:  # Header
         from wrap import dedent
         from color import t
         from lwtest import Assert
-        if 0:
+        if 1:
             import debug
             debug.SetDebugger()
         common_abbreviations = set("mr mrs ms dr no mssr st ave".split())
@@ -255,275 +273,55 @@ if 1:  # Header
         # dictionaries that greatly speed up getting the number of syllables
         # per word.  See the docstring.
         try:
-            from words_syllables import syllables as S, multiple_syllables as MS
+            from words_syllables import syllables as SYL, multiple_syllables as MSYL
         except ImportError:
             pass
     if 1:  # Global variables
-        ii = isinstance
+        class G:
+            pass
+        g = G()
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
-        ii = isinstance
         # If true, print out more details
-        dbg = 0
+        g.dbg = 0
         # Named tuple to hold textual information
-        TextInfo = namedtuple(
-            "TextInfo",
-            """
-            characters
-            words
-            complex_words
-            one_syllable_words
-            syllables
-            sentences
-            wordlist
-            """,
-        )
+        TextInfo = namedtuple("TextInfo", "characters words complex_words "
+                "one_syllable_words syllables sentences wordlist")
         # Named tuple for readability estimates
-        ReadabilityTuple = namedtuple(
-            "Readability",
-            """
-            FK_ease
-            FK_grade
-            DaleChall
-            """,
-        )
+        ReadabilityTuple = namedtuple("Readability", "FK_ease FK_grade DaleChall")
         # Colors
         t.dbg = t("lill")
         t.err = t("redl")
-if 1:  # Utility
-    def Error(*msg, status=1):
-        print(*msg, file=sys.stderr)
-        exit(status)
-    def Usage(status=1):
-        print(
-            dedent(f"""
-        Usage:  {sys.argv[0]} file1 [file2...]
-          Prints readability statistics for text files.
-        """)
-        )
-        if dbg:
-            print(
-                dedent("""
-        C    = number of characters in words
-        W    = number of words
-        CW   = number of complex words (3 or more syllables)
-        SY   = number of syllables
-        SENT = number of sentences""")
-            )
-        print(
-            dedent(
-                """
-          FKRE = Flesch-Kincaid Reading Ease
-            0-100, higher numbers mean easier to read
-        The following numbers are the approximate reading level in US grade level:
-          FOG  = Gunning Fog Index
-          ARI  = Automated Readability Index
-          CL   = Coleman-Liau Index
-          FKGL = Flesch-Kincaid Grade Level
-          SMOG = SMOG Index
-          FORC = FORCAST Readability Formula
-        See the comments in the program code for formulas and references.
-        """))
-        print(
-            dedent("""
-        Options
-          -d    Turn on debug printing
-          -p    Print to one decimal place (integer is default)
-        """)
-        )
-        exit(status)
-    def ParseCommandLine(d):
-        d["-d"] = False  # Debug output
-        d["-p"] = False  # Print to 1 decimal place
-        if len(sys.argv) < 2:
-            Usage(1)
-        try:
-            opts, files = getopt.getopt(sys.argv[1:], "dhp", "help")
-        except getopt.GetoptError as e:
-            print(str(e))
-            exit(1)
-        for o, a in opts:
-            if o[1] in list("dp"):
-                d[o] = not d[o]
-            elif o in ("-h", "--help"):
-                Usage(status=0)
-        if d["-d"]:
-            global dbg
-            dbg = True
-        return files
-if 1:  # Manpage
-    def Manpage():
-        print(
-            dedent("""
-            
-        Readability Estimates
-        ---------------------
-        
-            For an introduction, see https://en.wikipedia.org/wiki/Readability.  This
-            module contains a class Readability that can take input from files or
-            streams that results in plain ASCII text with words separated by
-            whitespace.  The text is analyzed for number of characters, words,
-            sentences, syllables per word, and complex words.  These numbers are used
-            to calculate various estimates of how readable a selection of text is.
-            Because this is based on only the text content, the visual layout of the
-            text is ignored.
-            
-            I recommend you experiment with the different methods and decide on which
-            tools best meet your needs.  Reading the above wikipedia page should give
-            enough background on the methods.
-            
-        Opinions
-        --------
-        
-            My primary use of a few of these formulas is to assess the approximate
-            reading level of my written material.  I went through a typical academic
-            curriculum, doing research and writing reports and papers.
-            Unfortunately, many such writers can produce nearly unreadable text.
-            This is easily seen when reading research literature.  When I worked in
-            R&D at HP, a good friend who was an executive politely told me I wrote
-            too many words and used too many unfamiliar words.  This almost
-            guaranteed the memos and reports I wrote to influence decision makers were
-            not read.  Later, when I was in management, I noticed the same behavior
-            in my department, so I studied books aimed at helping professionals to
-            write better.  It took effort and study to unlearn the stilted academic
-            habits we all had.  But it helped us write a bit better for our
-            business environment.
-            
-            The main lesson my friend taught me was that decision makers (executives,
-            managers, senior-level technical staff) are overloaded with reading
-            material.  If you can't get them the core message in half a sheet of
-            paper, they likely won't read the rest of your material.  If you want to
-            make an impact, keep the executive summary short and provide the details
-            in an appendix.
-            
-            After retiring, I would occasionally do consulting work for an electronic
-            test company, writing and editing user manuals and marketing
-            communications.  This further showed the need for more careful writing,
-            so I routinely used the precursor of this library to analyze every piece
-            of writing I was responsible for.  It must have helped, as they used my
-            writing services for over a decade.
-            
-            I settled on the Flesch-Kincaid grade level (FKGL) in integer form as the
-            most practical guide to reading ease.  I read somewhere that "Reader's
-            Digest" had a FKGL of around 8th grade and I used this as a target for
-            most of my writing.  
-            
-        Examples
-        --------
-        
-            I ran the readability.py script on the following software license texts:
-            
-                afl3       Academic Free License 3.0
-                apache2    Apache License 2.0
-                bsd3       BSD 3-clause license
-                ccsa4      Creative Commons Attribution-ShareAlike 4.0
-                gpl2       GNU Public License version 2
-                gpl3       GNU Public License version 3
-                lgpl3      Lesser GNU Public License version 3
-                mit        MIT License
-                nposl3     Non-Profit Open Software License 3.0
-                osl3       Open Software License 3.0
-                pd         Public domain release
-                wol        Wide-open License
-                
-            and got the following results:
-            
-                FOG   ARI    CL  FKRE  FKGL  SMOG
-                 20    17    14    28    16    17  aa.afl3
-                 21    18    15    24    17    18  aa.apache2
-                 23    20    17    17    18    19  aa.bsd3
-                 16    12    15    33    13    14  aa.ccsa4
-                 17    16    12    41    15    15  aa.gpl2
-                 19    17    13    34    16    16  aa.gpl3
-                 20    17    12    33    17    16  aa.lgpl3
-                 21    20    16    22    18    18  aa.mit
-                 24    21    14    19    20    20  aa.nposl3
-                 24    21    14    19    20    20  aa.osl3
-                 20    17    14    30    17    17  aa.pd
-                 17    17    18    25    16    15  aa.wol
-                 
-            These were likely all written by lawyers and would all be considered 
-            difficult documents for the general reader by virtue of their FKRE being
-            about 30 or less.
-            
-            As an example of a hard-to-read page because of the medical terminology,
-            run the script on the page
-            https://en.wikipedia.org/wiki/Cholangiocarcinoma.  This gave a Fog of 35
-            and a FKGL of 32.
-            
-        Reference data
-        --------------
-        
-        https://outreach.ou.edu/educational-services/education/edutas/comp-center-landing-page/knowledgebases/program-evaluation-knowledgebase/task-1-write-report/fog-index/
-            - Discusses Gunning Fog and Flesch-Kincaid grade level
-            - Gives the Fog following grade levels for these magazines:
-                - 6     Comic books
-                - 7     True Confessions
-                - 8     Ladies' Home Journal
-                - 9     Reader's Digest
-                - 10    Newsweek
-                - 11    Time, Harper's
-                - 12    Atlantic Monthly
-            - Points out the FOG index indicates how easy the writing is to
-              read.  The Flesch formulas are supposed to do the same, but
-              since we learn to read more difficult words before we
-              understand them, the Fog index is two grades higher than the
-              Flesch metric.
-            - Most newspapers write at 8-10 grade Fog level or 5-8 grade
-              reading ease (Flesch).  The rationale is that the newspaper
-              won't be read if a person has to labor over it as if doing
-              school research.
-              
-        https://www.wyliecomm.com/2021/11/measure-reading-levels-with-readability-indexes/
-            - Flesch reading ease
-                - reading_ease = 206.835 – (1.015*words_per_sentence) – (84.6*syllables_per_word)
-                - Scores range from 0 to 100 usually, although you can
-                  construct pathological cases that result in numbers
-                  outside this range
-                - Scores (% is number of adults who can read at this level)
-                    - > 90  Very easy, 4th grade level, 93%
-                    - > 80  Easy, 5th grade level, 91%
-                    - > 70  Fairly easy, 6th grade level, 83%
-                    - > 50  Fairly hard, some high school, 54%
-                    - > 30  Hard, High school or some college, 33%
-                    - < 30  Very hard, college, 4.5%
-                - Aim for 60 or higher.  To increase, reduce length of
-                  sentences and words.
-            - Flesch-Kincaid grade level
-                - FKGL = (0.39*average_number_of_words_per_sentence)
-                        + (11.8*average_number_of_syllables_per_word) – 15
-                - Standard for DoD, IRS, SS Administration.  Many states
-                  require insurance policies and other documents at 9th
-                  grade level or less.
-                - Scores (% is number of adults who can read at this level)
-                    - 4:    very easy, 93
-                    - 5:    easy, 91
-                    - 6:    fairly easy, 88
-                    - 7-8:  standard, 83
-                    - Some high school:  fairly hard, 83
-                    - High school or some college:  hard, 33
-                    - College:  very hard, 4.5
-                - Aim for 8th grade or lower
-            - Gunning Fog level
-                - Their formula is wrong
-                - Fog index is approximate grade level (shoot for <= 9)
-                - Scores (magazines at that level)
-                    - 6:    People, Parade
-                    - 7:    TV Guide, Bible, Mark Twain
-                    - 8:    Ladies' Home Journal
-                    - 9:    Reader's Digest
-                    - 10:   National Geographic
-                    - 11-12:   Harper's, Time, Atlantic Monthly, Newsweek, WSJ
-                    - 13-15:   None
-                    - 16:   College senior, standard medical consent forms
-                    - 17-20:   Academic journals
-                    - 20+:   US government information
-        """)
-        )
-        exit(0)
 if 1:  # Basic routines
+    def EndOfSentence(word):
+        "Return 1 if the word is the end of a sentence"
+        if not word:
+            raise Exception("Empty word")
+        last_char = word[-1]
+        end_of_sentence_chars = ".!?"
+        non_word_chars = ",;:-" + end_of_sentence_chars
+        if last_char not in end_of_sentence_chars:
+            return False
+        word = word[:-1]
+        # Remove all non-word characters
+        while len(word) and word[-1] in non_word_chars:
+            word = word[:-1]
+        word = word.lower()
+        return False if word in common_abbreviations else True
+    def StripNonletters(word):
+        '''Remove letters not in "abcdefghijklmnopqrstuvwxyz" from the end
+        of the word.  Note this ignores non-letters in the middle of the
+        word.
+        
+        Example:  "object.data!" will return "object.data".  With
+        non-letter data in the middle of a word, it's likely the word came
+        from program code or a mistake.
+        '''
+        while len(word) and word[-1] not in "abcdefghijklmnopqrstuvwxyz":
+            word = word[:-1]
+        return word
     def GuessSyllables(word, letters_only=False):
-        """Guess the number of syllables in a word.
+        '''Guess the number of syllables in a word.
         
         If letters_only is True, then an exception is raised if any
         punctuation characters are found in the word.  This is intended to
@@ -532,7 +330,7 @@ if 1:  # Basic routines
         From pyflesch.py script by Seb Bacon.  Downloaded 5 Feb 2023
         https://github.com/sebbacon/pyflesch/blob/master/pyflesch.py.
         I have edited the algorithm.
-        """
+        '''
         # Our basic way of guessing is to count the number of vowels
         # in a word.  We then subtract 1 for each dipthong we find,
         # and add 1 for anti-dipthongs (OK, that's probably not the
@@ -592,52 +390,28 @@ if 1:  # Basic routines
             syl += 1
         syl += len(spl)
         return syl if syl else 1
-    def EndOfSentence(word):
-        "Return 1 if the word is the end of a sentence"
-        if not word:
-            raise Exception("Empty word")
-        last_char = word[-1]
-        end_of_sentence_chars = ".!?"
-        non_word_chars = ",;:-" + end_of_sentence_chars
-        if last_char not in end_of_sentence_chars:
-            return False
-        word = word[:-1]
-        # Remove all non-word characters
-        while len(word) and word[-1] in non_word_chars:
-            word = word[:-1]
-        word = word.lower()
-        return False if word in common_abbreviations else True
-    def StripNonletters(word):
-        """Remove letters not in "abcdefghijklmnopqrstuvwxyz" from the end
-        of the word.  Note this ignores non-letters in the middle of the
-        word.
-        
-        Example:  "object.data!" will return "object.data".  With
-        non-letter data in the middle of a word, it's likely the word came
-        from program code or a mistake.
-        """
-        while len(word) and word[-1] not in "abcdefghijklmnopqrstuvwxyz":
-            word = word[:-1]
-        return word
     def CountSyllables(word):
         num = 0
         try:
-            if word in S:
-                num = S[word]
-            elif word in MS:
-                num = MS[word][0]
+            if word in SYL:
+                num = SYL[word]
+            elif word in MSYL:
+                num = MSYL[word][0]
             else:
                 num = GuessSyllables(word)
         except Exception:
             num = GuessSyllables(word)
         return num
     def PrintHeader():
-        if dbg:
-            print("     C      W    CW     OS    SY  SENT   FOG   ARI", end=" ")
-            print("   CL  FKRE  FKGL  SMOG  FORC")
-        else:
-            #print("  FOG   ARI    CL  FKRE  FKGL  SMOG  FORC")
-            print("  FOG    CL  FKRE  FKGL  SMOG  FORC")
+        if d["-s"]:
+            w = 6
+            for i in "Chr Wrd CpxW 1Syl Syl Sent".split():
+                print(f"{i:>{w}s}", end=" ")
+            print(end=" ")
+        w = 5
+        for i in "FOG CL FKRE FKGL SMOG FORC".split():
+                print(f"{i:>{w}s}", end=" ")
+        print()
     def PrintResults(stats, file):
         (characters, words, complex_words, one_syllable_words, syllables, sentences,
             wordlist) = stats
@@ -648,19 +422,27 @@ if 1:  # Basic routines
         fkgl = FleschKincaidGradeLevel(words, syllables, sentences)
         smog = SMOGIndex(complex_words, sentences)
         forc = FORCASTReadabilityFormula(words, one_syllable_words)
-        if dbg:
-            print("%6d %6d %5d %6d %5d %5d" % stats, end=" ")
-        if 0:
-            # Original with ARI
-            fmt = "%5.1f " * 7
-            #print(fmt % (fog, ari, cl, fkre, fkgl, smog, forc), end=" ")
-        else:
-            fmt = "%5.1f " * 6
-            print(fmt % (fog, cl, fkre, fkgl, smog, forc), end=" ")
-        print(file)
+        w = 6
+        if d["-s"]:
+            print(f"{characters:{w}d} "
+                  f"{words:{w}d} "
+                  f"{complex_words:{w}d} "
+                  f"{one_syllable_words:{w}d} "
+                  f"{syllables:{w}d} "
+                  f"{sentences:{w}d}",
+                  end="  ")
+        w = 5
+        for i in (fog, cl, fkre, fkgl, smog, forc):
+            i = max(0, min(i, 99.9)) # Clamp to [0, 100)
+            if d["-p"]:
+                print(f"{i:{w}.1f}", end=" ")
+            else:
+                print(f"{i:{w}.0f}", end=" ")
+        print("", file)
     def GetTextInfo(text):
-        """For a string of text, return a TextInfo namedtuple."""
-        Assert(ii(text, str))
+        '''For a string of text, return a TextInfo namedtuple.
+        '''
+        Assert(isinstance(text, str))
         # Operate on only lowercase strings.  Note this means we won't
         # ignore proper nouns (these could be confused with the words at
         # the beginning of a sentence if you assume a proper noun begins
@@ -683,32 +465,26 @@ if 1:  # Basic routines
                 complex_words += 1
             if number_of_syllables == 1:
                 one_syllable_words += 1
-        s = [
-            characters,
-            words,
-            complex_words,
-            one_syllable_words,
-            syllables,
-            sentences,
-            wordlist,
-        ]
+        if not sentences:
+            sentences = 1
+        s = [characters, words, complex_words, one_syllable_words, syllables, sentences, wordlist]
         for i in s[:-1]:
             Assert(i >= 0)
         return TextInfo(*s)
 if 1:  # Readability metric algorithms
     def GunningFogIndex(words, sentences, complex_words):
-        ASL = words / sentences
-        PCW = 100 * complex_words / words
-        return 0.4 * (ASL + PCW)
+        ASL = words/sentences
+        PCW = 100*complex_words/words
+        return 0.4*(ASL + PCW)
     def ARI(characters, words, sentences):
-        """Automated readability index for English text.
+        '''Automated readability index for English text.
         
         See https://en.wikipedia.org/wiki/Automated_readability_index.  An
         advantage of this metric is that it is easy to calculate.  The
         returned value is interpreted as a US grade level.  Note this is
         slightly different than the metric defined in the wikipedia page.
-        """
-        ari = 4.71 * characters / words + 0.5 * words / sentences - 21.43
+        '''
+        ari = 4.71*characters/words + 0.5*words/sentences - 21.43
         # Subtract 1 so that a returned value of 1 indicates first grade.
         ari -= 1
         # Provide some reality checks
@@ -716,7 +492,7 @@ if 1:  # Readability metric algorithms
             raise ValueError("ARI is < 0")
         return ari
     def ColemanLiauIndex(characters, words, sentences):
-        """Return an estimate of the US grade level.
+        '''Return an estimate of the US grade level.
         
         See https://en.wikipedia.org/wiki/Coleman%E2%80%93Liau_index.
         Formula is
@@ -724,30 +500,30 @@ if 1:  # Readability metric algorithms
         where
             L = 100*characters/words
             S = 100*sentences/words
-        """
-        return 5.89 * characters / words - 0.3 * sentences / (100 * words) - 15.8
+        '''
+        return 5.89*characters/words - 0.3*sentences/(100*words) - 15.8
     def FleschKincaidReadingEase(words, syllables, sentences):
-        ASW = syllables / words
-        ASL = words / sentences
-        return 206.835 - 1.015 * ASL - 84.6 * ASW
+        ASW = syllables/words
+        ASL = words/sentences
+        return 206.835 - 1.015*ASL - 84.6*ASW
     def FleschKincaidGradeLevel(words, syllables, sentences):
-        ASL = words / sentences
-        ASW = syllables / words
-        return 0.39 * ASL + 11.8 * ASW - 15.59
+        ASL = words/sentences
+        ASW = syllables/words
+        return 0.39*ASL + 11.8*ASW - 15.59
     def SMOGIndex(complex_words, sentences):
-        return sqrt(30 * complex_words / sentences) + 3
+        return sqrt(30*complex_words/sentences) + 3
     def FORCASTReadabilityFormula(words, one_syllable_words):
-        N = words / 150
-        return 20 - (one_syllable_words / N) / 10
+        N = words/150
+        return 20 - (one_syllable_words/N)/10
 if 0:  # Dale-Chall stuff (not working yet)
-    """https://en.wikipedia.org/wiki/Dale%E2%80%93Chall_readability_formula
+    '''https://en.wikipedia.org/wiki/Dale%E2%80%93Chall_readability_formula
     makes the point that "Regular plurals of nouns, regular past tense
     forms, progressive forms of verbs etc have to be added" to the
     basic list of words.  The formula is also ambiguous as to what
     exactly "words" means:  is it all the words in the document or the
     set of unique words?  I'd need the original reference to determine
     this.  Hence, this stuff is commented out until this is resolved.
-    """
+    '''
     def DaleChall(text, textinfo):
         "Return score from Dale-Chall formula"
         easywords = DaleChallWords()
@@ -764,8 +540,8 @@ if 0:  # Dale-Chall stuff (not working yet)
             if word not in easywords:
                 difficult_words += 1
         # Calculate statistic
-        pct = 100 * difficult_words / len(wordlist)
-        score = 0.1579 * pct + 0.0496 * (words / sentences)
+        pct = 100*difficult_words/len(wordlist)
+        score = 0.1579*pct + 0.0496*(words/sentences)
         final_score = score + 3.6365 if pct > 5 else score
         if 1:
             t.print(f"{t.dbg}words                = {words}")
@@ -793,16 +569,16 @@ if 0:  # Dale-Chall stuff (not working yet)
         else:
             return 16
     def DaleChallWords(to_lower=True):
-        """Return a set of words from the Dale-Chall list of words.  If
+        '''Return a set of words from the Dale-Chall list of words.  If
         to_lower is True, convert the words to lowercase.  See
         https://www.readabilityformulas.com/articles/dale-chall-readability-word-list.php
         for a discussion.  This list of words represent those that about
         80% of 4th graders will understand.
-        """
+        '''
         if not hasattr(DaleChallWords, "words"):
-            # 5 Feb 2023 2950 words from
+            # 5 Feb 2023:  2950 words from
             # http://countwordsworth.com/download/DaleChallEasyWordList.txt
-            data = """
+            data = '''
     
                 a able aboard about above absent accept accident account ache aching acorn acre across act acts add address admire adventure afar afraid after afternoon afterward afterwards again against age aged ago agree ah ahead aid aim air airfield airplane airport airship airy alarm alike alive all alley alligator allow almost alone along aloud already also always am America American among amount an and angel anger angry animal another answer ant any anybody anyhow anyone anything anyway anywhere apart apartment ape apiece appear apple April apron are aren't arise arithmetic arm armful army arose around arrange arrive arrived arrow art artist as ash ashes aside ask asleep at ate attack attend attention August aunt author auto automobile autumn avenue awake awaken away awful awfully awhile ax axe baa babe babies back background backward backwards bacon bad badge badly bag bake baker bakery baking ball balloon banana band bandage bang banjo bank banker bar barber bare barefoot barely bark barn barrel base baseball basement basket bat batch bath bathe bathing bathroom bathtub battle battleship bay be beach bead beam bean bear beard beast beat beating beautiful beautify beauty became because become becoming bed bedbug bedroom bedspread bedtime bee beech beef beefsteak beehive been beer beet before beg began beggar begged begin beginning begun behave behind being believe bell belong below belt bench bend beneath bent berries berry beside besides best bet better between bib bible bicycle bid big bigger bill billboard bin bind bird birth birthday biscuit bit bite biting bitter black blackberry blackbird blackboard blackness blacksmith blame blank blanket blast blaze bleed bless blessing blew blind blindfold blinds block blood bloom blossom blot blow blue blueberry bluebird blush board boast boat bob bobwhite bodies body boil boiler bold bone bonnet boo book bookcase bookkeeper boom boot born borrow boss both bother bottle bottom bought bounce bow bowl bow-wow box boxcar
                 boxer boxes boy boyhood bracelet brain brake bran branch brass brave bread break breakfast breast breath breathe breeze brick bride bridge bright brightness bring broad broadcast broke broken brook broom brother brought brown brush bubble bucket buckle bud buffalo bug buggy build building built bulb bull bullet bum bumblebee bump bun bunch bundle bunny burn burst bury bus bush bushel business busy but butcher butt butter buttercup butterfly buttermilk butterscotch button buttonhole buy buzz by bye cab cabbage cabin cabinet cackle cage cake calendar calf call caller calling came camel camp campfire can canal canary candle candlestick candy cane cannon cannot canoe can't canyon cap cape capital captain car card cardboard care careful careless carelessness carload carpenter carpet carriage carrot carry cart carve case cash cashier castle cat catbird catch catcher caterpillar catfish catsup cattle caught cause cave ceiling cell cellar cent center cereal certain certainly chain chair chalk champion chance change chap charge charm chart chase chatter cheap cheat check checkers cheek cheer cheese cherry chest chew chick chicken chief child childhood children chill chilly chimney chin china chip chipmunk chocolate choice choose chop chorus chose chosen christen Christmas church churn cigarette circle circus citizen city clang clap class classmate classroom claw clay clean cleaner clear clerk clever click cliff climb clip cloak clock close closet cloth clothes clothing cloud cloudy clover clown club cluck clump coach coal coast coat cob cobbler cocoa coconut cocoon cod codfish coffee coffeepot coin cold collar college color colored colt column comb come comfort comic coming company compare conductor cone connect coo cook cooked cooking cookie cookies cool cooler coop copper copy cord cork corn corner correct cost cot cottage cotton couch cough could couldn't count counter country county course court cousin cover cow coward cowardly cowboy cozy crab crack cracker
@@ -815,7 +591,7 @@ if 0:  # Dale-Chall stuff (not working yet)
                 sunflower sung sunk sunlight sunny sunrise sunset sunshine supper suppose sure surely surface surprise swallow swam swamp swan swat swear sweat sweater sweep sweet sweetness sweetheart swell swept swift swim swimming swing switch sword swore table tablecloth tablespoon tablet tack tag tail tailor take taken taking tale talk talker tall tame tan tank tap tape tar tardy task taste taught tax tea teach teacher team tear tease teaspoon teeth telephone tell temper ten tennis tent term terrible test than thank thanks thankful Thanksgiving that that's the theater thee their them then there these they they'd they'll they're they've thick thief thimble thin thing think third thirsty thirteen thirty this thorn those though thought thousand thread three threw throat throne through throw thrown thumb thunder Thursday thy tick ticket tickle tie tiger tight till time tin tinkle tiny tip tiptoe tire tired title to toad toadstool toast tobacco today toe together toilet told tomato tomorrow ton tone tongue tonight too took tool toot tooth toothbrush toothpick top tore torn toss touch tow toward towards towel tower town toy trace track trade train tramp trap tray treasure treat tree trick tricycle tried trim trip trolley trouble truck true truly trunk trust truth try tub Tuesday tug tulip tumble tune tunnel turkey turn turtle twelve twenty twice twig twin two ugly umbrella uncle under understand underwear undress unfair unfinished unfold unfriendly unhappy unhurt uniform United States unkind unknown unless unpleasant until unwilling up upon upper upset upside upstairs uptown upward us use used useful valentine valley valuable value vase vegetable velvet very vessel victory view village vine violet visit visitor voice vote wag wagon waist wait wake waken walk wall walnut want war warm warn was wash washer washtub wasn't waste watch watchman water watermelon waterproof wave wax way wayside we weak weakness weaken wealth weapon wear weary weather weave web we'd wedding
                 Wednesday wee weed week we'll weep weigh welcome well went were we're west western wet we've whale what what's wheat wheel when whenever where which while whip whipped whirl whisky whiskey whisper whistle white who who'd whole who'll whom who's whose why wicked wide wife wiggle wild wildcat will willing willow win wind windy windmill window wine wing wink winner winter wipe wire wise wish wit witch with without woke wolf woman women won wonder wonderful won't wood wooden woodpecker woods wool woolen word wore work worker workman world worm worn worry worse worst worth would wouldn't wound wove wrap wrapped wreck wren wring write writing written wrong wrote wrung yard yarn year yell yellow yes yesterday yet yolk yonder you you'd you'll young youngster your yours you're yourself yourselves youth you've
     
-            """.strip()
+            '''.strip()
             if to_lower:
                 data = data.lower()
                 DaleChallWords.words = set(data.split())
@@ -826,7 +602,7 @@ if 1:  # Test routines
         raise Exception("Needs to be written")
     def TestCL():
         # Text from # https://en.wikipedia.org/wiki/Coleman%E2%80%93Liau_index
-        text = """
+        text = '''
             Existing computer programs that measure readability are based
             largely upon subroutines which estimate number of syllables,
             usually by counting vowels. The shortcoming in estimating
@@ -839,14 +615,14 @@ if 1:  # Test routines
             counted by an optical scanning device, and thus the formula
             makes it economically feasible for an organization such as the
             U.S. Office of Education to calibrate the readability of all
-            textbooks for the public school system. """
+            textbooks for the public school system. '''
         # The CL index should be (0.0588*537 - 0.296*4.20 - 15.8 = 14.5
         # There are L = letters/words*100 = 537
         # S = sentences/words*100 = 4.20
         text    # ∞∞3 This routine needs to be written
     def TestText():
         # 49% through Tom Sawyer
-        return """About midnight Joe awoke, and called the boys.  There was a brooding
+        return '''About midnight Joe awoke, and called the boys.  There was a brooding
             oppressiveness in the air that seemed to bode something.  The boys
             huddled themselves together and sought the friendly companionship of the
             fire, though the dull dead heat of the breathless atmosphere was
@@ -867,9 +643,9 @@ if 1:  # Test routines
             forest and an instant crash followed that seemed to rend the tree-tops
             right over the boys' heads.  They clung together in terror, in the thick
             gloom that followed.  A few big rain-drops fell pattering upon the
-            leaves."""
+            leaves.'''
     def Test_GuessSyllables_function():
-        """22 Sep 2010 DP:  this function provides a check of the
+        '''22 Sep 2010 DP:  this function provides a check of the
         GuessSyllables() function's output.  The word_syllables dictionary from
         words.py contains the number of syllables for each word in the
         dictionary; I believe I found this list of syllables from a CS-heavy
@@ -889,7 +665,7 @@ if 1:  # Test routines
         The bottom line is that the GuessSyllables function is correct 84% of
         the time and only off by one syllable 16% of the time.  I think
         this is excellent performance for a relatively simple algorithm.
-        """
+        '''
         from words import word_syllables
         d, n = {}, len(word_syllables)
         for i in word_syllables:
@@ -902,10 +678,10 @@ if 1:  # Test routines
         keys = d.keys()
         keys.sort()
         for i in keys:
-            print(i, "%.2f%%" % (100.0 * d[i] / n))
+            print(i, "%.2f%%" % (100.0*d[i]/n))
 if 1:  # Library functions
     def GunningFogIndex_(textinfo):
-        """Returns a number indicating the approximate US grade level
+        '''Returns a number indicating the approximate US grade level
         necessary to read a text selection.  See
         https://en.wikipedia.org/wiki/Gunning_fog_index for details.
         
@@ -918,19 +694,224 @@ if 1:  # Library functions
         -es, -ed, -ing, etc.  I've chosen to ignore this because it would
         require more sophisticated linguistic data, so the measure returned
         here may not match other sources.
-        """
+        '''
         ti = textinfo
-        average_sentence_length = ti.words / ti.sentences
-        percent_complex_words = 100 * ti.complex_words / ti.words
-        return 0.4 * (average_sentence_length + percent_complex_words)
-
-if 0:
-    s = TestText()
-    ti = GetTextInfo(s)
-    print(GunningFogIndex(ti))
-    exit()
+        average_sentence_length = ti.words/ti.sentences
+        percent_complex_words = 100*ti.complex_words/ti.words
+        return 0.4*(average_sentence_length + percent_complex_words)
 
 if __name__ == "__main__":
+    if 1:  # Manpage
+        def Manpage():
+            print(dedent('''
+                
+            Readability Estimates
+            ---------------------
+            
+                For an introduction, see https://en.wikipedia.org/wiki/Readability.  This
+                module contains a class Readability that can take input from files or
+                streams that results in plain ASCII text with words separated by
+                whitespace.  The text is analyzed for number of characters, words,
+                sentences, syllables per word, and complex words.  These numbers are used
+                to calculate various estimates of how readable a selection of text is.
+                Because this is based on only the text content, the visual layout of the
+                text is ignored.
+                
+                I recommend you experiment with the different methods and decide on which
+                tools best meet your needs.  Reading the above wikipedia page should give
+                enough background on the methods.
+                
+            Opinions
+            --------
+            
+                I use these formulas to assess the approximate reading level of my written
+                material.  I went through a typical academic curriculum, doing research and
+                writing reports and papers.  Unfortunately, many such writers can produce
+                nearly unreadable text, easily seen when reading research literature.  When
+                I worked in R&D at HP, a good friend who was an executive politely told me I
+                wrote too many words and used too many unfamiliar words.  This virtually
+                guaranteed the memos and reports I wrote to influence decision makers were
+                not read.  Later, when I was in management, I noticed the same behavior in
+                my department, so I studied books aimed at helping professionals to write
+                better.  It took effort and study to unlearn the stilted academic habits we
+                all had.  But it helped us write a bit better for our business environment.
+                
+                The main lesson my friend taught me was that decision makers (executives,
+                managers, senior-level technical staff) are vastly overloaded with reading
+                material.  If you can't get them the core message in half a sheet of
+                paper, they probably won't read the rest of your material.  If you want to
+                make an impact, keep the executive summary short and provide the details
+                in an appendix.
+                
+                After retiring, I would occasionally do consulting work for an electronic
+                test company, writing and editing user manuals and marketing communications.
+                This further showed the need for more careful writing, so I routinely used
+                the precursor of this library to analyze every piece of writing I was
+                responsible for.  It must have helped, as they used my writing services for
+                over a decade.
+                
+                I settled on the Flesch-Kincaid grade level (FKGL) in integer form as the
+                most practical guide to reading ease.  I read somewhere that "Reader's
+                Digest" had a FKGL of around 8th grade and I used this as a target for
+                most of my writing.  
+                
+            Examples
+            --------
+            
+                I ran the readability.py script on the following software license texts:
+                
+                    afl3       Academic Free License 3.0
+                    apache2    Apache License 2.0
+                    bsd3       BSD 3-clause license
+                    ccsa4      Creative Commons Attribution-ShareAlike 4.0
+                    gpl2       GNU Public License version 2
+                    gpl3       GNU Public License version 3
+                    lgpl3      Lesser GNU Public License version 3
+                    mit        MIT License
+                    nposl3     Non-Profit Open Software License 3.0
+                    osl3       Open Software License 3.0
+                    pd         Public domain release
+                    wol        Wide-open License
+                    
+                and got the following results:
+                
+                    FOG   ARI    CL  FKRE  FKGL  SMOG
+                    20    17    14    28    16    17  aa.afl3
+                    21    18    15    24    17    18  aa.apache2
+                    23    20    17    17    18    19  aa.bsd3
+                    16    12    15    33    13    14  aa.ccsa4
+                    17    16    12    41    15    15  aa.gpl2
+                    19    17    13    34    16    16  aa.gpl3
+                    20    17    12    33    17    16  aa.lgpl3
+                    21    20    16    22    18    18  aa.mit
+                    24    21    14    19    20    20  aa.nposl3
+                    24    21    14    19    20    20  aa.osl3
+                    20    17    14    30    17    17  aa.pd
+                    17    17    18    25    16    15  aa.wol
+                    
+                These were likely all written by lawyers and would all be considered 
+                difficult documents for the general reader by virtue of their FKRE being
+                about 30 or less.
+                
+                As an example of a hard-to-read page because of the medical terminology,
+                run the script on the page
+                https://en.wikipedia.org/wiki/Cholangiocarcinoma.  This gave a Fog of 35
+                and a FKGL of 32.
+
+                "Pride and Prejudice" has a FKGL of 12, appropriate for a senior in high
+                school.  "Tom Sawyer" has a FKGL of 8, meaning it's quite readable.  A
+                surprise was a FKGL of 5 for "The Martian", which I wouldn't have guessed
+                though I found it eminently readable; it's probably because it's a
+                combination of lots of short sentences and it avoids the use of long words.
+                
+            Reference data
+            --------------
+            
+            https://outreach.ou.edu/educational-services/education/edutas/comp-center-landing-page/knowledgebases/program-evaluation-knowledgebase/task-1-write-report/fog-index/
+                - Discusses Gunning Fog and Flesch-Kincaid grade level
+                - Gives the Fog following grade levels for these magazines:
+                    - 6     Comic books
+                    - 7     True Confessions
+                    - 8     Ladies' Home Journal
+                    - 9     Reader's Digest
+                    - 10    Newsweek
+                    - 11    Time, Harper's
+                    - 12    Atlantic Monthly
+                - Points out the FOG index indicates how easy the writing is to read.  The
+                Flesch formulas are supposed to do the same, but since we learn to read
+                more difficult words before we understand them, the Fog index is two
+                grades higher than the Flesch metric.
+                - Most newspapers write at 8-10 grade Fog level or 5-8 grade reading ease
+                (Flesch).  The rationale is that the newspaper won't be read if a person
+                has to labor over it as if doing school research.
+                
+            https://www.wyliecomm.com/2021/11/measure-reading-levels-with-readability-indexes/
+                - Flesch reading ease
+                    - reading_ease = 206.835 – (1.015*words_per_sentence) – (84.6*syllables_per_word)
+                    - Scores range from 0 to 100 usually, although you can
+                    construct pathological cases that result in numbers
+                    outside this range
+                    - Scores (% is number of adults who can read at this level)
+                        - > 90  Very easy, 4th grade level, 93%
+                        - > 80  Easy, 5th grade level, 91%
+                        - > 70  Fairly easy, 6th grade level, 83%
+                        - > 50  Fairly hard, some high school, 54%
+                        - > 30  Hard, High school or some college, 33%
+                        - < 30  Very hard, college, 4.5%
+                    - Aim for 60 or higher.  To increase, reduce length of
+                    sentences and words.
+                - Flesch-Kincaid grade level
+                    - FKGL = (0.39*average_number_of_words_per_sentence)
+                            + (11.8*average_number_of_syllables_per_word) – 15
+                    - Standard for DoD, IRS, SS Administration.  Many states
+                    require insurance policies and other documents at 9th
+                    grade level or less.
+                    - Scores (% is number of adults who can read at this level)
+                        - 4:    very easy, 93
+                        - 5:    easy, 91
+                        - 6:    fairly easy, 88
+                        - 7-8:  standard, 83
+                        - Some high school:  fairly hard, 83
+                        - High school or some college:  hard, 33
+                        - College:  very hard, 4.5
+                    - Aim for 8th grade or lower
+                - Gunning Fog level
+                    - Their formula is wrong
+                    - Fog index is approximate grade level (shoot for <= 9)
+                    - Scores (magazines at that level)
+                        - 6:    People, Parade
+                        - 7:    TV Guide, Bible, Mark Twain
+                        - 8:    Ladies' Home Journal
+                        - 9:    Reader's Digest
+                        - 10:   National Geographic
+                        - 11-12:   Harper's, Time, Atlantic Monthly, Newsweek, WSJ
+                        - 13-15:   None
+                        - 16:   College senior, standard medical consent forms
+                        - 17-20:   Academic journals
+                        - 20+:   US government information
+            ''')
+            )
+            exit(0)
+    if 1:  # Utility
+        def Error(*msg, status=1):
+            print(*msg, file=sys.stderr)
+            exit(status)
+        def Usage(status=1):
+            print( dedent(f'''
+            Usage:  {sys.argv[0]} file1 [file2...]
+              Prints readability statistics for text files.
+              The following numbers are the approximate reading level in US grade level:
+                FOG  = Gunning Fog Index
+                CL   = Coleman-Liau Index
+                FKGL = Flesch-Kincaid Grade Level
+                SMOG = SMOG Index
+                FORC = FORCAST Readability Formula
+              FKRE = Flesch-Kincaid Reading Ease: 0-100, higher means easier to read
+              See the comments in the program code for formulas and references.
+            '''))
+            print(dedent('''
+            Options
+                -p    Print to one decimal place (integer is default)
+                -s    Show document statistics (words, syllables, sentences, etc.)
+            ''')
+            )
+            exit(status)
+        def ParseCommandLine(d):
+            d["-s"] = False  # Show document statistics
+            d["-p"] = False  # Print to 1 decimal place
+            if len(sys.argv) < 2:
+                Usage(1)
+            try:
+                opts, files = getopt.getopt(sys.argv[1:], "hps", "help")
+            except getopt.GetoptError as e:
+                print(str(e))
+                exit(1)
+            for o, a in opts:
+                if o[1] in list("ps"):
+                    d[o] = not d[o]
+                elif o in ("-h", "--help"):
+                    Usage(status=0)
+            return files
     d = {}  # Options dictionary
     files = ParseCommandLine(d)
     header = False
