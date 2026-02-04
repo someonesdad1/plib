@@ -1,34 +1,40 @@
-"""
+'''
 Quantifies how different two strings or bytestrings are
-"""
-
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    ##∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
-    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    ##∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    ##∞license∞#
-    ##∞what∞#
-    # <programming> Quantifies how different two equal-sized strings or
-    # bytestrings are.
-    ##∞what∞#
-    ##∞test∞# run #∞test∞#
-    pass
-if 1:  # Standard imports
-    pass
-if 1:  # Custom imports
-    from f import flt
+'''
+if 1:  # Header
+    _pgminfo = '''
+        <oo gist ∞ Quantifies how different two strings or bytestrings are oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2022 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ utility oo>
+        <oo test ∞ run oo>
+        <oo todo ∞ 
+        
+            - ∞∞2 Move to dpstr.py
+            - ∞∞3 Need docstring with examples
+        
+        oo>
+    '''
+    if 1:  # Standard imports
+        pass
+    if 1:  # Custom imports
+        from f import flt
+    if 1:  # Global variables
+        pass
 if 1:  # Core functionality
-
     def DiffFrac(seq1, seq2):
-        """Return a decimal fraction on [0, 1] that represents how different
-        the two sequences of characters or bytes are.   The fraction is
-        produced by counting the number of elements (bytes or characters) that
-        differ and dividing by n.  The fraction is a number in the sequence
-        [0/n, 1/n, 2/n, ..., n/n] where n is the number of elements.
-        """
+        '''Return a decimal fraction on [0, 1] that represents how different the two
+        sequences of characters or bytes are.   The fraction is produced by counting the
+        number of elements (bytes or characters) that differ and dividing by n.  The
+        fraction is a number in the sequence [0/n, 1/n, 2/n, ..., n/n] where n is the
+        number of elements.
+        '''
         if 1:  # Check inputs
             e = TypeError("seq1 and seq2 are not the same type")
             if isinstance(seq1, str):
@@ -45,12 +51,11 @@ if 1:  # Core functionality
             if not n == len(seq2):
                 raise ValueError("Arguments are not the same length")
         if 1:  # Do calculation
-            # Note:  more resolution can be gotten by changing 'bool' to
-            # 'abs'.  However, you can then get fractions > 1, so you'll
-            # want to divide by 255 for byte strings and e.g. the number of
-            # Unicode characters for strings.  You'll also need to change
-            # the algorithm in DiffNum().  Personally, I can't see any
-            # practical utility in such a change.
+            # Note:  more resolution can be gotten by changing 'bool' to 'abs'.
+            # However, you can then get fractions > 1, so you'll want to divide by 255
+            # for byte strings and e.g. the number of Unicode characters for strings.
+            # You'll also need to change the algorithm in DiffNum().  Personally, I
+            # can't see any practical utility in such a change.
             different_item_count = 0
             for item1, item2 in zip(seq1, seq2):
                 if is_string:
@@ -62,15 +67,14 @@ if 1:  # Core functionality
                 msg = f"Calculation bug:  frac = {frac} is not on [0, 1]"
                 raise Exception(msg)
             return frac
-
     def DiffDigit(frac, n, how_many=9):
-        """Returns a decimal digit from '0' to '9' representing how
-        different two sequences were.  '0' represents no difference and '9'
-        represents the maximum number of differences possible.  You can get
-        higher "resolution" using a larger number for how_many and
-        additional Unicode characters will be returned as needed.  If you
-        just want '0' for equal and '1' for unequal, use how_many set to 2.
-        """
+        '''Returns a decimal digit from '0' to '9' representing how different two
+        sequences were.  '0' represents no difference and '9' represents the maximum
+        number of differences possible.  You can get higher "resolution" using a larger
+        number for how_many and additional Unicode characters will be returned as
+        needed.  If you just want '0' for equal and '1' for unequal, use how_many set to
+        2.
+        '''
         # Check arguments
         if not 0 <= frac <= 1:
             raise ValueError("frac must be on [0, 1]")
@@ -92,10 +96,8 @@ if 1:  # Core functionality
         assert 1 <= i <= how_many
         return chr(base + i)
 
-
 if __name__ == "__main__":
     from lwtest import run, Assert, raises
-
     def Test():
         n = 9
         # Test for bytestrings
@@ -119,11 +121,9 @@ if __name__ == "__main__":
         raises(TypeError, DiffFrac, b"a", "a")
         raises(ValueError, DiffFrac, "a", "aa")
         raises(ValueError, DiffFrac, b"a", b"aa")
-
     def TestHowmany():
         n = 20
         frac = DiffFrac("a" * n, "b" * n)
         t = DiffDigit(frac, n, how_many=10)
         Assert(t == ":")
-
     exit(run(globals(), halt=1)[0])

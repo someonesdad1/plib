@@ -1,130 +1,137 @@
-'''
-Thread-safe and process-safe stack
-'''
 if 1:  # Header
-    # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    ##∞copyright∞# Copyright (C) 2014, 2019 Don Peterson #∞copyright∞#
-    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    ##∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    ##∞license∞#
-    ##∞what∞#
-    # Thread-safe and process-safe stack
-    ##∞what∞#
-    ##∞test∞# run #∞test∞#
-    # Standard imports
-    from collections import deque
-    from multiprocessing import Lock as MultiprocessingLock
-    from threading import Lock as ThreadingLock
-    # Global variables
-    ii = isinstance
-class StackLock:
-    "This is a context manager for the needed locks"
-    def __init__(self):
-        self.mlock = MultiprocessingLock()
-        self.tlock = ThreadingLock()
-        self.state = "not locked"
-    def __enter__(self):
-        self.mlock.acquire()
-        self.tlock.acquire()
-        self.state = "locked"
-        return None
-    def __exit__(self, exception, exception_value, traceback):
-        self.mlock.release()
-        self.tlock.release()
-        self.state = "not locked"
-        # Returning None means any exception is passed on to the following
-        # code
-        return None
-class Stack(deque):
-    '''Stack implements a stack with the methods
-        push
-        pop
-        clear
-        copy
-        rotate
-    
-    These methods are essentially already implemented by the deque object, so little new
-    code was required.  You might think that a list would be as good of a base object,
-    but implementing the rotate method probably wouldn't be as efficient as a deque.
-    
-    If you pop() an empty stack, you'll get an IndexError.
-    
-    A Stack object is thread-safe and process-safe.
+    _pgminfo = '''
+        <oo gist ∞ Thread-safe and process-safe stack oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2014, 2019 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ utility oo>
+        <oo test ∞ run oo>
+        <oo todo ∞ oo>
     '''
-    def __init__(self, iterable=None, maxlen=None, homogeneous=None):
-        '''See deque's documentation for the first two keywords.  If homogeneous is not
-        None, then all objects pushed on the stack must be the same type as the
-        homogeneous object.
+    if 1:  # Standard imports
+        from collections import deque
+        from multiprocessing import Lock as MultiprocessingLock
+        from threading import Lock as ThreadingLock
+    if 1:  # Custom imports
+        pass
+    if 1:  # Global variables
+        pass
+if 1:  # Classes
+    class StackLock:
+        "This is a context manager for the needed locks"
+        def __init__(self):
+            self.mlock = MultiprocessingLock()
+            self.tlock = ThreadingLock()
+            self.state = "not locked"
+        def __enter__(self):
+            self.mlock.acquire()
+            self.tlock.acquire()
+            self.state = "locked"
+            return None
+        def __exit__(self, exception, exception_value, traceback):
+            self.mlock.release()
+            self.tlock.release()
+            self.state = "not locked"
+            # Returning None means any exception is passed on to the following
+            # code
+            return None
+    class Stack(deque):
+        '''Stack implements a stack with the methods
+            push
+            pop
+            clear
+            copy
+            rotate
+        
+        These methods are essentially already implemented by the deque object, so little
+        new code was required.  You might think that a list would be as good of a base
+        object, but implementing the rotate method probably wouldn't be as efficient as
+        a deque.
+        
+        If you pop() an empty stack, you'll get an IndexError.
+        
+        A Stack object is thread-safe and process-safe because a StackLock instance is
+        used before every operation.
         '''
-        self._lock = StackLock()
-        self.NI = NotImplementedError("Operation not allowed for Stack")
-        self._type = homogeneous
-        if iterable is None:
-            super(Stack, self).__init__([], maxlen=maxlen)
-        else:
-            super(Stack, self).__init__(iterable, maxlen=maxlen)
-    def _str(self):
-        with self._lock:
-            s = [str(list(self))]
-            if self.maxlen is not None:
-                s.append("maxlen={}".format(self.maxlen))
-            if self._type is not None:
-                s.append("homogeneous={}".format(self._type))
-        return "Stack({})".format(", ".join(s))
-    def __repr__(self):
-        return self._str()
-    def __str__(self):
-        return self._str()
-    def clear(self):
-        with self._lock:
-            super(Stack, self).clear()
-    def copy(self):
-        with self._lock:
-            s = super(Stack, self).copy()
-        return s
-    def pop(self):
-        with self._lock:
-            t = super(Stack, self).pop()
-        return t
-    def push(self, x):
-        with self._lock:
-            if self._type is not None:
-                if type(x) is not self._type:
-                    msg = "'{}' is an incorrect type.\n".format(x)
-                    msg += "  It must be of type {}.".format(self._type)
-                    raise TypeError(msg)
-            super(Stack, self).append(x)
-    def rotate(self, n=1):
-        with self._lock:
-            super(Stack, self).rotate(n)
-    @property
-    def homogeneous(self):
-        'Returns the type of a homogeneous stack or None if not homogeneous'
-        return self._type
-    # Disable unused deque methods
-    def append(self, x):
-        raise self.NI
-    def appendleft(self, x):
-        raise self.NI
-    def count(self, x):
-        raise self.NI
-    def extend(self, iterable):
-        raise self.NI
-    def extendleft(self, iterable):
-        raise self.NI
-    def index(self, x, start=None, stop=None):
-        raise self.NI
-    def insert(self, i, x):
-        raise self.NI
-    def popleft(self):
-        raise self.NI
-    def remove(self, x):
-        raise self.NI
-    def reverse(self, x):
-        raise self.NI
+        def __init__(self, iterable=None, maxlen=None, homogeneous=None):
+            '''See deque's documentation for the first two keywords.  If homogeneous is not
+            None, then all objects pushed on the stack must be the same type as the
+            homogeneous object.
+            '''
+            self._lock = StackLock()
+            self.NI = NotImplementedError("Operation not allowed for Stack")
+            self._type = homogeneous
+            if iterable is None:
+                super(Stack, self).__init__([], maxlen=maxlen)
+            else:
+                super(Stack, self).__init__(iterable, maxlen=maxlen)
+        def _str(self):
+            with self._lock:
+                s = [str(list(self))]
+                if self.maxlen is not None:
+                    s.append("maxlen={}".format(self.maxlen))
+                if self._type is not None:
+                    s.append("homogeneous={}".format(self._type))
+            return "Stack({})".format(", ".join(s))
+        def __repr__(self):
+            with self._lock:
+                return self._str()
+        def __str__(self):
+            with self._lock:
+                return self._str()
+        def clear(self):
+            with self._lock:
+                super(Stack, self).clear()
+        def copy(self):
+            with self._lock:
+                s = super(Stack, self).copy()
+            return s
+        def pop(self):
+            with self._lock:
+                t = super(Stack, self).pop()
+            return t
+        def push(self, x):
+            with self._lock:
+                if self._type is not None:
+                    if type(x) is not self._type:
+                        msg = "'{}' is an incorrect type.\n".format(x)
+                        msg += "  It must be of type {}.".format(self._type)
+                        raise TypeError(msg)
+                super(Stack, self).append(x)
+        def rotate(self, n=1):
+            with self._lock:
+                super(Stack, self).rotate(n)
+        @property
+        def homogeneous(self):
+            'Returns the type of a homogeneous stack or None if not homogeneous'
+            with self._lock:
+                return self._type
+        # Disable unused deque methods
+        def append(self, x):
+            raise self.NI
+        def appendleft(self, x):
+            raise self.NI
+        def count(self, x):
+            raise self.NI
+        def extend(self, iterable):
+            raise self.NI
+        def extendleft(self, iterable):
+            raise self.NI
+        def index(self, x, start=None, stop=None):
+            raise self.NI
+        def insert(self, i, x):
+            raise self.NI
+        def popleft(self):
+            raise self.NI
+        def remove(self, x):
+            raise self.NI
+        def reverse(self, x):
+            raise self.NI
 
 if __name__ == "__main__":
     import sys
@@ -200,4 +207,17 @@ if __name__ == "__main__":
         st.push(3)
         Assert(list(st) == [2, 3])
         Assert(st.maxlen == 2)
+    def TestBadOps():
+        st = Stack([1, 2], maxlen=2)
+        with raises(NotImplementedError):
+            st.append(1)
+            st.append_left(1)
+            st.count(1)
+            st.extend(1)
+            st.extendleft(1)
+            st.index(1)
+            st.insert(1)
+            st.popleft(1)
+            st.remove(1)
+            st.reverse(1)
     exit(run(globals())[0])

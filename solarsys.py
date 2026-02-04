@@ -1,21 +1,13 @@
-"""
+'''
 
-TODO
-    - Change numbering so Sun is 0, Mercury 1, etc.  Then set things up so that 0 can be included
-      as if it was a planet and -r works with it.
-    - Use format_numbers.py to change things like 6.6(3)e-27 to 6.6(3)×10⁻²⁷.
-    - New options
-        - -s shows sun's data
-        - '-p var' option, which prints variable var for all objects.  -r works with these numbers.
-        - '-P var' option, same as -p except sorts by value
-
+        
 Module that contains basic data on solar system objects
     When run as a script, produces tables.
-
+    
     Core information from
     https://en.wikipedia.org/wiki/List_of_gravitationally_rounded_objects_of_the_Solar_System These
     data were gotten by screen scraping the tables and getting rid of the extra numbers.
-
+    
     The global dictionary solarsys contains the following keys:
         name    Object's name
         name_lc Object's name (all lower case)
@@ -34,22 +26,33 @@ Module that contains basic data on solar system objects
         moons   Number of moons
         T       Mean surface temperature, K
         ld      log(Soter's discriminant)
-"""
-
+'''
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # Program description string
-        ##∞what∞#
-        ##∞test∞# notest #∞test∞#
-        pass
+    _pgminfo = '''
+        <oo gist ∞ Data on solar system objects oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2023 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ astronomy oo>
+        <oo test ∞ notest oo>
+        <oo todo ∞ 
+        
+            - Change numbering so Sun is 0, Mercury 1, etc.  Then set things up so that
+              0 can be included as if it was a planet and -r works with it.
+            - Use format_numbers.py to change things like 6.6(3)e-27 to 6.6(3)×10⁻²⁷.
+            - New options
+                - -s shows sun's data
+                - '-p var' option, which prints variable var for all objects.  -r works
+                  with these numbers.
+                - '-P var' option, same as -p except sorts by value
+        
+        oo>
+    '''
     if 1:  # Standard imports
         import getopt
         import os
@@ -60,28 +63,31 @@ if 1:  # Header
         from color import t
         import f
         from columnize import Columnize
-
-        if 0:
+        if 1:
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
+        class F:
+            pass
+        g = F()
+        g.dbg = 0
         # Gravitational constant = 6.67430(15)e−11 in N*m2/kg2
         G = 6.6743e-11
         # Colors
-        t.name = t("ornl")
-        t.rel = t("trq")
-        t.notrel = t("whtl")
-        t.nan = t("redl")
+        t.dbg = t.sky
+        t.name = t.ornl
+        t.rel = t.trq
+        t.notrel = t.whtl
+        t.nan = t.redl
         # Color coding for objects
-        t.planet = t("ornl")
-        t.dwarf = t("denl")
-        t.tno = t("trql")
-        t.moon = t("purl")
-        t.sun = t("yell")
+        t.planet = t.ornl
+        t.dwarf = t.denl
+        t.tno = t.trql
+        t.moon = t.purl
+        t.sun = t.yell
         # Dict to get color code
         obj_color = {
             # Planets
@@ -132,154 +138,167 @@ if 1:  # Solar system data
     # Changes:
     #   - Defined Earth to sun distance to be 149597870.7 km, as this is
     #     the definition of the AU.
+    # I manually edited some of the data like 'a-b' and substituted it with the mean
     scrape_date = "18 Feb 2023"
-    names = """
+    names = '''
         Mercury Venus Earth Mars Jupiter Saturn Uranus Neptune
         Ceres Pluto Haumea Makemake Eris
         Orcus Salacia Quaoar Gonggong Sedna
         Moon Io Europa Ganymede Callisto Mimas Enceladus Tethys Dione Rhea
         Titan Iapetus Miranda Ariel Umbriel Titania Oberon Triton Charon Dysnomia
-    """.split()
-    symbols = """
+    '''.split()
+    symbols = '''
         None None None None None None None None
         None None None None None
         None None None None None
         E1 J1 J2 J3 J4 S1 S2 S3 S4 S5
         S6 S8 U5 U1 U2 U3 U4 N1 P1 E1
-    """.split()
-    dist_km = """
+    '''.split()
+    dist_km = '''
         57909175 108208930 149597870.7 227936640 778412010 1426725400 2870972200 4498252900
         413700000 5906380000 6484000000 6850000000 10210000000
         5896946000 6310600000 6535930000 10072433340 78668000000
         384399 421600 670900 1070400 1882700 185520 237948 294619 377396 527108
         1221870 3560820 129390 190900 266000 436300 583519 354759 17536 37300
-    """.split()
-    radius_km = """
+    '''.split()
+    radius_km = '''
         2440.53 6051.8 6378.1366 3396.19 71492 60268 25559 24764
         473 1188.3 816 715 1163
         458.5 423 560.5 615 497.5
         1737.1 1815 1569 2634.1 2410.3 198.30 252.1 533 561.7 764.3
         2576 735.60 235.8 578.9 584.7 788.9 761.4 1353.4 603.5 350
-    """.split()
-    mass_kg = """
+    '''.split()
+    mass_kg = '''
         3.302e23 4.8690e24 5.972e24 6.4191e23 1.8987e27 5.6851e26 8.6849e25 1.0244e26
         9.39e20 1.30e22 4.0e21 3.1e21 1.65e22
         6.32e20 4.9e20 1.41e21 1.75e21 ?
         7.3477e22 8.94e22 4.80e22 14.819e22 10.758e22 0.00375e22 0.0108e22 0.06174e22 0.1095e22 0.2306e22
-        13.452e22 0.18053e22 0.00659e22 0.135e22 0.12e22 0.35e22 0.3014e22 2.14e22 0.152e22 0.03e22-0.05e22
-    """.split()
-    gravity_ms2 = """
+        13.452e22 0.18053e22 0.00659e22 0.135e22 0.12e22 0.35e22 0.3014e22 2.14e22 0.152e22 0.04e22
+    '''.split()     # 0.03e22-0.05e22 --> 0.04e22
+    gravity_ms2 = '''
         3.70 8.87 9.8 3.71 24.79 10.44 8.87 11.15
         0.27 0.62 0.63 0.40 0.82
         0.27 0.18 0.24 0.285 ?
         1.622 1.796 1.314 1.428 1.235 0.0636 0.111 0.145 0.231 0.264
-        1.35 0.22 0.08 0.27 0.23 0.39 0.35 0.78 0.28 0.16-0.27
-    """.split()
-    escape_kmps = """
+        1.35 0.22 0.08 0.27 0.23 0.39 0.35 0.78 0.28 0.215
+    '''.split()     # 0.16-0.27 --> 0.215
+    escape_kmps = '''
         4.25 10.36 11.18 5.02 59.54 35.49 21.29 23.71
         0.51 1.21 0.91 0.54 1.37
         0.50 0.39 0.45 0.604 ?
         2.38 2.56 2.025 2.741 2.440 0.159 0.239 0.393 0.510 0.635
-        2.64 0.57 0.19 0.56 0.52 0.77 0.73 1.46 0.58 0.34-0.44
-    """.split()
-    rotate_days = """
+        2.64 0.57 0.19 0.56 0.52 0.77 0.73 1.46 0.58 0.39
+    '''.split()     # 0.34-0.44 -> 0.39
+    rotate_days = '''
         58.646225 243.0187 0.99726968 1.02595675 0.41354 0.44401 0.71833 0.67125
         0.3781 6.3872 0.1631 0.9511 15.7859
         ? ? 0.3683 0.9333 0.4280
         27.321582 1.7691378 3.551181 7.154553 16.68902 0.942422 1.370218 1.887802 2.736915 4.518212
         15.945 79.322 1.414 2.52 4.144 8.706 13.46 5.877 6.387 15.786
-    """.split()
-    orbit_days = """
+    '''.split()
+    orbit_days = '''
         87.969 224.701 365.256363 686.971 4332.59 10759.22 30688.5 60182
         4.599*365.25 247.9*365.25 283.8*365.25 306.2*365.25 559*365.25
         247.49*365.25 273.98*365.25 287.97*365.25 552.52*365.25 12059*365.25
         27.32158 1.769138 3.551181 7.154553 16.68902 0.942422 1.370218 1.887802 2.736915 4.518212
         15.945 79.322 1.4135 2.520 4.144 8.706 13.46 5.877 6.387 15.786
-    """.split()
-    orbit_speed_kmps = """
+    '''.split()
+    orbit_speed_kmps = '''
         47.8725 35.0214 29.7859 24.1309 13.0697 9.6724 6.8352 5.4778
         17.882 4.75 4.48 4.40 3.44
         4.68 4.57 4.52 3.63 1.04
         1.022 17.34 13.740 10.880 8.204 14.32 12.63 11.35 10.03 8.48
         5.57 3.265 6.657 5.50898 4.66797 3.644 3.152 4.39 0.2 0.172
-    """.split()
-    eccentricity = """
+    '''.split()
+    eccentricity = '''
         0.20563069 0.00677323 0.01671022 0.09341233 0.04839266 0.05415060 0.04716771 0.00858587
         0.080 0.249 0.195 0.161 0.436
         0.226 0.106 0.038 0.506 0.855
         0.0549 0.0041 0.009 0.0013 0.0074 0.0202 0.0047 0.02 0.002 0.001
         0.0288 0.0286 0.0013 0.0012 0.005 0.0011 0.0014 0.00002 0.0022 0.0062
-    """.split()
-    incl_deg = """
+    '''.split()
+    incl_deg = '''
         7.00 3.39 0 1.85 1.31 2.48 0.76 1.77
         10.59 17.14 28.21 28.98 44.04
         20.59 23.92 7.99 30.74 11.93
         18.29-28.58 0.04 0.47 1.85 0.2 1.51 0.02 1.51 0.019 0.345
         0.33 14.72 4.22 0.31 0.36 0.14 0.10 157 0.001 ≈0
-    """.split()
-    axial_tilt_deg = """
+    '''.split()
+    axial_tilt_deg = '''
         0.0 177.3 23.44 25.19 3.12 26.73 97.86 28.32
         4 119.6 ≈126 ? ≈78
         None None None None None
         6.68 0.000405±0.00076 0.0965±0.0069 0.155±0.065 0-2 ≈0 ≈0 ≈0 ≈0 ≈0
         ≈0.3 ≈0 ≈0 ≈0 ≈0 ≈0 ≈0 ≈0.7 ≈0 ≈0
-    """.split()
-    number_moons = """
+    '''.split()
+    number_moons = '''
         0 0 1 2 92 83 27 14
         0 5 2 1 1
         1 1 1 1 0
         0 0 0 0 0 0 0 0 0 0  
         0 0 0 0 0 0 0 0 0 0  
-    """.split()
-    surface_temp_K = """
+    '''.split()
+    surface_temp_K = '''
         440-100 730 287 227 152 134 76 73
         167 40 <50 30 30
         ≈42 ≈43 ≈41 ≈30 ≈12
         220 130 102 110 134 64 75 64 87 76
         93.7 130 59 58 61 60 61 38 53 34
-    """.split()
+    '''.split()
     # In the following, all unknown or meaningless values are given '?'
     # because these will result in nan when the log is taken.
-    discriminant = """
+    discriminant = '''
         9.1e4 1.35e6 1.7e6 1.8e5 6.25e5 1.9e5 2.9e4 2.4e4
         0.33 0.077 0.023 0.02 0.10
         0.003 <0.1 0.0015 <0.1 ?
         ? ? ? ? ? ? ? ? ? ?
         ? ? ? ? ? ? ? ? ? ?
-    """.split()
+    '''.split()
     # Sun's data
     sun = [
         # Sym, value, unit, description
         ("r", 2.5e20, "m", "Mean distance to galactic center"),
-        ("D", 2 * 695508e3, "m", "Mean diameter"),
+        ("D", 2*695508e3, "m", "Mean diameter"),
         ("m", 1.9855e30, "kg", "Mass"),
-        ("rot", 25.38 * 86400, "s", "Rotation period"),
-        ("orb", 240e6 * 3.156e13, "s", "Orbital period about galactic center"),
+        ("rot", 25.38*86400, "s", "Rotation period"),
+        ("orb", 240e6*3.156e13, "s", "Orbital period about galactic center"),
         ("tilt", 7.25, "°", "Axial tilt to ecliptic"),
         ("gtilt", 67.23, "°", "Axial tilt to galactic plane"),
         ("T", 5778, "K", "Mean surface temperature"),
     ]
 if 1:  # Get data
-
+    def Error(*msg, status=1):
+        print(*msg, file=sys.stderr)
+        exit(status)
+    def Dbg(*p, **kw):
+        if g.dbg:
+            print(f"{t.dbg}", end="")
+            print(*p, **kw)
+            print(f"{t.n}", end="")
     def ToFlt(lst, mult=1):
-        """Convert the list of numbers to flt instances.  We need to handle the various special
+        '''Convert the list of numbers to flt instances.  We need to handle the various special
         cases.
-        """
+        '''
         r1 = re.compile("^([0-9.e+-]+)-([0-9.e+-]+)$")
         newlst = []
         for i in lst:
             try:
-                newlst.append(f.flt(i))
+                Dbg(f"ToFlt:  {i}") #∞∞ 
+                x = f.flt(i)
+                if x is None:
+                    raise Exception()
+                newlst.append(x)
             except Exception:
                 if i == "?":
                     newlst.append(f.flt("nan"))
-                elif i == "None":
+                elif i is None or i == "None":
                     newlst.append(f.flt("nan"))
                 elif r1.match(i):
                     # a-b form, a range of two values
                     mo = r1.match(i)
                     a, b = mo.groups()
-                    newlst.append((f.flt(a) + f.flt(b)) / 2)
+                    #t.print(f"{t.redl}(in ToFlt()):  {mo.groups()}") #∞∞ 
+                    newlst.append((f.flt(a) + f.flt(b))/2)
                 elif "±" in i:
                     # Uncertainty form a±b
                     loc = i.find("±")
@@ -297,10 +316,9 @@ if 1:  # Get data
                     newlst.append(f.flt(x))
                 else:
                     Error(f"Unexpected in ToFlt():  {i!r}")
-        return [f.flt(i) * mult for i in newlst]
-
+        return [f.flt(i)*mult for i in newlst]
     def BuildDataDict(calculate=False):
-        """Construct a dict that has lists of the data.  We use the keys
+        '''Construct a dict that has lists of the data.  We use the keys
             name    Object's name
             name_lc Object's name (all lower case)
             sym     Symbol
@@ -322,11 +340,11 @@ if 1:  # Get data
             T       Mean surface temperature, K
         All objects not strings are flts or objects derived from flt.
         moons is an integer.
-
+        
         If calculate is True, then area, volume, density, g, escape
         velocity, orbital velocity are calculated from the data rather than
         using the table values.
-        """
+        '''
         # Check for consistency in list lengths
         n = len(names)  # As of 25 Feb 2023, n == 38
         for i in (
@@ -350,32 +368,32 @@ if 1:  # Get data
         di = {}
         di["name"] = names
         di["sym"] = symbols
-        di["r"] = ToFlt(dist_km, 1000)
-        di["D"] = ToFlt(radius_km, 2000)
-        di["m"] = ToFlt(mass_kg)
-        di["g"] = ToFlt(gravity_ms2)
-        di["ev"] = ToFlt(escape_kmps, 1000)
-        di["rot"] = ToFlt(rotate_days, 86400)
-        di["orb"] = ToFlt(orbit_days, 86400)
-        di["vel"] = ToFlt(orbit_speed_kmps, 1000)
-        di["ecc"] = ToFlt(eccentricity)
-        di["inc"] = ToFlt(incl_deg)
-        di["tilt"] = ToFlt(axial_tilt_deg)
-        di["moons"] = [int(i) for i in number_moons]
-        di["T"] = ToFlt(surface_temp_K)
-        di["ld"] = [f.log10(i) for i in ToFlt(discriminant)]
+        Dbg("Building r"); di["r"] = ToFlt(dist_km, 1000)
+        Dbg("Building D"); di["D"] = ToFlt(radius_km, 2000)
+        Dbg("Building m"); di["m"] = ToFlt(mass_kg)
+        Dbg("Building g"); di["g"] = ToFlt(gravity_ms2)
+        Dbg("Building ev"); di["ev"] = ToFlt(escape_kmps, 1000)
+        Dbg("Building rot"); di["rot"] = ToFlt(rotate_days, 86400)
+        Dbg("Building orb"); di["orb"] = ToFlt(orbit_days, 86400)
+        Dbg("Building vel"); di["vel"] = ToFlt(orbit_speed_kmps, 1000)
+        Dbg("Building ecc"); di["ecc"] = ToFlt(eccentricity)
+        Dbg("Building inc"); di["inc"] = ToFlt(incl_deg)
+        Dbg("Building tilt"); di["tilt"] = ToFlt(axial_tilt_deg)
+        Dbg("Building moons"); di["moons"] = [int(i) for i in number_moons]
+        Dbg("Building T"); di["T"] = ToFlt(surface_temp_K)
+        Dbg("Building ld"); di["ld"] = [f.log10(i) for i in ToFlt(discriminant)]
         # Calculate area, volume, density
-        di["A"] = [4 * f.pi * (i / 2) ** 2 for i in di["D"]]
-        di["V"] = [4 / 3 * f.pi * (i / 2) ** 3 for i in di["D"]]
+        Dbg("Building A"); di["A"] = [4*f.pi*(i/2) ** 2 for i in di["D"]]
+        Dbg("Building V"); di["V"] = [4/3*f.pi*(i/2) ** 3 for i in di["D"]]
         # Note the conversion from kg/m3 to g/cm3
-        di["rho"] = [(m / V) / 1000 for m, V in zip(di["m"], di["V"])]
+        Dbg("Building rho"); di["rho"] = [(m/V)/1000 for m, V in zip(di["m"], di["V"])]
         if calculate:
             # Calculate g, escape velocity, orbital velocity
-            R, M = [i / 2 for i in di["D"]], di["m"]
+            R, M = [i/2 for i in di["D"]], di["m"]
             P = zip(R, M)
-            di["g"] = [G * m / r**2 for r, m in P]
-            di["ev"] = [f.sqrt(2 * G * m / r) for r, m in P]
-            di["vel"] = [2 * f.pi * r / orb for r, orb in zip(di["r"], di["orb"])]
+            di["g"] = [G*m/r**2 for r, m in P]
+            di["ev"] = [f.sqrt(2*G*m/r) for r, m in P]
+            di["vel"] = [2*f.pi*r/orb for r, orb in zip(di["r"], di["orb"])]
         if 0:
             # Dump to 1 figure to check things
             x = f.flt(0)
@@ -387,14 +405,14 @@ if 1:  # Get data
         i = 2  # Values for Earth
         assert di["name"][i] == "Earth"
         assert di["sym"][i] == "None"
-        assert di["r"][i] == 149597870.7 * 1000
-        assert di["D"][i] == 6378.1366 * 2000
+        assert di["r"][i] == 149597870.7*1000
+        assert di["D"][i] == 6378.1366*2000
         assert di["m"][i] == 5.972e24
         assert di["g"][i] == 9.8
-        assert di["ev"][i] == 11.18 * 1000
-        assert di["rot"][i] == 0.99726968 * 86400
-        assert di["orb"][i] == 365.256363 * 86400
-        assert di["vel"][i] == 29.7859 * 1000
+        assert di["ev"][i] == 11.18*1000
+        assert di["rot"][i] == 0.99726968*86400
+        assert di["orb"][i] == 365.256363*86400
+        assert di["vel"][i] == 29.7859*1000
         assert di["ecc"][i] == 0.01671022
         assert di["inc"][i] == 0
         assert di["tilt"][i] == 23.44
@@ -403,14 +421,14 @@ if 1:  # Get data
         i = -1  # Values for Dysnomia
         assert di["name"][i] == "Dysnomia"
         assert di["sym"][i] == "E1"  # Eris moon 1
-        assert di["r"][i] == 37300 * 1000
-        assert di["D"][i] == 350 * 2000
+        assert di["r"][i] == 37300*1000
+        assert di["D"][i] == 350*2000
         assert di["m"][i] == 0.04e22
         assert di["g"][i] == 0.215
-        assert di["ev"][i] == 0.39 * 1000
-        assert di["rot"][i] == 15.786 * 86400
-        assert di["orb"][i] == 15.786 * 86400
-        assert di["vel"][i] == 0.172 * 1000
+        assert di["ev"][i] == 0.39*1000
+        assert di["rot"][i] == 15.786*86400
+        assert di["orb"][i] == 15.786*86400
+        assert di["vel"][i] == 0.172*1000
         assert di["ecc"][i] == 0.0062
         assert di["inc"][i] == 0
         assert di["tilt"][i] == 0
@@ -419,13 +437,11 @@ if 1:  # Get data
         # Make lower case names
         di["name_lc"] = [i.lower() for i in di["name"]]
         return di
-
     solarsys = BuildDataDict()
 if 1:  # Utility
-
     def Manpage():
         print(
-            dedent(f"""
+            dedent(f'''
         This script prints out wikipedia's information on the major solar system bodies as of
         {scrape_date}.
          
@@ -493,17 +509,12 @@ if 1:  # Utility
                 Neptune: {t.moon}Triton {t.n}
                 Pluto:   {t.moon}Charon {t.n}
                 Eris:    {t.moon}Dysnomia {t.n}
-        """)
+        ''')
         )
         exit(0)
-
-    def Error(*msg, status=1):
-        print(*msg, file=sys.stderr)
-        exit(status)
-
     def Usage(status=1):
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options] [s1 [s2...]]
           Print data for solar system objects s1, s2, etc.  You can specify
           either the index number (e.g., Earth is 2) or a regular
@@ -537,10 +548,9 @@ if 1:  # Utility
           -l      List the objects and their numbers at end of report
           -r n    Print relative to named object n's values
           -s      Print data for sun
-        """)
+        ''')
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-d"] = 2  # Number of significant digits
         d["-l"] = False  # Show object names
@@ -573,19 +583,14 @@ if 1:  # Utility
         if not args and not (d["-s"] or d["-l"]):
             Usage()
         return args
-
-
 if 1:  # Core functionality
-
     def GetObjDict():
         "Return dict indexed by integer number"
         di = {}
         for i, name in enumerate(solarsys["name"]):
             di[i] = name
         return di
-
     num2name = GetObjDict()
-
     def MatchName(regex):
         "Return a list of matched names by index number"
         ss = solarsys["name"]
@@ -605,47 +610,44 @@ if 1:  # Core functionality
             if r.search(name):
                 o.append(i)
         return list(sorted(set(o)))
-
     def PrintItems(*names):
         o = []
         for name in names:
             o.extend(MatchName(name))
         for i in list(sorted(set(o))):
             PrintItem(i)
-
     def SI(val, unit, cuddle=False):
         s = f"{val.engsi}"
         if "e" in s:  # No SI prefix
-            return f"{s}{' ' * (not cuddle)}{unit}"
+            return f"{s}{' '*(not cuddle)}{unit}"
         else:
             return f"{s}{unit}"
-
     def PrintSun():
         # Get variables
         r = f.flt(2.5e20)  # Mean distance to galactic center, m
-        D = f.flt(2 * 695508e3)  # Mean diameter, m
-        A = f.flt(4 * f.pi * (D / 2) ** 2)  # Surface area, m2
-        V = f.flt(4 / 3 * f.pi * (D / 2) ** 3)  # Volume, m3
+        D = f.flt(2*695508e3)  # Mean diameter, m
+        A = f.flt(4*f.pi*(D/2) ** 2)  # Surface area, m2
+        V = f.flt(4/3*f.pi*(D/2) ** 3)  # Volume, m3
         m = f.flt(1.9855e30)  # Mass, kg
-        rho = f.flt((m / V) / 1000)  # Density, g/cm3
-        g = f.flt(G * m / (D / 2) ** 2)  # Gravitational acceleration at surface, m/s2
-        ev = f.flt(f.sqrt(2 * G * m / (D / 2)))  # Escape velocity, m/s
-        rot = f.flt(25.38 * 86400)  # Rotation period, s
-        orb = f.flt(240e6 * 3.156e13)  # Orbital period about galactic center, s
-        vel = f.flt(2 * f.pi * (D / 2) / orb)  # Mean orbital speed, m/s
+        rho = f.flt((m/V)/1000)  # Density, g/cm3
+        g = f.flt(G*m/(D/2) ** 2)  # Gravitational acceleration at surface, m/s2
+        ev = f.flt(f.sqrt(2*G*m/(D/2)))  # Escape velocity, m/s
+        rot = f.flt(25.38*86400)  # Rotation period, s
+        orb = f.flt(240e6*3.156e13)  # Orbital period about galactic center, s
+        vel = f.flt(2*f.pi*(D/2)/orb)  # Mean orbital speed, m/s
         ecc = f.Unk("?")
         inc = f.Unk("?")
         tilt = f.flt(7.25)  # Axial tilt to ecliptic, °
         moons = f.Unk("?")
         T = f.flt(5778)  # Mean surface temperature, K
         #
-        u, w = " " * 4, 10
+        u, w = " "*4, 10
         print(f"{t.sun}{'Sun'}{t.n}")
         print(f"{u}{'r':{w}s}{r} m = {SI(r, 'm')} (dist. to galactic center)")
         print(f"{u}{'D':{w}s}{D} m = {SI(D, 'm')}")
         print(f"{u}{'A':{w}s}{A} m² = {SI(A, 'm²')}")
         print(f"{u}{'V':{w}s}{V} m³ = {SI(V, 'm³')}")
-        print(f"{u}{'m':{w}s}{m} kg = {SI(1000 * m, 'g')}")
+        print(f"{u}{'m':{w}s}{m} kg = {SI(1000*m, 'g')}")
         print(f"{u}{'rho':{w}s}{rho} g/cm³ = {SI(rho, 'g/cm³')}")
         print(f"{u}{'g':{w}s}{g} m/s² = {SI(g, 'm/s²')}")
         print(f"{u}{'ev':{w}s}{ev} m/s = {SI(ev, 'm/s')}")
@@ -657,7 +659,6 @@ if 1:  # Core functionality
         print(f"{u}{'tilt':{w}s}{tilt}° (axial tilt to ecliptic)")
         print(f"{u}{'moons':{w}s}{moons}")
         print(f"{u}{'T':{w}s}{T} K = {SI(T, 'K')}")
-
     def ListObjects():
         a, di = [], GetObjDict()
         for i in di:
@@ -666,11 +667,10 @@ if 1:  # Core functionality
         for i in Columnize(a):
             print(i)
         exit(0)
-
     def PrintItem(num):
         "Print indicated item.  num must be an integer."
         assert ii(num, int)
-        di, u = GetObjDict(), " " * 4
+        di, u = GetObjDict(), " "*4
         if num not in di:
             print(f"Item {num!r} not found")
             return
@@ -722,21 +722,19 @@ if 1:  # Core functionality
             tilt0 = ss["tilt"][num0]
             moons0 = ss["moons"][num0]
             T0 = ss["T"][num0]
-
             # Calculate ratios
             def GetRatio(value, ref, units):
-                """Calculate value/ref as flt and return it as a formatted
+                '''Calculate value/ref as flt and return it as a formatted
                 string, but if ref is 0, then return value with units.
-                """
+                '''
                 try:
-                    ratio = f.flt(value / ref)
+                    ratio = f.flt(value/ref)
                     if str(ratio) == "nan":
                         return f"{t.nan}{'?'}{t.n}"
                     else:
                         return f"{t.rel}{ratio}{t.n}"
                 except ZeroDivisionError:
                     return f"{t.notrel}{f.flt(value)}{units}{t.n}"
-
             r_r = GetRatio(r, r0, " m")
             r_D = GetRatio(D, D0, " m")
             r_A = GetRatio(A, A0, " m")
@@ -774,7 +772,7 @@ if 1:  # Core functionality
             print(f"{u}{'D      mean diameter':{w}s}{D} m = {SI(D, 'm')}")
             print(f"{u}{'A      surface area':{w}s}{A} m² = {SI(A, 'm²')}")
             print(f"{u}{'V      volume':{w}s}{V} m³ = {SI(V, 'm³')}")
-            print(f"{u}{'m      mass':{w}s}{m} kg = {SI(1000 * m, 'g')}")
+            print(f"{u}{'m      mass':{w}s}{m} kg = {SI(1000*m, 'g')}")
             print(f"{u}{'rho    mean density':{w}s}{rho} g/cm³ = {SI(rho, 'g/cm³')}")
             print(
                 f"{u}{'g      equatorial grav. accel.':{w}s}{g} m/s² = {SI(g, 'm/s²')}"
@@ -788,8 +786,6 @@ if 1:  # Core functionality
             print(f"{u}{'tilt   axial tilt':{w}s}{tilt}°")
             print(f"{u}{'moons  number of moons':{w}s}{moons}")
             print(f"{u}{'T      mean surface temperature':{w}s}{T} K")
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     objects = ParseCommandLine(d)

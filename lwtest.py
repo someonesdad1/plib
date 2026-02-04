@@ -638,6 +638,8 @@ if __name__ == "__main__":
             # Name your test functions e.g. "def Test_*()"
             if __name__ == "__main__":
                 {t.ornl}num_failed, messages = run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0){t.n}
+                  or
+                {t.magl}exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0]){t.n}
 
                 {t.k}broken{t.n}      If True, testing code is acknowledged to be broken; a warning
                             message is printed and tests are not run.  [{t.d}False{t.n}]
