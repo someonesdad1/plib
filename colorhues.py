@@ -7113,7 +7113,7 @@ if __name__ == "__main__":
                 c = Color(di[name])
                 h = c.ihsv[0]
                 # if h in (187, 188, 189):
-                #    print(f"xx {name}", c)
+                #    print(f"∞∞ {name}", c)
                 s.add(h)
             u = unrange(s, sort_first=True)
             o[hue] = u

@@ -283,7 +283,7 @@ if 1:  # Get data
         newlst = []
         for i in lst:
             try:
-                Dbg(f"ToFlt:  {i}") #∞∞ 
+                Dbg(f"ToFlt:  {i}") 
                 x = f.flt(i)
                 if x is None:
                     raise Exception()
@@ -297,7 +297,6 @@ if 1:  # Get data
                     # a-b form, a range of two values
                     mo = r1.match(i)
                     a, b = mo.groups()
-                    #t.print(f"{t.redl}(in ToFlt()):  {mo.groups()}") #∞∞ 
                     newlst.append((f.flt(a) + f.flt(b))/2)
                 elif "±" in i:
                     # Uncertainty form a±b

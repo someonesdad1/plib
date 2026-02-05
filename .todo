@@ -1,87 +1,48 @@
 /plib/.todo
 
-    - File duplications between /plib and /plib/pgm
-        - eevblog.py
-            - Action:  inspect both.  App should be in pgm and only data parsing module
-              in /plib.
-        - linreg.py
-            - Action:  keep both.  Consider moving the plib version to a dpstats.py
-              module, which will contain statistical stuff not in the python library
-        - partitions.py
-            - Action:  Move 'Ramanujan's upper bound' stuff to the /plib file, then
-              delete the pgm one
-        - pdiff.py
-            - Action:  Inspect both; move good stuff to pgm; delete /plib copy
-        - planets.py
-            - Action:  delete pgm/planets.py
-        - readability.py
-            - Action:  /plib should only be module for functions that calculate metrics.
-              The main script I use for analysis should be in pgm.
-    - words.py
-        - I need a module that gives me a list of words
-        - This should have two functions
-            - GetSetOfWords(id, lower=False)
-                - id is a string that identifies which file in /words/words.* is used
-            - GetSyllablesDict()
-                - Handles lowercase words only
-                - Returns an int or a tuple of ints
     - todo.py
+        - Get this written quickly, as there are 150 ∞∞ task strings in /plib and I need
+          to see which ones need to be worked on first
         - Finds the ∞∞ strings that are prioritized and makes up a todo list from them
             - ∞∞1 is highest priority
-        - Should just work first for /plib and /plib/pgm if no args and in the /plib
-          tree
-    - h bash function
-        - Modify it to do 'pd s' if s is one of my /plib modules
-    - bash functions
-        - I have over 320 functions, way too many to remember.  I need some way of
-          starting the rarely-used ones by e.g. showing me the category and letting me
-          look through a list.
-    - Finding python functions/classes/scripts
-        - I have so many that a helper script would be valuable to narrow down and find
-          suitable functions/classes/scripts.  I envision something that could use the
-          gist to get the function descriptions.  Or the functions themselves could have
-          a gist attribute that is easily harvested.  The indexing function would build
-          a cache to search when the script is run, just like ds.py
-        - The function gist could be 'keywords ∞∞ description' where the keywords would
-          be separated by space characters.
-    - debug.py
-        - Function:  'debug' prints to stdout a bunch of help on how to debug things
-        - Prototyping:  see if debug.exit() can be used in sections where I'm
-          prototyping things.  This causes an exit(), but also prints it's location to
-          stderr and stdout everytime to identify what file is causing the problem
-          (i.e., has the exit() call and it's imported somewhere).
-            - A simpler approach is to use 'exit(-1)'; this causes a return status of
-              255 and my shell prompt will tell you the command failed; you then execute
-              "fgrep 'exit(-1)' *.py" and you'll find the offending line.
-        - Rethink it as a global development tool, as I virtually never use it except
-          for SetDebugger
-        - Turn debug.on with env variable Debug (just like Assert)
-            - Then e.g. turning g.dbg on in scripts no longer needed?
-        - AutoIndent should be a context manager
-        - Environment variables
-            - sdb for SetDebugger
-            - dbg for turning on debugging
-            - ai for autoindent
-        - dbg.py should be merged with this file
-    - pgm/dori.py:  compact calendar for pocket dori
-        - 12 weeks = 3 months
-        - Do on 2 folios on one side of the sheet.  This gives a calendar and one blank
-          folio, which is quite a bit of room for my needs.
-        - Put in small text "dori.py" so I know where the script is
-    - Utility to fix python file formatting:  fix """ stuff and delete blank lines.  Run
-      the fix first on a copy and make sure the script still works before making the
-      change.
-    - Later python version
-        - I'm using 3.11.5, made in Aug 2023.  
-        - https://www.python.org/downloads/ shows end of life of 3.11 in about 1.5
-          years.
-        - Looking at the releases chart, I'd be OK with upgrading to 3.13 or 3.14.  
-            - 3.13 went to bugfix in 3Q2024 and support ends late 3Q2029.
-            - 3.14 went to bugfix in 3Q2024 and support ends late 3Q2030.
-        - I'd like to be able to use conda to switch between python versions being used
-          with one of them my default
+        - Should just work first for /plib and /plib/pgm if no args and in the /plib tree
+            - If in /plib/Dev, it should only work if in one of the subdirectories
+        - Locate all xx occurrences in all files and change/remove them
 
     - /plib work
+        - Needs work/inspection
+            - dpdata.py:  be a single repository for all the files with data:
+                - drillsizes.py, eia.py, elements.py ?, papersize.py, planets.py,
+                  resistors.py, rgb.py, sizes.py, solarsys.py, gauge_sizes.py,
+                  atomic_mass.py, e.py, constant.py, months.py, water.py
+                - electrical.py could be a file for electrical data
+            - edit.py:  move it to util.py & delete file
+            - fac.py's contents can move to primes.py
+            - dt.py and dptime.py have duplication
+            - What's with elements.py and elements1.py?
+            - Move format_numbers.py stuff to fmt.py if it's not already there, then
+              obsolete
+            - fpformat.py:  keep or move all to fmt.py or f.py?
+            - fraction.py:  move to fmt.py
+            - fsig.py:  is it used anywhere?  Otherwise move to old.  There's an
+              util.fsig, so make fsig.py obsolete.
+            - geometry.py:  need test case for Quadrilateral()
+            - integrate.py:  need tests for Trapezoid_nme, Trapezoid_nr, Trapezoid
+            - Find all 'from x import *' type of imports and get rid of them except
+              where it's really needed (do this before linting in /plib/pgm).  Use "grep
+              -l 'import \*' pgm/*.py" for this.
+            - laser_dist.py fails its selftest
+            - module_dep.py:  keep or move to old?
+            - mpfmt.py:  absorb into fmt.py and obsolete
+            - partitions.py:  needs some tests
+            - prob.py:  decide whether to keep.  Needs the cephes DLL.
+            - rgb.py, rgbdata.py, rgbview.py:  keep any of these or obsolete?
+            - shoputil.py:  move to other relevant files (see docstring)
+            - sizes.py:  make all the floats be flt types
+            - tee.py:  rename Print to teeprint and move to e.g. util.py.  Note it's
+              only used so far in 0test.py.
+            - waveform.py needs a goodly amount of work to fix lint problems
+            - pgm/dia.py:  move all the size information to a module in /plib
         - Architecture
             - Good starting example:   thermocouple.py
                 - The downloaded data are in ~/dp/NIST_thermocouples_allcoeff.tab.txt
@@ -112,8 +73,8 @@
         - Standardize on 'import x' instead of 'from x import y'.  The reason is because
           then someone reading the code then knows where the relevant token is coming
           from, rather than having to figure it out -- which can sometimes be time
-          consuming in large complicated code.  But it's OK in the code after the 
-          if __name__ == "__main__":  section.
+          co nsuming in large complicated code.  But it's OK in the code after the if
+          __name__ == "__main__":  section.
         - A benefit of standardizing on the 'if 1:  # Header' in all files is that it
           allows an automated tool to inspect that each of the used "fields" is present.
           This in turn allows other tools to do code introspection and analysis.
@@ -129,39 +90,6 @@
         - Reference data:  a number of the files contain links to information sources
           (e.g., density.py).  These need to be checked on a periodic basis and flagged
           for when they go defunct.  A gist field could be added to handle this case.
-        - Needs work/inspection
-            - dpdata.py:  be a single repository for all the files with data:
-              drillsizes.py, eia.py, elements.py ?, papersize.py, planets.py,
-              resistors.py, rgb.py, sizes.py, solarsys.py, gauge_sizes.py,
-              atomic_mass.py, e.py, constant.py, months.py, water.py
-                - electrical.py could be a file for electrical data
-            - edit.py:  move it to util.py & delete file
-            - fac.py's contents can move to primes.py
-            - dt.py and dptime.py have duplication
-            - What's with elements.py and elements1.py?
-            - Move format_numbers.py stuff to fmt.py if it's not already there, then
-              obsolete
-            - fpformat.py:  keep or move all to fmt.py or f.py?
-            - fraction.py:  move to fmt.py
-            - fsig.py:  is it used anywhere?  Otherwise move to old.  There's an
-              util.fsig, so make fsig.py obsolete.
-            - geometry.py:  need test case for Quadrilateral()
-            - integrate.py:  need tests for Trapezoid_nme, Trapezoid_nr, Trapezoid
-            - Find all 'from x import *' type of imports and get rid of them except
-              where it's really needed (do this before linting in /plib/pgm).  Use "grep
-              -l 'import \*' pgm/*.py" for this.
-            - laser_dist.py fails its selftest
-            - module_dep.py:  keep or move to old?
-            - mpfmt.py:  absorb into fmt.py and obsolete
-            - partitions.py:  needs some tests
-            - prob.py:  decide whether to keep.  Needs the cephes DLL.
-            - rgb.py, rgbdata.py, rgbview.py:  keep any of these or obsolete?
-            - shoputil.py:  move to other relevant files (see docstring)
-            - sizes.py:  make all the floats be flt types
-            - tee.py:  rename Print to teeprint and move to e.g. util.py.  Note it's
-              only used so far in 0test.py.
-            - waveform.py needs a goodly amount of work to fix lint problems
-            - pgm/dia.py:  move all the size information to a module in /plib
         - Module usage statistics
             - It would be nice to use some scheme to keep track of which modules get the
               most use.  It could be something as simple as open(file,
@@ -170,6 +98,83 @@
         - ruff as of 30 Jan 2026
             - I won't use the formatter until they fix the mess it makes with formulas
             - Linting works well
+
+    - debug.py
+        - Function:  'debug' prints to stdout a bunch of help on how to debug things
+        - Prototyping:  see if debug.exit() can be used in sections where I'm
+          prototyping things.  This causes an exit(), but also prints it's location to
+          stderr and stdout everytime to identify what file is causing the problem
+          (i.e., has the exit() call and it's imported somewhere).
+            - A simpler approach is to use 'exit(-1)'; this causes a return status of
+              255 and my shell prompt will tell you the command failed; you then execute
+              "fgrep 'exit(-1)' *.py" and you'll find the offending line.
+        - Rethink it as a global development tool, as I virtually never use it except
+          for SetDebugger
+        - Turn debug.on with env variable Debug (just like Assert)
+            - Then e.g. turning g.dbg on in scripts no longer needed?
+        - AutoIndent should be a context manager
+        - Environment variables
+            - sdb for SetDebugger
+            - dbg for turning on debugging
+            - ai for autoindent
+        - dbg.py should be merged with this file
+
+    - File duplications between /plib and /plib/pgm
+        - eevblog.py
+            - Action:  inspect both.  App should be in pgm and only data parsing module
+              in /plib.
+        - linreg.py
+            - Action:  keep both.  Consider moving the plib version to a dpstats.py
+              module, which will contain statistical stuff not in the python library
+        - partitions.py
+            - Action:  Move 'Ramanujan's upper bound' stuff to the /plib file, then
+              delete the pgm one
+        - pdiff.py
+            - Action:  Inspect both; move good stuff to pgm; delete /plib copy
+        - planets.py
+            - Action:  delete pgm/planets.py
+        - readability.py
+            - Action:  /plib should only be module for functions that calculate metrics.
+              The main script I use for analysis should be in pgm.
+    - words.py
+        - I need a module that gives me a list of words
+        - This should have two functions
+            - GetSetOfWords(id, lower=False)
+                - id is a string that identifies which file in /words/words.* is used
+            - GetSyllablesDict()
+                - Handles lowercase words only
+                - Returns an int or a tuple of ints
+    - h bash function
+        - Modify it to do 'pd s' if s is one of my /plib modules
+    - bash functions
+        - I have over 320 functions, way too many to remember.  I need some way of
+          starting the rarely-used ones by e.g. showing me the category and letting me
+          look through a list.
+    - Finding python functions/classes/scripts
+        - I have so many that a helper script would be valuable to narrow down and find
+          suitable functions/classes/scripts.  I envision something that could use the
+          gist to get the function descriptions.  Or the functions themselves could have
+          a gist attribute that is easily harvested.  The indexing function would build
+          a cache to search when the script is run, just like ds.py
+        - The function gist could be 'keywords ∞∞ description' where the keywords would
+          be separated by space characters.
+    - pgm/dori.py:  compact calendar for pocket dori
+        - 12 weeks = 3 months
+        - Do on 2 folios on one side of the sheet.  This gives a calendar and one blank
+          folio, which is quite a bit of room for my needs.
+        - Put in small text "dori.py" so I know where the script is
+    - Utility to fix python file formatting:  fix """ stuff and delete blank lines.  Run
+      the fix first on a copy and make sure the script still works before making the
+      change.
+    - Later python version
+        - I'm using 3.11.5, made in Aug 2023.  
+        - https://www.python.org/downloads/ shows end of life of 3.11 in about 1.5
+          years.
+        - Looking at the releases chart, I'd be OK with upgrading to 3.13 or 3.14.  
+            - 3.13 went to bugfix in 3Q2024 and support ends late 3Q2029.
+            - 3.14 went to bugfix in 3Q2024 and support ends late 3Q2030.
+        - I'd like to be able to use conda to switch between python versions being used
+          with one of them my default
 
     - winmerge
         - I recently updated to latest version built in late Jan 2026

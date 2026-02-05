@@ -959,7 +959,7 @@ class Fmt:
             try:
                 ending_digit = s[last_digit]
             except Exception as e:
-                breakpoint()  # xx
+                breakpoint()  # ∞∞ 
                 pass
             sentinel = int(s[last_digit + 1])
             # Truncate at n digits past the decimal point
@@ -2734,7 +2734,7 @@ if __name__ == "__main__":
                     result = fmt.fmtint(x, width=15, mag=True)
                     Assert(result == "-123⋯89 |10⁴⁶|")
                 # Floats
-                print("∞∞ Test_Brief:  need to write float code")  # ∞∞2
+                print("∞∞2 Test_Brief:  need to write float code")
     if 1:  # Module's base code
         if len(sys.argv) > 1 and sys.argv[1] == "--test":
             status, msg = run(globals(), regexp=r"Test_", halt=1)

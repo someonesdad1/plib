@@ -14,17 +14,17 @@
         from the Earth's crust.  Don't be surprised if the atomic mass numbers differ
         a bit from what you see in your periodic table, as the measured atomic mass of
         an element will always depend on its isotopic composition.  
-
+        
         For practical work to 4 or 5 figures, you can assume the returned floating
         point numbers as having the units g/mol.
-
+        
     PrintRawData(*z, spc=False):
         This function is used to show the raw NIST atomic mass data.  If you don't give
         any atomic number integers as arguments, all elements will be shown.  If spc is
         True, you'll get a blank line between elements.  To see e.g. the first n
         elements' data, use PrintRawData(range(n + 1)).  To see the different types of
         data for each element, try PrintRawData(1, 2, 4, 6, 43, 96, spc=1).
-
+        
         The returned data is a list of namedtuple of NT1 type with the components
             - Z    = <int> Atomic number
             - sym  = <str> Symbol
@@ -33,15 +33,15 @@
             - ic   = <unc> Isotopic composition
             - sam  = <list> Standard atomic mass (may be a float)
             - note = <str> Notes
-
+            
     The atomic mass data are from
     https://www.nist.gov/pml/atomic-weights-and-isotopic-compositions-relative-atomic-masses
     as of Jan 2026 and represent the relative atomic mass of the elements (only the more
     common isotopes, not the full list).  
-
+    
     Here, relative means the mass is divided by 12, the atomic mass of carbon 12 in the
     atomic and nuclear ground state.
-
+    
     The measured mass of the carbon 12 atom is 11.9999999958(36) g/mol; note this is 12
     g/mol rounded to 10 figures).  This is stored in the global variable
     g.C12_atomic_mass.  If you want the measured value of the atomic mass of an element,
@@ -49,11 +49,11 @@
     units g/mol.  This will be an uncertainties module ufloat instance for an
     isotope, but it will be a floating point number for data from GetAtomicMassData(),
     which you should use for routine computations.
-
+    
     Consult
     https://www.nist.gov/pml/atomic-weights-and-isotopic-compositions-column-descriptions
     for more detailed explanation of the raw data.
-
+    
 '''
 if 1:  # Header
     _pgminfo = '''
@@ -69,14 +69,14 @@ if 1:  # Header
         <oo cat ∞ science oo>
         <oo test ∞ --test oo>
         <oo todo ∞ 
-
+        
             - Provide a GetData to get the atomic mass data
                 - GetAtomicMass(an=None, n=5, unc=False)
                 - Returns a namedtuple of NT2 type
             - <done> Get the NIST data parsed
             - <done> Return information in a named tuple
             - <done> Use appropriate floating point representation
-
+            
         oo>
     '''
     if 1:   # Standard imports
@@ -402,17 +402,6 @@ if 1:  # NIST data
         for item in GetAtomicMassData(digits=digits, Z_begin=0, Z_end=0):
             di[item.sym] = item.am
         return di
-
-    if 0: #∞∞ 
-        if 1:
-            #PrintRawData()
-            PrintRawData(1, 2, 4, 6, 43, 96, spc=1, Z_begin=2, Z_end=45)
-            #PrintRawData(*range(95, 120), spc=1)
-        else:
-            for i in GetAtomicMassData(digits=3, Z_begin=10, Z_end=30):
-                print(f"{i.Z:3d}      {i.sym:2s}      {i.am!s}")
-        exit()
-
 if 1:   # Old set of data
         g.atomic_mass = {
             # From https://gist.github.com/Rhomboid/5994999
@@ -639,7 +628,6 @@ if 1:  # Molecular mass
             else:
                 stack.append(dict[tok])
             return self._parse(tokens[1:], stack, dict)
-
 if __name__ == "__main__":
     # Dictionary to relate atomic number to element symbol
     elem2z = {

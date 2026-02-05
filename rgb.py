@@ -205,7 +205,6 @@ if 1:  # Header
         from fractions import Fraction
         import pathlib
         import sys
-        from pdb import set_trace as xx
     if 1:  # Custom imports
         from color import t
         if 0:
@@ -667,7 +666,7 @@ if __name__ == "__main__":
             s = ColorNum((t, t, t))
             for j in (b, c, i, s):
                 if j != std:
-                    xx()
+                    breakpoint() # ∞∞ 
                 assert_equal(j == std, True)
         # Check bytes
         x = 1.0

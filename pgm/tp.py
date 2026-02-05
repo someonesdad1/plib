@@ -115,10 +115,10 @@ if 1:   # Utility
         
             I've got a project that's pushing 20000 lines of text and it uses this
             🟦on/🟦off functionality in a number of ways.  For the case of showing only
-            the stuff I'm currently working on, I use the lines '🟦on xx' and '🟦off
-            xx', showing that you can put extra text on the command line and it's
-            ignored.  This lets me later search for 'xx' to find these temporary
-            commands.  I also use '🟦# xx To do item' to mark items that need attention.
+            the stuff I'm currently working on, I use the lines '🟦on ∞∞' and '🟦off
+            ∞∞', showing that you can put extra text on the command line and it's
+            ignored.  This lets me later search for '∞∞' to find these temporary
+            commands.  I also use '🟦# ∞∞ To do item' to mark items that need attention.
         
             Another use is for making internal notes to the document about questions,
             thoughts, or tasks that need to be done.  I might use '🟦on Note...' and

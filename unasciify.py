@@ -172,7 +172,7 @@ if 0:   # Transliteration data
             else:
                 print(f'{s}{s}"{i}": "{g.choices[i]}",')
         print(f"{s}}}")
-        exit() #∞∞ 
+        exit()
 
 if 1:   # Get transliteration table
     def GetTransliterationTable(seed=None):
