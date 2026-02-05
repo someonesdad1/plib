@@ -332,6 +332,26 @@ if 1:   # Finding duplicates in sequences
             if self.typ:
                 return (eqval and (type(self) is type(other)))
             return eqval
+    def Nodup(seq, type_important=False):
+        '''seq is a sequence; returns nodup where nodup is a list of the elements in seq
+        that are not duplicates.  See DupNodup() for details.
+        '''
+        return DupNodup(seq, type_important=type_important)[1]
+    def NodupHashable(seq):
+        '''seq is a sequence; returns nodup where nodup is a list of the elements in seq
+        that are not duplicates.  See DupNodupHashable() for details.
+        '''
+        return DupNodupHashable(seq)[1]
+    def Dup(seq, type_important=False):
+        '''seq is a sequence; returns dup where dup is a list of the elements in seq
+        that are duplicates.  See DupNodup() for details.
+        '''
+        return DupNodup(seq, type_important=type_important)[0]
+    def DupHashable(seq):
+        '''seq is a sequence; returns dup where dup is a list of the elements in seq
+        that are duplicates.  See DupNodupHashable() for details.
+        '''
+        return DupNodupHashable(seq)[0]
     def DupNodup(seq, type_important=False):
         '''seq is a sequence; returns (dup, nodup) where dup and nodup are lists.  nodup
         has the elements in seq that are not duplicates.  dup contains the elements that
@@ -382,7 +402,7 @@ if 1:   # Finding duplicates in sequences
             dup.append(item) if sitem in seen else nodup.append(item)
             seen.add(sitem)
         return (dup, nodup)
-    def DupNodupHashable(seq, type_important=False):
+    def DupNodupHashable(seq):
         '''seq is a sequence; returns (dup, nodup) where dup and nodup are lists.  nodup
         has the elements in seq that are not duplicates.  dup contains the elements that
         are duplicates of earlier elements in the list.  Both dup and nodup maintain the

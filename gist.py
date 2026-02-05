@@ -157,7 +157,7 @@ if 1:   # Classes
         @classmethod
         def DefaultGist(cls):
             return dedent('''
-                <oo gist ∞ One line description of file/module oo>
+                <oo gist ∞ One line description of x oo>
                 <oo desc ∞ Description oo>
                 <oo copy ∞ Copyright © 2026 Don Peterson oo>
                 <oo lic ∞ MIT License
@@ -168,7 +168,11 @@ if 1:   # Classes
                 <oo ind ∞ 8 indent oo>
                 <oo cat ∞ category oo>
                 <oo test ∞ notest oo>
-                <oo todo ∞ Todo items oo>'''[1:])
+                <oo todo ∞ 
+                
+                        - Todo items
+                
+                oo>'''[1:])
     class StdGist(Gist):
         '''This is intended to be the standard gist instance for the python files on my
         computer system.  The required keywords are:
@@ -351,9 +355,8 @@ if __name__ == "__main__":
         print(dedent("""
             if 1:   # Utility
                 def GetColors():
-                    t.stuff = t.lill
                     t.err = t.redl
-                    t.dbg = t.lill if g.dbg else ""
+                    t.dbg = t.sky if g.dbg else ""
                     t.N = t.n if g.dbg else ""
                 def GetScreen():
                     'Return (LINES, COLUMNS)'

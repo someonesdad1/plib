@@ -11,6 +11,8 @@
 
     - /plib work
         - Needs work/inspection
+            - Bring /pylib/xfmpy to plib/Dev and turn it into a modern tool
+            - /pylib/significand.py would be a useful function in dpmath.py
             - dpdata.py:  be a single repository for all the files with data:
                 - drillsizes.py, eia.py, elements.py ?, papersize.py, planets.py,
                   resistors.py, rgb.py, sizes.py, solarsys.py, gauge_sizes.py,
