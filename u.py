@@ -1,91 +1,212 @@
 '''
 TODO
-    * GetDim barfs on units like 'galh2o' because it contains a
-      digit.  Look at changing this to see if things will
-      continue to work.
-    * u() doesn't recognize units with negative exponents.  Something
-      like m**-1 should work because it's valid python expression
-      syntax.  The cause is probably in the code that uses the
-      tokenizer.  Generate a set of unit expressions and parse them
-      without using the tokenizer first, converting them to a form the
-      tokenizer will work with.  It may make more sense to learn how to
-      use the ast module to do this work.
-      
-    Let A, B, C, ... be the basic unit strings and a, b, c, ... be
-    numbers.  Here are forms I'd like to support:
-    
-        * Basic: A, A², A⁻²
-        * Reciprocal:  1/A, 1/A²
-        * Multiplication:  A*B, 'A B', A·B
-        * Exponentiation:  A**b, A^b, A^(3/4), A^-1, A**-1, Ab, A-b
-            * Should A(3/4) be allowed?  Probably, since reals are thus
-              allowed.  Fractions have to be in parentheses because of
-              syntax.
-            * Should they be converted to float or left as Fraction?  If
-              float, then need to specify number of digits to round to.
-              It doesn't make sense to use full float precision.  3
-              digits seems plenty to me, 4 in unusual cases.  At least
-              make it an option, as some corner cases might need a lot
-              of digits.
-            * A corner case is something like A**+3.2e-2.  This is a
-              valid python expression, so it needs to be allowed.
-            * 2**-3 and 2**+3 work in python's parser, so have to be
-              allowed.
-            * '(m/s)2' doesn't work, but '(m/s)^2' and '(m/s)**2' do.
-        * Division:  A/B, A/B/C, A/(B/C)/D
-        * Solidus division:  A·B·C...//D·E·F...  This is the only
-          allowed form (one '//' and no negative exponents).  It's nice
-          because it's easy to parse.  Parentheses only for fractional
-          exponents, which could e.g. use the notation 'F(3/4)' or just
-          '(3/4)'.
-        * Once a unit expression has been normalized to the standard
-          expression syntax, the unit tokens can be given a numerical
-          value in a dictionary and the expression can be passed to the
-          python parser.  If it returns a number, then the expression is
-          correct.  Thus, the algorithm strategy should probably be to
-          convert the starting expression into one acceptable to
-          python's parser.  Once it's correct, you can pick it apart as
-          needed or get a conversion factor.
-          
-          Standard:    kg·m/(s²·K)
-          Expression:  kg*m/(s**2*K)
-          Flat:        kg·m·s⁻²·K⁻¹
-          Solidus:     kg·m//s²·K
-          
-        A regular expression could be used to convert A⁻² to A**(-2).
-        Since the superscripts can't contain '.', ',', or '/', the
-        exponent will always have to be an integer.  Parentheses only
-        used if integer is negative.  Any + superscript is removed.
-        
-        References
-        
-        * https://realpython.com/python-eval-function/ has a good
-          section on the security risks of using eval().  Securing
-          things is more complicated than e.g. calling eval() with empty
-          dictionaries.
-          
-        * https://www.mattlayman.com/blog/2018/decipher-python-ast/
-          introduces the ast module and the use of abstract syntax
-          trees.  It's possible that this could be an alternative way of
-          evaluating unit expressions.  Unfortunately, they first have
-          to be correct python syntax.
-          
-        * I looked at pint, http://pint.readthedocs.io/en/0.6/, but it
-          looks like something written by a CS major, not a working
-          scientist.
-          
-    * ParseUnit cannot parse a complex number with units.  See if this
-      can be done.  Change to a deque and popleft the items that are
-      digits, radix, or "ijeE+-".  Also remember it should handle
-      ufloats.  Maybe it should be changed to just split on whitespace,
-      nobreak space, or middle dot.  This would be a lot simpler.
-      
-    * In ParseFraction, it seems to me the '# Remove any unit' section
-      is wrong; what if a unit is 'kg/m2'?  Such units can contain
-      digits.
+
 '''
+if 1:  # Header
+    _pgminfo = '''
+        <oo gist ∞ Unit conversion utilities oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2014 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ sci oo>
+        <oo test ∞ --test oo>
+        <oo todo ∞ 
+        
+            - ∞∞1 This module is heavily used and these things should be fixed if
+              possible
+                - Use si.py instead of defining things in this file
+                - GetDim barfs on units like 'galh2o' because it contains a digit.  Look
+                  at changing this to see if things will continue to work.
+                - u() doesn't recognize units with negative exponents.  Something like
+                  m**-1 should work because it's valid python expression syntax.  The
+                  cause is probably in the code that uses the tokenizer.  Generate a set
+                  of unit expressions and parse them without using the tokenizer first,
+                  converting them to a form the tokenizer will work with.  It may make
+                  more sense to learn how to use the ast module to do this work.
+            
+            The basic strategy of this module is to use python's parser to evaluate unit
+            expressions.  This is a good decision from letting someone else do the work,
+            but the parser wasn't designed to handle some of the things that you want to
+            do with units.  Something like sympy might be able to do such things, but
+            the time overhead and code bloat is a bit of a problem.
+
+            Let A, B, C, ... be the basic unit strings and a, b, c, ... be numbers.
+            Here are forms I'd like to support:
+            
+                - Basic: A, A², A⁻²
+                - Reciprocal:  1/A, 1/A²
+                - Multiplication:  A*B, 'A B', A·B
+                - Exponentiation:  A**b, A^b, A^(3/4), A^-1, A**-1, Ab, A-b
+                    - Should A(3/4) be allowed?  Probably, since reals are thus allowed.
+                      Fractions have to be in parentheses because of syntax.
+                    - Should they be converted to float or left as Fraction?  If float,
+                      then need to specify number of digits to round to.  It doesn't
+                      make sense to use full float precision.  3 digits seems plenty to
+                      me, 4 in unusual cases.  At least make it an option, as some
+                      corner cases might need a lot of digits.
+                    - A corner case is something like A**+3.2e-2.  This is a valid
+                      python expression, so it needs to be allowed.
+                    - 2**-3 and 2**+3 work in python's parser, so have to be allowed.
+                    - '(m/s)2' doesn't work, but '(m/s)^2' and '(m/s)**2' do.
+                - Division:  A/B, A/B/C, A/(B/C)/D
+                - Solidus division:  A·B·C...//D·E·F...  This is the only allowed form
+                  (one '//' and no negative exponents).  It's nice because it's easy to
+                  parse.  Parentheses only for fractional exponents, which could e.g.
+                  use the notation 'F(3/4)' or just '(3/4)'.
+                - Once a unit expression has been normalized to the standard expression
+                  syntax, the unit tokens can be given a numerical value in a dictionary
+                  and the expression can be passed to the python parser.  If it returns
+                  a number, then the expression is correct.  Thus, the algorithm
+                  strategy should probably be to convert the starting expression into
+                  one acceptable to python's parser.  Once it's correct, you can pick it
+                  apart as needed or get a conversion factor.
+                
+                    Standard:    kg·m/(s²·K)
+                    Expression:  kg*m/(s**2*K)
+                    Flat:        kg·m·s⁻²·K⁻¹
+                    Solidus:     kg·m//s²·K
+                
+                A regular expression could be used to convert A⁻² to A**(-2).  Since the
+                superscripts can't contain '.', ',', or '/', the exponent will always
+                have to be an integer.  Parentheses only used if integer is negative.
+                Any + superscript is removed.
+                
+                References
+                
+                - https://realpython.com/python-eval-function/ has a good section on the
+                  security risks of using eval().  Securing things is more complicated
+                  than e.g.  calling eval() with empty dictionaries.
+                
+                - https://www.mattlayman.com/blog/2018/decipher-python-ast/ introduces
+                  the ast module and the use of abstract syntax trees.  It's possible
+                  that this could be an alternative way of evaluating unit expressions.
+                  Unfortunately, they first have to be correct python syntax.
+                
+                - I looked at pint, http://pint.readthedocs.io/en/0.6/, but it looks
+                  like something written by a CS major, not a working scientist.
+                
+            - ParseUnit cannot parse a complex number with units.  See if this can be
+              done.  Change to a deque and popleft the items that are digits, radix, or
+              "ijeE+-".  Also remember it should handle ufloats.  Maybe it should be
+              changed to just split on whitespace, nobreak space, or middle dot.  This
+              would be a lot simpler.
+            
+            - In ParseFraction, it seems to me the '# Remove any unit' section is wrong;
+              what if a unit is 'kg/m2'?  Such units can contain digits.
+
+        oo>
+    '''
+    if 1:  # Standard imports
+        import io
+        import random
+        import re
+        import sys
+        import tokenize
+        from collections import defaultdict, deque
+        from fractions import Fraction
+        from decimal import Decimal
+        from random import seed
+        from math import pi
+    if 1:  # Custom imports
+        from columnize import Columnize
+        from wrap import dedent
+        try:
+            import uncertainties
+            _have_uncertainties = True
+        except Exception:
+            _have_uncertainties = False
+    if 1:  # Global variables
+        class G:  # Global variable container
+            pass
+        g = G()
+        # Utility stuff
+        g.ii = isinstance
+        g.have_uncertainties = _have_uncertainties
+        # Regular expression that will match an integer or floating point
+        # number in its string representation.
+        g._num_unit = re.compile(
+            r'''
+                (?x)                            # Allow verbosity
+                ^                               # Must match at beginning
+                (                               # Group
+                    [+-]?                       # Optional sign
+                    \.\d+                       # Number like .345
+                    ([eE][+-]?\d+)?|            # Optional exponent
+                # or
+                    [+-]?                       # Optional sign
+                    \d+\.?\d*                   # Number:  2.345
+                    ([eE][+-]?\d+)?             # Optional exponent
+                )                               # End group
+        '''.strip())
+        # This global variable holds the number of significant digits to
+        # round to.  While the typical floating point implementation
+        # uses around 16 digits, the default value is set to 12.  Very
+        # few problems in the practical world need to deal with
+        # measurements to more than 12 significant figures, so this
+        # default should be suitable for most practical problems.  This
+        # lower number is used to help avoid annoying string
+        # interpolations like '34.199999999999', which should be '34.2'.
+        g.number_of_digits = 12
+        del _have_uncertainties
+        # Public symbols when "from u import *" is used.
+        __all__ = '''CT dim Dim fromto ParseUnit RoundOff SI_prefixes
+                    to u U'''.split()
+        # The SI_prefixes dictionary contains the SI prefixes as keys; the
+        # values are the conversion factors as strings.
+        SI_prefixes = {
+            "y": "1e-24",
+            "z": "1e-21",
+            "a": "1e-18",
+            "f": "1e-15",
+            "p": "1e-12",
+            "n": "1e-9",
+            "u": "1e-6",
+            "μ": "1e-6",
+            "m": "1e-3",
+            "c": "1e-2",
+            "d": "1e-1",
+            "da": "1e1",
+            "h": "1e2",
+            "k": "1e3",
+            "M": "1e6",
+            "G": "1e9",
+            "T": "1e12",
+            "P": "1e15",
+            "E": "1e18",
+            "Z": "1e21",
+            "Y": "1e24",
+        }
+        if 0:  # Set to 1 if you also want the following
+            SI_additional = {
+                "yocto": "1e-24",
+                "zepto": "1e-21",
+                "atto": "1e-18",
+                "femto": "1e-15",
+                "pico": "1e-12",
+                "nano": "1e-9",
+                "micro": "1e-6",
+                "milli": "1e-3",
+                "centi": "1e-2",
+                "deci": "1e-1",
+                "deca": "1e1",
+                "deka": "1e1",
+                "hecto": "1e2",
+                "kilo": "1e3",
+                "mega": "1e6",
+                "giga": "1e9",
+                "tera": "1e12",
+                "peta": "1e15",
+                "eta": "1e18",
+                "zetta": "1e21",
+                "yotta": "1e24",
+            }
+            SI_prefixes.update(SI_additional)
 if 1:  # Module docstring
-    from wrap import dedent
     __doc__ = dedent('''
     Unit conversion utilities
     
@@ -185,124 +306,6 @@ if 1:  # Module docstring
     right-associative, the result is "m/(s/s)", which is "m".  
     
     ''')
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    ##∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    ##∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    ##∞license∞#
-    ##∞what∞#
-    # <science> Unit conversion utilities.  Provides the unit handling
-    # for the flt/cpx types in f.py.
-    ##∞what∞#
-    ##∞test∞# --test #∞test∞#
-    pass
-if 1:  # Standard imports
-    import io
-    import random
-    import re
-    import sys
-    import tokenize
-    from collections import defaultdict, deque
-    from fractions import Fraction
-    from decimal import Decimal
-    from random import seed
-    from math import pi
-if 1:  # Custom imports
-    from columnize import Columnize
-    from wrap import dedent
-    try:
-        import uncertainties
-        _have_uncertainties = True
-    except Exception:
-        _have_uncertainties = False
-if 1:  # Global variables
-    class G:  # Global variable container
-        # Utility stuff
-        ii = isinstance
-        have_uncertainties = _have_uncertainties
-        # Regular expression that will match an integer or floating point
-        # number in its string representation.
-        _num_unit = re.compile(
-            r'''
-                (?x)                            # Allow verbosity
-                ^                               # Must match at beginning
-                (                               # Group
-                    [+-]?                       # Optional sign
-                    \.\d+                       # Number like .345
-                    ([eE][+-]?\d+)?|            # Optional exponent
-                # or
-                    [+-]?                       # Optional sign
-                    \d+\.?\d*                   # Number:  2.345
-                    ([eE][+-]?\d+)?             # Optional exponent
-                )                               # End group
-        '''.strip()
-        )
-        # This global variable holds the number of significant digits to
-        # round to.  While the typical floating point implementation
-        # uses around 16 digits, the default value is set to 12.  Very
-        # few problems in the practical world need to deal with
-        # measurements to more than 12 significant figures, so this
-        # default should be suitable for most practical problems.  This
-        # lower number is used to help avoid annoying string
-        # interpolations like '34.199999999999', which should be '34.2'.
-        number_of_digits = 12
-    del _have_uncertainties
-    # Public symbols when "from u import *" is used.
-    __all__ = '''CT dim Dim fromto ParseUnit RoundOff SI_prefixes
-                 to u U'''.split()
-    # The SI_prefixes dictionary contains the SI prefixes as keys; the
-    # values are the conversion factors as strings.
-    SI_prefixes = {
-        "y": "1e-24",
-        "z": "1e-21",
-        "a": "1e-18",
-        "f": "1e-15",
-        "p": "1e-12",
-        "n": "1e-9",
-        "u": "1e-6",
-        "μ": "1e-6",
-        "m": "1e-3",
-        "c": "1e-2",
-        "d": "1e-1",
-        "da": "1e1",
-        "h": "1e2",
-        "k": "1e3",
-        "M": "1e6",
-        "G": "1e9",
-        "T": "1e12",
-        "P": "1e15",
-        "E": "1e18",
-        "Z": "1e21",
-        "Y": "1e24",
-    }
-    if 0:  # Set to 1 if you also want the following
-        SI_additional = {
-            "yocto": "1e-24",
-            "zepto": "1e-21",
-            "atto": "1e-18",
-            "femto": "1e-15",
-            "pico": "1e-12",
-            "nano": "1e-9",
-            "micro": "1e-6",
-            "milli": "1e-3",
-            "centi": "1e-2",
-            "deci": "1e-1",
-            "deca": "1e1",
-            "deka": "1e1",
-            "hecto": "1e2",
-            "kilo": "1e3",
-            "mega": "1e6",
-            "giga": "1e9",
-            "tera": "1e12",
-            "peta": "1e15",
-            "eta": "1e18",
-            "zetta": "1e21",
-            "yotta": "1e24",
-        }
-        SI_prefixes.update(SI_additional)
 if 1:  # Parsing
     def ParseUnit(s, allow_expr=False, allow_unc=False, allow_quit=True):
         '''Separate a string into a number string and unit string.
@@ -361,7 +364,7 @@ if 1:  # Parsing
         '''
         if s.lower() == "q" and allow_quit:
             exit(0)
-        if allow_unc and not G.have_uncertainties:
+        if allow_unc and not g.have_uncertainties:
             raise ValueError("uncertainties library not available")
         if allow_expr and allow_unc:
             raise ValueError("allow_expr and allow_unc cannot both be True")
@@ -389,7 +392,7 @@ if 1:  # Parsing
                 u = f[1] if len(f) == 2 else ""
                 return (x, u)
             else:
-                mo = G._num_unit.search(s)
+                mo = g._num_unit.search(s)
                 if mo:
                     x, unit = s[: mo.end()].rstrip(), s[mo.end() :].lstrip()
                     return (x, unit)
@@ -459,7 +462,7 @@ if 1:  # Parsing
             prefix = s[:index]
             if prefix not in si:
                 raise ValueError("'%s' prefix not an SI prefix" % prefix)
-            return (10 ** si[prefix], unit)
+            return (10**si[prefix], unit)
     def ParseFraction(s):
         '''Parse the number s and return it as (significand, unit) where
             significand = an int, float, or Fraction
@@ -528,7 +531,7 @@ if 1:  # Parsing
                     raise ValueError(f"'{s}' is an invalid integer")
         return (significand, unit)
 if 1:  # Utilities
-    def RoundOff(number, digits=G.number_of_digits):
+    def RoundOff(number, digits=g.number_of_digits):
         '''Round the significand of number to the indicated number of digits
         and return the number suitably rounded (integers are returned
         untransformed).  The desire is to round things to get rid of
@@ -546,9 +549,9 @@ if 1:  # Utilities
         # 1 and 10.  This is converted to a Decimal, which is then passed to
         # python's round() function.  The number is reconstituted with its
         # exponent using Decimal arithmetic, then returned as a float.
-        if G.ii(number, int):
+        if g.ii(number, int):
             return number
-        if not G.ii(number, float):
+        if not g.ii(number, float):
             raise TypeError("number must be a float")
         if digits < 1:
             raise ValueError("digits must be an integer > 0")
@@ -557,10 +560,10 @@ if 1:  # Utilities
         significand_dec = Decimal(significand_str)
         significand = Decimal(str(round(significand_dec, digits - 1)))
         e = int(exponent_str)
-        factor = sign * Decimal(10) ** abs(e)
+        factor = sign*Decimal(10)**abs(e)
         if e < 0:
             return float(significand / factor)
-        return float(significand * factor)
+        return float(significand*factor)
     def CT(T, T_from, T_to="K"):
         '''Convert temperature T in the unit indicated by the string
         T_from to the unit indicated by the string T_to.  The allowed
@@ -572,7 +575,7 @@ if 1:  # Utilities
             R, r    Degrees Rankine
         '''
         allowed, T0 = "kcfr", 273.15
-        t_from, t_to, Tr = T_from.lower(), T_to.lower(), 9 / 5.0 * T0 - 32
+        t_from, t_to, Tr = T_from.lower(), T_to.lower(), 9/5*T0 - 32
         if len(t_from) != 1 or t_from not in allowed:
             raise ValueError("'%s' is a bad temperature unit" % T_from)
         if len(t_to) != 1 or t_to not in allowed:
@@ -586,18 +589,18 @@ if 1:  # Utilities
         f = {
             "kk": lambda T: T,
             "kc": lambda T: T - T0,
-            "kf": lambda T: 9.0 / 5 * T - Tr,
-            "kr": lambda T: 9.0 / 5 * T,
+            "kf": lambda T: 9.0/5*T - Tr,
+            "kr": lambda T: 9.0/5*T,
             "ck": lambda T: T + T0,
             "cc": lambda T: T,
-            "cf": lambda T: 9.0 / 5 * T + 32,
-            "cr": lambda T: (T + T0) * 9 / 5.0,
-            "fk": lambda T: (T + Tr) * 5 / 9.0,
-            "fc": lambda T: (T - 32) * 5 / 9.0,
+            "cf": lambda T: 9.0/5*T + 32,
+            "cr": lambda T: (T + T0)*9/5.0,
+            "fk": lambda T: (T + Tr)*5/9.0,
+            "fc": lambda T: (T - 32)*5/9.0,
             "ff": lambda T: T,
             "fr": lambda T: T + Tr,
-            "rk": lambda T: 5 / 9 * T,
-            "rc": lambda T: (T - Tr - 32) * 5 / 9,
+            "rk": lambda T: 5/9*T,
+            "rc": lambda T: (T - Tr - 32)*5/9,
             "rf": lambda T: T - Tr,
             "rr": lambda T: T,
         }
@@ -606,7 +609,7 @@ if 1:  # Utilities
         '''Print an error message the the uncertainties module is not
         present.
         '''
-        if not G.have_uncertainties:
+        if not g.have_uncertainties:
             print(
                 '''Error:  the uncertainties module is not available
             (see http://pythonhosted.org/uncertainties)''',
@@ -677,16 +680,16 @@ if 1:  # Utilities
         Example:
             x = fromto(1, "ft", "m")   # x will be 0.3048
         '''
-        return x * u(s1) / u(s2)
+        return x*u(s1)/u(s2)
     def to(*p):
         '''Convenience function to let you use expressions like x*to("ft/s")
         to convert the numerical variable x to have units of "ft/s".  You
         can also use to(x, "ft/s").
         '''
         if len(p) == 1:
-            return 1 / u(p[0])
+            return 1/u(p[0])
         elif len(p) == 2:
-            return p[0] * 1 / u(p[1])
+            return p[0]*1/u(p[1])
         raise SyntaxError("'to' only takes 1 or 2 arguments")
     def dim(s):
         '''Returns a Dim object associated with a unit expression s.'''
@@ -811,7 +814,7 @@ if 1:   # Classes
             '''
             if other is None:
                 return False
-            if not G.ii(other, Dim):
+            if not g.ii(other, Dim):
                 raise TypeError("other must be a Dim object")
             if set(self._dims.keys()) != set(other._dims.keys()):
                 return False
@@ -819,7 +822,7 @@ if 1:   # Classes
             # them is a float.
             s, o = self._dims, other._dims
             for key in self._dims:
-                if G.ii(s[key], float) or G.ii(o[key], float):
+                if g.ii(s[key], float) or g.ii(o[key], float):
                     # Note we have to round things off or you'll get
                     # unequal comparisons when things are nearly equal.
                     a = RoundOff(float(s[key]))
@@ -835,10 +838,10 @@ if 1:   # Classes
             float, Fraction, or string that can be converted to one of these
             number types.
             '''
-            if not G.ii(other, (int, float, Fraction, str)):
+            if not g.ii(other, (int, float, Fraction, str)):
                 msg = "exponent must be a number or string"
                 raise TypeError(msg)
-            if G.ii(other, str):
+            if g.ii(other, str):
                 if "/" in other:
                     exponent = Fraction(other)
                 elif "." in other or "e" in other.lower():
@@ -861,13 +864,13 @@ if 1:   # Classes
             object with the same dimensions.  If other is a number,
             then self must be Dim("") and a Dim("") instance is returned.
             '''
-            if G.ii(other, self.number_types):
+            if g.ii(other, self.number_types):
                 if str(self) != 'Dim("")':
                     m = "Must be dimensionless to add/subtract a number"
                     raise TypeError(m)
                 return self.empty_copy()
             else:
-                if not G.ii(other, Dim):
+                if not g.ii(other, Dim):
                     raise TypeError("other must be a Dim instance")
                 if self._dims != other._dims:
                     raise TypeError("Arguments must have identical dimensions")
@@ -883,9 +886,9 @@ if 1:   # Classes
             object representing the combined dimensions.  If other is a number,
             then just return self.
             '''
-            if G.ii(other, self.number_types):
+            if g.ii(other, self.number_types):
                 return self
-            if not G.ii(other, Dim):
+            if not g.ii(other, Dim):
                 raise TypeError("other must be a Dim instance")
             other._normalize()
             product_dims = self.dims
@@ -900,16 +903,16 @@ if 1:   # Classes
             return result
         def __rmul__(self, other):
             '''This method is needed to handle expressions like 1e-6*Dim("L").'''
-            if G.ii(other, self.number_types):
+            if g.ii(other, self.number_types):
                 return self
-            return self * other
+            return self*other
         def __truediv__(self, other):
             '''Division of two Dim objects will result in a returned Dim object
             representing the combined dimensions.
             '''
-            if G.ii(other, self.number_types):
+            if g.ii(other, self.number_types):
                 return self
-            if not G.ii(other, Dim):
+            if not g.ii(other, Dim):
                 raise TypeError("other must be a Dim instance")
             other._normalize()
             d = self._dims.copy()
@@ -926,10 +929,10 @@ if 1:   # Classes
             '''This method can handle the case of a number divided by a Dim
             object.  Note that other must be an integer or float.
             '''
-            if not G.ii(other, self.number_types):
+            if not g.ii(other, self.number_types):
                 raise TypeError("other must be an integer or float")
             r = self.empty_copy()
-            return r / self
+            return r/self
         def approx_equal(self, other, reltol=0.01) -> bool:
             '''Compare the dimensions of two Dim objects like __eq__, but
             convert the exponents to floats and declare them equal if the
@@ -938,7 +941,7 @@ if 1:   # Classes
             '''
             if other is None:
                 return False
-            if not G.ii(other, Dim):
+            if not g.ii(other, Dim):
                 raise TypeError("other must be a Dim object")
             if set(self._dims.keys()) != set(other._dims.keys()):
                 return False
@@ -949,7 +952,7 @@ if 1:   # Classes
             for key in d1:
                 exp1, exp2 = float(d1[key]), float(d2[key])
                 diff = abs(exp1 - exp2)
-                reldiff = min(diff / exp1, diff / exp2)
+                reldiff = min(diff/exp1, diff/exp2)
                 if reldiff > reltol:
                     return False
             return True
@@ -1096,10 +1099,10 @@ if 1:   # Classes
                 dimensions = {"inch": Dim("L")}
                 
                 **********************************************************
-                *  units and dimensions are different dictionaries       *
-                *  because they are used as local variables for eval()   *
-                *  at two different times.  Otherwise, they would have   *
-                *  been combined into one dictionary.                    *
+               * units and dimensions are different dictionaries       *
+               * because they are used as local variables for eval()   *
+               * at two different times.  Otherwise, they would have   *
+               * been combined into one dictionary.                    *
                 **********************************************************
                 
             prefixes is a dictionary of allowed prefixes; the values are the
@@ -1123,10 +1126,10 @@ if 1:   # Classes
             # Perform checks
             if check:
                 # The incoming data must be dictionaries
-                assert G.ii(units, dict)
-                assert G.ii(dimensions, dict)
-                assert G.ii(prefixes, dict)
-                assert G.ii(special, dict)
+                assert g.ii(units, dict)
+                assert g.ii(dimensions, dict)
+                assert g.ii(prefixes, dict)
+                assert g.ii(special, dict)
                 # units and dimensions must have the same size and keys
                 assert len(units) == len(dimensions)
                 assert set(units) == set(dimensions)
@@ -1135,8 +1138,8 @@ if 1:   # Classes
                 CheckPrefixDict(prefixes)
                 CheckDimDict(dimensions)
                 for key, value in special:
-                    assert G.ii(key, str)
-                    assert G.ii(value, str)
+                    assert g.ii(key, str)
+                    assert g.ii(value, str)
             # Syntax shortcuts are allowed if self._strict is False
             self._strict = False
             # If units is empty, then insert the base units.
@@ -1175,7 +1178,7 @@ if 1:   # Classes
             If you'd rather have an exception when an invalid unit is
             encountered, set use_exc to True.
             '''
-            if not G.ii(expr, str):
+            if not g.ii(expr, str):
                 raise TypeError("expr must be a string")
             if not expr:
                 return Dim("")
@@ -1424,7 +1427,7 @@ if 1:   # Classes
             # Get the number of digits to round to
             if digits is not None:
                 m = "digits must be an integer"
-                if not G.ii(digits, int):
+                if not g.ii(digits, int):
                     raise TypeError(m)
                 if digits < 1:
                     raise ValueError(m)
@@ -1439,7 +1442,7 @@ if 1:   # Classes
                     dims = eval(expression, globals(), self._dimensions)
                 except Exception:
                     return (None, None)
-                if G.ii(dims, (float, int, Fraction)):
+                if g.ii(dims, (float, int, Fraction)):
                     # Ensure we always return a Dim object (this exceptional
                     # case can happen with exponents of zero).
                     return (value, Dim(""))
@@ -1465,7 +1468,7 @@ if 1:   # Classes
                 self._digits = self._default_digits
             else:
                 m = "digits must be an integer >= 0"
-                if not G.ii(digits, int):
+                if not g.ii(digits, int):
                     raise TypeError(m)
                 if digits < 0:
                     raise ValueError(m)
@@ -1482,7 +1485,7 @@ if 1:   # Classes
             self._strict = bool(strict)
         def getop(self, a, b, op):
             '''Given the operation op, which will be one of the strings in
-            '+ - * / **', and unit strings a and b, calculate the resultant
+            '+ - */**', and unit strings a and b, calculate the resultant
             units of op(a, b).  The units used in the returned units string
             will be from a if possible.  Examples:
             
@@ -1505,7 +1508,7 @@ if 1:   # Classes
             fundamental SI units.
             '''
             raise Exception("Needs implementation")
-            allowed = "+ - * / **"
+            allowed = "+ - */**"
             if op not in allowed.split():
                 raise ValueError(f"'{op}' not in {allowed}")
             if not isinstance(a, str) and not isinstance(b, str):
@@ -2356,7 +2359,7 @@ if 1:   # Core functionality
                     except Exception:
                         raise ValueError("'{}' is not a valid unit symbol".format(i))
             # udict's' values must be numbers
-            assert all([G.ii(i, (int, float)) for i in udict.values()])
+            assert all([g.ii(i, (int, float)) for i in udict.values()])
         def CheckDimDict(ddict):
             '''Perform checks on the ddict dictionary with keys of unit names
             and values Dim objects.
@@ -2374,7 +2377,7 @@ if 1:   # Core functionality
                 except Exception:
                     raise ValueError("'{}' is not a valid unit symbol".format(i))
             # dimensions' values must be Dim instances
-            assert all([G.ii(i, Dim) for i in ddict.values()])
+            assert all([g.ii(i, Dim) for i in ddict.values()])
     u = GetConvenienceUInstance()
     def GetDim(s, strict=False):
         '''The string s will be a unit expression like T*m/(kg*s2).  Return
@@ -2531,7 +2534,7 @@ if 1:   # Core functionality
         '''Print out the supported units.  If categories is not empty, it's a
         list of the categories to print out.
         '''
-        indent = " " * 2
+        indent = " "*2
         if categories:
             # Print any matching categories.  A category matches if it begins
             # the section's title; case is ignored.
@@ -2688,13 +2691,13 @@ if __name__ == "__main__":
         assert u("") == 1
     def TestConstantMultiplesAllowed():
         Initialize()
-        assert u("8.9*m") == 8.9 * u("m")
+        assert u("8.9*m") == 8.9*u("m")
         assert u("8.9*m") == u("8900*mm")
         assert u("8.9*lb") == u("8900*mlb")
     def TestPrefixesWork():
         Initialize()
-        assert u("Mm") == u("km") * u("km") == 1e6
-        assert u("Ym") / u("ym") == 1e48
+        assert u("Mm") == u("km")*u("km") == 1e6
+        assert u("Ym")/u("ym") == 1e48
         # Can spell out
         if 0:  # For this to pass, you need to enable the word prefixes
             assert u("ym*s") == u("yoctom*s")
@@ -2707,7 +2710,7 @@ if __name__ == "__main__":
             # Negative exponents not allowed
             raises(ValueError, u, "m-1")
         else:
-            assert u("inch-1") == 1 / 0.0254
+            assert u("inch-1") == 1/0.0254
         # Check more complicated expressions
         assert_equal(u("(ft/min)^2"), u("ft/min") ** 2, abstol=eps)
         assert_equal(u("(ft/min)**2"), u("ft/min") ** 2, abstol=eps)
@@ -2745,7 +2748,7 @@ if __name__ == "__main__":
         assert_equal(u("degrees"), 0.017453)
     def TestTypicalExpressionsAfterRandomization():
         Initialize(randomize=True)
-        assert_equal(u("180*degrees"), pi * u("radian"), reltol=eps)
+        assert_equal(u("180*degrees"), pi*u("radian"), reltol=eps)
         assert_equal(u("88*ft/s"), u("60*mi/hr"), reltol=eps)
         assert_equal(u("mile"), u("5280*feet"), reltol=eps)
         assert_equal(u("rightangle"), u("100*grad"), reltol=eps)
@@ -2769,22 +2772,22 @@ if __name__ == "__main__":
         ua, ub = "inch/lbm/Ahr", "ft/tonne/(7.3*C)"
         s = 1.7, 1
         Initialize(randomize=True)
-        width = ufloat(*s) * u("m")
-        other = ufloat(1, 1) * u(ua)
-        r1 = width * to("kg")  # Express a length as a mass
+        width = ufloat(*s)*u("m")
+        other = ufloat(1, 1)*u(ua)
+        r1 = width*to("kg")  # Express a length as a mass
         # More algebraically complicated conversion
-        o1 = other * to(ub)
+        o1 = other*to(ub)
         Initialize(randomize=True)  # Repeat the calculation
-        width = ufloat(*s) * u("m")
-        other = ufloat(1, 1) * u(ua)
-        r2 = width * to("kg")
-        o2 = other * to(ub)
+        width = ufloat(*s)*u("m")
+        other = ufloat(1, 1)*u(ua)
+        r2 = width*to("kg")
+        o2 = other*to(ub)
         # Compare the results and show they're different
         assert r1 != r2
         assert o1 != o2
     def TestTemperatureConversion():
-        T0, a = 273.15, 9 / 5.0
-        Tr = a * T0
+        T0, a = 273.15, 9/5.0
+        Tr = a*T0
         assert_equal(CT(T0, "k", "k"), T0)
         assert_equal(CT(T0, "k", "c"), 0)
         assert_equal(CT(T0, "k", "f"), 32)
@@ -2809,7 +2812,7 @@ if __name__ == "__main__":
         # don't use the default eps.
         tol = 4e-15
         assert_equal(fromto(1, "ft", "in"), 12, abstol=tol)
-        assert_equal(fromto(1, "in", "ft"), 1 / 12, abstol=tol)
+        assert_equal(fromto(1, "in", "ft"), 1/12, abstol=tol)
     def TestParseUnit():
         Initialize()
         # Empty string returns None (remember leading/trailing
@@ -2860,7 +2863,7 @@ if __name__ == "__main__":
         # instances with the same constructor; you have to compare the nominal
         # value and standard deviation to determine the equality of
         # their distributions.
-        if G.have_uncertainties:
+        if g.have_uncertainties:
             def ueq(a, b):
                 return a.nominal_value == b.nominal_value and a.std_dev == b.std_dev
             y = ufloat(4, 1)
@@ -2912,8 +2915,8 @@ if __name__ == "__main__":
         assert pf(" 1+1/8 mm") == expected_f
         assert pf(" 1.1/8 mm") == expected_f
         expected_r = (1.125, "mm")
-        assert pf(str(9 / 8) + " mm") == expected_r
-        assert pf(str(9 / 8) + "    mm") == expected_r
+        assert pf(str(9/8) + " mm") == expected_r
+        assert pf(str(9/8) + "    mm") == expected_r
     def TestCustomUnits():
         '''This example is from the documentation and verifies both the
         ability to define custom units and test the randomization feature
@@ -2975,23 +2978,23 @@ if __name__ == "__main__":
             # Make our U instance for conversion factors
             u = U(units, base_units)
             # Do the correct calculations
-            food_per_dog = 0.2 * u("kg/dog")
-            food_per_cat = 0.1 * u("kg/cat")
+            food_per_dog = 0.2*u("kg/dog")
+            food_per_cat = 0.1*u("kg/cat")
             print(
                 dedent(f'''
             food_per_dog = {food_per_dog}
             food_per_cat = {food_per_cat}''')
             )
             # Number of animals
-            n_dogs = 7 * u("dog")
-            n_cats = 12 * u("cat")
+            n_dogs = 7*u("dog")
+            n_cats = 12*u("cat")
             print(
                 dedent(f'''
             number of dogs = {n_dogs}
             number of cats = {n_cats}''')
             )
             # Total food amount needed in kg
-            total_food_kg = n_dogs * food_per_dog + n_cats * food_per_cat
+            total_food_kg = n_dogs*food_per_dog + n_cats*food_per_cat
             m = (
                 f"  calculation performed = {n_dogs}*{food_per_dog} + "
                 f"{n_cats}*{food_per_cat} = {total_food_kg:.1f}"
@@ -3015,16 +3018,16 @@ if __name__ == "__main__":
             # Make our U instance for conversion factors
             u = U(units, base_units)
             # Do the correct calculations
-            food_per_dog = 0.2 * u("kg/dog")
-            food_per_cat = 0.1 * u("kg/cat")
+            food_per_dog = 0.2*u("kg/dog")
+            food_per_cat = 0.1*u("kg/cat")
             print(
                 dedent(f'''
                 food_per_dog = {food_per_dog}
                 food_per_cat = {food_per_cat}''')
             )
             # Number of animals
-            n_dogs = 7 * u("dog")
-            n_cats = 12 * u("cat")
+            n_dogs = 7*u("dog")
+            n_cats = 12*u("cat")
             print(
                 dedent(f'''
                 number of dogs = {n_dogs}
@@ -3032,7 +3035,7 @@ if __name__ == "__main__":
             )
             # Total food amount needed in kg.  Note the error is that we swapped
             # the n_dogs and n_cats terms.
-            total_food_kg = n_cats * food_per_dog + n_dogs * food_per_cat
+            total_food_kg = n_cats*food_per_dog + n_dogs*food_per_cat
             m = (
                 f"  calculation performed = {n_cats}*{food_per_dog} + "
                 f"{n_dogs}*{food_per_cat} = {total_food_kg:.1f}"
@@ -3080,12 +3083,12 @@ if __name__ == "__main__":
         nodim = u.dim("")
         screwy = u.dim("m**(3/2)/A8")
         recip_screwy = u.dim("A8/m^(3/2)")
-        assert_equal(vel * vel, u.dim("m2/s2"))
-        assert_equal(vel / vel, nodim)
-        assert_equal(vel * recip_vel, nodim)
-        assert_equal(screwy * screwy, u.dim("m3/A16"))
-        assert_equal(screwy / screwy, nodim)
-        assert_equal(screwy * recip_screwy, nodim)
+        assert_equal(vel*vel, u.dim("m2/s2"))
+        assert_equal(vel/vel, nodim)
+        assert_equal(vel*recip_vel, nodim)
+        assert_equal(screwy*screwy, u.dim("m3/A16"))
+        assert_equal(screwy/screwy, nodim)
+        assert_equal(screwy*recip_screwy, nodim)
     def Test_find_unit():
         L = set(u.find_unit(u.dim("m/s")))
         M = set(["kph", "mph", "fpm", "fps", "light", "sfpm", "knot"])
@@ -3119,7 +3122,7 @@ if __name__ == "__main__":
         s = "lbm*gal*gal/psi"
         u = GetDim(s)
         assert str(u) == 'Dim("gal2 lbm psi-1")'
-        assert (u * u).s == "gal**4*lbm**2/psi**2"
+        assert (u*u).s == "gal**4*lbm**2/psi**2"
     def Test_new_stuff():
         # Added 28 May 2021 ability to use negative exponents
         k = 26

@@ -83,20 +83,25 @@ WindChillInDegF       Calculate wind chill given OAT & wind speed
 Winnow                Winnow a sequence of strings with regular expressions
 '''
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # <utility> Contains over 60 utility functions.
-        ##∞what∞#
-        ##∞test∞# run #∞test∞#
-        pass
-    if 1:  # Imports
+    _pgminfo = '''
+        <oo gist ∞ Numerous utility functions oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2014 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ utility oo>
+        <oo test ∞ run oo>
+        <oo todo ∞
+                    
+            - Missing tests for: Ignore Debug, GetString
+        
+        oo>
+    '''
+    if 1:  # Standard imports
         from collections import deque, defaultdict, OrderedDict
         from collections.abc import Iterable
         from decimal import Decimal
@@ -134,2017 +139,2008 @@ if 1:  # Header
             import debug
             debug.SetDebugger()
     if 1:  # Global variables
+        pass
         ii = isinstance
         nl = "\n"
         fsig_lock = threading.Lock()
-    if 1:  # Debugging help
-        class G:
-            pass
-        g = G()
-        g.dbg = False
-        def Dbg(*p, **kw):
-            if g.dbg:
-                print(f"{t.dbg}", end="")
-                print(*p, **kw)
-                print(f"{t.N}", end="")
-def US_states():
-    "Return dictionary of US state abbreviations"
-    a = '''AK AL AR AZ CA CO CT DE FL GA HI IA ID IL IN KS KY LA MA MD ME MI MN MO MS MT NC ND NE
-        NH NJ NM NV NY OH OK OR PA RI SC SD TN TX UT VA VT WA WI WV WY'''.split()
-    b = [
-        i.replace("·", " ")
-        for i in '''Alaska Alabama Arkansas Arizona California Colorado
-        Connecticut Delaware Florida Georgia Hawaii Iowa Idaho Illinois Indiana Kansas Kentucky
-        Louisiana Massachusetts Maryland Maine Michigan Minnesota Missouri Mississippi Montana
-        North·Carolina North·Dakota Nebraska New·Hampshire New·Jersey New·Mexico Nevada New·York
-        Ohio Oklahoma Oregon Pennsylvania Rhode·Island South·Carolina South·Dakota Tennessee Texas
-        Utah Virginia Vermont Washington Wisconsin West·Virginia Wyoming'''.split()
-    ]
-    return dict(zip(a, b))
-def GetHash(file, method="md5"):
-    "Return a file's hash as a hex string, None if file can't be read"
-    if method.lower() in "md5 sha1 sha224 sha256 sha384 sha512".split():
-        h = eval(f"hashlib.{method.lower()}")()
-    else:
-        raise ValueError(f"{method!r} is unsupported")
-    try:
-        h.update(open(file, "rb").read())
-    except Exception:
-        return None
-    return h.hexdigest()
-def GetLeadingString(string, prefix=" "):
-    '''Return the leading string from string, made up of one or more groups of the
-    indicated string prefix.  A use case is to match the indentation of a previous line.
-    
-    Examples:
-        GetLeadingString(b"zzzHi", prefix=b"z") --> b"zzz"
-        GetLeadingString("zzzHi", prefix="z") --> "zzz"
-        GetLeadingString("ababHi", prefix="ab") --> "abab"
-    '''
-    np, lp, ls = 0, len(prefix), len(string)
-    while np * lp < ls:
-        if string[np * lp : (np + 1) * lp] == prefix:
-            np += 1
+if 1:  # Core functionality
+    def US_states():
+        "Return dictionary of US state abbreviations"
+        a = '''AK AL AR AZ CA CO CT DE FL GA HI IA ID IL IN KS KY LA MA MD ME MI MN MO MS MT NC ND NE
+            NH NJ NM NV NY OH OK OR PA RI SC SD TN TX UT VA VT WA WI WV WY'''.split()
+        b = [
+            i.replace("·", " ")
+            for i in '''Alaska Alabama Arkansas Arizona California Colorado
+            Connecticut Delaware Florida Georgia Hawaii Iowa Idaho Illinois Indiana Kansas Kentucky
+            Louisiana Massachusetts Maryland Maine Michigan Minnesota Missouri Mississippi Montana
+            North·Carolina North·Dakota Nebraska New·Hampshire New·Jersey New·Mexico Nevada New·York
+            Ohio Oklahoma Oregon Pennsylvania Rhode·Island South·Carolina South·Dakota Tennessee Texas
+            Utah Virginia Vermont Washington Wisconsin West·Virginia Wyoming'''.split()
+        ]
+        return dict(zip(a, b))
+    def GetHash(file, method="md5"):
+        "Return a file's hash as a hex string, None if file can't be read"
+        if method.lower() in "md5 sha1 sha224 sha256 sha384 sha512".split():
+            h = eval(f"hashlib.{method.lower()}")()
         else:
-            break
-    return np * prefix
-def GetSize(obj, seen=None):
-    'Recursively finds size of objects in bytes'
-    # Taken from https://github.com/bosswissam/pysize/blob/master/pysize.py
-    size = sys.getsizeof(obj)
-    if seen is None:
-        seen = set()
-    obj_id = id(obj)
-    if obj_id in seen:
-        return 0
-    # Important mark as seen *before* entering recursion to gracefully handle
-    # self-referential objects
-    seen.add(obj_id)
-    if hasattr(obj, '__dict__'):
-        for cls in obj.__class__.__mro__:
-            if '__dict__' in cls.__dict__:
-                d = cls.__dict__['__dict__']
-                if inspect.isgetsetdescriptor(d) or inspect.ismemberdescriptor(d):
-                    size += GetSize(obj.__dict__, seen)
+            raise ValueError(f"{method!r} is unsupported")
+        try:
+            h.update(open(file, "rb").read())
+        except Exception:
+            return None
+        return h.hexdigest()
+    def GetLeadingString(string, prefix=" "):
+        '''Return the leading string from string, made up of one or more groups of the
+        indicated string prefix.  A use case is to match the indentation of a previous line.
+        
+        Examples:
+            GetLeadingString(b"zzzHi", prefix=b"z") --> b"zzz"
+            GetLeadingString("zzzHi", prefix="z") --> "zzz"
+            GetLeadingString("ababHi", prefix="ab") --> "abab"
+        '''
+        np, lp, ls = 0, len(prefix), len(string)
+        while np * lp < ls:
+            if string[np * lp : (np + 1) * lp] == prefix:
+                np += 1
+            else:
                 break
-    if isinstance(obj, dict):
-        size += sum((GetSize(v, seen) for v in obj.values()))
-        size += sum((GetSize(k, seen) for k in obj.keys()))
-    elif hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes, bytearray)):
-        try:
-            size += sum((GetSize(i, seen) for i in obj))
-        except TypeError:
-            raise TypeError(f"nable to get size of {obj}")
-    if hasattr(obj, '__slots__'): # can have __slots__ with __dict__
-        size += sum(GetSize(getattr(obj, s), seen) for s in obj.__slots__ if hasattr(obj, s))
-    return size
-def GetTrailingString(string, suffix=" "):
-    '''Return the trailing string from string, made up of one or more groups of the
-    indicated string suffix.
-    '''
-    # This is done by reversing string and suffix and using GetLeadingString(), but it
-    # does mean we have to create copies in memory.
-    def f(x):
-        return list(reversed(x))
-    result = f(GetLeadingString(f(string), prefix=f(suffix)))
-    if type(string) is bytes:
-        return bytes(result)
-    else:
-        return ''.join(result)
-def getch():
-    "Block until a key is pressed.  This function returns nothing."
-    s = platform.system()
-    if s == "Linux" or s.startswith("CYGWIN"):
-        os.system('bash -c "read -n 1"')
-    else:
-        msvcrt.getch()
-def ItemCount(seq, n=None):
-    '''Return a sorted list of (item, count) in the iterable seq, with the highest count first in
-    the list.  If n is given, only return the largest n counts.  The items in seq must be
-    hashable.
-    
-    Example:
-      If a = (1, 1, 1, 2, 3, 4, 4, 5, 5, 5, 5, 5), then ItemCount(a)
-      returns [(5, 5), (1, 3), (4, 2), (2, 1), (3, 1)].
-      
-      If a = (1.0, 1, 1, 2, 3, 4, 4, 5, 5, 5, 5, 5), then ItemCount(a)
-      returns [(5, 5), (1.0, 3), (4, 2), (2, 1), (3, 1)].
-      
-    Note that 1, 1.0, and Fraction(1, 1) hash to the same value; since a dictionary is used as the
-    counting container, these are considered to be the same items.  Thus, you can get syntactically
-    different results that are semantically the same.
-    '''
-    items = defaultdict(int)
-    for item in seq:
-        items[item] += 1
-    s = sorted(items.items(), key=itemgetter(1), reverse=True)
-    return s if n is None else s[:n]
-def IterateOverSubclasses(cls, seen=None):
-    '''Iterator over all subclasses of a given class, in depth first order.  If not
-    None, seen should be a set that will contain the class names already seen.
-    Downloaded Tue 12 Aug 2014 from http://code.activestate.com/recipes/576949; URL
-    defunct as of 2 Feb 2026
-    '''
-    if not isinstance(cls, type):
-        raise TypeError("IterateOverSubclasses must be called with new-style classes")
-    if seen is None:
-        seen = set()
-    try:
-        subs = cls.__subclasses__()
-    except TypeError:  # Fails only when cls is type
-        subs = cls.__subclasses__(cls)
-    for sub in subs:
-        if sub not in seen:
-            seen.add(sub)
-            yield sub
-            for sub in IterateOverSubclasses(sub, seen):
-                yield sub
-def VisualCount(seq, n=None, char="*", width=None, indent=0):
-    '''Return a list of strings representing a histogram of the items in the iterable seq.  If the
-    values in the sequence can be sorted, the histogram will be shown by increasing item value;
-    otherwise, the items will be shown sorted by frequency.
-    
-    n       Return the n largest items if n is not None.
-    char    String to build the histogram element.
-    width   Fit each element into this width.  If none, use the value of
-            the COLUMNS environment variable or 79 if it isn't defined.
-    indent  Indent each line by this amount.
-    
-    Note:  the width calculations are only correct if the length of the char string is 1.
-    
-    Example:
-        seq = [1,1,1,1,1,8,8,8,9,9,9,9,9,9,9,9,9,9,9]
-        for i in VisualCount(seq, width=40, indent=8):
-            print(i)
-        prints
-            1 *************
-            8 ********
-            9 ******************************
-    '''
-    counts = ItemCount(seq, n=n)
-    try:
-        counts = sorted(counts)  # Sort by item values if possible
-    except TypeError:
-        pass
-    max_obj_len = max([len(str(i[0])) for i in counts])
-    max_count = max([i[1] for i in counts])
-    if width is None:
-        width = int(os.environ.get("COLUMNS", 80)) - 1
-    max_hist_len = width - indent - 1 - max_obj_len
-    assert max_hist_len > 0
-    # Scale counts to fit on screen
-    counts = [(i, int(j / max_count * max_hist_len)) for i, j in counts]
-    # Construct the output list
-    output = []
-    for item, count in counts:
-        s = "{}{:{}s} ".format(" " * indent, str(item), max_obj_len)
-        output.append(s + char * count)
-    return output
-class Singleton(object):
-    "Mix-in class to make an object a singleton.  From 'Python in a Nutshell', p 84."
-    _singletons = {}
-    def __new__(cls, *args, **kw):
-        if cls not in cls._singletons:
-            cls._singletons[cls] = object.__new__(cls)
-        return cls._singletons[cls]
-def RemoveIndent(s, numspaces=4):
-    '''Given a multi-line string s, remove the indicated number of spaces from the beginning each
-    line.  If that number of space characters aren't present, then leave the line alone.
-    '''
-    if numspaces < 0:
-        raise ValueError("numspaces must be >= 0")
-    lines = s.split(nl)
-    for i, line in enumerate(lines):
-        if line.startswith(" " * numspaces):
-            lines[i] = lines[i][numspaces:]
-    return nl.join(lines)
-def Batch(iterable, size):
-    '''Generator that gives you batches from an iterable in manageable sizes.  Slightly adapted
-    from Raymond Hettinger's entry in the comments to
-    http://code.activestate.com/recipes/303279-getting-items-in-batches/
-    
-    Example:
-        for n in (3, 4, 5, 6):
-            s = tuple(tuple(i) for i in Batch(range(n), 3))
-            print(s)
-    gives
-        ((0, 1, 2),)
-        ((0, 1, 2), (3,))
-        ((0, 1, 2), (3, 4))
-        ((0, 1, 2), (3, 4, 5))
-        
-    Another way of doing this is with slicing (but you'll need to have the whole iterable in memory
-    to do this):
-        def Pick(iterable, size):
-            i = 0
-            while True:
-                s = iterable[i:i + size]
-                if not s:
-                    break
-                yield s
-                i += size
-    '''
-    def counter(x):
-        counter.n += 1
-        return counter.n // size
-    counter.n = -1
-    for k, g in groupby(iterable, counter):
-        yield g
-def GroupByN(seq, n, fill=False):
-    '''Return an iterator that gives groups of n items from the sequence.  If fill is True, return
-    None for any missing items.  In other words, if fill is False, groups without the full number
-    of elements are discarded.
-    
-    Example:
-        print("fill = False:")
-        for i in GroupByN(range(7), 3, fill=False):
-            print("  ", i)
-        print("fill = True:")
-        for i in GroupByN(range(7), 3, fill=True):
-            print("  ", i)
-    prints
-        fill = False:
-           (0, 1, 2)
-           (3, 4, 5)
-        fill = True:
-           (0, 1, 2)
-           (3, 4, 5)
-           (6, None, None)
-    '''
-    # Inspired by http://code.activestate.com/recipes/303060-group-a-list-into-sequential-n-tuples
-    if fill:
-        return zip_longest(*([iter(seq)] * n), fillvalue=None)
-    else:
-        return zip(*([iter(seq)] * n))
-def Cfg(lines, lvars=OrderedDict(), gvars=OrderedDict()):
-    '''Allow use of sequences of text strings to be used for general-purpose configuration
-    information.  Each string must be valid python code.
-    
-    Each line in lines is executed with the local variables in lvars and global variables in gvars.
-    The lvars dictionary is returned, which will contain each of the defined variables and
-    functions.
-    
-    Any common leading indentation is removed before processing; this allows you to indent your
-    configuration lines as desired.
-    
-    Example:
-        lines = """
-                from math import sqrt
-                a = 44
-                b = "A string"
-                def X(a):
-                    return a/2
-                c = a*sqrt(2)
-                d = X(a)
-            """[1:-1].split("\n")
-            
-    The code
-        d = Cfg(lines)
-        for i in d.keys():
-            print(i + " = " + str(d[i]))
-            
-    results in
-        sqrt = <built-in function sqrt>
-        a = 44
-        b = A string
-        X = <function X at 0x00B9C9B0>
-        c = 62.2253967444
-        d = 22.0
-    '''
-    # Remove any common indent
-    indent = os.path.commonprefix(lines)
-    if indent:
-        lines = [i.replace(indent, "", 1) for i in lines]
-    # Put lines into a temporary file so execfile can be used.  I
-    # would have used NamedTemporaryFile(), but it doesn't work
-    # correctly on Windows XP, so I used the deprecated mktemp.
-    exec(nl.join(lines), gvars, lvars)
-    # The things defined in the configuration lines are now in the
-    # dictionary lvars.
-    return lvars
-def ReadVariables(file, ignore_errors=False):
-    '''Given a file of lines of python code, this function reads in each line and executes it.  If
-    the lines of the file are assignments to variables, then this results in a defined variable in
-    the local namespace.  Return the dictionary containing these variables.
-    
-    file can be a name of a file, a file-like object, a string, or a multiline string.
-    
-    Note that this function will not execute any line that doesn't contain an '=' character to cut
-    down on the chance that some unforeseen error can occur (but, of course, this protection can
-    rather easily be subverted).
-    
-    This function is intended to be used to allow you to have an easy-to-use configuration file for
-    a program.  For example, a user could write the configuration file
-    
-        # This is a comment
-        ProcessMean              = 37.2
-        ProcessStandardDeviation = 12.1
-        NumberOfParts            = 180
-        
-    When this function returned, you'd have a dictionary with four variables in it.
-    
-    If any line in the input file causes an exception, the offending line will be printed to stderr
-    and the program will exit unless ignore_errors is True.
-    '''
-    try:
-        lines = file.readlines()
-    except AttributeError:
-        try:
-            lines = open(file).readlines()
-        except FileNotFoundError:
-            # Assume it's a multiline string
-            lines = file.strip().split("\n")
-    for i, line in enumerate(lines):
-        if "=" not in line:
-            continue
-        try:
-            exec(line)
-        except Exception:
-            sys.stderr.write(
-                "Line %d of file '%s' bad:\n  '%s'\n" % (i + 1, file, line.rstrip())
-            )
-            if not ignore_errors:
-                exit(1)
-    d = locals()
-    for i in "line lines i file ignore_errors".split():
-        del d[i]
-    return d
-def randq(seed=-1):
-    '''The simple random number generator in the section "An Even Quicker Generator" from
-    "Numerical Recipes in C", page 284, chapter 7, 2nd ed, 1997 reprinting (found on the web in PDF
-    form).
-    
-    If seed is not -1, it is used to initialize the sequence; it can be any hashable value.
-    '''
-    if seed != -1:
-        randq.idum = abs(hash(seed))
-    randq.idum = (randq.a * randq.idum + randq.c) % randq.maxidum
-    return randq.idum
-if 1:  # State variables for randq
-    randq.a = 1664525  # Recommended by Knuth
-    randq.c = 1013904223  # From Lewis
-    randq.idum = 0
-    randq.maxidum = 2**32
-def randr(seed=-1):
-    "Uses randq to return a floating point number on [0, 1)"
-    n = randq(seed=seed) if seed != -1 else randq()
-    return n / float(randq.maxidum)
-def IsCygwinSymlink(file):
-    "Return True if file is a cygwin symbolic link"
-    s = open(file).read(20)
-    if len(s) > 10:
-        if s[2:9] == "symlink":
-            return True
-    return False
-def TranslateSymlink(file):
-    "For a cygwin symlink, return a string of what it's pointing to"
-    return open(file).read()[12:].replace("\x00", "")
-def transpose(seq, typ=list, check=False):
-    '''Return the transpose of a nested two-dimensional sequence, such as an n x m matrix.
-    len(seq) is n and len(seq[i]) is m for i in range(0, n).
-    
-    typ:  The returned sequence will be of type typ, with each nested sequence also of type typ.
-    
-    check:  If check is True, then checks are made on seq to ensure it's of proper type.
-        If checks are not satisfied, a ValueError exception is raised.  I recommend not
-        using checking in production code because copies of seq are made, using up
-        memory.
-        
-    Example:
-        data = [[1, 2],
-                [3, 4],
-                [5, 6]]
-        transpose(data) --> [[1, 3, 5],
-                             [2, 4, 6]]
-                           
-    '''
-    if check:
-        # seq can't be a string, set, or dict
-        if isinstance(seq, (str, dict, set)):
-            raise TypeError("seq cannot be a string, set, or dictionary")
-        # seq must be an iterable
-        try:
-            iter(seq)
-        except TypeError:
-            raise TypeError("seq is not an iterable")
-        # seq must be an n x m nested sequence
-        nrows = len(seq)  # Number of rows
-        try:
-            ncols = len(seq[0])  # Number of columns
-        except Exception:
-            if seq:  # Empty sequence ok
-                raise TypeError("seq[0] is not a sequence")
-        # Look for extra dimensionality
-        if seq:
-            num_elements = nrows * ncols
-            if len(Flatten(seq)) != num_elements:
-                raise TypeError(
-                    "seq is not a proper 2D nested list representing a matrix"
-                )
-        # Each sequence in seq must have the same length
-        if seq and not all(len(i) == ncols for i in seq):
-            raise TypeError(f"seq row lengths not all {ncols}")
-    if not seq:
-        return typ(seq)
-    # There are two algorithms here:  one using map and the other using zip.  I prefer
-    # using zip because the strict keyword gives us some automatic checking.  Using
-    # timeit, measurements show that transposing a 20x10 matrix of floats takes 2.5 μs
-    # for the zip implementation and 3.4 μs for the map implementation, so zip is the
-    # default.
-    if 1:
-        seqT = typ(typ(j) for j in zip(*[typ(i) for i in seq], strict=True))
-    else:
-        seqT = typ(map(lambda *x: typ(x), *seq))
-    if check:  # transpose(seqT) == seq
-        orig = list(map(list, seq))
-        tseq = transpose(seqT, typ=list)
-        Assert(orig == tseq)
-    return seqT
-def IsTextFile(file, num_bytes=100):
-    '''Heuristic to classify a file as text or binary.  The algorithm is to read num_bytes from the
-    beginning of the file; if there are any characters other than the "typical" ones found in plain
-    text files, the file is classified as binary.  This won't work on a file that contains Unicode
-    characters but is otherwise plain text.  Here, "text" means plain ASCII.
-    
-    Note:  if file is a string, it is assumed to be a file name and opened.  Otherwise it is
-    assumed to be an open stream.
-    '''
-    text_chars = set([ord(i) for i in "\n\r\b\t\v"] + list(range(32, 127)))
-    if isinstance(file, str):
-        s = open(file, "rb").read(num_bytes)
-    else:
-        s = file.read(num_bytes)
-    for c in s:
-        if ord(c) not in text_chars:
-            return False
-    return True
-def IsBinaryFile(file, num_bytes=100):
-    "Heuristic that returns True if a file is a binary file"
-    return not IsTextFile(file, num_bytes)
-def IsHomogeneous(seq):
-    "Return True if seq is homogeneous"
-    if not seq:
-        return True
-    typ = type(seq[0])
-    return all(type(i) is typ for i in seq)
-def IsIterable(x, ignore_strings=True):
-    '''Return True if x is an iterable.  You can exclude strings from the things that can be
-    iterated on if you wish.
-    
-    Note:  if you don't care whether x is a string or not, a simpler way
-    is:
-        try:
-            iter(x)
-            return True
-        except TypeError:
-            return False
-    '''
-    if ignore_strings and isinstance(x, str):
-        return False
-    return isinstance(x, Iterable)
-def SpeedOfSound(T):
-    '''Returns speed of sound in air in m/s as a function of temperature T in K.  Assumes sea level
-    air pressure.
-    '''
-    assert T > 0
-    return 331.4 * math.sqrt(T / 273.15)
-def WindChillInDegF(wind_speed_in_mph, air_temp_deg_F):
-    '''Wind Chill for exposed human skin, expressed as a function of wind speed in miles per hour
-    and temperature in degrees Fahrenheit.  http://en.wikipedia.org/wiki/Wind_chill.
-    '''
-    if wind_speed_in_mph <= 3:
-        raise ValueError("Wind speed must be > 3 mph")
-    if air_temp_deg_F > 50:
-        raise ValueError("Air temperature must be < 50 deg F")
-    return (
-        35.74
-        + 0.6215 * air_temp_deg_F
-        - 35.75 * wind_speed_in_mph**0.16
-        + 0.4275 * air_temp_deg_F * wind_speed_in_mph**0.16
-    )
-def Height(current_height_inches, age_years, sex):
-    '''Returns the predicted adult height in inches of a child.  Unattributed, but found in the C
-    code files of Glenn Rhoads' old website http://remus.rutgers.edu/~rhoads/Code/code.html, but
-    which was defunct in 2010.
-    '''
-    if not (0 < current_height_inches < 72):
-        raise ValueError("current_height_inches must be between 0 and 72")
-    if not (0 < age_years < 20):
-        raise ValueError("age_years must be between 0 and 20")
-    if sex.lower() not in "mf":
-        raise ValueError("sex must be 'm' or 'f'")
-    a, h = age_years, current_height_inches
-    if sex.lower() == "m":
-        return h / (((0.00011 * a - 0.0032) * a + 0.0604) * a + 0.3796)
-    else:
-        return h / (((0.00028 * a - 0.0071) * a + 0.0926) * a + 0.3524)
-def HeatIndex(air_temp_deg_F, relative_humidity_percent):
-    '''From http://www.weather.gov/forecasts/graphical/sectors/idaho.php#tabs.  See also
-    http://www.crh.noaa.gov/pub/heat.php.
-    
-    Heat Index combines the effects of heat and humidity. When heat and humidity combine to reduce
-    the amount of evaporation of sweat from the body, outdoor exercise becomes dangerous even for
-    those in good shape.
-    
-    Example:  for 90 deg F and 50% RH, the heat index is 94.6.
-    
-    The equation used is a multiple regression fit to a complicated set of equations that must be
-    solved iteratively.  The uncertainty with a prediction is given at 1.3 deg F.  See
-    http://www.srh.noaa.gov/ffc/html/studies/ta_htindx.PDF for details.
-    
-    If heat index is:
-    
-        80-90 degF:  Caution:  fatigue possible with prolonged exposure or activity.
-        90-105:      Extreme caution:  sunstroke, muscle cramps and/or heat exhaustion possible
-                     with prolonged exposure and/or physical activity.
-        105-129:     Danger:  sunstroke, muscle cramps and/or heat exhaustion likely.  Heatstroke
-                     possible with prolonged exposure and/or physical activity.
-        >= 130       Extreme danger:  Heat stroke or sunstroke likely.
-    '''
-    RH, Tf = relative_humidity_percent, air_temp_deg_F
-    HI = (
-        -42.379
-        + 2.04901523 * Tf
-        + 10.14333127 * RH
-        - 0.22475541 * Tf * RH
-        - 6.83783e-3 * Tf * Tf
-        - 5.481717e-2 * RH * RH
-        + 1.22874e-3 * Tf * Tf * RH
-        + 8.5282e-4 * Tf * RH * RH
-        - 1.99e-6 * Tf * Tf * RH * RH
-    )
-    return HI
-class Debug:
-    '''Implements a debug class that can be useful in printing debugging information.
-    
-    dbg = Debug()
-    dbg.print("Message")
-        Will print '+ Message' to stderr
-    Turn off printing with 'dbg.on = False'.
-    '''
-    def __init__(self, stream=sys.stderr, add_nl=True, prefix="+ "):
-        self.stream = stream
-        self.on = True
-        self.add_nl = add_nl
-        self.prefix = prefix
-    def print(self, s):
-        if self.on:
-            s = self.prefix + s
-            if self.add_nl:
-                s += nl
-            self.stream.write(s)
-def Time():
-    "Returns the current time in the following format: '7Jun2021 7:24 am Mon'"
-    t, f = time.localtime(), lambda x: x[1:] if x[0] == "0" else x
-    day = f(time.strftime("%a", t))
-    date = f(time.strftime("%d%b%Y", t))
-    clock = f(time.strftime("%I:%M", t))
-    ampm = time.strftime("%p", t).lower()
-    return " ".join((date, clock, ampm, day))
-def AWG(n):
-    '''Returns the wire diameter in inches given the AWG (American Wire Gauge) number (also known
-    as the Brown and Sharpe gauge).  Use negative numbers as follows:
-    
-        00    -1
-        000   -2
-        0000  -3
-        
-    Reference:  the units.dat file with version 1.80 of the GNU units program gives the following
-    statement:
-    
-        American Wire Gauge (AWG) or Brown & Sharpe Gauge appears to be the most important gauge.
-        ASTM B-258 specifies that this gauge is based on geometric interpolation between gauge
-        0000, which is 0.46 inches exactly, and gauge 36 which is 0.005 inches exactly.  Therefore,
-        the diameter in inches of a wire is given by the formula
-                1|200 92^((36-g)/39).
-        Note that 92^(1/39) is close to 2^(1/6), so diameter is approximately halved for every 6
-        gauges.  For the repeated zero values, use negative numbers in the formula.  The same
-        document also specifies rounding rules which seem to be ignored by makers of tables.
-        Gauges up to 44 are to be specified with up to 4 significant figures, but no closer than
-        0.0001 inch.  Gauges from 44 to 56 are to be rounded to the nearest 0.00001 inch.
-        
-    An equivalent formula is 0.32487/1.12294049**n where n is the gauge number (works for n >= 0).
-    '''
-    if n < -3 or n > 56:
-        raise ValueError("AWG argument out of range")
-    diameter = 92.0 ** ((36 - n) / 39) / 200
-    if n <= 44:
-        return round(diameter, 4)
-    return round(diameter, 5)
-def SignificantFiguresS(value, digits=3, exp_compress=True):
-    '''Returns a string representing the number value rounded to a specified number of significant
-    figures.  The number is converted to a string, then rounded and returned as a string.  If you
-    want it back as a number, use float() on the string.  If exp_compress is true, the exponent has
-    leading zeros removed.
-    
-    The following types of printouts can be gotten using this function and native python formats:
-    
-           A              B               C               D
-       3.14e-12       3.14e-012       3.14e-012       3.14e-012
-       3.14e-11       3.14e-011       3.14e-011       3.14e-011
-       3.14e-10       3.14e-010       3.14e-010       3.14e-010
-        3.14e-9       3.14e-009       3.14e-009       3.14e-009
-        3.14e-8       3.14e-008       3.14e-008       3.14e-008
-        3.14e-7       3.14e-007       3.14e-007       3.14e-007
-        3.14e-6       3.14e-006       3.14e-006       3.14e-006
-        3.14e-5       3.14e-005       3.14e-005       3.14e-005
-        3.14e-4       3.14e-004        0.000314        0.000314
-        3.14e-3       3.14e-003         0.00314         0.00314
-        3.14e-2       3.14e-002          0.0314          0.0314
-        3.14e-1       3.14e-001           0.314           0.314
-        3.14e+0       3.14e+000            3.14            3.14
-        3.14e+1       3.14e+001            31.4            31.4
-        3.14e+2       3.14e+002             314           314.0
-        3.14e+3       3.14e+003       3.14e+003          3140.0
-        3.14e+4       3.14e+004       3.14e+004         31400.0
-        3.14e+5       3.14e+005       3.14e+005        314000.0
-        3.14e+6       3.14e+006       3.14e+006       3140000.0
-        3.14e+7       3.14e+007       3.14e+007      31400000.0
-        3.14e+8       3.14e+008       3.14e+008     314000000.0
-        3.14e+9       3.14e+009       3.14e+009    3140000000.0
-       3.14e+10       3.14e+010       3.14e+010   31400000000.0
-       3.14e+11       3.14e+011       3.14e+011  314000000000.0
-       3.14e+12       3.14e+012       3.14e+012       3.14e+012
-       
-    A:  SignificantFiguresS(x, 3)
-    B:  SignificantFiguresS(x, 3, 0)
-    C:  "%.3g" % x
-    D:  float(SignificantFiguresS(x, 3))
-    '''
-    if digits < 1 or digits > 15:
-        msg = "Number of significant figures must be >= 1 and <= 15"
-        raise ValueError(msg)
-    sign, significand, exponent = SignSignificandExponent(float(value))
-    fmt = "%%.%df" % (digits - 1)
-    neg = "-" if sign < 0 else ""
-    e = "e%+d" % exponent if exp_compress else "e%+04d" % exponent
-    return neg + (fmt % significand) + e
-def SignificantFigures(value, figures=3):
-    "Rounds a value to specified number of significant figures.  Returns a float."
-    return float(SignificantFiguresS(value, figures))
-def EditData(data, binary=False):
-    "Edit a str or bytes object using vim"
-    if not isinstance(data, (str, bytes)):
-        raise TypeError("data must be a str or bytes object")
-    if binary and isinstance(data, str):
-        raise TypeError("data must be a bytes object")
-    if not binary and isinstance(data, bytes):
-        raise TypeError("data must be a str")
-    vi = "vim"
-    with tempfile.NamedTemporaryFile() as temp:
-        file = P(temp.name)
-        if binary:
-            file.write_bytes(data)
-            cmd = [vi, "-b", str(file)]
-        else:
-            file.write_text(data)
-            cmd = [vi, str(file)]
-        subprocess.call(cmd)
-        if binary:
-            data = file.read_bytes()
-        else:
-            data = file.read_text()
-    return data
-def Engineering(value, digits=3):
-    '''Return a tuple (m, e, s) representing a number in engineering notation.  m is the
-    significand.  e is the exponent in the form of an integer; it is adjusted to be a multiple of
-    3.  s is the SI symbol for the exponent; for "e+003" it would be "k".  s is empty if there is
-    no SI symbol.
-    
-    Engineering(1.2345678901234567890e-88, 4) --> ('123.5', -90, '')
-    Engineering(1.2345678901234567890e-8, 4)  --> ('12.35', -9, 'n')
-    Engineering(1.2345678901234567890e8, 4)   --> ('123.5', 6, 'M')
-    '''
-    suffixes = {
-        -10: "q",
-        -9: "r",
-        -8: "y",
-        -7: "z",
-        -6: "a",
-        -5: "f",
-        -4: "p",
-        -3: "n",
-        -2: "u",
-        -1: "m",
-        0: "",
-        1: "k",
-        2: "M",
-        3: "G",
-        4: "T",
-        5: "P",
-        6: "E",
-        7: "Z",
-        8: "Y",
-        9: "R",
-        10: "Q",
-    }
-    if digits < 1 or digits > 15:
-        raise ValueError("Number of significant digits must be >= 1 and <= 15")
-    sign, significand, exponent = SignSignificandExponent(float(value))
-    s = suffixes[exponent // 3] if exponent // 3 in suffixes else ""
-    m = sign * (("%%.%dg" % digits) % (significand * 10 ** (exponent % 3)))
-    if m.find("e") != -1:
-        # digits = 1 or 2 can cause e.g. 3e+001, so the following
-        # eliminates the exponential notation
-        m = str(int(float(m)))
-    return m, 3 * (exponent // 3), s
-def eng(value, digits=3, unit=None, width=0):
-    '''Convenience function for engineering representation.  If unit is given, then the number of
-    digits is displayed in value with the prefix prepended to unit.  Otherwise, "xey" notation is
-    used, except if y == 0, no exponent portion is given.  Returns a string for printing.  If width
-    is nonzero, then returns a string right-justified to that width.
-    '''
-    m, e, p = Engineering(value, digits)
-    if unit:
-        s = m + " " + p + unit
-    else:
-        s = m if e == 0 else "%se%d" % (m, e)
-    if width:
-        if len(s) < width:
-            p = " " * (width - len(s))
-            s = p + s
-    return s
-def IdealGas(P=0, v=0, T=0, MW=28.9):
-    '''Given two of the three variables P, v, and T, calculates the third for the indicated gas.
-    The variable that is unknown should have a value of zero.
-        P = pressure in Pa
-        v = specific volume in m^3/kg
-        T = absolute temperature in K
-        MW = molecular weight = molar mass in g/mol (defaults to air) Note you can also supply a
-             string; if the lower-case version of this string is in the dictionary of
-             gas_molar_mass below, the molar mass for that gas will be used.
-    The tuple (P, v, T) will be returned.
-    
-    WARNING:  Note that v is the specific volume, not the volume!
-    
-    The equation used is P*v = R*T where R is the gas constant for this particular gas.  It is the
-    universal gas constant divided by the molecular weight of the gas.
-    
-    The ideal gas law is an approximation, but a good one for high temperatures and low pressures.
-    Here, high and low are relative to the critical temperature and pressure of the gas; these can
-    be found in numerous handbooks, such as the CRC Handbook of Chemistry and Physics, the
-    Smithsonian Critical Tables, etc.
-    
-    Some molar masses and critical values for common gases are (Tc is critical temperature, Pc is
-    critical pressure (multiply by 1e5 to get Pa), MW is molecular weight):
-    
-                   Tc, K    Pc, bar    MW, g/mol
-        air        133.3     37.69     28.9
-        ammonia    405.6    113.14     17.03
-        argon      151.0     48.00     39.95
-        co2        304.2     73.82     44.0099
-        helium       5.2      2.25      4.003
-        hydrogen    33.3     12.97      2.01594
-        methane    190.6     46.04     16.04298
-        nitrogen   126.1     33.94     28.0134
-        oxygen     154.6     50.43     31.9988
-        propane    369.8     42.49     26.03814
-        water      647.3    221.2      18.01534
-        xenon      289.8     58.00    131.30
-    '''
-    gas_molar_mass = {
-        "air": 28.9,
-        "ammonia": 17.03,
-        "argon": 39.95,
-        "co2": 44.0099,
-        "helium": 4.003,
-        "hydrogen": 2.01594,
-        "methane": 16.04298,
-        "nitrogen": 28.0134,
-        "oxygen": 31.9988,
-        "propane": 26.03814,
-        "water": 18.01534,
-        "xenon": 131.30,
-    }
-    if isinstance(MW, str):
-        MW = gas_molar_mass[MW.lower()]
-    else:
-        assert P >= 0 and v >= 0 and T >= 0 and MW >= 0
-    molar_gas_constant = 8.3145  # J/(mol*K)
-    R = molar_gas_constant/(float(MW)/1000)  # 1000 converts g to kg
-    if sum([i == 0 for i in (P, v, T)]) != 1:
-        raise ValueError("One and only one of P, v, T must be zero")
-    if not P:
-        return R*T/v
-    elif not v:
-        return R*T/P
-    else:
-        return P*v/R
-def Flatten_generator(seq, ltypes=(list, tuple)):
-    '''A generator that will return a flattened sequence from seq.  If an element in seq
-    is of one of the types in ltypes, then it's considered to be a sequence; otherwise,
-    it's a scalar element.
-    
-    The method is a nice use of a deque from
-    https://dev.to/miguendes/5-different-ways-to-flatten-a-list-of-lists-in-python-2cmn
-    The algorithm is:
-    
-    - dq = deque()
-    - Iterate through each element e of seq
-    - If e is not one of ltypes
-        - Append e to left of dq
-    - else
-        - dq.extendleft(reversed(e))
-    - Note:  reversing is needed because of the way extendleft works:
-        >>> dq = deque()
-        >>> dq.extendleft([1, 2, 3])
-        >>> dq
-        deque([3, 2, 1]
-    - Now iterate over the deque by popping the leftmost element e; if it's not an
-      ltypes, yield it; otherwise extendleft(reversed(e)).
-    '''
-    dq = deque()
-    for item in seq:
-        if ii(item, ltypes):
-            dq.extendleft(reversed(item))
-        else:
-            dq.appendleft(item)
-        while dq:
-            elem = dq.popleft()
-            if ii(elem, ltypes):
-                dq.extendleft(reversed(elem))
-            else:
-                yield elem
-def Flatten(L, max_depth=None, ltypes=(list, tuple)):
-    '''Flatten every sequence in L whose type is contained in "ltypes" to "max_depth" levels down
-    the tree.  The sequence returned has the same type as the input sequence.
-    
-    Written by Kevin L. Sitze on 2010-11-25.  From
-    http://code.activestate.com/recipes/577470-fast-flatten-with-depth-control-and-oversight-over/?in=lang-python
-    This code may be used pursuant to the MIT License.
-    
-    Note:  itertools has a flatten() recipe that flattens one level:
-    
-        def flatten(listOfLists):
-            'Flatten one level of nesting'
-            return chain.from_iterable(listOfLists)
-            
-    but every element encountered needs to be an iterable.  This Flatten() function works more
-    generally.
-    '''
-    if max_depth is None:
-        def make_flat(x):
-            return True
-    else:
-        def make_flat(x):
-            return max_depth > len(x)
-    if callable(ltypes):
-        is_sequence = ltypes
-    else:
-        def is_sequence(x):
-            return isinstance(x, ltypes)
-    r, s = [], []
-    s.append((0, L))
-    while s:
-        i, L = s.pop()
-        while i < len(L):
-            while is_sequence(L[i]):
-                if not L[i]:
-                    break
-                elif make_flat(s):
-                    s.append((i + 1, L))
-                    L = L[i]
-                    i = 0
-                else:
-                    r.append(L[i])
-                    break
-            else:
-                r.append(L[i])
-            i += 1
-    try:
-        return type(L)(r)
-    except TypeError:
-        return r
-def TempConvert(t, in_unit, to_unit):
-    "Convert the temperature in t in the unit specified in in_unit to the unit specified by to_unit"
-    allowed, k, r, a, b = "cfkr", 273.15, 459.67, 1.8, 32
-    def check(unit, orig):
-        if len(unit) != 1 and unit not in allowed:
-            raise ValueError("'%s' is a bad temperature unit" % orig)
-    inu, tou = [i.lower() for i in (in_unit, to_unit)]
-    check(inu, in_unit)
-    check(tou, to_unit)
-    if inu == tou:
-        return t
-    d = {
-        "cf": lambda t: a * t + b,
-        "ck": lambda t: t + k,
-        "cr": lambda t: a * (t + k),
-        "fc": lambda t: (t - b) / a,
-        "fk": lambda t: (t - b) / a + k,
-        "fr": lambda t: t + r,
-        "kc": lambda t: t - k,
-        "kf": lambda t: a * (t - k) + b,
-        "kr": lambda t: a * t,
-        "rc": lambda t: (t - r - b) / a,
-        "rf": lambda t: t - r,
-        "rk": lambda t: t / a,
-    }
-    T = d[inu + tou](t)
-    e = ValueError("Converted temperature is too low")
-    if (tou in "kr" and T < 0) or (tou == "c" and T < -k) or (tou == "f" and T < -r):
-        raise e
-    return T
-def TemplateRound(x, template, up=None):
-    '''Round a number to a template number.
-        - The returned value's type will be the same as template's type
-        - template must be a number greater than zero
-        - x/template must be a meaningful expression (x will be converted to template's type)
-        - If up is None, then rounding is "simple", meaning the number is rounded up if the
-          left-over fraction is 0.5 or larger
-        - If up is True, then the fractional part is always rounded away from zero
-        - If up is False, then the fractional part is always rounded towards zero
-        - Supported types for template are int, float, flt, decimal.Decimal, fraction.Fraction,
-          and mpmath.mpf
-          
-    The algorithm determines how many template values are in x.  It is descended from the BASIC
-    algorithm on pg 435 of the 31 Oct 1988 issue of "PC Magazine":
-    
-        DEF FNRound(Amount, Template) = SGN(Amount)*INT(0.5 + ABS(Amount)/Template)*Template
-        
-    Examples:
-        TemplateRound(12, 10) = 10
-        TemplateRound(12, 10, up=True) = 20
-        TemplateRound(15, 10) = 20
-        TemplateRound(15, 10, up=False) = 10
-        
-        The following example shows that this "rounding" can lead to numbers that don't look
-        rounded.
-        
-            TemplateRound(1.6535, 0.1) = 1.7000000000000002
-            TemplateRound(1.6535, flt(0.1)) = 1.7
-            repr(TemplateRound(1.6535, flt(0.1))) = '1.7000000000000002'
-            
-        The root cause of the problem is that there's no floating point binary number equal to
-        1.7.  Use Decimal or mpmath numbers for such a case:
-        
-            TemplateRound(Decimal("1.6535"), Decimal("0.1")) = 1.7
-            TemplateRound(mpmath.mpf("1.6535"), mpmath.mpf("0.1")) = 1.7
-            
-        You can use fractions.Fraction too:
-        
-            TemplateRound(1.6535, Fraction(1, 8)) = 13/8
-            
-        which is correct, as 12/8 is 1.5 and 0.1535 is about 0.03 larger than 1/8.
-    '''
-    # Check inputs
-    if template <= 0:
-        raise ValueError("template must be > 0")
-    tt = type(template)
-    if not x:
-        return tt(x)
-    sign = tt(1) if x >= 0 else tt(-1)
-    y = tt(int(abs(tt(x) / template) + tt(1) / tt(2)) * template)
-    if up is not None:
-        # Round toward or away from zero
-        if sign < 0:
-            up = not up
-        if up and y < abs(tt(x)):  # Round away from zero
-            y += template
-        elif not up and y > abs(tt(x)):  # Round towards zero
-            y -= template
-    return sign * y
-def ConvertToNumber(s, handle_i=True):
-    '''This is a general-purpose routine that will return a python number for a string if it is
-    possible.  The basic logic is:
-        - If it contains 'j' or 'J', it's complex
-        - If it contains '/', it's a fraction
-        - If it contains ',', '.', 'E', or 'e', it's a float
-        - Otherwise it's interpreted as an integer
-    Since I prefer to use 'i' for complex numbers, we'll also allow an 'i' in the number unless
-    handle_i is False.
-    '''
-    s = s.lower()
-    if handle_i:
-        s = s.replace("i", "j")
-    if "j" in s:
-        return complex(s)
-    elif "." in s or "e" in s or "," in s:
-        return float(s)
-    elif "/" in s:
-        return Fraction(s)
-    else:
-        return int(s)
-def StringToNumbers(s, sep=" ", handle_i=True):
-    '''s is a string; return the sequence (tuple) of numbers it represents; number
-    strings are separated by the string sep.  The numbers returned are integers,
-    fractions, floats, or complex.  If handle_i is True, 'i' or 'I' are allowed as the
-    imaginary unit.
-    '''
-    seq = []
-    for line in s.strip().split(nl):
-        if sep is None:
-            seq.extend(line.split(sep))
-        else:
-            seq.extend(line.split())
-    return tuple([ConvertToNumber(i, handle_i=handle_i) for i in seq])
-def hyphen_range(s):
-    '''Takes a set of range specifications of the form "a-b" and returns a list of
-    integers between a and b inclusive.  The string s will be separated on whitespace
-    after commas are replaced by spaces.
-    
-    See unrange() for doing the opposite thing.
-    
-    Examples:
-        "" returns []
-        "1" returns [1]
-        "2 3 4" returns [2, 3, 4]
-        "2-4" returns [2, 3, 4]
-        "4 3 2" returns [4, 3, 2]
-        "4-2" returns [4, 3, 2]
-        "1--2" returns [1, 0, -1, -2]
-        "-1--3" returns [-1, -2, -3]
-        "-3--1" returns [-3, -2, -1]
-        "1-3 5 10-8" returns [1, 2, 3, 5, 10, 9, 8]
-    '''
-    if not ii(s, str):
-        raise TypeError("s must be a string")
-    msg = f"{0!r} is of improper form"
-    fields, o = s.replace(",", " ").split(), []
-    for item in fields:
-        # See if it's a single integer
-        try:
-            o.append(int(item))
-            continue
-        except Exception:
-            pass
-        if item.startswith("-"):
-            n = item.count("-")
-            # It must have at least 2 hyphens in it, otherwise it would have been caught
-            # as an integer (unless e.g. it's a float or bad syntax)
-            if n < 2 or n > 3:
-                raise ValueError(msg.format(item))
-            f = item[1:].split("-", maxsplit=1)
-            try:
-                num1 = int("-" + f[0])
-                num2 = int(f[1])
-                if num1 <= num2:
-                    o.extend(list(range(num1, num2 + 1)))
-                else:
-                    o.extend(list(range(num1, num2 - 1, -1)))
-            except Exception:
-                raise ValueError(msg.format(item))
-        else:
-            f = item.split("-", maxsplit=1)
-            try:
-                num1, num2 = [int(i) for i in f]
-                if num1 <= num2:
-                    o.extend(list(range(num1, num2 + 1)))    
-                else:
-                    o.extend(list(range(num1, num2 - 1, -1)))
-            except Exception:
-                raise ValueError(msg.format(item))
-    return o
-def unrange(seq, sort_first=False, sep="─"):   # Note ─ is required for e.g. -4 to -1
-    '''Turn a sequence of integers seq into a collection of ranges and return as a string.  It
-    provides a string summary of the ranges in the sequence.  See unrange_real() for sequences of
-    real numbers.
-    
-    If sort_first is True, the sequence is sorted before processing.  The sep string is used to
-    separate a number range.
-    
-    Examples: | represents the sep character
-        seq = [1, 5, 6, 7, 3, 4, 8, 10, 11, 12]
-        unrange(seq, sort_first=True)  outputs 1 3|8 10|12
-        unrange(seq, sort_first=False) outputs 1 5|7 3|4 8 10|12
-        seq = [-1, -5, -6, -7, -3, -4, -8, -10, -11, -12]
-        unrange(seq, sort_first=True)  outputs -12|-10 -8|-3 -1
-        unrange(seq, sort_first=False) outputs -1 -5 -6 -7 -3 -4 -8 -10 -11 -12
-    '''
-    if not seq:
-        return ""
-    dq = deque(sorted(seq)) if sort_first else deque(seq)
-    in_sequence = False
-    lastx = dq.popleft()
-    out = [lastx]
-    while dq:
-        x = dq.popleft()
-        if not ii(x, int):
-            raise TypeError(f"{x!r} is not an integer")
-        if not in_sequence and x == out[-1] + 1:
-            in_sequence = True
-        elif in_sequence:
-            if x != lastx + 1:
-                in_sequence = False
-                out.extend([sep, lastx])
-                # Restart for the next range
-                out.append(x)
-        else:
-            out.append(x)
-        lastx = x
-    if in_sequence:
-        out.extend([sep, lastx])
-    s = " ".join([str(i) for i in out])
-    u = s.replace(" " + sep + " ", sep)
-    return u
-def unrange_real(seq, sort_first=False, sep="┅"):
-    '''Turn a sequence of numbers seq into a collection of ranges and return as a string.  It
-    provides a string summary of the ranges in the sequence.  See unrange() for sequences of
-    integers.
-    
-    If sort_first is True, the sequence is sorted before processing.  The sep string is used to
-    separate a number range.
-    
-    Note:  no knowledge about the sequence elements being real numbers is used; the only
-    operation used is ordering by the >= operator.  Thus, any sequence of items that can be
-    ordered by >= can be converted to a range.
-    
-    Examples:
-        seq = [1.0, 2.2, 3.1, 2.7, 8.1]
-        unrange_real(seq, sort_first=True)  outputs 1.0┅8.1
-        unrange_real(seq, sort_first=False) outputs 1.0┅3.1 2.7┅8.1
-    '''
-    if not seq:
-        return ""
-    dq = deque(sorted(seq)) if sort_first else deque(seq)
-    out, seq = [], []
-    while dq:
-        x = dq.popleft()
-        seq = [x]
-        while dq and dq[0] >= seq[-1]:
-            seq.append(dq.popleft())
-        s = f"{seq[0]}"
-        if len(seq) > 1:
-            s += f"{sep}{seq[-1]}"
-        out.append(s)
-        if not dq:
-            break  # Finished
-    return " ".join(out)
-def grouper(data, mapper, reducer=None):
-    '''Simple map/reduce for data analysis.
-    
-    Each data element is passed to a *mapper* function.  The mapper returns key/value pairs or None
-    for data elements to be skipped.
-    
-    Returns a dict with the data grouped into lists.  If a *reducer* is specified, it aggregates
-    each list.
-    
-    >>> def even_odd(elem):                     # sample mapper
-    ...     if 10 <= elem <= 20:                # skip elems outside the range
-    ...         key = elem % 2                  # group into evens and odds
-    ...         return key, elem
-    
-    >>> grouper(range(30), even_odd)         # show group members
-    {0: [10, 12, 14, 16, 18, 20], 1: [11, 13, 15, 17, 19]}
-    
-    >>> grouper(range(30), even_odd, sum)    # sum each group
-    {0: 90, 1: 75}
-    
-    Note:  from http://code.activestate.com/recipes/577676-dirt-simple-mapreduce/?in=lang-python I
-    renamed the function to grouper.
-    '''
-    d = {}
-    for elem in data:
-        r = mapper(elem)
-        if r is not None:
-            key, value = r
-            if key in d:
-                d[key].append(value)
-            else:
-                d[key] = [value]
-    if reducer is not None:
-        for key, group in d.items():
-            d[key] = reducer(group)
-    return d
-def IsConvexPolygon(*p):
-    '''Return True if the sequence p of two-dimensional points constitutes a convex polygon.  Ref:
-    http://stackoverflow.com/questions/471962/how-do-determine-if-a-polygon-is-complex-convex-nonconvex
-    
-    The assumption is that the sequence p of points traverses consecutive points of the polygon.
-    
-    The algorithm is to look at the triples of points and calculate the sign of the z component of
-    their cross product.  The polygon is convex if the signs are either all negative or all
-    positive.
-    
-    Examples:
-        ((0, 0), (1, 0), (1, 1), (1, 0)) will return True.
-        ((0, 0), (1, 0), (1, 1), (0.5,         0.5)) will return False.
-        ((0, 0), (1, 0), (1, 1), (0.5 - 1e-10, 0.5)) will return True.
-    '''
-    n = len(p)
-    if n < 3:
-        raise ValueError("Need at least three points")
-    cross_product_signs = []
-    for index in range(n + 3):
-        # Generate indices of the needed points
-        i = index % n
-        j = (index + 1) % n
-        k = (index + 2) % n
-        p1, p2, p3 = p[i], p[j], p[k]
-        dx1 = p2[0] - p1[0]
-        dy1 = p2[1] - p1[1]
-        dx2 = p3[0] - p2[0]
-        dy2 = p3[1] - p2[1]
-        cross_product_signs.append(signum(dx1 * dy2 - dy1 * dx2))
-    assert len(cross_product_signs) == n + 3
-    if cross_product_signs[0] and len(set(cross_product_signs)) == 1:
-        return True
-    return False
-def BraceExpansion(s, glob=False):
-    '''Generator to perform brace expansion on the string s.  If glob is True, then also glob each
-    pattern in the current directory.  Examples:
-    
-    - BraceExpansion("a.{a, b}")) returns
-        ['a.a', 'a. b'].
-    - BraceExpansion("pictures/*.{jpg, png}")) returns a list of
-        all the JPG and PNG files in the pictures directory under the
-        current directory.
-    - BraceExpansion("{a,b}/*.{jpg,png}") returns
-        ['a/*.jpg', 'a/*.png', ' b/*.jpg', ' b/*.png']
-    - BraceExpansion("{,a}/{c,d}") returns
-        ['/c', '/d', 'a/c', 'a/d']
-    - BraceExpansion(r"{,,a}/{c,d}") returns
-        ['/c', '/d', '/c', '/d', 'a/c', 'a/d']
-    '''
-    '''Algorithm from http://rosettacode.org/wiki/Brace_expansion#Python The web page's content is
-    available under the GNU Free Documentation license 1.2.
-    '''
-    def getitem(s, depth=0):
-        out = [""]
-        while s:
-            c = s[0]
-            if depth and (c == "," or c == "}"):
-                return out, s
-            if c == "{":
-                x = getgroup(s[1:], depth + 1)
-                if x:
-                    out, s = [a + b for a in out for b in x[0]], x[1]
-                    continue
-            if c == "\\" and len(s) > 1:
-                s, c = s[1:], c + s[1]
-            out, s = [a + c for a in out], s[1:]
-        return out, s
-    def getgroup(s, depth):
-        out, comma = [], False
-        while s:
-            g, s = getitem(s, depth)
-            if not s:
-                break
-            out += g
-            if s[0] == "}":
-                if comma:
-                    return out, s[1:]
-                return ["{" + a + "}" for a in out], s[1:]
-            if s[0] == ",":
-                comma, s = True, s[1:]
-        return None
-    if glob:
-        for i in getitem(s)[0]:
-            for j in glob.glob(i):
-                yield j
-    else:
-        for i in getitem(s)[0]:
-            yield i
-def Spinner(chars=r"-\|/-\|/", delay=0.1):
-    '''Show a spinner to indicate that processing is still taking place.  Set Spinner.stop to True
-    to cause it to exit.  Note this is not thread-safe.
-    
-    Here's some example code that demonstrates how it could be used:
-    
-        from threading import Thread
-        def T():
-            Spinner()
-            if Spinner.stop:
-                return
-        t = Thread(target=T)
-        t.start()
-        time.sleep(2)
-        Spinner.stop = True
-    '''
-    # Idea from https://realpython.com/python-print/#living-it-up-with-cool-animations
-    for frame in cycle(chars):
-        print("\r", frame, sep="", end="", flush=True)
-        time.sleep(delay)
-        if Spinner.stop:
-            print()
-            return
-Spinner.stop = False
-def ProgressBar(frac=0, width=40, char="#"):
-    '''Prints a progress bar to stdout.  frac must be a number on the closed interval [0, 1].
-    
-    Here's an example of use:
-        n = 100
-        for i in range(n + 1):
-            ProgressBar(i/n)
-            time.sleep(0.01)
-        print()
-    '''
-    # Idea from https://realpython.com/python-print/#living-it-up-with-cool-animations
-    assert len(char) == 1
-    left = int(width * frac)
-    right = width - left
-    percent = int(100 * frac)
-    print(
-        "\r[",
-        char * left,
-        " " * right,
-        "]",
-        " {}%".format(percent),
-        sep="",
-        end="",
-        flush=True,
-    )
-def Paste(*seq, missing="", sep="\t"):
-    '''Return a list whose elements are each corresponding element of the sequences in *seq,
-    separated by the string sep.  If a sequence is too short, the missing string will be
-    substituted.  All sequence elements will be converted to strings using str().
-    
-    Example:
-        Paste([1, 2, "a"], ["3 4", 5], missing="X")
-    will return
-        ['1\t3 4', '2\t5', 'a\tX']
-    '''
-    result = list(zip_longest(*seq, fillvalue=missing))
-    for i, item in enumerate(result):  # Convert all elements to strings
-        result[i] = [str(j) for j in result[i]]
-    return [sep.join(i) for i in result]
-def EBCDIC():
-    '''Returns two byte-translation tables to use with
-    bytes.translate().  The first converts ASCII bytes to EBCDIC and the
-    second converts EBCDIC bytes to ASCII.
-    '''
-    a2e = [
-        int(i)
-        for i in '''0 1 2 3 55 45 46 47 22 5 37 11 12 13 14 15 16 17 18 19 60 61 50 38 24 25 63 39 28 29
-           30 31 64 79 127 123 91 108 80 125 77 93 92 78 107 96 75 97 240 241 242 243 244 245 246
-           247 248 249 122 94 76 126 110 111 124 193 194 195 196 197 198 199 200 201 209 210 211
-           212 213 214 215 216 217 226 227 228 229 230 231 232 233 74 224 90 95 109 121 129 130 131
-           132 133 134 135 136 137 145 146 147 148 149 150 151 152 153 162 163 164 165 166 167 168
-           169 192 106 208 161 7 32 33 34 35 36 21 6 23 40 41 42 43 44 9 10 27 48 49 26 51 52 53 54
-           8 56 57 58 59 4 20 62 225 65 66 67 68 69 70 71 72 73 81 82 83 84 85 86 87 88 89 98 99
-           100 101 102 103 104 105 112 113 114 115 116 117 118 119 120 128 138 139 140 141 142 143
-           144 154 155 156 157 158 159 160 170 171 172 173 174 175 176 177 178 179 180 181 182 183
-           184 185 186 187 188 189 190 191 202 203 204 205 206 207 218 219 220 221 222 223 234 235
-           236 237 238 239 250 251 252 253 254 255'''.split()
-    ]
-    e2a = [
-        int(i)
-        for i in '''0 1 2 3 156 9 134 127 151 141 142 11 12 13 14 15 16 17 18 19 157 133 8 135 24 25 146
-           143 28 29 30 31 128 129 130 131 132 10 23 27 136 137 138 139 140 5 6 7 144 145 22 147
-           148 149 150 4 152 153 154 155 20 21 158 26 32 160 161 162 163 164 165 166 167 168 91 46
-           60 40 43 33 38 169 170 171 172 173 174 175 176 177 93 36 42 41 59 94 45 47 178 179 180
-           181 182 183 184 185 124 44 37 95 62 63 186 187 188 189 190 191 192 193 194 96 58 35 64
-           39 61 34 195 97 98 99 100 101 102 103 104 105 196 197 198 199 200 201 202 106 107 108
-           109 110 111 112 113 114 203 204 205 206 207 208 209 126 115 116 117 118 119 120 121 122
-           210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231
-           123 65 66 67 68 69 70 71 72 73 232 233 234 235 236 237 125 74 75 76 77 78 79 80 81 82
-           238 239 240 241 242 243 92 159 83 84 85 86 87 88 89 90 244 245 246 247 248 249 48 49 50
-           51 52 53 54 55 56 57 250 251 252 253 254 255'''.split()
-    ]
-    s, t = bytearray(a2e), bytearray(e2a)
-    return s.maketrans(s, t), s.maketrans(t, s)
-def Ampacity(dia_mm, insul_degC=60, ambient_degC=30):
-    '''Return the NEC-allowed current in a copper conductor at the indicated ambient temperature
-    and with the indicated insulation temperature rating.
-    
-    The data from table 310-16 in the 1998 NEC was fitted to cubic polynomials, so the table data
-    won't be reproduced exactly.  Thus, the intended use is to estimate safe currents for a given
-    wire size, particularly smaller wires than are in the table.  To get the ampacity of a smaller
-    wire, the constant term of the regression was set to zero.
-    
-    The data and regressions are in /elec/projects/current_capacity.
-    '''
-    def AmbientCorrection(ambient_degC, insul_degC):
-        if insul_degC not in (60, 75, 90):
-            raise ValueError("insul_degC must be 60, 75, or 90 °C")
-        if insul_degC == 60:
-            i = 0
-        elif insul_degC == 75:
-            i = 1
-        elif insul_degC == 90:
-            i = 2
-        T = int(ambient_degC)
-        if not (21 <= T <= 80):
-            raise ValueError("ambient_degC must be between 21 and 80 °C")
-        if 21 <= T <= 25:
-            return (1.08, 1.05, 1.04)[i]
-        elif 26 <= T <= 30:
-            return 1
-        elif 31 <= T <= 35:
-            return (0.91, 0.94, 0.96)[i]
-        elif 36 <= T <= 40:
-            return (0.82, 0.88, 0.91)[i]
-        elif 41 <= T <= 45:
-            return (0.71, 0.82, 0.87)[i]
-        elif 46 <= T <= 50:
-            return (0.58, 0.75, 0.82)[i]
-        elif 51 <= T <= 55:
-            return (0.41, 0.67, 0.76)[i]
-        elif 56 <= T <= 60:
-            return (0, 0.58, 0.71)[i]
-        elif 61 <= T <= 70:
-            return (0, 0.33, 0.58)[i]
-        elif 71 <= T <= 80:
-            return (0, 0, 0.41)[i]
-    max_dia_mm = 11.68
-    if not (0 < dia_mm <= max_dia_mm):
-        raise ValueError("dia_mm must be in (0, 11.68 mm]")
-    if insul_degC not in (60, 75, 90):
-        raise ValueError("insul_degC must be 60, 75, or 90 °C")
-    constants = {
-        60: (10.6841, 0.667284, -0.014032),
-        75: (11.0919, 1.25111, -0.0445333),
-        90: (12.9412, 1.30463, -0.0441503),
-    }
-    b1, b2, b3 = constants[insul_degC]
-    correction = AmbientCorrection(ambient_degC, insul_degC)
-    if correction:
-        return correction * (b1 * dia_mm + b2 * dia_mm**2 + b3 * dia_mm**3)
-    else:
-        raise ValueError("ambient_degC out of range")
-def Ranges(seq, validate=False):
-    '''seq is a sequence of integers.  This function will return the sequence as a
-    list of either 2-tuples or single integers.  The 2-tuples represent the
-    arguments to range() to reproduce the original sequence of integers.  If
-    validate is True, the returned list will be validated by reproducing the
-    original sequence.
-    
-    Examples
-        [1, 2, 3, 5] --> [(1, 4), 5]
-        [1, 3, 2, 5] --> [1, 3, 2, 5]
-     
-    The intended use case is a form of "compression" for long sequences and an index
-    case is the set of Unicode codepoints, where I wanted to see how much shorter
-    such a representation is than the set of integers.
-    
-    The algorithm is derived from 
-    https://stackoverflow.com/questions/3429510/pythonic-way-to-convert-a-list-\
-    of-integers-into-a-string-of-comma-separated-range/3430231#3430231
-    and is the 7 Aug 2010 answer due to John La Rooy.  It's a neat solution and I 
-    thank La Rooy and StackOverflow for posting the answer.
-
-        Content of above link
-        # Source - https://stackoverflow.com/a
-        # Posted by John La Rooy, modified by community. See post 'Timeline' for change history
-        # Retrieved 2026-01-18, License - CC BY-SA 2.5
-
-        >>> from itertools import count, groupby
-        >>> L=[1, 2, 3, 4, 6, 7, 8, 9, 12, 13, 19, 20, 22, 23, 40, 44]
-        >>> G=(list(x) for _,x in groupby(L, lambda x,c=count(): next(c)-x))
-        >>> print ",".join("-".join(map(str,(g[0],g[-1])[:len(g)])) for g in G)
-        1-4,6-9,12-13,19-20,22-23,40,44
-    
-    Note 18 Jan 2026:  this function was broken when the selftests ran.  I attribute the
-    cause to 'ruff check' telling me to get rid of the lambda function I had; so I
-    defined the function f(x, c) instead and the linter was happy.  But things broke a
-    week or so later when I ran the self tests.  Thus, I'll use the original code with
-    the lambda in the generator.
-
-    '''
-    if validate:
-        orig = list(seq)    # Copy of original sequence
-    # Make sure all the elements of seq are integers
-    if not all(ii(i, int) for i in seq):
-        raise TypeError("Not all elements of seq are integers")
-    # This is the same code used in the StackOverflow solution, substituting seq for L.
-    # And things work again.
-    G = (list(x) for _,x in groupby(seq, lambda x,c=count(): next(c)-x))
-    # Convert into pairs of numbers for range()
-    o = []
-    for i in list(G):
-        o.append((i[0], i[-1] + 1)) if len(i) > 1 else o.append(i[0])
-    if validate:
-        p = []
-        for i in o:
-            p.append(list(range(i[0], i[1]))) if ii(i, tuple) else p.append(i)
-        if Flatten(p) != orig:
-            raise ValueError("Validation failed")
-    return o
-def RandomIntegers(n, maxint, seed=None, duplicates_OK=False):
-    '''Return a random list of n integers between 0 and maxint - 1.  Set seed to be not None to
-    generate a repeatable set of integers.  If duplicates_OK is False, the integers are distinct;
-    otherwise, the list may contain duplicates.
-    '''
-    # Check parameters
-    if not isinstance(n, int) or not isinstance(maxint, int):
-        raise TypeError("n and maxint must be integers")
-    if n <= 0:
-        raise ValueError("n must be > 0")
-    if not maxint and duplicates_OK:
-        return [0] * n
-    if not duplicates_OK and n > maxint:
-        raise ValueError(
-            f"maxint ({maxint}) is too small to generate {n} distinct integers"
-        )
-    s = [] if duplicates_OK else set()
-    f = s.append if duplicates_OK else s.add
-    numbytes = maxint.bit_length() // 8 + 1
-    if seed is not None:
-        random.seed(seed)
-    while len(s) < n:
-        if seed is None:
-            f(int.from_bytes(os.urandom(numbytes), "big") % maxint)
-        else:
-            f(random.randint(0, maxint - 1))
-    return list(s)
-def execfile(filename, globals=None, locals=None, use_user_env=True):
-    '''Python 3 substitute for python 2's execfile.  It gets the locals and globals from the
-    caller's environment unless use_user_env is False.
-    
-    Caution:  you should be aware of the risks of using this function to execute arbitrary code,
-    as a malicious file could e.g. wipe out your system or do other types of arbitrary damage.
-    '''
-    # https://stackoverflow.com/questions/436198/what-is-an-alternative-to-execfile-in-python-3
-    e = sys._getframe(1)
-    if globals is None and use_user_env:
-        globals = e.f_globals
-    if locals is None and use_user_env:
-        locals = e.f_locals
-    with open(filename, "r") as fh:
-        s = fh.read() + "\n"
-        exec(s, globals, locals)
-def signum(x):
-    try:
-        if x < 0:
-            return -1
-        elif x > 0:
-            return 1
-        return 0
-    except Exception:
-        raise TypeError(f"x = '{x}' not a suitable numerical type")
-def SizeOf(o, handlers={}, verbose=False, full=False, title=None):
-    '''Returns a string containing the approximate memory in bytes used by
-    an object.  Recursively uses sys.getsizeof().
-    
-    verbose     If True, show the details on each object.
-    full        If True, use repr() instead of reprlib.repr()
-    title       String for first line in verbose report
-    handlers    dict(Class: Handler)
-        Example handler for class:
-            def Iter(s):
-                return s.attr1, s.attr2
-            handler = {MyClass: Iter}
-    '''
-    # DP 11 Apr 2022
-    # This is a modified version of
-    # https://code.activestate.com/recipes/577504/.  Changes:
-    #  - The ability to make verbose a stream
-    #  - Indented the verbose output to see the recursion
-    #  - Added the full and title keywords
-    #  - Used deque to collect output
-    def dict_handler(d):
-        return chain.from_iterable(d.items())
-    all_handlers = {
-        tuple: iter,
-        list: iter,
-        deque: iter,
-        dict: dict_handler,
-        set: iter,
-        frozenset: iter,
-    }
-    all_handlers.update(handlers)  # User handlers take precedence
-    seen = set()  # Track objects seen
-    default_size = sys.getsizeof(0)  # Estimate size without __sizeof__
-    Repr_local = repr if full else Repr
-    indent, output = 0, deque()
-    if verbose:
-        output.append(title) if title else output.append("Components:")
-    def sizeof(o):
-        nonlocal indent
-        indent += 2
-        if id(o) in seen:  # do not double count the same object
+        return np * prefix
+    def GetSize(obj, seen=None):
+        'Recursively finds size of objects in bytes'
+        # Taken from https://github.com/bosswissam/pysize/blob/master/pysize.py
+        size = sys.getsizeof(obj)
+        if seen is None:
+            seen = set()
+        obj_id = id(obj)
+        if obj_id in seen:
             return 0
-        seen.add(id(o))
-        sz = sys.getsizeof(o, default_size)
-        if verbose:
-            i = " " * (indent - 1)
-            output.append(" ".join((i, str(sz), str(type(o)), Repr_local(o))))
-        for typ, handler in all_handlers.items():
-            if isinstance(o, typ):
-                sz += sum(map(sizeof, handler(o)))
-                break
-        indent -= 2
-        return sz
-    total = sizeof(o)
-    if verbose:
-        s = output.popleft()
-        s = f"{total} {s}"
-        output.appendleft(s)
-        return "\n".join(output)
-    else:
-        return total
-class PPSeq:
-    '''Format sequences for pretty printing
-    Floats must be in [0, 1].
-    
-    Example:
-        p = PPSeq(bits_per_number=32)
-        a = [.4, .12, .33, .16000]
-        print(p(a))
-    prints
-        [0.4000000000, 0.1200000000, 0.3300000000, 0.1600000000]
-    '''
-    def __init__(self, bits_per_number=8):
-        self._bpn = bits_per_number
-    def __call__(self, seq, **kw):
-        "Return a pretty string form of seq"
-        # Get keyword arguments
-        exp = kw.get("exp", False)  # Show bits exponent
-        brackets = kw.get("brackets", True)  # Enclose in brackets
-        comma = kw.get("comma", True)  # Separate with commas
-        sep = kw.get("sep", " ")  # Element separation string
-        # Get the container type and decorators
-        if ii(seq, tuple):
-            left, right = "(", ")"
-        elif ii(seq, list):
-            left, right = "[", "]"
-        elif ii(seq, set):
-            left, right = "{", "}"
-        elif ii(seq, deque):
-            left, right = "<", ">"
-        elif ii(seq, bytes):
-            left, right = "«", "»"
-        else:
-            raise TypeError("Unsupported container type")
-        x = self.get_element(seq)
-        # Must be an iterable
-        if not IsIterable(seq):
-            raise TypeError("seq isn't an iterable")
-        # Must contain a supported type
-        if not self.is_monotype(seq):
-            raise TypeError("seq doesn't contain only one numerical type")
-        # Get strings
-        if ii(x, int):
-            myseq = [self.format(i) for i in seq]
-        else:
-            myseq = [self.format(float(i)) for i in seq]
-        s = "," if comma else ""
-        s += sep
-        t = s.join(myseq)
-        if brackets:
-            t = f"{left}{t}{right}"
-            if exp:
-                u = "⁰¹²³⁴⁵⁶⁷⁸⁹"
-                t += "".join(u[int(i)] for i in str(self._bpn))
-        return t
-    def get_element(self, seq):
-        if ii(seq, tuple):
-            return seq[0]
-        elif ii(seq, list):
-            return seq[0]
-        elif ii(seq, set):
-            x = seq.pop()
-            seq.add(x)
-            return x
-        elif ii(seq, deque):
-            x = seq.pop()
-            seq.append(x)
-            return x
-        elif ii(seq, bytes):
-            return seq[0]
-    def format(self, x):
-        "Return the string form of number x (float or int)"
-        if ii(x, int):
-            w = len(str((2**self._bpn - 1)))
-            return f"{x:{w}d}"
-        else:
-            assert 0 <= x <= 1
-            # Get the number of decimal places to display this float
-            w = math.ceil(-math.log10(1 / (2**self._bpn - 1)))
-            return f"{x:{w + 2}.{w}f}"
-    def is_monotype(self, seq):
-        "Return True if seq contains only one supported type"
-        x = self.get_element(seq)
-        # Check the type of each element
-        typ = type(x)
-        if not all(type(i) is typ for i in seq):
-            return False
-        # Make sure they are of the allowed types
-        if not ii(x, (int, float, Decimal, Fraction)):
+        # Important mark as seen *before* entering recursion to gracefully handle
+        # self-referential objects
+        seen.add(obj_id)
+        if hasattr(obj, '__dict__'):
+            for cls in obj.__class__.__mro__:
+                if '__dict__' in cls.__dict__:
+                    d = cls.__dict__['__dict__']
+                    if inspect.isgetsetdescriptor(d) or inspect.ismemberdescriptor(d):
+                        size += GetSize(obj.__dict__, seen)
+                    break
+        if isinstance(obj, dict):
+            size += sum((GetSize(v, seen) for v in obj.values()))
+            size += sum((GetSize(k, seen) for k in obj.keys()))
+        elif hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes, bytearray)):
             try:
-                float(x)
+                size += sum((GetSize(i, seen) for i in obj))
+            except TypeError:
+                raise TypeError(f"nable to get size of {obj}")
+        if hasattr(obj, '__slots__'): # can have __slots__ with __dict__
+            size += sum(GetSize(getattr(obj, s), seen) for s in obj.__slots__ if hasattr(obj, s))
+        return size
+    def GetTrailingString(string, suffix=" "):
+        '''Return the trailing string from string, made up of one or more groups of the
+        indicated string suffix.
+        '''
+        # This is done by reversing string and suffix and using GetLeadingString(), but it
+        # does mean we have to create copies in memory.
+        def f(x):
+            return list(reversed(x))
+        result = f(GetLeadingString(f(string), prefix=f(suffix)))
+        if type(string) is bytes:
+            return bytes(result)
+        else:
+            return ''.join(result)
+    def getch():
+        "Block until a key is pressed.  This function returns nothing."
+        s = platform.system()
+        if s == "Linux" or s.startswith("CYGWIN"):
+            os.system('bash -c "read -n 1"')
+        else:
+            msvcrt.getch()
+    def ItemCount(seq, n=None):
+        '''Return a sorted list of (item, count) in the iterable seq, with the highest count first in
+        the list.  If n is given, only return the largest n counts.  The items in seq must be
+        hashable.
+        
+        Example:
+        If a = (1, 1, 1, 2, 3, 4, 4, 5, 5, 5, 5, 5), then ItemCount(a)
+        returns [(5, 5), (1, 3), (4, 2), (2, 1), (3, 1)].
+        
+        If a = (1.0, 1, 1, 2, 3, 4, 4, 5, 5, 5, 5, 5), then ItemCount(a)
+        returns [(5, 5), (1.0, 3), (4, 2), (2, 1), (3, 1)].
+        
+        Note that 1, 1.0, and Fraction(1, 1) hash to the same value; since a dictionary is used as the
+        counting container, these are considered to be the same items.  Thus, you can get syntactically
+        different results that are semantically the same.
+        '''
+        items = defaultdict(int)
+        for item in seq:
+            items[item] += 1
+        s = sorted(items.items(), key=itemgetter(1), reverse=True)
+        return s if n is None else s[:n]
+    def IterateOverSubclasses(cls, seen=None):
+        '''Iterator over all subclasses of a given class, in depth first order.  If not
+        None, seen should be a set that will contain the class names already seen.
+        Downloaded Tue 12 Aug 2014 from http://code.activestate.com/recipes/576949; URL
+        defunct as of 2 Feb 2026
+        '''
+        if not isinstance(cls, type):
+            raise TypeError("IterateOverSubclasses must be called with new-style classes")
+        if seen is None:
+            seen = set()
+        try:
+            subs = cls.__subclasses__()
+        except TypeError:  # Fails only when cls is type
+            subs = cls.__subclasses__(cls)
+        for sub in subs:
+            if sub not in seen:
+                seen.add(sub)
+                yield sub
+                for sub in IterateOverSubclasses(sub, seen):
+                    yield sub
+    def VisualCount(seq, n=None, char="*", width=None, indent=0):
+        '''Return a list of strings representing a histogram of the items in the iterable seq.  If the
+        values in the sequence can be sorted, the histogram will be shown by increasing item value;
+        otherwise, the items will be shown sorted by frequency.
+        
+        n       Return the n largest items if n is not None.
+        char    String to build the histogram element.
+        width   Fit each element into this width.  If none, use the value of
+                the COLUMNS environment variable or 79 if it isn't defined.
+        indent  Indent each line by this amount.
+        
+        Note:  the width calculations are only correct if the length of the char string is 1.
+        
+        Example:
+            seq = [1,1,1,1,1,8,8,8,9,9,9,9,9,9,9,9,9,9,9]
+            for i in VisualCount(seq, width=40, indent=8):
+                print(i)
+            prints
+                1 *************
+                8 ********
+                9 ******************************
+        '''
+        counts = ItemCount(seq, n=n)
+        try:
+            counts = sorted(counts)  # Sort by item values if possible
+        except TypeError:
+            pass
+        max_obj_len = max([len(str(i[0])) for i in counts])
+        max_count = max([i[1] for i in counts])
+        if width is None:
+            width = int(os.environ.get("COLUMNS", 80)) - 1
+        max_hist_len = width - indent - 1 - max_obj_len
+        assert max_hist_len > 0
+        # Scale counts to fit on screen
+        counts = [(i, int(j / max_count * max_hist_len)) for i, j in counts]
+        # Construct the output list
+        output = []
+        for item, count in counts:
+            s = "{}{:{}s} ".format(" " * indent, str(item), max_obj_len)
+            output.append(s + char * count)
+        return output
+    class Singleton(object):
+        "Mix-in class to make an object a singleton.  From 'Python in a Nutshell', p 84."
+        _singletons = {}
+        def __new__(cls, *args, **kw):
+            if cls not in cls._singletons:
+                cls._singletons[cls] = object.__new__(cls)
+            return cls._singletons[cls]
+    def RemoveIndent(s, numspaces=4):
+        '''Given a multi-line string s, remove the indicated number of spaces from the beginning each
+        line.  If that number of space characters aren't present, then leave the line alone.
+        '''
+        if numspaces < 0:
+            raise ValueError("numspaces must be >= 0")
+        lines = s.split(nl)
+        for i, line in enumerate(lines):
+            if line.startswith(" " * numspaces):
+                lines[i] = lines[i][numspaces:]
+        return nl.join(lines)
+    def Batch(iterable, size):
+        '''Generator that gives you batches from an iterable in manageable sizes.  Slightly adapted
+        from Raymond Hettinger's entry in the comments to
+        http://code.activestate.com/recipes/303279-getting-items-in-batches/
+        
+        Example:
+            for n in (3, 4, 5, 6):
+                s = tuple(tuple(i) for i in Batch(range(n), 3))
+                print(s)
+        gives
+            ((0, 1, 2),)
+            ((0, 1, 2), (3,))
+            ((0, 1, 2), (3, 4))
+            ((0, 1, 2), (3, 4, 5))
+            
+        Another way of doing this is with slicing (but you'll need to have the whole iterable in memory
+        to do this):
+            def Pick(iterable, size):
+                i = 0
+                while True:
+                    s = iterable[i:i + size]
+                    if not s:
+                        break
+                    yield s
+                    i += size
+        '''
+        def counter(x):
+            counter.n += 1
+            return counter.n // size
+        counter.n = -1
+        for k, g in groupby(iterable, counter):
+            yield g
+    def GroupByN(seq, n, fill=False):
+        '''Return an iterator that gives groups of n items from the sequence.  If fill is True, return
+        None for any missing items.  In other words, if fill is False, groups without the full number
+        of elements are discarded.
+        
+        Example:
+            print("fill = False:")
+            for i in GroupByN(range(7), 3, fill=False):
+                print("  ", i)
+            print("fill = True:")
+            for i in GroupByN(range(7), 3, fill=True):
+                print("  ", i)
+        prints
+            fill = False:
+            (0, 1, 2)
+            (3, 4, 5)
+            fill = True:
+            (0, 1, 2)
+            (3, 4, 5)
+            (6, None, None)
+        '''
+        # Inspired by http://code.activestate.com/recipes/303060-group-a-list-into-sequential-n-tuples
+        if fill:
+            return zip_longest(*([iter(seq)] * n), fillvalue=None)
+        else:
+            return zip(*([iter(seq)] * n))
+    def Cfg(lines, lvars=OrderedDict(), gvars=OrderedDict()):
+        '''Allow use of sequences of text strings to be used for general-purpose configuration
+        information.  Each string must be valid python code.
+        
+        Each line in lines is executed with the local variables in lvars and global variables in gvars.
+        The lvars dictionary is returned, which will contain each of the defined variables and
+        functions.
+        
+        Any common leading indentation is removed before processing; this allows you to indent your
+        configuration lines as desired.
+        
+        Example:
+            lines = """
+                    from math import sqrt
+                    a = 44
+                    b = "A string"
+                    def X(a):
+                        return a/2
+                    c = a*sqrt(2)
+                    d = X(a)
+                """[1:-1].split("\n")
+                
+        The code
+            d = Cfg(lines)
+            for i in d.keys():
+                print(i + " = " + str(d[i]))
+                
+        results in
+            sqrt = <built-in function sqrt>
+            a = 44
+            b = A string
+            X = <function X at 0x00B9C9B0>
+            c = 62.2253967444
+            d = 22.0
+        '''
+        # Remove any common indent
+        indent = os.path.commonprefix(lines)
+        if indent:
+            lines = [i.replace(indent, "", 1) for i in lines]
+        # Put lines into a temporary file so execfile can be used.  I
+        # would have used NamedTemporaryFile(), but it doesn't work
+        # correctly on Windows XP, so I used the deprecated mktemp.
+        exec(nl.join(lines), gvars, lvars)
+        # The things defined in the configuration lines are now in the
+        # dictionary lvars.
+        return lvars
+    def ReadVariables(file, ignore_errors=False):
+        '''Given a file of lines of python code, this function reads in each line and executes it.  If
+        the lines of the file are assignments to variables, then this results in a defined variable in
+        the local namespace.  Return the dictionary containing these variables.
+        
+        file can be a name of a file, a file-like object, a string, or a multiline string.
+        
+        Note that this function will not execute any line that doesn't contain an '=' character to cut
+        down on the chance that some unforeseen error can occur (but, of course, this protection can
+        rather easily be subverted).
+        
+        This function is intended to be used to allow you to have an easy-to-use configuration file for
+        a program.  For example, a user could write the configuration file
+        
+            # This is a comment
+            ProcessMean              = 37.2
+            ProcessStandardDeviation = 12.1
+            NumberOfParts            = 180
+            
+        When this function returned, you'd have a dictionary with four variables in it.
+        
+        If any line in the input file causes an exception, the offending line will be printed to stderr
+        and the program will exit unless ignore_errors is True.
+        '''
+        try:
+            lines = file.readlines()
+        except AttributeError:
+            try:
+                lines = open(file).readlines()
+            except FileNotFoundError:
+                # Assume it's a multiline string
+                lines = file.strip().split("\n")
+        for i, line in enumerate(lines):
+            if "=" not in line:
+                continue
+            try:
+                exec(line)
             except Exception:
+                sys.stderr.write(
+                    "Line %d of file '%s' bad:\n  '%s'\n" % (i + 1, file, line.rstrip())
+                )
+                if not ignore_errors:
+                    exit(1)
+        d = locals()
+        for i in "line lines i file ignore_errors".split():
+            del d[i]
+        return d
+    def randq(seed=-1):
+        '''The simple random number generator in the section "An Even Quicker Generator" from
+        "Numerical Recipes in C", page 284, chapter 7, 2nd ed, 1997 reprinting (found on the web in PDF
+        form).
+        
+        If seed is not -1, it is used to initialize the sequence; it can be any hashable value.
+        '''
+        if seed != -1:
+            randq.idum = abs(hash(seed))
+        randq.idum = (randq.a * randq.idum + randq.c) % randq.maxidum
+        return randq.idum
+    if 1:  # State variables for randq
+        randq.a = 1664525  # Recommended by Knuth
+        randq.c = 1013904223  # From Lewis
+        randq.idum = 0
+        randq.maxidum = 2**32
+    def randr(seed=-1):
+        "Uses randq to return a floating point number on [0, 1)"
+        n = randq(seed=seed) if seed != -1 else randq()
+        return n / float(randq.maxidum)
+    def IsCygwinSymlink(file):
+        "Return True if file is a cygwin symbolic link"
+        s = open(file).read(20)
+        if len(s) > 10:
+            if s[2:9] == "symlink":
+                return True
+        return False
+    def TranslateSymlink(file):
+        "For a cygwin symlink, return a string of what it's pointing to"
+        return open(file).read()[12:].replace("\x00", "")
+    def transpose(seq, typ=list, check=False):
+        '''Return the transpose of a nested two-dimensional sequence, such as an n x m matrix.
+        len(seq) is n and len(seq[i]) is m for i in range(0, n).
+        
+        typ:  The returned sequence will be of type typ, with each nested sequence also of type typ.
+        
+        check:  If check is True, then checks are made on seq to ensure it's of proper type.
+            If checks are not satisfied, a ValueError exception is raised.  I recommend not
+            using checking in production code because copies of seq are made, using up
+            memory.
+            
+        Example:
+            data = [[1, 2],
+                    [3, 4],
+                    [5, 6]]
+            transpose(data) --> [[1, 3, 5],
+                                [2, 4, 6]]
+                            
+        '''
+        if check:
+            # seq can't be a string, set, or dict
+            if isinstance(seq, (str, dict, set)):
+                raise TypeError("seq cannot be a string, set, or dictionary")
+            # seq must be an iterable
+            try:
+                iter(seq)
+            except TypeError:
+                raise TypeError("seq is not an iterable")
+            # seq must be an n x m nested sequence
+            nrows = len(seq)  # Number of rows
+            try:
+                ncols = len(seq[0])  # Number of columns
+            except Exception:
+                if seq:  # Empty sequence ok
+                    raise TypeError("seq[0] is not a sequence")
+            # Look for extra dimensionality
+            if seq:
+                num_elements = nrows * ncols
+                if len(Flatten(seq)) != num_elements:
+                    raise TypeError(
+                        "seq is not a proper 2D nested list representing a matrix"
+                    )
+            # Each sequence in seq must have the same length
+            if seq and not all(len(i) == ncols for i in seq):
+                raise TypeError(f"seq row lengths not all {ncols}")
+        if not seq:
+            return typ(seq)
+        # There are two algorithms here:  one using map and the other using zip.  I prefer
+        # using zip because the strict keyword gives us some automatic checking.  Using
+        # timeit, measurements show that transposing a 20x10 matrix of floats takes 2.5 μs
+        # for the zip implementation and 3.4 μs for the map implementation, so zip is the
+        # default.
+        if 1:
+            seqT = typ(typ(j) for j in zip(*[typ(i) for i in seq], strict=True))
+        else:
+            seqT = typ(map(lambda *x: typ(x), *seq))
+        if check:  # transpose(seqT) == seq
+            orig = list(map(list, seq))
+            tseq = transpose(seqT, typ=list)
+            Assert(orig == tseq)
+        return seqT
+    def IsTextFile(file, num_bytes=100):
+        '''Heuristic to classify a file as text or binary.  The algorithm is to read num_bytes from the
+        beginning of the file; if there are any characters other than the "typical" ones found in plain
+        text files, the file is classified as binary.  This won't work on a file that contains Unicode
+        characters but is otherwise plain text.  Here, "text" means plain ASCII.
+        
+        Note:  if file is a string, it is assumed to be a file name and opened.  Otherwise it is
+        assumed to be an open stream.
+        '''
+        text_chars = set([ord(i) for i in "\n\r\b\t\v"] + list(range(32, 127)))
+        if isinstance(file, str):
+            s = open(file, "rb").read(num_bytes)
+        else:
+            s = file.read(num_bytes)
+        for c in s:
+            if ord(c) not in text_chars:
                 return False
         return True
-class Now:
-    '''Example:
-        s = Now()
-        print(s.time())
-        print(s.date())
-        print(s.cdate())
-    prints
-        3:20pm
-        11 Oct 2024
-        11Oct2024
-    '''
-    def __init__(self):
-        self._t = t = time.localtime()
-        dy = self.remove_leading_zero(time.strftime("%d", t))
-        mo = time.strftime("%b", t)
-        yr = time.strftime("%Y", t)
-        self._dt = dy, mo, yr
-    def remove_leading_zero(self, s):
-        if s[0] == "0":
-            return s[1:]
-        return s
-    def time(self):
-        t = self._t
-        hr = self.remove_leading_zero(time.strftime("%I", t))
-        min = time.strftime("%M", t)
+    def IsBinaryFile(file, num_bytes=100):
+        "Heuristic that returns True if a file is a binary file"
+        return not IsTextFile(file, num_bytes)
+    def IsHomogeneous(seq):
+        "Return True if seq is homogeneous"
+        if not seq:
+            return True
+        typ = type(seq[0])
+        return all(type(i) is typ for i in seq)
+    def IsIterable(x, ignore_strings=True):
+        '''Return True if x is an iterable.  You can exclude strings from the things that can be
+        iterated on if you wish.
+        
+        Note:  if you don't care whether x is a string or not, a simpler way
+        is:
+            try:
+                iter(x)
+                return True
+            except TypeError:
+                return False
+        '''
+        if ignore_strings and isinstance(x, str):
+            return False
+        return isinstance(x, Iterable)
+    def SpeedOfSound(T):
+        '''Returns speed of sound in air in m/s as a function of temperature T in K.  Assumes sea level
+        air pressure.
+        '''
+        assert T > 0
+        return 331.4 * math.sqrt(T / 273.15)
+    def WindChillInDegF(wind_speed_in_mph, air_temp_deg_F):
+        '''Wind Chill for exposed human skin, expressed as a function of wind speed in miles per hour
+        and temperature in degrees Fahrenheit.  http://en.wikipedia.org/wiki/Wind_chill.
+        '''
+        if wind_speed_in_mph <= 3:
+            raise ValueError("Wind speed must be > 3 mph")
+        if air_temp_deg_F > 50:
+            raise ValueError("Air temperature must be < 50 deg F")
+        return (
+            35.74
+            + 0.6215 * air_temp_deg_F
+            - 35.75 * wind_speed_in_mph**0.16
+            + 0.4275 * air_temp_deg_F * wind_speed_in_mph**0.16
+        )
+    def Height(current_height_inches, age_years, sex):
+        '''Returns the predicted adult height in inches of a child.  Unattributed, but found in the C
+        code files of Glenn Rhoads' old website http://remus.rutgers.edu/~rhoads/Code/code.html, but
+        which was defunct in 2010.
+        '''
+        if not (0 < current_height_inches < 72):
+            raise ValueError("current_height_inches must be between 0 and 72")
+        if not (0 < age_years < 20):
+            raise ValueError("age_years must be between 0 and 20")
+        if sex.lower() not in "mf":
+            raise ValueError("sex must be 'm' or 'f'")
+        a, h = age_years, current_height_inches
+        if sex.lower() == "m":
+            return h / (((0.00011 * a - 0.0032) * a + 0.0604) * a + 0.3796)
+        else:
+            return h / (((0.00028 * a - 0.0071) * a + 0.0926) * a + 0.3524)
+    def HeatIndex(air_temp_deg_F, relative_humidity_percent):
+        '''From http://www.weather.gov/forecasts/graphical/sectors/idaho.php#tabs.  See also
+        http://www.crh.noaa.gov/pub/heat.php.
+        
+        Heat Index combines the effects of heat and humidity. When heat and humidity combine to reduce
+        the amount of evaporation of sweat from the body, outdoor exercise becomes dangerous even for
+        those in good shape.
+        
+        Example:  for 90 deg F and 50% RH, the heat index is 94.6.
+        
+        The equation used is a multiple regression fit to a complicated set of equations that must be
+        solved iteratively.  The uncertainty with a prediction is given at 1.3 deg F.  See
+        http://www.srh.noaa.gov/ffc/html/studies/ta_htindx.PDF for details.
+        
+        If heat index is:
+        
+            80-90 degF:  Caution:  fatigue possible with prolonged exposure or activity.
+            90-105:      Extreme caution:  sunstroke, muscle cramps and/or heat exhaustion possible
+                        with prolonged exposure and/or physical activity.
+            105-129:     Danger:  sunstroke, muscle cramps and/or heat exhaustion likely.  Heatstroke
+                        possible with prolonged exposure and/or physical activity.
+            >= 130       Extreme danger:  Heat stroke or sunstroke likely.
+        '''
+        RH, Tf = relative_humidity_percent, air_temp_deg_F
+        HI = (
+            -42.379
+            + 2.04901523 * Tf
+            + 10.14333127 * RH
+            - 0.22475541 * Tf * RH
+            - 6.83783e-3 * Tf * Tf
+            - 5.481717e-2 * RH * RH
+            + 1.22874e-3 * Tf * Tf * RH
+            + 8.5282e-4 * Tf * RH * RH
+            - 1.99e-6 * Tf * Tf * RH * RH
+        )
+        return HI
+    class Debug:
+        '''Implements a debug class that can be useful in printing debugging information.
+        
+        dbg = Debug()
+        dbg.print("Message")
+            Will print '+ Message' to stderr
+        Turn off printing with 'dbg.on = False'.
+        '''
+        def __init__(self, stream=sys.stderr, add_nl=True, prefix="+ "):
+            self.stream = stream
+            self.on = True
+            self.add_nl = add_nl
+            self.prefix = prefix
+        def print(self, s):
+            if self.on:
+                s = self.prefix + s
+                if self.add_nl:
+                    s += nl
+                self.stream.write(s)
+    def Time():
+        "Returns the current time in the following format: '7Jun2021 7:24 am Mon'"
+        t, f = time.localtime(), lambda x: x[1:] if x[0] == "0" else x
+        day = f(time.strftime("%a", t))
+        date = f(time.strftime("%d%b%Y", t))
+        clock = f(time.strftime("%I:%M", t))
         ampm = time.strftime("%p", t).lower()
-        return f"{hr}:{min}{ampm}"
-    def date(self):
-        dy, mo, yr = self._dt
-        return f"{dy} {mo} {yr}"
-    def cdate(self):
-        dy, mo, yr = self._dt
-        return f"{dy}{mo}{yr}"
-def NumBitsInByte():
-    'Returns a dict to count bits in a byte:  d = NumBitsInByte() and d[0xff] = 8'
-    if not hasattr(NumBitsInByte, "dict"):
-        NumBitsInByte.dict, bits_in_nibble = {}, tuple(bin(i).count('1') for i in range(16))
-        for i in range(0x100):
-            NumBitsInByte.dict[i] = bits_in_nibble[i & 0x0f] + bits_in_nibble[i >> 4]
-    return NumBitsInByte.dict
-def DoubleFactorial(n):
-    '''Returns n!! which is defined to be the product from k = 0 to k = int(n/2) - 1 of (n - 2*k).
-    Since we ensure that n is an integer, this function should never fail, but of course it will
-    take a long time for big integers.
-    
-    Examples:
-        If n is even, n!! = n(n - 1)(n - 4)···(4)(2)
-            Or:  Product from k = 1 to n//2 of 2*k
-        If n is odd,  n!! = n(n - 1)(n - 4)···(3)(1)
-            Or:  Product from k = 1 to (n+1)//2 of 2*k - 1
-    '''
-    if not isinstance(n, int):
-        raise TypeError("n must be an integer")
-    if n < 0:
-        raise ValueError("n must not be negative")
-    product = 1
-    for i in range(n, 0, -2):
-        product *= i
-    return product
-def Cumul(seq, check=False):
-    '''Return the cumulative sum list of the given sequence seq.  If check is True, verify the last
-    element of the returned array is equal to the sum of all the elements in seq.
-    
-    Example:  Cumul([1, 2, 3, 4, 7]) returns [1, 3, 6, 10, 17]
-    '''
-    cumul, dq = [], deque(seq)
-    while dq:
-        item = dq.popleft()
-        cumul.append(cumul[-1] + item) if cumul else cumul.append(item)
-    if check and cumul and cumul[-1] != sum(seq):
-        raise ValueError("Sum of sequence not same as last cumul element")
-    return cumul
-def ParseComplex(numstring):
-    '''numstring contains a string representing a complex number that must be of the form 'x+yi';
-    the complex unit can be i or j.  Return (real, imag) where real and imag are the real and
-    imaginary strings of the complex number.  Space characters can be anywhere in the string, as
-    they are removed.
-    '''
-    # The method uses a regular expression to recognize the string forms of integers or real
-    # numbers.  Applied to the string twice, it picks out the real and imaginary parts.
-    str = numstring.lower().strip().replace("i", "j").replace(",", ".").replace(" ", "")
-    msg = f"{numstring!r} not a valid complex number string"
-    # Check for illegal characters
-    s = set(str)
-    if not s.issubset(set("j+-e.0123456789")):
-        raise ValueError(msg)
-    # Regular expression to recognize an int or float
-    regex = r'''
-            (                               # Group
-                [+-]?                       # Optional sign
-                \.\d+                       # Number like .345
-                ([eE][+-]?\d+)?|            # Optional exponent
-            # or
-                [+-]?                       # Optional sign
-                \d+\.?\d*                   # Number:  2.345
-                ([eE][+-]?\d+)?             # Optional exponent
-            )                               # End group
-            '''
-    r = re.compile(regex, re.X)
-    # If no 'j', it's real
-    if str[-1] != "j":
-        return (str, "")
-    if 1:  # Extract real part
-        first = ""
-        mo = r.search(str)
-        if mo:
-            a, b = mo.span()
-            first = str[a:b]
-            str = str[b:]
-        else:
-            # It must have been only 'j' or '-j'
-            if str[0] == "+" or str[0] == "j":
-                return ("", "1")
-            elif str[0] == "-":
-                return ("", "-1")
+        return " ".join((date, clock, ampm, day))
+    def AWG(n):
+        '''Returns the wire diameter in inches given the AWG (American Wire Gauge) number (also known
+        as the Brown and Sharpe gauge).  Use negative numbers as follows:
+        
+            00    -1
+            000   -2
+            0000  -3
+            
+        Reference:  the units.dat file with version 1.80 of the GNU units program gives the following
+        statement:
+        
+            American Wire Gauge (AWG) or Brown & Sharpe Gauge appears to be the most important gauge.
+            ASTM B-258 specifies that this gauge is based on geometric interpolation between gauge
+            0000, which is 0.46 inches exactly, and gauge 36 which is 0.005 inches exactly.  Therefore,
+            the diameter in inches of a wire is given by the formula
+                    1|200 92^((36-g)/39).
+            Note that 92^(1/39) is close to 2^(1/6), so diameter is approximately halved for every 6
+            gauges.  For the repeated zero values, use negative numbers in the formula.  The same
+            document also specifies rounding rules which seem to be ignored by makers of tables.
+            Gauges up to 44 are to be specified with up to 4 significant figures, but no closer than
+            0.0001 inch.  Gauges from 44 to 56 are to be rounded to the nearest 0.00001 inch.
+            
+        An equivalent formula is 0.32487/1.12294049**n where n is the gauge number (works for n >= 0).
+        '''
+        if n < -3 or n > 56:
+            raise ValueError("AWG argument out of range")
+        diameter = 92.0 ** ((36 - n) / 39) / 200
+        if n <= 44:
+            return round(diameter, 4)
+        return round(diameter, 5)
+    def SignificantFiguresS(value, digits=3, exp_compress=True):
+        '''Returns a string representing the number value rounded to a specified number of significant
+        figures.  The number is converted to a string, then rounded and returned as a string.  If you
+        want it back as a number, use float() on the string.  If exp_compress is true, the exponent has
+        leading zeros removed.
+        
+        The following types of printouts can be gotten using this function and native python formats:
+        
+            A              B               C               D
+        3.14e-12       3.14e-012       3.14e-012       3.14e-012
+        3.14e-11       3.14e-011       3.14e-011       3.14e-011
+        3.14e-10       3.14e-010       3.14e-010       3.14e-010
+            3.14e-9       3.14e-009       3.14e-009       3.14e-009
+            3.14e-8       3.14e-008       3.14e-008       3.14e-008
+            3.14e-7       3.14e-007       3.14e-007       3.14e-007
+            3.14e-6       3.14e-006       3.14e-006       3.14e-006
+            3.14e-5       3.14e-005       3.14e-005       3.14e-005
+            3.14e-4       3.14e-004        0.000314        0.000314
+            3.14e-3       3.14e-003         0.00314         0.00314
+            3.14e-2       3.14e-002          0.0314          0.0314
+            3.14e-1       3.14e-001           0.314           0.314
+            3.14e+0       3.14e+000            3.14            3.14
+            3.14e+1       3.14e+001            31.4            31.4
+            3.14e+2       3.14e+002             314           314.0
+            3.14e+3       3.14e+003       3.14e+003          3140.0
+            3.14e+4       3.14e+004       3.14e+004         31400.0
+            3.14e+5       3.14e+005       3.14e+005        314000.0
+            3.14e+6       3.14e+006       3.14e+006       3140000.0
+            3.14e+7       3.14e+007       3.14e+007      31400000.0
+            3.14e+8       3.14e+008       3.14e+008     314000000.0
+            3.14e+9       3.14e+009       3.14e+009    3140000000.0
+        3.14e+10       3.14e+010       3.14e+010   31400000000.0
+        3.14e+11       3.14e+011       3.14e+011  314000000000.0
+        3.14e+12       3.14e+012       3.14e+012       3.14e+012
+        
+        A:  SignificantFiguresS(x, 3)
+        B:  SignificantFiguresS(x, 3, 0)
+        C:  "%.3g" % x
+        D:  float(SignificantFiguresS(x, 3))
+        '''
+        if digits < 1 or digits > 15:
+            msg = "Number of significant figures must be >= 1 and <= 15"
+            raise ValueError(msg)
+        sign, significand, exponent = SignSignificandExponent(float(value))
+        fmt = "%%.%df" % (digits - 1)
+        neg = "-" if sign < 0 else ""
+        e = "e%+d" % exponent if exp_compress else "e%+04d" % exponent
+        return neg + (fmt % significand) + e
+    def SignificantFigures(value, figures=3):
+        "Rounds a value to specified number of significant figures.  Returns a float."
+        return float(SignificantFiguresS(value, figures))
+    def EditData(data, binary=False):
+        "Edit a str or bytes object using vim"
+        if not isinstance(data, (str, bytes)):
+            raise TypeError("data must be a str or bytes object")
+        if binary and isinstance(data, str):
+            raise TypeError("data must be a bytes object")
+        if not binary and isinstance(data, bytes):
+            raise TypeError("data must be a str")
+        vi = "vim"
+        with tempfile.NamedTemporaryFile() as temp:
+            file = P(temp.name)
+            if binary:
+                file.write_bytes(data)
+                cmd = [vi, "-b", str(file)]
             else:
-                raise ValueError(msg)
-        if str == "j":
-            # It was pure imaginary
-            return ("", first)
-    if 1:  # Extract imag part
-        mo = r.search(str)
-        if mo:
-            a, b = mo.span()
-            second = str[a:b]
-            assert str[-1] == "j"
-        else:
-            # It can only be '+j' or '-j'
-            if str == "+j":
-                second = "1"
-            elif str == "-j":
-                second = "-1"
+                file.write_text(data)
+                cmd = [vi, str(file)]
+            subprocess.call(cmd)
+            if binary:
+                data = file.read_bytes()
             else:
-                raise ValueError(msg)
-    return (first, second)
-def Unique(seq):
-    '''Generator to return only the unique elements in sequence.  The order of the items in the
-    sequence is maintained.
-    '''
-    found = set()
-    for item in seq:
-        if item in found:
-            continue
+                data = file.read_text()
+        return data
+    def Engineering(value, digits=3):
+        '''Return a tuple (m, e, s) representing a number in engineering notation.  m is the
+        significand.  e is the exponent in the form of an integer; it is adjusted to be a multiple of
+        3.  s is the SI symbol for the exponent; for "e+003" it would be "k".  s is empty if there is
+        no SI symbol.
+        
+        Engineering(1.2345678901234567890e-88, 4) --> ('123.5', -90, '')
+        Engineering(1.2345678901234567890e-8, 4)  --> ('12.35', -9, 'n')
+        Engineering(1.2345678901234567890e8, 4)   --> ('123.5', 6, 'M')
+        '''
+        suffixes = {
+            -10: "q",
+            -9: "r",
+            -8: "y",
+            -7: "z",
+            -6: "a",
+            -5: "f",
+            -4: "p",
+            -3: "n",
+            -2: "u",
+            -1: "m",
+            0: "",
+            1: "k",
+            2: "M",
+            3: "G",
+            4: "T",
+            5: "P",
+            6: "E",
+            7: "Z",
+            8: "Y",
+            9: "R",
+            10: "Q",
+        }
+        if digits < 1 or digits > 15:
+            raise ValueError("Number of significant digits must be >= 1 and <= 15")
+        sign, significand, exponent = SignSignificandExponent(float(value))
+        s = suffixes[exponent // 3] if exponent // 3 in suffixes else ""
+        m = sign * (("%%.%dg" % digits) % (significand * 10 ** (exponent % 3)))
+        if m.find("e") != -1:
+            # digits = 1 or 2 can cause e.g. 3e+001, so the following
+            # eliminates the exponential notation
+            m = str(int(float(m)))
+        return m, 3 * (exponent // 3), s
+    def eng(value, digits=3, unit=None, width=0):
+        '''Convenience function for engineering representation.  If unit is given, then the number of
+        digits is displayed in value with the prefix prepended to unit.  Otherwise, "xey" notation is
+        used, except if y == 0, no exponent portion is given.  Returns a string for printing.  If width
+        is nonzero, then returns a string right-justified to that width.
+        '''
+        m, e, p = Engineering(value, digits)
+        if unit:
+            s = m + " " + p + unit
         else:
-            found.add(item)
-            yield item
-def AcceptableDiff(x, y, n=3, strict=False):
-    '''Return True if abs((x - y)/x) <= 10ⁿ.  If x is 0, then calculate abs((y - x)/y).  If
-    strict is True, then x and y must be the same numerical type.
-    
-    The use case for this is testing for numerical differences when the numbers come from physical
-    measurements.  Most of the time such data have n = 2, 3, or 4 figures.
-    '''
-    if strict and (type(x) is not type(y)):
-        raise TypeError("x and y must be the same numerical type")
-    if x == y:
-        return True
-    if x:
-        return abs((x - y) / x) <= 10**-n
-    else:
-        return abs((x - y) / y) <= 10**-n
-def ShowFile(*files):
-    "Open indicated file(s) with registered app"
-    for file in files:
-        if wsl:
-            # Use the ~/.0rc/bin/expl script to open a file with Explorer.  This script first
-            # cd's to the file's directory, as otherwise Explorer doesn't work.
-            subprocess.run(f"/home/don/.0rc/bin/expl {file}", shell=True)
+            s = m if e == 0 else "%se%d" % (m, e)
+        if width:
+            if len(s) < width:
+                p = " " * (width - len(s))
+                s = p + s
+        return s
+    def IdealGas(P=0, v=0, T=0, MW=28.9):
+        '''Given two of the three variables P, v, and T, calculates the third for the indicated gas.
+        The variable that is unknown should have a value of zero.
+            P = pressure in Pa
+            v = specific volume in m^3/kg
+            T = absolute temperature in K
+            MW = molecular weight = molar mass in g/mol (defaults to air) Note you can also supply a
+                string; if the lower-case version of this string is in the dictionary of
+                gas_molar_mass below, the molar mass for that gas will be used.
+        The tuple (P, v, T) will be returned.
+        
+        WARNING:  Note that v is the specific volume, not the volume!
+        
+        The equation used is P*v = R*T where R is the gas constant for this particular gas.  It is the
+        universal gas constant divided by the molecular weight of the gas.
+        
+        The ideal gas law is an approximation, but a good one for high temperatures and low pressures.
+        Here, high and low are relative to the critical temperature and pressure of the gas; these can
+        be found in numerous handbooks, such as the CRC Handbook of Chemistry and Physics, the
+        Smithsonian Critical Tables, etc.
+        
+        Some molar masses and critical values for common gases are (Tc is critical temperature, Pc is
+        critical pressure (multiply by 1e5 to get Pa), MW is molecular weight):
+        
+                    Tc, K    Pc, bar    MW, g/mol
+            air        133.3     37.69     28.9
+            ammonia    405.6    113.14     17.03
+            argon      151.0     48.00     39.95
+            co2        304.2     73.82     44.0099
+            helium       5.2      2.25      4.003
+            hydrogen    33.3     12.97      2.01594
+            methane    190.6     46.04     16.04298
+            nitrogen   126.1     33.94     28.0134
+            oxygen     154.6     50.43     31.9988
+            propane    369.8     42.49     26.03814
+            water      647.3    221.2      18.01534
+            xenon      289.8     58.00    131.30
+        '''
+        gas_molar_mass = {
+            "air": 28.9,
+            "ammonia": 17.03,
+            "argon": 39.95,
+            "co2": 44.0099,
+            "helium": 4.003,
+            "hydrogen": 2.01594,
+            "methane": 16.04298,
+            "nitrogen": 28.0134,
+            "oxygen": 31.9988,
+            "propane": 26.03814,
+            "water": 18.01534,
+            "xenon": 131.30,
+        }
+        if isinstance(MW, str):
+            MW = gas_molar_mass[MW.lower()]
         else:
-            app = "d:/cygwin64/bin/cygstart.exe"  # cygwin
-            subprocess.run([app, file])
-def Winnow(seq, regexps=[], OR=False, flags=re.I):
-    '''Returns a set of strings contained in seq that match the regular expression strings in the
-    sequence regexps.  The regexps are ANDed together unless OR is True.  flags are used in the
-    re.compile() function (use 0 or re.NOFLAG to use no flags).
-    '''
-    if not seq:
-        return set()
-    if not regexps:
-        return set(seq)
-    # Don't modify seq or regexps
-    items = set(seq)
-    regexes = deque(regexps)
-    if not all(ii(i, str) for i in items):
-        raise TypeError("Items in seq must all be strings")
-    if not all(ii(i, str) for i in regexps):
-        raise TypeError("Items in *regexps must all be strings")
-    results = set()
-    while regexes:
-        r = re.compile(regexes.popleft(), flags)
-        for item in items:
-            if r.search(item):
-                results.add(item)
-        if not OR and regexes:
-            items = results
-            results = set()
-    return results
-def Len(string):
-    "Return the length of a string with ANSI escape sequences removed"
-    return len(ANSI_strip(string))
-def ANSI_strip(string):
-    '''Return the string with ANSI escape sequences removed.  16 Feb 2023 Suggested
-    regexp from
-    https://stackoverflow.com/questions/14693701/how-can-i-remove-the-ansi-escape-sequences-from-a-string-in-python
-    (see the answer below this answer, as it is a more general regexp).
-    '''
-    r = re.compile(r"(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]")
-    return r.sub("", string)
-def fsig(x, digits=None):
-    '''Returns a string representing the float x to a specified number of digits.  x can
-    also be an integer, in which case it is converted to a float.  Similar to the 'g'
-    string formatting spec, but you can control the points where fixed point
-    interpolation switches to scientific notation.
-    
-    The fsig function attributes control other behaviors:
-    
-        fsig.low         Use scientific notation if x < low
-        fsig.high        Use scientific notation if x >= high
-        fsig.digits      Default number of significant digits
-        fsig.dp          String to use for decimal point
-        fsig.rdp         Remove ending decimal point if True
-        fsig.rtz         Remove trailing zeroes if True
-        fsig.rlz         Remove leading 0 before decimal point if True
-    
-    This function is not thread-safe.
-    '''
-    with fsig_lock:
-        fsig.low = fsig.__dict__.get("low", 1e-5)
-        fsig.high = fsig.__dict__.get("high", 1e6)
-        fsig.digits = fsig.__dict__.get("digits", 3)
-        fsig.dp = fsig.__dict__.get("dp", ".")
-        fsig.rdp = fsig.__dict__.get("rdp", False)
-        fsig.rtz = fsig.__dict__.get("rtz", False)
-        fsig.rlz = fsig.__dict__.get("rlz", False)
-        def rtz(s):
-            if not fsig.rtz:
-                return s
-            t = list(s)
-            while t and t[-1] == "0":
-                del t[-1]
-            return "".join(t)
-        if fsig.low > fsig.high:
-            raise ValueError("fsig.low > fsig.high")
-        msg = "{}digits = {} is out of range"
-        if not (1 <= fsig.digits <= 15):
-            raise ValueError(msg.format("fsig.", fsig.digits))
-        if digits is not None and not (1 <= digits <= 15):
-            raise ValueError(msg.format("", digits))
-        if not isinstance(x, (float, int)):
-            raise TypeError("x must be a float or integer")
-        if isinstance(x, int):
-            x = float(x)
-        ndig = fsig.digits - 1 if digits is None else digits - 1
-        if x and (abs(x) < fsig.low or abs(x) > fsig.high):
-            xs = "{:.{}e}".format(x, ndig)  # Use scientific notation
-            st, e = xs.split("e")
-            t = "{}e{}".format(rtz(st), int(e))
-            return t.replace(".", fsig.dp)
-        # xs = list of significant digits with decimal point removed
-        # e = integer exponent
-        xs, e = "{:.{}e}".format(abs(x), ndig).replace(".", "").split("e")
-        xs, e = list(xs), int(e)
-        sgn = "-" if x < 0 else ""
-        if not e:
-            t = "{:.{}e}".format(abs(x), ndig).split("e")[0]
-            u = t.replace(".", fsig.dp)
-            v = rtz(u)
-            if fsig.rdp and v[-1] == fsig.dp:
-                v = v[:-1]
-            return sgn + v
-        elif e < 0:
-            e = abs(e) - 1
-            xs.reverse()
-            while e:
-                xs.append("0")
-                e -= 1
-            xs.append(fsig.dp)
-            if not fsig.rlz:
-                xs.append("0")
-            xs.reverse()
+            assert P >= 0 and v >= 0 and T >= 0 and MW >= 0
+        molar_gas_constant = 8.3145  # J/(mol*K)
+        R = molar_gas_constant/(float(MW)/1000)  # 1000 converts g to kg
+        if sum([i == 0 for i in (P, v, T)]) != 1:
+            raise ValueError("One and only one of P, v, T must be zero")
+        if not P:
+            return R*T/v
+        elif not v:
+            return R*T/P
         else:
-            n = len(xs)
-            if e >= n:
-                e -= n - 1
+            return P*v/R
+    def Flatten_generator(seq, ltypes=(list, tuple)):
+        '''A generator that will return a flattened sequence from seq.  If an element in seq
+        is of one of the types in ltypes, then it's considered to be a sequence; otherwise,
+        it's a scalar element.
+        
+        The method is a nice use of a deque from
+        https://dev.to/miguendes/5-different-ways-to-flatten-a-list-of-lists-in-python-2cmn
+        The algorithm is:
+        
+        - dq = deque()
+        - Iterate through each element e of seq
+        - If e is not one of ltypes
+            - Append e to left of dq
+        - else
+            - dq.extendleft(reversed(e))
+        - Note:  reversing is needed because of the way extendleft works:
+            >>> dq = deque()
+            >>> dq.extendleft([1, 2, 3])
+            >>> dq
+            deque([3, 2, 1]
+        - Now iterate over the deque by popping the leftmost element e; if it's not an
+        ltypes, yield it; otherwise extendleft(reversed(e)).
+        '''
+        dq = deque()
+        for item in seq:
+            if ii(item, ltypes):
+                dq.extendleft(reversed(item))
+            else:
+                dq.appendleft(item)
+            while dq:
+                elem = dq.popleft()
+                if ii(elem, ltypes):
+                    dq.extendleft(reversed(elem))
+                else:
+                    yield elem
+    def Flatten(L, max_depth=None, ltypes=(list, tuple)):
+        '''Flatten every sequence in L whose type is contained in "ltypes" to "max_depth" levels down
+        the tree.  The sequence returned has the same type as the input sequence.
+        
+        Written by Kevin L. Sitze on 2010-11-25.  From
+        http://code.activestate.com/recipes/577470-fast-flatten-with-depth-control-and-oversight-over/?in=lang-python
+        This code may be used pursuant to the MIT License.
+        
+        Note:  itertools has a flatten() recipe that flattens one level:
+        
+            def flatten(listOfLists):
+                'Flatten one level of nesting'
+                return chain.from_iterable(listOfLists)
+                
+        but every element encountered needs to be an iterable.  This Flatten() function works more
+        generally.
+        '''
+        if max_depth is None:
+            def make_flat(x):
+                return True
+        else:
+            def make_flat(x):
+                return max_depth > len(x)
+        if callable(ltypes):
+            is_sequence = ltypes
+        else:
+            def is_sequence(x):
+                return isinstance(x, ltypes)
+        r, s = [], []
+        s.append((0, L))
+        while s:
+            i, L = s.pop()
+            while i < len(L):
+                while is_sequence(L[i]):
+                    if not L[i]:
+                        break
+                    elif make_flat(s):
+                        s.append((i + 1, L))
+                        L = L[i]
+                        i = 0
+                    else:
+                        r.append(L[i])
+                        break
+                else:
+                    r.append(L[i])
+                i += 1
+        try:
+            return type(L)(r)
+        except TypeError:
+            return r
+    def TempConvert(t, in_unit, to_unit):
+        "Convert the temperature in t in the unit specified in in_unit to the unit specified by to_unit"
+        allowed, k, r, a, b = "cfkr", 273.15, 459.67, 1.8, 32
+        def check(unit, orig):
+            if len(unit) != 1 and unit not in allowed:
+                raise ValueError("'%s' is a bad temperature unit" % orig)
+        inu, tou = [i.lower() for i in (in_unit, to_unit)]
+        check(inu, in_unit)
+        check(tou, to_unit)
+        if inu == tou:
+            return t
+        d = {
+            "cf": lambda t: a * t + b,
+            "ck": lambda t: t + k,
+            "cr": lambda t: a * (t + k),
+            "fc": lambda t: (t - b) / a,
+            "fk": lambda t: (t - b) / a + k,
+            "fr": lambda t: t + r,
+            "kc": lambda t: t - k,
+            "kf": lambda t: a * (t - k) + b,
+            "kr": lambda t: a * t,
+            "rc": lambda t: (t - r - b) / a,
+            "rf": lambda t: t - r,
+            "rk": lambda t: t / a,
+        }
+        T = d[inu + tou](t)
+        e = ValueError("Converted temperature is too low")
+        if (tou in "kr" and T < 0) or (tou == "c" and T < -k) or (tou == "f" and T < -r):
+            raise e
+        return T
+    def TemplateRound(x, template, up=None):
+        '''Round a number to a template number.
+            - The returned value's type will be the same as template's type
+            - template must be a number greater than zero
+            - x/template must be a meaningful expression (x will be converted to template's type)
+            - If up is None, then rounding is "simple", meaning the number is rounded up if the
+            left-over fraction is 0.5 or larger
+            - If up is True, then the fractional part is always rounded away from zero
+            - If up is False, then the fractional part is always rounded towards zero
+            - Supported types for template are int, float, flt, decimal.Decimal, fraction.Fraction,
+            and mpmath.mpf
+            
+        The algorithm determines how many template values are in x.  It is descended from the BASIC
+        algorithm on pg 435 of the 31 Oct 1988 issue of "PC Magazine":
+        
+            DEF FNRound(Amount, Template) = SGN(Amount)*INT(0.5 + ABS(Amount)/Template)*Template
+            
+        Examples:
+            TemplateRound(12, 10) = 10
+            TemplateRound(12, 10, up=True) = 20
+            TemplateRound(15, 10) = 20
+            TemplateRound(15, 10, up=False) = 10
+            
+            The following example shows that this "rounding" can lead to numbers that don't look
+            rounded.
+            
+                TemplateRound(1.6535, 0.1) = 1.7000000000000002
+                TemplateRound(1.6535, flt(0.1)) = 1.7
+                repr(TemplateRound(1.6535, flt(0.1))) = '1.7000000000000002'
+                
+            The root cause of the problem is that there's no floating point binary number equal to
+            1.7.  Use Decimal or mpmath numbers for such a case:
+            
+                TemplateRound(Decimal("1.6535"), Decimal("0.1")) = 1.7
+                TemplateRound(mpmath.mpf("1.6535"), mpmath.mpf("0.1")) = 1.7
+                
+            You can use fractions.Fraction too:
+            
+                TemplateRound(1.6535, Fraction(1, 8)) = 13/8
+                
+            which is correct, as 12/8 is 1.5 and 0.1535 is about 0.03 larger than 1/8.
+        '''
+        # Check inputs
+        if template <= 0:
+            raise ValueError("template must be > 0")
+        tt = type(template)
+        if not x:
+            return tt(x)
+        sign = tt(1) if x >= 0 else tt(-1)
+        y = tt(int(abs(tt(x) / template) + tt(1) / tt(2)) * template)
+        if up is not None:
+            # Round toward or away from zero
+            if sign < 0:
+                up = not up
+            if up and y < abs(tt(x)):  # Round away from zero
+                y += template
+            elif not up and y > abs(tt(x)):  # Round towards zero
+                y -= template
+        return sign * y
+    def ConvertToNumber(s, handle_i=True):
+        '''This is a general-purpose routine that will return a python number for a string if it is
+        possible.  The basic logic is:
+            - If it contains 'j' or 'J', it's complex
+            - If it contains '/', it's a fraction
+            - If it contains ',', '.', 'E', or 'e', it's a float
+            - Otherwise it's interpreted as an integer
+        Since I prefer to use 'i' for complex numbers, we'll also allow an 'i' in the number unless
+        handle_i is False.
+        '''
+        s = s.lower()
+        if handle_i:
+            s = s.replace("i", "j")
+        if "j" in s:
+            return complex(s)
+        elif "." in s or "e" in s or "," in s:
+            return float(s)
+        elif "/" in s:
+            return Fraction(s)
+        else:
+            return int(s)
+    def StringToNumbers(s, sep=" ", handle_i=True):
+        '''s is a string; return the sequence (tuple) of numbers it represents; number
+        strings are separated by the string sep.  The numbers returned are integers,
+        fractions, floats, or complex.  If handle_i is True, 'i' or 'I' are allowed as the
+        imaginary unit.
+        '''
+        seq = []
+        for line in s.strip().split(nl):
+            if sep is None:
+                seq.extend(line.split(sep))
+            else:
+                seq.extend(line.split())
+        return tuple([ConvertToNumber(i, handle_i=handle_i) for i in seq])
+    def hyphen_range(s):
+        '''Takes a set of range specifications of the form "a-b" and returns a list of
+        integers between a and b inclusive.  The string s will be separated on whitespace
+        after commas are replaced by spaces.
+        
+        See unrange() for doing the opposite thing.
+        
+        Examples:
+            "" returns []
+            "1" returns [1]
+            "2 3 4" returns [2, 3, 4]
+            "2-4" returns [2, 3, 4]
+            "4 3 2" returns [4, 3, 2]
+            "4-2" returns [4, 3, 2]
+            "1--2" returns [1, 0, -1, -2]
+            "-1--3" returns [-1, -2, -3]
+            "-3--1" returns [-3, -2, -1]
+            "1-3 5 10-8" returns [1, 2, 3, 5, 10, 9, 8]
+        '''
+        if not ii(s, str):
+            raise TypeError("s must be a string")
+        msg = f"{0!r} is of improper form"
+        fields, o = s.replace(",", " ").split(), []
+        for item in fields:
+            # See if it's a single integer
+            try:
+                o.append(int(item))
+                continue
+            except Exception:
+                pass
+            if item.startswith("-"):
+                n = item.count("-")
+                # It must have at least 2 hyphens in it, otherwise it would have been caught
+                # as an integer (unless e.g. it's a float or bad syntax)
+                if n < 2 or n > 3:
+                    raise ValueError(msg.format(item))
+                f = item[1:].split("-", maxsplit=1)
+                try:
+                    num1 = int("-" + f[0])
+                    num2 = int(f[1])
+                    if num1 <= num2:
+                        o.extend(list(range(num1, num2 + 1)))
+                    else:
+                        o.extend(list(range(num1, num2 - 1, -1)))
+                except Exception:
+                    raise ValueError(msg.format(item))
+            else:
+                f = item.split("-", maxsplit=1)
+                try:
+                    num1, num2 = [int(i) for i in f]
+                    if num1 <= num2:
+                        o.extend(list(range(num1, num2 + 1)))    
+                    else:
+                        o.extend(list(range(num1, num2 - 1, -1)))
+                except Exception:
+                    raise ValueError(msg.format(item))
+        return o
+    def unrange(seq, sort_first=False, sep="─"):   # Note ─ is required for e.g. -4 to -1
+        '''Turn a sequence of integers seq into a collection of ranges and return as a string.  It
+        provides a string summary of the ranges in the sequence.  See unrange_real() for sequences of
+        real numbers.
+        
+        If sort_first is True, the sequence is sorted before processing.  The sep string is used to
+        separate a number range.
+        
+        Examples: | represents the sep character
+            seq = [1, 5, 6, 7, 3, 4, 8, 10, 11, 12]
+            unrange(seq, sort_first=True)  outputs 1 3|8 10|12
+            unrange(seq, sort_first=False) outputs 1 5|7 3|4 8 10|12
+            seq = [-1, -5, -6, -7, -3, -4, -8, -10, -11, -12]
+            unrange(seq, sort_first=True)  outputs -12|-10 -8|-3 -1
+            unrange(seq, sort_first=False) outputs -1 -5 -6 -7 -3 -4 -8 -10 -11 -12
+        '''
+        if not seq:
+            return ""
+        dq = deque(sorted(seq)) if sort_first else deque(seq)
+        in_sequence = False
+        lastx = dq.popleft()
+        out = [lastx]
+        while dq:
+            x = dq.popleft()
+            if not ii(x, int):
+                raise TypeError(f"{x!r} is not an integer")
+            if not in_sequence and x == out[-1] + 1:
+                in_sequence = True
+            elif in_sequence:
+                if x != lastx + 1:
+                    in_sequence = False
+                    out.extend([sep, lastx])
+                    # Restart for the next range
+                    out.append(x)
+            else:
+                out.append(x)
+            lastx = x
+        if in_sequence:
+            out.extend([sep, lastx])
+        s = " ".join([str(i) for i in out])
+        u = s.replace(" " + sep + " ", sep)
+        return u
+    def unrange_real(seq, sort_first=False, sep="┅"):
+        '''Turn a sequence of numbers seq into a collection of ranges and return as a string.  It
+        provides a string summary of the ranges in the sequence.  See unrange() for sequences of
+        integers.
+        
+        If sort_first is True, the sequence is sorted before processing.  The sep string is used to
+        separate a number range.
+        
+        Note:  no knowledge about the sequence elements being real numbers is used; the only
+        operation used is ordering by the >= operator.  Thus, any sequence of items that can be
+        ordered by >= can be converted to a range.
+        
+        Examples:
+            seq = [1.0, 2.2, 3.1, 2.7, 8.1]
+            unrange_real(seq, sort_first=True)  outputs 1.0┅8.1
+            unrange_real(seq, sort_first=False) outputs 1.0┅3.1 2.7┅8.1
+        '''
+        if not seq:
+            return ""
+        dq = deque(sorted(seq)) if sort_first else deque(seq)
+        out, seq = [], []
+        while dq:
+            x = dq.popleft()
+            seq = [x]
+            while dq and dq[0] >= seq[-1]:
+                seq.append(dq.popleft())
+            s = f"{seq[0]}"
+            if len(seq) > 1:
+                s += f"{sep}{seq[-1]}"
+            out.append(s)
+            if not dq:
+                break  # Finished
+        return " ".join(out)
+    def grouper(data, mapper, reducer=None):
+        '''Simple map/reduce for data analysis.
+        
+        Each data element is passed to a *mapper* function.  The mapper returns key/value pairs or None
+        for data elements to be skipped.
+        
+        Returns a dict with the data grouped into lists.  If a *reducer* is specified, it aggregates
+        each list.
+        
+        >>> def even_odd(elem):                     # sample mapper
+        ...     if 10 <= elem <= 20:                # skip elems outside the range
+        ...         key = elem % 2                  # group into evens and odds
+        ...         return key, elem
+        
+        >>> grouper(range(30), even_odd)         # show group members
+        {0: [10, 12, 14, 16, 18, 20], 1: [11, 13, 15, 17, 19]}
+        
+        >>> grouper(range(30), even_odd, sum)    # sum each group
+        {0: 90, 1: 75}
+        
+        Note:  from http://code.activestate.com/recipes/577676-dirt-simple-mapreduce/?in=lang-python I
+        renamed the function to grouper.
+        '''
+        d = {}
+        for elem in data:
+            r = mapper(elem)
+            if r is not None:
+                key, value = r
+                if key in d:
+                    d[key].append(value)
+                else:
+                    d[key] = [value]
+        if reducer is not None:
+            for key, group in d.items():
+                d[key] = reducer(group)
+        return d
+    def IsConvexPolygon(*p):
+        '''Return True if the sequence p of two-dimensional points constitutes a convex polygon.  Ref:
+        http://stackoverflow.com/questions/471962/how-do-determine-if-a-polygon-is-complex-convex-nonconvex
+        
+        The assumption is that the sequence p of points traverses consecutive points of the polygon.
+        
+        The algorithm is to look at the triples of points and calculate the sign of the z component of
+        their cross product.  The polygon is convex if the signs are either all negative or all
+        positive.
+        
+        Examples:
+            ((0, 0), (1, 0), (1, 1), (1, 0)) will return True.
+            ((0, 0), (1, 0), (1, 1), (0.5,         0.5)) will return False.
+            ((0, 0), (1, 0), (1, 1), (0.5 - 1e-10, 0.5)) will return True.
+        '''
+        n = len(p)
+        if n < 3:
+            raise ValueError("Need at least three points")
+        cross_product_signs = []
+        for index in range(n + 3):
+            # Generate indices of the needed points
+            i = index % n
+            j = (index + 1) % n
+            k = (index + 2) % n
+            p1, p2, p3 = p[i], p[j], p[k]
+            dx1 = p2[0] - p1[0]
+            dy1 = p2[1] - p1[1]
+            dx2 = p3[0] - p2[0]
+            dy2 = p3[1] - p2[1]
+            cross_product_signs.append(signum(dx1 * dy2 - dy1 * dx2))
+        assert len(cross_product_signs) == n + 3
+        if cross_product_signs[0] and len(set(cross_product_signs)) == 1:
+            return True
+        return False
+    def BraceExpansion(s, glob=False):
+        '''Generator to perform brace expansion on the string s.  If glob is True, then also glob each
+        pattern in the current directory.  Examples:
+        
+        - BraceExpansion("a.{a, b}")) returns
+            ['a.a', 'a. b'].
+        - BraceExpansion("pictures/*.{jpg, png}")) returns a list of
+            all the JPG and PNG files in the pictures directory under the
+            current directory.
+        - BraceExpansion("{a,b}/*.{jpg,png}") returns
+            ['a/*.jpg', 'a/*.png', ' b/*.jpg', ' b/*.png']
+        - BraceExpansion("{,a}/{c,d}") returns
+            ['/c', '/d', 'a/c', 'a/d']
+        - BraceExpansion(r"{,,a}/{c,d}") returns
+            ['/c', '/d', '/c', '/d', 'a/c', 'a/d']
+        '''
+        '''Algorithm from http://rosettacode.org/wiki/Brace_expansion#Python The web page's content is
+        available under the GNU Free Documentation license 1.2.
+        '''
+        def getitem(s, depth=0):
+            out = [""]
+            while s:
+                c = s[0]
+                if depth and (c == "," or c == "}"):
+                    return out, s
+                if c == "{":
+                    x = getgroup(s[1:], depth + 1)
+                    if x:
+                        out, s = [a + b for a in out for b in x[0]], x[1]
+                        continue
+                if c == "\\" and len(s) > 1:
+                    s, c = s[1:], c + s[1]
+                out, s = [a + c for a in out], s[1:]
+            return out, s
+        def getgroup(s, depth):
+            out, comma = [], False
+            while s:
+                g, s = getitem(s, depth)
+                if not s:
+                    break
+                out += g
+                if s[0] == "}":
+                    if comma:
+                        return out, s[1:]
+                    return ["{" + a + "}" for a in out], s[1:]
+                if s[0] == ",":
+                    comma, s = True, s[1:]
+            return None
+        if glob:
+            for i in getitem(s)[0]:
+                for j in glob.glob(i):
+                    yield j
+        else:
+            for i in getitem(s)[0]:
+                yield i
+    def Spinner(chars=r"-\|/-\|/", delay=0.1):
+        '''Show a spinner to indicate that processing is still taking place.  Set Spinner.stop to True
+        to cause it to exit.  Note this is not thread-safe.
+        
+        Here's some example code that demonstrates how it could be used:
+        
+            from threading import Thread
+            def T():
+                Spinner()
+                if Spinner.stop:
+                    return
+            t = Thread(target=T)
+            t.start()
+            time.sleep(2)
+            Spinner.stop = True
+        '''
+        # Idea from https://realpython.com/python-print/#living-it-up-with-cool-animations
+        for frame in cycle(chars):
+            print("\r", frame, sep="", end="", flush=True)
+            time.sleep(delay)
+            if Spinner.stop:
+                print()
+                return
+    Spinner.stop = False
+    def ProgressBar(frac=0, width=40, char="#"):
+        '''Prints a progress bar to stdout.  frac must be a number on the closed interval [0, 1].
+        
+        Here's an example of use:
+            n = 100
+            for i in range(n + 1):
+                ProgressBar(i/n)
+                time.sleep(0.01)
+            print()
+        '''
+        # Idea from https://realpython.com/python-print/#living-it-up-with-cool-animations
+        assert len(char) == 1
+        left = int(width * frac)
+        right = width - left
+        percent = int(100 * frac)
+        print(
+            "\r[",
+            char * left,
+            " " * right,
+            "]",
+            " {}%".format(percent),
+            sep="",
+            end="",
+            flush=True,
+        )
+    def Paste(*seq, missing="", sep="\t"):
+        '''Return a list whose elements are each corresponding element of the sequences in *seq,
+        separated by the string sep.  If a sequence is too short, the missing string will be
+        substituted.  All sequence elements will be converted to strings using str().
+        
+        Example:
+            Paste([1, 2, "a"], ["3 4", 5], missing="X")
+        will return
+            ['1\t3 4', '2\t5', 'a\tX']
+        '''
+        result = list(zip_longest(*seq, fillvalue=missing))
+        for i, item in enumerate(result):  # Convert all elements to strings
+            result[i] = [str(j) for j in result[i]]
+        return [sep.join(i) for i in result]
+    def EBCDIC():
+        '''Returns two byte-translation tables to use with
+        bytes.translate().  The first converts ASCII bytes to EBCDIC and the
+        second converts EBCDIC bytes to ASCII.
+        '''
+        a2e = [
+            int(i)
+            for i in '''0 1 2 3 55 45 46 47 22 5 37 11 12 13 14 15 16 17 18 19 60 61 50 38 24 25 63 39 28 29
+            30 31 64 79 127 123 91 108 80 125 77 93 92 78 107 96 75 97 240 241 242 243 244 245 246
+            247 248 249 122 94 76 126 110 111 124 193 194 195 196 197 198 199 200 201 209 210 211
+            212 213 214 215 216 217 226 227 228 229 230 231 232 233 74 224 90 95 109 121 129 130 131
+            132 133 134 135 136 137 145 146 147 148 149 150 151 152 153 162 163 164 165 166 167 168
+            169 192 106 208 161 7 32 33 34 35 36 21 6 23 40 41 42 43 44 9 10 27 48 49 26 51 52 53 54
+            8 56 57 58 59 4 20 62 225 65 66 67 68 69 70 71 72 73 81 82 83 84 85 86 87 88 89 98 99
+            100 101 102 103 104 105 112 113 114 115 116 117 118 119 120 128 138 139 140 141 142 143
+            144 154 155 156 157 158 159 160 170 171 172 173 174 175 176 177 178 179 180 181 182 183
+            184 185 186 187 188 189 190 191 202 203 204 205 206 207 218 219 220 221 222 223 234 235
+            236 237 238 239 250 251 252 253 254 255'''.split()
+        ]
+        e2a = [
+            int(i)
+            for i in '''0 1 2 3 156 9 134 127 151 141 142 11 12 13 14 15 16 17 18 19 157 133 8 135 24 25 146
+            143 28 29 30 31 128 129 130 131 132 10 23 27 136 137 138 139 140 5 6 7 144 145 22 147
+            148 149 150 4 152 153 154 155 20 21 158 26 32 160 161 162 163 164 165 166 167 168 91 46
+            60 40 43 33 38 169 170 171 172 173 174 175 176 177 93 36 42 41 59 94 45 47 178 179 180
+            181 182 183 184 185 124 44 37 95 62 63 186 187 188 189 190 191 192 193 194 96 58 35 64
+            39 61 34 195 97 98 99 100 101 102 103 104 105 196 197 198 199 200 201 202 106 107 108
+            109 110 111 112 113 114 203 204 205 206 207 208 209 126 115 116 117 118 119 120 121 122
+            210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231
+            123 65 66 67 68 69 70 71 72 73 232 233 234 235 236 237 125 74 75 76 77 78 79 80 81 82
+            238 239 240 241 242 243 92 159 83 84 85 86 87 88 89 90 244 245 246 247 248 249 48 49 50
+            51 52 53 54 55 56 57 250 251 252 253 254 255'''.split()
+        ]
+        s, t = bytearray(a2e), bytearray(e2a)
+        return s.maketrans(s, t), s.maketrans(t, s)
+    def Ampacity(dia_mm, insul_degC=60, ambient_degC=30):
+        '''Return the NEC-allowed current in a copper conductor at the indicated ambient temperature
+        and with the indicated insulation temperature rating.
+        
+        The data from table 310-16 in the 1998 NEC was fitted to cubic polynomials, so the table data
+        won't be reproduced exactly.  Thus, the intended use is to estimate safe currents for a given
+        wire size, particularly smaller wires than are in the table.  To get the ampacity of a smaller
+        wire, the constant term of the regression was set to zero.
+        
+        The data and regressions are in /elec/projects/current_capacity.
+        '''
+        def AmbientCorrection(ambient_degC, insul_degC):
+            if insul_degC not in (60, 75, 90):
+                raise ValueError("insul_degC must be 60, 75, or 90 °C")
+            if insul_degC == 60:
+                i = 0
+            elif insul_degC == 75:
+                i = 1
+            elif insul_degC == 90:
+                i = 2
+            T = int(ambient_degC)
+            if not (21 <= T <= 80):
+                raise ValueError("ambient_degC must be between 21 and 80 °C")
+            if 21 <= T <= 25:
+                return (1.08, 1.05, 1.04)[i]
+            elif 26 <= T <= 30:
+                return 1
+            elif 31 <= T <= 35:
+                return (0.91, 0.94, 0.96)[i]
+            elif 36 <= T <= 40:
+                return (0.82, 0.88, 0.91)[i]
+            elif 41 <= T <= 45:
+                return (0.71, 0.82, 0.87)[i]
+            elif 46 <= T <= 50:
+                return (0.58, 0.75, 0.82)[i]
+            elif 51 <= T <= 55:
+                return (0.41, 0.67, 0.76)[i]
+            elif 56 <= T <= 60:
+                return (0, 0.58, 0.71)[i]
+            elif 61 <= T <= 70:
+                return (0, 0.33, 0.58)[i]
+            elif 71 <= T <= 80:
+                return (0, 0, 0.41)[i]
+        max_dia_mm = 11.68
+        if not (0 < dia_mm <= max_dia_mm):
+            raise ValueError("dia_mm must be in (0, 11.68 mm]")
+        if insul_degC not in (60, 75, 90):
+            raise ValueError("insul_degC must be 60, 75, or 90 °C")
+        constants = {
+            60: (10.6841, 0.667284, -0.014032),
+            75: (11.0919, 1.25111, -0.0445333),
+            90: (12.9412, 1.30463, -0.0441503),
+        }
+        b1, b2, b3 = constants[insul_degC]
+        correction = AmbientCorrection(ambient_degC, insul_degC)
+        if correction:
+            return correction * (b1 * dia_mm + b2 * dia_mm**2 + b3 * dia_mm**3)
+        else:
+            raise ValueError("ambient_degC out of range")
+    def Ranges(seq, validate=False):
+        '''seq is a sequence of integers.  This function will return the sequence as a
+        list of either 2-tuples or single integers.  The 2-tuples represent the
+        arguments to range() to reproduce the original sequence of integers.  If
+        validate is True, the returned list will be validated by reproducing the
+        original sequence.
+        
+        Examples
+            [1, 2, 3, 5] --> [(1, 4), 5]
+            [1, 3, 2, 5] --> [1, 3, 2, 5]
+        
+        The intended use case is a form of "compression" for long sequences and an index
+        case is the set of Unicode codepoints, where I wanted to see how much shorter
+        such a representation is than the set of integers.
+        
+        The algorithm is derived from 
+        https://stackoverflow.com/questions/3429510/pythonic-way-to-convert-a-list-\
+        of-integers-into-a-string-of-comma-separated-range/3430231#3430231
+        and is the 7 Aug 2010 answer due to John La Rooy.  It's a neat solution and I 
+        thank La Rooy and StackOverflow for posting the answer.
+
+            Content of above link
+            # Source - https://stackoverflow.com/a
+            # Posted by John La Rooy, modified by community. See post 'Timeline' for change history
+            # Retrieved 2026-01-18, License - CC BY-SA 2.5
+
+            >>> from itertools import count, groupby
+            >>> L=[1, 2, 3, 4, 6, 7, 8, 9, 12, 13, 19, 20, 22, 23, 40, 44]
+            >>> G=(list(x) for _,x in groupby(L, lambda x,c=count(): next(c)-x))
+            >>> print ",".join("-".join(map(str,(g[0],g[-1])[:len(g)])) for g in G)
+            1-4,6-9,12-13,19-20,22-23,40,44
+        
+        Note 18 Jan 2026:  this function was broken when the selftests ran.  I attribute the
+        cause to 'ruff check' telling me to get rid of the lambda function I had; so I
+        defined the function f(x, c) instead and the linter was happy.  But things broke a
+        week or so later when I ran the self tests.  Thus, I'll use the original code with
+        the lambda in the generator.
+
+        '''
+        if validate:
+            orig = list(seq)    # Copy of original sequence
+        # Make sure all the elements of seq are integers
+        if not all(ii(i, int) for i in seq):
+            raise TypeError("Not all elements of seq are integers")
+        # This is the same code used in the StackOverflow solution, substituting seq for L.
+        # And things work again.
+        G = (list(x) for _,x in groupby(seq, lambda x,c=count(): next(c)-x))
+        # Convert into pairs of numbers for range()
+        o = []
+        for i in list(G):
+            o.append((i[0], i[-1] + 1)) if len(i) > 1 else o.append(i[0])
+        if validate:
+            p = []
+            for i in o:
+                p.append(list(range(i[0], i[1]))) if ii(i, tuple) else p.append(i)
+            if Flatten(p) != orig:
+                raise ValueError("Validation failed")
+        return o
+    def RandomIntegers(n, maxint, seed=None, duplicates_OK=False):
+        '''Return a random list of n integers between 0 and maxint - 1.  Set seed to be not None to
+        generate a repeatable set of integers.  If duplicates_OK is False, the integers are distinct;
+        otherwise, the list may contain duplicates.
+        '''
+        # Check parameters
+        if not isinstance(n, int) or not isinstance(maxint, int):
+            raise TypeError("n and maxint must be integers")
+        if n <= 0:
+            raise ValueError("n must be > 0")
+        if not maxint and duplicates_OK:
+            return [0] * n
+        if not duplicates_OK and n > maxint:
+            raise ValueError(
+                f"maxint ({maxint}) is too small to generate {n} distinct integers"
+            )
+        s = [] if duplicates_OK else set()
+        f = s.append if duplicates_OK else s.add
+        numbytes = maxint.bit_length() // 8 + 1
+        if seed is not None:
+            random.seed(seed)
+        while len(s) < n:
+            if seed is None:
+                f(int.from_bytes(os.urandom(numbytes), "big") % maxint)
+            else:
+                f(random.randint(0, maxint - 1))
+        return list(s)
+    def execfile(filename, globals=None, locals=None, use_user_env=True):
+        '''Python 3 substitute for python 2's execfile.  It gets the locals and globals from the
+        caller's environment unless use_user_env is False.
+        
+        Caution:  you should be aware of the risks of using this function to execute arbitrary code,
+        as a malicious file could e.g. wipe out your system or do other types of arbitrary damage.
+        '''
+        # https://stackoverflow.com/questions/436198/what-is-an-alternative-to-execfile-in-python-3
+        e = sys._getframe(1)
+        if globals is None and use_user_env:
+            globals = e.f_globals
+        if locals is None and use_user_env:
+            locals = e.f_locals
+        with open(filename, "r") as fh:
+            s = fh.read() + "\n"
+            exec(s, globals, locals)
+    def signum(x):
+        try:
+            if x < 0:
+                return -1
+            elif x > 0:
+                return 1
+            return 0
+        except Exception:
+            raise TypeError(f"x = '{x}' not a suitable numerical type")
+    def SizeOf(o, handlers={}, verbose=False, full=False, title=None):
+        '''Returns a string containing the approximate memory in bytes used by
+        an object.  Recursively uses sys.getsizeof().
+        
+        verbose     If True, show the details on each object.
+        full        If True, use repr() instead of reprlib.repr()
+        title       String for first line in verbose report
+        handlers    dict(Class: Handler)
+            Example handler for class:
+                def Iter(s):
+                    return s.attr1, s.attr2
+                handler = {MyClass: Iter}
+        '''
+        # DP 11 Apr 2022
+        # This is a modified version of
+        # https://code.activestate.com/recipes/577504/.  Changes:
+        #  - The ability to make verbose a stream
+        #  - Indented the verbose output to see the recursion
+        #  - Added the full and title keywords
+        #  - Used deque to collect output
+        def dict_handler(d):
+            return chain.from_iterable(d.items())
+        all_handlers = {
+            tuple: iter,
+            list: iter,
+            deque: iter,
+            dict: dict_handler,
+            set: iter,
+            frozenset: iter,
+        }
+        all_handlers.update(handlers)  # User handlers take precedence
+        seen = set()  # Track objects seen
+        default_size = sys.getsizeof(0)  # Estimate size without __sizeof__
+        Repr_local = repr if full else Repr
+        indent, output = 0, deque()
+        if verbose:
+            output.append(title) if title else output.append("Components:")
+        def sizeof(o):
+            nonlocal indent
+            indent += 2
+            if id(o) in seen:  # do not double count the same object
+                return 0
+            seen.add(id(o))
+            sz = sys.getsizeof(o, default_size)
+            if verbose:
+                i = " " * (indent - 1)
+                output.append(" ".join((i, str(sz), str(type(o)), Repr_local(o))))
+            for typ, handler in all_handlers.items():
+                if isinstance(o, typ):
+                    sz += sum(map(sizeof, handler(o)))
+                    break
+            indent -= 2
+            return sz
+        total = sizeof(o)
+        if verbose:
+            s = output.popleft()
+            s = f"{total} {s}"
+            output.appendleft(s)
+            return "\n".join(output)
+        else:
+            return total
+    class PPSeq:
+        '''Format sequences for pretty printing
+        Floats must be in [0, 1].
+        
+        Example:
+            p = PPSeq(bits_per_number=32)
+            a = [.4, .12, .33, .16000]
+            print(p(a))
+        prints
+            [0.4000000000, 0.1200000000, 0.3300000000, 0.1600000000]
+        '''
+        def __init__(self, bits_per_number=8):
+            self._bpn = bits_per_number
+        def __call__(self, seq, **kw):
+            "Return a pretty string form of seq"
+            # Get keyword arguments
+            exp = kw.get("exp", False)  # Show bits exponent
+            brackets = kw.get("brackets", True)  # Enclose in brackets
+            comma = kw.get("comma", True)  # Separate with commas
+            sep = kw.get("sep", " ")  # Element separation string
+            # Get the container type and decorators
+            if ii(seq, tuple):
+                left, right = "(", ")"
+            elif ii(seq, list):
+                left, right = "[", "]"
+            elif ii(seq, set):
+                left, right = "{", "}"
+            elif ii(seq, deque):
+                left, right = "<", ">"
+            elif ii(seq, bytes):
+                left, right = "«", "»"
+            else:
+                raise TypeError("Unsupported container type")
+            x = self.get_element(seq)
+            # Must be an iterable
+            if not IsIterable(seq):
+                raise TypeError("seq isn't an iterable")
+            # Must contain a supported type
+            if not self.is_monotype(seq):
+                raise TypeError("seq doesn't contain only one numerical type")
+            # Get strings
+            if ii(x, int):
+                myseq = [self.format(i) for i in seq]
+            else:
+                myseq = [self.format(float(i)) for i in seq]
+            s = "," if comma else ""
+            s += sep
+            t = s.join(myseq)
+            if brackets:
+                t = f"{left}{t}{right}"
+                if exp:
+                    u = "⁰¹²³⁴⁵⁶⁷⁸⁹"
+                    t += "".join(u[int(i)] for i in str(self._bpn))
+            return t
+        def get_element(self, seq):
+            if ii(seq, tuple):
+                return seq[0]
+            elif ii(seq, list):
+                return seq[0]
+            elif ii(seq, set):
+                x = seq.pop()
+                seq.add(x)
+                return x
+            elif ii(seq, deque):
+                x = seq.pop()
+                seq.append(x)
+                return x
+            elif ii(seq, bytes):
+                return seq[0]
+        def format(self, x):
+            "Return the string form of number x (float or int)"
+            if ii(x, int):
+                w = len(str((2**self._bpn - 1)))
+                return f"{x:{w}d}"
+            else:
+                assert 0 <= x <= 1
+                # Get the number of decimal places to display this float
+                w = math.ceil(-math.log10(1 / (2**self._bpn - 1)))
+                return f"{x:{w + 2}.{w}f}"
+        def is_monotype(self, seq):
+            "Return True if seq contains only one supported type"
+            x = self.get_element(seq)
+            # Check the type of each element
+            typ = type(x)
+            if not all(type(i) is typ for i in seq):
+                return False
+            # Make sure they are of the allowed types
+            if not ii(x, (int, float, Decimal, Fraction)):
+                try:
+                    float(x)
+                except Exception:
+                    return False
+            return True
+    class Now:
+        '''Example:
+            s = Now()
+            print(s.time())
+            print(s.date())
+            print(s.cdate())
+        prints
+            3:20pm
+            11 Oct 2024
+            11Oct2024
+        '''
+        def __init__(self):
+            self._t = t = time.localtime()
+            dy = self.remove_leading_zero(time.strftime("%d", t))
+            mo = time.strftime("%b", t)
+            yr = time.strftime("%Y", t)
+            self._dt = dy, mo, yr
+        def remove_leading_zero(self, s):
+            if s[0] == "0":
+                return s[1:]
+            return s
+        def time(self):
+            t = self._t
+            hr = self.remove_leading_zero(time.strftime("%I", t))
+            min = time.strftime("%M", t)
+            ampm = time.strftime("%p", t).lower()
+            return f"{hr}:{min}{ampm}"
+        def date(self):
+            dy, mo, yr = self._dt
+            return f"{dy} {mo} {yr}"
+        def cdate(self):
+            dy, mo, yr = self._dt
+            return f"{dy}{mo}{yr}"
+    def NumBitsInByte():
+        'Returns a dict to count bits in a byte:  d = NumBitsInByte() and d[0xff] = 8'
+        if not hasattr(NumBitsInByte, "dict"):
+            NumBitsInByte.dict, bits_in_nibble = {}, tuple(bin(i).count('1') for i in range(16))
+            for i in range(0x100):
+                NumBitsInByte.dict[i] = bits_in_nibble[i & 0x0f] + bits_in_nibble[i >> 4]
+        return NumBitsInByte.dict
+    def DoubleFactorial(n):
+        '''Returns n!! which is defined to be the product from k = 0 to k = int(n/2) - 1 of (n - 2*k).
+        Since we ensure that n is an integer, this function should never fail, but of course it will
+        take a long time for big integers.
+        
+        Examples:
+            If n is even, n!! = n(n - 1)(n - 4)···(4)(2)
+                Or:  Product from k = 1 to n//2 of 2*k
+            If n is odd,  n!! = n(n - 1)(n - 4)···(3)(1)
+                Or:  Product from k = 1 to (n+1)//2 of 2*k - 1
+        '''
+        if not isinstance(n, int):
+            raise TypeError("n must be an integer")
+        if n < 0:
+            raise ValueError("n must not be negative")
+        product = 1
+        for i in range(n, 0, -2):
+            product *= i
+        return product
+    def Cumul(seq, check=False):
+        '''Return the cumulative sum list of the given sequence seq.  If check is True, verify the last
+        element of the returned array is equal to the sum of all the elements in seq.
+        
+        Example:  Cumul([1, 2, 3, 4, 7]) returns [1, 3, 6, 10, 17]
+        '''
+        cumul, dq = [], deque(seq)
+        while dq:
+            item = dq.popleft()
+            cumul.append(cumul[-1] + item) if cumul else cumul.append(item)
+        if check and cumul and cumul[-1] != sum(seq):
+            raise ValueError("Sum of sequence not same as last cumul element")
+        return cumul
+    def ParseComplex(numstring):
+        '''numstring contains a string representing a complex number that must be of the form 'x+yi';
+        the complex unit can be i or j.  Return (real, imag) where real and imag are the real and
+        imaginary strings of the complex number.  Space characters can be anywhere in the string, as
+        they are removed.
+        '''
+        # The method uses a regular expression to recognize the string forms of integers or real
+        # numbers.  Applied to the string twice, it picks out the real and imaginary parts.
+        str = numstring.lower().strip().replace("i", "j").replace(",", ".").replace(" ", "")
+        msg = f"{numstring!r} not a valid complex number string"
+        # Check for illegal characters
+        s = set(str)
+        if not s.issubset(set("j+-e.0123456789")):
+            raise ValueError(msg)
+        # Regular expression to recognize an int or float
+        regex = r'''
+                (                               # Group
+                    [+-]?                       # Optional sign
+                    \.\d+                       # Number like .345
+                    ([eE][+-]?\d+)?|            # Optional exponent
+                # or
+                    [+-]?                       # Optional sign
+                    \d+\.?\d*                   # Number:  2.345
+                    ([eE][+-]?\d+)?             # Optional exponent
+                )                               # End group
+                '''
+        r = re.compile(regex, re.X)
+        # If no 'j', it's real
+        if str[-1] != "j":
+            return (str, "")
+        if 1:  # Extract real part
+            first = ""
+            mo = r.search(str)
+            if mo:
+                a, b = mo.span()
+                first = str[a:b]
+                str = str[b:]
+            else:
+                # It must have been only 'j' or '-j'
+                if str[0] == "+" or str[0] == "j":
+                    return ("", "1")
+                elif str[0] == "-":
+                    return ("", "-1")
+                else:
+                    raise ValueError(msg)
+            if str == "j":
+                # It was pure imaginary
+                return ("", first)
+        if 1:  # Extract imag part
+            mo = r.search(str)
+            if mo:
+                a, b = mo.span()
+                second = str[a:b]
+                assert str[-1] == "j"
+            else:
+                # It can only be '+j' or '-j'
+                if str == "+j":
+                    second = "1"
+                elif str == "-j":
+                    second = "-1"
+                else:
+                    raise ValueError(msg)
+        return (first, second)
+    def Unique(seq):
+        '''Generator to return only the unique elements in sequence.  The order of the items in the
+        sequence is maintained.
+        '''
+        found = set()
+        for item in seq:
+            if item in found:
+                continue
+            else:
+                found.add(item)
+                yield item
+    def AcceptableDiff(x, y, n=3, strict=False):
+        '''Return True if abs((x - y)/x) <= 10ⁿ.  If x is 0, then calculate abs((y - x)/y).  If
+        strict is True, then x and y must be the same numerical type.
+        
+        The use case for this is testing for numerical differences when the numbers come from physical
+        measurements.  Most of the time such data have n = 2, 3, or 4 figures.
+        '''
+        if strict and (type(x) is not type(y)):
+            raise TypeError("x and y must be the same numerical type")
+        if x == y:
+            return True
+        if x:
+            return abs((x - y) / x) <= 10**-n
+        else:
+            return abs((x - y) / y) <= 10**-n
+    def ShowFile(*files):
+        "Open indicated file(s) with registered app"
+        for file in files:
+            if wsl:
+                # Use the ~/.0rc/bin/expl script to open a file with Explorer.  This script first
+                # cd's to the file's directory, as otherwise Explorer doesn't work.
+                subprocess.run(f"/home/don/.0rc/bin/expl {file}", shell=True)
+            else:
+                app = "d:/cygwin64/bin/cygstart.exe"  # cygwin
+                subprocess.run([app, file])
+    def Winnow(seq, regexps=[], OR=False, flags=re.I):
+        '''Returns a set of strings contained in seq that match the regular expression strings in the
+        sequence regexps.  The regexps are ANDed together unless OR is True.  flags are used in the
+        re.compile() function (use 0 or re.NOFLAG to use no flags).
+        '''
+        if not seq:
+            return set()
+        if not regexps:
+            return set(seq)
+        # Don't modify seq or regexps
+        items = set(seq)
+        regexes = deque(regexps)
+        if not all(ii(i, str) for i in items):
+            raise TypeError("Items in seq must all be strings")
+        if not all(ii(i, str) for i in regexps):
+            raise TypeError("Items in *regexps must all be strings")
+        results = set()
+        while regexes:
+            r = re.compile(regexes.popleft(), flags)
+            for item in items:
+                if r.search(item):
+                    results.add(item)
+            if not OR and regexes:
+                items = results
+                results = set()
+        return results
+    def Len(string):
+        "Return the length of a string with ANSI escape sequences removed"
+        return len(ANSI_strip(string))
+    def ANSI_strip(string):
+        '''Return the string with ANSI escape sequences removed.  16 Feb 2023 Suggested
+        regexp from
+        https://stackoverflow.com/questions/14693701/how-can-i-remove-the-ansi-escape-sequences-from-a-string-in-python
+        (see the answer below this answer, as it is a more general regexp).
+        '''
+        r = re.compile(r"(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]")
+        return r.sub("", string)
+    def fsig(x, digits=None):
+        '''Returns a string representing the float x to a specified number of digits.  x can
+        also be an integer, in which case it is converted to a float.  Similar to the 'g'
+        string formatting spec, but you can control the points where fixed point
+        interpolation switches to scientific notation.
+        
+        The fsig function attributes control other behaviors:
+        
+            fsig.low         Use scientific notation if x < low
+            fsig.high        Use scientific notation if x >= high
+            fsig.digits      Default number of significant digits
+            fsig.dp          String to use for decimal point
+            fsig.rdp         Remove ending decimal point if True
+            fsig.rtz         Remove trailing zeroes if True
+            fsig.rlz         Remove leading 0 before decimal point if True
+        
+        This function is not thread-safe.
+        '''
+        with fsig_lock:
+            fsig.low = fsig.__dict__.get("low", 1e-5)
+            fsig.high = fsig.__dict__.get("high", 1e6)
+            fsig.digits = fsig.__dict__.get("digits", 3)
+            fsig.dp = fsig.__dict__.get("dp", ".")
+            fsig.rdp = fsig.__dict__.get("rdp", False)
+            fsig.rtz = fsig.__dict__.get("rtz", False)
+            fsig.rlz = fsig.__dict__.get("rlz", False)
+            def rtz(s):
+                if not fsig.rtz:
+                    return s
+                t = list(s)
+                while t and t[-1] == "0":
+                    del t[-1]
+                return "".join(t)
+            if fsig.low > fsig.high:
+                raise ValueError("fsig.low > fsig.high")
+            msg = "{}digits = {} is out of range"
+            if not (1 <= fsig.digits <= 15):
+                raise ValueError(msg.format("fsig.", fsig.digits))
+            if digits is not None and not (1 <= digits <= 15):
+                raise ValueError(msg.format("", digits))
+            if not isinstance(x, (float, int)):
+                raise TypeError("x must be a float or integer")
+            if isinstance(x, int):
+                x = float(x)
+            ndig = fsig.digits - 1 if digits is None else digits - 1
+            if x and (abs(x) < fsig.low or abs(x) > fsig.high):
+                xs = "{:.{}e}".format(x, ndig)  # Use scientific notation
+                st, e = xs.split("e")
+                t = "{}e{}".format(rtz(st), int(e))
+                return t.replace(".", fsig.dp)
+            # xs = list of significant digits with decimal point removed
+            # e = integer exponent
+            xs, e = "{:.{}e}".format(abs(x), ndig).replace(".", "").split("e")
+            xs, e = list(xs), int(e)
+            sgn = "-" if x < 0 else ""
+            if not e:
+                t = "{:.{}e}".format(abs(x), ndig).split("e")[0]
+                u = t.replace(".", fsig.dp)
+                v = rtz(u)
+                if fsig.rdp and v[-1] == fsig.dp:
+                    v = v[:-1]
+                return sgn + v
+            elif e < 0:
+                e = abs(e) - 1
+                xs.reverse()
                 while e:
                     xs.append("0")
                     e -= 1
                 xs.append(fsig.dp)
+                if not fsig.rlz:
+                    xs.append("0")
+                xs.reverse()
             else:
-                xs.insert(e + 1, fsig.dp)
-        t = rtz("".join(xs))
-        if fsig.rdp and t[-1] == fsig.dp:
-            t = t[:-1]
-        return sgn + t
-class astr(str):
-    '''This is a string object that uses a regular expression to remove
-    ANSI color-coding strings before calculating the string length.
-    '''
-    # This regular expression is used to replace color-coding escape sequence with the
-    # empty string.  See https://en.wikipedia.org/wiki/ANSI_escape_code.
-    r = re.compile(r"\x1b\[[0-?]*[ -\/]*[@-~]")
-    def __len__(self):
-        return len(astr.r.sub("", str(self)))
-def alen(s):
-    'Function to get the length of a string, ignoring any ANSI escape sequences'
-    return len(astr.r.sub("", s))
+                n = len(xs)
+                if e >= n:
+                    e -= n - 1
+                    while e:
+                        xs.append("0")
+                        e -= 1
+                    xs.append(fsig.dp)
+                else:
+                    xs.insert(e + 1, fsig.dp)
+            t = rtz("".join(xs))
+            if fsig.rdp and t[-1] == fsig.dp:
+                t = t[:-1]
+            return sgn + t
+    class astr(str):
+        '''This is a string object that uses a regular expression to remove
+        ANSI color-coding strings before calculating the string length.
+        '''
+        # This regular expression is used to replace color-coding escape sequence with the
+        # empty string.  See https://en.wikipedia.org/wiki/ANSI_escape_code.
+        r = re.compile(r"\x1b\[[0-?]*[ -\/]*[@-~]")
+        def __len__(self):
+            return len(astr.r.sub("", str(self)))
+    def alen(s):
+        'Function to get the length of a string, ignoring any ANSI escape sequences'
+        return len(astr.r.sub("", s))
 
 if __name__ == "__main__":
-    # Missing tests for: Ignore Debug, GetString
     from io import StringIO
     from lwtest import run, assert_equal, raises, Assert
     from dpseq import fDistribute
@@ -2161,6 +2157,16 @@ if __name__ == "__main__":
     # Need to have version, as SizeOf stuff changed between 3.7 and 3.9
     vi = sys.version_info
     ver = f"{vi[0]}.{vi[1]}"
+    if 1:  # Debugging help
+        class G:
+            pass
+        g = G()
+        g.dbg = False
+        def Dbg(*p, **kw):
+            if g.dbg:
+                print(f"{t.dbg}", end="")
+                print(*p, **kw)
+                print(f"{t.N}", end="")
     def Test_NumBitsInByte():
         d = NumBitsInByte()
         for i in d:
@@ -3174,6 +3180,7 @@ if __name__ == "__main__":
             vi
             zip_longest
             _have_mpmath
+            _pgminfo
             __
             __package__
             __name__

@@ -650,7 +650,7 @@ if __name__ == "__main__":
                 {t.k}halt{t.n}        Stop at the first failure.  [{t.d}False{t.n}]
                 {t.k}quiet{t.n}       If True, no output.  [{t.d}False{t.n}]
                 {t.k}regexp{t.n}      Regular expression that identifies a test function.  Default
-                            is in global variable id_test_function_regexp.
+                            is [{t.d}{id_test_function_regexp}{t.n}]
                 {t.k}reopts{t.n}      Regular expression's options. [{t.d}re.I{t.n}]
                 {t.k}stream{t.n}      Where to send output [{t.d}stdout{t.n}].  None = no output.
                 {t.k}nomsg{t.n}       If True, return only the integer 'failed'.

@@ -1,194 +1,179 @@
-"""
-Compare the whitespace-separated tokens in two text strings.  The use
-case for this tool is comparing open source licenses, which are
-typically 7-bit ASCII text but with differing whitespace.  Run as a
-script to compare two files.
-"""
-
-##∞test∞# notest #∞test∞#
-import difflib
-import hashlib
-import io
-
-
-class TextCompare:
-    """Compares two text strings.  Useful attributes:
-        diff    Returns a string describing how to change old to new
-        equal   Returns True if the normalized strings are equal
-        i       Ignore case in comparison if True
-        ratio   Returns a number that tells you how close the strings are
-                (if 1, they are equal).
-        t       Number of tokens in file if they are equal
-        x       Print diff offsets in hex if True
-    Normalization is done by tokenizing on whitespace, then separating
-    tokens by space characters.
-    """
-
-    def __init__(self, old: str, new: str):
-        self.old = old
-        self.new = new
-        if not isinstance(old, str):
-            raise TypeError("old must be a text string")
-        if not isinstance(new, str):
-            raise TypeError("new must be a text string")
-        self._hex_offsets = False
-        self._ignore_case = False
-
-    def normalize(self, text):
-        "Tokenize on whitespace and separate with one space character"
-        s = " ".join(text.split())
-        return s.lower() if self.i else s
-
-    @property
-    def diff(self):
-        "Return a string showing how to convert old to new"
-        F, o = ("x", "0x") if self.x else ("d", "")  # Format for offsets
-        f = io.StringIO()
-        print("To convert old to new:", file=f)
-        old = self.normalize(self.old)
-        new = self.normalize(self.new)
-        s = difflib.SequenceMatcher(lambda x: x == " ", old, new)
-        for o in s.get_opcodes():
-            tag, o1, o2, n1, n2 = o
-            if tag == "replace":
-                print(
-                    f"{tag} {o}{o1:{F}}:{o}{o2:{F}} {old[o1:o2]!r} "
-                    f"with {o}{n1:{F}}:{o}{n2:{F}} {new[n1:n2]!r}",
-                    file=f,
-                )
-            elif tag == "delete":
-                print(f"{tag} {o}{o1:{F}}:{o}{o2:{F}} = {old[o1:o2]!r}", file=f)
-            elif tag == "insert":
-                print(f"{tag} at {o}{o1:{F}}:  {new[n1:n2]!r}", file=f)
-        return f.getvalue().rstrip()
-
-    @property
-    def equal(self):
-        "Return True if the normalized hashes are equal"
-        f = hashlib.sha256
-        old = self.normalize(self.old).encode()
-        new = self.normalize(self.new).encode()
-        o, n = f(), f()
-        o.update(old)
-        n.update(new)
-        return o.digest() == n.digest()
-
-    @property
-    def i(self):
-        "If True, ignore case in comparison"
-        return bool(self._ignore_case)
-
-    @i.setter
-    def i(self, value):
-        self._ignore_case = bool(value)
-
-    @property
-    def ratio(self):
-        "Returns a ratio on [0, 1] that measures equality (equal is 1)"
-        old = self.normalize(self.old)
-        new = self.normalize(self.new)
-        s = difflib.SequenceMatcher(lambda x: x == " ", old, new)
-        ratio = s.ratio()
-        # Make sure the returned ratio has enough decimal places
-        r = f"{round(ratio, 2)}"
-        if ratio != 1:
-            n = 2
-            r = f"{round(ratio, n)}"
-            while int(float(r)) == 1:
-                n += 1
+'''
+Compare the whitespace-separated tokens in two text strings
+    - The use case for this tool is comparing open source licenses, which are typically
+      7-bit ASCII text but with differing whitespace.  Run as a script to compare two
+      files.
+'''
+if 1:  # Header
+    _pgminfo = '''
+        <oo gist ∞ Compare whitespace-separated tokens in two text strings oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2025 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ utility oo>
+        <oo test ∞ --test oo>
+        <oo todo ∞ 
+             
+            - ∞∞2 Test cases need to be written
+            - Should non-7-bit characters be flagged?
+            - Should an attribute force the removal of all punctuation?
+             
+        oo>
+    '''
+    if 1:  # Standard imports
+        import difflib
+        import hashlib
+        import io
+    if 1:  # Custom imports
+        pass
+    if 1:  # Global variables
+        pass
+if 1:  # Classes
+    class TextCompare:
+        '''Compares two text strings.  Useful attributes:
+            diff    Returns a string describing how to change old to new
+            equal   Returns True if the normalized strings are equal
+            i       Ignore case in comparison if True
+            ratio   Returns a number that tells you how close the strings are
+                    (if 1, they are equal).
+            t       Number of tokens in file if they are equal
+            x       Print diff offsets in hex if True
+        Normalization is done by tokenizing on whitespace, then separating
+        tokens by space characters.
+        '''
+        def __init__(self, old: str, new: str):
+            self.old = old
+            self.new = new
+            if not isinstance(old, str):
+                raise TypeError("old must be a text string")
+            if not isinstance(new, str):
+                raise TypeError("new must be a text string")
+            self._hex_offsets = False
+            self._ignore_case = False
+        def normalize(self, text):
+            "Tokenize on whitespace and separate with one space character"
+            s = " ".join(text.split())
+            return s.lower() if self.i else s
+        @property
+        def diff(self):
+            "Return a string showing how to convert old to new"
+            F, o = ("x", "0x") if self.x else ("d", "")  # Format for offsets
+            f = io.StringIO()
+            print("To convert old to new:", file=f)
+            old = self.normalize(self.old)
+            new = self.normalize(self.new)
+            s = difflib.SequenceMatcher(lambda x: x == " ", old, new)
+            for o in s.get_opcodes():
+                tag, o1, o2, n1, n2 = o
+                if tag == "replace":
+                    print(
+                        f"{tag} {o}{o1:{F}}:{o}{o2:{F}} {old[o1:o2]!r} "
+                        f"with {o}{n1:{F}}:{o}{n2:{F}} {new[n1:n2]!r}",
+                        file=f,
+                    )
+                elif tag == "delete":
+                    print(f"{tag} {o}{o1:{F}}:{o}{o2:{F}} = {old[o1:o2]!r}", file=f)
+                elif tag == "insert":
+                    print(f"{tag} at {o}{o1:{F}}:  {new[n1:n2]!r}", file=f)
+            return f.getvalue().rstrip()
+        @property
+        def equal(self):
+            "Return True if the normalized hashes are equal"
+            f = hashlib.sha256
+            old = self.normalize(self.old).encode()
+            new = self.normalize(self.new).encode()
+            o, n = f(), f()
+            o.update(old)
+            n.update(new)
+            return o.digest() == n.digest()
+        @property
+        def i(self):
+            "If True, ignore case in comparison"
+            return bool(self._ignore_case)
+        @i.setter
+        def i(self, value):
+            self._ignore_case = bool(value)
+        @property
+        def ratio(self):
+            "Returns a ratio on [0, 1] that measures equality (equal is 1)"
+            old = self.normalize(self.old)
+            new = self.normalize(self.new)
+            s = difflib.SequenceMatcher(lambda x: x == " ", old, new)
+            ratio = s.ratio()
+            # Make sure the returned ratio has enough decimal places
+            r = f"{round(ratio, 2)}"
+            if ratio != 1:
+                n = 2
                 r = f"{round(ratio, n)}"
-        return float(r)
-
-    @property
-    def t(self):
-        "Number of tokens in file if they are equal; 0 otherwise"
-        return len(self.old.split()) if self.equal else 0
-
-    @property
-    def x(self):
-        "If True, use hex for offsets in diff string"
-        return bool(self._hex_offsets)
-
-    @x.setter
-    def x(self, value):
-        self._hex_offsets = bool(value)
-
+                while int(float(r)) == 1:
+                    n += 1
+                    r = f"{round(ratio, n)}"
+            return float(r)
+        @property
+        def t(self):
+            "Number of tokens in file if they are equal; 0 otherwise"
+            return len(self.old.split()) if self.equal else 0
+        @property
+        def x(self):
+            "If True, use hex for offsets in diff string"
+            return bool(self._hex_offsets)
+        @x.setter
+        def x(self, value):
+            self._hex_offsets = bool(value)
 
 if __name__ == "__main__":
-    # Standard library modules
-    import getopt
-    import os
-    import pathlib
-    import sys
-    from pdb import set_trace as xx
-
-    # Custom modules
-    from lwtest import run
-    from wrap import dedent
-
-    # Try to import the color.py module; if not available, the script
-    # should still work (you'll just get uncolored output).
-    try:
-        import xcolor as C
-
-        _have_color = True
-    except ImportError:
-        # Make a dummy color object to swallow function calls
-        class Dummy:
-            def fg(self, *p, **kw):
-                pass
-
-            def normal(self, *p, **kw):
-                pass
-
-            def __getattr__(self, name):
-                pass
-
-        C = Dummy()
-        _have_color = False
+    if 1:   # Standard imports
+        import getopt
+        import os
+        import pathlib
+        import sys
+    if 1:   # Custom imports
+        from lwtest import run, Assert
+        from wrap import dedent
+        from color import t
     if 1:  # Script base code
-
         def Error(msg, status=1):
             print(msg, file=sys.stderr)
             exit(status)
-
         def Usage(d, status=1):
             name = sys.argv[0]
-            s = dedent(f"""
-        Usage:  {name} [options] file1 file2
-          Compare the two files by tokens to see if they are equal.  An example
-          is comparing the text of two open source licenses.  A message is
-          printed to stdout telling you whether they are equal or not.  If a 
-          file is binary, it is decoded with UTF-8.
-        
-          The comparison method is to tokenize the files on whitespace and turn
-          them into a string of tokens separated by space characters.  If the
-          two strings are equal, the files are equal.
-        
-          If the files are not equal, a decimal number is printed telling you
-          how close they are.  The closer this number is to 1, the more alike
-          the files are.
-        
-          Return value is 0 if files are equal and 1 if they are not.
-        
-          Warning:  the difflib module's tools can take a long time for
-          files with more than on the order of 1e4 tokens.
-        
-        Options:
-            -D          Dump tokens to stdout
-            -d          Print a diff showing how to convert file1 to file2
-            -H          Print to stdout an HTML difference of the tokens
-            -h          Print a manpage
-            -i          Ignore case
-            -x          Use hex offsets in diff
-            --self      Run self tests
-            --test      Run regression test file named test/X_test.py 
-                        where X is the name of this script
-            --Test f    Run regression test file f
-            """)
+            s = dedent(f'''
+            Usage:  {name} [options] file1 file2
+              Compare the two files by tokens to see if they are equal.  An example is
+              comparing the text of two open source licenses.  A message is printed to
+              stdout telling you whether they are equal or not.  If a file is binary, it is
+              decoded with UTF-8.
+            
+              The comparison method is to tokenize the files on whitespace and turn them
+              into a string of tokens separated by space characters.  If the two strings are
+              equal, the files are equal.
+            
+              If the files are not equal, a decimal number is printed telling you how close
+              they are.  The closer this number is to 1, the more alike the files are.
+            
+              Return value is 0 if files are equal and 1 if they are not.
+            
+              Warning:  the difflib module's tools can take a long time for files with more
+              than on the order of 1e4 tokens.
+            Options:
+              -D          Dump tokens to stdout
+              -d          Print a diff showing how to convert file1 to file2
+              -H          Print to stdout an HTML difference of the tokens
+              -h          Print a manpage
+              -i          Ignore case
+              -x          Use hex offsets in diff
+              --self      Run self tests
+              --test      Run regression test file named test/X_test.py 
+                          where X is the name of this script
+              --Test f    Run regression test file f
+            ''')
             print(s)
             exit(status)
-
         def ParseCommandLine(d):
             d["-D"] = False  # Dump tokens to stdout
             d["-d"] = False  # Show diff
@@ -203,7 +188,8 @@ if __name__ == "__main__":
             # --self, or --test was given
             try:
                 opts, args = getopt.getopt(
-                    sys.argv[1:], "Ddhix", "example help self test Test=".split()
+                    sys.argv[1:], "Ddhix",
+                    "example help self test Test=".split()
                 )
             except getopt.GetoptError as e:
                 print(str(e))
@@ -227,33 +213,15 @@ if __name__ == "__main__":
             if len(args) != 2:
                 Usage(d)
             return args
-
         def GetFile(file):
             s = open(file, "rb").read()
             return s.decode()
-
     if 1:  # Test code
-
-        def Assert(cond):
-            """Same as assert, but you'll be dropped into the debugger on an
-            exception if you include a command line argument.
-            """
-            if not cond:
-                if args:
-                    print("Type 'up' to go to line that failed")
-                    xx()
-                else:
-                    raise AssertionError
-
         def Test_1():
             pass
-
     if 1:  # Example code for module
-
         def Example_1():
             print("example 1")
-            pass
-
     # ----------------------------------------------------------------------
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
@@ -296,14 +264,10 @@ if __name__ == "__main__":
             print(t)
             print()
         if tc.equal:
-            C.fg(C.lgreen)
-            print(f"Files are equal ({tc.t} tokens)")
-            C.normal()
+            t.print(f"{t.grnl}Files are equal ({tc.t} tokens)")
             exit(0)
         else:
-            C.fg(C.lred)
-            print(f"Files are not equal (ratio = {tc.ratio})")
-            C.normal()
+            t.print(f"{t.redl}Files are not equal (ratio = {tc.ratio})")
             if d["-d"]:
                 print(tc.diff)
             exit(1)

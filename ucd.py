@@ -28,75 +28,72 @@ ToDo
 
 '''
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # Provide the ucd dictionary, a container of the Unicode Character Database (UCD)
-        # used with the uni.py script.
-        ##∞what∞#
-        ##∞test∞# notest #∞test∞#
-        pass
+    _pgminfo = '''
+        <oo gist ∞ Provides the ucd dict (Unicode character database) oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2014 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ category oo>
+        <oo test ∞ notest oo>
+        <oo todo ∞ oo>
+    '''
     if 1:  # Standard imports
-        import xml.etree.ElementTree as ET
-        import pickle
+        from pathlib import Path
         from time import asctime
         import os
-        from pathlib import Path
+        import pickle
         import unicodedata
+        import xml.etree.ElementTree as ET
     if 1:  # Custom imports
         from color import t
         if 0:
             import debug
             debug.SetDebugger()
     if 1:  # Global variables
-        ii = isinstance
         __all__ = ["ucd"]
-def GetXMLFileName(version):
-    '''Return the XML file of the indicated Unicode version, where version is an int.
-    Example:  GetXMLFileName(14) returns "ucd.nounihan.grouped.ver14.xml".
-    '''
-    os.chdir("/plib/pgm")
-    p = Path(".")
-    # Get candidate XML files
-    files = [str(i) for i in p.glob(r"ucd.*xml")]
-    for file in files:
-        if str(version) in str(file):
-            return file
-    t.print(f"{t.redl}{str(version)!r} not found in XML file names")
-    exit(1)
-
-def GetVersion():
-    '''Get which XML file to build the pickled data file.  From what I've read, you can
-    use versions of the UCD that are later than that which python uses, but not earlier
-    ones.
-        
-    You can find these files at https://www.unicode.org/Public with the latest in
-    UCD/latest/ucdxml.  I recommend the non-Unihan file unless you need the extra
-    Chinese characters.  The documentation for the contents of this file is in UAX #42
-    http://www.unicode.org/reports/tr42.  The grouped file results in a data file size
-    about an order of magnitude less than the flat XML file.
-    '''
-    v = unicodedata.unidata_version  # Which version of UCD python is using
-    if v == "11.0.0":
-        return Path("ucd.nounihan.grouped.ver11.xml")
-    elif v == "12.0.0":
-        return Path("ucd.nounihan.grouped.ver12.1.xml")
-    elif v == "13.0.0":
-        return Path("ucd.nounihan.grouped.ver13.xml")
-    elif v == "14.0.0":
-        # Aug 2025:  python 3.11.5 which I'm using (conda-forge) uses this version
-        return Path("ucd.nounihan.grouped.ver14.xml")
-    else:
-        raise ValueError(f"{v} is unsupported Unicode version")
-
-if 0:
-    # Description of the ucd dictionary 
+if 1:  # Core functionality
+    def GetXMLFileName(version):
+        '''Return the XML file of the indicated Unicode version, where version is an int.
+        Example:  GetXMLFileName(14) returns "ucd.nounihan.grouped.ver14.xml".
+        '''
+        os.chdir("/plib/pgm")
+        p = Path(".")
+        # Get candidate XML files
+        files = [str(i) for i in p.glob(r"ucd.*xml")]
+        for file in files:
+            if str(version) in str(file):
+                return file
+        t.print(f"{t.redl}{str(version)!r} not found in XML file names")
+        exit(1)
+    def GetVersion():
+        '''Get which XML file to build the pickled data file.  From what I've read, you can
+        use versions of the UCD that are later than that which python uses, but not earlier
+        ones.
+            
+        You can find these files at https://www.unicode.org/Public with the latest in
+        UCD/latest/ucdxml.  I recommend the non-Unihan file unless you need the extra
+        Chinese characters.  The documentation for the contents of this file is in UAX #42
+        http://www.unicode.org/reports/tr42.  The grouped file results in a data file size
+        about an order of magnitude less than the flat XML file.
+        '''
+        v = unicodedata.unidata_version  # Which version of UCD python is using
+        if v == "11.0.0":
+            return Path("ucd.nounihan.grouped.ver11.xml")
+        elif v == "12.0.0":
+            return Path("ucd.nounihan.grouped.ver12.1.xml")
+        elif v == "13.0.0":
+            return Path("ucd.nounihan.grouped.ver13.xml")
+        elif v == "14.0.0":
+            # Aug 2025:  python 3.11.5 which I'm using (conda-forge) uses this version
+            return Path("ucd.nounihan.grouped.ver14.xml")
+        else:
+            raise ValueError(f"{v} is unsupported Unicode version")
+if 0:   # Description of the ucd dictionary 
     doc = '''
     Structure of data in the python ucd dictionary
         Types:

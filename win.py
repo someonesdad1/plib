@@ -1,10 +1,7 @@
-"""
+'''
 Detect when Windows-style path names are needed (on_windows is True)
-"""
-
-##∞test∞# notest #∞test∞#
+'''
 import sys
-
 systems = {
     "3.6.1 (default, Mar 24 2017, 12:50:34) \n[GCC 5.4.0]": False,
     "2.7.13 (default, Mar 14 2017, 23:27:55) \n[GCC 5.4.0]": False,
@@ -18,3 +15,4 @@ systems = {
     "3.7.10 (default, May  5 2021, 12:24:16) \n[GCC 10.2.0]": False,
 }
 on_windows = systems[sys.version]
+print(on_windows)

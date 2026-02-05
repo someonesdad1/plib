@@ -1,49 +1,47 @@
-"""
+'''
 Module to convert between British and US spellings
     - B2A() returns a dictionary that converts British words to American equivalents
     - A2B() returns a dictionary that converts American words to British equivalents
     - Both dictionaries are all lowercase
-
+    
     - When run as a script, flags UK words with their US conversions
-"""
-
+'''
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # Convert between UK and US spellings
-        ##∞what∞#
-        ##∞test∞# notest #∞test∞#
-        pass
+    _pgminfo = '''
+        <oo gist ∞ oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2024 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ utility oo>
+        <oo test ∞ notest oo>
+        <oo todo ∞ 
+        
+            - ∞∞2 Needs a self-test
+        
+        oo>
+    '''
     if 1:  # Standard imports
         from pathlib import Path as P
         import getopt
         import sys
     if 1:  # Custom imports
-        from color import t
         import get
         from wrap import dedent
     if 1:  # Global variables
         __all__ = "B_to_US US_to_B".split()
-        ii = isinstance
-
         class G:  # Storage for global variables as attributes
             pass
-
         g = G()
         g.dbg = False
-        g.b2us = None  # Build British to US dict when needed
-        g.us2b = None  # Build US to British dict when needed
 if 1:  # Translation data
     g.data = dedent(
-        """
-
+        '''
+        
             CCW                       ACW
             England                   Britain
             English                   British
@@ -2095,85 +2093,15 @@ if 1:  # Translation data
             yogurts                   yoghurts
             zee                       zed
             zucchini                  courgette
-
-        """.rstrip()
+            
+        '''.rstrip()
     ).strip()
-if 1:  # Utility
-
-    def Dbg(*p, **kw):
-        if g.dbg:
-            print(f"{t.dbg}", end="", file=Dbg.file)
-            k = kw.copy()
-            k["file"] = Dbg.file
-            print(*p, **k)
-            print(f"{t.N}", end="", file=Dbg.file)
-
-    Dbg.file = sys.stdout
-
-    def Error(*msg, status=1):
-        print(*msg, file=sys.stderr)
-        exit(status)
-
-    def Manpage():
-        print(
-            dedent("""
-          Caution:  inspect the results carefully, as different senses of the words may not
-          require the substitution given, particularly with older text.  Here's are some examples
-          from "Pride and Prejudice" (a good test case), there are numerous cases like this:  
-
-          - 'bonnet to hood' is recommended, but this word should be left alone, as it's
-            concerning a type of hat.
-          - 'broke to brake' doesn't make sense, as the context in the novel is "When the party
-            broke up".  
-          - 'fresher to freshman' doesn't make sense, as the usage would also be 'fresher' in US
-            English (the context was 'fresher intelligence').
-          - 'vice to vise' doesn't work, as the word should remain 'vice' in US English (the
-            substitution is for the workholding tool in the shop).
-
-          These examples indicate that this tool is simplistic and is only working on spelling,
-          not on semantics.  Still, most of the nearly 100 changes recommended for PnP are
-          appropriate.
-        """)
-        )
-        exit(0)
-
-    def Usage():
-        print(
-            dedent(f"""
-        Usage:  {sys.argv[0]} [options] [file1 [file2...]]
-          Show the use of UK words in the indicated files along with their US counterpart.
-          Use "-" for stdin.
-        Options:
-            -h      Print a manpage
-            -r      Reverse the sense of the search:  show UK words for US words
-        """)
-        )
-        exit(0)
-
-    def ParseCommandLine(d):
-        d["-r"] = False  # Reverse sense of search
-        if len(sys.argv) < 2:
-            Usage()
-        try:
-            opts, args = getopt.getopt(sys.argv[1:], "hr")
-        except getopt.GetoptError as e:
-            print(str(e))
-            exit(1)
-        for o, a in opts:
-            if o[1] in list("r"):
-                d[o] = not d[o]
-            elif o == "-h":
-                Manpage()
-        return args
-
-
 if 1:  # Core functionality
-
     def B_to_US():
-        """Return a dict to convert British spellings to US spellings.  Note all the words are
+        '''Return a dict to convert British spellings to US spellings.  Note all the words are
         lowercase.
-        """
-        if g.b2us is None:
+        '''
+        if not hasattr(B_to_US, "b2us"):
             di = {}
             for line in g.data.split("\n"):
                 line = line.strip()
@@ -2183,14 +2111,13 @@ if 1:  # Core functionality
                 if br in di:
                     Error(f"{br!r} already in dict: {di[br]!r}")
                 di[br] = us
-            g.b2us = di
-        return g.b2us
-
+            B_to_US.b2us = di
+        return B_to_US.b2us
     def US_to_B():
-        """Return a dict to convert US spellings to British spellings.  Note all the words are
+        '''Return a dict to convert US spellings to British spellings.  Note all the words are
         lowercase.
-        """
-        if g.us2b is None:
+        '''
+        if not hasattr(US_to_B, "us2b"):
             di = {}
             for line in g.data.split("\n"):
                 line = line.strip()
@@ -2200,9 +2127,8 @@ if 1:  # Core functionality
                 if us in di:
                     Error(f"{us!r} already in dict: {di[us]!r}")
                 di[us] = br
-            g.us2b = di
-        return g.us2b
-
+            US_to_B.us2b = di
+        return US_to_B.us2b
     def ProcessFile(file, reverse=False):
         if file == "-":
             s = sys.stdin.read()
@@ -2211,18 +2137,16 @@ if 1:  # Core functionality
             s = p.open().read()
         dq = get.Tokenize(s)
         # Only keep the get.wrd types
-        words_in_file = [i for i in dq if ii(i, get.wrd)]
+        words_in_file = [i for i in dq if isinstance(i, get.wrd)]
         # Convert to all lowercase
         words_in_file = set(i.lower() for i in words_in_file)
         # Scan for words
-        if reverse:
-            # US to UK
+        if reverse:     # US to UK
             di, out = US_to_B(), []
             for word in words_in_file:
                 if word in di:
                     out.append((word, di[word]))
-        else:
-            # Uk to US
+        else:       # UK to US
             di, out = B_to_US(), []
             for word in words_in_file:
                 if word in di:
@@ -2239,8 +2163,68 @@ if 1:  # Core functionality
                 for uk, us in sorted(out):
                     print(f"{uk:{w}s}  -->  {us}")
 
-
 if __name__ == "__main__":
+    from color import t
+    def Dbg(*p, **kw):
+        if g.dbg:
+            print(f"{t.dbg}", end="", file=Dbg.file)
+            k = kw.copy()
+            k["file"] = Dbg.file
+            print(*p, **k)
+            print(f"{t.N}", end="", file=Dbg.file)
+    Dbg.file = sys.stdout
+    def Error(*msg, status=1):
+        print(*msg, file=sys.stderr)
+        exit(status)
+    def Manpage():
+        print(
+            dedent('''
+          Caution:  inspect the results carefully, as different senses of the words may not
+          require the substitution given, particularly with older text.  Here's are some examples
+          from "Pride and Prejudice" (a good test case), there are numerous cases like this:  
+          
+          - 'bonnet to hood' is recommended, but this word should be left alone, as it's
+            concerning a type of hat.
+          - 'broke to brake' doesn't make sense, as the context in the novel is "When the party
+            broke up".  
+          - 'fresher to freshman' doesn't make sense, as the usage would also be 'fresher' in US
+            English (the context was 'fresher intelligence').
+          - 'vice to vise' doesn't work, as the word should remain 'vice' in US English (the
+            substitution is for the workholding tool in the shop).
+            
+          These examples indicate that this tool is simplistic and is only working on spelling,
+          not on semantics.  Still, most of the nearly 100 changes recommended for PnP are
+          appropriate.
+        ''')
+        )
+        exit(0)
+    def Usage():
+        print(
+            dedent(f'''
+        Usage:  {sys.argv[0]} [options] [file1 [file2...]]
+          Show the use of UK words in the indicated files along with their US counterpart.
+          Use "-" for stdin.
+        Options:
+            -h      Print a manpage
+            -r      Reverse the sense of the search:  show UK words for US words
+        ''')
+        )
+        exit(0)
+    def ParseCommandLine(d):
+        d["-r"] = False  # Reverse sense of search
+        if len(sys.argv) < 2:
+            Usage()
+        try:
+            opts, args = getopt.getopt(sys.argv[1:], "hr")
+        except getopt.GetoptError as e:
+            print(str(e))
+            exit(1)
+        for o, a in opts:
+            if o[1] in list("r"):
+                d[o] = not d[o]
+            elif o == "-h":
+                Manpage()
+        return args
     d = {}  # Options dictionary
     files = ParseCommandLine(d)
     for file in files:

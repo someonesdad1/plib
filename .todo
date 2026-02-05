@@ -1,5 +1,22 @@
 /plib/.todo
 
+    - File duplications between /plib and /plib/pgm
+        - eevblog.py
+            - Action:  inspect both.  App should be in pgm and only data parsing module
+              in /plib.
+        - linreg.py
+            - Action:  keep both.  Consider moving the plib version to a dpstats.py
+              module, which will contain statistical stuff not in the python library
+        - partitions.py
+            - Action:  Move 'Ramanujan's upper bound' stuff to the /plib file, then
+              delete the pgm one
+        - pdiff.py
+            - Action:  Inspect both; move good stuff to pgm; delete /plib copy
+        - planets.py
+            - Action:  delete pgm/planets.py
+        - readability.py
+            - Action:  /plib should only be module for functions that calculate metrics.
+              The main script I use for analysis should be in pgm.
     - words.py
         - I need a module that gives me a list of words
         - This should have two functions
@@ -65,6 +82,30 @@
           with one of them my default
 
     - /plib work
+        - Architecture
+            - Good starting example:   thermocouple.py
+                - The downloaded data are in ~/dp/NIST_thermocouples_allcoeff.tab.txt
+                  and it would be nice to have some reference code parse this file to
+                  e.g. produce a JSON datafile.  The /pylib/thermocouples/gen_table.py
+                  converts the numerical tables to text files that can be used to test
+                  the formulas.
+                - The /pylib/thermocouples/thermal_emf.py script should also be a
+                  datafile (it's in /plib/pgm).
+            - Put most of my data into dpdata.py
+            - Each class of data is then gotten from a function call
+            - The raw data is in the /plib/data directory.  This directory's files are
+              in whatever form is suitable for the main storage.  I'd prefer either
+              plain text or JSON, as they are easy to manually edit.
+                - Plain text files can have comments in them that use '#" to mark the
+                  lines.  This lets get.GetLines() get the needed data.
+            - The data from /plib/data are not loaded until the function is called,
+              meaning module loading is fast.  Some of the more common stuff may be
+              loaded at runtime if that makes sense.
+            - The function doing the loading can vet the data as necessary
+            - This should help reduce the number of files in /plib and speed things up.
+              It also makes maintenance easier.
+        - si.py can become a core module to deliver SI units, prefixes, and many
+          conversion factors to other non-SI units
         - Standardize on 'import x' instead of 'from x import y'.  The reason is because
           then someone reading the code then knows where the relevant token is coming
           from, rather than having to figure it out -- which can sometimes be time
@@ -126,6 +167,11 @@
         - ruff as of 30 Jan 2026
             - I won't use the formatter until they fix the mess it makes with formulas
             - Linting works well
+
+    - winmerge
+        - I recently updated to latest version built in late Jan 2026
+        - https://manual.winmerge.org/en/ is the HTML manual
+            - Use a python script to download all of the files so I have a local copy
 
     - airnav.py
         - I based this on version 1.20 of the aviation formulary; it's now at version

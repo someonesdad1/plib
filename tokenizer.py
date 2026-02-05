@@ -1,28 +1,42 @@
-_pgminfo = '''
-    <oo desc
-
-        Tokenizer() function for tokenizing text.  The basic use case for this function
-        is to split ASCII text into words, whitespace, linefeeds, digits, punctuation,
-        and other characters.  PrintTokens() is useful with colorizing to show how a
-        text file has been tokenized and it will also number the lines if desired.  On
-        my older computer, the tokenizing rate is about 100-500 tokens/ms.  The higher
-        values are for plain text ASCII files and the lower values for programming
-        source code files.  The tokens are string instances that give the token type via
-        their class and include the line number, column number and offset of the token
-        in the string (all of these are 0-based integers).
-
-    oo>
-    <oo cr Copyright © 2025 Don Peterson oo>
-    <oo license
-        Licensed under the Open Software License version 3.0.
-        See http://opensource.org/licenses/OSL-3.0.
-    oo>
-    <oo cat utility oo>
-    <oo test --test oo>
-    <oo todo oo>
+'''
+    
+The basic use case of this function is to tokenize UTF-8 encoded text into words,
+whitespace, and punctuation.  I use it in conjunction with a spell checker that gives me
+the line number and column number of misspelled words. 
+    
 '''
 if 1:  # Header
-    ##∞test∞# --test #∞test∞#
+    _pgminfo = '''
+        <oo gist ∞ Tokenizer() for tokenizing text strings oo>
+        <oo desc ∞ oo>
+        <oo desc
+        
+            The primary use case for this function is to split ASCII text into words,
+            whitespace, linefeeds, digits, punctuation, and other characters.
+            PrintTokens() is useful with colorizing to show how a text file has been
+            tokenized and it will also number the lines if desired.  On my older
+            computer, the tokenizing rate is about 100-500 ktokens/s.  The higher values
+            are for plain text ASCII files and the lower values for programming source
+            code files.  The tokens are string instances that give the token type via
+            their class and include the line number, column number and offset of the
+            token in the string (all of these are 0-based integers).
+        
+        oo>
+        <oo copy ∞ Copyright © 2025 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ utility oo>
+        <oo test ∞ --test oo>
+        <oo todo ∞ 
+        
+            - ∞∞1 Write docstring with usage examples
+        
+        oo>
+    '''
     if 1:   # Standard imports
         from collections import defaultdict
         from enum import Enum
@@ -49,13 +63,12 @@ if 1:  # Header
             pass
         g = G()
         g.dbg = False
-        ii = isinstance
         __all__ = '''
             Tokenizer PrintTokens 
             wrd dig nln wht pnc oth
         '''.split()
         # Unicode symbols for whitespace characters
-        g.ws = {"\t": "␉", "\r": "␍", "\x0b": "␋", "\x0c": "␌"}
+        g.ws = {"\t": "␉", "\r": "␍", "\v": "␋", "\f": "␌", "\n": "␤"}
         # Colors
         t.wrd = t.wht
         t.dig = t.grnl
@@ -64,85 +77,6 @@ if 1:  # Header
         t.pnc = t.purl
         t.oth = t("blk", "yell")
         t.linenum = t("gry", "#000030")
-if 1:   # Utility
-    def out(*s):
-        'Print the components to stdout with no linefeeds'
-        for i in s:
-            print(i, end="")
-    def Dbg(*p, **kw):
-        if g.dbg:
-            print(f"{t.dbg}", end="")
-            print(*p, **kw)
-            print(f"{t.N}", end="")
-    def Warn(*msg, status=1):
-        print(*msg, file=sys.stderr)
-    def Error(*msg, status=1):
-        Warn(*msg)
-        exit(status)
-    def Usage(status=0):
-        print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] file1 [file2...]
-          Tokenize the indicated files and print them in a colorized fashion to stdout.
-          This provides a demonstration of the Tokenizer() functions abilities.  Use "-"
-          to read from stdin.
-        Options:
-            -T      Print tokenizing timing information for each file
-            -s      Demonstrate a spell checking task
-            -t      Run self-tests
-        '''))
-        exit(status)
-    def ParseCommandLine(d):
-        d["-s"] = False         # Demonstrate spell checking
-        d["-T"] = False         # Tokenizing timing
-        d["--test"] = False     # Run self-tests
-        if len(sys.argv) < 2:
-            Usage()
-        try:
-            opts, args = getopt.getopt(sys.argv[1:], "hsTt", "test") 
-        except getopt.GetoptError as e:
-            print(str(e))
-            exit(1)
-        for o, a in opts:
-            if o[1] in list("sTt"):
-                d[o] = not d[o]
-            elif o == "-h":
-                Usage()
-            elif o == "--test":
-                d[o] = not d[o]
-        if d["--test"]:
-            exit(run(globals(), halt=True)[0])
-        return args
-    def MeasureTiming(file):
-        'Print execution time and tokens/s tokenizing rate'
-        s = open(file).read()
-        with timer.Timer() as tm:
-            o = Tokenizer(s)
-        time = tm.et
-        tokens = len(o)
-        t.print(f"{t.ornl}File = {file!r}")
-        print(f"  Time to tokenize = {time.engsi}s")
-        print(f"  Number of tokens = {tokens}")
-        print(f"  File size = {len(s)} UTF-8 characters (not bytes)")
-        print(f"  Tokenizing rate = {tokens/time} tokens/s")
-    def SpellCheck(file):
-        'Print misspelled words in file with their location'
-        words = set(i.lower() for i in GetLines("/words/words.default", nonl=True))
-        tokens = Tokenizer(open(file).read().lower())
-        misspelled = defaultdict(list)
-        for word in tokens:
-            if not ii(word, wrd):
-                continue
-            if word not in words:
-                misspelled[word].append(f"{word.linenum + 1}:{word.column + 1}")
-        if misspelled:
-            t.print(f"{t.ornl}{file}")
-        # Get maximum word length so locations can be lined up
-        w = 0
-        for word in misspelled:
-            w = max(w, len(word))
-        w = min(w, 20)  # Limit it to 20 characters maximum
-        for word in sorted(misspelled):
-            print(f"  {word:{w}s}  {' '.join(misspelled[word])}")
 if 1:   # PrintTokens
     def PrintTokens(o, colorize=False, linenum=False):
         '''o is a sequence of tokens that is produced by Tokenizer().  Print them to
@@ -151,7 +85,7 @@ if 1:   # PrintTokens
         '''
         if not o:
             return
-        Assert(ii(o[0], tkn))
+        Assert(isinstance(o[0], tkn))
         w = math.ceil(math.log10(o[-1].linenum))   # Width for line numbers
         ntokens = len(o)
         for i, token in enumerate(o):
@@ -160,17 +94,17 @@ if 1:   # PrintTokens
                     print(f"{t.linenum}{1:{w}d}{t.n} ", end="")
                 else:
                     print(f"{1:{w}d} ", end="")
-            if ii(token, wrd):
+            if isinstance(token, wrd):
                 if colorize:
                     print(f"{t.wrd}{token}{t.n}", end="")
                 else:
                     print(f"{token}", end="")
-            elif ii(token, dig):
+            elif isinstance(token, dig):
                 if colorize:
                     print(f"{t.dig}{token}{t.n}", end="")
                 else:
                     print(f"{token}", end="")
-            elif ii(token, nln):
+            elif isinstance(token, nln):
                 if colorize:
                     print(f"{t.nln}␤{t.n}")
                     if i < ntokens - 1 and linenum:
@@ -181,7 +115,7 @@ if 1:   # PrintTokens
                     if i < ntokens - 1 and linenum:
                         next_token = o[i + 1]
                         print(f"{next_token.line:{w}d} ", end="")
-            elif ii(token, wht):
+            elif isinstance(token, wht):
                 # Whitespace is handled specially:  a space character is printed plain.
                 # The other characters show their Unicode equivalent symbols and are
                 # printed in red:  cr, ff, vt, ht
@@ -193,12 +127,12 @@ if 1:   # PrintTokens
                             out(f"{t.ws}{g.ws[char]}{t.n}")
                         else:
                             out(f"{g.ws[char]}")
-            elif ii(token, pnc):
+            elif isinstance(token, pnc):
                 if colorize:
                     print(f"{t.pnc}{token}{t.n}", end="")
                 else:
                     print(f"{token}", end="")
-            elif ii(token, oth):
+            elif isinstance(token, oth):
                 if colorize:
                     print(f"{t.oth}{token}{t.n}", end="")
                 else:
@@ -291,13 +225,13 @@ if 1:   # Classes to hold token types
         def __new__(cls, value):
             return super(wrd, cls).__new__(cls, value)
         def __iadd__(self, value):
-            assert ii(value, wrd)
+            assert isinstance(value, wrd)
             return wrd(self + value)
     class dig(tkn):     # Digits
         def __new__(cls, value):
             return super(dig, cls).__new__(cls, value)
         def __iadd__(self, value):
-            assert ii(value, dig)
+            assert isinstance(value, dig)
             return dig(self + value)
     class nln(tkn):     # Single newlines
         def __new__(cls, value):
@@ -308,25 +242,25 @@ if 1:   # Classes to hold token types
         def __new__(cls, value):
             return super(wht, cls).__new__(cls, value)
         def __iadd__(self, value):
-            assert ii(value, wht)
+            assert isinstance(value, wht)
             return wht(self + value)
     class pnc(tkn):     # Punctuation
         def __new__(cls, value):
             return super(pnc, cls).__new__(cls, value)
         def __iadd__(self, value):
-            assert ii(value, pnc)
+            assert isinstance(value, pnc)
             return pnc(self + value)
     class oth(tkn):     # All other token characters
         def __new__(cls, value):
             return super(oth, cls).__new__(cls, value)
         def __iadd__(self, value):
-            assert ii(value, oth)
+            assert isinstance(value, oth)
             return oth(self + value)
 if 1:   # Tokenizer
     TYP = Enum("TYP", "wrd dig nln wht pnc oth".split())
     def getcls(typ, s):
         'Return the string s as the indicated type (typ is a TYP enum)'
-        assert ii(typ, TYP)
+        assert isinstance(typ, TYP)
         if typ == TYP.wrd:
             return wrd(s)
         elif typ == TYP.dig:
@@ -360,7 +294,7 @@ if 1:   # Tokenizer
         accum.offset = offset
         o.append(accum)
     def Tokenizer(s, diacritics=False):
-        '''Return a list that contains all the characters of the string s in the derived
+        '''Return a list L that contains all the characters of the string s in the derived
         string objects:
             wrd (a word)
             dig (digits)
@@ -368,13 +302,18 @@ if 1:   # Tokenizer
             wht (whitespace)
             pnc (punctuation)
             oth (all other characters)
-        that characterize the type of each token.
+        that characterize the type of each token.  ''.join(L) == s is an invariant.
+        
+        If diacritics is True, then the characters in Tokenizer.diacritics are also
+        allowed in the word tokens.  If diacritics is False, then the tokenizing takes
+        place only on 7-bit ASCII characters; non-7-bit characters will then be
+        encapsulated in the oth string type.
         
         Each of these token string types contain the line number and column number that
         it starts on in the original text string along with the offset of the string.
         Note all of these numbers are zero-based.
          
-        The basic use case of this function is to tokenize UTF-8 encoded text into
+        The primary use case of this function is to tokenize UTF-8 encoded text into
         words, whitespace, and punctuation.  I use it in conjunction with a spell
         checker that gives me the line number and column number of misspelled words. 
         
@@ -387,7 +326,7 @@ if 1:   # Tokenizer
         Tokenizer.nln is only allowed to contain a newline because the
         io.StringIO.readlines() method only splits on newlines.
         '''
-        if not ii(s, str):
+        if not isinstance(s, str):
             raise TypeError("s must be a str instance")
         if not s:
             return []
@@ -478,6 +417,87 @@ if 1:   # Tokenizer
     Tokenizer.pnc = set(string.punctuation)
 
 if __name__ == "__main__":
+    if 1:   # Utility
+        def out(*s):
+            'Print the components to stdout with no linefeeds'
+            for i in s:
+                print(i, end="")
+        def Dbg(*p, **kw):
+            if g.dbg:
+                print(f"{t.dbg}", end="")
+                print(*p, **kw)
+                print(f"{t.N}", end="")
+        def Warn(*msg, status=1):
+            print(*msg, file=sys.stderr)
+        def Error(*msg, status=1):
+            Warn(*msg)
+            exit(status)
+        def Usage(status=0):
+            print(dedent(f'''
+            Usage:  {sys.argv[0]} [options] file1 [file2...]
+                Tokenize the indicated files and print them in a colorized fashion to stdout.
+                This provides a demonstration of the Tokenizer() functions abilities.  Use "-"
+                to read from stdin.
+            Options:
+                -T      Print tokenizing timing information for each file
+                -s      Demonstrate a spell checking task
+                --test  Run self-tests
+            '''))
+            exit(status)
+        def ParseCommandLine(d):
+            d["-s"] = False         # Demonstrate spell checking
+            d["-T"] = False         # Tokenizing timing
+            d["--test"] = False     # Run self-tests
+            if len(sys.argv) < 2:
+                Usage()
+            try:
+                opts, args = getopt.getopt(sys.argv[1:], "hsT", "test") 
+            except getopt.GetoptError as e:
+                print(str(e))
+                exit(1)
+            for o, a in opts:
+                if o[1] in list("sT"):
+                    d[o] = not d[o]
+                elif o == "-h":
+                    Usage()
+                elif o == "--test":
+                    d[o] = not d[o]
+            if d["--test"]:
+                exit(run(globals(), halt=True)[0])
+            return args
+        def MeasureTiming(file):
+            'Print execution time and tokens/s tokenizing rate'
+            s = open(file).read()
+            with timer.Timer() as tm:
+                o = Tokenizer(s)
+            time = tm.et
+            tokens = len(o)
+            t.print(f"{t.ornl}File = {file!r}")
+            with time:
+                time.N = 2  # Only show time to 2 digits
+                print(f"  Time to tokenize = {time.engsi}s")
+            print(f"  Number of tokens = {tokens:_}")
+            print(f"  File size = {len(s):_} UTF-8 characters (not bytes)")
+            print(f"  Tokenizing rate = {tokens/(1000*time)} ktokens/s")
+        def SpellCheck(file):
+            'Print misspelled words in file with their location'
+            words = set(i.lower() for i in GetLines("/words/words.default", nonl=True))
+            tokens = Tokenizer(open(file).read().lower())
+            misspelled = defaultdict(list)
+            for word in tokens:
+                if not isinstance(word, wrd):
+                    continue
+                if word not in words:
+                    misspelled[word].append(f"{word.linenum + 1}:{word.column + 1}")
+            if misspelled:
+                t.print(f"{t.ornl}{file}")
+            # Get maximum word length so locations can be lined up
+            w = 0
+            for word in misspelled:
+                w = max(w, len(word))
+            w = min(w, 20)  # Limit it to 20 characters maximum
+            for word in sorted(misspelled):
+                print(f"  {word:{w}s}  {' '.join(misspelled[word])}")
     d = {}      # Options dictionary
     files = ParseCommandLine(d)
     for file in files:
