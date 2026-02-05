@@ -7,26 +7,28 @@ wl2cie_xy(wl_nm)
     Convert from wavelenth in nm to CIE x, y coordinates
 '''
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # Convert between RGB and light wavelength in nm; other color utilities.
-        ##∞what∞#
-        ##∞test∞# notest #∞test∞#
-        pass
+    _pgminfo = '''
+        <oo gist ∞ Wavelength of light to color oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2022 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ sci oo>
+        <oo test ∞ --test oo>
+        <oo todo ∞ oo>
+    '''
+if 1:  # Core functionality
     if 1:  # Standard imports
         pass
     if 1:  # Custom imports
         from color import Color, t
         from lwtest import Assert
     if 1:  # Global variables
-        ii = isinstance
+        pass
 if 1:  # Utility
     def GetCIETable():
         '''Returns a tuple of (nm, (xbar, ybar, zbar)) values to give the CIE's
@@ -231,12 +233,13 @@ if 1:  # Core functionality
         '''
         # 16 Jan 2025 14:34:34 pm Thu
         if not str(color)[:3] == "C⁸(":
-            # This is a hack, as I'm getting very strange behavior:  just before wl2rgb.rgb2wl(c)
-            # where c is the Color instance 'C⁸(  0,   0,   0)' and ii(c, Color) returns true, the
-            # ii(color, Color) in this function returns false.  Further, both id(instance) show
-            # the identical location in memory.  To make this work, I've added the string form
+            # This is a hack, as I'm getting strange behavior:  just before
+            # wl2rgb.rgb2wl(c) where c is the Color instance 'C⁸(0, 0, 0)' and
+            # isinstance(c, Color) returns true, the isinstance(color, Color) in this
+            # function returns false.  Further, both id(instance) show the identical
+            # location in memory.  To make this work, I've added the string form
             # detection.
-            if not ii(color, Color):
+            if not isinstance(color, Color):
                 raise TypeError("color must be a Color (/plib/color.py) instance")
         if not hasattr(rgb2wl, "dict"):
             rgb2wl.dict = {
@@ -271,7 +274,7 @@ if 1:  # Core functionality
                 386, 210: 384, 211: 382, 212: 380,
             }
         hue = color.ihls[0]
-        Assert(ii(hue, int) and 0 <= hue <= 255)
+        Assert(isinstance(hue, int) and 0 <= hue <= 255)
         if hue > 212:
             return 645
         return rgb2wl.dict[hue]
@@ -295,7 +298,9 @@ if __name__ == "__main__":
     from rgbdata import color_data
     from util import VisualCount, TemplateRound
     from columnize import Columnize
-    def Test():
+    from lwtest import run
+    import sys
+    def Test_ColorFuncs():
         "Show that wl2rgb() and rgb2wl() are (nearly) inverses"
         diffs = set()
         for wl_nm in range(380, 645):
@@ -341,12 +346,14 @@ if __name__ == "__main__":
         for line in o:
             print(line)
         print(f"{count} wavelengths printed")
-    t.on = True
-    Test()
-    Decorate()
-    print()
-    SteppedWavelengths(2)
-    print()
-    SteppedWavelengths(5)
-    print()
-    SteppedWavelengths(10)
+    if len(sys.argv) > 1 and sys.argv[1] == "--test":
+        exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
+    else:
+        t.on = True
+        Decorate()
+        print()
+        SteppedWavelengths(2)
+        print()
+        SteppedWavelengths(5)
+        print()
+        SteppedWavelengths(10)

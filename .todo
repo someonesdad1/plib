@@ -104,6 +104,9 @@
             - The function doing the loading can vet the data as necessary
             - This should help reduce the number of files in /plib and speed things up.
               It also makes maintenance easier.
+        - I don't like __all__ in files, as its need usually means that there's a bunch
+          of ancillary helping code in the file too.  Review all the exemplars and see
+          if they can be gotten rid of.
         - si.py can become a core module to deliver SI units, prefixes, and many
           conversion factors to other non-SI units
         - Standardize on 'import x' instead of 'from x import y'.  The reason is because

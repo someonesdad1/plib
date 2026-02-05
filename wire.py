@@ -1,27 +1,26 @@
 '''
 Wire information
-
-    These functions were written over the last few decades.  
-    I consider the stuff in the Deprecated section to be stuff that can go away or go to
-    a file in the old directory.
+    These functions were written over the last few decades.  I consider the stuff in the
+    Deprecated section to be stuff that can go away or go to a file in the old
+    directory.
 
 '''
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # <electrical> Wire information:  size, equivalent areas. ampacity,
-        # and fusing current estimates.
-        ##∞what∞#
-        ##∞test∞# run #∞test∞#
-        pass
-    if 1:  # Imports
+    _pgminfo = '''
+        <oo gist ∞ Wire information oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2019 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ elec oo>
+        <oo test ∞ run oo>
+        <oo todo ∞ oo>
+    '''
+    if 1:  # Standard imports
         from collections import namedtuple
         import warnings
         have_scipy = False
@@ -35,8 +34,8 @@ if 1:  # Header
         from f import flt, pi, sqrt, log10, log
         from interpolate import LinearInterpFunction as interp
     if 1:  # Global variables
-        ii = isinstance
-if 1:  # Deprecated or obsolete stuff
+        pass
+if 1:  # Deprecated/obsolete stuff
     # I have deprecated these functions because I consider them inadequate for my needs.
     # I know from a goodly bit of experimentation that the ChassisCurrent() predictions
     # based on MIL-W-5088L from the 1960's provides good predictions of usable single wire 
@@ -48,9 +47,8 @@ if 1:  # Deprecated or obsolete stuff
     # NEC current densities lead to conservative estimates.  I have no beef with the NEC
     # current limits, as they are aimed at e.g. building houses that will survive and
     # work without fires indefinitely into the future.  However, I've found it most
-    # useful to have maximum current predictions 
+    # useful to have maximum current predictions.
     def MaxCurrentDensity(diameter_m, insul_temp_rating_degC):
-        warnings.warn("GetAmpacityData() is deprecated", Warning)
         '''This function returns the maximum allowed current density in
         A/mm2 given the wire diameter in m.  insul_temp_rating_degC is the
         insulation's temperature rating in deg C.  The algorithm is from the
@@ -63,7 +61,6 @@ if 1:  # Deprecated or obsolete stuff
         ∞∞2 Update this to use the chassis current values from
         pgm/cu_wire.py.
         '''
-        warnings.warn("MaxCurrentDensity() is deprecated", Warning)
         slope = -0.820  # Common to each curve
         if diameter_m <= 0:
             raise ValueError("diameter_m must be > 0")
@@ -123,7 +120,6 @@ if 1:  # Deprecated or obsolete stuff
         ∞∞2 Update this to use the chassis current values from
         pgm/cu_wire.py.
         '''
-        warnings.warn("Ampacity() is deprecated", Warning)
         # Data from
         # https://en.wikipedia.org/wiki/American_wire_gauge#Tables_of_AWG_wire_sizes
         # which attributes the table data.
@@ -164,7 +160,6 @@ if 1:  # Deprecated or obsolete stuff
             Column 5:  Maximum frequency for 100% skin depth for solid copper
             Column 6:  Breaking force in lbf for annealed Cu (37 kpsi)
         '''
-        warnings.warn("GetAmpacityData() is deprecated", Warning)
         Ampac = namedtuple("Ampac", "AWG dia chass pwr freq brk")
         data = '''
         -3, 0.46  , 380 , 302   , 125 Hz  , 6120 lbs
@@ -331,8 +326,7 @@ if 1:  # Deprecated or obsolete stuff
             a = 13, e = 2 for dia < 1.3 mm
             a = 16, e = 1.3 for dia >= 1.3 mm
         '''
-        warnings.warn("ChassisAmpacity() is deprecated", Warning)
-        if ii(dia, int):
+        if isinstance(dia, int):
             D = AWG(dia) * 25.4  # Diameter in mm
         else:
             D = flt(dia)
@@ -467,7 +461,7 @@ if 1:  # Core functionality
                 353,
                 314,
             )
-        if not ii(n, int) or (n > 56) or (n < -3):
+        if not isinstance(n, int) or (n > 56) or (n < -3):
             raise ValueError("n must be an integer in [-3, 56]")
         # We use a table lookup for 40 gauge or larger and a formula for 41 to
         # 56 gauge.
