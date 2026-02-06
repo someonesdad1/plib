@@ -36,8 +36,9 @@ Remove              Return items from sequence not in the remove sequence
 RemoveASCII         Remove all ASCII characters from a string
 RemoveComment       Remove '#.*$' from a string
 RemoveEndingChars   Remove ending characters from a string
-RemoveStartingChars Remove starting characters from a string
+RemoveIdiomatic     Remove character classes from a string
 RemoveFilter        Functional form of Remove (it's a closure)
+RemoveStartingChars Remove starting characters from a string
 RemoveWhitespace    Remove whitespace from a string
 RmEsc               Remove ANSI escape strings from string arguments
 Scramble            Randomly shuffle words in a string
@@ -92,6 +93,7 @@ if 1:  # Header
         import sys
         import time
     if 1:   # Custom imports
+        import asciify
         import dpseq
         from f import flt
         from wrap import dedent
@@ -1230,6 +1232,77 @@ if 1:  # Core functionality
                        (ord("\f"), "␌"), (ord("\v"), "␋")))
             Decorate.trans = "".maketrans(di)
         return s.translate(Decorate.trans)
+def RemoveIdiomatic(s, keys=""):
+    '''Given a string s, remove the characters indicated by the letters in the keys:
+        A   Convert Unicode characters to rough ASCII equivalents
+        a   Remove characters above 0x7f (i.e., keep only 7-bit characters)
+        B   Remove characters under 0x20 except newline
+        b   Remove characters under 0x20
+        d   Remove characters that are ASCII digits (∈ string.digits)
+        h   Remove characters that are hex digits (∈ string.hexdigits)
+        l   Remove lower case letters (∈ string.ascii_lowercase)
+        o   Remove characters that are octal digits (∈ string.octdigits)
+        P   Remove non-printable characters (∉ string.printable)
+        p   Remove punctuation (∈ string.punctuation)
+        W   Remove whitespace except newlines
+        w   Remove whitespace (∈ string.whitespace)
+        u   Remove upper case letters (∈ string.ascii_uppercase)
+        8   Remove all non-8-bit characters (if char > 0xff)
+    
+    The A key (ASCIIFY) is the exception to the function's pattern:  no characters are
+    removed.  This transliteration is idiomatic and it won't convert any Unicode
+    characters that don't look similar to Latin letters.  The length of the string can
+    change too:  '∞' is changed to 'oo'.
+    
+    Some use cases:
+    
+    - I had two copies of some software license text that I had gotten a decade or two
+      apart and a simple diff showed they were not the same license.
+    
+    - To prove you know some secret, you can devise a set of questions.  The answers to
+      these questions are concatenated and filtered by this function to e.g. keep only
+      the printable characters.  Then the string is converted to lower case, all
+      whitespace is removed, and the string's hash is calculated with a
+      cryptographically secure hash algorithm.  The hash and questions are stored with
+      the secret.  You can demonstrate to someone that you know the questions' answers,
+      as you can reconstruct the hash by answering the questions properly and
+      calculating the resulting hash.
+    '''
+    allowed_keys = set("AaBbdhloPpWwu8")
+    keys = set(keys)
+    if not keys.issubset(allowed_keys):
+        raise ValueError(f"{keys!r} contains a not-allowed letter")
+    if "A" in keys:
+        s = asciify.Asciify(s)
+    if "a" in keys:
+        s = ''.join(i for i in s if ord(i) <= 0x7f)
+    if "B" in keys:
+        s = ''.join(i for i in s if ord(i) >= 0x20 or i == "\n")
+    if "b" in keys:
+        s = ''.join(i for i in s if ord(i) >= 0x20)
+    if "d" in keys:
+        s = ''.join(i for i in s if i not in set(string.digits))
+    if "h" in keys:
+        s = ''.join(i for i in s if i not in set(string.hexdigits))
+    if "l" in keys:
+        s = ''.join(i for i in s if i not in set(string.ascii_lowercase))
+    if "o" in keys:
+        s = ''.join(i for i in s if i not in set(string.octdigits))
+    if "P" in keys:
+        c = set(string.digits + string.ascii_lowercase + string.ascii_uppercase +
+             string.punctuation + string.whitespace)
+        s = ''.join(i for i in s if i in c)
+    if "p" in keys:
+        s = ''.join(i for i in s if i not in set(string.punctuation))
+    if "W" in keys:
+        s = ''.join(i for i in s if i not in set(string.whitespace.replace("\n", "")))
+    if "w" in keys:
+        s = ''.join(i for i in s if i not in set(string.whitespace))
+    if "u" in keys:
+        s = ''.join(i for i in s if i not in set(string.ascii_uppercase))
+    if "8" in keys:
+        s = ''.join(i for i in s if ord(i) <= 0xff)
+    return s
 
 if __name__ == "__main__":
     from lwtest import run, raises, Assert
@@ -1744,6 +1817,57 @@ if __name__ == "__main__":
         Assert(FilterSeqRegex(s1, regexes=["[123]", "[1]"], ANDed=False) == ["str1", "str2", "str3"])
         # re flag works
         Assert(FilterSeqRegex(s.upper().split(), regexes=["str1"], re_flags=re.I) == ["STR1"])
+    def Test_RemoveIdiomatic():
+        f = RemoveIdiomatic
+        # No keys argument results in identity xfm
+        s = "∞©"
+        Assert(f(s, keys="") == s)
+        # A   ASCIIFY
+        s = "∞©"
+        Assert(f(s, keys="A") == "oo(C)")
+        # a   Remove all non-ASCII
+        s, a = "∞©", "a(.;38fzK~"
+        Assert(f(s + a, keys="a") == a)
+        # b   Remove characters under 0x20
+        s = "a\t\n\r\x0b\x0cb"
+        Assert(f(s, keys="b") == "ab")
+        Assert(f(s, keys="B") == "a\nb")
+        # d   Remove characters that are ASCII digits
+        s = "a0123456789b"
+        Assert(f(s, keys="d") == "ab")
+        Assert(f(string.digits, keys="d") == "")
+        # h   Remove characters that are hex digits
+        s = "g0123456789abcdefh"
+        Assert(f(s, keys="h") == "gh")
+        # l   Remove lower case letters
+        s = "g0123456789abcdefh"
+        Assert(f(s, keys="l") == "0123456789")
+        Assert(f(string.ascii_lowercase, keys="P") == string.ascii_lowercase)
+        # o   Remove characters that are octal digits
+        Assert(f(s, keys="o") == "g89abcdefh")
+        Assert(f(string.octdigits, keys="o") == "")
+        # P   Remove non-printable characters 
+        s = "1aA; \n\x00∞"
+        Assert(f(s, keys="P") == "1aA; \n")
+        Assert(f(string.printable, keys="P") == string.printable)
+        # p   Remove punctuation
+        s = "1aA; \n\x00∞"
+        Assert(f(s, keys="p") == s.replace(";", ""))
+        Assert(f(string.punctuation, keys="p") == "")
+        # u   Remove upper case letters
+        Assert(f(string.ascii_uppercase, keys="u") == "")
+        # w   Remove whitespace
+        s = "∞ D\t\n\r\v\f:"
+        Assert(f(s, keys="w") == "∞D:")
+        Assert(f(s, keys="W") == "∞D\n:")
+        # 8   Remove characters > 0xff
+        s = "a∞ăĂāĀÿ"
+        Assert(f(s, keys="8") == "aÿ")
+        if 1:   # Check passed key characters
+            allowed = "AaBbdhloPpWwu8"
+            f("", keys=allowed)
+            raises(ValueError, f, "", keys=allowed + "x")
+        breakpoint() # ∞∞
     def Demo():
         "Demonstrate the various functions to stdout"
         t.print(f"{t('ornl')}Demo of /plib/dpstr.py functions")

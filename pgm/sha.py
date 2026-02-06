@@ -1,21 +1,27 @@
 '''
-Print out the SHA hashes for files on the command line.
+Print out the hashes for files on the command line
 '''
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # Print hashes for files on the command line
-        ##∞what∞#
-        ##∞test∞# #∞test∞#
-        pass
-    if 1:  # Imports
+    _pgminfo = '''
+        <oo gist ∞ Print out hashes of files oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2014 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ utility oo>
+        <oo test ∞ notest oo>
+        <oo todo ∞ 
+        
+            - ∞∞1 -t working, but need some careful tests on some prepared files to know that
+              it's working correctly
+
+        oo>
+    '''
+    if 1:  # Standard imports
         from pathlib import Path as P
         import getopt
         import hashlib
@@ -25,6 +31,7 @@ if 1:  # Header
     if 1:  # Custom imports
         from wrap import dedent
         from color import t
+        import dpstr
         if 0:
             import debug
             debug.SetDebugger()
@@ -34,19 +41,21 @@ if 1:  # Header
         g = G()
         # Colors
         t.d = t.sky
-        t.trunc = t.brnl
+        t.trunc = t.sky
         t.err = t.redl
         t.name = t.ornl
+        t.hshname = t.purl
         # Hash method numbers to the method's constructor
-        g.hash_method = {
-            0:  hashlib.sha256,
-            1:  hashlib.md5,
-            2:  hashlib.sha1,
-            3:  hashlib.sha224,
-            4:  hashlib.sha384,
-            5:  hashlib.sha512,
-            6:  zlib.crc32,
-            7:  zlib.adler32}
+        g.hash_methods = {
+            0:  (hashlib.sha256, "SHA256"),
+            1:  (hashlib.md5, "MD5"),
+            2:  (hashlib.sha1, "SHA1"),
+            3:  (hashlib.sha224, "SHA224"),
+            4:  (hashlib.sha384, "SHA384"),
+            5:  (hashlib.sha512, "SHA512"),
+            6:  (zlib.crc32, "CRC32"),
+            7:  (zlib.adler32, "ADLER32"),
+        }
         # This is set to True if -t or -n option used
         g.show_color_message = False
 if 1:  # Utility
@@ -57,25 +66,27 @@ if 1:  # Utility
         exit(status)
     def Manpage():
         print(dedent(f'''
-
+        
         The -t option is intended to help compare text files.  The letters in the -t
         option determine the processing done on the file:
-
-            a   'ASCIIFY' the file by converting Unicode characters to rough ASCII
-                equivalents.  This transliteration is idiomatic because it was done
-                by my judgment [see /plib/asciify.py].  It also won't convert any 
-                Unicode characters that don't look similar to Latin letters.
-            b   Remove characters under 0x20
-            s   Remove all whitespace
-            p   Remove all punctuation
-            l   Convert to lower case
-            u   Convert to upper case
-            a   Remove all non-ASCII characters
-
-        For example, if you used '-t spal', the resulting file that is hashed would only
-        have 
-
+        
+          A   Convert Unicode characters to rough ASCII equivalents
+          a   Remove characters above 0x7f (i.e., keep only 7-bit characters)
+          B   Remove characters under 0x20 except newline
+          b   Remove characters under 0x20
+          d   Remove characters that are ASCII digits (∈ string.digits)
+          h   Remove characters that are hex digits (∈ string.hexdigits)
+          l   Remove lower case letters (∈ string.ascii_lowercase)
+          o   Remove characters that are octal digits (∈ string.octdigits)
+          P   Remove non-printable characters (∉ string.printable)
+          p   Remove punctuation (∈ string.punctuation)
+          W   Remove whitespace except newlines
+          w   Remove whitespace (∈ string.whitespace)
+          u   Remove upper case letters (∈ string.ascii_uppercase)
+          8   Remove all non-8-bit characters (if char > 0xff)
+        
         '''))
+        exit(0)
     def Usage(status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] [file1 [file2...]]
@@ -87,8 +98,6 @@ if 1:  # Utility
             -n n    Truncate hash to n bytes
             -s      Print hash name in color to stderr
             -t n    Process text files in special ways.  See -H manpage.
-            -w      Open as UTF8 text file, read, remove all whitespace,
-                    encode to bytes, then calculate hash
         Other hash methods                Bytes in hash{t.d}
             0       SHA-256 (default)           32{t.n}
             1       MD5                         16
@@ -106,60 +115,36 @@ if 1:  # Utility
         d["-m"] = 0      # Hash method to use
         d["-n"] = None   # Truncate hash to n bytes
         d["-s"] = False  # Print hash name in color to stderr
-        d["-t"] = None   # Process text file specially
-        d["-w"] = False  # Remove whitespace from each file
+        d["-t"] = []     # Process text file specially
         try:
-            opts, files = getopt.getopt(sys.argv[1:], "aHhm:n:stw")
+            opts, files = getopt.getopt(sys.argv[1:], "aHhm:n:st:")
         except getopt.GetoptError as e:
             msg, option = e
             print(msg)
             exit(1)
         for o, a in opts:
-            if o[1] in "astw":
+            if o[1] in "as":
                 d[o] = not d[o]
             elif o == "-H":     # Show manpage
                 Manpage()
             elif o == "-m":     # Select hash method
                 d[o] = int(a)
-                if d[o] not in g.hash_method:
-                    must = ', '.join(str(i) for i in g.hash_method.keys())
+                if d[o] not in g.hash_methods:
+                    must = ', '.join(str(i) for i in g.hash_methods.keys())
                     Error(f"-m option must in {must}")
             elif o == "-n":     # Truncate hash to n bytes
                 d[o] = int(a)
                 if d[o] <= 0:
                     Error("-n option must be > 0")
             elif o == "-t":     # Process text file
-                d[o] = int(a)
-                if d[o] <= 0:
-                    Error("-t option must be > 0")
+                letters = "AaBbdhloPpWwu8"
+                if a not in set(letters):
+                    Error("{a!r} not in valid -t letters of {letters!r}")
+                d[o].append(a)
         if not files or d["-h"]:
             Usage()
         return files
 if 1:  # Core functionality
-    def GetHash(Bytes, method):
-        '''Return (h, t) where h is hash and t is True if truncated.
-        Bytes  = string of bytes to hash
-        method = integer indicating the hash method to use in g.method
-        '''
-        if method not in g.hash_method:
-            raise ValueError(f"{method!r} is bad hash method number")
-        truncated = False
-        if method == zlib.crc32:
-            i = zlib.crc32(Bytes)
-            h = f"{i:08x}"
-        elif method == zlib.adler32:
-            i = zlib.adler32(Bytes)
-            h = f"{i:08x}"
-        else:
-            h = eval("method()")
-            h.update(Bytes)
-            h = h.hexdigest()
-        if d["-n"] is not None:     # Truncate hash to n bytes
-            old = h
-            new = h[:d["-n"]]
-            truncated = True if old != new else False
-            h = new
-        return (h, truncated)
     def GetBytes(file):
         "Read file in binary as a bytes object"
         if file == "-":
@@ -192,68 +177,74 @@ if 1:  # Core functionality
         # Convert to binary
         b = b.encode()
         return b
+    def GetHash(b, hash_method):
+        'Return the hexdigest; b are the bytes, hash_method is the hashlib method'
+        try:
+            hsh = hash_method()
+            hsh.update(b)
+            hexdigest = hsh.hexdigest()
+        except TypeError:
+            # CRC32 or ADLER32
+            hsh = hash_method(b)
+            hexdigest = f"{hsh:08x}"
+        return hexdigest
+    def ProcessText(b, file, keys):
+        '''These bytes are converted to Unicode (assumed to be UTF-8 encoded), processed
+        as indicated by the -t option (in keys), then converted back to bytes.
+        '''
+        s = b.decode()
+        try:
+            u = dpstr.RemoveIdiomatic(s, keys=keys)
+        except Exception as e:
+            Error(f"Special -t processing for {file!r} failed:\n  {e}")
+        return u.encode()
     def ProcessFile(file):
         p = P(file)
         if p.is_dir():
             t.print(f"{t.err}{file!r} is a directory", file=sys.stderr)
             return
         # Get the relevant bytes in the file
-        b = GetTextFile(file) if d["-w"] else GetBytes(file)
-        if b is None:
-            return
+        B = GetBytes(file)
+        # Special processing if -t option used
+        b = ProcessText(B, file, d["-t"])
         if d["-a"]:     # Show for all hash methods
-            breakpoint() # ∞∞ 
+            t.print(f"{t.name}{file}")
+            # Get longest hash method name
+            w = 0
+            for i in g.hash_methods:
+                w = max(w, len(g.hash_methods[i][1]))
+            for i in g.hash_methods:
+                hash_method, name = g.hash_methods[i]
+                hexdigest = GetHash(b, hash_method)
+                if d["-n"]:     # Truncate hash to n bytes
+                    newdigest = hexdigest[:2*d['-n']]
+                    if len(newdigest) != len(hexdigest):
+                        t.print(f"   {t.hshname}{name:{w}s}{t.n} {t.trunc}{newdigest}")
+                    else:
+                        print(f"   {t.hshname}{name:{w}s}{t.n} {newdigest}")
+                else:
+                    print(f"   {t.hshname}{name:{w}s}{t.n} {hexdigest}")
+            return
         else:
-            hash_method = g.hash_method[d["-m"]]
-            try:
-                hsh = hash_method()
-                hsh.update(b)
-                hexdigest = hsh.hexdigest()
-                print("digest", hexdigest)
-            except TypeError:
-                # CRC32 or ADLER32
-                hsh = hash_method(b)
-                hexdigest = f"{hsh:08x}"
+            hash_method, name = g.hash_methods[d["-m"]]
+            hexdigest = GetHash(b, hash_method)
         if d["-n"]:     # Truncate hash to n bytes
-            hexdigest = hexdigest[:2*d["-n"]]
-        print(hexdigest)
-        exit() # ∞∞ 
-
+            newdigest = hexdigest[:2*d["-n"]]
+            if len(newdigest) != len(hexdigest):
+                t.print(f"   {t.hshname}{name}{t.n} {t.trunc}{newdigest}")
+            else:
+                print(f"   {t.hshname}{name}{t.n} {newdigest}")
+        else:
+            print(hexdigest, file)
 
 if __name__ == "__main__":
     d = {}  # Options dictionary
     files = ParseCommandLine()
     for file in files:
         ProcessFile(file)
+    if d["-n"]:     # Truncate hash to n bytes
+        t.print(f"Hashes in this {t.trunc}color{t.n} are truncated to {d['-n']} bytes", file=sys.stderr)
+    if d["-s"]:     # Print hash name in color to stderr
+        _, name = g.hash_methods[d["-m"]]
+        t.print(f"Hash used is {t.name}{name}", file=sys.stderr)
 
-    if 0:   # Old code
-        if d["-w"]:
-            b = GetTextFile(file)
-        else:
-            b = GetBytes(file)
-        if b is None:
-            pass
-            #continue
-        if d["more_than_one"]:
-            print(file)
-            for i in d["L"]:
-                if d[i]:
-                    method, name = d["method"][i]
-                    h, truncated = GetHash(b, method)
-                    if truncated:
-                        t.print(f"{t.trunc}  {name:7s} {h}")
-                        g.show_color_message = True
-                    else:
-                        print(f"  {name:7s} {h}")
-        else:
-            for i in d["L"]:
-                if d[i]:
-                    method, name = d["method"][i]
-                    h, truncated = GetHash(b, method)
-                    if truncated:
-                        t.print(f"{t.trunc}{h} {'<stdin>' if file == '-' else file}")
-                        g.show_color_message = True
-                    else:
-                        print(f"{h} {'<stdin>' if file == '-' else file}")
-    if g.show_color_message:
-        print(f"A hash in {t.trunc}this color{t.n} means it was truncated")

@@ -155,7 +155,12 @@ if 1:  # Core functionality
         # Ignore any blank lines
         while not dq[0][1].strip():
             dq.popleft()
-        Assert(dq[0][1].startswith("function ") or dq[0][1] == "#END#")
+        if 0:
+            if not (dq[0][1].startswith("function ") or dq[0][1] == "#END#"):
+                print(f"lf.py:  problem with {dq[0][1]!r}")
+                breakpoint() # ∞∞ 
+        else:
+            Assert(dq[0][1].startswith("function ") or dq[0][1] == "#END#")
         return Function(lines, file)
     def ReadFunctions():
         for file in g.funcfiles:

@@ -17,7 +17,6 @@ Hashes a set of string answers to a set of questions.
                 - hashfunc  Which hashlib function is used for hashing
                 - truncate  How many hex digits in the resulting hex digest
                 - passes    How many passes were made
-            - How many passes in HashAnswer were used
     
     Suppose you use a set of n symbols for answers.  The string that makes up the answer
     to all your set of questions can be from 1 to p symbols long.  To do a brute force
