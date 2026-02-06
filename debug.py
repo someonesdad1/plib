@@ -88,8 +88,7 @@ if 1:  # Header
         enable_tracing = False
         if enable_tracing:
             debug_log = open("debug.log", "wb")
-        ii = isinstance
-        w = int(os.environ.get("COLUMNS", "80")) - 1
+        W = int(os.environ.get("COLUMNS", "80")) - 1
 if 1:   # Classes
     class Trace:
         '''Function decorator to print the entry and exit of function calls
@@ -209,7 +208,7 @@ if 1:   # Core functionality
         See http://code.activestate.com/recipes/52314; also
         pg 427 of Python Cookbook.
         '''
-        assert color is None or ii(color, str) or ii(color, Color)
+        assert color is None or isinstance(color, str) or isinstance(color, Color)
         assert hasattr(stream, "write")
         def GetVariableNames(s):
             '''s is a string of the form 'watch([x, y], color=c)'.
@@ -248,13 +247,13 @@ if 1:   # Core functionality
             fn, ln, method, call = TB.extract_stack()[-2:][0]
             names = GetVariableNames(call)
             if stream == sys.stdout and color is not None:
-                if ii(color, str):
+                if isinstance(color, str):
                     # It's a color name or hex string or an ANSI escape sequence
                     if "\x1b" in color:
                         print(color, end="")
                     else:
                         print(t(color), end="")
-                elif ii(color, Color):
+                elif isinstance(color, Color):
                     print(f"{t(color)}", end="")
                 else:
                     raise TypeError(f"'{color}' is not a string or Color instance")
@@ -361,13 +360,11 @@ if 1:   # Core functionality
             print("Locals by frame, innermost last", file=stream)
         # Print a note if not all stack frames are shown
         m1, m2 = "Note:", "  only selected %s are shown"
-        if (
-            (fr_include is not None and len(fr_include))
-            or (fr_ignore is not None and len(fr_ignore))
-            or num_levels
-        ):
+        if ((fr_include is not None and len(fr_include))
+                or (fr_ignore is not None and len(fr_ignore))
+                or num_levels):
             if stream == sys.stdout:
-                print(f"{t('redl', 'blk')}", end="")
+                print(f"{t.redl}", end="")
             print(m1, end="", file=stream)
             if stream == sys.stdout:
                 print(f"{t.n}", end="")
@@ -379,7 +376,7 @@ if 1:   # Core functionality
             or num_levels
         ):
             if stream == sys.stdout:
-                print(f"{t('redl', 'blk')}", end="")
+                print(f"{t.redl}", end="")
             print(m1, end="", file=stream)
             if stream == sys.stdout:
                 print(f"{t.n}", end="")
@@ -503,14 +500,15 @@ if 1:   # Core functionality
         else:
             return func
     def fln(brackets=True):
-        "Return a string showing the file and line number if debug is on."
-        s = TB.extract_stack()[-2:][0]
-        t = "{}:{}".format(s[0], s[1]) if __debug__ else ""
-        if brackets:
-            t = "[{}]".format(t)
-        return t
+        '''Return a string showing the file and line number from where this function was
+        called.  It works regardless of the setting of debug.on.
+        '''
+        f, ln = filelinenum()
+        return f"[{f}:{ln}]" if brackets else f"{f}:{ln}"
     def filelinenum():
-        "Return (file, linenum)"
+        '''Return (file, linenum).  The file and line number are for where this function
+        was called.  It always works regardless of the setting of debug.on.
+        '''
         s = TB.extract_stack()[-2:][0]
         return (s[0], s[1]) if __debug__ else tuple()
     def DumpStack(stream=sys.stdout):
@@ -545,6 +543,8 @@ if 1:   # Core functionality
 
 if __name__ == "__main__":
     from wrap import dedent
+    from lwtest import run
+    t.ti = t("brnl")
     def TestDump():
         data = ["1", "2", 3, "4"]
         def pad4(seq):
@@ -559,16 +559,14 @@ if __name__ == "__main__":
             # Highlight the variable 'thing' in yellow and the variable
             # 'data' in blue.
             hl = {"thing": "yell", "data": "roy"}
-            DumpException(fr_ignore=[0], hl=hl)
-    # Print samples to stdout.  After seeing the behavior, set the global
-    # variable on to False (uncomment the next line) to see the debug
-    # printing turned off.
-    # on = False
+            print("\nWe're just about to call DumpException() and we're giving it the")
+            print("argument fr_ignore=[0, 1] to ignore frames 0 and 1, which is useful")
+            print("to avoid seeing lots of stuff from the global frame.\n")
+            DumpException(fr_ignore=[0, 1], hl=hl)
     def Sep():
-        t.print(f"{t('purl')}{'='*(w - 10)}")
-    t.ti = t("brnl")
-    Sep()
-    if 1:  # watch and trace
+        t.print(f"{t('purl')}{'='*(W - 10)}")
+    def Demo_1WatchAndTrace():
+        Sep()
         print(dedent(f'''
         {t.ti}watch() and trace(){t.n}
          
@@ -577,8 +575,7 @@ if __name__ == "__main__":
         colorizing the output (you could add logic that changed the color
         if a certain condition was true).
         
-        ''')
-        )
+        '''))
         def test1():
             x, y = 17, -44.3
             watch((x, y), color="grn")
@@ -590,8 +587,8 @@ if __name__ == "__main__":
         test1()
         a = A()
         a.f()
+    def Demo_2UnhandledException():
         Sep()
-    if 1:  # Demonstrate an unhandled exception
         print( dedent(f'''
         {t.ti}Demonstrate an unhandled exception{t.n}
          
@@ -601,8 +598,8 @@ if __name__ == "__main__":
         highlighted in color.
         '''))
         TestDump()
+    def Demo_3TracingToAStream():
         Sep()
-    if 1:  # Demonstrate tracing to a stream
         print(dedent(f'''
         {t.ti}Demonstrate tracing to a stream{t.n}
         
@@ -610,8 +607,7 @@ if __name__ == "__main__":
         function calls and their return values to be monitored.  If the global
         variable enable_tracing is False, there's no output and little overhead
         is added.
-        ''')
-        )
+        '''))
         enable_tracing = True
         debug_log = sys.stdout
         if enable_tracing:
@@ -622,8 +618,8 @@ if __name__ == "__main__":
             Square_x_and_add_y(4, 5)
             Square_x_and_add_y(4, y=5)
         enable_tracing = False
+    def Demo_4DumpArgs():
         Sep()
-    if 1:  # DumpArgs function
         print(dedent(f'''
         {t.ti}DumpArgs function demo{t.n}
          
@@ -635,8 +631,8 @@ if __name__ == "__main__":
             print("  Inside func:  a =", a)
             print("  Inside func:  b =", b)
         func(2, 3)
+    def Demo_5AutoIndenting():
         Sep()
-    if 1:  # Demonstrate auto indenting
         print(dedent(f'''
         {t.ti}Autoindent example{t.n}
         
@@ -679,4 +675,4 @@ if __name__ == "__main__":
         A()
         # Remember to reconnect old stream
         sys.stdout = sys.__stdout__
-        Sep()
+    run(globals(), regexp=r"^Demo_", quiet=1, halt=1, verbose=0)

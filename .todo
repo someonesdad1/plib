@@ -107,14 +107,15 @@
           prototyping things.  This causes an exit(), but also prints it's location to
           stderr and stdout everytime to identify what file is causing the problem
           (i.e., has the exit() call and it's imported somewhere).
-            - A simpler approach is to use 'exit(-1)'; this causes a return status of
-              255 and my shell prompt will tell you the command failed; you then execute
-              "fgrep 'exit(-1)' *.py" and you'll find the offending line.
+            - A simpler approach is to use 'exit(111)'; this causes a return status of
+              111 and my shell prompt will tell you the command failed; you then execute
+              "fgrep 'exit(111)' *.py" and you'll find the offending line.
         - Rethink it as a global development tool, as I virtually never use it except
           for SetDebugger
         - Turn debug.on with env variable Debug (just like Assert)
             - Then e.g. turning g.dbg on in scripts no longer needed?
-        - AutoIndent should be a context manager
+        - AutoIndent should be a context manager; then you don't need to remember to
+          reconnect stdout
         - Environment variables
             - sdb for SetDebugger
             - dbg for turning on debugging
@@ -183,6 +184,18 @@
         - https://manual.winmerge.org/en/ is the HTML manual
             - Use a python script to download all of the files so I have a local copy
 
+    - utf-8.py
+        - This would be an example python script that when run would show you the
+          details of encoding and decoding UTF-8 encoded material, one of the genius
+          moments in the life of the Internet.  See https://en.wikipedia.org/wiki/UTF-8,
+          which shows an excellent diagram in the Description section.
+        - It would also contain python code that encodes and decodes UTF-8 material,
+          though of course this is done by C code in python itself.
+        - Look at the 'Error handling' section too.  "Only a small subset of possible
+          byte strings are error-free UTF-8"
+        - Print out the byte map below the Error handling section in the terminal with
+          color.  This would also be useful to add to asc.py.
+
     - airnav.py
         - I based this on version 1.20 of the aviation formulary; it's now at version
           1.47.  It's scheduled for an update in /home/don/projects/aviation_formulary.
@@ -201,6 +214,18 @@
               associated formatting.  You add them with t.push(dict) and take them off
               with t.pop().  This lets you have a subroutine use its own set of colors,
               then let the calling routine resume its colors.
+                - A nice way of doing this for e.g. a Usage() statement is to let you
+                  put the desired colors in Usage.clr = {}.  Then you call
+                  t.styles(Usage.clr) before producing output in the print() statements.
+                  Need to figure out a clever way of making print() know these styles.
+                  This could be done with a class and make it a context manager.
+                    - This could be a use case for two-letter color names:  bn, bk, wt
+                      gr, bu, etc. with "l" for light.  Inside the function, these
+                      colors would be gotten with {gr} and {no} to go back to normal.
+                      This would be concise and readable: bn rd on yl gr bu vi gy wt cy
+                      mg pk lp lv ll pu ry dn sy tq se ln ov
+            - However, in a Usage() statement, 'e, b, n = t.purl, t.cynl, t.n' works
+              nicely too and is simpler than defining a bunch of new structure.
             - Would it make sense to derive t from dict?  Then colors would always have
               to be gotten like t["name"], which is clumsy in f-strings.  Attribute
               access is cleaner syntactically.
@@ -426,6 +451,9 @@
               lgpl2.1, mozilla2, unlicense
 
     - asciify.py
+        - Goal:  'U | asciify -' should produce pure ASCII.  Still, it's going to be
+          idiomatic and idiosyncratic because there have to be so many personal choices.
+            - I won't even try converting all the emoji stuff out there
         - Vision:  the new codepoints entry can be used to modify asciify.py to allow it
           to turn arbitrary Unicode data (up to U+FFFF) into plain ASCII text in a
           uniform and readable manner.  This will be done by using the name attribute of
