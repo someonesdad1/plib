@@ -46,30 +46,37 @@
             - waveform.py needs a goodly amount of work to fix lint problems
             - pgm/dia.py:  move all the size information to a module in /plib
         - Architecture
-            - Good starting example:   thermocouple.py
-                - The downloaded data are in ~/dp/NIST_thermocouples_allcoeff.tab.txt
-                  and it would be nice to have some reference code parse this file to
-                  e.g. produce a JSON datafile.  The /pylib/thermocouples/gen_table.py
-                  converts the numerical tables to text files that can be used to test
-                  the formulas.
-                - The /pylib/thermocouples/thermal_emf.py script should also be a
-                  datafile (it's in /plib/pgm).
             - Put most of my data into dpdata.py
-            - Each class of data is then gotten from a function call
-            - The raw data is in the /plib/data directory.  This directory's files are
-              in whatever form is suitable for the main storage.  I'd prefer either
-              plain text or JSON, as they are easy to manually edit.
-                - Plain text files can have comments in them that use '#" to mark the
-                  lines.  This lets get.GetLines() get the needed data.
-            - The data from /plib/data are not loaded until the function is called,
-              meaning module loading is fast.  Some of the more common stuff may be
-              loaded at runtime if that makes sense.
-            - The function doing the loading can vet the data as necessary
-            - This should help reduce the number of files in /plib and speed things up.
-              It also makes maintenance easier.
-        - I don't like __all__ in files, as its need usually means that there's a bunch
-          of ancillary helping code in the file too.  Review all the exemplars and see
-          if they can be gotten rid of.
+                - Good starting example:   thermocouple.py
+                    - The downloaded data are in ~/dp/NIST_thermocouples_allcoeff.tab.txt
+                    and it would be nice to have some reference code parse this file to
+                    e.g. produce a JSON datafile.  The /pylib/thermocouples/gen_table.py
+                    converts the numerical tables to text files that can be used to test
+                    the formulas.
+                    - The /pylib/thermocouples/thermal_emf.py script should also be a
+                    datafile (it's in /plib/pgm).
+                - Each class of data is then gotten from a function call
+                - The raw data is in the /plib/data directory.  This directory's files are
+                in whatever form is suitable for the main storage.  I'd prefer either
+                plain text or JSON, as they are easy to manually edit.
+                    - Plain text files can have comments in them that use '#" to mark the
+                    lines.  This lets get.GetLines() get the needed data.
+                - The data from /plib/data are not loaded until the function is called,
+                meaning module loading is fast.  Some of the more common stuff may be
+                loaded at runtime if that makes sense.
+                - The function doing the loading can vet the data as necessary
+                - This should help reduce the number of files in /plib and speed things up.
+                It should also make maintenance easier.
+        - Since constant.py is now working as a flexible constant variable container, it
+          should be used by all scripts.  I'd like to standardize on the pattern
+            - from constant import Constant
+            - G = Constant()
+            - g = Constant()
+            - g.strict = False
+            - Then G is a container for true readonly stuff and g is writable as needed.
+              However, g can be set to readonly when desired, possibly eliminating later
+              bugs when accidentally changing something.  Of course, either of them can
+              be modified as needed using the context manager.
         - si.py can become a core module to deliver SI units, prefixes, and many
           conversion factors to other non-SI units
         - Standardize on 'import x' instead of 'from x import y'.  The reason is because

@@ -265,7 +265,7 @@ if 1:  # Core functionality
         return RaisesContextManager(ExpectedExceptions)
     class RaisesContextManager(object):
         def __init__(self, ExpectedExceptions):
-            '''Initialize with one one exception object or a sequence of
+            '''Initialize with one exception object or a sequence of
             exception objects
             '''
             if issubclass(ExpectedExceptions, BaseException):
