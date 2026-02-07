@@ -439,10 +439,9 @@ if 1:  # Get data
     solarsys = BuildDataDict()
 if 1:  # Utility
     def Manpage():
-        print(
-            dedent(f'''
-        This script prints out wikipedia's information on the major solar system bodies as of
-        {scrape_date}.
+        print( dedent(f'''
+        This script prints out wikipedia's information on the major solar system bodies
+        as of {scrape_date}.
          
         Here's example output for Titan (the table mapping index numbers to body is omitted):
          
@@ -462,35 +461,39 @@ if 1:  # Utility
             T         94 K = 94 K               Mean surface temperature
             ld        yy                        Log discriminant
          
-        Because SI prefixes can be useful in interpreting results, the values are followed by the
-        significand with an appended SI prefix to the units.
+        Because SI prefixes can be useful in interpreting results, the values are
+        followed by the significand with an appended SI prefix to the units.
          
-        d is the distance to the primary.  Thus, for a planet like Mars, this means the distance to
-        the sun.  For a moon like Ganymede, it means the distance to Jupiter.
+        d is the distance to the primary.  Thus, for a planet like Mars, this means the
+        distance to the sun.  For a moon like Ganymede, it means the distance to
+        Jupiter.
          
-        The index number lets you use either that number or "Titan" as the command line argument to
-        get the report.  The command line arguments will also be interpreted as case-insensitive
-        regular expressions, so e.g. "^t" will show you the bodies with names that start with the
-        letter t.
+        The index number lets you use either that number or "Titan" as the command line
+        argument to get the report.  The command line arguments will also be interpreted
+        as case-insensitive regular expressions, so e.g. "^t" will show you the bodies
+        with names that start with the letter t.
          
         The variables are explained in the usage statement.
          
-        When you use the -r option, you specify a reference body.  Then the report's parameters are
-        printed to the reference body's values.  Example:  'solarsys.py -r earth venus' shows
-        Venus' values in terms of Earth's.  You should see Venus' mass is 0.82 of Earth's and its
-        surface temperature is 2.5 times that of Earth's.
+        When you use the -r option, you specify a reference body.  Then the report's
+        parameters are printed to the reference body's values.  Example:  'solarsys.py
+        -r earth venus' shows Venus' values in terms of Earth's.  You should see Venus'
+        mass is 0.82 of Earth's and its surface temperature is 2.5 times that of
+        Earth's.
          
-        If you use Earth as the -r argument, you won't get quite the same numbers as seen in the
-        wikipedia table because the Earth's mean distance from the sun is 1.00000011 AU, not unity
-        as you'd expect.  If you use this correction, you should get the table values to within
-        about 7 or 8 digits.
+        If you use Earth as the -r argument, you won't get quite the same numbers as
+        seen in the wikipedia table because the Earth's mean distance from the sun is
+        1.00000011 AU, not unity as you'd expect.  If you use this correction, you
+        should get the table values to within about 7 or 8 digits.
          
-        The default number of digits printed is 2.  You can change this in the ParseCommandLine()
-        function if you wish.  I find 2 digits nice for getting a feel for the size of things.
+        The default number of digits printed is 2.  You can change this in the
+        ParseCommandLine() function if you wish.  I find 2 digits nice for getting a
+        feel for the size of things.
          
-        ld is the base 10 logarithm of the Soter discriminant for a planet, which is M/m where M is
-        the planet's mass and m is the summed mass of all the other objects in the neighorhood of
-        that planet's orbit.  The planets will have ld >> 0 and dwarf planets will have ld < 0.
+        ld is the base 10 logarithm of the Soter discriminant for a planet, which is M/m
+        where M is the planet's mass and m is the summed mass of all the other objects
+        in the neighorhood of that planet's orbit.  The planets will have ld >> 0 and
+        dwarf planets will have ld < 0.
          
         Here's a list of the 38 objects that are included and their counts by category:
          

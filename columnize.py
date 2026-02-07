@@ -355,13 +355,13 @@ if __name__ == "__main__":
         Assert(result == expected)
     def TestIndent():
         seq = [str(i) for i in range(12)]
-        result = Columnize(seq, width=18, columns=4, indent="yyy")
+        result = Columnize(seq, width=18, columns=4, indent="qqq")
         expected = [
             i.lstrip()
             for i in '''
-            yyy0   3   6   9
-            yyy1   4   7   10
-            yyy2   5   8   11'''[1:].split("\n")
+            qqq0   3   6   9
+            qqq1   4   7   10
+            qqq2   5   8   11'''[1:].split("\n")
         ]
         Assert(result == expected)
     def TestTruncation():

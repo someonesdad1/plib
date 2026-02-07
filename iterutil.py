@@ -103,7 +103,7 @@ if 1:  # Core functionality
             next(b, None)
         return zip(a, b)
     def grouper(n, iterable, fillvalue=None):
-        "grouper(3, 'ABCDEFG', 'y') --> ABC DEF Gyy"
+        "grouper(3, 'ABCDEFG', 'z') --> ABC DEF Gzz"
         args = [iter(iterable)] * n
         return it.zip_longest(*args, fillvalue=fillvalue)
     def roundrobin(*iterables):

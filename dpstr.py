@@ -1268,101 +1268,87 @@ def RemoveIdiomatic(s, keys=""):
       as you can reconstruct the hash by answering the questions properly and
       calculating the resulting hash.
     '''
+    def f(x):
+        'Return bytes if x is bytes, bytearray, or string'
+        return x.encode() if isinstance(x, str) else x
     allowed_keys = set("AaBbdhloPpWwu8")
     keys = set(keys)
     if not keys.issubset(allowed_keys):
         raise ValueError(f"{keys!r} contains a not-allowed letter")
-    if isinstance(s, str):  # s is a string
-        if "A" in keys:
-            s = asciify.Asciify(s)
-        if "a" in keys:
-            s = ''.join(i for i in s if ord(i) <= 0x7f)
-        if "B" in keys:
-            s = ''.join(i for i in s if ord(i) >= 0x20 or i == "\n")
-        if "b" in keys:
-            s = ''.join(i for i in s if ord(i) >= 0x20)
-        if "d" in keys:
-            s = ''.join(i for i in s if i not in set(string.digits))
-        if "h" in keys:
-            s = ''.join(i for i in s if i not in set(string.hexdigits))
-        if "l" in keys:
-            s = ''.join(i for i in s if i not in set(string.ascii_lowercase))
-        if "o" in keys:
-            s = ''.join(i for i in s if i not in set(string.octdigits))
-        if "P" in keys:
-            c = set(string.digits + string.ascii_lowercase + string.ascii_uppercase +
-                string.punctuation + string.whitespace)
-            s = ''.join(i for i in s if i in c)
-        if "p" in keys:
-            s = ''.join(i for i in s if i not in set(string.punctuation))
-        if "W" in keys:
-            s = ''.join(i for i in s if i not in set(string.whitespace.replace("\n", "")))
-        if "w" in keys:
-            s = ''.join(i for i in s if i not in set(string.whitespace))
-        if "u" in keys:
-            s = ''.join(i for i in s if i not in set(string.ascii_uppercase))
-        if "8" in keys:
-            s = ''.join(i for i in s if ord(i) <= 0xff)
-        return s
-    elif isinstance(s, (bytes, bytearray)): # s is bytes or bytearray
-        def f(x):
-            'Return bytes if x is bytes, bytearray, or string'
-            return x.encode() if isinstance(x, str) else x
-                
-        if "A" in keys:
-            s = asciify.Asciify(s)
-        if "a" in keys:
-            s = ''.join(i for i in s if ord(i) <= 0x7f)
-        if "B" in keys:
-            s = ''.join(i for i in s if ord(i) >= 0x20 or i == "\n")
-        if "b" in keys:
-            s = ''.join(i for i in s if ord(i) >= 0x20)
-        if "d" in keys:
-            if 0:
-                d = set(string.digits.encode())
-                b = []
-                breakpoint() # ∞∞ 
-                for i in s:
-                    if i in d:
-                        continue
-                    b.append(i)
-                breakpoint() # ∞∞ 
-
-            b = bytearray(i for i in s if i not in set(f(string.digits)))
+    ii = isinstance
+    # Get return type
+    is_str = True
+    if ii(s, bytes):
+        is_str = False
+        def T(x):
             breakpoint() # ∞∞ 
-            s = b''.join(i for i in s if i not in set(string.digits.encode()))
-        if "h" in keys:
-            s = ''.join(i for i in s if i not in set(string.hexdigits))
-        if "l" in keys:
-            s = ''.join(i for i in s if i not in set(string.ascii_lowercase))
-        if "o" in keys:
-            s = ''.join(i for i in s if i not in set(string.octdigits))
-        if "P" in keys:
-            c = set(string.digits + string.ascii_lowercase + string.ascii_uppercase +
-                string.punctuation + string.whitespace)
-            s = ''.join(i for i in s if i in c)
-        if "p" in keys:
-            s = ''.join(i for i in s if i not in set(string.punctuation))
-        if "W" in keys:
-            s = ''.join(i for i in s if i not in set(string.whitespace.replace("\n", "")))
-        if "w" in keys:
-            s = ''.join(i for i in s if i not in set(string.whitespace))
-        if "u" in keys:
-            s = ''.join(i for i in s if i not in set(string.ascii_uppercase))
-        if "8" in keys:
-            s = ''.join(i for i in s if ord(i) <= 0xff)
-        return s
+            return b''.join(list(x))
+    elif ii(s, bytearray):
+        is_str = False
+        def T(x):
+            return bytearray(bytes(list(x)))
     else:
-        raise TypeError("s must be a string, bytes, or bytearray")
+        if not ii(s, str):
+            raise TypeError("s must be str, bytes, bytearray")
+
+    T = bytes if ii(s, bytes) else bytearray
+    # yy
+    if 0:
+        if "d" in keys:
+            if ii(s, str):
+                s = ''.join(i for i in s if i not in set(string.digits))
+            elif ii(s, (bytes, bytearray)):
+                s = T(i for i in s if i not in set(string.digits.encode()))
+        return s
+
+    if "A" in keys:
+        s = asciify.Asciify(s)
+    if "a" in keys:
+        s = ''.join(i for i in s if ord(i) <= 0x7f)
+    if "B" in keys:
+        s = ''.join(i for i in s if ord(i) >= 0x20 or i == "\n")
+    if "b" in keys:
+        s = ''.join(i for i in s if ord(i) >= 0x20)
+    if "d" in keys:
+        s = ''.join(i for i in s if i not in set(string.digits))
+    if "h" in keys:
+        s = ''.join(i for i in s if i not in set(string.hexdigits))
+    if "l" in keys:
+        s = ''.join(i for i in s if i not in set(string.ascii_lowercase))
+    if "o" in keys:
+        s = ''.join(i for i in s if i not in set(string.octdigits))
+    if "P" in keys:
+        c = set(string.digits + string.ascii_lowercase + string.ascii_uppercase +
+            string.punctuation + string.whitespace)
+        s = ''.join(i for i in s if i in c)
+    if "p" in keys:
+        s = ''.join(i for i in s if i not in set(string.punctuation))
+    if "W" in keys:
+        s = ''.join(i for i in s if i not in set(string.whitespace.replace("\n", "")))
+    if "w" in keys:
+        s = ''.join(i for i in s if i not in set(string.whitespace))
+    if "u" in keys:
+        s = ''.join(i for i in s if i not in set(string.ascii_uppercase))
+    if "8" in keys:
+        s = ''.join(i for i in s if ord(i) <= 0xff)
+    return s
 
 if 0:
     from color import t
-    b = b"Hello, there 42\nHow are you?"
-    o = RemoveIdiomatic(b, keys="d")
-    print("Results =", repr(o))
+    if 1:   # String
+        b = "Hello, there 42\nHow are you?"
+        o = RemoveIdiomatic(b, keys="d")
+        print("String =", repr(o))
+    if 1:   # Bytes
+        b = b"Hello, there 42\nHow are you?"
+        o = RemoveIdiomatic(b, keys="d")
+        print("Bytes =", repr(o))
+    if 1:   # Bytearray
+        b = bytearray(b"Hello, there 42\nHow are you?")
+        o = RemoveIdiomatic(b, keys="d")
+        print("Bytearray =", repr(o))
     t.print(f"{t.redl}Prototyping code in dpstr.py ∞∞")
     exit()
-
 
 if __name__ == "__main__":
     from lwtest import run, raises, Assert
@@ -1371,8 +1357,8 @@ if __name__ == "__main__":
     from sig import sig
     from color import t
     def Test_Decorate():
-        s = "yyy \t\n\r\f\vzzz"
-        Assert(Decorate(s) == "yyy·␉␤␍␌␋zzz")
+        s = "www \t\n\r\f\vzzz"
+        Assert(Decorate(s) == "www·␉␤␍␌␋zzz")
     def Test_IgnoreFilter():
         seq = [ "Bob", "bob", "bobwhite", "Carol", "carol", "Alice" ]
         # Empty sequence is identity function

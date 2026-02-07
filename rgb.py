@@ -118,7 +118,7 @@ if 1:  # Header
                       being 0 and white being 1
                     - Wavelength in nm
                     - 3 byte string
-                    - Strings:  @#$xxyyzz hex form
+                    - Strings:  @#$xxYYzz hex form
                     - 7 characters when ''.join()'d, make a 7 byte string as previous
                     - Another Color instance
                     - kw parameters
@@ -177,9 +177,9 @@ if 1:  # Header
                     - ColorNum((1., 2., 3.))
                     - ColorNum(1., 2., 3.)
                 - String
-                    - #xxyyzz string:  RGB hex
-                    - @xxyyzz string:  HSV hex
-                    - $xxyyzz string:  HLS hex
+                    - #xxYYzz string:  RGB hex
+                    - @xxYYzz string:  HSV hex
+                    - $xxYYzz string:  HLS hex
                 - 3-tuple of floats, Decimals, or fractions
                     - Used as-is if all three are on [0, 1]
                     - Normalized by vector length other wise
@@ -446,7 +446,7 @@ if 1:  # Classes
         '''
         def __init__(self, x):
             e = ValueError(f"'{x}' is an incorrect color initializer")
-            if ii(x, str):  # It's a string of the #xxyyzz form
+            if ii(x, str):  # It's a string of the #xxYYzz form
                 if len(x) != 7 or x[0] != "#":
                     raise e
                 try:

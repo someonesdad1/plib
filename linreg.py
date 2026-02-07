@@ -29,12 +29,12 @@ if 1:  # Core functionality
         if len(x) != len(y):
             raise ValueError("x and y are not same length")
         n, sx, sy = len(x), sum(x), sum(y)
-        sxx = sum([i*i for i in x])
-        syy = sum([i*i for i in y])
-        sxy = sum([i*j for i, j in zip(x, y)])
-        m = flt((n*sxy - sx*sy)/(n*sxx - sx**2))
+        sXX = sum([i*i for i in x])
+        sYY = sum([i*i for i in y])
+        sXY = sum([i*j for i, j in zip(x, y)])
+        m = flt((n*sXY - sx*sy)/(n*sXX - sx**2))
         b = flt((sy - m*sx)/n)
-        Rsquared = flt((n*sxy - sx*sy)**2/((n*sxx - sx**2)*(n*syy - sy**2)))
+        Rsquared = flt((n*sXY - sx*sy)**2/((n*sXX - sx**2)*(n*sYY - sy**2)))
         return (m, b, Rsquared)
 
 if __name__ == "__main__":

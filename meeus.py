@@ -102,13 +102,13 @@ if 1:  # Utility
         Assert(len(X) == len(Y))
         N, sx, sy = len(X), sum(X), sum(Y)
         sq, prod = lambda x: x * x, lambda x, y: x * y
-        sxx, syy, sxy = sum(map(sq, X)), sum(map(sq, Y)), sum(map(prod, X, Y))
-        denomx, denomy = N * sxx - sx * sx, N * syy - sy * sy
+        sXX, sYY, sXY = sum(map(sq, X)), sum(map(sq, Y)), sum(map(prod, X, Y))
+        denomx, denomy = N * sXX - sx * sx, N * sYY - sy * sy
         if not denomx or not denomy:
             raise ValueError("Regression equation denominator is zero")
-        slope = (N * sxy - sx * sy) / denomx
-        intercept = (sy * sxx - sx * sxy) / denomx
-        r = (N * sxy - sx * sy) / sqrt(denomx * denomy)
+        slope = (N * sXY - sx * sy) / denomx
+        intercept = (sy * sXX - sx * sXY) / denomx
+        r = (N * sXY - sx * sy) / sqrt(denomx * denomy)
         Assert(-1 <= r <= 1, "Correlation coefficient out of range")
         return (slope, intercept, r)
     def AngularSeparation(ra1, dec1, ra2, dec2):
