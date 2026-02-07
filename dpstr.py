@@ -1244,9 +1244,9 @@ def RemoveCharClass(s, keys=""):
         n   Remove punctuation (∈ string.punctuation)
         o   Remove characters that are octal digits (∈ string.octdigits)
         p   Remove non-printable characters (∉ string.printable)
+        u   Remove upper case letters (∈ string.ascii_uppercase)
         W   Remove whitespace (∈ string.whitespace)
         w   Remove whitespace except newlines
-        u   Remove upper case letters (∈ string.ascii_uppercase)
         7   Remove characters above 0x7f (i.e., keep only 7-bit characters)
         8   Remove characters above 0xff (i.e., keep only 8-bit characters)
     
@@ -1340,9 +1340,9 @@ def RemoveCharClass(s, keys=""):
         if "A" in keys:
             pass
         if "B" in keys:
-            b = T(i for i in b if i >= 0x20 or i == "\n")
-        if "b" in keys:
             b = T(i for i in b if i >= 0x20)
+        if "b" in keys:
+            b = T(i for i in b if i >= 0x20 or i == 0x0a)
         if "d" in keys:
             b = T(i for i in b if i not in set(c.d.encode()))
         if "h" in keys:
@@ -1895,51 +1895,88 @@ if __name__ == "__main__":
         # re flag works
         Assert(FilterSeqRegex(s.upper().split(), regexes=["str1"], re_flags=re.I) == ["STR1"])
     def Test_RemoveCharClass():
+        '''Note the tests cover strings, bytes, and bytearrays.  Test cases:
+            A   Convert Unicode characters to rough ASCII equivalents
+            B   Remove characters under 0x20
+            b   Remove characters under 0x20 except newline
+            d   Remove characters that are ASCII digits (∈ string.digits)
+            h   Remove characters that are hex digits (∈ string.hexdigits)
+            l   Remove lower case letters (∈ string.ascii_lowercase)
+            n   Remove punctuation (∈ string.punctuation)
+            o   Remove characters that are octal digits (∈ string.octdigits)
+            p   Remove non-printable characters (∉ string.printable)
+            u   Remove upper case letters (∈ string.ascii_uppercase)
+            W   Remove whitespace (∈ string.whitespace)
+            w   Remove whitespace except newlines
+            7   Remove characters above 0x7f (i.e., keep only 7-bit characters)
+            8   Remove characters above 0xff (i.e., keep only 8-bit characters)
+        '''
+        def mk(s):  # Turn string s into (string, bytes, bytearray)
+            return (s, bytes(s.encode()), bytearray(s.encode()))
+        def Check(s, b, a, keys, s_exp, b_exp, a_exp):
+            Assert(f(s, keys=keys) == s_exp)
+            Assert(f(b, keys=keys) == b_exp)
+            Assert(f(a, keys=keys) == a_exp)
         f = RemoveCharClass
-        # No keys argument results in identity xfm
-        s = "∞©"
-        Assert(f(s, keys="") == s)
-        # A   ASCIIFY
-        s = "∞©"
-        Assert(f(s, keys="A") == "oo(C)")
-        # 7   Remove all non-ASCII
-        s, a = "∞©", "a(.;38fzK~"
-        Assert(f(s + a, keys="7") == a)
-        # b   Remove characters under 0x20
-        s = "a\t\n\r\x0b\x0cb"
-        Assert(f(s, keys="B") == "ab")
-        Assert(f(s, keys="b") == "a\nb")
-        # d   Remove characters that are ASCII digits
-        s = "a0123456789b"
-        Assert(f(s, keys="d") == "ab")
-        Assert(f(string.digits, keys="d") == "")
-        # h   Remove characters that are hex digits
-        s = "g0123456789abcdefh"
-        Assert(f(s, keys="h") == "gh")
-        # l   Remove lower case letters
-        s = "g0123456789abcdefh"
-        Assert(f(s, keys="l") == "0123456789")
-        Assert(f(string.ascii_lowercase, keys="p") == string.ascii_lowercase)
-        # o   Remove characters that are octal digits
-        Assert(f(s, keys="o") == "g89abcdefh")
-        Assert(f(string.octdigits, keys="o") == "")
-        # P   Remove non-printable characters 
-        s = "1aA; \n\x00∞"
-        Assert(f(s, keys="p") == "1aA; \n")
-        Assert(f(string.printable, keys="p") == string.printable)
-        # p   Remove punctuation
-        s = "1aA; \n\x00∞"
-        Assert(f(s, keys="n") == s.replace(";", ""))
-        Assert(f(string.punctuation, keys="n") == "")
-        # u   Remove upper case letters
-        Assert(f(string.ascii_uppercase, keys="u") == "")
-        # w   Remove whitespace
-        s = "∞ D\t\n\r\v\f:"
-        Assert(f(s, keys="W") == "∞D:")
-        Assert(f(s, keys="w") == "∞D\n:")
-        # 8   Remove characters > 0xff
-        s = "a∞ăĂāĀÿ"
-        Assert(f(s, keys="8") == "aÿ")
+        if 1:   # No keys => identity xfm
+            s, b, a = mk("∞©")
+            Check(s, b, a, "", s, b, a)
+        if 1:   # A
+            s, b, a = mk("∞©")
+            Check(s, b, a, "A", "oo(C)", b, a)
+        if 1:   # B
+            s, b, a = mk("a\t\n\r\x0b\x0cb")
+            Check(s, b, a, "B", "ab", b"ab", bytearray(b"ab"))
+        if 1:   # b
+            s, b, a = mk("a\t\n\r\x0b\x0cb")
+            Check(s, b, a, "b", "a\nb", b"a\nb", bytearray(b"a\nb"))
+        if 1:   # d
+            s, b, a = mk("a0123456789b")
+            Check(s, b, a, "d", "ab", b"ab", bytearray(b"ab"))
+            Assert(f(s, keys="d") == "ab")
+            Assert(f(string.digits, keys="d") == "")
+        if 1:   # h
+            s = "g0123456789abcdefh"
+            s, b, a = mk("g0123456789abcdefh")
+            Check(s, b, a, "h", "gh", b"gh", bytearray(b"gh"))
+        if 1:   # l
+            s, b, a = mk("g0123456789abcdefh")
+            Check(s, b, a, "l", "0123456789", b"0123456789", bytearray(b"0123456789"))
+        if 1:   # n
+            s, b, a = mk("a;,!b")
+            Check(s, b, a, "n", "ab", b"ab", bytearray(b"ab"))
+            s, b, a = mk(string.punctuation)
+            Check(s, b, a, "n", "", b"", bytearray(b""))
+        if 1:   # o
+            s, b, a = mk("a012345678b")
+            Check(s, b, a, "o", "a8b", b"a8b", bytearray(b"a8b"))
+            s, b, a = mk(string.octdigits)
+            Check(s, b, a, "o", "", b"", bytearray(b""))
+        if 1:   # p
+            s, b, a = mk("\x00aA0∞\n")
+            Check(s, b, a, "p", "aA0\n", b"aA0\n", bytearray(b"aA0\n"))
+            s, b, a = mk(string.printable)
+            Check(s, b, a, "p", s, b, a)
+        if 1:   # u
+            s, b, a = mk(string.ascii_uppercase)
+            Check(s, b, a, "u", "", b"", bytearray(b""))
+        if 1:   # W
+            s, b, a = mk("∞ D\t\n\r\v\f:")
+            e = "∞D:".encode()
+            Check(s, b, a, "W", "∞D:", e, bytearray(e))
+        if 1:   # w
+            s, b, a = mk("∞ D\t\n\r\v\f:")
+            e = "∞D\n:".encode()
+            Check(s, b, a, "w", "∞D\n:", e, bytearray(e))
+        if 1:   # 7
+            s, b, a = mk("∞©a(.;38fzK~")
+            e = "a(.;38fzK~".encode()
+            Check(s, b, a, "7", "a(.;38fzK~", e, bytearray(e))
+        if 1:   # 8
+            u = "a∞ăĂāĀÿ"
+            s, b, a = mk(u)
+            # Note this is the identity transformation for a and b
+            Check(s, b, a, "8", "aÿ", b, a)
         if 1:   # Check passed key characters
             keys = list(f.allowed_keys)
             f("", keys=keys)
