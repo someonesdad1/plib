@@ -1272,37 +1272,97 @@ def RemoveIdiomatic(s, keys=""):
     keys = set(keys)
     if not keys.issubset(allowed_keys):
         raise ValueError(f"{keys!r} contains a not-allowed letter")
-    if "A" in keys:
-        s = asciify.Asciify(s)
-    if "a" in keys:
-        s = ''.join(i for i in s if ord(i) <= 0x7f)
-    if "B" in keys:
-        s = ''.join(i for i in s if ord(i) >= 0x20 or i == "\n")
-    if "b" in keys:
-        s = ''.join(i for i in s if ord(i) >= 0x20)
-    if "d" in keys:
-        s = ''.join(i for i in s if i not in set(string.digits))
-    if "h" in keys:
-        s = ''.join(i for i in s if i not in set(string.hexdigits))
-    if "l" in keys:
-        s = ''.join(i for i in s if i not in set(string.ascii_lowercase))
-    if "o" in keys:
-        s = ''.join(i for i in s if i not in set(string.octdigits))
-    if "P" in keys:
-        c = set(string.digits + string.ascii_lowercase + string.ascii_uppercase +
-             string.punctuation + string.whitespace)
-        s = ''.join(i for i in s if i in c)
-    if "p" in keys:
-        s = ''.join(i for i in s if i not in set(string.punctuation))
-    if "W" in keys:
-        s = ''.join(i for i in s if i not in set(string.whitespace.replace("\n", "")))
-    if "w" in keys:
-        s = ''.join(i for i in s if i not in set(string.whitespace))
-    if "u" in keys:
-        s = ''.join(i for i in s if i not in set(string.ascii_uppercase))
-    if "8" in keys:
-        s = ''.join(i for i in s if ord(i) <= 0xff)
-    return s
+    if isinstance(s, str):  # s is a string
+        if "A" in keys:
+            s = asciify.Asciify(s)
+        if "a" in keys:
+            s = ''.join(i for i in s if ord(i) <= 0x7f)
+        if "B" in keys:
+            s = ''.join(i for i in s if ord(i) >= 0x20 or i == "\n")
+        if "b" in keys:
+            s = ''.join(i for i in s if ord(i) >= 0x20)
+        if "d" in keys:
+            s = ''.join(i for i in s if i not in set(string.digits))
+        if "h" in keys:
+            s = ''.join(i for i in s if i not in set(string.hexdigits))
+        if "l" in keys:
+            s = ''.join(i for i in s if i not in set(string.ascii_lowercase))
+        if "o" in keys:
+            s = ''.join(i for i in s if i not in set(string.octdigits))
+        if "P" in keys:
+            c = set(string.digits + string.ascii_lowercase + string.ascii_uppercase +
+                string.punctuation + string.whitespace)
+            s = ''.join(i for i in s if i in c)
+        if "p" in keys:
+            s = ''.join(i for i in s if i not in set(string.punctuation))
+        if "W" in keys:
+            s = ''.join(i for i in s if i not in set(string.whitespace.replace("\n", "")))
+        if "w" in keys:
+            s = ''.join(i for i in s if i not in set(string.whitespace))
+        if "u" in keys:
+            s = ''.join(i for i in s if i not in set(string.ascii_uppercase))
+        if "8" in keys:
+            s = ''.join(i for i in s if ord(i) <= 0xff)
+        return s
+    elif isinstance(s, (bytes, bytearray)): # s is bytes or bytearray
+        def f(x):
+            'Return bytes if x is bytes, bytearray, or string'
+            return x.encode() if isinstance(x, str) else x
+                
+        if "A" in keys:
+            s = asciify.Asciify(s)
+        if "a" in keys:
+            s = ''.join(i for i in s if ord(i) <= 0x7f)
+        if "B" in keys:
+            s = ''.join(i for i in s if ord(i) >= 0x20 or i == "\n")
+        if "b" in keys:
+            s = ''.join(i for i in s if ord(i) >= 0x20)
+        if "d" in keys:
+            if 0:
+                d = set(string.digits.encode())
+                b = []
+                breakpoint() # ∞∞ 
+                for i in s:
+                    if i in d:
+                        continue
+                    b.append(i)
+                breakpoint() # ∞∞ 
+
+            b = bytearray(i for i in s if i not in set(f(string.digits)))
+            breakpoint() # ∞∞ 
+            s = b''.join(i for i in s if i not in set(string.digits.encode()))
+        if "h" in keys:
+            s = ''.join(i for i in s if i not in set(string.hexdigits))
+        if "l" in keys:
+            s = ''.join(i for i in s if i not in set(string.ascii_lowercase))
+        if "o" in keys:
+            s = ''.join(i for i in s if i not in set(string.octdigits))
+        if "P" in keys:
+            c = set(string.digits + string.ascii_lowercase + string.ascii_uppercase +
+                string.punctuation + string.whitespace)
+            s = ''.join(i for i in s if i in c)
+        if "p" in keys:
+            s = ''.join(i for i in s if i not in set(string.punctuation))
+        if "W" in keys:
+            s = ''.join(i for i in s if i not in set(string.whitespace.replace("\n", "")))
+        if "w" in keys:
+            s = ''.join(i for i in s if i not in set(string.whitespace))
+        if "u" in keys:
+            s = ''.join(i for i in s if i not in set(string.ascii_uppercase))
+        if "8" in keys:
+            s = ''.join(i for i in s if ord(i) <= 0xff)
+        return s
+    else:
+        raise TypeError("s must be a string, bytes, or bytearray")
+
+if 0:
+    from color import t
+    b = b"Hello, there 42\nHow are you?"
+    o = RemoveIdiomatic(b, keys="d")
+    print("Results =", repr(o))
+    t.print(f"{t.redl}Prototyping code in dpstr.py ∞∞")
+    exit()
+
 
 if __name__ == "__main__":
     from lwtest import run, raises, Assert
@@ -1867,7 +1927,6 @@ if __name__ == "__main__":
             allowed = "AaBbdhloPpWwu8"
             f("", keys=allowed)
             raises(ValueError, f, "", keys=allowed + "x")
-        breakpoint() # ∞∞
     def Demo():
         "Demonstrate the various functions to stdout"
         t.print(f"{t('ornl')}Demo of /plib/dpstr.py functions")

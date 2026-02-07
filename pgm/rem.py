@@ -29,6 +29,7 @@ if 1:  # Header
     if 1:   # Custom imports
         import constant
         import dpseq
+        import dpstr
         from f import flt
         from wrap import dedent
         from color import t
@@ -47,8 +48,8 @@ if 1:  # Header
         # Note only hashable items will be readonly.
         g = constant.Constant()
         with g:
-            g.dbg = False
             g.dbg = True
+            g.dbg = False
 if 1:   # Utility
     def GetColors():
         t.bin = t.cynl
@@ -116,7 +117,7 @@ if 1:   # Utility
         exit(status)
     def ParseCommandLine(d):
         d["-b"] = False     # Binary file input
-        d["-e"] = False     # Binary file input
+        d["-e"] = "UTF-8"   # Decoding method
         d["-l"] = False     # Convert to lower case
         d["-u"] = False     # Convert to upper case
         if len(sys.argv) < 2:
@@ -150,7 +151,9 @@ if 1:   # Core functionality
     def GetFileData(file):
         'file is a string; return either text or bytes as appropriate'
         if file == "-":
-            b = sys.stdin.read()
+            s = sys.stdin.read()
+            # Note stdin returns a str
+            b = eval(f"s.encode(d['-e'])")
         else:
             p = Path(file)
             if p.is_dir():
@@ -163,15 +166,21 @@ if 1:   # Core functionality
         if d["-b"]:     # Bytes if d["-b"] set
             data = b
         else:           # Text otherwise
-            if d["-e"]:
-                data = eval(f"b.decode(d['-e'])")
-            else:
-                data = b.decode("UTF-8")
+            data = b.decode(d["-e"])
+        if d["-u"]:
+            data = data.upper()
+        if d["-l"]:
+            data = data.lower()
         Dbg("Data =", repr(data))
         return data
     def Process(file):
         'Process file (a Path instance) and send the results to stdout'
         data = GetFileData(file)
+        if (type(data) is bytes and
+            ("A" in g.letters or "8" in g.letters)):
+                Error("'A' and '8' cannot be used on bytes")
+        output = dpstr.RemoveIdiomatic(data, keys=g.letters) 
+        print(output, end="")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
