@@ -15,7 +15,8 @@ if 1:  # Header
         <oo test ∞ notest oo>
         <oo todo ∞ 
 
-                - Todo items
+                - For command arguments, use '---' to force stdin to be read as
+                  binary:  sys.stdin.buffer.read()
 
         oo>
     '''
