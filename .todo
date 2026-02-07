@@ -186,6 +186,21 @@
         - I'd like to be able to use conda to switch between python versions being used
           with one of them my default
 
+    - be:  binary edit
+        - Needed tool:  'vi -b' just doesn't cut it, as you usually want to work in a
+          hex dump format
+        - Could be a python script that is careful:
+            - tmpfile = /tmp/be.xxd.$$
+            - Use xxd to convert it to a hex dump >$tmpfile
+            - Append a header giving the source file name, size, SHA256 hash, and time
+              of opening.  Prepend with '#' to make it easy to strip.
+            - Open the hex dump in the editor:  vi $tmpfile
+            - When finished editing, strip header comments and use 'xxd -r' to convert
+              it back to binary
+            - If it has not changed number of bytes, then overwrite the original file;
+              otherwise, give error message and copy edited file to local file's name
+              with '.be.bak' extension so work isn't lost
+
     - winmerge
         - I recently updated to latest version built in late Jan 2026
         - https://manual.winmerge.org/en/ is the HTML manual

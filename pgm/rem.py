@@ -89,27 +89,33 @@ if 1:   # Utility
         e, b, n = t.purl, t.sky, t.n
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] letters [file1 [file2...]]
-          Remove character classes from the files, as indicated by the letters.{e}
-          The files are treated as UTF-8 text files{n} unless you change the encoding with
-          the -e option or use -b.  Use '-' for stdin.  The letters are:{b}
+          Remove character classes from the files, as indicated by the letters, then
+          print the results to stdout.
+        
+          {e} The files are treated as UTF-8 text files{n} unless you change the
+          encoding with the -e option or use -b.  Use '-' for stdin ('--' to read stdin
+          as binary).  The letters are:{b}
+
             A   Convert Unicode characters to rough ASCII equivalents{n}
-            a   Remove characters above 0x7f (i.e., keep only 7-bit characters)
-            B   Remove characters under 0x20 except newline
-            b   Remove characters under 0x20
+            B   Remove characters under 0x20
+            b   Remove characters under 0x20 except newline
             d   Remove characters that are ASCII digits (∈ string.digits)
             h   Remove characters that are hex digits (∈ string.hexdigits)
             l   Remove lower case letters (∈ string.ascii_lowercase)
+            n   Remove punctuation (∈ string.punctuation)
             o   Remove characters that are octal digits (∈ string.octdigits)
-            P   Remove non-printable characters (∉ string.printable)
-            p   Remove punctuation (∈ string.punctuation)
-            W   Remove whitespace except newlines
-            w   Remove whitespace (∈ string.whitespace)
-            u   Remove upper case letters (∈ string.ascii_uppercase){b}
-            8   Remove all non-8-bit characters (if char > 0xff){n}
-          The letter lines {b}in this color{n} are those that can only be used on text
-          files, as they have no meaning on binary files.
+            p   Remove non-printable characters (∉ string.printable)
+            u   Remove upper case letters (∈ string.ascii_uppercase)
+            W   Remove whitespace (∈ string.whitespace)
+            w   Remove whitespace except newlines
+            7   Remove characters above 0x7f (i.e., keep only 7-bit characters)
+            8   Remove characters above 0xff (i.e., keep only 8-bit characters)
+          A letter line {b}in this color{n} is one that can only be used on text
+          files, as the transformation has no meaning on binary files.
         Options:
+          -a    If reading text fails, automatically switch to binary
           -b    Treat the files as binary, not text
+          -d    Turn on debug printing
           -e e  Change the encoding used (names from the python codecs module)
           -H    Print a manpage
           -l    Convert all text to lower case
@@ -117,7 +123,9 @@ if 1:   # Utility
         '''))
         exit(status)
     def ParseCommandLine(d):
+        d["-a"] = False     # Switch to binary if not text
         d["-b"] = False     # Binary file input
+        d["-d"] = False     # Debug printing
         d["-e"] = "UTF-8"   # Decoding method
         d["-l"] = False     # Convert to lower case
         d["-u"] = False     # Convert to upper case
@@ -125,19 +133,22 @@ if 1:   # Utility
             GetColors()
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "be:hlu") 
+            opts, args = getopt.getopt(sys.argv[1:], "abde:hlu") 
         except getopt.GetoptError as e:
             print(f"{sys.argv[0]}:  {e}")
             exit(1)
         for o, a in opts:
-            if o[1] in list("blu"):
+            if o[1] in list("abdlu"):
                 d[o] = not d[o]
             elif o == "-e":     # Encoding method
                 d[o] = a
             elif o == "-h":
                 Usage()
         GetColors()
-        if g.dbg:
+        if d["-d"]:
+            with g:
+                g.dbg = True
+            GetColors()
             Dbg(f"argv:  {sys.argv}")
             for i in d:
                 Dbg(f"  d[{i}] = {d[i]}")
@@ -151,28 +162,50 @@ if 1:   # Utility
 if 1:   # Core functionality
     def GetFileData(file):
         'file is a string; return either text or bytes as appropriate'
-        if file == "-":
-            s = sys.stdin.read()
-            # Note stdin returns a str
-            b = eval(f"s.encode(d['-e'])")
-        else:
-            p = Path(file)
-            if p.is_dir():
-                Error(f"{file!r} is a directory")
-            elif p.is_file():
-                if not p.exists():
-                    Error(f"{file!r} does not exist")
-            b = p.read_bytes()
-        # Decide on text or bytes
-        if d["-b"]:     # Bytes if d["-b"] set
-            data = b
-        else:           # Text otherwise
-            data = b.decode(d["-e"])
-        if d["-u"]:
-            data = data.upper()
-        if d["-l"]:
-            data = data.lower()
-        Dbg("Data =", repr(data))
+        if 1:   # Always get the data in binary form
+            if file == "-" or file == "--":
+                s = sys.stdin.buffer.read()
+                # Note this returns bytes
+                b = eval(f"s.encode(d['-e'])")
+            else:
+                p = Path(file)
+                if p.is_dir():
+                    Error(f"{file!r} is a directory")
+                elif p.is_file():
+                    if not p.exists():
+                        Error(f"{file!r} does not exist")
+                b = p.read_bytes()
+        if 1:   # Decide on text or bytes
+            if d["-b"]:     # Bytes if d["-b"] set
+                is_text = False
+                data = b
+            else:           # Text otherwise
+                is_text = True
+                decoded_OK = False
+                try:
+                    data = b.decode(d["-e"])
+                    decoded_OK = True
+                except UnicodeDecodeError:
+                    if d["-a"]:     # Use binary if text decoding fails
+                        data = b
+                        is_text = False
+                    else:
+                        raise
+        if 1:   # -u and -l transformations
+            if d["-u"]:
+                data = data.upper()
+            if d["-l"]:
+                data = data.lower()
+        if 1:   # Dbg output
+            n = len(data)
+            m = 256
+            if is_text:
+                Dbg(f"Data:  read in {n} characters as {t.redl}text")
+                Dbg(f"Data (first {m} characters/bytes) =", repr(data[:m]))
+            else:
+                Dbg(f"Data:  read in {n} bytes as {t.redl}binary")
+                u = repr(data[:m])
+                Dbg(f"Data (first {m} characters/bytes) = {u}")
         return data
     def Process(file):
         'Process file (a Path instance) and send the results to stdout'
@@ -180,7 +213,7 @@ if 1:   # Core functionality
         if (type(data) is bytes and
             ("A" in g.letters or "8" in g.letters)):
                 Error("'A' and '8' cannot be used on bytes")
-        output = dpstr.RemoveIdiomatic(data, keys=g.letters) 
+        output = dpstr.RemoveCharClass(data, keys=g.letters) 
         print(output, end="")
 
 if __name__ == "__main__":

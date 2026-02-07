@@ -1276,21 +1276,9 @@ def RemoveCharClass(s, keys=""):
         is_str = False
     else:
         raise TypeError("s must be str, bytes, or bytearray")
-
-    # yy
-    if 0:
-        # This pattern works for strings & bytes
-        if "d" in keys:
-            if ii(s, str):
-                s = ''.join(i for i in s if i not in set(string.digits))
-            elif ii(s, (bytes, bytearray)):
-                T = bytes if ii(s, bytes) else bytearray
-                s = T(i for i in s if i not in set(string.digits.encode()))
-        return s
-
-    # The class C is a notational convenience for holding the various sets of characters
-    # in the string module.  The attribute letters correspond to the letters that code
-    # the transformation.
+    # Class C is a notational convenience for holding the various sets of characters in
+    # the string module.  The attribute letters correspond to the letters that code the
+    # transformation.
     class C:
         pass
     c = C()
@@ -1342,7 +1330,7 @@ def RemoveCharClass(s, keys=""):
         if "B" in keys:
             b = T(i for i in b if i >= 0x20)
         if "b" in keys:
-            b = T(i for i in b if i >= 0x20 or i == 0x0a)
+            b = T(i for i in b if i >= 0x20 or i == ord("\n"))
         if "d" in keys:
             b = T(i for i in b if i not in set(c.d.encode()))
         if "h" in keys:
