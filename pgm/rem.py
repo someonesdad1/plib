@@ -21,12 +21,13 @@ if 1:  # Header
     '''
     if 1:   # Standard imports
         from collections import deque
-        from pathlib import Path as P
+        from pathlib import Path
         import getopt
         import os
         import re
         import sys
     if 1:   # Custom imports
+        import constant
         from f import flt
         from wrap import dedent
         from color import t
@@ -37,47 +38,11 @@ if 1:  # Header
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
-        class G:
-            pass
-        g = G()
+        G = constant.Constant()
+        g = constant.Constant()
+        g.strict = False
         g.dbg = False
-        # List of python codecs from the 3.12.2 documentation
-        g.codecs = set('''
-            1125 273 437 646 850 852 855 857 858 860 861 862 863 865 866 869 8859 932
-            936 949 950 CP-GR CP-IS EBCDIC-CP-BE EBCDIC-CP-CH EBCDIC-CP-HE IBM037 IBM039
-            IBM273 IBM424 IBM437 IBM500 IBM775 IBM850 IBM852 IBM855 IBM857 IBM858 IBM860
-            IBM861 IBM862 IBM863 IBM864 IBM865 IBM866 IBM869 L1 L10 L2 L3 L4 L5 L6 L7 L8
-            L9 U16 U32 U7 U8 UTF UTF-16BE UTF-16LE UTF-32BE UTF-32LE arabic ascii big5
-            big5-hkscs big5-tw big5hkscs chinese cp037 cp1006 cp1026 cp1125 cp1140
-            cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp1361 cp154
-            cp273 cp424 cp437 cp500 cp65001 cp720 cp737 cp775 cp819 cp850 cp852 cp855
-            cp856 cp857 cp858 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp866u cp869
-            cp874 cp875 cp932 cp936 cp949 cp950 csIBM273 csbig5 csiso2022jp csiso2022kr
-            csiso58gb231280 csptcp154 csshiftjis cyrillic cyrillic-asian euc-cn
-            euc_jis_2004 euc_jisx0213 euc_jp euc_kr euccn eucgb2312-cn eucjis2004
-            eucjisx0213 eucjp euckr gb18030 gb18030-2000 gb2312 gb2312-1980 gb2312-80
-            gbk greek greek8 hebrew hkscs hz hz-gb hz-gb-2312 hzgb ibm1026 ibm1125
-            ibm1140 iso-2022-jp iso-2022-jp-1 iso-2022-jp-2 iso-2022-jp-2004
-            iso-2022-jp-3 iso-2022-jp-ext iso-2022-kr iso-8859-1 iso-8859-10 iso-8859-11
-            iso-8859-13 iso-8859-14 iso-8859-15 iso-8859-16 iso-8859-2 iso-8859-3
-            iso-8859-4 iso-8859-5 iso-8859-6 iso-8859-7 iso-8859-8 iso-8859-9 iso-ir-58
-            iso2022_jp iso2022_jp_1 iso2022_jp_2 iso2022_jp_2004 iso2022_jp_3
-            iso2022_jp_ext iso2022_kr iso2022jp iso2022jp-1 iso2022jp-2 iso2022jp-2004
-            iso2022jp-3 iso2022jp-ext iso2022kr iso8859-1 iso8859_10 iso8859_11
-            iso8859_13 iso8859_14 iso8859_15 iso8859_16 iso8859_2 iso8859_3 iso8859_4
-            iso8859_5 iso8859_6 iso8859_7 iso8859_8 iso8859_9 jisx0213 johab koi8_r
-            koi8_t koi8_u korean ks_c-5601 ks_c-5601-1987 ks_x-1001 ksc5601 ksx1001
-            kz1048 kz_1048 latin latin1 latin10 latin2 latin3 latin4 latin5 latin6
-            latin7 latin8 latin9 latin_1 mac_centeuro mac_cyrillic mac_greek mac_iceland
-            mac_latin2 mac_roman mac_turkish maccentraleurope maccyrillic macgreek
-            maciceland macintosh maclatin2 macroman macturkish ms-kanji ms1361 ms932
-            ms936 ms949 ms950 mskanji pt154 ptcp154 rk1048 ruscii s_jis s_jisx0213
-            shift_jis shift_jis_2004 shift_jisx0213 shiftjis shiftjis2004 shiftjisx0213
-            sjis sjis2004 sjis_2004 sjisx0213 strk1048_2002 thai u-jis uhc ujis
-            unicode-1-1-utf-7 us-ascii utf16 utf32 utf8 utf_16 utf_16_be utf_16_le
-            utf_32 utf_32_be utf_32_le utf_7 utf_8 utf_8_sig windows-1250 windows-1251
-            windows-1252 windows-1253 windows-1254 windows-1255 windows-1256
-            windows-1257 windows-1258'''.split())
+        g.dbg = True
 if 1:   # Utility
     def GetColors():
         t.bin = t.cynl
@@ -152,27 +117,52 @@ if 1:   # Utility
             GetColors()
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:h") 
+            opts, args = getopt.getopt(sys.argv[1:], "be:hlu") 
         except getopt.GetoptError as e:
             print(f"{sys.argv[0]}:  {e}")
             exit(1)
         for o, a in opts:
-            if o[1] in list("a"):
+            if o[1] in list("blu"):
                 d[o] = not d[o]
-            elif o == "-d":
-                try:
-                    d[o] = int(a)
-                    if not (1 <= d[o] <= 15):
-                        raise ValueError()
-                except ValueError:
-                    Error(f"-d option's argument must be an integer between 1 and 15")
+            elif o == "-e":     # Encoding method
+                d[o] = a
             elif o == "-h":
                 Usage()
         GetColors()
+        if g.dbg:
+            Dbg(f"argv:  {sys.argv}")
+            for i in d:
+                Dbg(f"  d[{i}] = {d[i]}")
         return args
 if 1:   # Core functionality
-    pass
+    def GetFileData(file):
+        'file is a string; return either text or bytes as appropriate'
+        if file == "-":
+            b = sys.stdin.read()
+        else:
+            p = Path(file)
+            if p.is_dir():
+                Error(f"{file!r} is a directory")
+            elif p.is_file():
+                if not p.exists():
+                    Error(f"{file!r} does not exist")
+            b = p.read_bytes()
+        # Decide on text or bytes
+        if d["-b"]:
+            data = b
+        else:
+            if d["-e"]:
+                data = eval(f"b.decode(d['-e'])")
+            else:
+                data = b.decode("UTF-8")
+        Dbg("Data =", repr(data))
+        return data
+    def Process(file):
+        'Process file (a Path instance) and send the results to stdout'
+        data = GetFileData(file)
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
-    args = ParseCommandLine(d)
+    files = ParseCommandLine(d)
+    for file in files:
+        Process(file)
