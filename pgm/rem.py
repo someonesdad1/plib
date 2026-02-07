@@ -28,6 +28,7 @@ if 1:  # Header
         import sys
     if 1:   # Custom imports
         import constant
+        import dpseq
         from f import flt
         from wrap import dedent
         from color import t
@@ -38,11 +39,16 @@ if 1:  # Header
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
-        G = constant.Constant()
+
+        # The following readonly container will hold global variables.  If you need to
+        # change a constant's value, use 
+        #     with g:
+        #         g.name = value
+        # Note only hashable items will be readonly.
         g = constant.Constant()
-        g.strict = False
-        g.dbg = False
-        g.dbg = True
+        with g:
+            g.dbg = False
+            g.dbg = True
 if 1:   # Utility
     def GetColors():
         t.bin = t.cynl
@@ -133,6 +139,12 @@ if 1:   # Utility
             Dbg(f"argv:  {sys.argv}")
             for i in d:
                 Dbg(f"  d[{i}] = {d[i]}")
+        if len(args) < 2:
+            Usage()
+        if 1:   # Get the transformation letters
+            with g:
+                g.letters = ''.join(dpseq.NodupHashable(args.pop(0)))
+            Dbg(f"g.letters = {g.letters!r}")
         return args
 if 1:   # Core functionality
     def GetFileData(file):
@@ -148,9 +160,9 @@ if 1:   # Core functionality
                     Error(f"{file!r} does not exist")
             b = p.read_bytes()
         # Decide on text or bytes
-        if d["-b"]:
+        if d["-b"]:     # Bytes if d["-b"] set
             data = b
-        else:
+        else:           # Text otherwise
             if d["-e"]:
                 data = eval(f"b.decode(d['-e'])")
             else:
