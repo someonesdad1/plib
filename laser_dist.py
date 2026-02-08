@@ -16,11 +16,11 @@ if 1:  # Header
         <oo cat ∞ math oo>
         <oo test ∞ run oo>
         <oo todo ∞ 
-
-            - ∞∞1 CrownMolding() is not correct
-            - ∞∞2 CrownMolding() can go to some shop module.  DistAcrossRiver() can go
-              to some math utility module.
-
+        
+            - ∞∞3 CrownMolding() is not correct
+                - Can go to some shop module.  DistAcrossRiver() can go to some math
+                  utility module.
+        
         oo>
     '''
     if 1:  # Standard imports

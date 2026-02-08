@@ -18,13 +18,3 @@ def IterateOverSubclasses(cls, seen=None):
             yield sub
             for sub in IterateOverSubclasses(sub, seen):
                 yield sub
-
-class A: pass
-class B(A): pass
-class C(A): pass
-class D(C): pass
-class E(C): pass
-
-x = E()
-from pprint import pprint as pp
-pp(list(IterateOverSubclasses(A)))

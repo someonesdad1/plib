@@ -1,14 +1,9 @@
 '''
 Finds trigger strings in text files
 
-    ∞∞1 Convert to new _pgminfo form.  
-
-    The advantage of the new form is it's a single string variable at or near the
-    beginning of the file and it doesn't interfere with the docstring.
-
+    This module is obsolete because I now use the gist.py module.
 
     ---------------------------------------------------------------------------
-
     Run as a script to see an example.
     
     The basic purpose is to provide the ability to find and update
@@ -51,14 +46,7 @@ if 1:  # Header
         <oo ind ∞ 8 indent oo>
         <oo cat ∞ category oo>
         <oo test ∞ notest oo>
-        <oo todo ∞ 
-            
-            - ∞∞3 Should this still be a module?
-                - I no longer use this module for finding trigger strings, as the
-                  /plib/gist.py module now fills that function.  However, this module
-                  may still provide needed functionality for some other task.
-            
-        oo>
+        <oo todo ∞ oo>
     '''
     if 1:  # Standard imports
         import pathlib

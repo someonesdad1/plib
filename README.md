@@ -1,34 +1,51 @@
 # plib
 
-# 2026 work in progress
+# /plib vision
 
-- Jan 2026 /plib work
-    - Mark places that need work with ∞∞ (∞∞1 high priority, etc.)
-    - `_pgminfo`
-        - Start converting files to newer `_pgminfo` metadata format, as it will be
-          easier to process, particularly if every /plib/*.py file is a module
-        - Encapsulated in /plib/gist.py
-        - Also provides the sorely needed gist element, a one line description of the
-          file
-    - Regularize testing environment
-        - Vision
-            - Launch testing with one command (e.g., run make or a particular script)
-            - Only output message is Pass or Fail
-                - Fail messages go into 0test.fail
-                - Pass messages go into 0test.pass
-            - Try to move all test code to module (can test directory go away?)
-            - Every module/script when run or run with --test returns 0 if tests pass or
-              > 0 if test fails
-            - Only '<oo test oo>' forms allowed:  run, notest, --test, testdir, None
-            - test director:  look at results; much of test code is passing and could
-              probably stand being integrated with the module, as it makes things
-              easier.
-
-## Plan
 - Create HTML pages to make it easier to browse/find content
     - Alphabetized
     - By subject
     - Things I think are of interest
+- Too many files?
+    - Create a script that helps searching out what you want
+        - Spend a lot of time picking a good, small set of keywords to narrow
+          categories; these should be used for directory names
+            - shop, elec, sci, math, util, color
+        - Can add kw field to gist if needed
+    - /plib has about 150 files
+        - Shoot for perhaps 100
+        - Move scripts to /plib/pgm as needed
+    - /plib/pgm has over 400 files
+        - Too many to easily comprehend
+- Testing
+    - All /plib files have a gist and how to test:  notest, run, --test, testdir
+    - Make testdir go away if possible
+    - Launch testing with one command
+    - Only output message is Pass or Fail
+    - Every module/script when run or run with --test returns 0 if tests pass or
+        > 0 if test fails
+    - Make faster with using more processes
+- /plib/data directory
+    - Use to store data sources, such as numerical data, tabular data, text of
+        software licenses, etc.
+    - As-needed building tools can be in this directory
+    - Build needed stuff with a single command
+    - /plib/dpdata.py is the single module to get at these data.  You call a
+        function and are returned an appropriate data structure.
+
+# 2026 /plib work
+
+
+- 8 Feb
+    - pgm/todo.py written:  lists priority tasks in python scripts
+- 7 Feb
+    - gist added to all /plib/\*.py files and all of these files have:
+        - Single line gist to summarize their behavior
+        - Marked with todo string (∞∞) to things that need to be done
+        - Have a how to test field (notest, run, or --test)
+    - All files switched to MIT license
+
+## Plan
 - /plib
     - Update self-tests and ensure they pass
     - Standardize on an open source license

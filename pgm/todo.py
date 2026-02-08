@@ -173,7 +173,7 @@ if 1:   # Core functionality
         for i in items:
             ln, file, s = i
             di[str(file)].append((ln, s))
-        for file in di:
+        for file in sorted(di):
             t.print(f"{t.file}{file}")
             for ln, s in sorted(di[file]):
                 print(f"{t.ln}{ln:5d}{t.n} {s}")

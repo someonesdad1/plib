@@ -43,9 +43,7 @@ if 1:  # Header
         <oo cat ∞ util oo>
         <oo test ∞ run oo>
         <oo todo ∞ 
-            - ∞∞1 Include an 'ind' field that defines the indent level of the gist in the
-              file.  This gets around the vagaries of removing and putting the
-              whitespace back.
+            - 
         oo>
     '''
     if 1:   # Standard imports

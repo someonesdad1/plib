@@ -1,9 +1,6 @@
-'''
-Replace license statements in files
-'''
 if 1:  # Header
     _pgminfo = '''
-        <oo gist ∞ Replace license statements in files oo>
+        <oo gist ∞ List software licenses oo>
         <oo desc ∞ oo>
         <oo copy ∞ Copyright © 2014, 2021 Don Peterson oo>
         <oo lic ∞ MIT License
@@ -16,37 +13,12 @@ if 1:  # Header
         <oo test ∞ notest oo>
         <oo todo ∞
         
-            - ∞∞1:  Change to printing licenses only
-                - I've never needed the license substitution feature
-                - Download the text of the appropriate licenses and put them into a
-                  licenses file in /plib/data.  This would be a JSON file that would
-                  return a dict with a list of lines keyed by each license.  The first
-                  line would be the URL and date of downloading.
-                - Get this dict as dpdata.GetLicenses()
+            - ∞∞3:  Move data in /pylib/licenses/analysis to /plib/data
+                - Include URL & download data for the data
          
         oo>
     '''
     if 1:  # Standard imports
-        pass
-    if 1:  # Custom imports
-        pass
-    if 1:  # Global variables
-        pass
-if 1:  # Core functionality
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2014, 2021 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # <utility> Replace license statements in files
-        ##∞what∞#
-        ##∞test∞# notest #∞test∞#
-        pass
-    if 1:  # Imports
         import getopt
         import pathlib
         import re
@@ -55,35 +27,208 @@ if 1:  # Core functionality
         import time
     if 1:  # Custom imports
         from color import t
+        from constant import Constant
         from wrap import dedent
         from license_data import licenses
     if 1:  # Global variables
+        g = Constant()
         P = pathlib.Path
-        # Trigger string for replacements
-        trigger = "#∞#"
-        # Regexp used to identify the string to be replaced
-        regexp = re.compile(r"%s(.*?)%s" % (trigger, trigger), re.S)
         # The following are too short to warrant a separate header file
-        short_choices = ("bsd", "mit", "pd", "wol", "rem")
-        backup_extension = ".bak"
-        nl = "\n"
-        descr = {
-            "rem": "  Remove any existing license text",
-            "afl3": "  Academic Free License 3.0",
-            "apache2": "  Apache License 2.0",
-            "bsd3": "  BSD 3-clause license",
-            "ccsa4": "* Creative Commons Attribution-ShareAlike 4.0",
-            "gpl2": "* GNU Public License version 2",
-            "gpl3": "* GNU Public License version 3",
-            "lgpl2": "- Lesser GNU Public License version 2.1",
-            "lgpl3": "- Lesser GNU Public License version 3",
-            "mit": "  MIT License",
-            "nposl3": "* Non-Profit Open Software License 3.0",
-            "osl3": "* Open Software License 3.0",
-            "pd": "  Public domain release",
-            "wol": "  Wide-open License",
-        }
-        analysis = None
+        g.short_choices = ("bsd", "mit", "pd", "wol", "rem")
+        g.nl = "\n"
+        with g:
+            g.descr = {
+                "afl3": "  Academic Free License 3.0",
+                "apache2": "  Apache License 2.0",
+                "bsd3": "  BSD 3-clause license",
+                "ccsa4": "* Creative Commons Attribution-ShareAlike 4.0",
+                "gpl2": "* GNU Public License version 2",
+                "gpl3": "* GNU Public License version 3",
+                "lgpl2": "- Lesser GNU Public License version 2.1",
+                "lgpl3": "- Lesser GNU Public License version 3",
+                "mit": "  MIT License",
+                "nposl3": "* Non-Profit Open Software License 3.0",
+                "osl3": "* Open Software License 3.0",
+                "pd": "  Public domain release",
+                "wol": "  Wide-open License",
+            }
+            g.analysis = dedent('''
+                9 Aug 2014, updated 29 Jan 2020, updated 8 Feb 2026
+
+                Software licenses are a confusing and complex topic.  Part of the
+                complexity is the sheer number of licenses out in the wild.  I had
+                never spent any time studying these licenses until in the last few
+                days while I was writing this script.  I wanted to have a better
+                understanding of some of the common open source licenses and make a
+                more informed decision about what license(s) I should choose to
+                release the free software I put on the web.
+
+                At a high level, most of these licenses derive their "teeth" from a
+                country's copyright laws.  In order for you to utilize these copyright
+                laws and use a license to dictate how some copyrighted material may be
+                used, you must own or control the copyrighted material.  That sounds
+                pretty basic (it is), but it can get more complicated if you've e.g.
+                included derivations of other people's code in your own code.
+
+                Here are the things I decided I wanted a license to accomplish for me
+                when I provide my free software and documents to the public:
+
+                    - Let anyone use the stuff for any purpose they want.
+                    - They must keep my copyright notice in the source code or document.
+                    - If they modify it, they must put in a prominent message that it is
+                    modified from the original so that it won't be interpreted as
+                    something I wrote.
+                    - I'm indemnified against damages from someone using my free stuff.
+                    - Standardize on one of the standard open source licenses.
+
+                A primary differentiator in open source software licenses is the
+                notion of copyleft (also called reciprocity).  This is a
+                characteristic of the license that requires the user release any
+                derivations of the work under the same license as the original if they
+                choose to release the source or a binary derived from it.  The basic
+                intent is to keep free software free and not allow a person who makes
+                a derived work to close the software's availability to others.
+
+                    It is worth mentioning that you can change open source software
+                    all you want and you're not required to include the modified
+                    source code unless you distribute the modified work.  Thus, for
+                    example, a large company could modify a complex open source
+                    project heavily and use it internally to further their profit
+                    objectives such by e.g. producing the items that they sell.
+                    They're under no obligation to release that modified source code
+                    unless (depending on the license) their products being sold
+                    include the derived software.
+
+                Non-copyleft licenses are sometimes called "permissive" licenses.  The
+                BSD and MIT licenses are two examples of permissive licenses.
+
+                The GNU Public License is probably the most well-known of the copyleft
+                type of licenses.  You can run the script to get the usage statement
+                and the copyleft licenses will be flagged.
+
+                    The copyleft feature of a license can provide open source software
+                    with significant benefits compared to proprietary software.  For
+                    example, the copyleft feature can prevent a proprietary software
+                    company from using the copyleft code because they don't want to
+                    release their whole product under a copyleft license.  That means
+                    they can't derive the benefits from the open source software.
+                    This is one of the stated desires of the FSF.
+
+                Before you decide on a license, your first task should be to formalize
+                and write down exactly what you want to accomplish with a license.
+                Until you know where you're going, any route can get you there;
+                however, common sense says you probably want the most direct route.
+
+                A strategic weakness of open source software comes from the
+                proliferation of licenses (see
+                https://opensource.org/licenses/alphabetical for a partial list).  Many
+                software developers can slog through the legalese of licenses (it's
+                somewhat like reading code) and determine what we like and don't like.
+                Then we'll rewrite the material that isn't just as we like or has
+                missing material.  It's relatively easy to do and many people have done
+                it -- and they don't feel the pain that others suffer trying to use
+                their software under this modified license.
+
+                    If you think this is a non-issue, consider the following.  The web
+                    page http://opensource.org/licenses/alphabetical lists 96 different
+                    licenses as of 29 Jan 2020; it was 71 on 10 Aug 2014, so that's 25
+                    more in six years.  This is a legal mess.  There's probably
+                    lots of overlap among the different licenses.  
+                    
+                    But who has time to read all those thousands of lines of legal text
+                    and understand it deeply (or the money to pay a lawyer to read all
+                    that stuff)?  This mess can preclude the use of some software simply
+                    because it's too much work for someone to figure out the conditions
+                    under which they can include it in their project.  Imagine a
+                    corporate project that wanted to use 15 or 20 different chunks of
+                    open source software -- the corporate lawyers would be required to
+                    study and proclaim the correct legal approach to using all this
+                    stuff.  And if these lawyers are like the extremely good but
+                    overworked lawyers I used to work with in industry, a business
+                    manager might declare that it isn't worth the legal expense to
+                    utilize that open source code.  Everyone loses because the
+                    corporation has to develop a replacement and the open source code
+                    doesn't get used.  Oh, and the customer pays a higher price for that
+                    product too.
+
+                Because of this, it makes sense to use a standard and popular license;
+                see http://opensource.org/licenses for some widely-used ones.  Based on
+                my reading and study, I've included in this script the licenses I
+                consider to be the best ones to choose from that are both well-known and
+                that might fit the needs that I have for a license.
+
+                For small programs, the GNU folks recommend the Apache 2 license.  The
+                Apache web page says the Apache 2 license is compatible with the GPL3,
+                meaning that Apache2-licensed code can be included in a GPL3 project.
+                However, the "reverse direction" is not true:  if you wanted to
+                include a GPL project in an Apache 2 licensed project, you wouldn't be
+                able to without licensing the whole thing under the GPL.
+
+                The inherent weaknesses in all of this are that the details can be
+                decided by groups of people (lawyers, judges, juries), a mistake can
+                be costly (legal expenses, lost business, loss of a lawsuit), and it
+                can take a lot of time and resources.  Some day we may see someone sit
+                down and design a legal language like a programming language (i.e.,
+                really restricted syntax and semantics) that allows better expression
+                of these permissions and restrictions.  But I know I won't live long
+                enough to see it.
+
+                Releasing your software under an open source license is probably
+                irrevocable, at least in a practical sense.  Some of the licenses
+                state that the rights you grant users are irrevocable, so it's clear
+                you can't change that.  If you did use a license that was considered
+                revocable, you could issue a revocation document to the licensees that
+                you know about, but remember the license allows the licensees to
+                distribute the source code to others.  I'd consider it a nearly
+                impossible practical task to revoke an open source license _and_
+                notify all the people who have received that software, especially if
+                your software is popular and has been out in the wild for a
+                significant period of time.  Thus, the pragmatic view is that if you
+                release your source code under an open source license, you've
+                essentially done it for the life of the copyright on that material,
+                regardless of whether the license is revocable or not.
+
+                I feel an article worth reading is
+                http://rosenlaw.com/OSL3.0-explained.htm.  Though it supports the OSL3
+                license (which the author wrote), it is a clear exposition of various
+                things about licenses.  I feel both the OSL3 and this web page are
+                well-written, clear, and carefully-crafted documents.  A good legal
+                document reads much like well-written software.
+
+                Disclaimer:  I'm not a lawyer, so you can't construe the above as legal
+                advice.  Further, you morally need to do your own thinking and reading
+                about the various licenses and develop your own opinions of them.  I
+                hope my above comments have captured the key points of some of the
+                licenses, how I distinguished them, and what led me to the decision I
+                made on what ones to use.  Hopefully, the above text will give you help
+                in your determination of what works best for your needs.
+
+                In 2014, my license choices were:  For a non-copyleft license, I'll use
+                the AFL.  For a copyleft license, I'll use the OSL.
+
+                2026 Thoughts
+                -------------
+
+                In 2026, I made the decision to release my code and documents under the
+                MIT license (all my stuff had been using the OSL3 license).  My
+                reasoning was that I was never going to try to make a living with any of
+                this stuff (I retired in 2002) and I wanted people to be able to use my
+                stuff however they wanted.  My only desire was that I was attributed as
+                the copyright owner because I originated the material by my own thought
+                and work.  I needed to decide whether I wanted "copyleft" or
+                "non-copyleft".  In 2014 I decided on copyleft, but in 2026 I don't feel
+                that's important to me anymore, as making my stuff non-copyleft will
+                make it easier to be used by more people.  Hence the change to the MIT
+                license.
+
+                This doesn't preclude me from e.g. using the stuff I've done to help my
+                kids, grandkids, or friends with some actions to help them make money
+                down the road.  Since I own the copyright to this material, I can use it
+                as I wish, so I could adapt it to their needs and let them use it in a
+                close proprietary way if they wish.
+
+                ''')
+
 if 1:  # Utility
     def eprint(*p, **kw):
         "Print to stderr"
@@ -93,82 +238,44 @@ if 1:  # Utility
         exit(status)
     def Usage(d, status=1):
         name = sys.argv[0]
-        choices = sorted(descr.keys())
+        choices = sorted(g.descr.keys())
         lic = []
-        lic = nl.join(lic)
-        bak = backup_extension
-        cmnt = d["-c"]
-        print(
-            dedent(f'''
-        Usage:  {name} [options] [license [file1 [file2...]]]
-          Replace the license header in source code files.   Short licenses like BSD
-          include the whole of the license text instead of a header.  The replacement is
-          made between the first two lines that begin with a trigger string defined in
-          the code.
-        '''))
-        print()
-        for i in choices:
-            print(f"    {i:8s} {descr[i]}")
-        print()
-        print("  where '* = copyleft' or '- = non-strong copyleft'.")
-        print()
+        lic = g.nl.join(lic)
         print(dedent(f'''
-          Each source code file will be copied to a backup file with the appended
-          extension "{bak}".  The script will first examine all the files to ensure they
-          have the trigger string; if not, the program will exit with an error message
-          and not change any of the files.  Next, all of the backup files will then be
-          constructed.  Finally, each of the files is processed.  Thus, if the script
-          completes without an error message, all the substitutions were successful.
-        
-          If you only include the license string on the command line, the license's text
-          is printed to stdout.
-        
+        Usage:  {name} [options] [lic1 [lic2...]]
+          Print text of various licenses.
+        '''))
+        for i in choices:
+            print(f"    {i:8s} {g.descr[i]}")
+        print("  where '* = copyleft' or '- = non-strong copyleft'.")
+        print(dedent(f'''
         Options:
           -a      Print my thoughts on licenses
-          -c s    Change the comment string used for prepending to each
-                  source file's lines.  Default is '{cmnt}'.
-          -n      Show which files don't have the requisite header
-          -s      Substitute the license for the header
-          -t s    Change the trigger string to s
         '''))
         exit(status)
     def ParseCommandLine(d):
-        global trigger
-        d["-c"] = "# "  # Comment prepend string
-        d["-f"] = False  # Force overwriting of backup files
-        d["-n"] = False  # Show which files don't have header
-        d["-s"] = False  # Substitute license text
-        d["-t"] = trigger  # Trigger string
+        d["-a"] = False     # My thoughts
         d["missing"] = []
-        # Get the analysis text, in the licenses subdirectory
-        d["dir"] = GetDir()
-        global analysis
-        file = P("/pylib/licenses/analysis")
-        analysis = file.read_text().strip()
+        if 0:
+            # Get the g.analysis text, in the licenses subdirectory
+            d["dir"] = GetDir()
+            file = P("/pylib/licenses/analysis")
+            with g:
+                g.analysis = file.read_text().strip()
         if len(sys.argv) < 2:
             Usage(d)
         try:
-            optlist, args = getopt.getopt(sys.argv[1:], "ac:fnst:")
+            optlist, args = getopt.getopt(sys.argv[1:], "a")
         except getopt.GetoptError as e:
             msg, option = e
             print(msg)
             exit(1)
         for opt in optlist:
             if opt[0] == "-a":
-                print(analysis)
+                print(g.analysis)
                 exit(0)
-            if opt[0] == "-c":
-                d["-c"] = opt[1]
-            if opt[0] == "-f":
-                d["-f"] = True
-            if opt[0] == "-n":
-                d["-n"] = True
-            if opt[0] == "-s":
-                d["-s"] = True
-            if opt[0] == "-t":
-                trigger = d["-t"] = opt[1]
         if len(args) < 1:
-            # Need choice and at least one file
+            # Need at least one file
             Usage(d)
         return args
 if 1:  # Core functionality
@@ -178,15 +285,12 @@ if 1:  # Core functionality
     def PrintLicense(choice):
         if choice not in licenses:
             Error(f"'{choice}' license not recognized")
-        print(
-            dedent(f'''
-            <statement about program's intent>
-            Copyright (C) {time.strftime("%Y")} Don Peterson
-            gmail.com at someonesdad1
-        ''')
-        )
+        print(dedent(f'''
+            Copyright (C) 20XX <your name>
+        '''))
         print()
         print(licenses[choice].text)
+if 0:
     def CheckFiles(files, d):
         '''For each file in files, ensure that it is readable and has the
         requisite string for substitution.
@@ -231,19 +335,19 @@ if 1:  # Core functionality
                 eprint(f"Copy of '{file}' to '{bu}' failed")
                 exit(1)
     def ProcessFile(choice, file, d):
-        if d["-s"] and choice not in short_choices:
+        if d["-s"] and choice not in g.short_choices:
             # Use license text rather than header
             s = licenses[choice]
         else:
             s = headers[choice]
         # Prepend comment string d["-c"] to each line.  Remember s is a
-        # tuple of (short descr, license header).
+        # tuple of (short g.descr, license header).
         if choice == "rem":
-            lines = s[1].split(nl)
+            lines = s[1].split(g.nl)
         else:
-            lines = [d["-c"] + i for i in s[1].split(nl)]
+            lines = [d["-c"] + i for i in s[1].split(g.nl)]
         try:
-            u = "" if choice == "rem" else (nl.join(lines) + nl)
+            u = "" if choice == "rem" else (g.nl.join(lines) + g.nl)
             t = "%s\n%s%s" % (trigger, u, trigger)
             s = open(file).read()
             open(file, "w").write(regexp.sub(t, s))
@@ -255,11 +359,14 @@ if 1:  # Core functionality
 
 if __name__ == "__main__":
     d = {}  # Options dictionary
-    args = ParseCommandLine(d)
-    choice, files = args[0], args[1:]
-    if not files:
+    choices = ParseCommandLine(d)
+    sep = t.purl + "-"*80 + t.n if len(choices) > 1 else ""
+    for i, choice in enumerate(choices):
+        if i and sep:
+            print(sep)
+        t.print(f"{t.ornl}{choice}")
         PrintLicense(choice)
-    else:
+    if 0:
         CheckFiles(files, d)
         if not d["-n"]:
             MakeBackups(files, d)

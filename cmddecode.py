@@ -55,7 +55,7 @@ if 1:  # Header
         <oo test ∞ testdir oo>
         <oo todo ∞ 
             
-            - ∞∞1 Move tests from /plib/test to this file
+            - 
             
         oo>
     '''
@@ -135,39 +135,80 @@ if 1:   # Classes
             return matches
 
 if __name__ == "__main__":
-    # Demonstrate the class; use some typical UNIX program names.
-    cmds, d = (
-        '''
-        ar awk banner basename bc cal cat cc chmod cksum clear cmp
-        compress cp cpio crypt ctags cut date dc dd df diff dirname du
-        echo ed egrep env ex expand expr false fgrep file find fmt
-        fold getopt grep gzip head id join kill ksh ln logname ls m4
-        mailx make man mkdir more mt mv nl nm od paste patch perl pg
-        pr printf ps pwd rev rm rmdir rsh sed sh sleep sort spell
-        split strings strip stty sum sync tail tar tee test touch tr
-        true tsort tty uname uncompress unexpand uniq uudecode
-        uuencode vi wc which who xargs zcat
-    ''',
-        [],
-    )
-    for i in cmds.replace("\n", "").split():
-        d.append((i, ""))
-    c, prompt = CommandDecode(dict(d), ignore_case=True), "> "
-    print("Enter some UNIX commands, 'q' to quit, '.' to list all:")
-    while True:
-        cmd = input(prompt)
-        if cmd == "q":
-            break
-        elif cmd == ".":
-            for i in list(c.commands):
-                print(i, end=" ")
-            print()
-        else:
-            x = c(cmd)
-            if not x:
-                print("'%s' unrecognized" % cmd)
-            elif len(x) == 1:
-                print("'%s' was an exact match to '%s'" % (cmd, x[0]))
+    import sys
+    from lwtest import run, assert_equal, raises
+    def Demo():
+        # Demonstrate the class; use some typical UNIX program names.
+        cmds, d = (
+            '''
+            ar awk banner basename bc cal cat cc chmod cksum clear cmp
+            compress cp cpio crypt ctags cut date dc dd df diff dirname du
+            echo ed egrep env ex expand expr false fgrep file find fmt
+            fold getopt grep gzip head id join kill ksh ln logname ls m4
+            mailx make man mkdir more mt mv nl nm od paste patch perl pg
+            pr printf ps pwd rev rm rmdir rsh sed sh sleep sort spell
+            split strings strip stty sum sync tail tar tee test touch tr
+            true tsort tty uname uncompress unexpand uniq uudecode
+            uuencode vi wc which who xargs zcat
+        ''',
+            [],
+        )
+        for i in cmds.replace("\n", "").split():
+            d.append((i, ""))
+        c, prompt = CommandDecode(dict(d), ignore_case=True), "> "
+        print("Enter some UNIX commands, 'q' to quit, '.' to list all:")
+        while True:
+            cmd = input(prompt)
+            if cmd == "q":
+                break
+            elif cmd == ".":
+                for i in list(c.commands):
+                    print(i, end=" ")
+                print()
             else:
-                x.sort()
-                print("'%s' is ambiguous:  %r" % (cmd, x))
+                x = c(cmd)
+                if not x:
+                    print("'%s' unrecognized" % cmd)
+                elif len(x) == 1:
+                    print("'%s' was an exact match to '%s'" % (cmd, x[0]))
+                else:
+                    x.sort()
+                    print("'%s' is ambiguous:  %r" % (cmd, x))
+    def Test_Exceptions():
+        commands = set(("a", "Aaa", "Aab", "aaa", "aab"))
+        # Case-insensitive instantiation results in an exception ('Aaa' and
+        # 'aaa' collide).
+        raises(ValueError, CommandDecode, commands, ignore_case=True)
+        # commands not a dict/set
+        raises(ValueError, CommandDecode, 4)
+        # Empty dict/set
+        raises(ValueError, CommandDecode, {})
+        raises(ValueError, CommandDecode, set())
+        # Cannot contain empty string
+        raises(ValueError, CommandDecode, set("",))
+        # Call's argument must be a string
+        cmd = CommandDecode(commands)
+        raises(ValueError, cmd, 4)
+        # Can't make empty call
+        raises(TypeError, cmd)
+    def Test_CommandDecode():
+        commands = set(("a", "Aaa", "Aab", "aaa", "aab"))
+        cmd = CommandDecode(commands, ignore_case=False)
+        assert set(cmd("a")) == set(["a"])
+        assert set(cmd("ax")) == set([])
+        assert set(cmd("aa")) == set(["aaa", "aab"])
+        assert set(cmd("Aa")) == set(["Aaa", "Aab"])
+        assert set(cmd("Aab")) == set(["Aab"])
+        # Case insensitive
+        commands = set(("A", "AAA", "AAB"))
+        cmd = CommandDecode(commands, ignore_case=True)
+        assert set(cmd("a")) == set(["a"])
+        assert set(cmd("ax")) == set([])
+        assert set(cmd("AX")) == set([])
+        assert set(cmd("aa")) == set(["aaa", "aab"])
+        assert set(cmd("Aa")) == set(["aaa", "aab"])
+        assert set(cmd("Aab")) == set(["Aab"])
+    if len(sys.argv) > 1 and sys.argv[1] == "--test":
+        exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
+    else:
+        Demo()

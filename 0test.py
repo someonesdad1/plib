@@ -46,21 +46,6 @@ New design
             - This dict is used to quickly decide if a file needs to be tested again
             - No error if file isn't present when script is run
             - File is written after each run; the dict is pickled
-
-    --------------------------------------------------------------------------- 
-    Old design
-            - Look at changing default behavior:  'python 0test.py' looks for every
-              python file in the current file and runs its self tests.  This means
-              keeping things up to date.
-                - Cache the file's hash in a hidden data file so that if the hash hasn't
-                  changed, then the test isn't run.
-                    - A -f option can override this
-            - Trigger string policy
-                - 'run', '--test', 'notest', 'testdir' are the allowed choices
-                - An empty trigger string results in an exception
-            - Commands
-                - scan:  print a report on the trigger string of each file
-                - test:  Run the tests
     
 '''
 if 1:  # Header
@@ -80,9 +65,11 @@ if 1:  # Header
         <oo cat ∞ utility oo>
         <oo test ∞ notest oo>
         <oo todo ∞ 
-
-            - 
-
+            
+            - ∞∞1 Why is this indicating None for dptags.py elliptic.py ooeqn.py
+              tokenizer.py banner.py temperature.py unasciify.py dirfiles.py?  They all
+              have correct test elements in the gist.
+            
         oo>
     '''
     if 1:  # Standard imports
