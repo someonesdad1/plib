@@ -70,21 +70,26 @@ if 1:  # Utility
         The -t option is intended to help compare text files.  The letters in the -t
         option determine the processing done on the file:
         
-          A   Convert Unicode characters to rough ASCII equivalents
-          a   Remove characters above 0x7f (i.e., keep only 7-bit characters)
-          B   Remove characters under 0x20 except newline
-          b   Remove characters under 0x20
+          A   Convert Unicode characters to rough ASCII equivalents{n}
+          B   Remove characters under 0x20
+          b   Remove characters under 0x20 except newline
           d   Remove characters that are ASCII digits (∈ string.digits)
           h   Remove characters that are hex digits (∈ string.hexdigits)
           l   Remove lower case letters (∈ string.ascii_lowercase)
+          n   Remove punctuation (∈ string.punctuation)
           o   Remove characters that are octal digits (∈ string.octdigits)
-          P   Remove non-printable characters (∉ string.printable)
-          p   Remove punctuation (∈ string.punctuation)
-          W   Remove whitespace except newlines
-          w   Remove whitespace (∈ string.whitespace)
+          p   Remove non-printable characters (∉ string.printable)
           u   Remove upper case letters (∈ string.ascii_uppercase)
-          8   Remove all non-8-bit characters (if char > 0xff)
+          W   Remove whitespace (∈ string.whitespace)
+          w   Remove whitespace except newlines
+          7   Remove characters above 0x7f (i.e., keep only 7-bit characters)
+          8   Remove characters above 0xff (i.e., keep only 8-bit characters)
         
+        The A conversion is idiosyncratic and doesn't convert all Unicode characters
+        (mostly ones that look like Latin characters); it may even increase the size
+        because strings like '∞' will be replaced by 'oo'.
+
+
         '''))
         exit(0)
     def Usage(status=1):
@@ -94,10 +99,12 @@ if 1:  # Utility
         Options:                          Bytes in hash
             -a      Show hash for each of the different methods
             -H      Show manpage
+            -l      Convert to lower case (only works with -t; outranks -u)
             -m n    Select other hash method
             -n n    Truncate hash to n bytes
             -s      Print hash name in color to stderr
             -t n    Process text files in special ways.  See -H manpage.
+            -u      Convert to upper case (only works with -t)
         Other hash methods                Bytes in hash{t.d}
             0       SHA-256 (default)           32{t.n}
             1       MD5                         16
@@ -112,18 +119,20 @@ if 1:  # Utility
     def ParseCommandLine():
         d["-a"] = False  # Use all hash methods
         d["-h"] = False  # Help
+        d["-l"] = False  # Convert to lowercase
         d["-m"] = 0      # Hash method to use
         d["-n"] = None   # Truncate hash to n bytes
         d["-s"] = False  # Print hash name in color to stderr
         d["-t"] = []     # Process text file specially
+        d["-u"] = False  # Convert to uppercase
         try:
-            opts, files = getopt.getopt(sys.argv[1:], "aHhm:n:st:")
+            opts, files = getopt.getopt(sys.argv[1:], "aHhlm:n:st:u")
         except getopt.GetoptError as e:
             msg, option = e
             print(msg)
             exit(1)
         for o, a in opts:
-            if o[1] in "as":
+            if o[1] in "alsu":
                 d[o] = not d[o]
             elif o == "-H":     # Show manpage
                 Manpage()
@@ -194,9 +203,13 @@ if 1:  # Core functionality
         '''
         s = b.decode()
         try:
-            u = dpstr.RemoveIdiomatic(s, keys=keys)
+            u = dpstr.RemoveCharClass(s, keys=keys)
         except Exception as e:
             Error(f"Special -t processing for {file!r} failed:\n  {e}")
+        if d["-u"] and d["-t"]:
+            u = u.upper()
+        if d["-l"] and d["-t"]:
+            u = u.lower()
         return u.encode()
     def ProcessFile(file):
         p = P(file)

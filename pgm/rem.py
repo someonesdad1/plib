@@ -78,11 +78,35 @@ if 1:   # Utility
         print(dedent(f'''
 
         This tool is intended to be used to modify text files in various ways.  All of
-        the operations except A remove specified characters from the input.  All of the
-        operations except for A and 8 will work on binary input.  If you're getting
+        the operations except 'A' remove specified characters from the input.  All of
+        the operations except for 'A' will work on binary input.  If you're getting
         results you don't expect, make sure you're using appropriate operations on the
         type of files/data used for input (the problem can probably be fixed by using or
         not using the -b and/or the -e options).
+
+        If you input binary data, it will be written back to stdout in binary form, so
+        you'll e.g. want to be careful if you're writing to the console.  If you're not
+        sure what the form of the input is, you can use the -a option to switch to
+        binary input if reading a text file fails for a Unicode decoding error.
+        However, this isn't much use if there are multiple input files and it happens on
+        files other than the first, as you may get a mix of text and binary output.  In
+        such a case, you'll probably want to not use -a and, if you see a Unicode
+        decoding error, switch to binary mode with -b.
+
+        Some examples of use
+
+        - Text comparison:  I use the text of "Pride and Prejudice" for numerous text
+          testing tasks (it's about 0.68 MB and 120 kwords).  I have two forms of this
+          text file:  one with the lines wrapped at 75 characters and the other with the
+          lines not wrapped.  If I compare them with my GUI differencing tool, there are
+          nearly continuous differences.  However, if both are treated with this
+          script's W operation (remove all whitespace), they compare identically.  I've
+          used similar techniques to compare open source licenses to see how some have
+          changed over a decade or so.
+
+        - Security questions:  If I want to be able to prove my authorship of a
+          document, I put a few (5 to 10) questions into the document that I (mostly)
+          would be the only person who would know all the answers.
 
         '''))
     def Usage(status=0):
@@ -92,7 +116,7 @@ if 1:   # Utility
           Remove character classes from the files, as indicated by the letters, then
           print the results to stdout.
         
-          {e} The files are treated as UTF-8 text files{n} unless you change the
+          {e}The files are treated as UTF-8 text files{n} unless you change the
           encoding with the -e option or use -b.  Use '-' for stdin ('--' to read stdin
           as binary).  The letters are:{b}
 
@@ -210,11 +234,13 @@ if 1:   # Core functionality
     def Process(file):
         'Process file (a Path instance) and send the results to stdout'
         data = GetFileData(file)
-        if (type(data) is bytes and
-            ("A" in g.letters or "8" in g.letters)):
-                Error("'A' and '8' cannot be used on bytes")
+        if (type(data) is bytes and "A" in g.letters):
+            Error("'A' cannot be used on binary data")
         output = dpstr.RemoveCharClass(data, keys=g.letters) 
-        print(output, end="")
+        if isinstance(output, str):
+            print(output, end="")
+        else:
+            sys.stdout.buffer.write(output)
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
