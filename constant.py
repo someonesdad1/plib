@@ -1,7 +1,15 @@
 if 1:  # Header
     _pgminfo = '''
         <oo gist ∞ Class to define constants in your scripts oo>
-        <oo desc ∞ oo>
+        <oo desc ∞ 
+            Typical use in a script:
+                from constant import Constant as g
+                g = Constant()
+                g.speed = 42
+            Now it's a constant you can't change unless you use
+                with g:
+                    g.speed = 43
+        oo>
         <oo copy ∞ Copyright © 2026 Don Peterson oo>
         <oo lic ∞ MIT License
             Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:

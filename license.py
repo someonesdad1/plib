@@ -16,10 +16,13 @@ if 1:  # Header
         <oo test ∞ notest oo>
         <oo todo ∞
         
-            - ∞∞3 I've never needed the license substitution; when I changed all from
-              OSL to MIT in Jan 2026, I did it all manually because I was also adding
-              the new gist string format.  Thus, this script is only needed to print
-              copies of the licenses to stdout.
+            - ∞∞1:  Change to printing licenses only
+                - I've never needed the license substitution feature
+                - Download the text of the appropriate licenses and put them into a
+                  licenses file in /plib/data.  This would be a JSON file that would
+                  return a dict with a list of lines keyed by each license.  The first
+                  line would be the URL and date of downloading.
+                - Get this dict as dpdata.GetLicenses()
          
         oo>
     '''

@@ -41,7 +41,6 @@ if 1:  # Header
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
-
         # The following readonly container will hold global variables.  If you need to
         # change a constant's value, use 
         #     with g:
@@ -106,9 +105,29 @@ if 1:   # Utility
 
         - Security questions:  If I want to be able to prove my authorship of a
           document, I put a few (5 to 10) questions into the document that I (mostly)
-          would be the only person who would know all the answers.
+          would be the only person who would know all the answers.  These questions'
+          answers are then transformed by the letters/options:
 
+              W       Remove all whitespace
+              n       Remove all punctuation
+              n       Remove all non-printable characters
+              -l      Convert to lowercase
+
+          The answers are then hashed by a secure hash algorithm and both the questions
+          and the hash are put into the document.  If you can ensure the document isn't
+          hacked (save a copy somewhere securely), you can then demonstrate to someone
+          later that you know the answers to the questions because your answers lead to 
+          the same hash.  With 36 letters and an answer string up to n characters long,
+          a brute-force attack to look for a hash collision would take 36ⁿ trials.
+          Trying different hashes at 100 GHz (roughly state of the art), each hash takes 
+          10 ps.  Since the age of the universe is roughly 10¹⁸ s, the number of hashes
+          that need to be tried to take up that time is (10¹⁸ s)/(10 ps) or 10²⁹.  The
+          base 36 logarithm of 10²⁹ is ln(10²⁹)/ln(36) or 19.  In other words, it would
+          take someone longer than the age of the universe to find a hash collision if
+          the resulting question answers result in a string 19 characters or longer.  It
+          gets very gnarly very quickly.
         '''))
+        exit(0)
     def Usage(status=0):
         e, b, n = t.purl, t.sky, t.n
         print(dedent(f'''
@@ -119,7 +138,6 @@ if 1:   # Utility
           {e}The files are treated as UTF-8 text files{n} unless you change the
           encoding with the -e option or use -b.  Use '-' for stdin ('--' to read stdin
           as binary).  The letters are:{b}
-
             A   Convert Unicode characters to rough ASCII equivalents{n}
             B   Remove characters under 0x20
             b   Remove characters under 0x20 except newline
@@ -134,6 +152,7 @@ if 1:   # Utility
             w   Remove whitespace except newlines
             7   Remove characters above 0x7f (i.e., keep only 7-bit characters)
             8   Remove characters above 0xff (i.e., keep only 8-bit characters)
+            0   Remove nothing (identity transformation)
           A letter line {b}in this color{n} is one that can only be used on text
           files, as the transformation has no meaning on binary files.
         Options:
@@ -157,7 +176,7 @@ if 1:   # Utility
             GetColors()
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "abde:hlu") 
+            opts, args = getopt.getopt(sys.argv[1:], "abde:Hhlu") 
         except getopt.GetoptError as e:
             print(f"{sys.argv[0]}:  {e}")
             exit(1)
@@ -166,6 +185,8 @@ if 1:   # Utility
                 d[o] = not d[o]
             elif o == "-e":     # Encoding method
                 d[o] = a
+            elif o == "-H":
+                Manpage()
             elif o == "-h":
                 Usage()
         GetColors()

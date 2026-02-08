@@ -338,6 +338,7 @@ if __name__ == "__main__":
                     from f import flt
                     from wrap import dedent
                     from color import t
+                    from constant import Constant
                     from lwtest import Assert
                     from dpprint import PP
                     pp = PP()   # Get pprint with current screen width
@@ -345,11 +346,8 @@ if __name__ == "__main__":
                         import debug
                         debug.SetDebugger()
                 if 1:   # Global variables
-                    class G:
-                        pass
-                    g = G()
+                    g = Constant()
                     g.dbg = False
-                    ii = isinstance
         ''', n=12))
         # Remaining code
         print(dedent("""
@@ -388,7 +386,7 @@ if __name__ == "__main__":
                     if len(sys.argv) < 2:
                         Usage()
                     try:
-                        opts, args = getopt.getopt(sys.argv[1:], "ad:h") 
+                        opts, args = getopt.getopt(sys.argv[1:], "ad:h", "debug") 
                     except getopt.GetoptError as e:
                         print(f"{sys.argv[0]}:  {e}")
                         exit(1)
@@ -404,7 +402,12 @@ if __name__ == "__main__":
                                 Error(f"-d option's argument must be an integer between 1 and 15")
                         elif o == "-h":
                             Usage()
+                        elif o == "--debug":
+                            with g.dbg:
+                                g.dbg = True
                     GetColors()
+                    if g.dbg:
+                        Dbg(f"Command line:  {sys.argv[0]} {t.brnl}{sys.argv[1:]}")
                     return args
             if 1:   # Core functionality
                 pass

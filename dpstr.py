@@ -1249,6 +1249,7 @@ def RemoveCharClass(s, keys=""):
         w   Remove whitespace except newlines
         7   Remove characters above 0x7f (i.e., keep only 7-bit characters)
         8   Remove characters above 0xff (i.e., keep only 8-bit characters)
+        0   Remove nothing (identity transformation)
     
     When s is a string, "character" means "Unicode character".  When s is a bytes or
     bytearray type, "character" means "byte".
@@ -1262,7 +1263,7 @@ def RemoveCharClass(s, keys=""):
     For convenience, the above set of letters coding the transformation are stored in
     the RemoveCharClass.allowed_keys variable.
     '''
-    letters = "ABbdhlnopWwu78"
+    letters = "ABbdhlnopWwu780"
     allowed_keys = set(letters)
     if not hasattr(RemoveCharClass, "allowed_keys"):
         RemoveCharClass.allowed_keys = allowed_keys
@@ -1321,6 +1322,8 @@ def RemoveCharClass(s, keys=""):
             s = ''.join(i for i in s if ord(i) <= 0x7f)
         if "8" in keys:
             s = ''.join(i for i in s if ord(i) <= 0xff)
+        if "0" in keys:
+            pass
         return s
     else:
         b = s
@@ -1351,7 +1354,7 @@ def RemoveCharClass(s, keys=""):
             b = T(i for i in b if i not in set(c.u.encode()))
         if "7" in keys:
             b = T(i for i in b if i <= 0x7f)
-        if "8" in keys:
+        if "8" in keys or "0" in keys:
             pass
         return b
 
@@ -1361,20 +1364,6 @@ if __name__ == "__main__":
     import os
     from sig import sig
     from color import t
-    if 0:   # Get bytes working in RemoveCharClass
-        if 1:   # String
-            b = "Hello, there 42\nHow are you?"
-            o = RemoveCharClass(b, keys="d")
-            print("String     =", repr(o))
-        if 1:   # Bytes
-            b = b"Hello, there 42\nHow are you?"
-            o = RemoveCharClass(b, keys="d")
-            print("Bytes     =", repr(o))
-        if 1:   # Bytearray
-            b = bytearray(b"Hello, there 42\nHow are you?")
-            o = RemoveCharClass(b, keys="d")
-            print("Bytearray =", repr(o))
-        exit()
     def Test_Decorate():
         s = "www \t\n\r\f\vzzz"
         Assert(Decorate(s) == "www·␉␤␍␌␋zzz")
@@ -1965,6 +1954,9 @@ if __name__ == "__main__":
             s, b, a = mk(u)
             # Note this is the identity transformation for a and b
             Check(s, b, a, "8", "aÿ", b, a)
+        if 1:   # 0
+            s, b, a = mk("∞©")
+            Check(s, b, a, "0", s, b, a)
         if 1:   # Check passed key characters
             keys = list(f.allowed_keys)
             f("", keys=keys)
