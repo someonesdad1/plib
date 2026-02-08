@@ -949,9 +949,7 @@ if 1:  # Getting numbers
         else:
             raise ValueError(f"{arg!r} is of improper form")
 if 1:  # Getting choices
-    def GetChoice(
-        seq, default=1, indent=None, col=False, instream=None, outstream=None
-    ):
+    def GetChoice(seq, default=1, indent=None, col=False, instream=None, outstream=None):
         '''Display the choices in seq with numbers and prompt the user for his
         choice.  Note the numbers are 1-based as displayed to the user, but the
         returned value of choice will be 0-based.  Return the choice_number.
@@ -975,15 +973,8 @@ if 1:  # Getting choices
             s = "" if indent is None else indent
             for i in items:
                 print(s, i, sep="", file=outstream)
-        choice = GetNumber(
-            "Choice? ",
-            numtype=int,
-            default=default,
-            low=1,
-            high=n,
-            instream=instream,
-            outstream=outstream,
-        )
+        choice = GetNumber("Choice? ", numtype=int, default=default, low=1,
+                           high=n, instream=instream, outstream=outstream)
         if choice is None:
             return (None, "")
         choice = int(choice) - 1

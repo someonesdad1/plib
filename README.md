@@ -33,24 +33,25 @@
     - /plib/dpdata.py is the single module to get at these data.  You call a
         function and are returned an appropriate data structure.
 
-# 2026 /plib work
+# 2026 /plib Plan
 
+- Update self-tests and ensure they pass
+- Standardize on an open source license
+- Remove specialized modules that are better stored elsewhere
+- 0what.py returns useful output for all modules
+
+# 2026 /plib work done
 
 - 8 Feb
     - pgm/todo.py written:  lists priority tasks in python scripts
+    - constant.py updated; works nicely and is now part of my python boilerplate.  I
+      plan for all modules/scripts to use it eventually.
 - 7 Feb
     - gist added to all /plib/\*.py files and all of these files have:
         - Single line gist to summarize their behavior
         - Marked with todo string (∞∞) to things that need to be done
         - Have a how to test field (notest, run, or --test)
     - All files switched to MIT license
-
-## Plan
-- /plib
-    - Update self-tests and ensure they pass
-    - Standardize on an open source license
-    - Remove specialized modules that are better stored elsewhere
-    - 0what.py returns useful output for all modules
 
 # Description
 
