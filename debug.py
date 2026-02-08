@@ -54,16 +54,8 @@ if 1:  # Header
         <oo test ∞ notest oo>
         <oo todo ∞ 
         
-            - ∞∞1 Enable things with environment variables 'Debug=1' and 'Trace=1'
-            - ∞∞1 Make AutoIndent a context manager so reconnection of stdout is
-              automatic
-                - with AutoIndent() as f:
-                -    do stuff
-                - Look at ways of color coding certain stack levels
-                - Also number stack levels for easier reference
-            - Stack dump should have a keyword to turn colorizing on
-                - Could be a good example of using color styles, which would be t
-                  variable names that get resolved through a dict
+            - ∞∞3 Can stack levels be numbered?  Not a big priority, as dot example
+              doesn't pretty well
   
         oo>
     '''
@@ -669,51 +661,6 @@ if __name__ == "__main__":
             t.print(f"  Leaving func() at {t.purl}{fln()}")
         func(2, 3)
     def Demo_5AutoIndenting():
-        return #∞∞ 
-        Sep()
-        print(dedent(f'''
-        {t.ti}Autoindent example{t.n}
-        
-        This example demonstrates the use of the AutoIndent object.  The object is used
-        to replace sys.stdout and, thus, intercepts calls going to that stream.  Then
-        strings sent to stdout are indented based on the current stack frame depth.  If
-        you're able to see color, note one of the messages is in color; this is helpul
-        to focus your attention on a particular function.  Also note there's a call to
-        StackDump() in the function C().
-        
-        An advantage of using Autoindent is that you only need two lines
-        
-            Disconnect stdout:
-                sys.stdout = AutoIndent(indent="|   ")
-            Reconnect stdout:
-                sys.stdout = sys.__stdout__
-                
-        Thereafter, all text going to stdout is indented by the stack
-        frame's depth.
-        
-        Autoindent isn't affected by debug.show.
- 
-        '''))
-        sys.stdout = AutoIndent(indent=f"{t('sky')}·{t.n} ")
-        def A():
-            print("Entered A()")
-            print("Do something...")
-            B()
-            print("Leaving A()")
-        def B():
-            print("Entered B()")
-            print("Do something...")
-            C()
-            print("Leaving B()")
-        def C():
-            print("Entered C()")
-            print(f"{t('grnl')}Do something...{t.n}")
-            DumpStack()
-            print("Leaving C()")
-        A()
-        # Remember to reconnect old stream
-        sys.stdout = sys.__stdout__
-    def Demo_6AutoIndenting():
         Sep()
         print(dedent(f'''
         {t.ti}Autoindent example{t.n}

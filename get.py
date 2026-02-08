@@ -1,6 +1,39 @@
 '''
 Module for a) getting data from files, strings, and streams, b) getting numbers
 interactively from user.
+
+Getting text, lines, bytes
+    GetText             Get text from file, string, bytes, or a stream
+    GetLinesFromString  Return a list of lines from a string with newlines
+    GetLines            Return a list of strings from file, string, bytes, or stream
+    GetTextLines        Convenience instance of GetLines
+    GetLine             GetLines but is a generator
+    GetNumberedLines    Return a tuple of (linenum, line)
+    GetBinary           Read in file and return bytes
+Getting numbers
+    GetNumber           Get number from user with prompt
+    GetNumbers          Uses GetText() to get a string, then recognizes numbers
+    GetNumberArray      Return a list of vectors gotten from multiline string
+    GetFraction         Return Fraction from string if it contains '/'
+    ParseUnit           Return (num, unit_string)
+    ParseUnitString     Return (prefix_str, unit_str)
+    GetComplex          Return complex number from a string
+    GetClosest          Return number in seq closest to x (seq must be sorted)
+    GetInt              Convert a number or string to an integer
+Getting choices         
+    GetChoice           Prompt user for their choice in a sequence
+Tokenizing          
+    GetWords            Return a list of words separated by a sep string
+    GetTokens           Generator form of GetWords
+    GetWordlist         Get list of words from files, strings, or streams
+    class wrd           Word type for Tokenize
+    class pnc           Punctuation type for Tokenize
+    Tokenize            Return a deque with all the words in a string
+Miscellaneous           
+    IsPunctuation       Return True if all characters in seq are punctuation
+    GetWireDiameter     Return wire diameter from a string
+    GetFileSize         Return a file's size
+    GetIndent           Return number of leading spaces in a string
 '''
 if 1:  # Header
     _pgminfo = '''
@@ -17,7 +50,6 @@ if 1:  # Header
         <oo test ∞ run oo>
         <oo todo ∞ 
         
-            - ∞∞1 Add function summary to docstring for pydoc
             - GetNumber uses the boolean use_unit to allow the user to append a unit
               string.  Change it to also allow use_unit to be a string; then a unit
               string, if appended, must have the same dimensions as the given string.
@@ -1205,6 +1237,7 @@ if 1:  # Miscellaneous
         s = p.stat()
         return s.st_size
     def GetIndent(line):
+        'Return number of leading spaces in a string'
         if not ii(line, str):
             raise TypeError("Argument must be a string")
         if not line:
