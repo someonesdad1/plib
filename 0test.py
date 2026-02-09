@@ -10,6 +10,9 @@ New design
         - Get commands working
         - Implement the cache for better testing speed
         - Use multiprocessing for faster testing
+            - https://wiki.python.org/moin/PythonDecoratorLibrary#Lazy_Thunkify might 
+              be of use with multiprocessing notions and multithreading stuff at the
+              same time
 
     - list [single dir or list of files]
         - Show categorized list of all python files

@@ -37,6 +37,8 @@ if 1:  # Header
 
             - ∞∞1 Get all functions working
             - ∞∞1 Move to debug.py
+            - https://wiki.python.org/moin/PythonDecoratorLibrary#Function_Timeout looks
+              useful
 
         oo>
     '''
