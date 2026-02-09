@@ -34,12 +34,12 @@ if 1:  # Header
         <oo cat ∞ utility oo>
         <oo test ∞ notest oo>
         <oo todo ∞ 
-
+        
             - ∞∞1 Get all functions working
             - ∞∞1 Move to debug.py
             - https://wiki.python.org/moin/PythonDecoratorLibrary#Function_Timeout looks
               useful
-
+        
         oo>
     '''
     if 1:  # Standard imports
@@ -58,43 +58,22 @@ if 1:  # Header
         g.noexit = False    # Switch for TraceExecution
         # Set to a stream-like object to dump arguments
         dump_stream = sys.stdout
-        def StreamOut(stream, *s, **kw):
-            # Process keyword arguments
-            sep = kw.setdefault("sep", "")
-            auto_nl = kw.setdefault("auto_nl", True)
-            prefix = kw.setdefault("prefix", "")
-            convert = kw.setdefault("convert", str)
-            # Convert position arguments to strings
-            strings = map(convert, s)
-            # Dump them to the stream
-            stream.write(prefix + sep.join(strings))
-            # Add a newline if desired
-            if auto_nl:
-                stream.write("\n")
-        trace = functools.partial(StreamOut, sys.stdout)
-        tracen = functools.partial(StreamOut, sys.stdout, auto_nl=False)
-if 1:  # Core functionality
-    class Memoized(object):
-        '''Decorator that caches a function's return value each time it is called.
-        If called later with the same arguments, the cached value is returned, and
-        not re-evaluated.
-        '''
-        def __init__(self, func):
-            self.func = func
-            self.cache = {}
-        def __call__(self, *args):
-            try:
-                return self.cache[args]
-            except KeyError:
-                self.cache[args] = value = self.func(*args)
-                return value
-            except TypeError:
-                # uncachable -- for instance, passing a list as an argument.
-                # Better to not cache than to blow up entirely.
-                return self.func(*args)
-        def __repr__(self):
-            '''Return the function's docstring.'''
-            return self.func.__doc__
+if 1:  # TraceExecution
+    def StreamOut(stream, *s, **kw):
+        # Process keyword arguments
+        sep = kw.setdefault("sep", "")
+        auto_nl = kw.setdefault("auto_nl", True)
+        prefix = kw.setdefault("prefix", "")
+        convert = kw.setdefault("convert", str)
+        # Convert position arguments to strings
+        strings = map(convert, s)
+        # Dump them to the stream
+        stream.write(prefix + sep.join(strings))
+        # Add a newline if desired
+        if auto_nl:
+            stream.write("\n")
+    g.trace = functools.partial(StreamOut, sys.stdout)
+    g.tracen = functools.partial(StreamOut, sys.stdout, auto_nl=False)
     def TraceExecution(f, ignore_exit=True, noname=True, identity=False):
         '''Trace execution of lines inside a function.  If ignore_exit is
         True, typical files like _sitebuiltins.py and threading.py are
@@ -120,14 +99,14 @@ if 1:  # Core functionality
             if why == "line":
                 # Print the file name and line number of every trace
                 if DoNotIgnore(Path(filename)):
-                    tracen(f"{t.sky}%s[%s:%d] %s{t.n}" % (h, bname, lineno, lc(filename, lineno)))
+                    g.tracen(f"{t.sky}%s[%s:%d] %s{t.n}" % (h, bname, lineno, lc(filename, lineno)))
             elif why == "return":
                 if DoNotIgnore(Path(filename)):
                     retval = "==> returning %s <==\n" % repr(arg)
-                    trace("{t.purl}%s[%s:%d] %s{t.n}" % (h, bname, lineno, retval))
+                    g.trace("{t.purl}%s[%s:%d] %s{t.n}" % (h, bname, lineno, retval))
             elif why == "exception":
                 if DoNotIgnore(Path(filename)):
-                    trace(f"{t.redl}%s[%s:%d] %s{t.n}" % (h, bname, lineno, "*** Got exception ***"))
+                    g.trace(f"{t.redl}%s[%s:%d] %s{t.n}" % (h, bname, lineno, "*** Got exception ***"))
                     # In Demo_TraceExecution() below, the traceback produces hundreds of
                     # lines of junk, so the easiest thing is to just exit -- but you
                     # then don't get a traceback -- and inserting a breakpoint doesn't
@@ -147,6 +126,28 @@ if 1:  # Core functionality
             return _f1
         else:
             return _f
+if 1:  # Core functionality
+    class Memoized(object):
+        '''Decorator that caches a function's return value each time it is called.
+        If called later with the same arguments, the cached value is returned, and
+        not re-evaluated.
+        '''
+        def __init__(self, func):
+            self.func = func
+            self.cache = {}
+        def __call__(self, *args):
+            try:
+                return self.cache[args]
+            except KeyError:
+                self.cache[args] = value = self.func(*args)
+                return value
+            except TypeError:
+                # uncachable -- for instance, passing a list as an argument.
+                # Better to not cache than to blow up entirely.
+                return self.func(*args)
+        def __repr__(self):
+            '''Return the function's docstring.'''
+            return self.func.__doc__
     def Passify(f):
         '''Decorator that disables a function.  The function will return None,
         which may break some code.
@@ -175,7 +176,7 @@ if 1:  # Dumping function arguments
             t.print(t.sky + fname + t.n, ":", s)    # Print the function name & arguments
             return func(*args, **kwargs)    # Call the real function
         return echo_func
-    if 1:
+    if 1:  # g.names_to_debug for using DumpArgs2()
         # The following global variable controls which names in the following set are
         # allowed to have their arguments shown in class DumpArgs2
         g.names_to_debug = set("a b".split())  # Names that will show arguments
@@ -245,7 +246,7 @@ if __name__ == "__main__":
             raise ValueError()
             return 42
         Example2()
-    Demo_DumpArgs1()
-    Demo_DumpArgs2()
+    #Demo_DumpArgs1()
+    #Demo_DumpArgs2()
     Demo_TraceExecution()
     #exit(run(globals(), regexp=r"^[Demo_]", halt=1, verbose=0)[0])
