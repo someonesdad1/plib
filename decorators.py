@@ -35,8 +35,7 @@ if 1:  # Header
         <oo test ∞ notest oo>
         <oo todo ∞ 
         
-            - ∞∞1 Get all functions working
-            - ∞∞1 Move to debug.py
+            - This functionality has been moved to debug.py; this file can go to old.
             - https://wiki.python.org/moin/PythonDecoratorLibrary#Function_Timeout looks
               useful
         

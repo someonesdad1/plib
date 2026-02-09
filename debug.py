@@ -72,6 +72,8 @@ if 1:  # Header
         
             - ∞∞3 Can stack levels be numbered?  Not a big priority, as dot example
               doesn't pretty well
+            - https://wiki.python.org/moin/PythonDecoratorLibrary#Function_Timeout looks
+              useful
   
         oo>
     '''
