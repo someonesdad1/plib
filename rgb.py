@@ -210,11 +210,6 @@ if 1:  # Header
         if 0:
             import debug
             debug.SetDebugger()
-        if 1:
-            # Print a warning about using this obsolete file
-            t.print(f"{t.ornl}WARNING:  /plib/rgb.txt run or imported:  it's obsolete", file=sys.stderr)
-        else:
-            raise Exception("This file shouldn't be used")
     if 1:  # Global variables
         P = pathlib.Path
         ii = isinstance
@@ -587,9 +582,12 @@ if 1:  # Core functionality
         '''
         if not all(0 <= i <= 1 and ii(i, float) for i in (a, b, c)):
             raise ValueError("Elements in tuple must be floats on [0, 1]")
+
 if __name__ == "__main__":
     from lwtest import run, raises, Assert, assert_equal
     from collections import deque
+    # Print a warning about using this obsolete file
+    t.print(f"{t.ornl}WARNING:  /plib/rgb.py run:  it's obsolete", file=sys.stderr)
     def TestConvert():
         # Test with integers
         x = Color.Convert(0, 0, 0)

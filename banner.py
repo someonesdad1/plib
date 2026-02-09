@@ -13,7 +13,9 @@ if 1:   # Header
         <oo test ∞ notest oo>
         <oo todo ∞ 
 
+            - ∞∞2 -c should work with any suitable Unicode character
             - ∞∞3 Move utility stuff to script area; make a true module; add test code
+            - ∞∞3 Using -c with a 2 character string doesn't work (but it probably should)
             - 28 Jul 2014 update:  added Raymond Hettinger's banner code.
 
         oo>
@@ -23,14 +25,15 @@ if 1:   # Header
         import sys
     if 1:   # Custom imports
         from wrap import dedent
+        import dpmath
 if 1:   # Utility
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
-    def Usage(d, status=1):
+    def Usage(status=1):
         name = sys.argv[0]
         s = dedent('''
-        Usage:  {name} [-e] string
+        Usage:  {name} [options] string
           Prints a banner message.
         Options
             -a      Use Raymond Hettinger's implementation; his does both
@@ -44,36 +47,63 @@ if 1:   # Utility
         ''')
         print(s.format(**locals()))
         exit(status)
-    def ParseCommandLine(d):
+    def ParseCommandLine():
         d["-a"] = False  # Use Hettinger's implementation
         d["-c"] = "X"  # Character to use
         d["-e"] = False  # Print for all usable characters
         d["-v"] = False  # Vertical output (implies -a)
         if len(sys.argv) < 2:
-            Usage(d)
+            Usage()
         try:
             optlist, args = getopt.getopt(sys.argv[1:], "ac:ev")
         except getopt.GetoptError as e:
             msg, option = e
             print(msg)
             exit(1)
-        for opt in optlist:
-            if opt[0] == "-a":
-                d["-a"] = True
-            if opt[0] == "-c":
-                try:
-                    #d["-c"] = chr(int(opt[1]) & 0x7F)
-                    d["-c"] = chr(Int(opt[1]))
-                except Exception:
-                    Error("'%s' isn't a valid character for -c" % opt[1])
-            if opt[0] == "-e":
-                d["-e"] = True
-            if opt[0] == "-v":
-                d["-a"] = d["-v"] = True
+        for o, a in optlist:
+            if o[1] in "aev":
+                d[o] = not d[o]
+            if o == "-c":
+                d[o] = a
         if len(args) < 1:
-            Usage(d)
+            Usage()
         return args
-if 1:   # Data
+if 1:   # Banner()
+    def Banner(string, char_to_use):
+        '''Prints the string using the character given in char_to_use.
+        Example:  Banner("banner", "l") produces
+        
+             lll
+              ll
+              ll      lllll   ll lll  ll lll  lllll  ll lll
+              lllll       l   lll ll  lll ll ll    l  lll ll
+              ll  ll llllll   ll  ll  ll  ll lllllll  ll
+              ll  ll l   ll   ll  ll  ll  ll ll       ll
+             llllll  lllll l  ll  ll  ll  ll  lllll  llll
+        '''
+        out = [[], [], [], [], [], [], [], []]  # 8 lines of data
+        for ltr in range(len(string)):
+            char = string[ltr]
+            if ord(char) < 32 or ord(char) > 126:
+                char = " "
+            i = ord(char) - 32
+            lines = Banner.letters[i][0]
+            # print("Lines = 0x%08x" % lines)
+            out[0].append(((lines & (0xFF << 24)) >> 24) & 0xFF)
+            out[1].append(((lines & (0xFF << 16)) >> 16) & 0xFF)
+            out[2].append(((lines & (0xFF << 8)) >> 8) & 0xFF)
+            out[3].append(lines & 0xFF)
+            lines = Banner.letters[i][1]
+            # print("Lines = 0x%08x" % lines)
+            out[4].append(((lines & (0xFF << 24)) >> 24) & 0xFF)
+            out[5].append(((lines & (0xFF << 16)) >> 16) & 0xFF)
+            out[6].append(((lines & (0xFF << 8)) >> 8) & 0xFF)
+            out[7].append(lines & 0xFF)
+        for element in out:
+            for byte in element:
+                PrintByteLine(byte, char_to_use)
+            print()
+        print()
     ''' The array Banner.letters contains the information on how to print each character
     between 32 and 126, inclusive.  There are 8 bytes for each character and each byte
     represents one line of the font.  The high byte of the first number is the first
@@ -114,67 +144,7 @@ if 1:   # Data
         (0x0000FC98, 0x3064FC00), (0x0C181830, 0x18180C00), (0x10101000, 0x10101000),
         (0x60303018, 0x30306000), (0x66980000, 0x00000000),
     )
-if 1:   # Core functionality
-    def Banner(string, char_to_use):
-        '''Prints the string using the character given in char_to_use.
-        Example:  Banner("banner", "l") produces
-        
-             lll
-              ll
-              ll      lllll   ll lll  ll lll  lllll  ll lll
-              lllll       l   lll ll  lll ll ll    l  lll ll
-              ll  ll llllll   ll  ll  ll  ll lllllll  ll
-              ll  ll l   ll   ll  ll  ll  ll ll       ll
-             llllll  lllll l  ll  ll  ll  ll  lllll  llll
-        '''
-        out = [[], [], [], [], [], [], [], []]  # 8 lines of data
-        for ltr in range(len(string)):
-            char = string[ltr]
-            if ord(char) < 32 or ord(char) > 126:
-                char = " "
-            i = ord(char) - 32
-            lines = Banner.letters[i][0]
-            # print("Lines = 0x%08x" % lines)
-            out[0].append(((lines & (0xFF << 24)) >> 24) & 0xFF)
-            out[1].append(((lines & (0xFF << 16)) >> 16) & 0xFF)
-            out[2].append(((lines & (0xFF << 8)) >> 8) & 0xFF)
-            out[3].append(lines & 0xFF)
-            lines = Banner.letters[i][1]
-            # print("Lines = 0x%08x" % lines)
-            out[4].append(((lines & (0xFF << 24)) >> 24) & 0xFF)
-            out[5].append(((lines & (0xFF << 16)) >> 16) & 0xFF)
-            out[6].append(((lines & (0xFF << 8)) >> 8) & 0xFF)
-            out[7].append(lines & 0xFF)
-        for element in out:
-            for byte in element:
-                PrintByteLine(byte, char_to_use)
-            print()
-        print()
-    def PrintByteLine(byte, char_to_use):
-        for i in range(8):
-            if byte & (1 << (8 - i)):
-                print("%s" % char_to_use, end="")
-            else:
-                print(" ", end="")
-    def Example(string):
-        '''Prints the string to stdout with each ASCII character
-        from 33 to 255.
-        '''
-        for i in range(33, 256):
-            print("Character ASCII value =", i)
-            Banner(string, chr(i))
-    def Int(s):
-        'Return the integer s'
-        if s.startswith("0x"):
-            return int(s, 16)
-        elif s.upper().startswith("U+"):
-            return int("0x" + s[2:], 16)
-        elif s.startswith("0o"):
-            return int(s, 8)
-        elif s.startswith("0b"):
-            return int(s, 2)
-        else:
-            return int(s)
+if 1:   # Hettinger()
     def Hettinger(string, char="X"):
         '''Raymond Hettinger's banner code from
         http://code.activestate.com/recipes/577537
@@ -187,7 +157,7 @@ if 1:   # Core functionality
          XXXXX |X  X  X|X  X   | XXXXX |   X  X|X  X  X| XXXXX |$|
         XXX   X|X X  X |XXX X  |   X   |  X XXX| X  X X|X   XXX|%|
           XX   | X  X  |  XX   | XXX   |X   X X|X    X | XXX  X|&|
-          XXX  |  XXX  |   X   |  X    |       |       |       |'|
+         XXX  |  XXX  |   X   |  X    |       |       |       |'|
            XX  |  X    | X     | X     | X     |  X    |   XX  |(|
           XX   |    X  |     X |     X |     X |    X  |  XX   |)|
                | X   X |  X X  |XXXXXXX|  X X  | X   X |       |*|
@@ -297,10 +267,24 @@ if 1:   # Core functionality
             vertical(string)
         else:
             horizontal(string)
+if 1:   # Other
+    def PrintByteLine(byte, char_to_use):
+        for i in range(8):
+            if byte & (1 << (8 - i)):
+                print("%s" % char_to_use, end="")
+            else:
+                print(" ", end="")
+    def Example(string):
+        '''Prints the string to stdout with each ASCII character
+        from 33 to 255.
+        '''
+        for i in range(33, 256):
+            print("Character ASCII value =", i)
+            Banner(string, chr(i))
 
 if __name__ == "__main__":
     d = {}
-    args = ParseCommandLine(d)
+    args = ParseCommandLine()
     string = " ".join(args)
     if d["-e"]:
         Example(string)

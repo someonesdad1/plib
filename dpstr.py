@@ -1,4 +1,4 @@
-'''
+r'''
 
 Chop                Return a string chopped into equal parts
 CommonPrefix        Return a common prefix of a sequence of strings
@@ -76,9 +76,12 @@ if 1:  # Header
         <oo test ∞ run oo>
         <oo todo ∞
 
-            - ∞∞2 Missing tests for GetString, WordID
+            - ∞∞1 Missing tests for GetString, WordID
+            - ∞∞1 Many of these functions can be made to work with bytes
             - Convert token naming conversions to a class
-            - Consider upper & lower keywords for Keep and Remove
+            - ∞∞3 Consider upper & lower keywords for Keep and Remove
+            - ∞∞2 Many functions: divide docstring into multiple categories and then divide
+              the code up into the same sections with 'if 1:    # Section' strings.
     
         oo>
     '''
@@ -875,7 +878,7 @@ if 1:  # Core functionality
             out.append(seq[i : i + size])
         return out
     def ReadData(data, structure, **kw):
-        '''Read data from a multiline string data.  structure is a list of the field
+        '''Read data from a multiline string 'data'.  structure is a list of the field
         types.  Any line starting with optional whitespace and the comment string is
         ignored, as is any line with only whitespace.
         
@@ -892,11 +895,18 @@ if 1:  # Core functionality
                 10   680     2100    250     750
             """
         the call ReadData(data, structure=[str, int, int, int, int] returns the list
-            [["9", 680, 2100, 0, 750],
-            ["10", 680, 2100, 250, 750]]
+            [
+                ["9", 680, 2100, 0, 750],
+                ["10", 680, 2100, 250, 750]
+            ]
             
         If an error occurs, the 1-based line number of the offending string will be
         printed along with the problem.
+
+        ∞∞2 ReadData:  This function can be made to work with bytes too
+            s = b"1 2 3\n4 5 6"
+            s.split(b"\n") gives [b'1 2 3', b'4 5 6'] and these can be converted to
+            integers.  re works with str and bytes, but they can't be mixed.
         '''
         # Get keywords
         comment = kw.get("comment", None)
@@ -1232,131 +1242,131 @@ if 1:  # Core functionality
                        (ord("\f"), "␌"), (ord("\v"), "␋")))
             Decorate.trans = "".maketrans(di)
         return s.translate(Decorate.trans)
-def RemoveCharClass(s, keys=""):
-    '''Given s, a string, bytes, or bytearry, remove the characters indicated by the
-    letters in the keys:
-        A   Convert Unicode characters to rough ASCII equivalents
-        B   Remove characters under 0x20
-        b   Remove characters under 0x20 except newline
-        d   Remove characters that are ASCII digits (∈ string.digits)
-        h   Remove characters that are hex digits (∈ string.hexdigits)
-        l   Remove lower case letters (∈ string.ascii_lowercase)
-        n   Remove punctuation (∈ string.punctuation)
-        o   Remove characters that are octal digits (∈ string.octdigits)
-        p   Remove non-printable characters (∉ string.printable)
-        u   Remove upper case letters (∈ string.ascii_uppercase)
-        W   Remove whitespace (∈ string.whitespace)
-        w   Remove whitespace except newlines
-        7   Remove characters above 0x7f (i.e., keep only 7-bit characters)
-        8   Remove characters above 0xff (i.e., keep only 8-bit characters)
-        0   Remove nothing (identity transformation)
-    
-    When s is a string, "character" means "Unicode character".  When s is a bytes or
-    bytearray type, "character" means "byte".
-    
-    The A key (ASCIIFY) is the exception to the function's pattern:  no characters are
-    removed.  This transliteration is idiomatic and it won't convert any Unicode
-    characters that don't look similar to Latin letters.  The length of the string may
-    increase:  for example, '∞' is changed to 'oo'.  For bytes or bytearray objects, the
-    A letter results in an identity transformation.
+    def RemoveCharClass(s, keys=""):
+        '''Given s, a string, bytes, or bytearry, remove the characters indicated by the
+        letters in the keys:
+            A   Convert Unicode characters to rough ASCII equivalents
+            B   Remove characters under 0x20
+            b   Remove characters under 0x20 except newline
+            d   Remove characters that are ASCII digits (∈ string.digits)
+            h   Remove characters that are hex digits (∈ string.hexdigits)
+            l   Remove lower case letters (∈ string.ascii_lowercase)
+            n   Remove punctuation (∈ string.punctuation)
+            o   Remove characters that are octal digits (∈ string.octdigits)
+            p   Remove non-printable characters (∉ string.printable)
+            u   Remove upper case letters (∈ string.ascii_uppercase)
+            W   Remove whitespace (∈ string.whitespace)
+            w   Remove whitespace except newlines
+            7   Remove characters above 0x7f (i.e., keep only 7-bit characters)
+            8   Remove characters above 0xff (i.e., keep only 8-bit characters)
+            0   Remove nothing (identity transformation)
+        
+        When s is a string, "character" means "Unicode character".  When s is a bytes or
+        bytearray type, "character" means "byte".
+        
+        The A key (ASCIIFY) is the exception to the function's pattern:  no characters are
+        removed.  This transliteration is idiomatic and it won't convert any Unicode
+        characters that don't look similar to Latin letters.  The length of the string may
+        increase:  for example, '∞' is changed to 'oo'.  For bytes or bytearray objects, the
+        A letter results in an identity transformation.
 
-    For convenience, the above set of letters coding the transformation are stored in
-    the RemoveCharClass.allowed_keys variable.
-    '''
-    letters = "ABbdhlnopWwu780"
-    allowed_keys = set(letters)
-    if not hasattr(RemoveCharClass, "allowed_keys"):
-        RemoveCharClass.allowed_keys = allowed_keys
-    keys = set(keys)
-    if not keys.issubset(allowed_keys):
-        raise ValueError(f"{keys!r} must only contain the letters {letters!r}")
-    # Check type of s
-    if isinstance(s, str):
-        is_str = True
-    elif ii(s, (bytes, bytearray)):
-        is_str = False
-    else:
-        raise TypeError("s must be str, bytes, or bytearray")
-    # Class C is a notational convenience for holding the various sets of characters in
-    # the string module.  The attribute letters correspond to the letters that code the
-    # transformation.
-    class C:
-        pass
-    c = C()
-    c.d = string.digits
-    c.h = string.hexdigits
-    c.l = string.ascii_lowercase
-    c.n = string.punctuation
-    c.o = string.octdigits
-    c.p = string.printable
-    c.W = string.whitespace
-    c.w = c.W.replace("\n", "")
-    c.u = string.ascii_uppercase
+        For convenience, the above set of letters coding the transformation are stored in
+        the RemoveCharClass.allowed_keys variable.
+        '''
+        letters = "ABbdhlnopWwu780"
+        allowed_keys = set(letters)
+        if not hasattr(RemoveCharClass, "allowed_keys"):
+            RemoveCharClass.allowed_keys = allowed_keys
+        keys = set(keys)
+        if not keys.issubset(allowed_keys):
+            raise ValueError(f"{keys!r} must only contain the letters {letters!r}")
+        # Check type of s
+        if isinstance(s, str):
+            is_str = True
+        elif ii(s, (bytes, bytearray)):
+            is_str = False
+        else:
+            raise TypeError("s must be str, bytes, or bytearray")
+        # Class C is a notational convenience for holding the various sets of characters in
+        # the string module.  The attribute letters correspond to the letters that code the
+        # transformation.
+        class C:
+            pass
+        c = C()
+        c.d = string.digits
+        c.h = string.hexdigits
+        c.l = string.ascii_lowercase
+        c.n = string.punctuation
+        c.o = string.octdigits
+        c.p = string.printable
+        c.W = string.whitespace
+        c.w = c.W.replace("\n", "")
+        c.u = string.ascii_uppercase
 
-    if is_str:
-        if "A" in keys:
-            s = asciify.Asciify(s)
-        if "B" in keys:
-            s = ''.join(i for i in s if ord(i) >= 0x20)
-        if "b" in keys:
-            s = ''.join(i for i in s if ord(i) >= 0x20 or i == "\n")
-        if "d" in keys:
-            s = ''.join(i for i in s if i not in set(c.d))
-        if "h" in keys:
-            s = ''.join(i for i in s if i not in set(c.h))
-        if "l" in keys:
-            s = ''.join(i for i in s if i not in set(c.l))
-        if "o" in keys:
-            s = ''.join(i for i in s if i not in set(c.o))
-        if "n" in keys:
-            s = ''.join(i for i in s if i not in set(c.n))
-        if "p" in keys:
-            s = ''.join(i for i in s if i     in set(c.p))
-        if "W" in keys:
-            s = ''.join(i for i in s if i not in set(c.W))
-        if "w" in keys:
-            s = ''.join(i for i in s if i not in set(c.w))
-        if "u" in keys:
-            s = ''.join(i for i in s if i not in set(c.u))
-        if "7" in keys:
-            s = ''.join(i for i in s if ord(i) <= 0x7f)
-        if "8" in keys:
-            s = ''.join(i for i in s if ord(i) <= 0xff)
-        if "0" in keys:
-            pass
-        return s
-    else:
-        b = s
-        T = bytes if ii(b, bytes) else bytearray
-        if "A" in keys:
-            pass
-        if "B" in keys:
-            b = T(i for i in b if i >= 0x20)
-        if "b" in keys:
-            b = T(i for i in b if i >= 0x20 or i == ord("\n"))
-        if "d" in keys:
-            b = T(i for i in b if i not in set(c.d.encode()))
-        if "h" in keys:
-            b = T(i for i in b if i not in set(c.h.encode()))
-        if "l" in keys:
-            b = T(i for i in b if i not in set(c.l.encode()))
-        if "o" in keys:
-            b = T(i for i in b if i not in set(c.o.encode()))
-        if "n" in keys:
-            b = T(i for i in b if i not in set(c.n.encode()))
-        if "p" in keys:
-            b = T(i for i in b if i     in set(c.p.encode()))
-        if "W" in keys:
-            b = T(i for i in b if i not in set(c.W.encode()))
-        if "w" in keys:
-            b = T(i for i in b if i not in set(c.w.encode()))
-        if "u" in keys:
-            b = T(i for i in b if i not in set(c.u.encode()))
-        if "7" in keys:
-            b = T(i for i in b if i <= 0x7f)
-        if "8" in keys or "0" in keys:
-            pass
-        return b
+        if is_str:
+            if "A" in keys:
+                s = asciify.Asciify(s)
+            if "B" in keys:
+                s = ''.join(i for i in s if ord(i) >= 0x20)
+            if "b" in keys:
+                s = ''.join(i for i in s if ord(i) >= 0x20 or i == "\n")
+            if "d" in keys:
+                s = ''.join(i for i in s if i not in set(c.d))
+            if "h" in keys:
+                s = ''.join(i for i in s if i not in set(c.h))
+            if "l" in keys:
+                s = ''.join(i for i in s if i not in set(c.l))
+            if "o" in keys:
+                s = ''.join(i for i in s if i not in set(c.o))
+            if "n" in keys:
+                s = ''.join(i for i in s if i not in set(c.n))
+            if "p" in keys:
+                s = ''.join(i for i in s if i     in set(c.p))
+            if "W" in keys:
+                s = ''.join(i for i in s if i not in set(c.W))
+            if "w" in keys:
+                s = ''.join(i for i in s if i not in set(c.w))
+            if "u" in keys:
+                s = ''.join(i for i in s if i not in set(c.u))
+            if "7" in keys:
+                s = ''.join(i for i in s if ord(i) <= 0x7f)
+            if "8" in keys:
+                s = ''.join(i for i in s if ord(i) <= 0xff)
+            if "0" in keys:
+                pass
+            return s
+        else:
+            b = s
+            T = bytes if ii(b, bytes) else bytearray
+            if "A" in keys:
+                pass
+            if "B" in keys:
+                b = T(i for i in b if i >= 0x20)
+            if "b" in keys:
+                b = T(i for i in b if i >= 0x20 or i == ord("\n"))
+            if "d" in keys:
+                b = T(i for i in b if i not in set(c.d.encode()))
+            if "h" in keys:
+                b = T(i for i in b if i not in set(c.h.encode()))
+            if "l" in keys:
+                b = T(i for i in b if i not in set(c.l.encode()))
+            if "o" in keys:
+                b = T(i for i in b if i not in set(c.o.encode()))
+            if "n" in keys:
+                b = T(i for i in b if i not in set(c.n.encode()))
+            if "p" in keys:
+                b = T(i for i in b if i     in set(c.p.encode()))
+            if "W" in keys:
+                b = T(i for i in b if i not in set(c.W.encode()))
+            if "w" in keys:
+                b = T(i for i in b if i not in set(c.w.encode()))
+            if "u" in keys:
+                b = T(i for i in b if i not in set(c.u.encode()))
+            if "7" in keys:
+                b = T(i for i in b if i <= 0x7f)
+            if "8" in keys or "0" in keys:
+                pass
+            return b
 
 if __name__ == "__main__":
     from lwtest import run, raises, Assert

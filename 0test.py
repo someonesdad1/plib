@@ -662,7 +662,6 @@ if __name__ == "__main__":
             Dbg(f"Action({t.file}{args}{t.dbg})")
         def Report(args):
             Dbg(f"Report({t.file}{args}{t.dbg})")
-
         def GetFiles(args):
             Dbg(f"GetFiles({t.file}{args}{t.dbg})")
             files = [P(i) for i in args]
@@ -687,7 +686,6 @@ if __name__ == "__main__":
                 Dbg(f"Got {len(g.items_to_test)} files")
             if not g.items_to_test:
                 Error(f"{t.err}No files found to test{t.n}")
-
         def List(args):
             Dbg(f"List({t.file}{args}{t.dbg})")
             # Classify these files
@@ -713,7 +711,6 @@ if __name__ == "__main__":
             Dbg(f"Test({t.file}{args}{t.dbg})")
             for tf in g.items_to_test:
                 tf.run()
-
     if 0:
         test = []
         for file in files:

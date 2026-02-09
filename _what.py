@@ -21,7 +21,7 @@ if 1:  # Header
         import re
         import sys
     if 1:  # Custom imports
-        import trigger
+        #import trigger
         from wrap import wrap, dedent
         from color import t
         from columnize import Columnize

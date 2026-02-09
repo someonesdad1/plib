@@ -43,7 +43,8 @@ if 1:  # Header
         <oo cat ∞ util oo>
         <oo test ∞ run oo>
         <oo todo ∞ 
-            - 
+            - ∞∞2 Function gist:  prototype the idea.  This could be good enough to
+              allow automated tools to produce the /plib HTML documentation.
         oo>
     '''
     if 1:   # Standard imports
@@ -229,6 +230,19 @@ if 1:   # Prototyping a function gist
     PrototypedFunction.gist = '''
         A fngist element is used to describe a function to allow it to be indexed by
         automatic tools.  
+
+        Questions:
+            - Would this be better than putting the information in the function's
+              docstring?
+            - Note the data winds up in the runtime memory space (so does the
+              docstring).
+            - In the REPL, you can type help(funcname) and view the docstring (or also
+              use 'pydoc help modulename.funcname', but it doesn't work on a string
+              attached to the function's name.
+
+           Conclusion:  it would be easiest to put the structured gist information into the
+           docstring.  It could be at the end and '∞∞g' could be a unique separator
+           string.
 
        ∞ This area for various space-separated keywords
     '''

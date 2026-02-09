@@ -14,6 +14,7 @@ if 1:  # Header
         <oo todo ∞ 
 
             - ∞∞2 Write docstring so pydoc works on it
+            - ∞∞2 Divide up into sections by function types
             - SpiralArcLength() and RollArcLength() are duplicated in pgm/spiral,
               although this module would be a good location for the spiral-related
               functions
@@ -31,10 +32,14 @@ if 1:  # Header
     if 1:  # Standard imports
         import math
         import string
+        import sys
         from fractions import Fraction
     if 1:  # Custom imports
         from frange import frange
         from f import flt
+        if len(sys.argv) > 1:
+            import debug
+            debug.SetDebugger()
     if 1:  # Global variables
         ii = isinstance
 if 1:  # Classes
@@ -308,24 +313,31 @@ if 1:  # Core functionality
             )
         return sign + in_base
     def Int(s):
-        '''Convert the string x to an integer.  Allowed forms are:
-        Plain base 10 string
-        0b binary
-        0o octal
-        0x hex
+        '''Convert the string (or bytes) s to an integer.  Allowed forms are:
+            - Plain base 10 string
+            - 0b, 0B:  binary
+            - 0o, 0O:  octal
+            - 0x, 0X:  hex
+            - u+, U+:  hex style for Unicode codepoints
         '''
+        if not isinstance(s, (str, bytes, bytearray)):
+            raise TypeError("s must be str, bytes, or bytearray")
+        isstr = True if isinstance(s, str) else False
         neg = 1
-        if s[0] == "-":
+        if s[0] == "-" or s[0] == ord("-"):
             neg = -1
             s = s[1:]
-        if s.startswith("0b"):
+        if s.lower().startswith("0b" if isstr else b"0b"):
             return neg*int(s, 2)
-        elif s.startswith("0o"):
+        elif s.lower().startswith("0o" if isstr else b"0o"):
             return neg*int(s, 8)
-        elif s.startswith("0x"):
+        elif s.lower().startswith("0x" if isstr else b"0x"):
+            return neg*int(s, 16)
+        elif s.lower().startswith("u+" if isstr else b"u+"):
             return neg*int(s, 16)
         else:
             return neg*int(s, 10)
+
     def int2base(x, base):
         '''Converts the integer x to a string representation in a given
         base.  base may be from 2 to 94.
@@ -703,14 +715,26 @@ if __name__ == "__main__":
                 DecimalToBase(x, base, check_result=True)
     def TestInt():
         data = (
+            # Positive integers
             ("0b11", 3),
             ("0o10", 8),
             ("0x10", 16),
             ("10", 10),
+                # Bytes
+                (b"0b11", 3),
+                (b"0o10", 8),
+                (b"0x10", 16),
+                (b"10", 10),
+            # Negative integers
             ("-0b11", -3),
             ("-0o10", -8),
             ("-0x10", -16),
             ("-10", -10),
+                # Bytes
+                (b"-0b11", -3),
+                (b"-0o10", -8),
+                (b"-0x10", -16),
+                (b"-10", -10),
         )
         for s, n in data:
             Assert(Int(s) == n)

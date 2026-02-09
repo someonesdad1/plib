@@ -44,7 +44,7 @@ if 1:  # Header
         g.NT = namedtuple("NT", "ln file s")
 if 1:   # Utility
     def GetColors():
-        t.file = t.wht
+        t.file = t.orn
         t.ln = t.royl
         t.err = t.redl
         t.dbg = t.sky if g.dbg else ""
@@ -71,7 +71,8 @@ if 1:   # Utility
           Find todo items in python files.  If file argument is a directory, all python
           files in that directory are searched.  cmd can be "1", "2", or "3" for
           priority level or "0" means show everything found in the current directory.
-          If no files are given, the current directory is searched.
+          If no files are given, the current directory is searched.  If cmd is a file,
+          then it's as if "0" was given as cmd.
         Options:
           -s s    Define the todo string marker [{d["-s"]}]
         '''))
@@ -155,7 +156,7 @@ if 1:   # Core functionality
                 di[2].append(i)
             elif "∞∞3" in line and "∞∞i" not in line:     # ∞∞i
                 di[3].append(i)
-            elif "∞∞i" not in line:
+            if "∞∞i" not in line:
                 di[0].append(i)
         return di
     def Report(items):
@@ -181,11 +182,17 @@ if 1:   # Core functionality
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    cmd = args.pop(0)
-    if cmd not in "0 1 2 3".split():
-        Usage()
-    if not args:    # Do current directory by default
-        args.append(".")
-    filelist = GetFileList(*args)
+    p = Path(args[0])
+    if p.is_file():
+        # If first argument is a file, then assume all arguments are files to be looked at
+        filelist = GetFileList(*args)
+        cmd = "0"
+    else:
+        cmd = args.pop(0)
+        if cmd not in "0 1 2 3".split():
+            Usage()
+        if not args:    # Do current directory by default
+            args.append(".")
+        filelist = GetFileList(*args)
     di = MakeDictionary(filelist)
     Report(di[int(cmd)])
