@@ -256,7 +256,7 @@ if 1:  # Core functionality
             Assert(d[0] not in digits)
             # Get month
             s = "".join(d[:3]).lower()
-            month = months.months_lc(s)
+            month = months.Months_lc(s)
             # Get year
             year = int("".join(d[3:]))
             return (year, month, day)

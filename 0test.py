@@ -140,6 +140,8 @@ if 1:  # Classes
             # Get file's gist
             s = gist.Gist.GetGistString(self.file)
             try:
+                if "dirfiles.py" in str(file):
+                    breakpoint() # ∞∞ 
                 mygist = gist.Gist(s)
             except Exception:
                 Dbg(f"{t.warn}No gist in {file} (TestFile constructor)")

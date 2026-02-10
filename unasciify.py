@@ -63,7 +63,7 @@ if 0:   # Transliteration data
         # character (the key) is separated from its values by a tab character.  I have
         # manually edited the data to only include values that I feel look reasonable in the
         # WSL Windows Terminal font I use.
-        g.data = '''
+        g.data = r'''
             '	❛ʼʽˊ′ʹ‵‘’‛❜ʻ
             "	🙷“〞”‟❞˝ˮ″‶🙶ʺ
             (	⦅⟮❨﹙❪

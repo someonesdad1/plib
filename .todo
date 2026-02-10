@@ -1,4 +1,18 @@
 /plib/.todo
+    
+    - checkgist.py & gist
+        - I seem to be running into a thorny problem where some of the files like
+          novas.py and eevblog.py cannot have their _pgminfo variables read.  Online
+          docs say python doesn't enforce the custom of such a variable being private,
+          but I can't figure out why 6 files are still having problems.
+        - When I changed "_pgminfo" in eevblog.py to "pgminfo", the variable was read in
+          just fine.  This feels like a troubling deep bug in python.
+        - Options
+            - Rename _pgminfo to pgminfo
+            - Put a function GetGist() into every file that's used to get the gist
+                - This has the benefit of making it trivial to find files that don't
+                  have a gist
+        
 
 One & two letter color names
 blk     k

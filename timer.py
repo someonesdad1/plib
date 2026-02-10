@@ -246,8 +246,8 @@ if 1:  # Classes
             '''
             d = datetime.datetime.now()
             if short:
-                from months import months
-                s = f"{d.day}{months[d.month]}"
+                from months import Months
+                s = f"{d.day}{Months[d.month]}"
             else:
                 s = (
                     f"{d.year:04d}{d.month:02d}{d.day:02d}_"

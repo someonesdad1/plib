@@ -44,7 +44,7 @@ if 1:   # Header
         from color import t
         from lwtest import Assert
         from dpprint import PP
-        from months import months
+        from months import Months
         from columnize import Columnize
         import dpstr
         pp = PP()   # Get pprint with current screen width
@@ -74,7 +74,7 @@ if 1:   # Classes
             # Get the date from the URL
             self.date = self.convert_date(Line.r.search(self.url).groups()[0])
         def __str__(self):
-            m = months[self.date.month]
+            m = Months[self.date.month]
             return f"{self.title} {self.date.day}{m}{t.yel}{self.date.year}{t.n}" 
         def __repr__(self):
             return self.title

@@ -132,21 +132,29 @@ if 1:   # Classes
                 if set(self) != set(keywords):
                     raise ValueError(f"Gist keys do not match those strings in keywords list")
         @classmethod
-        def GetGistString(cls, file, varname="_pgminfo"):
-            '''Return the Gist string for a file (a string or pathname.Path instance).
+        def GetGistString(cls, pfile, varname="_pgminfo", trap=False):
+            '''Return the Gist string for a pfile (a pathname.Path instance).
             varname is the name of the global variable used to hold the gist, a string.
-            None is returned if varname can't be read.
+            If trap is True, None is returned if varname can't be read.
             '''
-            filename = str(file) if isinstance(file, pathlib.Path) else file
+            if not isinstance(pfile, pathlib.Path):
+                raise TypeError(f"{pfile!r} must be a pathlib.Path instance")
+            filename = str(pfile) 
             if filename.endswith(".py"):
                 filename = filename[:-3]
             global GetGistString_imported_module
-            try:
+            if trap:
+                try:
+                    GetGistString_imported_module = importlib.import_module(filename)
+                    var = eval(f"GetGistString_imported_module.{varname}")
+                    return var
+                except Exception:
+                    return None
+            else:
+                breakpoint() # ∞∞ 
                 GetGistString_imported_module = importlib.import_module(filename)
                 var = eval(f"GetGistString_imported_module.{varname}")
                 return var
-            except Exception:
-                return None
         @classmethod
         def TestGist(cls):
             'This is a simple gist intended for basic testing'
@@ -341,7 +349,7 @@ if __name__ == "__main__":
         print(Dedent('''
                 if 1:   # Standard imports
                     from collections import deque
-                    from pathlib import Path as P
+                    from pathlib import Path
                     import getopt
                     import os
                     import re

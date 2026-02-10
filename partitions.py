@@ -1,5 +1,5 @@
 '''
-Generate partitions of the integer n.
+Generate partitions of the integer n
 '''
 if 1:  # Header
     _pgminfo = '''

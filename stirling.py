@@ -25,7 +25,7 @@ if 1:  # Header
     if 1:  # Standard imports
         pass
     if 1:  # Custom imports
-        import decorators
+        import debug
     if 1:  # Global variables
         __all__ = "Stirling1 Stirling2".split()
 if 1:  # Core functionality
@@ -63,8 +63,8 @@ if 1:  # Core functionality
             return 0
         return S(n - 1, k - 1) + k * S(n - 1, k)
 
-Stirling1 = decorators.Memoized(s)
-Stirling2 = decorators.Memoized(S)
+Stirling1 = debug.Memoized(s)
+Stirling2 = debug.Memoized(S)
 
 if __name__ == "__main__":
     from lwtest import run, Assert

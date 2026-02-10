@@ -9,7 +9,7 @@ if 1:  # Header
     _pgminfo = '''
         <oo gist ∞ Tokenizer() for tokenizing text strings oo>
         <oo desc ∞ oo>
-        <oo desc
+        <oo desc ∞ 
         
             The primary use case for this function is to split ASCII text into words,
             whitespace, linefeeds, digits, punctuation, and other characters.

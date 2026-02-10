@@ -40,6 +40,7 @@ if 1:  # Header
         if 0:
             import debug
             debug.SetDebugger()
+    __all__ = ["_pgminfo"]
 if 1:  # Core functionality
     class Title:
         '''Class to regularize the title.  Note there are a number of things needing fixes, as

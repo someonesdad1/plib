@@ -121,7 +121,7 @@ if 1:  # Core functionality
         # Our working directory is an invariant
         cwd = os.getcwd()
         # regex is a C-type token name between asterisks
-        r = re.compile("\*([A-Za-z_][A-Za-z0-9_]*)\*")
+        r = re.compile(r"\*([A-Za-z_][A-Za-z0-9_]*)\*")
         tags = ["help-tags\ttags\t1"]
         # Change to the output directory so there will be no directory names in the file's name
         os.chdir(dir)

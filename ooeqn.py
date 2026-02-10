@@ -1,4 +1,4 @@
-'''
+r'''
 
 Module to get the text content of the mathematical equations in an Open
 Document file.
@@ -20,15 +20,15 @@ Plan
         - Find the lines that contain "Object d" where d is an integer.
           These are the possible directories in '.' that contain math
           equations (not all of them will).
-    - Open the Object\ d/content.xml file for each object.  Look for XML
+    - Open the Object\\ d/content.xml file for each object.  Look for XML
       elements of the form '<annotation encoding = "StarMath
       5.0".*</annotation>'.  This contains the equation's text after
       stripping off the beginning '<annotation encoding = "StarMath
       5.0"' and the trailing '</annotation>'
     - For each equation
         - Remove 'align.' from beginning
-        - Change e.g. %theta to \theta and %THETA to \Theta
-        - Change +- to \pm and -+ to \mp
+        - Change e.g. %theta to \\theta and %THETA to \\Theta
+        - Change +- to \\pm and -+ to \\mp
         - Change '`=`' and '`=' to '='
     - Print the resulting lines out
     - Once this works, do it all from the zipped .odt file
@@ -188,7 +188,7 @@ if 1:  # Utility
         print(*msg, file=sys.stderr)
         exit(status)
     def Help():
-        print(dedent('''
+        print(dedent(r'''
         The script's purpose
         --------------------
         

@@ -79,7 +79,7 @@ if __name__ == "__main__":
         from fractions import Fraction
         from decimal import Decimal
     if 1:  # Custom imports
-    from lwtest import Assert, assert_equal, run, raises
+        from lwtest import Assert, assert_equal, run, raises
     try:
         from mpmath import mpf
         have_mpmath = True
