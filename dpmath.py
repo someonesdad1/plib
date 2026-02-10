@@ -12,7 +12,7 @@ if 1:  # Header
         <oo cat ∞ math oo>
         <oo test ∞ run oo>
         <oo todo ∞ 
-
+        
             - ∞∞2 Write docstring so pydoc works on it
             - ∞∞2 Divide up into sections by function types
             - SpiralArcLength() and RollArcLength() are duplicated in pgm/spiral,
@@ -26,7 +26,7 @@ if 1:  # Header
               more efficient/standard implementations that can replace this stuff.
               Could also be customized to return flt instead of float, although the
               general techniques are type-unaware.
-
+        
         oo>
     '''
     if 1:  # Standard imports
@@ -37,6 +37,7 @@ if 1:  # Header
     if 1:  # Custom imports
         from frange import frange
         from f import flt
+        import u
         if len(sys.argv) > 1:
             import debug
             debug.SetDebugger()
@@ -144,7 +145,7 @@ if 1:  # Spirals
     ''' 
     Length of an Archimedian spiral
         ref page 317 of Bartsch, "Handbook of Mathematical Formulas", 1974
-
+        
         Symbols
             a = constant in polar equation of spiral
             θ = polar coordinate angle
@@ -153,7 +154,7 @@ if 1:  # Spirals
             s = arc length of spiral
             t = thickness of a material on a roll
             n = number of turns of a material on a roll
-
+        
         A point moving on a radius vector from the origin at constant speed while the
         radius vector rotates about a pole at constant angular speed describes an
         Archimedean spiral.
@@ -171,12 +172,12 @@ if 1:  # Spirals
         revolutions, the distance between the revolutions (i.e., the pitch) is 
                 
             pitch = 2*pi*a 
-
+        
             Example:  let a = 0.1.  Then r at 2*pi is 0.63 and at 4*pi is 1.26.  The
             distance between the spiral at the intersections on the x axis is thus the
             pitch.  Thus, the thickness of a roll and the spiral's pitch are the same
             measure.
-
+        
         The arc length s is gotten from the integral from θ1 to θ2 of
         
             sqrt(r² + (dr/dθ)²) dθ
@@ -190,7 +191,7 @@ if 1:  # Spirals
         This is the formula for the total arc length from an angle of 0 (i.e., the
         origin of the polar coordinate system) to an angle of θ (remember θ is in
         radians).  
-
+        
         For large θ, the approximation is s = a*θ²/2 because A is about θ and θ² will be
         large compared to ln(2θ).
     '''
@@ -211,7 +212,7 @@ if 1:  # Spirals
         '''Return the length of a roll of material of the given thickness with inside
         diameter d and outside diameter D.  It is assumed the roll forms a spiral.
         '''
-        a = 2*thickness/two_pi  # Parameter of an Archimedean spiral
+        a = 2*thickness/math.tau  # Parameter of an Archimedean spiral
         # Since the polar equation of a spiral is r = a*θ, we can calculate the
         # corresponding angle from θ = D/(2*a) using the diameter D.
         θd, θD = d/(2*a), D/(2*a)
@@ -337,7 +338,6 @@ if 1:  # Core functionality
             return neg*int(s, 16)
         else:
             return neg*int(s, 10)
-
     def int2base(x, base):
         '''Converts the integer x to a string representation in a given
         base.  base may be from 2 to 94.
@@ -505,8 +505,8 @@ if 1:  # Core functionality
         else:
             return return_type(-1)
     def Percentile(seq, fraction):
-        '''Return the indicated fraction of a sequence seq of sorted
-        values.  fraction will be converted to be in [0, 1].
+        '''Return the indicated fraction of a sequence seq of sorted values.  fraction
+        will be converted to be in [0, 1].
         
         The method is recommended by NIST at
         https://www.itl.nist.gov/div898/handbook/prc/section2/prc262.htm.
@@ -522,15 +522,15 @@ if 1:  # Core functionality
             Then calculate
             
               1.  For 0 < k < N, Y_(p) = Y_[k] + d*(Y_[k+1] - Y_[k]).
-              2.  For k = 0, Y_[p] = Y[1].  Note that any p <= 1/(N+1) will be
-                  set to the minimum value.
-              3.  For k >= N, Y_(p) = = Y_[N].  Note that any p > N/(N+1) will
-                  be set to the maximum value.
+              2.  For k = 0, Y_[p] = Y[1].  Any p <= 1/(N+1) will be set to the
+                  minimum value.
+              3.  For k >= N, Y_(p) = = Y_[N].  Any p > N/(N+1) will be set to
+                  the maximum value.
                   
-              Note the array indexing is 1-based, so python code will need to
-              take this into account.
+              The algorithm's array indexing is 1-based, so python code needs to take
+              this into account.
               
-        Example:  A gauge study resulted in 12 measurements:
+        Example:  A gauge study resulted in 12 measurements (data from above NIST URL):
         
              i  Measurements   Sorted       Ranks
             --- ------------   -------      -----
@@ -547,20 +547,21 @@ if 1:  # Core functionality
             11     95.1990     95.1959       12
             12     95.1682     95.1990        8
             
-        To find the 90th percentile, we have p*(N+1) = 0.9*13 = 11.7.  Then
-        k = 11 and d = 0.7.  From step 1 above, we estimate Y_(90) as
+        To find the 90th percentile, we have p*(N+1) = 0.9*13 = 11.7.  Then k = 11 and d
+        = 0.7.  From step 1 above, we estimate Y_(90) as
         
             Y_(90) = Y[11] + 0.7*(95.1990 - 95.1959) = 95.1981
             
         Note this algorithm will work for N > 1.
         
         http://code.activestate.com/recipes/511478-finding-the-percentile-of-the-values/
-        gives another algorithm, but it doesn't give the same results as the
-        NIST algorithm.
+        gives another algorithm, but it doesn't give the same results as the NIST
+        algorithm.
         
-        King's book on probability plotting gave a number of such estimating functions with
-        i/(n + 1) one of the most common and easist to use.  This works well if you have an
-        approximately linearizing function for the ordinates.
+        King's book on probability plotting gave a number of such estimating functions
+        with i/(n + 1) one of the most common and easist to use.  This works well if you
+        have an approximately linearizing function for the ordinates.  It's also the
+        best for when you are analyzing data and making probablility plots by hand.  
         '''
         if not seq:
             return None
@@ -579,22 +580,47 @@ if 1:  # Core functionality
         else:
             y = seq[0]
         return y
-    def LengthOfRopeOnDrum(rope_dia_in, width_in, flange_dia_in, barrel_dia_in):
+    def LengthOfRopeOnDrum(rope_dia, drum_width, flange_dia, drum_dia, units="mm"):
         '''Return the length of rope of diameter rope_dia_in that will fit on a winch
-        drum of diameter barrel_dia.  The width of winding area is width and the maximum
-        diameter of the drum's flange is flange_dia.  These variables are in inches and
-        the output length is in ft.  Formula from Sampson Rope Users Manual pg. 28.
-        
+        drum of diameter drum_dia.  The width of the winding area is width and the maximum
+        diameter of the drum's flange is flange_dia.  The units keyword defines the
+        units being used (you can use any in u.py) and the output length is in the same
+        units.  This is based on the formula from "Sampson Rope Users Manual" pg. 28.
+
+        ||                       ||  ^
+        ||<--------- A --------->||  |      A = drum_width
+        ||                       ||  |      B = flange diameter
+        ||-----------------------||  |      C = drum diameter
+        ||           ^           ||         D = rope diameter
+        ||           C           ||  B 
+        ||                       ||         Sampson's formula:
+        ||           v           ||  |  Length(feet) = A*(B² - C²)/(15.3*D²)
+        ||-----------------------||  |
+        ||                       ||  |      where D = rope diameter in inches
+        ||                       ||  |      and A, B, C are in inches
+        ||                       ||  V
+
         Here's a post on math.stackexchange that discusses this problem
         https://math.stackexchange.com/questions/3853557/how-to-calculate-the-length-of-cable-on-a-winch-given-the-rotations-of-the-drum
         '''
-        L = flt(width_in*(flange_dia_in**2 - barrel_dia_in**2)/(15.3*rope_dia_in**2))
-        return L
-    def PythagoreanSum(x, y, epsilon=1e-9):
+        # Check parameters are > 0
+        param = (rope_dia, drum_width, flange_dia, drum_dia)
+        for i in param:
+            assert i > 0, f"{i!r} is less than 0"
+        assert flange_dia > drum_dia
+        # Convert parameters to inches
+        factor = u.u(units)/u.u("inches")
+        rope, width, flange, drum = [i*factor for i in param]
+        # Sampson's formula takes parameters in inches and returns feet
+        L_ft = flt(width*(flange**2 - drum**2)/(15.3*rope**2))
+        # Convert feet to the user's units
+        return L_ft*u.u("ft")/u.u(units)
+    def PythagoreanSum(x, y, epsilon=1e-9, watch=False):
         '''Computes sqrt(x**2 + y**2) using a cubically-convergent algorithm from Moler and
         Morrison 1983 (IBM J. Res. Develop. vol 27, no. 6, Nov 1983.  The algorithm is
         terminated when abs((p[i] - p[i-1])/p[i]) is less than abs(epsilon).  With floats,
-        it will never need more than three iterations.
+        it will never need more than three iterations.  Set watch to True to see
+        convergence.
         
         The benefit of this algorithm is that it avoids pernicious overflows or underflows
         caused by using the naive formula sqrt(x**2 + y**2).  It's also robust.  It's
@@ -613,7 +639,8 @@ if 1:  # Core functionality
                 diff = abs((p - plast)/p)
                 if diff < abs(epsilon):
                     break
-                #print(f"{n}: p = {p} q = {q}   diff = {diff}")
+                if watch:
+                    print(f"{n}: p = {p} q = {q}   diff = {diff}")
             plast = p
         return p
 
@@ -624,7 +651,6 @@ if __name__ == "__main__":
     from color import t
     from pprint import pprint as pp
     eps = 1e-15
-    two_pi = math.tau
     def Test_PythagoreanSum():
         assert_equal(PythagoreanSum(3, 4, epsilon=1e-16), 5, abstol=eps)
     def Test_polyeval():
@@ -904,9 +930,18 @@ if __name__ == "__main__":
         Assert(round(Percentile(s, 1.1), 4) == 95.1990)
         raises(ValueError, Percentile, [1], 0.5)
     def TestLengthOfRopeOnDrum():
-        # All dimensions in inches
-        A, B, C, dia = 72, 48, 12, 1
-        expected = A*(B**2 - C**2)/(15.3*dia**2)
-        got = LengthOfRopeOnDrum(dia, A, B, C)
-        assert_equal(got, expected, reltol=1e-10)
+        if 0:   # Old test when units were inches
+            # All dimensions in inches
+            A, B, C, dia = 72, 48, 12, 1
+            expected = A*(B**2 - C**2)/(15.3*dia**2)
+            got = LengthOfRopeOnDrum(dia, A, B, C)
+            assert_equal(got, expected, reltol=1e-10)
+        
+        L = LengthOfRopeOnDrum(1, 20, 40, 10, units="inches")
+        Assert(L == 23529.41176470588)
+        L = LengthOfRopeOnDrum(1, 1, 2, 1, units="inches")
+        Assert(L == 12*3/15.3)
+        c = 25.4
+        L = LengthOfRopeOnDrum(c, c, 2*c, c, units="mm")
+        Assert(L == c*12*3/15.3)
     exit(run(globals(), halt=1)[0])

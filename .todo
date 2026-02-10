@@ -1,5 +1,130 @@
 /plib/.todo
 
+One & two letter color names
+blk     k
+blu     b
+brn     bn
+cyn     c
+den     dn
+grn     g
+gry     gy
+lav     la
+lil     ll
+lip     lp
+lwn     ln
+mag     m
+olv     ov
+orn     o
+pnk     p
+pur     pu
+red     r
+roy     ry
+sea     se
+sky     sk
+trq     tq
+vio     v
+wht     w
+yel     y
+
+Then adding d0, d1, cause darkening; adding l0, l1 cause lightening.  It's the same hue
+and saturation, but the brightness is adjusted.  I almost never use backgrounds, or the
+ornb type of very light colors, so these should be gotten through an option.
+
+    - color.py
+        - New design
+            - color.py is for Color() stuff and wavelength stuff
+            - clr.py is for holding my color names and providing terminal escape
+              sequences.  This is 90% or more of what I do with color.
+                - Can contain the class for talking to terminals.  Today, virtually all
+                  of this will be 8 and 24 bit color.
+                - Call it the t instance
+                    - Needs to have an internal stack with cpush() and cpop()
+                        - cpush() creates a new namespace from the existing one
+                        - Gives you the ability to edit/change the color definitions
+                        - It could be derived from a dict, as this gives you a nice set
+                          of tools in a program or the debugger
+                    - Styles:  define a set of default styles and you load them in the
+                      current instance with t.styles("name")
+                        - This allows for things like a Usage() style for writing
+                          Usage() statements
+        - Styles
+            - Pass t.styles() a dict; the dict's names become attribute names with the
+              associated formatting.  You add them with t.push(dict) and take them off
+              with t.pop().  This lets you have a subroutine use its own set of colors,
+              then let the calling routine resume its colors.
+                - A nice way of doing this for e.g. a Usage() statement is to let you
+                  put the desired colors in Usage.clr = {}.  Then you call
+                  t.styles(Usage.clr) before producing output in the print() statements.
+                  Need to figure out a clever way of making print() know these styles.
+                  This could be done with a class and make it a context manager.
+                    - This could be a use case for two-letter color names:  bn, bk, wt
+                      gr, bu, etc. with "l" for light.  Inside the function, these
+                      colors would be gotten with {gr} and {no} to go back to normal.
+                      This would be concise and readable: bn rd on yl gr bu vi gy wt cy
+                      mg pk lp lv ll pu ry dn sy tq se ln ov
+            - However, in a Usage() statement, 'e, b, n = t.purl, t.cynl, t.n' works
+              nicely too and is simpler than defining a bunch of new structure.
+                - 'e, b, n = t("purl cynl n".split())' could return these and this would
+                  be a compact and readable syntax; it wouldn't require much new code
+            - Would it make sense to derive t from dict?  Then colors would always have
+              to be gotten like t["name"], which is clumsy in f-strings.  Attribute
+              access is cleaner syntactically.
+            - Could a t instance also be a primitive text formatter?  This could have a
+              method t.fmt(s) that would process the passed string to identify
+              formatting commands and color style changes.
+                - With a trigger string such as .., new colors could be put in text
+                  with commands like ..abc>, where abc is a defined style or color.  The
+                  > would be the termination character.  Or, it might be even simpler
+                  with esc being the start and esc being the end.
+        - Rearchitect?
+            - I think the overwhelming use of the color.py module is for getting
+              colorized output to the terminal
+            - Because of this, make color.py only provide the TRM/Trm/t thingies
+            - t() can figure out a color from a decimal (implies a gray), a tuple
+              of integers or floats, or a string like "#ffffff".  Today, it will
+              virtually always be 24 bit color.
+            - Put the other less-used stuff in e.g. colorother.py or somesuch.
+            - Develop a module named regexdecorate.py so that its needed functionality
+              is in one place and is well-tested and always works.
+            - Another module can be colorstyle.py, which allows you to define styles.
+              These can then be used to define attributes to t.  The t attribute holds
+              the style data, which allows it to be updated dynamically.
+            - Other modules color*.py define other related stuff
+            - I very much like the 24 colornames I've chosen.  I think they can be
+              tweaked a bit.  For example, vio, lav, lil, and pur are pretty close and
+              might need some tweaks.  
+                - I might define "primary" colors to be red, grn, blu, mag, cyn, and
+                  yel.  That's 6 colors, implying that I should have about 4 of each 
+                  type spread over the visible spectrum.  This will need to be shown
+                  as the output of a script before making final choices.
+        - Idea:  define t.Sky(str) to make str be formatted in t.sky color; i.e., you
+          capitalize the color name and it's a function; after the call, the color is
+          turned back to what it was.  An optional argument of clear=False can be used
+          to erase the stack, always returning you to the t.n color.
+        - I get enough problems related to color.py that it might make sense to have a
+          much simpler module to get escape strings for color printing.  I often can't
+          use the debugger because of (probably) a circular import.
+            - I'd just like to have a class instance that would have the requisite
+              colors I use and an attribute to turn the escape codes on and off all at
+              once.
+        - colornames0:  it might make more sense to have a python module define these
+          colors. Or just stick them directly in color.py
+        - Write a script that searches for the following color names to identify old
+          kolor.py stuff still around.  It will also have a line with "import" and
+          "color".
+            - yellow, green, white, red, cyan, magenta, black
+            - lyellow, lgreen, lwhite, lred, lcyan, lmagenta
+            - Look for '.fg' and '.bg' and 'C.' when there's a line that contains
+              'import' and 'color'
+
+    - Testing
+        - Since the lwtest.py module is often used for testing, it could contain an
+          option to let it scan each testing function for tokens and then see if the
+          overall set matched the set of functions/classes in the module.  This could
+          help you see when your testing doesn't have full coverage.  Of course, it's
+          necessary but not sufficient.
+        - Finding functions and classes should be fast using multiline regular expressions
+
     - todo.py
         - Get this written quickly, as there are 150 ∞∞ task strings in /plib and I need
           to see which ones need to be worked on first
@@ -215,74 +340,6 @@
         - Output will be in plain text that can be viewed in an editor.  Folding by
           indenting works to show you the overall structure & sections.
 
-    - color.py
-        - Styles
-            - Pass t.styles() a dict; the dict's names become attribute names with the
-              associated formatting.  You add them with t.push(dict) and take them off
-              with t.pop().  This lets you have a subroutine use its own set of colors,
-              then let the calling routine resume its colors.
-                - A nice way of doing this for e.g. a Usage() statement is to let you
-                  put the desired colors in Usage.clr = {}.  Then you call
-                  t.styles(Usage.clr) before producing output in the print() statements.
-                  Need to figure out a clever way of making print() know these styles.
-                  This could be done with a class and make it a context manager.
-                    - This could be a use case for two-letter color names:  bn, bk, wt
-                      gr, bu, etc. with "l" for light.  Inside the function, these
-                      colors would be gotten with {gr} and {no} to go back to normal.
-                      This would be concise and readable: bn rd on yl gr bu vi gy wt cy
-                      mg pk lp lv ll pu ry dn sy tq se ln ov
-            - However, in a Usage() statement, 'e, b, n = t.purl, t.cynl, t.n' works
-              nicely too and is simpler than defining a bunch of new structure.
-            - Would it make sense to derive t from dict?  Then colors would always have
-              to be gotten like t["name"], which is clumsy in f-strings.  Attribute
-              access is cleaner syntactically.
-            - Could a t instance also be a primitive text formatter?  This could have a
-              method t.fmt(s) that would process the passed string to identify
-              formatting commands and color style changes.
-                - With a trigger string such as .., new colors could be put in text
-                  with commands like ..abc>, where abc is a defined style or color.  The
-                  > would be the termination character.  Or, it might be even simpler
-                  with esc being the start and esc being the end.
-        - Rearchitect?
-            - I think the overwhelming use of the color.py module is for getting
-              colorized output to the terminal
-            - Because of this, make color.py only provide the TRM/Trm/t thingies
-            - t() can figure out a color from a decimal (implies a gray), a tuple
-              of integers or floats, or a string like "#ffffff".  Today, it will
-              virtually always be 24 bit color.
-            - Put the other less-used stuff in e.g. colorother.py or somesuch.
-            - Develop a module named regexdecorate.py so that its needed functionality
-              is in one place and is well-tested and always works.
-            - Another module can be colorstyle.py, which allows you to define styles.
-              These can then be used to define attributes to t.  The t attribute holds
-              the style data, which allows it to be updated dynamically.
-            - Other modules color*.py define other related stuff
-            - I very much like the 24 colornames I've chosen.  I think they can be
-              tweaked a bit.  For example, vio, lav, lil, and pur are pretty close and
-              might need some tweaks.  
-                - I might define "primary" colors to be red, grn, blu, mag, cyn, and
-                  yel.  That's 6 colors, implying that I should have about 4 of each 
-                  type spread over the visible spectrum.  This will need to be shown
-                  as the output of a script before making final choices.
-        - Idea:  define t.Sky(str) to make str be formatted in t.sky color; i.e., you
-          capitalize the color name and it's a function; after the call, the color is
-          turned back to what it was.  An optional argument of clear=False can be used
-          to erase the stack, always returning you to the t.n color.
-        - I get enough problems related to color.py that it might make sense to have a
-          much simpler module to get escape strings for color printing.  I often can't
-          use the debugger because of (probably) a circular import.
-            - I'd just like to have a class instance that would have the requisite
-              colors I use and an attribute to turn the escape codes on and off all at
-              once.
-        - colornames0:  it might make more sense to have a python module define these
-          colors. Or just stick them directly in color.py
-        - Write a script that searches for the following color names to identify old
-          kolor.py stuff still around.  It will also have a line with "import" and
-          "color".
-            - yellow, green, white, red, cyan, magenta, black
-            - lyellow, lgreen, lwhite, lred, lcyan, lmagenta
-            - Look for '.fg' and '.bg' and 'C.' when there's a line that contains
-              'import' and 'color'
 
     - usage.py
         - Mini-formatting language for usage statements and general script output to a

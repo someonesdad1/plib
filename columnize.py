@@ -18,7 +18,7 @@ if 1:  # Header
         <oo test ∞ --test oo>
         <oo todo ∞ 
         
-            - 'res l' displays a serious bug
+            - ∞∞1 'res l' displays a serious bug
             - Feb  5 2024:  'ls --color=always | columnize.py' doesn't work right in
               /plib
             - Columnize(['a'], indent=" "*4) has an exception

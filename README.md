@@ -76,14 +76,20 @@ not implemented yet**):
 
 ### Formatting
 
-One day I accidentally formatted every python file in this tree with the black
-formatter.  I like the idea of standard formatting on large projects, but I also don't
-care for the black formatter's default choices.  I've been slowly correcting this
-mistake.  You'll see files with """ for the multiline strings and this is the formatting
-by the black formatting.  I prefer using ''' and the "fixed" files will be this way.  I
-also don't like blank lines between things because vertical real estate has always been
-the most precious on terminals and I always use a folding editor, so it's not a hardship
-to see vertically-compressed files. 
+I don't follow some recommendations of PEP-8:
+
+- I use no empty lines in files (regex ^$).  Any "blank lines" will be sequences of one
+  or more space characters.  This is done to see as many lines in my editor as I can.
+    - It also lets me insert an empty line to mark places where I'm working, as I can
+      jump to them with one keystroke in either direction.
+    - I use a folding editor and the 'if 1:  # Comment' lines provide a natural folding
+      of the files.
+- A formatter like black or ruff can badly screw up carefully formatted mathematical
+  expressions.  It can take hours to fix the mess it can cause in complicated code.  It
+  can literally turn something complicated but readable into something essentially
+  incomprehensible.  This is the "foolish consistency" that PEP-8 was talking about.
+  Most programmers don't write such stuff, so they don't feel the pain.  I haven't found
+  a decent python formatter.  
 
 ## Caution
 
@@ -91,16 +97,15 @@ to see vertically-compressed files.
   written over the years for my own use.  There's some useful functionality in here, but
   it's fairly tightly coupled.  This means if you find a script you like and want to
   move it somewhere else, you may find that it's dependent on a number of other modules.
-  This will be annoying and possibly a lot of work to fix.  This repository on my system
-  is `/plib` and my `PYTHONPATH` variable is `"/plib:/plib/g"`.  This repository is the
+  This will be annoying and maybe a lot of work to fix.  This repository on my system is
+  `/plib` and my `PYTHONPATH` variable is `"/plib:/plib/g"`.  This repository is the
   only code I use outside of what's in the python distribution. 
-- I work a lot in a bash terminal and use the /plib/color.py module to provide ANSI
-  escape sequences to colorize text output.  I used to provide -c options to turn on
-  colorization, but later I just thought that virtually everything I do is in a 24-bit
-  color terminal and the days of monochrome terminals is essentially over.  However, if
-  you use the modules/scripts in this directory, this may cause a hardship for you.
-  Currently, there's no easy way to avoid it, but coming up with a fix is on my todo
-  list.
+- I work in a bash terminal and use the /plib/color.py module to provide ANSI escape
+  sequences to colorize text output.  I used to provide -c options to turn on
+  colorization in scripts, but today everything I do is in a 24-bit color terminal and
+  the days of monochrome terminals are probably over, so I just put escape codes in
+  everything now.  I've got an item on my todo list to fix this and it should happen in
+  my reorganization/refactoring efforts in the first half of 2026.
 
 # Tools
 

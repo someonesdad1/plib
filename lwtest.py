@@ -15,6 +15,9 @@ if 1:  # Header
         <oo test ∞ testdir oo>
         <oo todo ∞
         
+            - ∞∞1 Assert, assert_equal, and the check_* functions can use debug.fln() to get
+              the file and line number of the failed call
+
             - https://pycodestyle.pycqa.org/en/latest/advanced.html#automated-tests
               tells how to add automated code style testing for conformance.  Add it to
               the self tests as an option to run.
