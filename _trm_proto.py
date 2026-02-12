@@ -1,6 +1,34 @@
 '''
 
 Vision
+    - Change Trm to a dict, letting it be a tool to convert names to escape sequences to
+      get color output in a terminal
+        - The core benefit of this is t.__getattribute__(self, name) is the same as
+          t[name].  Then things like t.on and stdout.isatty() can be checked before
+          providing the desired output.
+        - Hopefully, t.__setattribute__(self, name, value) then provides the full
+          control necessary to support this behavior
+        - Core attributes that are not color name to escape codes
+            - t.on      Boolean to decide whether t[x] provides escape code or ""
+            - t.always  If true, output even if stdout.isatty() is False
+        - This also allows for an internal stack to store state, meaning you can define
+          a new dict of "styles", push the existing state on the stack, update with the
+          new styles, then go back to the old on a pop.  This is nicely done with the 
+          context manager syntax:
+
+            with t.use(style_dict) as u:
+                u is a Trm instance with the desired colors
+            # Now t is back to its previous state
+
+        - The Trm instance dict is initialized with f"t.{name}" = X where X is
+            - "xxx"   Most typical, a short name
+            - Color(...)
+            - "#aabbcc"
+            - "60 60 60" or (60,60,60)
+            - 0xff or "0xff"    8-bit integer
+            - 3.473     float, uses math.modf(x)[0] --> [0, 1] for a gray
+            - "555 nm"  Wavelength between 400 and 700 nm
+
     - class Trm(dict):  let t be an instance
         - Generates terminal escape codes
         - t.sky = t["sky"] and this returns the escape code
@@ -72,11 +100,11 @@ Vision
             - Question:  will a separate process block on a lock from threading?
               Probably, but it needs to be checked.
                     
-The Palette class 
+The Trm class 
 
-This is a class Palette that is a context manager that lets you do things like
+This is a class Trm that is a context manager that lets you do things like
 
-    with Palette(names_dict) as p:
+    with Trm(names_dict) as p:
         print(f"{p.g}This is green, {p.y}yellow is to the end")
 
 The pattern is that names_dict contains colorizing style names that translate from the
@@ -84,36 +112,71 @@ style name to the escape code.
 
 Further, it internally contains a stack object to allow the methods 
 
-    Palette.ppush(names_dict) 
+    Trm.ppush(names_dict) 
 
         A copy of the current self dict is pushed onto the stack, then
-        self.update(names_dict) is called so that the new names are added to the Palette
+        self.update(names_dict) is called so that the new names are added to the Trm
         instance or old ones updated.  If you don't want any of the old names in the
-        Palette instance, call Palette.clear() just before calling palette_push().
+        Trm instance, call Trm.clear() just before calling palette_push().
 
-    Palette.ppop()
+    Trm.ppop()
         
-        Makes a copy of the current dict and returns it.  The Palette instance's values
+        Makes a copy of the current dict and returns it.  The Trm instance's values
         are restored with the dict on the top of the stack.
 
-    names_dict = Palette.palette_pop()
+    names_dict = Trm.palette_pop()
 
 spush() takes a dictionary of name to escape sequences (anything that's acceptable for
-the Palette constructor) 
+the Trm constructor) 
 '''
 from stack import Stack
 
-class Palette(dict):
+class Trm(dict):
     def __init__(self, names_dict):
-        self.stack = Stack()
+        # Attributes with underscores are not meant to be accessed by the user
+        self._stack = Stack()
+        # Set our special attributes
+        self.on = True
+        self.always = False
+        self._newstyles = None  # Used for context manager behavior
         super().__init__(names_dict)
     def __getattribute__(self, name):
-        return self[name]
-    def __enter__(self):
-        # Returning self lets the code inside the calling manager have access to this
-        # instance's attributes and methods
+        '''This allows you to access a dictionary key using the syntax self.key
+        instead of self[key].  This is a useful shorthand for the Trm instance.
+        It also lets us get to our other attributes that are not in the dict without
+        infinite recursion.
+        '''
+        if name in self:
+            return self[name]
+        else:
+            return dict.__getattribute__(self, name)
+    def ppush(self, styles_dict):
+        '''The styles dict must be a dict instance.  Update our values with
+        styles_dict's values after saving a copy of ourself on the stack.
+        '''
+        if not isinstance(styles_dict, dict):
+            raise TypeError("styles_dict must be a dict instance")
+        self._stack.push(self.copy())
+        self.update(styles_dict)
+    def ppop(self):
+        '''Get a copy of ourself, then clear ourself and set our state to that of the
+        top of the stack; return our self-copy.
+        '''
+        cp = self.copy()
+        self.clear()
+        old = self._stack.pop()
+        self.update(old)
+        return cp
+    def __call__(self, styles_dict):
+        self._newstyles = styles_dict
         return self
+    def __enter__(self):
+        assert self._newstyles is not None
+        self.ppush(self._newstyles)
+        self._newstyles = None
+        return self     # Gives caller access to new instance state
     def __exit__(self, exc_type, exc_val, exc_tb):
+        self.ppop()
         if exc_type is None or exc_type is TypeError:
             return True     # Ignore this exception
         else:
@@ -122,8 +185,9 @@ class Palette(dict):
 if __name__ == "__main__":  
     from color import t
     styles = {"y": t.yell, "g": t.grnl, "n": t.n}
-    # Demonstrate this works
-    with Palette(styles) as p:
+    newstyles = {"r": t.red, "b": t.blul, "n": t.n}
+    u = Trm(styles) 
+    with u(newstyles) as p:
         print("The following demonstrates normal dictionary access to colors:")
         print(f"  This is {p['g']}green, {p['y']}yellow is to the end{p['n']}")
         print("The following demonstrates attribute access to colors:")
