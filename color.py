@@ -1,59 +1,5 @@
 '''
 
-- Bugs
-    - RegexpDecorate.register() needs to change to an argument list of (r, match_style,
-      nomatch_style) where the latter two elements are escape codes used to define how things
-      should be printed.  The use case is pfind.py where I want to see directories printed in red
-      with the sky color for the match; plain files are printed with the default text style but
-      matches with sky.  Thus, the default for nomatch_style should be None, meaning the default
-      text style.
-    - TRM attributes should be "" if .on is False
-        - This needs __getattr__ and __setattr__
-        - .on can have three states
-            - None means to use stdout.isatty()
-            - False means always off so all t.x attributes are ""
-            - True means always on so all t.x attributes are proper escape codes
-        - Could change to methods:  on(), off(), none().
-    - TestInvariants() is made to pass, but I'd like to see the conversion work exactly.  It could
-      be a problem with decimal roundoff in the colorsys module.
-      
-- More color names could be handy
-    - White
-        - pearl snow ivory cream egg cotton chiffon salt linen bone frost rice vanilla cloud
-          casper moon ghost milk blizzard polar crystal
-    - Black
-        - ebony crow ink raven onyx soot coal obsidian
-    - Gray
-        - graphite iron pewter cloud silver smoke slate ash dove fog flint charcoal lead coin
-          fossil lava rhino granite shark platinum
-    - Purple
-        - mauve violet lavender plum lilac grape iris orchid thistle prune indigo pansy fuchsia
-          eggplant
-    - Blue
-        - ice baby robin egg blueberry navy slate sky navy indigo cobalt teal ocean azure lapis
-          spruce denim sapphire arctic aqua steel royal
-    - Green
-        - juniper sage lime fern emerald pear moss shamrock pine mint seaweed pickle pistachio
-          basil tea army kelly jungle apple laurel beryl tea moss sage spring copper mint army pea
-          turtle lime leaf kiwi jade teal kelly aqua grass frog emerald shamrock kermit verdigris
-          foilage glade willow mantis broccoli turf
-    - Yellow
-        - canary gold flax butter lemon mustard corn banana dijon honey blonde peach daffodil
-          maize citrus topaz ochre custard tangerine melon straw saffron khaki papaya sand pee sun
-          mustard
-    - Orange
-        - cider rust ginger tiger fire bronze apricot carrot amber yam mango papaya sunset coral
-          paprika nectarine squash salmon caramel umber
-    - Red
-        - cherry rose jam merlot garnet ruby scarlet wine brick blood berry candy lipstick chili
-          barn fuchsia punch rouge tomato flame cerise sunset pink pig barbie inferno claret
-    - Tan
-        - beige oat fawn sand sepia latte oyster desert caramel latte beach almond toffee vanilla
-          butter wheat maple nutmeg
-    - Brown
-        - coffee mocha peanut wood pecan walnut caramel syrup umber tawny penny cedar cognac
-          sienna
-          
 ---------------------------------------------------------------------------
 Functions to convert between ANSI 8-bit color numbers and 24-bit RGB values:
     RGBtoANSI8bit(r, g, b)
@@ -148,7 +94,74 @@ if 1:  # Header
         <oo ind ∞ 8 indent oo>
         <oo cat ∞ color oo>
         <oo test ∞ --test oo>
-        <oo todo ∞ oo>
+        <oo todo ∞ 
+            
+            - ∞∞1 Remove eval()/exec() stuff.  Trm.load() loads color names from a file,
+              but I don't like that it has to exec() the incoming string.  It would be
+              better if no eval() or exec() calls were made in this module.
+            - ∞∞1 .on and .off must work absolutely and reliably.  See _palette_proto.py
+              for a way of changing Trm to a dict instance to do this.
+            - ∞∞3 When printing a Trm instance that uses t.str(), output the string
+              using Columnize to the current screen width, as this is more attractive.
+            - RegexpDecorate.register() needs to change to an argument list of (r,
+              match_style, nomatch_style) where the latter two elements are escape codes
+              used to define how things should be printed.  The use case is pfind.py
+              where I want to see directories printed in red with the sky color for the
+              match; plain files are printed with the default text style but matches
+              with sky.  Thus, the default for nomatch_style should be None, meaning the
+              default text style.
+            - TRM attributes should be "" if .on is False
+                - This needs __getattr__ and __setattr__
+                - .on can have three states
+                    - None means to use stdout.isatty()
+                    - False means always off so all t.x attributes are ""
+                    - True means always on so all t.x attributes are proper escape codes
+                - Could change to methods:  on(), off(), none().
+            - TestInvariants() is made to pass, but I'd like to see the conversion work
+              exactly.  It could be a problem with decimal roundoff in the colorsys
+              module.
+                
+            - More color names could be handy
+                - White
+                    - pearl snow ivory cream egg cotton chiffon salt linen bone frost
+                      rice vanilla cloud casper moon ghost milk blizzard polar crystal
+                - Black
+                    - ebony crow ink raven onyx soot coal obsidian
+                - Gray
+                    - graphite iron pewter cloud silver smoke slate ash dove fog flint
+                      charcoal lead coin fossil lava rhino granite shark platinum
+                - Purple
+                    - mauve violet lavender plum lilac grape iris orchid thistle prune
+                      indigo pansy fuchsia eggplant
+                - Blue
+                    - ice baby robin egg blueberry navy slate sky navy indigo cobalt
+                      teal ocean azure lapis spruce denim sapphire arctic aqua steel
+                      royal
+                - Green
+                    - juniper sage lime fern emerald pear moss shamrock pine mint
+                      seaweed pickle pistachio basil tea army kelly jungle apple laurel
+                      beryl tea moss sage spring copper mint army pea turtle lime leaf
+                      kiwi jade teal kelly aqua grass frog emerald shamrock kermit
+                      verdigris foilage glade willow mantis broccoli turf
+                - Yellow
+                    - canary gold flax butter lemon mustard corn banana dijon honey
+                      blonde peach daffodil maize citrus topaz ochre custard tangerine
+                      melon straw saffron khaki papaya sand pee sun mustard
+                - Orange
+                    - cider rust ginger tiger fire bronze apricot carrot amber yam mango
+                      papaya sunset coral paprika nectarine squash salmon caramel umber
+                - Red
+                    - cherry rose jam merlot garnet ruby scarlet wine brick blood berry
+                      candy lipstick chili barn fuchsia punch rouge tomato flame cerise
+                      sunset pink pig barbie inferno claret
+                - Tan
+                    - beige oat fawn sand sepia latte oyster desert caramel latte beach
+                      almond toffee vanilla butter wheat maple nutmeg
+                - Brown
+                    - coffee mocha peanut wood pecan walnut caramel syrup umber tawny
+                      penny cedar cognac sienna
+                
+        oo>
     '''
     if 1:   # Standard imports
         import colorsys
@@ -193,6 +206,7 @@ if 1:   # Classes
         bits_per_color = 8
         def __init__(self, *p, **kw):
             "Initialize the Color object"
+            # ∞∞1 Need detailed docstring on Color constructor syntax (for pydoc use)
             # Check for proper keyword arguments
             allowed = set("bpc hsv hls sunlight gamma".split())
             actual = set(kw.keys())
@@ -1108,6 +1122,8 @@ if 1:   # Classes
                 if show:
                     for i in show:
                         s = f"{getattr(self, i)}{i}{self.n}"
+                        if "bound" in s or "True_on" in s:
+                            continue
                         out.append(s)
                 classname = str(self.__class__)
                 loc = classname.find(".")
@@ -1358,7 +1374,6 @@ if 1:   # Classes
                             print("class Trm color attributes:")
                     for i in Columnize(o, indent="  ", sep=" "*4):
                         print(i)
-    
         if 1:  # Writable properties
             @property
             def on(self):
@@ -1472,12 +1487,8 @@ if 1:   # Classes
             if clear:
                 self.clear()
             vars = {}
-            if 1:   # Takes care of a strange bug giving a warning on "ResourceWarning:
-                    # unclosed file <_io.TextIOWrapper name='/plib/colornames0' mode='r'
-                    # encoding='utf-8'>"
-                fd = open(file)
+            with open(file) as fd:
                 contents = fd.read()
-                fd.close()
             for line in contents.split("\n"):
                 line = line.strip()
                 if not line or line[0] == "#":
@@ -1487,7 +1498,7 @@ if 1:   # Classes
                     name = eval(a)
                     if self._normalize:
                         print("color.py exception reading colornames0:  normalization not implemented yet")
-                        raise Exception("Normalization not implemented yet")
+                        raise Exception("Normalization not implemented yet ∞∞2")
                     c = eval(b, None, locals())
                     try:
                         self[name] = c

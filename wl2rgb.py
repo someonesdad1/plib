@@ -21,7 +21,6 @@ if 1:  # Header
         <oo test ∞ --test oo>
         <oo todo ∞ oo>
     '''
-if 1:  # Core functionality
     if 1:  # Standard imports
         pass
     if 1:  # Custom imports
@@ -294,12 +293,16 @@ if 1:  # Core functionality
         t = sum(XYZ)
         n = 4
         return (f(XYZ[0] / t, n), f(XYZ[1] / t, n))
+
 if __name__ == "__main__":
     from rgbdata import color_data
     from util import VisualCount, TemplateRound
     from columnize import Columnize
     from lwtest import run
+    from wrap import dedent
+    from f import flt
     import sys
+    from pprint import pprint as pp
     def Test_ColorFuncs():
         "Show that wl2rgb() and rgb2wl() are (nearly) inverses"
         diffs = set()
@@ -346,8 +349,75 @@ if __name__ == "__main__":
         for line in o:
             print(line)
         print(f"{count} wavelengths printed")
-    if len(sys.argv) > 1 and sys.argv[1] == "--test":
-        exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
+    def Interactive():
+        print(dedent(f'''
+        
+        Enter numbers to approximately relate light wavelength and RGB colors (enter q
+        to quit).  Enter a single number that will be interpreted as a wavelength.
+        Enter three numbers that will be converted to an RGB value and the wavelength
+        returned (separate them by commas or spaces).  If you enter three numbers, they
+        are converted to integers and should be in the range 0 to 255.  Enter the numbers:
+        
+        '''))
+        done = False
+        while not done:
+            OK = False
+            is_wavelength = False
+            is_string = False
+            while not OK:
+                s = input("Number(s) [q to quit]?  ")
+                s = s.strip()
+                if s == "q":
+                    done = True
+                    break
+                elif not s:
+                    continue
+                f= s.replace(",", " ").split()
+                if len(f) == 1:      # Wavelength
+                    if f[0][0] in "#$@":
+                        rgb = f[0]
+                        is_string = True
+                        OK = True
+                    else:
+                        try:
+                            wl = flt(f[0])
+                        except Exception:
+                            print("Couldn't convert to float")
+                            continue
+                        if not (400 <= wl <= 700):
+                            print("Wavelength must be between 400 nm and 700 nm")
+                        else:
+                            OK = True
+                            is_wavelength = True
+                elif len(f) == 3:   # Tuple
+                    rgb = [int(i) for i in f]
+                    if not all(0 <= i <= 255 for i in rgb):
+                        print("Integers must be between 0 and 255")
+                    else:
+                        OK = True
+                else:
+                    print("Didn't have 1 or 3 numbers")
+            if not done:
+                if is_wavelength:
+                    rgb = wl2rgb(wl)
+                    t.print(f"{wl} nm is {rgb} {t(rgb)} this color")
+                else:
+                    if is_string:
+                        c = Color(rgb)
+                        wl = rgb2wl(c)
+                        t.print(f"{rgb} is {t(c)}this color{t.n}, "
+                                f"about {wl} nm")
+                    else:
+                        c = Color(*rgb)
+                        wl = rgb2wl(c)
+                        t.print(f"{', '.join(str(i) for i in rgb)} is {t(c)}this color{t.n}, "
+                                f"about {wl} nm")
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "--test":
+            exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
+        else:
+            Interactive()
+            exit()
     else:
         t.on = True
         Decorate()

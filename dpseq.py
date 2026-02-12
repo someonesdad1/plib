@@ -256,13 +256,13 @@ if 1:   # Get numbers
                 return None
         return [i for i in map(Num, seq) if i is not None]
 if 1:   # Finding duplicates in sequences
-    if 1:   # Notes
+    if 0:   # Notes
         '''
         An obvious approach to this problem is to use the facilities of lists:
         
             def FindDuplicates(seq):
                 seqcopy = list(seq)
-                n, nodup, dup = len(seqcopy), [], []
+                nodup, dup = [], []
                     item = seqcopy.pop()
                     dup.append(item) if item in seqcopy else nodup.append(item)
                 return (nodup, dup)
