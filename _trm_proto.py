@@ -130,16 +130,28 @@ spush() takes a dictionary of name to escape sequences (anything that's acceptab
 the Trm constructor) 
 '''
 from stack import Stack
+from dpprint import PP
+pp = PP()   # Get pprint with current screen width
 
 class Trm(dict):
+    '''This is a dictionary used to output escape codes to a terminal for colorizing the
+    output.  It is initialized by passing in a dictionary of string names whose values
+    encode a color, ultimately resulting in a color.Color instance.
+
+    '''
     def __init__(self, names_dict):
-        # Attributes with underscores are not meant to be accessed by the user
+        'Attributes with underscores are not meant to be accessed by the user'
+        # The stack is used to save previous states of self 
         self._stack = Stack()
+        # The on attribute allows escape code output if True
         # Set our special attributes
-        self.on = True
-        self.always = False
+        self.on = True      # Output escape codes if True
+        self.always = False     # If True, output escape codes even if stdout out isn't a terminal
         self._newstyles = None  # Used for context manager behavior
+        #∞∞ self._special = set("_stack on always _newstyles _special")
         super().__init__(names_dict)
+    def __setattr__(self, name, value):
+        return dict.__setattr__(self, name, value)
     def __getattribute__(self, name):
         '''This allows you to access a dictionary key using the syntax self.key
         instead of self[key].  This is a useful shorthand for the Trm instance.
@@ -185,15 +197,25 @@ class Trm(dict):
 if __name__ == "__main__":  
     from color import t
     styles = {"y": t.yell, "g": t.grnl, "n": t.n}
-    newstyles = {"r": t.red, "b": t.blul, "n": t.n}
     u = Trm(styles) 
+    print("The following demonstrates normal dictionary access to colors:")
+    print(f"  This is {u['g']}green, {u['y']}yellow is to the end{u['n']}")
+    newstyles = {"r": t.red, "g": t.blul, "y": t.cynl}
     with u(newstyles) as p:
-        print("The following demonstrates normal dictionary access to colors:")
-        print(f"  This is {p['g']}green, {p['y']}yellow is to the end{p['n']}")
-        print("The following demonstrates attribute access to colors:")
+        print("Now we're inside the context manager and the colors will change.")
+        print("Green will become blue and yellow will be cyan:")
         print(f"  This is {p.g}green, {p.y}yellow is to the end{p.n}")
+        print("This demonstrates changing the 'styles' with a new dict.")
+        print("The following shows the new color in the context:")
+        print(f"  The new color is {p.r}red{p.n}")
+        print("Inside the context manager:")
+        pp(u)
         if 0:
             raise ValueError("Raised inside context manager")
         else:
             raise TypeError("Raised inside context manager")
-    print("Outside the context manager")
+    print("\nOutside the context manager:")
+    pp(u)
+    print(f"  This is {u['g']}green, {u['y']}yellow is to the end{u['n']}")
+    print("The following AttributeError shows the red key 'r' is gone")
+    u.r
