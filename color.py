@@ -3025,10 +3025,19 @@ if __name__ == "__main__":
                 row.append(f"{t(x)}{u}{t.n}")
             data.append(row)
         tt.print(data, style=" "*15)
-    def ShowShortNames():
-        lines = get.GetLines("/plib/colornames0", nonl=True, script=True)
-        i, f = " "*4, lambda x: " "*x
-        hdr = f"Name{f(10)}RGB{f(12)}XRGB{f(7)}XHSV{f(7)}XHLS{f(4)}8-BIT"
+    def ShowShortNames(extra):
+        if 1:   # Make a dict of the names vs. colors
+            lines = get.GetLines("/plib/colornames0", nonl=1, script=1, strip=1, ignore_empty=1)
+            di = {}
+            for line in sorted(lines):
+                line = line.strip()
+                name, clr = line.split(":")
+                c = eval(clr)
+                breakpoint() # ∞∞ 
+
+        w = 2   # Spaces between columns
+        i, f, block = " "*w, lambda x: " "*x, "█"*6
+        hdr = f"Name{f(8)}RGB{f(10)}XRGB{f(5)}XHSV{f(5)}XHLS{f(5)}8-BIT{f(3)}Name "
         t.hdr = t("whtl", "royd", "")
         t.print(f"{t.hdr}{hdr}")
         for line in sorted(lines):
@@ -3041,12 +3050,20 @@ if __name__ == "__main__":
             s = str(c).replace("C⁸", "")
             n = RGBtoANSI8bit(*c.irgb)
             ctrans = Translate8bit(n)
-            t.print(f"{t(c)}{name}{i}{s}{i}{c.xrgb}{i}{c.xhsv}{i}{c.xhls}{i}{t(ctrans)}{n}")
+            t.print(f"{t(c)}{name}{i}"
+                    f"{s}{i}"
+                    f"{c.xrgb}{i}"
+                    f"{c.xhsv}{i}"
+                    f"{c.xhls}{i}"
+                    f"{t(ctrans)}"
+                    f"{n:3d}{block}{t(c)}{block}")
         t.print(f"{t.hdr}{hdr}")
-        print("Note:  if you look closely, you may be able to see small differences")
-        print("between the last column's integer color and the remainder of the line.")
-        print("This is because there are only 256 8-bit colors and the mapping isn't")
-        print("perfect.  Examples:  brnd, dend, olv, olvd, orn, pnkd, purd, royd, sead")
+        print(dedent('''
+        The solid blocks at the end of each line help you see the difference in color
+        between the 8-bit and 24-bit representations.  There are only 256 of the 8-bit
+        colors and the mapping isn't perfect.  Use 'll' to include a sample of text that
+        compares these colors.
+        '''))
     def ShowHTMLColors(by_hue=False):
         data = dedent('''
             AliceBlue #F0F8FF
@@ -3439,6 +3456,6 @@ if __name__ == "__main__":
         elif first_char == "t":  # Show 4, 8, or 24 bit color table
             ColorTable(int(cmds[0][1:]))
         elif first_char == "l":  # Show #/@/$ and RGB numbers for short names
-            ShowShortNames()
+            ShowShortNames(cmds[0])
         elif first_char == "w":  # Show wavelengths and RGB color specifier
             Wavelengths()

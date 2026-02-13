@@ -1,5 +1,15 @@
 '''
 
+t = Trm()
+
+ToDo
+    - Start writing selftests
+    - Get .always working
+    - t(x) returns the escape code for x
+    - Working
+        - .on works
+        - Init with a variety of color specifications
+
 Vision
     - Change Trm to a dict, letting it be a tool to convert names to escape sequences to
       get color output in a terminal.  Let t = Trm()
@@ -39,88 +49,6 @@ Vision
         - t.on = bool turns the output of escape codes on and off
         - t.always = bool If True, outputs even if stdout doesn't appear to be a
           terminal (sys.stdout.isatty() == False)
-        - Trm is also a context manager to support the following behavior
-        - self.stack is a deque of dictionaries that are saved when t.ppush() is called.
-            - This lets you use the two patterns
-                - Pattern 1:  Using ppush() and ppop()
-
-                    mycolors # dict of keys = strings, value = Color instances or name
-                            #strings that Color knows how to evaluate
-                    t.ppush(mycolors)
-                        # This makes the t instance push a dict of all its values onto the
-                        # internal stack, then it updates itself with t.update(mycolors)
-                    Do your tasks with the new colors
-                    t.ppop()    # Restores the old color set
-
-                - Pattern 2:  context manager
-
-                    mycolors # dict of keys = strings, value = Color instances or name
-                            #strings that Color knows how to evaluate
-                    with t.uses(mycolors):
-                        Do your tasks with the new colors
-
-                    # In the context scope, all the colors in mycolors are usable.
-                    # After the context manager scope exits, the old color set is being
-                    # used again
-                    
-                - The context manager pattern is clean and understandable and it would
-                  be my preferred method.  However, there are use cases where multiple
-                  sets of color styles would be needed in sequential execution and the
-                  stack pattern supports this.
-                - Another way of supporting these patterns would be to have a
-                  t.style(newstyle) method that lets you choose a new style.  You could 
-                  use t.update(t.get(newstyle)) to merge the two styles, with the second
-                  (newstyle) overwriting any existing keys.  This would be gotten by 
-                  an attribute t.styles that's a dict storing the different styles.
-        - I worry about multiple threads or processes using the same instance.  This
-          would work OK if the instance was considered read-only.  The simplest pattern
-          to support this is to have a Lock instance that gets used by any method that
-          modifies the instance's data.  One approach is
-
-            @contextmanager
-            def locked(lock):
-                lock.acquire()
-                try:
-                    yield
-                finally:
-                    lock.release()
-
-            with locked(myLock):
-                # Code here executes with myLock held.  The lock is
-                # guaranteed to be released when the block is left (even
-                # if via return or by an uncaught exception).
-
-            - Question:  will a separate process block on a lock from threading?
-              Probably, but it needs to be checked.
-                    
-The Trm class 
-
-This is a class Trm that is a context manager that lets you do things like
-
-    with Trm(names_dict) as p:
-        print(f"{p.g}This is green, {p.y}yellow is to the end")
-
-The pattern is that names_dict contains colorizing style names that translate from the
-style name to the escape code.
-
-Further, it internally contains a stack object to allow the methods 
-
-    Trm.ppush(names_dict) 
-
-        A copy of the current self dict is pushed onto the stack, then
-        self.update(names_dict) is called so that the new names are added to the Trm
-        instance or old ones updated.  If you don't want any of the old names in the
-        Trm instance, call Trm.clear() just before calling palette_push().
-
-    Trm.ppop()
-        
-        Makes a copy of the current dict and returns it to the caller.  The Trm
-        instance's values are restored with the dict on the top of the stack.
-
-    names_dict = Trm.palette_pop()
-
-ppush() takes a dictionary of name to escape sequences (anything that's acceptable for
-the Trm constructor) 
 '''
 import sys
 import wl2rgb
@@ -155,6 +83,8 @@ class Trm(dict):
             u = self[i]
             print(f"{i} = {u!r}")
             if isinstance(u, str):
+                if u[0] == "\x1b":      # Escape character; it's already resolved
+                    continue
                 u = u.strip()
                 if u[0] in "#$@":       # Hex format 
                     c = Color(u)
@@ -194,6 +124,18 @@ class Trm(dict):
                 c = color.Translate8bit(u)
             self[i] = self._get_code(c)
             #print(f"  {i} gave {self[i]}this color{t.n}")
+    def __call__(self, *args, **kw):
+        '''Initialize a terminal color by specifying the color in args.  The allowed
+        forms are:
+
+            - color.Color instance
+            - string
+                - Recognized name in color.Color
+            - tuple of 3 integers
+            - integer
+            - float
+
+        '''
     def __setitem__(self, name, value):
         if name in self:
             super().__setitem__(name, value)
