@@ -520,16 +520,13 @@ class flt(Base, float):
         # Local number of digits overrides Base.N if not zero
         instance._n = 0  # Instance's number of digits
         return instance
-    def _s(self, fmt="fix", no_color=False):  # flt
+    def _s(self, fmt="fix"):  # flt
         'Return the rounded string representation'
-        # no_color is no longer used, but it's simplest to leave this stuff in place
         if fmt not in set("fix fixed eng sci engsi engsic".split()):
             raise ValueError("fmt must be one of:  fix, fixed, eng, sci, engsi, engsic")
         self._check()
         if not Base._digits:
             return str(float(self))
-        def decorate(x):
-            return x if no_color else Base.wrap(x, self)
         x = D(self)
         n = self._n if self._n else Base._digits
         if n is None:
@@ -572,23 +569,23 @@ class flt(Base, float):
             s = self._fmt.sci(self, n=n)
         else:
             raise Exception("Software bug")
-        return decorate(s)
-    def _r(self, no_color=False):
+        return s
+    def _r(self):
         'Return the repr string representation'
-        # no_color is no lonter used, but it's simplest to leave this stuff in place
+        # 'pydoc repr' says repr returns the canonical string representation of the
+        # object.  Usually eval(repr(obj)) == obj.
         self._check()
-        def f(x):
-            return x if no_color else Base.wrap(x, self, force=flt)
-        s = f"{repr(float(self))}"
-        if no_color:
-            return s
-        return f(s)
+        return f"flt({super().__repr__()})"
     def __str__(self):
         return self._r() if Base._flip else self._s()
     def __repr__(self):
         return self._s() if Base._flip else self._r()
     def __hash__(self):
-        return hash(float(self._r()))
+        return hash(float(self))
+        if self.f:
+            return hash(float(eval(str(self))))
+        else:
+            return hash(float(eval(repr(self))))
     def rnd(self, n=None):
         '''Return a flt that is rounded to the current number of digits
         or n digits if n is not None.
@@ -917,9 +914,9 @@ class cpx(Base, complex):
         deg = "" if self.rad else "°"
         sp = " " if self.w else ""
         if repr:
-            s = f"{r._r(no_color=True)}{sp}∠{sp}{theta._r(no_color=True)}{deg}"
+            s = f"{r._r()}{sp}∠{sp}{theta._r()}{deg}"
         else:
-            s = f"{r._s(no_color=True)}{sp}∠{sp}{theta._s(no_color=True)}{deg}"
+            s = f"{r._s()}{sp}∠{sp}{theta._s()}{deg}"
         t = f(s) if self.i else f("(" + s + ")")
         return f(t)
     def _s(self, fmt="fix"):
@@ -936,15 +933,15 @@ class cpx(Base, complex):
             return self._pol()
         elif self.t:  # Tuple form
             r, i = self._real, self._imag
-            re = r._s(fmt=fmt, no_color=True)
-            im = i._s(fmt=fmt, no_color=True)
+            re = r._s(fmt=fmt)
+            im = i._s(fmt=fmt)
             sp = " " if self.w else ""
             s = f"({re},{sp}{im})"
             return f(s)
         else:  # Rectangular coordinates
             r, i = self._real, self._imag
-            re = r._s(fmt=fmt, no_color=True)
-            im = i._s(fmt=fmt, no_color=True)
+            re = r._s(fmt=fmt)
+            im = i._s(fmt=fmt)
             if self.nz and ((r and not i) or (not r and i)):
                 if r:
                     s = f"{re}" if cpx._i else f"({re})"
@@ -956,7 +953,7 @@ class cpx(Base, complex):
                 iu = "i" if cpx._i else "j"
                 sp = " " if self.w else ""
                 sgn = f"{sp}-{sp}" if i < 0 else f"{sp}+{sp}"
-                im = abs(i)._s(fmt=fmt, no_color=True)
+                im = abs(i)._s(fmt=fmt)
                 if cpx._i:
                     s = f"{re}{sgn}{im}{iu}"
                 else:
@@ -1980,9 +1977,9 @@ if __name__ == "__main__":
             (14, "3.1415926535898"),
             (15, "3.14159265358979"),
         ):
-            Assert(repr(x.rnd(n)) == s)
+            Assert(repr(x.rnd(n)) == f"flt({s})")
             y = flt(s)
-            Assert(repr(y) == s)
+            Assert(repr(y) == f"flt({s})")
     def Test_fmt():
         if 1:  # flt
             x = flt(10 * pi)
