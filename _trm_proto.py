@@ -193,11 +193,30 @@ class Trm(dict):
                     raise ValueError("An integer i = {u} for a color must be on [0, 255]")
                 c = color.Translate8bit(u)
             self[i] = self._get_code(c)
-            print(f"  {i} gave {self[i]}this color{t.n}")
-
-    #yy
-    def __setattr__(self, name, value):
-        return dict.__setattr__(self, name, value)
+            #print(f"  {i} gave {self[i]}this color{t.n}")
+    def __setitem__(self, name, value):
+        if name in self:
+            super().__setitem__(name, value)
+        elif name == "on":
+            self.on = value
+        elif name == "always":
+            self.always = value
+        elif name == "_newstyles":
+            self._newstyles = value
+        elif name == "_stack":
+            self._stack = value
+        else:
+            raise KeyError(f"{name!r} not in Trm instance")
+    def __getitem__(self, name):
+        'This is used to get self[name]'
+        # If self.on isn't True, always return an empty string
+        if not self.on:
+            return ""
+        # If self.always is False and stdout isn't a tty, return ""
+        if not self.always and not sys.stdout.isatty():
+            return ""
+        # Otherwise, return the escape sequence
+        return super().__getitem__(name)
     def __getattribute__(self, name):
         '''This allows you to access a dictionary key using the syntax self.key
         instead of self[key].  This is a useful shorthand for the Trm instance.
@@ -205,9 +224,9 @@ class Trm(dict):
         infinite recursion.
         '''
         if name in self:
-            return self[name]
+            return super().__getitem__(name)
         else:
-            return dict.__getattribute__(self, name)
+            return super().__getattribute__(name)
     def ppush(self, styles_dict):
         '''The styles dict must be a dict instance.  Update our values with
         styles_dict's values after saving a copy of ourself on the stack.
@@ -244,10 +263,6 @@ class Trm(dict):
     if 1:   # Existing TRM stuff
         def _get_code(self, color, bg=False):
             'For Color instance color, return escape code'
-            if not self.on or color is None:
-                return ""
-            if not self.always and not sys.stdout.isatty():
-                return ""
             if color is not None:
                 if not isinstance(color, Color):    
                     raise TypeError("color must be a color.Color instance")
@@ -281,6 +296,12 @@ if 1:
         "j": "555 nm",      # Yellow-green, most visible to eye
     }
     u = Trm(styles) 
+    # Only one set of outputs here prove that the .on attribute works
+    for v in (True, False):
+        print(".on is True" if v else ".on is False (no colorizing)")
+        u.on = v
+        for i in u:
+            t.print(f"{u[i]}{i} is this color")
     exit()
 
 if __name__ == "__main__":  
