@@ -3033,37 +3033,44 @@ if __name__ == "__main__":
                 line = line.strip()
                 name, clr = [i.strip() for i in line.split(":")]
                 c = eval(clr)
-                breakpoint() # ∞∞ 
-
+                di[name.replace("'", "")] = c
         w = 2   # Spaces between columns
         i, f, block = " "*w, lambda x: " "*x, "█"*6
         hdr = f"Name{f(8)}RGB{f(10)}XRGB{f(5)}XHSV{f(5)}XHLS{f(5)}8-BIT{f(3)}Name "
         t.hdr = t("whtl", "royd", "")
         t.print(f"{t.hdr}{hdr}")
-        for line in sorted(lines):
-            line = line.strip()
-            if not line or line == "colornames0":
-                continue
-            name, clr = line.split(":")
-            c = eval(clr)
-            name = name.replace("'", "")
+        for name, c in di.items():
             s = str(c).replace("C⁸", "")
             n = RGBtoANSI8bit(*c.irgb)
-            ctrans = Translate8bit(n)
-            t.print(f"{t(c)}{name}{i}"
+            c8 = Translate8bit(n)
+            t.print(f"{t(c)}{name:4s}{i}"
                     f"{s}{i}"
                     f"{c.xrgb}{i}"
                     f"{c.xhsv}{i}"
                     f"{c.xhls}{i}"
-                    f"{t(ctrans)}"
+                    f"{t(c8)}"
                     f"{n:3d}{block}{t(c)}{block}")
         t.print(f"{t.hdr}{hdr}")
-        print(dedent('''
-        The solid blocks at the end of each line help you see the difference in color
-        between the 8-bit and 24-bit representations.  There are only 256 of the 8-bit
-        colors and the mapping isn't perfect.  Use 'll' to include a sample of text that
-        compares these colors.
-        '''))
+        if extra != "ll":
+            print(dedent('''
+            The solid blocks at the end of each line help you see the difference in color
+            between the 8-bit and 24-bit representations.  There are only 256 of the 8-bit
+            colors and the mapping isn't perfect.  Use 'll' to include a sample of text that
+            compares these colors.'''))
+            return
+        # Print columnized text to show how text looks different; the use of solid
+        # color blocks is a bit "strong" for how I use text in a terminal.
+        t.print(f"\n{t(attr='ul')}Samples of text in the 24-bit and 8-bit color pairs:")
+        o = []
+        for name, c in di.items():
+            n = RGBtoANSI8bit(*c.irgb)
+            c8 = Translate8bit(n)
+            s = f"{t(c)}{name:4s} sample {t(c8)}sample{t.n}"
+            o.append(s)
+        for i in Columnize(o):
+            print(i)
+        print("\nTo my eye, these 8-bit translations work OK except for:")
+        print("  brnd dend lavd lipd pnkb pnkd royd sead")
     def ShowHTMLColors(by_hue=False):
         data = dedent('''
             AliceBlue #F0F8FF
