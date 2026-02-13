@@ -215,7 +215,7 @@ if __name__ == "__main__":
         from lwtest import Assert
         from color import t
         import termtables as tt
-        if 1:
+        if 0:
             import debug
             debug.SetDebugger()
     if 1:  # Utility

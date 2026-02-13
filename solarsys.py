@@ -63,7 +63,7 @@ if 1:  # Header
         from color import t
         import f
         from columnize import Columnize
-        if 1:
+        if 0:
             import debug
             debug.SetDebugger()
     if 1:  # Global variables

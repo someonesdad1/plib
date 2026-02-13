@@ -263,7 +263,7 @@ if 1:  # Header
         from wrap import dedent
         from color import t
         from lwtest import Assert
-        if 1:
+        if 0:
             import debug
             debug.SetDebugger()
         common_abbreviations = set("mr mrs ms dr no mssr st ave".split())

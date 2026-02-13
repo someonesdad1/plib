@@ -38,7 +38,7 @@ if 1:  # Header
         from frange import frange
         from f import flt
         import u
-        if len(sys.argv) > 1:
+        if 0:
             import debug
             debug.SetDebugger()
     if 1:  # Global variables
