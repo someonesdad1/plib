@@ -2,36 +2,58 @@
 
 # /plib vision
 
+- Strategic problems
+    - gist
+        - Basic idea works, but it's problematic on a few files, possibly because I used
+          the symbol '_pgminfo'.  Python's supposed to ignore this underscore, but on
+          one of the six problem files I tried changing to 'pgminfo' (and changed the
+          corresponding code) and things started working.  
+        - A better idea is the global function GetGist() in each file.  This can be put
+          out of the way at the end of the file, making it easy to get to.
+    - Too many circular imports in modules:  things need to be orthogonalized
+        - Examples
+            - Color string interpolation in f.py or debug.py
+    - Coalesce similar functionality into fewer files
+    - Move numeric/textual data to ./data modules
+    - Too many files
+        - Create a script that helps searching out what you want
+            - Spend a lot of time picking a good, small set of keywords to narrow
+              categories; these should also be used for directory names
+                - shop, elec, sci, math, util, color, fmt
+            - Can add kw field to gist if needed
+            - Put data in ./data
+            - Use dpdata.py as a "clearing house" to get the information
+        - /plib has about 150 files
+            - Shoot for perhaps 100
+            - Move scripts to /plib/pgm as needed
+        - /plib/pgm has over 400 files
+            - Too many to easily comprehend
+
+- Core changes
+    - I currently have 10 files starting with "dp".  This might be a useful pattern and
+      reduce namespace conflicts.  It could be combined with the categories above for
+      things like dpshop.py, dpelec.py, etc.  Each file would be organize with the 'if
+      1:' pattern to facilitate folding and seeing the different sections of
+      functionality.
 - Create HTML pages to make it easier to browse/find content
     - Alphabetized
     - By subject
     - Things I think are of interest
-- Too many files?
-    - Create a script that helps searching out what you want
-        - Spend a lot of time picking a good, small set of keywords to narrow
-          categories; these should be used for directory names
-            - shop, elec, sci, math, util, color
-        - Can add kw field to gist if needed
-    - /plib has about 150 files
-        - Shoot for perhaps 100
-        - Move scripts to /plib/pgm as needed
-    - /plib/pgm has over 400 files
-        - Too many to easily comprehend
 - Testing
     - All /plib files have a gist and how to test:  notest, run, --test, testdir
     - Make testdir go away if possible
     - Launch testing with one command
     - Only output message is Pass or Fail
-    - Every module/script when run or run with --test returns 0 if tests pass or
-        > 0 if test fails
+    - Every module/script when run or run with --test returns 0 if tests pass or nonzero
+      if test fails
     - Make faster with using more processes
 - /plib/data directory
-    - Use to store data sources, such as numerical data, tabular data, text of
-        software licenses, etc.
+    - Use to store data sources, such as numerical data, tabular data, text of software
+      licenses, etc.
     - As-needed building tools can be in this directory
     - Build needed stuff with a single command
-    - /plib/dpdata.py is the single module to get at these data.  You call a
-        function and are returned an appropriate data structure.
+    - /plib/dpdata.py is the single module to get at these data.  You call a function
+      and are returned an appropriate data structure.
 
 # 2026 /plib Plan
 
@@ -42,6 +64,9 @@
 
 # 2026 /plib work done
 
+- 13 Feb 
+    - Have \_trm_proto.py working to make a Trm object a context manager (adds the style
+      feature I've wanted) and fixes the .on problem.
 - 8 Feb
     - pgm/todo.py written:  lists priority tasks in python scripts
     - constant.py updated; works nicely and is now part of my python boilerplate.  I

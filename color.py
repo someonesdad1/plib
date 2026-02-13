@@ -3031,7 +3031,7 @@ if __name__ == "__main__":
             di = {}
             for line in sorted(lines):
                 line = line.strip()
-                name, clr = line.split(":")
+                name, clr = [i.strip() for i in line.split(":")]
                 c = eval(clr)
                 breakpoint() # ∞∞ 
 
