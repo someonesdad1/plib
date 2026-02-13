@@ -122,6 +122,7 @@ Further, it internally contains a stack object to allow the methods
 ppush() takes a dictionary of name to escape sequences (anything that's acceptable for
 the Trm constructor) 
 '''
+import sys
 import wl2rgb
 import color
 import math
@@ -151,14 +152,23 @@ class Trm(dict):
         the values received to a Color instance, then calling self._get_code().
         '''
         for i in self:
-            u = self[i].strip()
-            print(i, repr(u))
+            u = self[i]
+            print(f"{i} = {u!r}")
             if isinstance(u, str):
-                if u[0] in "#$@":   # Hex format 
+                u = u.strip()
+                if u[0] in "#$@":       # Hex format 
                     c = Color(u)
                 elif u.endswith("nm"):  # Is a wavelength
                     wl_nm = float(u[:-2])
                     c = wl2rgb.wl2rgb(wl_nm)
+                elif " " in u or "," in u:  # Tuple of 3 integers
+                    v = u.replace(",", " ")
+                    f = v.split()
+                    if len(f) != 3:
+                        msg = f"{u!r} must be 3 integers separated by ' ' or ','"
+                        raise ValueError(msg)
+                    values = tuple(dpmath.Int(j) for j in f)
+                    Color(*values)
                 else:   # Float or integer
                     try:
                         x = abs(float(u))
@@ -166,17 +176,24 @@ class Trm(dict):
                         c = Color(fp)
                     except Exception:
                         pass
-                    i = dpmath.Int(u)
-                    if not (0 <= i < 256):
-                        raise ValueError("An integer i = {i} for a color must be on [0, 255]")
-                    c = color.Translate8bit(j)
+                    n = None
+                    try:
+                        n = dpmath.Int(u)
+                    except Exception:
+                        pass
+                    if n is None:
+                        c = Color(u)    # Is it a string that Color() recognizes?
+                    else:
+                        if not (0 <= n < 256):
+                            raise ValueError("An integer {n} for a color must be on [0, 255]")
+                        c = color.Translate8bit(n)
             elif isinstance(u, int):
                 # It's an 8-bit color
                 if not (0 <= u < 256):
                     raise ValueError("An integer i = {u} for a color must be on [0, 255]")
                 c = color.Translate8bit(u)
             self[i] = self._get_code(c)
-            print(f"{i} gave {self[i]}this color{t.n}")
+            print(f"  {i} gave {self[i]}this color{t.n}")
 
     #yy
     def __setattr__(self, name, value):
