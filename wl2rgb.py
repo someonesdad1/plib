@@ -1,10 +1,11 @@
 '''
-wl2rgb(wl_nm)
-    Converts a light wavelength in nm into an approximate RGB color
-rgb2wl(rgb)
-    Approximate inverse function to wl2rgb()
-wl2cie_xy(wl_nm)
-    Convert from wavelenth in nm to CIE x, y coordinates
+Light wavelength to RGB color
+    wl2rgb(wl_nm)
+        Converts a light wavelength in nm into an approximate RGB color
+    rgb2wl(rgb)
+        Approximate inverse function to wl2rgb()
+    wl2cie_xy(wl_nm)
+        Convert from wavelenth in nm to CIE x, y coordinates
 '''
 if 1:  # Header
     _pgminfo = '''
@@ -139,18 +140,19 @@ if 1:  # Utility
             #   - Round each float to 6 decimal places
             #   - Cache in GetCIETable.data
             checked = []
-            Σx = Σy = Σz = 0
-            def f(x): return round(x, 6)
+            sumx = sumy = sumz = 0
+            def f(x):
+                return round(x, 6)
             for wl, d in data:
-                Σx += d[0]
-                Σy += d[1]
-                Σz += d[2]
+                sumx += d[0]
+                sumy += d[1]
+                sumz += d[2]
                 checked.append((wl, tuple([f(i) for i in d])))
-            if f(Σx) != f(21.371524):
+            if f(sumx) != f(21.371524):
                 raise ValueError("Bad x checksum")
-            if f(Σy) != f(21.371327):
+            if f(sumy) != f(21.371327):
                 raise ValueError("Bad y checksum")
-            if f(Σz) != f(21.371540):
+            if f(sumz) != f(21.371540):
                 raise ValueError("Bad z checksum")
             GetCIETable.data = checked
         return GetCIETable.data
@@ -177,9 +179,6 @@ if 1:  # Utility
             GetCIEDict.dict = di
         return GetCIEDict.dict
     GetCIEDict.dict = None
-    def Round(x, n):
-        "Round a sequence of floats to n places"
-        return tuple([round(i, n) for i in x])
 if 1:  # Core functionality
     def wl2rgb(wl_nm, gamma=0.8):
         '''Convert wl_nm (light wavelength in nm on [380, 780]) into a Color
@@ -336,19 +335,6 @@ if __name__ == "__main__":
         for i in VisualCount(o, indent=4):
             print(i)
         print(f"({len(o)} colors in file)")
-    def SteppedWavelengths(step_nm):
-        gamma = 0.8
-        print(f"Wavelength in steps of {step_nm} nm to RGB colors")
-        out, count = [], 0
-        for nm in range(380, 781, step_nm):
-            colornum = wl2rgb(nm, gamma=gamma)
-            s = colornum.xrgb
-            out.append(f"{t(s)}{nm}{t.n}")
-            count += 1
-            o = Columnize(out, indent=" " * 2, horiz=True)
-        for line in o:
-            print(line)
-        print(f"{count} wavelengths printed")
     def Interactive():
         print(dedent(f'''
         
@@ -412,18 +398,49 @@ if __name__ == "__main__":
                         wl = rgb2wl(c)
                         t.print(f"{', '.join(str(i) for i in rgb)} is {t(c)}this color{t.n}, "
                                 f"about {wl} nm")
+    def SteppedWavelengths(step_nm, cols=True):
+        gamma = 0.8
+        print(f"Wavelength in steps of {step_nm} nm to RGB colors")
+        out, count = [], 0
+        for nm in range(380, 781, step_nm):
+            colornum = wl2rgb(nm, gamma=gamma)
+            s = colornum.xrgb
+            out.append(f"{t(s)}{nm}{t.n}")
+            count += 1
+        if cols:
+            o = Columnize(out, indent=" " * 2, horiz=1)
+            for line in o:
+                print(line)
+        else:
+            for line in out:
+                print(line)
+        print(f"{count} wavelengths printed")
+    def Names():
+        'Show wavelengths with name candidates'
+        gamma = 0.8
+        for nm in range(380, 651, 10):
+            c = wl2rgb(nm, gamma=gamma)
+            s = c.xrgb
+            h = c.xhsv
+            r, g, b = c.irgb
+            t.print(f"{t(s)}{nm} {s} {h} ({r:3d}, {g:3d}, {b:3d})")
+
     if len(sys.argv) > 1:
         if sys.argv[1] == "--test":
             exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
+        elif sys.argv[1] == "names":
+            Names()
         else:
             Interactive()
             exit()
     else:
         t.on = True
-        Decorate()
-        print()
-        SteppedWavelengths(2)
-        print()
+        #Decorate()
+        #print()
+        #SteppedWavelengths(2)
+        #print()
         SteppedWavelengths(5)
         print()
         SteppedWavelengths(10)
+        print()
+        SteppedWavelengths(20)
