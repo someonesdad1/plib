@@ -1,15 +1,6 @@
 '''
-
-            
 Functions for dealing with sequences.
-    Jan 2026:  DupNodup() timing results on my 11 year old 4-core computer running
-    python 3.11.5 under WSL:
-         n    Time
-        1e3:  700 μs
-        1e4:  6.7 ms
-        1e5:  72 ms
-        1e6:  740 ms
-        1e7:  8.6 s
+
 '''
 if 1:  # Header
     _pgminfo = '''
@@ -514,9 +505,9 @@ if __name__ == "__main__":
             raises(ValueError, Leftmost_gt, seq, n)
             raises(ValueError, Leftmost_ge, seq, n)
             raises(ValueError, Rightmost_eq, seq, n)
+            raises(ValueError, Rightmost_eq, seq, -n)
             raises(ValueError, Rightmost_lt, seq, -n)
             raises(ValueError, Rightmost_le, seq, -n)
-
         def Test_iDistribute():
             def Dist(seq):
                 "Return distances between numbers in seq"

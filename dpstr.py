@@ -1,65 +1,65 @@
 r'''
-
-Chop                Return a string chopped into equal parts
-CommonPrefix        Return a common prefix of a sequence of strings
-CommonSuffix        Return a common suffix of a sequence of strings
-CountLeadingSpaces  Return number of common leadings spaces in a multiline string
-Decorate            Make whitespace and control characters easier to see in a string
-FilterStr           Return a function that removes characters from strings
-FilterSeqRegex      Return a sequence of strings filtered by regexes
-FindAll             Find all locations of a substring in a string
-FindFirstIn         Find first item in sequence in a given set
-FindLastIn          Find last item in sequence in a given set
-FindFirstNotIn      Find first item not in sequence in a given set
-FindLastNotIn       Find last item not in sequence in a given set
-FindDiff            Return where two strings first differ
-FindStrings         Find locations of a sequence of strings in a string
-FindSubstring       Return indexes of substring in string
-GetChoice           Return choice from a set of choices (minimizes typing)
-GetStartingChars    Return starting characters of a string
-GetEndingChars      Return ending characters of a string
-GetTransFunc        Return a function that translates strings
-GetString           Return string from user that matches choices
-IgnoreFilter        Return a function which removes ignored strings
-IsASCII             Return True if string is all ASCII characters
-Keep                Return items in sequence that are in keep sequence
-KeepFilter          Returns a function that keeps a set of items in a sequence
-KeepOnlyLetters     Replace all non-word characters with spaces
-CountLeadingSpaces  Return the number of leading or trailing spaces in a string
-Len                 Length of string with ANSI escape sequences removed
-ListInColumns       Obsolete (use columnize.py)
-MatchCap            Match string capitalization
-MultipleReplace     Replace multiple patterns in a string
-PrepareMultilineString  Helper function to trim leading & trailing whitespace
-ReadData            Read data from a multiline string
-Remove              Return items from sequence not in the remove sequence
-RemoveASCII         Remove all ASCII characters from a string
-RemoveComment       Remove '#.*$' from a string
-RemoveEndingChars   Remove ending characters from a string
-RemoveCharClass     Remove character classes from a string
-RemoveFilter        Functional form of Remove (it's a closure)
-RemoveStartingChars Remove starting characters from a string
-RemoveWhitespace    Remove whitespace from a string
-RmEsc               Remove ANSI escape strings from string arguments
-Scramble            Randomly shuffle words in a string
-soundex             Return 4-character soundex value for a string
-SoundSimilar        Return True if two strings sound similar
-SpellCheck          Spell check a sequence of words
-SplitOnNewlines     Split on \r, \n, or \r\n
-StringSplit         Pick out specified fields of a string
-Str                 String class whose len() ignores ANSI escape sequences
-TimeStr             Readable string for time() in s
-Tokenize            Return a list of tokens from tokenizing a string
-Trim                Remove characters from a string
-WordID              Return an ID string that is somewhat pronounceable
-    
-Token naming conversions:
-    cw2mc            Cap-words to mixed-case
-    cw2us            Cap-words to underscore
-    mc2cw            Mixed-case to cap-words
-    mc2us            Mixed-case to underscore
-    us2cw            Underscore to cap-words
-    us2mc            Underscore to mixed-case
+String utilities
+    Chop                Return a string chopped into equal parts
+    CommonPrefix        Return a common prefix of a sequence of strings
+    CommonSuffix        Return a common suffix of a sequence of strings
+    CountLeadingSpaces  Return number of common leadings spaces in a multiline string
+    Decorate            Make whitespace and control characters easier to see in a string
+    FilterStr           Return a function that removes characters from strings
+    FilterSeqRegex      Return a sequence of strings filtered by regexes
+    FindAll             Find all locations of a substring in a string
+    FindFirstIn         Find first item in sequence in a given set
+    FindLastIn          Find last item in sequence in a given set
+    FindFirstNotIn      Find first item not in sequence in a given set
+    FindLastNotIn       Find last item not in sequence in a given set
+    FindDiff            Return where two strings first differ
+    FindStrings         Find locations of a sequence of strings in a string
+    FindSubstring       Return indexes of substring in string
+    GetChoice           Return choice from a set of choices (minimizes typing)
+    GetStartingChars    Return starting characters of a string
+    GetEndingChars      Return ending characters of a string
+    GetTransFunc        Return a function that translates strings
+    GetString           Return string from user that matches choices
+    IgnoreFilter        Return a function which removes ignored strings
+    IsASCII             Return True if string is all ASCII characters
+    Keep                Return items in sequence that are in keep sequence
+    KeepFilter          Returns a function that keeps a set of items in a sequence
+    KeepOnlyLetters     Replace all non-word characters with spaces
+    CountLeadingSpaces  Return the number of leading or trailing spaces in a string
+    Len                 Length of string with ANSI escape sequences removed
+    ListInColumns       Obsolete (use columnize.py)
+    MatchCap            Match string capitalization
+    MultipleReplace     Replace multiple patterns in a string
+    PrepareMultilineString  Helper function to trim leading & trailing whitespace
+    ReadData            Read data from a multiline string
+    Remove              Return items from sequence not in the remove sequence
+    RemoveASCII         Remove all ASCII characters from a string
+    RemoveComment       Remove '#.*$' from a string
+    RemoveEndingChars   Remove ending characters from a string
+    RemoveCharClass     Remove character classes from a string
+    RemoveFilter        Functional form of Remove (it's a closure)
+    RemoveStartingChars Remove starting characters from a string
+    RemoveWhitespace    Remove whitespace from a string
+    RmEsc               Remove ANSI escape strings from string arguments
+    Scramble            Randomly shuffle words in a string
+    soundex             Return 4-character soundex value for a string
+    SoundSimilar        Return True if two strings sound similar
+    SpellCheck          Spell check a sequence of words
+    SplitOnNewlines     Split on \r, \n, or \r\n
+    StringSplit         Pick out specified fields of a string
+    Str                 String class whose len() ignores ANSI escape sequences
+    TimeStr             Readable string for time() in s
+    Tokenize            Return a list of tokens from tokenizing a string
+    Trim                Remove characters from a string
+    WordID              Return an ID string that is somewhat pronounceable
+        
+    Token naming conversions:
+        cw2mc            Cap-words to mixed-case
+        cw2us            Cap-words to underscore
+        mc2cw            Mixed-case to cap-words
+        mc2us            Mixed-case to underscore
+        us2cw            Underscore to cap-words
+        us2mc            Underscore to mixed-case
 '''
 if 1:  # Header
     _pgminfo = '''
