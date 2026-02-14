@@ -20,10 +20,11 @@ if 1:   # Header
         <oo todo ∞ oo>
     '''
     if 1:   # Standard imports
-        pass
+        from collections import defaultdict
     if 1:   # Custom imports
         from color import Color
         from bidict import bidict
+        import colornames1
 if 1:   # Global variables
     colorhues = {
         "blu": {
@@ -7108,6 +7109,32 @@ if 1:   # Functions
             "mag": (202, 222),
             "magred": (223, 243),
         }
+    def GetHuesDict():
+        '''Return a dictionary keyed by the name of hues; each value of this dictionary
+        is a list of the named colors with that hue.
+        '''
+        colornames = colornames1.GetColorList()
+        di = defaultdict(list)
+        for i in colornames:
+            name, hexcolor = i
+            c = Color(hexcolor)
+            hue = ClassifyHue1(c)
+            di[hue].append(i)
+        return di
+    def DumpHuesDict(di):
+        'Print the dict to stdout'
+        print("{")
+        for hue in di:
+            print(f'    "{hue}": [')
+            for item in di[hue]:
+                print(f"        {item},")
+            print(f"    ],")
+        print("}")
+
+if 1:
+    di = GetHuesDict()
+    DumpHuesDict(di)
+    exit()
 
 if __name__ == "__main__":
     from wl2rgb import rgb2wl
