@@ -422,8 +422,10 @@ if __name__ == "__main__":
             c = wl2rgb(nm, gamma=gamma)
             s = c.xrgb
             h = c.xhsv
+            v = c.xhls
             r, g, b = c.irgb
-            t.print(f"{t(s)}{nm} {s} {h} ({r:3d}, {g:3d}, {b:3d})")
+            t.print(f"{t(s)}{nm} {s} {h} {v} ({r:3d}, {g:3d}, {b:3d})")
+        print("nm    #rgb    @hsv    $hls")
 
     if len(sys.argv) > 1:
         if sys.argv[1] == "--test":

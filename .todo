@@ -1,4 +1,10 @@
 /plib/.todo
+
+14 Feb 2026 
+    - Run 'wl2rgb.py name' and see the different colors.  Match each of these to a
+      short name.  Note r, g, and b are "obvious".
+
+---------------------------------------------------------------------------
     
     - Electrical circuit searches
         - Use ds.py to search for files that keep important circuits that I want to look
