@@ -68,20 +68,6 @@ if 1:  # Header
         g = G()
         g.dbg = False
 if 1:  # Core functionality
-    def find_le(x, seq):
-        "Find rightmost value less than or equal to x; seq must be sorted"
-        # From bisect module documentation
-        i = bisect.bisect_right(seq, x)
-        if i:
-            return seq[i - 1]
-        raise ValueError
-    def find_ge(x, seq):
-        "Find leftmost item greater than or equal to x; seq must be sorted"
-        # From bisect module documentation
-        i = bisect.bisect_left(seq, x)
-        if i != len(seq):
-            return seq[i]
-        raise ValueError
     def iDistribute(n, a, b):
         '''Generator to return an integer sequence [a, ..., b] with n elements equally distributed
         between a and b.  Raises ValueError if no solution is possible.  Example:
@@ -232,13 +218,68 @@ if 1:  # Core functionality
                 return sseq[-1]
             else:
                 # Use binary search
-                L = find_le(x, sseq)  # L is sseq element, not index
-                r = find_ge(x, sseq)  # r is sseq element, not index
+                L = Rightmost_le(sseq, x)  # L is sseq element, not index
+                r = Leftmost_ge(sseq, x)  # r is sseq element, not index
                 if L == r:
                     return L
                 else:
                     diff_low, diff_high = abs(x - L), abs(x - r)
                     return L if diff_low <= diff_high else r
+if 1:   # Searching sorted sequences from bisect module
+        # bisect_left(seq, x) partitions seq into two halves so that 
+        #   all values < x on the left side
+        #   all values >= x on the right side
+        # bisect_right(seq, x) partitions seq into two halves so that 
+        #   all values <= x on the left side
+        #   all values > x on the right side
+    def Leftmost_eq(seq, x):
+        'Return index of the leftmost value == x'
+        # index(a, x) in bisect module document
+        i = bisect.bisect_left(seq, x)
+        if i != len(seq) and seq[i] == x:
+            return i
+        raise ValueError(f"No leftmost value == {x}")
+    def Leftmost_gt(seq, x):
+        'Return index of leftmost value > x'
+        # find_gt(a, x) in bisect module document
+        i = bisect.bisect_right(seq, x)
+        if i != len(seq):
+            return seq[i]
+        raise ValueError(f"No leftmost value > {x}")
+    def Leftmost_ge(seq, x):
+        'Return index of leftmost item >= x'
+        # find_ge(a, x) in bisect module document
+        i = bisect.bisect_left(seq, x)
+        if i != len(seq):
+            return seq[i]
+        raise ValueError(f"No leftmost value >= {x}")
+    #
+    def Rightmost_eq(seq, x):
+        'Return index of the rightmost value == x'
+        try:
+            n = Rightmost_le(seq, x)
+            if seq[n] == x:
+                return n
+            elif n < len(seq) - 1:
+                return n + 1
+            else:
+                raise ValueError
+        except ValueError:
+            raise ValueError(f"No rightmost value == {x}")
+    def Rightmost_lt(seq, x):
+        'Return index of rightmost value < x'
+        # find_lt(a, x) in bisect module document
+        i = bisect.bisect_left(seq, x)
+        if i:
+            return seq[i-1]
+        raise ValueError(f"No rightmost value < {x}")
+    def Rightmost_le(seq, x):
+        'Return index of rightmost value <= x'
+        # find_le(a, x) in bisect module document
+        i = bisect.bisect_right(seq, x)
+        if i:
+            return seq[i-1]
+        raise ValueError(f"No rightmost value <= {x}")
 if 1:   # Get numbers
     def GetNum(seq, typ=int):
         '''Return a list of numbers found in sequence seq.  The intent is that all the
@@ -420,7 +461,7 @@ if __name__ == "__main__":
     import timeit
     from functools import partial
     from collections import deque
-    from lwtest import run, assert_equal, Assert
+    from lwtest import run, assert_equal, raises, Assert
     from color import t
     from decimal import Decimal as D
     t.dbg = False
@@ -454,16 +495,28 @@ if __name__ == "__main__":
                     tm = timeit.timeit('DupNodupSlow(seq, type_important=b)', globals=globals(), number=1)
                     print(f"    1e{i}:  {flt(tm).engsi}s")
     if 1:  # Testing functions
-        def Test_find():
-            # Test find_le and find_ge; though these came from the python manpage on the
-            # bisect module, they need to be proved working.
-            N = 10
-            seq = list(range(N))
-            for i in range(N):
-                n = find_le(i, seq)
-                Assert(n == i)
-                n = find_ge(i, seq)
-                Assert(n == i)
+        def Test_SearchingSortedSequences():
+            seq = [0, 1, 2, 3, 4, 5]
+            n = len(seq)
+            for i in range(n):
+                if 1:   # Rightmost
+                    Assert(Rightmost_le(seq, i) == i)
+                    Assert(Rightmost_eq(seq, i) == i)
+                    if i:
+                        Assert(Rightmost_lt(seq, i) == i - 1)
+                if 1:   # Leftmost
+                    Assert(Leftmost_ge(seq, i) == i)
+                    Assert(Leftmost_eq(seq, i) == i)
+                    if i < n - 1:
+                        Assert(Leftmost_gt(seq, i) == i + 1)
+            n = 10
+            raises(ValueError, Leftmost_eq, seq, n)
+            raises(ValueError, Leftmost_gt, seq, n)
+            raises(ValueError, Leftmost_ge, seq, n)
+            raises(ValueError, Rightmost_eq, seq, n)
+            raises(ValueError, Rightmost_lt, seq, -n)
+            raises(ValueError, Rightmost_le, seq, -n)
+
         def Test_iDistribute():
             def Dist(seq):
                 "Return distances between numbers in seq"

@@ -54,6 +54,14 @@
     - Build needed stuff with a single command
     - /plib/dpdata.py is the single module to get at these data.  You call a function
       and are returned an appropriate data structure.
+- color stuff
+    - color.py --> dpcolor.py
+        - Color object to encapsulate color information
+        - Access color name data in data/dpcolor_data.py
+        - Color coordinate transformations
+        - Wavelength to sRGB and inverse
+    - Trm stuff --> dptrm.py:  responsible for colorizing work in terminals
+    - color.RegexpDecorate --> dpstr.py or dpterm.py (or add to Trm class)
 
 # 2026 /plib vision
 

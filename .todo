@@ -60,6 +60,10 @@
           overall set matched the set of functions/classes in the module.  This could
           help you see when your testing doesn't have full coverage.  Of course, it's
           necessary but not sufficient.
+        - Each function in a module could have an attribute '_tested' that keeps track of
+          the number of times it was called.  Then lwtest.py could check these data
+          after the test and report any functions/classes that did not have _tested set
+          to an integer.
         - Finding functions and classes should be fast using multiline regular expressions
 
     - todo.py

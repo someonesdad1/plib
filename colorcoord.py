@@ -29,8 +29,8 @@ Color coordinates and transformations
               might have been expected from the size of either group."
         - [schils] http://www.color-theory-phenomena.nl/index.html.  Paul Schils died in
           2011, so these pages won't be updated.
-          http://www.color-theory-phenomena.nl/07.00.html is good with a number of
-          general thoughts/observations.
+            - http://www.color-theory-phenomena.nl/07.00.html is good with a number of
+              general thoughts/observations.
         - [hyperp1] http://hyperphysics.phy-astr.gsu.edu/hbase/vision/colper.html
             - Overview of color perception
         - [hyperp2] http://hyperphysics.phy-astr.gsu.edu/hbase/vision/cieprim.html
@@ -43,8 +43,8 @@ Color coordinates and transformations
                 - The color matching functions (CMF) let you derive X, Y, Z by
                   multiplying the CMF at each wavelength by the spectral power
                   distribution (SPD, derived e.g. from a spectrophotometer), summing,
-                  and normalizing.  Note z = 1
-                  - x - y, so x and y are the relevant color coordinates.
+                  and normalizing.  Note z = 1 - x - y, so x and y are the relevant
+                  color coordinates.
                 - Result is x, y, and Y for the luminance.
                 - Y is luminance, which is radiant flux power weighted by the
                   sensitivity of the human eye, giving luminous flux in lumens.
@@ -122,11 +122,10 @@ if 1:  # Header
         from lwtest import run, Assert
 if 1:  # Utility
     def Dot(a, b, n=None):
-        "Dot product of two sequences (n is number of decimal places to round to)"
-        Assert(len(a) == len(b))
+        'Dot product of two sequences (n is number of decimal places to round to)'
         if n:
-            return sum([round(i*j, n) for i, j in zip(a, b)])
-        return sum([i*j for i, j in zip(a, b)])
+            return sum([round(i*j, n) for i, j in zip(a, b, strict=True)])
+        return sum([i*j for i, j in zip(a, b, strict=True)])
     def Clamp(a):
         "Clamp all values onto [0, 1]"
         def f(x): 
@@ -161,7 +160,7 @@ if 1:  # Core functionality
         this to 4 figures.
         '''
         def GammaExpand(x):
-            return x / 12.92 if x <= 0.04045 else ((x + 0.055) / 1.055) ** 2.4
+            return x/12.92 if x <= 0.04045 else ((x + 0.055)/1.055) ** 2.4
         # Make sure all values are between 0 and 1
         Assert(all([0 <= i <= 1 for i in srgb]))
         # Transformation matrix to produce XYZ values with respect to the D65 illumination (6500 K
@@ -193,7 +192,7 @@ if 1:  # Core functionality
         with XYZ_to_sRGB().
         '''
         def GammaCompressed(x):
-            return 12.92 * x if x <= 0.0031308 else 1.055 * x ** (1 / 2.4) - 0.055
+            return 12.92*x if x <= 0.0031308 else 1.055*x ** (1/2.4) - 0.055
         if hires:
             # More significant figures from
             # https://www.image-engineering.de/library/technotes/958-how-to-convert-between-srgb-and-ciexyz
@@ -209,15 +208,16 @@ if 1:  # Core functionality
         rgb = Dot(r1, XYZ), Dot(r2, XYZ), Dot(r3, XYZ)
         # Round the results and gamma compress
         sRGB = [round(GammaCompressed(i), n) for i in rgb]
-        def clip(x): return min(1, max(x, 0))  # Clip to [0, 1]
+        def clip(x):
+            return min(1, max(x, 0))  # Clip to [0, 1]
         sRGB = [clip(i) for i in sRGB]
         return tuple(sRGB)
     def XYZ_to_xy(XYZ):
         t = sum(XYZ)
-        return (XYZ[0] / t, XYZ[1] / t)
+        return (XYZ[0]/t, XYZ[1]/t)
     def xy_to_XYZ(xy, Y=1):
         x, y = xy
-        return ((Y / y) * x, Y, (1 - x - y) * (Y / y))
+        return ((Y/y)*x, Y, (1 - x - y)*(Y/y))
     def D65(tristimulus=True):
         '''D65 standard illuminant tristimulus values Ref:
         https://en.wikipedia.org/wiki/Illuminant_D65#Definition This is
@@ -234,24 +234,24 @@ if 1:  # L*a*b*
     def XYZ_to_LAB(XYZ):
         # https://en.wikipedia.org/wiki/CIELAB_color_space#From_CIEXYZ_to_CIELAB
         def f(t):
-            d = 6 / 29
-            return t ** (1 / 3) if t > d**3 else t / (3 * d * d) + 4 / 29
+            d = 6/29
+            return t ** (1/3) if t > d**3 else t/(3*d*d) + 4/29
         Xn, Yn, Zn = D65()
         X, Y, Z = XYZ
-        L = 116 * f(Y / Yn) - 16
-        a = 500 * (f(X / Xn) - f(Y / Yn))
-        b = 200 * (f(Y / Yn) - f(Z / Zn))
+        L = 116*f(Y/Yn) - 16
+        a = 500*(f(X/Xn) - f(Y/Yn))
+        b = 200*(f(Y/Yn) - f(Z/Zn))
         return L, a, b
     def LAB_to_XYZ(LAB):
         def g(t):
-            d = 6 / 29
-            return t**3 if t > d else 3 * d * d * (t - 4 / 29)
+            d = 6/29
+            return t**3 if t > d else 3*d*d*(t - 4/29)
         Xn, Yn, Zn = D65()
         L, a, b = LAB
-        X = Xn * g((L + 16) / 116 + a / 500)
-        c = (L + 16) / 116
-        Y = Yn * g(c)
-        Z = Zn * g(c - b / 200)
+        X = Xn*g((L + 16)/116 + a/500)
+        c = (L + 16)/116
+        Y = Yn*g(c)
+        Z = Zn*g(c - b/200)
         return X, Y, Z
 if 1:  # L*u*v*
     # CIE's 1976 space that aims at representing perceptual differences
@@ -263,24 +263,24 @@ if 1:  # L*u*v*
         if Yn is None:
             raise ValueError("Yn must be defined")
         X, Y, Z = XYZ
-        s = X + 15 * Y + 3 * Z
-        u1, v1 = 4 * X / s, 9 * Y / s
-        t = (6 / 29) ** 3
-        a = Y / Yn
-        Lstar = t * a if a <= t else 116 * a ** (1 / 3) - 16
-        ustar = 13 * Lstar * (u1 - u1n)
-        vstar = 13 * Lstar * (v1 - v1n)
+        s = X + 15*Y + 3*Z
+        u1, v1 = 4*X/s, 9*Y/s
+        t = (6/29) ** 3
+        a = Y/Yn
+        Lstar = t*a if a <= t else 116*a ** (1/3) - 16
+        ustar = 13*Lstar*(u1 - u1n)
+        vstar = 13*Lstar*(v1 - v1n)
         return (Lstar, ustar, vstar)
     def CIELUV_to_XYZ(CIELUV, u1n=0.2009, v1n=0.4610, Yn=None):
         '''Reverse transformation of XYZ_to_CIELUV.
         https://en.wikipedia.org/wiki/CIELUV
         '''
         Lstar, ustar, vstar = CIELUV
-        u1 = ustar / (13 * Lstar) + u1n
-        v1 = vstar / (13 * Lstar) + v1n
-        Y = Yn * Lstar * (3 / 29) ** 3 if Lstar <= 8 else Yn * ((Lstar + 16) / 116) ** 3
-        X = Y * 9 * u1 / (4 * v1)
-        Z = Y * (12 - 3 * u1 - 20 * v1) / (4 * v1)
+        u1 = ustar/(13*Lstar) + u1n
+        v1 = vstar/(13*Lstar) + v1n
+        Y = Yn*Lstar*(3/29) ** 3 if Lstar <= 8 else Yn*((Lstar + 16)/116) ** 3
+        X = Y*9*u1/(4*v1)
+        Z = Y*(12 - 3*u1 - 20*v1)/(4*v1)
         return (X, Y, Z)
 if 1:  # Other functionality
     def rgb_to_XYZ(rgb):
@@ -310,30 +310,30 @@ if 1:  # Other functionality
         # CIE 1931 xyz values
         # [efg] under first chromaticity diagram
         s = sum(XYZ)
-        xyz = [float(i / s) for i in XYZ]
+        xyz = [float(i/s) for i in XYZ]
         Assert(sum(xyz) == 1)
         return xyz
     def xyz_to_uv(xyz):
         # [efg] under 1960 CIE chromaticity diagram
         x, y, z = xyz
-        s = -2 * x + 12 * y + 3
-        u = 4 * x / s
-        v = 6 * y / s
+        s = -2*x + 12*y + 3
+        u = 4*x/s
+        v = 6*y/s
         return u, v
     def XYZ_to_uv(XYZ):
         # [efg] under 1960 CIE chromaticity diagram
         X, Y, Z = XYZ
-        s = X + 15 * Y + 3 * Z
-        u = 4 * X / s
-        v = 6 * Y / s
+        s = X + 15*Y + 3*Z
+        u = 4*X/s
+        v = 6*Y/s
         return u, v
     def uv_to_xy(uv):
         # u, v are 1960 CIE chromaticity coordinates
         # [efg] under 1960 CIE chromaticity diagram
         u, v = uv
-        s = 2 * u - 8 * v + 4
-        x = 3 * u / s
-        y = 2 * v / s
+        s = 2*u - 8*v + 4
+        x = 3*u/s
+        y = 2*v/s
         return x, y
     def u1v1_to_xy(u1v1):
         # http://www.color-theory-phenomena.nl/10.03.htm
@@ -342,25 +342,26 @@ if 1:  # Other functionality
         # distance between the points is approximately proportional to a
         # human's perceived color difference.
         u1, v1 = u1v1
-        s = 9 * u1 / 2 - 12 * v1 + 9
-        x = (27 * u1 / 4) / s
-        y = 3 * v1 / s
+        s = 9*u1/2 - 12*v1 + 9
+        x = (27*u1/4)/s
+        y = 3*v1/s
         return x, y
     def u1v1_to_xyz(u1v1):
         # [efg] under 1976 CIE u'v' chromaticity diagram
         u1, v1 = u1v1
-        s = 6 * u1 - 16 * v1 + 12
-        x = 9 * u1 / s
-        y = 4 * v1 / s
-        z = (-3 * u1 - 20 * v1 + 12) / s
+        s = 6*u1 - 16*v1 + 12
+        x = 9*u1/s
+        y = 4*v1/s
+        z = (-3*u1 - 20*v1 + 12)/s
         return x, y, z
     def XYZ_to_u1v1(XYZ):
         # [efg] under 1976 CIE u'v' chromaticity diagram
         X, Y, Z = XYZ
-        s = X + 15 * Y + 3 * Z
-        u1 = 4 * X / s
-        v1 = 9 * Y / s
+        s = X + 15*Y + 3*Z
+        u1 = 4*X/s
+        v1 = 9*Y/s
         return u1, v1
+
 if __name__ == "__main__":
     from color import t
     def Test_RGB():
