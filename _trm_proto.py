@@ -21,6 +21,8 @@ Vision
         - Supports context manager pattern for temporarily changing styles
 
     - Initialization:  
+        - See xstylesx for some tests cases below
+            - All of these should be handled by the Color() constructor
         - The dict is initialized with f"t.{name}" = X where X is
             - "xxx"   Most typical, a short name
             - Color(...)
@@ -225,7 +227,8 @@ class Trm(dict):
             #    raise RuntimeError("self._bits bad")
 
 if 1:
-    styles = {
+    # ∞∞1 These are a good set of test cases for the Color() constructor
+    styles = {  # xstylesx
         "a": "orn",
         "b": Color("#ff8700"),   # 8-bit #208
         "c": 208,           # 8-bit #208
@@ -236,6 +239,9 @@ if 1:
         "h": "255 135 0",   # 8-bit #208
         "i": 0.5,           # float, middle gray
         "j": "555 nm",      # Yellow-green, most visible to eye
+        "k": (0.1,0.2,0.3)  # 3-tuple of floats (Color() accepts this)
+        "l": "0.1 0.2 0.3"  # 3-tuple of floats (Color() accepts this)
+        "l": "0.1,0.2,0.3"  # 3-tuple of floats (Color() accepts this)
     }
     u = Trm(styles) 
     # Only one set of outputs here prove that the .on attribute works

@@ -55,10 +55,16 @@
     - /plib/dpdata.py is the single module to get at these data.  You call a function
       and are returned an appropriate data structure.
 
-# 2026 /plib Plan
+# 2026 /plib vision
 
+- Consolidate into fewer files
+- Module documentation
+    - Better documentation of design decisions used in the module
+    - Must have adequate docstrings for use with pydoc
+    - Each module can have a --demo option that lets you get an overview of the features
+      and see an example of each component.  The demo code could be put in /plib/data
+      and the module would just launch it.
 - Update self-tests and ensure they pass
-- Standardize on an open source license
 - Remove specialized modules that are better stored elsewhere
 - 0what.py returns useful output for all modules
 

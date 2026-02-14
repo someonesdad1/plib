@@ -172,32 +172,34 @@ if 1:  # Utility
             def f(x, n): return round(x, n)
             for wl in range(380, 779, 5):
                 start, end = di[wl], di[wl + 5]
-                slope = [f((j - i) / 5, 10) for i, j in zip(start, end)]
+                slope = [f((j - i)/5, 10) for i, j in zip(start, end)]
                 for i in (1, 2, 3, 4):
-                    a = [f(j + k * i, 6) for j, k in zip(start, slope)]
+                    a = [f(j + k*i, 6) for j, k in zip(start, slope)]
                     di[wl + i] = a
             GetCIEDict.dict = di
         return GetCIEDict.dict
     GetCIEDict.dict = None
 if 1:  # Core functionality
     def wl2rgb(wl_nm, gamma=0.8):
-        '''Convert wl_nm (light wavelength in nm on [380, 780]) into a Color
-        object using a linear approximation.  The Color object represents an
-        RGB color.  gamma is used for a gamma adjustment.
+
+        '''Convert wl_nm (light wavelength in nm on [380, 780]) into a Color object
+        using a linear approximation.  The Color object represents an RGB color.  gamma
+        is used for a gamma adjustment.
+
         '''
         # Translation of Dan Bruton's FORTRAN code from 
         # https://www.physics.sfasu.edu/astro/color/spectra.html, which was last
         # modified 20 Feb 1996.
         if 380 <= wl_nm <= 440:
-            a = (440 - wl_nm) / (440 - 380), 0, 1
+            a = (440 - wl_nm)/(440 - 380), 0, 1
         elif 440 <= wl_nm <= 490:
-            a = 0, (wl_nm - 440) / (490 - 440), 1
+            a = 0, (wl_nm - 440)/(490 - 440), 1
         elif 490 <= wl_nm <= 510:
-            a = 0, 1, (510 - wl_nm) / (510 - 490)
+            a = 0, 1, (510 - wl_nm)/(510 - 490)
         elif 510 <= wl_nm <= 580:
-            a = (wl_nm - 510) / (580 - 510), 1, 0
+            a = (wl_nm - 510)/(580 - 510), 1, 0
         elif 580 <= wl_nm <= 645:
-            a = 1, (645 - wl_nm) / (645 - 580), 0
+            a = 1, (645 - wl_nm)/(645 - 580), 0
         elif 645 <= wl_nm <= 780:
             a = 1, 0, 0
         else:
@@ -207,13 +209,13 @@ if 1:  # Core functionality
         # Intensity i falls off near vision limits
         i, u, v = 1, 0.3, 0.7
         if wl_nm > 700:
-            i = u + v * (780 - wl_nm) / (780 - 700)
+            i = u + v*(780 - wl_nm)/(780 - 700)
         elif wl_nm < 420:
-            i = u + v * (wl_nm - 380) / (420 - 380)
+            i = u + v*(wl_nm - 380)/(420 - 380)
         # Scale the RGB components by i and raise to the gamma power if gamma
         # is nonzero.
         if gamma:
-            b = [float((i * j) ** gamma) for j in a]
+            b = [float((i*j)**gamma) for j in a]
         else:
             b = [float(i) for i in a]
         # Make sure the numbers are on [0, 1]
@@ -291,7 +293,7 @@ if 1:  # Core functionality
         def f(x, n): round(x, n)
         t = sum(XYZ)
         n = 4
-        return (f(XYZ[0] / t, n), f(XYZ[1] / t, n))
+        return (f(XYZ[0]/t, n), f(XYZ[1]/t, n))
 
 if __name__ == "__main__":
     from rgbdata import color_data
@@ -408,7 +410,7 @@ if __name__ == "__main__":
             out.append(f"{t(s)}{nm}{t.n}")
             count += 1
         if cols:
-            o = Columnize(out, indent=" " * 2, horiz=1)
+            o = Columnize(out, indent=" "*2, horiz=1)
             for line in o:
                 print(line)
         else:

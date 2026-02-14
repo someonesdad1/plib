@@ -4,7 +4,7 @@ Chop                Return a string chopped into equal parts
 CommonPrefix        Return a common prefix of a sequence of strings
 CommonSuffix        Return a common suffix of a sequence of strings
 CountLeadingSpaces  Return number of common leadings spaces in a multiline string
-Decorate            Return a decorated form of a string; make whitespace easier to see
+Decorate            Make whitespace and control characters easier to see in a string
 FilterStr           Return a function that removes characters from strings
 FilterSeqRegex      Return a sequence of strings filtered by regexes
 FindAll             Find all locations of a substring in a string
@@ -52,7 +52,7 @@ TimeStr             Readable string for time() in s
 Tokenize            Return a list of tokens from tokenizing a string
 Trim                Remove characters from a string
 WordID              Return an ID string that is somewhat pronounceable
-
+    
 Token naming conversions:
     cw2mc            Cap-words to mixed-case
     cw2us            Cap-words to underscore
@@ -75,7 +75,7 @@ if 1:  # Header
         <oo cat ∞ text oo>
         <oo test ∞ run oo>
         <oo todo ∞
-
+        
             - ∞∞1 Missing tests for GetString, WordID
             - ∞∞1 Many of these functions can be made to work with bytes
             - Convert token naming conversions to a class
@@ -414,7 +414,7 @@ if 1:  # Core functionality
         you want all the lines aligned to the left margin.  You would do this by getting
         the number of spaces n returned by this function, then removing that number of
         leading spaces from each line in the sequence.  You'd do this by 
-
+        
             s = PrepareMultilineString(s)
          
         A common pattern for defining a multiline function in a string is such as the
@@ -424,9 +424,9 @@ if 1:  # Core functionality
             Line1
             Line2
         """
-
+        
         or x = "\n    Line1\n    Line2\n        "
-
+        
         and we want the returned multiline string array to be ["····Line1", "····Line2"]
         (spaces replaced with '·' characters).  This would require removing everything
         up to the first newline (including the newline), then removing the trailing
@@ -902,7 +902,7 @@ if 1:  # Core functionality
             
         If an error occurs, the 1-based line number of the offending string will be
         printed along with the problem.
-
+        
         ∞∞2 ReadData:  This function can be made to work with bytes too
             s = b"1 2 3\n4 5 6"
             s.split(b"\n") gives [b'1 2 3', b'4 5 6'] and these can be converted to
@@ -1102,9 +1102,13 @@ if 1:  # Core functionality
         If start_end_const is True, then the first and last letters of each word are
         unchanged.  This lets you test the assertion that leaving the first and last
         letters intact but shuffling the interior letters doesn't change the readability
-        of the text.  I've found this assertion is mostly untrue except for some fairly
-        easy-to-read pieces of text; doing this scrambling on a complicated technical
-        document virtually always results in gibberish.
+        of the text.  I've found this assertion pretty much untrue except for some
+        fairly easy-to-read pieces of text.  For example, transform things like "The
+        Martian", "Tom Sawyer", and "Pride and Prejudice".  If you get away from the
+        well-known sections, you'll likely find them hard to read.  A good demonstration
+        is to get a copy of an academic paper on something out of your field and you'll
+        probably find you can understand almost nothing of it.  I did this with a long
+        article on genetics with a lot of biochemistry and it was gibberish.
         
         If you wish to save memory, make mystring a list of individual characters; then
         a copy of the string isn't made.  Note there is no check that the list's
@@ -1150,8 +1154,9 @@ if 1:  # Core functionality
                             start += 1
                             end -= 1
                         substr = s[start + 1 : end]
-                        random.shuffle(substr)  # Shuffles sequence in place
-                        s[start + 1 : end] = substr
+                        if len(substr) > 1:
+                            random.shuffle(substr)  # Shuffles sequence in place
+                            s[start + 1 : end] = substr
                 i += 1
             except IndexError:
                 break
@@ -1233,15 +1238,26 @@ if 1:  # Core functionality
         def f(s):
             return s.translate(tt)
         return f
-    def Decorate(s):
-        'Return a decorated form of a string, making whitespace easier to see'
-        if not hasattr(Decorate, "trans"):
-            # Make translation dictionary
-            di = dict(((ord(" "), "·"), (ord("\t"), "␉"),
-                       (ord("\n"), "␤"), (ord("\r"), "␍"),
-                       (ord("\f"), "␌"), (ord("\v"), "␋")))
+    def Decorate(s, encoding="UTF-8"):
+        '''Return a string that is the "decorated" form of the string s.  Here,
+        "decorated" means whitespace and control characters have Unicode character
+        substitutions that make them easier to see.  If s is bytes, it is first
+        converted to a string with the given encoding.
+        
+        Example:  " \t\n" is transformed into "·␉␊".
+        '''
+        if not hasattr(Decorate, "trans"):  # Make translation dictionary
+            di = {}
+            for i in range(0x20):
+                di[i] = chr(0x2400 + i)
+            di[0x20] = "·"
             Decorate.trans = "".maketrans(di)
-        return s.translate(Decorate.trans)
+        if isinstance(s, str):
+            return s.translate(Decorate.trans)
+        elif isinstance(s, bytes):
+            return s.decode(encoding).translate(Decorate.trans)
+        else:
+            raise TypeError("s must be a str or bytes instance")
     def RemoveCharClass(s, keys=""):
         '''Given s, a string, bytes, or bytearry, remove the characters indicated by the
         letters in the keys:
@@ -1269,7 +1285,7 @@ if 1:  # Core functionality
         characters that don't look similar to Latin letters.  The length of the string may
         increase:  for example, '∞' is changed to 'oo'.  For bytes or bytearray objects, the
         A letter results in an identity transformation.
-
+        
         For convenience, the above set of letters coding the transformation are stored in
         the RemoveCharClass.allowed_keys variable.
         '''
@@ -1287,22 +1303,22 @@ if 1:  # Core functionality
             is_str = False
         else:
             raise TypeError("s must be str, bytes, or bytearray")
-        # Class C is a notational convenience for holding the various sets of characters in
-        # the string module.  The attribute letters correspond to the letters that code the
-        # transformation.
-        class C:
-            pass
-        c = C()
-        c.d = string.digits
-        c.h = string.hexdigits
-        c.l = string.ascii_lowercase
-        c.n = string.punctuation
-        c.o = string.octdigits
-        c.p = string.printable
-        c.W = string.whitespace
-        c.w = c.W.replace("\n", "")
-        c.u = string.ascii_uppercase
-
+        if 1:
+            # Class C is a notational convenience for holding the various sets of characters in
+            # the string module.  The attribute letters correspond to the letters that code the
+            # transformation.
+            class C:
+                pass
+            c = C()
+            c.d = string.digits
+            c.h = string.hexdigits
+            c.l = string.ascii_lowercase
+            c.n = string.punctuation
+            c.o = string.octdigits
+            c.p = string.printable
+            c.W = string.whitespace
+            c.w = c.W.replace("\n", "")
+            c.u = string.ascii_uppercase
         if is_str:
             if "A" in keys:
                 s = asciify.Asciify(s)
@@ -1376,7 +1392,9 @@ if __name__ == "__main__":
     from color import t
     def Test_Decorate():
         s = "www \t\n\r\f\vzzz"
-        Assert(Decorate(s) == "www·␉␤␍␌␋zzz")
+        Assert(Decorate(s) == "www·␉␊␍␌␋zzz")
+        b = b"www \x08\t\n\r\f\vzzz"
+        Assert(Decorate(b) == "www·␈␉␊␍␌␋zzz")
     def Test_IgnoreFilter():
         seq = [ "Bob", "bob", "bobwhite", "Carol", "carol", "Alice" ]
         # Empty sequence is identity function

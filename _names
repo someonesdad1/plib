@@ -1,29 +1,30 @@
+This wavelength mapping to RGB was done with Bruton's code
 380 #610061 @d4ff61 $d430ff ( 97,   0,  97)     
 390 #79008c @ceff8c $ce46ff (121,   0, 140)     
-400 #8200b4 @c8ffb4 $c85aff (130,   0, 180)     v
+400 #8200b4 @c8ffb4 $c85aff (130,   0, 180)     v       violet
 410 #7d00da @c2ffda $c26dff (125,   0, 218)     
-420 #6900ff @bbffff $bb7fff (105,   0, 255)     p
+420 #6900ff @bbffff $bb7fff (105,   0, 255)     p       purple
 430 #3c00ff @b4ffff $b47fff ( 60,   0, 255)     
-440 #0000ff @aaffff $aa7fff (  0,   0, 255)     b
-450 #0046ff @9effff $9e7fff (  0,  70, 255)     roy
-460 #007aff @95ffff $957fff (  0, 122, 255)     den
+440 #0000ff @aaffff $aa7fff (  0,   0, 255)     b       blue
+450 #0046ff @9effff $9e7fff (  0,  70, 255)     roy     royal blue
+460 #007aff @95ffff $957fff (  0, 122, 255)     den     denim
 470 #00a9ff @8dffff $8d7fff (  0, 169, 255)     
-480 #00d5ff @86ffff $867fff (  0, 213, 255)     sky
-490 #00ffff @7fffff $7f7fff (  0, 255, 255)     c
-500 #00ff92 @6dffff $6d7fff (  0, 255, 146)     tq
-510 #00ff00 @55ffff $557fff (  0, 255,   0)     g
+480 #00d5ff @86ffff $867fff (  0, 213, 255)     sky     sky blue
+490 #00ffff @7fffff $7f7fff (  0, 255, 255)     c       cyan
+500 #00ff92 @6dffff $6d7fff (  0, 255, 146)     tq      turquoise
+510 #00ff00 @55ffff $557fff (  0, 255,   0)     g       green
 520 #35ff00 @4cffff $4c7fff ( 53, 255,   0)     
-530 #5dff00 @45ffff $457fff ( 93, 255,   0)     gy
+530 #5dff00 @45ffff $457fff ( 93, 255,   0)     gy      green-yellow
 540 #81ff00 @3fffff $3f7fff (129, 255,   0)     
-550 #a3ff00 @39ffff $397fff (163, 255,   0)     yg
+550 #a3ff00 @39ffff $397fff (163, 255,   0)     yg      yellow-green
 560 #c2ff00 @34ffff $347fff (194, 255,   0)     
 570 #e1ff00 @2fffff $2f7fff (225, 255,   0)     
-580 #ffff00 @2affff $2a7fff (255, 255,   0)     y
-590 #ffdf00 @25ffff $257fff (255, 223,   0)     yo
-600 #ffbe00 @1fffff $1f7fff (255, 190,   0)     oy
-610 #ff9b00 @19ffff $197fff (255, 155,   0)     o
+580 #ffff00 @2affff $2a7fff (255, 255,   0)     y       yellow
+590 #ffdf00 @25ffff $257fff (255, 223,   0)     yo      yellow-orange
+600 #ffbe00 @1fffff $1f7fff (255, 190,   0)     oy      orange-yellow
+610 #ff9b00 @19ffff $197fff (255, 155,   0)     o       orange
 620 #ff7600 @13ffff $137fff (255, 118,   0)      
-630 #ff4e00 @0dffff $0d7fff (255,  78,   0)     ord
+630 #ff4e00 @0dffff $0d7fff (255,  78,   0)     or      orange-red
 640 #ff2000 @05ffff $057fff (255,  32,   0)     
-650 #ff0000 @00ffff $007fff (255,   0,   0)     r
+650 #ff0000 @00ffff $007fff (255,   0,   0)     r       red
 nm    #rgb    @hsv    $hls     

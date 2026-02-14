@@ -96,13 +96,24 @@ if 1:  # Header
         <oo test ∞ --test oo>
         <oo todo ∞ 
             
-            - ∞∞1 Remove eval()/exec() stuff.  Trm.load() loads color names from a file,
-              but I don't like that it has to exec() the incoming string.  It would be
-              better if no eval() or exec() calls were made in this module.
-            - ∞∞1 .on and .off must work absolutely and reliably.  See _palette_proto.py
-              for a way of changing Trm to a dict instance to do this.
-            - ∞∞3 When printing a Trm instance that uses t.str(), output the string
-              using Columnize to the current screen width, as this is more attractive.
+            - ∞∞1 
+                - Remove eval()/exec() stuff.  Trm.load() loads color names from a file,
+                  but I don't like that it has to exec() the incoming string.  It would
+                  be better if no eval() or exec() calls were made in this module.
+                - .on and .off must work absolutely and reliably.  See _palette_proto.py
+                  for a way of changing Trm to a dict instance to do this.
+                    - .on can have three states:
+                        - None means to use stdout.isatty()
+                        - False means always off so all t.x attributes are ""
+                        - True means always on so all t.x attributes are proper escape
+                          codes
+            - ∞∞2 
+                - Move RegexpDecorate to dpstr.py
+            - ∞∞3 
+                - When printing a Trm instance that uses t.str(), output the string
+                  using Columnize to the current screen width, as this is more
+                  attractive.
+
             - RegexpDecorate.register() needs to change to an argument list of (r,
               match_style, nomatch_style) where the latter two elements are escape codes
               used to define how things should be printed.  The use case is pfind.py
@@ -112,10 +123,6 @@ if 1:  # Header
               default text style.
             - TRM attributes should be "" if .on is False
                 - This needs __getattr__ and __setattr__
-                - .on can have three states
-                    - None means to use stdout.isatty()
-                    - False means always off so all t.x attributes are ""
-                    - True means always on so all t.x attributes are proper escape codes
                 - Could change to methods:  on(), off(), none().
             - TestInvariants() is made to pass, but I'd like to see the conversion work
               exactly.  It could be a problem with decimal roundoff in the colorsys
