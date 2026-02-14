@@ -229,8 +229,11 @@ class Trm(dict):
 if 1:
     # ∞∞1 These are a good set of test cases for the Color() constructor
     styles = {  # xstylesx
-        "a": "orn",
-        "b": Color("#ff8700"),   # 8-bit #208
+        # Build in names
+        "a": "orn",         # Built-in name
+        "b1": Color("#ff8700"),   # 24-bit hex string
+        "b2": Color("$ff8700"),   # 24-bit hex string
+        "b3": Color("@ff8700"),   # 24-bit hex string
         "c": 208,           # 8-bit #208
         "d": 0xd0,          # 8-bit #208
         "e": 0o320,         # 8-bit #208
