@@ -1,5 +1,6 @@
 '''
 Decorate color specifications
+    - Add -n option to print file:linenum
     - Consider adding hex decorators to each line for convenience
     - Forms that must be recognized:
         - i = integer on [0, 255],

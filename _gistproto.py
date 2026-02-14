@@ -90,7 +90,7 @@ class Gist(dict):
 def GetGist():
     '''Construct the /plib/gist.Gist instance for this file.  This gist is 
     a dictionary used to capture essential information about the module or script to
-    allow automated tools to summarize the modules/scripts.
+    allow automated tools to summarize the module/script.
     '''
     gist = Gist()
     gist.empty()

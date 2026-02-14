@@ -22,7 +22,12 @@ if 1:  # Header
         <oo ind ∞ 8 indent oo>
         <oo cat ∞ utility oo>
         <oo test ∞ notest oo>
-        <oo todo ∞ oo>
+        <oo todo ∞ 
+
+            - ∞∞1 Need to remove some data because of licensing issues
+            - 
+
+        oo>
     '''
     if 1:  # Standard imports
         pass
@@ -10696,37 +10701,46 @@ if 1:  # Attribution dictionary
             in the early 1990's.'''),
         2: dedent('''file = medium_color_database.py
             from http://www.two4u.com/color/medium-txt.html
+            No license mentioned
             Downloaded Sat 04 Oct 2014 10:53:39 AM
             Verified Wed 16 Mar 2022 02:15:37 PM'''),
         3: dedent('''file = name_that_color.py
             from http://chir.ag/projects/ntc/ntc.js
+            Licensed under Creative Commons License Attribution 2.5
             Downloaded Sat 04 Oct 2014 10:30:39 AM
             Verified unchanged from download on Wed 16 Mar 2022 02:12:12 PM'''),
         4: dedent('''file = raveling.py
             Downloaded Sat 04 Oct 2014 10:50:16 AM
             from http://cvsweb.xfree86.org/cvsweb/~checkout~/xc/programs/rgb/others/raveling.txt
-            Link defunct on Wed 16 Mar 2022 02:16:36 PM'''),
+            No license available as website is defunct
+                Link defunct on Wed 16 Mar 2022 02:16:36 PM'''),
         5: dedent('''file = resene_pencils.py
             These pencil color definitions were downloaded from the Excel file
-            https://www.resene.co.nz/swatches/download_pencils.xls.  This was
-            converted to Open Office, the columns for name and RGB colors saved, and
-            then was saved as a CSV file.  Downloaded Wed 16 Mar 2022 04:59:10 PM.
-            After deleting names that had '-' for colors, this information was the
-            same as the file I loaded from this site on 1 Jun 2021.'''),
+            https://www.resene.co.nz/swatches/download_pencils.xls.
+            No license information on the file.  Company contacted for there preferences
+            on 13 Feb 2026.
+            This spreadsheet was converted to Open Office, the columns for name and RGB
+            colors saved, and then was saved as a CSV file.  Downloaded Wed 16 Mar 2022
+            04:59:10 PM.  After deleting names that had '-' for colors, this information
+            was the same as the file I loaded from this site on 1 Jun 2021.'''),
         6: dedent('''file = resenecolors.py
             from http://people.csail.mit.edu/jaffer/Color/resenecolours.txt
+            Resene's copyright is "Copyright Resene Paints Ltd 2001".
             Downloaded Sat 04 Oct 2014 10:23:31 AM
             Verified Wed 16 Mar 2022 02:19:16 PM'''),
         7: dedent('''file = wikipedia_list.py
             Text of the first three web pages at
             https://en.wikipedia.org/wiki/Lists_of_colors
+            Note:  wikipedia uses a CC attribution-sharealike 4.0 license
+            ∞∞1 rgbdata.py:  Remove the wikipedia data (there's 971 of them)
             Downloaded Tue 01 Jun 2021 07:08:24 PM'''),
         8: dedent('''file = xfree_rgb.py
             Downloaded Sat 04 Oct 2014 10:51:00 AM
             from http://cvsweb.xfree86.org/cvsweb/~checkout~/xc/programs/rgb/rgb.txt
-            Link is defunct as of Wed 16 Mar 2022 02:23:33 PM'''),
+                Link is defunct as of Wed 16 Mar 2022 02:23:33 PM'''),
         9: dedent('''file = xkcd_rgb.py
             from http://xkcd.com/color/rgb.txt
+            License https://creativecommons.org/publicdomain/zero/1.0/
             Downloaded Sat 04 Oct 2014 10:36:40 AM
             Verified Wed 16 Mar 2022 02:27:06 PM (equal with 'diff -w')'''),
     }

@@ -19,6 +19,11 @@ if 1:   # Header
         <oo test ∞ notest oo>
         <oo todo ∞ oo>
     '''
+    if 1:   # Standard imports
+        pass
+    if 1:   # Custom imports
+        from color import Color
+        from bidict import bidict
 if 1:   # Global variables
     colorhues = {
         "blu": {
@@ -7028,12 +7033,88 @@ if 1:   # Global variables
             "Medium Forest Green": "#6b8e23",
         },
     }
+if 1:   # Functions
+    def ClassifyHue1(color):
+        'Return hue name for the color, a Color instance'
+        if not isinstance(color, Color):
+            raise TypeError("color must be a color.Color instance")
+        h, s, v = color.ihsv
+        if (244 <= h <= 255) or (0 <= h % 255 <= 4):
+            return "red"
+        elif (5 <= h <= 15):
+            return "redorn"
+        elif (16 <= h <= 26):
+            return "orn"
+        elif (27 <= h <= 36):
+            return "ornyel"
+        elif (37 <= h <= 48):
+            return "yel"
+        elif (5 <= h <= 15):
+            return "yel"
+        elif (49 <= h <= 69):
+            return "yelgrn"
+        elif (70 <= h <= 96):
+            return "grn"
+        elif (97 <= h <= 118):
+            return "grncyn"
+        elif (119 <= h <= 136):
+            return "cyn"
+        elif (137 <= h <= 154):
+            return "cynblu"
+        elif (155 <= h <= 177):
+            return "blu"
+        elif (178 <= h <= 188):
+            return "vio"
+        elif (189 <= h <= 201):
+            return "viomag"
+        elif (202 <= h <= 222):
+            return "mag"
+        elif (223 <= h <= 243):
+            return "magred"
+        else:
+            raise Exception("Bug:  shouldn't get here")
+    def ClassifyHue2(color):
+        'Return hue name for the color, a Color instance'
+        if not hasattr(ClassifyHue2, "di"):
+            ClassifyHue2.di = GetHueClassificationDict()
+        if not isinstance(color, Color):
+            raise TypeError("color must be a color.Color instance")
+        h, s, v = color.ihsv
+        # Search the dict
+        for name in ClassifyHue2.di:
+            lo, hi = ClassifyHue2.di[name]
+            if name == "red":
+                if (lo <= h <= 255) or (0 <= h % 255 <= hi % 255):
+                    return name
+            else:
+                if lo <= h <= hi:
+                    return name
+        raise Exception("Bug:  shouldn't get here")
+    def GetHueClassificationDict():
+        return {
+            "red": (244, 259),
+            "redorn": (5, 15),
+            "orn": (16, 26),
+            "ornyel": (27, 36),
+            "yel": (37, 48),
+            "yelgrn": (49, 69),
+            "grn": (70, 96),
+            "grncyn": (97, 118),
+            "cyn": (119, 136),
+            "cynblu": (137, 154),
+            "blu": (155, 177),
+            "vio": (178, 188),
+            "viomag": (189, 201),
+            "mag": (202, 222),
+            "magred": (223, 243),
+        }
 
 if __name__ == "__main__":
     from wl2rgb import rgb2wl
     from color import t, Color
     from util import unrange
     from wrap import dedent
+    from lwtest import Assert
     def ByWavelength():
         print(dedent('''
         The following printout shows the "wavelengths" in nm making up each of the "hues" in the
@@ -7145,21 +7226,32 @@ if __name__ == "__main__":
         ByHue()
     if 0:
         ByWavelength()
+    if 1:   # Validate the colorhues dictionary
+        for hue in colorhues:
+            di = colorhues[hue]
+            for i in di:
+                c = Color(di[i])
+                Classify = ClassifyHue1 if 1 else ClassifyHue2
+                hue_name = Classify(c)
+                if hue_name != hue:
+                    print(f"{hue} {t(c)}{i}{t.n} got {hue_name} {c.ihsv}")
+        print()
     if 1:
+        print("This list gives the hue number (for HSV) for the 15 hue names I use:")
         d = {
             # Use x % 255 to get hue
-            "red": (244, 258),
+            "red": (244, 259),  # i.e., 244 to 004
             "redorn": (5, 15),
             "orn": (16, 26),
             "ornyel": (27, 36),
             "yel": (37, 48),
             "yelgrn": (49, 69),
-            "grn": (70, 97),
+            "grn": (70, 96),
             "grncyn": (97, 118),
             "cyn": (119, 136),
             "cynblu": (137, 154),
             "blu": (155, 177),
-            "vio": (178, 187),
+            "vio": (178, 188),
             "viomag": (189, 201),
             "mag": (202, 222),
             "magred": (223, 243),
