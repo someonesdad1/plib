@@ -29,155 +29,271 @@ if 1:  # Header
     if 1:  # Global variables
         pass
 if 1:  # Utility
-    def GetCIETable():
-        '''Returns a tuple of (nm, (xbar, ybar, zbar)) values to give the CIE's
-        standard method to convert from a power spectral density (PSD) function
-        to X, Y, Z tristimulus coordinates.  A PSD is integrated with these
-        numerical functions over the wavelengths of 380 to 780 nm.  These are
-        for the 2° field of view.  These numbers were derived around 1930 from
-        two experimental samples from 17 people.  The experiments were careful
-        and have been repeated, so though the samples were biased, it seems
-        they represent a large portion of humanity.
-        
-        From 204.xls downloaded from
-        https://web.archive.org/web/20170131100357/http://files.cie.co.at/204.xls
-        Thu 24 Mar 2022.
+    def GetCIEDict1931():
+        '''Returns a dict keyed by integer wavelength in nm to return the CIE 1931 Color
+        Matching Functions in X, Y, Z values.  The keys are integers on the interval
+        [380, 780] in steps of 1 nm.
         '''
-        # CIE 1931 standard colorimetric observer
-        # Columns:
-        #     wavelength, nm
-        #     xbar(wl_nm)
-        #     ybar(wl_nm)
-        #     zbar(wl_nm)
-        data = (
-            (380, (0.001368, 0.000039, 0.006450)),
-            (385, (0.002236, 0.000064, 0.010550)),
-            (390, (0.004243, 0.000120, 0.020050)),
-            (395, (0.007650, 0.000217, 0.036210)),
-            (400, (0.014310, 0.000396, 0.067850)),
-            (405, (0.023190, 0.000640, 0.110200)),
-            (410, (0.043510, 0.001210, 0.207400)),
-            (415, (0.077630, 0.002180, 0.371300)),
-            (420, (0.134380, 0.004000, 0.645600)),
-            (425, (0.214770, 0.007300, 1.039050)),
-            (430, (0.283900, 0.011600, 1.385600)),
-            (435, (0.328500, 0.016840, 1.622960)),
-            (440, (0.348280, 0.023000, 1.747060)),
-            (445, (0.348060, 0.029800, 1.782600)),
-            (450, (0.336200, 0.038000, 1.772110)),
-            (455, (0.318700, 0.048000, 1.744100)),
-            (460, (0.290800, 0.060000, 1.669200)),
-            (465, (0.251100, 0.073900, 1.528100)),
-            (470, (0.195360, 0.090980, 1.287640)),
-            (475, (0.142100, 0.112600, 1.041900)),
-            (480, (0.095640, 0.139020, 0.812950)),
-            (485, (0.057950, 0.169300, 0.616200)),
-            (490, (0.032010, 0.208020, 0.465180)),
-            (495, (0.014700, 0.258600, 0.353300)),
-            (500, (0.004900, 0.323000, 0.272000)),
-            (505, (0.002400, 0.407300, 0.212300)),
-            (510, (0.009300, 0.503000, 0.158200)),
-            (515, (0.029100, 0.608200, 0.111700)),
-            (520, (0.063270, 0.710000, 0.078250)),
-            (525, (0.109600, 0.793200, 0.057250)),
-            (530, (0.165500, 0.862000, 0.042160)),
-            (535, (0.225750, 0.914850, 0.029840)),
-            (540, (0.290400, 0.954000, 0.020300)),
-            (545, (0.359700, 0.980300, 0.013400)),
-            (550, (0.433450, 0.994950, 0.008750)),
-            (555, (0.512050, 1.000000, 0.005750)),
-            (560, (0.594500, 0.995000, 0.003900)),
-            (565, (0.678400, 0.978600, 0.002750)),
-            (570, (0.762100, 0.952000, 0.002100)),
-            (575, (0.842500, 0.915400, 0.001800)),
-            (580, (0.916300, 0.870000, 0.001650)),
-            (585, (0.978600, 0.816300, 0.001400)),
-            (590, (1.026300, 0.757000, 0.001100)),
-            (595, (1.056700, 0.694900, 0.001000)),
-            (600, (1.062200, 0.631000, 0.000800)),
-            (605, (1.045600, 0.566800, 0.000600)),
-            (610, (1.002600, 0.503000, 0.000340)),
-            (615, (0.938400, 0.441200, 0.000240)),
-            (620, (0.854450, 0.381000, 0.000190)),
-            (625, (0.751400, 0.321000, 0.000100)),
-            (630, (0.642400, 0.265000, 0.000050)),
-            (635, (0.541900, 0.217000, 0.000030)),
-            (640, (0.447900, 0.175000, 0.000020)),
-            (645, (0.360800, 0.138200, 0.000010)),
-            (650, (0.283500, 0.107000, 0.000000)),
-            (655, (0.218700, 0.081600, 0.000000)),
-            (660, (0.164900, 0.061000, 0.000000)),
-            (665, (0.121200, 0.044580, 0.000000)),
-            (670, (0.087400, 0.032000, 0.000000)),
-            (675, (0.063600, 0.023200, 0.000000)),
-            (680, (0.046770, 0.017000, 0.000000)),
-            (685, (0.032900, 0.011920, 0.000000)),
-            (690, (0.022700, 0.008210, 0.000000)),
-            (695, (0.015840, 0.005723, 0.000000)),
-            (700, (0.011359, 0.004102, 0.000000)),
-            (705, (0.008111, 0.002929, 0.000000)),
-            (710, (0.005790, 0.002091, 0.000000)),
-            (715, (0.004109, 0.001484, 0.000000)),
-            (720, (0.002899, 0.001047, 0.000000)),
-            (725, (0.002049, 0.000740, 0.000000)),
-            (730, (0.001440, 0.000520, 0.000000)),
-            (735, (0.001000, 0.000361, 0.000000)),
-            (740, (0.000690, 0.000249, 0.000000)),
-            (745, (0.000476, 0.000172, 0.000000)),
-            (750, (0.000332, 0.000120, 0.000000)),
-            (755, (0.000235, 0.000085, 0.000000)),
-            (760, (0.000166, 0.000060, 0.000000)),
-            (765, (0.000117, 0.000042, 0.000000)),
-            (770, (0.000083, 0.000030, 0.000000)),
-            (775, (0.000059, 0.000021, 0.000000)),
-            (780, (0.000042, 0.000015, 0.000000)),
-            # Sums:  (21.371524, 21.371327, 21.371540)
-        )
-        if not GetCIETable.checked:
+        if not hasattr(GetCIEDict1931, "di"):
+            '''
+            From 204.xls downloaded from
+            https://web.archive.org/web/20170131100357/http://files.cie.co.at/204.xls
+            Thu 24 Mar 2022.
+            '''
+            # CIE 1931 standard colorimetric observer
+            # Columns:
+            #     wavelength, nm
+            #     xbar(wl_nm)
+            #     ybar(wl_nm)
+            #     zbar(wl_nm)
+            data = (
+                (380, (0.001368, 0.000039, 0.006450)),
+                (385, (0.002236, 0.000064, 0.010550)),
+                (390, (0.004243, 0.000120, 0.020050)),
+                (395, (0.007650, 0.000217, 0.036210)),
+                (400, (0.014310, 0.000396, 0.067850)),
+                (405, (0.023190, 0.000640, 0.110200)),
+                (410, (0.043510, 0.001210, 0.207400)),
+                (415, (0.077630, 0.002180, 0.371300)),
+                (420, (0.134380, 0.004000, 0.645600)),
+                (425, (0.214770, 0.007300, 1.039050)),
+                (430, (0.283900, 0.011600, 1.385600)),
+                (435, (0.328500, 0.016840, 1.622960)),
+                (440, (0.348280, 0.023000, 1.747060)),
+                (445, (0.348060, 0.029800, 1.782600)),
+                (450, (0.336200, 0.038000, 1.772110)),
+                (455, (0.318700, 0.048000, 1.744100)),
+                (460, (0.290800, 0.060000, 1.669200)),
+                (465, (0.251100, 0.073900, 1.528100)),
+                (470, (0.195360, 0.090980, 1.287640)),
+                (475, (0.142100, 0.112600, 1.041900)),
+                (480, (0.095640, 0.139020, 0.812950)),
+                (485, (0.057950, 0.169300, 0.616200)),
+                (490, (0.032010, 0.208020, 0.465180)),
+                (495, (0.014700, 0.258600, 0.353300)),
+                (500, (0.004900, 0.323000, 0.272000)),
+                (505, (0.002400, 0.407300, 0.212300)),
+                (510, (0.009300, 0.503000, 0.158200)),
+                (515, (0.029100, 0.608200, 0.111700)),
+                (520, (0.063270, 0.710000, 0.078250)),
+                (525, (0.109600, 0.793200, 0.057250)),
+                (530, (0.165500, 0.862000, 0.042160)),
+                (535, (0.225750, 0.914850, 0.029840)),
+                (540, (0.290400, 0.954000, 0.020300)),
+                (545, (0.359700, 0.980300, 0.013400)),
+                (550, (0.433450, 0.994950, 0.008750)),
+                (555, (0.512050, 1.000000, 0.005750)),
+                (560, (0.594500, 0.995000, 0.003900)),
+                (565, (0.678400, 0.978600, 0.002750)),
+                (570, (0.762100, 0.952000, 0.002100)),
+                (575, (0.842500, 0.915400, 0.001800)),
+                (580, (0.916300, 0.870000, 0.001650)),
+                (585, (0.978600, 0.816300, 0.001400)),
+                (590, (1.026300, 0.757000, 0.001100)),
+                (595, (1.056700, 0.694900, 0.001000)),
+                (600, (1.062200, 0.631000, 0.000800)),
+                (605, (1.045600, 0.566800, 0.000600)),
+                (610, (1.002600, 0.503000, 0.000340)),
+                (615, (0.938400, 0.441200, 0.000240)),
+                (620, (0.854450, 0.381000, 0.000190)),
+                (625, (0.751400, 0.321000, 0.000100)),
+                (630, (0.642400, 0.265000, 0.000050)),
+                (635, (0.541900, 0.217000, 0.000030)),
+                (640, (0.447900, 0.175000, 0.000020)),
+                (645, (0.360800, 0.138200, 0.000010)),
+                (650, (0.283500, 0.107000, 0.000000)),
+                (655, (0.218700, 0.081600, 0.000000)),
+                (660, (0.164900, 0.061000, 0.000000)),
+                (665, (0.121200, 0.044580, 0.000000)),
+                (670, (0.087400, 0.032000, 0.000000)),
+                (675, (0.063600, 0.023200, 0.000000)),
+                (680, (0.046770, 0.017000, 0.000000)),
+                (685, (0.032900, 0.011920, 0.000000)),
+                (690, (0.022700, 0.008210, 0.000000)),
+                (695, (0.015840, 0.005723, 0.000000)),
+                (700, (0.011359, 0.004102, 0.000000)),
+                (705, (0.008111, 0.002929, 0.000000)),
+                (710, (0.005790, 0.002091, 0.000000)),
+                (715, (0.004109, 0.001484, 0.000000)),
+                (720, (0.002899, 0.001047, 0.000000)),
+                (725, (0.002049, 0.000740, 0.000000)),
+                (730, (0.001440, 0.000520, 0.000000)),
+                (735, (0.001000, 0.000361, 0.000000)),
+                (740, (0.000690, 0.000249, 0.000000)),
+                (745, (0.000476, 0.000172, 0.000000)),
+                (750, (0.000332, 0.000120, 0.000000)),
+                (755, (0.000235, 0.000085, 0.000000)),
+                (760, (0.000166, 0.000060, 0.000000)),
+                (765, (0.000117, 0.000042, 0.000000)),
+                (770, (0.000083, 0.000030, 0.000000)),
+                (775, (0.000059, 0.000021, 0.000000)),
+                (780, (0.000042, 0.000015, 0.000000)),
+                # Sums:  (21.371524, 21.371327, 21.371540)
+            )
             # Tasks:
             #   - Check the sums of each column
             #   - Round each float to 6 decimal places
-            #   - Cache in GetCIETable.data
             checked = []
             sumx = sumy = sumz = 0
-            def f(x):
-                return round(x, 6)
             for wl, d in data:
                 sumx += d[0]
                 sumy += d[1]
                 sumz += d[2]
-                checked.append((wl, tuple([f(i) for i in d])))
-            if f(sumx) != f(21.371524):
+                checked.append((wl, tuple([round(i, 6) for i in d])))
+            n = 6
+            if round(sumx, n) != round(21.371524, n):
                 raise ValueError("Bad x checksum")
-            if f(sumy) != f(21.371327):
+            if round(sumy, n) != round(21.371327, n):
                 raise ValueError("Bad y checksum")
-            if f(sumz) != f(21.371540):
+            if round(sumz, n) != round(21.371540, n):
                 raise ValueError("Bad z checksum")
-            GetCIETable.data = checked
-        return GetCIETable.data
-    GetCIETable.checked = False
-    GetCIETable()
-    def GetCIEDict():
-        '''Returns a dict keyed by integer wavelength in nm to return the CIE
-        1931 Color Matching Functions to convert a spectral power density to
-        tristimulus XYZ values by integration.  The keys are integers on the
-        interval [380, 780] in steps of 1.
-        '''
-        if GetCIEDict.dict is None:
-            # Linearly interpolate the GetCIETable()'s data to get 1 nm steps
+            # Linearly interpolate the data to get 1 nm steps
             di = {}
-            for wl, cmf in GetCIETable():
+            for wl, cmf in data:
                 di[wl] = cmf
-            def f(x, n): return round(x, n)
             for wl in range(380, 779, 5):
                 start, end = di[wl], di[wl + 5]
-                slope = [f((j - i)/5, 10) for i, j in zip(start, end)]
+                slope = [round((j - i)/5, 10) for i, j in zip(start, end)]
                 for i in (1, 2, 3, 4):
-                    a = [f(j + k*i, 6) for j, k in zip(start, slope)]
+                    a = [round(j + k*i, 6) for j, k in zip(start, slope)]
                     di[wl + i] = a
-            GetCIEDict.dict = di
-        return GetCIEDict.dict
-    GetCIEDict.dict = None
+            GetCIEDict1931.di = di
+        return GetCIEDict1931.di
+    def GetCIEDict1964(wl_nm):
+        '''Returns a dict keyed by integer wavelength in nm to return the CIE 1964 Color
+        Matching Functions in X, Y, Z values.  The keys are integers on the interval
+        [380, 780] in steps of 1 nm.
+        '''
+        if not hasattr(GetCIEDict1964, "di"):
+            '''
+            The raw data are from tc148_1964_standard_colorimetric_observer.pdf in my
+            /ebooks directory, downloaded 14 Feb 2026.
+            '''
+            # CIE 1964 standard colorimetric observer
+            # Columns:
+            #     wavelength, nm
+            #     xbar(wl_nm)
+            #     ybar(wl_nm)
+            #     zbar(wl_nm)
+            data = (
+                (380, (0.000160, 0.000017, 0.000705)),
+                (385, (0.000662, 0.000072, 0.002928)),
+                (390, (0.002362, 0.000253, 0.010482)),
+                (395, (0.007242, 0.000769, 0.032344)),
+                (400, (0.019110, 0.002004, 0.086011)),
+                (405, (0.043400, 0.004509, 0.197120)),
+                (410, (0.084736, 0.008756, 0.389366)),
+                (415, (0.140638, 0.014456, 0.656760)),
+                (420, (0.204492, 0.021391, 0.972542)),
+                (425, (0.264737, 0.029497, 1.282500)),
+                (430, (0.314679, 0.038676, 1.553480)),
+                (435, (0.357719, 0.049602, 1.798500)),
+                (440, (0.383734, 0.062077, 1.967280)),
+                (445, (0.386726, 0.074704, 2.027300)),
+                (450, (0.370702, 0.089456, 1.994800)),
+                (455, (0.342957, 0.106256, 1.900700)),
+                (460, (0.302273, 0.128201, 1.745370)),
+                (465, (0.254085, 0.152761, 1.554900)),
+                (470, (0.195618, 0.185190, 1.317560)),
+                (475, (0.132349, 0.219940, 1.030200)),
+                (480, (0.080507, 0.253589, 0.772125)),
+                (485, (0.041072, 0.297665, 0.570060)),
+                (490, (0.016172, 0.339133, 0.415254)),
+                (495, (0.005132, 0.395379, 0.302356)),
+                (500, (0.003816, 0.460777, 0.218502)),
+                (505, (0.015444, 0.531360, 0.159249)),
+                (510, (0.037465, 0.606741, 0.112044)),
+                (515, (0.071358, 0.685660, 0.082248)),
+                (520, (0.117749, 0.761757, 0.060709)),
+                (525, (0.172953, 0.823330, 0.043050)),
+                (530, (0.236491, 0.875211, 0.030451)),
+                (535, (0.304213, 0.923810, 0.020584)),
+                (540, (0.376772, 0.961988, 0.013676)),
+                (545, (0.451584, 0.982200, 0.007918)),
+                (550, (0.529826, 0.991761, 0.003988)),
+                (555, (0.616053, 0.999110, 0.001091)),
+                (560, (0.705224, 0.997340, 0.000000)),
+                (565, (0.793832, 0.982380, 0.000000)),
+                (570, (0.878655, 0.955552, 0.000000)),
+                (575, (0.951162, 0.915175, 0.000000)),
+                (580, (1.014160, 0.868934, 0.000000)),
+                (585, (1.074300, 0.825623, 0.000000)),
+                (590, (1.118520, 0.777405, 0.000000)),
+                (595, (1.134300, 0.720353, 0.000000)),
+                (600, (1.123990, 0.658341, 0.000000)),
+                (605, (1.089100, 0.593878, 0.000000)),
+                (610, (1.030480, 0.527963, 0.000000)),
+                (615, (0.950740, 0.461834, 0.000000)),
+                (620, (0.856297, 0.398057, 0.000000)),
+                (625, (0.754930, 0.339554, 0.000000)),
+                (630, (0.647467, 0.283493, 0.000000)),
+                (635, (0.535110, 0.228254, 0.000000)),
+                (640, (0.431567, 0.179828, 0.000000)),
+                (645, (0.343690, 0.140211, 0.000000)),
+                (650, (0.268329, 0.107633, 0.000000)),
+                (655, (0.204300, 0.081187, 0.000000)),
+                (660, (0.152568, 0.060281, 0.000000)),
+                (665, (0.112210, 0.044096, 0.000000)),
+                (670, (0.081261, 0.031800, 0.000000)),
+                (675, (0.057930, 0.022602, 0.000000)),
+                (680, (0.040851, 0.015905, 0.000000)),
+                (685, (0.028623, 0.011130, 0.000000)),
+                (690, (0.019941, 0.007749, 0.000000)),
+                (695, (0.013842, 0.005375, 0.000000)),
+                (700, (0.009577, 0.003718, 0.000000)),
+                (705, (0.006605, 0.002565, 0.000000)),
+                (710, (0.004553, 0.001768, 0.000000)),
+                (715, (0.003145, 0.001222, 0.000000)),
+                (720, (0.002175, 0.000846, 0.000000)),
+                (725, (0.001506, 0.000586, 0.000000)),
+                (730, (0.001045, 0.000407, 0.000000)),
+                (735, (0.000727, 0.000284, 0.000000)),
+                (740, (0.000508, 0.000199, 0.000000)),
+                (745, (0.000356, 0.000140, 0.000000)),
+                (750, (0.000251, 0.000098, 0.000000)),
+                (755, (0.000178, 0.000070, 0.000000)),
+                (760, (0.000126, 0.000050, 0.000000)),
+                (765, (0.000090, 0.000036, 0.000000)),
+                (770, (0.000065, 0.000025, 0.000000)),
+                (775, (0.000046, 0.000018, 0.000000)),
+                (780, (0.000033, 0.000013, 0.000000)),
+                # Sums  X = 23.329353, Y = 23.332036, Z = 23.334153
+            )
+            # Tasks:
+            #   - Check the sums of each column
+            #   - Round each float to 6 decimal places
+            checked = []
+            sumx = sumy = sumz = 0
+            for wl, cmf in data:
+                sumx += cmf[0]
+                sumy += cmf[1]
+                sumz += cmf[2]
+                checked.append((wl, tuple([round(i, 6) for i in cmf])))
+            n = 6
+            if round(sumx, n) != round(23.329353, n):
+                raise ValueError("Bad x checksum")
+            if round(sumy, n) != round(23.332036, n):
+                raise ValueError("Bad y checksum")
+            if round(sumz, n) != round(23.334153, n):
+                raise ValueError("Bad z checksum")
+            # Linearly interpolate the data to get 1 nm steps
+            di = {}
+            for wl, cmf in checked:
+                di[wl] = cmf
+            for wl in range(380, 779, 5):
+                start, end = di[wl], di[wl + 5]
+                slope = [round((j - i)/5, 10) for i, j in zip(start, end)]
+                for i in (1, 2, 3, 4):
+                    a = [round(j + k*i, 6) for j, k in zip(start, slope)]
+                    di[wl + i] = a
+            GetCIEDict1964.di = di
+        return GetCIEDict1964.di
+
+if __name__ == "__main__":  
+    from pprint import pprint as pp
+    pp(GetCIEDict1964(779))
+    exit()
+
 if 1:  # Light wavelength to & from RGB colors
     '''
 
@@ -224,271 +340,85 @@ if 1:  # Light wavelength to & from RGB colors
 
 
     '''
-    def CIE1964Colorimetric(wl_nm):
-        '''Return (X, Y, Z) for wavelength in nm.  This table is in 5 nm steps and we'll
-        use linear interpolation to get intermediate points.
-        '''
-        if not hasattr(CIE1964Colorimetric, "data"):
-            # In the following, wl is in nm and X, Y, Z are the usual CIE coordinates
-            cie_1964_colorimetric = {
-               #wl      X        Y        Z   
-                380: (0.000160, 0.000017, 0.000705),
-                385: (0.000662, 0.000072, 0.002928),
-                390: (0.002362, 0.000253, 0.010482),
-                395: (0.007242, 0.000769, 0.032344),
-                400: (0.019110, 0.002004, 0.086011),
-                405: (0.043400, 0.004509, 0.197120),
-                410: (0.084736, 0.008756, 0.389366),
-                415: (0.140638, 0.014456, 0.656760),
-                420: (0.204492, 0.021391, 0.972542),
-                425: (0.264737, 0.029497, 1.282500),
-                430: (0.314679, 0.038676, 1.553480),
-                435: (0.357719, 0.049602, 1.798500),
-                440: (0.383734, 0.062077, 1.967280),
-                445: (0.386726, 0.074704, 2.027300),
-                450: (0.370702, 0.089456, 1.994800),
-                455: (0.342957, 0.106256, 1.900700),
-                460: (0.302273, 0.128201, 1.745370),
-                465: (0.254085, 0.152761, 1.554900),
-                470: (0.195618, 0.185190, 1.317560),
-                475: (0.132349, 0.219940, 1.030200),
-                480: (0.080507, 0.253589, 0.772125),
-                485: (0.041072, 0.297665, 0.570060),
-                490: (0.016172, 0.339133, 0.415254),
-                495: (0.005132, 0.395379, 0.302356),
-                500: (0.003816, 0.460777, 0.218502),
-                505: (0.015444, 0.531360, 0.159249),
-                510: (0.037465, 0.606741, 0.112044),
-                515: (0.071358, 0.685660, 0.082248),
-                520: (0.117749, 0.761757, 0.060709),
-                525: (0.172953, 0.823330, 0.043050),
-                530: (0.236491, 0.875211, 0.030451),
-                535: (0.304213, 0.923810, 0.020584),
-                540: (0.376772, 0.961988, 0.013676),
-                545: (0.451584, 0.982200, 0.007918),
-                550: (0.529826, 0.991761, 0.003988),
-                555: (0.616053, 0.999110, 0.001091),
-                560: (0.705224, 0.997340, 0.000000),
-                565: (0.793832, 0.982380, 0.000000),
-                570: (0.878655, 0.955552, 0.000000),
-                575: (0.951162, 0.915175, 0.000000),
-                580: (1.014160, 0.868934, 0.000000),
-                585: (1.074300, 0.825623, 0.000000),
-                590: (1.118520, 0.777405, 0.000000),
-                595: (1.134300, 0.720353, 0.000000),
-                600: (1.123990, 0.658341, 0.000000),
-                605: (1.089100, 0.593878, 0.000000),
-                610: (1.030480, 0.527963, 0.000000),
-                615: (0.950740, 0.461834, 0.000000),
-                620: (0.856297, 0.398057, 0.000000),
-                625: (0.754930, 0.339554, 0.000000),
-                630: (0.647467, 0.283493, 0.000000),
-                635: (0.535110, 0.228254, 0.000000),
-                640: (0.431567, 0.179828, 0.000000),
-                645: (0.343690, 0.140211, 0.000000),
-                650: (0.268329, 0.107633, 0.000000),
-                655: (0.204300, 0.081187, 0.000000),
-                660: (0.152568, 0.060281, 0.000000),
-                665: (0.112210, 0.044096, 0.000000),
-                670: (0.081261, 0.031800, 0.000000),
-                675: (0.057930, 0.022602, 0.000000),
-                680: (0.040851, 0.015905, 0.000000),
-                685: (0.028623, 0.011130, 0.000000),
-                690: (0.019941, 0.007749, 0.000000),
-                695: (0.013842, 0.005375, 0.000000),
-                700: (0.009577, 0.003718, 0.000000),
-                705: (0.006605, 0.002565, 0.000000),
-                710: (0.004553, 0.001768, 0.000000),
-                715: (0.003145, 0.001222, 0.000000),
-                720: (0.002175, 0.000846, 0.000000),
-                725: (0.001506, 0.000586, 0.000000),
-                730: (0.001045, 0.000407, 0.000000),
-                735: (0.000727, 0.000284, 0.000000),
-                740: (0.000508, 0.000199, 0.000000),
-                745: (0.000356, 0.000140, 0.000000),
-                750: (0.000251, 0.000098, 0.000000),
-                755: (0.000178, 0.000070, 0.000000),
-                760: (0.000126, 0.000050, 0.000000),
-                765: (0.000090, 0.000036, 0.000000),
-                770: (0.000065, 0.000025, 0.000000),
-                775: (0.000046, 0.000018, 0.000000),
-                780: (0.000033, 0.000013, 0.000000),
-            # Sums  X = 23.329353, Y = 23.332036, Z = 23.334153
-            }
-            CIE1964Colorimetric.di = cie_1964_colorimetric
-            di = CIE1964Colorimetric.di
-            # Check the sums
-            sX, sY, sZ = 0, 0, 0
-            for i in di:
-                X, Y, Z = di[i]
-                sX += X
-                sY += Y
-                sZ += Z
-            sX, sY = [round(i, 6) for i in (sX, sY)]
-            sZ = round(sZ, 9)
-            assert sX == 23.329353
-            assert sY == 23.332036
-            assert sZ == 23.334153
-        if not (380 <= wl_nm <= 780):
-            raise ValueError(f"Wavelength {wl_nm!r} is outside [380, 780] nm")
-        di = CIE1964Colorimetric.di
-        "wl      X        Y        Z   "
-        "380 0.000160 0.000017 0.000705"
 if 0: # ∞∞ 
     CIE1964Colorimetric(555)
     exit()
 
 if 1:   # https://stackoverflow.com/questions/3407942/rgb-values-of-visible-spectrum
-    '''
+    def SunSpectrum(wl_nm):
+        '''Given a light wavelength wl_nm in nm, returns a Color instance representing
+        this color.
+        
+        Ref:  https://stackoverflow.com/questions/3407942/rgb-values-of-visible-spectrum
+           
+        Opinion:  the person who posted this algorithm referenced a defunct picture seen
+        on the web a few decades ago of a detailed Fraunhoffer spectrum of sunlight.  I
+        remember seeing it around 1990-2000, marveling at the number of absorption lines
+        in the spectrum.  This algorithm is probably intended to reproduce the colors
+        shown in the picture and it looks like it probably does a reasonable job of
+        reproducing the colors I remember seeing when using a B&L monochromator in the
+        1960's, particularly the fall-off at the low and high values.
 
-    Spektre's response included a picture of a solar Fraunhoffer lines spectrum I
-    remember seeing on the web.  He produced a C function for it:
-
-    // Source - https://stackoverflow.com/a/22681410
-    // Posted by Spektre, modified by community. See post 'Timeline' for change history
-    // Retrieved 2026-02-15, License - CC BY-SA 4.0
-
-    void spectral_color(double &r,double &g,double &b,double l) // RGB <0,1> <- lambda l <400,700> [nm]
-        {
-        double t;  r=0.0; g=0.0; b=0.0;
+        '''
+        '''
+        C code Downloaded 15 Feb 2026
+        l is wavelength in nm; r, g, b on [0, 1] returned
+        void spectral_color(double &r,double &g,double &b,double l) // RGB <0,1> <- lambda l <400,700> [nm]
+            {
+            double t;  r=0.0; g=0.0; b=0.0;
             if ((l>=400.0)&&(l<410.0)) { t=(l-400.0)/(410.0-400.0); r=    +(0.33*t)-(0.20*t*t); }
-        else if ((l>=410.0)&&(l<475.0)) { t=(l-410.0)/(475.0-410.0); r=0.14         -(0.13*t*t); }
-        else if ((l>=545.0)&&(l<595.0)) { t=(l-545.0)/(595.0-545.0); r=    +(1.98*t)-(     t*t); }
-        else if ((l>=595.0)&&(l<650.0)) { t=(l-595.0)/(650.0-595.0); r=0.98+(0.06*t)-(0.40*t*t); }
-        else if ((l>=650.0)&&(l<700.0)) { t=(l-650.0)/(700.0-650.0); r=0.65-(0.84*t)+(0.20*t*t); }
+            else if ((l>=410.0)&&(l<475.0)) { t=(l-410.0)/(475.0-410.0); r=0.14         -(0.13*t*t); }
+            else if ((l>=545.0)&&(l<595.0)) { t=(l-545.0)/(595.0-545.0); r=    +(1.98*t)-(     t*t); }
+            else if ((l>=595.0)&&(l<650.0)) { t=(l-595.0)/(650.0-595.0); r=0.98+(0.06*t)-(0.40*t*t); }
+            else if ((l>=650.0)&&(l<700.0)) { t=(l-650.0)/(700.0-650.0); r=0.65-(0.84*t)+(0.20*t*t); }
+            
             if ((l>=415.0)&&(l<475.0)) { t=(l-415.0)/(475.0-415.0); g=             +(0.80*t*t); }
-        else if ((l>=475.0)&&(l<590.0)) { t=(l-475.0)/(590.0-475.0); g=0.8 +(0.76*t)-(0.80*t*t); }
-        else if ((l>=585.0)&&(l<639.0)) { t=(l-585.0)/(639.0-585.0); g=0.84-(0.84*t)           ; }
+            else if ((l>=475.0)&&(l<590.0)) { t=(l-475.0)/(590.0-475.0); g=0.8 +(0.76*t)-(0.80*t*t); }
+            else if ((l>=585.0)&&(l<639.0)) { t=(l-585.0)/(639.0-585.0); g=0.84-(0.84*t)           ; }
+            
             if ((l>=400.0)&&(l<475.0)) { t=(l-400.0)/(475.0-400.0); b=    +(2.20*t)-(1.50*t*t); }
-        else if ((l>=475.0)&&(l<560.0)) { t=(l-475.0)/(560.0-475.0); b=0.7 -(     t)+(0.30*t*t); }
-        }
-
-    where l is wavelength in nm in [400, 700] and r,g,b are RGB components on [0, 1].
-
-    '''
-    def spektre(wl_nm):
+            else if ((l>=475.0)&&(l<560.0)) { t=(l-475.0)/(560.0-475.0); b=0.7 -(     t)+(0.30*t*t); }
+            }
+        '''
+        if not (400 <= wl_nm <= 700):
+            raise ValueError("Wavelength wl_nm must be on [400, 700]")
+        r, g, b = 0, 0, 0
         if 1:   # Red
             if 400 <= wl_nm < 410:
                 t = (wl_nm - 400)/(410 - 400)
-                r = (0.33 - 0.20*t)*t
+                r = 0.33*t - 0.20*t*t
             elif 410 <= wl_nm < 475:
                 t = (wl_nm - 410)/(475 - 410)
                 r = 0.14 - 0.13*t*t
             elif 545 <= wl_nm < 595:
                 t = (wl_nm - 545)/(595 - 545)
-                r = (1.98 - t)*t
+                r = 1.98*t - t*t
             elif 595 <= wl_nm < 650:
                 t = (wl_nm - 595)/(650 - 595)
-                r = 0.98 + (0.06 - 0.40)*t
+                r = 0.98 + 0.06*t - 0.40*t*t
             elif 650 <= wl_nm < 700:
                 t = (wl_nm - 650)/(700 - 650)
-                r = 0.65 - (0.84 + 0.20)*t
+                r = 0.65 - 0.84*t + 0.20*t*t
         if 1:   # Green
             if 415 <= wl_nm < 475:
                 t = (wl_nm - 415)/(475 - 415)
                 g = 0.80*t*t
             elif 475 <= wl_nm < 590:
                 t = (wl_nm - 475)/(590 - 475)
-                g = 0.8 +(0.76 - 0.80)*t
+                g = 0.8 + 0.76*t - 0.80*t*t
             elif 585 <= wl_nm < 639:
                 t = (wl_nm - 585)/(639 - 585)
-                g = 0.84*(1 - t)
+                g = 0.84 - 0.84*t
         if 1:   # Blue
             if 400 <= wl_nm < 475:
                 t = (wl_nm - 400)/(475 - 400)
-                b = (2.2 - 1.5)*t
+                b = 2.2*t - 1.5*t*t
             elif 475 <= wl_nm < 560:
                 t = (wl_nm - 475)/(560 - 475)
                 b = 0.7 - t + 0.30*t*t
-        return (r, g, b)
-
-    rgb = spektre(555)
-    def ToIntRGB(rgb):
-        'Convert 3-tuple of floats on [0, 1] to [0, 255]
-        x = [max(0, 
-        x = [i*256 for i in rgb]
-    print(spektre(555))
-    exit() #yy
-
-    '''
-    Translation of a Javascript method
-
-    bobtato's answer at bottom of
-    https://stackoverflow.com/questions/3407942/rgb-values-of-visible-spectrum.  Text of
-    the response:
-
-    I found Spektre's answer useful, in that many people won't be in a position to apply
-    the rigorous CIE-based methodology from other answers, but would still like a
-    ready-to-run solution with some basis in physical reality.
-
-    To that end, I made a revised algorithm by fitting Spektre's data with a B-spline of
-    degree 2 using wavelength as the parameter. This has the advantage that the RGB
-    color varies smoothly with wavelength (it has a continuous first derivative), and is
-    a bit simpler since most of the calculation has been done in advance. This form is
-    also amenable to vector (SIMD) processing, where that is relevant.
-
-    The array in this function contains the bounding wavelengths for each span (in nm),
-    and between each boundary there are three sets of λ², λ¹ and λ⁰ coefficients – one
-    each for red, green and blue.
-
-    If you want to use different units, you can convert the boundary values accordingly
-    (but reverse the search order if you are using reciprocal units, e.g. THz, eV or
-    cm-1).
-
-    You can also premultiply all the coefficients by 255 (and cast to int) if you want
-    to generate 8-bit color components directly.
-    
-    function wavelengthToRGB (λ) {
-        const C=[
-            350,
-                3.08919e-5,-2.16243e-2, 3.78425e+0,
-                0.00000e+0, 0.00000e+0, 0.00000e+0,
-                4.33926e-5,-3.03748e-2, 5.31559e+0,
-            397,
-            -5.53952e-5, 4.68877e-2,-9.81537e+0,
-                6.13203e-5,-4.86883e-2, 9.66463e+0,
-                4.41410e-4,-3.46401e-1, 6.80468e+1,
-            423,
-            -3.09111e-5, 2.61741e-2,-5.43445e+0,
-                1.85633e-4,-1.53857e-1, 3.19077e+1,
-            -4.58520e-4, 4.14940e-1,-9.29768e+1,
-            464,
-                2.86786e-5,-2.91252e-2, 7.39499e+0,
-            -1.66581e-4, 1.72997e-1,-4.39224e+1,
-                4.37994e-7,-1.09728e-2, 5.83495e+0,
-            514,
-                2.06226e-4,-2.11644e-1, 5.43024e+1,
-            -6.65652e-5, 7.01815e-2,-1.74987e+1,
-                9.41471e-5,-1.07306e-1, 3.05925e+1,
-            565,
-            -2.78514e-4, 3.36113e-1,-1.00439e+2,
-            -1.79851e-4, 1.98194e-1,-5.36623e+1,
-                1.12142e-5,-1.35916e-2, 4.11826e+0,
-            606,
-            -1.44403e-4, 1.73570e-1,-5.11884e+1,
-                2.47312e-4,-3.19527e-1, 1.03207e+2,
-                0.00000e+0, 0.00000e+0, 0.00000e+0,
-            646,
-                6.24947e-5,-9.37420e-2, 3.51532e+1,
-                0.00000e+0, 0.00000e+0, 0.00000e+0,
-                0.00000e+0, 0.00000e+0, 0.00000e+0,
-            750
-        ];
-        let [r,g,b] = [0,0,0];
-        if (λ >= C[0] && λ < C[C.length-1]) {
-            for (let i=0; i<C.length; i+=10) {
-                if (λ < C[i+10]) {
-                    const λ2 = λ*λ;
-                    r = C[i+1]*λ2 + C[i+2]*λ + C[i+3];
-                    g = C[i+4]*λ2 + C[i+5]*λ + C[i+6];
-                    b = C[i+7]*λ2 + C[i+8]*λ + C[i+9];
-                    break;
-                }
-            }
-        }
-        return [r,g,b];
-    }
-    '''
+        result = (r, g, b)
+        assert all(0 <= i <= 1 for i in (r, g, b)), f"Problem RGB component(s) {result}"
+        return Color(*result)
 
 if 1:   # Original wl2rgb
     def wl2rgb(wl_nm, gamma=0.8):
@@ -593,7 +523,7 @@ if 1:   # Original wl2rgb
         that correspond to a wavelength.  Spot checks against a few 1931
         chromaticity diagrams indicate the correct values have been gotten.
         '''
-        di = GetCIEDict()
+        di = GetCIEDict1931()
         wl = int(wl_nm)
         if wl not in di:
             msg = f"'{wl_nm}' isn't an integer wavelength in [380, 780]"
@@ -709,14 +639,16 @@ if __name__ == "__main__":
                         wl = rgb2wl(c)
                         t.print(f"{', '.join(str(i) for i in rgb)} is {t(c)}this color{t.n}, "
                                 f"about {wl} nm")
-    def SteppedWavelengths(step_nm, cols=True):
-        gamma = 0.8
-        print(f"Wavelength in steps of {step_nm} nm to RGB colors")
+    def SteppedWavelengths(step_nm, cols=True, func="wl2rgb"):
+        print(f"Wavelength in steps of {step_nm} nm to RGB colors ({func})")
         out, count = [], 0
         for nm in range(380, 781, step_nm):
-            colornum = wl2rgb(nm, gamma=gamma)
-            s = colornum.xrgb
-            out.append(f"{t(s)}{nm}{t.n}")
+            try:
+                c = wl2rgb(nm) if func == "wl2rgb" else SunSpectrum(nm)
+                s = c.xrgb
+                out.append(f"{t(s)}{nm}{t.n}")
+            except ValueError:
+                out.append(f"   ")
             count += 1
         if cols:
             o = Columnize(out, indent=" "*2, horiz=1)
@@ -726,6 +658,15 @@ if __name__ == "__main__":
             for line in out:
                 print(line)
         print(f"{count} wavelengths printed")
+    def CompareWavelengthFormulas(step_nm=10):
+        print("Compares the two wavelength formulas ($hls) (1:SunSpectrum, 2:wl2rgb)")
+        for wl in range(400, 700 + step_nm, step_nm):
+            cx, cy = SunSpectrum(wl), wl2rgb(wl)
+            t.x, t.y = t(cx), t(cy)
+            print(f"{wl} ", end="")
+            print(f"1:{cx.xhls!s:8s} ", end="")
+            print(f"2:{cy.xhls!s:8s} ", end="")
+            t.print(f"1:{t.x}SunSpectrum  2:{t.y}wl2rgb")
     def Names():
         'Show wavelengths with name candidates'
         gamma = 0.8
@@ -749,10 +690,8 @@ if __name__ == "__main__":
         t.on = True
         #Decorate()
         #print()
-        #SteppedWavelengths(2)
-        #print()
-        SteppedWavelengths(5)
+        SteppedWavelengths(10, func="wl2rgb")
         print()
-        SteppedWavelengths(10)
+        SteppedWavelengths(10, func="SunSpectrum")
         print()
-        SteppedWavelengths(20)
+        CompareWavelengthFormulas()

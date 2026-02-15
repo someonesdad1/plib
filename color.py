@@ -187,6 +187,7 @@ if 1:  # Header
         from columnize import Columnize
         from wsl import wsl
         from wrap import dedent
+        import dpseq
         import get
         from dpprint import PP
         import termtables as tt
@@ -2064,6 +2065,9 @@ if 1:  # Utility functions
             seq2 = rgb2
         d = [(i - j) ** 2 for i, j in zip(seq1, seq2)]
         return math.isqrt(sum(d))
+    def ToIntRGB(rgb):
+        'Convert 3-tuple of floats on [0, 1] to [0, 255]'
+        return tuple(dpseq.Clamp((int(i*256) for i in rgb), low=0, high=255, typ=int))
 if 0:  # Prototyping area
     # Develop new escape-code styles for RegexpDecorate.register()
     s = "Hello world"

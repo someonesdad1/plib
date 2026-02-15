@@ -16,7 +16,7 @@ if 1:  # Header
         <oo cat ∞ utility oo>
         <oo test ∞ run oo>
         <oo todo ∞ 
-
+        
             - Add smatrix class
                 - Simple matrices from sequences:  for manipulation only
                 - Uses flat sequences with a size or a nested sequence
@@ -40,7 +40,7 @@ if 1:  # Header
                       column vector
                     - Sequence with matrix size tuple:  produces matrix
                     - Nested sequence:  produces 2D matrix
-
+        
         oo>
     '''
     if 1:  # Standard imports
@@ -48,8 +48,8 @@ if 1:  # Header
         import bisect
         import operator
     if 1:  # Custom imports
-        from f import flt
-        from lwtest import Assert, raises
+        #from f import flt
+        #from lwtest import Assert, raises
         if 0:
             import debug
             debug.SetDebugger()
@@ -291,7 +291,7 @@ if 1:   # Get or transform numbers from a sequence
         '''Generator to return elements of a sequence "clamped" to an interval.  The
         type of the returned value is typ if not None; otherwise, it's the same type as
         the element processed.
-
+        
         Example:  list(Clamp((-0.02, 0.4, 1.6), low=0, high=1.5, typ=float)) returns
             [0.0, 0.4, 1.5].
         '''
@@ -406,10 +406,10 @@ if 1:   # Finding duplicates in sequences
         has the elements in seq that are not duplicates.  dup contains the elements that
         are duplicates of earlier elements in the list.  Both dup and nodup maintain the
         order of the elements in the original sequence.
-
+        
         This function will work on arbitrary sequences.  If you know the sequence only
         contains hashable objects, use DupNodupHashable().
-
+        
         If type_important is True, then itemA and itemB are defined to be duplicates iff
         both 'itemA == itemB' and 'type(itemA) is type(itemB)' expressions are True.
         This is useful in situations where e.g. you don't want the integer 1 and the
@@ -422,7 +422,7 @@ if 1:   # Finding duplicates in sequences
                 dup   = [1, 1.0]
             because 1 == 1.0, so the second 1 and the 1.0 in seq are considered
             duplicates.
-
+        
             DupNodup([1, 2, 3, 1, 4, 1.0], type_important=True) returns 
                 nodup = [1, 2, 3, 4, 1.0]
                 dup   = [1]
@@ -494,14 +494,14 @@ if __name__ == "__main__":
                 for i in (3, 4, 5, 6):
                     seq = list(range(10**i)) + [0.0]  # seq has one duplicate
                     tm = timeit.timeit('DupNodup(seq, type_important=b)', globals=globals(), number=1)
-                    print(f"    1e{i}:  {flt(tm).engsi}s")
+                    print(f"    1e{i}:  {f.flt(tm).engsi}s")
             print("DupNodupSlow")
             for b, seq in ((True, "Type not important"), (False, "Type important")):
                 print(f"  {seq}")
                 for i in (2, 3, 4):
                     seq = list(range(10**i)) + [0.0]  # seq has one duplicate
                     tm = timeit.timeit('DupNodupSlow(seq, type_important=b)', globals=globals(), number=1)
-                    print(f"    1e{i}:  {flt(tm).engsi}s")
+                    print(f"    1e{i}:  {f.flt(tm).engsi}s")
     if 1:  # Testing functions
         def Test_SearchingSortedSequences():
             seq = [0, 1, 2, 3, 4, 5]
@@ -596,10 +596,11 @@ if __name__ == "__main__":
                     def dist(self, other):
                         x = (self.x - other.x) ** 2
                         y = (self.y - other.y) ** 2
-                        return flt((x + y) ** 0.5)
+                        return f.flt((x + y) ** 0.5)
                 seq = (Pt(0, 0), Pt(-3, 6), Pt(4, 8), Pt(2, 0))
                 f = partial(GetClosest, is_sorted=None)
-                def metric(a, b): return a.dist(b)
+                def metric(a, b):
+                    return a.dist(b)
                 Assert(f(Pt(0.1, 0.1), seq, distance=metric) == Pt(0, 0))
                 Assert(f(Pt(-0.1, -0.1), seq, distance=metric) == Pt(0, 0))
                 Assert(f(Pt(-100, 0.1), seq, distance=metric) == Pt(-3, 6))
@@ -651,9 +652,9 @@ if __name__ == "__main__":
             s = ["1", "2.", 3, 4., "five"]
             Assert(GetNum(s) == [1, 3, 4])
             Assert(GetNum(s, typ=float) == [1.0, 2.0, 3.0, 4.0])
-            Assert(GetNum(s, typ=flt) == [1.0, 2.0, 3.0, 4.0])
+            Assert(GetNum(s, typ=f.flt) == [1.0, 2.0, 3.0, 4.0])
             Assert(GetNum(s, typ=D) == [D(1), D(2), D(3), D(4)])
-            Assert(GetNum(["1.0093753795"], typ=flt) == [1.0093753795])
+            Assert(GetNum(["1.0093753795"], typ=f.flt) == [1.0093753795])
         def Test_Clamp():
             rgb = (0.03, 1.223, 0.855)
             RGB = tuple(Clamp(rgb))     # Default behavior
@@ -663,6 +664,5 @@ if __name__ == "__main__":
             Assert(RGB == (7, 255, 218))
             RGB = tuple(Clamp((int(i*256) for i in rgb), low=0, high=255, typ=D))
             Assert(RGB == (D(7), D(255), D(218)))
-
     GetColors()
     exit(run(globals(), halt=True)[0])
