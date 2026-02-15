@@ -271,7 +271,7 @@ if 1:   # Searching sorted sequences from bisect module
         if i:
             return seq[i-1]
         raise ValueError(f"No rightmost value <= {x}")
-if 1:   # Get numbers
+if 1:   # Get or transform numbers from a sequence
     def GetNum(seq, typ=int):
         '''Return a list of numbers found in sequence seq.  The intent is that all the
         elements of seq that can be converted to a number of type typ will be returned
@@ -287,6 +287,23 @@ if 1:   # Get numbers
             except Exception:
                 return None
         return [i for i in map(Num, seq) if i is not None]
+    def Clamp(seq, low=0, high=1, typ=None):
+        '''Generator to return elements of a sequence "clamped" to an interval.  The
+        type of the returned value is typ if not None; otherwise, it's the same type as
+        the element processed.
+
+        Example:  list(Clamp((-0.02, 0.4, 1.6), low=0, high=1.5, typ=float)) returns
+            [0.0, 0.4, 1.5].
+        '''
+        for x in seq:
+            T = type(x) if typ is None else typ
+            if x < low:
+                yield T(low)
+            elif x > high:
+                yield T(high)
+            else:
+                yield T(x)
+            
 if 1:   # Finding duplicates in sequences
     if 0:   # Notes
         '''
@@ -637,5 +654,15 @@ if __name__ == "__main__":
             Assert(GetNum(s, typ=flt) == [1.0, 2.0, 3.0, 4.0])
             Assert(GetNum(s, typ=D) == [D(1), D(2), D(3), D(4)])
             Assert(GetNum(["1.0093753795"], typ=flt) == [1.0093753795])
+        def Test_Clamp():
+            rgb = (0.03, 1.223, 0.855)
+            RGB = tuple(Clamp(rgb))     # Default behavior
+            Assert(RGB == (0.03, 1.0, 0.855))
+            # Typical use case:  scaling (r, g, b) when elements on [0, 1] to int on [0, 255]
+            RGB = tuple(Clamp((int(i*256) for i in rgb), low=0, high=255, typ=int))
+            Assert(RGB == (7, 255, 218))
+            RGB = tuple(Clamp((int(i*256) for i in rgb), low=0, high=255, typ=D))
+            Assert(RGB == (D(7), D(255), D(218)))
+
     GetColors()
     exit(run(globals(), halt=True)[0])

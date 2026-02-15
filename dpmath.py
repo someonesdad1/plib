@@ -59,6 +59,8 @@ if 1:  # Classes
         Suggested from python 2 code given by Ross Rogers at
         (http://stackoverflow.com/questions/147713/how-do-i-manipulate-bits-in-python)
         dated 29 Sep 2008.
+        
+        ∞∞3 Should compare to bitarray and toss if outdated
         '''
         def __repr__(self):
             return "bitvector({})".format(self)

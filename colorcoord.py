@@ -131,12 +131,7 @@ if 1:  # Utility
         def f(x): 
             return min(max(0.0, x), 1.0)
         return tuple([f(i) for i in a]) if IsIterable(a) else f(a)
-if 1:  # Core functionality
-    def xy_to_sRGB(xy, Y=1):
-        def f(x):
-            return tuple([round(float(i), 4) for i in x])
-        XYZ = xy_to_XYZ(xy, Y)
-        return f(XYZ_to_sRGB(XYZ))
+if 1:  # XYZ to/from sRGB   
     def sRGB_to_XYZ(srgb, hires=False):
         '''Returns a tuple of XYZ values for an sRGB tuple.  All values in srgb must be
         on [0, 1].  sRGB to CIE XYZ from
@@ -185,22 +180,27 @@ if 1:  # Core functionality
         XYZ = tuple(round(i, n) for i in XYZ)
         return XYZ
     def XYZ_to_sRGB(XYZ, hires=False):
-        '''CIE XYZ to sRGB
-        https://en.wikipedia.org/wiki/SRGB#From_CIE_XYZ_to_sRGB
+        '''CIE XYZ to sRGB (D65 reference white)
+        https://en.wikipedia.org/wiki/SRGB#From_CIE_XYZ_to_sRGB  As of Feb 2026, this
+        has a matrix with slightly different numbers than the 7 digit one below and
+        represents a 2003 ammendment.
         
-        The test case for sRGB_to_XYZ will result in the original sRGB values when operated on
-        with XYZ_to_sRGB().
+        The test case for sRGB_to_XYZ will result in the original sRGB values when
+        operated on with XYZ_to_sRGB().
         '''
         def GammaCompressed(x):
             return 12.92*x if x <= 0.0031308 else 1.055*x ** (1/2.4) - 0.055
         if hires:
             # More significant figures from
             # https://www.image-engineering.de/library/technotes/958-how-to-convert-between-srgb-and-ciexyz
+            # http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html has same numbers
             n = 7
             r1 = (+3.2404542, -1.5371385, -0.4985314)
             r2 = (-0.9692660, +1.8760108, +0.0415560)
             r3 = (+0.0556434, -0.2040259, +1.0572252)
         else:
+            # This was the set of numbers used in the 1999 standard, enough digits for 8
+            # bit samples (1/256 = 0.003906, 1/257 = 0.003891)
             n = 4
             r1 = (+3.2406, -1.5372, -0.4986)
             r2 = (-0.9689, +1.8758, +0.0415)
@@ -208,10 +208,14 @@ if 1:  # Core functionality
         rgb = Dot(r1, XYZ), Dot(r2, XYZ), Dot(r3, XYZ)
         # Round the results and gamma compress
         sRGB = [round(GammaCompressed(i), n) for i in rgb]
-        def clip(x):
-            return min(1, max(x, 0))  # Clip to [0, 1]
-        sRGB = [clip(i) for i in sRGB]
+        sRGB = [min(1, max(i, 0)) for i in sRGB]
         return tuple(sRGB)
+if 1:  # Core functionality
+    def xy_to_sRGB(xy, Y=1):
+        def f(x):
+            return tuple([round(float(i), 4) for i in x])
+        XYZ = xy_to_XYZ(xy, Y)
+        return f(XYZ_to_sRGB(XYZ))
     def XYZ_to_xy(XYZ):
         t = sum(XYZ)
         return (XYZ[0]/t, XYZ[1]/t)

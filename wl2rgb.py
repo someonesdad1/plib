@@ -334,10 +334,163 @@ if 1:  # Light wavelength to & from RGB colors
         di = CIE1964Colorimetric.di
         "wl      X        Y        Z   "
         "380 0.000160 0.000017 0.000705"
-if 1: # ∞∞ 
+if 0: # ∞∞ 
     CIE1964Colorimetric(555)
     exit()
 
+if 1:   # https://stackoverflow.com/questions/3407942/rgb-values-of-visible-spectrum
+    '''
+
+    Spektre's response included a picture of a solar Fraunhoffer lines spectrum I
+    remember seeing on the web.  He produced a C function for it:
+
+    // Source - https://stackoverflow.com/a/22681410
+    // Posted by Spektre, modified by community. See post 'Timeline' for change history
+    // Retrieved 2026-02-15, License - CC BY-SA 4.0
+
+    void spectral_color(double &r,double &g,double &b,double l) // RGB <0,1> <- lambda l <400,700> [nm]
+        {
+        double t;  r=0.0; g=0.0; b=0.0;
+            if ((l>=400.0)&&(l<410.0)) { t=(l-400.0)/(410.0-400.0); r=    +(0.33*t)-(0.20*t*t); }
+        else if ((l>=410.0)&&(l<475.0)) { t=(l-410.0)/(475.0-410.0); r=0.14         -(0.13*t*t); }
+        else if ((l>=545.0)&&(l<595.0)) { t=(l-545.0)/(595.0-545.0); r=    +(1.98*t)-(     t*t); }
+        else if ((l>=595.0)&&(l<650.0)) { t=(l-595.0)/(650.0-595.0); r=0.98+(0.06*t)-(0.40*t*t); }
+        else if ((l>=650.0)&&(l<700.0)) { t=(l-650.0)/(700.0-650.0); r=0.65-(0.84*t)+(0.20*t*t); }
+            if ((l>=415.0)&&(l<475.0)) { t=(l-415.0)/(475.0-415.0); g=             +(0.80*t*t); }
+        else if ((l>=475.0)&&(l<590.0)) { t=(l-475.0)/(590.0-475.0); g=0.8 +(0.76*t)-(0.80*t*t); }
+        else if ((l>=585.0)&&(l<639.0)) { t=(l-585.0)/(639.0-585.0); g=0.84-(0.84*t)           ; }
+            if ((l>=400.0)&&(l<475.0)) { t=(l-400.0)/(475.0-400.0); b=    +(2.20*t)-(1.50*t*t); }
+        else if ((l>=475.0)&&(l<560.0)) { t=(l-475.0)/(560.0-475.0); b=0.7 -(     t)+(0.30*t*t); }
+        }
+
+    where l is wavelength in nm in [400, 700] and r,g,b are RGB components on [0, 1].
+
+    '''
+    def spektre(wl_nm):
+        if 1:   # Red
+            if 400 <= wl_nm < 410:
+                t = (wl_nm - 400)/(410 - 400)
+                r = (0.33 - 0.20*t)*t
+            elif 410 <= wl_nm < 475:
+                t = (wl_nm - 410)/(475 - 410)
+                r = 0.14 - 0.13*t*t
+            elif 545 <= wl_nm < 595:
+                t = (wl_nm - 545)/(595 - 545)
+                r = (1.98 - t)*t
+            elif 595 <= wl_nm < 650:
+                t = (wl_nm - 595)/(650 - 595)
+                r = 0.98 + (0.06 - 0.40)*t
+            elif 650 <= wl_nm < 700:
+                t = (wl_nm - 650)/(700 - 650)
+                r = 0.65 - (0.84 + 0.20)*t
+        if 1:   # Green
+            if 415 <= wl_nm < 475:
+                t = (wl_nm - 415)/(475 - 415)
+                g = 0.80*t*t
+            elif 475 <= wl_nm < 590:
+                t = (wl_nm - 475)/(590 - 475)
+                g = 0.8 +(0.76 - 0.80)*t
+            elif 585 <= wl_nm < 639:
+                t = (wl_nm - 585)/(639 - 585)
+                g = 0.84*(1 - t)
+        if 1:   # Blue
+            if 400 <= wl_nm < 475:
+                t = (wl_nm - 400)/(475 - 400)
+                b = (2.2 - 1.5)*t
+            elif 475 <= wl_nm < 560:
+                t = (wl_nm - 475)/(560 - 475)
+                b = 0.7 - t + 0.30*t*t
+        return (r, g, b)
+
+    rgb = spektre(555)
+    def ToIntRGB(rgb):
+        'Convert 3-tuple of floats on [0, 1] to [0, 255]
+        x = [max(0, 
+        x = [i*256 for i in rgb]
+    print(spektre(555))
+    exit() #yy
+
+    '''
+    Translation of a Javascript method
+
+    bobtato's answer at bottom of
+    https://stackoverflow.com/questions/3407942/rgb-values-of-visible-spectrum.  Text of
+    the response:
+
+    I found Spektre's answer useful, in that many people won't be in a position to apply
+    the rigorous CIE-based methodology from other answers, but would still like a
+    ready-to-run solution with some basis in physical reality.
+
+    To that end, I made a revised algorithm by fitting Spektre's data with a B-spline of
+    degree 2 using wavelength as the parameter. This has the advantage that the RGB
+    color varies smoothly with wavelength (it has a continuous first derivative), and is
+    a bit simpler since most of the calculation has been done in advance. This form is
+    also amenable to vector (SIMD) processing, where that is relevant.
+
+    The array in this function contains the bounding wavelengths for each span (in nm),
+    and between each boundary there are three sets of λ², λ¹ and λ⁰ coefficients – one
+    each for red, green and blue.
+
+    If you want to use different units, you can convert the boundary values accordingly
+    (but reverse the search order if you are using reciprocal units, e.g. THz, eV or
+    cm-1).
+
+    You can also premultiply all the coefficients by 255 (and cast to int) if you want
+    to generate 8-bit color components directly.
+    
+    function wavelengthToRGB (λ) {
+        const C=[
+            350,
+                3.08919e-5,-2.16243e-2, 3.78425e+0,
+                0.00000e+0, 0.00000e+0, 0.00000e+0,
+                4.33926e-5,-3.03748e-2, 5.31559e+0,
+            397,
+            -5.53952e-5, 4.68877e-2,-9.81537e+0,
+                6.13203e-5,-4.86883e-2, 9.66463e+0,
+                4.41410e-4,-3.46401e-1, 6.80468e+1,
+            423,
+            -3.09111e-5, 2.61741e-2,-5.43445e+0,
+                1.85633e-4,-1.53857e-1, 3.19077e+1,
+            -4.58520e-4, 4.14940e-1,-9.29768e+1,
+            464,
+                2.86786e-5,-2.91252e-2, 7.39499e+0,
+            -1.66581e-4, 1.72997e-1,-4.39224e+1,
+                4.37994e-7,-1.09728e-2, 5.83495e+0,
+            514,
+                2.06226e-4,-2.11644e-1, 5.43024e+1,
+            -6.65652e-5, 7.01815e-2,-1.74987e+1,
+                9.41471e-5,-1.07306e-1, 3.05925e+1,
+            565,
+            -2.78514e-4, 3.36113e-1,-1.00439e+2,
+            -1.79851e-4, 1.98194e-1,-5.36623e+1,
+                1.12142e-5,-1.35916e-2, 4.11826e+0,
+            606,
+            -1.44403e-4, 1.73570e-1,-5.11884e+1,
+                2.47312e-4,-3.19527e-1, 1.03207e+2,
+                0.00000e+0, 0.00000e+0, 0.00000e+0,
+            646,
+                6.24947e-5,-9.37420e-2, 3.51532e+1,
+                0.00000e+0, 0.00000e+0, 0.00000e+0,
+                0.00000e+0, 0.00000e+0, 0.00000e+0,
+            750
+        ];
+        let [r,g,b] = [0,0,0];
+        if (λ >= C[0] && λ < C[C.length-1]) {
+            for (let i=0; i<C.length; i+=10) {
+                if (λ < C[i+10]) {
+                    const λ2 = λ*λ;
+                    r = C[i+1]*λ2 + C[i+2]*λ + C[i+3];
+                    g = C[i+4]*λ2 + C[i+5]*λ + C[i+6];
+                    b = C[i+7]*λ2 + C[i+8]*λ + C[i+9];
+                    break;
+                }
+            }
+        }
+        return [r,g,b];
+    }
+    '''
+
+if 1:   # Original wl2rgb
     def wl2rgb(wl_nm, gamma=0.8):
         '''Convert wl_nm (light wavelength in nm on [380, 780]) into a Color object
         using a linear approximation.  The Color object represents an RGB color.  gamma
@@ -584,7 +737,6 @@ if __name__ == "__main__":
             r, g, b = c.irgb
             t.print(f"{t(s)}{nm} {s} {h} {v} ({r:3d}, {g:3d}, {b:3d})")
         print("nm    #rgb    @hsv    $hls")
-
     if len(sys.argv) > 1:
         if sys.argv[1] == "--test":
             exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
