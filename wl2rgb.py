@@ -22,9 +22,10 @@ if 1:  # Header
         <oo todo ∞ oo>
     '''
     if 1:  # Standard imports
-        pass
+        import sys
     if 1:  # Custom imports
-        from color import Color, t
+        import color
+        import colorcoord
         import dpseq
     if 1:  # Global variables
         pass
@@ -159,7 +160,7 @@ if 1:  # Utility
                     di[wl + i] = a
             GetCIEDict1931.di = di
         return GetCIEDict1931.di
-    def GetCIEDict1964(wl_nm):
+    def GetCIEDict1964():
         '''Returns a dict keyed by integer wavelength in nm to return the CIE 1964 Color
         Matching Functions in X, Y, Z values.  The keys are integers on the interval
         [380, 780] in steps of 1 nm.
@@ -288,12 +289,6 @@ if 1:  # Utility
                     di[wl + i] = a
             GetCIEDict1964.di = di
         return GetCIEDict1964.di
-
-if __name__ == "__main__":  
-    from pprint import pprint as pp
-    pp(GetCIEDict1964(779))
-    exit()
-
 if 1:  # Light wavelength to & from RGB colors
     '''
 
@@ -340,11 +335,21 @@ if 1:  # Light wavelength to & from RGB colors
 
 
     '''
-if 0: # ∞∞ 
-    CIE1964Colorimetric(555)
-    exit()
-
 if 1:   # https://stackoverflow.com/questions/3407942/rgb-values-of-visible-spectrum
+    def CIE_CMF(wl_nm):
+        '''Return an sRGB on [0, 1] for a wavelength in nm.
+         
+        ∞∞1 wl2rgb.py:CIE_CMF:  kinda works, but bad output for 510-540 and 610-640 nm.
+        I suspect the colorcoord.XYZ_to_sRGB(XYZ) function.
+        '''
+        print("Warning:  CIE_CMF() not working correctly yet; do not use", file=sys.stderr)
+        if not (380 <= wl_nm <= 780):
+            raise ValueError("Wavelength wl_nm must be on [380, 780]")
+        # Convert to nearest integer
+        wl = int(round(wl_nm, 0))
+        XYZ = GetCIEDict1964()[wl]
+        srgb = colorcoord.XYZ_to_sRGB(XYZ)
+        return color.Color(*srgb)
     def SunSpectrum(wl_nm):
         '''Given a light wavelength wl_nm in nm, returns a Color instance representing
         this color.
@@ -418,12 +423,12 @@ if 1:   # https://stackoverflow.com/questions/3407942/rgb-values-of-visible-spec
                 b = 0.7 - t + 0.30*t*t
         result = (r, g, b)
         assert all(0 <= i <= 1 for i in (r, g, b)), f"Problem RGB component(s) {result}"
-        return Color(*result)
+        return color.Color(*result)
 
 if 1:   # Original wl2rgb
     def wl2rgb(wl_nm, gamma=0.8):
-        '''Convert wl_nm (light wavelength in nm on [380, 780]) into a Color object
-        using a linear approximation.  The Color object represents an RGB color.  gamma
+        '''Convert wl_nm (light wavelength in nm on [380, 780]) into a color.Color object
+        using a linear approximation.  The color.Color object represents an RGB color.  gamma
         is used for a gamma adjustment.  This algorithm is apparently due to Earl F.
         Glynn.
         '''
@@ -460,9 +465,9 @@ if 1:   # Original wl2rgb
             b = [float(i) for i in a]
         # Make sure the numbers are on [0, 1]
         assert all([0 <= i <= 1 for i in b])
-        return Color(*b)
+        return color.Color(*b)
     def rgb2wl(color):
-        '''Convert the indicated color (a Color instance) to a wavelength in nm
+        '''Convert the indicated color (a color.Color instance) to a wavelength in nm
         The algorithm is
             - Get the integer value of the hue on [0, 255]
             - If hue > 212 return 645 nm
@@ -478,7 +483,7 @@ if 1:   # Original wl2rgb
             # function returns false.  Further, both id(instance) show the identical
             # location in memory.  To make this work, I've added the string form
             # detection.
-            if not isinstance(color, Color):
+            if not isinstance(color, color.Color):
                 raise TypeError("color must be a Color (/plib/color.py) instance")
         if not hasattr(rgb2wl, "dict"):
             rgb2wl.dict = {
@@ -536,6 +541,7 @@ if 1:   # Original wl2rgb
 
 if __name__ == "__main__":
     from rgbdata import color_data
+    from color import t
     from util import VisualCount, TemplateRound
     from columnize import Columnize
     from lwtest import run, Assert
@@ -630,12 +636,12 @@ if __name__ == "__main__":
                     t.print(f"{wl} nm is {rgb} {t(rgb)} this color")
                 else:
                     if is_string:
-                        c = Color(rgb)
+                        c = color.Color(rgb)
                         wl = rgb2wl(c)
                         t.print(f"{rgb} is {t(c)}this color{t.n}, "
                                 f"about {wl} nm")
                     else:
-                        c = Color(*rgb)
+                        c = color.Color(*rgb)
                         wl = rgb2wl(c)
                         t.print(f"{', '.join(str(i) for i in rgb)} is {t(c)}this color{t.n}, "
                                 f"about {wl} nm")
@@ -659,14 +665,25 @@ if __name__ == "__main__":
                 print(line)
         print(f"{count} wavelengths printed")
     def CompareWavelengthFormulas(step_nm=10):
-        print("Compares the two wavelength formulas ($hls) (1:SunSpectrum, 2:wl2rgb)")
+        print("Compares the wavelength formulas ($hls) (1:SunSpectrum, 2:wl2rgb, 3:CIE_CMF)")
+        print("  Function 3 not working yet")
+        use_all = False
         for wl in range(400, 700 + step_nm, step_nm):
-            cx, cy = SunSpectrum(wl), wl2rgb(wl)
-            t.x, t.y = t(cx), t(cy)
-            print(f"{wl} ", end="")
-            print(f"1:{cx.xhls!s:8s} ", end="")
-            print(f"2:{cy.xhls!s:8s} ", end="")
-            t.print(f"1:{t.x}SunSpectrum  2:{t.y}wl2rgb")
+            if use_all:
+                ca, cb, cc = SunSpectrum(wl), wl2rgb(wl), CIE_CMF(wl)
+                t.a, t.b, t.c = t(ca), t(cb), t(cc)
+                print(f"{wl} ", end="")
+                print(f"1:{ca.xhls!s:8s} ", end="")
+                print(f"2:{cb.xhls!s:8s} ", end="")
+                print(f"3:{cc.xhls!s:8s} ", end="")
+                t.print(f"1:{t.a}SunSpectrum  2:{t.b}wl2rgb 3:{t.c}CIE_CMF")
+            else:
+                ca, cb = SunSpectrum(wl), wl2rgb(wl)
+                t.a, t.b = t(ca), t(cb)
+                print(f"{wl} ", end="")
+                print(f"1:{ca.xhls!s:8s} ", end="")
+                print(f"2:{cb.xhls!s:8s} ", end="")
+                t.print(f"1:{t.a}SunSpectrum  2:{t.b}wl2rgb")
     def Names():
         'Show wavelengths with name candidates'
         gamma = 0.8
