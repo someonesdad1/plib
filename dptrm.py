@@ -185,8 +185,6 @@ class Trm(dict):
             self.always = bool(value)
         elif name == "_newstyles":
             self._newstyles = value
-        elif name == "_stack":
-            self._stack = value
         else:
             raise KeyError(f"{name!r} not in Trm instance")
     def __getitem__(self, name):
