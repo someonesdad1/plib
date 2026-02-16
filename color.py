@@ -603,7 +603,7 @@ if 1:   # Classes
                 "Get hsv as a 3-tuple of floats on [0, 1]"
                 return colorsys.rgb_to_hsv(*self.drgb)
             @property
-            def xhsv(self):
+            def xhsv(self):     # @ffffff
                 "Get hsv as a hex string of the form @000000"
                 return "@" + Color.int_to_hex(self.ihsv)
             #
@@ -619,7 +619,7 @@ if 1:   # Classes
                 "Get hls as a 3-tuple of floats on [0, 1]"
                 return colorsys.rgb_to_hls(*self.drgb)
             @property
-            def xhls(self):
+            def xhls(self):     # $ffffff
                 "Get hls as a hex string of the form $000000"
                 return "$" + Color.int_to_hex(self.ihls)
         if 1:  # Class methods
@@ -2677,9 +2677,7 @@ if __name__ == "__main__":
             c = Trm()
             def f(a):
                 return c(attr=a)
-            print(
-                dedent(
-                    f'''
+            print(dedent(f'''
             Text attributes (e.g., t('ornl', attr="ul"))
                 ('hide' is to the right of 'dim')
                 {f("no")}normal      no{c.n}       {f("bo")}bold        bo{c.n}
@@ -2688,9 +2686,7 @@ if __name__ == "__main__":
                 {f("rv")}reverse     rv{c.n}       {f("so")}strikeout   so{c.n}
                 {f("di")}dim         di{c.n}       {f("hi")}hide         hi{c.n}
                 sub{f("sb")}script   {c.n}sb       super{f("sp")}script {c.n}sp
-            '''.rstrip()
-                )
-            )
+            '''.rstrip()))
         def ColorTable(bits):
             c = Trm()
             width = int(os.environ["COLUMNS"])
@@ -2883,10 +2879,9 @@ if __name__ == "__main__":
                 print(f"{c(k)}{k.xrgb}{c.n} {c(kl)}{kl.xrgb}{c.n}", end=" ")
                 print(f"{c(kd)}{kd.xrgb}{c.n} {c(kb)}{kb.xrgb}{c.n}", end="")
                 print()
-            print(
-                dedent(f'''
+            print(dedent(f'''
  
-                Examples:
+                Examples:               #ffffff = RGB, $ffffff = HLS, @ffffff = HSV
                     t(Color(0.35)) gives a {t(Color(0.35))}gray like this{t.n}
                     t('ornl') gives an {t("ornl")}orange like this{t.n}
                     t('ornl', 'royd') gives an {t("ornl", "royd")}orange on a royd background{t.n}
@@ -3424,8 +3419,7 @@ if __name__ == "__main__":
             return ["s"]
         return args
     def Usage(status=1):
-        print(
-            dedent(f'''
+        print(dedent(f'''
         Usage:  {sys.argv[0]} [options] [cmd]
           cmd
            d    Show demo
@@ -3445,8 +3439,7 @@ if __name__ == "__main__":
         Options
           -h      Print this help
           -t      Run self-tests
-        ''')
-        )
+        '''))
         exit(status)
     d = {}  # Options dictionary
     cmds = ParseCommandLine(d)
