@@ -1,79 +1,16 @@
 /plib/.todo
 
-14 Feb 2026 
-    - Run 'wl2rgb.py name' and see the different colors.  Match each of these to a
-      short name.  Note r, g, and b are "obvious".
+    - Circular imports
+        - Nearly always happen in f.py and color.py
+            - Reduce occurrences by getting rid of all 'from x import y' statements
+            - Where still have problem, isolate import into function
 
----------------------------------------------------------------------------
-    
-    - Electrical circuit searches
-        - Use ds.py to search for files that keep important circuits that I want to look
-          at.  For example, I wanted to see the circuit Dave used (designed by Carl
-          Miller) to turn power on for a short period.  I remember the basics, but not
-          the circuit component values.  I'd find this by 'ds carl'.
-        - These could be put in a github repository and each entry could be a PDF with
-          the requisite attribution or an associated name.txt file would have the
-          required attribution.  A function 'elec' would launch the search and an option
-          would give a list of the todo items on my list.  The focus would be on the
-          things you wanted to get done.
-
-    - lib.py
-        - specialize it with a command for a python-only file
-        - then 'lib bp' gives me python boilerplate; no code to write
-        - File to contain boilerplate text
-        - cmd
-            - e     Edit the data file
-            - l     List the allowed names
-            - Empty:  just type names' contents to stdout
-
-    - checkgist.py & gist
-        - I seem to be running into a thorny problem where some of the files like
-          novas.py and eevblog.py cannot have their _pgminfo variables read.  Online
-          docs say python doesn't enforce the custom of such a variable being private,
-          but I can't figure out why 6 files are still having problems (I fixed all the
-          exceptions that I know were occurring).
-        - When I changed "_pgminfo" in eevblog.py to "pgminfo", the variable was read in
-          just fine.  This feels like a troubling deep bug in python.
-            - All the files can be imported in the REPL without error
-        - Options
-            - Rename _pgminfo to pgminfo
-            - Put a function GetGist() into every file that's used to get the gist
-                - This has the benefit of making it trivial to find files that don't
-                  have a gist
-        - GetGist() function in each file
-            - It's after the if __name__ == "__main__":  line, but it's in the global
-              namespace because it's not indented
-            - It lets grep or awk find it quickly, as there's no need to import the file
-            - This should always work and be out of the way.  A line inside the function 
-              can be 'import gist' to get the needed instance of class Gist.  This then
-              just is a dict with the required parameters
-                - gist *
-                - desc
-                - cat *
-                - test *
-                - todo
-                - * means required
-
-    - Testing
-        - Since the lwtest.py module is often used for testing, it could contain an
-          option to let it scan each testing function for tokens and then see if the
-          overall set matched the set of functions/classes in the module.  This could
-          help you see when your testing doesn't have full coverage.  Of course, it's
-          necessary but not sufficient.
-        - Each function in a module could have an attribute '_tested' that keeps track of
-          the number of times it was called.  Then lwtest.py could check these data
-          after the test and report any functions/classes that did not have _tested set
-          to an integer.
-        - Finding functions and classes should be fast using multiline regular expressions
-
-    - todo.py
-        - Get this written quickly, as there are 150 ∞∞ task strings in /plib and I need
-          to see which ones need to be worked on first
-        - Finds the ∞∞ strings that are prioritized and makes up a todo list from them
-            - ∞∞1 is highest priority
-        - Should just work first for /plib and /plib/pgm if no args and in the /plib tree
-            - If in /plib/Dev, it should only work if in one of the subdirectories
-        - Locate all xx occurrences in all files and change/remove them
+    - Various dicts
+        - Sdict
+            - dict with stack that lets you push and pop its state
+        - Ddict
+            - Contains different dicts that are activated by calling
+            - Use case:  dpdata.py could use it for access to a variety of data sets
 
     - /plib work
         - Core documentation need
@@ -177,6 +114,75 @@
         - ruff as of 30 Jan 2026
             - I won't use the formatter until they fix the mess it makes with formulas
             - Linting works well
+
+    - Electrical circuit searches
+        - Use ds.py to search for files that keep important circuits that I want to look
+          at.  For example, I wanted to see the circuit Dave used (designed by Carl
+          Miller) to turn power on for a short period.  I remember the basics, but not
+          the circuit component values.  I'd find this by 'ds carl'.
+        - These could be put in a github repository and each entry could be a PDF with
+          the requisite attribution or an associated name.txt file would have the
+          required attribution.  A function 'elec' would launch the search and an option
+          would give a list of the todo items on my list.  The focus would be on the
+          things you wanted to get done.
+
+    - lib.py
+        - specialize it with a command for a python-only file
+        - then 'lib bp' gives me python boilerplate; no code to write
+        - File to contain boilerplate text
+        - cmd
+            - e     Edit the data file
+            - l     List the allowed names
+            - Empty:  just type names' contents to stdout
+
+    - checkgist.py & gist
+        - I seem to be running into a thorny problem where some of the files like
+          novas.py and eevblog.py cannot have their _pgminfo variables read.  Online
+          docs say python doesn't enforce the custom of such a variable being private,
+          but I can't figure out why 6 files are still having problems (I fixed all the
+          exceptions that I know were occurring).
+        - When I changed "_pgminfo" in eevblog.py to "pgminfo", the variable was read in
+          just fine.  This feels like a troubling deep bug in python.
+            - All the files can be imported in the REPL without error
+        - Options
+            - Rename _pgminfo to pgminfo
+            - Put a function GetGist() into every file that's used to get the gist
+                - This has the benefit of making it trivial to find files that don't
+                  have a gist
+        - GetGist() function in each file
+            - It's after the if __name__ == "__main__":  line, but it's in the global
+              namespace because it's not indented
+            - It lets grep or awk find it quickly, as there's no need to import the file
+            - This should always work and be out of the way.  A line inside the function 
+              can be 'import gist' to get the needed instance of class Gist.  This then
+              just is a dict with the required parameters
+                - gist *
+                - desc
+                - cat *
+                - test *
+                - todo
+                - * means required
+
+    - Testing
+        - Since the lwtest.py module is often used for testing, it could contain an
+          option to let it scan each testing function for tokens and then see if the
+          overall set matched the set of functions/classes in the module.  This could
+          help you see when your testing doesn't have full coverage.  Of course, it's
+          necessary but not sufficient.
+        - Each function in a module could have an attribute '_tested' that keeps track of
+          the number of times it was called.  Then lwtest.py could check these data
+          after the test and report any functions/classes that did not have _tested set
+          to an integer.
+        - Finding functions and classes should be fast using multiline regular expressions
+
+    - todo.py
+        - Get this written quickly, as there are 150 ∞∞ task strings in /plib and I need
+          to see which ones need to be worked on first
+        - Finds the ∞∞ strings that are prioritized and makes up a todo list from them
+            - ∞∞1 is highest priority
+        - Should just work first for /plib and /plib/pgm if no args and in the /plib tree
+            - If in /plib/Dev, it should only work if in one of the subdirectories
+        - Locate all xx occurrences in all files and change/remove them
 
     - debug.py
         - Function:  'debug' prints to stdout a bunch of help on how to debug things
