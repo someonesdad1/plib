@@ -356,18 +356,26 @@ if __name__ == "__main__":
         Assert(T.red == '\x1b[38;2;255;0;0m')
         Assert(T.n == '\x1b[38;2;160;160;160m')
         if 1:   # Verify stack works:  change red to blue
+            Assert(T.stack_size == 0)
             newstyles = {"red": Color(0, 0, 255), "n": "#a0a0a0"}
             T.ppush(newstyles)
+            Assert(T.stack_size == 1)   # Stack size increased by 1
             Assert(T.red == '\x1b[38;2;0;0;255m')
             T.ppop()
+            Assert(T.stack_size == 0)
             Assert(T.red == '\x1b[38;2;255;0;0m')
         if 1:   # Do same with context manager
+            Assert(T.stack_size == 0)
             with T.uses(newstyles):
+                Assert(T.stack_size == 1)   # Stack size increased by 1
                 Assert(T.red == '\x1b[38;2;0;0;255m')
             Assert(T.red == '\x1b[38;2;255;0;0m')
+            Assert(T.stack_size == 0)
             with T.uses(newstyles) as p:
+                Assert(T.stack_size == 1)   # Stack size increased by 1
                 Assert(p.red == '\x1b[38;2;0;0;255m')
             Assert(T.red == '\x1b[38;2;255;0;0m')
+            Assert(T.stack_size == 0)
         if 1:   # Verify .on works
             Assert(T.red == '\x1b[38;2;255;0;0m')
             T.on = False
