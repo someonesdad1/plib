@@ -72,7 +72,8 @@ t = color.t
 from stack import Stack
 from dpprint import PP
 pp = PP()   # Get pprint with current screen width
-if len(sys.argv) > 1:
+#if len(sys.argv) > 1:
+if 0:
     import debug
     debug.SetDebugger()
 
@@ -91,8 +92,8 @@ class Trm(dict):
                 print(f"{p.red}This is a message in blue{p.n}")
             with t.uses(newstyles):
                 print(f"{t.red}This is a message in blue{t.n}")
-            # Note both with statements give the same results
-            # After context manager exits, revert to old definitions
+            # Both with statements give the same results because t == p
+            # After context manager block, revert to old definitions
             print(f"{t.red}This is a message in red{t.n}")
 
         Trm instance has a stack to let you save the current state, create a modified
@@ -105,7 +106,10 @@ class Trm(dict):
             print(f"{t.red}This is a message in blue{t.n}")
             print("Do other processing...")
             print("Calling t.ppop() restores the old state")
+            t.ppop()
             print(f"{t.red}This is a message in red{t.n}")
+        You can make sure t.ppop() won't experience an exception by checking that
+        t.stack_size is > 0.
     '''
     def __init__(self, names_dict):
         # Attributes with underscores are not meant to be accessed by the user
@@ -130,7 +134,7 @@ class Trm(dict):
             u = self[i]
             #print(f"{i} = {u!r}")
             if isinstance(u, str):
-                if u[0] == "\x1b":      # Escape character; it's already resolved
+                if not u or u[0] == "\x1b":      # Escape character; it's already resolved
                     continue
                 u = u.strip()
                 if u[0] in "#$@":       # Hex format 
@@ -191,14 +195,13 @@ class Trm(dict):
             raise KeyError(f"{name!r} not in Trm instance")
     def __getitem__(self, name):
         'This is used to get self[name]'
-        # If self.on isn't True, always return an empty string
-        if not self.on:
+        if self.on:
+            if self.always:
+                return super().__getitem__(name)
+            else:
+                return super().__getitem__(name) if sys.stdout.isatty() else ""
+        else:
             return ""
-        # If self.always is False and stdout isn't a tty, return ""
-        if not self.always and not sys.stdout.isatty():
-            return ""
-        # Otherwise, return self[name], which will be an escape sequence
-        return super().__getitem__(name)
     def __getattribute__(self, name):
         '''This allows you to access a dictionary key using the syntax self.key instead
         of self[key].  This is a useful shorthand for the Trm instance, although it
@@ -206,8 +209,14 @@ class Trm(dict):
         lets us get to our other attributes that are not in the dict without infinite
         recursion.
         '''
-        if super().__getattribute__("on"):
-            return super().__getitem__(name) if name in self else super().__getattribute__(name)
+        is_on = super().__getattribute__("on")
+        is_always = super().__getattribute__("always")
+        if is_on:
+            result = super().__getitem__(name) if name in self else super().__getattribute__(name)
+            if is_always:
+                return result
+            else:
+                return result if sys.stdout.isatty() else ""
         else:
             return ""
     def ppush(self, styles_dict):
@@ -304,6 +313,8 @@ if 0:
 if __name__ == "__main__":  
     from lwtest import run, raises, Assert
     from color import t
+    import contextlib
+    import io
     def Demo2():
         from color import t
         styles = {"y": t.yell, "g": t.grnl, "n": t.n}
@@ -351,8 +362,12 @@ if __name__ == "__main__":
         print(f"{t.red}This is a message in red{t.n}")
         exit()
     def Test_Trm():
+        '''These tests do the absolute minimum to establish functionality.
+        '''
         mystyles = {"red": Color(255, 0, 0), "n": "#a0a0a0"}
         T = Trm(mystyles)
+        # The following verifies that the Color instances were properly changed into
+        # escape sequences
         Assert(T.red == '\x1b[38;2;255;0;0m')
         Assert(T.n == '\x1b[38;2;160;160;160m')
         if 1:   # Verify stack works:  change red to blue
@@ -376,14 +391,26 @@ if __name__ == "__main__":
                 Assert(p.red == '\x1b[38;2;0;0;255m')
             Assert(T.red == '\x1b[38;2;255;0;0m')
             Assert(T.stack_size == 0)
-        if 1:   # Verify .on works
+        if 1:   # Verify T.on works
             Assert(T.red == '\x1b[38;2;255;0;0m')
             T.on = False
             Assert(T.red == '')
             T.on = True
             Assert(T.red == '\x1b[38;2;255;0;0m')
-        if 1:   # Verify .always works
-            raise Exception("Need .always functionality")
+        if 1:   # Verify T.always works
+            T.always = False
+            f = io.StringIO()
+            with contextlib.redirect_stdout(f):
+                print(T.red)
+            s = f.getvalue()
+            Assert(s == "\n")   # No escape sequence
+            #
+            T.always = True
+            f = io.StringIO()
+            with contextlib.redirect_stdout(f):
+                print(T.red)
+            s = f.getvalue()
+            Assert(s == '\x1b[38;2;255;0;0m\n')     # Got escape sequence
 
     if len(sys.argv) > 1:
         Demo1()
