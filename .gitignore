@@ -31,6 +31,7 @@ a.py
 tags
 tmp
 lib/licenses/
+pgm/comb_perm.py
 pgm/eevblog.txt
 pgm/hdr
 pgm/profit.data

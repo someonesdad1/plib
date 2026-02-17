@@ -71,6 +71,18 @@ Mon 15 Jan 2024 01:56:55 PM
     It's interesting to note that this is the identical hardware used since
     2017; the only change has been to WSL in 2024 and later python versions.
     
+16 Feb 2026 06:14:42 pm Mon
+
+    Exact same conditions as previous with python 3.11.5 in a Ubuntu bash shell under
+    WSL; took 115 s.
+
+16 Feb 2026 06:19:40 pm Mon
+
+    Exact same conditions as previous except python 3.14.2 packaged by Anaconda (built
+    Dec 19 2025):  96.4 s.  An immediate rerun gave 96.3 s.  Note all these runs back to
+    Feb 2016 are with the identical hardware except somewhere in there I switched
+    totally to RAM disks (probably in the last 6 or 7 years or so).
+
 ---------------------------------------------------------------------------
 
 I've analyzed a copy of this script and it's pretty clear that it would be

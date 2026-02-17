@@ -169,6 +169,8 @@ class Trm(dict):
                 if not (0 <= u < 256):
                     raise ValueError("An integer i = {u} for a color must be on [0, 255]")
                 c = color.Translate8bit(u)
+            elif isinstance(u, Color):
+                c = u
             self[i] = self.get_escape_code(c)
             #print(f"  {i} gave {self[i]}this color{t.n}")
     def __call__(self, *args, **kw):
@@ -204,7 +206,10 @@ class Trm(dict):
         lets us get to our other attributes that are not in the dict without infinite
         recursion.
         '''
-        return super().__getitem__(name) if name in self else super().__getattribute__(name)
+        if super().__getattribute__("on"):
+            return super().__getitem__(name) if name in self else super().__getattribute__(name)
+        else:
+            return ""
     def ppush(self, styles_dict):
         '''The styles dict must be a dict instance.  Update our values with
         styles_dict's values after saving a copy of ourself on the stack.
@@ -259,7 +264,7 @@ class Trm(dict):
             r, g, b = color.irgb
             return f"\x1b[{n};2;{r};{g};{b}m"
 
-if 1:
+if 0:
     # ∞∞1 These are a good set of test cases for the Color() constructor
     styles = {  # xstylesx
         # Build in names
@@ -297,6 +302,8 @@ if 1:
     exit()
 
 if __name__ == "__main__":  
+    from lwtest import run, raises, Assert
+    from color import t
     def Demo2():
         from color import t
         styles = {"y": t.yell, "g": t.grnl, "n": t.n}
@@ -343,4 +350,34 @@ if __name__ == "__main__":
         print("\nOutside the context manager, t.red gives the red color again:")
         print(f"{t.red}This is a message in red{t.n}")
         exit()
-    Demo1()
+    def Test_Trm():
+        mystyles = {"red": Color(255, 0, 0), "n": "#a0a0a0"}
+        T = Trm(mystyles)
+        Assert(T.red == '\x1b[38;2;255;0;0m')
+        Assert(T.n == '\x1b[38;2;160;160;160m')
+        if 1:   # Verify stack works:  change red to blue
+            newstyles = {"red": Color(0, 0, 255), "n": "#a0a0a0"}
+            T.ppush(newstyles)
+            Assert(T.red == '\x1b[38;2;0;0;255m')
+            T.ppop()
+            Assert(T.red == '\x1b[38;2;255;0;0m')
+        if 1:   # Do same with context manager
+            with T.uses(newstyles):
+                Assert(T.red == '\x1b[38;2;0;0;255m')
+            Assert(T.red == '\x1b[38;2;255;0;0m')
+            with T.uses(newstyles) as p:
+                Assert(p.red == '\x1b[38;2;0;0;255m')
+            Assert(T.red == '\x1b[38;2;255;0;0m')
+        if 1:   # Verify .on works
+            Assert(T.red == '\x1b[38;2;255;0;0m')
+            T.on = False
+            Assert(T.red == '')
+            T.on = True
+            Assert(T.red == '\x1b[38;2;255;0;0m')
+        if 1:   # Verify .always works
+            raise Exception("Need .always functionality")
+
+    if len(sys.argv) > 1:
+        Demo1()
+    else:
+        exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
