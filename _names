@@ -28,3 +28,60 @@ This wavelength mapping to RGB was done with Bruton's code
 640 #ff2000 @05ffff $057fff (255,  32,   0)     
 650 #ff0000 @00ffff $007fff (255,   0,   0)     r       red
 nm    #rgb    @hsv    $hls     
+
+5 nm steps
+380 $d47fff
+385 $d17fff
+390 $ce7fff
+395 $cb7fff
+400 $c87fff
+405 $c47fff
+410 $c17fff
+415 $bf7fff
+420 $bb7fff
+425 $b87fff
+430 $b47fff
+435 $af7fff
+440 $aa7fff
+445 $a37fff
+450 $9e7fff
+455 $987fff
+460 $947fff
+465 $917fff
+470 $8d7fff
+475 $8a7fff
+480 $867fff
+485 $837fff
+490 $7f7fff
+495 $767fff
+500 $6c7fff
+505 $637fff
+510 $557fff
+515 $507fff
+520 $4c7fff
+525 $477fff
+530 $447fff
+535 $417fff
+540 $3f7fff
+545 $3c7fff
+550 $397fff
+555 $377fff
+560 $347fff
+565 $327fff
+570 $2f7fff
+575 $2d7fff
+580 $2a7fff
+585 $277fff
+590 $257fff
+595 $227fff
+600 $1f7fff
+605 $1b7fff
+610 $187fff
+615 $157fff
+620 $137fff
+625 $107fff
+630 $0d7fff
+635 $097fff
+640 $057fff
+645 $007fff
+650 $007fff
