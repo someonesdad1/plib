@@ -243,17 +243,17 @@ if 1:   # Classes
                         msg = f"'{p}' couldn't be converted to floats"
                         raise TypeError(msg)
                     if not all(0 <= i <= 1 for i in dec):  # Need normalization
-                        mag = sum(i * i for i in dec) ** (1 / 2)
-                        dec = tuple(i / mag for i in dec)
-                    rgb = tuple(int(round(i * self.n, 1)) for i in dec)
+                        mag = sum(i*i for i in dec) ** (1/2)
+                        dec = tuple(i/mag for i in dec)
+                    rgb = tuple(int(round(i*self.n, 1)) for i in dec)
                 self._rgb = rgb
                 # Handle 'hsv' and 'hls' keywords
                 if kw.get("hsv", False):
                     dec = colorsys.hsv_to_rgb(*self.drgb)
-                    self._rgb = tuple(int(round(i * self.n)) for i in dec)
+                    self._rgb = tuple(int(round(i*self.n)) for i in dec)
                 elif kw.get("hls", False):
                     dec = colorsys.hls_to_rgb(*self.drgb)
-                    self._rgb = tuple(int(round(i * self.n)) for i in dec)
+                    self._rgb = tuple(int(round(i*self.n)) for i in dec)
             elif len(p) == 1:
                 x = p[0]
                 if ii(x, Color):
@@ -264,7 +264,7 @@ if 1:   # Classes
                 elif ii(x, (int, float)):
                     if 0 <= x <= 1:
                         # Interpret as a gray
-                        self._rgb = tuple(int(round(i * self.n, 1)) for i in (x, x, x))
+                        self._rgb = tuple(int(round(i*self.n, 1)) for i in (x, x, x))
                     else:
                         # Interpret as a light wavelength in nm
                         sunlight = kw.get("sunlight", True)
@@ -297,7 +297,7 @@ if 1:   # Classes
                 n *= 2
                 t = s[0:n], s[n:2*n], s[2*n:3*n]
                 rgb = tuple(int(i, 16) & N for i in t)
-                dec = tuple(i / N for i in rgb)
+                dec = tuple(i/N for i in rgb)
                 if first_char == "@":
                     rgbdec = colorsys.hsv_to_rgb(*dec)
                 elif first_char == "#":
@@ -306,7 +306,7 @@ if 1:   # Classes
                     rgbdec = colorsys.hls_to_rgb(*dec)
                 else:
                     raise ValueError(f"'{first_char}' is an illegal first character")
-                rgb = tuple(int(round(i * N, 1)) for i in rgbdec)
+                rgb = tuple(int(round(i*N, 1)) for i in rgbdec)
             else:
                 # It names an elementary color.  Use the module's default CN
                 # instance to decode this.
@@ -387,7 +387,7 @@ if 1:   # Classes
                     # [0, 2**bpc)
                     x = Fraction(x.numerator - 1, x.denominator)
                 frgb[i] = x
-            rgb = [int(n * i) for i in frgb]
+            rgb = [int(n*i) for i in frgb]
             return Color(*rgb, bpc=bpc)
         def adjust(self, p, comp=None, set=False):
             '''Allows adjusting a color and returns a new Color instance.  comp
@@ -411,7 +411,7 @@ if 1:   # Classes
                 x = Clamp(p)
             else:
                 try:
-                    x = 1 + float(p) / 100
+                    x = 1 + float(p)/100
                 except Exception:
                     raise TypeError("p must be convertible to a float")
             if comp is None or comp not in allowed:
@@ -420,29 +420,29 @@ if 1:   # Classes
             if comp in "rgb":
                 r, g, b = self._rgb
                 if comp == "r":
-                    r = x if set else Clamp(r * x)
+                    r = x if set else Clamp(r*x)
                 elif comp == "g":
-                    g = x if set else Clamp(g * x)
+                    g = x if set else Clamp(g*x)
                 else:
-                    b = x if set else Clamp(b * x)
+                    b = x if set else Clamp(b*x)
                 rgb = (r, g, b)
             elif comp in "hsv":
                 h, s, v = self.ihsv
                 if comp == "h":
-                    h = x if set else Clamp(h * x)
+                    h = x if set else Clamp(h*x)
                 elif comp == "g":
-                    s = x if set else Clamp(s * x)
+                    s = x if set else Clamp(s*x)
                 else:
-                    v = x if set else Clamp(v * x)
+                    v = x if set else Clamp(v*x)
                 rgb = Color(h, s, v, hsv=True)._rgb
             elif comp in "HLS":
                 h, l, s = self.ihls     # noqa
                 if comp == "h":
-                    h = x if set else Clamp(h * x)
+                    h = x if set else Clamp(h*x)
                 elif comp == "l":
-                    L = x if set else Clamp(l * x)
+                    L = x if set else Clamp(l*x)
                 else:
-                    s = x if set else Clamp(s * x)
+                    s = x if set else Clamp(s*x)
                 rgb = Color(h, L, s, hls=True)._rgb
             # Make a copy of our instance
             c = Color(self)
@@ -459,7 +459,7 @@ if 1:   # Classes
             if bpc < 1:
                 raise ValueError("bpc must be > 0")
             N = 2**bpc - 1  # Integers for new color are on [0, N]
-            newrgb = tuple(int(round(i * N, 1)) for i in self.rgb)
+            newrgb = tuple(int(round(i*N, 1)) for i in self.rgb)
             return Color(*newrgb)
         def interpolate(self, other, t, space="rgb"):
             '''Interpolate between two colors:  self and other.  t is a
@@ -500,7 +500,7 @@ if 1:   # Classes
             # Interpolate in this space from P to Q.  Set R as the intermediate
             # 3-vector between P and Q.
             m = [j - i for i, j in zip(P, Q)]  # 3-vector of slopes
-            R = [i + slope * t for i, slope in zip(P, m)]
+            R = [i + slope*t for i, slope in zip(P, m)]
             # Convert the coordinates of R back to rgb space
             if space == "hsv":
                 R = colorsys.hsv_to_rgb(*R)
@@ -522,11 +522,11 @@ if 1:   # Classes
             def dec_to_int(self, three_tuple):
                 "Return int value of decimal values in 3-tuple of floats"
                 assert all(ii(i, float) for i in three_tuple)
-                return tuple(int(round(i * self.n, 1)) for i in three_tuple)
+                return tuple(int(round(i*self.n, 1)) for i in three_tuple)
             def int_to_dec(self, three_tuple):
                 "Return float value of 3-tuple of integers"
                 assert all(ii(i, int) for i in three_tuple)
-                return tuple(i / (self.N - 1) for i in three_tuple)
+                return tuple(i/(self.N - 1) for i in three_tuple)
             def digits(self):
                 '''Return number of digits for to use for decimal rounding,
                 typically for printing to the screen.  Choose enough digits
@@ -577,7 +577,7 @@ if 1:   # Classes
             @property
             def hex_bytes_per_color(self):
                 "How many bytes needed to express a color in hex"
-                return math.ceil(self._bpc / 8) + 1
+                return math.ceil(self._bpc/8) + 1
             #
             @property
             def irgb(self):
@@ -586,7 +586,7 @@ if 1:   # Classes
             @property
             def drgb(self):
                 "Get rgb as a 3-tuple of floats on [0, 1]"
-                return tuple(i / (self.N - 1) for i in self._rgb)
+                return tuple(i/(self.N - 1) for i in self._rgb)
             @property
             def xrgb(self):
                 "Get rgb as a hex string of the form #000000"
@@ -596,7 +596,7 @@ if 1:   # Classes
             def ihsv(self):
                 "Get hsv as a 3-tuple of integers on [0, 2**self.N - 1]"
                 dec = colorsys.rgb_to_hsv(*self.drgb)
-                hsv = tuple(int(round(i * (self.N - 1), 1)) for i in dec)
+                hsv = tuple(int(round(i*(self.N - 1), 1)) for i in dec)
                 return hsv
             @property
             def dhsv(self):
@@ -612,7 +612,7 @@ if 1:   # Classes
                 "Get hls as a 3-tuple of integers on [0, 2**self.N - 1]"
                 dec = self.drgb
                 hlsdec = colorsys.rgb_to_hls(*dec)
-                hls = tuple(int(round(i * (self.N - 1), 1)) for i in hlsdec)
+                hls = tuple(int(round(i*(self.N - 1), 1)) for i in hlsdec)
                 return hls
             @property
             def dhls(self):
@@ -660,10 +660,10 @@ if 1:   # Classes
                     me, him = me.dhls, him.dhls
                 if taxicab:
                     d = sum(abs(i - j) for i, j in zip(me, him))
-                    return d / 3
+                    return d/3
                 else:
-                    d = sum((i - j) ** 2 for i, j in zip(me, him)) ** (1 / 2)
-                    return d / 3 ** (1 / 2)
+                    d = sum((i - j)**2 for i, j in zip(me, him))**(1/2)
+                    return d/3 ** (1/2)
             @classmethod
             def downshift(cls, c1, c2):
                 "Return two Color instances with the same bpc (bits per color)"
@@ -677,7 +677,7 @@ if 1:   # Classes
                 e = TypeError(f"'{s}' argument must be a 3-sequence of  integers")
                 if not all(ii(i, int) for i in s) or len(s) != 3:
                     raise e
-                w = 2 * bytes_per_color
+                w = 2*bytes_per_color
                 x = [f"{i:0{w}x}" for i in s]
                 ml = max(len(i) for i in x)
                 if ml % 2:
@@ -704,7 +704,7 @@ if 1:   # Classes
                 hd = set(hexdigits)
                 if not all(i in hd for i in s):
                     raise ValueError(f"String '{s}' contains non-hex characters")
-                n = 2 * div  # Number of hex digits per color
+                n = 2*div  # Number of hex digits per color
                 rgb = (
                     s[0*div:0*div + n],
                     s[2*div:2*div + n],
@@ -729,7 +729,7 @@ if 1:   # Classes
             def Dot(cls, a, b):
                 "Dot product of two sequences"
                 Assert(len(a) == len(b))
-                return sum(i * j for i, j in zip(a, b))
+                return sum(i*j for i, j in zip(a, b))
             @classmethod
             def XYZ_to_sRGB(cls, XYZ):
                 '''CIE XYZ to sRGB (XYZ is a 3-sequence of positive numbers)
@@ -741,7 +741,7 @@ if 1:   # Classes
                 if not all(i >= 0 for i in XYZ):
                     raise TypeError(f"'{XYZ}' must be numbers >= 0")
                 def GammaCompressed(x):
-                    return 12.92 * x if x <= 0.0031308 else 1.055 * x ** (1 / 2.4) - 0.055
+                    return 12.92*x if x <= 0.0031308 else 1.055*x ** (1/2.4) - 0.055
                 r1 = (+3.2406, -1.5372, -0.4986)
                 r2 = (-0.9689, +1.8758, +0.0415)
                 r3 = (+0.0557, -0.2040, +1.0570)
@@ -791,43 +791,43 @@ if 1:   # Classes
                     r = g = b = 0.0
                     # Red component
                     if nm >= 400 and nm < 410:
-                        t = (nm - 400) / (410 - 400)
-                        r = 0.33 * t - 0.2 * t * t
+                        t = (nm - 400)/(410 - 400)
+                        r = 0.33*t - 0.2*t*t
                     elif nm >= 410 and nm < 475:
-                        t = (nm - 410) / (475 - 410)
-                        r = 0.14 - 0.13 * t * t
+                        t = (nm - 410)/(475 - 410)
+                        r = 0.14 - 0.13*t*t
                     elif nm >= 545 and nm < 595:
-                        t = (nm - 545) / (595 - 545)
-                        r = 1.98 * t - t * t
+                        t = (nm - 545)/(595 - 545)
+                        r = 1.98*t - t*t
                     elif nm >= 595 and nm < 650:
-                        t = (nm - 595) / (650 - 595)
-                        r = 0.98 + 0.06 * t - 0.4 * t * t
+                        t = (nm - 595)/(650 - 595)
+                        r = 0.98 + 0.06*t - 0.4*t*t
                     elif nm >= 650 and nm <= 700:
                         # DP I made it '<= 700' so wavelength range is on [400, 700]
-                        t = (nm - 650) / (700 - 650)
-                        r = 0.65 - 0.84 * t + 0.2 * t * t
+                        t = (nm - 650)/(700 - 650)
+                        r = 0.65 - 0.84*t + 0.2*t*t
                     # Green component
                     if nm >= 415 and nm < 475:
-                        t = (nm - 415) / (475 - 415)
-                        g = 0.8 * t * t
+                        t = (nm - 415)/(475 - 415)
+                        g = 0.8*t*t
                     elif nm >= 475 and nm < 590:
-                        t = (nm - 475) / (590 - 475)
-                        g = 0.8 + 0.76 * t - 0.8 * t * t
+                        t = (nm - 475)/(590 - 475)
+                        g = 0.8 + 0.76*t - 0.8*t*t
                     elif nm >= 585 and nm < 639:
-                        t = (nm - 585) / (639 - 585)
-                        g = 0.84 - 0.84 * t
+                        t = (nm - 585)/(639 - 585)
+                        g = 0.84 - 0.84*t
                     # Blue component
                     if nm >= 400 and nm < 475:
-                        t = (nm - 400) / (475 - 400)
-                        b = 2.2 * t - 1.5 * t * t
+                        t = (nm - 400)/(475 - 400)
+                        b = 2.2*t - 1.5*t*t
                     elif nm >= 475 and nm < 560:
-                        t = (nm - 475) / (560 - 475)
-                        b = 0.7 - t + 0.3 * t * t
+                        t = (nm - 475)/(560 - 475)
+                        b = 0.7 - t + 0.3*t*t
                     # DP correction for 400 nm:  401 nm gives (7, 0, 7) for RGB
                     # [(215, 3, 255) for HLS], so I made 400 nm give (2, 0, 1)
                     # [(233, 1, 255) in HLS].
                     if nm == 400:
-                        r, g, b = 2 / 255, 0, 1 / 255
+                        r, g, b = 2/255, 0, 1/255
                     rgb = tuple([float(i) for i in (r, g, b)])
                 else:
                     # From # http://www.physics.sfasu.edu/astro/color/spectra.html (defunct).
@@ -837,25 +837,25 @@ if 1:   # Classes
                         a = 0.0
                         return Color(a, a, a)
                     if 380 <= nm <= 440:
-                        a = (440 - nm) / (440 - 380), 0, 1
+                        a = (440 - nm)/(440 - 380), 0, 1
                     elif 440 <= nm <= 490:
-                        a = 0, (nm - 440) / (490 - 440), 1
+                        a = 0, (nm - 440)/(490 - 440), 1
                     elif 490 <= nm <= 510:
-                        a = 0, 1, (510 - nm) / (510 - 490)
+                        a = 0, 1, (510 - nm)/(510 - 490)
                     elif 510 <= nm <= 580:
-                        a = (nm - 510) / (580 - 510), 1, 0
+                        a = (nm - 510)/(580 - 510), 1, 0
                     elif 580 <= nm <= 645:
-                        a = 1, (645 - nm) / (645 - 580), 0
+                        a = 1, (645 - nm)/(645 - 580), 0
                     elif 645 <= nm <= 780:
                         a = 1, 0, 0
                     # Intensity i falls off near vision limits
                     i, u, v = 1.0, 0.3, 0.7
                     if nm > 700:
-                        i = u + v * (780 - nm) / (780 - 700)
+                        i = u + v*(780 - nm)/(780 - 700)
                     elif nm < 420:
-                        i = u + v * (nm - 380) / (420 - 380)
+                        i = u + v*(nm - 380)/(420 - 380)
                     # Scale the components by i
-                    rgb = [float(i * j) for j in a]
+                    rgb = [float(i*j) for j in a]
                 # If gamma is not zero, perform a gamma transformation
                 if gamma:
                     rgb = [i**gamma for i in rgb]
@@ -1711,7 +1711,7 @@ if 1:  # Translate between ANSI 8-bit colors (256 of them) and 24-bit RGB colors
         #   ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
         #   WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
         def color_dist_sq(R, G, B, r, g, b):
-            return (R - r) * (R - r) + (G - g) * (G - g) + (B - b) * (B - b)
+            return (R - r)*(R - r) + (G - g)*(G - g) + (B - b)*(B - b)
         def color_to_6cube(v):
             assert ii(v, int)
             x = 0 if v < 48 else 1 if v < 114 else (v - 35) // 40
@@ -1729,19 +1729,19 @@ if 1:  # Translate between ANSI 8-bit colors (256 of them) and 24-bit RGB colors
         cb = q2c[qb]
         # If we hit the color exactly, return early
         if cr == r and cg == g and cb == b:
-            x = 16 + 36 * qr + 6 * qg + qb
+            x = 16 + 36*qr + 6*qg + qb
             assert 0 <= x < 256
             return x
         # Work out the closest grey (average of RGB)
-        grey_avg = ir((r + g + b) / 3)
+        grey_avg = ir((r + g + b)/3)
         grey_idx = 23 if grey_avg > 238 else (grey_avg - 3) // 10
-        grey = 8 + 10 * grey_idx
+        grey = 8 + 10*grey_idx
         # Is grey or 6x6x6 color
         d = color_dist_sq(cr, cg, cb, r, g, b)
         if color_dist_sq(grey, grey, grey, r, g, b) < d:
             idx = 232 + grey_idx
         else:
-            idx = 16 + 36 * qr + 6 * qg + qb
+            idx = 16 + 36*qr + 6*qg + qb
         assert 0 <= idx < 256
         return idx
     def Translate8bit(n):
@@ -2049,7 +2049,8 @@ if 1:  # Utility functions
     def ColorDistance(rgb1, rgb2):
         '''Return an integer representing the Cartesian distance between two colors in RGB space.
         The arguments can be Color instances or 3-sequences of integers.  The returned value is an
-        integer gotten with the math module's isqrt function.
+        integer gotten with the math module's isqrt function.  The returned integer will
+        be on [0, 441], as math.floor(math.sqrt(3*255²)) is 441.
         '''
         if ii(rgb1, Color):
             seq1 = rgb1.irgb
@@ -2063,7 +2064,7 @@ if 1:  # Utility functions
             assert ii(rgb2, (list, tuple)) and len(rgb2) == 3
             assert all(ii(i, int) for i in rgb2)
             seq2 = rgb2
-        d = [(i - j) ** 2 for i, j in zip(seq1, seq2)]
+        d = [(i - j)**2 for i, j in zip(seq1, seq2)]
         return math.isqrt(sum(d))
     def ToIntRGB(rgb):
         'Convert 3-tuple of floats on [0, 1] to [0, 255]'
@@ -2217,7 +2218,7 @@ if __name__ == "__main__":
             c = Color(*a)
             n = c.N - 1
             Assert(c.irgb == c._rgb)
-            dec = tuple(i / n for i in c._rgb)
+            dec = tuple(i/n for i in c._rgb)
             Assert(c.drgb == dec)
             Assert(c.xrgb == "#032212")
             #
@@ -2309,7 +2310,7 @@ if __name__ == "__main__":
             c1 = Color(*a)
             c2 = Color(*b)
             def f(x, y):
-                return (sum((i - j) ** 2 for i, j in zip(x, y)) / 3) ** (1 / 2)
+                return (sum((i - j) ** 2 for i, j in zip(x, y))/3) ** (1/2)
             # rgb
             d1 = f(c1.drgb, c2.drgb)
             d2 = Color.dist(c1, c2, space="rgb")
@@ -2418,7 +2419,7 @@ if __name__ == "__main__":
             if 1:  # XYZ_to_sRGB
                 def GammaCompressed(x):
                     return (
-                        12.92 * x if x <= 0.0031308 else 1.055 * x ** (1 / 2.4) - 0.055
+                        12.92*x if x <= 0.0031308 else 1.055*x ** (1/2.4) - 0.055
                     )
                 f = Color.XYZ_to_sRGB
                 XYZ = (1, 1, 1)
@@ -2562,14 +2563,14 @@ if __name__ == "__main__":
                 a = 1.0001
                 t = (a, a, a)
                 c = Color(*t)
-                mag = sum(i * i for i in t) ** (1 / 2)
-                dec = tuple(i / mag for i in t)
+                mag = sum(i*i for i in t) ** (1/2)
+                dec = tuple(i/mag for i in t)
                 rgb = c.dec_to_int(dec)
                 Assert(c.irgb == rgb)
                 a = (0.99999, 1.00001, 1.0)
                 c = Color(*a)
-                mag = sum(i * i for i in t) ** (1 / 2)
-                dec = tuple(i / mag for i in t)
+                mag = sum(i*i for i in t) ** (1/2)
+                dec = tuple(i/mag for i in t)
                 rgb = c.dec_to_int(dec)
                 Assert(c.irgb == rgb)
             if 1:  # Fraction arguments
@@ -2852,28 +2853,28 @@ if __name__ == "__main__":
             c.always = True
             w = 5
             cn = CN
-            print("Grays:", end=" " * 2)
+            print("Grays:", end=" "*2)
             for i in range(1, 11):
-                k = Color(i / 10)
-                s = str(i / 10)
+                k = Color(i/10)
+                s = str(i/10)
                 print(f"{c(k)}{s:{w}s}{c.n}", end=" ")
             print()
             # Print out one color per line
             w, sp, a = 4, 2, "ul it"
-            print(f"{' ' * 12}{c('whtl', attr=a)}Foregrounds{c.n}", end="")
-            print(f"{' ' * 12}{c('whtl', attr=a)}Backgrounds{c.n}")
+            print(f"{' '*12}{c('whtl', attr=a)}Foregrounds{c.n}", end="")
+            print(f"{' '*12}{c('whtl', attr=a)}Backgrounds{c.n}")
             for i in R:
                 # Foregrounds
-                print(f"{i:{w}s}", end=" " * 3)
-                print(f"{c(cn[i])}{i:{w}s}{c.n}", end=" " * sp)
+                print(f"{i:{w}s}", end=" "*3)
+                print(f"{c(cn[i])}{i:{w}s}{c.n}", end=" "*sp)
                 for j in "ldb":
                     k = i + j
-                    print(f"{c(cn[k])}{k:{w}s}{c.n}", end=" " * sp)
+                    print(f"{c(cn[k])}{k:{w}s}{c.n}", end=" "*sp)
                 # Backgrounds
-                print(f"{c('blk', cn[i])}{i:{w}s}{c.n}", end=" " * sp)
+                print(f"{c('blk', cn[i])}{i:{w}s}{c.n}", end=" "*sp)
                 for j in "ldb":
                     k = i + j
-                    print(f"{c('blk', cn[k])}{k:{w}s}{c.n}", end=" " * sp)
+                    print(f"{c('blk', cn[k])}{k:{w}s}{c.n}", end=" "*sp)
                 # Print the RGB codes for the first two colors
                 k, kl, kd, kb = cn[i], cn[i + "l"], cn[i + "d"], cn[i + "b"]
                 print(f"{c(k)}{k.xrgb}{c.n} {c(kl)}{kl.xrgb}{c.n}", end=" ")
@@ -2947,7 +2948,7 @@ if __name__ == "__main__":
             # Must be 3 RGB numbers separated by white space (either
             # integers or floats)
             if "." in x or "e" in x:  # Three floats
-                rgb = [Int(255 * float(i)) for i in x.split()]
+                rgb = [Int(255*float(i)) for i in x.split()]
             else:  # Three integers
                 rgb = [Int(i) for i in x.split()]
         if len(rgb) != 3:
@@ -2986,7 +2987,7 @@ if __name__ == "__main__":
         if dx < 1:
             raise ValueError("No solution")
         for i in range(n):
-            yield int(round(a + i * dx, 0))
+            yield int(round(a + i*dx, 0))
     def ShowRepresentations(c):
         "Show the Color instance c in various representations"
         q = "({:3d}, {:3d}, {:3d})"
@@ -3291,7 +3292,7 @@ if __name__ == "__main__":
         print(f"Table of 8-bit colors (on {term!r} terminal)")
         width = int(os.environ["COLUMNS"]) - 1
         # Print the first 16 colors
-        indent = " " * 2
+        indent = " "*2
         n = 16
         print(f"{indent}", end="")
         for i in out[:n]:
@@ -3313,7 +3314,7 @@ if __name__ == "__main__":
         step_nm = 10
         print(f"{t.whtl}Wavelength in steps of {step_nm} nm to RGB colors")
         t.print("         rgb        hsv        hsl")
-        out, out_long, count, i = [], [], 0, " " * 4
+        out, out_long, count, i = [], [], 0, " "*4
         # Table for some named colors that are close to a wavelength
         c = {
             380: ("magl", ""),
@@ -3349,7 +3350,7 @@ if __name__ == "__main__":
                 )
             count += 1
         if 0:  # Columnize the short form
-            o = Columnize(out, indent=" " * 2, horiz=True)
+            o = Columnize(out, indent=" "*2, horiz=True)
             for line in o:
                 print(line)
         else:  # Print table data
