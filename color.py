@@ -1766,8 +1766,18 @@ if 1:  # Translate between ANSI 8-bit colors (256 of them) and 24-bit RGB colors
         These data are used to translate an 8-bit number to an RGB color and this
         translation is taken from what's done with an ANSI Xterm.
         
-        In the following, the ZZ part of the string is normally 0x80, but I've changed
-        these occurrences so that RGBtoANSI8bit() and Translate8bit() are inverses.
+        In the following table, I've made two substitutions so that RGBtoANSI8bit() and
+        Translate8bit() are inverses:
+                    Normal      Changed to
+            YY      0xc0        0xbc
+            ZZ      0x80        0x87
+        These changes help the Test8bitConversions() test to pass.
+         
+        Note there is no standard to translate from an 8-bit color number to an RGB
+        color.  The table in the section
+        https://en.wikipedia.org/wiki/ANSI_escape_code#3-bit_and_4-bit shows the 
+        different choices that have been made in various terminals.
+
         '''
         data = '''
             0 #000000
@@ -1777,7 +1787,7 @@ if 1:  # Translate between ANSI 8-bit colors (256 of them) and 24-bit RGB colors
             4 #0000ZZ
             5 #ZZ00ZZ
             6 #00ZZZZ
-            7 #c0c0c0
+            7 #YYYYYY
             8 #ZZZZZZ
             9 #ff0000
             10 #00ff00
@@ -2028,7 +2038,7 @@ if 1:  # Translate between ANSI 8-bit colors (256 of them) and 24-bit RGB colors
             255 #eeeeee
         '''.strip()
         if 1:   # Perform the substitution
-            data = data.replace("ZZ", "87").strip()
+            data = data.replace("ZZ", "87").replace("YY", "bc").strip()
         if not hasattr(Translate8bit, "colormap"):
             # Convert the table into a dictionary that maps an integer from 0
             # to 255 to a Color instance; cache it in Translate8bit.colormap.
