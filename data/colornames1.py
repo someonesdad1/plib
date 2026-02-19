@@ -8,6 +8,7 @@ List of named colors
     the usual mish-mash of incestuous color lists found all over the web.
 
 '''
+import gist
 
 def GetColorList():
     '''Returns a list of tuples (name, hex_specification) where both elements are
@@ -6995,13 +6996,10 @@ def GetColorList():
 if 1:   # Header
     _pgminfo = '''
         <oo gist ∞ Unattributed list of color names and their associated colors oo>
-        <oo desc ∞ It's a mix of quite a few files found over the last few decades.
+        <oo desc ∞ It's a mix of quite a few files found over the last three decades.
         oo>
         <oo copy ∞ Copyright © 2023 Don Peterson oo>
         <oo lic ∞ MIT License
-            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         oo>
         <oo cat ∞ color oo>
         <oo test ∞ notest oo>
@@ -7012,15 +7010,17 @@ def GetGist():
     a dictionary used to capture essential information about the module or script to
     allow automated tools to summarize the module/script.
     '''
-    gist = Gist()
-    gist.empty()
-    gist["test"] = "notest"
-    gist["gist"] = "Unattributed list of color names and their associated colors"
-    gist["cat"] = "color"
-    gist["todo"] = '''
+    mygist = gist.Gist()
+    mygist.clear()
+    mygist["gist"] = "Unattributed list of color names and their associated colors"
+    mygist["copy"] = "Copyright © 2023 Don Peterson"
+    mygist["lic"] = "MIT License (see /plib/_lic.mit)"
+    mygist["test"] = "notest"
+    mygist["cat"] = "color"
+    mygist["todo"] = '''
 
         - Try to find a better list that contains attributions
 
     '''
-    gist.check()
-    return gist
+    return mygist
+print(GetGist())

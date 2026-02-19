@@ -70,7 +70,7 @@ if 1:   # Classes
     class Gist(dict):
         'Take a gist string apart and store it as a dictionary'
         begin, end, sep = "<oo", "oo>", "∞"
-        def __init__(self, gist, keywords=[], strict=False):
+        def __init__(self, gist="", keywords=[], strict=False):
             '''gist is the string to parse to get the dictionary elements.  If keywords
             is not empty, then it's a list of strings that must be keywords in the gist
             string or an exception will be raised.  If strict is True, then the set of

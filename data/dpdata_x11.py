@@ -7,7 +7,8 @@ List of color names
     It is a list of color names compiled from a number of web sources.  There are over
     10,000 color names with a number of duplicates, demonstrating a lot of copying over
     the years.  The progenitor of much of this information was the rgb.txt file on early
-    XWindows systems.
+    XWindows systems.  If I recall correctly, my rgb.txt data came from an HP-UX machine
+    I worked on in 1991.
 '''
 if 1:  # Header
     _pgminfo = '''
@@ -44,6 +45,7 @@ if 1:  # Color data
     #   Color object holding the color data 
     #   Hue category string (there are 15 hue categories:  red, redorn, orn, ornyel, yel,
     #   yelgrn, grn, grncyn, cyn, cynblu, blu, vio, viomag, mag, magred))
+    # Example:  ( 1, "AliceBlue"                                 , Color(240, 248, 255), 'cynblu'),
     color_data = [
         ( 1, "AliceBlue"                                 , Color(240, 248, 255), 'cynblu'),
         ( 1, "AntiqueWhite"                              , Color(250, 235, 215), 'orn'),
@@ -10696,69 +10698,115 @@ if 1:  # Attribution dictionary
     # list, the value is the attribution string.  These python scripts are in the
     # /donrepo/plib/lib/color/rgbdata_build directory.
     attribution_dict = {
-        1: dedent('''file = /pylib/g/rgb.txt
+        1: dedent('''
+            file = /pylib/g/rgb.txt
             Constructed from an rgb.txt file I got from either an HPUX or Linux box
             in the early 1990's.'''),
-        2: dedent('''file = medium_color_database.py
+        2: dedent('''
+            file = medium_color_database.py
             from http://www.two4u.com/color/medium-txt.html
             No license mentioned
             Downloaded Sat 04 Oct 2014 10:53:39 AM
             Verified Wed 16 Mar 2022 02:15:37 PM'''),
-        3: dedent('''file = name_that_color.py
+        3: dedent('''
+            file = name_that_color.py
             from http://chir.ag/projects/ntc/ntc.js
             Licensed under Creative Commons License Attribution 2.5
             Downloaded Sat 04 Oct 2014 10:30:39 AM
             Verified unchanged from download on Wed 16 Mar 2022 02:12:12 PM'''),
-        4: dedent('''file = raveling.py
+        4: dedent('''
+            file = raveling.py
             Downloaded Sat 04 Oct 2014 10:50:16 AM
             from http://cvsweb.xfree86.org/cvsweb/~checkout~/xc/programs/rgb/others/raveling.txt
             No license available as website is defunct
                 Link defunct on Wed 16 Mar 2022 02:16:36 PM'''),
-        5: dedent('''file = resene_pencils.py
+        5: dedent('''
+            file = resene_pencils.py
             These pencil color definitions were downloaded from the Excel file
             https://www.resene.co.nz/swatches/download_pencils.xls.
-            No license information on the file.  Company contacted for there preferences
+            No license information on the file.  Company contacted for their preferences
             on 13 Feb 2026.
             This spreadsheet was converted to Open Office, the columns for name and RGB
             colors saved, and then was saved as a CSV file.  Downloaded Wed 16 Mar 2022
             04:59:10 PM.  After deleting names that had '-' for colors, this information
             was the same as the file I loaded from this site on 1 Jun 2021.'''),
-        6: dedent('''file = resenecolors.py
+        6: dedent('''
+            file = resenecolors.py
             from http://people.csail.mit.edu/jaffer/Color/resenecolours.txt
             Resene's copyright is "Copyright Resene Paints Ltd 2001".
             Downloaded Sat 04 Oct 2014 10:23:31 AM
             Verified Wed 16 Mar 2022 02:19:16 PM'''),
-        7: dedent('''file = wikipedia_list.py
+        7: dedent('''
+            file = wikipedia_list.py
             Text of the first three web pages at
             https://en.wikipedia.org/wiki/Lists_of_colors
             Note:  wikipedia uses a CC attribution-sharealike 4.0 license
             ∞∞1 rgbdata.py:  Remove the wikipedia data (there's 971 of them)
             Downloaded Tue 01 Jun 2021 07:08:24 PM'''),
-        8: dedent('''file = xfree_rgb.py
+        8: dedent('''
+            file = xfree_rgb.py
             Downloaded Sat 04 Oct 2014 10:51:00 AM
             from http://cvsweb.xfree86.org/cvsweb/~checkout~/xc/programs/rgb/rgb.txt
                 Link is defunct as of Wed 16 Mar 2022 02:23:33 PM'''),
-        9: dedent('''file = xkcd_rgb.py
+        9: dedent('''
+            file = xkcd_rgb.py
             from http://xkcd.com/color/rgb.txt
             License https://creativecommons.org/publicdomain/zero/1.0/
             Downloaded Sat 04 Oct 2014 10:36:40 AM
             Verified Wed 16 Mar 2022 02:27:06 PM (equal with 'diff -w')'''),
     }
 if __name__ == "__main__":
-    # Print all the names organized by hue
-    from collections import defaultdict
-    from columnize import Columnize
-    from color import t
-    di = defaultdict(list)
-    w = 0
-    for item in color_data:
-        attr, name, clr, hue = item
-        w = max(w, len(name))
-        di[hue].append([name, clr])
-    for hue in di:
-        t.print(f"{t('whtl', 'redl')}{hue}")
-        o = []
-        for name, clr in di[hue]:
-            o.append(f"{t(clr)}{name}{t.n}")
-        for i in Columnize(o, indent=" "*4):
-            print(i)
+    if 0:
+        # Print all the names organized by hue
+        from collections import defaultdict
+        from columnize import Columnize
+        from color import t
+        di = defaultdict(list)
+        w = 0
+        for item in color_data:
+            attr, name, clr, hue = item
+            w = max(w, len(name))
+            di[hue].append([name, clr])
+        for hue in di:
+            t.print(f"{t('whtl', 'redl')}{hue}")
+            o = []
+            for name, clr in di[hue]:
+                o.append(f"{t(clr)}{name}{t.n}")
+            for i in Columnize(o, indent=" "*4):
+                print(i)
+    elif 1:
+        import textwrap
+        # Dump individual function names to get these lists of colors.  The first
+        # element will be a string with the attribution.
+        A = attribution_dict
+        F = {   # Function names:  key is same as for A
+            1: "GetX11",
+            2: "GetMediumColor",
+            3: "GetNameThatColor",
+            4: "GetRaveling",
+            5: "GetResenePencils",
+            6: "GetReseneColors",
+            7: "GetWikipedia1",
+            8: "GetXfree",
+            9: "GetXkcd",
+        }
+        # Example:  ( 1, "AliceBlue", Color(240, 248, 255), 'cynblu'),
+        w = 0
+        for item in color_data:
+            attr, name, c, hue = item
+            w = max(w, len(name.strip()))
+        for n in F:
+            funcname = F[n]
+            print(f"def {funcname}():")
+            print("    data = (")
+            print("        ('''")
+            print(textwrap.indent(A[n], " "*12))
+            print("        '''),")
+            for i, item in enumerate(color_data):
+                attr, name, c, hue = item
+                print(f"{' '*8}('{name:{w}s}', '{c.xrgb}'),     # {c.xhls} {c.xhsv}")
+                #print(i, item)
+                if i > 5:
+                    break
+            print(f"{' '*4})")
+            print(f"{' '*4}return data")
