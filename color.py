@@ -1692,8 +1692,9 @@ if 1:   # RegexpDecorate class
             return True
 if 1:  # Translate between ANSI 8-bit colors (256 of them) and 24-bit RGB colors
     def RGBtoANSI8bit(r, g, b):
-        '''This function takes an RGB integer tuple and returns the closest ANSI 8-bit color.  This
-        function is adapted from the file https://github.com/tmux/tmux/blob/master/colour.c.
+        '''This function takes an RGB integer tuple and returns an integer on [0, 255]
+        representing the closest ANSI 8-bit color.  This function is adapted from the
+        file https://github.com/tmux/tmux/blob/master/colour.c.
         '''
         # Original tmux authors' copyright and license text:
         #

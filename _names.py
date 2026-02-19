@@ -1,4 +1,5 @@
 import wl2rgb
+import color
 from color import Color, t
 from wrap import dedent
 from bidict import bidict
@@ -177,9 +178,10 @@ def Introduction(quiet=False):
         A("olv2", "$38369a")
         A("olv3", "$38209a")
         A("olvl", "$38b09a")
-    if 1:
-        c = Color("#759a26")
-        print(c.xhls)
+    if 0:
+        # Use this section to tune a base color
+        #c = Color("#759a26")
+        #print(c.xhls)
         s = "olv"
         a=s+"l";print(a, D[a], D[a].xhls)
         a=s;print(a + " ", D[a], D[a].xhls)
@@ -187,38 +189,95 @@ def Introduction(quiet=False):
         a=s+"2";print(a, D[a], D[a].xhls)
         a=s+"3";print(a, D[a], D[a].xhls)
         exit()
-    pp(D);exit()
+    if 1:   # Print out the colors
+        for i in '''
+                blu roy den sky cyn 
+                trq sea grn lwn olv 
+                yel ygr yon orn ord brn
+                mag pnk lil lav pur lip red
+                '''.split():
+            s = i + "l"; c = D[s]; t.print(f"{t(c)}{s:4s}: {c}")
+            s = i + "";  c = D[s]; t.print(f"{t(c)}{s:4s}: {c}")
+            s = i + "1"; c = D[s]; t.print(f"{t(c)}{s:4s}: {c}")
+            s = i + "2"; c = D[s]; t.print(f"{t(c)}{s:4s}: {c}")
+            s = i + "3"; c = D[s]; t.print(f"{t(c)}{s:4s}: {c}")
     return D
-def CompareNewOld(d):
+def CompareNewOld():
     'Print a table showing the new and old'
     output = []  # List for output strings
     # Get the 3 letter names
-    for s in sorted(i for i in d if len(i) == 3):
-        o = []
-        o.append(s)                     # Name in plain text white
-        o.append(f"{t(d[s])}{s}{t.n}")       
+    for num, s in enumerate(sorted(i for i in d if len(i) == 3)):
+        row = []
+        row.append(str(num))
+        row.append(s)   # Name in plain text white
+        row.append(f"{t(d[s])}{s}{t.n}")       
         for i in "123l":
             u = d[s + i]
-            o.append(f"{t(u)}{s + i}{t.n}")
-        o.append("|")   # Separator
+            row.append(f"{t(u)}{s + i}{t.n}")
+        row.append("|")   # Separator
         # Old color names
         try:
             c = eval(f"t.{s}")
-            o.append(f"{c}{s}{t.n}")
+            row.append(f"{c}{s}{t.n}")
             for i in "ldb":
                 u = eval(f"t.{s + i}")
                 c = eval(f"t.{s}")
-                o.append(f"{u}{s + i}{t.n}")
+                row.append(f"{u}{s + i}{t.n}")
         except AttributeError:
-            o.extend([""]*4)
-        output.append(o)
+            row.extend([""]*4)
+        output.append(row)
     n = len(output[0])
-    header = "Clr Nom 1 2 3 l | Old l d b".split()
+    header = "Num Clr Nom 1 2 3 l | Old l d b".split()
     tt.print(output, header=header, padding=(1, 1), style=" "*15, alignment="c"*n)
-def Tweak(d):
-    'Adjust some of the new colors'
+def Assessment():
+    print()
+    print(dedent('''
+
+    There are 5*26 + 1 or 131 colors.  This is roughly half of the 8-bit colors, so I'm
+    assuming that there will be a pretty good matching (see below), meaning these names
+    will work with either 8-bit or 24-bit colors.  Three new color names have been added
+    over the old and the gradations by adding 1, 2, 3, and l to the name are more
+    convenient and nicely spaced.  
+
+    A handy addition to either Trm or Color would be methods that allow adjusting hue,
+    lightness, and saturation up and down.  I could see the argument being a float on 
+    [-10, 10], representing a percentage adjustment down or up.  1 represents 10%,
+    probably a typical choice for an adjustment, as finer adjustments could be hard to
+    see unless the colors are compared in two blocks next to each other.
+
+    '''))
+def CompareTo8bit():
+    print()
+    print("Comparison with closest 8-bit colors ('name closest_8-bit_color):")
+    output = []  # List for output strings
+    for name in sorted(i for i in d if len(i) == 3):
+        if name == "blk":
+            continue
+        row = ["  "]
+        c = d[name]
+        row.append(f"{t(c)}{name}{t.n}")       
+        n = color.RGBtoANSI8bit(*c.irgb)
+        c1 = color.Translate8bit(n)
+        row.append(f" {t(c1)}8bit{t.n}")       
+        for ltr in "123l":
+            row.append(" "*4)
+            newname = name + ltr
+            c = d[newname]
+            row.append(f"{t(c)}{newname}{t.n}")       
+            n = color.RGBtoANSI8bit(*c.irgb)
+            c1 = color.Translate8bit(n)
+            row.append(f" {t(c1)}8bit{t.n}")       
+        print(''.join(row))
+    exit()
+
+    n = len(output[0])
+    header = "Num Clr Nom 1 2 3 l | Old l d b".split()
+    print()
+    tt.print(output, header=header, padding=(1, 1), style=" "*15, alignment="c"*n)
+    
 
 if __name__ == "__main__":  
     d = Introduction(quiet=1)
-    d = CompareNewOld(d)
-    Tweak(d)
+    CompareNewOld()
+    Assessment()
+    CompareTo8bit()
