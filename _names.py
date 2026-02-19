@@ -1,3 +1,4 @@
+import sys
 import wl2rgb
 import color
 from color import Color, t
@@ -248,7 +249,7 @@ def Assessment():
     '''))
 def CompareTo8bit():
     print()
-    print("Comparison with closest 8-bit colors ('name closest_8-bit_color):")
+    print("Comparison with closest 8-bit colors ('name:closest_8-bit_color):")
     output = []  # List for output strings
     for name in sorted(i for i in d if len(i) == 3):
         if name == "blk":
@@ -258,7 +259,7 @@ def CompareTo8bit():
         row.append(f"{t(c)}{name}{t.n}")       
         n = color.RGBtoANSI8bit(*c.irgb)
         c1 = color.Translate8bit(n)
-        row.append(f" {t(c1)}8bit{t.n}")       
+        row.append(f"{t(c1)}:8bit{t.n}")       
         for ltr in "123l":
             row.append(" "*4)
             newname = name + ltr
@@ -266,19 +267,31 @@ def CompareTo8bit():
             row.append(f"{t(c)}{newname}{t.n}")       
             n = color.RGBtoANSI8bit(*c.irgb)
             c1 = color.Translate8bit(n)
-            row.append(f" {t(c1)}8bit{t.n}")       
+            row.append(f"{t(c1)}:8bit{t.n}")       
         print(''.join(row))
     print()
     print(dedent('''
 
-    Overall, not too bad, although there are pretty visible differences for the dark
-    colors.
+    Works OK although there are visible differences for the dark colors.  But this looks
+    fine for my needs, as I don't use 8-bit stuff very often.
 
     '''))
+def DumpDict():
+    print("dpcolors = {")
+    for i in d:
+        name = f"'{i}' " if len(i) == 3 else f"'{i}'"
+        print(f'    {name}: "{d[i].xrgb}",    # {d[i].xhls} {d[i].xhsv}')
+    print("}")
+    exit()
     
 
 if __name__ == "__main__":  
-    d = Introduction(quiet=1)
+    quiet = len(sys.argv) > 1
+    d = Introduction(quiet=quiet)
+    if quiet:
+        DumpDict()
+        exit()
     CompareNewOld()
     Assessment()
     CompareTo8bit()
+    DumpDict()
