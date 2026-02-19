@@ -129,6 +129,10 @@ I don't follow some recommendations of PEP-8:
   incomprehensible.  This is the "foolish consistency" that PEP-8 was talking about.
   Most programmers don't write such stuff, so they don't feel the pain.  I haven't found
   a decent python formatter.  
+    - I like ruff, but until the developers feel the pain of this math mangling, they
+      won't change anything.  In my opinion, the best fix would probably be a way in
+      the code to delineate a block to say "don't mess with the formatting of this
+      block, but lint it all you want".
 
 ## Caution
 
@@ -145,6 +149,10 @@ I don't follow some recommendations of PEP-8:
   the days of monochrome terminals are probably over, so I just put escape codes in
   everything now.  I've got an item on my todo list to fix this and it should happen in
   my reorganization/refactoring efforts in the first half of 2026.
+- I make lots of checkins to git, but virtually never include a commit message.  Yes,
+  this is horrible practice in an industrial environment where you work with lots of
+  other folks.  If/when one or more people ever start helping to maintain this stuff,
+  the commit messages will instantly get better.
 
 # Tools
 
