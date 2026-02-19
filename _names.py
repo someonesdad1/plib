@@ -129,22 +129,67 @@ def Introduction(quiet=False):
         
         '''))
     # Add in some missing names.  Rename D to d.
-    d = D
-    def D(name, hex):
-        d[name] = Color(hex)
-        d[name + "1"] = Color(hex)
-        d[name + "2"] = Color(hex)
-        d[name + "3"] = Color(hex)
-        d[name + "l"] = Color(hex)
-    D("brn", "#964a00")
-    D("gry", "#646464")
-    D("blk", "#000000")
-    D("wht", "#b4b4b4")
-    D("lil", "#b493ea")
-    D("pur", "#7517a6")
-    D("olv", "#759a26")
-    return d
-def Tweak(d):
+    def A(name, hex, h=False):
+        if h:
+            D[name] = Color(hex, hls=True)
+        else:
+            D[name] = Color(hex)
+    if 1:   # Black
+        # Black is special, as all lightnesses are black
+        A("blk", "#000000")
+        A("blk1", "#000000")
+        A("blk2", "#000000")
+        A("blk3", "#000000")
+        A("blkl", "#000000")
+    if 1:   # Brown
+        A("brnl", "$17a065")
+        A("brn",  "$158065")
+        A("brn1", "$156065")
+        A("brn2", "$154065")
+        A("brn3", "$152065")
+    if 1:   # Gray
+        A("gry",  "$004800")
+        A("gry1", "$003800")
+        A("gry2", "$003000")
+        A("gry3", "$002000")
+        A("gryl", "$005800")
+    if 1:   # White
+        A("wht",  "$00b500")
+        A("wht1", "$009500")
+        A("wht2", "$007500")
+        A("wht3", "$006500")
+        A("whtl", "$00ff00")
+    if 1:   # Lilac
+        A("lil",  "$baa030")
+        A("lil1", "$ba8030")
+        A("lil2", "$ba6030")
+        A("lil3", "$ba4030")
+        A("lill", "$bac060")
+    if 1:   # Purple
+        A("pur",  "$c580a0")
+        A("pur1", "$c565a0")
+        A("pur2", "$c550a0")
+        A("pur3", "$c535a0")
+        A("purl", "$c5b0d0")
+    if 1:   # Olive
+        A("olv",  "$38609a")
+        A("olv1", "$38489a")
+        A("olv2", "$38369a")
+        A("olv3", "$38209a")
+        A("olvl", "$38b09a")
+    if 1:
+        c = Color("#759a26")
+        print(c.xhls)
+        s = "olv"
+        a=s+"l";print(a, D[a], D[a].xhls)
+        a=s;print(a + " ", D[a], D[a].xhls)
+        a=s+"1";print(a, D[a], D[a].xhls)
+        a=s+"2";print(a, D[a], D[a].xhls)
+        a=s+"3";print(a, D[a], D[a].xhls)
+        exit()
+    pp(D);exit()
+    return D
+def CompareNewOld(d):
     'Print a table showing the new and old'
     output = []  # List for output strings
     # Get the 3 letter names
@@ -170,8 +215,10 @@ def Tweak(d):
     n = len(output[0])
     header = "Clr Nom 1 2 3 l | Old l d b".split()
     tt.print(output, header=header, padding=(1, 1), style=" "*15, alignment="c"*n)
-    #tt.print(output)
+def Tweak(d):
+    'Adjust some of the new colors'
 
 if __name__ == "__main__":  
     d = Introduction(quiet=1)
+    d = CompareNewOld(d)
     Tweak(d)

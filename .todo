@@ -1,5 +1,22 @@
 /plib/.todo
 
+    - Color tool:  interactive tool to explore terminal colors
+        - Uses a standard dict of named colors
+        - Subset things quickly by
+            - Regex on name (keep or remove)
+            - Hue name, hue range
+            - Wavelength range
+        - Variety of display methods
+        - Export current set to a file
+        - Naming
+            - Raw = name in file
+            - Normalized = snake case
+            - Camel
+            - Spaces
+                - Capitalized
+                - Lower case
+        - Color adjustments
+
     - Circular imports
         - Nearly always happen in f.py and color.py
             - Reduce occurrences by getting rid of all 'from x import y' statements
