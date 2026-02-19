@@ -113,7 +113,7 @@ if 1:  # Header
                 - When printing a Trm instance that uses t.str(), output the string
                   using Columnize to the current screen width, as this is more
                   attractive.
-
+            
             - RegexpDecorate.register() needs to change to an argument list of (r,
               match_style, nomatch_style) where the latter two elements are escape codes
               used to define how things should be printed.  The use case is pfind.py
@@ -1778,7 +1778,6 @@ if 1:  # Translate between ANSI 8-bit colors (256 of them) and 24-bit RGB colors
         color.  The table in the section
         https://en.wikipedia.org/wiki/ANSI_escape_code#3-bit_and_4-bit shows the 
         different choices that have been made in various terminals.
-
         '''
         data = '''
             0 #000000
@@ -2080,16 +2079,6 @@ if 1:  # Utility functions
     def ToIntRGB(rgb):
         'Convert 3-tuple of floats on [0, 1] to [0, 255]'
         return tuple(dpseq.Clamp((int(i*256) for i in rgb), low=0, high=255, typ=int))
-if 0:  # Prototyping area
-    # Develop new escape-code styles for RegexpDecorate.register()
-    s = "Hello world"
-    r = re.compile("llo ")
-    rd = RegexpDecorate()
-    match_style = t("skyl")
-    nomatch_style = t.n
-    rd.register(r, match_style, nomatch_style)
-    rd(s, insert_nl=True)
-    exit()
 
 if __name__ == "__main__":
     import getopt

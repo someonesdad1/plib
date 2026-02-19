@@ -268,12 +268,13 @@ def CompareTo8bit():
             c1 = color.Translate8bit(n)
             row.append(f" {t(c1)}8bit{t.n}")       
         print(''.join(row))
-    exit()
-
-    n = len(output[0])
-    header = "Num Clr Nom 1 2 3 l | Old l d b".split()
     print()
-    tt.print(output, header=header, padding=(1, 1), style=" "*15, alignment="c"*n)
+    print(dedent('''
+
+    Overall, not too bad, although there are pretty visible differences for the dark
+    colors.
+
+    '''))
     
 
 if __name__ == "__main__":  
