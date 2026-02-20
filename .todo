@@ -1,22 +1,5 @@
 /plib/.todo
 
-    - Color tool:  interactive tool to explore terminal colors
-        - Uses a standard dict of named colors
-        - Subset things quickly by
-            - Regex on name (keep or remove)
-            - Hue name, hue range
-            - Wavelength range
-        - Variety of display methods
-        - Export current set to a file
-        - Naming
-            - Raw = name in file
-            - Normalized = snake case
-            - Camel
-            - Spaces
-                - Capitalized
-                - Lower case
-        - Color adjustments
-
     - Circular imports
         - Nearly always happen in f.py and color.py
             - Reduce occurrences by getting rid of all 'from x import y' statements
@@ -1584,37 +1567,42 @@
 
 Color stuff
 
-    A core idea is to make a class Palette which holds a mapping between short color
-    names and the Color instance or the color's escape sequence for the terminal.  This 
-    class is a context manager that allows code like
-
-        with palette as p:
-            p.print(f"{p.g}This is green, {p.y}yellow is to the end")
-
-        It would be even nicer if g and y could be put into the locals dict at 
-        the beginning of the context mananger, then have their names disappear 
-        at the end; this would let you use the one-letter names.
-
-        A problem with python is that you cannot modify the locals() dict, as this would
-        provide a simple locals().update(new_variables) and you'd be ready to go.  You'd
-        have to do something clunky like 
-
-            for var in new_variables:
-                exec(f"{var} = new_variables[{var}]")
-
-        The only way I can see of doing this would be to use a nonlocal variable, as
-        you'd have 
-
-        See https://realpython.com/python-namespace/#the-enclosing-or-nonlocal-namespace
+    - Color tool:  interactive tool to explore terminal colors
+        - Uses a standard dict of named colors
+        - Subset things quickly by
+            - Regex on name (keep or remove)
+            - Hue name, hue range
+            - Wavelength range
+        - Variety of display methods
+        - Export current set to a file
+        - Naming
+            - Raw = name in file
+            - Normalized = snake case
+            - Camel
+            - Spaces
+                - Capitalized
+                - Lower case
+        - Color adjustments
 
     - color.py
         - For Color() stuff and wavelength stuff
         - Color constructor
-            - float[0, 1]:  grays
-            - int[0, 255]:  8-bit color palette
-            - int(0xff, 0xff, 0xff) 24-bit
-            - #ffffff (rgb), $ffffff (hls), @ffffff (hsv)
-            - name?  Access to color name database
+            - float
+                - [0, 1]:  grays
+                - [380, 780]:  wavelength of light
+            - int
+                - [0, 255]:  8-bit color palette
+                - [380, 780]:  wavelength of light
+            - Sequence
+                - int(0xff, 0xff, 0xff) 24-bit color
+                - float (x, y, z) on [0, 1]  24-bit color
+            - String
+                - #ffffff RGB
+                - $ffffff HLS
+                - @ffffff HSV
+                - "255 135 0"   Tuple of ints
+                - "25.5 135 0"  Tuple of floats (normalize to unit vector)
+                - name  Search color name database
     - clr.py
         - Trm class for use with color in terminals
             - Internal stack with cpush() and cpop() for name definitions

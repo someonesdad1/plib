@@ -8143,7 +8143,7 @@ if 1:  # Color data
         ( 7, "Beaver"                                    , Color(159, 129, 112), 'redorn'),
         ( 7, "Beige"                                     , Color(245, 245, 220), 'yel'),
         ( 7, "B'dazzled blue"                            , Color( 46,  88, 148), 'cynblu'),
-        ( 7, "Big dip o’ruby"                            , Color(156,  37,  66), 'red'),
+        ( 7, "Big dip o'ruby"                            , Color(156,  37,  66), 'red'),
         ( 7, "Bisque"                                    , Color(255, 228, 196), 'orn'),
         ( 7, "Bistre"                                    , Color( 61,  43,  31), 'orn'),
         ( 7, "Bistre brown"                              , Color(150, 113,  23), 'ornyel'),
@@ -8218,8 +8218,8 @@ if 1:  # Color data
         ( 7, "Cadmium orange"                            , Color(237, 135,  45), 'orn'),
         ( 7, "Cadmium red"                               , Color(227,   0,  34), 'red'),
         ( 7, "Cadmium yellow"                            , Color(255, 246,   0), 'yel'),
-        ( 7, "Café au lait"                              , Color(166, 123,  91), 'orn'),
-        ( 7, "Café noir"                                 , Color( 75,  54,  33), 'orn'),
+        ( 7, "Cafe au lait"                              , Color(166, 123,  91), 'orn'),
+        ( 7, "Cafe noir"                                 , Color( 75,  54,  33), 'orn'),
         ( 7, "Cambridge blue"                            , Color(163, 193, 173), 'grncyn'),
         ( 7, "Camel"                                     , Color(193, 154, 107), 'orn'),
         ( 7, "Cameo pink"                                , Color(239, 187, 204), 'magred'),
@@ -8960,7 +8960,7 @@ if 1:  # Color data
         ( 7, "Teal"                                      , Color(  0, 128, 128), 'cyn'),
         ( 7, "Teal blue"                                 , Color( 54, 117, 136), 'cynblu'),
         ( 7, "Telemagenta"                               , Color(207,  52, 118), 'magred'),
-        ( 7, "Tenné  (tawny)"                            , Color(205,  87,   0), 'orn'),
+        ( 7, "Tenne  (tawny)"                            , Color(205,  87,   0), 'orn'),
         ( 7, "Terra cotta"                               , Color(226, 114,  91), 'redorn'),
         ( 7, "Thistle"                                   , Color(216, 191, 216), 'mag'),
         ( 7, "Thulian pink"                              , Color(222, 111, 161), 'magred'),
@@ -10723,7 +10723,7 @@ if 1:  # Color data
         (10, "Beige"                                       , Color(245, 245, 220), ""),
         (10, "Berry parfait"                               , Color(164, 52, 130), ""),
         (10, "B'dazzled blue"                              , Color(46, 88, 148), ""),
-        (10, "Big dip o’ruby"                              , Color(156, 37, 66), ""),
+        (10, "Big dip o'ruby"                              , Color(156, 37, 66), ""),
         (10, "Big Foot Feet"                               , Color(232, 142, 90), ""),
         (10, "Bisque"                                      , Color(255, 228, 196), ""),
         (10, "Bister (Bistre)"                             , Color(61, 43, 31), ""),
@@ -10797,8 +10797,8 @@ if 1:  # Color data
         (10, "Cadmium orange"                              , Color(237, 135, 45), ""),
         (10, "Cadmium red"                                 , Color(227, 0, 34), ""),
         (10, "Cadmium yellow"                              , Color(255, 246, 0), ""),
-        (10, "Café au lait"                                , Color(166, 123, 91), ""),
-        (10, "Café Noir"                                   , Color(75, 54, 33), ""),
+        (10, "Cafe au lait"                                , Color(166, 123, 91), ""),
+        (10, "Cafe Noir"                                   , Color(75, 54, 33), ""),
         (10, "Cambridge blue"                              , Color(163, 193, 173), ""),
         (10, "Camel"                                       , Color(193, 154, 107), ""),
         (10, "Cameo pink"                                  , Color(239, 187, 204), ""),
@@ -11731,7 +11731,7 @@ if 1:  # Color data
         (10, "Technobotanica"                              , Color(0, 255, 191), ""),
         (10, "Telemagenta"                                 , Color(207, 52, 118), ""),
         (10, "Temptress"                                   , Color(60, 33, 38), ""),
-        (10, "Tenné"                                       , Color(205, 87, 0), ""),
+        (10, "Tenne"                                       , Color(205, 87, 0), ""),
         (10, "Terra cotta"                                 , Color(226, 114, 91), ""),
         (10, "Thistle"                                     , Color(216, 191, 216), ""),
         (10, "Thistle (Crayola)"                           , Color(235, 176, 215), ""),
@@ -11974,29 +11974,109 @@ if 1:  # Attribution dictionary
     }
 
 if __name__ == "__main__":
-    '''
-
-    Print functions to stdout that return the list of colors as a string.  Example:
-
-    def GetX11():
-        data = """
-            Attribution information, license, etc.
-            🟦
-            #99cc32 Yellow Green
-            ...
-        """
-        return data
-    
-    🟦 is U+1f7e6 and lets you split the string data into the attribution part and the
-    actual color information part.  The latter lines are split on the first space
-    character into the hex color specifier and the name.
-
-    '''
+    import asciify
+    import string
     import textwrap
-    # Dump individual function names to get these lists of colors.  The first
-    # element will be a string with the attribution.
-    A = attribution_dict
-    F = {   # Function names:  key is same as for A
+    from collections import namedtuple, defaultdict, deque
+    from lwtest import run, Assert, raises
+    '''
+
+    Some problems with color names are
+        - There are too many of them
+        - Some map to the same 24-bit color
+        - There's no standard naming
+
+    Recognizing this, I'm going to create a single dictionary that lets you look up a
+    color name.  Core to this is a way to normalize the name in such a way that the
+    following names all wind up being the same normalized form: "dark red", "Dark Red",
+    "DarkRed", "Dark_red", etc.
+
+    Normalization is then:
+        - Names are converted to ASCII-only form
+        - A space character is inserted before each capital letter
+        - An underscore is replaced with a space character
+        - The string is split into tokens on whitespace characters
+        - Each token is converted to lowercase
+        - The string is reassembled using underscores
+
+    Thus, the normalized form of the above "dark red" stuff is "dark_red".
+
+    This file will be a dictionary that looks up a normalized color name and returns a
+    sequence of colors with that name.  The pattern is
+
+        normalized_name = Normalize("Dark red")     # --> "dark_red"
+            normalized_name --> "dark_red"
+        colornames[normalized_name] --> either a KeyError or a nonempty sequence is
+        returned with elements like
+
+            ("#aaaaaa Dark red", 6)
+
+        The integer 6 is used to get you the attribution for this entry with
+        attributions[6], which will return a string, telling you where the color name
+        came from, when , and the license it's under.
+
+    All strings are ASCII-only characters and leading spaces are removed.  You can get a
+    list of their lines using ''.split("\n").
+
+    '''
+    def Normalize(name):
+        '''Return a normalized color name from the string name.
+        Example:  "dark red", "Dark Red", "DarkRed", "Dark_red" as arguments will all
+        return "dark_red".
+
+        Algorithm:
+            - Convert to ASCII-only form
+            - " " inserted before each capital letter
+            - " " substituted for each "_"
+            - Split on whitespace
+            - Convert each token to lowerspace
+            - Reassemble with "_"
+        '''
+        name = name.strip()
+        if not name:
+            raise ValueError("A name cannot be only whitespace or empty")
+        name = asciify.Asciify(name)
+        # Make sure we have only printable ASCII characters
+        printable = set(string.printable)
+        mychars = set(name)
+        capitals = set(string.ascii_uppercase)
+        if not (mychars <= printable):
+            not_allowed = mychars - printable
+            raise ValueError("{str(not_allowed)!r} are characters not allowed in names")
+        # Process the characters
+        new = []
+        dq = deque(name)
+        while dq:
+            char = dq.popleft()
+            if char in capitals or char == "_":
+                new.append(" ")
+            new.append(char)
+        newstr = ''.join(new).replace("_", " ")
+        new = '_'.join(i.lower() for i in newstr.split())
+        return new
+
+    for i in ("dark red", "Dark Red", "DarkRed", "Dark_red"):
+        Assert(Normalize(i) == "dark_red")
+    raises(ValueError, Normalize, "   ")
+    raises(ValueError, Normalize, " 🟦 ")
+    exit()
+
+    Names = {
+        0 : "Don2026",   # New set of my color names
+        1 : "Don2022",   # Old set of my color names
+        2 : "X11",
+        3 : "xkcd",
+        4 : "Xfree",
+        5 : "Wikipedia1",
+        6 : "Wikipedia2",
+        7 : "ResenePencils",
+        8 : "ReseneColors",
+        9 : "MediumColor",
+        10: "NameThatColor",
+        11: "Raveling",
+    }
+
+    function_names = {   # key is same as for attribution_dict
         1: "GetX11",
         2: "GetMediumColor",
         3: "GetNameThatColor",
@@ -12008,31 +12088,25 @@ if __name__ == "__main__":
         9: "GetXkcd",
         10: "GetWikipedia2",
     }
-    w = 0
-    for item in color_data:
-        attr, name, c, hue = item
-        w = max(w, len(name.strip()))
-    w += 3  # Make sure we have enough room for two " symbols too
-    for n in F:
-        funcname = F[n]
-        print(f"def {funcname}():")
-        print("    data = (")
-        print("        ('''")
-        print(textwrap.indent(A[n], " "*12))
-        print("        '''),")
+    indent = " "*4
+    dbg = True     # Set to True to see short output to check format
+    for n in function_names:
+        print(f"def {function_names[n]}():")
+        print("    data = '''")
+        print(textwrap.indent(attribution_dict[n], indent*2))
+        print(f"{indent*2};;")
         for i, item in enumerate(color_data):
             attr, name, c, hue = item
             if attr != n:
                 continue
-            s = f"{name}"
-            u = " "*(w - len(s))
-            print(f'{" "*8}("{s}"{u}, "{c.xrgb}"),     # {c.xhls} {c.xhsv}')
-            if 0 and i > 5:
+            print(f"{indent*2}{c.xrgb} {name}")
+            if dbg and i > 5:
                 break
-        print(f"{' '*4})")
-        print(f"{' '*4}return data")
-        if 0 and n > 0:
+        print(f"{indent}'''")
+        print(f"{indent}return data")
+        if dbg and n > 0:
             break
+
 def GetGist():
     '''Construct the /plib/gist.Gist instance for this file.  This gist is
     a dictionary used to capture essential information about the module or script to

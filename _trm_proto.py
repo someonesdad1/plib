@@ -3,6 +3,11 @@
 t = Trm()
 
 ToDo
+    - https://runebook.dev/en/docs/python/library/collections/collections.UserDict
+      explains why collections.UserDict might be a better choice:  dict.update() might
+      ignore your __setitem__.  This means if I stick with Trm(dict), then every dict
+      method I use has to be defined in the class to ensure it works.  Unfortunately,
+      python's documentation doesn't discuss this.
     - Start writing selftests
     - Get .always working
     - t(x) returns the escape code for x
