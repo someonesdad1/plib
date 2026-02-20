@@ -61,6 +61,141 @@ if 1:  # Name normalization
         return new
 if 1:  # Color data
     colornames = (
+        ColorName(hex='#fe0000', name='red', key=0),
+        ColorName(hex='#c00000', name='red1', key=0),
+        ColorName(hex='#800000', name='red2', key=0),
+        ColorName(hex='#400000', name='red3', key=0),
+        ColorName(hex='#ff8181', name='redl', key=0),
+        ColorName(hex='#fe3c00', name='ord', key=0),
+        ColorName(hex='#c02d00', name='ord1', key=0),
+        ColorName(hex='#801e00', name='ord2', key=0),
+        ColorName(hex='#400f00', name='ord3', key=0),
+        ColorName(hex='#ff9f81', name='ordl', key=0),
+        ColorName(hex='#fe7800', name='orn', key=0),
+        ColorName(hex='#c05a00', name='orn1', key=0),
+        ColorName(hex='#803c00', name='orn2', key=0),
+        ColorName(hex='#401e00', name='orn3', key=0),
+        ColorName(hex='#ffbc81', name='ornl', key=0),
+        ColorName(hex='#feb300', name='yon', key=0),
+        ColorName(hex='#c08800', name='yon1', key=0),
+        ColorName(hex='#805a00', name='yon2', key=0),
+        ColorName(hex='#402d00', name='yon3', key=0),
+        ColorName(hex='#ffda81', name='yonl', key=0),
+        ColorName(hex='#feef00', name='yel', key=0),
+        ColorName(hex='#c0b500', name='yel1', key=0),
+        ColorName(hex='#807800', name='yel2', key=0),
+        ColorName(hex='#403c00', name='yel3', key=0),
+        ColorName(hex='#fff881', name='yell', key=0),
+        ColorName(hex='#b3fe00', name='ygr', key=0),
+        ColorName(hex='#88c000', name='ygr1', key=0),
+        ColorName(hex='#5a8000', name='ygr2', key=0),
+        ColorName(hex='#2d4000', name='ygr3', key=0),
+        ColorName(hex='#daff81', name='ygrl', key=0),
+        ColorName(hex='#5afe00', name='lwn', key=0),
+        ColorName(hex='#44c000', name='lwn1', key=0),
+        ColorName(hex='#2d8000', name='lwn2', key=0),
+        ColorName(hex='#174000', name='lwn3', key=0),
+        ColorName(hex='#adff81', name='lwnl', key=0),
+        ColorName(hex='#00fe00', name='grn', key=0),
+        ColorName(hex='#00c000', name='grn1', key=0),
+        ColorName(hex='#008000', name='grn2', key=0),
+        ColorName(hex='#004000', name='grn3', key=0),
+        ColorName(hex='#81ff81', name='grnl', key=0),
+        ColorName(hex='#00fe78', name='sea', key=0),
+        ColorName(hex='#00c05a', name='sea1', key=0),
+        ColorName(hex='#00803c', name='sea2', key=0),
+        ColorName(hex='#00401e', name='sea3', key=0),
+        ColorName(hex='#81ffbc', name='seal', key=0),
+        ColorName(hex='#00feb3', name='trq', key=0),
+        ColorName(hex='#00c088', name='trq1', key=0),
+        ColorName(hex='#00805a', name='trq2', key=0),
+        ColorName(hex='#00402d', name='trq3', key=0),
+        ColorName(hex='#81ffda', name='trql', key=0),
+        ColorName(hex='#00feef', name='cyn', key=0),
+        ColorName(hex='#00c0b5', name='cyn1', key=0),
+        ColorName(hex='#008078', name='cyn2', key=0),
+        ColorName(hex='#00403c', name='cyn3', key=0),
+        ColorName(hex='#81fff8', name='cynl', key=0),
+        ColorName(hex='#00d1fe', name='sky', key=0),
+        ColorName(hex='#009ec0', name='sky1', key=0),
+        ColorName(hex='#006980', name='sky2', key=0),
+        ColorName(hex='#003540', name='sky3', key=0),
+        ColorName(hex='#81e9ff', name='skyl', key=0),
+        ColorName(hex='#0095fe', name='den', key=0),
+        ColorName(hex='#0071c0', name='den1', key=0),
+        ColorName(hex='#004b80', name='den2', key=0),
+        ColorName(hex='#002640', name='den3', key=0),
+        ColorName(hex='#81cbff', name='denl', key=0),
+        ColorName(hex='#005afe', name='roy', key=0),
+        ColorName(hex='#0044c0', name='roy1', key=0),
+        ColorName(hex='#002d80', name='roy2', key=0),
+        ColorName(hex='#001740', name='roy3', key=0),
+        ColorName(hex='#81adff', name='royl', key=0),
+        ColorName(hex='#0000fe', name='blu', key=0),
+        ColorName(hex='#0000c0', name='blu1', key=0),
+        ColorName(hex='#000080', name='blu2', key=0),
+        ColorName(hex='#000040', name='blu3', key=0),
+        ColorName(hex='#8181ff', name='blul', key=0),
+        ColorName(hex='#7800fe', name='vio', key=0),
+        ColorName(hex='#5a00c0', name='vio1', key=0),
+        ColorName(hex='#3c0080', name='vio2', key=0),
+        ColorName(hex='#1e0040', name='vio3', key=0),
+        ColorName(hex='#bc81ff', name='viol', key=0),
+        ColorName(hex='#b300fe', name='lav', key=0),
+        ColorName(hex='#8800c0', name='lav1', key=0),
+        ColorName(hex='#5a0080', name='lav2', key=0),
+        ColorName(hex='#2d0040', name='lav3', key=0),
+        ColorName(hex='#da81ff', name='lavl', key=0),
+        ColorName(hex='#fe00ef', name='mag', key=0),
+        ColorName(hex='#c000b5', name='mag1', key=0),
+        ColorName(hex='#800078', name='mag2', key=0),
+        ColorName(hex='#40003c', name='mag3', key=0),
+        ColorName(hex='#ff81f8', name='magl', key=0),
+        ColorName(hex='#fe00b3', name='pnk', key=0),
+        ColorName(hex='#c00088', name='pnk1', key=0),
+        ColorName(hex='#80005a', name='pnk2', key=0),
+        ColorName(hex='#40002d', name='pnk3', key=0),
+        ColorName(hex='#ff81da', name='pnkl', key=0),
+        ColorName(hex='#fe0078', name='lip', key=0),
+        ColorName(hex='#c0005a', name='lip1', key=0),
+        ColorName(hex='#80003c', name='lip2', key=0),
+        ColorName(hex='#40001e', name='lip3', key=0),
+        ColorName(hex='#ff81bc', name='lipl', key=0),
+        ColorName(hex='#000000', name='blk', key=0),
+        ColorName(hex='#000000', name='blk1', key=0),
+        ColorName(hex='#000000', name='blk2', key=0),
+        ColorName(hex='#000000', name='blk3', key=0),
+        ColorName(hex='#000000', name='blkl', key=0),
+        ColorName(hex='#c5a37a', name='brnl', key=0),
+        ColorName(hex='#b27f4d', name='brn', key=0),
+        ColorName(hex='#865f3a', name='brn1', key=0),
+        ColorName(hex='#593f26', name='brn2', key=0),
+        ColorName(hex='#2c1f13', name='brn3', key=0),
+        ColorName(hex='#484848', name='gry', key=0),
+        ColorName(hex='#383838', name='gry1', key=0),
+        ColorName(hex='#303030', name='gry2', key=0),
+        ColorName(hex='#202020', name='gry3', key=0),
+        ColorName(hex='#585858', name='gryl', key=0),
+        ColorName(hex='#b5b5b5', name='wht', key=0),
+        ColorName(hex='#959595', name='wht1', key=0),
+        ColorName(hex='#757575', name='wht2', key=0),
+        ColorName(hex='#656565', name='wht3', key=0),
+        ColorName(hex='#ffffff', name='whtl', key=0),
+        ColorName(hex='#9b8eb1', name='lil', key=0),
+        ColorName(hex='#7a6897', name='lil1', key=0),
+        ColorName(hex='#5b4d72', name='lil2', key=0),
+        ColorName(hex='#3d344c', name='lil3', key=0),
+        ColorName(hex='#baa8d7', name='lill', key=0),
+        ColorName(hex='#9530cf', name='pur', key=0),
+        ColorName(hex='#7625a4', name='pur1', key=0),
+        ColorName(hex='#5d1d82', name='pur2', key=0),
+        ColorName(hex='#3e1356', name='pur3', key=0),
+        ColorName(hex='#c16ff0', name='purl', key=0),
+        ColorName(hex='#759a26', name='olv', key=0),
+        ColorName(hex='#57731c', name='olv1', key=0),
+        ColorName(hex='#415615', name='olv2', key=0),
+        ColorName(hex='#27330c', name='olv3', key=0),
+        ColorName(hex='#c1df80', name='olvl', key=0),
 
         ColorName(hex='$000000', name='blk', key=1),
         ColorName(hex='$001e00', name='blkd', key=1),
@@ -12041,6 +12176,12 @@ if 1:  # Color data
     )
 if 1:  # Attribution dictionary
     attributions = {
+        0: '''
+            Constructed in Feb 2026 by myself.
+            License:  MIT (see /plib/_lic.mit)
+            This was constructed to better utilize the colors I use a lot and add a few.
+            Run /plib/data/dpcolornames_Feb2026.py to understand the logic behind the
+            selections.
         1: '''
             Constructed in May 2022 by myself.
             License:  MIT (see /plib/_lic.mit)
@@ -12154,9 +12295,146 @@ if __name__ == "__main__":
         raises(ValueError, Normalize, " 🟦 ")
     indent = " "*4
     #ColorName = collections.namedtuple("ColorName", "hex name key")
+    d = {
+        'red' : "#fe0000",    # $007fff @00fffe
+        'red1': "#c00000",    # $0060ff @00ffc0
+        'red2': "#800000",    # $0040ff @00ff80
+        'red3': "#400000",    # $0020ff @00ff40
+        'redl': "#ff8181",    # $00c0ff @007eff
+        'ord' : "#fe3c00",    # $0a7fff @0afffe
+        'ord1': "#c02d00",    # $0a60ff @0affc0
+        'ord2': "#801e00",    # $0a40ff @0aff80
+        'ord3': "#400f00",    # $0a20ff @0aff40
+        'ordl': "#ff9f81",    # $0ac0ff @0a7eff
+        'orn' : "#fe7800",    # $147fff @14fffe
+        'orn1': "#c05a00",    # $1360ff @13ffc0
+        'orn2': "#803c00",    # $1340ff @13ff80
+        'orn3': "#401e00",    # $1320ff @13ff40
+        'ornl': "#ffbc81",    # $13c0ff @137eff
+        'yon' : "#feb300",    # $1e7fff @1efffe
+        'yon1': "#c08800",    # $1e60ff @1effc0
+        'yon2': "#805a00",    # $1d40ff @1dff80
+        'yon3': "#402d00",    # $1d20ff @1dff40
+        'yonl': "#ffda81",    # $1ec0ff @1e7eff
+        'yel' : "#feef00",    # $287fff @28fffe
+        'yel1': "#c0b500",    # $2860ff @28ffc0
+        'yel2': "#807800",    # $2740ff @27ff80
+        'yel3': "#403c00",    # $2720ff @27ff40
+        'yell': "#fff881",    # $28c0ff @287eff
+        'ygr' : "#b3fe00",    # $377fff @37fffe
+        'ygr1': "#88c000",    # $3660ff @36ffc0
+        'ygr2': "#5a8000",    # $3740ff @37ff80
+        'ygr3': "#2d4000",    # $3720ff @37ff40
+        'ygrl': "#daff81",    # $37c0ff @377eff
+        'lwn' : "#5afe00",    # $457fff @45fffe
+        'lwn1': "#44c000",    # $4560ff @45ffc0
+        'lwn2': "#2d8000",    # $4640ff @46ff80
+        'lwn3': "#174000",    # $4520ff @45ff40
+        'lwnl': "#adff81",    # $46c0ff @467eff
+        'grn' : "#00fe00",    # $557fff @55fffe
+        'grn1': "#00c000",    # $5560ff @55ffc0
+        'grn2': "#008000",    # $5540ff @55ff80
+        'grn3': "#004000",    # $5520ff @55ff40
+        'grnl': "#81ff81",    # $55c0ff @557eff
+        'sea' : "#00fe78",    # $697fff @69fffe
+        'sea1': "#00c05a",    # $6860ff @68ffc0
+        'sea2': "#00803c",    # $6840ff @68ff80
+        'sea3': "#00401e",    # $6820ff @68ff40
+        'seal': "#81ffbc",    # $68c0ff @687eff
+        'trq' : "#00feb3",    # $737fff @73fffe
+        'trq1': "#00c088",    # $7360ff @73ffc0
+        'trq2': "#00805a",    # $7240ff @72ff80
+        'trq3': "#00402d",    # $7220ff @72ff40
+        'trql': "#81ffda",    # $73c0ff @737eff
+        'cyn' : "#00feef",    # $7d7fff @7dfffe
+        'cyn1': "#00c0b5",    # $7d60ff @7dffc0
+        'cyn2': "#008078",    # $7c40ff @7cff80
+        'cyn3': "#00403c",    # $7c20ff @7cff40
+        'cynl': "#81fff8",    # $7dc0ff @7d7eff
+        'sky' : "#00d1fe",    # $877fff @87fffe
+        'sky1': "#009ec0",    # $8760ff @87ffc0
+        'sky2': "#006980",    # $8740ff @87ff80
+        'sky3': "#003540",    # $8620ff @86ff40
+        'skyl': "#81e9ff",    # $86c0ff @867eff
+        'den' : "#0095fe",    # $917fff @91fffe
+        'den1': "#0071c0",    # $9160ff @91ffc0
+        'den2': "#004b80",    # $9140ff @91ff80
+        'den3': "#002640",    # $9020ff @90ff40
+        'denl': "#81cbff",    # $91c0ff @917eff
+        'roy' : "#005afe",    # $9a7fff @9afffe
+        'roy1': "#0044c0",    # $9a60ff @9affc0
+        'roy2': "#002d80",    # $9b40ff @9bff80
+        'roy3': "#001740",    # $9a20ff @9aff40
+        'royl': "#81adff",    # $9bc0ff @9b7eff
+        'blu' : "#0000fe",    # $aa7fff @aafffe
+        'blu1': "#0000c0",    # $aa60ff @aaffc0
+        'blu2': "#000080",    # $aa40ff @aaff80
+        'blu3': "#000040",    # $aa20ff @aaff40
+        'blul': "#8181ff",    # $aac0ff @aa7eff
+        'vio' : "#7800fe",    # $be7fff @befffe
+        'vio1': "#5a00c0",    # $bd60ff @bdffc0
+        'vio2': "#3c0080",    # $bd40ff @bdff80
+        'vio3': "#1e0040",    # $bd20ff @bdff40
+        'viol': "#bc81ff",    # $bdc0ff @bd7eff
+        'lav' : "#b300fe",    # $c87fff @c8fffe
+        'lav1': "#8800c0",    # $c860ff @c8ffc0
+        'lav2': "#5a0080",    # $c740ff @c7ff80
+        'lav3': "#2d0040",    # $c720ff @c7ff40
+        'lavl': "#da81ff",    # $c8c0ff @c87eff
+        'mag' : "#fe00ef",    # $d77fff @d7fffe
+        'mag1': "#c000b5",    # $d660ff @d6ffc0
+        'mag2': "#800078",    # $d740ff @d7ff80
+        'mag3': "#40003c",    # $d720ff @d7ff40
+        'magl': "#ff81f8",    # $d6c0ff @d67eff
+        'pnk' : "#fe00b3",    # $e17fff @e1fffe
+        'pnk1': "#c00088",    # $e060ff @e0ffc0
+        'pnk2': "#80005a",    # $e140ff @e1ff80
+        'pnk3': "#40002d",    # $e120ff @e1ff40
+        'pnkl': "#ff81da",    # $e1c0ff @e17eff
+        'lip' : "#fe0078",    # $ea7fff @eafffe
+        'lip1': "#c0005a",    # $eb60ff @ebffc0
+        'lip2': "#80003c",    # $eb40ff @ebff80
+        'lip3': "#40001e",    # $eb20ff @ebff40
+        'lipl': "#ff81bc",    # $ebc0ff @eb7eff
+        'blk' : "#000000",    # $000000 @000000
+        'blk1': "#000000",    # $000000 @000000
+        'blk2': "#000000",    # $000000 @000000
+        'blk3': "#000000",    # $000000 @000000
+        'blkl': "#000000",    # $000000 @000000
+        'brnl': "#c5a37a",    # $179f64 @1761c5
+        'brn' : "#b27f4d",    # $157f65 @1590b2
+        'brn1': "#865f3a",    # $146064 @149086
+        'brn2': "#593f26",    # $143f66 @149259
+        'brn3': "#2c1f13",    # $141f65 @14902c
+        'gry' : "#484848",    # $004800 @000048
+        'gry1': "#383838",    # $003800 @000038
+        'gry2': "#303030",    # $003000 @000030
+        'gry3': "#202020",    # $002000 @000020
+        'gryl': "#585858",    # $005800 @000058
+        'wht' : "#b5b5b5",    # $00b500 @0000b5
+        'wht1': "#959595",    # $009500 @000095
+        'wht2': "#757575",    # $007500 @000075
+        'wht3': "#656565",    # $006500 @000065
+        'whtl': "#ffffff",    # $00ff00 @0000ff
+        'lil' : "#9b8eb1",    # $b99f2e @b932b1
+        'lil1': "#7a6897",    # $ba7f2f @ba4f97
+        'lil2': "#5b4d72",    # $ba5f31 @ba5272
+        'lil3': "#3d344c",    # $b9402f @b9504c
+        'lill': "#baa8d7",    # $babf5e @ba37d7
+        'pur' : "#9530cf",    # $c57f9f @c5c3cf
+        'pur1': "#7625a4",    # $c564a1 @c5c5a4
+        'pur2': "#5d1d82",    # $c44fa2 @c4c682
+        'pur3': "#3e1356",    # $c534a2 @c5c656
+        'purl': "#c16ff0",    # $c5afce @c589f0
+        'olv' : "#759a26",    # $38609a @38c09a
+        'olv1': "#57731c",    # $38479b @38c073
+        'olv2': "#415615",    # $38359a @38c056
+        'olv3': "#27330c",    # $371f9d @37c333
+        'olvl': "#c1df80",    # $37af98 @376cdf
+    }
     for i in d:
         c = d[i]
-        cn = ColorName(c, i, 1)
+        cn = ColorName(c, i, 0)
         print(f"{indent}{cn}")
     exit()
 
