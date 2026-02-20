@@ -1,18 +1,64 @@
 '''
-Make a file with functions that produce attributed lists of color names
+Construct a file with a dictionary to retrieve color name definitions
 '''
 if 1:  # Header
     if 1:  # Standard imports
-        pass
+        import collections
     if 1:  # Custom imports
-        from color import Color
-        from wrap import dedent
-        if 1:
+        import color
+        import dpprint
+        import wrap
+        pp = dpprint.PP()   # Get pprint with current screen width
+        if 0:
             import debug
             debug.SetDebugger
     if 1:  # Global variables
-        pass
-
+        Color = color.Color
+        dedent = wrap.dedent
+if 1:  # Named tuple for color names:
+    #   hex:   7 character string like #8b8378 (rgb), $8b8378 (hls), or @8b8378 (hsv)
+    #          (you can use any string the color.Color constructor will take)
+    #   name:  Original name of color before normalization
+    #   key:   Integer indexing into attribution dictionary
+    ColorName = collections.namedtuple("ColorName", "hex name key")
+if 1:  # Name normalization function
+    def ColorNameNormalize(name):
+        '''Return a normalized color name from the string name.
+        Example:  "dark red", "Dark Red", "DarkRed", "Dark_red" as arguments will all
+        return "dark_red".
+        
+        Algorithm:
+            - Convert to ASCII-only form
+            - " " inserted before each capital letter
+            - " " substituted for each "_"
+            - Split on whitespace
+            - Convert each token to lowerspace
+            - Reassemble with "_"
+        '''
+        if not isinstance(name, str):
+            raise TypeError("name must be a str instance")
+        name = name.strip()
+        if not name:
+            raise ValueError("A name cannot be only whitespace or empty")
+        # Make sure we have only printable ASCII characters
+        name = asciify.Asciify(name)
+        printable = set(string.printable)
+        mychars = set(name)
+        capitals = set(string.ascii_uppercase)
+        if not (mychars <= printable):
+            not_allowed = mychars - printable
+            raise ValueError("{str(not_allowed)!r} are characters not allowed in names")
+        # Process the characters
+        new = []
+        dq = collections.deque(name)
+        while dq:
+            char = dq.popleft()
+            if char in capitals or char == "_":
+                new.append(" ")
+            new.append(char)
+        newstr = ''.join(new).replace("_", " ")
+        new = '_'.join(i.lower() for i in newstr.split())
+        return new
 if 1:  # Color data
     # Fields are:
     #   Attribution number (indexes into attribution_dict)
@@ -11980,87 +12026,64 @@ if __name__ == "__main__":
     from collections import namedtuple, defaultdict, deque
     from lwtest import run, Assert, raises
     '''
+    Create a dictionary of color names:  {str: seq_of_named_tuples}
 
-    Some problems with color names are
-        - There are too many of them
-        - Some map to the same 24-bit color
-        - There's no standard naming
+        - Keys:   color name, which is normalized to a standard form
+            - All names will only have ASCII characters in them
+        - Values:  Sequence of namedtuples with attributes:
+            - clr:  hex string for color
+            - attr:  integer key for attribution dictionary
 
-    Recognizing this, I'm going to create a single dictionary that lets you look up a
-    color name.  Core to this is a way to normalize the name in such a way that the
-    following names all wind up being the same normalized form: "dark red", "Dark Red",
-    "DarkRed", "Dark_red", etc.
+        Attribution dictionary:  {int: attribution_string}
+            - The attribution string gives information on where the names came from,
+              when they were downloaded/constructed, and any license they are subject
+              to.
 
-    Normalization is then:
-        - Names are converted to ASCII-only form
-        - A space character is inserted before each capital letter
-        - An underscore is replaced with a space character
-        - The string is split into tokens on whitespace characters
-        - Each token is converted to lowercase
-        - The string is reassembled using underscores
+        Problems with color names:
+            - There are too many of them
+            - Some map to the same 24-bit color
+            - There's no standard naming
 
-    Thus, the normalized form of the above "dark red" stuff is "dark_red".
+        Recognizing this, I'm going to create a single dictionary that lets you look up
+        a color name.  Core to this is a way to normalize the name in such a way that
+        the following names all wind up being the same normalized form: "dark red",
+        "Dark Red", "DarkRed", "Dark_red", etc.
 
-    This file will be a dictionary that looks up a normalized color name and returns a
-    sequence of colors with that name.  The pattern is
+        Normalization is then:
+            - Names are converted to ASCII-only form
+            - A space character is inserted before each capital letter
+            - An underscore is replaced with a space character
+            - The string is split into tokens on whitespace characters
+            - Each token is converted to lowercase
+            - The string is reassembled using underscores
 
-        normalized_name = Normalize("Dark red")     # --> "dark_red"
-            normalized_name --> "dark_red"
-        colornames[normalized_name] --> either a KeyError or a nonempty sequence is
-        returned with elements like
+        Thus, the normalized form of the above "dark red" stuff is "dark_red".
 
-            ("#aaaaaa Dark red", 6)
+        This file will be a dictionary that looks up a normalized color name and returns a
+        sequence of colors with that name.  The pattern is
 
-        The integer 6 is used to get you the attribution for this entry with
-        attributions[6], which will return a string, telling you where the color name
-        came from, when , and the license it's under.
+            normalized_name = Normalize("Dark red")     # --> "dark_red"
+                normalized_name --> "dark_red"
+            colornames[normalized_name] --> either a KeyError or a nonempty sequence is
+            returned with elements like
 
-    All strings are ASCII-only characters and leading spaces are removed.  You can get a
-    list of their lines using ''.split("\n").
+                ("#aaaaaa Dark red", 6)
+
+            The integer 6 is used to get you the attribution for this entry with
+            attributions[6], which will return a string, telling you where the color name
+            came from, when , and the license it's under.
+
+        All strings are ASCII-only characters and leading spaces are removed.  You can get a
+        list of their lines using ''.split("\n").
 
     '''
-    def Normalize(name):
-        '''Return a normalized color name from the string name.
-        Example:  "dark red", "Dark Red", "DarkRed", "Dark_red" as arguments will all
-        return "dark_red".
-
-        Algorithm:
-            - Convert to ASCII-only form
-            - " " inserted before each capital letter
-            - " " substituted for each "_"
-            - Split on whitespace
-            - Convert each token to lowerspace
-            - Reassemble with "_"
-        '''
-        name = name.strip()
-        if not name:
-            raise ValueError("A name cannot be only whitespace or empty")
-        name = asciify.Asciify(name)
-        # Make sure we have only printable ASCII characters
-        printable = set(string.printable)
-        mychars = set(name)
-        capitals = set(string.ascii_uppercase)
-        if not (mychars <= printable):
-            not_allowed = mychars - printable
-            raise ValueError("{str(not_allowed)!r} are characters not allowed in names")
-        # Process the characters
-        new = []
-        dq = deque(name)
-        while dq:
-            char = dq.popleft()
-            if char in capitals or char == "_":
-                new.append(" ")
-            new.append(char)
-        newstr = ''.join(new).replace("_", " ")
-        new = '_'.join(i.lower() for i in newstr.split())
-        return new
-
-    for i in ("dark red", "Dark Red", "DarkRed", "Dark_red"):
-        Assert(Normalize(i) == "dark_red")
-    raises(ValueError, Normalize, "   ")
-    raises(ValueError, Normalize, " 🟦 ")
-    exit()
-
+    def Test_Normalize():
+        for i in ("dark red", "Dark Red", "DarkRed", "Dark_red"):
+            Assert(Normalize(i) == "dark_red")
+        Assert(Normalize("DARK RED") == "d_a_r_k_r_e_d")
+        raises(ValueError, Normalize, "")
+        raises(ValueError, Normalize, "   ")
+        raises(ValueError, Normalize, " 🟦 ")
     Names = {
         0 : "Don2026",   # New set of my color names
         1 : "Don2022",   # Old set of my color names
@@ -12075,7 +12098,6 @@ if __name__ == "__main__":
         10: "NameThatColor",
         11: "Raveling",
     }
-
     function_names = {   # key is same as for attribution_dict
         1: "GetX11",
         2: "GetMediumColor",
@@ -12088,24 +12110,51 @@ if __name__ == "__main__":
         9: "GetXkcd",
         10: "GetWikipedia2",
     }
+    translate = {
+        # Translates original integer ID into new one
+        1: 2,
+        2: 9,
+        3: 10,
+        4: 11,
+        5: 7,
+        6: 8,
+        7: 5,
+        8: 4,
+        9: 3,
+        10: 6,
+    }
     indent = " "*4
-    dbg = True     # Set to True to see short output to check format
-    for n in function_names:
-        print(f"def {function_names[n]}():")
-        print("    data = '''")
-        print(textwrap.indent(attribution_dict[n], indent*2))
-        print(f"{indent*2};;")
-        for i, item in enumerate(color_data):
-            attr, name, c, hue = item
-            if attr != n:
-                continue
-            print(f"{indent*2}{c.xrgb} {name}")
-            if dbg and i > 5:
-                break
-        print(f"{indent}'''")
-        print(f"{indent}return data")
-        if dbg and n > 0:
-            break
+    def PrintAttributionDict():
+        print("attributions = {")
+        for n in function_names:
+            m = translate[n]
+            print(f"{indent}{m}: '''")
+            print(textwrap.indent(attribution_dict[n], indent*2))
+            print(f"{indent}''',")
+        print("}")
+    def Make():
+        indent = " "*4
+        dbg = 1     # Set to True to see short output to check format
+        di = collections.defaultdict(list)
+        for n in function_names:
+            count = 0
+            for item in color_data:
+                key, name, c, hue = item
+                if key != n:
+                    continue
+                count += 1
+                newkey = translate[key]
+                cn = ColorName(f"{c.xrgb}", name, newkey)
+                di[newkey].append(cn)
+                #print(f"{indent}{cn},")
+                if dbg and count > 2:
+                    break
+        return di
+    d = Make()
+    pp(d)
+    exit()
+    PrintAttributionDict()
+    exit()
 
 def GetGist():
     '''Construct the /plib/gist.Gist instance for this file.  This gist is
@@ -12120,8 +12169,8 @@ def GetGist():
     mygist["test"] = "notest"
     mygist["cat"] = "color"
     mygist["todo"] = '''
-
+    
         - 
-
+    
     '''
     return mygist
