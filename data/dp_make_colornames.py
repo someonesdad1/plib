@@ -12132,10 +12132,10 @@ if __name__ == "__main__":
             print(textwrap.indent(attribution_dict[n], indent*2))
             print(f"{indent}''',")
         print("}")
-    def Make():
+    def Make(dbg=0):
+        'Set dbg to True to shorten output'
         indent = " "*4
-        dbg = 1     # Set to True to see short output to check format
-        di = collections.defaultdict(list)
+        lst = []
         for n in function_names:
             count = 0
             for item in color_data:
@@ -12145,15 +12145,24 @@ if __name__ == "__main__":
                 count += 1
                 newkey = translate[key]
                 cn = ColorName(f"{c.xrgb}", name, newkey)
-                di[newkey].append(cn)
-                #print(f"{indent}{cn},")
+                lst.append(cn)
                 if dbg and count > 2:
                     break
-        return di
-    d = Make()
-    pp(d)
-    exit()
-    PrintAttributionDict()
+            lst.append("")
+        return lst
+    def Build(dbg=0):
+        print("import collections")
+        print('ColorName = collections.namedtuple("ColorName", "hex name key")')
+        print("colornames = (")
+        lst = Make(dbg)
+        for i in lst:
+            if isinstance(i, str):
+                print()
+            else:
+                print(f"{indent}{i},")
+        print(")")
+        PrintAttributionDict()
+    Build(dbg=0)
     exit()
 
 def GetGist():
