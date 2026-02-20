@@ -9,6 +9,7 @@ ToDo
         - t.always (bool) causes output of escape codes to stdout even if it's not a tty
         - t(x) returns the escape code for a color specifier x (x accepted by Color
           constructor)
+            - t() could be the way to resolve things to escape codes
         - with t.users(styles_dict) is context manager
         - t.ppush() and t.ppop() methods save/restore state on a stack
             - Use stack.StackLock in Trm too?
