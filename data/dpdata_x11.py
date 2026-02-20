@@ -10795,6 +10795,7 @@ if __name__ == "__main__":
         for item in color_data:
             attr, name, c, hue = item
             w = max(w, len(name.strip()))
+        w += 3  # Make sure we have enough room for two " symbols too
         for n in F:
             funcname = F[n]
             print(f"def {funcname}():")
@@ -10804,9 +10805,14 @@ if __name__ == "__main__":
             print("        '''),")
             for i, item in enumerate(color_data):
                 attr, name, c, hue = item
-                print(f"{' '*8}('{name:{w}s}', '{c.xrgb}'),     # {c.xhls} {c.xhsv}")
-                #print(i, item)
-                if i > 5:
+                if attr != n:
+                    continue
+                s = f"{name}"
+                u = " "*(w - len(s))
+                print(f'{" "*8}("{s}"{u}, "{c.xrgb}"),     # {c.xhls} {c.xhsv}')
+                if 0 and i > 5:
                     break
             print(f"{' '*4})")
             print(f"{' '*4}return data")
+            if 0 and n > 0:
+                break
