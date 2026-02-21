@@ -245,7 +245,8 @@ if 1:   # Classes
             keywords hsv or hls are True.
         Color(float, float, float)
             A 3-vector normalized to be a unit vector, then converted to integers to
-            call Color(int, int, int).
+            call Color(int, int, int).  These float types can also be Decimal, Fraction,
+            and mpmath.mpf types.
         
         Color names are normalized with ColorNameNormalize(), which returns snake-case
         lowercase ASCII letter names.
@@ -263,26 +264,22 @@ if 1:   # Classes
                 raise ValueError(msg)
             # Set attributes
             self._bpc = kw.get("bpc", Color.bits_per_color)
-            self._rgb = None
-            self._sort = "rgb"
+            self._rgb = None    # RGB integer components
+            self._sort = "rgb"  # Sorting order (must be rgb, hsv, or hls)
             if len(p) == 3:
-                if 0:
-                    # Check type
-                    t1 = type(p[0])
-                    if type(p[1]) is t1 or type(p[2]) is t1:
-                        msg = f"'{p}' components are not all the same type"
-                        raise TypeError(msg)
                 if all(isinstance(i, int) for i in p):  # 3 integers
                     rgb = tuple(abs(i) & self.n for i in p)
                 else:  # Convert to floats
                     try:
-                        dec = tuple(float(abs(i)) for i in p)
+                        dec = tuple(abs(float(i)) for i in p)
                     except Exception:
                         msg = f"'{p}' couldn't be converted to floats"
                         raise TypeError(msg)
-                    if not all(0 <= i <= 1 for i in dec):  # Need normalization
-                        mag = sum(i*i for i in dec)**(1/2)
-                        dec = tuple(i/mag for i in dec)
+                    if not all(0 <= i <= 1 for i in dec):
+                        # Normalize to a unit 3-vector
+                        magnitude = sum(i*i for i in dec)**(1/2)
+                        dec = tuple(i/magnitude for i in dec)
+                    # Convert to 3-tuple of integers
                     rgb = tuple(int(round(i*self.n, 1)) for i in dec)
                 self._rgb = rgb
                 # Handle 'hsv' and 'hls' keywords
@@ -317,8 +314,17 @@ if 1:   # Classes
                         c = Color.wl2rgb(x, bpc=self._bpc)
                         self._rgb = c.irgb
                 else:
-                    # Hex string or short color name
-                    self._rgb = self.string(x)
+                    if isinstance(x, str):
+                        # Hex string or short color name
+                        self._rgb = self.string(x)
+                    else:
+                        # Try to convert to a float
+                        try:
+                            y = abs(float(x))
+                        except Exception:
+                            msg = f"'{x!r}' couldn't be converted to a float"
+                            raise TypeError(msg)
+                        self._rgb = Color(y).irgb
             self._check()
         def _check(self):
             "Check invariants"
@@ -364,7 +370,7 @@ if 1:   # Classes
                     name = Color.ColorNameNormalize(x)
                     if name in dpcolornames.colornames:
                         # This gets the color with the lowest number key, as this is the
-                        # order I want things searched in (most colors will be in 0 or
+                        # order I want things searched for (most colors will be in 0 or
                         # 1, my color names; 2 is the X11 names, and the remaining ones
                         # are various name sets downloaded from the web).
                         found = sorted(dpcolornames.colornames[name], key=lambda x: x.key)[0]
@@ -2590,6 +2596,9 @@ if __name__ == "__main__":
                 c = Color(0.1, 0.2, 0.3)
                 c1 = Color(c)
                 Assert(c.drgb == c1.drgb)
+            if 1:  # Name
+                c = Color("Red")
+                Assert(c.irgb == (254, 0, 0))
             if 1:  # Hex strings
                 for i in "@#$":
                     c = Color(f"{i}000000")
@@ -2607,14 +2616,20 @@ if __name__ == "__main__":
                 Assert(c.ihls == (0, 2, 0))
             if 1:  # Single number:  wavelength in nm or gray or 8-bit number
                 # Wavelengths
-                c = Color(589)  # About sodium yellow-orange
-                rgb = tuple(round(i, 3) for i in c.drgb)
-                Assert(rgb == (0.965, 0.765, 0.000))
+                for i in (589, 589.0, Decimal(589), Fraction(589, 1)):
+                    c = Color(i)  # About sodium yellow-orange
+                    rgb = tuple(round(i, 3) for i in c.drgb)
+                    Assert(rgb == (0.965, 0.765, 0.000))
+                    if have_mpmath:
+                        c = Color(mpmath.mpf(float(i)))
+                        rgb = tuple(round(i, 3) for i in c.drgb)
+                        Assert(rgb == (0.965, 0.765, 0.000))
                 black = (0.0, 0.0, 0.0)
-                c = Color(300)
-                Assert(c.irgb == black)
-                c = Color(800)
-                Assert(c.irgb == black)
+                for i in (0, -300, -300.0, 300, 300.0, 800, 800.0):
+                    c = Color(i, hsv=True)  # hsv keyword ignored for 1 argument
+                    Assert(c.irgb == black)
+                    c = Color(i, hls=True)  # hls keyword ignored for 1 argument
+                    Assert(c.irgb == black)
                 # Grays
                 for a, b in (
                     (0.0, 0.0),
@@ -2632,13 +2647,13 @@ if __name__ == "__main__":
                     c = Color(a, a, a)
                     rgb = tuple(round(i, 3) for i in c.drgb)
                     Assert(rgb == (b, b, b))
-                # 8-bit numbers
+                # Integers on [0, 255]:  ANSI 8-bit colors
                 c = Color(200)
                 Assert(c.irgb == (255, 0, 215)) # It's a medium magenta
         def Test_Constructor_3Args():
             Reset()
             if 1:  # Integer arguments
-                for a in (0, 1, 2, 255, 256):
+                for a in (0, 1, 2, 254, 255, 256):
                     b = (a, a, a)
                     c = Color(*b)
                     expected = tuple(i & c.n for i in b)
@@ -2650,6 +2665,11 @@ if __name__ == "__main__":
                 c = Color(*b)
                 Assert(c.irgb == b)
                 Reset()
+                # Test keyword arguments
+                c = Color(16, 16, 16, hsv=True)
+                Assert(c == Color(16, 15, 15))
+                c = Color(16, 16, 16, hls=True)
+                Assert(c == Color(17, 16, 15))
             if 1:  # Float arguments
                 for a, e in (
                     (0.0, 0.0),
@@ -2710,10 +2730,10 @@ if __name__ == "__main__":
                         expected = (e, e, e)
                         Assert(got == expected)
         def TestConstructorKeywords():
-            #kw = {"bpc": 8, "hsv": 0, "hls": 0, "sunlight": 0, "gamma": 0}
-            #c = Color(0, 0, 0, **kw)
-            bkw = {"aaa": 0, "bbb": 0}
-            raises(ValueError, Color, 0, 0, 0, **bkw)
+            # sunlight and gamma used to be OK, but I removed them Feb 2026
+            for kw in "sunlight gamma aaa bbb".split():
+                mykw = {kw: 0}
+                raises(ValueError, Color, 0, 0, 0, **mykw)
         def Test_int_to_hex():
             '''This checks that int_to_hex and hex_to_int are inverse for all
             numbers < 0x10000.
