@@ -1,4 +1,6 @@
 '''
+'''
+'''
 
 ---------------------------------------------------------------------------
 Functions to convert between ANSI 8-bit color numbers and 24-bit RGB values:
@@ -248,8 +250,9 @@ if 1:   # Classes
             call Color(int, int, int).  These float types can also be Decimal, Fraction,
             and mpmath.mpf types.
         
-        Color names are normalized with ColorNameNormalize(), which returns snake-case
-        lowercase ASCII letter names.
+        Color names are normalized with Color.ColorNameNormalize(), which returns
+        snake-case lowercase ASCII letter names.  The allowed names used are in
+        /plib/data/dpcolornames.py.
         '''
         bits_per_color = 8
         def __init__(self, *p, **kw):
