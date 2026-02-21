@@ -12334,9 +12334,29 @@ if __name__ == "__main__":
                     print(f"{indent*3}{j},")
                 print(f"{indent*2}],")
         print("}")
+        # Print attributions
+        print("attributions = {")
+        for i in attributions:
+            v = textwrap.dedent(attributions[i])
+            print(f"{indent}{i}: '''", end="")
+            print(textwrap.indent(v, indent*2), end="")
+            print(f"{indent}''',")
+        print("}")
+        # Print a GetGist function
+        g = textwrap.dedent('''
+        def GetGist():
+            mygist = gist.Gist()
+            mygist.clear()
+            mygist["gist"] = "DP's list of colornames (automatically constructed)"
+            mygist["copy"] = "Copyright © 2026 Don Peterson"
+            mygist["lic"] = "MIT License (see /plib/_lic.mit)"
+            mygist["test"] = "notest"
+            mygist["cat"] = "color"
+            mygist["todo"] = ""
+            return mygist
+        ''')
+        print(g)
                 
-            
-
     MakeColornames()
     exit()
 
