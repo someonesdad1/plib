@@ -171,12 +171,14 @@ if 1:  # Header
         oo>
     '''
     if 1:   # Standard imports
+        import collections
         import colorsys
         from decimal import Decimal
         from fractions import Fraction
         import math
         import os
         import re
+        import string
         import sys
         from io import StringIO
         from pathlib import Path as P
@@ -187,6 +189,7 @@ if 1:  # Header
         from columnize import Columnize
         from wsl import wsl
         from wrap import dedent
+        import asciify
         import dpseq
         import get
         from dpprint import PP
@@ -2079,6 +2082,43 @@ if 1:  # Utility functions
     def ToIntRGB(rgb):
         'Convert 3-tuple of floats on [0, 1] to [0, 255]'
         return tuple(dpseq.Clamp((int(i*256) for i in rgb), low=0, high=255, typ=int))
+    def ColorNameNormalize(name):
+        '''Return a normalized color name from the string name.
+        Example:  "dark red", "Dark Red", "DarkRed", "Dark_red" as arguments will all
+        return "dark_red".
+        
+        Algorithm:
+            - Convert to ASCII-only form
+            - " " inserted before each capital letter
+            - " " substituted for each "_"
+            - Split on whitespace
+            - Convert each token to lowercase
+            - Reassemble with "_"
+        '''
+        if not isinstance(name, str):
+            raise TypeError("name must be a str instance")
+        name = name.strip()
+        if not name:
+            raise ValueError("A name cannot be only whitespace or empty")
+        # Make sure we have only printable ASCII characters
+        name = asciify.Asciify(name)
+        printable = set(string.printable)
+        mychars = set(name)
+        capitals = set(string.ascii_uppercase)
+        if not (mychars <= printable):
+            not_allowed = mychars - printable
+            raise ValueError("{str(not_allowed)!r} are characters not allowed in names")
+        # Process the characters
+        new = []
+        dq = collections.deque(name)
+        while dq:
+            char = dq.popleft()
+            if char in capitals or char == "_":
+                new.append(" ")
+            new.append(char)
+        newstr = ''.join(new).replace("_", " ")
+        new = '_'.join(i.lower() for i in newstr.split())
+        return new
 
 if __name__ == "__main__":
     import getopt
