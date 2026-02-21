@@ -12198,6 +12198,52 @@ if 1:  # Attribution dictionary
             Constructed from an rgb.txt file I got from either an HPUX or Linux box
             in the early 1990's.
         ''',
+        3: '''
+            file = xkcd_rgb.py
+            from http://xkcd.com/color/rgb.txt
+            License https://creativecommons.org/publicdomain/zero/1.0/
+            Downloaded Sat 04 Oct 2014 10:36:40 AM
+            Verified Wed 16 Mar 2022 02:27:06 PM (equal with 'diff -w')
+        ''',
+        4: '''
+            file = xfree_rgb.py
+            License:  none given
+            Downloaded Sat 04 Oct 2014 10:51:00 AM
+            from http://cvsweb.xfree86.org/cvsweb/~checkout~/xc/programs/rgb/rgb.txt
+            Link is defunct as of Wed 16 Mar 2022 02:23:33 PM
+        ''',
+        5: '''
+            From https://en.wikipedia.org/wiki/List_of_colors:_A%E2%80%93F,
+            https://en.wikipedia.org/wiki/List_of_colors:_G%E2%80%93M, and
+            https://en.wikipedia.org/wiki/List_of_colors:_N%E2%80%93Z
+            License:  Creative Commons Attribution-ShareAlike 4.0 License
+            See /plib/_lic.ccsa4
+            Downloaded Tue 01 Jun 2021 07:08:24 PM
+        ''',
+        6: '''
+            from https://en.wikipedia.org/wiki/List_of_colors_(alphabetical)
+            License:  Creative Commons Attribution-ShareAlike 4.0 License
+            See /plib/_lic.ccsa4
+            Downloaded Thu 19 Feb 2026 03:10:33 PM
+        ''',
+        7: '''
+            file = resene_pencils.py
+            These pencil color definitions were downloaded from the Excel file
+            https://www.resene.co.nz/swatches/download_pencils.xls.
+            License:  none given.  Company contacted for their preferences on 13 Feb 2026.
+            This spreadsheet was converted to Open Office, the columns for name and RGB
+            colors saved, and then was saved as a CSV file.  Downloaded Wed 16 Mar 2022
+            04:59:10 PM.  After deleting names that had '-' for colors, this information
+            was the same as the file I loaded from this site on 1 Jun 2021.
+        ''',
+        8: '''
+            file = resenecolors.py
+            from http://people.csail.mit.edu/jaffer/Color/resenecolours.txt
+            License:  none given
+            Resene's copyright is "Copyright Resene Paints Ltd 2001".
+            Downloaded Sat 04 Oct 2014 10:23:31 AM
+            Verified Wed 16 Mar 2022 02:19:16 PM
+        ''',
         9: '''
             file = medium_color_database.py
             from http://www.two4u.com/color/medium-txt.html
@@ -12218,52 +12264,6 @@ if 1:  # Attribution dictionary
             from http://cvsweb.xfree86.org/cvsweb/~checkout~/xc/programs/rgb/others/raveling.txt
                 (link defunct on Wed 16 Mar 2022 02:16:36 PM
             License:  none given
-        ''',
-        7: '''
-            file = resene_pencils.py
-            These pencil color definitions were downloaded from the Excel file
-            https://www.resene.co.nz/swatches/download_pencils.xls.
-            License:  none given.  Company contacted for their preferences on 13 Feb 2026.
-            This spreadsheet was converted to Open Office, the columns for name and RGB
-            colors saved, and then was saved as a CSV file.  Downloaded Wed 16 Mar 2022
-            04:59:10 PM.  After deleting names that had '-' for colors, this information
-            was the same as the file I loaded from this site on 1 Jun 2021.
-        ''',
-        8: '''
-            file = resenecolors.py
-            from http://people.csail.mit.edu/jaffer/Color/resenecolours.txt
-            License:  none given
-            Resene's copyright is "Copyright Resene Paints Ltd 2001".
-            Downloaded Sat 04 Oct 2014 10:23:31 AM
-            Verified Wed 16 Mar 2022 02:19:16 PM
-        ''',
-        5: '''
-            From https://en.wikipedia.org/wiki/List_of_colors:_A%E2%80%93F,
-            https://en.wikipedia.org/wiki/List_of_colors:_G%E2%80%93M, and
-            https://en.wikipedia.org/wiki/List_of_colors:_N%E2%80%93Z
-            License:  Creative Commons Attribution-ShareAlike 4.0 License
-            See /plib/_lic.ccsa4
-            Downloaded Tue 01 Jun 2021 07:08:24 PM
-        ''',
-        4: '''
-            file = xfree_rgb.py
-            License:  none given
-            Downloaded Sat 04 Oct 2014 10:51:00 AM
-            from http://cvsweb.xfree86.org/cvsweb/~checkout~/xc/programs/rgb/rgb.txt
-            Link is defunct as of Wed 16 Mar 2022 02:23:33 PM
-        ''',
-        3: '''
-            file = xkcd_rgb.py
-            from http://xkcd.com/color/rgb.txt
-            License https://creativecommons.org/publicdomain/zero/1.0/
-            Downloaded Sat 04 Oct 2014 10:36:40 AM
-            Verified Wed 16 Mar 2022 02:27:06 PM (equal with 'diff -w')
-        ''',
-        6: '''
-            from https://en.wikipedia.org/wiki/List_of_colors_(alphabetical)
-            License:  Creative Commons Attribution-ShareAlike 4.0 License
-            See /plib/_lic.ccsa4
-            Downloaded Thu 19 Feb 2026 03:10:33 PM
         ''',
     }
 

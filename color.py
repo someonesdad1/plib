@@ -186,6 +186,7 @@ if 1:  # Header
         import collections 
         import string
     if 1:   # Custom imports
+        import dpcolornames
         import columnize
         from wsl import wsl
         import wrap
@@ -352,12 +353,26 @@ if 1:   # Classes
                     raise ValueError(f"'{first_char}' is an illegal first character")
                 rgb = tuple(int(round(i*N, 1)) for i in rgbdec)
             else:
-                # It names an elementary color.  Use the module's default CN
-                # instance to decode this.
-                try:
-                    rgb = CN[x].irgb
-                except Exception:
-                    raise ValueError(f"'{x}' isn't recognized as a color name")
+                # It names a color
+                msg = f"{x!r} isn't recognized as a color name"
+                if 0:   # Old method
+                    try:
+                        rgb = CN[x].irgb
+                    except Exception:
+                        raise ValueError(msg)
+                else:
+                    name = Color.ColorNameNormalize(x)
+                    if name in dpcolornames.colornames:
+                        # This gets the color with the lowest number key, as this is the
+                        # order I want things searched in (most colors will be in 0 or
+                        # 1, my color names; 2 is the X11 names, and the remaining ones
+                        # are various name sets downloaded from the web).
+                        found = sorted(dpcolornames.colornames[name], key=lambda x: x.key)[0]
+                        # found is a ColorName instance, a namedtuple
+                        c = Color(found.hex)   # .hex attribute is a hex string 
+                        rgb = c.irgb
+                    else:
+                        raise ValueError(msg)
             assert all(0 <= i <= N and isinstance(i, int) for i in rgb)
             return rgb
         def __str__(self):
@@ -1054,6 +1069,44 @@ if 1:   # Classes
                     return keep if keep else None
                 else:
                     return Find(s)
+            @classmethod
+            def ColorNameNormalize(cls, name):
+                '''Return a normalized color name from the string name.
+                Example:  "dark red", "Dark Red", "DarkRed", "Dark_red" as arguments will all
+                return "dark_red".
+                
+                Algorithm:
+                    - Convert to ASCII-only form
+                    - " " inserted before each capital letter
+                    - " " substituted for each "_"
+                    - Split on whitespace
+                    - Convert each token to lowercase
+                    - Reassemble with "_"
+                '''
+                if not isinstance(name, str):
+                    raise TypeError("name must be a str instance")
+                name = name.strip()
+                if not name:
+                    raise ValueError("A name cannot be only whitespace or empty")
+                # Make sure we have only printable ASCII characters
+                name = asciify.Asciify(name)
+                printable = set(string.printable)
+                mychars = set(name)
+                capitals = set(string.ascii_uppercase)
+                if not (mychars <= printable):
+                    not_allowed = mychars - printable
+                    raise ValueError("{str(not_allowed)!r} are characters not allowed in names")
+                # Process the characters
+                new = []
+                dq = collections.deque(name)
+                while dq:
+                    char = dq.popleft()
+                    if char in capitals or char == "_":
+                        new.append(" ")
+                    new.append(char)
+                newstr = ''.join(new).replace("_", " ")
+                new = '_'.join(i.lower() for i in newstr.split())
+                return new
     class Trm:
         '''This class is used to generate terminal escape codes
         Ref:  https://en.wikipedia.org/wiki/ANSI_escape_code#24-bit
@@ -2127,43 +2180,6 @@ if 1:  # Utility functions
     def ToIntRGB(rgb):
         'Convert 3-tuple of floats on [0, 1] to [0, 255]'
         return tuple(dpseq.Clamp((int(i*256) for i in rgb), low=0, high=255, typ=int))
-    def ColorNameNormalize(name):
-        '''Return a normalized color name from the string name.
-        Example:  "dark red", "Dark Red", "DarkRed", "Dark_red" as arguments will all
-        return "dark_red".
-        
-        Algorithm:
-            - Convert to ASCII-only form
-            - " " inserted before each capital letter
-            - " " substituted for each "_"
-            - Split on whitespace
-            - Convert each token to lowercase
-            - Reassemble with "_"
-        '''
-        if not isinstance(name, str):
-            raise TypeError("name must be a str instance")
-        name = name.strip()
-        if not name:
-            raise ValueError("A name cannot be only whitespace or empty")
-        # Make sure we have only printable ASCII characters
-        name = asciify.Asciify(name)
-        printable = set(string.printable)
-        mychars = set(name)
-        capitals = set(string.ascii_uppercase)
-        if not (mychars <= printable):
-            not_allowed = mychars - printable
-            raise ValueError("{str(not_allowed)!r} are characters not allowed in names")
-        # Process the characters
-        new = []
-        dq = collections.deque(name)
-        while dq:
-            char = dq.popleft()
-            if char in capitals or char == "_":
-                new.append(" ")
-            new.append(char)
-        newstr = ''.join(new).replace("_", " ")
-        new = '_'.join(i.lower() for i in newstr.split())
-        return new
 
 if __name__ == "__main__":
     import getopt
@@ -2568,7 +2584,7 @@ if __name__ == "__main__":
             Assert(isinstance(s, str) and len(s) == n and s[0] == "@")
             s = c.xhls
             Assert(isinstance(s, str) and len(s) == n and s[0] == "$")
-        def Test1ArgColorConstructor():
+        def Test_Constructor_1Arg():
             Reset()
             if 1:  # Color instance:  make a copy
                 c = Color(0.1, 0.2, 0.3)
@@ -2589,7 +2605,7 @@ if __name__ == "__main__":
                 Assert(c.ihls == (128, 95, 86))
                 c = Color("$010203")
                 Assert(c.ihls == (0, 2, 0))
-            if 1:  # Single number:  wavelength in nm or gray
+            if 1:  # Single number:  wavelength in nm or gray or 8-bit number
                 # Wavelengths
                 c = Color(589)  # About sodium yellow-orange
                 rgb = tuple(round(i, 3) for i in c.drgb)
@@ -2616,7 +2632,10 @@ if __name__ == "__main__":
                     c = Color(a, a, a)
                     rgb = tuple(round(i, 3) for i in c.drgb)
                     Assert(rgb == (b, b, b))
-        def Test3ArgsColorConstructor():
+                # 8-bit numbers
+                c = Color(200)
+                Assert(c.irgb == (255, 0, 215)) # It's a medium magenta
+        def Test_Constructor_3Args():
             Reset()
             if 1:  # Integer arguments
                 for a in (0, 1, 2, 255, 256):
@@ -2751,8 +2770,8 @@ if __name__ == "__main__":
             TestSort()
             TestClassMethods()
             TestProperties()
-            Test1ArgColorConstructor()
-            Test3ArgsColorConstructor()
+            Test_Constructor_1Arg()
+            Test_Constructor_3Args()
             TestConstructorKeywords()
             Test_int_to_hex()
             TestHash()
