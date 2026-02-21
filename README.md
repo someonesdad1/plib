@@ -3,16 +3,14 @@
 # /plib vision
 
 - Strategic problems
-    - gist
-        - Basic idea works, but it's problematic on a few files, possibly because I used
-          the symbol '_pgminfo'.  Python's supposed to ignore this underscore, but on
-          one of the six problem files I tried changing to 'pgminfo' (and changed the
-          corresponding code) and things started working.  
-        - A better idea is the global function GetGist() in each file.  This can be put
-          out of the way at the end of the file, making it easy to get to.
-    - Too many circular imports in modules:  things need to be orthogonalized
-        - Examples
-            - Color string interpolation in f.py or debug.py
+    - gist:  change \_pgminfo implementation to using GetGist() function
+    - Too many circular imports in modules
+        - Change all 'from x import y' to 'import x; y = x.name' forms to reduce
+          circularity problem.  Where still exists, a practical fix is to move the
+          needed import inside a function.
+        - The most egregious use of mine is probably the 'from color import t' thing I
+          use a lot.  This needs to become 'import trm;t = trm.Trm()' and the problem
+          will go away completely.
     - Coalesce similar functionality into fewer files
     - Move numeric/textual data to ./data modules
     - Too many files
@@ -24,7 +22,7 @@
             - Put data in ./data
             - Use dpdata.py as a "clearing house" to get the information
         - /plib has about 150 files
-            - Shoot for perhaps 100
+            - Shoot for 50-100
             - Move scripts to /plib/pgm as needed
         - /plib/pgm has over 400 files
             - Too many to easily comprehend
@@ -46,7 +44,7 @@
     - Only output message is Pass or Fail
     - Every module/script when run or run with --test returns 0 if tests pass or nonzero
       if test fails
-    - Make faster with using more processes
+    - Make testing faster with more processes
 - /plib/data directory
     - Use to store data sources, such as numerical data, tabular data, text of software
       licenses, etc.
@@ -77,6 +75,14 @@
 - 0what.py returns useful output for all modules
 
 # 2026 /plib work done
+
+- 21 Feb 
+    - data/dpcolornames.py constructed, giving many colornames collected from the web
+    - I standardized on a new set of short color names (see key 0 in
+      data/dpcolornames.py)
+    - color.py
+        - Color constructor was documented and the self-tests were improved
+        - The Color class now has ColorNameNormalize as a class method
 
 - 13 Feb 
     - Have \_trm_proto.py working to make a Trm object a context manager (adds the style

@@ -435,6 +435,18 @@ if __name__ == "__main__":
             if __name__ == "__main__":
                 d = {}      # Options dictionary
                 args = ParseCommandLine(d)
+
+            def GetGist():
+                'Construct the /plib/gist.Gist instance for this file'
+                mygist = gist.Gist()
+                mygist.clear()
+                mygist["gist"] = ""
+                mygist["copy"] = "Copyright © 2026 Don Peterson"
+                mygist["lic"] = "MIT License (see /plib/_lic.mit)"
+                mygist["test"] = "notest"
+                mygist["cat"] = ""
+                mygist["todo"] = ''' '''
+                return mygist
         """))
     def Help():
         print(dedent('''

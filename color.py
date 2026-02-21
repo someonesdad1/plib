@@ -231,6 +231,8 @@ if 1:   # Classes
         (note that the absolute values of the components are used):
         
         Color(inst)     Makes a copy of another Color instance
+        Color(seq)
+                        seq is a sequence of 3 numbers or strings
         Color(int)
             0-255       8-bit ANSI color number
             > 255       Light wavelength in nm (black if not on [380, 780])
@@ -241,6 +243,8 @@ if 1:   # Classes
             "#abcdef"   RGB hex form
             "$abcdef"   HLS hex form
             "@abcdef"   HSV hex form
+            "x x x"     Three space-separated numbers
+            "x,x,x"     Three comma-separated numbers
             name        Look up an existing color name (normalized)
         Color(int, int, int)
             Values must be on [0, 255] and are interpreted as 24-bit RGB unless the
@@ -257,26 +261,57 @@ if 1:   # Classes
         bits_per_color = 8
         def __init__(self, *p, **kw):
             "Initialize the Color object"
-            # Check for proper keyword arguments
-            allowed = set("bpc hsv hls".split())
-            actual = set(kw.keys())
-            if not (actual <= allowed):
-                bad = actual - allowed
-                s = ", ".join(bad)
-                msg = f"Bad keyword(s):  {s}"
-                raise ValueError(msg)
+            if 1:   # Check for proper keyword arguments
+                allowed = set("bpc hsv hls".split())
+                actual = set(kw.keys())
+                if not (actual <= allowed):
+                    bad = actual - allowed
+                    s = ", ".join(bad)
+                    msg = f"Bad keyword(s):  {s}"
+                    raise ValueError(msg)
             # Set attributes
             self._bpc = kw.get("bpc", Color.bits_per_color)
             self._rgb = None    # RGB integer components
             self._sort = "rgb"  # Sorting order (must be rgb, hsv, or hls)
-            if len(p) == 3:
-                if all(isinstance(i, int) for i in p):  # 3 integers
-                    rgb = tuple(abs(i) & self.n for i in p)
+            if 1:   # Prepare by getting the relevant arguments into the variable u
+                if len(p) == 1:
+                    msg = f"{p[0]!r} is not recognized"
+                    s = p[0]
+                    if isinstance(s, str):
+                        # Look for "x x x" and "x,x,x" forms
+                        s = s.strip()
+                        if not s:
+                            raise ValueError(msg)
+                        f = s.replace(",", " ").split()
+                        if len(f) == 3:
+                            try:
+                                u = [abs(int(i)) for i in f]
+                            except Exception:
+                                try:
+                                    u = [abs(float(i)) for i in f]
+                                except Exception:
+                                    raise ValueError(msg)
+                        else:
+                            u = p[0]
+                    else:
+                        if isinstance(p[0], (int, float)):
+                            u = p[0]
+                        else:
+                            # It's probably a sequence & must have a length of 3
+                            if len(p[0]) != 3:
+                                raise ValueError(msg)
+                            u = p[0]
+                else:
+                    u = p
+            # u is now the set of arguments to process
+            if not isinstance(u, str) and len(u) == 3:
+                if all(isinstance(i, int) for i in u):  # 3 integers
+                    rgb = tuple(abs(i) & self.n for i in u)
                 else:  # Convert to floats
                     try:
-                        dec = tuple(abs(float(i)) for i in p)
+                        dec = tuple(abs(float(i)) for i in u)
                     except Exception:
-                        msg = f"'{p}' couldn't be converted to floats"
+                        msg = f"'{u}' couldn't be converted to floats"
                         raise TypeError(msg)
                     if not all(0 <= i <= 1 for i in dec):
                         # Normalize to a unit 3-vector
@@ -292,8 +327,8 @@ if 1:   # Classes
                 elif kw.get("hls", False):
                     dec = colorsys.hls_to_rgb(*self.drgb)
                     self._rgb = tuple(int(round(i*self.n)) for i in dec)
-            elif len(p) == 1:
-                x = p[0]
+            elif len(u) == 1 or isinstance(u, str):
+                x = u if isinstance(u, str) else u[0]
                 if isinstance(x, Color):
                     # Copy the state
                     self._bpc = x._bpc

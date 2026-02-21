@@ -86,51 +86,60 @@ class Trm(dict):
         '''Change all dict values into escape codes.  This is done by translating all
         the values received to a Color instance, then calling self._get_code().
         '''
-        for i in self:
-            u = self[i]
-            print(f"{i} = {u!r}")
-            if isinstance(u, str):
-                if u[0] == "\x1b":      # Escape character; it's already resolved
-                    continue
-                u = u.strip()
-                if u[0] in "#$@":       # Hex format 
+        if 0:   # Old code before Color() updated
+            for i in self:
+                u = self[i]
+                print(f"{i} = {u!r}")
+                if isinstance(u, str):
+                    if u[0] == "\x1b":      # Escape character; it's already resolved
+                        continue
+                    u = u.strip()
+                    if u[0] in "#$@":       # Hex format 
+                        c = Color(u)
+                    elif u.endswith("nm"):  # Is a wavelength
+                        wl_nm = float(u[:-2])
+                        c = wl2rgb.wl2rgb(wl_nm)
+                    elif " " in u or "," in u:  # Tuple of 3 integers
+                        v = u.replace(",", " ")
+                        f = v.split()
+                        if len(f) != 3:
+                            msg = f"{u!r} must be 3 integers separated by ' ' or ','"
+                            raise ValueError(msg)
+                        values = tuple(dpmath.Int(j) for j in f)
+                        Color(*values)
+                    else:   # Float or integer
+                        try:
+                            x = abs(float(u))
+                            fp, ip = math.modf(x)
+                            c = Color(fp)
+                        except Exception:
+                            pass
+                        n = None
+                        try:
+                            n = dpmath.Int(u)
+                        except Exception:
+                            pass
+                        if n is None:
+                            c = Color(u)    # Is it a string that Color() recognizes?
+                        else:
+                            if not (0 <= n < 256):
+                                raise ValueError("An integer {n} for a color must be on [0, 255]")
+                            c = color.Translate8bit(n)
+                elif isinstance(u, int):
+                    # It's an 8-bit color
+                    if not (0 <= u < 256):
+                        raise ValueError("An integer i = {u} for a color must be on [0, 255]")
+                    c = color.Translate8bit(u)
+                self[i] = self._get_code(c)
+                #print(f"  {i} gave {self[i]}this color{t.n}")
+        else:
+            for i in self:
+                u = self[i]
+                try:
                     c = Color(u)
-                elif u.endswith("nm"):  # Is a wavelength
-                    wl_nm = float(u[:-2])
-                    c = wl2rgb.wl2rgb(wl_nm)
-                elif " " in u or "," in u:  # Tuple of 3 integers
-                    v = u.replace(",", " ")
-                    f = v.split()
-                    if len(f) != 3:
-                        msg = f"{u!r} must be 3 integers separated by ' ' or ','"
-                        raise ValueError(msg)
-                    values = tuple(dpmath.Int(j) for j in f)
-                    Color(*values)
-                else:   # Float or integer
-                    try:
-                        x = abs(float(u))
-                        fp, ip = math.modf(x)
-                        c = Color(fp)
-                    except Exception:
-                        pass
-                    n = None
-                    try:
-                        n = dpmath.Int(u)
-                    except Exception:
-                        pass
-                    if n is None:
-                        c = Color(u)    # Is it a string that Color() recognizes?
-                    else:
-                        if not (0 <= n < 256):
-                            raise ValueError("An integer {n} for a color must be on [0, 255]")
-                        c = color.Translate8bit(n)
-            elif isinstance(u, int):
-                # It's an 8-bit color
-                if not (0 <= u < 256):
-                    raise ValueError("An integer i = {u} for a color must be on [0, 255]")
-                c = color.Translate8bit(u)
-            self[i] = self._get_code(c)
-            #print(f"  {i} gave {self[i]}this color{t.n}")
+                except Exception:
+                    print(f"{i} = {u!r} (type {type(u)})")
+            exit()
     def __call__(self, *args, **kw):
         '''Initialize a terminal color by specifying the color in args.  The allowed
         forms are:
@@ -246,10 +255,10 @@ if 1:
         "g": "#ff8700",     # 8-bit #208
         "h": "255 135 0",   # 8-bit #208
         "i": 0.5,           # float, middle gray
-        "j": "555 nm",      # Yellow-green, most visible to eye
-        "k": (0.1,0.2,0.3)  # 3-tuple of floats (Color() accepts this)
-        "l": "0.1 0.2 0.3"  # 3-tuple of floats (Color() accepts this)
-        "l": "0.1,0.2,0.3"  # 3-tuple of floats (Color() accepts this)
+        "j": "555",         # Yellow-green, most visible to eye
+        "k": (0.1,0.2,0.3), # 3-tuple of floats (Color() accepts this)
+        "l": "0.1 0.2 0.3", # 3-tuple of floats (Color() accepts this)
+        "l": "0.1,0.2,0.3", # 3-tuple of floats (Color() accepts this)
     }
     u = Trm(styles) 
     # Only one set of outputs here prove that the .on attribute works
