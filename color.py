@@ -109,6 +109,7 @@ if 1:  # Header
                           codes
             - ∞∞2 
                 - Move RegexpDecorate to dpstr.py
+                - Color:  remove sr,sh,sl attributes, as I've never used them
             - ∞∞3 
                 - When printing a Trm instance that uses t.str(), output the string
                   using Columnize to the current screen width, as this is more
@@ -173,53 +174,86 @@ if 1:  # Header
     if 1:   # Standard imports
         import collections
         import colorsys
-        from decimal import Decimal
-        from fractions import Fraction
+        import decimal
+        import fractions
         import math
         import os
         import re
         import string
         import sys
-        from io import StringIO
-        from pathlib import Path as P
-        from collections.abc import Iterable
-        from collections import deque
-        from string import hexdigits
+        import io 
+        import pathlib 
+        import collections 
+        import string
     if 1:   # Custom imports
-        from columnize import Columnize
+        import columnize
         from wsl import wsl
-        from wrap import dedent
+        import wrap
         import asciify
         import dpseq
         import get
-        from dpprint import PP
+        import dpprint
         import termtables as tt
-        pp = PP()
         try:
-            from f import flt
+            import f
+            flt = f.flt
         except ImportError:
             flt = float
-        # NOTE:  can't use debug.py because of circular import
         try:
             import mpmath
             have_mpmath = True
         except ImportError:
             have_mpmath = False
+    if 1:   # Symbols from imports
+        Decimal = decimal.Decimal
+        Fraction = fractions.Fraction
+        StringIO = io.StringIO
+        P = pathlib.Path
+        Iterable = collections.abc.Iterable
+        deque = collections.deque
+        hexdigits = string.hexdigits
+        #
+        Columnize = columnize.Columnize
+        dedent = wrap.dedent
+        PP = dpprint.PP
+        pp = PP()
     if 1:   # Global variables
         class G:
             pass
         g = G()  # Container for global variables
-        ii = isinstance
         __all__ = "Color Trm TRM t ColorName CN RegexpDecorate".split()
 if 1:   # Classes
     class Color:
-        "Storage of the three numbers used to define a color"
+        '''Storage of the three numbers used to define a color.  Constructor forms are
+        (note that the absolute values of the components are used):
+        
+        Color(inst)     Makes a copy of another Color instance
+        Color(int)
+            0-255       8-bit ANSI color number
+            > 255       Light wavelength in nm (black if not on [380, 780])
+        Color(float)
+            0-1         Grayscale, 0 == black, 1 == white
+            > 1         Light wavelength in nm (black if not on [380, 780])
+        Color(str)
+            "#abcdef"   RGB hex form
+            "$abcdef"   HLS hex form
+            "@abcdef"   HSV hex form
+            name        Look up an existing color name (normalized)
+        Color(int, int, int)
+            Values must be on [0, 255] and are interpreted as 24-bit RGB unless the
+            keywords hsv or hls are True.
+        Color(float, float, float)
+            A 3-vector normalized to be a unit vector, then converted to integers to
+            call Color(int, int, int).
+        
+        Color names are normalized with ColorNameNormalize(), which returns snake-case
+        lowercase ASCII letter names.
+        '''
         bits_per_color = 8
         def __init__(self, *p, **kw):
             "Initialize the Color object"
-            # ∞∞1 Need detailed docstring on Color constructor syntax (for pydoc use)
             # Check for proper keyword arguments
-            allowed = set("bpc hsv hls sunlight gamma".split())
+            allowed = set("bpc hsv hls".split())
             actual = set(kw.keys())
             if not (actual <= allowed):
                 bad = actual - allowed
@@ -237,16 +271,16 @@ if 1:   # Classes
                     if type(p[1]) is t1 or type(p[2]) is t1:
                         msg = f"'{p}' components are not all the same type"
                         raise TypeError(msg)
-                if all(ii(i, int) for i in p):  # 3 integers
-                    rgb = tuple(i & self.n for i in p)
+                if all(isinstance(i, int) for i in p):  # 3 integers
+                    rgb = tuple(abs(i) & self.n for i in p)
                 else:  # Convert to floats
                     try:
-                        dec = tuple(float(i) for i in p)
+                        dec = tuple(float(abs(i)) for i in p)
                     except Exception:
                         msg = f"'{p}' couldn't be converted to floats"
                         raise TypeError(msg)
                     if not all(0 <= i <= 1 for i in dec):  # Need normalization
-                        mag = sum(i*i for i in dec) ** (1/2)
+                        mag = sum(i*i for i in dec)**(1/2)
                         dec = tuple(i/mag for i in dec)
                     rgb = tuple(int(round(i*self.n, 1)) for i in dec)
                 self._rgb = rgb
@@ -259,20 +293,27 @@ if 1:   # Classes
                     self._rgb = tuple(int(round(i*self.n)) for i in dec)
             elif len(p) == 1:
                 x = p[0]
-                if ii(x, Color):
+                if isinstance(x, Color):
                     # Copy the state
                     self._bpc = x._bpc
                     self._rgb = x._rgb
                     self._sort = x._sort
-                elif ii(x, (int, float)):
+                elif isinstance(x, int):
+                    # Interpret as an 8-bit ANSI color number or wavelength
+                    x = abs(x)
+                    if 0 <= x <= 255:
+                        c = Translate8bit(x)
+                    else:
+                        c = Color.wl2rgb(x, bpc=self._bpc)
+                    self._rgb = c.irgb
+                elif isinstance(x, float):
+                    x = abs(x)
                     if 0 <= x <= 1:
                         # Interpret as a gray
                         self._rgb = tuple(int(round(i*self.n, 1)) for i in (x, x, x))
                     else:
                         # Interpret as a light wavelength in nm
-                        sunlight = kw.get("sunlight", True)
-                        gamma = kw.get("gamma", 0.0)
-                        c = Color.wl2rgb(x, sunlight=sunlight, gamma=gamma, bpc=self._bpc)
+                        c = Color.wl2rgb(x, bpc=self._bpc)
                         self._rgb = c.irgb
                 else:
                     # Hex string or short color name
@@ -280,13 +321,13 @@ if 1:   # Classes
             self._check()
         def _check(self):
             "Check invariants"
-            assert ii(self._bpc, int) and self._bpc > 0
+            assert isinstance(self._bpc, int) and self._bpc > 0
             assert len(self._rgb) == 3
-            assert (0 <= i < self.N and ii(i, int) for i in self._rgb)
+            assert (0 <= i < self.N and isinstance(i, int) for i in self._rgb)
             assert self._sort in ("rgb", "hsv", "hls")
         def string(self, X):
             "Return 3-tuple int rgb value from a string"
-            assert ii(X, str)
+            assert isinstance(X, str)
             if not X:
                 raise ValueError("Can't initialize with an empty string")
             x, N = X.lower(), self.N - 1
@@ -317,7 +358,7 @@ if 1:   # Classes
                     rgb = CN[x].irgb
                 except Exception:
                     raise ValueError(f"'{x}' isn't recognized as a color name")
-            assert all(0 <= i <= N and ii(i, int) for i in rgb)
+            assert all(0 <= i <= N and isinstance(i, int) for i in rgb)
             return rgb
         def __str__(self):
             u = "⁰¹²³⁴⁵⁶⁷⁸⁹"
@@ -375,7 +416,7 @@ if 1:   # Classes
             '''Return a new instance with this instance's color that has the
             indicated bpc (bits per color).
             '''
-            if not ii(bpc, int) and bpc < 1:
+            if not isinstance(bpc, int) and bpc < 1:
                 raise TypeError("bpc must be an int")
             if bpc < 1:
                 raise ValueError("bpc must be > 0")
@@ -409,7 +450,7 @@ if 1:   # Classes
                 return min(self.n, max(0, y))
             allowed = "rgbhsvHLS"
             if set:
-                if not ii(p, int):
+                if not isinstance(p, int):
                     raise TypeError("p must be an integer if set is True")
                 x = Clamp(p)
             else:
@@ -457,7 +498,7 @@ if 1:   # Classes
             the RGB values to decimal, then converting the decimals back to
             [0, 2**bpc - 1].
             '''
-            if not ii(bpc, int) or bpc < 1:
+            if not isinstance(bpc, int) or bpc < 1:
                 raise TypeError("bpc must be an integer")
             if bpc < 1:
                 raise ValueError("bpc must be > 0")
@@ -484,7 +525,7 @@ if 1:   # Classes
             the line between P and Q is R = (t, y0 + m*t).  For t = 0, you
             get R == P and for t = 1 you get R == Q.
             '''
-            if not ii(other, Color):
+            if not isinstance(other, Color):
                 raise TypeError("other must be a Color instance")
             if not (0 <= t <= 1):
                 raise ValueError("t must be on [0, 1]")
@@ -518,17 +559,17 @@ if 1:   # Classes
                 handy for making lists of color numbers because the spacing
                 makes them easier to read in a text file.
                 '''
-                if not all(ii(i, int) for i in (a, b, c)):
+                if not all(isinstance(i, int) for i in (a, b, c)):
                     raise TypeError("Arguments must be integers")
                 w = len(str(self.N))
                 return f"{a:{w}d}, {b:{w}d}, {c:{w}d}"
             def dec_to_int(self, three_tuple):
                 "Return int value of decimal values in 3-tuple of floats"
-                assert all(ii(i, float) for i in three_tuple)
+                assert all(isinstance(i, float) for i in three_tuple)
                 return tuple(int(round(i*self.n, 1)) for i in three_tuple)
             def int_to_dec(self, three_tuple):
                 "Return float value of 3-tuple of integers"
-                assert all(ii(i, int) for i in three_tuple)
+                assert all(isinstance(i, int) for i in three_tuple)
                 return tuple(i/(self.N - 1) for i in three_tuple)
             def digits(self):
                 '''Return number of digits for to use for decimal rounding,
@@ -570,12 +611,15 @@ if 1:   # Classes
                 return f"L{chr(o + a)}{chr(o + b)}{chr(o + c)}"
             @property
             def N(self):
+                'Number of colors we represent == 2**bits_per_color'
                 return 2**self._bpc
             @property
             def n(self):
+                'self.N - 1'
                 return self.N - 1
             @property
             def bpc(self):
+                'Bits per color'
                 return self._bpc
             @property
             def hex_bytes_per_color(self):
@@ -650,7 +694,7 @@ if 1:   # Classes
                 sqrt(3) to get a float on [0, 1].  For taxicab distance, the
                 distance is normalized to [0, 1] by dividing by 3.
                 '''
-                if not ii(c1, Color) or not ii(c2, Color):
+                if not isinstance(c1, Color) or not isinstance(c2, Color):
                     raise TypeError("c1 and c2 must be Color instances")
                 # Convert to same bpc
                 me, him = Color.downshift(c1, c2)
@@ -670,18 +714,18 @@ if 1:   # Classes
             @classmethod
             def downshift(cls, c1, c2):
                 "Return two Color instances with the same bpc (bits per color)"
-                if not ii(c1, Color) or not ii(c2, Color):
+                if not isinstance(c1, Color) or not isinstance(c2, Color):
                     raise TypeError("c1 and c2 need to be Color instances")
                 bpc = min(c1.bpc, c2.bpc)
                 return (c1.change_bpc(bpc), c2.change_bpc(bpc))
             @classmethod
-            def int_to_hex(cls, s, bytes_per_color=1):
+            def int_to_hex(cls, threetuple, bytes_per_color=1):
                 "Convert 3-tuple of integers to hex string"
-                e = TypeError(f"'{s}' argument must be a 3-sequence of  integers")
-                if not all(ii(i, int) for i in s) or len(s) != 3:
+                e = TypeError(f"'{threetuple}' argument must be a 3-sequence of  integers")
+                if not all(isinstance(i, int) for i in threetuple) or len(threetuple) != 3:
                     raise e
                 w = 2*bytes_per_color
-                x = [f"{i:0{w}x}" for i in s]
+                x = [f"{i:0{w}x}" for i in threetuple]
                 ml = max(len(i) for i in x)
                 if ml % 2:
                     ml += 1
@@ -697,7 +741,7 @@ if 1:   # Classes
                 '''s must be a multiple of six hex digits; return a tuple of the
                 three integers it represents.
                 '''
-                if not ii(s, str):
+                if not isinstance(s, str):
                     raise TypeError(f"'{s}' argument must be a string")
                 div, rem = divmod(len(s), 6)
                 if rem:
@@ -722,10 +766,10 @@ if 1:   # Classes
             def round(cls, value, digits):
                 "Round value to number of digits (value can be float or sequence)"
                 n = digits
-                if not ii(value, str) and ii(value, Iterable):
+                if not isinstance(value, str) and isinstance(value, Iterable):
                     return tuple(round(float(i), n) for i in value)
                 else:
-                    if not ii(value, float):
+                    if not isinstance(value, float):
                         raise TypeError("value must be a float or numerical sequence")
                     return round(value, n)
             @classmethod
@@ -739,7 +783,7 @@ if 1:   # Classes
                 sRGB will be 3-sequence of floats on [0, 1]
                 https://en.wikipedia.org/wiki/SRGB#From_CIE_XYZ_to_sRGB
                 '''
-                if ii(XYZ, str) or len(XYZ) != 3:
+                if isinstance(XYZ, str) or len(XYZ) != 3:
                     raise TypeError(f"'{XYZ}' must be a sequence of 3 numbers")
                 if not all(i >= 0 for i in XYZ):
                     raise TypeError(f"'{XYZ}' must be numbers >= 0")
@@ -835,7 +879,8 @@ if 1:   # Classes
                 else:
                     # From # http://www.physics.sfasu.edu/astro/color/spectra.html (defunct).
                     # Also see http://www.midnightkite.com/color.html.
-                    # From D. Bruton's FORTRAN code.
+                    # From D. Bruton's FORTRAN code (algorithm apparently due to Earl F.
+                    # Glynn).
                     if not (380 <= nm <= 780):
                         a = 0.0
                         return Color(a, a, a)
@@ -882,7 +927,7 @@ if 1:   # Classes
                 # The algorithm is to decorate an auxiliary sequence with the
                 # indicated attribute values, sort it, and return it after
                 # stripping off the decorations.
-                if ii(seq, str) or not ii(seq, Iterable):
+                if isinstance(seq, str) or not isinstance(seq, Iterable):
                     raise TypeError("seq is not a suitable sequence")
                 if not keys:
                     raise ValueError("keys cannot be empty")
@@ -898,7 +943,7 @@ if 1:   # Classes
                         c = item
                     else:  # Use the predicate
                         c = get(item)
-                    if not ii(c, Color):
+                    if not isinstance(c, Color):
                         raise TypeError(f"'{c}' is not a Color instance")
                     itemkey = []
                     for key in keys:
@@ -926,7 +971,7 @@ if 1:   # Classes
                 aux = sorted(aux, key=lambda x: x[0])
                 # Strip decorations
                 return tuple(i[1] for i in aux)
-            classmethod
+            @classmethod
             def Construct(cls, s):
                 '''Uses regular expressions to recognize color initializers in a
                 string s.  Returns a Color instance or None.  If s is a multiline
@@ -1089,10 +1134,10 @@ if 1:   # Classes
         if 1:  # Utility methods
             def _check(self):
                 "Validate the initial attributes"
-                assert ii(self._bits, int) and self._bits in (4, 8, 24)
-                assert ii(self._fg, Color)
-                assert ii(self._bg, Color)
-                assert ii(self.cn, ColorName)
+                assert isinstance(self._bits, int) and self._bits in (4, 8, 24)
+                assert isinstance(self._fg, Color)
+                assert isinstance(self._bg, Color)
+                assert isinstance(self.cn, ColorName)
             def _ta(self):
                 "Return attributes mapping"
                 s = '''normal-no:0 bold-bo:1 dim-di:2 italic-it:3
@@ -1145,10 +1190,10 @@ if 1:   # Classes
             def _get_code(self, color, bg=False):
                 "For Color instance color, return escape code"
                 if color is not None:
-                    assert ii(color, Color)
+                    assert isinstance(color, Color)
                 else:
                     return ""
-                assert ii(bg, bool)
+                assert isinstance(bg, bool)
                 if self._bits == 4:
                     raise Exception("Not implemented")
                 elif self._bits == 8:
@@ -1254,11 +1299,11 @@ if 1:   # Classes
                 bg      Background Color instance or string
                 '''
                 msg = "{} must be None, a string, or a Color instance"
-                if fg is not None and not ii(fg, (Color, str)):
+                if fg is not None and not isinstance(fg, (Color, str)):
                     raise ValueError(msg.format("fg"))
-                if bg is not None and not ii(bg, (Color, str)):
+                if bg is not None and not isinstance(bg, (Color, str)):
                     raise ValueError(msg.format("bg"))
-                if attr is not None and not ii(attr, str):
+                if attr is not None and not isinstance(attr, str):
                     raise ValueError("attr must be None or a string")
                 if not self._on:
                     return ""
@@ -1299,7 +1344,7 @@ if 1:   # Classes
                     ESC[48;2;<r>;<g>;<b>m      RGB background color
                 '''
                 # If they are strings, they are either a name or a hex string.
-                if fg and ii(fg, str):
+                if fg and isinstance(fg, str):
                     if fg[0] in "@#$":
                         fg = Color(fg)
                     else:
@@ -1307,7 +1352,7 @@ if 1:   # Classes
                         if "@" in fg or "#" in fg or "$" in fg:  # It's a composite
                             new = self.cn.split(fg)
                         fg = self.cn[fg] if new is None else new
-                if bg and ii(bg, str):
+                if bg and isinstance(bg, str):
                     if bg[0] in "@#$":
                         bg = Color(bg)
                     else:
@@ -1329,8 +1374,8 @@ if 1:   # Classes
                             raise ValueError(msg)
                         container.append(f"\x1b[{ta[a]}m")
                 # Get other codes
-                assert fg is None or ii(fg, Color)
-                assert bg is None or ii(bg, Color)
+                assert fg is None or isinstance(fg, Color)
+                assert bg is None or isinstance(bg, Color)
                 container.append(self._get_code(fg))
                 container.append(self._get_code(bg, bg=True))
                 return "".join(container)
@@ -1618,7 +1663,7 @@ if 1:   # RegexpDecorate class
             will continue to be printed in the match_style's attribute.  The easiest way to do this is
             to not set nomatch_style.
             '''
-            assert ii(r, re.Pattern)
+            assert isinstance(r, re.Pattern)
             if nomatch_style is None:
                 nomatch_style = t.n
             self._styles[r] = (match_style, nomatch_style)
@@ -1634,7 +1679,7 @@ if 1:   # RegexpDecorate class
             '''Apply the registered regular expressions to the string line and return the string,
             decorated if there was a match.
             '''
-            assert ii(line, str)
+            assert isinstance(line, str)
             out = StringIO()
             self(line, file=out)
             return out.getvalue()
@@ -1649,7 +1694,7 @@ if 1:   # RegexpDecorate class
                 - insert_nl:  If True, print a newline if line doesn't end with a newline.
                 
             '''
-            assert ii(line, str)
+            assert isinstance(line, str)
             if not line:
                 return
             has_nl = line.endswith("\n")
@@ -1717,7 +1762,7 @@ if 1:  # Translate between ANSI 8-bit colors (256 of them) and 24-bit RGB colors
         def color_dist_sq(R, G, B, r, g, b):
             return (R - r)*(R - r) + (G - g)*(G - g) + (B - b)*(B - b)
         def color_to_6cube(v):
-            assert ii(v, int)
+            assert isinstance(v, int)
             x = 0 if v < 48 else 1 if v < 114 else (v - 35) // 40
             assert 0 <= x < 256
             return x
@@ -2065,17 +2110,17 @@ if 1:  # Utility functions
         integer gotten with the math module's isqrt function.  The returned integer will
         be on [0, 441], as math.floor(math.sqrt(3*255²)) is 441.
         '''
-        if ii(rgb1, Color):
+        if isinstance(rgb1, Color):
             seq1 = rgb1.irgb
         else:
-            assert ii(rgb1, (list, tuple)) and len(rgb1) == 3
-            assert all(ii(i, int) for i in rgb1)
+            assert isinstance(rgb1, (list, tuple)) and len(rgb1) == 3
+            assert all(isinstance(i, int) for i in rgb1)
             seq1 = rgb1
-        if ii(rgb2, Color):
+        if isinstance(rgb2, Color):
             seq2 = rgb2.irgb
         else:
-            assert ii(rgb2, (list, tuple)) and len(rgb2) == 3
-            assert all(ii(i, int) for i in rgb2)
+            assert isinstance(rgb2, (list, tuple)) and len(rgb2) == 3
+            assert all(isinstance(i, int) for i in rgb2)
             seq2 = rgb2
         d = [(i - j)**2 for i, j in zip(seq1, seq2)]
         return math.isqrt(sum(d))
@@ -2322,12 +2367,12 @@ if __name__ == "__main__":
                 return tuple(round(i, 3) for i in x)
             # No color specifier gets None
             s = "kldjfkdj"
-            c = Color.Construct(Color, s)
+            c = Color.Construct(s)
             Assert(c is None)
             # Separated by commas or spaces
             expected = Color(25, 51, 76)
             for s in (".1, .2, .3", ".1 .2 .3"):
-                c = Color.Construct(Color, s)
+                c = Color.Construct(s)
                 Assert(c == expected)
             # Multiline
             t = "This is a line"
@@ -2335,8 +2380,8 @@ if __name__ == "__main__":
                 {t} (.1, .2, .3)
                 {t} (.2, .4, .7)
             '''
-            a = Color.Construct(Color, s)
-            Assert(ii(a, deque))
+            a = Color.Construct(s)
+            Assert(isinstance(a, deque))
             name, c = a.popleft()
             Assert(t in name)
             Assert(c == expected)
@@ -2510,19 +2555,19 @@ if __name__ == "__main__":
             Reset()
             # Properties return 3-tuples
             c = Color(1, 2, 3)
-            Assert(ii(c.irgb, tuple) and len(c.irgb) == 3)
-            Assert(ii(c.drgb, tuple) and len(c.drgb) == 3)
-            Assert(ii(c.ihsv, tuple) and len(c.irgb) == 3)
-            Assert(ii(c.dhsv, tuple) and len(c.drgb) == 3)
-            Assert(ii(c.ihls, tuple) and len(c.ihls) == 3)
-            Assert(ii(c.dhls, tuple) and len(c.dhls) == 3)
+            Assert(isinstance(c.irgb, tuple) and len(c.irgb) == 3)
+            Assert(isinstance(c.drgb, tuple) and len(c.drgb) == 3)
+            Assert(isinstance(c.ihsv, tuple) and len(c.irgb) == 3)
+            Assert(isinstance(c.dhsv, tuple) and len(c.drgb) == 3)
+            Assert(isinstance(c.ihls, tuple) and len(c.ihls) == 3)
+            Assert(isinstance(c.dhls, tuple) and len(c.dhls) == 3)
             # Hex string properties return proper hex forms
             s, n = c.xrgb, 7
-            Assert(ii(s, str) and len(s) == n and s[0] == "#")
+            Assert(isinstance(s, str) and len(s) == n and s[0] == "#")
             s = c.xhsv
-            Assert(ii(s, str) and len(s) == n and s[0] == "@")
+            Assert(isinstance(s, str) and len(s) == n and s[0] == "@")
             s = c.xhls
-            Assert(ii(s, str) and len(s) == n and s[0] == "$")
+            Assert(isinstance(s, str) and len(s) == n and s[0] == "$")
         def Test1ArgColorConstructor():
             Reset()
             if 1:  # Color instance:  make a copy
@@ -3013,7 +3058,7 @@ if __name__ == "__main__":
         
         If you need a sequence of n floating point values, see util.fDistribute().
         '''
-        if not (ii(a, int) and ii(b, int) and ii(n, int)):
+        if not (isinstance(a, int) and isinstance(b, int) and isinstance(n, int)):
             raise TypeError("Arguments must be integers")
         if a >= b:
             raise ValueError("Must have a < b")
@@ -3033,7 +3078,7 @@ if __name__ == "__main__":
         q = "({:3d}, {:3d}, {:3d})"
         def dec(c):
             "c is a Color instance; return decimal string form"
-            Assert(ii(c, Color))
+            Assert(isinstance(c, Color))
             t = tuple(f"{i:5.3f}" for i in c.drgb)
             return f"({', '.join(t)})"
         def P(x, name):
@@ -3292,7 +3337,7 @@ if __name__ == "__main__":
         q = "({:3d}, {:3d}, {:3d})"
         def dec(c):
             "c is a Color instance; return decimal string form"
-            Assert(ii(c, Color))
+            Assert(isinstance(c, Color))
             t = tuple(f"{i:5.3f}" for i in c.drgb)
             return f"({', '.join(t)})"
         def P(x, name):
@@ -3310,7 +3355,7 @@ if __name__ == "__main__":
                 Error(f"'{name}' is bad")
         # Check that it's a 3-tuple of integers
         Assert(len(rgb) == 3)
-        Assert(all([ii(i, int) for i in rgb]))
+        Assert(all([isinstance(i, int) for i in rgb]))
         c = Color(*rgb)
         t.print(f"Input string = '{orig}' = {t(c)}{x.strip()}")
         P(c.irgb, "RGB")

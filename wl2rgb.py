@@ -291,7 +291,6 @@ if 1:  # Utility
         return GetCIEDict1964.di
 if 1:  # Light wavelength to & from RGB colors
     '''
-
         The goal of this stuff is to turn the wavelength of light into a suitable color
         for your computer monitor.  This is a complicated problem involving the human
         perception of color and the vagaries of software and hardware.
@@ -322,8 +321,6 @@ if 1:  # Light wavelength to & from RGB colors
 
         Then a whitepoint has to be picked.  He picked D65, the one that sRGB uses.
         sRGB is the standard RGB system defined in the 1990's
-
-        
 
         --------------------------------------------------------------------------- 
         https://www.baeldung.com/cs/rgb-color-light-frequency

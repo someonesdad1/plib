@@ -179,56 +179,43 @@ if 1:  # Header
         
         oo>
     '''
-    # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    ##∞copyright∞# Copyright © 2021 Don Peterson #∞copyright∞#
-    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    ##∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    ##∞license∞#
-    ##∞what∞#
-    # <programming> This module provides the flt/cpx types for calculations
-    # with numbers derived from measurements.  flt is derived from float
-    # and cpx from complex.  Their most useful feature is to only show
-    # a few digits in their string interpolations so that you don't see
-    # lots of digits with no real information.
-    ##∞what∞#
-    ##∞test∞# run #∞test∞#
-    # Standard library modules
-    from collections import deque
-    from collections.abc import Iterable
-    from fractions import Fraction
-    import cmath
-    import decimal
-    import locale
-    import math
-    import numbers
-    import operator
-    import pathlib
-    import re
-    import sys
-    import threading
-    import time
-    if 0:
-        import debug
-        debug.SetDebugger()
-    # Custom imports
-    from wrap import dedent
-    import fmt
-    try:
-        import uncertainties
-        have_unc = True
-    except ImportError:
-        have_unc = False
-    # Global variables
-    Lock = threading.Lock()
-    D = decimal.Decimal
-    P = pathlib.Path
-    ii = isinstance
-    __all__ = "Base flt cpx".split()
-    # This can be True when a formatter class is written
-    _have_Formatter = True
+    if 1:   # Standard library modules
+        import collections
+        import fractions
+        import cmath
+        import decimal
+        import locale
+        import math
+        import numbers
+        import operator
+        import pathlib
+        import re
+        import sys
+        import threading
+        import time
+    if 1:   # Custom imports
+        if 0:
+            import debug
+            debug.SetDebugger()
+        import fmt
+        import wrap
+        try:
+            import uncertainties
+            have_unc = True
+        except ImportError:
+            have_unc = False
+    if 1:   # Symbols from libraries
+        deque = collections.deque
+        Iterable = collections.abc.Iterable
+        Fraction = fractions.Fraction
+        dedent = wrap.dedent
+        D = decimal.Decimal
+        P = pathlib.Path
+    if 1:   # Global variables
+        Lock = threading.Lock()
+        __all__ = "Base flt cpx".split()
+        # This can be True when a formatter class is written
+        _have_Formatter = True
 class Base(object):
     "Items common to flt and cpx classes"
     _digits = 3  # Number of digits for str()
@@ -264,7 +251,7 @@ class Base(object):
             for i in B:
                 if Keep(i, B):
                     base[i] = B[i]
-            S = flt.__dict__ if ii(self, flt) else cpx.__dict__
+            S = flt.__dict__ if isinstance(self, flt) else cpx.__dict__
             for i in S:
                 if Keep(i, S):
                     cls[i] = S[i]
@@ -274,7 +261,7 @@ class Base(object):
             # Restore our important attributes
             for i in self.base:
                 exec(f"Base.{i} = self.base[i]")
-            name = "flt" if ii(self, flt) else "cpx"
+            name = "flt" if isinstance(self, flt) else "cpx"
             for i in self.cls:
                 exec(f"{name}.{i} = self.cls[i]")
             if Base._lock:
@@ -301,7 +288,7 @@ class Base(object):
             Base._high = 1e16  # When to switch to scientific notation
         def _check(self):
             "Make sure Base._digits is an integer >= 0 or None"
-            if not ii(Base._digits, int):
+            if not isinstance(Base._digits, int):
                 raise TypeError("Base._digits is not an integer")
             if Base._digits is not None:
                 if Base._digits < 0:
@@ -319,7 +306,7 @@ class Base(object):
         def __truediv__(self, other):
             return self._do_op(other, operator.truediv)
         def __neg__(self):
-            if ii(self, (flt, cpx)):
+            if isinstance(self, (flt, cpx)):
                 return self(-float(self))
             else:
                 raise RuntimeError("Bug in logic")
@@ -349,28 +336,28 @@ class Base(object):
             '''
             def GetResult(type_a, type_b, type_result):
                 type_result(op(type_a(a), type_b(b)))
-            if ii(a, flt):
-                if ii(b, flt):
+            if isinstance(a, flt):
+                if isinstance(b, flt):
                     return GetResult(float, float, flt)
-                elif ii(b, (complex, cpx)):
+                elif isinstance(b, (complex, cpx)):
                     return GetResult(float, complex, cpx)
                 else:
                     return GetResult(float, float, flt)
-            elif ii(a, cpx):
-                if ii(b, flt):
+            elif isinstance(a, cpx):
+                if isinstance(b, flt):
                     return GetResult(complex, float, cpx)
-                elif ii(b, (complex, cpx)):
+                elif isinstance(b, (complex, cpx)):
                     return GetResult(complex, complex, cpx)
                 else:
                     return GetResult(complex, float, cpx)
             else:
-                type_a = complex if ii(a, complex) else float
-                if ii(b, flt):
+                type_a = complex if isinstance(a, complex) else float
+                if isinstance(b, flt):
                     if type_a is complex:
                         return GetResult(type_a, float, cpx)
                     else:
                         return GetResult(type_a, float, flt)
-                elif ii(b, cpx):
+                elif isinstance(b, cpx):
                     return GetResult(type_a, complex, cpx)
                 else:
                     raise RuntimeError("At least one of a or b must be flt or cpx")
@@ -387,9 +374,9 @@ class Base(object):
                 return y
             n = a.N if n is None else n
             n = max(1, min(n, 15))  # Clamp n to [1, 15]
-            if ii(a, flt) and ii(b, flt):
+            if isinstance(a, flt) and isinstance(b, flt):
                 return Round(a) == Round(b)
-            elif ii(a, cpx) and ii(b, cpx):
+            elif isinstance(a, cpx) and isinstance(b, cpx):
                 a_re, a_im = Round(a.real), Round(a.imag)
                 b_re, b_im = Round(b.real), Round(b.imag)
                 return (a_re == b_re) and (a_im == b_im)
@@ -449,7 +436,7 @@ class Base(object):
         def N(self, value):
             "Set the number of digits for all flt objects"
             "The value is clamped to be between 1 and 15 digits"
-            if not ii(value, int):
+            if not isinstance(value, int):
                 raise TypeError("value must be an integer >= 0")
             # Clamp to [1, 15]
             if not value:
@@ -508,7 +495,7 @@ class flt(Base, float):
     n to 0 to return to the Base class behavior.
     '''
     def __new__(cls, value):
-        if ii(value, str) and "∞" in value:
+        if isinstance(value, str) and "∞" in value:
             value = value.replace("∞", "inf")
         try:
             instance = super().__new__(cls, value)
@@ -592,7 +579,7 @@ class flt(Base, float):
         '''
         with self:
             if n is not None:
-                if not ii(n, int) and not (1 <= n <= 15):
+                if not isinstance(n, int) and not (1 <= n <= 15):
                     raise ValueError("n must be an integer between 1 and 15")
                 self.N = n
             return flt(self.s)
@@ -631,15 +618,15 @@ class flt(Base, float):
         return ""
     if 1:  # Arithmetic functions
         def _do_op(self, other, op):
-            if ii(other, complex):
+            if isinstance(other, complex):
                 return cpx(op(float(self), other))
             return flt(op(float(self), float(other)))
         def __floordiv__(self, other):
-            if ii(other, complex):
+            if isinstance(other, complex):
                 raise TypeError("can't take floor of complex number")
             return self._do_op(other, operator.floordiv)
         def __mod__(self, other):
-            if not ii(other, flt):
+            if not isinstance(other, flt):
                 raise TypeError("Second operand must be a flt")
             rem = abs(float(self) % float(other))
             assert 0 <= rem <= abs(other)
@@ -649,7 +636,7 @@ class flt(Base, float):
             '''Return (q, rem) where q is how many integer units of other are in
             self and rem is a flt giving the remainder.
             '''
-            if not ii(other, flt):
+            if not isinstance(other, flt):
                 raise TypeError("Second operand must be a flt")
             # See python-3.7.4-docs-html/library/functions.html#divmod
             q = math.floor(float(self) / float(other))
@@ -663,7 +650,7 @@ class flt(Base, float):
             return self + other
         def __rsub__(self, other):
             "other - self"
-            if ii(other, (flt, cpx)):
+            if isinstance(other, (flt, cpx)):
                 return other.__add__(-self)
             return -self + other
         def __rmul__(self, other):
@@ -697,7 +684,7 @@ class flt(Base, float):
             b = flt(float(other))
             return Base.sig_equal(self, b, n=n)
         def __lt__(self, other):
-            if ii(other, complex):
+            if isinstance(other, complex):
                 raise ValueError("Complex numbers are not ordered")
             return float(self) < float(other)
         def __call__(self, x):
@@ -706,7 +693,7 @@ class flt(Base, float):
             of n.
             '''
             y = flt(x)
-            if ii(x, flt) and self.n:
+            if isinstance(x, flt) and self.n:
                 y.n = self.n
             return y
     if 1:  # Properties
@@ -716,7 +703,7 @@ class flt(Base, float):
             return self._n
         @n.setter
         def n(self, value):
-            if not ii(value, int):
+            if not isinstance(value, int):
                 raise TypeError(f"{value!r} must be an integer")
             if not (0 <= value <= 15):
                 raise ValueError("value must be >= 0 and <= 15")
@@ -867,21 +854,21 @@ class cpx(Base, complex):
         "real can be a number type, a cpx, or a complex."
         def f(x):
             return D(x) if x else D(0)
-        if ii(real, (int, float, flt, D)):
+        if isinstance(real, (int, float, flt, D)):
             imag = 0 if imag is None else imag
             re, im = float(real), float(imag)
             instance = super().__new__(cls, re, im)
-        elif ii(real, cpx):
+        elif isinstance(real, cpx):
             re, im = real._real, real._imag
             instance = super().__new__(cls, re, im)
-        elif ii(real, numbers.Complex):
+        elif isinstance(real, numbers.Complex):
             re, im = real.real, real.imag
             instance = super().__new__(cls, re, im)
-        elif ii(real, str):
+        elif isinstance(real, str):
             if "i" in real:
                 real = real.replace("i", "j")
             if "j" in real:
-                if ii(imag, str):
+                if isinstance(imag, str):
                     raise ValueError("Can't use 'i' or 'j' and give imag number")
                 else:
                     # Use ParseComplex to recognize the complex string
@@ -1196,11 +1183,11 @@ if 1:  # Get math/cmath functions into this namespace
                 print("Dropping into debugger")
                 breakpoint()
                 pass    # Lets you see the exception in the debugger
-            if ii(result, int):
+            if isinstance(result, int):
                 return result
-            elif ii(result, (float, flt)):
+            elif isinstance(result, (float, flt)):
                 return flt(result)
-            elif ii(result, C):
+            elif isinstance(result, C):
                 return cpx(result)
             else:
                 if self.name == "polar":
@@ -1218,11 +1205,11 @@ if 1:  # Get math/cmath functions into this namespace
             '''
             C = (complex, cpx)
             def cc(x):
-                return any([ii(i, C) for i in x])
+                return any([isinstance(i, C) for i in x])
             if cc(list(args) + list(kw.values())):
                 return True
             if len(args) == 1:
-                if not ii(args[0], str) and ii(args[0], Iterable):
+                if not isinstance(args[0], str) and isinstance(args[0], Iterable):
                     return cc(args[0])
             return False
     # All math/cmath function names for python version 3.9.4
@@ -1330,7 +1317,7 @@ if 1:  # Classes derived from flt for physical data; needed for solarsys.py
         '''
         allowed = set("?¿⁇❓❔⸮︖﹖？")
         def __new__(cls, arg):
-            if not ii(arg, str):
+            if not isinstance(arg, str):
                 raise TypeError(f"'{arg}' must be a string")
             c = arg.strip()
             if c and (len(c) != 1 or c not in Unk.allowed):
@@ -1348,7 +1335,7 @@ if 0:  # Classes derived from flt for physical data
         "None" (case insensitive), "-", or "".
         '''
         def __new__(cls, arg):
-            if ii(arg, str):
+            if isinstance(arg, str):
                 if not (arg.lower() == "none" or not arg or set(arg) == {"-"}):
                     raise ValueError(f"{arg!r} is improper argument")
             else:
@@ -1382,7 +1369,7 @@ if 0:  # Classes derived from flt for physical data
     class Rng(flt):
         "Represent a range"
         def __new__(cls, a, b):
-            assert ii(a, str) and ii(b, str)
+            assert isinstance(a, str) and isinstance(b, str)
             if a[0] in Approx.allowed:
                 # Is approximate, but ignore, as it's a range
                 x, y = flt(a[1:]), flt(b)
@@ -1469,7 +1456,7 @@ if 0:  # Classes derived from flt for physical data
         range.
         '''
         # Simplest case
-        if ii(s, (flt, int, float)):
+        if isinstance(s, (flt, int, float)):
             return flt(s)
         u = s.strip()
         try:
@@ -1519,14 +1506,14 @@ if __name__ == "__main__":
         "Return True if a == b within the indicated tolerance"
         if not a and not b:
             return True
-        if ii(a, flt) and ii(b, flt):
+        if isinstance(a, flt) and isinstance(b, flt):
             diff = abs(float(a) - float(b))
             if float(a):
                 reldiff = abs(diff / float(a))
             elif float(b):
                 reldiff = abs(diff / float(b))
             return reldiff <= reltol
-        elif ii(a, cpx) and ii(b, cpx):
+        elif isinstance(a, cpx) and isinstance(b, cpx):
             # Real part
             realdiff = abs(float(a.real) - float(b.real))
             if float(a.real):
@@ -1630,45 +1617,45 @@ if __name__ == "__main__":
         Assert(f(1426725400) == flt(1426725400))
         Assert(f(2440.53) == flt(2440.53))
         # Unk
-        Assert(ii(f("?"), Unk))
+        Assert(isinstance(f("?"), Unk))
         # Rng
         x = f("0.03e22-0.05e22")
-        Assert(ii(x, Rng))
+        Assert(isinstance(x, Rng))
         Assert(str(x) == "[3e20,5e20]")
         Assert(repr(x) == "Rng(3e20, 5e20)")
         # Approx
         x = f("≈0.3")
-        Assert(ii(x, Approx))
+        Assert(isinstance(x, Approx))
         Assert(str(x) == "≈0.3")
         Assert(repr(x) == "Approx('≈0.3')")
         x = f("~2")
-        Assert(ii(x, Approx))
+        Assert(isinstance(x, Approx))
         Assert(str(x) == "≈2")
         Assert(repr(x) == "Approx('~2')")
         # LessThan
         x = f("<50")
-        Assert(ii(x, LessThan))
+        Assert(isinstance(x, LessThan))
         Assert(str(x) == "<50")
         Assert(repr(x) == "LessThan('<50')")
         x = f("≤50")
-        Assert(ii(x, LessThan))
+        Assert(isinstance(x, LessThan))
         Assert(str(x) == "≤50")
         Assert(repr(x) == "LessThan('≤50')")
         x = f("≪50")
-        Assert(ii(x, LessThan))
+        Assert(isinstance(x, LessThan))
         Assert(str(x) == "≪50")
         Assert(repr(x) == "LessThan('≪50')")
         # GreaterThan
         x = f(">50")
-        Assert(ii(x, GreaterThan))
+        Assert(isinstance(x, GreaterThan))
         Assert(str(x) == ">50")
         Assert(repr(x) == "GreaterThan('>50')")
         x = f("≥50")
-        Assert(ii(x, GreaterThan))
+        Assert(isinstance(x, GreaterThan))
         Assert(str(x) == "≥50")
         Assert(repr(x) == "GreaterThan('≥50')")
         x = f("≫50")
-        Assert(ii(x, GreaterThan))
+        Assert(isinstance(x, GreaterThan))
         Assert(str(x) == "≫50")
         Assert(repr(x) == "GreaterThan('≫50')")
     def Test_sig_equal():
@@ -1718,7 +1705,7 @@ if __name__ == "__main__":
         # Test factory feature
         x = flt(pi)
         y = x(1 / pi)
-        Assert(ii(y, flt) and y == 1 / pi)
+        Assert(isinstance(y, flt) and y == 1 / pi)
         x.n = 5
         y = x(1 / pi)
         Assert(y.n == 5)
@@ -2143,7 +2130,7 @@ if __name__ == "__main__":
             raises(TypeError, degrees, i)           # noqa
         if 1:  # divmod
             q, rem = divmod(x, y)           # noqa
-            Assert(q == 2 and ii(q, int))
+            Assert(q == 2 and isinstance(q, int))
             Assert(rem == x - 2 * y and type(rem) is tf)
             Assert(q * y + x % y == x)
         if 1:  # erf

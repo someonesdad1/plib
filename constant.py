@@ -37,50 +37,28 @@ if 1:  # Header
         pass
 if 1:   # Classes
     class Constant:
-        '''Class to define constants (based on idea by Alex Martelli on page 193 of the
-        Python Cookbook").  Usage is:
+        '''Class to define constants: 
         
-            import constant
-            constant.MakeGlobal()
-            constant.speed = 47.1
+            import constant as C
+            C.speed = 47.1
         
-        Trying to change C.speed later to a new value will result in an exception.  It's
-        best to bind immutable objects to the constant name; if you e.g. bind a list, it
-        will continue to be bound, but someone/something can change the list later, so
-        it's not really a constant.
-        
-        There are two usage patterns:
-            - Set up your constants, then "freeze" things
-            - Change things on the fly when needed
-        
-        The first pattern can be gotten by setting the strict attribute to False.  You'd
-        do this at the start of the code defining the constants.  When your constant
-        initialization code is finished, set strict to True again.
-        
-        The second pattern is to use the context manager feature.  This lets you ignore
-        the state of the strict attribute and make the changes you want.  When the
-        context manager block is exited, the strict attribute is set to what it was
-        before.  This is a better pattern because it's not hard to forget to reset a
-        variable (the context manager does it for you automatically).
-        
-        When strict is True, you'll get a TypeException when you try to assign an object
-        that isn't hashable (e.g., a list, dict, set, etc.).  If you do want to store a
-        nonhashable object, use one of the two above usage patterns (the context manager
-        is recommended).
-        
-        The __enter__ method of the context manager returns the _Const instance, so you
-        can use either of these patterns:
-        
-            with constant as x:
-                x.speed = 27
+        Trying to change C.speed later to a new value will result in an exception.
+
+        You can change the value later using
+
+            with C:
+                C.speed = 42
         
         or 
-        
-            with constant:
-                constant.speed = 27
-        
-        This class provides you with variables that you can set to readonly when you
-        wish, as long as they are hashable.
+            C.strict = False
+            C.speed = 42
+            C.strict = True
+
+        It's best to bind immutable (hashable) objects to the constant name.  If you
+        e.g. bind a list, it will continue to be bound, but someone/something can change
+        the list later, so it's not really a constant.
+
+        Based on a nice idea by Alex Martelli on page 193 of the "Python Cookbook".
         '''
         def __init__(self):
             self.lock = None
