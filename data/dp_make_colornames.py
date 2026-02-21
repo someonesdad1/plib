@@ -32,7 +32,7 @@ if 1:  # Name normalization
             - " " inserted before each capital letter
             - " " substituted for each "_"
             - Split on whitespace
-            - Convert each token to lowerspace
+            - Convert each token to lowercase
             - Reassemble with "_"
         '''
         if not isinstance(name, str):
