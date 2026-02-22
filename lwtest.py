@@ -49,9 +49,13 @@ if 1:  # Header
         import sys
         import traceback
     if 1:  # Custom imports
-        from f import flt, cpx
-        from wrap import dedent
-        from color import t
+        import f
+        flt = f.flt
+        cpx = f.cpx
+        import wrap
+        dedent = wrap.dedent
+        import color
+        t = color.t
         try:
             import numpy
             have_numpy = True

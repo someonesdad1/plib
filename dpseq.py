@@ -303,7 +303,6 @@ if 1:   # Get or transform numbers from a sequence
                 yield T(high)
             else:
                 yield T(x)
-            
 if 1:   # Finding duplicates in sequences
     if 0:   # Notes
         '''

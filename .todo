@@ -1,9 +1,17 @@
 /plib/.todo
 
+    
+    - Move util stuff (see ∞∞ notes in file)
+
     - Circular imports
         - Nearly always happen in f.py and color.py
             - Reduce occurrences by getting rid of all 'from x import y' statements
             - Where still have problem, isolate import into function
+        - grep -l 'from .+ import .+' *.py | lc:
+            - 147 files for /plib
+            - 418 for /plib/pgm
+            - That's 550 files to fix in total, a lot of work
+            - Focus on /plib            
 
     - Various dicts
         - Sdict

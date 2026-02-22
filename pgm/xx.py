@@ -24,10 +24,15 @@ if 1:  # Header
         import pathlib
         import re
     if 1:   # Custom imports
-        from wrap import dedent
-        from color import t, Color
-        from columnize import Columnize
-        from dpprint import PP
+        import wrap 
+        dedent = wrap.dedent
+        import color
+        t = color.t
+        Color = color.Color
+        import columnize
+        Columnize = columnize.Columnize
+        import dpprint
+        PP = dpprint.PP
         pp = PP()   # Get pprint with current screen width
         if 0:
             import debug

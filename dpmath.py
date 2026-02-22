@@ -35,8 +35,10 @@ if 1:  # Header
         import sys
         from fractions import Fraction
     if 1:  # Custom imports
-        from frange import frange
-        from f import flt
+        import frange
+        frange = frange.frange
+        import f
+        flt = f.flt
         import u
         if 0:
             import debug
@@ -588,7 +590,7 @@ if 1:  # Core functionality
         diameter of the drum's flange is flange_dia.  The units keyword defines the
         units being used (you can use any in u.py) and the output length is in the same
         units.  This is based on the formula from "Sampson Rope Users Manual" pg. 28.
-
+        
         ||                       ||  ^
         ||<--------- A --------->||  |      A = drum_width
         ||                       ||  |      B = flange diameter
@@ -601,7 +603,7 @@ if 1:  # Core functionality
         ||                       ||  |      where D = rope diameter in inches
         ||                       ||  |      and A, B, C are in inches
         ||                       ||  V
-
+        
         Here's a post on math.stackexchange that discusses this problem
         https://math.stackexchange.com/questions/3853557/how-to-calculate-the-length-of-cable-on-a-winch-given-the-rotations-of-the-drum
         '''
@@ -650,7 +652,6 @@ if __name__ == "__main__":
     from lwtest import run, raises, assert_equal, Assert
     from f import flt, radians, sqrt
     from random import randint
-    from color import t
     from pprint import pprint as pp
     eps = 1e-15
     def Test_PythagoreanSum():

@@ -174,34 +174,29 @@ if 1:  # Header
         oo>
     '''
     if 1:   # Standard imports
-        import collections
+        import collections 
         import colorsys
         import decimal
         import fractions
+        import io 
         import math
         import os
+        import pathlib 
         import re
         import string
         import sys
-        import io 
-        import pathlib 
-        import collections 
-        import string
     if 1:   # Custom imports
-        import dpcolornames
-        import columnize
-        from wsl import wsl
-        import wrap
         import asciify
-        import dpseq
-        import get
+        import columnize
+        import dpcolornames
         import dpprint
+        import dpseq
+        import f
+        import get
         import termtables as tt
-        try:
-            import f
-            flt = f.flt
-        except ImportError:
-            flt = float
+        import util
+        import wrap
+        import wsl
         try:
             import mpmath
             have_mpmath = True
@@ -216,8 +211,10 @@ if 1:  # Header
         deque = collections.deque
         hexdigits = string.hexdigits
         #
+        flt = f.flt
         Columnize = columnize.Columnize
         dedent = wrap.dedent
+        wsl = wsl.wsl
         PP = dpprint.PP
         pp = PP()
     if 1:   # Global variables
@@ -273,50 +270,38 @@ if 1:   # Classes
             self._bpc = kw.get("bpc", Color.bits_per_color)
             self._rgb = None    # RGB integer components
             self._sort = "rgb"  # Sorting order (must be rgb, hsv, or hls)
-            if 1:   # Prepare by getting the relevant arguments into the variable u
-                if len(p) == 1:
-                    msg = f"{p[0]!r} is not recognized"
-                    s = p[0]
-                    if isinstance(s, str):
-                        # Look for "x x x" and "x,x,x" forms
-                        s = s.strip()
-                        if not s:
-                            raise ValueError(msg)
-                        f = s.replace(",", " ").split()
-                        if len(f) == 3:
-                            try:
-                                u = [abs(int(i)) for i in f]
-                            except Exception:
-                                try:
-                                    u = [abs(float(i)) for i in f]
-                                except Exception:
-                                    raise ValueError(msg)
-                        else:
-                            u = p[0]
-                    else:
-                        if isinstance(p[0], (int, float)):
-                            u = p[0]
-                        else:
-                            # It's probably a sequence & must have a length of 3
-                            if len(p[0]) != 3:
-                                raise ValueError(msg)
-                            u = p[0]
-                else:
-                    u = p
-            # u is now the set of arguments to process
-            if not isinstance(u, str) and len(u) == 3:
-                if all(isinstance(i, int) for i in u):  # 3 integers
-                    rgb = tuple(abs(i) & self.n for i in u)
+            # Process the arguments:  get (u, v, w), which covers all constructor use
+            # cases.  If p is a single argument, v and w will be None.  Otherwise, we
+            # should have the tuple (u, v, w) as the supplied arguments.
+            if 1:   # Process the arguments:  get (u, v, w), which covers all constructor use cases
+                try:
+                    u = p[0]
+                except Exception:
+                    raise ValueError("color.Color() constructor needs at least one argument")
+                try:
+                    v, w = p[1], p[2]
+                except Exception:
+                    v, w = None, None
+                if (v and u is None) or (v and u and len(p) > 3):
+                    raise ValueError("color.Color() constructor needs either 1 or 3 arguments")
+            if (u is not None) and (v is not None) and (w is not None):     # p is a sequence of 3 items
+                # Possibilities ('hsv' and 'hls' keywords meaningful):
+                #   1.  3 integers
+                #   2.  3 floats
+                r = (u, v, w)
+                if all(isinstance(i, int) for i in r):  # Case 1:  3 integers
+                    rgb = tuple(abs(i) & self.n for i in r)
                 else:  # Convert to floats
                     try:
-                        dec = tuple(abs(float(i)) for i in u)
+                        dec = tuple(abs(float(i)) for i in r)   # Case 2:  3 floats
                     except Exception:
-                        msg = f"'{u}' couldn't be converted to floats"
+                        msg = f"'{r}' couldn't be converted to floats"
                         raise TypeError(msg)
-                    if not all(0 <= i <= 1 for i in dec):
-                        # Normalize to a unit 3-vector
-                        magnitude = sum(i*i for i in dec)**(1/2)
-                        dec = tuple(i/magnitude for i in dec)
+                    else:
+                        if not all(0 <= i <= 1 for i in dec):
+                            # Normalize to a unit 3-vector
+                            magnitude = sum(i*i for i in dec)**(1/2)
+                            dec = tuple(i/magnitude for i in dec)
                     # Convert to 3-tuple of integers
                     rgb = tuple(int(round(i*self.n, 1)) for i in dec)
                 self._rgb = rgb
@@ -327,42 +312,83 @@ if 1:   # Classes
                 elif kw.get("hls", False):
                     dec = colorsys.hls_to_rgb(*self.drgb)
                     self._rgb = tuple(int(round(i*self.n)) for i in dec)
-            elif len(u) == 1 or isinstance(u, str):
-                x = u if isinstance(u, str) else u[0]
-                if isinstance(x, Color):
-                    # Copy the state
-                    self._bpc = x._bpc
-                    self._rgb = x._rgb
-                    self._sort = x._sort
-                elif isinstance(x, int):
-                    # Interpret as an 8-bit ANSI color number or wavelength
-                    x = abs(x)
-                    if 0 <= x <= 255:
-                        c = Translate8bit(x)
-                    else:
-                        c = Color.wl2rgb(x, bpc=self._bpc)
+            elif (u is not None) and (v is None) and (w is None):           # p is one object
+                # Possibilities:
+                #   1.  Color instance
+                #   2.  int
+                #   3.  float
+                #   4.  object --> int
+                #   5.  object --> float
+                #   6.  str
+                #       Hex string for color
+                #           '#123456', '$123456', '@123456'
+                #       Color name
+                #           'red'
+                #       3-tuple of integers
+                #           '12 34 56' or '12,34,56' or '12;34;56'
+                #       3-tuple of floats
+                #           '1.2 3.4 5.6' or '1.2,3.4,5.6' or '1.2;3.4;5.6'
+                #       int
+                #           '12'
+                #       float
+                #           '1.2'
+                if isinstance(u, Color):    # Case 1
+                    self._bpc = u._bpc
+                    self._rgb = u._rgb
+                    self._sort = u._sort
+                elif isinstance(u, int):    # Case 2
+                    u = abs(u)
+                    if 0 <= u <= 255:   # 8-bit ANSI color
+                        c = Translate8bit(u)
+                    else:               # Wavelength of light in nm
+                        c = Color.wl2rgb(u, bpc=self._bpc)
                     self._rgb = c.irgb
-                elif isinstance(x, float):
-                    x = abs(x)
-                    if 0 <= x <= 1:
+                elif (isinstance(u, (float, Decimal, Fraction))
+                      or (have_mpmath and isinstance(u, mpmath.mpf))
+                ):  # Case 3
+                    u = abs(u)
+                    if 0 <= u <= 1:
                         # Interpret as a gray
-                        self._rgb = tuple(int(round(i*self.n, 1)) for i in (x, x, x))
+                        self._rgb = tuple(int(round(float(i)*self.n, 1)) for i in (u, u, u))
                     else:
                         # Interpret as a light wavelength in nm
-                        c = Color.wl2rgb(x, bpc=self._bpc)
+                        c = Color.wl2rgb(u, bpc=self._bpc)
                         self._rgb = c.irgb
+                elif isinstance(u, str):    # Case 6
+                    u = u.strip()
+                    if not u:
+                        raise ValueError("Argument can't be only whitespace")
+                    try:
+                        self._rgb = self.string(u)      # Hex string or color name
+                    except ValueError:
+                        # Only other choice is it's a string that can be interpreted as
+                        # an integer or float or three integers or floats
+                        e = ValueError(f"{u!r} can't be interpreted as a Color initializer")
+                        if " " in u or "," in u or ";" in u:
+                            a = u.replace(",", " ").replace(";", " ").split()
+                            try:
+                                seq = [dpmath.Int(i) for i in a]    # 3-tuple of int
+                            except Exception:
+                                try:
+                                    seq = [float(i) for i in a]     # 3-tuple of float
+                                    self._rgb = Color(*seq).irgb
+                                except Exception:
+                                    raise e
+                        else:
+                            try:
+                                v = dpmath.Int(u)               # Case 4
+                                self._rgb = Color(v).irgb
+                            except Exception:
+                                try:
+                                    v = float(u)                # Case 5
+                                    self._rgb = Color(v).irgb
+                                except Exception:
+                                    raise e
                 else:
-                    if isinstance(x, str):
-                        # Hex string or short color name
-                        self._rgb = self.string(x)
-                    else:
-                        # Try to convert to a float
-                        try:
-                            y = abs(float(x))
-                        except Exception:
-                            msg = f"'{x!r}' couldn't be converted to a float"
-                            raise TypeError(msg)
-                        self._rgb = Color(y).irgb
+                    raise Exception("Bug in color.Color():  unhandled case")
+            else:
+                from pdb import set_trace as yy; yy() 
+                raise Exception("Bug in color.Color():  should be impossible to reach this point")
             self._check()
         def _check(self):
             "Check invariants"
@@ -875,8 +901,11 @@ if 1:   # Classes
                 bpc         Bits per color.  Uses Color.bits_per_color if None.
                 '''
                 # Check parameters
-                if not isinstance(nm, (int, float, flt)):
-                    raise TypeError("nm must be an int or float")
+                if not isinstance(nm, (int, float, flt, Decimal, Fraction)):
+                    if have_mpmath and not isinstance(nm, mpmath.mpf):
+                        raise TypeError("nm must be an int or float")
+                # Convert it to a float
+                nm = float(nm)
                 if bpc is None:
                     bpc = Color.bits_per_color
                 if not isinstance(bpc, int):
@@ -1139,7 +1168,7 @@ if 1:   # Classes
                 capitals = set(string.ascii_uppercase)
                 if not (mychars <= printable):
                     not_allowed = mychars - printable
-                    raise ValueError("{str(not_allowed)!r} are characters not allowed in names")
+                    raise ValueError(f"{str(not_allowed)!r} are characters not allowed in names")
                 # Process the characters
                 new = []
                 dq = collections.deque(name)
@@ -1151,6 +1180,12 @@ if 1:   # Classes
                 newstr = ''.join(new).replace("_", " ")
                 new = '_'.join(i.lower() for i in newstr.split())
                 return new
+
+    if 0 and __name__ == "__main__": #yy
+        c = Color("#123456")
+        print(c)
+        exit()
+
     class Trm:
         '''This class is used to generate terminal escape codes
         Ref:  https://en.wikipedia.org/wiki/ANSI_escape_code#24-bit

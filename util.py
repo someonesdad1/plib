@@ -4,82 +4,89 @@ ToDo
     - Convert Spinner to a class so the instance is thread-safe
     - Debug class should use print()'s arguments
     - Document Now class
+
+    1 dpseq
+    2 dpstr
+    3 dpelec
+    4 dpmath
+    5 dpphys
+    6 dpsci
         
 Miscellaneous routines in python: @start
     
-AcceptableDiff        Returns False if two numbers are not equal
-Ampacity              Returns NEC ampacity of copper wire
-alen                  Function for string length that ignores ANSI escape codes
-ANSI_strip            Remove ANSI escape sequences from a string
-astr                  String object with len() that ignores ANSI escape codes
-AWG                   Returns wire diameter in inches for AWG gauge number
-Batch                 Generator to pick n items at a time from a sequence
+AcceptableDiff      4 Returns False if two numbers are not equal
+Ampacity            3 Returns NEC ampacity of copper wire
+alen                2 Function for string length that ignores ANSI escape codes
+ANSI_strip          2 Remove ANSI escape sequences from a string
+astr                2 String object with len() that ignores ANSI escape codes
+AWG                 3 Returns wire diameter in inches for AWG gauge number
+Batch               1 Generator to pick n items at a time from a sequence
 BraceExpansion        Brace expansion like modern shells
 Cfg                   Execute a sequence of text lines for config use
-ConvertToNumber       Convert a string to a number
-Cumul                 Return cumulative sums of a sequence
+ConvertToNumber     2 Convert a string to a number
+Cumul               4 Return cumulative sums of a sequence
 Debug                 A class that helps with debugging
-DoubleFactorial       Compute the double factorial of an integer
-EBCDIC                Return string translation table ASCII <--> EBCDIC
+DoubleFactorial     4 Compute the double factorial of an integer
+EBCDIC              2 Return string translation table ASCII <--> EBCDIC
 EditData              Edit a str or bytes object with vim
 eng                   Convenience function for engineering format
 Engineering           Represent a number in engineering notation
 execfile              Python 3 replacement for python 2 function
-Flatten               Flattens nested sequences to a sequence of scalars
-Flatten_generator     Generator that flattens nested sequences 
+Flatten             1 Flattens nested sequences to a sequence of scalars
+Flatten_generator   1 Generator that flattens nested sequences 
 fsig                  Return string of float to specified number of digits
 getch                 Block until a key is pressed
-GetHash               Get a file's hash as a hex string
-GetLeadingString      Return the leading string from another string
-GetSize               Return number of bytes used by a container (recursive method)
-GetTrailingString     Return the trailing string from another string
-GroupByN              Group items from a sequence by n items at a time
-grouper               Function to group data
-HeatIndex             Effect of temperature and humidity
-Height                Predict a child's adult height
+GetHash             2 Get a file's hash as a hex string
+GetLeadingString    2 Return the leading string from another string
+GetSize             1 Return number of bytes used by a container (recursive method)
+GetTrailingString   2 Return the trailing string from another string
+GroupByN            1 Group items from a sequence by n items at a time
+grouper             1 Function to group data
+HeatIndex           5 Effect of temperature and humidity
+Height              6 Predict a child's adult height
 hyphen_range          Returns list of integers specified as ranges
-IdealGas              Calculate ideal gas P, v, T (v is specific volume)
+IdealGas            5 Calculate ideal gas P, v, T (v is specific volume)
 IsBinaryFile          Heuristic to see if a file is a binary file
-IsConvexPolygon       Is seq of 2-D points a convex polygon?
+IsConvexPolygon     4 Is seq of 2-D points a convex polygon?
 IsCygwinSymlink       Returns True if a file is a cygwin symlink
-IsHomogeneous         Returns True if a sequence is homogeneous
-IsIterable            Determines if you can iterate over an object
+IsHomogeneous       1 Returns True if a sequence is homogeneous
+IsIterable          1 Determines if you can iterate over an object
 IsTextFile            Heuristic to see if a file is a text file
-ItemCount             Summarize a sequence with counts of each item
+ItemCount           1 Summarize a sequence with counts of each item
 IterateOverSubclasses Generator to return subclasses
-Len                   Return the length of a string with ANSI escape sequences removed
+Len                 2 Return the length of a string with ANSI escape sequences removed
 Now                   Time or datetime as now
 NumBitsInByte         Returns a dict to count bits
-ParseComplex          Split a complex number string into re, im strings
-Paste                 Return sequence of pasted sequences
-PPSeq                 Class for formatting number sequences for pretty printing
+ParseComplex        4 Split a complex number string into re, im strings
+Paste               1 Return sequence of pasted sequences
+PPSeq               1 Class for formatting number sequences for pretty printing
 ProgressBar           Prints a progress bar to stdout
-RandomIntegers        Return a list of random integers
-Ranges                Convert a list of integers to ranges
-randq                 Simple, fast random number generator
-randr                 Random numbers on [0,1) using randq
+RandomIntegers      4 Return a list of random integers
+Ranges              1 Convert a list of integers to ranges
+randq               4 Simple, fast random number generator
+randr               4 Random numbers on [0,1) using randq
 ReadVariables         Read variables from a file
-RemoveIndent          Remove spaces from beginning of multiline string
+RemoveIndent        2 Remove spaces from beginning of multiline string
 ShowFile              Open indicated file(s) with registered app
-SignificantFigures    Rounds to specified num of sig figs (returns float)
-SignificantFiguresS   Rounds to specified num of sig figs (returns string)
-signum                Return -1, 0, or 1 if x < 0, == 0, or > 0
+SignificantFigures  4 Rounds to specified num of sig figs (returns float)
+SignificantFiguresS 4 Rounds to specified num of sig figs (returns string)
+signum              4 Return -1, 0, or 1 if x < 0, == 0, or > 0
 Singleton             Mix-in class for singleton pattern
 SizeOf                Estimate memory usage of an object in bytes
-SpeedOfSound          Calculate the speed of sound as func of temperature
+SpeedOfSound        5 Calculate the speed of sound as func of temperature
 Spinner               Console spinner to show activity
-StringToNumbers       Convert a string to a sequence of numbers
-TempConvert           Convert a temperature
-TemplateRound         Round a float to a template number
-Time                  Returns a string giving local time and date
+StringToNumbers     2 Convert a string to a sequence of numbers
+TempConvert         5 Convert a temperature
+TemplateRound       2 Round a float to a template number
+Time                2 Returns a string giving local time and date
 TranslateSymlink      Returns what a cygwin symlink is pointing to
-transpose             Returns transpose of a nested list
-Unique                Generator to return only the unique elements in sequence
-unrange               Turn a seq of integers into a collection of ranges
-unrange_real          Turn a seq of real numbers into a collection of ranges
+transpose           1 Returns transpose of a nested list
+Unique              1 Generator to return only the unique elements in sequence
+unrange             1 Turn a seq of integers into a collection of ranges
+unrange_real        1 Turn a seq of real numbers into a collection of ranges
 US_states             Return a dict of US_states keyed by two-letter names
-VisualCount           Return a list representing a histogram of a sequence
-WindChillInDegF       Calculate wind chill given OAT & wind speed
+VisualCount         1 Return a list representing a histogram of a sequence
+WindChillInDegF     5 Calculate wind chill given OAT & wind speed
 Winnow                Winnow a sequence of strings with regular expressions
 '''
 if 1:  # Header
