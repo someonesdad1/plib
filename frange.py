@@ -54,20 +54,24 @@ if 1:  # Header
         <oo todo ∞ oo>
     '''
     if 1:  # Imports
+        import decimal
+        import fractions
         import getopt
         import itertools
+        import numbers
         import pathlib
         import re
         import sys
-        from decimal import Decimal
-        from numbers import Integral
-        from fractions import Fraction
+        Decimal = decimal.Decimal
+        Integral = numbers.Integral
+        Fraction = fractions.Fraction
     if 1:  # Custom imports
-        from wrap import dedent
-        from lwtest import run, Assert
-        from color import t
-        from roundoff import RoundOff
-        from f import flt
+        import wrap
+        import roundoff
+        import f
+        dedent = wrap.dedent
+        flt = f.flt
+        RoundOff = roundoff.RoundOff
         # For convenience, frange will return a flt by default.  Change this to
         # float if you really want a float (note a flt is derived from float).
         ret_type = flt
@@ -266,6 +270,8 @@ if 1:  # Core functionality
             yield x
 
 if __name__ == "__main__":
+    from lwtest import run, Assert
+    from color import t
     if 1:  # Global variables
         d = {}  # Options dictionary
         P = pathlib.Path

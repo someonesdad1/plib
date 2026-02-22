@@ -70,6 +70,11 @@ if 1:  # Header
         <oo test ∞ notest oo>
         <oo todo ∞ 
         
+            - ∞∞1 Python's trace module can probably do many of the things in this file.
+              A core feature to add would be using trace's programmatic interface to
+              assess the coverage in a test file.  Check out
+              https://coderivers.org/blog/python-trace/ as it looks like it has some
+              useful and simple examples for both tracing and profiling.
             - ∞∞3 Can stack levels be numbered?  Not a big priority, as dot example
               doesn't pretty well
             - https://wiki.python.org/moin/PythonDecoratorLibrary#Function_Timeout looks

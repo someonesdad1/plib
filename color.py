@@ -1,7 +1,6 @@
 '''
 '''
 '''
-
 ---------------------------------------------------------------------------
 Functions to convert between ANSI 8-bit color numbers and 24-bit RGB values:
     RGBtoANSI8bit(r, g, b)
@@ -98,79 +97,6 @@ if 1:  # Header
         <oo test ∞ --test oo>
         <oo todo ∞ 
             
-            - ∞∞1 
-                - Remove eval()/exec() stuff.  Trm.load() loads color names from a file,
-                  but I don't like that it has to exec() the incoming string.  It would
-                  be better if no eval() or exec() calls were made in this module.
-                - .on and .off must work absolutely and reliably.  See _palette_proto.py
-                  for a way of changing Trm to a dict instance to do this.
-                    - .on can have three states:
-                        - None means to use stdout.isatty()
-                        - False means always off so all t.x attributes are ""
-                        - True means always on so all t.x attributes are proper escape
-                          codes
-            - ∞∞2 
-                - Move RegexpDecorate to dpstr.py
-                - Color:  remove sr,sh,sl attributes, as I've never used them
-            - ∞∞3 
-                - When printing a Trm instance that uses t.str(), output the string
-                  using Columnize to the current screen width, as this is more
-                  attractive.
-            
-            - RegexpDecorate.register() needs to change to an argument list of (r,
-              match_style, nomatch_style) where the latter two elements are escape codes
-              used to define how things should be printed.  The use case is pfind.py
-              where I want to see directories printed in red with the sky color for the
-              match; plain files are printed with the default text style but matches
-              with sky.  Thus, the default for nomatch_style should be None, meaning the
-              default text style.
-            - TRM attributes should be "" if .on is False
-                - This needs __getattr__ and __setattr__
-                - Could change to methods:  on(), off(), none().
-            - TestInvariants() is made to pass, but I'd like to see the conversion work
-              exactly.  It could be a problem with decimal roundoff in the colorsys
-              module.
-                
-            - More color names could be handy
-                - White
-                    - pearl snow ivory cream egg cotton chiffon salt linen bone frost
-                      rice vanilla cloud casper moon ghost milk blizzard polar crystal
-                - Black
-                    - ebony crow ink raven onyx soot coal obsidian
-                - Gray
-                    - graphite iron pewter cloud silver smoke slate ash dove fog flint
-                      charcoal lead coin fossil lava rhino granite shark platinum
-                - Purple
-                    - mauve violet lavender plum lilac grape iris orchid thistle prune
-                      indigo pansy fuchsia eggplant
-                - Blue
-                    - ice baby robin egg blueberry navy slate sky navy indigo cobalt
-                      teal ocean azure lapis spruce denim sapphire arctic aqua steel
-                      royal
-                - Green
-                    - juniper sage lime fern emerald pear moss shamrock pine mint
-                      seaweed pickle pistachio basil tea army kelly jungle apple laurel
-                      beryl tea moss sage spring copper mint army pea turtle lime leaf
-                      kiwi jade teal kelly aqua grass frog emerald shamrock kermit
-                      verdigris foilage glade willow mantis broccoli turf
-                - Yellow
-                    - canary gold flax butter lemon mustard corn banana dijon honey
-                      blonde peach daffodil maize citrus topaz ochre custard tangerine
-                      melon straw saffron khaki papaya sand pee sun mustard
-                - Orange
-                    - cider rust ginger tiger fire bronze apricot carrot amber yam mango
-                      papaya sunset coral paprika nectarine squash salmon caramel umber
-                - Red
-                    - cherry rose jam merlot garnet ruby scarlet wine brick blood berry
-                      candy lipstick chili barn fuchsia punch rouge tomato flame cerise
-                      sunset pink pig barbie inferno claret
-                - Tan
-                    - beige oat fawn sand sepia latte oyster desert caramel latte beach
-                      almond toffee vanilla butter wheat maple nutmeg
-                - Brown
-                    - coffee mocha peanut wood pecan walnut caramel syrup umber tawny
-                      penny cedar cognac sienna
-                
         oo>
     '''
     if 1:   # Standard imports
@@ -248,10 +174,12 @@ if 1:   # Classes
             keywords hsv or hls are True.
         Color(float, float, float)
             A 3-vector normalized to be a unit vector, then converted to integers to
-            call Color(int, int, int).  These float types can also be Decimal, Fraction,
-            and mpmath.mpf types.
+            call Color(int, int, int).
         
-        Color names are normalized with Color.ColorNameNormalize(), which returns
+        Where a floating point type is used for a number, the number can also be a
+        Decimal, Fraction, or mpmath.mpf type.
+        
+        Color names are normalized with Color.NormalizeColorName(), which returns
         snake-case lowercase ASCII letter names.  The allowed names used are in
         /plib/data/dpcolornames.py.
         '''
@@ -266,14 +194,13 @@ if 1:   # Classes
                     s = ", ".join(bad)
                     msg = f"Bad keyword(s):  {s}"
                     raise ValueError(msg)
-            # Set attributes
-            self._bpc = kw.get("bpc", Color.bits_per_color)
-            self._rgb = None    # RGB integer components
-            self._sort = "rgb"  # Sorting order (must be rgb, hsv, or hls)
-            # Process the arguments:  get (u, v, w), which covers all constructor use
-            # cases.  If p is a single argument, v and w will be None.  Otherwise, we
-            # should have the tuple (u, v, w) as the supplied arguments.
+            if 1:   # Set attributes
+                self._bpc = kw.get("bpc", Color.bits_per_color)
+                self._rgb = None    # RGB integer components
+                self._sort = "rgb"  # Sorting order (must be rgb, hsv, or hls)
             if 1:   # Process the arguments:  get (u, v, w), which covers all constructor use cases
+                # If p is a single argument, v and w will be None.  Otherwise, we should
+                # have the tuple (u, v, w) as the supplied arguments.
                 try:
                     u = p[0]
                 except Exception:
@@ -431,7 +358,7 @@ if 1:   # Classes
                     except Exception:
                         raise ValueError(msg)
                 else:
-                    name = Color.ColorNameNormalize(x)
+                    name = Color.NormalizeColorName(x)
                     if name in dpcolornames.colornames:
                         # This gets the color with the lowest number key, as this is the
                         # order I want things searched for (most colors will be in 0 or
@@ -1143,7 +1070,7 @@ if 1:   # Classes
                 else:
                     return Find(s)
             @classmethod
-            def ColorNameNormalize(cls, name):
+            def NormalizeColorName(cls, name):
                 '''Return a normalized color name from the string name.
                 Example:  "dark red", "Dark Red", "DarkRed", "Dark_red" as arguments will all
                 return "dark_red".
@@ -1180,12 +1107,6 @@ if 1:   # Classes
                 newstr = ''.join(new).replace("_", " ")
                 new = '_'.join(i.lower() for i in newstr.split())
                 return new
-
-    if 0 and __name__ == "__main__": #yy
-        c = Color("#123456")
-        print(c)
-        exit()
-
     class Trm:
         '''This class is used to generate terminal escape codes
         Ref:  https://en.wikipedia.org/wiki/ANSI_escape_code#24-bit
@@ -2738,11 +2659,6 @@ if __name__ == "__main__":
                 c = Color(*b)
                 Assert(c.irgb == b)
                 Reset()
-                # Test keyword arguments
-                c = Color(16, 16, 16, hsv=True)
-                Assert(c == Color(16, 15, 15))
-                c = Color(16, 16, 16, hls=True)
-                Assert(c == Color(17, 16, 15))
             if 1:  # Float arguments
                 for a, e in (
                     (0.0, 0.0),
@@ -2764,12 +2680,18 @@ if __name__ == "__main__":
                 dec = tuple(i/mag for i in t)
                 rgb = c.dec_to_int(dec)
                 Assert(c.irgb == rgb)
+                #
                 a = (0.99999, 1.00001, 1.0)
                 c = Color(*a)
                 mag = sum(i*i for i in t) ** (1/2)
                 dec = tuple(i/mag for i in t)
                 rgb = c.dec_to_int(dec)
                 Assert(c.irgb == rgb)
+                #
+                # Normalization with one very large component effectively gives a
+                # monochromatic color
+                c = Color(1e9, 1, 1)
+                Assert(c == Color(255, 0, 0))
             if 1:  # Fraction arguments
                 for n, d, e in ((0, 1, 0.0), (1, 2, 0.498), (2, 3, 0.667), (1, 1, 1.0)):
                     a = Fraction(n, d)
@@ -2803,6 +2725,12 @@ if __name__ == "__main__":
                         expected = (e, e, e)
                         Assert(got == expected)
         def TestConstructorKeywords():
+            Reset()
+            # Test keyword arguments
+            c = Color(16, 16, 16, hsv=True)
+            Assert(c == Color(16, 15, 15))
+            c = Color(16, 16, 16, hls=True)
+            Assert(c == Color(17, 16, 15))
             # sunlight and gamma used to be OK, but I removed them Feb 2026
             for kw in "sunlight gamma aaa bbb".split():
                 mykw = {kw: 0}
@@ -3668,3 +3596,95 @@ if __name__ == "__main__":
             ShowShortNames(cmds[0])
         elif first_char == "w":  # Show wavelengths and RGB color specifier
             Wavelengths()
+def GetGist():
+    g = gist.Gist()
+    g.clear()
+    g["gist"] = "Classes to help with color use in terminals"
+    g["copy"] = "Copyright © 2022 Don Peterson"
+    g["lic"] = "MIT License (see /plib/_lic.mit)"
+    g["test"] = "--test"
+    g["cat"] = "color"
+    g["todo"] = '''
+    
+    - ∞∞1 
+        - Remove eval()/exec() stuff.  Trm.load() loads color names from a file, but I
+          don't like that it has to exec() the incoming string.  It would be better if
+          no eval() or exec() calls were made in this module.
+        - .on and .off must work absolutely and reliably.  See _palette_proto.py for a
+          way of changing Trm to a dict instance to do this.
+            - .on can have three states:
+                - None means to use stdout.isatty()
+                - False means always off so all t.x attributes are ""
+                - True means always on so all t.x attributes are proper escape codes
+    - ∞∞2 
+        - Move RegexpDecorate to dpstr.py
+        - Color:  remove sr,sh,sl attributes, as I've never used them
+    - ∞∞3 
+        - When printing a Trm instance that uses t.str(), output the string using
+          Columnize to the current screen width, as this is more attractive.
+    - RegexpDecorate.register() needs to change to an argument list of (r, match_style,
+      nomatch_style) where the latter two elements are escape codes used to define how
+      things should be printed.  The use case is pfind.py where I want to see
+      directories printed in red with the sky color for the match; plain files are
+      printed with the default text style but matches with sky.  Thus, the default for
+      nomatch_style should be None, meaning the default text style.
+    - TRM attributes should be "" if .on is False
+        - This needs __getattr__ and __setattr__
+        - Could change to methods:  on(), off(), none().
+    - TestInvariants() is made to pass, but I'd like to see the conversion work exactly.
+      It could be a problem with decimal roundoff in the colorsys module.
+        
+    - More color names could be handy
+        - White
+            - pearl snow ivory cream egg cotton chiffon salt linen bone frost rice
+              vanilla cloud casper moon ghost milk blizzard polar crystal
+        - Black
+            - ebony crow ink raven onyx soot coal obsidian
+        - Gray
+            - graphite iron pewter cloud silver smoke slate ash dove fog flint charcoal
+              lead coin fossil lava rhino granite shark platinum
+        - Purple
+            - mauve violet lavender plum lilac grape iris orchid thistle prune indigo
+              pansy fuchsia eggplant
+        - Blue
+            - ice baby robin egg blueberry navy slate sky navy indigo cobalt teal ocean
+              azure lapis spruce denim sapphire arctic aqua steel royal
+        - Green
+            - juniper sage lime fern emerald pear moss shamrock pine mint seaweed pickle
+              pistachio basil tea army kelly jungle apple laurel beryl tea moss sage
+              spring copper mint army pea turtle lime leaf kiwi jade teal kelly aqua
+              grass frog emerald shamrock kermit verdigris foilage glade willow mantis
+              broccoli turf
+        - Yellow
+            - canary gold flax butter lemon mustard corn banana dijon honey blonde peach
+              daffodil maize citrus topaz ochre custard tangerine melon straw saffron
+              khaki papaya sand pee sun mustard
+        - Orange
+            - cider rust ginger tiger fire bronze apricot carrot amber yam mango papaya
+              sunset coral paprika nectarine squash salmon caramel umber
+        - Red
+            - cherry rose jam merlot garnet ruby scarlet wine brick blood berry candy
+              lipstick chili barn fuchsia punch rouge tomato flame cerise sunset pink
+              pig barbie inferno claret
+        - Tan
+            - beige oat fawn sand sepia latte oyster desert caramel latte beach almond
+              toffee vanilla butter wheat maple nutmeg
+        - Brown
+            - coffee mocha peanut wood pecan walnut caramel syrup umber tawny penny
+              cedar cognac sienna
+
+        Not in existing colornames:
+            arctic    chili     ginger    nectarine robin
+            baby      cider     glade     oat       salt
+            barbie    coal      granite   obsidian  soot
+            barn      coin      inferno   oyster    spring
+            basil     cotton    ink       pansy     syrup
+            beach     crow      jam       papaya    tawny
+            beryl     daffodil  jungle    pecan     tiger
+            blizzard  dijon     kelly     pee       turf
+            blonde    dove      lapis     penny     turtle
+            broccoli  egg       lead      pickle    willow
+            candy     foilage   maple     pig       wood
+            carrot    frog      moon      rice      yam
+    '''
+    return g

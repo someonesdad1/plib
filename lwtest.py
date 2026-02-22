@@ -55,7 +55,6 @@ if 1:  # Header
         import wrap
         dedent = wrap.dedent
         import color
-        t = color.t
         try:
             import numpy
             have_numpy = True
@@ -177,6 +176,7 @@ if 1:  # Core functionality
         stream = kw.get("stream", sys.stdout)
         nomsg = kw.get("nomsg", False)
         # If broken, print error message and return
+        t = color.t
         if broken:
             # Get the name of the file that called us
             file = traceback.extract_stack()[0][0]
@@ -311,6 +311,7 @@ if 1:  # Utility
         class instance.  The message is printed in this color.
         '''
         fn, ln, method, call = traceback.extract_stack()[-2]
+        t = color.t
         c = t(color) if color is not None else ""
         vars = {
             "fn": fn,
@@ -605,6 +606,7 @@ if 1:  # Checking functions
         True, or 'Assert' is a nonempty environment string, you'll be dropped into a debugger.  If
         msg is not empty, it's printed out.
         '''
+        t = color.t
         if not condition:
             if debug or Assert.debug or os.environ.get("Assert", ""):
                 # Print colorized message to stdout and start debugger
@@ -624,6 +626,7 @@ if __name__ == "__main__":
     if 1:  # Custom imports
         from lwtest import run, raises, assert_equal, Assert, ToDoMessage
         from f import flt, cpx
+        t = color.t
         try:
             import numpy
             have_numpy = True
