@@ -1,4 +1,17 @@
 '''
+Vision
+    - One file for color stuff:  color.py (besides data/colornames.py)
+    - Color
+        - Constructor works flawlessly
+        - Look at getting rid of cruft:  this is primarily a class to hold a color and
+          allow conversion to other coordinates
+    - Trm & ColorName are obsoleted
+    - New Trm is a dict where .on and .always work correctly
+        - No instance is created by default; the t instance has created an enormous
+          number of circular reference problems
+        - Should Trm be in this file or trm.py?
+    - Move RegexpDecorate to dpstr.py
+    - Move colorcoord.py stuff to this file and have thorough docs & selftests
 '''
 '''
 ---------------------------------------------------------------------------
@@ -148,7 +161,7 @@ if 1:  # Header
             pass
         g = G()  # Container for global variables
         __all__ = "Color Trm TRM t ColorName CN RegexpDecorate".split()
-if 1:   # Classes
+if 1:   # Color class
     class Color:
         '''Storage of the three numbers used to define a color.  Constructor forms are
         (note that the absolute values of the components are used):
@@ -395,7 +408,7 @@ if 1:   # Classes
             # fractions used for comparisons (the Fraction objects are used in
             # the change_bpc method):  the denominator is 2**self._bpc.
             # This lets color integers be "downshifted" (scaled) to lower bits
-            # per color values and compare equally to hier bpc colors.
+            # per color values and compare equally to higher bpc colors.
             bpc = min(self.bpc, other.bpc)
             me, you = self.irgb, other.irgb
             if bpc != self.bpc:
@@ -518,24 +531,22 @@ if 1:   # Classes
             newrgb = tuple(int(round(i*N, 1)) for i in self.rgb)
             return Color(*newrgb)
         def interpolate(self, other, t, space="rgb"):
-            '''Interpolate between two colors:  self and other.  t is a
-            parameter on [0, 1].  If t is 0, you'll get back self and if t
-            is 1, you'll get back other.  If t is intermediate, you'll get
-            a color "between" the two.  space can be "rgb", "hsv", or "hls"
-            and picks the coordinates used to interpolate.
+            '''Interpolate between two colors:  self and other.  t is a parameter on
+            [0, 1].  If t is 0, you'll get back self and if t is 1, you'll get back
+            other.  If t is intermediate, you'll get a color "between" the two.  space
+            can be "rgb", "hsv", or "hls" and picks the coordinates used to interpolate.
             '''
             '''
-            The algorithm is linear interpolation in 2D Cartesian
-            coordinates (x, y) for each color component.  Let the starting
-            point be P = (x0, y0) and the ending point be Q = (x1, y1).
-            Further, let x0 = 0 and x1 = 1.
-     
+            The algorithm is linear interpolation in 2D Cartesian coordinates (x, y) for
+            each color component.  Let the starting point be P = (x0, y0) and the ending
+            point be Q = (x1, y1).  Further, let x0 = 0 and x1 = 1.
+            
             The slope of the line connecting P and Q is
                 m = (y1 - y0)/(x1 - x0) = y1 - y0
-     
-            Given the parameter t on [0, 1], the interpolated value along
-            the line between P and Q is R = (t, y0 + m*t).  For t = 0, you
-            get R == P and for t = 1 you get R == Q.
+            
+            Given the parameter t on [0, 1], the interpolated value along the line
+            between P and Q is R = (t, y0 + m*t).  For t = 0, you get R == P and for
+            t = 1 you get R == Q.
             '''
             if not isinstance(other, Color):
                 raise TypeError("other must be a Color instance")
@@ -566,27 +577,27 @@ if 1:   # Classes
             return Color(*rgb, bpc=me.bpc)
         if 1:  # Utility
             def fmt_int(self, a, b, c):
-                '''Format with uniform spacing for integers.  Example:
-                self.fmt_int(1, 23, 214) will return '  1,  23, 21'.  This is
-                handy for making lists of color numbers because the spacing
-                makes them easier to read in a text file.
+                '''Format with uniform spacing for integers.  Example: self.fmt_int(1,
+                23, 214) will return '  1,  23, 21'.  This is handy for making lists of
+                color numbers because the spacing makes them easier to read in a text
+                file.
                 '''
                 if not all(isinstance(i, int) for i in (a, b, c)):
                     raise TypeError("Arguments must be integers")
                 w = len(str(self.N))
                 return f"{a:{w}d}, {b:{w}d}, {c:{w}d}"
             def dec_to_int(self, three_tuple):
-                "Return int value of decimal values in 3-tuple of floats"
+                'Return int value of decimal values in 3-tuple of floats'
                 assert all(isinstance(i, float) for i in three_tuple)
                 return tuple(int(round(i*self.n, 1)) for i in three_tuple)
             def int_to_dec(self, three_tuple):
-                "Return float value of 3-tuple of integers"
+                'Return float value of 3-tuple of integers'
                 assert all(isinstance(i, int) for i in three_tuple)
                 return tuple(i/(self.N - 1) for i in three_tuple)
             def digits(self):
-                '''Return number of digits for to use for decimal rounding,
-                typically for printing to the screen.  Choose enough digits
-                to hold all the color values.
+                '''Return number of digits for to use for decimal rounding, typically
+                for printing to the screen.  Choose enough digits to hold all the color
+                values.
                 '''
                 # self.N + 1 is the number of distinct color components.
                 n = math.ceil(math.log10(self.N + 1))
@@ -594,7 +605,7 @@ if 1:   # Classes
         if 1:  # Settable properties
             @property
             def sort(self):
-                "Return sorting order string"
+                'Return sorting order string'
                 return self._sort
             @sort.setter
             def sort(self, value):
@@ -604,62 +615,44 @@ if 1:   # Classes
                 self._sort = value
         if 1:  # Read-only properties
             @property
-            def sr(self):
-                "Return short string form for RGB"
-                a, b, c = self._rgb
-                o = 0x100
-                return f"R{chr(o + a)}{chr(o + b)}{chr(o + c)}"
-            @property
-            def sh(self):
-                "Return short string form for HSV"
-                a, b, c = self.ihsv
-                o = 0x100
-                return f"H{chr(o + a)}{chr(o + b)}{chr(o + c)}"
-            @property
-            def sl(self):
-                "Return short string form for HLS"
-                a, b, c = self.ihls
-                o = 0x100
-                return f"L{chr(o + a)}{chr(o + b)}{chr(o + c)}"
-            @property
-            def N(self):
+            def N(self):    # 2**bits_per_color
                 'Number of colors we represent == 2**bits_per_color'
                 return 2**self._bpc
-            @property
+            @property       # 2**bits_per_color - 1
             def n(self):
                 'self.N - 1'
                 return self.N - 1
-            @property
+            @property       # Bits per color
             def bpc(self):
                 'Bits per color'
                 return self._bpc
             @property
-            def hex_bytes_per_color(self):
-                "How many bytes needed to express a color in hex"
+            def hex_bytes_per_color(self):  # How many bytes needed to express a color in hex
+                'How many bytes needed to express a color in hex'
                 return math.ceil(self._bpc/8) + 1
             #
             @property
-            def irgb(self):
-                "Get rgb as a 3-tuple of integers on [0, 2**self.N - 1]"
+            def irgb(self):     # 3-tuple of integers on [0, 2**self.N - 1]
+                'Get rgb as a 3-tuple of integers on [0, 2**self.N - 1]'
                 return self._rgb
             @property
-            def drgb(self):
-                "Get rgb as a 3-tuple of floats on [0, 1]"
+            def drgb(self):     # 3-tuple of floats on [0, 1]
+                'Get rgb as a 3-tuple of floats on [0, 1]'
                 return tuple(i/(self.N - 1) for i in self._rgb)
             @property
-            def xrgb(self):
-                "Get rgb as a hex string of the form #000000"
+            def xrgb(self):     # #000000
+                'Get rgb as a hex string of the form #000000'
                 return "#" + Color.int_to_hex(self._rgb)
             #
             @property
-            def ihsv(self):
-                "Get hsv as a 3-tuple of integers on [0, 2**self.N - 1]"
+            def ihsv(self):     # hsv as a 3-tuple of integers on [0, 2**self.N - 1]
+                'Get hsv as a 3-tuple of integers on [0, 2**self.N - 1]'
                 dec = colorsys.rgb_to_hsv(*self.drgb)
                 hsv = tuple(int(round(i*(self.N - 1), 1)) for i in dec)
                 return hsv
             @property
-            def dhsv(self):
-                "Get hsv as a 3-tuple of floats on [0, 1]"
+            def dhsv(self):     # hsv as a 3-tuple of floats on [0, 1]
+                'Get hsv as a 3-tuple of floats on [0, 1]'
                 return colorsys.rgb_to_hsv(*self.drgb)
             @property
             def xhsv(self):     # @ffffff
@@ -667,44 +660,42 @@ if 1:   # Classes
                 return "@" + Color.int_to_hex(self.ihsv)
             #
             @property
-            def ihls(self):
-                "Get hls as a 3-tuple of integers on [0, 2**self.N - 1]"
+            def ihls(self):     # hls as a 3-tuple of integers on [0, 2**self.N - 1]
+                'Get hls as a 3-tuple of integers on [0, 2**self.N - 1]'
                 dec = self.drgb
                 hlsdec = colorsys.rgb_to_hls(*dec)
                 hls = tuple(int(round(i*(self.N - 1), 1)) for i in hlsdec)
                 return hls
             @property
-            def dhls(self):
-                "Get hls as a 3-tuple of floats on [0, 1]"
+            def dhls(self):     # hls as a 3-tuple of floats on [0, 1]
+                'Get hls as a 3-tuple of floats on [0, 1]'
                 return colorsys.rgb_to_hls(*self.drgb)
             @property
             def xhls(self):     # $ffffff
-                "Get hls as a hex string of the form $000000"
+                'Get hls as a hex string of the form $000000'
                 return "$" + Color.int_to_hex(self.ihls)
         if 1:  # Class methods
             @classmethod
             def dist(cls, c1, c2, space="rgb", taxicab=False):
-                '''Calculate a distance between two color instances.  They are
-                both converted into Color objects with the same bpc and the
-                Euclidean distance between the components is calculated.  The
-                number returned is a float on [0, 1].
+                '''Calculate a distance between two color instances.  They are both
+                converted into Color objects with the same bpc and the Euclidean
+                distance between the components is calculated.  The number returned is a
+                float on [0, 1].
                 
-                Euclidean distances in these color spaces are known to be
-                nonlinear with respect to human perception, but they are easy
-                to calculate.
+                Euclidean distances in these color spaces are known to be nonlinear with
+                respect to human perception, but they are easy to calculate.
                 
                 space can be "rgb", "hsv", or "hls".
                 
-                If taxicab is True, then use the "taxicab" distance, which is how
-                you'd e.g. calculate a walking distance in a city where you can
-                only walk on the sidewalks (i.e., it's the sum of the absolute
-                value of the coordinates' differences).
+                If taxicab is True, then use the "taxicab" distance, which is how you'd
+                e.g. calculate a walking distance in a city where you can only walk on
+                the sidewalks (i.e., it's the sum of the absolute value of the
+                coordinates' differences).
                 
-                Example:  The Euclidean distance between (Color(0, 0, 0) and
-                Color(a, a, a) where a = 2**bpc - 1 will be sqrt(3).
-                Thus, the Euclidean distance is divided by
-                sqrt(3) to get a float on [0, 1].  For taxicab distance, the
-                distance is normalized to [0, 1] by dividing by 3.
+                Example:  The Euclidean distance between (Color(0, 0, 0) and Color(a, a,
+                a) where a = 2**bpc - 1 will be sqrt(3).  Thus, the Euclidean distance
+                is divided by sqrt(3) to get a float on [0, 1].  For taxicab distance,
+                the distance is normalized to [0, 1] by dividing by 3.
                 '''
                 if not isinstance(c1, Color) or not isinstance(c2, Color):
                     raise TypeError("c1 and c2 must be Color instances")
@@ -1107,6 +1098,7 @@ if 1:   # Classes
                 newstr = ''.join(new).replace("_", " ")
                 new = '_'.join(i.lower() for i in newstr.split())
                 return new
+if 1:   # Old Trm & ColorName
     class Trm:
         '''This class is used to generate terminal escape codes
         Ref:  https://en.wikipedia.org/wiki/ANSI_escape_code#24-bit
@@ -1639,32 +1631,31 @@ if 1:   # Classes
                 new = self[names.popleft()]
                 old = old.interpolate(new, 0.5, space=space)
             return old
-if 1:   # Global variables
-    # Define default ColorName instance
-    CN = ColorName()
-    if wsl:
-        CN.load("/plib/colornames0")
-    else:
-        CN.load("d:/cygwin64/plib/colornames0")
-    # Define default Trm instance
-    TRM = Trm()
-    t = TRM  # I use 't' so much it should be defined
-    TRM.cn = CN
-if 1:  # Add standard names based on resistor color code as t's attributes
-    '''Add a number of attributes to the t instance giving the regular and light colors in the
-    color table using my standard names.
-    '''
-    clrs = '''blk brn red orn yel grn blu vio gry wht cyn mag
-              pnk lip lav lil pur roy den sky trq sea lwn olv'''.split()
-    for clr in clrs:
-        for i in ("", "l", "d", "b"):
-            exec(f"t.{clr}{i} = t('{clr}{i}')")
-    if 0:
-        # Test that we got desire colors
-        t.print(f"{t.mag}mag")
-        t.print(f"{t.magl}magl")
-        t.print(f"{t.magd}magd")
-        t.print(f"{t.magb}magb")
+    if 1:   # Define default ColorName instance
+        CN = ColorName()
+        if wsl:
+            CN.load("/plib/colornames0")
+        else:
+            CN.load("d:/cygwin64/plib/colornames0")
+        # Define default Trm instance
+        TRM = Trm()
+        t = TRM  # I use 't' so much it should be defined
+        TRM.cn = CN
+    if 1:  # Add standard names based on resistor color code as t's attributes
+        '''Add a number of attributes to the t instance giving the regular and light colors in the
+        color table using my standard names.
+        '''
+        clrs = '''blk brn red orn yel grn blu vio gry wht cyn mag
+                pnk lip lav lil pur roy den sky trq sea lwn olv'''.split()
+        for clr in clrs:
+            for i in ("", "l", "d", "b"):
+                exec(f"t.{clr}{i} = t('{clr}{i}')")
+        if 0:
+            # Test that we got desire colors
+            t.print(f"{t.mag}mag")
+            t.print(f"{t.magl}magl")
+            t.print(f"{t.magd}magd")
+            t.print(f"{t.magb}magb")
 if 1:   # RegexpDecorate class
     class RegexpDecorate:
         '''Decorate regular expression matches with color
@@ -2214,15 +2205,25 @@ if __name__ == "__main__":
         also append the letters d, l, and b to get all of the basic
         colors.
         '''
-        R = '''blk brn red orn yel grn blu vio gry wht cyn mag
-                pnk lip lav lil pur roy den sky trq sea lwn olv'''.split()
-        if all:
-            others = []
-            others.extend(i + "d" for i in R)
-            others.extend(i + "l" for i in R)
-            others.extend(i + "b" for i in R)
-            R.extend(others)
-        return tuple(R)
+        if 1:   # This is for older short names
+            R = '''blk brn red orn yel grn blu vio gry wht cyn mag
+                    pnk lip lav lil pur roy den sky trq sea lwn olv'''.split()
+            if all:
+                others = []
+                others.extend(i + "d" for i in R)
+                others.extend(i + "l" for i in R)
+                others.extend(i + "b" for i in R)
+                R.extend(others)
+            return tuple(R)
+        else:
+            # Get the short names from dpcolornames module's dictionary
+            di = dpcolornames.colornames
+            names = []
+            for i in di:
+                for j in di[i]:
+                    if j.key == 0:
+                        names.append(j.name)
+            return tuple(names)
     def Reset():
         Color.bits_per_color = 8
     def Test8bitConversions():
@@ -3617,8 +3618,17 @@ def GetGist():
                 - False means always off so all t.x attributes are ""
                 - True means always on so all t.x attributes are proper escape codes
     - ∞∞2 
+        - Color.adjust could use some examples in the docstring, as I had forgotten
+          about it and it's likely it's a tool I should use
+            - Or add a demo function in the code that shows percentage adjustments,
+              which is what I've been wanting to do.  It would be very nice if an 
+              interactive function could be set up to use in the REPL that prompts you
+              for an adjustment number and optional parameter and you'd see a set of 
+              colors getting generated to the screen, letting you home into a desired
+              color
         - Move RegexpDecorate to dpstr.py
-        - Color:  remove sr,sh,sl attributes, as I've never used them
+        - Fix GetShortNames() when I move to my new short names and the new Trm
+          implementation
     - ∞∞3 
         - When printing a Trm instance that uses t.str(), output the string using
           Columnize to the current screen width, as this is more attractive.
