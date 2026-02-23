@@ -295,29 +295,35 @@ if __name__ == "__main__":
             u.r
     def Test_Init():
         styles = {
-            "a": "orn",
-            "b1": Color("#ff8700"),
-            "b2": Color("$00a0a0"),
-            "b3": Color("@00a0a0"),
-            "c": Color(208),           
-            "d": Color(0xd0),          
-            "e": Color(0o320),         
-            "f": Color(0b11010000),
-            "g": Color("#ff8700"),
-            "h": Color("255 135 0"),
-            "i": Color(0.5),
-            "j": Color("555"),
-            "k": Color((0.5,0.7,0.9)),
-            "l": Color("0.5 0.7 0.9"),
-            "m": Color("0.5,0.7,0.9"),
+            0: "blk",
+            1: Color("#000000"),
+            2: Color("$000000"),
+            3: Color("@000000"),
+            4: Color(0),           
+            5: Color(0x0),          
+            6: Color(0o0),         
+            7: Color(0b0),
+            8: Color("0 0 0"),
+            9: Color("0,0,0"),
+            10: Color(0.0),
+            11: Color((0.0,0.0,0.0)),
+            12: Color("0.0 0.0 0.0"),
+            13: Color("0.0,0.0,0.0"),
+            14: Color("555"),
         }
-        # Verify that all values are escape codes
+        # Verify that all values are escape codes and that all are the same as blk
+        # except for #14, which is a yellow-green
         u = Trm(styles)
+        blk = "\x1b[38;2;0;0;0m"
         for i in u:
             value = u[i]
             Assert(isinstance(value, str))
             Assert(len(value) > 0)
             Assert(value[0] == "\x1b")
+            if i == 14:
+                Assert(value == "\x1b[38;2;90;240;6m")
+            else:
+                Assert(value == blk)
 
     if len(sys.argv) > 1:
         Demo()

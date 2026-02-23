@@ -877,8 +877,6 @@ if 1:   # Color class
                     bpc = Color.bits_per_color
                 if not isinstance(bpc, int):
                     raise TypeError("bpc must be an int")
-                if nm <= 0:
-                    raise ValueError("nm must be > 0")
                 if not isinstance(gamma, (int, float, flt)):
                     raise TypeError("gamma must be an int or float")
                 if gamma < 0:
