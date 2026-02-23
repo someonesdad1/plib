@@ -12312,8 +12312,15 @@ if __name__ == "__main__":
         print("")
         print("import collections")
         print("")
-        print("# Colorname encapsulates the color name, specifier, and  attribution")
+        print("# ColorName encapsulates the color name, specifier, and attribution (key")
+        print("# is an integer key for the attributions dictionary, indicating the source")
+        print("# of the color name).")
+        print("")
         print(cn)
+        print("")
+        print("# GetName() is a function that will return a Color instance for the name if it")
+        print("# exists and the search will start at the key number given in the key keyword.")
+        print("# Otherwise None is returned.")
         print("")
         print("colornames = {")
         print(f"{indent}# key = color name, value = list of Colorname instances")
@@ -12323,6 +12330,9 @@ if __name__ == "__main__":
             cn = dq.popleft()
             name = ColorNameNormalize(cn.name)
             di[name].append(cn)
+        # Sort each dictionary entry by key number
+        for i in di:
+            di[i] = sorted(di[i], key=lambda x: x.key)
         # Print the dictionary
         for i in di:
             print(f"{indent}{i!r}: [", end="")
@@ -12342,8 +12352,14 @@ if __name__ == "__main__":
             print(textwrap.indent(v, indent*2), end="")
             print(f"{indent}''',")
         print("}")
-        # Print a GetGist function
+        # Print the functions
         g = textwrap.dedent('''
+        def GetName(name, key=0):
+            if name in colornames:
+                for candidate in colornames[name]:
+                    if candidate.key >= key:
+                        return candidate
+            return None
         def GetGist():
             mygist = gist.Gist()
             mygist.clear()
@@ -12361,13 +12377,9 @@ if __name__ == "__main__":
     exit()
 
 def GetGist():
-    '''Construct the /plib/gist.Gist instance for this file.  This gist is
-    a dictionary used to capture essential information about the module or script to
-    allow automated tools to summarize the module/script.
-    '''
     mygist = gist.Gist()
     mygist.clear()
-    mygist["gist"] = "Make a file with functions that produce attributed lists of color names"
+    mygist["gist"] = "Make a dictionary of color names"
     mygist["copy"] = "Copyright © 2026 Don Peterson"
     mygist["lic"] = "MIT License (see /plib/_lic.mit)"
     mygist["test"] = "notest"
