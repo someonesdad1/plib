@@ -7,7 +7,7 @@ Vision
           allow conversion to other coordinates
     - Trm & ColorName are obsoleted
     - New Trm is a dict where .on and .always work correctly
-        - No instance is created by default; the t instance has created an enormous
+        - No instance is created by default; the t instance has created a large
           number of circular reference problems
         - Should Trm be in this file or trm.py?
     - Move RegexpDecorate to dpstr.py
@@ -176,6 +176,7 @@ if 1:   # Color class
             0-1         Grayscale, 0 == black, 1 == white
             > 1         Light wavelength in nm (black if not on [380, 780])
         Color(str)
+            "\x1b..."   ANSI escape sequence
             "#abcdef"   RGB hex form
             "$abcdef"   HLS hex form
             "@abcdef"   HSV hex form
@@ -199,31 +200,38 @@ if 1:   # Color class
         bits_per_color = 8
         def __init__(self, *p, **kw):
             "Initialize the Color object"
-            if 1:   # Check for proper keyword arguments
-                allowed = set("bpc hsv hls".split())
-                actual = set(kw.keys())
-                if not (actual <= allowed):
-                    bad = actual - allowed
-                    s = ", ".join(bad)
-                    msg = f"Bad keyword(s):  {s}"
-                    raise ValueError(msg)
-            if 1:   # Set attributes
-                self._bpc = kw.get("bpc", Color.bits_per_color)
-                self._rgb = None    # RGB integer components
-                self._sort = "rgb"  # Sorting order (must be rgb, hsv, or hls)
-            if 1:   # Process the arguments:  get (u, v, w), which covers all constructor use cases
-                # If p is a single argument, v and w will be None.  Otherwise, we should
-                # have the tuple (u, v, w) as the supplied arguments.
-                try:
-                    u = p[0]
-                except Exception:
-                    raise ValueError("color.Color() constructor needs at least one argument")
-                try:
-                    v, w = p[1], p[2]
-                except Exception:
-                    v, w = None, None
-                if (v and u is None) or (v and u and len(p) > 3):
-                    raise ValueError("color.Color() constructor needs either 1 or 3 arguments")
+            if 1:
+                if 1:   # Check for proper keyword arguments
+                    allowed = set("bpc hsv hls".split())
+                    actual = set(kw.keys())
+                    if not (actual <= allowed):
+                        bad = actual - allowed
+                        s = ", ".join(bad)
+                        msg = f"Bad keyword(s):  {s}"
+                        raise ValueError(msg)
+                if 1:   # Set attributes
+                    self._bpc = kw.get("bpc", Color.bits_per_color)
+                    self._rgb = None    # RGB integer components
+                    self._sort = "rgb"  # Sorting order (must be rgb, hsv, or hls)
+                if 1:   # Process the arguments:  get (u, v, w), which covers all constructor use cases
+                    # If p is a single argument, v and w will be None.  Otherwise, we should
+                    # have the tuple (u, v, w) as the supplied arguments.
+                    try:
+                        u = p[0]
+                    except Exception:
+                        raise ValueError("color.Color() constructor needs at least one argument")
+                    try:
+                        v, w = p[1], p[2]
+                    except Exception:
+                        v, w = None, None
+                    if (v and u is None) or (v and u and len(p) > 3):
+                        raise ValueError("color.Color() constructor needs either 1 or 3 arguments")
+                    # u could be a tuple or list of numbers
+                    if isinstance(u, (tuple, list)):
+                        if len(u) != 3:
+                            raise ValueError("color.Color() constructor must be sequence of 3 items")
+                        u, v, w = u
+            # Core constructor code
             if (u is not None) and (v is not None) and (w is not None):     # p is a sequence of 3 items
                 # Possibilities ('hsv' and 'hls' keywords meaningful):
                 #   1.  3 integers
@@ -260,6 +268,7 @@ if 1:   # Color class
                 #   4.  object --> int
                 #   5.  object --> float
                 #   6.  str
+                #       ANSI escape sequence
                 #       Hex string for color
                 #           '#123456', '$123456', '@123456'
                 #       Color name
@@ -298,46 +307,50 @@ if 1:   # Color class
                     u = u.strip()
                     if not u:
                         raise ValueError("Argument can't be only whitespace")
-                    try:
-                        self._rgb = self.string(u)      # Hex string or color name
-                    except ValueError:
-                        # Only other choice is it's a string that can be interpreted as
-                        # an integer or float or three integers or floats
-                        e = ValueError(f"{u!r} can't be interpreted as a Color initializer")
-                        if " " in u or "," in u or ";" in u:
-                            a = u.replace(",", " ").replace(";", " ").split()
-                            try:
-                                seq = [dpmath.Int(i) for i in a]    # 3-tuple of int
-                            except Exception:
+                    if u[0] == "\x1b":
+                        self._rgb = self.escape(u)
+                    else:
+                        try:
+                            self._rgb = self.string(u)      # Hex string or color name
+                        except ValueError:
+                            # Only other choice is it's a string that can be interpreted as
+                            # an integer or float or three integers or floats
+                            e = ValueError(f"{u!r} can't be interpreted as a Color initializer")
+                            if " " in u or "," in u or ";" in u:
+                                a = u.replace(",", " ").replace(";", " ").split()
                                 try:
-                                    seq = [float(i) for i in a]     # 3-tuple of float
-                                    self._rgb = Color(*seq).irgb
+                                    seq = [dpmath.Int(i) for i in a]    # 3-tuple of int
                                 except Exception:
-                                    raise e
-                        else:
-                            try:
-                                v = dpmath.Int(u)               # Case 4
-                                self._rgb = Color(v).irgb
-                            except Exception:
+                                    try:
+                                        seq = [float(i) for i in a]     # 3-tuple of float
+                                        self._rgb = Color(*seq).irgb
+                                    except Exception:
+                                        raise e
+                            else:
                                 try:
-                                    v = float(u)                # Case 5
+                                    v = dpmath.Int(u)               # Case 4
                                     self._rgb = Color(v).irgb
                                 except Exception:
-                                    raise e
+                                    try:
+                                        v = float(u)                # Case 5
+                                        self._rgb = Color(v).irgb
+                                    except Exception:
+                                        raise e
                 else:
-                    raise Exception("Bug in color.Color():  unhandled case")
+                    s = f"{u!r} Bug in color.Color():  unhandled case"
+                    raise Exception(s)
             else:
                 from pdb import set_trace as yy; yy() 
                 raise Exception("Bug in color.Color():  should be impossible to reach this point")
             self._check()
         def _check(self):
-            "Check invariants"
+            'Check invariants'
             assert isinstance(self._bpc, int) and self._bpc > 0
             assert len(self._rgb) == 3
             assert (0 <= i < self.N and isinstance(i, int) for i in self._rgb)
             assert self._sort in ("rgb", "hsv", "hls")
         def string(self, X):
-            "Return 3-tuple int rgb value from a string"
+            'Return 3-tuple int rgb value from a string'
             assert isinstance(X, str)
             if not X:
                 raise ValueError("Can't initialize with an empty string")
@@ -385,6 +398,42 @@ if 1:   # Color class
                         raise ValueError(msg)
             assert all(0 <= i <= N and isinstance(i, int) for i in rgb)
             return rgb
+        def escape(self, X):
+            '''Return 3-tuple int rgb value from an ANSI escape code.
+            
+            To be technically correct, this should handle double escape codes like 
+            '\x1b[38:5:⟨n⟩m\x1b[48:5:⟨n⟩m', which specifies both a foreground and
+            background color.   However, for the first implementation, I'm going to
+            keep it simple, as the only "user" is the new Trm object and the vast
+            majority of the time it will be single escape sequences.
+            
+            Examples of typical values for X:
+              \x1b[38;5;⟨n⟩m  8-bit foreground color n
+              \x1b[48;5;⟨n⟩m  8-bit background color n
+              \x1b[38;2;⟨r⟩;⟨g⟩;⟨b⟩m 24-bit foreground color
+              \x1b[48;2;⟨r⟩;⟨g⟩;⟨b⟩m 24-bit background color
+            '''
+            assert X and isinstance(X, str) and X[0] == "\x1b"
+            n = X.count("\x1b")
+            if not n:
+                raise ValueError("X = {X!r} doesn't have an escape character")
+            elif n != 1:
+                raise ValueError("Only one escape character allowed in string")
+            x = X.replace("\x1b[", "")
+            f = x.split(";")
+            if len(f) == 3:
+                assert f[0] in "38 48".split()
+                assert f[1] == "5"
+                n = int(f[2].replace("m", ""))
+                return Translate8bit(n)
+            elif len(f) == 5:
+                assert f[0] in "38 48".split()
+                assert f[1] == "2"
+                r, g = [int(i) for i in (f[2], f[3])]
+                b = int(f[4].replace("m", ""))
+                return (r, g, b)
+            else:
+                raise ValueError(f"{X!r} is an unrecognized escape code")
         def __str__(self):
             u = "⁰¹²³⁴⁵⁶⁷⁸⁹"
             b = "".join(u[int(i)] for i in str(self._bpc))
@@ -1656,6 +1705,8 @@ if 1:   # Old Trm & ColorName
             t.print(f"{t.magl}magl")
             t.print(f"{t.magd}magd")
             t.print(f"{t.magb}magb")
+else:   # New Trm class
+    pass
 if 1:   # RegexpDecorate class
     class RegexpDecorate:
         '''Decorate regular expression matches with color

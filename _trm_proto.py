@@ -135,23 +135,38 @@ class Trm(dict):
         else:
             for i in self:
                 u = self[i]
-                try:
-                    c = Color(u)
-                except Exception:
-                    print(f"{i} = {u!r} (type {type(u)})")
-            exit()
-    def __call__(self, *args, **kw):
-        '''Initialize a terminal color by specifying the color in args.  The allowed
-        forms are:
-
-            - color.Color instance
-            - string
-                - Recognized name in color.Color
-            - tuple of 3 integers
-            - integer
-            - float
-
+                if isinstance(u, str) and u.startswith("\x1b"):
+                    continue    # Already an escape code
+                elif isinstance(u, Color):
+                    self[i] = self._get_code(u)
+                else:
+                    try:
+                        c = Color(u)
+                        self[i] = self._get_code(c)
+                    except Exception as e:
+                        print("Bug in Trm.resolve():")
+                        print(f"{i} = {u!r} (type {type(u)})")
+                        print(e)
+                        exit()
+    def _get_code(self, color, bg=False):
+        '''Return escape code for the Color instance color.  
+        A problem is that this doesn't handle the general case of the original
+        implementation, which is that a Trm instance could be initialized as e.g.
+        t(fg, bg, attr=x) to specify foreground, background, and attributes.
         '''
+        assert isinstance(color, Color)
+        n = 48 if bg else 38
+        if color.bpc > 8:
+            color = color.change_bpc(8)
+        r, g, b = color.irgb
+        return f"\x1b[{n};2;{r};{g};{b}m"
+    def __call__(self, *args, **kw):
+        '''
+        Original Trm signature was:
+            def __call__(self, fg=None, bg=None, attr=None):
+        I'd like to retain this, as it worked well.  Note it returned an escape code.
+        '''
+        raise Exception("Needs to be written")
     def __setitem__(self, name, value):
         if name in self:
             super().__setitem__(name, value)
@@ -218,36 +233,13 @@ class Trm(dict):
                 return True     # Ignore this exception
             else:
                 return False    # Don't ignore this exception
-    if 1:   # Existing TRM stuff
-        def _get_code(self, color, bg=False):
-            'For Color instance color, return escape code'
-            if color is not None:
-                if not isinstance(color, Color):    
-                    raise TypeError("color must be a color.Color instance")
-            bg = bool(bg)
-            #if self._bits == 4:
-            #    raise Exception("Not implemented")
-            #elif self._bits == 8:
-            #    raise Exception("Not implemented")
-            #elif self._bits == 24:
-            # We'll assume 24 bit color
-            if 1:
-                n = 48 if bg else 38
-                if color.bpc > 8:
-                    color = color.change_bpc(8)
-                r, g, b = color.irgb
-                return f"\x1b[{n};2;{r};{g};{b}m"
-            #else:
-            #    raise RuntimeError("self._bits bad")
 
 if 1:
-    # ∞∞1 These are a good set of test cases for the Color() constructor
-    styles = {  # xstylesx
-        # Build in names
+    styles = {
         "a": "orn",         # Built-in name
         "b1": Color("#ff8700"),   # 24-bit hex string
-        "b2": Color("$ff8700"),   # 24-bit hex string
-        "b3": Color("@ff8700"),   # 24-bit hex string
+        "b2": Color("$00a0a0"),   # 24-bit hex string
+        "b3": Color("@00a0a0"),   # 24-bit hex string
         "c": 208,           # 8-bit #208
         "d": 0xd0,          # 8-bit #208
         "e": 0o320,         # 8-bit #208
@@ -256,9 +248,9 @@ if 1:
         "h": "255 135 0",   # 8-bit #208
         "i": 0.5,           # float, middle gray
         "j": "555",         # Yellow-green, most visible to eye
-        "k": (0.1,0.2,0.3), # 3-tuple of floats (Color() accepts this)
-        "l": "0.1 0.2 0.3", # 3-tuple of floats (Color() accepts this)
-        "l": "0.1,0.2,0.3", # 3-tuple of floats (Color() accepts this)
+        "k": (0.5,0.7,0.9), # 3-tuple of floats (Color() accepts this)
+        "l": "0.5 0.7 0.9", # 3-tuple of floats (Color() accepts this)
+        "m": "0.5,0.7,0.9", # 3-tuple of floats (Color() accepts this)
     }
     u = Trm(styles) 
     # Only one set of outputs here prove that the .on attribute works
@@ -266,7 +258,7 @@ if 1:
         print(".on is True" if v else ".on is False (no colorizing)")
         u.on = v
         for i in u:
-            t.print(f"{u[i]}{i} is this color")
+            t.print(f"  {u[i]}{i} is this color")
     exit()
 
 if __name__ == "__main__":  
