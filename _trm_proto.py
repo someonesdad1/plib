@@ -85,18 +85,30 @@ class Trm(dict):
     '''Dictionary used to output escape codes to a terminal.
 
     '''
-    def __init__(self, names_dict):
-        '''Call with a dictionary relating a name string to something that will be
-        recognized by the color.Color constructor.
+    def __init__(self, di=None, default=True):
+        '''Call with a dictionary di relating a name string to something that will be
+        recognized by the color.Color constructor.  If default is True, then initialize
+        with the colors with key == 0 in data/dpcolornames.py.  Colors in di that match
+        those in the default names will overwrite the defaults.
         '''
         # Attributes with underscores are not meant to be accessed by the user
         self._stack = Stack()   # Saves previous states of self
         self.on = True          # Output escape codes if True
         self.always = False     # If True, output escape codes even if stdout out isn't a terminal
         self._newstyles = None  # Used for context manager behavior
+        # Get the defaults
+        if default:
+            items = "red ord orn yon yel ygr lwn grn sea trq cyn".split()
+            items += "sky den roy blu vio lav mag pnk lip blk ".split()
+            items += "brn gry wht lil pur olv".split()
+            for i in items:
+                self[i] = Color(i)
         # Convert the items in names_dict to escape codes and add them to our mapping
-        for i in names_dict:
-            self[i] = names_dict[i]
+        if di is not None:
+            if not isinstance(di, dict):
+                raise TypeError("di must be a dict")
+            for i in di:
+                self[i] = di[i]
     def _get_escape_code(self, color, bg=False):
         'Return escape code for the Color instance color'
         # Assumes 24-bit color
@@ -232,23 +244,27 @@ class Trm(dict):
             return super().__getitem__(name)
         else:
             return super().__getattribute__(name)
-    def ppush(self, styles_dict):
-        '''The styles dict must be a dict instance.  Update our values with
+    def ppush(self, styles_dict=None):
+        '''The styles dict must be a dict instance or None.  Update our values with
         styles_dict's values after saving a copy of ourself on the stack.
         '''
-        if not isinstance(styles_dict, dict):
+        if styles_dict is not None and not isinstance(styles_dict, dict):
             raise TypeError("styles_dict must be a dict instance")
         self._stack.push(self.copy())
-        self.update(styles_dict)
+        # Note:  the dict.__update__ method won't work properly here; we use a loop
+        # which causes __setitem__ to be used.
+        if styles_dict is not None:
+            for i in styles_dict:
+                self[i] = styles_dict[i]
     def ppop(self):
         '''Get a copy of ourself, then clear ourself and set our state to that of the
-        top of the stack; return our self-copy.
+        top of the stack; return the copy of our old self.
         '''
-        cp = self.copy()
+        old_self = self.copy()
         self.clear()
-        old = self._stack.pop()
-        self.update(old)
-        return cp
+        previous = self._stack.pop()
+        self.update(previous)
+        return old_self
     if 1:   # Context manager
         def uses(self, styles_dict):
             'Used to utilize a new set of styles in a context manager block'
@@ -294,6 +310,9 @@ if __name__ == "__main__":
         with raises(AttributeError):
             u.r
     def Test_Init():
+        '''Show the common initializers for a Color instance work and are returned with
+        the proper escape codes.
+        '''
         styles = {
             0: "blk",
             1: Color("#000000"),
@@ -310,20 +329,70 @@ if __name__ == "__main__":
             12: Color("0.0 0.0 0.0"),
             13: Color("0.0,0.0,0.0"),
             14: Color("555"),
+            15: Color(555),
+            16: Color(555.0),
         }
         # Verify that all values are escape codes and that all are the same as blk
         # except for #14, which is a yellow-green
-        u = Trm(styles)
+        u = Trm(styles, default=False)
         blk = "\x1b[38;2;0;0;0m"
+        yg = "\x1b[38;2;90;240;6m"
         for i in u:
             value = u[i]
-            Assert(isinstance(value, str))
-            Assert(len(value) > 0)
+            Assert(isinstance(value, str) and len(value) > 0)
             Assert(value[0] == "\x1b")
-            if i == 14:
-                Assert(value == "\x1b[38;2;90;240;6m")
-            else:
-                Assert(value == blk)
+            Assert(value == yg if i > 13 else blk)
+    def Test_Stack():
+        'Show we can push and pop a new state'
+        # Demonstrate we can initialize an empty dictionary
+        u = Trm(default=False)
+        Assert(not len(u))
+        # Add two new colors
+        u[0] = "red"
+        u[1] = "grn"
+        red = '\x1b[38;2;254;0;0m'
+        grn = '\x1b[38;2;0;254;0m'
+        Assert(u[0] == red)
+        Assert(u[1] == grn)
+        orig = u.copy()
+        # Push the old state and add a new color
+        u.ppush()
+        Assert(u == orig)
+        blu = '\x1b[38;2;0;0;254m'
+        u[2] = "blu"
+        Assert(u[2] == blu)
+        # Push again
+        u.ppush()
+        u.clear()
+        Assert(not u)
+        # Pop and show we've got blu again
+        u.ppop()
+        Assert(u[2] == blu)
+        # Pop and show we're back to orig
+        u.ppop()
+        Assert(u == orig)
+        with raises(KeyError):
+            u[2]    # This shows u[2] no longer exists
+        # Show we can push with a styles dict.  An important feature is that the
+        # updating process with this styles dict must call the necessary methods to turn
+        # the new elements into ones with resolved escape codes.
+        di = {2: "blu"}
+        u.ppush(di)
+        Assert(u[2] == blu)
+    def Test_Default():
+        'Show that the default Trm instance has some of the basic names'
+        u = Trm()
+        items = "red ord orn yon yel ygr lwn grn sea trq cyn".split()
+        items += "sky den roy blu vio lav mag pnk lip blk ".split()
+        items += "brn gry wht lil pur olv".split()
+        for i in items:
+            Assert(i in u)
+    def Test_Call():
+        '''Test the __call__ method to show that it's capable of reproducing the
+        behavior of the old implementation, particularly changing the background color
+        and attributes.
+        '''
+        u = Trm(default=False)
 
     if len(sys.argv) > 1:
         Demo()
