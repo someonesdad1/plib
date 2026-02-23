@@ -57,130 +57,161 @@ Vision
         - t.always = bool If True, outputs even if stdout doesn't appear to be a
           terminal (sys.stdout.isatty() == False)
 '''
-import sys
-import wl2rgb
-import color
-import math
-import dpmath
-Color = color.Color
-t = color.t
-from stack import Stack
-from dpprint import PP
-pp = PP()   # Get pprint with current screen width
+if 1:   # Standard imports
+    import collections
+    import decimal
+    import fractions
+    import math
+    import sys
+    Decimal = decimal.Decimal
+    Fraction = fractions.Fraction
+if 1:   # Custom imports
+    import color
+    import dpcolornames
+    import dpmath
+    import dpprint
+    import stack
+    import wl2rgb
+    Color = color.Color
+    t = color.t
+    Stack = stack.Stack
+    PP = dpprint.PP
+    pp = PP()   # Get pprint with current screen width
+if 1:
+    import debug
+    debug.SetDebugger()
 
 class Trm(dict):
-    '''This is a dictionary used to output escape codes to a terminal for colorizing the
-    output.  It is initialized by passing in a dictionary of string names whose values
-    encode a color, ultimately resulting in a color.Color instance.
+    '''Dictionary used to output escape codes to a terminal.
 
     '''
     def __init__(self, names_dict):
-        'Attributes with underscores are not meant to be accessed by the user'
+        '''Call with a dictionary relating a name string to something that will be
+        recognized by the color.Color constructor.
+        '''
+        # Attributes with underscores are not meant to be accessed by the user
         self._stack = Stack()   # Saves previous states of self
         self.on = True          # Output escape codes if True
         self.always = False     # If True, output escape codes even if stdout out isn't a terminal
         self._newstyles = None  # Used for context manager behavior
-        super().__init__(names_dict)
-        self.resolve()
-    def resolve(self):
-        '''Change all dict values into escape codes.  This is done by translating all
-        the values received to a Color instance, then calling self._get_code().
-        '''
-        if 0:   # Old code before Color() updated
-            for i in self:
-                u = self[i]
-                print(f"{i} = {u!r}")
-                if isinstance(u, str):
-                    if u[0] == "\x1b":      # Escape character; it's already resolved
-                        continue
-                    u = u.strip()
-                    if u[0] in "#$@":       # Hex format 
-                        c = Color(u)
-                    elif u.endswith("nm"):  # Is a wavelength
-                        wl_nm = float(u[:-2])
-                        c = wl2rgb.wl2rgb(wl_nm)
-                    elif " " in u or "," in u:  # Tuple of 3 integers
-                        v = u.replace(",", " ")
-                        f = v.split()
-                        if len(f) != 3:
-                            msg = f"{u!r} must be 3 integers separated by ' ' or ','"
-                            raise ValueError(msg)
-                        values = tuple(dpmath.Int(j) for j in f)
-                        Color(*values)
-                    else:   # Float or integer
-                        try:
-                            x = abs(float(u))
-                            fp, ip = math.modf(x)
-                            c = Color(fp)
-                        except Exception:
-                            pass
-                        n = None
-                        try:
-                            n = dpmath.Int(u)
-                        except Exception:
-                            pass
-                        if n is None:
-                            c = Color(u)    # Is it a string that Color() recognizes?
-                        else:
-                            if not (0 <= n < 256):
-                                raise ValueError("An integer {n} for a color must be on [0, 255]")
-                            c = color.Translate8bit(n)
-                elif isinstance(u, int):
-                    # It's an 8-bit color
-                    if not (0 <= u < 256):
-                        raise ValueError("An integer i = {u} for a color must be on [0, 255]")
-                    c = color.Translate8bit(u)
-                self[i] = self._get_code(c)
-                #print(f"  {i} gave {self[i]}this color{t.n}")
-        else:
-            for i in self:
-                u = self[i]
-                if isinstance(u, str) and u.startswith("\x1b"):
-                    continue    # Already an escape code
-                elif isinstance(u, Color):
-                    self[i] = self._get_code(u)
-                else:
-                    try:
-                        c = Color(u)
-                        self[i] = self._get_code(c)
-                    except Exception as e:
-                        print("Bug in Trm.resolve():")
-                        print(f"{i} = {u!r} (type {type(u)})")
-                        print(e)
-                        exit()
-    def _get_code(self, color, bg=False):
-        '''Return escape code for the Color instance color.  
-        A problem is that this doesn't handle the general case of the original
-        implementation, which is that a Trm instance could be initialized as e.g.
-        t(fg, bg, attr=x) to specify foreground, background, and attributes.
-        '''
+        # Convert the items in names_dict to escape codes and add them to our mapping
+        for i in names_dict:
+            self[i] = names_dict[i]
+    def _get_escape_code(self, color, bg=False):
+        'Return escape code for the Color instance color'
+        # Assumes 24-bit color
+        if color is None or (isinstance(color, str) and color == ""):
+            return ""
         assert isinstance(color, Color)
         n = 48 if bg else 38
-        if color.bpc > 8:
+        if color.bpc < 8:
+            raise ValueError(f"{__file__}:Trm:_get_escape_code:  must have 8 bits per color")
+        elif color.bpc > 8:
             color = color.change_bpc(8)
         r, g, b = color.irgb
         return f"\x1b[{n};2;{r};{g};{b}m"
-    def __call__(self, *args, **kw):
+    def __call__(self, fg=None, bg=None, attr=None):
+        '''Return the indicated color style escape code string.  
+        fg and bg can be
+            - Color instance
+            - Color name that can be found in data/dpcolornames.py
+        attr is a string
+            - Separate multiple attributs by spaces
+            - Typical:  'no' for normal, 'bo' for bold, 'it' for italic, etc.
         '''
-        Original Trm signature was:
-            def __call__(self, fg=None, bg=None, attr=None):
-        I'd like to retain this, as it worked well.  Note it returned an escape code.
-        It could also be a good candidate for the resolve function.
+        ok = (str, Color)
+        msg = "{} must be None, a string, or a Color instance"
+        if fg is not None and not isinstance(fg, ok):
+            s = msg.format("fg") + f":\n    It's {fg!r}" 
+            raise ValueError(s)
+        if bg is not None and not isinstance(bg, ok):
+            s = msg.format("bg") + f":\n    It's {bg!r}" 
+            raise ValueError(s)
+        if attr is not None and not isinstance(attr, str):
+            s = f"attr must be a string:\n    It's {attr!r}" 
+            raise ValueError(s)
+        if not self.on or all(i is None for i in (fg, bg, attr)):
+            return ""
         '''
-        raise Exception("Needs to be written")
+        Primer on ANSI escape sequences
+        https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters
+        gives information on attributes and the section below that discusses colors.
+    
+        4-bit color
+            ESC[<f>;<b>m    f is foreground, b is background
+            f   g                               Short name
+            30  40  Black                       blk
+            31  41  Red                         red
+            32  42  Green                       grn
+            33  43  Yellow                      yel
+            34  44  Blue                        blu
+            35  45  Magenta                     mag
+            36  46  Cyan                        cyn
+            37  47  White                       wht
+            90 100  Bright black (gray)         blkl
+            91 101  Bright red                  redl
+            92 102  Bright green                grnl
+            93 103  Bright yellow               yell
+            94 104  Bright blue                 blul
+            95 105  Bright magenta              magl
+            96 106  Bright cyan                 cynl
+            97 107  Bright white                whtl
+        8-bit color
+            ESC[38;5;<n>m      Foreground color
+            ESC[48;5;<n>m      Background color
+            0-7    :  Standard colors
+            8-15   :  High intensity colors
+            16-231 :  6x6x6 cube:  16 + 36*r + 6*g + b (0 <= r, b, g <= 5)
+            232-255:  Grayscale from black to white in 24 steps
+        24-bit color
+            ESC[38;2;<r>;<g>;<b>m      RGB foreground color
+            ESC[48;2;<r>;<g>;<b>m      RGB background color
+        '''
+        # Convert to a Color instance
+        if fg and isinstance(fg, ok):
+            fg = Color(fg)
+        if bg and isinstance(bg, ok):
+            bg = Color(bg)
+        # Construct the needed escape codes
+        out = []
+        out.append(self._get_escape_code(fg))
+        out.append(self._get_escape_code(bg, bg=True))
+        if attr is not None:    # Get attribute codes
+            # See the table at
+            # https://en.wikipedia.org/wiki/ANSI_escape_code#Select_Graphic_Rendition_parameters
+            k1 = '''normal bold dim italic underline blink rapidblink reverse hide
+                    strikeout doubleunderline overline superscript subscript'''.split()
+            k2 = "no bo di it ul bl rb rv hi so du ol sp sb".split()
+            v = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 53, 73, 74)
+            assert len(k1) == len(k2) == len(v)
+            di = dict(zip(k1, v))
+            di.update(dict(zip(k2, v)))
+            for a in attr.split():
+                if a not in di:
+                    raise ValueError(f"{a!r} is not a valid attribute")
+                out.append(f"\x1b[{am[a]}m")
+        return ''.join(out)
     def __setitem__(self, name, value):
-        if name in self:
-            super().__setitem__(name, value)
-        elif name == "on":
+        if name == "on":
             self.on = value
         elif name == "always":
             self.always = value
-        elif name == "_newstyles":
+        elif name == "_newstyles":  # Used for context manager behavior
             self._newstyles = value
         elif name == "_stack":
             self._stack = value
         else:
-            raise KeyError(f"{name!r} not in Trm instance")
+            # value can be a single argument or a sequence of 1 to 3 arguments.  They 
+            # will be used with the __call__ method
+            if isinstance(value, (tuple, list)):
+                if len(value) in (1, 2, 3):
+                    escape_code = self(*value)
+                else:
+                    raise ValueError("value sequence must have 1 to 3 components")
+            else:
+                escape_code = self(value)
+            assert isinstance(escape_code, str) and escape_code[0] == "\x1b"
+            super().__setitem__(name, escape_code)
     def __getitem__(self, name):
         'This is used to get self[name]'
         # If self.on isn't True, always return an empty string
@@ -235,34 +266,8 @@ class Trm(dict):
             else:
                 return False    # Don't ignore this exception
 
-if 1:
-    styles = {
-        "a": "orn",         # Built-in name
-        "b1": Color("#ff8700"),   # 24-bit hex string
-        "b2": Color("$00a0a0"),   # 24-bit hex string
-        "b3": Color("@00a0a0"),   # 24-bit hex string
-        "c": 208,           # 8-bit #208
-        "d": 0xd0,          # 8-bit #208
-        "e": 0o320,         # 8-bit #208
-        "f": 0b11010000,    # 8-bit #208
-        "g": "#ff8700",     # 8-bit #208
-        "h": "255 135 0",   # 8-bit #208
-        "i": 0.5,           # float, middle gray
-        "j": "555",         # Yellow-green, most visible to eye
-        "k": (0.5,0.7,0.9), # 3-tuple of floats (Color() accepts this)
-        "l": "0.5 0.7 0.9", # 3-tuple of floats (Color() accepts this)
-        "m": "0.5,0.7,0.9", # 3-tuple of floats (Color() accepts this)
-    }
-    u = Trm(styles) 
-    # Only one set of outputs here prove that the .on attribute works
-    for v in (True, False):
-        print(".on is True" if v else ".on is False (no colorizing)")
-        u.on = v
-        for i in u:
-            t.print(f"  {u[i]}{i} is this color")
-    exit()
-
 if __name__ == "__main__":  
+    from lwtest import run, Assert, raises
     def Demo():
         from color import t
         styles = {"y": t.yell, "g": t.grnl, "n": t.n}
@@ -286,6 +291,35 @@ if __name__ == "__main__":
         print("\nOutside the context manager:")
         pp(u)
         print(f"  This is {u['g']}green, {u['y']}yellow is to the end{u['n']}")
-        print("The following AttributeError shows the red key 'r' is gone")
-        u.r
-    Demo()
+        with raises(AttributeError):
+            u.r
+    def Test_Init():
+        styles = {
+            "a": "orn",
+            "b1": Color("#ff8700"),
+            "b2": Color("$00a0a0"),
+            "b3": Color("@00a0a0"),
+            "c": Color(208),           
+            "d": Color(0xd0),          
+            "e": Color(0o320),         
+            "f": Color(0b11010000),
+            "g": Color("#ff8700"),
+            "h": Color("255 135 0"),
+            "i": Color(0.5),
+            "j": Color("555"),
+            "k": Color((0.5,0.7,0.9)),
+            "l": Color("0.5 0.7 0.9"),
+            "m": Color("0.5,0.7,0.9"),
+        }
+        # Verify that all values are escape codes
+        u = Trm(styles)
+        for i in u:
+            value = u[i]
+            Assert(isinstance(value, str))
+            Assert(len(value) > 0)
+            Assert(value[0] == "\x1b")
+
+    if len(sys.argv) > 1:
+        Demo()
+    else:
+        exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])

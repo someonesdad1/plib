@@ -1229,7 +1229,9 @@ if 1:   # Old Trm & ColorName
                 assert isinstance(self._bg, Color)
                 assert isinstance(self.cn, ColorName)
             def _ta(self):
-                "Return attributes mapping"
+                'Return attributes mapping'
+                # See the table at
+                # https://en.wikipedia.org/wiki/ANSI_escape_code#Select_Graphic_Rendition_parameters
                 s = '''normal-no:0 bold-bo:1 dim-di:2 italic-it:3
                 underline-ul:4 blink-bl:5 rapidblink-rb:6 reverse-rv:7
                 hide-hi:8 strikeout-so:9 doubleunderline-du:21 overline-ol:53
@@ -1672,7 +1674,7 @@ if 1:   # Old Trm & ColorName
                 new = self[names.popleft()]
                 old = old.interpolate(new, 0.5, space=space)
             return old
-    if 1:   # Define default ColorName instance
+    if 1:   # Define default Trm and ColorName instances
         CN = ColorName()
         if wsl:
             CN.load("/plib/colornames0")
@@ -1825,7 +1827,7 @@ if 1:   # RegexpDecorate class
                 if not line and not has_nl and insert_nl:
                     print(file=file)
             return True
-if 1:  # Translate between ANSI 8-bit colors (256 of them) and 24-bit RGB colors
+if 1:  # Translate between ANSI 8-bit and 24-bit colors
     def RGBtoANSI8bit(r, g, b):
         '''This function takes an RGB integer tuple and returns an integer on [0, 255]
         representing the closest ANSI 8-bit color.  This function is adapted from the
