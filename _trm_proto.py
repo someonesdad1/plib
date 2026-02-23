@@ -165,6 +165,7 @@ class Trm(dict):
         Original Trm signature was:
             def __call__(self, fg=None, bg=None, attr=None):
         I'd like to retain this, as it worked well.  Note it returned an escape code.
+        It could also be a good candidate for the resolve function.
         '''
         raise Exception("Needs to be written")
     def __setitem__(self, name, value):

@@ -1149,56 +1149,52 @@ if 1:   # Color class
                 return new
 if 1:   # Old Trm & ColorName
     class Trm:
-        '''This class is used to generate terminal escape codes
-        Ref:  https://en.wikipedia.org/wiki/ANSI_escape_code#24-bit
-        For typical use, instantiate with t = Trm().  Store "styles" by
-        using the Trm instance's attributes:
-        
-            t.err = t("red")      # Error messages are red
+        '''Class to generate terminal escape codes
+            Ref:  https://en.wikipedia.org/wiki/ANSI_escape_code#24-bit For typical use,
+            instantiate with t = Trm().  Store "styles" by using the Trm instance's
+            attributes:
             
-        Use the styles in f-strings:
-        
-            print(f"{t.err}Error:  symbol doesn't exist{t.n}")
-            
-        t.err and t.n are strings containing the ANSI escape codes
-        (t.n is the escape code for the standard terminal text).  The
-        previous can be a little more terse with the equivalent:
-        
-            t.print(f"{t.err}Error:  symbol doesn't exist")
-            
-        t.print() and t.out() output their strings then output the
-        escape code to return to the normal style.  To remove all your
-        "style" definitions, use t.reset().  To see the styles you've
-        defined, use print(t).
-        
-        Read/write properties
-            always      (bool) Set to True if you want the object to
-                        generate escape codes, even if stdout isn't a
-                        terminal.
-            cn          ColorNames instance used to translate string names
-                        to Color instances.
-            on          (bool) If True, then escape codes are generated.
-            
-        For first time use, define the terminal_bits class variable for
-        your terminal and monitor.  Most modern terminals are 24 bits.
-        You'll also want to define Trm.default_color as a tuple of two
-        Color instances for your default foreground and background colors.
-        
-        A common use case in an application is a command line option is
-        used to enable or disable colorizing.  Suppose this option is
-        encoded in the Boolean variable use_colorizing.  I recommend the
-        following pattern near the beginning of your program (t is the Trm
-        instance):
-        
-            def SetColors(t):
-                t.on = use_colorizing
-                t.a = t("red")
-                t.b = t("brn")
-                t.c = t("grn")
+                t.err = t("red")      # Error messages are red
                 
-        This ensures that the t instance's attributes will either have the
-        correct escape code strings or be empty strings if colorizing
-        wasn't wanted.
+            Use the styles in f-strings:
+            
+                print(f"{t.err}Error:  symbol doesn't exist{t.n}")
+                
+            t.err and t.n are strings containing the ANSI escape codes (t.n is the
+            escape code for the standard terminal text).  The previous can be a little
+            more terse with the equivalent:
+            
+                t.print(f"{t.err}Error:  symbol doesn't exist")
+                
+            t.print() and t.out() output their strings then output the escape code to
+            return to the normal style.  To remove all your "style" definitions, use
+            t.reset().  To see the styles you've defined, use print(t).
+            
+            Read/write properties
+                always      (bool) Set to True if you want the object to generate
+                            escape codes, even if stdout isn't a terminal.
+                cn          ColorNames instance used to translate string names to
+                            Color instances.
+                on          (bool) If True, then escape codes are generated.
+                
+            For first time use, define the terminal_bits class variable for your
+            terminal and monitor.  Most modern terminals are 24 bits.  You'll also want
+            to define Trm.default_color as a tuple of two Color instances for your
+            default foreground and background colors.
+            
+            A common use case in an application is a command line option is used to
+            enable or disable colorizing.  Suppose this option is encoded in the Boolean
+            variable use_colorizing.  I recommend the following pattern near the
+            beginning of your program (t is the Trm instance):
+            
+                def SetColors(t):
+                    t.on = use_colorizing
+                    t.a = t("red")
+                    t.b = t("brn")
+                    t.c = t("grn")
+                    
+            This ensures that the t instance's attributes will either have the correct
+            escape code strings or be empty strings if colorizing wasn't wanted.
         '''
         terminal_bits = 24
         default_color = (Color(192, 192, 192), Color(0, 0, 0))
@@ -1551,16 +1547,12 @@ if 1:   # Old Trm & ColorName
                 return "".join(s)
             @property
             def fg(self):
-                "Returns default foreground color"
-                if not self._on:
-                    return ""
-                return self._fg
+                'Returns default foreground color'
+                return self._fg if self._on else ""
             @property
             def bg(self):
-                "Returns default background color"
-                if not self._on:
-                    return ""
-                return self._bg
+                'Returns default background color'
+                return self._bg if self._on else ""
     class ColorName(dict):
         '''This class is a dictionary initialized with a file name.  This must be
         a text file that has lines with the following forms:
