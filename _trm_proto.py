@@ -83,12 +83,14 @@ class Trm(dict):
                  mag pnk lip blk brn gry wht lil pur olv'''.replace("\n", "").split())
     # Normal terminal text foreground and background colors and attribute(s)
     normal = ("wht", "blk", "normal")
-    def __init__(self, di=None, default=False):
+    def __init__(self, di=None, default=None):
         '''Call with a dictionary di relating a name string to something that will be
-        recognized by the color.Color constructor.  If default is True, then initialize
-        with the colors with key == 0 in data/dpcolornames.py (default is ignored unless
-        di is None).  Colors in di that match those in the default names will overwrite
-        the defaults.
+        recognized by the color.Color constructor.  If default is not None, then
+            0 = the colors in Trm.std
+            1 = 0 plus the "l" additions
+            2 = 1 plus the 1, 2, and 3 additions
+        Note default is ignored unless di is None.  Colors in di that match those in the
+        default names will overwrite the defaults.
         '''
         # Attributes with underscores are not meant to be accessed by the user
         self._stack = Stack()   # Saves previous states of self
@@ -96,10 +98,14 @@ class Trm(dict):
         self.always = False     # If True, output escape codes even if stdout out isn't a terminal
         self._newstyles = None  # Used for context manager behavior
         if di is None:
-            if default:  # Get the default colors
+            if default is not None:  # Get the default colors
                 for i in Trm.std:
-                    for j in ("l", "", "1", "2", "3"):
-                        self[i + j] = Color(i + j)
+                    if default > 0:
+                        self[i + "l"] = Color(i + "l")
+                    self[i] = Color(i)
+                    if default > 1:
+                        for j in ("1", "2", "3"):
+                            self[i + j] = Color(i + j)
                 # Add n attribute to return to default color
                 self["n"] = self(*Trm.normal)
         else:
@@ -136,7 +142,7 @@ class Trm(dict):
             - Separate multiple attributs by spaces
             - Typical:  'no' for normal, 'bo' for bold, 'it' for italic, etc.
         '''
-        ok = (str, Color)
+        ok = (str, Color, int, float, Decimal, Fraction)
         msg = "{} must be None, a string, or a Color instance"
         if fg is not None and not isinstance(fg, ok):
             s = msg.format("fg") + f":\n    It's {fg!r}" 
@@ -218,7 +224,7 @@ class Trm(dict):
         other attributes that are not in the dict without the infinite recursion
         problem.
         '''
-        return super().__getitem__(name) if name in self else super().__getattribute__(name)
+        return self.__getitem__(name) if name in self else super().__getattribute__(name)
     def __enter__(self):    # Context manager entry
         assert self._newstyles is not None
         self.ppush(self._newstyles)
@@ -230,19 +236,19 @@ class Trm(dict):
             return True     # Ignore this exception
         else:
             return False    # Don't ignore this exception
-    def update(self, di, **kw):
+    def update(self, *p, **kw):
         '''Update ourselves with another dictionary, pair iterable, or keywords.  Note
         this method will result in __setitem__ being called, which ensures translation
         to an escape code.
         '''
-        if hasattr(di, "keys"):
-            for key in di:
-                self[key] = di[key]
-        elif di:
-            for key, value in di:
+        if len(p) == 1 and hasattr(p[0], "keys"):
+            for key in p[0]:
+                self[key] = p[0][key]
+        elif p:
+            for key, value in p:
                 self[key] = value
         for key in kw:
-            self[key] = di[key]
+            self[key] = kw[key]
     def ppush(self, styles_dict=None):
         '''The styles dict must be a dict instance or None.  Update our values with
         styles_dict's values after saving a copy of ourself on the stack.
@@ -283,7 +289,7 @@ class Trm(dict):
         if "end" not in k:
             k["end"] = ""
         print(*p, **k)
-        print(self.n, **k)
+        print(self.n, **k) if "n" in self else print("", **k)
     def uses(self, styles_dict):
         'Used to utilize a new set of styles in a context manager block'
         self._newstyles = styles_dict
@@ -367,19 +373,10 @@ if __name__ == "__main__":
             Assert(isinstance(value, str) and len(value) > 0)
             Assert(value[0] == "\x1b")
             Assert(value == yg if i >= 15 else blk)
-    def Test_Trm_Attributes():
-        '''Verify that on and always work.
-        '''
-        u = Trm()
-        u["red"] = u("red")
-        # Note u.red works because it calls __getattribute__
-        Assert(u.red == '\x1b[38;2;254;0;0m')
-        Assert(u["red"] == '\x1b[38;2;254;0;0m')
-
     def Test_Trm_Stack():
         'Show we can push and pop a new state'
         # Demonstrate we can initialize an empty dictionary
-        u = Trm(default=False)
+        u = Trm()
         Assert(not len(u))
         # Add two new colors
         u[0] = "red"
@@ -415,7 +412,7 @@ if __name__ == "__main__":
         Assert(u[2] == blu)
     def Test_Trm_Default():
         'Show that the default Trm instance has some of the basic names'
-        u = Trm(default=True)
+        u = Trm(default=0)
         items = "red ord orn yon yel ygr lwn grn sea trq cyn".split()
         items += "sky den roy blu vio lav mag pnk lip blk ".split()
         items += "brn gry wht lil pur olv".split()
@@ -426,12 +423,12 @@ if __name__ == "__main__":
         behavior of the old implementation, particularly changing the background color
         and attributes.
         '''
-        u = Trm(default=True)
+        u = Trm(default=0)
         u.c = u("whtl", "blu", attr="ul")
         Assert(u.c == '\x1b[38;2;255;255;255m\x1b[48;2;0;0;254m\x1b[4m')
         Assert(u.n == '\x1b[38;2;181;181;181m\x1b[48;2;0;0;0m\x1b[0m')
     def Test_Trm_ContextManager():
-        u = Trm(default=False)
+        u = Trm()
         u[0] = "red"
         red = '\x1b[38;2;254;0;0m'
         Assert(u[0] == red)
@@ -440,10 +437,86 @@ if __name__ == "__main__":
         with u.uses(di) as p:
             Assert(u[0] == blu)
         Assert(u[0] == red)
+    def Test_Trm_Attributes():
+        'Verify that on and always work, along with attributes'
+        if 1:   # Attribute behavior:  Color --> escape code
+            u = Trm()
+            # Normal dictionary setting works 
+            u["red"] = u("red")
+            Assert(u["red"] == '\x1b[38;2;254;0;0m')
+            # red also acts as if it was an attribute
+            Assert(u.red == '\x1b[38;2;254;0;0m')
+            del u["red"]
+            Assert("red" not in u)
+            with raises(AttributeError):
+                u.red   # Now it's not an attribute anymore
+            # Set it as an attribute
+            u.red = u("red")
+            Assert(u.red == '\x1b[38;2;254;0;0m')
+            Assert(u["red"] == '\x1b[38;2;254;0;0m')
+            del u["red"]
+            Assert("red" not in u)
+        if 1:   # Attributes that start wit underscores
+            a = 42
+            with raises(AttributeError):
+                u._x
+            u._x = a
+            Assert(u._x == a)
+            del u._x
+            with raises(AttributeError):
+                u._x
+        if 1:   # Show that on toggles escape code output on and off
+            esc, nl = '\x1b[38;2;254;0;0m', "\n"
+            u = Trm()
+            u.red = u("red")
+            u.on = True
+            Assert(u.red == esc)
+            u.on = False
+            Assert(u.red == "")
+            u.on = True
+            Assert(u.red == esc)
+        if 1:   # Show that always == on gets output even if stdout isn't a tty
+            esc, nl = '\x1b[38;2;254;0;0m', "\n"
+            u = Trm()
+            u.red = u("red")
+            u.always = False
+            f = io.StringIO()
+            with contextlib.redirect_stdout(f):
+                print(u.red)
+            s = f.getvalue()
+            Assert(s == nl)
+            u.always = True
+            f = io.StringIO()
+            with contextlib.redirect_stdout(f):
+                print(u.red)
+            s = f.getvalue()
+            Assert(s == esc + nl)
     def Test_Trm_Update():
+        'Verify the update method works with the three types of input'
+        result = {'red': '\x1b[38;2;254;0;0m'}
+        # Method 1:  a dict
+        di = {"red": "red"}
+        u = Trm(di)     # Check constructor works with a dict too
+        Assert(u == result)
         u = Trm()
-        Assert(not u)
+        u.update(di)
+        Assert(u == result)
+        # Method 2:  an iterable (won't work with constructor)
+        u = Trm()
+        u.update(["red", "red"])
+        Assert(u == result)
+        # Method 3:  keyword arguments (won't work with constructor)
+        u = Trm()
+        u.update(red="red")
+        Assert(u == result)
 
+    if 0:
+        u = Trm()
+        for i in (0, 1, 2):
+            print(i)
+            u = Trm(default=i)
+            u.list()
+        exit()
     if 0 or len(sys.argv) > 1:
         Demo()
     else:
