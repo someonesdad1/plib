@@ -83,7 +83,7 @@ class Trm(dict):
                  mag pnk lip blk brn gry wht lil pur olv'''.replace("\n", "").split())
     # Normal terminal text foreground and background colors and attribute(s)
     normal = ("wht", "blk", "normal")
-    def __init__(self, di=None, default=True):
+    def __init__(self, di=None, default=False):
         '''Call with a dictionary di relating a name string to something that will be
         recognized by the color.Color constructor.  If default is True, then initialize
         with the colors with key == 0 in data/dpcolornames.py (default is ignored unless
@@ -173,39 +173,36 @@ class Trm(dict):
                     raise ValueError(f"{a!r} is not a valid attribute")
                 out.append(f"\x1b[{di[a]}m")
         return ''.join(out)
-    def __setitem__(self, name, value):     # Set attributes and keys
-        '''Set our attributes or dict key items.  If name is not one of our attributes,
-        it's a dict key and will be converted to an escape sequence.
-        '''
-        if name == "on":
-            self.on = bool(value)
-        elif name == "always":
-            self.always = bool(value)
-        elif name == "_newstyles":  # Used for context manager behavior
-            if not isinstance(value, dict):
-                raise TypeError("value must be a dict")
-            self._newstyles = value
-        elif name == "_stack":
-            if not isinstance(value, Stack):
-                raise TypeError("value must be a Stack")
-            self._stack = value
-        else:   # It is a dict key; convert to escape code
-            # value can be a single argument or a sequence of 1 to 3 arguments.  They 
-            # will be used with the __call__ method
-            if isinstance(value, (tuple, list)):
-                if len(value) in (1, 2, 3):
-                    escape_code = self(*value)
-                else:
-                    raise ValueError("value sequence must have 1 to 3 components")
+    def __setitem__(self, name, value):     # Set self[key]
+        'Set self[key] to value and convert it to an escape sequence'
+        # value can be a single argument or a sequence of 1 to 3 arguments.  They 
+        # will be used with the __call__ method
+        if isinstance(value, (tuple, list)):
+            if len(value) in (1, 2, 3):
+                escape_code = self(*value)
             else:
-                if isinstance(value, str) and value[0] == "\x1b":
-                    # It's already an escape code
-                    escape_code = value
-                else:
-                    escape_code = self(value)
-            assert isinstance(escape_code, str) and escape_code[0] == "\x1b"
-            super().__setitem__(name, escape_code)
-    def __getitem__(self, name):        # Get dict's item keyed by name
+                raise ValueError("value sequence must have 1 to 3 components")
+        else:
+            if isinstance(value, str) and value[0] == "\x1b":
+                # It's already an escape code
+                escape_code = value
+            else:
+                escape_code = self(value)
+        assert isinstance(escape_code, str) and escape_code[0] == "\x1b"
+        super().__setitem__(name, escape_code)
+    def __setattr__(self, name, value):     # Set an attribute
+        '''This is used to make sure the on, always, and any attributes that start with
+        '_' get set correctly.  It also adds syntactic sugar to the class by letting you
+        set and access dictionary keys by using them like attributes, as long as they
+        are strings that have isidentifier() True.
+        '''
+        if name in set("on always".split()):
+            super().__setattr__(name, bool(value))
+        elif name.startswith("_"):
+            super().__setattr__(name, value)
+        else:
+            self[name] = value
+    def __getitem__(self, name):        # Get self[name]
         'This is used to get self[name]'
         # If self.on isn't True, always return an empty string
         if not self.on:
@@ -294,6 +291,8 @@ class Trm(dict):
 
 if __name__ == "__main__":  
     from lwtest import run, Assert, raises
+    import io
+    import contextlib
     def Demo():
         print("Here's the color names in the default instance:")
         u = Trm(default=True)
@@ -347,18 +346,19 @@ if __name__ == "__main__":
             5: Color(0x0),          
             6: Color(0o0),         
             7: Color(0b0),
-            8: Color("0 0 0"),
-            9: Color("0,0,0"),
-            10: Color(0.0),
-            11: Color((0.0,0.0,0.0)),
-            12: Color("0.0 0.0 0.0"),
-            13: Color("0.0,0.0,0.0"),
-            14: Color("555"),
-            15: Color(555),
-            16: Color(555.0),
+            8: Color((0, 0, 0)),
+            9: Color("0 0 0"),
+            10: Color("0, 0, 0"),
+            11: Color(0.0),
+            12: Color((0.0, 0.0, 0.0)),
+            13: Color("0.0 0.0 0.0"),
+            14: Color("0.0,0.0,0.0"),
+            15: Color("555"),
+            16: Color(555),
+            17: Color(555.0),
         }
         # Verify that all values are escape codes and that all are the same as blk
-        # except for #14, which is a yellow-green
+        # except for #15, which is a yellow-green
         u = Trm(styles, default=False)
         blk = "\x1b[38;2;0;0;0m"
         yg = "\x1b[38;2;90;240;6m"
@@ -366,7 +366,16 @@ if __name__ == "__main__":
             value = u[i]
             Assert(isinstance(value, str) and len(value) > 0)
             Assert(value[0] == "\x1b")
-            Assert(value == yg if i > 13 else blk)
+            Assert(value == yg if i >= 15 else blk)
+    def Test_Trm_Attributes():
+        '''Verify that on and always work.
+        '''
+        u = Trm()
+        u["red"] = u("red")
+        # Note u.red works because it calls __getattribute__
+        Assert(u.red == '\x1b[38;2;254;0;0m')
+        Assert(u["red"] == '\x1b[38;2;254;0;0m')
+
     def Test_Trm_Stack():
         'Show we can push and pop a new state'
         # Demonstrate we can initialize an empty dictionary
@@ -406,7 +415,7 @@ if __name__ == "__main__":
         Assert(u[2] == blu)
     def Test_Trm_Default():
         'Show that the default Trm instance has some of the basic names'
-        u = Trm()
+        u = Trm(default=True)
         items = "red ord orn yon yel ygr lwn grn sea trq cyn".split()
         items += "sky den roy blu vio lav mag pnk lip blk ".split()
         items += "brn gry wht lil pur olv".split()
@@ -417,7 +426,7 @@ if __name__ == "__main__":
         behavior of the old implementation, particularly changing the background color
         and attributes.
         '''
-        u = Trm()
+        u = Trm(default=True)
         u.c = u("whtl", "blu", attr="ul")
         Assert(u.c == '\x1b[38;2;255;255;255m\x1b[48;2;0;0;254m\x1b[4m')
         Assert(u.n == '\x1b[38;2;181;181;181m\x1b[48;2;0;0;0m\x1b[0m')
@@ -433,7 +442,9 @@ if __name__ == "__main__":
         Assert(u[0] == red)
     def Test_Trm_Update():
         u = Trm()
-    if 1 or len(sys.argv) > 1:
+        Assert(not u)
+
+    if 0 or len(sys.argv) > 1:
         Demo()
     else:
         exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
