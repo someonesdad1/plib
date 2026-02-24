@@ -368,6 +368,16 @@ if __name__ == "__main__":
         u.c = u("whtl", "blu", attr="ul")
         Assert(u.c == '\x1b[38;2;255;255;255m\x1b[48;2;0;0;254m\x1b[4m')
         Assert(u.n == '\x1b[38;2;181;181;181m\x1b[48;2;0;0;0m\x1b[0m')
+    def Test_ContextManager():
+        u = Trm(default=False)
+        u[0] = "red"
+        red = '\x1b[38;2;254;0;0m'
+        Assert(u[0] == red)
+        di = {0: Color("blu")}
+        blu = '\x1b[38;2;0;0;254m'
+        with u.uses(di) as p:
+            Assert(u[0] == blu)
+        Assert(u[0] == red)
 
     if len(sys.argv) > 1:
         Demo()
