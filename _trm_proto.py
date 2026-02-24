@@ -1,95 +1,70 @@
 '''
 
-t = Trm()
-
 ToDo
-    - https://runebook.dev/en/docs/python/library/collections/collections.UserDict
-      explains why collections.UserDict might be a better choice:  dict.update() might
-      ignore your __setitem__.  This means if I stick with Trm(dict), then every dict
-      method I use has to be defined in the class to ensure it works.  Unfortunately,
-      python's documentation doesn't discuss this.
-    - Start writing selftests
-    - Get .always working
-    - t(x) returns the escape code for x
-    - Working
-        - .on works
-        - Init with a variety of color specifications
+    - Add update() and only take dicts
+    - Trm(di):  if di is a Trm instance, make an identical (deep) copy of it
 
-Vision
-    - Change Trm to a dict, letting it be a tool to convert names to escape sequences to
-      get color output in a terminal.  Let t = Trm()
-        - t.n is the same as t["n"]
-        - Core attributes that are not color name to escape codes
-            - t.on      Boolean to decide whether t[x] provides escape code or ""
-            - t.always  If true, output even if stdout.isatty() is False
-        - ppush() and ppop() methods for new dict names
-        - Supports context manager pattern for temporarily changing styles
-
-    - Initialization:  
-        - See xstylesx for some tests cases below
-            - All of these should be handled by the Color() constructor
-        - The dict is initialized with f"t.{name}" = X where X is
-            - "xxx"   Most typical, a short name
-            - Color(...)
-            - "#aabbcc"
-            - "60 60 60" or (60,60,60)
-            - 0xff or "0xff"    8-bit integer
-            - 3.473     float, uses math.modf(x)[0] --> [0, 1] for a gray
-            - "555 nm"  Wavelength between 400 and 700 nm
-        - After these strings are set, the resolve() method is called to turn all the
-          values into escape strings
-
-    - class Trm(dict):  let t be an instance
-        - Generates terminal escape codes
-        - t.sky = t["sky"] and this returns the escape code
-        - Defining colors 
-            - t.sky = Color(...)            # Uses Color instance
-            - t.sky = "#aabbcc"             # Uses Color(arg)
-            - t.sky = "60 60 60"            # String form of Tuple of integers
-            - t.sky = (60,60,60)            # Tuple of integers
-            - t.sky = x:int                 # 8-bit color abs(int(x)) mod 256
-            - t.sky = "0xff"                # Converted to int to get 8-bit color
-            - t.sky = x:float               # math.modf(x)[0] --> [0, 1] for a gray
-        - Uses external class to do the 4, 8, or 24 bit color conversions?  Or, use
-          multiple inheritance to use a ColorBit class that is initialized with 4, 8, or
-          24 bits
-        - t.on = bool turns the output of escape codes on and off
-        - t.always = bool If True, outputs even if stdout doesn't appear to be a
-          terminal (sys.stdout.isatty() == False)
 '''
-if 1:   # Standard imports
-    import collections
-    import decimal
-    import fractions
-    import math
-    import sys
-    Decimal = decimal.Decimal
-    Fraction = fractions.Fraction
-if 1:   # Custom imports
-    import color
-    import dpcolornames
-    import dpmath
-    import dpprint
-    import stack
-    import wl2rgb
-    Color = color.Color
-    t = color.t
-    Stack = stack.Stack
-    PP = dpprint.PP
-    pp = PP()   # Get pprint with current screen width
-if 1:
-    import debug
-    debug.SetDebugger()
+if 1:   # Header
+    if 1:   # Standard imports
+        import collections
+        import decimal
+        import fractions
+        import math
+        import sys
+        Decimal = decimal.Decimal
+        Fraction = fractions.Fraction
+    if 1:   # Custom imports
+        import color
+        import columnize
+        import dpcolornames
+        import dpmath
+        import dpprint
+        import stack
+        import wl2rgb
+        Color = color.Color
+        Columnize = columnize.Columnize
+        Stack = stack.Stack
+        PP = dpprint.PP
+        pp = PP()   # Get pprint with current screen width
+    if 0:
+        import debug
+        debug.SetDebugger()
 
 class Trm(dict):
     '''Dictionary used to output escape codes to a terminal.
 
+    u = Trm(default=True)   # Initialized with my default set of colors
+    u.list()                # Print the defined color names to stdout
+
+    Define new colors:
+        u[0] = "Pine glade"         # Name will be normalized to "pine_glade"
+        u.debug = u("wht", "blu")   # White foreground on blue background
+        u.ul = u(attr="ul")         # Normal color but underlined
+        Defining new attributes like this converts them to Color instances, then
+        converts them to ANSI escape code strings.
+    Access color names in two ways:
+        u["red"]                    # Dictionary style
+        u.red                       # Attribute style (name must be valid python symbol)
+    Print to the terminal in color:
+        print(f"Here's a message {u.red}partly in red.")    # Print with newline
+        --> Problem:  terminal output is left in color red, so next output is in the same
+        color.  Here's a fix:
+        u.print(f"Here's a message {u.red}partly in red.")  # Back to default at end
+
+
     '''
+    # Standard color names to use by default
+    std = set('''red ord orn yon yel ygr lwn grn sea trq cyn sky den roy blu vio lav
+                 mag pnk lip blk brn gry wht lil pur olv'''.replace("\n", "").split())
+    # Normal terminal text foreground and background colors and attribute(s)
+    normal = ("wht", "blk", "normal")
     def __init__(self, di=None, default=True):
         '''Call with a dictionary di relating a name string to something that will be
         recognized by the color.Color constructor.  If default is True, then initialize
-        with the colors with key == 0 in data/dpcolornames.py.  Colors in di that match
-        those in the default names will overwrite the defaults.
+        with the colors with key == 0 in data/dpcolornames.py (default is ignored unless
+        di is None).  Colors in di that match those in the default names will overwrite
+        the defaults.
         '''
         # Attributes with underscores are not meant to be accessed by the user
         self._stack = Stack()   # Saves previous states of self
@@ -97,21 +72,17 @@ class Trm(dict):
         self.always = False     # If True, output escape codes even if stdout out isn't a terminal
         self._newstyles = None  # Used for context manager behavior
         # Get the defaults
-        if default:
-            items = "red ord orn yon yel ygr lwn grn sea trq cyn".split()
-            items += "sky den roy blu vio lav mag pnk lip blk ".split()
-            items += "brn gry wht lil pur olv".split()
-            for i in items:
+        if di is None and default:
+            for i in Trm.std:
                 self[i] = Color(i)
+            # Add n attribute to return to default color
+            self["n"] = self(*Trm.normal)
         # Convert the items in names_dict to escape codes and add them to our mapping
         if di is not None:
             if not isinstance(di, dict):
                 raise TypeError("di must be a dict")
             for i in di:
                 self[i] = di[i]
-        if default:
-            # Add n attribute to return to default color
-            self["n"] = self("wht", "blk", "no")
     def _get_escape_code(self, color, bg=False):
         'Return escape code for the Color instance color'
         # Assumes 24-bit color
@@ -237,6 +208,59 @@ class Trm(dict):
         previous = self._stack.pop()
         self.update(previous)
         return old_self
+    def list(self, msg=None, ignore_std=True):
+        'Print defined color attributes to stdout'
+        for i in self:
+            print(i)
+        exit() #yy
+
+        std = set('''
+            blk blu brn cyn den grn gry lav lil lip lwn mag n  olv orn pnk pur red
+            roy sea sky trq vio wht yel'''.split())
+        # Get the other standard names from colornames0
+        with open("colornames0") as fp:
+            lines = fp.read().split("\n")
+            fp.close()
+        while lines:
+            line = lines.pop(0).strip()
+            if not line:
+                continue
+            if line.strip()[0] == "#":
+                continue
+            s = line.split(":")[0].replace("'", "")
+            std.add(s)
+        o = []
+        for i in sorted(dir(self)):
+            s = eval(f"self.{i}")
+            try:
+                if s.startswith("\x1b["):
+                    if ignore_std and i in std:
+                        continue
+                    o.append(f"{s}t.{i}{t.n}")
+            except Exception:
+                pass
+        if o:
+            if msg is not None:
+                if msg.strip():
+                    print(msg)
+            else:
+                if ignore_std:
+                    print("class Trm color attributes ignoring standard ones:")
+                else:
+                    print("class Trm color attributes:")
+            for i in Columnize(o, indent="  ", sep=" "*4):
+                print(i)
+    def print(self, *p, **kw):
+        'Print arguments with newline, reverting to normal color after finishing'
+        self.out(*p, **kw)
+        print(**kw)
+    def out(self, *p, **kw):
+        'Same as print() but no newline'
+        k = kw.copy()
+        if "end" not in k:
+            k["end"] = ""
+        print(*p, **k)
+        print(self.n, **k)
     if 1:   # Context manager
         def uses(self, styles_dict):
             'Used to utilize a new set of styles in a context manager block'
@@ -259,7 +283,7 @@ if __name__ == "__main__":
     def Demo():
         from color import t
         styles = {"y": t.yell, "g": t.grnl, "n": t.n}
-        u = Trm(styles) 
+        u = Trm(styles, default=False) 
         print("The following demonstrates normal dictionary access to colors:")
         print(f"  This is {u['g']}green, {u['y']}yellow is to the end{u['n']}")
         newstyles = {"r": t.red, "g": t.blul, "y": t.cynl}
@@ -379,6 +403,8 @@ if __name__ == "__main__":
             Assert(u[0] == blu)
         Assert(u[0] == red)
 
+    u = Trm()
+    u.list()
     if len(sys.argv) > 1:
         Demo()
     else:
