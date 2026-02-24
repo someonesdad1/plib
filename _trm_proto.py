@@ -109,6 +109,9 @@ class Trm(dict):
                 raise TypeError("di must be a dict")
             for i in di:
                 self[i] = di[i]
+        if default:
+            # Add n attribute to return to default color
+            self["n"] = self("wht", "blk", "no")
     def _get_escape_code(self, color, bg=False):
         'Return escape code for the Color instance color'
         # Assumes 24-bit color
@@ -144,41 +147,6 @@ class Trm(dict):
             raise ValueError(s)
         if not self.on or all(i is None for i in (fg, bg, attr)):
             return ""
-        '''
-        Primer on ANSI escape sequences
-        https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters
-        gives information on attributes and the section below that discusses colors.
-    
-        4-bit color
-            ESC[<f>;<b>m    f is foreground, b is background
-            f   g                               Short name
-            30  40  Black                       blk
-            31  41  Red                         red
-            32  42  Green                       grn
-            33  43  Yellow                      yel
-            34  44  Blue                        blu
-            35  45  Magenta                     mag
-            36  46  Cyan                        cyn
-            37  47  White                       wht
-            90 100  Bright black (gray)         blkl
-            91 101  Bright red                  redl
-            92 102  Bright green                grnl
-            93 103  Bright yellow               yell
-            94 104  Bright blue                 blul
-            95 105  Bright magenta              magl
-            96 106  Bright cyan                 cynl
-            97 107  Bright white                whtl
-        8-bit color
-            ESC[38;5;<n>m      Foreground color
-            ESC[48;5;<n>m      Background color
-            0-7    :  Standard colors
-            8-15   :  High intensity colors
-            16-231 :  6x6x6 cube:  16 + 36*r + 6*g + b (0 <= r, b, g <= 5)
-            232-255:  Grayscale from black to white in 24 steps
-        24-bit color
-            ESC[38;2;<r>;<g>;<b>m      RGB foreground color
-            ESC[48;2;<r>;<g>;<b>m      RGB background color
-        '''
         # Convert to a Color instance
         if fg and isinstance(fg, ok):
             fg = Color(fg)
@@ -201,7 +169,7 @@ class Trm(dict):
             for a in attr.split():
                 if a not in di:
                     raise ValueError(f"{a!r} is not a valid attribute")
-                out.append(f"\x1b[{am[a]}m")
+                out.append(f"\x1b[{di[a]}m")
         return ''.join(out)
     def __setitem__(self, name, value):
         if name == "on":
@@ -221,7 +189,11 @@ class Trm(dict):
                 else:
                     raise ValueError("value sequence must have 1 to 3 components")
             else:
-                escape_code = self(value)
+                if isinstance(value, str) and value[0] == "\x1b":
+                    # It's already an escape code
+                    escape_code = value
+                else:
+                    escape_code = self(value)
             assert isinstance(escape_code, str) and escape_code[0] == "\x1b"
             super().__setitem__(name, escape_code)
     def __getitem__(self, name):
@@ -392,7 +364,10 @@ if __name__ == "__main__":
         behavior of the old implementation, particularly changing the background color
         and attributes.
         '''
-        u = Trm(default=False)
+        u = Trm()
+        u.c = u("whtl", "blu", attr="ul")
+        Assert(u.c == '\x1b[38;2;255;255;255m\x1b[48;2;0;0;254m\x1b[4m')
+        Assert(u.n == '\x1b[38;2;181;181;181m\x1b[48;2;0;0;0m\x1b[0m')
 
     if len(sys.argv) > 1:
         Demo()
