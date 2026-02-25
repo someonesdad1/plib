@@ -34,7 +34,7 @@ if 1:   # Header
 class Trm(dict):
     '''Dictionary used to output escape codes to a terminal.
 
-        u = Trm(default=True)   # Initialized with my default set of colors
+        u = Trm(default=0)      # Initialized with my default set of colors
         u.list()                # Print the defined color names to stdout
 
         Define new colors:
@@ -53,8 +53,8 @@ class Trm(dict):
             color.  Here's a fix:
             u.print(f"Here's a message {u.red}partly in red.")  # Back to default colors at end
 
-        Changing color styles: There are a few different ways to use different sets of
-        colors without losing your old ones:
+        Changing color styles: There are a few ways to use different sets of colors
+        without losing your old ones:
             
         - Push and pop:  an internal stack maintains the Trm instance's dictionary state
           (i.e., the key:value pairs).  Call u.ppush() and the stack holds the existing
@@ -69,6 +69,11 @@ class Trm(dict):
             u.print("{u.red}No, this is red")
             
         - Make a copy:  v = Trm(u) is a deep copy of u.  Toss it out when you're finished.
+
+        Attributes
+            - You can store attributes in the dictionary instance, but they must start
+              with "_" so that they do not get modified.  All other attributes you set
+              are converted to a color.Color instance, then changed to an escape code.
 
         References:
         - Normal, bold, italic, underlined, subscript, superscript, etc.:
@@ -317,7 +322,7 @@ if __name__ == "__main__":
     from lwtest import run, Assert, raises
     import io
     import contextlib
-    def Demo():
+    def TrmDemo():
         print("Here's the color names in the default instance:")
         u = Trm(default=True)
         u.list()
@@ -512,30 +517,42 @@ if __name__ == "__main__":
     def Test_Trm_Update():
         'Verify the update method works with the three types of input'
         result = {'red': '\x1b[38;2;254;0;0m'}
-        # Method 1:  a dict
-        di = {"red": "red"}
-        u = Trm(di)     # Check constructor works with a dict too
-        Assert(u == result)
-        u = Trm()
-        u.update(di)
-        Assert(u == result)
-        # Method 2:  an iterable (won't work with constructor)
-        a = ["red", "red"]
-        u = Trm(a)     # Check constructor works with a sequence
-        Assert(u == result)
-        u = Trm()
-        u.update(a)
-        Assert(u == result)
-        # Method 3:  keyword arguments (won't work with constructor)
-        kw = {"red": "red"}
-        u = Trm(**kw)     # Check constructor works with a keyword dict
-        Assert(u == result)
-        u = Trm()
-        u.update(kw)
-        Assert(u == result)
+        if 1:   # Method 1:  a dict
+            di = {"red": "red"}
+            u = Trm(di)     # Check constructor works with a dict too
+            Assert(u == result)
+            u = Trm()
+            u.update(di)
+            Assert(u == result)
+        if 1:   # Method 2:  an iterable (won't work with constructor)
+            a = ["red", "red"]
+            u = Trm(a)     # Check constructor works with a sequence
+            Assert(u == result)
+            u = Trm()
+            u.update(a)
+            Assert(u == result)
+        if 1:   # Method 3:  keyword arguments (won't work with constructor)
+            kw = {"red": "red"}
+            u = Trm(**kw)     # Check constructor works with a keyword dict
+            Assert(u == result)
+            u = Trm()
+            u.update(kw)
+            Assert(u == result)
+    def Test_Trm_Big_Dict():
+        '''Load one of all the colors in data/dpcolornames.py.  This is nearly 6000
+        colors, but it only takes about 100 ms to load on my 10-year-old computer, so
+        you can have access to a lot of colors if you want them.
+        '''
+        di = dpcolornames.colornames
+        keys, values = [], []
+        for key in di:
+            keys.append(key)
+            value = di[key][0]  # This is a namedtuple
+            values.append(Color(value.hex))
+        u = Trm(*zip(keys, values))
+        #print(len(u))
 
     if 0:
-        u = Trm()
         for i in (0, 1, 2):
             print(i)
             u = Trm(default=i)
