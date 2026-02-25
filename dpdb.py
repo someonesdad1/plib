@@ -78,16 +78,17 @@ if 1:  # Header
         import re
         import sys
     if 1:   # Custom modules
-        import trm
+        import dpstr
         import columnize
         import f
+        import trm
     if 1:   # Import symbols
         Decimal = decimal.Decimal
         Fraction = fractions.Fraction
         Path = pathlib.Path
         Pdb = pdb.Pdb
         # 
-        RegexpDecorate = color.RegexpDecorate
+        RegexpDecorate = dpstr.RegexpDecorate
         Columnize = columnize.Columnize
         flt = f.flt
         cpx = f.cpx

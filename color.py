@@ -172,1670 +172,991 @@ if 1:  # Header
         g = G()  # Container for global variables
         __all__ = "Color Trm TRM t ColorName CN RegexpDecorate".split()
         g.trm_new = 0
-if 1:   # Color class
-    class Color:
-        '''Storage of the three numbers used to define a color.  
-            
-            Constructor forms are (note that the absolute values of the components are
-            used):
+class Color:
+    '''Storage of the three numbers used to define a color.  
         
-            Color(inst)     Makes a copy of another Color instance
-            Color(seq)
-                            seq is a sequence of 3 numbers or strings
-            Color(int)
-                0-255       8-bit ANSI color number
-                > 255       Light wavelength in nm (black if not on [380, 780])
-            Color(float)
-                0-1         Grayscale, 0 == black, 1 == white
-                > 1         Light wavelength in nm (black if not on [380, 780])
-            Color(str)
-                "\x1b..."   ANSI escape sequence
-                "#abcdef"   RGB hex form
-                "$abcdef"   HLS hex form
-                "@abcdef"   HSV hex form
-                "x x x"     Three space-separated numbers
-                "x,x,x"     Three comma-separated numbers
-                name        Look up an existing color name (normalized)
-            Color(int, int, int)
-                Values must be on [0, 255] and are interpreted as 24-bit RGB unless the
-                keywords hsv or hls are True.
-            Color(float, float, float)
-                A 3-vector normalized to be a unit vector, then converted to integers to
-                call Color(int, int, int).
-            
-            Where a floating point type is used for a number, the number can also be a
-            Decimal, Fraction, or mpmath.mpf type.
-            
-            Color names are normalized with Color.NormalizeColorName(), which returns
-            snake-case lowercase ASCII letter names.  The allowed names used are in
-            /plib/data/dpcolornames.py.
-        '''
-        bits_per_color = 8
-        def __init__(self, *p, **kw):
-            "Initialize the Color object"
-            if 1:
-                if 1:   # Check for proper keyword arguments
-                    allowed = set("bpc hsv hls".split())
-                    actual = set(kw.keys())
-                    if not (actual <= allowed):
-                        bad = actual - allowed
-                        s = ", ".join(bad)
-                        msg = f"Bad keyword(s):  {s}"
-                        raise ValueError(msg)
-                if 1:   # Set attributes
-                    self._bpc = kw.get("bpc", Color.bits_per_color)
-                    self._rgb = None    # RGB integer components
-                    self._sort = "rgb"  # Sorting order (must be rgb, hsv, or hls)
-                if 1:   # Process the arguments:  get (u, v, w), which covers all constructor use cases
-                    # If p is a single argument, v and w will be None.  Otherwise, we should
-                    # have the tuple (u, v, w) as the supplied arguments.
-                    try:
-                        u = p[0]
-                    except Exception:
-                        raise ValueError("color.Color() constructor needs at least one argument")
-                    try:
-                        v, w = p[1], p[2]
-                    except Exception:
-                        v, w = None, None
-                    if (v and u is None) or (v and u and len(p) > 3):
-                        raise ValueError("color.Color() constructor needs either 1 or 3 arguments")
-                    # u could be a tuple or list of numbers
-                    if isinstance(u, (tuple, list)):
-                        if len(u) != 3:
-                            raise ValueError("color.Color() constructor must be sequence of 3 items")
-                        u, v, w = u
-            # Core constructor code
-            if (u is not None) and (v is not None) and (w is not None):     # p is a sequence of 3 items
-                # Possibilities ('hsv' and 'hls' keywords meaningful):
-                #   1.  3 integers
-                #   2.  3 floats
-                r = (u, v, w)
-                if all(isinstance(i, int) for i in r):  # Case 1:  3 integers
-                    rgb = tuple(abs(i) & self.n for i in r)
-                else:  # Convert to floats
-                    try:
-                        dec = tuple(abs(float(i)) for i in r)   # Case 2:  3 floats
-                    except Exception:
-                        msg = f"'{r}' couldn't be converted to floats"
-                        raise TypeError(msg)
-                    else:
-                        if not all(0 <= i <= 1 for i in dec):
-                            # Normalize to a unit 3-vector
-                            magnitude = sum(i*i for i in dec)**(1/2)
-                            dec = tuple(i/magnitude for i in dec)
-                    # Convert to 3-tuple of integers
-                    rgb = tuple(int(round(i*self.n, 1)) for i in dec)
-                self._rgb = rgb
-                # Handle 'hsv' and 'hls' keywords
-                if kw.get("hsv", False):
-                    dec = colorsys.hsv_to_rgb(*self.drgb)
-                    self._rgb = tuple(int(round(i*self.n)) for i in dec)
-                elif kw.get("hls", False):
-                    dec = colorsys.hls_to_rgb(*self.drgb)
-                    self._rgb = tuple(int(round(i*self.n)) for i in dec)
-            elif (u is not None) and (v is None) and (w is None):           # p is one object
-                # Possibilities:
-                #   1.  Color instance
-                #   2.  int
-                #   3.  float
-                #   4.  object --> int
-                #   5.  object --> float
-                #   6.  str
-                #       ANSI escape sequence
-                #       Hex string for color
-                #           '#123456', '$123456', '@123456'
-                #       Color name
-                #           'red'
-                #       3-tuple of integers
-                #           '12 34 56' or '12,34,56' or '12;34;56'
-                #       3-tuple of floats
-                #           '1.2 3.4 5.6' or '1.2,3.4,5.6' or '1.2;3.4;5.6'
-                #       int
-                #           '12'
-                #       float
-                #           '1.2'
-                if isinstance(u, Color):    # Case 1
-                    self._bpc = u._bpc
-                    self._rgb = u._rgb
-                    self._sort = u._sort
-                elif isinstance(u, int):    # Case 2
-                    u = abs(u)
-                    if 0 <= u <= 255:   # 8-bit ANSI color
-                        c = Translate8bit(u)
-                    else:               # Wavelength of light in nm
-                        c = Color.wl2rgb(u, bpc=self._bpc)
+        Constructor forms are (note that the absolute values of the components are
+        used):
+    
+        Color(inst)     Makes a copy of another Color instance
+        Color(seq)
+                        seq is a sequence of 3 numbers or strings
+        Color(int)
+            0-255       8-bit ANSI color number
+            > 255       Light wavelength in nm (black if not on [380, 780])
+        Color(float)
+            0-1         Grayscale, 0 == black, 1 == white
+            > 1         Light wavelength in nm (black if not on [380, 780])
+        Color(str)
+            "\x1b..."   ANSI escape sequence
+            "#abcdef"   RGB hex form
+            "$abcdef"   HLS hex form
+            "@abcdef"   HSV hex form
+            "x x x"     Three space-separated numbers
+            "x,x,x"     Three comma-separated numbers
+            name        Look up an existing color name (normalized)
+        Color(int, int, int)
+            Values must be on [0, 255] and are interpreted as 24-bit RGB unless the
+            keywords hsv or hls are True.
+        Color(float, float, float)
+            A 3-vector normalized to be a unit vector, then converted to integers to
+            call Color(int, int, int).
+        
+        Where a floating point type is used for a number, the number can also be a
+        Decimal, Fraction, or mpmath.mpf type.
+        
+        Color names are normalized with Color.NormalizeColorName(), which returns
+        snake-case lowercase ASCII letter names.  The allowed names used are in
+        /plib/data/dpcolornames.py.
+    '''
+    bits_per_color = 8
+    def __init__(self, *p, **kw):
+        'Initialize the Color object'
+        if 1:
+            if 1:   # Check for proper keyword arguments
+                allowed = set("bpc hsv hls".split())
+                actual = set(kw.keys())
+                if not (actual <= allowed):
+                    bad = actual - allowed
+                    s = ", ".join(bad)
+                    msg = f"Bad keyword(s):  {s}"
+                    raise ValueError(msg)
+            if 1:   # Set attributes
+                self._bpc = kw.get("bpc", Color.bits_per_color)
+                self._rgb = None    # RGB integer components
+                self._sort = "rgb"  # Sorting order (must be rgb, hsv, or hls)
+            if 1:   # Process the arguments:  get (u, v, w), which covers all constructor use cases
+                # If p is a single argument, v and w will be None.  Otherwise, we should
+                # have the tuple (u, v, w) as the supplied arguments.
+                try:
+                    u = p[0]
+                except Exception:
+                    raise ValueError("color.Color() constructor needs at least one argument")
+                try:
+                    v, w = p[1], p[2]
+                except Exception:
+                    v, w = None, None
+                if (v and u is None) or (v and u and len(p) > 3):
+                    raise ValueError("color.Color() constructor needs either 1 or 3 arguments")
+                # u could be a tuple or list of numbers
+                if isinstance(u, (tuple, list)):
+                    if len(u) != 3:
+                        raise ValueError("color.Color() constructor must be sequence of 3 items")
+                    u, v, w = u
+        # Core constructor code
+        if (u is not None) and (v is not None) and (w is not None):     # p is a sequence of 3 items
+            # Possibilities ('hsv' and 'hls' keywords meaningful):
+            #   1.  3 integers
+            #   2.  3 floats
+            r = (u, v, w)
+            if all(isinstance(i, int) for i in r):  # Case 1:  3 integers
+                rgb = tuple(abs(i) & self.n for i in r)
+            else:  # Convert to floats
+                try:
+                    dec = tuple(abs(float(i)) for i in r)   # Case 2:  3 floats
+                except Exception:
+                    msg = f"'{r}' couldn't be converted to floats"
+                    raise TypeError(msg)
+                else:
+                    if not all(0 <= i <= 1 for i in dec):
+                        # Normalize to a unit 3-vector
+                        magnitude = sum(i*i for i in dec)**(1/2)
+                        dec = tuple(i/magnitude for i in dec)
+                # Convert to 3-tuple of integers
+                rgb = tuple(int(round(i*self.n, 1)) for i in dec)
+            self._rgb = rgb
+            # Handle 'hsv' and 'hls' keywords
+            if kw.get("hsv", False):
+                dec = colorsys.hsv_to_rgb(*self.drgb)
+                self._rgb = tuple(int(round(i*self.n)) for i in dec)
+            elif kw.get("hls", False):
+                dec = colorsys.hls_to_rgb(*self.drgb)
+                self._rgb = tuple(int(round(i*self.n)) for i in dec)
+        elif (u is not None) and (v is None) and (w is None):           # p is one object
+            # Possibilities:
+            #   1.  Color instance
+            #   2.  int
+            #   3.  float
+            #   4.  object --> int
+            #   5.  object --> float
+            #   6.  str
+            #       ANSI escape sequence
+            #       Hex string for color
+            #           '#123456', '$123456', '@123456'
+            #       Color name
+            #           'red'
+            #       3-tuple of integers
+            #           '12 34 56' or '12,34,56' or '12;34;56'
+            #       3-tuple of floats
+            #           '1.2 3.4 5.6' or '1.2,3.4,5.6' or '1.2;3.4;5.6'
+            #       int
+            #           '12'
+            #       float
+            #           '1.2'
+            if isinstance(u, Color):    # Case 1
+                self._bpc = u._bpc
+                self._rgb = u._rgb
+                self._sort = u._sort
+            elif isinstance(u, int):    # Case 2
+                u = abs(u)
+                if 0 <= u <= 255:   # 8-bit ANSI color
+                    c = Translate8bit(u)
+                else:               # Wavelength of light in nm
+                    c = Color.wl2rgb(u, bpc=self._bpc)
+                self._rgb = c.irgb
+            elif (isinstance(u, (float, Decimal, Fraction))
+                    or (have_mpmath and isinstance(u, mpmath.mpf))
+            ):  # Case 3
+                u = abs(u)
+                if 0 <= u <= 1:
+                    # Interpret as a gray
+                    self._rgb = tuple(int(round(float(i)*self.n, 1)) for i in (u, u, u))
+                else:
+                    # Interpret as a light wavelength in nm
+                    c = Color.wl2rgb(u, bpc=self._bpc)
                     self._rgb = c.irgb
-                elif (isinstance(u, (float, Decimal, Fraction))
-                      or (have_mpmath and isinstance(u, mpmath.mpf))
-                ):  # Case 3
-                    u = abs(u)
-                    if 0 <= u <= 1:
-                        # Interpret as a gray
-                        self._rgb = tuple(int(round(float(i)*self.n, 1)) for i in (u, u, u))
-                    else:
-                        # Interpret as a light wavelength in nm
-                        c = Color.wl2rgb(u, bpc=self._bpc)
-                        self._rgb = c.irgb
-                elif isinstance(u, str):    # Case 6
-                    u = u.strip()
-                    if not u:
-                        raise ValueError("Argument can't be only whitespace")
-                    if u[0] == "\x1b":
-                        self._rgb = self.escape(u)
-                    else:
-                        try:
-                            self._rgb = self.string(u)      # Hex string or color name
-                        except ValueError:
-                            # Only other choice is it's a string that can be interpreted as
-                            # an integer or float or three integers or floats
-                            e = ValueError(f"{u!r} can't be interpreted as a Color initializer")
-                            if " " in u or "," in u or ";" in u:
-                                a = u.replace(",", " ").replace(";", " ").split()
+            elif isinstance(u, str):    # Case 6
+                u = u.strip()
+                if not u:
+                    raise ValueError("Argument can't be only whitespace")
+                if u[0] == "\x1b":
+                    self._rgb = self.escape(u)
+                else:
+                    try:
+                        self._rgb = self.string(u)      # Hex string or color name
+                    except ValueError:
+                        # Only other choice is it's a string that can be interpreted as
+                        # an integer or float or three integers or floats
+                        e = ValueError(f"{u!r} can't be interpreted as a Color initializer")
+                        if " " in u or "," in u or ";" in u:
+                            a = u.replace(",", " ").replace(";", " ").split()
+                            try:
+                                seq = [dpmath.Int(i) for i in a]    # 3-tuple of int
+                            except Exception:
                                 try:
-                                    seq = [dpmath.Int(i) for i in a]    # 3-tuple of int
+                                    seq = [float(i) for i in a]     # 3-tuple of float
+                                    self._rgb = Color(*seq).irgb
                                 except Exception:
-                                    try:
-                                        seq = [float(i) for i in a]     # 3-tuple of float
-                                        self._rgb = Color(*seq).irgb
-                                    except Exception:
-                                        raise e
-                            else:
+                                    raise e
+                        else:
+                            try:
+                                v = dpmath.Int(u)               # Case 4
+                                self._rgb = Color(v).irgb
+                            except Exception:
                                 try:
-                                    v = dpmath.Int(u)               # Case 4
+                                    v = float(u)                # Case 5
                                     self._rgb = Color(v).irgb
                                 except Exception:
-                                    try:
-                                        v = float(u)                # Case 5
-                                        self._rgb = Color(v).irgb
-                                    except Exception:
-                                        raise e
-                else:
-                    s = f"{u!r} Bug in color.Color():  unhandled case"
-                    raise Exception(s)
+                                    raise e
             else:
-                from pdb import set_trace as yy; yy() 
-                raise Exception("Bug in color.Color():  should be impossible to reach this point")
-            self._check()
-        def _check(self):
-            'Check invariants'
-            assert isinstance(self._bpc, int) and self._bpc > 0
-            assert len(self._rgb) == 3
-            assert (0 <= i < self.N and isinstance(i, int) for i in self._rgb)
-            assert self._sort in ("rgb", "hsv", "hls")
-        def string(self, X):
-            'Return 3-tuple int rgb value from a string'
-            assert isinstance(X, str)
-            if not X:
-                raise ValueError("Can't initialize with an empty string")
-            x, N = X.lower(), self.N - 1
-            first_char, s = x[0], x[1:]
-            if first_char in "@#$":
-                # It must be a hex string form.  '@' means HSV,
-                # '#' means RGB, '$' means HLS.
-                n, rem = divmod(len(s), 6)
-                if not s or rem:
-                    raise ValueError("Hex string length must be a multiple of 6 characters")
-                n *= 2
-                t = s[0:n], s[n:2*n], s[2*n:3*n]
-                rgb = tuple(int(i, 16) & N for i in t)
-                dec = tuple(i/N for i in rgb)
-                if first_char == "@":
-                    rgbdec = colorsys.hsv_to_rgb(*dec)
-                elif first_char == "#":
-                    rgbdec = dec
-                elif first_char == "$":
-                    rgbdec = colorsys.hls_to_rgb(*dec)
-                else:
-                    raise ValueError(f"'{first_char}' is an illegal first character")
-                rgb = tuple(int(round(i*N, 1)) for i in rgbdec)
-            else:
-                # It names a color
-                msg = f"{x!r} isn't recognized as a color name"
-                if 0:   # Old method
-                    try:
-                        rgb = CN[x].irgb
-                    except Exception:
-                        raise ValueError(msg)
-                else:
-                    name = Color.NormalizeColorName(x)
-                    if name in dpcolornames.colornames:
-                        # This gets the color with the lowest number key, as this is the
-                        # order I want things searched for (most colors will be in 0 or
-                        # 1, my color names; 2 is the X11 names, and the remaining ones
-                        # are various name sets downloaded from the web).
-                        found = sorted(dpcolornames.colornames[name], key=lambda x: x.key)[0]
-                        # found is a ColorName instance, a namedtuple
-                        c = Color(found.hex)   # .hex attribute is a hex string 
-                        rgb = c.irgb
-                    else:
-                        raise ValueError(msg)
-            assert all(0 <= i <= N and isinstance(i, int) for i in rgb)
-            return rgb
-        def escape(self, X):
-            '''Return 3-tuple int rgb value from an ANSI escape code.
-            
-            To be technically correct, this should handle double escape codes like 
-            '\x1b[38:5:⟨n⟩m\x1b[48:5:⟨n⟩m', which specifies both a foreground and
-            background color.   However, for the first implementation, I'm going to
-            keep it simple, as the only "user" is the new Trm object and the vast
-            majority of the time it will be single escape sequences.
-            
-            Examples of typical values for X:
-              \x1b[38;5;⟨n⟩m  8-bit foreground color n
-              \x1b[48;5;⟨n⟩m  8-bit background color n
-              \x1b[38;2;⟨r⟩;⟨g⟩;⟨b⟩m 24-bit foreground color
-              \x1b[48;2;⟨r⟩;⟨g⟩;⟨b⟩m 24-bit background color
-            '''
-            assert X and isinstance(X, str) and X[0] == "\x1b"
-            n = X.count("\x1b")
-            if not n:
-                raise ValueError("X = {X!r} doesn't have an escape character")
-            elif n != 1:
-                raise ValueError("Only one escape character allowed in string")
-            x = X.replace("\x1b[", "")
-            f = x.split(";")
-            if len(f) == 3:
-                assert f[0] in "38 48".split()
-                assert f[1] == "5"
-                n = int(f[2].replace("m", ""))
-                return Translate8bit(n)
-            elif len(f) == 5:
-                assert f[0] in "38 48".split()
-                assert f[1] == "2"
-                r, g = [int(i) for i in (f[2], f[3])]
-                b = int(f[4].replace("m", ""))
-                return (r, g, b)
-            else:
-                raise ValueError(f"{X!r} is an unrecognized escape code")
-        def __str__(self):
-            u = "⁰¹²³⁴⁵⁶⁷⁸⁹"
-            b = "".join(u[int(i)] for i in str(self._bpc))
-            n, w = self._rgb, len(str(self.n))
-            return f"C{b}({n[0]:{w}d}, {n[1]:{w}d}, {n[2]:{w}d})"
-        def __repr__(self):
-            n, w = self._rgb, len(str(self.n))
-            return f"Color({n[0]:{w}d}, {n[1]:{w}d}, {n[2]:{w}d}, bpc={self._bpc})"
-        def _str(self, dec=True):
-            "Return string representations"
-            name, n = type(self).__name__, self.digits()
-            if dec:
-                r, g, b = self.rgb
-                return f"{name}({r:{2 + n}.{n}f}, {g:{2 + n}.{n}f}, {b:{2 + n}.{n}f})"
-            else:
-                s = self.fmt_int(*self._rgb)
-                return f"{name}({s})"
-        def __eq__(self, other):
-            "Two instances are equal if their RGB components are equal"
-            # This embraces a subtle but crucial point in defining the
-            # fractions used for comparisons (the Fraction objects are used in
-            # the change_bpc method):  the denominator is 2**self._bpc.
-            # This lets color integers be "downshifted" (scaled) to lower bits
-            # per color values and compare equally to higher bpc colors.
-            bpc = min(self.bpc, other.bpc)
-            me, you = self.irgb, other.irgb
-            if bpc != self.bpc:
-                me = self.change_bpc(bpc).irgb
-            if bpc != other.bpc:
-                you = other.change_bpc(bpc).irgb
-            return me == you
-        def __lt__(self, other):
-            "Compare self and other for e.g. sorting"
-            if self.sort == "hls":
-                return self.ihls < other.ihls
-            elif self.sort == "rgb":
-                return self.irgb < other.irgb
-            elif self.sort == "hsv":
-                return self.ihsv < other.ihsv
-            elif self.sort == "wl":
-                # Wavelength sorting might be handy, but I first need to
-                # develop suitable inverses for the two approximation
-                # functions I have.
-                raise Exception("Not implemented yet")
-            else:
-                raise ValueError("self.sort not one of 'hls rgb hsv wl'")
-        def __hash__(self):
-            '''The hash includes the RGB components along with the number
-            of bits per color.  This ensures that two colors initialized with
-            Color(1, 2, 3) are different if they have different bits per color.
-            '''
-            return hash((self._rgb, self._bpc))
-        def change_bpc(self, bpc):
-            '''Return a new instance with this instance's color that has the
-            indicated bpc (bits per color).
-            '''
-            if not isinstance(bpc, int) and bpc < 1:
-                raise TypeError("bpc must be an int")
-            if bpc < 1:
-                raise ValueError("bpc must be > 0")
-            # Method:  convert RGB components to Fraction objects with our
-            # current bpc value.  Convert these components to the new bpc value
-            # using Fraction.limit_denominator.
-            frgb, n = [Fraction(i, self.N) for i in self._rgb], 2**bpc
-            for i, x in enumerate(frgb):
-                x.limit_denominator(n)
-                if x == 1:
-                    # Need to adjust the 1's because we want integers on
-                    # [0, 2**bpc)
-                    x = Fraction(x.numerator - 1, x.denominator)
-                frgb[i] = x
-            rgb = [int(n*i) for i in frgb]
-            return Color(*rgb, bpc=bpc)
-        def adjust(self, p, comp=None, set=False):
-            '''Allows adjusting a color and returns a new Color instance.  comp
-            must be a letter in "rgbhsvHLS".  Note "saturation" s and S are
-            different numbers in HSV and HLS spaces.
-            
-            p is a number.  If set is False, the new value will be old*(1 + p/100).
-            The new number will be clamped to the range of the Color instance.
-            
-            If set is True, then p is converted to an integer and that
-            component's value is set.
-            '''
-            def Clamp(x):
-                "Round and limit x to [0, self.n]"
-                y = int(round(x, 1))
-                return min(self.n, max(0, y))
-            allowed = "rgbhsvHLS"
-            if set:
-                if not isinstance(p, int):
-                    raise TypeError("p must be an integer if set is True")
-                x = Clamp(p)
-            else:
-                try:
-                    x = 1 + float(p)/100
-                except Exception:
-                    raise TypeError("p must be convertible to a float")
-            if comp is None or comp not in allowed:
-                raise ValueError(f"comp must be letter in '{allowed}'")
-            # Get components to modify
-            if comp in "rgb":
-                r, g, b = self._rgb
-                if comp == "r":
-                    r = x if set else Clamp(r*x)
-                elif comp == "g":
-                    g = x if set else Clamp(g*x)
-                else:
-                    b = x if set else Clamp(b*x)
-                rgb = (r, g, b)
-            elif comp in "hsv":
-                h, s, v = self.ihsv
-                if comp == "h":
-                    h = x if set else Clamp(h*x)
-                elif comp == "g":
-                    s = x if set else Clamp(s*x)
-                else:
-                    v = x if set else Clamp(v*x)
-                rgb = Color(h, s, v, hsv=True)._rgb
-            elif comp in "HLS":
-                h, l, s = self.ihls     # noqa
-                if comp == "h":
-                    h = x if set else Clamp(h*x)
-                elif comp == "l":
-                    L = x if set else Clamp(l*x)
-                else:
-                    s = x if set else Clamp(s*x)
-                rgb = Color(h, L, s, hls=True)._rgb
-            # Make a copy of our instance
-            c = Color(self)
-            c._rgb = rgb
-            return c
-        def convert(self, bpc):
-            '''Convert this color into an 'equivalent' Color object with a
-            different number of bits per color bpc.  This is done by converting
-            the RGB values to decimal, then converting the decimals back to
-            [0, 2**bpc - 1].
-            '''
-            if not isinstance(bpc, int) or bpc < 1:
-                raise TypeError("bpc must be an integer")
-            if bpc < 1:
-                raise ValueError("bpc must be > 0")
-            N = 2**bpc - 1  # Integers for new color are on [0, N]
-            newrgb = tuple(int(round(i*N, 1)) for i in self.rgb)
-            return Color(*newrgb)
-        def interpolate(self, other, t, space="rgb"):
-            '''Interpolate between two colors:  self and other.  t is a parameter on
-            [0, 1].  If t is 0, you'll get back self and if t is 1, you'll get back
-            other.  If t is intermediate, you'll get a color "between" the two.  space
-            can be "rgb", "hsv", or "hls" and picks the coordinates used to interpolate.
-            '''
-            '''
-            The algorithm is linear interpolation in 2D Cartesian coordinates (x, y) for
-            each color component.  Let the starting point be P = (x0, y0) and the ending
-            point be Q = (x1, y1).  Further, let x0 = 0 and x1 = 1.
-            
-            The slope of the line connecting P and Q is
-                m = (y1 - y0)/(x1 - x0) = y1 - y0
-            
-            Given the parameter t on [0, 1], the interpolated value along the line
-            between P and Q is R = (t, y0 + m*t).  For t = 0, you get R == P and for
-            t = 1 you get R == Q.
-            '''
-            if not isinstance(other, Color):
-                raise TypeError("other must be a Color instance")
-            if not (0 <= t <= 1):
-                raise ValueError("t must be on [0, 1]")
-            if space not in ("rgb", "hsv", "hls"):
-                raise ValueError("space must be 'rgb', 'hsv', or 'hls'")
-            # Use Color instances that have the same number of bits per color.
-            me, you = Color.downshift(self, other)
-            # Get color space coordinates in decimal.  The vectors P and Q will be
-            # 3-vectors and have components on [0, 1].
-            if space == "rgb":
-                P, Q = me.drgb, you.drgb
-            elif space == "hsv":
-                P, Q = me.dhsv, you.dhsv
-            else:
-                P, Q = me.dhls, you.dhls
-            # Interpolate in this space from P to Q.  Set R as the intermediate
-            # 3-vector between P and Q.
-            m = [j - i for i, j in zip(P, Q)]  # 3-vector of slopes
-            R = [i + slope*t for i, slope in zip(P, m)]
-            # Convert the coordinates of R back to rgb space
-            if space == "hsv":
-                R = colorsys.hsv_to_rgb(*R)
-            elif space == "hls":
-                R = colorsys.hls_to_rgb(*R)
-            rgb = self.dec_to_int(R)
-            return Color(*rgb, bpc=me.bpc)
-        if 1:  # Utility
-            def fmt_int(self, a, b, c):
-                '''Format with uniform spacing for integers.  Example: self.fmt_int(1,
-                23, 214) will return '  1,  23, 21'.  This is handy for making lists of
-                color numbers because the spacing makes them easier to read in a text
-                file.
-                '''
-                if not all(isinstance(i, int) for i in (a, b, c)):
-                    raise TypeError("Arguments must be integers")
-                w = len(str(self.N))
-                return f"{a:{w}d}, {b:{w}d}, {c:{w}d}"
-            def dec_to_int(self, three_tuple):
-                'Return int value of decimal values in 3-tuple of floats'
-                assert all(isinstance(i, float) for i in three_tuple)
-                return tuple(int(round(i*self.n, 1)) for i in three_tuple)
-            def int_to_dec(self, three_tuple):
-                'Return float value of 3-tuple of integers'
-                assert all(isinstance(i, int) for i in three_tuple)
-                return tuple(i/(self.N - 1) for i in three_tuple)
-            def digits(self):
-                '''Return number of digits for to use for decimal rounding, typically
-                for printing to the screen.  Choose enough digits to hold all the color
-                values.
-                '''
-                # self.N + 1 is the number of distinct color components.
-                n = math.ceil(math.log10(self.N + 1))
-                return max(1, n)
-        if 1:  # Settable properties
-            @property
-            def sort(self):
-                'Return sorting order string'
-                return self._sort
-            @sort.setter
-            def sort(self, value):
-                'Set sorting method:  "rgb", "hsv", or "hsl"'
-                if value not in "rgb hsv hsl".split():
-                    raise ValueError("value must be 'rgb', 'hsv', or 'hsl'")
-                self._sort = value
-        if 1:  # Read-only properties
-            @property
-            def N(self):    # 2**bits_per_color
-                'Number of colors we represent == 2**bits_per_color'
-                return 2**self._bpc
-            @property       # 2**bits_per_color - 1
-            def n(self):
-                'self.N - 1'
-                return self.N - 1
-            @property       # Bits per color
-            def bpc(self):
-                'Bits per color'
-                return self._bpc
-            @property
-            def hex_bytes_per_color(self):  # How many bytes needed to express a color in hex
-                'How many bytes needed to express a color in hex'
-                return math.ceil(self._bpc/8) + 1
-            #
-            @property
-            def irgb(self):     # 3-tuple of integers on [0, 2**self.N - 1]
-                'Get rgb as a 3-tuple of integers on [0, 2**self.N - 1]'
-                return self._rgb
-            @property
-            def drgb(self):     # 3-tuple of floats on [0, 1]
-                'Get rgb as a 3-tuple of floats on [0, 1]'
-                return tuple(i/(self.N - 1) for i in self._rgb)
-            @property
-            def xrgb(self):     # #000000
-                'Get rgb as a hex string of the form #000000'
-                return "#" + Color.int_to_hex(self._rgb)
-            #
-            @property
-            def ihsv(self):     # hsv as a 3-tuple of integers on [0, 2**self.N - 1]
-                'Get hsv as a 3-tuple of integers on [0, 2**self.N - 1]'
-                dec = colorsys.rgb_to_hsv(*self.drgb)
-                hsv = tuple(int(round(i*(self.N - 1), 1)) for i in dec)
-                return hsv
-            @property
-            def dhsv(self):     # hsv as a 3-tuple of floats on [0, 1]
-                'Get hsv as a 3-tuple of floats on [0, 1]'
-                return colorsys.rgb_to_hsv(*self.drgb)
-            @property
-            def xhsv(self):     # @ffffff
-                "Get hsv as a hex string of the form @000000"
-                return "@" + Color.int_to_hex(self.ihsv)
-            #
-            @property
-            def ihls(self):     # hls as a 3-tuple of integers on [0, 2**self.N - 1]
-                'Get hls as a 3-tuple of integers on [0, 2**self.N - 1]'
-                dec = self.drgb
-                hlsdec = colorsys.rgb_to_hls(*dec)
-                hls = tuple(int(round(i*(self.N - 1), 1)) for i in hlsdec)
-                return hls
-            @property
-            def dhls(self):     # hls as a 3-tuple of floats on [0, 1]
-                'Get hls as a 3-tuple of floats on [0, 1]'
-                return colorsys.rgb_to_hls(*self.drgb)
-            @property
-            def xhls(self):     # $ffffff
-                'Get hls as a hex string of the form $000000'
-                return "$" + Color.int_to_hex(self.ihls)
-        if 1:  # Class methods
-            @classmethod
-            def dist(cls, c1, c2, space="rgb", taxicab=False):
-                '''Calculate a distance between two color instances.  They are both
-                converted into Color objects with the same bpc and the Euclidean
-                distance between the components is calculated.  The number returned is a
-                float on [0, 1].
-                
-                Euclidean distances in these color spaces are known to be nonlinear with
-                respect to human perception, but they are easy to calculate.
-                
-                space can be "rgb", "hsv", or "hls".
-                
-                If taxicab is True, then use the "taxicab" distance, which is how you'd
-                e.g. calculate a walking distance in a city where you can only walk on
-                the sidewalks (i.e., it's the sum of the absolute value of the
-                coordinates' differences).
-                
-                Example:  The Euclidean distance between (Color(0, 0, 0) and Color(a, a,
-                a) where a = 2**bpc - 1 will be sqrt(3).  Thus, the Euclidean distance
-                is divided by sqrt(3) to get a float on [0, 1].  For taxicab distance,
-                the distance is normalized to [0, 1] by dividing by 3.
-                '''
-                if not isinstance(c1, Color) or not isinstance(c2, Color):
-                    raise TypeError("c1 and c2 must be Color instances")
-                # Convert to same bpc
-                me, him = Color.downshift(c1, c2)
-                # Get decimal components
-                if space == "rgb":
-                    me, him = me.drgb, him.drgb
-                elif space == "hsv":
-                    me, him = me.dhsv, him.dhsv
-                elif space == "hls":
-                    me, him = me.dhls, him.dhls
-                if taxicab:
-                    d = sum(abs(i - j) for i, j in zip(me, him))
-                    return d/3
-                else:
-                    d = sum((i - j)**2 for i, j in zip(me, him))**(1/2)
-                    return d/3 ** (1/2)
-            @classmethod
-            def downshift(cls, c1, c2):
-                "Return two Color instances with the same bpc (bits per color)"
-                if not isinstance(c1, Color) or not isinstance(c2, Color):
-                    raise TypeError("c1 and c2 need to be Color instances")
-                bpc = min(c1.bpc, c2.bpc)
-                return (c1.change_bpc(bpc), c2.change_bpc(bpc))
-            @classmethod
-            def int_to_hex(cls, threetuple, bytes_per_color=1):
-                "Convert 3-tuple of integers to hex string"
-                e = TypeError(f"'{threetuple}' argument must be a 3-sequence of  integers")
-                if not all(isinstance(i, int) for i in threetuple) or len(threetuple) != 3:
-                    raise e
-                w = 2*bytes_per_color
-                x = [f"{i:0{w}x}" for i in threetuple]
-                ml = max(len(i) for i in x)
-                if ml % 2:
-                    ml += 1
-                for i, value in enumerate(x):
-                    while len(value) < ml:
-                        value = "0" + value
-                    x[i] = value
-                t = "".join(x)
-                assert (len(t) % 6) == 0
-                return t
-            @classmethod
-            def hex_to_int(cls, s):
-                '''s must be a multiple of six hex digits; return a tuple of the
-                three integers it represents.
-                '''
-                if not isinstance(s, str):
-                    raise TypeError(f"'{s}' argument must be a string")
-                div, rem = divmod(len(s), 6)
-                if rem:
-                    raise ValueError("Length of s must be a multiple of six")
-                if not div:
-                    raise ValueError("Must have at least 6 hex characters")
-                hd = set(hexdigits)
-                if not all(i in hd for i in s):
-                    raise ValueError(f"String '{s}' contains non-hex characters")
-                n = 2*div  # Number of hex digits per color
-                rgb = (
-                    s[0*div:0*div + n],
-                    s[2*div:2*div + n],
-                    s[4*div:4*div + n],
-                )
-                try:
-                    rgb = tuple(int(i, 16) for i in rgb)
-                except Exception:
-                    raise ValueError(f"'{s}' is not a valid hex string")
-                return rgb
-            @classmethod
-            def round(cls, value, digits):
-                "Round value to number of digits (value can be float or sequence)"
-                n = digits
-                if not isinstance(value, str) and isinstance(value, Iterable):
-                    return tuple(round(float(i), n) for i in value)
-                else:
-                    if not isinstance(value, float):
-                        raise TypeError("value must be a float or numerical sequence")
-                    return round(value, n)
-            @classmethod
-            def Dot(cls, a, b):
-                "Dot product of two sequences"
-                Assert(len(a) == len(b))
-                return sum(i*j for i, j in zip(a, b))
-            @classmethod
-            def XYZ_to_sRGB(cls, XYZ):
-                '''CIE XYZ to sRGB (XYZ is a 3-sequence of positive numbers)
-                sRGB will be 3-sequence of floats on [0, 1]
-                https://en.wikipedia.org/wiki/SRGB#From_CIE_XYZ_to_sRGB
-                '''
-                if isinstance(XYZ, str) or len(XYZ) != 3:
-                    raise TypeError(f"'{XYZ}' must be a sequence of 3 numbers")
-                if not all(i >= 0 for i in XYZ):
-                    raise TypeError(f"'{XYZ}' must be numbers >= 0")
-                def GammaCompressed(x):
-                    return 12.92*x if x <= 0.0031308 else 1.055*x ** (1/2.4) - 0.055
-                r1 = (+3.2406, -1.5372, -0.4986)
-                r2 = (-0.9689, +1.8758, +0.0415)
-                r3 = (+0.0557, -0.2040, +1.0570)
-                rgb = Color.Dot(r1, XYZ), Color.Dot(r2, XYZ), Color.Dot(r3, XYZ)
-                def clip(x):
-                    return min(1.0, max(x, 0.0))
-                return tuple(clip(GammaCompressed(i)) for i in rgb)
-            @classmethod
-            def wl2rgb(cls, nm, sunlight=True, gamma=0.0, bpc=None):
-                '''Convert nm (light wavelength in nm) into an rgb decimal
-                3-tuple using an approximation.  The color black is returned
-                for wavelengths out of the visible spectrum.  nm must be
-                greater than zero.  Keywords:
-                
-                sunlight    If True, the colors returned are from an approximation
-                            constructed from the sun's spectrum.  If False, a
-                            "wider" approximation is made, but it is less physical
-                            in the sense that it has colors that don't appear in
-                            e.g. white light from the sun.
-                            
-                gamma       If nonzero, perform a gamma correction on components
-                            (raise them to the gamma power).  Be careful with
-                            gamma, as it can change the color.
-                            
-                bpc         Bits per color.  Uses Color.bits_per_color if None.
-                '''
-                # Check parameters
-                if not isinstance(nm, (int, float, flt, Decimal, Fraction)):
-                    if have_mpmath and not isinstance(nm, mpmath.mpf):
-                        raise TypeError("nm must be an int or float")
-                # Convert it to a float
-                nm = float(nm)
-                if bpc is None:
-                    bpc = Color.bits_per_color
-                if not isinstance(bpc, int):
-                    raise TypeError("bpc must be an int")
-                if not isinstance(gamma, (int, float, flt)):
-                    raise TypeError("gamma must be an int or float")
-                if gamma < 0:
-                    raise ValueError("gamma must be >= 0")
-                if sunlight:
-                    # From user Spektre's post last edited 5 Nov 2016 at
-                    # https://stackoverflow.com/questions/3407942/rgb-values-of-visible-spectrum/22681410#22681410
-                    # Edited by DP to return RGB = (3, 0, 3) for 400 nm
-                    if not (400 <= nm <= 700):
-                        a = 0.0
-                        return Color(a, a, a)
-                    r = g = b = 0.0
-                    # Red component
-                    if nm >= 400 and nm < 410:
-                        t = (nm - 400)/(410 - 400)
-                        r = 0.33*t - 0.2*t*t
-                    elif nm >= 410 and nm < 475:
-                        t = (nm - 410)/(475 - 410)
-                        r = 0.14 - 0.13*t*t
-                    elif nm >= 545 and nm < 595:
-                        t = (nm - 545)/(595 - 545)
-                        r = 1.98*t - t*t
-                    elif nm >= 595 and nm < 650:
-                        t = (nm - 595)/(650 - 595)
-                        r = 0.98 + 0.06*t - 0.4*t*t
-                    elif nm >= 650 and nm <= 700:
-                        # DP I made it '<= 700' so wavelength range is on [400, 700]
-                        t = (nm - 650)/(700 - 650)
-                        r = 0.65 - 0.84*t + 0.2*t*t
-                    # Green component
-                    if nm >= 415 and nm < 475:
-                        t = (nm - 415)/(475 - 415)
-                        g = 0.8*t*t
-                    elif nm >= 475 and nm < 590:
-                        t = (nm - 475)/(590 - 475)
-                        g = 0.8 + 0.76*t - 0.8*t*t
-                    elif nm >= 585 and nm < 639:
-                        t = (nm - 585)/(639 - 585)
-                        g = 0.84 - 0.84*t
-                    # Blue component
-                    if nm >= 400 and nm < 475:
-                        t = (nm - 400)/(475 - 400)
-                        b = 2.2*t - 1.5*t*t
-                    elif nm >= 475 and nm < 560:
-                        t = (nm - 475)/(560 - 475)
-                        b = 0.7 - t + 0.3*t*t
-                    # DP correction for 400 nm:  401 nm gives (7, 0, 7) for RGB
-                    # [(215, 3, 255) for HLS], so I made 400 nm give (2, 0, 1)
-                    # [(233, 1, 255) in HLS].
-                    if nm == 400:
-                        r, g, b = 2/255, 0, 1/255
-                    rgb = tuple([float(i) for i in (r, g, b)])
-                else:
-                    # From # http://www.physics.sfasu.edu/astro/color/spectra.html (defunct).
-                    # Also see http://www.midnightkite.com/color.html.
-                    # From D. Bruton's FORTRAN code (algorithm apparently due to Earl F.
-                    # Glynn).
-                    if not (380 <= nm <= 780):
-                        a = 0.0
-                        return Color(a, a, a)
-                    if 380 <= nm <= 440:
-                        a = (440 - nm)/(440 - 380), 0, 1
-                    elif 440 <= nm <= 490:
-                        a = 0, (nm - 440)/(490 - 440), 1
-                    elif 490 <= nm <= 510:
-                        a = 0, 1, (510 - nm)/(510 - 490)
-                    elif 510 <= nm <= 580:
-                        a = (nm - 510)/(580 - 510), 1, 0
-                    elif 580 <= nm <= 645:
-                        a = 1, (645 - nm)/(645 - 580), 0
-                    elif 645 <= nm <= 780:
-                        a = 1, 0, 0
-                    # Intensity i falls off near vision limits
-                    i, u, v = 1.0, 0.3, 0.7
-                    if nm > 700:
-                        i = u + v*(780 - nm)/(780 - 700)
-                    elif nm < 420:
-                        i = u + v*(nm - 380)/(420 - 380)
-                    # Scale the components by i
-                    rgb = [float(i*j) for j in a]
-                # If gamma is not zero, perform a gamma transformation
-                if gamma:
-                    rgb = [i**gamma for i in rgb]
-                # Make sure the numbers are on [0, 1]
-                assert all([0 <= i <= 1 for i in rgb])
-                return Color(*rgb, bpc=bpc)
-            @classmethod
-            def Sort(cls, seq, keys="hL", get=None):
-                '''Return a sorted copy of the sequence of Color instances.
-                The keys parameter determines how to sort:  each element is a
-                letter:  rgbhsvHLS that is used in the rgb, hls, and hsv attributes.
-                Unfortunately, the 's' is hls and hsv mean different things.
-                Here, 's' means the s in 'hls' and 'S' means the s in 'hsv'.
-                Though they are described by the same term "saturation", the two
-                functions return different values for s in python's colorsys module
-                for the same RGB value.
-                
-                If get is not None, it's a predicate that is used to get the
-                Color instance from the sequence seq.
-                '''
-                # The algorithm is to decorate an auxiliary sequence with the
-                # indicated attribute values, sort it, and return it after
-                # stripping off the decorations.
-                if isinstance(seq, str) or not isinstance(seq, Iterable):
-                    raise TypeError("seq is not a suitable sequence")
-                if not keys:
-                    raise ValueError("keys cannot be empty")
-                S = set("rgbhsvHLS")
-                for key in keys:
-                    if key not in S:
-                        raise TypeError(f"keys '{keys}' contains an illegal letter")
-                aux = []
-                # Decorate the auxiliary copy of seq with the attribute numbers
-                for item in seq:
-                    # Get the Color instance from the sequence
-                    if get is None:
-                        c = item
-                    else:  # Use the predicate
-                        c = get(item)
-                    if not isinstance(c, Color):
-                        raise TypeError(f"'{c}' is not a Color instance")
-                    itemkey = []
-                    for key in keys:
-                        # Get the integer form of the key
-                        if key == "r":
-                            k = c.irgb[0]
-                        elif key == "g":
-                            k = c.irgb[1]
-                        elif key == "b":
-                            k = c.irgb[2]
-                        elif key == "h" or key == "H":
-                            k = c.ihls[0]
-                        elif key == "L":
-                            k = c.ihls[1]
-                        elif key == "S":
-                            k = c.ihls[2]
-                        elif key == "s":
-                            k = c.ihsv[1]
-                        elif key == "v":
-                            k = c.ihsv[2]
-                        itemkey.append(k)
-                    decorated = tuple(itemkey), item
-                    aux.append(decorated)
-                # Now we can use a default sort on aux
-                aux = sorted(aux, key=lambda x: x[0])
-                # Strip decorations
-                return tuple(i[1] for i in aux)
-            @classmethod
-            def Construct(cls, s):
-                '''Uses regular expressions to recognize color initializers in a
-                string s.  Returns a Color instance or None.  If s is a multiline
-                string, a deque of (line, Color_instance) tuples is returned.
-                Trailing whitespace of the line is stripped.
-                
-                Forms recognized:
-                    '@000000' or '#000000' or '$000000'
-                    '1, 2, 3'
-                    '1 2 3'
-                    '1.0, 2.0, 3.0'
-                    '1.0 2.0 3.0'
-                    
-                An example use case is the /plib/pgm/cdec.py script, which is
-                used to print out the lines of a file containing a color
-                specification in that color.
-                '''
-                def GetColorRegexps():
-                    "Return tuple of regexps to use to recognize color identifiers"
-                    R = re.compile
-                    # Recognize an integer or float
-                    s = r'''
-                            (                               # Group
-                                # First is for numbers like .234
-                                [+-]?                       # Optional sign
-                                \.\d+
-                                ([eE][+-]?\d+)?             # Optional exponent
-                            |                             # or
-                                # This is for integers or 2.3 or 2.3e4
-                                [+-]?                       # Optional sign
-                                \d+\.?\d*                   # Number:  2.345
-                                ([eE][+-]?\d+)?             # Optional exponent
-                            )                               # End group
-                    '''
-                    flags = re.I | re.X
-                    regexps = (
-                        # [@#$]XXYYZZ form
-                        ("hex", R(r"([@#$][0-9a-f]{6})", flags)),
-                        # Three integers or floats separated by commas
-                        ("fcomma", R(rf"({s},\s*{s},\s*{s})", flags)),
-                        # Three integers or floats separated by whitespace
-                        ("fspace", R(rf"({s}\s+{s}\s+{s})", flags)),
-                    )
-                    return regexps
-                def Decode(match, name):
-                    "Turn a matched string into a Color instance"
-                    if name == "hex":
-                        return Color(match)
-                    elif name == "fcomma":
-                        if "." in match or "e" in match:
-                            rgb = [float(i) for i in match.split(",")]
-                        else:
-                            rgb = [int(i) for i in match.split(",")]
-                        return Color(*rgb)
-                    elif name == "fspace":
-                        if "." in match or "e" in match:
-                            rgb = [float(i) for i in match.split()]
-                        else:
-                            rgb = [int(i) for i in match.split(",")]
-                        return Color(*rgb)
-                regexps = GetColorRegexps()
-                def Find(line):
-                    for name, r in regexps:
-                        mo = r.search(line)
-                        if mo:
-                            # Got a match
-                            color = mo.groups()[0]
-                            return Decode(color, name)
-                    return None
-                if "\n" in s:
-                    # It's a multiline string
-                    keep = deque()
-                    for line in s.split("\n"):
-                        line = line.rstrip()
-                        if not line:
-                            continue
-                        color = Find(line)
-                        if color:
-                            keep.append((line, color))
-                    return keep if keep else None
-                else:
-                    return Find(s)
-            @classmethod
-            def NormalizeColorName(cls, name):
-                '''Return a normalized color name from the string name.
-                Example:  "dark red", "Dark Red", "DarkRed", "Dark_red" as arguments will all
-                return "dark_red".
-                
-                Algorithm:
-                    - Convert to ASCII-only form
-                    - " " inserted before each capital letter
-                    - " " substituted for each "_"
-                    - Split on whitespace
-                    - Convert each token to lowercase
-                    - Reassemble with "_"
-                '''
-                if not isinstance(name, str):
-                    raise TypeError("name must be a str instance")
-                name = name.strip()
-                if not name:
-                    raise ValueError("A name cannot be only whitespace or empty")
-                # Make sure we have only printable ASCII characters
-                name = asciify.Asciify(name)
-                printable = set(string.printable)
-                mychars = set(name)
-                capitals = set(string.ascii_uppercase)
-                if not (mychars <= printable):
-                    not_allowed = mychars - printable
-                    raise ValueError(f"{str(not_allowed)!r} are characters not allowed in names")
-                # Process the characters
-                new = []
-                dq = collections.deque(name)
-                while dq:
-                    char = dq.popleft()
-                    if char in capitals or char == "_":
-                        new.append(" ")
-                    new.append(char)
-                newstr = ''.join(new).replace("_", " ")
-                new = '_'.join(i.lower() for i in newstr.split())
-                return new
-if 0:   # Old Trm & ColorName
-    class Trm:
-        '''Class to generate terminal escape codes
-            Ref:  https://en.wikipedia.org/wiki/ANSI_escape_code#24-bit For typical use,
-            instantiate with t = Trm().  Store "styles" by using the Trm instance's
-            attributes:
-            
-                t.err = t("red")      # Error messages are red
-                
-            Use the styles in f-strings:
-            
-                print(f"{t.err}Error:  symbol doesn't exist{t.n}")
-                
-            t.err and t.n are strings containing the ANSI escape codes (t.n is the
-            escape code for the standard terminal text).  The previous can be a little
-            more terse with the equivalent:
-            
-                t.print(f"{t.err}Error:  symbol doesn't exist")
-                
-            t.print() and t.out() output their strings then output the escape code to
-            return to the normal style.  To remove all your "style" definitions, use
-            t.reset().  To see the styles you've defined, use print(t).
-            
-            Read/write properties
-                always      (bool) Set to True if you want the object to generate
-                            escape codes, even if stdout isn't a terminal.
-                cn          ColorNames instance used to translate string names to
-                            Color instances.
-                on          (bool) If True, then escape codes are generated.
-                
-            For first time use, define the terminal_bits class variable for your
-            terminal and monitor.  Most modern terminals are 24 bits.  You'll also want
-            to define Trm.default_color as a tuple of two Color instances for your
-            default foreground and background colors.
-            
-            A common use case in an application is a command line option is used to
-            enable or disable colorizing.  Suppose this option is encoded in the Boolean
-            variable use_colorizing.  I recommend the following pattern near the
-            beginning of your program (t is the Trm instance):
-            
-                def SetColors(t):
-                    t.on = use_colorizing
-                    t.a = t("red")
-                    t.b = t("brn")
-                    t.c = t("grn")
-                    
-            This ensures that the t instance's attributes will either have the correct
-            escape code strings or be empty strings if colorizing wasn't wanted.
-        '''
-        terminal_bits = 24
-        default_color = (Color(192, 192, 192), Color(0, 0, 0))
-        def __init__(self, bits=None):
-            '''Initialize the Trm instance
-            bits
-                Can override the default value of Trm.terminal_bits.  This
-                setting determines the type of ANSI escape codes that are
-                emitted.  Must be 4, 8, or 24.
-                
-                Note:  4 and 8 bit not currently supported.
-            '''
-            # If True, generate escape codes even if stdout isn't a terminal
-            self._always = False
-            self._on = True  # If True, escape codes are generated
-            # ColorNames dictionary (defaults to module's global variable CN)
-            self.cn = CN
-            self._bits = bits  # Bits per color
-            if self._bits is None:
-                self._bits = Trm.terminal_bits
-            if self._bits != 24:
-                raise ValueError("4 and 8 bit terminals not supported yet")
-            self._fg = None  # Default foreground color
-            self._bg = None  # Default background color
-            self.reset()
-            self._check()
-        if 1:  # Utility methods
-            def _check(self):
-                "Validate the initial attributes"
-                assert isinstance(self._bits, int) and self._bits in (4, 8, 24)
-                assert isinstance(self._fg, Color)
-                assert isinstance(self._bg, Color)
-                assert isinstance(self.cn, ColorName)
-            def _ta(self):
-                'Return attributes mapping'
-                # See the table at
-                # https://en.wikipedia.org/wiki/ANSI_escape_code#Select_Graphic_Rendition_parameters
-                s = '''normal-no:0 bold-bo:1 dim-di:2 italic-it:3
-                underline-ul:4 blink-bl:5 rapidblink-rb:6 reverse-rv:7
-                hide-hi:8 strikeout-so:9 doubleunderline-du:21 overline-ol:53
-                superscript-sp:73 subscript-sb:74'''
-                ta = {}
-                for i in s.split():
-                    name, num = i.split(":")
-                    short, long = name.split("-")
-                    num = int(num)
-                    ta[short] = num
-                    ta[long] = num
-                return ta
-            def _user(self):
-                "Return a set of user-defined attribute names"
-                ignore = set(
-                    '''_bits cn on _fg fg _bg bg _ta _always always _user _check
-                    _get_code load n out print reset GetColorNames terminal_bits
-                    default_color'''.split()
-                )
-                attributes = []
-                for i in dir(self):
-                    if i.startswith("__") or i in ignore:
-                        continue
-                    attributes.append(i)
-                return set(attributes)
-            def __str__(self):
-                '''Returns a string that can be printed to stdout to show all the
-                currently-defined styles.
-                '''
-                show = []
-                for style in sorted(self._user()):
-                    s = getattr(self, style)
-                    if s:
-                        show.append(style)
-                out = []
-                if show:
-                    for i in show:
-                        s = f"{getattr(self, i)}{i}{self.n}"
-                        if "bound" in s or "True_on" in s:
-                            continue
-                        out.append(s)
-                classname = str(self.__class__)
-                loc = classname.find(".")
-                classname = classname[loc + 1:]
-                if classname.endswith("'>"):
-                    classname = classname[:-2]
-                return classname + "(" + " ".join(out) + ")"
-            def _get_code(self, color, bg=False):
-                "For Color instance color, return escape code"
-                if color is not None:
-                    assert isinstance(color, Color)
-                else:
-                    return ""
-                assert isinstance(bg, bool)
-                if self._bits == 4:
-                    raise Exception("Not implemented")
-                elif self._bits == 8:
-                    raise Exception("Not implemented")
-                elif self._bits == 24:
-                    n = 48 if bg else 38
-                    if color.bpc > 8:
-                        color = color.change_bpc(8)
-                    r, g, b = color.irgb
-                    code = f"\x1b[{n};2;{r};{g};{b}m"
-                else:
-                    raise RuntimeError("self._bits bad")
-                return code
-            def load(self, file, reset=False, show=False):
-                '''Read style definitions from a file (filename string, stream,
-                or string of characters).  Each line is either a comment
-                (leading '#') or must contain the following fields separated by
-                whitespace:
-                    style_name fg_color_name bg_color_name [attr1 [attr2 ...]]
-                where fg_color_name and bg_color_name are either color name
-                strings or None.  These strings can also be suitable integer
-                strings (e.g., '21') and will be converted to integers.  attr1,
-                etc. are attribute strings that are in the dictionary ta.
-                
-                If show is True, print this object to stdout after loading is
-                finished.
-                '''
-                def Convert(s):
-                    "Convert color string"
-                    if s == "None":
-                        return None
-                    else:
-                        try:
-                            n = int(s)
-                            return n
-                        except Exception:
-                            return s
-                lines = get.GetNumberedLines(file)
-                # Remove blank lines
-                lines = [i for i in lines if i[1]]
-                # Remove leading spaces
-                lines = [(i, j.strip()) for i, j in lines]
-                # Remove comments
-                lines = [(i, j) for i, j in lines if j[0] != "#"]
-                if reset:
-                    self.reset()
-                # Parse the remainder
-                for n, line in lines:
-                    f = line.split()
-                    if len(f) < 3:
-                        msg = f"Line {n}:  not enough fields:\n  '{line}"
-                        raise ValueError(msg)
-                    name = f.pop(0)
-                    s = f.pop(0)
-                    fg = Convert(s)
-                    s = f.pop(0)
-                    bg = Convert(s)
-                    attrs = f if f else None
-                    if attrs:
-                        attrs = " ".join(attrs)
-                    s = f"self.{name} = self(fg={fg!r}, bg={bg!r}, attr={attrs!r})"
-                    exec(s)
-                if show:
-                    t = "string"
-                    try:
-                        f = P(file)
-                        if f.exists():
-                            t = f"file '{file}'"
-                    except Exception:
-                        if hasattr(file, "read"):
-                            t = "stream"
-                    print(f"Trm.load() from {t}: ", self)
-            def reset(self):
-                "Sets the instance to a default state"
-                # Delete all user-set attributes
-                for i in self._user():
-                    try:
-                        delattr(self, i)
-                    except AttributeError as e:
-                        if 0:  # Use to flag programming problems
-                            print(e)
-                            breakpoint()
-                        else:
-                            pass  # Ignore the problem
-                # Reset to default colors
-                self._fg, self._bg = Trm.default_color
-                # Turn on output unless not to terminal
-                self._on = False
-                so = sys.stdout
-                if (hasattr(so, "isatty") and so.isatty()) or self.always:
-                    self._on = True
-        if 1:  # Core methods
-            def __call__(self, fg=None, bg=None, attr=None):
-                '''Return the indicated color style escape code string.  fg and
-                bg must be Color instances.  They may also be strings if a
-                ColorNames dictionary has been loaded with GetColorNamesDict().
-                Hex strings beginning with "@" (hsv), "#" (rgb), or "$" (hls)
-                are also allowed.
-                
-                attr    String of attributes (separate multiple attributes by
-                        spaces).
-                fg      Foreground Color instance or string
-                bg      Background Color instance or string
-                '''
-                msg = "{} must be None, a string, or a Color instance"
-                if fg is not None and not isinstance(fg, (Color, str)):
-                    raise ValueError(msg.format("fg"))
-                if bg is not None and not isinstance(bg, (Color, str)):
-                    raise ValueError(msg.format("bg"))
-                if attr is not None and not isinstance(attr, str):
-                    raise ValueError("attr must be None or a string")
-                if not self._on:
-                    return ""
-                '''
-                Primer on ANSI escape sequences
-                https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters
-                gives information on attributes and the section below that
-                discusses colors.
-         
-                4-bit color
-                    ESC[<f>;<b>m    f is foreground, b is background
-                    f   g                               Short name
-                    30  40  Black                       blk
-                    31  41  Red                         red
-                    32  42  Green                       grn
-                    33  43  Yellow                      yel
-                    34  44  Blue                        blu
-                    35  45  Magenta                     mag
-                    36  46  Cyan                        cyn
-                    37  47  White                       wht
-                    90 100  Bright black (gray)         blkl
-                    91 101  Bright red                  redl
-                    92 102  Bright green                grnl
-                    93 103  Bright yellow               yell
-                    94 104  Bright blue                 blul
-                    95 105  Bright magenta              magl
-                    96 106  Bright cyan                 cynl
-                    97 107  Bright white                whtl
-                8-bit color
-                    ESC[38;5;<n>m      Foreground color
-                    ESC[48;5;<n>m      Background color
-                    0-7    :  Standard colors
-                    8-15   :  High intensity colors
-                    16-231 :  6x6x6 cube:  16 + 36*r + 6*g + b (0 <= r, b, g <= 5)
-                    232-255:  Grayscale from black to white in 24 steps
-                24-bit color
-                    ESC[38;2;<r>;<g>;<b>m      RGB foreground color
-                    ESC[48;2;<r>;<g>;<b>m      RGB background color
-                '''
-                # If they are strings, they are either a name or a hex string.
-                if fg and isinstance(fg, str):
-                    if fg[0] in "@#$":
-                        fg = Color(fg)
-                    else:
-                        new = None
-                        if "@" in fg or "#" in fg or "$" in fg:  # It's a composite
-                            new = self.cn.split(fg)
-                        fg = self.cn[fg] if new is None else new
-                if bg and isinstance(bg, str):
-                    if bg[0] in "@#$":
-                        bg = Color(bg)
-                    else:
-                        new = None
-                        if "@" in bg or "#" in bg or "$" in bg:  # It's a composite
-                            new = self.cn.split(bg)
-                        bg = self.cn[bg] if new is None else new
-                # Put the escape codes for fg, bg, and attributes in the
-                # container
-                container = []
-                # Get attr codes
-                if attr is not None:
-                    ta = self._ta()
-                    attrs = attr.split()
-                    while attrs:
-                        a = attrs.pop(0)
-                        if a not in ta:
-                            msg = f"'{a}' is not a valid attribute"
-                            raise ValueError(msg)
-                        container.append(f"\x1b[{ta[a]}m")
-                # Get other codes
-                assert fg is None or isinstance(fg, Color)
-                assert bg is None or isinstance(bg, Color)
-                container.append(self._get_code(fg))
-                container.append(self._get_code(bg, bg=True))
-                return "".join(container)
-            def print(self, *p, **kw):
-                '''Print arguments with newline, reverting to normal color
-                after finishing.
-                '''
-                self.out(*p, **kw)
-                print(**kw)
-            def out(self, *p, **kw):
-                "Same as print() but no newline"
-                k = kw.copy()
-                if "end" not in k:
-                    k["end"] = ""
-                print(*p, **k)
-                print(self.n, **k)
-            def list(self, msg=None, ignore_std=True):
-                'Print defined color attributes to stdout'
-                std = set('''
-                    blk blu brn cyn den grn gry lav lil lip lwn mag n  olv orn pnk pur red
-                    roy sea sky trq vio wht yel'''.split())
-                # Get the other standard names from colornames0
-                with open("colornames0") as fp:
-                    lines = fp.read().split("\n")
-                    fp.close()
-                while lines:
-                    line = lines.pop(0).strip()
-                    if not line:
-                        continue
-                    if line.strip()[0] == "#":
-                        continue
-                    s = line.split(":")[0].replace("'", "")
-                    std.add(s)
-                o = []
-                for i in sorted(dir(self)):
-                    s = eval(f"self.{i}")
-                    try:
-                        if s.startswith("\x1b["):
-                            if ignore_std and i in std:
-                                continue
-                            o.append(f"{s}t.{i}{t.n}")
-                    except Exception:
-                        pass
-                if o:
-                    if msg is not None:
-                        if msg.strip():
-                            print(msg)
-                    else:
-                        if ignore_std:
-                            print("class Trm color attributes ignoring standard ones:")
-                        else:
-                            print("class Trm color attributes:")
-                    for i in Columnize(o, indent="  ", sep=" "*4):
-                        print(i)
-        if 1:  # Writable properties
-            @property
-            def on(self):
-                return self._on
-            @on.setter
-            def on(self, value):
-                self._on = bool(value)
-            @property
-            def always(self):
-                return self._always
-            @always.setter
-            def always(self, value):
-                self._always = bool(value)
-                self._on = True
-        if 1:  # Read-only properties
-            @property
-            def n(self):
-                "Return escape code for normal (default) screen"
-                if not self._on:
-                    return ""
-                s = []
-                s.append(self._get_code(self._fg, bg=False))
-                s.append(self._get_code(self._bg, bg=True))
-                s.append("\x1b[0m")  # Normal text attribute
-                return "".join(s)
-            @property
-            def fg(self):
-                'Returns default foreground color'
-                return self._fg if self._on else ""
-            @property
-            def bg(self):
-                'Returns default background color'
-                return self._bg if self._on else ""
-    class ColorName(dict):
-        '''This class is a dictionary initialized with a file name.  This must be
-        a text file that has lines with the following forms:
-        
-            # A comment
-            "<key_string>" : <color identifier>
-            
-        You can use any string for <key_string> as long as it doesn't contain the
-        '==' string.  It must be surrounded by single or double quote
-        characters.
-        
-        A color identifier is a Color constructor call, such as
-        
-            Color(255, 0, 0)        # Can have a comment
-            Color(0.1, 0.2, 0.3, hsv=True)
-            Color(0.1)
-            Color("@010203")
-            Color("#010203")
-            Color("$010203")
-            
-        The key strings are normalized to the form of all lower case letters
-        and uses underscores separate words.  This is done by changing
-        underscores to space characters and inserting a space character before
-        every capital 7-bit ASCII letter; then the resulting string is split on
-        whitespace into its word components.  You are free to use any Unicode
-        characters in the string except ':'.  If you wish to use a different
-        separator string, change the class Variable ColorName.sep.
-        
-        Thus, the following strings are equivalent:
-        
-                "light green"
-                "light     green"
-                "Light green"
-                "Light Green"
-                "LightGreen"
-                "light Green"
-                "light_Green"
-                etc.
-                
-        and normalize to "light_green".
-        
-        Note that "lightgreen" is a distinct name not equal to any in the
-        previous list.
-        
-        You can also call the load() method at anytime to load a new file.
-        
-        load() uses exec() for assignment statments (statements that contain
-        '=') unless ColorName.allow_exec is set to False.  Use False if you
-        haven't vetted the file for possible malicious code.  An advantage of
-        setting it to True is that you can define variables to use in the color
-        definitions.
-        
-        An advantage of this file format is the cdec.py script can be used to
-        show you the color definitions in the file.
-        '''
-        sep = ":"  # Separator string:  name<sep>Color_instance
-        allow_exec = True  # Allow exec() of expressions
-        def __new__(cls):
-            instance = super().__new__(cls)
-            instance._normalize = False
-            return instance
-        def __str__(self):
-            "Show the dict's contents in color"
-            k, out, blk = Trm(), [], Color("blk")
-            w = max(len(i) for i in self)
-            for name in self:
-                c = self[name]
-                out.append(f"{name:{w}s}: {k(c)}{c!s}{k.n}  {k(blk, c)}background{k.n}")
-            return "\n".join(out)
-        def load(self, file: str, clear=False):
-            '''Extend ourselves by loading colors from file.  Set clear to True
-            to first empty the dictionary.
-            '''
-            if clear:
-                self.clear()
-            vars = {}
-            with open(file) as fd:
-                contents = fd.read()
-            for line in contents.split("\n"):
-                line = line.strip()
-                if not line or line[0] == "#":
-                    continue
-                if ColorName.sep in line:
-                    a, b = line.split(ColorName.sep)
-                    name = eval(a)
-                    if self._normalize:
-                        print("color.py exception reading colornames0:  normalization not implemented yet")
-                        raise Exception("Normalization not implemented yet ∞∞2")
-                    c = eval(b, None, locals())
-                    try:
-                        self[name] = c
-                    except Exception as e:
-                        print(e)
-                        breakpoint()
-                else:
-                    if "=" in line and ColorName.allow_exec:
-                        exec(line)
-                    else:
-                        print(f"color.py exception reading colornames0:  illegal line:\n'{line}'")
-                        raise ValueError(f"Illegal line:\n'{line}'")
-        def split(self, name):
-            '''A name string can be made up of multiple names separated by one
-            of the characters '@', '#', or '$'.  The resultant color is
-            computed by taking each pair of names and interpolating halfway
-            between them.  Each component must be a valid color name.  @ means
-            to interpolate in HSV space, @ in RGB, and $ in HLS.
-            
-            Returns a Color instance or None if it can't be calculated.
-            '''
-            if not ("@" in name or "#" in name or "$" in name):
-                return None
-            sep = "@" if "@" in name else "#" if "#" in name else "$"
-            space = "hsv" if sep == "@" else "rgb" if sep == "#" else "hls"
-            names = deque(name.split(sep))
-            old = self[names.popleft()]
-            while names:
-                new = self[names.popleft()]
-                old = old.interpolate(new, 0.5, space=space)
-            return old
-    if 1:   # Define default Trm and ColorName instances
-        CN = ColorName()
-        if wsl:
-            CN.load("/plib/colornames0")
+                s = f"{u!r} Bug in color.Color():  unhandled case"
+                raise Exception(s)
         else:
-            CN.load("d:/cygwin64/plib/colornames0")
-        # Define default Trm instance
-        TRM = Trm()
-        t = TRM  # I use 't' so much it should be defined
-        TRM.cn = CN
-    if 1:  # Add standard names based on resistor color code as t's attributes
-        '''Add a number of attributes to the t instance giving the regular and light colors in the
-        color table using my standard names.
+            from pdb import set_trace as yy; yy() 
+            raise Exception("Bug in color.Color():  should be impossible to reach this point")
+        self._check()
+    def _check(self):
+        'Check invariants'
+        assert isinstance(self._bpc, int) and self._bpc > 0
+        assert len(self._rgb) == 3
+        assert (0 <= i < self.N and isinstance(i, int) for i in self._rgb)
+        assert self._sort in ("rgb", "hsv", "hls")
+    def string(self, X):
+        'Return 3-tuple int rgb value from a string'
+        assert isinstance(X, str)
+        if not X:
+            raise ValueError("Can't initialize with an empty string")
+        x, N = X.lower(), self.N - 1
+        first_char, s = x[0], x[1:]
+        if first_char in "@#$":
+            # It must be a hex string form.  '@' means HSV,
+            # '#' means RGB, '$' means HLS.
+            n, rem = divmod(len(s), 6)
+            if not s or rem:
+                raise ValueError("Hex string length must be a multiple of 6 characters")
+            n *= 2
+            t = s[0:n], s[n:2*n], s[2*n:3*n]
+            rgb = tuple(int(i, 16) & N for i in t)
+            dec = tuple(i/N for i in rgb)
+            if first_char == "@":
+                rgbdec = colorsys.hsv_to_rgb(*dec)
+            elif first_char == "#":
+                rgbdec = dec
+            elif first_char == "$":
+                rgbdec = colorsys.hls_to_rgb(*dec)
+            else:
+                raise ValueError(f"'{first_char}' is an illegal first character")
+            rgb = tuple(int(round(i*N, 1)) for i in rgbdec)
+        else:
+            # It names a color
+            msg = f"{x!r} isn't recognized as a color name"
+            if 0:   # Old method
+                try:
+                    rgb = CN[x].irgb
+                except Exception:
+                    raise ValueError(msg)
+            else:
+                name = Color.NormalizeColorName(x)
+                if name in dpcolornames.colornames:
+                    # This gets the color with the lowest number key, as this is the
+                    # order I want things searched for (most colors will be in 0 or
+                    # 1, my color names; 2 is the X11 names, and the remaining ones
+                    # are various name sets downloaded from the web).
+                    found = sorted(dpcolornames.colornames[name], key=lambda x: x.key)[0]
+                    # found is a ColorName instance, a namedtuple
+                    c = Color(found.hex)   # .hex attribute is a hex string 
+                    rgb = c.irgb
+                else:
+                    raise ValueError(msg)
+        assert all(0 <= i <= N and isinstance(i, int) for i in rgb)
+        return rgb
+    def escape(self, X):
+        '''Return 3-tuple int rgb value from an ANSI escape code.
+        
+        To be technically correct, this should handle double escape codes like 
+        '\x1b[38:5:⟨n⟩m\x1b[48:5:⟨n⟩m', which specifies both a foreground and
+        background color.   However, for the first implementation, I'm going to
+        keep it simple, as the only "user" is the new Trm object and the vast
+        majority of the time it will be single escape sequences.
+        
+        Examples of typical values for X:
+            \x1b[38;5;⟨n⟩m  8-bit foreground color n
+            \x1b[48;5;⟨n⟩m  8-bit background color n
+            \x1b[38;2;⟨r⟩;⟨g⟩;⟨b⟩m 24-bit foreground color
+            \x1b[48;2;⟨r⟩;⟨g⟩;⟨b⟩m 24-bit background color
         '''
-        clrs = '''blk brn red orn yel grn blu vio gry wht cyn mag
-                pnk lip lav lil pur roy den sky trq sea lwn olv'''.split()
-        for clr in clrs:
-            for i in ("", "l", "d", "b"):
-                exec(f"t.{clr}{i} = t('{clr}{i}')")
-        if 0:
-            # Test that we got desire colors
-            t.print(f"{t.mag}mag")
-            t.print(f"{t.magl}magl")
-            t.print(f"{t.magd}magd")
-            t.print(f"{t.magb}magb")
-if 0:   # RegexpDecorate class
-    class RegexpDecorate:
-        '''Decorate regular expression matches with color
-        
-        The styles attribute is a dictionary that contains the styles to apply for each regexp's match
-        (key is the compiled regexp).  The style is a tuple of 1 to 3 values:  fg color, bg color, and
-        text attributes.  None means to use the default.
-        
-        Example use:  highlight lines to stdout that contain '[Mm]adison'
-        
-            rd = RegexpDecorate()
-            r = re.compile(r"[Mm]adison")
-            fg = t.yell
-            bg = t.n
-            # Note fg and bg must be escape sequences
-            rd.register(r, fg, bg)    # Print matches in light yellow on black
-            for line in open(file).readlines():
-                rd(line)    # Lines with matches are printed to stdout
-                
-            Can also be done with
-                rd(open(file))
-                
-        Suppose you have python files in a directory "mydir" and you're interested in knowing how many
-        lines contain the string "MySymbol".  This can be done with
-        
-            rd = RegexpDecorate()
-            r = re.compile(r"MySymbol")
-            files = pathlib.Path("mydir").glob("*.py")
-            rd.register(r, t(Color("yell")), t.n)
-            rd(*files)
-            
-        A command line tool like grep is capable of more precise searching
-        including file names and line numbers.
+        assert X and isinstance(X, str) and X[0] == "\x1b"
+        n = X.count("\x1b")
+        if not n:
+            raise ValueError("X = {X!r} doesn't have an escape character")
+        elif n != 1:
+            raise ValueError("Only one escape character allowed in string")
+        x = X.replace("\x1b[", "")
+        f = x.split(";")
+        if len(f) == 3:
+            assert f[0] in "38 48".split()
+            assert f[1] == "5"
+            n = int(f[2].replace("m", ""))
+            return Translate8bit(n)
+        elif len(f) == 5:
+            assert f[0] in "38 48".split()
+            assert f[1] == "2"
+            r, g = [int(i) for i in (f[2], f[3])]
+            b = int(f[4].replace("m", ""))
+            return (r, g, b)
+        else:
+            raise ValueError(f"{X!r} is an unrecognized escape code")
+    def __str__(self):
+        u = "⁰¹²³⁴⁵⁶⁷⁸⁹"
+        b = "".join(u[int(i)] for i in str(self._bpc))
+        n, w = self._rgb, len(str(self.n))
+        return f"C{b}({n[0]:{w}d}, {n[1]:{w}d}, {n[2]:{w}d})"
+    def __repr__(self):
+        n, w = self._rgb, len(str(self.n))
+        return f"Color({n[0]:{w}d}, {n[1]:{w}d}, {n[2]:{w}d}, bpc={self._bpc})"
+    def _str(self, dec=True):
+        "Return string representations"
+        name, n = type(self).__name__, self.digits()
+        if dec:
+            r, g, b = self.rgb
+            return f"{name}({r:{2 + n}.{n}f}, {g:{2 + n}.{n}f}, {b:{2 + n}.{n}f})"
+        else:
+            s = self.fmt_int(*self._rgb)
+            return f"{name}({s})"
+    def __eq__(self, other):
+        "Two instances are equal if their RGB components are equal"
+        # This embraces a subtle but crucial point in defining the
+        # fractions used for comparisons (the Fraction objects are used in
+        # the change_bpc method):  the denominator is 2**self._bpc.
+        # This lets color integers be "downshifted" (scaled) to lower bits
+        # per color values and compare equally to higher bpc colors.
+        bpc = min(self.bpc, other.bpc)
+        me, you = self.irgb, other.irgb
+        if bpc != self.bpc:
+            me = self.change_bpc(bpc).irgb
+        if bpc != other.bpc:
+            you = other.change_bpc(bpc).irgb
+        return me == you
+    def __lt__(self, other):
+        "Compare self and other for e.g. sorting"
+        if self.sort == "hls":
+            return self.ihls < other.ihls
+        elif self.sort == "rgb":
+            return self.irgb < other.irgb
+        elif self.sort == "hsv":
+            return self.ihsv < other.ihsv
+        elif self.sort == "wl":
+            # Wavelength sorting might be handy, but I first need to
+            # develop suitable inverses for the two approximation
+            # functions I have.
+            raise Exception("Not implemented yet")
+        else:
+            raise ValueError("self.sort not one of 'hls rgb hsv wl'")
+    def __hash__(self):
+        '''The hash includes the RGB components along with the number
+        of bits per color.  This ensures that two colors initialized with
+        Color(1, 2, 3) are different if they have different bits per color.
         '''
-        def __init__(self):
-            self._styles = {}
-        def register(self, r, match_style, nomatch_style=None):
-            '''Register a regular expression and its styles
-            
-            Arguments:
-                - match_style:  escape code to print before a match
-                - nomatch_style:  escape code to print before a nonmatching string.  If it is None,
-                  then t.n is used as the return-to-standard escape code.
-                  
-            You can generate these escape codes with a TRM instance.
-            
-            If your escape code for match_style includes an attribute, you'll want to include
-            the 'no' attribute for normal text in your nomatch_style.  Otherwise, the remaining text
-            will continue to be printed in the match_style's attribute.  The easiest way to do this is
-            to not set nomatch_style.
+        return hash((self._rgb, self._bpc))
+    def change_bpc(self, bpc):
+        '''Return a new instance with this instance's color that has the
+        indicated bpc (bits per color).
+        '''
+        if not isinstance(bpc, int) and bpc < 1:
+            raise TypeError("bpc must be an int")
+        if bpc < 1:
+            raise ValueError("bpc must be > 0")
+        # Method:  convert RGB components to Fraction objects with our
+        # current bpc value.  Convert these components to the new bpc value
+        # using Fraction.limit_denominator.
+        frgb, n = [Fraction(i, self.N) for i in self._rgb], 2**bpc
+        for i, x in enumerate(frgb):
+            x.limit_denominator(n)
+            if x == 1:
+                # Need to adjust the 1's because we want integers on
+                # [0, 2**bpc)
+                x = Fraction(x.numerator - 1, x.denominator)
+            frgb[i] = x
+        rgb = [int(n*i) for i in frgb]
+        return Color(*rgb, bpc=bpc)
+    def adjust(self, p, comp=None, set=False):
+        '''Allows adjusting a color and returns a new Color instance.  comp
+        must be a letter in "rgbhsvHLS".  Note "saturation" s and S are
+        different numbers in HSV and HLS spaces.
+        
+        p is a number.  If set is False, the new value will be old*(1 + p/100).
+        The new number will be clamped to the range of the Color instance.
+        
+        If set is True, then p is converted to an integer and that
+        component's value is set.
+        '''
+        def Clamp(x):
+            "Round and limit x to [0, self.n]"
+            y = int(round(x, 1))
+            return min(self.n, max(0, y))
+        allowed = "rgbhsvHLS"
+        if set:
+            if not isinstance(p, int):
+                raise TypeError("p must be an integer if set is True")
+            x = Clamp(p)
+        else:
+            try:
+                x = 1 + float(p)/100
+            except Exception:
+                raise TypeError("p must be convertible to a float")
+        if comp is None or comp not in allowed:
+            raise ValueError(f"comp must be letter in '{allowed}'")
+        # Get components to modify
+        if comp in "rgb":
+            r, g, b = self._rgb
+            if comp == "r":
+                r = x if set else Clamp(r*x)
+            elif comp == "g":
+                g = x if set else Clamp(g*x)
+            else:
+                b = x if set else Clamp(b*x)
+            rgb = (r, g, b)
+        elif comp in "hsv":
+            h, s, v = self.ihsv
+            if comp == "h":
+                h = x if set else Clamp(h*x)
+            elif comp == "g":
+                s = x if set else Clamp(s*x)
+            else:
+                v = x if set else Clamp(v*x)
+            rgb = Color(h, s, v, hsv=True)._rgb
+        elif comp in "HLS":
+            h, l, s = self.ihls     # noqa
+            if comp == "h":
+                h = x if set else Clamp(h*x)
+            elif comp == "l":
+                L = x if set else Clamp(l*x)
+            else:
+                s = x if set else Clamp(s*x)
+            rgb = Color(h, L, s, hls=True)._rgb
+        # Make a copy of our instance
+        c = Color(self)
+        c._rgb = rgb
+        return c
+    def convert(self, bpc):
+        '''Convert this color into an 'equivalent' Color object with a
+        different number of bits per color bpc.  This is done by converting
+        the RGB values to decimal, then converting the decimals back to
+        [0, 2**bpc - 1].
+        '''
+        if not isinstance(bpc, int) or bpc < 1:
+            raise TypeError("bpc must be an integer")
+        if bpc < 1:
+            raise ValueError("bpc must be > 0")
+        N = 2**bpc - 1  # Integers for new color are on [0, N]
+        newrgb = tuple(int(round(i*N, 1)) for i in self.rgb)
+        return Color(*newrgb)
+    def interpolate(self, other, t, space="rgb"):
+        '''Interpolate between two colors:  self and other.  t is a parameter on
+        [0, 1].  If t is 0, you'll get back self and if t is 1, you'll get back
+        other.  If t is intermediate, you'll get a color "between" the two.  space
+        can be "rgb", "hsv", or "hls" and picks the coordinates used to interpolate.
+        '''
+        '''
+        The algorithm is linear interpolation in 2D Cartesian coordinates (x, y) for
+        each color component.  Let the starting point be P = (x0, y0) and the ending
+        point be Q = (x1, y1).  Further, let x0 = 0 and x1 = 1.
+        
+        The slope of the line connecting P and Q is
+            m = (y1 - y0)/(x1 - x0) = y1 - y0
+        
+        Given the parameter t on [0, 1], the interpolated value along the line
+        between P and Q is R = (t, y0 + m*t).  For t = 0, you get R == P and for
+        t = 1 you get R == Q.
+        '''
+        if not isinstance(other, Color):
+            raise TypeError("other must be a Color instance")
+        if not (0 <= t <= 1):
+            raise ValueError("t must be on [0, 1]")
+        if space not in ("rgb", "hsv", "hls"):
+            raise ValueError("space must be 'rgb', 'hsv', or 'hls'")
+        # Use Color instances that have the same number of bits per color.
+        me, you = Color.downshift(self, other)
+        # Get color space coordinates in decimal.  The vectors P and Q will be
+        # 3-vectors and have components on [0, 1].
+        if space == "rgb":
+            P, Q = me.drgb, you.drgb
+        elif space == "hsv":
+            P, Q = me.dhsv, you.dhsv
+        else:
+            P, Q = me.dhls, you.dhls
+        # Interpolate in this space from P to Q.  Set R as the intermediate
+        # 3-vector between P and Q.
+        m = [j - i for i, j in zip(P, Q)]  # 3-vector of slopes
+        R = [i + slope*t for i, slope in zip(P, m)]
+        # Convert the coordinates of R back to rgb space
+        if space == "hsv":
+            R = colorsys.hsv_to_rgb(*R)
+        elif space == "hls":
+            R = colorsys.hls_to_rgb(*R)
+        rgb = self.dec_to_int(R)
+        return Color(*rgb, bpc=me.bpc)
+    if 1:  # Utility
+        def fmt_int(self, a, b, c):
+            '''Format with uniform spacing for integers.  Example: self.fmt_int(1,
+            23, 214) will return '  1,  23, 21'.  This is handy for making lists of
+            color numbers because the spacing makes them easier to read in a text
+            file.
             '''
-            assert isinstance(r, re.Pattern)
-            if nomatch_style is None:
-                nomatch_style = t.n
-            self._styles[r] = (match_style, nomatch_style)
-        def unregister(self, r):
-            "Remove regexp r from our styles dict"
-            if r in self._styles:
-                del self._styles[r]
-        def __str__(self):
-            return f"RegexpDecorate(<styles={len(self._styles)}>)"
-        def __repr__(self):
-            return str(self)
-        def decorate(self, line):
-            '''Apply the registered regular expressions to the string line and return the string,
-            decorated if there was a match.
+            if not all(isinstance(i, int) for i in (a, b, c)):
+                raise TypeError("Arguments must be integers")
+            w = len(str(self.N))
+            return f"{a:{w}d}, {b:{w}d}, {c:{w}d}"
+        def dec_to_int(self, three_tuple):
+            'Return int value of decimal values in 3-tuple of floats'
+            assert all(isinstance(i, float) for i in three_tuple)
+            return tuple(int(round(i*self.n, 1)) for i in three_tuple)
+        def int_to_dec(self, three_tuple):
+            'Return float value of 3-tuple of integers'
+            assert all(isinstance(i, int) for i in three_tuple)
+            return tuple(i/(self.N - 1) for i in three_tuple)
+        def digits(self):
+            '''Return number of digits for to use for decimal rounding, typically
+            for printing to the screen.  Choose enough digits to hold all the color
+            values.
             '''
-            assert isinstance(line, str)
-            out = StringIO()
-            self(line, file=out)
-            return out.getvalue()
-        def __call__(self, line, file=sys.stdout, insert_nl=False):
-            '''Print the decorated line to a stream.  Check line for a match to one of the
-            registered regexps and if there's a match, print the decorated line to the indicated
-            stream.  Returns True if there was a match, False otherwise.
+            # self.N + 1 is the number of distinct color components.
+            n = math.ceil(math.log10(self.N + 1))
+            return max(1, n)
+    if 1:  # Settable properties
+        @property
+        def sort(self):
+            'Return sorting order string'
+            return self._sort
+        @sort.setter
+        def sort(self, value):
+            'Set sorting method:  "rgb", "hsv", or "hsl"'
+            if value not in "rgb hsv hsl".split():
+                raise ValueError("value must be 'rgb', 'hsv', or 'hsl'")
+            self._sort = value
+    if 1:  # Read-only properties
+        @property
+        def N(self):    # 2**bits_per_color
+            'Number of colors we represent == 2**bits_per_color'
+            return 2**self._bpc
+        @property       # 2**bits_per_color - 1
+        def n(self):
+            'self.N - 1'
+            return self.N - 1
+        @property       # Bits per color
+        def bpc(self):
+            'Bits per color'
+            return self._bpc
+        @property
+        def hex_bytes_per_color(self):  # How many bytes needed to express a color in hex
+            'How many bytes needed to express a color in hex'
+            return math.ceil(self._bpc/8) + 1
+        #
+        @property
+        def irgb(self):     # 3-tuple of integers on [0, 2**self.N - 1]
+            'Get rgb as a 3-tuple of integers on [0, 2**self.N - 1]'
+            return self._rgb
+        @property
+        def drgb(self):     # 3-tuple of floats on [0, 1]
+            'Get rgb as a 3-tuple of floats on [0, 1]'
+            return tuple(i/(self.N - 1) for i in self._rgb)
+        @property
+        def xrgb(self):     # #000000
+            'Get rgb as a hex string of the form #000000'
+            return "#" + Color.int_to_hex(self._rgb)
+        #
+        @property
+        def ihsv(self):     # hsv as a 3-tuple of integers on [0, 2**self.N - 1]
+            'Get hsv as a 3-tuple of integers on [0, 2**self.N - 1]'
+            dec = colorsys.rgb_to_hsv(*self.drgb)
+            hsv = tuple(int(round(i*(self.N - 1), 1)) for i in dec)
+            return hsv
+        @property
+        def dhsv(self):     # hsv as a 3-tuple of floats on [0, 1]
+            'Get hsv as a 3-tuple of floats on [0, 1]'
+            return colorsys.rgb_to_hsv(*self.drgb)
+        @property
+        def xhsv(self):     # @ffffff
+            "Get hsv as a hex string of the form @000000"
+            return "@" + Color.int_to_hex(self.ihsv)
+        #
+        @property
+        def ihls(self):     # hls as a 3-tuple of integers on [0, 2**self.N - 1]
+            'Get hls as a 3-tuple of integers on [0, 2**self.N - 1]'
+            dec = self.drgb
+            hlsdec = colorsys.rgb_to_hls(*dec)
+            hls = tuple(int(round(i*(self.N - 1), 1)) for i in hlsdec)
+            return hls
+        @property
+        def dhls(self):     # hls as a 3-tuple of floats on [0, 1]
+            'Get hls as a 3-tuple of floats on [0, 1]'
+            return colorsys.rgb_to_hls(*self.drgb)
+        @property
+        def xhls(self):     # $ffffff
+            'Get hls as a hex string of the form $000000'
+            return "$" + Color.int_to_hex(self.ihls)
+    if 1:  # Class methods
+        @classmethod
+        def dist(cls, c1, c2, space="rgb", taxicab=False):
+            '''Calculate a distance between two color instances.  They are both
+            converted into Color objects with the same bpc and the Euclidean
+            distance between the components is calculated.  The number returned is a
+            float on [0, 1].
             
-            Arguments:
-                - line:  String to search
-                - file:  Stream to send the decorated line
-                - insert_nl:  If True, print a newline if line doesn't end with a newline.
+            Euclidean distances in these color spaces are known to be nonlinear with
+            respect to human perception, but they are easy to calculate.
+            
+            space can be "rgb", "hsv", or "hls".
+            
+            If taxicab is True, then use the "taxicab" distance, which is how you'd
+            e.g. calculate a walking distance in a city where you can only walk on
+            the sidewalks (i.e., it's the sum of the absolute value of the
+            coordinates' differences).
+            
+            Example:  The Euclidean distance between (Color(0, 0, 0) and Color(a, a,
+            a) where a = 2**bpc - 1 will be sqrt(3).  Thus, the Euclidean distance
+            is divided by sqrt(3) to get a float on [0, 1].  For taxicab distance,
+            the distance is normalized to [0, 1] by dividing by 3.
+            '''
+            if not isinstance(c1, Color) or not isinstance(c2, Color):
+                raise TypeError("c1 and c2 must be Color instances")
+            # Convert to same bpc
+            me, him = Color.downshift(c1, c2)
+            # Get decimal components
+            if space == "rgb":
+                me, him = me.drgb, him.drgb
+            elif space == "hsv":
+                me, him = me.dhsv, him.dhsv
+            elif space == "hls":
+                me, him = me.dhls, him.dhls
+            if taxicab:
+                d = sum(abs(i - j) for i, j in zip(me, him))
+                return d/3
+            else:
+                d = sum((i - j)**2 for i, j in zip(me, him))**(1/2)
+                return d/3 ** (1/2)
+        @classmethod
+        def downshift(cls, c1, c2):
+            "Return two Color instances with the same bpc (bits per color)"
+            if not isinstance(c1, Color) or not isinstance(c2, Color):
+                raise TypeError("c1 and c2 need to be Color instances")
+            bpc = min(c1.bpc, c2.bpc)
+            return (c1.change_bpc(bpc), c2.change_bpc(bpc))
+        @classmethod
+        def int_to_hex(cls, threetuple, bytes_per_color=1):
+            "Convert 3-tuple of integers to hex string"
+            e = TypeError(f"'{threetuple}' argument must be a 3-sequence of  integers")
+            if not all(isinstance(i, int) for i in threetuple) or len(threetuple) != 3:
+                raise e
+            w = 2*bytes_per_color
+            x = [f"{i:0{w}x}" for i in threetuple]
+            ml = max(len(i) for i in x)
+            if ml % 2:
+                ml += 1
+            for i, value in enumerate(x):
+                while len(value) < ml:
+                    value = "0" + value
+                x[i] = value
+            t = "".join(x)
+            assert (len(t) % 6) == 0
+            return t
+        @classmethod
+        def hex_to_int(cls, s):
+            '''s must be a multiple of six hex digits; return a tuple of the
+            three integers it represents.
+            '''
+            if not isinstance(s, str):
+                raise TypeError(f"'{s}' argument must be a string")
+            div, rem = divmod(len(s), 6)
+            if rem:
+                raise ValueError("Length of s must be a multiple of six")
+            if not div:
+                raise ValueError("Must have at least 6 hex characters")
+            hd = set(hexdigits)
+            if not all(i in hd for i in s):
+                raise ValueError(f"String '{s}' contains non-hex characters")
+            n = 2*div  # Number of hex digits per color
+            rgb = (
+                s[0*div:0*div + n],
+                s[2*div:2*div + n],
+                s[4*div:4*div + n],
+            )
+            try:
+                rgb = tuple(int(i, 16) for i in rgb)
+            except Exception:
+                raise ValueError(f"'{s}' is not a valid hex string")
+            return rgb
+        @classmethod
+        def round(cls, value, digits):
+            "Round value to number of digits (value can be float or sequence)"
+            n = digits
+            if not isinstance(value, str) and isinstance(value, Iterable):
+                return tuple(round(float(i), n) for i in value)
+            else:
+                if not isinstance(value, float):
+                    raise TypeError("value must be a float or numerical sequence")
+                return round(value, n)
+        @classmethod
+        def Dot(cls, a, b):
+            "Dot product of two sequences"
+            Assert(len(a) == len(b))
+            return sum(i*j for i, j in zip(a, b))
+        @classmethod
+        def XYZ_to_sRGB(cls, XYZ):
+            '''CIE XYZ to sRGB (XYZ is a 3-sequence of positive numbers)
+            sRGB will be 3-sequence of floats on [0, 1]
+            https://en.wikipedia.org/wiki/SRGB#From_CIE_XYZ_to_sRGB
+            '''
+            if isinstance(XYZ, str) or len(XYZ) != 3:
+                raise TypeError(f"'{XYZ}' must be a sequence of 3 numbers")
+            if not all(i >= 0 for i in XYZ):
+                raise TypeError(f"'{XYZ}' must be numbers >= 0")
+            def GammaCompressed(x):
+                return 12.92*x if x <= 0.0031308 else 1.055*x ** (1/2.4) - 0.055
+            r1 = (+3.2406, -1.5372, -0.4986)
+            r2 = (-0.9689, +1.8758, +0.0415)
+            r3 = (+0.0557, -0.2040, +1.0570)
+            rgb = Color.Dot(r1, XYZ), Color.Dot(r2, XYZ), Color.Dot(r3, XYZ)
+            def clip(x):
+                return min(1.0, max(x, 0.0))
+            return tuple(clip(GammaCompressed(i)) for i in rgb)
+        @classmethod
+        def wl2rgb(cls, nm, sunlight=False, gamma=0.0, bpc=None):
+            '''Convert nm (light wavelength in nm) into an rgb decimal
+            3-tuple using an approximation.  The color black is returned
+            for wavelengths out of the visible spectrum.  nm must be
+            greater than zero.  Keywords:
+            
+            sunlight    If True, the colors returned are from an approximation
+                        constructed from the sun's spectrum.  If False, a
+                        "wider" approximation is made, but it is less physical
+                        in the sense that it has colors that don't appear in
+                        e.g. white light from the sun.
+                        
+            gamma       If nonzero, perform a gamma correction on components
+                        (raise them to the gamma power).  Be careful with
+                        gamma, as it can change the color.
+                        
+            bpc         Bits per color.  Uses Color.bits_per_color if None.
+            '''
+            # Check parameters
+            if not isinstance(nm, (int, float, flt, Decimal, Fraction)):
+                if have_mpmath and not isinstance(nm, mpmath.mpf):
+                    raise TypeError("nm must be an int or float")
+            # Convert it to a float
+            nm = float(nm)
+            if bpc is None:
+                bpc = Color.bits_per_color
+            if not isinstance(bpc, int):
+                raise TypeError("bpc must be an int")
+            if not isinstance(gamma, (int, float, flt)):
+                raise TypeError("gamma must be an int or float")
+            if gamma < 0:
+                raise ValueError("gamma must be >= 0")
+            if sunlight:
+                # From user Spektre's post last edited 5 Nov 2016 at
+                # https://stackoverflow.com/questions/3407942/rgb-values-of-visible-spectrum/22681410#22681410
+                # Edited by DP to return RGB = (3, 0, 3) for 400 nm
+                if not (400 <= nm <= 700):
+                    a = 0.0
+                    return Color(a, a, a)
+                r = g = b = 0.0
+                # Red component
+                if nm >= 400 and nm < 410:
+                    t = (nm - 400)/(410 - 400)
+                    r = 0.33*t - 0.2*t*t
+                elif nm >= 410 and nm < 475:
+                    t = (nm - 410)/(475 - 410)
+                    r = 0.14 - 0.13*t*t
+                elif nm >= 545 and nm < 595:
+                    t = (nm - 545)/(595 - 545)
+                    r = 1.98*t - t*t
+                elif nm >= 595 and nm < 650:
+                    t = (nm - 595)/(650 - 595)
+                    r = 0.98 + 0.06*t - 0.4*t*t
+                elif nm >= 650 and nm <= 700:
+                    # DP I made it '<= 700' so wavelength range is on [400, 700]
+                    t = (nm - 650)/(700 - 650)
+                    r = 0.65 - 0.84*t + 0.2*t*t
+                # Green component
+                if nm >= 415 and nm < 475:
+                    t = (nm - 415)/(475 - 415)
+                    g = 0.8*t*t
+                elif nm >= 475 and nm < 590:
+                    t = (nm - 475)/(590 - 475)
+                    g = 0.8 + 0.76*t - 0.8*t*t
+                elif nm >= 585 and nm < 639:
+                    t = (nm - 585)/(639 - 585)
+                    g = 0.84 - 0.84*t
+                # Blue component
+                if nm >= 400 and nm < 475:
+                    t = (nm - 400)/(475 - 400)
+                    b = 2.2*t - 1.5*t*t
+                elif nm >= 475 and nm < 560:
+                    t = (nm - 475)/(560 - 475)
+                    b = 0.7 - t + 0.3*t*t
+                # DP correction for 400 nm:  401 nm gives (7, 0, 7) for RGB
+                # [(215, 3, 255) for HLS], so I made 400 nm give (2, 0, 1)
+                # [(233, 1, 255) in HLS].
+                if nm == 400:
+                    r, g, b = 2/255, 0, 1/255
+                rgb = tuple([float(i) for i in (r, g, b)])
+            else:
+                # From # http://www.physics.sfasu.edu/astro/color/spectra.html (defunct).
+                # Also see http://www.midnightkite.com/color.html.
+                # From D. Bruton's FORTRAN code (algorithm apparently due to Earl F.
+                # Glynn).
+                if not (380 <= nm <= 780):
+                    a = 0.0
+                    return Color(a, a, a)
+                if 380 <= nm <= 440:
+                    a = (440 - nm)/(440 - 380), 0, 1
+                elif 440 <= nm <= 490:
+                    a = 0, (nm - 440)/(490 - 440), 1
+                elif 490 <= nm <= 510:
+                    a = 0, 1, (510 - nm)/(510 - 490)
+                elif 510 <= nm <= 580:
+                    a = (nm - 510)/(580 - 510), 1, 0
+                elif 580 <= nm <= 645:
+                    a = 1, (645 - nm)/(645 - 580), 0
+                elif 645 <= nm <= 780:
+                    a = 1, 0, 0
+                # Intensity i falls off near vision limits
+                i, u, v = 1.0, 0.3, 0.7
+                if nm > 700:
+                    i = u + v*(780 - nm)/(780 - 700)
+                elif nm < 420:
+                    i = u + v*(nm - 380)/(420 - 380)
+                # Scale the components by i
+                rgb = [float(i*j) for j in a]
+            # If gamma is not zero, perform a gamma transformation
+            if gamma:
+                rgb = [i**gamma for i in rgb]
+            # Make sure the numbers are on [0, 1]
+            assert all([0 <= i <= 1 for i in rgb])
+            return Color(*rgb, bpc=bpc)
+        @classmethod
+        def Sort(cls, seq, keys="hL", get=None):
+            '''Return a sorted copy of the sequence of Color instances.
+            The keys parameter determines how to sort:  each element is a
+            letter:  rgbhsvHLS that is used in the rgb, hls, and hsv attributes.
+            Unfortunately, the 's' is hls and hsv mean different things.
+            Here, 's' means the s in 'hls' and 'S' means the s in 'hsv'.
+            Though they are described by the same term "saturation", the two
+            functions return different values for s in python's colorsys module
+            for the same RGB value.
+            
+            If get is not None, it's a predicate that is used to get the
+            Color instance from the sequence seq.
+            '''
+            # The algorithm is to decorate an auxiliary sequence with the
+            # indicated attribute values, sort it, and return it after
+            # stripping off the decorations.
+            if isinstance(seq, str) or not isinstance(seq, Iterable):
+                raise TypeError("seq is not a suitable sequence")
+            if not keys:
+                raise ValueError("keys cannot be empty")
+            S = set("rgbhsvHLS")
+            for key in keys:
+                if key not in S:
+                    raise TypeError(f"keys '{keys}' contains an illegal letter")
+            aux = []
+            # Decorate the auxiliary copy of seq with the attribute numbers
+            for item in seq:
+                # Get the Color instance from the sequence
+                if get is None:
+                    c = item
+                else:  # Use the predicate
+                    c = get(item)
+                if not isinstance(c, Color):
+                    raise TypeError(f"'{c}' is not a Color instance")
+                itemkey = []
+                for key in keys:
+                    # Get the integer form of the key
+                    if key == "r":
+                        k = c.irgb[0]
+                    elif key == "g":
+                        k = c.irgb[1]
+                    elif key == "b":
+                        k = c.irgb[2]
+                    elif key == "h" or key == "H":
+                        k = c.ihls[0]
+                    elif key == "L":
+                        k = c.ihls[1]
+                    elif key == "S":
+                        k = c.ihls[2]
+                    elif key == "s":
+                        k = c.ihsv[1]
+                    elif key == "v":
+                        k = c.ihsv[2]
+                    itemkey.append(k)
+                decorated = tuple(itemkey), item
+                aux.append(decorated)
+            # Now we can use a default sort on aux
+            aux = sorted(aux, key=lambda x: x[0])
+            # Strip decorations
+            return tuple(i[1] for i in aux)
+        @classmethod
+        def Construct(cls, s):
+            '''Uses regular expressions to recognize color initializers in a
+            string s.  Returns a Color instance or None.  If s is a multiline
+            string, a deque of (line, Color_instance) tuples is returned.
+            Trailing whitespace of the line is stripped.
+            
+            Forms recognized:
+                '@000000' or '#000000' or '$000000'
+                '1, 2, 3'
+                '1 2 3'
+                '1.0, 2.0, 3.0'
+                '1.0 2.0 3.0'
                 
+            An example use case is the /plib/pgm/cdec.py script, which is
+            used to print out the lines of a file containing a color
+            specification in that color.
             '''
-            assert isinstance(line, str)
-            if not line:
-                return
-            has_nl = line.endswith("\n")
-            had_match = False
-            match_style, nomatch_style = "", t.n
-            while line:
-                # Find regexp match closest to beginning of line
-                shortest = []
-                for r in self._styles:
+            def GetColorRegexps():
+                "Return tuple of regexps to use to recognize color identifiers"
+                R = re.compile
+                # Recognize an integer or float
+                s = r'''
+                        (                               # Group
+                            # First is for numbers like .234
+                            [+-]?                       # Optional sign
+                            \.\d+
+                            ([eE][+-]?\d+)?             # Optional exponent
+                        |                             # or
+                            # This is for integers or 2.3 or 2.3e4
+                            [+-]?                       # Optional sign
+                            \d+\.?\d*                   # Number:  2.345
+                            ([eE][+-]?\d+)?             # Optional exponent
+                        )                               # End group
+                '''
+                flags = re.I | re.X
+                regexps = (
+                    # [@#$]XXYYZZ form
+                    ("hex", R(r"([@#$][0-9a-f]{6})", flags)),
+                    # Three integers or floats separated by commas
+                    ("fcomma", R(rf"({s},\s*{s},\s*{s})", flags)),
+                    # Three integers or floats separated by whitespace
+                    ("fspace", R(rf"({s}\s+{s}\s+{s})", flags)),
+                )
+                return regexps
+            def Decode(match, name):
+                "Turn a matched string into a Color instance"
+                if name == "hex":
+                    return Color(match)
+                elif name == "fcomma":
+                    if "." in match or "e" in match:
+                        rgb = [float(i) for i in match.split(",")]
+                    else:
+                        rgb = [int(i) for i in match.split(",")]
+                    return Color(*rgb)
+                elif name == "fspace":
+                    if "." in match or "e" in match:
+                        rgb = [float(i) for i in match.split()]
+                    else:
+                        rgb = [int(i) for i in match.split(",")]
+                    return Color(*rgb)
+            regexps = GetColorRegexps()
+            def Find(line):
+                for name, r in regexps:
                     mo = r.search(line)
                     if mo:
-                        shortest.append((mo.start(), mo, r))
-                        had_match = True
-                if not shortest:
-                    # No more matches
-                    if line and had_match:
-                        if not has_nl and insert_nl:
-                            print(f"{line}{nomatch_style}", file=file)
-                        else:
-                            print(f"{line}{nomatch_style}", end="", file=file)
-                    elif line:
-                        # Print rest of line
-                        if not has_nl and insert_nl:
-                            print(f"{nomatch_style}{line}{t.n}", file=file)
-                        else:
-                            print(f"{nomatch_style}{line}{t.n}", end="", file=file)
-                    return had_match
-                # Sort shortest to find the first match
-                location, mo, r = sorted(shortest, key=lambda x: x[0])[0]
-                match_style, nomatch_style = self._styles[r]
-                # Print non-matching start stuff in nomatch_style
-                print(f"{nomatch_style}{line[:location]}", end="", file=file)
-                # Print the match in match_style, then the escape code to
-                # switch back to the default print style (t.n).
-                match = line[mo.start():mo.end()]
-                print(f"{match_style}{match}{nomatch_style}", file=file, end="")
-                # Trim the line and search again
-                line = line[mo.end():]
-            if had_match:
-                print(f"{t.n}", end="")  # Default text style
-                if not line and not has_nl and insert_nl:
-                    print(file=file)
-            return True
+                        # Got a match
+                        color = mo.groups()[0]
+                        return Decode(color, name)
+                return None
+            if "\n" in s:
+                # It's a multiline string
+                keep = deque()
+                for line in s.split("\n"):
+                    line = line.rstrip()
+                    if not line:
+                        continue
+                    color = Find(line)
+                    if color:
+                        keep.append((line, color))
+                return keep if keep else None
+            else:
+                return Find(s)
+        @classmethod
+        def NormalizeColorName(cls, name):
+            '''Return a normalized color name from the string name.
+            Example:  "dark red", "Dark Red", "DarkRed", "Dark_red" as arguments will all
+            return "dark_red".
+            
+            Algorithm:
+                - Convert to ASCII-only form
+                - " " inserted before each capital letter
+                - " " substituted for each "_"
+                - Split on whitespace
+                - Convert each token to lowercase
+                - Reassemble with "_"
+            '''
+            if not isinstance(name, str):
+                raise TypeError("name must be a str instance")
+            name = name.strip()
+            if not name:
+                raise ValueError("A name cannot be only whitespace or empty")
+            # Make sure we have only printable ASCII characters
+            name = asciify.Asciify(name)
+            printable = set(string.printable)
+            mychars = set(name)
+            capitals = set(string.ascii_uppercase)
+            if not (mychars <= printable):
+                not_allowed = mychars - printable
+                raise ValueError(f"{str(not_allowed)!r} are characters not allowed in names")
+            # Process the characters
+            new = []
+            dq = collections.deque(name)
+            while dq:
+                char = dq.popleft()
+                if char in capitals or char == "_":
+                    new.append(" ")
+                new.append(char)
+            newstr = ''.join(new).replace("_", " ")
+            new = '_'.join(i.lower() for i in newstr.split())
+            return new
 if 1:  # Translate between ANSI 8-bit and 24-bit colors
     def RGBtoANSI8bit(r, g, b):
         '''This function takes an RGB integer tuple and returns an integer on [0, 255]
@@ -2301,57 +1622,6 @@ if __name__ == "__main__":
             rgb2 = Translate8bit(n)
             dist = ColorDistance(rgb1, rgb2)
             Assert(not dist)
-    def Test_Trm():     # This code is obsolete
-        return
-        # Not exhaustive, but will test some features.  Tested only
-        # under mintty 3.5.2.
-        t = Trm()
-        t.m = t(Color(239, 132, 239), attr="rv")  # Orchid for test case headings
-        def TestLoad():
-            "Test Trm.load() from file, stream and string"
-            t.print(f"{t.m}Test of Trm.load()")
-            s = "/tmp/tmp.clr.py"
-            f = P(s)
-            open(P(s), "w").write("err redl None\n")
-            x = Trm()
-            x.load(f, show=True)  # File
-            x.load(open(f), show=True)  # Stream
-            s = "err redl None"
-            x.load(s, show=True)  # String
-            f.unlink()
-        def TestRegexpDecorate():
-            x = Trm()
-            x.of = x(Color("blk"), Color("grnl"))
-            x.man = x(Color("yell"), attr="rv rb")
-            x.so = x(Color("redl"), Color("blul"))
-            x.Is = x(None, None, attr="ul ol")
-            t.print(
-                dedent(f'''
-                {t.m}Test of regular expression decoration{t.n}
-                    'of' should be {x.of}of{x.n}{t.n}.
-                    'man' should be {x.man}man{x.n}{t.n}.
-                    'so' should be {x.so}so{x.n}{t.n}.
-                    'is' should be lined as {x.Is}is{x.n}{t.n}.
-            ''')
-            )
-            s = dedent('''
-                However little known the feelings or views of such
-                a man may be on his first entering a neighbourhood,
-                this truth is so well fixed in the minds of the
-                surrounding families, that he is considered the rightful
-                property of some one or other of their daughters.\n
-            ''')
-            r = [
-                (re.compile(r"of"), x.of),
-                (re.compile(r"man"), x.man),
-                (re.compile(r"so"), x.so),
-                (re.compile(r"is"), x.Is),
-            ]
-            s  # Quiet linter
-            r  # Quiet linter
-            #PrintMatches(s, r)
-        # TestLoad()             # Themes not working yet
-        # TestRegexpDecorate()   # Not working yet
     def Test_Color_adjust():
         Reset()
         c = Color(0, 100, 0)
@@ -2847,7 +2117,7 @@ if __name__ == "__main__":
             exit(1)
     if 1:  # Example stuff
         def ShowAttributes():
-            c = Trm()
+            c = trm.Trm(default=2)
             def f(a):
                 return c(attr=a)
             print(dedent(f'''
@@ -2861,7 +2131,7 @@ if __name__ == "__main__":
                 sub{f("sb")}script   {c.n}sb       super{f("sp")}script {c.n}sp
             '''.rstrip()))
         def ColorTable(bits):
-            c = Trm()
+            c = trm.Trm(default=2)
             width = int(os.environ["COLUMNS"])
             width + 1   # Dummy to quiet linter
             def H(bright=False):
@@ -2914,17 +2184,15 @@ if __name__ == "__main__":
             - regexp matches
             - Unicode in sub/superscripts (e.g., Hz**(1/2)
             '''
-            c = trm.Trm()
+            c = trm.Trm(default=2)
             c.hdr = c(attr="ul")
             def Header():
-                c.print(
-                    dedent(f'''
+                c.print(dedent(f'''
                 {c.hdr}Demonstration of some color.py features{c.n}
- 
-                ''')
-                )
+                '''))
             def Theme():
-                x = Trm()
+                # ∞∞2 This needs to be redone
+                x = trm.Trm(default=2)
                 s = "This {ul}truth{n} is well-{em}fixed{n} in our minds."
                 x.print(dedent(f'''
                     {c.hdr}Themes{x.n}
@@ -2960,17 +2228,16 @@ if __name__ == "__main__":
                 d = {"ul": x.ul, "em": x.em, "n": x.n}
                 x.print("\n    Second style: ", s.format(**d))
             def Exponents():
+                c = trm.Trm(default=2)
                 n = c.n
-                cl = Color("yell")
+                cl = "yel"
                 e = c(cl)
                 u = c(cl, attr="sp")
                 b = c(cl, attr="sb")
-                c.print(
-                    dedent(f'''
-                    {c.hdr}Exponents{c.n}
-                    The mintty terminal can display exponents and subscripts, even using Unicode
+                c.print(dedent(f'''
+                    {c.yel}Exponents{c.n}
+                    The terminal can display exponents and subscripts, even using Unicode
                     characters.
- 
                         SI units: kg/(m·s²)
                             With built-in Unicode:      {e}ξ{b}λ{n}{e} = 3 kg·m⁻¹·s⁻²{c.n}
                             With superscripts:          {e}ξ{b}λ{n}{e} = 3 kg·m{u}-1{c.n}{e}·s{u}-2{c.n}
@@ -2978,90 +2245,93 @@ if __name__ == "__main__":
                             exponent characters.  Here's an example with mintty (doesn't
                             work under Windows Terminal):
                                                         {e}ξ{b}λ{n}{e} = 3 kg·m{u}θ{c.n}{e}·s{u}μ²{c.n}
-                ''')
-                )
+                '''))
             def TextEditing():
-                cl = Color("grnl")
+                c = trm.Trm(default=2)
+                cl = "grn"
                 n, a, d = c.n, c(cl), c(None, None, attr="so")
-                c.print(
-                    dedent(f'''
- 
-                    {c.hdr}Text editing{c.n}
+                c.print(dedent(f'''
+                    {c.yel}Text editing{c.n}
                     Using a green color for added text and strikethrough for deleted text, you can
                     show how some text has been edited:
-            
                         This {a}new{n} {d}old{n} text was {a}added{n} {d}deleted{n}.
-                ''')
-                )
-                cl = Color("redl")
-                d = c(cl, attr="so")
-                c.print(
-                    dedent(f'''
- 
+                '''))
+                d = c("red", attr="so")
+                c.print(dedent(f'''
                     The strikethrough text can be hard to see.  A quick change adds a red color:
- 
                         This {a}new{n} {d}old{n} text was {a}added{n} {d}deleted{n}.
-                ''')
-                )
+                '''))
                 print()
             Header()
-            # Theme()
+            #Theme()
             Exponents()
             TextEditing()
         def ShortNames():
-            '''The default set of color names comes from the colorname0
-            file.  The 12 basic names are the 10 resistor color code names
-            of blk, brn, red, orn, yel, grn, blu, vio, gry, wht and the
-            added colors cyn for cyan and mag for magenta.  Three suffixes
-            give 12 more colors each:  'l' for 'light', 'd' for 'dark', and
-            'b' for background.  An auxiliary 12 more colors are also
-            defined.  Each of these colors is printed out with foreground
-            and background text to show their effect.
-            '''
-            R = GetShortNames()
-            c = trm.Trm()
-            # Make escape codes always be printed so that capturing to a
-            # file lets you grab the escape codes easily.
-            c.always = True
-            w = 5
-            cn = CN
-            print("Grays:", end=" "*2)
-            for i in range(1, 11):
-                k = Color(i/10)
-                s = str(i/10)
-                print(f"{c(k)}{s:{w}s}{c.n}", end=" ")
-            print()
-            # Print out one color per line
-            w, sp, a = 4, 2, "ul it"
-            print(f"{' '*12}{c('whtl', attr=a)}Foregrounds{c.n}", end="")
-            print(f"{' '*12}{c('whtl', attr=a)}Backgrounds{c.n}")
-            for i in R:
-                # Foregrounds
-                print(f"{i:{w}s}", end=" "*3)
-                print(f"{c(cn[i])}{i:{w}s}{c.n}", end=" "*sp)
-                for j in "ldb":
-                    k = i + j
-                    print(f"{c(cn[k])}{k:{w}s}{c.n}", end=" "*sp)
-                # Backgrounds
-                print(f"{c('blk', cn[i])}{i:{w}s}{c.n}", end=" "*sp)
-                for j in "ldb":
-                    k = i + j
-                    print(f"{c('blk', cn[k])}{k:{w}s}{c.n}", end=" "*sp)
-                # Print the RGB codes for the first two colors
-                k, kl, kd, kb = cn[i], cn[i + "l"], cn[i + "d"], cn[i + "b"]
-                print(f"{c(k)}{k.xrgb}{c.n} {c(kl)}{kl.xrgb}{c.n}", end=" ")
-                print(f"{c(kd)}{kd.xrgb}{c.n} {c(kb)}{kb.xrgb}{c.n}", end="")
+            if 1:   # New stuff
+                # My default names
+                print("Default color names from trm.Trm(default=2):")
+                u = trm.Trm(default=2)
+                u.list(horiz=True, columns=10)
+                # Color by wavelength
+                o = []
+                for wl in range(400, 701, 10):
+                    o.append(f"{u(wl)}{wl}{u.n}")
+                print("Color by wavelength in nm:")
+                for i in Columnize(o, columns=16, horiz=True, sep=" "*2):
+                    print(i)
+            else:   # Old stuff when Trm was in color.py
+                '''The default set of color names comes from the colorname0
+                file.  The 12 basic names are the 10 resistor color code names
+                of blk, brn, red, orn, yel, grn, blu, vio, gry, wht and the
+                added colors cyn for cyan and mag for magenta.  Three suffixes
+                give 12 more colors each:  'l' for 'light', 'd' for 'dark', and
+                'b' for background.  An auxiliary 12 more colors are also
+                defined.  Each of these colors is printed out with foreground
+                and background text to show their effect.
+                '''
+                R = GetShortNames()
+                c = trm.Trm()
+                # Make escape codes always be printed so that capturing to a
+                # file lets you grab the escape codes easily.
+                c.always = True
+                w = 5
+                cn = CN
+                print("Grays:", end=" "*2)
+                for i in range(1, 11):
+                    k = Color(i/10)
+                    s = str(i/10)
+                    print(f"{c(k)}{s:{w}s}{c.n}", end=" ")
                 print()
-            print(dedent(f'''
- 
-                Examples:               #ffffff = RGB, $ffffff = HLS, @ffffff = HSV
-                    t(Color(0.35)) gives a {t(Color(0.35))}gray like this{t.n}
-                    t('ornl') gives an {t("ornl")}orange like this{t.n}
-                    t('ornl', 'royd') gives an {t("ornl", "royd")}orange on a royd background{t.n}
-                    t('blk', 'yel', attr="rb") gives a {t("blk", "yel", attr="rb")}rapid blink{t.n}
-                    Blinking doesn't work in WSL
-            ''')
-            )
+                # Print out one color per line
+                w, sp, a = 4, 2, "ul it"
+                print(f"{' '*12}{c('whtl', attr=a)}Foregrounds{c.n}", end="")
+                print(f"{' '*12}{c('whtl', attr=a)}Backgrounds{c.n}")
+                for i in R:
+                    # Foregrounds
+                    print(f"{i:{w}s}", end=" "*3)
+                    print(f"{c(cn[i])}{i:{w}s}{c.n}", end=" "*sp)
+                    for j in "ldb":
+                        k = i + j
+                        print(f"{c(cn[k])}{k:{w}s}{c.n}", end=" "*sp)
+                    # Backgrounds
+                    print(f"{c('blk', cn[i])}{i:{w}s}{c.n}", end=" "*sp)
+                    for j in "ldb":
+                        k = i + j
+                        print(f"{c('blk', cn[k])}{k:{w}s}{c.n}", end=" "*sp)
+                    # Print the RGB codes for the first two colors
+                    k, kl, kd, kb = cn[i], cn[i + "l"], cn[i + "d"], cn[i + "b"]
+                    print(f"{c(k)}{k.xrgb}{c.n} {c(kl)}{kl.xrgb}{c.n}", end=" ")
+                    print(f"{c(kd)}{kd.xrgb}{c.n} {c(kb)}{kb.xrgb}{c.n}", end="")
+                    print()
+                print(dedent(f'''
+    
+                    Examples:               #ffffff = RGB, $ffffff = HLS, @ffffff = HSV
+                        t(Color(0.35)) gives a {t(Color(0.35))}gray like this{t.n}
+                        t('ornl') gives an {t("ornl")}orange like this{t.n}
+                        t('ornl', 'royd') gives an {t("ornl", "royd")}orange on a royd background{t.n}
+                        t('blk', 'yel', attr="rb") gives a {t("blk", "yel", attr="rb")}rapid blink{t.n}
+                        Blinking doesn't work in WSL
+                '''))
     def Int(s):
         "Convert s to an integer; 0x33 and 0o33 forms allowed"
         s = s.strip()
@@ -3205,31 +2475,29 @@ if __name__ == "__main__":
             data.append(row)
         tt.print(data, style=" "*15)
     def ShowShortNames(extra):
-        if 1:   # Make a dict of the names vs. colors
-            lines = get.GetLines("/plib/colornames0", nonl=1, script=1, strip=1, ignore_empty=1)
-            di = {}
-            for line in sorted(lines):
-                line = line.strip()
-                name, clr = [i.strip() for i in line.split(":")]
-                c = eval(clr)
-                di[name.replace("'", "")] = c
+        u = trm.Trm(default=2)
+        # Make a dict of the names vs. colors
+        di = {}
+        for i in trm.Trm.std:
+            for j in ("l", "", "1", "2", "3"):
+                di[i + j] = Color(i + j)
         w = 2   # Spaces between columns
         i, f, block = " "*w, lambda x: " "*x, "█"*6
-        hdr = f"Name{f(8)}RGB{f(10)}XRGB{f(5)}XHSV{f(5)}XHLS{f(5)}8-BIT{f(3)}Name "
-        t.hdr = t("whtl", "royd", "")
-        t.print(f"{t.hdr}{hdr}")
+        hdr = f"Name{f(8)}RGB{f(10)}XRGB{f(5)}XHSV{f(5)}XHLS{f(3)}8-BIT{f(3)}        "
+        u.hdr = u("whtl", "royd", "")
+        u.print(f"{u.hdr}{hdr}")
         for name, c in di.items():
             s = str(c).replace("C⁸", "")
             n = RGBtoANSI8bit(*c.irgb)
             c8 = Translate8bit(n)
-            t.print(f"{t(c)}{name:4s}{i}"
+            u.print(f"{u(c.xrgb)}{name:4s}{i}"
                     f"{s}{i}"
                     f"{c.xrgb}{i}"
                     f"{c.xhsv}{i}"
                     f"{c.xhls}{i}"
-                    f"{t(c8)}"
-                    f"{n:3d}{block}{t(c)}{block}")
-        t.print(f"{t.hdr}{hdr}")
+                    f"{u(c8.xrgb)}"
+                    f"{n:3d} {block}{u(c.xrgb)}{block}")
+        u.print(f"{u.hdr}{hdr}")
         if extra != "ll":
             print(dedent('''
             The solid blocks at the end of each line help you see the difference in color
@@ -3239,12 +2507,12 @@ if __name__ == "__main__":
             return
         # Print columnized text to show how text looks different; the use of solid
         # color blocks is a bit "strong" for how I use text in a terminal.
-        t.print(f"\n{t(attr='ul')}Samples of text in the 24-bit and 8-bit color pairs:")
+        u.print(f"\n{u(attr='ul')}Samples of text in the 24-bit and 8-bit color pairs:")
         o = []
         for name, c in di.items():
             n = RGBtoANSI8bit(*c.irgb)
             c8 = Translate8bit(n)
-            s = f"{t(c)}{name:4s} sample {t(c8)}sample{t.n}"
+            s = f"{u(c.xrgb)}{name:4s} sample {u(c8.xrgb)}sample{u.n}"
             o.append(s)
         for i in Columnize(o):
             print(i)
@@ -3455,11 +2723,11 @@ if __name__ == "__main__":
         you do this, the numbers are arranged as they are in the bitmap
         ~/.0rc/256colors.png.
         '''
+        u = trm.Trm(default=2)
         out = []
         for i in range(256):
-            ci = Translate8bit(i)  # Get Color instance
-            t.c = t(ci)
-            out.append(f"{t.c}{i:3d}{t.n}")
+            u.c = u(Color(i).xrgb)
+            out.append(f"{u.c}{i:3d}{u.n}")
         term = os.environ.get("TERM", "unknown")
         print(f"Table of 8-bit colors (on {term!r} terminal)")
         width = int(os.environ["COLUMNS"]) - 1

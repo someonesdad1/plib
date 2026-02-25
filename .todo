@@ -1,5 +1,9 @@
 /plib/.todo
 
+    - color.py
+        - Need to move RegexpDecorate out of color.py to dpstr.py
+        - Then get 'clr' command working
+
     - gist
         - Two implementation choices
             - gist global variable

@@ -96,6 +96,7 @@ if 1:  # Header
         import sys
         import time
     if 1:   # Custom imports
+        import trm
         import asciify
         import dpseq
         from f import flt
@@ -166,6 +167,139 @@ if 1:  # Classes
             return instance
         def __len__(self):
             return Len(self) if bool(self.on) else super().__len__()
+if 1:   # RegexpDecorate class
+    class RegexpDecorate:
+        '''Decorate regular expression matches with color
+
+        You must initialize an instance with a trm.Trm instance.  If you don't, a
+        default Trm instance will be used.
+        
+        The styles attribute is a dictionary that contains the styles to apply for each
+        regexp's match (key is the compiled regexp).  The style is a tuple of 1 to 3
+        values:  fg color, bg color, and text attributes.  None means to use the
+        default.
+        
+        Example use:  highlight lines to stdout that contain '[Mm]adison'
+        
+            u = trm.Trm(default=2)
+            rd = RegexpDecorate(u)
+            r = re.compile(r"[Mm]adison")
+            fg = u.yel
+            bg = u.n
+            # Note fg and bg must be escape sequences
+            rd.register(r, fg, bg)    # Print matches in light yellow on black
+            for line in open(file).readlines():
+                rd(line)    # Lines with matches are printed to stdout
+                
+            Can also be done with
+                rd(open(file))
+                
+        Suppose you have python files in a directory "mydir" and you're interested in knowing how many
+        lines contain the string "MySymbol".  This can be done with
+        
+            rd = RegexpDecorate()
+            r = re.compile(r"MySymbol")
+            files = pathlib.Path("mydir").glob("*.py")
+            rd.register(r, t(Color("yell")), t.n)
+            rd(*files)
+            
+        A command line tool like grep is capable of more precise searching
+        including file names and line numbers.
+        '''
+        def __init__(self, mytrm=None):
+            self._styles = {}
+            # The following is our trm.Trm instance to get escape codes
+            self._u = mytrm if mytrm is not None else trm.Trm(default=2)
+        def register(self, r, match_style, nomatch_style=None):
+            '''Register a regular expression and its styles
+            
+            Arguments:
+                - match_style:  escape code to print before a match
+                - nomatch_style:  escape code to print before a nonmatching string.  If it is None,
+                  then self._u.n is used as the return-to-standard escape code.
+                  
+            You can generate these escape codes with a TRM instance.
+            
+            If your escape code for match_style includes an attribute, you'll want to include
+            the 'no' attribute for normal text in your nomatch_style.  Otherwise, the remaining text
+            will continue to be printed in the match_style's attribute.  The easiest way to do this is
+            to not set nomatch_style.
+            '''
+            assert isinstance(r, re.Pattern)
+            if nomatch_style is None:
+                nomatch_style = self._u.n
+            self._styles[r] = (match_style, nomatch_style)
+        def unregister(self, r):
+            "Remove regexp r from our styles dict"
+            if r in self._styles:
+                del self._styles[r]
+        def __str__(self):
+            return f"RegexpDecorate(<styles={len(self._styles)}>)"
+        def __repr__(self):
+            return str(self)
+        def decorate(self, line):
+            '''Apply the registered regular expressions to the string line and return the string,
+            decorated if there was a match.
+            '''
+            assert isinstance(line, str)
+            out = StringIO()
+            self(line, file=out)
+            return out.getvalue()
+        def __call__(self, line, file=sys.stdout, insert_nl=False):
+            '''Print the decorated line to a stream.  Check line for a match to one of the
+            registered regexps and if there's a match, print the decorated line to the indicated
+            stream.  Returns True if there was a match, False otherwise.
+            
+            Arguments:
+                - line:  String to search
+                - file:  Stream to send the decorated line
+                - insert_nl:  If True, print a newline if line doesn't end with a newline.
+                
+            '''
+            assert isinstance(line, str)
+            if not line:
+                return
+            has_nl = line.endswith("\n")
+            had_match = False
+            match_style, nomatch_style = "", t.n
+            while line:
+                # Find regexp match closest to beginning of line
+                shortest = []
+                for r in self._styles:
+                    mo = r.search(line)
+                    if mo:
+                        shortest.append((mo.start(), mo, r))
+                        had_match = True
+                if not shortest:
+                    # No more matches
+                    if line and had_match:
+                        if not has_nl and insert_nl:
+                            print(f"{line}{nomatch_style}", file=file)
+                        else:
+                            print(f"{line}{nomatch_style}", end="", file=file)
+                    elif line:
+                        # Print rest of line
+                        if not has_nl and insert_nl:
+                            print(f"{nomatch_style}{line}{t.n}", file=file)
+                        else:
+                            print(f"{nomatch_style}{line}{t.n}", end="", file=file)
+                    return had_match
+                # Sort shortest to find the first match
+                location, mo, r = sorted(shortest, key=lambda x: x[0])[0]
+                match_style, nomatch_style = self._styles[r]
+                # Print non-matching start stuff in nomatch_style
+                print(f"{nomatch_style}{line[:location]}", end="", file=file)
+                # Print the match in match_style, then the escape code to
+                # switch back to the default print style (t.n).
+                match = line[mo.start():mo.end()]
+                print(f"{match_style}{match}{nomatch_style}", file=file, end="")
+                # Trim the line and search again
+                line = line[mo.end():]
+            if had_match:
+                print(f"{t.n}", end="")  # Default text style
+                if not line and not has_nl and insert_nl:
+                    print(file=file)
+            return True
 if 1:  # Core functionality
     def MatchCap(s, t):
         '''Return t capitalized as s is.  s and t are expected to be sequences of
@@ -1389,7 +1523,11 @@ if __name__ == "__main__":
     import math
     import os
     from sig import sig
-    from color import t
+    t = trm.Trm(default=2)
+    def Test_RegexpDecorate():
+        # ∞∞1 Need to write this test case
+        u = trm.Trm(default=2)
+        u.print(f"{u.orn}dpstr.py: Test_RegexpDecorate() needs to be written")
     def Test_Decorate():
         s = "www \t\n\r\f\vzzz"
         Assert(Decorate(s) == "www·␉␊␍␌␋zzz")

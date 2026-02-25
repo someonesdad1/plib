@@ -382,7 +382,7 @@ class Trm(dict):
             previous = self._stack.pop()
         self.update(previous)
         return old_self
-    def list(self, msg=None, ignore_std=True, sort=False):
+    def list(self, msg=None, ignore_std=True, sort=False, horiz=False, columns=0):
         'Print defined color attributes to stdout'
         o = []
         if sort:
@@ -391,7 +391,7 @@ class Trm(dict):
         else:
             for i in self:
                 o.append(f"{self[i]}{i}{self.n}")
-        for i in Columnize(o, sep=" "*4):
+        for i in Columnize(o, sep=" "*4, horiz=horiz, columns=columns):
             print(i)
     def print(self, *p, **kw):
         'Print arguments with newline, reverting to normal color after finishing'

@@ -24,13 +24,14 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         from lwtest import Assert
-        from color import t
+        import trm
         from dpprint import PP
         pp = PP()  # Screen width aware form of pprint.pprint
         from get import GetLines
         from wrap import dedent
         from columnize import Columnize
     if 1:  # Global variables
+        t = trm.Trm(default=2)
         class G:
             # Storage for global variables as attributes
             pass
@@ -94,31 +95,28 @@ if 1:  # Utility
             int(os.environ.get("COLUMNS", "80")) - 1,
         )
     def GetColors():
-        t.dbg = t("cyn") if g.dbg else ""
-        t.N = t.n if g.dbg else ""
-        t.err = t("redl")
+        t.dbg = "cyn"
+        t.err = "redl"
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="", file=Dbg.file)
             k = kw.copy()
             k["file"] = Dbg.file
             print(*p, **k)
-            print(f"{t.N}", end="", file=Dbg.file)
+            print(f"{t.n}", end="", file=Dbg.file)
     Dbg.file = sys.stdout
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
     def Usage(status=1):
-        print(
-            dedent(f'''
+        print(dedent(f'''
         Usage:  {sys.argv[0]} [options] [func1 [func2...]]
           List my shell functions.
         Options:
             -a      List all functions with description
             -h      Print a manpage
             -o      List other functions (from e.g., gawk, conda, git, etc.)
-        ''')
-        )
+        '''))
         exit(status)
     def ParseCommandLine(d):
         d["-a"] = False  # List all functions
@@ -192,7 +190,7 @@ if 1:  # Core functionality
             g.categories[func.cat].append(func.name)
     def ListCategory(cat):
         Assert(cat in g.categories)
-        t.print(f"{t('ornl')}{cat}")
+        t.print(f"{t.orn}{cat}{t.n}")
         for i in Columnize(sorted(g.categories[cat]), indent=" " * 2):
             print(i)
     def ListByCategory():
