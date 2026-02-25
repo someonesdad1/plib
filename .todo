@@ -1,5 +1,6 @@
 /plib/.todo
 
+    - _trm_proto.py can be moved to color.py as new stuff to try
     
     - Move util stuff (see ∞∞ notes in file)
 
