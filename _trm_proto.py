@@ -83,9 +83,14 @@ class Trm(dict):
                  mag pnk lip blk brn gry wht lil pur olv'''.replace("\n", "").split())
     # Normal terminal text foreground and background colors and attribute(s)
     normal = ("wht", "blk", "normal")
-    def __init__(self, di=None, default=None):
-        '''Call with a dictionary di relating a name string to something that will be
-        recognized by the color.Color constructor.  If default is not None, then
+    def __init__(self, *p, **kw):
+        '''Initialize with the standard dictionary initializers.  The key can be any
+        hashable type and the value should be anything accepted by the color.Color
+        constructor.
+
+        'default' is the only keyword not related to dictionary initialization.  If
+        present, it should be an integer of 0, 1, 2, which are used to identify the 
+        colors of Trm.std that are included in the Trm instance:
             0 = the colors in Trm.std
             1 = 0 plus the "l" additions
             2 = 1 plus the 1, 2, and 3 additions
@@ -97,30 +102,43 @@ class Trm(dict):
         self.on = True          # Output escape codes if True
         self.always = False     # If True, output escape codes even if stdout out isn't a terminal
         self._newstyles = None  # Used for context manager behavior
-        if di is None:
-            if default is not None:  # Get the default colors
-                for i in Trm.std:
-                    if default > 0:
-                        self[i + "l"] = Color(i + "l")
-                    self[i] = Color(i)
-                    if default > 1:
-                        for j in ("1", "2", "3"):
-                            self[i + j] = Color(i + j)
-                # Add n attribute to return to default color
-                self["n"] = self(*Trm.normal)
-        else:
-            if isinstance(di, Trm):     # It's a Trm instance, so make a deep copy
+
+        # Process p
+        if len(p) == 1 and hasattr(p[0], "keys"):
+            di = p[0]
+            # It's a dictionary
+            if isinstance(di, Trm):
+                # It's a Trm instance, so make a deep copy
                 self._stack = di._stack
                 self.on = di.on
                 self.always = di.always
                 self._newstyles = di._newstyles
-                self.update(di)
+            for key in di:
+                self[key] = di[key]
+        elif p:
+            for key, value in p:
+                self[key] = value
+        # Process kw
+        default = None
+        for key in kw:
+            if key == "default":
+                default = kw[key]
             else:
-                # Convert the items in names_dict to escape codes and add them to our mapping
-                if not isinstance(di, dict):
-                    raise TypeError("di must be a dict")
-                for i in di:
-                    self[i] = di[i]
+                self[key] = kw[key]
+        if default is not None:  # Get the default colors
+            if not isinstance(default, int):
+                raise TypeError("default keyword must be an integer")
+            if default not in (0, 1, 2):
+                raise ValueError("default keyword must be 0, 1, or 2")
+            for i in Trm.std:
+                if default > 0:
+                    self[i + "l"] = Color(i + "l")
+                self[i] = Color(i)
+                if default > 1:
+                    for j in ("1", "2", "3"):
+                        self[i + j] = Color(i + j)
+            # Add n attribute to return to default color
+            self["n"] = self(*Trm.normal)
     def _esc(self, color=None, bg=False):
         'Return escape code for the Color instance color'
         if color is None:
@@ -237,9 +255,9 @@ class Trm(dict):
         else:
             return False    # Don't ignore this exception
     def update(self, *p, **kw):
-        '''Update ourselves with another dictionary, pair iterable, or keywords.  Note
-        this method will result in __setitem__ being called, which ensures translation
-        to an escape code.
+        '''Update ourselves with another dictionary, an iterable of pairs, or keywords.
+        Note this method will result in __setitem__ being called, which ensures
+        translation to an escape code.
         '''
         if len(p) == 1 and hasattr(p[0], "keys"):
             for key in p[0]:
@@ -365,7 +383,7 @@ if __name__ == "__main__":
         }
         # Verify that all values are escape codes and that all are the same as blk
         # except for #15, which is a yellow-green
-        u = Trm(styles, default=False)
+        u = Trm(styles)
         blk = "\x1b[38;2;0;0;0m"
         yg = "\x1b[38;2;90;240;6m"
         for i in u:
@@ -502,12 +520,18 @@ if __name__ == "__main__":
         u.update(di)
         Assert(u == result)
         # Method 2:  an iterable (won't work with constructor)
+        a = ["red", "red"]
+        u = Trm(a)     # Check constructor works with a sequence
+        Assert(u == result)
         u = Trm()
-        u.update(["red", "red"])
+        u.update(a)
         Assert(u == result)
         # Method 3:  keyword arguments (won't work with constructor)
+        kw = {"red": "red"}
+        u = Trm(**kw)     # Check constructor works with a keyword dict
+        Assert(u == result)
         u = Trm()
-        u.update(red="red")
+        u.update(kw)
         Assert(u == result)
 
     if 0:
