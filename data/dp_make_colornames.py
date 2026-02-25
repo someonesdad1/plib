@@ -21,44 +21,6 @@ if 1:  # Named tuple for color names:
     #   name:  Original name of color before normalization
     #   key:   Integer indexing into attribution dictionary
     ColorName = collections.namedtuple("ColorName", "hex name key")
-if 1:  # Name normalization 
-    def ColorNameNormalize(name):
-        '''Return a normalized color name from the string name.
-        Example:  "dark red", "Dark Red", "DarkRed", "Dark_red" as arguments will all
-        return "dark_red".
-        
-        Algorithm:
-            - Convert to ASCII-only form
-            - " " inserted before each capital letter
-            - " " substituted for each "_"
-            - Split on whitespace
-            - Convert each token to lowercase
-            - Reassemble with "_"
-        '''
-        if not isinstance(name, str):
-            raise TypeError("name must be a str instance")
-        name = name.strip()
-        if not name:
-            raise ValueError("A name cannot be only whitespace or empty")
-        # Make sure we have only printable ASCII characters
-        name = asciify.Asciify(name)
-        printable = set(string.printable)
-        mychars = set(name)
-        capitals = set(string.ascii_uppercase)
-        if not (mychars <= printable):
-            not_allowed = mychars - printable
-            raise ValueError("{str(not_allowed)!r} are characters not allowed in names")
-        # Process the characters
-        new = []
-        dq = collections.deque(name)
-        while dq:
-            char = dq.popleft()
-            if char in capitals or char == "_":
-                new.append(" ")
-            new.append(char)
-        newstr = ''.join(new).replace("_", " ")
-        new = '_'.join(i.lower() for i in newstr.split())
-        return new
 if 1:  # Color data
     colornames = (
         ColorName(hex='#fe0000', name='red', key=0),
@@ -12291,13 +12253,6 @@ if __name__ == "__main__":
               when they were downloaded/constructed, and any license they are subject
               to.
     '''
-    def Test_Normalize():
-        for i in ("dark red", "Dark Red", "DarkRed", "Dark_red"):
-            Assert(Normalize(i) == "dark_red")
-        Assert(Normalize("DARK RED") == "d_a_r_k_r_e_d")
-        raises(ValueError, Normalize, "")
-        raises(ValueError, Normalize, "   ")
-        raises(ValueError, Normalize, " 🟦 ")
     def MakeColornames():
         '''Make a python script that contains a dictionary to look up normalized color
         names.
@@ -12328,7 +12283,7 @@ if __name__ == "__main__":
         # Make the dictionary
         while dq:
             cn = dq.popleft()
-            name = ColorNameNormalize(cn.name)
+            name = color.Color.NormalizeColorName(cn.name)
             di[name].append(cn)
         # Sort each dictionary entry by key number
         for i in di:
@@ -12361,15 +12316,14 @@ if __name__ == "__main__":
                         return candidate
             return None
         def GetGist():
-            mygist = gist.Gist()
-            mygist.clear()
-            mygist["gist"] = "DP's list of colornames (automatically constructed)"
-            mygist["copy"] = "Copyright © 2026 Don Peterson"
-            mygist["lic"] = "MIT License (see /plib/_lic.mit)"
-            mygist["test"] = "notest"
-            mygist["cat"] = "color"
-            mygist["todo"] = ""
-            return mygist
+            gist = {}
+            gist["gist"] = "DP's list of colornames (automatically constructed)"
+            gist["copy"] = "Copyright © 2026 Don Peterson"
+            gist["lic"] = "MIT License (see /plib/_lic.mit)"
+            gist["test"] = "notest"
+            gist["cat"] = "color"
+            gist["todo"] = ""
+            return gist
         ''')
         print(g)
                 
@@ -12377,16 +12331,15 @@ if __name__ == "__main__":
     exit()
 
 def GetGist():
-    mygist = gist.Gist()
-    mygist.clear()
-    mygist["gist"] = "Make a dictionary of color names"
-    mygist["copy"] = "Copyright © 2026 Don Peterson"
-    mygist["lic"] = "MIT License (see /plib/_lic.mit)"
-    mygist["test"] = "notest"
-    mygist["cat"] = "color"
-    mygist["todo"] = '''
+    gist = {}
+    gist["gist"] = "Make a dictionary of color names"
+    gist["copy"] = "Copyright © 2026 Don Peterson"
+    gist["lic"] = "MIT License (see /plib/_lic.mit)"
+    gist["test"] = "notest"
+    gist["cat"] = "color"
+    gist["todo"] = '''
     
-        - Add keys 0 and 1 to attribution & list:  0 for my new colors, 1 for old
+        - 
     
     '''
-    return mygist
+    return gist

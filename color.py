@@ -169,42 +169,44 @@ if 1:  # Header
             pass
         g = G()  # Container for global variables
         __all__ = "Color Trm TRM t ColorName CN RegexpDecorate".split()
-        g.trmold = 1
+        g.trm_new = 0
 if 1:   # Color class
     class Color:
-        '''Storage of the three numbers used to define a color.  Constructor forms are
-        (note that the absolute values of the components are used):
+        '''Storage of the three numbers used to define a color.  
+
+            Constructor forms are (note that the absolute values of the components are
+            used):
         
-        Color(inst)     Makes a copy of another Color instance
-        Color(seq)
-                        seq is a sequence of 3 numbers or strings
-        Color(int)
-            0-255       8-bit ANSI color number
-            > 255       Light wavelength in nm (black if not on [380, 780])
-        Color(float)
-            0-1         Grayscale, 0 == black, 1 == white
-            > 1         Light wavelength in nm (black if not on [380, 780])
-        Color(str)
-            "\x1b..."   ANSI escape sequence
-            "#abcdef"   RGB hex form
-            "$abcdef"   HLS hex form
-            "@abcdef"   HSV hex form
-            "x x x"     Three space-separated numbers
-            "x,x,x"     Three comma-separated numbers
-            name        Look up an existing color name (normalized)
-        Color(int, int, int)
-            Values must be on [0, 255] and are interpreted as 24-bit RGB unless the
-            keywords hsv or hls are True.
-        Color(float, float, float)
-            A 3-vector normalized to be a unit vector, then converted to integers to
-            call Color(int, int, int).
-        
-        Where a floating point type is used for a number, the number can also be a
-        Decimal, Fraction, or mpmath.mpf type.
-        
-        Color names are normalized with Color.NormalizeColorName(), which returns
-        snake-case lowercase ASCII letter names.  The allowed names used are in
-        /plib/data/dpcolornames.py.
+            Color(inst)     Makes a copy of another Color instance
+            Color(seq)
+                            seq is a sequence of 3 numbers or strings
+            Color(int)
+                0-255       8-bit ANSI color number
+                > 255       Light wavelength in nm (black if not on [380, 780])
+            Color(float)
+                0-1         Grayscale, 0 == black, 1 == white
+                > 1         Light wavelength in nm (black if not on [380, 780])
+            Color(str)
+                "\x1b..."   ANSI escape sequence
+                "#abcdef"   RGB hex form
+                "$abcdef"   HLS hex form
+                "@abcdef"   HSV hex form
+                "x x x"     Three space-separated numbers
+                "x,x,x"     Three comma-separated numbers
+                name        Look up an existing color name (normalized)
+            Color(int, int, int)
+                Values must be on [0, 255] and are interpreted as 24-bit RGB unless the
+                keywords hsv or hls are True.
+            Color(float, float, float)
+                A 3-vector normalized to be a unit vector, then converted to integers to
+                call Color(int, int, int).
+            
+            Where a floating point type is used for a number, the number can also be a
+            Decimal, Fraction, or mpmath.mpf type.
+            
+            Color names are normalized with Color.NormalizeColorName(), which returns
+            snake-case lowercase ASCII letter names.  The allowed names used are in
+            /plib/data/dpcolornames.py.
         '''
         bits_per_color = 8
         def __init__(self, *p, **kw):
@@ -1154,7 +1156,323 @@ if 1:   # Color class
                 newstr = ''.join(new).replace("_", " ")
                 new = '_'.join(i.lower() for i in newstr.split())
                 return new
-if g.trmold:   # Old Trm & ColorName
+if g.trm_new:   # New Trm class
+    class Trm(dict):
+        '''Dictionary used to output escape codes to a terminal.
+            
+            u = Trm(default=0)      # Initialized with my default set of colors
+            u.list()                # Print the defined color names to stdout
+            
+            Define new colors:
+                u[0] = "Pine glade"         # Name will be normalized to "pine_glade"
+                    # Uses data/dpcolornames.py to look up normalized color names
+                # Use white foreground on blue background and bold underlined
+                u.debug = u("wht", "blu", "bo ul")
+                u.ul = u(attr="it")         # Normal color but italics
+                Defining new attributes like this converts them to Color instances, then
+                converts them to ANSI escape code strings.  Thus, this is a specialized
+                dictionary that holds escape sequence strings.
+            Access color names in two ways:
+                u["red"]                    # Dictionary style
+                u.red                       # Attribute style (name must be valid python symbol)
+            Print to the terminal in color:
+                print(f"Here's a message {u.red}partly in red.")
+                --> Problem:  terminal output remains in color red, so next output is in the same
+                color.  Use the Trm.print() method instead (same syntax as print):
+                u.print(f"Here's a message {u.red}partly in red.")  # Back to default colors at end
+            
+            Changing color styles: There are a few ways to use different sets of colors
+            without losing your old ones:
+                
+            - Push and pop:  an internal stack maintains the Trm instance's dictionary state
+            (i.e., the key:value pairs).  Call u.ppush() and the stack holds the existing
+            state.  Change the Trm instance as needed; when finished, call u.ppop() to get
+            back to the old state.
+            
+            - Context manager (internally, this uses the stack like the previous example,
+            but this is syntactically "cleaner"):  
+            
+                di = {"red": Color("blu")}
+                with u.uses(di) as p:
+                    p.print("{p.red}This is red")
+                u.print("{u.red}No, this is red")
+                
+            - Make a copy:  v = Trm(u) is a deep copy of u.  Toss it out when you're finished.
+            
+            Attributes
+                - You can store attributes in the dictionary instance, but they must start
+                with "_" so that they do not get modified.  All other attributes you set
+                are converted to a color.Color instance, then changed to an escape code.
+                - A threading lock protects against race conditions occuring due to changing
+                of attributes.  Of course, multiple threads can still stomp on each
+                other's common data, but it won't happen during basic attribute access.
+            
+            u.on and u.always
+                - At anytime, set u.on to False and all escape codes "disappear", as all
+                dictionary access through keys returns an empty string.
+                - If u.always is False, then all escape codes "disappear" if you print to
+                e.g. a file (technically, if sys.stdout.isatty() is False).  If you want
+                the output to contain the escape codes even if e.g. redirecting to a file,
+                set u.always to True.
+            
+            References:
+            - Normal, bold, italic, underlined, subscript, superscript, etc.:
+                https://en.wikipedia.org/wiki/ANSI_escape_code#Select_Graphic_Rendition_parameters
+            - 8-bit color
+                https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit
+            - 24-bit color
+                https://en.wikipedia.org/wiki/ANSI_escape_code#24-bit
+        '''
+        # Standard color names to use by default
+        std = set('''red ord orn yon yel ygr lwn grn sea trq cyn sky den roy blu vio lav
+                    mag pnk lip blk brn gry wht lil pur olv'''.replace("\n", "").split())
+        # Normal terminal text foreground and background colors and attribute(s)
+        normal = ("wht", "blk", "normal")
+        def __init__(self, *p, **kw):
+            '''Initialize with the standard dictionary initializers.  The key can be any
+            hashable type and the value should be anything accepted by the color.Color
+            constructor.
+            
+            'default' is the only keyword not related to dictionary initialization.  If
+            present, it should be an integer of 0, 1, 2, which are used to identify the 
+            colors of Trm.std that are included in the Trm instance:
+                0 = the colors in Trm.std
+                1 = 0 plus the "l" additions
+                2 = 1 plus the 1, 2, and 3 additions
+            Note default is ignored unless di is None.  Colors in di that match those in the
+            default names will overwrite the defaults.
+            '''
+            # Attributes with underscores are not meant to be accessed by the user
+            self._lock = threading.Lock()   # For changing attributes
+            self._stack = Stack()   # Saves previous states of self
+            self.on = True          # Output escape codes if True
+            self.always = False     # If True, output escape codes even if stdout out isn't a terminal
+            self._newstyles = None  # Used for context manager behavior
+            # Process p
+            if len(p) == 1 and hasattr(p[0], "keys"):
+                di = p[0]
+                # It's a dictionary
+                if isinstance(di, Trm):
+                    # It's a Trm instance, so make a deep copy
+                    self._stack = di._stack
+                    self.on = di.on
+                    self.always = di.always
+                    self._newstyles = di._newstyles
+                for key in di:
+                    self[key] = di[key]
+            elif p:
+                for key, value in p:
+                    self[key] = value
+            # Process kw
+            default = None
+            for key in kw:
+                if key == "default":
+                    default = kw[key]
+                else:
+                    self[key] = kw[key]
+            if default is not None:  # Get the default colors
+                if not isinstance(default, int):
+                    raise TypeError("default keyword must be an integer")
+                if default not in (0, 1, 2):
+                    raise ValueError("default keyword must be 0, 1, or 2")
+                for i in Trm.std:
+                    if default > 0:
+                        self[i + "l"] = Color(i + "l")
+                    self[i] = Color(i)
+                    if default > 1:
+                        for j in ("1", "2", "3"):
+                            self[i + j] = Color(i + j)
+                # Add n attribute to return to default color
+                self["n"] = self(*Trm.normal)
+        def _esc(self, color=None, bg=False):
+            'Return escape code for the Color instance color'
+            if color is None:
+                return ""
+            if not isinstance(color, Color):
+                raise TypeError("color must be a color.Color instance")
+            if color.bpc < 8:  # Assumes 24-bit color
+                raise ValueError(f"Must have 8 bits per color")
+            elif color.bpc > 8:
+                color = color.change_bpc(8)
+            r, g, b = color.irgb
+            return f"\x1b[{48 if bg else 38};2;{r};{g};{b}m"
+        def __call__(self, fg=None, bg=None, attr=None):
+            '''Return the indicated color style escape code string.  
+            fg and bg can be
+                - Color instance
+                - Color name that can be found in data/dpcolornames.py
+            attr is a string
+                - Separate multiple attributs by spaces
+                - Typical:  'no' for normal, 'bo' for bold, 'it' for italic, etc.
+            '''
+            ok = (str, Color, int, float, Decimal, Fraction)
+            msg = "{} must be None, a string, or a Color instance"
+            if fg is not None and not isinstance(fg, ok):
+                s = msg.format("fg") + f":\n    It's {fg!r}" 
+                raise ValueError(s)
+            if bg is not None and not isinstance(bg, ok):
+                s = msg.format("bg") + f":\n    It's {bg!r}" 
+                raise ValueError(s)
+            if attr is not None and not isinstance(attr, str):
+                s = f"attr must be a string:\n    It's {attr!r}" 
+                raise ValueError(s)
+            if not self.on or all(i is None for i in (fg, bg, attr)):
+                return ""
+            # Convert to a Color instance
+            if fg and isinstance(fg, ok):
+                fg = Color(fg)
+            if bg and isinstance(bg, ok):
+                bg = Color(bg)
+            # Construct the needed escape codes
+            out = []
+            out.append(self._esc(fg))
+            out.append(self._esc(bg, bg=True))
+            if attr is not None:    # Get attribute codes
+                # See the table at
+                # https://en.wikipedia.org/wiki/ANSI_escape_code#Select_Graphic_Rendition_parameters
+                k1 = '''normal bold dim italic underline blink rapidblink reverse hide
+                        strikeout doubleunderline overline superscript subscript'''.split()
+                k2 = "no bo di it ul bl rb rv hi so du ol sp sb".split()
+                v = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 53, 73, 74)
+                assert len(k1) == len(k2) == len(v)
+                di = dict(zip(k1, v))
+                di.update(dict(zip(k2, v)))
+                for a in attr.split():
+                    if a not in di:
+                        raise ValueError(f"{a!r} is not a valid attribute")
+                    out.append(f"\x1b[{di[a]}m")
+            return ''.join(out)
+        def __setitem__(self, name, value):     # Set self[key]
+            'Set self[key] to value and convert it to an escape sequence'
+            # value can be a single argument or a sequence of 1 to 3 arguments.  They 
+            # will be used with the __call__ method
+            if isinstance(value, (tuple, list)):
+                if len(value) in (1, 2, 3):
+                    escape_code = self(*value)
+                else:
+                    raise ValueError("value sequence must have 1 to 3 components")
+            else:
+                if isinstance(value, str) and value[0] == "\x1b":
+                    # It's already an escape code
+                    escape_code = value
+                else:
+                    escape_code = self(value)
+            assert isinstance(escape_code, str) and escape_code[0] == "\x1b"
+            super().__setitem__(name, escape_code)
+        def __setattr__(self, name, value):     # Set an attribute
+            '''This is used to make sure the on, always, and any attributes that start with
+            '_' get set correctly.  It also adds syntactic sugar to the class by letting you
+            set and access dictionary keys by using them like attributes, as long as they
+            are strings that have isidentifier() True.
+            '''
+            if name == "_lock":
+                super().__setattr__(name, value)
+                return
+            with self.locked():
+                if name in set("on always".split()):
+                    super().__setattr__(name, bool(value))
+                elif name.startswith("_"):
+                    super().__setattr__(name, value)
+                else:
+                    self[name] = value
+        def __getitem__(self, name):        # Get self[name]
+            'This is used to get self[name]'
+            # If self.on isn't True, always return an empty string
+            if not self.on:
+                return ""
+            # If self.always is False and stdout isn't a tty, return ""
+            if not self.always and not sys.stdout.isatty():
+                return ""
+            # Otherwise, return the escape sequence
+            with self.locked():
+                return super().__getitem__(name)
+        def __getattribute__(self, name):   # Get instance's attributes and dict's keys
+            '''This allows you to access a dictionary key using the syntax self.key instead
+            of self[key] (key.isidentifier() must be True).  It also lets us get to our
+            other attributes that are not in the dict without the infinite recursion
+            problem.
+            '''
+            return (self.__getitem__(name) if name in self
+                    else super().__getattribute__(name))
+        def __enter__(self):    # Context manager entry
+            assert self._newstyles is not None
+            self.ppush(self._newstyles)
+            self._newstyles = None
+            return self     # Gives caller access to new instance state
+        def __exit__(self, exc_type, exc_val, exc_tb):  # Context manager exit
+            self.ppop()
+            if exc_type is None or exc_type is TypeError:
+                return True     # Ignore this exception
+            else:
+                return False    # Don't ignore this exception
+        def update(self, *p, **kw):
+            '''Update ourselves with another dictionary, an iterable of pairs, or keywords.
+            Note this method will result in __setitem__ being called, which ensures
+            translation to an escape code.
+            '''
+            if len(p) == 1 and hasattr(p[0], "keys"):
+                for key in p[0]:
+                    self[key] = p[0][key]
+            elif p:
+                for key, value in p:
+                    self[key] = value
+            for key in kw:
+                self[key] = kw[key]
+        def ppush(self, styles_dict=None):
+            '''The styles dict must be a dict instance or None.  Update our values with
+            styles_dict's values after saving a copy of ourself on the stack.
+            '''
+            if styles_dict is not None and not isinstance(styles_dict, dict):
+                raise TypeError("styles_dict must be a dict instance")
+            with self.locked():
+                self._stack.push(self.copy())
+            if styles_dict is not None:
+                for i in styles_dict:
+                    self[i] = styles_dict[i]
+        def ppop(self):
+            '''Get a copy of ourself, then clear ourself and set our state to that of the
+            top of the stack; return the copy of our old self.
+            '''
+            old_self = self.copy()
+            self.clear()
+            with self.locked():
+                previous = self._stack.pop()
+            self.update(previous)
+            return old_self
+        def list(self, msg=None, ignore_std=True, sort=False):
+            'Print defined color attributes to stdout'
+            o = []
+            if sort:
+                for i in sorted(self):
+                    o.append(f"{self[i]}{i}{self.n}")
+            else:
+                for i in self:
+                    o.append(f"{self[i]}{i}{self.n}")
+            for i in Columnize(o, sep=" "*4):
+                print(i)
+        def print(self, *p, **kw):
+            'Print arguments with newline, reverting to normal color after finishing'
+            self.out(*p, **kw)
+            print(**kw)
+        def out(self, *p, **kw):
+            'Same as print() but no newline'
+            k = kw.copy()
+            if "end" not in k:
+                k["end"] = ""
+            print(*p, **k)
+            print(self.n, **k) if "n" in self else print("", **k)
+        def uses(self, styles_dict):
+            'Used to utilize a new set of styles in a context manager block'
+            self._newstyles = styles_dict
+            return self
+        @contextlib.contextmanager
+        def locked(self):
+            self._lock.acquire()
+            try:
+                yield
+            finally:
+                self._lock.release()
+else:   # Old Trm & ColorName
     class Trm:
         '''Class to generate terminal escape codes
             Ref:  https://en.wikipedia.org/wiki/ANSI_escape_code#24-bit For typical use,
@@ -1706,322 +2024,6 @@ if g.trmold:   # Old Trm & ColorName
             t.print(f"{t.magl}magl")
             t.print(f"{t.magd}magd")
             t.print(f"{t.magb}magb")
-else:   # New Trm class
-    class Trm(dict):
-        '''Dictionary used to output escape codes to a terminal.
-            
-            u = Trm(default=0)      # Initialized with my default set of colors
-            u.list()                # Print the defined color names to stdout
-            
-            Define new colors:
-                u[0] = "Pine glade"         # Name will be normalized to "pine_glade"
-                    # Uses data/dpcolornames.py to look up normalized color names
-                # Use white foreground on blue background and bold underlined
-                u.debug = u("wht", "blu", "bo ul")
-                u.ul = u(attr="it")         # Normal color but italics
-                Defining new attributes like this converts them to Color instances, then
-                converts them to ANSI escape code strings.  Thus, this is a specialized
-                dictionary that holds escape sequence strings.
-            Access color names in two ways:
-                u["red"]                    # Dictionary style
-                u.red                       # Attribute style (name must be valid python symbol)
-            Print to the terminal in color:
-                print(f"Here's a message {u.red}partly in red.")
-                --> Problem:  terminal output remains in color red, so next output is in the same
-                color.  Use the Trm.print() method instead (same syntax as print):
-                u.print(f"Here's a message {u.red}partly in red.")  # Back to default colors at end
-            
-            Changing color styles: There are a few ways to use different sets of colors
-            without losing your old ones:
-                
-            - Push and pop:  an internal stack maintains the Trm instance's dictionary state
-            (i.e., the key:value pairs).  Call u.ppush() and the stack holds the existing
-            state.  Change the Trm instance as needed; when finished, call u.ppop() to get
-            back to the old state.
-            
-            - Context manager (internally, this uses the stack like the previous example,
-            but this is syntactically "cleaner"):  
-            
-                di = {"red": Color("blu")}
-                with u.uses(di) as p:
-                    p.print("{p.red}This is red")
-                u.print("{u.red}No, this is red")
-                
-            - Make a copy:  v = Trm(u) is a deep copy of u.  Toss it out when you're finished.
-            
-            Attributes
-                - You can store attributes in the dictionary instance, but they must start
-                with "_" so that they do not get modified.  All other attributes you set
-                are converted to a color.Color instance, then changed to an escape code.
-                - A threading lock protects against race conditions occuring due to changing
-                of attributes.  Of course, multiple threads can still stomp on each
-                other's common data, but it won't happen during basic attribute access.
-            
-            u.on and u.always
-                - At anytime, set u.on to False and all escape codes "disappear", as all
-                dictionary access through keys returns an empty string.
-                - If u.always is False, then all escape codes "disappear" if you print to
-                e.g. a file (technically, if sys.stdout.isatty() is False).  If you want
-                the output to contain the escape codes even if e.g. redirecting to a file,
-                set u.always to True.
-            
-            References:
-            - Normal, bold, italic, underlined, subscript, superscript, etc.:
-                https://en.wikipedia.org/wiki/ANSI_escape_code#Select_Graphic_Rendition_parameters
-            - 8-bit color
-                https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit
-            - 24-bit color
-                https://en.wikipedia.org/wiki/ANSI_escape_code#24-bit
-        '''
-        # Standard color names to use by default
-        std = set('''red ord orn yon yel ygr lwn grn sea trq cyn sky den roy blu vio lav
-                    mag pnk lip blk brn gry wht lil pur olv'''.replace("\n", "").split())
-        # Normal terminal text foreground and background colors and attribute(s)
-        normal = ("wht", "blk", "normal")
-        def __init__(self, *p, **kw):
-            '''Initialize with the standard dictionary initializers.  The key can be any
-            hashable type and the value should be anything accepted by the color.Color
-            constructor.
-            
-            'default' is the only keyword not related to dictionary initialization.  If
-            present, it should be an integer of 0, 1, 2, which are used to identify the 
-            colors of Trm.std that are included in the Trm instance:
-                0 = the colors in Trm.std
-                1 = 0 plus the "l" additions
-                2 = 1 plus the 1, 2, and 3 additions
-            Note default is ignored unless di is None.  Colors in di that match those in the
-            default names will overwrite the defaults.
-            '''
-            # Attributes with underscores are not meant to be accessed by the user
-            self._lock = threading.Lock()   # For changing attributes
-            self._stack = Stack()   # Saves previous states of self
-            self.on = True          # Output escape codes if True
-            self.always = False     # If True, output escape codes even if stdout out isn't a terminal
-            self._newstyles = None  # Used for context manager behavior
-            # Process p
-            if len(p) == 1 and hasattr(p[0], "keys"):
-                di = p[0]
-                # It's a dictionary
-                if isinstance(di, Trm):
-                    # It's a Trm instance, so make a deep copy
-                    self._stack = di._stack
-                    self.on = di.on
-                    self.always = di.always
-                    self._newstyles = di._newstyles
-                for key in di:
-                    self[key] = di[key]
-            elif p:
-                for key, value in p:
-                    self[key] = value
-            # Process kw
-            default = None
-            for key in kw:
-                if key == "default":
-                    default = kw[key]
-                else:
-                    self[key] = kw[key]
-            if default is not None:  # Get the default colors
-                if not isinstance(default, int):
-                    raise TypeError("default keyword must be an integer")
-                if default not in (0, 1, 2):
-                    raise ValueError("default keyword must be 0, 1, or 2")
-                for i in Trm.std:
-                    if default > 0:
-                        self[i + "l"] = Color(i + "l")
-                    self[i] = Color(i)
-                    if default > 1:
-                        for j in ("1", "2", "3"):
-                            self[i + j] = Color(i + j)
-                # Add n attribute to return to default color
-                self["n"] = self(*Trm.normal)
-        def _esc(self, color=None, bg=False):
-            'Return escape code for the Color instance color'
-            if color is None:
-                return ""
-            if not isinstance(color, Color):
-                raise TypeError("color must be a color.Color instance")
-            if color.bpc < 8:  # Assumes 24-bit color
-                raise ValueError(f"Must have 8 bits per color")
-            elif color.bpc > 8:
-                color = color.change_bpc(8)
-            r, g, b = color.irgb
-            return f"\x1b[{48 if bg else 38};2;{r};{g};{b}m"
-        def __call__(self, fg=None, bg=None, attr=None):
-            '''Return the indicated color style escape code string.  
-            fg and bg can be
-                - Color instance
-                - Color name that can be found in data/dpcolornames.py
-            attr is a string
-                - Separate multiple attributs by spaces
-                - Typical:  'no' for normal, 'bo' for bold, 'it' for italic, etc.
-            '''
-            ok = (str, Color, int, float, Decimal, Fraction)
-            msg = "{} must be None, a string, or a Color instance"
-            if fg is not None and not isinstance(fg, ok):
-                s = msg.format("fg") + f":\n    It's {fg!r}" 
-                raise ValueError(s)
-            if bg is not None and not isinstance(bg, ok):
-                s = msg.format("bg") + f":\n    It's {bg!r}" 
-                raise ValueError(s)
-            if attr is not None and not isinstance(attr, str):
-                s = f"attr must be a string:\n    It's {attr!r}" 
-                raise ValueError(s)
-            if not self.on or all(i is None for i in (fg, bg, attr)):
-                return ""
-            # Convert to a Color instance
-            if fg and isinstance(fg, ok):
-                fg = Color(fg)
-            if bg and isinstance(bg, ok):
-                bg = Color(bg)
-            # Construct the needed escape codes
-            out = []
-            out.append(self._esc(fg))
-            out.append(self._esc(bg, bg=True))
-            if attr is not None:    # Get attribute codes
-                # See the table at
-                # https://en.wikipedia.org/wiki/ANSI_escape_code#Select_Graphic_Rendition_parameters
-                k1 = '''normal bold dim italic underline blink rapidblink reverse hide
-                        strikeout doubleunderline overline superscript subscript'''.split()
-                k2 = "no bo di it ul bl rb rv hi so du ol sp sb".split()
-                v = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 53, 73, 74)
-                assert len(k1) == len(k2) == len(v)
-                di = dict(zip(k1, v))
-                di.update(dict(zip(k2, v)))
-                for a in attr.split():
-                    if a not in di:
-                        raise ValueError(f"{a!r} is not a valid attribute")
-                    out.append(f"\x1b[{di[a]}m")
-            return ''.join(out)
-        def __setitem__(self, name, value):     # Set self[key]
-            'Set self[key] to value and convert it to an escape sequence'
-            # value can be a single argument or a sequence of 1 to 3 arguments.  They 
-            # will be used with the __call__ method
-            if isinstance(value, (tuple, list)):
-                if len(value) in (1, 2, 3):
-                    escape_code = self(*value)
-                else:
-                    raise ValueError("value sequence must have 1 to 3 components")
-            else:
-                if isinstance(value, str) and value[0] == "\x1b":
-                    # It's already an escape code
-                    escape_code = value
-                else:
-                    escape_code = self(value)
-            assert isinstance(escape_code, str) and escape_code[0] == "\x1b"
-            super().__setitem__(name, escape_code)
-        def __setattr__(self, name, value):     # Set an attribute
-            '''This is used to make sure the on, always, and any attributes that start with
-            '_' get set correctly.  It also adds syntactic sugar to the class by letting you
-            set and access dictionary keys by using them like attributes, as long as they
-            are strings that have isidentifier() True.
-            '''
-            if name == "_lock":
-                super().__setattr__(name, value)
-                return
-            with self.locked():
-                if name in set("on always".split()):
-                    super().__setattr__(name, bool(value))
-                elif name.startswith("_"):
-                    super().__setattr__(name, value)
-                else:
-                    self[name] = value
-        def __getitem__(self, name):        # Get self[name]
-            'This is used to get self[name]'
-            # If self.on isn't True, always return an empty string
-            if not self.on:
-                return ""
-            # If self.always is False and stdout isn't a tty, return ""
-            if not self.always and not sys.stdout.isatty():
-                return ""
-            # Otherwise, return the escape sequence
-            with self.locked():
-                return super().__getitem__(name)
-        def __getattribute__(self, name):   # Get instance's attributes and dict's keys
-            '''This allows you to access a dictionary key using the syntax self.key instead
-            of self[key] (key.isidentifier() must be True).  It also lets us get to our
-            other attributes that are not in the dict without the infinite recursion
-            problem.
-            '''
-            return (self.__getitem__(name) if name in self
-                    else super().__getattribute__(name))
-        def __enter__(self):    # Context manager entry
-            assert self._newstyles is not None
-            self.ppush(self._newstyles)
-            self._newstyles = None
-            return self     # Gives caller access to new instance state
-        def __exit__(self, exc_type, exc_val, exc_tb):  # Context manager exit
-            self.ppop()
-            if exc_type is None or exc_type is TypeError:
-                return True     # Ignore this exception
-            else:
-                return False    # Don't ignore this exception
-        def update(self, *p, **kw):
-            '''Update ourselves with another dictionary, an iterable of pairs, or keywords.
-            Note this method will result in __setitem__ being called, which ensures
-            translation to an escape code.
-            '''
-            if len(p) == 1 and hasattr(p[0], "keys"):
-                for key in p[0]:
-                    self[key] = p[0][key]
-            elif p:
-                for key, value in p:
-                    self[key] = value
-            for key in kw:
-                self[key] = kw[key]
-        def ppush(self, styles_dict=None):
-            '''The styles dict must be a dict instance or None.  Update our values with
-            styles_dict's values after saving a copy of ourself on the stack.
-            '''
-            if styles_dict is not None and not isinstance(styles_dict, dict):
-                raise TypeError("styles_dict must be a dict instance")
-            with self.locked():
-                self._stack.push(self.copy())
-            if styles_dict is not None:
-                for i in styles_dict:
-                    self[i] = styles_dict[i]
-        def ppop(self):
-            '''Get a copy of ourself, then clear ourself and set our state to that of the
-            top of the stack; return the copy of our old self.
-            '''
-            old_self = self.copy()
-            self.clear()
-            with self.locked():
-                previous = self._stack.pop()
-            self.update(previous)
-            return old_self
-        def list(self, msg=None, ignore_std=True, sort=False):
-            'Print defined color attributes to stdout'
-            o = []
-            if sort:
-                for i in sorted(self):
-                    o.append(f"{self[i]}{i}{self.n}")
-            else:
-                for i in self:
-                    o.append(f"{self[i]}{i}{self.n}")
-            for i in Columnize(o, sep=" "*4):
-                print(i)
-        def print(self, *p, **kw):
-            'Print arguments with newline, reverting to normal color after finishing'
-            self.out(*p, **kw)
-            print(**kw)
-        def out(self, *p, **kw):
-            'Same as print() but no newline'
-            k = kw.copy()
-            if "end" not in k:
-                k["end"] = ""
-            print(*p, **k)
-            print(self.n, **k) if "n" in self else print("", **k)
-        def uses(self, styles_dict):
-            'Used to utilize a new set of styles in a context manager block'
-            self._newstyles = styles_dict
-            return self
-        @contextlib.contextmanager
-        def locked(self):
-            self._lock.acquire()
-            try:
-                yield
-            finally:
-                self._lock.release()
 if 1:   # RegexpDecorate class
     class RegexpDecorate:
         '''Decorate regular expression matches with color
@@ -3165,7 +3167,7 @@ if __name__ == "__main__":
             TestHash()
             Test_adjust()
             TestInvariants()
-    if not g.trmold:   # Old Trm & ColorName
+    if g.trm_new:   # Old Trm & ColorName
         def Test_Trm_Init():
             '''Show the common initializers for a Color instance work and are returned with
             the proper escape codes.

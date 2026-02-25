@@ -1,18 +1,23 @@
 /plib/.todo
 
-    - _trm_proto.py can be moved to color.py as new stuff to try
+    - gist
+        - Two implementation choices
+            - gist global variable
+            - GetGist() function
+                - Could be _GetGist() to indicate to reader that it's not part of the
+                  module's interface
+        - Standardize on GetGist() in every python file
+        - A gist is a dict with the following fields (+ mean required)
+            - gist:   + one-line statement of purpose
+            - copy:   + copyright statement
+            - lic:    + license, must include full path to license file
+            - test:   + how the module is tested
+            - cat:    + category for classification
+            - todo:     list of items that need to be done
+
+    - Try out argparse tutorial and write a help page for it
     
     - Move util stuff (see ∞∞ notes in file)
-
-    - Circular imports
-        - Nearly always happen in f.py and color.py
-            - Reduce occurrences by getting rid of all 'from x import y' statements
-            - Where still have problem, isolate import into function
-        - grep -l 'from .+ import .+' *.py | lc:
-            - 147 files for /plib
-            - 418 for /plib/pgm
-            - That's 550 files to fix in total, a lot of work
-            - Focus on /plib            
 
     - Various dicts
         - Sdict
@@ -1577,13 +1582,16 @@
 Color stuff
 
     - Color tool:  interactive tool to explore terminal colors
-        - Uses a standard dict of named colors
+        - Uses a standard dict of named colors (will be in trm.Trm)
         - Subset things quickly by
             - Regex on name (keep or remove)
             - Hue name, hue range
             - Wavelength range
         - Variety of display methods
         - Export current set to a file
+            - This could be a way of developing a set of colors for your terminal.  The
+              colors could be exported as a dict keyed by numbers; then you'd be able to
+              pick the names you want as a separate task.
         - Naming
             - Raw = name in file
             - Normalized = snake case
@@ -1591,7 +1599,7 @@ Color stuff
             - Spaces
                 - Capitalized
                 - Lower case
-        - Color adjustments
+        - Color adjustments color.Color.adjust()
 
     - color.py
         - For Color() stuff and wavelength stuff

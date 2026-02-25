@@ -18,6 +18,13 @@ if 1:  # Header
         <oo test ∞ --test oo>
         <oo todo ∞ 
         
+            - This is perhaps best thought of as a matrix problem.  You have a sequence
+              you want to see in column major order on the screen, but it's stored in
+              row major order in the script.  The canonical transformation is the
+              transpose.  Perhaps it could be combined with the termtables module to
+              always get correct output.  It's also important to get the inverse
+              behavior:  take the columnar output and turn it back into a sequence.
+              Remember this needs to handle strings with escape sequences too.
             - ∞∞1 'res l' displays a serious bug
             - Feb  5 2024:  'ls --color=always | columnize.py' doesn't work right in
               /plib
