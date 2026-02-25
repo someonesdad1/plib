@@ -68,49 +68,60 @@ if 1:  # Header
         oo>
     '''
     if 1:  # Standard imports
-        from decimal import Decimal
-        from fractions import Fraction
-        from pathlib import Path
-        from pdb import Pdb
+        import decimal
+        import fractions
+        import pathlib
+        import pdb
         import code
         import inspect
         import linecache
         import re
         import sys
     if 1:   # Custom modules
-        from color import Color, t, RegexpDecorate
-        from columnize import Columnize
-        from f import flt, cpx
+        import trm
+        import columnize
+        import f
+    if 1:   # Import symbols
+        Decimal = decimal.Decimal
+        Fraction = fractions.Fraction
+        Path = pathlib.Path
+        Pdb = pdb.Pdb
+        # 
+        RegexpDecorate = color.RegexpDecorate
+        Columnize = columnize.Columnize
+        flt = f.flt
+        cpx = f.cpx
+        u = trm.Trm(default=2)
     if 1:  # Functions to set up colorizing strings
         def All():
             "Fancier set of colors"
-            t.current_line = t("cynl")
-            t.directory = t("gry")
-            t.filename = t("trq")
-            t.linenum = t("ornl")
-            t.function = t("lavl")
-            t.error = t("redl")
-            t.ret = t("viol")
-            t.interactive = t("blk", "yell")
+            u.current_line  = u.cyn
+            u.directory     = u.gry
+            u.filename      = u.trq
+            u.linenum       = u.orn
+            u.function      = u.lav
+            u.error         = u.red
+            u.ret           = u.vio
+            u.interactive   = u("blk", "yel")
         def LineNumOnly():
             "Minimal set of colors"
-            t.current_line = t("cynl")
-            t.directory = t("gry")
-            t.filename = t("wht")
-            t.linenum = t("ornl")
-            t.function = t("wht")
-            t.error = t("redl")
-            t.ret = t("viol")
-            t.interactive = t("blk", "yell")
+            u.current_line  = u.cyn
+            u.directory     = u.gry
+            u.filename      = u.wht
+            u.linenum       = u.orn
+            u.function      = u.wht
+            u.error         = u.red
+            u.ret           = u.vio
+            u.interactive   = u("blk", "yel")
         def NoColors():
-            t.current_line = ""
-            t.directory = ""
-            t.filename = ""
-            t.linenum = ""
-            t.function = ""
-            t.error = ""
-            t.ret = ""
-            t.interactive = ""
+            u.current_line  = ""
+            u.directory     = ""
+            u.filename      = ""
+            u.linenum       = ""
+            u.function      = ""
+            u.error         = ""
+            u.ret           = ""
+            u.interactive   = ""
     if 1:  # Global variables
         color_choice = All
         color_choice()
@@ -137,13 +148,13 @@ if 1:  # Regular expressions
     rret = re.compile(r"--Return--")
     # Regular expression decorator
     rd = RegexpDecorate()
-    rd.register(rret, Color("viol"))
+    rd.register(rret, u.vio)
 if 1:  # Classes
     class DPdb(Pdb):
         if 1:  # Overridden Pdb methods
             def message(self, msg):
                 if dbg:  # Print line for debugging
-                    t.print(f"{t('brnl')}{msg!r}")
+                    u.print(f"{u('brnl')}{msg!r}")
                 try:
                     # Current line being printed by list command
                     mo = rlist.match(msg)
@@ -160,7 +171,7 @@ if 1:  # Classes
                     # A return
                     mo = rret.match(msg)
                     if mo:
-                        t.print(f"{t.ret}{msg}")
+                        u.print(f"{u.ret}{msg}")
                         #   The following line is what has been giving the
                         #   'C⁸(163,  65, 255)--Return--' message in the
                         #   debugger, so I've just commented it out.
@@ -173,8 +184,8 @@ if 1:  # Classes
                 # Nothing special found, so print line as normal
                 print(f"{msg}")
             def error(self, msg):
-                print(f"{t.error}", end="")
-                t.print("***", msg, file=self.stdout)
+                print(f"{u.error}", end="")
+                u.print("***", msg, file=self.stdout)
             # This method is changed to allow more than 11 lines to be shown
             def do_list(self, arg):
                 '''l(ist) [first [,last] | .]
@@ -240,65 +251,65 @@ if 1:  # Classes
                 else:
                     # Leave interactive code in the brnl foreground color,
                     # which alerts you that you're in the REPL
-                    code.interact(f"{t.interactive}*Interactive*{t.n}{t('lill')}", local=ns)
+                    code.interact(f"{u.interactive}*Interactive*{u.n}{u('lill')}", local=ns)
                 # Go back to standard screen colors
-                print(f"{t.n}", end="")
+                print(f"{u.n}", end="")
         if 1:  # New helper methods
             def current_stopped_line(self, file, linenum, func, remainder):
                 print("> ", end="")
                 # Only colorize the file name portion
                 p = Path(file)
-                print(f"{t.directory}{p.parent}/", end="")
-                print(f"{t.filename}{p.name}{t.n} ", end="")
-                print(f"{t.linenum}{linenum}{t.n} ", end="")
-                print(f"{t.function}{func}{t.n}", end="")
+                print(f"{u.directory}{p.parent}/", end="")
+                print(f"{u.filename}{p.name}{u.n} ", end="")
+                print(f"{u.linenum}{linenum}{u.n} ", end="")
+                print(f"{u.function}{func}{u.n}", end="")
                 print(f"{remainder}")
             def current_listing_line(self, linenum, remainder):
-                print(f"{t.linenum}{linenum}", end="")
-                t.print(f"{t.current_line}{remainder}")
-            def Decorate(self, name, val, t, w):
+                print(f"{u.linenum}{linenum}", end="")
+                u.print(f"{u.current_line}{remainder}")
+            def Decorate(self, name, val, u, w):
                 "Print name and value in indicated color"
                 c = ""
                 is_str = False
                 if ii(val, bool):
-                    c = t.bool
+                    c = u.bool
                 elif ii(val, int):
-                    c = t.int
+                    c = u.int
                 elif ii(val, flt):
-                    c = t.flt
+                    c = u.flt
                 elif ii(val, cpx):
-                    c = t.cpx
+                    c = u.cpx
                 elif ii(val, float):
-                    c = t.float
+                    c = u.float
                 elif ii(val, Decimal):
-                    c = t.Decimal
+                    c = u.Decimal
                 elif ii(val, Fraction):
-                    c = t.Fraction
+                    c = u.Fraction
                 elif ii(val, str):
-                    c = t.string
+                    c = u.string
                     is_str = True
                 elif ii(val, bytes):
-                    c = t.bytes
+                    c = u.bytes
                 elif ii(val, bytearray):
-                    c = t.bytearray
+                    c = u.bytearray
                 elif ii(val, list):
-                    c = t.list
+                    c = u.list
                 elif ii(val, tuple):
-                    c = t.tuple
+                    c = u.tuple
                 elif val is None:
-                    c = t.none
+                    c = u.none
                 # Print the color coding
                 show_all = False    # If True, color the whole line
                 if is_str: # Strings get shown by repr()
                     if show_all:
-                        print(f"  {c}{name:{w}s} = {val!r}{t.N}")
+                        print(f"  {c}{name:{w}s} = {val!r}{u.N}")
                     else:
-                        print(f"  {name:{w}s} = {c}{val!r}{t.N}")
+                        print(f"  {name:{w}s} = {c}{val!r}{u.N}")
                 else:
                     if show_all:
-                        print(f"  {c}{name:{w}s} = {val}{t.N}")
+                        print(f"  {c}{name:{w}s} = {val}{u.N}")
                     else:
-                        print(f"  {name:{w}s} = {c}{val}{t.N}")
+                        print(f"  {name:{w}s} = {c}{val}{u.N}")
             def get_frame_of_interest(self):
                 '''Return the stack frame that's current in the thing being
                 debugged.
@@ -361,21 +372,21 @@ if 1:  # Classes
                 'Dump local variables with color key (arg ignored)'
                 if 1:  # Define our own colors
                     c = color_choice != NoColors
-                    t.title = t.whtl if c else ""
-                    t.bool = t.pnkl if c else ""
-                    t.float = t.grnl if c else ""
-                    t.flt = t.redl if c else ""
-                    t.cpx = t.viol if c else ""
-                    t.int = t.magl if c else ""
-                    t.Decimal = t.trq if c else ""
-                    t.Fraction = t.brnl if c else ""
-                    t.string = t.cynl if c else ""
-                    t.bytes = t.ornl if c else ""
-                    t.bytearray = t.lwnl if c else ""
-                    t.list = t.royl if c else ""
-                    t.tuple = t.lavl if c else ""
-                    t.none = t.gry if c else ""
-                    t.N = t.n if c else ""
+                    u.title = u.wht if c else ""
+                    u.bool = u.pnk if c else ""
+                    u.float = u.grn if c else ""
+                    u.flt = u.red if c else ""
+                    u.cpx = u.vio if c else ""
+                    u.int = u.mag if c else ""
+                    u.Decimal = u.trq if c else ""
+                    u.Fraction = u.brn if c else ""
+                    u.string = u.cyn if c else ""
+                    u.bytes = u.orn if c else ""
+                    u.bytearray = u.lwn if c else ""
+                    u.list = u.roy if c else ""
+                    u.tuple = u.lav if c else ""
+                    u.none = u.gry if c else ""
+                    u.N = u.n if c else ""
                 if 1:  # Get local variables
                     fr = self.get_frame_of_interest()
                     di = fr.f_locals  # Local variable dictionary
@@ -383,30 +394,30 @@ if 1:  # Classes
                         print("No local variables in this frame")
                         return
                 if 1:  # Print the local variable dictionary
-                    print(f"{t.title}Local variables:{t.N}")
+                    print(f"{u.title}Local variables:{u.N}")
                     # Get length of longest name
                     w = max(len(i) for i in di)
                     # Print the variables
                     for name in sorted(di):
-                        self.Decorate(name, di[name], t, w)
+                        self.Decorate(name, di[name], u, w)
                     breakpoint()
                     # Print a key
                     if c:
                         print(
-                            f"{t.int}int{t.N} "
-                            f"{t.float}float{t.N} "
-                            f"{t.flt}flt{t.N} "
-                            f"{t.cpx}cpx{t.N} "
-                            f"{t.Decimal}Decimal{t.N} "
-                            f"{t.Fraction}Fraction{t.N} "
+                            f"{u.int}int{u.N} "
+                            f"{u.float}float{u.N} "
+                            f"{u.flt}flt{u.N} "
+                            f"{u.cpx}cpx{u.N} "
+                            f"{u.Decimal}Decimal{u.N} "
+                            f"{u.Fraction}Fraction{u.N} "
                             "    "
-                            f"{t.list}list{t.N} "
-                            f"{t.tuple}tuple{t.N} "
-                            f"{t.none}None{t.N} "
-                            f"{t.string}str{t.N} "
-                            f"{t.bool}bool{t.N} "
-                            f"{t.bytes}bytes{t.N} "
-                            f"{t.bytearray}bytearray{t.N} "
+                            f"{u.list}list{u.N} "
+                            f"{u.tuple}tuple{u.N} "
+                            f"{u.none}None{u.N} "
+                            f"{u.string}str{u.N} "
+                            f"{u.bool}bool{u.N} "
+                            f"{u.bytes}bytes{u.N} "
+                            f"{u.bytearray}bytearray{u.N} "
                         )
             def do_dr(self, arg):  # Nicely print dir(arg)
                 "Print the results of dir(obj) for objects in argument"

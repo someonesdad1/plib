@@ -119,7 +119,6 @@ if 1:  # Header
         pass
     if 1:  # Custom imports
         from util import IsIterable
-        from lwtest import run, Assert
 if 1:  # Utility
     def Dot(a, b, n=None):
         'Dot product of two sequences (n is number of decimal places to round to)'
@@ -259,11 +258,11 @@ if 1:  # Other functionality
     def rgb_to_XYZ(rgb):
         "rgb is a 3-tuple of floats on [0, 1]"
         # [poyn] pg 10
-        Assert(all([0 <= i <= 1 for i in rgb]))
+        assert all([0 <= i <= 1 for i in rgb])
         r1 = (0.412453, 0.357580, 0.180423)
         r2 = (0.212671, 0.715160, 0.072169)
         r3 = (0.019334, 0.119193, 0.950227)
-        Assert(sum(r2) == 1)
+        assert sum(r2) == 1
         n = 6
         XYZ = Dot(r1, rgb, n), Dot(r2, rgb, n), Dot(r3, rgb, n)
         return XYZ
@@ -284,7 +283,7 @@ if 1:  # Other functionality
         # [efg] under first chromaticity diagram
         s = sum(XYZ)
         xyz = [float(i/s) for i in XYZ]
-        Assert(sum(xyz) == 1)
+        assert sum(xyz) == 1
         return xyz
     def xyz_to_uv(xyz):
         # [efg] under 1960 CIE chromaticity diagram
@@ -336,7 +335,11 @@ if 1:  # Other functionality
         return u1, v1
 
 if __name__ == "__main__":
-    from color import t
+    import lwtest
+    import trm
+    t = Trm(default=2)
+    run = lwtest.run
+    Assert = lwtest.Assert
     def Test_RGB():
         # Not working yet
         t.print(f"{t.ornl}Test_RGB() not working yet")

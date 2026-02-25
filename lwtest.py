@@ -40,21 +40,19 @@ if 1:  # Header
         oo>
     '''
     if 1:  # Standard imports
-        from collections.abc import Iterable
-        from decimal import Decimal
-        from math import isnan, isinf, copysign
-        from time import time
+        import collections
+        import decimal
+        import math
         import os
         import re
         import sys
+        import time
         import traceback
     if 1:  # Custom imports
-        import f
-        flt = f.flt
-        cpx = f.cpx
-        import wrap
-        dedent = wrap.dedent
         import color
+        import f
+        import trm
+        import wrap
         try:
             import numpy
             have_numpy = True
@@ -65,7 +63,19 @@ if 1:  # Header
             have_mpmath = True
         except ImportError:
             have_mpmath = False
+    if 1:  # Import symbols
+        Decimal = decimal.Decimal
+        Iterable = collections.abc.Iterable
+        copysign = math.copysign
+        isinf = math.isinf
+        isnan = math.isnan
+        time = time.time
+        #
+        cpx = f.cpx
+        dedent = wrap.dedent
+        flt = f.flt
     if 1:  # Global variables
+        u = trm.Trm(default=2)
         _modname = "<lwtest.py>"
         __doc__ = dedent('''
             Lightweight testrunner framework
@@ -176,11 +186,10 @@ if 1:  # Core functionality
         stream = kw.get("stream", sys.stdout)
         nomsg = kw.get("nomsg", False)
         # If broken, print error message and return
-        t = color.t
         if broken:
             # Get the name of the file that called us
             file = traceback.extract_stack()[0][0]
-            print(f"{t.ornl}{_modname}! {file}:  Error:  tests are broken{t.n}")
+            u.print(f"{u.orn}{_modname}! {file}:  Error:  tests are broken")
             return (1, "Tests are broken")
         # Find test functions in names_dict to run.  Note we don't allow
         # "_lwtest" to end the name; this lets you use a variable like
@@ -311,8 +320,7 @@ if 1:  # Utility
         class instance.  The message is printed in this color.
         '''
         fn, ln, method, call = traceback.extract_stack()[-2]
-        t = color.t
-        c = t(color) if color is not None else ""
+        c = u(color) if color is not None else ""
         vars = {
             "fn": fn,
             "ln": ln,
@@ -320,7 +328,7 @@ if 1:  # Utility
             "msg": message,
             "prefix": prefix,
             "c": c,
-            "n": t.n,
+            "n": u.n,
         }
         if vars["method"] == "<module>":
             if color is None:
@@ -606,12 +614,11 @@ if 1:  # Checking functions
         True, or 'Assert' is a nonempty environment string, you'll be dropped into a debugger.  If
         msg is not empty, it's printed out.
         '''
-        t = color.t
         if not condition:
             if debug or Assert.debug or os.environ.get("Assert", ""):
                 # Print colorized message to stdout and start debugger
                 if msg:
-                    t.print(f"{t.magl}{_modname} {msg}", file=sys.stderr)
+                    u.print(f"{u.mag}{_modname} {msg}", file=sys.stderr)
                 print("Type 'up' to go to line that failed", file=sys.stderr)
                 breakpoint()
             else:
@@ -626,7 +633,6 @@ if __name__ == "__main__":
     if 1:  # Custom imports
         from lwtest import run, raises, assert_equal, Assert, ToDoMessage
         from f import flt, cpx
-        t = color.t
         try:
             import numpy
             have_numpy = True
@@ -638,48 +644,47 @@ if __name__ == "__main__":
         except ImportError:
             have_mpmath = False
     def ShowUsage():
-        t.h = t.lill
-        t.k = t.purl
-        t.d = t.grn
-        t.u = t.denl
+        u.k = u.pur1
+        u.d = u.grn1
+        u.u = u.den1
         print(dedent(f'''
-        {t.yel}lwtest:  Lightweight test framework -- typical usage:{t.n}
+        {u.yel}lwtest:  Lightweight test framework -- typical usage:{u.n}
             from lwtest import run, assert_equal, raises, Assert
             # Name your test functions e.g. "def Test_*()"
             if __name__ == "__main__":
-                {t.ornl}num_failed, messages = run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0){t.n}
+                {u.orn}num_failed, messages = run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0){u.n}
                   or
-                {t.magl}exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0]){t.n}
+                {u.mag}exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0]){u.n}
 
-                {t.k}broken{t.n}      If True, testing code is acknowledged to be broken; a warning
-                            message is printed and tests are not run.  [{t.d}False{t.n}]
-                {t.k}dbg{t.n}         If True, don't handle exceptions (allows you to trap them in a
+                {u.k}broken{u.n}      If True, testing code is acknowledged to be broken; a warning
+                            message is printed and tests are not run.  [{u.d}False{u.n}]
+                {u.k}dbg{u.n}         If True, don'u handle exceptions (allows you to trap them in a
                             debugger).  Also can set the environment variable 'dbg' to do
-                            this. [{t.d}False{t.n}]
-                {t.k}verbose{t.n}     Print the function names as they are executed.  [{t.d}False{t.n}]
-                {t.k}halt{t.n}        Stop at the first failure.  [{t.d}False{t.n}]
-                {t.k}quiet{t.n}       If True, no output.  [{t.d}False{t.n}]
-                {t.k}regexp{t.n}      Regular expression that identifies a test function.  Default
-                            is [{t.d}{id_test_function_regexp}{t.n}]
-                {t.k}reopts{t.n}      Regular expression's options. [{t.d}re.I{t.n}]
-                {t.k}stream{t.n}      Where to send output [{t.d}stdout{t.n}].  None = no output.
-                {t.k}nomsg{t.n}       If True, return only the integer 'failed'.
+                            this. [{u.d}False{u.n}]
+                {u.k}verbose{u.n}     Print the function names as they are executed.  [{u.d}False{u.n}]
+                {u.k}halt{u.n}        Stop at the first failure.  [{u.d}False{u.n}]
+                {u.k}quiet{u.n}       If True, no output.  [{u.d}False{u.n}]
+                {u.k}regexp{u.n}      Regular expression that identifies a test function.  Default
+                            is [{u.d}{id_test_function_regexp}{u.n}]
+                {u.k}reopts{u.n}      Regular expression's options. [{u.d}re.I{u.n}]
+                {u.k}stream{u.n}      Where to send output [{u.d}stdout{u.n}].  None = no output.
+                {u.k}nomsg{u.n}       If True, return only the integer 'failed'.
 
                 exit(num_failed)      # Nonzero status if 1 or more unhandled exceptions
         
         Utility functions:
             Check that two numbers are close:
-                {t.u}assert_equal{t.n}(a, b, reltol=None, abstol=None, use_min=False)
+                {u.u}assert_equal{u.n}(a, b, reltol=None, abstol=None, use_min=False)
             Check that something raises an exception:
-                {t.u}raises{t.n}(exception_object, func, *p, **kw)
-                {t.u}raises{t.n}(sequence_of_exception_objects, func, *p, **kw)
-                with {t.u}raises{t.n}(exception_object):
+                {u.u}raises{u.n}(exception_object, func, *p, **kw)
+                {u.u}raises{u.n}(sequence_of_exception_objects, func, *p, **kw)
+                with {u.u}raises{u.n}(exception_object):
                     <code that must raise an exception>
             Send a colored reminder message to stdout:
-                {t.u}ToDoMessage{t.n}(message, prefix="+", color="yel")
+                {u.u}ToDoMessage{u.n}(message, prefix="+", color="yel")
                 
-            {t.u}Assert{t.n}(condition, msg="", debug=False)
-                Is like assert but can't be optimized out.  The debug keyword argument if True drops
+            {u.u}Assert{u.n}(condition, msg="", debug=False)
+                Is like assert but can'u be optimized out.  The debug keyword argument if True drops
                 you into the debugger if condition is False (type 'u' to go to the line that failed)
                 and msg is printed in color to stderr.  You can also get this behavior if the
                 environment variable Assert is not empty.

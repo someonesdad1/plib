@@ -141,8 +141,10 @@ if 1:  # Header
         import wrap
         import wsl
         if 0:
-            import debug
-            debug.SetDebugger()
+            # This doesn't import debug.py, which will have a circular import because
+            # dpdb.py imports color.py.
+            import debugg
+            debugg.SetDebugger()
         try:
             import mpmath
             have_mpmath = True
@@ -173,7 +175,7 @@ if 1:  # Header
 if 1:   # Color class
     class Color:
         '''Storage of the three numbers used to define a color.  
-
+            
             Constructor forms are (note that the absolute values of the components are
             used):
         
@@ -1156,323 +1158,7 @@ if 1:   # Color class
                 newstr = ''.join(new).replace("_", " ")
                 new = '_'.join(i.lower() for i in newstr.split())
                 return new
-if g.trm_new:   # New Trm class
-    class Trm(dict):
-        '''Dictionary used to output escape codes to a terminal.
-            
-            u = Trm(default=0)      # Initialized with my default set of colors
-            u.list()                # Print the defined color names to stdout
-            
-            Define new colors:
-                u[0] = "Pine glade"         # Name will be normalized to "pine_glade"
-                    # Uses data/dpcolornames.py to look up normalized color names
-                # Use white foreground on blue background and bold underlined
-                u.debug = u("wht", "blu", "bo ul")
-                u.ul = u(attr="it")         # Normal color but italics
-                Defining new attributes like this converts them to Color instances, then
-                converts them to ANSI escape code strings.  Thus, this is a specialized
-                dictionary that holds escape sequence strings.
-            Access color names in two ways:
-                u["red"]                    # Dictionary style
-                u.red                       # Attribute style (name must be valid python symbol)
-            Print to the terminal in color:
-                print(f"Here's a message {u.red}partly in red.")
-                --> Problem:  terminal output remains in color red, so next output is in the same
-                color.  Use the Trm.print() method instead (same syntax as print):
-                u.print(f"Here's a message {u.red}partly in red.")  # Back to default colors at end
-            
-            Changing color styles: There are a few ways to use different sets of colors
-            without losing your old ones:
-                
-            - Push and pop:  an internal stack maintains the Trm instance's dictionary state
-            (i.e., the key:value pairs).  Call u.ppush() and the stack holds the existing
-            state.  Change the Trm instance as needed; when finished, call u.ppop() to get
-            back to the old state.
-            
-            - Context manager (internally, this uses the stack like the previous example,
-            but this is syntactically "cleaner"):  
-            
-                di = {"red": Color("blu")}
-                with u.uses(di) as p:
-                    p.print("{p.red}This is red")
-                u.print("{u.red}No, this is red")
-                
-            - Make a copy:  v = Trm(u) is a deep copy of u.  Toss it out when you're finished.
-            
-            Attributes
-                - You can store attributes in the dictionary instance, but they must start
-                with "_" so that they do not get modified.  All other attributes you set
-                are converted to a color.Color instance, then changed to an escape code.
-                - A threading lock protects against race conditions occuring due to changing
-                of attributes.  Of course, multiple threads can still stomp on each
-                other's common data, but it won't happen during basic attribute access.
-            
-            u.on and u.always
-                - At anytime, set u.on to False and all escape codes "disappear", as all
-                dictionary access through keys returns an empty string.
-                - If u.always is False, then all escape codes "disappear" if you print to
-                e.g. a file (technically, if sys.stdout.isatty() is False).  If you want
-                the output to contain the escape codes even if e.g. redirecting to a file,
-                set u.always to True.
-            
-            References:
-            - Normal, bold, italic, underlined, subscript, superscript, etc.:
-                https://en.wikipedia.org/wiki/ANSI_escape_code#Select_Graphic_Rendition_parameters
-            - 8-bit color
-                https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit
-            - 24-bit color
-                https://en.wikipedia.org/wiki/ANSI_escape_code#24-bit
-        '''
-        # Standard color names to use by default
-        std = set('''red ord orn yon yel ygr lwn grn sea trq cyn sky den roy blu vio lav
-                    mag pnk lip blk brn gry wht lil pur olv'''.replace("\n", "").split())
-        # Normal terminal text foreground and background colors and attribute(s)
-        normal = ("wht", "blk", "normal")
-        def __init__(self, *p, **kw):
-            '''Initialize with the standard dictionary initializers.  The key can be any
-            hashable type and the value should be anything accepted by the color.Color
-            constructor.
-            
-            'default' is the only keyword not related to dictionary initialization.  If
-            present, it should be an integer of 0, 1, 2, which are used to identify the 
-            colors of Trm.std that are included in the Trm instance:
-                0 = the colors in Trm.std
-                1 = 0 plus the "l" additions
-                2 = 1 plus the 1, 2, and 3 additions
-            Note default is ignored unless di is None.  Colors in di that match those in the
-            default names will overwrite the defaults.
-            '''
-            # Attributes with underscores are not meant to be accessed by the user
-            self._lock = threading.Lock()   # For changing attributes
-            self._stack = Stack()   # Saves previous states of self
-            self.on = True          # Output escape codes if True
-            self.always = False     # If True, output escape codes even if stdout out isn't a terminal
-            self._newstyles = None  # Used for context manager behavior
-            # Process p
-            if len(p) == 1 and hasattr(p[0], "keys"):
-                di = p[0]
-                # It's a dictionary
-                if isinstance(di, Trm):
-                    # It's a Trm instance, so make a deep copy
-                    self._stack = di._stack
-                    self.on = di.on
-                    self.always = di.always
-                    self._newstyles = di._newstyles
-                for key in di:
-                    self[key] = di[key]
-            elif p:
-                for key, value in p:
-                    self[key] = value
-            # Process kw
-            default = None
-            for key in kw:
-                if key == "default":
-                    default = kw[key]
-                else:
-                    self[key] = kw[key]
-            if default is not None:  # Get the default colors
-                if not isinstance(default, int):
-                    raise TypeError("default keyword must be an integer")
-                if default not in (0, 1, 2):
-                    raise ValueError("default keyword must be 0, 1, or 2")
-                for i in Trm.std:
-                    if default > 0:
-                        self[i + "l"] = Color(i + "l")
-                    self[i] = Color(i)
-                    if default > 1:
-                        for j in ("1", "2", "3"):
-                            self[i + j] = Color(i + j)
-                # Add n attribute to return to default color
-                self["n"] = self(*Trm.normal)
-        def _esc(self, color=None, bg=False):
-            'Return escape code for the Color instance color'
-            if color is None:
-                return ""
-            if not isinstance(color, Color):
-                raise TypeError("color must be a color.Color instance")
-            if color.bpc < 8:  # Assumes 24-bit color
-                raise ValueError(f"Must have 8 bits per color")
-            elif color.bpc > 8:
-                color = color.change_bpc(8)
-            r, g, b = color.irgb
-            return f"\x1b[{48 if bg else 38};2;{r};{g};{b}m"
-        def __call__(self, fg=None, bg=None, attr=None):
-            '''Return the indicated color style escape code string.  
-            fg and bg can be
-                - Color instance
-                - Color name that can be found in data/dpcolornames.py
-            attr is a string
-                - Separate multiple attributs by spaces
-                - Typical:  'no' for normal, 'bo' for bold, 'it' for italic, etc.
-            '''
-            ok = (str, Color, int, float, Decimal, Fraction)
-            msg = "{} must be None, a string, or a Color instance"
-            if fg is not None and not isinstance(fg, ok):
-                s = msg.format("fg") + f":\n    It's {fg!r}" 
-                raise ValueError(s)
-            if bg is not None and not isinstance(bg, ok):
-                s = msg.format("bg") + f":\n    It's {bg!r}" 
-                raise ValueError(s)
-            if attr is not None and not isinstance(attr, str):
-                s = f"attr must be a string:\n    It's {attr!r}" 
-                raise ValueError(s)
-            if not self.on or all(i is None for i in (fg, bg, attr)):
-                return ""
-            # Convert to a Color instance
-            if fg and isinstance(fg, ok):
-                fg = Color(fg)
-            if bg and isinstance(bg, ok):
-                bg = Color(bg)
-            # Construct the needed escape codes
-            out = []
-            out.append(self._esc(fg))
-            out.append(self._esc(bg, bg=True))
-            if attr is not None:    # Get attribute codes
-                # See the table at
-                # https://en.wikipedia.org/wiki/ANSI_escape_code#Select_Graphic_Rendition_parameters
-                k1 = '''normal bold dim italic underline blink rapidblink reverse hide
-                        strikeout doubleunderline overline superscript subscript'''.split()
-                k2 = "no bo di it ul bl rb rv hi so du ol sp sb".split()
-                v = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 53, 73, 74)
-                assert len(k1) == len(k2) == len(v)
-                di = dict(zip(k1, v))
-                di.update(dict(zip(k2, v)))
-                for a in attr.split():
-                    if a not in di:
-                        raise ValueError(f"{a!r} is not a valid attribute")
-                    out.append(f"\x1b[{di[a]}m")
-            return ''.join(out)
-        def __setitem__(self, name, value):     # Set self[key]
-            'Set self[key] to value and convert it to an escape sequence'
-            # value can be a single argument or a sequence of 1 to 3 arguments.  They 
-            # will be used with the __call__ method
-            if isinstance(value, (tuple, list)):
-                if len(value) in (1, 2, 3):
-                    escape_code = self(*value)
-                else:
-                    raise ValueError("value sequence must have 1 to 3 components")
-            else:
-                if isinstance(value, str) and value[0] == "\x1b":
-                    # It's already an escape code
-                    escape_code = value
-                else:
-                    escape_code = self(value)
-            assert isinstance(escape_code, str) and escape_code[0] == "\x1b"
-            super().__setitem__(name, escape_code)
-        def __setattr__(self, name, value):     # Set an attribute
-            '''This is used to make sure the on, always, and any attributes that start with
-            '_' get set correctly.  It also adds syntactic sugar to the class by letting you
-            set and access dictionary keys by using them like attributes, as long as they
-            are strings that have isidentifier() True.
-            '''
-            if name == "_lock":
-                super().__setattr__(name, value)
-                return
-            with self.locked():
-                if name in set("on always".split()):
-                    super().__setattr__(name, bool(value))
-                elif name.startswith("_"):
-                    super().__setattr__(name, value)
-                else:
-                    self[name] = value
-        def __getitem__(self, name):        # Get self[name]
-            'This is used to get self[name]'
-            # If self.on isn't True, always return an empty string
-            if not self.on:
-                return ""
-            # If self.always is False and stdout isn't a tty, return ""
-            if not self.always and not sys.stdout.isatty():
-                return ""
-            # Otherwise, return the escape sequence
-            with self.locked():
-                return super().__getitem__(name)
-        def __getattribute__(self, name):   # Get instance's attributes and dict's keys
-            '''This allows you to access a dictionary key using the syntax self.key instead
-            of self[key] (key.isidentifier() must be True).  It also lets us get to our
-            other attributes that are not in the dict without the infinite recursion
-            problem.
-            '''
-            return (self.__getitem__(name) if name in self
-                    else super().__getattribute__(name))
-        def __enter__(self):    # Context manager entry
-            assert self._newstyles is not None
-            self.ppush(self._newstyles)
-            self._newstyles = None
-            return self     # Gives caller access to new instance state
-        def __exit__(self, exc_type, exc_val, exc_tb):  # Context manager exit
-            self.ppop()
-            if exc_type is None or exc_type is TypeError:
-                return True     # Ignore this exception
-            else:
-                return False    # Don't ignore this exception
-        def update(self, *p, **kw):
-            '''Update ourselves with another dictionary, an iterable of pairs, or keywords.
-            Note this method will result in __setitem__ being called, which ensures
-            translation to an escape code.
-            '''
-            if len(p) == 1 and hasattr(p[0], "keys"):
-                for key in p[0]:
-                    self[key] = p[0][key]
-            elif p:
-                for key, value in p:
-                    self[key] = value
-            for key in kw:
-                self[key] = kw[key]
-        def ppush(self, styles_dict=None):
-            '''The styles dict must be a dict instance or None.  Update our values with
-            styles_dict's values after saving a copy of ourself on the stack.
-            '''
-            if styles_dict is not None and not isinstance(styles_dict, dict):
-                raise TypeError("styles_dict must be a dict instance")
-            with self.locked():
-                self._stack.push(self.copy())
-            if styles_dict is not None:
-                for i in styles_dict:
-                    self[i] = styles_dict[i]
-        def ppop(self):
-            '''Get a copy of ourself, then clear ourself and set our state to that of the
-            top of the stack; return the copy of our old self.
-            '''
-            old_self = self.copy()
-            self.clear()
-            with self.locked():
-                previous = self._stack.pop()
-            self.update(previous)
-            return old_self
-        def list(self, msg=None, ignore_std=True, sort=False):
-            'Print defined color attributes to stdout'
-            o = []
-            if sort:
-                for i in sorted(self):
-                    o.append(f"{self[i]}{i}{self.n}")
-            else:
-                for i in self:
-                    o.append(f"{self[i]}{i}{self.n}")
-            for i in Columnize(o, sep=" "*4):
-                print(i)
-        def print(self, *p, **kw):
-            'Print arguments with newline, reverting to normal color after finishing'
-            self.out(*p, **kw)
-            print(**kw)
-        def out(self, *p, **kw):
-            'Same as print() but no newline'
-            k = kw.copy()
-            if "end" not in k:
-                k["end"] = ""
-            print(*p, **k)
-            print(self.n, **k) if "n" in self else print("", **k)
-        def uses(self, styles_dict):
-            'Used to utilize a new set of styles in a context manager block'
-            self._newstyles = styles_dict
-            return self
-        @contextlib.contextmanager
-        def locked(self):
-            self._lock.acquire()
-            try:
-                yield
-            finally:
-                self._lock.release()
-else:   # Old Trm & ColorName
+if 0:   # Old Trm & ColorName
     class Trm:
         '''Class to generate terminal escape codes
             Ref:  https://en.wikipedia.org/wiki/ANSI_escape_code#24-bit For typical use,
@@ -2024,7 +1710,7 @@ else:   # Old Trm & ColorName
             t.print(f"{t.magl}magl")
             t.print(f"{t.magd}magd")
             t.print(f"{t.magb}magb")
-if 1:   # RegexpDecorate class
+if 0:   # RegexpDecorate class
     class RegexpDecorate:
         '''Decorate regular expression matches with color
         
@@ -2541,16 +2227,29 @@ if 1:  # Utility functions
         return tuple(dpseq.Clamp((int(i*256) for i in rgb), low=0, high=255, typ=int))
 
 if __name__ == "__main__":
-    import getopt
-    import io
-    from lwtest import run, raises, Assert
-    from collections import deque
-    from columnize import Columnize
-    from wrap import dedent
-    from dpprint import PP
-    pp = PP()  # Screen width aware form of pprint.pprint
-    from wsl import wsl  # wsl is True when running under WSL Linux
-    import wl2rgb
+    if 1:   # Standard imports
+        import collections
+        import getopt
+        import io
+    if 1:   # Custom imports
+        import columnize
+        import dpprint
+        import lwtest
+        import trm
+        import wrap
+        import wsl
+    if 1:   # Symbols from imports
+        deque = collections.deque
+        #
+        Assert = lwtest.Assert
+        Columnize = columnize.Columnize
+        dedent = wrap.dedent
+        raises = lwtest.raises
+        run = lwtest.run
+        u = trm.Trm(default=2)
+        wsl = wsl.wsl
+        PP = dpprint.PP
+        pp = PP()  # Screen width aware form of pprint.pprint
     def GetScreen():
         "Return (LINES, COLUMNS)"
         return (
@@ -2574,7 +2273,7 @@ if __name__ == "__main__":
         also append the letters d, l, and b to get all of the basic
         colors.
         '''
-        if 1:   # This is for older short names
+        if 0:   # This is for older short names
             R = '''blk brn red orn yel grn blu vio gry wht cyn mag
                     pnk lip lav lil pur roy den sky trq sea lwn olv'''.split()
             if all:
@@ -2602,7 +2301,8 @@ if __name__ == "__main__":
             rgb2 = Translate8bit(n)
             dist = ColorDistance(rgb1, rgb2)
             Assert(not dist)
-    def Test_Trm():
+    def Test_Trm():     # This code is obsolete
+        return
         # Not exhaustive, but will test some features.  Tested only
         # under mintty 3.5.2.
         t = Trm()
@@ -2652,711 +2352,499 @@ if __name__ == "__main__":
             #PrintMatches(s, r)
         # TestLoad()             # Themes not working yet
         # TestRegexpDecorate()   # Not working yet
-    def Test_Color():
-        def Test_adjust():
-            Reset()
-            c = Color(0, 100, 0)
-            # Adjust green up and down by 10%
-            c1 = c.adjust(10, comp="g", set=False)
-            Assert(c1.irgb == (0, 110, 0))
-            c1 = c.adjust(-10, comp="g", set=False)
-            Assert(c1.irgb == (0, 90, 0))
-            # Set green to 0
-            c1 = c.adjust(0, comp="g", set=True)
-            Assert(c1.irgb == (0, 0, 0))
-        def Test_short_color_names():
-            # This just sees that the names are recognized.
-            R = GetShortNames(all=True)
-            for i in R:
-                c = Color(i, bpc=8)
-                c   # Quiet linter
-                #c = Color(i, bpc=10)
-        def Test_change_bpc():
-            Reset()
-            a = (15, 3, 7)
-            c = Color(*a, bpc=4)
-            d = c.change_bpc(8)
-            Assert(d == Color(240, 48, 112, bpc=8))
-            e = c.change_bpc(4)
-            Assert(e == c)
-            f = c.change_bpc(34)
-            Assert(f == Color(16106127360, 3221225472, 7516192768, bpc=34))
-            g = f.change_bpc(4)
-            Assert(g == c)
-        def TestAttributes():
-            Reset()
-            a = (3, 34, 18)
-            c = Color(*a)
-            n = c.N - 1
-            Assert(c.irgb == c._rgb)
-            dec = tuple(i/n for i in c._rgb)
-            Assert(c.drgb == dec)
-            Assert(c.xrgb == "#032212")
-            #
-            Assert(c.ihsv == (105, 232, 34))
-            e = Color(*c.ihsv, hsv=True)
-            Assert(e == c)  # Shows c.ihsv converts back to original color
-            dec = (0.41397849462365593, 0.9117647058823529, 0.13333333333333333)
-            Assert(c.dhsv == dec)
-            Assert(c.xhsv == "@69e822")
-            # Can add attributes (no __slots__)
-            c.a = 4
-            Assert(c.a == 4)
-        def Test_downshift():
-            n = 7
-            c1 = Color(1, 2, 3, bpc=13)
-            c2 = Color(88, 233, 73, bpc=n)
-            n1, n2 = Color.downshift(c1, c2)
-            Assert(n1.bpc == n and n2.bpc == n)
-        def Test_dist():
-            n = 8
-            m = 2**n - 1
-            c1 = Color(0, 0, 0, bpc=n)
-            c2 = Color(m, m, m, bpc=n)
-            #x = Color.dist(c1, c2)
-            Assert(Color.dist(c1, c2) == 1)
-            Assert(Color.dist(c1, c2, taxicab=True) == 1)
-        def TestEquality():
-            Reset()
-            if 1:  # Integers in constructor
-                a, b, c = (36, 40, 99)
-                c1 = Color(a, b, c)
-                e, f, g = c1.irgb
-                c2 = Color(a, b, c)
-                c3 = Color(a + 1, b, c)
-                Assert(c1 == c2)
-                Assert(hash(c1) == hash(c2))
-                Assert(c1 != c3)
-                # Show equality only depends on the stored integers
-                c3._rgb = (a, b, c)
-                Assert(c1 == c3)
-                Assert(hash(c1) == hash(c3))
-            if 1:  # Floats in constructor
-                c1 = Color(e, f, g)
-                c2 = Color(e, f, g)
-                Assert(c1 == c2)
-            if 1:
-                # Colors with different bpcs can be equal
-                c1 = Color(15, 0, 0, bpc=4)
-                c2 = Color(255, 0, 0, bpc=8)
-                Assert(c1 == c2)
-        def TestInterpolate():
-            Reset()
-            c1 = Color(210, 105, 30)  # chocolate
-            c2 = Color(205, 41, 144)  # maroon3
-            got = c1.interpolate(c2, 0.65)
-            expected = Color(206, 63, 104)
-            Assert(got == expected)
-        def TestConstruct():
-            Reset()
-            def f(x):
-                return tuple(round(i, 3) for i in x)
-            # No color specifier gets None
-            s = "kldjfkdj"
+    def Test_Color_adjust():
+        Reset()
+        c = Color(0, 100, 0)
+        # Adjust green up and down by 10%
+        c1 = c.adjust(10, comp="g", set=False)
+        Assert(c1.irgb == (0, 110, 0))
+        c1 = c.adjust(-10, comp="g", set=False)
+        Assert(c1.irgb == (0, 90, 0))
+        # Set green to 0
+        c1 = c.adjust(0, comp="g", set=True)
+        Assert(c1.irgb == (0, 0, 0))
+    def Test_Color_short_color_names():
+        # This just sees that the names are recognized.
+        R = GetShortNames(all=True)
+        for i in R:
+            c = Color(i, bpc=8)
+            c   # Quiet linter
+            #c = Color(i, bpc=10)
+    def Test_Color_change_bpc():
+        Reset()
+        a = (15, 3, 7)
+        c = Color(*a, bpc=4)
+        d = c.change_bpc(8)
+        Assert(d == Color(240, 48, 112, bpc=8))
+        e = c.change_bpc(4)
+        Assert(e == c)
+        f = c.change_bpc(34)
+        Assert(f == Color(16106127360, 3221225472, 7516192768, bpc=34))
+        g = f.change_bpc(4)
+        Assert(g == c)
+    def Test_ColorAttributes():
+        Reset()
+        a = (3, 34, 18)
+        c = Color(*a)
+        n = c.N - 1
+        Assert(c.irgb == c._rgb)
+        dec = tuple(i/n for i in c._rgb)
+        Assert(c.drgb == dec)
+        Assert(c.xrgb == "#032212")
+        #
+        Assert(c.ihsv == (105, 232, 34))
+        e = Color(*c.ihsv, hsv=True)
+        Assert(e == c)  # Shows c.ihsv converts back to original color
+        dec = (0.41397849462365593, 0.9117647058823529, 0.13333333333333333)
+        Assert(c.dhsv == dec)
+        Assert(c.xhsv == "@69e822")
+        # Can add attributes (no __slots__)
+        c.a = 4
+        Assert(c.a == 4)
+    def Test_Color_downshift():
+        n = 7
+        c1 = Color(1, 2, 3, bpc=13)
+        c2 = Color(88, 233, 73, bpc=n)
+        n1, n2 = Color.downshift(c1, c2)
+        Assert(n1.bpc == n and n2.bpc == n)
+    def Test_Color_dist():
+        n = 8
+        m = 2**n - 1
+        c1 = Color(0, 0, 0, bpc=n)
+        c2 = Color(m, m, m, bpc=n)
+        #x = Color.dist(c1, c2)
+        Assert(Color.dist(c1, c2) == 1)
+        Assert(Color.dist(c1, c2, taxicab=True) == 1)
+    def Test_ColorEquality():
+        Reset()
+        if 1:  # Integers in constructor
+            a, b, c = (36, 40, 99)
+            c1 = Color(a, b, c)
+            e, f, g = c1.irgb
+            c2 = Color(a, b, c)
+            c3 = Color(a + 1, b, c)
+            Assert(c1 == c2)
+            Assert(hash(c1) == hash(c2))
+            Assert(c1 != c3)
+            # Show equality only depends on the stored integers
+            c3._rgb = (a, b, c)
+            Assert(c1 == c3)
+            Assert(hash(c1) == hash(c3))
+        if 1:  # Floats in constructor
+            c1 = Color(e, f, g)
+            c2 = Color(e, f, g)
+            Assert(c1 == c2)
+        if 1:
+            # Colors with different bpcs can be equal
+            c1 = Color(15, 0, 0, bpc=4)
+            c2 = Color(255, 0, 0, bpc=8)
+            Assert(c1 == c2)
+    def Test_ColorInterpolate():
+        Reset()
+        c1 = Color(210, 105, 30)  # chocolate
+        c2 = Color(205, 41, 144)  # maroon3
+        got = c1.interpolate(c2, 0.65)
+        expected = Color(206, 63, 104)
+        Assert(got == expected)
+    def Test_ColorConstruct():
+        Reset()
+        def f(x):
+            return tuple(round(i, 3) for i in x)
+        # No color specifier gets None
+        s = "kldjfkdj"
+        c = Color.Construct(s)
+        Assert(c is None)
+        # Separated by commas or spaces
+        expected = Color(25, 51, 76)
+        for s in (".1, .2, .3", ".1 .2 .3"):
             c = Color.Construct(s)
-            Assert(c is None)
-            # Separated by commas or spaces
-            expected = Color(25, 51, 76)
-            for s in (".1, .2, .3", ".1 .2 .3"):
-                c = Color.Construct(s)
-                Assert(c == expected)
-            # Multiline
-            t = "This is a line"
-            s = f'''
-                {t} (.1, .2, .3)
-                {t} (.2, .4, .7)
-            '''
-            a = Color.Construct(s)
-            Assert(isinstance(a, deque))
-            name, c = a.popleft()
-            Assert(t in name)
             Assert(c == expected)
-            name, c = a.popleft()
-            Assert(t in name)
-            Assert(f(c.drgb) == (0.200, 0.400, 0.698))
-        def TestDistance():
-            Reset()
-            a = 12, 6, 247
-            b = 101, 171, 124
-            c1 = Color(*a)
-            c2 = Color(*b)
-            def f(x, y):
-                return (sum((i - j) ** 2 for i, j in zip(x, y))/3) ** (1/2)
-            # rgb
-            d1 = f(c1.drgb, c2.drgb)
-            d2 = Color.dist(c1, c2, space="rgb")
-            Assert(d1 == d2)
-            # hsv
-            d1 = f(c1.dhsv, c2.dhsv)
-            d2 = Color.dist(c1, c2, space="hsv")
-            Assert(d1 == d2)
-            # hls
-            d1 = f(c1.dhls, c2.dhls)
-            d2 = Color.dist(c1, c2, space="hls")
-            Assert(d1 == d2)
-            # Distance from self is always zero
-            for i in "rgb hsv hls".split():
-                Assert(Color.dist(c1, c1, space=i) == 0)
-                Assert(Color.dist(c2, c2, space=i) == 0)
-        def TestSort():
-            Reset()
-            if 1:  # Sorting
-                a = Color(12, 6, 247)
-                b = Color(168, 255, 4)
-                c = Color(252, 252, 129)
-                seq = (a, b, c)
-                # Sort on r; sequence should be unchanged
-                seq1 = Color.Sort(seq, keys="r")
-                Assert(seq == seq1)
-                # Sort on g
-                seq1 = Color.Sort(seq, keys="g")
-                Assert(seq1 == (a, c, b))
-                # Sort on b
-                seq1 = Color.Sort(seq, keys="b")
-                Assert(seq1 == (b, c, a))
-                # Sort on L
-                seq1 = Color.Sort(seq, keys="L")
-                Assert(seq == seq1)
-                # Sort on h
-                seq1 = Color.Sort(seq, keys="h")
-                Assert(seq1 == (c, b, a))
-                # Sort on s
-                seq1 = Color.Sort(seq, keys="s")
-                Assert(seq1 == (c, a, b))
-                # Sort on S
-                seq1 = Color.Sort(seq, keys="S")
-                Assert(seq1 == (a, c, b))
-            if 1:  # Test with predicate
-                a = Color(12, 6, 247)
-                b = Color(168, 255, 4)
-                seq = (
-                    ("bob", b),
-                    ("alice", a),
+        # Multiline
+        t = "This is a line"
+        s = f'''
+            {t} (.1, .2, .3)
+            {t} (.2, .4, .7)
+        '''
+        a = Color.Construct(s)
+        Assert(isinstance(a, deque))
+        name, c = a.popleft()
+        Assert(t in name)
+        Assert(c == expected)
+        name, c = a.popleft()
+        Assert(t in name)
+        Assert(f(c.drgb) == (0.200, 0.400, 0.698))
+    def Test_ColorDistance():
+        Reset()
+        a = 12, 6, 247
+        b = 101, 171, 124
+        c1 = Color(*a)
+        c2 = Color(*b)
+        def f(x, y):
+            return (sum((i - j) ** 2 for i, j in zip(x, y))/3) ** (1/2)
+        # rgb
+        d1 = f(c1.drgb, c2.drgb)
+        d2 = Color.dist(c1, c2, space="rgb")
+        Assert(d1 == d2)
+        # hsv
+        d1 = f(c1.dhsv, c2.dhsv)
+        d2 = Color.dist(c1, c2, space="hsv")
+        Assert(d1 == d2)
+        # hls
+        d1 = f(c1.dhls, c2.dhls)
+        d2 = Color.dist(c1, c2, space="hls")
+        Assert(d1 == d2)
+        # Distance from self is always zero
+        for i in "rgb hsv hls".split():
+            Assert(Color.dist(c1, c1, space=i) == 0)
+            Assert(Color.dist(c2, c2, space=i) == 0)
+    def Test_ColorSort():
+        Reset()
+        if 1:  # Sorting
+            a = Color(12, 6, 247)
+            b = Color(168, 255, 4)
+            c = Color(252, 252, 129)
+            seq = (a, b, c)
+            # Sort on r; sequence should be unchanged
+            seq1 = Color.Sort(seq, keys="r")
+            Assert(seq == seq1)
+            # Sort on g
+            seq1 = Color.Sort(seq, keys="g")
+            Assert(seq1 == (a, c, b))
+            # Sort on b
+            seq1 = Color.Sort(seq, keys="b")
+            Assert(seq1 == (b, c, a))
+            # Sort on L
+            seq1 = Color.Sort(seq, keys="L")
+            Assert(seq == seq1)
+            # Sort on h
+            seq1 = Color.Sort(seq, keys="h")
+            Assert(seq1 == (c, b, a))
+            # Sort on s
+            seq1 = Color.Sort(seq, keys="s")
+            Assert(seq1 == (c, a, b))
+            # Sort on S
+            seq1 = Color.Sort(seq, keys="S")
+            Assert(seq1 == (a, c, b))
+        if 1:  # Test with predicate
+            a = Color(12, 6, 247)
+            b = Color(168, 255, 4)
+            seq = (
+                ("bob", b),
+                ("alice", a),
+            )
+            def f(x):
+                return x[1]
+            seq1 = Color.Sort(seq, keys="r", get=f)
+            Assert(seq1[0] == ("alice", a))
+            Assert(seq1[1] == ("bob", b))
+        if 1:  # Test the < operator
+            a = Color("#000000")
+            b = Color("#010000")
+            Assert(a < b)
+            Assert(not (b < a))
+            Assert(not (a < a))
+            Assert(not (b < b))
+    def Test_ColorClassMethods():
+        if 1:  # convert_hex
+            f = Color.hex_to_int
+            g = Color.int_to_hex
+            for arg, expected in (
+                ("000000", (0, 0, 0)),
+                ("010203", (1, 2, 3)),
+                ("fefefe", (0xFE, 0xFE, 0xFE)),
+                ("ffffff", (0xFF, 0xFF, 0xFF)),
+                ("000000000000", (0, 0, 0)),
+                ("000100020003", (1, 2, 3)),
+                ("00ff00ff00ff", (0xFF, 0xFF, 0xFF)),
+                ("ffffffffffff", (0xFFFF, 0xFFFF, 0xFFFF)),
+            ):
+                bytes_per_color = len(arg) // 6
+                Assert(f(arg) == expected)
+                got = g(expected, bytes_per_color)
+                Assert(got == arg)
+            raises(TypeError, f, 0)
+            raises(ValueError, f, "12345")
+            raises(ValueError, f, "1234567890")
+            raises(ValueError, f, "00000g")
+        if 1:  # round
+            f = Color.round
+            pi = math.pi
+            for arg, digits, expected in (
+                (pi, 1, round(pi, 1)),
+                (pi, 2, round(pi, 2)),
+                (pi, 3, round(pi, 3)),
+                (pi, 4, round(pi, 4)),
+                (pi, 5, round(pi, 5)),
+            ):
+                Assert(f(pi, digits) == expected)
+            # Test sequence
+            seq = [pi, pi, pi]
+            seq1 = f(seq, digits)
+            a = round(pi, digits)
+            Assert(seq1 == (a, a, a))
+        if 1:  # Dot
+            f = Color.Dot
+            a, b = (1, 2, 3), (3, 2, 1)
+            Assert(f(a, b) == 10)
+        if 1:  # XYZ_to_sRGB
+            def GammaCompressed(x):
+                return (
+                    12.92*x if x <= 0.0031308 else 1.055*x ** (1/2.4) - 0.055
                 )
-                def f(x):
-                    return x[1]
-                seq1 = Color.Sort(seq, keys="r", get=f)
-                Assert(seq1[0] == ("alice", a))
-                Assert(seq1[1] == ("bob", b))
-            if 1:  # Test the < operator
-                a = Color("#000000")
-                b = Color("#010000")
-                Assert(a < b)
-                Assert(not (b < a))
-                Assert(not (a < a))
-                Assert(not (b < b))
-        def TestClassMethods():
-            if 1:  # convert_hex
-                f = Color.hex_to_int
-                g = Color.int_to_hex
-                for arg, expected in (
-                    ("000000", (0, 0, 0)),
-                    ("010203", (1, 2, 3)),
-                    ("fefefe", (0xFE, 0xFE, 0xFE)),
-                    ("ffffff", (0xFF, 0xFF, 0xFF)),
-                    ("000000000000", (0, 0, 0)),
-                    ("000100020003", (1, 2, 3)),
-                    ("00ff00ff00ff", (0xFF, 0xFF, 0xFF)),
-                    ("ffffffffffff", (0xFFFF, 0xFFFF, 0xFFFF)),
-                ):
-                    bytes_per_color = len(arg) // 6
-                    Assert(f(arg) == expected)
-                    got = g(expected, bytes_per_color)
-                    Assert(got == arg)
-                raises(TypeError, f, 0)
-                raises(ValueError, f, "12345")
-                raises(ValueError, f, "1234567890")
-                raises(ValueError, f, "00000g")
-            if 1:  # round
-                f = Color.round
-                pi = math.pi
-                for arg, digits, expected in (
-                    (pi, 1, round(pi, 1)),
-                    (pi, 2, round(pi, 2)),
-                    (pi, 3, round(pi, 3)),
-                    (pi, 4, round(pi, 4)),
-                    (pi, 5, round(pi, 5)),
-                ):
-                    Assert(f(pi, digits) == expected)
-                # Test sequence
-                seq = [pi, pi, pi]
-                seq1 = f(seq, digits)
-                a = round(pi, digits)
-                Assert(seq1 == (a, a, a))
-            if 1:  # Dot
-                f = Color.Dot
-                a, b = (1, 2, 3), (3, 2, 1)
-                Assert(f(a, b) == 10)
-            if 1:  # XYZ_to_sRGB
-                def GammaCompressed(x):
-                    return (
-                        12.92*x if x <= 0.0031308 else 1.055*x ** (1/2.4) - 0.055
-                    )
-                f = Color.XYZ_to_sRGB
-                XYZ = (1, 1, 1)
-                got = f(XYZ)
-                r1 = sum((+3.2406, -1.5372, -0.4986))
-                r2 = sum((-0.9689, +1.8758, +0.0415))
-                r3 = sum((+0.0557, -0.2040, +1.0570))
-                expected = (r1, r2, r3)
-                def clip(x):
-                    return min(1.0, max(x, 0.0))
-                expected = tuple(clip(GammaCompressed(i)) for i in expected)
-                Assert(got == expected)
-            if 1:  # wl2rgb
-                f = Color.wl2rgb
-                T, F = True, False
-                raises(TypeError, f, "a")
-                raises(TypeError, f, 1, gamma="")
-                raises(ValueError, f, 1, gamma=-1)
-                # Using the spectrum of sunlight
-                Assert(f(1.1, sunlight=T) == Color(0, 0, 0))
-                Assert(f(399, sunlight=T) == Color(0, 0, 0))
-                # About the sodium D line
-                Assert(f(589, sunlight=T) == Color(246, 195, 0, bpc=8))
-                Assert(f(701, sunlight=T) == Color(0, 0, 0))
-                # Bruton's approximation
-                low, high = 379, 781
-                Assert(f(1.1, sunlight=F) == Color(0, 0, 0))
-                Assert(f(low, sunlight=F) == Color(0, 0, 0))
-                # About the sodium D line
-                #x = f(589, sunlight=F)
-                Assert(f(589, sunlight=F) == Color(255, 219, 0, bpc=8))
-                Assert(f(high, sunlight=F) == Color(0, 0, 0))
-        def TestProperties():
-            # Integer conversions should remain exact.  Check by testing some
-            # samples.
-            Reset()
-            for bpc in (8, 10):
-                Color.bits_per_color = bpc
-                n = 2**bpc - 1
-                R = range(0, n, n // 10)
-                for i in R:
-                    for j in R:
-                        for k in R:
-                            a = (i, j, k)
-                            c = Color(*a)
-                            Assert(c.irgb == a)
-            Reset()
-            # Properties return 3-tuples
-            c = Color(1, 2, 3)
-            Assert(isinstance(c.irgb, tuple) and len(c.irgb) == 3)
-            Assert(isinstance(c.drgb, tuple) and len(c.drgb) == 3)
-            Assert(isinstance(c.ihsv, tuple) and len(c.irgb) == 3)
-            Assert(isinstance(c.dhsv, tuple) and len(c.drgb) == 3)
-            Assert(isinstance(c.ihls, tuple) and len(c.ihls) == 3)
-            Assert(isinstance(c.dhls, tuple) and len(c.dhls) == 3)
-            # Hex string properties return proper hex forms
-            s, n = c.xrgb, 7
-            Assert(isinstance(s, str) and len(s) == n and s[0] == "#")
-            s = c.xhsv
-            Assert(isinstance(s, str) and len(s) == n and s[0] == "@")
-            s = c.xhls
-            Assert(isinstance(s, str) and len(s) == n and s[0] == "$")
-        def Test_Constructor_1Arg():
-            Reset()
-            if 1:  # Color instance:  make a copy
-                c = Color(0.1, 0.2, 0.3)
-                c1 = Color(c)
-                Assert(c.drgb == c1.drgb)
-            if 1:  # Name
-                c = Color("Red")
-                Assert(c.irgb == (254, 0, 0))
-            if 1:  # Hex strings
-                for i in "@#$":
-                    c = Color(f"{i}000000")
-                    Assert(c.irgb == (0, 0, 0))
-                c = Color("#010203")
-                Assert(c.irgb == (1, 2, 3))
-                # Note the HSV and HLS transformations can lose a little
-                # information because of conversion between ints and floats.
-                c = Color("@010203")
-                Assert(c.ihsv == (0, 0, 3))
-                c = Color("@808080")
-                Assert(c.ihsv == (128, 129, 128))
-                Assert(c.ihls == (128, 95, 86))
-                c = Color("$010203")
-                Assert(c.ihls == (0, 2, 0))
-            if 1:  # Single number:  wavelength in nm or gray or 8-bit number
-                # Wavelengths
-                for i in (589, 589.0, Decimal(589), Fraction(589, 1)):
-                    c = Color(i)  # About sodium yellow-orange
+            f = Color.XYZ_to_sRGB
+            XYZ = (1, 1, 1)
+            got = f(XYZ)
+            r1 = sum((+3.2406, -1.5372, -0.4986))
+            r2 = sum((-0.9689, +1.8758, +0.0415))
+            r3 = sum((+0.0557, -0.2040, +1.0570))
+            expected = (r1, r2, r3)
+            def clip(x):
+                return min(1.0, max(x, 0.0))
+            expected = tuple(clip(GammaCompressed(i)) for i in expected)
+            Assert(got == expected)
+        if 1:  # wl2rgb
+            f = Color.wl2rgb
+            T, F = True, False
+            raises(TypeError, f, "a")
+            raises(TypeError, f, 1, gamma="")
+            raises(ValueError, f, 1, gamma=-1)
+            # Using the spectrum of sunlight
+            Assert(f(1.1, sunlight=T) == Color(0, 0, 0))
+            Assert(f(399, sunlight=T) == Color(0, 0, 0))
+            # About the sodium D line
+            Assert(f(589, sunlight=T) == Color(246, 195, 0, bpc=8))
+            Assert(f(701, sunlight=T) == Color(0, 0, 0))
+            # Bruton's approximation
+            low, high = 379, 781
+            Assert(f(1.1, sunlight=F) == Color(0, 0, 0))
+            Assert(f(low, sunlight=F) == Color(0, 0, 0))
+            # About the sodium D line
+            #x = f(589, sunlight=F)
+            Assert(f(589, sunlight=F) == Color(255, 219, 0, bpc=8))
+            Assert(f(high, sunlight=F) == Color(0, 0, 0))
+    def Test_ColorProperties():
+        # Integer conversions should remain exact.  Check by testing some
+        # samples.
+        Reset()
+        for bpc in (8, 10):
+            Color.bits_per_color = bpc
+            n = 2**bpc - 1
+            R = range(0, n, n // 10)
+            for i in R:
+                for j in R:
+                    for k in R:
+                        a = (i, j, k)
+                        c = Color(*a)
+                        Assert(c.irgb == a)
+        Reset()
+        # Properties return 3-tuples
+        c = Color(1, 2, 3)
+        Assert(isinstance(c.irgb, tuple) and len(c.irgb) == 3)
+        Assert(isinstance(c.drgb, tuple) and len(c.drgb) == 3)
+        Assert(isinstance(c.ihsv, tuple) and len(c.irgb) == 3)
+        Assert(isinstance(c.dhsv, tuple) and len(c.drgb) == 3)
+        Assert(isinstance(c.ihls, tuple) and len(c.ihls) == 3)
+        Assert(isinstance(c.dhls, tuple) and len(c.dhls) == 3)
+        # Hex string properties return proper hex forms
+        s, n = c.xrgb, 7
+        Assert(isinstance(s, str) and len(s) == n and s[0] == "#")
+        s = c.xhsv
+        Assert(isinstance(s, str) and len(s) == n and s[0] == "@")
+        s = c.xhls
+        Assert(isinstance(s, str) and len(s) == n and s[0] == "$")
+    def Test_Color_Constructor_1Arg():
+        Reset()
+        if 1:  # Color instance:  make a copy
+            c = Color(0.1, 0.2, 0.3)
+            c1 = Color(c)
+            Assert(c.drgb == c1.drgb)
+        if 1:  # Name
+            c = Color("Red")
+            Assert(c.irgb == (254, 0, 0))
+        if 1:  # Hex strings
+            for i in "@#$":
+                c = Color(f"{i}000000")
+                Assert(c.irgb == (0, 0, 0))
+            c = Color("#010203")
+            Assert(c.irgb == (1, 2, 3))
+            # Note the HSV and HLS transformations can lose a little
+            # information because of conversion between ints and floats.
+            c = Color("@010203")
+            Assert(c.ihsv == (0, 0, 3))
+            c = Color("@808080")
+            Assert(c.ihsv == (128, 129, 128))
+            Assert(c.ihls == (128, 95, 86))
+            c = Color("$010203")
+            Assert(c.ihls == (0, 2, 0))
+        if 1:  # Single number:  wavelength in nm or gray or 8-bit number
+            # Wavelengths
+            for i in (589, 589.0, Decimal(589), Fraction(589, 1)):
+                c = Color(i)  # About sodium yellow-orange
+                rgb = tuple(round(i, 3) for i in c.drgb)
+                Assert(rgb == (0.965, 0.765, 0.000))
+                if have_mpmath:
+                    c = Color(mpmath.mpf(float(i)))
                     rgb = tuple(round(i, 3) for i in c.drgb)
                     Assert(rgb == (0.965, 0.765, 0.000))
-                    if have_mpmath:
-                        c = Color(mpmath.mpf(float(i)))
-                        rgb = tuple(round(i, 3) for i in c.drgb)
-                        Assert(rgb == (0.965, 0.765, 0.000))
-                black = (0.0, 0.0, 0.0)
-                for i in (0, -300, -300.0, 300, 300.0, 800, 800.0):
-                    c = Color(i, hsv=True)  # hsv keyword ignored for 1 argument
-                    Assert(c.irgb == black)
-                    c = Color(i, hls=True)  # hls keyword ignored for 1 argument
-                    Assert(c.irgb == black)
-                # Grays
-                for a, b in (
-                    (0.0, 0.0),
-                    (0.1, 0.098),
-                    (0.2, 0.2),
-                    (0.3, 0.298),
-                    (0.4, 0.4),
-                    (0.5, 0.498),
-                    (0.6, 0.6),
-                    (0.7, 0.698),
-                    (0.8, 0.8),
-                    (0.9, 0.898),
-                    (1.0, 1.0),
-                ):
-                    c = Color(a, a, a)
-                    rgb = tuple(round(i, 3) for i in c.drgb)
-                    Assert(rgb == (b, b, b))
-                # Integers on [0, 255]:  ANSI 8-bit colors
-                c = Color(200)
-                Assert(c.irgb == (255, 0, 215)) # It's a medium magenta
-        def Test_Constructor_3Args():
-            Reset()
-            if 1:  # Integer arguments
-                for a in (0, 1, 2, 254, 255, 256):
-                    b = (a, a, a)
-                    c = Color(*b)
-                    expected = tuple(i & c.n for i in b)
-                    Assert(c.irgb == expected)
-                # Works for 10-bit arguments
-                Color.bits_per_color = 10
-                a = 1023
+            black = (0.0, 0.0, 0.0)
+            for i in (0, -300, -300.0, 300, 300.0, 800, 800.0):
+                c = Color(i, hsv=True)  # hsv keyword ignored for 1 argument
+                Assert(c.irgb == black)
+                c = Color(i, hls=True)  # hls keyword ignored for 1 argument
+                Assert(c.irgb == black)
+            # Grays
+            for a, b in (
+                (0.0, 0.0),
+                (0.1, 0.098),
+                (0.2, 0.2),
+                (0.3, 0.298),
+                (0.4, 0.4),
+                (0.5, 0.498),
+                (0.6, 0.6),
+                (0.7, 0.698),
+                (0.8, 0.8),
+                (0.9, 0.898),
+                (1.0, 1.0),
+            ):
+                c = Color(a, a, a)
+                rgb = tuple(round(i, 3) for i in c.drgb)
+                Assert(rgb == (b, b, b))
+            # Integers on [0, 255]:  ANSI 8-bit colors
+            c = Color(200)
+            Assert(c.irgb == (255, 0, 215)) # It's a medium magenta
+    def Test_Color_Constructor_3Args():
+        Reset()
+        if 1:  # Integer arguments
+            for a in (0, 1, 2, 254, 255, 256):
                 b = (a, a, a)
                 c = Color(*b)
-                Assert(c.irgb == b)
-                Reset()
-            if 1:  # Float arguments
-                for a, e in (
-                    (0.0, 0.0),
-                    (0.0039, 0.0039),
-                    (0.5, 0.498),
-                    (0.9999, 1.0),
-                    (1.0, 1.0),
-                ):
-                    b = (a, a, a)
-                    c = Color(*b)
-                    got = tuple(round(i, 4) for i in c.drgb)
-                    expected = (e, e, e)
-                    Assert(got == expected)
-            if 1:  # Normalization of floats
-                a = 1.0001
-                t = (a, a, a)
-                c = Color(*t)
-                mag = sum(i*i for i in t) ** (1/2)
-                dec = tuple(i/mag for i in t)
-                rgb = c.dec_to_int(dec)
-                Assert(c.irgb == rgb)
-                #
-                a = (0.99999, 1.00001, 1.0)
-                c = Color(*a)
-                mag = sum(i*i for i in t) ** (1/2)
-                dec = tuple(i/mag for i in t)
-                rgb = c.dec_to_int(dec)
-                Assert(c.irgb == rgb)
-                #
-                # Normalization with one very large component effectively gives a
-                # monochromatic color
-                c = Color(1e9, 1, 1)
-                Assert(c == Color(255, 0, 0))
-            if 1:  # Fraction arguments
-                for n, d, e in ((0, 1, 0.0), (1, 2, 0.498), (2, 3, 0.667), (1, 1, 1.0)):
-                    a = Fraction(n, d)
-                    c = Color(a, a, a)
-                    got = tuple(round(i, 3) for i in c.drgb)
-                    expected = (e, e, e)
-                    Assert(got == expected)
-            if 1:  # Decimal arguments
+                expected = tuple(i & c.n for i in b)
+                Assert(c.irgb == expected)
+            # Works for 10-bit arguments
+            Color.bits_per_color = 10
+            a = 1023
+            b = (a, a, a)
+            c = Color(*b)
+            Assert(c.irgb == b)
+            Reset()
+        if 1:  # Float arguments
+            for a, e in (
+                (0.0, 0.0),
+                (0.0039, 0.0039),
+                (0.5, 0.498),
+                (0.9999, 1.0),
+                (1.0, 1.0),
+            ):
+                b = (a, a, a)
+                c = Color(*b)
+                got = tuple(round(i, 4) for i in c.drgb)
+                expected = (e, e, e)
+                Assert(got == expected)
+        if 1:  # Normalization of floats
+            a = 1.0001
+            t = (a, a, a)
+            c = Color(*t)
+            mag = sum(i*i for i in t) ** (1/2)
+            dec = tuple(i/mag for i in t)
+            rgb = c.dec_to_int(dec)
+            Assert(c.irgb == rgb)
+            #
+            a = (0.99999, 1.00001, 1.0)
+            c = Color(*a)
+            mag = sum(i*i for i in t) ** (1/2)
+            dec = tuple(i/mag for i in t)
+            rgb = c.dec_to_int(dec)
+            Assert(c.irgb == rgb)
+            #
+            # Normalization with one very large component effectively gives a
+            # monochromatic color
+            c = Color(1e9, 1, 1)
+            Assert(c == Color(255, 0, 0))
+        if 1:  # Fraction arguments
+            for n, d, e in ((0, 1, 0.0), (1, 2, 0.498), (2, 3, 0.667), (1, 1, 1.0)):
+                a = Fraction(n, d)
+                c = Color(a, a, a)
+                got = tuple(round(i, 3) for i in c.drgb)
+                expected = (e, e, e)
+                Assert(got == expected)
+        if 1:  # Decimal arguments
+            for x, e in (
+                ("0", 0.0),
+                ("0.5", 0.498),
+                ("0.666667", 0.667),
+                ("1.0", 1.0),
+            ):
+                a = Decimal(x)
+                c = Color(a, a, a)
+                got = tuple(round(i, 3) for i in c.drgb)
+                expected = (e, e, e)
+                Assert(got == expected)
+        if 1:  # mpmath.mpf arguments
+            if have_mpmath:
                 for x, e in (
                     ("0", 0.0),
                     ("0.5", 0.498),
                     ("0.666667", 0.667),
                     ("1.0", 1.0),
                 ):
-                    a = Decimal(x)
+                    a = mpmath.mpf(x)
                     c = Color(a, a, a)
                     got = tuple(round(i, 3) for i in c.drgb)
                     expected = (e, e, e)
                     Assert(got == expected)
-            if 1:  # mpmath.mpf arguments
-                if have_mpmath:
-                    for x, e in (
-                        ("0", 0.0),
-                        ("0.5", 0.498),
-                        ("0.666667", 0.667),
-                        ("1.0", 1.0),
-                    ):
-                        a = mpmath.mpf(x)
-                        c = Color(a, a, a)
-                        got = tuple(round(i, 3) for i in c.drgb)
-                        expected = (e, e, e)
-                        Assert(got == expected)
-        def TestConstructorKeywords():
-            Reset()
-            # Test keyword arguments
-            c = Color(16, 16, 16, hsv=True)
-            Assert(c == Color(16, 15, 15))
-            c = Color(16, 16, 16, hls=True)
-            Assert(c == Color(17, 16, 15))
-            # sunlight and gamma used to be OK, but I removed them Feb 2026
-            for kw in "sunlight gamma aaa bbb".split():
-                mykw = {kw: 0}
-                raises(ValueError, Color, 0, 0, 0, **mykw)
-        def Test_int_to_hex():
-            '''This checks that int_to_hex and hex_to_int are inverse for all
-            numbers < 0x10000.
-            '''
-            n = 0x10000
-            for i in range(n):
-                a = max(i - 1, 0)
-                b = i
-                c = min(i, n)
-                d = (a, b, c)
-                x = Color.int_to_hex(d)
-                y = Color.hex_to_int(x)
-                Assert(y == d)
-        def TestHash():
-            a, bpc = (18, 3333, 3578457), 28
-            c = Color(*a, bpc=bpc)
-            got = hash(c)
-            expected = hash((a, bpc))
-            Assert(got == expected)
-        def TestInvariants():
-            '''Make sure things like
-                c = Color('mag')
-                c1 = Color(c.xhls)
-                assert(c == c1)
-            are true.
-            '''
-            from f import flt
-            distances = []
-            for i in GetShortNames(all=True):
-                c = Color(i)
-                c1 = Color(c.xhls)
-                if c != c1:
-                    dist = flt(Color.dist(c, c1))
-                    distances.append(dist)
-                    Assert(dist < 0.014)
-                    # print(f"Failed for {i}:  {c} {c1} dist={dist}")
-            if 0 and distances:
-                # Note max possible distance value is 1.  Max is 0.0136 for
-                # vio.  So, it's either ignore any dist < 0.014 or see if the
-                # calculations with Fractions produces better conversions.
-                print(f"Max dist = {max(distances)}")
-                print("Tests failed")
-                exit(1)
-        if 1:
-            Test_short_color_names()
-            Test_change_bpc()
-            TestAttributes()
-            Test_downshift()
-            Test_dist()
-            TestEquality()
-            TestInterpolate()
-            TestConstruct()
-            TestDistance()
-            TestSort()
-            TestClassMethods()
-            TestProperties()
-            Test_Constructor_1Arg()
-            Test_Constructor_3Args()
-            TestConstructorKeywords()
-            Test_int_to_hex()
-            TestHash()
-            Test_adjust()
-            TestInvariants()
-    if g.trm_new:   # Old Trm & ColorName
-        def Test_Trm_Init():
-            '''Show the common initializers for a Color instance work and are returned with
-            the proper escape codes.
-            '''
-            styles = {
-                0: "blk",
-                1: Color("#000000"),
-                2: Color("$000000"),
-                3: Color("@000000"),
-                4: Color(0),           
-                5: Color(0x0),          
-                6: Color(0o0),         
-                7: Color(0b0),
-                8: Color((0, 0, 0)),
-                9: Color("0 0 0"),
-                10: Color("0, 0, 0"),
-                11: Color(0.0),
-                12: Color((0.0, 0.0, 0.0)),
-                13: Color("0.0 0.0 0.0"),
-                14: Color("0.0,0.0,0.0"),
-                15: Color("555"),
-                16: Color(555),
-                17: Color(555.0),
-            }
-            # Verify that all values are escape codes and that all are the same as blk
-            # except for #15, which is a yellow-green
-            u = Trm(styles)
-            blk = "\x1b[38;2;0;0;0m"
-            yg = "\x1b[38;2;90;240;6m"
-            for i in u:
-                value = u[i]
-                Assert(isinstance(value, str) and len(value) > 0)
-                Assert(value[0] == "\x1b")
-                Assert(value == yg if i >= 15 else blk)
-        def Test_Trm_Stack():
-            'Show we can push and pop a new state'
-            # Demonstrate we can initialize an empty dictionary
-            u = Trm()
-            Assert(not len(u))
-            # Add two new colors
-            u[0] = "red"
-            u[1] = "grn"
-            red = '\x1b[38;2;254;0;0m'
-            grn = '\x1b[38;2;0;254;0m'
-            Assert(u[0] == red)
-            Assert(u[1] == grn)
-            orig = u.copy()
-            # Push the old state and add a new color
-            u.ppush()
-            Assert(u == orig)
-            blu = '\x1b[38;2;0;0;254m'
-            u[2] = "blu"
-            Assert(u[2] == blu)
-            # Push again
-            u.ppush()
-            u.clear()
-            Assert(not u)
-            # Pop and show we've got blu again
-            u.ppop()
-            Assert(u[2] == blu)
-            # Pop and show we're back to orig
-            u.ppop()
-            Assert(u == orig)
-            with raises(KeyError):
-                u[2]    # This shows u[2] no longer exists
-            # Show we can push with a styles dict.  An important feature is that the
-            # updating process with this styles dict must call the necessary methods to turn
-            # the new elements into ones with resolved escape codes.
-            di = {2: "blu"}
-            u.ppush(di)
-            Assert(u[2] == blu)
-        def Test_Trm_Default():
-            'Show that the default Trm instance has some of the basic names'
-            u = Trm(default=0)
-            items = "red ord orn yon yel ygr lwn grn sea trq cyn".split()
-            items += "sky den roy blu vio lav mag pnk lip blk ".split()
-            items += "brn gry wht lil pur olv".split()
-            for i in items:
-                Assert(i in u)
-        def Test_Trm_Call():
-            '''Test the __call__ method to show that it's capable of reproducing the
-            behavior of the old implementation, particularly changing the background color
-            and attributes.
-            '''
-            u = Trm(default=0)
-            u.c = u("whtl", "blu", attr="ul")
-            Assert(u.c == '\x1b[38;2;255;255;255m\x1b[48;2;0;0;254m\x1b[4m')
-            Assert(u.n == '\x1b[38;2;181;181;181m\x1b[48;2;0;0;0m\x1b[0m')
-        def Test_Trm_ContextManager():
-            u = Trm()
-            u[0] = "red"
-            red = '\x1b[38;2;254;0;0m'
-            Assert(u[0] == red)
-            di = {0: Color("blu")}
-            blu = '\x1b[38;2;0;0;254m'
-            with u.uses(di) as p:
-                Assert(u[0] == blu)
-            Assert(u[0] == red)
-        def Test_Trm_Attributes():
-            'Verify that on and always work, along with attributes'
-            if 1:   # Attribute behavior:  Color --> escape code
-                u = Trm()
-                # Normal dictionary setting works 
-                u["red"] = u("red")
-                Assert(u["red"] == '\x1b[38;2;254;0;0m')
-                # red also acts as if it was an attribute
-                Assert(u.red == '\x1b[38;2;254;0;0m')
-                del u["red"]
-                Assert("red" not in u)
-                with raises(AttributeError):
-                    u.red   # Now it's not an attribute anymore
-                # Set it as an attribute
-                u.red = u("red")
-                Assert(u.red == '\x1b[38;2;254;0;0m')
-                Assert(u["red"] == '\x1b[38;2;254;0;0m')
-                del u["red"]
-                Assert("red" not in u)
-            if 1:   # Attributes that start wit underscores
-                a = 42
-                with raises(AttributeError):
-                    u._x
-                u._x = a
-                Assert(u._x == a)
-                del u._x
-                with raises(AttributeError):
-                    u._x
-            if 1:   # Show that on toggles escape code output on and off
-                esc, nl = '\x1b[38;2;254;0;0m', "\n"
-                u = Trm()
-                u.red = u("red")
-                u.on = True
-                Assert(u.red == esc)
-                u.on = False
-                Assert(u.red == "")
-                u.on = True
-                Assert(u.red == esc)
-            if 1:   # Show that always == on gets output even if stdout isn't a tty
-                esc, nl = '\x1b[38;2;254;0;0m', "\n"
-                u = Trm()
-                u.red = u("red")
-                u.always = False
-                f = io.StringIO()
-                with contextlib.redirect_stdout(f):
-                    print(u.red)
-                s = f.getvalue()
-                Assert(s == nl)
-                u.always = True
-                f = io.StringIO()
-                with contextlib.redirect_stdout(f):
-                    print(u.red)
-                s = f.getvalue()
-                Assert(s == esc + nl)
-        def Test_Trm_Update():
-            'Verify the update method works with the three types of input'
-            result = {'red': '\x1b[38;2;254;0;0m'}
-            if 1:   # Method 1:  a dict
-                di = {"red": "red"}
-                u = Trm(di)     # Check constructor works with a dict too
-                Assert(u == result)
-                u = Trm()
-                u.update(di)
-                Assert(u == result)
-            if 1:   # Method 2:  an iterable (won't work with constructor)
-                a = ["red", "red"]
-                u = Trm(a)     # Check constructor works with a sequence
-                Assert(u == result)
-                u = Trm()
-                u.update(a)
-                Assert(u == result)
-            if 1:   # Method 3:  keyword arguments (won't work with constructor)
-                kw = {"red": "red"}
-                u = Trm(**kw)     # Check constructor works with a keyword dict
-                Assert(u == result)
-                u = Trm()
-                u.update(kw)
-                Assert(u == result)
-        def Test_Trm_Big_Dict():
-            '''Load one of all the colors in data/dpcolornames.py.  This is nearly 6000
-            colors, but it only takes about 100 ms to load on my 10-year-old computer, so
-            you can have access to a lot of colors if you want them.
-            '''
-            di = dpcolornames.colornames
-            keys, values = [], []
-            for key in di:
-                keys.append(key)
-                value = di[key][0]  # This is a namedtuple
-                values.append(Color(value.hex))
-            u = Trm(*zip(keys, values))
-            #print(len(u))
+    def Test_ColorConstructorKeywords():
+        Reset()
+        # Test keyword arguments
+        c = Color(16, 16, 16, hsv=True)
+        Assert(c == Color(16, 15, 15))
+        c = Color(16, 16, 16, hls=True)
+        Assert(c == Color(17, 16, 15))
+        # sunlight and gamma used to be OK, but I removed them Feb 2026
+        for kw in "sunlight gamma aaa bbb".split():
+            mykw = {kw: 0}
+            raises(ValueError, Color, 0, 0, 0, **mykw)
+    def Test_Color_int_to_hex():
+        '''This checks that int_to_hex and hex_to_int are inverse for all
+        numbers < 0x10000.
+        '''
+        n = 0x10000
+        for i in range(n):
+            a = max(i - 1, 0)
+            b = i
+            c = min(i, n)
+            d = (a, b, c)
+            x = Color.int_to_hex(d)
+            y = Color.hex_to_int(x)
+            Assert(y == d)
+    def Test_ColorHash():
+        a, bpc = (18, 3333, 3578457), 28
+        c = Color(*a, bpc=bpc)
+        got = hash(c)
+        expected = hash((a, bpc))
+        Assert(got == expected)
+    def Test_ColorInvariants():
+        '''Make sure things like
+            c = Color('mag')
+            c1 = Color(c.xhls)
+            assert(c == c1)
+        are true.
+        '''
+        distances = []
+        for i in GetShortNames(all=True):
+            c = Color(i)
+            c1 = Color(c.xhls)
+            if c != c1:
+                dist = flt(Color.dist(c, c1))
+                distances.append(dist)
+                Assert(dist < 0.014)
+                # print(f"Failed for {i}:  {c} {c1} dist={dist}")
+        if 0 and distances:
+            # Note max possible distance value is 1.  Max is 0.0136 for
+            # vio.  So, it's either ignore any dist < 0.014 or see if the
+            # calculations with Fractions produces better conversions.
+            print(f"Max dist = {max(distances)}")
+            print("Tests failed")
+            exit(1)
     if 1:  # Example stuff
         def ShowAttributes():
             c = Trm()
@@ -3426,7 +2914,7 @@ if __name__ == "__main__":
             - regexp matches
             - Unicode in sub/superscripts (e.g., Hz**(1/2)
             '''
-            c = Trm(bits=24)
+            c = trm.Trm()
             c.hdr = c(attr="ul")
             def Header():
                 c.print(
@@ -3531,7 +3019,7 @@ if __name__ == "__main__":
             and background text to show their effect.
             '''
             R = GetShortNames()
-            c = Trm()
+            c = trm.Trm()
             # Make escape codes always be printed so that capturing to a
             # file lets you grab the escape codes easily.
             c.always = True
@@ -3574,46 +3062,6 @@ if __name__ == "__main__":
                     Blinking doesn't work in WSL
             ''')
             )
-        def TrmDemo():
-            print("Here's the color names in the default instance:")
-            u = Trm(default=True)
-            u.list()
-            print()
-            #
-            styles = {"y": "yel", "g": "grn", "n": "wht"}
-            newstyles = {"r": "red", "g": "blu", "y": "cyn"}
-            u.print(f"{u(attr='ul')}u is a Trm instance (defined without the default colors):")
-            u = Trm(styles, default=False) 
-            pp(u)
-            print("The following demonstrates normal dictionary access to colors:")
-            print(f"  This is {u['g']}green, {u['y']}yellow is to the end{u['n']}")
-            print("The following will demonstrate the context manager behavior of u:")
-            print(f"{'-'*80}")
-            with u.uses(newstyles) as p:
-                print("  Now we're inside the context manager and the colors will change.")
-                print("  Green will become blue and yellow will be cyan:")
-                print(f"    This is {p.g}green, {p.y}yellow is to the end{p.n}")
-                print("  This demonstrates changing the 'styles' with a new dict.")
-                print("  The following shows the new color in the context:")
-                print(f"    The new color is {p.r}red{p.n}")
-                print("  Inside the context manager, contents of u:")
-                pp(u)
-                if 0:
-                    raise ValueError("Raised inside context manager")
-                else:
-                    raise TypeError("Raised inside context manager")
-            print(f"{'-'*80}")
-            print("Outside the context manager (note 'r' key is gone):")
-            pp(u)
-            print(f"  This is {u['g']}green, {u['y']}yellow is to the end{u['n']}")
-            # This proves the r attribute is no longer present
-            with raises(AttributeError):
-                u.r
-            # Use u.update() to make permanent changes
-            print("\nThe Trm instance u was updated with the new styles dict using update():")
-            u.update(newstyles)
-            print(f"  This is {u['g']}green, {u['y']}yellow is to the end{u['n']}")
-            pp(u)
     def Int(s):
         "Convert s to an integer; 0x33 and 0o33 forms allowed"
         s = s.strip()
@@ -3967,7 +3415,7 @@ if __name__ == "__main__":
         else:
             for item in data.split("\n"):
                 name, spec = item.split()
-                c = t(Color(spec))
+                c = u(Color(spec))
                 o.append(f"{c}{item}{t.n}")
         for i in Columnize(o, esc=True):
             print(i)
@@ -4139,7 +3587,7 @@ if __name__ == "__main__":
             elif o in ("-h", "--help"):
                 Usage(status=0)
             elif o in ("-t", "--test"):
-                exit(run(globals(), halt=True)[0])
+                exit(run(globals(), regexp="^Test_.*$", halt=True, verbose=0)[0])
         if not args:
             return ["s"]
         return args
@@ -4196,25 +3644,14 @@ if __name__ == "__main__":
         elif first_char == "w":  # Show wavelengths and RGB color specifier
             Wavelengths()
 def GetGist():
-    g = gist.Gist()
-    g.clear()
-    g["gist"] = "Classes to help with color use in terminals"
-    g["copy"] = "Copyright © 2022 Don Peterson"
-    g["lic"] = "MIT License (see /plib/_lic.mit)"
-    g["test"] = "--test"
-    g["cat"] = "color"
-    g["todo"] = '''
+    gist = {}
+    gist["gist"] = "Classes to help with color use in terminals"
+    gist["copy"] = "Copyright © 2022 Don Peterson"
+    gist["lic"] = "MIT License (see /plib/_lic.mit)"
+    gist["test"] = "--test"
+    gist["cat"] = "color"
+    gist["todo"] = '''
     
-    - ∞∞1 
-        - Remove eval()/exec() stuff.  Trm.load() loads color names from a file, but I
-          don't like that it has to exec() the incoming string.  It would be better if
-          no eval() or exec() calls were made in this module.
-        - .on and .off must work absolutely and reliably.  See _palette_proto.py for a
-          way of changing Trm to a dict instance to do this.
-            - .on can have three states:
-                - None means to use stdout.isatty()
-                - False means always off so all t.x attributes are ""
-                - True means always on so all t.x attributes are proper escape codes
     - ∞∞2 
         - Color.adjust could use some examples in the docstring, as I had forgotten
           about it and it's likely it's a tool I should use
@@ -4225,11 +3662,6 @@ def GetGist():
               colors getting generated to the screen, letting you home into a desired
               color
         - Move RegexpDecorate to dpstr.py
-        - Fix GetShortNames() when I move to my new short names and the new Trm
-          implementation
-    - ∞∞3 
-        - When printing a Trm instance that uses t.str(), output the string using
-          Columnize to the current screen width, as this is more attractive.
     - RegexpDecorate.register() needs to change to an argument list of (r, match_style,
       nomatch_style) where the latter two elements are escape codes used to define how
       things should be printed.  The use case is pfind.py where I want to see
@@ -4295,4 +3727,4 @@ def GetGist():
             candy     foilage   maple     pig       wood
             carrot    frog      moon      rice      yam
     '''
-    return g
+    return gist

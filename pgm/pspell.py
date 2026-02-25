@@ -1,4 +1,4 @@
-"""
+'''
 Spell check the strings and comments in a python file.
 
 Use /plib/pgm/spell.py and /plib/pgm/xref.py to spell check all the tokens
@@ -11,8 +11,7 @@ programmer to review, these are also checked.
 
 Algorithm:  the tokenize library is used to tokenize the script.
 
-"""
-
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -38,37 +37,33 @@ if 1:  # Header
         import token
         import tokenize
     if 1:  # Custom imports
+        import trm
         from wrap import dedent
-        from color import t
         from dpstr import Tokenize
         from get import GetLines
     if 1:  # Global variables
-
         class G:
             pass
-
         g = G()  # Storage for global variables as attributes
         g.dbg = False
-        t.dbg = t("lill") if g.dbg else ""
-        t.N = t.n if g.dbg else ""
+        t = trm.Trm(default=2)
+        t.dbg = t.lil
+        t.on = False if g.dbg else True
         ii = isinstance
         g.W = int(os.environ.get("COLUMNS", "80")) - 1
         g.L = int(os.environ.get("LINES", "50"))
 if 1:  # Utility
-
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="")
             print(*p, **kw)
-            print(f"{t.N}", end="")
-
+            print(f"{t.n}", end="")
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options] file1.py [file2.py...]
           Spell check the strings and comments in the indicated python
           scripts.  The line number(s) are printed with the misspelled
@@ -85,12 +80,11 @@ if 1:  # Utility
             -l      List each file processed to stderr
             -s      Don't check strings
         Dictionaries are:
-        """)
+        ''')
         )
         for i in d["-f"]:
             print(f"  {str(i)}")
         exit(status)
-
     def ParseCommandLine(d):
         d["-b"] = False  # Brief
         d["-c"] = True  # Colorize output
@@ -114,10 +108,10 @@ if 1:  # Utility
                 d[o].append(a)
         if not d["-f"]:
             # Default dictionary files
-            for i in """
+            for i in '''
                     /words/words.univ
                     /plib/pgm/pspell.extra
-                    """.split():
+                    '''.split():
                 p = P(i)
                 if not p.exists():
                     Error(f"Can't find {i!r}")
@@ -125,15 +119,12 @@ if 1:  # Utility
         if not files:
             Usage()
         # Set up colorizing
-        t.cmt = t("purl") if d["-c"] else ""
-        t.str = t("ornl") if d["-c"] else ""
-        t.file = t("redl") if d["-c"] else ""
-        t.N = t.n if d["-c"] else ""
+        t.cmt = t.pur
+        t.str = t.orn
+        t.file = t.red
+        t.on = d["-c"]
         return files
-
-
 if 1:  # Core functionality
-
     def GetWords():
         "Return the set of words used for spell checking"
         words = set()
@@ -144,19 +135,17 @@ if 1:  # Core functionality
             for line in lines:
                 words.update(set(i.lower() for i in line.split()))
         return words
-
     def GetLine(mytoken):
-        """Return L (line number) for the token if it's on a single line.
+        '''Return L (line number) for the token if it's on a single line.
         Otherwise return L1-L2 (line number range) when it's a multiline
         entity.
-        """
+        '''
         a, b = mytoken.start
         c, d = mytoken.end
         if a == c:
             return f"{a}"
         else:
             return f"{a}-{c}"
-
     def SpellCheck(string):
         bad = set()
         wordchars = String.ascii_letters
@@ -167,7 +156,6 @@ if 1:  # Core functionality
             if w not in mywords:
                 bad.add(word)
         return list(sorted(bad, key=str.lower))
-
     def Process(tokens):
         bad_words = []
         for mytoken in tokens:
@@ -176,7 +164,6 @@ if 1:  # Core functionality
                 for item in bad:
                     bad_words.append((item, mytoken))
         return bad_words
-
     def ProcessFile(file):
         filename = file
         p = P(filename)
@@ -211,14 +198,13 @@ if 1:  # Core functionality
                 d["brief"].extend(bad_comments)
             else:
                 Report(bad_comments, t.cmt, file, "bad comments")
-
     def Report(items, clrstr, file, mytype):
-        """Condense the items into one line per word with line numbers.
+        '''Condense the items into one line per word with line numbers.
         items     (word, token)
         clrstr    Colorizing escape code or ''
         file      Which file
         mytype    "bad strings", "bad comments", etc.
-        """
+        '''
         # Collapse line numbers to a single line per word
         lst = defaultdict(list)
         for word, token in items:
@@ -229,16 +215,13 @@ if 1:  # Core functionality
             ln = " ".join(lst[word])
             out.append(f"  {word} {ln}")
         # Print sorted list
-        print(f"{t.file}{file} {mytype}{t.N}")
+        t.print(f"{t.file}{file} {mytype}")
         for i in sorted(out, key=str.lower):
-            print(f"  {clrstr}{i}{t.N}")
-
+            t.print(f"  {clrstr}{i}")
     def BriefReport():
         words = set(i[0] for i in d["brief"])
         for word in sorted(words, key=str.lower):
             print(word)
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     files = ParseCommandLine(d)
