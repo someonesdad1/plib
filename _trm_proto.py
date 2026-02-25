@@ -1,17 +1,18 @@
 '''
 
 ToDo
-    - Add update() and only take dicts
-    - Trm(di):  if di is a Trm instance, make an identical (deep) copy of it
+    - 
 
 '''
 if 1:   # Header
     if 1:   # Standard imports
         import collections
+        import contextlib
         import decimal
         import fractions
         import math
         import sys
+        import threading
         Decimal = decimal.Decimal
         Fraction = fractions.Fraction
     if 1:   # Custom imports
@@ -39,18 +40,20 @@ class Trm(dict):
 
         Define new colors:
             u[0] = "Pine glade"         # Name will be normalized to "pine_glade"
+                # Uses data/dpcolornames.py to look up normalized color names
             # Use white foreground on blue background and bold underlined
             u.debug = u("wht", "blu", "bo ul")
             u.ul = u(attr="it")         # Normal color but italics
             Defining new attributes like this converts them to Color instances, then
-            converts them to ANSI escape code strings.
+            converts them to ANSI escape code strings.  Thus, this is a specialized
+            dictionary that holds escape sequence strings.
         Access color names in two ways:
             u["red"]                    # Dictionary style
             u.red                       # Attribute style (name must be valid python symbol)
         Print to the terminal in color:
             print(f"Here's a message {u.red}partly in red.")
             --> Problem:  terminal output remains in color red, so next output is in the same
-            color.  Here's a fix:
+            color.  Use the Trm.print() method instead (same syntax as print):
             u.print(f"Here's a message {u.red}partly in red.")  # Back to default colors at end
 
         Changing color styles: There are a few ways to use different sets of colors
@@ -61,7 +64,8 @@ class Trm(dict):
           state.  Change the Trm instance as needed; when finished, call u.ppop() to get
           back to the old state.
 
-        - Context manager (internally, it uses the stack like the previous example):  
+        - Context manager (internally, this uses the stack like the previous example,
+          but this is syntactically "cleaner"):  
 
             di = {"red": Color("blu")}
             with u.uses(di) as p:
@@ -74,6 +78,17 @@ class Trm(dict):
             - You can store attributes in the dictionary instance, but they must start
               with "_" so that they do not get modified.  All other attributes you set
               are converted to a color.Color instance, then changed to an escape code.
+            - A threading lock protects against race conditions occuring due to changing
+              of attributes.  Of course, multiple threads can still stomp on each
+              other's common data, but it won't happen during basic attribute access.
+
+        u.on and u.always
+            - At anytime, set u.on to False and all escape codes "disappear", as all
+              dictionary access through keys returns an empty string.
+            - If u.always is False, then all escape codes "disappear" if you print to
+              e.g. a file (technically, if sys.stdout.isatty() is False).  If you want
+              the output to contain the escape codes even if e.g. redirecting to a file,
+              set u.always to True.
 
         References:
         - Normal, bold, italic, underlined, subscript, superscript, etc.:
@@ -103,6 +118,7 @@ class Trm(dict):
         default names will overwrite the defaults.
         '''
         # Attributes with underscores are not meant to be accessed by the user
+        self._lock = threading.Lock()   # For changing attributes
         self._stack = Stack()   # Saves previous states of self
         self.on = True          # Output escape codes if True
         self.always = False     # If True, output escape codes even if stdout out isn't a terminal
@@ -225,12 +241,16 @@ class Trm(dict):
         set and access dictionary keys by using them like attributes, as long as they
         are strings that have isidentifier() True.
         '''
-        if name in set("on always".split()):
-            super().__setattr__(name, bool(value))
-        elif name.startswith("_"):
+        if name == "_lock":
             super().__setattr__(name, value)
-        else:
-            self[name] = value
+            return
+        with self.locked():
+            if name in set("on always".split()):
+                super().__setattr__(name, bool(value))
+            elif name.startswith("_"):
+                super().__setattr__(name, value)
+            else:
+                self[name] = value
     def __getitem__(self, name):        # Get self[name]
         'This is used to get self[name]'
         # If self.on isn't True, always return an empty string
@@ -240,14 +260,16 @@ class Trm(dict):
         if not self.always and not sys.stdout.isatty():
             return ""
         # Otherwise, return the escape sequence
-        return super().__getitem__(name)
+        with self.locked():
+            return super().__getitem__(name)
     def __getattribute__(self, name):   # Get instance's attributes and dict's keys
         '''This allows you to access a dictionary key using the syntax self.key instead
         of self[key] (key.isidentifier() must be True).  It also lets us get to our
         other attributes that are not in the dict without the infinite recursion
         problem.
         '''
-        return self.__getitem__(name) if name in self else super().__getattribute__(name)
+        return (self.__getitem__(name) if name in self
+                else super().__getattribute__(name))
     def __enter__(self):    # Context manager entry
         assert self._newstyles is not None
         self.ppush(self._newstyles)
@@ -278,7 +300,8 @@ class Trm(dict):
         '''
         if styles_dict is not None and not isinstance(styles_dict, dict):
             raise TypeError("styles_dict must be a dict instance")
-        self._stack.push(self.copy())
+        with self.locked():
+            self._stack.push(self.copy())
         if styles_dict is not None:
             for i in styles_dict:
                 self[i] = styles_dict[i]
@@ -288,7 +311,8 @@ class Trm(dict):
         '''
         old_self = self.copy()
         self.clear()
-        previous = self._stack.pop()
+        with self.locked():
+            previous = self._stack.pop()
         self.update(previous)
         return old_self
     def list(self, msg=None, ignore_std=True, sort=False):
@@ -317,6 +341,13 @@ class Trm(dict):
         'Used to utilize a new set of styles in a context manager block'
         self._newstyles = styles_dict
         return self
+    @contextlib.contextmanager
+    def locked(self):
+        self._lock.acquire()
+        try:
+            yield
+        finally:
+            self._lock.release()
 
 if __name__ == "__main__":  
     from lwtest import run, Assert, raises
