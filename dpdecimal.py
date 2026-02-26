@@ -77,7 +77,8 @@ if 1:  # Header
         from functools import partial
     if 1:  # Custom imports
         from columnize import Columnize
-        from color import t
+        from trm import Trm
+        t = Trm(default=2)
         if 0:
             import debug
             debug.SetDebugger()

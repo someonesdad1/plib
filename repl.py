@@ -197,8 +197,9 @@ if 1:  # Header
     # Custom imports
     from wrap import wrap, dedent
     from columnize import Columnize
-    # import kolor as C
-    from color import TRM as t
+    #from color import TRM as t
+    from trm import Trm
+    t = Trm(default=2)
     # Global variables
     _ = sys.version_info
     class G:  # Container for global variables
@@ -211,15 +212,15 @@ if 1:  # Header
     g.pyversion = f"{_.major}.{_.minor}.{_.micro}"
     g.ii = isinstance
     # Color coding using ANSI escape codes
-    g.blu = t("blul")
-    g.brn = t("brn")
-    g.grn = t("grnl")
-    g.cyn = t("cynl")
-    g.red = t("redl")
-    g.yel = t("yel")
-    g.wht = t("whtl")
-    g.whtblu = t("whtl", "blu")
-    g.err = t("redl")
+    g.blu = t.blu
+    g.brn = t.brn
+    g.grn = t.grn
+    g.cyn = t.cyn
+    g.red = t.red
+    g.yel = t.yel
+    g.wht = t.wht
+    g.whtblu = t("wht", "blu")
+    g.err = t("red")
     g.ital = t(attr="it")
     g.n = t.n
 if 1:  # Utility
@@ -631,6 +632,7 @@ if 1:  # Setup
     else:  # Colored
         sys.ps1 = f"{g.whtblu}{'▶' * 3}{g.n} "
     sys.ps2 = f"{g.whtblu}{'·' * 3}{g.n} "
+
 if __name__ == "__main__":  # Run the console REPL
     stdout, stderr = io.StringIO(), io.StringIO()
     cmdlog = io.StringIO()  # Used to log commands

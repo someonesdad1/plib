@@ -18,13 +18,18 @@ if 1:  # Header
         <oo test ∞ --test oo>
         <oo todo ∞ 
         
-            - This is perhaps best thought of as a matrix problem.  You have a sequence
-              you want to see in column major order on the screen, but it's stored in
-              row major order in the script.  The canonical transformation is the
-              transpose.  Perhaps it could be combined with the termtables module to
-              always get correct output.  It's also important to get the inverse
-              behavior:  take the columnar output and turn it back into a sequence.
-              Remember this needs to handle strings with escape sequences too.
+            - Matrix transpose with nested lists
+                - A = [[1, 4], [2, 5], [3, 6]] represents 3 row vectors
+                - Transpose is [list(i) for i in zip(*A)]
+                    - Gives [[1, 2, 3], [4, 5, 6]]
+            - See if this columnizing can be done by using transposes
+                - The numbers would be the indexes of the original list, organized into
+                  a nested structure to give the desired output
+                - If you want the column-major ordering, then you take the transpose and
+                  flatten the list, printing out each element with the linefeed at the
+                  appropriate point
+            - The uncolumnize function is also needed, which takes a multi-line string
+              and gives you back the desired list order
             - ∞∞1 'res l' displays a serious bug
             - Feb  5 2024:  'ls --color=always | columnize.py' doesn't work right in
               /plib

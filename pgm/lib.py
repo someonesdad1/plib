@@ -47,10 +47,11 @@ if 1:  # Imports
     import re
     from collections import defaultdict
 if 1:  # Custom imports
+    import trm
     from wrap import dedent
-    from color import t
     from constant import Constant
 if 1:  # Global variables
+    t = trm.Trm(default=2)
     sep = "@@"  # Separates datafile records
     nl = "\n"
     ff = "\n\x0c\n"  # Separates output records
@@ -59,9 +60,9 @@ if 1:  # Global variables
     g = Constant()
     with g:
         g.language_colors = {  # Color, name to display
-            "c": ("yell", "C"),
-            "python": ("cynl", "python"),
-            "sh": ("grnl", "sh"),
+            "c": ("yel", "C"),
+            "python": ("cyn", "python"),
+            "sh": ("grn", "sh"),
             "text": ("wht", "text"),
         }
 class Record(object):

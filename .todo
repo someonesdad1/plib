@@ -1,8 +1,7 @@
 /plib/.todo
 
-    - color.py
-        - Need to move RegexpDecorate out of color.py to dpstr.py
-        - Then get 'clr' command working
+- trm.py:  find out what failing there was in the color demos for e.g. t(Color(x))
+
 
     - gist
         - Two implementation choices
@@ -22,13 +21,6 @@
     - Try out argparse tutorial and write a help page for it
     
     - Move util stuff (see ∞∞ notes in file)
-
-    - Various dicts
-        - Sdict
-            - dict with stack that lets you push and pop its state
-        - Ddict
-            - Contains different dicts that are activated by calling
-            - Use case:  dpdata.py could use it for access to a variety of data sets
 
     - /plib work
         - Core documentation need
@@ -129,9 +121,6 @@
               most use.  It could be something as simple as open(file,
               "wa").write("myname.py") that is triggered if an environment variable is
               defined.
-        - ruff as of 30 Jan 2026
-            - I won't use the formatter until they fix the mess it makes with formulas
-            - Linting works well
 
     - Electrical circuit searches
         - Use ds.py to search for files that keep important circuits that I want to look
@@ -152,34 +141,6 @@
             - e     Edit the data file
             - l     List the allowed names
             - Empty:  just type names' contents to stdout
-
-    - checkgist.py & gist
-        - I seem to be running into a thorny problem where some of the files like
-          novas.py and eevblog.py cannot have their _pgminfo variables read.  Online
-          docs say python doesn't enforce the custom of such a variable being private,
-          but I can't figure out why 6 files are still having problems (I fixed all the
-          exceptions that I know were occurring).
-        - When I changed "_pgminfo" in eevblog.py to "pgminfo", the variable was read in
-          just fine.  This feels like a troubling deep bug in python.
-            - All the files can be imported in the REPL without error
-        - Options
-            - Rename _pgminfo to pgminfo
-            - Put a function GetGist() into every file that's used to get the gist
-                - This has the benefit of making it trivial to find files that don't
-                  have a gist
-        - GetGist() function in each file
-            - It's after the if __name__ == "__main__":  line, but it's in the global
-              namespace because it's not indented
-            - It lets grep or awk find it quickly, as there's no need to import the file
-            - This should always work and be out of the way.  A line inside the function 
-              can be 'import gist' to get the needed instance of class Gist.  This then
-              just is a dict with the required parameters
-                - gist *
-                - desc
-                - cat *
-                - test *
-                - todo
-                - * means required
 
     - Testing
         - Since the lwtest.py module is often used for testing, it could contain an
@@ -1586,6 +1547,12 @@
 Color stuff
 
     - Color tool:  interactive tool to explore terminal colors
+        - Might work well being a REPL
+            - Would help to build a repl module; use cmddecode.py to get commands
+            - L:  load colornames
+            - k h 44-48     Keep hues between the values
+            - r h 44-48     Remove hues between the values
+            - Sets of name for hues:  red, redorn/ornred, orn, ornyel/yelorn, etc.
         - Uses a standard dict of named colors (will be in trm.Trm)
         - Subset things quickly by
             - Regex on name (keep or remove)
