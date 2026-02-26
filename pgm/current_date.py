@@ -29,7 +29,9 @@ if 1:  # Header
     if 1:  # Custom imports
         from dpprint import PP
         pp = PP()
-        from color import t
+        #from color import t
+        import trm
+        t = trm.Trm(default=2)
         import u
         from f import flt
         import julian
@@ -49,18 +51,18 @@ if 1:  # Header
 if 1:  # Utility
     def GetColors():
         "Colors for printed line"
-        t.dow = t("lip")
-        t.date = t("ornl")
-        t.time = t("yell")
-        t.ampm = t("yell")
-        t.z = t("gryl")
-        t.qtr = t("grn")
-        t.sec = t("royl")
-        t.jd = t("olv")
-        t.wk = t("mag")
-        t.doy = t("lipl")
-        t.dbg = t("lill") if g.dbg else ""
-        t.N = t.n if g.dbg else ""
+        t.dow = t.lip
+        t.date = t.orn
+        t.time = t.yel
+        t.ampm = t.yel
+        t.z = t.gry
+        t.qtr = t.grn
+        t.sec = t.roy
+        t.jd = t.olv
+        t.wk = t.mag
+        t.doy = t.lip
+        t.dbg = t.lil
+        t.N = t.n
     def GetScreen():
         "Return (LINES, COLUMNS)"
         return (

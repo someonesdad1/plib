@@ -22,12 +22,14 @@ if 1:  # Header
         from collections import deque
     # Custom imports
         from wrap import dedent
-        from color import TRM as t
+        #from color import TRM as t
+        import trm
         from edit import Edit
     # Global variables
+        t = trm.Trm(default=2)
         P = pathlib.Path
         ii = isinstance
-        t.c = t("sky")
+        t.c = t("skyl")
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
