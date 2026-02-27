@@ -72,15 +72,17 @@ if 1:  # Header
         from timer import GetET
         from dpstr import IgnoreFilter
         from f import flt
-        from color import t
+        #from color import t
+        import trm
         import util
     if 1:  # Global variables
         class G:  # Storage for global variables as attributes
             pass
         g = G()
         g.dbg = False
-        t.dbg = t("lill") if g.dbg else ""
-        t.N = t.n if g.dbg else ""
+        t = trm.Trm(default=2)
+        t.dbg = t.lil
+        t.N = t.n
         # app to open a file with registered application
         if wsl:
             g.app = "explorer.exe"  # Linux under WSL
@@ -110,8 +112,8 @@ if 1:  # Header
                 "hpj": "/ebooks/hpj/ds.hpj.ignore",
             }
         # Colors for output
-        t.dir = t("gry")  # Contrast for directory portion
-        t.match = t("ornl")  # Color for matches
+        t.dir = t.gry  # Contrast for directory portion
+        t.match = t.orn  # Color for matches
 if 1:  # Utility
     def Dbg(*p, **kw):
         if g.dbg:

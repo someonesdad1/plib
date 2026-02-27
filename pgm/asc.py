@@ -26,13 +26,15 @@ if 1:  # Header
         import sys
         from textwrap import dedent
     if 1:  # Custom imports
-        from color import t
+        import trm
+        #from color import t
         from columnize import Columnize
         from dpprint import PP
         from wrap import dedent
         from wsl import wsl  # wsl is True when running under WSL Linux
         pp = PP()  # Screen width aware form of pprint.pprint
     if 1:  # Global variables
+        t = trm.Trm(default=2)
         class Global:
             pass
         g = Global()
@@ -57,14 +59,16 @@ if 1:  # Utility
             int(os.environ.get("COLUMNS", "80")) - 1,
         )
     def GetColors():
-        t.dbg = t.cyn if g.c else ""
-        t.err = t.redl if g.c else ""
-        t.dec = t.sky if g.c else ""
-        t.hex = t.wht if g.c else ""
-        t.oct = t.purl if g.c else ""
-        t.bin = t.orn if g.c else ""
-        t.chr = t.wht if g.c else ""
-        t.N = t.n if g.c else ""
+        t.dbg = t.cyn
+        t.err = t.red
+        t.dec = t.skyl
+        t.hex = t.wht
+        t.oct = t.pur
+        t.bin = t.orn
+        t.chr = t.wht
+        t.N = t.n
+        if not g.c:
+            t.on = False
     def Dbg(*p, **kw):
         if g.dbg:
             if 0:
