@@ -329,12 +329,13 @@ class Color:
                         # an integer or float or three integers or floats
                         e = ValueError(f"{u!r} can't be interpreted as a Color initializer")
                         if " " in u or "," in u or ";" in u:
-                            a = u.replace(",", " ").replace(";", " ").split()
+                            a = u.replace(",", " ").replace(";", " ")
                             try:
-                                seq = [dpmath.Int(i) for i in a]    # 3-tuple of int
+                                seq = [dpmath.Int(i) for i in a.split()]    # 3-tuple of int
+                                self._rgb = Color(*seq).irgb
                             except Exception:
                                 try:
-                                    seq = [float(i) for i in a]     # 3-tuple of float
+                                    seq = [float(i) for i in a.split()]     # 3-tuple of float
                                     self._rgb = Color(*seq).irgb
                                 except Exception:
                                     raise e

@@ -178,11 +178,16 @@ class Trm(dict):
         'default' is the only keyword not related to dictionary initialization.  If
         present, it should be an integer of 0, 1, 2, which are used to identify the 
         colors of Trm.std that are included in the Trm instance:
+            None = an empty dictionary
             0 = the colors in Trm.std
-            1 = 0 plus the "l" additions
-            2 = 1 plus the 1, 2, and 3 additions
+            1 = 0 plus the "l" (light) additions
+            2 = "l" plus the darker 1, 2, and 3 additions
         The defaults are processed last, so they will overwrite any definitions in the
         normal dict initializers.
+
+        Note:  for convenience, the default=2 will be used if no default keyword is
+        used, as this is the set of colors I normally used.  Use default=None if you
+        want the dictionary to be empty.
         '''
         # Attributes with underscores are not meant to be accessed by the user
         self._lock = threading.Lock()   # For changing attributes
@@ -207,7 +212,7 @@ class Trm(dict):
             for key, value in p:
                 self[key] = value
         # Process kw
-        default = None
+        default = 2
         for key in kw:
             if key == "default":
                 default = kw[key]
@@ -486,18 +491,18 @@ if __name__ == "__main__":
         }
         # Verify that all values are escape codes and that all are the same as blk
         # except for #15, which is a yellow-green
-        u = Trm(styles)
+        u = Trm(styles, default=None)
         blk = "\x1b[38;2;0;0;0m"
-        yg = "\x1b[38;2;90;240;6m"
+        c555 = "\x1b[38;2;163;255;0m"
         for i in u:
             value = u[i]
             Assert(isinstance(value, str) and len(value) > 0)
             Assert(value[0] == "\x1b")
-            Assert(value == yg if i >= 15 else blk)
+            Assert(value == c555 if i >= 15 else blk)
     def Test_Trm_Stack():
         'Show we can push and pop a new state'
         # Demonstrate we can initialize an empty dictionary
-        u = Trm()
+        u = Trm(default=None)
         Assert(not len(u))
         # Add two new colors
         u[0] = "red"
@@ -617,23 +622,24 @@ if __name__ == "__main__":
         result = {'red': '\x1b[38;2;254;0;0m'}
         if 1:   # Method 1:  a dict
             di = {"red": "red"}
-            u = Trm(di)     # Check constructor works with a dict too
+            u = Trm(di, default=None)     # Check constructor works with a dict too
             Assert(u == result)
-            u = Trm()
+            u = Trm(default=None)
             u.update(di)
             Assert(u == result)
         if 1:   # Method 2:  an iterable (won't work with constructor)
             a = ["red", "red"]
-            u = Trm(a)     # Check constructor works with a sequence
+            u = Trm(a, default=None)     # Check constructor works with a sequence
             Assert(u == result)
-            u = Trm()
+            u = Trm(default=None)
             u.update(a)
             Assert(u == result)
         if 1:   # Method 3:  keyword arguments (won't work with constructor)
-            kw = {"red": "red"}
+            kw = {"red": "red", "default": None}
             u = Trm(**kw)     # Check constructor works with a keyword dict
             Assert(u == result)
-            u = Trm()
+            u = Trm(default=None)
+            del kw["default"]
             u.update(kw)
             Assert(u == result)
     def Test_Trm_Big_Dict():
@@ -649,14 +655,7 @@ if __name__ == "__main__":
             values.append(Color(value.hex))
         u = Trm(*zip(keys, values))
         #print(len(u))
-
-    if 0:
-        for i in (0, 1, 2):
-            print(i)
-            u = Trm(default=i)
-            u.list()
-        exit()
-    if 0 or len(sys.argv) > 1:
+    if len(sys.argv) > 1:
         Demo()
     else:
         exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
