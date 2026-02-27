@@ -29,18 +29,19 @@ if 1:  # Header
     if 1:   # Custom imports
         from f import flt
         from wrap import dedent
-        from color import t
+        import trm
         from constant import Constant
         from lwtest import Assert
         from dpprint import PP
         pp = PP()   # Get pprint with current screen width
-        from gist import Gist
         if 0:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
         g = Constant()
         g.dbg = False
+        g.gistname = "def GetGist():"
+        t = trm.Trm()
         # These are filenames in /plib to ignore
         with g:
             g.ignore = set([
@@ -48,9 +49,9 @@ if 1:  # Header
             ])
 if 1:   # Utility
     def GetColors():
-        t.err = t.redl
-        t.dbg = t.sky if g.dbg else ""
-        t.N = t.n if g.dbg else ""
+        t.err = t.red
+        t.msg = t.orn
+        t.dbg = t.skyl
     def GetScreen():
         'Return (LINES, COLUMNS)'
         return (
@@ -61,7 +62,7 @@ if 1:   # Utility
         if g.dbg:
             print(f"{t.dbg}", end="")
             print(*p, **kw)
-            print(f"{t.N}", end="")
+            print(f"{t.n}", end="")
     def Warn(*msg, status=1):
         print(*msg, file=sys.stderr)
     def Error(*msg, status=1):
@@ -117,17 +118,23 @@ if 1:   # Core functionality
         else:
             if pfile.absolute() in g.ignore:
                 return
+            # Search for g.gistname in file
+            text = pfile.open().read()
+            if g.gistname not in text:
+                Warn(f"{t.err}No gist in file {str(pfile)!r}")
+                return
+            name = pfile.stem
+            s = f"from {name} import GetGist"
             try:
-                if 1 and "eevblog.py" in str(pfile):
-                    breakpoint() # ∞∞ 
-                giststr = Gist.GetGistString(pfile)
-                if giststr is None:
-                    raise ValueError(f"No gist in file {pfile!r}")
-                gist = Gist(giststr)
-                g.gistdata[str(pfile)] = gist
-            except Exception as e:
-                print(f"{t.ornl}Exception{t.n} for file {pfile.absolute()!r}:\n  {e!r}")
-                return 
+                exec(s, globals())
+            except Exception:
+                Warn(f"{t.err}Couldn't import GetGist() in file {str(pfile)!r}")
+                return
+            d = GetGist()
+            # Check the important keys
+            for key in "gist copy lic test".split():
+                if not d[key].strip():
+                    t.print(f"{t.msg}Missing key {key!r} in file {str(pfile)!r}")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
@@ -140,3 +147,13 @@ if __name__ == "__main__":
             t.print(f"{t.err}{file!r} doesn't exist")
             continue
         ProcessFile(p)
+
+def GetGist():
+    g = {}
+    g["gist"] = "Check the gists in python files"
+    g["copy"] = "Copyright © 2026 Don Peterson"
+    g["lic"] = "MIT License (see /plib/_lic.mit)"
+    g["test"] = "notest"
+    g["cat"] = "utility"
+    g["todo"] = ''' '''
+    return g
