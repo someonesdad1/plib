@@ -1,7 +1,5 @@
 /plib/.todo
 
-- trm.py:  find out what failing there was in the color demos for e.g. t(Color(x))
-
 
     - gist
         - Two implementation choices
