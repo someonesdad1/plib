@@ -50,7 +50,8 @@ if 1:  # Header
         import unicodedata
         import xml.etree.ElementTree as ET
     if 1:  # Custom imports
-        from color import t
+        import trm
+        t = trm.Trm()
         if 0:
             import debug
             debug.SetDebugger()

@@ -5,25 +5,6 @@ America areacode into a string detailing its location.  This same
 information is in the list areacode.areacodelist.
 '''
 if 1:  # Header
-    _pgminfo = '''
-        <oo gist ∞ Map area code to location oo>
-        <oo desc ∞ oo>
-        <oo copy ∞ Copyright © 2023 Don Peterson oo>
-        <oo lic ∞ 
-            MIT License
-            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-        oo>
-        <oo cat ∞ util oo>
-        <oo test ∞ notest oo>
-        <oo todo ∞ 
-
-            - ∞∞2 Make this a true module; move miscellaneous stuff to "if name ==" section.
-            - Add a quickie test routine to ensure that it does the basics
-
-        oo>
-    '''
     if 1:  # Standard imports
         import getopt
         import os
@@ -608,6 +589,7 @@ if 1:  # Core functionality
         s = unrange(missing)
         for i in s.split():
             print(f"    {i}")
+
 if __name__ == "__main__":
     d = {}  # Options dictionary
     regexps = ParseCommandLine(d)
@@ -616,3 +598,18 @@ if __name__ == "__main__":
         found.extend(FindRegex(regex))
     for i in sorted(set(found)):
         Print(i)
+
+def GetGist():
+    g = {}
+    g["gist"] = "Map area code to location"
+    g["copy"] = "Copyright © 2023 Don Peterson"
+    g["lic"] = "MIT License (see /plib/_lic.mit)"
+    g["test"] = "notest"
+    g["cat"] = ""
+    g["todo"] = '''
+
+        - ∞∞2 Make this a true module; move miscellaneous stuff to "if name ==" section.
+        - Add a quickie test routine to ensure that it does the basics
+
+    '''
+    return g

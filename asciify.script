@@ -1,7 +1,4 @@
-'''Run as a script to 'asciify' stdin.
-'''
-
-# Constructed Thu Dec  5 08:55:17 2019 by asciify_make.py
+# Constructed Thu Feb 26 19:33:33 2026 by asciify_make.py
 
 # This dictionary can be used by str.translate to "asciify" Unicode
 # text by converting non-7-bit Unicode characters to their (rough)
@@ -2647,7 +2644,7 @@ ascii_translate = {
     0x1f7bd: '*',
     0x1f7be: '*',
     0x1f7bf: '*',
-}
+}}
 if __name__ == "__main__": 
     import sys
     s = sys.stdin.read()

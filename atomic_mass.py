@@ -56,29 +56,6 @@
     
 '''
 if 1:  # Header
-    _pgminfo = '''
-        <oo gist ∞ Atomic mass data oo>
-        <oo desc ∞ oo>
-        <oo copy ∞ Copyright © 2026 Don Peterson oo>
-        <oo lic ∞ 
-            MIT License
-            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-        oo>
-        <oo cat ∞ science oo>
-        <oo test ∞ --test oo>
-        <oo todo ∞ 
-        
-            - Provide a GetData to get the atomic mass data
-                - GetAtomicMass(an=None, n=5, unc=False)
-                - Returns a namedtuple of NT2 type
-            - <done> Get the NIST data parsed
-            - <done> Return information in a named tuple
-            - <done> Use appropriate floating point representation
-            
-        oo>
-    '''
     if 1:   # Standard imports
         from collections import namedtuple, defaultdict, deque
         import contextlib
@@ -93,7 +70,7 @@ if 1:  # Header
         from lwtest import run, Assert
         from f import flt
         from wrap import dedent
-        from color import t
+        import trm
         from columnize import Columnize
         from uncertainties import ufloat, ufloat_fromstr
         from dpprint import PP
@@ -102,6 +79,7 @@ if 1:  # Header
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
+        t = trm.Trm()
         class G:
             pass
         g = G()     # Holder for global variables
@@ -121,8 +99,8 @@ if 1:  # Header
         # Named tuple for atomic mass data
         NT2 = namedtuple("AM2", "Z sym am")
         # Colors
-        t.hdr = t.purl
-        t.err = t.ornl
+        t.hdr = t.pur
+        t.err = t.orn
 if 1:  # NIST data
     def _Parse(s):
         'Given the string s from the NIST data, convert it to an appropriate type'
@@ -802,3 +780,22 @@ if __name__ == "__main__":
             print(i)
     else:
         print(f"{cmd!r} is an unrecognized command")
+
+def GetGist():
+    g = {}
+    g["gist"] = "Atomic mass data"
+    g["copy"] = "Copyright © 2026 Don Peterson"
+    g["lic"] = "MIT License (see /plib/_lic.mit)"
+    g["test"] = "--test"
+    g["cat"] = "science"
+    g["todo"] = '''
+
+        - Provide a GetData to get the atomic mass data
+            - GetAtomicMass(an=None, n=5, unc=False)
+            - Returns a namedtuple of NT2 type
+        - <done> Get the NIST data parsed
+        - <done> Return information in a named tuple
+        - <done> Use appropriate floating point representation
+
+    '''
+    return g

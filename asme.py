@@ -48,24 +48,12 @@ Standard, but with some extra limits.  I've added some symbols.
 
 '''
 if 1:  # Header
-    _pgminfo = '''
-        <oo gist ∞ Dimensions of UN threads in inches oo>
-        <oo desc ∞ Provides a thread class that will calculate the dimensions of Unified
-            National thread forms in inches.  Formulas taken from ASME B1.1-1989.
-        oo>
-        <oo copy ∞ Copyright © 2007, 2021 Don Peterson oo>
-        <oo lic ∞ 
-            MIT License
-            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-        oo>
-        <oo cat ∞ category oo>
-        <oo test ∞ run oo>
-        <oo todo ∞ Todo items oo>
-    '''
+    if 1:  # Standard imports
+        pass
     if 1:  # Custom imports
-        from f import flt
+        import f
+    if 1:  # Import symbols
+        flt = f.flt
 if 1:  # Classes
     class UnifiedThread:
         '''Initialize with basic diameter in inches, threads per inch,
@@ -236,3 +224,16 @@ if __name__ == "__main__":
         assert abs(u.SellersRecommendedTPI() - 20.2) <= 0.01
         assert abs(u.DoubleDepth() - 0.065) <= eps
     exit(run(globals())[0])
+
+def GetGist():
+    g = {}
+    g["gist"] = "Dimensions of UN threads in inches"
+    g["desc"] = '''Provides a thread class that will calculate the dimensions of Unified
+        National thread forms in inches.  Formulas taken from ASME B1.1-1989.
+        '''
+    g["copy"] = "Copyright © 2007, 2021 Don Peterson"
+    g["lic"] = "MIT License (see /plib/_lic.mit)"
+    g["test"] = "run"
+    g["cat"] = "shop"
+    g["todo"] = ''' '''
+    return g

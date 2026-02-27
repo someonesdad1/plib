@@ -1,60 +1,18 @@
 '''
-
-
 Change Unicode characters to nearest ASCII equivalents.
 
-For an overview of the transliteration that this script provides, run the following
-commands in a suitable shell environment:
+    For an overview of the transliteration that this script provides, run the following
+    commands in a suitable shell environment:
 
-    python asciify.py -d >characters
-    python asciify.py - <characters
+        python asciify.py -d >characters
+        python asciify.py - <characters
 
-and you'll see the set of Unicode characters this script handles with those characters'
-ASCII equivalents.  As pointed out in the asciify_make.py script, this transliteration
-is personal (i.e., originated with me) and syntactic not semantic, as my choices for the
-transliteration dictionary were made by my eye and judgment (and was a lot of work).
+    and you'll see the set of Unicode characters this script handles with those characters'
+    ASCII equivalents.  As pointed out in the asciify_make.py script, this transliteration
+    is personal (i.e., originated with me) and syntactic not semantic, as my choices for the
+    transliteration dictionary were made by my eye and judgment (and was a lot of work).
 '''
 if 1:  # Header
-    _pgminfo = '''
-        <oo gist ∞ Change Unicode characters to nearest ASCII equivalents oo>
-        <oo desc ∞ oo>
-        <oo copy ∞ Copyright © 2019 Don Peterson oo>
-        <oo lic ∞ 
-            MIT License
-            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-        oo>
-        <oo cat ∞ text oo>
-        <oo test ∞ notest oo>
-        <oo todo ∞ 
-
-            - ԝ U+051 isn't in database
-            - ucd.py
-                - ucd.py to /plib, create /plib/data directory, and store the relevant
-                  ucd.nounihan.verxx.xml files there, along with their associated pickle
-                  files
-                - The unicode module's unicodedata.unidata_version tells you which
-                  Unicode version that python is using
-                - When you know the version python needs, the appropriate pickle file is
-                  loaded
-                - ucd.load() uses the current python version to determine which pickle
-                  to load to get the needed Unicode data
-            - Once ucd.py is "normed", change asciify.py so that _ascii_translate has a
-              string for every Unicode character
-                - The control characters will be <nul>, <ht>, <vt>, <ff>, <cr>, <nl>,
-                  etc. or things like ␀, ␉, ␋, ␌, ␍, ␤.
-                - Things like Greek characters will be <alpha> or <Alpha>
-                - Things like Æ will become <AE>, È and É will become E.  Other things
-                  are harder and will parse the Unicode name to try to get an ASCII
-                  letter:
-                    - U+ab54 is "LATIN SMALL LETTER CHI WITH LOW RIGHT RING" and would
-                      be <chi>
-                    - U+10b5 is "GEORGIAN CAPITAL LETTER KHAR" and would be <KHAR>
-            - This will be a lot of work, but once done it will guarantee any Unicode
-              text can be ASCIIfied.
-        oo>
-    '''
     if 1:  # Global variables
         __all__ = ["Asciify"]
         _ascii_translate = {
@@ -2627,3 +2585,39 @@ if __name__ == "__main__":
         else:
             s.append(open(file).read())
     print(Asciify("\n".join(s)))
+
+def GetGist():
+    g = {}
+    g["gist"] = "Change Unicode characters to nearest ASCII equivalents"
+    g["copy"] = "Copyright © 2019 Don Peterson"
+    g["lic"] = "MIT License (see /plib/_lic.mit)"
+    g["test"] = "notest"
+    g["cat"] = "text"
+    g["todo"] = '''
+
+        - ԝ U+051 isn't in database
+        - ucd.py
+            - ucd.py to /plib, create /plib/data directory, and store the relevant
+              ucd.nounihan.verxx.xml files there, along with their associated pickle
+              files
+            - The unicode module's unicodedata.unidata_version tells you which Unicode
+              version that python is using
+            - When you know the version python needs, the appropriate pickle file is
+              loaded
+            - ucd.load() uses the current python version to determine which pickle to
+              load to get the needed Unicode data
+        - Once ucd.py is "normed", change asciify.py so that _ascii_translate has a
+          string for every Unicode character
+            - The control characters will be <nul>, <ht>, <vt>, <ff>, <cr>, <nl>, etc.
+              or things like ␀, ␉, ␋, ␌, ␍, ␤.
+            - Things like Greek characters will be <alpha> or <Alpha>
+            - Things like Æ will become <AE>, È and É will become E.  Other things are
+              harder and will parse the Unicode name to try to get an ASCII letter:
+                - U+ab54 is "LATIN SMALL LETTER CHI WITH LOW RIGHT RING" and would be
+                  <chi>
+                - U+10b5 is "GEORGIAN CAPITAL LETTER KHAR" and would be <KHAR>
+        - This will be a lot of work, but once done it will guarantee any Unicode text
+          can be ASCIIfied.
+
+    '''
+    return g

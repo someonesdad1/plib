@@ -119,7 +119,8 @@ if 1:   # Core functionality
             if pfile.absolute() in g.ignore:
                 return
             # Search for g.gistname in file
-            text = pfile.open().read()
+            with pfile.open() as f:
+                text = f.read()
             if g.gistname not in text:
                 Warn(f"{t.err}No gist in file {str(pfile)!r}")
                 return
@@ -127,8 +128,9 @@ if 1:   # Core functionality
             s = f"from {name} import GetGist"
             try:
                 exec(s, globals())
-            except Exception:
-                Warn(f"{t.err}Couldn't import GetGist() in file {str(pfile)!r}")
+            except Exception as e:
+                Warn(f"{t.err}Couldn't import GetGist() in file {str(pfile)!r}:")
+                Warn(f"  {t.err}{e}")
                 return
             d = GetGist()
             # Check the important keys

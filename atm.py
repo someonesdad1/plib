@@ -16,28 +16,6 @@ Calculate atmospheric properties
     [eq 33] is equation 33 in the paper and [5] refers to page 5.
 '''
 if 1:  # Header
-    _pgminfo = '''
-        <oo gist ∞ Calculate atmospheric properties oo>
-        <oo desc ∞ Calculate standard atmosphere characteristics.  The equations are
-            taken from a 1976 NASA document.
-        oo>
-        <oo copy ∞ Copyright © 2010 Don Peterson oo>
-        <oo lic ∞ 
-            MIT License
-            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-        oo>
-        <oo cat ∞ science oo>
-        <oo test ∞ --test oo>
-        <oo todo ∞ 
-
-            - Change reduced stuff in brackets to be % of sea level.  Using the SI
-              prefixes unadorned is confusing.
-            - Change globals to g.var form
-
-        oo>
-    '''
     if 1:  # Imports
         import getopt
         import sys
@@ -48,8 +26,9 @@ if 1:  # Header
         from fpformat import FPFormat
         from u import u
         from f import flt
-        from color import t as T
+        import trm
         from sig import sig
+        Tt = trm.Trm()
     if 1:  # Global variables
         ii = isinstance
         fp = FPFormat()
@@ -322,27 +301,27 @@ if 1:  # Core functionality
         mfp0 = F(mfp, "mean free path")
         MFP_SI = e(mfp)
         # Print results
-        T.c = T("ornl")
+        Tt.c = Tt.orn
         print(
             dedent(f'''
         1976 Standard atmosphere properties at {Z_km} km ({Z_ft} ft, {Z_mi} mi):
           [Reduced values with respect to sea level are in color]
-          Density                 = {D_SI} kg/m^3             [{T.c}{d0}{T.n}]
+          Density                 = {D_SI} kg/m^3             [{Tt.c}{d0}{Tt.n}]
                                   = {D_lbpin3}lbm/in^3
                                   = {D_lbpft3}lbm/ft^3
-          Pressure                = {P_kPa} kPa                [{T.c}{p0}{T.n}]
+          Pressure                = {P_kPa} kPa                [{Tt.c}{p0}{Tt.n}]
                                   = {P_psi}psi
                                   = {P_torr}torr
                                   = {P_atm}atm
-          Temperature             = {T_SI} K                     [{T.c}{t0}{T.n}]
+          Temperature             = {T_SI} K                     [{Tt.c}{t0}{Tt.n}]
                                   = {T_degC} °C
                                   = {T_degF} °F
-          Acceleration of gravity = {G_SI} m/s^2                 [{T.c}{g0}{T.n}]
+          Acceleration of gravity = {G_SI} m/s^2                 [{Tt.c}{g0}{Tt.n}]
           Speed of sound          = {CS_SI} m/s
                                   = {CS_mph} mi/hr
           Dynamic viscosity       = {MU_SI}(N*s/m^2)
           Kinematic viscosity     = {NU_SI}(m^2/s)
-          Mean free path          = {MFP_SI}m                    [{T.c}{mfp0}{T.n}]
+          Mean free path          = {MFP_SI}m                    [{Tt.c}{mfp0}{Tt.n}]
         ''')
         )
     def PrintTable(args, d):
@@ -631,3 +610,22 @@ if __name__ == "__main__":
         PrintTable(args, d)
     else:
         PrintHeight(args, d)
+
+def GetGist():
+    g = {}
+    g["gist"] = "Calculate atmospheric properties"
+    g["desc"] = '''Calculate standard atmosphere characteristics.  The equations are
+        taken from a 1976 NASA document.
+        '''
+    g["copy"] = "Copyright © 2010 Don Peterson"
+    g["lic"] = "MIT License (see /plib/_lic.mit)"
+    g["test"] = "--test"
+    g["cat"] = "science"
+    g["todo"] = ''' 
+
+        - Change reduced stuff in brackets to be % of sea level.  Using the SI
+            prefixes unadorned is confusing.
+        - Change globals to use constant.py
+
+    '''
+    return g
