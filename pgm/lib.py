@@ -256,3 +256,24 @@ if __name__ == "__main__":
             if Key:
                 output.append(nl.join(records[Key].lines))
         print(ff.join(output))
+def GetGist():
+    g = {}
+    g["gist"] = "Library of snippets of code"
+    g["copy"] = "Copyright © 2005, 2014 Don Peterson"
+    g["lic"] = "MIT License (see /plib/_lic.mit)"
+    g["test"] = "notest"
+    g["cat"] = "utility"
+    g["todo"] = '''
+
+    - Use e.g. data/dp_lib_dat.py as data file
+        - Key is a named tuple with the requisite indexing information
+        - Value is usually a string, but could be computed by e.g. a function
+        - Can also index into my python library modules
+        - Can replace some of the lookups in my python help file
+        - Can include an interactive browser
+    - Language can be command line option
+        - python is default
+        - --c, --c++, --sh
+
+    '''
+    return g

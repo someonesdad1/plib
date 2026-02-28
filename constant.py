@@ -1,35 +1,4 @@
 if 1:  # Header
-    _pgminfo = '''
-        <oo gist ∞ Class to define constants in your scripts oo>
-        <oo desc ∞ 
-            Typical use in a script:
-                from constant import Constant as g
-                g = Constant()
-                g.speed = 42
-            Now it's a constant you can't change unless you use
-                with g:
-                    g.speed = 43
-        oo>
-        <oo copy ∞ Copyright © 2026 Don Peterson oo>
-        <oo lic ∞ MIT License
-            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-        oo>
-        <oo ind ∞ 8 indent oo>
-        <oo cat ∞ utility oo>
-        <oo test ∞ run oo>
-        <oo todo ∞
-        
-            - ∞∞3 Keeping track of [file:line]
-                - It could be handy to keep track of where the constant's value was set
-                  or changed
-                - Use debug.fln() to get the string and store it in a dict indexed by
-                  the attribute name
-                - Or make it a derived class with this feature
-        
-        oo>
-    '''
     if 1:  # Standard imports
         import sys
         import threading
@@ -55,8 +24,8 @@ if 1:   # Classes
             C.strict = True
 
         It's best to bind immutable (hashable) objects to the constant name.  If you
-        e.g. bind a list, it will continue to be bound, but someone/something can change
-        the list later, so it's not really a constant.
+        e.g. bind a list or dict, it will continue to be bound, but someone/something
+        can change the list/dict later, so it's not really a constant.
 
         Based on a nice idea by Alex Martelli on page 193 of the "Python Cookbook".
         '''
@@ -215,3 +184,22 @@ if __name__ == "__main__":
         Assert(c.speed == 21)
         Assert(c.strict)    # The strict value was restored
     exit(run(globals(), regexp=r"Test_", halt=1)[0])
+
+def GetGist():
+    g = {}
+    g["gist"] = "Class to define constants in your scripts"
+    g["copy"] = "Copyright © 2026 Don Peterson"
+    g["lic"] = "MIT License (see /plib/_lic.mit)"
+    g["test"] = "run"
+    g["cat"] = "utility"
+    g["todo"] = '''
+
+        - ∞∞3 Keeping track of [file:line]
+            - It could be handy to keep track of where the constant's value was set
+                or changed
+            - Use debug.fln() to get the string and store it in a dict indexed by
+                the attribute name
+            - Or make it a derived class with this feature
+    
+    '''
+    return g

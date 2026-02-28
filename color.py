@@ -136,7 +136,6 @@ if 1:  # Header
         import f
         import get
         import stack
-        import termtables as tt
         import util
         import wrap
         import wsl
@@ -1560,6 +1559,7 @@ if __name__ == "__main__":
         import trm
         import wrap
         import wsl
+        import termtables as tt
     if 1:   # Symbols from imports
         deque = collections.deque
         #

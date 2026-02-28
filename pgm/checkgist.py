@@ -1,48 +1,40 @@
 '''
+Report the files that do/don't have gists
 '''
 if 1:  # Header
-    _pgminfo = '''
-        <oo gist ∞ Check the gists in python files oo>
-        <oo desc ∞ Description oo>
-        <oo copy ∞ Copyright © 2026 Don Peterson oo>
-        <oo lic ∞ MIT License
-            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-        oo>
-        <oo ind ∞ 8 indent oo>
-        <oo cat ∞ utility oo>
-        <oo test ∞ notest oo>
-        <oo todo ∞ 
-
-                - Todo items
-
-        oo>
-    '''
     if 1:   # Standard imports
-        from collections import deque
-        from pathlib import Path
+        import collections
         import getopt
         import os
+        import pathlib
         import re
         import sys
     if 1:   # Custom imports
-        from f import flt
-        from wrap import dedent
+        import constant
+        import dpprint
+        import f
+        import lwtest
         import trm
-        from constant import Constant
-        from lwtest import Assert
-        from dpprint import PP
-        pp = PP()   # Get pprint with current screen width
+        import wrap
         if 0:
             import debug
             debug.SetDebugger()
+    if 1:   # Import symbols
+        deque = collections.deque
+        Path = pathlib.Path
+        #
+        Assert = lwtest.Assert
+        Constant = constant.Constant
+        PP = dpprint.PP
+        dedent = wrap.dedent
+        flt = f.flt
+        pp = PP()   # Get pprint with current screen width
     if 1:   # Global variables
         g = Constant()
         g.dbg = False
         g.gistname = "def GetGist():"
         t = trm.Trm()
-        # These are filenames in /plib to ignore
+        # These are filenames to ignore
         with g:
             g.ignore = set([
                 Path("/gh/plib/repl.py"),
