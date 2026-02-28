@@ -1,11 +1,11 @@
 '''
-
-dptypes is a module that contains various types:
+    
+dptypes is a module that contains utility types:
     - Bidict:  a dictionary that's an invertible function
     - CommandDecode:  Decode user command strings
     - Constant:  Define runtime constants
     - SlushDict:  a hashable dictionary (use with care)
-
+    
 '''
 if 1:   # Header
     if 1:   # Standard imports
@@ -16,6 +16,8 @@ if 1:   # Header
         pass
     if 1:   # Import symbols
         defaultdict = collections.defaultdict
+    if 1:   # Global variables
+        pass
 if 1:   # class Bidict:  A dictionary that is an invertible function
     class Bidict(dict):
         '''A dictionary that is an invertible function (a bijection).
@@ -203,12 +205,12 @@ if 1:   # class Constant:  Define runtime constants
     class Constant:
         '''Class to define constants: 
         
-            import constant as C
+            import dptypes
+            C = dptypes.Constant()
             C.speed = 47.1
         
-        Trying to change C.speed later to a new value will result in an exception.
-        
-        You can change the value later using
+        Trying to change C.speed later to a new value will result in an exception.  When
+        needed, you can change the value using
         
             with C:
                 C.speed = 42
@@ -217,6 +219,9 @@ if 1:   # class Constant:  Define runtime constants
             C.strict = False
             C.speed = 42
             C.strict = True
+        
+        I recommend the context manager pattern, as it's too easy to set C.strict to
+        False, then forget to change it back to True later in your code.
         
         It's best to bind immutable (hashable) objects to the constant name.  If you
         e.g. bind a list or dict, it will continue to be bound, but someone/something
@@ -349,23 +354,6 @@ if 1:   # class SlushDict:  a dictionary that is hashable (use with care)
             pseudo-immutability with care.
             '''
             return hash(tuple(self.keys()))
-        if 0:
-            def pop(self, name, default=None):
-                if self._frozen:
-                    raise FrozenError("Instance is frozen")
-                super().pop(name, default=default)
-            def popitem(self):
-                if self._frozen:
-                    raise FrozenError("Instance is frozen")
-                super().popitem()
-            def setdefault(self, name, default=None):
-                if self._frozen:
-                    raise FrozenError("Instance is frozen")
-                super().setdefault(name)
-            def update(self, *p, **kw):
-                if self._frozen:
-                    raise FrozenError("Instance is frozen")
-                super().update(*p, **kw)
 
 if __name__ == "__main__":  
     import collections
