@@ -1073,13 +1073,14 @@ if 1:  # Core functionality
         '''Round a number to a template number.
             - The returned value's type will be the same as template's type
             - template must be a number greater than zero
-            - x/template must be a meaningful expression (x will be converted to template's type)
-            - If up is None, then rounding is "simple", meaning the number is rounded up if the
-            left-over fraction is 0.5 or larger
+            - x/template must be a meaningful expression (x will be converted to
+              template's type)
+            - If up is None, then rounding is "simple", meaning the number is rounded up
+              if the left-over fraction is 0.5 or larger
             - If up is True, then the fractional part is always rounded away from zero
             - If up is False, then the fractional part is always rounded towards zero
-            - Supported types for template are int, float, flt, decimal.Decimal, fraction.Fraction,
-            and mpmath.mpf
+            - Supported types for template are int, float, flt, decimal.Decimal,
+              fraction.Fraction, and mpmath.mpf
             
         The algorithm determines how many template values are in x.  It is descended from the BASIC
         algorithm on pg 435 of the 31 Oct 1988 issue of "PC Magazine":

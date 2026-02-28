@@ -177,6 +177,10 @@
               defined.
         - enc_codecs.csv:  update to 3.11's documentation
 
+    - bash scripting guide
+        - This will disappear someday, so download all the stuff
+        - https://tldp.org/LDP/abs/html/index.html
+
     - Electrical circuit searches
         - Use ds.py to search for files that keep important circuits that I want to look
           at.  For example, I wanted to see the circuit Dave used (designed by Carl
