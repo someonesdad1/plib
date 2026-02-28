@@ -96,7 +96,7 @@ if 1:  # Header
         import traceback as TB
         import warnings
     if 1:   # Custom imports
-        import constant
+        import dptypes
         import dpdb
         import trm
         import wrap
@@ -105,7 +105,7 @@ if 1:  # Header
         stack = inspect.stack
         Path = pathlib.Path
         #
-        Constant = constant.Constant
+        Constant = dptypes.Constant
         dedent = wrap.dedent
         u = trm.Trm(default=2)
 

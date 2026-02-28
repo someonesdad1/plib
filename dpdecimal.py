@@ -72,13 +72,12 @@ if 1:  # Header
     if 1:  # Standard imports
         import decimal
         import locale
-        from collections import deque
-        from fractions import Fraction
-        from functools import partial
+        import collections
+        import fractions
+        import functools
     if 1:  # Custom imports
-        from columnize import Columnize
-        from trm import Trm
-        t = Trm(default=2)
+        import trm
+        import columnize
         if 0:
             import debug
             debug.SetDebugger()
@@ -87,9 +86,16 @@ if 1:  # Header
             _have_mpmath = True
         except ImportError:
             _have_mpmath = False
-    if 1:  # Global variables
-        ii = isinstance
+    if 1:  # Import symbols
         D = decimal.Decimal
+        deque = collections.deque
+        Fraction = fractions.Fraction
+        partial = functools.partial
+        #
+        t = trm.Trm()
+        columnize = columnize.Columnize
+    if 1:  # Global variables
+        pass
 if 1:  # Classes
     class dec(decimal.Decimal):
         '''Provides decimal.Decimal numbers with custom string interpolation.
@@ -166,13 +172,13 @@ if 1:  # Classes
             return sign + s + dec._e + str(exponent)
         def convert(self, value, context=None):
             "Used to convert other numerical types to dec"
-            if dec.strict or ii(value, (int, dec)):
+            if dec.strict or isinstance(value, (int, dec)):
                 return value
-            if ii(value, float):
+            if isinstance(value, float):
                 return dec(repr(value))
-            elif ii(value, Fraction):
+            elif isinstance(value, Fraction):
                 return dec(value.numerator) / dec(value.denominator)
-            elif _have_mpmath and ii(value, mpmath.mpf):
+            elif _have_mpmath and isinstance(value, mpmath.mpf):
                 return dec(str(value))
             else:
                 raise TypeError("value is an unsupported type")
@@ -551,7 +557,7 @@ if __name__ == "__main__":
             d = dec("1.2345")
             x = d + 3
             Assert(x == dec("4.2345"))
-            Assert(ii(x, dec))
+            Assert(isinstance(x, dec))
             with raises(TypeError):
                 # Can't add to a float
                 d + 3.0
@@ -583,7 +589,7 @@ if __name__ == "__main__":
                             __rpow__'''.split():
                     # Note floats and Fraction are not supported for these
                     # operations
-                    if ii(y, (float, Fraction)):
+                    if isinstance(y, (float, Fraction)):
                         with raises(TypeError):
                             r = eval(f"x.{i}()")
                     else:
@@ -609,12 +615,12 @@ if __name__ == "__main__":
             dec.strict = False
             y = x + float(s)
             Assert(y == x + dec(s))
-            Assert(ii(y, dec))
+            Assert(isinstance(y, dec))
             if _have_mpmath:
                 z = 1 / x
                 y = mpmath.mpf(z.full)
                 Assert(x + y == x + z)
-                Assert(ii(x + y, dec))
+                Assert(isinstance(x + y, dec))
                 dec.strict = True
                 with raises(TypeError):
                     x + y
