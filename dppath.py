@@ -23,7 +23,7 @@ if 1:  # Header
         <oo ind ∞ 8 indent oo>
         <oo cat ∞ utility oo>
         <oo test ∞ run oo>
-        <oo todo ∞ oo>
+        <oo todo - Move dirfiles.py stuff here oo>
     '''
     if 1:  # Imports
         from collections import deque

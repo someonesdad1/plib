@@ -235,11 +235,12 @@ if 1:  # Core functionality
             Prt2(f"{t.type}Other", other)
 
 if __name__ == "__main__":
-    from color import t
+    import trm
+    t = trm.Trm()
     entry = namedtuple("Entry", "lib n name args color")
-    t.m = t.brnl
-    t.c = t.denl
-    t.type = t.grnl
+    t.m = t.orn
+    t.c = t.skyl
+    t.type = t.grn
     t.hdr = t("whtl", "royd")
     ind = " "*2
     W = int(os.environ.get("COLUMNS", "80")) - 1

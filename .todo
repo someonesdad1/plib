@@ -1,5 +1,48 @@
 /plib/.todo
 
+- Reorganization core files
+    - dpdb.py
+    - dpdecimal.py
+    - dpmath.py
+    - dpopen.py
+    - dppath.py
+    - dpseq.py
+    - dpstr.py
+    - dptags.py
+    - dptime.py
+    - dptypes.py
+- New
+    - dpshop.py
+    - dpelec.py
+    - dpsci.py
+    - dparith.py
+    - dpastro.py
+    - dputil.py
+- dpstr
+    - tw
+- dptime
+    - timer
+- dpsic
+    - densitydb
+- dputil
+    - dpprint
+- dpastro
+    - meeus
+    - julian
+    - kepler
+- dptypes
+    - stack
+- dpmath
+    - elliptic
+    - roundoff
+    - root
+    - linreg
+- dparith
+    - primes
+    - stirling
+- dpshop
+    - linscale
+
     - lib.py:  make new repository for boilerplate
 
     - gist
@@ -22,9 +65,9 @@
     - Move util stuff (see ∞∞ notes in file)
 
     - /plib work
-        - Core documentation need
-            - pd color.Color should tell you the stuff you need to know to use the Color
-              class.  This should work for every class and function in my modules.
+        - mv util.py to dputil.py
+        - Move dpopen.py to dputil.py
+        - Move dirfiles.py to dppath.py
         - Spell check all the print statements in modules/scripts
         - Needs work/inspection
             - Bring /pylib/xfmpy to plib/Dev and turn it into a modern tool
@@ -38,6 +81,7 @@
             - fac.py's contents can move to primes.py
             - dt.py and dptime.py have duplication
             - What's with elements.py and elements1.py?
+            - Move dirfiles.py to dppath.py
             - Move format_numbers.py stuff to fmt.py if it's not already there, then
               obsolete
             - fpformat.py:  keep or move all to fmt.py or f.py?
