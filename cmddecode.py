@@ -66,9 +66,10 @@ if 1:  # Header
         pass
 if 1:   # Classes
     class CommandDecode:
-        '''Instantiate the class with a sequence of command strings.  Then
-        call the object with a command candidate; the returned list will
-        have either 0, 1, or multiple commands that matched.
+        '''Decode user command strings, even if they are incomplete.
+        Instantiate the class with a sequence of command strings.  Then call the object
+        with a command candidate; the returned list will have either 0, 1, or multiple
+        commands that matched.
         '''
         def __init__(self, commands, ignore_case=False):
             '''commands is a sequence that contains a unique set of strings.
@@ -94,7 +95,7 @@ if 1:   # Classes
                     raise ValueError(msg)
             else:
                 self.commands = c
-            self.commands.discard("")
+            self.commands.discard("")   # Get rid of empty string
             # Build index dictionary; each key is the first letter of the
             # command and each element is a list of commands that have that
             # first letter.
@@ -107,18 +108,22 @@ if 1:   # Classes
             s = " ".join(sorted(self.commands))
             return f"CommandDecode({s}, ignore_case={self.ignore_case})"
         def __call__(self, user_string):
+            '''Remove any leading and trailing whitespace in user_string and return a
+            list of the commands it matches, starting at the beginning of the string.
+            '''
             if not isinstance(user_string, str):
                 raise ValueError("Input must be a string")
             s = user_string.strip()
             if not s:
-                return []
+                return []   # No matches
             if self.ignore_case:
                 s = s.lower()
-            if s in self.commands:
+            if s in self.commands:  # It's in the set, so can be the only match
                 return [user_string]
             first_char = s[0]
             if first_char not in self.first_char_list:
                 return []
+            # Get a list of the possible matches
             possible_commands = self.index[first_char]
             if self.ignore_case:
                 regexp = re.compile("^" + s, re.I)
@@ -128,6 +133,7 @@ if 1:   # Classes
             for cmd in possible_commands:
                 if regexp.match(cmd):
                     matches.append(cmd)
+            # Return the list of matches (length 0, 1, or more than 1)
             if len(matches) == 0:
                 return []
             if len(matches) == 1:
@@ -174,7 +180,7 @@ if __name__ == "__main__":
                 else:
                     x.sort()
                     print("'%s' is ambiguous:  %r" % (cmd, x))
-    def Test_Exceptions():
+    def Test_CommandDecode_Exceptions():
         commands = set(("a", "Aaa", "Aab", "aaa", "aab"))
         # Case-insensitive instantiation results in an exception ('Aaa' and
         # 'aaa' collide).

@@ -6,10 +6,13 @@ dptypes is a module that contains various types:
 
 '''
 if 1:   # Header
-    if 0:   # Standard imports
+    if 1:   # Standard imports
+        import collections
+        import re
+    if 1:   # Custom imports
         pass
-    if 0:   # Custom imports
-        pass
+    if 1:   # Import symbols
+        defaultdict = collections.defaultdict
 if 1:   # class SlushDict:  a dictionary that is hashable (use with care)
     class FrozenError(Exception):
         pass
@@ -220,6 +223,81 @@ if 1:   # class Bidict:  A dictionary that is an invertible function
         def _get_frozen(self, frozen):
             return self._frozen
         frozen = property(_get_frozen, _set_frozen)
+if 1:   # class CommandDecode:  Decode user command strings
+    class CommandDecode:
+        '''Decode user command strings, even if they are incomplete.
+        Instantiate the class with a sequence of command strings.  Then call the object
+        with a command candidate; the returned list will have either 0, 1, or multiple
+        commands that matched.
+        '''
+        def __init__(self, commands, ignore_case=False):
+            '''commands is a sequence that contains a unique set of strings.
+            If you set ignore_case to True, then the commands will all be
+            converted to lower case; if this lower-case set doesn't contain
+            the same number of elements as commands, then you'll get a
+            ValueError.
+            '''
+            self.ignore_case = ignore_case
+            # See if we can convert commands to a set
+            try:
+                c = set(commands)
+                if len(c) != len(commands):
+                    raise ValueError("commands container has replicates")
+            except TypeError:
+                raise ValueError("commands must be a sequence of strings")
+            if not c:
+                raise ValueError("commands must contain at least one command")
+            if ignore_case:
+                self.commands = set([i.lower() for i in c])
+                if len(self.commands) != len(commands):
+                    msg = "Some commands are not unique after conversion to lower case"
+                    raise ValueError(msg)
+            else:
+                self.commands = c
+            self.commands.discard("")   # Get rid of empty string
+            # Build index dictionary; each key is the first letter of the
+            # command and each element is a list of commands that have that
+            # first letter.
+            self.index = defaultdict(list)
+            for cmd in self.commands:
+                first_char = cmd[0]
+                self.index[first_char].append(cmd)
+            self.first_char_list = self.index.keys()
+        def __str__(self):
+            s = " ".join(sorted(self.commands))
+            return f"CommandDecode({s}, ignore_case={self.ignore_case})"
+        def __call__(self, user_string):
+            '''Remove any leading and trailing whitespace in user_string and return a
+            list of the commands it matches, starting at the beginning of the string.
+            '''
+            if not isinstance(user_string, str):
+                raise ValueError("Input must be a string")
+            s = user_string.strip()
+            if not s:
+                return []   # No matches
+            if self.ignore_case:
+                s = s.lower()
+            if s in self.commands:  # It's in the set, so can be the only match
+                return [user_string]
+            first_char = s[0]
+            if first_char not in self.first_char_list:
+                return []
+            # Get a list of the possible matches
+            possible_commands = self.index[first_char]
+            if self.ignore_case:
+                regexp = re.compile("^" + s, re.I)
+            else:
+                regexp = re.compile("^" + s)
+            matches = []
+            for cmd in possible_commands:
+                if regexp.match(cmd):
+                    matches.append(cmd)
+            # Return the list of matches (length 0, 1, or more than 1)
+            if len(matches) == 0:
+                return []
+            if len(matches) == 1:
+                return [matches[0]]
+            return matches
 
 if __name__ == "__main__":  
     import sys
@@ -227,8 +305,47 @@ if __name__ == "__main__":
     run = lwtest.run
     Assert = lwtest.Assert
     raises = lwtest.raises
-    def Demo():
-        breakpoint() # ∞∞
+    if 1:   # Demo code
+        def Demo_CommandDecode():
+            # Demonstrate the class; use some typical UNIX program names.
+            cmds, d = ('''
+                ar awk banner basename bc cal cat cc chmod cksum clear cmp
+                compress cp cpio crypt ctags cut date dc dd df diff dirname du
+                echo ed egrep env ex expand expr false fgrep file find fmt
+                fold getopt grep gzip head id join kill ksh ln logname ls m4
+                mailx make man mkdir more mt mv nl nm od paste patch perl pg
+                pr printf ps pwd rev rm rmdir rsh sed sh sleep sort spell
+                split strings strip stty sum sync tail tar tee test touch tr
+                true tsort tty uname uncompress unexpand uniq uudecode
+                uuencode vi wc which who xargs zcat
+            ''', [])
+            for i in cmds.replace("\n", "").split():
+                d.append((i, ""))
+            c, prompt = CommandDecode(dict(d), ignore_case=True), "> "
+            print("Enter some UNIX commands, 'q' to quit, '.' to list all:")
+            while True:
+                cmd = input(prompt)
+                if cmd == "q":
+                    break
+                elif cmd == ".":
+                    for i in list(c.commands):
+                        print(i, end=" ")
+                    print()
+                else:
+                    x = c(cmd)
+                    if not x:
+                        print("'%s' unrecognized" % cmd)
+                    elif len(x) == 1:
+                        print("'%s' was an exact match to '%s'" % (cmd, x[0]))
+                    else:
+                        x.sort()
+                        print("'%s' is ambiguous:  %r" % (cmd, x))
+        def Demo_Bidict():
+            pass
+            # ∞∞1 Needs to be written
+        def Demo_SlushDict():
+            pass
+            # ∞∞1 Needs to be written
     if 1:   # SlushDict tests
         def Test_SlushDict():
             k, v, v1, v2 = "three", 0, 42, 83189
@@ -409,17 +526,59 @@ if __name__ == "__main__":
             bd.frozen = True
             with raises(ValueError):
                 del bd["jan"]
+    if 1:   # CommandDecode tests
+        def Test_CommandDecode_Exceptions():
+            commands = set(("a", "Aaa", "Aab", "aaa", "aab"))
+            # Case-insensitive instantiation results in an exception ('Aaa' and
+            # 'aaa' collide).
+            raises(ValueError, CommandDecode, commands, ignore_case=True)
+            # commands not a dict/set
+            raises(ValueError, CommandDecode, 4)
+            # Empty dict/set
+            raises(ValueError, CommandDecode, {})
+            raises(ValueError, CommandDecode, set())
+            # Cannot contain empty string
+            raises(ValueError, CommandDecode, set("",))
+            # Call's argument must be a string
+            cmd = CommandDecode(commands)
+            raises(ValueError, cmd, 4)
+            # Can't make empty call
+            raises(TypeError, cmd)
+        def Test_CommandDecode():
+            commands = set(("a", "Aaa", "Aab", "aaa", "aab"))
+            cmd = CommandDecode(commands, ignore_case=False)
+            assert set(cmd("a")) == set(["a"])
+            assert set(cmd("ax")) == set([])
+            assert set(cmd("aa")) == set(["aaa", "aab"])
+            assert set(cmd("Aa")) == set(["Aaa", "Aab"])
+            assert set(cmd("Aab")) == set(["Aab"])
+            # Case insensitive
+            commands = set(("A", "AAA", "AAB"))
+            cmd = CommandDecode(commands, ignore_case=True)
+            assert set(cmd("a")) == set(["a"])
+            assert set(cmd("ax")) == set([])
+            assert set(cmd("AX")) == set([])
+            assert set(cmd("aa")) == set(["aaa", "aab"])
+            assert set(cmd("Aa")) == set(["aaa", "aab"])
+            assert set(cmd("Aab")) == set(["Aab"])
     if len(sys.argv) > 1:
-        Demo()
+        exit(run(globals(), regexp=r"^Demo_", quiet=1, halt=1, verbose=0)[0])
     else:
         exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
 
 def GetGist():
     g = {}
-    g["gist"] = "Various useful types"
+    g["gist"] = "Various types for programming tasks"
     g["copy"] = "Copyright © 2026 Don Peterson"
     g["lic"] = "MIT License (see /plib/_lic.mit)"
     g["test"] = "run"
     g["cat"] = "programming"
-    g["todo"] = ''' '''
+    g["todo"] = '''
+
+    - IntFixed:  immutable fixed-size (number of bits) integers.  Use bitarray module's
+      frozenbitarray for the implementation.  It would be handy if class IntFixed(int,
+      bitarray) could be used.  Or, IntFixed(int) and the instance._i attribute is a 
+      suitable frozenbitarray for the class.
+
+    '''
     return g

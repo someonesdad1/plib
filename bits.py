@@ -171,7 +171,6 @@ if 0:   # Fixed-size integers
                     val &= self._base
             if 1:   # Set the Int's value
                 self._value = val
-                
         if 1:   # Methods
             def __abs__(self):
                 pass
@@ -376,4 +375,3 @@ if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--test":
         exit(run(globals(), halt=True)[0])
     Demo()
-    
