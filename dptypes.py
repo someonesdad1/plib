@@ -1,104 +1,21 @@
 '''
 
 dptypes is a module that contains various types:
-    - SlushDict:  a hashable dictionary (use with care)
     - Bidict:  a dictionary that's an invertible function
+    - CommandDecode:  Decode user command strings
+    - Constant:  Define runtime constants
+    - SlushDict:  a hashable dictionary (use with care)
 
 '''
 if 1:   # Header
     if 1:   # Standard imports
         import collections
         import re
+        import threading
     if 1:   # Custom imports
         pass
     if 1:   # Import symbols
         defaultdict = collections.defaultdict
-if 1:   # class SlushDict:  a dictionary that is hashable (use with care)
-    class FrozenError(Exception):
-        pass
-    class SlushDict(dict):
-        '''Dictionary that is frozen after the constructor call.  You can unfreeze it by
-        using a context manager idiom.
-            di = SlushDict({"one": 1})
-            di["one"] --> returns 1
-            di["one"] = 4   --> raises a FrozenError exception
-        Change with a context manager:
-            with di:
-                di["one"] = 4   # This change works
-        The concept of a frozen dictionary has been added to the plans for python 3.15.
-        Until then, use this class with care, knowing about the problems of storing hashable
-        items in the data structure.  For a slightly more bullet-resistance implementation,
-        you can wrap a dict in a types.MappingProxyType.
-        '''
-        def __init__(self, *p, **kw):
-            '''Initialize with the standard dictionary initializers.  After this method
-            returns, the instance can't be modified unless the context manager is used.
-            '''
-            self._frozen = False    # If True, instance can't be modified
-            super().__init__(*p, **kw)
-            self._frozen = True
-        def __setitem__(self, name, value):     # Set self[name]
-            'Set self[key] to value if self._frozen is False'
-            if self._frozen:
-                raise FrozenError("Instance is frozen")
-            super().__setitem__(name, value)
-        def __setattr__(self, name, value):     # Set an attribute
-            if name == "_frozen":
-                super().__setattr__("_frozen", bool(value))
-            else:
-                raise AttributeError(f"'SlushDict' has no attribute {name!r}")
-        def __getattribute__(self, name):   
-            if name in self:
-                return self.__getitem__(name)
-            elif name == "_frozen":
-                return super().__getattribute__(name)
-            else:
-                funcs = set("clear pop popitem setdefault update".split())
-                if name in funcs and self._frozen:
-                    raise FrozenError("Instance is frozen")
-                return super().__getattribute__(name)
-        def __enter__(self):    # Context manager entry
-            self._frozen = False
-            return self
-        def __exit__(self, exc_type, exc_val, exc_tb):  # Context manager exit
-            self._frozen = True
-            if exc_type is None or exc_type is TypeError:
-                return True     # Ignore this exception
-            else:
-                return False    # Don't ignore this exception
-        def __delitem__(self, name):
-            'Needed for "del self[x]"'
-            if self._frozen:
-                raise FrozenError("Instance is frozen")
-            super().__delitem__(name)
-        def __hash__(self):
-            '''Normally, a dict can't be hashed, but the SlushDict can by virtue of this
-            method.  The returned value is the hash of the tuple of keys.  The use case is
-            that this allows the SlushDict to be considered immutable, so it can be included
-            in e.g. a set.  You as the programmer using this data type will know that the
-            concept of immutability here entirely depends on how the structure is used.  If 
-            you use values that are mutable, the structure will inherently be mutable
-            because some code or thread may be able to change it at some time.  So, use this
-            pseudo-immutability with care.
-            '''
-            return hash(tuple(self.keys()))
-        if 0:
-            def pop(self, name, default=None):
-                if self._frozen:
-                    raise FrozenError("Instance is frozen")
-                super().pop(name, default=default)
-            def popitem(self):
-                if self._frozen:
-                    raise FrozenError("Instance is frozen")
-                super().popitem()
-            def setdefault(self, name, default=None):
-                if self._frozen:
-                    raise FrozenError("Instance is frozen")
-                super().setdefault(name)
-            def update(self, *p, **kw):
-                if self._frozen:
-                    raise FrozenError("Instance is frozen")
-                super().update(*p, **kw)
 if 1:   # class Bidict:  A dictionary that is an invertible function
     class Bidict(dict):
         '''A dictionary that is an invertible function (a bijection).
@@ -282,10 +199,179 @@ if 1:   # class CommandDecode:  Decode user command strings
             if len(matches) == 1:
                 return [matches[0]]
             return matches
+if 1:   # class Constant:  Define runtime constants
+    class Constant:
+        '''Class to define constants: 
+        
+            import constant as C
+            C.speed = 47.1
+        
+        Trying to change C.speed later to a new value will result in an exception.
+        
+        You can change the value later using
+        
+            with C:
+                C.speed = 42
+        
+        or 
+            C.strict = False
+            C.speed = 42
+            C.strict = True
+        
+        It's best to bind immutable (hashable) objects to the constant name.  If you
+        e.g. bind a list or dict, it will continue to be bound, but someone/something
+        can change the list/dict later, so it's not really a constant.
+        
+        Based on a nice idea by Alex Martelli on page 193 of the "Python Cookbook".
+        '''
+        def __init__(self):
+            self.lock = None
+            self.strict = True
+            self.last_strict = self.strict  # Used for context management
+        def __setattr__(self, name, value):
+            if name == "lock":
+                self.__dict__[name] = threading.Lock()
+                return
+            if not self.lock.locked():
+                self.lock.acquire()
+            if name == "strict" or name == "last_strict":
+                self.__dict__[name] = bool(value)
+            else:
+                if name in self.__dict__:
+                    if self.strict:
+                        if self.lock.locked():
+                            self.lock.release()
+                        raise AttributeError(f"Can't change the constant '{name}'")
+                    else:
+                        self.__dict__[name] = value
+                else:
+                    if "strict" in self.__dict__ and self.strict:
+                        try:
+                            hash(value)
+                        except TypeError:   # value is a mutable object
+                            if self.lock.locked():
+                                self.lock.release()
+                            raise
+                    # It's hashable or strict is False, so we can add it
+                    self.__dict__[name] = value
+            if "lock" in self.__dict__ and self.lock.locked():
+                self.lock.release()
+        def __delattr__(self, name):
+            if name in self.__dict__:
+                if self.strict:
+                    raise AttributeError(f"Can't delete the constant '{name}'")
+                else:
+                    del self.__dict__[name]
+                    return
+            raise AttributeError(f"No constant named '{name}'")
+        def __enter__(self):
+            self.last_strict = self.strict
+            self.strict = False     # The constant can now be changed
+            if not self.lock.locked():
+                self.lock.acquire()
+            return self
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            if self.lock.locked():
+                self.lock.release()
+            self.strict = self.last_strict
+            # Return True if you want the with statement to suppress the exception and
+            # continue execution.  Otherwise, the exception will continue propagating.
+            # Here, any exceptions are passed on because this context manager's jobs are
+            # to 1) make sure strict is set to what it was before the call and 2) to
+            # acquire and release the lock appropriately.
+            return True if exc_type is None else False
+if 1:   # class SlushDict:  a dictionary that is hashable (use with care)
+    class FrozenError(Exception):
+        pass
+    class SlushDict(dict):
+        '''Dictionary that is frozen after the constructor call.  You can unfreeze it by
+        using a context manager idiom.
+            di = SlushDict({"one": 1})
+            di["one"] --> returns 1
+            di["one"] = 4   --> raises a FrozenError exception
+        Change with a context manager:
+            with di:
+                di["one"] = 4   # This change works
+        The concept of a frozen dictionary has been added to the plans for python 3.15.
+        Until then, use this class with care, knowing about the problems of storing hashable
+        items in the data structure.  For a slightly more bullet-resistance implementation,
+        you can wrap a dict in a types.MappingProxyType.
+        '''
+        def __init__(self, *p, **kw):
+            '''Initialize with the standard dictionary initializers.  After this method
+            returns, the instance can't be modified unless the context manager is used.
+            '''
+            self._frozen = False    # If True, instance can't be modified
+            super().__init__(*p, **kw)
+            self._frozen = True
+        def __setitem__(self, name, value):     # Set self[name]
+            'Set self[key] to value if self._frozen is False'
+            if self._frozen:
+                raise FrozenError("Instance is frozen")
+            super().__setitem__(name, value)
+        def __setattr__(self, name, value):     # Set an attribute
+            if name == "_frozen":
+                super().__setattr__("_frozen", bool(value))
+            else:
+                raise AttributeError(f"'SlushDict' has no attribute {name!r}")
+        def __getattribute__(self, name):   
+            if name in self:
+                return self.__getitem__(name)
+            elif name == "_frozen":
+                return super().__getattribute__(name)
+            else:
+                funcs = set("clear pop popitem setdefault update".split())
+                if name in funcs and self._frozen:
+                    raise FrozenError("Instance is frozen")
+                return super().__getattribute__(name)
+        def __enter__(self):    # Context manager entry
+            self._frozen = False
+            return self
+        def __exit__(self, exc_type, exc_val, exc_tb):  # Context manager exit
+            self._frozen = True
+            if exc_type is None or exc_type is TypeError:
+                return True     # Ignore this exception
+            else:
+                return False    # Don't ignore this exception
+        def __delitem__(self, name):
+            'Needed for "del self[x]"'
+            if self._frozen:
+                raise FrozenError("Instance is frozen")
+            super().__delitem__(name)
+        def __hash__(self):
+            '''Normally, a dict can't be hashed, but the SlushDict can by virtue of this
+            method.  The returned value is the hash of the tuple of keys.  The use case is
+            that this allows the SlushDict to be considered immutable, so it can be included
+            in e.g. a set.  You as the programmer using this data type will know that the
+            concept of immutability here entirely depends on how the structure is used.  If 
+            you use values that are mutable, the structure will inherently be mutable
+            because some code or thread may be able to change it at some time.  So, use this
+            pseudo-immutability with care.
+            '''
+            return hash(tuple(self.keys()))
+        if 0:
+            def pop(self, name, default=None):
+                if self._frozen:
+                    raise FrozenError("Instance is frozen")
+                super().pop(name, default=default)
+            def popitem(self):
+                if self._frozen:
+                    raise FrozenError("Instance is frozen")
+                super().popitem()
+            def setdefault(self, name, default=None):
+                if self._frozen:
+                    raise FrozenError("Instance is frozen")
+                super().setdefault(name)
+            def update(self, *p, **kw):
+                if self._frozen:
+                    raise FrozenError("Instance is frozen")
+                super().update(*p, **kw)
 
 if __name__ == "__main__":  
+    import collections
     import sys
     import lwtest
+    deque = collections.deque
     run = lwtest.run
     Assert = lwtest.Assert
     raises = lwtest.raises
@@ -333,19 +419,19 @@ if __name__ == "__main__":
     if 1:   # SlushDict tests
         def Test_SlushDict():
             k, v, v1, v2 = "three", 0, 42, 83189
-            def Init():
+            def Slushdict_Init():
                 return SlushDict({k: v})
             if 1:   # Demonstrate core behavior
                 # Test the three methods of constructing a dict
                 d = SlushDict({k: v})       # Create from an existing dict
-                Assert(d[k] == v and d == Init())
+                Assert(d[k] == v and d == Slushdict_Init())
                 tuples = ((k, v), )
                 d = SlushDict(tuples)       # Create from tuples
-                Assert(d[k] == v and d == Init())
+                Assert(d[k] == v and d == Slushdict_Init())
                 d = SlushDict(three=v)      # Create from keywords
-                Assert(d[k] == v and d == Init())
+                Assert(d[k] == v and d == Slushdict_Init())
             if 1:   # Show normal dict changing methods don't work
-                d = Init()
+                d = Slushdict_Init()
                 with raises(FrozenError):
                     d[k] = 42
                 with raises(FrozenError):
@@ -362,49 +448,49 @@ if __name__ == "__main__":
                     d.update({k: 42})
             if 1:   # But you can change the dict in a context manager
                 # Normal assignment
-                d = Init()
+                d = Slushdict_Init()
                 with d:
                     d[k] = 42
                 Assert(d[k] == 42)
                 # Delete an item
-                d = Init()
+                d = Slushdict_Init()
                 with d:
                     del d[k]
                 Assert(not d)
                 # Clear the dict
-                d = Init()
+                d = Slushdict_Init()
                 with d:
                     d.clear()
                 Assert(not d)
                 # Pop the item keyed by k
-                d = Init()
+                d = Slushdict_Init()
                 with d:
                     d.pop(k)
                 Assert(not d)
                 # popitem
-                d = Init()
+                d = Slushdict_Init()
                 with d:
                     d.popitem()
                 Assert(not d)
                 # setdefault
                 k1 = "four"
-                d = Init()
+                d = Slushdict_Init()
                 with d:
                     d.setdefault(k1)
                 Assert(d[k1] is None)
-                d = Init()
+                d = Slushdict_Init()
                 v1 = 83189
                 with d:
                     d.setdefault(k1, v1)
                 Assert(d[k1] is v1)
                 # update
-                d = Init()
+                d = Slushdict_Init()
                 with d:
                     d.update({k1: v1})
                 Assert(d[k] == v)
                 Assert(d[k1] == v1)
             if 1:   # Show you can get a hash
-                d = Init()
+                d = Slushdict_Init()
                 hash(d)     # No exception
                 set(d)      # No exception
     if 1:   # Bidict tests
@@ -545,6 +631,91 @@ if __name__ == "__main__":
             assert set(cmd("aa")) == set(["aaa", "aab"])
             assert set(cmd("Aa")) == set(["aaa", "aab"])
             assert set(cmd("Aab")) == set(["Aab"])
+    if 1:   # Constant tests
+        def Constant_Init():
+            return Constant()
+        def Test_Constant_can_change_strict_property():
+            c = Constant_Init()
+            # Default value of strict is True
+            Assert(c.strict)
+            c.strict = False
+            Assert(not c.strict)
+        def Test_Constant_is_constant():
+            c = Constant_Init()
+            c.pi = 3.14
+            # OK to change if strict not True
+            c.strict = False
+            a = 4.14
+            c.pi = a
+            Assert(c.pi == a)
+            # Not OK to change if strict is True
+            c.strict = True
+            try:
+                c.pi = 3.14
+                raise Exception("Shouldn't reach this point")
+            except AttributeError:
+                pass
+            Assert(c.pi == a)
+        def Test_Constant_not_strict():
+            'Can set items to mutable objects without an exception'
+            # Nonhashable objects cause a TypeError
+            c = Constant_Init()
+            for i in ([], {}, set(), deque([])):
+                with raises(TypeError):
+                    c.x = i
+            # If strict is False, then OK to store hashable items
+            c = Constant_Init()
+            c.strict = False
+            c.x = [1]
+            c.y = {1: 1}
+            c.z = set([1])
+            # Note we can change contents
+            c.x[0] = 2
+            c.y[1] = 2
+            c.z.add(3)
+            # Can change what's already set
+            c.x = [3]
+            if 1:   # Can't change if strict is True
+                c.strict = True
+                with raises(AttributeError):
+                    c.x = [6]
+                # But can change the elements of the list.  If you really do need the constant
+                # behavior, set the list to a tuple before setting strict back to True.
+                c.x.append(4)
+                Assert(c.x == [3, 4])
+                # Can't set the c.x list to a tuple with strict True?
+                with raises(AttributeError):
+                    c.x = tuple(c.x)
+        def Test_Constant_Delete():
+            c = Constant_Init()
+            c.strict = True
+            c.speed = 42
+            c.velocity = 43
+            try:
+                del c.speed     # Doesn't work
+                raise Exception("Shouldn't reach this point")
+            except AttributeError:
+                pass
+            # Now try it with the context manager
+            with c:
+                del c.speed     # Works
+            Assert(not hasattr(c, "speed"))
+            # Delete velocity by setting strict to False
+            c.strict = False
+            del c.velocity
+            Assert(not hasattr(c, "velocity"))
+        def Test_Constant_ContextManager():
+            c = Constant_Init()
+            c.speed = 42
+            c.strict = True
+            # The speed attribute is read-only.  However, if we put it in a context manager
+            # block, the values can be changed.
+            with c as x:
+                x.speed = 21
+            # That showed that we could make the change and that the context manager returns
+            # the _Const instance as x
+            Assert(c.speed == 21)
+            Assert(c.strict)    # The strict value was restored
     if len(sys.argv) > 1:
         exit(run(globals(), regexp=r"^Demo_", quiet=1, halt=1, verbose=0)[0])
     else:

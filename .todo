@@ -18,7 +18,9 @@
     - dparith.py
     - dpastro.py
     - dputil.py
+- dputil
 - dpstr
+    - dptags
     - tw
 - dptime
     - timer
@@ -43,7 +45,16 @@
 - dpshop
     - linscale
 
+
     - lib.py:  make new repository for boilerplate
+        - More importantly, this should become the script dplib.py, a script to help me
+          find functions/classes.
+        - See "Simple command interpreter" in my help file.  This allows an interactive
+          browsing/searching tool.  Use the -i option.
+
+
+    - dsort.py Utility to sort indented hyphenated lists
+
 
     - gist
         - Two implementation choices

@@ -97,17 +97,15 @@ if 1:   # Classes
 if __name__ == "__main__":
     from lwtest import run, raises, Assert
     from collections import deque
-    def Init():
-        # Guarantee a "fresh" instance
-        c = Constant()
-        return c 
-    def Test_can_change_strict_property():
+    def Constant_Init():
+        return Constant()
+    def Test_Constant_can_change_strict_property():
         c = Init()
         # Default value of strict is True
         Assert(c.strict)
         c.strict = False
         Assert(not c.strict)
-    def Test_is_constant():
+    def Test_Constant_is_constant():
         c = Init()
         c.pi = 3.14
         # OK to change if strict not True
@@ -123,7 +121,7 @@ if __name__ == "__main__":
         except AttributeError:
             pass
         Assert(c.pi == a)
-    def Test_not_strict():
+    def Test_Constant_not_strict():
         'Can set items to mutable objects without an exception'
         # Nonhashable objects cause a TypeError
         c = Init()
@@ -153,7 +151,7 @@ if __name__ == "__main__":
             # Can't set the c.x list to a tuple with strict True?
             with raises(AttributeError):
                 c.x = tuple(c.x)
-    def Test_Delete():
+    def Test_Constant_Delete():
         c = Init()
         c.strict = True
         c.speed = 42
@@ -171,7 +169,7 @@ if __name__ == "__main__":
         c.strict = False
         del c.velocity
         Assert(not hasattr(c, "velocity"))
-    def Test_ContextManager():
+    def Test_Constant_ContextManager():
         c = Init()
         c.speed = 42
         c.strict = True
