@@ -120,6 +120,7 @@
               most use.  It could be something as simple as open(file,
               "wa").write("myname.py") that is triggered if an environment variable is
               defined.
+        - enc_codecs.csv:  update to 3.11's documentation
 
     - Electrical circuit searches
         - Use ds.py to search for files that keep important circuits that I want to look

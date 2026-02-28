@@ -101,31 +101,15 @@ if 1:   # class SlushDict:  a dictionary that is hashable (use with care)
                 super().update(*p, **kw)
 if 1:   # class Bidict:  A dictionary that is an invertible function
     class Bidict(dict):
-        '''A dictionary that is an invertible function
+        '''A dictionary that is an invertible function (a bijection).
             Keys and values must be unique in "both directions".  Call the instance
             as if it were a function to go in the reverse direction.
-
-            Example:
-            
-            Here's how to initialize from a dict:
-                categories = Bidict()
-                categories.update(
-                    {
-                        'all':      0,
-                        'gas':      1,
-                        'liquid':   2,
-                        'metal':    3,
-                        'mineral':  4,
-                        'misc':     5,
-                        'plastic':  6,
-                        'wood':     7,
-                    }
-                )
-                
-            Then
-                categories["metal"] returns 3
-                categories(3) returns "metal"
-                
+                Example:
+                    dict = {"solid": 0, "liquid": 1, "gas": 2}
+                    categories = Bidict(dict)
+                Then
+                    categories["liquid"] returns 1
+                    categories(1) returns "liquid"
             Use categories.invert() to get a new Bidict object where the inverse
             mapping is the "forward" mapping.
         '''
