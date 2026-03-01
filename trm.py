@@ -170,6 +170,8 @@ class Trm(dict):
                  mag pnk lip blk brn gry wht lil pur olv'''.replace("\n", "").split())
     # Normal terminal text foreground and background colors and attribute(s)
     normal = ("wht", "blk", "normal")
+    # Text attributes
+    attr = set("no it bl rv di bo ul rb so hi sb sp".split())
     def __init__(self, *p, **kw):
         '''Initialize with the standard dictionary initializers.  The key can be any
         hashable type and the value should be anything accepted by the color.Color
@@ -230,6 +232,9 @@ class Trm(dict):
                 if default > 1:
                     for j in ("1", "2", "3"):
                         self[i + j] = Color(i + j)
+            # Add text attributes (just those that work in WSL)
+            for i in "no it bl rv di bo ul rb so hi sb sp".split():
+                exec(f"self.{i} = self(attr='{i}')")
             # Add n attribute to return to default color
             self["n"] = self(*Trm.normal)
     def _esc(self, color=None, bg=False):
@@ -392,9 +397,13 @@ class Trm(dict):
         o = []
         if sort:
             for i in sorted(self):
+                if i in Trm.attr:   # Don't print the text attributes
+                    continue
                 o.append(f"{self[i]}{i}{self.n}")
         else:
             for i in self:
+                if i in Trm.attr:   # Don't print the text attributes
+                    continue
                 o.append(f"{self[i]}{i}{self.n}")
         for i in Columnize(o, sep=" "*4, horiz=horiz, columns=columns):
             print(i)

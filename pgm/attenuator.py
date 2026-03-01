@@ -25,16 +25,17 @@ if 1:  # Custom imports
     from wrap import dedent
     from lwtest import Assert
     from f import flt, sqrt
-    from color import t
+    import trm
+    t = trm.Trm()
 if 1:  # Global variables
     debug = 0  # Turns on debug printing
     nl = "\n"
     # Coloring for resistor size
-    t.G = t.redl
-    t.M = t.ornl
+    t.G = t.red
+    t.M = t.orn
     t.k = t.grn
-    t.o = t.whtl
-    t.m = t.yell
+    t.o = t.wht
+    t.m = t.yel
     schematic = '''
            Pi                                    Tee
            

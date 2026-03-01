@@ -1,14 +1,13 @@
-"""
+'''
 
 ToDo
     - -r option changes the reference resistance R in Ω (600 Ω default)
     - Change existing -r to -s option (step of table); allow n to be a float > 0
     - Change command line to 'low_dB high_dB [step]' for generating table
-
+    
 Prints out tables of dB stuff
 
-"""
-
+'''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
@@ -31,29 +30,26 @@ if 1:  # Custom imports
     from wrap import dedent
     from columnize import Columnize
     from f import flt, sqrt, log10
-    from color import t
+    import trm
+    t = trm.Trm()
 if 1:  # Global variables
     W = int(os.environ["COLUMNS"]) - 1
     x = flt(0)
     x.N = 3
     x.rtz = True
     # Color coding
-    t.dBV = t("brnl")
-    t.dBm600 = t("magl")
-    t.dBm50 = t("grnl")
-    t.dBm75 = t("yell")
+    t.dBV = t.brnl
+    t.dBm600 = t.magl
+    t.dBm50 = t.grnl
+    t.dBm75 = t.yell
     t.always = True
-
-
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
-
-
 def Usage(d, status=1):
     name = sys.argv[0]
     print(
-        dedent(f"""
+        dedent(f'''
     Usage:  {name} [options]
       Print dB information.  The default is to print a dBm(600 Ω) to voltage table.  The range
       printed is typical for HP AC voltmeters, -80 to 60 dBm.
@@ -66,11 +62,9 @@ def Usage(d, status=1):
         -r n    Print dB table in steps of n [{d["-r"]}]
         -t      Print a conversion table amongst common dB measures
         -v      Print dBV to dBm(600 Ω) table
-    """)
+    ''')
     )
     exit(status)
-
-
 def ParseCommandLine(d):
     d["-5"] = False  # Print dBm(50 Ω) to dBm(600 Ω) table
     d["-d"] = False  # Print distortion data only
@@ -99,8 +93,6 @@ def ParseCommandLine(d):
         elif o in ("-h", "--help"):
             Usage(d, status=0)
     return args
-
-
 def Distortion():
     print(f"{'Distortion in dBc (dB below carrier) converted to %':^{W}s}")
     print(f"{'percent = 100*10**(dBc/20)':^{W}s}")
@@ -110,8 +102,6 @@ def Distortion():
         out.append(f"{-dBc:4d}  {pct}")
     for i in Columnize(out):
         print(i)
-
-
 def dBV_dBm600():
     w1, w2 = 8, 8
     print(f"{'dBV to dBm(600 Ω)':^{W}s}")
@@ -124,11 +114,9 @@ def dBV_dBm600():
         out.append(f"{t.dBV}{str(-dBV):^{w1}s}{t.n}  {t.dBm600}{dBm!s:^{w2}s}{t.n}")
     for i in Columnize(out):
         print(i)
-
-
 def Header():
     print(
-        dedent(f"""
+        dedent(f'''
     dBm definitions (R in Ω, V in volts)
         dBm(R Ω) = 20*log(V/sqrt(R/1000))
         V = sqrt(R/1000)*10**(dBm/20)
@@ -142,10 +130,8 @@ def Header():
         0 dBm(600 Ω) is 0.7746 V = sqrt(600/1000)
         0 dBm(50 Ω) is 0.2236 V = sqrt(50/1000)
         0 dBm(75 Ω) is 0.2739 V = sqrt(75/1000)
-    """)
+    ''')
     )
-
-
 def ConversionTable():
     w = 12  # Column width
     hdr = (
@@ -175,15 +161,11 @@ def ConversionTable():
         else:
             print(" ".join(res))
     t.print(f"{h}{' '.join(hdr)}")
-
-
 def Title(s):
     # The following is needed to get the underlining to print all the way across
     sp = " " * ((W - len(s)) // 2)
     s = sp + s + sp[:-1] + chr(0xA0)
     t.print(f"{t(attr='ul')}{s:^{W}s}")
-
-
 def dBmToVoltage(R=600, nl=False):
     "Print a dBm(R Ω) to voltage table"
     # Colors
@@ -203,8 +185,6 @@ def dBmToVoltage(R=600, nl=False):
         print(i)
     if nl:
         print()
-
-
 def dBVToVoltage():
     w1, w2 = 12, 8
     Title("dBV to voltage")
@@ -217,8 +197,6 @@ def dBVToVoltage():
         out.append(f"{t.dBV}{str(dBV):^{w1}s}{t.n}  {V.engsi + 'V':^{w2}s}")
     for i in Columnize(out):
         print(i)
-
-
 def dB50_to_dB600():
     w1, w2 = 12, 12
     t.print(f"{t(attr='ul')}{'dBm(50 Ω) to dBm(600 Ω)':^{W}s}")
@@ -233,13 +211,9 @@ def dB50_to_dB600():
         out.append(f"{t.dBm50}{-dBm50!s:^{w1}s}{t.n}  {t.dBm600}{dBm600!s:^{w2}s}{t.n}")
     for i in Columnize(out):
         print(i)
-
-
 def PercentDrop():
     print(f"dB drop versus percentage drop")
-
-
-"""
+'''
 Change to command on command line
 
 Commands
@@ -267,12 +241,12 @@ Commands
     v
         Print voltages from 1 kV to 1 μV in steps of 1-2-5 and their equivalents in common dB
         measures (dBm(50 Ω), dBm(75 Ω), dBm(600 Ω), dBV)
-
+        
 Options
     - -s n  Step size for dB table [1]
     - -r R  Resistance reference in Ω 
     - -H    Print a manpage
-
+    
 dBm definitions (R in Ω, V in volts)
     dBm(R Ω) = 20*log(V/sqrt(R/1000))
     V = sqrt(R/1000)*10**(dBm/20) = C*10**(dBm/20)
@@ -280,7 +254,7 @@ dBm definitions (R in Ω, V in volts)
         C = 0.2739 V for 75 Ω
         C = 0.2236 V for 50 Ω
     R = V**2*10**(-dBm/10 + 3)
-
+    
 Converting between different dBm voltage measures:
     dBm(R Ω) = dBm(S Ω) + C where C = 10*log(S/R)
         dBm(50 Ω) = dBm(600 Ω) + 10.8
@@ -289,8 +263,8 @@ Converting between different dBm voltage measures:
     0 dBm(600 Ω) is 0.7746 V = sqrt(600/1000)
     0 dBm(50 Ω) is 0.2236 V = sqrt(50/1000)
     0 dBm(75 Ω) is 0.2739 V = sqrt(75/1000)
-
-"""
+    
+'''
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

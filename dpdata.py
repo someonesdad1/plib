@@ -1,19 +1,9 @@
 '''
 
 Central module for sourcing data
-        
-    astr    Astronomy
-    clr     Color
-    data    Data for module/script tasks
-    elec    Electrical
-    math    Math
-    prog    Programming
-    sci     Science
-    shop    Shop
-    text    Text processing
-    time    Time
-    util    Utility
+    The trailing letters of the function names give a clue to what is returned.
 
+    GetCategoryNames_di     Gist category names
 
 '''
 if 1:  # Header
@@ -70,11 +60,6 @@ if 1:   # Functions
             "time": "Time",
             "util": "Utility",
         })
-
-if 1:
-    di = GetCategoryNames_di()
-    breakpoint() # ∞∞ 
-    exit()
 
 if __name__ == "__main__":  
     if 1:   # Standard imports
