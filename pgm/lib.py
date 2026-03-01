@@ -49,7 +49,7 @@ if 1:  # Imports
 if 1:  # Custom imports
     import trm
     from wrap import dedent
-    from constant import Constant
+    from dptypes import Constant
 if 1:  # Global variables
     t = trm.Trm(default=2)
     sep = "@@"  # Separates datafile records

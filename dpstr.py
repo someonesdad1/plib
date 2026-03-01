@@ -5,6 +5,7 @@ String utilities
     CommonSuffix        Return a common suffix of a sequence of strings
     CountLeadingSpaces  Return number of common leadings spaces in a multiline string
     Decorate            Make whitespace and control characters easier to see in a string
+    Edit                Edit a set of files
     FilterStr           Return a function that removes characters from strings
     FilterSeqRegex      Return a sequence of strings filtered by regexes
     FindAll             Find all locations of a substring in a string
@@ -86,26 +87,36 @@ if 1:  # Header
         oo>
     '''
     if 1:   # Standard imports
-        from collections import deque, defaultdict
-        from itertools import filterfalse
+        import collections
+        import itertools
         import os
+        import pathlib
         import random
         import re
         import string
         import struct
+        import subprocess
         import sys
         import time
     if 1:   # Custom imports
-        import trm
         import asciify
         import dpseq
-        from f import flt
-        from wrap import dedent
-    if 1:   # Global variables
-        ii = isinstance
+        import f
+        import trm
+        import wrap
         if 0:
             import debug
             debug.SetDebugger()
+    if 1:   # Import symbols
+        Path = pathlib.Path
+        defaultdict = collections.defaultdict
+        deque = collections.deque
+        filterfalse = itertools.filterfalse
+        #
+        flt = f.flt
+        dedent = wrap.dedent
+    if 1:   # Global variables
+        pass
 if 1:  # Classes
     class NameConvert:
         'Convert programming naming styles, "Python Cookbook" pg. 91'
@@ -336,7 +347,7 @@ if 1:  # Core functionality
                     out.append(t[i])
             else:
                 out.append(t[i])
-        return "".join(out) if ii(t, str) else type(t)(out)
+        return "".join(out) if isinstance(t, str) else type(t)(out)
     def soundex(s):
         '''Return the 4-character soundex value to a string argument.  The string s must
         be one word formed with ASCII characters and with no punctuation or spaces.  The
@@ -440,7 +451,7 @@ if 1:  # Core functionality
         set_of_items = set(items)
         # If s is a reversed iterator, convert it to a list so s[i]
         # doesn't fail
-        rev = ii(s, reversed)
+        rev = isinstance(s, reversed)
         r = list(s) if rev else s
         n = len(r)
         for i in range(n):
@@ -495,7 +506,7 @@ if 1:  # Core functionality
             for i in s:
                 if i in kp:
                     result.append(i)
-            return "".join(result) if ii(s, str) else result
+            return "".join(result) if isinstance(s, str) else result
         else:
             sl = FindFirstNotIn(s, keep)
             sr = FindLastNotIn(s, keep)
@@ -505,7 +516,7 @@ if 1:  # Core functionality
             s_middle = s[sl : sr + 1]
             # Check invariant
             if s_left + s_middle + s_right != s:
-                if ii(s, str):
+                if isinstance(s, str):
                     msg = "Bug:  s_left + s_middle + s_right != original string"
                 else:
                     msg = "Bug:  s_left + s_middle + s_right != original sequence"
@@ -517,7 +528,7 @@ if 1:  # Core functionality
                 result.append(s_middle)
             if right:
                 result.append(s_right)
-            if ii(s, str):
+            if isinstance(s, str):
                 return "".join(result)
             else:
                 return result
@@ -1005,7 +1016,7 @@ if 1:  # Core functionality
         '''Return a list of the sequence seq chopped into subsequences of length size.
         The last subsequence will be shorter than size if len(seq) % size is not zero.
         '''
-        if not ii(size, int) or size <= 0:
+        if not isinstance(size, int) or size <= 0:
             raise ValueError("size must be integer > 0")
         out = []
         for i in range(0, len(seq), size):
@@ -1052,14 +1063,14 @@ if 1:  # Core functionality
             if not line:
                 continue
             if comment is not None:
-                if ii(comment, str) and line.startswith(comment):
+                if isinstance(comment, str) and line.startswith(comment):
                     continue
                 elif hasattr(comment, "search"):
                     # It's a compiled regular expression
                     if comment.search(line):
                         continue
             if sep is not None:
-                if ii(sep, str):
+                if isinstance(sep, str):
                     fields = line.split(sep)
                 elif hasattr(sep, "split"):
                     fields = sep.split(line)
@@ -1086,7 +1097,7 @@ if 1:  # Core functionality
         '''
         if not hasattr(Len, "len"): # Cache built-in len in case someone redefines it
             Len.len = len
-        if ii(s, str):
+        if isinstance(s, str):
             return Len.len(RmEsc(s))
         return Len.len(s)
     def RmEsc(s: str, on=True) -> str:
@@ -1100,7 +1111,7 @@ if 1:  # Core functionality
             # Don't check the type of s if on is False; this makes this the identity
             # function for any type.
             return s
-        assert ii(s, str)
+        assert isinstance(s, str)
         if not hasattr(RmEsc, "r"):
             # This regexp was constructed from the information given on the
             # page https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_(Control_Sequence_Introducer)_sequences
@@ -1117,7 +1128,7 @@ if 1:  # Core functionality
         defaults to string.ascii_letters + string.digits.  If check is True, verify the
         invariant s == ''.join(lst).
         '''
-        if not ii(s, str):
+        if not isinstance(s, str):
             raise TypeError("Argument s needs to be a string")
         if wordchars is None:
             S = set(string.ascii_letters + string.digits)
@@ -1143,7 +1154,7 @@ if 1:  # Core functionality
         then return the leading whitespace characters, which are defined by the re
         module's '\\s' metacharacters.
         '''
-        if not ii(s, str):
+        if not isinstance(s, str):
             raise TypeError("s must be a string")
         if chars is None:
             r = re.compile(r"^(\s+).*$", re.M)
@@ -1161,7 +1172,7 @@ if 1:  # Core functionality
         None, then return the leading whitespace characters, which are defined by the re
         module's '\\s' metacharacters.
         '''
-        if not ii(s, str):
+        if not isinstance(s, str):
             raise TypeError("s must be a string")
         if chars is None:
             r = re.compile(r"^[^\s]*(\s+)$", re.M)
@@ -1257,7 +1268,7 @@ if 1:  # Core functionality
             punc = set(string.punctuation + string.whitespace)
         dummy = "."
         prepended = appended = False
-        is_string = ii(mystring, str)
+        is_string = isinstance(mystring, str)
         s = list(mystring) if is_string else mystring
         # Add dummy punctuation characters at start and end if needed.  This
         # regularizes the algorithm.
@@ -1362,7 +1373,7 @@ if 1:  # Core functionality
         # Check delete
         if delete is None:
             Delete = None
-        elif not ii(delete, str):
+        elif not isinstance(delete, str):
             raise TypeError("delete must be None or a string")
         else:
             Delete = "".join(set(delete))
@@ -1392,6 +1403,35 @@ if 1:  # Core functionality
             return s.decode(encoding).translate(Decorate.trans)
         else:
             raise TypeError("s must be a str or bytes instance")
+    def Edit(*files, strict=False, opt=None):
+        '''Launch editor on those files that exist.  If strict is True, raise an
+        exception if there are no files or a file doesn't exist.  Otherwise, just return
+        quietly.  opt is a list of option strings to append before the list of files.
+        '''
+        editor = os.environ["EDITOR"]
+        files_to_edit = []
+        for file in files:
+            p = Path(file)
+            if p.exists():
+                files_to_edit.append(file)
+            else:
+                if strict:
+                    raise ValueError(f"{file!r} doesn't exist")
+        if not files_to_edit:
+            if strict:
+                raise ValueError("No files to edit")
+            return
+        # Construct editing string
+        e = [editor]
+        if opt:
+            if isinstance(opt, (list, tuple)):
+                e.extend(list(opt))
+            elif isinstance(opt, str): 
+                e += [opt]
+            else:
+                raise TypeError("opt must be string or list/tuple of strings")
+        e += files_to_edit
+        subprocess.call(e)
     def RemoveCharClass(s, keys=""):
         '''Given s, a string, bytes, or bytearry, remove the characters indicated by the
         letters in the keys:
@@ -1433,7 +1473,7 @@ if 1:  # Core functionality
         # Check type of s
         if isinstance(s, str):
             is_str = True
-        elif ii(s, (bytes, bytearray)):
+        elif isinstance(s, (bytes, bytearray)):
             is_str = False
         else:
             raise TypeError("s must be str, bytes, or bytearray")

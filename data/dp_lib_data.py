@@ -850,8 +850,9 @@ if __name__ == "__main__":
         import readline
         import sys
     if 1:   # Custom imports
-        import trm
+        import dpstr
         import dptypes
+        import trm
     if 1:   # Import symbols
         defaultdict = collections.defaultdict
         t = trm.Trm()
@@ -989,18 +990,20 @@ if __name__ == "__main__":
             Usage:  {sys.argv[0]} [options] [num1 [num2 ...]]
               List library snippets.
             Options:
+              -e    Edit datafile
               -i    Interactive browser
             '''))
             exit(status)
         def ParseCommandLine(d):
+            d["-e"] = False  # Edit source file
             d["-i"] = False  # Interactive browser
             try:
-                opts, args = getopt.getopt(sys.argv[1:], "hi")
+                opts, args = getopt.getopt(sys.argv[1:], "ehi")
             except getopt.GetoptError as e:
                 print(str(e))
                 exit(1)
             for o, a in opts:
-                if o[1] in list("i"):
+                if o[1] in list("ei"):
                     d[o] = not d[o]
                 elif o == "-h":
                     Usage(status=0)
@@ -1010,7 +1013,9 @@ if __name__ == "__main__":
             return args
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
-    if d["-i"]:
+    if d["-e"]:
+        dpstr.Edit(__file__)
+    elif d["-i"]:
         Browse().cmdloop()
     else:
         if args:
