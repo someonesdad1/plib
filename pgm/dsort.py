@@ -74,7 +74,7 @@ if 1:   # Utility
         d["-a"] = False  # Description
         d["-d"] = 3      # Description
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:h")
+            opts, args = getopt.getopt(sys.argv[1:], "ad:h", "test")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -90,13 +90,16 @@ if 1:   # Utility
                     Error(f"{o!r} option must be an int between 1 and 15")
             elif o == "-h":
                 Usage(status=0)
+            elif o == "-est":
+                exit(run(globals(), regexp=r"^Test_", halt=1, verbose=0)[0])
         GetColors()
         g.W, g.L = GetScreen()
         return args
 if 1:   # Classes
     pass
 if 1:   # Functions
-    pass
+    def Test_Basic():
+        pass
 
 if __name__ == "__main__":  
     if 1:   # Standard imports
@@ -107,28 +110,18 @@ if __name__ == "__main__":
         run = lwtest.run
         raises = lwtest.raises
         Assert = lwtest.Assert
-    if 0:   # For script
-        d = {}  # Options dictionary
-        args = ParseCommandLine(d)
-        if args:
-            for arg in args:
-                pass    # Do stuff
-    else:   # For module
-        def Demo():
-            pass
-        def Test_Me():
-            pass
-        if len(sys.argv) > 1:
-            Demo()
-        else:
-            exit(run(globals(), regexp=r"^Test_", halt=1, verbose=0)[0])
+    d = {}  # Options dictionary
+    args = ParseCommandLine(d)
+    if args:
+        for arg in args:
+            pass    # Do stuff
 
 def GetGist():
     gist = {}
     gist["gist"] = "Utility to sort hyphenated lists"
     gist["copy"] = "Copyright © 2026 Don Peterson"
     gist["lic"] = "MIT License (see /plib/_lic.mit)"
-    gist["test"] = "run"
+    gist["test"] = "--test"
     gist["cat"] = "text"
     gist["todo"] = '''
     '''
