@@ -490,7 +490,7 @@ def GetData():
                     s = f.getvalue()
                     print(s)
         """)),
-        Entry(cat="web", lang="HTML", 
+        Entry(cat="web", lang="html", 
             gist="HTML template",
             code=dedent("""
                 <!doctype html>
@@ -896,15 +896,15 @@ if __name__ == "__main__":
             This is an interactive browser of code snippets.
             Use ? to get help.
                 l [n1 [n2 ...]] List numbered items
-                d name          Show only the 'name' language
+                g name          Show only the 'name' language
                 u               Go back to top level
                 s n             Show number n
                 b               Drop into debugger
             ''')
             prompt = f"{t.red}▶▶{t.n} "
             lang = ""  # Key for g.di telling us the language being displayed
-            decode = dptypes.CommandDecode(g.lang.keys(), ignore_case=True)
-            def do_d(self, arg):
+            decode = dptypes.CommandDecode(g.lang.keys(), ignore_case=False)
+            def do_g(self, arg):
                 'Look at a specific language'
                 items = Browse.decode(arg)
                 if not items:
@@ -918,7 +918,7 @@ if __name__ == "__main__":
                     return
                 if cmd in g.lang:
                     Browse.lang = cmd
-                    print(f"In language {cmd!r}")
+                    Browse.prompt = f"{t.orn}{cmd} {t.red}▶▶{t.n} "
                 else:
                     print(f"{arg!r} not recognized")
             def do_b(self, arg):
@@ -927,6 +927,7 @@ if __name__ == "__main__":
             def do_u(self, arg):
                 'Go back to the main listing'
                 Browse.lang = ""
+                Browse.prompt = f"{t.red}▶▶{t.n} "
             def do_l(self, arg):
                 'List the items; if arg is given, list that number'
                 if arg:
