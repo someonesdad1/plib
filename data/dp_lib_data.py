@@ -895,8 +895,13 @@ if __name__ == "__main__":
             intro = dedent('''
             This is an interactive browser of code snippets.
             Use ? to get help.
+                l [n1 [n2 ...]] List numbered items
+                d name          Show only the 'name' language
+                u               Go back to top level
+                s n             Show number n
+                b               Drop into debugger
             ''')
-            prompt = f"♦  "
+            prompt = f"{t.red}▶▶{t.n} "
             lang = ""  # Key for g.di telling us the language being displayed
             decode = dptypes.CommandDecode(g.lang.keys(), ignore_case=True)
             def do_d(self, arg):
@@ -916,8 +921,25 @@ if __name__ == "__main__":
                     print(f"In language {cmd!r}")
                 else:
                     print(f"{arg!r} not recognized")
+            def do_b(self, arg):
+                'Drop into the debugger'
+                breakpoint() # ∞∞ 
+            def do_u(self, arg):
+                'Go back to the main listing'
+                Browse.lang = ""
             def do_l(self, arg):
-                'List the items'
+                'List the items; if arg is given, list that number'
+                if arg:
+                    try:
+                        items = [int(j) for j in arg.split()]
+                    except Exception:
+                        print("Couldn't convert all items to integers")
+                        return
+                    for i in (int(j) for j in arg.split()):
+                        print(f"{t.orn}{i} {'-'*80}")
+                        t.print(f"{g.di[i].gist}")
+                        t.print(f"{t.lill}{g.di[i].code}")
+                    return
                 if not Browse.lang:
                     DumpListing()
                 else:
