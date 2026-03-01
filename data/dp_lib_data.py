@@ -1,5 +1,13 @@
 '''
 Data file to hold code snippets
+    A sequence of namedtuples that hold information on a snippet:
+        - id    Integer to identify the item
+        - cat   Category string
+        - lang  Language used
+        - gist  One line summary of purpose
+        - code  The snippet's contents
+
+    The 
 '''
 if 1:  # Header
     if 1:   # Standard imports
@@ -12,14 +20,15 @@ if 1:  # Header
         deque = collections.deque
         dedent = wrap.dedent
     if 1:   # Global variables
-        Entry = namedtuple("Entry", "name cat lang gist code")
+        Snippet = namedtuple("Snippet", "id cat lang gist code")
 
 def GetData():
     'Returns a tuple of namedtuples of code snippets'
+    Entry = namedtuple("Entry", "cat lang gist code")
     # Note we return a copy of the list so that this function always returns the same
     # set of data.
     data = (
-        Entry(name="bits", cat="utility", lang="python", 
+        Entry(cat="utility", lang="python", 
             gist="Bit utility functions",
             code=dedent("""
                 def get_bit(value, n):
@@ -31,8 +40,8 @@ def GetData():
                 def clear_bit(value, n):
                     return value & ~(1 << n)
         """)),
-        Entry(name="plot autocorrelation", cat="math", lang="python", 
-            gist="Plot the autocorrelation of a sequence",
+        Entry(cat="math", lang="python", 
+            gist="Plot sequence autocorrelation",
             code=dedent("""
                 def PlotAutocorrelation(x, maxlag=10, color="b", plot_title=""):
                     '''Plot the autocorrelation of the sequence x.  This should give
@@ -65,7 +74,7 @@ def GetData():
                     title(plot_title)
                     grid()
         """)),
-        Entry(name="", cat="template", lang="python", 
+        Entry(cat="template", lang="python", 
             gist="Header for g library use",
             code=dedent("""
                 # from g import *
@@ -78,8 +87,8 @@ def GetData():
                     setOrientation(orientation, units)
                     return ofp
         """)),
-        Entry(name="", cat="", lang="sh", 
-            gist="Shell script template",
+        Entry(cat="", lang="sh", 
+            gist="Shell template",
             code=dedent("""
                 #!/bin/bash
                 #
@@ -113,8 +122,8 @@ def GetData():
                 trap CleanUp EXIT
                 main "$@"
         """)),
-        Entry(name="", cat="math", lang="C", 
-            gist="Simple & fast random number generator",
+        Entry(cat="math", lang="C", 
+            gist="Fast RNG",
             code=dedent("""
                 /* Simple, fast random number generator.  No function call necessary.
                 Make sure X is global.  Numerical Recipes in C, ch 7, pg 284.  Include
@@ -131,8 +140,8 @@ def GetData():
                 
                 #define simp_rand     (X = 1664525L*X + 1013904223L)
         """)),
-        Entry(name="", cat="utility", lang="sh", 
-            gist="Show disk space used (du wrapper)",
+        Entry(cat="utility", lang="sh", 
+            gist="Show disk space used",
             code=dedent("""
                 #!/bin/sh
                 
@@ -198,7 +207,7 @@ def GetData():
                         printf(fmt, total)
                     }'
         """)),
-        Entry(name="", cat="utility", lang="sh", 
+        Entry(cat="utility", lang="sh", 
             gist="Create a RAM disk on Linux",
             code=dedent("""
                 #!/bin/bash
@@ -254,8 +263,8 @@ def GetData():
                 pgmname=$(basename $0)
                 main "$@"
         """)),
-        Entry(name="", cat="utility", lang="sh", 
-            gist="Use getopt to get bash command-line options",
+        Entry(cat="utility", lang="sh", 
+            gist="Using getopt in bash",
             code=dedent("""
                 #!/bin/bash
                 
@@ -303,8 +312,8 @@ def GetData():
                 echo "Remaining arguments:"
                 for arg do echo '--> '"\`$arg'" ; done
         """)),
-        Entry(name="Compose", cat="utility", lang="python", 
-            gist="Composition of a set of unary functions",
+        Entry(cat="utility", lang="python", 
+            gist="Composition of unary functions",
             code=dedent("""
                 def compose(*funcs):
                     '''Composition of a set of unary functions.  Returns the identity function
@@ -314,9 +323,10 @@ def GetData():
                     idn = lambda x: x
                     return functools.reduce(lambda f, g: lambda x: f(g(x)), funcs, idn)
         """)),
-        Entry(name="Group", cat="utility", lang="python", 
-            gist="Class to group some related values (also see ndict)",
+        Entry(cat="utility", lang="python", 
+            gist="Group related values",
             code=dedent("""
+                # Also see ndict in lib data
                 class Group:
                     '''Simple grouping of variable values.  Create different types by subclassing:
                     class Point(Group): pass
@@ -338,7 +348,7 @@ def GetData():
                 print("coord deleted")
                 print(point)
         """)),
-        Entry(name="ndict", cat="utility", lang="python", 
+        Entry(cat="utility", lang="python", 
             gist="Nested dictionary object",
             code=dedent("""
                 class ndict(dict):
@@ -383,8 +393,8 @@ def GetData():
                         else:
                             return su.__contains__(name)
         """)),
-        Entry(name="wordid", cat="text", lang="python", 
-            gist="Return an ID string that is (somewhat) pronounceable",
+        Entry(cat="text", lang="python", 
+            gist="Pronounceable string",
             code=dedent("""
                 def WordID(half_length=3, unique=None, num_tries=100):
                     '''Return an ID string that is (somewhat) pronounceable.  The
@@ -405,7 +415,7 @@ def GetData():
                         count += 1
                     raise RuntimeError("Couldn't generate unique word")
         """)),
-        Entry(name="", cat="utility", lang="python", 
+        Entry(cat="utility", lang="python", 
             gist="Python coding policies",
             code=dedent("""
             
@@ -415,39 +425,7 @@ def GetData():
                 something short enough to review while finalizing a new script or module.
                 
         """)),
-        Entry(name="", cat="obsolete", lang="python", 
-            gist="Python 2 equivalent to python 3's print()",
-            code=dedent("""
-                import sys
-                
-                class Out(object):
-                    def __init__(self):
-                        self.stream = sys.stdout
-                        self.flush  = False
-                        self.end = "\n"
-                        self.sep = " "
-                    def __call__(self, *v, **kw):
-                        '''Sends the string representation of each element of v to the
-                        stream.  Same keywords as print() in python 3, but they only
-                        have an effect during the function call.  Change the
-                        attributes if you want a permanent change.
-                        '''
-                        end    = kw.setdefault("end",    self.end)
-                        sep    = kw.setdefault("sep",    self.sep)
-                        stream = kw.setdefault("file",   self.stream)
-                        flush  = kw.setdefault("flush",  self.flush)
-                        if v and stream: # Print each parameter
-                            stream.write(str(sep).join([str(i) for i in v]))
-                        if end and stream:
-                            stream.write(end)
-                        if self.flush:
-                            self.stream.flush()
-                            self.flush = False
-                            
-                # out is a convenience instance of the Out object
-                out = Out()
-        """)),
-        Entry(name="", cat="prog", lang="python", 
+        Entry(cat="prog", lang="python", 
             gist="Sample profiling session",
             code=dedent("""
                 import cProfile, pstats, io
@@ -475,7 +453,7 @@ def GetData():
                 ps.print_stats()
                 print(s.getvalue())
         """)),
-        Entry(name="", cat="", lang="python", 
+        Entry(cat="", lang="python", 
             gist="Redirecting stdout",
             code=dedent("""
                 import sys
@@ -512,7 +490,7 @@ def GetData():
                     s = f.getvalue()
                     print(s)
         """)),
-        Entry(name="", cat="web", lang="HTML", 
+        Entry(cat="web", lang="HTML", 
             gist="HTML template",
             code=dedent("""
                 <!doctype html>
@@ -529,7 +507,7 @@ def GetData():
                     </body>
                 </html>
         """)),
-        Entry(name="", cat="utility", lang="python", 
+        Entry(cat="utility", lang="python", 
             gist="Run a command & capture output",
             code=dedent("""
                 # Running a command and capturing its output
@@ -539,7 +517,7 @@ def GetData():
                 s = subprocess.Popen(cmd, stdout=subprocess.PIPE)
                 lines = [i.decode("utf8") for i in s.stdout.readlines()]
         """)),
-        Entry(name="", cat="", lang="python", 
+        Entry(cat="", lang="python", 
             gist="Alternative function for assert",
             code=dedent("""
                 from time import time, strftime
@@ -572,7 +550,7 @@ def GetData():
                         else:
                             raise CheckFailed(msg)
         """)),
-        Entry(name="ssig1", cat="math", lang="python", 
+        Entry(cat="math", lang="python", 
             gist="Shortened version of sig",
             code=dedent("""
                 '''
@@ -702,7 +680,7 @@ def GetData():
                         ):
                         assert ssig(x) == s, "ssig({}) != {}".format(x, s)
         """)),
-        Entry(name="ssig2", cat="math", lang="python", 
+        Entry(cat="math", lang="python", 
             gist="Even more shortened version of sig",
             code=dedent("""
                 def sig(x, digits=3):
@@ -719,8 +697,8 @@ def GetData():
                     else:
                         return str(x)
         """)),
-        Entry(name="", cat="template", lang="C", 
-            gist="Example of using getopt in a C program",
+        Entry(cat="template", lang="C", 
+            gist="Using getopt in C",
             code=dedent("""
                 #include <stdio.h>
                 #include <stdlib.h>
@@ -773,8 +751,8 @@ def GetData():
                     return 0;
                 }
         """)),
-        Entry(name="", cat="template", lang="C++", 
-            gist="C++ program template",
+        Entry(cat="template", lang="C", 
+            gist="C++ template",
             code=dedent("""
                 #include <iostream>
                 using namespace std;
@@ -783,8 +761,8 @@ def GetData():
                     return 0;
                 }
         """)),
-        Entry(name="", cat="template", lang="C", 
-            gist="C program template",
+        Entry(cat="template", lang="C", 
+            gist="C template",
             code=dedent("""
                 #include <stdio.h>
                 int main(int argc, char **argv)
@@ -792,7 +770,7 @@ def GetData():
                     return 0;
                 }
         """)),
-        Entry(name="", cat="template", lang="sh", 
+        Entry(cat="template", lang="sh", 
             gist="makefile template",
             code=dedent("""
                 # vim: noet
@@ -810,7 +788,7 @@ def GetData():
                     @ctags $f$e
                     $(cc) $o -o $@ $f$e
         """)),
-        Entry(name="", cat="template", lang="python", 
+        Entry(cat="template", lang="python", 
             gist="SetUp function for g library",
             code=dedent("""
                 def SetUp(file, orientation=portrait, units=inches, wrap_in_PJL=False):
@@ -822,8 +800,8 @@ def GetData():
                     setOrientation(orientation, units)
                     return ofp
         """)),
-        Entry(name="", cat="utility", lang="python", 
-            gist="Calculate the transpose of a nested list",
+        Entry(cat="utility", lang="python", 
+            gist="Transpose of a nested list",
             code=dedent("""
                 How to calculate the 2D transpose of a list of lists
                 Suppose A = [[1, 4], [2, 5], [3, 6]] and suppose this represents the two column
@@ -838,21 +816,12 @@ def GetData():
                 These matrixes are transposes of each other.
         """)),
     )
-    return data
-
-if __name__ == "__main__":
-    import collections
-    import trm
-    defaultdict = collections.defaultdict
-    t = trm.Trm()
-    di = defaultdict(list)
-    for i in GetData():
-        di[i.lang].append(i.gist)
-    for lang in di:
-        t.print(f"{t.orn}{lang}")
-        for gist in sorted(di[lang]):
-            print(f"  {gist}")
-
+    # Give each item an ID number
+    out = []
+    for i, item in enumerate(data):
+        s = Snippet(i, *item)
+        out.append(s)
+    return tuple(out)
 def GetGist():
     g = {}
     g["gist"] = "Data file to hold code snippets"
@@ -860,5 +829,113 @@ def GetGist():
     g["lic"] = "MIT License (see /plib/_lic.mit)"
     g["test"] = "notest"
     g["cat"] = ""
-    g["todo"] = ''' '''
+    g["todo"] = '''
+    
+    - Add a simple browser to examine details
+        - d str     Pick a category to examine
+            - In this state, typing the number shows the code.  Hit enter to see the
+              listing again.
+        - u         Go back to listing of categories
+    
+    '''
     return g
+
+
+if __name__ == "__main__":
+    if 1:   # Standard imports
+        import cmd
+        import collections
+        import readline
+    if 1:   # Custom imports
+        import trm
+        import dptypes
+    if 1:   # Import symbols
+        defaultdict = collections.defaultdict
+        t = trm.Trm()
+    if 1:   # Global variables
+        g = dptypes.Constant() 
+        g.data = GetData()      # Sequence of named tuples of data
+        g.lang = None           # Our dictionary of named tuples indexed by language
+        g.di = None             # Our dictionary of named tuples indexed by integer ID
+    if 1:   # Get our dictionary information
+        # g.lang:  dict keyed by the language.  Example:
+        # g.lang["python"] = [
+        #   "0 Bit utility functions",
+        #   "1 Plot sequence autocorrelation",
+        #   ...
+        # ]
+        # where the integer is the index of the namedtuple in data.
+        def GetLang():
+            di = defaultdict(list)
+            n = len(g.data)
+            w = len(str(n))
+            for i in g.data:
+                di[i.lang].append(f"{i.id:{w}d} {i.gist}")
+            with g:
+                g.lang = di
+        GetLang()
+        # g.di:  dict keyed by the integer ID
+        def GetDict():
+            di = {}
+            # Snippet = namedtuple("Snippet", "id cat lang gist code")
+            for item in g.data:
+                di[item.id] = item
+            with g:
+                g.di = di
+        GetDict()
+    if 1:   # Dump a listing
+        def DumpListing():
+            for lang in g.lang:
+                t.print(f"{t.orn}{lang}")
+                for gist in sorted(g.lang[lang]):
+                    print(f"  {gist}")
+    if 1:   # Interactive browser
+        class Browse(cmd.Cmd):
+            'Interactive browser of snippet contents'
+            intro = dedent('''
+            This is an interactive browser of code snippets.
+            Use ? to get help.
+            ''')
+            prompt = f"♦  "
+            lang = ""  # Key for g.di telling us the language being displayed
+            decode = dptypes.CommandDecode(g.lang.keys(), ignore_case=True)
+            def do_d(self, arg):
+                'Look at a specific language'
+                items = Browse.decode(arg)
+                if not items:
+                    print("Include a language:")
+                    self.columnize(list(g.lang.keys()))
+                    return
+                elif len(items) == 1:
+                    cmd = items[0]
+                else:
+                    print(f"Command {arg!r} ambiguous:  {items!r}")
+                    return
+                if cmd in g.lang:
+                    Browse.lang = cmd
+                    print(f"In language {cmd!r}")
+                else:
+                    print(f"{arg!r} not recognized")
+            def do_l(self, arg):
+                'List the items'
+                if not Browse.lang:
+                    DumpListing()
+                else:
+                    for i in g.lang[Browse.lang]:
+                        print(i)
+            def do_s(self, arg):
+                'Show the text of an item number'
+                try:
+                    id = int(arg)
+                except Exception:
+                    print(f"{arg!r} isn't an integer")
+                else:
+                    if id in g.di:
+                        print(g.di[id].code)
+                    else:
+                        print(f"{arg!r} isn't in the data")
+            def do_q(self, arg):
+                'Quit the script'
+                exit(0)
+        Browse().cmdloop()
+
