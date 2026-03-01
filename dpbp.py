@@ -99,21 +99,21 @@ if 1:   # Functions
     pass
 
 if __name__ == "__main__":  
-    if 1:   # For script
+    if 1:   # Standard imports
+        pass
+    if 1:   # Custom imports
+        import lwtest
+    if 1:   # Import symbols
+        run = lwtest.run
+        raises = lwtest.raises
+        Assert = lwtest.Assert
+    if 0:   # For script
         d = {}  # Options dictionary
         args = ParseCommandLine(d)
         if args:
             for arg in args:
                 pass    # Do stuff
     else:   # For module
-        if 1:   # Standard imports
-            pass
-        if 1:   # Custom imports
-            import lwtest
-        if 1:   # Import symbols
-            run = lwtest.run
-            raises = lwtest.raises
-            Assert = lwtest.Assert
         def Demo():
             pass
         def Test_Me():
