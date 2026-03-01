@@ -46,30 +46,7 @@
     - linscale
 
 
-    - lib.py:  make new repository for boilerplate
-        - More importantly, this should become the script dplib.py, a script to help me
-          find functions/classes.
-        - See "Simple command interpreter" in my help file.  This allows an interactive
-          browsing/searching tool.  Use the -i option.
-
-
     - dsort.py Utility to sort indented hyphenated lists
-
-
-    - gist
-        - Two implementation choices
-            - gist global variable
-            - GetGist() function
-                - Could be _GetGist() to indicate to reader that it's not part of the
-                  module's interface
-        - Standardize on GetGist() in every python file
-        - A gist is a dict with the following fields (+ mean required)
-            - gist:   + one-line statement of purpose
-            - copy:   + copyright statement
-            - lic:    + license, must include full path to license file
-            - test:   + how the module is tested
-            - cat:    + category for classification
-            - todo:     list of items that need to be done
 
     - Try out argparse tutorial and write a help page for it
     
@@ -176,6 +153,14 @@
               "wa").write("myname.py") that is triggered if an environment variable is
               defined.
         - enc_codecs.csv:  update to 3.11's documentation
+
+    - density
+        - Move densitydb.py to data/dp_density.py
+        - data/dp_density.py should contain the data from both densitydb.py and
+          pgm/density.py.
+        - pgm/density.py should use the database
+        - I'm on the fence about keeping the pwdrh data because its URL is defunct.  But
+          it has information not found elsewhere.
 
     - bash scripting guide
         - This will disappear someday, so download all the stuff

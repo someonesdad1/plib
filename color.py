@@ -2121,16 +2121,29 @@ if __name__ == "__main__":
             c = trm.Trm(default=2)
             def f(a):
                 return c(attr=a)
-            print(dedent(f'''
-            Text attributes (e.g., t('ornl', attr="ul"))
-                ('hide' is to the right of 'dim')
-                {f("no")}normal      no{c.n}       {f("bo")}bold        bo{c.n}
-                {f("it")}italic      it{c.n}       {f("ul")}underline   ul{c.n}
-                {f("bl")}blink       bl{c.n}       {f("rb")}rapidblink  rb{c.n}
-                {f("rv")}reverse     rv{c.n}       {f("so")}strikeout   so{c.n}
-                {f("di")}dim         di{c.n}       {f("hi")}hide         hi{c.n}
-                sub{f("sb")}script   {c.n}sb       super{f("sp")}script {c.n}sp
-            '''.rstrip()))
+            c.it = c(attr="it")
+            c.rv = c(attr="rv")
+            c.di = c(attr="di")
+            c.ul = c(attr="ul")
+            c.so = c(attr="so")
+            c.hi = c(attr="hi")
+            if 0:
+                print(dedent(f'''
+                Text attributes (e.g., t('ornl', attr="ul"))
+                    ('hide' is to the right of 'dim')
+                    {f("no")}normal      no{c.n}       {f("bo")}bold        bo{c.n}
+                    {f("it")}italic      it{c.n}       {f("ul")}underline   ul{c.n}
+                    {f("bl")}blink       bl{c.n}       {f("rb")}rapidblink  rb{c.n}
+                    {f("rv")}reverse     rv{c.n}       {f("so")}strikeout   so{c.n}
+                    {f("di")}dim         di{c.n}       {f("hi")}hide         hi{c.n}
+                    sub{f("sb")}script   {c.n}sb       super{f("sp")}script {c.n}sp
+                '''.rstrip()))
+            else:
+                n = c.n
+                print(f"Text attributes:  no it bl rv di bo ul rb so hi sb sp")
+                print(f"  In WSL:  {c.it}it{n} {c.rv}rv{n} {c.di}di{n} {c.ul}ul{n} ", end="")
+                print(f"{c.so}so{n} \"{c.hi}hi{n}\"(hi, but it's hidden)")
+
         def ColorTable(bits):
             c = trm.Trm(default=2)
             width = int(os.environ["COLUMNS"])
@@ -2912,6 +2925,7 @@ if __name__ == "__main__":
             ShowShortNames(cmds[0])
         elif first_char == "w":  # Show wavelengths and RGB color specifier
             Wavelengths()
+
 def GetGist():
     gist = {}
     gist["gist"] = "Classes to help with color use in terminals"

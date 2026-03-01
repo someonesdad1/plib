@@ -90,12 +90,15 @@ if 1:  # Header
     if 1:   # Standard imports
         import re
     if 1:   # Custom imports
-        from wrap import dedent
-        from bidict import bidict
-        from roundoff import RoundOff
+        import wrap
+        import dptypes
+        import roundoff
+    if 1:   # Import symbols
+        dedent = wrap.dedent
+        Bidict = dptypes.Bidict
+        RoundOff = roundoff.RoundOff
     # Global variables
-    ii = isinstance
-    categories = bidict()
+    categories = Bidict()
     categories.update( {
             "": 0,
             "gas": 1,
@@ -189,13 +192,13 @@ if 1:   # Classes
             return instance
         def _check(self):
             "Check consistency"
-            assert ii(self.name, str) and self.name
-            if ii(self.range, tuple):
-                assert (ii(i, float) for i in self.range)
+            assert isinstance(self.name, str) and self.name
+            if isinstance(self.range, tuple):
+                assert (isinstance(i, float) for i in self.range)
             else:
                 assert self.range is None
-            assert ii(self.category, int) and self.category >= 0
-            assert ii(self.reference, str)
+            assert isinstance(self.category, int) and self.category >= 0
+            assert isinstance(self.reference, str)
         def __str__(self):
             "Print in form suitable for a sequence"
             s = f"{self.name!r},"
@@ -206,7 +209,7 @@ if 1:   # Classes
             return str(self)
         def __lt__(self, other):
             "Allow sorting by the density value"
-            assert ii(other, Density)
+            assert isinstance(other, Density)
             return self.get_rho() < other.get_rho()
         @property
         def ref3(self):

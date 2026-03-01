@@ -31,7 +31,7 @@ if 1:  # Header
     if 1:   # Custom imports
         from f import flt
         from wrap import dedent
-        from color import t
+        import trm
         from lwtest import Assert
         from dpprint import PP
         from util import Len
@@ -40,6 +40,7 @@ if 1:  # Header
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
+        t = trm.Trm()
         class G:
             pass
         g = G()
@@ -56,17 +57,16 @@ if 1:   # Utility
             g.daysheader.rotate(-1)
         GetScreen()
     def GetColors():
-        t.satsun = t.gryd
+        t.satsun = t.gryl
         t.satsun = t("#303030")
         t.satsun = t("#404040")
-        t.daynames = t.brnl
-        t.day1 = t.magl
+        t.daynames = t.brn
+        t.day1 = t.mag
         t.day = t.wht
         t.today = t("whtl", "blu")
         t.date = t.sky
-        t.err = t.redl
-        t.dbg = t.lill if g.dbg else ""
-        t.N = t.n if g.dbg else ""
+        t.err = t.red
+        t.dbg = t.lil
     def GetScreen():
         'Return (LINES, COLUMNS)'
         return (
@@ -77,7 +77,7 @@ if 1:   # Utility
         if g.dbg:
             print(f"{t.dbg}", end="")
             print(*p, **kw)
-            print(f"{t.N}", end="")
+            print(f"{t.n}", end="")
     def Warn(*msg, status=1):
         print(*msg, file=sys.stderr)
     def Error(*msg, status=1):

@@ -153,6 +153,7 @@ if 1:  # Header
         
             - ∞∞1 Strategic f.py changes:  remove any colorizing etc. and move
               formatting to fmt.py.  Remove c attribute. 
+            - ∞∞1 flt('hydrogen|helium|air') doesn't do anything (should be ValueError)
             - Use fmt.py for formatting
                 - Remove use of color.py stuff (let fmt.py handle this)
                     - This also means removing the c attribute
