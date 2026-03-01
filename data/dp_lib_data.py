@@ -845,7 +845,10 @@ if __name__ == "__main__":
     if 1:   # Standard imports
         import cmd
         import collections
+        import getopt
+        import os
         import readline
+        import sys
     if 1:   # Custom imports
         import trm
         import dptypes
@@ -960,5 +963,64 @@ if __name__ == "__main__":
             def do_q(self, arg):
                 'Quit the script'
                 exit(0)
+    if 1:  # Utility
+        def GetScreen():
+            "Return (LINES, COLUMNS)"
+            return (
+                int(os.environ.get("LINES", "50")),
+                int(os.environ.get("COLUMNS", "80")) - 1,
+            )
+        def GetColors():
+            t.dbg = "cyn"
+            t.err = "redl"
+        def Dbg(*p, **kw):
+            if g.dbg:
+                print(f"{t.dbg}", end="", file=Dbg.file)
+                k = kw.copy()
+                k["file"] = Dbg.file
+                print(*p, **k)
+                print(f"{t.n}", end="", file=Dbg.file)
+        Dbg.file = sys.stdout
+        def Error(*msg, status=1):
+            print(*msg, file=sys.stderr)
+            exit(status)
+        def Usage(status=1):
+            print(dedent(f'''
+            Usage:  {sys.argv[0]} [options] [num1 [num2 ...]]
+              List library snippets.
+            Options:
+              -i    Interactive browser
+            '''))
+            exit(status)
+        def ParseCommandLine(d):
+            d["-i"] = False  # Interactive browser
+            try:
+                opts, args = getopt.getopt(sys.argv[1:], "hi")
+            except getopt.GetoptError as e:
+                print(str(e))
+                exit(1)
+            for o, a in opts:
+                if o[1] in list("i"):
+                    d[o] = not d[o]
+                elif o == "-h":
+                    Usage(status=0)
+            GetColors()
+            with g:
+                g.W, g.L = GetScreen()
+            return args
+    d = {}  # Options dictionary
+    args = ParseCommandLine(d)
+    if d["-i"]:
         Browse().cmdloop()
-
+    else:
+        if args:
+            for i in args:
+                try:
+                    n = int(i)
+                    print(f"{t.orn}{n} {'-'*80}", file=sys.stderr)
+                    t.print(f"{g.di[n].gist}", file=sys.stderr)
+                    t.print(f"{g.di[n].code}")
+                except Exception:
+                    print(f"{i} isn't valid")
+        else:
+            DumpListing()
