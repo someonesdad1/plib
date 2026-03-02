@@ -2,7 +2,6 @@
 Calculate the parameters of a two-pulley and belt system
     See the associated pulley.pdf file for technical details.
 """
-
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2013 Don Peterson #∞copyright∞#
@@ -26,59 +25,50 @@ if 1:  # Custom imports
     from get import GetNumber
     from f import flt, cpx, sin, acos, sqrt, pi, Base
     import root
-
-    # from color import C
-    from color import t
+    import trm
+    t = trm.Trm()
     from lwtest import run, raises, assert_equal, Assert
 if 1:  # Global variables
     ii = isinstance
-
     class g:
         pass
-
     t.err = t("redl")
     t.calc = t("ornl")
     t.have = t("wht")
     t.answer = t("cynl")
     t.N = t.n
-
-
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
-
-
 def Usage(status=1):
     print(
         dedent(f"""
     This program lets you calculate the variables of a two pulley and belt
     system.  It will solve for the desired unknown amongst the four
     following variables:
-
+    
         C = center-to-center distance of the pulleys
         D = pitch diameter of large pulley
         d = pitch diameter of small pulley
         L = belt pitch length
-
+        
     The solution is given by the equations (see the pulley.pdf file)
-
+    
         θ = 2*acos((D - d)/(2*C))
         L = 2*C*sin(θ/2) + D/2*(2*π - θ) + d*θ/2
-
+        
     You will be prompted for each of these variables; don't enter anything
     for the variable you want calculated.  The variables must be in the
     same physical units of length.  The above equation for the belt length
     is exact, but it's a transcendental equation in d, D, and C, so 
     approximate equations are used when you want to solve for d, D, or C.
     These should be adequate for practical problems.
-
+    
     Calculations are given to {opts["-d"]} figures; you can change this with
     the -d option.
     """)
     )
     exit(status)
-
-
 def Fmt(num):
     "Get significant figure string and remove trailing zeros"
     s = str(num)
@@ -87,8 +77,6 @@ def Fmt(num):
     if s[-1] == ".":
         s = s[:-1]
     return s
-
-
 def PrintResults():
     v = opts["vars"]
     d, D, C, L = [v[i] for i in "dDCL"]
@@ -98,8 +86,6 @@ def PrintResults():
     print("  D =", Fmt(D))
     print("  d =", Fmt(d))
     print("  L =", Fmt(L))
-
-
 def ParseCommandLine(d):
     d["-d"] = 4  # Number of significant digits
     d["--test"] = False  # Run self tests
@@ -125,8 +111,6 @@ def ParseCommandLine(d):
     x.N = d["-d"]
     x.rtz = x.rtdp = False
     return args
-
-
 def Introduction():
     s = [
         f"""This script ({sys.argv[0]}) will calculate the unknown
@@ -140,19 +124,15 @@ def Introduction():
     for i, item in enumerate(s):
         print(wrap(item))
         print()
-
-
 def GetVariables():
     """Put a dict of the desired variables into opts["vars"].  The one to
     solve for will be None.
     """
-
     def Show(name, value, indent=" " * 2):
         if value is None:
             print(f"{indent}{t.calc}{name} will be calculated{t.N}")
         else:
             print(f"{indent}{t.have}{name} = {Fmt(value)}{t.N}")
-
     d, D, C, L = None, None, None, None
     GN = partial(GetNumber, numtype=flt, low=0, low_open=True, allow_none=True)
     if opts["--test"]:
@@ -187,8 +167,6 @@ def GetVariables():
         Show("Pulley center-to-center distance", C)
         Show("Length of belt", L)
     MakeVars(d, D, C, L)
-
-
 def MakeVars(d, D, C, L):
     if "vars" not in opts:
         opts["vars"] = {}
@@ -197,8 +175,6 @@ def MakeVars(d, D, C, L):
     v["D"] = D if D is None else flt(D)
     v["C"] = C if C is None else flt(C)
     v["L"] = L if L is None else flt(L)
-
-
 def TestSimplestCase():
     "d = D = C = 1 and L = π + 2"
     # L is unknown
@@ -221,8 +197,6 @@ def TestSimplestCase():
     MakeVars(d, D, None, pi + 2)
     Solve()
     Assert(opts["vars"]["C"] == 1)
-
-
 def TestPracticalCase():
     """Note the choice of numbers here just happened to work well with the
     approximate formulas.
@@ -245,8 +219,6 @@ def TestPracticalCase():
     MakeVars(d, D, None, L)
     Solve()
     assert_equal(v["C"], C, reltol=0.0035)
-
-
 def TestBorderlineCase():
     """This problem solves for C.  The solution for L = 32 - 0.03942 is
     5.5, exactly where the pulleys are touching.  Changing to 0.03943
@@ -261,31 +233,27 @@ def TestBorderlineCase():
     # Get exception if rounding is disabled
     with raises(ValueError):
         Solve(round=False)
-
-
 def Eqn(d=None, D=None, C=None, L=None):
     θ = 2 * acos((D / 2 - d / 2) / C)
     return 2 * C * sin(θ / 2) + D / 2 * (2 * pi - θ) + d * θ / 2
-
-
 def Solve(round=True):
     """The following python code using sympy generates the equations for
     the approximate solution as derived in pulley.pdf:
-
+    
         from sympy import *
         r, R, C, L = symbols("r R C L")
         E = pi*C*(R + r) + (R - r)**2 + 2*C**2 - L*C
         print("r =", solveset(E, r))
         print("R =", solveset(E, R))
         print("C =", solveset(E, C))
-
+        
     The resulting equations are
-
+    
         r = -pi*C/2 + R ± sqrt(C*(-8*C + pi**2*C + 4*L - 8*pi*R))/2
         R = -pi*C/2 + r ± sqrt(C*(-8*C + pi**2*C + 4*L - 8*pi*r))/2
         C = (L/4 - pi*R/4 - pi*r/4 ± sqrt(L**2 - 2*pi*L*R - 2*pi*L*r - 8*R**2
              + pi**2*R**2 + 16*R*r + 2*pi**2*R*r - 8*r**2 + pi**2*r**2)/4)
-
+             
     If round is True, then the solution for C is rounded off.  This lets
     practical problems be solved, , but the constraint of C > R + r might
     not be quite satisfied sometimes.
@@ -369,11 +337,8 @@ def Solve(round=True):
         opts["vars"]["L"] = 2 * C * sin(θ / 2) + R * (2 * pi - θ) + r * θ
     else:
         raise RuntimeError("No variables were None")
-
-
 # ----------------------------------------------------------------------
 # These examples give you a feel for the problem.
-
 if 0:
     """This problem solves for C.  The solution for L = 32 - 0.03942 is
     5.5, exactly where the pulleys are touching.  Changing to 0.03943

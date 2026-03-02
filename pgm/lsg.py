@@ -143,7 +143,8 @@ if 1:  # Standard imports
     from collections import defaultdict
 if 1:  # Custom imports
     from wrap import wrap, dedent
-    from color import TRM as t
+    import trm
+    t = trm.Trm()
     from columnize import Columnize
     from wsl import wsl  # wsl is True if we're running under WSL
     from dpprint import PP

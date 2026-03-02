@@ -1,28 +1,22 @@
 "Dimensions of sockets in shop"
-
 # Copyright (C) 2020 Don Peterson
 # Contact:  gmail.com@someonesdad1
 # Licensed under the Open Software License version 3.0.
 # See http://opensource.org/licenses/OSL-3.0.
-
 if 1:  # Imports & globals
     import getopt
     import os
     import sys
     from columnize import Columnize
-    from color import t
-
+    import trm
+    t = trm.Trm()
     w = t("wht")  # White
     h = t("ornl")  # Highlight color
 else:
     w = h = ""
-
-
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
-
-
 def Regular():
     print(
         """
@@ -45,7 +39,7 @@ Snap-On  Standard         Deep     | Mac Std    Sunex Univ dp | Craftsman dp
 1      @1.307 1.373                | 18  0.987     0.981      | L = 2.5
                                    | 19  1.014     1.060      |
                                    |  L = 1.1                 |
-
+                                   
               {h}1/4 square drive sockets{w}
 Snap-On  Standard        Deep      | Craftsman Std   | Snap-On deep
           D    L       D     L     | mm    D    L    |   D    L
@@ -67,8 +61,6 @@ Snap-On  Standard        Deep      | Craftsman Std   | Snap-On deep
 @ = Challenger
 """[1:-1].format(**globals())
     )
-
-
 def Big():
     print(
         """
@@ -117,8 +109,6 @@ Neiko metric deep impact socket diameters, L = 3.06
 
 """[1:-1].format(**globals())
     )
-
-
 sockets = {
     # Dia  Size   Brand    Type  Drive
     (664, "1/4", "SO", "std", "3/8"),
@@ -272,15 +262,13 @@ sockets = {
     (2505, "48", "HF", "std", "3/4"),
     (2644, "50", "HF", "std", "3/4"),
 }
-
-
 def Usage(d, status=1):
     name = sys.argv[0]
     s = f"""
 Usage:  {name} [options] [dia1 [dia2 ...]]
   Show on-hand sockets that are close to the indicated diameter(s) in
   inches.  If no diameters are given, print a list of all sockets.
-
+  
 Options:
     -h      Print a manpage
     -m      Use mm for diameters
@@ -289,8 +277,6 @@ Options:
 """[1:-1]
     print(s)
     exit(status)
-
-
 def ParseCommandLine(d):
     d["-m"] = False  # Use mm
     d["-t"] = 5  # Tolerance in %
@@ -313,8 +299,6 @@ def ParseCommandLine(d):
         elif o == "-h":
             Usage(d, status=0)
     return args
-
-
 def Table():
     print("Diameter in ", end="")
     if d["-m"]:
@@ -329,8 +313,6 @@ def Table():
             print(f"    {D / 1000:5.3f}     {sz:8s} {mfg:^6s} {type:10s} {drive:4s}")
     Mfg()
     ShortTable()
-
-
 def ShortTable():
     diameters = """
         429 434 447 448 449 452 473 474 476 477 478 479 494 495 501 539
@@ -351,8 +333,6 @@ def ShortTable():
         [f"{i / 1000 * 25.4:.1f}" for i in mils], indent=" " * 4, col_width=6
     ):
         print(line)
-
-
 def Mfg():
     print(
         """
@@ -366,16 +346,12 @@ Manufacturers:
     SU      Sunex
 """.strip()
     )
-
-
 def Search(args):
     print(f"Tolerance = {d['-t']}%")
     for size in args:
         # Get diameter in mils
         D_mils = int(1000 * float(size) * 25.4 if d["-m"] else 1000 * float(size))
         Find(D_mils, size)
-
-
 def Find(D_mils, size):
     low = (1 - d["-t"] / 100) * D_mils
     high = (1 + d["-t"] / 100) * D_mils
@@ -391,8 +367,6 @@ def Find(D_mils, size):
             print(size, "inches")
         for D, sz, mfg, type, drive in sorted(found):
             print(f"    {D / 1000:5.3f} {sz:8s} {mfg:2s} {type:4s} {drive:4s}")
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

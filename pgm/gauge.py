@@ -60,7 +60,8 @@ if 1:  # Header
         from lwtest import Assert
         from wrap import dedent
         from f import flt
-        from color import t
+        import trm
+        t = trm.Trm()
         from columnize import Columnize
         from gauge_sizes import gauges
         from u import u, ParseUnit

@@ -22,13 +22,11 @@ if 1:  # Imports
     import subprocess
 if 1:  # Custom imports
     from wrap import dedent
-    from color import t
+    import trm
+    t = trm.Trm()
     from wsl import wsl
     import util
-
     t.e = t("ornl")
-
-
 def PrintData():
     print(
         f"""
@@ -82,8 +80,6 @@ Include a command line argument to see lithium coin cell data.  Use aa, aaa,
 etc. to see common battery PDF datasheets.  Use -t to see how to test capacity.
     """[1:].rstrip()
     )
-
-
 def PrintHearingAid():
     print(
         f"""
@@ -97,8 +93,6 @@ Hearing aid batteries (typically Zinc-Air (ZnO2) 1.4 V)         Tab color
     5.8 mm = 0.228", 7.9 mm = 0.311", 11.6 mm = 0.457"
     """[1:].rstrip()
     )
-
-
 def PrintLithium():
     print(
         dedent(f"""
@@ -141,13 +135,9 @@ def PrintLithium():
         if "CR2032" in name or "CR2025" in name:
             print(f"{t.n}", end="")
         print()
-
-
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
-
-
 def Usage(d, status=1):
     print(
         dedent(f"""
@@ -162,8 +152,6 @@ def Usage(d, status=1):
     """)
     )
     exit(status)
-
-
 def ParseCommandLine(d):
     d["-t"] = False  # Show how to test
     try:
@@ -180,8 +168,6 @@ def ParseCommandLine(d):
         TestData()
         exit(0)
     return args
-
-
 def Open(cmd):
     "cmd is one of aa, aaa, c, d, or 9.  Open the relevant Duracell datasheet."
     if 0:
@@ -197,8 +183,6 @@ def Open(cmd):
             st = "d:/cygwin64/bin/cygstart.exe"
     file = f"{pth}/Duracell_{cmd.upper()}_alkaline.pdf"
     util.ShowFile(file)
-
-
 def TestData():
     print(
         dedent(f"""
@@ -218,8 +202,6 @@ def TestData():
     use them.
     """)
     )
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

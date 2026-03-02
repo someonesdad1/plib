@@ -3,9 +3,8 @@ Display python files without header information
 
     The default behavior is to search for lines with "#∞x∞#" were x is one of the keywords
     copyright, contact, category, license, what, and test.
-
+    
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -29,24 +28,20 @@ if 1:  # Header
         import subprocess
         import sys
     if 1:  # Custom imports
-        from color import t
+        import trm
+        t = trm.Trm()
         from dpprint import PP
-
         pp = PP()  # Screen width aware form of pprint.pprint
         from get import GetLines
         from wrap import dedent
         from wsl import wsl  # wsl is True when running under WSL Linux
         from lwtest import Assert
-
         if 1:
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
-
         class G:  # Storage for global variables as attributes
             pass
-
         g = G()
         g.dbg = False
         # Collect file/directory data from command line
@@ -55,20 +50,17 @@ if 1:  # Header
         g.have_not = []  # Do not have any #∞...∞# lines
         ii = isinstance
 if 1:  # Utility
-
     def GetScreen():
         "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
             int(os.environ.get("COLUMNS", "80")) - 1,
         )
-
     def GetColors():
         t.dbg = t("cyn") if g.dbg else ""
         t.N = t.n if g.dbg else ""
         t.err = t("ornl")
         t.ok = t("grnl")
-
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="", file=Dbg.file)
@@ -76,13 +68,10 @@ if 1:  # Utility
             k["file"] = Dbg.file
             print(*p, **k)
             print(f"{t.N}", end="", file=Dbg.file)
-
     Dbg.file = sys.stdout
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=0):
         print(
             dedent(f"""
@@ -95,7 +84,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-r"] = False  # Recursively search for python scripts
         d["-v"] = False  # Print files in good shape
@@ -114,10 +102,7 @@ if 1:  # Utility
         GetColors()
         g.W, g.L = GetScreen()
         return args
-
-
 if 1:  # Classes
-
     class File:
         def __init__(self, file, lines):
             self.file = file
@@ -149,13 +134,10 @@ if 1:  # Classes
                     self.category += 1
                 else:
                     Error(f"{line!r} not recognized")
-
         def get_errors(self):
             "Return string of attributes that are incorrect"
-
             def Strip(s):
                 return s.replace("#∞", "").replace("∞#", "")
-
             errors = []
             if not self.copyright:
                 errors.append(Strip("#∞copyright∞#"))
@@ -170,26 +152,20 @@ if 1:  # Classes
             elif not self.category:
                 errors.append(Strip("#∞category∞#"))
             return ",".join(errors)
-
         def ok(self):
             errors = self.get_errors()
             return not bool(errors)
-
         def dump_no_errors(self):
             "Print filename if the #∞...∞# attributes are ok"
             errors = self.get_errors()
             if not errors:
                 t.print(f"{t.ok}{self.file}")
-
         def dump_errors(self, width):
             "Print the errors"
             errors = self.get_errors()
             if errors:
                 print(f"{t.err}{self.file:{width}s}{t.n} {errors}")
-
-
 if 1:  # Core functionality
-
     def Process(file):
         p = P(file)
         if p.is_dir():
@@ -220,7 +196,6 @@ if 1:  # Core functionality
             else:
                 # File had no #∞...∞# lines
                 g.have_not.append(file)
-
     def Report():
         if d["-v"]:
             # Print files that are OK
@@ -230,14 +205,11 @@ if 1:  # Core functionality
             # Print files missing #∞...∞# lines.
             # Get maximum width.
             o = []
-
             have = [i for i in have if i]  # Remove empty
             w = max(len(str(i.file)) for i in have)
             for f in have:
                 errors = f.get_errors()
                 print(f"{t.err}{str(f.file):{w}s}{t.n} {errors}")
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

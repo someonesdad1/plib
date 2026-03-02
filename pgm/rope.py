@@ -6,12 +6,11 @@ ToDo:
       klb, so mean is about 15% more than minimum.  Assuming a normal
       distribution with the minimum being minus three standard deviations,
       this means the standard deviation of the strength is about 5%.
-
+      
 ---------------------------------------------------------------------------
 
 Print rope data
 """
-
 ##∞test∞# notest #∞test∞#
 if 1:  # Header
     # Standard imports
@@ -19,17 +18,15 @@ if 1:  # Header
     import sys
     from fractions import Fraction
     from pprint import pprint as pp
-
     # Custom imports
     from wrap import dedent
     from f import flt
     from get import GetFraction
-    from color import TRM as t
+    import trm
+    t = trm.Trm()
     from fraction import FormatFraction
-
     if 1:
         import debug
-
         debug.SetDebugger()
     # Global variables
     t.title = t("trq")
@@ -37,18 +34,14 @@ if 1:  # Header
     t.d38 = t("yell")
     t.d5 = t("magl")
     t.d75 = t("ornl")
-
     class G:
         pass
-
     g = G()
     g.mm_to_frac = {}
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
             dedent(f"""
@@ -63,7 +56,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = False  # Print all sizes
         d["-d"] = 3  # Number of digits in numbers
@@ -88,10 +80,7 @@ if 1:  # Utility
             elif o == "-h":
                 Usage(status=0)
         return args
-
-
 if 1:  # Samson data
-
     def GetSamsonData():
         """Return a list of
         (
@@ -138,7 +127,6 @@ if 1:  # Samson data
             strength_min_N.append(flt(round(float(i) * c, 0)))
         data = list(zip(dia_mm, g_per_m, strength_avg_N, strength_min_N))
         return data
-
     def PrintSamsonTableMetric(data, all=False):
         """data is a list of (dia_mm, g_per_m, strength_avg_N,
         strength_min_N) entries.
@@ -192,13 +180,12 @@ if 1:  # Samson data
                 )
         print(
             dedent("""
-
+            
             Minimum strength is about 15% below average.  If strength is
             assumed to be a normal distribution and the minimum is 3σ below 
             the mean, then the standard deviation is about 5% of the mean.
         """)
         )
-
     def PrintSamsonTablePounds(data, all=False):
         """data is a list of (dia_mm, g_per_m, strength_avg_N,
         strength_min_N) entries.
@@ -253,10 +240,7 @@ if 1:  # Samson data
                     f"{strength_avg_klbf!s:^{w[3]}s} "
                     f"{lb_per_100_ft!s:^{w[4]}s}"
                 )
-
-
 if 1:  # Generic data
-
     def GetGenericData():
         # From U.S. Naval Institute and Wall Rope Works, Inc., NY
         # Breaking strength in klb
@@ -280,7 +264,6 @@ if 1:  # Generic data
             item[0] = Fraction(item[0]).limit_denominator(16)
             data.append(item)
         return data
-
     def PrintGenericTable(data):
         """This information was online at one time, but I cannot find a
         link for it anymore.  Wall Rope Works apparently has been defunct
@@ -345,7 +328,6 @@ if 1:  # Generic data
                         for i, x in enumerate(out):
                             print(f"{x:^{w}s}", end=" " * 2)
                         print()
-
     def ChainData():
         """
         https://www.uscargocontrol.com/blogs/blog/working-load-limits-chain
@@ -378,7 +360,7 @@ if 1:  # Generic data
                 )
         print(
             dedent("""
-
+            
         Grade 30:  economical, light duty
         Grade 43:  towing & logging duty
         Grade 80:  Heat-treated alloy chain for lifting
@@ -400,7 +382,6 @@ if 1:  # Generic data
                     f"{flt(i[3]) * lbf_to_kN!s:^{w}s} "
                     f"{flt(i[4]) * lbf_to_kN!s:^{w}s}"
                 )
-
     def PlotData():
         """Fields are:
             Dia, inches
@@ -453,7 +434,6 @@ if 1:  # Generic data
         from numpy import array
         from pylab import plot, show, grid, legend, clf
         from pylab import title, xlabel, ylabel, savefig
-
         dia = array(dia)
         manila = array(manila)
         sisal = array(sisal)
@@ -497,7 +477,6 @@ if 1:  # Generic data
             show()
         else:
             savefig("rope_str_rel_nylon.png")
-
     def PrintTypeTable():
         """These data came from
         https://atlanticbraids.com/double-braid-versus-3-strand-twisted-rope/
@@ -514,7 +493,6 @@ if 1:  # Generic data
             2"          {flt(118 / 81.4)!s:{w}s}            {flt(106 / 48.6)!s:{w}s}
         """)
         )
-
     def Notes():
         print(
             dedent(f"""
@@ -527,8 +505,6 @@ if 1:  # Generic data
               better, don't use it).
         """)
         )
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

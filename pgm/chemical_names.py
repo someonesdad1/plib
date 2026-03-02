@@ -33,26 +33,22 @@ if 1:  # Header
         import string
         import sys
     if 1:  # Custom imports
-        from color import t
+        import trm
+        t = trm.Trm()
         from get import GetLines
         from wrap import dedent
         from lwtest import Assert
         from dpprint import PP
-
         pp = PP()  # Screen width aware form of pprint.pprint
         from wsl import wsl  # wsl is True when running under WSL Linux
-
         if 0:
             import debug
-
             debug.SetDebugger()
         # from columnize import Columnize
     if 1:  # Global variables
-
         class G:
             # Storage for global variables as attributes
             pass
-
         g = G()
         g.dbg = False
         g.dbg = True
@@ -65,7 +61,6 @@ if 1:  # Header
         g.sub = dict(zip(g.digits, g.subscripts))
         # Search results
         g.results = []
-
 if 1:  # Data
     g.data = (
         ("Old name", "Chemical name", "Formula"),
@@ -797,17 +792,14 @@ if 1:  # Data
         ("Zinc white", "Zinc oxide", "ZnO"),
     )
 if 1:  # Utility
-
     def GetScreen():
         "Put env LINES into g.L and env COLUMNS into g.W"
         g.L = int(os.environ.get("LINES", "50"))
         g.W = int(os.environ.get("COLUMNS", "80")) - 1
-
     def GetColors():
         t.dbg = t("cyn") if g.dbg else ""
         t.N = t.n if g.dbg else ""
         t.err = t("redl")
-
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="", file=Dbg.file)
@@ -815,13 +807,10 @@ if 1:  # Utility
             k["file"] = Dbg.file
             print(*p, **k)
             print(f"{t.N}", end="", file=Dbg.file)
-
     Dbg.file = sys.stdout
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
             dedent(f"""
@@ -844,7 +833,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["all"] = True
         d["-1"] = False  # Search old name
@@ -876,10 +864,7 @@ if 1:  # Utility
             d["-2"] = True
             d["-3"] = True
         return args
-
-
 if 1:  # Core functionality
-
     def Search(regex):
         flags = re.I if d["-i"] else 0
         # r = re.compile(regex, flags)
@@ -923,10 +908,8 @@ if 1:  # Core functionality
                     found = s in formula
                 if found:
                     g.results.append(item)
-
     def Dump():
         Report(g.data)
-
     def Report(results):
         # Set up column widths
         def Trunc(string, width, sep):
@@ -939,7 +922,6 @@ if 1:  # Core functionality
                 string += " "
             assert len(string) == width - L
             return string
-
         sep = " "
         p0, p2 = 15, 20  # Percentages of total width
         w0 = int(g.W * p0 / 100)
@@ -957,8 +939,6 @@ if 1:  # Core functionality
             s1 = Trunc(new, w1, sep)
             s2 = Trunc(formula, w2, sep).rstrip()
             print(f"{s0}{sep}{s1}{sep}{s2}")
-
-
 if 0:
     # Print the widths of each column
     c1, c2, c3 = set(), set(), set()
@@ -983,15 +963,15 @@ if 0:
         the actual formulas) to a Unicode form that use the Unicode
         subscripts to make the formulas look like traditional chemical
         formulas.
-
+        
         Characters in the formulas are:
         ()*+,-./0123456789<=?ABCFHKMNOPRSTUWXZ[]abcdeghilmnoprstuwxy·
-
+        
         * in DDT and ethylene dichloride:  reset to char True
         + surrounded by spaces, so identity xfm
         Reset: spc , + - . / < = ? ·
         [ ] Same behavior as ( ), but different state variable needed
-
+        
         Leading 2 in lead carbonate needs to be kept as plain 2
         """
         digits = set(string.digits)
@@ -1015,7 +995,6 @@ if 0:
                 digit = False
             elif c in digits:
                 digit = True
-
     # Get TranslateFormula working
     w = 30
     c = set()

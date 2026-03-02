@@ -24,7 +24,9 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         from wrap import wrap, dedent
-        from color import Color, TRM as t
+        from color import Color
+        import trm
+        t = trm.Trm()
         from get import GetTokens
     if 1:  # Global variables
         ii = isinstance

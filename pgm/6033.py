@@ -23,7 +23,8 @@ if 1:  # Header
         from get import GetNumber
         from f import flt
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
         from lwtest import Assert
         from dpprint import PP
         pp = PP()   # Get pprint with current screen width

@@ -12,10 +12,9 @@ oo>
 <oo todo
 
     - List of todo items here
-
+    
 oo>
 '''
- 
 if 1:  # Header
     if 1:   # Standard imports
         from collections import deque
@@ -27,7 +26,8 @@ if 1:  # Header
     if 1:   # Custom imports
         from f import flt
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
         from lwtest import Assert
         from dpprint import PP
         import termtables as tt
@@ -121,7 +121,6 @@ if 1:   # Core functionality
             R_mohm = str(flt(drop_mV)/flt(A))
             o.append([f"{id}", f"{mfg}", f"{A}", f"{drop_mV}", f"{R_mohm}"])
         tt.print(o, style=" "*15, alignment="lcrrr")
-
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)

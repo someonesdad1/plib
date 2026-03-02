@@ -6,7 +6,8 @@ if 1:   # Header
     import platform
     import multiprocessing as mp
     import sys
-    from color import t
+    import trm
+    t = trm.Trm()
     from textwrap import wrap
     from wrap import dedent
     t.hl = t.grnl

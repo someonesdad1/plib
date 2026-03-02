@@ -4,9 +4,8 @@ Run a script when it changes
     This script helps development of a script by letting you edit the
     script in one window and see the change in the output when you save the
     script.  Run the script with the -h option to see some examples.
-
+    
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -31,19 +30,17 @@ if 1:  # Header
         import sys
         import time
     if 1:  # Custom imports
-        from color import t
+        import trm
+        t = trm.Trm()
         from get import GetLines
         from wrap import dedent
         from dpprint import PP
-
         pp = PP()  # Screen width aware form of pprint.pprint
         from wsl import wsl  # wsl is True when running under WSL Linux
     if 1:  # Global variables
-
         class G:
             # Storage for global variables as attributes
             pass
-
         g = G()
         g.dbg = False
         g.dbg = True
@@ -51,14 +48,12 @@ if 1:  # Header
         g.count = 0  # Count number of times script is run
         ii = isinstance
 if 1:  # Utility
-
     def GetScreen():
         "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
             int(os.environ.get("COLUMNS", "80")) - 1,
         )
-
     def GetColors():
         t.dbg = t("cyn") if g.dbg else ""
         t.N = t.n if g.dbg else ""
@@ -67,7 +62,6 @@ if 1:  # Utility
         t.pid = t("redl")
         t.cmdline = t("purl")
         g.L, g.C = GetScreen()
-
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="", file=Dbg.file)
@@ -75,22 +69,19 @@ if 1:  # Utility
             k["file"] = Dbg.file
             print(*p, **k)
             print(f"{t.N}", end="", file=Dbg.file)
-
     Dbg.file = sys.stdout
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Manpage():
         print(
             dedent(f"""
-
+            
         This script is handy when developing scripts.  I use it most of the
         time for developing python scripts, but it should work for many
         development tasks, as long as you're on a UNIX-type system like
         cygwin, Linux, or Mac.  Here's how I use this script:
-
+        
             I use a portrait monitor to run my editor.  I normally run this
             with 100 to 130 lines so I can see a goodly amount of code in a
             window.  In the landscape monitor I have two side-by-side
@@ -100,11 +91,10 @@ if 1:  # Utility
             script being developed and save it, it is run in the other
             window.  The core feature is that I don't have to move my mouse
             cursor to the other window and execute a command.
-
+            
         """)
         )
         exit(status)
-
     def Usage(status=1):
         print(
             dedent(f"""
@@ -127,7 +117,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-c"] = False  # Clear the screen when script runs
         d["-f"] = ""  # Script to monitor mtime
@@ -154,21 +143,16 @@ if 1:  # Utility
         if not d["-f"].exists():
             Error(f"File {d['-f']!r} doesn't exist")
         return args
-
-
 if 1:  # Core functionality
-
     def Date():
         cmd = P("/plib/pgm/current_date.py")
         assert cmd.exists(), f"{str(cmd)!r} doesn't exist"
         cmd = [P("/plib/pgm/current_date.py"), "0"]
         subprocess.run(cmd)
-
     def Clear():
         if not d["-c"]:
             return
         subprocess.run("clear", shell=True)
-
     def Run(cmdline, start_time):
         runtime = time.time() - start_time
         if runtime < 60:
@@ -193,7 +177,6 @@ if 1:  # Core functionality
                 Date()
                 print()
         subprocess.run(cmdline, shell=True)
-
     def ExecuteScript(cmdline):
         """The cmdline is the single string the user typed on the command
         line.  It can contain '$p' for python or '$a' for gawk.  The first
@@ -226,8 +209,6 @@ if 1:  # Core functionality
             # failure occurs (by binary search) for sleep times less than
             # around 100 ms or so.  Half a second seems reasonable.
             time.sleep(0.5)
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

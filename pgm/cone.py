@@ -23,7 +23,8 @@ if 1:  # Custom imports
     from wrap import dedent, wrap
     from get import GetNumber as GN
     from f import flt, pi, sin, atan, degrees, radians
-    from color import C
+    import trm
+    C = trm.Trm()
 if __name__ == "__main__":
     dbg = False
     if dbg:

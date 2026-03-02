@@ -31,7 +31,8 @@ if 1:  # Header
         from wrap import dedent
         from f import flt
         from columnize import Columnize
-        from color import t
+        import trm
+        t = trm.Trm()
         from months import months
     if 1:  # Global variables
         # The needed inflation information is in the CPI dictionary, which maps integer

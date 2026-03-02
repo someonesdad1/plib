@@ -1,7 +1,6 @@
 """
 Scramble the letters of the words in text
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -26,14 +25,14 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         from wrap import wrap, dedent
-        from color import Color, TRM as t
+        from color import Color
+        import trm
+        t = trm.Trm()
         from asciify import Asciify
         from dpstr import Scramble
         import ruler
-
         if 0:
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
         ii = isinstance
@@ -41,11 +40,9 @@ if 1:  # Header
         L = int(os.environ.get("LINES", "50"))
         punctuation = set(string.punctuation + " ")
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
             dedent(f"""
@@ -60,7 +57,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = False  # ASCIIfy the input file(s)
         d["-f"] = False  # Leave first and last letters alone
@@ -80,17 +76,12 @@ if 1:  # Utility
         if not files:
             Usage()
         return files
-
-
 if 1:  # Core functionality
-
     def ProcessFile(file):
         s = sys.stdin.read() if file == "-" else open(file).read()
         if d["-a"]:
             s = Asciify(s)
         print(Scramble(s, start_end_const=d["-f"]))
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     files = ParseCommandLine(d)

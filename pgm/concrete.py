@@ -34,7 +34,8 @@ if 1:  # Header
         from f import flt, pi, acos, sqrt
         from get import GetNumber
         from u import ParseUnit, ParseUnitString
-        from color import t
+        import trm
+        t = trm.Trm()
     if 1:  # Global variables
         # Constants
         m3_per_ft3 = flt(0.0283168)

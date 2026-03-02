@@ -29,9 +29,8 @@ if 1:  # Header
     if 1:  # Custom imports
         from dpprint import PP
         pp = PP()
-        #from color import t
         import trm
-        t = trm.Trm(default=2)
+        t = trm.Trm()
         import u
         from f import flt
         import julian

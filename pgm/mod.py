@@ -52,7 +52,8 @@ if 1:  # Header
         import re
     if 1:  # Custom imports
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
         from u import u
         from f import flt
         from dpprint import PP

@@ -29,7 +29,8 @@ if 1:  # Header
     if 1:  # Custom imports
         import timer
         from f import flt
-        from color import t
+        import trm
+        t = trm.Trm()
         from lwtest import Assert
         from u import u, ParseUnit
         from dpprint import PP

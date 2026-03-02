@@ -24,7 +24,8 @@ if 1:  # Header
         import sys
     if 1:   # Custom imports
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
         import termtables as tt
         if 0:
             import debug

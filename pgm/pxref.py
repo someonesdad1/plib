@@ -1,10 +1,9 @@
 """
 TODO
     - Update names to 3.9 or 3.10.
-
+    
 Index tokens in python files and spell check them
 """
-
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
@@ -32,12 +31,11 @@ if 1:  # Imports
 if 1:  # Custom imports
     from wrap import dedent
     from columnize import Columnize
-    from color import C
+    import trm
+    t = trm.Trm()
     from f import flt
-
     if 0:
         import debug
-
         debug.SetDebugger()
 if 1:  # Global variables
     P = pathlib.Path
@@ -92,7 +90,7 @@ if 1:  # Global variables
     # possible token names that don't conform to my typical usage.
     allowed_words = set(
         """
-
+        
         a aberration above abs abscissas absdiff absolute abspath abstol
         abstract acos acosh acquire across actual add addition adjust
         affine air algorithm align alignment all allow allowance allowed
@@ -281,20 +279,18 @@ if 1:  # Global variables
         xkcd xlabel xlast xlim xref xticks xx y yaml ybar year years yellow
         yhat yield ylabel ylim yticks z zero zeros zeta zfill zip zipcode
         zipfile zlib
-
+        
         spelled
-
+        
     """.split()
     )  # End of allowed_words
-
-
 def GetLatestSymbols():
     '''This function replaces the global variables
     special_identifiers, keywords, and functions with the sets gotten from the
     python 3.9.6 documentation at https://docs.python.org/3/py-modindex.html,
     downloaded 21 Jul 2021 10:18:55 AM.  The main documentation was selected,
     then the page for "_" was chosen and put into a string s.
-
+    
     Here's the code that generated the list for special identifiers from s:
         for i in s.strip().split("\n"):
             i = i.strip()
@@ -304,10 +300,10 @@ def GetLatestSymbols():
                     if j.endswith("()"):
                         j = j[:-2]
                     print(j)
-
+                    
     The only changes between 3.7.4 and 3.9.6 were the additions of
     __unraisablehook__, __parameters__, __origin__, and __args__.
-
+    
     Here's the code that showed this:
         # Show differences between python 3.7 and 3.9
         si7 = special_identifiers
@@ -373,13 +369,9 @@ def GetLatestSymbols():
         property range repr reversed round set setattr slice sorted
         staticmethod str sum super tuple type vars zip""".split()
     )
-
-
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
-
-
 def Usage(status=1):
     print(
         dedent(f"""
@@ -404,8 +396,6 @@ def Usage(status=1):
     """)
     )
     exit(status)
-
-
 def Manpage():
     print(
         dedent(
@@ -426,7 +416,7 @@ def Manpage():
     words.  When a misspelled composite token is indicated, use the -S
     option to highlight the word portion of that token that is considered
     misspelled.
-
+    
         A use case for this script is to monitor naming of symbols in a
         programming project.  On some of the projects I've worked on, we
         had the policy that all tokens needed to be correctly-spelled
@@ -435,18 +425,16 @@ def Manpage():
         abbreviated words in token names could be confusing to them.  
         A thoughtfully-chosen and correctly-spelled name helped document
         the code with little extra work.
-
+        
     The -d option lets you specify files containing correctly spelled
     words.  Empty lines and lines beginning with '#' are ignored.  Note
     that all words are converted to lowercase, so case is unimportant for
     spell checking.
-
+    
     """.rstrip()
         )
     )
     exit(0)
-
-
 def ParseCommandLine():
     d["-c"] = False  # Sorted by number of occurrences
     d["-D"] = False  # Don't use default set of words
@@ -496,8 +484,6 @@ def ParseCommandLine():
                 Error(f"Dictionary file '{i}' doesn't exist")
     args = FoldSort(args)  # Sort input files in dictionary order
     return args
-
-
 def GetNameTokens(file):
     """Generator that returns (name, linenum) tuples of tokens for a
     python source code file.
@@ -528,15 +514,11 @@ def GetNameTokens(file):
               {e}""")
             )
             exit(1)
-
-
 def ProcessFile(filenum, file):
     for name, linenum in GetNameTokens(file):
         if max([ord(i) for i in name]) > 127:
             d["non-ascii"].add(name)
         d["tokens"][name].append((filenum, linenum))
-
-
 def GetWords(file):
     """Read in the words from the indicated file (words are separated
     by spaces and newlines) and return the set of the words converted
@@ -549,8 +531,6 @@ def GetWords(file):
                 continue
             words.update([i.lower() for i in line.split()])
     return words
-
-
 def GetDictionary():
     """Read in the indicated dictionaries and convert each item to
     lower case.  The resulting dictionary will be a set in
@@ -561,8 +541,6 @@ def GetDictionary():
         D.update(allowed_words)  # Default set of words
     for file in d["-d"]:
         D.update(GetWords(file))
-
-
 def TokenSplit(token):
     """Return a list of the token's elements split at underscores or
     capital letters.
@@ -574,11 +552,7 @@ def TokenSplit(token):
             o.append(" ")
         o.append(c if c != "_" else " ")
     return [i.lower() for i in "".join(o).split()]
-
-
 TokenSplit.s = set("_ABCDEFGHIJKLMNOPQURSTUVWXYZ")
-
-
 def SpelledOK(token):
     """Return True if the string token is spelled properly.  If one or
     more underscores are present, then name is split into subtokens by
@@ -602,8 +576,6 @@ def SpelledOK(token):
                 print(f"{C.lmag}{word}{C.norm}")
             return False
     return True
-
-
 def SpellCheck():
     """Remove any items in d["tokens"] that are spelled correctly."""
     GetDictionary()
@@ -613,8 +585,6 @@ def SpellCheck():
             remove.append(name)
     for name in remove:
         del d["tokens"][name]
-
-
 def CalculateStatistics():
     stats, T = {}, d["tokens"]
     # T is {"tokname": [(filenum, line), (filenum, line), ...], etc.}
@@ -639,8 +609,6 @@ def CalculateStatistics():
             oneref.append(name)
     stats["one_ref"] = oneref
     d["stats"] = stats
-
-
 def PrintReport():
     if d["-T"]:  # Print tokens in columns
         for name in FoldSort(d["tokens"].keys()):
@@ -704,8 +672,6 @@ def PrintReport():
         )
         for i in FoldSort(d["non-ascii"]):
             print(f"    {i}", file=sys.stderr)
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     d["files"] = ParseCommandLine()

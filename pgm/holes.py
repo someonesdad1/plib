@@ -27,7 +27,8 @@ if 1:  # Header
         #from sig import sig
         from f import flt
         import termtables as tt
-        from color import t
+        import trm
+        t = trm.Trm()
         try:
             # This option library can generate a PostScript plot of the layout
             from g import *

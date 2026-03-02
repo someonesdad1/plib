@@ -27,7 +27,9 @@ if 1:  # Header
     if 1:   # Custom imports
         import get
         from wrap import dedent
-        from color import t, RegexpDecorate
+        from dpstr import RegexpDecorate
+        import trm
+        t = trm.Trm()
         if 0:
             import debug
             debug.SetDebugger()

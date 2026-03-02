@@ -38,7 +38,8 @@ if 1:  # Header
         from math import log as ln, exp, ceil
         from frange import frange
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
         from lwtest import Assert
         from scipy.interpolate import interp1d
         from dpprint import PP

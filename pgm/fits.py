@@ -30,12 +30,11 @@ if 1:  # Header
         from wrap import dedent
         from f import flt
         from u import u, ParseUnit
-        from color import t
+        import trm
+        t = trm.Trm()
     if 1:  # Global variables
-
         class G:
             pass
-
         in2mm = u("inches") / u("mm")
         # Colors
         t.int = t("redl")
@@ -45,7 +44,6 @@ if 1:  # Header
         t.matl = t("ornl")
         t.meth = t("purl")
 if 1:  # Utility
-
     def Manpage():
         print(
             dedent(
@@ -99,19 +97,19 @@ if 1:  # Utility
             D = d - (m*d + c) = d*(1 - m) - c
  
         Temperature differential for shrink fit
-
+        
             The table after Walshaw's method gives the temperature needed to get a shrink fit as
             given in the tables for different materials.  These are calculated based on the thermal
             coefficient of expansion and it's assumed the expansion is linear.  You'll probably
             want to add 5 or 10 degrees to make sure things fit.
-
+            
             Check:  The formula is D = d*(1 + α*ΔT), so ΔT = (D/d - 1)/α.  The shrink size for the
             above 0.9937 inch shaft was an interference of 1.99 mils, so we need the ΔT to get this
             expansion.  We thus have ΔT = 1.99×10⁻³/(12×10⁻⁶) = 166 K, which is the temperature
             given in the table under °C.
-
+            
         Adjusting the fit for other materials
-
+        
             The -f option is used to adjust fits to other situations.  The basic formulas are good
             for metallic materials like steel and brass.  For other materials like plastic, you may
             want more of an interference fit; for such cases, set the n value to a number larger
@@ -119,11 +117,11 @@ if 1:  # Utility
             factor n multiplies the interference calculated for metals.
  
         Johansson system of fits
-
+        
             Machinery's Handbook 19th edition 1971 (page 1514) gives the Johansson system for fits.
             This is a table that fits onto one page and covers diameters of 0.03 to 15.75 inches.
             Use the -j option to use this system.  
-
+            
             For the example given above for the shaft of 0.9937 inches, the Johansson method gives
             a hole size of 0.9930-0.9934 for an easy driving fit compared to the 0.9930 of Tubal
             Cain's method.
@@ -132,11 +130,9 @@ if 1:  # Utility
             )
         )
         exit(0)
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def ParseCommandLine(opt):
         opt["-f"] = 1  # Adjustment for material (1 = metal)
         opt["-j"] = False  # Use Johansson method
@@ -158,7 +154,6 @@ if 1:  # Utility
             elif o == "-h":
                 Manpage()
         return " ".join(args)
-
     def Usage(opt, status=1):
         name = sys.argv[0]
         print(
@@ -176,10 +171,7 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
-
 if 1:  # Core functionality
-
     def GetDiameter(arg, opt):
         """Given the command line arguments collapsed into a space-separated
         string, return the command and the diameter in inches that the user
@@ -200,8 +192,6 @@ if 1:  # Core functionality
         unit = unit if unit else "inches"
         diam_inches = flt(diam * u(unit) / u("inches"))
         return arg, diam_inches
-
-
 if 1:  # Tubal Cain functionality
     if 1:  # Global variables
         tc = G()
@@ -229,7 +219,6 @@ if 1:  # Tubal Cain functionality
             ("Iron", flt(11e-6)),
             ("Steel", flt(12e-6)),
         )
-
     def TubalCain(cmdline, D, opt):
         def HoleBasic(D, opt):
             "D is hole size in inches"
@@ -261,7 +250,6 @@ if 1:  # Tubal Cain functionality
                 else:
                     print(f"  {name:18s} {shaft_size_in:15.4f}", end=" ")
                     print(f"{q}{clearance_mils:19.2f}{t.n}")
-
         def ShaftBasic(D, opt):
             "D is hole size in inches"
             f = opt["-f"]
@@ -289,7 +277,6 @@ if 1:  # Tubal Cain functionality
                 else:
                     print(f"  {name:18s} {hole_size_in:15.4f}", end=" ")
                     print(f"{q}{clearance_mils:19.2f}{t.n}")
-
         def CalculateFit(cmdline, D, opt):
             """hole_size_inches is diameter of hole in inches.  opt is the
             settings dictionary.
@@ -305,7 +292,6 @@ if 1:  # Tubal Cain functionality
             print()
             HoleBasic(D, opt)
             ShaftBasic(D, opt)
-
         def Temperatures(D, opt):
             "Show temperatures needed to get a shrink fit"
             hole_size_in = float(D)
@@ -330,11 +316,8 @@ if 1:  # Tubal Cain functionality
                 print(
                     f"  {material:12s} {int(alpha * 1e6):6d} {ΔT:18d} {int(ΔT * 9 / 5):10d}"
                 )
-
         CalculateFit(cmdline, D, opt)
         Temperatures(D, opt)
-
-
 if 1:  # Johansson functionality
     """
     Logic of the Johansson system
@@ -358,7 +341,7 @@ if 1:  # Johansson functionality
     The script would print this out as 0.8498 to 0.8503 inches.
  
     Hole is basic [0.8498, 0.8503]
-
+    
         Add 0.85 to (-0.00024, +0.00031) to get (0.84976, 0.85031).  The shaft
         diameter is thus (0.8498, 0.8503) inches.  Tubal Cain's method gives
         0.8496 for the shaft diameter, 0.2 mils below Johansson's method.
@@ -494,7 +477,6 @@ if 1:  # Johansson functionality
                 (+414, +808),  # 10
             ),
         }
-
     def Johansson(cmdline, D, opt):
         """cmdline is the string on the command line.  D is the calculated
         diameter in inches and opt is the options dictionary.
@@ -541,8 +523,6 @@ if 1:  # Johansson functionality
                 print(f"{dhi:8.{win}f} {dlo:8.{win}f}", end=" " * 4)
                 # Print diameter in mm
                 print(f"{dlo * mm:8.{wmm}f} {dhi * mm:8.{wmm}f}")
-
-
 if __name__ == "__main__":
     opt = {}  # Options dictionary
     arg = ParseCommandLine(opt)

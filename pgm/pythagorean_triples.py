@@ -24,7 +24,8 @@ if 1:  # Header
     if 1:   # Custom imports
         from primes import FactorList
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
         from lwtest import Assert
         if 0:
             import debug

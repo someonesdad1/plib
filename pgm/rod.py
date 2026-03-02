@@ -2,7 +2,6 @@
 Print out estimates of shear, compressive, and tensile strengths of
 metal rods.
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -22,14 +21,13 @@ if 1:  # Header
         import os
         import sys
     if 1:  # Custom imports
-        from color import t
+        import trm
+        t = trm.Trm()
         from wrap import dedent
         from f import flt as f, pi
         from u import u, ParseUnit
-
         if 0:
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
         # Metal ultimate strengths from Machinery's Handbook, 19th
@@ -161,11 +159,9 @@ if 1:  # Header
             >10     High cost/risk of failure.
         """
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(d, status=1):
         print(
             dedent(f"""
@@ -192,7 +188,6 @@ if 1:  # Utility
         {safety}""")
         )
         exit(status)
-
     def ParseCommandLine():
         d["-d"] = 2  # Number of significant digits
         d["-o"] = "lbf"  # Output units
@@ -246,10 +241,7 @@ if 1:  # Utility
         x.N = d["-d"]
         x.rtz = x.rtdp = True
         return args
-
-
 if 1:  # Core functionality
-
     def PrintThreadData():
         "Print a table of the minor diameters of commonly-used threads"
         print(
@@ -270,14 +262,12 @@ if 1:  # Core functionality
           """)
         )
         exit(0)
-
     def Area(dia):
         "Compute the cross-sectional area of the shape"
         if d["-p"]:  # Area of a regular polygon
             return d["-p"] * dia**2 / 4 * tan(pi / d["-p"])
         else:  # Area of a circle
             return pi / 4 * dia**2
-
     def PrintReport(dia):
         """dia is a flt gotten from the diameter expression and optional units on the
         command line.  It will be a flt in units of m.
@@ -358,8 +348,6 @@ if 1:  # Core functionality
             c = t("ornl") if name == "Steel, structural (common)" else ""
             t.print(f"{c}{name:30s} {sh:^{sp}s} {comp:^{sp}s} {tens:^{sp}s}")
         print("\n1 lbf = 4.45 N")
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine()

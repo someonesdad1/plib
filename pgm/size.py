@@ -1,7 +1,6 @@
 """
 List sizes for files/patterns specified on the command line
 """
-
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
@@ -26,8 +25,8 @@ if 1:  # Imports
 if 1:  # Custom imports
     from wrap import dedent
     from f import flt
-    import color as c
-    from color import t
+    import trm
+    t = trm.Trm()
 if 1:  # Global variables
     P = pathlib.Path
     flt(0).N = 2  # Number of significant figures for sizes with SI suffix
@@ -37,8 +36,6 @@ if 1:  # Global variables
         "MB": t("magl"),
         "GB": t("redl"),
     }
-
-
 def Usage():
     name = sys.argv[0]
     print(
@@ -60,13 +57,9 @@ def Usage():
     """)
     )
     exit(0)
-
-
 def Error(*msg):
     print(*msg, file=sys.stderr)
     exit(1)
-
-
 def ParseCommandLine():
     d["-g"] = False  # Use regular expressions
     d["-r"] = False  # Recurse
@@ -87,8 +80,6 @@ def ParseCommandLine():
     if not args:
         Usage()
     return args
-
-
 def GetPatterns(args):
     """Return [patterns, directories] where patterns is a list of
     the form
@@ -99,7 +90,7 @@ def GetPatterns(args):
         ]
     where p1, p2 are the patterns and the 0's are the future locations of
     the number of bytes for that pattern.
-
+    
     directories is a list of the directories found on the command line,
     given as pathlib.Path objects.  If there were none, the empty list is
     returned.
@@ -116,8 +107,6 @@ def GetPatterns(args):
     if not directories:
         directories = [P(".").resolve()]
     return patterns, directories
-
-
 def CountBytes(pattern, directory):
     old_directory = os.getcwd()
     try:
@@ -134,8 +123,6 @@ def CountBytes(pattern, directory):
         return bytes
     finally:
         os.chdir(old_directory)
-
-
 def ProcessPattern(pattern, directory):
     "Return the number of bytes matched by the given pattern"
     size = 0
@@ -148,8 +135,6 @@ def ProcessPattern(pattern, directory):
                     continue
                 size += CountBytes(pattern, os.path.join(root, dir))
     return size
-
-
 def ProcessDirectory(patterns, directory):
     "patterns is a list of [glob_pattern, byte_count]"
     assert isinstance(directory, P)
@@ -162,8 +147,6 @@ def ProcessDirectory(patterns, directory):
     for pattern in patterns:
         bytes = ProcessPattern(pattern[0], directory)
         pattern[1] += bytes
-
-
 def Collapse(size):
     "Return (size_str, x) where x is kB, MB, or GB.  size is number of bytes."
     size = flt(size)
@@ -175,8 +158,6 @@ def Collapse(size):
         return str(size / 10**6), "MB"
     else:
         return str(size / 10**9), "GB"
-
-
 def PrintResults(directories, patterns):
     print("Directories processed", end="")
     if d["-r"]:
@@ -203,8 +184,6 @@ def PrintResults(directories, patterns):
     print(f"Total bytes = {total_size} = ", end="")
     num, ext = Collapse(total_size)
     t.print(f"{colors[ext]}{num} {ext}")
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine()

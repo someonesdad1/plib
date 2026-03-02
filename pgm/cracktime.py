@@ -28,7 +28,8 @@ if 1:  # Header
         from u import u
         from si import GetSI
         from lwtest import Assert
-        from color import t
+        import trm
+        t = trm.Trm()
         from dpprint import PP
         pp = PP()  # Screen width aware form of pprint.pprint
         from get import GetLines

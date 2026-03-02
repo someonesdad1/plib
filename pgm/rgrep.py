@@ -27,7 +27,9 @@ if 1:  # Imports
 if 1:  # Custom imports
     from columnize import Columnize
     from wrap import dedent, wrap
-    from color import t as T, RegexpDecorate
+    from dpstr import RegexpDecorate
+    import trm
+    T = trm.Trm()
     from lwtest import run, raises, assert_equal, Assert
     if 0:
         import debug

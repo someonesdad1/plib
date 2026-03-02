@@ -19,8 +19,8 @@ if 1:  # Imports
     import getopt
 if 1:  # Custom imports
     from wrap import dedent
-    import color as c
-    from color import t
+    import trm
+    t = trm.Trm()
 def Usage(status=1):
     print(
         dedent(f'''

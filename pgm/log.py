@@ -1,11 +1,12 @@
 # Print out logarithms
 from math import log10
 from columnize import Columnize
-from color import t
+import trm
+t = trm.Trm()
 
-t.l = t("purl")
-t.o = t("ornl")
-t.g = t("grnl")
+t.l = t.pur
+t.o = t.orn
+t.g = t.grn
 t.print(f"{t.g}Base 10 logarithms")
 o = []
 r = list(range(11, 100))

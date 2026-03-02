@@ -1,7 +1,6 @@
 """
 Print out energy consumption of monitor
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -29,18 +28,14 @@ if 1:  # Header
     if 1:  # Global variables
         P = pathlib.Path
         ii = isinstance
-
         class g:
             pass
-
         g.dollar_per_kWhr = 0.104
         g.cents = "¢"
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
             dedent(f"""
@@ -52,7 +47,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-d"] = 3  # Number of significant digits
         try:
@@ -74,10 +68,7 @@ if 1:  # Utility
             elif o in ("-h", "--help"):
                 Usage(status=0)
         return args
-
-
 if 1:  # Core functionality
-
     def Dell24():
         """
         Brightness   Energy, W    ¢/week
@@ -93,7 +84,7 @@ if 1:  # Core functionality
             80          34          59
             90          36          63
            100          37          65
-
+           
         Note when Windows blacks the screen in the screensaver, the power
         doesn't change.  When Windows turns the monitor off ("Off" in above
         table), the power goes to 10 W.  * marks where I run the monitor
@@ -136,21 +127,19 @@ if 1:  # Core functionality
         The colored rows are where I run the monitor brightness.  At night,
         I use a brightness of 10 and when the sun is on the south window, I
         use 25.  Thus, the power cost per year is about $13.
-
+        
         $ per year is the energy cost to leave the monitor on continuously.
         The Corr column is for the real cost.  Windows powers the monitor
         down after 30 minutes of non-use; this means the monitor won't be
         used for 8 to 10 hours per day or more.  The Corr column estimates
         the real yearly cost when the monitor is powered down to 10 W for 8
         hours per day.
-
+        
         The monitor's screen is 527x295 mm, giving a diagonal of 604 mm or
         23.8 inches.  Hence, it's called a 24 inch monitor.  I run both of
         them at 3840x2160 pixel resolution.
         """)
         )
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

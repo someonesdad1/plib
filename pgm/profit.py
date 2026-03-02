@@ -4,10 +4,9 @@ ToDo
     - Spread out the printout a bit
     - Color the values too (neg p or m red, u's goodness by color)
     - Instead of scientific notation use engsic
-
+    
 Interactive utility to calculate the profit of a project
 """
-
 if 1:  # Header
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -32,22 +31,20 @@ if 1:  # Header
     from pprint import pprint as pp
     from collections import deque
     import readline
-
     # Custom imports
-    from color import Color, TRM as t
+    from color import Color
+    import trm
+    t = trm.Trm()
     from f import flt
     from transpose import Transpose
     from lwtest import Assert
     from wrap import dedent
-
     # Global variables
     ii = isinstance
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def ParseCommandLine(d):
         d["-e"] = False  # Turns off catching exceptions so you can see
         # where error occurs
@@ -71,12 +68,10 @@ if 1:  # Utility
                     msg = "-n option's argument must be an integer between 1 and 15"
                     Error(msg)
         return args
-
     def Lineno():
         "Return line number of last exception"
         typ, val, tb = sys.exc_info()
         return tb.tb_lineno
-
     def LN(brackets=True):
         "Return line number where this was called"
         s = traceback.extract_stack()[-2:][0][1]
@@ -84,18 +79,13 @@ if 1:  # Utility
             return f"[{s}]"
         else:
             return f"{s}"
-
-
 if 1:  # Classes
-
     class Model(object):
         "Contains the model for the equation p = 1 - c/s"
-
         def __init__(self):
             # We put colorizing here so that it isn't affected by a reset.
             self.color = False  # If True, use colors in output
             self.reset(hard=True)
-
         def reset(self, hard=False):
             self.names = set("cspmu")  # Names of model variables
             z = flt(0)
@@ -121,7 +111,6 @@ if 1:  # Classes
             # User's local variables
             if not hasattr(self, "vars") or hard:
                 self.vars = {}
-
         def normalize(self):
             "Divide s and c by c"
             if not self.c:
@@ -129,7 +118,6 @@ if 1:  # Classes
             else:
                 self.s /= self.c
                 self.c /= self.c
-
         def append(self, name):
             "Append if name isn't already in deque"
             if name in self.dq:
@@ -141,7 +129,6 @@ if 1:  # Classes
                     self.dq.rotate()
                 return
             self.dq.append(name)
-
         def sto(self, name, value):
             """Store the financial variable name and its value after
             vetting.  Also works for local variables, but there's no
@@ -184,7 +171,6 @@ if 1:  # Classes
                 self.update()
             else:
                 self.vars[name] = value
-
         def update(self):
             """To be able to get a unique numerical solution, either 1) c and
             one other variable or 2) s and one other variable must be
@@ -238,7 +224,6 @@ if 1:  # Classes
             self.vars["p"] = p
             self.vars["m"] = m
             self.vars["u"] = u
-
         def __str__(self):
             "Print the instance produces the report"
             Colors(self.color)
@@ -306,7 +291,6 @@ if 1:  # Classes
             if not self.ok:
                 me += f"\n Not enough information for a solution"
             return me
-
         def test(self):
             "Verify basic numerical correctness and functionality"
             x = flt(0)
@@ -342,9 +326,7 @@ if 1:  # Classes
             Assert(len(mdl.vars) == 1)
             self.reset(hard=True)
             Assert(mdl.vars == {})
-
         if 1:  # Properties
-
             @property
             def d(self):
                 "Debug dump of state"
@@ -355,10 +337,7 @@ if 1:  # Classes
                   ok = {self.ok}  dq = {self.dq} vars = {self.vars}
                 """)
                 )
-
-
 if 1:  # Persistence
-
     def GetFile():
         """Return the name of the file we should use to persist our
         Model object.  It will be in the same directory as the script.
@@ -367,7 +346,6 @@ if 1:  # Persistence
         dir = f.parent
         name = f.stem + ".data"
         return P(dir / name)
-
     def Save(file):
         Assert(ii(file, P))
         try:
@@ -376,7 +354,6 @@ if 1:  # Persistence
                 f.write(s)
         except Exception as e:
             t.print(f"{t.msg}[{Lineno()}]Save exception: {e}")
-
     def Load(file):
         "Return a Model instance or None"
         global mdl
@@ -397,10 +374,7 @@ if 1:  # Persistence
         except Exception as e:
             t.print(f"{t.msg}[{Lineno()}]Could not read previous state from disk")
             return None
-
-
 if 1:  # Core functionality
-
     def Colors(on):
         """If on is False, all of these are empty strings so that no escape
         codes wind up in the output.
@@ -418,7 +392,6 @@ if 1:  # Core functionality
         t.u4 = t("royl") if on else none  # u >= 4
         t.u5 = t("magl") if on else none  # u >= 5
         t.nn = t.n if on else none
-
     def ColorKey():
         "Print a color key"
         if not mdl.color:
@@ -432,7 +405,6 @@ if 1:  # Core functionality
         t.print(f"{t.neg}    p or m are negative, u < 1")
         t.print(f"{t.msg}    Informational message")
         Colors(False)
-
     def Intro():
         print(
             dedent(
@@ -456,11 +428,10 @@ if 1:  # Core functionality
         between them).
         
         Use the h command at the '>' prompt for help.
-
+        
         """.rstrip()
             )
         )
-
     def Help():
         print(f"{t.msg}", end="")
         x = flt(0)
@@ -490,7 +461,6 @@ if 1:  # Core functionality
         """)
         )
         print(f"{t.nn}", end="")
-
     def SetUp():
         "Use to set the model to a desired state for testing/debugging"
         choice = 1
@@ -510,52 +480,50 @@ if 1:  # Core functionality
             t.print(f"{t('magl')}>>> {i}")
             ProcessCommand(i.strip(), off=True)
         t.print(f"{su}Finished SetUp()")
-
     def Manpage():
         print(
             dedent(
                 f"""
         This script helps assess the profit of a project.  Example:
-
+        
         Suppose you plan to sell widgets for 2 and they cost you 1.  Start the program and define
         these two variables as follows
-
+        
             > s2
             > c 1
             s    c    p%   m%   u
             2    1    50  100   2
-
+            
         The 's2' shows that the number can be cuddled next to the symbol for the primary variables
         s, c, p, m, and u.  p and m are shown in % by default; use the command '%' to toggle this.
-
+        
         The script's purpose is to let you make adjustments to the variables and see the results.
         For example, if you wanted 77.3% profit, enter 'p 77.3' and you'll see the selling price
         needs to be 4.4.  I like to keep the model's display to 2 digits (use the n command)
         because this makes the overall numerical state easy to grasp and see 1%-ish changes.
         Contrast this to most tools like spreadsheets where you see too many digits which obscure
         the overall behavior.
-
+        
         When I worked at HP in the 1980's, R&D projects had a corporate mandate to develop new
         products with a multiplier of 5.  The multiplier u is defined as s/c.  If you enter the
         command 'c1;u5' (a semicolon can separate commands on one line) you'll find this is
         equivalent to 80% profit.  I'm a fan of using multipliers because you can do the rough
         calculation in your head.
-
+        
         If colorizing is on (toggle with k), you can see the last two entered variables and you'll
         see negative values of p or m in red and u's magnitude will be colorized at various integer
         levels (red means u < 1).  Use the command K to see the colorizing rules.  For an important
         calculation, use a command like 'script' to capture all your interaction with the script
         and be able to replay it later.  Use '#' on lines to act as comments for documentation.
-
+        
         A model with unit cost is easy to visualize.  To work with a unit cost, save the current
         cost in a local variable with 'cost = c', then type the command N.  The c variable will be
         set to 1.  Get back to where you were with the command 'c cost'.
-
+        
         """.rstrip()
             )
         )
         print(f"{t.nn}", end="")
-
     def ShowEquations():
         print(
             dedent(f"""
@@ -567,7 +535,6 @@ if 1:  # Core functionality
             u = s/c         = m + 1        = 1/(1 - p)      Multiplier
         """)
         )
-
     def GetN(s):
         "Return int(s) between 1 and 15 or None if problem"
         try:
@@ -578,16 +545,13 @@ if 1:  # Core functionality
         except Exception as e:
             t.print(f"{t.msg}[{Lineno()}] Exception: {e}")
             return None
-
     def RemoveComment(s):
         if "#" not in s:
             return s
         loc = s.find("#")
         return s[:loc].trim()
-
     def DumpState():
         """Print program's state for debugging help"""
-
     def DoCommand(cmd):
         """Return values:
         0   Command completed successfully
@@ -714,7 +678,6 @@ if 1:  # Core functionality
         else:
             t.print(f"{t.msg}{cmd!r} is an unrecognized command")
         return 0
-
     def ProcessCommand(cmd, off=False):
         """Return values:
             0   Command completed successfully
@@ -772,7 +735,6 @@ if 1:  # Core functionality
                 t.print(f"{t.msg}[{Lineno()}] Command exception:\n {e}")
                 return 1
         return 0
-
     def Loop(setup=False):
         if d["-h"]:
             Intro()
@@ -794,8 +756,6 @@ if 1:  # Core functionality
                 elif retval == 2:
                     finished = True
                     break
-
-
 if __name__ == "__main__":
     # Note:  there's no locking, so if you run this script in two different
     # processes, you'll have a race condition for the persisted data.

@@ -25,11 +25,10 @@ if 1:  # Custom imports
     from get import GetFraction
     from fraction import FormatFraction
     from f import flt
-    from color import C
-
+    import trm
+    C = trm.Trm()
     if 1:
         import debug
-
         debug.SetDebugger()
 if 1:  # Global variables
     # O-ring data
@@ -57,7 +56,7 @@ if 1:  # Global variables
         13/16   1       3/32    ;F-14 Red box
         7/8     1-1/16  3/32    ;F-15 Red box
         3/4     1       1/8     ;F-16 Red box
-
+        
         15/16   1-1/16  1/8     ;F-17 Red box
         7/8     1-1/8   1/8     ;F-18 Red box
         15/16   1-3/16  1/8     ;F-19 Red box
@@ -74,7 +73,7 @@ if 1:  # Global variables
         1-3/4   2       1/8     ;F-30 Red box
         1-7/8   2-1/8   1/8     ;F-31 Red box
         2       2-1/4   1/8     ;F-32 Red box
-
+        
     # Plumber's Pak
         3/8     9/16    3/32    ;Plumber's Pak 2-110
         5/16    7/16    1/16    ;Plumber's Pak 2-011
@@ -89,8 +88,6 @@ if 1:  # Global variables
         13/16   1-1/16  1/8     ;Plumber's Pak 2-211
         3/4     1       1/8     ;Plumber's Pak 2-212
     """
-
-
 class Size(object):
     def __init__(self, s):
         "self.value will be size in inches"
@@ -105,18 +102,14 @@ class Size(object):
             self.metric = True
         else:
             self.value = flt(s)
-
     @property
     def inches(self):
         return self.value
-
     @property
     def mm(self):
         return self.value * 25.4
-
     def __repr__(self):
         return str(self)
-
     def __str__(self):
         x = self.value
         if self.fraction:
@@ -131,11 +124,8 @@ class Size(object):
                 return str(int(x))
             else:
                 return str(x)
-
     def __lt__(self, other):
         return self.value < other.value
-
-
 def GetData():
     orings = []
     for line in data.split("\n"):
@@ -149,13 +139,9 @@ def GetData():
         thickness = Size(s[2])
         orings.append((id, od, thickness, name))
     return list(sorted(orings))
-
-
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
-
-
 def Usage(d, status=1):
     print(
         dedent(f"""
@@ -170,8 +156,6 @@ def Usage(d, status=1):
     """)
     )
     exit(status)
-
-
 def ParseCommandLine(d):
     d["-m"] = False
     d["-r"] = False
@@ -195,8 +179,6 @@ def ParseCommandLine(d):
         ShowTable()
         exit(0)
     return args
-
-
 def ShowTable():
     k = 0
     if d["-s"] == "o":
@@ -204,10 +186,8 @@ def ShowTable():
     elif d["-s"] == "t":
         k = 2
     orings = GetData()
-
     def f(x):
         return x[k]
-
     orings = sorted(orings, key=f, reverse=d["-r"])
     i = "Inside Diameter"
     o = "Outside Diameter"
@@ -237,8 +217,6 @@ def ShowTable():
                 f"{str(id):^{len(i)}s}{sep}{str(od):^{len(o)}s}{sep}"
                 f"{str(thickness):^{len(t)}s}{sep}{name}"
             )
-
-
 def ShowMatches(dia):
     def KeepSmallest(seq):
         "Return a list containing only the smallest first items of seq"
@@ -250,15 +228,13 @@ def ShowMatches(dia):
             keep.append(seq[n])
             n += 1
         return keep
-
     def Show(item):
         absdiff, diff, oring = item
         id, od, t, name = oring
         if not diff:  # Exact matches are in color
-            print(f"{C.lgrn}    ID = {id}, OD = {od}, T = {t}, {name}{C.norm}")
+            print(f"{C.grn}    ID = {id}, OD = {od}, T = {t}, {name}{C.n}")
         else:
             print(f"    diff = {diff}  ID = {id}, OD = {od}, T = {t}, {name}")
-
     if "/" in dia:
         D = flt(GetFraction(dia))
         is_fraction = True
@@ -295,8 +271,6 @@ def ShowMatches(dia):
         print(f"  Closest thickness match(es):")
         for item in T:
             Show(item)
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     diameters = ParseCommandLine(d)

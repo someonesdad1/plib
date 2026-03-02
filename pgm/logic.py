@@ -1,11 +1,12 @@
 from wrap import dedent
-from color import t
+import trm
+t = trm.Trm()
 
-t.one = t("redl")
-t.zero = t("grnl")
-t.e = t("lill")
-t.y = t("yell")
-t.o = t("ornl")
+t.one = t.redl
+t.zero = t.grnl
+t.e = t.lill
+t.y = t.yell
+t.o = t.ornl
 
 s = dedent(f"""
                 {t.y}Logic truth tables{t.n}

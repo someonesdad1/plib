@@ -6,9 +6,8 @@ Keep track of experiments
       can be identified as EX1.1, etc.
     - Data kept in a text file in ~/.0rc
     -
-
+    
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -33,45 +32,37 @@ if 1:  # Header
     if 1:  # Custom imports
         from f import flt
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
         from lwtest import Assert
-
         if 0:
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
-
         class G:
             pass
-
         g = G()
         g.dbg = False
         ii = isinstance
 if 1:  # Utility
-
     def GetColors():
         t.err = t("redl")
         t.dbg = t("lill") if g.dbg else ""
         t.N = t.n if g.dbg else ""
-
     def GetScreen():
         "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
             int(os.environ.get("COLUMNS", "80")) - 1,
         )
-
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="")
             print(*p, **kw)
             print(f"{t.N}", end="")
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=0):
         print(
             dedent(f"""
@@ -80,7 +71,7 @@ if 1:  # Utility
           a regex to search titles (use -b to search body of the description).  The primary
           purpose of the script is to provide a link to the document file that describes the
           experiment and its results.
-
+          
           No cmd causes the data file to be edited.  cmd options are:
             l   List the experiments, one experiment per line
             s   Search for a regex
@@ -90,7 +81,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = False  # Need description
         d["-d"] = 3  # Number of significant digits
@@ -117,14 +107,10 @@ if 1:  # Utility
             elif o in ("--debug",):
                 # Set up a handler to drop us into the debugger on an unhandled exception
                 import debug
-
                 debug.SetDebugger()
         return args
-
-
 if 1:  # Core functionality
     pass
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

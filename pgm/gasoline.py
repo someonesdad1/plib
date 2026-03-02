@@ -27,8 +27,8 @@ if 1:  # Header
     from wrap import wrap, dedent
     from f import flt
     from frange import frange
-    from color import TRM as t
-
+    import trm
+    t = trm.Trm()
     # Global variables
     ii = isinstance
     t.cost = t("ornl")
@@ -36,11 +36,9 @@ if 1:  # Header
     t.mi = t("grn")
     t.c = t("royl")
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(d, status=1):
         print(
             dedent(f"""
@@ -50,13 +48,10 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         x = flt(0)
         x.n = 3
         x.rtdp = True
-
-
 def PrintTables(seq_dollars_per_gallon, seq_miles_per_gallon):
     for dpg in seq_dollars_per_gallon:
         t.print(f"{t.cost}Gas cost = ${dpg} per gallon")
@@ -72,8 +67,6 @@ def PrintTables(seq_dollars_per_gallon, seq_miles_per_gallon):
                     else:
                         s += f"{t.mi}{mi:5d} {t.c}{cost!s:>6s}{t.n}    "
                 print(s)
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     ParseCommandLine(d)

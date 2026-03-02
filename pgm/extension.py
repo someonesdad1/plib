@@ -24,7 +24,9 @@ if 1:  # Header
         from sys import stdin, stdout, stderr, argv
     if 1:  # Custom imports
         from wrap import dedent
-        from color import t, RegexpDecorate
+        import trm
+        t = trm.Trm()
+        from dpstr import RegexpDecorate
         from extensions import extensions
 if 1:  # Utility
 

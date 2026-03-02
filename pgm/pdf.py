@@ -1,7 +1,6 @@
 """
 Helper for Xpdf command line utilities
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -24,7 +23,8 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
     if 1:  # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
@@ -32,11 +32,9 @@ if 1:  # Header
         t.err = t("redl")
         t.msg = t("ornl")
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
             dedent(f"""
@@ -58,7 +56,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = False
         d["-t"] = 0  # Tool number to run
@@ -83,10 +80,7 @@ if 1:  # Utility
             elif o in ("-h", "--help"):
                 Usage(status=0)
         return args
-
-
 if 1:  # Core functionality
-
     def ToText(*files):
         for file in files:
             pdf = P(file)
@@ -96,7 +90,6 @@ if 1:  # Core functionality
             if r.returncode:
                 t.print(f"{t.err}{s!r} failed:", file=sys.stderr)
                 t.print(f"  {t.msg}{r.stderr.strip().decode()!r}", file=sys.stderr)
-
     def ToPS(*files):
         for file in files:
             pdf = P(file)
@@ -107,7 +100,6 @@ if 1:  # Core functionality
             if r.returncode:
                 t.print(f"{t.err}{s!r} failed:", file=sys.stderr)
                 t.print(f"  {t.msg}{r.stderr.strip().decode()!r}", file=sys.stderr)
-
     def ToHTML(*files):
         if len(files) != 2:
             Error("For pdftohtml, first arg is PDF and second is directory")
@@ -118,7 +110,6 @@ if 1:  # Core functionality
         if r.returncode:
             t.print(f"{t.err}{s!r} failed:", file=sys.stderr)
             t.print(f"  {t.msg}{r.stderr.strip().decode()!r}", file=sys.stderr)
-
     def Info(*files):
         for file in files:
             pdf = P(file)
@@ -132,7 +123,6 @@ if 1:  # Core functionality
             for i in r.stdout.decode().split("\n"):
                 if i.strip():
                     print(f"  {i}")
-
     def Fonts(*files):
         for file in files:
             pdf = P(file)
@@ -146,7 +136,6 @@ if 1:  # Core functionality
             for i in r.stdout.decode().split("\n"):
                 if i.strip():
                     print(f"  {i}")
-
     def Detach(*files):
         for file in files:
             pdf = P(file)
@@ -160,7 +149,6 @@ if 1:  # Core functionality
             for i in r.stdout.decode().split("\n"):
                 if i.strip():
                     print(f"  {i}")
-
     def PNG(*files):
         if len(files) != 2:
             Error("For pdftopng, first arg is PDF and second is PNG name root")
@@ -171,7 +159,6 @@ if 1:  # Core functionality
         if r.returncode:
             t.print(f"{t.err}{s!r} failed:", file=sys.stderr)
             t.print(f"  {t.msg}{r.stderr.strip().decode()!r}", file=sys.stderr)
-
     def Images(*files):
         if len(files) != 2:
             Error("For pdfimages, first arg is PDF and second is image root")
@@ -182,8 +169,6 @@ if 1:  # Core functionality
         if r.returncode:
             t.print(f"{t.err}{s!r} failed:", file=sys.stderr)
             t.print(f"  {t.msg}{r.stderr.strip().decode()!r}", file=sys.stderr)
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     files = ParseCommandLine(d)

@@ -1,6 +1,6 @@
-"""
+'''
 List keywords etc. of python
-"""
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -28,7 +28,8 @@ if 1:  # Header
     if 1:  # Custom imports
         from f import flt
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
         from lwtest import Assert
         from columnize import Columnize
         from dpprint import PP
@@ -63,12 +64,12 @@ if 1:  # Utility
         exit(status)
     def Usage(status=0):
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options] etc.
           Explanations...
         Options:
             -h      Print a manpage
-        """)
+        ''')
         )
         exit(status)
     def ParseCommandLine(d):
@@ -115,7 +116,7 @@ if 1:  # Core functionality
             print(i)
     def ExceptionSet():
         'Taken from HTML manpage for "Built-in Exceptions"'
-        exceptions_3_12_2 = """
+        exceptions_3_12_2 = '''
             ArithmeticError AssertionError AttributeError BaseException BaseExceptionGroup
             BlockingIOError BrokenPipeError BufferError BytesWarning ChildProcessError
             ConnectionAbortedError ConnectionError ConnectionRefusedError ConnectionResetError
@@ -129,7 +130,7 @@ if 1:  # Core functionality
             StopAsyncIteration StopIteration SyntaxError SyntaxWarning SystemError SystemExit
             TabError TimeoutError TypeError UnboundLocalError UnicodeDecodeError
             UnicodeEncodeError UnicodeError UnicodeTranslateError UnicodeWarning UserWarning
-            ValueError Warning WindowsError ZeroDivisionError""".split()
+            ValueError Warning WindowsError ZeroDivisionError'''.split()
         return set(exceptions_3_12_2)
     def Builtins():
         t.print(f"{t.ornl}Builtins in __builtins__.__dict__:")

@@ -3,11 +3,11 @@ Calculate features of a circle's segment
 
     The method is to use the formulas from pg 51 of the Analytic Geometry document, as it has
     formulas for the independent variables in pairs.
-
+    
     Alas, the symbols used in the document are poor, as I used s for the chord length and b for the
     arc length.  s is almost always used for arc length and it catches me every time I use the
     program, but it's too much work to change the document and its formulas.
-
+    
     Check data from a drawing on an A size piece of paper in mm:
         r = 152.2       Radius of circle
         θ = 90°         Central angle of circle's sector
@@ -15,40 +15,40 @@ Calculate features of a circle's segment
         h = 44.8        Height of segment
         b = 239.1       Arc length = r*θ
         s = 215.5       Chord length
-
+        
     This tool solves a puzzle I remember someone gave me when I was a student:
-
+    
         A train track rail is 10000 meters long and flat.  During the night, a prankster welds in
         another meter of rail, causing the rail to bow upwards in a circle (the ends of the rails
         were such that they couldn't move, only pivot).  How far above the ground is the rail if
         the circular arc is in a vertical plane?  Note the length of the rail only increased by a
         hundredth of a percent.
-
+        
     If you enter into the script
-
+    
         b 10001
         s 10000
-
+        
     you'll get the output
-
+    
         θ = 2.80681° = 0.0489881 radians
         r = 204152.
         h = 61.2382
         b = 10001.0
         s = 10000.0
-
+        
     The thing that surprises folks is that the rail is 61.2 m (200 feet) over your head.  The root
     cause of this is that the circle is large.  If the circle were sitting on the Earth's surface
     and in a vertical plane, the other side of the circle would be well into outer space, as it's
     400 km away and outer space is approximately 100 km above the Earth's surface.
-
+    
     This puzzle was given to beginning college students because a good way to solve it is to use
     the first two terms of the power series for the sine, which they would have learned in their
     basic calculus class -- and you can solve the problem easily with pencil and paper.  The final
     numerical answer can be gotten to three figures with a slide rule, which is how we did it when
     I was in college in the 1960's.  The script solves the problem to 15 figures with a
     Newton-Raphson root finder for the implicit equation for the angle θ.
-
+    
     I sent this to a friend and he used the "obvious" approximation of the Pythagorean theorem,
     something that didn't occur to me even though I was looking right at the appropriate triangle.
     I looked at this problem again in 2024 to check the math, as I wrote this script about 25 years
@@ -56,9 +56,8 @@ Calculate features of a circle's segment
     them, as I couldn't get the correct numerical answers and had to derive the equations myself.
     Thus, this rail track problem and the above drawing on paper are good checks of the numerical
     methods used.
-
+    
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -78,11 +77,9 @@ if 1:  # Header
         import os
         import re
         import sys
-
         try:
             import readline  # History and command editing
             import rlcompleter  # Command completion
-
             have_readline = True
         except Exception:
             have_readline = False
@@ -91,20 +88,17 @@ if 1:  # Header
         from f import flt, pi, degrees, radians, sin, cos, tan, sqrt, asin, acos, atan
         from u import u, ParseUnit
         from cmddecode import CommandDecode
-        from color import t
+        import trm
+        t = trm.Trm()
         from launch import Launch
         import root
         from wsl import wsl
-
         if 0:
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
-
         class g:
             pass
-
         g.E = Exception("Not implemented")
         t.prompt = t("ornl")
         t.N = t.n
@@ -116,7 +110,6 @@ if 1:  # Header
         x.rtz = x.rtdp = False
         g.digits = x.N = 6
 if 1:  # Utility
-
     def GetNumber(value, vars=None):
         """The user has entered a number.  Interpret it as an expression
         evaluated as a flt.
@@ -132,7 +125,6 @@ if 1:  # Utility
             except Exception:
                 print(f"Couldn't evaluate '{value}'")
                 return None
-
     def GetCommand():
         "Return (command_string, arguments)"
         ok = False
@@ -156,7 +148,6 @@ if 1:  # Utility
                     print(f"  {' '.join(cmd)}")
                 else:
                     return (cmd[0], args[1:])
-
     def TestCase():
         """
         Check data from a drawing on an A size piece of paper:
@@ -224,17 +215,13 @@ if 1:  # Utility
         test cases.""")
         )
         exit()
-
-
 if 1:  # Solve the problems
-
     def Get_theta_r():
         r, theta = g.vars["r"], g.vars["theta"]
         s = flt(2 * r * sin(theta / 2))
         h = flt(r * (1 - cos(theta / 2)))
         b = flt(r * theta)
         g.vars.update(locals())
-
     def Get_theta_s():
         s, theta = g.vars["s"], g.vars["theta"]
         a = flt(2 * sin(theta / 2))
@@ -243,7 +230,6 @@ if 1:  # Solve the problems
         b = flt(s * theta / a)
         del a
         g.vars.update(locals())
-
     def Get_theta_h():
         h, theta = g.vars["h"], g.vars["theta"]
         a = flt(1 - cos(theta / 2))
@@ -252,42 +238,36 @@ if 1:  # Solve the problems
         b = flt(h * theta / a)
         del a
         g.vars.update(locals())
-
     def Get_theta_b():
         b, theta = g.vars["b"], g.vars["theta"]
         r = flt(b / theta)
         s = flt(2 * b * sin(theta / 2) / theta)
         h = flt(b * (1 - cos(theta / 2)) / theta)
         g.vars.update(locals())
-
     def Get_r_s():
         r, s = g.vars["r"], g.vars["s"]
         theta = flt(2 * asin(s / (2 * r)))
         h = flt(r - sqrt(4 * r * r - s * s) / 2)
         b = flt(r * theta)
         g.vars.update(locals())
-
     def Get_r_h():
         r, h = g.vars["r"], g.vars["h"]
         theta = flt(2 * acos(1 - h / r))
         s = flt(2 * sqrt(h * (2 * r - h)))
         b = flt(r * theta)
         g.vars.update(locals())
-
     def Get_r_b():
         r, b = g.vars["r"], g.vars["b"]
         theta = flt(b / r)
         s = flt(2 * r * sin(b / (2 * r)))
         h = flt(r * (1 - cos(b / (2 * r))))
         g.vars.update(locals())
-
     def Get_s_h():
         h, s = g.vars["h"], g.vars["s"]
         theta = flt(4 * atan(2 * h / s))
         r = flt((s * s + 4 * h * h) / (8 * h))
         b = flt(r * theta)
         g.vars.update(locals())
-
     def Get_s_b():
         b, s = g.vars["b"], g.vars["s"]
         a = flt(2 * b / s)
@@ -296,7 +276,6 @@ if 1:  # Solve the problems
         del a, f, fd
         Get_theta_s()
         g.vars.update(locals())
-
     def Get_h_b():
         b, h = g.vars["b"], g.vars["h"]
         a = flt(h / b)
@@ -305,14 +284,10 @@ if 1:  # Solve the problems
         del a, f, fd
         Get_theta_h()
         g.vars.update(locals())
-
-
 if 1:  # Core functionality
-
     def Help():
         def f(x):
             return f"[{g.vars[x]}]" if x in g.vars else ""
-
         print(
             dedent(f"""
     
@@ -352,7 +327,6 @@ if 1:  # Core functionality
           clear         Remove problem's variable definitions 
         """)
         )
-
     def SolveProblem():
         "If g.vars is sufficient, print the solution"
         needed_pairs = p = dedent("""
@@ -378,7 +352,6 @@ if 1:  # Core functionality
             Report()
         else:
             print("Need more variables")
-
     def Report():
         i = " " * 4
         print(f"Results:")
@@ -393,13 +366,11 @@ if 1:  # Core functionality
         r, θ = g.vars["r"], g.vars["theta"]
         A = flt(r**2 * (θ - sin(θ)) / 2)
         print(f"{i}area = {A}")
-
     def Execute(cmd, args):
         def CheckArgs():
             if not args:
                 print("Need argument for variable")
             return not bool(args)
-
         if args:
             value, unit = args[0], None
             if len(args) > 1:
@@ -463,8 +434,6 @@ if 1:  # Core functionality
                 return
             g.vars["b"] = GetNumber(value, vars=None)
         SolveProblem()
-
-
 if __name__ == "__main__":
     if len(sys.argv) == 2 and sys.argv[1] == "-t":
         TestCase()

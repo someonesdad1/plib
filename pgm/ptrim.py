@@ -4,7 +4,6 @@ Trim characters from the lines of files and print them to stdout
 ToDo
     - Change to use dpstr:Trim()
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -28,29 +27,25 @@ if 1:  # Header
         from sys import stdin, stdout, stderr, argv
     if 1:  # Custom imports
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
     if 1:  # Global variables
-
         class G:
             pass
-
         g = G()  # Storage for global variables as attributes
         g.dbg = False
         ii = isinstance
         g.W = int(os.environ.get("COLUMNS", "80")) - 1
         g.L = int(os.environ.get("LINES", "50"))
 if 1:  # Utility
-
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="")
             print(*p, **kw)
             print(f"{t.N}", end="")
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
             dedent(f"""
@@ -67,7 +62,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-c"] = ""  # Characters to trim
         d["-d"] = False  # Turn on debug printing
@@ -107,13 +101,9 @@ if 1:  # Utility
         Dbg(f"  -r = {d['-r']!r}")
         Dbg(f"  -w = {d['-w']!r}")
         return files
-
-
 if 1:  # Core functionality
-
     def Escape(s):
         "Escape the characters in the string s and return it"
-
         def esc(c):
             if ord(c) == 8:
                 return r"\t"  # backspace
@@ -130,9 +120,7 @@ if 1:  # Core functionality
             elif ord(c) == 0x5C:
                 return r"\\"  # backslash
             return c
-
         return "".join([esc(i) for i in s])
-
     def ProcessLine(line, where):
         Dbg(f"Processing {where} {line!r}")
         # Remove trailing newline
@@ -160,8 +148,6 @@ if 1:  # Core functionality
         else:
             Dbg(f"  Result = '{M}'")
             print(f"{t.norm}{M}{t.N}")
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     files = ParseCommandLine(d)

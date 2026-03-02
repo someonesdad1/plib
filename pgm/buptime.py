@@ -27,7 +27,8 @@ if 1:  # Header
         from time import time, sleep, asctime
     if 1:  # Custom imports
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
         from timer import Stopwatch
     if 1:  # Global variables
         class G:

@@ -3,7 +3,7 @@ Plot the electrical characteristics of the high current transformer.
 
     - Temperature rise as a function of secondary current
     - Primary/secondary current & voltage for secondary current ≤ 200 A
-
+    
     - Electrical measurements made 20 Aug 2024
         - All AC measurements are RMS
         - Tubing short used to facilitate use with clamp-on ammeter
@@ -18,9 +18,8 @@ Plot the electrical characteristics of the high current transformer.
         - Protocol was to limit maximum current to 200 A except for a quick determination of the
           maximum current gotten with the Variac at 100%.  Line voltage is typically 118 V.
             - Qualitative check was made by feeling the temperature of the tubing short
-
+            
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -46,20 +45,17 @@ if 1:  # Header
     if 1:  # Custom imports
         from f import flt
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
         from lwtest import Assert
         from columnize import Columnize
         from u import u
-
         if 0:
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
-
         class G:
             pass
-
         g = G()
         g.dbg = False
         ii = isinstance
@@ -110,7 +106,6 @@ if 1:  # Data
             o.append([flt(i) for i in line.split()])
         data[w] = o
 if 1:  # Utility
-
     def GetColors():
         t.err = t("redl")
         t.dbg = t("lill") if g.dbg else ""
@@ -121,35 +116,31 @@ if 1:  # Utility
         t.high = t.magl
         t.medium = t.purl
         t.low = t.trql
-
     def GetScreen():
         "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
             int(os.environ.get("COLUMNS", "80")) - 1,
         )
-
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="")
             print(*p, **kw)
             print(f"{t.N}", end="")
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Manpage():
         print(
             dedent(f"""
-
+            
         This script is for the transformer made by Electronic Corporation of America.  The
         markings on the transformer are
-
+        
             HD4573--Rev 7
             115 V
             Part no. E.C.A. 10003
-
+            
         This transformer has a mass of 13.1 kg and a size of 146x135x180 mm.  I assume it was made
         in the 1940's or 1950's at the latest, possibly earlier.  The insulation between the
         secondary winding is paper.  The secondary is made from copper sheet 2 mm thick and 45 mm
@@ -157,7 +148,7 @@ if 1:  # Utility
         diameter).  It is labeled for 115 V input and has 5 primary winding taps labeled 1 through
         5.  The no-load output voltages for each primary terminal are (with 120 V on the primary
         winding)
-
+        
          Terminal   Voltage     Ratio, %
             1         5.65        4.71
             2         2.91        2.43
@@ -168,7 +159,7 @@ if 1:  # Utility
         The transformer is intended to provide high currents at low voltages.  I've measured its
         output current with a shorted secondary up to 609 A, as this is the largest value
         measureable by my Kaiweets HT206D clamp-on ammeter.
-
+        
         Maximum allowed current is determined by the temperature rise of the transformer because
         of the Joule heating in the windings.  At 200 A, the measured temperature rise
         above ambient was 38 °C after 2.7 hours.  At 225 A, the temperature rise was 58 °C after
@@ -177,21 +168,21 @@ if 1:  # Utility
         that 200 A is the maximum current to be used.  The transformer is capable of withstanding
         larger currents for short periods of time (quantification will have to wait until I
         construct a suitable current transformer for the secondary).
-
+        
         Operational parameters were measured for each terminal at nominal currents of 10, 20, 50,
         100, 150, and 200 A.  A short of 129 μΩ made from aluminum tubing was used as the load.
         The parameters measured were current and voltage for the primary and secondary.  The
         standard deviation of the voltage, current, and power ratios of the primary and secondary
         were between 0.2% and 1.1% of the mean ratio for each terminal.
-
+        
         These measured data were plotted and were linear.  This resulted in linear regressions
         (all R² values > 0.999) that predict the primary voltage needed to get a desired current
         across this 129 μΩ short.  These regressions are used for the predictions of this script.
         They are intended to be estimates to get you into the ballpark for a particular load.
-
+        
         Examples
         --------
-
+        
         1.  What primary voltage to I need for 95 A?  With 95 as the script's argument, the output
             is
                 For current = 95 A, use the following primary voltages:
@@ -200,13 +191,13 @@ if 1:  # Utility
                   Terminal 3    8.94 V
                   Terminal 4    13.3 V
                   Terminal 5    17.7 V
-
+                  
         2.  I have a 200 A Westinghouse shunt that belonged to my father-in-law.  I've measured
             its resistance as 501.0 μΩ using a 19.00 A DC current and an HP 6 digit voltmeter.  If
             I want to test the voltage drop of this shunt at 200 A (it's specified to have a 100
             mV voltage drop at 200 A), the script's output for the arguments '200 501e-6'  says I
             should use terminal 5 and apply 37.3 V to the primary.
-
+            
             I connected the shunt to the transformer with two pieces of 0 AWG battery cable about
             350 mm long.  I set the Variac's output to 37.4 V and put an Aneng 8009 on the shunt's
             output to measure the shunt's voltage drop.  When turned on, the clamp-on ammeter read
@@ -217,19 +208,18 @@ if 1:  # Utility
             experiments and there was noticeable heating of the shunt's element -- my finger touch
             estimates a 5 to 10 °C rise.  The script's output predicts 20 W being dissipated in
             the shunt, accounting for the mild heating.
-
+            
             Assuming the shunt is exactly 100 mV for 200 A, the measured current as judged by the
             shunt is 200(0.9961) or 199.2 A.  Using the DC calibrated 501 μΩ, the estimated
             current is i = V/R = 99.62e-3/501e-6 or 198.8 A.  The shunt's value is within about 1%
             of the Kaiweets clamp-on ammeter's measurement, good enough for this check.  
-
+            
             The script's prediction was wrong, as it assumes a 129 μΩ load.  If we correct the
             predicted voltage by (501/129)37.3, we get 144 V.  The measured Variac output at 201 A
             was 60.7 V, so things don't scale like I'd expect.
-
+            
         """)
         )
-
     def Usage(status=0):
         print(
             dedent(f"""
@@ -244,7 +234,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-d"] = 2  # Number of significant digits
         d["-r"] = False  # Display raw data
@@ -271,14 +260,10 @@ if 1:  # Utility
             elif o in ("--debug",):
                 # Set up a handler to drop us into the debugger on an unhandled exception
                 import debug
-
                 debug.SetDebugger()
         GetColors()
         return args
-
-
 if 1:  # Core functionality
-
     def PrintRawData():
         "Print the raw data"
         x = flt(0)
@@ -309,7 +294,6 @@ if 1:  # Core functionality
                         item /= 1000
                     print(f"{item!s:^{wc}s}", end="")
                 print()
-
     def GetColor(primary_voltage):
         "Return color escape code string for given voltage"
         if primary_voltage < 0:
@@ -318,7 +302,6 @@ if 1:  # Core functionality
             return t.over
         else:
             return t.N
-
     def GetVoltage(current, terminal):
         "Calculate needed voltage given current in A and terminal"
         if not ii(terminal, int):
@@ -336,7 +319,6 @@ if 1:  # Core functionality
         }
         m, b = model[terminal]
         return flt(m * current + b)
-
     def CalculateVoltage(current):
         print(f"For current = {current} A, use the following primary voltages:")
         for terminal in (1, 2, 3, 4, 5):
@@ -345,7 +327,6 @@ if 1:  # Core functionality
                 print(f"  Terminal {terminal}    ~ 0 V")
             else:
                 t.print(f"  Terminal {terminal}    {GetColor(v)}{v} V")
-
     def CalculateVoltageFromResistance(current, resistance):
         print(f"For current = {current} A and resistance {resistance} Ω:")
         v = []
@@ -362,16 +343,12 @@ if 1:  # Core functionality
                 t.print(f"  Resistor power is {t.denl}{p} W")
                 return
         t.print(f"  {t.err}Cannot reach desired current {current} with {resistance} Ω")
-
-
 if 1:  # Classes
     # If you know any one of the primary or secondary current or voltage, you can predict the
     # other three values by knowing the ratios and regressions.
     OperationPoint = namedtuple("OperationPoint", "i_p i_s V_p V_s P_p P_s")
-
     class Winding:
         "Capture experimental data about a winding"
-
         def __init__(self, terminal):
             if not ii(terminal, int):
                 raise TypeError("terminal must be an int")
@@ -410,7 +387,6 @@ if 1:  # Classes
             self.i_ratio, self.i_ratio_s = data[terminal][0]
             self.V_ratio, self.V_ratio_s = data[terminal][1]
             self.P_ratio, self.P_ratio_s = data[terminal][2]
-
         def PriCurrent(self, current_A):
             "Return OperationPoint for primary current in A"
             i_pri = flt(current_A)
@@ -421,7 +397,6 @@ if 1:  # Classes
             P_sec = flt(V_sec * current_A)
             op = OperationPoint(i_pri, current_A, V_pri, V_sec, P_pri, P_sec)
             return op
-
         def SecCurrent(self, current_A):
             "Return OperationPoint for secondary current in A"
             i_sec = flt(current_A)
@@ -432,13 +407,10 @@ if 1:  # Classes
             P_sec = flt(V_sec * current_A)
             op = OperationPoint(i_pri, current_A, V_pri, V_sec, P_pri, P_sec)
             return op
-
         def PriVoltage(self, voltage_V):
             "Return OperationPoint for primary voltage in V"
-
         def SecVoltage(self, voltage_V):
             "Return OperationPoint for secondary voltage in V"
-
     x = Winding(5)
     # Data for 100.9 A for secondary gave:
     #       0.0442 V on secondary
@@ -463,8 +435,6 @@ if 1:  # Classes
         print(f"    Secondary voltage = {op.V_s * 1000} mV")
         print(f"    Secondary power   = {op.P_s} W")
     exit()
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

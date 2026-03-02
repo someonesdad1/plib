@@ -107,7 +107,8 @@ if 1:  # Imports
     import getopt
 if 1:  # Custom imports
     from wrap import dedent
-    from color import t
+    import trm
+    t = trm.Trm()
     from get import GetNumber
     from f import flt
     from u import u, to, CT, ParseUnit

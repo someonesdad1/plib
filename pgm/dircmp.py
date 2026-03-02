@@ -23,7 +23,9 @@ if 1:  # Header
     # Custom imports
     from columnize import Columnize
     from wrap import wrap, dedent
-    from color import Color, TRM as t
+    from color import Color
+    import trm
+    t = trm.Trm()
     # Global variables
     ii = isinstance
     class g:

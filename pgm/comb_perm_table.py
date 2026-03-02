@@ -6,7 +6,6 @@ it's equal to (or close to) a permutation or combination.
 Note that the output integer is limited to numbers less than 28
 factorial.
 """
-
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
@@ -26,7 +25,8 @@ if 1:  # Imports
     from collections import defaultdict
 if 1:  # Custom imports
     from wrap import dedent
-    from color import t
+    import trm
+    t = trm.Trm()
 if 1:  # Global variables
     t.c = t("wht")
     t.p = t("magl")
@@ -34,13 +34,10 @@ if __name__ == "__main__":
     limit = fac(28)  # Limit the printed integers to <= this value
     max_number = 100
     d = defaultdict(list)
-
     def perm(x):
         return int(mp.fac(x))
-
     def comb(n, m):
         return int(mp.fac(n) / (mp.fac(n - m) * mp.fac(m)))
-
     for n in range(max_number + 1):
         d[perm(n)].append(f"{t.p}[{n}]{t.n}")
         for m in range(1, n // 2):

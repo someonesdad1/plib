@@ -10,7 +10,6 @@ Quick validation 21 Jun 2022
     https://www.engineeringtoolbox.com/pressure-loss-steel-pipes-d_307.html
     for 1 m/s nom in 1 inch sch 40 steel pipe gives about 58 kPa per 100 m;
     this script gives around 54-66, depending on cleanliness of pipe.
-
 """
 
 if 1:  # Header
@@ -33,18 +32,19 @@ if 1:  # Header
     from fractions import Fraction
     import bisect
     import math
-
+    
     # Custom imports
     from wrap import dedent
-    from color import TRM as q
+    import trm
+    t = trm.Trm()
     from u import u, ParseUnit
     from f import flt
     from water import FrictionFactor, WaterDensity, WaterDynamicViscosity
     from water import GetQuantity
-
+    
     if 0:
         import debug
-
+        
         debug.SetDebugger()
     # Global variables
     # Allowed fluid velocities in m/s
@@ -122,11 +122,11 @@ if 1:  # Utility
             return -(ip + fp) if neg else ip + fp
         except ValueError:
             raise ValueError(msg)
-
+            
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
+        
     def Usage(status=1):
         name = sys.argv[0]
         degC = d["-t"]
@@ -168,7 +168,7 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
+        
     def ParseCommandLine():
         # Set up flt string interpolation
         x = flt(0)
@@ -242,8 +242,8 @@ if 1:  # Utility
             Usage()
         x.n = d["-n"]
         return " ".join(args)
-
-
+        
+        
 if 1:  # Core functionality
 
     def GetSI(s, units="inches"):
@@ -255,7 +255,7 @@ if 1:  # Core functionality
         except TypeError:
             Error(f"{un!r} is an unrecognized unit")
         return val
-
+        
     def GetDiameter(dia):
         """Return the pipe inside diameter in m."""
         if dia in US_pipe_sizes:
@@ -265,7 +265,7 @@ if 1:  # Core functionality
             if d < 0.001:
                 Error("Inside diameter needs to be 1 mm or larger")
             return d
-
+            
     def SetFluidVelocities(d):
         """The normal range of fluid velocities for practical problems is
         about 0.5 to 3 m/s.  Using the -f option extends this to 0.1 to 10
@@ -276,18 +276,18 @@ if 1:  # Core functionality
         if d["-f"]:  # Full range of velocities
             return
         elif d["-F"]:
-
+        
             def pred(x):
                 return 10 < x <= 100
-
+                
             velocities += list(filter(pred, [round(100 * i, 1) for i in velocities]))
         else:
-
+        
             def pred(x):
                 return 0.1 <= x <= 3
-
+                
             velocities = list(filter(pred, velocities))
-
+            
     def PrintTable(diameter_m, d):
         A = flt(math.pi * diameter_m**2 / 4)
         g = flt(9.80665)  # Standard acceleration of gravity in m/s2
@@ -339,7 +339,7 @@ if 1:  # Core functionality
           Heating water:  1-3,  Irrigation water:  1.5
         """)
         )
-
+        
     def PrintReport(diameter_m):
         title = f"{q.ti}Friction pressure drops for"
         if dia in US_pipe_sizes:
@@ -364,10 +364,11 @@ if 1:  # Core functionality
                 f"{name} density = {d['-d']} kg/m3, dynamic viscosity = {1000 * d['-v']} mPa*s\n"
             )
         PrintTable(diameter_m, d)
-
-
+        
+        
 if __name__ == "__main__":
     d = {}  # Options dictionary
     dia = ParseCommandLine()
     diameter_m = flt(GetDiameter(dia))
     PrintReport(diameter_m)
+    

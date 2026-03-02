@@ -48,7 +48,8 @@ if 1:  # Header
     import sys
     # Custom imports
     from wrap import wrap, dedent
-    from color import t
+    import trm
+    t = trm.Trm()
     from f import flt, pi, sqrt
     import u
     # Global variables

@@ -4,7 +4,6 @@ Remove blank lines from python scripts
     Motivation:  vertical real estate on a terminal screen is precious and
     I like to see as much information as possible when editing code.
 """
-
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
@@ -32,22 +31,19 @@ if 1:  # Custom imports
     from wrap import wrap, dedent
     from fel import GetEmptyLines
     from lwtest import Assert
-    from color import t
-
+    import trm
+    t = trm.Trm()
     if 0:
         import debug
-
         debug.SetDebugger()
 if 1:  # Global variables
     ii = isinstance
     t.err = t("redl")
     bup_ext = ".rblbak"
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
             dedent(f"""
@@ -72,7 +68,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-b"] = True  # Write a backup file
         d["-d"] = False  # Debug sent to stderr to see tokenizing
@@ -92,10 +87,7 @@ if 1:  # Utility
             elif o == "-h":
                 Usage(status=0)
         return args
-
-
 if 1:  # Core functionality
-
     class RemoveEmptyLines:
         """Remove empty lines from a file.  An empty line is one that
         contains only whitespace.  Usage:
@@ -103,7 +95,6 @@ if 1:  # Core functionality
             bool(rbl)    --> True means there are blank lines to remove
             rbl.remove() --> Removes blank lines and writes file
         """
-
         def __init__(self, file, debug=None):
             """file is either a pathlib.Path object or "-" for stdin.  If debug
             is not None, it should be a stream to write the tokenizer's output
@@ -120,13 +111,10 @@ if 1:  # Core functionality
                     raise ValueError(f"'{file}' is bad file")
                 stream = open(self.file, "rb")
             self.empty_lines = GetEmptyLines(stream, debug)
-
         def __bool__(self):
             return bool(self.empty_lines)
-
         def __str__(self):
             return f"RemoveEmptyLines('{self.file}', {self.empty_lines})"
-
         def process(self):
             """Remove the indicated lines from the file and write it back to the
             file.
@@ -162,7 +150,6 @@ if 1:  # Core functionality
                 print(s, end="")
             else:
                 open(self.file, "w").write("\n".join(lines))
-
     def ProcessTextFile(file):
         """Process the indicated file using a regular expression to
         identify blank lines.
@@ -209,8 +196,6 @@ if 1:  # Core functionality
                     mo = r.match(line)
                     if not mo:
                         print(line, file=f)
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     files = ParseCommandLine(d)

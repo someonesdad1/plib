@@ -30,7 +30,8 @@ if 1:  # Header
         from f import flt
         from resistors import FindClosest
         from fpformat import FPFormat
-        from color import t
+        import trm
+        t = trm.Trm()
         from dpprint import PP
     if 1:  # Global variables
         pp = PP()   # Get pprint with current screen width

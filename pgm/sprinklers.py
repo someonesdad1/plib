@@ -7,10 +7,9 @@
 - As of May 2024, all circuit timing is 120 minutes
 - A command line argument lets you define the starting time and the new table will reflect that
   starting time
-
+  
 Print out sprinkler timing
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -36,14 +35,13 @@ if 1:  # Header
     if 1:  # Custom imports
         from dpstr import Keep
         from get import GetClosest
-        from color import t
+        import trm
+        t = trm.Trm()
         from wrap import dedent
         from lwtest import Assert
     if 1:  # Global variables
-
         class G:
             pass
-
         g = G()
         ii = isinstance
         # Circuit timing in minutes at budget == 100%, as of 6 Jun 2024
@@ -67,24 +65,20 @@ if 1:  # Header
         # Always output color
         t.always = True
 if 1:  # Utility
-
     def GetColors():
         t.budget = t("ornl")
         t.err = t("redl")
         t.day = t("yell")
         t.title = t("purl")
-
     def GetScreen():
         "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
             int(os.environ.get("COLUMNS", "80")) - 1,
         )
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
             dedent(f"""
@@ -104,7 +98,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-b"] = g.default_budget  # Default budget value
         try:
@@ -140,10 +133,7 @@ if 1:  # Utility
                 Usage(status=0)
         g.L, g.W = GetScreen()
         return args
-
-
 if 1:  # Core functionality
-
     def SetBudget(budget):
         try:
             b = GetClosest(budget, g.allowed_budget)
@@ -152,7 +142,6 @@ if 1:  # Core functionality
             print(f"Budget set to {b}%")
         except Exception:
             Error(f"Could not write budget file {g.budget_file}.")
-
     def GetBudget():
         try:
             with open(g.budget_file) as fp:
@@ -162,7 +151,6 @@ if 1:  # Core functionality
         except Exception:
             t.print(f"{t.err}Could not read budget file {g.budget_file!r}.  Using 50%.")
             return 50
-
     def GetBudgetChanged():
         "Return date budget file changed"
         p = P(g.budget_file)
@@ -173,7 +161,6 @@ if 1:  # Core functionality
             b = b[1:]
         c = time.strftime("%p", t)
         return f"{a} {b} {c}"
-
     def TemplateRound(x, template, up=True):
         """Round a float to a template number.  The basic algorithm is to
         determine how many template values are in x.  You can choose to
@@ -190,7 +177,6 @@ if 1:  # Core functionality
         elif not up and y > abs(x):
             y -= template
         return sign * y
-
     def HM(t):
         "t is time in minutes from midnight.  Return in HH:MM format."
         h, m = divmod(t, 60)
@@ -201,7 +187,6 @@ if 1:  # Core functionality
         if not h:
             h = 12
         return f"{h:2d}:{m:02d} {ap}"
-
     def PrintSchedule():
         budget = d["-b"]
         assert ii(budget, int) and 0 <= budget <= 100
@@ -272,7 +257,6 @@ if 1:  # Core functionality
             print(
                 f"{indent}Total minutes = {total_minutes} = {total_minutes / 60:.3f} hours"
             )
-
     def H(tm):
         """tm is a datetime.  Extract the time and return it in the form 'hh:mm am' or 'hh:mm pm'."""
         hr, min, sec = [int(i) for i in str(tm).split()[1].split(":")]
@@ -283,7 +267,6 @@ if 1:  # Core functionality
         if not hr:
             hr = 12
         return f"{hr:2d}:{min:02d} {a}"
-
     def GetStartTime(start_time):
         """start_time can be of the following forms:
             13:34       24 hour hh:mm form
@@ -338,7 +321,6 @@ if 1:  # Core functionality
         if not (0 <= m < 60):
             Error(f"Minutes must be on [0, 60)")
         return h, m
-
     def PrintOffsetSchedule(h, m):
         """Print out the actual times for programs A and B, as they both run unless you select only one.
         Start time is h:m; h is integer on [0, 24) and m is integer on [0, 60).
@@ -351,7 +333,6 @@ if 1:  # Core functionality
         starttime = dt.datetime(now.year, now.month, now.day, h, m)
         indent = " " * 4
         total_minutes = 0
-
         def Print():
             w = (7, 7, 12, 12)
             nonlocal total_minutes
@@ -385,14 +366,12 @@ if 1:  # Core functionality
             print(
                 f"{indent}Watering time = {total_minutes} minutes = {total_minutes / 60:.2f} hours"
             )
-
         # Program A
         print("Program A")
         Print()
         # Program B
         print("\nProgram B")
         Print()
-
     def Test():
         "Check utility functions"
         if 1:  # GetStartTime()
@@ -416,7 +395,6 @@ if 1:  # Core functionality
             Assert(HM(20 * 60) == " 8:00 pm")
             Assert(HM(23 * 60) == "11:00 pm")
             Assert(HM(23 * 60 + 59) == "11:59 pm")
-
     def PrintTiming():
         "Show circuit times from 50% to 100%"
         t.print(
@@ -439,8 +417,6 @@ if 1:  # Core functionality
                 print(f"{str(int(minutes * b / 100)):^{w}s}", end=" ")
             print()
         print()
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     Test()

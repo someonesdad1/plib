@@ -30,7 +30,8 @@ if 1:  # Header
         import zlib
     if 1:  # Custom imports
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
         import dpstr
         if 0:
             import debug

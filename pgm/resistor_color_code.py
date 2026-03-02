@@ -1,7 +1,6 @@
 """
 Print resistor color code to screen
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -23,21 +22,19 @@ if 1:  # Header
         import re
         import sys
     if 1:  # Custom imports
-        from color import t
+        import trm
+        t = trm.Trm()
         from bidict import bidict
         from get import GetLines
         from wrap import dedent
         from dpprint import PP
-
         pp = PP()  # Screen width aware form of pprint.pprint
         from wsl import wsl  # wsl is True when running under WSL Linux
         # from columnize import Columnize
     if 1:  # Global variables
-
         class G:
             # Storage for global variables as attributes
             pass
-
         g = G()
         g.dbg = False
         ii = isinstance
@@ -91,19 +88,16 @@ if 1:  # Header
             }
         )
 if 1:  # Utility
-
     def GetScreen():
         "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
             int(os.environ.get("COLUMNS", "80")) - 1,
         )
-
     def GetColors():
         t.dbg = t("cyn") if g.dbg else ""
         t.N = t.n if g.dbg else ""
         t.err = t("redl")
-
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="", file=Dbg.file)
@@ -111,13 +105,10 @@ if 1:  # Utility
             k["file"] = Dbg.file
             print(*p, **k)
             print(f"{t.N}", end="", file=Dbg.file)
-
     Dbg.file = sys.stderr  # Debug printing to stderr by default
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
             dedent(f"""
@@ -134,7 +125,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = False  # Describe this option
         d["-d"] = 3  # Number of significant digits
@@ -162,17 +152,14 @@ if 1:  # Utility
             PrintTable()
             exit(0)
         return args
-
-
 if 1:  # Core functionality
-
     def PrintTable():
         print(
             dedent(f"""
         IEC 60062:2016 standard resistor color codes.  The decimal point is
         implied after the last digit.  To orient left to right, there is a
         gap between the last two bands.
-
+        
         """)
         )
         # Column widths
@@ -209,16 +196,12 @@ if 1:  # Core functionality
             f"{'':^{w[4]}s}"
             f"{tol:^{w[5]}s}"
         )
-
     def Interpret(*args):
         """Print an interpretation of a set of colors."""
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
     Interpret(*args)
-
 """
 Note the decimal point is implied after the last digit.  The standard is
 IEC 60062:2016.  To orient left to right, there is a gap between the last

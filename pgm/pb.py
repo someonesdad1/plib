@@ -7,16 +7,15 @@ The basic formulas are (see DeriveEquations())
     T = electrolyte temperature
     V = battery voltage in V
     P = percent charge on [0, 100]
-
+    
 Equations in °C:
   V = (P/100 + 15.5151)/1.3065 + (T - 26.7)/231.7
   P = -0.5638757*T + 130.65*V - 1536.454
 Equations in °F:
   V = (P/100 + 15.5151)/1.3065 + (T - 80)/417
   P = -0.31330935*T + 130.65*V - 1526.445
-
+  
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -39,19 +38,16 @@ if 1:  # Header
         from wrap import dedent
         from f import flt
         from frange import frange
-        from color import t
+        import trm
+        t = trm.Trm()
         from columnize import Columnize
         from util import Len
-
         if len(sys.argv) > 1:
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
-
         class G:
             pass
-
         g = G()  # Storage for global variables as attributes
         g.dbg = False
         ii = isinstance
@@ -61,32 +57,30 @@ if 1:  # Header
         t.bad = t("lip")  # < 50%
         t.good = t("grn")  # >= 50%
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Manpage():
         print(
             dedent(f"""
-
+            
         The formula used for these tables is one I found many years ago on the web and I can't
         attribute it, but it looks like someone found a table of battery voltages as a function of
         P (percent of charge) and T (electrolyte temperature) and did a linear regression, as the
         function is of the form V = b0 + b1*P + b2*T where the b's are the regression constants
         and V is the voltage.
-
+        
         These tables are approximate and can depend on a number of factors.  A core assumption is
         that the battery is open circuit and has not been charged or discharged for 4 hours
         (battery manufacturers may recommend 24 hours).  Figure 5 in [1] is useful to give you a
         feel for the variance.
-
+        
         A basic problem with testing a battery in a modern car is that the car's electronics can
         be drawing power at various times, even when the ignition is off.  The easiest fix is to
         disconnect the positive battery terminal.  Before doing this, make sure you can do this
         without causing the car problems (our GM and Subaru cars withstand this OK, but a friend
         had a 2000's Audi that would get pretty screwed up if its battery was disconnected). 
-
+        
         Equations in °C:
             V = (P/100 + 15.5151)/1.3065 + (T - 26.7)/231.7
             P = -0.5638757*T + 130.65*V - 1536.454
@@ -99,23 +93,23 @@ if 1:  # Utility
             P = percent of charge (0 to 100)
             V = battery voltage
             T = temperature of electrolyte
-
+            
         The second forms of the equations for P show that they are linear at a constant
         temperature.
-
+        
         Caution:  you'd be wise to verify these tables and formulas with the batteries you have.
         I have two identical RV batteries purchased within a year or so of each other and one
         seems to fit the function model well, but the other doesn't, particularly in winter garage
         temperatures around 8-10 °C.  
-
+        
         Figure 12 in [1] show some circuits that might help prevent overdischarge of batteries.  
-
+        
         A good battery charger is a CV/CC (constant voltage and constant current) DC power supply.
         [3] recommends 2.25 V/cell to 2.27 V/cell as a float charge.  I chose to use 2.25 V/cell
         for the battery charger I built because I manually first charge my batteries with my 35-40
         year old analog charger that still works well.  For a 12 V battery with 6 cells, this
         means a charging voltage of 6(2.25) V or 12 + 3/2 = 13.5 V.
-
+        
         A multiple battery charger design
             
             I usually have 4 to 6 batteries from vehicles and RVs stored in our garage over the
@@ -123,7 +117,7 @@ if 1:  # Utility
             explains why I have more than a few).  I'd have to measure their voltage and put the
             charger on them every week or two, a tedious manual process because I've been doing it
             for more than 30 years.
-
+            
             To automate this task, I used a 24 V DC switching power supply that I had on hand that
             had both constant voltage and constant current features.  I set the maximum charging
             current to about 0.75 A, as these batteries would each be charged daily for a selected
@@ -140,7 +134,7 @@ if 1:  # Utility
             need attention.  I had an old under $1 buck converter I used to get the 5 V needed for
             the μP from the power supply voltage.  The total cost was around $25, as I used mostly
             scrap laying around the house for the remaining stuff.
-
+            
             Another design would use a power supply, but would use DC buck converters like the
             $5 units from https://www.mpja.com:  models 31562 or 33370.  You'd buy one of these
             for each battery to be charged and set the voltage and current appropriately for each
@@ -148,14 +142,14 @@ if 1:  # Utility
             number of these buck converter boards.  This design will have the advantage of being
             able to choose the charging voltage and current for each battery -- and they'll all be
             charged in parallel.
-
+            
             With both designs, you'll want to include a diode to protect each buck converter or
             the power supply from the user connecting a battery backwards.  If you limit the
             current like I did to around 0.75 A, a 1N400X diode with a 1 A rating will work.
             Remember to take the diode's voltage drop into account when setting the battery's
             charging voltage or measure it at the battery's positive terminal.
-
-
+            
+            
         References
         ----------
         [1] https://www.power-sonic.com/wp-content/uploads/2018/12/Technical-Manual.pdf
@@ -164,7 +158,6 @@ if 1:  # Utility
         """)
         )
         exit(0)
-
     def Usage(d, status=1):
         print(
             dedent(f"""
@@ -172,7 +165,7 @@ if 1:  # Utility
             Print a table of percent of charge of a lead acid battery as a function of electrolyte
             temperature and voltage.  Allow 24 hours for the battery to reach equilibrium after
             charging and make sure there is no load on the battery.
-
+            
             If temperature is included, print a table of voltages for that temperature and ±5
             degrees above and below it.
         Example:  '{sys.argv[0]} -c -4'
@@ -194,7 +187,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-2"] = False
         d["-c"] = False
@@ -216,13 +208,10 @@ if 1:  # Utility
         x.N = 4
         x.rtz = False
         return args
-
-
 if 1:  # Core functionality
-
     def DeriveEquations():
         """Use sympy to invert the relations.  Results are:
-
+        
         Equations in °C:
             V = (P/100 + 15.5151)/1.3065 + (T - 26.7)/231.7
             P = -0.563875701337937*T + 130.65*V - 1536.45451877427
@@ -231,7 +220,6 @@ if 1:  # Core functionality
             P = -0.313309352517986*T + 130.65*V - 1526.44525179856
         """
         from sympy import symbols, Eq, solve
-
         V, P, T = symbols("V P T")
         # °C
         print("Equations in °C:")
@@ -244,10 +232,8 @@ if 1:  # Core functionality
         f = Eq(V, (P / 100 + 15.5151) / 1.3065 + (T - 80) / 417)
         print(f"  P = {solve(f, P)[0]}")
         exit()
-
     def FtoC(T_degF):
         return 5 / 9 * (T_degF - 32)
-
     def Voltage(pct_chg, T, degF=False):
         """Calculate voltage given the % charge and temperature T in °C.  I can't attribute this
         formula for lead-acid battery voltage as a function of % of charge and electrolyte
@@ -256,7 +242,6 @@ if 1:  # Core functionality
         if degF:
             T = (T - 32) * 5 / 9
         return (pct_chg / 100 + 15.5151) / 1.3065 + (T - 26.7) / 231.7
-
     def ChargeTable(temperature):
         "Print charge table when command line has a temperature"
         T = int(temperature)
@@ -287,12 +272,11 @@ if 1:  # Core functionality
                 print(f"{v:{n}.2f}" if d["-2"] else f"{v:{n}.3f}", end=" ")
             print()
         print()
-
     def VoltageTable(degC=True):
         """Print out a table of % of charge as a function of DC voltage.
         The voltages go down the left column from 11.6 to 12.8 in steps of
         50 mV.  The electrolyte temperature is in steps of 5 °C or 10 °F.
-
+        
         Equations in °C:
             V = (P/100 + 15.5151)/1.3065 + (T - 26.7)/231.7
             P = -0.563875701337937*T + 130.65*V - 1536.45451877427
@@ -378,19 +362,14 @@ if 1:  # Core functionality
                         print(f"{'  · '}", end="")
                 print()
         print("Use -c for °C, -H for manpage")
-
     def PctVsVoltage(T, degF=False):
         "Return the equation for P(V) at the given temperature T"
         a, b = 130.65, -1526.44525179856
-
         def P_degF(V):
             return -0.313309352517986 * T + a * V + b
-
         def P_degC(V):
             return -0.563875701337937 * T + a * V + b
-
         return P_degF if degF else P_degC
-
     def PercentVersusVoltageTable(temperature):
         "Print percent of charge for every 1% with its corresponding voltage"
         T = temperature
@@ -428,7 +407,6 @@ if 1:  # Core functionality
             print(
                 f"                          = {slope * 12.333} - {intercept} = {p:.2f}"
             )
-
     def PercentVersusVoltageFunctions():
         """
         Equations in °C:
@@ -480,19 +458,16 @@ if 1:  # Core functionality
         print()
         print(
             dedent(f"""
-
+            
         Example:  At 50 °F, the equation is 130.65*V - 1542.1.  12.57 V will give 100.1% charge
         and 12.19 V will give 50.5% charge.  Caution:  you'll want to verify these formulas before
         using them, as they may not apply to the batteries you're using.
-
+        
         """)
         )
-
-
 if 0:
     PercentVersusVoltageFunctions()
     exit()
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

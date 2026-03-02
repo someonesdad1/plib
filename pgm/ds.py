@@ -72,7 +72,6 @@ if 1:  # Header
         from timer import GetET
         from dpstr import IgnoreFilter
         from f import flt
-        #from color import t
         import trm
         import util
     if 1:  # Global variables

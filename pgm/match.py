@@ -2,7 +2,6 @@
 Print out matching characteristics of two resistors.  They are measured in
 series with a voltage across them.
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -23,7 +22,8 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
         from si import GetSignificantFigures, ConvertSI
         from f import flt
     if 1:  # Global variables
@@ -31,24 +31,22 @@ if 1:  # Header
         t.pct = t("ornl")
         t.ppm = t("yell")
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Manpage():
         print(
             dedent(f"""
         This script calculates how close two resistors' resistances are by
         measurement:  the two resistances in series are put across a known
         voltage and the voltage drop across each resistor is measured. 
-
+        
         Example:  I have two matched resistors that came from a
         differential voltmeter.  I put 21.9 V across the two resistors and
         measured their voltage drops as  10.957 V and 10.955 V using an
         Aneng 870 DMM.  Giving the arguments '10.957 10.955' to the script,
         we get
-
+        
             Resistor matching:
                 V1   = 10.957
                 V2   = 10.955
@@ -56,51 +54,50 @@ if 1:  # Utility
         
         showing the resistors are matched to within about 90 ppm.  Note the
         mean has one more digit than the argument with the most digits.
-
+        
         If you use -1 or -2 to define the resistance of one of the
         resistors, the report changes, as it assumes the given resistance
         is a known resistance standard.  The report then states how much
         the other resistor deviates from the given resistor.  The output is
         given in Ω because the current can be calculated.
-
+        
         The above Fluke resistors are stamped with the value 98.582 kΩ.
         Giving the script the arguments '-1 98.582k 10.957 10.955'
         results in
-
+        
             Resistor matching:
                 R1   ≝ 98582
                 R2   = 98582 - 0.018% = R1 - 180 ppm
-
+                
         Note you can use cuddled SI prefixes with the -1 or -2 options.
         If the arguments were '-1 98.5820k 10.957 10.955', the results are
-
+        
             Resistor matching (ppm = parts per 10⁶):
                 R1   ≝ 98582.0 Ω
                 R2   = 98582.0 Ω - 0.02% = R1 - 200 ppm
-
+                
         In this case, the results are printed to six significant figures,
         as the argument to -1 had that many figures.  The argument with the
         maximum number of significant figures is used to print out the
         results.  Thus, '-1 98.582000k 1 1.1' results in 
-
+        
             Resistor matching (ppm = parts per 10⁶):
                 R1   ≝ 98582.000 Ω
                 R2   = 98582.000 Ω + 10% = R1 + 100000 ppm
-
+                
         because the -1 argument had 7 significant figures.  Of course, the
         measured voltages don't have that many figures, so you have to
         interpret the results with that in mind.  The results represent
         arithmetical significance, not necessarily physical significance.
-
+        
         When the -1 or -2 options aren't used, the V1 and V2 values are the
         strings that were given on the command line.  The number of figures
         for the mean will be the maximum number of figures in V1 and V2
         plus one.
-
+        
         """)
         )
         exit(0)
-
     def Usage(status=1):
         print(
             dedent(f"""
@@ -127,7 +124,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["n"] = 0  # Number of digits for -1 or -2
         d["-1"] = None  # First resistor
@@ -170,16 +166,12 @@ if 1:  # Utility
         if len(args) != 2:
             Usage()
         return args
-
-
 if 1:  # Core functionality
-
     def Strip(s):
         "Remove letters/signs to make a float an integer significand"
         for i in ".,eE+-":
             s = s.replace(i, "")
         return s
-
     def Report(s1, s2):
         "s1 and s2 are the strings the user entered for the voltages"
         # Get number of digits to use in numbers
@@ -231,8 +223,6 @@ if 1:  # Core functionality
             print(f"  Mean = {mean} ", end="")
             pct.n, ppm.n = d["-d"], d["-d"]
             print(f"{t.pct}± {pct}%{t.n} = {mean} {t.ppm}± {ppm} ppm{t.n}")
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

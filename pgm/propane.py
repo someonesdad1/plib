@@ -15,9 +15,8 @@ Estimate quantity of propane left in our trailer's tanks
         - Assume tare weight of tank is Wt = 25.4 lb
         - Let W = weight of tank in lb from luggage scale
         - Volume of propane in gallons is (W - Wt)/4.28
-
+        
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -44,18 +43,15 @@ if 1:  # Header
         from columnize import Columnize
         from f import flt, ceil
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
         from lwtest import Assert
-
         if 0:
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
-
         class G:
             pass
-
         g = G()
         g.dbg = False
         g.tare = flt(25.4)  # Tare mass of RV tank in lb
@@ -64,29 +60,24 @@ if 1:  # Header
         g.vol = 8.56  # Geometrical volume in gal
         ii = isinstance
 if 1:  # Utility
-
     def GetColors():
         t.err = t("redl")
         t.dbg = t("lill") if g.dbg else ""
         t.N = t.n if g.dbg else ""
-
     def GetScreen():
         "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
             int(os.environ.get("COLUMNS", "80")) - 1,
         )
-
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="")
             print(*p, **kw)
             print(f"{t.N}", end="")
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=0):
         print(
             dedent(f"""
@@ -100,7 +91,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = False  # Need description
         d["-d"] = 3  # Number of significant digits
@@ -125,13 +115,9 @@ if 1:  # Utility
             elif o in ("--debug",):
                 # Set up a handler to drop us into the debugger on an unhandled exception
                 import debug
-
                 debug.SetDebugger()
         return args
-
-
 if 1:  # Core functionality
-
     def Estimate(wt_lb):
         w = flt(wt_lb)
         if not (g.tare <= w <= 55):
@@ -145,7 +131,6 @@ if 1:  # Core functionality
         with v:
             v.N = 2
             t.print(f"{t.ornl}{v} gallons of propane remaining")
-
     def Table():
         # start = g.tare
         start = flt(25.5)
@@ -188,8 +173,6 @@ if 1:  # Core functionality
         From M = mass of tank and propane in lbm, % full is 3.416*M - 86.7
         """)
         )
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

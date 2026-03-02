@@ -88,7 +88,8 @@ if 1:  # Header
         from uncertainties.umath import sqrt, acos
         from f import flt
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
         if 0:
             import debug
             debug.SetDebugger()

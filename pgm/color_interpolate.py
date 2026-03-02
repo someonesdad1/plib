@@ -29,7 +29,9 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         from wrap import wrap, dedent
-        from color import Color, t
+        from color import Color
+        import trm
+        t = trm.Trm()
         from dpseq import fDistribute
         if 0:
             import debug

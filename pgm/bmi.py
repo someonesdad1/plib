@@ -24,7 +24,8 @@ if 1:  # Header
         from wrap import dedent
         from f import flt
         from frange import frange
-        from color import t
+        import trm
+        t = trm.Trm()
     if 1:  # Global variables
         lb2kg = 0.453592
         in2m = 0.0254

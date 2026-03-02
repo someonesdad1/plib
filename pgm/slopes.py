@@ -8,7 +8,8 @@ if 1:   # Header
     from get import GetNumbers
     from f import flt, tan, atan, pi, degrees, radians
     import termtables as tt
-    from color import t
+    import trm
+    t = trm.Trm()
     t.f = t.skyl
 if 1:   # Core functionality
     def Slopes():

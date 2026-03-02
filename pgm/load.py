@@ -17,12 +17,11 @@ of 1 to 31 ohms in steps of 1 ohm for the bench that cost under $60.
         - (1) IEC jack for 120 V power              $1
         - (1) 120 V fan for cooling                 $5
         - (1) Normally-open thermostatic switch     $1
-
+        
 Total cost should be under $70.  I used the mini toggle switches to switch the relays on and off.
 The extra toggle switch switches the whole series load of resistors in and out of the circuit.
 
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -49,46 +48,38 @@ if 1:  # Header
     if 1:  # Custom imports
         from f import flt
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
         from lwtest import Assert
-
         if 0:
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
-
         class G:
             pass
-
         g = G()
         g.dbg = True
         g.dbg = False
         ii = isinstance
 if 1:  # Utility
-
     def GetColors():
         t.err = t("redl")
         t.dbg = t("lill") if g.dbg else ""
         t.N = t.n if g.dbg else ""
-
     def GetScreen():
         "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
             int(os.environ.get("COLUMNS", "80")) - 1,
         )
-
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="")
             print(*p, **kw)
             print(f"{t.N}", end="")
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=0):
         print(
             dedent(f"""
@@ -101,7 +92,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = False  # Need description
         d["-n"] = 3  # Number of significant digits
@@ -125,10 +115,7 @@ if 1:  # Utility
             elif o == "-h":
                 Usage()
         return args
-
-
 if 1:  # Core functionality
-
     def PrintPowers(power_W):
         """Given a set of resistors of values 1, 2, 4, 8, 16 in series, selected by toggle
         switches or relays.  Print out a table of the allowed current and voltage across the
@@ -160,8 +147,6 @@ if 1:  # Core functionality
             print(
                 f"{R:2d}       {V!s:{w}s}     {i!s:{w}s}      {int(round(pct, 0)):3d}"
             )
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

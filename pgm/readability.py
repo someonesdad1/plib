@@ -51,7 +51,8 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
         import get
         # Load a dictionary of number of syllables if available (otherwise,
         # the number of syllables in each word will be found by the

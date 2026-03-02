@@ -1,10 +1,9 @@
 """
 ToDo
     - Find the values for all pri 0 materials
-
+    
 Specific heat of some materials
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -27,18 +26,15 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
         from f import flt
-
         if 1:
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
-
         class G:
             pass
-
         g = G()  # Storage for global variables as attributes
         g.dbg = False
         t.dbg = t("lill") if g.dbg else ""
@@ -170,50 +166,46 @@ if 1:  # Data
     w2 = max(len(str(i[2])) for i in spht)
     w3 = max(len(str(i[3])) for i in spht)
 if 1:  # Utility
-
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="")
             print(*p, **kw)
             print(f"{t.N}", end="")
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Manpage():
         print(
             dedent(f"""
-
+            
         The specific heat is the amount of energy per unit mass of material
         that must be added to a material to raise its temperature 1 K.  The
         heat capacity will most generally be a function of temperature and
         your calculations will be incorrect if a phase change is involved.
-
+        
         The specific heat values given are isobaric, meaning that the
         system's pressure is constant.  For a gas, adding heat will cause
         it to expand.  For gases, the ration of the isobaric heat capacity
         to the isochoric (at constant volume) is around 1.3 to 1.7.
-
+        
         The heat conductivity is a measure of how well heat flows in a
         material.
-
+        
         All values given are approximate and represent average values or
         the most common allotropic form.  These are for making back of the
         envelope calculations; proper references should be consulted for
         serious work.
-
+        
         Water's heat of fusion is 334 J/g and heat of vaporization is 2265
         J/g.
-
+        
         References
             - Koshkin and Shirkevich, "Handbook of Elementary Physics", MIR
               Publishers, 3rd ed., 1977
-
+              
         """)
         )
         exit(0)
-
     def Usage(status=1):
         print(
             dedent(f"""
@@ -229,7 +221,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = False  # Show all materials
         d["-d"] = 2  # Number of significant digits
@@ -257,10 +248,7 @@ if 1:  # Utility
         x.N = d["-d"]
         x.rtz = x.rtdp = True
         return args
-
-
 if 1:  # Core functionality
-
     def PrintItem(*args, all=False):
         matl, ph, cp, tc, pri = args
         pri = int(pri)
@@ -281,18 +269,14 @@ if 1:  # Core functionality
             t.print(
                 f"{c}{matl:{w0}s}{spc}{f(p[ph]):^{w1}s}{spc}{f(cp):^{w2}s}{spc}{f(tc):^{w3}s}"
             )
-
     def Hdr():
         t.print(
             f"{t.title}{'Material':{w0}s}{spc}{'Phase':^{w1}s}{spc}{'Cp':^{w2}s}{spc}{'k':^{w3}s}"
         )
-
     def Trlr():
         t.print(f"{t.trlr}Cp = specific heat at constant pressure in J/(g*K)")
         t.print(f"{t.trlr}k = thermal conductivity in W/(m*K)")
         t.print(f"{t.trlr}Values given to {d['-d']} figures.  T ~ 20 °C, P ~ 101 kPa.")
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     spc = " " * 4

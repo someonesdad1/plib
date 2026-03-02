@@ -13,7 +13,6 @@ It would be nice to have a tester that would have specific current levels
 for testing.  Useful values would be 0.1, 0.5, 1, 2, 5, 10, 20 mA.
 
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -35,7 +34,9 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         from wrap import wrap, dedent
-        from color import Color, TRM as t
+        from color import Color
+        import trm
+        t = trm.Trm()
     if 1:  # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
@@ -57,11 +58,9 @@ if 1:  # Header
             "wht5": (2.61, 2.65, 2.70, 2.82, 2.96, 3.07, 3.14, 3.21, 3.26),
         }
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
             dedent(f"""
@@ -73,7 +72,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = False
         if len(sys.argv) < 2:
@@ -89,16 +87,11 @@ if 1:  # Utility
             elif o in ("-h", "--help"):
                 Usage(status=0)
         return args
-
-
 if 1:  # Core functionality
-
     def ProcessVoltage(voltage):
         if not (vlow <= voltage <= vhigh):
             print(f"Voltage must be between {vlow} and {vhigh} V")
             exit(1)
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     voltages = ParseCommandLine(d)

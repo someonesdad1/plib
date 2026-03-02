@@ -1,7 +1,6 @@
 """
 Print out pill bottle dimensions
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -18,12 +17,10 @@ if 1:  # Header
         pass
     if 1:  # Custom imports
         from wrap import dedent
-        from color import t
-
-        t.t = t("purl")
-        t.o = t("ornl")
-
-
+        import trm
+        t = trm.Trm()
+        t.t = t.pur
+        t.o = t.orn
 def PrintData():
     print(
         dedent(f"""
@@ -54,7 +51,5 @@ def PrintData():
        - OD measured with digital electronic calipers
     """)
     )
-
-
 if __name__ == "__main__":
     PrintData()

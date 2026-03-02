@@ -1,15 +1,15 @@
 """
 Count 8-bit characters in a stream or file
     TODO
-
+    
     * Change -r to turn on a report section that provides a number of
       statistical tests of randomness:
-
+      
         - Entropy
         - Chi-squared
         - Mean
         - Serial correlation test
-
+        
     These statistical calculations should be done during the
     accumulation of the data from the files, but only if -r is used
     because they slow things down considerably.  Or, they would only
@@ -18,7 +18,6 @@ Count 8-bit characters in a stream or file
     Serial correlation data adds to the calculation time, so it would
     only be printed if the -R option was used.
 """
-
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2012, 2019 Don Peterson #∞copyright∞#
@@ -46,11 +45,10 @@ if 1:  # Custom imports
     from columnize import Columnize
     from fpformat import FPFormat
     from roundoff import RoundOff
-    from color import TRM as T
-
+    import trm
+    t = trm.Trm()
     if 0:
         import debug
-
         debug.SetDebugger()
 if 1:  # Global variables
     # Colors
@@ -59,8 +57,6 @@ if 1:  # Global variables
     T.median = T("cynl")
     T.min = T("redl")
     T.filtered = T("yell")
-
-
 def ProcessFile(file, d):
     """Read in the bytes from the file and add them to the
     d["counts"] dictionary.
@@ -82,15 +78,11 @@ def ProcessFile(file, d):
         b = ifp.read(d["chunksize"])
         if d["-u"]:
             b = b.decode("UTF-8")
-
-
 def GetCharacterClasses(d):
     'Set up the various character classes in d["char_classes"]'
-
     def F(s):
         "Convert the string s to a set of its ord numbers."
         return set([ord(i) for i in s])
-
     cc = {
         "all": set(range(256)),
         "ctrl": set(range(32)),
@@ -107,8 +99,6 @@ def GetCharacterClasses(d):
         "ws": F(string.whitespace),
     }
     d["char_classes"] = cc
-
-
 def SetUpEncoding(d):
     """The d["encoding"] dictionary is used to print out the
     characters for the given ord() value of a character.  This is done
@@ -131,8 +121,6 @@ def SetUpEncoding(d):
     u = chr(0x25AB)  # White small square
     for i in range(33, 256):
         e[i] = u if 127 <= i <= 159 else chr(i)
-
-
 def Usage(d, status=1):
     print(
         dedent(f"""
@@ -204,8 +192,6 @@ def Usage(d, status=1):
     """)
     )
     exit(status)
-
-
 def ParseCommandLine(d):
     d["-C"] = True
     d["-c"] = []
@@ -239,7 +225,6 @@ def ParseCommandLine(d):
         if o[1] in "CDdfLlNnoPpRrsuvXx":
             d[o] = not d[o]
         elif o == "-c":
-
             def ProcessCharacterClass(cls):
                 # Specify character class
                 if cls not in d["char_classes"]:
@@ -249,7 +234,6 @@ def ParseCommandLine(d):
                     print("  ", s)
                     exit(1)
                 d["-c"].append(cls)
-
             if " " in a:
                 for cls in a.strip().split():
                     ProcessCharacterClass(cls)
@@ -278,8 +262,6 @@ def ParseCommandLine(d):
     if not args:
         Usage(d)
     return args
-
-
 def GetStatistics(d):
     """Calculate the counting statistics and put them in
     d["statistics"].
@@ -374,8 +356,6 @@ def GetStatistics(d):
         print("Variables in GetStatistics():")
         for i in l:
             print(f"   {i:20s}= {l[i]}")
-
-
 def PrintFiles(d):
     ""
     if d["-D"]:
@@ -384,8 +364,6 @@ def PrintFiles(d):
         print(f"{n} file{s} processed:")
         for i in Columnize(d["files"], indent=" " * 2):
             print(i)
-
-
 def ReportLongForm(d):
     """Show the detailed long report.  The fields printed are:
     Byte decimal value
@@ -436,8 +414,6 @@ def ReportLongForm(d):
             print(T.n)
         else:
             print()
-
-
 def PrintStatistics(d):
     def F(x, flag, name):
         # flag:  0 = normal, 1 = max, 2 = min, 3 = median
@@ -458,7 +434,6 @@ def PrintStatistics(d):
                 return " ".join([str(i) for i in x])
         else:
             return str(x)
-
     print("Statistics:")
     stats, counts, e = d["statistics"], d["counts"], d["encoding"]
     max_count = stats["highest_count"] if stats["highest_count"] else None
@@ -511,8 +486,6 @@ def PrintStatistics(d):
             print(f"   {j:{n}s}= {stats[i]:,}")
         else:
             print(f"   {j:{n}s}= {F(stats[i], flag, i)}")
-
-
 def PrintReport(d):
     """Show the collected counts."""
     PrintFiles(d)
@@ -565,7 +538,6 @@ def PrintReport(d):
                 if i <= 0xFFFF:
                     s = f"U+{i:04x}"
                     print(f"{i:7d} {s:^8s} {c:^3s}   {counts[i]:{max_count}d} {pct}")
-
                 else:
                     print(f"{i:7d} U+{i:06x} {c:^3s}   {counts[i]:{max_count}d} {pct}")
         return
@@ -583,7 +555,6 @@ def PrintReport(d):
                 # Sort the data by the size of the terms
                 def k(x):
                     return x[2]
-
                 data = sorted(data, key=k, reverse=True)
             s = []
             terms = [k for i, j, k in data]
@@ -681,8 +652,6 @@ def PrintReport(d):
             print(f"Byte {ho}counts:")
         for i in Columnize(lines, indent=" " * 2):
             print(i)
-
-
 if __name__ == "__main__":
     d = {  # Options dictionary
         "chunksize": int(1e6),  # How much to read into buffer

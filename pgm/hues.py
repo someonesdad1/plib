@@ -44,7 +44,9 @@ if 1:  # Header
     import sys
     # Custom imports
     from wrap import wrap, dedent
-    from color import Color, TRM as t
+    from color import Color
+    import trm
+    t = trm.Trm()
     t.on = True
     from dpseq import iDistribute
     # Global variables

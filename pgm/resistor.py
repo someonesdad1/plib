@@ -3,12 +3,11 @@ TODO
     - Change 'res l' to only list on-hand resistors.  Add 'res e' to show EIA values.
     - Incorporate 2 W resistor values (use special color when showing them)
     - Print the color code in Usage in color
-
+    
 Select from on-hand resistors to make a voltage divider or a given resistance value from a pair of
 resistors in series or parallel Change the on_hand global variable to reflect the resistors you
 have.
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -36,30 +35,27 @@ if 1:  # Header
         from sig import sig
         from fpformat import FPFormat
         from columnize import Columnize
-        from color import t
+        import trm
+        t = trm.Trm()
         from u import u, ParseUnit, SI_prefixes
         from dpprint import PP, Clear
         from f import flt
-
         if len(sys.argv) > 1:
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
         W = int(os.environ.get("COLUMNS", "80")) - 1
         fp = FPFormat()
         fp.trailing_dp = False
-
         class G:
             pass
-
         g = G()  # Global variable container
         # On-hand resistor values.  Change these entries to match what you have.
         g.on_hand = dedent("""
             0.025 0.18 0.2 0.27 0.33 0.6
-
+            
             1 2.2 4.6 8.3
-
+            
             10.1 12 14.7 15 17.8 22 27 28.4 30 31.6 33 35 38.4 46.3 50 55.5 61.8 67 75 78 81
         
             100 110 115 121 150 162 170 178 196 215 220 237 268 270 287 316 330 349 388 465 500
@@ -77,15 +73,15 @@ if 1:  # Header
         """)
         g.two_watt = dedent("""
             1 1.2 1.5 2 3 4.7 6.3 8.2 9.1
-
+            
             10 12 15 20 22 30 47 51 62 82 91 
-
+            
             100 150 200 300 470 620 820 910 
-
+            
             1k 18k 62k 82k 
-
+            
             100k 120k 150k 200k 220k 240k 300k 330k 390k 430k 470k 510k 560k 620k 820k
-
+            
             1M
         """)
         # The following array is used to define what decades of E-series
@@ -288,11 +284,9 @@ if 1:  # Header
         t.watt_quarter = t.sky
         t.watt2 = t.yell
 if 1:  # Utility
-
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
-
     def Usage(d, status=0):
         name = sys.argv[0]
         pmin = "%.1g" % (10 ** min(powers_of_10))
@@ -363,7 +357,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine():
         d["-c"] = None  # Configuration file
         d["-d"] = 4  # Significant figures
@@ -442,10 +435,7 @@ if 1:  # Utility
                     Usage(d)
             args[0] = cmd
         return args
-
-
 if 1:  # Core functionality
-
     def ConvertString(s):
         """s will be a number possibly followed by an SI prefix.  Return it as
         a float.
@@ -464,7 +454,6 @@ if 1:  # Core functionality
             return float(m) * factor
         except Exception:
             Error(msg)
-
     def GetResistors():
         R, p = [], {"m": 1e-3, "k": 1e3, "M": 1e6, "G": 1e9, "T": 1e12}
         if d["-e"] is not None:
@@ -483,7 +472,6 @@ if 1:  # Core functionality
                 for i in line.split():
                     R.append(ConvertString(i))
         d["R"] = R
-
     def Div(d, ratio, R1, R2):
         """If the divider ratio of R1 and R2 (R1 on top) is within the desired
         tolerance of ratio, then include it in the set d["divider"].
@@ -498,7 +486,6 @@ if 1:  # Core functionality
             d["divider"].add((rat1, R1, R2))
         elif (1 - t) * ratio <= rat2 <= (1 + t) * ratio:
             d["divider"].add((rat2, R2, R1))
-
     def Divider(ratio):
         d["divider"] = set()
         # First check using equal resistors
@@ -535,7 +522,6 @@ if 1:  # Core functionality
                 print(t.hl, end="")
             t.print("   {0:10}   {1:^10}   {2:^10}   {3:^10}".format(pct, R1, R2, R))
             # normal()
-
     def Resistance(resistance, report=False):
         """Print the report of the choices to get the desired resistance if
         report is True.  If report is False, return
@@ -564,7 +550,6 @@ if 1:  # Core functionality
             # Sort by absolute value of tolerance
             def tol(tgt, val):
                 return abs(val - tgt) / val
-
             r = [(tol(resistance, i[0]), i) for i in res]  # Decorate with abs val
             r.sort()
             res = [i[1] for i in r[: d["-n"]]]
@@ -610,7 +595,6 @@ if 1:  # Core functionality
                 # normal()
         else:
             return res
-
     def Res(d, R, R1, R2):
         """See if R1 and R2 sum to R within the desired tolerance; if so,
         include it in the set d["resistances"].
@@ -622,7 +606,6 @@ if 1:  # Core functionality
         par = 1 / (1 / R1 + 1 / R2)
         if (1 - t) * R <= par <= (1 + t) * R:
             d["resistances"].add((par, "p", R1, R2))
-
     def Quotient(ratio):
         if ratio == 1:
             print("Quotient cannot be 1")
@@ -664,7 +647,6 @@ if 1:  # Core functionality
                 print(t.hl, end="")
             t.print("   {0:10}   {1:^10}   {2:^10}".format(pct, R1, R2))
             # normal()
-
     def Pairs(args):
         if len(args) != 4:
             Usage(d)
@@ -722,7 +704,6 @@ if 1:  # Core functionality
             print("%-10s      " % sig(r), nl=False)
             print("%-10s      " % sig(r1), nl=False)
             print("%-10s" % sig(r2))
-
     def GetValue(args):
         """Convert a number and optional SI prefix on the command line to a
         floating point equivalent.  Note the string with the optional trailing
@@ -737,7 +718,6 @@ if 1:  # Core functionality
         except Exception:
             print("'%s' isn't recognized as a resistance value" % " ".join(args))
             exit(1)
-
     def Series(res):
         """Find a set of resistors that sum to the desired value but remain
         less than or equal to it.
@@ -757,7 +737,6 @@ if 1:  # Core functionality
         for i in used:
             r += i
             print("  %-10s" % fp.engsi(i), " ", sig(100 * r / res, 6))
-
     def Interpret(s):
         """Given a string such as '10k', convert it to a floating point value
         in ohms.  Note that the string with the suffix removed can be a valid
@@ -769,7 +748,6 @@ if 1:  # Core functionality
             factor = 10 ** prefixes[s[-1]]
             s = s[:-1]
         return float(eval(s)) * factor
-
     def DividerRatios(res):
         r = [Interpret(i) for i in res]
         R = sum(r)
@@ -782,25 +760,24 @@ if 1:  # Core functionality
         for i in range(1, len(r)):
             D = sum(r[i:]) / R
             print("  %2d  " % i, sig(D, 4))
-
     def DDivider(args):
         """The arguments are:
             total_resistance_ohms ratio1 ratio2 ...
                                   -----------------
                                         n ratios
         Return the n+1 resistors that make up this divider.
-
+        
         The equations are
-
+        
             R_n = R*rho_{n-1}
             R_i = R*(rho_{i-1} - rho_i), i = 2, 3, ..., n-1
             R_1 = R*(1 - rho_1)
-
+            
         Note that it's easier to augment the array of ratios with 0 at the
         beginning and 1 at the end; then we can use the indexed formula
-
+        
             R_i = R*(rho_{i-1} - rho_i), i = 1, 2, 3, ..., n
-
+            
         to get the n resistances.
         """
         R = Interpret(args[1])
@@ -829,12 +806,10 @@ if 1:  # Core functionality
             else:
                 print("  R%d = %-20s %s" % (i, fp.engsi(Rx), rho[i]))
         print("Total resistance =", fp.engsi(R))
-
     def sdev(r1, r2):
         """Return the standard deviation of the two values."""
         mean = (r1 + r2) / 2
         return (r1 - mean) ** 2 + (r2 - mean) ** 2
-
     def Best(R, res):
         """Return the best selection of resistor R from the list res."""
         # Get exact matches
@@ -857,16 +832,14 @@ if 1:  # Core functionality
                     lowest = r
             match = lowest
         return match
-
     def Int(x):
         return int(x) if x == int(x) else x
-
     def BCD(args):
         """Print the series/parallel combinations of on-hand resistors to
         construct the needed 1, 2, 4, 8 values in each decade.  This allows
         construction of a resistance box from suitable BCD (binary-coded
         decimal) switches.
-
+        
         Note that the typical BCD switch connects the common to the appropriate
         1-2-4-8 terminal and there's no easy way to make a resistance box from
         such a thing, although a capacitor box is possible.
@@ -874,7 +847,6 @@ if 1:  # Core functionality
         onhand = d["R"]
         rmin, rmax = min(onhand), max(onhand)
         from pprint import pprint as pp
-
         for decade in range(0, 7):
             for r in (1, 2, 4, 8):
                 R = r * 10**decade
@@ -899,7 +871,6 @@ if 1:  # Core functionality
                         # normal()
                         t.print(f"{t.redl}No match")
         exit(0)
-
     def Pots():
         "List code numbers on trimmer pots"
         p = (
@@ -929,7 +900,6 @@ if 1:  # Core functionality
             t.print(f"{c}By resistance:")
             for R, code in p:
                 print(f"{i}{R:8s} {code}")
-
     def ListEIA():
         t.print(f"{t.hdr}EIA resistance series:")
         sig.rtz = True
@@ -941,7 +911,6 @@ if 1:  # Core functionality
                 s.append(sig(num, digits))
             for i in Columnize(s, horiz=True):
                 print(" ", i)
-
     class Resistor:
         def __init__(self, value, wattage):
             self.value = value
@@ -953,20 +922,16 @@ if 1:  # Core functionality
                 self.R = flt(value[:-1]) * multiplier
             else:
                 self.R = flt(value)
-
         def __lt__(self, other):
             return self.R < other.R
-
         def __str__(self):
             "Return string form, colorized if needed"
             if self.wattage == 2:
                 return f"{t.watt2}{self.value}{t.n}"
             else:
                 return f"{t.watt_quarter}{self.value}{t.n}"
-
         def __repr__(self):
             return str(self)
-
     def ListOnhand():
         """This is the most-used feature of this script.  What's desired is an easy to read
         listing of the resistors I have on-hand.  Most in my collection are 1/4 W, so these are
@@ -1018,7 +983,6 @@ if 1:  # Core functionality
             # ∞∞1 Note this illuminates one or more bugs in Columnize, as this doesn't print as
             # I would wish.
             print("\nCrappy display due to bug in columnize.Columnize")
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine()

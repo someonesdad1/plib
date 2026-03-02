@@ -48,7 +48,9 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         from wrap import wrap, dedent
-        from color import Color, Trm
+        from color import Color
+        import trm
+        t = trm.Trm()
         from wl2rgb import rgb2wl, wl2rgb
         if 0:
             import debug

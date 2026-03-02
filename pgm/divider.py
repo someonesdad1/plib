@@ -31,32 +31,26 @@ if 1:  # Imports
     from itertools import combinations
 if 1:  # Custom imports
     from wrap import dedent
-    from color import t
+    import trm
+    t = trm.Trm()
     from resistors import resistors, FindClosest
-
     # Note:  leave the use of sig.py.  Changing to flt's with f.py
     # increases the running time of a typical problem by an order of
     # magnitude.
     from sig import sig
     from u import ParseUnit, SI_prefixes
     from fpformat import FPFormat
-
     if 0:
         import debug
-
         debug.SetDebugger()
 if 1:  # Global variables
     number_limit_default = 20
     fp = FPFormat(num_digits=3)
     fp.trailing_decimal_point(False)
     t.exact = t("yel")
-
-
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
-
-
 def Usage(d, status=1):
     name = sys.argv[0]
     n = number_limit_default
@@ -80,8 +74,6 @@ def Usage(d, status=1):
     """)
     )
     exit(status)
-
-
 def ParseCommandLine(d):
     d["-2"] = False  # Solve problem #2
     d["-r"] = 30  # % tolerance for ratio
@@ -109,16 +101,12 @@ def ParseCommandLine(d):
     sig.digits = 3
     sig.rtz = True
     return args
-
-
 def Combinations(R):
     """Get the combinations of the paired resistors, then add in each
     resistor paired with itself.
     """
     a = list(combinations(resistors, 2))
     return a + [(i, i) for i in R]
-
-
 def GetR(s):
     """s is a string that can have a cuddled SI prefix."""
     val, prefix = ParseUnit(s)
@@ -126,8 +114,6 @@ def GetR(s):
     if prefix:
         val *= float(SI_prefixes[prefix])
     return val
-
-
 def Pct(p):
     """Return float p as a string.  If it's < 10, return it to two
     significant figures; otherwise, make it an integer.
@@ -137,16 +123,12 @@ def Pct(p):
     elif p < 10:
         return sig(p, 2)
     return str(int(p))
-
-
 def GetMatches(candidates, delta):
     matches = []
     for c in candidates:
         if c.dr <= delta and c.dratio <= delta:
             matches.append(c)
     return matches
-
-
 def Include(dr):
     """If dr satisfies the -t and -T options, return True; otherwise return
     False.
@@ -158,8 +140,6 @@ def Include(dr):
     if d["-T"] is not None:
         return dr <= d["-T"]
     return True  # Keep everything if no limits set
-
-
 def Show_dr(dr):
     dR = sig(dr)
     if not dR:
@@ -167,8 +147,6 @@ def Show_dr(dr):
     elif str(dR)[0] == "0":
         return " " + str(dR)[1:]
     return str(dR)
-
-
 def FindResistors(Rtotal, desired_ratio, number_limit, d):
     eng = fp.engsic
     matches = []
@@ -177,10 +155,8 @@ def FindResistors(Rtotal, desired_ratio, number_limit, d):
     comb = Combinations(resistors)
     n = len(resistor_set)
     N = len(comb)
-
     def f(x, y):
         return round(abs(x / y - 1), 4)
-
     pct_factor = 1 + d["-r"] / 100
     for R1, R2 in comb:
         rtotal = R1 + R2
@@ -236,8 +212,6 @@ def FindResistors(Rtotal, desired_ratio, number_limit, d):
         )
         # print("{:8s} {:8s} {:^8s} {:^8s}".format(
         #        sig(ratio, 3), eng(rtotal), eng(R1), eng(R2)))
-
-
 def Problem2(args, d):
     E = fp.engsi
     if len(args) != 4:
@@ -278,8 +252,6 @@ def Problem2(args, d):
         i = {i}A
     """).format(**locals())
     )
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     R, ratio, number_limit = ParseCommandLine(d)

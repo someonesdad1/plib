@@ -13,7 +13,8 @@ if 1:  # Header
         import sys
     if 1:   # Custom imports
         import termtables as tt
-        from color import t
+        import trm
+        t = trm.Trm()
         from wrap import dedent
         from get import GetInt
     if 1:   # Global variables

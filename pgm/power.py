@@ -26,7 +26,8 @@ if 1:  # Header
         from fpformat import FPFormat
         from columnize import Columnize
         from u import u, ParseUnit, dim
-        from color import t
+        import trm
+        t = trm.Trm()
         import matrix
         if 0:
             import debug

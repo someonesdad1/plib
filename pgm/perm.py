@@ -24,7 +24,8 @@ if 1:  # Header
     if 1:  # Custom imports
         from columnize import Columnize
         from wrap import wrap, dedent
-        from color import t
+        import trm
+        t = trm.Trm()
         from f import flt
         try:
             import mpmath

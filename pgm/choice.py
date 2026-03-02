@@ -18,7 +18,7 @@ Config file is more standardized than goto.py.  Field separator is ';' and the f
     - Short name for display
     - Alias
     - Display format:  fg:bg:attr
-
+    
 All four fields must be present, but they can be empty (i.e., each line requires three
 field separator characters).  Space characters are stripped off the fields.
 
@@ -36,7 +36,8 @@ if 1:  # Header
     if 1:   # Custom imports
         from f import flt
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
         from lwtest import Assert
         from dpprint import PP
         pp = PP()   # Get pprint with current screen width
@@ -238,7 +239,6 @@ if 1:   # Core functionality
         '''For each line in lines, display them to the user and prompt for the ones to
         use.  Filter by the passed-in regular expressions (they are ANDed together).
         '''
-
 if __name__ == "__main__":
     d = {}      # Options dictionary
     regexps = ParseCommandLine(d)

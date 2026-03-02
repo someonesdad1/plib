@@ -39,7 +39,8 @@ if 1:  # Header
         from lwtest import Assert
         from f import pi, flt
         from frange import frange
-        from color import t
+        import trm
+        t = trm.Trm()
         from elliptic import EllipseCircumference
         from wrap import dedent
     if 1:  # Global variables

@@ -53,7 +53,8 @@ if 1:  # Header
         from f import flt, cos, acos, pi, tan, radians
         from wrap import dedent
         from u import u
-        from color import t
+        import trm
+        t = trm.Trm()
     if 1:  # Global variables
         ii = isinstance
         # Data for Clausing 5914 lathe
@@ -71,8 +72,6 @@ if 1:  # Header
             .2 .25 .3 .35 .4 .45 .5 .7 .8 1.0 1.25 1.5 1.75 2 2.5 3 3.5 4 4.5 5
             5.5 6
         """
-
-
 def sTPI(tpi):
     "Return a customary string for tpi"
     assert ii(tpi, flt)
@@ -88,23 +87,21 @@ def sTPI(tpi):
         return str(ip) + "¾"
     else:
         return str(tpi)
-
-
 def Klotz():
     """M. Klotz has a file data.zip that has a metric.txt file in it.  This
     is useful to print a table of metric & inch threads.  Contents of file:
-
+    
         Standard metric screws and their Imperial equivalents
-
+        
         dm = diameter (mm)
         pm = pitch (mm)
         di = diameter (in)
         pi = pitch (tpi)
         tdm = tap drill size (mm)
         tdi = tap drill size (in)
-
+        
         dm  x  pm   (  di  x  pi )    tdm  ( tdi )  easily confused with
-
+        
         1.6 x 0.35  (0.063 x 72.6)   1.25  (0.049)  [0-80 = 0.060 x 80]
         1.8 x 0.35  (0.071 x 72.6)   1.45  (0.057)  [1-72 = 0.073 x 72]
         2.0 x 0.40  (0.079 x 63.5)   1.60  (0.063)  [2-64 = 0.085 x 64]
@@ -194,8 +191,6 @@ def Klotz():
         if len(f) > 4:
             print(f"{t.conf}{f[4]}{t.n}", end="")
         print()
-
-
 if __name__ == "__main__":
     factor = cos(radians(taper_attachment_angle_deg))
     w = 8
@@ -226,7 +221,7 @@ if __name__ == "__main__":
     print(
         dedent(f"""
         Common metric pitches attainable with taper settings and their errors
-
+        
                                     Pitch
         Pitch,      Use    Angle    error
           mm        tpi      °        %

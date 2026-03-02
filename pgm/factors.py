@@ -17,7 +17,8 @@ if 1:  # Header
         from columnize import Columnize
         from primes import AllFactors, IsPrime, FactorList
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
     if 1:   # Global variables
         t.num = t.viol
         t.cnt = t.ornl

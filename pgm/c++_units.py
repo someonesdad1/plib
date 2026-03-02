@@ -33,8 +33,10 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         from wrap import wrap, dedent
-        from color import Color, TRM as t
-        if 1:
+        from color import Color
+        import trm
+        t = trm.Trm()
+        if 0:
             import debug
             debug.SetDebugger()
     if 1:  # Global variables

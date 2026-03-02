@@ -26,7 +26,9 @@ if 1:  # Standard imports
     import sys
 if 1:  # Custom imports
     from wrap import wrap, dedent
-    from color import Color, TRM as t
+    from color import Color
+    import trm
+    t = trm.Trm()
     from columnize import Columnize
     import strdiff
     if 0:

@@ -11,13 +11,13 @@ oo>
 <oo test ∞ none oo>
 <oo todo ∞ oo>
 '''
- 
 if 1:  # Header
     if 1:   # Standard imports
         from pathlib import Path as P
     if 1:   # Custom imports
         from columnize import Columnize
-        from color import t
+        import trm
+        t = trm.Trm()
 if 1:   # Core functionality
     def GetFiles():
         'Recursivly find all python files at and below /plib'
@@ -25,7 +25,6 @@ if 1:   # Core functionality
         for file in P("/plib").glob("**/*.py"):
             files.append(file)
         return files
-
 if __name__ == "__main__":
     files = GetFiles()
     notfound = []

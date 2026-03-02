@@ -43,7 +43,8 @@ if 1:  # Header
         from wrap import wrap, dedent, indent, Wrap
         from columnize import Columnize
         from globalcontainer import Global, Variable, Constant
-        from color import t
+        import trm
+        t = trm.Trm()
         if 0:
             import debug
             debug.SetDebugger()  # Start debugger on unhandled exception

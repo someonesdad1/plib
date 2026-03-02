@@ -25,37 +25,32 @@ if 1:  # Header
         import subprocess
         import sys
     if 1:  # Custom imports
-        from color import t
+        import trm
+        t = trm.Trm()
         from f import flt, radians
         from dpprint import PP
-
         pp = PP()  # Screen width aware form of pprint.pprint
         from get import GetLines
         from wrap import dedent
         from wsl import wsl  # wsl is True when running under WSL Linux
     if 1:  # Global variables
-
         class G:
             # Storage for global variables as attributes
             pass
-
         g = G()
         g.dbg = False
         ii = isinstance
 if 1:  # Utility
-
     def GetScreen():
         "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
             int(os.environ.get("COLUMNS", "80")) - 1,
         )
-
     def GetColors():
         t.dbg = t("cyn") if g.dbg else ""
         t.N = t.n if g.dbg else ""
         t.err = t("redl")
-
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="", file=Dbg.file)
@@ -63,20 +58,17 @@ if 1:  # Utility
             k["file"] = Dbg.file
             print(*p, **k)
             print(f"{t.N}", end="", file=Dbg.file)
-
     Dbg.file = sys.stdout
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Manpage():
         print(
             dedent(
                 f"""
         Bend allowance = X = amount to add to a desired length of sheet metal to get a desired
         finished length L after making a bend.
-
+        
         Suppose you want to bend a piece of sheet metal to make a right angle bracket with legs 1
         unit long.  If you could make a perfectly sharp bend in very thin metal, you'd start with a
         flat piece of 2 units long and make the bend.  With real materials of nonzero thickness,
@@ -85,29 +77,29 @@ if 1:  # Utility
         after bending.  This extra length is due to the arc length of the material in the nonzero
         radius bend.  Because of non-elastic distortions in the material when bending, there is no
         exact formula to calculate the needed allowance.
-
+        
         But we can approximate it.  Consider this right angle bracket with infinitely thin metal.
         If the resulting bend has a radius of r, then the needed metal length is the length of the
         two legs plus the length of a quarter of a circle's circumference, which will be the bend
         radius r times the bend angle θ in radians.  Thus, the bend allowance is X = r*θ.
-
+        
         If the sheet metal has a thickness of t and you make a sketch of the bend with the inside
         radius r, you'll see you need to add a small correction dr to the radius to calculate the
         arc length for the bend allowance at about the average radius of the metal.  Geometrically,
         dr should be half of the sheet's thickness.  We thus get the approximation
-
+        
             X = (r + dr)*θ          dr ≅ t/2
-
+            
         The dr term's effect on the bend allowance is the arc length difference between the inside
         of the bend and the arc in the middle of the metal.  I call this X the geometrical bend
         allowance and it's not significantly different from the empirical formulas.
-
+        
         For a numerical example, suppose we're bending 1/8 inch thick sheet in a right angle and
         the resulting inside bend radius is 1/8 inch.  We'll choose dr = t/2, so the geometrical
         bend allowance is (1/8 + (1/8)/2)*1.57 = (3/16)*1.57 = 0.29 inches.
-
+        
         You can run the script with arguments '1/8 2 1/8' and you'll get
-
+        
             Bending half-hard copper/brass, soft steel, or aluminum sheet
               t  = sheet metal thickness       0.125
               L  = finished length             2
@@ -115,38 +107,38 @@ if 1:  # Utility
               θ  = bend angle                  90° = 1.57 radians
               X  = bend allowance              0.276 (geometrical 0.295)
               L' = cut to length = L + X       2.28
-
+              
         The empirical formula used in this script came from Machinery's Handbook:
-
+        
             c*t + θ*r      (θ in radians)
-
+            
         where c is a constant:
-
+        
             c = 0.55 for soft copper/brass
             c = 0.64 for half-hard copper/brass, soft steel, aluminum
             c = 0.71 for hard copper, cold-rolled steel, spring steel
-
+            
         Machinery's Handbook's formula is based on experimental work by Westinghouse for bench work
         with tolerances of about 1/2 mm.  I'd estimate this experimental work was done in the
         1930's, as some of the bending allowance material in Machinery's Handbook was in the 1919
         edition.  For modern manufacturing methods with powered machinery, high volumes, and
         significant lead times & tooling costs, you'd want to consult the more detailed empirical
         methods by the experts.  
-
+        
         For a home shop person like myself, the geometrical approximation works OK and if it's a
         little long, it's not hard to file some material off -- but it's an annoyance if you make
         things too short.  In the above example, if I had used the geometrical bend allowance, I
         would have added 0.30 inches to the material length.  The Machinery's Handbook formula gave
         0.28 inches to add.  The difference is a 50th of an inch.
-
+        
         A practical approach is to use the above geometrical approximation to the bend allowance,
         fabricate your piece, and see how much it differs from the desired form.  Then correct the
         bend allowance used and you should be able to make a few more parts pretty close to the
         desired dimension.
-
+        
         A detail is that the bend angle might not be what you see on a drawing of the part to make.
         A designer might want a bracket with an inside angle of 60°:
-
+        
                   /
                  / 
                 /  60°
@@ -155,12 +147,11 @@ if 1:  # Utility
         For this part, the bend angle is the 180° complement of this angle or 120°, as that's the
         angle you have to bend a flat piece of material to get the inside 60° angle.  If you forget
         this detail, you'll use a too-small θ and the bend allowance will be too small.
-
+        
         """.rstrip()
             )
         )
         exit(0)
-
     def Usage(status=1):
         print(
             dedent(f"""
@@ -179,7 +170,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["c"] = 0.64  # Constant for half-hard copper/brass, soft steel, aluminum
         d["-1"] = False  # Soft brass or copper
@@ -217,10 +207,7 @@ if 1:  # Utility
         elif d["-2"]:
             d["c"] = 0.71
         return args
-
-
 if 1:  # Core functionality
-
     def Westinghouse(t, L, r, θ):
         c = d["c"]
         X = c * t + radians(θ) * r  # Bend allowance from Machinery's handbook
@@ -238,8 +225,6 @@ if 1:  # Core functionality
         print(f"{i}θ  = bend angle                  {θ}° = {radians(θ)} radians")
         print(f"{i}X  = bend allowance              {X} (geometrical {X1})")
         print(f"{i}L' = cut to length = L + X       {L + X}")
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

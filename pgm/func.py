@@ -23,7 +23,9 @@ if 1:  # Header
     if 1:   # Custom imports
         from columnize import Columnize
         from wrap import dedent
-        from color import t, RegexpDecorate
+        from dpstr import RegexpDecorate
+        import trm
+        t = trm.Trm()
         from dpprint import PP
         import get
         pp = PP()   # Get pprint with current screen width

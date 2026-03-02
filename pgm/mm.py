@@ -23,7 +23,8 @@ if 1:  # Custom imports
     from f import flt
     from frange import frange
     from columnize import Columnize
-    from color import t
+    import trm
+    t = trm.Trm()
 if 1:  # Global variables
     in2mm = flt(25.4)
     class g:

@@ -2,7 +2,6 @@
 Replace empty lines from stdin with '^ $'.  The basic use case is to remove
 empty lines of a file in the editor.
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -24,17 +23,17 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         from wrap import wrap, dedent
-        from color import Color, TRM as t
+        from color import Color
+        import trm
+        t = trm.Trm()
     if 1:  # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
             dedent(f"""
@@ -46,7 +45,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         try:
             opts, files = getopt.getopt(sys.argv[1:], "h")
@@ -57,18 +55,13 @@ if 1:  # Utility
             if o == "-h":
                 Usage(status=0)
         return files
-
-
 if 1:  # Core functionality
-
     def Process(string):
         for line in string.split("\n"):
             if not line:
                 print(" ")
             else:
                 print(line)
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     files = ParseCommandLine(d)

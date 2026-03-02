@@ -29,7 +29,8 @@ if 1:   # Header
         import subprocess
         import sys
     if 1:   # Custom imports
-        from color import t
+        import trm
+        t = trm.Trm()
         from dpprint import PP
         pp = PP()   # Screen width aware form of pprint.pprint
         from get import GetLines

@@ -3,29 +3,28 @@
 TODO
     - Add an option that just shows lines with problems and condenses
       ranges to a-b form.  Colorize the numbers with their rank color.
-
+      
 Runs pycodestyle and summarizes results
 
     The rankings used in this script are subjective.  Change the function
     GetErrorRankDict() to your tastes.  The script's purpose is to classify
     the severity of the pycodestyle error/warning numbers into: important,
     notable, low-priority, and ignored.
-
+    
     For my python files, I will fix anything that is labeled a priority 3
     error.  Such things include
-
+    
         - Any use of tab characters
         - Indentation that is not a multiple of 4 spaces
         - Multiple imports or imports not at beginning of file
         - Multiple statements on one line
         - No bare 'except' usage
         - Deprecated usage.
-
+        
     Most of the priority 2 errors will be fixed.  I'll look at the
     remaining stuff and decide what needs fixing.
-
+    
 """
-
 if 1:  # Header
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -47,17 +46,15 @@ if 1:  # Header
     import sys
     from collections import defaultdict, namedtuple
     from pprint import pprint as pp
-
     # Custom imports
     from wrap import wrap, dedent, HangingIndent
-    from color import Color, TRM as t
+    from color import Color
+    import trm
+    t = trm.Trm()
     from get import GetLines
     from lwtest import Assert
-    from color import Color, TRM as t
-
     if 0:
         import debug
-
         debug.SetDebugger()
     # Global variables
     t.always = True
@@ -86,11 +83,9 @@ if 1:  # Header
         3: t("redl"),
     }
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
             dedent(f"""
@@ -110,7 +105,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-0"] = False  # Show ignored items
         d["-1"] = False  # Show low-priority items
@@ -139,7 +133,6 @@ if 1:  # Utility
                 # Set up a handler to drop us into the debugger on an
                 # unhandled exception
                 import debug
-
                 debug.SetDebugger()
         if d["-a"]:
             d["-0"] = d["-1"] = d["-2"] = d["-3"] = True
@@ -147,7 +140,6 @@ if 1:  # Utility
             global dbg
             dbg = d["-v"]
         return args
-
     def Dbg(*p, **kw):
         "Assumes colorizing escape strings output to stdout"
         if not dbg:
@@ -155,10 +147,7 @@ if 1:  # Utility
         print(f"{t.dbg}", end="")
         print(*p, **kw)
         print(f"{t.n}", end="")
-
-
 if 1:  # Rankings of error/warning types
-
     def GetErrorRankDict():
         """Return a dict keyed by error/warning numbers like "E305" and
         values of integers on [0, 3]:
@@ -177,7 +166,6 @@ if 1:  # Rankings of error/warning types
             Assert(rank in range(4))
             errnum = f[1]
             error_ranks[errnum] = rank
-
     # Downloaded from
     # https://pycodestyle.pycqa.org/en/latest/intro.html#error-codes
     # on 05 Aug 2022 06:58:55 PM
@@ -268,7 +256,6 @@ if 1:  # Rankings of error/warning types
         3   W606 ‘async’ and ‘await’ are reserved keywords starting with Python 3.7
     """
 if 1:  # Classes
-
     class Item:
         """An item holds the following data:
             Error number (e.g. "E225")
@@ -276,10 +263,8 @@ if 1:  # Classes
             line_col = tuple of (line, column) where error was
         The __str__ method allows printing the item to stdout.
         """
-
         # The default way of returning a string interpolation
         by_file = True
-
         def __init__(self, errnum, file, line_col):
             self.errnum = errnum
             self.file = file
@@ -293,7 +278,6 @@ if 1:  # Classes
                 self.colnums.append(colnum)
             self.linenums = sorted(self.linenums)
             self.colnums = sorted(self.colnums)
-
         def __str__(self):
             """Return a string that gives the filename, a ":", and the list
             of line numbers with one space between them.  Wrap things so
@@ -314,17 +298,12 @@ if 1:  # Classes
                     q = self.linenums
                 s = f"{self.file}: {' '.join(str(i) for i in q)}"
                 return HangingIndent(s, indent=" " * 4, first_line_indent=" " * 2)
-
         def __repr__(self):
             "String for debugging"
             return f"Item({self.errnum}, {len(self.line_col)} lines)"
-
         def __lt__(self, other):
             return self.rank < other.rank
-
-
 if 1:  # Core functionality
-
     def ProcessFile(file, di):
         """For the indicated python file, run pycodestyle in it and capture
         the output.  Return a list of Entry tuples.  The lines have the
@@ -362,7 +341,6 @@ if 1:  # Core functionality
                 Dbg(f"{entry}")
             out.append(entry)
         return out
-
     def ProcessData(entries):
         """entries is a list of Entry instances.  Classify these into a
         dict with the following structure
@@ -396,7 +374,6 @@ if 1:  # Core functionality
             pp(di)
             t.out()
         return di
-
     def ReportByError(data):
         """Print the condensed data by error/warning number.  data is a
         dict with the structure
@@ -410,7 +387,6 @@ if 1:  # Core functionality
         """
         Item.by_file = False
         count = 0  # Count number of items
-
         def Print(r):
             """r is a dict keyed by error numbers with values of list of
             Item instances.
@@ -423,7 +399,6 @@ if 1:  # Core functionality
                 for item in items:
                     print(item)
                     count += 1
-
         # Divide up into ranked groups
         r0 = defaultdict(list)
         r1 = defaultdict(list)
@@ -451,7 +426,6 @@ if 1:  # Core functionality
         if d["-3"]:
             Print(r3)
         return bool(count)
-
     def ReportByFile(data):
         """Print the condensed data by file.  data is a dict with the
         structure
@@ -470,7 +444,6 @@ if 1:  # Core functionality
         for errnum in data:
             for file in data[errnum]:
                 di[file].append(data[errnum][file])
-
         def HasItemsToPrint(file):
             """Return True if this file has data to print.  This determines
             if we should print the file's name.
@@ -493,7 +466,6 @@ if 1:  # Core functionality
                     if item.rank == 3:
                         return True
             return False
-
         def Print(rank, items):
             "rank is int, items is list of Item instances"
             for item in items:
@@ -503,7 +475,6 @@ if 1:  # Core functionality
                 t.print(f"  {c}{errors[item.errnum]}")
                 s = str(item).replace(item.file + ":", "").strip()
                 print(f"    {s}")
-
         # Sort the items by rank
         for file in di:
             di[file] = sorted(di[file])
@@ -522,8 +493,6 @@ if 1:  # Core functionality
                 Print(2, items)
             if d["-3"]:
                 Print(3, items)
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     GetErrorRankDict()

@@ -4,7 +4,6 @@ Provide filter pip help
     long page of general options.  This script filters out the General
     Options.
 """
-
 if 1:  # Header
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -24,21 +23,19 @@ if 1:  # Header
     from pathlib import Path as P
     import sys
     import subprocess
-
     # Custom imports
     from wrap import wrap, dedent
-    from color import Color, TRM as t
-
+    from color import Color
+    import trm
+    t = trm.Trm()
     # Global variables
     ii = isinstance
     W = int(os.environ.get("COLUMNS", "80")) - 1
     L = int(os.environ.get("LINES", "50"))
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         nm = sys.argv[0]
         print(
@@ -50,7 +47,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = False
         if len(sys.argv) < 2:
@@ -69,14 +65,10 @@ if 1:  # Utility
                 # Set up a handler to drop us into the debugger on an
                 # unhandled exception
                 import debug
-
                 debug.SetDebugger()
         assert ii(cmds, list)
         return cmds
-
-
 if 1:  # Core functionality
-
     def ExecuteCommand(arg):
         cmd = ["/usr/local/bin/pip", "help"]
         cmd.extend(arg)
@@ -84,8 +76,6 @@ if 1:  # Core functionality
         s = r.stdout
         loc = s.find("General Options:\n")
         print(s[:loc].strip())
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     cmd = ParseCommandLine(d)

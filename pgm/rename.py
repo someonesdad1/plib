@@ -30,10 +30,8 @@ if 1:  # Global variables
     ii = isinstance
     P = pathlib.Path
     PosixPath = pathlib.PosixPath
-
     class g:
         pass
-
     g.name = P(sys.argv[0])
     g.err = C.lred
     g.dir = C.lcyn
@@ -43,13 +41,9 @@ if 1:  # Global variables
     # Container for undo information.  First entry will be the directory
     # and following items will be [newname, oldname] pairs.
     g.undo = []  # Container for undo information
-
-
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
-
-
 def Manpage():
     print(
         wrap(f"""
@@ -58,14 +52,14 @@ def Manpage():
     overwrite any existing files.  Normal behavior is to show what will be
     done, but don't rename any files.  Use -x to perform the actual
     renaming.
-
+    
     After renaming with -x, an "undo" file is written to the directory 
     that lets you rename the files back to what they were before running
     the script.  Do this with the -u option and the directory argument you
     used for the renaming.  Individual renames may fail if you subsequently
     renamed files, but the script will undo as many of the changed names as
     possible.
-
+    
     A tool like this should be used cautiously, as it could result in
     making significant changes that might be hard to undo.  An example
     would be to accidentally rename all the python files in a large git
@@ -73,17 +67,17 @@ def Manpage():
     e.g. move all the files you want to rename to a temporary directory,
     verify you'll get what you want by a dry run (i.e., don't use the -x
     option), then perform the renaming with -x.  
-
+    
     Another caution is that sometimes significant information can be
     'encoded' in the file's names, such as date, location, people, etc.
     For picture files, this could be a big loss with accidental renaming,
     so careful scrutiny of the dry run results is suggested.
-
+    
     """)
     )
     print(
         dedent(f"""
-
+        
     Example:
       Suppose we're in a directory that has the following files:
           a.jpg
@@ -101,10 +95,10 @@ def Manpage():
           out.obj ->  test2.obj
       There is no specified relationship between the old filenames and 
       the new filenames.
-
+      
     The -c option is recommended, as it will color-highlight the extensions,
     making it a bit easier to see that you're getting what you asked for.
-
+    
     A typical use case is to rename a large number of *.jpg files in a
     directory, as shown in the example above.  In fact, such a use case was
     the progenitor of this script.  My family would go on a trip and when
@@ -114,12 +108,10 @@ def Manpage():
     of files would e.g. be renamed with the prefix 'FiddlingContestTuesday'.
     This would allow easy reorganization later into e.g. separate
     directories, where the file names could be refined or annotations added.
-
+    
     """)
     )
     exit(0)
-
-
 def Usage(status=1):
     print(
         dedent(f"""
@@ -140,8 +132,6 @@ def Usage(status=1):
     """)
     )
     exit(status)
-
-
 def ParseCommandLine():
     d["-c"] = False  # Colorize
     d["-i"] = False  # Ignore errors
@@ -169,8 +159,6 @@ def ParseCommandLine():
         g.dir = g.n = ""
         g.colors = []
     return args
-
-
 def GetWidth():
     "Find the longest filename we have to print"
     currdir = os.getcwd()
@@ -181,8 +169,6 @@ def GetWidth():
         for file in files:
             g.width = max(len(str(file)), g.width)
     os.chdir(currdir)
-
-
 def ProcessExtension(ext, directory, ext_number):
     currdir = os.getcwd()
     os.chdir(directory)
@@ -228,8 +214,6 @@ def ProcessExtension(ext, directory, ext_number):
         g.undo.append((str(newname), str(p)))
         number = number + 1
     os.chdir(currdir)
-
-
 def WriteUndoFile(directory):
     if not d["-x"]:
         return
@@ -243,8 +227,6 @@ def WriteUndoFile(directory):
     for item in g.undo:
         print(repr(item), file=stream)
     os.chdir(currdir)
-
-
 def RunUndoFile(directory):
     currdir = os.getcwd()
     os.chdir(directory)
@@ -268,8 +250,6 @@ def RunUndoFile(directory):
         except Exception:
             print(f"{g.err}'{new}' --> '{old}' rename failed{g.n}")
     os.chdir(currdir)
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine()

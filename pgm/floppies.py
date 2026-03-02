@@ -22,7 +22,10 @@ if 1:  # Header
     import sys
     # Custom imports
     from wrap import wrap, dedent
-    from color import Color, t, RegexpDecorate
+    from color import Color
+    from dpstr import RegexpDecorate
+    import trm
+    t = trm.Trm()
     from get import GetLines
     from columnize import Columnize
     if 1:

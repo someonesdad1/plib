@@ -31,11 +31,10 @@ if 1:  # Header
         from wrap import dedent, wrap
         import u
         from f import flt
-        from color import t
-
+        import trm
+        t = trm.Trm()
         if 0:
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
         ii = isinstance
@@ -70,7 +69,6 @@ if 1:  # Raw data from https://en.wikipedia.org/wiki/Orders_of_magnitude_(length
     # References to cm have been changed to mm, as I consider the use of CGS units to be
     # antiquated.  The entries were sorted by size.
     data = dedent("""
-
     1.6e-11 ym 		The Planck length (measures of distance shorter than this are considered nonsensical and do not make any physical sense, according to current theories of physics)
     1 ym 		 1 yoctometer, the smallest named subdivision of the meter in the SI base unit of length, 1e-24 meter
     1 ym 		 Length of a neutrino
@@ -749,22 +747,19 @@ if 1:  # Raw data from https://en.wikipedia.org/wiki/Orders_of_magnitude_(length
     440 Ym 		 Radius of the universe measured as a comoving distance
     590 Ym 		 Cosmological event horizon: the largest comoving distance from which light will ever reach us (the observer) at any time in the future
     886.48 Ym 		 The diameter of the observable universe (twice the particle horizon); however, there might be unobserved distances that are even greater
-
     """)
 if 1:  # Classes
 
     class Num(flt):
         """Encapsulate a number so "closeness" can be determined by the ==
         operator.  A list of Num objects will sort numerically by size.
-
         Note:  since I changed this to derive from flt, I had to change the
         low and high attributes of Num to Low and High to avoid the collision
         with flt's attributes.
         """
-
+        
         def __new__(cls, s, descr):
             """descr is a string describing this number.
-
             s is a string representing the number.  It will be of one of
             the forms
                 'a to b'
@@ -776,7 +771,6 @@ if 1:  # Classes
             self.High values set from a and b.  Otherwise, the value is set
             from a.  Note a will be of the form e.g. '1 nm', i.e., a number and
             a length unit.
-
             The value of a Num is the length in m.  When a range is given, the
             mean of the endpoints is the value.
             """
@@ -805,13 +799,13 @@ if 1:  # Classes
             instance.str = s.strip()
             instance.descr = descr.strip()
             return instance
-
+            
         def __str__(self):
             return self.str + " " + self.descr
-
+            
         def __repr__(self):
             return self.str + " " + self.descr
-
+            
         def __eq__(self, other):
             """Return True if we're equal to other.  If self is a single
             number, then it's True if other is within d["-t"] percent of it.
@@ -825,20 +819,20 @@ if 1:  # Classes
                 return (1 - p) * self <= other <= (1 + p) * self
             else:
                 return self.Low <= other <= self.High
-
+                
         def __lt__(self, other):
             "Return True if self < other"
             assert ii(other, Num)
             # This depends on the floating point value being in m
             return float(self) < float(other)
-
-
+            
+            
 if 1:  # Utility
 
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
-
+        
     def Usage(d, status=1):
         print(
             dedent(f"""
@@ -856,7 +850,7 @@ if 1:  # Utility
         """)
         )
         exit(0)
-
+        
     def ParseCommandLine(d):
         d["-d"] = 3  # Number of significant digits
         d["-m"] = False  # Dump data to stdout
@@ -900,8 +894,8 @@ if 1:  # Utility
         if not args:
             Usage(d)
         return args
-
-
+        
+        
 if 1:  # Core functionality
 
     def ParseDistance(s):
@@ -916,7 +910,7 @@ if 1:  # Core functionality
         else:
             pass
         return 1
-
+        
     def GetData(show_sorted=False):
         """Put data into d["data"].  If show_sorted is True, then the input
         lines are sorted by size, printed to stdout, and the script exits.
@@ -937,7 +931,7 @@ if 1:  # Core functionality
             for i in d["data"]:
                 print(i[1])
             exit()
-
+            
     def Summary():
         data = """
         1.8 to 15 fm 		 Diameter range of the atomic nucleus
@@ -991,17 +985,17 @@ if 1:  # Core functionality
             x, s = line.split("\t\t")
             print(f"{x:{w}s} {s}")
         print(f"Exponents:  T: 12   P: 15   E: 18   Z: 21   Y: 24")
-
+        
     def Print(x, r=None):
         """x is a Num object; print it.  If r is not None, then it will be
         the regex that matched x.descr.
         """
-
+        
         def sci(x):
             y = float(x)  # This is in m
             a, b = f"{y:.0e}".split("e")
             return "".join([a, "e", str(int(b))])
-
+            
         t.num = t("skyl")
         wrap.i = " " * 2
         print(f"{t.num}{x.str}{t.n}", end=" ")
@@ -1025,16 +1019,16 @@ if 1:  # Core functionality
             if d["-n"]:
                 print(f"({sci(x)})", end=" ")
             print(x.descr)
-
+            
     def PrintClose(dist, sep=False):
         """dist is a command line argument.  Convert it to meters and print out
         those elements in d["data"] that are close to it.
         """
         unit = ""
-
+        
         class DoTextSearch(Exception):
             pass
-
+            
         try:
             val, unit = u.ParseUnit(dist)
             if not unit:
@@ -1063,8 +1057,8 @@ if 1:  # Core functionality
                 Print(x, r=r)
         if sep:
             t.print(f"{t('grnl')}{'-' * W}")
-
-
+            
+            
 if __name__ == "__main__":
     d = {  # Options dictionary
         "data": [],
@@ -1073,3 +1067,4 @@ if __name__ == "__main__":
     GetData()
     for dist in distances:
         PrintClose(dist, sep=len(distances) > 1)
+        

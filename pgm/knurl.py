@@ -1,9 +1,9 @@
-"""
+'''
 Calculate diameter needed to get a perfect knurl.
 
     Adapted from Marv Klotz's
     http://www.myvirtualnetwork.com/mklotz/fckeditor/UserFiles/File/knurl.zip.
-"""
+'''
 
 if 1:  # Header
     if 1:  # Copyright, license
@@ -25,24 +25,20 @@ if 1:  # Header
         import sys
         from collections import defaultdict
     if 1:  # Custom imports
-        from color import t
         from dpprint import PP
-
         pp = PP()  # Screen width aware form of pprint.pprint
         from get import GetLines
         from wrap import dedent
         from wsl import wsl  # wsl is True when running under WSL Linux
         from u import ParseUnit
         from f import flt
-        from color import t
+        import trm
+        t = trm.Trm()
         from columnize import Columnize
-        # from columnize import Columnize
     if 1:  # Global variables
-
         class G:
             # Storage for global variables as attributes
             pass
-
         g = G()
         g.dbg = False
         ii = isinstance
@@ -60,25 +56,18 @@ if 1:  # Header
             4: ("1 inch", 40),  # 2.0 mm pitch banggood
         }
 if 1:  # Utility
-
     def Usage(d):
-        print(
-            dedent(
-                f"""
+        print(dedent(f'''
         Usage:  knurl [options] dia1 [dia2...]
           Calculate the correct diameter to turn command line diameters in inches to get an integer
           number of knurls around the circumference.  The supported knurls are:
                 n           Diameter        Number of teeth
                ---        ------------      ---------------
-        """.rstrip()
-            )
-        )
+        '''))
         for i in knurls:
             D, n = knurls[i]
             print(f"{i:>9d}        {D:^14s}          {n:^5d}")
-        print(
-            dedent(
-                f"""
+        print(dedent(f'''
         Options:
           -k n      Choose which knurl wheels to use.  Default is {d["-k"]}.
           -d n      Find the next smaller diameter for the 1 inch knurls as these require the same
@@ -88,11 +77,8 @@ if 1:  # Utility
           -m        Input diameters are in mm
           -T        Print a decimal table from 0.2 to 2 inches.
           -t        Print a fractional table from 0.2 to 2 inches.
-        """.rstrip()
-            )
-        )
+        '''))
         exit(1)
-
     def ParseCommandLine(d):
         global knurl_wheel_diameter, knurl_wheel_units, number_of_teeth
         # Options
@@ -129,15 +115,11 @@ if 1:  # Utility
         knurl_wheel_diameter = eval(knurl_wheel_diameter)
         number_of_teeth = int(nteeth) - d["-d"]
         return args
-
-
 if 1:  # Core functionality
-
     def FractionInLowestTerms(numerator, denominator):
         # Reduce to lowest terms
         divisor = gcd(numerator, denominator)
         return numerator // divisor, denominator // divisor
-
     def ImproperFraction(numerator, denominator):
         # Return fraction as an improper fraction string.
         s = ""
@@ -153,13 +135,10 @@ if 1:  # Core functionality
             else:
                 s += "-" + t
         return s
-
     def FractionalTable():
         print("Perfect knurling diameter for common fractional sizes.")
-        print(
-            "(For %g inch diameter knurl with %d teeth)"
-            % (knurl_wheel_diameter, number_of_teeth + d["-d"])
-        )
+        print("(For %g inch diameter knurl with %d teeth)"
+            % (knurl_wheel_diameter, number_of_teeth + d["-d"]))
         if d["-d"]:
             print("  -d option was {}".format(d["-d"]))
         print()
@@ -168,16 +147,11 @@ if 1:  # Core functionality
         print("  ------    --------")
         for sixteenth in list(range(4, 17)) + list(range(18, 41, 2)):
             diameter = sixteenth / 16
-            print(
-                "  {:^6s}      {:.3f}".format(
-                    ImproperFraction(sixteenth, 16), GetPerfectDiameter(diameter)
-                )
-            )
-
+            print("  {:^6s}      {:.3f}".format(ImproperFraction(sixteenth, 16), GetPerfectDiameter(diameter)))
     def DecimalTable():
-        """For 200 to 2000 mil diameters, group by requisite knurling
+        '''For 200 to 2000 mil diameters, group by requisite knurling
         diameter.
-        """
+        '''
         di = defaultdict(list)
         for d in range(200, 2001):
             D = int(GetPerfectDiameter(d / 1000) * 1000)
@@ -194,31 +168,29 @@ if 1:  # Core functionality
             t.append(fmt % tuple([j / 1000 for j in i]))
         for i in Columnize(t):
             print(i)
-
     def GetPerfectDiameter(nominal_diameter):
-        """The method is to find the diameter just under nominal_diameter that has an integer
+        '''The method is to find the diameter just under nominal_diameter that has an integer
         number of knurl wheel pitches for the circumference.
-
+        
         Numerical example:  (3/4 inch knurl wheel, 40 teeth)
-
+        
             Calculate pitch of knurl wheel:  The circumference is pi*3/4 = 2.3562.  Dividing by 40
             teeth gives the pitch = 0.058905.
-
+            
             We want the diameter just under nominal_diameter that has an integral number of these
             pitches.
-
+            
             Calculate the number of pitches with the nominal_diameter:  pi*nominal_diameter/pitch
             is 3.14159*1.3/0.058905 = 69.333.
-
+            
             We thus must turn the diameter down enough so it has a circumference of 69 pitches.
             This circumference is 69*0.058905 = 4.0644 inches.  Divide this by pi to get the
             required diameter of 1.2938 inches.
-        """
+        '''
         pitch = pi * knurl_wheel_diameter / (number_of_teeth - d["-d"])
         integer_num_crests = int(floor(pi * nominal_diameter / pitch))
         required_circumference = integer_num_crests * pitch
         return required_circumference / pi
-
 
 if __name__ == "__main__":
     d = {}  # Options dictionary

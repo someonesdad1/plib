@@ -2,13 +2,12 @@
 
 TODO
     - Add -a option to see all issues, not just important or notable.
-
+    
 Filter output of pycodestyle to a more compact representation.
     Note the color coding is always done, even if stdout is not a TTY.
     This lets you capture the results to a file and view it e.g. with less
     in color.
 """
-
 if 1:  # Header
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -29,13 +28,13 @@ if 1:  # Header
     import sys
     from pprint import pprint as pp
     from collections import defaultdict
-
     # Custom imports
     from get import GetLines
     from wrap import wrap, dedent, HangingIndent
     from lwtest import Assert
-    from color import Color, TRM as t
-
+    from color import Color
+    import trm
+    t = trm.Trm()
     t.always = True
     # Global variables
     ii = isinstance
@@ -57,11 +56,9 @@ if 1:  # Header
     for i in warnings_notable:
         clr[i] = t("royl")
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
             dedent(f"""
@@ -74,7 +71,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = False  # Show all issues
         d["-c"] = False  # Include column numbers
@@ -92,13 +88,9 @@ if 1:  # Utility
                 # Set up a handler to drop us into the debugger on an
                 # unhandled exception
                 import debug
-
                 debug.SetDebugger()
         return args
-
-
 if 1:  # Core functionality
-
     def ProcessLines(lines):
         "Return a dict of the lines keyed by error/warning number"
         global names
@@ -135,7 +127,6 @@ if 1:  # Core functionality
         if 0:
             pp(di, compact=1)
         return di
-
     def Report(di):
         def RemoveColumnNumbers(lst, uniq=False):
             for i, item in enumerate(lst):
@@ -144,7 +135,6 @@ if 1:  # Core functionality
             if uniq:
                 lst = list(sorted(set(lst)))
             return lst
-
         fl_ind = " " * 2
         for err in sorted(di):
             if err in clr:
@@ -160,13 +150,10 @@ if 1:  # Core functionality
                     # Include the column number
                     def f(x):
                         return int(x.split(":")[0])
-
                     items = list(sorted(di[err][i], key=f))
                 else:
-
                     def f(x):
                         return int(x)
-
                     items = list(
                         sorted(RemoveColumnNumbers(di[err][i], uniq=True), key=f)
                     )
@@ -175,8 +162,6 @@ if 1:  # Core functionality
                 ind = len(hdr)
                 s = HangingIndent(line, indent=" " * ind, first_line_indent=" " * 2)
                 print(s)
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     files = ParseCommandLine(d)

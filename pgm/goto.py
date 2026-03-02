@@ -34,7 +34,6 @@ if 1:  # Header
     # Custom imports
     from wrap import wrap, dedent
     import get
-    #from color import t, RegexpDecorate
     import trm
     from wsl import wsl
     if 0:

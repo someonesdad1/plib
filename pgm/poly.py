@@ -30,7 +30,8 @@ if 1:  # Header
     import termtables as tt     # Used for printing tables
     from wrap import dedent
     from lwtest import Assert
-    from color import TRM as t
+    import trm
+    t = trm.Trm()
     from util import hyphen_range
     from f import (flt, acos, acosh, asin, asinh, atan, atanh, atan2, ceil, copysign,  # noqa
         cos, cosh, degrees, e, erf, erfc, exp, expm1, fabs, factorial, floor, fmod,    # noqa

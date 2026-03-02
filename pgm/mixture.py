@@ -94,19 +94,16 @@ if 1:  # Header
         from get import GetNumber, GetLines
         from f import flt
         from u import u
-        from color import t
+        import trm
+        t = trm.Trm()
         from lwtest import Assert
-
         if 0:
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
         Get = partial(GetNumber, num_type=flt, low=0)
-
         class g:
             pass
-
         g.Vol1 = flt(0)
         g.Vol2 = flt(0)
         g.VolMixture = flt(0)
@@ -116,11 +113,9 @@ if 1:  # Header
         t.unk = t("ornl")
         t.c1, t.c2, t.c, t.v1, t.v2, t.v = [""] * 6
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(d):
         print(
             dedent(f"""
@@ -145,7 +140,6 @@ if 1:  # Utility
         """)
         )
         exit(0)
-
     def ParseCommandLine(d):
         d["-c"] = False  # Print sample datafile
         d["-d"] = 3  # Number of significant digits
@@ -184,7 +178,6 @@ if 1:  # Utility
         if not args:
             Usage(d)
         return args
-
     def Manpage(d):
         print(
             dedent("""
@@ -232,7 +225,7 @@ if 1:  # Utility
         above assumptions.  Example:  ethanol and water mixed together will have a lower volume
         than their component sum because the water and ethanol molecules "interlock" somewhat
         because of close-range polar electrical forces.
-
+        
         If you use the datafile approach to solve the problem, the calculation is a little more
         convenient because you can specify the unit used for the volumes used in the report.  Use
         the -c option to print a sample datafile and supply the known variables.  The u() function
@@ -284,10 +277,10 @@ if 1:  # Utility
             measure the antifreeze solution in the car at 30%.  I want it to be a 50% solution for
             the proper winter protection where I live.  How much should I drain from the radiator
             of the 30% solution and refill with the 80% solution to get the desired 50% solution?
-
+            
             This is an example of a problem that can be solved iteratively and demonstrates why
             the datafile approach is convenient.
-
+            
         References
         ----------
         At site https://www.physiologyweb.com/calculators (add this prefix to urls)
@@ -297,10 +290,7 @@ if 1:  # Utility
         """)
         )
         exit(0)
-
-
 if 1:  # Interactive solution
-
     def GetData():
         # Set all numbers to 0
         g.Conc1 = g.Conc2 = flt(0)
@@ -376,7 +366,6 @@ if 1:  # Interactive solution
                 Conc2           {g.Conc2!r}
                 ConcMixture     {g.ConcMixture!r}{C.norm}""")
             )
-
     def PrintResults():
         pa, pb, pm = g.Conc1 / flt(100), g.Conc2 / flt(100), g.ConcMixture / flt(100)
         if g.Vol1 and g.Vol2:
@@ -413,23 +402,20 @@ if 1:  # Interactive solution
             {"Mixture":^{n}s}{s}{g.VolMixture!s:^{k}s}{s}{g.ConcMixture!s:^{k}s}
         """)
         )
-
-
 if 1:  # Datafile approach
-
     def PrintSampleDatafile():
         print(
             dedent(f"""
         '''
         This is a sample data file for the mixture.py script.  This data file needs to be valid
         python syntax.
-
+        
         The problem being solved is the mixing of two solutions, solution 1 and solution 2.  Both
         solutions contain the same solvent and solute.  The key assumptions are that the solute
         and solvent are miscible, mixed well, and there are no volume or temperature changes when
         the solutions are mixed.  If the assumptions are not satisfied, you still may be able to
         get reasonably good approximate answers, particularly for dilute solutions.
-
+        
         You need to define four of the following six variables:
           c1      Concentration of solution 1 in %
           c2      Concentration of solution 2 in %
@@ -437,53 +423,52 @@ if 1:  # Datafile approach
           v1      Volume of solution 1
           v2      Volume of solution 2
           v       Volume of mixture
-
+          
         These variables satisfy the equations
-
+        
             v = v1 + v2
             c*v = c1*v1 + c2*v2
-
+            
         You cannot have unknowns of (c1, c2), (c1, c), or (c2, c) because these conditions
         effectively give one equation with two unknowns.
-
+        
         You may also define 'v_unit' as the desired volume unit for output.  It defaults to 'm3'
         as if you used
-
+        
             v_unit = "m3"
-
+            
         The u() function is used to let you use the input volume units of your choice (it's in
         /plib/u.py).  The following example line lets you define the v1 variable in terms of ml:
-
+        
           v1 = 321*u("ml")
-
+          
         Run 'python /plib/u.py' to see allowed volume units (you can also use any valid length
         unit with an appended 3 for a power of 3).
-
+        
         Your definitions must use valid python syntax.
         '''
-
+        
         # The following example data solve the following problem.  I have a
         # weed killer (solution 1) with a concentration of 11.3%.  I want
         # to know how much of it I must mix with a volume of water
         # (solution 2) to get a 15 gallon solution with a concentration of
         # 0.25%.
-
+        
         c1 = 11.3           # Concentration of solution 1
         c2 = 0              # Concentration of solution 2
         c  = 0.25           # Concentration of mixture
         v  = 15*u("gal")    # Volume of mixture
         v_unit = "gal"      # Report should use gallons for volumes
-
+        
         # This optional variable holds a description of the problem and
         # is printed with the report if present.
         description = ""
-
+        
         # This data file should give the results
         #   volume of solution 1 = 0.332 gal
         #   volume of solution 2 = 14.7 gal
         """)
         )
-
     def TestSolutions():
         """This function tests the GetUnknowns() function to see that it
         uses the correct formulas.  The equations are
@@ -566,7 +551,6 @@ if 1:  # Datafile approach
         v, _ = GetUnknowns(c1, c2, c, v1, v2, v)
         c1, c2, c, v1, v2, v = v
         Assert(c1 == 8 and v1 == 1)
-
     def GetSolutions():
         """Use sympy to solve for the needed volume mixture functions.
         The two core equations are:
@@ -574,7 +558,7 @@ if 1:  # Datafile approach
             c *v  = c1*v1 + c2*v2
         There are six variables, so the user must supply four of them.
         The problems are:
-
+        
                 Known      Solve for
             c1 c2 c  v1     v2 v
             c1 c2 c  v2     v1 v
@@ -593,7 +577,7 @@ if 1:  # Datafile approach
             c  v1 v2 v      c1 c2 *
         The problems marked * are those that cannot be solved because there
         is only one equation with two unknowns.
-
+        
         This code produces the following output:
             (v2, v ) {((-c1*v1 + c *v1)/(c2 - c ), (-c1*v1 + c2*v1)/(c2 - c ))}
             (v1, v ) {((-c2*v2 + c *v2)/(c1 - c ), (c1*v2 - c2*v2)/(c1 - c ))}
@@ -617,7 +601,6 @@ if 1:  # Datafile approach
         ----------------------------------------------------------------
         """
         import sympy as S
-
         c1, c2, c, v1, v2, v = S.symbols("c1 c2 c  v1 v2 v ")
         # Basic equations
         equations = [S.Eq(v, v1 + v2), S.Eq(c * v, c1 * v1 + c2 * v2)]
@@ -643,7 +626,6 @@ if 1:  # Datafile approach
                 print(i, S.linsolve(equations, i))
             except Exception:
                 print(i, S.nonlinsolve(equations, i))
-
     def GetVars(file):
         "Return a dict of variables from file"
         vars = {}
@@ -658,13 +640,12 @@ if 1:  # Datafile approach
             except Exception:
                 Error(f"Couldn't open file {file!r}")
         return vars
-
     def GetUnknowns(c1, c2, c, v1, v2, v):
         """Two of the unknowns should be None.  Solve for these two.
         Return (vars, colors) where both are 6-tuples.  vars contains the
         solved variables and colors contains the colorizing strings for the
         variables (the two unknowns will be colored).
-
+        
         The solution's equations came from GetSolutions().
         """
         if v2 is None and v is None:
@@ -739,7 +720,6 @@ if 1:  # Datafile approach
             print(f"  v  = {v}")
             exit(1)
         return ((c1, c2, c, v1, v2, v), (t.c1, t.c2, t.c, t.v1, t.v2, t.v))
-
     def SolveDatafile(file):
         """Read the variables in from a text file and solve for the
         unknowns.  The core equations are
@@ -815,8 +795,6 @@ if 1:  # Datafile approach
         t.print(f"{t.v}v  = Volume of mixture          {v!s:>{w}s} {v_unit}")
         if len(args) > 1:
             print()
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     TestSolutions()

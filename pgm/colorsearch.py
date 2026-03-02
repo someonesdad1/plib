@@ -1,7 +1,6 @@
 """
 Print out color names with a regex in the name
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -24,7 +23,9 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         from wrap import wrap, dedent
-        from color import Color, t
+        from color import Color
+        import trm
+        t = trm.Trm()
         from rgbdata import color_data, attr_data
         import cdec
     if 1:  # Global variables
@@ -35,11 +36,9 @@ if 1:  # Header
         # isn't a TTY
         t.always = True
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
             dedent(f"""
@@ -53,7 +52,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = False  # Show attributions
         d["-i"] = True  # Ignore case in searches
@@ -73,10 +71,7 @@ if 1:  # Utility
             elif o == "-s":
                 d[o] = a
         return regexps
-
-
 if 1:  # Core functionality
-
     def GetData(regex: str, data: dict) -> None:
         """In color_data, search for names that match regex and put them
         into the data dict indexed by Color instance.
@@ -87,7 +82,6 @@ if 1:  # Core functionality
             attr, name, color = item
             if r.search(name):
                 data[color] = item
-
     def Report(data: dict) -> None:
         """Print the colors sorted by the default color.Sort() method (uses
         'hL').
@@ -116,8 +110,6 @@ if 1:  # Core functionality
                 print(i)
                 for j in s:
                     print(f"  {j}")
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     regexps = ParseCommandLine(d)

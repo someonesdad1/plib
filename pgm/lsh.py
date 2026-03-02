@@ -2,7 +2,6 @@
 Provide the output of the ls command for a directory, but color the
 files per their Mercurial status.
 """
-
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2016 Don Peterson #∞copyright∞#
@@ -25,14 +24,12 @@ if 1:  # Imports
     from pprint import pprint as pp
 if 1:  # Custom imports
     from wrap import dedent
-
     old_color = 0
-    from color import TRM as t
+    import trm
+    t = trm.Trm()
     from columnize import Columnize
-
     if 0:
         import debug
-
         debug.SetDebugger()
 if 1:  # Global variables
     # Mercurial installation
@@ -72,13 +69,9 @@ if 1:  # Global variables
         "?": "Not tracked:",
         "I": "Ignored:",
     }
-
-
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
-
-
 def Usage(d, status=1):
     print(
         dedent(f"""
@@ -90,8 +83,6 @@ def Usage(d, status=1):
     """)
     )
     exit(status)
-
-
 def ParseCommandLine(d):
     d["-a"] = False  # Show hidden files
     d["-i"] = False  # Show ignored files
@@ -112,8 +103,6 @@ def ParseCommandLine(d):
     elif not dir:
         dir = ["."]
     return dir[0]
-
-
 def GetRoot(dir, d):
     """Add the Mercurial root directory to d["root"].  Issue an error
     message and exit if dir is not in a Mercurial repository.
@@ -129,8 +118,6 @@ def GetRoot(dir, d):
         d["root"] = ss[0].strip()
     else:
         Error("'{}' not in a Mercurial repository".format(dir))
-
-
 def GetFiles(d):
     pth = os.path.abspath(".")
     GetRoot(pth, d)
@@ -157,8 +144,6 @@ def GetFiles(d):
     # Sort by name in a case-independent fashion
     results = sorted(results, key=lambda x: x[0].lower())
     return results
-
-
 def Print(results, key, d):
     """Print the results color-coded for key."""
     if key not in results:
@@ -189,8 +174,6 @@ def Print(results, key, d):
             normal()
         else:
             print(t.n, end="")
-
-
 def PrintResults(files, d):
     if sys.stdout.isatty():
         if old_color:
@@ -209,8 +192,6 @@ def PrintResults(files, d):
         results[status].append(file)
     for key in list("IC!RAM?"):
         Print(results, key, d)
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     dir = ParseCommandLine(d)

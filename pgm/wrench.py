@@ -1,7 +1,6 @@
 """
 Print out wrench sizes
 """
-
 if 1:  # Header
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -21,12 +20,12 @@ if 1:  # Header
     from pathlib import Path as P
     import sys
     from fractions import Fraction
-
     # Custom imports
     from wrap import wrap, dedent
-    from color import Color, TRM as t
+    from color import Color
+    import trm
+    t = trm.Trm()
     from columnize import Columnize
-
     # Global variables
     ii = isinstance
     W = int(os.environ.get("COLUMNS", "80")) - 1
@@ -37,9 +36,7 @@ if 1:  # Header
     t.hdr = t("lip")
     t.mm = t("roy")
     t.inch = t("yel")
-
 if 1:  # Core functionality
-
     def PF(frac):
         """Return the indicated fraction as a proper fraction."""
         if frac == int(frac):
@@ -50,7 +47,6 @@ if 1:  # Core functionality
             return "{}-{}/{}".format(i, r, d)
         else:
             return "{}/{}".format(frac.numerator, frac.denominator)
-
     def WrenchSizes(sizes="inch", all=False):
         """Return a list of the form
             [
@@ -59,18 +55,16 @@ if 1:  # Core functionality
             ]
         for wrenches of the indicated types.  nominal, min, and max are in
         mils.  sizes can be "inch" or "metric".
-
+        
         Machinery's Handbook 19th ed. (1971) gives the wrench openings for the
         nominal size w as [w0, w1] where
             w0 = 1.005*w + 0.001
             w1 = w0 + 0.005*w + 0.004
         """
         d = []
-
         # Rounding an inch dimension in mils to the nearest mil
         def rnd(x):
             return int(round(x, 0))
-
         if sizes == "inch":
             # Inch sizes are in 32nds
             inches = list(range(4, 13)) + list(range(14, 33, 2))
@@ -94,15 +88,12 @@ if 1:  # Core functionality
                 w1 = rnd(w0 + 0.005 * w + 0.004)
                 d.append((w, str(m), w0, w1, sizes))
         return d
-
-
 if __name__ == "__main__":
     sizes = sorted(
         WrenchSizes(sizes="inch", all=True) + WrenchSizes(sizes="mm", all=True)
     )
     if 0:
         from pprint import pprint as pp
-
         pp(sizes)
         exit()
     t.print(f"{t.ti}{'Wrench Opening Sizes in Mils':^{W}s}")

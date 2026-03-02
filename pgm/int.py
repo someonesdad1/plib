@@ -28,7 +28,8 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         from wrap import dedent
-        from color import TRM as t
+        import trm
+        t = trm.Trm()
         import primes
     if 1:  # Global variables
         class g:

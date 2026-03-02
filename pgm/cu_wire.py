@@ -15,7 +15,6 @@ TODO:
 Output a copper wire table.  Other useful things are done too (use the
 -h option for help and -H for a manpage).
 '''
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -37,7 +36,8 @@ if 1:  # Header
         from math import pi, log, sqrt, log10
     if 1:  # Custom imports
         import termtables as tt
-        from color import t
+        import trm
+        t = trm.Trm()
         from wrap import dedent
         from fpformat import FPFormat
         from columnize import Columnize

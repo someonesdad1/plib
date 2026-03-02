@@ -27,7 +27,8 @@ if 1:  # Header
     if 1:  # Custom imports
         from wrap import dedent
         from columnize import Columnize
-        from color import t
+        import trm
+        t = trm.Trm()
         if 0:
             import debug
             debug.SetDebugger()

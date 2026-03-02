@@ -23,7 +23,8 @@ if 1:   # Header
         import re
         import sys
     if 1:   # Custom imports
-        from color import t
+        import trm
+        t = trm.Trm()
         from get import GetLines
         from wrap import dedent
         from f import flt

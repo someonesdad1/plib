@@ -35,8 +35,6 @@ The number of holes needed for N turns is thus Fraction(R % N, N).denominator.
 This lets us construct a table of N versus number of holes in a plate for a
 given ratio R.
 
-
-
 ---------------------------------------------------------------------------
 Relatively common divisions needed
 
@@ -70,7 +68,6 @@ Assuming a 40:1 gear ratio, these give the divisions
 43: 43 86 172
 47: 47 94 188
 49: 49 98 196
-
 """
 
 if 1:  # Header
@@ -98,7 +95,8 @@ if 1:  # Header
     if 1:  # Custom imports
         from f import flt
         from wrap import wrap, dedent
-        from color import t
+        import trm
+        t = trm.Trm()
         from columnize import Columnize
         from primes import IsPrime, AllFactors
     if 1:  # Global variables
@@ -110,61 +108,49 @@ if 1:  # Manpage
     def Manpage():
         print(
             dedent(f"""
-
         A dividing head is a spindle that is rotated by a worm gear and
         worm wheel.  A handle turns the worm gear and a dividing plate with
         equally-spaced holes is rigidly attached to the worm gear.  The
         worm gear takes R full turns to rotate the spindle once and the
         plate has H holes in it.
-
         With H holes, the circle is divided up into R*H divisions.  This
         setup lets you evenly divide something into X divisions where
         X is any integer factor of R*H.
-
         Example:  with a 40:1 worm gear ratio and a plate with 16 holes,
         we get 40*16 = 640 divisions.  The smallest movement of the spindle is 
         1/640 or 0.001563 of a rotation or 0.5625°.  The factors of 640 are
-
             2 4 5 8 10 16 20 32 40 64 80 128 160 320
-
         and it's clear that we can get any of these divisions by 
-
         holes on the worm gear allows an integer number of rotations by
         using an indexing pin in the plate.  The usual operation is to
         accurately rotate the spindle by a known angle.  See [1].
-
         Suppose the worm gear ratio is R and the number of evenly-spaced
         holes in the dividing plate is H.  Both R and H are assumed to be
         integers > 0.  For example, a common worm ratio is 40, which means
         the worm gear must revolve 40 times to cause the worm wheel to
         rotate once.
-
         Suppose we have a specific ratio R and number of holes in the
         dividing plate H.  The plate allows a minimum worm gear rotation of
         1/H of a full rotation and the gear reduction means this results in
         a rotation of 1/(H*R) of a circle.  Thus, H holes with the
         reduction of R means the circle is divided into H*R locations
         around a circle.
-
         The behavior is gotten with fractional arithmetic. 
-
-
         References:
             [1] https://en.wikipedia.org/wiki/Indexing_head
             [2] Projects in Metal, Feb 1991, "The Mathematics of a Dividing
                 Head", pg 17.
-
         """)
         )
         exit(0)
-
-
+        
+        
 if 1:  # Utility
 
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
+        
     def Usage(status=1):
         print(
             dedent(f"""
@@ -184,7 +170,7 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
+        
     def ParseCommandLine(d):
         d["-d"] = 4  # Number of significant digits
         d["-r"] = 40  # Default worm gear ratio
@@ -220,18 +206,16 @@ if 1:  # Utility
         x.N = d["-d"]
         x.rtz = True
         return list(args)
-
-
+        
+        
 if 1:  # Master dividing head
 
     def MasterDividingHead():
         """Print out the division capabilities of the Master dividing head.
-
         This is a smaller Master dividing head for lathes that belonged
         to HPR.  It has an expanding collet to fit a spindle tube and,
         once secured to the lathe, can divide spindle rotation into desired
         numbers.
-
         The worm gear is 40:1 and the dividing plate has 21, 23, 27, 29,
         31, and 33 holes.
         """
@@ -239,7 +223,6 @@ if 1:  # Master dividing head
             dedent(f"""
         Master dividing head for lathe (belonged to HPR)
             40:1 worm with 21 23 27 29 31 33 holes in plate
-
         Number of divisions achievable:
                   1  2   4   5   8  10  20
                  -------------------------
@@ -249,12 +232,11 @@ if 1:  # Master dividing head
             29:  29 58 116 145 232 290
             31:  31 62 124 155 248 310
             33:  33 66 132 165 264 330
-
         This script gives the 
         """)
         )
-
-
+        
+        
 if 0:  # Core functionality
 
     def OrganizeResults(results):
@@ -311,17 +293,14 @@ if 0:  # Core functionality
             for i in Columnize([str(j) for j in sorted(too_many)], indent=" " * 4):
                 print(i)
         CoalesceHoles(mydict)
-
+        
     def CoalesceHoles(mydict):
         """Reduce the set to a minimum number of hole circles needed.
-
         Here's the results for arguments of 100 50:
-
             Dividing head calculations
               40    Worm gear ratio
              100    Max divisions to generate
               50    Max holes in plates
-
             Holes  Divisions
              1:  40                   11:  11 22 44 55 88       29:  29 58
              2:  16 20 80             12:  96                   31:  31 62
@@ -337,7 +316,6 @@ if 0:  # Core functionality
                 53 59 61 67 71 73 79 83 89 97
             Plates removed because they were > hmax:
                 51 57 63 69 77 81 87 91 93 99
-
         Here's how this would be analyzed.  Integer factors:
             10: 2 5
             12: 2 2 3
@@ -369,7 +347,6 @@ if 0:  # Core functionality
             48: 2 2 2 2 3
             49: 7 7
             50: 2 5 5
-
         First get the even number of holes:
             2 4 6 8 10 12 20
         The factors are
@@ -380,10 +357,9 @@ if 0:  # Core functionality
             10: 2 5
             12: 2 2 3
             20: 2 2 5
-
         The factors in the list are 2, 3, 5
         """
-
+        
     def HoleTable(*args):
         if not args:
             Error("Need N, the maximum number of divisions wanted")
@@ -403,7 +379,7 @@ if 0:  # Core functionality
             o.append(f"{n:3d}:{results[n]:3d}")
         for i in Columnize(o, col_width=10):
             print(i)
-
+            
     def AngleData(*args):
         if not args:
             Error("Need h, the maximum number of holes")
@@ -420,19 +396,19 @@ if 0:  # Core functionality
             step_deg = 360 * recip / 1000
             s = " ".join(str(i) for i in AllFactors(n))
             print(f"{h:4d} {n:5d}      {recip!s:8s}   {step_deg!s:6s}    {s}")
-
+            
     def VernierPlates(*args):
         pass
-
-
+        
+        
 if 1:  # Core functionality
 
     def Degrees(*args):
         pass
-
+        
     def Master(*args):
         pass
-
+        
     def DivisionsWithPlates(*args):
         """If only one argument is present, print out the divisions that
         can be gotten with all plates with holes from 1 to that value.
@@ -486,8 +462,8 @@ if 1:  # Core functionality
         o = sorted([f"{i:4d}" for i in div], key=int)
         for i in Columnize(o, indent=" " * 4, col_width=8):
             print(i)
-
-
+            
+            
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
@@ -519,3 +495,4 @@ if __name__ == "__main__":
             VernierPlates(*args)
         else:
             Error(f"{op!r} not recognized")
+            

@@ -1,7 +1,6 @@
 """
 Script to output Mac keyboard commands in various ways
 """
-
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
@@ -23,11 +22,10 @@ if 1:  # Standard imports
     import enum
 if 1:  # Custom imports
     from wrap import wrap, dedent
-    from color import C
-
+    import trm
+    C = trm.Trm()
     if 0:
         import debug
-
         debug.SetDebugger()
 if 1:  # Global variables
     P = pathlib.Path
@@ -250,7 +248,6 @@ if 1:  # Global variables
             ;For more shortcuts, check the shortcut abbreviations shown in the menus of your apps. Every app can have its own shortcuts, and shortcuts that work in one app might not work in another. 
         """)
 if 1:  # Classes and types
-
     class KeyCmd:
         def __init__(self, key, descr):
             self.key = key
@@ -287,11 +284,9 @@ if 1:  # Classes and types
                 "Power button": "Pwr",
                 "Space bar": "Spc",
             }
-
         def __str__(self):
             # return self.symbol()
             return self.decorate()
-
         def symbol(self):
             "Return the key name symbol"
             f = self.key.split("-")
@@ -300,7 +295,6 @@ if 1:  # Classes and types
             for item in f:
                 i = item.strip()
                 items.append(d[i] if i in d else i)
-
         def decorate(self):
             "Return the name with the key's symbols"
             items = [f"{self.key:40s}{' ' * 5}"]
@@ -311,19 +305,14 @@ if 1:  # Classes and types
                 i = item.strip()
                 items.append(self._sym[i] if i in self._sym else i)
             return "".join(items)
-
     class State(enum.Enum):
         ignore = enum.auto()
         topic = enum.auto()
         modifier = enum.auto()
-
-
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
             dedent(f"""
@@ -334,7 +323,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = False
         d["-d"] = 3  # Number of significant digits
@@ -357,10 +345,7 @@ if 1:  # Utility
             elif o in ("-h", "--help"):
                 Usage(status=0)
         return args
-
-
 if 1:  # Core functionality
-
     def FixLine(line):
         """Remove '(x)' where x is one of the repl characters"""
         repl = ",;:/[]{}+-?|"
@@ -369,7 +354,6 @@ if 1:  # Core functionality
             if s in line:
                 line = line.replace(s, "")
         return line
-
     def ProcessData():
         "Return a list of the key objects"
         state = State.ignore
@@ -401,8 +385,6 @@ if 1:  # Core functionality
             key = KeyCmd(name, value)
             keys.append(key)
         return keys
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

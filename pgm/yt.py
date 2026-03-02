@@ -2,7 +2,8 @@
 Make an HTML file of URLs to youtube videos
 '''
 if 1:   # Header
-    from color import t
+    import trm
+    t = trm.Trm()
     from wrap import dedent
     import iso
     import requests

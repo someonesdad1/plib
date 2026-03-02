@@ -1,7 +1,6 @@
 """
 Show HP scope storage registers
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -26,18 +25,15 @@ if 1:  # Header
     if 1:  # Custom imports
         from f import flt
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
         from lwtest import Assert
-
         if 0:
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
-
         class G:
             pass
-
         g = G()
         g.dbg = False
         g.registers = {}  # Indexes register number to Scope object
@@ -52,25 +48,21 @@ if 1:  # Header
         t.trig = t.royl
         t.title = t.purl
 if 1:  # Classes
-
     class Scope:
         def __init__(self, register, name, trigger):
             self.register = register
             self.name = name
             self.trigger = trigger
             self.details = ""
-
         def __str__(self):
             s = f"Def " if not self.register else f"{self.register:<3d} "
             s += f"{self.name:{g.w_name}s} {self.trigger:{g.w_trig}s}"
             return s
-
         def __repr__(self):
             if self.details:
                 return f"{t.purl}{str(self)}{t.n}\n{self.details}"
             else:
                 return f"{str(self)}"
-
         def get_details(self):
             s = (
                 f"{t.reg}Def{t.n} "
@@ -79,32 +71,25 @@ if 1:  # Classes
             )
             s += f"{t.name}{self.name:{g.w_name}s} {t.trig}{self.trigger:{g.w_trig}s}{t.n}"
             return s
-
-
 if 1:  # Utility
-
     def GetColors():
         t.err = t("redl")
         t.dbg = t("lill") if g.dbg else ""
         t.N = t.n if g.dbg else ""
-
     def GetScreen():
         "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
             int(os.environ.get("COLUMNS", "80")) - 1,
         )
-
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="")
             print(*p, **kw)
             print(f"{t.N}", end="")
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=0):
         print(
             dedent(f"""
@@ -115,7 +100,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = False  # Need description
         try:
@@ -129,10 +113,7 @@ if 1:  # Utility
             elif o == "-h":
                 Usage()
         return args
-
-
 if 1:  # Core functionality
-
     def BuildScopeData():
         s = g.registers
         s[0] = Scope(0, "Default setup 100 mV/div", "CH1 auto lvl")
@@ -167,13 +148,11 @@ if 1:  # Core functionality
             Cursor lines show LOW threshold (0.8 V) and HIGH threshold (2.0 V).  CH 1 and CH 2
             are 1 V/div and set up for 10X probes.
         """)
-
     def Summary():
         print(f"{t.title}Reg {'Name':^{g.w_name}s} {'Trigger':^{g.w_trig}s}")
         print(f"--- {'-' * g.w_name} {'-' * g.w_trig}{t.n}")
         for i in g.registers:
             print(g.registers[i].get_details())
-
     def Details(args):
         for i, arg in enumerate(args):
             try:
@@ -184,8 +163,6 @@ if 1:  # Core functionality
             except Exception as e:
                 print(f"{e}")
                 print(f"Register {arg!r} not found")
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     BuildScopeData()

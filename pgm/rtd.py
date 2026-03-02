@@ -1,7 +1,6 @@
 """
 Print RTD tables
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -25,12 +24,11 @@ if 1:  # Header
     if 1:  # Custom imports
         from columnize import Columnize
         from wrap import wrap, dedent
-        from color import t
+        import trm
+        t = trm.Trm()
     if 1:  # Global variables
-
         class G:
             pass
-
         g = G()
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
@@ -41,11 +39,9 @@ if 1:  # Header
         t.r = t("ornl")
         t.t = t("denl")
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
             dedent(f"""
@@ -58,7 +54,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-f"] = False  # Print in deg F
         d["-t"] = False  # Print both tables
@@ -73,10 +68,7 @@ if 1:  # Utility
             elif o in ("-h", "--help"):
                 Usage(status=0)
         return args
-
-
 if 1:  # Core functionality
-
     def Header():
         print(
             dedent(f"""
@@ -90,7 +82,6 @@ if 1:  # Core functionality
             Ref https://www.ti.com/lit/an/sbaa275/sbaa275.pdf
         """)
         )
-
     def Report():
         Header()
         a, b, R0 = g.A, g.B, g.R0
@@ -129,8 +120,6 @@ if 1:  # Core functionality
                 print(i)
             print("\nClass B:  dT = ±(0.3 + 0.005 |T|) °C")
             print("Class A:  dT = ±(0.15 + 0.002 |T|) °C")
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

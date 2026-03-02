@@ -41,7 +41,8 @@ if 1:  # Header
         from collections import defaultdict
     if 1:  # Custom imports
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
         from dpseq import DupNodupHashable
         from dpprint import PP
         pp = PP()   # Get pprint with current screen width

@@ -48,7 +48,9 @@ if 1:  # Header
     from f import flt
     if 1:
         have_color = True
-        from color import Color, TRM as t
+        from color import Color
+        import trm
+        t = trm.Trm()
         t.always = True
     else:
         try:

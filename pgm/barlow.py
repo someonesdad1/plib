@@ -74,7 +74,9 @@ if 1:  # Header
         from pprint import pprint as pp
     if 1:  # Custom imports
         from wrap import wrap, dedent
-        from color import Color, TRM as t
+        from color import Color
+        import trm
+        t = trm.Trm()
         from lwtest import Assert
         from f import flt, log10
         if 1:

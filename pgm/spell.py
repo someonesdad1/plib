@@ -34,7 +34,8 @@ if 1:  # Header
         import tokenizer
         import url as URL
         from columnize import Columnize
-        from color import t
+        import trm
+        t = trm.Trm()
     if 1:  # Global variables
         class G:
             pass

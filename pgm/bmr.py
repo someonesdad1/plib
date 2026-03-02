@@ -1,7 +1,6 @@
 """
 Estimate daily energy need
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -26,45 +25,37 @@ if 1:  # Header
     if 1:  # Custom imports
         from f import flt
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
         from lwtest import Assert
-
         if 0:
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
-
         class G:
             pass
-
         g = G()
         g.dbg = False
         ii = isinstance
 if 1:  # Utility
-
     def GetColors():
         t.err = t("redl")
         t.dbg = t("lill") if g.dbg else ""
         t.N = t.n if g.dbg else ""
-
     def GetScreen():
         "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
             int(os.environ.get("COLUMNS", "80")) - 1,
         )
-
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="")
             print(*p, **kw)
             print(f"{t.N}", end="")
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=0):
         print(
             dedent(f"""
@@ -81,7 +72,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-f"] = False  # Female
         d["-d"] = 3  # Number of significant digits
@@ -109,10 +99,7 @@ if 1:  # Utility
         if len(args) not in (3, 4):
             Usage()
         return args
-
-
 if 1:  # Core functionality
-
     def HarrisBenedict(m, h, y, a, female=False):
         """Harris-Benedict 1919, revised by Mifflin and St Jeor in 1990.
         https://en.wikipedia.org/wiki/Harris%E2%80%93Benedict_equation
@@ -134,7 +121,6 @@ if 1:  # Core functionality
             kcal += 5
         kcal *= p
         return flt(kcal)
-
     def IofM(m, h, y, a, female=False):
         """Institute of Medicine formula, dated 2002.  Return daily energy need in kcal.
         Ref. https://en.wikipedia.org/wiki/Institute_of_Medicine_Equation
@@ -154,7 +140,6 @@ if 1:  # Core functionality
             p = activity[a]
             EER = 662 - 9.53 * y + 15.91 * m * p + 539.6 * h
         return flt(EER)
-
     def Test():
         m = 70
         h = 1.75
@@ -163,8 +148,6 @@ if 1:  # Core functionality
         if 1:  # IofM
             assert IofM(m, h, y, a, False) == 2052.9
             assert IofM(m, h, y, a, True) == 1796.6
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     Test()

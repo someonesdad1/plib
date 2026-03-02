@@ -1,7 +1,6 @@
 """
 Print the resistor color code or interpret it
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -26,18 +25,15 @@ if 1:  # Header
     if 1:  # Custom imports
         from f import flt
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
         from lwtest import Assert
-
         if 0:
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
-
         class G:
             pass
-
         g = G()
         ii = isinstance
         g.clr = {}
@@ -56,7 +52,6 @@ if 1:  # Header
             "sil": 0.01,
         }
 if 1:  # Utility
-
     def GetColors():
         # Put into g.clr dict
         g.clr[""] = ""
@@ -72,11 +67,9 @@ if 1:  # Utility
         g.clr["wht"] = t("whtl")
         g.clr["gld"] = t("#dbb40c")
         g.clr["sil"] = t("wht")
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=0):
         print(
             dedent(f"""
@@ -87,7 +80,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = False  # Need description
         d["-d"] = 3  # Number of significant digits
@@ -112,14 +104,10 @@ if 1:  # Utility
             elif o in ("--debug",):
                 # Set up a handler to drop us into the debugger on an unhandled exception
                 import debug
-
                 debug.SetDebugger()
         GetColors()
         return args
-
-
 if 1:  # Core functionality
-
     def PrintLine(name, abbr, digit, multiplier, tolerance):
         w = {
             "name": 8,
@@ -142,7 +130,6 @@ if 1:  # Core functionality
         print(f"{digit:^{w['digit']}s}", end=spc)
         print(f"{multiplier:^{w['multiplier']}s}", end=spc)
         print(f"{tolerance:^{w['tolerance']}s}")
-
     def PrintTable():
         PrintLine("", "Abbreviation", "Digit", "Multiplier", "Tolerance, %")
         PrintLine("Black", "blk", "0", "1", "--")
@@ -158,13 +145,11 @@ if 1:  # Core functionality
         PrintLine("Gold", "gld", "--", "0.1", "±5")
         PrintLine("Silver", "sil", "--", "0.01", "±10")
         PrintLine("None", "", "", "", "±20")
-
     def GetClr(name, bar_width, width):
         if name == "blk":
             return f"{'⎕' * bar_width:^{width}s}"
         else:
             return f"{g.clr[name]}{'█' * bar_width:^{width}s}{t.n}"
-
     def Interpret(args):
         b, blk = "██", "⎕⎕"
         excess_width, bar_width, o = 1, 3, []
@@ -190,8 +175,6 @@ if 1:  # Core functionality
         elif len(args) == 4:
             a, b, c, d = args
             value = g.code[int(a + b + c)] * 10 ** g.code[d]
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     GetColors()

@@ -32,7 +32,8 @@ if 1:  # Imports
     from collections import defaultdict
 if 1:  # Custom imports
     from wrap import dedent, wrap
-    from color import t
+    import trm
+    t = trm.Trm()
 if 1:  # Global variables
     ii = isinstance
     enc = "UTF-8"

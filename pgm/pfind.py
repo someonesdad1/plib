@@ -1,12 +1,9 @@
 """
-
 - TODO
     - See if -k can be used automatically unless output isn't to a TTY.
-
 File finding utility
     Similar to UNIX find, but slower.  Easier to use and the matches are
     colorized.
-
 """
 
 if 1:  # Header
@@ -37,7 +34,10 @@ if 1:  # Header
     # Custom imports
     if 1:
         from wrap import wrap, dedent
-        from color import Color, TRM as t, RegexpDecorate
+        from color import Color
+        from dpstr import RegexpDecorate
+        import trm
+        t = trm.Trm()
         from columnize import Columnize
         from dbg import Debug
     # Global variables
@@ -52,7 +52,7 @@ if 1:  # Utility
         print(f"{t.n}", end="", file=sys.stderr)
         print(*msg, file=sys.stderr)
         exit(status)
-
+        
     def Usage(status=1):
         cc = "on" if d["-c"] else "off"
         print(
@@ -87,7 +87,7 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
+        
     def ParseCommandLine():
         d["-c"] = True  # Use color coding
         d["-d"] = False  # Show directories only
@@ -140,8 +140,8 @@ if 1:  # Utility
             for i in d:
                 Dbg(f"    d[{i}] = {d[i]}")
         return regex, dirs
-
-
+        
+        
 if 1:  # Core functionality
 
     def ColorCoding():
@@ -151,7 +151,7 @@ if 1:  # Core functionality
         e = "\x1b[01;31m"  # This will match grep & ls color for directories
         t.dirs = e if cc else ""
         t.files = t("yell") if cc else ""  # This matches grep too
-
+        
     def GetDirectories(dir):
         """Return a list of directories as Path instances at and below dir.
         Filter out the things indicated by the options in d.
@@ -169,30 +169,30 @@ if 1:  # Core functionality
                 # Remove .git directories
                 def HasGit(item):
                     return ".git" in item.parts
-
+                    
                 dirs = remove(HasGit, dirs)
             if not d["--hg"]:
                 # Remove .hg directories
                 def HasHg(item):
                     return ".hg" in item.parts
-
+                    
                 dirs = remove(HasHg, dirs)
             if d["--nohiddendirs"]:
                 # Remove hidden directories
                 def IsHiddenDir(item):
                     return any(i.startswith(".") for i in item.resolve().parts)
-
+                    
                 dirs = remove(IsHiddenDir, dirs)
             if d["-l"] != -1:
                 # If only a certain level is wanted, prune out the deeper ones
                 N = len(p.parents)
-
+                
                 def TooDeep(item):
                     return len(item.parts) - N > d["-l"]
-
+                    
                 dirs = remove(TooDeep, dirs)
         return dirs
-
+        
     def GetFiles(dir):
         """Return a list of files as Path instances at and below dir.
         Filter out the things indicated by the options in d.
@@ -211,40 +211,40 @@ if 1:  # Core functionality
                 # Remove .git directories
                 def HasGit(item):
                     return ".git" in item.parent.parts
-
+                    
                 files = remove(HasGit, files)
             if not d["--hg"]:
                 # Remove .hg directories
                 def HasHg(item):
                     return ".hg" in item.parent.parts
-
+                    
                 files = remove(HasHg, files)
             if d["--nohiddendirs"]:
                 # Remove hidden directories
                 def IsHiddenDir(item):
                     return any(i.startswith(".") for i in item.resolve().parent.parts)
-
+                    
                 files = remove(IsHiddenDir, files)
             if d["--nohiddenfiles"]:
                 # Remove hidden files
                 def IsHiddenFile(item):
                     return item.name.startswith(".")
-
+                    
                 files = remove(IsHiddenFile, files)
             if d["-l"] != -1:
                 # If only a certain level is wanted, prune out the deeper ones
                 N = len(p.parents)
-
+                
                 def TooDeep(item):
                     return len(item.parents) - N > d["-l"]
-
+                    
                 files = remove(TooDeep, files)
         if 0:
             # Dump the files found
             for i in files:
                 print(f"+ {i}")
         return list(files)
-
+        
     def ApplyRegexToFiles(files, regex, keep=True):
         """Apply the compiled regular expression in regex to the files and
         return them as a list if keep is True; otherwise, remove those
@@ -253,14 +253,14 @@ if 1:  # Core functionality
         """
         if d["-d"]:  # Only operating on directories
             return []
-
+            
         def IsMatchedFile(file):
             return bool(regex.search(file.name))
-
+            
         action = filter if keep else remove
         files = list(action(IsMatchedFile, files))
         return files
-
+        
     def ApplyRegexToDirectories(dirs, regex, keep=True):
         """Apply the compiled regular expression in regex to the
         directories in dirs and return them as a list if keep is True;
@@ -269,25 +269,25 @@ if 1:  # Core functionality
         """
         if d["-f"]:  # Only operating on files
             return []
-
+            
         def IsMatchedDir(dir):
             return bool(regex.search(str(dir)))
-
+            
         action = filter if keep else remove
         dirs = list(action(IsMatchedDir, dirs))
         return dirs
-
+        
     def PrintDirectories(dirs):
         if not dirs:
             return
         rd = RegexpDecorate()
-
+        
         def Stringize(i):
             "Capture and return the string from rd(str(i))"
             io = StringIO()
             rd(str(i), file=io, insert_nl=True)
             return io.getvalue()
-
+            
         rd.register(d["regex"], t.dirs, t.norm)
         if d["-k"]:
             out = []
@@ -299,18 +299,18 @@ if 1:  # Core functionality
         else:
             for i in dirs:
                 rd(str(i), insert_nl=True)
-
+                
     def PrintFiles(files):
         if not files:
             return
         rd = RegexpDecorate()
-
+        
         def Stringize(i):
             "Capture and return the string from rd(i.name)"
             io = StringIO()
             rd(i.name, file=io, insert_nl=False)
             return io.getvalue()
-
+            
         rd.register(d["regex"], t.files, t.norm)
         if d["-k"]:
             out = []
@@ -329,17 +329,17 @@ if 1:  # Core functionality
                     print(q + str(i.parent) + "/", end="")
                 rd(i.name, insert_nl=False)
                 print(q)
-
+                
     def SelectItems(dirs, files):
         """Select the desired files and directories as indicated by the
         options and return (dirs, files) where the two items are lists.
         Make sure the items in the list only appear once.
         """
-
+        
         def Unique(lst):
             "Return a unique list of sorted items"
             return list(sorted(set(lst)))
-
+            
         Dbg(f"dirs has {len(dirs)} directories", color=t("cynl"))
         Dbg(f"files has {len(files)} files", color=t("cynl"))
         if not d["-t"]:
@@ -388,8 +388,8 @@ if 1:  # Core functionality
         if d["regex"]:
             out_files = ApplyRegexToFiles(out_files, d["regex"], keep=True)
         return Unique(out_dirs), Unique(out_files)
-
-
+        
+        
 if __name__ == "__main__":
     d = {}  # Settings dictionary
     regex, directories = ParseCommandLine()
@@ -409,3 +409,4 @@ if __name__ == "__main__":
     dirs, files = SelectItems(dirs, files)
     PrintDirectories(dirs)
     PrintFiles(files)
+    

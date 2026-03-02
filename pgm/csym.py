@@ -1,7 +1,6 @@
 """
 Print out valid C/C++ symbols in files
 """
-
 if 1:  # Header
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -19,17 +18,15 @@ if 1:  # Header
     import getopt
     import sys
     import re
-
     # Custom imports
     from wrap import wrap, dedent
-    from color import Color, TRM as t
-
+    from color import Color
+    import trm
+    t = trm.Trm()
     # Global variables
     ii = isinstance
-
     class g:
         pass
-
     g.symbols = {}
     nl = "\n"
     # Regular expressions
@@ -161,11 +158,9 @@ if 1:  # Header
         "xor_eq",
     )
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
             dedent(f"""
@@ -178,7 +173,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine():
         d["-c"] = False  # Treat as C file
         d["-k"] = False  # Do not remove keywords
@@ -194,10 +188,7 @@ if 1:  # Utility
         if not args:
             Usage()
         return args
-
-
 if 1:  # Core functionality
-
     def ReadFile(file):
         """Read in the file as a whole string and remove all comments.
         Return the resulting string.
@@ -218,7 +209,6 @@ if 1:  # Core functionality
             else:
                 newstr += str[i]
         return newstr
-
     def ProcessFile(file):
         str = ReadFile(file)
         if str == "":
@@ -239,14 +229,12 @@ if 1:  # Core functionality
                     dict[token] = 0
         k = dict.keys()
         g.symbols[file] = list(sorted(k))
-
     def Conglomerate():
         lst = []
         for key in g.symbols.keys():
             lst += g.symbols[key]
         for item in sorted(lst):
             print(item)
-
     def PrintResults():
         if d["-n"]:
             Conglomerate()
@@ -256,8 +244,6 @@ if 1:  # Core functionality
             print(file + ":")
             for token in g.symbols[file]:
                 print("  " + token)
-
-
 if __name__ == "__main__":
     d = {}
     args = ParseCommandLine()

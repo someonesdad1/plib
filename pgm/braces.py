@@ -57,7 +57,8 @@ if 1:  # Header
         import sys
     if 1:   # Custom imports
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
         from lwtest import Assert, run
         from dpprint import PP
         pp = PP()   # Get pprint with current screen width

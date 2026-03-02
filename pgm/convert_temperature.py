@@ -24,19 +24,16 @@ if 1:  # Header
         from u import ParseUnit
         from sig import GetSigFig
         from f import flt
-        from color import t
+        import trm
+        t = trm.Trm()
         from wrap import dedent
         from lwtest import Assert, assert_equal
-
         if 0:
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
-
         class G:
             pass
-
         g = G()
         g.sep = 5  # Column separation
         g.w = 15  # Column width
@@ -51,7 +48,6 @@ if 1:  # Header
             # Conversion factors
             p0, c0, k0, r0 = 9 / 5, 32, 273.15, 459.67
 if 1:  # Utility
-
     def GetColors():
         uc = d["-c"]
         if 1:  # New colors
@@ -60,11 +56,9 @@ if 1:  # Utility
             t.c = t.yel if uc else ""
             t.r = t.viol if uc else ""
             t.w = t("redl", attr="it") if uc else ""
-
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
-
     def Usage(d):
         print(
             dedent(f"""
@@ -79,7 +73,6 @@ if 1:  # Utility
         """)
         )
         exit(0)
-
     def ParseCommandLine(d):
         d["-c"] = True  # Use color in output
         d["-d"] = None  # Manually set sig figs
@@ -105,14 +98,10 @@ if 1:  # Utility
         z.rtz = False  # Remove trailing '0' characters
         GetColors()
         return args
-
-
 if 1:  # Core functionality
-
     def NumberOfFigures(s):
         "Return the number of significant figures in s"
         return 5 if s == "0" else max(GetSigFig(s), 3)
-
     def ShowFormulas():
         print()
         print(
@@ -123,7 +112,6 @@ if 1:  # Core functionality
         )
         if d["-r"]:
             print(f"    {t.r}R{t.n} = {t.f}F{t.n} + 459.67")
-
     def Header():
         "Print a report header"
         w = g.w  # Column width
@@ -135,7 +123,6 @@ if 1:  # Core functionality
         s = "─" * w
         t.print(f"{t.c}{s:^{w}s}{sep}{t.f}{s:^{w}s}{sep}{t.k}{s:^{w}s}", end="")
         t.print(f"{sep}{t.r}{s:^{w}s}") if d["-r"] else t.print()
-
     def Report(temp):
         "temp is the string on the command line"
         w = g.w  # Column width
@@ -178,8 +165,6 @@ if 1:  # Core functionality
                 print(f"{t.f}{ConvertTemperature(T, From, 'f')!s:^{w}s}{sep}", end="")
                 print(f"{t.k}{ConvertTemperature(T, From, 'k')!s:^{w}s}{sep}", end="")
                 t.print(f"{t.w}{T!s:^{w}s}")
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

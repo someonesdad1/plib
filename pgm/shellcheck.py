@@ -1,7 +1,6 @@
 """
 Run shellcheck and organize its output
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -25,37 +24,31 @@ if 1:  # Header
         import subprocess
         import sys
     if 1:  # Custom imports
-        from color import t
+        import trm
+        t = trm.Trm()
         from dpprint import PP
-
         pp = PP()  # Screen width aware form of pprint.pprint
         from get import GetLines
         from wrap import dedent
         from wsl import wsl  # wsl is True when running under WSL Linux
-
         if 1:
             import debug
-
             debug.SetDebugger()
         # from columnize import Columnize
     if 1:  # Global variables
-
         class G:
             # Storage for global variables as attributes
             pass
-
         g = G()
         g.dbg = False
         ii = isinstance
 if 1:  # Utility
-
     def GetScreen():
         "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
             int(os.environ.get("COLUMNS", "80")) - 1,
         )
-
     def GetColors():
         t.dbg = t("brnl") if g.dbg else ""
         t.N = t.n if g.dbg else ""
@@ -63,7 +56,6 @@ if 1:  # Utility
         t.warn = t("ornl")
         t.note = t("wht")
         t.ln = t("magl")  # For line numbers in file
-
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="", file=Dbg.file)
@@ -71,13 +63,10 @@ if 1:  # Utility
             k["file"] = Dbg.file
             print(*p, **k)
             print(f"{t.N}", end="", file=Dbg.file)
-
     Dbg.file = sys.stdout
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
             dedent(f"""
@@ -95,7 +84,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-b"] = False  # Brief output
         d["-c"] = True  # Ignore my referenced shell colors
@@ -129,10 +117,7 @@ if 1:  # Utility
         GetColors()
         g.W, g.L = GetScreen()
         return files
-
-
 if 1:  # Classes
-
     class Errorline:
         """Provide access to fields of an error line.  Typical example:
           'aa:3:7: error: Remove spaces around = to assign. [SC2290]'
@@ -144,52 +129,40 @@ if 1:  # Classes
         msg         'Remove spaces around = to assign.' message
         errnum      'SC2290'
         """
-
         def __init__(self, line, srcline):
             self._linestr = srcline
             self._fields = line.split()
-
         def __str__(self):
             return f"Errorline({' '.join(self._fields)})"
-
         def __repr__(self):
             return str(self)
-
         @property
         def line(self):
             return self._linestr
-
         @property
         def file(self):
             return self._fields[0].split(":")[0]
-
         @property
         def ln(self):
             return int(self._fields[0].split(":")[1])
-
         @property
         def column(self):
             return int(self._fields[0].split(":")[2])
-
         @property
         def severity(self):
             s = self._fields[1].replace(":", "")
             return {"error": 1, "warning": 2, "note": 3}[s]
-
         @property
         def msg(self):
             return " ".join(self._fields[2:-1])
-
         @property
         def errnum(self):
             return self._fields[-1].replace("[", "").replace("]", "")
-
     class Output:
         """This class encapsulates the output of the shellcheck program for a single file (it
         assumes the output format used is 'gcc').  The core data structure is self.lines, a list of
         Errorline objects constructed from each of the error lines from shellcheck.
         """
-
         def __init__(self, file, stdout, stderr):
             """file is the file's Path object; stdout and stderr are the bytestrings for the output
             of the shellcheck command.  This class will parse the command's output for convenient
@@ -233,10 +206,7 @@ if 1:  # Classes
             if 0:
                 print("Grabbed lines:")
                 pp(self.lines)
-
-
 if 1:  # Core functionality
-
     def CheckFile(file):
         "Run shellcheck on the file (it's a Path instance) and process the output"
         cmd = ["/usr/bin/shellcheck"]
@@ -269,7 +239,6 @@ if 1:  # Core functionality
                 print(f"   {i}")
             exit(1)
         ProcessOutput(r.stdout, r.stderr, file)
-
     def ProcessOutput(stdout, stderr, file):
         """Note that returncode > 0 and stdout/stderr are bytestrings.  Desired output:
         Print last line numbers first so that fixing the first item output doesn't affect the
@@ -289,7 +258,6 @@ if 1:  # Core functionality
                 PrintReport("warning", t.warn, di[2])
             elif 3 in di:  # Notes
                 PrintReport("note", t.note, di[3])
-
     def BriefReport(o):
         "o is an Output instance"
         # Decorate a list of by line number and print out in reverse order
@@ -308,7 +276,6 @@ if 1:  # Core functionality
             count += 1
             if d["-n"] and count > d["-n"]:
                 break
-
     def PrintLine(linestr, column, indent):
         """Print the string linestr with the indicated column marked in color to show where the error
         starts.
@@ -318,7 +285,6 @@ if 1:  # Core functionality
         print(f"{indent}{t('whtl')}{linestr[:n]}", end="")
         # Print character at n in highlighted color
         t.print(f"{t('whtl', 'blu')}{linestr[n]}{t.n}{t('whtl')}{linestr[n + 1 :]}")
-
     def PrintReport(type, color, errorlist):
         """type is e.g. 'error', color is the escape code to print the line header, and errorlist
         is the list of Errorline objects with this severity.
@@ -334,8 +300,6 @@ if 1:  # Core functionality
             count += 1
             if d["-n"] and count > d["-n"]:
                 break
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     files = ParseCommandLine(d)

@@ -62,7 +62,8 @@ if 1:   # Custom imports
     from wrap import dedent
     from get import GetTokens
     if 1:   # Use new color module
-        from color import t
+        import trm
+        t = trm.Trm()
     else:
         import color as color
 if 1:   # Global variables

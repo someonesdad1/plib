@@ -22,7 +22,8 @@ if 1:   # Header
         import time
     if 1:   # Custom imports
         from wrap import dedent
-        from color import TRM as t
+        import trm
+        t = trm.Trm()
         from timer import Stopwatch
         from dptime import NiceET
         if 0:

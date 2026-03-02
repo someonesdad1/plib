@@ -70,7 +70,8 @@ if 1:  # Header
         from columnize import Columnize
         from f import flt
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
         from roundoff import RoundOff
         from lwtest import run, Assert, check_equal, assert_equal
         import cmddecode

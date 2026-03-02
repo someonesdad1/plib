@@ -81,13 +81,13 @@ if 1:  # Header
     if 1:  # Custom imports
         from wrap import dedent
         from meeus import IsDST
-        from color import TRM as t
-
-        t.yr = t("grnl")
-        t.new = t("gry")
-        t.full = t("whtl")
-        t.first = t("cyn")
-        t.last = t("purl")
+        import trm
+        t = trm.Trm()
+        t.yr = t.grn
+        t.new = t.gry
+        t.full = t.wht
+        t.first = t.cyn
+        t.last = t.pur
     if 1:  # Global variables
         # The script will correct universal times to your local time zone's
         # time.  This time zone is assumed to be in the US so that the
@@ -106,11 +106,9 @@ if 1:  # Header
         d2r = pi / 180.0  # Converts degrees to radians
         desired_year = 0
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
             dedent(f"""
@@ -125,7 +123,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         try:
             opts, args = getopt.getopt(sys.argv[1:], "h", ["help"])
@@ -136,10 +133,7 @@ if 1:  # Utility
             if o in ("-h", "--help"):
                 Usage(status=0)
         return args
-
-
 if 1:  # Core functionality
-
     def GetJulianFromPhase(k, phase):
         """Derive the Julian day number corresponding to the number k.  k is
         the integer corresponding to new moon and phase is 0 for new, 1 for
@@ -212,7 +206,6 @@ if 1:  # Core functionality
         elif phase == LAST:
             julian -= other_correction
         return julian
-
     def caldate(julian):
         """Returns a structure that contains the calendar date associated with
         a Julian day.  The tuple is (year, month, day) where year and month are
@@ -242,7 +235,6 @@ if 1:  # Core functionality
         else:
             year = int(C - 4715)
         return (year, month, day)
-
     def UnivTimeCorrect(year):
         """UnivTimeCorrect  Ref. Meeus pg 35.  Calculates the correction to
         ephemeris time to get universal time.  The correction is gotten purely
@@ -251,7 +243,6 @@ if 1:  # Core functionality
         """
         T = (year - 1900.0) / 100.0
         return (0.41 + 1.2053 * T + 0.4992 * T * T) / 60.0
-
     def GetPhaseData(desired_year, phase):
         """Return a list of the Julian days for the given year of each phase.
         Start by getting a k that is in the middle of the previous year.
@@ -270,7 +261,6 @@ if 1:  # Core functionality
                 done = 1
             k = k + 1
         return data
-
     def GetItem(julian):
         """Return a formatted string that represents the date and time of
         a given Julian day.  The times will be corrected to Mountain time
@@ -320,22 +310,18 @@ if 1:  # Core functionality
             int(decimal_time),
             minutes,
         )
-
     def FixArrays(new, first, full, last):
         """Make the arrays the same length as the longest by appending
         null strings.
         """
         max_lines = max(len(new), len(first), len(full), len(last))
-
         def Adjust(array, numlines):
             while len(array) < numlines:
                 array.append("")
-
         Adjust(new, max_lines)
         Adjust(first, max_lines)
         Adjust(full, max_lines)
         Adjust(last, max_lines)
-
     def PrintYear(desired_year):
         # Get a list of the phase times in Julian days.  Each element of the
         # list is another list containing the Julian day and the phase number.
@@ -365,7 +351,6 @@ if 1:  # Core functionality
                 print(f"{t.full}{GetItem(full[i]):15s}{t.n}", end=" ")
                 print(f"{t.first}{GetItem(first[i]):15s}{t.n}", end=" ")
                 print(f"{t.last}{GetItem(last[i]):15s}{t.n}")
-
     def HandleRange(rng):
         yr1, yr2 = [int(i) for i in rng.split("-")]
         if yr1 > yr2:
@@ -373,8 +358,6 @@ if 1:  # Core functionality
         for yr in range(yr1, yr2 + 1):
             PrintYear(yr)
             print()
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

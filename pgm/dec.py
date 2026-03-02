@@ -29,16 +29,17 @@ if 1:  # Imports
     import re
 if 1:  # Custom imports
     from wrap import dedent
-    from color import t
+    import trm
+    t = trm.Trm()
 if 1:  # Global variables
     class G:
         pass
     g = G()
     # Define the colors to use
-    t.filename = t.magl
-    t.match = t.yell
-    t.colon = t.cynl
-    t.numbers = t.grnl
+    t.filename = t.mag
+    t.match = t.yel
+    t.colon = t.cyn
+    t.numbers = t.grn
     # Keep track of number of lines printed
     g.lines_printed = 0
     g.lines_default = 25

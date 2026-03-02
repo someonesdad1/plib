@@ -42,8 +42,8 @@ if 1:  # Header
         from columnize import Columnize
         from u import u
         from fraction import FormatFraction, ToFraction
-        import color
-        from color import t
+        import trm
+        t = trm.Trm()
         import sizes
         if 1:
             import debug

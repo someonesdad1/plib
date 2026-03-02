@@ -4,12 +4,12 @@ TODO
     - Use uncertainties
     - Print results in both English and metric units -- or allow user
       to choose mm/N/Pa or in/lbf/psi (change to u module).
-
+      
 ----------------------------------------------------------------------
 Helical spring design with round music wire
 
     Symbols are from Machinery's Handbook, 19th ed., pg 494 (Springs section).
-
+    
     d = wire diameter, inches
     D = Mean coil diameter of spring = inside diameter of spring + d, inches
     P = load, pounds
@@ -20,7 +20,6 @@ Helical spring design with round music wire
     Ka = Wahl stress factor for helical springs
     C = spring index = D/d
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -46,10 +45,10 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         import shop_util
-        from color import t
+        import trm
+        t = trm.Trm()
         from f import flt
         from dpprint import PP
-
         pp = PP()  # Screen width aware form of pprint.pprint
         from get import GetLines
         from wrap import dedent
@@ -58,11 +57,9 @@ if 1:  # Header
         # from columnize import Columnize
     if 1:  # Global variables
         pi = math.pi
-
         class G:
             # Storage for global variables as attributes
             pass
-
         g = G()
         g.dbg = True
         g.dbg = False
@@ -143,20 +140,17 @@ if 1:  # Header
                 consult handbooks for details on how to avoid fatigue failure.
         """)
 if 1:  # Utility
-
     def GetScreen():
         "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
             int(os.environ.get("COLUMNS", "80")) - 1,
         )
-
     def GetColors():
         t.dbg = t("cyn") if g.dbg else ""
         t.N = t.n if g.dbg else ""
         t.err = t("redl")
         t.title = t("ornl")
-
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="", file=Dbg.file)
@@ -164,13 +158,10 @@ if 1:  # Utility
             k["file"] = Dbg.file
             print(*p, **k)
             print(f"{t.N}", end="", file=Dbg.file)
-
     Dbg.file = sys.stdout
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
             dedent(f"""
@@ -181,7 +172,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = False  # Describe this option
         d["-d"] = 3  # Number of significant digits
@@ -206,37 +196,33 @@ if 1:  # Utility
         GetColors()
         g.W, g.L = GetScreen()
         return args
-
-
 if 1:  # Core functionality
-
     def Ka(d, D):
         "Wahl helical spring stress factor"
         C = D / d
         return (4 * C - 1) / (4 * C - 4) + 0.615 / C
-
     def root_find(x0, x2, f, eps, itmax):
         """A root finding routine.  See "All Problems Are Simple" by Jack Crenshaw, Embedded
         Systems Programming, May, 2002, pg 7-14, jcrens@earthlink.com.  Can be downloaded from
         www.embedded.com/code.htm.
-
+        
         Translated from Crenshaw's C code modified by Don Peterson 20 May 2003.
-
+        
         Crenshaw states this routine will converge rapidly on most functions, typically adding 4
         digits to the solution on each iteration.  The method is something called "inverse
         parabolic interpolation".  The routine works by starting with x0, x2, and finding a third
         x1 by bisection.  The ordinates are gotten, then a horizontally- opening parabola is fitted
         to the points.  The parabola's root's abcissa is gotten, and the iteration is repeated.
-
+        
         The function root_find will find a root of the function f(x) in the interval [x0, x2].  We
         must have that f(x0)*f(x2) < 0.
-
+        
         The root value is returned.
-
+        
         Root lies between x0 and x2.  f is the function to evaluate; it takes one float argument
         and returns a float.  eps is the precision to find the root to and itmax is the maximum
         number of iterations allowed.
-
+        
         Returns a tuple (x, numits) where
             x is the root.
             numits is the number of iterations taken.
@@ -290,7 +276,6 @@ if 1:  # Core functionality
                     x2 = x1
                     y2 = y1
         raise "No convergence"
-
     def GetAllowableWorkingStressInPsi(d, service_type):
         stress = g.Severe_stress
         if service_type == "l":
@@ -299,7 +284,6 @@ if 1:  # Core functionality
             stress = g.Average_stress
         working_stress = LagrangeInterpolation(d, g.diameters, stress)
         return working_stress * 1e3
-
     def SpringMandrel(D, d, phosphor_bronze=False):
         """Return the required diameter of a spring winding mandrel for a helical spring made from
         music wire, stainless steel, or phosphor bronze.  d is the wire diameter and D is the
@@ -319,7 +303,6 @@ if 1:  # Core functionality
         b = y0 - m * x0
         Dm = (m * si + b) * D_mean - d
         return round(Dm, 4)
-
     def GetLoadAndDeflection():
         if g.dbg:
             d = flt(0.04)
@@ -377,7 +360,6 @@ if 1:  # Core functionality
         """.rstrip()
             )
         )
-
     def GetWireDiameter():
         """This is based on the algorithm in Marv Klotz's spring.zip package
         http://www.myvirtualnetwork.com/mklotz/fckeditor/UserFiles/File/spring.zip
@@ -449,8 +431,6 @@ if 1:  # Core functionality
     
     This spring design assumes plain ends not squared.
     """)
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
@@ -467,7 +447,7 @@ if __name__ == "__main__":
             number of active coils.  Calculate load and deflection.
         2.  You know the load, deflection, mean spring diameter, spring length, and number of
             active coils.  Calculate the wire diameter to use.
-
+            
     """.rstrip()
         )
     )

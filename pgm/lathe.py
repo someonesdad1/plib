@@ -22,7 +22,8 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         from columnize import Columnize
-        from color import t
+        import trm
+        t = trm.Trm()
         from f import flt
         from wrap import dedent
     if 1:  # Global variables

@@ -60,7 +60,8 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
         from f import flt, pi
         try:
             import termtables as tt
@@ -445,7 +446,6 @@ if 1:  # Core functionality
         #show()
         savefig("cutting_speed.png", dpi=600)
         exit()
-
 if __name__ == "__main__":
     opts = {}  # Options dictionary
     args = ParseCommandLine(opts)

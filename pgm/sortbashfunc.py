@@ -3,17 +3,16 @@ Sort bash function definitions
 
     NOTE:  This script is only intended to work with my bash initialization
     files, which use a specific form of function definitions:
-
+    
         function name [()]
         {
             ## Description of function's purpose on one line
             function_body
         }
-
+        
     The parenthese after the function name are optional.  The functions are
     put in alphabetical order and sent to stdout.
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -38,20 +37,17 @@ if 1:  # Header
         from pprint import pprint as pp
     if 1:  # Custom imports
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
         from get import GetLines
         from columnize import Columnize
-
         if 1:
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
-
         class G:
             # Storage for global variables as attributes
             pass
-
         g = G()
         g.dbg = False
         ii = isinstance
@@ -63,20 +59,16 @@ if 1:  # Header
         # functions
         g.spurious = []
 if 1:  # Utility
-
     def GetColors():
         t.dbg = t("lill") if g.dbg else ""
         t.N = t.n if g.dbg else ""
-
     def GetScreen():
         "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
             int(os.environ.get("COLUMNS", "80")) - 1,
         )
-
     g.W, g.L = GetScreen()
-
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="", file=Dbg.file)
@@ -84,13 +76,10 @@ if 1:  # Utility
             k["file"] = Dbg.file
             print(*p, **k)
             print(f"{t.N}", end="", file=Dbg.file)
-
     Dbg.file = sys.stderr  # Debug printing to stderr by default
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
             dedent(f"""
@@ -111,7 +100,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-c"] = False  # Columnize the output
         d["-d"] = False  # Turn on debug printing
@@ -133,22 +121,18 @@ if 1:  # Utility
             g.dbg = True
         GetColors()
         return files[0]
-
-
 if 1:  # Core functionality
-
     class Function:
         """Give the constructor a deque of lines to a text file.  When it
         encounters a line of the form 'function name', it will get
         remaining lines until it has the full functional form, ending on a
         line of '}'.
-
+        
         The instance attributes are:
             name    = function name
             lines   = lines of the function body
             summary = description string
         """
-
         def __init__(self, dq):
             """The deque dq must be tuples of (int, str) where the integer
             is the 1-based line number in the file and str is the line's
@@ -194,13 +178,10 @@ if 1:  # Core functionality
                 Dbg(f"{t('grnl')}{self.name}: {self.summary}")
                 for i, s in lines:
                     Dbg(f"  [{i}]: {s}")
-
         def __str__(self):
             return f"Function({self.name}: {self.summary})"
-
         def __repr__(self):
             return f"Function({self.name}: {self.summary})"
-
     def ProcessFile(file, definitions):
         """Read the file and parse out its function definitions.  Put them
         into the dictionary definitions keyed by the function's name.  Put
@@ -243,7 +224,6 @@ if 1:  # Core functionality
                 ln, line = dq.popleft()
                 if line.strip():
                     g.spurious.append((ln, line))
-
     def PrintResults(definitions):
         if g.spurious:
             print(f"{t('ornl')}Error{t.n}:  spurious line(s) in {g.file!r}")
@@ -262,8 +242,6 @@ if 1:  # Core functionality
                 funcobj = definitions[name]
                 for ln, l in funcobj.lines:
                     print(l)
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     g.file = ParseCommandLine(d)

@@ -2,15 +2,15 @@
 ToDo
     - Allow multiple commands on the command line and open them with
       'vi -p'
-
+      
 Python script to help viewing manpages.  Features:
 
     - Look in g.mandir for cached manpage files.  For example, this lets me have an annotated bash
       manpage that lets me get to needed locations quickly.
-
+      
     - If not cached, the desired commands have 'man' run on them and the output is put into a
       temporary file.
-
+      
 Use case:
 
     I use this tool to view manpages on my system.  All of the system's manpages are then viewed
@@ -18,19 +18,18 @@ Use case:
     autocmd that recognizes this suffix and sets the 'q' key to exit, just as if I was viewing the
     file in a pager like less(1).  The two advantages are that 1) I can use the editor to browse
     the manpage and 2) the manpage's text is colorized by vim's man.vim syntax file.
-
+    
     The following line in my .vimrc file enables the q key to quit vim:
-
+    
         autocmd BufRead *.man map q :qall!<cr>
-
+        
     This tool allows me to put custom manpages in my home directory (see 'mandir' below).  These
     are manpages to tools that I don't want to "pollute" the main system manpage directories with.
     The rule for them to be found and opened is that a) the file name must begin with the same
     string as passed as sys.argv[1] and b) there must only be one argument on the command line
     besides sys.argv[0].
-
+    
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -54,15 +53,14 @@ if 1:  # Header
         import sys
         import tempfile
     if 1:  # Custom imports
-        from color import t
+        import trm
+        t = trm.Trm()
         from wrap import dedent
         from wsl import wsl
         from lwtest import Assert
     if 1:  # Global variables
-
         class G:  # Storage for global variables as attributes
             pass
-
         g = G()
         # UNIX man command location
         g.man = "/usr/bin/man"
@@ -82,19 +80,16 @@ if 1:  # Header
         g.tempfiles = set()
         ii = isinstance
 if 1:  # Utility
-
     def GetScreen():
         "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
             int(os.environ.get("COLUMNS", "80")) - 1,
         )
-
     def GetColors():
         t.dbg = t("gry") if g.dbg else ""
         t.N = t.n if g.dbg else ""
         t.err = t("redl")
-
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="", file=Dbg.file)
@@ -102,13 +97,10 @@ if 1:  # Utility
             k["file"] = Dbg.file
             print(*p, **k)
             print(f"{t.N}", end="", file=Dbg.file)
-
     Dbg.file = sys.stdout
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
             dedent(f"""
@@ -120,7 +112,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-v"] = False  # Verbose debugging output
         if len(sys.argv) < 2:
@@ -147,10 +138,7 @@ if 1:  # Utility
             print("EDITOR environment variable is not defined", file=sys.stderr)
             exit(1)
         return args
-
-
 if 1:  # Core functionality
-
     def GetManpageFile(cmd):
         """Return the file name to open for this command (it must be a Path instance).  Note:  my
         static man pages have .hld as an extension so that they can have their tags in them
@@ -175,7 +163,6 @@ if 1:  # Core functionality
                 exit(1)
             Dbg(f"    Returning tmp file {str(p)!r}")
             return p
-
     def OpenFiles(files):
         filelist = " ".join(str(i) for i in files)
         # Assumes vim.  -R means open the files readonly; -p means to run one instance and open the
@@ -191,8 +178,6 @@ if 1:  # Core functionality
         if r.returncode:
             print(f"Failed command:  {cmd!r}")
             exit(1)
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     try:

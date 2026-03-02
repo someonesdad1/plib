@@ -4,7 +4,6 @@ Encrypt/decrypt a file
     the PyPi 'cryptography' library that provides the Fernet object.  See
     https://cryptography.io/en/latest/fernet/#.
 """
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -34,9 +33,9 @@ if 1:  # Header
         import sys
         import zlib
     if 1:  # Custom imports
-        from color import t
+        import trm
+        t = trm.Trm()
         from dpprint import PP
-
         pp = PP()  # Screen width aware form of pprint.pprint
         from get import GetLines
         from wrap import dedent
@@ -44,28 +43,23 @@ if 1:  # Header
         from lwtest import Assert
         # from columnize import Columnize
     if 1:  # Global variables
-
         class G:
             # Storage for global variables as attributes
             pass
-
         g = G()
         g.dbg = False
         ii = isinstance
 if 1:  # Utility
-
     def GetScreen():
         "Return (LINES, COLUMNS)"
         return (
             int(os.environ.get("LINES", "50")),
             int(os.environ.get("COLUMNS", "80")) - 1,
         )
-
     def GetColors():
         t.dbg = t("sky") if g.dbg else ""
         t.N = t.n if g.dbg else ""
         t.err = t("redl")
-
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="", file=Dbg.file)
@@ -73,39 +67,36 @@ if 1:  # Utility
             k["file"] = Dbg.file
             print(*p, **k)
             print(f"{t.n}", end="", file=Dbg.file)
-
     Dbg.file = sys.stdout
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Manpage():
         print(
             dedent(
                 f"""
             I use this script as a utility encrypting/decrypting tool on my computers.  I use a
             shell function 'lock' to encrypt and another function 'unlock' to decrypt.
-
+            
             My use cases are:
                 - I want to shroud a file but make it easy to decrypt because I don't have to
                   remember a password for it
                 - I want to encrypt a file with a strong password
-
+                
             The first case can be gotten by using the -u option and I'm not prompted for a
             password.  Or, to get the same behavior without using -u, when prompted hit the Enter
             key twice without entering anything.
-
+            
             If you use the -c option, the base64 output is compressed with python's zlib, so it
             will be roughly about the same size as the input file.
-
+            
             Strong passwords with good encryption tools are how to get encrypted files others can't
             snoop.  For serious stuff, I use my password database program to both generate and
             store the password so I don't have to remember it.   
-
+            
             The performance is fine for me on my 10 year-old slowly ossifying computer hardware.  A 
             10 MB file can be encrypted in about half a second.
-
+            
             For a bit of added safety when encrypting a file, I have the in-memory version of the
             encrypted data decrypted and checked for equality with the input data.  This takes more
             time; if you don't want it you can switch it off by changing the line around 8 lines
@@ -115,7 +106,6 @@ if 1:  # Utility
             )
         )
         exit(0)
-
     def Usage(status=1):
         comp = "Do not use" if d["-c"] else "Use"
         print(
@@ -133,7 +123,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-c"] = False  # Use compression
         d["-d"] = False  # Decrypt the file
@@ -158,10 +147,7 @@ if 1:  # Utility
         GetColors()
         g.W, g.L = GetScreen()
         return args
-
-
 if 1:  # Core functionality
-
     def GetPassword():
         while True:
             pw1 = getpass().encode()
@@ -170,7 +156,6 @@ if 1:  # Core functionality
                 print("Passwords differ; try again")
             else:
                 return pw1
-
     def GetFernet(password):
         "Return the Fernet object for encrypting/decrypting"
         Assert(ii(password, bytes))
@@ -183,7 +168,6 @@ if 1:  # Core functionality
         )
         key = base64.urlsafe_b64encode(kdf.derive(password))
         return Fernet(key)
-
     def GetData(*args):
         "Return inputdata (bytes), outstream"
         if len(args) == 1:
@@ -206,8 +190,6 @@ if 1:  # Core functionality
             Dbg(f"Sending output to {args[1]!r}")
         assert isinstance(inputdata, bytes)
         return inputdata, outstream
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

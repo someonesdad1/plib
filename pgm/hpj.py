@@ -60,7 +60,6 @@ if 1:
     # Custom imports
     from wsl import wsl
     from wrap import dedent
-    #from color import TRM as t
     from launch import Launch
     import trm
     if 0:

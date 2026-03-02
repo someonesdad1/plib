@@ -2,7 +2,6 @@
 For non-Windows machines, this needs to be modified to not change binary
 executables that are compiled.
 """
-
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2020 Don Peterson #∞copyright∞#
@@ -24,7 +23,8 @@ if 1:  # Standard imports
 if 1:  # Custom imports
     from columnize import Columnize
     from wrap import dedent
-    from color import t  # C
+    import trm
+    t = trm.Trm()
 if 1:  # Global variables
     P = pathlib.Path
     ii = isinstance
@@ -46,11 +46,9 @@ if 1:  # Global variables
     ii = isinstance
     P = pathlib.Path
 if 1:  # Utility
-
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
-
     def Dbg(*p, **kw):
         if d["-d"]:
             if "cc" in kw:
@@ -64,7 +62,6 @@ if 1:  # Utility
             print(*p, **kw)
             # print(f"{C.norm}")
             print(f"{t.n}")
-
     def Usage(d, status=1):
         name = sys.argv[0]
         print(
@@ -73,7 +70,7 @@ if 1:  # Utility
           Turn execute permission off on files (never directories).  If item is a
           directory, do it for the files in that directory; otherwise, it's a
           single file.  Defaults to current directory.
-
+          
           If -f is not used, only turn execute permission off on files that aren't
           executables like compiled binaries or scripts that begin with "#!".
         Options:
@@ -88,7 +85,6 @@ if 1:  # Utility
         """)
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-d"] = False  # Debug output
         d["-E"] = False  # List extensions
@@ -112,22 +108,17 @@ if 1:  # Utility
         if not dirs:
             dirs = ["."]
         return dirs
-
-
 if 1:  # Core functions
-
     def ShowExtensions():
         print("Extensions that will have execute bits turned off:")
         e = sorted(set([i.lower().replace("*.", "") for i in extensions]))
         for i in Columnize(e, indent=" " * 4):
             print(i)
         exit(0)
-
     def IgnoreHidden(file):
         if file.name[0] == "." and not d["-H"]:
             return True
         return False
-
     def IgnoreExecutable(file):
         """Return True if this file should be ignored since it is an
         executable.
@@ -164,19 +155,14 @@ if 1:  # Core functions
                 return False
             if len(line) > 2:
                 return True if line[:2] == "#!" else False
-
     def ExecuteBitOff(file):
         assert isinstance(file, pathlib.Path)
-
         def execute_is_on(value):
             return get_bit(value, 0) or get_bit(value, 3) or get_bit(value, 6)
-
         def get_bit(value, n):
             return (value >> n & 1) != 0
-
         def clear_bit(value, n):
             return value & ~(1 << n)
-
         if file.is_dir():  # Do not change directory permissions
             Dbg(f"Ignored directory:  '{file}'", cc=t("redl"))
             return
@@ -199,13 +185,10 @@ if 1:  # Core functions
                 p = clear_bit(p, 6)
                 file.chmod(p)
                 Dbg(f"'{file}' processed")
-
     def ProcessDirectory(p):
         s = "**/*" if d["-r"] else "*"
         for file in p.glob(s):
             ExecuteBitOff(file)
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     dirs = ParseCommandLine(d)

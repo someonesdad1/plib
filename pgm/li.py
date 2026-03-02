@@ -44,7 +44,8 @@ if 1:  # Header
         from f import flt
         from frange import frange
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
         from lwtest import Assert
         from dpprint import PP
         from columnize import Columnize

@@ -12,7 +12,7 @@ oo>
 <oo todo
 
     - List of todo items here
-
+    
 oo>
 '''
  
@@ -27,7 +27,8 @@ if 1:  # Header
     if 1:   # Custom imports
         from f import flt
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
         from lwtest import Assert
         import termtables as tt
         from dpprint import PP
@@ -201,7 +202,6 @@ if 1:   # Core functionality
         PrintLine("2 cuts", w, h)
         w1, h1 = h/2, w
         PrintLine("  1/16 folio", w1, h1)
-
 if __name__ == "__main__":
     d = {}      # Options dictionary
     sizes = ParseCommandLine(d)

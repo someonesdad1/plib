@@ -29,7 +29,8 @@ if 1:  # Header
         from wrap import dedent
         from g import *
         from f import flt
-        from color import t
+        import trm
+        t = trm.Trm()
         from columnize import Columnize
         from dpprint import PP
         pp = PP()   # Get pprint with current screen width

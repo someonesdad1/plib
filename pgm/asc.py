@@ -27,14 +27,13 @@ if 1:  # Header
         from textwrap import dedent
     if 1:  # Custom imports
         import trm
-        #from color import t
         from columnize import Columnize
         from dpprint import PP
         from wrap import dedent
         from wsl import wsl  # wsl is True when running under WSL Linux
         pp = PP()  # Screen width aware form of pprint.pprint
     if 1:  # Global variables
-        t = trm.Trm(default=2)
+        t = trm.Trm()
         class Global:
             pass
         g = Global()

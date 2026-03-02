@@ -1,5 +1,6 @@
 from collections import namedtuple
-from color import t
+import trm
+t = trm.Trm()
 from dpprint import PP
 from get import GetTextLines
 import iso

@@ -30,7 +30,8 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.Trm()
         from get import GetLines
         from columnize import Columnize
     if 1:  # Global variables

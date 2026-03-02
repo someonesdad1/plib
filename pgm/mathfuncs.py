@@ -4,15 +4,16 @@ Print out a table showing the math/cmath functions and their return types.
 
 from wrap import dedent
 from util import alen
-from color import t
+import trm
+t = trm.Trm()
 
-b = t("magl")
-i = t("lwnl")
-f = t("yell")
-c = t("cynl")
-z = t("purl")
-x = t("ornl")
-r = t("redl")
+b = t.mag
+i = t.lwn
+f = t.yel
+c = t.cyn
+z = t.pur
+x = t.orn
+r = t.red
 e = "∈"
 
 s = dedent(f"""
@@ -72,8 +73,8 @@ s = dedent(f"""
     trunc(x) ;  int 
     ulp(x) ;  float 
     """)
-
-
+    
+    
 def F(s):
     "Put in color-coding"
     s = s.replace("(x)", f"({x}x{t.n})")
@@ -92,8 +93,8 @@ def F(s):
     s = s.replace("bool", f"{b}bool{t.n}")
     s = s.replace("(z)", f"({z}z{t.n})")
     return s
-
-
+    
+    
 # Print the elements in columns
 for line in s.split("\n"):
     if "python" in line:
@@ -138,3 +139,4 @@ Type color coding:  {b}bool    {i}int    {f}float    {c}complex{t.n}
     fseq = sequence of {i}int{t.n} or {f}float{t.n}
 """.strip()
 )
+

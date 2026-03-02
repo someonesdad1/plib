@@ -22,7 +22,6 @@ if 1:  # Header
         from collections import deque
     # Custom imports
         from wrap import dedent
-        #from color import TRM as t
         import trm
         from edit import Edit
     # Global variables

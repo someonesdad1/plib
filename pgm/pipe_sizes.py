@@ -1,7 +1,6 @@
 '''
 Print US pipe dimensions
 '''
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -21,7 +20,8 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         from f import flt
-        from color import t
+        import trm
+        t = trm.Trm()
         from wrap import dedent
         import termtables as tt
         if len(sys.argv) > 1:
