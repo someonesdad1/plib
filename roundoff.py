@@ -51,6 +51,7 @@ if 1:  # Header
         __all__ = "RoundOff".split()
 if 1:  # Core functionality
     def RoundOff(number, digits=12, convert=False):
+
         '''Round the significand of number to the indicated number of digits and return
         the rounded number (integers and Fractions are returned untransformed).  number
         can be an int, float, Decimal, Fraction or complex number.
@@ -71,7 +72,7 @@ if 1:  # Core functionality
         with Decimal and mpmath mpf and mpc numbers are supported.
         
         The digits keyword defaults to 12 digits.  This is deliberate because
-        virtually no practical problems need more digits if they're based on physical
+        essentially no practical problems need more digits if they're based on physical
         measurements (mathematical calculations are the exception where numerical
         accuracy may need to be assessed).  12 was chosen because it gives proper
         rounding in a number of practical test cases where 13 doesn't.  For example,
