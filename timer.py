@@ -127,7 +127,7 @@ if 1:  # Classes
         def __init__(self):
             self.clear()
             self._u = decimal.Decimal(1)
-            # The timer has the following states in self.state:
+            # The timer has the following states in self._state:
             #   "init"  Waiting to be started
             #   "run"   Start has been called
             #   "stop"  Stop was called; can be continued

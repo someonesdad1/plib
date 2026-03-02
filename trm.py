@@ -358,6 +358,8 @@ class Trm(dict):
             return True     # Ignore this exception
         else:
             return False    # Don't ignore this exception
+    def __repr__(self):
+        return "<class 'trm.Trm'>"
     def update(self, *p, **kw):
         '''Update ourselves with another dictionary, an iterable of pairs, or keywords.
         Note this method will result in __setitem__ being called, which ensures
@@ -668,3 +670,16 @@ if __name__ == "__main__":
         Demo()
     else:
         exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
+
+def GetGist():
+    g = {}
+    g["gist"] = "Trm class for color output in terminals"
+    g["copy"] = "Copyright © 2026 Don Peterson"
+    g["lic"] = "MIT License (see /plib/_lic.mit)"
+    g["test"] = "run"
+    g["cat"] = ""
+    g["todo"] = '''
+
+    - repr(t) needs to show <class 'trm.Trm'>, not the huge list of escape codes
+    '''
+    return g

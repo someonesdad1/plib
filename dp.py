@@ -1,14 +1,20 @@
 '''
 
-Describe script/module here
+Script to find symbols in the /plib/dp*.py files
+    
+    In Feb 2026 I massively refactored /plib to try to reduce the number of
+    files/modules.  This refactoring will break nearly every module & script, so the
+    intent is to be able to locate the module that contains the symbol.
         
 '''
 if 1:  # Header
     if 1:   # Standard imports
         import collections
         import getopt
+        import importlib
         import os
         import pathlib
+        import pprint
         import re
         import sys
     if 1:   # Custom imports
@@ -26,6 +32,7 @@ if 1:  # Header
         defaultdict = collections.defaultdict
         deque = collections.deque
         namedtuple = collections.namedtuple
+        pp = pprint.pprint
         #
         Columnize = columnize.Columnize
         Constant = dptypes.Constant
@@ -34,7 +41,12 @@ if 1:  # Header
         t = trm.Trm()
     if 1:   # Global variables
         g = Constant()
-        g.dbg = False
+        with g:
+            g.dbg = False
+            # Tuple of the files that are searched for symbols
+            g.files = tuple()
+            # Dictionary relating symbols to g.files number
+            g.symbols = defaultdict(list)
 if 1:   # Utility
     def GetScreen():
         'Return (LINES, COLUMNS)'
@@ -62,24 +74,24 @@ if 1:   # Utility
         exit(status)
     def Usage(status=1):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] [arg1 [arg2...]]
-          Describe behavior
+        Usage:  {sys.argv[0]} [options] [sym [...]]
+          Locate the dp*.py file that contains the indicated symbol(s).
         Options:
-            -a      Describe
-            -d n    Number of significant digits
             -h      Print help
         '''))
         exit(status)
     def ParseCommandLine(d):
         d["-a"] = False  # Description
         d["-d"] = 3      # Description
+        if len(sys.argv) == 1:
+            Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:h")
+            opts, args = getopt.getopt(sys.argv[1:], "h")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("a"):
+            if o[1] in list(""):
                 d[o] = not d[o]
             elif o == "-d":
                 try:
@@ -93,43 +105,53 @@ if 1:   # Utility
         GetColors()
         g.W, g.L = GetScreen()
         return args
-if 1:   # Classes
-    pass
-if 1:   # Functions
-    pass
+if 1:   # Core functionality
+    class MyDummy:
+        pass
+    def GetFiles():
+        "Put a tuple of the files with the symbols we're interested in into g.files"
+        p = Path("/plib")
+        files = list(p.glob("dp*.py"))
+        #files.remove(Path("/plib/dp.py"))
+        files.remove(Path("/plib/dpbp.py"))
+        with g:
+            g.files = tuple(files)
+    def GetSymbols():
+        '''Find all the public symbols in g.files and put them into the dictionary
+        g.symbols.
+        '''
+        global dummy
+        for file in g.files:
+            name = file.stem
+            if name != "dp":
+                continue
+            t.print(f"{t.orn}{str(file)}")
+            try:
+                dummy = importlib.import_module(name)
+                for i in dummy.__dict__:
+                    if i.startswith("_"): # or i == "t":
+                        continue
+                    var = eval(f"dummy.{i}")
+                    print(f"{var!r}")
+            except Exception as e:
+                print(f"{t.err}Couldn't process {str(file)!r}: {e}")
 
 if __name__ == "__main__":  
-    if 1:   # Standard imports
-        pass
-    if 1:   # Custom imports
-        import lwtest
-    if 1:   # Import symbols
-        run = lwtest.run
-        raises = lwtest.raises
-        Assert = lwtest.Assert
-    if 0:   # For script
-        d = {}  # Options dictionary
-        args = ParseCommandLine(d)
-        if args:
-            for arg in args:
-                pass    # Do stuff
-    else:   # For module
-        def Demo():
-            pass
-        def Test_Me():
-            pass
-        if len(sys.argv) > 1:
-            Demo()
-        else:
-            exit(run(globals(), regexp=r"^Test_", halt=1, verbose=0)[0])
+    d = {}  # Options dictionary
+    args = ParseCommandLine(d)
+    GetFiles()      # Files in tuple g.files
+    GetSymbols()    # Symbols in dict g.symbols
+    if args:
+        for arg in args:
+            pass    # Do stuff
 
 def GetGist():
     gist = {}
-    gist["gist"] = ""
+    gist["gist"] = "Script to find symbols in the /plib/dp*.py files"
     gist["copy"] = "Copyright © 2026 Don Peterson"
     gist["lic"] = "MIT License (see /plib/_lic.mit)"
     gist["test"] = "notest"
-    gist["cat"] = ""
+    gist["cat"] = "utility"
     gist["todo"] = '''
     '''
     return gist

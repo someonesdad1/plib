@@ -1,12 +1,8 @@
 /plib/.todo
 
-- Reorganization core files
-- New
-    - dpshop.py
-    - dpelec.py
-    - dpphys.py
-    - dparith.py
-    - dpastro.py
+Reorganization core files
+- dpphys
+- dpelec
 - dpseq
 - dputil
     - dpopen
@@ -35,6 +31,10 @@
     - stirling
 - dpshop
     - linscale
+
+    - dp.py
+        - Script to find symbols in the dp*.py files, as my massive refactoring will
+          break nearly every module/script
 
     - uses.py  Script to find python modules/scripts that use a module, class, or symbol
         - This would help with refactoring decisions and moving stuff to /plib/old

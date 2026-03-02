@@ -222,10 +222,25 @@ if 1:   # class Constant:  Define runtime constants
         
         I recommend the context manager pattern, as it's too easy to set C.strict to
         False, then forget to change it back to True later in your code.
-        
-        It's best to bind immutable (hashable) objects to the constant name.  If you
-        e.g. bind a list or dict, it will continue to be bound, but someone/something
-        can change the list/dict later, so it's not really a constant.
+
+        While the name is Constant, I use this class instance as a holder for global
+        variables in my modules and scripts.  I used to use the simple pattern
+
+            class G:
+                pass
+            g = G()
+
+        where g's attributes held the global variables.  This worked well, but the real
+        pattern is that much or most of the time you set these global variables once,
+        then don't plan on changing them again.  But later when maintaining a big file,
+        you might forget this agreement about constancy.  This Constant pattern then
+        lets the (desired constancy) be found by an exception, as you need to make the
+        change using the context manager.
+
+        To keep with the name Constant, you'll want to bind immutable (hashable) objects
+        to the constant name.  If you e.g. bind a list or dict, it will continue to be
+        bound, but someone/something can change the list/dict later, so it's not really
+        a constant.
         
         Based on a nice idea by Alex Martelli on page 193 of the "Python Cookbook".
         '''
