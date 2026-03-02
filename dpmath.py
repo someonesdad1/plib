@@ -222,6 +222,44 @@ if 1:  # Spirals
         θd, θD = d/(2*a), D/(2*a)
         Ld, LD = SpiralArcLength(a, θd), SpiralArcLength(a, θD)
         return LD - Ld
+if 1:  # Ellipse circumference
+    def EllipseCircumference(A, B, debug=False):
+        '''Calculate the circumference of an ellipse with major diameter A and
+        minor diameter B.  Relative accuracy is about 0.5^53 (about 1e-16).
+        Downloaded Mon 26 May 2014 from
+        http://paulbourke.net/geometry/ellipsecirc/python.code; also see the
+        page http://paulbourke.net/geometry/ellipsecirc/.  This series
+        converges quadratically and was first proposed by J. Ivory in 1798 (see
+        https://en.wikipedia.org/wiki/James_Ivory_(mathematician)).
+        
+        The formula for the circumference of an ellipse is 2*a*E(e) where a is
+        the major semidiameter, e is the eccentricity, and E is the complete
+        elliptic integral of the second kind.  Thus, this function can also be
+        used to calculate E.
+        
+        A quick check showed that Ivory's formula iterates about half as
+        much as Weaver's EllipticE.  Since they agree in the tests to
+        floating point precision, this method is preferred.
+        '''
+        if A < 0 or B < 0:
+            raise ValueError("A and B must be >= 0")
+        # Note the original formula is in terms of the 'semi-axes';
+        # hence the division by 2.
+        a, b = A/2, B/2
+        x, y = max(a, b), min(a, b)
+        digits = 53
+        tol = math.sqrt(math.pow(0.5, digits))
+        if digits*y < tol*x:
+            return 4*x
+        s, m = 0, 1
+        while x - y > tol*y:
+            x, y = 0.5*(x + y), math.sqrt(x*y)
+            m *= 2
+            s += m*math.pow(x - y, 2)
+            if debug:
+                val = math.pi*(math.pow(a + b, 2) - s)/(x + y)
+                t.print(f"{t.dbg}EllipseCircumference({A}, {B}, {val}")
+        return math.pi*(math.pow(a + b, 2) - s)/(x + y)
 if 1:  # Core functionality
     def AlmostEqual(a, b, rel_err=2e-15, abs_err=5e-323):
         '''Determine whether floating-point values a and b are equal to

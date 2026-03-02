@@ -40,7 +40,8 @@ if 1:  # Header
     if 1:  # Standard imports
         import math
     if 1:  # Custom imports
-        from color import t
+        import trm
+        t = trm.Trm()
         from lwtest import Assert
     if 1:  # Global variables
         t.dbg = t("ornl")
@@ -199,21 +200,21 @@ if 1:   # Core functionality
             raise ValueError("A and B must be >= 0")
         # Note the original formula is in terms of the 'semi-axes';
         # hence the division by 2.
-        a, b = A / 2, B / 2
+        a, b = A/2, B/2
         x, y = max(a, b), min(a, b)
         digits = 53
         tol = math.sqrt(math.pow(0.5, digits))
-        if digits * y < tol * x:
-            return 4 * x
+        if digits*y < tol*x:
+            return 4*x
         s, m = 0, 1
-        while x - y > tol * y:
-            x, y = 0.5 * (x + y), math.sqrt(x * y)
+        while x - y > tol*y:
+            x, y = 0.5*(x + y), math.sqrt(x*y)
             m *= 2
-            s += m * math.pow(x - y, 2)
+            s += m*math.pow(x - y, 2)
             if debug:
-                val = math.pi * (math.pow(a + b, 2) - s) / (x + y)
+                val = math.pi*(math.pow(a + b, 2) - s)/(x + y)
                 t.print(f"{t.dbg}EllipseCircumference({A}, {B}, {val}")
-        return math.pi * (math.pow(a + b, 2) - s) / (x + y)
+        return math.pi*(math.pow(a + b, 2) - s)/(x + y)
 
 if __name__ == "__main__":
     '''
