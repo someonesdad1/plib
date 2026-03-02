@@ -155,11 +155,29 @@ if __name__ == "__main__":
             Assert(P(i) in dirs)
         Assert(list(sorted(set(dirs))) == dirs)  # No duplicates
     def Test_GetFiles():
+        'Test that a sample of the files in /plib are there'
         files = GetFiles(f"{h}/plib")
         Assert(isinstance(files, list))
-        for i in f'''{h}/plib/e.py {h}/plib/sig.py {h}/plib/eia.py {h}/plib/sigfig.py
-                     {h}/plib/elliptic.py {h}/plib/sizes.py {h}/plib/enc.py
-                     {h}/plib/states.py {h}/plib/enc_codecs.csv'''.split():
+        # Use some of the dp*.py files
+        for i in f'''
+                {h}/plib/dparith.py
+                {h}/plib/dpastro.py
+                {h}/plib/dpbp.py
+                {h}/plib/dpdata.py
+                {h}/plib/dpdb.py
+                {h}/plib/dpdecimal.py
+                {h}/plib/dpelec.py
+                {h}/plib/dpmath.py
+                {h}/plib/dppath.py
+                {h}/plib/dpphys.py
+                {h}/plib/dpprint.py
+                {h}/plib/dpseq.py
+                {h}/plib/dpshop.py
+                {h}/plib/dpstr.py
+                {h}/plib/dptags.py
+                {h}/plib/dptime.py
+                {h}/plib/dptypes.py
+            '''.split():
             Assert(P(i) in files)
         Assert(list(sorted(set(files))) == files)  # No duplicates
     def Test_Remove():

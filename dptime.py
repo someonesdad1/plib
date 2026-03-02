@@ -74,6 +74,4 @@ if 1:  # Core functionality
                     return f"{y.engsi}{use}"
 
 if __name__ == "__main__":
-    print(f"dpdate() returns:  {dpdate()!r}")
-    print(f"dptime() returns:  {dptime()!r}")
-    print(f"dpdatetime() returns:  {dpdatetime()!r}")
+    import lwtest

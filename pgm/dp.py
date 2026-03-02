@@ -122,7 +122,6 @@ if __name__ == "__main__":
         dpdecimal
         dpelec
         dpmath
-        dpopen
         dppath
         dpphys
         dpprint
