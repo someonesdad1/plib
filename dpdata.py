@@ -137,8 +137,9 @@ if __name__ == "__main__":
     else:   # For module
         def Demo():
             pass
-        def Test_Me():
-            raise Exception("Need to write tests")
+        def Test_GetCategoryNames_di():
+            di = GetCategoryNames_di()
+            Assert(len(di) > 10)
         if len(sys.argv) > 1:
             Demo()
         else:

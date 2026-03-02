@@ -34,6 +34,7 @@ String utilities
     MultipleReplace     Replace multiple patterns in a string
     PrepareMultilineString  Helper function to trim leading & trailing whitespace
     ReadData            Read data from a multiline string
+    RegisteredOpen      Open file with its registered application
     Remove              Return items from sequence not in the remove sequence
     RemoveASCII         Remove all ASCII characters from a string
     RemoveComment       Remove '#.*$' from a string
@@ -1210,6 +1211,38 @@ if 1:  # Core functionality
             r = re.compile(f"([{t}]+)$", re.M)
             mo = r.search(s)
             return mo.groups()[0] if mo else ""
+    def RegisteredOpen(file):
+        '''Open the indicated file with its registered application.  file must be a string
+        or a Path instance.
+        '''
+        if isinstance(file, str):
+            p = Path(file)
+        elif isinstance(file, Path):
+            p = file
+        else:
+            raise TypeError(f"{file} must be a string or a pathlib.Path instance")
+        if not p.exists():
+            raise ValueError(f"{str(p)!r} does not exist")
+        cwd = os.getcwd()
+        try:
+            dirname = p.parent
+            filename = p.name
+            os.chdir(dirname)
+            if wsl:
+                # Running under Windows in Windows Subsystem for Linux.  The method is to use
+                # explorer.exe to open files.  To get this to work, we have to cd to the file's
+                # directory.  It appears Explorer returns 1 under all conditions.
+                cmd = f"explorer.exe {filename}"
+                subprocess.run(cmd, shell=True)
+            else:
+                # Must be cygwin; file can be opened with cygstart.exe.
+                cmd = f"cygstart {filename}"
+                subprocess.run(cmd, shell=True)
+        except Exception as e:
+            print(f"{e}")
+        finally:
+            os.chdir(cwd)
+
     def RemoveASCII(s):
         '''Remove ASCII characters from string s.  This means the returned string only
         consists of Unicode characters above 0x7f.  This is done with a cached translation
