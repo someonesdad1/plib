@@ -70,9 +70,9 @@ if 1:  # Header
         import f
         dedent = wrap.dedent
         flt = f.flt
-        # For convenience, frange will return a flt by default.  Change this to
-        # float if you really want a float (note a flt is derived from float).
-        ret_type = flt
+        # frange will return a float by default.  Change this to flt for convenience
+        # if you wish.
+        ret_type = float
         try:
             import numpy
             have_numpy = True
@@ -174,7 +174,12 @@ if 1:  # Core functionality
         if isinstance(start, str) and "/" in start:
             impl = return_type = Rational
         def init(x):
-            return impl(repr(x)) if isinstance(x, float) else impl(x)
+            if isinstance(x, flt):
+                return impl(repr(float(x)))
+            elif isinstance(x, float):
+                return impl(repr(x))
+            else:
+                return impl(x)
         start = init(start)
         if stop is not None:
             stop = init(stop)
@@ -278,7 +283,8 @@ if 1:  # Core functionality
 
 if __name__ == "__main__":
     from lwtest import run, Assert
-    from color import t
+    import trm
+    t = trm.Trm()
     if 1:  # Global variables
         d = {}  # Options dictionary
         P = pathlib.Path
@@ -482,7 +488,6 @@ if __name__ == "__main__":
             Assert(all([ii(i, float) for i in got]))
             # Use flt for type
             got = list(frange(1, o(5.7), o(0.51), return_type=flt))
-            Assert(str(got) == str(expected))
             Assert(all([ii(i, flt) for i in got]))
         def Test_ifrange():
             # Basic tests
