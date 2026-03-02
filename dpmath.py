@@ -36,10 +36,8 @@ if 1:  # Header
         import string
         import sys
     if 1:  # Custom imports
-        import frange
-        frange = frange.frange
+        import dpseq
         import f
-        flt = f.flt
         import u
         try:
             from uncertainties import UFloat    
@@ -53,6 +51,9 @@ if 1:  # Header
         Decimal = decimal.Decimal
         localcontext = decimal.localcontext
         Fraction = fractions.Fraction
+        #
+        flt = f.flt
+        frange = dpseq.frange
     if 1:  # Global variables
         pass
 if 1:  # Classes

@@ -1,25 +1,13 @@
 /plib/.todo
 
 - Reorganization core files
-    - dpdb.py
-    - dpdecimal.py
-    - dpmath.py
-    - dpopen.py
-    - dppath.py
-    - dpseq.py
-    - dpstr.py
-    - dptags.py
-    - dptime.py
-    - dptypes.py
 - New
     - dpshop.py
     - dpelec.py
-    - dpsci.py
+    - dpphys.py
     - dparith.py
     - dpastro.py
-    - dputil.py
 - dpseq
-    - frange
 - dputil
     - dpopen
 - dpstr
@@ -48,6 +36,10 @@
 - dpshop
     - linscale
 
+    - uses.py  Script to find python modules/scripts that use a module, class, or symbol
+        - This would help with refactoring decisions and moving stuff to /plib/old
+        - Example:  dpmath.py has bitvector(int).  Is it used anywhere in my stuff?  I'd
+          want the search over /plib, /elec, /shop, /math, /science, etc.
 
     - dsort.py Utility to sort indented hyphenated lists
 

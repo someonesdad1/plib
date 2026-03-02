@@ -5,89 +5,95 @@ ToDo
     - Debug class should use print()'s arguments
     - Document Now class
 
-    1 dpseq
-    2 dpstr
-    3 dpelec
-    4 dpmath
-    5 dpphys
-    6 dpsci
+1 dpseq
+    Batch               1 Generator to pick n items at a time from a sequence
+    Flatten             1 Flattens nested sequences to a sequence of scalars
+    Flatten_generator   1 Generator that flattens nested sequences 
+    GetSize             1 Return number of bytes used by a container (recursive method)
+    GroupByN            1 Group items from a sequence by n items at a time
+    grouper             1 Function to group data
+    IsHomogeneous       1 Returns True if a sequence is homogeneous
+    IsIterable          1 Determines if you can iterate over an object
+    ItemCount           1 Summarize a sequence with counts of each item
+    Paste               1 Return sequence of pasted sequences
+    PPSeq               1 Class for formatting number sequences for pretty printing
+    Ranges              1 Convert a list of integers to ranges
+    transpose           1 Returns transpose of a nested list
+    Unique              1 Generator to return only the unique elements in sequence
+    unrange             1 Turn a seq of integers into a collection of ranges
+    unrange_real        1 Turn a seq of real numbers into a collection of ranges
+    VisualCount         1 Return a list representing a histogram of a sequence
+
+2 dpstr
+    Figure out which of the following implementations is better:
+        alen                2 Function for string length that ignores ANSI escape codes
+        Len                 2 Return the length of a string with ANSI escape sequences removed
+    ANSI_strip          2 Remove ANSI escape sequences from a string
+    astr                2 String object with len() that ignores ANSI escape codes
+    ConvertToNumber     2 Convert a string to a number
+    EBCDIC              2 Return string translation table ASCII <--> EBCDIC
+    GetHash             2 Get a file's hash as a hex string
+    GetLeadingString    2 Return the leading string from another string
+    GetTrailingString   2 Return the trailing string from another string
+    RemoveIndent        2 Remove spaces from beginning of multiline string
+    StringToNumbers     2 Convert a string to a sequence of numbers
+    TemplateRound       2 Round a float to a template number
+    Time                2 Returns a string giving local time and date
+
+3 dpelec
+    Ampacity            3 Returns NEC ampacity of copper wire
+    AWG                 3 Returns wire diameter in inches for AWG gauge number
+
+4 dpmath
+    AcceptableDiff      4 Returns False if two numbers are not equal
+    Cumul               4 Return cumulative sums of a sequence
+    DoubleFactorial     4 Compute the double factorial of an integer
+    IsConvexPolygon     4 Is seq of 2-D points a convex polygon?
+    ParseComplex        4 Split a complex number string into re, im strings
+    RandomIntegers      4 Return a list of random integers
+    randq               4 Simple, fast random number generator
+    randr               4 Random numbers on [0,1) using randq
+    SignificantFigures  4 Rounds to specified num of sig figs (returns float)
+    SignificantFiguresS 4 Rounds to specified num of sig figs (returns string)
+    signum              4 Return -1, 0, or 1 if x < 0, == 0, or > 0
+
+5 dpphys
+    HeatIndex           5 Effect of temperature and humidity
+    IdealGas            5 Calculate ideal gas P, v, T (v is specific volume)
+    SpeedOfSound        5 Calculate the speed of sound as func of temperature
+    TempConvert         5 Convert a temperature
+    WindChillInDegF     5 Calculate wind chill given OAT & wind speed
+
+6 dpsci
+    Height              6 Predict a child's adult height
         
 Miscellaneous routines in python: @start
-    
-AcceptableDiff      4 Returns False if two numbers are not equal
-Ampacity            3 Returns NEC ampacity of copper wire
-alen                2 Function for string length that ignores ANSI escape codes
-ANSI_strip          2 Remove ANSI escape sequences from a string
-astr                2 String object with len() that ignores ANSI escape codes
-AWG                 3 Returns wire diameter in inches for AWG gauge number
-Batch               1 Generator to pick n items at a time from a sequence
-BraceExpansion        Brace expansion like modern shells
-Cfg                   Execute a sequence of text lines for config use
-ConvertToNumber     2 Convert a string to a number
-Cumul               4 Return cumulative sums of a sequence
-Debug                 A class that helps with debugging
-DoubleFactorial     4 Compute the double factorial of an integer
-EBCDIC              2 Return string translation table ASCII <--> EBCDIC
-EditData              Edit a str or bytes object with vim
-eng                   Convenience function for engineering format
-Engineering           Represent a number in engineering notation
-execfile              Python 3 replacement for python 2 function
-Flatten             1 Flattens nested sequences to a sequence of scalars
-Flatten_generator   1 Generator that flattens nested sequences 
-fsig                  Return string of float to specified number of digits
-getch                 Block until a key is pressed
-GetHash             2 Get a file's hash as a hex string
-GetLeadingString    2 Return the leading string from another string
-GetSize             1 Return number of bytes used by a container (recursive method)
-GetTrailingString   2 Return the trailing string from another string
-GroupByN            1 Group items from a sequence by n items at a time
-grouper             1 Function to group data
-HeatIndex           5 Effect of temperature and humidity
-Height              6 Predict a child's adult height
-hyphen_range          Returns list of integers specified as ranges
-IdealGas            5 Calculate ideal gas P, v, T (v is specific volume)
-IsBinaryFile          Heuristic to see if a file is a binary file
-IsConvexPolygon     4 Is seq of 2-D points a convex polygon?
-IsCygwinSymlink       Returns True if a file is a cygwin symlink
-IsHomogeneous       1 Returns True if a sequence is homogeneous
-IsIterable          1 Determines if you can iterate over an object
-IsTextFile            Heuristic to see if a file is a text file
-ItemCount           1 Summarize a sequence with counts of each item
-IterateOverSubclasses Generator to return subclasses
-Len                 2 Return the length of a string with ANSI escape sequences removed
-Now                   Time or datetime as now
-NumBitsInByte         Returns a dict to count bits
-ParseComplex        4 Split a complex number string into re, im strings
-Paste               1 Return sequence of pasted sequences
-PPSeq               1 Class for formatting number sequences for pretty printing
-ProgressBar           Prints a progress bar to stdout
-RandomIntegers      4 Return a list of random integers
-Ranges              1 Convert a list of integers to ranges
-randq               4 Simple, fast random number generator
-randr               4 Random numbers on [0,1) using randq
-ReadVariables         Read variables from a file
-RemoveIndent        2 Remove spaces from beginning of multiline string
-ShowFile              Open indicated file(s) with registered app
-SignificantFigures  4 Rounds to specified num of sig figs (returns float)
-SignificantFiguresS 4 Rounds to specified num of sig figs (returns string)
-signum              4 Return -1, 0, or 1 if x < 0, == 0, or > 0
-Singleton             Mix-in class for singleton pattern
-SizeOf                Estimate memory usage of an object in bytes
-SpeedOfSound        5 Calculate the speed of sound as func of temperature
-Spinner               Console spinner to show activity
-StringToNumbers     2 Convert a string to a sequence of numbers
-TempConvert         5 Convert a temperature
-TemplateRound       2 Round a float to a template number
-Time                2 Returns a string giving local time and date
-TranslateSymlink      Returns what a cygwin symlink is pointing to
-transpose           1 Returns transpose of a nested list
-Unique              1 Generator to return only the unique elements in sequence
-unrange             1 Turn a seq of integers into a collection of ranges
-unrange_real        1 Turn a seq of real numbers into a collection of ranges
-US_states             Return a dict of US_states keyed by two-letter names
-VisualCount         1 Return a list representing a histogram of a sequence
-WindChillInDegF     5 Calculate wind chill given OAT & wind speed
-Winnow                Winnow a sequence of strings with regular expressions
+
+    BraceExpansion        Brace expansion like modern shells
+    Cfg                   Execute a sequence of text lines for config use
+    Debug                 A class that helps with debugging
+    EditData              Edit a str or bytes object with vim
+    eng                   Convenience function for engineering format
+    Engineering           Represent a number in engineering notation
+    execfile              Python 3 replacement for python 2 function
+    fsig                  Return string of float to specified number of digits
+    getch                 Block until a key is pressed
+    hyphen_range          Returns list of integers specified as ranges
+    IsBinaryFile          Heuristic to see if a file is a binary file
+    IsCygwinSymlink       Returns True if a file is a cygwin symlink
+    IsTextFile            Heuristic to see if a file is a text file
+    IterateOverSubclasses Generator to return subclasses
+    Now                   Time or datetime as now
+    NumBitsInByte         Returns a dict to count bits
+    ProgressBar           Prints a progress bar to stdout
+    ReadVariables         Read variables from a file
+    ShowFile              Open indicated file(s) with registered app
+    Singleton             Mix-in class for singleton pattern
+    SizeOf                Estimate memory usage of an object in bytes
+    Spinner               Console spinner to show activity
+    TranslateSymlink      Returns what a cygwin symlink is pointing to
+    US_states             Return a dict of US_states keyed by two-letter names
+    Winnow                Winnow a sequence of strings with regular expressions
 '''
 if 1:  # Header
     _pgminfo = '''
@@ -394,6 +400,7 @@ if 1:  # Core functionality
             (0, 1, 2)
             (3, 4, 5)
             (6, None, None)
+        ∞∞2 See grouper() recipe in itertools docs
         '''
         # Inspired by http://code.activestate.com/recipes/303060-group-a-list-into-sequential-n-tuples
         if fill:
@@ -434,6 +441,8 @@ if 1:  # Core functionality
             X = <function X at 0x00B9C9B0>
             c = 62.2253967444
             d = 22.0
+        ∞∞1 This uses exec() and could be abused.  No file in /plib is using this, so I
+        think it should be obsoleted -- or at least commented out.
         '''
         # Remove any common indent
         indent = os.path.commonprefix(lines)
@@ -469,6 +478,9 @@ if 1:  # Core functionality
         
         If any line in the input file causes an exception, the offending line will be printed to stderr
         and the program will exit unless ignore_errors is True.
+
+        ∞∞1 This uses exec() and could be abused.  No file in /plib is using this, so I
+        think it should be obsoleted -- or at least commented out.
         '''
         try:
             lines = file.readlines()
@@ -830,7 +842,7 @@ if 1:  # Core functionality
                 data = file.read_text()
         return data
     def Engineering(value, digits=3):
-        '''Return a tuple (m, e, s) representing a number in engineering notation.  m is the
+        '''Return a tuple (m, e, s) representing a float in engineering notation.  m is the
         significand.  e is the exponent in the form of an integer; it is adjusted to be a multiple of
         3.  s is the SI symbol for the exponent; for "e+003" it would be "k".  s is empty if there is
         no SI symbol.
@@ -840,27 +852,9 @@ if 1:  # Core functionality
         Engineering(1.2345678901234567890e8, 4)   --> ('123.5', 6, 'M')
         '''
         suffixes = {
-            -10: "q",
-            -9: "r",
-            -8: "y",
-            -7: "z",
-            -6: "a",
-            -5: "f",
-            -4: "p",
-            -3: "n",
-            -2: "u",
-            -1: "m",
-            0: "",
-            1: "k",
-            2: "M",
-            3: "G",
-            4: "T",
-            5: "P",
-            6: "E",
-            7: "Z",
-            8: "Y",
-            9: "R",
-            10: "Q",
+            -10: "q", -9: "r", -8: "y", -7: "z", -6: "a", -5: "f", -4: "p", -3: "n",
+            -2: "u", -1: "m", 0: "", 1: "k", 2: "M", 3: "G", 4: "T", 5: "P", 6: "E",
+            7: "Z", 8: "Y", 9: "R", 10: "Q",
         }
         if digits < 1 or digits > 15:
             raise ValueError("Number of significant digits must be >= 1 and <= 15")
@@ -1364,15 +1358,14 @@ if 1:  # Core functionality
         assert len(cross_product_signs) == n + 3
         if cross_product_signs[0] and len(set(cross_product_signs)) == 1:
             return True
-        return False
     def BraceExpansion(s, glob=False):
         '''Generator to perform brace expansion on the string s.  If glob is True, then also glob each
         pattern in the current directory.  Examples:
         
-        - BraceExpansion("a.{a, b}")) returns
-            ['a.a', 'a. b'].
-        - BraceExpansion("pictures/*.{jpg, png}")) returns a list of
-            all the JPG and PNG files in the pictures directory under the
+        - BraceExpansion("a.{a,b}") returns
+            ['a.a', 'a.b'].
+        - BraceExpansion("pictures/*.{jpg,png}")) returns a list of
+                all the JPG and PNG files in the pictures directory under the
             current directory.
         - BraceExpansion("{a,b}/*.{jpg,png}") returns
             ['a/*.jpg', 'a/*.png', ' b/*.jpg', ' b/*.png']
@@ -1426,7 +1419,9 @@ if 1:  # Core functionality
         
         Here's some example code that demonstrates how it could be used:
         
+            from util import Spinner
             from threading import Thread
+            import time
             def T():
                 Spinner()
                 if Spinner.stop:
@@ -1668,6 +1663,9 @@ if 1:  # Core functionality
         
         Caution:  you should be aware of the risks of using this function to execute arbitrary code,
         as a malicious file could e.g. wipe out your system or do other types of arbitrary damage.
+
+        ∞∞1 I don't believe I've ever used this and I don't like the security
+        vulnerabilities.  It could be put somewhere in commented-out form.
         '''
         # https://stackoverflow.com/questions/436198/what-is-an-alternative-to-execfile-in-python-3
         e = sys._getframe(1)
@@ -1680,11 +1678,7 @@ if 1:  # Core functionality
             exec(s, globals, locals)
     def signum(x):
         try:
-            if x < 0:
-                return -1
-            elif x > 0:
-                return 1
-            return 0
+            return -1 if x < 0 else 1 if x > 0 else 0
         except Exception:
             raise TypeError(f"x = '{x}' not a suitable numerical type")
     def SizeOf(o, handlers={}, verbose=False, full=False, title=None):
@@ -2154,7 +2148,8 @@ if __name__ == "__main__":
     from dpseq import fDistribute
     from random import seed
     from wrap import dedent
-    from color import t
+    import trm
+    t = trm.Trm()
     import itertools
     import math
     import sys
@@ -2803,6 +2798,7 @@ if __name__ == "__main__":
             assert_equal(signum(i), 0)
         for i in (1, 2, 2.2, Fraction(1, 1), Decimal("3.7")):
             assert_equal(signum(i), 1)
+        raises(TypeError, signum, "a")
     def Test_ParseComplex():
         # Note:  I don't test the regexp exhaustively, as it has been tested
         # numerous times before
