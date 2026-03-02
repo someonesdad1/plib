@@ -18,7 +18,10 @@
     - dparith.py
     - dpastro.py
     - dputil.py
+- dpseq
+    - frange
 - dputil
+    - dpopen
 - dpstr
     - dptags
     - tw
