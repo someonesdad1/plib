@@ -59,7 +59,8 @@ if 1:  # Header
         import textwrap
     if 1:  # Custom imports
         from f import flt, cpx, ParseComplex
-        from color import t as τ
+        import trm
+        τ = trm.Trm()
         # You can decide here whether you want this module to support mpmath, the python
         # uncertainties library, or sympy.  Alternately, you can define the environment
         # variables MATRIX_MPMATH, MATRIX_UNCERTAINTIES, or MATRIX_SYMPY to have these

@@ -4,7 +4,8 @@ Script to find symbols in the /plib/dp*.py files
     
     In Feb 2026 I massively refactored /plib to try to reduce the number of
     files/modules.  This refactoring will break nearly every module & script, so the
-    intent is to be able to locate the module that contains the symbol.
+    intent of this script is to be able to locate the module that contains the needed
+    symbol.
         
 '''
 if 1:  # Header
@@ -12,6 +13,7 @@ if 1:  # Header
         import collections
         import getopt
         import importlib
+        import inspect
         import os
         import pathlib
         import pprint
@@ -74,24 +76,24 @@ if 1:   # Utility
         exit(status)
     def Usage(status=1):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] [sym [...]]
+        Usage:  {sys.argv[0]} [options] [sym1 [sym2...]]
           Locate the dp*.py file that contains the indicated symbol(s).
         Options:
-            -h      Print help
+            -i      Ignore case
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-a"] = False  # Description
+        d["-i"] = False  # Ignore case
         d["-d"] = 3      # Description
         if len(sys.argv) == 1:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "h")
+            opts, args = getopt.getopt(sys.argv[1:], "hi")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list(""):
+            if o[1] in list("i"):
                 d[o] = not d[o]
             elif o == "-d":
                 try:
@@ -106,44 +108,34 @@ if 1:   # Utility
         g.W, g.L = GetScreen()
         return args
 if 1:   # Core functionality
-    class MyDummy:
-        pass
-    def GetFiles():
-        "Put a tuple of the files with the symbols we're interested in into g.files"
-        p = Path("/plib")
-        files = list(p.glob("dp*.py"))
-        #files.remove(Path("/plib/dp.py"))
-        files.remove(Path("/plib/dpbp.py"))
-        with g:
-            g.files = tuple(files)
-    def GetSymbols():
-        '''Find all the public symbols in g.files and put them into the dictionary
-        g.symbols.
-        '''
-        global dummy
-        for file in g.files:
-            name = file.stem
-            if name != "dp":
-                continue
-            t.print(f"{t.orn}{str(file)}")
-            try:
-                dummy = importlib.import_module(name)
-                for i in dummy.__dict__:
-                    if i.startswith("_"): # or i == "t":
-                        continue
-                    var = eval(f"dummy.{i}")
-                    print(f"{var!r}")
-            except Exception as e:
-                print(f"{t.err}Couldn't process {str(file)!r}: {e}")
+    pass
 
 if __name__ == "__main__":  
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
-    GetFiles()      # Files in tuple g.files
-    GetSymbols()    # Symbols in dict g.symbols
-    if args:
-        for arg in args:
-            pass    # Do stuff
+    filelist = [Path(i) for i in '''
+        dparith
+        dpastro
+        dpbp
+        dpdata
+        dpdb
+        dpdecimal
+        dpelec
+        dpmath
+        dpopen
+        dppath
+        dpphys
+        dpprint
+        dpseq
+        dpshop
+        dpstr
+        dptags
+        dptime
+        dptypes
+        '''.split() if i]
+    for symbol in args:
+        found = dpstr.FindSymbol(symbol, filelist=filelist)
+        t.print(f"{t.orn}{symbol}{t.n}:  {' '.join(found)}")
 
 def GetGist():
     gist = {}

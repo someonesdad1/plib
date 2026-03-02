@@ -51,6 +51,7 @@ if 1:  # Header
         <oo test ∞ notest oo>
         <oo todo ∞ 
         
+            - ∞∞2 Change the debugger so that the command 'pp' calls dpprint.PP()
             - When debugging, the return value string gets truncated with '...'.  This
               can be a pain when e.g. the return value is a ufloat, as you can't see the
               value.  Make it use up the available width or see if a debugger option can
@@ -303,14 +304,14 @@ if 1:  # Classes
                 show_all = False    # If True, color the whole line
                 if is_str: # Strings get shown by repr()
                     if show_all:
-                        print(f"  {c}{name:{w}s} = {val!r}{u.N}")
+                        print(f"  {c}{name:{w}s} = {val!r}{u.n}")
                     else:
-                        print(f"  {name:{w}s} = {c}{val!r}{u.N}")
+                        print(f"  {name:{w}s} = {c}{val!r}{u.n}")
                 else:
                     if show_all:
-                        print(f"  {c}{name:{w}s} = {val}{u.N}")
+                        print(f"  {c}{name:{w}s} = {val}{u.n}")
                     else:
-                        print(f"  {name:{w}s} = {c}{val}{u.N}")
+                        print(f"  {name:{w}s} = {c}{val}{u.n}")
             def get_frame_of_interest(self):
                 '''Return the stack frame that's current in the thing being
                 debugged.
@@ -373,21 +374,23 @@ if 1:  # Classes
                 'Dump local variables with color key (arg ignored)'
                 if 1:  # Define our own colors
                     c = color_choice != NoColors
-                    u.title = u.wht if c else ""
-                    u.bool = u.pnk if c else ""
-                    u.float = u.grn if c else ""
-                    u.flt = u.red if c else ""
-                    u.cpx = u.vio if c else ""
-                    u.int = u.mag if c else ""
-                    u.Decimal = u.trq if c else ""
-                    u.Fraction = u.brn if c else ""
-                    u.string = u.cyn if c else ""
-                    u.bytes = u.orn if c else ""
-                    u.bytearray = u.lwn if c else ""
-                    u.list = u.roy if c else ""
-                    u.tuple = u.lav if c else ""
-                    u.none = u.gry if c else ""
-                    u.N = u.n if c else ""
+                    u.title = u.wht
+                    u.bool = u.pnk
+                    u.float = u.grn
+                    u.flt = u.red
+                    u.cpx = u.vio
+                    u.int = u.mag
+                    u.Decimal = u.trq
+                    u.Fraction = u.brn
+                    u.string = u.cyn
+                    u.bytes = u.orn
+                    u.bytearray = u.lwn
+                    u.list = u.yel
+                    u.tuple = u.lav
+                    u.none = u.gry
+                    u.n = u.n
+                    if color_choice == NoColors:
+                        u.on = False
                 if 1:  # Get local variables
                     fr = self.get_frame_of_interest()
                     di = fr.f_locals  # Local variable dictionary
@@ -395,7 +398,7 @@ if 1:  # Classes
                         print("No local variables in this frame")
                         return
                 if 1:  # Print the local variable dictionary
-                    print(f"{u.title}Local variables:{u.N}")
+                    print(f"{u.title}Local variables:{u.n}")
                     # Get length of longest name
                     w = max(len(i) for i in di)
                     # Print the variables
@@ -405,20 +408,20 @@ if 1:  # Classes
                     # Print a key
                     if c:
                         print(
-                            f"{u.int}int{u.N} "
-                            f"{u.float}float{u.N} "
-                            f"{u.flt}flt{u.N} "
-                            f"{u.cpx}cpx{u.N} "
-                            f"{u.Decimal}Decimal{u.N} "
-                            f"{u.Fraction}Fraction{u.N} "
+                            f"{u.int}int{u.n} "
+                            f"{u.float}float{u.n} "
+                            f"{u.flt}flt{u.n} "
+                            f"{u.cpx}cpx{u.n} "
+                            f"{u.Decimal}Decimal{u.n} "
+                            f"{u.Fraction}Fraction{u.n} "
                             "    "
-                            f"{u.list}list{u.N} "
-                            f"{u.tuple}tuple{u.N} "
-                            f"{u.none}None{u.N} "
-                            f"{u.string}str{u.N} "
-                            f"{u.bool}bool{u.N} "
-                            f"{u.bytes}bytes{u.N} "
-                            f"{u.bytearray}bytearray{u.N} "
+                            f"{u.list}list{u.n} "
+                            f"{u.tuple}tuple{u.n} "
+                            f"{u.none}None{u.n} "
+                            f"{u.string}str{u.n} "
+                            f"{u.bool}bool{u.n} "
+                            f"{u.bytes}bytes{u.n} "
+                            f"{u.bytearray}bytearray{u.n} "
                         )
             def do_dr(self, arg):  # Nicely print dir(arg)
                 "Print the results of dir(obj) for objects in argument"

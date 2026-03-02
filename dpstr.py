@@ -16,6 +16,7 @@ String utilities
     FindDiff            Return where two strings first differ
     FindStrings         Find locations of a sequence of strings in a string
     FindSubstring       Return indexes of substring in string
+    FindSymbol          Find a symbol in one or more python files
     GetChoice           Return choice from a set of choices (minimizes typing)
     GetStartingChars    Return starting characters of a string
     GetEndingChars      Return ending characters of a string
@@ -88,6 +89,7 @@ if 1:  # Header
     '''
     if 1:   # Standard imports
         import collections
+        import importlib
         import itertools
         import os
         import pathlib
@@ -723,6 +725,30 @@ if 1:  # Core functionality
             d.append(start)
             start = mystring.find(substring, start + 1)
         return tuple(d)
+    def FindSymbol(symbol, filelist=[], ignore_case=False):
+        '''Given a string symbol, return a list of the python files in filelist that
+        contain the indicated symbol.  The items in filelist can be strings or 
+        pathlib.Path instances and can end in '.py' or not.
+         
+        The symbols are found by importing the python file as a module and seeing if 
+        it contains the symbol.
+        '''
+        if not filelist or not symbol:
+            return []
+        found = []
+        for file in filelist:
+            myfile = Path(file) if isinstance(file, str) else file
+            if not isinstance(myfile, Path):
+                raise TypeError(f"{file!r} can't be made a pathlib.Path instance")
+            name = myfile.stem if myfile.suffix == ".py" else myfile.name
+            dummy = importlib.import_module(name)
+            symbols = dir(dummy)
+            if ignore_case:
+                symbols = [i.lower() for i in symbols]
+                symbol = symbol.lower()
+            if symbol in symbols:
+                found.append(str(myfile))
+        return found
     def GetString(prompt_msg, default, allowed_values, ignore_case=True):
         '''Get a string from a user and compare it to a sequence of allowed values.  If
         the response is in the allowed values, return it.  Otherwise, print an error
@@ -1527,7 +1553,7 @@ if 1:  # Core functionality
             return s
         else:
             b = s
-            T = bytes if ii(b, bytes) else bytearray
+            T = bytes if isinstance(b, bytes) else bytearray
             if "A" in keys:
                 pass
             if "B" in keys:
@@ -2062,6 +2088,15 @@ if __name__ == "__main__":
             Assert(f("\n  ", trim_start=False, trim_end=True) == 0)
             Assert(f(" \n  ", trim_start=False, trim_end=True) == 1)
             Assert(f("  \n  ", trim_start=False, trim_end=True) == 2)
+    def Test_FindSymbol():
+        symbol = "FindSymbol"
+        filelist = ["dpstr.py"]
+        found = FindSymbol("FindSymbol", filelist=filelist)
+        Assert(found == ['dpstr.py'])
+        found = FindSymbol("findsymbol", filelist=filelist, ignore_case=True)
+        Assert(found == ['dpstr.py'])
+        found = FindSymbol("nowayray", filelist=filelist)
+        Assert(found == [])
     def Test_FilterSeqRegex():
         from lwtest import Assert
         # With no regexes, it's the identity unless the sequence contains a non-string
