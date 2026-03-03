@@ -5,40 +5,8 @@ ToDo
     - Debug class should use print()'s arguments
     - Document Now class
 
-1 dpseq
+@start
 
-Flatten             1 Flattens nested sequences to a sequence of scalars
-Flatten_generator   1 Generator that flattens nested sequences 
-GetSize             1 Return number of bytes used by a container (recursive method)
-GroupByN            1 Group items from a sequence by n items at a time
-grouper             1 Function to group data
-IsHomogeneous       1 Returns True if a sequence is homogeneous
-IsIterable          1 Determines if you can iterate over an object
-ItemCount           1 Summarize a sequence with counts of each item
-Paste               1 Return sequence of pasted sequences
-PPSeq               1 Class for formatting number sequences for pretty printing
-Ranges              1 Convert a list of integers to ranges
-transpose           1 Returns transpose of a nested list
-Unique              1 Generator to return only the unique elements in sequence
-unrange             1 Turn a seq of integers into a collection of ranges
-unrange_real        1 Turn a seq of real numbers into a collection of ranges
-VisualCount         1 Return a list representing a histogram of a sequence
-
-2 dpstr
-    Figure out which of the following implementations is better:
-        alen                2 Function for string length that ignores ANSI escape codes
-        Len                 2 Return the length of a string with ANSI escape sequences removed
-    ANSI_strip          2 Remove ANSI escape sequences from a string
-    astr                2 String object with len() that ignores ANSI escape codes
-    ConvertToNumber     2 Convert a string to a number
-    EBCDIC              2 Return string translation table ASCII <--> EBCDIC
-    GetHash             2 Get a file's hash as a hex string
-    GetLeadingString    2 Return the leading string from another string
-    GetTrailingString   2 Return the trailing string from another string
-    RemoveIndent        2 Remove spaces from beginning of multiline string
-    StringToNumbers     2 Convert a string to a sequence of numbers
-    TemplateRound       2 Round a float to a template number
-    Time                2 Returns a string giving local time and date
 3 dpelec
     Ampacity            3 Returns NEC ampacity of copper wire
     AWG                 3 Returns wire diameter in inches for AWG gauge number
@@ -62,6 +30,8 @@ VisualCount         1 Return a list representing a histogram of a sequence
     WindChillInDegF     5 Calculate wind chill given OAT & wind speed
 6 dpsci
     Height              6 Predict a child's adult height
+7 dptime
+    Time                7 Returns a string giving local time and date
 Miscellaneous routines in python: @start
     BraceExpansion        Brace expansion like modern shells
     Cfg                   Execute a sequence of text lines for config use
@@ -134,7 +104,7 @@ if 1:  # Header
         if platform.system() == "Windows":
             import msvcrt
     if 1:  # Custom imports
-        from dpmath import AlmostEqual, SignSignificandExponent
+        import dpmath
         from wsl import wsl
         _have_mpmath = False
         try:
@@ -145,6 +115,9 @@ if 1:  # Header
         if 0:
             import debug
             debug.SetDebugger()
+    if 1:  # Import symbols
+        SignSignificandExponent = dpmath.SignSignificandExponent
+        AlmostEqual = dpmath.AlmostEqual
     if 1:  # Global variables
         pass
         ii = isinstance
@@ -165,46 +138,6 @@ if 1:  # Core functionality
             Utah Virginia Vermont Washington Wisconsin West·Virginia Wyoming'''.split()
         ]
         return dict(zip(a, b))
-    def GetHash(file, method="md5"):
-        "Return a file's hash as a hex string, None if file can't be read"
-        if method.lower() in "md5 sha1 sha224 sha256 sha384 sha512".split():
-            h = eval(f"hashlib.{method.lower()}")()
-        else:
-            raise ValueError(f"{method!r} is unsupported")
-        try:
-            h.update(open(file, "rb").read())
-        except Exception:
-            return None
-        return h.hexdigest()
-    def GetLeadingString(string, prefix=" "):
-        '''Return the leading string from string, made up of one or more groups of the
-        indicated string prefix.  A use case is to match the indentation of a previous line.
-        
-        Examples:
-            GetLeadingString(b"zzzHi", prefix=b"z") --> b"zzz"
-            GetLeadingString("zzzHi", prefix="z") --> "zzz"
-            GetLeadingString("ababHi", prefix="ab") --> "abab"
-        '''
-        np, lp, ls = 0, len(prefix), len(string)
-        while np * lp < ls:
-            if string[np * lp : (np + 1) * lp] == prefix:
-                np += 1
-            else:
-                break
-        return np * prefix
-    def GetTrailingString(string, suffix=" "):
-        '''Return the trailing string from string, made up of one or more groups of the
-        indicated string suffix.
-        '''
-        # This is done by reversing string and suffix and using GetLeadingString(), but it
-        # does mean we have to create copies in memory.
-        def f(x):
-            return list(reversed(x))
-        result = f(GetLeadingString(f(string), prefix=f(suffix)))
-        if type(string) is bytes:
-            return bytes(result)
-        else:
-            return ''.join(result)
     def getch():
         "Block until a key is pressed.  This function returns nothing."
         s = platform.system()
@@ -239,17 +172,6 @@ if 1:  # Core functionality
             if cls not in cls._singletons:
                 cls._singletons[cls] = object.__new__(cls)
             return cls._singletons[cls]
-    def RemoveIndent(s, numspaces=4):
-        '''Given a multi-line string s, remove the indicated number of spaces from the beginning each
-        line.  If that number of space characters aren't present, then leave the line alone.
-        '''
-        if numspaces < 0:
-            raise ValueError("numspaces must be >= 0")
-        lines = s.split(nl)
-        for i, line in enumerate(lines):
-            if line.startswith(" " * numspaces):
-                lines[i] = lines[i][numspaces:]
-        return nl.join(lines)
     def Cfg(lines, lvars=OrderedDict(), gvars=OrderedDict()):
         '''Allow use of sequences of text strings to be used for general-purpose configuration
         information.  Each string must be valid python code.
@@ -739,100 +661,6 @@ if 1:  # Core functionality
         if (tou in "kr" and T < 0) or (tou == "c" and T < -k) or (tou == "f" and T < -r):
             raise e
         return T
-    def TemplateRound(x, template, up=None):
-        '''Round a number to a template number.
-            - The returned value's type will be the same as template's type
-            - template must be a number greater than zero
-            - x/template must be a meaningful expression (x will be converted to
-              template's type)
-            - If up is None, then rounding is "simple", meaning the number is rounded up
-              if the left-over fraction is 0.5 or larger
-            - If up is True, then the fractional part is always rounded away from zero
-            - If up is False, then the fractional part is always rounded towards zero
-            - Supported types for template are int, float, flt, decimal.Decimal,
-              fraction.Fraction, and mpmath.mpf
-            
-        The algorithm determines how many template values are in x.  It is descended from the BASIC
-        algorithm on pg 435 of the 31 Oct 1988 issue of "PC Magazine":
-        
-            DEF FNRound(Amount, Template) = SGN(Amount)*INT(0.5 + ABS(Amount)/Template)*Template
-            
-        Examples:
-            TemplateRound(12, 10) = 10
-            TemplateRound(12, 10, up=True) = 20
-            TemplateRound(15, 10) = 20
-            TemplateRound(15, 10, up=False) = 10
-            
-            The following example shows that this "rounding" can lead to numbers that don't look
-            rounded.
-            
-                TemplateRound(1.6535, 0.1) = 1.7000000000000002
-                TemplateRound(1.6535, flt(0.1)) = 1.7
-                repr(TemplateRound(1.6535, flt(0.1))) = '1.7000000000000002'
-                
-            The root cause of the problem is that there's no floating point binary number equal to
-            1.7.  Use Decimal or mpmath numbers for such a case:
-            
-                TemplateRound(Decimal("1.6535"), Decimal("0.1")) = 1.7
-                TemplateRound(mpmath.mpf("1.6535"), mpmath.mpf("0.1")) = 1.7
-                
-            You can use fractions.Fraction too:
-            
-                TemplateRound(1.6535, Fraction(1, 8)) = 13/8
-                
-            which is correct, as 12/8 is 1.5 and 0.1535 is about 0.03 larger than 1/8.
-        '''
-        # Check inputs
-        if template <= 0:
-            raise ValueError("template must be > 0")
-        tt = type(template)
-        if not x:
-            return tt(x)
-        sign = tt(1) if x >= 0 else tt(-1)
-        y = tt(int(abs(tt(x) / template) + tt(1) / tt(2)) * template)
-        if up is not None:
-            # Round toward or away from zero
-            if sign < 0:
-                up = not up
-            if up and y < abs(tt(x)):  # Round away from zero
-                y += template
-            elif not up and y > abs(tt(x)):  # Round towards zero
-                y -= template
-        return sign * y
-    def ConvertToNumber(s, handle_i=True):
-        '''This is a general-purpose routine that will return a python number for a string if it is
-        possible.  The basic logic is:
-            - If it contains 'j' or 'J', it's complex
-            - If it contains '/', it's a fraction
-            - If it contains ',', '.', 'E', or 'e', it's a float
-            - Otherwise it's interpreted as an integer
-        Since I prefer to use 'i' for complex numbers, we'll also allow an 'i' in the number unless
-        handle_i is False.
-        '''
-        s = s.lower()
-        if handle_i:
-            s = s.replace("i", "j")
-        if "j" in s:
-            return complex(s)
-        elif "." in s or "e" in s or "," in s:
-            return float(s)
-        elif "/" in s:
-            return Fraction(s)
-        else:
-            return int(s)
-    def StringToNumbers(s, sep=" ", handle_i=True):
-        '''s is a string; return the sequence (tuple) of numbers it represents; number
-        strings are separated by the string sep.  The numbers returned are integers,
-        fractions, floats, or complex.  If handle_i is True, 'i' or 'I' are allowed as the
-        imaginary unit.
-        '''
-        seq = []
-        for line in s.strip().split(nl):
-            if sep is None:
-                seq.extend(line.split(sep))
-            else:
-                seq.extend(line.split())
-        return tuple([ConvertToNumber(i, handle_i=handle_i) for i in seq])
     def IsConvexPolygon(*p):
         '''Return True if the sequence p of two-dimensional points constitutes a convex polygon.  Ref:
         http://stackoverflow.com/questions/471962/how-do-determine-if-a-polygon-is-complex-convex-nonconvex
@@ -972,41 +800,6 @@ if 1:  # Core functionality
             end="",
             flush=True,
         )
-    def EBCDIC():
-        '''Returns two byte-translation tables to use with
-        bytes.translate().  The first converts ASCII bytes to EBCDIC and the
-        second converts EBCDIC bytes to ASCII.
-        '''
-        a2e = [
-            int(i)
-            for i in '''0 1 2 3 55 45 46 47 22 5 37 11 12 13 14 15 16 17 18 19 60 61 50 38 24 25 63 39 28 29
-            30 31 64 79 127 123 91 108 80 125 77 93 92 78 107 96 75 97 240 241 242 243 244 245 246
-            247 248 249 122 94 76 126 110 111 124 193 194 195 196 197 198 199 200 201 209 210 211
-            212 213 214 215 216 217 226 227 228 229 230 231 232 233 74 224 90 95 109 121 129 130 131
-            132 133 134 135 136 137 145 146 147 148 149 150 151 152 153 162 163 164 165 166 167 168
-            169 192 106 208 161 7 32 33 34 35 36 21 6 23 40 41 42 43 44 9 10 27 48 49 26 51 52 53 54
-            8 56 57 58 59 4 20 62 225 65 66 67 68 69 70 71 72 73 81 82 83 84 85 86 87 88 89 98 99
-            100 101 102 103 104 105 112 113 114 115 116 117 118 119 120 128 138 139 140 141 142 143
-            144 154 155 156 157 158 159 160 170 171 172 173 174 175 176 177 178 179 180 181 182 183
-            184 185 186 187 188 189 190 191 202 203 204 205 206 207 218 219 220 221 222 223 234 235
-            236 237 238 239 250 251 252 253 254 255'''.split()
-        ]
-        e2a = [
-            int(i)
-            for i in '''0 1 2 3 156 9 134 127 151 141 142 11 12 13 14 15 16 17 18 19 157 133 8 135 24 25 146
-            143 28 29 30 31 128 129 130 131 132 10 23 27 136 137 138 139 140 5 6 7 144 145 22 147
-            148 149 150 4 152 153 154 155 20 21 158 26 32 160 161 162 163 164 165 166 167 168 91 46
-            60 40 43 33 38 169 170 171 172 173 174 175 176 177 93 36 42 41 59 94 45 47 178 179 180
-            181 182 183 184 185 124 44 37 95 62 63 186 187 188 189 190 191 192 193 194 96 58 35 64
-            39 61 34 195 97 98 99 100 101 102 103 104 105 196 197 198 199 200 201 202 106 107 108
-            109 110 111 112 113 114 203 204 205 206 207 208 209 126 115 116 117 118 119 120 121 122
-            210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231
-            123 65 66 67 68 69 70 71 72 73 232 233 234 235 236 237 125 74 75 76 77 78 79 80 81 82
-            238 239 240 241 242 243 92 159 83 84 85 86 87 88 89 90 244 245 246 247 248 249 48 49 50
-            51 52 53 54 55 56 57 250 251 252 253 254 255'''.split()
-        ]
-        s, t = bytearray(a2e), bytearray(e2a)
-        return s.maketrans(s, t), s.maketrans(t, s)
     def Ampacity(dia_mm, insul_degC=60, ambient_degC=30):
         '''Return the NEC-allowed current in a copper conductor at the indicated ambient temperature
         and with the indicated insulation temperature rating.
@@ -1364,17 +1157,6 @@ if 1:  # Core functionality
                 items = results
                 results = set()
         return results
-    def Len(string):
-        "Return the length of a string with ANSI escape sequences removed"
-        return len(ANSI_strip(string))
-    def ANSI_strip(string):
-        '''Return the string with ANSI escape sequences removed.  16 Feb 2023 Suggested
-        regexp from
-        https://stackoverflow.com/questions/14693701/how-can-i-remove-the-ansi-escape-sequences-from-a-string-in-python
-        (see the answer below this answer, as it is a more general regexp).
-        '''
-        r = re.compile(r"(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]")
-        return r.sub("", string)
     def fsig(x, digits=None):
         '''Returns a string representing the float x to a specified number of digits.  x can
         also be an integer, in which case it is converted to a float.  Similar to the 'g'
@@ -1461,18 +1243,6 @@ if 1:  # Core functionality
             if fsig.rdp and t[-1] == fsig.dp:
                 t = t[:-1]
             return sgn + t
-    class astr(str):
-        '''This is a string object that uses a regular expression to remove
-        ANSI color-coding strings before calculating the string length.
-        '''
-        # This regular expression is used to replace color-coding escape sequence with the
-        # empty string.  See https://en.wikipedia.org/wiki/ANSI_escape_code.
-        r = re.compile(r"\x1b\[[0-?]*[ -\/]*[@-~]")
-        def __len__(self):
-            return len(astr.r.sub("", str(self)))
-    def alen(s):
-        'Function to get the length of a string, ignoring any ANSI escape sequences'
-        return len(astr.r.sub("", s))
 
 
 if __name__ == "__main__":
@@ -1507,20 +1277,6 @@ if __name__ == "__main__":
         d = NumBitsInByte()
         for i in d:
             assert d[i] == bin(i).count("1")  # Count 1's in binary represention
-    def Test_len():
-        # Note the Unicode '∞' in the third line.
-        tststring = dedent('''
-        [1;37;42mstring1[0m
-        string2
-        [1;36mstring3∞[0m''')
-        for i, s in enumerate(tststring.split("\n")):
-            a = astr(s)
-            if i in (0, 1):
-                assert_equal(len(a), 7)
-                assert_equal(alen(s), 7)
-            else:
-                assert_equal(len(a), 8)
-                assert_equal(alen(s), 8)
     def Test_fsig():
         fsig.digits = 2
         fsig.rtz = True
@@ -1539,14 +1295,6 @@ if __name__ == "__main__":
         ):
             Assert(fsig(x) == s, "fsig({}) != {}".format(x, s))
             Assert(fsig(-x) == "-" + s, "fsig({}) != {}".format(x, "-" + s))
-    def Test_Len():
-        "Also test ANSI_strip"
-        s = "hello world"
-        Assert(Len(s) == 11)
-        s = "\x1b[38;2;198;174;239m12.578\x1b[38;2;192;192;192m\x1b[48;2;0;0;0m\x1b[0m"
-        Assert(Len(s) == 6)
-        u = ANSI_strip(s)
-        Assert(u == "12.578")
     def Test_Winnow():
         s = set("ei eI Ei EI".split())
         regexps = ["e", "I"]
@@ -1630,14 +1378,6 @@ if __name__ == "__main__":
             Assert(SizeOf(x) == 252)  # For python 3.11
         else:
             Assert(SizeOf(x) == 140)  # It will fail
-    def Test_AlmostEqual():
-        Assert(AlmostEqual(0, 0))
-        Assert(AlmostEqual(0, 1e-353))
-        Assert(AlmostEqual(1.0, 1.0))
-        Assert(AlmostEqual(1, 1 + 2e-15))
-        Assert(not AlmostEqual(1, 1 + 2.11e-15))
-        Assert(AlmostEqual(1.0, 1.001, 1e-2))
-        Assert(not AlmostEqual(1.0, 1.011, 1e-2))
     def Test_SpeedOfSound():
         Assert(AlmostEqual(SpeedOfSound(273.15), 331.4, 1e-5))
     def Test_WindChillInDegF():
@@ -1667,31 +1407,6 @@ if __name__ == "__main__":
         T = 0
         T = IdealGas(P, v, T)
         Assert(AlmostEqual(T, 300))
-    def Test_ConvertToNumber():
-        Assert(ConvertToNumber("1+i") == 1 + 1j)
-        Assert(ConvertToNumber("1+j") == 1 + 1j)
-        Assert(ConvertToNumber("j") == 1j)
-        Assert(ConvertToNumber("1.") == 1)
-        Assert(ConvertToNumber("1e2") == 1e2)
-        Assert(ConvertToNumber("1E2") == 1e2)
-        Assert(ConvertToNumber("1/2") == Fraction(1, 2))
-        Assert(ConvertToNumber("1") == 1)
-        n = 10**50  # Large integer
-        Assert(ConvertToNumber(str(n)) == n)
-    def Test_Flatten():
-        Assert(list(Flatten([])) == [])
-        Assert(tuple(Flatten([])) == ())
-        r = list(range(11))
-        Assert(list(Flatten(r)) == r)
-        a = [0, (1, 2, [3, 4, (5, 6, 7)]), (8, (9, 10))]
-        Assert(list(Flatten(a)) == r)
-    def Test_Flatten_generator():
-        Assert(list(Flatten_generator([])) == [])
-        Assert(tuple(Flatten_generator([])) == ())
-        r = list(range(11))
-        Assert(list(Flatten_generator(r)) == r)
-        a = [0, (1, 2, [3, 4, (5, 6, 7)]), (8, (9, 10))]
-        Assert(list(Flatten_generator(a)) == r)
     def Test_eng():
         Assert(eng(3456.78) == "3.46e3")
         Assert(eng(3456.78, digits=4) == "3.457e3")
@@ -1767,18 +1482,6 @@ if __name__ == "__main__":
         Assert(d["c"] == d["a"] * d["sqrt"](2))
         Assert(d["d"] == 22)
         Assert(str(d["X"])[:11] == "<function X")
-    def Test_RemoveIndent():
-        s = '''
-        This is a test
-            Second line
-          Third line
-        '''
-        lines = RemoveIndent(s, numspaces=8).split("\n")
-        Assert(lines[0] == "")
-        Assert(lines[1] == "This is a test")
-        Assert(lines[2] == "    Second line")
-        Assert(lines[3] == "  Third line")
-        Assert(lines[4] == "")
     def Test_Singleton():
         class A(object):
             pass
@@ -1804,9 +1507,6 @@ if __name__ == "__main__":
         Assert(IsConvexPolygon(*p))
         p = ((0, 0), (1, 0), (1, 1), (0.5, 0.5 - d))  # Concave
         Assert(not IsConvexPolygon(*p))
-    def Test_StringToNumbers():
-        s = "4j 3/5 6. 7"
-        Assert(StringToNumbers(s) == (4j, Fraction(3, 5), 6.0, 7))
     def Test_IterateOverSubclasses():
             class A: pass
             class B(A): pass
@@ -1850,13 +1550,6 @@ if __name__ == "__main__":
         s = " ".join(BraceExpansion("{,a}{b,{c,d},e}"))
         t = "b c d e ab ac ad ae"
         assert s == t
-    def Test_EBCDIC():
-        a2e, e2a = EBCDIC()
-        # Show that these byte translation tables are inverses
-        a = bytearray(range(256))
-        e = a.translate(a2e)
-        a1 = e.translate(e2a)
-        Assert(a == a1)
     def Test_Ampacity():
         dia_mm = 11.68
         i = Ampacity(dia_mm, insul_degC=60, ambient_degC=30)
@@ -1981,50 +1674,6 @@ if __name__ == "__main__":
                 exit(1)
         # Illegal forms
         raises(ValueError, ParseComplex, "x")
-    def Test_TemplateRound():
-        # Routine floating point rounding
-        a, t = 463.77, 0.1
-        Assert(TemplateRound(-a, t, up=True) == -463.7)
-        Assert(TemplateRound(-a, t, up=False) == -463.8)
-        Assert(TemplateRound(a, t, up=True) == 463.8)
-        Assert(TemplateRound(a, t, up=False) == 463.7)
-        a, t = 463.77, 1.0
-        Assert(TemplateRound(-a, t, up=True) == -463)
-        Assert(TemplateRound(-a, t, up=False) == -464)
-        Assert(TemplateRound(a, t, up=True) == 464)
-        Assert(TemplateRound(a, t, up=False) == 463)
-        a, t = 463.77, 10.0
-        Assert(TemplateRound(-a, t, up=True) == -460)
-        Assert(TemplateRound(-a, t, up=False) == -470)
-        Assert(TemplateRound(a, t, up=True) == 470)
-        Assert(TemplateRound(a, t, up=False) == 460)
-        Assert(TemplateRound(123.48, 0.1, up=True) == 123.5)
-        Assert(TemplateRound(123.48, 0.1, up=False) == 123.4)
-        # Integer rounding
-        a, t = 463, 1
-        Assert(TemplateRound(-a, t, up=True) == -463)
-        Assert(TemplateRound(-a, t, up=False) == -463)
-        Assert(TemplateRound(a, t, up=True) == 463)
-        Assert(TemplateRound(a, t, up=False) == 463)
-        a, t = 463, 10
-        Assert(TemplateRound(-a, t, up=True) == -460)
-        Assert(TemplateRound(-a, t, up=False) == -470)
-        Assert(TemplateRound(a, t, up=True) == 470)
-        Assert(TemplateRound(a, t, up=False) == 460)
-        # Decimal rounding
-        a, t = Decimal("123.48"), Decimal("0.1")
-        Assert(TemplateRound(a, t, up=True) == Decimal("123.5"))
-        Assert(TemplateRound(a, t, up=False) == Decimal("123.4"))
-        # Fraction rounding:  a will be 123+31/64, t will be 1/8
-        a, t = 123 + Fraction(31, 64), Fraction(1, 8)
-        Assert(TemplateRound(a, t, up=True) == Fraction(247, 2))
-        Assert(TemplateRound(a, t, up=False) == Fraction(987, 8))
-        # mpmath
-        if _have_mpmath:
-            mpf = mpmath.mpf
-            a, t = mpf("123.48"), mpf("0.1")
-            Assert(TemplateRound(a, t, up=True) == mpf("123.5"))
-            Assert(TemplateRound(a, t, up=False) == mpf("123.4"))
     def Test_check_names():
         "Make sure the docstring list of names is up-to-date"
         if not check_names:
@@ -2057,79 +1706,71 @@ if __name__ == "__main__":
                 print(
                     f"{t.ornl}util:Test_check_names(){t.n}:  {name} in module not in docstring"
                 )
-    def TestGetLeadingString():
-        if 1:   # GetLeadingString
-            f = GetLeadingString
-            # Test with bytes
-            Assert(f(b'zzzHi', prefix=b'z') == b'zzz') 
-            # Test with string
-            s = 'zzzHi'
-            Assert(f(s, prefix='z') == 'zzz') 
-            Assert(f(s, prefix='zz') == 'zz') 
-            Assert(f(s, prefix='zzz') == 'zzz') 
-            Assert(f('ababHi', prefix='ab') == 'abab') 
-            Assert(f('abbaHi', prefix='ab') == 'ab') 
-        if 1:   # GetTrailingString
-            f = GetTrailingString
-            # Test with bytes
-            Assert(f(b'Hizzz', suffix=b'z') == b'zzz') 
-            # Test with string
-            s = 'Hizzz'
-            Assert(f(s, suffix='z') == 'zzz') 
-            Assert(f(s, suffix='zz') == 'zz') 
-            Assert(f(s, suffix='zzz') == 'zzz') 
-            Assert(f('Hiabab', suffix='ab') == 'abab') 
-            Assert(f('Hiabba', suffix='ba') == 'ba') 
-
     # Make sure the docstring list of names is up-to-date'
     check_names = False
     check_names = True
     if check_names:
         mnames, delete = set(dir()), []
         ignore = '''
+            __
             AlmostEqual
-            ascii_letters
             Assert
+            DIGITS
+            Dbg
+            Decimal
+            Fraction
+            G
+            Iterable
+            Miscellaneous
+            OrderedDict
+            P
+            Repr
+            SignSignificandExponent
+            StringIO
+            Test
+            ToDo
+            __annotations__
+            ascii_letters
             assert_equal
+            __builtins__
+            __cached__
             chain
             check_names
             cmath
             combinations
+            count
             cycle
-            Dbg
             debug
-            Decimal
             dedent
             defaultdict
             deque
-            DIGITS
             digits
+            __doc__
             fDistribute
+            __file__
             flt
-            Fraction
             frange
             fsig_lock
             g
-            G
-            count
             glob
             groupby
             hashlib
+            _have_mpmath
             ii
             inspect
             islice
             itemgetter
-            Iterable
             itertools
+            __loader__
             math
-            Miscellaneous
             mpmath
+            __name__
             namedtuple
             nl
-            OrderedDict
             os
-            P
+            __package__
             pathlib
+            _pgminfo
             platform
             product
             punctuation
@@ -2137,38 +1778,22 @@ if __name__ == "__main__":
             randint
             random
             re
-            Repr
             run
             seed
             show_coverage
-            SignSignificandExponent
             signum
-            StringIO
+            __spec__
             struct
             subprocess
             sys
             tempfile
-            Test
             threading
             time
-            ToDo
             translated_util_simlink
             util_simlink
             ver
             vi
             zip_longest
-            _have_mpmath
-            _pgminfo
-            __
-            __package__
-            __name__
-            __cached__
-            __loader__
-            __builtins__
-            __spec__
-            __doc__
-            __annotations__
-            __file__
         '''.split()
         for name in mnames:
             for s in ignore:

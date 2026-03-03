@@ -20,7 +20,7 @@ if 1:  # Header
     if 1:  # Standard imports
         import datetime
     if 1:  # Custom imports
-        from bidict import bidict
+        from dptypes import Bidict as bidict
     if 1:  # Global variables
         class G:
             pass

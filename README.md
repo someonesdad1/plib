@@ -2,64 +2,24 @@
 
 # /plib vision
 
-- Strategic problems
-    - gist:  change \_pgminfo implementation to using GetGist() function
-    - Too many circular imports in modules
-        - Change all 'from x import y' to 'import x; y = x.name' forms to reduce
-          circularity problem.  Where still exists, a practical fix is to move the
-          needed import inside a function.
-        - The most egregious use of mine is probably the 'from color import t' thing I
-          use a lot.  This needs to become 'import trm;t = trm.Trm()' and the problem
-          will go away completely.
+- Strategic things
+    - All my stuff moved to MIT license
+    - gist in every file
+    - As much as possible has tests
+        - Speed up testing with multiple processes
+        - OK to e.g. use dptest.py to manage all testing
     - Coalesce similar functionality into fewer files
+        - dp*.py is useful naming pattern to avoid conflicts with other namespaces
     - Move numeric/textual data to ./data modules
-    - Too many files
-        - Create a script that helps searching out what you want
-            - Spend a lot of time picking a good, small set of keywords to narrow
-              categories; these should also be used for directory names
-                - shop, elec, sci, math, util, color, fmt
-            - Can add kw field to gist if needed
-            - Put data in ./data
-            - Use dpdata.py as a "clearing house" to get the information
-        - /plib has about 150 files
-            - Shoot for 50-100
-            - Move scripts to /plib/pgm as needed
-        - /plib/pgm has over 400 files
-            - Too many to easily comprehend
+    - HTML doc produced automatically; allows a new visitor to browse contents at a
+      reasonably high level
+        - docstrings for functions & classes can have a marker in them that can be used
+          to produce the HTML documentation.  This should be a brief description of the
+          symbol and what problem it solves.
+    - pydoc works well on all symbols
 
-- Core changes
-    - I currently have 10 files starting with "dp".  This might be a useful pattern and
-      reduce namespace conflicts.  It could be combined with the categories above for
-      things like dpshop.py, dpelec.py, etc.  Each file would be organize with the 'if
-      1:' pattern to facilitate folding and seeing the different sections of
-      functionality.
-- Create HTML pages to make it easier to browse/find content
-    - Alphabetized
-    - By subject
-    - Things I think are of interest
-- Testing
-    - All /plib files have a gist and how to test:  notest, run, --test, testdir
-    - Make testdir go away if possible
-    - Launch testing with one command
-    - Only output message is Pass or Fail
-    - Every module/script when run or run with --test returns 0 if tests pass or nonzero
-      if test fails
-    - Make testing faster with more processes
-- /plib/data directory
-    - Use to store data sources, such as numerical data, tabular data, text of software
-      licenses, etc.
-    - As-needed building tools can be in this directory
-    - Build needed stuff with a single command
-    - /plib/dpdata.py is the single module to get at these data.  You call a function
-      and are returned an appropriate data structure.
-- color stuff
-    - color.py --> dpcolor.py
-        - Color object to encapsulate color information
-        - Access color name data in data/dpcolor_data.py
-        - Color coordinate transformations
-        - Wavelength to sRGB and inverse
-    - Trm stuff --> dptrm.py:  responsible for colorizing work in terminals
-    - color.RegexpDecorate --> dpstr.py or dpterm.py (or add to Trm class)
+- color
+    - Coalesce everything into color.py
 
 # 2026 /plib vision
 
@@ -76,6 +36,24 @@
 
 # 2026 /plib work done
 
+-  3 Mar
+    - New dp\*.py files constructed
+    - Started large refactoring
+        - e.g., a lot of util.py's stuff moved to dpseq.py, dpstr.py, etc. and it will
+          then move to dputil.py
+        - This breaks nearly everything I use, so a lot of fixing is required, but
+          overall it's worth it, as things will be better coalesced, more organized,
+          testable, and I'll have better test coverage
+    - Moved pgm/lib.py to data/dp_lib_data.py, which now runs as a script and holds
+      snippets; supports interactive browsing
+    - Created data/CIE_xyz_1931_2deg.py, which prototypes having accessible data in the
+      /plib/data directory.  It also shows why this delivery method is preferable, as
+      the data source can be attributed and checked as necessary, particularly if it's
+      from a website with the URL given like this CIE data.
+    - Terminal color stuff moved out of color.py into trm.py.  This broke nearly
+      everything, but it's a lot cleaner now -- and it works properly and supports the
+      context manager protocol, allowing the concept of style containers that I've
+      wanted for years.
 - 21 Feb 
     - data/dpcolornames.py constructed, giving many colornames collected from the web
     - I standardized on a new set of short color names (see key 0 in

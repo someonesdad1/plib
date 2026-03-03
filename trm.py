@@ -305,12 +305,18 @@ class Trm(dict):
             else:
                 raise ValueError("value sequence must have 1 to 3 components")
         else:
-            if isinstance(value, str) and value[0] == "\x1b":
-                # It's already an escape code
-                escape_code = value
+            if isinstance(value, str):
+                if not value:
+                    escape_code = value
+                elif value[0] == "\x1b":
+                    # It's already an escape code
+                    escape_code = value
+                else:
+                    escape_code = self(value)
             else:
                 escape_code = self(value)
-        assert isinstance(escape_code, str) and escape_code[0] == "\x1b"
+        # Note escape code is allowed to be an empty string
+        assert isinstance(escape_code, str)
         super().__setitem__(name, escape_code)
     def __setattr__(self, name, value):     # Set an attribute
         '''This is used to make sure the on, always, and any attributes that start with

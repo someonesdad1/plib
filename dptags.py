@@ -18,20 +18,27 @@ if 1:  # Header
         <oo todo ∞ oo>
     '''
     if 1:  # Standard imports
-        from pathlib import Path as P
+        import pathlib
         import getopt
         import os
         import re
         import sys
     if 1:  # Custom imports
-        from lwtest import Assert
+        import dpprint
+        import dpseq
+        import lwtest
         import trm
+        import wrap
         t = trm.Trm()
-        from dpprint import PP
-        pp = PP()  # Screen width aware form of pprint.pprint
-        from wrap import dedent
-        from util import IsIterable
+    if 1:  # Import symbols
+        Path = pathlib.Path
+        #
+        IsIterable = dpseq.IsIterable
+        Assert = lwtest.Assert
+        dedent = wrap.dedent
+        PP = dpprint.PP
     if 1:  # Global variables
+        pp = PP()
         class G: # Storage for global variables as attributes
             pass
         g = G()
@@ -114,11 +121,11 @@ if 1:  # Core functionality
                 )
             return
         # Make sure dir is a string or a Path instance
-        Assert(isinstance(dir, (str, P)))
+        Assert(isinstance(dir, (str, Path)))
         # Make sure files is an iterable
         Assert(IsIterable(files))
         # Make sure each item in files is a string or Path instance
-        Assert(all(isinstance(i, (str, P)) for i in files))
+        Assert(all(isinstance(i, (str, Path)) for i in files))
         # Our working directory is an invariant
         cwd = os.getcwd()
         # regex is a C-type token name between asterisks
@@ -127,7 +134,7 @@ if 1:  # Core functionality
         # Change to the output directory so there will be no directory names in the file's name
         os.chdir(dir)
         for file in files:
-            p = P(file) if isinstance(file, str) else file
+            p = Path(file) if isinstance(file, str) else file
             for line in p.open().readlines():
                 line = line.rstrip()
                 mo = r.search(line)
@@ -141,7 +148,7 @@ if 1:  # Core functionality
         tags = list(sorted(list(set(tags))))
         n = len(tags) - 1
         # Write the tags file
-        tagsfile = P("tags")
+        tagsfile = Path("tags")
         with tagsfile.open("w") as f:
             f.write("\n".join(tags))
             f.write("\n")
@@ -156,7 +163,7 @@ if __name__ == "__main__":
         Manual verification has proven the method works, so now running this file is the way to
         rebuild my ~/.manpages directory's tags file.
         '''
-        dir = P("/home/don/.manpages")
+        dir = Path("/home/don/.manpages")
         files = list(dir.glob("*.hld"))
         BuildTagsFile(dir, files, dbg=False)
     exit(run(globals(), halt=True)[0])

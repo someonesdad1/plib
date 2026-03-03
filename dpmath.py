@@ -390,35 +390,72 @@ if 1:  # RoundOff, SigFig, TemplateRound
         t = RemoveRadix(t)
         t = RemoveTrailingZeroes(t)
         return len(t)
-    def TemplateRound(x, template, up=True):
-        '''Round a number x to a template number.  The basic algorithm is to
-        determine how many template values are in x.  You can choose to
-        round up (the default) or down.  This should work with x and template
-        being any numerical types with floating point semantics.  The absolute
-        value of template is used.
+    def TemplateRound(x, template, up=None, roundoff=False):
+        '''Round a number to a template number.
+            - The returned value's type will be the same as template's type
+            - template must be a number greater than zero
+            - x/template must be a meaningful expression (x will be converted to
+              template's type)
+            - If up is None, then rounding is "simple", meaning the number is rounded up
+              if the left-over fraction is 0.5 or larger
+            - If up is True, then the fractional part is always rounded away from zero
+            - If up is False, then the fractional part is always rounded towards zero
+            - Supported types for template are int, float, flt, decimal.Decimal,
+              fraction.Fraction, and mpmath.mpf
+            - If roundoff is True, then the result x returned is filtered through 
+              RoundOff(x), which rounds to 12 digits maximum.
+            
+        The algorithm determines how many template values are in x.  It is descended from the BASIC
+        algorithm on pg 435 of the 31 Oct 1988 issue of "PC Magazine":
         
-        The algorithm is derived from pg 435 of the 31 Oct 1988 issue of "PC
-        Magazine" written in BASIC:
-            DEF FNRound(Amount, Template) =
-                SGN(Amount)*INT(0.5 + ABS(Amount)/Template)*Template
+            DEF FNRound(Amount, Template) = SGN(Amount)*INT(0.5 + ABS(Amount)/Template)*Template
+            
+        Examples:
+            TemplateRound(12, 10) = 10
+            TemplateRound(12, 10, up=True) = 20
+            TemplateRound(15, 10) = 20
+            TemplateRound(15, 10, up=False) = 10
+            
+            The following example shows that this "rounding" can lead to numbers that don't look
+            rounded.
+            
+                TemplateRound(1.6535, 0.1) = 1.7000000000000002
+                TemplateRound(1.6535, flt(0.1)) = 1.7
+                repr(TemplateRound(1.6535, flt(0.1))) = '1.7000000000000002'
+                
+            The root cause of the problem is that there's no floating point binary number equal to
+            1.7.  Use Decimal or mpmath numbers for such a case:
+            
+                TemplateRound(Decimal("1.6535"), Decimal("0.1")) = 1.7
+                TemplateRound(mpmath.mpf("1.6535"), mpmath.mpf("0.1")) = 1.7
+                
+            You can use fractions.Fraction too:
+            
+                TemplateRound(1.6535, Fraction(1, 8)) = 13/8
+                
+            which is correct, as 12/8 is 1.5 and 0.1535 is about 0.03 larger than 1/8.
+
+            But the easiest fix is to set the roundoff keyword to True, which will work
+            well for most cases, particularly if the number x is derived from some
+            physical measurement, which will very rarely have more than perhaps 6 digits
+            of significance.
         '''
-        if not template:
-            raise ValueError("template must not be zero")
+        # Check inputs
+        if template <= 0:
+            raise ValueError("template must be > 0")
+        tt = type(template)
         if not x:
-            return x
-        sign = 1 if x >= 0 else -1
-        if sign < 0:
-            up = not up
-        nt = type(x) if type(x) is int else float
-        # Find out how many template "units" there are in x
-        y = int(abs(x / template) + nt("0.5")) * abs(template)
-        # Do rounding as needed
-        if up and y < abs(x):
-            y += template
-        elif not up and y > abs(x):
-            y -= template
-        # Check that y is within one template of x
-        assert abs(abs(x) - abs(y)) <= abs(template)
+            return tt(x)
+        sign = tt(1) if x >= 0 else tt(-1)
+        y = tt(int(abs(tt(x) / template) + tt(1) / tt(2)) * template)
+        if up is not None:
+            # Round toward or away from zero
+            if sign < 0:
+                up = not up
+            if up and y < abs(tt(x)):  # Round away from zero
+                y += template
+            elif not up and y > abs(tt(x)):  # Round towards zero
+                y -= template
         return sign * y
 if 1:  # Core functionality
     def AlmostEqual(a, b, rel_err=2e-15, abs_err=5e-323):
@@ -847,10 +884,16 @@ if 1:  # Core functionality
         return p
 
 if __name__ == "__main__":
-    from lwtest import run, raises, assert_equal, Assert
+    from lwtest import run, raises, assert_equal, Assert, ToDoMessage
     from f import flt, radians, sqrt
     from random import randint
     from pprint import pprint as pp
+    _have_mpmath = False
+    try:
+        import mpmath
+        _have_mpmath = True
+    except ImportError:
+        pass
     eps = 1e-15
     def Test_PythagoreanSum():
         assert_equal(PythagoreanSum(3, 4, epsilon=1e-16), 5, abstol=eps)
@@ -1154,6 +1197,58 @@ if __name__ == "__main__":
         Assert(RoundOff(745.6998719999999, 1) == 700)
         Assert(RoundOff(4046.8726100000003) == 4046.87261)
         Assert(RoundOff(-0.30479999999999996) == -0.3048)
+    def Test_TemplateRound():
+        # Routine floating point rounding
+        a, t = 463.77, 0.1
+        Assert(TemplateRound(-a, t, up=True) == -463.7)
+        Assert(TemplateRound(-a, t, up=False) == -463.8)
+        Assert(TemplateRound(a, t, up=True) == 463.8)
+        Assert(TemplateRound(a, t, up=False) == 463.7)
+        a, t = 463.77, 1.0
+        Assert(TemplateRound(-a, t, up=True) == -463)
+        Assert(TemplateRound(-a, t, up=False) == -464)
+        Assert(TemplateRound(a, t, up=True) == 464)
+        Assert(TemplateRound(a, t, up=False) == 463)
+        a, t = 463.77, 10.0
+        Assert(TemplateRound(-a, t, up=True) == -460)
+        Assert(TemplateRound(-a, t, up=False) == -470)
+        Assert(TemplateRound(a, t, up=True) == 470)
+        Assert(TemplateRound(a, t, up=False) == 460)
+        Assert(TemplateRound(123.48, 0.1, up=True) == 123.5)
+        Assert(TemplateRound(123.48, 0.1, up=False) == 123.4)
+        # Integer rounding
+        a, t = 463, 1
+        Assert(TemplateRound(-a, t, up=True) == -463)
+        Assert(TemplateRound(-a, t, up=False) == -463)
+        Assert(TemplateRound(a, t, up=True) == 463)
+        Assert(TemplateRound(a, t, up=False) == 463)
+        a, t = 463, 10
+        Assert(TemplateRound(-a, t, up=True) == -460)
+        Assert(TemplateRound(-a, t, up=False) == -470)
+        Assert(TemplateRound(a, t, up=True) == 470)
+        Assert(TemplateRound(a, t, up=False) == 460)
+        # Decimal rounding
+        a, t = Decimal("123.48"), Decimal("0.1")
+        Assert(TemplateRound(a, t, up=True) == Decimal("123.5"))
+        Assert(TemplateRound(a, t, up=False) == Decimal("123.4"))
+        # Fraction rounding:  a will be 123+31/64, t will be 1/8
+        a, t = 123 + Fraction(31, 64), Fraction(1, 8)
+        Assert(TemplateRound(a, t, up=True) == Fraction(247, 2))
+        Assert(TemplateRound(a, t, up=False) == Fraction(987, 8))
+        # mpmath
+        if _have_mpmath:
+            mpf = mpmath.mpf
+            a, t = mpf("123.48"), mpf("0.1")
+            Assert(TemplateRound(a, t, up=True) == mpf("123.5"))
+            Assert(TemplateRound(a, t, up=False) == mpf("123.4"))
+    def Test_AlmostEqual():
+        Assert(AlmostEqual(0, 0))
+        Assert(AlmostEqual(0, 1e-353))
+        Assert(AlmostEqual(1.0, 1.0))
+        Assert(AlmostEqual(1, 1 + 2e-15))
+        Assert(not AlmostEqual(1, 1 + 2.11e-15))
+        Assert(AlmostEqual(1.0, 1.001, 1e-2))
+        Assert(not AlmostEqual(1.0, 1.011, 1e-2))
     def Test_SigFig():
         from math import pi
         x = pi*1e8

@@ -64,7 +64,7 @@ String utilities
         us2cw            Underscore to cap-words
         us2mc            Underscore to mixed-case
 '''
-if 1:  # Header
+if 1:   # Header
     _pgminfo = '''
         <oo gist ∞ String utilities oo>
         <oo desc ∞ oo>
@@ -90,6 +90,7 @@ if 1:  # Header
     '''
     if 1:   # Standard imports
         import collections
+        import fractions
         import importlib
         import itertools
         import os
@@ -103,6 +104,7 @@ if 1:  # Header
         import time
     if 1:   # Custom imports
         import asciify
+        import dptypes
         import dpseq
         import f
         import trm
@@ -111,6 +113,7 @@ if 1:  # Header
             import debug
             debug.SetDebugger()
     if 1:   # Import symbols
+        Fraction = fractions.Fraction
         Path = pathlib.Path
         defaultdict = collections.defaultdict
         deque = collections.deque
@@ -119,8 +122,11 @@ if 1:  # Header
         flt = f.flt
         dedent = wrap.dedent
     if 1:   # Global variables
-        pass
-if 1:  # Classes
+        g = dptypes.Constant()
+        g.nl = "\n"
+        g.cr = "\r"
+        g.sp = " "
+if 1:   # Classes
     class NameConvert:
         'Convert programming naming styles, "Python Cookbook" pg. 91'
         def cw2us(self, x):
@@ -184,7 +190,7 @@ if 1:  # Classes
 if 1:   # RegexpDecorate class
     class RegexpDecorate:
         '''Decorate regular expression matches with color
-
+        
         You must initialize an instance with a trm.Trm instance.  If you don't, a
         default Trm instance will be used.
         
@@ -314,7 +320,7 @@ if 1:   # RegexpDecorate class
                 if not line and not has_nl and insert_nl:
                     print(file=file)
             return True
-if 1:  # Core functionality
+if 1:   # Core functionality
     def MatchCap(s, t):
         '''Return t capitalized as s is.  s and t are expected to be sequences of
         characters.  The returned sequence matches the type of t and has a length equal
@@ -584,15 +590,14 @@ if 1:  # Core functionality
         '''
         if not isinstance(s, str):
             raise TypeError("Argument s must be a string")
-        nl, sp = "\n", " "
-        spacecharset = set([sp])
+        spacecharset = set([g.sp])
         if trim_start or trim_end:
             x = PrepareMultilineString(s, trim_start=trim_start, trim_end=trim_end)
         else:
             # No trimming, so just count the leading space characters
             return len(GetStartingChars(s, chars=spacecharset))
         # Break into lines and count spaces on each line
-        lines = s.split(nl)
+        lines = s.split(g.nl)
         # Count number of leading space characters on each line
         counts = [len(GetStartingChars(line, chars=spacecharset)) for line in lines]
         return min(set(counts))
@@ -601,21 +606,21 @@ if 1:  # Core functionality
         remove the first newline.  If trim_end, remove trailing spaces of s up to the
         last newline, then remove the last newline.  Return the string.
         '''
-        n, nl, sp = bool(trim_start) + bool(trim_end) - 1, "\n", " "
-        if s.count(nl) < n:
+        n = bool(trim_start) + bool(trim_end) - 1
+        if s.count(g.nl) < n:
             raise ValueError("Not enough newline characters in multiline string s")
         dq = deque(s)
         if trim_start:
-            while dq and dq[0] == sp:
+            while dq and dq[0] == g.sp:
                 dq.popleft()
             # All leading spaces removed; check for newline
-            if dq and dq[0] == nl:
+            if dq and dq[0] == g.nl:
                 dq.popleft()
         if trim_end:
-            while dq and dq[-1] == sp:
+            while dq and dq[-1] == g.sp:
                 dq.pop()
             # All trailing spaces removed; check for newline
-            if dq and dq[-1] == nl:
+            if dq and dq[-1] == g.nl:
                 dq.pop()
         return ''.join(list(dq))
     def RemoveWhitespace(s):
@@ -966,11 +971,10 @@ if 1:  # Core functionality
         
         Copyright (c) 2002-2009 Zooko Wilcox-O'Hearn, who put it under the GPL.
         '''
-        cr, nl = "\r", "\n"
         res = []
-        for x in s.split(cr + nl):
-            for y in x.split(cr):
-                res.extend(y.split(nl))
+        for x in s.split(g.cr + g.nl):
+            for y in x.split(g.cr):
+                res.extend(y.split(g.nl))
         return res
     def TimeStr(time_in_s=None):
         '''Return a readable string for the indicated time in seconds.  If the parameter
@@ -1242,7 +1246,6 @@ if 1:  # Core functionality
             print(f"{e}")
         finally:
             os.chdir(cwd)
-
     def RemoveASCII(s):
         '''Remove ASCII characters from string s.  This means the returned string only
         consists of Unicode characters above 0x7f.  This is done with a cached translation
@@ -1616,17 +1619,179 @@ if 1:  # Core functionality
             if "8" in keys or "0" in keys:
                 pass
             return b
+if 1:   # Old util stuff
+    def StringToNumbers(s, sep=" ", handle_i=True):
+        '''s is a string; return the sequence (tuple) of numbers it represents; number
+        strings are separated by the string sep.  The numbers returned are integers,
+        fractions, floats, or complex.  If handle_i is True, 'i' or 'I' are allowed as the
+        imaginary unit.
+        '''
+        seq = []
+        for line in s.strip().split(g.nl):
+            if sep is None:
+                seq.extend(line.split(sep))
+            else:
+                seq.extend(line.split())
+        return tuple([ConvertToNumber(i, handle_i=handle_i) for i in seq])
+    def RemoveIndent(s, numspaces=4):
+        '''Given a multi-line string s, remove the indicated number of spaces from the beginning each
+        line.  If that number of space characters aren't present, then leave the line alone.
+        '''
+        if numspaces < 0:
+            raise ValueError("numspaces must be >= 0")
+        lines = s.split(g.nl)
+        for i, line in enumerate(lines):
+            if line.startswith(" " * numspaces):
+                lines[i] = lines[i][numspaces:]
+        return g.nl.join(lines)
+    def GetLeadingString(string, prefix=" "):
+        '''Return the leading string from string, made up of one or more groups of the
+        indicated string prefix.  A use case is to match the indentation of a previous line.
+        
+        Examples:
+            GetLeadingString(b"zzzHi", prefix=b"z") --> b"zzz"
+            GetLeadingString("zzzHi", prefix="z") --> "zzz"
+            GetLeadingString("ababHi", prefix="ab") --> "abab"
+        '''
+        np, lp, ls = 0, len(prefix), len(string)
+        while np * lp < ls:
+            if string[np * lp : (np + 1) * lp] == prefix:
+                np += 1
+            else:
+                break
+        return np * prefix
+    def GetTrailingString(string, suffix=" "):
+        '''Return the trailing string from string, made up of one or more groups of the
+        indicated string suffix.
+        '''
+        # This is done by reversing string and suffix and using GetLeadingString(), but it
+        # does mean we have to create copies in memory.
+        def f(x):
+            return list(reversed(x))
+        result = f(GetLeadingString(f(string), prefix=f(suffix)))
+        if type(string) is bytes:
+            return bytes(result)
+        else:
+            return ''.join(result)
+    def GetHash(file, method="sha256"):
+        "Return a file's hash as a hex string, None if file can't be read"
+        ''' 3 Mar 2026  Being moved to dpstr.py
+        - ∞∞2 Change parameters
+            - file:  should be a Path instance for a file, a str, or bytes
+            - add trunc keyword to truncate the returned hex string; None or 0 means
+              don't truncate.  trunc will be an integer specifying the number of bytes
+              in the hash to keep; the hex string returned will be 2*trunc long.
+        - I've made the default hash to be sha256.  git currently uses sha1 by default,
+          but will be transitioning to sha256 (supported as of 2.30).  However,
+          transitioning is nontrivial.  See
+          https://www.codestudy.net/blog/does-git-use-sha-256-to-calculate-commit-hashes/
+        '''
+        if method.lower() in "md5 sha1 sha224 sha256 sha384 sha512".split():
+            h = eval(f"hashlib.{method.lower()}")()
+        else:
+            raise ValueError(f"{method!r} is unsupported")
+        try:
+            h.update(open(file, "rb").read())
+        except Exception:
+            return None
+        return h.hexdigest()
+    def EBCDIC():
+        '''Returns two byte-translation tables to use with
+        bytes.translate().  The first converts ASCII bytes to EBCDIC and the
+        second converts EBCDIC bytes to ASCII.
+        '''
+        a2e = [int(i) for i in
+            '''0 1 2 3 55 45 46 47 22 5 37 11 12 13 14 15 16 17 18 19 60 61 50 38 24 25
+            63 39 28 29 30 31 64 79 127 123 91 108 80 125 77 93 92 78 107 96 75 97 240
+            241 242 243 244 245 246 247 248 249 122 94 76 126 110 111 124 193 194 195
+            196 197 198 199 200 201 209 210 211 212 213 214 215 216 217 226 227 228 229
+            230 231 232 233 74 224 90 95 109 121 129 130 131 132 133 134 135 136 137 145
+            146 147 148 149 150 151 152 153 162 163 164 165 166 167 168 169 192 106 208
+            161 7 32 33 34 35 36 21 6 23 40 41 42 43 44 9 10 27 48 49 26 51 52 53 54 8
+            56 57 58 59 4 20 62 225 65 66 67 68 69 70 71 72 73 81 82 83 84 85 86 87 88
+            89 98 99 100 101 102 103 104 105 112 113 114 115 116 117 118 119 120 128 138
+            139 140 141 142 143 144 154 155 156 157 158 159 160 170 171 172 173 174 175
+            176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 202 203 204
+            205 206 207 218 219 220 221 222 223 234 235 236 237 238 239 250 251 252 253
+            254 255'''.split()
+        ]
+        e2a = [int(i) for i in 
+            '''0 1 2 3 156 9 134 127 151 141 142 11 12 13 14 15 16 17 18 19 157 133 8
+            135 24 25 146 143 28 29 30 31 128 129 130 131 132 10 23 27 136 137 138 139
+            140 5 6 7 144 145 22 147 148 149 150 4 152 153 154 155 20 21 158 26 32 160
+            161 162 163 164 165 166 167 168 91 46 60 40 43 33 38 169 170 171 172 173 174
+            175 176 177 93 36 42 41 59 94 45 47 178 179 180 181 182 183 184 185 124 44
+            37 95 62 63 186 187 188 189 190 191 192 193 194 96 58 35 64 39 61 34 195 97
+            98 99 100 101 102 103 104 105 196 197 198 199 200 201 202 106 107 108 109
+            110 111 112 113 114 203 204 205 206 207 208 209 126 115 116 117 118 119 120
+            121 122 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226
+            227 228 229 230 231 123 65 66 67 68 69 70 71 72 73 232 233 234 235 236 237
+            125 74 75 76 77 78 79 80 81 82 238 239 240 241 242 243 92 159 83 84 85 86 87
+            88 89 90 244 245 246 247 248 249 48 49 50 51 52 53 54 55 56 57 250 251 252
+            253 254 255'''.split()
+        ]
+        s, t = bytearray(a2e), bytearray(e2a)
+        return s.maketrans(s, t), s.maketrans(t, s)
+    def ConvertToNumber(s, handle_i=True):
+        '''This is a general-purpose routine that will return a python number for a string if it is
+        possible.  The basic logic is:
+            - If it contains 'j' or 'J', it's complex
+            - If it contains '/', it's a fraction
+            - If it contains ',', '.', 'E', or 'e', it's a float
+            - Otherwise it's interpreted as an integer
+        Since I prefer to use 'i' for complex numbers, we'll also allow an 'i' in the number unless
+        handle_i is False.
+        '''
+        s = s.lower()
+        if handle_i:
+            s = s.replace("i", "j")
+        if "j" in s:
+            return complex(s)
+        elif "." in s or "e" in s or "," in s:
+            return float(s)
+        elif "/" in s:
+            return Fraction(s)
+        else:
+            return int(s)
+    class astr(str):
+        '''This is a string object that uses a regular expression to remove
+        ANSI color-coding strings before calculating the string length.
+        '''
+        # This regular expression is used to replace color-coding escape sequence with the
+        # empty string.  See https://en.wikipedia.org/wiki/ANSI_escape_code.
+        r = re.compile(r"\x1b\[[0-?]*[ -\/]*[@-~]")
+        def __len__(self):
+            return len(astr.r.sub("", str(self)))
+    def alen(s):
+        'Function to get the length of a string, ignoring any ANSI escape sequences'
+        return len(astr.r.sub("", s))
+    def Len(string):
+        "Return the length of a string with ANSI escape sequences removed"
+        return len(ANSI_strip(string))
+    def ANSI_strip(string):
+        '''Return the string with ANSI escape sequences removed.  16 Feb 2023 Suggested
+        regexp from
+        https://stackoverflow.com/questions/14693701/how-can-i-remove-the-ansi-escape-sequences-from-a-string-in-python
+        (see the answer below this answer, as it is a more general regexp).
+        '''
+        r = re.compile(r"(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]")
+        return r.sub("", string)
 
 if __name__ == "__main__":
-    from lwtest import run, raises, Assert
+    import lwtest
+    from lwtest import run, raises, Assert, assert_equal
     import math
     import os
     from sig import sig
-    t = trm.Trm(default=2)
+    # ∞∞2 Get rid of sig
+    run = lwtest.run
+    raises = lwtest.raises
+    Assert = lwtest.Assert
+    t = trm.Trm()
     def Test_RegexpDecorate():
         # ∞∞1 Need to write this test case
         u = trm.Trm(default=2)
-        u.print(f"{u.orn}dpstr.py: Test_RegexpDecorate() needs to be written")
+        lwtest.ToDoMessage("Need to write test")
     def Test_Decorate():
         s = "www \t\n\r\f\vzzz"
         Assert(Decorate(s) == "www·␉␊␍␌␋zzz")
@@ -2075,23 +2240,23 @@ if __name__ == "__main__":
     def Test_SplitOnNewlines():
         Assert(SplitOnNewlines("1\n2\r\n3\r") == ["1", "2", "3", ""])
     def Test_PrepareMultilineString():
-        u, nl = " "*10, "\n"
+        u = g.sp*10
         s = f"{u}\n{u}line1\n{u}line2\n{u}"
         if 1:   # Normal usage
             x = PrepareMultilineString(s)
-            lines = x.split("\n")
+            lines = x.split(g.nl)
             Assert(len(lines) == 2)
             Assert(lines[0] == u + "line1")
             Assert(lines[1] == u + "line2")
         if 1:   # Use only trim_start = True
             x = PrepareMultilineString(s, trim_end=False)
-            lines = x.split("\n")
+            lines = x.split(g.nl)
             Assert(lines[0] == u + "line1")
             Assert(lines[1] == u + "line2")
             Assert(lines[2] == u)
         if 1:   # Use only trim_end = True
             x = PrepareMultilineString(s, trim_start=False)
-            lines = x.split("\n")
+            lines = x.split(g.nl)
             Assert(lines[0] == u)
             Assert(lines[1] == u + "line1")
             Assert(lines[2] == u + "line2")
@@ -2235,6 +2400,169 @@ if __name__ == "__main__":
             keys = list(f.allowed_keys)
             f("", keys=keys)
             raises(ValueError, f, "", keys=keys + ["x"])
+    if 1:   # Test old util stuff
+        def Test_StringToNumbers():
+            s = "4j 3/5 6. 7"
+            Assert(StringToNumbers(s) == (4j, Fraction(3, 5), 6.0, 7))
+        def Test_RemoveIndent():
+            s = '''
+            This is a test
+                Second line
+            Third line
+            '''
+            lines = RemoveIndent(s, numspaces=8).split("\n")
+            Assert(lines[0] == "")
+            Assert(lines[1] == "This is a test")
+            Assert(lines[2] == "    Second line")
+            Assert(lines[3] == "  Third line")
+            Assert(lines[4] == "")
+        def Test_GetLeadingString():
+            if 1:   # GetLeadingString
+                f = GetLeadingString
+                # Test with bytes
+                Assert(f(b'zzzHi', prefix=b'z') == b'zzz') 
+                # Test with string
+                s = 'zzzHi'
+                Assert(f(s, prefix='z') == 'zzz') 
+                Assert(f(s, prefix='zz') == 'zz') 
+                Assert(f(s, prefix='zzz') == 'zzz') 
+                Assert(f('ababHi', prefix='ab') == 'abab') 
+                Assert(f('abbaHi', prefix='ab') == 'ab') 
+            if 1:   # GetTrailingString
+                f = GetTrailingString
+                # Test with bytes
+                Assert(f(b'Hizzz', suffix=b'z') == b'zzz') 
+                # Test with string
+                s = 'Hizzz'
+                Assert(f(s, suffix='z') == 'zzz') 
+                Assert(f(s, suffix='zz') == 'zz') 
+                Assert(f(s, suffix='zzz') == 'zzz') 
+                Assert(f('Hiabab', suffix='ab') == 'abab') 
+                Assert(f('Hiabba', suffix='ba') == 'ba') 
+        def Test_GetHash():
+            lwtest.ToDoMessage("Need to write test")
+        def Test_EBCDIC():
+            a2e, e2a = EBCDIC()
+            # Show that these byte translation tables are inverses
+            a = bytearray(range(256))
+            e = a.translate(a2e)
+            a1 = e.translate(e2a)
+            Assert(a == a1)
+        def Test_ConvertToNumber():
+            Assert(ConvertToNumber("1+i") == 1 + 1j)
+            Assert(ConvertToNumber("1+j") == 1 + 1j)
+            Assert(ConvertToNumber("j") == 1j)
+            Assert(ConvertToNumber("1.") == 1)
+            Assert(ConvertToNumber("1e2") == 1e2)
+            Assert(ConvertToNumber("1E2") == 1e2)
+            Assert(ConvertToNumber("1/2") == Fraction(1, 2))
+            Assert(ConvertToNumber("1") == 1)
+            n = 10**50  # Large integer
+            Assert(ConvertToNumber(str(n)) == n)
+        def Test_alen_astr():
+            # Note the Unicode '∞' in the third line.
+            tststring = dedent('''
+            [1;37;42mstring1[0m
+            string2
+            [1;36mstring3∞[0m''')
+            for i, s in enumerate(tststring.split("\n")):
+                a = astr(s)
+                if i in (0, 1):
+                    assert_equal(len(a), 7)
+                    assert_equal(alen(s), 7)
+                else:
+                    assert_equal(len(a), 8)
+                    assert_equal(alen(s), 8)
+        def Test_Len_ANSI_strip():
+            "Also test ANSI_strip"
+            s = "hello world"
+            Assert(Len(s) == 11)
+            s = "\x1b[38;2;198;174;239m12.578\x1b[38;2;192;192;192m\x1b[48;2;0;0;0m\x1b[0m"
+            Assert(Len(s) == 6)
+            u = ANSI_strip(s)
+            Assert(u == "12.578")
+        def Test_StringToNumbers():
+            s = "4j 3/5 6. 7"
+            Assert(StringToNumbers(s) == (4j, Fraction(3, 5), 6.0, 7))
+        def Test_RemoveIndent():
+            s = '''
+            This is a test
+                Second line
+              Third line
+            '''
+            n = 12  # Depends on how much this code is indented
+            lines = RemoveIndent(s, numspaces=n).split("\n")
+            Assert(lines[0] == "")
+            Assert(lines[1] == "This is a test")
+            Assert(lines[2] == "    Second line")
+            Assert(lines[3] == "  Third line")
+            Assert(lines[4] == "")
+        def Test_GetLeadingString():
+            if 1:   # GetLeadingString
+                f = GetLeadingString
+                # Test with bytes
+                Assert(f(b'zzzHi', prefix=b'z') == b'zzz') 
+                # Test with string
+                s = 'zzzHi'
+                Assert(f(s, prefix='z') == 'zzz') 
+                Assert(f(s, prefix='zz') == 'zz') 
+                Assert(f(s, prefix='zzz') == 'zzz') 
+                Assert(f('ababHi', prefix='ab') == 'abab') 
+                Assert(f('abbaHi', prefix='ab') == 'ab') 
+            if 1:   # GetTrailingString
+                f = GetTrailingString
+                # Test with bytes
+                Assert(f(b'Hizzz', suffix=b'z') == b'zzz') 
+                # Test with string
+                s = 'Hizzz'
+                Assert(f(s, suffix='z') == 'zzz') 
+                Assert(f(s, suffix='zz') == 'zz') 
+                Assert(f(s, suffix='zzz') == 'zzz') 
+                Assert(f('Hiabab', suffix='ab') == 'abab') 
+                Assert(f('Hiabba', suffix='ba') == 'ba') 
+        def Test_GetHash():
+            lwtest.ToDoMessage("Need to write test")
+        def Test_EBCDIC():
+            a2e, e2a = EBCDIC()
+            # Show that these byte translation tables are inverses
+            a = bytearray(range(256))
+            e = a.translate(a2e)
+            a1 = e.translate(e2a)
+            Assert(a == a1)
+        def Test_ConvertToNumber():
+            Assert(ConvertToNumber("1+i") == 1 + 1j)
+            Assert(ConvertToNumber("1+j") == 1 + 1j)
+            Assert(ConvertToNumber("j") == 1j)
+            Assert(ConvertToNumber("1.") == 1)
+            Assert(ConvertToNumber("1e2") == 1e2)
+            Assert(ConvertToNumber("1E2") == 1e2)
+            Assert(ConvertToNumber("1/2") == Fraction(1, 2))
+            Assert(ConvertToNumber("1") == 1)
+            n = 10**50  # Large integer
+            Assert(ConvertToNumber(str(n)) == n)
+        def Test_alen_astr():
+            # Note the Unicode '∞' in the third line.
+            tststring = dedent('''
+            [1;37;42mstring1[0m
+            string2
+            [1;36mstring3∞[0m''')
+            for i, s in enumerate(tststring.split("\n")):
+                a = astr(s)
+                if i in (0, 1):
+                    assert_equal(len(a), 7)
+                    assert_equal(alen(s), 7)
+                else:
+                    assert_equal(len(a), 8)
+                    assert_equal(alen(s), 8)
+        def Test_Len_ANSI_strip():
+            "Also test ANSI_strip"
+            s = "hello world"
+            Assert(Len(s) == 11)
+            s = "\x1b[38;2;198;174;239m12.578\x1b[38;2;192;192;192m\x1b[48;2;0;0;0m\x1b[0m"
+            Assert(Len(s) == 6)
+            u = ANSI_strip(s)
+            Assert(u == "12.578")
+
     def Demo():
         "Demonstrate the various functions to stdout"
         t.print(f"{t('ornl')}Demo of /plib/dpstr.py functions")

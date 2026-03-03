@@ -75,7 +75,7 @@ if 1:  # Header
         dedent = wrap.dedent
         flt = f.flt
     if 1:  # Global variables
-        u = trm.Trm(default=2)
+        u = trm.Trm()
         _modname = "<lwtest.py>"
         __doc__ = dedent('''
             Lightweight testrunner framework
@@ -311,7 +311,7 @@ if 1:  # Utility
             return f"{duration_s/60:.2f} min"
         else:
             return f"{duration_s:.2f} s"
-    def ToDoMessage(message, prefix="+ ", color=None):
+    def ToDoMessage(message, prefix="+ ", color=u.orn):
         '''This function results in a message to stdout; its purpose is to
         allow you to see something that needs to be done, but won't cause
         the test to fail.  The message is decorated with a leading prefix
