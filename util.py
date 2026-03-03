@@ -10,18 +10,6 @@ ToDo
 3 dpelec
     Ampacity            3 Returns NEC ampacity of copper wire
     AWG                 3 Returns wire diameter in inches for AWG gauge number
-4 dpmath
-    AcceptableDiff      4 Returns False if two numbers are not equal
-    Cumul               4 Return cumulative sums of a sequence
-    DoubleFactorial     4 Compute the double factorial of an integer
-    IsConvexPolygon     4 Is seq of 2-D points a convex polygon?
-    ParseComplex        4 Split a complex number string into re, im strings
-    RandomIntegers      4 Return a list of random integers
-    randq               4 Simple, fast random number generator
-    randr               4 Random numbers on [0,1) using randq
-    SignificantFigures  4 Rounds to specified num of sig figs (returns float)
-    SignificantFiguresS 4 Rounds to specified num of sig figs (returns string)
-    signum              4 Return -1, 0, or 1 if x < 0, == 0, or > 0
 5 dpphys
     HeatIndex           5 Effect of temperature and humidity
     IdealGas            5 Calculate ideal gas P, v, T (v is specific volume)
@@ -32,7 +20,8 @@ ToDo
     Height              6 Predict a child's adult height
 7 dptime
     Time                7 Returns a string giving local time and date
-Miscellaneous routines in python: @start
+
+Miscellaneous utility routines in python: @start
     BraceExpansion        Brace expansion like modern shells
     Cfg                   Execute a sequence of text lines for config use
     Debug                 A class that helps with debugging
@@ -270,26 +259,6 @@ if 1:  # Core functionality
         for i in "line lines i file ignore_errors".split():
             del d[i]
         return d
-    def randq(seed=-1):
-        '''The simple random number generator in the section "An Even Quicker Generator" from
-        "Numerical Recipes in C", page 284, chapter 7, 2nd ed, 1997 reprinting (found on the web in PDF
-        form).
-        
-        If seed is not -1, it is used to initialize the sequence; it can be any hashable value.
-        '''
-        if seed != -1:
-            randq.idum = abs(hash(seed))
-        randq.idum = (randq.a * randq.idum + randq.c) % randq.maxidum
-        return randq.idum
-    if 1:  # State variables for randq
-        randq.a = 1664525  # Recommended by Knuth
-        randq.c = 1013904223  # From Lewis
-        randq.idum = 0
-        randq.maxidum = 2**32
-    def randr(seed=-1):
-        "Uses randq to return a floating point number on [0, 1)"
-        n = randq(seed=seed) if seed != -1 else randq()
-        return n / float(randq.maxidum)
     def IsCygwinSymlink(file):
         "Return True if file is a cygwin symbolic link"
         s = open(file).read(20)
@@ -326,7 +295,7 @@ if 1:  # Core functionality
         air pressure.
         '''
         assert T > 0
-        return 331.4 * math.sqrt(T / 273.15)
+        return 331.4*math.sqrt(T/273.15)
     def WindChillInDegF(wind_speed_in_mph, air_temp_deg_F):
         '''Wind Chill for exposed human skin, expressed as a function of wind speed in miles per hour
         and temperature in degrees Fahrenheit.  http://en.wikipedia.org/wiki/Wind_chill.
@@ -337,9 +306,9 @@ if 1:  # Core functionality
             raise ValueError("Air temperature must be < 50 deg F")
         return (
             35.74
-            + 0.6215 * air_temp_deg_F
-            - 35.75 * wind_speed_in_mph**0.16
-            + 0.4275 * air_temp_deg_F * wind_speed_in_mph**0.16
+            + 0.6215*air_temp_deg_F
+            - 35.75*wind_speed_in_mph**0.16
+            + 0.4275*air_temp_deg_F*wind_speed_in_mph**0.16
         )
     def Height(current_height_inches, age_years, sex):
         '''Returns the predicted adult height in inches of a child.  Unattributed, but found in the C
@@ -354,9 +323,9 @@ if 1:  # Core functionality
             raise ValueError("sex must be 'm' or 'f'")
         a, h = age_years, current_height_inches
         if sex.lower() == "m":
-            return h / (((0.00011 * a - 0.0032) * a + 0.0604) * a + 0.3796)
+            return h/(((0.00011*a - 0.0032)*a + 0.0604)*a + 0.3796)
         else:
-            return h / (((0.00028 * a - 0.0071) * a + 0.0926) * a + 0.3524)
+            return h/(((0.00028*a - 0.0071)*a + 0.0926)*a + 0.3524)
     def HeatIndex(air_temp_deg_F, relative_humidity_percent):
         '''From http://www.weather.gov/forecasts/graphical/sectors/idaho.php#tabs.  See also
         http://www.crh.noaa.gov/pub/heat.php.
@@ -383,14 +352,14 @@ if 1:  # Core functionality
         RH, Tf = relative_humidity_percent, air_temp_deg_F
         HI = (
             -42.379
-            + 2.04901523 * Tf
-            + 10.14333127 * RH
-            - 0.22475541 * Tf * RH
-            - 6.83783e-3 * Tf * Tf
-            - 5.481717e-2 * RH * RH
-            + 1.22874e-3 * Tf * Tf * RH
-            + 8.5282e-4 * Tf * RH * RH
-            - 1.99e-6 * Tf * Tf * RH * RH
+            + 2.04901523*Tf
+            + 10.14333127*RH
+            - 0.22475541*Tf*RH
+            - 6.83783e-3*Tf*Tf
+            - 5.481717e-2*RH*RH
+            + 1.22874e-3*Tf*Tf*RH
+            + 8.5282e-4*Tf*RH*RH
+            - 1.99e-6*Tf*Tf*RH*RH
         )
         return HI
     class Debug:
@@ -446,61 +415,10 @@ if 1:  # Core functionality
         '''
         if n < -3 or n > 56:
             raise ValueError("AWG argument out of range")
-        diameter = 92.0 ** ((36 - n) / 39) / 200
+        diameter = 92.0**((36 - n)/39)/200
         if n <= 44:
             return round(diameter, 4)
         return round(diameter, 5)
-    def SignificantFiguresS(value, digits=3, exp_compress=True):
-        '''Returns a string representing the number value rounded to a specified number of significant
-        figures.  The number is converted to a string, then rounded and returned as a string.  If you
-        want it back as a number, use float() on the string.  If exp_compress is true, the exponent has
-        leading zeros removed.
-        
-        The following types of printouts can be gotten using this function and native python formats:
-        
-            A              B               C               D
-        3.14e-12       3.14e-012       3.14e-012       3.14e-012
-        3.14e-11       3.14e-011       3.14e-011       3.14e-011
-        3.14e-10       3.14e-010       3.14e-010       3.14e-010
-            3.14e-9       3.14e-009       3.14e-009       3.14e-009
-            3.14e-8       3.14e-008       3.14e-008       3.14e-008
-            3.14e-7       3.14e-007       3.14e-007       3.14e-007
-            3.14e-6       3.14e-006       3.14e-006       3.14e-006
-            3.14e-5       3.14e-005       3.14e-005       3.14e-005
-            3.14e-4       3.14e-004        0.000314        0.000314
-            3.14e-3       3.14e-003         0.00314         0.00314
-            3.14e-2       3.14e-002          0.0314          0.0314
-            3.14e-1       3.14e-001           0.314           0.314
-            3.14e+0       3.14e+000            3.14            3.14
-            3.14e+1       3.14e+001            31.4            31.4
-            3.14e+2       3.14e+002             314           314.0
-            3.14e+3       3.14e+003       3.14e+003          3140.0
-            3.14e+4       3.14e+004       3.14e+004         31400.0
-            3.14e+5       3.14e+005       3.14e+005        314000.0
-            3.14e+6       3.14e+006       3.14e+006       3140000.0
-            3.14e+7       3.14e+007       3.14e+007      31400000.0
-            3.14e+8       3.14e+008       3.14e+008     314000000.0
-            3.14e+9       3.14e+009       3.14e+009    3140000000.0
-        3.14e+10       3.14e+010       3.14e+010   31400000000.0
-        3.14e+11       3.14e+011       3.14e+011  314000000000.0
-        3.14e+12       3.14e+012       3.14e+012       3.14e+012
-        
-        A:  SignificantFiguresS(x, 3)
-        B:  SignificantFiguresS(x, 3, 0)
-        C:  "%.3g" % x
-        D:  float(SignificantFiguresS(x, 3))
-        '''
-        if digits < 1 or digits > 15:
-            msg = "Number of significant figures must be >= 1 and <= 15"
-            raise ValueError(msg)
-        sign, significand, exponent = SignSignificandExponent(float(value))
-        fmt = "%%.%df" % (digits - 1)
-        neg = "-" if sign < 0 else ""
-        e = "e%+d" % exponent if exp_compress else "e%+04d" % exponent
-        return neg + (fmt % significand) + e
-    def SignificantFigures(value, figures=3):
-        "Rounds a value to specified number of significant figures.  Returns a float."
-        return float(SignificantFiguresS(value, figures))
     def EditData(data, binary=False):
         "Edit a str or bytes object using vim"
         if not isinstance(data, (str, bytes)):
@@ -543,12 +461,12 @@ if 1:  # Core functionality
             raise ValueError("Number of significant digits must be >= 1 and <= 15")
         sign, significand, exponent = SignSignificandExponent(float(value))
         s = suffixes[exponent // 3] if exponent // 3 in suffixes else ""
-        m = sign * (("%%.%dg" % digits) % (significand * 10 ** (exponent % 3)))
+        m = sign*(("%%.%dg" % digits) % (significand*10**(exponent % 3)))
         if m.find("e") != -1:
             # digits = 1 or 2 can cause e.g. 3e+001, so the following
             # eliminates the exponential notation
             m = str(int(float(m)))
-        return m, 3 * (exponent // 3), s
+        return m, 3*(exponent // 3), s
     def eng(value, digits=3, unit=None, width=0):
         '''Convenience function for engineering representation.  If unit is given, then the number of
         digits is displayed in value with the prefix prepended to unit.  Otherwise, "xey" notation is
@@ -562,7 +480,7 @@ if 1:  # Core functionality
             s = m if e == 0 else "%se%d" % (m, e)
         if width:
             if len(s) < width:
-                p = " " * (width - len(s))
+                p = " "*(width - len(s))
                 s = p + s
         return s
     def IdealGas(P=0, v=0, T=0, MW=28.9):
@@ -643,57 +561,24 @@ if 1:  # Core functionality
         if inu == tou:
             return t
         d = {
-            "cf": lambda t: a * t + b,
+            "cf": lambda t: a*t + b,
             "ck": lambda t: t + k,
-            "cr": lambda t: a * (t + k),
-            "fc": lambda t: (t - b) / a,
-            "fk": lambda t: (t - b) / a + k,
+            "cr": lambda t: a*(t + k),
+            "fc": lambda t: (t - b)/a,
+            "fk": lambda t: (t - b)/a + k,
             "fr": lambda t: t + r,
             "kc": lambda t: t - k,
-            "kf": lambda t: a * (t - k) + b,
-            "kr": lambda t: a * t,
-            "rc": lambda t: (t - r - b) / a,
+            "kf": lambda t: a*(t - k) + b,
+            "kr": lambda t: a*t,
+            "rc": lambda t: (t - r - b)/a,
             "rf": lambda t: t - r,
-            "rk": lambda t: t / a,
+            "rk": lambda t: t/a,
         }
         T = d[inu + tou](t)
         e = ValueError("Converted temperature is too low")
         if (tou in "kr" and T < 0) or (tou == "c" and T < -k) or (tou == "f" and T < -r):
             raise e
         return T
-    def IsConvexPolygon(*p):
-        '''Return True if the sequence p of two-dimensional points constitutes a convex polygon.  Ref:
-        http://stackoverflow.com/questions/471962/how-do-determine-if-a-polygon-is-complex-convex-nonconvex
-        
-        The assumption is that the sequence p of points traverses consecutive points of the polygon.
-        
-        The algorithm is to look at the triples of points and calculate the sign of the z component of
-        their cross product.  The polygon is convex if the signs are either all negative or all
-        positive.
-        
-        Examples:
-            ((0, 0), (1, 0), (1, 1), (1, 0)) will return True.
-            ((0, 0), (1, 0), (1, 1), (0.5,         0.5)) will return False.
-            ((0, 0), (1, 0), (1, 1), (0.5 - 1e-10, 0.5)) will return True.
-        '''
-        n = len(p)
-        if n < 3:
-            raise ValueError("Need at least three points")
-        cross_product_signs = []
-        for index in range(n + 3):
-            # Generate indices of the needed points
-            i = index % n
-            j = (index + 1) % n
-            k = (index + 2) % n
-            p1, p2, p3 = p[i], p[j], p[k]
-            dx1 = p2[0] - p1[0]
-            dy1 = p2[1] - p1[1]
-            dx2 = p3[0] - p2[0]
-            dy2 = p3[1] - p2[1]
-            cross_product_signs.append(signum(dx1 * dy2 - dy1 * dx2))
-        assert len(cross_product_signs) == n + 3
-        if cross_product_signs[0] and len(set(cross_product_signs)) == 1:
-            return True
     def BraceExpansion(s, glob=False):
         '''Generator to perform brace expansion on the string s.  If glob is True, then also glob each
         pattern in the current directory.  Examples:
@@ -787,13 +672,13 @@ if 1:  # Core functionality
         '''
         # Idea from https://realpython.com/python-print/#living-it-up-with-cool-animations
         assert len(char) == 1
-        left = int(width * frac)
+        left = int(width*frac)
         right = width - left
-        percent = int(100 * frac)
+        percent = int(100*frac)
         print(
             "\r[",
-            char * left,
-            " " * right,
+            char*left,
+            " "*right,
             "]",
             " {}%".format(percent),
             sep="",
@@ -856,36 +741,9 @@ if 1:  # Core functionality
         b1, b2, b3 = constants[insul_degC]
         correction = AmbientCorrection(ambient_degC, insul_degC)
         if correction:
-            return correction * (b1 * dia_mm + b2 * dia_mm**2 + b3 * dia_mm**3)
+            return correction*(b1*dia_mm + b2*dia_mm**2 + b3*dia_mm**3)
         else:
             raise ValueError("ambient_degC out of range")
-    def RandomIntegers(n, maxint, seed=None, duplicates_OK=False):
-        '''Return a random list of n integers between 0 and maxint - 1.  Set seed to be not None to
-        generate a repeatable set of integers.  If duplicates_OK is False, the integers are distinct;
-        otherwise, the list may contain duplicates.
-        '''
-        # Check parameters
-        if not isinstance(n, int) or not isinstance(maxint, int):
-            raise TypeError("n and maxint must be integers")
-        if n <= 0:
-            raise ValueError("n must be > 0")
-        if not maxint and duplicates_OK:
-            return [0] * n
-        if not duplicates_OK and n > maxint:
-            raise ValueError(
-                f"maxint ({maxint}) is too small to generate {n} distinct integers"
-            )
-        s = [] if duplicates_OK else set()
-        f = s.append if duplicates_OK else s.add
-        numbytes = maxint.bit_length() // 8 + 1
-        if seed is not None:
-            random.seed(seed)
-        while len(s) < n:
-            if seed is None:
-                f(int.from_bytes(os.urandom(numbytes), "big") % maxint)
-            else:
-                f(random.randint(0, maxint - 1))
-        return list(s)
     def execfile(filename, globals=None, locals=None, use_user_env=True):
         '''Python 3 substitute for python 2's execfile.  It gets the locals and globals from the
         caller's environment unless use_user_env is False.
@@ -905,11 +763,6 @@ if 1:  # Core functionality
         with open(filename, "r") as fh:
             s = fh.read() + "\n"
             exec(s, globals, locals)
-    def signum(x):
-        try:
-            return -1 if x < 0 else 1 if x > 0 else 0
-        except Exception:
-            raise TypeError(f"x = '{x}' not a suitable numerical type")
     def SizeOf(o, handlers={}, verbose=False, full=False, title=None):
         '''Returns a string containing the approximate memory in bytes used by
         an object.  Recursively uses sys.getsizeof().
@@ -955,7 +808,7 @@ if 1:  # Core functionality
             seen.add(id(o))
             sz = sys.getsizeof(o, default_size)
             if verbose:
-                i = " " * (indent - 1)
+                i = " "*(indent - 1)
                 output.append(" ".join((i, str(sz), str(type(o)), Repr_local(o))))
             for typ, handler in all_handlers.items():
                 if isinstance(o, typ):
@@ -1011,116 +864,6 @@ if 1:  # Core functionality
             for i in range(0x100):
                 NumBitsInByte.dict[i] = bits_in_nibble[i & 0x0f] + bits_in_nibble[i >> 4]
         return NumBitsInByte.dict
-    def DoubleFactorial(n):
-        '''Returns n!! which is defined to be the product from k = 0 to k = int(n/2) - 1 of (n - 2*k).
-        Since we ensure that n is an integer, this function should never fail, but of course it will
-        take a long time for big integers.
-        
-        Examples:
-            If n is even, n!! = n(n - 1)(n - 4)···(4)(2)
-                Or:  Product from k = 1 to n//2 of 2*k
-            If n is odd,  n!! = n(n - 1)(n - 4)···(3)(1)
-                Or:  Product from k = 1 to (n+1)//2 of 2*k - 1
-        '''
-        if not isinstance(n, int):
-            raise TypeError("n must be an integer")
-        if n < 0:
-            raise ValueError("n must not be negative")
-        product = 1
-        for i in range(n, 0, -2):
-            product *= i
-        return product
-    def Cumul(seq, check=False):
-        '''Return the cumulative sum list of the given sequence seq.  If check is True, verify the last
-        element of the returned array is equal to the sum of all the elements in seq.
-        
-        Example:  Cumul([1, 2, 3, 4, 7]) returns [1, 3, 6, 10, 17]
-        '''
-        cumul, dq = [], deque(seq)
-        while dq:
-            item = dq.popleft()
-            cumul.append(cumul[-1] + item) if cumul else cumul.append(item)
-        if check and cumul and cumul[-1] != sum(seq):
-            raise ValueError("Sum of sequence not same as last cumul element")
-        return cumul
-    def ParseComplex(numstring):
-        '''numstring contains a string representing a complex number that must be of the form 'x+yi';
-        the complex unit can be i or j.  Return (real, imag) where real and imag are the real and
-        imaginary strings of the complex number.  Space characters can be anywhere in the string, as
-        they are removed.
-        '''
-        # The method uses a regular expression to recognize the string forms of integers or real
-        # numbers.  Applied to the string twice, it picks out the real and imaginary parts.
-        str = numstring.lower().strip().replace("i", "j").replace(",", ".").replace(" ", "")
-        msg = f"{numstring!r} not a valid complex number string"
-        # Check for illegal characters
-        s = set(str)
-        if not s.issubset(set("j+-e.0123456789")):
-            raise ValueError(msg)
-        # Regular expression to recognize an int or float
-        regex = r'''
-                (                               # Group
-                    [+-]?                       # Optional sign
-                    \.\d+                       # Number like .345
-                    ([eE][+-]?\d+)?|            # Optional exponent
-                # or
-                    [+-]?                       # Optional sign
-                    \d+\.?\d*                   # Number:  2.345
-                    ([eE][+-]?\d+)?             # Optional exponent
-                )                               # End group
-                '''
-        r = re.compile(regex, re.X)
-        # If no 'j', it's real
-        if str[-1] != "j":
-            return (str, "")
-        if 1:  # Extract real part
-            first = ""
-            mo = r.search(str)
-            if mo:
-                a, b = mo.span()
-                first = str[a:b]
-                str = str[b:]
-            else:
-                # It must have been only 'j' or '-j'
-                if str[0] == "+" or str[0] == "j":
-                    return ("", "1")
-                elif str[0] == "-":
-                    return ("", "-1")
-                else:
-                    raise ValueError(msg)
-            if str == "j":
-                # It was pure imaginary
-                return ("", first)
-        if 1:  # Extract imag part
-            mo = r.search(str)
-            if mo:
-                a, b = mo.span()
-                second = str[a:b]
-                assert str[-1] == "j"
-            else:
-                # It can only be '+j' or '-j'
-                if str == "+j":
-                    second = "1"
-                elif str == "-j":
-                    second = "-1"
-                else:
-                    raise ValueError(msg)
-        return (first, second)
-    def AcceptableDiff(x, y, n=3, strict=False):
-        '''Return True if abs((x - y)/x) <= 10ⁿ.  If x is 0, then calculate abs((y - x)/y).  If
-        strict is True, then x and y must be the same numerical type.
-        
-        The use case for this is testing for numerical differences when the numbers come from physical
-        measurements.  Most of the time such data have n = 2, 3, or 4 figures.
-        '''
-        if strict and (type(x) is not type(y)):
-            raise TypeError("x and y must be the same numerical type")
-        if x == y:
-            return True
-        if x:
-            return abs((x - y) / x) <= 10**-n
-        else:
-            return abs((x - y) / y) <= 10**-n
     def ShowFile(*files):
         "Open indicated file(s) with registered app"
         for file in files:
@@ -1244,7 +987,6 @@ if 1:  # Core functionality
                 t = t[:-1]
             return sgn + t
 
-
 if __name__ == "__main__":
     from io import StringIO
     from lwtest import run, assert_equal, raises, Assert
@@ -1284,14 +1026,14 @@ if __name__ == "__main__":
         u = 1.23456789
         for x, s in (
             (u, "1.2"),
-            (u * 10, "12."),
-            (u * 100, "120."),
-            (u * 1e5, "120000."),
-            (u * 1e6, "1.2e6"),
-            (u / 10, ".12"),
-            (u / 100, ".012"),
-            (u / 1e5, ".000012"),
-            (u / 1e6, "1.2e-6"),
+            (u*10, "12."),
+            (u*100, "120."),
+            (u*1e5, "120000."),
+            (u*1e6, "1.2e6"),
+            (u/10, ".12"),
+            (u/100, ".012"),
+            (u/1e5, ".000012"),
+            (u/1e6, "1.2e-6"),
         ):
             Assert(fsig(x) == s, "fsig({}) != {}".format(x, s))
             Assert(fsig(-x) == "-" + s, "fsig({}) != {}".format(x, "-" + s))
@@ -1308,35 +1050,6 @@ if __name__ == "__main__":
         Assert(Winnow([], regexps=regexps, flags=0) == set())
         # Empty regexps returns item_sequence set
         Assert(Winnow(s, regexps=[], flags=0) == set(s))
-    def Test_AcceptableDiff():
-        Assert(AcceptableDiff(0, 0))
-        Assert(not AcceptableDiff(1, 1.01))
-        Assert(AcceptableDiff(1, 1.001))
-        raises(TypeError, AcceptableDiff, 1, 1.1, strict=True)
-    def Test_Cumul():
-        for a in ([], [0], [0, 1]):
-            Assert(Cumul(a, check=True) == a)
-        a = [0, 1, 2]
-        Assert(Cumul(a, check=True) == [0, 1, 3])
-        a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-        Assert(Cumul(a, check=True) == [0, 1, 3, 6, 10, 15, 21, 28, 36, 45])
-    def Test_DoubleFactorial():
-        df = DoubleFactorial
-        Assert(df(0) == 1)
-        Assert(df(1) == 1)
-        Assert(df(2) == 2)
-        Assert(df(3) == 3)
-        Assert(df(4) == 8)
-        Assert(df(5) == 15)
-        Assert(df(6) == 48)
-        Assert(df(7) == 105)
-        Assert(df(8) == 384)
-        Assert(df(9) == 945)
-        Assert(df(10) == 3840)
-        Assert(df(11) == 10395)
-        Assert(df(12) == 46080)
-        Assert(df(13) == 135135)
-        Assert(df(14) == 645120)
     def Test_SizeOf():
         if ver == "3.7":
             data = (
@@ -1387,9 +1100,6 @@ if __name__ == "__main__":
         Assert(AlmostEqual(HeatIndex(100, 90), 132, 4e-1))
     def Test_AWG():
         Assert(AlmostEqual(AWG(12), 0.0808, 8e-4))
-    def Test_SignificantFigures():
-        Assert(AlmostEqual(float(SignificantFiguresS(1.2345e-6)), 1.23e-6))
-        Assert(AlmostEqual(SignificantFigures(1.2345e-6), 1.23e-6))
     def Test_Engineering():
         m, e, s = Engineering(1.2345e-6)
         Assert(float(m) == 1.23 and e == -6 and s == "u")
@@ -1430,29 +1140,6 @@ if __name__ == "__main__":
         # Also test IsBinaryFile()
         s = StringIO("Some text\xf8")
         Assert(IsBinaryFile(s))
-    def Test_randq():
-        s = [randq(seed=0)]
-        for i in range(10):
-            s.append(randq())
-        s = ["%08X" % i for i in s]
-        # Hex strings from "Numerical Recipes in C", page 284
-        t = [
-            "3C6EF35F",
-            "47502932",
-            "D1CCF6E9",
-            "AAF95334",
-            "6252E503",
-            "9F2EC686",
-            "57FE6C2D",
-            "A3D95FA8",
-            "81FDBEE7",
-            "94F0AF1A",
-            "CBF633B1",
-        ]
-        Assert(s == t)
-    def Test_randr():
-        m = randq.maxidum
-        Assert(randr(0) == (1013904223 % m) / float(m))
     util_simlink = "c:/cygwin/pylib/test/util_simlink.py"
     translated_util_simlink = "../util.py"
     def Test_IsCygwinSymlink():
@@ -1479,7 +1166,7 @@ if __name__ == "__main__":
         d = Cfg(lines)
         Assert(d["a"] == 44)
         Assert(d["b"] == "A string")
-        Assert(d["c"] == d["a"] * d["sqrt"](2))
+        Assert(d["c"] == d["a"]*d["sqrt"](2))
         Assert(d["d"] == 22)
         Assert(str(d["X"])[:11] == "<function X")
     def Test_Singleton():
@@ -1491,22 +1178,6 @@ if __name__ == "__main__":
             pass
         a, b = A(), A()
         Assert(hash(a) == hash(b))
-    def Test_IsConvexPolygon():
-        p = ((0, 0), (1, 0), (1, 1), (0, 1))
-        Assert(IsConvexPolygon(*p))
-        p = ((0, 0), (1, 0), (1, 1), (0.5, 0.5))
-        Assert(not IsConvexPolygon(*p))
-        # Test with lines slightly above and below the above figure's
-        # diagonal.
-        d = 1e-10
-        p = ((0, 0), (1, 0), (1, 1), (0.5 + d, 0.5))  # Concave
-        Assert(not IsConvexPolygon(*p))
-        p = ((0, 0), (1, 0), (1, 1), (0.5 - d, 0.5))  # Convex
-        Assert(IsConvexPolygon(*p))
-        p = ((0, 0), (1, 0), (1, 1), (0.5, 0.5 + d))  # Convex
-        Assert(IsConvexPolygon(*p))
-        p = ((0, 0), (1, 0), (1, 1), (0.5, 0.5 - d))  # Concave
-        Assert(not IsConvexPolygon(*p))
     def Test_IterateOverSubclasses():
             class A: pass
             class B(A): pass
@@ -1560,31 +1231,7 @@ if __name__ == "__main__":
         Assert(i == 258.78428183511033)
         # Test a derated value
         i = Ampacity(dia_mm, insul_degC=90, ambient_degC=21)
-        Assert(i == 1.04 * 258.78428183511033)
-    def Test_RandomIntegers():
-        # Random, no duplicates
-        n = 10
-        maxint = 10  # This means we must get all integers from 0 to 9
-        s = RandomIntegers(n, maxint, seed=None, duplicates_OK=False)
-        Assert(s == list(range(n)))
-        # Random, no duplicates, larger set
-        s = RandomIntegers(n, 1000, seed=None, duplicates_OK=False)
-        t = RandomIntegers(n, 1000, seed=None, duplicates_OK=False)
-        Assert(s != t)
-        # maxint is too small --> generates exception
-        with raises(ValueError):
-            s = RandomIntegers(n, 9, seed=None, duplicates_OK=False)
-        # maxint == 0 OK if duplicates allowed
-        maxint = 0
-        s = RandomIntegers(n, maxint, seed=None, duplicates_OK=True)
-        Assert(s == [0] * n)
-        # Repeatable sequence
-        s = RandomIntegers(n, 1000, seed=0, duplicates_OK=False)
-        t = RandomIntegers(n, 1000, seed=0, duplicates_OK=False)
-        Assert(s == t)
-        s = RandomIntegers(n, 1000, seed=0, duplicates_OK=True)
-        t = RandomIntegers(n, 1000, seed=0, duplicates_OK=True)
-        Assert(s == t)
+        Assert(i == 1.04*258.78428183511033)
     def TestParameterSequence():
         fd = fDistribute
         expected = [0.0, 1.0]
@@ -1613,67 +1260,6 @@ if __name__ == "__main__":
             list(fd(2, b=""))
         with raises(ValueError):
             list(fd(1, a=2, b=1))
-    def Test_signum():
-        for i in (-1, -2, -2.2, Fraction(-1, 1), Decimal("-3.7")):
-            assert_equal(signum(i), -1)
-        for i in (0, 0.0, Fraction(0, 1), Decimal(0)):
-            assert_equal(signum(i), 0)
-        for i in (1, 2, 2.2, Fraction(1, 1), Decimal("3.7")):
-            assert_equal(signum(i), 1)
-        raises(TypeError, signum, "a")
-    def Test_ParseComplex():
-        # Note:  I don't test the regexp exhaustively, as it has been tested
-        # numerous times before
-        for input, expected in (
-            # Real numbers
-            ("0", ("0", "")),
-            ("+0", ("+0", "")),
-            ("-0", ("-0", "")),
-            ("1", ("1", "")),
-            ("-1", ("-1", "")),
-            ("- 1", ("-1", "")),
-            ("0.", ("0.", "")),
-            ("1.", ("1.", "")),
-            ("-1.", ("-1.", "")),
-            (".0", (".0", "")),
-            (".1", (".1", "")),
-            ("-.1", ("-.1", "")),
-            ("- . 1", ("-.1", "")),
-            # Imaginary numbers
-            ("0j", ("", "0")),
-            ("+0j", ("", "+0")),
-            ("-0j", ("", "-0")),
-            ("j", ("", "1")),
-            ("-j", ("", "-1")),
-            ("2.2j", ("", "2.2")),
-            ("+2.2j", ("", "+2.2")),
-            ("-2.2j", ("", "-2.2")),
-            ("- 2 . 2 j", ("", "-2.2")),
-            # Complex numbers
-            ("0+i", ("0", "1")),
-            ("0-i", ("0", "-1")),
-            ("0+1i", ("0", "+1")),
-            ("0-1i", ("0", "-1")),
-            ("1+0i", ("1", "+0")),
-            ("1-0i", ("1", "-0")),
-            ("-1-0i", ("-1", "-0")),
-            #
-            ("1.33+37i", ("1.33", "+37")),
-            ("1.33-37i", ("1.33", "-37")),
-            ("-1.33+37i", ("-1.33", "+37")),
-            ("-1.33-37i", ("-1.33", "-37")),
-            ("+1.33+37i", ("+1.33", "+37")),
-            ("+1.33-37i", ("+1.33", "-37")),
-            ("+ 1.33 - 37 i", ("+1.33", "-37")),
-        ):
-            got = ParseComplex(input)
-            if got != expected:
-                print(f"Input    = {input!r}")
-                print(f"Expected = {expected!r}")
-                print(f"Got      = {got!r}")
-                exit(1)
-        # Illegal forms
-        raises(ValueError, ParseComplex, "x")
     def Test_check_names():
         "Make sure the docstring list of names is up-to-date"
         if not check_names:
@@ -1698,7 +1284,7 @@ if __name__ == "__main__":
                 t.print(f"{t.ornl}{name} in docstring not in module")
                 found = True
         if found:
-            print("-" * 70)
+            print("-"*70)
         for name in mnames:
             if name.startswith("Test"):
                 continue

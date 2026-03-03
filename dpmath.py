@@ -33,6 +33,9 @@ if 1:  # Header
         import decimal
         import fractions
         import math
+        import os
+        import random
+        import re
         import string
         import sys
     if 1:  # Custom imports
@@ -434,7 +437,7 @@ if 1:  # RoundOff, SigFig, TemplateRound
                 TemplateRound(1.6535, Fraction(1, 8)) = 13/8
                 
             which is correct, as 12/8 is 1.5 and 0.1535 is about 0.03 larger than 1/8.
-
+        
             But the easiest fix is to set the roundoff keyword to True, which will work
             well for most cases, particularly if the number x is derived from some
             physical measurement, which will very rarely have more than perhaps 6 digits
@@ -882,12 +885,255 @@ if 1:  # Core functionality
                     print(f"{n}: p = {p} q = {q}   diff = {diff}")
             plast = p
         return p
+if 1:   # Stuff from util.py
+    def AcceptableDiff(x, y, n=3, strict=False):
+        '''Return True if abs((x - y)/x) <= 10ⁿ.  If x is 0, then calculate abs((y - x)/y).  If
+        strict is True, then x and y must be the same numerical type.
+        
+        The use case for this is testing for numerical differences when the numbers come from physical
+        measurements.  Most of the time such data have n = 2, 3, or 4 figures.
+        '''
+        if strict and (type(x) is not type(y)):
+            raise TypeError("x and y must be the same numerical type")
+        if x == y:
+            return True
+        if x:
+            return abs((x - y)/x) <= 10**-n
+        else:
+            return abs((x - y)/y) <= 10**-n
+    def Cumul(seq, check=False):
+        '''Return the cumulative sum list of the given sequence seq.  If check is True, verify the last
+        element of the returned array is equal to the sum of all the elements in seq.
+        
+        Example:  Cumul([1, 2, 3, 4, 7]) returns [1, 3, 6, 10, 17]
+        '''
+        cumul, dq = [], deque(seq)
+        while dq:
+            item = dq.popleft()
+            cumul.append(cumul[-1] + item) if cumul else cumul.append(item)
+        if check and cumul and cumul[-1] != sum(seq):
+            raise ValueError("Sum of sequence not same as last cumul element")
+        return cumul
+    def DoubleFactorial(n):
+        '''Returns n!! which is defined to be the product from k = 0 to k = int(n/2) - 1 of (n - 2*k).
+        Since we ensure that n is an integer, this function should never fail, but of course it will
+        take a long time for big integers.
+        
+        Examples:
+            If n is even, n!! = n(n - 1)(n - 4)···(4)(2)
+                Or:  Product from k = 1 to n//2 of 2*k
+            If n is odd,  n!! = n(n - 1)(n - 4)···(3)(1)
+                Or:  Product from k = 1 to (n+1)//2 of 2*k - 1
+        '''
+        if not isinstance(n, int):
+            raise TypeError("n must be an integer")
+        if n < 0:
+            raise ValueError("n must not be negative")
+        product = 1
+        for i in range(n, 0, -2):
+            product *= i
+        return product
+    def IsConvexPolygon(*p):
+        '''Return True if the sequence p of two-dimensional points constitutes a convex polygon.  Ref:
+        http://stackoverflow.com/questions/471962/how-do-determine-if-a-polygon-is-complex-convex-nonconvex
+        
+        The assumption is that the sequence p of points traverses consecutive points of the polygon.
+        
+        The algorithm is to look at the triples of points and calculate the sign of the z component of
+        their cross product.  The polygon is convex if the signs are either all negative or all
+        positive.
+        
+        Examples:
+            ((0, 0), (1, 0), (1, 1), (1, 0)) will return True.
+            ((0, 0), (1, 0), (1, 1), (0.5,         0.5)) will return False.
+            ((0, 0), (1, 0), (1, 1), (0.5 - 1e-10, 0.5)) will return True.
+        '''
+        n = len(p)
+        if n < 3:
+            raise ValueError("Need at least three points")
+        cross_product_signs = []
+        for index in range(n + 3):
+            # Generate indices of the needed points
+            i = index % n
+            j = (index + 1) % n
+            k = (index + 2) % n
+            p1, p2, p3 = p[i], p[j], p[k]
+            dx1 = p2[0] - p1[0]
+            dy1 = p2[1] - p1[1]
+            dx2 = p3[0] - p2[0]
+            dy2 = p3[1] - p2[1]
+            cross_product_signs.append(signum(dx1*dy2 - dy1*dx2))
+        assert len(cross_product_signs) == n + 3
+        if cross_product_signs[0] and len(set(cross_product_signs)) == 1:
+            return True
+    def ParseComplex(numstring):
+        '''numstring contains a string representing a complex number that must be of the form 'x+yi';
+        the complex unit can be i or j.  Return (real, imag) where real and imag are the real and
+        imaginary strings of the complex number.  Space characters can be anywhere in the string, as
+        they are removed.
+        '''
+        # The method uses a regular expression to recognize the string forms of integers or real
+        # numbers.  Applied to the string twice, it picks out the real and imaginary parts.
+        str = numstring.lower().strip().replace("i", "j").replace(",", ".").replace(" ", "")
+        msg = f"{numstring!r} not a valid complex number string"
+        # Check for illegal characters
+        s = set(str)
+        if not s.issubset(set("j+-e.0123456789")):
+            raise ValueError(msg)
+        # Regular expression to recognize an int or float
+        regex = r'''
+                (                               # Group
+                    [+-]?                       # Optional sign
+                    \.\d+                       # Number like .345
+                    ([eE][+-]?\d+)?|            # Optional exponent
+                # or
+                    [+-]?                       # Optional sign
+                    \d+\.?\d*                   # Number:  2.345
+                    ([eE][+-]?\d+)?             # Optional exponent
+                )                               # End group
+                '''
+        r = re.compile(regex, re.X)
+        # If no 'j', it's real
+        if str[-1] != "j":
+            return (str, "")
+        if 1:  # Extract real part
+            first = ""
+            mo = r.search(str)
+            if mo:
+                a, b = mo.span()
+                first = str[a:b]
+                str = str[b:]
+            else:
+                # It must have been only 'j' or '-j'
+                if str[0] == "+" or str[0] == "j":
+                    return ("", "1")
+                elif str[0] == "-":
+                    return ("", "-1")
+                else:
+                    raise ValueError(msg)
+            if str == "j":
+                # It was pure imaginary
+                return ("", first)
+        if 1:  # Extract imag part
+            mo = r.search(str)
+            if mo:
+                a, b = mo.span()
+                second = str[a:b]
+                assert str[-1] == "j"
+            else:
+                # It can only be '+j' or '-j'
+                if str == "+j":
+                    second = "1"
+                elif str == "-j":
+                    second = "-1"
+                else:
+                    raise ValueError(msg)
+        return (first, second)
+    def RandomIntegers(n, maxint, seed=None, duplicates_OK=False):
+        '''Return a random list of n integers between 0 and maxint - 1.  Set seed to be not None to
+        generate a repeatable set of integers.  If duplicates_OK is False, the integers are distinct;
+        otherwise, the list may contain duplicates.
+        '''
+        # Check parameters
+        if not isinstance(n, int) or not isinstance(maxint, int):
+            raise TypeError("n and maxint must be integers")
+        if n <= 0:
+            raise ValueError("n must be > 0")
+        if not maxint and duplicates_OK:
+            return [0]*n
+        if not duplicates_OK and n > maxint:
+            raise ValueError(
+                f"maxint ({maxint}) is too small to generate {n} distinct integers"
+            )
+        s = [] if duplicates_OK else set()
+        f = s.append if duplicates_OK else s.add
+        numbytes = maxint.bit_length() // 8 + 1
+        if seed is not None:
+            random.seed(seed)
+        while len(s) < n:
+            if seed is None:
+                f(int.from_bytes(os.urandom(numbytes), "big") % maxint)
+            else:
+                f(random.randint(0, maxint - 1))
+        return list(s)
+    def randq(seed=-1):
+        '''The simple random number generator in the section "An Even Quicker Generator" from
+        "Numerical Recipes in C", page 284, chapter 7, 2nd ed, 1997 reprinting (found on the web in PDF
+        form).
+        
+        If seed is not -1, it is used to initialize the sequence; it can be any hashable value.
+        '''
+        if seed != -1:
+            randq.idum = abs(hash(seed))
+        randq.idum = (randq.a*randq.idum + randq.c) % randq.maxidum
+        return randq.idum
+    if 1:  # State variables for randq
+        randq.a = 1664525  # Recommended by Knuth
+        randq.c = 1013904223  # From Lewis
+        randq.idum = 0
+        randq.maxidum = 2**32
+    def randr(seed=-1):
+        "Uses randq to return a floating point number on [0, 1)"
+        n = randq(seed=seed) if seed != -1 else randq()
+        return n/float(randq.maxidum)
+    def SignificantFiguresS(value, digits=3, exp_compress=True):
+        '''Returns a string representing the number value rounded to a specified number of significant
+        figures.  The number is converted to a string, then rounded and returned as a string.  If you
+        want it back as a number, use float() on the string.  If exp_compress is true, the exponent has
+        leading zeros removed.
+        
+        The following types of printouts can be gotten using this function and native python formats:
+        
+            A              B               C               D
+        3.14e-12       3.14e-012       3.14e-012       3.14e-012
+        3.14e-11       3.14e-011       3.14e-011       3.14e-011
+        3.14e-10       3.14e-010       3.14e-010       3.14e-010
+            3.14e-9       3.14e-009       3.14e-009       3.14e-009
+            3.14e-8       3.14e-008       3.14e-008       3.14e-008
+            3.14e-7       3.14e-007       3.14e-007       3.14e-007
+            3.14e-6       3.14e-006       3.14e-006       3.14e-006
+            3.14e-5       3.14e-005       3.14e-005       3.14e-005
+            3.14e-4       3.14e-004        0.000314        0.000314
+            3.14e-3       3.14e-003         0.00314         0.00314
+            3.14e-2       3.14e-002          0.0314          0.0314
+            3.14e-1       3.14e-001           0.314           0.314
+            3.14e+0       3.14e+000            3.14            3.14
+            3.14e+1       3.14e+001            31.4            31.4
+            3.14e+2       3.14e+002             314           314.0
+            3.14e+3       3.14e+003       3.14e+003          3140.0
+            3.14e+4       3.14e+004       3.14e+004         31400.0
+            3.14e+5       3.14e+005       3.14e+005        314000.0
+            3.14e+6       3.14e+006       3.14e+006       3140000.0
+            3.14e+7       3.14e+007       3.14e+007      31400000.0
+            3.14e+8       3.14e+008       3.14e+008     314000000.0
+            3.14e+9       3.14e+009       3.14e+009    3140000000.0
+        3.14e+10       3.14e+010       3.14e+010   31400000000.0
+        3.14e+11       3.14e+011       3.14e+011  314000000000.0
+        3.14e+12       3.14e+012       3.14e+012       3.14e+012
+        
+        A:  SignificantFiguresS(x, 3)
+        B:  SignificantFiguresS(x, 3, 0)
+        C:  "%.3g" % x
+        D:  float(SignificantFiguresS(x, 3))
+        '''
+        if digits < 1 or digits > 15:
+            msg = "Number of significant figures must be >= 1 and <= 15"
+            raise ValueError(msg)
+        sign, significand, exponent = SignSignificandExponent(float(value))
+        fmt = "%%.%df" % (digits - 1)
+        neg = "-" if sign < 0 else ""
+        e = "e%+d" % exponent if exp_compress else "e%+04d" % exponent
+        return neg + (fmt % significand) + e
+    def SignificantFigures(value, figures=3):
+        "Rounds a value to specified number of significant figures.  Returns a float."
+        return float(SignificantFiguresS(value, figures))
 
 if __name__ == "__main__":
     from lwtest import run, raises, assert_equal, Assert, ToDoMessage
     from f import flt, radians, sqrt
     from random import randint
     from pprint import pprint as pp
+    from collections import deque
     _have_mpmath = False
     try:
         import mpmath
@@ -1148,6 +1394,13 @@ if __name__ == "__main__":
         Assert(signum(5) == 1)
         Assert(signum(0) == 0)
         Assert(isinstance(signum(5, return_type=float), float))
+        for i in (-1, -2, -2.2, Fraction(-1, 1), Decimal("-3.7")):
+            assert_equal(signum(i), -1)
+        for i in (0, 0.0, Fraction(0, 1), Decimal(0)):
+            assert_equal(signum(i), 0)
+        for i in (1, 2, 2.2, Fraction(1, 1), Decimal("3.7")):
+            assert_equal(signum(i), 1)
+        raises(TypeError, signum, "a")
     def TestPercentile():
         s = sorted(
             [  # NIST gauge study data from
@@ -1261,4 +1514,153 @@ if __name__ == "__main__":
         Assert(SigFig(x) == 1)
         x = 0.0000
         Assert(SigFig(x) == 1)
+    if 1:   # Test stuff from util.py
+        def Test_AcceptableDiff():
+            Assert(AcceptableDiff(0, 0))
+            Assert(not AcceptableDiff(1, 1.01))
+            Assert(AcceptableDiff(1, 1.001))
+            raises(TypeError, AcceptableDiff, 1, 1.1, strict=True)
+        def Test_Cumul():
+            for a in ([], [0], [0, 1]):
+                Assert(Cumul(a, check=True) == a)
+            a = [0, 1, 2]
+            Assert(Cumul(a, check=True) == [0, 1, 3])
+            a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            Assert(Cumul(a, check=True) == [0, 1, 3, 6, 10, 15, 21, 28, 36, 45])
+        def Test_DoubleFactorial():
+            df = DoubleFactorial
+            Assert(df(0) == 1)
+            Assert(df(1) == 1)
+            Assert(df(2) == 2)
+            Assert(df(3) == 3)
+            Assert(df(4) == 8)
+            Assert(df(5) == 15)
+            Assert(df(6) == 48)
+            Assert(df(7) == 105)
+            Assert(df(8) == 384)
+            Assert(df(9) == 945)
+            Assert(df(10) == 3840)
+            Assert(df(11) == 10395)
+            Assert(df(12) == 46080)
+            Assert(df(13) == 135135)
+            Assert(df(14) == 645120)
+        def Test_IsConvexPolygon():
+            p = ((0, 0), (1, 0), (1, 1), (0, 1))
+            Assert(IsConvexPolygon(*p))
+            p = ((0, 0), (1, 0), (1, 1), (0.5, 0.5))
+            Assert(not IsConvexPolygon(*p))
+            # Test with lines slightly above and below the above figure's
+            # diagonal.
+            d = 1e-10
+            p = ((0, 0), (1, 0), (1, 1), (0.5 + d, 0.5))  # Concave
+            Assert(not IsConvexPolygon(*p))
+            p = ((0, 0), (1, 0), (1, 1), (0.5 - d, 0.5))  # Convex
+            Assert(IsConvexPolygon(*p))
+            p = ((0, 0), (1, 0), (1, 1), (0.5, 0.5 + d))  # Convex
+            Assert(IsConvexPolygon(*p))
+            p = ((0, 0), (1, 0), (1, 1), (0.5, 0.5 - d))  # Concave
+            Assert(not IsConvexPolygon(*p))
+        def Test_ParseComplex():
+            # Note:  I don't test the regexp exhaustively, as it has been tested
+            # numerous times before
+            for input, expected in (
+                # Real numbers
+                ("0", ("0", "")),
+                ("+0", ("+0", "")),
+                ("-0", ("-0", "")),
+                ("1", ("1", "")),
+                ("-1", ("-1", "")),
+                ("- 1", ("-1", "")),
+                ("0.", ("0.", "")),
+                ("1.", ("1.", "")),
+                ("-1.", ("-1.", "")),
+                (".0", (".0", "")),
+                (".1", (".1", "")),
+                ("-.1", ("-.1", "")),
+                ("- . 1", ("-.1", "")),
+                # Imaginary numbers
+                ("0j", ("", "0")),
+                ("+0j", ("", "+0")),
+                ("-0j", ("", "-0")),
+                ("j", ("", "1")),
+                ("-j", ("", "-1")),
+                ("2.2j", ("", "2.2")),
+                ("+2.2j", ("", "+2.2")),
+                ("-2.2j", ("", "-2.2")),
+                ("- 2 . 2 j", ("", "-2.2")),
+                # Complex numbers
+                ("0+i", ("0", "1")),
+                ("0-i", ("0", "-1")),
+                ("0+1i", ("0", "+1")),
+                ("0-1i", ("0", "-1")),
+                ("1+0i", ("1", "+0")),
+                ("1-0i", ("1", "-0")),
+                ("-1-0i", ("-1", "-0")),
+                #
+                ("1.33+37i", ("1.33", "+37")),
+                ("1.33-37i", ("1.33", "-37")),
+                ("-1.33+37i", ("-1.33", "+37")),
+                ("-1.33-37i", ("-1.33", "-37")),
+                ("+1.33+37i", ("+1.33", "+37")),
+                ("+1.33-37i", ("+1.33", "-37")),
+                ("+ 1.33 - 37 i", ("+1.33", "-37")),
+            ):
+                got = ParseComplex(input)
+                if got != expected:
+                    print(f"Input    = {input!r}")
+                    print(f"Expected = {expected!r}")
+                    print(f"Got      = {got!r}")
+                    exit(1)
+            # Illegal forms
+            raises(ValueError, ParseComplex, "x")
+        def Test_RandomIntegers():
+            # Random, no duplicates
+            n = 10
+            maxint = 10  # This means we must get all integers from 0 to 9
+            s = RandomIntegers(n, maxint, seed=None, duplicates_OK=False)
+            Assert(s == list(range(n)))
+            # Random, no duplicates, larger set
+            s = RandomIntegers(n, 1000, seed=None, duplicates_OK=False)
+            t = RandomIntegers(n, 1000, seed=None, duplicates_OK=False)
+            Assert(s != t)
+            # maxint is too small --> generates exception
+            with raises(ValueError):
+                s = RandomIntegers(n, 9, seed=None, duplicates_OK=False)
+            # maxint == 0 OK if duplicates allowed
+            maxint = 0
+            s = RandomIntegers(n, maxint, seed=None, duplicates_OK=True)
+            Assert(s == [0]*n)
+            # Repeatable sequence
+            s = RandomIntegers(n, 1000, seed=0, duplicates_OK=False)
+            t = RandomIntegers(n, 1000, seed=0, duplicates_OK=False)
+            Assert(s == t)
+            s = RandomIntegers(n, 1000, seed=0, duplicates_OK=True)
+            t = RandomIntegers(n, 1000, seed=0, duplicates_OK=True)
+            Assert(s == t)
+        def Test_randq():
+            s = [randq(seed=0)]
+            for i in range(10):
+                s.append(randq())
+            s = ["%08X" % i for i in s]
+            # Hex strings from "Numerical Recipes in C", page 284
+            t = [
+                "3C6EF35F",
+                "47502932",
+                "D1CCF6E9",
+                "AAF95334",
+                "6252E503",
+                "9F2EC686",
+                "57FE6C2D",
+                "A3D95FA8",
+                "81FDBEE7",
+                "94F0AF1A",
+                "CBF633B1",
+            ]
+            Assert(s == t)
+        def Test_randr():
+            m = randq.maxidum
+            Assert(randr(0) == (1013904223 % m)/float(m))
+        def Test_SignificantFigures():
+            Assert(AlmostEqual(float(SignificantFiguresS(1.2345e-6)), 1.23e-6))
+            Assert(AlmostEqual(SignificantFigures(1.2345e-6), 1.23e-6))
     exit(run(globals(), halt=1)[0])
