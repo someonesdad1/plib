@@ -1,5 +1,29 @@
 '''
-Functions for dealing with sequences.
+Functions for sequences
+
+iDistribute     Return equally-distributed integers
+fDistribute     Return equally-distributed numbers
+GetClosest      Return value closest to x
+Leftmost_eq     Return index of the leftmost value == x
+Leftmost_gt     Return index of the leftmost value > x
+Leftmost_ge     Return index of the leftmost value >= x
+Rightmost_eq    Return index of the rightmost value == x
+Rightmost_lt    Return index of the rightmost value < x
+Rightmost_le    Return index of the rightmost value <= x
+GetNum          Return a list of numbers in sequence
+Clamp           Return elements clamped to an interval
+Nodup           Return elements that are not duplicates
+NodupHashable   Return elements that are not duplicates
+Dup             Return elements that are duplicates
+DupHashable     Return elements that are duplicates
+DupNodup        Return (dup, nodup)
+DupNodupHashable Return (dup, nodup)
+Rational        Fraction with proper fraction string representation
+frange          Floating point generator analog of range()
+lrange          Logarithmic analog to frange()
+Sequence        Sequence of numbers based on start:end:increment spec
+ifrange         Simpler iterator implementation of frange
+Batch           Generator to pick n items at a time from a sequence
 
 '''
 if 1:  # Header
@@ -45,14 +69,17 @@ if 1:  # Header
     '''
     if 1:  # Standard imports
         import bisect
+        import collections
         import decimal
         import fractions
+        import inspect
         import itertools
         import numbers
         import operator
     if 1:  # Custom imports
         import dptypes
         import f
+        import wrap
         if 0:
             import debugg
             debugg.SetDebugger()
@@ -60,13 +87,21 @@ if 1:  # Header
         Decimal = decimal.Decimal
         Fraction = fractions.Fraction
         Integral = numbers.Integral
+        groupby = itertools.groupby
+        count = itertools.count
+        namedtuple = collections.namedtuple
+        defaultdict = collections.defaultdict
+        zip_longest = itertools.zip_longest
+        Iterable = collections.abc.Iterable
+        itemgetter = operator.itemgetter
         #
         Constant = dptypes.Constant
+        dedent = wrap.dedent
         flt = f.flt
     if 1:  # Global variables
         g = Constant()
         g.dbg = False
-if 1:  # Core functionality
+if 1:  # Distribute and GetClosest
     def iDistribute(n, a, b):
         '''Generator to return an integer sequence [a, ..., b] with n elements equally distributed
         between a and b.  Raises ValueError if no solution is possible.  Example:
@@ -112,7 +147,7 @@ if 1:  # Core functionality
         You can use other impl types like decimal.Decimal.  Other types that define impl()/impl() to
         return an impl-type floating point number will also work (e.g., mpmath's mpf type).
         
-        If you need a sequence of evenly-distributed integers, see util.iDistribute().
+        If you need a sequence of evenly-distributed integers, see iDistribute().
         '''
         # Check arguments
         msg = "n must be an integer > 1"
@@ -171,7 +206,7 @@ if 1:  # Core functionality
             GetClosest(-9, seq) = -8
             GetClosest(-7, seq) = -8
             GetClosest(0, seq) = 1
-            GetClosest(-7, seq) = 5
+            GetClosest(7, seq) = 5
             GetClosest(1e99, seq) = 10
         '''
         if not seq:
@@ -296,9 +331,9 @@ if 1:   # Get or transform numbers from a sequence
                 return None
         return [i for i in map(Num, seq) if i is not None]
     def Clamp(seq, low=0, high=1, typ=None):
-        '''Generator to return elements of a sequence "clamped" to an interval.  The
-        type of the returned value is typ if not None; otherwise, it's the same type as
-        the element processed.
+        '''Generator to return elements of a sequence "clamped" to an interval.  Thus,
+        the returned elements will be in [low, high].  The type of the returned value is
+        typ if not None; otherwise, it's the same type as the element processed.
         
         Example:  list(Clamp((-0.02, 0.4, 1.6), low=0, high=1.5, typ=float)) returns
             [0.0, 0.4, 1.5].
@@ -314,7 +349,8 @@ if 1:   # Get or transform numbers from a sequence
 if 1:   # Finding duplicates in sequences
     if 0:   # Notes
         '''
-        An obvious approach to this problem is to use the facilities of lists:
+        An obvious approach to this duplicates problem is to use the facilities of
+        lists:
         
             def FindDuplicates(seq):
                 seqcopy = list(seq)
@@ -697,16 +733,685 @@ if 1:  # frange, lrange, Sequence, irange, Rational
             return x
         return [MakeIntIfPossible(i) for i in out]
     def ifrange(start, stop, step=1):
-        '''Provides an iterator similar to frange but with a simpler implementation.  Use with
-        integers, floats, and Rationals.  You should rely on no more than 12 significant figures in the
-        returned numbers.
+        '''Generator similar to frange but with a simpler implementation; note the end
+        point is returned.  Use with any number type compatible with dpmath.RoundOff
+        such as int, float, Fraction, Decimal, complex, mpmath.mpf, mpmath.mpc,
+        uncertainties.UFloat.  You should rely on no more than 12 significant figures in
+        the returned numbers.
+        
+        Examples:
+            ifrange(1, 3) --> [1, 2, 3]
+            ifrange(0, 1, 0.12) --> [0, 0.12, 0.24, 0.36, 0.48, 0.6, 0.72, 0.84, 0.96]
         '''
-        from dpmath import RoundOff
+        import dpmath
         for i in itertools.count(start, step):
-            x = RoundOff(i)
+            x = dpmath.RoundOff(i)
             if x >= stop:
                 return
             yield x
+if 1:   # From util
+    def Batch(iterable, size):
+        '''Generator that gives you batches from an iterable in manageable sizes.  Slightly adapted
+        from Raymond Hettinger's entry in the comments to
+        http://code.activestate.com/recipes/303279-getting-items-in-batches/
+        
+        Example:
+            for n in (3, 4, 5, 6):
+                s = tuple(tuple(i) for i in Batch(range(n), 3))
+                print(s)
+        gives
+            ((0, 1, 2),)
+            ((0, 1, 2), (3,))
+            ((0, 1, 2), (3, 4))
+            ((0, 1, 2), (3, 4, 5))
+            
+        Another way of doing this is with slicing (but you'll need to have the whole iterable in memory
+        to do this):
+            def Pick(iterable, size):
+                i = 0
+                while True:
+                    s = iterable[i:i + size]
+                    if not s:
+                        break
+                    yield s
+                    i += size
+        '''
+        def counter(x):
+            counter.n += 1
+            return counter.n // size
+        counter.n = -1
+        for k, g in groupby(iterable, counter):
+            yield g
+    def VisualCount(seq, n=None, char="*", width=None, indent=0):
+        '''Return a list of strings representing a histogram of the items in the iterable seq.  If the
+        values in the sequence can be sorted, the histogram will be shown by increasing item value;
+        otherwise, the items will be shown sorted by frequency.
+        
+        n       Return the n largest items if n is not None.
+        char    String to build the histogram element.
+        width   Fit each element into this width.  If none, use the value of
+                the COLUMNS environment variable or 79 if it isn't defined.
+        indent  Indent each line by this amount.
+        
+        Note:  the width calculations are only correct if the length of the char string is 1.
+        
+        Example:
+            seq = [1,1,1,1,1,8,8,8,9,9,9,9,9,9,9,9,9,9,9]
+            for i in VisualCount(seq, width=40, indent=8):
+                print(i)
+            prints
+                1 *************
+                8 ********
+                9 ******************************
+        '''
+        counts = ItemCount(seq, n=n)
+        try:
+            counts = sorted(counts)  # Sort by item values if possible
+        except TypeError:
+            pass
+        max_obj_len = max([len(str(i[0])) for i in counts])
+        max_count = max([i[1] for i in counts])
+        if width is None:
+            width = int(os.environ.get("COLUMNS", 80)) - 1
+        max_hist_len = width - indent - 1 - max_obj_len
+        assert max_hist_len > 0
+        # Scale counts to fit on screen
+        counts = [(i, int(j / max_count * max_hist_len)) for i, j in counts]
+        # Construct the output list
+        output = []
+        for item, count in counts:
+            s = "{}{:{}s} ".format(" " * indent, str(item), max_obj_len)
+            output.append(s + char * count)
+        return output
+    def hyphen_range(s):
+        '''Takes a set of range specifications of the form "a-b" and returns a list of
+        integers between a and b inclusive.  The string s will be separated on whitespace
+        after commas are replaced by spaces.
+        
+        See unrange() for doing the opposite thing.
+        
+        Examples:
+            "" returns []
+            "1" returns [1]
+            "2 3 4" returns [2, 3, 4]
+            "2-4" returns [2, 3, 4]
+            "4 3 2" returns [4, 3, 2]
+            "4-2" returns [4, 3, 2]
+            "1--2" returns [1, 0, -1, -2]
+            "-1--3" returns [-1, -2, -3]
+            "-3--1" returns [-3, -2, -1]
+            "1-3 5 10-8" returns [1, 2, 3, 5, 10, 9, 8]
+        '''
+        if not isinstance(s, str):
+            raise TypeError("s must be a string")
+        msg = f"{0!r} is of improper form"
+        fields, o = s.replace(",", " ").split(), []
+        for item in fields:
+            # See if it's a single integer
+            try:
+                o.append(int(item))
+                continue
+            except Exception:
+                pass
+            if item.startswith("-"):
+                n = item.count("-")
+                # It must have at least 2 hyphens in it, otherwise it would have been caught
+                # as an integer (unless e.g. it's a float or bad syntax)
+                if n < 2 or n > 3:
+                    raise ValueError(msg.format(item))
+                f = item[1:].split("-", maxsplit=1)
+                try:
+                    num1 = int("-" + f[0])
+                    num2 = int(f[1])
+                    if num1 <= num2:
+                        o.extend(list(range(num1, num2 + 1)))
+                    else:
+                        o.extend(list(range(num1, num2 - 1, -1)))
+                except Exception:
+                    raise ValueError(msg.format(item))
+            else:
+                f = item.split("-", maxsplit=1)
+                try:
+                    num1, num2 = [int(i) for i in f]
+                    if num1 <= num2:
+                        o.extend(list(range(num1, num2 + 1)))    
+                    else:
+                        o.extend(list(range(num1, num2 - 1, -1)))
+                except Exception:
+                    raise ValueError(msg.format(item))
+        return o
+    def unrange(seq, sort_first=False, sep="─"):   # Note ─ is required for e.g. -4 to -1
+        '''Turn a sequence of integers seq into a collection of ranges and return as a string.  It
+        provides a string summary of the ranges in the sequence.  See unrange_real() for sequences of
+        real numbers.
+        
+        If sort_first is True, the sequence is sorted before processing.  The sep string is used to
+        separate a number range.
+        
+        Examples: | represents the sep character
+            seq = [1, 5, 6, 7, 3, 4, 8, 10, 11, 12]
+            unrange(seq, sort_first=True)  outputs 1 3|8 10|12
+            unrange(seq, sort_first=False) outputs 1 5|7 3|4 8 10|12
+            seq = [-1, -5, -6, -7, -3, -4, -8, -10, -11, -12]
+            unrange(seq, sort_first=True)  outputs -12|-10 -8|-3 -1
+            unrange(seq, sort_first=False) outputs -1 -5 -6 -7 -3 -4 -8 -10 -11 -12
+        '''
+        if not seq:
+            return ""
+        dq = deque(sorted(seq)) if sort_first else deque(seq)
+        in_sequence = False
+        lastx = dq.popleft()
+        out = [lastx]
+        while dq:
+            x = dq.popleft()
+            if not isinstance(x, int):
+                raise TypeError(f"{x!r} is not an integer")
+            if not in_sequence and x == out[-1] + 1:
+                in_sequence = True
+            elif in_sequence:
+                if x != lastx + 1:
+                    in_sequence = False
+                    out.extend([sep, lastx])
+                    # Restart for the next range
+                    out.append(x)
+            else:
+                out.append(x)
+            lastx = x
+        if in_sequence:
+            out.extend([sep, lastx])
+        s = " ".join([str(i) for i in out])
+        u = s.replace(" " + sep + " ", sep)
+        return u
+    def unrange_real(seq, sort_first=False, sep="┅"):
+        '''Turn a sequence of numbers seq into a collection of ranges and return as a string.  It
+        provides a string summary of the ranges in the sequence.  See unrange() for sequences of
+        integers.
+        
+        If sort_first is True, the sequence is sorted before processing.  The sep string is used to
+        separate a number range.
+        
+        Note:  no knowledge about the sequence elements being real numbers is used; the only
+        operation used is ordering by the >= operator.  Thus, any sequence of items that can be
+        ordered by >= can be converted to a range.
+        
+        Examples:
+            seq = [1.0, 2.2, 3.1, 2.7, 8.1]
+            unrange_real(seq, sort_first=True)  outputs 1.0┅8.1
+            unrange_real(seq, sort_first=False) outputs 1.0┅3.1 2.7┅8.1
+        '''
+        if not seq:
+            return ""
+        dq = deque(sorted(seq)) if sort_first else deque(seq)
+        out, seq = [], []
+        while dq:
+            x = dq.popleft()
+            seq = [x]
+            while dq and dq[0] >= seq[-1]:
+                seq.append(dq.popleft())
+            s = f"{seq[0]}"
+            if len(seq) > 1:
+                s += f"{sep}{seq[-1]}"
+            out.append(s)
+            if not dq:
+                break  # Finished
+        return " ".join(out)
+    def Unique(seq):
+        '''Generator to return only the unique elements in sequence.  The order of the items in the
+        sequence is maintained.
+        '''
+        found = set()
+        for item in seq:
+            if item in found:
+                continue
+            else:
+                found.add(item)
+                yield item
+    def transpose(seq, typ=list, check=False):
+        '''Return the transpose of a nested two-dimensional sequence, such as an n x m matrix.
+        len(seq) is n and len(seq[i]) is m for i in range(0, n).
+        
+        typ:  The returned sequence will be of type typ, with each nested sequence also of type typ.
+        
+        check:  If check is True, then checks are made on seq to ensure it's of proper type.
+            If checks are not satisfied, a ValueError exception is raised.  I recommend not
+            using checking in production code because copies of seq are made, using up
+            memory.
+            
+        Example:
+            data = [[1, 2],
+                    [3, 4],
+                    [5, 6]]
+            transpose(data) --> [[1, 3, 5],
+                                [2, 4, 6]]
+                            
+        '''
+        if check:
+            # seq can't be a string, set, or dict
+            if isinstance(seq, (str, dict, set)):
+                raise TypeError("seq cannot be a string, set, or dictionary")
+            # seq must be an iterable
+            try:
+                iter(seq)
+            except TypeError:
+                raise TypeError("seq is not an iterable")
+            # seq must be an n x m nested sequence
+            nrows = len(seq)  # Number of rows
+            try:
+                ncols = len(seq[0])  # Number of columns
+            except Exception:
+                if seq:  # Empty sequence ok
+                    raise TypeError("seq[0] is not a sequence")
+            # Look for extra dimensionality
+            if seq:
+                num_elements = nrows * ncols
+                if len(Flatten(seq)) != num_elements:
+                    raise TypeError(
+                        "seq is not a proper 2D nested list representing a matrix"
+                    )
+            # Each sequence in seq must have the same length
+            if seq and not all(len(i) == ncols for i in seq):
+                raise TypeError(f"seq row lengths not all {ncols}")
+        if not seq:
+            return typ(seq)
+        # There are two algorithms here:  one using map and the other using zip.  I prefer
+        # using zip because the strict keyword gives us some automatic checking.  Using
+        # timeit, measurements show that transposing a 20x10 matrix of floats takes 2.5 μs
+        # for the zip implementation and 3.4 μs for the map implementation, so zip is the
+        # default.
+        if 1:
+            seqT = typ(typ(j) for j in zip(*[typ(i) for i in seq], strict=True))
+        else:
+            seqT = typ(map(lambda *x: typ(x), *seq))
+        if check:  # transpose(seqT) == seq
+            orig = list(map(list, seq))
+            tseq = transpose(seqT, typ=list)
+            Assert(orig == tseq)
+        return seqT
+    def Ranges(seq, validate=False):
+        '''seq is a sequence of integers.  This function will return the sequence as a
+        list of either 2-tuples or single integers.  The 2-tuples represent the
+        arguments to range() to reproduce the original sequence of integers.  If
+        validate is True, the returned list will be validated by reproducing the
+        original sequence.
+        
+        Examples
+            [1, 2, 3, 5] --> [(1, 4), 5]
+            [1, 3, 2, 5] --> [1, 3, 2, 5]
+        
+        The intended use case is a form of "compression" for long sequences and an index
+        case is the set of Unicode codepoints, where I wanted to see how much shorter
+        such a representation is than the set of integers.
+        
+        The algorithm is derived from 
+        https://stackoverflow.com/questions/3429510/pythonic-way-to-convert-a-list-\
+        of-integers-into-a-string-of-comma-separated-range/3430231#3430231
+        and is the 7 Aug 2010 answer due to John La Rooy.  It's a neat solution and I 
+        thank La Rooy and StackOverflow for posting the answer.
+        
+            Content of above link
+            # Source - https://stackoverflow.com/a
+            # Posted by John La Rooy, modified by community. See post 'Timeline' for change history
+            # Retrieved 2026-01-18, License - CC BY-SA 2.5
+        
+            >>> from itertools import count, groupby
+            >>> L=[1, 2, 3, 4, 6, 7, 8, 9, 12, 13, 19, 20, 22, 23, 40, 44]
+            >>> G=(list(x) for _,x in groupby(L, lambda x,c=count(): next(c)-x))
+            >>> print ",".join("-".join(map(str,(g[0],g[-1])[:len(g)])) for g in G)
+            1-4,6-9,12-13,19-20,22-23,40,44
+        
+        Note 18 Jan 2026:  this function was broken when the selftests ran.  I attribute the
+        cause to 'ruff check' telling me to get rid of the lambda function I had; so I
+        defined the function f(x, c) instead and the linter was happy.  But things broke a
+        week or so later when I ran the self tests.  Thus, I'll use the original code with
+        the lambda in the generator.
+        
+        '''
+        if validate:
+            orig = list(seq)    # Copy of original sequence
+        # Make sure all the elements of seq are integers
+        if not all(isinstance(i, int) for i in seq):
+            raise TypeError("Not all elements of seq are integers")
+        # This is the same code used in the StackOverflow solution, substituting seq for L.
+        # And things work again.
+        G = (list(x) for _,x in groupby(seq, lambda x,c=count(): next(c)-x))
+        # Convert into pairs of numbers for range()
+        o = []
+        for i in list(G):
+            o.append((i[0], i[-1] + 1)) if len(i) > 1 else o.append(i[0])
+        if validate:
+            p = []
+            for i in o:
+                p.append(list(range(i[0], i[1]))) if isinstance(i, tuple) else p.append(i)
+            if Flatten(p) != orig:
+                raise ValueError("Validation failed")
+        return o
+    class PPSeq:
+        '''Format sequences for pretty printing
+        Floats must be in [0, 1].
+        
+        Example:
+            p = PPSeq(bits_per_number=32)
+            a = [.4, .12, .33, .16000]
+            print(p(a))
+        prints
+            [0.4000000000, 0.1200000000, 0.3300000000, 0.1600000000]
+        '''
+        def __init__(self, bits_per_number=8):
+            self._bpn = bits_per_number
+        def __call__(self, seq, **kw):
+            "Return a pretty string form of seq"
+            # Get keyword arguments
+            exp = kw.get("exp", False)  # Show bits exponent
+            brackets = kw.get("brackets", True)  # Enclose in brackets
+            comma = kw.get("comma", True)  # Separate with commas
+            sep = kw.get("sep", " ")  # Element separation string
+            # Get the container type and decorators
+            if isinstance(seq, tuple):
+                left, right = "(", ")"
+            elif isinstance(seq, list):
+                left, right = "[", "]"
+            elif isinstance(seq, set):
+                left, right = "{", "}"
+            elif isinstance(seq, deque):
+                left, right = "<", ">"
+            elif isinstance(seq, bytes):
+                left, right = "«", "»"
+            else:
+                raise TypeError("Unsupported container type")
+            x = self.get_element(seq)
+            # Must be an iterable
+            if not IsIterable(seq):
+                raise TypeError("seq isn't an iterable")
+            # Must contain a supported type
+            if not self.is_monotype(seq):
+                raise TypeError("seq doesn't contain only one numerical type")
+            # Get strings
+            if isinstance(x, int):
+                myseq = [self.format(i) for i in seq]
+            else:
+                myseq = [self.format(float(i)) for i in seq]
+            s = "," if comma else ""
+            s += sep
+            t = s.join(myseq)
+            if brackets:
+                t = f"{left}{t}{right}"
+                if exp:
+                    u = "⁰¹²³⁴⁵⁶⁷⁸⁹"
+                    t += "".join(u[int(i)] for i in str(self._bpn))
+            return t
+        def get_element(self, seq):
+            if isinstance(seq, tuple):
+                return seq[0]
+            elif isinstance(seq, list):
+                return seq[0]
+            elif isinstance(seq, set):
+                x = seq.pop()
+                seq.add(x)
+                return x
+            elif isinstance(seq, deque):
+                x = seq.pop()
+                seq.append(x)
+                return x
+            elif isinstance(seq, bytes):
+                return seq[0]
+        def format(self, x):
+            "Return the string form of number x (float or int)"
+            if isinstance(x, int):
+                w = len(str((2**self._bpn - 1)))
+                return f"{x:{w}d}"
+            else:
+                assert 0 <= x <= 1
+                # Get the number of decimal places to display this float
+                w = math.ceil(-math.log10(1 / (2**self._bpn - 1)))
+                return f"{x:{w + 2}.{w}f}"
+        def is_monotype(self, seq):
+            "Return True if seq contains only one supported type"
+            x = self.get_element(seq)
+            # Check the type of each element
+            typ = type(x)
+            if not all(type(i) is typ for i in seq):
+                return False
+            # Make sure they are of the allowed types
+            if not isinstance(x, (int, float, Decimal, Fraction)):
+                try:
+                    float(x)
+                except Exception:
+                    return False
+            return True
+    def Paste(*seq, missing="", sep="\t"):
+        '''Return a list whose elements are each corresponding element of the sequences in *seq,
+        separated by the string sep.  If a sequence is too short, the missing string will be
+        substituted.  All sequence elements will be converted to strings using str().
+        
+        Example:
+            Paste([1, 2, "a"], ["3 4", 5], missing="X")
+        will return
+            ['1\t3 4', '2\t5', 'a\tX']
+        '''
+        result = list(zip_longest(*seq, fillvalue=missing))
+        for i, item in enumerate(result):  # Convert all elements to strings
+            result[i] = [str(j) for j in result[i]]
+        return [sep.join(i) for i in result]
+    def ItemCount(seq, n=None):
+        '''Return a sorted list of (item, count) in the iterable seq, with the highest count first in
+        the list.  If n is given, only return the largest n counts.  The items in seq must be
+        hashable.
+        
+        Example:
+        If a = (1, 1, 1, 2, 3, 4, 4, 5, 5, 5, 5, 5), then ItemCount(a)
+        returns [(5, 5), (1, 3), (4, 2), (2, 1), (3, 1)].
+        
+        If a = (1.0, 1, 1, 2, 3, 4, 4, 5, 5, 5, 5, 5), then ItemCount(a)
+        returns [(5, 5), (1.0, 3), (4, 2), (2, 1), (3, 1)].
+        
+        Note that 1, 1.0, and Fraction(1, 1) hash to the same value; since a dictionary is used as the
+        counting container, these are considered to be the same items.  Thus, you can get syntactically
+        different results that are semantically the same.
+        '''
+        items = defaultdict(int)
+        for item in seq:
+            items[item] += 1
+        s = sorted(items.items(), key=itemgetter(1), reverse=True)
+        return s if n is None else s[:n]
+    def IsIterable(x, ignore_strings=True):
+        '''Return True if x is an iterable.  You can exclude strings from the things that can be
+        iterated on if you wish.
+        
+        Note:  if you don't care whether x is a string or not, a simpler way
+        is:
+            try:
+                iter(x)
+                return True
+            except TypeError:
+                return False
+        '''
+        if ignore_strings and isinstance(x, str):
+            return False
+        return isinstance(x, Iterable)
+    def IsHomogeneous(seq):
+        "Return True if seq is homogeneous"
+        if not seq:
+            return True
+        typ = type(seq[0])
+        return all(type(i) is typ for i in seq)
+    def grouper(data, mapper, reducer=None):
+        '''Simple map/reduce for data analysis.
+        
+        Each data element is passed to a *mapper* function.  The mapper returns key/value pairs or None
+        for data elements to be skipped.
+        
+        Returns a dict with the data grouped into lists.  If a *reducer* is specified, it aggregates
+        each list.
+        
+        >>> def even_odd(elem):                     # sample mapper
+        ...     if 10 <= elem <= 20:                # skip elems outside the range
+        ...         key = elem % 2                  # group into evens and odds
+        ...         return key, elem
+        
+        >>> grouper(range(30), even_odd)         # show group members
+        {0: [10, 12, 14, 16, 18, 20], 1: [11, 13, 15, 17, 19]}
+        
+        >>> grouper(range(30), even_odd, sum)    # sum each group
+        {0: 90, 1: 75}
+        
+        Note:  from http://code.activestate.com/recipes/577676-dirt-simple-mapreduce/?in=lang-python I
+        renamed the function to grouper.
+        '''
+        d = {}
+        for elem in data:
+            r = mapper(elem)
+            if r is not None:
+                key, value = r
+                if key in d:
+                    d[key].append(value)
+                else:
+                    d[key] = [value]
+        if reducer is not None:
+            for key, group in d.items():
+                d[key] = reducer(group)
+        return d
+    def Flatten_generator(seq, ltypes=(list, tuple)):
+        '''A generator that will return a flattened sequence from seq.  If an element in seq
+        is of one of the types in ltypes, then it's considered to be a sequence; otherwise,
+        it's a scalar element.
+        
+        The method is a nice use of a deque from
+        https://dev.to/miguendes/5-different-ways-to-flatten-a-list-of-lists-in-python-2cmn
+        The algorithm is:
+        
+        - dq = deque()
+        - Iterate through each element e of seq
+        - If e is not one of ltypes
+            - Append e to left of dq
+        - else
+            - dq.extendleft(reversed(e))
+        - Note:  reversing is needed because of the way extendleft works:
+            >>> dq = deque()
+            >>> dq.extendleft([1, 2, 3])
+            >>> dq
+            deque([3, 2, 1]
+        - Now iterate over the deque by popping the leftmost element e; if it's not an
+        ltypes, yield it; otherwise extendleft(reversed(e)).
+        '''
+        dq = deque()
+        for item in seq:
+            if isinstance(item, ltypes):
+                dq.extendleft(reversed(item))
+            else:
+                dq.appendleft(item)
+            while dq:
+                elem = dq.popleft()
+                if isinstance(elem, ltypes):
+                    dq.extendleft(reversed(elem))
+                else:
+                    yield elem
+    def Flatten(L, max_depth=None, ltypes=(list, tuple)):
+        '''Flatten every sequence in L whose type is contained in "ltypes" to "max_depth" levels down
+        the tree.  The sequence returned has the same type as the input sequence.
+        
+        Written by Kevin L. Sitze on 2010-11-25.  From
+        http://code.activestate.com/recipes/577470-fast-flatten-with-depth-control-and-oversight-over/?in=lang-python
+        This code may be used pursuant to the MIT License.
+        
+        Note:  itertools has a flatten() recipe that flattens one level:
+        
+            def flatten(listOfLists):
+                'Flatten one level of nesting'
+                return chain.from_iterable(listOfLists)
+                
+        but every element encountered needs to be an iterable.  This Flatten() function works more
+        generally.
+        '''
+        if max_depth is None:
+            def make_flat(x):
+                return True
+        else:
+            def make_flat(x):
+                return max_depth > len(x)
+        if callable(ltypes):
+            is_sequence = ltypes
+        else:
+            def is_sequence(x):
+                return isinstance(x, ltypes)
+        r, s = [], []
+        s.append((0, L))
+        while s:
+            i, L = s.pop()
+            while i < len(L):
+                while is_sequence(L[i]):
+                    if not L[i]:
+                        break
+                    elif make_flat(s):
+                        s.append((i + 1, L))
+                        L = L[i]
+                        i = 0
+                    else:
+                        r.append(L[i])
+                        break
+                else:
+                    r.append(L[i])
+                i += 1
+        try:
+            return type(L)(r)
+        except TypeError:
+            return r
+    def GetSize(obj, seen=None):
+        'Recursively finds size of objects in bytes'
+        # Taken from https://github.com/bosswissam/pysize/blob/master/pysize.py
+        size = sys.getsizeof(obj)
+        if seen is None:
+            seen = set()
+        obj_id = id(obj)
+        if obj_id in seen:
+            return 0
+        # Important mark as seen *before* entering recursion to gracefully handle
+        # self-referential objects
+        seen.add(obj_id)
+        if hasattr(obj, '__dict__'):
+            for cls in obj.__class__.__mro__:
+                if '__dict__' in cls.__dict__:
+                    d = cls.__dict__['__dict__']
+                    if inspect.isgetsetdescriptor(d) or inspect.ismemberdescriptor(d):
+                        size += GetSize(obj.__dict__, seen)
+                    break
+        if isinstance(obj, dict):
+            size += sum((GetSize(v, seen) for v in obj.values()))
+            size += sum((GetSize(k, seen) for k in obj.keys()))
+        elif hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes, bytearray)):
+            try:
+                size += sum((GetSize(i, seen) for i in obj))
+            except TypeError:
+                raise TypeError(f"nable to get size of {obj}")
+        if hasattr(obj, '__slots__'): # can have __slots__ with __dict__
+            size += sum(GetSize(getattr(obj, s), seen) for s in obj.__slots__ if hasattr(obj, s))
+        return size
+    def GroupByN(seq, n, fill=False):
+        '''Return an iterator that gives groups of n items from the sequence.  If fill is True, return
+        None for any missing items.  In other words, if fill is False, groups without the full number
+        of elements are discarded.
+        
+        Example:
+            print("fill = False:")
+            for i in GroupByN(range(7), 3, fill=False):
+                print("  ", i)
+            print("fill = True:")
+            for i in GroupByN(range(7), 3, fill=True):
+                print("  ", i)
+        prints
+            fill = False:
+            (0, 1, 2)
+            (3, 4, 5)
+            fill = True:
+            (0, 1, 2)
+            (3, 4, 5)
+            (6, None, None)
+        ∞∞2 See grouper() recipe in itertools docs
+        '''
+        # Inspired by http://code.activestate.com/recipes/303060-group-a-list-into-sequential-n-tuples
+        if fill:
+            return zip_longest(*([iter(seq)] * n), fillvalue=None)
+        else:
+            return zip(*([iter(seq)] * n))
 
 if __name__ == "__main__":
     if 1:  # Standard imports
@@ -923,6 +1628,11 @@ if __name__ == "__main__":
             Assert(RGB == (7, 255, 218))
             RGB = tuple(Clamp((int(i*256) for i in rgb), low=0, high=255, typ=D))
             Assert(RGB == (D(7), D(255), D(218)))
+        def Test_Batch():
+            s = "0123456789"
+            r = ("012", "345", "678", "9")
+            for i, b in enumerate(Batch(s, 3)):
+                Assert(r[i] == "".join(list(b)))
     if 1:  # Testing frange etc. stuff
         if 1:  # Global variables
             n, N = 10, 100000  # "Large" numbers
@@ -1109,6 +1819,364 @@ if __name__ == "__main__":
             # Note integers can be coerced to fractions
             got = list(ifrange(0, 1, R(1, 8)))
             expected = [Fraction(i) for i in "0 1/8 1/4 3/8 1/2 5/8 3/4 7/8".split()]
+            Assert(got == expected)
+    if 1:   #Testing for old util stuff
+        def Test_GroupByN():
+            n, m = 5, 3
+            s = range(n)
+            t = ((0, 1, 2),)
+            Assert(t == tuple(GroupByN(s, m, fill=False)))
+            t = ((0, 1, 2), (3, 4, None))
+            Assert(t == tuple(GroupByN(s, m, fill=True)))
+        def Test_GetSize():
+            # Run a few simple cases from pysize's tests (I ran the full set of tests before
+            # utilizing the code.  From https://github.com/bosswissam/pysize
+            #
+            # Empty sequences
+            for i in ([], (), deque(), set()):
+                Assert(sys.getsizeof(i) == GetSize(i))
+            # list of collections
+            collection_list = [[], {}, ()]
+            pointer_byte_size = 8*len(collection_list)
+            empty_list_size = sys.getsizeof([])
+            empty_tuple_size = sys.getsizeof(())
+            empty_dict_size = sys.getsizeof({})
+            expected_size = empty_list_size*2 + empty_tuple_size + empty_dict_size + pointer_byte_size
+            assert_equal(expected_size, GetSize(collection_list))
+            # no double counting
+            rep = ["test1"]
+            obj = [rep, rep]
+            obj2 = [rep]
+            assert_equal(GetSize(obj), GetSize(obj2) + 8)
+            # gracefully handles self referential objects
+            class Test(object):
+                pass
+            obj = Test()
+            obj.prop = obj
+            obj2 = Test()
+            assert_equal(GetSize(obj), GetSize(obj.prop))
+            # strings_pv3_compat
+            test_string = "abc"
+            assert_equal(sys.getsizeof(test_string), GetSize(test_string))
+            # custom_class
+            class Point(object):
+                def __init__(self, x, y):
+                    self.x = x
+                    self.y = y
+            point = Point(3, 4)
+            assert_equal(GetSize(point),
+                        sys.getsizeof(point) +
+                        sys.getsizeof(point.__dict__) +
+                        sys.getsizeof('x') +
+                        sys.getsizeof(3) +
+                        sys.getsizeof('y') +
+                        sys.getsizeof(4))
+            # namedtuple
+            Point = namedtuple('Point', ['x', 'y'])
+            point = Point(3, 4)
+            assert_equal(GetSize(point),
+                            sys.getsizeof(point) +
+                            sys.getsizeof(3) +
+                            sys.getsizeof(4))
+            # st_subclass_of_namedtuple
+            class Point(namedtuple('Point', ['x', 'y'])):
+                pass
+            point = Point(3, 4)
+            assert_equal(GetSize(point),
+                            sys.getsizeof(point) +
+                            sys.getsizeof(point.__dict__) +
+                            sys.getsizeof(3) +
+                            sys.getsizeof(4))
+            # subclass_of_namedtuple_with_slots
+            class Point(namedtuple('Point', ['x', 'y'])):
+                __slots__ = ()
+            point = Point(3, 4)
+            assert_equal(GetSize(point),
+                            sys.getsizeof(point) +
+                            sys.getsizeof(3) +
+                            sys.getsizeof(4))
+            # slots
+            class slots1(object):
+                __slots__ = ["number1"]
+                def __init__(self, number1):
+                    self.number1 = number1
+            class slots2(object):
+                __slots__ = ["number1", "number2"]
+                def __init__(self, number1,number2):
+                    self.number1 = number1
+                    self.number2 = number2
+            class slots3(object):
+                __slots__ = ["number1", "number2", "number3"]
+                def __init__(self, number1, number2, number3):
+                    self.number1 = number1
+                    self.number2 = number2
+                    self.number3 = number3
+            s1 = slots1(7)
+            s2 = slots2(3, 4)
+            s3 = slots3(4, 5, 6)
+            version_addition = 0
+            if hasattr(sys.version_info, 'major') and sys.version_info.major == 3:
+                version_addition = 4
+            # base 40 for the class, 28 per integer, +8 per element
+            assert_equal(GetSize(s2), GetSize(s1) + 28 + 4 + version_addition)
+            assert_equal(GetSize(s3), GetSize(s2) + 28 + 4 + version_addition)
+            assert_equal(GetSize(s3), GetSize(s1) + 56 + 8 + version_addition * 2) # *2 for the num of variables in difference
+        def Test_Flatten():
+            t.print(f"{t.orn}{__file__}:Test_Flatten needs implementation")
+            #raise Exception("Needs implementation")
+        def Test_grouper():
+            def even_odd(elem):  # sample mapper
+                if 10 <= elem <= 20:  # skip elems outside the range
+                    key = elem % 2  # group into evens and odds
+                    return key, elem
+            got = grouper(range(30), even_odd)
+            expected = {0: [10, 12, 14, 16, 18, 20], 1: [11, 13, 15, 17, 19]}
+            Assert(got == expected)
+            got = grouper(range(30), even_odd, sum)
+            expected = {0: 90, 1: 75}
+            Assert(got == expected)
+        def Test_IsHomogeneous():
+            a = [1, 2, 3]
+            Assert(IsHomogeneous(a))
+            a[1] = 2.0
+            Assert(not IsHomogeneous(a))
+        def Test_IsIterable():
+            Assert(IsIterable("", ignore_strings=False))
+            Assert(not IsIterable("", ignore_strings=True))
+            Assert(IsIterable([]) and IsIterable(()))
+            Assert(IsIterable({}) and IsIterable(set()))
+            Assert(not IsIterable(3))
+            Assert(not IsIterable("a"))
+            Assert(IsIterable([]))
+            Assert(IsIterable((0,)))
+            Assert(IsIterable(iter((0,))))
+            Assert(not IsIterable(0))
+        def Test_ItemCount():
+            f, F = ItemCount, Fraction
+            raises(Exception, f, 1)
+            raises(Exception, f, 1.0)
+            raises(Exception, f, F(1, 1))
+            raises(Exception, f, object())
+            # Empty sequence returns empty string
+            Assert(f([]) == [])
+            # Elementary counting
+            Assert(f([1]) == [(1, 1)])
+            Assert(f([1.0]) == [(1.0, 1)])
+            Assert(f([1, 1]) == [(1, 2)])
+            Assert(f([1, 1, 1]) == [(1, 3)])
+            # Two element types
+            Assert(f([1, 2]) == [(1, 1), (2, 1)])
+            Assert(f([1, 1, 2]) == [(1, 2), (2, 1)])
+            Assert(f([1, 2.0]) == [(1, 1), (2.0, 1)])
+            Assert(f([1.0, 2.0]) == [(1.0, 1), (2.0, 1)])
+            Assert(f([1.0, 2.0, 2]) == [(2.0, 2), (1.0, 1)])
+            Assert(f([1.0, 2, 2.0]) == [(2, 2), (1.0, 1)])
+            Assert(f([1.0, 2, 2.0, F(2, 1)]) == [(2, 3), (1.0, 1)])
+            # Show order can matter.  Thus, the results can be syntactically
+            # different but semantically the same.
+            Assert(f([1, 2, 1, 2]) == [(1, 2), (2, 2)])
+            Assert(f([2, 1, 1, 2]) == [(2, 2), (1, 2)])
+            Assert(f([2, 1, F(1, 1), 2]) == [(2, 2), (1, 2)])
+            # Item type also matters
+            Assert(f([1, F(1, 1)]) == [(1, 2)])
+            Assert(f([1.0, F(1, 1)]) == [(1.0, 2)])
+            Assert(f([F(1, 1), 1.0]) == [(F(1, 1), 2)])
+            Assert(f([F(1, 1), 1]) == [(F(1, 1), 2)])
+            # Fractions
+            Assert(f([F(1, 2), 1]) == [(F(1, 2), 1), (1, 1)])
+            Assert(f([F(1, 2), F(1, 2)]) == [(F(1, 2), 2)])
+            # Show that it works with strings
+            Assert(f(["a", "b", "a"]) == [("a", 2), ("b", 1)])
+            # Any hashable object can be counted
+            a, b = object(), object()
+            Assert(f([a, b]) == [(a, 1), (b, 1)])
+            # Show the n keyword returns the n largest counts
+            a = [1, 2, 2, 3, 3, 3]
+            Assert(f(a, n=1) == [(3, 3)])
+            Assert(f(a, n=2) == [(3, 3), (2, 2)])
+            Assert(f(a, n=3) == [(3, 3), (2, 2), (1, 1)])
+            Assert(f(a, n=4) == [(3, 3), (2, 2), (1, 1)])
+        def Test_Paste():
+            a = ["a", "b", 1]
+            b = ["d", "e"]
+            c = ["f"]
+            s = Paste(a, b, c)
+            Assert(s == ["a\td\tf", "b\te\t", "1\t\t"])
+        def Test_PPSeq():
+            pp = PPSeq()
+            x = (44, 128, 250)
+            Assert(pp(tuple(x)) == "( 44, 128, 250)")
+            Assert(pp(tuple(x), exp=True) == "( 44, 128, 250)⁸")
+            Assert(pp(list(x)) == "[ 44, 128, 250]")
+            Assert(pp(set(x)) == "{128, 250,  44}")
+            Assert(pp(deque(x)) == "< 44, 128, 250>")
+            Assert(pp(bytes(x)) == "« 44, 128, 250»")
+        def Test_Ranges():
+            # Empty sequence
+            assert Ranges([], validate=False) == []
+            assert Ranges([], validate=True) == []
+            # Simple unsorted sequence
+            seq = [2, 1, -3, 7]
+            r = Ranges(seq)
+            assert r == seq
+            # Algorithm author's example
+            seq = [1, 2, 3, 4, 6, 7, 8, 9, 12, 13, 19, 20, 22, 23, 40, 44]
+            r = Ranges(seq)
+            assert r == [(1, 5), (6, 10), (12, 14), (19, 21), (22, 24), 40, 44]
+            # Equal elements
+            seq = [2, 2, 2, 2]
+            r = Ranges(seq)
+            assert r == seq
+            # Exception cases
+            raises(TypeError, Ranges, [Fraction(1, 2)])
+            raises(TypeError, Ranges, [1.0])
+            raises(TypeError, Ranges, ["1"])
+        def Test_transpose():
+            def TestTransposeEmptySequence():
+                a = []
+                Assert(transpose(a) == a)
+            def TestTransposeExceptions():
+                raises(TypeError, transpose, lambda x: x, check=True)  # Can't be function
+                raises(TypeError, transpose, "a", check=True)  # Can't be string
+                raises(TypeError, transpose, dict(), check=True)  # Can't be dict
+                raises(TypeError, transpose, set(), check=True)  # Can't be set
+                raises(TypeError, transpose, 1, check=True)  # seq must be an iterable
+                raises(TypeError, transpose, [1, [2, 3]], check=True)  # seq[0] has no len
+                a = [[1, 2], [3]]
+                raises(TypeError, transpose, a, check=True)  # Unequal row lengths
+                # Can't be a 3D matrix
+                a = [[[1, 2], [3, 4]], [[5, 6], [7, 8]], [[9, 10], [11, 12]]]
+                raises(TypeError, transpose, a, check=True)  # Not a 2D matrix
+            def TestCommonVectorsAndMatrixes():
+                # Row vector
+                a = [[1, 2, 3]]
+                Assert(transpose(a) == [[1], [2], [3]])
+                Assert(transpose(transpose(a)) == a)
+                # Column vector
+                a = [[1], [2], [3]]
+                Assert(transpose(a) == [[1, 2, 3]])
+                Assert(transpose(transpose(a)) == a)
+                # 2x3 to 3x2 to 2x3
+                a = [list("abc"), list("def")]
+                Assert(transpose(a) == [list("ad"), list("be"), list("cf")])
+                Assert(transpose(transpose(a)) == a)
+                # 2x2 to 2x2 to 2x2
+                a = [list("ab"), list("cd")]
+                Assert(transpose(a) == [list("ac"), list("bd")])
+                Assert(transpose(transpose(a)) == a)
+            def TestGetDesiredType():
+                a = ((1, 2), (3, 4))
+                b = transpose(a)
+                # List of list by default
+                Assert(isinstance(b, list))
+                Assert(isinstance(b[0], list))
+                Assert(isinstance(b[1], list))
+                Assert(isinstance(b, list))
+                # Tuple if you ask for it
+                b = transpose(a, typ=tuple)
+                Assert(isinstance(b[0], tuple))
+                Assert(isinstance(b[1], tuple))
+                Assert(isinstance(b, tuple))
+            def TestTransposeOfTransposeIsOriginal():
+                # With tuple
+                a = ((1, 2), (3, 4))
+                b = transpose(a)
+                c = transpose(b, typ=tuple)
+                Assert(a == c)
+                # With list
+                a = [[1, 2], [3, 4]]
+                b = transpose(a)
+                c = transpose(b)
+                Assert(a == c)
+            TestTransposeEmptySequence()
+            TestTransposeExceptions()
+            TestCommonVectorsAndMatrixes()
+            TestGetDesiredType()
+            TestTransposeOfTransposeIsOriginal()
+        def Test_Unique():
+            def f(x):
+                return list(Unique(x))
+            Assert(f([]) == [])
+            Assert(f([1, 1, 1]) == [1])
+            Assert(f([1, 2, 1]) == [1, 2])
+            Assert(tuple(Unique([1, 2, 1])) == (1, 2))
+            Assert(f(["Mon", "Tue", 1, "Tue"]) == ["Mon", "Tue", 1])
+            Assert(f(["Mon", "Tue", 1, "Tue"]) != ["Mon", 1, "Tue"])
+        def Test_unrange_real():
+            sep, f = "┅", unrange_real
+            s = f([], sort_first=False)
+            Assert(s == "")
+            s = f([1], sort_first=False)
+            Assert(s == "1")
+            s = f([1, 2], sort_first=False)
+            Assert(s == f"1{sep}2")
+            s = f([1, 2, 4], sort_first=False)
+            Assert(s == f"1{sep}4")
+            s = f([1, 3, 4, 5, 6, 7, 8, 10, 11, 12], sort_first=False)
+            Assert(s == f"1{sep}12")
+            n = 10000
+            s = f(range(1, n), sort_first=False)
+            Assert(s == f"1{sep}{n - 1}")
+            s = f([float(i) for i in range(1, n)], sort_first=False)
+            Assert(s == f"1.0{sep}{float(n - 1)}")
+            s = f([1.0], sort_first=False)
+            Assert(s == "1.0")
+            s = f([float(i) for i in range(1, n)], sort_first=False)
+            Assert(s == f"1.0{sep}{float(n - 1)}")
+            s = f([1.0, 2.2, 3.1, 2.7, 8.1], sort_first=False)
+            Assert(s == f"1.0{sep}3.1 2.7{sep}8.1")
+            s = f([1.0, 2.2, 3.1, 2.7, 8.1], sort_first=True)
+            Assert(s == f"1.0{sep}8.1")
+        def Test_unrange():
+            sep, f = "┅", unrange
+            s = f([], sort_first=False, sep=sep)
+            Assert(s == "")
+            s = f([1], sort_first=False, sep=sep)
+            Assert(s == "1")
+            s = f([1, 2], sort_first=False, sep=sep)
+            Assert(s == f"1{sep}2")
+            s = f([1, 2, 4], sort_first=False, sep=sep)
+            Assert(s == f"1{sep}2 4")
+            s = f([1, 3, 4, 5, 6, 7, 8, 10, 11, 12], sort_first=False, sep=sep)
+            Assert(s == f"1 3{sep}8 10{sep}12")
+            n = 10000
+            s = f(range(1, n), sort_first=False, sep=sep)
+            Assert(s == f"1{sep}{n - 1}")
+            seq = [-i for i in (1, 3, 4, 5, 6, 7, 8, 10, 11, 12)]
+            s = f(seq, sort_first=False, sep=sep)
+            Assert(s == "-1 -3 -4 -5 -6 -7 -8 -10 -11 -12")
+            s = f(seq, sort_first=True, sep=sep)
+            Assert(s == f"-12{sep}-10 -8{sep}-3 -1")
+        def Test_hyphen_range():
+            for s, expected in (
+                    ("", []),
+                    ("1", [1]),
+                    ("2 3 4", [2, 3, 4]),
+                    ("2-4", [2, 3, 4]),
+                    ("4 3 2", [4, 3, 2]),
+                    ("4-2", [4, 3, 2]),
+                    ("1--2", [1, 0, -1, -2]),
+                    ("-1--3", [-1, -2, -3]),
+                    ("-3--1", [-3, -2, -1]),
+                    ("1-3 5 10-8", [1, 2, 3, 5, 10, 9, 8])):
+                Assert(hyphen_range(s) == expected)
+            
+            # Things that give exceptions
+            raises(TypeError, hyphen_range, 0)
+            raises(TypeError, hyphen_range, 1.0)
+            raises(ValueError, hyphen_range, "1.0")
+            raises(ValueError, hyphen_range, "2-1.0")
+            raises(ValueError, hyphen_range, "1/2")
+            raises(ValueError, hyphen_range, "2-1/2")
+            raises(ValueError, hyphen_range, "-1---2")
+        def Test_VisualCount():
+            s = (1, 1, 1, 2, "a", "a", (1, 2))
+            got = "\n".join(VisualCount(s, width=20))
+            expected = dedent('''
+            1      *************
+            a      ********
+            2      ****
+            (1, 2) ****''')
             Assert(got == expected)
     GetColors()
     exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])

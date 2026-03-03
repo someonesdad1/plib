@@ -113,7 +113,7 @@ if 1:  # Header
     if 1:  # Standard imports
         pass
     if 1:  # Custom imports
-        from util import IsIterable
+        from dpseq import IsIterable
 if 1:  # Utility
     def Dot(a, b, n=None):
         'Dot product of two sequences (n is number of decimal places to round to)'
