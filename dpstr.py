@@ -1776,6 +1776,59 @@ if 1:   # Old util stuff
         '''
         r = re.compile(r"(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]")
         return r.sub("", string)
+    def BuildTagsFile(dir, files, verbose=False, dbg=False):
+        '''Construct a tags file for the indicated directory.
+          dir       Directory where the files reside
+          files     Sequence of file names
+          verbose   If True, print where tags file constructed
+          
+        For vim's help files, this is done by searching for text between two asterisk characters
+        and extracting the tag.  This is written to the tags file in the form
+        
+            symbol\tsymbol.hld\t/*symbol*
+            
+        and the file is sorted on these lines.  The first line of the file must be
+        'help-tags\ttags\t1'.
+        '''
+        if not files and verbose:
+            print("BuildTagsFile:  no files found in files sequence", file=sys.stderr)
+            return
+        # Make sure dir is a string or a Path instance
+        Assert(isinstance(dir, (str, Path)))
+        # Make sure files is an iterable
+        Assert(dpseq.IsIterable(files))
+        # Make sure each item in files is a string or Path instance
+        Assert(all(isinstance(i, (str, Path)) for i in files))
+        # Our working directory is an invariant
+        cwd = os.getcwd()
+        # regex is a C-type token name between asterisks
+        r = re.compile(r"\*([A-Za-z_][A-Za-z0-9_]*)\*")
+        tags = ["help-tags\ttags\t1"]
+        # Change to the output directory so there will be no directory names in the file's name
+        os.chdir(dir)
+        for file in files:
+            p = Path(file) if isinstance(file, str) else file
+            for line in p.open().readlines():
+                line = line.rstrip()
+                mo = r.search(line)
+                if mo:
+                    for tag in mo.groups():
+                        t = f"{tag}\t{file}\t/*{tag}*"
+                        tags.append(t)
+                    if dbg:
+                        print(f"tag(s) found in [{file}]:  {line!r}")
+        # Get rid of duplicates
+        tags = list(sorted(list(set(tags))))
+        n = len(tags) - 1
+        # Write the tags file
+        tagsfile = Path("tags")
+        with tagsfile.open("w") as f:
+            f.write("\n".join(tags))
+            f.write("\n")
+        if verbose:
+            print(f"{n} tags constructed in {tagsfile.absolute()}")
+        # Go back to the directory we started from
+        os.chdir(cwd)
 
 if __name__ == "__main__":
     import lwtest
@@ -2562,7 +2615,14 @@ if __name__ == "__main__":
             Assert(Len(s) == 6)
             u = ANSI_strip(s)
             Assert(u == "12.578")
-
+    def Test_BuildTagsFile():
+        '''Test this in my ~/.manpages directory where there is a collection of *.hld files.
+        Manual verification has proven the method works, so now running this file is the way to
+        rebuild my ~/.manpages directory's tags file.
+        '''
+        dir = Path("/home/don/.manpages")
+        files = list(dir.glob("*.hld"))
+        BuildTagsFile(dir, files, dbg=False)
     def Demo():
         "Demonstrate the various functions to stdout"
         t.print(f"{t('ornl')}Demo of /plib/dpstr.py functions")

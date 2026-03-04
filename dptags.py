@@ -113,11 +113,8 @@ if 1:  # Core functionality
         and the file is sorted on these lines.  The first line of the file must be
         'help-tags\ttags\t1'.
         '''
-        if not files:
-            if verbose:
-                print(
-                    "BuildTagsFile:  no files found in files sequence", file=sys.stderr
-                )
+        if not files and verbose:
+            print("BuildTagsFile:  no files found in files sequence", file=sys.stderr)
             return
         # Make sure dir is a string or a Path instance
         Assert(isinstance(dir, (str, Path)))
