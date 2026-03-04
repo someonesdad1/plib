@@ -137,17 +137,17 @@ if __name__ == "__main__":
     import sys
     from lwtest import run, raises, Assert
     n = 5
-    def init():
+    def Stack_init():
         "Make a stack with n integers"
         st = Stack()
         for i in range(n):
             st.push(i)
         return st
-    def TestLen():
-        st = init()
+    def Test_Stack_Len():
+        st = Stack_init()
         Assert(len(st) == n)
-    def TestPop():
-        st = init()
+    def Test_Stack_Pop():
+        st = Stack_init()
         R = list(st)
         for i in reversed(R):
             Assert(st.pop() == i)
@@ -156,7 +156,7 @@ if __name__ == "__main__":
         Assert(not st)
         with raises(IndexError):
             st.pop()
-    def TestPush():
+    def Test_Stack_Push():
         st = Stack()
         r = list(range(n))
         for i in r:
@@ -166,16 +166,16 @@ if __name__ == "__main__":
             Assert(st.pop() == i)
         Assert(len(st) == 0)
         Assert(not st)
-    def TestCopy():
+    def Test_Stack_Copy():
         'The copy() method appeared in python 3.5'
         v = sys.version_info
         if v[0] < 3 or (v[0] == 3 and v[1] < 5):
             return
-        st = init()
+        st = Stack_init()
         s = st.copy()
         Assert(st == s)
         Assert(id(st) != id(s))
-    def TestBool():
+    def Test_Stack_Bool():
         'Verify a stack s with one or more elements returns True from bool(s)'
         st = Stack()
         Assert(not bool(st))
@@ -190,24 +190,24 @@ if __name__ == "__main__":
         st.push(9)
         st.clear()
         Assert(not bool(st))
-    def TestClear():
-        st = init()
+    def Test_Stack_Clear():
+        st = Stack_init()
         Assert(len(st) == n)
         st.clear()
         Assert(len(st) == 0)
-    def TestHomogeneity():
+    def Test_Stack_Homogeneity():
         st = Stack(["a", "b"], homogeneous=str)
         Assert(st.homogeneous is str)
         raises(TypeError, st.push, 1)
         st.push("b")
-        st = init()     # Stack of integers; non-homogeneous
+        st = Stack_init()     # Stack of integers; non-homogeneous
         st.push("a")    # Allowed
-    def TestMaxlen():
+    def Test_Stack_Maxlen():
         st = Stack([1, 2], maxlen=2)
         st.push(3)
         Assert(list(st) == [2, 3])
         Assert(st.maxlen == 2)
-    def TestBadOps():
+    def Test_Stack_BadOps():
         st = Stack([1, 2], maxlen=2)
         with raises(NotImplementedError):
             st.append(1)

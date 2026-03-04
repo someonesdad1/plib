@@ -1,8 +1,6 @@
 - Make all the dp*.py files testable by just running them
 
 Reorganization core files
-- dputil
-    - dpprint
 - dptime
     - timer
 - dpphys
