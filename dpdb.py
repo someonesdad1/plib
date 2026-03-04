@@ -51,7 +51,6 @@ if 1:  # Header
         <oo test ∞ notest oo>
         <oo todo ∞ 
         
-            - ∞∞2 Change the debugger so that the command 'pp' calls dpprint.PP()
             - When debugging, the return value string gets truncated with '...'.  This
               can be a pain when e.g. the return value is a ufloat, as you can't see the
               value.  Make it use up the available width or see if a debugger option can

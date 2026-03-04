@@ -22,6 +22,7 @@ if 1:  # Header
         import csv
         import getopt
         import os
+        import pprint
         import re
         import sys
     if 1:   # Custom imports
@@ -29,8 +30,7 @@ if 1:  # Header
         from wrap import dedent
         from color import t
         from columnize import Columnize
-        from dpprint import PP
-        pp = PP()   # Get pprint with current screen width
+        pp = pprint.pprint
         if 0:
             import debug
             debug.SetDebugger()

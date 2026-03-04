@@ -44,10 +44,10 @@ if 1:  # Header
     '''
     if 1:  # Standard imports
         import os
+        import pprint
         import re
     if 1:  # Custom imports
-        from dpprint import PP
-        pp = PP()  # COLUMNS-aware version of pprint.pprint
+        pp = pprint.pprint
 if 1:  # Core functionality
     def Columnize(seq, **kw):
         '''Returns a list of strings with the elements of the sequence seq (if

@@ -19,8 +19,6 @@ if 1:  # Header
         from f import flt
         from lwtest import Assert
         from roundoff import RoundOff
-        from dpprint import PP
-        pp = PP()   # Get pprint with current screen width
         if 0:
             import debug
             debug.SetDebugger()
@@ -149,19 +147,19 @@ if __name__ == "__main__":
         if 1:   # Standard imports
             import getopt
             import os
+            import pprint
             import sys
         if 1:   # Custom imports
             from f import flt
             from wrap import dedent
             from lwtest import Assert
-            from dpprint import PP
             from color import t
             import termtables as tt
-            pp = PP()   # Get pprint with current screen width
             if 0:
                 import debug
                 debug.SetDebugger()
         if 1:   # Global variables
+            pp = pprint.pprint
             class G:
                 pass
             g = G()

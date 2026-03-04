@@ -78,6 +78,7 @@ if 1:   # Header
         import decimal
         import fractions
         import math
+        import pprint
         import sys
         import threading
         Decimal = decimal.Decimal
@@ -87,14 +88,12 @@ if 1:   # Header
         import columnize
         import dpcolornames
         import dpmath
-        import dpprint
         import stack
         import wl2rgb
         Color = color.Color
         Columnize = columnize.Columnize
         Stack = stack.Stack
-        PP = dpprint.PP
-        pp = PP()   # Get pprint with current screen width
+        pp = pprint.pprint
     if 0:
         import debug
         debug.SetDebugger()

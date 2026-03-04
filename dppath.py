@@ -170,11 +170,9 @@ if __name__ == "__main__":
                 {h}/plib/dpmath.py
                 {h}/plib/dppath.py
                 {h}/plib/dpphys.py
-                {h}/plib/dpprint.py
                 {h}/plib/dpseq.py
                 {h}/plib/dpshop.py
                 {h}/plib/dpstr.py
-                {h}/plib/dptags.py
                 {h}/plib/dptime.py
                 {h}/plib/dptypes.py
             '''.split():

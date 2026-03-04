@@ -38,6 +38,7 @@ if 1:  # Header
         from pathlib import Path as P
         import getopt
         import os
+        import pprint
         import random
         import re
         import sys
@@ -46,8 +47,7 @@ if 1:  # Header
         from wrap import dedent
         from color import t
         from lwtest import Assert
-        from dpprint import PP
-        pp = PP()   # Get pprint with current screen width
+        pp = pprint.pprint
         if 0:
             import debug
             debug.SetDebugger()

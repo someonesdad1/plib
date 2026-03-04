@@ -87,13 +87,13 @@ if __name__ == "__main__":
         if 1:   # Standard imports
             import getopt
             import os
+            import pprint
             import sys
         if 1:   # Custom imports
             from wrap import dedent
             from color import t
             from lwtest import run, Assert
-            from dpprint import PP
-            pp = PP()   # Get pprint with current screen width
+            pp = pprint.pprint
             if 0:
                 import debug
                 debug.SetDebugger()

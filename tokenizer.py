@@ -45,6 +45,7 @@ if 1:  # Header
         import itertools
         import math
         import operator
+        import pprint
         import string
         import sys
     if 1:   # Custom imports
@@ -52,13 +53,12 @@ if 1:  # Header
         from color import t
         from get import GetLines
         from lwtest import Assert, run
-        from dpprint import PP
         import timer
-        pp = PP()   # Get pprint with current screen width
         if 0:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
+        pp = pprint.pprint
         class G:
             pass
         g = G()

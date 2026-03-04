@@ -122,6 +122,7 @@ if 1:  # Header
         import math
         import os
         import pathlib 
+        import pprint
         import re
         import string
         import sys
@@ -131,7 +132,6 @@ if 1:  # Header
         import columnize
         import dpcolornames
         import dpmath
-        import dpprint
         import dpseq
         import f
         import get
@@ -163,8 +163,7 @@ if 1:  # Header
         dedent = wrap.dedent
         Stack = stack.Stack
         wsl = wsl.wsl
-        PP = dpprint.PP
-        pp = PP()
+        pp = pprint.pprint
     if 1:   # Global variables
         class G:
             pass
@@ -1554,7 +1553,6 @@ if __name__ == "__main__":
         import io
     if 1:   # Custom imports
         import columnize
-        import dpprint
         import lwtest
         import trm
         import wrap
@@ -1570,8 +1568,6 @@ if __name__ == "__main__":
         run = lwtest.run
         u = trm.Trm(default=2)
         wsl = wsl.wsl
-        PP = dpprint.PP
-        pp = PP()  # Screen width aware form of pprint.pprint
     def GetScreen():
         "Return (LINES, COLUMNS)"
         return (

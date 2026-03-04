@@ -22,14 +22,14 @@ if 1:  # Header
     if 1:  # Standard imports
         import getopt
         import os
+        import pprint
         import sys
     if 1:  # Custom imports
         from color import t
-        from dpprint import PP
-        pp = PP()  # Screen width aware form of pprint.pprint
         from wrap import wrap as Wrap, dedent
         # from columnize import Columnize
     if 1:  # Global variables
+        pp = pprint.pprint
         __all__ = '''PnP'''.split()
         class G:  # Storage for global variables as attributes
             pass

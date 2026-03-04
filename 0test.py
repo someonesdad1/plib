@@ -82,6 +82,7 @@ if 1:  # Header
         import hashlib
         import os
         import pathlib
+        import pprint
         import subprocess
         import sys
         import time
@@ -94,8 +95,7 @@ if 1:  # Header
         from columnize import Columnize
         from timer import Timer, fnt
         from color import t
-        from dpprint import PP
-        pp = PP()   # Get pprint with current screen width
+        pp = pprint.pprint
         if 0:
             import debug
             debug.SetDebugger()  # Start debugger on unhandled exception

@@ -124,7 +124,6 @@ if __name__ == "__main__":
         dpmath
         dppath
         dpphys
-        dpprint
         dpseq
         dpshop
         dpstr

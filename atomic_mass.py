@@ -61,6 +61,7 @@ if 1:  # Header
         import contextlib
         import getopt
         import io
+        import pprint
         import re
         import sys
     if 1:   # Custom imports
@@ -73,8 +74,7 @@ if 1:  # Header
         import trm
         from columnize import Columnize
         from uncertainties import ufloat, ufloat_fromstr
-        from dpprint import PP
-        pp = PP()   # Get pprint with current screen width
+        pp = pprint.pprint
         if 0:
             import debug
             debug.SetDebugger()

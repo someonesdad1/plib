@@ -68,6 +68,7 @@ if 1:  # Header
         import bisect
         import locale
         import math
+        import pprint
         import pathlib
         import re
         import string
@@ -80,8 +81,7 @@ if 1:  # Header
         import u
         from f import flt
         from columnize import Columnize
-        from dpprint import PP
-        pp = PP()   # Get pprint with current screen width
+        pp = pprint.pprint
         try:
             from uncertainties import ufloat_fromstr, UFloat
             have_unc = True
