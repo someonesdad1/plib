@@ -43,7 +43,7 @@ if 1:  # Header
         from lwtest import Assert
         from scipy.interpolate import interp1d
         from dpprint import PP
-        from util import transpose
+        from dputil import transpose
         from columnize import Columnize
         import si
         import debug

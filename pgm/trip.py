@@ -24,7 +24,7 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         import get
-        from util import Cumul
+        from dpmath import Cumul
         from wrap import wrap, dedent
         from color import Color, TRM as t
         from f import flt

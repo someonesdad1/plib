@@ -25,7 +25,8 @@ if 1:  # Header
     if 1:  # Standard imports
         from math import pi, atan, hypot, sqrt, asin
     if 1:  # Custom imports
-        from util import IsIterable, IsConvexPolygon
+        from dpseq import IsIterable
+        from dpmath import IsConvexPolygon
         from roundoff import RoundOff
     if 1:  # Global variables
         pass

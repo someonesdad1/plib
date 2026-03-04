@@ -34,7 +34,7 @@ if 1:  # Header
         import trm
         from lwtest import Assert
         from dpprint import PP
-        from util import Len
+        from dputil import Len
         pp = PP()   # Get pprint with current screen width
         if 0:
             import debug

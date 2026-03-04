@@ -48,7 +48,6 @@ if 1:  # Header
         import getopt
         import os
         import sys
-        import util
     if 1:  # Custom imports
         from f import flt, cos, acos, pi, tan, radians
         from wrap import dedent

@@ -33,7 +33,6 @@ if 1:  # Header
     if 1:  # Import symbols
         Path = pathlib.Path
         #
-        IsIterable = dpseq.IsIterable
         Assert = lwtest.Assert
         dedent = wrap.dedent
         PP = dpprint.PP
@@ -123,7 +122,7 @@ if 1:  # Core functionality
         # Make sure dir is a string or a Path instance
         Assert(isinstance(dir, (str, Path)))
         # Make sure files is an iterable
-        Assert(IsIterable(files))
+        Assert(dpseq.IsIterable(files))
         # Make sure each item in files is a string or Path instance
         Assert(all(isinstance(i, (str, Path)) for i in files))
         # Our working directory is an invariant

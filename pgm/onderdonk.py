@@ -29,7 +29,7 @@ if 1:  # Imports
 if 1:  # Custom imports
     from wrap import dedent
     from u import u, ParseUnit, Dim
-    from util import AWG
+    from dputil import AWG
     from f import flt, log10, sqrt
     from lwtest import run, raises, assert_equal, Assert
 if 1:  # Global variables

@@ -25,7 +25,7 @@ if 1:  # Custom imports
     import trm
     t = trm.Trm()
     from wsl import wsl
-    import util
+    import dputil
     t.e = t("ornl")
 def PrintData():
     print(
@@ -182,7 +182,7 @@ def Open(cmd):
             pth = "d:/cygwin64/elec/batteries/duracell"
             st = "d:/cygwin64/bin/cygstart.exe"
     file = f"{pth}/Duracell_{cmd.upper()}_alkaline.pdf"
-    util.ShowFile(file)
+    dputil.ShowFile(file)
 def TestData():
     print(
         dedent(f"""

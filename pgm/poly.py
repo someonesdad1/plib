@@ -32,7 +32,7 @@ if 1:  # Header
     from lwtest import Assert
     import trm
     t = trm.Trm()
-    from util import hyphen_range
+    from dputil import hyphen_range
     from f import (flt, acos, acosh, asin, asinh, atan, atanh, atan2, ceil, copysign,  # noqa
         cos, cosh, degrees, e, erf, erfc, exp, expm1, fabs, factorial, floor, fmod,    # noqa
         frexp, fsum, gamma, gcd, hypot, inf, isclose, isfinite, isinf, isnan, ldexp,   # noqa

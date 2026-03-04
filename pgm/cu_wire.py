@@ -1230,7 +1230,7 @@ if 1:  # Core functionality
                 24: 10.7,
                 26: 8,
             }
-            from util import AWG
+            from dputil import AWG
             
             for n in intercept:
                 mm = round(AWG(n)*25.4, 3)

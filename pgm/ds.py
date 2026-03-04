@@ -73,7 +73,7 @@ if 1:  # Header
         from dpstr import IgnoreFilter
         from f import flt
         import trm
-        import util
+        import dputil
     if 1:  # Global variables
         class G:  # Storage for global variables as attributes
             pass
@@ -409,7 +409,7 @@ if 1:  # Open by keyword
         for keyword in args:
             if keyword in files:
                 for file in files[keyword]:
-                    util.ShowFile(file)
+                    dputil.ShowFile(file)
         exit(0)
 if __name__ == "__main__":
     d = {  # Options dictionary

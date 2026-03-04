@@ -25,7 +25,7 @@ if 1:  # Header
     if 1:  # Custom imports
         from wrap import dedent
         from color import t
-        from util import Unique
+        from dpseq import Unique
         from columnize import Columnize
     if 1:  # Global variables
 

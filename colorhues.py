@@ -7139,7 +7139,7 @@ if 1:
 if __name__ == "__main__":
     from wl2rgb import rgb2wl
     from color import t, Color
-    from util import unrange
+    from dputil import unrange
     from wrap import dedent
     from lwtest import Assert
     def ByWavelength():

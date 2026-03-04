@@ -25,7 +25,7 @@ if 1:  # Custom imports
     from wrap import dedent
     from columnize import Columnize
     from get import GetWords
-    from util import RandomIntegers
+    from dpmath import RandomIntegers
 if 1:  # Global variables
     PunctuationFilter = dpstr.FilterStr(
         string.punctuation, " "*len(string.punctuation)

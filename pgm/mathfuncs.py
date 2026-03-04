@@ -3,7 +3,7 @@ Print out a table showing the math/cmath functions and their return types.
 """
 
 from wrap import dedent
-from util import alen
+from dputil import alen
 import trm
 t = trm.Trm()
 

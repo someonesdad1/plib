@@ -41,7 +41,7 @@ if 1:  # Header
         import trm
         t = trm.Trm()
         from columnize import Columnize
-        from util import Len
+        from dputil import Len
         if len(sys.argv) > 1:
             import debug
             debug.SetDebugger()

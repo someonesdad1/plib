@@ -136,7 +136,7 @@ if 1:  # Header
         import f
         import get
         import stack
-        import util
+        import dputil
         import wrap
         import wsl
         if 0:
@@ -2427,7 +2427,7 @@ if __name__ == "__main__":
         "equally" needs to be interpreted "symmetrically" and for the case n == 5, even that's not
         true.
         
-        If you need a sequence of n floating point values, see util.fDistribute().
+        If you need a sequence of n floating point values, see dputil.fDistribute().
         '''
         if not (isinstance(a, int) and isinstance(b, int) and isinstance(n, int)):
             raise TypeError("Arguments must be integers")
