@@ -1,10 +1,6 @@
 - Make all the dp*.py files testable by just running them
 
 Reorganization core files
-- dptime
-    - timer
-- dpphys
-    - densitydb
 - dpastro
     - meeus
     - julian
@@ -17,6 +13,8 @@ Reorganization core files
     - stirling
 - dpshop
     - linscale
+- dpphys
+    - densitydb
 
     - dp.py
         - Script to find symbols in the dp*.py files, as my massive refactoring will

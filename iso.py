@@ -27,7 +27,7 @@ if 1:  # Header
         pass
     if 1:  # Global variables
         pass
-if 1:  # Classes
+if 1:  # ISO class:  gives current date and time in standard ISO format
     class ISO(object):
         def __init__(self, zulu=False, rm_zero=True):
             "Initialize with now.  If zulu is True, use GMT."

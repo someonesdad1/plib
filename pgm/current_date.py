@@ -27,8 +27,7 @@ if 1:  # Header
         import sys
         import time
     if 1:  # Custom imports
-        from dpprint import PP
-        pp = PP()
+        from pprint import pprint as pp
         import trm
         t = trm.Trm()
         import u

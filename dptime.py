@@ -94,6 +94,124 @@ if 1:  # Functions
         clock = f(time.strftime("%I:%M", t))
         ampm = time.strftime("%p", t).lower()
         return ' '.join((date, clock, ampm, day))
+    def GetET(seconds, units="", digits=3, eng=False):
+        '''Return a string with the elapsed time in seconds given in familiar units.  Examples:
+                                                Returns
+            GetET(86399)                        '24 hr'
+            GetET(86399 + 1)                    '1 day'
+            GetET(time.time(), units="yr")      '54.1 years'
+            
+        The last example is the current time since 1 Jan 1970 and will depend on the time it's
+        run.
+        
+        If you pass the units keyword, that will be used.  You can specify the number of digits in
+        the output.  If eng is given, then engineering format will be used with either seconds or
+        the units you specified.
+        
+        If units is None, then appropriate units will be chosen.  For seconds less than 1, ms, us,
+        etc. will be used.  For seconds greater than 1, minutes, hours, days, weeks, months,
+        years, centuries, and millenia will be used.
+        '''
+        # seconds must be an integer, float, Fraction, Decimal, or mpmath.mpf
+        if have_mpmath:
+            if not isinstance(seconds, (int, float, Fraction, Decimal, mpmath.mpf)):
+                raise TypeError(
+                    "seconds must be int, float, Fraction, Decimal, mpmath.mpf"
+                )
+        else:
+            if not isinstance(seconds, (int, float, Fraction, Decimal)):
+                raise TypeError("seconds must be int, float, Fraction, Decimal")
+        # Convert to a float
+        sign = -1 if seconds < 0 else 1
+        seconds = abs(flt(seconds))
+        with seconds:
+            seconds.N = digits
+            factor = u.u(units) if units else 1
+            if abs(seconds) < 1:
+                if units:
+                    return f"{(sign * factor / seconds).engsi}{units}"
+                else:
+                    return f"{sign * seconds.engsi}s"
+            if units:
+                return f"{(seconds / factor).engsi}{units}"
+            else:
+                if seconds < u.u("minute"):
+                    return f"{sign * seconds} s"
+                elif seconds < u.u("hr"):
+                    return f"{sign * seconds / u.u('minutes')} min"
+                elif seconds < u.u("day"):
+                    return f"{sign * seconds / u.u('hours')} hr"
+                elif seconds < u.u("week"):
+                    return f"{sign * seconds / u.u('days')} day"
+                elif seconds < u.u("month"):
+                    return f"{sign * seconds / u.u('weeks')} wk"
+                elif seconds < u.u("year"):
+                    return f"{sign * seconds / u.u('months')} mo"
+                elif seconds < u.u("century"):
+                    return f"{sign * seconds / u.u('years')} yr"
+                elif seconds < u.u("millenia"):
+                    return f"{sign * seconds / u.u('centuries')} century"
+                else:
+                    x = seconds / u.u("millenia")
+                    if x <= 1e4:
+                        return f"{sign * seconds / u.u('millenia')} millenia"
+                    else:
+                        return f"{(sign * seconds / u.u('millenia')).sci} millenia"
+    def AdjustTimeUnits(seconds, digits=3, sci=False):
+        '''Convert a time in seconds to an easier to understand string.  If seconds is
+        less than 1, then the returned string will be in s with an SI prefix.  If
+        seconds is > 1, then it will be converted to one of the larger time units:
+            minutes hours days weeks months years
+        If sci is true, use scientific notation instead (helpful for big SI prefixes you can't
+        remember).
+        '''
+        def P(time, units, sci):
+            return f"{s.engsi}{units} = {s.sci} {units}" if sci else f"{s.engsi}{units}"
+        x = flt(0)
+        with x:
+            x.N = digits
+            x.u = sci
+            if seconds < 1:
+                s = flt(seconds)
+                return f"{s.engsi}s"
+            else:
+                if seconds / u.u("years") >= 1:
+                    s = flt(seconds / u.u("years"))
+                    return P(s, "years", sci=sci)
+                elif seconds / u.u("months") >= 1:
+                    s = flt(seconds / u.u("months"))
+                    return P(s, "months", sci=sci)
+                elif seconds / u.u("weeks") >= 1:
+                    s = flt(seconds / u.u("weeks"))
+                    return P(s, "weeks", sci=sci)
+                elif seconds / u.u("days") >= 1:
+                    s = flt(seconds / u.u("days"))
+                    return P(s, "days", sci=sci)
+                elif seconds / u.u("hours") >= 1:
+                    s = flt(seconds / u.u("hours"))
+                    return P(s, "hours", sci=sci)
+                elif seconds / u.u("minutes") >= 1:
+                    s = flt(seconds / u.u("minutes"))
+                    return P(s, "minutes", sci=sci)
+                else:
+                    s = flt(seconds)
+                    return P(s, "seconds", sci=sci)
+    def DaysPerMonth(month, leap_year=False):
+        days_per_month = {1: 31, 2: 28, 3: 31, 4: 30, 5: 31, 6: 30, 7: 31, 8: 31,
+            9: 30, 10: 31, 11: 30, 12: 31}
+        if isinstance(month, str):
+            n = g.months_lc(month[:3].lower())
+        elif isinstance(month, int):
+            n = month
+        return days_per_month[n] + bool(leap_year)
+    def GetDate(s):
+        'Return a date.Date object given the string s in the form 11Feb2023'
+        u = s.replace(" ", "")
+        u = "0" + u if len(u) == 8 else u
+        day = int(u[:2])
+        month = g.months(u[2:5])
+        year = int(u[5:])
+        return datetime.date(year, month, day)
 if 1:  # Timer stuff
     class Timer(object):
         '''Use an instance of this object to time events in code.  Note this design is inherently
@@ -273,126 +391,44 @@ if 1:  # Timer stuff
                     f"{d.microsecond:06d}"
                 )
             return s
-if 1:  # Functions
-    def GetET(seconds, units="", digits=3, eng=False):
-        '''Return a string with the elapsed time in seconds given in familiar units.  Examples:
-                                                Returns
-            GetET(86399)                        '24 hr'
-            GetET(86399 + 1)                    '1 day'
-            GetET(time.time(), units="yr")      '54.1 years'
-            
-        The last example is the current time since 1 Jan 1970 and will depend on the time it's
-        run.
-        
-        If you pass the units keyword, that will be used.  You can specify the number of digits in
-        the output.  If eng is given, then engineering format will be used with either seconds or
-        the units you specified.
-        
-        If units is None, then appropriate units will be chosen.  For seconds less than 1, ms, us,
-        etc. will be used.  For seconds greater than 1, minutes, hours, days, weeks, months,
-        years, centuries, and millenia will be used.
-        '''
-        # seconds must be an integer, float, Fraction, Decimal, or mpmath.mpf
-        if have_mpmath:
-            if not isinstance(seconds, (int, float, Fraction, Decimal, mpmath.mpf)):
-                raise TypeError(
-                    "seconds must be int, float, Fraction, Decimal, mpmath.mpf"
-                )
-        else:
-            if not isinstance(seconds, (int, float, Fraction, Decimal)):
-                raise TypeError("seconds must be int, float, Fraction, Decimal")
-        # Convert to a float
-        sign = -1 if seconds < 0 else 1
-        seconds = abs(flt(seconds))
-        with seconds:
-            seconds.N = digits
-            factor = u.u(units) if units else 1
-            if abs(seconds) < 1:
-                if units:
-                    return f"{(sign * factor / seconds).engsi}{units}"
-                else:
-                    return f"{sign * seconds.engsi}s"
-            if units:
-                return f"{(seconds / factor).engsi}{units}"
-            else:
-                if seconds < u.u("minute"):
-                    return f"{sign * seconds} s"
-                elif seconds < u.u("hr"):
-                    return f"{sign * seconds / u.u('minutes')} min"
-                elif seconds < u.u("day"):
-                    return f"{sign * seconds / u.u('hours')} hr"
-                elif seconds < u.u("week"):
-                    return f"{sign * seconds / u.u('days')} day"
-                elif seconds < u.u("month"):
-                    return f"{sign * seconds / u.u('weeks')} wk"
-                elif seconds < u.u("year"):
-                    return f"{sign * seconds / u.u('months')} mo"
-                elif seconds < u.u("century"):
-                    return f"{sign * seconds / u.u('years')} yr"
-                elif seconds < u.u("millenia"):
-                    return f"{sign * seconds / u.u('centuries')} century"
-                else:
-                    x = seconds / u.u("millenia")
-                    if x <= 1e4:
-                        return f"{sign * seconds / u.u('millenia')} millenia"
-                    else:
-                        return f"{(sign * seconds / u.u('millenia')).sci} millenia"
-    def AdjustTimeUnits(seconds, digits=3, sci=False):
-        '''Convert a time in seconds to an easier to understand string.  If seconds is
-        less than 1, then the returned string will be in s with an SI prefix.  If
-        seconds is > 1, then it will be converted to one of the larger time units:
-            minutes hours days weeks months years
-        If sci is true, use scientific notation instead (helpful for big SI prefixes you can't
-        remember).
-        '''
-        def P(time, units, sci):
-            return f"{s.engsi}{units} = {s.sci} {units}" if sci else f"{s.engsi}{units}"
-        x = flt(0)
-        with x:
-            x.N = digits
-            x.u = sci
-            if seconds < 1:
-                s = flt(seconds)
-                return f"{s.engsi}s"
-            else:
-                if seconds / u.u("years") >= 1:
-                    s = flt(seconds / u.u("years"))
-                    return P(s, "years", sci=sci)
-                elif seconds / u.u("months") >= 1:
-                    s = flt(seconds / u.u("months"))
-                    return P(s, "months", sci=sci)
-                elif seconds / u.u("weeks") >= 1:
-                    s = flt(seconds / u.u("weeks"))
-                    return P(s, "weeks", sci=sci)
-                elif seconds / u.u("days") >= 1:
-                    s = flt(seconds / u.u("days"))
-                    return P(s, "days", sci=sci)
-                elif seconds / u.u("hours") >= 1:
-                    s = flt(seconds / u.u("hours"))
-                    return P(s, "hours", sci=sci)
-                elif seconds / u.u("minutes") >= 1:
-                    s = flt(seconds / u.u("minutes"))
-                    return P(s, "minutes", sci=sci)
-                else:
-                    s = flt(seconds)
-                    return P(s, "seconds", sci=sci)
-    def DaysPerMonth(month, leap_year=False):
-        days_per_month = {1: 31, 2: 28, 3: 31, 4: 30, 5: 31, 6: 30, 7: 31, 8: 31,
-            9: 30, 10: 31, 11: 30, 12: 31}
-        if isinstance(month, str):
-            n = g.months_lc(month[:3].lower())
-        elif isinstance(month, int):
-            n = month
-        return days_per_month[n] + bool(leap_year)
-    def GetDate(s):
-        'Return a date.Date object given the string s in the form 11Feb2023'
-        u = s.replace(" ", "")
-        u = "0" + u if len(u) == 8 else u
-        day = int(u[:2])
-        month = g.months(u[2:5])
-        year = int(u[5:])
-        return datetime.date(year, month, day)
-if 1:  # Convenience instances
+if 1:  # ISO class:  gives current date and time in standard ISO format
+    class ISO(object):
+        def __init__(self, zulu=False, rm_zero=True):
+            "Initialize with now.  If zulu is True, use GMT."
+            self._tm = gmtime() if zulu else localtime()
+            self._rm0 = rm_zero
+        def __str__(self):
+            return strftime("%Y%m%d-%H:%M:%S", self._tm)
+        def set(self, tm):
+            "Set to a new struct_time"
+            if not isinstance(tm, struct_time):
+                raise TypeError("tm must be a time.struct_time instance")
+            self._tm = tm
+        @property
+        def date(self):
+            '''This returns the date in the form I use the most; e.g.
+            '12 Aug 2019'.
+            '''
+            s = strftime("%d %b %Y", self._tm)
+            if self._rm0 and s[0] == "0":
+                s = s[1:]
+            return s
+        @property
+        def dt(self):
+            return self.d + " " + self.t
+        @property
+        def d(self):
+            s = strftime("%d %b %Y %a", self._tm)
+            if self._rm0 and s[0] == "0":
+                s = s[1:]
+            return s
+        @property
+        def t(self):
+            h = strftime("%I", self._tm)
+            if h[0] == "0":
+                h = h[1:]
+            return h + strftime(":%M:%S %p", self._tm).lower()
+if 1:  # Convenience class instances
     timer = Timer()
     fnt = FilenameTime()
     sw = Stopwatch()

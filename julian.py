@@ -47,12 +47,12 @@ if 1:  # Header
         import datetime
         import math
     if 1:  # Custom imports
-        import months
+        import dptime
         import iso
         from lwtest import Assert
     if 1:  # Global variables
         pass
-if 1:  # Core functionality
+if 1:  # Julian day routines
     def NumDaysInMonth(month, year):
         if month == 2:
             return 29 if IsLeapYear(year) else 28
@@ -256,7 +256,7 @@ if 1:  # Core functionality
             Assert(d[0] not in digits)
             # Get month
             s = "".join(d[:3]).lower()
-            month = months.Months_lc(s)
+            month = dptime.Month2Num_lc[s]
             # Get year
             year = int("".join(d[3:]))
             return (year, month, day)
