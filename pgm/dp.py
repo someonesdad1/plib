@@ -129,6 +129,7 @@ if __name__ == "__main__":
         dpstr
         dptime
         dptypes
+        dputil
         '''.split() if i]
     for symbol in args:
         found = dpstr.FindSymbol(symbol, filelist=filelist)

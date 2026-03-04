@@ -395,13 +395,13 @@ if 1:  # ISO class:  gives current date and time in standard ISO format
     class ISO(object):
         def __init__(self, zulu=False, rm_zero=True):
             "Initialize with now.  If zulu is True, use GMT."
-            self._tm = gmtime() if zulu else localtime()
+            self._tm = time.gmtime() if zulu else time.localtime()
             self._rm0 = rm_zero
         def __str__(self):
-            return strftime("%Y%m%d-%H:%M:%S", self._tm)
+            return time.strftime("%Y%m%d-%H:%M:%S", self._tm)
         def set(self, tm):
             "Set to a new struct_time"
-            if not isinstance(tm, struct_time):
+            if not isinstance(tm, time.struct_time):
                 raise TypeError("tm must be a time.struct_time instance")
             self._tm = tm
         @property
@@ -409,7 +409,7 @@ if 1:  # ISO class:  gives current date and time in standard ISO format
             '''This returns the date in the form I use the most; e.g.
             '12 Aug 2019'.
             '''
-            s = strftime("%d %b %Y", self._tm)
+            s = time.strftime("%d %b %Y", self._tm)
             if self._rm0 and s[0] == "0":
                 s = s[1:]
             return s
@@ -418,16 +418,16 @@ if 1:  # ISO class:  gives current date and time in standard ISO format
             return self.d + " " + self.t
         @property
         def d(self):
-            s = strftime("%d %b %Y %a", self._tm)
+            s = time.strftime("%d %b %Y %a", self._tm)
             if self._rm0 and s[0] == "0":
                 s = s[1:]
             return s
         @property
         def t(self):
-            h = strftime("%I", self._tm)
+            h = time.strftime("%I", self._tm)
             if h[0] == "0":
                 h = h[1:]
-            return h + strftime(":%M:%S %p", self._tm).lower()
+            return h + time.strftime(":%M:%S %p", self._tm).lower()
 if 1:  # Convenience class instances
     timer = Timer()
     fnt = FilenameTime()
