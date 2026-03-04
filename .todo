@@ -1,17 +1,12 @@
 - Make all the dp*.py files testable by just running them
 
 Reorganization core files
-- dpphys
-- dpelec
-- dpseq
-- dpstr
-    - tw
-- dptime
-    - timer
-- dpsic
-    - densitydb
 - dputil
     - dpprint
+- dptime
+    - timer
+- dpphys
+    - densitydb
 - dpastro
     - meeus
     - julian

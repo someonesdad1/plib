@@ -62,6 +62,7 @@ if 1:  # Header
         import math
         import os
         import platform
+        import pprint
         import random
         import re
         import subprocess
@@ -700,6 +701,24 @@ if 1:  # Core functionality
             if fsig.rdp and t[-1] == fsig.dp:
                 t = t[:-1]
             return sgn + t
+    def PP(width=None, compact=False):
+        '''Returns pprint.pprint with a width parameter set to one less than
+        the current screen width if the parameter width is None.  Otherwise,
+        it's a number converted to a positive integer that must be nonzero.
+        If compact is True, multiple items will be printed on one line.
+        '''
+        columns = int(os.environ.get("COLUMNS", 80)) - 1
+        if width is not None:
+            try:
+                columns = int(abs(width))
+                if not columns:
+                    raise ValueError("PP():  width parameter must not be zero")
+            except Exception as e:
+                print(e)
+                exit(1)
+        return partial(pprint, width=columns, compact=compact)
+    def Clear():
+        subprocess.run("clear", shell=True)
 
 if __name__ == "__main__":
     from io import StringIO

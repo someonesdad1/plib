@@ -128,7 +128,6 @@ if __name__ == "__main__":
         dpseq
         dpshop
         dpstr
-        dptags
         dptime
         dptypes
         '''.split() if i]
