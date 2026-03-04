@@ -88,11 +88,11 @@ if 1:   # Header
         import columnize
         import dpcolornames
         import dpmath
-        import stack
+        import dptypes
         import wl2rgb
         Color = color.Color
         Columnize = columnize.Columnize
-        Stack = stack.Stack
+        Stack = dptypes.Stack
         pp = pprint.pprint
     if 0:
         import debug

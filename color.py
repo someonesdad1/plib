@@ -133,9 +133,9 @@ if 1:  # Header
         import dpcolornames
         import dpmath
         import dpseq
+        import dptypes
         import f
         import get
-        import stack
         import dputil
         import wrap
         import wsl
@@ -161,7 +161,7 @@ if 1:  # Header
         flt = f.flt
         Columnize = columnize.Columnize
         dedent = wrap.dedent
-        Stack = stack.Stack
+        Stack = dptypes.Stack
         wsl = wsl.wsl
         pp = pprint.pprint
     if 1:   # Global variables
