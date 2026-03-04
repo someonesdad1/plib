@@ -72,6 +72,29 @@ if 1:  # Core functionality
                     return f"{y} {use}"
                 else:
                     return f"{y.engsi}{use}"
+    def Time():
+        'Returns the current time in the following format: "7Jun2021 7:24 am Mon"'
+        t, f = time.localtime(), lambda x: x[1:] if x[0] == "0" else x
+        day = f(time.strftime("%a", t))
+        date = f(time.strftime("%d%b%Y", t))
+        clock = f(time.strftime("%I:%M", t))
+        ampm = time.strftime("%p", t).lower()
+        return ' '.join((date, clock, ampm, day))
 
 if __name__ == "__main__":
     import lwtest
+    exit(lwtest.run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
+
+def GetGist():
+    g = {}
+    g["gist"] = "Time-related routines"
+    g["copy"] = "Copyright © 2026 Don Peterson"
+    g["lic"] = "MIT License (see /plib/_lic.mit)"
+    g["test"] = "run"
+    g["cat"] = "time"
+    g["todo"] = '''
+    
+    - ∞∞2 Move in time.py stuff
+    
+    '''
+    return g

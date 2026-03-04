@@ -1,26 +1,5 @@
 '''
     
-ToDo
-    - Convert Spinner to a class so the instance is thread-safe
-    - Debug class should use print()'s arguments
-    - Document Now class
-
-@start
-
-3 dpelec
-    Ampacity            3 Returns NEC ampacity of copper wire
-    AWG                 3 Returns wire diameter in inches for AWG gauge number
-5 dpphys
-    HeatIndex           5 Effect of temperature and humidity
-    IdealGas            5 Calculate ideal gas P, v, T (v is specific volume)
-    SpeedOfSound        5 Calculate the speed of sound as func of temperature
-    TempConvert         5 Convert a temperature
-    WindChillInDegF     5 Calculate wind chill given OAT & wind speed
-6 dpsci
-    Height              6 Predict a child's adult height
-7 dptime
-    Time                7 Returns a string giving local time and date
-
 Miscellaneous utility routines in python: @start
     BraceExpansion        Brace expansion like modern shells
     Cfg                   Execute a sequence of text lines for config use
@@ -290,78 +269,6 @@ if 1:  # Core functionality
     def IsBinaryFile(file, num_bytes=100):
         "Heuristic that returns True if a file is a binary file"
         return not IsTextFile(file, num_bytes)
-    def SpeedOfSound(T):
-        '''Returns speed of sound in air in m/s as a function of temperature T in K.  Assumes sea level
-        air pressure.
-        '''
-        assert T > 0
-        return 331.4*math.sqrt(T/273.15)
-    def WindChillInDegF(wind_speed_in_mph, air_temp_deg_F):
-        '''Wind Chill for exposed human skin, expressed as a function of wind speed in miles per hour
-        and temperature in degrees Fahrenheit.  http://en.wikipedia.org/wiki/Wind_chill.
-        '''
-        if wind_speed_in_mph <= 3:
-            raise ValueError("Wind speed must be > 3 mph")
-        if air_temp_deg_F > 50:
-            raise ValueError("Air temperature must be < 50 deg F")
-        return (
-            35.74
-            + 0.6215*air_temp_deg_F
-            - 35.75*wind_speed_in_mph**0.16
-            + 0.4275*air_temp_deg_F*wind_speed_in_mph**0.16
-        )
-    def Height(current_height_inches, age_years, sex):
-        '''Returns the predicted adult height in inches of a child.  Unattributed, but found in the C
-        code files of Glenn Rhoads' old website http://remus.rutgers.edu/~rhoads/Code/code.html, but
-        which was defunct in 2010.
-        '''
-        if not (0 < current_height_inches < 72):
-            raise ValueError("current_height_inches must be between 0 and 72")
-        if not (0 < age_years < 20):
-            raise ValueError("age_years must be between 0 and 20")
-        if sex.lower() not in "mf":
-            raise ValueError("sex must be 'm' or 'f'")
-        a, h = age_years, current_height_inches
-        if sex.lower() == "m":
-            return h/(((0.00011*a - 0.0032)*a + 0.0604)*a + 0.3796)
-        else:
-            return h/(((0.00028*a - 0.0071)*a + 0.0926)*a + 0.3524)
-    def HeatIndex(air_temp_deg_F, relative_humidity_percent):
-        '''From http://www.weather.gov/forecasts/graphical/sectors/idaho.php#tabs.  See also
-        http://www.crh.noaa.gov/pub/heat.php.
-        
-        Heat Index combines the effects of heat and humidity. When heat and humidity combine to reduce
-        the amount of evaporation of sweat from the body, outdoor exercise becomes dangerous even for
-        those in good shape.
-        
-        Example:  for 90 deg F and 50% RH, the heat index is 94.6.
-        
-        The equation used is a multiple regression fit to a complicated set of equations that must be
-        solved iteratively.  The uncertainty with a prediction is given at 1.3 deg F.  See
-        http://www.srh.noaa.gov/ffc/html/studies/ta_htindx.PDF for details.
-        
-        If heat index is:
-        
-            80-90 degF:  Caution:  fatigue possible with prolonged exposure or activity.
-            90-105:      Extreme caution:  sunstroke, muscle cramps and/or heat exhaustion possible
-                        with prolonged exposure and/or physical activity.
-            105-129:     Danger:  sunstroke, muscle cramps and/or heat exhaustion likely.  Heatstroke
-                        possible with prolonged exposure and/or physical activity.
-            >= 130       Extreme danger:  Heat stroke or sunstroke likely.
-        '''
-        RH, Tf = relative_humidity_percent, air_temp_deg_F
-        HI = (
-            -42.379
-            + 2.04901523*Tf
-            + 10.14333127*RH
-            - 0.22475541*Tf*RH
-            - 6.83783e-3*Tf*Tf
-            - 5.481717e-2*RH*RH
-            + 1.22874e-3*Tf*Tf*RH
-            + 8.5282e-4*Tf*RH*RH
-            - 1.99e-6*Tf*Tf*RH*RH
-        )
-        return HI
     class Debug:
         '''Implements a debug class that can be useful in printing debugging information.
         
@@ -381,44 +288,6 @@ if 1:  # Core functionality
                 if self.add_nl:
                     s += nl
                 self.stream.write(s)
-    def Time():
-        "Returns the current time in the following format: '7Jun2021 7:24 am Mon'"
-        t, f = time.localtime(), lambda x: x[1:] if x[0] == "0" else x
-        day = f(time.strftime("%a", t))
-        date = f(time.strftime("%d%b%Y", t))
-        clock = f(time.strftime("%I:%M", t))
-        ampm = time.strftime("%p", t).lower()
-        return " ".join((date, clock, ampm, day))
-    def AWG(n):
-        '''Returns the wire diameter in inches given the AWG (American Wire Gauge) number (also known
-        as the Brown and Sharpe gauge).  Use negative numbers as follows:
-        
-            00    -1
-            000   -2
-            0000  -3
-            
-        Reference:  the units.dat file with version 1.80 of the GNU units program gives the following
-        statement:
-        
-            American Wire Gauge (AWG) or Brown & Sharpe Gauge appears to be the most important gauge.
-            ASTM B-258 specifies that this gauge is based on geometric interpolation between gauge
-            0000, which is 0.46 inches exactly, and gauge 36 which is 0.005 inches exactly.  Therefore,
-            the diameter in inches of a wire is given by the formula
-                    1|200 92^((36-g)/39).
-            Note that 92^(1/39) is close to 2^(1/6), so diameter is approximately halved for every 6
-            gauges.  For the repeated zero values, use negative numbers in the formula.  The same
-            document also specifies rounding rules which seem to be ignored by makers of tables.
-            Gauges up to 44 are to be specified with up to 4 significant figures, but no closer than
-            0.0001 inch.  Gauges from 44 to 56 are to be rounded to the nearest 0.00001 inch.
-            
-        An equivalent formula is 0.32487/1.12294049**n where n is the gauge number (works for n >= 0).
-        '''
-        if n < -3 or n > 56:
-            raise ValueError("AWG argument out of range")
-        diameter = 92.0**((36 - n)/39)/200
-        if n <= 44:
-            return round(diameter, 4)
-        return round(diameter, 5)
     def EditData(data, binary=False):
         "Edit a str or bytes object using vim"
         if not isinstance(data, (str, bytes)):
@@ -483,102 +352,6 @@ if 1:  # Core functionality
                 p = " "*(width - len(s))
                 s = p + s
         return s
-    def IdealGas(P=0, v=0, T=0, MW=28.9):
-        '''Given two of the three variables P, v, and T, calculates the third for the indicated gas.
-        The variable that is unknown should have a value of zero.
-            P = pressure in Pa
-            v = specific volume in m^3/kg
-            T = absolute temperature in K
-            MW = molecular weight = molar mass in g/mol (defaults to air) Note you can also supply a
-                string; if the lower-case version of this string is in the dictionary of
-                gas_molar_mass below, the molar mass for that gas will be used.
-        The tuple (P, v, T) will be returned.
-        
-        WARNING:  Note that v is the specific volume, not the volume!
-        
-        The equation used is P*v = R*T where R is the gas constant for this particular gas.  It is the
-        universal gas constant divided by the molecular weight of the gas.
-        
-        The ideal gas law is an approximation, but a good one for high temperatures and low pressures.
-        Here, high and low are relative to the critical temperature and pressure of the gas; these can
-        be found in numerous handbooks, such as the CRC Handbook of Chemistry and Physics, the
-        Smithsonian Critical Tables, etc.
-        
-        Some molar masses and critical values for common gases are (Tc is critical temperature, Pc is
-        critical pressure (multiply by 1e5 to get Pa), MW is molecular weight):
-        
-                    Tc, K    Pc, bar    MW, g/mol
-            air        133.3     37.69     28.9
-            ammonia    405.6    113.14     17.03
-            argon      151.0     48.00     39.95
-            co2        304.2     73.82     44.0099
-            helium       5.2      2.25      4.003
-            hydrogen    33.3     12.97      2.01594
-            methane    190.6     46.04     16.04298
-            nitrogen   126.1     33.94     28.0134
-            oxygen     154.6     50.43     31.9988
-            propane    369.8     42.49     26.03814
-            water      647.3    221.2      18.01534
-            xenon      289.8     58.00    131.30
-        '''
-        gas_molar_mass = {
-            "air": 28.9,
-            "ammonia": 17.03,
-            "argon": 39.95,
-            "co2": 44.0099,
-            "helium": 4.003,
-            "hydrogen": 2.01594,
-            "methane": 16.04298,
-            "nitrogen": 28.0134,
-            "oxygen": 31.9988,
-            "propane": 26.03814,
-            "water": 18.01534,
-            "xenon": 131.30,
-        }
-        if isinstance(MW, str):
-            MW = gas_molar_mass[MW.lower()]
-        else:
-            assert P >= 0 and v >= 0 and T >= 0 and MW >= 0
-        molar_gas_constant = 8.3145  # J/(mol*K)
-        R = molar_gas_constant/(float(MW)/1000)  # 1000 converts g to kg
-        if sum([i == 0 for i in (P, v, T)]) != 1:
-            raise ValueError("One and only one of P, v, T must be zero")
-        if not P:
-            return R*T/v
-        elif not v:
-            return R*T/P
-        else:
-            return P*v/R
-    def TempConvert(t, in_unit, to_unit):
-        "Convert the temperature in t in the unit specified in in_unit to the unit specified by to_unit"
-        allowed, k, r, a, b = "cfkr", 273.15, 459.67, 1.8, 32
-        def check(unit, orig):
-            if len(unit) != 1 and unit not in allowed:
-                raise ValueError("'%s' is a bad temperature unit" % orig)
-        inu, tou = [i.lower() for i in (in_unit, to_unit)]
-        check(inu, in_unit)
-        check(tou, to_unit)
-        if inu == tou:
-            return t
-        d = {
-            "cf": lambda t: a*t + b,
-            "ck": lambda t: t + k,
-            "cr": lambda t: a*(t + k),
-            "fc": lambda t: (t - b)/a,
-            "fk": lambda t: (t - b)/a + k,
-            "fr": lambda t: t + r,
-            "kc": lambda t: t - k,
-            "kf": lambda t: a*(t - k) + b,
-            "kr": lambda t: a*t,
-            "rc": lambda t: (t - r - b)/a,
-            "rf": lambda t: t - r,
-            "rk": lambda t: t/a,
-        }
-        T = d[inu + tou](t)
-        e = ValueError("Converted temperature is too low")
-        if (tou in "kr" and T < 0) or (tou == "c" and T < -k) or (tou == "f" and T < -r):
-            raise e
-        return T
     def BraceExpansion(s, glob=False):
         '''Generator to perform brace expansion on the string s.  If glob is True, then also glob each
         pattern in the current directory.  Examples:
@@ -685,65 +458,6 @@ if 1:  # Core functionality
             end="",
             flush=True,
         )
-    def Ampacity(dia_mm, insul_degC=60, ambient_degC=30):
-        '''Return the NEC-allowed current in a copper conductor at the indicated ambient temperature
-        and with the indicated insulation temperature rating.
-        
-        The data from table 310-16 in the 1998 NEC was fitted to cubic polynomials, so the table data
-        won't be reproduced exactly.  Thus, the intended use is to estimate safe currents for a given
-        wire size, particularly smaller wires than are in the table.  To get the ampacity of a smaller
-        wire, the constant term of the regression was set to zero.
-        
-        The data and regressions are in /elec/projects/current_capacity.
-        '''
-        def AmbientCorrection(ambient_degC, insul_degC):
-            if insul_degC not in (60, 75, 90):
-                raise ValueError("insul_degC must be 60, 75, or 90 °C")
-            if insul_degC == 60:
-                i = 0
-            elif insul_degC == 75:
-                i = 1
-            elif insul_degC == 90:
-                i = 2
-            T = int(ambient_degC)
-            if not (21 <= T <= 80):
-                raise ValueError("ambient_degC must be between 21 and 80 °C")
-            if 21 <= T <= 25:
-                return (1.08, 1.05, 1.04)[i]
-            elif 26 <= T <= 30:
-                return 1
-            elif 31 <= T <= 35:
-                return (0.91, 0.94, 0.96)[i]
-            elif 36 <= T <= 40:
-                return (0.82, 0.88, 0.91)[i]
-            elif 41 <= T <= 45:
-                return (0.71, 0.82, 0.87)[i]
-            elif 46 <= T <= 50:
-                return (0.58, 0.75, 0.82)[i]
-            elif 51 <= T <= 55:
-                return (0.41, 0.67, 0.76)[i]
-            elif 56 <= T <= 60:
-                return (0, 0.58, 0.71)[i]
-            elif 61 <= T <= 70:
-                return (0, 0.33, 0.58)[i]
-            elif 71 <= T <= 80:
-                return (0, 0, 0.41)[i]
-        max_dia_mm = 11.68
-        if not (0 < dia_mm <= max_dia_mm):
-            raise ValueError("dia_mm must be in (0, 11.68 mm]")
-        if insul_degC not in (60, 75, 90):
-            raise ValueError("insul_degC must be 60, 75, or 90 °C")
-        constants = {
-            60: (10.6841, 0.667284, -0.014032),
-            75: (11.0919, 1.25111, -0.0445333),
-            90: (12.9412, 1.30463, -0.0441503),
-        }
-        b1, b2, b3 = constants[insul_degC]
-        correction = AmbientCorrection(ambient_degC, insul_degC)
-        if correction:
-            return correction*(b1*dia_mm + b2*dia_mm**2 + b3*dia_mm**3)
-        else:
-            raise ValueError("ambient_degC out of range")
     def execfile(filename, globals=None, locals=None, use_user_env=True):
         '''Python 3 substitute for python 2's execfile.  It gets the locals and globals from the
         caller's environment unless use_user_env is False.
@@ -1091,15 +805,6 @@ if __name__ == "__main__":
             Assert(SizeOf(x) == 252)  # For python 3.11
         else:
             Assert(SizeOf(x) == 140)  # It will fail
-    def Test_SpeedOfSound():
-        Assert(AlmostEqual(SpeedOfSound(273.15), 331.4, 1e-5))
-    def Test_WindChillInDegF():
-        Assert(AlmostEqual(WindChillInDegF(20, 0), -21.9952, 1e-5))
-    def Test_HeatIndex():
-        Assert(AlmostEqual(HeatIndex(40, 96), 101, 7e-2))
-        Assert(AlmostEqual(HeatIndex(100, 90), 132, 4e-1))
-    def Test_AWG():
-        Assert(AlmostEqual(AWG(12), 0.0808, 8e-4))
     def Test_Engineering():
         m, e, s = Engineering(1.2345e-6)
         Assert(float(m) == 1.23 and e == -6 and s == "u")
@@ -1107,31 +812,11 @@ if __name__ == "__main__":
         Assert(float(m) == 123 and e == -9 and s == "n")
         m, e, s = Engineering(1.2345e-8)
         Assert(float(m) == 12.3 and e == -9 and s == "n")
-    def Test_IdealGas():
-        P, v, T = 0.101325e6, 0, 300
-        v = IdealGas(P, v, T)
-        Assert(AlmostEqual(v, 0.85181, 1e-5))
-        P = 0
-        P = IdealGas(P, v, T)
-        Assert(AlmostEqual(P, 0.101325e6))
-        T = 0
-        T = IdealGas(P, v, T)
-        Assert(AlmostEqual(T, 300))
     def Test_eng():
         Assert(eng(3456.78) == "3.46e3")
         Assert(eng(3456.78, digits=4) == "3.457e3")
         # kkg is a illegal SI unit, but the code allows it
         Assert(eng(3456.78, unit="kg") == "3.46 kkg")
-    def Test_TempConvert():
-        k, r = 273.15, 459.67
-        Assert(AlmostEqual(TempConvert(0, "c", "f"), 32))
-        Assert(AlmostEqual(TempConvert(0, "c", "k"), k))
-        Assert(AlmostEqual(TempConvert(0, "c", "r"), 32 + r))
-        Assert(AlmostEqual(TempConvert(0, "c", "c"), 0))
-        Assert(AlmostEqual(TempConvert(212, "f", "c"), 100))
-        Assert(AlmostEqual(TempConvert(212, "f", "f"), 212))
-        Assert(AlmostEqual(TempConvert(212, "f", "k"), k + 100))
-        Assert(AlmostEqual(TempConvert(212, "f", "r"), r + 212))
     def Test_IsTextFile():
         s = StringIO("Some text")
         Assert(IsTextFile(s))
@@ -1221,17 +906,6 @@ if __name__ == "__main__":
         s = " ".join(BraceExpansion("{,a}{b,{c,d},e}"))
         t = "b c d e ab ac ad ae"
         assert s == t
-    def Test_Ampacity():
-        dia_mm = 11.68
-        i = Ampacity(dia_mm, insul_degC=60, ambient_degC=30)
-        Assert(i == 193.46399267737598)
-        i = Ampacity(dia_mm, insul_degC=75, ambient_degC=30)
-        Assert(i == 229.27285356605438)
-        i = Ampacity(dia_mm, insul_degC=90, ambient_degC=30)
-        Assert(i == 258.78428183511033)
-        # Test a derated value
-        i = Ampacity(dia_mm, insul_degC=90, ambient_degC=21)
-        Assert(i == 1.04*258.78428183511033)
     def TestParameterSequence():
         fd = fDistribute
         expected = [0.0, 1.0]
@@ -1389,3 +1063,20 @@ if __name__ == "__main__":
         for name in delete:
             mnames.discard(name)
     exit(run(globals(), halt=0, verbose=0)[0])
+
+def GetGist():
+    g = {}
+    g["gist"] = "Utility functions"
+    g["copy"] = "Copyright © 2026 Don Peterson"
+    g["lic"] = "MIT License (see /plib/_lic.mit)"
+    g["test"] = "run"
+    g["cat"] = "utility"
+    g["todo"] = '''
+    
+        - Convert Spinner to a class so the instance is thread-safe
+        - Debug class should use print()'s arguments.  Also address why it's not in
+          debug.py.
+        - Document Now class
+    
+    '''
+    return g

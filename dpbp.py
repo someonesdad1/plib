@@ -28,12 +28,11 @@ if 1:  # Header
         namedtuple = collections.namedtuple
         #
         Columnize = columnize.Columnize
-        Constant = dptypes.Constant
         dedent = wrap.dedent
         flt = f.flt
         t = trm.Trm()
     if 1:   # Global variables
-        g = Constant()
+        g = dptypes.Constant()
         g.dbg = False
 if 1:   # Utility
     def GetScreen():
