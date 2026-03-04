@@ -38,12 +38,10 @@
 
 -  3 Mar
     - New dp\*.py files constructed
+        - Now can test these with 'for i in dp*.py; do p $i ; done'
     - Started large refactoring
-        - e.g., a lot of util.py's stuff moved to dpseq.py, dpstr.py, etc. and it will
-          then move to dputil.py
-        - This breaks nearly everything I use, so a lot of fixing is required, but
-          overall it's worth it, as things will be better coalesced, more organized,
-          testable, and I'll have better test coverage
+        - Moved a lot of util.py's stuff moved to dpseq.py, dpstr.py, etc.
+        - Then moved util.py to dputil.py
     - Moved pgm/lib.py to data/dp_lib_data.py, which now runs as a script and holds
       snippets; supports interactive browsing
     - Created data/CIE_xyz_1931_2deg.py, which prototypes having accessible data in the

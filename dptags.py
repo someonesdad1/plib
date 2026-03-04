@@ -165,4 +165,4 @@ if __name__ == "__main__":
         dir = Path("/home/don/.manpages")
         files = list(dir.glob("*.hld"))
         BuildTagsFile(dir, files, dbg=False)
-    exit(run(globals(), halt=True)[0])
+    exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
