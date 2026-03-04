@@ -500,7 +500,7 @@ if __name__ == "__main__":
                 GetET(time.time(), units="yr")      '54.1 years'
             '''[1:].rstrip()))
     if 1:  # Self tests
-        def Test():
+        def Test_TimeFunctions():
             s = GetET(2e-9)
             Assert(s == "2 ns")
             s = GetET(0.1)
