@@ -471,6 +471,8 @@ if 1:  # Core functionality
         
         This routine comes from the Lib/test/test_cmath.py in the python
         distribution; the function was called almostEqualF.
+
+        ∞∞2 This should probably use math.isclose()
         '''
         # Special values testing
         if math.isnan(a):

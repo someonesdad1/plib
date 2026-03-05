@@ -303,7 +303,7 @@ if 1:  # Julian day routines
 if __name__ == "__main__":
     import sys
     from lwtest import run, assert_equal
-    def TestDecodeDateString():
+    def Test_Julian1_DecodeDateString():
         x = DecodeDateString("24Mar2023")
         assert_equal(x, 2460028)
         x = DecodeDateString("24Mar2023@17:38")
@@ -312,7 +312,7 @@ if __name__ == "__main__":
         x = DecodeDateString("@17:38")
         now = JulianToday()
         assert_equal(round(x - now, 9), expected)
-    def TestJulian():
+    def Test_Julian1_Julian():
         assert_equal(Julian(12, 31, 1989), 2447892)
         assert_equal(Julian1("19891231"), 2447892)
         assert_equal(Julian(1, 1, 1990), 2447893)
@@ -321,8 +321,8 @@ if __name__ == "__main__":
         assert_equal(Julian1("17760704"), 2369916)
         assert_equal(Julian(2, 29, 2000), 2451604)
         assert_equal(Julian1("20000229"), 2451604)
-    def TestJulianAstro():
-        # Test case, pg 61 of Meeus:  27 Jan 333 at 12 pm == 1842713.0
+    def Test_Julian1_JulianAstro():
+        # Test_Julian1_ case, pg 61 of Meeus:  27 Jan 333 at 12 pm == 1842713.0
         expected = 1842713.0
         assert_equal(JulianAstro(1, 27.5, 333), expected)
         if 1:  # Same case, different functions
@@ -330,7 +330,7 @@ if __name__ == "__main__":
             year, month, day, hour, minute, second = 333, 1, 27, 12, 0, 0
             jadt = JulianAstroDateTime(year, month, day, hour, minute, second)
             assert_equal(jadt, expected)
-        # Test case, pg 61 of Meeus:  4.81 Oct 1957 (Sputnik I launch) == 2436116.31
+        # Test_Julian1_ case, pg 61 of Meeus:  4.81 Oct 1957 (Sputnik I launch) == 2436116.31
         expected = 2436116.31
         assert_equal(JulianAstro(10, 4.81, 1957), expected)
         if 1:  # Other test cases from pg 62
@@ -352,14 +352,14 @@ if __name__ == "__main__":
                 year, month = int(y), int(m)
                 day = float(d)
                 assert_equal(JulianAstro(month, day, year), expected)
-    def TestDayOfWeek():
+    def Test_Julian1_DayOfWeek():
         assert_equal(DayOfWeek(11, 13, 1949), 0)
         assert_equal(DayOfWeek(5, 30, 1998), 6)
         assert_equal(DayOfWeek(6, 30, 1954), 3)
-    def TestDayOfYear():
+    def Test_Julian1_DayOfYear():
         assert_equal(DayOfYear(11, 14, 1978), 318)
         assert_equal(DayOfYear(4, 22, 1980), 113)
-    def TestJulianToDate():
+    def Test_Julian1_JulianToDate():
         eps = 1e-5
         month, day, year, hr, min, sec = JulianToDate(2436116.31)
         assert_equal(month, 10)
@@ -375,9 +375,9 @@ if __name__ == "__main__":
         assert_equal(month, 5)
         assert_equal(year, -584)
         assert_equal(abs(day), 28.63, abstol=eps)
-    def TestNumericalInit():
+    def Test_Julian1_NumericalInit():
         data = (
-            # Test vectors from Meeus pg 61 & 62
+            # Test_Julian1_ vectors from Meeus pg 61 & 62
             #  y,    m,     d,     jd
             (1957, 10, 4.81, 2436116.31),
             (333, 1, 27.5, 1842713.0),
@@ -394,9 +394,9 @@ if __name__ == "__main__":
         for y, m, d, jd in data:
             jul = JulianAstro(m, d, y)
             Assert(jd - jul == 0)
-    def TestStringInit():
+    def Test_Julian1_StringInit():
         data = (
-            # Test points from Meeus pg 62
+            # Test_Julian1_ points from Meeus pg 62
             ("4Oct1957:19:26:24", 2436116.31),
             ("27Jan333:12", 1842713.0),
             ("1.5jan2000", 2451545.0),
@@ -410,9 +410,9 @@ if __name__ == "__main__":
             ("1.5Jan-4712", 0.0),
         )
         data
-    def TestDecodeDay():
+    def Test_Julian1_DecodeDay():
         Assert(DecodeDay(1.5) == (12, 0, 0))
-    def TestNumDaysInMonth():
+    def Test_Julian1_NumDaysInMonth():
         yr = 1999
         DIM = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
         for mo, dim in enumerate(DIM):
@@ -425,12 +425,12 @@ if __name__ == "__main__":
         months = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
         for m, days in zip(range(1, 13), months):
             Assert(NumDaysInMonth(m, y) == days)
-    def TestIsLeapYear():
+    def Test_Julian1_IsLeapYear():
         for y in (1700, 1800, 1900, 2100, 2001):
             Assert(not IsLeapYear(y))
         for y in (1600, 2000, 2400, 2004):
             Assert(IsLeapYear(y))
-    def TestIsValidDate():
+    def Test_Julian1_IsValidDate():
         for m, d, y in (
             (1, 1, 1753),
             (12, 31, 1753),

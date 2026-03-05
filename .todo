@@ -5,6 +5,8 @@ Reorganization core files
     - meeus
     - julian
     - kepler
+- dppath
+    - dirfiles
 - dpmath
     - root
     - linreg
@@ -16,9 +18,17 @@ Reorganization core files
 - dpphys
     - densitydb
 
-    - dp.py
-        - Script to find symbols in the dp*.py files, as my massive refactoring will
-          break nearly every module/script
+    - pgm/mathfuncs.py
+        - Update to 3.11
+            - See pgm/math.symbols.3.11.8, gotten from doc page in browser with "grep '^ *math\.'"
+        - Use color coding a little more judiciously
+            - Match type colors in dpdb.py
+                - This shows the need for dpstr.py:TypeColors() that modifies a Trm()
+                  instance
+        - Use termtables to print results
+        - Add a column showing domain & range or synopsis
+            - E.g., ceil returns ⌈x⌉, floor ⌊x⌋
+        - Show the contents of listmath.py with an option; delete listmath
 
     - uses.py  Script to find python modules/scripts that use a module, class, or symbol
         - This would help with refactoring decisions and moving stuff to /plib/old

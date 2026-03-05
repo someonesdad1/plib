@@ -35,11 +35,12 @@ if 1:   # Header
         from collections import defaultdict
     if 1:   # Custom imports
         from wrap import dedent
+        import trm
         if 0:
             import debug
             debug.SetDebugger()
         # Color coding
-        from color import t
+        t = trm.Trm()
         try:
             from color import PrintMatch, lred, black, Style
             MatchStyle = Style(lred, black)

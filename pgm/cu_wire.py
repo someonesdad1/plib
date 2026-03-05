@@ -41,14 +41,12 @@ if 1:  # Header
         from wrap import dedent
         from fpformat import FPFormat
         from columnize import Columnize
-        from roundoff import RoundOff
+        from dpmath import RoundOff
         from wire import AWG, Ampacity, ChassisCurrent
         from sig import sig
         from u import u, ParseUnit
         from f import flt, ceil
-        from dpprint import PP
         import termtables as tt
-        pp = PP()   # Get pprint with current screen width
         if 0:
             import debug
             debug.SetDebugger()
