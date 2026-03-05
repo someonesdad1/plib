@@ -189,13 +189,11 @@ if 1:  # Core functionality
                 if i not in c:
                     print("Error:  cmath.{i!r} not in data")
         # Report
-        t.print(
-            f"{t('ornl')}math/cmath functions for python {platform.python_version()}"
-        )
+        t.print(f"{t.title}math/cmath functions for python {platform.python_version()}")
         print(f"{ind}Produced by {__file__}")
         t.print(f"{ind}Colors:  {t.m}math{t.n}  {t.c}cmath")
         if 1:  # All symbols
-            t.print(f"{t('grnl')}All symbols")
+            t.print(f"{t.type}All symbols")
             sym = []
             for i in o:
                 sym.append((i.name, i))
@@ -238,9 +236,10 @@ if __name__ == "__main__":
     import trm
     t = trm.Trm()
     entry = namedtuple("Entry", "lib n name args color")
-    t.m = t.orn
-    t.c = t.skyl
-    t.type = t.grn
+    t.title = t.ygr
+    t.m = t.wht
+    t.c = t.sky
+    t.type = t.trq
     t.hdr = t("whtl", "royd")
     ind = " "*2
     W = int(os.environ.get("COLUMNS", "80")) - 1

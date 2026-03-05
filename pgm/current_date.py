@@ -32,7 +32,8 @@ if 1:  # Header
         t = trm.Trm()
         import u
         from f import flt
-        import julian
+        import dpastro
+        #import julian
         from get import GetLines, ParseUnit
         from wrap import dedent
         from lwtest import Assert
@@ -192,10 +193,10 @@ if 1:  # Core functionality
             mo = int(time.strftime("%m", tm))  # Integer month
             wk = int(time.strftime("%U", tm))  # Week number with Sunday first day of week
             # Julian day
-            jd = julian.JulianAstroDateTime(
+            jd = dpastro.JulianAstroDateTime(
                 year, mo, day, int(hour), int(minute), int(sec)
             )
-            ly = julian.IsLeapYear(year)  # Boolean for leap year
+            ly = dpastro.IsLeapYear(year)  # Boolean for leap year
             qtr = (mo//3) + 1  # Quarter of year
             doy = int(time.strftime("%j", tm))  # Day of the year
         if 0:

@@ -22,6 +22,7 @@ if 1:  # Header
         import dptime
         import dptypes
         import f
+        import lwtest
         import trm
         import wrap
         if 0:
@@ -101,7 +102,7 @@ if 1:  # Julian day routines
             n = int((275 * month) // 9 - ((month + 9) // 12) + int(day) - 30)
         else:
             n = int((275 * month) // 9 - 2 * ((month + 9) // 12) + int(day) - 30)
-        Assert(1 <= n <= 366)
+        lwtest.Assert(1 <= n <= 366)
         return n
     def DayOfWeek(month, day, year):
         julian = int(JulianAstro(month, int(day), year) + 1.5)
@@ -130,7 +131,7 @@ if 1:  # Julian day routines
                 if day >= 32:
                     return False
         else:
-            Assert(isinstance(day, int))
+            lwtest.Assert(isinstance(day, int))
             if month == 2:
                 if IsLeapYear(year):
                     if day > 29:
@@ -158,9 +159,9 @@ if 1:  # Julian day routines
         but if you want correct astronomical Julian day numbers, you must
         convert local time to GMT.
         '''
-        Assert(isinstance(month, int) and 1 <= month <= 12)
-        Assert(isinstance(day, (int, float)) and 1 <= day < 32)
-        Assert(isinstance(year, int))
+        lwtest.Assert(isinstance(month, int) and 1 <= month <= 12)
+        lwtest.Assert(isinstance(day, (int, float)) and 1 <= day < 32)
+        lwtest.Assert(isinstance(year, int))
         if month < 3:
             year = year - 1
             month = month + 12
@@ -178,9 +179,9 @@ if 1:  # Julian day routines
         on [0, 24).
         '''
         for x in (year, month, day, hour, minute):
-            Assert(isinstance(x, int))
-        Assert(isinstance(second, (int, float)))
-        Assert(0 <= hour < 24)
+            lwtest.Assert(isinstance(x, int))
+        lwtest.Assert(isinstance(second, (int, float)))
+        lwtest.Assert(0 <= hour < 24)
         if isinstance(second, float):
             s = int(second)
             microsecond = int((second - s) * 1e6)
@@ -195,7 +196,7 @@ if 1:  # Julian day routines
         date/time object without fiddling with the astronomical time.
         '''
         dt = datetime_instance
-        Assert(isinstance(dt, datetime.datetime))
+        lwtest.Assert(isinstance(dt, datetime.datetime))
         mo, d, y = dt.month, dt.day, dt.year
         h, m, s = dt.hour, dt.minute, dt.second
         # Get midnight Julian day number as an integer
@@ -213,7 +214,7 @@ if 1:  # Julian day routines
         '''Returns the integer Julian date when given a string s in the form
         YYYYMMDD.
         '''
-        Assert(len(s) == 8)
+        lwtest.Assert(len(s) == 8)
         year, month, day = int(s[0:4]), int(s[4:6]), int(s[6:8])
         return Julian(month, day, year)
     def JulianNow():
@@ -239,7 +240,7 @@ if 1:  # Julian day routines
         if s is not a suitable date string.
         '''
         def DecodeDate(dt):
-            Assert(len(dt) > 4)
+            lwtest.Assert(len(dt) > 4)
             digits = set("0123456789")
             d = list(dt)
             # Get day
@@ -247,7 +248,7 @@ if 1:  # Julian day routines
             if d[0] in digits:
                 s += d.pop(0)
             day = int(s)
-            Assert(d[0] not in digits)
+            lwtest.Assert(d[0] not in digits)
             # Get month
             s = "".join(d[:3]).lower()
             month = dptime.Month2Num_lc[s]
@@ -258,7 +259,7 @@ if 1:  # Julian day routines
             "Return number of days of the time on [0.5, 1.5)"
             try:
                 f = tm.split(":")
-                Assert(f)
+                lwtest.Assert(f)
                 hours = int(f.pop(0))
                 if f:
                     minutes = int(f.pop(0))
@@ -266,7 +267,7 @@ if 1:  # Julian day routines
                 if f:
                     seconds = float(f.pop(0))  # Seconds
                     hours += seconds/3600
-                Assert(0 <= hours < 24)
+                lwtest.Assert(0 <= hours < 24)
                 # Subtract 12 hours because noon is 0.5 day
                 hours -= 12
                 return hours/24 + 0.5
@@ -307,8 +308,8 @@ if 1:  # meeus.py utility
         # One hour = 360/24 = 15 degrees
         IsInt(h, "h must be an integer")
         IsInt(m, "m must be an integer")
-        Assert(m >= 0, "m must be >= 0")
-        Assert(s >= 0, "s must be >= 0")
+        lwtest.Assert(m >= 0, "m must be >= 0")
+        lwtest.Assert(s >= 0, "s must be >= 0")
         decimal_hours = abs(h) + abs(m)/60 + abs(s)/3600
         return math.radians(sgn(h)*decimal_hours*15)
     def dms2rad(d, m, s):
@@ -317,8 +318,8 @@ if 1:  # meeus.py utility
         '''
         IsInt(d, "d must be an integer")
         IsInt(m, "m must be an integer")
-        Assert(m >= 0, "m must be >= 0")
-        Assert(s >= 0, "s must be >= 0")
+        lwtest.Assert(m >= 0, "m must be >= 0")
+        lwtest.Assert(s >= 0, "s must be >= 0")
         deg = abs(d) + abs(m)/60 + abs(s)/3600
         return math.radians(sgn(d)*deg)
     def hr2hms(hr):
@@ -351,7 +352,7 @@ if 1:  # meeus.py utility
         Y against X.  X and Y are sequences of the abscissas and ordinates, respectively; they must
         be of the same size.
         '''
-        Assert(len(X) == len(Y))
+        lwtest.Assert(len(X) == len(Y))
         N, sx, sy = len(X), sum(X), sum(Y)
         sq, prod = lambda x: x*x, lambda x, y: x*y
         sXX, sYY, sXY = sum(map(sq, X)), sum(map(sq, Y)), sum(map(prod, X, Y))
@@ -361,7 +362,7 @@ if 1:  # meeus.py utility
         slope = (N*sXY - sx*sy)/denomx
         intercept = (sy*sXX - sx*sXY)/denomx
         r = (N*sXY - sx*sy)/math.sqrt(denomx*denomy)
-        Assert(-1 <= r <= 1, "Correlation coefficient out of range")
+        lwtest.Assert(-1 <= r <= 1, "Correlation coefficient out of range")
         return (slope, intercept, r)
     def AngularSeparation(ra1, dec1, ra2, dec2):
         '''Page 109.  Returns the angular separation in radians between two bodies at (ra1, dec1)
@@ -395,13 +396,13 @@ if 1:  # meeus.py Time routines
     def IsLeapYear(year):
         "Page 62, returns True if year is a leap year"
         IsInt(year, "year must be an integer")
-        Assert(year > 0, "year must be >= 0")
+        lwtest.Assert(year > 0, "year must be >= 0")
         return (year % 400 == 0) or (year % 4 == 0 and year % 100 != 0)
     def NumDaysInMonth(month, year):
         IsInt(year, "year must be an integer")
         IsInt(month, "month must be an integer")
-        Assert(year > 0, "year must be >= 0")
-        Assert(1 <= month <= 12, "month must be between 1 and 12")
+        lwtest.Assert(year > 0, "year must be >= 0")
+        lwtest.Assert(1 <= month <= 12, "month must be between 1 and 12")
         # Days in months (February handled specially because of leap years)
         months = {1: 31, 3: 31, 4: 30, 5: 31, 6: 30, 7: 31, 8: 31, 9: 30, 10: 31,
                   11: 30, 12: 31}
@@ -426,7 +427,7 @@ if 1:  # meeus.py Time routines
         '''
         IsInt(year, "year must be an integer")
         IsInt(day_of_year, "day_of_year must be an integer")
-        Assert(1 <= day_of_year <= 366, "Bad day of year number")
+        lwtest.Assert(1 <= day_of_year <= 366, "Bad day of year number")
         N = day_of_year
         K = 1 if IsLeapYear(year) else 2
         M = int((9*(K + N)/275) + 0.98)
@@ -601,7 +602,7 @@ if 1:  # meeus.py Julian date routines
         decimal fraction part is zero at Greenwich mean noon.
         '''
         CheckIntegerDate(month, day, year, decimal_day=True)
-        Assert(year >= g.minimum_year)
+        lwtest.Assert(year >= g.minimum_year)
         M, D, Y = month, day, year  # Meeus' notation
         if M in (1, 2):
             Y -= 1
@@ -620,7 +621,7 @@ if 1:  # meeus.py Julian date routines
         "Return (month, day, year) for the given julian_day and year"
         IsInt(julian_day, "julian_day must be an integer")
         IsInt(year, "year must be an integer")
-        Assert(1 <= julian_day <= 366)
+        lwtest.Assert(1 <= julian_day <= 366)
         # Days in month indexed by (month - 1).
         days_in_month = (
             31,
@@ -648,7 +649,7 @@ if 1:  # meeus.py Julian date routines
         '''Page 63.  Returns (month, day, year) given the Julian day jd.  month and year are
         integers; day may be an integer or float.
         '''
-        Assert(jd >= 0, "Julian day must be >= 0")
+        lwtest.Assert(jd >= 0, "Julian day must be >= 0")
         jd += 0.5
         Z = int(jd)
         F = jd - Z
@@ -676,10 +677,10 @@ if 1:  # meeus.py Earth-related calculations
         latitudes and longitudes must be in radians.  The returned value is in km.  The relative
         error of the result is on the order of 1e-5.
         '''
-        Assert(abs(lat1) <= math.pi/2, "abs(lat1) must be <= pi/2")
-        Assert(abs(lat2) <= math.pi/2, "abs(lat2) must be <= pi/2")
-        Assert(abs(long1) <= math.pi/2, "abs(long1) must be <= pi/2")
-        Assert(abs(long2) <= math.pi/2, "abs(long2) must be <= pi/2")
+        lwtest.Assert(abs(lat1) <= math.pi/2, "abs(lat1) must be <= pi/2")
+        lwtest.Assert(abs(lat2) <= math.pi/2, "abs(lat2) must be <= pi/2")
+        lwtest.Assert(abs(long1) <= math.pi/2, "abs(long1) must be <= pi/2")
+        lwtest.Assert(abs(long2) <= math.pi/2, "abs(long2) must be <= pi/2")
         a = g.earth_equatorial_radius_km
         f = g.earth_flattening
         F = (lat1 + lat2)/2
@@ -701,7 +702,7 @@ if 1:  # meeus.py Earth-related calculations
         '''Page 83.  Returns the distance in km along a circle of constant latitude for Earth for
         an angular longitude distance of angle.  Both angles must be in radians.
         '''
-        Assert(abs(latitude) <= math.pi/2, "abs(latitude) must be <= pi/2")
+        lwtest.Assert(abs(latitude) <= math.pi/2, "abs(latitude) must be <= pi/2")
         angle = math.fmod(angle, 2*math.pi)
         if angle < 0:
             angle += 2*math.pi
@@ -714,7 +715,7 @@ if 1:  # meeus.py Earth-related calculations
         '''Page 84.  Returns the distance in km along a circle of constant longitude for Earth for
         an angular distance of angle along the latitude.  Both angles must be in radians.
         '''
-        Assert(abs(latitude) <= math.pi/2, "abs(latitude) must be <= pi/2")
+        lwtest.Assert(abs(latitude) <= math.pi/2, "abs(latitude) must be <= pi/2")
         angle = math.fmod(angle, 2*math.pi)
         if angle < 0:
             angle += 2*math.pi
@@ -729,7 +730,7 @@ if 1:  # meeus.py Earth-related calculations
         '''
         # Convert Julian day to units of 1e4 years
         u = (jd - 2451545.0)/(36525*100)
-        Assert(abs(u) <= 1)  # Only to be used for +/- 1e4 years from 2000
+        lwtest.Assert(abs(u) <= 1)  # Only to be used for +/- 1e4 years from 2000
         c = dms2rad(23, 26, 21.448)  # Major component constant
         e=u*(-4680.93+u*(-1.55+u*(1999.25+u*(-51.38+u*(-249.67+u*(-39.05+u*(7.12+u*(27.87+u*(5.79+u*(2.45))))))))))
         # e is in arcseconds; convert to radians and add the constant
@@ -792,15 +793,15 @@ if 1:  # meeus.py Earth-related calculations
         H = math.fmod(H, 2*math.pi)
         if H < 0:
             H += 2*math.pi
-        Assert(0 <= H <= 2*math.pi)
+        lwtest.Assert(0 <= H <= 2*math.pi)
         A = math.degrees(math.atan(math.sin(H)/(math.cos(H)*math.sin(latitude) 
                          - math.tan(dec)*math.cos(latitude))))
         h = math.degrees(math.asin(math.sin(latitude)*math.sin(dec) 
                          + math.cos(latitude)*math.cos(dec)*math.cos(H)))
         # Convert A to an attitude reckoned from north
         A = math.fmod(A + 180, 360)
-        Assert(0 <= A <= 360)
-        Assert(-90 <= h <= 90)
+        lwtest.Assert(0 <= A <= 360)
+        lwtest.Assert(-90 <= h <= 90)
         return (A, h)
     def Precession(jd, jd0, ra0, dec0, pm_ra=0, pm_dec=0):
         '''Page 134.  Returns (ra, dec) representing a position in equatorial coordinates at time

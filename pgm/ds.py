@@ -69,7 +69,7 @@ if 1:  # Header
         from selection import Select
         from dirfiles import Dirfiles
         from wsl import wsl
-        from timer import GetET
+        from dptime import GetET
         from dpstr import IgnoreFilter
         from f import flt
         import trm
