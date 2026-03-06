@@ -17,6 +17,11 @@ if 1:  # Header
         
             - ∞∞1 Assert, assert_equal, and the check_* functions can use debug.fln() to get
               the file and line number of the failed call
+                - ∞∞2 Also look at including debug.py to print the details during an
+                  unhandled exception (see 'Demonstrate an unhandled exception' in
+                  debug.py's demo).  This would let you see the local variables on the
+                  stack, which is what usually needs to be done (tediously) with the
+                  debugger.
 
             - https://pycodestyle.pycqa.org/en/latest/advanced.html#automated-tests
               tells how to add automated code style testing for conformance.  Add it to
@@ -76,6 +81,9 @@ if 1:  # Header
         flt = f.flt
     if 1:  # Global variables
         u = trm.Trm()
+        u.got = u.grn1
+        u.exp = u.orn
+        u.msg = u.mag
         _modname = "<lwtest.py>"
         __doc__ = dedent('''
             Lightweight testrunner framework
@@ -507,26 +515,24 @@ if 1:  # Checking functions
                     fail = ["{} != {}".format(repr(a), repr(b))]
         return fail
     def assert_equal(a, b, reltol=None, abstol=None, use_min=False, msg="", halt=True, debug=False):
-        '''Raise an AssertionError if a != b.  a and b can be objects,
-        numbers, or sequences of numbers (sequence elements are compared
-        pairwise), or dictionaries.  reltol and abstol are the relative and
-        absolute tolerances.  No exception will be raised if for each
-        number element (if a is zero, reltol*b is used instead)
+        '''Raise an AssertionError if a != b.  a and b can be objects, numbers, or
+        sequences of numbers (sequence elements are compared pairwise), or dictionaries.
+        reltol and abstol are the relative and absolute tolerances.  No exception will
+        be raised if for each number element (if a is zero, reltol*b is used instead)
                 abs(a - b) <= reltol*a
         or
                 abs(a - b) <= abstol
-        If both abstol and reltol are defined, the one with the larger
-        tolerance range will be used unless use_min is True, in which case
-        the smaller tolerance will be used.
+        If both abstol and reltol are defined, the one with the larger tolerance range
+        will be used unless use_min is True, in which case the smaller tolerance will be
+        used.
         
         If msg is present, include it in the printout as a message.
         
-        If halt is True, a failed assertion causes an exception to be
-        raised; if halt is False, the error message is printed to stderr and
-        the function returns (this allows you to e.g. start a debugger).
+        If halt is True, a failed assertion causes an exception to be raised; if halt is
+        False, the error message is printed to stderr and the function returns (this
+        allows you to e.g. start a debugger).
         
-        If debug is True, a failed assertion will drop you into the
-        debugger.
+        If debug is True, a failed assertion will drop you into the debugger.
         '''
         # fail will be None if all things compared are equal.  Otherwise,
         # it will be a list of error message strings detailing where the
@@ -564,7 +570,7 @@ if 1:  # Checking functions
         if fail is None:
             return  # a and b were equal
         else:
-            arg_not_eq = "Arguments are not equal [pyver {}]:".format(python_version)
+            arg_not_eq = f"{u.msg}Arguments are not equal [pyver {python_version}]{u.n}:"
             try:
                 # Assume they're sequences
                 diff = [a[i] - b[i] for i in range(len(a))]
@@ -586,19 +592,19 @@ if 1:  # Checking functions
                         rel_diff_arg2 = None
                     fail += [
                         arg_not_eq,
-                        f"  arg1 = {a!r}",
-                        f"  arg2 = {b!r}",
+                        f"{u.got}  got      = {a!r}{u.n}",
+                        f"{u.exp}  expected = {b!r}{u.n}",
                         f"  diff = {diff!r}",
                     ]
                     if rel_diff_arg1 is not None:
-                        fail += [f"  diff/arg1 = {rel_diff_arg1!r}"]
+                        fail += [f"  diff/got      = {rel_diff_arg1!r}"]
                     if rel_diff_arg2 is not None:
-                        fail += [f"  diff/arg2 = {rel_diff_arg2!r}"]
+                        fail += [f"  diff/expected = {rel_diff_arg2!r}"]
             else:
                 fail += [
                     arg_not_eq,
-                    f"  arg1 = {a!r}",
-                    f"  arg2 = {b!r}",
+                    f"{u.got}  got      = {a!r}{u.n}",
+                    f"{u.exp}  expected = {b!r}{u.n}",
                     f"  diff = {diff!r}",
                 ]
         if msg:
@@ -655,7 +661,7 @@ if __name__ == "__main__":
                 {u.orn}num_failed, messages = run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0){u.n}
                   or
                 {u.mag}exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0]){u.n}
-
+            
                 {u.k}broken{u.n}      If True, testing code is acknowledged to be broken; a warning
                             message is printed and tests are not run.  [{u.d}False{u.n}]
                 {u.k}dbg{u.n}         If True, don'u handle exceptions (allows you to trap them in a
@@ -669,7 +675,7 @@ if __name__ == "__main__":
                 {u.k}reopts{u.n}      Regular expression's options. [{u.d}re.I{u.n}]
                 {u.k}stream{u.n}      Where to send output [{u.d}stdout{u.n}].  None = no output.
                 {u.k}nomsg{u.n}       If True, return only the integer 'failed'.
-
+            
                 exit(num_failed)      # Nonzero status if 1 or more unhandled exceptions
         
         Utility functions:

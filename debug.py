@@ -75,6 +75,7 @@ if 1:  # Header
               assess the coverage in a test file.  Check out
               https://coderivers.org/blog/python-trace/ as it looks like it has some
               useful and simple examples for both tracing and profiling.
+            - ∞∞2 'Demonstrate an unhandled exception' demo has incorrect line numbers
             - ∞∞3 Can stack levels be numbered?  Not a big priority, as dot example
               doesn't pretty well
             - https://wiki.python.org/moin/PythonDecoratorLibrary#Function_Timeout looks
