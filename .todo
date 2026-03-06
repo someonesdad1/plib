@@ -1,9 +1,7 @@
 - Make all the dp*.py files testable by just running them
 
 Reorganization core files
-root -->dproot
 - dparith
-    - primes
     - stirling
 - dpshop
     - linscale

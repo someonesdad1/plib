@@ -29,14 +29,12 @@ if 1:  # Header
     if 1:  # Global variables
         __all__ = "Stirling1 Stirling2".split()
 if 1:  # Core functionality
-    def s(n, k):
+    def Stirling1(n, k):
         '''Returns the Stirling number of the first kind.
-        
         The recurrence relation is s(n+1, k) = s(n, k-1) - n*s(n, k) for k
-        running from 1 to n.  This is a recursive calculation, although
-        the intermediate results are cached to reduce subsequent
-        computation time.
+        running from 1 to n.
         '''
+        # Can be decorated with debug.Memoized to cache calls if used a lot
         if not isinstance(n, int) or n < 0 or not isinstance(k, int) or k < 0:
             raise ValueError("n and k must be integers >= 0")
         if n == k:
@@ -47,24 +45,21 @@ if 1:  # Core functionality
             return 0
         elif k > n:
             return 0
-        return s(n - 1, k - 1) - (n - 1) * s(n - 1, k)
-    def S(n, k):
+        return Stirling1(n - 1, k - 1) - (n - 1)*Stirling1(n - 1, k)
+    def Stirling2(n, k):
         '''Returns the Stirling number of the second kind.
-        
-        The recurrence relation is S(n, k) = S(n - 1, k - 1) + k*S(n - 1, k).
-        The Stirling number of the second kind is the number of ways of
-        partitioning a set of n objects into k-sized subsets.
+        The recurrence relation is S(n, k) = S(n - 1, k - 1) + k*S(n - 1, k).  The
+        Stirling number of the second kind is the number of ways of partitioning a set
+        of n objects into k-sized subsets.
         '''
+        # Can be decorated with debug.Memoized to cache calls if used a lot
         if not isinstance(n, int) or n < 0 or not isinstance(k, int) or k < 0:
             raise ValueError("n and k must be integers >= 0")
         if k <= 1 or k == n:
             return 1
         elif k > n or n <= 0:
             return 0
-        return S(n - 1, k - 1) + k * S(n - 1, k)
-
-Stirling1 = debug.Memoized(s)
-Stirling2 = debug.Memoized(S)
+        return Stirling2(n - 1, k - 1) + k*Stirling2(n - 1, k)
 
 if __name__ == "__main__":
     from lwtest import run, Assert
@@ -75,35 +70,35 @@ if __name__ == "__main__":
         n = 1
         expected = (0, 1)
         for k in range(1, n):
-            Assert(s(n, k) == expected[k])
+            Assert(Stirling1(n, k) == expected[k])
         n = 2
         expected = (0, -1, 1)
         for k in range(1, n):
-            Assert(s(n, k) == expected[k])
+            Assert(Stirling1(n, k) == expected[k])
         n = 3
         expected = (0, 2, -3, 1)
         for k in range(1, n):
-            Assert(s(n, k) == expected[k])
+            Assert(Stirling1(n, k) == expected[k])
         n = 4
         expected = (0, -6, 11, -6, 1)
         for k in range(1, n):
-            Assert(s(n, k) == expected[k])
+            Assert(Stirling1(n, k) == expected[k])
         n = 5
         expected = (0, 24, -50, 35, -10, 1)
         for k in range(1, n):
-            Assert(s(n, k) == expected[k])
+            Assert(Stirling1(n, k) == expected[k])
         n = 6
         expected = (0, -120, 274, -225, 85, -15, 1)
         for k in range(1, n):
-            Assert(s(n, k) == expected[k])
+            Assert(Stirling1(n, k) == expected[k])
         n = 7
         expected = (0, 720, -1764, 1624, -735, 175, -21, 1)
         for k in range(1, n):
-            Assert(s(n, k) == expected[k])
+            Assert(Stirling1(n, k) == expected[k])
         n = 8
         expected = (0, -5040, 13068, -13132, 6769, -1960, 322, -28, 1)
         for k in range(1, n):
-            Assert(s(n, k) == expected[k])
+            Assert(Stirling1(n, k) == expected[k])
     def Test_second_kind():
         '''Numbers from https://oeis.org/A008277 (See the triangle down
         next to EXAMPLE).
@@ -111,33 +106,33 @@ if __name__ == "__main__":
         n = 1
         expected = (0, 1)
         for k in range(1, n):
-            Assert(S(n, k) == expected[k])
+            Assert(Stirling2(n, k) == expected[k])
         n = 2
         expected = (0, 1, 1)
         for k in range(1, n):
-            Assert(S(n, k) == expected[k])
+            Assert(Stirling2(n, k) == expected[k])
         n = 3
         expected = (0, 1, 3, 1)
         for k in range(1, n):
-            Assert(S(n, k) == expected[k])
+            Assert(Stirling2(n, k) == expected[k])
         n = 4
         expected = (0, 1, 7, 6, 1)
         for k in range(1, n):
-            Assert(S(n, k) == expected[k])
+            Assert(Stirling2(n, k) == expected[k])
         n = 5
         expected = (0, 1, 15, 25, 10, 1)
         for k in range(1, n):
-            Assert(S(n, k) == expected[k])
+            Assert(Stirling2(n, k) == expected[k])
         n = 6
         expected = (0, 1, 31, 90, 65, 15, 1)
         for k in range(1, n):
-            Assert(S(n, k) == expected[k])
+            Assert(Stirling2(n, k) == expected[k])
         n = 7
         expected = (0, 1, 63, 301, 350, 140, 21, 1)
         for k in range(1, n):
-            Assert(S(n, k) == expected[k])
+            Assert(Stirling2(n, k) == expected[k])
         n = 8
         expected = (0, 1, 127, 966, 1701, 1050, 266, 28, 1)
         for k in range(1, n):
-            Assert(S(n, k) == expected[k])
+            Assert(Stirling2(n, k) == expected[k])
     exit(run(globals(), halt=1)[0])
