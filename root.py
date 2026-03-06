@@ -173,6 +173,7 @@ if 1:  # Header
         import numbers
         import sys
     if 1:  # Custom imports
+        import dpmath
         import dptypes
         import trm
         from f import flt
@@ -355,7 +356,7 @@ if 1:  # Root finders that don't need a derivative (but you must bracket the roo
         '''
         fnname = "Bisection"
         a, b = [fp(i) for i in (a, b)]
-        fa, fb = IsBracketed(a, b, f, fp=fp)
+        fa, fb = dpmath.IsBracketed(a, b, f, fp=fp)
         diff = abs(b - a)
         if not fa:
             Dbg(f"{fnname}: a is root", file=dbg)
@@ -364,7 +365,7 @@ if 1:  # Root finders that don't need a derivative (but you must bracket the roo
             Dbg(f"{fnname}: b is root", file=dbg)
             return b, 0
         # Get number of iterations we need to calculate
-        n = Ceil(Log2(abs(b - a)/tol, fp), fp)
+        n = dpmath.Ceil(dpmath.Log2(abs(b - a)/tol, fp), fp)
         if itmax is not None:
             n = itmax
         for count in range(n):
@@ -406,7 +407,7 @@ if 1:  # Root finders that don't need a derivative (but you must bracket the roo
         Adapted from [3:358:382].
         '''
         a, b = [fp(i) for i in (a, b)]
-        fa, fb = IsBracketed(a, b, f, fp=fp)
+        fa, fb = dpmath.IsBracketed(a, b, f, fp=fp)
         if not fa:
             return a, 0
         if not fb:
@@ -1025,7 +1026,7 @@ if 1:  # Polynomials
             d = (p*p/4 - q)**0.5
             if force_real:
                 return tuple([i.real for i in (-p/2 + d, -p/2 - d)])
-            return Pound(-p/2 + d, adjust), Pound(-p/2 - d, adjust)
+            return dpmath.Pound(-p/2 + d, adjust), dpmath.Pound(-p/2 - d, adjust)
         else:
             # More stable numerical method
             D = (b*b - 4*a*c)**0.5
@@ -1035,7 +1036,7 @@ if 1:  # Polynomials
                 x1, x2 = 2*c/(-b + D), (-b + D)/(2*a)
             if force_real:
                 return tuple([i.real for i in (x1, x2)])
-            return Pound(x1, adjust), Pound(x2, adjust)
+            return dpmath.Pound(x1, adjust), dpmath.Pound(x2, adjust)
     def Cubic(a, b, c, d, adjust=True, force_real=False):
         '''Returns the roots of a cubic with complex coefficients: a*z**3 + b*z**2 + c*z
         + d.  The coefficients can also be mpmath's mpf and mpc numbers.
@@ -1129,7 +1130,7 @@ if 1:  # Polynomials
             roots = f(x, 0), f(x, 1), f(x, 2)
             if force_real:
                 return tuple(i.real for i in roots)
-            return tuple(Pound(i, adjust) for i in roots)
+            return tuple(dpmath.Pound(i, adjust) for i in roots)
         u = -2*b**3 + 9*a*b*c - 27*a**2*d
         D = -(b**2) + 3*a*c
         v = (4*D**3 + u**2)**0.5
@@ -1144,7 +1145,7 @@ if 1:  # Polynomials
         x3 = z + ((1 - st)*D)/u - ((1 + st)*y)/x
         if force_real:
             return tuple(i.real for i in (x1, x2, x3))
-        return tuple(Pound(i, adjust) for i in (x1, x2, x3))
+        return tuple(dpmath.Pound(i, adjust) for i in (x1, x2, x3))
     def Quartic(a, b, c, d, e, adjust=True, force_real=False):
         '''Returns the roots of a quartic with complex coefficients: a*x**4 + b*x**3 + c*x**2 + d*x +
         e.  Note this works with float types only.  Set force_real to make all the returned roots be
@@ -1207,7 +1208,7 @@ if 1:  # Polynomials
             roots = f(x, 0), f(x, 1), f(x, 2), f(x, 3)
             if force_real:
                 return tuple([i.real for i in roots])
-            return tuple([Pound(i, adjust) for i in roots])
+            return tuple([dpmath.Pound(i, adjust) for i in roots])
         cr3 = 2**(1/3)
         p = -b/(4*a)
         q = c**2 - 3*b*d + 12*a*e
@@ -1223,7 +1224,7 @@ if 1:  # Polynomials
         roots = p - w/2 - y, p - w/2 + y, p + w/2 - z, p + w/2 + z
         if force_real:
             return tuple([i.real for i in roots])
-        return tuple(Pound(i, adjust) for i in roots)
+        return tuple(dpmath.Pound(i, adjust) for i in roots)
 
 if __name__ == "__main__":
     if 1:   # Standard imports
@@ -1243,67 +1244,6 @@ if __name__ == "__main__":
         raises = lwtest.raises
         run = lwtest.run
     if 1:  # Utility
-        def Ceil(x, fp):
-            'Ceiling function for type fp:  float, flt, mpf, Decimal'
-            if fp is float or fp is flt:
-                return int(math.ceil(x))
-            elif have_mpmath and fp is mpmath.mpf:
-                return int(mpmath.ceil(x))
-            elif fp is decimal.Decimal and x is decimal.Decimal:
-                return int(x.to_integral_exact(rounding=decimal.ROUND_CEILING))
-            else:
-                raise TypeError(f"Type {fp} not supported")
-        def Log2(x, fp):
-            'Base 2 logarithm function for type fp:  float, flt, mpf, Decimal'
-            if fp is float or fp is flt:
-                return math.log2(x)
-            elif have_mpmath and fp is mpmath.mpf:
-                return mpmath.log(x)/mpmath.log(2)
-            elif fp is decimal.Decimal:
-                assert x is decimal.Decimal
-                return x.ln(x)/x.ln(2)
-            else:
-                raise TypeError(f"Type {fp} not supported")
-        def IsBracketed(a, b, f, fp=float):
-            '''Check that a and b bracket a root of f(x); raise ValueError if not.  Return
-            the values (fp(f(a)), fp(f(b))) for convenience and to avoid recalculating them.
-            '''
-            fa, fb = fp(f(a)), fp(f(b))
-            if fa*fb > 0:
-                raise ValueError(f"a = {a} and b = {b} do not bracket a root of f")
-            return (fa, fb)
-        def Pound(z, adjust=True, ratio=2.5e-15):
-            '''Turn z into a real if z.imag is small enough relative to the z.real and
-            adjust is True.  Do the analogous thing for a nearly pure imaginary number.
-            
-            The name comes from imagining the complex number is a nail which a light tap
-            from a hammer makes it lie parallel to either the real or imaginary axis.
-            
-            Set adjust to False so that only pure real or imaginary numbers are converted.
-            
-            Examples
-                Pound(-6.9e-17+1j) --> 1j
-                Pound(1-6.9e-17j) --> 1.0
-                Pound(-6.9e-17+1j, ratio=1e-20) --> (-6.9e-17+1j)
-                Pound(-6.9e-14+1j) --> (-6.9e-14+1j)
-            '''
-            if not isinstance(z, complex):
-                if have_mpmath and not isinstance(z, mpmath.mpc):
-                    return z
-                else:
-                    return z
-            if z.real and not z.imag:
-                return z.real
-            elif not z.real and z.imag:
-                return 1j*z.imag
-            # Adjust if the z.real/z.imag or z.imag/z.real ratio is small enough, otherwise
-            # return z unchanged
-            if adjust and z.real and abs(z.imag/z.real) <= ratio:
-                return z.real
-            elif adjust and z.imag and abs(z.real/z.imag) <= ratio:
-                return 1j*z.imag
-            else:
-                return z
         def Dbg(*p, **kw):
             'Used to print colorized debugging information to stream'
             file = kw.get("file", None)
@@ -1742,10 +1682,10 @@ if __name__ == "__main__":
             Assert(r == (0, 0, 0))
             # Cube roots of 1
             for r in Cubic(1, 0, 0, -1):
-                assert_equal(Pound(r**3, ratio=tol), 1, reltol=tol)
+                assert_equal(dpmath.Pound(r**3, ratio=tol), 1, reltol=tol)
             # Cube roots of -1
             for r in Cubic(1, 0, 0, 1):
-                assert_equal(Pound(r**3, ratio=tol), -1, reltol=tol)
+                assert_equal(dpmath.Pound(r**3, ratio=tol), -1, reltol=tol)
             # Three real roots:  (x-1)*(x-2)*(x-3)
             for i, j in zip(Cubic(1, -6, 11, -6), (3, 1, 2)):
                 assert_equal(i, j, reltol=tol)
@@ -1767,80 +1707,13 @@ if __name__ == "__main__":
                 assert_equal(r**4, 1)
             # Fourth roots of -1
             for r in Quartic(1, 0, 0, 0, 1):
-                assert_equal(Pound(r**4, ratio=tol), -1, reltol=tol)
+                assert_equal(dpmath.Pound(r**4, ratio=tol), -1, reltol=tol)
             # The equation (x-1)*(x-2)*(x-3)*(x-4)
             for i, j in zip(Quartic(1, -10, 35, -50, 24), range(1, 5)):
                 assert_equal(i, j, reltol=tol)
             # Two real roots: x*(x-1)*(x-j)*(x+j)
             for i, k in zip(Quartic(1, -1, 1, -1, 0), (-1j, 1j, 0j, 1)):
                 assert_equal(i, k)
-        def Test_Pound():
-            '''Pound(z) returns a pure real or imaginary if z is close enough to
-            the real or imaginary axis.
-            '''
-            def test1():
-                Assert(Pound(0, True) == 0)
-                Assert(Pound(1 + 1j, True) == 1 + 1j)
-                for z, expected, t in (
-                    (1 + 0j, 1, numbers.Real),
-                    (1 - 0j, 1, numbers.Real),
-                    (-1 + 0j, -1, numbers.Real),
-                    (-1 - 0j, -1, numbers.Real),
-                    #
-                    (1 + 1e-16j, 1, numbers.Real),
-                    (1 - 1e-16j, 1, numbers.Real),
-                    (-1 + 1e-16j, -1, numbers.Real),
-                    (-1 - 1e-16j, -1, numbers.Real),
-                    #
-                    (1e-16 + 1e-32j, 1e-16, numbers.Real),
-                    (1e-16 - 1e-32j, 1e-16, numbers.Real),
-                    (-1e-16 + 1e-32j, -1e-16, numbers.Real),
-                    (-1e-16 - 1e-32j, -1e-16, numbers.Real),
-                    #
-                    (0 + 1j, 1j, numbers.Complex),
-                    (0 - 1j, -1j, numbers.Complex),
-                    (-0 + 1j, 1j, numbers.Complex),
-                    (-0 - 1j, -1j, numbers.Complex),
-                    #
-                    (1e-16 + 1j, 1j, numbers.Complex),
-                    (1e-16 - 1j, -1j, numbers.Complex),
-                    (-1e-16 + 1j, 1j, numbers.Complex),
-                    (-1e-16 - 1j, -1j, numbers.Complex),
-                ):
-                    b = Pound(z)
-                    Assert(b == expected)
-                    Assert(isinstance(b, t))
-            def test2():
-                epsilon = 2.5e-15
-                tol = 0.99*float(epsilon)
-                # Zero
-                Assert(Pound(0, 0) == 0)
-                Assert(Pound(0j, 1) == 0)
-                Assert(Pound(0 + 0j, 1) == 0)
-                # Pure real
-                Assert(Pound(1, 0) == 1)
-                Assert(Pound(1, 1) == 1)
-                Assert(Pound(1 + tol, 1) == 1 + tol)
-                # Pure imaginary
-                Assert(Pound(1j, 0) == 1j)
-                Assert(Pound(1j, 1) == 1j)
-                x = (1 + tol)*1j
-                Assert(Pound(x, 1) == x)
-                # Real with small imaginary part
-                x = 1
-                y = x + tol*1j
-                Assert(Pound(y, 0) == y)
-                Assert(Pound(y, 1) == x)
-                # Imaginary with small real part
-                y = tol + x*1j
-                Assert(Pound(y, 0) == y)
-                Assert(Pound(y, 1) == x*1j)
-                # Number that shouldn't be changed
-                x = 1 + 1j
-                Assert(Pound(x, 0) == x)
-                Assert(Pound(x, 1) == x)
-            test1()
-            test2()
     if len(sys.argv) > 1:
         Demo()
     else:
@@ -1854,6 +1727,6 @@ def GetGist():
     g["test"] = "run"
     g["cat"] = "math"
     g["todo"] = '''
-        - Needs test cases for each method
+        - 
     '''
     return g

@@ -30,6 +30,7 @@ if 1:  # Header
         oo>
     '''
     if 1:  # Standard imports
+        import collections
         import decimal
         import fractions
         import math
@@ -40,6 +41,7 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         import dpseq
+        import dptypes
         import f
         import u
         try:
@@ -47,10 +49,16 @@ if 1:  # Header
             _have_unc = True
         except ImportError:
             _have_unc = False
+        try:
+            import mpmath
+            _have_mpmath = True
+        except ImportError:
+            _have_mpmath = False
         if 0:
             import debug
             debug.SetDebugger()
     if 1:  # Import symbols
+        Constant = dptypes.Constant
         Decimal = decimal.Decimal
         localcontext = decimal.localcontext
         Fraction = fractions.Fraction
@@ -58,7 +66,7 @@ if 1:  # Header
         flt = f.flt
         frange = dpseq.frange
     if 1:  # Global variables
-        pass
+        g = Constant()
 if 1:  # Classes
     class bitvector(int):
         '''This convenience class is an integer that lets you get its bit
@@ -223,8 +231,8 @@ if 1:  # Spirals
             raise ValueError("a must be > 0")
         if theta < 0:
             raise ValueError("theta must be >= 0")
-        theta = radians(flt(theta)) if degrees else flt(theta)
-        A = sqrt(theta*theta + 1)
+        theta = math.radians(flt(theta)) if degrees else flt(theta)
+        A = math.sqrt(theta*theta + 1)
         return flt(a)/2*(theta*A + math.log(theta + A))
     def RollArcLength(D, d, thickness):
         '''Return the length of a roll of material of the given thickness with inside
@@ -274,7 +282,7 @@ if 1:  # Ellipse circumference
                 val = math.pi*(math.pow(a + b, 2) - s)/(x + y)
                 t.print(f"{t.dbg}EllipseCircumference({A}, {B}, {val}")
         return math.pi*(math.pow(a + b, 2) - s)/(x + y)
-if 1:  # RoundOff, SigFig, TemplateRound
+if 1:  # RoundOff, SigFig, TemplateRound, Pound
     def RoundOff(number, digits=12, convert=False):
         '''Round the significand of number to the indicated number of digits and return
         the rounded number (integers and Fractions are returned untransformed).  number
@@ -461,6 +469,67 @@ if 1:  # RoundOff, SigFig, TemplateRound
                 y -= template
         return sign * y
 if 1:  # Core functions
+    def Ceil(x, fp):
+        'Ceiling function for type fp:  float, flt, mpf, Decimal'
+        if fp is float or fp is flt:
+            return int(math.ceil(x))
+        elif have_mpmath and fp is mpmath.mpf:
+            return int(mpmath.ceil(x))
+        elif fp is decimal.Decimal and x is decimal.Decimal:
+            return int(x.to_integral_exact(rounding=decimal.ROUND_CEILING))
+        else:
+            raise TypeError(f"Type {fp} not supported")
+    def Log2(x, fp):
+        'Base 2 logarithm function for type fp:  float, flt, mpf, Decimal'
+        if fp is float or fp is flt:
+            return math.log2(x)
+        elif have_mpmath and fp is mpmath.mpf:
+            return mpmath.log(x)/mpmath.log(2)
+        elif fp is decimal.Decimal:
+            assert x is decimal.Decimal
+            return x.ln(x)/x.ln(2)
+        else:
+            raise TypeError(f"Type {fp} not supported")
+    def IsBracketed(a, b, f, fp=float):
+        '''Check that a and b bracket a root of f(x); raise ValueError if not.  Return
+        the values (fp(f(a)), fp(f(b))) for convenience and to avoid recalculating them.
+        '''
+        fa, fb = fp(f(a)), fp(f(b))
+        if fa*fb > 0:
+            raise ValueError(f"a = {a} and b = {b} do not bracket a root of f")
+        return (fa, fb)
+    def Pound(z, adjust=True, ratio=2.5e-15):
+        '''Turn z into a real if z.imag is small enough relative to the z.real and
+        adjust is True.  Do the analogous thing for a nearly pure imaginary number.
+        
+        The name comes from imagining the complex number is a nail which a light tap
+        from a hammer makes it lie parallel to either the real or imaginary axis.
+        
+        Set adjust to False so that only pure real or imaginary numbers are converted.
+        
+        Examples
+            Pound(-6.9e-17+1j) --> 1j
+            Pound(1-6.9e-17j) --> 1.0
+            Pound(-6.9e-17+1j, ratio=1e-20) --> (-6.9e-17+1j)
+            Pound(-6.9e-14+1j) --> (-6.9e-14+1j)
+        '''
+        if not isinstance(z, complex):
+            if _have_mpmath and not isinstance(z, mpmath.mpc):
+                return z
+            else:
+                return z
+        if z.real and not z.imag:
+            return z.real
+        elif not z.real and z.imag:
+            return 1j*z.imag
+        # Adjust if the z.real/z.imag or z.imag/z.real ratio is small enough, otherwise
+        # return z unchanged
+        if adjust and z.real and abs(z.imag/z.real) <= ratio:
+            return z.real
+        elif adjust and z.imag and abs(z.real/z.imag) <= ratio:
+            return 1j*z.imag
+        else:
+            return z
     def AlmostEqual(a, b, rel_err=2e-15, abs_err=5e-323):
         '''Determine whether floating-point values a and b are equal to
         within a (small) rounding error; return True if almost equal and
@@ -471,7 +540,7 @@ if 1:  # Core functions
         
         This routine comes from the Lib/test/test_cmath.py in the python
         distribution; the function was called almostEqualF.
-
+        
         ∞∞2 This should probably use math.isclose()
         '''
         # Special values testing
@@ -909,7 +978,7 @@ if 1:   # Stuff from util.py
         
         Example:  Cumul([1, 2, 3, 4, 7]) returns [1, 3, 6, 10, 17]
         '''
-        cumul, dq = [], deque(seq)
+        cumul, dq = [], collections.deque(seq)
         while dq:
             item = dq.popleft()
             cumul.append(cumul[-1] + item) if cumul else cumul.append(item)
@@ -1144,20 +1213,21 @@ if 1:  # Simple linear regression
         return (m, b, Rsquared)
 
 if __name__ == "__main__":
-    from lwtest import run, raises, assert_equal, Assert, ToDoMessage
-    from f import flt, radians, sqrt
-    from random import randint
-    from pprint import pprint as pp
-    from collections import deque
-    _have_mpmath = False
-    try:
-        import mpmath
-        _have_mpmath = True
-    except ImportError:
-        pass
-    eps = 1e-15
+    if 1:   # Standard imports
+        import numbers
+        import random
+    if 1:   # Custom imports
+        import lwtest
+    if 1:   # Import symbols
+        Assert = lwtest.Assert
+        ToDoMessage = lwtest.ToDoMessage
+        assert_equal = lwtest.assert_equal
+        raises = lwtest.raises
+        run = lwtest.run
+    if 1:   # Global variables
+        g.eps = 1e-15
     def Test_PythagoreanSum():
-        assert_equal(PythagoreanSum(3, 4, epsilon=1e-16), 5, abstol=eps)
+        assert_equal(PythagoreanSum(3, 4, epsilon=1e-16), 5, abstol=g.eps)
     def Test_polyeval():
         Assert(polyeval((3, 2, 1), 6) == 51)
         Assert(polyeval((1, 2, 3), 6, lowest_first=False) == 51)
@@ -1182,8 +1252,8 @@ if __name__ == "__main__":
         Assert(rect(0, 180, deg=True) == (0, 0))
         x, y = rect(1, 45, deg=True)
         s = math.sin(math.pi/4)
-        assert_equal(x, s, abstol=eps)
-        assert_equal(y, s, abstol=eps)
+        assert_equal(x, s, abstol=g.eps)
+        assert_equal(y, s, abstol=g.eps)
     def Test_polar():
         Assert(polar(0, 0) == (0, 0))
         Assert(polar(0, 1) == (1, math.pi/2))
@@ -1191,8 +1261,8 @@ if __name__ == "__main__":
         Assert(polar(-1, 0) == (1, math.pi))
         s = math.sin(math.pi/4)
         r, theta = polar(s, s, deg=True)
-        assert_equal(r, 1, abstol=eps)
-        assert_equal(theta, 45, abstol=eps)
+        assert_equal(r, 1, abstol=g.eps)
+        assert_equal(theta, 45, abstol=g.eps)
     def Test_isqrt():
         n0 = 123456789
         n = n0
@@ -1241,7 +1311,7 @@ if __name__ == "__main__":
         # python's int() built-in.
         for base in range(2, 37):
             for i in range(100):
-                x = randint(0, int(1e6))
+                x = random.randint(0, int(1e6))
                 # Note the following call also checks the result
                 DecimalToBase(x, base, check_result=True)
     def TestInt():
@@ -1542,6 +1612,73 @@ if __name__ == "__main__":
             Assert(m == 1.0500000000000018)
             Assert(b == -0.06666666666667058)
             Assert(Rsq == 0.9992447129909383)
+    def Test_Pound():
+        '''Pound(z) returns a pure real or imaginary if z is close enough to
+        the real or imaginary axis.
+        '''
+        def test1():
+            Assert(Pound(0, True) == 0)
+            Assert(Pound(1 + 1j, True) == 1 + 1j)
+            for z, expected, t in (
+                (1 + 0j, 1, numbers.Real),
+                (1 - 0j, 1, numbers.Real),
+                (-1 + 0j, -1, numbers.Real),
+                (-1 - 0j, -1, numbers.Real),
+                #
+                (1 + 1e-16j, 1, numbers.Real),
+                (1 - 1e-16j, 1, numbers.Real),
+                (-1 + 1e-16j, -1, numbers.Real),
+                (-1 - 1e-16j, -1, numbers.Real),
+                #
+                (1e-16 + 1e-32j, 1e-16, numbers.Real),
+                (1e-16 - 1e-32j, 1e-16, numbers.Real),
+                (-1e-16 + 1e-32j, -1e-16, numbers.Real),
+                (-1e-16 - 1e-32j, -1e-16, numbers.Real),
+                #
+                (0 + 1j, 1j, numbers.Complex),
+                (0 - 1j, -1j, numbers.Complex),
+                (-0 + 1j, 1j, numbers.Complex),
+                (-0 - 1j, -1j, numbers.Complex),
+                #
+                (1e-16 + 1j, 1j, numbers.Complex),
+                (1e-16 - 1j, -1j, numbers.Complex),
+                (-1e-16 + 1j, 1j, numbers.Complex),
+                (-1e-16 - 1j, -1j, numbers.Complex),
+            ):
+                b = Pound(z)
+                Assert(b == expected)
+                Assert(isinstance(b, t))
+        def test2():
+            epsilon = 2.5e-15
+            tol = 0.99*float(epsilon)
+            # Zero
+            Assert(Pound(0, 0) == 0)
+            Assert(Pound(0j, 1) == 0)
+            Assert(Pound(0 + 0j, 1) == 0)
+            # Pure real
+            Assert(Pound(1, 0) == 1)
+            Assert(Pound(1, 1) == 1)
+            Assert(Pound(1 + tol, 1) == 1 + tol)
+            # Pure imaginary
+            Assert(Pound(1j, 0) == 1j)
+            Assert(Pound(1j, 1) == 1j)
+            x = (1 + tol)*1j
+            Assert(Pound(x, 1) == x)
+            # Real with small imaginary part
+            x = 1
+            y = x + tol*1j
+            Assert(Pound(y, 0) == y)
+            Assert(Pound(y, 1) == x)
+            # Imaginary with small real part
+            y = tol + x*1j
+            Assert(Pound(y, 0) == y)
+            Assert(Pound(y, 1) == x*1j)
+            # Number that shouldn't be changed
+            x = 1 + 1j
+            Assert(Pound(x, 0) == x)
+            Assert(Pound(x, 1) == x)
+        test1()
+        test2()
     if 1:   # Test stuff from util.py
         def Test_AcceptableDiff():
             Assert(AcceptableDiff(0, 0))
@@ -1691,4 +1828,4 @@ if __name__ == "__main__":
         def Test_SignificantFigures():
             Assert(AlmostEqual(float(SignificantFiguresS(1.2345e-6)), 1.23e-6))
             Assert(AlmostEqual(SignificantFigures(1.2345e-6), 1.23e-6))
-    exit(run(globals(), halt=1)[0])
+    exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
