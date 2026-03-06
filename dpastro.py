@@ -85,7 +85,7 @@ if 1:  # Julian day routines
             raise ValueError("Date falls within the Gregorian calendar transition gap (1582-10-05 to 1582-10-14).")
         jd = (floor(365.25*(year + 4716)) + floor(30.6001*(month + 1)) + day + B - 1524.5)
         return jd + frac_day
-    def JulianDayDT(datetime_instance):
+    def DT2JD(datetime_instance):
         '''Return astronomical Julian Day, a float.
         The date/time is a datetime.datetime instance.
         '''
@@ -94,27 +94,6 @@ if 1:  # Julian day routines
             dt.day, dt.hour, dt.minute, dt.second, dt.microsecond)
         second += microsecond/1e6
         return JD(year, month, day, hour, minute, second)
-    def NumDaysInMonth(month, year):
-        if month == 2:
-            return 29 if IsLeapYear(year) else 28
-        elif month in set((4, 6, 9, 11)):
-            return 30
-        elif month in set((1, 3, 5, 7, 8, 10, 12)):
-            return 31
-        else:
-            raise ValueError("Bad month")
-    def IsLeapYear(year):   # Meeus pg 62
-        return True if (year % 400 == 0) or (year % 4 == 0 and year % 100 != 0) else False
-    def DaysToHMS(numdays):
-        'Return a tuple of (hours, minutes, seconds) given a number of days'
-        frac_part = day - math.floor(day)
-        hours = int(24*frac_part)
-        frac_part -= hours/24
-        minutes = int(24*60*frac_part)
-        frac_part -= minutes/(24*60)
-        seconds = 24*3600*frac_part
-        return (hours, minutes, seconds)
-
     def JD2DT(julian_day):  # Meeus pg 63
         'Return a datetime.datetime instance for a Julian day'
         if julian_day < 0:
@@ -130,7 +109,7 @@ if 1:  # Julian day routines
         C = int((B - 122.1)/365.25)
         D = int(365.25*C)
         E = int((B - D)/30.6001)
-        day = B - D - int(30.6001*E) + F
+        day_ = B - D - int(30.6001*E) + F
         if E < 13.5:
             month = int(E - 1)
         else:
@@ -139,9 +118,37 @@ if 1:  # Julian day routines
             year = int(C - 4716)
         else:
             year = int(C - 4715)
-        hr, min, sec = DaysToHMS(day)
-        dt = datetime.datetime(year, month, day, hr, min, sec)
+        day_int = int(day_)
+        day_fp = day_ - day_int
+        hr, min, sec_ = DaysToHMS(day_fp)
+        sec = math.floor(sec_)
+        usec = int((sec_ - sec)*1e6)
+        dt = datetime.datetime(year, month, day_int, hr, min, sec, usec)
         return dt
+    def NumDaysInMonth(month, year):
+        if month == 2:
+            return 29 if IsLeapYear(year) else 28
+        elif month in set((4, 6, 9, 11)):
+            return 30
+        elif month in set((1, 3, 5, 7, 8, 10, 12)):
+            return 31
+        else:
+            raise ValueError("Bad month")
+    def IsLeapYear(year):   # Meeus pg 62
+        return True if (year % 400 == 0) or (year % 4 == 0 and year % 100 != 0) else False
+    def DaysToHMS(numdays):
+        '''Return a tuple of (days, hours, minutes, seconds) given a number of days.
+        days, hours, and minutes are integers; seconds is a float or an integer.
+        '''
+        day_int = math.floor(numdays)
+        frac_part = numdays - math.floor(numdays)
+        hours = int(24*frac_part)
+        frac_part -= hours/24
+        minutes = int(24*60*frac_part)
+        frac_part -= minutes/(24*60)
+        seconds = 24*3600*frac_part
+        return (day_int, hours, minutes, seconds)
+
     def DayOfYear(month, day, year):
         if IsLeapYear(year):
             n = int((275*month)//9 - ((month + 9)//12) + int(day) - 30)
@@ -1281,7 +1288,7 @@ if 1:  # julian.py Julian day routines
         Assert(1 <= n <= 366)
         return n
     def DayOfWeek(month, day, year):
-        julian = int(JulianAstro(month, int(day), year) + 1.5)
+        julian = int(JD(month, int(day), year) + 1.5)
         return julian % 7
     def IsLeapYear(year):
         # Ref. Meeus pg 62
@@ -1573,9 +1580,9 @@ if 1:  # kepler.py
         # P(4, E, n, p, "Inverse parabolic interpolation")
         print()
 
-
 if __name__ == "__main__":  
     import sys
+    import random
     from dpseq import frange
     from lwtest import run, assert_equal, Assert, raises
     def Test_JulianDay():
@@ -1595,6 +1602,16 @@ if __name__ == "__main__":
         Assert(JD(-1000, 2,   29) == 1355866.5)     # pg 62
         Assert(JD(-1001, 8, 17.9) == 1355671.4)     # pg 62
         Assert(JD(-4712, 1,  1.5) ==       0.0)     # pg 62
+    def Test_JulianDayDT():
+        'Note that DT2JD and JD2DT should be inverses'
+        # ∞∞2 Bug:  note the following will fail on 2415020.5 (1Jan1900), so there's still
+        # some problem in one of these routines.
+        for jd in (2461103.5, 2436116.31, 2451545, 2451545.5):
+            dt = JD2DT(jd)
+            jd1 = DT2JD(dt)
+            Assert(jd == jd1)
+
+    exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
 
     def Test_Julian_DecodeDateString():
         x = DecodeDateString("24Mar2023")
