@@ -503,22 +503,19 @@ if 1:  # Miscellaneous
                 exception if maxit is exceeded.
         show    If True, print out intermediate values.
         
-        Reference:  "All Problems Are Simple" by Jack Crenshaw, Embedded
-        Systems Programming, May, 2002, pg 7-14.  Translated from Jack's C
-        code on 20 May 2003.
+        Reference:  "All Problems Are Simple" by Jack Crenshaw, Embedded Systems
+        Programming, May, 2002, pg 7-14.  Translated from Jack's C code on 20 May 2003.
         
-        Algorithm:  Inverse parabolic interpolation algorithm to find the
-        roots.  Jack states this routine will converge rapidly on most
-        functions, typically adding 4 digits to the solution on each
-        iteration.  The routine works by starting with x0, x2, and finding
-        a third x1 by bisection.  The ordinates are gotten, then a
-        horizontally-opening parabola is fitted to the points.  The
-        parabola's root's abscissa is gotten, and the iteration is
-        repeated.
+        Algorithm:  Inverse parabolic interpolation algorithm to find the roots.  Jack
+        states this routine will converge rapidly on most functions, typically adding 4
+        digits to the solution on each iteration.  The routine works by starting with
+        x0, x2, and finding a third x1 by bisection.  The ordinates are gotten, then a
+        horizontally-opening parabola is fitted to the points.  The parabola's root's
+        abscissa is gotten, and the iteration is repeated.
         
-        Note:  Jack commented that this routine was written by some unknown
-        genius at IBM and was in IBM's FORTRAN library code in the 1960's.
-        Jack has done quite a bit of work to popularize it.
+        Note:  Jack commented that this routine was written by some unknown genius at
+        IBM and was in IBM's FORTRAN library code in the 1960's.  Jack has done quite a
+        bit of work to popularize it.
         '''
         # We'll find the value to a precision that is 10**(-n + 1) where
         # n is the current number of Decimal digits.  Note:  we add 1
