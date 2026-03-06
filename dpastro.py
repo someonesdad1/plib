@@ -125,6 +125,32 @@ if 1:  # Julian day
         usec = int((sec_ - sec)*1e6)
         dt = datetime.datetime(year, month, day_int, hr, min, sec, usec)
         return dt
+    def JD2MonthDayYear(jd):    # Meeus pg 63
+        '''Returns (month, day, year) given the Julian day jd.  month and year are
+        integers; day may be an integer or float.
+        '''
+        Assert(jd >= 0, "Julian day must be >= 0")
+        jd += 0.5
+        Z = int(jd)
+        F = jd - Z
+        A = Z
+        if Z >= 2299161:
+            alpha = int((Z - 1867216.25) / 36524.25)
+            A = Z + 1 + alpha - int(alpha / 4)
+        B = A + 1524
+        C = int((B - 122.1) / 365.25)
+        D = int(365.25 * C)
+        E = int((B - D) / 30.6001)
+        day = B - D - int(30.6001 * E) + F
+        if E < 14:
+            month = int(E - 1)
+        else:
+            month = int(E - 13)
+        if month > 2:
+            year = int(C - 4716)
+        else:
+            year = int(C - 4715)
+        return month, day, year  # month, year are integers
     def NumDaysInMonth(month, year):
         if month == 2:
             return 29 if IsLeapYear(year) else 28
@@ -229,11 +255,13 @@ if 1:  # Utility
         '''Return a tuple (degrees, minutes, seconds) of a radian value.  The degrees value will
         have the sign of x.
         '''
-        d = math.degrees(math.fabs(x))
+        sig = dpmath.signum(x)
+        x = math.fabs(x)
+        d = math.degrees(x)
         deg = int(d)
         min = 60*(d - deg)
         sec = 60*(min - int(min))
-        return dpmath.signum(x)*deg, int(min), sec
+        return sig*deg, int(min), sec
     def rad2hms(x):
         "Return a tuple (hour, minutes, seconds) of a radian value"
         return rad2dms(x/15)
@@ -283,8 +311,8 @@ if 1:  # Time
         '''Returns an integer in the ISO form YYYYMMDD.  month and year must be integers.  day can
         be a float; it is truncated to an integer.
         '''
-        IsInt(month, "month must be an integer")
-        IsInt(year, "year must be an integer")
+        assert isinstance(month, int), "month must be an integer"
+        assert isinstance(year, int), "year must be an integer"
         day = int(day)
         if not IsValidGregorianDate(month, day, year):
             raise ValueError("Not a valid Gregorian calendar date")
@@ -311,13 +339,13 @@ if 1:  # Time
                     raise e
             else:
                 raise e
-    def IsDST(month, day, year):
+    def IsDST(year, month, day):
         '''Return True if daylight savings time (DST) is in effect.  Assumes a location in the US
         that utilizes DST.  Note the rules can change at any time.
         '''
-        IsInt(month, "month must be an integer")
-        IsInt(day, "day must be an integer")
-        IsInt(year, "year must be an integer")
+        assert isinstance(month, int), "month must be an integer"
+        assert isinstance(day, int), "day must be an integer"
+        assert isinstance(year, int), "year must be an integer"
         # Algorithm from
         # http://stackoverflow.com/questions/5590429/calculating-daylight-savings-time-from-only-date
         dow = DayOfWeek(month, day, year)
@@ -339,9 +367,9 @@ if 1:  # Time
         greater) and the month and day numbers are valid.  The maximum year allowed is
         datetime.MAXYEAR.
         '''
-        IsInt(month, "month must be an integer")
-        IsInt(day, "day must be an integer")
-        IsInt(year, "year must be an integer")
+        assert isinstance(month, int), "month must be an integer"
+        assert isinstance(day, int), "day must be an integer"
+        assert isinstance(year, int), "year must be an integer"
         if year < 1583:
             return False
         try:
@@ -511,7 +539,7 @@ if 1:  # Earth
             ra:  decimal hours
         '''
         # Get the sidereal time at Greenwich
-        month, day, year = JulianToMonthDayYear(jd)
+        month, day, year = JD2MonthDayYear(jd)
         sidereal_time_in_hours = MeanSiderealTime(year, month, day)
         theta0 = math.radians(sidereal_time_in_hours*15)
         H = theta0 - longitude - ra  # Hour angle in radians
@@ -1235,7 +1263,7 @@ if __name__ == "__main__":
         Assert(math.fabs(r + 0.767) < 0.001)
     def Test_TransformationOfCoordinates():
         # Page 95:  Transformation of coordinates
-        jd = JD(4, 10 + (19 + 21/60.0)/24, 1987)
+        jd = JD(1987, 4, 10 + (19 + 21/60.0)/24)
         longitude = dms2rad(77, 3, 56)
         latitude = dms2rad(38, 55, 17)
         ra = hms2rad(23, 9, 16.641)
@@ -1262,10 +1290,9 @@ if __name__ == "__main__":
         pm_ra = math.radians(0.19877/3600*15)
         pm_dec = math.radians(-0.0152/3600)
         jd0 = 2451545.0
-        jd = JD(1, 1, 2050)
+        jd = JD(2050, 1, 1)
         ra, dec = Precession(jd, jd0, ra0, dec0, pm_ra, pm_dec)
         h, m, s = rad2hms(ra)
-        breakpoint() # ∞∞ 
         Assert(h == 3 and m == 48 and math.fabs(s - 16.427) < 0.01)
         d, m, s = rad2dms(dec)
         Assert(d == 89 and m == 27 and math.fabs(s - 15.375) < 0.01)
@@ -1309,16 +1336,6 @@ if __name__ == "__main__":
         Assert(math.fabs(math.degrees(KeplerEquationSinnott(e, M)) - 5.554589) < 1e-6)
         e, M = 0.99, 0.2  # Example 30.a pg 196
         Assert(math.fabs(KeplerEquationSinnott(e, M) - 1.066997365282) < 1e-12)
-
-    exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
-    def Test_Meeus_Signum():
-        # Signum function
-        Assert(sgn(5) == 1)
-        Assert(sgn(0) == 0)
-        Assert(sgn(-5) == -1)
-        Assert(sgn(5.0) == 1)
-        Assert(sgn(0.0) == 0)
-        Assert(sgn(-5.0) == -1)
     def Test_Meeus_SunriseSunset():
         # Sunrise & sunset for Alamo, CA on 15 Dec 2012.  Correct values come from
         # http://www.sunrisesunset.com/ (I prefer to use the USNO pages, but that website seems to
@@ -1341,50 +1358,29 @@ if __name__ == "__main__":
         min = int((set - hr)*60 + 0.5)
         Assert(hr == 16 and abs(min - 50) < 1)
     def Test_Meeus_IsDST():
-        # IsDST:  Test_Meeus_ cases from http://www.webexhibits.org/daylightsaving/b.html accessed Mon 19
-        # May 2014 09:23:55 AM.
-        M, D, Y = 3, 14, 2010
-        Assert(IsDST(M, D, Y))
-        Assert(not IsDST(M, D - 1, Y))
-        M, D, Y = 11, 7, 2010
-        Assert(not IsDST(M, D, Y))
-        Assert(IsDST(M, D - 1, Y))
-        M, D, Y = 3, 13, 2011
-        Assert(IsDST(M, D, Y))
-        Assert(not IsDST(M, D - 1, Y))
-        M, D, Y = 11, 6, 2011
-        Assert(not IsDST(M, D, Y))
-        Assert(IsDST(M, D - 1, Y))
-        M, D, Y = 3, 11, 2012
-        Assert(IsDST(M, D, Y))
-        Assert(not IsDST(M, D - 1, Y))
-        M, D, Y = 11, 4, 2012
-        Assert(not IsDST(M, D, Y))
-        Assert(IsDST(M, D - 1, Y))
-        M, D, Y = 3, 10, 2013
-        Assert(IsDST(M, D, Y))
-        Assert(not IsDST(M, D - 1, Y))
-        M, D, Y = 11, 3, 2013
-        Assert(not IsDST(M, D, Y))
-        Assert(IsDST(M, D - 1, Y))
-        M, D, Y = 3, 9, 2014
-        Assert(IsDST(M, D, Y))
-        Assert(not IsDST(M, D - 1, Y))
-        M, D, Y = 11, 2, 2014
-        Assert(not IsDST(M, D, Y))
-        Assert(IsDST(M, D - 1, Y))
-        M, D, Y = 3, 8, 2015
-        Assert(IsDST(M, D, Y))
-        Assert(not IsDST(M, D - 1, Y))
-        M, D, Y = 11, 1, 2015
-        Assert(not IsDST(M, D, Y))
-        Assert(IsDST(10, 31, Y))
-        M, D, Y = 3, 13, 2016
-        Assert(IsDST(M, D, Y))
-        Assert(not IsDST(M, D - 1, Y))
-        M, D, Y = 11, 6, 2016
-        Assert(not IsDST(M, D, Y))
-        Assert(IsDST(M, D - 1, Y))
+        # Test cases from http://www.webexhibits.org/daylightsaving/b.html
+        # accessed Mon 19 May 2014 09:23:55 AM.
+        test_cases = ((2010,  3, 14),
+                      (2010, 11,  7),
+                      (2011,  3, 13),
+                      (2011, 11,  6),
+                      (2012,  3, 11),
+                      (2012, 11,  4),
+                      (2013,  3, 10),
+                      (2013, 11,  3),
+                      (2014,  3,  9),
+                      (2014, 11,  2),
+                      (2015,  3,  8),
+                      (2015, 11,  1),
+                      (2016,  3, 13),
+                      (2016, 11,  6))
+        for y, m, d in test_cases:
+            if m == 3:
+                Assert(IsDST(y, m, d))
+                Assert(not IsDST(y, m, d - 1))
+            else:
+                Assert(not IsDST(y, m, d))
+                Assert(IsDST(y, m, d - 1))
     def Test_Meeus_TimeOfMoonPhase():
         yr = 1977.13  # Example 49.a, p 353
         t = TimeOfMoonPhase(yr, quarter=0)
@@ -1430,6 +1426,8 @@ if __name__ == "__main__":
         Assert(NormalizeAngle(0) == 0)
         Assert(NormalizeAngle(-math.pi/2) == 3*math.pi/2)
         Assert(NormalizeAngle(-math.pi) == math.pi)
+
+    exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
     def Test_Meeus__product():
         a = (1, 2, 3, 4, 5, 6)
         Assert(product(a) == 720)

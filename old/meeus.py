@@ -1163,6 +1163,7 @@ if __name__ == "__main__":
         jd = JulianAstro(1, 1, 2050)
         ra, dec = Precession(jd, jd0, ra0, dec0, pm_ra, pm_dec)
         h, m, s = rad2hms(ra)
+        breakpoint() # ∞∞ 
         Assert(h == 3 and m == 48 and fabs(s - 16.427) < 0.01)
         d, m, s = rad2dms(dec)
         Assert(d == 89 and m == 27 and fabs(s - 15.375) < 0.01)
