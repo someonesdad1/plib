@@ -1,11 +1,7 @@
 - Make all the dp*.py files testable by just running them
 
 Reorganization core files
-- dppath
-    - dirfiles
-- dpmath
-    - root
-    - linreg
+root -->dproot
 - dparith
     - primes
     - stirling
@@ -13,6 +9,11 @@ Reorganization core files
     - linscale
 - dpphys
     - densitydb
+- After these movements are done:
+    - Standardize each dp*.py file to style, imports, etc.
+    - Make sure main docstring lists all the functions & classes
+    - Make sure each file has a gist
+    - Review test coverage in detail
 
     - pgm/mathfuncs.py
         - Update to 3.11
@@ -1528,26 +1529,33 @@ Reorganization core files
             - l       Show the contents of the config file
 
     - f.py
+        - A fundamental problem is poor performance:  if you run the demo in root.py,
+          you'll see that it takes 48 μs for Bisection with a float and 1900 μs with
+          flt.  Why is there a factor of 40 difference?
+        - I greatly like the interpolation features of flt, but the code is bloated and
+          slow.  The interpolation stuff should be in e.g. fmt.py and otherwise the
+          thing should just be a float.
         - Use fmt.py for interpolation
-        - Get rid of N attribute, as I always forget it:  go back to n.  Then make n become m, which
-          changes only the instance's number of digits.
-        - Using the recent work on 'Classes derived from flt for physical data, see if it's possible
-          to have one numerical object derived from flt that allows the storage of a numerical
-          value, unit, and covers the special cases like Nothing, Unk, Approx, Rng, LessThan,
-          GreaterThan, and Unc.  For unc, use the uncertainties library and always display in short
-          form.
-            - This would be kept up-to-date and be able to modularize the use of data tables from
-              e.g. wikipedia.  The fundamental goals would be to provide string interpolations that
-              are meaningful and allow numerical computation.
-            - Using types derived from flt is useful and makes code simpler.  How would a single
-              type provide the same feature?  One way would be an enum.
-        - Unlike the /pylib/pnumber.py library attempt, the goal is not computation with these
-          physical numbers, rather the string interpolation and scaling of the table numbers.  You
-          can e.g.  change the units by the attribute u, as long as the dimensions are consistent.
-        - Since these numbers are just floats, they can be used in math library calls.  No
-          dimensional checking is done to ensure that arguments are dimensionless.  It's possible
-          the math library stuff can be modified to do this by default, by e.g. checking the units
-          attribute to be None or the empty string.
+        - Get rid of N attribute, as I always forget it:  go back to n.  Then make n
+          become m, which changes only the instance's number of digits.
+        - Using the recent work on 'Classes derived from flt for physical data, see if
+          it's possible to have one numerical object derived from flt that allows the
+          storage of a numerical value, unit, and covers the special cases like Nothing,
+          Unk, Approx, Rng, LessThan, GreaterThan, and Unc.  For unc, use the
+          uncertainties library and always display in short form.
+            - This would be kept up-to-date and be able to modularize the use of data
+              tables from e.g. wikipedia.  The fundamental goals would be to provide
+              string interpolations that are meaningful and allow numerical computation.
+            - Using types derived from flt is useful and makes code simpler.  How would
+              a single type provide the same feature?  One way would be an enum.
+        - Unlike the /pylib/pnumber.py library attempt, the goal is not computation with
+          these physical numbers, rather the string interpolation and scaling of the
+          table numbers.  You can e.g.  change the units by the attribute u, as long as
+          the dimensions are consistent.
+        - Since these numbers are just floats, they can be used in math library calls.
+          No dimensional checking is done to ensure that arguments are dimensionless.
+          It's possible the math library stuff can be modified to do this by default, by
+          e.g. checking the units attribute to be None or the empty string.
 
     - Name tags
         - Make a PDF with name/phone that can be printed on a durable plastic sheet, cut out, and

@@ -82,34 +82,34 @@ if 1:   # Test root-finding routines
         # Show that FindRoots can do a reasonable job for a
         # polynomial.  Note the particular results are sensitive to
         # n.
-        f = lambda x: (x - 1) * (x - 2) * (x - 3) * (x - 4) * (x - 5)
+        f = lambda x: (x - 1)*(x - 2)*(x - 3)*(x - 4)*(x - 5)
         x1, x2, n = 0, 10, 10
         r = FindRoots(f, n, x1, x2, tol=tol)
-        Assert(r == tuple([1.0 * i for i in range(1, 6)]))
+        Assert(r == tuple([1.0*i for i in range(1, 6)]))
         # Roots of sinc function
         f = lambda x: math.sin(x) / x
         x1, x2, n = 1, 10, 100
         r = FindRoots(f, n, x1, x2, tol=tol)
-        assert_equal(r[0], 1 * math.pi)
-        assert_equal(r[1], 2 * math.pi)
-        assert_equal(r[2], 3 * math.pi)
+        assert_equal(r[0], 1*math.pi)
+        assert_equal(r[1], 2*math.pi)
+        assert_equal(r[2], 3*math.pi)
         # Same as previous, but with an extra parameter
-        f = lambda x, a: math.sin(a * x) / (a * x)
+        f = lambda x, a: math.sin(a*x) / (a*x)
         r = FindRoots(f, n, x1, x2, args=[1], tol=tol)
-        assert_equal(r[0], 1 * math.pi)
-        assert_equal(r[1], 2 * math.pi)
-        assert_equal(r[2], 3 * math.pi)
+        assert_equal(r[0], 1*math.pi)
+        assert_equal(r[1], 2*math.pi)
+        assert_equal(r[2], 3*math.pi)
         r = FindRoots(f, n, x1, x2, args=[math.pi], tol=tol)
         assert_equal(r[0], 1)
         assert_equal(r[1], 2)
         assert_equal(r[2], 3)
         # Same as previous, but with a keyword parameter
         def f(x, a=1):
-            return math.sin(a * x) / (a * x)
+            return math.sin(a*x) / (a*x)
         r = FindRoots(f, n, x1, x2, kw={"a": 1}, tol=tol)
-        assert_equal(r[0], 1 * math.pi)
-        assert_equal(r[1], 2 * math.pi)
-        assert_equal(r[2], 3 * math.pi)
+        assert_equal(r[0], 1*math.pi)
+        assert_equal(r[1], 2*math.pi)
+        assert_equal(r[2], 3*math.pi)
         r = FindRoots(f, n, x1, x2, kw={"a": math.pi}, tol=tol)
         assert_equal(r[0], 1)
         assert_equal(r[1], 2)
@@ -158,13 +158,13 @@ if 1:   # Test root-finding routines
         Assert(abs(root - math.pow(2, 1 / 8)) <= tol)
         # Simple quadratic equation
         t = 100001
-        f = lambda x: (x - t) * (x + 100)
+        f = lambda x: (x - t)*(x + 100)
         tol = 1e-10
-        root, numit = Bisection(0, 2.1 * t, f, tol=tol)
+        root, numit = Bisection(0, 2.1*t, f, tol=tol)
         Assert(abs(root - t) <= tol)
         # Note setting switch to True will cause an exception for this
         # case.
-        raises(ValueError, Bisection, 0, 2.1 * t, f, tol=tol, switch=True)
+        raises(ValueError, Bisection, 0, 2.1*t, f, tol=tol, switch=True)
     def TestRidders():
         # Root of x = cos(x); it's 0.739085133215161 as can be found easily
         # by iteration on a calculator.
@@ -179,9 +179,9 @@ if 1:   # Test root-finding routines
         Assert(abs(root - math.pow(2, 1 / 8)) <= tol)
         # Simple quadratic equation
         t = 100001
-        f = lambda x: (x - t) * (x + 100)
+        f = lambda x: (x - t)*(x + 100)
         tol = 1e-10
-        root, numit = Ridders(0, 2.1 * t, f, tol=tol)
+        root, numit = Ridders(0, 2.1*t, f, tol=tol)
         Assert(abs(root - t) <= tol)
     def TestGeneralRootFinding(show=(len(sys.argv) > 1)):
         '''This test case uses each of the root finding functions to test a
@@ -254,14 +254,14 @@ if 1:   # Test root-finding routines
         # Square root of 2
         x0 = 3
         f = lambda x: x**2 - 2
-        deriv = lambda x: 2 * x
+        deriv = lambda x: 2*x
         root = 2**0.5
         r, n = Ostrowski(x0, f, deriv, tol=tol)
         assert_equal(r, root, reltol=tol)
         # Shamir's first example
         x0 = 3
-        f = lambda x: x**3 + 4 * x**2 - 15
-        deriv = lambda x: 3 * x**2 + 8 * x
+        f = lambda x: x**3 + 4*x**2 - 15
+        deriv = lambda x: 3*x**2 + 8*x
         root = 1.6319808055661
         r, n = Ostrowski(x0, f, deriv, tol=tol)
         assert_equal(r, root, reltol=4e-14)
@@ -282,7 +282,7 @@ if 1:   # Test root-finding routines
         # Shamir's 6th example
         x0 = 0.1
         f = lambda x: sin(x) ** 2 - x**2 + 1
-        deriv = lambda x: 2 * sin(x) * cos(x) - 2 * x
+        deriv = lambda x: 2*sin(x)*cos(x) - 2*x
         root = 1.4044916482153
         r, n = Ostrowski(x0, f, deriv, tol=tol)
         assert_equal(r, root, reltol=8e-13)
@@ -405,7 +405,7 @@ if 1:   # Test utility
                 Assert(isinstance(b, t))
         def test2():
             epsilon = 2.5e-15
-            tol = 0.99 * float(epsilon)
+            tol = 0.99*float(epsilon)
             # Zero
             Assert(Pound(0, 0) == 0)
             Assert(Pound(0j, 1) == 0)
@@ -417,17 +417,17 @@ if 1:   # Test utility
             # Pure imaginary
             Assert(Pound(1j, 0) == 1j)
             Assert(Pound(1j, 1) == 1j)
-            x = (1 + tol) * 1j
+            x = (1 + tol)*1j
             Assert(Pound(x, 1) == x)
             # Real with small imaginary part
             x = 1
-            y = x + tol * 1j
+            y = x + tol*1j
             Assert(Pound(y, 0) == y)
             Assert(Pound(y, 1) == x)
             # Imaginary with small real part
-            y = tol + x * 1j
+            y = tol + x*1j
             Assert(Pound(y, 0) == y)
-            Assert(Pound(y, 1) == x * 1j)
+            Assert(Pound(y, 1) == x*1j)
             # Number that shouldn't be changed
             x = 1 + 1j
             Assert(Pound(x, 0) == x)

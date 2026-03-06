@@ -23,7 +23,7 @@ if 1:  # Header
         from f import flt
     if 1:  # Global variables
         pass
-if 1:  # Core functionality
+if 1:  # Simple linear regression
     def LinearRegression(x, y):
         "Return (m, b, Rsquared) for a simple linear regression"
         if len(x) != len(y):

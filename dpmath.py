@@ -460,7 +460,7 @@ if 1:  # RoundOff, SigFig, TemplateRound
             elif not up and y > abs(tt(x)):  # Round towards zero
                 y -= template
         return sign * y
-if 1:  # Core functionality
+if 1:  # Core functions
     def AlmostEqual(a, b, rel_err=2e-15, abs_err=5e-323):
         '''Determine whether floating-point values a and b are equal to
         within a (small) rounding error; return True if almost equal and
@@ -1129,6 +1129,19 @@ if 1:   # Stuff from util.py
     def SignificantFigures(value, figures=3):
         "Rounds a value to specified number of significant figures.  Returns a float."
         return float(SignificantFiguresS(value, figures))
+if 1:  # Simple linear regression
+    def LinearRegression(x, y):
+        'Return (m, b, Rsquared) for a simple linear regression problem'
+        if len(x) != len(y):
+            raise ValueError("x and y are not same length")
+        n, sx, sy = len(x), sum(x), sum(y)
+        sXX = sum([i*i for i in x])
+        sYY = sum([i*i for i in y])
+        sXY = sum([i*j for i, j in zip(x, y)])
+        m = flt((n*sXY - sx*sy)/(n*sXX - sx**2))
+        b = flt((sy - m*sx)/n)
+        Rsquared = flt((n*sXY - sx*sy)**2/((n*sXX - sx**2)*(n*sYY - sy**2)))
+        return (m, b, Rsquared)
 
 if __name__ == "__main__":
     from lwtest import run, raises, assert_equal, Assert, ToDoMessage
@@ -1516,6 +1529,19 @@ if __name__ == "__main__":
         Assert(SigFig(x) == 1)
         x = 0.0000
         Assert(SigFig(x) == 1)
+    def Test_LinearRegression():
+        if 1:   # Identity function
+            x = [1, 2]
+            y = [1, 2]
+            m, b, Rsq = LinearRegression(x, y)
+            Assert((m, b, Rsq) == (1, 0, 1))
+        if 1:   # Test case checked against HP-42s
+            x = [1, 2, 3]
+            y = [1, 2, 3.1]
+            m, b, Rsq = LinearRegression(x, y)
+            Assert(m == 1.0500000000000018)
+            Assert(b == -0.06666666666667058)
+            Assert(Rsq == 0.9992447129909383)
     if 1:   # Test stuff from util.py
         def Test_AcceptableDiff():
             Assert(AcceptableDiff(0, 0))

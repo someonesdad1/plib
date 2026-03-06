@@ -1,19 +1,19 @@
 '''
 Root Finding Routines
-
+    
     - Ridders, Brent, ITP are for single argument functions and are intended to be fast
       general purpose routines
     - Extra arguments & keyword arguments for the function whose root is to be found
         - Crenshaw (is Brent's method)
         - Bisection
     - fp argument lets you use float, flt, mpmath.mpf, or Decimal math types
-
+    
     Features
         - dbg stream argument to send debugging information to watch convergence
         - args, kw for extra parameters in the function f
         - fp type to use float, flt, mpmath.mpf, or Decimal math types
         - itmax to control maximum number of iterations
-
+    
     - Recommendations
         - Many of us probably work with problems whose information comes from physical
           measurements.  Such data are likely to only have a few digits of relevance.
@@ -26,7 +26,7 @@ Root Finding Routines
           is a good overview of the basics.  The three pictures on page 9 show some of
           the things that can go wrong:  1) a root at a tangent point, 2) a singularity,
           and 3) a pathological case.  Construct some test cases using these cases.
-
+    
     References ([x:y:z] means page y in reference x or page z in the PDF form)
         
         [1] Various emails with Jack Crenshaw around 2014
@@ -39,7 +39,7 @@ Root Finding Routines
             Press, 1992.
     
     Division by multiplication & subtraction
-
+    
         https://www.cs.princeton.edu/courses/archive/fall12/cos323/notes/cos323_f12_lecture02_rootfinding.pdf
         notes that in some computers a hardware divide is not available, so division can be
         simulated in software by using Newton-Raphson iteration using only multiplication
@@ -173,7 +173,8 @@ if 1:  # Header
         import numbers
         import sys
     if 1:  # Custom imports
-        from color import t
+        import dptypes
+        import trm
         from f import flt
         try:
             import mpmath
@@ -183,10 +184,17 @@ if 1:  # Header
         if 0:
             import debug
             debug.SetDebugger()
+    if 1:  # Import symbols
+        Constant = dptypes.Constant
+        t = trm.Trm()
     if 1:  # Global variables
+        g = Constant()
+        g.tol = 1e-6
+        g.itmax = 50
+        g.fp = float
         t.dbg = t.skyl   # Color for debugging output
 if 1:  # Root finders that don't need a derivative (but you must bracket the root)
-    def Crenshaw(a, b, f, tol=1e-6, itmax=50, fp=float, dbg=None, args=[], kw={}):
+    def Crenshaw(a, b, f, tol=g.tol, itmax=g.itmax, fp=g.fp, dbg=None, args=[], kw={}):
         '''Return (root, num_iterations) where root is a root of the function f() that
         lies in the interval [a, b] and num_iterations is the number of iterations it
         took to find the root.
@@ -297,7 +305,7 @@ if 1:  # Root finders that don't need a derivative (but you must bracket the roo
                 else:
                     a, y0, b, y2 = xm, ym, x1, y1
         raise ValueError(f"Number of iterations exceeded {itmax}")
-    def Bisection(a, b, f, tol=1e-6, itmax=None, switch=False, fp=float, dbg=None, args=[], kw={}):
+    def Bisection(a, b, f, tol=g.tol, itmax=None, switch=False, fp=g.fp, dbg=None, args=[], kw={}):
         '''Returns (root, num_it) (the root and number of iterations) by finding a root
         of f(x) = 0 by bisection.  The root must be bracketed in [a, b].  Adapted from
         Kiusalaas [2:145:154].
@@ -379,7 +387,7 @@ if 1:  # Root finders that don't need a derivative (but you must bracket the roo
         Dbg(f"{fnname} done, {x}, count = {count + 1}", file=dbg)
         assert diff/2**n <= tol
         return x, n
-    def Ridders(a, b, f, tol=1e-6, itmax=50, fp=float):
+    def Ridders(a, b, f, tol=g.tol, itmax=g.itmax, fp=g.fp):
         '''Returns (root, num_it), the root and the number of iterations using Ridders'
         method to find a root of f(x) = 0 to the specified tolerance tol.  The
         root must be bracketed on [a, b].  If the number of iterations exceeds itmax, an
@@ -433,11 +441,11 @@ if 1:  # Root finders that don't need a derivative (but you must bracket the roo
             else:
                 a, b, fa, fb = c, x, fc, fx
         raise ValueError(f"Number of iterations exceeded {itmax}")
-    def Brent(a, b, f, tol=1e-6, itmax=50, fp=float):
+    def Brent(a, b, f, tol=g.tol, itmax=g.itmax, fp=g.fp):
         '''Return (root, number of iterations) where root is the root of f(x) = 0 by
         combining quadratic interpolation with bisection (simplified Brent's method).
         The root must be bracketed in (a, b).  Calls user-supplied function f(x).  From
-        [2:148:157].
+        Kiusalaas [2:148:157].
         
         The method is defined to converge at x if:
             1.  f(x) < tol
@@ -481,7 +489,7 @@ if 1:  # Root finders that don't need a derivative (but you must bracket the roo
                 x1, f1 = x3, f3
             x3 = x
         raise ValueError(f"Number of iterations exceeded {itmax}")
-    def ITP(a, b, f, tol=1e-6, itmax=50, k1=None, k2=2, n0=1, fp=float):
+    def ITP(a, b, f, tol=g.tol, itmax=g.itmax, k1=None, k2=2, n0=1, fp=g.fp):
         '''Return (root, num_iterations) for the root of the function f.
         
         a       Start of bracketing interval
@@ -607,7 +615,7 @@ if 1:  # Root finders that don't need a derivative (but you must bracket the roo
                 break
         return fp((a + b)/2), count
 if 1:  # Root finders that need derivative
-    def NewtonRaphson(x, f, fderiv, tol=1e-6, itmax=50, fp=float):
+    def NewtonRaphson(x, f, fderiv, tol=g.tol, itmax=g.itmax, fp=g.fp):
         '''Returns the root using Newton-Raphson algorithm for solving f(x) = 0.
             f       The function 
             fderiv  f's derivative
@@ -640,7 +648,7 @@ if 1:  # Root finders that need derivative
             x, count = x - dx, count + 1
             if count > itmax:
                 raise ValueError(f"Number of iterations exceeded {itmax}")
-    def Ostrowski(x, f, fderiv, tol=1e-6, itmax=50, fp=float):
+    def Ostrowski(x, f, fderiv, tol=g.tol, itmax=g.itmax, fp=g.fp):
         '''Returns (root, num_iterations) for the root of the function f(x).
         
         x           Initial guess for the root
@@ -683,7 +691,7 @@ if 1:  # Root finders that need derivative
             xn = xn1
         raise ValueError(f"Number of iterations exceeded {itmax}")
 if 1:  # Searching intervals for roots by sign changes
-    def SearchIntervalForRoots(a, b, f, n, fp=float, args=[], kw={}):
+    def SearchIntervalForRoots(a, b, f, n, fp=g.fp, args=[], kw={}):
         '''Return a tuple of subintervals of [a, b] where f has roots.
         
         a       Start of interval
@@ -719,7 +727,7 @@ if 1:  # Searching intervals for roots by sign changes
                 intervals.append((x0, x))
             x0, y0 = x, y
         return tuple(intervals)
-    def FindRoots(f, n, x1, x2, tol=1e-6, itmax=50, fp=float, args=[], kw={}):
+    def FindRoots(f, n, x1, x2, tol=g.tol, itmax=g.itmax, fp=g.fp, args=[], kw={}):
         '''This is a general-purpose root finding routine that returns a tuple of the
         roots found of the function f on the interval [x1, x2].
         
@@ -766,7 +774,7 @@ if 1:  # Searching intervals for roots by sign changes
             else:
                 roots.append(x)
         return tuple(roots)
-    def BracketRoots(f, x1, x2, itmax=50, fp=float, args=[], kw={}):
+    def BracketRoots(f, x1, x2, itmax=g.itmax, fp=g.fp, args=[], kw={}):
         '''Given a function f and an initial interval [x1, x2], expand the interval
         geometrically until a root is bracketed or the number of iterations exceeds
         itmax.  Return (a, b), where the interval [a, b] brackets a root.  If the
@@ -817,7 +825,7 @@ if 0:  # Crenshaw
     particularly since e.g. Brent() converges quickly and is usually the fastest.
     
     '''
-    def CrenshawOld(x1, x3, f, eps=1e-6, itmax=50, p=4, dbgstream=None):
+    def CrenshawOld(x1, x3, f, eps=1e-6, itmax=g.itmax, p=4, dbgstream=None):
         '''Returns (root, number_of_iterations).
         x1, x3        Initial estimates of the root and must bracket it.
         f             Function f(x) to call to evaluate.
@@ -1218,9 +1226,22 @@ if 1:  # Polynomials
         return tuple(Pound(i, adjust) for i in roots)
 
 if __name__ == "__main__":
-    from lwtest import Assert
-    from wrap import dedent
-    from timer import Timer
+    if 1:   # Standard imports
+        import cmath
+        import random
+    if 1:   # Custom imports
+        import dptime
+        import lwtest
+        import wrap
+    if 1:   # Import symbols
+        Decimal = decimal.Decimal
+        # 
+        Assert = lwtest.Assert
+        Timer = dptime.Timer
+        assert_equal = lwtest.assert_equal
+        dedent = wrap.dedent
+        raises = lwtest.raises
+        run = lwtest.run
     if 1:  # Utility
         def Ceil(x, fp):
             'Ceiling function for type fp:  float, flt, mpf, Decimal'
@@ -1388,6 +1409,7 @@ if __name__ == "__main__":
             # Set up flt so that the high threshold for sci is 10000
             x = flt(0)
             x.high = 100000
+            x.N = 2
             def myfunc(x):
                 return x - math.cos(x)
             print(f"{ind}Tolerance = {tol}, number of evaluations for timing = {n}")
@@ -1416,4 +1438,422 @@ if __name__ == "__main__":
                 x = FindRoots(myfunc, 10, x0, x1, tol=tol)
             tm.stop
             print(f"{ind}FindRoots :  Got {x[0]:{fmt}} in  ?  steps, {flt(tm.et/n)!s:>6s} μs")
-    Demo()
+    if 1:  # Test code
+        def Test_Crenshaw():
+            '''Here's a quick test of the routine.  The function is
+            the polynomial x^8 - 2 = 0; we should get as an answer the
+            8th root of 2.  You should see the following output if
+            show is nonzero:
+            
+            Calculated root = 1.090507732665258
+            Correct value   = 1.090507732665258
+            Num iterations  = 9
+            
+            Calculated root = 1.090507732665257659207010655760707978993
+            Correct value   = 1.090507732665258
+            Num iterations  = 14
+            
+            The long answer can be checked with integer arithmetic.
+            '''
+            def f(x):
+                return x**8 - 2
+            tol = 1e-10
+            itmax = 20
+            x0 = 0.0
+            x1 = 10.0
+            root, numits = Crenshaw(x0, x1, f, tol=tol, itmax=itmax)
+            assert_equal(root, 1.090507732665258, reltol=tol)
+            # Now do the same, but with Decimal numbers
+            decimal.getcontext().prec = 50
+            tol = Decimal("1e-48")
+            x0, x1 = Decimal(0), Decimal(10)
+            root, numits = Crenshaw(x0, x1, f, tol=tol, itmax=itmax, fp=Decimal)
+            assert_equal(root**8, 2, reltol=tol)
+            # Call a function that uses extra arguments
+            def f(x, a, **kw):
+                b = kw.setdefault("b", 8)
+                return x**b - a
+            tol = 1e-10
+            itmax = 20
+            x0 = 0.0
+            x1 = 10.0
+            a, b = 2, 8
+            root, numits = Crenshaw(x0, x1, f, tol=tol, itmax=itmax, args=[a])
+            assert_equal(root, math.pow(a, 1/b))
+            # Use keyword argument
+            a, b = 3, 7
+            root, numits = Crenshaw(x0, x1, f, tol=tol, itmax=itmax, args=[a], kw={"b": b})
+            assert_equal(root, math.pow(a, 1/b), reltol=tol)
+        def Test_FindRoots():
+            # Show that FindRoots can do a reasonable job for a
+            # polynomial.  Note the particular results are sensitive to
+            # n.
+            tol = 1e-15
+            f = lambda x: (x - 1)*(x - 2)*(x - 3)*(x - 4)*(x - 5)
+            x1, x2, n = 0, 10, 10
+            r = FindRoots(f, n, x1, x2, tol=tol)
+            assert_equal(r, tuple([1.0*i for i in range(1, 6)]), reltol=tol)
+            # Roots of sinc function
+            f = lambda x: math.sin(x)/x
+            x1, x2, n = 1, 10, 100
+            r = FindRoots(f, n, x1, x2, tol=tol)
+            assert_equal(r[0], 1*math.pi, reltol=tol)
+            assert_equal(r[1], 2*math.pi, reltol=tol)
+            assert_equal(r[2], 3*math.pi, reltol=tol)
+            # Same as previous, but with an extra parameter
+            f = lambda x, a: math.sin(a*x)/(a*x)
+            r = FindRoots(f, n, x1, x2, args=[1], tol=tol)
+            assert_equal(r[0], 1*math.pi, reltol=tol)
+            assert_equal(r[1], 2*math.pi, reltol=tol)
+            assert_equal(r[2], 3*math.pi, reltol=tol)
+            r = FindRoots(f, n, x1, x2, args=[math.pi], tol=tol)
+            assert_equal(r[0], 1, reltol=tol)
+            assert_equal(r[1], 2, reltol=tol)
+            assert_equal(r[2], 3, reltol=tol)
+            # Same as previous, but with a keyword parameter
+            def f(x, a=1):
+                return math.sin(a*x)/(a*x)
+            r = FindRoots(f, n, x1, x2, kw={"a": 1}, tol=tol)
+            assert_equal(r[0], 1*math.pi, reltol=tol)
+            assert_equal(r[1], 2*math.pi, reltol=tol)
+            assert_equal(r[2], 3*math.pi, reltol=tol)
+            r = FindRoots(f, n, x1, x2, kw={"a": math.pi}, tol=tol)
+            assert_equal(r[0], 1, reltol=tol)
+            assert_equal(r[1], 2, reltol=tol)
+            assert_equal(r[2], 3, reltol=tol)
+        def Test_NewtonRaphson():
+            # Find the root of f(x) = tan(x) - 1 for 0 < x < pi/2.
+            f = lambda x: math.tan(x) - 1
+            fd = lambda x: 1/math.cos(x)**2
+            x = NewtonRaphson(0.5, f, fd, tol=g.tol)
+            assert_equal(x, math.atan(1), reltol=1e-15)
+        def Test_SearchIntervalForRoots():
+            # Find an interval containing the root of f(x) = tan(x) -
+            # 1 for 0 < x < pi/2.
+            f = lambda x: math.tan(x) - 1
+            answer = math.atan(1)
+            x1, x2 = 0, math.pi/2
+            intervals = SearchIntervalForRoots(x1, x2, f, 10)
+            for start, end in intervals:
+                Assert(start <= answer <= end)
+            intervals = SearchIntervalForRoots(x1, x2, f, 1000)
+            for start, end in intervals:
+                Assert(start <= answer <= end)
+        def Test_BracketRoots():
+            '''The polynomial f(x) = (x-r1)*(x-r2)*(x+r3) has three roots of r1, r2, -r3.
+            Use BracketRoots() to find one of the roots.  Also demonstrate that it will
+            exceed the iteration limit if the interval doesn't include any of the roots.
+            '''
+            r1, r2, r3 = 1000, 500, -500
+            f = lambda x: (x - r1)*(x - r2)*(x + r3)
+            r = BracketRoots(f, -2, -1)
+            Assert((r[0] <= r1 <= r[1]) or (r[0] <= r2 <= r[1]) or (r[0] <= r3 <= r[1]))
+            # Demonstate iteration limit can be reached
+            f = lambda x: x - 1000000
+            raises(ValueError, BracketRoots, f, -2, -1, itmax=10)
+        def Test_Bisection():
+            # Root of x = cos(x); it's 0.739085133215161 as can be found easily
+            # by iteration on a calculator.
+            f = lambda x: x - math.cos(x)
+            tol = 1e-14
+            root, numit = Bisection(0.7, 0.8, f, tol=tol)
+            Assert(abs(root - 0.739085133215161) <= tol)
+            # Eighth root of 2:  root of x**8 = 2
+            f = lambda x: x**8 - 2
+            tol = 1e-14
+            root, numit = Bisection(1, 2, f, tol=tol)
+            Assert(abs(root - math.pow(2, 1/8)) <= tol)
+            # Simple quadratic equation
+            t = 100001
+            f = lambda x: (x - t)*(x + 100)
+            tol = 1e-10
+            root, numit = Bisection(0, 2.1*t, f, tol=tol)
+            Assert(abs(root - t) <= tol)
+            # Note setting switch to True will cause an exception for this
+            # case.
+            raises(ValueError, Bisection, 0, 2.1*t, f, tol=tol, switch=True)
+        def Test_Ridders():
+            # Root of x = cos(x); it's 0.739085133215161 as can be found easily
+            # by iteration on a calculator.
+            f = lambda x: x - math.cos(x)
+            tol = 1e-14
+            root, numit = Ridders(0.7, 0.8, f, tol=tol)
+            Assert(abs(root - 0.739085133215161) <= tol)
+            # Eighth root of 2:  root of x**8 = 2
+            f = lambda x: x**8 - 2
+            tol = 1e-14
+            root, numit = Ridders(1, 2, f, tol=tol)
+            Assert(abs(root - math.pow(2, 1/8)) <= tol)
+            # Simple quadratic equation
+            t = 100001
+            f = lambda x: (x - t)*(x + 100)
+            tol = 1e-10
+            root, numit = Ridders(0, 2.1*t, f, tol=tol)
+            Assert(abs(root - t) <= tol)
+        def Test_GeneralRootFinding(show=(len(sys.argv) > 1)):
+            '''This test case uses each of the root finding functions to test a
+            practical example of finding the square root of numbers over a wide
+            floating point range.  The desire is to have convergence to the
+            correct value within a relative tolerance of 1e-6, which should fit
+            the needs for most any numerical calculation based on
+            physically-measured data.
+            '''
+            tol = 1e-6
+            fd = lambda x: 1/(2*x**0.5)
+            # The stopping point is 10**(308//2) because this is about the square
+            # root of largest floating point number.  Note some of the routines
+            # won't converge over this full range.
+            random.seed(0)
+            e, bi, cr, rf, br, ri = [], [], [], [], [], []
+            for i in range(308//2):
+                e.append(i)
+                val = float(10**i)
+                sr0 = math.sqrt(val)
+                a, b = sr0*(1 - random.uniform(0, 0.2)), sr0*(1 + random.uniform(0, 0.2))
+                f = lambda x: x*x - val
+                sr, n = Bisection(a, b, f, tol=tol)
+                bi.append("%3d " % n)
+                assert_equal(sr0, sr, reltol=tol)
+                if 0:   # Crenshaw is commented out in root.py and probably will be removed
+                    sr, n = Crenshaw(a, b, f, tol=tol)
+                    cr.append("%3d " % n)
+                    assert_equal(sr0, sr, reltol=tol)
+                try:
+                    sr, n = RootFinder(a, b, f, tol=tol)
+                    rf.append("%3d " % n)
+                    assert_equal(sr0, sr, reltol=tol)
+                except Exception as E:
+                    pass
+                try:
+                    sr, n = Brent(a, b, f, tol=tol)
+                    Br.append("%3d " % n)
+                    assert_equal(sr0, sr, reltol=tol)
+                except Exception as E:
+                    pass
+                try:
+                    sr, n = Brent(a, b, f, tol=tol)
+                    br.append("%3d " % n)
+                    assert_equal(sr0, sr, reltol=tol)
+                except Exception as E:
+                    pass
+                sr, n = Ridders(a, b, f, tol=tol)
+                assert_equal(sr0, sr, reltol=tol)
+                ri.append("%3d " % n)
+            # Make a plot of the results
+            if 0 and have_pylab:
+                p = pl.semilogy
+                p(e[: len(bi)], bi, ".-", label="Bisection")
+                p(e[: len(cr)], cr, ".-", label="Crenshaw")
+                p(e[: len(rf)], rf, ".-", label="RootFinder")
+                p(e[: len(br)], br, ".-", label="Brent")
+                p(e[: len(ri)], ri, ".-", label="Ridders")
+                pl.title("Root-finding routine efficiency\n13 Oct 2014")
+                pl.xlabel("n")
+                pl.ylabel("Iterations to get sqrt(10**n)")
+                pl.legend(loc="upper left")
+                if 0:
+                    pl.show()
+                else:
+                    pl.savefig("rootfinder_comparison.png")
+        def Test_Ostrowski():
+            from math import sin, cos, exp
+            tol = 1e-14
+            # Square root of 2
+            x0 = 3
+            f = lambda x: x**2 - 2
+            deriv = lambda x: 2*x
+            root = 2**0.5
+            r, n = Ostrowski(x0, f, deriv, tol=tol)
+            assert_equal(r, root, reltol=tol)
+            # Shamir's first example
+            x0 = 3
+            f = lambda x: x**3 + 4*x**2 - 15
+            deriv = lambda x: 3*x**2 + 8*x
+            root = 1.6319808055661
+            r, n = Ostrowski(x0, f, deriv, tol=tol)
+            assert_equal(r, root, reltol=4e-14)
+            # Shamir's 3rd example
+            x0 = 1.1
+            f = lambda x: sin(x) - x/2
+            deriv = lambda x: cos(x) - 1/2
+            root = -1.8954942670340
+            r, n = Ostrowski(x0, f, deriv, tol=tol)
+            assert_equal(r, root, reltol=2e-14)
+            # Shamir's 5th example
+            x0 = 10
+            f = lambda x: cos(x) - x
+            deriv = lambda x: -sin(x) - 1
+            root = 0.73908513321516
+            r, n = Ostrowski(x0, f, deriv, tol=tol)
+            assert_equal(r, root, reltol=tol)
+            # Shamir's 6th example
+            x0 = 0.1
+            f = lambda x: sin(x)**2 - x**2 + 1
+            deriv = lambda x: 2*sin(x)*cos(x) - 2*x
+            root = 1.4044916482153
+            r, n = Ostrowski(x0, f, deriv, tol=tol)
+            assert_equal(r, root, reltol=8e-13)
+            # Shamir's 7th example
+            x0 = 0.1
+            f = lambda x: exp(-x) + cos(x)
+            deriv = lambda x: -exp(-x) - sin(x)
+            root = 1.7461395304080
+            r, n = Ostrowski(x0, f, deriv, tol=tol)
+            assert_equal(r, root, reltol=tol)
+        def Test_Quadratic():
+            # Exception if not quadratic
+            raises(ValueError, Quadratic, *(0, 1, 1))
+            # Real roots
+            r1, r2 = Quadratic(1, 0, -2)
+            assert_equal(r1, -r2)
+            assert_equal(abs(r1), math.sqrt(2))
+            # Complex roots
+            r1, r2 = Quadratic(1, 0, 2)
+            assert_equal(r1, -r2)
+            assert_equal(r1, cmath.sqrt(-2))
+            # Constant term 0
+            r1, r2 = Quadratic(1, -1, 0)
+            assert_equal(r1, 1)
+            assert_equal(r2, 0j)
+            # Real, distinct
+            r1, r2 = Quadratic(1, 4, -21)
+            Assert(r1 == 3)
+            Assert(r2 == -7)
+            # Real coefficients, complex roots
+            r1, r2 = Quadratic(1, -4, 5)
+            assert_equal(r1, 2 + 1j)
+            assert_equal(r2, 2 - 1j)
+            # Complex coefficients, complex roots
+            r1, r2 = Quadratic(1, 3 - 3j, 10 - 54j)
+            assert_equal(r1, (3 + 7j))
+            assert_equal(r2, (-6 - 4j))
+            if have_mpmath:
+                mpc = mpmath.mpc
+                a, b, c = mpc(1, 0), mpc(3, -3), mpc(10, -54)
+                r1, r2 = Quadratic(a, b, c)
+                assert_equal(r1, mpc(3, 7))
+                assert_equal(r2, mpc(-6, -4))
+        def Test_Cubic():
+            tol = 1e-14
+            # Exception if not cubic
+            raises(ValueError, Cubic, *(0, 1, 1, 1))
+            # Basic equation
+            r = Cubic(1, 0, 0, 0)
+            Assert(r == (0, 0, 0))
+            # Cube roots of 1
+            for r in Cubic(1, 0, 0, -1):
+                assert_equal(Pound(r**3, ratio=tol), 1, reltol=tol)
+            # Cube roots of -1
+            for r in Cubic(1, 0, 0, 1):
+                assert_equal(Pound(r**3, ratio=tol), -1, reltol=tol)
+            # Three real roots:  (x-1)*(x-2)*(x-3)
+            for i, j in zip(Cubic(1, -6, 11, -6), (3, 1, 2)):
+                assert_equal(i, j, reltol=tol)
+            # One real root:  (x-1)*(x-j)*(x+j) = x**3 - x**2 + x - 1, roots = 1, -j, j
+            for i, k in zip(Cubic(1, -1, 1, -1), (1, 1j, -1j)):
+                # In the following, Assert is used instead of assert_equal
+                # because one test case results in -0-1j vs. -1j, which results
+                # in a failure -- but the numbers are numerically equal.
+                Assert(i == k)
+        def Test_Quartic():
+            tol = 1e-14
+            # Exception if not cubic
+            raises(ValueError, Quartic, *(0, 1, 1, 1, 1))
+            # Basic equation
+            r = Quartic(1, 0, 0, 0, 0)
+            Assert(r == (0, 0, 0, 0))
+            # Fourth roots of 1
+            for r in Quartic(1, 0, 0, 0, -1):
+                assert_equal(r**4, 1)
+            # Fourth roots of -1
+            for r in Quartic(1, 0, 0, 0, 1):
+                assert_equal(Pound(r**4, ratio=tol), -1, reltol=tol)
+            # The equation (x-1)*(x-2)*(x-3)*(x-4)
+            for i, j in zip(Quartic(1, -10, 35, -50, 24), range(1, 5)):
+                assert_equal(i, j, reltol=tol)
+            # Two real roots: x*(x-1)*(x-j)*(x+j)
+            for i, k in zip(Quartic(1, -1, 1, -1, 0), (-1j, 1j, 0j, 1)):
+                assert_equal(i, k)
+        def Test_Pound():
+            '''Pound(z) returns a pure real or imaginary if z is close enough to
+            the real or imaginary axis.
+            '''
+            def test1():
+                Assert(Pound(0, True) == 0)
+                Assert(Pound(1 + 1j, True) == 1 + 1j)
+                for z, expected, t in (
+                    (1 + 0j, 1, numbers.Real),
+                    (1 - 0j, 1, numbers.Real),
+                    (-1 + 0j, -1, numbers.Real),
+                    (-1 - 0j, -1, numbers.Real),
+                    #
+                    (1 + 1e-16j, 1, numbers.Real),
+                    (1 - 1e-16j, 1, numbers.Real),
+                    (-1 + 1e-16j, -1, numbers.Real),
+                    (-1 - 1e-16j, -1, numbers.Real),
+                    #
+                    (1e-16 + 1e-32j, 1e-16, numbers.Real),
+                    (1e-16 - 1e-32j, 1e-16, numbers.Real),
+                    (-1e-16 + 1e-32j, -1e-16, numbers.Real),
+                    (-1e-16 - 1e-32j, -1e-16, numbers.Real),
+                    #
+                    (0 + 1j, 1j, numbers.Complex),
+                    (0 - 1j, -1j, numbers.Complex),
+                    (-0 + 1j, 1j, numbers.Complex),
+                    (-0 - 1j, -1j, numbers.Complex),
+                    #
+                    (1e-16 + 1j, 1j, numbers.Complex),
+                    (1e-16 - 1j, -1j, numbers.Complex),
+                    (-1e-16 + 1j, 1j, numbers.Complex),
+                    (-1e-16 - 1j, -1j, numbers.Complex),
+                ):
+                    b = Pound(z)
+                    Assert(b == expected)
+                    Assert(isinstance(b, t))
+            def test2():
+                epsilon = 2.5e-15
+                tol = 0.99*float(epsilon)
+                # Zero
+                Assert(Pound(0, 0) == 0)
+                Assert(Pound(0j, 1) == 0)
+                Assert(Pound(0 + 0j, 1) == 0)
+                # Pure real
+                Assert(Pound(1, 0) == 1)
+                Assert(Pound(1, 1) == 1)
+                Assert(Pound(1 + tol, 1) == 1 + tol)
+                # Pure imaginary
+                Assert(Pound(1j, 0) == 1j)
+                Assert(Pound(1j, 1) == 1j)
+                x = (1 + tol)*1j
+                Assert(Pound(x, 1) == x)
+                # Real with small imaginary part
+                x = 1
+                y = x + tol*1j
+                Assert(Pound(y, 0) == y)
+                Assert(Pound(y, 1) == x)
+                # Imaginary with small real part
+                y = tol + x*1j
+                Assert(Pound(y, 0) == y)
+                Assert(Pound(y, 1) == x*1j)
+                # Number that shouldn't be changed
+                x = 1 + 1j
+                Assert(Pound(x, 0) == x)
+                Assert(Pound(x, 1) == x)
+            test1()
+            test2()
+    if len(sys.argv) > 1:
+        Demo()
+    else:
+        exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
+
+def GetGist():
+    g = {}
+    g["gist"] = "Numerical root finders"
+    g["copy"] = "Copyright © 2026 Don Peterson"
+    g["lic"] = "MIT License (see /plib/_lic.mit)"
+    g["test"] = "run"
+    g["cat"] = "math"
+    g["todo"] = '''
+        - Needs test cases for each method
+    '''
+    return g
