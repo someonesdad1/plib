@@ -193,9 +193,7 @@ if 1:  # Core functionality
             mo = int(time.strftime("%m", tm))  # Integer month
             wk = int(time.strftime("%U", tm))  # Week number with Sunday first day of week
             # Julian day
-            jd = dpastro.JulianAstroDateTime(
-                year, mo, day, int(hour), int(minute), int(sec)
-            )
+            jd = dpastro.JD(year, mo, day, int(hour), int(minute), int(sec))
             ly = dpastro.IsLeapYear(year)  # Boolean for leap year
             qtr = (mo//3) + 1  # Quarter of year
             doy = int(time.strftime("%j", tm))  # Day of the year

@@ -1,10 +1,6 @@
 - Make all the dp*.py files testable by just running them
 
 Reorganization core files
-- dpastro
-    - meeus
-    - julian
-    - kepler
 - dppath
     - dirfiles
 - dpmath
