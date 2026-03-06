@@ -54,50 +54,27 @@ if 1:  # Header
         g.minimum_year = -4712
         g.max_iterations = 120
 if 1:  # Julian day routines
-    def JulianDayDT(datetime_instance):
-        '''Return a float representing the astronomical Julian Day for a
-        datetime.datetime instance.  This is a convenience, but it's limited by the
-        datetime's module insisting that the year be >= 1.  A handy feature of the
-        datetime.datetime instance is that you can't initialize it with improper
-        numbers.
+    def JD(year, month, day, hour=0, minute=0, second=0):
+        '''Return astronomical Julian Day, a float.
+        All arguments are integers except day and second can also be floats.
         '''
-        dt = datetime_instance
-        year, month, day, hour, minute, second, microsecond = (dt.year, dt.month,
-            dt.day, dt.hour, dt.minute, dt.second, dt.microsecond)
-        second += microsecond/1e6
-        return JulianDay(year, month, day, hour, minute, second)
-    def JulianDay(year, month, day, hour=0, minute=0, second=0):
-        '''Return a float representing the astronomical Julian Day
-        year, month, hour, minute should be int
-        day and second can be int or float
-        time.  Year, month, hour, and minute must be integers.  day and seconds can be
-        an integer or a float.  If day is a float that is not equal to an integer, then
-        hour, minute, and second are ignored.
-        '''
-        if 1:   # Validate arguments
-            a = (year, month, hour, minute)
-            b = "year  month  hour  minute".split()
-            for var, name in zip(a, b, strict=True):
-                if not isinstance(var, int):
-                    raise TypeError(f"{name} must be an integer")
-                if name in "month hour minute".split() and var < 0:
-                    raise ValueError(f"{name} must be >= 0")
-            if not isinstance(day, (int, float)):
-                raise TypeError("day must be an integer or float >= 0")
-            if day < 1:
-                raise ValueError(f"day must be >= 1")
+        # Algorithm from pg 62 of Meeus, "Astronomical Algorithms", 2nd ed., 1998
+        if 1:   # Check parameter types
+            for i in (year, month, hour, minute):
+                if not isinstance(i, int):
+                    msg = "year, month, day, hour, and minute must be int"
+                    raise TypeError(msg)
             if not isinstance(second, (int, float)):
-                raise TypeError("day must be an integer or float >= 0")
-            if second < 0:
-                raise ValueError(f"second must be >= 0")
-            if year < g.minimum_year:
-                raise ValueError(f"year must be >= {g.minimum_year}")
-        if 1:   # Convert arguments
-            if isinstance(day, float) and math.floor(day) != day:
-                fractional_day = 0
-            else:
-                fractional_day = (hour + minute/60 + second/3600)/24
+                raise TypeError("second must be an int or float")
+            if not isinstance(day, (int, float)):
+                raise TypeError("day must be an int or float")
         floor = math.floor
+        # Convert time of day to fractional day
+        frac_day = (hour + minute/60 + second/3600)/24.0
+        # Adjust month/year so March = 3 ... February = 14 of previous year
+        if month <= 2:
+            year -= 1
+            month += 12
         # Determine if Gregorian calendar correction applies
         if (year > 1582) or (year == 1582 and (month > 10 or (month == 10 and day >= 15))):
             A = floor(year/100)
@@ -105,38 +82,18 @@ if 1:  # Julian day routines
         elif (year < 1582) or (year == 1582 and (month < 10 or (month == 10 and day <= 4))):
             B = 0
         else:
-            msg = "Date is within the Gregorian calendar transition (5Oct1582 to 14Oct1582)"
-            raise ValueError(msg)
-        # Perform calculation
-        M, D, Y = month, day, year  # Meeus' notation
-        if M in (1, 2): # For Jan and Feb, the month is 13 or 14 of the previous year
-            Y -= 1
-            M += 12
-        julian = floor(365.25*(Y + 4716)) + floor(30.6001*(M + 1)) + D + B - 1524.5
-        return julian
-
-    def JulianAstro(month, day, year):    # Meeus pg. 61
-        '''Returns the astronomical Julian day number which is a floating point number
-        whose decimal fraction part is zero at Greenwich mean noon.
+            raise ValueError("Date falls within the Gregorian calendar transition gap (1582-10-05 to 1582-10-14).")
+        jd = (floor(365.25*(year + 4716)) + floor(30.6001*(month + 1)) + day + B - 1524.5)
+        return jd + frac_day
+    def JulianDayDT(datetime_instance):
+        '''Return astronomical Julian Day, a float.
+        The date/time is a datetime.datetime instance.
         '''
-        if not isinstance(year, int):
-            raise TypeError("year must be an integer")
-        if not isinstance(month, int):
-            raise TypeError("month must be an integer")
-        if not isinstance(day, (int, float)):
-            raise TypeError("day must be an integer or float")
-        if year < g.minimum_year:
-            raise ValueError(f"year must be >= {g.minimum_year}")
-        M, D, Y = month, day, year  # Meeus' notation
-        if M in (1, 2): # For Jan and Feb, the month is 13 or 14 of the previous year
-            Y -= 1
-            M += 12
-        A = math.floor(Y/100)
-        tmp = year + month/100 + day/10000
-        # In the following, if B == 0, then the date is in the Julian calendar
-        B = 0 if tmp < 1582.1015 else 2 - A + math.floor(A/4)
-        julian = math.floor(365.25*(Y + 4716)) + math.floor(30.6001*(M + 1)) + D + B - 1524.5
-        return julian
+        dt = datetime_instance
+        year, month, day, hour, minute, second, microsecond = (dt.year, dt.month,
+            dt.day, dt.hour, dt.minute, dt.second, dt.microsecond)
+        second += microsecond/1e6
+        return JD(year, month, day, hour, minute, second)
     def NumDaysInMonth(month, year):
         if month == 2:
             return 29 if IsLeapYear(year) else 28
@@ -146,22 +103,20 @@ if 1:  # Julian day routines
             return 31
         else:
             raise ValueError("Bad month")
-    def DecodeDay(day):
-        '''Return a tuple of (hr, min, sec) given a decimal day.  Example:
-        DecodeDay(1.5) returns (12, 0, 0.0).
-        
-        Important:  this is conventional time, not Julian astronomical type
-        days.
-        '''
-        fp = day - int(day)
-        hr = int(24*fp)
-        fp -= hr/24
-        min = int(24*60*fp)
-        fp -= min/(24*60)
-        sec = 24*3600*fp
-        return (hr, min, sec)
-    def JulianToDate(julian_day):
-        '''From Meeus, "Astronomical Algorithms", pg 63.'''
+    def IsLeapYear(year):   # Meeus pg 62
+        return True if (year % 400 == 0) or (year % 4 == 0 and year % 100 != 0) else False
+    def DaysToHMS(numdays):
+        'Return a tuple of (hours, minutes, seconds) given a number of days'
+        frac_part = day - math.floor(day)
+        hours = int(24*frac_part)
+        frac_part -= hours/24
+        minutes = int(24*60*frac_part)
+        frac_part -= minutes/(24*60)
+        seconds = 24*3600*frac_part
+        return (hours, minutes, seconds)
+
+    def JD2DT(julian_day):  # Meeus pg 63
+        'Return a datetime.datetime instance for a Julian day'
         if julian_day < 0:
             raise ValueError("Bad input value")
         jd = julian_day + 0.5
@@ -184,8 +139,9 @@ if 1:  # Julian day routines
             year = int(C - 4716)
         else:
             year = int(C - 4715)
-        hr, min, sec = DecodeDay(day)
-        return month, day, year, hr, min, sec
+        hr, min, sec = DaysToHMS(day)
+        dt = datetime.datetime(year, month, day, hr, min, sec)
+        return dt
     def DayOfYear(month, day, year):
         if IsLeapYear(year):
             n = int((275*month)//9 - ((month + 9)//12) + int(day) - 30)
@@ -196,9 +152,6 @@ if 1:  # Julian day routines
     def DayOfWeek(month, day, year):
         julian = int(JulianAstro(month, int(day), year) + 1.5)
         return julian % 7
-    def IsLeapYear(year):
-        # Ref. Meeus pg 62
-        return True if (year % 400 == 0) or (year % 4 == 0 and year % 100 != 0) else False
     def IsValidDate(month, day, year):
         '''Returns True if the year is later than 1752 and the month and day
         numbers are valid.
@@ -384,11 +337,6 @@ if 1:  # Julian day routines
             B = 2 - A + A//4
             julian += B
         return float(julian)
-    def JD(month, day, year):
-        "Return Julian day of the year, int <= 366"
-        jd = int(JulianAstro(month, day, year) + 0.55)
-        jd0 = int(JulianAstro(1, 1, year) + 0.55)
-        return jd - jd0 + 1
     def JD2MDY(julian_day, year):
         "Return (month, day, year) for the given julian_day and year"
         IsInt(julian_day, "julian_day must be an integer")
@@ -1234,7 +1182,7 @@ if 1:  # meeus.py Moon
             print("  JDE                              :  %.5f" % jde)
         return jde
 if 1:  # meeus.py Astronomical
-    def KeplerEquation(e, M, reltol=0):
+    def KeplerEquationSinnott(e, M, reltol=0):
         '''Returns eccentric anomaly E in radians by solving Kepler's equation 30.5 pg 195 via
         Sinnott's binary search algorithm on page 206.  e is orbital eccentricity (dimensionless)
         and M is the mean anomaly in radians.  Meeus gives the number of iterations required as
@@ -1285,9 +1233,9 @@ if 1:  # julian.py Julian day routines
             return 31
         else:
             raise ValueError("Bad month")
-    def DecodeDay(day):
+    def DaysToHMS(day):
         '''Return a tuple of (hr, min, sec) given a decimal day.  Example:
-        DecodeDay(1.5) returns (12, 0, 0.0).
+        DaysToHMS(1.5) returns (12, 0, 0.0).
         
         Important:  this is conventional time, not Julian astronomical type
         days.
@@ -1323,7 +1271,7 @@ if 1:  # julian.py Julian day routines
             year = int(C - 4716)
         else:
             year = int(C - 4715)
-        hr, min, sec = DecodeDay(day)
+        hr, min, sec = DaysToHMS(day)
         return month, day, year, hr, min, sec
     def DayOfYear(month, day, year):
         if IsLeapYear(year):
@@ -1625,37 +1573,6 @@ if 1:  # kepler.py
         # P(4, E, n, p, "Inverse parabolic interpolation")
         print()
 
-def JD(year, month, day, hour=0, minute=0, second=0):
-    '''Return astronomical Julian Day, a float.
-    All arguments are integers except day and second can also be floats.
-    '''
-    # Algorithm from pg 62 of Meeus, "Astronomical Algorithms", 2nd ed., 1998
-    if 1:   # Check parameter types
-        for i in (year, month, hour, minute):
-            if not isinstance(i, int):
-                msg = "year, month, day, hour, and minute must be int"
-                raise TypeError(msg)
-        if not isinstance(second, (int, float)):
-            raise TypeError("second must be an int or float")
-        if not isinstance(day, (int, float)):
-            raise TypeError("day must be an int or float")
-    floor = math.floor
-    # Convert time of day to fractional day
-    frac_day = (hour + minute/60 + second/3600)/24.0
-    # Adjust month/year so March = 3 ... February = 14 of previous year
-    if month <= 2:
-        year -= 1
-        month += 12
-    # Determine if Gregorian calendar correction applies
-    if (year > 1582) or (year == 1582 and (month > 10 or (month == 10 and day >= 15))):
-        A = floor(year/100)
-        B = 2 - A + floor(A/4)
-    elif (year < 1582) or (year == 1582 and (month < 10 or (month == 10 and day <= 4))):
-        B = 0
-    else:
-        raise ValueError("Date falls within the Gregorian calendar transition gap (1582-10-05 to 1582-10-14).")
-    jd = (floor(365.25*(year + 4716)) + floor(30.6001*(month + 1)) + day + B - 1524.5)
-    return jd + frac_day
 
 if __name__ == "__main__":  
     import sys
@@ -1678,9 +1595,6 @@ if __name__ == "__main__":
         Assert(JD(-1000, 2,   29) == 1355866.5)     # pg 62
         Assert(JD(-1001, 8, 17.9) == 1355671.4)     # pg 62
         Assert(JD(-4712, 1,  1.5) ==       0.0)     # pg 62
-
-        exit() # yy
-
 
     def Test_Julian_DecodeDateString():
         x = DecodeDateString("24Mar2023")
@@ -1789,8 +1703,8 @@ if __name__ == "__main__":
             ("1.5Jan-4712", 0.0),
         )
         data
-    def Test_Julian_DecodeDay():
-        Assert(DecodeDay(1.5) == (12, 0, 0))
+    def Test_Julian_DaysToHMS():
+        Assert(DaysToHMS(1.5) == (12, 0, 0))
     def Test_Julian_NumDaysInMonth():
         yr = 1999
         DIM = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
@@ -2692,8 +2606,8 @@ if __name__ == "__main__":
             ("1.5Jan-4712", 0.0),
         )
         data
-    def Test_Julian1_DecodeDay():
-        Assert(DecodeDay(1.5) == (12, 0, 0))
+    def Test_Julian1_DaysToHMS():
+        Assert(DaysToHMS(1.5) == (12, 0, 0))
     def Test_Julian1_NumDaysInMonth():
         yr = 1999
         DIM = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
