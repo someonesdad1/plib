@@ -25,8 +25,6 @@ if 1:  # Header
     if 1:  # Custom imports
         from lwtest import Assert
         import trm
-        from dpprint import PP
-        pp = PP()  # Screen width aware form of pprint.pprint
         from get import GetLines
         from wrap import dedent
         from columnize import Columnize

@@ -33,9 +33,7 @@ if 1:  # Header
         from wrap import dedent
         import trm
         from lwtest import Assert
-        from dpprint import PP
-        from dputil import Len
-        pp = PP()   # Get pprint with current screen width
+        from dpstr import Len
         if 0:
             import debug
             debug.SetDebugger()
