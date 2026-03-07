@@ -36,17 +36,17 @@ if 1:  # Header
         import re
         import sys
     if 1:   # Custom imports
-        from wrap import dedent
-        from color import t
+        from dptypes import Constant
+        import trm
         import dt
+        from wrap import dedent
         if 0:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
+        t = trm.Trm()
         d = {"-l": "", "-p": "", "-s": ""} # Options dictionary
-        class G:
-            pass
-        g = G()
+        g = Constant()
         g.dbg = False
         g.file = 0      # File being processed
         g.on = True     # Output state
@@ -65,7 +65,8 @@ if 1:   # Utility
             {a}({p}include)|
             {a}({p}sinclude)
         '''
-        g.command_line_regex = re.compile(r, re.I|re.X)
+        with g:
+            g.command_line_regex = re.compile(r, re.I|re.X)
     def GetColors():
         t.Hash = t.sky
         t.On = t.grnl

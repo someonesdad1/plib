@@ -128,6 +128,11 @@ if 1:   # Header
         g.nl = "\n"
         g.cr = "\r"
         g.sp = " "
+        try:
+            re.NOFLAG
+            g.noflag = re.NOFLAG
+        except Exception:
+            g.noflag = 0
 if 1:   # Classes
     class NameConvert:
         'Convert programming naming styles, "Python Cookbook" pg. 91'
@@ -648,7 +653,7 @@ if 1:   # Core functionality
         while s[i] in S:
             i += 1
         return s[i:]
-    def FilterSeqRegex(seq, regexes=[], ANDed=True, re_flags=re.NOFLAG):
+    def FilterSeqRegex(seq, regexes=[], ANDed=True, re_flags=g.noflag):
         '''Return a sequence of strings filtered by regexes.  The regexes are ANDed
         together by default; set ANDed to False to OR the regexes.  If the regexes are
         ORed together, no duplicates are returned.  In both cases, the returned strings

@@ -23,7 +23,7 @@ if 1:  # Header
     # Custom imports
         from wrap import dedent
         import trm
-        from edit import Edit
+        from dpstr import Edit
     # Global variables
         t = trm.Trm(default=2)
         P = pathlib.Path

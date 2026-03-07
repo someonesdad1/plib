@@ -1,8 +1,8 @@
 - Make all the dp*.py files testable by just running them
 
 Reorganization core files
-- dparith
-    - stirling
+- dpdata
+    - extensions
 - dpshop
     - linscale
 - dpphys

@@ -129,9 +129,7 @@ if 1:  # Core functionality
         ParseUnit = _ParseUnit
     ParseUnit.__doc__ = _ParseUnit.__doc__
     def RecommendedFluidVelocities():
-        print(
-            dedent(
-                f'''
+        print(dedent(f'''
                   {t.ti}Recommended fluid velocities in m/s{t.nn}
         Application                                 Velocity        Ref.
         -----------------------------------         --------        ---
@@ -158,13 +156,9 @@ if 1:  # Core functionality
                 http://irrigation.wsu.edu/Content/Select-Calculators.php (I can't
                 find the original page on which I found this recommendation)
             6.  http://asahi-america.com/images/x-assets/PDF/engineer_theory.pdf
-        '''[:-1]
-            )
-        )
+        '''))
     def ShowUSPipeSizes():
-        print(
-            dedent(
-                '''
+        print(dedent('''
         US Pipe Sizes
                 Schedule 40 PVC pipe                    Schedule 80 PVC pipe
           Nominal                                 Nominal
@@ -205,7 +199,7 @@ if 1:  # Core functionality
           4           4.500    4.026   0.237   8         0.1250       4.334
           5           5.563    5.047   0.258   8         0.1250       5.391
           6           6.625    6.065   0.280   8         0.1250       6.446
-    '''[1:-1]
+    '''))
             )
         )
     def GetQuantity(s, err="'{}' isn't a number with optional unit", dim=None):
