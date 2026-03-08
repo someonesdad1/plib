@@ -192,7 +192,7 @@ if 1:   # Core functionality
         if not n:
             return ""
         elif n == 1:
-            return g.dot
+            return g.end
         else:
             return f"{g.horiz*(n - 1)}{g.end}"
     def Report(lst):
@@ -214,13 +214,17 @@ if 1:   # Core functionality
         q25, median, q75 = [flt(i) for i in statistics.quantiles(counts, n=4)]
         # Estimate number of columns available for histogram
         used = 6 + 6 + 8 + 10 + 5*2
-        Hist.longest = g.columns - used
+        Hist.longest = int((g.columns - used)*0.9)
         Hist.scale = Hist.longest/maximum
         g.horiz, g.end = "─", "◆"
         if 1:   # Print report
             # Get header
             k = "k" if d["-k"] else ""
-            hdr = [f"{t.hdr}{i}{t.n}" for i in f"{k}Words {k}Lines {k}Chars File Word_Histogram".split()]
+            hdr = [f"{t.hdr}{i}{t.n}" for i in f"{k}Words {k}Lines {k}Chars File".split()]
+            if d["-k"]:
+                hdr.append(f"{t.hdr}Word %{t.n}")
+            else:
+                hdr.append(f"{t.hdr}Word histogram{t.n}")
             ncols = len(hdr)
             # Columns:  Words Lines Chars File Words%
             o = []

@@ -627,3 +627,14 @@ if __name__ == "__main__":
     mp.mp.dps = getcontext().prec
     eps = 10 * dec(10) ** (-dec(getcontext().prec))
     exit(run(globals(), halt=1, nomsg=1))
+
+def GetGist():
+    g = {}
+    g["gist"] = "Provides Decimal objects with custom string interpolation"
+    g["copy"] = "Copyright © 2026 Don Peterson"
+    g["lic"] = "MIT License (see /plib/_lic.mit)"
+    g["test"] = "run"
+    g["cat"] = "math"
+    g["todo"] = '''
+    '''
+    return g

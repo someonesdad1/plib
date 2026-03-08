@@ -1077,18 +1077,6 @@ if 1:  # Solving the Kepler equation
         # P(4, E, n, p, "Inverse parabolic interpolation")
         print()
 
-if 0 and __name__ == "__main__":  
-    # Debug problem in DT2JD and JD2DT not being inverses
-    # jd1 is always jd + 1
-    jd = 2415020.5  # 1Jan1900 at noon
-    dt = JD2DT(jd)
-    jd1 = DT2JD(dt)
-    print(f"dt  = {dt}")
-    print(f"jd  = {jd}")
-    print(f"jd1 = {jd1}")
-    assert jd == jd1
-    exit()
-
 if __name__ == "__main__":  
     if 1:   # Standard imports
         import sys
@@ -1466,3 +1454,15 @@ if __name__ == "__main__":
                         print("  E[i] - actual =", E[i] - actual)
                         exit(1)
     exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
+
+def GetGist():
+    g = {}
+    g["gist"] = "Various astronomical routines"
+    g["copy"] = "Copyright © 1998, 2026 Don Peterson"
+    g["lic"] = "MIT License (see /plib/_lic.mit)"
+    g["test"] = "run"
+    g["cat"] = "astr"
+    g["todo"] = '''
+        - 
+    '''
+    return g

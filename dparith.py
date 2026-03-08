@@ -1,24 +1,25 @@
 
 '''
-Contains various routines related to prime numbers and factoring.
+Various arithmetic things
+    
+    Stirling1       Stirling numbers of the first kind
+    Stirling2       Stirling numbers of the second kind
+    FactorGenerator Returns the prime factors an integer n
+    PrimeList       Returns a list of the primes that are between n and m inclusively
+    PrimeNumberSieve    Infinite generator that returns primes
+    IsPrime         Return True if n is prime
+    Factor          Return a dictionary of the factors of n
+    FactorList      Return a sorted list of the prime factors of n
+    FormatFactors   Returns a string of the prime factors of n
+    AllFactors      Return a list of the prime and composite factors of n
+    Primes          Returns a list of primes < n
+    RemoveCommonFactors  Return a tuple of the input integers with common factors removed
+
 '''
 if 1:  # Header
-    _pgminfo = '''
-        <oo gist ∞ Prime numbers and factoring oo>
-        <oo desc ∞ oo>
-        <oo copy ∞ Copyright © 2011 Don Peterson oo>
-        <oo lic ∞ MIT License
-            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-        oo>
-        <oo ind ∞ 8 indent oo>
-        <oo cat ∞ math oo>
-        <oo test ∞ --test oo>
-        <oo todo ∞ oo>
-    '''
     if 1:  # Standard imports
         import collections
+        import functools
         import itertools
         import math
         import operator
@@ -26,6 +27,10 @@ if 1:  # Header
         import sys
         from functools import reduce
     if 1:  # Custom imports
+        import dptypes
+        import multiset
+        import trm
+        import wrap
         _have_bitarray = False
         try:
             # The bitarray module is used for fast bitfield manipulations.  If you get
@@ -36,22 +41,18 @@ if 1:  # Header
             _have_bitarray = True
         except ImportError:
             pass
-        from wrap import dedent
-        import trm
-        from multiset import Multiset
+    if 1:  # Import symbols
+        reduce = functools.reduce
+        #
+        Constant = dptypes.Constant
+        Multiset = multiset.Multiset
+        dedent = wrap.dedent
     if 1:  # Global variables
+        g = Constant()
         t = trm.Trm()
-        t.prime = t.redl
-        t.number = t.skyl
-        nl = "\n"
-        __all__ = '''AllFactors Factor FactorList FormatFactors IsPrime
-                     PrimeList PrimeNumberSieve Primes FactorGenerator
-                     RemoveCommonFactors
-                  '''.split()
-        d = {"-c": False}
 if 1:  # Core functionality
     def IsPositiveInteger(n, msg):
-        if n < 1 or not isinstance(n, int):
+        if not isinstance(n, int) or n < 1:
             raise ValueError(msg)
     def FactorGenerator(n, big=True):
         '''A generator that returns the prime factors an integer n.  If big is True,
@@ -181,7 +182,6 @@ if 1:  # Core functionality
         for key in keys:
             if D[key] > 1:
                 if plain:
-                    # s.append("%d^%d" % (key, D[key]))
                     s.append(f"{t.factors}{key}^{D[key]}")
                 else:
                     s.append(f"{t.factors}{key}{E(D[key])}")
@@ -221,7 +221,8 @@ if 1:  # Core functionality
                 return [i for i in range(2, n) if a[i]]
             else:
                 # Need to be >= version 3.7 of bitarray to have bitarray.util.gen_primes().
-                # This is efficient because the work is done in compiled C code.
+                # This is efficient because the work is done in compiled C code.  Call
+                # it once and cache in Primes.primes.
                 if not hasattr(Primes, "bitarray") or Primes.n < n:
                     # Construct a list of primes < n
                     if n > int(1e9):
@@ -474,3 +475,15 @@ if __name__ == "__main__":
         for k in range(1, n):
             Assert(Stirling2(n, k) == expected[k])
     exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
+
+def GetGist():
+    g = {}
+    g["gist"] = "Various arithmetical things (prime numbers, etc.)"
+    g["copy"] = "Copyright © 2011 Don Peterson"
+    g["lic"] = "MIT License (see /plib/_lic.mit)"
+    g["test"] = "run"
+    g["cat"] = "math"
+    g["todo"] = '''
+
+    '''
+    return g

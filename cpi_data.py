@@ -35,7 +35,8 @@ if 1:  # Header
     if 1:  # Standard imports
         pass
     if 1:  # Custom imports
-        from color import t
+        import trm
+        t = trm.Trm()
         from f import flt
         from columnize import Columnize
 if 1:   # Global data

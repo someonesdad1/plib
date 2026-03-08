@@ -37,36 +37,6 @@ This module extends the python debugger pdb.py Features:
               file.
 '''
 if 1:  # Header
-    _pgminfo = '''
-        <oo gist ∞ Python debugger extensions oo>
-        <oo desc ∞ oo>
-        <oo copy ∞ Copyright © 2023 Don Peterson oo>
-        <oo lic ∞ MIT License
-            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-        oo>
-        <oo ind ∞ 8 indent oo>
-        <oo cat ∞ utility oo>
-        <oo test ∞ notest oo>
-        <oo todo ∞ 
-        
-            - When debugging, the return value string gets truncated with '...'.  This
-              can be a pain when e.g. the return value is a ufloat, as you can't see the
-              value.  Make it use up the available width or see if a debugger option can
-              be used to let you see the whole string.
-            - Add a command to change the number of lines displayed
-            - po command:
-                - Columnize dir() output.  First arg is object to dir, remaining args
-                  are regexps to search for.
-            - See if r vs s behavior can be changed or toggled
-            - inspect has a number of functions that could be useful for a command
-              that's used to inspect an object:  it's source, docs, etc.  Call the
-              built-in pager to do this.
-            - Use a traceback to print the call stack on an exception.
-        
-        oo>
-    '''
     if 1:  # Standard imports
         import decimal
         import fractions
@@ -467,3 +437,29 @@ if 1:  # Core functionality
         p.interaction(None, tb)
     def pm():
         post_mortem(sys.last_traceback)
+
+def GetGist():
+    g = {}
+    g["gist"] = "Extended python debugger"
+    g["copy"] = "Copyright © 2023 Don Peterson"
+    g["lic"] = "MIT License (see /plib/_lic.mit)"
+    g["test"] = "notest"
+    g["cat"] = "util"
+    g["todo"] = '''
+
+        - When debugging, the return value string gets truncated with '...'.  This can
+          be a pain when e.g. the return value is a ufloat, as you can't see the value.
+          Make it use up the available width or see if a debugger option can be used to
+          let you see the whole string.
+        - Add a command to change the number of lines displayed
+        - po command:
+            - Columnize dir() output.  First arg is object to dir, remaining args are
+              regexps to search for.
+        - See if r vs s behavior can be changed or toggled
+        - inspect has a number of functions that could be useful for a command that's
+          used to inspect an object:  it's source, docs, etc.  Call the built-in pager
+          to do this.
+        - Use a traceback to print the call stack on an exception.
+
+    '''
+    return g
