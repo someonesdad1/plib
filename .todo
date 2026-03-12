@@ -1,12 +1,5 @@
-- Make all the dp*.py files testable by just running them
-
 Reorganization core files
-- dpdata
-    - extensions
-- dpshop
-    - linscale
-- dpphys
-    - densitydb
+- Move dirfiles.py to dppath.py
 - After these movements are done:
     - Standardize each dp*.py file to style, imports, etc.
     - Make sure main docstring lists all the functions & classes
@@ -15,6 +8,12 @@ Reorganization core files
         - dpseq:Test_Flatten
         - dpstr:Test_GetHash
         - dpstr:Test_RegexpDecorate
+- dpdata
+    - extensions
+- dpshop
+    - linscale
+- dpphys
+    - densitydb
 
     - pgm/dp.py
         - Write a heuristic function that gets all the functions/classes from a python
@@ -42,12 +41,7 @@ Reorganization core files
 
     - Try out argparse tutorial and write a help page for it
     
-    - Move util stuff (see ∞∞ notes in file)
-
     - /plib work
-        - mv util.py to dputil.py
-        - Move dpopen.py to dputil.py
-        - Move dirfiles.py to dppath.py
         - Spell check all the print statements in modules/scripts
         - Needs work/inspection
             - Bring /pylib/xfmpy to plib/Dev and turn it into a modern tool

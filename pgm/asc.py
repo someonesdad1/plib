@@ -28,10 +28,11 @@ if 1:  # Header
     if 1:  # Custom imports
         import trm
         from columnize import Columnize
-        from dpprint import PP
         from wrap import dedent
         from wsl import wsl  # wsl is True when running under WSL Linux
-        pp = PP()  # Screen width aware form of pprint.pprint
+        if 1:
+            import debug
+            debug.SetDebugger()
     if 1:  # Global variables
         t = trm.Trm()
         class Global:
@@ -251,42 +252,132 @@ if 1:  # Core functionality
         w  = t.whtl
         y  = t.yell
         print(dedent(f'''
-            {bl}00 nul   ␀   null{O}
-            01 soh   ␁   start of heading
-            02 stx   ␂   start of text
-            03 etx   ␃   end of text
-            04 eot   ␄   end of transmission
-            05 enq   ␅   enquiry
-            06 ack   ␆   acknowledge
-            07 bel   ␇   bell                   {c}\\a{w}
-            08 bs    ␈   backspace              {c}\\b{p}
-            09 ht    ␉   horizontal tab         {c}\\t{m}  *{r}
-            0a nl    ␤   newline                {c}\\n{m}  *{p}
-            0b vt    ␋   vertical tab           {c}\\v{m}  *{p}
-            0c ff    ␌   form feed              {c}\\f{m}  *{o}
-            0d cr    ␍   carriage return{O}        {c}\\r{m}  *{O}
-            0e so    ␎   shift out
-            0f si    ␏   shift in
-            10 dle   ␐   data link escape
-            11 dc1   ␑   device control one
-            12 dc2   ␒   device control two
-            13 dc3   ␓   device control three
-            14 dc4   ␔   device control four
-            15 nak   ␕   negative acknowledge
-            16 syn   ␖   synchronous idle
-            17 etb   ␗   end of transmission block
-            18 can   ␘   cancel
-            19 em    ␙   end of medium
-            1a sub   ␚   substitute{y}
-            1b esc   ␛   escape{O}
-            1c fs    ␜   file separator
-            1d gs    ␝   group separator
-            1e rs    ␞   record separator
-            1f us    ␟   unit separator{s}
-            20 spc   ␠   space{O}
-            7f del   ␡   delete
+            {bl}00 nul   ␀   U+2400  null{O}
+            01 soh   ␁   U+2401  start of heading
+            02 stx   ␂   U+2402  start of text
+            03 etx   ␃   U+2403  end of text
+            04 eot   ␄   U+2404  end of transmission
+            05 enq   ␅   U+2405  enquiry
+            06 ack   ␆   U+2406  acknowledge
+            07 bel   ␇   U+2407  bell                   {c}\\a{w}
+            08 bs    ␈   U+2408  backspace              {c}\\b{p}
+            09 ht    ␉   U+2409  horizontal tab         {c}\\t{m}  *{r}
+            0a nl    ␤   U+240A  newline                {c}\\n{m}  *{p}
+            0b vt    ␋   U+240B  vertical tab           {c}\\v{m}  *{p}
+            0c ff    ␌   U+240C  form feed              {c}\\f{m}  *{o}
+            0d cr    ␍   U+240D  carriage return{O}        {c}\\r{m}  *{O}
+            0e so    ␎   U+240E  shift out
+            0f si    ␏   U+240F  shift in
+            10 dle   ␐   U+2410  data link escape
+            11 dc1   ␑   U+2411  device control one
+            12 dc2   ␒   U+2412  device control two
+            13 dc3   ␓   U+2413  device control three
+            14 dc4   ␔   U+2414  device control four
+            15 nak   ␕   U+2415  negative acknowledge
+            16 syn   ␖   U+2416  synchronous idle
+            17 etb   ␗   U+2417  end of transmission block
+            18 can   ␘   U+2418  cancel
+            19 em    ␙   U+2419  end of medium
+            1a sub   ␚   U+241A  substitute{y}
+            1b esc   ␛   U+241B  escape{O}
+            1c fs    ␜   U+241C  file separator
+            1d gs    ␝   U+241D  group separator
+            1e rs    ␞   U+241E  record separator
+            1f us    ␟   U+241F  unit separator{s}
+            20 spc   ␠   U+2420  space{O}
+            7f del   ␡   U+2421  delete
             {m}*{O} indicates whitespace in python
         '''))
+    def PrintByteMap():
+        '''This table shows the detailed meaning of each byte in a UTF-8 stream
+        https://en.wikipedia.org/wiki/UTF-8#Error_handling
+        '''
+        # Define the colors for the blocks
+        t.hdr  = t.ygr
+        t.ctrl = t("blk", "skyl")
+        t.asc  = t("blk", "wht")
+        t.cont = t("blk", "brn")
+        t.byt1 = t("blk", "purl")
+        t.nota = t("blk", "lip")
+        t.unus = t("blk", "yel")
+        def out(x):
+            print(x, end="")
+        def C(n):
+            assert 0 <= n < 16
+            return f"{n:X}"
+        def Item(char):
+            '''Print a table entry with 3 characters width & proper color.  char is an
+            integer <= 0xff.
+            '''
+            if char <= 0x1f or char == 0x7f:    # Control character
+                out(t.ctrl)
+                out(f" {chr(0x2421)} ") if char == 0x7f else out(f" {chr(char + 0x2400)} ")
+                out(t.n)
+            elif 0x1f < char < 0x7f:            # Plain ASCII character
+                out(t.asc)
+                out(f" {chr(char)} ")
+                out(t.n)
+            elif 0x80 <= char < 0xc0:
+                out(t.cont)
+                out(f"   ")
+                out(t.n)
+            elif 0xc0 <= char < 0xe0:
+                out(t.unus) if 0xc0 <= char <= 0xc1 else out(t.byt1)
+                out(f" 2 ")
+                out(t.n)
+            elif 0xe0 <= char < 0xf0:
+                out(t.nota) if char == 0xe0 or char == 0xed else out(t.byt1)
+                out(f" 3 ")
+                out(t.n)
+            elif 0xf0 <= char < 0xf8:
+                if char == 0xf0 or char == 0xf4:
+                    out(t.nota)
+                elif 0xf1 <= char <= 0xf3:
+                    out(t.byt1)
+                else:
+                    out(t.unus)
+                out(f" 4 ")
+                out(t.n)
+            elif 0xf8 <= char < 0xfc:
+                out(t.unus)
+                out(f" 5 ")
+                out(t.n)
+            elif 0xfc <= char < 0xfe:
+                out(t.unus)
+                out(f" 6 ")
+                out(t.n)
+            else:
+                out(t.unus)
+                out(f"   ")
+                out(t.n)
+        t.print(f"{' '*6}{t(attr='ul')}Meaning of each byte in a UTF-8 stream")
+        print()
+        R, s = range(16), " "*3
+        if 1:   # Print column headers
+            out(s)
+            for i in R:
+                out(f" {t.hdr}{C(i)}{t.n} ")
+            print()
+        for row in R:
+            out(f" {t.hdr}{C(row)}{t.n} ")    # Row header
+            if 0 and row == 2:
+                breakpoint() # ∞∞ 
+            for col in R:
+                char = 16*row + col
+                Item(char)
+            print()
+        # Print legend
+        s = " "*3
+        print(f"{t.ctrl}{s}{t.n} ASCII control character")
+        print(f"{t.asc}{s}{t.n} ASCII character")
+        print(f"{t.cont}{s}{t.n} Continuation byte")
+        print(f"{t.byt1}{s}{t.n} First byte of an N-byte code sequence")
+        print(f"{t.nota}{s}{t.n} Not all continuation bytes are allowed")
+        print(f"{t.unus}{s}{t.n} Unused")
+                
+if __name__ == "__main__" and len(sys.argv) == 1:  
+    PrintByteMap()
+    exit() 
 
 if __name__ == "__main__":
     lower, upper = ParseCommandLine()
