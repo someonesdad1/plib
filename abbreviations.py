@@ -152,6 +152,7 @@ if __name__ == "__main__":
     def Test_IsAbbreviation_Data():
         '''Test for data consistency:
         '''
+        breakpoint() # ∞∞ 
         # This is the set of abbreviations
         a = IsAbbreviation.abbrev
         # This is the set of abbreviations with no '.' characters

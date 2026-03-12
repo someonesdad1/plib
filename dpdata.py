@@ -145,7 +145,6 @@ if __name__ == "__main__":
         else:
             exit(run(globals(), regexp=r"^Test_", halt=1, verbose=0)[0])
 
-
 def GetGist():
     gist = {}
     gist["gist"] = "Central module for sourcing data"

@@ -107,3 +107,13 @@ if __name__ == "__main__":
         i = Ampacity(dia_mm, insul_degC=90, ambient_degC=21)
         Assert(i == 1.04*258.78428183511033)
     exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
+
+def GetGist():
+    g = {}
+    g["gist"] = "Electrical routines"
+    g["copy"] = "Copyright © 2026 Don Peterson"
+    g["lic"] = "MIT License (see /plib/_lic.mit)"
+    g["test"] = "run"
+    g["cat"] = "elec"
+    g["todo"] = ''' '''
+    return g

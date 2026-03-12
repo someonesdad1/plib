@@ -1,6 +1,7 @@
 '''
         
 This module extends the python debugger pdb.py Features:
+
     - Added commands
         - o         Dump local variables
         - dr obj    Prints dir() output in columns
@@ -13,28 +14,27 @@ This module extends the python debugger pdb.py Features:
         - Error messages
         - Entering the REPL
         
-    To use this module to debug my code, I set the environment variable
-    PYTHONBREAKPOINT to 'dpdb.set_trace' and insert 'breakpoint()' where I
-    want to drop into the debugger (this is available in python 3.7 and
-    later).
+    To use this module to debug my code, I set the environment variable PYTHONBREAKPOINT
+    to 'dpdb.set_trace' and insert 'breakpoint()' where I want to drop into the debugger
+    (this is available in python 3.7 and later).
     
-    To avoid having to go too deep in the pdb/bdb code, I chose to use
-    regular expressions to find the lines I wanted to colorize in the
-    Pdb.message() method, so I overrode it with the definition here.
-    There may be some corner cases where it doesn't work right yet.
+    To avoid having to go too deep in the pdb/bdb code, I chose to use regular
+    expressions to find the lines I wanted to colorize in the Pdb.message() method, so I
+    overrode it with the definition here.  There may be some corner cases where it
+    doesn't work right yet.
     
     Tips on the python debugger (pdb.py)
-        - You can provide command aliases in a ~/.pdbrc or ./.pdbrc file.
-          For example, I alias 'interactive' to 'i'.  Use 'alias' command
-          to see your defined aliases.
+        - You can provide command aliases in a ~/.pdbrc or ./.pdbrc file.  For example,
+          I alias 'interactive' to 'i'.  Use 'alias' command to see your defined
+          aliases.
         - You can edit the pdb.py file to add commands.
             - Example:  I use tbreak a lot so I added 'do_tb = do_tbreak'.
-            - Caution:  it's easy to go hog-wild adding new stuff.  You're
-              then creating a mental dependency and you'll suffer if you
-              have to debug on another system that doesn't have your added
-              stuff.  You then have an update problem when you go to a new
-              python version.  That's why I try to make my changes in this
-              file.
+            - Caution:  it's easy to go hog-wild adding new stuff.  You're then creating
+              a mental dependency and you'll suffer if you have to debug on another
+              system that doesn't have your added stuff.  You then have an update
+              problem when you go to a new python version.  That's why I try to make my
+              changes in this file.
+
 '''
 if 1:  # Header
     if 1:  # Standard imports
@@ -66,23 +66,23 @@ if 1:  # Header
     if 1:  # Functions to set up colorizing strings
         def All():
             "Fancier set of colors"
-            u.current_line  = u.cyn
-            u.directory     = u.gry
-            u.filename      = u.trq
-            u.linenum       = u.orn
-            u.function      = u.lav
+            u.current_line  = u.sky
+            u.directory     = u.gryl
+            u.filename      = u.orn
+            u.linenum       = u.ygr
+            u.function      = u.pnkl
             u.error         = u.red
-            u.ret           = u.vio
+            u.ret           = u.yel
             u.interactive   = u("blk", "yel")
         def LineNumOnly():
             "Minimal set of colors"
-            u.current_line  = u.cyn
-            u.directory     = u.gry
+            u.current_line  = u.sky
+            u.directory     = u.gryl
             u.filename      = u.wht
-            u.linenum       = u.orn
+            u.linenum       = u.ygr
             u.function      = u.wht
             u.error         = u.red
-            u.ret           = u.vio
+            u.ret           = u.yel
             u.interactive   = u("blk", "yel")
         def NoColors():
             u.current_line  = ""

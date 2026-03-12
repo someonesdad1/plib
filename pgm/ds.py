@@ -79,9 +79,8 @@ if 1:  # Header
             pass
         g = G()
         g.dbg = False
-        t = trm.Trm(default=2)
+        t = trm.Trm()
         t.dbg = t.lil
-        t.N = t.n
         # app to open a file with registered application
         if wsl:
             g.app = "explorer.exe"  # Linux under WSL
@@ -110,17 +109,19 @@ if 1:  # Header
                 "eb": "/ebooks/ds.eb.ignore",
                 "hpj": "/ebooks/hpj/ds.hpj.ignore",
             }
-        # Colors for output
-        t.dir = t.gry  # Contrast for directory portion
-        t.match = t.orn  # Color for matches
 if 1:  # Utility
+    def GetColors():
+        t.dbg = "lil"
+        t.err = "redl"
+        t.dir = t.wht2  # Contrast for directory portion
+        t.match = t.ygr  # Color for matches
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="", file=Dbg.file)
             k = kw.copy()
             k["file"] = Dbg.file
             print(*p, **k)
-            print(f"{t.N}", end="", file=Dbg.file)
+            print(f"{t.n}", end="", file=Dbg.file)
     Dbg.file = sys.stderr  # Debug printing to stderr by default
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -180,6 +181,7 @@ if 1:  # Utility
             Usage(d)
         if d["-k"]:  # Open files indicated by keyword
             OpenByKeyword(*args)
+        GetColors()
         return args
 if 1:  # Core functionality
     def GenerateIndexFiles(d):

@@ -1,5 +1,20 @@
 '''
 Provides dec(Decimal) objects with custom string interpolation
+
+    This object's purpose is to provide a general purpose floating point type to allow
+    routine calculations along with the basic elementary functions.  Much of the time
+    python's float type is useful for this, but occasionally you may be faced with
+    numerical problems like roundoff error or loss of significance where a float isn't
+    the best tool for the job.  One fix can be to find a better algorithm, but sometimes
+    it might not be worth the effort.  Alternatively, you might be able to use a Decimal
+    type for your calculation and increase the number of digits in the representation to
+    get the desired output, in spite of the roundoff or loss of significance.  The dec
+    class does this and adds the "infection" model, meaning the other numerical types
+    you use it with cause the output to get converted to a dec type also.
+
+'''
+
+'''
     The decimalmath.py module has a number of functions that are similar to those in the
     math module for real-valued functions.  These functions are imported into this
     module's namespace:
@@ -15,29 +30,31 @@ Provides dec(Decimal) objects with custom string interpolation
     This means you'll have a numeric type and elementary functions for routine
     calculations.  An advantage of the dec and Decimal types is that you can increase
     the number of digits in a calculation to help look for things like roundoff error.
-    An advantage of the dec type is that printed results to the screen aren't cluttered
+    A feature of the dec type is that printed results to the screen aren't cluttered
     with many uninteresting non-significant digits.
     
     The dec class follows an "infection" model, which means that if you use a dec
     instance in arithmetic with other types such as int and float, the results of a
     calculation will return a dec instance.
     
-        Note:  you cannot e.g. add a dec and float directly, as you'll get a TypeError.
-        If you want to do such things, there are two methods.  First, use the f2d
-        function from decimal math to convert the float to a dec object (or Decimal's
-        constructor can do it directly).  Second, if you want to do it regularly, set
-        the dec.strict attribute to False and you'll be able to do arithmetic with
-        floats and Fractions, both of which will be converted to dec.  Be aware that
-        numerical information can be lost or numerical noise added by such conversions.
-        If you have the mpmath library installed, then mpmath.mpf numbers will work too.
+        - You cannot e.g. add a dec and float directly, as you'll get a TypeError.
+        - If you want to do such things: 
+            - Use the f2d function from decimal math to convert the float to a dec
+              object (or Decimal's constructor can do it directly)  
+            - Set the dec.strict attribute to False and you'll be able to do arithmetic
+              with floats and Fractions, both of which will be converted to dec  
+            - Be aware that numerical information can be lost or numerical noise added
+              by such conversions.  
+        - If you have the mpmath library installed, then mpmath.mpf numbers will work
+          too.
         
     Thus, the dec type infects a calculation.  The use case is where you want to do a
     number of physical calculations and have the results all display with a given number
-    of significant figures.  I find such behavior more attractive for real-world
-    calculations, which rarely need more than 4 significant figures, as the components
-    are usually based on physical measurements.  An advantage of deriving dec from the
-    Decimal class is that you can do your calculations to many digits, but not see them
-    all when you print things out.
+    of significant figures.  I find such behavior useful for real-world calculations,
+    which rarely need more than 4 significant figures, as the components are usually
+    based on physical measurements.  An advantage of deriving dec from the Decimal class
+    is that you can do your calculations to many digits, but not see them all when you
+    print things out.
     
         The infection model was implemented by using the output of the Signatures()
         function to determine which Decimal methods returned a Decimal object.  These
@@ -47,37 +64,25 @@ Provides dec(Decimal) objects with custom string interpolation
         
     The Decimal module follows the "General Decimal Arithmetic Specification", version
     1.70, 25 Mar 2009 by M. Cowlishaw (http://speleotrove.com/decimal/decarith.html).
+    (It's in /ebooks/math/other)
     
     The pgm/constants_nist.py script shows that the NIST list of physical constants has
     a mean number of significant figures of about nine.  Thus, for calculations with
-    numbers derived from measurements, a Decimal context with nine digits of precision
-    should be adequate for most needs.  Similar reasoning might have been why the
-    decimal.BasicContext and decimal.ExtendedContext instances used a precision of nine.
+    numbers derived from measurements, a Decimal context with 10 to 12 digits of
+    precision should be adequate for virtually all needs.  Similar reasoning might have
+    been why the decimal.BasicContext and decimal.ExtendedContext instances used a
+    precision of nine.
 '''
 if 1:  # Header
-    _pgminfo = '''
-        <oo gist ∞ Provides Decimal objects with custom string interpolation oo>
-        <oo desc ∞ oo>
-        <oo copy ∞ Copyright © 2021 Don Peterson oo>
-        <oo lic ∞ MIT License
-            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-        oo>
-        <oo ind ∞ 8 indent oo>
-        <oo cat ∞ math oo>
-        <oo test ∞ run oo>
-        <oo todo ∞ oo>
-    '''
     if 1:  # Standard imports
-        import decimal
-        import locale
         import collections
+        import decimal
         import fractions
         import functools
+        import locale
     if 1:  # Custom imports
-        import trm
         import columnize
+        import trm
         if 0:
             import debug
             debug.SetDebugger()
@@ -88,12 +93,12 @@ if 1:  # Header
             _have_mpmath = False
     if 1:  # Import symbols
         D = decimal.Decimal
-        deque = collections.deque
         Fraction = fractions.Fraction
+        deque = collections.deque
         partial = functools.partial
         #
+        Columnize = columnize.Columnize
         t = trm.Trm()
-        columnize = columnize.Columnize
     if 1:  # Global variables
         pass
 if 1:  # Classes
@@ -111,8 +116,7 @@ if 1:  # Classes
         _high = 1e16  # When to switch to scientific notation
         _e = "e"  # Letter in scientific notation (note this in the
         # context object as "capital", but I prefer it here)
-        _strict = True  # If False, allow conversion of float, etc. to dec
-        # for arithmetic
+        _strict = True  # If False, allow conversion of float, etc. to dec for arithmetic
         def __new__(cls, value="0", context=None):
             instance = super().__new__(cls, value, context=context)
             return instance
@@ -185,160 +189,161 @@ if 1:  # Classes
         # The following methods are implemented to allow dec to follow an
         # infection model.  They are the methods in Decimal that return a
         # Decimal.
-        # --------------------------- 0 arguments ----------------------------
-        def __abs__(self):
-            return dec(super().__abs__())
-        def __neg__(self):
-            return dec(super().__neg__())
-        def __pos__(self):
-            return dec(super().__pos__())
-        def conjugate(self):
-            return dec(super().conjugate())
-        def copy_abs(self):
-            return dec(super().copy_abs())
-        def copy_negate(self):
-            return dec(super().copy_negate())
-        def exp(self, context=None):
-            return dec(super().exp(context=context))
-        def ln(self, context=None):
-            return dec(super().ln(context=context))
-        def log(self, context=None):
-            return dec(super().ln(context=context))
-        def log10(self, context=None):
-            return dec(super().log10(context=context))
-        def logb(self, context=None):
-            return dec(super().logb(context=context))
-        def logical_invert(self, context=None):
-            return dec(super().logical_invert(context=context))
-        def next_minus(self, context=None):
-            return dec(super().next_minus(context=context))
-        def next_plus(self, context=None):
-            return dec(super().next_plus(context=context))
-        def normalize(self, context=None):
-            return dec(super().normalize(context=context))
-        def radix(self):
-            return dec(super().radix())
-        def sqrt(self, context=None):
-            return dec(super().sqrt(context=context))
-        def to_integral(self, rounding=None, context=None):
-            return dec(super().to_integral(context=context, rounding=rounding))
-        def to_integral_exact(self, rounding=None, context=None):
-            return dec(super().to_integral_exact(context=context, rounding=rounding))
-        def to_integral_value(self, rounding=None, context=None):
-            return dec(super().to_integral_value(context=context, rounding=rounding))
-        # --------------------------- 1 argument -----------------------------
-        def __add__(self, value):
-            value = self.convert(value, context=None)
-            return dec(super().__add__(value))
-        def __floordiv__(self, value):
-            value = self.convert(value, context=None)
-            return dec(super().__floordiv__(value))
-        def __mod__(self, value):
-            value = self.convert(value, context=None)
-            return dec(super().__mod__(value))
-        def __mul__(self, value):
-            value = self.convert(value, context=None)
-            return dec(super().__mul__(value))
-        def __pow__(self, value):
-            # It appears help() for Decimal is wrong, as if you include the mod
-            # argument, you'll get a TypeError:
-            # TypeError: wrapper __pow__() takes no keyword arguments
-            value = self.convert(value, context=None)
-            return dec(super().__pow__(value))
-        def __radd__(self, value):
-            value = self.convert(value, context=None)
-            return dec(super().__radd__(value))
-        def __rfloordiv__(self, value):
-            value = self.convert(value, context=None)
-            return dec(super().__rfloordiv__(value))
-        def __rmod__(self, value):
-            value = self.convert(value, context=None)
-            return dec(super().__rmod__(value))
-        def __rmul__(self, value):
-            value = self.convert(value, context=None)
-            return dec(super().__rmul__(value))
-        def __rpow__(self, value):
-            # It appears help() for Decimal is wrong, as if you include the mod
-            # argument, you'll get a TypeError:
-            # TypeError: wrapper __rpow__() takes no keyword arguments
-            value = self.convert(value, context=None)
-            return dec(super().__rpow__(value))
-        def __rsub__(self, value):
-            value = self.convert(value, context=None)
-            return dec(super().__rsub__(value))
-        def __rtruediv__(self, value):
-            value = self.convert(value, context=None)
-            return dec(super().__rtruediv__(value))
-        def __sub__(self, value):
-            value = self.convert(value, context=None)
-            return dec(super().__sub__(value))
-        def __truediv__(self, value):
-            value = self.convert(value, context=None)
-            return dec(super().__truediv__(value))
-        def compare(self, value, context=None):
-            value = self.convert(value, context=None)
-            return dec(super().compare(value, context=context))
-        def compare_signal(self, value, context=None):
-            value = self.convert(value, context=None)
-            return dec(super().compare_signal(value, context=context))
-        def compare_total(self, value, context=None):
-            value = self.convert(value, context=None)
-            return dec(super().compare_total(value, context=context))
-        def compare_total_mag(self, value, context=None):
-            value = self.convert(value, context=None)
-            return dec(super().compare_total_mag(value, context=context))
-        def copy_sign(self, value, context=None):
-            value = self.convert(value, context=None)
-            return dec(super().copy_sign(value, context=context))
-        def logical_and(self, value, context=None):
-            value = self.convert(value, context=None)
-            return dec(super().logical_and(value, context=context))
-        def logical_or(self, value, context=None):
-            value = self.convert(value, context=None)
-            return dec(super().logical_or(value, context=context))
-        def logical_xor(self, value, context=None):
-            value = self.convert(value, context=None)
-            return dec(super().logical_xor(value, context=context))
-        def max(self, value, context=None):
-            value = self.convert(value, context=None)
-            return dec(super().max(value, context=context))
-        def max_mag(self, value, context=None):
-            value = self.convert(value, context=None)
-            return dec(super().max_mag(value, context=context))
-        def min(self, value, context=None):
-            value = self.convert(value, context=None)
-            return dec(super().min(value, context=context))
-        def min_mag(self, value, context=None):
-            value = self.convert(value, context=None)
-            return dec(super().min_mag(value, context=context))
-        def next_toward(self, value, context=None):
-            value = self.convert(value, context=None)
-            return dec(super().next_toward(value, context=context))
-        def quantize(self, value, rounding=None, context=None):
-            value = self.convert(value, context=None)
-            return dec(super().quantize(value, context=context))
-        def remainder_near(self, value, context=None):
-            value = self.convert(value, context=None)
-            return dec(super().remainder_near(value, context=context))
-        def rotate(self, value, context=None):
-            value = self.convert(value, context=None)
-            return dec(super().rotate(value, context=context))
-        def scaleb(self, value, context=None):
-            value = self.convert(value, context=None)
-            return dec(super().scaleb(value, context=context))
-        def shift(self, value, context=None):
-            value = self.convert(value, context=None)
-            return dec(super().shift(value, context=context))
-        @property
-        def full(self):
-            "Like str() but with full number of digits"
-            return repr(self).replace("dec('", "").replace("')", "")
-        @property
-        def strict(self):
-            return bool(dec._strict)
-        @strict.setter
-        def strict(self, value):
-            dec._strict = bool(value)
+        if 1:   # --------------------------- 0 arguments ----------------------------
+            def __abs__(self):
+                return dec(super().__abs__())
+            def __neg__(self):
+                return dec(super().__neg__())
+            def __pos__(self):
+                return dec(super().__pos__())
+            def conjugate(self):
+                return dec(super().conjugate())
+            def copy_abs(self):
+                return dec(super().copy_abs())
+            def copy_negate(self):
+                return dec(super().copy_negate())
+            def exp(self, context=None):
+                return dec(super().exp(context=context))
+            def ln(self, context=None):
+                return dec(super().ln(context=context))
+            def log(self, context=None):
+                return dec(super().ln(context=context))
+            def log10(self, context=None):
+                return dec(super().log10(context=context))
+            def logb(self, context=None):
+                return dec(super().logb(context=context))
+            def logical_invert(self, context=None):
+                return dec(super().logical_invert(context=context))
+            def next_minus(self, context=None):
+                return dec(super().next_minus(context=context))
+            def next_plus(self, context=None):
+                return dec(super().next_plus(context=context))
+            def normalize(self, context=None):
+                return dec(super().normalize(context=context))
+            def radix(self):
+                return dec(super().radix())
+            def sqrt(self, context=None):
+                return dec(super().sqrt(context=context))
+            def to_integral(self, rounding=None, context=None):
+                return dec(super().to_integral(context=context, rounding=rounding))
+            def to_integral_exact(self, rounding=None, context=None):
+                return dec(super().to_integral_exact(context=context, rounding=rounding))
+            def to_integral_value(self, rounding=None, context=None):
+                return dec(super().to_integral_value(context=context, rounding=rounding))
+        if 1:   # --------------------------- 1 argument -----------------------------
+            def __add__(self, value):
+                value = self.convert(value, context=None)
+                return dec(super().__add__(value))
+            def __floordiv__(self, value):
+                value = self.convert(value, context=None)
+                return dec(super().__floordiv__(value))
+            def __mod__(self, value):
+                value = self.convert(value, context=None)
+                return dec(super().__mod__(value))
+            def __mul__(self, value):
+                value = self.convert(value, context=None)
+                return dec(super().__mul__(value))
+            def __pow__(self, value):
+                # It appears help() for Decimal is wrong, as if you include the mod
+                # argument, you'll get a TypeError:
+                # TypeError: wrapper __pow__() takes no keyword arguments
+                value = self.convert(value, context=None)
+                return dec(super().__pow__(value))
+            def __radd__(self, value):
+                value = self.convert(value, context=None)
+                return dec(super().__radd__(value))
+            def __rfloordiv__(self, value):
+                value = self.convert(value, context=None)
+                return dec(super().__rfloordiv__(value))
+            def __rmod__(self, value):
+                value = self.convert(value, context=None)
+                return dec(super().__rmod__(value))
+            def __rmul__(self, value):
+                value = self.convert(value, context=None)
+                return dec(super().__rmul__(value))
+            def __rpow__(self, value):
+                # It appears help() for Decimal is wrong, as if you include the mod
+                # argument, you'll get a TypeError:
+                # TypeError: wrapper __rpow__() takes no keyword arguments
+                value = self.convert(value, context=None)
+                return dec(super().__rpow__(value))
+            def __rsub__(self, value):
+                value = self.convert(value, context=None)
+                return dec(super().__rsub__(value))
+            def __rtruediv__(self, value):
+                value = self.convert(value, context=None)
+                return dec(super().__rtruediv__(value))
+            def __sub__(self, value):
+                value = self.convert(value, context=None)
+                return dec(super().__sub__(value))
+            def __truediv__(self, value):
+                value = self.convert(value, context=None)
+                return dec(super().__truediv__(value))
+            def compare(self, value, context=None):
+                value = self.convert(value, context=None)
+                return dec(super().compare(value, context=context))
+            def compare_signal(self, value, context=None):
+                value = self.convert(value, context=None)
+                return dec(super().compare_signal(value, context=context))
+            def compare_total(self, value, context=None):
+                value = self.convert(value, context=None)
+                return dec(super().compare_total(value, context=context))
+            def compare_total_mag(self, value, context=None):
+                value = self.convert(value, context=None)
+                return dec(super().compare_total_mag(value, context=context))
+            def copy_sign(self, value, context=None):
+                value = self.convert(value, context=None)
+                return dec(super().copy_sign(value, context=context))
+            def logical_and(self, value, context=None):
+                value = self.convert(value, context=None)
+                return dec(super().logical_and(value, context=context))
+            def logical_or(self, value, context=None):
+                value = self.convert(value, context=None)
+                return dec(super().logical_or(value, context=context))
+            def logical_xor(self, value, context=None):
+                value = self.convert(value, context=None)
+                return dec(super().logical_xor(value, context=context))
+            def max(self, value, context=None):
+                value = self.convert(value, context=None)
+                return dec(super().max(value, context=context))
+            def max_mag(self, value, context=None):
+                value = self.convert(value, context=None)
+                return dec(super().max_mag(value, context=context))
+            def min(self, value, context=None):
+                value = self.convert(value, context=None)
+                return dec(super().min(value, context=context))
+            def min_mag(self, value, context=None):
+                value = self.convert(value, context=None)
+                return dec(super().min_mag(value, context=context))
+            def next_toward(self, value, context=None):
+                value = self.convert(value, context=None)
+                return dec(super().next_toward(value, context=context))
+            def quantize(self, value, rounding=None, context=None):
+                value = self.convert(value, context=None)
+                return dec(super().quantize(value, context=context))
+            def remainder_near(self, value, context=None):
+                value = self.convert(value, context=None)
+                return dec(super().remainder_near(value, context=context))
+            def rotate(self, value, context=None):
+                value = self.convert(value, context=None)
+                return dec(super().rotate(value, context=context))
+            def scaleb(self, value, context=None):
+                value = self.convert(value, context=None)
+                return dec(super().scaleb(value, context=context))
+            def shift(self, value, context=None):
+                value = self.convert(value, context=None)
+                return dec(super().shift(value, context=context))
+        if 1:   # Properties
+            @property
+            def full(self):
+                "Like str() but with full number of digits"
+                return repr(self).replace("dec('", "").replace("')", "")
+            @property
+            def strict(self):
+                return bool(dec._strict)
+            @strict.setter
+            def strict(self, value):
+                dec._strict = bool(value)
 if 1:  # Functions
     def Signatures():
         "Print out the types of the return values of decimal.Decimal methods"
@@ -607,6 +612,7 @@ if __name__ == "__main__":
                         r = eval(f"L1.{i}(L2)")
                     Assert(type(r) is type(L1))
         def Test_strict():
+            breakpoint() # ∞∞ 
             x = dec("1.234567890123456789")
             s = "1.2"
             dec.strict = True
@@ -625,13 +631,13 @@ if __name__ == "__main__":
                 with raises(TypeError):
                     x + y
     mp.mp.dps = getcontext().prec
-    eps = 10 * dec(10) ** (-dec(getcontext().prec))
+    eps = 10*dec(10)**(-dec(getcontext().prec))
     exit(run(globals(), halt=1, nomsg=1))
 
 def GetGist():
     g = {}
     g["gist"] = "Provides Decimal objects with custom string interpolation"
-    g["copy"] = "Copyright © 2026 Don Peterson"
+    g["copy"] = "Copyright © 2021 Don Peterson"
     g["lic"] = "MIT License (see /plib/_lic.mit)"
     g["test"] = "run"
     g["cat"] = "math"

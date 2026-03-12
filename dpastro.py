@@ -1,10 +1,5 @@
 '''
-
-ToDo
-    - Collapse things into a more sensible set of functions
-
 Various astronomical routines
-        
 '''
 if 1:  # Header
     if 1:   # Standard imports
@@ -1463,6 +1458,6 @@ def GetGist():
     g["test"] = "run"
     g["cat"] = "astr"
     g["todo"] = '''
-        - 
+        - Collapse things into a more sensible set of functions
     '''
     return g

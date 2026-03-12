@@ -138,11 +138,11 @@ if 1:  # Constants
                 lasts = s
                 n, na = n + na, na + 8
                 d, da = d + da, da + 32
-                t = (t * n) / d
+                t = (t*n)/d
                 s += t
         return +s  # Force rounding to current precision
     def tau():
-        return two * pi()
+        return two*pi()
     def e():
         return exp(one)
 if 1:  # Trigonometric
@@ -152,10 +152,10 @@ if 1:  # Trigonometric
         if not x:
             return zero
         # Check for an argument proportional to pi/2
-        p = pi() / two
-        ratio = abs(x / p)
+        p = pi()/two
+        ratio = abs(x/p)
         fp = ratio - int(ratio)
-        eps = ten ** -(decimal.getcontext().prec - 1)
+        eps = ten**-(decimal.getcontext().prec - 1)
         if not fp or abs(fp - 1) < eps:
             return one
         i, lasts, s, fact, num, sign = 1, 0, x, 1, x, 1
@@ -165,10 +165,10 @@ if 1:  # Trigonometric
             while s != lasts:
                 lasts = s
                 i += 2
-                fact *= i * (i - 1)
-                num *= x * x
+                fact *= i*(i - 1)
+                num *= x*x
                 sign *= -1
-                s += num / fact * sign
+                s += num/fact*sign
         return +s  # Force rounding to current precision
     def cos(x):
         "Returns the cosine of x; x is in radians"
@@ -190,10 +190,10 @@ if 1:  # Trigonometric
         if not x:
             return one
         # Check for an argument proportional to pi/2
-        p = pi() / two
-        ratio = abs(x / p)
+        p = pi()/two
+        ratio = abs(x/p)
         fp = ratio - int(ratio)
-        eps = ten ** -(decimal.getcontext().prec - 1)
+        eps = ten**-(decimal.getcontext().prec - 1)
         if not fp or abs(fp - 1) < eps:
             return zero
         # Calculate Maclaurin series
@@ -203,10 +203,10 @@ if 1:  # Trigonometric
             while s != lasts:
                 lasts = s
                 i += 2
-                fact *= i * (i - 1)
-                num *= x * x
+                fact *= i*(i - 1)
+                num *= x*x
                 sign *= -1
-                s += num / fact * sign
+                s += num/fact*sign
         # If s is about eps or less, then it's also likely that the
         # argument was a multiple of pi/2
         if abs(s) < eps:
@@ -217,7 +217,7 @@ if 1:  # Trigonometric
         IsDecimal(x)
         if x == zero:
             return zero
-        return sin(x) / cos(x)
+        return sin(x)/cos(x)
     def asin(x):
         "Returns the inverse sine (in radians) of x"
         # The algorithm uses the root finder with the sine function as
@@ -228,9 +228,9 @@ if 1:  # Trigonometric
         if x == zero:
             return zero
         elif x == one:
-            return pi() / 2
+            return pi()/2
         elif x == -one:
-            return -pi() / 2
+            return -pi()/2
         with decimal.localcontext() as ctx:
             ctx.prec += precision_increment
             if abs(x) > 1:
@@ -239,13 +239,13 @@ if 1:  # Trigonometric
             starting_value = f2d(math.asin(float(x)))
             delta = Dec("1e-4")
             if starting_value > 0:
-                low = starting_value * (1 - delta)
-                high = min(starting_value * (1 + delta), f2d(math.pi / 2))
+                low = starting_value*(1 - delta)
+                high = min(starting_value*(1 + delta), f2d(math.pi/2))
             else:
-                high = starting_value * (1 - delta)
-                low = min(starting_value * (1 + delta), -f2d(math.pi / 2))
+                high = starting_value*(1 - delta)
+                low = min(starting_value*(1 + delta), -f2d(math.pi/2))
             # Make sure we bracket the root
-            assert (math.sin(low) - float(x)) * (math.sin(high) - float(x)) < 0
+            assert (math.sin(low) - float(x))*(math.sin(high) - float(x)) < 0
             root = FindRoot(low, high, lambda t: sin(t) - x)[0]
         return +root  # Force rounding to current precision
     def acos(x):
@@ -256,7 +256,7 @@ if 1:  # Trigonometric
         if abs(x) > 1:
             raise ValueError("Absolute value of argument must be <= 1")
         if x == zero:
-            return pi() / 2
+            return pi()/2
         elif x == one:
             return zero
         elif x == -one:
@@ -266,10 +266,10 @@ if 1:  # Trigonometric
             # Get a close starting value
             starting_value = f2d(math.acos(float(x)))
             delta = Dec("1e-4")
-            low = starting_value * (1 - delta)
-            high = min(starting_value * (1 + delta), f2d(math.pi))
+            low = starting_value*(1 - delta)
+            high = min(starting_value*(1 + delta), f2d(math.pi))
             # Make sure we bracket the root
-            assert (math.cos(low) - float(x)) * (math.cos(high) - float(x)) < 0
+            assert (math.cos(low) - float(x))*(math.cos(high) - float(x)) < 0
             root = FindRoot(low, high, lambda t: cos(t) - x)[0]
         return +root  # Force rounding to current precision
     def atan(x):
@@ -280,21 +280,21 @@ if 1:  # Trigonometric
         if x == zero:
             return zero
         elif x == inf:
-            return pi() / 2
+            return pi()/2
         elif x == ninf:
-            return -pi() / 2
+            return -pi()/2
         with decimal.localcontext() as ctx:
             ctx.prec += precision_increment
             starting_value = f2d(math.atan(float(x)))
             delta = Dec("1e-4")
             if starting_value > 0:
-                low = starting_value * (1 - delta)
-                high = min(starting_value * (1 + delta), f2d(math.pi / 2))
+                low = starting_value*(1 - delta)
+                high = min(starting_value*(1 + delta), f2d(math.pi/2))
             else:
-                high = starting_value * (1 - delta)
-                low = max(starting_value * (1 + delta), f2d(-math.pi / 2))
+                high = starting_value*(1 - delta)
+                low = max(starting_value*(1 + delta), f2d(-math.pi/2))
             # Make sure we bracket the root
-            assert (math.tan(low) - float(x)) * (math.tan(high) - float(x)) < 0
+            assert (math.tan(low) - float(x))*(math.tan(high) - float(x)) < 0
             root = FindRoot(low, high, lambda t: tan(t) - x)[0]
         return +root  # Force rounding to current precision
     def atan2(y, x):
@@ -307,28 +307,28 @@ if 1:  # Trigonometric
             if y == zero:
                 raise ValueError("Both arguments zero:  indeterminate angle")
             elif y < zero:
-                return -Pi / 2
+                return -Pi/2
             else:
-                return Pi / 2
+                return Pi/2
         elif y == zero:
             if x > zero:
                 return zero
             else:
                 return -Pi
-        theta = atan(y / abs(x))
+        theta = atan(y/abs(x))
         if x < zero:
             s = 1 if y > zero else -1
-            theta = s * Pi - theta
+            theta = s*Pi - theta
         return +theta
     def degrees(x):
         IsDecimal(x)
-        return x * 180 / pi()
+        return x*180/pi()
     def radians(x):
         IsDecimal(x)
-        return x * pi() / 180
+        return x*pi()/180
     def hypot(x, y):
         IsDecimal(x, y)
-        return sqrt(x * x + y * y)
+        return sqrt(x*x + y*y)
 if 1:  # Exponential and logarithmic
     def exp(x):
         "Returns e raised to the power of x"
@@ -348,7 +348,7 @@ if 1:  # Exponential and logarithmic
                 i += 1
                 fact *= i
                 term *= x
-                s += term / fact
+                s += term/fact
         return +s  # Force rounding to current precision
     def log10(x):
         "Returns the base 10 logarithm of x"
@@ -372,7 +372,7 @@ if 1:  # Exponential and logarithmic
         if base is None:
             return ln
         else:
-            return ln / log(base)
+            return ln/log(base)
     def log2(x):
         IsDecimal(x)
         return log(x, base=two)
@@ -394,7 +394,7 @@ if 1:  # Exponential and logarithmic
                 i += 1
                 num *= x
                 sign *= -1
-                term = num * sign / i
+                term = num*sign/i
                 s += term
                 print(s)
         return +s  # Force rounding to current precision
@@ -411,7 +411,7 @@ if 1:  # Exponential and logarithmic
         if x == one:
             return y
         if x == -one:
-            return 1 / y
+            return 1/y
         with decimal.localcontext() as ctx:
             ctx.prec += precision_increment
             if y < 0:
@@ -420,43 +420,43 @@ if 1:  # Exponential and logarithmic
                     if x % 2 == 0:
                         # Even power
                         if x < 0:
-                            retval = 1 / exp(-x * log(y))
+                            retval = 1/exp(-x*log(y))
                         else:
-                            retval = exp(x * log(y))
+                            retval = exp(x*log(y))
                     else:
                         # Odd power
                         if x < 0:
-                            retval = -1 / exp(-x * log(y))
+                            retval = -1/exp(-x*log(y))
                         else:
-                            retval = -exp(x * log(y))
+                            retval = -exp(x*log(y))
                 else:
                     raise ValueError("Negative base with noninteger exponent")
             else:
-                retval = exp(x * log(y))
+                retval = exp(x*log(y))
         return +retval  # Force rounding to current precision
 if 1:  # Hyperbolic
     def cosh(x):
         IsDecimal(x)
         y = exp(x)
-        return (y + one / y) / two
+        return (y + one/y)/two
     def acosh(x):
         IsDecimal(x)
-        return log(x + sqrt(x * x - one))
+        return log(x + sqrt(x*x - one))
     def sinh(x):
         IsDecimal(x)
         y = exp(x)
-        return (y - one / y) / two
+        return (y - one/y)/two
     def asinh(x):
         IsDecimal(x)
-        return log(x + sqrt(x * x + one))
+        return log(x + sqrt(x*x + one))
     def tanh(x):
         IsDecimal(x)
         y = exp(x)
-        a = one / y
-        return (y - a) / (y + a)
+        a = one/y
+        return (y - a)/(y + a)
     def atanh(x):
         IsDecimal(x)
-        return log((one + x) / (one - x)) / two
+        return log((one + x)/(one - x))/two
 if 1:  # Miscellaneous
     def sqrt(x):
         "Returns the square root of x"
@@ -521,9 +521,9 @@ if 1:  # Miscellaneous
         # n is the current number of Decimal digits.  Note:  we add 1
         # because there are two guard digits and, if 1 wasn't added, some
         # of the iterations won't converge (e.g., asin(-0.5)).
-        eps = Dec(10) ** (-Dec(decimal.getcontext().prec) + 1)
+        eps = Dec(10)**(-Dec(decimal.getcontext().prec) + 1)
         # Check arithmetic
-        if 1 / 2 != 0.5:
+        if 1/2 != 0.5:
             raise ValueError("Inadequate arithmetic")
         # Set up constants
         xmlast = x0
@@ -547,15 +547,15 @@ if 1:  # Miscellaneous
         if not y2:
             return x2, 0, eps
         # Make sure root is bracketed
-        if y2 * y0 > zero:
+        if y2*y0 > zero:
             raise ValueError("x0 and x2 don't bracket a root")
         # Iterate for root
         for i in range(maxit):
-            x1 = (x2 + x0) / two
+            x1 = (x2 + x0)/two
             y1 = f(x1)
             if not y1 or abs(x1 - x0) < eps:
                 return x1, i + 1, eps
-            if y1 * y0 > zero:
+            if y1*y0 > zero:
                 temp = x0
                 x0 = x2
                 x2 = temp
@@ -565,20 +565,20 @@ if 1:  # Miscellaneous
             y10 = y1 - y0
             y21 = y2 - y1
             y20 = y2 - y0
-            if y2 * y20 < two * y1 * y10:
+            if y2*y20 < two*y1*y10:
                 x2 = x1
                 y2 = y1
                 if abs(xm - xmlast) < eps:
                     return xm, i + 1, eps
             else:
-                b = (x1 - x0) / y10
-                c = (y10 - y21) / (y21 * y20)
-                xm = x0 - b * y0 * (one - c * y1)
+                b = (x1 - x0)/y10
+                c = (y10 - y21)/(y21*y20)
+                xm = x0 - b*y0*(one - c*y1)
                 ym = f(xm)
                 if not ym or abs(xm - xmlast) < eps:
                     return xm, i + 1, eps
                 xmlast = xm
-                if ym * y0 < zero:
+                if ym*y0 < zero:
                     x2 = xm
                     y2 = ym
                 else:
@@ -597,7 +597,7 @@ if 1:  # Miscellaneous
         remainder after subtracting an integer number of y's from x.
         '''
         IsDecimal(x, y)
-        return (-1 if x < 0 else 1) * (abs(x) - int(abs(x / y)) * abs(y))
+        return (-1 if x < 0 else 1)*(abs(x) - int(abs(x/y))*abs(y))
     def isinf(x):
         IsDecimal(x)
         return x == inf or x == ninf
@@ -614,7 +614,7 @@ if 1:  # Miscellaneous
         '''
         IsDecimal(a, b, rel_tol, abs_tol)
         abmax = max(abs(a), abs(b))
-        return abs(a - b) <= max(rel_tol * abmax, abs_tol)
+        return abs(a - b) <= max(rel_tol*abmax, abs_tol)
     def modf(x):
         "Return (fractional_part, integer_part)"
         IsDecimal(x)
@@ -632,18 +632,18 @@ if 1:  # Miscellaneous
         '''
         IsDecimal(x)
         IsDecimal(y)
-        fp, ip = modf(abs(x / y))
+        fp, ip = modf(abs(x/y))
         sign = -one if x < zero else one if x > zero else zero
         if fp == half:
             if int(ip) % 2:
                 ip += one
         elif fp > half:
             ip += 1
-        return sign * (abs(x) - ip * abs(y))
+        return sign*(abs(x) - ip*abs(y))
     def trunc(x):
         IsDecimal(x)
         sign = -1 if x < 0 else 1 if x > 0 else 0
-        return sign * int(abs(x))
+        return sign*int(abs(x))
 
 if __name__ == "__main__":
     # Use mpmath (http://mpmath.org/) to generate the numbers to test
@@ -658,8 +658,8 @@ if __name__ == "__main__":
     localcontext = decimal.localcontext
     mp.mp.dps = getcontext().prec
     Pi = Dec(str(mp.pi()))  # Reference value of pi at current precision
-    pio2, pio3, pio4, pio6 = Pi / two, Pi / three, Pi / four, Pi / Dec(6)
-    eps = ten * ten ** (-Dec(getcontext().prec))
+    pio2, pio3, pio4, pio6 = Pi/two, Pi/three, Pi/four, Pi/Dec(6)
+    eps = ten*ten**(-Dec(getcontext().prec))
     AssertNearlyEqual = partial(assert_equal, reltol=eps)
     def Test_pi():
         s = repr(mp.pi())
@@ -676,11 +676,11 @@ if __name__ == "__main__":
         if 1:  # Regular functions
             # sin
             AssertNearlyEqual(sin(zero), zero)
-            AssertNearlyEqual(sin(pio4), one / sqrt(two))
+            AssertNearlyEqual(sin(pio4), one/sqrt(two))
             AssertNearlyEqual(sin(pio2), one)
             # cos
             AssertNearlyEqual(cos(zero), one)
-            AssertNearlyEqual(cos(pio4), one / sqrt(two))
+            AssertNearlyEqual(cos(pio4), one/sqrt(two))
             Assert(cos(pio2) == zero)
             # tan
             AssertNearlyEqual(tan(zero), zero)
@@ -690,8 +690,8 @@ if __name__ == "__main__":
             # asin
             AssertNearlyEqual(asin(half), pio6)
             AssertNearlyEqual(asin(-half), -pio6)
-            AssertNearlyEqual(asin(three.sqrt() / two), pio3)
-            AssertNearlyEqual(asin(-three.sqrt() / two), -pio3)
+            AssertNearlyEqual(asin(three.sqrt()/two), pio3)
+            AssertNearlyEqual(asin(-three.sqrt()/two), -pio3)
             AssertNearlyEqual(asin(zero), zero)
             AssertNearlyEqual(asin(one), pio2)
             AssertNearlyEqual(asin(-one), -pio2)
@@ -700,8 +700,8 @@ if __name__ == "__main__":
             AssertNearlyEqual(acos(zero), pio2)
             AssertNearlyEqual(acos(half), pio3)
             AssertNearlyEqual(acos(-half), pio6 + pio2)
-            AssertNearlyEqual(acos(three.sqrt() / two), pio6)
-            AssertNearlyEqual(acos(-three.sqrt() / two), Pi - pio6)
+            AssertNearlyEqual(acos(three.sqrt()/two), pio6)
+            AssertNearlyEqual(acos(-three.sqrt()/two), Pi - pio6)
             AssertNearlyEqual(acos(one), zero)
             AssertNearlyEqual(acos(-one), Pi)
             raises(ValueError, acos, two)
@@ -713,15 +713,15 @@ if __name__ == "__main__":
             AssertNearlyEqual(atan(-three.sqrt()), -pio3)
             # atan2
             AssertNearlyEqual(atan2(one, one), pio4)
-            AssertNearlyEqual(atan2(one, -one), three * pio4)
+            AssertNearlyEqual(atan2(one, -one), three*pio4)
             AssertNearlyEqual(atan2(-one, one), -pio4)
-            AssertNearlyEqual(atan2(-one, -one), -three * pio4)
+            AssertNearlyEqual(atan2(-one, -one), -three*pio4)
     def Test_log():
         s = repr(mp.log("0.5"))
         x = eval(s.replace("mpf", "decimal.Decimal"))
         AssertNearlyEqual(log(half), x)
         AssertNearlyEqual(log(one), zero)
-        s = repr(mp.log(mp.pi() / 2))
+        s = repr(mp.log(mp.pi()/2))
         x = eval(s.replace("mpf", "decimal.Decimal"))
         AssertNearlyEqual(log(pio2), x)
         s = repr(mp.log(10))
@@ -733,20 +733,20 @@ if __name__ == "__main__":
     def Test_log10():
         AssertNearlyEqual(log10(half), mp.log10("0.5"))
         AssertNearlyEqual(log10(one), zero)
-        AssertNearlyEqual(log10(pio2), mp.log10(mp.pi() / 2))
+        AssertNearlyEqual(log10(pio2), mp.log10(mp.pi()/2))
         AssertNearlyEqual(log10(ten), mp.log10(10))
         raises(ValueError, log10, -one)
         # Use the Decimal instance's method
         AssertNearlyEqual(log10(half), half.log10())
     def Test_pow():
         AssertNearlyEqual(pow(four, half), two)
-        AssertNearlyEqual(pow(two, -two), one / four)
+        AssertNearlyEqual(pow(two, -two), one/four)
         AssertNearlyEqual(pow(-two, two), four)
         AssertNearlyEqual(pow(-three, two), nine)
-        AssertNearlyEqual(pow(-three, -two), one / nine)
+        AssertNearlyEqual(pow(-three, -two), one/nine)
         AssertNearlyEqual(pow(-three, three), Dec(-27))
-        AssertNearlyEqual(pow(-three, -three), -one / Dec(27))
-        raises(ValueError, pow, -two, 1 / three)
+        AssertNearlyEqual(pow(-three, -three), -one/Dec(27))
+        raises(ValueError, pow, -two, 1/three)
     def Test_sqrt():
         AssertNearlyEqual(sqrt(zero), zero)
         AssertNearlyEqual(sqrt(one), one)
@@ -782,7 +782,7 @@ if __name__ == "__main__":
             raises(ValueError, acosh, half)
             # atanh
             AssertNearlyEqual(atanh(zero), zero)
-            AssertNearlyEqual(atanh(one / Pi), Dec(str(mp.atanh(str(one / Pi)))))
+            AssertNearlyEqual(atanh(one/Pi), Dec(str(mp.atanh(str(one/Pi)))))
             raises(decimal.DivisionByZero, atanh, one)
     def Test_floor_ceil():
         # Zero
@@ -791,13 +791,13 @@ if __name__ == "__main__":
         # Positive numbers
         Assert(floor(Pi) == math.floor(math.pi))
         Assert(ceil(Pi) == math.floor(math.pi) + 1)
-        x = Pi * Dec("1e20")
+        x = Pi*Dec("1e20")
         Assert(floor(x) == int(x))
         Assert(ceil(x) == int(x) + 1)
         # Negative numbers
         Assert(floor(-Pi) == math.floor(-math.pi))
         Assert(ceil(-Pi) == math.ceil(-math.pi))
-        x = -Pi * Dec("1e20")
+        x = -Pi*Dec("1e20")
         Assert(floor(x) == int(x) - 1)
         Assert(ceil(x) == int(x))
     def Test_copysign():

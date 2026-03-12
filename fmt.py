@@ -196,7 +196,10 @@ class TakeApart:
     This code is not thread-safe, so only use one instance with one thread.
     '''
     def __init__(self):
-        self._thread_id = threading.get_ident()
+        # I have commented out the thread checking, as it led to a strange problem where
+        # the error messages started showing up.  An AI was needed to help me figure out
+        # where the problem was occurring in the hc.py script.
+        #self._thread_id = threading.get_ident()
         self.supported = [int, float, Decimal, Fraction]
         if have_mpmath:
             self.supported.append(mpmath.mpf)
@@ -242,13 +245,13 @@ class TakeApart:
             else:
                 return self.sign.strip() + "".join(self.dq)
     def __call__(self, x, n, all=False):
-        if self._thread_id != threading.get_ident():
-            print(
-                f"Warning:  current thread ID = {threading.get_ident()}\n"
-                f"  TakeApart constructor started with is {self._thread_id}.\n"
-                f"  The TakeApart object is not thread-safe.",
-                file=sys.stderr,
-            )
+        #if self._thread_id != threading.get_ident():
+        #    print(
+        #        f"Warning:  current thread ID = {threading.get_ident()}\n"
+        #        f"  TakeApart constructor started with is {self._thread_id}.\n"
+        #        f"  The TakeApart object is not thread-safe.",
+        #        file=sys.stderr,
+        #    )
         Assert(x is not None)
         Assert(ii(n, int) and n > 0)
         # Clamp n to the maximum precision allowed
@@ -1577,7 +1580,8 @@ if __name__ == "__main__":
         import pathlib
         import sys
         # Custom imports
-        from color import t
+        import trm
+        t = trm.Trm()
         from lwtest import run, raises
         from wrap import dedent
         import decimalmath
