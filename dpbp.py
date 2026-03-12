@@ -124,7 +124,7 @@ if __name__ == "__main__":
 
 def GetGist():
     gist = {}
-    gist["gist"] = ""
+    gist["gist"] = "**Insert gist here**"
     gist["copy"] = "Copyright © 2026 Don Peterson"
     gist["lic"] = "MIT License (see /plib/_lic.mit)"
     gist["test"] = "notest"

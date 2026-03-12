@@ -21,18 +21,18 @@ if 1:  # Header
         import re
         import sys
     if 1:  # Custom imports
-        #import trigger
+        import trm
         from wrap import wrap, dedent
-        from color import t
         from columnize import Columnize
     if 1:  # Global variables
+        t = trm.Trm()
         P = pathlib.Path
         rcat = re.compile(r"<(.*?)>")  # Find category strings
         categories = set()
         EntryType = namedtuple("EntryType", "p what category")
-        t.sep = t("yell")
-        t.py = t("grn")
-        t.mt = t("ornl")
+        t.sep = t.yel
+        t.py = t.grn
+        t.mt = t.orn
         # Generate escape codes even if stdout isn't a TTY
         t.always = True
 if 1:  # Utility

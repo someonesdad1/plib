@@ -1,5 +1,4 @@
 Reorganization core files
-- Move dirfiles.py to dppath.py
 - After these movements are done:
     - Standardize each dp*.py file to style, imports, etc.
     - Make sure main docstring lists all the functions & classes

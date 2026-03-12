@@ -144,26 +144,25 @@ if 1:  # Core functionality
         return False
 if 1:  # class Dirfiles
     class Dirfiles:
-        r'''Construct a set with file names or directory names from one or
-        more directory trees.  The methods add(), keep(), keepext(), rm(),
-        and rmr() are used to modify the set of files local to the instance.
-        When the instance is finished processing, use the update() method to
-        add the local files to the class variable Dirfiles.files set.
+        r'''Construct a set with file names or directory names from one or more
+        directory trees.  The methods add(), keep(), keepext(), rm(), and rmr() are used
+        to modify the set of files local to the instance.  When the instance is finished
+        processing, use the update() method to add the local files to the class variable
+        Dirfiles.files set.
         
-        You can use multiple instances to process different trees or one
-        instance.  To use one instance, use update() as needed, then set a
-        new directory with the dir attribute.
+        You can use multiple instances to process different trees or one instance.  To
+        use one instance, use update() as needed, then set a new directory with the dir
+        attribute.
         
-        To start with an empty Dirfiles.files set, use the clear() method on
-        an instance or set the clear keyword in the constructor set to True.
+        To start with an empty Dirfiles.files set, use the clear() method on an instance
+        or set the clear keyword in the constructor set to True.
         
-        Note that different threads from the same process have access to the
-        same Dirfiles.files class variable.
+        Note that different threads from the same process have access to the same
+        Dirfiles.files class variable.
         
-        An example use case for this object is to generate a set of PDF files
-        in various locations.  Suppose you wanted to collect the PDF files
-        from the directory trees /tree1, /tree2/branch3, and /tree3.  The
-        following code would do it:
+        An example use case for this object is to generate a set of PDF files in various
+        locations.  Suppose you wanted to collect the PDF files from the directory trees
+        /tree1, /tree2/branch3, and /tree3.  The following code would do it:
             d = Dirfiles(".", clear=True)
             for dir in "/tree1 /tree2/branch3 /tree3".split():
                 d.dir = dir
@@ -174,37 +173,40 @@ if 1:  # class Dirfiles
         Example usage to find files
             d = Dirfiles("/ebooks", clear=True)
             d.add("chemistry", "math")      # Add files from two directories
+        
             # Remove a particular file
             d.rm("chemistry/The_standard_formulary.pdf")
+        
             # Remove a directory and its files
             d.rm("math/slide_rule/")
+        
             # Remove all jpg files
             d.rm("jpg$")
-            # Remove all jpg, JPG, Jpg, ... files by ignoring case.  Note
-            # the need for using a regular expression and anchoring it at
-            # the end of the file name.
+        
+            # Remove all jpg, JPG, Jpg, ... files by ignoring case.  Note the need for
+            # using a regular expression and anchoring it at the end of the file name.
             d.rmr(r"\.jpg$", ic=True)
             
-            # At any time, you can get a copy of the set of files in the
-            # instance by using the get property.
+            # At any time, you can get a copy of the set of files in the instance by
+            # using the get property.
             file_set = d.get
             
-            # To use the Dirfile.files set along with the current instance's
-            # files, use the property get_all, which returns a copy of the
-            # two sets.
+            # To use the Dirfile.files set along with the current instance's files, use
+            # the property get_all, which returns a copy of the two sets.
             files = d.get_all
+        
             # After using either .get or .get_all, you can continued to add
             # more files to the instance.
             
-            # To start over with a new set of files, call clear().  This
-            # sets Dirfiles.file and the instance's set of files to empty.
+            # To start over with a new set of files, call clear().  This sets
+            # Dirfiles.file and the instance's set of files to empty.
+        
                 *** CAUTION:  it does NOT set the files attribute of other
                     instances to empty. ***
             d.clear()
             
-            # To finish with the current directory, move the instance files
-            # to Dirfiles.files and use the dir property to set a new
-            # directory.
+            # To finish with the current directory, move the instance files to
+            # Dirfiles.files and use the dir property to set a new directory.
             d.update()
             d.dir = "/manuals"
             
@@ -225,24 +227,22 @@ if 1:  # class Dirfiles
             d.add("*")
             d.keepext(*"png jpg bmp".split(), ic=True)
             
-        However, the above methods with keep() are inefficient because all
-        files needs to be read in first.  Do it more efficiently with
-        globbing:
+        However, the above methods with keep() are inefficient because all files needs
+        to be read in first.  Do it more efficiently with globbing:
             d = Dirfiles(dir)
             ext = "png jpg bmp".split()
             d.add(*[f"**/*.{i}" for i in ext])
             
         The containers for files are:
-        
             Dirfiles.files(set) (class variable)
                 |
                 |- instance0.files(set)
                 |- instance1.files(set)
                 |- instance2.files(set)
                 etc.
-        When update() is called on an instanceX, the files in instanceX.files
-        are transferred to the Dirfiles.files set and the instanceX's files
-        set is emptied.
+        
+        When update() is called on an instanceX, the files in instanceX.files are
+        transferred to the Dirfiles.files set and the instanceX's files set is emptied.
         '''
         files = set()  # Container for all files
         def __init__(self, dir, clear=False, getdirs=False, ignore_repo=True):

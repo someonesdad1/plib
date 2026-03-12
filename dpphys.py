@@ -1,6 +1,6 @@
 '''
 
-Describe script/module here
+Routines associated with physical things
         
 '''
 if 1:  # Header
@@ -233,7 +233,7 @@ if __name__ == "__main__":
 
 def GetGist():
     gist = {}
-    gist["gist"] = ""
+    gist["gist"] = "Routines associated with physical things"
     gist["copy"] = "Copyright © 2026 Don Peterson"
     gist["lic"] = "MIT License (see /plib/_lic.mit)"
     gist["test"] = "notest"

@@ -46,6 +46,7 @@ if 1:  # Header
         g.octal = False
         g.binary = False
         g.Binary = False
+        g.utf8 = False
         g.offset = 0
         g.column_width = 9
         g.number_of_columns = 8
@@ -99,6 +100,7 @@ if 1:  # Utility
           The character 0x7f is printed as a red block, as it typically
           won't display as a single character.
         Options
+          -8    Show the meaning of each byte in a UTF-8 stream
           -B    Print the 256 binary characters, one per line
           -b    Print a binary listing
           -c    Don't colorize
@@ -113,20 +115,21 @@ if 1:  # Utility
             {name} 0x10a8*2
           will print a table of Unicode characters starting at 0x2150.
           These are Unicode fractions symbols such as 1/7, 1/9, 1/10, etc.
-          and a variety of arrows and math symbols.'''[1:]
-            )
-        )
+          and a variety of arrows and math symbols.
+        '''))
         exit(1)
     def ParseCommandLine():
         lower_upper = False
         try:
-            optlist, args = getopt.getopt(sys.argv[1:], "Bbcdhlosux")
+            optlist, args = getopt.getopt(sys.argv[1:], "8Bbcdhlosux")
         except getopt.GetoptError as e:
             print(f"{sys.argv[0]}:  {e}")
             sys.exit(1)
         lower, upper = 0, 256
         for o, a in optlist:
-            if o == "-B":
+            if o == "-8":
+                g.utf8 = True
+            elif o == "-B":
                 g.Binary = True
             elif o == "-b":
                 g.binary = True
@@ -375,13 +378,11 @@ if 1:  # Core functionality
         print(f"{t.nota}{s}{t.n} Not all continuation bytes are allowed")
         print(f"{t.unus}{s}{t.n} Unused")
                 
-if __name__ == "__main__" and len(sys.argv) == 1:  
-    PrintByteMap()
-    exit() 
-
 if __name__ == "__main__":
     lower, upper = ParseCommandLine()
-    if g.binary:
+    if g.utf8:
+        PrintByteMap()
+    elif g.binary:
         PrintBinary()
     elif g.Binary:
         PrintBinaryListing()

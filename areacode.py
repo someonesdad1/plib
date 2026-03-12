@@ -12,7 +12,7 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         from wrap import dedent, HangingIndent
-        from dputil import unrange
+        from dpseq import unrange
     if 1:  # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1

@@ -10,8 +10,8 @@ if 1:  # Header
         import re
         import sys
     if 1:   # Custom imports
-        import constant
-        import dpprint
+        import columnize
+        import dptypes
         import f
         import lwtest
         import trm
@@ -24,11 +24,10 @@ if 1:  # Header
         Path = pathlib.Path
         #
         Assert = lwtest.Assert
-        Constant = constant.Constant
-        PP = dpprint.PP
+        Columnize = columnize.Columnize
+        Constant = dptypes.Constant
         dedent = wrap.dedent
         flt = f.flt
-        pp = PP()   # Get pprint with current screen width
     if 1:   # Global variables
         g = Constant()
         g.dbg = False
@@ -39,6 +38,9 @@ if 1:  # Header
             g.ignore = set([
                 Path("/gh/plib/repl.py"),
             ])
+            g.found = []        # Files with proper gist
+            g.not_found = []    # Files without proper gist
+            g.ignored = []      # Files that were ignored
 if 1:   # Utility
     def GetColors():
         t.err = t.red
@@ -63,8 +65,8 @@ if 1:   # Utility
     def Usage(status=0):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] [file1 [file2...]]
-          Check the gists in the indicates files or if a directory, all the python files
-          in that directory.
+          Check the gists in the indicated files or if a directory, all the python files
+          in that directory.  
         Options:
           -h      Print a manpage
         '''))
@@ -109,26 +111,55 @@ if 1:   # Core functionality
             ProcessDir(p)
         else:
             if pfile.absolute() in g.ignore:
+                g.ignored.append(str(pfile))
                 return
             # Search for g.gistname in file
             with pfile.open() as f:
                 text = f.read()
             if g.gistname not in text:
-                Warn(f"{t.err}No gist in file {str(pfile)!r}")
+                #Warn(f"{t.err}No gist in file {str(pfile)!r}")
+                g.not_found.append(str(pfile))
                 return
             name = pfile.stem
             s = f"from {name} import GetGist"
             try:
                 exec(s, globals())
             except Exception as e:
-                Warn(f"{t.err}Couldn't import GetGist() in file {str(pfile)!r}:")
-                Warn(f"  {t.err}{e}")
+                #Warn(f"{t.err}Couldn't import GetGist() in file {str(pfile)!r}:")
+                #Warn(f"  {t.err}{e}")
+                g.not_found.append(str(pfile))
                 return
             d = GetGist()
+            g.found.append(str(pfile))
             # Check the important keys
             for key in "gist copy lic test".split():
                 if not d[key].strip():
                     t.print(f"{t.msg}Missing key {key!r} in file {str(pfile)!r}")
+    def Report():
+        if g.ignored:
+            print(f"{t.wht2}Ignored files:")
+            o = []
+            for i in sorted(set(g.ignored)):
+                o.append(i)
+            for i in Columnize(o, indent=" "*2):
+                print(i)
+            t.print(end="")
+        if g.found:
+            print(f"{t.wht}Files with gist:")
+            o = []
+            for i in sorted(set(g.found)):
+                o.append(i)
+            for i in Columnize(o, indent=" "*2):
+                print(i)
+            t.print(end="")
+        if g.not_found:
+            print(f"{t.ygr}Files without gist:")
+            o = []
+            for i in sorted(set(g.not_found)):
+                o.append(i)
+            for i in Columnize(o, indent=" "*2):
+                print(i)
+            t.print(end="")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
@@ -141,6 +172,7 @@ if __name__ == "__main__":
             t.print(f"{t.err}{file!r} doesn't exist")
             continue
         ProcessFile(p)
+    Report()
 
 def GetGist():
     g = {}
