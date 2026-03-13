@@ -2,7 +2,6 @@ Reorganization core files
 - After these movements are done:
     - Standardize each dp*.py file to style, imports, etc.
     - Start static typing each dp*.py file  (see xyzzyy below)
-        - 
     - Make sure main docstring lists all the functions & classes
     - Make sure each file has a gist
     - Review test coverage in detail; needs writing:
