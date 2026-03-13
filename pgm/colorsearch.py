@@ -16,25 +16,24 @@ if 1:  # Header
         ##∞test∞# #∞test∞#
         pass
     if 1:  # Standard imports
+        import collections
         import getopt
         import os
         import re
-        from pathlib import Path as P
         import sys
     if 1:  # Custom imports
-        from wrap import wrap, dedent
-        from color import Color
-        import trm
-        t = trm.Trm()
-        import dpcolornames
         import cdec
+        import color
+        import dpcolornames
+        import trm
+        import wrap
+    if 1:  # Import symbols
+        defaultdict = collections.defaultdict
+        #
+        t = trm.Trm()
+        dedent = wrap.dedent
     if 1:  # Global variables
-        ii = isinstance
-        W = int(os.environ.get("COLUMNS", "80")) - 1
-        L = int(os.environ.get("LINES", "50"))
-        # Make sure escape sequences are always printed even if output
-        # isn't a TTY
-        t.always = True
+        t.always = True     # Always print escape sequences
 if 1:  # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -45,7 +44,6 @@ if 1:  # Utility
           Print out color names that match the given regular expressions.
         Options:
             -a      Include attribution
-            -h      Print a manpage
             -i      Don't ignore case in regular expressions
             -s      Sort key (letters from rgbhsvHLS) [{d["-s"]}]
         '''))
@@ -53,7 +51,7 @@ if 1:  # Utility
     def ParseCommandLine(d):
         d["-a"] = False  # Show attributions
         d["-i"] = True  # Ignore case in searches
-        d["-s"] = "svh"  # Color sorting method
+        d["-s"] = "hsv"  # Color sorting method
         if len(sys.argv) < 2:
             Usage()
         try:
@@ -71,47 +69,72 @@ if 1:  # Utility
         return regexps
 if 1:  # Core functionality
     def GetData(regex: str, data: dict) -> None:
-        '''In color_data, search for names that match regex and put them
+        '''In dpcolornames.colornames, search for names that match regex and put them
         into the data dict indexed by Color instance.
+         
+        Note:  dpcolornames.colornames is a dict of str: list(ColorName) where ColorName
+        is a namedtuple("ColorName", "hex name key").  Search on the name attribute.
         '''
         case = re.I if d["-i"] else 0
         r = re.compile(regex, case)
-        for item in color_data:
-            attr, name, color = item
-            if r.search(name):
-                data[color] = item
+        for name in dpcolornames.colornames:
+            for colorname in dpcolornames.colornames[name]:
+                hex, orig_name, key = colorname
+                if r.search(orig_name):
+                    clr = color.Color(hex)
+                    data[clr].append(colorname)
     def Report(data: dict) -> None:
-        '''Print the colors sorted by the default color.Sort() method (uses
-        'hL').
-        '''
+        "Print the colors sorted by the default color.Sort() method (uses 'hL')"
         if not data:
             return
+        # Get the sequence of color keys sorted as the user wants them
+        seq = data.keys()   # These are color.Color instances
+        seq = color.Color.Sort(seq, keys=d["-s"])  # type: ignore
+        for clr in seq:
+            items = data[clr]
+            if len(items) == 1:
+                item = items[0]
+                t.print(f"{t(clr)}{clr.xrgb} {clr.xhsv} {clr.xhls}    {item.name} ({item.key})")
+            else:
+                for i, item in enumerate(items):
+                    if not i:
+                        t.print(f"{t(clr)}{clr.xrgb} {clr.xhsv} {clr.xhls}    {item.name} ({item.key})")
+                    else:
+                        t.print(f"    {t(clr)}{item.name} ({item.key})")
+        if d["-a"]:     # Print attributions
+            print("Attribution numbers:")
+            for num in dpcolornames.attributions:
+                s = dpcolornames.attributions[num].strip().split("\n")
+                print(f"  {num:2d}  {s[0]}")
+        return
+
+        breakpoint() # ∞∞ 
         seq = data.values()
-        get = lambda x: x[2]  # Predicate to get the Color instance
-        seq = Color.Sort(seq, keys=d["-s"], get=get)
+        def get(x):     # Predicate to get the Color instance
+            return x[2]
+        seq = color.Color.Sort(seq, keys=d["-s"], get=get)  # type: ignore
         # Get maximum name length
         w = max(len(i[1]) for i in seq)
-        for attr, name, color in seq:
+        for attr, name, clr in seq:
             if d["-a"]:
-                t.print(
-                    f"{t(color)}{color.xrgb} {color.xhsv} {color.xhls} {attr}    {name:{w}s}"
-                )
+                t.print(f"{t(clr)}{clr.xrgb} {clr.xhsv} {clr.xhls} {attr}    {name:{w}s}")
             else:
-                t.print(
-                    f"{t(color)}{color.xrgb} {color.xhsv} {color.xhls}    {name:{w}s}"
-                )
+                t.print(f"{t(clr)}{clr.xrgb} {clr.xhsv} {clr.xhls}    {name:{w}s}")
         if d["-a"]:
             # Print attributions
             print("Attribution numbers:")
-            for i in attr_data:
-                s = attr_data[i].split("\n")
+            for i in dpcolornames.attributions:
+                s = dpcolornames.attributions[i].split("\n")
                 print(i)
                 for j in s:
                     print(f"  {j}")
+
 if __name__ == "__main__":
-    d = {}  # Options dictionary
+    d = {}  # type: ignore
     regexps = ParseCommandLine(d)
-    data = {}
+    # data will be a dict with keys that are color.Color instances.  The values will be the
+    # ColorName namedtuples that matched the regex on the command line.
+    data: defaultdict[str, list[color.Color]] = defaultdict(list)
     for regex in regexps:
         GetData(regex, data)
     Report(data)

@@ -47,24 +47,24 @@ if 1:  # Header
         import re
         import sys
     if 1:  # Custom imports
+        from dptypes import Constant
         from wrap import wrap, dedent
         from color import Color
         import trm
-        t = trm.Trm()
         from wl2rgb import rgb2wl, wl2rgb
         if 0:
             import debug
             debug.SetDebugger()
     if 1:  # Global variables
         ii = isinstance
-        t = Trm()
+        t = trm.Trm()
         # The following makes the script's output always have escape codes for color, letting you
         # save the results to a file and view later with e.g. /usr/bin/less.
         t.on = True
-        class g:
-            pass  # Hold global variables
         t.dbg = t("wht", "blu")
-        g.duplicates = set()
+        g = Constant()
+        with g:
+            g.duplicates = set()
 if 1:  # Utility
     def Dbg(*p, **kw):
         'Print in debug colors if d["-D"] is True'
@@ -382,7 +382,7 @@ if __name__ == "__main__":
     # Container for the lines to output; contents will be (line, Color).  The trailing whitespace
     # from line is stripped.
     g.out = deque()
-    d = {}  # Options dictionary
+    d = {}  # type: ignore
     files = ParseCommandLine(d)
     if d["-b"]:
         Browse()
