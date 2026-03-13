@@ -13,6 +13,7 @@ This module extends the python debugger pdb.py Features:
         - The file and line number in the current line
         - Error messages
         - Entering the REPL
+    - LocateSymbol() finds symbols in import libraries
         
     To use this module to debug my code, I set the environment variable PYTHONBREAKPOINT
     to 'dpdb.set_trace' and insert 'breakpoint()' where I want to drop into the debugger
@@ -344,18 +345,18 @@ if 1:  # Classes
                 if 1:  # Define our own colors
                     c = color_choice != NoColors
                     u.title = u.wht
-                    u.bool = u.pnk
-                    u.float = u.grn
+                    u.bool = u.lipl
+                    u.float = u.ygr
                     u.flt = u.red
-                    u.cpx = u.vio
+                    u.cpx = u.cyn
                     u.int = u.mag
-                    u.Decimal = u.trq
+                    u.Decimal = u.pnk
                     u.Fraction = u.brn
-                    u.string = u.cyn
+                    u.string = u.lwn
                     u.bytes = u.orn
-                    u.bytearray = u.lwn
+                    u.bytearray = u.olv
                     u.list = u.yel
-                    u.tuple = u.lav
+                    u.tuple = u.den
                     u.none = u.gry
                     u.n = u.n
                     if color_choice == NoColors:
@@ -373,7 +374,6 @@ if 1:  # Classes
                     # Print the variables
                     for name in sorted(di):
                         self.Decorate(name, di[name], u, w)
-                    breakpoint()
                     # Print a key
                     if c:
                         print(
@@ -392,6 +392,7 @@ if 1:  # Classes
                             f"{u.bytes}bytes{u.n} "
                             f"{u.bytearray}bytearray{u.n} "
                         )
+                        print("Use dpdb.LocateSymbol(symbol) to find a symbol in import libraries")
             def do_dr(self, arg):  # Nicely print dir(arg)
                 "Print the results of dir(obj) for objects in argument"
                 if not arg:
@@ -437,6 +438,17 @@ if 1:  # Core functionality
         p.interaction(None, tb)
     def pm():
         post_mortem(sys.last_traceback)
+if 1:  # Find symbols
+    def LocateSymbol(symbol):
+        'Return list of modules that contain symbol'
+        for name, module in sys.modules.items():
+            if hasattr(module, '__file__') and module.__file__:
+                try:
+                    with open(module.__file__, 'r', errors='ignore') as f:
+                        if symbol in f.read():
+                            print(f"Found {symbol!r} in: {name} ({module.__file__})")
+                except Exception:
+                    pass
 
 def GetGist():
     g = {}

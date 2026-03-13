@@ -139,6 +139,18 @@ Reorganization core files
               defined.
         - enc_codecs.csv:  update to 3.11's documentation
 
+    - Code to locate a symbol (from Gemini helping look for "TakeApart")
+
+        import sys
+        for name, module in sys.modules.items():
+            if hasattr(module, '__file__') and module.__file__:
+                try:
+                    with open(module.__file__, 'r', errors='ignore') as f:
+                        if 'TakeApart' in f.read():
+                            print(f"Found 'TakeApart' in: {name} ({module.__file__})")
+                except Exception:
+                    pass
+        
     - density
         - Move densitydb.py to data/dp_density.py
         - data/dp_density.py should contain the data from both densitydb.py and

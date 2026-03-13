@@ -1531,7 +1531,8 @@ if __name__ == "__main__":
         import re
         import sys
     if 1:   # Custom imports
-        from color import t
+        import trm
+        t = trm.Trm()
         import dpstr
         from columnize import Columnize
     if 1:  # Utility
@@ -1539,6 +1540,16 @@ if __name__ == "__main__":
             "For string s, return True if it's empty or contains only spaces"
             empty, only_spaces = set(), set(" ")
             return set(s) == empty or set(s) == only_spaces
+        def CountLeadingSpaces(s):
+            'Return the number of leading space characters in the string s'
+            dq, count = deque(s), 0
+            while dq:
+                char = dq.popleft()
+                if char == " ":
+                    count += 1
+                else:
+                    break
+            return count
         def dedent(s):
             '''For the multiline string s, remove common leading space characters.  The use case is for
             help strings in scripts, allowing arbitrary leading and trailing newlines that are removed.
@@ -1567,7 +1578,7 @@ if __name__ == "__main__":
                     break
                 lines.pop()
             # Get sequence of the number of leading spaces on each line
-            numspaces = [dpstr.CountLeadingSpaces(i) for i in lines]
+            numspaces = [CountLeadingSpaces(i) for i in lines]
             # Bare newlines are considered to have infinite spaces.  The following emulates this by making
             # them appear to have max(numspaces) + 1 spaces.
             m = max(numspaces)
@@ -1626,7 +1637,7 @@ if __name__ == "__main__":
                 if o[1] in list("iln"):
                     d[o] = not d[o]
                 elif o in ("-m",):
-                    d[o] = a
+                    d[o].append(a)
             return args
     if 1:  # Searching functionality
         def GetManufacturers(args):
@@ -1635,9 +1646,10 @@ if __name__ == "__main__":
             return dpstr.FilterSeqRegex(bama.keys(), regexes=args, re_flags=flag)
         def ListManufacturers(args):
             "The regexes in args are ANDed together"
-            for i in Columnize(sorted(GetManufacturers(args))):
+            o = GetManufacturers(args)
+            for i in Columnize(sorted(o)):
                 print(i)
-            t.print(f"{t.sky}Printed {len(o)} manufacturers")
+            t.print(f"{t.skyl}Printed {len(o)} manufacturers")
         def ListModelNumbers(args):
             "The regexes in args are ANDed together"
             values = []
