@@ -1,6 +1,6 @@
-"""
+'''
 Print out color names with a regex in the name
-"""
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -26,7 +26,7 @@ if 1:  # Header
         from color import Color
         import trm
         t = trm.Trm()
-        from rgbdata import color_data, attr_data
+        import dpcolornames
         import cdec
     if 1:  # Global variables
         ii = isinstance
@@ -40,17 +40,15 @@ if 1:  # Utility
         print(*msg, file=sys.stderr)
         exit(status)
     def Usage(status=1):
-        print(
-            dedent(f"""
+        print(dedent(f'''
         Usage:  {sys.argv[0]} [options] regex1 [regex2 ...]
-          Print out color names with the given regular expressions.
+          Print out color names that match the given regular expressions.
         Options:
             -a      Include attribution
             -h      Print a manpage
             -i      Don't ignore case in regular expressions
             -s      Sort key (letters from rgbhsvHLS) [{d["-s"]}]
-        """)
-        )
+        '''))
         exit(status)
     def ParseCommandLine(d):
         d["-a"] = False  # Show attributions
@@ -73,9 +71,9 @@ if 1:  # Utility
         return regexps
 if 1:  # Core functionality
     def GetData(regex: str, data: dict) -> None:
-        """In color_data, search for names that match regex and put them
+        '''In color_data, search for names that match regex and put them
         into the data dict indexed by Color instance.
-        """
+        '''
         case = re.I if d["-i"] else 0
         r = re.compile(regex, case)
         for item in color_data:
@@ -83,9 +81,9 @@ if 1:  # Core functionality
             if r.search(name):
                 data[color] = item
     def Report(data: dict) -> None:
-        """Print the colors sorted by the default color.Sort() method (uses
+        '''Print the colors sorted by the default color.Sort() method (uses
         'hL').
-        """
+        '''
         if not data:
             return
         seq = data.values()

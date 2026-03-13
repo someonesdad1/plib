@@ -199,9 +199,7 @@ if 1:  # Core functionality
           4           4.500    4.026   0.237   8         0.1250       4.334
           5           5.563    5.047   0.258   8         0.1250       5.391
           6           6.625    6.065   0.280   8         0.1250       6.446
-    '''))
-            )
-        )
+        '''))
     def GetQuantity(s, err="'{}' isn't a number with optional unit", dim=None):
         '''From the string s, return either a flt or ufloat converted
         to base SI units.  err is used to provide an error message.  If dim

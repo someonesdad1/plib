@@ -59,17 +59,8 @@ if 1:   # Functions
             >= 130       Extreme danger:  Heat stroke or sunstroke likely.
         '''
         RH, Tf = relative_humidity_percent, air_temp_deg_F
-        HI = (
-            -42.379
-            + 2.04901523*Tf
-            + 10.14333127*RH
-            - 0.22475541*Tf*RH
-            - 6.83783e-3*Tf*Tf
-            - 5.481717e-2*RH*RH
-            + 1.22874e-3*Tf*Tf*RH
-            + 8.5282e-4*Tf*RH*RH
-            - 1.99e-6*Tf*Tf*RH*RH
-        )
+        HI = (-42.379 + 2.04901523*Tf + 10.14333127*RH - 0.22475541*Tf*RH - 6.83783e-3*Tf*Tf
+            - 5.481717e-2*RH*RH + 1.22874e-3*Tf*Tf*RH + 8.5282e-4*Tf*RH*RH - 1.99e-6*Tf*Tf*RH*RH)
         return HI
     def IdealGas(P=0, v=0, T=0, MW=28.9):
         '''Given two of the three variables P, v, and T, calculates the third for the indicated gas.
@@ -158,7 +149,9 @@ if 1:   # Functions
             + 0.4275*air_temp_deg_F*wind_speed_in_mph**0.16
         )
     def TempConvert(T, in_unit, to_unit):
-        "Convert the temperature in T in the unit specified in in_unit to the unit specified by to_unit"
+        '''Convert the temperature in T in the unit specified in in_unit to the unit
+        specified by to_unit.
+        '''
         allowed, k, r, a, b = "cfkr", 273.15, 459.67, 1.8, 32
         def check(unit, orig):
             if len(unit) != 1 and unit not in allowed:

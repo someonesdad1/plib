@@ -67,7 +67,7 @@ if 1:  # Header
     if 1:  # Custom imports
         from wrap import dedent
         from selection import Select
-        from dirfiles import Dirfiles
+        from dppath import Dirfiles
         from wsl import wsl
         from dptime import GetET
         from dpstr import IgnoreFilter
