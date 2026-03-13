@@ -108,7 +108,7 @@ if 1:   # Core functionality
     CheckFile.dbg = False
 
 if __name__ == "__main__":
-    from timer import sw
+    from dptime import sw
     import multiprocessing as mp
     sw.reset()  # Use sw() to print out elapsed time
     def Callback():

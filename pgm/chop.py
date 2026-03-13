@@ -55,6 +55,7 @@ def ParseCommandLine(d):
         Usage()
     return files
 def ProcessFile(stream):
+    pass
 
 if __name__ == "__main__":
     d = {}  # Options dictionary

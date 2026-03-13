@@ -3,10 +3,7 @@ Reorganization core files
     - Standardize each dp*.py file to style, imports, etc.
     - Start static typing each dp*.py file
         - Upgraded mypy to 1.19.1 from 1.5.1 (and it's now compiled)
-        - https://mypy.readthedocs.io/en/stable/existing_code.html#existing-code
-          suggestions:
-            - Start small, getting mypy to run successfully first before adding
-              annotations
+        - See xyzzyy below for Typing recommendations
     - Make sure main docstring lists all the functions & classes
     - Make sure each file has a gist
     - Review test coverage in detail; needs writing:
@@ -3025,3 +3022,103 @@ Programmer's index  xxpgidx
         - #ϵ, #϶ to delineate a text block
             - A block should be formatted by my standard text formatting tool
 
+/plib Typing xyzzyy
+
+    AI for advice:  https://gemini.google.com/app/33bd3d7229385f0e 
+
+    1.  Start simple:  in your .mypy.ini, set a permissive global floor so you can work
+    on one module at a time without the rest of the project screaming at you:
+
+        [mypy]
+        # Only check files that have at least one type hint or a 'pass'
+        check_untyped_defs = False
+        # Don't error out if a function doesn't have hints yet
+        disallow_untyped_defs = False
+        # Stop the "noise" from libraries
+        ignore_missing_imports = True
+
+    2. Phase: The "Outside-In" Approach
+        - Don't start refactoring the logic immediately. Start by defining the
+          boundaries.
+        - Identify your "Leaf" Modules: Find the low-level utility modules that don't
+          depend on anything else. Type-hint these first.
+        - Define Data Structures: If you have old dictionaries or tuples acting as
+          records, convert them to TypedDict or Dataclasses. This provides the biggest
+          "bang for your buck" in IDE auto-completion.
+        - The "Follow the Data" Rule: Type-hint the function signatures (inputs and
+          outputs) before you worry about the logic inside the function bodies.
+
+    3. Use the "Follow the Error" Workflow
+        - Instead of guessing where to start, use mypy as a scout:
+            - Pick one core module you want to refactor.
+            - Add # type: ignore to lines that are truly baffling or ancient logic you
+              don't want to touch yet.
+            - Run mypy only on that file: mypy my_module.py.
+            - Fix the errors until it passes, then move to the next.
+
+    4. Strategic Refactoring Tools
+        - Since you're coalescing 140 modules, you're likely moving a lot of code.
+        - Structural vs. Nominal Typing: Use Protocol (from the typing module) if you
+          have different classes that share the same methods. It’s "duck typing" for
+          mypy.
+        - The Any Escape Hatch: If a piece of 20-year-old logic is too complex to
+          type-hint today, just mark the variable as Any. It’s better to have 90% of
+          your file type-checked than 0% because you got stuck on one tricky line.
+
+    Starting with the "leaf" modules—those that don't depend on anything else—is the
+    most tactically sound move. It creates a solid foundation of "known truths" that
+    mypy can then use to validate the more complex modules that import them.
+
+    Since you're diving into the core, here are three "pro-tips" for an architect
+    working solo on a legacy codebase:
+
+    1. The if TYPE_CHECKING: Guard
+
+        - As you refactor, you might hit circular imports (Module A needs a type from B,
+          but B imports A). This is common in older, organic codebases. You can solve
+          this without changing your runtime logic:
+
+            from typing import TYPE_CHECKING
+
+            if TYPE_CHECKING:
+                # This only runs during a mypy scan, not at runtime
+                from .complex_module import HeavyClass
+
+            def process_data(item: "HeavyClass") -> None:
+                ...
+
+        - Note: Using quotes around "HeavyClass" (forward reference) tells Python "don't
+          look for this class until the function is actually called."
+
+    2. Use TypeAlias for Domain Logic
+        - After 30 years, you likely have specific data shapes (e.g., a coordinate
+          system or a complex measurement). Instead of typing list[tuple[float, float,
+          float]] everywhere, define it once: 
+
+            from typing import TypeAlias
+
+            # Now your intent is clear across all 140 modules
+            Coordinate3D: TypeAlias = tuple[float, float, float]
+            UncertainValue: TypeAlias = float  # Or a specific uncertainties type
+
+    3. Embrace reveal_type()
+
+        - This is the single best "hidden" feature of mypy. If you are ever unsure what
+          mypy thinks a variable is, stick this in your code:
+
+            reveal_type(my_variable)
+
+        - When you run mypy, it will print a note: note: Revealed type is
+          "builtins.list[mpmath.ctx_mp.mpf]". Just remember to delete it before actually
+          running the script, as it's not a real Python function!  
+
+    - A "Sanity Check" for your Progress
+        - As you clean up these core modules, you might find that some are so small they
+          should just be merged. A good rule of thumb: If a module is under 100 lines
+          and only exists to support one other module, merge them. It reduces the
+          "import tax" on your brain.
+    - A Tip on Refactoring Structure
+        - Since you mentioned you're coalescing 140 files, as you move code from an old
+          file to a new one, type-hint the new file immediately. It is 10x easier to
+          type-hint fresh code than to retroactively figure out what a variable was
+          supposed to be in a file written in 1998.

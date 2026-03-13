@@ -198,22 +198,22 @@ def FindUnmakeable(d):
     results = set()
     set_of_blocks = gauge_block_sets[d["-n"]][2]
     max_size = max(set_of_blocks)
-    print "Starting search:"
+    print("Starting search:")
     for num_blocks in range(1, d["-k"] + 1):
         for i in combinations(set_of_blocks, num_blocks):
             results.add(sum(i))
-        print "  Finished for %d blocks" % num_blocks
+        print("  Finished for %d blocks" % num_blocks)
     # Now check from 2000 to max_size for any integer not in the set
     if 0:
-        print
-        print "Results:"
+        print()
+        print("Results:")
         for i in results:
-            print i
-        print
-    print "Sizes that cannot be made:"
+            print(i)
+        print()
+    print("Sizes that cannot be made:")
     for i in range(2000, max_size):
         if i not in results:
-            print i
+            print(i)
     exit()
 
 if __name__ == "__main__":

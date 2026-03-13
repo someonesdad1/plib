@@ -18,6 +18,7 @@ grep because it actually understands Python's import logic.
 import ast
 import os
 from pathlib import Path
+import sys
 def get_internal_imports(file_path, all_module_names):
     'Parses a file and returns a set of internal modules it imports'
     internal_deps = set()
@@ -42,7 +43,10 @@ def get_internal_imports(file_path, all_module_names):
     return internal_deps
 
 if __name__ == "__main__":  
-    directory = "."
+    if len(sys.argv) == 1:
+        print(f"Usage:  {sys.argv[0]} dir")
+        exit(1)
+    directory = sys.argv[1]
     path = Path(directory)
     # 1. Map out all your python files
     py_files = list(path.glob("*.py"))
@@ -58,7 +62,6 @@ if __name__ == "__main__":
     # 3. Identify the "Foundations" (Nodes with 0 internal dependencies)
     foundations = [m for m, d in dep_graph.items() if len(d) == 0]
     # 4. Identify "High-Impact" modules (Heavily imported by others)
-    breakpoint() # ∞∞ 
     usage_counts = {m: 0 for m in all_module_names}
     for deps in dep_graph.values():
         for d in deps:
@@ -70,6 +73,6 @@ if __name__ == "__main__":
     print("\n--- 🚀 HIGH-IMPACT MODULES ---")
     print("These are the most 'popular' in your codebase (number of dependents):")
     sorted_impact = sorted(usage_counts.items(), key=lambda x: x[1], reverse=True)
-    for m, count in sorted_impact[:10]:
+    for m, count in sorted_impact[:20]:
         if count > 0:
             print(f"  {m}.py is used by {count} other modules")

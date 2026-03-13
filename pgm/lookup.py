@@ -115,6 +115,7 @@ if 1:   # Global variables
     # Get the number of screen columns
     columns = int(os.environ["COLUMNS"]) - 1 if "COLUMNS" in os.environ else 79
     if 1:   # Use new color stuff
+        pass
     else:
         # Color-related stuff.  Note:  the color module is a python module
         # that uses escape sequences to set colors.  I use it under a modern bash
