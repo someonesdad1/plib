@@ -27,8 +27,9 @@ if 1:  # Header
         import sys
         from functools import reduce
     if 1:  # Custom imports
-        import dptypes
         import multiset
+
+        import dptypes
         import trm
         import wrap
         _have_bitarray = False
@@ -37,7 +38,7 @@ if 1:  # Header
             # version 3.7 or later, it also includes a bitarray.util.gen_primes() method
             # that is a fast sieve for primes.  bitarray is fast because it's in compiled
             # C code.  https://github.com/ilanschnell/bitarray
-            from bitarray.util import ones, gen_primes
+            from bitarray.util import gen_primes, ones
             _have_bitarray = True
         except ImportError:
             pass
@@ -131,7 +132,7 @@ if 1:  # Core functionality
         if return_tuple:
             return tuple(factors)
         if check and factors and reduce(operator.mul, factors) != n:
-            raise RuntimeError("Bug in Factor for n = %d" % n)
+            raise RuntimeError(f"Bug in Factor for n = {n}")
         if factors == [n]:
             return dict(d)  # n is prime
         for i in factors:  # Populate d with factors
@@ -152,7 +153,7 @@ if 1:  # Core functionality
         IsPositiveInteger(n, "n must be an integer > 0")
         prime_factors = sorted(list(FactorGenerator(n, big=big)))
         if check and prime_factors and reduce(operator.mul, prime_factors) != n:
-            raise RuntimeError("Bug in FactorList for n = %d" % n)
+            raise RuntimeError(f"Bug in FactorList for n = {n}")
         if not prime_factors and incl_if_prime:
             return [n]
         return prime_factors
@@ -163,7 +164,7 @@ if 1:  # Core functionality
         again.  If plain is True, then return '168: 2^3 3 7'.  ANSI colors are
         used unless output is not to a terminal.
         '''
-        e = dict(zip(list("0123456789"), list("⁰¹²³⁴⁵⁶⁷⁸⁹")))
+        e = dict(zip(list("0123456789"), list("⁰¹²³⁴⁵⁶⁷⁸⁹"), strict=True))
         def E(exp):
             "Return integer exp as string of exponent characters"
             return "".join([e[i] for i in str(exp)])
@@ -317,9 +318,8 @@ if 1:   # Stirling numbers
 
 if __name__ == "__main__":
     # If run as a script, list primes and factors.
-    from lwtest import Assert, run, raises
-    import getopt
-    from columnize import Columnize
+
+    from lwtest import Assert, raises, run
     def Test_Primes():
         s = "2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 89 97"
         primes = [int(i) for i in s.split()]
@@ -395,8 +395,9 @@ if __name__ == "__main__":
         #
         k = (1, 1, 1)
         for i in range(2, 20):
-            s = [2*j for j in k]
+            s = [2*i*j for j in k]
             r = RemoveCommonFactors(*s)
+            print(s, r)
             Assert(r == k)
         #
         s = (2, 4, 12, 8, 4, 2)

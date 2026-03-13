@@ -3,28 +3,16 @@ Various astronomical routines
 '''
 if 1:  # Header
     if 1:   # Standard imports
-        import collections
         import datetime
         import enum
         import functools
-        import getopt
         import math
         import operator
-        import os
-        import pathlib
-        import re
         import sys
-        import time
     if 1:   # Custom imports
-        import columnize
-        import dpstr
         import dpmath
-        import dptime
         import dptypes
-        import f
         import lwtest
-        import trm
-        import wrap
         if 0:
             import debug
             debug.SetDebugger()
@@ -302,7 +290,7 @@ if 1:  # Time
         day = int(day)
         if not IsValidGregorianDate(month, day, year):
             raise ValueError("Not a valid Gregorian calendar date")
-        return int("%d%02d%02d" % (year, month, day))
+        return int(f"{year}{month:02d}{day:02d}")
     def CheckIntegerDate(month, day, year, decimal_day=False):
         '''Raises a ValueError if month, day, and year aren't integers and properly bounded.  If
         decimal_day is True, then day can be a floating point number.
@@ -312,7 +300,7 @@ if 1:  # Time
         e = ValueError("Year, month, or day are bad")
         try:
             datetime.date(year, month, day)
-        except ValueError:
+        except ValueError as E:
             # Year can be less than 1, which is the datetime module's
             # least allowed year.
             if year < 1:
@@ -320,11 +308,11 @@ if 1:  # Time
                 try:
                     datetime.date(2000, month, day)
                 except ValueError:
-                    raise e
+                    raise e from E
                 if year < g.minimum_year:
-                    raise e
+                    raise e from E
             else:
-                raise e
+                raise e from E
     def IsDST(year, month, day):
         '''Return True if daylight savings time (DST) is in effect.  Assumes a location in the US
         that utilizes DST.  Note the rules can change at any time.
@@ -633,7 +621,7 @@ if 1:  # Sun
         ra, dec = SunPosition(jd)
         s = math.sin(latitude)*math.sin(dec)
         if s < -1 or s > 1:
-            raise "Object doesn't go below horizon"
+            raise ValueError("Object doesn't go below horizon")
         H0 = math.acos((math.sin(h0) - s)/(math.cos(latitude)*math.cos(dec)))
         m0 = (ra + longitude - ast)/(2*math.pi)
         m1 = m0 - H0/(2*math.pi)
@@ -857,7 +845,7 @@ if 1:  # Moon
             0.000035,
             0.000023,
         ]
-        periodic2 = sum([i*math.sin(j) for i, j in zip(A1, A)])
+        periodic2 = sum([i*math.sin(j) for i, j in zip(A1, A, strict=True)])
         W = (
             0.00306
             - 0.00038*E*math.cos(M)
@@ -873,16 +861,16 @@ if 1:  # Moon
         jde += periodic1 + periodic2 + W
         if 0:
             print("Debug output from TimeOfMoonPhase:")
-            print("  T                                :  %.5f" % T)
-            print("  E                                :  %.7f" % E)
-            print("  M                                :  %.6f rad" % M)
-            print("  M'                               :  %.6f rad" % M1)
-            print("  F                                :  %.6f rad" % F)
-            print("  OO                               :  %.6f rad" % OO)
-            print("  Correction with harmonics (corr1):  %.5f" % periodic1)
-            print("  Correction with A's (corr2)      :  %.5f" % periodic2)
-            print("  W                                :  %.5f" % W)
-            print("  JDE                              :  %.5f" % jde)
+            print(f"  T                                :  {T:.5f}")
+            print(f"  E                                :  {E:.7f}")
+            print(f"  M                                :  {M:.6f} rad")
+            print(f"  M'                               :  {M1:.6f} rad")
+            print(f"  F                                :  {F:.6f} rad")
+            print(f"  OO                               :  {OO:.6f} rad")
+            print(f"  Correction with harmonics (corr1):  {periodic1:.5f}")
+            print(f"  Correction with A's (corr2)      :  {periodic2:.5f}")
+            print(f"  W                                :  {W:.5f}")
+            print(f"  JDE                              :  {jde:.5f}")
         return jde
 if 1:  # Solving the Kepler equation
     def KeplerEquationSinnott(e, M, reltol=0):
@@ -954,7 +942,7 @@ if 1:  # Solving the Kepler equation
                 raise ValueError(msg.format(count))
             return (E, count)
         def SolveKeplerNewton(m, e, abstol=abstol):
-            '''Use Newton's method to solve for the root.'''
+            "Use Newton's method to solve for the root"
             E0, E, count = m/2, m, 0
             while abs(E - E0) > abstol and count <= g.max_iterations:
                 E0 = E
@@ -965,15 +953,13 @@ if 1:  # Solving the Kepler equation
                 raise ValueError(msg.format(count))
             return (E, count)
         def SolveKeplerBinarySearch(m, e, abstol=abstol):
-            '''Uses Sinnott's binary search algorithm.  abstol is
-            ignored.
-            '''
+            "Uses Sinnott's binary search algorithm.  abstol is ignored."
             m, f = math.fmod(m, math.tau), 1
             m = m + math.tau if m < 0 else m
             if m > math.pi:
                 m, f = math.tau - m, -1
             e0, d = math.pi/2, math.pi/4
-            for i in range(1, 54, 1):
+            for i in range(1, 54, 1):           # noqa
                 m1 = e0 - e*math.sin(e0)
                 e0 = e0 + d*dpmath.signum(m - m1)
                 d = d/2
@@ -1034,15 +1020,6 @@ if 1:  # Solving the Kepler equation
                     count += 1
             curr = -curr if neg else curr
             return (curr, count)
-        def SolveKepler4(m, e, abstol=abstol):
-            '''Use RootFinder, which is Jack Crenshaw's enhancements to an older IBM
-            FORTRAN routine that uses inverse parabolic interpolation.
-            '''
-            def f(E):
-                return m + e*math.sin(E) - E
-            # Need to find a reliable way to bracket the root
-            root, count = RootFinder(m/2, m, f, eps=abstol)
-            return root
         if algorithm == Alg.iteration:
             return SolveKeplerIteration(m, e, abstol=abstol)
         elif algorithm == Alg.newton:
@@ -1051,8 +1028,6 @@ if 1:  # Solving the Kepler equation
             return SolveKeplerBinarySearch(m, e, abstol=abstol)
         elif algorithm == Alg.c_code:
             return SolveKeplerCCode(m, e, abstol=abstol)
-        # elif algorithm == Alg.root_finder:
-        #    return SolveKepler4(m, e, abstol=abstol)
         else:
             raise ValueError("Bad algorithm number")
     def ShowKeplerSolutions(m, e, p):
@@ -1116,7 +1091,6 @@ if __name__ == "__main__":
         assert_equal(DayOfYear(11, 14, 1978), 318)
         assert_equal(DayOfYear(4, 22, 1980), 113)
     def Test_JD2DT():
-        eps = 1e-5
         # 4.81 Oct 1957 (Launch of Sputnik 1) [Meeus pg 61]
         dt = JD2DT(2436116.31)
         Assert(dt == datetime.datetime(1957, 10, 4, 19, 26, 24, 4))
@@ -1132,17 +1106,12 @@ if __name__ == "__main__":
             Assert(NumDaysInMonth(mo + 1, yr) == dim)
         y = 2000
         months = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-        for m, days in zip(range(1, 13), months):
+        for m, days in zip(range(1, 13), months, strict=True):
             Assert(NumDaysInMonth(m, y) == days)
         y = 2001
         months = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-        for m, days in zip(range(1, 13), months):
+        for m, days in zip(range(1, 13), months, strict=True):
             Assert(NumDaysInMonth(m, y) == days)
-    def Test_IsLeapYear():
-        for y in (1700, 1800, 1900, 2100, 2001):
-            Assert(not IsLeapYear(y))
-        for y in (1600, 2000, 2400, 2004):
-            Assert(IsLeapYear(y))
     def Test_IsValidDate():
         for m, d, y in (
             (1, 1, 1753),
@@ -1386,6 +1355,10 @@ if __name__ == "__main__":
         hms1 = h + m/1e2 + s/1e4
         Assert(abs(hms - hms1) < 0.0001)
     def Test_IsLeapYear():
+        for y in (1700, 1800, 1900, 2100, 2001):
+            Assert(not IsLeapYear(y))
+        for y in (1600, 2000, 2400, 2004):
+            Assert(IsLeapYear(y))
         Assert(IsLeapYear(1600))
         Assert(IsLeapYear(2000))
         Assert(IsLeapYear(2004))
@@ -1432,7 +1405,7 @@ if __name__ == "__main__":
                     try:
                         e, n = Kepler(radians, ecc, tol, algorithm=alg)
                     except ValueError:
-                        print("Too many iterations {0}".format(g.max_iterations))
+                        print(f"Too many iterations {g.max_iterations}")
                         print("theta = {theta}, ecc = {ecc:.1f}".format(**locals()))
                         print("algorithm =", alg)
                         exit(1)
