@@ -10,9 +10,9 @@ dptypes is a module that contains utility types:
 if 1:   # Header
     if 1:   # Standard imports
         import collections
+        import multiprocessing
         import re
         import threading
-        import multiprocessing
     if 1:   # Custom imports
         pass
     if 1:   # Import symbols
@@ -38,7 +38,7 @@ if 1:   # class Bidict:  A dictionary that is an invertible function
         '''
         def __init__(self, *p, **kw):
             # Implementation:  keep the inverse mapping in self._inv.
-            self.super = super(Bidict, self)
+            self.super = super()
             self.super.__init__(*p, **kw)
             self._inv = {}
             self._frozen = kw.get("frozen", False)
@@ -47,15 +47,15 @@ if 1:   # class Bidict:  A dictionary that is an invertible function
                 value = self[key]
                 try:
                     if value in self._inv:
-                        raise ValueError("'%s' is a duplicate value" % value)
-                except TypeError:
+                        raise ValueError(f"{value!r} is a duplicate value")
+                except TypeError as e:
                     # Probably a mutable object
-                    raise TypeError("Can't put '%s' into a Bidict" % value)
+                    raise TypeError(f"Can't put {value!r} into a Bidict") from e
                 self._inv[value] = key
         def __setitem__(self, key, value):
             self._check()
             if value in self._inv:
-                raise ValueError("'%s' is duplicate value" % value)
+                raise ValueError(f"{value!r} is duplicate value")
             self.super.__setitem__(key, value)
             self._inv[value] = key
         def __delitem__(self, key):
@@ -87,7 +87,7 @@ if 1:   # class Bidict:  A dictionary that is an invertible function
                 del self._inv[value]
                 return value
             if default is None:
-                raise KeyError("No entry for key '%s'" % key)
+                raise KeyError(f"No entry for key {key!r}")
             else:
                 return default
         def popitem(self):
@@ -120,7 +120,7 @@ if 1:   # class Bidict:  A dictionary that is an invertible function
                 raise ValueError("Need a parameter or keyword arguments")
             for key, value in items:
                 if value in self:
-                    raise ValueError("'%s' is a duplicate value" % value)
+                    raise ValueError(f"{value!r} is a duplicate value")
                 self[key] = value
                 self._inv[value] = key
         def __str__(self):
@@ -150,8 +150,8 @@ if 1:   # class CommandDecode:  Decode user command strings
                 c = set(commands)
                 if len(c) != len(commands):
                     raise ValueError("commands container has replicates")
-            except TypeError:
-                raise ValueError("commands must be a sequence of strings")
+            except TypeError as e:
+                raise ValueError("commands must be a sequence of strings") from e
             if not c:
                 raise ValueError("commands must contain at least one command")
             if ignore_case:
@@ -419,16 +419,16 @@ if 1:   # class Stack
             self.NI = NotImplementedError("Operation not allowed for Stack")
             self._type = homogeneous
             if iterable is None:
-                super(Stack, self).__init__([], maxlen=maxlen)
+                super().__init__([], maxlen=maxlen)
             else:
-                super(Stack, self).__init__(iterable, maxlen=maxlen)
+                super().__init__(iterable, maxlen=maxlen)
         def _str(self):
             with self._lock:
                 s = [str(list(self))]
                 if self.maxlen is not None:
-                    s.append("maxlen={}".format(self.maxlen))
+                    s.append(f"maxlen={self.maxlen}")
                 if self._type is not None:
-                    s.append("homogeneous={}".format(self._type))
+                    s.append(f"homogeneous={self._type}")
             return "Stack({})".format(", ".join(s))
         def __repr__(self):
             with self._lock:
@@ -438,26 +438,26 @@ if 1:   # class Stack
                 return self._str()
         def clear(self):
             with self._lock:
-                super(Stack, self).clear()
+                super().clear()
         def copy(self):
             with self._lock:
-                s = super(Stack, self).copy()
+                s = super().copy()
             return s
         def pop(self):
             with self._lock:
-                t = super(Stack, self).pop()
+                t = super().pop()
             return t
         def push(self, x):
             with self._lock:
                 if self._type is not None:
                     if type(x) is not self._type:
-                        msg = "'{}' is an incorrect type.\n".format(x)
-                        msg += "  It must be of type {}.".format(self._type)
+                        msg = f"'{x}' is an incorrect type.\n"
+                        msg += f"  It must be of type {self._type}."
                         raise TypeError(msg)
-                super(Stack, self).append(x)
+                super().append(x)
         def rotate(self, n=1):
             with self._lock:
-                super(Stack, self).rotate(n)
+                super().rotate(n)
         @property
         def homogeneous(self):
             'Returns the type of a homogeneous stack or None if not homogeneous'
@@ -488,6 +488,7 @@ if 1:   # class Stack
 if __name__ == "__main__":  
     import collections
     import sys
+
     import lwtest
     deque = collections.deque
     run = lwtest.run
@@ -522,12 +523,12 @@ if __name__ == "__main__":
                 else:
                     x = c(cmd)
                     if not x:
-                        print("'%s' unrecognized" % cmd)
+                        print(f"{cmd!r} unrecognized")
                     elif len(x) == 1:
-                        print("'%s' was an exact match to '%s'" % (cmd, x[0]))
+                        print(f"{cmd!r} was an exact match to {x[0]!r}")
                     else:
                         x.sort()
-                        print("'%s' is ambiguous:  %r" % (cmd, x))
+                        print(f"{cmd!r} is ambiguous:  {x!r}")
         def Demo_Bidict():
             pass
             # ∞∞1 Needs to be written
@@ -536,7 +537,7 @@ if __name__ == "__main__":
             # ∞∞1 Needs to be written
     if 1:   # SlushDict tests
         def Test_SlushDict():
-            k, v, v1, v2 = "three", 0, 42, 83189
+            k, v, v1 = "three", 0, 42
             def Slushdict_Init():
                 return SlushDict({k: v})
             if 1:   # Demonstrate core behavior
@@ -614,7 +615,7 @@ if __name__ == "__main__":
     if 1:   # Bidict tests
         def Bidict_init():
             keys, values = ["jan", "feb"], [1, 2]
-            d = dict(zip(keys, values))
+            d = dict(zip(keys, values, strict=True))
             bd = Bidict(d)
             BidictCheck(bd, keys, values)
             return keys, values, bd
@@ -651,7 +652,7 @@ if __name__ == "__main__":
             BidictCheck(rev_bd, values, keys)
         def Test_Bidict_Methods():
             keys, values, bd = Bidict_init()
-            assert set(bd.items()) == set(zip(keys, values))
+            assert set(bd.items()) == set(zip(keys, values, strict=True))
             assert "jan" in bd
             assert bd.get("xyz", 88) == 88
             assert bd.get("jan", None) == 1
