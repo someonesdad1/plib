@@ -2,7 +2,36 @@
 
 # /plib vision
 
-- Strategic things
+- Strategic
+    - Makefile to help with testing/checking
+        - 'make' prints key targets to use:
+            - 'make check':  lints & type checks
+            - 'make lint':  lints
+            - 'make type':  type checking
+            - 'make test':  run selftests
+            - 'make fix':  run ruff to safely fix imports and syntax
+            - 'make clean':  remove cache files & other leftover stuff
+        - Move "test" to "tests"
+            - All self tests then run by 'make test' at top level, which simply cd's to
+              tests and runs make or a testing script
+    - Move /plib/pgm to /pgm
+        - Makes /plib a core set of python library files
+    - Core library stuff is type annotated
+        - Use TypeAlias to make things more readable
+        - Type hints provide a "user manual" baked into the code
+        - Document "why" via Annotated:
+            - from typing import Annotated
+            - Radians = Annotated[float, "Phase angle in radians"]
+            - Uncertainty = Annotated[float, "Standard deviation"]
+        - The strategic benefits of the typing are
+            - A good name for the class/method tell you what it does
+            - The types tell you what it takes and what it returns
+            - You don't have to read the code to get the prior two things
+    - Use __all__ to signal public/private
+    - DEVELOPER.md file to indicate epochs of code development, where the legacy stuff
+      is, and what's the core up-to-date stuff.
+
+- Tactical
     - All my stuff moved to MIT license
     - gist in every file
     - As much as possible has tests

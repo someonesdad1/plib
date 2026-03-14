@@ -15,6 +15,10 @@ Reorganization core files
 - dpphys
     - densitydb
 
+    - __all__ is useful to document to users what symbols you intend to be public.  It
+      was originally emplaced to limit what was imported in a 'from x import *' command,
+      but few people do that anymore.
+
     - pgm/dp.py
         - Write a heuristic function that gets all the functions/classes from a python
           module.  The goal is to have a list of symbols that lwtest.py can go through
@@ -3021,6 +3025,36 @@ Programmer's index  xxpgidx
             - A block should be formatted by my standard text formatting tool
 
 /plib Typing xyzzyy
+
+    Run of pgm/leaf.py 14 Mar 2026:
+        Analysis of the most important /plib modules
+
+        Files that depend on no other internal modules:
+                                    dpcolornames            dt                      linscale
+                                    dpcolornames_May2022    eevblog_data            resistors
+                                    dpshop                  extensions              ruler
+            debugg                  drillsizes              kbhit                   wsl
+        Most used modules:
+            84 lwtest.py
+            70 wrap.py
+            45 debug.py
+            42 f.py
+            41 color.py
+            29 columnize.py
+            25 trm.py
+            15 dptypes.py
+            12 dpmath.py
+            9 dpseq.py
+            7 sig.py
+            6 u.py
+            6 dpstr.py
+            5 get.py
+            5 wsl.py
+            5 asciify.py
+            3 wl2rgb.py
+            3 dptime.py
+            2 abbreviations.py
+            2 rgbdata.py
 
     AI for advice:  https://gemini.google.com/app/33bd3d7229385f0e 
 
