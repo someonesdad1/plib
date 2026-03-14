@@ -332,7 +332,7 @@ if 1:  # Other functionality
 if __name__ == "__main__":
     import lwtest
     import trm
-    t = Trm(default=2)
+    t = trm.Trm()
     run = lwtest.run
     Assert = lwtest.Assert
     def Test_RGB():

@@ -140,7 +140,6 @@ if 1:  # Header
         import math
         import os
         import sys
-        import threading
         from collections import deque
     if 1:  # Custom imports
         from wrap import dedent
@@ -164,7 +163,6 @@ if 1:  # Header
         L = int(os.environ.get("LINES", "50"))
         D = Decimal = decimal.Decimal
         F = Fraction = fractions.Fraction
-        ii = isinstance
         # Exported symbols:
         #   Fmt is the formatting class
         #   TakeApart is a class that takes apart numbers into string components
@@ -253,16 +251,16 @@ class TakeApart:
         #        file=sys.stderr,
         #    )
         Assert(x is not None)
-        Assert(ii(n, int) and n > 0)
+        Assert(isinstance(n, int) and n > 0)
         # Clamp n to the maximum precision allowed
-        if ii(x, int):
+        if isinstance(x, int):
             n = min(n, len(str(abs(x))))
-        elif ii(x, float):
+        elif isinstance(x, float):
             n = min(n, 15)
-        elif ii(x, (D, Fraction)):
+        elif isinstance(x, (D, Fraction)):
             ctx = decimal.getcontext()
             n = min(n, ctx.prec)
-        elif have_mpmath and ii(x, mpmath.mpf):
+        elif have_mpmath and isinstance(x, mpmath.mpf):
             n = min(n, mpmath.mp.dps)
         self.disassemble(x, n, all=all)
     def prepare(self, value, n: int, all=False):
@@ -299,7 +297,7 @@ class TakeApart:
         This method will check constraints/invariants and raise an
         exception if improper behavior is detected.
         '''
-        if not (ii(n, int) and n > 0):
+        if not (isinstance(n, int) and n > 0):
             raise ValueError("n must be an integer > 0")
         if value is None:
             raise ValueError("value must not be None")
@@ -315,17 +313,17 @@ class TakeApart:
                 return (None, "nan", None, None)
             return None
         not_supported = TypeError(f"{value!r} is an unsupported type")
-        if not ii(value, self.supported):
+        if not isinstance(value, self.supported):
             raise not_supported
         # We always use the locale's radix
         radix = locale.localeconv()["decimal_point"]
         # If value is Fraction, convert it
-        if ii(value, Fraction):
+        if isinstance(value, Fraction):
             value = Decimal(value.numerator) / Decimal(value.denominator)
         # Construct the output tuple
-        if ii(value, int):
+        if isinstance(value, int):
             result = (value < 0, str(abs(value)), None, None)
-        elif ii(value, float):
+        elif isinstance(value, float):
             if ".flt'>" in str(
                 type(value)
             ):  # Avoid an infinite recursion with f.flt instances
@@ -345,7 +343,7 @@ class TakeApart:
                     raise Exception("Bug:  no 'e' in float interpolation")
                 digits, exp = s.split("e")
                 result = (value < 0, digits, radix, int(exp))
-        elif ii(value, Decimal):
+        elif isinstance(value, Decimal):
             result = special(value, Decimal)
             if result is None:
                 p = decimal.getcontext().prec
@@ -354,7 +352,7 @@ class TakeApart:
                     raise Exception("Bug:  no 'e' in Decimal interpolation")
                 digits, exp = s.split("e")
                 result = (value < 0, digits, radix, int(exp))
-        elif have_mpmath and ii(value, mpmath.mpf):
+        elif have_mpmath and isinstance(value, mpmath.mpf):
             # Note:  I have made it a policy to assume that any number defined
             # to be an mpmath.mpf type is a real number, even if mpmath.isinf()
             # is True for that number.
@@ -388,37 +386,37 @@ class TakeApart:
         else:
             raise not_supported
         if 1:  # Verify constraints & invariants
-            assert ii(result, tuple)
+            assert isinstance(result, tuple)
             neg, digits, radix, e = result  # result must be 4-tuple
             if radix is None and e is None:
                 if neg is None:  # Check for nan
                     Assert(digits == "nan")
                 else:  # inf or int
-                    Assert(ii(neg, bool))
+                    Assert(isinstance(neg, bool))
                     if "inf" in digits:
                         Assert(digits == "inf" or digits == "-inf")
                     else:
-                        Assert(ii(value, int))
+                        Assert(isinstance(value, int))
             else:
-                Assert(ii(digits, str))
+                Assert(isinstance(digits, str))
                 if not all:
                     # Normal number:  make sure we have at least n + 1 digits for
                     # banker's rounding of the significand.
-                    if ii(value, float):
+                    if isinstance(value, float):
                         Assert(len(digits) == n)  # Rounding already done
                     else:
                         if len(digits) == n:
                             digits += "0"  # Correct for this one case
                             result = (value < 0, digits, radix, int(exp))
                         Assert(len(digits) >= n + 1)
-                Assert(radix is None or ii(radix, str))
-                if ii(radix, str):
+                Assert(radix is None or isinstance(radix, str))
+                if isinstance(radix, str):
                     Assert(len(radix) == 1 and radix in ".,")
                 if have_mpmath:
-                    Assert(ii(value, (float, Fraction, Decimal, mpmath.mpf)))
+                    Assert(isinstance(value, (float, Fraction, Decimal, mpmath.mpf)))
                 else:
-                    Assert(ii(value, (float, Fraction, Decimal)))
-                Assert(ii(e, int))
+                    Assert(isinstance(value, (float, Fraction, Decimal)))
+                Assert(isinstance(e, int))
         return result
     def disassemble(self, value, n, all=False):
         '''Disassemble the number value into this instance's attributes.
@@ -470,7 +468,7 @@ class TakeApart:
             size = len(digits)
             self.dq = self.round(value, deque(digits), self.n)
             # Append zeroes if needed
-            for i in range(size - len(self.dq)):
+            for _ in range(size - len(self.dq)):
                 self.dq.append("0")
             # Checks
             Assert(len(self.dq) == size)
@@ -486,10 +484,10 @@ class TakeApart:
             self.dq = self.round(value, deque(digits), self.n)
             Assert(len(self.dq) == n)
         # Checks
-        Assert(ii(self.int, bool))
+        Assert(isinstance(self.int, bool))
         Assert(self.sign == "-" or self.sign == " ")
         Assert(self.radix == "." or self.radix == ",")
-        Assert(ii(self.e, int))
+        Assert(isinstance(self.e, int))
     def round(self, value, dq: deque, n: int):
         '''Return the deque dq of digits rounded to n digits.  Use half-even
         rounding:  the last digit is rounded up if the following digit is
@@ -498,11 +496,11 @@ class TakeApart:
         '''
         # Integers are special cases.  For example, 123 can be rounded to 2
         # digits, but an integer < 10 cannot.
-        if ii(self.number, int) and len(str(abs(self.number))) <= n:
+        if isinstance(self.number, int) and len(str(abs(self.number))) <= n:
             return dq
         # Floats are also a special case, as rounding was done by the
         # string interpolation in prepare().
-        if ii(value, float):
+        if isinstance(value, float):
             return dq
         Assert(len(dq) >= n + 1)
         # Truncate to a string of n digits
@@ -636,9 +634,9 @@ class Fmt:
             self._low_init = 1e-4
             self._high_init = 999999.0
         # Key to _SI_prefixes dict is exponent//3
-        self._SI_prefixes = dict(zip(range(-10, 11), list("qryzafpnμm.kMGTPEZYRQ")))
+        self._SI_prefixes = dict(zip(range(-10, 11), list("qryzafpnμm.kMGTPEZYRQ"), strict=True))
         self._SI_prefixes[0] = ""  # Need empty string
-        self._superscripts = dict(zip("-+0123456789", "⁻⁺⁰¹²³⁴⁵⁶⁷⁸⁹"))
+        self._superscripts = dict(zip("-+0123456789", "⁻⁺⁰¹²³⁴⁵⁶⁷⁸⁹", strict=True))
         # Set to default state
         self.reset()
     def reset(self):
@@ -668,8 +666,8 @@ class Fmt:
         self._low = self._low_init
         self._high = self._high_init
         # See constructor for why these must be floats
-        Assert(ii(self._low, float))
-        Assert(ii(self._high, float))
+        Assert(isinstance(self._low, float))
+        Assert(isinstance(self._high, float))
     def copy(self):
         "Return a copy of the current instance"
         fmt = Fmt(self.n)
@@ -693,13 +691,13 @@ class Fmt:
         goes up to 1e6).  Raise a ValueError exception to explain the
         problem.
         '''
-        if ii(value, (int, float)):
+        if isinstance(value, (int, float)):
             return D(value)
-        elif ii(value, D):
+        elif isinstance(value, D):
             return value
-        elif ii(value, Fraction):
+        elif isinstance(value, Fraction):
             return D(value.numerator) / D(value.denominator)
-        elif ii(value, str):
+        elif isinstance(value, str):
             if "/" in value:
                 f = Fraction(value)
                 return D(f.numerator) / D(f.denominator)
@@ -715,7 +713,7 @@ class Fmt:
         return "".join(o)
     def trim(self, dq):
         "Implement rtz, rtdp, and rlz for significand dq in deque"
-        Assert(ii(dq, deque))
+        Assert(isinstance(dq, deque))
         if self._rtz and self._dp in dq:
             while dq and dq[-1] == "0":
                 dq.pop()  # Remove trailing 0's
@@ -731,25 +729,25 @@ class Fmt:
             raise Exception(f"fmt.{var} is None")
     def clamp_n(self, value, n) -> int:
         "Clamp n to reasonable values"
-        if ii(value, float):
+        if isinstance(value, float):
             return min(n, 15)
-        elif ii(value, D):
+        elif isinstance(value, D):
             ctx = decimal.getcontext()
             return min(n, ctx.prec)
-        elif have_mpmath and ii(value, mpmath.mpf):
+        elif have_mpmath and isinstance(value, mpmath.mpf):
             return min(n, mpmath.mp.dps)
         else:
             return n
     def significand(self, value) -> str:
         "Return a string for the value's significand"
-        if ii(value, float):
+        if isinstance(value, float):
             n = 15
-        elif have_mpmath and ii(value, mpmath.mpf):
+        elif have_mpmath and isinstance(value, mpmath.mpf):
             n = mpmath.mp.dps
-        elif ii(value, D):
+        elif isinstance(value, D):
             ctx = decimal.getcontext()
             n = ctx.prec
-        elif ii(value, int):
+        elif isinstance(value, int):
             return str(value)
         self.ta(value, n)
         dq = self.ta.dq
@@ -775,11 +773,11 @@ class Fmt:
             raise Exception("width keyword not supported yet")  # ∞∞2
         if 1:  # Check arguments
             if n is not None:
-                if not ii(n, int):
+                if not isinstance(n, int):
                     raise TypeError("n must be an integer")
                 if n <= 0:
                     raise ValueError("n must be > 0")
-            if ii(value, int):
+            if isinstance(value, int):
                 if fmt is not None and fmt not in "dec hex oct bin".split():
                     raise ValueError(f"'{fmt}' is unrecognized format string")
                 else:
@@ -793,18 +791,18 @@ class Fmt:
                 elif fmt is None:
                     fmt = self.default
             if width is not None:
-                if not ii(width, int):
+                if not isinstance(width, int):
                     raise TypeError("width must be an integer")
                 if n <= 0:
                     raise ValueError("width must be > 0")
         # Call the relevant method
-        if ii(value, complex) or (have_mpmath and ii(value, mpmath.mpc)):
+        if isinstance(value, complex) or (have_mpmath and isinstance(value, mpmath.mpc)):
             return self.Complex(value, fmt=fmt, n=n, width=width)
-        elif ii(value, int):
+        elif isinstance(value, int):
             return self.Int(value, fmt=fmt, n=n, width=width)
-        elif ii(value, (float, Decimal, Fraction)):
+        elif isinstance(value, (float, Decimal, Fraction)):
             return self.Real(value, fmt=fmt, n=n, width=width)
-        elif have_mpmath and ii(value, mpmath.mpf):
+        elif have_mpmath and isinstance(value, mpmath.mpf):
             return self.Real(value, fmt=fmt, n=n, width=width)
         else:
             raise TypeError(f"{value!r} is an unsupported type")
@@ -824,7 +822,7 @@ class Fmt:
         '''
         if width is not None:
             raise Exception("width keyword not supported yet")  # ∞∞2
-        if not ii(value, int):
+        if not isinstance(value, int):
             raise TypeError("value must be an int")
         if value < 0:
             sgn = "-"
@@ -916,7 +914,7 @@ class Fmt:
             raise Exception("width keyword not supported yet")  # ∞∞2
         n = n if n is not None else self.n
         fmt = fmt if fmt is None else self.int
-        Assert(ii(value, int))
+        Assert(isinstance(value, int))
         self.ta(value, n)
         sgn = self.ta.sign
         if sgn == " " and not self.spc:
@@ -1235,9 +1233,9 @@ class Fmt:
             if have_mpmath:
                 msg = "must be a float, Decimal, or mpmath.mpf"
                 types = (float, D, mpmath.mpf)
-            if not ii(x, types):
+            if not isinstance(x, types):
                 raise TypeError("x " + msg)
-            if not ii(u, types):
+            if not isinstance(u, types):
                 raise TypeError("u " + msg)
             # u must be >= 0
             if u < 0:
@@ -1247,9 +1245,9 @@ class Fmt:
                 raise ValueError("u must be < x")
         # Get the maximum number of digits we can get
         n = 15  # Assume float
-        if ii(x, D):
+        if isinstance(x, D):
             n = decimal.getcontext().prec
-        elif have_mpmath and ii(x, mpmath.mpf):
+        elif have_mpmath and isinstance(x, mpmath.mpf):
             n = mpmath.mp.dps
         # Switch to sci if needed
         if self.low is not None and abs(x) < self.low:
@@ -1326,10 +1324,10 @@ class Fmt:
             fmt = self.default
         e = TypeError(f"value {value!r} must be complex")
         if have_mpmath:
-            if not ii(value, (complex, mpmath.mpc)):
+            if not isinstance(value, (complex, mpmath.mpc)):
                 raise e
         else:
-            if not ii(value, complex):
+            if not isinstance(value, complex):
                 raise e
         if self.polar:
             r = value.real
@@ -1389,7 +1387,7 @@ class Fmt:
             return self._dp
         @dp.setter
         def dp(self, value):
-            if not ii(value, str) or len(value) > 1 or value not in ".,":
+            if not isinstance(value, str) or len(value) > 1 or value not in ".,":
                 raise TypeError("Decimal point must be either '.' or ','")
             self._dp = value
         @property  # Use "sci" format if abs(x) is >= high and not None
@@ -1424,7 +1422,7 @@ class Fmt:
             return self._n
         @n.setter
         def n(self, value):
-            if not (ii(value, int) or value <= 0):
+            if not (isinstance(value, int) or value <= 0):
                 raise ValueError("value must be integer > 0")
             self._n = value
         @property  # (bool) Remove trailing zeros after radix if True
@@ -1476,7 +1474,7 @@ class Fmt:
             return self._imag_unit
         @imag_unit.setter
         def imag_unit(self, value):
-            Assert(ii(value, str) and len(value) > 0)
+            Assert(isinstance(value, str) and len(value) > 0)
             self._imag_unit = value
         @property  # (bool) Show complex numbers in polar form
         def polar(self) -> bool:
@@ -1523,7 +1521,7 @@ class FmtIV:
         '''n is number of digits to show in "uncertainty" portion, where
         "uncertainty" means the halfwidth of the interval.
         '''
-        assert ii(n, int) and n > 0
+        assert isinstance(n, int) and n > 0
         assert have_mpmath and have_unc
         self.n = n
     def __call__(self, x):
@@ -1534,14 +1532,14 @@ class FmtIV:
         The easy way to do this stuff is to use the facilities of the uncertainties
         library.
         '''
-        if ii(x, (list, tuple)):
+        if isinstance(x, (list, tuple)):
             # Two numbers, convert to interval number
             return mpmath.iv.mpf(x)
-        elif ii(x, str):
+        elif isinstance(x, str):
             # x[y] form, convert to interval number
             t = ufloat_fromstr(x.replace("[", "(").replace("]", ")"))
             return mpmath.iv.mpf((t.n - t.s, t.n + t.s))
-        elif ii(x, mpmath.iv.mpf):
+        elif isinstance(x, mpmath.iv.mpf):
             # Interval number, convert to short form string
             n = float(mpmath.mpf(x.mid))
             s = float(mpmath.mpf(x.delta) / 2)
@@ -1571,36 +1569,40 @@ if have_mpmath and have_unc:
     fmtiv = FmtIV()
 
 if __name__ == "__main__":
-    if 1:  # Header
-        # Standard imports
-        from functools import partial
-        from decimal import localcontext
-        from math import pi
-        import os
-        import pathlib
+    if 1:   # Standard imports
+        import decimal
+        import functools
+        import math
         import sys
-        # Custom imports
-        import trm
-        t = trm.Trm()
-        from lwtest import run, raises
-        from wrap import dedent
+    if 1:   # Custom imports
         import decimalmath
-        # Global variables
+        import lwtest
+        import trm
+        import wrap
+    if 1:   # Import symbols
         Fraction = fractions.Fraction
-        P = pathlib.Path
+        localcontext = decimal.localcontext
+        partial = functools.partial
+        pi = math.pi
+        #
+        dedent = wrap.dedent
+        raises = lwtest.raises
+        run = lwtest.run
+        t = trm.Trm()
+    if 1:   # Global variables
         d = {}  # Options dictionary
         # Set up colors for demo
         u = use_colors = True
         t.always = True
-        t.t = t() if u else ""  # Title
-        t.u = t("ornl") if u else ""  # Normal float formatting
-        t.f = t("sky") if u else ""  # Feature being demonstrated
-        t.fix = t("whtl") if u else ""  # Fixed point
-        t.sci = t("yell") if u else ""  # Scientific notation
-        t.eng = t("grnl") if u else ""  # Engineering notation
-        t.si = t("magl") if u else ""  # Engsi notation
-        t.em = t("purl") if u else ""  # Emphasis
-        t.err = t("redl") if u else ""  # Error in digits
+        t.t = t()       # Title
+        t.u = t.orn     # Normal float formatting
+        t.f = t.skyl    # Feature being demonstrated
+        t.fix = t.whtl  # Fixed point
+        t.sci = t.yel   # Scientific notation
+        t.eng = t.grn   # Engineering notation
+        t.si = t.mag    # Engsi notation
+        t.em = t.pur    # Emphasis
+        t.err = t.red   # Error in digits
     def Demo():
         f = fmt
         t.print(
@@ -1828,19 +1830,19 @@ if __name__ == "__main__":
                 Assert(f(float("-inf")) == (True, "inf", None, None))
                 Assert(f(float("nan")) == (None, "nan", None, None))
                 for x, expected in (
-                    (float(0.0), (False, "0" * n, ".", 0)),
-                    (float(1.0), (False, "1" + "0" * (n - 1), ".", 0)),
-                    (float(-1.0), (True, "1" + "0" * (n - 1), ".", 0)),
-                    (float(0.1), (False, "1" + "0" * (n - 1), ".", -1)),
-                    (float(-0.1), (True, "1" + "0" * (n - 1), ".", -1)),
-                    (float(123456.78901), (False, "123", ".", 5)),
-                    (float(-123456.78901), (True, "123", ".", 5)),
-                    (float(123456.78901e-6), (False, "123", ".", -1)),
-                    (float(-123456.78901e-6), (True, "123", ".", -1)),
-                    (float(123456.78901e300), (False, "123", ".", 305)),
-                    (float(-123456.78901e300), (True, "123", ".", 305)),
-                    (float(123456.78901e-300), (False, "123", ".", -295)),
-                    (float(-123456.78901e-300), (True, "123", ".", -295)),
+                    (0.0, (False, "0" * n, ".", 0)),
+                    (1.0, (False, "1" + "0" * (n - 1), ".", 0)),
+                    (-1.0, (True, "1" + "0" * (n - 1), ".", 0)),
+                    (0.1, (False, "1" + "0" * (n - 1), ".", -1)),
+                    (-0.1, (True, "1" + "0" * (n - 1), ".", -1)),
+                    (123456.78901, (False, "123", ".", 5)),
+                    (-123456.78901, (True, "123", ".", 5)),
+                    (123456.78901e-6, (False, "123", ".", -1)),
+                    (-123456.78901e-6, (True, "123", ".", -1)),
+                    (123456.78901e300, (False, "123", ".", 305)),
+                    (-123456.78901e300, (True, "123", ".", 305)),
+                    (123456.78901e-300, (False, "123", ".", -295)),
+                    (-123456.78901e-300, (True, "123", ".", -295)),
                     #
                     (float("0." + "9" * (n - 1)), (False, "990", ".", -1)),
                     (float("0." + "9" * n), (False, "999", ".", -1)),
@@ -2020,7 +2022,7 @@ if __name__ == "__main__":
                         (7, "1234560"),
                     ):
                         # See the bug explanation in Test_TakeApart()
-                        if ii(x, float) and n == 4:
+                        if isinstance(x, float) and n == 4:
                             Assert(f(x, n) == "1235")
                             Assert(ta.sign == " ")
                             Assert(f(-x, n) == "1235")
@@ -2605,7 +2607,7 @@ if __name__ == "__main__":
                             Assert(strta == expected)
                             Assert(g(strta) == g(expected))
                     # Large negative float
-                    ta(float(int(-123456) * 10 ** (m - k)), n)
+                    ta(float(-123456*10**(m - k)), n)
                     s = f"-{u}e{m}"
                     expected = str(ta)
                     for typ in (mpf, D, F):
@@ -2625,7 +2627,7 @@ if __name__ == "__main__":
                             Assert(y == expected)
                             Assert(g(y) == g(expected))
                     # Large positive float
-                    ta(float(int(123456) * 10 ** (m - k)), n)
+                    ta(float(123456 * 10 ** (m - k)), n)
                     s = f"{u}e{m}"
                     expected = str(ta)
                     for typ in (mpf, D, F):
@@ -2639,7 +2641,7 @@ if __name__ == "__main__":
                             Assert(y == expected)
                             Assert(g(y) == g(expected))
                     # Small negative float
-                    ta(float(int(-123456) / 10 ** (m + k)), n)
+                    ta(float(-123456 / 10 ** (m + k)), n)
                     s = f"-{u}e{-m}"
                     expected = str(ta)
                     for typ in (mpf, D, F):
@@ -2653,7 +2655,7 @@ if __name__ == "__main__":
                             Assert(y == expected)
                             Assert(g(y) == g(expected))
                     # Small positive float
-                    ta(float(int(123456) / 10 ** (m + k)), n)
+                    ta(float(123456 / 10 ** (m + k)), n)
                     s = f"{u}e{-m}"
                     expected = str(ta)
                     for typ in (mpf, D, F):
@@ -2692,14 +2694,14 @@ if __name__ == "__main__":
                 print(f"{sp}{'Fraction(-1, 1)':{w}s} {TA(F(-1, 1))}")
                 #
                 print("-123.456e300")
-                print(f"{sp}{'int':{w}s} {TA(int(-123456) * 10**297)}")
+                print(f"{sp}{'int':{w}s} {TA(-123456 * 10**297)}")
                 print(f"{sp}{'float':{w}s} {TA(float(s))}")
                 print(f"{sp}{'mpf':{w}s} {TA(mpf(s))}")
                 print(f"{sp}{'Decimal':{w}s} {TA(D(s))}")
                 print(f"{sp}{'Fraction':{w}s} {TA(f.from_decimal(D(s)))}")
                 #
                 print("123.456e300")
-                print(f"{sp}{'int':{w}s} {TA(int(123456) * 10**297)}")
+                print(f"{sp}{'int':{w}s} {TA(123456 * 10**297)}")
                 print(f"{sp}{'float':{w}s} {TA(float(s[1:]))}")
                 print(f"{sp}{'mpf':{w}s} {TA(mpf(s[1:]))}")
                 print(f"{sp}{'Decimal':{w}s} {TA(D(s[1:]))}")
