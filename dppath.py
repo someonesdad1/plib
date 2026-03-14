@@ -26,9 +26,9 @@ if 1:  # Header
         <oo todo - Move dirfiles.py stuff here oo>
     '''
     if 1:  # Imports
-        from collections import deque
         import pathlib
         import re
+        from collections import deque
     if 1:  # Custom imports
         if 0:
             import debug
@@ -36,7 +36,7 @@ if 1:  # Header
     if 1:  # Global variables
         P = pathlib.Path
 if 1:  # Core functionality 
-    def Remove(pathseq, match=[], search=[], ic=False, dir=False):
+    def Remove(pathseq, match=None, search=None, ic=False, dir=False):
         '''Return the items in the sequence pathseq of pathlib.Path objects
         with the patterns in the lists match and search removed.  Those in
         match must match fully and those in search can match anywhere in the
@@ -49,9 +49,13 @@ if 1:  # Core functionality
         True; otherwise, the matching is on the file name component only.
         
         '''
-        if not match and not search:
+        if match is None and search is None:
             return pathseq
         # Build our regular expressions
+        if match is None:
+            match = []
+        if search is None:
+            search = []
         M, S = "", ""
         if match:
             a = []
@@ -92,15 +96,23 @@ if 1:  # Core functionality
                     continue
             output.append(p)
         return list(output)
-    def RemoveDirs(pathseq, match=[], search=[], ic=False):
+    def RemoveDirs(pathseq, match=None, search=None, ic=False):
         "Remove directories using Remove()"
+        if match is None:
+            match = []
+        if search is None:
+            search = []
         return Remove(pathseq, match=match, search=search, ic=ic, dir=True)
     def RemoveVCDir(pathseq):
         "Remove git, Mercurial, Bazaar, and RCS directories"
         m = ["\\.git", "\\.hg", "\\.bzr", "RCS"]
         return Remove(pathseq, match=m, dir=True)
-    def RemoveFiles(pathseq, match=[], search=[], ic=False):
-        "Remove files using Remove()"
+    def RemoveFiles(pathseq, match=None, search=None, ic=False):
+        'Remove files using Remove()'
+        if match is None:
+            match = []
+        if search is None:
+            search = []
         return Remove(pathseq, match=match, search=search, ic=ic, dir=False)
     def Get(*dirs, recursive=False):
         '''Return a list of files and directories from the indicated
