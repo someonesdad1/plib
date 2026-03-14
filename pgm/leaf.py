@@ -86,12 +86,12 @@ if 1:   # Core functionality
                 print(f"  {m}.py is used by {count} other modules")
     def AnalyzePlib():
         '''This function prints a report that analyzes all the files in /plib,
-        /plib/pgm, and /plib/data, then prints out the results.
+        and /plib/data, then prints out the results.
         '''
         t.print(f"{t.yel}Analysis of the most important /plib modules\n")
         # 1. Get list of all python files
         py_files, all_module_names = [], set()
-        for dir in "/plib /plib/pgm /plib/data".split():
+        for dir in "/plib /plib/data".split():
             path = Path(dir)
             py_files.extend(list(path.glob("*.py")))
             all_module_names.update({f.stem for f in py_files})
