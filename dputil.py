@@ -47,44 +47,32 @@ if 1:  # Header
         oo>
     '''
     if 1:  # Standard imports
-        from collections import deque, defaultdict, OrderedDict
-        from collections.abc import Iterable
-        from decimal import Decimal
-        from fractions import Fraction
-        from itertools import chain, groupby, count
-        from itertools import cycle, zip_longest, product
-        from operator import itemgetter
-        from pathlib import Path as P
-        from random import seed
-        from reprlib import repr as Repr
-        import hashlib
-        import inspect
-        import math
+        import functools
         import os
         import platform
         import pprint
-        import random
         import re
         import subprocess
         import sys
         import tempfile
         import threading
         import time
+        from collections import OrderedDict, deque
+        from fractions import Fraction
+        from itertools import chain, cycle, product
+        from pathlib import Path as P
+        from random import seed
+        from reprlib import repr as Repr
         if platform.system() == "Windows":
             import msvcrt
     if 1:  # Custom imports
         import dpmath
         from wsl import wsl
-        _have_mpmath = False
-        try:
-            import mpmath
-            _have_mpmath = True
-        except ImportError:
-            pass
         if 0:
             import debug
             debug.SetDebugger()
     if 1:  # Import symbols
+        partial = functools.partial
         SignSignificandExponent = dpmath.SignSignificandExponent
         AlmostEqual = dpmath.AlmostEqual
     if 1:  # Global variables
@@ -106,7 +94,7 @@ if 1:  # Core functionality
             Ohio Oklahoma Oregon Pennsylvania Rhode·Island South·Carolina South·Dakota Tennessee Texas
             Utah Virginia Vermont Washington Wisconsin West·Virginia Wyoming'''.split()
         ]
-        return dict(zip(a, b))
+        return dict(zip(a, b, strict=True))
     def getch():
         "Block until a key is pressed.  This function returns nothing."
         s = platform.system()
@@ -132,16 +120,16 @@ if 1:  # Core functionality
             if sub not in seen:
                 seen.add(sub)
                 yield sub
-                for sub in IterateOverSubclasses(sub, seen):
-                    yield sub
-    class Singleton(object):
+                for sub1 in IterateOverSubclasses(sub, seen):   # noqa
+                    yield sub1
+    class Singleton:
         "Mix-in class to make an object a singleton.  From 'Python in a Nutshell', p 84."
         _singletons = {}
         def __new__(cls, *args, **kw):
             if cls not in cls._singletons:
                 cls._singletons[cls] = object.__new__(cls)
             return cls._singletons[cls]
-    def Cfg(lines, lvars=OrderedDict(), gvars=OrderedDict()):
+    def Cfg(lines, lvars=OrderedDict(), gvars=OrderedDict()):   # noqa  ∞∞1 This should be fixed (lint error)
         '''Allow use of sequences of text strings to be used for general-purpose configuration
         information.  Each string must be valid python code.
         
@@ -230,9 +218,7 @@ if 1:  # Core functionality
             try:
                 exec(line)
             except Exception:
-                sys.stderr.write(
-                    "Line %d of file '%s' bad:\n  '%s'\n" % (i + 1, file, line.rstrip())
-                )
+                sys.stderr.write(f"Line {i + 1} of file {file!r} bad:\n  {line.rstrip()}\n")
                 if not ignore_errors:
                     exit(1)
         d = locals()
@@ -331,7 +317,9 @@ if 1:  # Core functionality
             raise ValueError("Number of significant digits must be >= 1 and <= 15")
         sign, significand, exponent = SignSignificandExponent(float(value))
         s = suffixes[exponent // 3] if exponent // 3 in suffixes else ""
-        m = sign*(("%%.%dg" % digits) % (significand*10**(exponent % 3)))
+        #m = sign*(("%%.%dg" % digits) % (significand*10**(exponent % 3)))
+        a = significand*10**(exponent % 3)
+        m = sign*(f"{a:.{digits}g}")
         if m.find("e") != -1:
             # digits = 1 or 2 can cause e.g. 3e+001, so the following
             # eliminates the exponential notation
@@ -347,7 +335,7 @@ if 1:  # Core functionality
         if unit:
             s = m + " " + p + unit
         else:
-            s = m if e == 0 else "%se%d" % (m, e)
+            s = m if e == 0 else f"{m}e{e}"
         if width:
             if len(s) < width:
                 p = " "*(width - len(s))
@@ -403,8 +391,8 @@ if 1:  # Core functionality
             return None
         if glob:
             for i in getitem(s)[0]:
-                for j in glob.glob(i):
-                    yield j
+                for j in glob.glob(i):  # noqa 
+                    yield j 
         else:
             for i in getitem(s)[0]:
                 yield i
@@ -454,7 +442,7 @@ if 1:  # Core functionality
             char*left,
             " "*right,
             "]",
-            " {}%".format(percent),
+            f" {percent}%",
             sep="",
             end="",
             flush=True,
@@ -475,10 +463,10 @@ if 1:  # Core functionality
             globals = e.f_globals
         if locals is None and use_user_env:
             locals = e.f_locals
-        with open(filename, "r") as fh:
+        with open(filename) as fh:
             s = fh.read() + "\n"
             exec(s, globals, locals)
-    def SizeOf(o, handlers={}, verbose=False, full=False, title=None):
+    def SizeOf(o, handlers=None, verbose=False, full=False, title=None):
         '''Returns a string containing the approximate memory in bytes used by
         an object.  Recursively uses sys.getsizeof().
         
@@ -508,6 +496,8 @@ if 1:  # Core functionality
             set: iter,
             frozenset: iter,
         }
+        if handlers is None:
+            handlers = {}
         all_handlers.update(handlers)  # User handlers take precedence
         seen = set()  # Track objects seen
         default_size = sys.getsizeof(0)  # Estimate size without __sizeof__
@@ -589,14 +579,14 @@ if 1:  # Core functionality
             else:
                 app = "d:/cygwin64/bin/cygstart.exe"  # cygwin
                 subprocess.run([app, file])
-    def Winnow(seq, regexps=[], OR=False, flags=re.I):
+    def Winnow(seq, regexps=None, OR=False, flags=re.I):
         '''Returns a set of strings contained in seq that match the regular expression strings in the
         sequence regexps.  The regexps are ANDed together unless OR is True.  flags are used in the
         re.compile() function (use 0 or re.NOFLAG to use no flags).
         '''
         if not seq:
             return set()
-        if not regexps:
+        if regexps is None or not regexps:
             return set(seq)
         # Don't modify seq or regexps
         items = set(seq)
@@ -663,7 +653,7 @@ if 1:  # Core functionality
             if x and (abs(x) < fsig.low or abs(x) > fsig.high):
                 xs = "{:.{}e}".format(x, ndig)  # Use scientific notation
                 st, e = xs.split("e")
-                t = "{}e{}".format(rtz(st), int(e))
+                t = f"{rtz(st)}e{int(e)}"
                 return t.replace(".", fsig.dp)
             # xs = list of significant digits with decimal point removed
             # e = integer exponent
@@ -722,17 +712,15 @@ if 1:  # Core functionality
 
 if __name__ == "__main__":
     from io import StringIO
-    from lwtest import run, assert_equal, raises, Assert
-    from dpseq import fDistribute
     from random import seed
-    from wrap import dedent
+
     import trm
+    from dpseq import fDistribute
+    from lwtest import Assert, assert_equal, raises, run
+    from wrap import dedent
     t = trm.Trm()
     import itertools
-    import math
     import sys
-    from itertools import zip_longest
-    from collections import namedtuple
     seed(2**64)  # Make test sequences repeatable
     show_coverage = len(sys.argv) > 1
     # Need to have version, as SizeOf stuff changed between 3.7 and 3.9
@@ -768,7 +756,7 @@ if __name__ == "__main__":
             (u/1e5, ".000012"),
             (u/1e6, "1.2e-6"),
         ):
-            Assert(fsig(x) == s, "fsig({}) != {}".format(x, s))
+            Assert(fsig(x) == s, f"fsig({x}) != {s}")
             Assert(fsig(-x) == "-" + s, "fsig({}) != {}".format(x, "-" + s))
     def Test_Winnow():
         s = set("ei eI Ei EI".split())
@@ -874,7 +862,7 @@ if __name__ == "__main__":
         Assert(d["d"] == 22)
         Assert(str(d["X"])[:11] == "<function X")
     def Test_Singleton():
-        class A(object):
+        class A:
             pass
         a, b = A(), A()
         Assert(hash(a) != hash(b))
@@ -888,7 +876,7 @@ if __name__ == "__main__":
             class C(A): pass
             class D(C): pass
             class E(C): pass
-            x = E()
+            x = E()     # noqa
             r = [str(i) for i in IterateOverSubclasses(A)]
             # Expected
             s = "<class '__main__.Test_IterateOverSubclasses.<locals>."
