@@ -39,18 +39,18 @@ This module extends the python debugger pdb.py Features:
 '''
 if 1:  # Header
     if 1:  # Standard imports
+        import code
         import decimal
         import fractions
-        import pathlib
-        import pdb
-        import code
         import inspect
         import linecache
+        import pathlib
+        import pdb
         import re
         import sys
     if 1:   # Custom modules
-        import dpstr
         import columnize
+        import dpstr
         import f
         import trm
     if 1:   # Import symbols
@@ -192,7 +192,7 @@ if 1:  # Classes
                             # first = max(1, first - 5)
                             first = max(1, first - half)  # DP
                     except ValueError:
-                        self.error("Error in argument: %r" % arg)
+                        self.error(f"Error in argument: {arg!r}")
                         return
                 elif self.lineno is None or arg == ".":
                     # first = max(1, self.curframe.f_lineno - 5)
@@ -444,7 +444,7 @@ if 1:  # Find symbols
         for name, module in sys.modules.items():
             if hasattr(module, '__file__') and module.__file__:
                 try:
-                    with open(module.__file__, 'r', errors='ignore') as f:
+                    with open(module.__file__, errors='ignore') as f:
                         if symbol in f.read():
                             print(f"Found {symbol!r} in: {name} ({module.__file__})")
                 except Exception:

@@ -500,7 +500,8 @@ if __name__ == "__main__":
             # Use mpmath (http://mpmath.org/) to generate the numbers to test
             # against.  Assume mpmath's algorithms are correct.
             import mpmath as mp
-            from lwtest import run, raises, Assert
+
+            from lwtest import Assert, raises, run
         if 1:  # Global variables
             getcontext = decimal.getcontext
             localcontext = decimal.localcontext

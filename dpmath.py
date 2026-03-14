@@ -11,14 +11,13 @@ if 1:  # Header
         import random
         import re
         import string
-        import sys
     if 1:  # Custom imports
         import dpseq
         import dptypes
         import f
         import u
         try:
-            from uncertainties import UFloat    
+            from uncertainties import UFloat
             _have_unc = True
         except ImportError:
             _have_unc = False
@@ -60,7 +59,7 @@ if 1:  # Classes
         ∞∞3 Should compare to bitarray and toss if outdated
         '''
         def __repr__(self):
-            return "bitvector({})".format(self)
+            return f"bitvector({self})"
         def _validate_slice(self, slice):
             '''Check the slice object for valid values; raises an IndexError if
             it's improper.  Return (start, stop) where the values are valid
@@ -91,8 +90,8 @@ if 1:  # Classes
             else:
                 try:
                     index = int(key)
-                except Exception:
-                    raise IndexError("'{}' is an invalid index".format(key))
+                except Exception as e:
+                    raise IndexError(f"'{key}' is an invalid index") from e
                 if index < 0:
                     raise ValueError("Negative bit index not allowed")
                 return bitvector((self & 2**index) >> index)
@@ -253,7 +252,7 @@ if 1:  # Ellipse circumference
             s += m*math.pow(x - y, 2)
             if debug:
                 val = math.pi*(math.pow(a + b, 2) - s)/(x + y)
-                t.print(f"{t.dbg}EllipseCircumference({A}, {B}, {val}")
+                print(f"EllipseCircumference({A}, {B}, {val}")
         return math.pi*(math.pow(a + b, 2) - s)/(x + y)
 if 1:  # RoundOff, SigFig, TemplateRound, Pound
     def RoundOff(number, digits=12, convert=False):
@@ -446,7 +445,7 @@ if 1:  # Core functions
         'Ceiling function for type fp:  float, flt, mpf, Decimal'
         if fp is float or fp is flt:
             return int(math.ceil(x))
-        elif have_mpmath and fp is mpmath.mpf:
+        elif _have_mpmath and fp is mpmath.mpf:
             return int(mpmath.ceil(x))
         elif fp is decimal.Decimal and x is decimal.Decimal:
             return int(x.to_integral_exact(rounding=decimal.ROUND_CEILING))
@@ -456,7 +455,7 @@ if 1:  # Core functions
         'Base 2 logarithm function for type fp:  float, flt, mpf, Decimal'
         if fp is float or fp is flt:
             return math.log2(x)
-        elif have_mpmath and fp is mpmath.mpf:
+        elif _have_mpmath and fp is mpmath.mpf:
             return mpmath.log(x)/mpmath.log(2)
         elif fp is decimal.Decimal:
             assert x is decimal.Decimal
@@ -590,14 +589,12 @@ if 1:  # Core functions
         s, sign, n = "0123456789abcdefghijklmnopqrstuvwxyz", "", abs(num)
         if num < 0:
             sign, num = "-", abs(num)
-        d, in_base = dict(zip(range(len(s)), list(s))), ""
+        d, in_base = dict(zip(range(len(s)), list(s), strict=True)), ""
         while num:
             num, rem = divmod(num, base)
             in_base = d[rem] + in_base
         if check_result and int(in_base, base) != n:
-            raise ArithmeticError(
-                "Base conversion failed for %d to base %d" % (num, base)
-            )
+            raise ArithmeticError(f"Base conversion failed for {num} to base {base}")
         return sign + in_base
     def Int(s):
         '''Convert the string (or bytes) s to an integer.  Allowed forms are:
@@ -672,8 +669,8 @@ if 1:  # Core functions
         for i, c in enumerate(y):
             try:
                 val = base2int.digits.index(c)
-            except Exception:
-                raise ValueError(f"'{c}' not a valid character for base {base}")
+            except Exception as e:
+                raise ValueError(f"'{c}' not a valid character for base {base}") from e
             n += val*(base**i)
         return n
     def int2bin(n, numbits=32):
@@ -709,7 +706,7 @@ if 1:  # Core functions
         '''
         # Algorithm from http://rosettacode.org/wiki/Gray_code#Python
         b = [int(i) for i in bits]
-        g = b[:1] + [i ^ ishift for i, ishift in zip(b[:-1], b[1:])]
+        g = b[:1] + [i ^ ishift for i, ishift in zip(b[:-1], b[1:], strict=True)]
         return "".join([str(i) for i in g])
     def gray2bin(bits):
         '''bits will be a string representing a Gray-encoded binary number.
@@ -732,7 +729,7 @@ if 1:  # Core functions
         '1 5/4' is returned as Fraction(9, 4).
         '''
         if "/" not in s:
-            raise ValueError("'%s' must contain '/'" % s)
+            raise ValueError(f"{s!r} must contain '/'")
         t = s.strip()
         # First, try to convert the string to a Fraction object
         try:
@@ -741,7 +738,7 @@ if 1:  # Core functions
             pass
         # Assume it's of the form 'm[ +-]n/d' where m, n, d are
         # integers.
-        msg = "'%s' is not of the correct form" % s
+        msg = f"{s!r} is not of the correct form"
         neg = True if t[0] == "-" else False
         fields = t.replace("+", " ").replace("-", " ").strip().split()
         if len(fields) != 2:
@@ -750,8 +747,8 @@ if 1:  # Core functions
             ip = abs(int(fields[0]))
             fp = abs(Fraction(fields[1]))
             return -(ip + fp) if neg else ip + fp
-        except ValueError:
-            raise ValueError(msg)
+        except ValueError as e:
+            raise ValueError(msg) from e
     def ProperFraction(fraction, separator=" "):
         '''Return the Fraction object fraction in a proper fraction string
         form.
@@ -763,7 +760,7 @@ if 1:  # Core functions
         sgn = "-" if fraction < 0 else ""
         n, d = abs(fraction.numerator), abs(fraction.denominator)
         ip, numerator = divmod(n, d)
-        return "{}{}{}{}/{}".format(sgn, ip, separator, numerator, d)
+        return f"{sgn}{ip}{separator}{numerator}/{d}"
     def mantissa(x, digits=6):
         '''Return the mantissa of the base 10 logarithm of x rounded to the
         indicated number of digits.
@@ -780,7 +777,7 @@ if 1:  # Core functions
         number x.  sign is -1 or 1, significand is a float, and exponent is an
         integer.
         '''
-        s = ("%%.%de" % digits) % abs(float(x))
+        s = f"{abs(float(x)):.{digits}e}"
         return (1 - 2*(x < 0), float(s[0 : digits + 2]), int(s[digits + 3 :]))
     def signum(x, return_type=int):
         'Return a number -1, 0, or 1 representing the sign of x'
@@ -1121,36 +1118,37 @@ if 1:   # Stuff from util.py
         n = randq(seed=seed) if seed != -1 else randq()
         return n/float(randq.maxidum)
     def SignificantFiguresS(value, digits=3, exp_compress=True):
-        '''Returns a string representing the number value rounded to a specified number of significant
-        figures.  The number is converted to a string, then rounded and returned as a string.  If you
-        want it back as a number, use float() on the string.  If exp_compress is true, the exponent has
-        leading zeros removed.
+        '''Returns a string representing the number value rounded to a specified number
+        of significant figures.  The number is converted to a string, then rounded and
+        returned as a string.  If you want it back as a number, use float() on the
+        string.  If exp_compress is true, the exponent has leading zeros removed.
         
-        The following types of printouts can be gotten using this function and native python formats:
+        The following types of printouts can be gotten using this function and native
+        python formats:
         
             A              B               C               D
         3.14e-12       3.14e-012       3.14e-012       3.14e-012
         3.14e-11       3.14e-011       3.14e-011       3.14e-011
         3.14e-10       3.14e-010       3.14e-010       3.14e-010
-            3.14e-9       3.14e-009       3.14e-009       3.14e-009
-            3.14e-8       3.14e-008       3.14e-008       3.14e-008
-            3.14e-7       3.14e-007       3.14e-007       3.14e-007
-            3.14e-6       3.14e-006       3.14e-006       3.14e-006
-            3.14e-5       3.14e-005       3.14e-005       3.14e-005
-            3.14e-4       3.14e-004        0.000314        0.000314
-            3.14e-3       3.14e-003         0.00314         0.00314
-            3.14e-2       3.14e-002          0.0314          0.0314
-            3.14e-1       3.14e-001           0.314           0.314
-            3.14e+0       3.14e+000            3.14            3.14
-            3.14e+1       3.14e+001            31.4            31.4
-            3.14e+2       3.14e+002             314           314.0
-            3.14e+3       3.14e+003       3.14e+003          3140.0
-            3.14e+4       3.14e+004       3.14e+004         31400.0
-            3.14e+5       3.14e+005       3.14e+005        314000.0
-            3.14e+6       3.14e+006       3.14e+006       3140000.0
-            3.14e+7       3.14e+007       3.14e+007      31400000.0
-            3.14e+8       3.14e+008       3.14e+008     314000000.0
-            3.14e+9       3.14e+009       3.14e+009    3140000000.0
+        3.14e-9        3.14e-009       3.14e-009       3.14e-009
+        3.14e-8        3.14e-008       3.14e-008       3.14e-008
+        3.14e-7        3.14e-007       3.14e-007       3.14e-007
+        3.14e-6        3.14e-006       3.14e-006       3.14e-006
+        3.14e-5        3.14e-005       3.14e-005       3.14e-005
+        3.14e-4        3.14e-004        0.000314        0.000314
+        3.14e-3        3.14e-003         0.00314         0.00314
+        3.14e-2        3.14e-002          0.0314          0.0314
+        3.14e-1        3.14e-001           0.314           0.314
+        3.14e+0        3.14e+000            3.14            3.14
+        3.14e+1        3.14e+001            31.4            31.4
+        3.14e+2        3.14e+002             314           314.0
+        3.14e+3        3.14e+003       3.14e+003          3140.0
+        3.14e+4        3.14e+004       3.14e+004         31400.0
+        3.14e+5        3.14e+005       3.14e+005        314000.0
+        3.14e+6        3.14e+006       3.14e+006       3140000.0
+        3.14e+7        3.14e+007       3.14e+007      31400000.0
+        3.14e+8        3.14e+008       3.14e+008     314000000.0
+        3.14e+9        3.14e+009       3.14e+009    3140000000.0
         3.14e+10       3.14e+010       3.14e+010   31400000000.0
         3.14e+11       3.14e+011       3.14e+011  314000000000.0
         3.14e+12       3.14e+012       3.14e+012       3.14e+012
@@ -1164,9 +1162,9 @@ if 1:   # Stuff from util.py
             msg = "Number of significant figures must be >= 1 and <= 15"
             raise ValueError(msg)
         sign, significand, exponent = SignSignificandExponent(float(value))
-        fmt = "%%.%df" % (digits - 1)
+        fmt = f"%.{digits - 1:d}f"
         neg = "-" if sign < 0 else ""
-        e = "e%+d" % exponent if exp_compress else "e%+04d" % exponent
+        e = f"e{exponent:+d}" if exp_compress else f"e{exponent:+04d}"
         return neg + (fmt % significand) + e
     def SignificantFigures(value, figures=3):
         "Rounds a value to specified number of significant figures.  Returns a float."
@@ -1179,7 +1177,7 @@ if 1:  # Simple linear regression
         n, sx, sy = len(x), sum(x), sum(y)
         sXX = sum([i*i for i in x])
         sYY = sum([i*i for i in y])
-        sXY = sum([i*j for i, j in zip(x, y)])
+        sXY = sum([i*j for i, j in zip(x, y, strict=True)])
         m = flt((n*sXY - sx*sy)/(n*sXX - sx**2))
         b = flt((sy - m*sx)/n)
         Rsquared = flt((n*sXY - sx*sy)**2/((n*sXX - sx**2)*(n*sYY - sy**2)))
@@ -1283,7 +1281,7 @@ if __name__ == "__main__":
         # Generate a few random integers and check the results with
         # python's int() built-in.
         for base in range(2, 37):
-            for i in range(100):
+            for _ in range(100):
                 x = random.randint(0, int(1e6))
                 # Note the following call also checks the result
                 DecimalToBase(x, base, check_result=True)
@@ -1386,7 +1384,7 @@ if __name__ == "__main__":
         s = "9"
         bv = bitvector(s)
         Assert(str(bv) == s)
-        Assert(repr(bv) == "bitvector({})".format(s))
+        Assert(repr(bv) == f"bitvector({s})")
         binary = bin(int(s))[2:] + "0"*8
         for i, value in enumerate(binary):
             Assert(bv[i] == int(value))
@@ -1777,9 +1775,9 @@ if __name__ == "__main__":
             Assert(s == t)
         def Test_randq():
             s = [randq(seed=0)]
-            for i in range(10):
+            for _ in range(10):
                 s.append(randq())
-            s = ["%08X" % i for i in s]
+            s = [f"{i:08X}" for i in s]
             # Hex strings from "Numerical Recipes in C", page 284
             t = [
                 "3C6EF35F",

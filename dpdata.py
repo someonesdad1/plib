@@ -12,11 +12,9 @@ if 1:  # Header
         import getopt
         import os
         import pathlib
-        import re
         import sys
     if 1:   # Custom imports
         import columnize
-        import dpstr
         import dptypes
         import f
         import trm
@@ -132,8 +130,9 @@ if __name__ == "__main__":
         d = {}  # Options dictionary
         args = ParseCommandLine(d)
         if args:
-            for arg in args:
-                pass    # Do stuff
+            pass
+            #for arg in args:
+            #    pass
     else:   # For module
         def Demo():
             pass

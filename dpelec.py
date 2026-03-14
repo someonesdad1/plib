@@ -92,7 +92,7 @@ if 1:   # From util.py
 
 if __name__ == "__main__":  
     import dpmath
-    from lwtest import run, raises, Assert
+    from lwtest import Assert, run
     def Test_AWG():
         Assert(dpmath.AlmostEqual(AWG(12), 0.0808, 8e-4))
     def Test_Ampacity():
