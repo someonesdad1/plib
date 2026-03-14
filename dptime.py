@@ -200,7 +200,7 @@ if 1:  # Functions
         days_per_month = {1: 31, 2: 28, 3: 31, 4: 30, 5: 31, 6: 30, 7: 31, 8: 31,
             9: 30, 10: 31, 11: 30, 12: 31}
         if isinstance(month, str):
-            n = g.months_lc(month[:3].lower())
+            n = Num2Month_lc(month[:3].lower())
         elif isinstance(month, int):
             n = month
         return days_per_month[n] + bool(leap_year)
@@ -209,11 +209,11 @@ if 1:  # Functions
         u = s.replace(" ", "")
         u = "0" + u if len(u) == 8 else u
         day = int(u[:2])
-        month = g.months(u[2:5])
+        month = Month2Num_lc(u[2:5].lower())
         year = int(u[5:])
         return datetime.date(year, month, day)
 if 1:  # Timer stuff
-    class Timer(object):
+    class Timer:
         '''Use an instance of this object to time events in code.  Note this design is inherently
         not thread-safe.  Usage patterns:
         
@@ -274,18 +274,18 @@ if 1:  # Timer stuff
         def __call__(self, func):
             'Return execution time in engineering notation for seconds'
             def f(*args, **kw):
-                self.start
+                self.start  # noqa
                 retval = func(*args, **kw)
-                self.stop
+                self.stop   # noqa
                 print(f"{str(func)} time = {self.et.engsi}s")
                 return retval
             return f
         # Context manager functionality
         def __enter__(self):
-            self.start
+            self.start  # noqa
             return self
         def __exit__(self, exc_type, exc_value, exc_tb):
-            self.stop
+            self.stop   # noqa
         # Properties
         @property
         def cont(self):
@@ -307,7 +307,7 @@ if 1:  # Timer stuff
                 raise ValueError("No accumulated data")
             # Calculate elapsed time by subtracting stop/start times.  self._start and self._stop
             # are lists of start and stop times as Decimal instances.
-            T = zip(self._stop, self._start)
+            T = zip(self._stop, self._start, strict=True)
             t = [stop - start for stop, start in T]
             assert all(i >= 0 for i in t)
             # Sum the interval durations (a Decimal result)
@@ -353,7 +353,7 @@ if 1:  # Timer stuff
             if self._state != "init":
                 raise ValueError("Use self.clear() before setting u")
             self._u = decimal.Decimal(value)
-    class Stopwatch(object):
+    class Stopwatch:
         '''Timer that returns a flt of the elapsed time in seconds from when it was started.
         Example usage:
             sw = Stopwatch()
@@ -370,7 +370,7 @@ if 1:  # Timer stuff
         def reset(self):
             "Start the timer over; handy so an instance can be reused"
             self._start = time.time()
-    class FilenameTime(object):
+    class FilenameTime:
         def __init__(self):
             pass
         def __call__(self, short=False):
@@ -392,7 +392,7 @@ if 1:  # Timer stuff
                 )
             return s
 if 1:  # ISO class:  gives current date and time in standard ISO format
-    class ISO(object):
+    class ISO:
         def __init__(self, zulu=False, rm_zero=True):
             "Initialize with now.  If zulu is True, use GMT."
             self._tm = time.gmtime() if zulu else time.localtime()
