@@ -92,6 +92,7 @@ if 1:   # Header
         import collections
         import fractions
         import importlib
+        import io
         import itertools
         import os
         import pathlib
@@ -105,17 +106,19 @@ if 1:   # Header
         import time
     if 1:   # Custom imports
         import asciify
-        import dptypes
         import dpseq
+        import dptypes
         import f
         import trm
         import wrap
+        import wsl
         if 0:
             import debug
             debug.SetDebugger()
     if 1:   # Import symbols
         Fraction = fractions.Fraction
         Path = pathlib.Path
+        StringIO = io.StringIO
         TextWrapperOrig = textwrap.TextWrapper
         defaultdict = collections.defaultdict
         deque = collections.deque
@@ -123,16 +126,18 @@ if 1:   # Header
         #
         flt = f.flt
         dedent = wrap.dedent
+        wsl = wsl.wsl
     if 1:   # Global variables
         g = dptypes.Constant()
         g.nl = "\n"
         g.cr = "\r"
         g.sp = " "
         try:
-            re.NOFLAG
-            g.noflag = re.NOFLAG
+            with g:
+                g.noflag = re.NOFLAG
         except Exception:
-            g.noflag = 0
+            with g:
+                g.noflag = 0
 if 1:   # Classes
     class NameConvert:
         'Convert programming naming styles, "Python Cookbook" pg. 91'
@@ -394,9 +399,9 @@ if 1:   # Core functionality
         if set(s) - set(string.ascii_letters):
             raise ValueError("String s must contain only ASCII letters")
         if not hasattr(soundex, "m"):
-            soundex.m = dict(
-                zip("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "01230120022455012623010202")
-            )
+            a = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            b = "01230120022455012623010202"
+            soundex.m = dict(zip(a, b, strict=True))
         # Function to map lower-case letters to soundex number
         def getnum(x):
             return [soundex.m[i] for i in x]
@@ -604,7 +609,7 @@ if 1:   # Core functionality
             # No trimming, so just count the leading space characters
             return len(GetStartingChars(s, chars=spacecharset))
         # Break into lines and count spaces on each line
-        lines = s.split(g.nl)
+        lines = x.split(g.nl)
         # Count number of leading space characters on each line
         counts = [len(GetStartingChars(line, chars=spacecharset)) for line in lines]
         return min(set(counts))
@@ -653,12 +658,14 @@ if 1:   # Core functionality
         while s[i] in S:
             i += 1
         return s[i:]
-    def FilterSeqRegex(seq, regexes=[], ANDed=True, re_flags=g.noflag):
+    def FilterSeqRegex(seq, regexes=None, ANDed=True, re_flags=g.noflag):
         '''Return a sequence of strings filtered by regexes.  The regexes are ANDed
         together by default; set ANDed to False to OR the regexes.  If the regexes are
         ORed together, no duplicates are returned.  In both cases, the returned strings
         are in the same relative order as they were in seq.
         '''
+        if regexes is None:
+            return seq
         # Only keep the strings in seq
         myseq, o = [i for i in seq if isinstance(i, str)], []
         if ANDed:
@@ -677,7 +684,7 @@ if 1:   # Core functionality
         '''
         if len(remove) != len(replacements):
             raise ValueError("remove and replacements must be the same length")
-        T = "".maketrans(dict(zip(remove, replacements)))
+        T = "".maketrans(dict(zip(remove, replacements, strict=True)))
         return lambda s: s.translate(T)
     def FindDiff(s1, s2, ignore_empty=False, equal_length=False):
         '''Returns the integer index of where the strings s1 and s2 first differ.  The
@@ -738,7 +745,7 @@ if 1:   # Core functionality
             d.append(start)
             start = mystring.find(substring, start + 1)
         return tuple(d)
-    def FindSymbol(symbol, filelist=[], ignore_case=False):
+    def FindSymbol(symbol, filelist=None, ignore_case=False):
         '''Given a string symbol, return a list of the python files in filelist that
         contain the indicated symbol.  The items in filelist can be strings or 
         pathlib.Path instances and can end in '.py' or not.
@@ -746,7 +753,7 @@ if 1:   # Core functionality
         The symbols are found by importing the python file as a module and seeing if 
         it contains the symbol.
         '''
-        if not filelist or not symbol:
+        if filelist is None or not symbol:
             return []
         found = []
         for file in filelist:
@@ -781,7 +788,7 @@ if 1:   # Core functionality
             s = s.lower() if ignore_case else s
             if s in allowed_values:
                 return s
-            print("'%s' is not a valid response" % response.strip())
+            print(f"{response.strip()!r} is not a valid response")
     def GetChoice(name, names):
         '''name is a string and names is a set or dict of strings.  Find if name
         uniquely identifies a string in names; if so, return it.  If it isn't unique,
@@ -845,19 +852,17 @@ if 1:   # Core functionality
             left_over = len(string) - struct.calcsize(fields)
             if left_over < 0:
                 raise ValueError("string is shorter than requested format")
-            format = "%s %ds" % (fields, left_over)
+            format = f"{fields} {left_over}s"
             s = bytes(string.encode("ascii"))
             result = list(struct.unpack(format, s))
             return result if remainder else result[:-1]
         else:
-            pieces = [string[i:j] for i, j in zip([0] + fields, fields)]
+            pieces = [string[i:j] for i, j in zip([0] + fields, fields)]    # noqa
             if remainder:
                 pieces.append(string[fields[-1] :])
             num_expected = len(fields) + 1
             if num_expected != len(pieces) and strict:
-                raise ValueError(
-                    "Expected %d pieces; got %d" % (num_expected, len(pieces))
-                )
+                raise ValueError(f"Expected {num_expected} pieces; got {len(pieces)}")
             return pieces
     def ListInColumns(alist, col_width=0, num_columns=0, space_betw=0, truncate=0):
         '''Returns a list of strings with the elements of alist (if components are not
@@ -916,7 +921,7 @@ if 1:   # Core functionality
                         if truncate:
                             s += str(alist[i])[:col_width] + " "*space_betw
                         else:
-                            raise ValueError("Error: element %d too long" % i)
+                            raise ValueError(f"Error: element {i} too long")
                     else:
                         s += (
                             str(alist[i])
@@ -952,9 +957,9 @@ if 1:   # Core functionality
         if code:
             try:
                 compile(line, "", "single")
-            except Exception:
-                msg = "Line with comment removed won't compile:\n  '%s'" % orig
-                raise ValueError(msg)
+            except Exception as e:
+                msg = f"Line with comment removed won't compile:\n  {orig!r}"
+                raise ValueError(msg) from e
         return line
     def SpellCheck(input, words, ignore_case=True):
         '''input is a sequence of word strings; words is a dictionary or set
@@ -1263,7 +1268,7 @@ if 1:   # Core functionality
             r = range(0, 0x7F)
             chars = [chr(i) for i in r]
             none = [None]*len(chars)
-            RemoveASCII.table = "".maketrans(dict(zip(chars, none)))
+            RemoveASCII.table = "".maketrans(dict(zip(chars, none, strict=True)))
         return s.translate(RemoveASCII.table)
     def IgnoreFilter(regex_seq, ignore_case=False):
         '''Return a function which removes ignored strings.  regex_seq is a sequence of
@@ -1645,7 +1650,7 @@ if 1:   # Core functionality
             '''
             lines = []
             if self.width <= 0:
-                raise ValueError("invalid width %r (must be > 0)" % self.width)
+                raise ValueError(f"Invalid width {self.width!r} (must be > 0)")
             if self.max_lines is not None:
                 if self.max_lines > 1:
                     indent = self.subsequent_indent
@@ -1938,19 +1943,21 @@ if 1:   # Old util stuff
         os.chdir(cwd)
 
 if __name__ == "__main__":
-    import lwtest
-    from lwtest import run, raises, Assert, assert_equal
-    import math
-    import os
-    from sig import sig
-    # ∞∞2 Get rid of sig
-    run = lwtest.run
-    raises = lwtest.raises
-    Assert = lwtest.Assert
-    t = trm.Trm()
+    if 1:   # Standard imports
+        import math
+        import os
+    if 1:   # Custom imports
+        import lwtest
+        from sig import sig
+        # ∞∞2 Get rid of sig
+    if 1:   # Import symbols
+        Assert = lwtest.Assert
+        assert_equal = lwtest.assert_equal
+        raises = lwtest.raises
+        run = lwtest.run
+        t = trm.Trm()
     def Test_RegexpDecorate():
         # ∞∞1 Need to write this test case
-        u = trm.Trm(default=2)
         lwtest.ToDoMessage("Need to write test")
     def Test_Decorate():
         s = "www \t\n\r\f\vzzz"
@@ -2434,7 +2441,7 @@ if __name__ == "__main__":
             Assert(f(" \n\n\n", trim_start=False, trim_end=False) == 1)
             Assert(f("  \n", trim_start=False, trim_end=False) == 2)
         if 1:   # Show it works for left trimming
-            Assert(f(" ", trim_start=True, trim_end=False) == 1)
+            Assert(f(" ", trim_start=True, trim_end=False) == 0)
             Assert(f(" \n", trim_start=True, trim_end=False) == 0)
             Assert(f("  \n", trim_start=True, trim_end=False) == 0)
             Assert(f("   \n", trim_start=True, trim_end=False) == 0)
@@ -2442,12 +2449,11 @@ if __name__ == "__main__":
             Assert(f("  \n ", trim_start=True, trim_end=False) == 1)
             Assert(f("  \n  ", trim_start=True, trim_end=False) == 2)
         if 1:   # Show it works for right trimming
-            Assert(f(" ", trim_start=False, trim_end=True) == 1)
+            Assert(f(" ", trim_start=False, trim_end=True) == 0)
             Assert(f("\n  ", trim_start=False, trim_end=True) == 0)
             Assert(f(" \n  ", trim_start=False, trim_end=True) == 1)
             Assert(f("  \n  ", trim_start=False, trim_end=True) == 2)
     def Test_FindSymbol():
-        symbol = "FindSymbol"
         filelist = ["dpstr.py"]
         found = FindSymbol("FindSymbol", filelist=filelist)
         Assert(found == ['dpstr.py'])
@@ -2546,7 +2552,7 @@ if __name__ == "__main__":
             Check(s, b, a, "w", "∞D\n:", e, bytearray(e))
         if 1:   # 7
             s, b, a = mk("∞©a(.;38fzK~")
-            e = "a(.;38fzK~".encode()
+            e = b"a(.;38fzK~"
             Check(s, b, a, "7", "a(.;38fzK~", e, bytearray(e))
         if 1:   # 8
             u = "a∞ăĂāĀÿ"
@@ -2561,86 +2567,6 @@ if __name__ == "__main__":
             f("", keys=keys)
             raises(ValueError, f, "", keys=keys + ["x"])
     if 1:   # Test old util stuff
-        def Test_StringToNumbers():
-            s = "4j 3/5 6. 7"
-            Assert(StringToNumbers(s) == (4j, Fraction(3, 5), 6.0, 7))
-        def Test_RemoveIndent():
-            s = '''
-            This is a test
-                Second line
-            Third line
-            '''
-            lines = RemoveIndent(s, numspaces=8).split("\n")
-            Assert(lines[0] == "")
-            Assert(lines[1] == "This is a test")
-            Assert(lines[2] == "    Second line")
-            Assert(lines[3] == "  Third line")
-            Assert(lines[4] == "")
-        def Test_GetLeadingString():
-            if 1:   # GetLeadingString
-                f = GetLeadingString
-                # Test with bytes
-                Assert(f(b'zzzHi', prefix=b'z') == b'zzz') 
-                # Test with string
-                s = 'zzzHi'
-                Assert(f(s, prefix='z') == 'zzz') 
-                Assert(f(s, prefix='zz') == 'zz') 
-                Assert(f(s, prefix='zzz') == 'zzz') 
-                Assert(f('ababHi', prefix='ab') == 'abab') 
-                Assert(f('abbaHi', prefix='ab') == 'ab') 
-            if 1:   # GetTrailingString
-                f = GetTrailingString
-                # Test with bytes
-                Assert(f(b'Hizzz', suffix=b'z') == b'zzz') 
-                # Test with string
-                s = 'Hizzz'
-                Assert(f(s, suffix='z') == 'zzz') 
-                Assert(f(s, suffix='zz') == 'zz') 
-                Assert(f(s, suffix='zzz') == 'zzz') 
-                Assert(f('Hiabab', suffix='ab') == 'abab') 
-                Assert(f('Hiabba', suffix='ba') == 'ba') 
-        def Test_GetHash():
-            lwtest.ToDoMessage("Need to write test")
-        def Test_EBCDIC():
-            a2e, e2a = EBCDIC()
-            # Show that these byte translation tables are inverses
-            a = bytearray(range(256))
-            e = a.translate(a2e)
-            a1 = e.translate(e2a)
-            Assert(a == a1)
-        def Test_ConvertToNumber():
-            Assert(ConvertToNumber("1+i") == 1 + 1j)
-            Assert(ConvertToNumber("1+j") == 1 + 1j)
-            Assert(ConvertToNumber("j") == 1j)
-            Assert(ConvertToNumber("1.") == 1)
-            Assert(ConvertToNumber("1e2") == 1e2)
-            Assert(ConvertToNumber("1E2") == 1e2)
-            Assert(ConvertToNumber("1/2") == Fraction(1, 2))
-            Assert(ConvertToNumber("1") == 1)
-            n = 10**50  # Large integer
-            Assert(ConvertToNumber(str(n)) == n)
-        def Test_alen_astr():
-            # Note the Unicode '∞' in the third line.
-            tststring = dedent('''
-            [1;37;42mstring1[0m
-            string2
-            [1;36mstring3∞[0m''')
-            for i, s in enumerate(tststring.split("\n")):
-                a = astr(s)
-                if i in (0, 1):
-                    assert_equal(len(a), 7)
-                    assert_equal(alen(s), 7)
-                else:
-                    assert_equal(len(a), 8)
-                    assert_equal(alen(s), 8)
-        def Test_Len_ANSI_strip():
-            "Also test ANSI_strip"
-            s = "hello world"
-            Assert(Len(s) == 11)
-            s = "\x1b[38;2;198;174;239m12.578\x1b[38;2;192;192;192m\x1b[48;2;0;0;0m\x1b[0m"
-            Assert(Len(s) == 6)
-            u = ANSI_strip(s)
-            Assert(u == "12.578")
         def Test_StringToNumbers():
             s = "4j 3/5 6. 7"
             Assert(StringToNumbers(s) == (4j, Fraction(3, 5), 6.0, 7))
