@@ -1,3 +1,62 @@
+'''
+Lightweight testrunner framework
+
+from lwtest import run, raises, assert_equal, Assert, Debugger
+
+def TestExample():
+    f = lambda x: set(x)
+    # Two ways to check for expected exceptions
+    raises(TypeError, f, 1)
+    with raises(ZeroDivisionError) as x:
+        1/0
+    Assert(x.value = "<class 'ZeroDivisionError'>")
+    if 1:   # How to compare floating point numbers
+        eps = 1e-6
+        a, b = 1, 1 + eps
+        # In following, debug=True starts debugger if a != b
+        assert_equal(a, b, abstol=eps, debug=True)
+        # Set Assert.debug to True to always drop into debugger
+
+if __name__ == "__main__":
+    failed, messages = run(globals())
+or 
+    exit(run(globals(), halt=True)[0])
+
+run()
+    Finds test functions and execute them.  Its single argument must be a dictionary
+    containing the names and their associated function objects.  Set verbose=True to see
+    which functions will be executed and their execution order.
+
+Assert() 
+    Works like python's assert statement, but can drop you into the debugger if so
+    instructed.  Type 'up' to go to the failed Assert() line.  Since dropping into the
+    debugger is a common need, there are multiple ways:
+
+        - Set the debug keyword to True
+        - Include a command line argument
+        - Set Assert.debug to True
+        - Set the environment variable 'Assert' to the nonempty string
+
+    Note Assert() and assert_equal() do not pay attention to __debug__, unlike
+    python's assert statement.
+
+ToDoMessage()
+    Causes a colored message to be printed to stdout to remind you of something that
+    needs to be done.
+
+My motivation for generating this lightweight testrunner framework was my frustration
+with the unittest module in conjunction with the way I develop code.  I write my unit
+tests before or during code development and often need to drop into the debugger or add
+a print statement to see what's going wrong.  The unittest module traps stdout and makes
+this painful to do.  I liked some of the available testrunners like nose or pytest, but
+I decided that if I was going to add a new dependency, it might as well be a dependency
+I could tune to my own preferences.  The other major desire was to allow fairly
+comprehensive coverage of comparing numerical results.
+
+This tool was derived from some nice code by Raymond Hettinger 8 May 2008:
+http://code.activestate.com/recipes/572194/.  I'm grateful Raymond put it out there for
+other folks.
+'''
 if 1:  # Header
     _pgminfo = '''
         <oo gist ∞ Lightweight test runner oo>
@@ -85,68 +144,6 @@ if 1:  # Header
         u.exp = u.orn
         u.msg = u.mag
         _modname = "<lwtest.py>"
-        __doc__ = dedent('''
-            Lightweight testrunner framework
-                from lwtest import run, raises, assert_equal, Assert, Debugger
-            
-                def TestExample():
-                    f = lambda x: set(x)
-                    # Two ways to check for expected exceptions
-                    raises(TypeError, f, 1)
-                    with raises(ZeroDivisionError) as x:
-                        1/0
-                    Assert(x.value = "<class 'ZeroDivisionError'>")
-                    # How to compare floating point numbers
-                    eps = 1e-6
-                    a, b = 1, 1 + eps
-    
-                    # In following, debug=True starts debugger if a != b
-                    assert_equal(a, b, abstol=eps, debug=True)
-                    # Set Assert.debug to True to always drop into debugger
-            
-                if __name__ == "__main__":
-                    failed, messages = run(globals())
-                or 
-                    exit(run(globals(), halt=True)[0])
-            
-                run()
-                    Finds test functions and execute them.  Its single argument must be a
-                    dictionary containing the names and their associated function objects.
-                    Set verbose=True to see which functions will be executed and their
-                    execution order.
-            
-                Assert() 
-                    Works like python's assert statement, but can drop you into the debugger
-                    if so instructed.  Type 'up' to go to the failed Assert() line.  Since
-                    dropping into the debugger is a common need, there are multiple ways:
-    
-                        - Set the debug keyword to True
-                        - Include a command line argument
-                        - Set Assert.debug to True
-                        - Set the environment variable 'Assert' to the nonempty
-                        string
-    
-                    Note Assert() and assert_equal() do not pay attention to __debug__,
-                    unlike python's assert statement.
-            
-                ToDoMessage()
-                    Causes a colored message to be printed to stdout to remind you of
-                    something that needs to be done.
-            
-                My motivation for generating this lightweight testrunner framework was my
-                frustration with the unittest module in conjunction with the way I develop
-                code.  I write my unit tests before or during code development and often
-                need to drop into the debugger or add a print statement to see what's going
-                wrong.  The unittest module traps stdout and makes this painful to do.  I
-                liked some of the available testrunners like nose or pytest, but I decided
-                that if I was going to add a new dependency, it might as well be a
-                dependency I could tune to my own preferences.  The other major desire was
-                to allow fairly comprehensive coverage of comparing numerical results.
-            
-                This tool was derived from some nice code by Raymond Hettinger 8 May 2008:
-                http://code.activestate.com/recipes/572194/.  I'm grateful Raymond put it
-                out there for other folks.
-            ''')
         __all__ = [
             "Assert",
             "ToDoMessage",

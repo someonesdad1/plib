@@ -15,11 +15,6 @@ if 1:   # Header
         import threading
     if 1:   # Custom imports
         pass
-    if 1:   # Import symbols
-        defaultdict = collections.defaultdict
-        deque = collections.deque
-        MultiprocessingLock = multiprocessing.Lock
-        ThreadingLock = threading.Lock
     if 1:   # Global variables
         pass
 if 1:   # class Bidict:  A dictionary that is an invertible function
@@ -165,7 +160,7 @@ if 1:   # class CommandDecode:  Decode user command strings
             # Build index dictionary; each key is the first letter of the
             # command and each element is a list of commands that have that
             # first letter.
-            self.index = defaultdict(list)
+            self.index = collections.defaultdict(list)
             for cmd in self.commands:
                 first_char = cmd[0]
                 self.index[first_char].append(cmd)
@@ -318,7 +313,7 @@ if 1:   # class SlushDict:  a dictionary that is hashable (use with care)
                 di["one"] = 4   # This change works
         The concept of a frozen dictionary has been added to the plans for python 3.15.
         Until then, use this class with care, knowing about the problems of storing hashable
-        items in the data structure.  For a slightly more bullet-resistance implementation,
+        items in the data structure.  For a slightly more bullet-resistant implementation,
         you can wrap a dict in a types.MappingProxyType.
         '''
         def __init__(self, *p, **kw):
@@ -377,8 +372,8 @@ if 1:   # class Stack
     class StackLock:
         "This is a context manager for the needed locks"
         def __init__(self):
-            self.mlock = MultiprocessingLock()
-            self.tlock = ThreadingLock()
+            self.mlock = multiprocessing.Lock()
+            self.tlock = threading.Lock()
             self.state = "not locked"
         def __enter__(self):
             self.mlock.acquire()
@@ -392,7 +387,7 @@ if 1:   # class Stack
             # Returning None means any exception is passed on to the following
             # code
             return None
-    class Stack(deque):
+    class Stack(collections.deque):
         '''Stack implements a stack with the methods
             push
             pop
@@ -490,7 +485,6 @@ if __name__ == "__main__":
     import sys
 
     import lwtest
-    deque = collections.deque
     run = lwtest.run
     Assert = lwtest.Assert
     raises = lwtest.raises
@@ -779,7 +773,7 @@ if __name__ == "__main__":
             'Can set items to mutable objects without an exception'
             # Nonhashable objects cause a TypeError
             c = Constant_Init()
-            for i in ([], {}, set(), deque([])):
+            for i in ([], {}, set(), collections.deque([])):
                 with raises(TypeError):
                     c.x = i
             # If strict is False, then OK to store hashable items

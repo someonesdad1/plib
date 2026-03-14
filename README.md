@@ -3,6 +3,10 @@
 # /plib vision
 
 - Strategic
+    - Move to a clean "import math" and "math.pi" usage in my python files.  Avoid "from
+      x import y", which has higher risk of circular imports.  Minimize my definitions
+      of import symbols.
+    - /plib/tests will hold module tests
     - Makefile to help with testing/checking
         - 'make' prints key targets to use:
             - 'make check':  lints & type checks
@@ -14,6 +18,8 @@
         - Move "test" to "tests"
             - All self tests then run by 'make test' at top level, which simply cd's to
               tests and runs make or a testing script
+        - Need to support 'make z'; this would cause the test of the current file in .z
+          to be run
     - Move /plib/pgm to /pgm
         - Makes /plib a core set of python library files
     - Core library stuff is type annotated
