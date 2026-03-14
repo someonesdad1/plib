@@ -17,35 +17,19 @@ if 1:  # Header
         import columnize
         import dptypes
         import f
-        import trm
-        import wrap
         if 0:
             import debug
             debug.SetDebugger()
-    if 1:   # Import symbols
-        Path = pathlib.Path
-        defaultdict = collections.defaultdict
-        deque = collections.deque
-        namedtuple = collections.namedtuple
-        #
-        Columnize = columnize.Columnize
-        Constant = dptypes.Constant
-        dedent = wrap.dedent
-        flt = f.flt
-        SlushDict = dptypes.SlushDict
-        t = trm.Trm()
     if 1:   # Global variables
-        g = Constant()
+        g = dptypes.Constant()
         g.dbg = False
-if 1:   # Classes
-    pass
 if 1:   # Functions
     def GetCategoryNames_di():
         '''Return a dict of category names allowed in gists
         key     <= 4 letter abbreviation
         value   Description of use
         '''
-        return SlushDict({
+        return dptypes.SlushDict({
             "astr": "Astronomy",
             "clr" : "Color",
             "data": "Data for module/script tasks",
@@ -64,10 +48,14 @@ if __name__ == "__main__":
         pass
     if 1:   # Custom imports
         import lwtest
+        import trm
+        import wrap
     if 1:   # Import symbols
-        run = lwtest.run
-        raises = lwtest.raises
         Assert = lwtest.Assert
+        dedent = wrap.dedent
+        raises = lwtest.raises
+        run = lwtest.run
+        t = trm.Trm()
     if 1:   # Utility
         def GetScreen():
             'Return (LINES, COLUMNS)'

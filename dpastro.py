@@ -16,10 +16,6 @@ if 1:  # Header
         if 0:
             import debug
             debug.SetDebugger()
-    if 1:   # Import symbols
-        reduce = functools.reduce
-        #
-        Assert = lwtest.Assert
     if 1:   # Global variables
         g = dptypes.Constant()
         g.earth_equatorial_radius_km = 6378.14
@@ -241,7 +237,7 @@ if 1:  # Utility
         return rad2dms(x/15)
     def product(x):
         "Returns the product of the components of the iterable x"
-        return reduce(operator.mul, x)
+        return functools.reduce(operator.mul, x)
     def LinearRegression(X, Y):     # Meeus pg 36
         '''Returns a tuple (slope, intercept, correlation) from the linear regression of
         Y against X.  X and Y are sequences of the abscissas and ordinates,

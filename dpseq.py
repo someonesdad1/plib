@@ -85,23 +85,8 @@ if 1:  # Header
         if 0:
             import debugg
             debugg.SetDebugger()
-    if 1:  # Import symbols
-        Decimal = decimal.Decimal
-        Fraction = fractions.Fraction
-        Integral = numbers.Integral
-        groupby = itertools.groupby
-        count = itertools.count
-        namedtuple = collections.namedtuple
-        defaultdict = collections.defaultdict
-        zip_longest = itertools.zip_longest
-        Iterable = collections.abc.Iterable
-        itemgetter = operator.itemgetter
-        #
-        Constant = dptypes.Constant
-        dedent = wrap.dedent
-        flt = f.flt
     if 1:  # Global variables
-        g = Constant()
+        g = dptypes.Constant()
         g.dbg = False
 if 1:  # Distribute and GetClosest
     def iDistribute(n, a, b):
@@ -133,7 +118,7 @@ if 1:  # Distribute and GetClosest
             yield a
             yield b
             return
-        dx = Fraction(b - a, n - 1)
+        dx = fractions.Fraction(b - a, n - 1)
         if dx < 1:
             raise ValueError("No solution")
         for i in range(n):
@@ -549,7 +534,7 @@ if 1:  # frange, lrange, Sequence, irange, Rational
                 5, 4, 3, 2, 1,
                 1/4, 3/8, 1/2, 5/8, 3/4]
     '''
-    class Rational(Fraction):
+    class Rational(fractions.Fraction):
         '''The Rational class is a fractions.Fraction object except that it has a
         conventional proper fraction string representation.
         '''
@@ -564,7 +549,7 @@ if 1:  # frange, lrange, Sequence, irange, Rational
                     s.extend([str(ip), "-"])
                 s.extend([str(remainder), "/", str(d)])
             return "".join(s)
-    def frange(start, stop=None, step=None, return_type=float, impl=Decimal,
+    def frange(start, stop=None, step=None, return_type=float, impl=decimal.Decimal,
             strict=True, include_end=False):
         '''A floating point generator analog of range.  start, stop, and step are either
         python floats, integers, or strings representing floating point numbers (or any
@@ -639,7 +624,7 @@ if 1:  # frange, lrange, Sequence, irange, Rational
         if isinstance(start, str) and "/" in start:
             impl = return_type = Rational
         def init(x):
-            if isinstance(x, flt):
+            if isinstance(x, f.flt):
                 return impl(repr(float(x)))
             elif isinstance(x, float):
                 return impl(repr(x))
@@ -677,9 +662,9 @@ if 1:  # frange, lrange, Sequence, irange, Rational
         Example:  lrange(0, 2, mantissas=[1, 2, 5]) returns [1, 2, 5, 10, 20, 50].
         '''
         msg = "%s must be an integer"
-        if not isinstance(start_decade, Integral):
+        if not isinstance(start_decade, numbers.Integral):
             raise ValueError(msg % "start_decade")
-        if not isinstance(end_decade, Integral):
+        if not isinstance(end_decade, numbers.Integral):
             raise ValueError(msg % "end_decade")
         msg = "%s must lie in [1, 10)"
         if not (1 <= dx < 10):
@@ -782,7 +767,7 @@ if 1:   # From util
             counter.n += 1
             return counter.n // size
         counter.n = -1
-        for _, g in groupby(iterable, counter):
+        for _, g in itertools.groupby(iterable, counter):
             yield g
     def VisualCount(seq, n=None, char="*", width=None, indent=0):
         '''Return a list of strings representing a histogram of the items in the iterable seq.  If the
@@ -1075,7 +1060,7 @@ if 1:   # From util
             raise TypeError("Not all elements of seq are integers")
         # This is the same code used in the StackOverflow solution, substituting seq for L.
         # And things work again.
-        G = [list(x) for _,x in groupby(seq, lambda x,c=count(): next(c)-x)]  # noqa
+        G = [list(x) for _,x in itertools.groupby(seq, lambda x,c=itertools.count(): next(c)-x)]  # noqa
         # Convert into pairs of numbers for range()
         o = []
         for i in list(G):
@@ -1174,7 +1159,7 @@ if 1:   # From util
             if not all(type(i) is typ for i in seq):
                 return False
             # Make sure they are of the allowed types
-            if not isinstance(x, (int, float, Decimal, Fraction)):
+            if not isinstance(x, (int, float, decimal.Decimal, fractions.Fraction)):
                 try:
                     float(x)
                 except Exception:
@@ -1190,7 +1175,7 @@ if 1:   # From util
         will return
             ['1\t3 4', '2\t5', 'a\tX']
         '''
-        result = list(zip_longest(*seq, fillvalue=missing))
+        result = list(itertools.zip_longest(*seq, fillvalue=missing))
         # Convert all elements to strings
         result = [str(j) for j in result]   # ∞∞1 Broken because of lint forced change
         return [sep.join(i) for i in result]
@@ -1210,10 +1195,10 @@ if 1:   # From util
         counting container, these are considered to be the same items.  Thus, you can get syntactically
         different results that are semantically the same.
         '''
-        items = defaultdict(int)
+        items = collections.defaultdict(int)
         for item in seq:
             items[item] += 1
-        s = sorted(items.items(), key=itemgetter(1), reverse=True)
+        s = sorted(items.items(), key=operator.itemgetter(1), reverse=True)
         return s if n is None else s[:n]
     def IsIterable(x, ignore_strings=True):
         '''Return True if x is an iterable.  You can exclude strings from the things that can be
@@ -1229,7 +1214,7 @@ if 1:   # From util
         '''
         if ignore_strings and isinstance(x, str):
             return False
-        return isinstance(x, Iterable)
+        return isinstance(x, collections.abc.Iterable)
     def IsHomogeneous(seq):
         "Return True if seq is homogeneous"
         if not seq:
@@ -1411,7 +1396,7 @@ if 1:   # From util
         '''
         # Inspired by http://code.activestate.com/recipes/303060-group-a-list-into-sequential-n-tuples
         if fill:
-            return zip_longest(*([iter(seq)]*n), fillvalue=None)
+            return itertools.zip_longest(*([iter(seq)]*n), fillvalue=None)
         else:
             return zip(*([iter(seq)]*n))    # noqa
 
@@ -1432,7 +1417,7 @@ if __name__ == "__main__":
     if 1:  # Import symbols
         partial = functools.partial
         deque = collections.deque
-        D = Decimal
+        D = decimal.Decimal
         #
         t = trm.Trm()
         run = lwtest.run
@@ -1513,33 +1498,33 @@ if __name__ == "__main__":
                 # Test for each type of is_sorted.  This makes sure they each get the same results,
                 # except when the unresolved keyword is different.
                 for k in (None, False, True):
-                    f = partial(GetClosest, is_sorted=k)
+                    F = partial(GetClosest, is_sorted=k)
                     seq = sseq if k else seq
                     if k is None:
-                        raises(ValueError, f, -1e99, seq, unresolved=None)
-                        raises(ValueError, f, 1e99, seq, unresolved=None)
-                        Assert(f(-1e99, seq) == seq[0])
-                        Assert(f(1e99, seq) == seq[0])
+                        raises(ValueError, F, -1e99, seq, unresolved=None)
+                        raises(ValueError, F, 1e99, seq, unresolved=None)
+                        Assert(F(-1e99, seq) == seq[0])
+                        Assert(F(1e99, seq) == seq[0])
                     else:
-                        Assert(f(-1e99, seq) == low)
-                        Assert(f(1e99, seq) == high)
-                    Assert(f(-40, seq) == low)
-                    Assert(f(-4, seq) == low)
+                        Assert(F(-1e99, seq) == low)
+                        Assert(F(1e99, seq) == high)
+                    Assert(F(-40, seq) == low)
+                    Assert(F(-4, seq) == low)
                     # Note x can be a float also
-                    Assert(f(-4.0, seq) == low)
-                    Assert(f(-3, seq) == low)
-                    Assert(f(-2, seq) == low)
-                    Assert(f(-1, seq) == low)
-                    Assert(f(0, seq) == 1)
-                    Assert(f(1, seq) == 1)
-                    Assert(f(2, seq) == 1)
-                    Assert(f(3, seq) == 4)
-                    Assert(f(4, seq) == 4)
-                    Assert(f(5, seq) == 4)
-                    Assert(f(6, seq) == high)
-                    Assert(f(7, seq) == high)
-                    Assert(f(20, seq) == high)
-                    Assert(f(100, seq) == high)
+                    Assert(F(-4.0, seq) == low)
+                    Assert(F(-3, seq) == low)
+                    Assert(F(-2, seq) == low)
+                    Assert(F(-1, seq) == low)
+                    Assert(F(0, seq) == 1)
+                    Assert(F(1, seq) == 1)
+                    Assert(F(2, seq) == 1)
+                    Assert(F(3, seq) == 4)
+                    Assert(F(4, seq) == 4)
+                    Assert(F(5, seq) == 4)
+                    Assert(F(6, seq) == high)
+                    Assert(F(7, seq) == high)
+                    Assert(F(20, seq) == high)
+                    Assert(F(100, seq) == high)
             if 1:
                 # Test with objects that are more complicated than numbers.  Here, the objects are 2D
                 # Cartesian points with the Euclidean distance as the metric.
@@ -1556,17 +1541,17 @@ if __name__ == "__main__":
                     def dist(self, other):
                         x = (self.x - other.x) ** 2
                         y = (self.y - other.y) ** 2
-                        return flt((x + y) ** 0.5)
+                        return f.flt((x + y) ** 0.5)
                 seq = (Pt(0, 0), Pt(-3, 6), Pt(4, 8), Pt(2, 0))
-                f = partial(GetClosest, is_sorted=None)
+                F = partial(GetClosest, is_sorted=None)
                 def metric(a, b):
                     return a.dist(b)
-                Assert(f(Pt(0.1, 0.1), seq, distance=metric) == Pt(0, 0))
-                Assert(f(Pt(-0.1, -0.1), seq, distance=metric) == Pt(0, 0))
-                Assert(f(Pt(-100, 0.1), seq, distance=metric) == Pt(-3, 6))
-                Assert(f(Pt(0, 1000), seq, distance=metric) == Pt(4, 8))
-                Assert(f(Pt(1, 0), seq, distance=metric) == Pt(0, 0))
-                Assert(f(Pt(1.0001, 0), seq, distance=metric) == Pt(2, 0))
+                Assert(F(Pt(0.1, 0.1), seq, distance=metric) == Pt(0, 0))
+                Assert(F(Pt(-0.1, -0.1), seq, distance=metric) == Pt(0, 0))
+                Assert(F(Pt(-100, 0.1), seq, distance=metric) == Pt(-3, 6))
+                Assert(F(Pt(0, 1000), seq, distance=metric) == Pt(4, 8))
+                Assert(F(Pt(1, 0), seq, distance=metric) == Pt(0, 0))
+                Assert(F(Pt(1.0001, 0), seq, distance=metric) == Pt(2, 0))
         def Test_GetDupNodup():
             testcases = (
                 # (function input, 
@@ -1639,24 +1624,24 @@ if __name__ == "__main__":
             expected = [float(i) for i in range(n)]
             Assert(got == expected)
         def Test_frange_Normal_one_parameter_Decimals():
-            got = list(frange(str(n), return_type=Decimal))
-            expected = [Decimal(i) for i in range(n)]
+            got = list(frange(str(n), return_type=decimal.Decimal))
+            expected = [decimal.Decimal(i) for i in range(n)]
             Assert(got == expected)
         def Test_frange_Normal_two_parameters():
             got = list(frange(str(n // 2), str(n)))
             expected = [float(i) for i in range(n // 2, n)]
             Assert(got == expected)
         def Test_frange_Normal_two_parameters_Decimals():
-            got = list(frange(str(n // 2), str(n), return_type=Decimal))
-            expected = [Decimal(i) for i in range(n // 2, n)]
+            got = list(frange(str(n // 2), str(n), return_type=decimal.Decimal))
+            expected = [decimal.Decimal(i) for i in range(n // 2, n)]
             Assert(got == expected)
         def Test_frange_Normal_three_parameters():
             got = list(frange("9.6001", "9.601", "0.0001"))
             expected = [float(i) for i in s.split()]
             Assert(got == expected)
         def Test_frange_Normal_three_parameters_Decimals():
-            got = list(frange("9.6001", "9.601", "0.0001", return_type=Decimal))
-            expected = [Decimal(i) for i in s.split()]
+            got = list(frange("9.6001", "9.601", "0.0001", return_type=decimal.Decimal))
+            expected = [decimal.Decimal(i) for i in s.split()]
             Assert(got == expected)
         def Test_frange_Counting_down():
             got = list(frange(str(n), "0", "-1"))
@@ -1664,12 +1649,12 @@ if __name__ == "__main__":
             Assert(got == expected)
         def Test_frange_Numbers_outside_float_range():
             s = "e-28000"
-            got = list(frange("1" + s, "4" + s, "1" + s, return_type=Decimal))
-            expected = [Decimal("1E-28000"), Decimal("2E-28000"), Decimal("3E-28000")]
+            got = list(frange("1" + s, "4" + s, "1" + s, return_type=decimal.Decimal))
+            expected = [decimal.Decimal("1E-28000"), decimal.Decimal("2E-28000"), decimal.Decimal("3E-28000")]
             Assert(got == expected)
             s = "e28000"
-            got = list(frange("1" + s, "4" + s, "1" + s, return_type=Decimal))
-            expected = [Decimal("1E28000"), Decimal("2E28000"), Decimal("3E28000")]
+            got = list(frange("1" + s, "4" + s, "1" + s, return_type=decimal.Decimal))
+            expected = [decimal.Decimal("1E28000"), decimal.Decimal("2E28000"), decimal.Decimal("3E28000")]
             Assert(got == expected)
         def Test_frange_Sequence_of_complex_numbers():
             got = list(complex(0, i) for i in frange(str(n)))
@@ -1728,7 +1713,7 @@ if __name__ == "__main__":
         def Test_frange_fractions():
             # The following test case shows that frange can be used with a python Fraction to
             # return a sequence of Fractions.
-            got = list(frange("1/3", "5", "1/3", return_type=Fraction, impl=Fraction))
+            got = list(frange("1/3", "5", "1/3", return_type=fractions.Fraction, impl=fractions.Fraction))
             # Note that because we're using floats, we have to avoid using 5 to ensure that we get
             # the same number of elements as in got.  Again, this kind of thing is problematic with
             # the quantization errors of binary floating point arithmetic.
@@ -1761,11 +1746,11 @@ if __name__ == "__main__":
             #
             R = Rational
             got = list(frange("1/8", "1", "1/8", impl=R, return_type=R))
-            expected = [Fraction(i) for i in "1/8 1/4 3/8 1/2 5/8 3/4 7/8".split()]
+            expected = [fractions.Fraction(i) for i in "1/8 1/4 3/8 1/2 5/8 3/4 7/8".split()]
             Assert(got == expected)
             # Note integers can be coerced to fractions
             got = list(frange(0, 1, "1/8", impl=R, return_type=R))
-            expected = [Fraction(i) for i in "0 1/8 1/4 3/8 1/2 5/8 3/4 7/8".split()]
+            expected = [fractions.Fraction(i) for i in "0 1/8 1/4 3/8 1/2 5/8 3/4 7/8".split()]
             Assert(got == expected)
             # lrange tests
             got = lrange(0, 1)
@@ -1789,15 +1774,15 @@ if __name__ == "__main__":
             expected = [R(1, 1), R(8, 5), R(11, 5), R(14, 5), R(17, 5)]
             Assert(got == expected)
         def Test_frange_flt():
-            o = flt(1)
+            o = f.flt(1)
             # Should get floats back by default
             got = list(frange(1, o(5.7), o(0.51)))
             expected = [1.0, 1.51, 2.02, 2.53, 3.04, 3.55, 4.06, 4.57, 5.08, 5.59]
             Assert(str(got) == str(expected))
             Assert(all([isinstance(i, float) for i in got]))
             # Use flt for type
-            got = list(frange(1, o(5.7), o(0.51), return_type=flt))
-            Assert(all([isinstance(i, flt) for i in got]))
+            got = list(frange(1, o(5.7), o(0.51), return_type=f.flt))
+            Assert(all([isinstance(i, f.flt) for i in got]))
         def Test_frange_ifrange():
             # Basic tests
             got = list(ifrange(0, 1, 0.1))
@@ -1810,11 +1795,11 @@ if __name__ == "__main__":
             #
             R = Rational
             got = list(ifrange(R(1, 8), 1, R(1, 8)))
-            expected = [Fraction(i) for i in "1/8 1/4 3/8 1/2 5/8 3/4 7/8".split()]
+            expected = [fractions.Fraction(i) for i in "1/8 1/4 3/8 1/2 5/8 3/4 7/8".split()]
             Assert(got == expected)
             # Note integers can be coerced to fractions
             got = list(ifrange(0, 1, R(1, 8)))
-            expected = [Fraction(i) for i in "0 1/8 1/4 3/8 1/2 5/8 3/4 7/8".split()]
+            expected = [fractions.Fraction(i) for i in "0 1/8 1/4 3/8 1/2 5/8 3/4 7/8".split()]
             Assert(got == expected)
     if 1:   #Testing for old util stuff
         def Test_GroupByN():
@@ -1868,14 +1853,14 @@ if __name__ == "__main__":
                         sys.getsizeof('y') +
                         sys.getsizeof(4))
             # namedtuple
-            Point = namedtuple('Point', ['x', 'y'])
+            Point = collections.namedtuple('Point', ['x', 'y'])
             point = Point(3, 4)
             assert_equal(GetSize(point),
                             sys.getsizeof(point) +
                             sys.getsizeof(3) +
                             sys.getsizeof(4))
             # st_subclass_of_namedtuple
-            class Point(namedtuple('Point', ['x', 'y'])):
+            class Point(collections.namedtuple('Point', ['x', 'y'])):
                 pass
             point = Point(3, 4)
             assert_equal(GetSize(point),
@@ -1884,7 +1869,7 @@ if __name__ == "__main__":
                             sys.getsizeof(3) +
                             sys.getsizeof(4))
             # subclass_of_namedtuple_with_slots
-            class Point(namedtuple('Point', ['x', 'y'])):
+            class Point(collections.namedtuple('Point', ['x', 'y'])):
                 __slots__ = ()
             point = Point(3, 4)
             assert_equal(GetSize(point),
@@ -1948,7 +1933,7 @@ if __name__ == "__main__":
             Assert(IsIterable(iter((0,))))
             Assert(not IsIterable(0))
         def Test_ItemCount():
-            f, F = ItemCount, Fraction
+            f, F = ItemCount, fractions.Fraction
             raises(Exception, f, 1)
             raises(Exception, f, 1.0)
             raises(Exception, f, F(1, 1))
@@ -2025,7 +2010,7 @@ if __name__ == "__main__":
             r = Ranges(seq)
             assert r == seq
             # Exception cases
-            raises(TypeError, Ranges, [Fraction(1, 2)])
+            raises(TypeError, Ranges, [fractions.Fraction(1, 2)])
             raises(TypeError, Ranges, [1.0])
             raises(TypeError, Ranges, ["1"])
         def Test_transpose():
@@ -2169,7 +2154,7 @@ if __name__ == "__main__":
         def Test_VisualCount():
             s = (1, 1, 1, 2, "a", "a", (1, 2))
             got = "\n".join(VisualCount(s, width=20))
-            expected = dedent('''
+            expected = wrap.dedent('''
             1      *************
             a      ********
             2      ****

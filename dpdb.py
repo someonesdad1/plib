@@ -51,19 +51,11 @@ if 1:  # Header
     if 1:   # Custom modules
         import columnize
         import dpstr
+        import dptypes
         import f
         import trm
-    if 1:   # Import symbols
-        Decimal = decimal.Decimal
-        Fraction = fractions.Fraction
-        Path = pathlib.Path
-        Pdb = pdb.Pdb
-        # 
-        RegexpDecorate = dpstr.RegexpDecorate
-        Columnize = columnize.Columnize
-        flt = f.flt
-        cpx = f.cpx
-        u = trm.Trm(default=2)
+    if 1:   # Global variables
+        u = trm.Trm()
     if 1:  # Functions to set up colorizing strings
         def All():
             "Fancier set of colors"
@@ -97,9 +89,9 @@ if 1:  # Header
     if 1:  # Global variables
         color_choice = All
         color_choice()
+        g = dptypes.Constant()
         # Set to True to see each line's repr() string
-        dbg = 0
-        ii = isinstance
+        g.dbg = 0
 if 1:  # Regular expressions
     # Identify current line in list command.  'B' can be in the string if the line is a
     # breakpoint.  Pdb.do_list() indicates '>>' can be used to indicate a line where an
@@ -119,13 +111,13 @@ if 1:  # Regular expressions
     # Identify a (simple) return
     rret = re.compile(r"--Return--")
     # Regular expression decorator
-    rd = RegexpDecorate()
+    rd = dpstr.RegexpDecorate()
     rd.register(rret, u.vio)
 if 1:  # Classes
-    class DPdb(Pdb):
+    class DPdb(pdb.Pdb):
         if 1:  # Overridden Pdb methods
             def message(self, msg):
-                if dbg:  # Print line for debugging
+                if g.dbg:  # Print line for debugging
                     u.print(f"{u('brnl')}{msg!r}")
                 try:
                     # Current line being printed by list command
@@ -230,7 +222,7 @@ if 1:  # Classes
             def current_stopped_line(self, file, linenum, func, remainder):
                 print("> ", end="")
                 # Only colorize the file name portion
-                p = Path(file)
+                p = pathlib.Path(file)
                 print(f"{u.directory}{p.parent}/", end="")
                 print(f"{u.filename}{p.name}{u.n} ", end="")
                 print(f"{u.linenum}{linenum}{u.n} ", end="")
@@ -243,30 +235,30 @@ if 1:  # Classes
                 "Print name and value in indicated color"
                 c = ""
                 is_str = False
-                if ii(val, bool):
+                if isinstance(val, bool):
                     c = u.bool
-                elif ii(val, int):
+                elif isinstance(val, int):
                     c = u.int
-                elif ii(val, flt):
+                elif isinstance(val, f.flt):
                     c = u.flt
-                elif ii(val, cpx):
+                elif isinstance(val, f.cpx):
                     c = u.cpx
-                elif ii(val, float):
+                elif isinstance(val, float):
                     c = u.float
-                elif ii(val, Decimal):
+                elif isinstance(val, decimal.Decimal):
                     c = u.Decimal
-                elif ii(val, Fraction):
+                elif isinstance(val, fractions.Fraction):
                     c = u.Fraction
-                elif ii(val, str):
+                elif isinstance(val, str):
                     c = u.string
                     is_str = True
-                elif ii(val, bytes):
+                elif isinstance(val, bytes):
                     c = u.bytes
-                elif ii(val, bytearray):
+                elif isinstance(val, bytearray):
                     c = u.bytearray
-                elif ii(val, list):
+                elif isinstance(val, list):
                     c = u.list
-                elif ii(val, tuple):
+                elif isinstance(val, tuple):
                     c = u.tuple
                 elif val is None:
                     c = u.none
@@ -379,10 +371,10 @@ if 1:  # Classes
                         print(
                             f"{u.int}int{u.n} "
                             f"{u.float}float{u.n} "
-                            f"{u.flt}flt{u.n} "
-                            f"{u.cpx}cpx{u.n} "
-                            f"{u.Decimal}Decimal{u.n} "
-                            f"{u.Fraction}Fraction{u.n} "
+                            f"{u.flt}f.flt{u.n} "
+                            f"{u.cpx}f.cpx{u.n} "
+                            f"{u.Decimal}decimal.Decimal{u.n} "
+                            f"{u.Fraction}fractions.Fraction{u.n} "
                             "    "
                             f"{u.list}list{u.n} "
                             f"{u.tuple}tuple{u.n} "
@@ -412,7 +404,7 @@ if 1:  # Classes
                         print(f"'{s}' not found")
                         return
                     print(f"{s} ({type(obj)})")  # Show object's name and type
-                    for i in Columnize(dir(obj), indent="  "):
+                    for i in columnize.Columnize(dir(obj), indent="  "):
                         print(i)
                 for i in args:
                     Pr(i)

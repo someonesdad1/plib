@@ -185,11 +185,9 @@ if 1:  # Header
         if 0:
             import debug
             debug.SetDebugger()
-    if 1:  # Import symbols
-        Constant = dptypes.Constant
-        t = trm.Trm()
     if 1:  # Global variables
-        g = Constant()
+        t = trm.Trm()
+        g = dptypes.Constant()
         g.tol = 1e-6
         g.itmax = 50
         g.fp = float

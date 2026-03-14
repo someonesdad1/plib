@@ -187,42 +187,38 @@ if __name__ == "__main__":
         pass
     if 1:   # Custom imports
         import dpmath
-        import lwtest
-    if 1:   # Import symbols
-        run = lwtest.run
-        raises = lwtest.raises
-        Assert = lwtest.Assert
+        import lwtest as lw
     def Test_Height():
-        Assert(dpmath.AlmostEqual(Height(48, 12, "m"), 57.576, 1e-3))
-        Assert(dpmath.AlmostEqual(Height(48, 12, "f"), 51.89, 1e-3))
+        lw.Assert(dpmath.AlmostEqual(Height(48, 12, "m"), 57.576, 1e-3))
+        lw.Assert(dpmath.AlmostEqual(Height(48, 12, "f"), 51.89, 1e-3))
     def Test_HeatIndex():
-        Assert(dpmath.AlmostEqual(HeatIndex(40, 96), 101, 7e-2))
-        Assert(dpmath.AlmostEqual(HeatIndex(100, 90), 132, 4e-1))
+        lw.Assert(dpmath.AlmostEqual(HeatIndex(40, 96), 101, 7e-2))
+        lw.Assert(dpmath.AlmostEqual(HeatIndex(100, 90), 132, 4e-1))
     def Test_TempConvert():
         k, r = 273.15, 459.67
-        Assert(dpmath.AlmostEqual(TempConvert(0, "c", "f"), 32))
-        Assert(dpmath.AlmostEqual(TempConvert(0, "c", "k"), k))
-        Assert(dpmath.AlmostEqual(TempConvert(0, "c", "r"), 32 + r))
-        Assert(dpmath.AlmostEqual(TempConvert(0, "c", "c"), 0))
-        Assert(dpmath.AlmostEqual(TempConvert(212, "f", "c"), 100))
-        Assert(dpmath.AlmostEqual(TempConvert(212, "f", "f"), 212))
-        Assert(dpmath.AlmostEqual(TempConvert(212, "f", "k"), k + 100))
-        Assert(dpmath.AlmostEqual(TempConvert(212, "f", "r"), r + 212))
+        lw.Assert(dpmath.AlmostEqual(TempConvert(0, "c", "f"), 32))
+        lw.Assert(dpmath.AlmostEqual(TempConvert(0, "c", "k"), k))
+        lw.Assert(dpmath.AlmostEqual(TempConvert(0, "c", "r"), 32 + r))
+        lw.Assert(dpmath.AlmostEqual(TempConvert(0, "c", "c"), 0))
+        lw.Assert(dpmath.AlmostEqual(TempConvert(212, "f", "c"), 100))
+        lw.Assert(dpmath.AlmostEqual(TempConvert(212, "f", "f"), 212))
+        lw.Assert(dpmath.AlmostEqual(TempConvert(212, "f", "k"), k + 100))
+        lw.Assert(dpmath.AlmostEqual(TempConvert(212, "f", "r"), r + 212))
     def Test_IdealGas():
         P, v, T = 0.101325e6, 0, 300
         v = IdealGas(P, v, T)
-        Assert(dpmath.AlmostEqual(v, 0.85181, 1e-5))
+        lw.Assert(dpmath.AlmostEqual(v, 0.85181, 1e-5))
         P = 0
         P = IdealGas(P, v, T)
-        Assert(dpmath.AlmostEqual(P, 0.101325e6))
+        lw.Assert(dpmath.AlmostEqual(P, 0.101325e6))
         T = 0
         T = IdealGas(P, v, T)
-        Assert(dpmath.AlmostEqual(T, 300))
+        lw.Assert(dpmath.AlmostEqual(T, 300))
     def Test_SpeedOfSound():
-        Assert(dpmath.AlmostEqual(SpeedOfSound(273.15), 331.4, 1e-5))
+        lw.Assert(dpmath.AlmostEqual(SpeedOfSound(273.15), 331.4, 1e-5))
     def Test_WindChillInDegF():
-        Assert(dpmath.AlmostEqual(WindChillInDegF(20, 0), -21.9952, 1e-5))
-    exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
+        lw.Assert(dpmath.AlmostEqual(WindChillInDegF(20, 0), -21.9952, 1e-5))
+    exit(lw.run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
 
 def GetGist():
     gist = {}

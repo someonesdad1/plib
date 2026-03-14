@@ -17,24 +17,18 @@ if 1:  # Header
             debug.SetDebugger()
         try:
             import mpmath
-            have_mpmath = True
+            _have_mpmath = True
         except ImportError:
-            have_mpmath = False
-    if 1:  # Import symbols
-        Decimal = decimal.Decimal
-        Fraction = fractions.Fraction
-        #
-        Bidict = dptypes.Bidict
-        flt = f.flt
+            _have_mpmath = False
     if 1:  # Global variables
         # Bi-directional mappings between month number and 3-letter string name
-        Num2Month = Bidict({1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr", 5: "May", 6: "Jun",
+        Num2Month = dptypes.Bidict({1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr", 5: "May", 6: "Jun",
                 7: "Jul", 8: "Aug", 9: "Sep", 10: "Oct", 11: "Nov", 12: "Dec"})
         # The following uses upper case letters
-        Num2Month_uc = Bidict({1: "JAN", 2: "FEB", 3: "MAR", 4: "APR", 5: "MAY", 6: "JUN",
+        Num2Month_uc = dptypes.Bidict({1: "JAN", 2: "FEB", 3: "MAR", 4: "APR", 5: "MAY", 6: "JUN",
                 7: "JUL", 8: "AUG", 9: "SEP", 10: "OCT", 11: "NOV", 12: "DEC"})
         # The following uses lower case letters
-        Num2Month_lc = Bidict({1: "jan", 2: "feb", 3: "mar", 4: "apr", 5: "may", 6: "jun",
+        Num2Month_lc = dptypes.Bidict({1: "jan", 2: "feb", 3: "mar", 4: "apr", 5: "may", 6: "jun",
                 7: "jul", 8: "aug", 9: "sep", 10: "oct", 11: "nov", 12: "dec" })
         Month2Num = Num2Month.invert()
         Month2Num_lc = Num2Month_lc.invert()
@@ -60,7 +54,7 @@ if 1:  # Functions
         display is not needed.  The used units will be ns, μs, ms, s, min, hr, day,
         month, yr.  Longer intervals will be in yr with an SI prefix.
         '''
-        sec = flt(seconds)
+        sec = f.flt(seconds)
         with sec:
             sec.N = digits
             if sec < 1:
@@ -113,17 +107,17 @@ if 1:  # Functions
         years, centuries, and millenia will be used.
         '''
         # seconds must be an integer, float, Fraction, Decimal, or mpmath.mpf
-        if have_mpmath:
-            if not isinstance(seconds, (int, float, Fraction, Decimal, mpmath.mpf)):
+        if _have_mpmath:
+            if not isinstance(seconds, (int, float, fractions.Fraction, decimal.Decimal, mpmath.mpf)):
                 raise TypeError(
                     "seconds must be int, float, Fraction, Decimal, mpmath.mpf"
                 )
         else:
-            if not isinstance(seconds, (int, float, Fraction, Decimal)):
+            if not isinstance(seconds, (int, float, fractions.Fraction, decimal.Decimal)):
                 raise TypeError("seconds must be int, float, Fraction, Decimal")
         # Convert to a float
         sign = -1 if seconds < 0 else 1
-        seconds = abs(flt(seconds))
+        seconds = abs(f.flt(seconds))
         with seconds:
             seconds.N = digits
             factor = u.u(units) if units else 1
@@ -167,34 +161,34 @@ if 1:  # Functions
         '''
         def P(time, units, sci):
             return f"{s.engsi}{units} = {s.sci} {units}" if sci else f"{s.engsi}{units}"
-        x = flt(0)
+        x = f.flt(0)
         with x:
             x.N = digits
             x.u = sci
             if seconds < 1:
-                s = flt(seconds)
+                s = f.flt(seconds)
                 return f"{s.engsi}s"
             else:
                 if seconds / u.u("years") >= 1:
-                    s = flt(seconds / u.u("years"))
+                    s = f.flt(seconds / u.u("years"))
                     return P(s, "years", sci=sci)
                 elif seconds / u.u("months") >= 1:
-                    s = flt(seconds / u.u("months"))
+                    s = f.flt(seconds / u.u("months"))
                     return P(s, "months", sci=sci)
                 elif seconds / u.u("weeks") >= 1:
-                    s = flt(seconds / u.u("weeks"))
+                    s = f.flt(seconds / u.u("weeks"))
                     return P(s, "weeks", sci=sci)
                 elif seconds / u.u("days") >= 1:
-                    s = flt(seconds / u.u("days"))
+                    s = f.flt(seconds / u.u("days"))
                     return P(s, "days", sci=sci)
                 elif seconds / u.u("hours") >= 1:
-                    s = flt(seconds / u.u("hours"))
+                    s = f.flt(seconds / u.u("hours"))
                     return P(s, "hours", sci=sci)
                 elif seconds / u.u("minutes") >= 1:
-                    s = flt(seconds / u.u("minutes"))
+                    s = f.flt(seconds / u.u("minutes"))
                     return P(s, "minutes", sci=sci)
                 else:
-                    s = flt(seconds)
+                    s = f.flt(seconds)
                     return P(s, "seconds", sci=sci)
     def DaysPerMonth(month, leap_year=False):
         days_per_month = {1: 31, 2: 28, 3: 31, 4: 30, 5: 31, 6: 30, 7: 31, 8: 31,
@@ -315,7 +309,7 @@ if 1:  # Timer stuff
         @property
         def et(self):
             'Returns elapsed time in s as a flt'
-            return flt(self.ET)
+            return f.flt(self.ET)
         @property
         def start(self):
             'Resets timer and returns start time in s'
@@ -366,7 +360,7 @@ if 1:  # Timer stuff
             self.reset()
         def __call__(self):
             "Returns the elapsed time in s as a flt"
-            return flt(time.time() - self._start)
+            return f.flt(time.time() - self._start)
         def reset(self):
             "Start the timer over; handy so an instance can be reused"
             self._start = time.time()

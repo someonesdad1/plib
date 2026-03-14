@@ -92,21 +92,21 @@ if 1:   # From util.py
 
 if __name__ == "__main__":  
     import dpmath
-    from lwtest import Assert, run
+    import lwtest as lw
     def Test_AWG():
-        Assert(dpmath.AlmostEqual(AWG(12), 0.0808, 8e-4))
+        lw.Assert(dpmath.AlmostEqual(AWG(12), 0.0808, 8e-4))
     def Test_Ampacity():
         dia_mm = 11.68
         i = Ampacity(dia_mm, insul_degC=60, ambient_degC=30)
-        Assert(i == 193.46399267737598)
+        lw.Assert(i == 193.46399267737598)
         i = Ampacity(dia_mm, insul_degC=75, ambient_degC=30)
-        Assert(i == 229.27285356605438)
+        lw.Assert(i == 229.27285356605438)
         i = Ampacity(dia_mm, insul_degC=90, ambient_degC=30)
-        Assert(i == 258.78428183511033)
+        lw.Assert(i == 258.78428183511033)
         # Test a derated value
         i = Ampacity(dia_mm, insul_degC=90, ambient_degC=21)
-        Assert(i == 1.04*258.78428183511033)
-    exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
+        lw.Assert(i == 1.04*258.78428183511033)
+    exit(lw.run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
 
 def GetGist():
     g = {}

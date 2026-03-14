@@ -47,37 +47,30 @@ if 1:  # Header
         oo>
     '''
     if 1:  # Standard imports
+        import collections
+        import fractions
         import functools
+        import itertools
         import os
+        import pathlib
         import platform
         import pprint
         import re
+        import reprlib
         import subprocess
         import sys
         import tempfile
         import threading
         import time
-        from collections import OrderedDict, deque
-        from fractions import Fraction
-        from itertools import chain, cycle, product
-        from pathlib import Path as P
-        from random import seed
-        from reprlib import repr as Repr
         if platform.system() == "Windows":
             import msvcrt
     if 1:  # Custom imports
         import dpmath
-        from wsl import wsl
+        import wsl
         if 0:
             import debug
             debug.SetDebugger()
-    if 1:  # Import symbols
-        partial = functools.partial
-        SignSignificandExponent = dpmath.SignSignificandExponent
-        AlmostEqual = dpmath.AlmostEqual
     if 1:  # Global variables
-        pass
-        ii = isinstance
         nl = "\n"
         fsig_lock = threading.Lock()
 if 1:  # Core functionality
@@ -129,7 +122,7 @@ if 1:  # Core functionality
             if cls not in cls._singletons:
                 cls._singletons[cls] = object.__new__(cls)
             return cls._singletons[cls]
-    def Cfg(lines, lvars=OrderedDict(), gvars=OrderedDict()):   # noqa  ∞∞1 This should be fixed (lint error)
+    def Cfg(lines, lvars=collections.OrderedDict(), gvars=collections.OrderedDict()):   # noqa  ∞∞1 This should be fixed (lint error)
         '''Allow use of sequences of text strings to be used for general-purpose configuration
         information.  Each string must be valid python code.
         
@@ -285,7 +278,7 @@ if 1:  # Core functionality
             raise TypeError("data must be a str")
         vi = "vim"
         with tempfile.NamedTemporaryFile() as temp:
-            file = P(temp.name)
+            file = pathlib.Path(temp.name)
             if binary:
                 file.write_bytes(data)
                 cmd = [vi, "-b", str(file)]
@@ -315,7 +308,7 @@ if 1:  # Core functionality
         }
         if digits < 1 or digits > 15:
             raise ValueError("Number of significant digits must be >= 1 and <= 15")
-        sign, significand, exponent = SignSignificandExponent(float(value))
+        sign, significand, exponent = dpmath.SignSignificandExponent(float(value))
         s = suffixes[exponent // 3] if exponent // 3 in suffixes else ""
         #m = sign*(("%%.%dg" % digits) % (significand*10**(exponent % 3)))
         a = significand*10**(exponent % 3)
@@ -415,7 +408,7 @@ if 1:  # Core functionality
             Spinner.stop = True
         '''
         # Idea from https://realpython.com/python-print/#living-it-up-with-cool-animations
-        for frame in cycle(chars):
+        for frame in itertools.cycle(chars):
             print("\r", frame, sep="", end="", flush=True)
             time.sleep(delay)
             if Spinner.stop:
@@ -487,11 +480,11 @@ if 1:  # Core functionality
         #  - Added the full and title keywords
         #  - Used deque to collect output
         def dict_handler(d):
-            return chain.from_iterable(d.items())
+            return itertools.chain.from_iterable(d.items())
         all_handlers = {
             tuple: iter,
             list: iter,
-            deque: iter,
+            collections.deque: iter,
             dict: dict_handler,
             set: iter,
             frozenset: iter,
@@ -501,8 +494,8 @@ if 1:  # Core functionality
         all_handlers.update(handlers)  # User handlers take precedence
         seen = set()  # Track objects seen
         default_size = sys.getsizeof(0)  # Estimate size without __sizeof__
-        Repr_local = repr if full else Repr
-        indent, output = 0, deque()
+        Repr_local = repr if full else reprlib.repr
+        indent, output = 0, collections.deque()
         if verbose:
             output.append(title) if title else output.append("Components:")
         def sizeof(o):
@@ -572,7 +565,7 @@ if 1:  # Core functionality
     def ShowFile(*files):
         "Open indicated file(s) with registered app"
         for file in files:
-            if wsl:
+            if wsl.wsl:
                 # Use the ~/.0rc/bin/expl script to open a file with Explorer.  This script first
                 # cd's to the file's directory, as otherwise Explorer doesn't work.
                 subprocess.run(f"/home/don/.0rc/bin/expl {file}", shell=True)
@@ -590,10 +583,10 @@ if 1:  # Core functionality
             return set(seq)
         # Don't modify seq or regexps
         items = set(seq)
-        regexes = deque(regexps)
-        if not all(ii(i, str) for i in items):
+        regexes = collections.deque(regexps)
+        if not all(isinstance(i, str) for i in items):
             raise TypeError("Items in seq must all be strings")
-        if not all(ii(i, str) for i in regexps):
+        if not all(isinstance(i, str) for i in regexps):
             raise TypeError("Items in *regexps must all be strings")
         results = set()
         while regexes:
@@ -706,7 +699,7 @@ if 1:  # Core functionality
             except Exception as e:
                 print(e)
                 exit(1)
-        return partial(pprint, width=columns, compact=compact)
+        return functools.partial(pprint, width=columns, compact=compact)
     def Clear():
         subprocess.run("clear", shell=True)
 
@@ -777,7 +770,7 @@ if __name__ == "__main__":
                 # These numbers worked for python 3.7
                 (tuple, 40),
                 (list, 60),
-                (deque, 328),
+                (collections.deque, 328),
                 (set, 124),
                 (frozenset, 124),
             )
@@ -786,7 +779,7 @@ if __name__ == "__main__":
                 # These numbers worked for python 3.9
                 (tuple, 72),
                 (list, 88),
-                (deque, 648),
+                (collections.deque, 648),
                 (set, 240),
                 (frozenset, 240),
             )
@@ -795,7 +788,7 @@ if __name__ == "__main__":
                 # These numbers worked for python 3.11
                 (tuple, 76),
                 (list, 100),
-                (deque, 788),
+                (collections.deque, 788),
                 (set, 244),
                 (frozenset, 244),
             )
@@ -904,7 +897,7 @@ if __name__ == "__main__":
         Assert(s == t)
         #
         s = " ".join(BraceExpansion("{a,b,c}{d,e,f}"))
-        t = " ".join([i + j for i, j in product("abc", "def")])
+        t = " ".join([i + j for i, j in itertools.product("abc", "def")])
         Assert(s == t)
         s = str(list(BraceExpansion("{a,b}/*.{jpg,png}")))
         t = "['a/*.jpg', 'a/*.png', 'b/*.jpg', 'b/*.png']"
@@ -923,8 +916,8 @@ if __name__ == "__main__":
         got = list(fd(3))
         assert_equal(got, expected)
         #
-        expected = [Fraction(0, 1), Fraction(1, 2), Fraction(1, 1)]
-        got = list(fd(3, impl=Fraction))
+        expected = [fractions.Fraction(0, 1), fractions.Fraction(1, 2), fractions.Fraction(1, 1)]
+        got = list(fd(3, impl=fractions.Fraction))
         assert_equal(got, expected)
         #
         expected = [1.0, 1.5, 2.0]

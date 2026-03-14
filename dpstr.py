@@ -115,18 +115,6 @@ if 1:   # Header
         if 0:
             import debug
             debug.SetDebugger()
-    if 1:   # Import symbols
-        Fraction = fractions.Fraction
-        Path = pathlib.Path
-        StringIO = io.StringIO
-        TextWrapperOrig = textwrap.TextWrapper
-        defaultdict = collections.defaultdict
-        deque = collections.deque
-        filterfalse = itertools.filterfalse
-        #
-        flt = f.flt
-        dedent = wrap.dedent
-        wsl = wsl.wsl
     if 1:   # Global variables
         g = dptypes.Constant()
         g.nl = "\n"
@@ -274,7 +262,7 @@ if 1:   # RegexpDecorate class
             decorated if there was a match.
             '''
             assert isinstance(line, str)
-            out = StringIO()
+            out = io.StringIO()
             self(line, file=out)
             return out.getvalue()
         def __call__(self, line, file=sys.stdout, insert_nl=False):
@@ -357,7 +345,7 @@ if 1:   # Core functionality
             MatchCap.lc = lc = set(string.ascii_lowercase)
         else:
             ac, uc, lc = MatchCap.ac, MatchCap.uc, MatchCap.lc
-        out = deque()
+        out = collections.deque()
         for i in range(len(t)):
             if s[i] in ac and t[i] in ac:
                 if s[i] in uc and t[i] in lc:
@@ -565,7 +553,7 @@ if 1:   # Core functionality
         r = set(remove)
         def f(x):
             return x in r
-        ret = filterfalse(f, s)
+        ret = itertools.filterfalse(f, s)
         return "".join(ret) if isinstance(s, str) else type(s)(ret)
     def RemoveFilter(remove):
         '''Return a function that takes a string and returns a string containing only
@@ -621,7 +609,7 @@ if 1:   # Core functionality
         n = bool(trim_start) + bool(trim_end) - 1
         if s.count(g.nl) < n:
             raise ValueError("Not enough newline characters in multiline string s")
-        dq = deque(s)
+        dq = collections.deque(s)
         if trim_start:
             while dq and dq[0] == g.sp:
                 dq.popleft()
@@ -757,8 +745,8 @@ if 1:   # Core functionality
             return []
         found = []
         for file in filelist:
-            myfile = Path(file) if isinstance(file, str) else file
-            if not isinstance(myfile, Path):
+            myfile = pathlib.Path(file) if isinstance(file, str) else file
+            if not isinstance(myfile, pathlib.Path):
                 raise TypeError(f"{file!r} can't be made a pathlib.Path instance")
             name = myfile.stem if myfile.suffix == ".py" else myfile.name
             dummy = importlib.import_module(name)
@@ -801,7 +789,7 @@ if 1:   # Core functionality
             raise ValueError("name must be a string")
         if not isinstance(names, (set, dict)):
             raise ValueError("names must be a set or dictionary")
-        d = defaultdict(list)
+        d = collections.defaultdict(list)
         for i in names:
             d[i[: len(name)]] += [i]
         if name in d:
@@ -1123,7 +1111,7 @@ if 1:   # Core functionality
                 fields = line.split()
             if len(fields) != len(structure):
                 n, m = len(fields), len(structure)
-                msg = dedent(f'''
+                msg = wrap.dedent(f'''
                 Line {linenum} has {n} field{"s" if n > 1 else ""}
                 The structure list has {m} field{"s" if m > 1 else ""}
                 They must be the same.
@@ -1232,8 +1220,8 @@ if 1:   # Core functionality
         or a Path instance.
         '''
         if isinstance(file, str):
-            p = Path(file)
-        elif isinstance(file, Path):
+            p = pathlib.Path(file)
+        elif isinstance(file, pathlib.Path):
             p = file
         else:
             raise TypeError(f"{file} must be a string or a pathlib.Path instance")
@@ -1244,7 +1232,7 @@ if 1:   # Core functionality
             dirname = p.parent
             filename = p.name
             os.chdir(dirname)
-            if wsl:
+            if wsl.wsl:
                 # Running under Windows in Windows Subsystem for Linux.  The method is to use
                 # explorer.exe to open files.  To get this to work, we have to cd to the file's
                 # directory.  It appears Explorer returns 1 under all conditions.
@@ -1302,7 +1290,7 @@ if 1:   # Core functionality
         def f(seq):
             results = seq.copy()
             for regex in regexes:
-                results = filterfalse(regex.search, results)
+                results = itertools.filterfalse(regex.search, results)
             return list(results)
         return f
     def IsASCII(s):
@@ -1485,7 +1473,7 @@ if 1:   # Core functionality
         editor = os.environ["EDITOR"]
         files_to_edit = []
         for file in files:
-            p = Path(file)
+            p = pathlib.Path(file)
             if p.exists():
                 files_to_edit.append(file)
             else:
@@ -1631,7 +1619,7 @@ if 1:   # Core functionality
             if "8" in keys or "0" in keys:
                 pass
             return b
-    class TextWrapper(TextWrapperOrig):
+    class TextWrapper(textwrap.TextWrapper):
         '''This is the same as the textwrap.TextWrapper class except the
         method with calls to len had each occurrence replaced with Len.
         '''
@@ -1861,7 +1849,7 @@ if 1:   # Old util stuff
         elif "." in s or "e" in s or "," in s:
             return float(s)
         elif "/" in s:
-            return Fraction(s)
+            return fractions.Fraction(s)
         else:
             return int(s)
     class astr(str):
@@ -1905,11 +1893,11 @@ if 1:   # Old util stuff
             print("BuildTagsFile:  no files found in files sequence", file=sys.stderr)
             return
         # Make sure dir is a string or a Path instance
-        Assert(isinstance(dir, (str, Path)))
+        Assert(isinstance(dir, (str, pathlib.Path)))
         # Make sure files is an iterable
         Assert(dpseq.IsIterable(files))
         # Make sure each item in files is a string or Path instance
-        Assert(all(isinstance(i, (str, Path)) for i in files))
+        Assert(all(isinstance(i, (str, pathlib.Path)) for i in files))
         # Our working directory is an invariant
         cwd = os.getcwd()
         # regex is a C-type token name between asterisks
@@ -1918,7 +1906,7 @@ if 1:   # Old util stuff
         # Change to the output directory so there will be no directory names in the file's name
         os.chdir(dir)
         for file in files:
-            p = Path(file) if isinstance(file, str) else file
+            p = pathlib.Path(file) if isinstance(file, str) else file
             with p.open() as f:
                 for line in f.readlines():
                     line = line.rstrip()
@@ -1933,7 +1921,7 @@ if 1:   # Old util stuff
         tags = list(sorted(list(set(tags))))
         n = len(tags) - 1
         # Write the tags file
-        tagsfile = Path("tags")
+        tagsfile = pathlib.Path("tags")
         with tagsfile.open("w") as f:
             f.write("\n".join(tags))
             f.write("\n")
@@ -2159,7 +2147,7 @@ if __name__ == "__main__":
         s = "simple string"
         Assert(len(s) == Len(s))
         Assert(RmEsc(s) == s)
-        s = dedent(f'''
+        s = wrap.dedent(f'''
         This is some multiline
         text with {t("purl")}some
         escape codes.{t.n}
@@ -2175,8 +2163,8 @@ if __name__ == "__main__":
         # Note the space after '9'
         e = [["9 ", 680, 2100, 0, 750], ["10", 680, 2100, 250, 750]]
         Assert(o == e)
-        o = ReadData(data, structure=[str, flt, int, int, int], sep=",", comment="#")
-        e = [["9 ", flt(680), 2100, 0, 750], ["10", flt(680), 2100, 250, 750]]
+        o = ReadData(data, structure=[str, f.flt, int, int, int], sep=",", comment="#")
+        e = [["9 ", f.flt(680), 2100, 0, 750], ["10", f.flt(680), 2100, 250, 750]]
         Assert(o == e)
         data = '''
                     9  680    2100   0      750
@@ -2569,7 +2557,7 @@ if __name__ == "__main__":
     if 1:   # Test old util stuff
         def Test_StringToNumbers():
             s = "4j 3/5 6. 7"
-            Assert(StringToNumbers(s) == (4j, Fraction(3, 5), 6.0, 7))
+            Assert(StringToNumbers(s) == (4j, fractions.Fraction(3, 5), 6.0, 7))
         def Test_RemoveIndent():
             s = '''
             This is a test
@@ -2622,13 +2610,13 @@ if __name__ == "__main__":
             Assert(ConvertToNumber("1.") == 1)
             Assert(ConvertToNumber("1e2") == 1e2)
             Assert(ConvertToNumber("1E2") == 1e2)
-            Assert(ConvertToNumber("1/2") == Fraction(1, 2))
+            Assert(ConvertToNumber("1/2") == fractions.Fraction(1, 2))
             Assert(ConvertToNumber("1") == 1)
             n = 10**50  # Large integer
             Assert(ConvertToNumber(str(n)) == n)
         def Test_alen_astr():
             # Note the Unicode '∞' in the third line.
-            tststring = dedent('''
+            tststring = wrap.dedent('''
             [1;37;42mstring1[0m
             string2
             [1;36mstring3∞[0m''')
@@ -2653,7 +2641,7 @@ if __name__ == "__main__":
         Manual verification has proven the method works, so now running this file is the way to
         rebuild my ~/.manpages directory's tags file.
         '''
-        dir = Path("/home/don/.manpages")
+        dir = pathlib.Path("/home/don/.manpages")
         files = list(dir.glob("*.hld"))
         BuildTagsFile(dir, files, dbg=False)
     def Demo():
@@ -2668,8 +2656,7 @@ if __name__ == "__main__":
             print(f"CommonPrefix({s!r}) = {CommonPrefix(s)}")
             print(f"CommonSuffix({s!r}) = {CommonSuffix(s)}")
             # FilterStr
-            print(
-                dedent('''
+            print(wrap.dedent('''
  
             FilterStr() returns a function that can replace a sequence of characters
             with a corresponding sequence from another equally-sized list of characters.''')

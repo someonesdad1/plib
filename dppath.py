@@ -26,15 +26,15 @@ if 1:  # Header
         <oo todo - Move dirfiles.py stuff here oo>
     '''
     if 1:  # Imports
+        import collections
         import pathlib
         import re
-        from collections import deque
     if 1:  # Custom imports
         if 0:
             import debug
             debug.SetDebugger()
     if 1:  # Global variables
-        P = pathlib.Path
+        pass
 if 1:  # Core functionality 
     def Remove(pathseq, match=None, search=None, ic=False, dir=False):
         '''Return the items in the sequence pathseq of pathlib.Path objects
@@ -65,11 +65,11 @@ if 1:  # Core functionality
         if search:
             a = []
             S = re.compile("|".join(search), re.I if ic else 0)
-        input, output = deque(pathseq), deque()
+        input, output = collections.deque(pathseq), collections.deque()
         # Process the sequence
         while input:
             p = input.popleft()
-            if not isinstance(p, P):
+            if not isinstance(p, pathlib.Path):
                 raise ValueError(f"'{p}' is not a pathlib.Path object")
             p = p.resolve()
             if dir:
@@ -121,7 +121,7 @@ if 1:  # Core functionality
         '''
         seq = []
         for dir in dirs:
-            p = P(dir)
+            p = pathlib.Path(dir)
             if not p.is_dir():
                 continue
             seq += p.rglob("*") if recursive else p.glob("*")
@@ -131,7 +131,7 @@ if 1:  # Core functionality
         directories.  If include_vc is True, include version control
         directories.  If recursive is True, do so recursively.
         '''
-        f, g = lambda x: P(x).is_file(), lambda x: list(sorted(set(x)))
+        f, g = lambda x: pathlib.Path(x).is_file(), lambda x: list(sorted(set(x)))
         seq = g(filter(f, Get(*dirs, recursive=recursive)))
         return seq if include_vc else RemoveVCDir(seq)
     def GetDirs(*dirs, include_vc=False, recursive=False):
@@ -139,13 +139,13 @@ if 1:  # Core functionality
         directories.  If include_vc is True, include version control
         directories.  If recursive is True, do so recursively.
         '''
-        f, g = lambda x: P(x).is_dir(), lambda x: list(sorted(set(x)))
+        f, g = lambda x: pathlib.Path(x).is_dir(), lambda x: list(sorted(set(x)))
         seq = g(filter(f, Get(*dirs, recursive=recursive)))
         return seq if include_vc else RemoveVCDir(seq)
     def KeepOnlyDirs(pathseq):
-        return list(filter(lambda x: P(x).is_dir(), pathseq))
+        return list(filter(lambda x: pathlib.Path(x).is_dir(), pathseq))
     def KeepOnlyFiles(pathseq):
-        return list(filter(lambda x: P(x).is_file(), pathseq))
+        return list(filter(lambda x: pathlib.Path(x).is_file(), pathseq))
     def IsVCDir(dir):
         "Return True if dir is in a version control directory tree"
         if not hasattr(IsVCDir, "vc"):
@@ -441,10 +441,9 @@ if __name__ == "__main__":
         wsl = wsl.wsl
     if 1:  # Global variables
         h = "/gh"   # Header string for my files stored on github
-        P = pathlib.Path
         dirfiles_image_list = "img1.png img2.png".split()
         dirfiles_filea = "file.a"
-        dirfiles_images = set([P(i) for i in dirfiles_image_list])
+        dirfiles_images = set([pathlib.Path(i) for i in dirfiles_image_list])
         dirfiles_dir = "dirfiles"
     def Test_GetDirs():
         dirs = GetDirs(f"{h}/plib")
@@ -452,7 +451,7 @@ if __name__ == "__main__":
         # These two directories are present for sure.  Others may be
         # present, but they're aren't core at the moment.
         for i in f"{h}/plib/pgm {h}/plib/test".split():
-            Assert(P(i) in dirs)
+            Assert(pathlib.Path(i) in dirs)
         Assert(list(sorted(set(dirs))) == dirs)  # No duplicates
     def Test_GetFiles():
         'Test that a sample of the files in /plib are there'
@@ -476,10 +475,10 @@ if __name__ == "__main__":
                 {h}/plib/dptime.py
                 {h}/plib/dptypes.py
             '''.split():
-            Assert(P(i) in files)
+            Assert(pathlib.Path(i) in files)
         Assert(list(sorted(set(files))) == files)  # No duplicates
     def Test_Remove():
-        pathseq = [P(i) for i in f'''{h}/plib/e.py {h}/plib/sig.py {h}/plib/eia.py
+        pathseq = [pathlib.Path(i) for i in f'''{h}/plib/e.py {h}/plib/sig.py {h}/plib/eia.py
                    {h}/plib/sigfig.py {h}/plib/elliptic.py {h}/plib/sizes.py
                    {h}/plib/enc.py {h}/plib/states.py
                    {h}/plib/enc_codecs.csv'''.split()
@@ -489,14 +488,14 @@ if __name__ == "__main__":
         Assert(not s)
         # Remove files that contain 'i' or 'l'
         s = RemoveFiles(pathseq, search=["i", "l"])
-        t = [P(i) for i in f'''{h}/plib/e.py {h}/plib/enc.py {h}/plib/states.py
+        t = [pathlib.Path(i) for i in f'''{h}/plib/e.py {h}/plib/enc.py {h}/plib/states.py
                                {h}/plib/enc_codecs.csv'''.split()]
         Assert(s == t)
     def Test_RemoveVCDir():
         dirs = KeepOnlyDirs(Get("/plib"))
-        Assert(P("/plib/.git") in dirs)
+        Assert(pathlib.Path("/plib/.git") in dirs)
         dirs = RemoveVCDir(dirs)
-        Assert(P("/plib/.git") not in dirs)
+        Assert(pathlib.Path("/plib/.git") not in dirs)
     def dirfiles_init():
         "Return an instance with no files"
         os.chdir(DirfilesSetup.cwd)  # Go back to starting directory
@@ -568,12 +567,12 @@ if __name__ == "__main__":
         a.add("*")
         Assert(a.size == 3)
         a.keepext("png")
-        Assert(P(dirfiles_filea) not in a.files)
+        Assert(pathlib.Path(dirfiles_filea) not in a.files)
     def Test_Dirfiles_keep():
         a = dirfiles_init()
         a.add("*")
         a.keep("file")
-        Assert(P(dirfiles_filea) in a.files)
+        Assert(pathlib.Path(dirfiles_filea) in a.files)
     def Test_Dirfiles_rmr():
         a = dirfiles_init()
         a.add("*")
@@ -593,13 +592,13 @@ if __name__ == "__main__":
         a.add(dirfiles_filea)
         Assert(a.size == n)
         # Verify multiple items are removed when a string is given
-        Assert(P("img1.png") in a.files)
-        Assert(P("img2.png") in a.files)
-        Assert(P(dirfiles_filea) in a.files)
+        Assert(pathlib.Path("img1.png") in a.files)
+        Assert(pathlib.Path("img2.png") in a.files)
+        Assert(pathlib.Path(dirfiles_filea) in a.files)
         Assert(a.rm("img") == 2)
-        Assert(P("img1.png") not in a.files)
-        Assert(P("img2.png") not in a.files)
-        Assert(P(dirfiles_filea) in a.files)
+        Assert(pathlib.Path("img1.png") not in a.files)
+        Assert(pathlib.Path("img2.png") not in a.files)
+        Assert(pathlib.Path(dirfiles_filea) in a.files)
         # Check that exact works
         a = dirfiles_init()
         a.add("*")
@@ -638,27 +637,27 @@ if __name__ == "__main__":
         lock.acquire()
         # Show that Dirfiles.files now has dirfiles_filea.
         s = dirfiles_images.copy()
-        s.add(P(dirfiles_filea))
+        s.add(pathlib.Path(dirfiles_filea))
         Assert(s == Dirfiles.files)
     def DirfilesSetup():
         "Create a dirfiles directory that will contain the three empty files"
         DirfilesSetup.cwd = os.getcwd()
-        if not P(dirfiles_dir).exists():
+        if not pathlib.Path(dirfiles_dir).exists():
             os.mkdir(dirfiles_dir)
         os.chdir(dirfiles_dir)
         # Create three empty files
         for file in dirfiles_image_list:
-            if not P(file).exists():
+            if not pathlib.Path(file).exists():
                 open(file, "w")
-        if not P(dirfiles_filea).exists():
+        if not pathlib.Path(dirfiles_filea).exists():
             open(dirfiles_filea, "w")
     def DirfilesTeardown():
         os.chdir(DirfilesSetup.cwd)  # Go back to starting directory
         os.chdir(dirfiles_dir)
         for file in dirfiles_image_list:
-            if P(file).exists():
+            if pathlib.Path(file).exists():
                 os.remove(file)
-        if P(dirfiles_filea).exists():
+        if pathlib.Path(dirfiles_filea).exists():
             os.remove(dirfiles_filea)
         os.chdir(DirfilesSetup.cwd)  # Go back to starting directory
         os.rmdir(dirfiles_dir)
@@ -672,22 +671,22 @@ if __name__ == "__main__":
         a = Dirfiles(".", clear=True, getdirs=True)
         a.add("*")
         if a.size == 1:
-            Assert(a.files == set([P(dirfiles_dir)]))
+            Assert(a.files == set([pathlib.Path(dirfiles_dir)]))
         else:
-            Assert(P(dirfiles_dir) in a.files)
+            Assert(pathlib.Path(dirfiles_dir) in a.files)
         # Change the directory to /plib/Dev/0dirfiles_test, which is a test directory.
         # It will have a .git directory and a testdir directory.
         os.chdir("/plib/Dev/0dirfiles_test")
         if 1:   # Check we have recursion and that repos are seen
             a = Dirfiles(".", clear=True, getdirs=True, ignore_repo=False)
             a.add("**/*")
-            Assert(P("testdir") in a.files)
-            Assert(P(".git") in a.files)
+            Assert(pathlib.Path("testdir") in a.files)
+            Assert(pathlib.Path(".git") in a.files)
         if 1:   # Check we have recursion and that repos are not seen
             a = Dirfiles(".", clear=True, getdirs=True, ignore_repo=True)
             a.add("**/*")
-            Assert(P("testdir") in a.files)
-            Assert(P(".git") not in a.files)
+            Assert(pathlib.Path("testdir") in a.files)
+            Assert(pathlib.Path(".git") not in a.files)
         # Go back to starting directory
         os.chdir(DirfilesSetup.cwd)
     DirfilesSetup()

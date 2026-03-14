@@ -91,16 +91,8 @@ if 1:  # Header
             _have_mpmath = True
         except ImportError:
             _have_mpmath = False
-    if 1:  # Import symbols
-        D = decimal.Decimal
-        Fraction = fractions.Fraction
-        deque = collections.deque
-        partial = functools.partial
-        #
-        Columnize = columnize.Columnize
-        t = trm.Trm()
     if 1:  # Global variables
-        pass
+        t = trm.Trm()
 if 1:  # Classes
     class dec(decimal.Decimal):
         '''Provides decimal.Decimal numbers with custom string interpolation.
@@ -143,7 +135,7 @@ if 1:  # Classes
                 return sign + s.replace(".", dp)
             significand = s.replace(dp, "")
             # Generate the fixed-point representation
-            sig, out, zero_digit = deque(significand), deque(), "0"
+            sig, out, zero_digit = collections.deque(significand), collections.deque(), "0"
             out.append(sign + zero_digit + dp if exponent < 0 else sign)
             if exponent < 0:
                 while exponent + 1:
@@ -180,7 +172,7 @@ if 1:  # Classes
                 return value
             if isinstance(value, float):
                 return dec(repr(value))
-            elif isinstance(value, Fraction):
+            elif isinstance(value, fractions.Fraction):
                 return dec(value.numerator) / dec(value.denominator)
             elif _have_mpmath and isinstance(value, mpmath.mpf):
                 return dec(str(value))
@@ -350,8 +342,8 @@ if 1:  # Functions
         # This function was used to determine the Decimal functions that return
         # a Decimal, as these then needed to be implemented in dec and wrapped
         # to return a dec object.
-        x, y = D("1.234"), D("3.456")
-        X, Y = D("11001"), D("11101")
+        x, y = decimal.Decimal("1.234"), decimal.Decimal("3.456")
+        X, Y = decimal.Decimal("11001"), decimal.Decimal("11101")
         show = True
         seen = []
         w = 25
@@ -392,21 +384,21 @@ if 1:  # Functions
                 print(u.format(**locals()))
         print("Missing stuff:  format getattribute")
         if 1:  # Functions with double underscores
-            f = partial(ZeroArgs, us="__")
+            f = functools.partial(ZeroArgs, us="__")
             for name in '''abs bool ceil complex copy neg pos float floor 
                 hash int reduce repr round sizeof str trunc
                 neg pos
                 '''.split():
                 f(name, x)
             #
-            f = partial(OneArg, us="__")
+            f = functools.partial(OneArg, us="__")
             for name in '''add deepcopy divmod eq floordiv ge gt
                 le lt mod mul ne pow radd rdivmod rfloordiv rmod rmul rpow
                 rsub rtruediv sub truediv
                 '''.split():
                 f(name, x, y)
             #
-            f = partial(TwoArgs, us="__")
+            f = functools.partial(TwoArgs, us="__")
             for name in '''
                 '''.split():
                 f(name, x, y, 2)
@@ -434,7 +426,7 @@ if 1:  # Functions
                             shift'''.split()
                 ):
                     if name in "rotate scaleb shift".split():
-                        f(name, X, D(1))
+                        f(name, X, decimal.Decimal(1))
                     else:
                         f(name, X, Y)
                 else:
@@ -447,7 +439,7 @@ if 1:  # Functions
         if 1:  # List the functions we've seen
             print(f"\nList of {len(seen)} functions examined:")
             seen = [i[2:] for i in sorted(seen)]
-            for i in Columnize(seen, indent=" " * 2):
+            for i in columnize.Columnize(seen, indent=" " * 2):
                 print(i)
         '''
         The following functions return a Decimal:
@@ -485,17 +477,15 @@ if 1:  # Functions
             print(f"{indent}{i:20s}", eval(f"ctx.{i}"))
         print(f"{indent}flags:")
         f = [F(i) for i in ctx.flags]
-        for i in Columnize(f, indent=indent * 2):
+        for i in columnize.Columnize(f, indent=indent * 2):
             print(i)
         print(f"{indent}traps:")
         f = [F(i) for i in ctx.traps]
-        for i in Columnize(f, indent=indent * 2):
+        for i in columnize.Columnize(f, indent=indent * 2):
             print(i)
 
 if __name__ == "__main__":
     if 1:  # Header
-        if 1:  # Imports
-            from fractions import Fraction
         if 1:  # Custom imports
             # Use mpmath (http://mpmath.org/) to generate the numbers to test
             # against.  Assume mpmath's algorithms are correct.
@@ -572,7 +562,7 @@ if __name__ == "__main__":
             x = dec("1.234")
             L1, L2 = dec("11001"), dec("11101")  # noqa
             two = dec(2)    # noqa
-            for y in (True, 3, 3.456, D("3.456"), dec("3.456"), Fraction(1, 2)):
+            for y in (True, 3, 3.456, decimal.Decimal("3.456"), dec("3.456"), fractions.Fraction(1, 2)):
                 # Zero arguments, non-logical
                 for i in '''__abs__ exp normalize __copy__ ln radix __neg__ log10
                             sqrt __pos__ logb to_integral conjugate
@@ -595,7 +585,7 @@ if __name__ == "__main__":
                             __rpow__'''.split():
                     # Note floats and Fraction are not supported for these
                     # operations
-                    if isinstance(y, (float, Fraction)):
+                    if isinstance(y, (float, fractions.Fraction)):
                         with raises(TypeError):
                             r = eval(f"x.{i}()")
                     else:
@@ -613,7 +603,6 @@ if __name__ == "__main__":
                         r = eval(f"L1.{i}(L2)")
                     Assert(type(r) is type(L1))
         def Test_strict():
-            breakpoint() # ∞∞ 
             x = dec("1.234567890123456789")
             s = "1.2"
             dec.strict = True

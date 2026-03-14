@@ -25,13 +25,11 @@ if 1:  # Header
         import operator
         import subprocess
         import sys
-        from functools import reduce
     if 1:  # Custom imports
         import multiset
-
+        
         import dptypes
         import trm
-        import wrap
         _have_bitarray = False
         try:
             # The bitarray module is used for fast bitfield manipulations.  If you get
@@ -43,13 +41,9 @@ if 1:  # Header
         except ImportError:
             pass
     if 1:  # Import symbols
-        reduce = functools.reduce
-        #
-        Constant = dptypes.Constant
-        Multiset = multiset.Multiset
-        dedent = wrap.dedent
+        pass
     if 1:  # Global variables
-        g = Constant()
+        g = dptypes.Constant()
         t = trm.Trm()
 if 1:  # Core functionality
     def IsPositiveInteger(n, msg):
@@ -131,7 +125,7 @@ if 1:  # Core functionality
         factors, d = list(FactorGenerator(n, big=big)), collections.defaultdict(int)
         if return_tuple:
             return tuple(factors)
-        if check and factors and reduce(operator.mul, factors) != n:
+        if check and factors and functools.reduce(operator.mul, factors) != n:
             raise RuntimeError(f"Bug in Factor for n = {n}")
         if factors == [n]:
             return dict(d)  # n is prime
@@ -152,7 +146,7 @@ if 1:  # Core functionality
         '''
         IsPositiveInteger(n, "n must be an integer > 0")
         prime_factors = sorted(list(FactorGenerator(n, big=big)))
-        if check and prime_factors and reduce(operator.mul, prime_factors) != n:
+        if check and prime_factors and functools.reduce(operator.mul, prime_factors) != n:
             raise RuntimeError(f"Bug in FactorList for n = {n}")
         if not prime_factors and incl_if_prime:
             return [n]
@@ -202,7 +196,7 @@ if 1:  # Core functionality
         composite_factors = set()
         for num_factors in range(2, len(prime_factors)):
             for comb in itertools.combinations(prime_factors, num_factors):
-                composite_factors.add(reduce(operator.mul, comb))
+                composite_factors.add(functools.reduce(operator.mul, comb))
         composite = list(sorted(list(composite_factors)))
         if split:
             return (prime_factors, composite)
@@ -273,9 +267,9 @@ if 1:  # Core functionality
             if i < 1:
                 raise ValueError(f"{i!r} is < 1")
         # Get the common set of factors
-        common_factors = Multiset(FactorList(integers[0], incl_if_prime=True))
+        common_factors = multiset.Multiset(FactorList(integers[0], incl_if_prime=True))
         for i in integers[1:]:
-            common_factors &= Multiset(FactorList(i, incl_if_prime=True))
+            common_factors &= multiset.Multiset(FactorList(i, incl_if_prime=True))
         # Remove these common factors
         results = list(integers)
         if common_factors:
@@ -397,7 +391,7 @@ if __name__ == "__main__":
         for i in range(2, 20):
             s = [2*i*j for j in k]
             r = RemoveCommonFactors(*s)
-            print(s, r)
+            #print(s, r)
             Assert(r == k)
         #
         s = (2, 4, 12, 8, 4, 2)

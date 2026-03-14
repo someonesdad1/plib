@@ -12,7 +12,6 @@ if 1:  # Header
         import re
         import string
     if 1:  # Custom imports
-        import dpseq
         import dptypes
         import f
         import u
@@ -29,16 +28,8 @@ if 1:  # Header
         if 0:
             import debug
             debug.SetDebugger()
-    if 1:  # Import symbols
-        Constant = dptypes.Constant
-        Decimal = decimal.Decimal
-        localcontext = decimal.localcontext
-        Fraction = fractions.Fraction
-        #
-        flt = f.flt
-        frange = dpseq.frange
     if 1:  # Global variables
-        g = Constant()
+        g = dptypes.Constant()
 if 1:  # Classes
     class bitvector(int):
         '''This convenience class is an integer that lets you get its bit
@@ -203,9 +194,9 @@ if 1:  # Spirals
             raise ValueError("a must be > 0")
         if theta < 0:
             raise ValueError("theta must be >= 0")
-        theta = math.radians(flt(theta)) if degrees else flt(theta)
+        theta = math.radians(f.flt(theta)) if degrees else f.flt(theta)
         A = math.sqrt(theta*theta + 1)
-        return flt(a)/2*(theta*A + math.log(theta + A))
+        return f.flt(a)/2*(theta*A + math.log(theta + A))
     def RollArcLength(D, d, thickness):
         '''Return the length of a roll of material of the given thickness with inside
         diameter d and outside diameter D.  It is assumed the roll forms a spiral.
@@ -285,7 +276,7 @@ if 1:  # RoundOff, SigFig, TemplateRound, Pound
             math.sin(x) = 0.49999999999999994
             RoundOff(math.sin(x)) = 0.5
         '''
-        if isinstance(number, (int, Fraction)):
+        if isinstance(number, (int, fractions.Fraction)):
             return number
         if _have_unc and isinstance(number, UFloat):
             return number
@@ -294,7 +285,7 @@ if 1:  # RoundOff, SigFig, TemplateRound, Pound
             im = RoundOff(number.imag, digits=digits)
             return type(number)(re, im)  # Handles classes derived from complex
         can_convert = False
-        if convert and not isinstance(number, Decimal):
+        if convert and not isinstance(number, decimal.Decimal):
             try:
                 float(number)
                 can_convert = True
@@ -302,8 +293,8 @@ if 1:  # RoundOff, SigFig, TemplateRound, Pound
                 pass
         if isinstance(number, float) or (convert and can_convert):
             # Convert to a decimal, then back to a float
-            x = Decimal(number)
-            with localcontext() as ctx:
+            x = decimal.Decimal(number)
+            with decimal.localcontext() as ctx:
                 ctx.prec = digits
                 x = +x
             return type(number)(x)  # Handles classes derived from floats
@@ -312,22 +303,22 @@ if 1:  # RoundOff, SigFig, TemplateRound, Pound
                 RoundOff(number.real, digits=digits, convert=True),
                 RoundOff(number.imag, digits=digits, convert=True),
             )
-        elif isinstance(number, Decimal):
-            with localcontext() as ctx:
+        elif isinstance(number, decimal.Decimal):
+            with decimal.localcontext() as ctx:
                 ctx.prec = digits
                 number = +number
                 return number
         elif _have_mpmath and isinstance(number, mpmath.mpf):
-            x = Decimal(mpmath.nstr(number, mpmath.mp.dps))
-            with localcontext() as ctx:
+            x = decimal.Decimal(mpmath.nstr(number, mpmath.mp.dps))
+            with decimal.localcontext() as ctx:
                 ctx.prec = digits
                 x = +x
                 s = str(x)
                 return mpmath.mpf(s)
         elif _have_mpmath and isinstance(number, mpmath.mpc):
-            re = Decimal(mpmath.nstr(number.real, mpmath.mp.dps))
-            im = Decimal(mpmath.nstr(number.imag, mpmath.mp.dps))
-            with localcontext() as ctx:
+            re = decimal.Decimal(mpmath.nstr(number.real, mpmath.mp.dps))
+            im = decimal.Decimal(mpmath.nstr(number.imag, mpmath.mp.dps))
+            with decimal.localcontext() as ctx:
                 ctx.prec = digits
                 re = +re
                 im = +im
@@ -443,7 +434,7 @@ if 1:  # RoundOff, SigFig, TemplateRound, Pound
 if 1:  # Core functions
     def Ceil(x, fp):
         'Ceiling function for type fp:  float, flt, mpf, Decimal'
-        if fp is float or fp is flt:
+        if fp is float or fp is f.flt:
             return int(math.ceil(x))
         elif _have_mpmath and fp is mpmath.mpf:
             return int(mpmath.ceil(x))
@@ -453,7 +444,7 @@ if 1:  # Core functions
             raise TypeError(f"Type {fp} not supported")
     def Log2(x, fp):
         'Base 2 logarithm function for type fp:  float, flt, mpf, Decimal'
-        if fp is float or fp is flt:
+        if fp is float or fp is f.flt:
             return math.log2(x)
         elif _have_mpmath and fp is mpmath.mpf:
             return mpmath.log(x)/mpmath.log(2)
@@ -733,7 +724,7 @@ if 1:  # Core functions
         t = s.strip()
         # First, try to convert the string to a Fraction object
         try:
-            return Fraction(t)
+            return fractions.Fraction(t)
         except ValueError:
             pass
         # Assume it's of the form 'm[ +-]n/d' where m, n, d are
@@ -745,7 +736,7 @@ if 1:  # Core functions
             raise ValueError(msg)
         try:
             ip = abs(int(fields[0]))
-            fp = abs(Fraction(fields[1]))
+            fp = abs(fractions.Fraction(fields[1]))
             return -(ip + fp) if neg else ip + fp
         except ValueError as e:
             raise ValueError(msg) from e
@@ -755,8 +746,8 @@ if 1:  # Core functions
         
         Example:  Fraction(-5, 4) returns '-1 1/4'.
         '''
-        if not isinstance(fraction, Fraction):
-            raise ValueError("frac must be a Fraction object")
+        if not isinstance(fraction, fractions.Fraction):
+            raise ValueError("frac must be a fractions.Fraction object")
         sgn = "-" if fraction < 0 else ""
         n, d = abs(fraction.numerator), abs(fraction.denominator)
         ip, numerator = divmod(n, d)
@@ -895,7 +886,7 @@ if 1:  # Core functions
         factor = u.u(units)/u.u("inches")
         rope, width, flange, drum = [i*factor for i in param]
         # Sampson's formula takes parameters in inches and returns feet
-        L_ft = flt(width*(flange**2 - drum**2)/(15.3*rope**2))
+        L_ft = f.flt(width*(flange**2 - drum**2)/(15.3*rope**2))
         # Convert feet to the user's units
         return L_ft*u.u("ft")/u.u(units)
     def PythagoreanSum(x, y, epsilon=1e-9, watch=False):
@@ -1178,9 +1169,9 @@ if 1:  # Simple linear regression
         sXX = sum([i*i for i in x])
         sYY = sum([i*i for i in y])
         sXY = sum([i*j for i, j in zip(x, y, strict=True)])
-        m = flt((n*sXY - sx*sy)/(n*sXX - sx**2))
-        b = flt((sy - m*sx)/n)
-        Rsquared = flt((n*sXY - sx*sy)**2/((n*sXX - sx**2)*(n*sYY - sy**2)))
+        m = f.flt((n*sXY - sx*sy)/(n*sXX - sx**2))
+        b = f.flt((sy - m*sx)/n)
+        Rsquared = f.flt((n*sXY - sx*sy)**2/((n*sXX - sx**2)*(n*sYY - sy**2)))
         return (m, b, Rsquared)
 
 if __name__ == "__main__":
@@ -1398,7 +1389,7 @@ if __name__ == "__main__":
             g1 = bin2gray(b)
             Assert(g1 == g)
     def TestInterpretFraction():
-        expected = Fraction(5, 4)
+        expected = fractions.Fraction(5, 4)
         Assert(InterpretFraction("5/4") == expected)
         Assert(InterpretFraction("1 1/4") == expected)
         Assert(InterpretFraction("1+1/4") == expected)
@@ -1414,26 +1405,26 @@ if __name__ == "__main__":
         Assert(InterpretFraction("-1+1/4") == -expected)
         Assert(InterpretFraction("-1-1/4") == -expected)
         #
-        Assert(InterpretFraction("1 1/1") == Fraction(2, 1))
-        Assert(InterpretFraction("+1 1/1") == Fraction(2, 1))
-        Assert(InterpretFraction("-1 1/1") == Fraction(-2, 1))
+        Assert(InterpretFraction("1 1/1") == fractions.Fraction(2, 1))
+        Assert(InterpretFraction("+1 1/1") == fractions.Fraction(2, 1))
+        Assert(InterpretFraction("-1 1/1") == fractions.Fraction(-2, 1))
         #
-        Assert(InterpretFraction("1 2/1") == Fraction(3, 1))
-        Assert(InterpretFraction("+1 2/1") == Fraction(3, 1))
-        Assert(InterpretFraction("-1 2/1") == Fraction(-3, 1))
+        Assert(InterpretFraction("1 2/1") == fractions.Fraction(3, 1))
+        Assert(InterpretFraction("+1 2/1") == fractions.Fraction(3, 1))
+        Assert(InterpretFraction("-1 2/1") == fractions.Fraction(-3, 1))
         # Argument must contain "/" and be parseable
         raises(ValueError, InterpretFraction, "1")
         raises(ValueError, InterpretFraction, "1/")
         raises(ValueError, InterpretFraction, "/1")
     def TestProperFraction():
-        Assert(ProperFraction(Fraction("-1")) == "-1 0/1")
-        Assert(ProperFraction(Fraction("1")) == "1 0/1")
-        Assert(ProperFraction(Fraction(-1, 1)) == "-1 0/1")
-        Assert(ProperFraction(Fraction(1, 1)) == "1 0/1")
-        Assert(ProperFraction(Fraction(-3, 1)) == "-3 0/1")
-        Assert(ProperFraction(Fraction(3, 1)) == "3 0/1")
-        Assert(ProperFraction(Fraction(5, 4)) == "1 1/4")
-        Assert(ProperFraction(Fraction(-5, 4)) == "-1 1/4")
+        Assert(ProperFraction(fractions.Fraction("-1")) == "-1 0/1")
+        Assert(ProperFraction(fractions.Fraction("1")) == "1 0/1")
+        Assert(ProperFraction(fractions.Fraction(-1, 1)) == "-1 0/1")
+        Assert(ProperFraction(fractions.Fraction(1, 1)) == "1 0/1")
+        Assert(ProperFraction(fractions.Fraction(-3, 1)) == "-3 0/1")
+        Assert(ProperFraction(fractions.Fraction(3, 1)) == "3 0/1")
+        Assert(ProperFraction(fractions.Fraction(5, 4)) == "1 1/4")
+        Assert(ProperFraction(fractions.Fraction(-5, 4)) == "-1 1/4")
     def Test_mantissa():
         x = 1.234
         mant = mantissa(x)
@@ -1450,11 +1441,11 @@ if __name__ == "__main__":
         Assert(signum(5) == 1)
         Assert(signum(0) == 0)
         Assert(isinstance(signum(5, return_type=float), float))
-        for i in (-1, -2, -2.2, Fraction(-1, 1), Decimal("-3.7")):
+        for i in (-1, -2, -2.2, fractions.Fraction(-1, 1), decimal.Decimal("-3.7")):
             assert_equal(signum(i), -1)
-        for i in (0, 0.0, Fraction(0, 1), Decimal(0)):
+        for i in (0, 0.0, fractions.Fraction(0, 1), decimal.Decimal(0)):
             assert_equal(signum(i), 0)
-        for i in (1, 2, 2.2, Fraction(1, 1), Decimal("3.7")):
+        for i in (1, 2, 2.2, fractions.Fraction(1, 1), decimal.Decimal("3.7")):
             assert_equal(signum(i), 1)
         raises(TypeError, signum, "a")
     def TestPercentile():
@@ -1537,13 +1528,13 @@ if __name__ == "__main__":
         Assert(TemplateRound(a, t, up=True) == 470)
         Assert(TemplateRound(a, t, up=False) == 460)
         # Decimal rounding
-        a, t = Decimal("123.48"), Decimal("0.1")
-        Assert(TemplateRound(a, t, up=True) == Decimal("123.5"))
-        Assert(TemplateRound(a, t, up=False) == Decimal("123.4"))
+        a, t = decimal.Decimal("123.48"), decimal.Decimal("0.1")
+        Assert(TemplateRound(a, t, up=True) == decimal.Decimal("123.5"))
+        Assert(TemplateRound(a, t, up=False) == decimal.Decimal("123.4"))
         # Fraction rounding:  a will be 123+31/64, t will be 1/8
-        a, t = 123 + Fraction(31, 64), Fraction(1, 8)
-        Assert(TemplateRound(a, t, up=True) == Fraction(247, 2))
-        Assert(TemplateRound(a, t, up=False) == Fraction(987, 8))
+        a, t = 123 + fractions.Fraction(31, 64), fractions.Fraction(1, 8)
+        Assert(TemplateRound(a, t, up=True) == fractions.Fraction(247, 2))
+        Assert(TemplateRound(a, t, up=False) == fractions.Fraction(987, 8))
         # mpmath
         if _have_mpmath:
             mpf = mpmath.mpf
