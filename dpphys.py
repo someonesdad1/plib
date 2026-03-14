@@ -186,8 +186,8 @@ if __name__ == "__main__":
     if 1:   # Standard imports
         pass
     if 1:   # Custom imports
-        import lwtest
         import dpmath
+        import lwtest
     if 1:   # Import symbols
         run = lwtest.run
         raises = lwtest.raises

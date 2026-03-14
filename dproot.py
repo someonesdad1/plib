@@ -1306,7 +1306,7 @@ if __name__ == "__main__":
             x = FindRoots(myfunc, 10, a, b, tol=tol)[0]
             Assert(abs(x - expected) < 1e-15)
             if 1:   # Prints out a comparison of float/mpf for polynomial routines
-                from mpmath import mpf, mp
+                from mpmath import mp, mpf
                 t.print(f"{t.whtl}Demo that Quadratic, Cubic, Quartic work for mpmath numbers")
                 a, b, c, d, e = 1, 1, 1, 1, 1
                 mp.dps = 16
@@ -1562,19 +1562,19 @@ if __name__ == "__main__":
                     sr, n = RootFinder(a, b, f, tol=tol)
                     rf.append("%3d " % n)
                     assert_equal(sr0, sr, reltol=tol)
-                except Exception as E:
+                except Exception:
                     pass
                 try:
                     sr, n = Brent(a, b, f, tol=tol)
                     Br.append("%3d " % n)
                     assert_equal(sr0, sr, reltol=tol)
-                except Exception as E:
+                except Exception:
                     pass
                 try:
                     sr, n = Brent(a, b, f, tol=tol)
                     br.append("%3d " % n)
                     assert_equal(sr0, sr, reltol=tol)
-                except Exception as E:
+                except Exception:
                     pass
                 sr, n = Ridders(a, b, f, tol=tol)
                 assert_equal(sr0, sr, reltol=tol)
@@ -1596,7 +1596,7 @@ if __name__ == "__main__":
                 else:
                     pl.savefig("rootfinder_comparison.png")
         def Test_Ostrowski():
-            from math import sin, cos, exp
+            from math import cos, exp, sin
             tol = 1e-14
             # Square root of 2
             x0 = 3
