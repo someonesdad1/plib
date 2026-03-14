@@ -83,6 +83,9 @@ if 1:  # Header
             - fmt.unc()
                 - Add support for eng, engsi, engsic
             - Add decimal point alignment like fpformat.py
+            - Need a discussion of the difference between fix() and fixed().  fixed() is
+              what an HP calculator does:  'fix 2' means you'll get numbers shown to 2
+              decimal places.  For floats, this means you'll see str(round(x, 2)).
             - Large numbers
                 - mpmath can calculate fac(1e1000); it's log is 1.00e1002.  Thus
                   log(log(x)) could be a way to get reasonably-sized numbers to help you
@@ -727,15 +730,17 @@ class Fmt:
         "Raise exception if var is None"
         if var is None:
             raise Exception(f"fmt.{var} is None")
-    def clamp_n(self, value, n) -> int:
-        "Clamp n to reasonable values"
+    def clamp_n(self, value, n: int) -> int:
+        'Return a reasonable integer value for n given the type of value'
+        assert n > 0
         if isinstance(value, float):
             return min(n, 15)
         elif isinstance(value, D):
-            ctx = decimal.getcontext()
-            return min(n, ctx.prec)
+            N = decimal.getcontext().prec
+            return min(n, N)
         elif have_mpmath and isinstance(value, mpmath.mpf):
-            return min(n, mpmath.mp.dps)
+            N = int(mpmath.mp.dps)
+            return min(n, N)
         else:
             return n
     def significand(self, value) -> str:
@@ -934,7 +939,7 @@ class Fmt:
             return self.sci(value, n=n)
         elif self.high is not None and abs(value) >= self.high:
             return self.sci(value, n=n)
-        # Take things apart
+        # Take things apart (see TakeApart.disassemble() docstring)
         self.ta(value, n, all=True)
         if abs(self.ta.e) > self.nchars:
             # A number whose exponent will take up more than 1/4 of the
@@ -945,16 +950,16 @@ class Fmt:
             sign = ""
         if self.sign and sign == "":
             sign = "+"
-        dq = self.ta.dq  # Deque of significand's digits
-        e = self.ta.e
+        dq = self.ta.dq     # Deque of significand's digits
+        e = self.ta.e       # Integer = numbers exponent
         if e >= 0:
             # Add zeroes if needed
             while e + 1 > len(dq):
                 dq.append("0")
             insertion_point = e + 1
             last_digit = insertion_point + n - 1
-            # Convert to string for more efficient indexing
-            s = "".join(dq)
+            # Convert deque to string for more efficient indexing
+            s = ''.join(dq)
             while len(s) < last_digit + 2:
                 s += "0"
             try:
@@ -972,6 +977,7 @@ class Fmt:
             dq.insert(e + 1, self.dp)
             return sign + "".join(dq)
         else:
+            # e is < 0
             k = n - abs(e) + 1
             if k < 0:
                 # Can't get any digits of significand
@@ -1595,13 +1601,13 @@ if __name__ == "__main__":
         u = use_colors = True
         t.always = True
         t.t = t()       # Title
-        t.u = t.orn     # Normal float formatting
+        t.u = t.ornl    # Normal float formatting
         t.f = t.skyl    # Feature being demonstrated
         t.fix = t.whtl  # Fixed point
-        t.sci = t.yel   # Scientific notation
-        t.eng = t.grn   # Engineering notation
-        t.si = t.mag    # Engsi notation
-        t.em = t.pur    # Emphasis
+        t.sci = t.yell  # Scientific notation
+        t.eng = t.grnl  # Engineering notation
+        t.si = t.pnkl   # Engsi notation
+        t.em = t.purl   # Emphasis
         t.err = t.red   # Error in digits
     def Demo():
         f = fmt
@@ -1764,7 +1770,7 @@ if __name__ == "__main__":
         {t.em}SI notation{t.n}    The {t.f}f.engsi{t.n} method supplies an SI prefix after the number to
         indicate the number's magnitude.  You can then append a physical unit string
         to get proper SI syntax:  {t.u}{f(x, "engsi")}Ω{t.n}.  {t.f}f.engsic{t.n} does the same except the prefix
-        is cuddled: {t.u}{f(x, "engsic")}Ω{t.n} (incorrect SI syntax, but sometimes useful).
+        is cuddled: {t.u}{f(x, "engsic")}Ω{t.n} (illegal SI syntax, but sometimes useful).
         ''')
         )
         # Complex numbers
@@ -2746,3 +2752,13 @@ if __name__ == "__main__":
             status, msg = run(globals(), regexp=r"Test_", halt=1)
             exit(status)
         Demo()
+
+def GetGist():
+    g = {}
+    g["gist"] = "Format floating point numbers"
+    g["copy"] = "Copyright © 2008, 2012, 2021 Don Peterson"
+    g["lic"] = "MIT License (see /plib/_lic.mit)"
+    g["test"] = "--test"
+    g["cat"] = ""
+    g["todo"] = ''' '''
+    return g
