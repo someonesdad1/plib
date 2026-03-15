@@ -184,7 +184,7 @@ if __name__ == "__main__":
         if not args:
             Usage()
         return args
-    d = {}  # Options dictionary
+    d: dict[object, object] = {}  # Options dictionary
     files = ParseCommandLine(d)
     words = set()
     for file in files:

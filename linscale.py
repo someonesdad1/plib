@@ -58,7 +58,6 @@ How to use:
     if not print_slide_rule_scale:
         NumberScale(x1, y1)  # Print a number to the right of the scale
 '''
-
 if 1:  # Header
     _pgminfo = '''
         <oo gist ∞ Draw linear scales in PostScript oo>
@@ -207,7 +206,6 @@ if 1:  # Classes
             # Get length and angle
             self.length = Distance(self.x0, self.y0, self.x1, self.y1)
             self.angle_degrees = Angle(self.x0, self.y0, self.x1, self.y1)
-            
         def Settings(self, settings):
             if debug:
                 print("Settings:")
@@ -220,7 +218,6 @@ if 1:  # Classes
                     self.s[key] = settings[key]
                 else:
                     raise Exception("'" + key + "' key not in settings")
-                    
         def DrawTick(self, number):
             values = []
             L = "labelled%d" % number
@@ -251,7 +248,6 @@ if 1:  # Classes
                 if debug:
                     print("Tick at (%g, %g), len = %g" % (x, y, tick_length))
             g.pop()
-            
         def DrawLabel(self, number):
             container = self.s["labelled%d" % number]
             if not container:
@@ -297,7 +293,6 @@ if 1:  # Classes
                 g.ctext(label)
                 g.pop()
             g.pop()
-            
         def Draw(self):
             g.push()
             g.translate(self.x0, self.y0)

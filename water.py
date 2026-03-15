@@ -35,16 +35,16 @@ if 1:  # Header
         oo>
     '''
     if 1:  # Standard imports
-        from functools import partial
+        import functools
         import getopt
         import math
         import re
         import sys
     if 1:  # Custom imports
-        from u import u
-        from wrap import dedent
-        from color import t
-        from f import flt, log10, sqrt
+        import f
+        import u
+        import wrap
+        import trm
         # Import the python uncertainties library if it is available
         _have_unc = False
         try:
@@ -57,11 +57,11 @@ if 1:  # Header
         except ImportError:
             pass
     if 1:  # Global variables
-        ii = isinstance
         __all__ = '''Colebrook FrictionFactor GetQuantity ParseUnit ShowPipeRoughness
                     ShowUSPipeSizes WaterDensity WaterDynamicViscosity'''.split()
         # Regular expression that will match an integer or floating point
         # number in its string representation.
+        # ∞∞1 Add this regex to dpstr.py:GetRegexToMatchNumber()
         num_regexp = re.compile(
             r'''
                     ^                       # Must match at beginning
@@ -78,10 +78,9 @@ if 1:  # Header
             re.VERBOSE,
         )
         # Colors
-        ia = sys.stdout.isatty()
-        t.ti = t("ornl") if ia else ""
-        t.so = t("trq") if ia else ""
-        t.nn = t.n if ia else ""
+        t = trm.Trm()
+        t.ti = t.orn
+        t.so = t.trq
 if 1:  # Core functionality
     def _ParseUnit(s, allow_unc=False):
         '''Separate a number string followed by a unit string and return them
@@ -104,33 +103,32 @@ if 1:  # Core functionality
         # enhancement to the uncertainties package's syntax).
         s = s.replace("+-", "+/-")
         is_unc = "+/-" in s or ("(" in s and ")" in s)
-        f = s.split()
+        F = s.split()
         if allow_unc and is_unc:
-            if len(f) not in (1, 2):
+            if len(F) not in (1, 2):
                 raise ValueError("s is not a proper string")
             try:
-                x = unc.ufloat_fromstr(f[0])
+                x = unc.ufloat_fromstr(F[0])
             except Exception:
-                raise ValueError("Cannot parse '{}'".format(f[0]))
-            u = f[1] if len(f) == 2 else ""
-            return (x, u)
+                raise ValueError("Cannot parse '{}'".format(F[0]))
+            unit = F[1] if len(F) == 2 else ""
+            return (x, unit)
         else:
             if is_unc:
                 raise ValueError("Uncertainties not allowed in string")
             mo = num_regexp.search(s)
             if mo:
                 x, unit = s[: mo.end()].rstrip(), s[mo.end() :].lstrip()
-                y = flt(x)
+                y = f.flt(x)
                 return (y, unit)
             return None
     if _have_unc:
-        ParseUnit = partial(_ParseUnit, allow_unc=True)
+        ParseUnit = functools.partial(_ParseUnit, allow_unc=True)
     else:
         ParseUnit = _ParseUnit
     ParseUnit.__doc__ = _ParseUnit.__doc__
     def RecommendedFluidVelocities():
-        print(dedent(f'''
-                  {t.ti}Recommended fluid velocities in m/s{t.nn}
+        print(wrap.dedent(f'''{t.ti}Recommended fluid velocities in m/s{t.n}
         Application                                 Velocity        Ref.
         -----------------------------------         --------        ---
         Tap water, low noise                        0.5-0.7          1
@@ -147,7 +145,7 @@ if 1:  # Core functionality
         Irrigation water                            1.5              5
         Gravity-fed water system (various sources)  1
         
-        {t.so}References:{t.nn}
+        {t.so}References:{t.n}
             1.  http://www.engineeringtoolbox.com/flow-velocity-water-pipes-d_385.html
             2.  http://4wings.com/tip/vpdp.html
             3.  http://www.sidenereng.com/formulas.php
@@ -158,7 +156,7 @@ if 1:  # Core functionality
             6.  http://asahi-america.com/images/x-assets/PDF/engineer_theory.pdf
         '''))
     def ShowUSPipeSizes():
-        print(dedent('''
+        print(wrap.dedent('''
         US Pipe Sizes
                 Schedule 40 PVC pipe                    Schedule 80 PVC pipe
           Nominal                                 Nominal
@@ -218,12 +216,12 @@ if 1:  # Core functionality
             q, unit = ParseUnit(s)
             conv = 1
             if unit:
-                conv = u(unit)
+                conv = u.u(unit)
                 if conv is None:
                     raise ValueError(f"The unit in {s!r} is not recognized")
                 if dim:
                     try:
-                        if u.dim(unit) != u.dim(dim):
+                        if u.u.dim(unit) != u.u.dim(dim):
                             raise TypeError(
                                 f"The unit in {s!r} does not have dimensions {dim!r}"
                             )
@@ -232,18 +230,16 @@ if 1:  # Core functionality
                     except Exception:
                         raise ValueError("The unit in {s!r} is not recognized")
             if isinstance(q, str):
-                return flt(q) * conv
+                return f.flt(q)*conv
             else:
-                return q * conv  # q is a ufloat
+                return q*conv  # q is a ufloat
         except TypeError:
             raise
         except Exception:
             raise ValueError(err.format(s))
     def ShowPipeRoughness():
-        print(
-            dedent(
-                f'''
-                            {t.ti}Pipe roughness{t.nn}
+        print(wrap.dedent(f'''
+                            {t.ti}Pipe roughness{t.n}
                     Pipe type                   Roughness, um
         -----------------------------------     -------------
         Cast iron, new                          250-800
@@ -270,7 +266,7 @@ if 1:  # Core functionality
         Wood, well-planed                       180-900
         Wood, ordinary                          5000
   
-        {t.so}Sources:{t.nn}
+        {t.so}Sources:{t.n}
             http://www.engineeringtoolbox.com/major-loss-ducts-tubes-d_459.html
             http://www.enggcyclopedia.com/2011/09/absolute-roughness/
             http://www.efunda.com/formulae/fluids/roughness.cfm 
@@ -290,7 +286,7 @@ if 1:  # Core functionality
         if not (0 <= T_C <= 100):
             raise ValueError(f"'{T_C}' is an out-of-range temperature")
         if T_C == 100:
-            return flt(A[100] * scl)
+            return f.flt(A[100]*scl)
         else:
             try:
                 i = int(T_C)
@@ -298,8 +294,8 @@ if 1:  # Core functionality
                 i = int(T_C.nominal_value)
             a0, a1 = A[i], A[i + 1]
             if T_C == i:
-                return flt(a0 * scl)
-            return flt((a0 + (T_C - i) * (a1 - a0)) * scl)
+                return f.flt(a0*scl)
+            return f.flt((a0 + (T_C - i)*(a1 - a0))*scl)
     def WaterDensity(T_C):
         '''Return the water density in kg/m3 for water at a temperature of
         T_C degrees C.  Data from http://webbook.nist.gov/chemistry/fluid,
@@ -558,18 +554,18 @@ if 1:  # Core functionality
         '''
         assert Re >= 4000
         # Initial estimate from the Haaland equation
-        f0 = flt(1 / (-1.8 * log10((eps / (3.7 * D)) ** 1.11 + 6.9 / Re)) ** 2)
+        f0 = f.flt(1/(-1.8*f.log10((eps/(3.7*D)) ** 1.11 + 6.9/Re)) ** 2)
         count = 0
         while count <= 50:
             count += 1
-            f = flt(0.25 / (log10(eps / (3.7 * D) + 2.51 / (Re * sqrt(f0)))) ** 2)
-            if abs((f - f0) / f0) < rel_diff:
-                if not (0.001 <= f <= 1):
+            F = f.flt(0.25/(f.log10(eps/(3.7*D) + 2.51/(Re*f.sqrt(f0)))) ** 2)
+            if abs((F - f0)/f0) < rel_diff:
+                if not (0.001 <= F <= 1):
                     raise ValueError(
                         f"Friction factor of {f} is outside practical bounds"
                     )
-                return f
-            f0 = f
+                return F
+            f0 = F
         raise ValueError("Exceeded allowed number of iterations")
     def FrictionFactor(D, Re, eps, rel_diff=1e-6):
         '''Calculate the Darcy friction Factor for turbulent flow in a completely
@@ -587,17 +583,17 @@ if 1:  # Core functionality
         assert rel_diff > 0
         assert eps >= 0
         if eps > D:
-            raise ValueError(f"eps = {flt(eps)} m is larger than pipe diameter")
-        re1, re2, lam = 2300, 4000, lambda Re: 64 / Re
+            raise ValueError(f"eps = {f.flt(eps)} m is larger than pipe diameter")
+        re1, re2, lam = 2300, 4000, lambda Re: 64/Re
         if Re < re1:  # Laminar flow
-            return flt(lam(Re))
+            return f.flt(lam(Re))
         elif re1 <= Re < re2:  # Transition flow
             # Linearly interpolate between the laminar and turbulent flow
             # values using Re as the independent variable.
             f1, f2 = lam(re1), Colebrook(D, re2, eps, rel_diff=rel_diff)
-            return flt((f2 - f1) * (Re - re1) / (re2 - re1) + f1)
+            return f.flt((f2 - f1)*(Re - re1)/(re2 - re1) + f1)
         else:  # Turbulent flow
-            return flt(Colebrook(D, Re, eps))
+            return f.flt(Colebrook(D, Re, eps))
 
 if __name__ == "__main__":
     from lwtest import run, raises, Assert
@@ -606,18 +602,18 @@ if __name__ == "__main__":
         Assert(str(FrictionFactor(1, 1e4, 0.1)) == "0.103")
     def TestParseUnit():
         # No unit
-        x, u = ParseUnit("0")
+        x, unit = ParseUnit("0")
         Assert(x == 0)
-        Assert(ii(x, flt))
-        Assert(u == "")
+        Assert(isinstance(x, f.flt))
+        Assert(unit == "")
         # With float
         a = 4.73e-87, "m/s"
         b = ParseUnit("47.3e-88m/s")
         Assert(a == b)
-        Assert(ii(b[0], flt))
+        Assert(isinstance(b[0], f.flt))
         b = ParseUnit("47.3e-88 m/s")
         Assert(a == b)
-        Assert(ii(b[0], flt))
+        Assert(isinstance(b[0], f.flt))
         # With uncertainties
         if _have_unc:
             a = "4.73(2) m/s"
@@ -628,10 +624,10 @@ if __name__ == "__main__":
     def TestGetQuantity():
         x = GetQuantity("1.2")
         Assert(x == 1.2)
-        Assert(ii(x, flt))
+        Assert(isinstance(x, f.flt))
         x = GetQuantity("1.2 in")
         Assert(x == 0.030479999999999997)
-        Assert(ii(x, flt))
+        Assert(isinstance(x, f.flt))
         # With uncertainties
         if _have_unc:
             s = "0.0305+/-0.0025"
@@ -644,31 +640,31 @@ if __name__ == "__main__":
     def TestWaterDensity():
         a = WaterDensity(0)
         Assert(a == 999.868)
-        Assert(ii(a, flt))
+        Assert(isinstance(a, f.flt))
         #
         a = WaterDensity(4)
         Assert(a == 999.975)
-        Assert(ii(a, flt))
+        Assert(isinstance(a, f.flt))
         #
         a = WaterDensity(100)
         Assert(a == 958.380)
-        Assert(ii(a, flt))
+        Assert(isinstance(a, f.flt))
         #
         raises(ValueError, WaterDensity, -0.001)
         raises(ValueError, WaterDensity, 100.001)
     def TestWaterDynamicViscosity():
         a = WaterDynamicViscosity(0)
         c = 1e-8
-        Assert(a == 178700 * c)
-        Assert(ii(a, flt))
+        Assert(a == 178700*c)
+        Assert(isinstance(a, f.flt))
         #
         a = WaterDynamicViscosity(4)
-        Assert(a == 156720 * c)
-        Assert(ii(a, flt))
+        Assert(a == 156720*c)
+        Assert(isinstance(a, f.flt))
         #
         a = WaterDynamicViscosity(100)
-        Assert(a == 28219 * c)
-        Assert(ii(a, flt))
+        Assert(a == 28219*c)
+        Assert(isinstance(a, f.flt))
         #
         raises(ValueError, WaterDynamicViscosity, -0.001)
         raises(ValueError, WaterDynamicViscosity, 100.001)
