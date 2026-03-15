@@ -71,6 +71,21 @@
 
 # 2026 /plib work done
 
+- 14 Mar
+    - dp\*.py files linted
+    - Policies
+        - Never use 'from x import y'
+        - All imports will be 'import x'
+        - Occasional abbreviations:  'import numpy as np'
+        - Rarely define symbols:  no 'import math' and 'pi = math.pi'.  The primary
+          reason is the person reading the code doesn't have to figure out where the
+          symbol came from.  I'll occasionally let lines become long to support this.
+        - /plib has a makefile that will run lint & type checking
+        - /plib/tests will receive all the tests for the modules
+            - Cleaner
+            - Easy to name
+            - Reduces module size
+            - Lets module's main code be run for a demo
 -  3 Mar
     - New dp\*.py files constructed
         - Now can test these with 'for i in dp*.py; do p $i ; done'

@@ -22,8 +22,7 @@ help:
 check: lint typecheck
 
 lint:
-	#$(RUFF) check .
-	@echo "Will run lint on . when things are fixed"
+	$(RUFF) check dp*.py
 
 typecheck:
 	#$(MYPY) .
