@@ -30,9 +30,11 @@ if 1:  # Header
         import os
         import sys
     if 1:  # Custom imports
-        from rgbdata import color_data
-        from wrap import dedent
-        from color import Color, t
+        import rgbdata
+        import trm
+        import wrap
+    if 1:  # Global variables
+        t = trm.Trm()
 if 1:  # Core functionality
     def CheckSortLetters(letters):
         allowed = [set("rgb"), set("hsv"), set("HLS")]
@@ -42,7 +44,7 @@ if 1:  # Core functionality
         return letters
     def GetColors(sort_order):
         "Return a sorted list of rgb.Color objects"
-        colors = [i[2] for i in color_data]
+        colors = [i[2] for i in rgbdata.color_data]
         if d["-d"]:
             colors = colors[:50]
         # Sort the data
@@ -82,23 +84,21 @@ if __name__ == "__main__":
             print(*msg, file=sys.stderr)
             exit(status)
         def Usage(status=1):
-            print(
-                dedent(f'''
+            print(wrap.dedent(f'''
             Usage:  {sys.argv[0]} [options] sort_order
-            Print the colors' hex string to stdout wrapped in its 24-bit ANSI escape code.  RGB hex
-            values are shown in lower case; upper case is used for HSV.
+              Print the colors' hex string to stdout wrapped in its 24-bit ANSI escape code.  RGB hex
+              values are shown in lower case; upper case is used for HSV.
             
-            The sort order is given by the order of the letters of "rgb", "hsv", or "HLS".
-            Unfortunately, the 's' in 'hls' and 'hsv' mean different things, though they both are
-            described by 'saturation'.  Example: "hvs" means to sort by hue first, followed by
-            value, and finally by saturation.
+              The sort order is given by the order of the letters of "rgb", "hsv", or "HLS".
+              Unfortunately, the 's' in 'hls' and 'hsv' mean different things, though they both are
+              described by 'saturation'.  Example: "hvs" means to sort by hue first, followed by
+              value, and finally by saturation.
             Options:
                 -d      Truncate data for debugging
                 -h      Show hsv values
                 -l      Show HLS values
                 -r      Show rgb values (default)
-            ''')
-            )
+            '''))
             exit(status)
         def ParseCommandLine(d):
             d["-d"] = False  # Debug:  truncate the data for debugging

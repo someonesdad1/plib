@@ -16,9 +16,8 @@ if 1:  # Header
     if 1:  # Standard imports
         pass
     if 1:  # Custom imports
-        from f import flt
-        from lwtest import Assert
-        from roundoff import RoundOff
+        import dpmath
+        import lwtest
         if 0:
             import debug
             debug.SetDebugger()
@@ -46,7 +45,7 @@ if 1:  # Core functionality
         '''
         def Round(x):
             'Return x rounded to the indicated digits if it is not an integer'
-            return x if isinstance(x, int) else RoundOff(x, digits=digits)
+            return x if isinstance(x, int) else dpmath.RoundOff(x, digits=digits)
         in2mm = 25.4
         sizes = {
             # US sizes
@@ -135,7 +134,7 @@ if 1:  # Core functionality
                        B6 B7 B8 B9 B10 2C0 C0 C1 C2 C3 C4 C5 C6 C7 C8 C9 C10'''.split()
         for i, size in enumerate(iso_sizes):
             w, h = sizes[size]
-            Assert(1.405 < h/w < 1.429)     # Check aspect ratio
+            lwtest.Assert(1.405 < h/w < 1.429)     # Check aspect ratio
         # Round the values
         for i in sizes:
             sizes[i] = tuple(Round(j) for j in sizes[i])
@@ -150,27 +149,24 @@ if __name__ == "__main__":
             import pprint
             import sys
         if 1:   # Custom imports
-            from f import flt
-            from wrap import dedent
-            from lwtest import Assert
-            from color import t
+            import dptypes
+            import f
+            import wrap
             import termtables as tt
+            import trm
             if 0:
                 import debug
                 debug.SetDebugger()
         if 1:   # Global variables
+            t = trm.Trm()
             pp = pprint.pprint
-            class G:
-                pass
-            g = G()
+            g = dptypes.Constant()
             g.dbg = False
-            ii = isinstance
     if 1:   # Utility
         def GetColors():
             t.stuff = t.lill
             t.err = t.redl
-            t.dbg = t.lill if g.dbg else ""
-            t.N = t.n if g.dbg else ""
+            t.dbg = t.lill
         def GetScreen():
             'Return (LINES, COLUMNS)'
             return (
@@ -181,14 +177,14 @@ if __name__ == "__main__":
             if g.dbg:
                 print(f"{t.dbg}", end="")
                 print(*p, **kw)
-                print(f"{t.N}", end="")
+                print(f"{t.n}", end="")
         def Warn(*msg, status=1):
             print(*msg, file=sys.stderr)
         def Error(*msg, status=1):
             Warn(*msg)
             exit(status)
         def Usage(status=0):
-            print(dedent(f'''
+            print(wrap.dedent(f'''
             Usage:  {sys.argv[0]} [options] 
               Print dimensions of common paper sizes.
             Options:
@@ -217,7 +213,7 @@ if __name__ == "__main__":
                         Error("-d option's argument must be an integer between 1 and 15")
                 elif o == "-h":
                     Usage()
-            x = flt(0)
+            x = f.flt(0)
             x.N = d["-d"]
             x.rtz = True
             x.rtdp = True
@@ -236,8 +232,8 @@ if __name__ == "__main__":
         o.append(i)
     o.append(("─"*17, a, a, a, a, a, a, a))
     for i, size in enumerate(sizes):
-        w, h = [flt(j) for j in sizes[size]]
-        w1, h1 = [flt(j/25.4) for j in sizes[size]]
+        w, h = [f.flt(j) for j in sizes[size]]
+        w1, h1 = [f.flt(j/25.4) for j in sizes[size]]
         o.append((size, w, h, w*h/100, w1, h1, w1*h1, h/w))
     for i in hdr:
         o.append(i)

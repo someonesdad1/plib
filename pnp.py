@@ -25,10 +25,11 @@ if 1:  # Header
         import pprint
         import sys
     if 1:  # Custom imports
-        from color import t
-        from wrap import wrap as Wrap, dedent
+        import trm
+        import wrap as Wrap
         # from columnize import Columnize
     if 1:  # Global variables
+        t = trm.Trm()
         pp = pprint.pprint
         __all__ = '''PnP'''.split()
         class G:  # Storage for global variables as attributes
@@ -37,7 +38,7 @@ if 1:  # Header
         g.dbg = False
         ii = isinstance
 if 1:  # Core functionality
-    g.pnp = dedent('''
+    g.pnp = Wrap.dedent('''
         PRIDE AND PREJUDICE
         By Jane Austen
         Chapter 1
@@ -2179,8 +2180,8 @@ if 1:  # Core functionality
             w = GetScreen()[1] if width is None else int(width)
             if w < 1:
                 Error(f"{width!r} needs to be an integer > 0")
-            Wrap.width = w
-            return Wrap(g.pnp.replace("\n", "\n\n"))
+            Wrap.wrap.width = w
+            return Wrap.wrap(g.pnp.replace("\n", "\n\n"))
         else:
             if nlnl:
                 return g.pnp.replace("\n", "\n\n")
@@ -2210,7 +2211,7 @@ if __name__ == "__main__":
             print(*msg, file=sys.stderr)
             exit(status)
         def Usage():
-            print(dedent(f'''
+            print(Wrap.dedent(f'''
             Usage:  {sys.argv[0]} [options] [cmd]
             Send the text of Pride and Prejudice to stdout.  cmd is:
                 w   Wrap to current screen width    [default]

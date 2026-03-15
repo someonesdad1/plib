@@ -58,6 +58,8 @@ if 1:  # Core functionality
         keywords.  Without the True conditional, a call to print() with
         unsupported keywords will result in an exception.
         '''
+        if not hasattr(Print, "print"):
+            Print.print = print  # Make sure print() is stored away
         Print.print(*p, **kw)
         k = kw.copy() if Print.streams else None  # Don't mess up caller's kw
         if True:
@@ -69,7 +71,6 @@ if 1:  # Core functionality
         for stream in Print.streams:
             k["file"] = stream
             Print.print(*p, **k)
-    Print.print = print  # Make sure print() is stored away
 if 1:  # Classes
     class Tee:
         '''This behaves like an output stream object.  Run this file as a
@@ -93,33 +94,34 @@ if 1:  # Classes
         def flush(self):
             for i in self.streams:
                 i.flush()
+
 if __name__ == "__main__":
     if 1:  # Standard imports
-        from io import StringIO
+        import io
         import os
         import tempfile
     if 1:  # Custom imports
-        from color import t
-        from lwtest import run, Assert
+        import dptypes
+        import lwtest as lw
+        import trm
     if 1:  # Global variables
-        class G:
-            pass
-        g = G()
+        t = trm.Trm()
+        g = dptypes.Constant()
     def TestPrint():
         '''Send output to both a file and a StringIO object and verify
         they are the same.
         '''
         file = tempfile.mkstemp(text=True)[1]
         st = open(file, "w")
-        strm = StringIO()
+        strm = io.StringIO()
         s = "Test string"
         Print.streams = [strm]
         Print(s, file=st)
         st.close()
         file_string = open(file).read()
         strm_string = strm.getvalue()
-        Assert(file_string == s + "\n")
-        Assert(file_string == strm_string)
+        lw.Assert(file_string == s + "\n")
+        lw.Assert(file_string == strm_string)
         os.unlink(file)
     if 1:  # Demo code
         def SetUp():

@@ -30,17 +30,15 @@ if 1:  # Header
         import getopt
         import sys
     if 1:  # Custom imports
+        import dptypes
         import get
-        from wrap import dedent
+        import wrap
     if 1:  # Global variables
         __all__ = "B_to_US US_to_B".split()
-        class G:  # Storage for global variables as attributes
-            pass
-        g = G()
+        g = dptypes.Constant()
         g.dbg = False
 if 1:  # Translation data
-    g.data = dedent(
-        '''
+    g.data = wrap.dedent('''
         
             CCW                       ACW
             England                   Britain
@@ -2164,21 +2162,22 @@ if 1:  # Core functionality
                     print(f"{uk:{w}s}  -->  {us}")
 
 if __name__ == "__main__":
-    from color import t
+    import trm
+    t = trm.Trm()
     def Dbg(*p, **kw):
+        if not hasattr(Dbg, "file"):
+            Dbg.file = sys.stdout
         if g.dbg:
             print(f"{t.dbg}", end="", file=Dbg.file)
             k = kw.copy()
             k["file"] = Dbg.file
             print(*p, **k)
-            print(f"{t.N}", end="", file=Dbg.file)
-    Dbg.file = sys.stdout
+            print(f"{t.n}", end="", file=Dbg.file)
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
     def Manpage():
-        print(
-            dedent('''
+        print(wrap.dedent('''
           Caution:  inspect the results carefully, as different senses of the words may not
           require the substitution given, particularly with older text.  Here's are some examples
           from "Pride and Prejudice" (a good test case), there are numerous cases like this:  
@@ -2195,20 +2194,17 @@ if __name__ == "__main__":
           These examples indicate that this tool is simplistic and is only working on spelling,
           not on semantics.  Still, most of the nearly 100 changes recommended for PnP are
           appropriate.
-        ''')
-        )
+        '''))
         exit(0)
     def Usage():
-        print(
-            dedent(f'''
+        print(wrap.dedent(f'''
         Usage:  {sys.argv[0]} [options] [file1 [file2...]]
           Show the use of UK words in the indicated files along with their US counterpart.
           Use "-" for stdin.
         Options:
             -h      Print a manpage
             -r      Reverse the sense of the search:  show UK words for US words
-        ''')
-        )
+        '''))
         exit(0)
     def ParseCommandLine(d):
         d["-r"] = False  # Reverse sense of search

@@ -250,19 +250,19 @@ if 1:  # Header
         oo>
     '''
     if 1:  # Standard imports
-        from math import sqrt
+        import collections
         import getopt
+        import math
         import os
         import re
         import string
         import sys
-        from collections import namedtuple
     if 1:  # Custom imports
-        import get
         import dpstr
-        from wrap import dedent
-        from color import t
-        from lwtest import Assert
+        import get
+        import lwtest
+        import trm
+        import wrap
         if 0:
             import debug
             debug.SetDebugger()
@@ -277,6 +277,7 @@ if 1:  # Header
         except ImportError:
             pass
     if 1:  # Global variables
+        t = trm.Trm()
         class G:
             pass
         g = G()
@@ -285,10 +286,10 @@ if 1:  # Header
         # If true, print out more details
         g.dbg = 0
         # Named tuple to hold textual information
-        TextInfo = namedtuple("TextInfo", "characters words complex_words "
+        TextInfo = collections.namedtuple("TextInfo", "characters words complex_words "
                 "one_syllable_words syllables sentences wordlist")
         # Named tuple for readability estimates
-        ReadabilityTuple = namedtuple("Readability", "FK_ease FK_grade DaleChall")
+        ReadabilityTuple = collections.namedtuple("Readability", "FK_ease FK_grade DaleChall")
         # Colors
         t.dbg = t("lill")
         t.err = t("redl")
@@ -442,7 +443,7 @@ if 1:  # Basic routines
     def GetTextInfo(text):
         '''For a string of text, return a TextInfo namedtuple.
         '''
-        Assert(isinstance(text, str))
+        lw.Assert(isinstance(text, str))
         # Operate on only lowercase strings.  Note this means we won't
         # ignore proper nouns (these could be confused with the words at
         # the beginning of a sentence if you assume a proper noun begins
@@ -469,7 +470,7 @@ if 1:  # Basic routines
             sentences = 1
         s = [characters, words, complex_words, one_syllable_words, syllables, sentences, wordlist]
         for i in s[:-1]:
-            Assert(i >= 0)
+            lw.Assert(i >= 0)
         return TextInfo(*s)
 if 1:  # Readability metric algorithms
     def GunningFogIndex(words, sentences, complex_words):
@@ -511,7 +512,7 @@ if 1:  # Readability metric algorithms
         ASW = syllables/words
         return 0.39*ASL + 11.8*ASW - 15.59
     def SMOGIndex(complex_words, sentences):
-        return sqrt(30*complex_words/sentences) + 3
+        return math.sqrt(30*complex_words/sentences) + 3
     def FORCASTReadabilityFormula(words, one_syllable_words):
         N = words/150
         return 20 - (one_syllable_words/N)/10
@@ -553,7 +554,7 @@ if 0:  # Dale-Chall stuff (not working yet)
         return final_score
     def DaleChallGrade(score):
         "Return grade level associated with score"
-        Assert(score >= 0)
+        lw.Assert(score >= 0)
         if score <= 4.9:
             return 4
         elif score <= 5.9:
@@ -703,7 +704,7 @@ if 1:  # Library functions
 if __name__ == "__main__":
     if 1:  # Manpage
         def Manpage():
-            print(dedent('''
+            print(wrap.dedent('''
                 
             Readability Estimates
             ---------------------
@@ -877,7 +878,7 @@ if __name__ == "__main__":
             print(*msg, file=sys.stderr)
             exit(status)
         def Usage(status=1):
-            print( dedent(f'''
+            print(wrap.dedent(f'''
             Usage:  {sys.argv[0]} file1 [file2...]
               Prints readability statistics for text files.
               The following numbers are the approximate reading level in US grade level:
@@ -889,7 +890,7 @@ if __name__ == "__main__":
               FKRE = Flesch-Kincaid Reading Ease: 0-100, higher means easier to read
               See the comments in the program code for formulas and references.
             '''))
-            print(dedent('''
+            print(wrap.dedent('''
             Options
                 -p    Print to one decimal place (integer is default)
                 -s    Show document statistics (words, syllables, sentences, etc.)

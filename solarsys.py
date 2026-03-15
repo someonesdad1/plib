@@ -59,23 +59,22 @@ if 1:  # Header
         import re
         import sys
     if 1:  # Custom imports
-        from wrap import dedent
-        from color import t
+        import columnize
+        import dptypes
         import f
-        from columnize import Columnize
+        import trm
+        import wrap
         if 0:
             import debug
             debug.SetDebugger()
     if 1:  # Global variables
-        ii = isinstance
+        t = trm.Trm()
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
-        class F:
-            pass
-        g = F()
+        g = dptypes.Constant()
         g.dbg = 0
         # Gravitational constant = 6.67430(15)e−11 in N*m2/kg2
-        G = 6.6743e-11
+        g.G = 6.6743e-11
         # Colors
         t.dbg = t.sky
         t.name = t.ornl
@@ -390,8 +389,8 @@ if 1:  # Get data
             # Calculate g, escape velocity, orbital velocity
             R, M = [i/2 for i in di["D"]], di["m"]
             P = zip(R, M)
-            di["g"] = [G*m/r**2 for r, m in P]
-            di["ev"] = [f.sqrt(2*G*m/r) for r, m in P]
+            di["g"] = [g.G*m/r**2 for r, m in P]
+            di["ev"] = [f.sqrt(2*g.G*m/r) for r, m in P]
             di["vel"] = [2*f.pi*r/orb for r, orb in zip(di["r"], di["orb"])]
         if 0:
             # Dump to 1 figure to check things
@@ -439,7 +438,7 @@ if 1:  # Get data
     solarsys = BuildDataDict()
 if 1:  # Utility
     def Manpage():
-        print( dedent(f'''
+        print(wrap.dedent(f'''
         This script prints out wikipedia's information on the major solar system bodies
         as of {scrape_date}.
          
@@ -515,8 +514,7 @@ if 1:  # Utility
         )
         exit(0)
     def Usage(status=1):
-        print(
-            dedent(f'''
+        print(wrap.dedent(f'''
         Usage:  {sys.argv[0]} [options] [s1 [s2...]]
           Print data for solar system objects s1, s2, etc.  You can specify
           either the index number (e.g., Earth is 2) or a regular
@@ -550,8 +548,7 @@ if 1:  # Utility
           -l      List the objects and their numbers at end of report
           -r n    Print relative to named object n's values
           -s      Print data for sun
-        ''')
-        )
+        '''))
         exit(status)
     def ParseCommandLine(d):
         d["-d"] = 2  # Number of significant digits
@@ -632,8 +629,8 @@ if 1:  # Core functionality
         V = f.flt(4/3*f.pi*(D/2) ** 3)  # Volume, m3
         m = f.flt(1.9855e30)  # Mass, kg
         rho = f.flt((m/V)/1000)  # Density, g/cm3
-        g = f.flt(G*m/(D/2) ** 2)  # Gravitational acceleration at surface, m/s2
-        ev = f.flt(f.sqrt(2*G*m/(D/2)))  # Escape velocity, m/s
+        g = f.flt(g.G*m/(D/2) ** 2)  # Gravitational acceleration at surface, m/s2
+        ev = f.flt(f.sqrt(2*g.G*m/(D/2)))  # Escape velocity, m/s
         rot = f.flt(25.38*86400)  # Rotation period, s
         orb = f.flt(240e6*3.156e13)  # Orbital period about galactic center, s
         vel = f.flt(2*f.pi*(D/2)/orb)  # Mean orbital speed, m/s
@@ -666,12 +663,12 @@ if 1:  # Core functionality
         for i in di:
             s = f"{i:2d} {di[i]}"
             a.append(s)
-        for i in Columnize(a):
+        for i in columnize.Columnize(a):
             print(i)
         exit(0)
     def PrintItem(num):
         "Print indicated item.  num must be an integer."
-        assert ii(num, int)
+        assert isinstance(num, int)
         di, u = GetObjDict(), " "*4
         if num not in di:
             print(f"Item {num!r} not found")
@@ -788,8 +785,9 @@ if 1:  # Core functionality
             print(f"{u}{'tilt   axial tilt':{w}s}{tilt}°")
             print(f"{u}{'moons  number of moons':{w}s}{moons}")
             print(f"{u}{'T      mean surface temperature':{w}s}{T} K")
+
 if __name__ == "__main__":
-    d = {}  # Options dictionary
+    d: dict[object, object] = {}  # Options dictionary
     objects = ParseCommandLine(d)
     if d["-r"] is not None:
         nums = MatchName(d["-r"])
@@ -806,7 +804,7 @@ if __name__ == "__main__":
             num = MatchName(name)
             if num is None:
                 continue
-            elif ii(num, list):
+            elif isinstance(num, list):
                 for i in num:
                     PrintItem(i)
             else:

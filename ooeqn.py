@@ -56,12 +56,13 @@ if 1:  # Header
         import sys
         from zipfile import ZipFile
     if 1:  # Custom imports
-        from wrap import dedent
-        from color import t
+        import trm
+        import wrap
         if 0:
             import debug
             debug.SetDebugger()
     if 1:  # Global variables
+        t = trm.Trm()
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
         # Colors
@@ -188,7 +189,7 @@ if 1:  # Utility
         print(*msg, file=sys.stderr)
         exit(status)
     def Help():
-        print(dedent(r'''
+        print(wrap.dedent(r'''
         The script's purpose
         --------------------
         
@@ -293,16 +294,14 @@ if 1:  # Utility
         )
         exit(0)
     def Usage(status=1):
-        print(
-            dedent(f'''
+        print(wrap.dedent(f'''
         Usage:  {sys.argv[0]} [options] odfile1 [odfile2...]
             Print out the equations' text in the Open Document files.
         Options:
             -a      Adjust the text for conversion to LaTeX
             -h      Details on how the script works
             -r      Print repr() form of equations rather than str()
-        ''')
-        )
+        '''))
         exit(status)
     def ParseCommandLine(d):
         d["-a"] = False  # Adjust the equations for LaTeX
@@ -358,7 +357,7 @@ if 1:  # Utility
             print(f"{document}:  Error:  {e}", file=sys.stderr)
 
 if __name__ == "__main__":
-    d = {}  # Options dictionary
+    d: dict[object, object] = {}  # Options dictionary
     files = ParseCommandLine(d)
     for file in files:
         PrintDocumentObjects(file)

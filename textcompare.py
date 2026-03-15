@@ -133,16 +133,17 @@ if __name__ == "__main__":
         import pathlib
         import sys
     if 1:   # Custom imports
-        from lwtest import run, Assert
-        from wrap import dedent
-        from color import t
+        import lwtest as lw
+        import trm
+        import wrap
     if 1:  # Script base code
+        t = trm.Trm()
         def Error(msg, status=1):
             print(msg, file=sys.stderr)
             exit(status)
         def Usage(d, status=1):
             name = sys.argv[0]
-            s = dedent(f'''
+            s = wrap.dedent(f'''
             Usage:  {name} [options] file1 file2
               Compare the two files by tokens to see if they are equal.  An example is
               comparing the text of two open source licenses.  A message is printed to
@@ -223,15 +224,13 @@ if __name__ == "__main__":
         def Example_1():
             print("example 1")
     # ----------------------------------------------------------------------
-    d = {}  # Options dictionary
+    d: dict[object, object] = {}  # Options dictionary
     args = ParseCommandLine(d)
     if d["special"]:
         if d["--self"]:
-            r = r"^Test_"
-            failed, messages = run(globals(), regexp=r)
+            failed, messages = lw.run(globals(), regexp=r"^Test_")
         elif d["--example"]:
-            r = r"^Example_"
-            failed, messages = run(globals(), regexp=r, quiet=True)
+            failed, messages = lw.run(globals(), regexp=r"^Example_", quiet=True)
         elif d["--Test"]:
             # Execute external test file
             e = sys.executable

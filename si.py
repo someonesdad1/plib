@@ -458,7 +458,7 @@ if __name__ == "__main__":
             # Reset global variable
             si = SI(pure=True)
     # Script behavior
-    d = {}  # Options dictionary
+    d: dict[object, object] = {}  # Options dictionary
     args = ParseCommandLine(d)
     if args:
         for arg in args:

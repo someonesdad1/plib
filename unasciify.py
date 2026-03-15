@@ -4,12 +4,12 @@ if 1:  # Header
     _pgminfo = '''
         <oo gist ∞ Transliterate ASCII letters to Unicode oo>
         <oo desc ∞ 
-
+        
             This allows you to have text that is reasonably readable but would be
             difficult to search for.  This provides a modicum of textual security in
             that the only way the material could be found in a large file is by a
             tedious search, unless the person knows the algorithm of this script.
-
+        
         oo>
         <oo copy ∞ Copyright © 2026 Don Peterson oo>
         <oo lic ∞ 
@@ -30,33 +30,25 @@ if 1:  # Header
                 - Make sure there are no plain ASCII characters in the transliterated
                   text
                 - Verify random & repeatable behavior
-
+        
         oo>
     '''
     if 1:   # Standard imports
-        from collections import deque
-        from pathlib import Path as P
         import getopt
         import os
         import pprint
         import random
-        import re
         import sys
     if 1:   # Custom imports
-        from f import flt
-        from wrap import dedent
-        from color import t
-        from lwtest import Assert
-        pp = pprint.pprint
+        import dptypes
+        import wrap
         if 0:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
-        class G:
-            pass
-        g = G()
+        pp = pprint.pprint
+        g = dptypes.Constant()
         g.dbg = False
-        ii = isinstance
 if 0:   # Transliteration data
     if 0:
         # /plib/asciify.test is the primary source of these data.  Note the primary
@@ -173,27 +165,26 @@ if 0:   # Transliteration data
                 print(f'{s}{s}"{i}": "{g.choices[i]}",')
         print(f"{s}}}")
         exit()
-
 if 1:   # Get transliteration table
     def GetTransliterationTable(seed=None):
         """Return a translation table tt that you can use with str.translate(tt) to get
         an "unasciified" string.  If seed is None, then you'll get a randomly-selected
         translation table that uses os.urandom().  Otherwise, you'll get the same
         translation table for a particular seed.
-
+        
         Example:
-
+        
         s = '''"Why, my dear, you must know, Mrs. Long says that Netherfield is taken
             by a young man of large fortune from the north of England; that he came
             down on Monday in a chaise and four to see the place, and was so much
             delighted with it, that he agreed with Mr. Morris immediately; that he
             is to take possession before Michaelmas, and some of his servants are to
             be in the house by the end of next week."'''
-
+        
         with the leading spaces removed.
-
+        
         s.(GetTransliterationTable(0)) produces
-
+        
         """
         r = random.SystemRandom if seed is None else random
         r.seed(seed)
@@ -202,7 +193,6 @@ if 1:   # Get transliteration table
         for key in di:
             td[key] = random.choice(di[key])
         return ''.maketrans(td)
-
     # Dictionary of allowed translations from ASCII to Unicode.  A guide to the
     # characters I've picked is that they must be approximately the same width as the
     # character they are replacing; otherwise things like formatted tables get changed.
@@ -302,7 +292,8 @@ if 1:   # Get transliteration table
     }
 
 if __name__ == "__main__":  
-    from color import t
+    import trm
+    t = trm.Trm()
     if 1:   # Utility
         def GetColors():
             t.stuff = t.lill
@@ -326,7 +317,7 @@ if __name__ == "__main__":
             Warn(*msg)
             exit(status)
         def Usage(status=0):
-            print(dedent(f'''
+            print(wrap.dedent(f'''
             Usage:  {sys.argv[0]} [options] 
               Transliterate incoming ASCII text to Unicode.  If no arguments are given,
               input is from stdin.  The transliteration dictionary is random every time
@@ -358,7 +349,7 @@ if __name__ == "__main__":
     if 0:   # Prototyping area
         # It appears random.SystemRandom doesn't produce truly random sequences.
         # This makes me believe it probably does.
-        for i in range(20):
+        for _ in range(20):
             r = random.SystemRandom(0)
             print(r.random())
         exit()

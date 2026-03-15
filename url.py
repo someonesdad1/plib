@@ -70,10 +70,10 @@ if 1:  # Header
         import re
         import sys
     if 1:  # Custom imports
-        from color import t
-        from lwtest import Assert
+        import trm
         import requests
     if 1:  # Global variables
+        t = trm.Trm()
         class G:
             pass
         g = G()
@@ -210,7 +210,7 @@ if 1:  # Core functionality
         return urls
 
 if __name__ == "__main__":
-    from lwtest import run, Assert
+    import lwtest as lw
     def GetColors():
         t.dbg = t("lill") if g.dbg else ""
         t.exc = t.redl if g.dbg else ""
@@ -512,7 +512,7 @@ if __name__ == "__main__":
                 except Exception:
                     Error("-t option must be number of seconds > 0")
             elif o == "--test":
-                exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
+                exit(lw.run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
             elif o == "-x":
                 d[o].append(a)
         if d["-d"]:
@@ -535,15 +535,15 @@ if __name__ == "__main__":
         # Check a known good URL
         url = "https://en.wikipedia.org/wiki/Main_Page"
         status, sc, exc = URL_is_unreadable(url)
-        Assert(not status and sc == 200 and not exc)
+        lw.Assert(not status and sc == 200 and not exc)
         # Get an exception on an unreachable url
         url = "https://kdfjopeurte.3095uoleorj.eorijeor/kdjfdkfj.html"
         status, sc, exc = URL_is_unreadable(url)
-        Assert(status and sc is None and exc)
+        lw.Assert(status and sc is None and exc)
         # Get a non-200 status
         url = "http://www.ndt-ed.org/GeneralResources/IACS/IACS.htm"
         status, sc, exc = URL_is_unreadable(url)
-        Assert(status and sc == 404 and not exc)
+        lw.Assert(status and sc == 404 and not exc)
     d = {  # Options dictionary
         "urls": {},  # Dict for -U option keyed by file
         "files": set(),  # Keep track of files processed

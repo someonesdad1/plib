@@ -116,7 +116,6 @@ if __name__ == "__main__":
     filelist = [Path(i) for i in '''
         dparith
         dpastro
-        dpbp
         dpdata
         dpdb
         dpdecimal

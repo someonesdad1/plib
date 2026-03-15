@@ -201,19 +201,17 @@ if 1:  # Header
     '''
     if 1:  # Standard imports
         import colorsys
-        from decimal import Decimal
-        from fractions import Fraction
+        import decimal
+        import fractions
         import pathlib
         import sys
     if 1:  # Custom imports
-        from color import t
+        import trm
         if 0:
             import debug
             debug.SetDebugger()
     if 1:  # Global variables
-        P = pathlib.Path
-        ii = isinstance
-        #c = Clr()
+        t = trm.Trm()
 if 1:  # Classes
     class ColorNum:
         '''Store the three numbers used to define a color; they are stored
@@ -237,13 +235,13 @@ if 1:  # Classes
             maximum of the three values.
             '''
             e = ValueError(f"'{x}' is of improper form for class ColorNum")
-            if ii(x, ColorNum):
+            if isinstance(x, ColorNum):
                 self._rgb = x._rgb
-            elif ii(x, bytes):
+            elif isinstance(x, bytes):
                 if len(x) != 3:
                     raise e
                 self._rgb = tuple([i / 255 for i in x])
-            elif ii(x, str):
+            elif isinstance(x, str):
                 if len(x) != 7 or x[0] not in "@#$":
                     raise e
                 # clamp to [0, 1]
@@ -273,16 +271,16 @@ if 1:  # Classes
                     raise TypeError(msg)
                 # Convert them to Decimals
                 was_int = False
-                if ii(s[0], str):
-                    u = [Decimal(i) for i in s]
-                elif ii(s[0], int):
+                if isinstance(s[0], str):
+                    u = [decimal.Decimal(i) for i in s]
+                elif isinstance(s[0], int):
                     was_int = True
-                    u = [Decimal(i) for i in s]
-                elif ii(s[0], float):
-                    u = [Decimal(str(i)) for i in s]
-                elif ii(s[0], Fraction):
-                    u = [Decimal(i.numerator) / Decimal(i.denominator) for i in s]
-                elif ii(s[0], Decimal):
+                    u = [decimal.Decimal(i) for i in s]
+                elif isinstance(s[0], float):
+                    u = [decimal.Decimal(str(i)) for i in s]
+                elif isinstance(s[0], fractions.Fraction):
+                    u = [decimal.Decimal(i.numerator) / decimal.Decimal(i.denominator) for i in s]
+                elif isinstance(s[0], decimal.Decimal):
                     u = s
                 else:
                     msg = "x is a sequence of the improper type"
@@ -312,7 +310,7 @@ if 1:  # Classes
             return f"ColorNum({r!r:3d}, {g!r:3d}, {b!r:3d})"
         def __eq__(self, other):
             "Equal if components match to 6 decimal places"
-            if not ii(other, ColorNum):
+            if not isinstance(other, ColorNum):
                 raise TypeError("'other' must be a ColorNum instance")
             n = ColorNum.n
             me = [round(i, n) for i in self._rgb]
@@ -349,7 +347,7 @@ if 1:  # Classes
             #     y = y0 + m*t
             # Example:  y0 = 1, y1 = 0, t = 0.5.  m = 0 - 1 = -1.  Thus, the
             # interpolated value is y = 1 + (-1)*0.5 = 0.5.
-            if not ii(other, ColorNum):
+            if not isinstance(other, ColorNum):
                 raise TypeError("other must be a ColorNum instance")
             if not (0 <= t <= 1):
                 raise ValueError("t must be a float on [0, 1]")
@@ -441,7 +439,7 @@ if 1:  # Classes
         '''
         def __init__(self, x):
             e = ValueError(f"'{x}' is an incorrect color initializer")
-            if ii(x, str):  # It's a string of the #xxYYzz form
+            if isinstance(x, str):  # It's a string of the #xxYYzz form
                 if len(x) != 7 or x[0] != "#":
                     raise e
                 try:
@@ -468,7 +466,7 @@ if 1:  # Classes
             converted to integers or floats.
             '''
             e = Exception()
-            if ii(x1, int):  # Must be integers in [0, 255]
+            if isinstance(x1, int):  # Must be integers in [0, 255]
                 try:
                     a = [int(i) for i in (x1, x2, x3)]
                     if not all([i >= 0 for i in a]):
@@ -478,7 +476,7 @@ if 1:  # Classes
                     return tuple(a)
                 except Exception:
                     pass
-            elif ii(x1, float):  # Floats in [0, 1]
+            elif isinstance(x1, float):  # Floats in [0, 1]
                 try:
                     a = [float(i) for i in (x1, x2, x3)]
                     # Check numbers are on [0, 1]
@@ -512,11 +510,11 @@ if 1:  # Classes
             except Exception:
                 raise e
         def __lt__(self, x):
-            if not ii(x, Color):
+            if not isinstance(x, Color):
                 raise TypeError("x must be a Color instance")
             return self.rgb < x.rgb
         def __eq__(self, x):
-            if ii(x, Color):
+            if isinstance(x, Color):
                 return self._rgb == x._rgb
             raise TypeError("x is not a Color instance")
         def __str__(self):
@@ -580,52 +578,53 @@ if 1:  # Core functionality
         '''Raise a ValueError exception unless each number is a float on [0, 1]
         ∞∞2 rgb.IsNormalized():  should be generalized and moved to dpmath.py
         '''
-        if not all(0 <= i <= 1 and ii(i, float) for i in (a, b, c)):
+        if not all(0 <= i <= 1 and isinstance(i, float) for i in (a, b, c)):
             raise ValueError("Elements in tuple must be floats on [0, 1]")
 
 if __name__ == "__main__":
-    from lwtest import run, raises, Assert, assert_equal
-    from collections import deque
+    import collections
+    import dpseq
+    import lwtest as lw
     # Print a warning about using this obsolete file
-    t.print(f"{t.ornl}WARNING:  /plib/rgb.py run:  it's obsolete", file=sys.stderr)
+    t.print(f"{t.ornl}WARNING:  /plib/rgb.py run:  it's an obsolete module", file=sys.stderr)
     def TestConvert():
         # Test with integers
         x = Color.Convert(0, 0, 0)
-        Assert(ii(x, tuple) and x == (0, 0, 0))
+        lw.Assert(isinstance(x, tuple) and x == (0, 0, 0))
         for a in (0, 1, 2, 254, 255):
             x = Color.Convert(a, 0, 0)
-            Assert(ii(x, tuple) and x == (a, 0, 0))
+            lw.Assert(isinstance(x, tuple) and x == (a, 0, 0))
             x = Color.Convert(0, a, 0)
-            Assert(ii(x, tuple) and x == (0, a, 0))
+            lw.Assert(isinstance(x, tuple) and x == (0, a, 0))
             x = Color.Convert(0, 0, a)
-            Assert(ii(x, tuple) and x == (0, 0, a))
+            lw.Assert(isinstance(x, tuple) and x == (0, 0, a))
         x = Color.Convert(256, 0, 0)
-        Assert(x == (255, 0, 0))
+        lw.Assert(x == (255, 0, 0))
         x = Color.Convert(2000, 2000, 0)
-        Assert(x == (255, 255, 0))
+        lw.Assert(x == (255, 255, 0))
         x = Color.Convert(2000, 2000, 2000)
-        Assert(x == (255, 255, 255))
-        raises(ValueError, Color.Convert, -1, 0, 0)
-        raises(ValueError, Color.Convert, 0, -1, 0)
-        raises(ValueError, Color.Convert, 0, 0, -1)
+        lw.Assert(x == (255, 255, 255))
+        lw.raises(ValueError, Color.Convert, -1, 0, 0)
+        lw.raises(ValueError, Color.Convert, 0, -1, 0)
+        lw.raises(ValueError, Color.Convert, 0, 0, -1)
         # Test with floats
         for a in (0.0, 1.0, 2.0, 254.0, 255.0):
             b = int(a)
             x = Color.Convert(b, 0, 0)
-            Assert(ii(x, tuple) and x == (b, 0, 0))
+            lw.Assert(isinstance(x, tuple) and x == (b, 0, 0))
             x = Color.Convert(0, b, 0)
-            Assert(ii(x, tuple) and x == (0, b, 0))
+            lw.Assert(isinstance(x, tuple) and x == (0, b, 0))
             x = Color.Convert(0, 0, b)
-            Assert(ii(x, tuple) and x == (0, 0, b))
+            lw.Assert(isinstance(x, tuple) and x == (0, 0, b))
         x = Color.Convert(256, 0, 0)
-        Assert(x == (255.0, 0, 0))
+        lw.Assert(x == (255.0, 0, 0))
         x = Color.Convert(2000.0, 2000.0, 0)
-        Assert(x == (255, 255, 0))
+        lw.Assert(x == (255, 255, 0))
         x = Color.Convert(2000, 2000.0, 2000.0)
-        Assert(x == (255, 255, 255))
-        raises(ValueError, Color.Convert, -1, 0, 0)
-        raises(ValueError, Color.Convert, 0, -1, 0)
-        raises(ValueError, Color.Convert, 0, 0, -1)
+        lw.Assert(x == (255, 255, 255))
+        lw.raises(ValueError, Color.Convert, -1, 0, 0)
+        lw.raises(ValueError, Color.Convert, 0, -1, 0)
+        lw.raises(ValueError, Color.Convert, 0, 0, -1)
     def TestColorConstructor():
         ref = Color((3, 4, 5))
         for i in [
@@ -635,22 +634,22 @@ if __name__ == "__main__":
             "#030405",
             (3 / 255, 4 / 255, 5 / 255),
             (0.011765, 0.015686, 0.019608),
-            deque((3, 4, 5)),
+            collections.deque((3, 4, 5)),
         ]:
-            Assert(Color(i) == ref)
-        raises(ValueError, Color, (-1, 0, 0))
-        raises(ValueError, Color, (0, -1, 0))
-        raises(ValueError, Color, (0, 0, -1))
-        raises(ValueError, Color, "#0g0000")
-        raises(ValueError, Color, "#000g00")
-        raises(ValueError, Color, "#00000g")
+            lw.Assert(Color(i) == ref)
+        lw.raises(ValueError, Color, (-1, 0, 0))
+        lw.raises(ValueError, Color, (0, -1, 0))
+        lw.raises(ValueError, Color, (0, 0, -1))
+        lw.raises(ValueError, Color, "#0g0000")
+        lw.raises(ValueError, Color, "#000g00")
+        lw.raises(ValueError, Color, "#00000g")
     def TestColorNumConstructor():
-        D, F = Decimal, Fraction
+        D, F = decimal.Decimal, fractions.Fraction
         for x in (0, 1, "0.5"):
             std = ColorNum((x, x, x))
             if x == 1:
                 a = ColorNum((0.9999999, 1.0000001, 1.0))  # Check rounding
-                assert_equal(a == std, True)
+                lw.assert_equal(a == std, True)
             if x == "0.5":
                 d, f = D(x), F(1, 2)
             elif x == 0:
@@ -660,61 +659,60 @@ if __name__ == "__main__":
             b = ColorNum((d, d, d))
             c = ColorNum((f, f, f))
             i = ColorNum((x, x, x))
-            t = x if ii(x, str) else str(x)
+            t = x if isinstance(x, str) else str(x)
             s = ColorNum((t, t, t))
             for j in (b, c, i, s):
                 if j != std:
                     breakpoint() # ∞∞ 
-                assert_equal(j == std, True)
+                lw.assert_equal(j == std, True)
         # Check bytes
         x = 1.0
         std = ColorNum((x, x, x))
         a = ColorNum(b"\xff\xff\xff")
-        assert_equal(a == std, True)
+        lw.assert_equal(a == std, True)
         # Check normalization
         x = 7.348
         s = ColorNum((x, x, x))
         std = ColorNum((1, 1, 1))
-        assert_equal(s == std, True)
+        lw.assert_equal(s == std, True)
         a, b, c = 4.377, -89.009, 12.2
         s = ColorNum((a, b, c))
         m = max(a, b, c)
         t = ColorNum((a / m, b / m, c / m))
-        assert_equal(s == t, True)
+        lw.assert_equal(s == t, True)
         # Bad forms
-        raises(TypeError, ColorNum, ["4", 4, 4])
-        raises(TypeError, ColorNum, [D("4"), 4, 4])
-        raises(TypeError, ColorNum, [4.0, 4, 4])
-        raises(TypeError, ColorNum, [F(4, 1), 4, 4])
-        raises(ValueError, ColorNum, "#0000000")
-        raises(ValueError, ColorNum, "#00000g")
-        raises(ValueError, ColorNum, "@00000g")
-        raises(ValueError, ColorNum, "$00000g")
-        raises(ValueError, ColorNum, b"bbbb")
+        lw.raises(TypeError, ColorNum, ["4", 4, 4])
+        lw.raises(TypeError, ColorNum, [D("4"), 4, 4])
+        lw.raises(TypeError, ColorNum, [4.0, 4, 4])
+        lw.raises(TypeError, ColorNum, [F(4, 1), 4, 4])
+        lw.raises(ValueError, ColorNum, "#0000000")
+        lw.raises(ValueError, ColorNum, "#00000g")
+        lw.raises(ValueError, ColorNum, "@00000g")
+        lw.raises(ValueError, ColorNum, "$00000g")
+        lw.raises(ValueError, ColorNum, b"bbbb")
     def TestColorNumInterpolate():
         a = ColorNum((0, 0, 0))
         b = ColorNum((1, 1, 1))
         new = a.interpolate(b, 1 / 2, typ="rgb")
-        assert_equal(new, ColorNum((1 / 2, 1 / 2, 1 / 2)))
+        lw.assert_equal(new, ColorNum((1 / 2, 1 / 2, 1 / 2)))
         new = a.interpolate(b, 1 / 2, typ="hsv")
-        assert_equal(new, ColorNum((1 / 2, 1 / 2, 1 / 2)))
+        lw.assert_equal(new, ColorNum((1 / 2, 1 / 2, 1 / 2)))
         new = a.interpolate(b, 1 / 2, typ="hls")
-        assert_equal(new, ColorNum((1 / 2, 1 / 2, 1 / 2)))
-        from frange import frange
-        for i in frange("0", "1", "0.1"):
+        lw.assert_equal(new, ColorNum((1 / 2, 1 / 2, 1 / 2)))
+        for i in dpseq.frange("0", "1", "0.1"):
             pass
     def TestColorNumProperties():
         x = ColorNum((1, 1, 1))
         # Canonical floating point form
-        assert_equal(x.rgb, (1.0, 1.0, 1.0))
-        assert_equal(x.hls, (0.0, 1.0, 0.0))
-        assert_equal(x.hsv, (0.0, 0.0, 1.0))
+        lw.assert_equal(x.rgb, (1.0, 1.0, 1.0))
+        lw.assert_equal(x.hls, (0.0, 1.0, 0.0))
+        lw.assert_equal(x.hsv, (0.0, 0.0, 1.0))
         # Integer form
-        assert_equal(x.RGB, (255, 255, 255))
-        assert_equal(x.HLS, (0, 255, 0))
-        assert_equal(x.HSV, (0, 0, 255))
+        lw.assert_equal(x.RGB, (255, 255, 255))
+        lw.assert_equal(x.HLS, (0, 255, 0))
+        lw.assert_equal(x.HSV, (0, 0, 255))
         # String form
-        assert_equal(x.rgbhex, "#ffffff")
-        assert_equal(x.hlshex, "$00ff00")
-        assert_equal(x.hsvhex, "@0000ff")
-    exit(run(globals(), halt=True)[0])
+        lw.assert_equal(x.rgbhex, "#ffffff")
+        lw.assert_equal(x.hlshex, "$00ff00")
+        lw.assert_equal(x.hsvhex, "@0000ff")
+    exit(lw.run(globals(), halt=True)[0])

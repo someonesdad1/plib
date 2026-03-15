@@ -22,6 +22,10 @@ Reorganization core files
       was originally emplaced to limit what was imported in a 'from x import *' command,
       but few people do that anymore.
 
+    - in bp.py, GetScreen(), GetColors(), Dbg(), Warning(), and Error() are used in
+      every script.  These should all have corresponding dputil.py functions that set up
+      reasonable defaults.
+
     - pgm/dp.py
         - Write a heuristic function that gets all the functions/classes from a python
           module.  The goal is to have a list of symbols that lwtest.py can go through

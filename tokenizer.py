@@ -49,15 +49,17 @@ if 1:  # Header
         import string
         import sys
     if 1:   # Custom imports
-        from wrap import dedent
-        from color import t
-        from get import GetLines
-        from lwtest import Assert, run
+        import get
         import timer
+        import trm
+        import wrap 
+
+        from lwtest import run
         if 0:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
+        t = trm.Trm()
         pp = pprint.pprint
         class G:
             pass
@@ -85,7 +87,7 @@ if 1:   # PrintTokens
         '''
         if not o:
             return
-        Assert(isinstance(o[0], tkn))
+        lw.Assert(isinstance(o[0], tkn))
         w = math.ceil(math.log10(o[-1].linenum))   # Width for line numbers
         ntokens = len(o)
         for i, token in enumerate(o):
@@ -143,61 +145,61 @@ if 1:   # Testing functions
     def TestTokenizer():
         if 1:   # Empty string
             o = Tokenizer("")
-            Assert(o == [])
+            lw.Assert(o == [])
         if 1:   # String with no newline
             o = Tokenizer("a1\b \t\f\r")
-            Assert(o == ['a', '1', '\x08', ' \t\x0c\r'])
-            Assert(type(o[0]) is wrd)
-            Assert(type(o[1]) is dig)
-            Assert(type(o[2]) is oth)
-            Assert(type(o[3]) is wht)
+            lw.Assert(o == ['a', '1', '\x08', ' \t\x0c\r'])
+            lw.Assert(type(o[0]) is wrd)
+            lw.Assert(type(o[1]) is dig)
+            lw.Assert(type(o[2]) is oth)
+            lw.Assert(type(o[3]) is wht)
         if 1:   # String with one newline
             o = Tokenizer("\n")
-            Assert(o == ['\n'])
+            lw.Assert(o == ['\n'])
             o = Tokenizer("ab\n")
-            Assert(o == ['ab', '\n'])
+            lw.Assert(o == ['ab', '\n'])
             o = Tokenizer("a\nb")
-            Assert(o == ['a', '\n', 'b'])
+            lw.Assert(o == ['a', '\n', 'b'])
         if 1:   # String with two newlines
             o = Tokenizer("\n\n")
-            Assert(o == ['\n', '\n'])
+            lw.Assert(o == ['\n', '\n'])
             o = Tokenizer("a\nb\n")
-            Assert(o == ['a', '\n', 'b', '\n'])
+            lw.Assert(o == ['a', '\n', 'b', '\n'])
         if 1:   # General test case that has all types in it
             o = Tokenizer("a1.\x0c∞\n")
-            Assert(o == ['a', '1', '.', '\x0c', '∞', '\n'])
+            lw.Assert(o == ['a', '1', '.', '\x0c', '∞', '\n'])
             # Check types
-            Assert(type(o[0]) is wrd)
-            Assert(type(o[1]) is dig)
-            Assert(type(o[2]) is pnc)
-            Assert(type(o[3]) is wht)
-            Assert(type(o[4]) is oth)
-            Assert(type(o[5]) is nln)
+            lw.Assert(type(o[0]) is wrd)
+            lw.Assert(type(o[1]) is dig)
+            lw.Assert(type(o[2]) is pnc)
+            lw.Assert(type(o[3]) is wht)
+            lw.Assert(type(o[4]) is oth)
+            lw.Assert(type(o[5]) is nln)
             # Check linenum, column, offset
             # Element 0 is a 'a' wrd
-            Assert(o[0].linenum == 0)
-            Assert(o[0].column == 0)
-            Assert(o[0].offset == 0)
+            lw.Assert(o[0].linenum == 0)
+            lw.Assert(o[0].column == 0)
+            lw.Assert(o[0].offset == 0)
             # Element 1 is a '1' dig
-            Assert(o[1].linenum == 0)
-            Assert(o[1].column == 1)
-            Assert(o[1].offset == 1)
+            lw.Assert(o[1].linenum == 0)
+            lw.Assert(o[1].column == 1)
+            lw.Assert(o[1].offset == 1)
             # Element 2 is a '.' pnc
-            Assert(o[2].linenum == 0)
-            Assert(o[2].column == 2)
-            Assert(o[2].offset == 2)
+            lw.Assert(o[2].linenum == 0)
+            lw.Assert(o[2].column == 2)
+            lw.Assert(o[2].offset == 2)
             # Element 3 is a formfeed pnc
-            Assert(o[3].linenum == 0)
-            Assert(o[3].column == 3)
-            Assert(o[3].offset == 3)
+            lw.Assert(o[3].linenum == 0)
+            lw.Assert(o[3].column == 3)
+            lw.Assert(o[3].offset == 3)
             # Element 4 is a Unicode ∞ pnc
-            Assert(o[4].linenum == 0)
-            Assert(o[4].column == 4)
-            Assert(o[4].offset == 4)
+            lw.Assert(o[4].linenum == 0)
+            lw.Assert(o[4].column == 4)
+            lw.Assert(o[4].offset == 4)
             # Element 5 is a '\n' nln
-            Assert(o[5].linenum == 0)
-            Assert(o[5].column == 5)
-            Assert(o[5].offset == 5)
+            lw.Assert(o[5].linenum == 0)
+            lw.Assert(o[5].column == 5)
+            lw.Assert(o[5].offset == 5)
 if 1:   # Classes to hold token types
     '''
     These classes are string types used to hold different token types by virtue of their
@@ -433,7 +435,7 @@ if __name__ == "__main__":
             Warn(*msg)
             exit(status)
         def Usage(status=0):
-            print(dedent(f'''
+            print(wrap.dedent(f'''
             Usage:  {sys.argv[0]} [options] file1 [file2...]
                 Tokenize the indicated files and print them in a colorized fashion to stdout.
                 This provides a demonstration of the Tokenizer() functions abilities.  Use "-"
@@ -463,7 +465,7 @@ if __name__ == "__main__":
                 elif o == "--test":
                     d[o] = not d[o]
             if d["--test"]:
-                exit(run(globals(), halt=True)[0])
+                exit(lw.run(globals(), halt=True)[0])
             return args
         def MeasureTiming(file):
             'Print execution time and tokens/s tokenizing rate'
@@ -481,7 +483,7 @@ if __name__ == "__main__":
             print(f"  Tokenizing rate = {tokens/(1000*time)} ktokens/s")
         def SpellCheck(file):
             'Print misspelled words in file with their location'
-            words = set(i.lower() for i in GetLines("/words/words.default", nonl=True))
+            words = set(i.lower() for i in get.GetLines("/words/words.default", nonl=True))
             tokens = Tokenizer(open(file).read().lower())
             misspelled = defaultdict(list)
             for word in tokens:
