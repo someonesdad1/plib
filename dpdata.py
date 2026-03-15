@@ -8,15 +8,11 @@ Central module for sourcing data
 '''
 if 1:  # Header
     if 1:   # Standard imports
-        import collections
         import getopt
         import os
-        import pathlib
         import sys
     if 1:   # Custom imports
-        import columnize
         import dptypes
-        import f
         if 0:
             import debug
             debug.SetDebugger()

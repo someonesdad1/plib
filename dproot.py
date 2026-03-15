@@ -105,6 +105,7 @@ if 1:  # Header
         <oo test ∞ testdir oo>
         <oo todo ∞
         
+            - Bisection has args & kw, but doesn't use them
             - Remove args & kw from everything except Crenshaw and Bisection
                 - These are used for more complicated cases
                 - Ridders, Brent, ITP for speedy evaluations & single-argument functions
@@ -193,7 +194,7 @@ if 1:  # Header
         g.fp = float
         t.dbg = t.skyl   # Color for debugging output
 if 1:  # Root finders that don't need a derivative (but you must bracket the root)
-    def Crenshaw(a, b, f, tol=g.tol, itmax=g.itmax, fp=g.fp, dbg=None, args=[], kw={}):
+    def Crenshaw(a, b, f, tol=g.tol, itmax=g.itmax, fp=g.fp, dbg=None, args=None, kw=None):
         '''Return (root, num_iterations) where root is a root of the function f() that
         lies in the interval [a, b] and num_iterations is the number of iterations it
         took to find the root.
@@ -304,7 +305,7 @@ if 1:  # Root finders that don't need a derivative (but you must bracket the roo
                 else:
                     a, y0, b, y2 = xm, ym, x1, y1
         raise ValueError(f"Number of iterations exceeded {itmax}")
-    def Bisection(a, b, f, tol=g.tol, itmax=None, switch=False, fp=g.fp, dbg=None, args=[], kw={}):
+    def Bisection(a, b, f, tol=g.tol, itmax=None, switch=False, fp=g.fp, dbg=None, args=None, kw=None):
         '''Returns (root, num_it) (the root and number of iterations) by finding a root
         of f(x) = 0 by bisection.  The root must be bracketed in [a, b].  Adapted from
         Kiusalaas [2:145:154].
@@ -451,7 +452,7 @@ if 1:  # Root finders that don't need a derivative (but you must bracket the roo
             2.  The interval [a, b] width < tol*max(abs(b), 1)
         '''
         a, b = [fp(i) for i in (a, b)]
-        fa, fb = IsBracketed(a, b, f, fp=fp)
+        fa, fb = dpmath.IsBracketed(a, b, f, fp=fp)
         x1, x2 = a, b
         if not fa:
             return a, 0
@@ -582,13 +583,13 @@ if 1:  # Root finders that don't need a derivative (but you must bracket the roo
         else:
             k1 = fp(k1)
         k2 = fp(k2)
-        ya, yb = IsBracketed(a, b, f, fp=fp)
+        ya, yb = dpmath.IsBracketed(a, b, f, fp=fp)
         # Modify f(x) so that y(a) < 0, 0 < y(b);
         if 0 < ya:
             s, ya, yb = -1, -ya, -yb
         else:
             s = 1
-        nh = Ceil(Log2((b - a)/(2*tol), fp), fp)
+        nh = dpmath.Ceil(dpmath.Log2((b - a)/(2*tol), fp), fp)
         nmax, count = nh + n0, 0
         while 2*tol < (b - a):
             count += 1
@@ -690,7 +691,7 @@ if 1:  # Root finders that need derivative
             xn = xn1
         raise ValueError(f"Number of iterations exceeded {itmax}")
 if 1:  # Searching intervals for roots by sign changes
-    def SearchIntervalForRoots(a, b, f, n, fp=g.fp, args=[], kw={}):
+    def SearchIntervalForRoots(a, b, f, n, fp=g.fp, args=None, kw=None):
         '''Return a tuple of subintervals of [a, b] where f has roots.
         
         a       Start of interval
@@ -726,7 +727,7 @@ if 1:  # Searching intervals for roots by sign changes
                 intervals.append((x0, x))
             x0, y0 = x, y
         return tuple(intervals)
-    def FindRoots(f, n, x1, x2, tol=g.tol, itmax=g.itmax, fp=g.fp, args=[], kw={}):
+    def FindRoots(f, n, x1, x2, tol=g.tol, itmax=g.itmax, fp=g.fp, args=None, kw=None):
         '''This is a general-purpose root finding routine that returns a tuple of the
         roots found of the function f on the interval [x1, x2].
         
@@ -773,7 +774,7 @@ if 1:  # Searching intervals for roots by sign changes
             else:
                 roots.append(x)
         return tuple(roots)
-    def BracketRoots(f, x1, x2, itmax=g.itmax, fp=g.fp, args=[], kw={}):
+    def BracketRoots(f, x1, x2, itmax=g.itmax, fp=g.fp, args=None, kw=None):
         '''Given a function f and an initial interval [x1, x2], expand the interval
         geometrically until a root is bracketed or the number of iterations exceeds
         itmax.  Return (a, b), where the interval [a, b] brackets a root.  If the
@@ -813,161 +814,6 @@ if 1:  # Searching intervals for roots by sign changes
             count += 1
             if count > itmax:
                 raise ValueError(f"Number of iterations exceeded {itmax}")
-if 0:  # Crenshaw
-    '''
-    
-    This routine is commented out because it takes too much time.  However, it uses
-    Jack's realization that the routine often did better than the user requested,
-    shaving one iteration off the computation.
-    
-    I suspect it's not worth the bookkeeping needed to eliminate the extra step,
-    particularly since e.g. Brent() converges quickly and is usually the fastest.
-    
-    '''
-    def CrenshawOld(x1, x3, f, eps=1e-6, itmax=g.itmax, p=4, dbgstream=None):
-        '''Returns (root, number_of_iterations).
-        x1, x3        Initial estimates of the root and must bracket it.
-        f             Function f(x) to call to evaluate.
-        eps           Relative change used to determine when the algorithm
-                      has converged.
-        itmax         Maximum number of iterations to use.
-        '''
-        d = {
-            "p": p,
-            "xlast": None,
-            "ymin": 1e308,
-            "ymax": -1e308,
-            "eps": eps,
-        }
-        def Dbg(s, end="\n"):
-            if dbgstream:
-                for i in s.split("\n"):
-                    pass
-                    #g.dbgstream.write("+ {0}{1}".format(i, end))
-        def F(*args, **kw):
-            '''Parameters args:  the first element is x and is mandatory.  The following parameters are
-            passed to the function f.  The keyword dictionary must contain a dictionary named opts; it
-            is used in this function, the opts key is removed, and the remaining dictionary is passed
-            to the function f.
-            
-            This is a wrapper function that calls f(x) given a dictionary d that contains the following
-            keys:
-              ymin        Minimum y value encountered
-              ymax        Maximum y value encountered
-              eps         Desired convergence radius, relative
-              converged   Will be True when the current y value is less than
-                          eps*(ymax - ymin).
-                          
-            This is per Jack Crenshaw's follow-up article on 13 Apr 2004 entitled "A root-finding
-            algorithm" in "Embedded Systems Development".  Jack's realization was that the original
-            algorithm he published in May 2002 ("All Problems Are Simple" in "Embedded Systems
-            Programming", pg 7-14) often converged to a value better than requested by the user (I've
-            noticed the same behavior).  Jack's insight was to look at successive y values and base
-            convergence on getting a y value that was less in absolute value than eps*(ymax - ymin).
-            This function, F(x) does the bookkeeping so that a) the minimum and maximum y values are
-            remembered and b) the convergence status is returned in a Boolean variable.  You'll find
-            this method gets the root to the desired precision and does it in fewer steps than the
-            original algorithm.
-            
-            Note:  Jack has mentioned numerous times that this algorithm was from some unknown genius
-            at IBM in the 1960's and was part of their FORTRAN library code.  Jack studied the
-            algorithm and wrote articles in "Embedded Systems Development" to popularize it.  The
-            method is inverse parabolic interpolation with bisection and it converges quadratically
-            (converging quadratically means the error in the current step is the square of the error
-            in the previous step).
-            '''
-            args = list(args)
-            x = args[0]
-            del args[0]
-            d = kw["opts"]  # Options dictionary
-            p = d["p"]  # Number of digits in debug printing
-            del kw["opts"]
-            def dx(x):
-                diff = abs(x - d["xlast"])
-                if d["xlast"]:
-                    return diff/d["xlast"]
-                elif x:
-                    return diff/x
-                else:
-                    return 0
-            if args:
-                y = f(x, *p, **kw) if kw else f(x, *p)
-            else:
-                y = f(x, **kw) if kw else f(x)
-            d["xlast"] = x
-            d["ymin"] = ymin = min(y, d["ymin"])
-            d["ymax"] = ymax = max(y, d["ymax"])
-            Dbg(
-                "f(x): x = {x:.{p}g}, y = {y:.{p}g}, Y min/max: "
-                "[{ymin:.{p}g}, {ymax:.{p}g}]".format(**locals())
-            )
-            d["converged"] = abs(y) < d["eps"]*(ymax - ymin) and dx(x) < eps
-            return y
-        Dbg(
-            '''Crenshaw() called with:
-            Starting interval = [{x1:.{p}g}, {x3:.{p}g}]
-            eps   = {eps}
-            itmax = {itmax}'''.format(**locals())
-        )
-        # Local variables
-        x2 = y2 = 0  # Middle point in bisections
-        xm = ym = 0  # Estimated root in interpolations
-        y1 = y3 = y21 = y31 = y32 = 0
-        b = c = 0  # Temporary variables
-        # Set up values at initial points.
-        # Test each just in case we luck out.
-        Dbg("Get function values at both ends")
-        y1, y3 = F(x1, opts=d), F(x3, opts=d)
-        if not y1 or d["converged"]:
-            Dbg("--> Converged to " + str((x1, 0)))
-            return (x1, 0)
-        if not y3 or d["converged"]:
-            Dbg("--> Converged to " + str((x3, 0)))
-            return (x3, 0)
-        # If the signs are the same, we were given bad initial values of x1, x3
-        if y3*y1 > 0.0:
-            raise ValueError("Root not bracketed")
-        for i in range(itmax):
-            x2 = (x3 + x1)/2  # Bisection step
-            y2 = F(x2, opts=d)
-            Dbg("Bisection x2 = {x2:.{p}g}, y2 = {y2:.{p}g}".format(**locals()))
-            if not y2 or d["converged"]:
-                Dbg("--> Converged to " + str((x2, i + 1)))
-                return (x2, i + 1)
-            if y2*y1 > 0:  # Relabel to keep the root between x1 and x2.
-                x1, x3, y1, y3 = x3, x1, y3, y1
-            # Attempt a parabolic interpolation.
-            y21, y32, y31 = y2 - y1, y3 - y2, y3 - y1
-            if y3*y31 < 2*y2*y21:
-                # Do another bisection
-                x3, y3 = x2, y2
-                Dbg("Can't use parabolic; x3 now {x3:.{p}g}".format(**locals()))
-            else:
-                # Parabolic interpolation
-                try:
-                    # y21 and y31 cannot be zero, but y32 might.
-                    b, c = (x2 - x1)/y21, (y21 - y32)/(y32*y31)
-                    xm = x1 - b*y1*(1 - c*y2)
-                    ym = F(xm, opts=d)
-                    Dbg("Parabolic xm = {xm:.{p}g}, ym = {ym:.{p}g}".format(**locals()))
-                    if not ym or d["converged"]:
-                        Dbg("--> Converged to " + str((xm, i + 1)))
-                        return (xm, i + 1)
-                    # Relabel to keep root between x1 and x2.
-                    if ym*y1 < 0:
-                        x3, y3 = xm, ym
-                    else:
-                        x1, y1, x3, y3 = xm, ym, x2, y2
-                except ZeroDivisionError:
-                    print("Division by zero in Crenshaw:", file=sys.stderr)
-                    print("  x1  =", x1, file=sys.stderr)
-                    print("  x2  =", x2, file=sys.stderr)
-                    print("  y21 =", y21, file=sys.stderr)
-                    print("  y31 =", y31, file=sys.stderr)
-                    print("  y32 =", y32, file=sys.stderr)
-                    # Do another bisection
-                    x3, y3 = x2, y2
-        raise StopIteration("No convergence in Crenshaw()")
 if 1:  # Polynomials
     def Quadratic(a, b, c, adjust=True, force_real=False):
         '''Return the two roots of a quadratic equation.  The equation is a*x**2 + b*x +
@@ -1271,7 +1117,7 @@ if __name__ == "__main__":
                 (ITP, "ITP"),
             )
             expected = "0.739085133215161"
-            for func, name in methods:
+            for func, _ in methods:
                 x, m = func(x0, x1, myfunc, tol=tol)
                 Assert(f"{x:.15f}" == expected)
             # FindRoots has a different calling pattern and it returns a tuple of roots
@@ -1343,7 +1189,7 @@ if __name__ == "__main__":
             tm = Timer()
             tm.u = 1e6  # Set timer's units to μs
             x0, x1 = 0, math.pi/2
-            tol, n, fmt, tfmt, ind = 1e-16, 1000, ".15f", ".2g", " "*4
+            tol, n, fmt, ind = 1e-16, 1000, ".15f", " "*4
             # Set up flt so that the high threshold for sci is 10000
             x = flt(0)
             x.high = 100000
@@ -1363,18 +1209,18 @@ if __name__ == "__main__":
                     (ITP, "ITP", float, "float"),
                     ):
                 count = 0
-                tm.start
-                for i in range(n):
+                tm.start        # noqa
+                for _ in range(n):
                     x, m = func(x0, x1, myfunc, tol=tol, fp=fp)
                     count += m
-                tm.stop
+                tm.stop     # noqa
                 print(f"{ind}{name:10s}:  Got {float(x):{fmt}} in {count//n:3d} steps, "
                       f"{flt(tm.et/n)!s:>6s} μs {nfp}")
             # FindRoots uses a different syntax
-            tm.start
-            for i in range(n):
+            tm.start        # noqa
+            for _ in range(n):
                 x = FindRoots(myfunc, 10, x0, x1, tol=tol)
-            tm.stop
+            tm.stop     # noqa
             print(f"{ind}FindRoots :  Got {x[0]:{fmt}} in  ?  steps, {flt(tm.et/n)!s:>6s} μs")
     if 1:  # Test code
         def Test_Crenshaw():
@@ -1528,7 +1374,7 @@ if __name__ == "__main__":
             tol = 1e-10
             root, numit = Ridders(0, 2.1*t, f, tol=tol)
             Assert(abs(root - t) <= tol)
-        def Test_GeneralRootFinding(show=(len(sys.argv) > 1)):
+        def Test_GeneralRootFinding():
             '''This test case uses each of the root finding functions to test a
             practical example of finding the square root of numbers over a wide
             floating point range.  The desire is to have convergence to the
@@ -1537,62 +1383,50 @@ if __name__ == "__main__":
             physically-measured data.
             '''
             tol = 1e-6
-            fd = lambda x: 1/(2*x**0.5)
             # The stopping point is 10**(308//2) because this is about the square
             # root of largest floating point number.  Note some of the routines
             # won't converge over this full range.
             random.seed(0)
-            e, bi, cr, rf, br, ri = [], [], [], [], [], []
+            e, bi, br, ri = [], [], [], []
             for i in range(308//2):
                 e.append(i)
                 val = float(10**i)
                 sr0 = math.sqrt(val)
                 a, b = sr0*(1 - random.uniform(0, 0.2)), sr0*(1 + random.uniform(0, 0.2))
-                f = lambda x: x*x - val
-                sr, n = Bisection(a, b, f, tol=tol)
-                bi.append("%3d " % n)
-                assert_equal(sr0, sr, reltol=tol)
-                if 0:   # Crenshaw is commented out in root.py and probably will be removed
-                    sr, n = Crenshaw(a, b, f, tol=tol)
-                    cr.append("%3d " % n)
+                def F(x):
+                    return x*x - F.val
+                F.val = val
+                if 1:   # Bisection
+                    sr, n = Bisection(a, b, F, tol=tol)
+                    bi.append(f"{n:3d} ")
                     assert_equal(sr0, sr, reltol=tol)
-                try:
-                    sr, n = RootFinder(a, b, f, tol=tol)
-                    rf.append("%3d " % n)
+                if 1:   # Brent
+                    try:
+                        sr, n = Brent(a, b, F, tol=tol)
+                        br.append(f"{n:3d} ")
+                        assert_equal(sr0, sr, reltol=tol)
+                    except Exception:
+                        pass
+                if 1:   # Ridders
+                    sr, n = Ridders(a, b, F, tol=tol)
                     assert_equal(sr0, sr, reltol=tol)
-                except Exception:
-                    pass
-                try:
-                    sr, n = Brent(a, b, f, tol=tol)
-                    Br.append("%3d " % n)
-                    assert_equal(sr0, sr, reltol=tol)
-                except Exception:
-                    pass
-                try:
-                    sr, n = Brent(a, b, f, tol=tol)
-                    br.append("%3d " % n)
-                    assert_equal(sr0, sr, reltol=tol)
-                except Exception:
-                    pass
-                sr, n = Ridders(a, b, f, tol=tol)
-                assert_equal(sr0, sr, reltol=tol)
-                ri.append("%3d " % n)
+                    ri.append(f"{n:3d} ")
             # Make a plot of the results
-            if 0 and have_pylab:
-                p = pl.semilogy
-                p(e[: len(bi)], bi, ".-", label="Bisection")
-                p(e[: len(cr)], cr, ".-", label="Crenshaw")
-                p(e[: len(rf)], rf, ".-", label="RootFinder")
-                p(e[: len(br)], br, ".-", label="Brent")
-                p(e[: len(ri)], ri, ".-", label="Ridders")
-                pl.title("Root-finding routine efficiency\n13 Oct 2014")
-                pl.xlabel("n")
-                pl.ylabel("Iterations to get sqrt(10**n)")
-                pl.legend(loc="upper left")
-                if 0:
-                    pl.show()
-                else:
-                    pl.savefig("rootfinder_comparison.png")
+            #if 0 and have_pylab:
+            #    p = pl.semilogy
+            #    p(e[: len(bi)], bi, ".-", label="Bisection")
+            #    p(e[: len(cr)], cr, ".-", label="Crenshaw")
+            #    p(e[: len(rf)], rf, ".-", label="RootFinder")
+            #    p(e[: len(br)], br, ".-", label="Brent")
+            #    p(e[: len(ri)], ri, ".-", label="Ridders")
+            #    pl.title("Root-finding routine efficiency\n13 Oct 2014")
+            #    pl.xlabel("n")
+            #    pl.ylabel("Iterations to get sqrt(10**n)")
+            #    pl.legend(loc="upper left")
+            #    if 0:
+            #        pl.show()
+            #    else:
+            #        pl.savefig("rootfinder_comparison.png")
         def Test_Ostrowski():
             from math import cos, exp, sin
             tol = 1e-14
@@ -1685,10 +1519,10 @@ if __name__ == "__main__":
             for r in Cubic(1, 0, 0, 1):
                 assert_equal(dpmath.Pound(r**3, ratio=tol), -1, reltol=tol)
             # Three real roots:  (x-1)*(x-2)*(x-3)
-            for i, j in zip(Cubic(1, -6, 11, -6), (3, 1, 2)):
+            for i, j in zip(Cubic(1, -6, 11, -6), (3, 1, 2), strict=True):
                 assert_equal(i, j, reltol=tol)
             # One real root:  (x-1)*(x-j)*(x+j) = x**3 - x**2 + x - 1, roots = 1, -j, j
-            for i, k in zip(Cubic(1, -1, 1, -1), (1, 1j, -1j)):
+            for i, k in zip(Cubic(1, -1, 1, -1), (1, 1j, -1j), strict=True):
                 # In the following, Assert is used instead of assert_equal
                 # because one test case results in -0-1j vs. -1j, which results
                 # in a failure -- but the numbers are numerically equal.
@@ -1707,10 +1541,10 @@ if __name__ == "__main__":
             for r in Quartic(1, 0, 0, 0, 1):
                 assert_equal(dpmath.Pound(r**4, ratio=tol), -1, reltol=tol)
             # The equation (x-1)*(x-2)*(x-3)*(x-4)
-            for i, j in zip(Quartic(1, -10, 35, -50, 24), range(1, 5)):
+            for i, j in zip(Quartic(1, -10, 35, -50, 24), range(1, 5), strict=True):
                 assert_equal(i, j, reltol=tol)
             # Two real roots: x*(x-1)*(x-j)*(x+j)
-            for i, k in zip(Quartic(1, -1, 1, -1, 0), (-1j, 1j, 0j, 1)):
+            for i, k in zip(Quartic(1, -1, 1, -1, 0), (-1j, 1j, 0j, 1), strict=True):
                 assert_equal(i, k)
     if len(sys.argv) > 1:
         Demo()
