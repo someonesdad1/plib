@@ -183,6 +183,8 @@ if 1:  # Core functionality
             0 dBm(600 Ω) is 0.7746 V = sqrt(600/1000)
             0 dBm(50 Ω) is 0.2236 V = sqrt(50/1000)
             0 dBm(75 Ω) is 0.2739 V = sqrt(75/1000)
+
+        {t.ygr}6 dBm(600 Ω) drop for 1X to 10X scope probe switch{t.n}
         '''))
     def ConversionTable():
         w = 12  # Column width

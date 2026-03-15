@@ -16,7 +16,7 @@ if 1:  # Header
         import f
         import u
         try:
-            from uncertainties import UFloat
+            import uncertainties as unc
             _have_unc = True
         except ImportError:
             _have_unc = False
@@ -278,7 +278,7 @@ if 1:  # RoundOff, SigFig, TemplateRound, Pound
         '''
         if isinstance(number, (int, fractions.Fraction)):
             return number
-        if _have_unc and isinstance(number, UFloat):
+        if _have_unc and isinstance(number, unc.UFloat):
             return number
         if isinstance(number, complex):
             re = RoundOff(number.real, digits=digits)

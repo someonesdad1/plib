@@ -671,10 +671,7 @@ if __name__ == "__main__":
             values.append(Color(value.hex))
         u = Trm(*zip(keys, values))
         #print(len(u))
-    if len(sys.argv) > 1:
-        Demo()
-    else:
-        exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
+    exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
 
 def GetGist():
     g = {}

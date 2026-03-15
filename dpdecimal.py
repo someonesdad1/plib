@@ -487,14 +487,10 @@ if 1:  # Functions
 if __name__ == "__main__":
     if 1:  # Header
         if 1:  # Custom imports
+            import lwtest as lw
             # Use mpmath (http://mpmath.org/) to generate the numbers to test
             # against.  Assume mpmath's algorithms are correct.
             import mpmath as mp
-
-            from lwtest import Assert, raises, run
-        if 1:  # Global variables
-            getcontext = decimal.getcontext
-            localcontext = decimal.localcontext
     if 1:  # Testing functions
         def Test_fix():
             d = dec("1.23456789")
@@ -512,8 +508,8 @@ if __name__ == "__main__":
                 1.2345678900
                 '''.split()
             for i in range(1, 12):
-                Assert(d.fix(i) == expected[i - 1])
-                Assert((-d).fix(i) == "-" + expected[i - 1])
+                lw.Assert(d.fix(i) == expected[i - 1])
+                lw.Assert((-d).fix(i) == "-" + expected[i - 1])
         def Test_sci():
             d = dec("1.23456789e33")
             expected = '''
@@ -530,8 +526,8 @@ if __name__ == "__main__":
                 1.2345678900e33
                 '''.split()
             for i in range(1, 12):
-                Assert(d.sci(i) == expected[i - 1])
-                Assert((-d).sci(i) == "-" + expected[i - 1])
+                lw.Assert(d.sci(i) == expected[i - 1])
+                lw.Assert((-d).sci(i) == "-" + expected[i - 1])
             d = dec("1.23456789e-33")
             expected = '''
                 1e-33
@@ -547,14 +543,14 @@ if __name__ == "__main__":
                 1.2345678900e-33
                 '''.split()
             for i in range(1, 12):
-                Assert(d.sci(i) == expected[i - 1])
-                Assert((-d).sci(i) == "-" + expected[i - 1])
+                lw.Assert(d.sci(i) == expected[i - 1])
+                lw.Assert((-d).sci(i) == "-" + expected[i - 1])
         def Test_add():
             d = dec("1.2345")
             x = d + 3
-            Assert(x == dec("4.2345"))
-            Assert(isinstance(x, dec))
-            with raises(TypeError):
+            lw.Assert(x == dec("4.2345"))
+            lw.Assert(isinstance(x, dec))
+            with lw.raises(TypeError):
                 # Can't add to a float
                 d + 3.0
         def Test_infection():
@@ -570,11 +566,11 @@ if __name__ == "__main__":
                             to_integral_value copy_negate next_plus
                             '''.split():
                     r = eval(f"x.{i}()")
-                    Assert(type(r) is type(x))
+                    lw.Assert(type(r) is type(x))
                 # Zero arguments, logical arguments
                 for i in '''logical_invert'''.split():
                     r = eval(f"L1.{i}()")
-                    Assert(type(r) is type(L1))
+                    lw.Assert(type(r) is type(L1))
                 # One argument, non-logical
                 for i in '''__add__ __rsub__ __deepcopy__ __rtruediv__ max
                             __floordiv__ __sub__ max_mag __mod__ __truediv__
@@ -586,14 +582,14 @@ if __name__ == "__main__":
                     # Note floats and Fraction are not supported for these
                     # operations
                     if isinstance(y, (float, fractions.Fraction)):
-                        with raises(TypeError):
+                        with lw.raises(TypeError):
                             r = eval(f"x.{i}()")
                     else:
                         if i == "scaleb":
                             r = eval(f"x.{i}(two)")
                         else:
                             r = eval(f"x.{i}(y)")
-                        Assert(type(r) is type(x))
+                        lw.Assert(type(r) is type(x))
                 # One argument, logical arguments
                 for i in '''logical_and logical_or logical_xor rotate
                             shift'''.split():
@@ -601,28 +597,28 @@ if __name__ == "__main__":
                         r = eval(f"L1.{i}(two)")
                     else:
                         r = eval(f"L1.{i}(L2)")
-                    Assert(type(r) is type(L1))
+                    lw.Assert(type(r) is type(L1))
         def Test_strict():
             x = dec("1.234567890123456789")
             s = "1.2"
             dec.strict = True
-            with raises(TypeError):
+            with lw.raises(TypeError):
                 x + float(s)
             dec.strict = False
             y = x + float(s)
-            Assert(y == x + dec(s))
-            Assert(isinstance(y, dec))
+            lw.Assert(y == x + dec(s))
+            lw.Assert(isinstance(y, dec))
             if _have_mpmath:
                 z = 1 / x
                 y = mpmath.mpf(z.full)
-                Assert(x + y == x + z)
-                Assert(isinstance(x + y, dec))
+                lw.Assert(x + y == x + z)
+                lw.Assert(isinstance(x + y, dec))
                 dec.strict = True
-                with raises(TypeError):
+                with lw.raises(TypeError):
                     x + y
-    mp.mp.dps = getcontext().prec
-    eps = 10*dec(10)**(-dec(getcontext().prec))
-    exit(run(globals(), halt=1, nomsg=1))
+    mp.mp.dps = decimal.getcontext().prec
+    eps = 10*dec(10)**(-dec(decimal.getcontext().prec))
+    exit(lw.run(globals(), halt=1, nomsg=1))
 
 def GetGist():
     g = {}

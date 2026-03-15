@@ -176,8 +176,8 @@ if 1:  # Header
     if 1:  # Custom imports
         import dpmath
         import dptypes
+        import f
         import trm
-        from f import flt
         try:
             import mpmath
             have_mpmath = True
@@ -1191,7 +1191,7 @@ if __name__ == "__main__":
             x0, x1 = 0, math.pi/2
             tol, n, fmt, ind = 1e-16, 1000, ".15f", " "*4
             # Set up flt so that the high threshold for sci is 10000
-            x = flt(0)
+            x = f.flt(0)
             x.high = 100000
             x.N = 2
             def myfunc(x):
@@ -1200,10 +1200,10 @@ if __name__ == "__main__":
             for func, name, fp, nfp in (
                     (Bisection, "Bisection", float, "float"), 
                     (Bisection, "Bisection", mpmath.mpf, "mpf"), 
-                    (Bisection, "Bisection", flt, "flt"), 
+                    (Bisection, "Bisection", f.flt, "flt"), 
                     (Crenshaw, "Crenshaw", float, "float"),
                     (Crenshaw, "Crenshaw", mpmath.mpf, "mpf"),
-                    (Crenshaw, "Crenshaw", flt, "flt"),
+                    (Crenshaw, "Crenshaw", f.flt, "flt"),
                     (Ridders, "Ridders", float, "float"),
                     (Brent, "Brent", float, "float"),
                     (ITP, "ITP", float, "float"),
@@ -1215,13 +1215,13 @@ if __name__ == "__main__":
                     count += m
                 tm.stop     # noqa
                 print(f"{ind}{name:10s}:  Got {float(x):{fmt}} in {count//n:3d} steps, "
-                      f"{flt(tm.et/n)!s:>6s} μs {nfp}")
+                      f"{f.flt(tm.et/n)!s:>6s} μs {nfp}")
             # FindRoots uses a different syntax
             tm.start        # noqa
             for _ in range(n):
                 x = FindRoots(myfunc, 10, x0, x1, tol=tol)
             tm.stop     # noqa
-            print(f"{ind}FindRoots :  Got {x[0]:{fmt}} in  ?  steps, {flt(tm.et/n)!s:>6s} μs")
+            print(f"{ind}FindRoots :  Got {x[0]:{fmt}} in  ?  steps, {f.flt(tm.et/n)!s:>6s} μs")
     if 1:  # Test code
         def Test_Crenshaw():
             '''Here's a quick test of the routine.  The function is

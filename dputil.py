@@ -116,8 +116,8 @@ if 1:  # Core functionality
                 for sub1 in IterateOverSubclasses(sub, seen):   # noqa
                     yield sub1
     class Singleton:
-        "Mix-in class to make an object a singleton.  From 'Python in a Nutshell', p 84."
-        _singletons = {}
+        'Mix-in class to make an object a singleton.  From "Python in a Nutshell", p 84'
+        _singletons: dict[object, object] = {}
         def __new__(cls, *args, **kw):
             if cls not in cls._singletons:
                 cls._singletons[cls] = object.__new__(cls)
@@ -408,13 +408,14 @@ if 1:  # Core functionality
             Spinner.stop = True
         '''
         # Idea from https://realpython.com/python-print/#living-it-up-with-cool-animations
+        if not hasattr(Spinner, "stop"):
+            Spinner.stop = False
         for frame in itertools.cycle(chars):
             print("\r", frame, sep="", end="", flush=True)
             time.sleep(delay)
             if Spinner.stop:
                 print()
                 return
-    Spinner.stop = False
     def ProgressBar(frac=0, width=40, char="#"):
         '''Prints a progress bar to stdout.  frac must be a number on the closed interval [0, 1].
         
@@ -704,31 +705,32 @@ if 1:  # Core functionality
         subprocess.run("clear", shell=True)
 
 if __name__ == "__main__":
-    from io import StringIO
-    from random import seed
-
-    import trm
-    from dpseq import fDistribute
-    from lwtest import Assert, assert_equal, raises, run
-    from wrap import dedent
-    t = trm.Trm()
-    import itertools
-    import sys
-    seed(2**64)  # Make test sequences repeatable
-    show_coverage = len(sys.argv) > 1
-    # Need to have version, as SizeOf stuff changed between 3.7 and 3.9
-    vi = sys.version_info
-    ver = f"{vi[0]}.{vi[1]}"
+    if 1:   # Standard imports
+        import io
+        import itertools
+        import random
+        import sys
+    if 1:   # Custom imports
+        import dpseq
+        import dptypes
+        import lwtest as lw
+        import trm
+        import wrap
+    if 1:   # Global variables
+        t = trm.Trm()
+        random.seed(2**64)  # Make test sequences repeatable
+        show_coverage = len(sys.argv) > 1
+        # Need to have version, as SizeOf stuff changed between 3.7 and 3.9
+        vi = sys.version_info
+        ver = f"{vi[0]}.{vi[1]}"
     if 1:  # Debugging help
-        class G:
-            pass
-        g = G()
+        g = dptypes.Constant()
         g.dbg = False
-        def Dbg(*p, **kw):
-            if g.dbg:
-                print(f"{t.dbg}", end="")
-                print(*p, **kw)
-                print(f"{t.N}", end="")
+    def Dbg(*p, **kw):
+        if g.dbg:
+            print(f"{t.dbg}", end="")
+            print(*p, **kw)
+            print(f"{t.n}", end="")
     def Test_NumBitsInByte():
         d = NumBitsInByte()
         for i in d:
@@ -749,21 +751,21 @@ if __name__ == "__main__":
             (u/1e5, ".000012"),
             (u/1e6, "1.2e-6"),
         ):
-            Assert(fsig(x) == s, f"fsig({x}) != {s}")
-            Assert(fsig(-x) == "-" + s, "fsig({}) != {}".format(x, "-" + s))
+            lw.Assert(fsig(x) == s, f"fsig({x}) != {s}")
+            lw.Assert(fsig(-x) == "-" + s, "fsig({}) != {}".format(x, "-" + s))
     def Test_Winnow():
         s = set("ei eI Ei EI".split())
         regexps = ["e", "I"]
         # Don't ignore case
         u = Winnow(s, regexps=regexps, flags=0)
-        Assert(u == {"eI"})
+        lw.Assert(u == {"eI"})
         # Ignore case
         u = Winnow(s, regexps=regexps, flags=re.I)
-        Assert(u == s)
+        lw.Assert(u == s)
         # Empty item_sequence returns empty set
-        Assert(Winnow([], regexps=regexps, flags=0) == set())
+        lw.Assert(Winnow([], regexps=regexps, flags=0) == set())
         # Empty regexps returns item_sequence set
-        Assert(Winnow(s, regexps=[], flags=0) == set(s))
+        lw.Assert(Winnow(s, regexps=[], flags=0) == set(s))
     def Test_SizeOf():
         if ver == "3.7":
             data = (
@@ -794,52 +796,52 @@ if __name__ == "__main__":
             )
         for typ, sz in data:
             x = typ((0,))
-            Assert(SizeOf(x) == sz)
+            lw.Assert(SizeOf(x) == sz)
         # Size of dict
         x = {1: 1}
         if ver == "3.7":
-            Assert(SizeOf(x) == 146)  # For python 3.7
+            lw.Assert(SizeOf(x) == 146)  # For python 3.7
         elif ver == "3.9":
-            Assert(SizeOf(x) == 260)  # For python 3.9
+            lw.Assert(SizeOf(x) == 260)  # For python 3.9
         elif ver == "3.11":
-            Assert(SizeOf(x) == 252)  # For python 3.11
+            lw.Assert(SizeOf(x) == 252)  # For python 3.11
         else:
-            Assert(SizeOf(x) == 140)  # It will fail
+            lw.Assert(SizeOf(x) == 140)  # It will fail
     def Test_Engineering():
         m, e, s = Engineering(1.2345e-6)
-        Assert(float(m) == 1.23 and e == -6 and s == "u")
+        lw.Assert(float(m) == 1.23 and e == -6 and s == "u")
         m, e, s = Engineering(1.2345e-7)
-        Assert(float(m) == 123 and e == -9 and s == "n")
+        lw.Assert(float(m) == 123 and e == -9 and s == "n")
         m, e, s = Engineering(1.2345e-8)
-        Assert(float(m) == 12.3 and e == -9 and s == "n")
+        lw.Assert(float(m) == 12.3 and e == -9 and s == "n")
     def Test_eng():
-        Assert(eng(3456.78) == "3.46e3")
-        Assert(eng(3456.78, digits=4) == "3.457e3")
+        lw.Assert(eng(3456.78) == "3.46e3")
+        lw.Assert(eng(3456.78, digits=4) == "3.457e3")
         # kkg is a illegal SI unit, but the code allows it
-        Assert(eng(3456.78, unit="kg") == "3.46 kkg")
+        lw.Assert(eng(3456.78, unit="kg") == "3.46 kkg")
     def Test_IsTextFile():
-        s = StringIO("Some text")
-        Assert(IsTextFile(s))
-        s = StringIO("Some text\xf8")
-        Assert(not IsTextFile(s))
+        s = io.StringIO("Some text")
+        lw.Assert(IsTextFile(s))
+        s = io.StringIO("Some text\xf8")
+        lw.Assert(not IsTextFile(s))
         # Also test IsBinaryFile()
-        s = StringIO("Some text\xf8")
-        Assert(IsBinaryFile(s))
+        s = io.StringIO("Some text\xf8")
+        lw.Assert(IsBinaryFile(s))
     util_simlink = "c:/cygwin/pylib/test/util_simlink.py"
     translated_util_simlink = "../util.py"
     def Test_IsCygwinSymlink():
         if sys.platform == "win32":
             # For this to work, create a cygwin simlink named util_simlink.py
             # in /pylib/test that points to /pylib/util.py.
-            Assert(IsCygwinSymlink(util_simlink))
-            Assert(not IsCygwinSymlink("c:/cygwin/home/Don/bin/data/notes.txt"))
+            lw.Assert(IsCygwinSymlink(util_simlink))
+            lw.Assert(not IsCygwinSymlink("c:/cygwin/home/Don/bin/data/notes.txt"))
     def Test_TranslateSymlink():
         if sys.platform == "win32":
             # For this to work, create a cygwin simlink named util_simlink.py
             # in /pylib/test that points to /pylib/util.py.
-            Assert(TranslateSymlink(util_simlink) == translated_util_simlink)
+            lw.Assert(TranslateSymlink(util_simlink) == translated_util_simlink)
     def Test_Cfg():
-        lines = dedent('''
+        lines = wrap.dedent('''
             from math import sqrt
             a = 44
             b = "A string"
@@ -849,20 +851,20 @@ if __name__ == "__main__":
             d = X(a)
         ''').split("\n")
         d = Cfg(lines)
-        Assert(d["a"] == 44)
-        Assert(d["b"] == "A string")
-        Assert(d["c"] == d["a"]*d["sqrt"](2))
-        Assert(d["d"] == 22)
-        Assert(str(d["X"])[:11] == "<function X")
+        lw.Assert(d["a"] == 44)
+        lw.Assert(d["b"] == "A string")
+        lw.Assert(d["c"] == d["a"]*d["sqrt"](2))
+        lw.Assert(d["d"] == 22)
+        lw.Assert(str(d["X"])[:11] == "<function X")
     def Test_Singleton():
         class A:
             pass
         a, b = A(), A()
-        Assert(hash(a) != hash(b))
+        lw.Assert(hash(a) != hash(b))
         class A(Singleton):
             pass
         a, b = A(), A()
-        Assert(hash(a) == hash(b))
+        lw.Assert(hash(a) == hash(b))
     def Test_IterateOverSubclasses():
             class A: pass
             class B(A): pass
@@ -876,65 +878,65 @@ if __name__ == "__main__":
             expected = []
             for i in "BCDE":
                 expected.append(s + i + "'>")
-            Assert(r == expected)
+            lw.Assert(r == expected)
     def Test_ReadVariables():
-        code = dedent('''
+        code = wrap.dedent('''
         a = 3
         b = 4
         c = "5"''')
-        s = StringIO(code)
+        s = io.StringIO(code)
         d = ReadVariables(s)
-        Assert(d == {"a": 3, "b": 4, "c": "5"})
+        lw.Assert(d == {"a": 3, "b": 4, "c": "5"})
     def Test_BraceExpansion():
         # Simple
         s = " ".join(BraceExpansion("a{d,c,b}e"))
         assert s == "ade ace abe"
         #
-        Assert(list(BraceExpansion("a.{a, b}")) == ["a.a", "a. b"])
+        lw.Assert(list(BraceExpansion("a.{a, b}")) == ["a.a", "a. b"])
         # Cartesian product
         s = list(BraceExpansion("{A,B,C,D}{A,B,C,D}"))
         t = [i + j for i, j in itertools.product("ABCD", repeat=2)]
-        Assert(s == t)
+        lw.Assert(s == t)
         #
         s = " ".join(BraceExpansion("{a,b,c}{d,e,f}"))
         t = " ".join([i + j for i, j in itertools.product("abc", "def")])
-        Assert(s == t)
+        lw.Assert(s == t)
         s = str(list(BraceExpansion("{a,b}/*.{jpg,png}")))
         t = "['a/*.jpg', 'a/*.png', 'b/*.jpg', 'b/*.png']"
-        Assert(s == t)
+        lw.Assert(s == t)
         # Nested
         s = " ".join(BraceExpansion("{,a}{b,{c,d},e}"))
         t = "b c d e ab ac ad ae"
         assert s == t
     def TestParameterSequence():
-        fd = fDistribute
+        fd = dpseq.fDistribute
         expected = [0.0, 1.0]
         got = list(fd(2))
-        assert_equal(got, expected)
+        lw.assert_equal(got, expected)
         #
         expected = [0.0, 0.5, 1.0]
         got = list(fd(3))
-        assert_equal(got, expected)
+        lw.assert_equal(got, expected)
         #
         expected = [fractions.Fraction(0, 1), fractions.Fraction(1, 2), fractions.Fraction(1, 1)]
         got = list(fd(3, impl=fractions.Fraction))
-        assert_equal(got, expected)
+        lw.assert_equal(got, expected)
         #
         expected = [1.0, 1.5, 2.0]
         got = list(fd(3, a=1, b=2))
-        assert_equal(got, expected)
+        lw.assert_equal(got, expected)
         # Check type/value violations
-        with raises(TypeError):
+        with lw.raises(TypeError):
             list(fd(1.0))
-        with raises(ValueError):
+        with lw.raises(ValueError):
             list(fd(1))
-        with raises(TypeError):
+        with lw.raises(TypeError):
             list(fd(2, a=""))
-        with raises(TypeError):
+        with lw.raises(TypeError):
             list(fd(2, b=""))
-        with raises(ValueError):
+        with lw.raises(ValueError):
             list(fd(1, a=2, b=1))
-    exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
+    exit(lw.run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
 
 def GetGist():
     g = {}

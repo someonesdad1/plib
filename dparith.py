@@ -36,7 +36,7 @@ if 1:  # Header
             # version 3.7 or later, it also includes a bitarray.util.gen_primes() method
             # that is a fast sieve for primes.  bitarray is fast because it's in compiled
             # C code.  https://github.com/ilanschnell/bitarray
-            from bitarray.util import gen_primes, ones
+            import bitarray.util
             _have_bitarray = True
         except ImportError:
             pass
@@ -208,7 +208,7 @@ if 1:  # Core functionality
         IsPositiveInteger(n, "n must be an integer > 0")
         if _have_bitarray:
             if 0:   # Use sieve of Eratosthenes if don't have bitarray 3.7
-                a = ones(n)     # bitarray of all ones
+                a = bitarray.util.ones(n)     # bitarray of all ones
                 a[:2] = False   # Zero and one are not prime
                 for i in range(2, math.isqrt(n) + 1):
                     if a[i]:    # i is prime, so all multiples are not
@@ -225,7 +225,7 @@ if 1:  # Core functionality
                         t.print(f"{t.ornl}{msg}", file=sys.stderr)
                     # Get a bitarray of the odd primes
                     Primes.n = n
-                    ba = gen_primes(n + 1, odd=True)
+                    ba = bitarray.util.gen_primes(n + 1, odd=True)
                     Primes.primes = [2] + [2*i + 1 for i in range(n) if ba[i]]
                     del ba
                 return [i for i in Primes.primes if i < n]

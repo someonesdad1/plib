@@ -178,6 +178,8 @@ if 1:  # Utility
         Assert.debug is True, or 'Assert' is a nonempty environment string, you'll be
         dropped into a debugger.  If msg is not empty, it's printed out.
         '''
+        if not hasattr(Assert, "debug"):
+            Assert.debug = False
         if not cond:
             if debug or Assert.debug or os.environ.get("Assert", ""):
                 # Print colorized message to stdout and start debugger
@@ -187,7 +189,6 @@ if 1:  # Utility
                 breakpoint()
             else:
                 raise AssertionError(msg)
-    Assert.debug = False
 class TakeApart:
     '''Take apart a number into its components to prepare for string
     interpolation.  Handles int, float, Decimal, mpf, and Fractions.
@@ -266,7 +267,7 @@ class TakeApart:
         elif have_mpmath and isinstance(x, mpmath.mpf):
             n = min(n, mpmath.mp.dps)
         self.disassemble(x, n, all=all)
-    def prepare(self, value, n: int, all=False):
+    def prepare(self, value, n, all=False):
         '''Return a canonical representation of a number value.  n is an
         integer describing the number of decimal digits we will want.  To
         do this, the canonical representation must have at least n + 1
@@ -684,7 +685,7 @@ class Fmt:
         fmt.ta = TakeApart()
         # For this to work, fmt.ta(number) must be called before
         # disassembling any number.
-    def toD(self, value) -> Decimal:
+    def toD(self, value):
         '''Convert value to a Decimal object.  Supported types are int,
         float, Fraction, Decimal, str, mpmath.mpf, and any other type
         that gives a value from str(value).
@@ -730,7 +731,7 @@ class Fmt:
         "Raise exception if var is None"
         if var is None:
             raise Exception(f"fmt.{var} is None")
-    def clamp_n(self, value, n: int) -> int:
+    def clamp_n(self, value, n: int):
         'Return a reasonable integer value for n given the type of value'
         assert n > 0
         if isinstance(value, float):
@@ -743,7 +744,7 @@ class Fmt:
             return min(n, N)
         else:
             return n
-    def significand(self, value) -> str:
+    def significand(self, value):
         "Return a string for the value's significand"
         if isinstance(value, float):
             n = 15
@@ -759,7 +760,7 @@ class Fmt:
         sign = self.ta.sign.strip()
         dq.insert(1, self.dp)
         return sign + "".join(dq)
-    def __call__(self, value, fmt=None, n=None, width=None) -> str:
+    def __call__(self, value, fmt=None, n=None, width=None):
         '''Format value with the default formatter.  n overrides self.n
         digits and must be > 0.  fmt can be "fix", "fixed", "sci", "eng",
         "engsi", or "engsic" for real numbers.  If it is None, then
@@ -914,7 +915,7 @@ class Fmt:
                 ''')
                 raise Exception(msg)
             return u
-    def Int(self, value, fmt=None, n=None, width=None) -> str:
+    def Int(self, value, fmt=None, n=None, width=None):
         if width is not None:
             raise Exception("width keyword not supported yet")  # ∞∞2
         n = n if n is not None else self.n
@@ -926,7 +927,7 @@ class Fmt:
             sgn = ""
         s = sgn + "".join(self.ta.dq)
         return s
-    def fixed(self, value, n=None, width=None) -> str:
+    def fixed(self, value, n=None, width=None):
         '''Return a fixed point representation simulating an HP calculator.
         Example:  if value = 72.8435 and n = 3, then '72.844' is returned.
         Here, n represents the number of digits after the decimal point.
@@ -1002,7 +1003,7 @@ class Fmt:
                 k += 1
             dq.insert(1, self.dp)
             return sign + "".join(dq)
-    def fix(self, value, n=None, width=None) -> str:
+    def fix(self, value, n=None, width=None):
         '''Return a fixed point representation using significant figures.
         Example:  if value = 72.8435 and n = 3, then '72.8' is returned.
         Here, n represents the number of significant digits in the return
@@ -1066,7 +1067,7 @@ class Fmt:
         dq = self.trim(dq)
         s = "".join(dq)
         return s
-    def sci(self, value, n=None, width=None) -> str:
+    def sci(self, value, n=None, width=None):
         "Return a scientific format representation"
         if width is not None:
             raise Exception("width keyword not supported yet")  # ∞∞2
@@ -1125,7 +1126,7 @@ class Fmt:
           #     left.insert(1, self.dp)
           # s = sgn + "".join(left) + "".join(right) + exponent
           # return s
-    def eng(self, value, fmt="eng", n=None, width=None) -> str:
+    def eng(self, value, fmt="eng", n=None, width=None):
         '''Return an engineering format representation.  Suppose value
         is 31415.9 and n is 3.  Then fmt can be:
             "eng"    returns "31.4e3"
@@ -1221,7 +1222,7 @@ class Fmt:
             # Remove LSDs from significand to get width goal
             while len("".join(dq)) > width and dq[-1] != self.ta.dp:
                 dq.pop()
-    def unc(self, x, u, fmt="fix", intv=False) -> str:
+    def unc(self, x, u, fmt="fix", intv=False):
         '''Return a string form analogous to the shorthand form used for
         uncertainty:  e.g. '1.23(4)' where '1.23' is x and the '4' is
         the indication of the uncertainty u.  If intv is True, use the form
@@ -1301,7 +1302,7 @@ class Fmt:
                         k += 1
                 sig.insert(k, us)
         return "".join(sig)
-    def Real(self, value, fmt=None, n=None, width=None) -> str:
+    def Real(self, value, fmt=None, n=None, width=None):
         if width is not None:
             raise Exception("width keyword not supported yet")  # ∞∞2
         n = n if n is not None else self.n
@@ -1316,7 +1317,7 @@ class Fmt:
             return self.eng(value, fmt=fmt, n=n, width=width)
         else:
             raise ValueError(f"{fmt!r} is an unknown format")
-    def Complex(self, value, fmt=None, n=None, width=None) -> str:
+    def Complex(self, value, fmt=None, n=None, width=None):
         '''value is a complex number.  Return a string in the form of
         'a + bi'.
         '''
@@ -1379,7 +1380,7 @@ class Fmt:
             return ret
     if 1:  # Properties
         @property  # Default formatting method
-        def default(self) -> str:
+        def default(self):
             self.none_bug(self._default, "default")
             return self._default
         @default.setter
@@ -1388,7 +1389,7 @@ class Fmt:
                 raise TypeError("value must be fix, sci, eng, engsi, or engsi")
             self._default = value
         @property  # Decimal point string
-        def dp(self) -> str:
+        def dp(self):
             self.none_bug(self._dp, "dp")
             return self._dp
         @dp.setter
@@ -1423,7 +1424,7 @@ class Fmt:
             # Note this must be a float (see notes in constructor)
             self._low = None if value is None else abs(float(str(value)))
         @property  # Number of digits wanted in interpolation, an int > 0
-        def n(self) -> int:
+        def n(self):
             self.none_bug(self._n, "n")
             return self._n
         @n.setter
@@ -1432,42 +1433,42 @@ class Fmt:
                 raise ValueError("value must be integer > 0")
             self._n = value
         @property  # (bool) Remove trailing zeros after radix if True
-        def rtz(self) -> bool:
+        def rtz(self):
             self.none_bug(self._rtz, "rtz")
             return self._rtz
         @rtz.setter
         def rtz(self, value):
             self._rtz = bool(value)
         @property  # (bool) Remove trailing radix if True
-        def rtdp(self) -> bool:
+        def rtdp(self):
             self.none_bug(self._rtdp, "rtdp")
             return self._rtdp
         @rtdp.setter
         def rtdp(self, value):
             self._rtdp = bool(value)
         @property  # (bool) Remove leading zero if True
-        def rlz(self) -> bool:
+        def rlz(self):
             self.none_bug(self._rlz, "rlz")
             return self._rlz
         @rlz.setter
         def rlz(self, value):
             self._rlz = bool(value)
         @property  # Always include numbers' sign
-        def sign(self) -> bool:
+        def sign(self):
             self.none_bug(self._sign, "sign")
             return self._sign
         @sign.setter
         def sign(self, value):
             self._sign = bool(value)
         @property  # Add " " to numbers >= 0 where "-" goes
-        def spc(self) -> bool:
+        def spc(self):
             self.none_bug(self._spc, "spc")
             return self._spc
         @spc.setter
         def spc(self, value):
             self._spc = bool(value)
         @property  # (bool) Use Unicode in "sci" and "eng" formats if True
-        def u(self) -> bool:
+        def u(self):
             self.none_bug(self._u, "u")
             return self._u
         @u.setter
@@ -1475,7 +1476,7 @@ class Fmt:
             self._u = bool(value)
     if 1:  # Complex number properties
         @property  # Imaginary unit string
-        def imag_unit(self) -> str:
+        def imag_unit(self):
             self.none_bug(self._imag_unit, "imag_unit")
             return self._imag_unit
         @imag_unit.setter
@@ -1483,35 +1484,35 @@ class Fmt:
             Assert(isinstance(value, str) and len(value) > 0)
             self._imag_unit = value
         @property  # (bool) Show complex numbers in polar form
-        def polar(self) -> bool:
+        def polar(self):
             self.none_bug(self._polar, "polar")
             return self._polar
         @polar.setter
         def polar(self, value):
             self._polar = bool(value)
         @property  # (bool) Show complex number's angles in degrees
-        def deg(self) -> bool:
+        def deg(self):
             self.none_bug(self._deg, "deg")
             return self._deg
         @deg.setter
         def deg(self, value):
             self._deg = bool(value)
         @property  # (bool) Use '1+2i' form if True, '1 + 2i' form if False
-        def cuddled(self) -> bool:
+        def cuddled(self):
             self.none_bug(self._cuddled, "cuddled")
             return self._cuddled
         @cuddled.setter
         def cuddled(self, value):
             self._cuddled = bool(value)
         @property  # (bool) Underline the argument when displaying polar form
-        def ul(self) -> bool:
+        def ul(self):
             self.none_bug(self._ul, "ul")
             return self._ul
         @ul.setter
         def ul(self, value):
             self._ul = bool(value)
         @property  # (bool) Show complex number in (re,im) form
-        def comp(self) -> bool:
+        def comp(self):
             self.none_bug(self._comp, "comp")
             return self._comp
         @comp.setter
@@ -1596,7 +1597,7 @@ if __name__ == "__main__":
         run = lwtest.run
         t = trm.Trm()
     if 1:   # Global variables
-        d = {}  # Options dictionary
+        d: dict[object, object] = {}  # Options dictionary
         # Set up colors for demo
         u = use_colors = True
         t.always = True

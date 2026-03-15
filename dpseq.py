@@ -1410,10 +1410,15 @@ if __name__ == "__main__":
         import lwtest
         import trm
         try:
-            import numpy
-            have_numpy = True
+            import mpmath
+            _have_mpmath = True
         except ImportError:
-            have_numpy = False
+            _have_mpmath = False
+        try:
+            import numpy
+            _have_numpy = True
+        except ImportError:
+            _have_numpy = False
     if 1:  # Import symbols
         partial = functools.partial
         deque = collections.deque
@@ -1661,41 +1666,36 @@ if __name__ == "__main__":
             expected = [complex(0, i) for i in range(n)]
             Assert(got == expected)
         def Test_frange_mpmath():
-            try:
-                from mpmath import mp, mpc, mpf
-            except ImportError:
-                t.print(
-                    f"{t.ornl}{__file__}:  Warning:  mpmath not tested{t.n}",
-                    file=sys.stderr,
-                )
-            else:
-                # Plain floating point
-                got = list(frange(str(n), return_type=lambda x: mpf(str(x))))
-                expected = [mpf(i) for i in range(n)]
-                Assert(got == expected)
-                # Use mpf for implementation and return type
-                got = list(frange(str(n), return_type=mpf, impl=mpf))
-                expected = [mpf(i) for i in range(n)]
-                Assert(got == expected)
-                # mpmath's complex numbers
-                got = list(frange(str(n), return_type=lambda x: mpc(0, str(x))))
-                expected = [mpc(0, i) for i in range(n)]
-                Assert(got == expected)
-                # One would expect mpmath to work as well as Decimal in the following call:
-                #   frange("9.6001", "9.601", "0.0001", return_type=mpf, impl=mpf)
-                # I found that it doesn't work for the default 15 decimals places (it generates 10
-                # numbers instead of 9, just like using impl=float).  However, changing to >= 16
-                # decimal places lets the code work the same as Decimal.  Note:  I'm using an older
-                # version (0.12) of mpmath (0.16 is the current version as this is written), so
-                # this might work with a newer version.
-                mp.dps = 16
-                got = list(
-                    frange("9.6001", "9.601", "0.0001", return_type=mpf, impl=mpf)
-                )
-                expected = [mpf(i) for i in s.split()]
-                Assert(got == expected)
+            if not _have_mpmath:
+                return
+            # Plain floating point
+            got = list(frange(str(n), return_type=lambda x: mpmath.mpf(str(x))))
+            expected = [mpmath.mpf(i) for i in range(n)]
+            Assert(got == expected)
+            # Use mpf for implementation and return type
+            got = list(frange(str(n), return_type=mpmath.mpf, impl=mpmath.mpf))
+            expected = [mpmath.mpf(i) for i in range(n)]
+            Assert(got == expected)
+            # mpmath's complex numbers
+            got = list(frange(str(n), return_type=lambda x: mpmath.mpc(0, str(x))))
+            expected = [mpmath.mpc(0, i) for i in range(n)]
+            Assert(got == expected)
+            # One would expect mpmath to work as well as Decimal in the following call:
+            #   frange("9.6001", "9.601", "0.0001", return_type=mpmath.mpf, impl=mpmath.mpf)
+            # I found that it doesn't work for the default 15 decimals places (it generates 10
+            # numbers instead of 9, just like using impl=float).  However, changing to >= 16
+            # decimal places lets the code work the same as Decimal.  Note:  I'm using an older
+            # version (0.12) of mpmath (0.16 is the current version as this is written), so
+            # this might work with a newer version.
+            mpmath.mp.dps = 16
+            got = list(
+                frange("9.6001", "9.601", "0.0001", return_type=mpmath.mpf,
+                impl=mpmath.mpf)
+            )
+            expected = [mpmath.mpf(i) for i in s.split()]
+            Assert(got == expected)
         def Test_frange_numpy():
-            if not have_numpy:
+            if not _have_numpy:
                 return
             # Things work OK for the following case
             got = numpy.array(list(frange(str(n))))

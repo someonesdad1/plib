@@ -256,7 +256,7 @@ if 1:  # class Dirfiles
         When update() is called on an instanceX, the files in instanceX.files are
         transferred to the Dirfiles.files set and the instanceX's files set is emptied.
         '''
-        files = set()  # Container for all files
+        files: set[pathlib.Path] = set()  # Container for all files
         def __init__(self, dir, clear=False, getdirs=False, ignore_repo=True):
             '''If getdirs is True, then we get directory names, not files.
             If ignore_repo is True, ignore directories like .git and .hg.
@@ -272,31 +272,6 @@ if 1:  # class Dirfiles
             return f"Dirfiles({self.size} local, {len(Dirfiles.files)} total)"
         def __repr__(self):
             return str(self)
-        @property
-        def size(self):
-            return len(self.files)
-        @property
-        def dir(self):
-            return self._dir
-        @dir.setter
-        def dir(self, newdir):
-            "Set a new directory; this clears the local file set"
-            self._dir = newdir
-            self.p = pathlib.Path(newdir)
-            self.files = set()
-        @property
-        def get(self):
-            "Returns a copy of the instance's set of files"
-            return self.files.copy()
-        @property
-        def get_all(self):
-            '''Returns a copy of the set containing Dirfiles.files and the
-            current local set of files.  Changes neither Dirfiles.files nor
-            self.files.
-            '''
-            f = self.get
-            f.update(Dirfiles.files)
-            return f
         def clear(self):
             "Remove all files from the set."
             self.files.clear()
@@ -423,22 +398,40 @@ if 1:  # class Dirfiles
                                 raise ValueError(f"'{item}' not a file or directory")
                     else:
                         raise ValueError(f"'{item}' unrecognized")
+        if 1:   # Properties
+            @property
+            def size(self):
+                return len(self.files)
+            @property
+            def dir(self):
+                return self._dir
+            @dir.setter
+            def dir(self, newdir):
+                "Set a new directory; this clears the local file set"
+                self._dir = newdir
+                self.p = pathlib.Path(newdir)
+                self.files = set()
+            @property
+            def get(self):
+                "Returns a copy of the instance's set of files"
+                return self.files.copy()
+            @property
+            def get_all(self):
+                '''Returns a copy of the set containing Dirfiles.files and the
+                current local set of files.  Changes neither Dirfiles.files nor
+                self.files.
+                '''
+                f = self.get
+                f.update(Dirfiles.files)
+                return f
 
 if __name__ == "__main__":
     if 1:  # Standard imports
         import os
         import threading
     if 1:  # Custom imports
-        import lwtest
+        import lwtest as lw
         import wsl
-    if 1:  # Import symbols
-        Lock = threading.Lock
-        Thread = threading.Thread
-        # 
-        run = lwtest.run
-        raises = lwtest.raises
-        Assert = lwtest.Assert
-        wsl = wsl.wsl
     if 1:  # Global variables
         h = "/gh"   # Header string for my files stored on github
         dirfiles_image_list = "img1.png img2.png".split()
@@ -447,21 +440,20 @@ if __name__ == "__main__":
         dirfiles_dir = "dirfiles"
     def Test_GetDirs():
         dirs = GetDirs(f"{h}/plib")
-        Assert(isinstance(dirs, list))
+        lw.Assert(isinstance(dirs, list))
         # These two directories are present for sure.  Others may be
         # present, but they're aren't core at the moment.
         for i in f"{h}/plib/pgm {h}/plib/test".split():
-            Assert(pathlib.Path(i) in dirs)
-        Assert(list(sorted(set(dirs))) == dirs)  # No duplicates
+            lw.Assert(pathlib.Path(i) in dirs)
+        lw.Assert(list(sorted(set(dirs))) == dirs)  # No duplicates
     def Test_GetFiles():
         'Test that a sample of the files in /plib are there'
         files = GetFiles(f"{h}/plib")
-        Assert(isinstance(files, list))
+        lw.Assert(isinstance(files, list))
         # Use some of the dp*.py files
         for i in f'''
                 {h}/plib/dparith.py
                 {h}/plib/dpastro.py
-                {h}/plib/dpbp.py
                 {h}/plib/dpdata.py
                 {h}/plib/dpdb.py
                 {h}/plib/dpdecimal.py
@@ -475,8 +467,10 @@ if __name__ == "__main__":
                 {h}/plib/dptime.py
                 {h}/plib/dptypes.py
             '''.split():
-            Assert(pathlib.Path(i) in files)
-        Assert(list(sorted(set(files))) == files)  # No duplicates
+            if 0:
+                print(i)    # Show the files for debugging
+            lw.Assert(pathlib.Path(i) in files)
+        lw.Assert(list(sorted(set(files))) == files)  # No duplicates
     def Test_Remove():
         pathseq = [pathlib.Path(i) for i in f'''{h}/plib/e.py {h}/plib/sig.py {h}/plib/eia.py
                    {h}/plib/sigfig.py {h}/plib/elliptic.py {h}/plib/sizes.py
@@ -485,17 +479,17 @@ if __name__ == "__main__":
         ]
         # Remove all items that have a directory that starts with 'p'
         s = RemoveDirs(pathseq, match=["p.*"])
-        Assert(not s)
+        lw.Assert(not s)
         # Remove files that contain 'i' or 'l'
         s = RemoveFiles(pathseq, search=["i", "l"])
         t = [pathlib.Path(i) for i in f'''{h}/plib/e.py {h}/plib/enc.py {h}/plib/states.py
                                {h}/plib/enc_codecs.csv'''.split()]
-        Assert(s == t)
+        lw.Assert(s == t)
     def Test_RemoveVCDir():
         dirs = KeepOnlyDirs(Get("/plib"))
-        Assert(pathlib.Path("/plib/.git") in dirs)
+        lw.Assert(pathlib.Path("/plib/.git") in dirs)
         dirs = RemoveVCDir(dirs)
-        Assert(pathlib.Path("/plib/.git") not in dirs)
+        lw.Assert(pathlib.Path("/plib/.git") not in dirs)
     def dirfiles_init():
         "Return an instance with no files"
         os.chdir(DirfilesSetup.cwd)  # Go back to starting directory
@@ -506,139 +500,139 @@ if __name__ == "__main__":
         a = dirfiles_init()
         a.add("*.png")
         for i in dirfiles_images:
-            Assert(i in a.files)
+            lw.Assert(i in a.files)
         a.update()
         for i in dirfiles_images:
-            Assert(i not in a.files)
-            Assert(i in Dirfiles.files)
+            lw.Assert(i not in a.files)
+            lw.Assert(i in Dirfiles.files)
     def Test_Dirfiles_size():
         a = dirfiles_init()
         a.add("*.png")
-        Assert(a.size >= len(dirfiles_images))
+        lw.Assert(a.size >= len(dirfiles_images))
     def Test_Dirfiles_dir():
         "This assumes the parent directory has more files than the current directory"
         a = dirfiles_init()
         a.add("*")
         n = a.size
         a.update()
-        Assert(not a.size)
+        lw.Assert(not a.size)
         a.dir = ".."
         a.add("*")
         m = a.size
-        Assert(m and m > n)
+        lw.Assert(m and m > n)
     def Test_Dirfiles_get():
         a = dirfiles_init()
         a.add("*.png")
         f = a.get
-        Assert(f == dirfiles_images)
+        lw.Assert(f == dirfiles_images)
         a.update()
         f = a.get
-        Assert(not f and f != dirfiles_images)
+        lw.Assert(not f and f != dirfiles_images)
     def Test_Dirfiles_get_all():
         a = dirfiles_init()
         a.add("*.png")
         a.update()
         f = a.get_all
-        Assert(f == dirfiles_images)
+        lw.Assert(f == dirfiles_images)
     def Test_Dirfiles_clear():
         a = dirfiles_init()
         a.add("*.png")
-        Assert(a.size)
-        Assert(not len(Dirfiles.files))
+        lw.Assert(a.size)
+        lw.Assert(not len(Dirfiles.files))
         a.update()
         a.add("*.png")
-        Assert(a.size)
-        Assert(len(Dirfiles.files))
+        lw.Assert(a.size)
+        lw.Assert(len(Dirfiles.files))
         a.files.clear()
-        Assert(not a.size)
-        Assert(len(Dirfiles.files))
+        lw.Assert(not a.size)
+        lw.Assert(len(Dirfiles.files))
         a.clear()
-        Assert(not a.size)
-        Assert(not len(Dirfiles.files))
+        lw.Assert(not a.size)
+        lw.Assert(not len(Dirfiles.files))
     def Test_Dirfiles_update():
         a = dirfiles_init()
         a.add("*.png")
-        Assert(not Dirfiles.files)
+        lw.Assert(not Dirfiles.files)
         a.update()
-        Assert(Dirfiles.files == dirfiles_images)
-        Assert(not a.files)
+        lw.Assert(Dirfiles.files == dirfiles_images)
+        lw.Assert(not a.files)
     def Test_Dirfiles_keepext():
         a = dirfiles_init()
         a.add("*")
-        Assert(a.size == 3)
+        lw.Assert(a.size == 3)
         a.keepext("png")
-        Assert(pathlib.Path(dirfiles_filea) not in a.files)
+        lw.Assert(pathlib.Path(dirfiles_filea) not in a.files)
     def Test_Dirfiles_keep():
         a = dirfiles_init()
         a.add("*")
         a.keep("file")
-        Assert(pathlib.Path(dirfiles_filea) in a.files)
+        lw.Assert(pathlib.Path(dirfiles_filea) in a.files)
     def Test_Dirfiles_rmr():
         a = dirfiles_init()
         a.add("*")
         n = a.size
         a.rmr(r"^img.?\.png$")
-        Assert(a.size == n - 2)
+        lw.Assert(a.size == n - 2)
     def Test_Dirfiles_rm():
         a = dirfiles_init()
         a.add("*")
         n = a.size
         a.rm("dkjfdkjfdkjfd")  # No exception, no change
-        Assert(a.size == n)
+        lw.Assert(a.size == n)
         a.rm(dirfiles_filea)
-        Assert(a.size == n - 1)
+        lw.Assert(a.size == n - 1)
         a.add(dirfiles_filea)
-        Assert(a.size == n)
+        lw.Assert(a.size == n)
         a.add(dirfiles_filea)
-        Assert(a.size == n)
+        lw.Assert(a.size == n)
         # Verify multiple items are removed when a string is given
-        Assert(pathlib.Path("img1.png") in a.files)
-        Assert(pathlib.Path("img2.png") in a.files)
-        Assert(pathlib.Path(dirfiles_filea) in a.files)
-        Assert(a.rm("img") == 2)
-        Assert(pathlib.Path("img1.png") not in a.files)
-        Assert(pathlib.Path("img2.png") not in a.files)
-        Assert(pathlib.Path(dirfiles_filea) in a.files)
+        lw.Assert(pathlib.Path("img1.png") in a.files)
+        lw.Assert(pathlib.Path("img2.png") in a.files)
+        lw.Assert(pathlib.Path(dirfiles_filea) in a.files)
+        lw.Assert(a.rm("img") == 2)
+        lw.Assert(pathlib.Path("img1.png") not in a.files)
+        lw.Assert(pathlib.Path("img2.png") not in a.files)
+        lw.Assert(pathlib.Path(dirfiles_filea) in a.files)
         # Check that exact works
         a = dirfiles_init()
         a.add("*")
         n = a.size
         a.rm("img", exact=True)
-        Assert(a.size == n)
+        lw.Assert(a.size == n)
         a.rm("img1.png", exact=True)
-        Assert(a.size == n - 1)
+        lw.Assert(a.size == n - 1)
     def Test_Dirfiles_add():
         a = dirfiles_init()
         nonexistent = ";;nonexistent;;"
         # Get exception for nonexistent file or directory
-        raises(ValueError, a.add, nonexistent, ignore=False)
+        lw.raises(ValueError, a.add, nonexistent, ignore=False)
         a.add("*.png")
-        Assert(a.size == 2)
+        lw.Assert(a.size == 2)
         # Ignore exception if ignore set
-        raises(ValueError, a.add, nonexistent, ignore=True)
+        lw.raises(ValueError, a.add, nonexistent, ignore=True)
     def Test_Dirfiles_threading():
         "Show that two threads with different instances have access to the same Dirfiles.files data"
         a = dirfiles_init()
         a.add("*.png")
         a.update()
-        Assert(Dirfiles.files == dirfiles_images)
-        lock = Lock()
+        lw.Assert(Dirfiles.files == dirfiles_images)
+        lock = threading.Lock()
         def Process(s):
             lock.acquire()
-            Assert(Dirfiles.files == dirfiles_images)
+            lw.Assert(Dirfiles.files == dirfiles_images)
             # Add the 'files.a' file
             b = Dirfiles(".")
             b.add(dirfiles_filea)
             b.update()
             lock.release()
-        t = Thread(name="Thd", target=Process, args=(a.get,))
+        t = threading.Thread(name="Thd", target=Process, args=(a.get,))
         t.start()
         # Block until the started thread returns
         lock.acquire()
         # Show that Dirfiles.files now has dirfiles_filea.
         s = dirfiles_images.copy()
         s.add(pathlib.Path(dirfiles_filea))
-        Assert(s == Dirfiles.files)
+        lw.Assert(s == Dirfiles.files)
     def DirfilesSetup():
         "Create a dirfiles directory that will contain the three empty files"
         DirfilesSetup.cwd = os.getcwd()
@@ -663,33 +657,33 @@ if __name__ == "__main__":
         os.rmdir(dirfiles_dir)
     def Test_Dirfiles_get_directories():
         os.chdir(DirfilesSetup.cwd)  # Go back to starting directory
-        if wsl:
+        if wsl.wsl:
             # Needed because /plib on WSL is a softlink to /gh/plib
-            Assert(DirfilesSetup.cwd == "/gh/plib")
+            lw.Assert(DirfilesSetup.cwd == "/gh/plib")
         else:
-            Assert(DirfilesSetup.cwd == "/plib")
+            lw.Assert(DirfilesSetup.cwd == "/plib")
         a = Dirfiles(".", clear=True, getdirs=True)
         a.add("*")
         if a.size == 1:
-            Assert(a.files == set([pathlib.Path(dirfiles_dir)]))
+            lw.Assert(a.files == set([pathlib.Path(dirfiles_dir)]))
         else:
-            Assert(pathlib.Path(dirfiles_dir) in a.files)
+            lw.Assert(pathlib.Path(dirfiles_dir) in a.files)
         # Change the directory to /plib/Dev/0dirfiles_test, which is a test directory.
         # It will have a .git directory and a testdir directory.
         os.chdir("/plib/Dev/0dirfiles_test")
         if 1:   # Check we have recursion and that repos are seen
             a = Dirfiles(".", clear=True, getdirs=True, ignore_repo=False)
             a.add("**/*")
-            Assert(pathlib.Path("testdir") in a.files)
-            Assert(pathlib.Path(".git") in a.files)
+            lw.Assert(pathlib.Path("testdir") in a.files)
+            lw.Assert(pathlib.Path(".git") in a.files)
         if 1:   # Check we have recursion and that repos are not seen
             a = Dirfiles(".", clear=True, getdirs=True, ignore_repo=True)
             a.add("**/*")
-            Assert(pathlib.Path("testdir") in a.files)
-            Assert(pathlib.Path(".git") not in a.files)
+            lw.Assert(pathlib.Path("testdir") in a.files)
+            lw.Assert(pathlib.Path(".git") not in a.files)
         # Go back to starting directory
         os.chdir(DirfilesSetup.cwd)
     DirfilesSetup()
-    status = run(globals(), regexp="^Test_", halt=True, verbose=False)[0]
+    status = lw.run(globals(), regexp="^Test_", halt=True, verbose=False)[0]
     DirfilesTeardown()
     exit(status)

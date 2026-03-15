@@ -1199,6 +1199,8 @@ if 1:  # Miscellaneous
             if n <= 44:
                 return round(diameter, 4)
             return round(diameter, 5)
+        if not hasattr(GetWireDiameter, "input"):
+            GetWireDiameter.input = None    # Used for self tests
         msg = "Enter wire diameter (use 'ga' suffix for AWG): "
         while True:
             if GetWireDiameter.input is not None:
@@ -1231,7 +1233,6 @@ if 1:  # Miscellaneous
                     return s, value * u(unit) / u(default_unit)
                 elif not unit:
                     return s, value
-    GetWireDiameter.input = None  # Used for self tests
     def GetFileSize(file):
         p = pathlib.Path(file)
         s = p.stat()

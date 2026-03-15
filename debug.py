@@ -118,9 +118,9 @@ if 1:  # Header
         g.dash_O_on = False
         # Set this to the name of a file to log function calls to a file with the help
         # of the ShowFunctionCall decorator
-        g.enable_tracing = ""
-        if g.enable_tracing:
-            g.debug_log = open(g.enable_tracing, "wb")
+        g.enable_tracing = ""   # type: ignore
+        if g.enable_tracing:    # type: ignore
+            g.debug_log = open(g.enable_tracing, "wb")  # type: ignore
         g.noexit = False    # Switch for TraceExecution
 if 1:   # Set key global variables based on environment variables
     g.W = int(os.environ.get("COLUMNS", "80")) - 1
@@ -167,7 +167,8 @@ if 1:   # Classes
         # starts at 0.
         indent = -increment
         stream = sys.stdout  # Stream that receives the printed output
-        show = g.trace_on  # Set to True to get tracing output
+        # Set to True to get tracing output
+        show = g.trace_on  # type: ignore
         prefix = "+ "
         def __init__(self, func):
             self.func = func

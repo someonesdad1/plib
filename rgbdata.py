@@ -10752,10 +10752,9 @@ if __name__ == "__main__":
     t = trm.Trm()
     di = defaultdict(list)
     w = 0
-    for item in color_data:
-        attr, name, clr, hue = item
-        w = max(w, len(name))
-        di[hue].append([name, clr])
+    for _, _name, _clr, hue in color_data:
+        w = max(w, len(_name))
+        di[hue].append([_name, _clr])
     for hue in di:
         t.print(f"{t('whtl', 'redl')}{hue}")
         o = []

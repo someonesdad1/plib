@@ -546,7 +546,7 @@ if __name__ == "__main__":
             print(i)
         exit(0)
     if 1:   # Main code
-        d = {}
+        d: dict[object, object] = {}
         files = ParseCommandLine()
         if d["--test"]:
             exit(run(globals(), halt=1)[0])

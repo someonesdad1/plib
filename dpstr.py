@@ -131,28 +131,28 @@ if 1:   # Classes
         'Convert programming naming styles, "Python Cookbook" pg. 91'
         def cw2us(self, x):
             '''Cap-words to underscore:
-            ALotOfFuss --> a_lot_of_fuss
+            ALotOfFuss -> a_lot_of_fuss
             '''
             if not x:
                 return x
             return re.sub(r"(?<=[a-z])[A-Z]|(?<!^)[A-Z](?=[a-z])", r"_\g<0>", x).lower()
         def cw2mc(self, x):
             '''Cap-words to mixed-case:
-            ALotOfFuss --> aLotOfFuss
+            ALotOfFuss -> aLotOfFuss
             '''
             if not x:
                 return x
             return x[0].lower() + x[1:]
         def us2mc(self, x):
             '''Underscore to mixed-case:
-            a_lot_of_fuss --> aLotOfFuss
+            a_lot_of_fuss -> aLotOfFuss
             '''
             if not x:
                 return x
             return re.sub(r"_([a-z])", lambda m: (m.group(1).upper()), x)
         def us2cw(self, x):
             '''Underscore to cap-words:
-            a_lot_of_fuss --> ALotOfFuss
+            a_lot_of_fuss -> ALotOfFuss
             '''
             if not x:
                 return x
@@ -160,14 +160,14 @@ if 1:   # Classes
             return s[0].upper() + s[1:]
         def mc2us(self, x):
             '''Mixed-case to underscore:
-            aLotOfFuss --> a_lot_of_fuss
+            aLotOfFuss -> a_lot_of_fuss
             '''
             if not x:
                 return x
             return self.cw2us(x)
         def mc2cw(self, x):
             '''Mixed-case to cap-words:
-            aLotOfFuss --> ALotOfFuss
+            aLotOfFuss -> ALotOfFuss
             '''
             if not x:
                 return x
@@ -1122,7 +1122,7 @@ if 1:   # Core functionality
                 thisline.append(structure[i](fields[i]))
             out.append(thisline)
         return out
-    def Len(s) -> int:
+    def Len(s):
         '''Same as built-in len(), except if the argument is a str, the ANSI escape
         sequences are stripped out.
         '''
@@ -1131,7 +1131,7 @@ if 1:   # Core functionality
         if isinstance(s, str):
             return Len.len(RmEsc(s))
         return Len.len(s)
-    def RmEsc(s: str, on=True) -> str:
+    def RmEsc(s, on=True):
         '''Remove ANSI escape strings if on is True; otherwise just return s.
         
         The primary use case is to remove colorizing ANSI escape strings from a string
@@ -1748,9 +1748,9 @@ if 1:   # Old util stuff
         indicated string prefix.  A use case is to match the indentation of a previous line.
         
         Examples:
-            GetLeadingString(b"zzzHi", prefix=b"z") --> b"zzz"
-            GetLeadingString("zzzHi", prefix="z") --> "zzz"
-            GetLeadingString("ababHi", prefix="ab") --> "abab"
+            GetLeadingString(b"zzzHi", prefix=b"z") -> b"zzz"
+            GetLeadingString("zzzHi", prefix="z") -> "zzz"
+            GetLeadingString("ababHi", prefix="ab") -> "abab"
         '''
         np, lp, ls = 0, len(prefix), len(string)
         while np * lp < ls:
@@ -1936,8 +1936,6 @@ if __name__ == "__main__":
         import os
     if 1:   # Custom imports
         import lwtest
-        from sig import sig
-        # ∞∞2 Get rid of sig
     if 1:   # Import symbols
         Assert = lwtest.Assert
         assert_equal = lwtest.assert_equal
@@ -2319,19 +2317,6 @@ if __name__ == "__main__":
         q = [f("hel"), f("ther"), f("e")]
         Assert(StringSplit(t, s, remainder=True) == q)
         Assert(StringSplit(t, s, remainder=False) == q[:-1])
-    def Test_ListInColumns():
-        if 0:
-            s = [sig(math.sin(i/20), 3) for i in range(20)]
-            got = "\n".join(ListInColumns(s))
-            ts = "  "  # Note there are two spaces after these rows...
-            exp = "0.00   0.0998 0.199  0.296  0.389  0.479  0.565  0.644  0.717  0.783"
-            exp += ts
-            exp += "\n"
-            exp += (
-                "0.0500 0.149  0.247  0.343  0.435  0.523  0.605  0.682  0.751  0.813"
-            )
-            exp += ts
-            Assert(got == exp)
     def Test_NamingConventionConversions():
         cw, us, mc = "AbcDef", "abc_def", "abcDef"
         nc = NameConvert()
