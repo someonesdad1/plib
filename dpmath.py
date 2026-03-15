@@ -1095,15 +1095,16 @@ if 1:   # Stuff from util.py
         
         If seed is not -1, it is used to initialize the sequence; it can be any hashable value.
         '''
+        if not hasattr(randq, "a"):
+            # State variables for randq
+            randq.a = 1664525  # Recommended by Knuth
+            randq.c = 1013904223  # From Lewis
+            randq.idum = 0
+            randq.maxidum = 2**32
         if seed != -1:
             randq.idum = abs(hash(seed))
         randq.idum = (randq.a*randq.idum + randq.c) % randq.maxidum
         return randq.idum
-    if 1:  # State variables for randq
-        randq.a = 1664525  # Recommended by Knuth
-        randq.c = 1013904223  # From Lewis
-        randq.idum = 0
-        randq.maxidum = 2**32
     def randr(seed=-1):
         "Uses randq to return a floating point number on [0, 1)"
         n = randq(seed=seed) if seed != -1 else randq()

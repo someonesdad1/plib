@@ -74,12 +74,16 @@
 - 14 Mar
     - dp\*.py files linted
     - Policies
-        - Never use 'from x import y'
-        - All imports will be 'import x'
-        - Occasional abbreviations:  'import numpy as np'
-        - Rarely define symbols:  no 'import math' and 'pi = math.pi'.  The primary
-          reason is the person reading the code doesn't have to figure out where the
-          symbol came from.  I'll occasionally let lines become long to support this.
+        - Importing
+            - Never use 'from x import y'
+            - All imports will be 'import x'
+            - Occasional abbreviations:  'import numpy as np'
+            - Rarely define symbols:  no 'import math' and 'pi = math.pi'.  The primary
+              reason is the person reading the code doesn't have to figure out where the
+              symbol came from.  I'll occasionally let lines become long to support
+              this.
+            - This came from Gemini's analysis that this is the safest way to avoid
+              circular imports and makes it better for other people to read the code
         - /plib has a makefile that will run lint & type checking
         - /plib/tests will receive all the tests for the modules
             - Cleaner

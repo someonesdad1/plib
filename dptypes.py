@@ -122,7 +122,7 @@ if 1:   # class Bidict:  A dictionary that is an invertible function
             return "".join(("Bidict", self.super.__str__()))
         def _set_frozen(self, frozen):
             self._frozen = bool(frozen)
-        def _get_frozen(self, frozen):
+        def _get_frozen(self):
             return self._frozen
         frozen = property(_get_frozen, _set_frozen)
 if 1:   # class CommandDecode:  Decode user command strings

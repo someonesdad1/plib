@@ -329,11 +329,11 @@ if 1:  # Core functionality
             w = Wrap(indent=indent)
             out.extend(w(t).split("\n"))
         return "\n".join(out)
-    def indent(s: str, sindent=""):
-        "Convenience function to indent"
-        if not hasattr(indent, "wrap"):
-            indent.wrap = Wrap()
-        return indent.wrap.indent(s, sindent)
+    def indent(s: str, sindent: str="") -> str:
+        'Convenience function to indent'
+        if not hasattr(indent, "wrap"):     # noqa
+            indent.wrap = Wrap()        # noqa
+        return indent.wrap.indent(s, sindent)       # noqa
     def IsBlankOrSpaces(s):
         "For string s, return True if it's empty or contains only spaces"
         S = set(s)

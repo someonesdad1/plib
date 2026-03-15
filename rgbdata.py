@@ -10748,7 +10748,8 @@ if __name__ == "__main__":
     # Print all the names organized by hue
     from collections import defaultdict
     from columnize import Columnize
-    from color import t
+    import trm
+    t = trm.Trm()
     di = defaultdict(list)
     w = 0
     for item in color_data:

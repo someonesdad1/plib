@@ -113,6 +113,7 @@ if 1:  # Header
         from random import seed
         from math import pi
     if 1:  # Custom imports
+        import dptypes
         from columnize import Columnize
         from wrap import dedent
         try:
@@ -121,11 +122,8 @@ if 1:  # Header
         except Exception:
             _have_uncertainties = False
     if 1:  # Global variables
-        class G:  # Global variable container
-            pass
-        g = G()
+        g = dptypes.Constant()
         # Utility stuff
-        g.ii = isinstance
         g.have_uncertainties = _have_uncertainties
         # Regular expression that will match an integer or floating point
         # number in its string representation.
@@ -549,9 +547,9 @@ if 1:  # Utilities
         # 1 and 10.  This is converted to a Decimal, which is then passed to
         # python's round() function.  The number is reconstituted with its
         # exponent using Decimal arithmetic, then returned as a float.
-        if g.ii(number, int):
+        if isinstance(number, int):
             return number
-        if not g.ii(number, float):
+        if not isinstance(number, float):
             raise TypeError("number must be a float")
         if digits < 1:
             raise ValueError("digits must be an integer > 0")
@@ -814,7 +812,7 @@ if 1:   # Classes
             '''
             if other is None:
                 return False
-            if not g.ii(other, Dim):
+            if not isinstance(other, Dim):
                 raise TypeError("other must be a Dim object")
             if set(self._dims.keys()) != set(other._dims.keys()):
                 return False
@@ -822,7 +820,7 @@ if 1:   # Classes
             # them is a float.
             s, o = self._dims, other._dims
             for key in self._dims:
-                if g.ii(s[key], float) or g.ii(o[key], float):
+                if isinstance(s[key], float) or isinstance(o[key], float):
                     # Note we have to round things off or you'll get
                     # unequal comparisons when things are nearly equal.
                     a = RoundOff(float(s[key]))
@@ -838,10 +836,10 @@ if 1:   # Classes
             float, Fraction, or string that can be converted to one of these
             number types.
             '''
-            if not g.ii(other, (int, float, Fraction, str)):
+            if not isinstance(other, (int, float, Fraction, str)):
                 msg = "exponent must be a number or string"
                 raise TypeError(msg)
-            if g.ii(other, str):
+            if isinstance(other, str):
                 if "/" in other:
                     exponent = Fraction(other)
                 elif "." in other or "e" in other.lower():
@@ -864,13 +862,13 @@ if 1:   # Classes
             object with the same dimensions.  If other is a number,
             then self must be Dim("") and a Dim("") instance is returned.
             '''
-            if g.ii(other, self.number_types):
+            if isinstance(other, self.number_types):
                 if str(self) != 'Dim("")':
                     m = "Must be dimensionless to add/subtract a number"
                     raise TypeError(m)
                 return self.empty_copy()
             else:
-                if not g.ii(other, Dim):
+                if not isinstance(other, Dim):
                     raise TypeError("other must be a Dim instance")
                 if self._dims != other._dims:
                     raise TypeError("Arguments must have identical dimensions")
@@ -886,9 +884,9 @@ if 1:   # Classes
             object representing the combined dimensions.  If other is a number,
             then just return self.
             '''
-            if g.ii(other, self.number_types):
+            if isinstance(other, self.number_types):
                 return self
-            if not g.ii(other, Dim):
+            if not isinstance(other, Dim):
                 raise TypeError("other must be a Dim instance")
             other._normalize()
             product_dims = self.dims
@@ -903,16 +901,16 @@ if 1:   # Classes
             return result
         def __rmul__(self, other):
             '''This method is needed to handle expressions like 1e-6*Dim("L").'''
-            if g.ii(other, self.number_types):
+            if isinstance(other, self.number_types):
                 return self
             return self*other
         def __truediv__(self, other):
             '''Division of two Dim objects will result in a returned Dim object
             representing the combined dimensions.
             '''
-            if g.ii(other, self.number_types):
+            if isinstance(other, self.number_types):
                 return self
-            if not g.ii(other, Dim):
+            if not isinstance(other, Dim):
                 raise TypeError("other must be a Dim instance")
             other._normalize()
             d = self._dims.copy()
@@ -929,7 +927,7 @@ if 1:   # Classes
             '''This method can handle the case of a number divided by a Dim
             object.  Note that other must be an integer or float.
             '''
-            if not g.ii(other, self.number_types):
+            if not isinstance(other, self.number_types):
                 raise TypeError("other must be an integer or float")
             r = self.empty_copy()
             return r/self
@@ -941,7 +939,7 @@ if 1:   # Classes
             '''
             if other is None:
                 return False
-            if not g.ii(other, Dim):
+            if not isinstance(other, Dim):
                 raise TypeError("other must be a Dim object")
             if set(self._dims.keys()) != set(other._dims.keys()):
                 return False
@@ -991,7 +989,7 @@ if 1:   # Classes
                 e = f"{'*'.join(numer)}"
             if not numer and not denom:
                 assert not e
-                return None
+                return ""
             assert u(e, dim=1)[1] == self  # Converted == original
             return e
         @property
@@ -1126,10 +1124,10 @@ if 1:   # Classes
             # Perform checks
             if check:
                 # The incoming data must be dictionaries
-                assert g.ii(units, dict)
-                assert g.ii(dimensions, dict)
-                assert g.ii(prefixes, dict)
-                assert g.ii(special, dict)
+                assert isinstance(units, dict)
+                assert isinstance(dimensions, dict)
+                assert isinstance(prefixes, dict)
+                assert isinstance(special, dict)
                 # units and dimensions must have the same size and keys
                 assert len(units) == len(dimensions)
                 assert set(units) == set(dimensions)
@@ -1138,8 +1136,8 @@ if 1:   # Classes
                 CheckPrefixDict(prefixes)
                 CheckDimDict(dimensions)
                 for key, value in special:
-                    assert g.ii(key, str)
-                    assert g.ii(value, str)
+                    assert isinstance(key, str)
+                    assert isinstance(value, str)
             # Syntax shortcuts are allowed if self._strict is False
             self._strict = False
             # If units is empty, then insert the base units.
@@ -1178,7 +1176,7 @@ if 1:   # Classes
             If you'd rather have an exception when an invalid unit is
             encountered, set use_exc to True.
             '''
-            if not g.ii(expr, str):
+            if not isinstance(expr, str):
                 raise TypeError("expr must be a string")
             if not expr:
                 return Dim("")
@@ -1427,7 +1425,7 @@ if 1:   # Classes
             # Get the number of digits to round to
             if digits is not None:
                 m = "digits must be an integer"
-                if not g.ii(digits, int):
+                if not isinstance(digits, int):
                     raise TypeError(m)
                 if digits < 1:
                     raise ValueError(m)
@@ -1442,7 +1440,7 @@ if 1:   # Classes
                     dims = eval(expression, globals(), self._dimensions)
                 except Exception:
                     return (None, None)
-                if g.ii(dims, (float, int, Fraction)):
+                if isinstance(dims, (float, int, Fraction)):
                     # Ensure we always return a Dim object (this exceptional
                     # case can happen with exponents of zero).
                     return (value, Dim(""))
@@ -1468,7 +1466,7 @@ if 1:   # Classes
                 self._digits = self._default_digits
             else:
                 m = "digits must be an integer >= 0"
-                if not g.ii(digits, int):
+                if not isinstance(digits, int):
                     raise TypeError(m)
                 if digits < 0:
                     raise ValueError(m)
@@ -2359,7 +2357,7 @@ if 1:   # Core functionality
                     except Exception:
                         raise ValueError("'{}' is not a valid unit symbol".format(i))
             # udict's' values must be numbers
-            assert all([g.ii(i, (int, float)) for i in udict.values()])
+            assert all([isinstance(i, (int, float)) for i in udict.values()])
         def CheckDimDict(ddict):
             '''Perform checks on the ddict dictionary with keys of unit names
             and values Dim objects.
@@ -2377,7 +2375,7 @@ if 1:   # Core functionality
                 except Exception:
                     raise ValueError("'{}' is not a valid unit symbol".format(i))
             # dimensions' values must be Dim instances
-            assert all([g.ii(i, Dim) for i in ddict.values()])
+            assert all([isinstance(i, Dim) for i in ddict.values()])
     u = GetConvenienceUInstance()
     def GetDim(s, strict=False):
         '''The string s will be a unit expression like T*m/(kg*s2).  Return
@@ -2665,7 +2663,8 @@ if __name__ == "__main__":
     from lwtest import run, raises, assert_equal
     from uncertainties import ufloat, ufloat_fromstr
     from io import StringIO
-    from color import t  # Color for warnings
+    import trm
+    t = trm.Trm()
     eps = 1e-15  # For testing float equality
     seed(0)  # So results are repeatable
     def Initialize(randomize=False):

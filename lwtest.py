@@ -81,7 +81,7 @@ if 1:  # Header
                   debug.py's demo).  This would let you see the local variables on the
                   stack, which is what usually needs to be done (tediously) with the
                   debugger.
-
+            
             - https://pycodestyle.pycqa.org/en/latest/advanced.html#automated-tests
               tells how to add automated code style testing for conformance.  Add it to
               the self tests as an option to run.
@@ -116,7 +116,6 @@ if 1:  # Header
         import color
         import f
         import trm
-        import wrap
         try:
             import numpy
             have_numpy = True
@@ -127,31 +126,20 @@ if 1:  # Header
             have_mpmath = True
         except ImportError:
             have_mpmath = False
-    if 1:  # Import symbols
-        Decimal = decimal.Decimal
-        Iterable = collections.abc.Iterable
-        copysign = math.copysign
-        isinf = math.isinf
-        isnan = math.isnan
-        time = time.time
-        #
-        cpx = f.cpx
-        dedent = wrap.dedent
-        flt = f.flt
     if 1:  # Global variables
         u = trm.Trm()
         u.got = u.grn1
         u.exp = u.orn
         u.msg = u.mag
         _modname = "<lwtest.py>"
-        __all__ = [
-            "Assert",
-            "ToDoMessage",
-            "assert_equal",
-            "raises",
-            "run",
-            "id_test_function_regexp",
-        ]
+        __all__ = '''
+            Assert
+            ToDoMessage
+            assert_equal
+            raises
+            run
+            id_test_function_regexp
+        '''.split()
         ii = isinstance
         python_version = ".".join([str(i) for i in sys.version_info[:3]])
         # Regular expression to identify test functions
@@ -220,7 +208,7 @@ if 1:  # Core functionality
         if verbose:
             print("{} Test functions in {}:".format(_modname, filename), file=stream)
         nl = "\n"
-        start_time = time()
+        start_time = time.time()
         # Run the test functions
         while tests:
             name, func = tests.pop()
@@ -247,7 +235,7 @@ if 1:  # Core functionality
                     break
             else:
                 pass_count += 1
-        stop_time = time()
+        stop_time = time.time()
         output = (
             nl.join(fail_messages)
             if fail_messages
@@ -292,7 +280,7 @@ if 1:  # Core functionality
             if issubclass(ExpectedExceptions, BaseException):
                 self.expected = set([ExpectedExceptions])
                 return
-            elif not issubclass(ExpectedExceptions, Iterable):
+            elif not issubclass(ExpectedExceptions, collections.abc.Iterable):
                 m = "ExpectedExceptions must be a container of Exceptions"
                 raise ValueError(m)
             self.expected = set(ExpectedExceptions)
@@ -350,7 +338,7 @@ if 1:  # Checking functions
         '''a must be a flt.  If b is not a flt, then convert it if
         possible.
         '''
-        assert ii(a, flt)
+        assert ii(a, f.flt)
         return check_float(
             float(a), float(b), reltol=reltol, abstol=abstol, use_min=use_min
         )
@@ -358,7 +346,7 @@ if 1:  # Checking functions
         '''a must be a cpx.  If b is not a cpx, then convert it if
         possible.
         '''
-        assert ii(a, cpx)
+        assert ii(a, f.cpx)
         return check_complex(
             complex(a), complex(b), reltol=reltol, abstol=abstol, use_min=use_min
         )
@@ -377,12 +365,12 @@ if 1:  # Checking functions
                 raise ValueError("b must be convertible to a float")
         fail = None
         # Handle NaN and infinite values
-        if (isnan(a) and not isnan(b)) or (not isnan(a) and isnan(b)):
+        if (math.isnan(a) and not math.isnan(b)) or (not math.isnan(a) and math.isnan(b)):
             fail = []
-        if (isinf(a) and not isinf(b)) or (not isinf(a) and isinf(b)):
+        if (math.isinf(a) and not math.isinf(b)) or (not math.isinf(a) and math.isinf(b)):
             fail = []
-        sign_a, sign_b = copysign(1.0, a), copysign(1.0, b)
-        if isinf(a) and isinf(b):
+        sign_a, sign_b = math.copysign(1.0, a), math.copysign(1.0, b)
+        if math.isinf(a) and math.isinf(b):
             # a and b can be infinite, but they must have the same sign
             if sign_a != sign_b:
                 fail = ["a and b are infinity with opposite signs"]
@@ -415,12 +403,12 @@ if 1:  # Checking functions
         return fail
     def check_decimal(a, b, reltol=None, abstol=None, use_min=False):
         fail = None
-        if not ii(a, Decimal):
+        if not ii(a, decimal.Decimal):
             raise ValueError("a needs to be a Decimal")
-        if not ii(b, Decimal):
+        if not ii(b, decimal.Decimal):
             # Convert b to Decimal
             try:
-                b = Decimal(str(b))
+                b = decimal.Decimal(str(b))
             except Exception:
                 raise ValueError("b must be convertible to a Decimal")
         # Handle NaN and infinite values
@@ -430,7 +418,7 @@ if 1:  # Checking functions
             not a.is_infinite() and b.is_infinite()
         ):
             fail = []
-        sign_a, sign_b = a.copy_sign(Decimal(1)), b.copy_sign(Decimal(1))
+        sign_a, sign_b = a.copy_sign(decimal.Decimal(1)), b.copy_sign(decimal.Decimal(1))
         if a.is_infinite() and b.is_infinite():
             # a and b can be infinite, but they must have the same sign
             if sign_a != sign_b:
@@ -445,7 +433,7 @@ if 1:  # Checking functions
             except OverflowError:
                 fail = ["Arguments not equal (overflow occurred)"]
             else:
-                D, zero = Decimal, Decimal(0)
+                D, zero = decimal.Decimal, decimal.Decimal(0)
                 abstol = zero if abstol is None else D(str(abstol))
                 reltol = zero if reltol is None else D(str(reltol))
                 minmax = min if use_min else max
@@ -488,13 +476,13 @@ if 1:  # Checking functions
         R, A, U = reltol, abstol, use_min
         if reltol is not None or abstol is not None:
             # Floating point comparisons
-            if ii(a, flt):
+            if ii(a, f.flt):
                 fail = check_flt(a, b, reltol=R, abstol=A, use_min=U)
             elif ii(a, (int, float)):
                 fail = check_float(a, b, reltol=R, abstol=A, use_min=U)
             elif ii(a, complex):
                 fail = check_complex(a, b, reltol=R, abstol=A, use_min=U)
-            elif ii(a, Decimal):
+            elif ii(a, decimal.Decimal):
                 fail = check_decimal(a, b, reltol=R, abstol=A, use_min=U)
             elif have_mpmath and ii(a, mpmath.mpf):
                 fail = check_float(a, b, reltol=R, abstol=A, use_min=U)
@@ -535,7 +523,7 @@ if 1:  # Checking functions
         # it will be a list of error message strings detailing where the
         # comparison(s) failed.
         fail = None
-        if not ii(a, str) and ii(a, Iterable):
+        if not ii(a, str) and ii(a, collections.abc.Iterable):
             if reltol is None and abstol is None:
                 # Compare them as objects.  Note they could be numpy
                 # arrays.
@@ -617,6 +605,8 @@ if 1:  # Checking functions
         True, or 'Assert' is a nonempty environment string, you'll be dropped into a debugger.  If
         msg is not empty, it's printed out.
         '''
+        if not hasattr(Assert, "debug"):
+            Assert.debug = False
         if not condition:
             if debug or Assert.debug or os.environ.get("Assert", ""):
                 # Print colorized message to stdout and start debugger
@@ -626,16 +616,14 @@ if 1:  # Checking functions
                 breakpoint()
             else:
                 raise AssertionError(msg)
-    Assert.debug = False
 
 if __name__ == "__main__":
     if 1:  # Standard imports
         import sys
-        from decimal import Decimal
         from io import StringIO
     if 1:  # Custom imports
         from lwtest import run, raises, assert_equal, Assert, ToDoMessage
-        from f import flt, cpx
+        import wrap
         try:
             import numpy
             have_numpy = True
@@ -650,7 +638,7 @@ if __name__ == "__main__":
         u.k = u.pur1
         u.d = u.grn1
         u.u = u.den1
-        print(dedent(f'''
+        print(wrap.dedent(f'''
         {u.yel}lwtest:  Lightweight test framework -- typical usage:{u.n}
             from lwtest import run, assert_equal, raises, Assert
             # Name your test functions e.g. "def Test_*()"
@@ -740,8 +728,8 @@ if __name__ == "__main__":
         assert_equal(x, x)
         raises(E, assert_equal, x, x + 1.0)
         x, y = "0.0", "1.0"
-        assert_equal(Decimal(x), Decimal(x))
-        raises(E, assert_equal, Decimal(x), Decimal(y))
+        assert_equal(decimal.Decimal(x), decimal.Decimal(x))
+        raises(E, assert_equal, decimal.Decimal(x), decimal.Decimal(y))
         x, y = 1 + 1j, 1 + 2j
         assert_equal(x, x)
         raises(E, assert_equal, x, x + 1.0)
@@ -756,7 +744,7 @@ if __name__ == "__main__":
         raises(E, assert_equal, y, [i + 1 for i in y])
         assert_equal(x, x)
         raises(E, assert_equal, x, [i + 1 for i in x])
-        x = [Decimal("1.0"), Decimal("2.0")]
+        x = [decimal.Decimal("1.0"), decimal.Decimal("2.0")]
         assert_equal(x, x)
         raises(E, assert_equal, x, [i + 1 for i in x])
         x = [1 + 1j, 1 + 2j]
@@ -811,14 +799,14 @@ if __name__ == "__main__":
         assert_equal(TestRaises, TestRaises)
         raises(E, assert_equal, TestRaises, assert_equal)
     def Test_flt_cpx():
-        x, z = flt(0), cpx(0)
+        x, z = f.flt(0), f.cpx(0)
         with x:
-            a, b = flt(1), flt(1)
+            a, b = f.flt(1), f.flt(1)
             assert_equal(a, b)
             b = 1.0
             assert_equal(a, b)
         with z:
-            a, b = cpx(1 + 1j), cpx(1 + 1j)
+            a, b = f.cpx(1 + 1j), f.cpx(1 + 1j)
             assert_equal(a, b)
             b = 1 + 1j
             assert_equal(a, b)

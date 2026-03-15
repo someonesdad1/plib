@@ -538,7 +538,6 @@ if 1:   # Original wl2rgb
 
 if __name__ == "__main__":
     from rgbdata import color_data
-    from color import t
     from util import VisualCount, TemplateRound
     from columnize import Columnize
     from lwtest import run, Assert
@@ -546,6 +545,8 @@ if __name__ == "__main__":
     from f import flt
     import sys
     from pprint import pprint as pp
+    import trm
+    t = trm.Trm()
     def Test_ColorFuncs():
         "Show that wl2rgb() and rgb2wl() are (nearly) inverses"
         diffs = set()

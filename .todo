@@ -1,4 +1,7 @@
 Reorganization core files
+- Ask Gemini for a tutorial on using package-like structure in /plib, as this 
+  could probably make things work more concisely and let me group functionality
+  in subpackages.
 - After these movements are done:
     - Standardize each dp*.py file to style, imports, etc.
     - xyzzyy Start static typing each dp*.py file
