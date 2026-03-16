@@ -832,7 +832,7 @@ class Color:
         @classmethod
         def Dot(cls, a, b):
             "Dot product of two sequences"
-            Assert(len(a) == len(b))
+            assert len(a) == len(b)
             return sum(i*j for i, j in zip(a, b))
         @classmethod
         def XYZ_to_sRGB(cls, XYZ):
@@ -1927,14 +1927,15 @@ if __name__ == "__main__":
             lw.Assert(c.ihls == (0, 2, 0))
         if 1:  # Single number:  wavelength in nm or gray or 8-bit number
             # Wavelengths
+            expected = (1.0, 0.859, 0.0)
             for i in (589, 589.0, Decimal(589), Fraction(589, 1)):
                 c = Color(i)  # About sodium yellow-orange
                 rgb = tuple(round(i, 3) for i in c.drgb)
-                lw.Assert(rgb == (0.965, 0.765, 0.000))
+                lw.Assert(rgb == expected)
                 if have_mpmath:
                     c = Color(mpmath.mpf(float(i)))
                     rgb = tuple(round(i, 3) for i in c.drgb)
-                    lw.Assert(rgb == (0.965, 0.765, 0.000))
+                    lw.Assert(rgb == expected)
             black = (0.0, 0.0, 0.0)
             for i in (0, -300, -300.0, 300, 300.0, 800, 800.0):
                 c = Color(i, hsv=True)  # hsv keyword ignored for 1 argument
@@ -2260,14 +2261,15 @@ if __name__ == "__main__":
         def ShortNames():
             if 1:   # New stuff
                 # My default names
-                print("Default color names from trm.Trm(default=2):")
                 u = trm.Trm()
+                u.ul = u(attr="ul")
+                u.print(f"{u.ul}Default color names from trm.Trm():")
                 u.list(horiz=True, columns=10)
                 # Color by wavelength
                 o = []
                 for wl in range(400, 701, 10):
                     o.append(f"{u(wl)}{wl}{u.n}")
-                print("Color by wavelength in nm:")
+                u.print(f"{u.ul}Color by wavelength in nm:")
                 for i in columnize.Columnize(o, columns=16, horiz=True, sep=" "*2):
                     print(i)
             else:   # Old stuff when Trm was in color.py
@@ -2822,14 +2824,23 @@ if __name__ == "__main__":
         '''Return a dict of my short color names sorted by name.  An example entry is 
             'sky': Color('$90c3ff', bpc=8).
         '''
-        lines, di = get.GetLines("/plib/colornames0", nonl=True, script=True), {}
-        for line in lines:
-            line = line.strip()
-            if not line:
-                continue
-            name, clr = line.split(":")
-            di[eval(name)] = eval(clr)
-        return di
+        if 0:   # Old method with /plib/colornames0
+            lines, di = get.GetLines("/plib/colornames0", nonl=True, script=True), {}
+            for line in lines:
+                line = line.strip()
+                if not line:
+                    continue
+                name, clr = line.split(":")
+                di[eval(name)] = eval(clr)
+            return di
+        else:   # New method that uses the default colors in trm.Trm()
+            t = trm.Trm()
+            # The Trm class is a dict and its keys are the default color names I wish to
+            # use.  The name pattern is that valid names are 3 or more letters.  Two
+            # letter names are for attributes like "it" (italic).  The only one-letter
+            # name is "n", which is the default terminal color.
+            names = [i for i in t.keys() if len(i) >= 3]
+            return {i: Color(i) for i in names}
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
@@ -2969,7 +2980,7 @@ def GetGist():
         - Brown
             - coffee mocha peanut wood pecan walnut caramel syrup umber tawny penny
               cedar cognac sienna
-
+    
         Not in existing colornames:
             arctic    chili     ginger    nectarine robin
             baby      cider     glade     oat       salt

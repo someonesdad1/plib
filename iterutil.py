@@ -1,9 +1,16 @@
 '''
+
+ToDo
+    - Rename all the functions
+    - Start typing each function; get to pass with mypy
+    - Reasoning:  this is a good first pass with typing to prepare me for the dp*.py
+      files
+
 Utility recipes from the itertools documentation:
-    take
-    tabulate
-    consume
-    nth
+    TakeFirstNItems
+    TabulateAFunction
+    ConsumeIterator
+    ReturnNthItem
     quantify
     padnone
     ncycles
@@ -21,6 +28,11 @@ Utility recipes from the itertools documentation:
     random_permutation
     random_combination
     random_combination_with_replacement
+
+    Note:  Instead of using this module, it probably makes more sense to install the
+    https://pypi.org/project/more-itertools/ module or the
+    https://github.com/pytoolz/toolz module.
+
 '''
 if 1:  # Header
     _pgminfo = '''
@@ -39,37 +51,49 @@ if 1:  # Header
     '''
     if 1:  # Standard imports
         import collections
+        import itertools
         import operator
         import random
-        import itertools as it
+        import typing as ty
     if 1:  # Custom imports
         pass
-    if 1:  # Global variables
-        pass
+    if 1:  # Type aliases
+        Iterable = ty.Iterable
+        Callable = ty.Callable
+        Any = ty.Any
+        # T represents 'Any type', but it will stay consistent within a function
+        T = ty.TypeVar('T')
+
+    #def Func(function: ty.Callable[[int], ty.Any], x: int) -> ty.Any:
+    #    return function(x)
+
 if 1:  # Core functionality
-    def take(iterable, n):
-        "Return first n items of the iterable as a list"
-        return list(it.islice(iterable, n))
-    def tabulate(function, start=0, iterable=None):
+    def TakeFirstNItems(iterable: ty.Iterable[ty.Any], n: int) -> list[ty.Any]:
+        'Return first n items of the iterable as a list'
+        return list(itertools.islice(iterable, n))
+    def TabulateAFunction(function: ty.Callable[[ty.Any], ty.Any],
+                          start: int=0, 
+                          iterable: ty.Iterable[ty.Any] | None=None) -> ty.Iterable[ty.Any]:
         '''Return an iterator that evaluates function(0), function(1), ...
         or at the arguments returned by iterable.
         '''
         if iterable:
             return map(function, iterable)
         else:
-            return map(function, it.count(start))
-    def consume(iterator, n=None):
+            return map(function, itertools.count(start))
+    def ConsumeIterator(iterator: ty.Iterable[ty.Any], n: int|None =None) -> None:
         "Advance the iterator n-steps ahead. If n is None, consume entirely."
-        # Use functions that consume iterators at C speed.
+        # Use functions that consume iterators at C speed
         if n is None:
-            # feed the entire iterator into a zero-length deque
+            # Feed the entire iterator into a zero-length deque
             collections.deque(iterator, maxlen=0)
         else:
-            # advance to the empty slice starting at position n
-            next(it.islice(iterator, n, n), None)
-    def nth(iterable, n, default=None):
+            # Advance to the empty slice starting at position n
+            next(itertools.islice(iterator, n, n), None)
+
+    def ReturnNthItem(iterator, n, default=None):
         "Returns the nth item or a default value"
-        return next(it.islice(iterable, n, None), default)
+        return next(itertools.islice(iterator, n, None), default)
     def quantify(iterable, predicate=bool):
         "Count how many times the predicate is true"
         return sum(map(predicate, iterable))
@@ -77,49 +101,49 @@ if 1:  # Core functionality
         '''Returns the sequence elements and then returns None indefinitely.
         Useful for emulating the behavior of the built-in map() function.
         '''
-        return iter(it.chain(iterable, it.repeat(None)))
+        return iter(itertools.chain(iterable, itertools.repeat(None)))
     def ncycles(iterable, n):
         "Returns the sequence elements n times"
-        return it.chain.from_iterable(it.repeat(tuple(iterable), n))
+        return itertools.chain.from_iterable(itertools.repeat(tuple(iterable), n))
     def dotproduct(vec1, vec2):
         return sum(map(operator.mul, vec1, vec2))
     def flatten(listOfLists):
         "Flatten one level of nesting"
-        return it.chain.from_iterable(listOfLists)
+        return itertools.chain.from_iterable(listOfLists)
     def repeatfunc(func, times=None, *args):
         '''Repeat calls to func with specified arguments.
         Example:  repeatfunc(random.random)
         '''
         if times is None:
-            return it.starmap(func, it.repeat(args))
-        return it.starmap(func, it.repeat(args, times))
+            return itertools.starmap(func, itertools.repeat(args))
+        return itertools.starmap(func, itertools.repeat(args, times))
     def pairwise(iterable, offset=1):
         '''s -> (s0,s1), (s1,s2), (s2, s3), ... if offset is 1.  If offset is
         n, returns (s0,sn), (s1,s_n+1), (s2, s_n+2), ...
         '''
         assert offset > 0 and isinstance(offset, int)
-        a, b = it.tee(iterable)
+        a, b = itertools.tee(iterable)
         for i in range(offset):
             next(b, None)
         return zip(a, b)
     def grouper(n, iterable, fillvalue=None):
-        "grouper(3, 'ABCDEFG', 'z') --> ABC DEF Gzz"
+        "grouper(3, 'ABCDEFG', 'z') -> ABC DEF Gzz"
         args = [iter(iterable)] * n
-        return it.zip_longest(*args, fillvalue=fillvalue)
+        return itertools.zip_longest(*args, fillvalue=fillvalue)
     def roundrobin(*iterables):
-        "roundrobin('ABC', 'D', 'EF') --> A D E B F C"
+        "roundrobin('ABC', 'D', 'EF') -> A D E B F C"
         # Recipe credited to George Sakkis
         pending = len(iterables)
-        nexts = it.cycle(iter(it).__next__ for it in iterables)
+        nexts = itertools.cycle(iter(it).__next__ for it in iterables)
         while pending:
             try:
                 for next in nexts:
                     yield next()
             except StopIteration:
                 pending -= 1
-                nexts = it.cycle(it.islice(nexts, pending))
+                nexts = itertools.cycle(itertools.islice(nexts, pending))
     def combinations_with_replacement(iterable, r):
-        "Combinations_with_replacement('ABC', 2) --> AA AB AC BB BC CC"
+        "Combinations_with_replacement('ABC', 2) -> AA AB AC BB BC CC"
         # number items returned:  (n+r-1)! / r! / (n-1)!
         pool = tuple(iterable)
         n = len(pool)
@@ -136,17 +160,17 @@ if 1:  # Core functionality
             indices[i:] = [indices[i] + 1] * (r - i)
             yield tuple(pool[i] for i in indices)
     def powerset(iterable):
-        "powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"
+        "powerset([1,2,3]) -> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"
         s = list(iterable)
-        return it.chain.from_iterable(it.combinations(s, r) for r in range(len(s) + 1))
+        return itertools.chain.from_iterable(itertools.combinations(s, r) for r in range(len(s) + 1))
     def unique_everseen(iterable, key=None):
         "List unique elements, preserving order. Remember all elements ever seen."
-        # unique_everseen('AAAABBBCCDAABBB') --> A B C D
-        # unique_everseen('ABBCcAD', str.lower) --> A B C D
+        # unique_everseen('AAAABBBCCDAABBB') -> A B C D
+        # unique_everseen('ABBCcAD', str.lower) -> A B C D
         seen = set()
         seen_add = seen.add
         if key is None:
-            for element in it.filterfalse(seen.__contains__, iterable):
+            for element in itertools.filterfalse(seen.__contains__, iterable):
                 seen_add(element)
                 yield element
         else:
@@ -159,9 +183,9 @@ if 1:  # Core functionality
         '''List unique elements, preserving order. Remember only the element
         just seen.
         '''
-        # unique_justseen('AAAABBBCCDAABBB') --> A B C D A B
-        # unique_justseen('ABBCcAD', str.lower) --> A B C A D
-        return map(next, map(operator.itemgetter(1), it.groupby(iterable, key)))
+        # unique_justseen('AAAABBBCCDAABBB') -> A B C D A B
+        # unique_justseen('ABBCcAD', str.lower) -> A B C A D
+        return map(next, map(operator.itemgetter(1), itertools.groupby(iterable, key)))
     def iter_except(func, exception, first=None):
         '''Call a function repeatedly until an exception is raised.
         
@@ -209,88 +233,86 @@ if 1:  # Core functionality
         return tuple(pool[i] for i in indices)
 
 if __name__ == "__main__":
-    from lwtest import run, assert_equal, Assert
-    from frange import frange
+    import dpseq
+    import lwtest as lw
     n, m = 20, 5
     def Range(*p):
         return list(range(*p))
-    def TestTake():
-        Assert(take(range(n), m) == Range(m))
+    def TestTakeFirstNItems():
+        lw.Assert(TakeFirstNItems(range(n), m) == Range(m))
     def TestTabulate():
         items = Range(n)
-        X = tabulate(lambda x: x * x, iterable=items)
+        X = TabulateAFunction(lambda x: x * x, iterable=items)
         for i, item in enumerate(items):
-            Assert(next(X) == i * i)
+            lw.Assert(next(X) == i * i)
         # tabulate with floats
         start, stop, step = "1.5", "10.5", "0.75"
-        float_list = list(frange(start, stop, step))
-        fl = frange(start, stop, step)
-        X = tabulate(lambda x: x * x, iterable=fl)
+        float_list = list(dpseq.frange(start, stop, step))
+        fl = dpseq.frange(start, stop, step)
+        X = TabulateAFunction(lambda x: x * x, iterable=fl)
         for i in float_list:
-            Assert(next(X) == i * i)
+            lw.Assert(next(X) == i * i)
     def TestConsume():
         x = iter(Range(n))
-        consume(x, m)
-        Assert(list(x) == Range(m, n))
+        ConsumeIterator(x, m)
+        lw.Assert(list(x) == Range(m, n))
         x = iter(Range(n))
-        consume(x)
-        Assert(not list(x))
-    def TestNth():
-        Assert(nth(Range(n), m) == m)
-        Assert(nth(Range(n), n) is None)
-        Assert(nth(Range(n), n, -n * m) == -n * m)
+        ConsumeIterator(x)
+        lw.Assert(not list(x))
+    def TestReturnNthItem():
+        lw.Assert(ReturnNthItem(Range(n), m) == m)
+        lw.Assert(ReturnNthItem(Range(n), n) is None)
+        lw.Assert(ReturnNthItem(Range(n), n, -n * m) == -n * m)
     def TestQuantify():
-        Assert(quantify(Range(n), lambda x: x % 2 == 0) == n // 2)
-        Assert(quantify(Range(n), lambda x: x % (n * n) == 0) == 1)
+        lw.Assert(quantify(Range(n), lambda x: x % 2 == 0) == n // 2)
+        lw.Assert(quantify(Range(n), lambda x: x % (n * n) == 0) == 1)
     def TestPadnone():
         x = padnone(Range(n))
-        consume(x, n - 1)
-        Assert(next(x) == n - 1)
+        ConsumeIterator(x, n - 1)
+        lw.Assert(next(x) == n - 1)
         for i in Range(m):
-            Assert(next(x) is None)
+            lw.Assert(next(x) is None)
     def TestNcycles():
-        Assert(list(ncycles(Range(m), m)) == Range(m) * m)
+        lw.Assert(list(ncycles(Range(m), m)) == Range(m) * m)
     def TestDotProduct():
-        Assert(dotproduct(Range(n), Range(n)) == sum(i * i for i in Range(n)))
+        lw.Assert(dotproduct(Range(n), Range(n)) == sum(i * i for i in Range(n)))
     def TestFlatten():
         L = ["ABC", "DEF"]
         lst = list(flatten(L))
-        assert_equal(lst, list("ABCDEF"))
+        lw.assert_equal(lst, list("ABCDEF"))
     def TestRepeatFunc():
         def f(n):
             return n + 1
         n = 5
-        Assert(list(repeatfunc(f, n, 1)) == [2] * n)
+        lw.Assert(list(repeatfunc(f, n, 1)) == [2] * n)
     def TestPairwise():
         x, y = Range(m), Range(1, m + 1)
-        Assert(list(pairwise(Range(m))) == list(zip(x, y))[:-1])
+        lw.Assert(list(pairwise(Range(m))) == list(zip(x, y))[:-1])
         x, y = Range(m), Range(2, m + 2)
-        Assert(list(pairwise(Range(m), 2)) == list(zip(x, y))[:-2])
+        lw.Assert(list(pairwise(Range(m), 2)) == list(zip(x, y))[:-2])
     def TestGrouper():
-        Assert(list(grouper(3, Range(5), -1)) == [(0, 1, 2), (3, 4, -1)])
+        lw.Assert(list(grouper(3, Range(5), -1)) == [(0, 1, 2), (3, 4, -1)])
     def TestRoundRobin():
-        Assert(list(roundrobin("ABC", "D", "EF")) == "A D E B F C".split())
+        lw.Assert(list(roundrobin("ABC", "D", "EF")) == "A D E B F C".split())
     def Test_combinations_with_replacement():
         s = []
         for i in combinations_with_replacement("ABC", 2):
             s.append("".join(i))
-        Assert(" ".join(s) == "AA AB AC BB BC CC")
+        lw.Assert(" ".join(s) == "AA AB AC BB BC CC")
     def TestPowerset():
-        Assert(
-            list(powerset([1, 2, 3]))
-            == [(), (1,), (2,), (3,), (1, 2), (1, 3), (2, 3), (1, 2, 3)]
-        )
+        lw.Assert(list(powerset([1, 2, 3]))
+            == [(), (1,), (2,), (3,), (1, 2), (1, 3), (2, 3), (1, 2, 3)])
     def Test_unique_everseen():
-        Assert(list(unique_everseen("AAAABBBCCDAABBB")) == "A B C D".split())
-        Assert(list(unique_everseen("ABBCcAD", str.lower)) == "A B C D".split())
+        lw.Assert(list(unique_everseen("AAAABBBCCDAABBB")) == "A B C D".split())
+        lw.Assert(list(unique_everseen("ABBCcAD", str.lower)) == "A B C D".split())
     def Test_unique_justseen():
-        Assert(list(unique_justseen("AAAABBBCCDAABBB")) == "A B C D A B".split())
-        Assert(list(unique_justseen("ABBCcAD", str.lower)) == "A B C A D".split())
+        lw.Assert(list(unique_justseen("AAAABBBCCDAABBB")) == "A B C D A B".split())
+        lw.Assert(list(unique_justseen("ABBCcAD", str.lower)) == "A B C A D".split())
     def Test_iter_except():
         def f(x=[0]):
             x[0] += 1
             if x[0] > m:
                 raise Exception()
             return x[0] - 1
-        Assert(list(iter_except(f, Exception)) == Range(m))
-    exit(run(globals(), halt=1)[0])
+        lw.Assert(list(iter_except(f, Exception)) == Range(m))
+    exit(lw.run(globals(), halt=1)[0])

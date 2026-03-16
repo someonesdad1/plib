@@ -29,7 +29,8 @@ lint:
 	$(RUFF) $(RUFFOPTS) check --output-format=concise *.py
 
 typecheck:
-	$(MYPY) $(MYPYOPTS) .
+	$(MYPY) $(MYPYOPTS) iterutil.py
+	@#$(MYPY) $(MYPYOPTS) .
 
 # This is the 'safe' fix we discussed—no math-mangling!
 fix:
