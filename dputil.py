@@ -1,6 +1,6 @@
 '''
     
-Miscellaneous utility routines in python: @start
+Miscellaneous utility routines in python:
     BraceExpansion        Brace expansion like modern shells
     Cfg                   Execute a sequence of text lines for config use
     Debug                 A class that helps with debugging
@@ -18,6 +18,7 @@ Miscellaneous utility routines in python: @start
     Now                   Time or datetime as now
     NumBitsInByte         Returns a dict to count bits
     ProgressBar           Prints a progress bar to stdout
+    PyVer                 Returns python version string like "3.11.5"
     ReadVariables         Read variables from a file
     ShowFile              Open indicated file(s) with registered app
     Singleton             Mix-in class for singleton pattern
@@ -170,6 +171,9 @@ if 1:  # Core functionality
         # The things defined in the configuration lines are now in the
         # dictionary lvars.
         return lvars
+    def PyVer() -> str:
+        'Returns the python version e.g. "3.11.5"'
+        return platform.python_version()
     def ReadVariables(file, ignore_errors=False):
         '''Given a file of lines of python code, this function reads in each line and executes it.  If
         the lines of the file are assignments to variables, then this results in a defined variable in

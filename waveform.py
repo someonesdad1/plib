@@ -213,7 +213,7 @@ if 1:  # Header
     if 1:  # Custom imports
         import dptypes
         import f
-        import lwtest
+        import lwtest as lw
         import plotext as plt
         import sig
         import trm

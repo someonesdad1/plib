@@ -1,6 +1,4 @@
 '''
-
-        
 Module for calculations with real and complex numbers
 
     The reals are of type flt (derived from float) and the complex numbers are of type
@@ -1224,6 +1222,29 @@ if 1:  # Get math/cmath functions into this namespace
     atanh     erf       frexp     isnan     log2      radians   trunc
     ceil      erfc      fsum      isqrt     modf      rect      ulp
     '''
+
+    if __name__ == "__main__":  
+        F = set(functions.split() + "e inf nan pi tau infj nanj".split())
+        def PyVersion():
+            import platform
+            return platform.python_version()
+        def GetSym(module):
+            return set(list(i for i in module.__dict__.keys() if not i.startswith("_")))
+        m = GetSym(math)
+        cm = GetSym(cmath)
+        print(f"Python version {PyVersion()}")
+        print(f"  math: ", end="")
+        for i in m:
+            if i not in F:
+                print(f"{i} ", end="")
+        print()
+        print(f"  cmath: ", end="")
+        for i in cm:
+            if i not in F:
+                print(f"{i} ", end="")
+        print()
+        exit()
+
     for name in functions.split():
         if hasattr(math, name) or hasattr(cmath, name):
             s = f"{name} = Delegator('{name}')"

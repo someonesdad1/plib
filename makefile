@@ -8,6 +8,7 @@ PYTHON := python
 MYPY := mypy
 RUFF := ruff
 MYPYOPTS := --exclude-gitignore --exclude 'Dev|doc|lib|old|pgm|test'
+RUFFOPTS = --config /plib/ruff.toml 
 
 .PHONY: help check lint typecheck clean
 
@@ -25,7 +26,7 @@ help:
 check: lint typecheck
 
 lint:
-	$(RUFF) check dp*.py
+	$(RUFF) $(RUFFOPTS) check --output-format=concise *.py
 
 typecheck:
 	$(MYPY) $(MYPYOPTS) .
