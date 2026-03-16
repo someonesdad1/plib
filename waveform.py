@@ -205,35 +205,34 @@ if 1:  # Header
         oo>
     '''
     if 1:  # Standard imports
-        from collections import defaultdict
-        from collections.abc import Iterable
-        from numpy.random import normal as _normal
-        import math
+        import collections
         import numpy as np
+        import math
         import os
         import sys
     if 1:  # Custom imports
-        from color import t
-        from lwtest import Assert
-        from sig import sig as _sig
-        from wrap import dedent
+        import dptypes
         import f
+        import lwtest
         import plotext as plt
+        import sig
+        import trm
+        import wrap
         if len(sys.argv) > 1:
             import debug
             debug.SetDebugger()
     if 1:  # Global variables
-        class G:
-            pass
+        t = trm.Trm()
         flt = f.flt
-        g = G()
+        g = dptypes.Constant()
         g.dbg = False
         t.dbg = t.sky
         # scipy's interpolation routine is used when resizing a waveform
         g.have_scipy = False
         try:
             from scipy.interpolate import interp1d
-            g.have_scipy = True
+            with g:
+                g.have_scipy = True
         except ImportError:
             pass
 if 1:  # Classes
@@ -306,7 +305,7 @@ if 1:  # Classes
                     self._data = np.array(args[0].flat).astype(float)
                     self._size = len(self._data)
                     self._name = "unknown"
-                elif isinstance(args[0], Iterable):
+                elif isinstance(args[0], collections.abc.Iterable):
                     self._data = np.array(np.array(args[0]).flat).astype(float)
                     self._size = len(self._data)
                     self._name = "unknown"
@@ -413,7 +412,7 @@ if 1:  # Classes
             elif self._name == "ramp":
                 self._data = np.arange(n) / (n - 1)
             elif self._name == "noise":
-                self._data = _normal(0, 1, self._size)
+                self._data = np.random.normal(0, 1, self._size)
             elif self._name == "semicircle":
                 mp = self._size // 2
                 self._data = np.sqrt(1 / 4 - (self._x - 1 / 2) ** 2)
@@ -464,7 +463,7 @@ if 1:  # Classes
             the output data by changing the ndig attribute.
             '''
             x, y = self.xy()
-            return "Waveform(\n" + _sig(y, self._ndig) + "\n)"
+            return "Waveform(\n" + sig.sig(y, self._ndig) + "\n)"
         def __repr__(self):
             '''Same as __str__ but includes the attribute values.'''
             x, y = self.xy()
@@ -474,8 +473,8 @@ if 1:  # Classes
             fmt = "  %%-%ds= %%s\n" % max([len(i) for i in attributes])
             for i in attributes:
                 v = self.__dict__[i]
-                if isinstance(v, (float, Iterable)):
-                    t = v if isinstance(v, str) else _sig(v, self._ndig)
+                if isinstance(v, (float, collections.abc.Iterable)):
+                    t = v if isinstance(v, str) else sig.sig(v, self._ndig)
                 else:
                     t = str(v)
                 s += fmt % (i[1:], t)
@@ -596,7 +595,7 @@ if 1:  # Classes
             the raw data).  The attributes of the resulting object are set
             to their defaults and the resulting waveform type is "unknown".
             '''
-            if isinstance(other, Iterable):
+            if isinstance(other, collections.abc.Iterable):
                 other = Waveform(other)
             if isinstance(other, Waveform):
                 x, me = self.xy()
@@ -621,7 +620,7 @@ if 1:  # Classes
             return other.__add__(self)
         def __sub__(self, other):
             '''Similar to addition except the other array is negated.'''
-            if isinstance(other, Iterable):
+            if isinstance(other, collections.abc.Iterable):
                 other = Waveform(other)
             if isinstance(other, Waveform):
                 x, me = self.xy()
@@ -689,7 +688,7 @@ if 1:  # Classes
             unique, return a tuple of the matches.  Otherwise return None.
             '''
             assert isinstance(name, str)
-            d, n = defaultdict(list), len(name)
+            d, n = collections.defaultdict(list), len(name)
             for i in Waveform._names:
                 if i == "unknown":
                     continue
@@ -707,14 +706,14 @@ if 1:  # Classes
             self._ampl = float(ampl)
             if self._ampl <= 0:
                 raise ValueError("ampl must be > 0")
-        doc = dedent('''
+        doc = wrap.dedent('''
             Setting the amplitude scales all of the points of the waveform
             by this value. [1]
         ''')
         ampl = property(_get_ampl, _set_ampl, None, doc)
         def _get_data(self):
             return self._data.copy()
-        doc = dedent('''
+        doc = wrap.dedent('''
             Returns the raw data representing one period of the waveform.
             This is a read-only attribute.
         ''')
@@ -725,7 +724,7 @@ if 1:  # Classes
             self._pclip = float(pclip)
             if not (0 <= self._pclip <= 1):
                 raise ValueError("pclip must be in [0, 1]")
-        doc = dedent('''
+        doc = wrap.dedent('''
             Clips the upper portion of the waveform at a specified fraction
             of the "positive" amplitude.  See the discussion on clipping in
             the documentation PDF.  [1]
@@ -737,7 +736,7 @@ if 1:  # Classes
             self._nclip = float(nclip)
             if not (0 <= self._nclip <= 1):
                 raise ValueError("nclip must be in [0, 1]")
-        doc = dedent('''
+        doc = wrap.dedent('''
             Clips the lower portion of the waveform at a specified fraction
             of the "negative" amplitude.  See the discussion on clipping in
             the documentation PDF.  [1]
@@ -747,7 +746,7 @@ if 1:  # Classes
             return self._dc
         def _set_dc(self, dc):
             self._dc = float(dc)
-        doc = dedent('''
+        doc = wrap.dedent('''
             Adds a constant to each point of the waveform.  (The name comes
             from an electrical signal having a DC offset.) [0]
         ''')
@@ -760,7 +759,7 @@ if 1:  # Classes
             self._duty = float(duty)
             if self._name != "unknown":
                 self._make()
-        doc = dedent('''
+        doc = wrap.dedent('''
             Duty cycle for square waves and pulses; this is the fraction of
             the period that the square wave is positive or the pulse is
             nonzero. [0.5]
@@ -772,7 +771,7 @@ if 1:  # Classes
             if not isinstance(kind, (str, int, float)):
                 raise ValueError("kind must be a string or number")
             self._kind = kind
-        doc = dedent('''
+        doc = wrap.dedent('''
             Sets the type of interpolation to use (see the documentation
             for scipy.interpolate.interp1d for allowed values).  This
             attribute is only needed for resampling.  ["linear"]
@@ -786,7 +785,7 @@ if 1:  # Classes
             if not gates:
                 self._gates = None
                 return
-            elif not isinstance(gates, Iterable):
+            elif not isinstance(gates, collections.abc.Iterable):
                 raise ve
             # Check each pair of numbers
             try:
@@ -805,7 +804,7 @@ if 1:  # Classes
             except RuntimeError:
                 raise ValueError(msg)
             self._gates = gates
-        doc = dedent('''
+        doc = wrap.dedent('''
             Is an iterable of pairs of numbers (a, b) where both a and b
             must be in [0, 1] and a <= b.  The waveform's points between
             x = a and x = b are set to zero.  The comparisons are made
@@ -822,7 +821,7 @@ if 1:  # Classes
             '''
             self._rle = True if rle else False
             return self._rle
-        doc = dedent('''
+        doc = wrap.dedent('''
             A Boolean used in gating.  If True, the comparison used
             for the left-hand index is <=; otherwise, the comparison
             is <.  [True]
@@ -837,7 +836,7 @@ if 1:  # Classes
             '''
             self._lge = True if lge else False
             return self._lge
-        doc = dedent('''
+        doc = wrap.dedent('''
             A Boolean used in gating.  If True, the comparison
             used for the left-hand index is >=; otherwise, the
             comparison is >.  [True]
@@ -849,7 +848,7 @@ if 1:  # Classes
             if int(ndig) < 1:
                 raise ValueError("ndig must be integer > 0")
             self._ndig = int(ndig)
-        doc = dedent('''
+        doc = wrap.dedent('''
             The number of significant figures to use when
             converting the data array to a string via str()
             or repr().  [3]
@@ -868,7 +867,7 @@ if 1:  # Classes
             else:
                 self._size = n
                 self._make()
-        doc = dedent('''
+        doc = wrap.dedent('''
             The number of points in the waveform.  If you set
             this to a new value, the waveform is regenerated
             if it is not of the type "unknown"; for the latter
@@ -878,7 +877,7 @@ if 1:  # Classes
         size = property(_get_size, _set_size, None, doc)
         def _get_x(self):
             return self._x.copy()
-        doc = dedent('''
+        doc = wrap.dedent('''
             Returns a numpy array that represents the abscissas
             of the stored waveform (remember, the stored waveform
             represents one period).  Each value will be in the
@@ -887,7 +886,7 @@ if 1:  # Classes
         x = property(_get_x, None, None, doc)
         def _get_y(self):
             return self._data.copy()
-        doc = dedent('''
+        doc = wrap.dedent('''
             Returns a numpy array that represents the ordinates
             of the stored waveform (remember, the stored waveform
             represents one period).
@@ -916,7 +915,7 @@ if 1:  # Classes
                     raise ValueError(msg)
                 self._zero = (n, p)
             self._data = self._adjust_zero(self._data)
-        doc = dedent('''
+        doc = wrap.dedent('''
             Is a tuple (-a, b) such that negative numbers between
             -a and 0 are set to zero; positive numbers between 0 and
             b are set to zero.  This controls roundoff error problems.
@@ -1022,7 +1021,7 @@ if 1:  # Plot some examples (needs matplotlib)
         x, y = w.xy()
         clf()
         plot(x, y, pt)
-        title("Gated sine:  gates = %s" % _sig(w.gates))
+        title("Gated sine:  gates = %s" % sig.sig(w.gates))
         grid()
         ylim(-1, 1)
         savefig(filename % name, dpi=dpi)
@@ -1086,7 +1085,7 @@ if 1:  # Plot some examples (needs matplotlib)
         x, y = w.xy()
         clf()
         plot(x, y)
-        title("%d Pulses (duty cycle = %s" % (num_pulses, _sig(duty, 1)))
+        title("%d Pulses (duty cycle = %s" % (num_pulses, sig.sig(duty, 1)))
         grid()
         a = 0.05
         ylim(-a, 1 + a)
@@ -1141,11 +1140,11 @@ if 1:  # Other routines
             title = kw.get("title", None)
             theme = kw.get("theme", "clear")
         if 1:  # Check values
-            Assert(isinstance(diag, flt) and 0 < diag <= 1)
-            Assert(isinstance(aspect, flt) and aspect >= 0)
-            Assert(isinstance(periods, int) and periods > 0)
-            Assert(isinstance(xscale, flt) and xscale)
-            Assert(isinstance(yscale, flt) and yscale)
+            lw.Assert(isinstance(diag, flt) and 0 < diag <= 1)
+            lw.Assert(isinstance(aspect, flt) and aspect >= 0)
+            lw.Assert(isinstance(periods, int) and periods > 0)
+            lw.Assert(isinstance(xscale, flt) and xscale)
+            lw.Assert(isinstance(yscale, flt) and yscale)
         # Get x and y, the numpy arrays of data to plot
         w = Waveform(waveform)
         x, y = w.xy(num_periods=periods)

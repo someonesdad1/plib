@@ -70,7 +70,7 @@ if __name__ == "__main__":
             s = s.decode()
         assert isinstance(s, str)
         return s
-    d = {}  # Options dictionary
+    d: dict[object, object] = {}  # Options dictionary
     file1, file2 = ParseCommandLine(d)
     old, new = GetFile(file1), GetFile(file2)
     if d["-i"]:

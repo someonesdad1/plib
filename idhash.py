@@ -53,10 +53,10 @@ if 1:  # Header
     '''
     if 1:  # Standard imports
         import hashlib
-        from getpass import getpass
-        from string import whitespace
+        import getpass
+        import string
     if 1:  # Custom imports
-        from wrap import dedent
+        import wrap
     if 1:  # Global variables
         pass
 if 1:  # Core functionality
@@ -75,12 +75,12 @@ if 1:  # Core functionality
         else:
             for question in questions:
                 print(question)
-                response = input() if visible else getpass("")
+                response = input() if visible else getpass.getpass("")
                 #t.print(f"{t.purl}answer = {response!r}")
                 answers.append(response)
         answer = ''.join(answers)
         if remws:
-            for i in whitespace:
+            for i in string.whitespace:
                 answer = answer.replace(i, "")
         if lc:
             answer = answer.lower()
@@ -119,7 +119,8 @@ if 1:  # Core functionality
                 pass
 
 if __name__ == "__main__":
-    from color import t
+    import trm
+    t = trm.Trm()
     questions = (
         "Vernon's phone number before 1970?",
         "DLN of Zazu's youngest daughter?",
@@ -140,7 +141,7 @@ if __name__ == "__main__":
     t.ans = t.sky
     t.exp = t.ornl
     t.print(f"{use_hash:10s} {t.ans}{HashAnswer(answer, use_hash, truncate=64, passes=passes)}")
-    print(dedent(f'''
+    print(wrap.dedent(f'''
     --------------------------------------------------------------------------------
     Expected hash for answering '' to each question:
         sha3_512 {t.ans}203b36aac62037ac7c4502aa023887f7fcae843c456fde083e6a1dc70a29f3d6{t.n}

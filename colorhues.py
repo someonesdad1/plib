@@ -7137,13 +7137,14 @@ if 1:
     exit()
 
 if __name__ == "__main__":
-    from wl2rgb import rgb2wl
-    from color import t, Color
-    from dputil import unrange
-    from wrap import dedent
-    from lwtest import Assert
+    import color 
+    import dputil
+    import trm 
+    import wl2rgb
+    import wrap 
+    t = trm.Trm()
     def ByWavelength():
-        print(dedent('''
+        print(wrap.dedent('''
         The following printout shows the "wavelengths" in nm making up each of the "hues" in the
         colorhues dict: 
         '''))
@@ -7152,10 +7153,10 @@ if __name__ == "__main__":
             di = colorhues[hue]
             s = set()
             for name in di:
-                c = Color(di[name])
-                wl_nm = rgb2wl(c)
+                c = color.Color(di[name])
+                wl_nm = wl2rgb.rgb2wl(c)
                 s.add(wl_nm)
-            u = unrange(s)
+            u = dputil.unrange(s)
             o[hue] = u
             print(f"  {hue} {u}")
         print("These can be collapsed to the following ranges:")
@@ -7210,7 +7211,7 @@ if __name__ == "__main__":
               the red and magenta, marked with *.
         '''
     def ByHue():
-        print(dedent('''
+        print(wrap.dedent('''
         The following printout shows the hues making up each of the "hues" in the colorhues dict: 
         '''))
         o = {}
@@ -7218,12 +7219,12 @@ if __name__ == "__main__":
             di = colorhues[hue]
             s = set()
             for name in di:
-                c = Color(di[name])
+                c = color.Color(di[name])
                 h = c.ihsv[0]
                 # if h in (187, 188, 189):
                 #    print(f"∞∞ {name}", c)
                 s.add(h)
-            u = unrange(s, sort_first=True)
+            u = dputil.unrange(s, sort_first=True)
             o[hue] = u
             print(f"  {hue:8s} {u}")
         '''
@@ -7257,7 +7258,7 @@ if __name__ == "__main__":
         for hue in colorhues:
             di = colorhues[hue]
             for i in di:
-                c = Color(di[i])
+                c = color.Color(di[i])
                 Classify = ClassifyHue1 if 1 else ClassifyHue2
                 hue_name = Classify(c)
                 if hue_name != hue:
@@ -7289,10 +7290,10 @@ if __name__ == "__main__":
             if 0:
                 for i in range(a, b + 1):
                     h = i % 255
-                    c = Color(h, 255, 255, hsv=True)
+                    c = color.Color(h, 255, 255, hsv=True)
                     print(f"{t(c)}{i % 255:3d}{t.n}", end=" ")
                 print()
             else:
                 h1, h2 = [i % 255 for i in (a, b)]
-                c1, c2 = Color(h1, 255, 255, hsv=True), Color(h2, 255, 255, hsv=True)
+                c1, c2 = color.Color(h1, 255, 255, hsv=True), color.Color(h2, 255, 255, hsv=True)
                 t.print(f"{t(c1)}{h1:03d} {t(c2)}{h2:03d}")

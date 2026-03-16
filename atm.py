@@ -604,7 +604,7 @@ if __name__ == "__main__":
     # Run the self tests
     Test_atm_1()
     Test_atm_2()
-    d = {}  # Options dictionary
+    d: dict[object, object] = {}  # Options dictionary
     args = ParseCommandLine(d)
     if d["-t"]:
         PrintTable(args, d)

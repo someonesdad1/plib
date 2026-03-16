@@ -45,13 +45,14 @@ if 1:   # Utility
         t.dbg = "lil"
         t.err = "redl"
     def Dbg(*p, **kw):
+        if not hasattr(Dbg, "file"):
+            Dbg.file = sys.stdout
         if g.dbg:
             print(f"{t.dbg}", end="", file=Dbg.file)
             k = kw.copy()
             k["file"] = Dbg.file
             print(*p, **k)
             print(f"{t.n}", end="", file=Dbg.file)
-    Dbg.file = sys.stdout
     def Warning(*msg, **kw):
         print(*msg, file=sys.stderr)
     def Error(*msg, status=1):

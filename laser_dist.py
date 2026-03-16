@@ -24,7 +24,7 @@ if 1:  # Header
         oo>
     '''
     if 1:  # Standard imports
-        from math import cos, acos, sin, asin, tan, atan, sqrt, radians, degrees
+        from math import cos, acos, sin, asin, tan, atan, sqrt, radians, degrees  # type: ignore[no-redef]
     if 1:  # Custom imports
         from f import flt
         from roundoff import RoundOff
@@ -34,7 +34,8 @@ if 1:  # Header
             from uncertainties.core import AffineScalarFunc as ufloat_f
             # Note the following imports overshadow the math module's functions, but this is
             # OK because they also take floating point arguments
-            from uncertainties.umath import cos, acos, sin, asin, tan, atan, sqrt
+            # mypy: disable-error-code="no-redef"
+            from uncertainties.umath import cos, acos, sin, asin, tan, atan, sqrt  # type: ignore[no-redef]
         except ImportError:
             pass
     if 1:  # Global variables
@@ -161,14 +162,9 @@ if 1:  # Core functionality
         return f(miter), f(bevel)
 
 if __name__ == "__main__":
-    from lwtest import run, assert_equal, Assert
-    from color import t
-    try:
-        from uncertainties import ufloat
-        from uncertainties.umath import cos, acos, sin, asin, tan, atan, sqrt
-        have_unc = True
-    except ImportError:
-        have_unc = False
+    import lwtest as lw
+    import trm
+    t = trm.Trm()
     def TestDistAcrossRiverUnc():
         if not have_unc:
             return
@@ -180,7 +176,7 @@ if __name__ == "__main__":
             BC = ufloat(sqrt(2), unc)
             AD = ufloat(sqrt(2), unc)
             x = DistAcrossRiver(AB, BD, AC, BC, AD)
-            assert_equal(x[0].nominal_value, 1, reltol=1e-15)
+            lw.assert_equal(x[0].nominal_value, 1, reltol=1e-15)
         if 1:   # Test case from pencil sketch on paper
             # Letter paper, measurements in inches
             # Should give result of 9 units for CD
@@ -191,17 +187,17 @@ if __name__ == "__main__":
             BC = ufloat(8.98, unc)
             AD = ufloat(9.84, unc)
             x = DistAcrossRiver(AB, BD, AC, BC, AD)
-            Assert(x[0].nominal_value == 9.007579356544376)
+            lw.Assert(x[0].nominal_value == 9.007579356544376)
     def TestDistAcrossRiver():
         if 1:   # Simplest case:  unit square
             AB, BD, AC, BC, AD, eps = 1, 1, 1, sqrt(2), sqrt(2), 1e-5
             x = DistAcrossRiver(AB, BD, AC, BC, AD, eps=eps)
-            assert_equal(x[0], 1, reltol=eps)
-            assert_equal(x[1], -1, reltol=eps)
-            assert_equal(x[2], -1, reltol=eps)
-            assert_equal(x[3], -1, reltol=eps)
-            assert_equal(x[4], sqrt(2), reltol=eps)
-            assert_equal(x[5], sqrt(2), reltol=eps)
+            lw.assert_equal(x[0], 1, reltol=eps)
+            lw.assert_equal(x[1], -1, reltol=eps)
+            lw.assert_equal(x[2], -1, reltol=eps)
+            lw.assert_equal(x[3], -1, reltol=eps)
+            lw.assert_equal(x[4], sqrt(2), reltol=eps)
+            lw.assert_equal(x[5], sqrt(2), reltol=eps)
         if 1:   # Test case from pencil sketch on paper
             # Small notepad, measurements in mm
             # Measured side CD was 83.3 mm
@@ -209,7 +205,7 @@ if __name__ == "__main__":
             x = DistAcrossRiver(AB, BD, AC, BC, AD)
             X = (83.4636548807707, -1.4798379807160942, -1.2529759620744159,
                  -1.5574415442470095, 1.9653558672403655, 1.7401403871848773)
-            Assert(x == X)
+            lw.Assert(x == X)
         if 1:   # Test case from pencil sketch on paper
             # Letter paper, measurements in inches
             # Should give result of 9 units for CD
@@ -236,14 +232,14 @@ if __name__ == "__main__":
         eps = 1e-15
         wall, spring = 90, 0
         miter, bevel = CrownMolding(wall, spring)
-        assert_equal(miter, 0, reltol=eps)
-        assert_equal(bevel, 45, reltol=eps)
+        lw.assert_equal(miter, 0, reltol=eps)
+        lw.assert_equal(bevel, 45, reltol=eps)
         # http://www.installcrown.com/Crown_angle_generator.html
         miter, bevel = CrownMolding(90, 45)
-        assert_equal(miter, 35.264389682754654, reltol=eps)
-        assert_equal(bevel, 30, reltol=eps)
+        lw.assert_equal(miter, 35.264389682754654, reltol=eps)
+        lw.assert_equal(bevel, 30, reltol=eps)
         # Some oddball numbers using above calculator
         miter, bevel = CrownMolding(68.37, 33.77)
-        assert_equal(miter, 39.29636516267699, reltol=eps)
-        assert_equal(bevel, 43.444706297407485, reltol=eps)
-    exit(run(globals(), halt=1)[0])
+        lw.assert_equal(miter, 39.29636516267699, reltol=eps)
+        lw.assert_equal(bevel, 43.444706297407485, reltol=eps)
+    exit(lw.run(globals(), halt=1)[0])

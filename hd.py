@@ -17,13 +17,11 @@ if 1:  # Header
         <oo todo ∞ oo>
     '''
     if 1:  # Standard imports
-        from io import StringIO, BytesIO
+        import io 
     if 1:  # Custom imports
-        pass
+        import dptypes 
     if 1:  # Global variables
-        class G:
-            pass
-        g = G()
+        g = dptypes.Constant()
         g.bytes_per_line = 16
         g.nonprintable_char = ord(".")
 if 1:  # Core functionality
@@ -38,7 +36,7 @@ if 1:  # Core functionality
         
         This routine has been tested with python 2.7.6 and 3.4.0.
         '''
-        stream = StringIO() if out is None else out
+        stream = io.StringIO() if out is None else out
         # Check argument types
         if not hasattr(stream, "write"):
             raise TypeError("out must be a stream-like object")
@@ -83,7 +81,7 @@ if 1:  # Core functionality
             raise TypeError("text must be a string or bytes/bytearray")
         # Convert the bytes to a stream object using io.BytesIO for
         # convenience.
-        src = BytesIO(text)
+        src = io.BytesIO(text)
         n = 2**31 if n is None else n
         if offset:
             src.read(offset)

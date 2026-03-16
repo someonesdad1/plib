@@ -22,35 +22,36 @@ if 1:  # Header
         import csv
         import sys
     if 1:   # Custom imports
+        import dptypes
         import requests
-        from color import t
+        import trm
         from wrap import dedent
         if 0:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
-        class G:
-            pass
-        g = G()
+        t = trm.Trm()
+        g = dptypes.Constant()
         g.dbg = False
         t.dbg = t.lill
         # Hold the downloaded data
-        g.radius = []
-        g.distance = []
-        g.ratio = []
-        g.density = []
-        g.contacts = []
-        g.loose = []
-        g.boundary = []
-        g.symmetry = []
-        g.author = []
-        g.hdr = "http://hydra.nat.uni-magdeburg.de/packing/cci/txt"
-        g.tmp = P("/tmp/circle_packing_data")   # Cache files here
-        g.minlength = 2734  # Each downloaded file must have >= this number of lines
-        # Name of the files we'll use to store data
-        g.files = "radius distance ratio density contacts loose boundary symmetry author".split()
-        # Keep track of number of lines in CSV file written
-        g.lines = 0
+        with g:
+            g.radius = []
+            g.distance = []
+            g.ratio = []
+            g.density = []
+            g.contacts = []
+            g.loose = []
+            g.boundary = []
+            g.symmetry = []
+            g.author = []
+            g.hdr = "http://hydra.nat.uni-magdeburg.de/packing/cci/txt"
+            g.tmp = P("/tmp/circle_packing_data")   # Cache files here
+            g.minlength = 2734  # Each downloaded file must have >= this number of lines
+            # Name of the files we'll use to store data
+            g.files = "radius distance ratio density contacts loose boundary symmetry author".split()
+            # Keep track of number of lines in CSV file written
+            g.lines = 0
 if 1:   # Utility
     def Dbg(*p, **kw):
         if g.dbg:
@@ -169,11 +170,12 @@ if __name__ == "__main__":
         UpdateMessage()
         exit(0)
     # Make a temporary directory in /tmp
-    if not g.tmp.exists():
-        g.tmp.mkdir()
-        DownloadFiles()
-    else:
-        t.print(f"{t.ornl}Files cached in {g.tmp}.  Remove directory for fresh download.")
+    with g:
+        if not g.tmp.exists():  # type: ignore
+            g.tmp.mkdir()   # type: ignore
+            DownloadFiles()
+        else:
+            t.print(f"{t.ornl}Files cached in {g.tmp}.  Remove directory for fresh download.")  # type: ignore
     csvfile = "circle_packing.csv"
     MakeCSVFile(csvfile)
     ReadCSVFile(csvfile)

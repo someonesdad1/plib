@@ -315,42 +315,44 @@ if 0:   # Fixed-size integers
             '''
 
 if __name__ == "__main__":
-    from lwtest import run, Assert, raises
-    from columnize import Columnize
-    from color import t
     import sys
+
+    import lwtest as lw
+    import columnize
+    import trm
+    t = trm.Trm()
     if 1:   # Self-tests
         def Test_int2base():
-            Assert(int2base(0, 10) == "0")
-            Assert(int2base(10, 10) == "10")
-            Assert(int2base(90, 90) == "10")
-            Assert(int2base(90**2, 90) == "100")
+            lw.Assert(int2base(0, 10) == "0")
+            lw.Assert(int2base(10, 10) == "10")
+            lw.Assert(int2base(90, 90) == "10")
+            lw.Assert(int2base(90**2, 90) == "100")
         def Test_IntToBase():
-            raises(TypeError, IntToBase, 1.2, 2)
-            raises(TypeError, IntToBase, 2, 1.2)
-            raises(ValueError, IntToBase, 2, 1)
-            Assert(IntToBase(0, 2) == (0,))
-            Assert(IntToBase(1, 2) == (1,))
-            Assert(IntToBase(2, 2) == (1, 0))
-            Assert(IntToBase(2, 2, msd_first=False) == (0, 1))
-            Assert(IntToBase(10017, 82) == (1, 40, 13))
-            Assert(IntToBase(10017, 82, msd_first=False) == (13, 40, 1))
+            lw.raises(TypeError, IntToBase, 1.2, 2)
+            lw.raises(TypeError, IntToBase, 2, 1.2)
+            lw.raises(ValueError, IntToBase, 2, 1)
+            lw.Assert(IntToBase(0, 2) == (0,))
+            lw.Assert(IntToBase(1, 2) == (1,))
+            lw.Assert(IntToBase(2, 2) == (1, 0))
+            lw.Assert(IntToBase(2, 2, msd_first=False) == (0, 1))
+            lw.Assert(IntToBase(10017, 82) == (1, 40, 13))
+            lw.Assert(IntToBase(10017, 82, msd_first=False) == (13, 40, 1))
         def Test_ByteReverseDict():
             di = ByteReverseDict()
             for i in range(256):
-                Assert(f"{i:08b}" == ''.join(reversed(f"{di[i]:08b}")))
+                lw.Assert(f"{i:08b}" == ''.join(reversed(f"{di[i]:08b}")))
         def Test_IntBitReverse():
-            raises(TypeError, IntBitReverse, 1.2)
-            Assert(IntBitReverse(0b0) == 0b0)
-            Assert(IntBitReverse(0b1) == 0b1)
-            Assert(IntBitReverse(-0b1) == -0b1)
-            Assert(IntBitReverse(0b11000000) == 0b11)
-            Assert(IntBitReverse(-0b11000000) == -0b11)
+            lw.raises(TypeError, IntBitReverse, 1.2)
+            lw.Assert(IntBitReverse(0b0) == 0b0)
+            lw.Assert(IntBitReverse(0b1) == 0b1)
+            lw.Assert(IntBitReverse(-0b1) == -0b1)
+            lw.Assert(IntBitReverse(0b11000000) == 0b11)
+            lw.Assert(IntBitReverse(-0b11000000) == -0b11)
             # Test some bigger integers
             for i in range(100):
                 x = int("0x1" + "0"*i, 16)
-                Assert(IntBitReverse(x) == 1)
-                Assert(IntBitReverse(-x) == -1)
+                lw.Assert(IntBitReverse(x) == 1)
+                lw.Assert(IntBitReverse(-x) == -1)
     if 1:   # Demo
         def Demo():
             t.print(f"{t.purl}Demo of some functions in {sys.argv[0]}")
@@ -361,7 +363,7 @@ if __name__ == "__main__":
                     w = len(int2ba(x))
                     o.append(f"{x:3d} {x:0{w}b} → {IntBitReverse(x):0{w}b}")
                 t.print(f"{t.ornl}Bit reversing:  IntBitReverse(x)")
-                for i in Columnize(o, indent=" "*2):
+                for i in columnize.Columnize(o, indent=" "*2):
                     print(i)
             if 1:   # Showing a bitarray in a desired base using rBitarray
                 t.print(f"{t.ornl}Showing a bitarray in a desired base using rBitarray()")
@@ -373,5 +375,5 @@ if __name__ == "__main__":
                 print(f"{ind}IntToBase(10017, 82) --> {IntToBase(10017, 82)}")
                 print(f"{ind}  Check:  13*82**0 + 40*82**1 + 1*82**2 = 13 + 3280 + 6724 = 10017")
     if len(sys.argv) > 1 and sys.argv[1] == "--test":
-        exit(run(globals(), halt=True)[0])
+        exit(lw.run(globals(), halt=True)[0])
     Demo()

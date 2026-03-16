@@ -26,13 +26,13 @@ if 1:  # Header
         import sys
         import time
     if 1:  # Custom imports
-        from color import t
-        from constant import Constant
+        import trm
+        import dptypes
         from wrap import dedent
         from license_data import licenses
     if 1:  # Global variables
-        g = Constant()
-        P = pathlib.Path
+        t = trm.Trm()
+        g = dptypes.Constant()
         # The following are too short to warrant a separate header file
         g.short_choices = ("bsd", "mit", "pd", "wol", "rem")
         g.nl = "\n"
@@ -259,7 +259,7 @@ if 1:  # Utility
         if 0:
             # Get the g.analysis text, in the licenses subdirectory
             d["dir"] = GetDir()
-            file = P("/pylib/licenses/analysis")
+            file = pathlib.Path("/pylib/licenses/analysis")
             with g:
                 g.analysis = file.read_text().strip()
         if len(sys.argv) < 2:
@@ -297,7 +297,7 @@ if 0:
         '''
         bad = False
         for file in files:
-            p = P(file)
+            p = pathlib.Path(file)
             if not p.isfile():
                 eprint(f"'{file}' is not a file")
                 bad = True
@@ -320,7 +320,7 @@ if 0:
     def MakeBackups(files, d):
         "For each file in files, make a backup file"
         for file in files:
-            bu = P(file) / backup_extension
+            bu = pathlib.Path(file) / backup_extension
             if bu.exists() and not d["-f"]:
                 eprint(
                     dedent(f'''
@@ -358,7 +358,7 @@ if 0:
             ProcessFile(choice, file, d)
 
 if __name__ == "__main__":
-    d = {}  # Options dictionary
+    d: dict[object, object] = {}  # Options dictionary
     choices = ParseCommandLine(d)
     sep = t.purl + "-"*80 + t.n if len(choices) > 1 else ""
     for i, choice in enumerate(choices):
@@ -366,8 +366,3 @@ if __name__ == "__main__":
             print(sep)
         t.print(f"{t.ornl}{choice}")
         PrintLicense(choice)
-    if 0:
-        CheckFiles(files, d)
-        if not d["-n"]:
-            MakeBackups(files, d)
-            ChangeFiles(choice, files, d)

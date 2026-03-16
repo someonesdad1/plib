@@ -1526,15 +1526,16 @@ bama = {
 
 if __name__ == "__main__":
     if 1:   # Standard imports
-        from collections import defaultdict, deque
+        import collections
         import getopt
         import re
         import sys
     if 1:   # Custom imports
-        import trm
-        t = trm.Trm()
+        import columnize
         import dpstr
-        from columnize import Columnize
+        import trm
+    if 1:  # Global variables
+        t = trm.Trm()
     if 1:  # Utility
         def IsBlankOrSpaces(s):
             "For string s, return True if it's empty or contains only spaces"
@@ -1542,7 +1543,7 @@ if __name__ == "__main__":
             return set(s) == empty or set(s) == only_spaces
         def CountLeadingSpaces(s):
             'Return the number of leading space characters in the string s'
-            dq, count = deque(s), 0
+            dq, count = collections.deque(s), 0
             while dq:
                 char = dq.popleft()
                 if char == " ":
@@ -1566,7 +1567,7 @@ if __name__ == "__main__":
             # If s has no newlines, return s.strip()
             if "\n" not in s:
                 return s.strip()
-            lines = deque(s.split("\n"))
+            lines = collections.deque(s.split("\n"))
             # Remove leading blank lines or lines with only spaces
             while lines:
                 if not IsBlankOrSpaces(lines[0]):
@@ -1647,7 +1648,7 @@ if __name__ == "__main__":
         def ListManufacturers(args):
             "The regexes in args are ANDed together"
             o = GetManufacturers(args)
-            for i in Columnize(sorted(o)):
+            for i in columnize.Columnize(sorted(o)):
                 print(i)
             t.print(f"{t.skyl}Printed {len(o)} manufacturers")
         def ListModelNumbers(args):
@@ -1657,7 +1658,7 @@ if __name__ == "__main__":
                 values.extend(i)
             flag = re.NOFLAG if d["-i"] else re.I
             o = dpstr.FilterSeqRegex(values, regexes=args, re_flags=flag)
-            for i in Columnize(sorted(o)):
+            for i in columnize.Columnize(sorted(o)):
                 print(i)
             t.print(f"{t.sky}Printed {len(o)} model numbers")
         def Search(di, regex):
@@ -1682,7 +1683,7 @@ if __name__ == "__main__":
                     if not regex_printed:
                         print(f"Search term = {regex!r}")
                         regex_printed = True
-                r, mfg, model = re.compile(regex, re.I), [], defaultdict(list)
+                r, mfg, model = re.compile(regex, re.I), [], collections.defaultdict(list)
                 indent = " " * 2
                 # Find manufacturers that match
                 if not d["-n"]:
@@ -1710,7 +1711,7 @@ if __name__ == "__main__":
                     for mfg in model:
                         for inst in model[mfg]:
                             print(f"{indent * 2}{inst} ({mfg})")
-    d = {}  # Options dictionary
+    d: dict[object, object] = {}  # Options dictionary
     args = ParseCommandLine(d)
     if d["-l"]:
         ListManufacturers(args)
@@ -1720,7 +1721,7 @@ if __name__ == "__main__":
         # Get the dictionary to search
         if d["-m"]:
             di = {}
-            for mfg in d["-m"]:
+            for mfg in d["-m"]:     # type: ignore
                 if mfg in bama:
                     di[mfg] = bama[mfg]
                 else:
@@ -1734,5 +1735,5 @@ if __name__ == "__main__":
         for regex in args:
             results.extend(Search(di, regex))
         # Print report
-        for i in Columnize(sorted(set(results))):
+        for i in columnize.Columnize(sorted(set(results))):
             print(i)

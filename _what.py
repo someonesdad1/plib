@@ -212,7 +212,7 @@ if 1:  # Core functionality
             t.print(f"{t.mt}This color means a 'what' string is missing")
 
 if __name__ == "__main__":
-    d = {}  # Options dictionary
+    d: dict[object, object] = {}  # Options dictionary
     args = ParseCommandLine(d)
     files = GetFiles(args)
     if d["-m"]:

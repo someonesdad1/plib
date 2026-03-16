@@ -2573,21 +2573,31 @@ if __name__ == "__main__":
             from uncertainties import ufloat, ufloat_fromstr, UFloat
             from uncertainties.core import Variable as ufloat_t
         else:
-            print(f"{name}:  uncertainties not tested")
+            print(f"{__file__}:  uncertainties not tested")
         if have_mpmath:
             import mpmath
             mpf, mpc = mpmath.mpf, mpmath.mpc
         else:
-            print(f"{name}:  mpmath not tested")
+            print(f"{__file__}:  mpmath not tested")
         if have_sympy:
             from sympy import Matrix as spmatrix  # noqa
         else:
-            print(f"{name}:  sympy not tested")
+            print(f"{__file__}:  sympy not tested")
     if 1:  # Global variables
         name = sys.argv[0]
         Fl = Matrix._Flatten
     def Type(t):
         "Return a uniform name for a type t"
+        if not hasattr(Type, "d"):
+            Type.d = {
+                "<class 'int'>": "int",
+                "<class 'float'>": "float",
+                "<class 'complex'>": "complex",
+                "<class 'fractions.Fraction'>": "Fraction",
+                "<class 'decimal.Decimal'>": "Decimal",
+            }
+            if have_mpmath:
+                Type.d["<class 'mpmath.ctx_mp_python.mpf'>"] = "mpf"
         try:
             return Type.d[str(t)]
         except KeyError:
@@ -2597,15 +2607,6 @@ if __name__ == "__main__":
             ):
                 return "ufloat"
             raise
-    Type.d = {
-        "<class 'int'>": "int",
-        "<class 'float'>": "float",
-        "<class 'complex'>": "complex",
-        "<class 'fractions.Fraction'>": "Fraction",
-        "<class 'decimal.Decimal'>": "Decimal",
-    }
-    if have_mpmath:
-        Type.d["<class 'mpmath.ctx_mp_python.mpf'>"] = "mpf"
     class Testing:
         '''Context manager to ensure a consistent Matrix class
         state before and after entry.  This helps ensure tests are isolated,

@@ -189,7 +189,7 @@ if __name__ == "__main__":
             print(open(g.file).read(), end="")
             os.unlink(g.file)  # Delete the file
     if len(sys.argv) > 1 and sys.argv[1] == "--test":
-        exit(run(globals(), halt=True)[0])
+        exit(lw.run(globals(), halt=True)[0])
     else:
         print("Example of Print() use")
         DemoPrint()

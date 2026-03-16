@@ -60,7 +60,7 @@ if 1:  # Classes
                     dq.append("0")
                 dq.insert(ne, dp)
                 return "".join(dq)
-        def __call__(self, x, fmt="fix", n=None) -> str:
+        def __call__(self, x, fmt="fix", n=None):
             '''Return x as a formatted string.  fmt is the format to use:
             "fix" = fixed
             "sci" = scientific
@@ -93,7 +93,7 @@ if 1:  # Classes
                 elif fmt == "engsic":
                     return f"{sgn}{s[0] + self.radix + s[1:]}e{e}"
             elif isinstance(x, int):
-                pass
+                return str(x)
             else:
                 raise TypeError("x must be int, mpmath.mpf, or mpmath.mpc")
 if 1:  # Core methods

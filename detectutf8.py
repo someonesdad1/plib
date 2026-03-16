@@ -154,10 +154,10 @@ if __name__ == "__main__":
             elif o in ("-h", "--help"):
                 Usage(status=0)
         return args
-    d = {}  # Options dictionary
+    d: dict[object, object] = {"-d": P(".")}
     globs = ParseCommandLine(d)
     cwd = os.getcwd()
-    os.chdir(d["-d"])
+    os.chdir(d["-d"])   # type: ignore
     if globs:
         # Get function's keywords
         kw = {

@@ -136,6 +136,8 @@ if 1:   # Core functionality
         
         solidus is a Boolean passed to FormatUnits.
         '''
+        if not hasattr(FormatNumber, "fp"):
+            FormatNumber.fp = FPFormat()
         def F(s):
             '''Return string s formatted per position if length is given;
             otherwise just return s.
@@ -170,7 +172,6 @@ if 1:   # Core functionality
             return F(ff(sig(num)) + un)
         else:
             return F(str(num) + un)
-    FormatNumber.fp = FPFormat()
     def FormatFloat(num, length=None):
         '''num will be a string of the form 6.6(3)e-27 or without the
         uncertainty.  Translate it to the more conventional form of
@@ -191,6 +192,9 @@ if 1:   # Core functionality
         superscript characters.  If improper is True, return an improper
         fraction.
         '''
+        if not hasattr(FormatFraction, "fp"):
+            FormatFraction.super = "⁰¹²³⁴⁵⁶⁷⁸⁹"
+            FormatFraction.sub = "₀₁₂₃₄₅₆₇₈₉"
         if not isinstance(f, Fraction):
             raise TypeError("f must be a Fraction")
         s, n, d = "", f.numerator, f.denominator
@@ -206,8 +210,6 @@ if 1:   # Core functionality
         for i in str(d):
             s += FormatFraction.sub[int(i)]
         return s + (" " * (length - len(s))) if length else s
-    FormatFraction.super = "⁰¹²³⁴⁵⁶⁷⁸⁹"
-    FormatFraction.sub = "₀₁₂₃₄₅₆₇₈₉"
 
 if __name__ == "__main__":  
     if 1:   # Standard imports

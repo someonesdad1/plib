@@ -38,8 +38,8 @@ if 1:  # Header
         oo>
     '''
     if 1:   # Standard imports
-        from collections import defaultdict
-        from enum import Enum
+        import collections
+        import enum
         import getopt
         import io
         import itertools
@@ -49,28 +49,27 @@ if 1:  # Header
         import string
         import sys
     if 1:   # Custom imports
+        import dptypes
         import get
+        import lwtest
         import timer
         import trm
         import wrap 
-
-        from lwtest import run
         if 0:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
         t = trm.Trm()
         pp = pprint.pprint
-        class G:
-            pass
-        g = G()
+        g = dptypes.Constant()
         g.dbg = False
         __all__ = '''
             Tokenizer PrintTokens 
             wrd dig nln wht pnc oth
         '''.split()
         # Unicode symbols for whitespace characters
-        g.ws = {"\t": "␉", "\r": "␍", "\v": "␋", "\f": "␌", "\n": "␤"}
+        with g:
+            g.ws = {"\t": "␉", "\r": "␍", "\v": "␋", "\f": "␌", "\n": "␤"}
         # Colors
         t.wrd = t.wht
         t.dig = t.grnl
@@ -226,40 +225,40 @@ if 1:   # Classes to hold token types
     class wrd(tkn):     # Words
         def __new__(cls, value):
             return super(wrd, cls).__new__(cls, value)
-        def __iadd__(self, value):
+        def __iadd__(self, value):  # type: ignore
             assert isinstance(value, wrd)
             return wrd(self + value)
     class dig(tkn):     # Digits
         def __new__(cls, value):
             return super(dig, cls).__new__(cls, value)
-        def __iadd__(self, value):
+        def __iadd__(self, value):  # type: ignore
             assert isinstance(value, dig)
             return dig(self + value)
     class nln(tkn):     # Single newlines
         def __new__(cls, value):
             return super(nln, cls).__new__(cls, value)
-        def __iadd__(self, value):
+        def __iadd__(self, value):  # type: ignore
             raise TypeError("Operation not allowed for newlines")
     class wht(tkn):     # Whitespace (less newline)
         def __new__(cls, value):
             return super(wht, cls).__new__(cls, value)
-        def __iadd__(self, value):
+        def __iadd__(self, value):  # type: ignore
             assert isinstance(value, wht)
             return wht(self + value)
     class pnc(tkn):     # Punctuation
         def __new__(cls, value):
             return super(pnc, cls).__new__(cls, value)
-        def __iadd__(self, value):
+        def __iadd__(self, value):  # type: ignore
             assert isinstance(value, pnc)
             return pnc(self + value)
     class oth(tkn):     # All other token characters
         def __new__(cls, value):
             return super(oth, cls).__new__(cls, value)
-        def __iadd__(self, value):
+        def __iadd__(self, value):  # type: ignore
             assert isinstance(value, oth)
             return oth(self + value)
 if 1:   # Tokenizer
-    TYP = Enum("TYP", "wrd dig nln wht pnc oth".split())
+    TYP = enum.Enum("TYP", ("wrd", "dig", "nln", "wht", "pnc", "oth"))
     def getcls(typ, s):
         'Return the string s as the indicated type (typ is a TYP enum)'
         assert isinstance(typ, TYP)
@@ -328,6 +327,39 @@ if 1:   # Tokenizer
         Tokenizer.nln is only allowed to contain a newline because the
         io.StringIO.readlines() method only splits on newlines.
         '''
+        if not hasattr(Tokenizer, "ascii"):     # Set up default character types
+            Tokenizer.ascii = set(string.ascii_letters)
+            Tokenizer.diacritics = set('''
+                æ Æ
+                ąăāåäãâáà ĄĂĀÅÄÃÂÁÀ
+                ß
+                čċĉćç ČĊĈÇĆ
+                đď ĐĎ
+                ëêéèěęėĕē ËĚĘĖĔĒÊÉÈ
+                ģĢġĠğĞĝĜ
+                ħĦĥĤ
+                ïîíìıįĭīĩ ÏÎÍÌİĮĬĪĨ
+                ĵĴ
+                ĸķĶ
+                łŀľļĺ ŁĽĻĹĿ
+                ñŋŉňņń ÑŊŇŅŃ
+                øöõôóòðőŏō ØÖÕÔÓÒŎŐŌ
+                þ Þ
+                řŗŕ ŘŖŔ
+                šşŝś ŠŞŜŚ
+                ŧťţ ŦŤŢ
+                üûúùųűůŭūũ ÜÛÚÙŲŰŮŬŪŨ
+                ŵ Ŵ
+                ÿýŷ ŸÝŶ
+                žżź ŽŻŹ
+            ''')
+            Tokenizer.diacritics.discard(" ")
+            Tokenizer.diacritics.discard("\n")
+            Tokenizer.dig = set(string.digits)
+            Tokenizer.nln = set("\n")   # Should only be the newline character
+            Tokenizer.wht = set(string.whitespace)
+            Tokenizer.wht.discard("\n")
+            Tokenizer.pnc = set(string.punctuation)
         if not isinstance(s, str):
             raise TypeError("s must be a str instance")
         if not s:
@@ -384,39 +416,6 @@ if 1:   # Tokenizer
         if ''.join(o) != s:
             raise Exception("Tokenizer() invariant failed:  ''.join(o) != s")
         return o
-    # Set up default character types
-    Tokenizer.ascii = set(string.ascii_letters)
-    Tokenizer.diacritics = set('''
-        æ Æ
-        ąăāåäãâáà ĄĂĀÅÄÃÂÁÀ
-        ß
-        čċĉćç ČĊĈÇĆ
-        đď ĐĎ
-        ëêéèěęėĕē ËĚĘĖĔĒÊÉÈ
-        ģĢġĠğĞĝĜ
-        ħĦĥĤ
-        ïîíìıįĭīĩ ÏÎÍÌİĮĬĪĨ
-        ĵĴ
-        ĸķĶ
-        łŀľļĺ ŁĽĻĹĿ
-        ñŋŉňņń ÑŊŇŅŃ
-        øöõôóòðőŏō ØÖÕÔÓÒŎŐŌ
-        þ Þ
-        řŗŕ ŘŖŔ
-        šşŝś ŠŞŜŚ
-        ŧťţ ŦŤŢ
-        üûúùųűůŭūũ ÜÛÚÙŲŰŮŬŪŨ
-        ŵ Ŵ
-        ÿýŷ ŸÝŶ
-        žżź ŽŻŹ
-    ''')
-    Tokenizer.diacritics.discard(" ")
-    Tokenizer.diacritics.discard("\n")
-    Tokenizer.dig = set(string.digits)
-    Tokenizer.nln = set("\n")   # Should only be the newline character
-    Tokenizer.wht = set(string.whitespace)
-    Tokenizer.wht.discard("\n")
-    Tokenizer.pnc = set(string.punctuation)
 
 if __name__ == "__main__":
     if 1:   # Utility
@@ -465,7 +464,7 @@ if __name__ == "__main__":
                 elif o == "--test":
                     d[o] = not d[o]
             if d["--test"]:
-                exit(lw.run(globals(), halt=True)[0])
+                exit(lwtest.run(globals(), halt=True)[0])
             return args
         def MeasureTiming(file):
             'Print execution time and tokens/s tokenizing rate'
@@ -485,7 +484,7 @@ if __name__ == "__main__":
             'Print misspelled words in file with their location'
             words = set(i.lower() for i in get.GetLines("/words/words.default", nonl=True))
             tokens = Tokenizer(open(file).read().lower())
-            misspelled = defaultdict(list)
+            misspelled = collections.defaultdict(list)
             for word in tokens:
                 if not isinstance(word, wrd):
                     continue
@@ -500,7 +499,7 @@ if __name__ == "__main__":
             w = min(w, 20)  # Limit it to 20 characters maximum
             for word in sorted(misspelled):
                 print(f"  {word:{w}s}  {' '.join(misspelled[word])}")
-    d = {}      # Options dictionary
+    d: dict[object, object] = {}  # Options dictionary
     files = ParseCommandLine(d)
     for file in files:
         if d["-T"]:

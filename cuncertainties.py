@@ -626,7 +626,7 @@ if __name__ == "__main__":
                 elif o == "--test":
                     d["--test"] = True
             return args
-    d = {}  # Options dictionary
+    d: dict[object, object] = {}  # Options dictionary
     args = ParseCommandLine(d)
     if d["--test"]:
         exit(run(globals(), halt=True)[0])

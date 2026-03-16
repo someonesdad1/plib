@@ -119,7 +119,7 @@ if __name__ == "__main__":
                 d["-r"] = True
             sort_order = CheckSortLetters(args[0])
             return sort_order
-    d = {}  # Options dictionary
+    d: dict[object, object] = {}  # Options dictionary
     sort_order = ParseCommandLine(d)
     colors = GetColors(sort_order)
     DumpColors(colors)

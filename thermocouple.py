@@ -39,29 +39,28 @@ if 1:  # Header
         import getopt
         import math
     if 1:  # Custom imports
-        from color import t as U
-        from f import flt
-        from wrap import dedent
+        import dptypes
+        import f
+        import trm
+        import wrap
     if 1:  # Global variables
-        pass
+        U = trm.Trm()
     # Global variables
-    class G:  # Storage for global variables as attributes
-        pass
-    g = G()
+    g = dptypes.Constant()
     g.dbg = False
-    ii = isinstance
     # Thermocouple table ranges
-    g.table_ranges = {
-        # [(temp_low_C, temp_high_C), (V_low_mV, V_high_mV)]
-        "B": ((0, 1820), (-0.003, 13.820)),
-        "E": ((-270, 1000), (-9.835, 76.373)),
-        "J": ((-210, 1200), (-8.095, 69.553)),
-        "K": ((-270, 1372), (-6.095, 54.886)),
-        "N": ((-270, 1300), (-4.345, 47.513)),
-        "R": ((-50, 1768), (-0.226, 21.101)),
-        "S": ((-50, 1768), (-0.236, 18.693)),
-        "T": ((-270, 400), (-6.258, 20.872)),
-    }
+    with g:
+        g.table_ranges = {
+            # [(temp_low_C, temp_high_C), (V_low_mV, V_high_mV)]
+            "B": ((0, 1820), (-0.003, 13.820)),
+            "E": ((-270, 1000), (-9.835, 76.373)),
+            "J": ((-210, 1200), (-8.095, 69.553)),
+            "K": ((-270, 1372), (-6.095, 54.886)),
+            "N": ((-270, 1300), (-4.345, 47.513)),
+            "R": ((-50, 1768), (-0.226, 21.101)),
+            "S": ((-50, 1768), (-0.236, 18.693)),
+            "T": ((-270, 400), (-6.258, 20.872)),
+        }
     # Colors
     U.title = U("ornl")
     U.ref = U("magl")
@@ -488,7 +487,7 @@ if 1:  # Classes
                 if g.dbg:
                     print(" " * 17, "Correction = %+.4f" % e)
                 E += a0 * math.exp(a1 * (t_degC - a2) ** 2)
-            return flt(E)
+            return f.flt(E)
         def T_degC(self, emf_mV):
             "Given a voltage in mV, return the corresponding temperature in degrees C"
             self._check_type()
@@ -519,7 +518,7 @@ if 1:  # Classes
                     print("term = %+15.10f" % t)
             if g.dbg:
                 print("Sum = %.3f" % T)
-            return flt(T)
+            return f.flt(T)
 if 1:  # Core functionality
     from lwtest import run
     def TestLibrary():
@@ -772,11 +771,11 @@ if 1:  # Core functionality
             mV = tc.E_mV(t)
             mV_pred = m * t + b
             if mV:
-                diffpct = flt(100 * (mV_pred - mV) / mV)
+                diffpct = f.flt(100 * (mV_pred - mV) / mV)
                 print(f"  {t:3d}    {mV:6.2f}    {mV_pred:6.2f}    {diffpct:4.1f}")
             else:
                 print(f"  {t:3d}    {mV:6.2f}    {mV_pred:6.2f}    {'--':>4s}")
-        print(dedent('''
+        print(wrap.dedent('''
  
         Conclusion:  for the approximate use of a type K thermocouple and DMM using
         the DMM's jacks as the reference junction temperature, the correction for the
@@ -792,8 +791,7 @@ if __name__ == "__main__":
         print(msg, file=sys.stderr)
         exit(status)
     def Usage():
-        print(
-            dedent(f'''
+        print(wrap.dedent(f'''
         Usage:  {sys.argv[0]} [options] tc_type [deg_scale]
           Print thermocouple tables relating temperature and EMF in mV.
             tc_type:    must be one of the letters B E J K N R S T

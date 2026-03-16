@@ -26,12 +26,12 @@ if 1:  # Header
         oo>
     '''
     if 1:  # Standard imports
-        from collections import deque, defaultdict
+        import collections
         import subprocess
     if 1:  # Custom imports
         pass
     if 1:  # Global variables
-        ii = isinstance
+        pass
 if 1:  # Core functionality
     def Factor(x, unicode=False):
         '''Return the string representing the prime factorization of integer x.  If
@@ -39,7 +39,7 @@ if 1:  # Core functionality
         something goes wrong.
         '''
         e = dict(zip(list(range(10)), "⁰¹²³⁴⁵⁶⁷⁸⁹"))    # Unicode representation
-        if not (ii(x, int)):
+        if not (isinstance(x, int)):
             raise TypeError("x must be an integer")
         cmd = ["/usr/bin/factor", str(x)]
         try:
@@ -48,10 +48,10 @@ if 1:  # Core functionality
             return None
         # Get list of prime factors
         s = r.stdout.decode("UTF-8").strip().split(":")[1].strip().split()
-        factors = deque(int(i) for i in s)
+        factors = collections.deque(int(i) for i in s)
         if not factors:
-            factors = deque([1])
-        d = defaultdict(int)
+            factors = collections.deque([1])
+        d = collections.defaultdict(int)
         while factors:
             n = factors.popleft()
             d[n] += 1
@@ -90,19 +90,18 @@ if __name__ == "__main__":
             import pprint
             import sys
         if 1:   # Custom imports
-            from wrap import dedent
-            from color import t
-            from lwtest import run, Assert
+            import dptypes
+            import wrap
+            import trm
+            import lwtest
             pp = pprint.pprint
             if 0:
                 import debug
                 debug.SetDebugger()
         if 1:   # Global variables
-            class G:
-                pass
-            g = G()
+            t = trm.Trm()
+            g = dptypes.Constant()
             g.dbg = False
-            ii = isinstance
     if 1:   # Utility
         def Test_Factor():
             x = factorial(100)
@@ -110,12 +109,12 @@ if __name__ == "__main__":
                 "2^97*3^48*5^24*7^16*11^9*13^7*17^5*19^5*23^4*29^3*31^3*"
                 "37^2*41^2*43^2*47^2*53*59*61*67*71*73*79*83*89*97"
             )
-            Assert(Factor(x, unicode=False) == s)
+            lwtest.Assert(Factor(x, unicode=False) == s)
             s = (
                 "2⁹⁷·3⁴⁸·5²⁴·7¹⁶·11⁹·13⁷·17⁵·19⁵·23⁴·29³·31³·37²·41²·"
                 "43²·47²·53·59·61·67·71·73·79·83·89·97"
             )
-            Assert(Factor(x, unicode=True) == s)
+            lwtest.Assert(Factor(x, unicode=True) == s)
     if 1:   # Utility
         def GetColors():
             t.convert = t.purl
@@ -135,7 +134,7 @@ if __name__ == "__main__":
             Warn(*msg)
             exit(status)
         def Usage(status=0):
-            print(dedent(f'''
+            print(wrap.dedent(f'''
             Usage:  {sys.argv[0]} [options] num1 [num2...]
               Print the factorization of the indicated integers.  The numbers can be
               expressions and the math module is in scope.  If the argument is a float x,
@@ -161,16 +160,16 @@ if __name__ == "__main__":
                     do_test = True
             GetColors()
             if do_test:
-                exit(run(globals(), halt=True)[0])
+                exit(lwtest.run(globals(), halt=True)[0])
             return args
     if 1:   # Core functionality
         def Report(n):
             s, is_float = "", False
-            if ii(n, float):
+            if isinstance(n, float):
                 is_float = True
                 s = "  "
             else:
-                if not ii(n, int) or n < 1:
+                if not isinstance(n, int) or n < 1:
                     t.print(f"{t.err}{item!r} is not a positive integer > 0")
                     return
             factors = Factor(int(round(n, 0) if is_float else n), unicode=True)
@@ -188,7 +187,7 @@ if __name__ == "__main__":
                 if is_float:
                     t.print(f"{t.convert}{item} --> {n} --> {t.num}{N}")
                 t.print(f"{s}{t.num}{N}:  {t.factors}{factors}")
-        d = {}      # Options dictionary
+        d: dict[object, object] = {}  # Options dictionary
         args = ParseCommandLine(d)
         for item in args:
             Report(eval(item))

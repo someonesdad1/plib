@@ -25,16 +25,17 @@ if 1:  # Header
         import warnings
         have_scipy = False
         try:
+            import scipy
             from scipy.interpolate import interp1d
             have_scipy = True
         except ImportError:
             pass
     if 1:  # Custom imports
-        from dpmath import RoundOff
-        from f import flt, pi, sqrt, log10, log
-        from interpolate import LinearInterpFunction as interp
+        import dpmath
+        import f
+        import interpolate
     if 1:  # Global variables
-        pass
+        interp = interpolate.LinearInterpFunction
 if 1:  # Deprecated/obsolete stuff
     # I have deprecated these functions because I consider them inadequate for my needs.
     # I know from a goodly bit of experimentation that the ChassisCurrent() predictions
@@ -66,24 +67,24 @@ if 1:  # Deprecated/obsolete stuff
             raise ValueError("diameter_m must be > 0")
         if insul_temp_rating_degC not in (60, 75, 90):
             raise ValueError("insul_temp_rating_degC must be 60, 75, or 90")
-        ld = log(diameter_m * 1000) / log(10)
+        ld = f.log(diameter_m*1000)/f.log(10)
         if ld < 0.21:
             # Constant current density
             jmax = 10**0.85
         elif ld < 0.315:
             # One curve in this region
-            jmax = 10 ** (slope * ld + 1.032)
+            jmax = 10**(slope*ld + 1.032)
         elif ld < 0.41:
             ld = ld - 0.315
             dx = 0.095
             y = 0.775
             if insul_temp_rating_degC == 60:
-                slope = (0.75 - y) / dx
+                slope = (0.75 - y)/dx
             elif insul_temp_rating_degC == 75:
-                slope = (0.82 - y) / dx
+                slope = (0.82 - y)/dx
             else:
-                slope = (0.87 - y) / dx
-            jmax = 10 ** (y + ld * slope)
+                slope = (0.87 - y)/dx
+            jmax = 10**(y + ld*slope)
         else:
             if insul_temp_rating_degC == 60:
                 b = 1.106  # y-intercept of fitted line
@@ -91,7 +92,7 @@ if 1:  # Deprecated/obsolete stuff
                 b = 1.203
             else:
                 b = 1.264
-            jmax = 10 ** (ld * slope + b)
+            jmax = 10**(ld*slope + b)
         # Debug check of jmax
         if jmax > 10**0.93:  # Note:  max y value at ld = 0.41
             msg = (
@@ -139,7 +140,7 @@ if 1:  # Deprecated/obsolete stuff
                 b = 840
             elif insul_temp_rating_degC == 75:
                 b = 1000
-        i = b * 10 ** (m * n)
+        i = b*10**(m*n)
         return i
     def GetAmpacityData(dbg=False):
         '''Return a dictionary keyed by AWG size (as a string) with the
@@ -218,26 +219,26 @@ if 1:  # Deprecated/obsolete stuff
         for line in data.split("\n"):
             f = line.split(",")
             awg = int(f[0].strip())
-            dia_in = flt(f[1])
-            chassis_A = flt(f[2])
-            pwr_A = flt(f[3])
-            freq = flt(f[4])
+            dia_in = f.flt(f[1])
+            chassis_A = f.flt(f[2])
+            pwr_A = f.flt(f[3])
+            freq = f.flt(f[4])
             if 0:
                 # http://www.nessengr.com/technical-data/skin-depth/ gives the
                 # formula for Cu as δ = 0.066/sqrt(f) for δ = skin depth in m
                 # and f in Hz.  Then f = 0.00436/δ**2.
-                δ = (dia_in * 25.4 / 1000) / 2  # Radius is the skin depth
-                f_kHz = flt((0.066 / δ) ** 2 / 1000)
+                δ = (dia_in*25.4/1000)/2  # Radius is the skin depth
+                f_kHz = f.flt((0.066/δ)**2/1000)
                 # Check that calculated and table values are close
                 alpha = 0.07
-                if not (1 - alpha < freq / f_kHz < 1 + alpha):
-                    print(freq / f_kHz, awg)
+                if not (1 - alpha < freq/f_kHz < 1 + alpha):
+                    print(freq/f_kHz, awg)
                     exit()
             # Note the tabulated breaking values aren't quite correct -- use
             # calculated value instead.
-            area = pi * dia_in**2 / 4
-            uts = flt(37000)  # In psi
-            brk = area * uts  # In lbf
+            area = f.pi*dia_in**2/4
+            uts = f.flt(37000)  # In psi
+            brk = area*uts  # In lbf
             if dbg:
                 print(
                     f"{awg:>2d}, {dia_in!s:>15s}, {chassis_A!s:>10s}, "
@@ -254,7 +255,7 @@ if 1:  # Deprecated/obsolete stuff
             For dia < 1.3 mm:  a = 13, e = 2
             For dia >= 1.3 mm:  a = 16, e = 1.3
         '''
-        w, x = GetAmpacityData(), flt(0)
+        w, x = GetAmpacityData(), f.flt(0)
         Dia, Chass, Pwr = [], [], []
         for i in w:
             item = w[i]
@@ -281,27 +282,27 @@ if 1:  # Deprecated/obsolete stuff
             n = 0
             i, d = chass[n], dia[n]
             e = 1.3
-            a = i * d**-e
+            a = i*d**-e
             D = dia[: m + 1]
             # Calculate j at point m//2
             di, i = dia[m // 2], chass[m // 2]
             with x:
                 x.n = 2
-                p(D, a * D**e, "g", label=f"a={flt(a)}, e={e}")  # Green line
+                p(D, a*D**e, "g", label=f"a={f.flt(a)}, e={e}")  # Green line
             # The smaller diameters are at a larger slope.  Make it go
             # through the 0.3 mm diameter point
             n = -11
             i, d = chass[n], dia[n]
             e = 2
-            a = i * d**-e
+            a = i*d**-e
             D = dia[m - 3 :]
             # Calculate j at point 3*m//2
-            di, i = dia[3 * m // 2], chass[3 * m // 2]
+            di, i = dia[3*m // 2], chass[3*m // 2]
             with x:
                 x.n = 2
-                p(D, a * D**e, "k", label=f"a={flt(a)}, e={e}")  # Black line
-                bp = flt(Dia[m], "mm")
-                text(1.1 * Dia[m], 225, f"d = {bp}")
+                p(D, a*D**e, "k", label=f"a={f.flt(a)}, e={e}")  # Black line
+                bp = f.flt(Dia[m], "mm")
+                text(1.1*Dia[m], 225, f"d = {bp}")
                 axvline(x=bp.val, color="k", linestyle="--")
         xlabel("d = wire diameter, mm")
         ylabel("i = maximum current, A")
@@ -318,7 +319,7 @@ if 1:  # Deprecated/obsolete stuff
         '''Return the maximum chassis current for copper wire near room
         temperature for a given diameter dia.  If dia is an integer, it
         will be interpreted as AWG.  If it is a float, it will be
-        interpreted as diameter in mm.  Or, set it to a flt with suitable
+        interpreted as diameter in mm.  Or, set it to a f.flt with suitable
         length units.
         
         The PlotAmpacityData() function shows that a suitable model is
@@ -327,16 +328,16 @@ if 1:  # Deprecated/obsolete stuff
             a = 16, e = 1.3 for dia >= 1.3 mm
         '''
         if isinstance(dia, int):
-            D = AWG(dia) * 25.4  # Diameter in mm
+            D = AWG(dia)*25.4  # Diameter in mm
         else:
-            D = flt(dia)
-        Dmax = flt(AWG(-3) * 25.4)
+            D = f.flt(dia)
+        Dmax = f.flt(AWG(-3)*25.4)
         if D > Dmax:
             raise ValueError(f"Wire diameter must be <= {Dmax}")
-        if D >= flt(1.3):
-            imax = flt(16 * D**1.3)
+        if D >= f.flt(1.3):
+            imax = f.flt(16*D**1.3)
         else:
-            imax = flt(13 * D**2)
+            imax = f.flt(13*D**2)
         return imax
 if 1:  # Core functionality
     def MaterialData(material="copper"):
@@ -349,12 +350,12 @@ if 1:  # Core functionality
         # value given on that web page is 58.0 MS/m at 68 deg F.  This also
         # agrees to 5 figures with the International Annealed Copper Standard
         # of 1.7241 μohm*cm.
-        Cu_conductivity = flt(58.0e6)  # S/m at 20 deg C
+        Cu_conductivity = f.flt(58.0e6)  # S/m at 20 deg C
         data = {
             "conductivity": Cu_conductivity,  # In S/m
-            "resistivity": 1 / Cu_conductivity,  # In ohm*m
-            "temp_coeff": flt(0.0039),  # In 1/K
-            "density": flt(8960),  # kg/m3
+            "resistivity": 1/Cu_conductivity,  # In ohm*m
+            "temp_coeff": f.flt(0.0039),  # In 1/K
+            "density": f.flt(8960),  # kg/m3
             "units": {
                 "conductivity": "S",
                 "resistivity": "ohm*m",
@@ -404,7 +405,7 @@ if 1:  # Core functionality
         if n > m:
             raise ValueError("n must be <= m")
         D, d = [AWG(i) for i in (n, m)]  # Diameter in inches
-        return D, d, RoundOff((D / d) ** 2, digits=4)
+        return D, d, dpmath.RoundOff((D/d)**2, digits=4)
     def AWG(n):
         '''Returns the wire diameter in inches given the AWG (American Wire
         Gauge) number (also known as the Brown and Sharpe gauge).  Use negative
@@ -466,11 +467,11 @@ if 1:  # Core functionality
         # We use a table lookup for 40 gauge or larger and a formula for 41 to
         # 56 gauge.
         if n <= 40:
-            d = AWG.data[n + 3] / 1e5
-            d = RoundOff(d, 4) if n <= 30 else RoundOff(d, 5)
+            d = AWG.data[n + 3]/1e5
+            d = dpmath.RoundOff(d, 4) if n <= 30 else dpmath.RoundOff(d, 5)
         else:
-            d = RoundOff(92.0 ** ((36 - n) / 39) / 200, 4)
-        return flt(d)
+            d = dpmath.RoundOff(92.0**((36 - n)/39)/200, 4)
+        return f.flt(d)
     def Preece(n):
         '''Returns the fusing current in A to 3 figures for copper wire in size
         n AWG.  The formula used is Preece's formula, which estimates how much
@@ -490,10 +491,10 @@ if 1:  # Core functionality
         Example:  For 12 gauge copper wire (d = 0.08081 inches), the fusing
         current is 235 A.
         '''
-        d = AWG(n)  # Diameter in inches as a dimensionless flt
-        i = 10244 * d**1.5
-        i = RoundOff(i, 3)
-        return flt(i)
+        d = AWG(n)  # Diameter in inches as a dimensionless f.flt
+        i = 10244*d**1.5
+        i = dpmath.RoundOff(i, 3)
+        return f.flt(i)
     def Onderdonk(n, t, Ta):
         '''Fusing current in A for copper wire
         
@@ -577,7 +578,7 @@ if 1:  # Core functionality
             'ohm m (1/m) A2 s' and you'll get 
                 You have: ohm m (1/m) A2 s
                 You want: J
-                        * 1
+                       *1
             showing that the calculation is dimensionally consistent and in units of energy.
     
         Step 2:  
@@ -627,12 +628,12 @@ if 1:  # Core functionality
         '''
         if t > 10:
             raise ValueError("Time t must be <= 10 seconds")
-        d = AWG(n)  # Diameter in inches as a flt
-        A = (d * 1000) ** 2
-        K = log10((1083 - Ta) / (234 + Ta) + 1)
-        i = A * sqrt(K / (33 * t))
-        i = RoundOff(i, 2)
-        return flt(i)
+        d = AWG(n)  # Diameter in inches as a f.flt
+        A = (d*1000)**2
+        K = f.log10((1083 - Ta)/(234 + Ta) + 1)
+        i = A*f.sqrt(K/(33*t))
+        i = dpmath.RoundOff(i, 2)
+        return f.flt(i)
     def ChassisCurrent(dia_mm, ΔT_K):
         '''For a single copper conductor in air, return the maximum current defined by
         figure 3 in  MIL-W-5088L.  dia_mm is the conductor's diameter in mm and ΔT_K is
@@ -653,33 +654,34 @@ if 1:  # Core functionality
         '''
         if 1:   # Log-log line data for current as function of diameter
             # dia in mm starts with 4/0, 3/0, 2/0, 1/0, 1, 2, 4, etc. AWG sizes
-            dia = [flt(i) for i in '''11.7 10.4 9.27 8.25 7.35 6.54 5.19 4.11 3.26 2.59 2.05
+            dia = [f.flt(i) for i in '''11.7 10.4 9.27 8.25 7.35 6.54 5.19 4.11 3.26 2.59 2.05
                 1.63 1.29 1.02 0.813 0.643 0.511 0.404'''.split()]
             # The slope and intercept values are the line's data for that particular size
-            slope = [flt(i) for i in '''0.509 0.512 0.491 0.485 0.482 0.481 0.509 0.506 0.483
+            slope = [f.flt(i) for i in '''0.509 0.512 0.491 0.485 0.482 0.481 0.509 0.506 0.483
                      0.479 0.479 0.482 0.471 0.477 0.461 0.455 0.45 0.456 '''.split()]
-            intercept = [flt(i) for i in '''1.74 1.66 1.63 1.57 1.52 1.45 1.26 1.13 1.05 0.872 
+            intercept = [f.flt(i) for i in '''1.74 1.66 1.63 1.57 1.52 1.45 1.26 1.13 1.05 0.872 
                      0.755 0.623 0.513 0.439 0.344 0.231 0.128 -0.011'''.split()]
         # Linear interpolation functions to calculate m and b given wire diameter.
         if have_scipy:
-            get_m, get_b = interp1d(dia, slope), interp1d(dia, intercept)
+            get_m = scipy.interpolate.interp1d(dia, slope)
+            get_b = scipy.interpolate.interp1d(dia, intercept)
         else:
             get_m, get_b = interp(dia, slope), interp(dia, intercept)
-        log_i_A = flt(get_m(dia_mm))*log10(ΔT_K) + flt(get_b(dia_mm))
-        return flt(10**log_i_A)
+        log_i_A = f.flt(get_m(dia_mm))*f.log10(ΔT_K) + f.flt(get_b(dia_mm))
+        return f.flt(10**log_i_A)
 
 if __name__ == "__main__":
     from lwtest import run, raises, assert_equal, Assert
-    x = flt(0)
+    x = f.flt(0)
     def TestChassisCurrent():
         Assert(ChassisCurrent(3.26, 100) == 103.75284158180126)
     def TestMaterialData():
-        d, x = MaterialData(material="copper"), flt(0)
+        d, x = MaterialData(material="copper"), f.flt(0)
         cus = 58e6  # Copper conductivity in S/m
         with x:
             x.promote = 1
             assert_equal(d["conductivity"], cus)
-            assert_equal(d["resistivity"], 1 / cus)
+            assert_equal(d["resistivity"], 1/cus)
             assert_equal(d["temp_coeff"], 0.0039)
             assert_equal(d["density"], 8960)
             assert_equal(d["units"]["conductivity"], "S")
@@ -687,13 +689,13 @@ if __name__ == "__main__":
             assert_equal(d["units"]["temp_coeff"], "1/K")
             assert_equal(d["units"]["density"], "kg/m3")
     def TestMaxCurrentDensity():
-        assert_equal(MaxCurrentDensity(1, 60), flt(0.04425883723626271))
-        assert_equal(MaxCurrentDensity(1, 75), flt(0.05533501092157374))
-        assert_equal(MaxCurrentDensity(1, 90), flt(0.06367955209079165))
+        assert_equal(MaxCurrentDensity(1, 60), f.flt(0.04425883723626271))
+        assert_equal(MaxCurrentDensity(1, 75), f.flt(0.05533501092157374))
+        assert_equal(MaxCurrentDensity(1, 90), f.flt(0.06367955209079165))
     def TestAmpacity():
-        assert_equal(Ampacity(12, 60), flt(23.233252533606738))
-        assert_equal(Ampacity(12, 75), flt(27.879903040328085))
-        assert_equal(Ampacity(12, 90), flt(31.597223445705165))
+        assert_equal(Ampacity(12, 60), f.flt(23.233252533606738))
+        assert_equal(Ampacity(12, 75), f.flt(27.879903040328085))
+        assert_equal(Ampacity(12, 90), f.flt(31.597223445705165))
     def TestEquivalentArea():
         dn, dm, r = EquivalentArea(12, 14)
         assert_equal(r, 1.589)
@@ -704,12 +706,12 @@ if __name__ == "__main__":
         dn, dm, r = EquivalentArea(12, 30)
         assert_equal(r, 65.29)
     def TestAWG():
-        assert_equal(AWG(-3), flt(0.46))
-        assert_equal(AWG(12), flt(0.0808))
-        assert_equal(AWG(18), flt(0.0403))
-        assert_equal(AWG(24), flt(0.0201))
-        assert_equal(AWG(40), flt(0.00314))
-        assert_equal(AWG(56), flt(0.0004919))
+        assert_equal(AWG(-3), f.flt(0.46))
+        assert_equal(AWG(12), f.flt(0.0808))
+        assert_equal(AWG(18), f.flt(0.0403))
+        assert_equal(AWG(24), f.flt(0.0201))
+        assert_equal(AWG(40), f.flt(0.00314))
+        assert_equal(AWG(56), f.flt(0.0004919))
         # Check that we get exceptions for bad values
         raises(ValueError, AWG, -4)
         raises(ValueError, AWG, 1.1)
@@ -732,11 +734,11 @@ if __name__ == "__main__":
             assert_equal(Onderdonk(24, t, Ta), 59)
     def TestChassisAmpacity():
         for d in (0.1, 0.2, 0.5, 0.75, 1):
-            got = ChassisAmpacity(flt(d))
-            expected = flt(13 * d**2)
+            got = ChassisAmpacity(f.flt(d))
+            expected = f.flt(13*d**2)
             assert_equal(got, expected)
         for d in (1.3, 1.5, 2, 3, 5, 7.5, 10):
-            got = ChassisAmpacity(flt(d))
-            expected = flt(16 * d**1.3)
+            got = ChassisAmpacity(f.flt(d))
+            expected = f.flt(16*d**1.3)
             assert_equal(got, expected)
     exit(run(globals(), halt=1)[0])

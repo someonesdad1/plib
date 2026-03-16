@@ -31,13 +31,11 @@ if 1:  # Header
         import subprocess
         import sys
     if 1:  # Custom imports
-        from wrap import dedent
-        from wsl import wsl  # If wsl is 1, we're running under WSL under Windows
+        import dptypes
+        import wrap
+        import wsl
     if 1:  # Global variables
-        ii = isinstance
-        class G:
-            pass
-        g = G()
+        g = dptypes.Constant()
         g.system = None
 if 0:  # C++ source code old Windows launcher app.exe
     '''
@@ -233,16 +231,17 @@ if 1:  # Core functionality
         if s.startswith("CYGWIN_NT"):
             g.system = "cygwin"
         elif s.startswith("Linux"):
-            g.system = "wsl" if wsl else "linux"
+            with g:
+                g.system = "wsl" if wsl.wsl else "linux"
         else:
             raise ValueError("{s!r} not supported for platform.system()")
     def RegisteredOpen(file):
         '''Open the indicated file with its registered application.  file must be a string
         or a Path instance.
         '''
-        if ii(file, str):
+        if isinstance(file, str):
             p = P(file)
-        elif ii(file, P):
+        elif isinstance(file, P):
             p = file
         else:
             raise TypeError(f"'{file}' must be a string or a pathlib.Path instance")
@@ -275,18 +274,17 @@ if 1:  # Core functionality
             RegisteredOpen(file)
     # Make sure we know the system when we get imported
     GetSystem()
+
 if __name__ == "__main__":
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
     def Usage(status=1):
         name = sys.argv[0]
-        print(
-            dedent(f'''
+        print(wrap.dedent(f'''
         Usage:  {name} [options] file1 [file2 ...]
           Launch the files with their registered applications. 
-        ''')
-        )
+        '''))
         exit(status)
     def ParseCommandLine(d):
         d["-a"] = False
@@ -303,6 +301,6 @@ if __name__ == "__main__":
         if not args:
             Usage()
         return args
-    d = {}  # Options dictionary
+    d: dict[object, object] = {}  # Options dictionary
     files = ParseCommandLine(d)
     Launch(*files)

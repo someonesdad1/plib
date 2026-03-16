@@ -57,7 +57,7 @@
 '''
 if 1:  # Header
     if 1:   # Standard imports
-        from collections import namedtuple, defaultdict, deque
+        import collections 
         import contextlib
         import getopt
         import io
@@ -65,26 +65,24 @@ if 1:  # Header
         import re
         import sys
     if 1:   # Custom imports
+        import  wrap
+        import cmddecode 
+        import columnize
+        import dpmath
+        import dptypes
+        import f
+        import lwtest
         import termtables as tt
-        import roundoff
-        from cmddecode import CommandDecode
-        from lwtest import run, Assert
-        from f import flt
-        from wrap import dedent
         import trm
-        from columnize import Columnize
-        from uncertainties import ufloat, ufloat_fromstr
-        pp = pprint.pprint
+        import uncertainties as unc
         if 0:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
+        pp = pprint.pprint
         t = trm.Trm()
-        class G:
-            pass
-        g = G()     # Holder for global variables
-        ii = isinstance
-        g.C12_atomic_mass = ufloat_fromstr("11.9999999958(36)") # g/mol
+        g = dptypes.Constant()
+        g.C12_atomic_mass = unc.ufloat_fromstr("11.9999999958(36)") # g/mol
         g.max_digits = 6
         g.digits = 3    # Default number of digits
         # Named tuple for raw data
@@ -95,9 +93,9 @@ if 1:  # Header
           # ic   = <unc> Isotopic composition
           # sam  = <list> Standard atomic mass (may be a float)
           # note = <str> Notes
-        NT1 = namedtuple("AM1", "Z sym mn ram ic sam note")
+        NT1 = collections.namedtuple("NT1", "Z sym mn ram ic sam note")
         # Named tuple for atomic mass data
-        NT2 = namedtuple("AM2", "Z sym am")
+        NT2 = collections.namedtuple("NT2", "Z sym am")
         # Colors
         t.hdr = t.pur
         t.err = t.orn
@@ -106,11 +104,11 @@ if 1:  # NIST data
         'Given the string s from the NIST data, convert it to an appropriate type'
         a, b = s.split("=")
         if "(" in b:
-            value = ufloat_fromstr(b.replace("#", ""))
+            value = unc.ufloat_fromstr(b.replace("#", ""))
         elif "[" in b:
-            value = [flt(i) for i in eval(b)]
+            value = [f.flt(i) for i in eval(b)]
         elif "." in b:
-            value = flt(b)
+            value = f.flt(b)
         else:
             try:
                 value = int(b.strip())
@@ -220,11 +218,11 @@ if 1:  # NIST data
                     row.append("")
             row.append(_Symbol(i.sym, i.mn))
             row.append(f"{i.ram:.1uS}")
-            if ii(i.ic, (int, str)):
+            if isinstance(i.ic, (int, str)):
                 row.append(str(i.ic))   # It's 1 or ''
             else:
                 row.append(f"{i.ic:.1uS}")  # It's a ufloat
-            if ii(i.sam, (list, str)):
+            if isinstance(i.sam, (list, str)):
                 row.append(str(i.sam))  # It's a list of a single number
             else:
                 row.append(f"{i.sam:.1uS}") # It's a ufloat
@@ -241,7 +239,7 @@ if 1:  # NIST data
             lines = f.getvalue().split("\n")
             # Process the lines:  split and get the first token; if it's an integer
             # after the first integer, insert a newline.
-            o, dq, first = [], deque(lines), True
+            o, dq, first = [], collections.deque(lines), True
             while dq:
                 line = dq.popleft()
                 f = line.split()
@@ -266,7 +264,7 @@ if 1:  # NIST data
             return
         # Print explanation
         print()
-        print(dedent(f'''
+        print(wrap.dedent(f'''
         These data came from
         https://www.nist.gov/pml/atomic-weights-and-isotopic-compositions-relative-atomic-masses.
         Click on "All Elements" and "Linearized ASCII Output"; the "All isotopes" box
@@ -325,21 +323,21 @@ if 1:  # NIST data
                 #   '':      Set item.ic to zero unless item.sam is a list (it's a radioactive element)
                 #   1:       Use item.sam
                 for item in items:
-                    if ii(item.ic, int):    # If ic is 1, then this is the only isotope
+                    if isinstance(item.ic, int):    # If ic is 1, then this is the only isotope
                         assert item.ic == 1
-                        am = flt(item.sam.n)
+                        am = f.flt(item.sam.n)
                         break
-                    elif ii(item.ic, str):  # It's the empty string
+                    elif isinstance(item.ic, str):  # It's the empty string
                         assert not item.ic
-                        if ii(item.sam, list):
+                        if isinstance(item.sam, list):
                             # It's a radioactive element like Tc
-                            am = flt(item.sam[0])
+                            am = f.flt(item.sam[0])
                             break
                         else:
                             # There's no atomic mass contribution from this isotope
                             continue
                     else:
-                        term = flt(item.ram.n*item.ic.n)
+                        term = f.flt(item.ram.n*item.ic.n)
                         am += term
             else:
                 # Elements past plutonium:  For each element, the ic component is a
@@ -352,7 +350,7 @@ if 1:  # NIST data
                 am = int(round(am/count, 0))
             return am
         # Organize data by atomic number
-        byZ = defaultdict(list)
+        byZ = collections.defaultdict(list)
         for i in data:
             byZ[i.Z].append(i)
         # For each element, get its atomic mass by summing the mass of the isotopes by
@@ -363,7 +361,7 @@ if 1:  # NIST data
             am = GetAtomicMass(Z, items)
             el = items[0]
             # Round the atomic mass am off to the indicated number of digits
-            am = flt(roundoff.RoundOff(am, digits))
+            am = f.flt(dpmath.RoundOff(am, digits))
             if am:
                 am.n = digits
                 #am.rtz = False
@@ -385,115 +383,115 @@ if 1:   # Old set of data
             # From https://gist.github.com/Rhomboid/5994999
             # Downloaded Tue 12 Aug 2014 02:23:51 PM
             # Chemical name:  atomic mass in g/mol
-            "Ac": flt(227.0),
-            "Ag": flt(107.87),
-            "Al": flt(26.982),
-            "Am": flt(243.0),
-            "Ar": flt(39.948),
-            "As": flt(74.922),
-            "At": flt(210.0),
-            "Au": flt(196.08),
-            "B": flt(10.811),
-            "Ba": flt(137.33),
-            "Be": flt(9.0122),
-            "Bh": flt(264.0),
-            "Bi": flt(208.98),
-            "Bk": flt(247.0),
-            "Br": flt(79.904),
-            "C": flt(12.011),
-            "Ca": flt(40.078),
-            "Cd": flt(112.41),
-            "Ce": flt(140.12),
-            "Cf": flt(251.0),
-            "Cl": flt(35.453),
-            "Cm": flt(247.0),
-            "Co": flt(58.933),
-            "Cr": flt(51.996),
-            "Cs": flt(132.91),
-            "Cu": flt(63.546),
-            "Db": flt(262.0),
-            "Dy": flt(162.50),
-            "Er": flt(167.26),
-            "Es": flt(252.0),
-            "Eu": flt(151.96),
-            "F": flt(18.998),
-            "Fe": flt(55.845),
-            "Fm": flt(257.0),
-            "Fr": flt(223.0),
-            "Ga": flt(69.723),
-            "Gd": flt(157.25),
-            "Ge": flt(72.61),
-            "H": flt(1.0079),
-            "He": flt(4.0026),
-            "Hf": flt(178.49),
-            "Hg": flt(200.59),
-            "Ho": flt(164.93),
-            "Hs": flt(269.0),
-            "I": flt(126.90),
-            "In": flt(114.82),
-            "Ir": flt(192.22),
-            "K": flt(39.098),
-            "Kr": flt(83.80),
-            "La": flt(138.91),
-            "Li": flt(6.941),
-            "Lr": flt(262.0),
-            "Lu": flt(174.97),
-            "Md": flt(258.0),
-            "Mg": flt(24.305),
-            "Mn": flt(54.938),
-            "Mo": flt(95.94),
-            "Mt": flt(268.0),
-            "N": flt(14.007),
-            "Na": flt(22.990),
-            "Nb": flt(92.906),
-            "Nd": flt(144.24),
-            "Ne": flt(20.180),
-            "Ni": flt(58.693),
-            "No": flt(259.0),
-            "Np": flt(237.0),
-            "O": flt(15.999),
-            "Os": flt(190.23),
-            "P": flt(30.974),
-            "Pa": flt(231.04),
-            "Pb": flt(207.2),
-            "Pd": flt(106.42),
-            "Pm": flt(145.0),
-            "Po": flt(209.0),
-            "Pr": flt(140.91),
-            "Pt": flt(196.08),
-            "Pu": flt(244.0),
-            "Ra": flt(226.0),
-            "Rb": flt(85.468),
-            "Re": flt(186.21),
-            "Rf": flt(261.0),
-            "Rh": flt(102.91),
-            "Rn": flt(222.0),
-            "Ru": flt(101.07),
-            "S": flt(32.065),
-            "Sb": flt(121.76),
-            "Sc": flt(44.956),
-            "Se": flt(78.96),
-            "Sg": flt(266.0),
-            "Si": flt(28.086),
-            "Sm": flt(150.36),
-            "Sn": flt(118.71),
-            "Sr": flt(87.62),
-            "Ta": flt(180.95),
-            "Tb": flt(158.93),
-            "Tc": flt(97.61),
-            "Te": flt(127.60),
-            "Th": flt(232.04),
-            "Ti": flt(47.867),
-            "Tl": flt(204.38),
-            "Tm": flt(168.93),
-            "U": flt(238.03),
-            "V": flt(50.942),
-            "W": flt(183.84),
-            "Xe": flt(131.29),
-            "Y": flt(88.906),
-            "Yb": flt(173.04),
-            "Zn": flt(65.39),
-            "Zr": flt(91.224),
+            "Ac": f.flt(227.0),
+            "Ag": f.flt(107.87),
+            "Al": f.flt(26.982),
+            "Am": f.flt(243.0),
+            "Ar": f.flt(39.948),
+            "As": f.flt(74.922),
+            "At": f.flt(210.0),
+            "Au": f.flt(196.08),
+            "B": f.flt(10.811),
+            "Ba": f.flt(137.33),
+            "Be": f.flt(9.0122),
+            "Bh": f.flt(264.0),
+            "Bi": f.flt(208.98),
+            "Bk": f.flt(247.0),
+            "Br": f.flt(79.904),
+            "C": f.flt(12.011),
+            "Ca": f.flt(40.078),
+            "Cd": f.flt(112.41),
+            "Ce": f.flt(140.12),
+            "Cf": f.flt(251.0),
+            "Cl": f.flt(35.453),
+            "Cm": f.flt(247.0),
+            "Co": f.flt(58.933),
+            "Cr": f.flt(51.996),
+            "Cs": f.flt(132.91),
+            "Cu": f.flt(63.546),
+            "Db": f.flt(262.0),
+            "Dy": f.flt(162.50),
+            "Er": f.flt(167.26),
+            "Es": f.flt(252.0),
+            "Eu": f.flt(151.96),
+            "F": f.flt(18.998),
+            "Fe": f.flt(55.845),
+            "Fm": f.flt(257.0),
+            "Fr": f.flt(223.0),
+            "Ga": f.flt(69.723),
+            "Gd": f.flt(157.25),
+            "Ge": f.flt(72.61),
+            "H": f.flt(1.0079),
+            "He": f.flt(4.0026),
+            "Hf": f.flt(178.49),
+            "Hg": f.flt(200.59),
+            "Ho": f.flt(164.93),
+            "Hs": f.flt(269.0),
+            "I": f.flt(126.90),
+            "In": f.flt(114.82),
+            "Ir": f.flt(192.22),
+            "K": f.flt(39.098),
+            "Kr": f.flt(83.80),
+            "La": f.flt(138.91),
+            "Li": f.flt(6.941),
+            "Lr": f.flt(262.0),
+            "Lu": f.flt(174.97),
+            "Md": f.flt(258.0),
+            "Mg": f.flt(24.305),
+            "Mn": f.flt(54.938),
+            "Mo": f.flt(95.94),
+            "Mt": f.flt(268.0),
+            "N": f.flt(14.007),
+            "Na": f.flt(22.990),
+            "Nb": f.flt(92.906),
+            "Nd": f.flt(144.24),
+            "Ne": f.flt(20.180),
+            "Ni": f.flt(58.693),
+            "No": f.flt(259.0),
+            "Np": f.flt(237.0),
+            "O": f.flt(15.999),
+            "Os": f.flt(190.23),
+            "P": f.flt(30.974),
+            "Pa": f.flt(231.04),
+            "Pb": f.flt(207.2),
+            "Pd": f.flt(106.42),
+            "Pm": f.flt(145.0),
+            "Po": f.flt(209.0),
+            "Pr": f.flt(140.91),
+            "Pt": f.flt(196.08),
+            "Pu": f.flt(244.0),
+            "Ra": f.flt(226.0),
+            "Rb": f.flt(85.468),
+            "Re": f.flt(186.21),
+            "Rf": f.flt(261.0),
+            "Rh": f.flt(102.91),
+            "Rn": f.flt(222.0),
+            "Ru": f.flt(101.07),
+            "S": f.flt(32.065),
+            "Sb": f.flt(121.76),
+            "Sc": f.flt(44.956),
+            "Se": f.flt(78.96),
+            "Sg": f.flt(266.0),
+            "Si": f.flt(28.086),
+            "Sm": f.flt(150.36),
+            "Sn": f.flt(118.71),
+            "Sr": f.flt(87.62),
+            "Ta": f.flt(180.95),
+            "Tb": f.flt(158.93),
+            "Tc": f.flt(97.61),
+            "Te": f.flt(127.60),
+            "Th": f.flt(232.04),
+            "Ti": f.flt(47.867),
+            "Tl": f.flt(204.38),
+            "Tm": f.flt(168.93),
+            "U": f.flt(238.03),
+            "V": f.flt(50.942),
+            "W": f.flt(183.84),
+            "Xe": f.flt(131.29),
+            "Y": f.flt(88.906),
+            "Yb": f.flt(173.04),
+            "Zn": f.flt(65.39),
+            "Zr": f.flt(91.224),
         }
 if 1:  # Molecular mass
     if 1:  # Old functionality
@@ -502,7 +500,7 @@ if 1:  # Molecular mass
             for i in g.atomic_mass:
                 out.append(f"{i:2s} {g.atomic_mass[i]!s:>6s}")
             t.print(f"{t('purl')}{'Atomic masses in g/mol':^{w}s}")
-            for i in Columnize(out, col_width=15):
+            for i in columnize.Columnize(out, col_width=15):
                 print(i)
             # Now print sorted by mass
             m = []
@@ -513,7 +511,7 @@ if 1:  # Molecular mass
                 out.append(f"{mass!s:>6s} {name:2s}")
             print()
             t.print(f"{t('grn')}{'Sorted by mass in g/mol:':^{w}s}")
-            for i in Columnize(out, col_width=15):
+            for i in columnize.Columnize(out, col_width=15):
                 print(i)
             exit(0)
         def Find_closing_paren(tokens):
@@ -629,7 +627,7 @@ if __name__ == "__main__":
     keys, values = [i.lower() for i in elem2z], list(elem2z.values())
     elem2z.update(zip(keys, values))
     # Make a cmddecode object to identify user's elements
-    cmddec = CommandDecode(keys, ignore_case=True)
+    cmddec = cmddecode.CommandDecode(keys, ignore_case=True)
     def Test_MolecularMass():
         digits = g.max_digits
         di = GetAtomicMassDict(digits=digits)
@@ -645,23 +643,23 @@ if __name__ == "__main__":
         for i in elements.split():
             m = mm.mass(i)
             expected = di[i]
-            Assert(m == expected)
+            lwtest.Assert(m == expected)
             sum += m
         # Calculate elements as if it was a formula.  This should be equal to the sum we
         # just calculated.
         m = mm.mass(elements)
-        Assert(m == sum)
+        lwtest.Assert(m == sum)
         # Do a few molecular formulas
         m = CalculateMass("H2O")
-        Assert(m == 18.0148)
+        lwtest.Assert(m == 18.0148)
         m = CalculateMass("Ca(C2H3O2)2")
-        Assert(m == 158.1654)
-        Assert(isinstance(m, flt))
+        lwtest.Assert(m == 158.1654)
+        lwtest.Assert(isinstance(m, f.flt))
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
     def Usage(status=1):
-        print(dedent(f'''
+        print(wrap.dedent(f'''
         Usage:  {sys.argv[0]} [options] cmd [arguments]
           cmd
            f    Print the molecular mass of the formula(s) as arguments (case is
@@ -719,13 +717,13 @@ if __name__ == "__main__":
             elif o in ("-h", "--help"):
                 Usage(status=0)
             elif o in ("--test",):
-                exit(run(globals(), halt=True)[0])
+                exit(lwtest.run(globals(), halt=True)[0])
         if d["-u"]:
             if d["-e"]:
                 d["-e"] = min(d["-e"], 92)
             else:
                 d["-e"] = 92
-        x = flt(0)
+        x = f.flt(0)
         x.N = d["-d"]
         x.rtz = x.rtdp = True
         if d["-t"]:
@@ -748,7 +746,7 @@ if __name__ == "__main__":
                     t.print("{t.err}{arg!r}:  non-integer argument in {args!r}")
                     exit(1)
         return z
-    d = {}  # Options dictionary
+    d: dict[object, object] = {}  # Options dictionary
     args = ParseCommandLine(d)
     cmd = args.pop(0)
     if cmd == "f":
@@ -776,7 +774,7 @@ if __name__ == "__main__":
             if nt.Z in z:   # Decorate it in color if user specified it
                 s = t.hdr + s + t.n
             o.append(s)
-        for i in Columnize(o, sep=" "*4):
+        for i in columnize.Columnize(o, sep=" "*4):
             print(i)
     else:
         print(f"{cmd!r} is an unrecognized command")

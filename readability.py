@@ -259,6 +259,7 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         import dpstr
+        import dptypes
         import get
         import lwtest
         import trm
@@ -278,9 +279,7 @@ if 1:  # Header
             pass
     if 1:  # Global variables
         t = trm.Trm()
-        class G:
-            pass
-        g = G()
+        g = dptypes.Constant()
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
         # If true, print out more details
@@ -288,8 +287,6 @@ if 1:  # Header
         # Named tuple to hold textual information
         TextInfo = collections.namedtuple("TextInfo", "characters words complex_words "
                 "one_syllable_words syllables sentences wordlist")
-        # Named tuple for readability estimates
-        ReadabilityTuple = collections.namedtuple("Readability", "FK_ease FK_grade DaleChall")
         # Colors
         t.dbg = t("lill")
         t.err = t("redl")
@@ -913,7 +910,7 @@ if __name__ == "__main__":
                 elif o in ("-h", "--help"):
                     Usage(status=0)
             return files
-    d = {}  # Options dictionary
+    d: dict[object, object] = {}  # Options dictionary
     files = ParseCommandLine(d)
     header = False
     for file in files:

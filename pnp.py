@@ -25,6 +25,7 @@ if 1:  # Header
         import pprint
         import sys
     if 1:  # Custom imports
+        import dptypes
         import trm
         import wrap as Wrap
         # from columnize import Columnize
@@ -32,9 +33,7 @@ if 1:  # Header
         t = trm.Trm()
         pp = pprint.pprint
         __all__ = '''PnP'''.split()
-        class G:  # Storage for global variables as attributes
-            pass
-        g = G()
+        g = dptypes.Constant()
         g.dbg = False
         ii = isinstance
 if 1:  # Core functionality
@@ -2200,13 +2199,14 @@ if __name__ == "__main__":
             t.N = t.n if g.dbg else ""
             t.err = t("redl")
         def Dbg(*p, **kw):
+            if not hasattr(Dbg, "file"):
+                Dbg.file = sys.stdout
             if g.dbg:
                 print(f"{t.dbg}", end="", file=Dbg.file)
                 k = kw.copy()
                 k["file"] = Dbg.file
                 print(*p, **k)
                 print(f"{t.N}", end="", file=Dbg.file)
-        Dbg.file = sys.stdout
         def Error(*msg, status=1):
             print(*msg, file=sys.stderr)
             exit(status)
@@ -2234,7 +2234,7 @@ if __name__ == "__main__":
             GetColors()
             g.W, g.L = GetScreen()
             return args
-    d = {}  # Options dictionary
+    d: dict[object, object] = {}  # Options dictionary
     args = ParseCommandLine(d)
     cmd = args[0] if args else "w"
     if cmd == "0":

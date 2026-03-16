@@ -115,7 +115,7 @@ if 1:  # Header
         from f import flt
     if 1:  # Types
         Entry = namedtuple("Entry", '''N radius distance ratio density contacts
-                           loose boundary symmetry reference'''.split())
+                           loose boundary symmetry reference''')
 if 1:  # Core functionality
     def GetData(maxsize=0, numtype=flt):
         '''Return a dictionary with keys of the integer number of circles in a unit
@@ -203,21 +203,21 @@ if 1:  # Core functionality
 
 if __name__ == "__main__":
     if 1:  # Imports
-        from collections import namedtuple
-        from decimal import Decimal
-        from math import modf
+        import math
         import sys
         import getopt
     if 1:  # Custom imports
-        from f import flt
-        from wrap import dedent
-        from sig import sig
-        from lwtest import Assert
-        from color import t
+        import f 
+        import wrap
+        import sig
+        import lwtest
+        import trm
         import termtables as tt
         if 0:
             import debug
             debug.SetDebugger()
+    if 1:  # Global variables
+        t = trm.Trm()
     if 1:  # Utility
         def GetColors():
             t.Title = t.redl
@@ -233,7 +233,7 @@ if __name__ == "__main__":
             print(msg, file=sys.stderr)
             exit(status)
         def Manpage():
-            print(dedent(f'''
+            print(wrap.dedent(f'''
             Here are some problems solved by the use of this script.
              
             {t.ornl}Winding a toroidal transformer{t.n}
@@ -244,13 +244,13 @@ if __name__ == "__main__":
                 just barely able to do this, needing to put silicone grease on the tip
                 of the wire for the last turn as well as in the remaining space for this
                 wire.  It was a tight fit, but I was able to make it work.
-
+            
             '''))
             exit(0)
         def Usage(status=1):
             name = sys.argv[0]
             digits = d["-d"]
-            print(dedent(f'''
+            print(wrap.dedent(f'''
             Usage:  {name} [options] n1 [n2 ...]
               Give data on packing n1, n2, ... circles into a unit circle.  n1, n2, etc.
               are interpreted as integers, but if they contain "." or "e" or "E", they
@@ -306,7 +306,7 @@ if __name__ == "__main__":
                         Error("Argument must be between 0 and 1500.")
                 elif o == "--test":
                     Test()
-            x = flt(0)
+            x = f.flt(0)
             x.N = d["-d"]
             x.rtz = x.rtdp = False
             ok = d["-a"] or d["-n"] or d["-s"] or d["-t"] is not None or d["-T"] is not None
@@ -318,25 +318,25 @@ if __name__ == "__main__":
     if 1:  # Tests
         def Test():
             def TestWireProblem():
-                Assert(WireProblem(1, 1).N == 1)
-                Assert(WireProblem(1, 0.5).N == 1)
-                Assert(WireProblem(1, 0.465).N == 2)
-                Assert(WireProblem(1, 0.464).N == 3)
-                Assert(WireProblem(1, 0.414).N == 4)
-                Assert(WireProblem(1, 0.370).N == 5)
-                Assert(WireProblem(1, 0.333).N == 7)
-                Assert(WireProblem(1, 0.302).N == 8)
-                Assert(WireProblem(1, 0.276).N == 9)
-                Assert(WireProblem(1, 0.262).N == 10)
+                lw.Assert(WireProblem(1, 1).N == 1)
+                lw.Assert(WireProblem(1, 0.5).N == 1)
+                lw.Assert(WireProblem(1, 0.465).N == 2)
+                lw.Assert(WireProblem(1, 0.464).N == 3)
+                lw.Assert(WireProblem(1, 0.414).N == 4)
+                lw.Assert(WireProblem(1, 0.370).N == 5)
+                lw.Assert(WireProblem(1, 0.333).N == 7)
+                lw.Assert(WireProblem(1, 0.302).N == 8)
+                lw.Assert(WireProblem(1, 0.276).N == 9)
+                lw.Assert(WireProblem(1, 0.262).N == 10)
             def TestGetData():
                 data = GetData()
-                Assert(len(data) >= 2735)
+                lw.Assert(len(data) >= 2735)
                 entry = data[4]
-                Assert(isinstance(entry.radius, flt))
-                Assert(entry.radius == 2**0.5 - 1)
-                Assert(entry.distance == 2**0.5)
-                Assert(entry.contacts == 8)
-                Assert(entry.boundary == 4)
+                lw.Assert(isinstance(entry.radius, f.flt))
+                lw.Assert(entry.radius == 2**0.5 - 1)
+                lw.Assert(entry.distance == 2**0.5)
+                lw.Assert(entry.contacts == 8)
+                lw.Assert(entry.boundary == 4)
             TestWireProblem()
             TestGetData()
     if 1:  # Core functionality
@@ -346,7 +346,7 @@ if __name__ == "__main__":
             _, radius, distance, ratio, density, contacts, loose, boundary, symmetry, reference = R
             w = max(len(str(i)) for i in R[:-1])
             h, sp = " "*2, " "*2
-            print(dedent(f'''
+            print(wrap.dedent(f'''
                 {t.Title}Packing {t.N}{n}{t.Title} circles into a unit circle:{t.n}
                 {h}{t.R}{radius!s:{w}}{sp}Circle radius{t.n}
                 {h}{t.Dist}{distance!s:{w}}{sp}Largest distance between centers{t.n}
@@ -379,7 +379,7 @@ if __name__ == "__main__":
                 print(f"{'Wire diameter':{w}s}{s}{wire_diameter}")
                 print(f"{'Diameter ratio':{w}s}{s}{ratio}")
                 t.print(f"{t.ornl}{'Number of wires':{w}s}{s}{t.grnl}{entry.N}")
-                if isinstance(entry.radius, flt):
+                if isinstance(entry.radius, f.flt):
                     with entry.radius:
                         entry.radius.N = d["-d"] + 1    # Print one more digit for resolution
                         print(f"{'Theoretical ratio':{w}s}{s}{entry.radius}")
@@ -389,7 +389,7 @@ if __name__ == "__main__":
                 print("No solution")
         def TableKey():
             print()
-            print(dedent(f'''
+            print(wrap.dedent(f'''
             {t(attr="ul")}Table key{t.n}:
               {t.N}N         Number of contained circles{t.n}
               {t.R}R         Radius of contained circles{t.n}
@@ -426,17 +426,17 @@ if __name__ == "__main__":
                 out.append(o)
             tt.print(out, header, padding=(1, 1), style=" "*15, alignment="c"*len(header))
     # Main program code
-    d = {}
+    d: dict[object, object] = {}  # Options dictionary
     args = ParseCommandLine()
     results = GetData()
-    sig.digits = d["-d"]
+    sig.sig.digits = d["-d"]
     if d["-a"]:
         for i in results:
             Report(i)
-    elif d["-n"]:
+    elif d["-n"] is not None:
         for i, j in enumerate(results):
             Report(j)
-            if i >= d["-n"]:
+            if i >= d["-n"]:    # type:  ignore
                 break
     elif d["-s"]:
         # Show the records in crude table form
@@ -451,7 +451,7 @@ if __name__ == "__main__":
         else:
             Table(d["-t"])
     elif d["-w"]:
-        hole_diameter, wire_diameter = flt(args[0]), flt(args[1])
+        hole_diameter, wire_diameter = f.flt(args[0]), f.flt(args[1])
         SolveWireProblem(hole_diameter, wire_diameter)
     else:
         for arg in args:
@@ -459,7 +459,7 @@ if __name__ == "__main__":
                 if "." in arg or "e" in arg.lower():
                     # It's a float, so round to the nearest integer.  If the fractional
                     # part is 0.5 or larger, round up; otherwise round down.
-                    fp, ip = modf(abs(float(arg)))
+                    fp, ip = math.modf(abs(float(arg)))
                     if fp >= 0.5:
                         n = int(ip + 1)
                     else:

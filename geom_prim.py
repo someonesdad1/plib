@@ -97,7 +97,6 @@ if 1:  # Header
         # Global variables
         __all__ = "Ctm V Point Line Plane UseUnicode Det3 Det4".split()
         ii = isinstance
-        Numbers = tuple(Numbers)
         # If True, use Unicode symbols in string representations
         _use_unicode = False
         def UseUnicode(s=True):
@@ -175,7 +174,7 @@ if 1:  # Classes
         _eye = None
         # The _stack variable holds a copy of the CTM for push and pop
         # operations.
-        _stack = []
+        _stack = []     # type: ignore
         def __init__(self):
             if not Ctm._initialized:
                 # Note:  do not set sig.rtz to True, as you'll get
@@ -218,63 +217,33 @@ if 1:  # Classes
             # Then D was substituted for the determinant expression in
             # each term.
             a, b, c, d, e, f, g, h, i, j, k, L, m, n, o, p = self.GetCTM()
-            D = (
-                d * g * j * m
-                - c * h * j * m
-                - d * f * k * m
-                + b * h * k * m
-                + c * f * L * m
-                - b * g * L * m
-                - d * g * i * n
-                + c * h * i * n
-                + d * e * k * n
-                - a * h * k * n
-                - c * e * L * n
-                + a * g * L * n
-                + d * f * i * o
-                - b * h * i * o
-                - d * e * j * o
-                + a * h * j * o
-                + b * e * L * o
-                - a * f * L * o
-                - c * f * i * p
-                + b * g * i * p
-                + c * e * j * p
-                - a * g * j * p
-                - b * e * k * p
-                + a * f * k * p
-            )
+            D = (d*g*j*m - c*h*j*m - d*f*k*m + b*h*k*m + c*f*L*m - b*g*L*m - d*g*i*n
+                + c*h*i*n + d*e*k*n - a*h*k*n - c*e*L*n + a*g*L*n + d*f*i*o - b*h*i*o
+                - d*e*j*o + a*h*j*o + b*e*L*o - a*f*L*o - c*f*i*p + b*g*i*p + c*e*j*p
+                - a*g*j*p - b*e*k*p + a*f*k*p)
             if not D:
                 raise ValueError("Singular CTM")
             m = [
                 # Row 0
-                (-(h * k * n) + g * L * n + h * j * o - f * L * o - g * j * p + f * k * p)
-                / D,
-                (d * k * n - c * L * n - d * j * o + b * L * o + c * j * p - b * k * p) / D,
-                (-(d * g * n) + c * h * n + d * f * o - b * h * o - c * f * p + b * g * p)
-                / D,
-                (d * g * j - c * h * j - d * f * k + b * h * k + c * f * L - b * g * L) / D,
+                (-(h*k*n) + g*L*n + h*j*o - f*L*o - g*j*p + f*k*p)/D,
+                (d*k*n - c*L*n - d*j*o + b*L*o + c*j*p - b*k*p)/D,
+                (-(d*g*n) + c*h*n + d*f*o - b*h*o - c*f*p + b*g*p)/D,
+                (d*g*j - c*h*j - d*f*k + b*h*k + c*f*L - b*g*L)/D,
                 # Row 1
-                (h * k * m - g * L * m - h * i * o + e * L * o + g * i * p - e * k * p) / D,
-                (-(d * k * m) + c * L * m + d * i * o - a * L * o - c * i * p + a * k * p)
-                / D,
-                (d * g * m - c * h * m - d * e * o + a * h * o + c * e * p - a * g * p) / D,
-                (-(d * g * i) + c * h * i + d * e * k - a * h * k - c * e * L + a * g * L)
-                / D,
+                (h*k*m - g*L*m - h*i*o + e*L*o + g*i*p - e*k*p)/D,
+                (-(d*k*m) + c*L*m + d*i*o - a*L*o - c*i*p + a*k*p)/D,
+                (d*g*m - c*h*m - d*e*o + a*h*o + c*e*p - a*g*p)/D,
+                (-(d*g*i) + c*h*i + d*e*k - a*h*k - c*e*L + a*g*L)/D,
                 # Row 2
-                (-(h * j * m) + f * L * m + h * i * n - e * L * n - f * i * p + e * j * p)
-                / D,
-                (d * j * m - b * L * m - d * i * n + a * L * n + b * i * p - a * j * p) / D,
-                (-(d * f * m) + b * h * m + d * e * n - a * h * n - b * e * p + a * f * p)
-                / D,
-                (d * f * i - b * h * i - d * e * j + a * h * j + b * e * L - a * f * L) / D,
+                (-(h*j*m) + f*L*m + h*i*n - e*L*n - f*i*p + e*j*p)/D,
+                (d*j*m - b*L*m - d*i*n + a*L*n + b*i*p - a*j*p)/D,
+                (-(d*f*m) + b*h*m + d*e*n - a*h*n - b*e*p + a*f*p)/D,
+                (d*f*i - b*h*i - d*e*j + a*h*j + b*e*L - a*f*L)/D,
                 # Row 3
-                (g * j * m - f * k * m - g * i * n + e * k * n + f * i * o - e * j * o) / D,
-                (-(c * j * m) + b * k * m + c * i * n - a * k * n - b * i * o + a * j * o)
-                / D,
-                (c * f * m - b * g * m - c * e * n + a * g * n + b * e * o - a * f * o) / D,
-                (-(c * f * i) + b * g * i + c * e * j - a * g * j - b * e * k + a * f * k)
-                / D,
+                (g*j*m - f*k*m - g*i*n + e*k*n + f*i*o - e*j*o)/D,
+                (-(c*j*m) + b*k*m + c*i*n - a*k*n - b*i*o + a*j*o)/D,
+                (c*f*m - b*g*m - c*e*n + a*g*n + b*e*o - a*f*o)/D,
+                (-(c*f*i) + b*g*i + c*e*j - a*g*j - b*e*k + a*f*k)/D,
             ]
             Ctm._ICTM = m
             return m
@@ -296,7 +265,7 @@ if 1:  # Classes
                 allowed += [UFloat]
             allowed = tuple(allowed)
             for i, elem in enumerate(Ctm._CTM):
-                if not ii(elem, allowed):
+                if not isinstance(elem, allowed):
                     raise ValueError("Unallowed type for CTM[%d]" % i)
             self._check_det()
         def __str__(self):
@@ -315,16 +284,16 @@ if 1:  # Classes
             counterclockwise when the vector u is pointing into your eye.
             '''
             e = ValueError("u must be a 3-tuple or Line")
-            if ii(u, Line):
+            if isinstance(u, Line):
                 if u.is_zero:
                     raise ValueError("Axis cannot be the zero line")
                 ux, uy, uz = u.dc
-            elif ii(u, (tuple, list)):
+            elif isinstance(u, (tuple, list)):
                 if len(u) != 3:
                     raise e
                 U = hypot(u[0], hypot(u[1], u[2]))
                 # Make u a unit vector
-                ux, uy, uz = [i / U for i in u]
+                ux, uy, uz = [i/U for i in u]
             else:
                 raise e
             r = self.Rnd
@@ -339,26 +308,26 @@ if 1:  # Classes
             h = 1 - c
             # Calculate the rotation matrix elements.  Formula from
             # http://en.wikipedia.org/wiki/Rotation_matrix.
-            r00, r01, r02 = c + ux * ux * h, ux * uy * h - uz * s, ux * uz * h + uy * s
-            r10, r11, r12 = ux * uy * h + uz * s, c + uy * uy * h, uy * uz * h - ux * s
-            r20, r21, r22 = ux * uz * h - uy * s, uy * uz * h + ux * s, c + uz * uz * h
+            r00, r01, r02 = c + ux*ux*h, ux*uy*h - uz*s, ux*uz*h + uy*s
+            r10, r11, r12 = ux*uy*h + uz*s, c + uy*uy*h, uy*uz*h - ux*s
+            r20, r21, r22 = ux*uz*h - uy*s, uy*uz*h + ux*s, c + uz*uz*h
             # Multiply rotation matrix and CTM
             a, b, c, t, d, e, f, u, g, h, i, v, J, K, L, M = self.GetCTM()
             # Row 0
-            Ctm._CTM[0] = self.Rnd(a * r00 + d * r01 + g * r02)
-            Ctm._CTM[1] = self.Rnd(b * r00 + e * r01 + h * r02)
-            Ctm._CTM[2] = self.Rnd(c * r00 + f * r01 + i * r02)
-            Ctm._CTM[3] = self.Rnd(t * r00 + u * r01 + v * r02)
+            Ctm._CTM[0] = self.Rnd(a*r00 + d*r01 + g*r02)
+            Ctm._CTM[1] = self.Rnd(b*r00 + e*r01 + h*r02)
+            Ctm._CTM[2] = self.Rnd(c*r00 + f*r01 + i*r02)
+            Ctm._CTM[3] = self.Rnd(t*r00 + u*r01 + v*r02)
             # Row 1
-            Ctm._CTM[4] = self.Rnd(a * r10 + d * r11 + g * r12)
-            Ctm._CTM[5] = self.Rnd(b * r10 + e * r11 + h * r12)
-            Ctm._CTM[6] = self.Rnd(c * r10 + f * r11 + i * r12)
-            Ctm._CTM[7] = self.Rnd(t * r10 + u * r11 + v * r12)
+            Ctm._CTM[4] = self.Rnd(a*r10 + d*r11 + g*r12)
+            Ctm._CTM[5] = self.Rnd(b*r10 + e*r11 + h*r12)
+            Ctm._CTM[6] = self.Rnd(c*r10 + f*r11 + i*r12)
+            Ctm._CTM[7] = self.Rnd(t*r10 + u*r11 + v*r12)
             # Row 2
-            Ctm._CTM[8] = self.Rnd(a * r20 + d * r21 + g * r22)
-            Ctm._CTM[9] = self.Rnd(b * r20 + e * r21 + h * r22)
-            Ctm._CTM[10] = self.Rnd(c * r20 + f * r21 + i * r22)
-            Ctm._CTM[11] = self.Rnd(t * r20 + u * r21 + v * r22)
+            Ctm._CTM[8] = self.Rnd(a*r20 + d*r21 + g*r22)
+            Ctm._CTM[9] = self.Rnd(b*r20 + e*r21 + h*r22)
+            Ctm._CTM[10] = self.Rnd(c*r20 + f*r21 + i*r22)
+            Ctm._CTM[11] = self.Rnd(t*r20 + u*r21 + v*r22)
             # Row 3
             Ctm._CTM[12] = 0
             Ctm._CTM[13] = 0
@@ -436,11 +405,11 @@ if 1:  # Classes
             elif eps:
                 if abs(self.det) < eps:
                     sys.stderr.write(msg % ("Warning", " nearly singular"))
-                if abs(self.det) < 100 * eps:
+                if abs(self.det) < 100*eps:
                     sys.stderr.write(msg % ("Warning", " small"))
         def sig(self, x):
             # This lets x values near an integer be converted to integers.
-            C = ii(x, UFloat)
+            C = isinstance(x, UFloat)
             if not C and abs(self.Rnd(x - int(x))) == 0:
                 return str(int(x))
             else:
@@ -454,16 +423,16 @@ if 1:  # Classes
             '''
             if not Ctm.eps:
                 return x
-            if have_unc and ii(x, UFloat):
+            if have_unc and isinstance(x, UFloat):
                 # if x.std_dev > Ctm.eps and abs(x.nominal_value) < Ctm.eps:
                 mean, s = x.nominal_value, x.std_dev
-                if mean and abs(s / mean) < Ctm.eps:
+                if mean and abs(s/mean) < Ctm.eps:
                     x = ufloat(mean, 0)
                 elif not mean and s < Ctm.eps:
                     x = ufloat(mean, 0)
                 elif abs(mean) < Ctm.eps:
                     x = ufloat(0, s)
-            elif ii(x, (float, flt, int)):
+            elif isinstance(x, (float, flt, int)):
                 if abs(x) < Ctm.eps:
                     x = 0
                 # Convert to integer if appropriate
@@ -485,9 +454,9 @@ if 1:  # Classes
                 raise ValueError("matrix argument must be a length-16 sequence")
             x, y, z = point
             a, b, c, t, d, e, f, u, g, h, i, v, J, K, L, M = matrix
-            x0 = a * x + b * y + c * z + t
-            y0 = d * x + e * y + f * z + u
-            z0 = g * x + h * y + i * z + v
+            x0 = a*x + b*y + c*z + t
+            y0 = d*x + e*y + f*z + u
+            z0 = g*x + h*y + i*z + v
             return (x0, y0, z0)
         def GetRotationAxis(self):
             '''Return a tuple of the angle of rotation in radians and a
@@ -505,15 +474,15 @@ if 1:  # Classes
             )
             # The angle of rotation is related to the trace of the
             # rotation matrix.
-            theta = acos((R11 + R22 + R33 - 1) / 2)
-            a = 2 * sin(theta)
+            theta = acos((R11 + R22 + R33 - 1)/2)
+            a = 2*sin(theta)
             if not a:
                 return (0, (0, 0, 0))
             # I added the leading - sign to each term because of
             # changing the sign of the angle in the Rotation method.
-            x = -(R32 - R23) / a
-            y = -(R13 - R31) / a
-            z = -(R21 - R12) / a
+            x = -(R32 - R23)/a
+            y = -(R13 - R31)/a
+            z = -(R21 - R12)/a
             return (theta, (self.Rnd(x), self.Rnd(y), self.Rnd(z)))
     class V(Ctm):
         '''Model a free vector in three-dimensional space using Cartesian
@@ -533,26 +502,26 @@ if 1:  # Classes
         '''
         def __init__(self, x, y=0, z=0):
             '''A vector can be initialized by:
-            * Three numbers
-            * A Point object
-            * A 3-tuple
-            * A Line object
-            * Another vector
+           *Three numbers
+           *A Point object
+           *A 3-tuple
+           *A Line object
+           *Another vector
             '''
             Ctm.__init__(self)
-            if ii(x, Numbers) and ii(y, Numbers) and ii(z, Numbers):
+            if isinstance(x, Numbers) and isinstance(y, Numbers) and isinstance(z, Numbers):
                 self._p = Point(x, y, z)
-            elif ii(x, Point):
+            elif isinstance(x, Point):
                 self._p = x
-            elif ii(x, (tuple, list)):
+            elif isinstance(x, (tuple, list)):
                 if len(x) != 3:
                     raise ValueError("List or tuple must have 3 elements")
                 self._p = Point(*x)
-            elif ii(x, Line):
+            elif isinstance(x, Line):
                 x1, y1, z1 = x.p.rect
                 x2, y2, z2 = x.q.rect
                 self._p = Point(x2 - x1, y2 - y1, z2 - z1)
-            elif ii(x, V):
+            elif isinstance(x, V):
                 self._p = x._p.copy
             else:
                 msg = "Init with 3 numbers, point, 3-tuple, line, or vector"
@@ -574,7 +543,7 @@ if 1:  # Classes
             '''Calculate the distance between this vector's point and
             another vector's point.
             '''
-            if not ii(other, V):
+            if not isinstance(other, V):
                 raise TypeError("other must be a vector")
             x1, y1, z1 = self._p.ToCCS()
             x2, y2, z2 = other._p.ToCCS()
@@ -585,69 +554,69 @@ if 1:  # Classes
         def __ne__(self, other):
             return not (self == other)
         def __eq__(self, other):
-            if not ii(other, V):
+            if not isinstance(other, V):
                 raise TypeError("other needs to be a vector")
             return self._p == other._p
         def __add__(self, other):
-            if not ii(other, V):
+            if not isinstance(other, V):
                 raise TypeError("other needs to be a vector")
             x1, y1, z1 = self._p.ToCCS()
             x2, y2, z2 = other._p.ToCCS()
             return V(x1 + x2, y1 + y2, z1 + z2)
         def __radd__(self, other):
-            if not ii(other, V):
+            if not isinstance(other, V):
                 raise TypeError("other needs to be a vector")
             return self.__add__(other)
         def __sub__(self, other):
-            if not ii(other, V):
+            if not isinstance(other, V):
                 raise TypeError("other needs to be a vector")
             x1, y1, z1 = self._p.ToCCS()
             x2, y2, z2 = other._p.ToCCS()
             return V(x1 - x2, y1 - y2, z1 - z2)
         def __rsub__(self, other):
-            if not ii(other, V):
+            if not isinstance(other, V):
                 raise TypeError("other needs to be a vector")
             return other.__sub__(self)
         def __mul__(self, a):
             '''Multiplication by a scalar a.'''
-            if not ii(a, Numbers):
+            if not isinstance(a, Numbers):
                 raise TypeError("a needs to be a scalar")
             x, y, z = self._p.ToCCS()
-            return V(a * x, a * y, a * z)
+            return V(a*x, a*y, a*z)
         def __rmul__(self, a):
-            if not ii(a, Numbers):
+            if not isinstance(a, Numbers):
                 raise TypeError("a needs to be a scalar")
             return self.__mul__(a)
         def dot(self, other):
             '''Dot product.'''
-            if not ii(other, V):
+            if not isinstance(other, V):
                 raise TypeError("other needs to be a vector")
             x1, y1, z1 = self._p.ToCCS()
             x2, y2, z2 = other._p.ToCCS()
-            return x1 * x2 + y1 * y2 + z1 * z2
+            return x1*x2 + y1*y2 + z1*z2
         def cross(self, other):
             '''Return cross product of self X other.'''
-            if not ii(other, V):
+            if not isinstance(other, V):
                 raise TypeError("other needs to be a vector")
             ax, ay, az = self._p.ToCCS()
             bx, by, bz = other._p.ToCCS()
-            return V(ay * bz - az * by, az * bx - ax * bz, ax * by - ay * bx)
+            return V(ay*bz - az*by, az*bx - ax*bz, ax*by - ay*bx)
         def normalize(self):
             '''Normalize this vector's magnitude to unity.'''
             self._p = Point(*self.dc)
             return self
         def STP(self, other1, other2):
             '''Scalar triple product.'''
-            if not ii(other1, V):
+            if not isinstance(other1, V):
                 raise TypeError("other1 needs to be a vector")
-            if not ii(other2, V):
+            if not isinstance(other2, V):
                 raise TypeError("other2 needs to be a vector")
             return self.dot(other1.cross(other2))
         def VTP(self, other1, other2):
             '''Vector triple product.'''
-            if not ii(other1, V):
+            if not isinstance(other1, V):
                 raise TypeError("other1 needs to be a vector")
-            if not ii(other2, V):
+            if not isinstance(other2, V):
                 raise TypeError("other2 needs to be a vector")
             return self.cross(other1.cross(other2))
         @property
@@ -684,7 +653,7 @@ if 1:  # Classes
             if self.Rnd(x) == 0 and self.Rnd(y) == 0 and self.Rnd(z) == 0:
                 raise ValueError("No direction cosines for zero vector")
             L = hypot(x, hypot(y, z))
-            return (x / L, y / L, z / L)
+            return (x/L, y/L, z/L)
         @property
         def u(self):
             '''Return a unit vector object in the same direction as this
@@ -739,11 +708,11 @@ if 1:  # Classes
             Cartesian coordinates, another Point object, or a vector V.
             '''
             Ctm.__init__(self)
-            if ii(x, (list, tuple)):
+            if isinstance(x, (list, tuple)):
                 if len(x) != 3:
                     raise ValueError("x sequence wrong length")
                 self._r, self.m = x, m
-            elif ii(x, Point):
+            elif isinstance(x, Point):
                 o = x.copy
                 self._r = o._r
                 try:
@@ -751,7 +720,7 @@ if 1:  # Classes
                 except AttributeError:
                     # Just use a reference
                     self.m = o.m
-            elif ii(x, V):
+            elif isinstance(x, V):
                 self._r, self.m = x.rect, m
             else:
                 self._r, self.m = (x, y, z), m
@@ -783,14 +752,14 @@ if 1:  # Classes
                 # this works for any quadrant.  If the angle is negative,
                 # add 2*pi so that we always have theta on [0, 2*pi).
                 if Ctm._compass:
-                    theta = pi / 2 - theta
+                    theta = pi/2 - theta
                     if theta < 0:
-                        theta = R(theta + 2 * pi)
+                        theta = R(theta + 2*pi)
                 if Ctm._neg:
-                    theta = R(2 * pi - theta)
-                if theta == 2 * pi:
+                    theta = R(2*pi - theta)
+                if theta == 2*pi:
                     theta = 0
-                assert 0 <= theta < 2 * pi
+                assert 0 <= theta < 2*pi
                 return theta
             x, y, z = self.ToCCS()
             R, M = self.Rnd, ""
@@ -846,7 +815,7 @@ if 1:  # Classes
                 # If not suppressing the third coordinate, add it to the
                 # string s.
                 C1 = Ctm._elev and not R(phi)
-                C2 = not Ctm._elev and R(phi - pi / 2) == 0
+                C2 = not Ctm._elev and R(phi - pi/2) == 0
                 is_xy = C1 or C2
                 if not is_xy or no2d or not Ctm._suppress_z:
                     s += ", %s" % self.sig(R(phi))
@@ -861,23 +830,23 @@ if 1:  # Classes
             object.  To lines and planes, the distance is the
             perpendicular distance and it will always be positive.
             '''
-            if ii(other, Point):
+            if isinstance(other, Point):
                 # Need coordinates in current coordinate system
                 x1, y1, z1 = self.ToCCS()
                 x2, y2, z2 = other.ToCCS()
                 return abs(self.Rnd(hypot(hypot(x1 - x2, y1 - y2), z1 - z2)))
-            elif ii(other, Line):
+            elif isinstance(other, Line):
                 return other.dist(self)
-            elif ii(other, Plane):
+            elif isinstance(other, Plane):
                 return other.dist(self)
             else:
                 raise TypeError("other must be a point, line, or plane")
         def locate(self, point):
             '''Set point self._r to point.p.'''
-            if not ii(point, (Point, Line, Plane)):
+            if not isinstance(point, (Point, Line, Plane)):
                 msg = "The other object needs to be a point, line, or plane"
                 raise TypeError(msg)
-            if ii(point, Point):
+            if isinstance(point, Point):
                 self._r = point.rect
             else:
                 self._r = point.p.rect
@@ -892,7 +861,7 @@ if 1:  # Classes
         def __ne__(self, other):
             return not (self == other)
         def __eq__(self, other):
-            if not ii(other, Point):
+            if not isinstance(other, Point):
                 raise TypeError("The other object needs to be a point")
             x1, y1, z1 = self.ToCCS()
             x2, y2, z2 = other.ToCCS()
@@ -905,25 +874,25 @@ if 1:  # Classes
             '''Return the magnitude of the unit vector.'''
             return abs(Line(Point(0, 0, 0), Point(self.rect)))
         def __add__(self, other):
-            if not ii(other, (Point, Line, Plane)):
+            if not isinstance(other, (Point, Line, Plane)):
                 msg = "The other object needs to be a point, line, or plane"
                 raise TypeError(msg)
             ln = Line(Point(0, 0, 0), Point(self.rect))
-            if ii(other, Point):
+            if isinstance(other, Point):
                 other = Line(Point(0, 0, 0), Point(other.rect))
             return ln + other
         def __sub__(self, other):
             return self + (-other)
         def __mul__(self, other):
-            if not ii(other, Numbers):
+            if not isinstance(other, Numbers):
                 raise TypeError("The other object needs to be a number")
-            return Point([i * other for i in self.rect])
+            return Point([i*other for i in self.rect])
         def __rmul__(self, other):
-            return self * other
+            return self*other
         def __div__(self, other):
-            if not ii(other, Numbers):
+            if not isinstance(other, Numbers):
                 raise TypeError("The other object needs to be a number")
-            return self * (1 / other)
+            return self*(1/other)
         def __truediv__(self, other):
             return self.__div__(other)
         def AreCollinear(self, other1, other2):
@@ -936,11 +905,11 @@ if 1:  # Classes
             '''Return the intersection if this point intersects the other
             object; otherwise, return None.
             '''
-            if ii(other, Point):
+            if isinstance(other, Point):
                 return self if self == other else None
-            elif ii(other, Line):
+            elif isinstance(other, Line):
                 return self._intersects_line(other)
-            elif ii(other, Plane):
+            elif isinstance(other, Plane):
                 return other.intersect(self)
             else:
                 raise TypeError("other must be a point, line, or plane")
@@ -948,10 +917,10 @@ if 1:  # Classes
             '''Consider ourselves a position vector.  Dot with the vector
             that the other object represents.
             '''
-            if not ii(other, (Point, Line, Plane)):
+            if not isinstance(other, (Point, Line, Plane)):
                 raise TypeError("other must be a Point, Line, or Plane object")
             v1 = V(self.rect)
-            if ii(other, Point):
+            if isinstance(other, Point):
                 v2 = V(other.rect)
             else:
                 p, q = V(other.p), V(other.q)
@@ -961,10 +930,10 @@ if 1:  # Classes
             '''Consider ourselves a position vector.  Cross with the vector
             that the other object represents.
             '''
-            if not ii(other, (Point, Line, Plane)):
+            if not isinstance(other, (Point, Line, Plane)):
                 raise TypeError("other must be a Point, Line, or Plane object")
             v1 = V(self.rect)
-            if ii(other, Point):
+            if isinstance(other, Point):
                 v2 = V(other.rect)
             else:
                 p, q = V(other.p), V(other.q)
@@ -978,9 +947,9 @@ if 1:  # Classes
             radians and the returned value is in radians.
             '''
             def pos(ang):
-                return ang if ang >= 0 else ang + 2 * pi
+                return ang if ang >= 0 else ang + 2*pi
             if Ctm._compass:
-                ang = pos(pi / 2 - ang)
+                ang = pos(pi/2 - ang)
             if Ctm._neg:
                 ang = pos(-ang)
             return ang
@@ -990,9 +959,9 @@ if 1:  # Classes
             radians.
             '''
             def pos(ang):
-                return ang if ang >= 0 else ang + 2 * pi
+                return ang if ang >= 0 else ang + 2*pi
             if Ctm._elev:
-                ang = pi / 2 - ang
+                ang = pi/2 - ang
             return ang
         def _intersects_line(self, line):
             '''Check to see if the point satisfies the parametric
@@ -1010,17 +979,17 @@ if 1:  # Classes
                 # Swap x1 and x2
                 x1, y1, z1 = x2, y2, z2
             if r(x2 - x1):
-                t = (x0 - x1) / (x2 - x1)
+                t = (x0 - x1)/(x2 - x1)
             elif r(y2 - y1):
-                t = (y0 - y1) / (y2 - y1)
+                t = (y0 - y1)/(y2 - y1)
             elif r(z2 - z1):
-                t = (z0 - z1) / (z2 - z1)
+                t = (z0 - z1)/(z2 - z1)
             else:
                 raise ValueError("Both p and q (nearly) at origin")
             # Check that t solves each equation
-            C1 = r(t * (x2 - x1) + x1 - x0) == 0
-            C2 = r(t * (y2 - y1) + y1 - y0) == 0
-            C3 = r(t * (z2 - z1) + z1 - z0) == 0
+            C1 = r(t*(x2 - x1) + x1 - x0) == 0
+            C2 = r(t*(y2 - y1) + y1 - y0) == 0
+            C3 = r(t*(z2 - z1) + z1 - z0) == 0
             return self if C1 and C2 and C3 else None
         def _get_azimuth(self, x, y):
             '''The cylindrical theta coordinate is typically given as
@@ -1033,11 +1002,11 @@ if 1:  # Classes
             '''
             theta = atan2(y, x)
             if theta < 0:
-                theta += 2 * pi
-            if theta == 2 * pi:
+                theta += 2*pi
+            if theta == 2*pi:
                 # This can happen with e.g. atan2(1/a, a) where a = -1e8
                 theta = 0
-            assert 0 <= theta < 2 * pi
+            assert 0 <= theta < 2*pi
             return self.Rnd(theta)
         def _cyl(self):
             '''Return canonical cylindrical coordinates in radians with no
@@ -1052,15 +1021,15 @@ if 1:  # Classes
                 # uncertainty ufloats because umath tries to calculate the
                 # derivative of hypot.
                 s = 0
-                if ii(x, UFloat):
+                if isinstance(x, UFloat):
                     s = max(s, x.std_dev)
-                if ii(y, UFloat):
+                if isinstance(y, UFloat):
                     s = max(s, y.std_dev)
                 if s:
                     rho = ufloat(0, s)
                 else:
                     rho = 0
-            if ii(rho, UFloat):
+            if isinstance(rho, UFloat):
                 threshold = rho.nominal_value
             else:
                 threshold = rho
@@ -1080,9 +1049,9 @@ if 1:  # Classes
                 # uncertainty ufloats because umath tries to calculate the
                 # derivative of hypot.
                 s = 0
-                if ii(rho, UFloat):
+                if isinstance(rho, UFloat):
                     s = max(s, rho.std_dev)
-                if ii(z, UFloat):
+                if isinstance(z, UFloat):
                     s = max(s, z.std_dev)
                 if s:
                     r = ufloat(0, s)
@@ -1124,7 +1093,7 @@ if 1:  # Classes
             if R(x) == 0 and R(y) == 0 and R(z) == 0:
                 return (0, 0, 0)
             m = hypot(x, hypot(y, z))
-            return (R(x / m), R(y / m), R(z / m))
+            return (R(x/m), R(y/m), R(z/m))
         @property
         def rect(self):
             return self.ToCCS()
@@ -1144,7 +1113,7 @@ if 1:  # Classes
             R = self.Rnd
             # Convert theta to current angle measurement flavor in current
             # angular units.
-            theta = R(Ctm._angle * self.ConvertTheta(theta))
+            theta = R(Ctm._angle*self.ConvertTheta(theta))
             return (rho, theta, z)
         @property
         def sph(self):
@@ -1155,14 +1124,14 @@ if 1:  # Classes
             r, theta, phi = self._sph()
             R = self.Rnd
             # Convert angles to requisite values
-            phi = (pi / 2 - phi if Ctm._elev else phi) * Ctm._angle
-            theta = Ctm._angle * self.ConvertTheta(theta)
+            phi = (pi/2 - phi if Ctm._elev else phi)*Ctm._angle
+            theta = Ctm._angle*self.ConvertTheta(theta)
             return (R(r), R(theta), R(phi))
         def _get_x(self):
             x, y, z = self.ToCCS()
             return x
         def _set_x(self, x):
-            if not ii(x, Numbers):
+            if not isinstance(x, Numbers):
                 raise TypeError("Argument must be a number")
             self.ToCCS()
             dummy, y, z = self._r
@@ -1172,7 +1141,7 @@ if 1:  # Classes
             x, y, z = self.ToCCS()
             return y
         def _set_y(self, y):
-            if not ii(y, Numbers):
+            if not isinstance(y, Numbers):
                 raise TypeError("Argument must be a number")
             self.ToCCS()
             x, dummy, z = self._r
@@ -1182,7 +1151,7 @@ if 1:  # Classes
             x, y, z = self.ToCCS()
             return z
         def _set_z(self, z):
-            if not ii(z, Numbers):
+            if not isinstance(z, Numbers):
                 raise TypeError("Argument must be a number")
             self.ToCCS()
             x, y, dummy = self._r
@@ -1191,67 +1160,67 @@ if 1:  # Classes
         def _get_rho(self):
             return self.cyl[0]
         def _set_rho(self, val):
-            if not ii(val, Numbers):
+            if not isinstance(val, Numbers):
                 raise TypeError("Argument must be a number")
             rho, theta, z = self.cyl
             R = self.Rnd
             e = ValueError("Argument must >= 0")
-            if ii(val, UFloat):
+            if isinstance(val, UFloat):
                 if val.nominal_value < 0:
                     raise e
             else:
                 if val < 0:
                     raise e
-            x, y = R(val * cos(theta / Ctm._angle)), R(val * sin(theta / Ctm._angle))
+            x, y = R(val*cos(theta/Ctm._angle)), R(val*sin(theta/Ctm._angle))
             self._r = (x, y, z)
             self.ToDCS()  # Propagates change back to self._r0
         def _get_r(self):
             return self.sph[0]
         def _set_r(self, val):
-            if not ii(val, Numbers):
+            if not isinstance(val, Numbers):
                 raise TypeError("Argument must be a number")
             r, theta, phi = self.sph
             # Convert angles to radians.  Also convert theta to the
             # customary polar angle.
-            theta = self.ConvertTheta(theta / Ctm._angle)
+            theta = self.ConvertTheta(theta/Ctm._angle)
             phi /= Ctm._angle
             # Convert phi if elevation mode is on
             if Ctm._elev:
-                phi -= pi / 2
+                phi -= pi/2
             R = self.Rnd
             e = ValueError("Argument must >= 0")
-            if ii(val, UFloat) and val.nominal_value < 0:
+            if isinstance(val, UFloat) and val.nominal_value < 0:
                 raise e
             else:
                 if val < 0:
                     raise e
-            rho = val * sin(phi)
-            x, y, z = R(rho * cos(theta)), R(rho * sin(theta)), R(val * cos(phi))
+            rho = val*sin(phi)
+            x, y, z = R(rho*cos(theta)), R(rho*sin(theta)), R(val*cos(phi))
             self._r = (x, y, z)
             self.ToDCS()  # Propagates change back to self._r0
         def _get_theta(self):
             return self.cyl[1]
         def _set_theta(self, val):
-            if not ii(val, Numbers):
+            if not isinstance(val, Numbers):
                 raise TypeError("Argument must be a number")
             rho, theta, z = self.cyl
             # Convert theta to radians and have it be the customary polar
             # angle.
-            theta = self.ConvertTheta(val / Ctm._angle)
+            theta = self.ConvertTheta(val/Ctm._angle)
             R = self.Rnd
-            theta = fmod(theta, 2 * pi)
-            x, y = R(rho * cos(theta)), R(rho * sin(theta))
+            theta = fmod(theta, 2*pi)
+            x, y = R(rho*cos(theta)), R(rho*sin(theta))
             self._r = (x, y, z)
             self.ToDCS()  # Propagates change back to self._r0
         def _get_phi(self):
             return self.sph[2]
         def _set_phi(self, val):
-            if not ii(val, Numbers):
+            if not isinstance(val, Numbers):
                 raise TypeError("Argument must be a number")
             r, theta, phi = self.sph
             R = self.Rnd
             e = ValueError("Argument must >= 0")
-            if ii(val, UFloat):
+            if isinstance(val, UFloat):
                 if val.nominal_value < 0:
                     raise e
             else:
@@ -1261,10 +1230,10 @@ if 1:  # Classes
             val /= Ctm._angle
             if Ctm._elev:
                 # It's psi; convert to complement phi
-                val = pi / 2 - val
+                val = pi/2 - val
             phi = fmod(val, pi)
-            rho = r * sin(phi)
-            x, y, z = R(rho * cos(theta)), R(rho * sin(theta)), R(r * cos(phi))
+            rho = r*sin(phi)
+            x, y, z = R(rho*cos(theta)), R(rho*sin(theta)), R(r*cos(phi))
             self._r = (x, y, z)
             self.ToDCS()  # Propagates change back to self._r0
         x = property(_get_x, _set_x)
@@ -1292,25 +1261,25 @@ if 1:  # Classes
             '''
             Ctm.__init__(self)
             self.is_zero = False
-            if not ii(p, Point):
+            if not isinstance(p, Point):
                 raise ValueError("p must be a point")
-            if ii(q, Point):
+            if isinstance(q, Point):
                 # Note we need to allow for the case of the zero vector.
                 # This can happen e.g. when a vector is crossed into
                 # itself.
                 if p == q:
                     self.is_zero = True
                 self._p, self._q = p, q
-            elif ii(q, (tuple, list)):
+            elif isinstance(q, (tuple, list)):
                 if len(q) != 3:
                     raise ValueError("q must have 3 elements")
                 if tuple(q) == (0, 0, 0):
                     raise ValueError("Not all direction numbers can be zero")
                 a, b, c = q
-                D = sqrt(a * a + b * b + c * c)
+                D = sqrt(a*a + b*b + c*c)
                 # Convert to direction cosines
                 if D:
-                    a, b, c = tuple([i / D for i in (a, b, c)])
+                    a, b, c = tuple([i/D for i in (a, b, c)])
                     # Get second point
                     x, y, z = p.rect
                     pt2 = Point(x + a, y + b, z + c)
@@ -1320,7 +1289,7 @@ if 1:  # Classes
                 else:
                     self._p, self._q = Point(0, 0, 0), Point(0, 0, 0)
                     self.is_zero = True
-            elif ii(q, Line):
+            elif isinstance(q, Line):
                 if q.is_zero:
                     self._p, self._q = Point(0, 0, 0), Point(0, 0, 0)
                 else:
@@ -1360,7 +1329,7 @@ if 1:  # Classes
         def __ne__(self, other):
             return not (self == other)
         def __eq__(self, other):
-            if not ii(other, Line):
+            if not isinstance(other, Line):
                 raise TypeError("The other object needs to be a line")
             sx1, sy1, sz1 = self.p.ToCCS()
             sx2, sy2, sz2 = self.q.ToCCS()
@@ -1388,11 +1357,11 @@ if 1:  # Classes
             expressions like 'i + xz', we want the result of addition with
             a Plane to be another Plane, as this seems the most useful.
             '''
-            if not ii(other, (Point, Line, Plane)):
+            if not isinstance(other, (Point, Line, Plane)):
                 msg = "The other object needs to be a point, line, or plane"
                 raise TypeError(msg)
-            conv = True if ii(other, Plane) else False
-            if ii(other, Point):
+            conv = True if isinstance(other, Plane) else False
+            if isinstance(other, Point):
                 other = Line(Point(0, 0, 0), other.p)
             # This is vector addition
             p1, q1 = V(self.p), V(self.q)
@@ -1404,7 +1373,7 @@ if 1:  # Classes
             else:
                 return Line(Point(0, 0, 0), Point(r))
         def __sub__(self, other):
-            if not ii(other, (Line, Plane)):
+            if not isinstance(other, (Line, Plane)):
                 raise TypeError("The other object needs to be a line")
             # This is vector subtraction
             p1, q1 = V(self.p), V(self.q)
@@ -1413,16 +1382,16 @@ if 1:  # Classes
             r = r1 - r2
             return Line(Point(0, 0, 0), Point(r))
         def __mul__(self, other):
-            if not ii(other, Numbers):
+            if not isinstance(other, Numbers):
                 raise TypeError("The other object needs to be a number")
-            p, q = V(self.p) * other, V(self.q) * other
+            p, q = V(self.p)*other, V(self.q)*other
             return Line(Point(p), Point(q))
         def __rmul__(self, other):
-            return self * other
+            return self*other
         def __div__(self, other):
-            if not ii(other, Numbers):
+            if not isinstance(other, Numbers):
                 raise TypeError("The other object needs to be a number")
-            return self * (1 / other)
+            return self*(1/other)
         def __truediv__(self, other):
             return self.__div__(other)
         def locate(self, point):
@@ -1431,30 +1400,30 @@ if 1:  # Classes
             can be a Point, Line, or Plane (the p point is taken if it's a
             line or plane).
             '''
-            if not ii(point, (Point, Line, Plane)):
+            if not isinstance(point, (Point, Line, Plane)):
                 msg = "The other object needs to be a point, line, or plane"
                 raise TypeError(msg)
             a, b, c = self.dc  # Get our direction
             L = self.L  # Save our length
-            if ii(point, Point):
+            if isinstance(point, Point):
                 self._p = point
             else:
                 self._p = point.p
             x, y, z = self.p.rect
-            self._q = Point(x + L * a, y + L * b, z + L * c)
+            self._q = Point(x + L*a, y + L*b, z + L*c)
         def intersect(self, other):
             '''Return the intersection if this line intersects the other
             object; otherwise, return None.
             '''
             if self.is_zero:
                 return None
-            elif ii(other, Point):
+            elif isinstance(other, Point):
                 return other.intersect(self)
-            elif ii(other, Plane):
+            elif isinstance(other, Plane):
                 # Note we must check for a Plane first, as a Plane will
                 # also be an instance of a line.
                 return other.intersect(self)
-            elif ii(other, Line):
+            elif isinstance(other, Line):
                 if self == other:
                     return self
                 # Find the intersection point.  The method is to solve for
@@ -1471,24 +1440,24 @@ if 1:  # Classes
                 # g = y1 + t*n1y - y2 - s*n2y;
                 # h = z1 + t*n1z - z2 - s*n2z;
                 # FortranForm[Solve[{f==0, g==0}, {s, t}]]
-                Dxy = n1y * n2x - n1x * n2y
-                Dxz = n1z * n2x - n1x * n2z
-                Dyz = n1z * n2y - n1y * n2z
+                Dxy = n1y*n2x - n1x*n2y
+                Dxz = n1z*n2x - n1x*n2z
+                Dyz = n1z*n2y - n1y*n2z
                 if Dxy:
-                    #s = -(-(n1y * x1) + n1y * x2 + n1x * y1 - n1x * y2) / Dxy
-                    t = -(-(n2y * x1) + n2y * x2 + n2x * y1 - n2x * y2) / Dxy
+                    #s = -(-(n1y*x1) + n1y*x2 + n1x*y1 - n1x*y2)/Dxy
+                    t = -(-(n2y*x1) + n2y*x2 + n2x*y1 - n2x*y2)/Dxy
                 elif Dxz:
-                    #s = -(-(n1z * x1) + n1z * x2 + n1x * z1 - n1x * z2) / Dxz
-                    t = -(-(n2z * x1) + n2z * x2 + n2x * z1 - n2x * z2) / Dxz
+                    #s = -(-(n1z*x1) + n1z*x2 + n1x*z1 - n1x*z2)/Dxz
+                    t = -(-(n2z*x1) + n2z*x2 + n2x*z1 - n2x*z2)/Dxz
                 elif Dyz:
-                    #s = -(-(n1z * y1) + n1z * y2 + n1y * z1 - n1y * z2) / Dyz
-                    t = -(-(n2z * y1) + n2z * y2 + n2y * z1 - n2y * z2) / Dyz
+                    #s = -(-(n1z*y1) + n1z*y2 + n1y*z1 - n1y*z2)/Dyz
+                    t = -(-(n2z*y1) + n2z*y2 + n2y*z1 - n2y*z2)/Dyz
                 else:
                     # Lines don't intersect
                     return None
-                x = x1 + t * n1x
-                y = y1 + t * n1y
-                z = z1 + t * n1z
+                x = x1 + t*n1x
+                y = y1 + t*n1y
+                z = z1 + t*n1z
                 return Point(x, y, z)
             else:
                 raise TypeError("other must be a point, line, or plane")
@@ -1499,7 +1468,7 @@ if 1:  # Classes
             '''
             if self.is_zero:
                 raise ValueError("Is the zero vector")
-            elif ii(other, Point):
+            elif isinstance(other, Point):
                 # http://mathforum.org/dr.math/faq/formulas/faq.ag3.html
                 # Also Corral, Vector Calculus, pg 33.
                 x1, y1, z1 = self.p.rect  # Any point on the line
@@ -1507,17 +1476,17 @@ if 1:  # Classes
                 a, b, c = self.dc
                 mu = V(a, b, c)
                 numer = (
-                    (c * (y2 - y1) - b * (z2 - z1)) ** 2
-                    + (a * (z2 - z1) - c * (x2 - x1)) ** 2
-                    + (b * (x2 - x1) - a * (y2 - y1)) ** 2
+                    (c*(y2 - y1) - b*(z2 - z1)) ** 2
+                    + (a*(z2 - z1) - c*(x2 - x1)) ** 2
+                    + (b*(x2 - x1) - a*(y2 - y1)) ** 2
                 )
                 denom = mu.dot(mu)
-                return self.Rnd(sqrt(abs(numer / denom)))
-            elif ii(other, Plane):
+                return self.Rnd(sqrt(abs(numer/denom)))
+            elif isinstance(other, Plane):
                 # Note we must check for a Plane first, as a Plane will
                 # also be an instance of a line.
                 return other.dist(self)
-            elif ii(other, Line):
+            elif isinstance(other, Line):
                 # These formulas are from
                 # http://pages.pacificcoast.net/~cazelais/251/distance.pdf.
                 r1 = V(self.p.rect)  # Point on the first line
@@ -1539,10 +1508,10 @@ if 1:  # Classes
             '''
             if self.is_zero:
                 return 0
-            if not ii(other, (Point, Line, Plane)):
+            if not isinstance(other, (Point, Line, Plane)):
                 raise TypeError("other must be a Point, Line, or Plane object")
             r1 = V(self.q) - V(self.p)  # The vector self is
-            if ii(other, Point):
+            if isinstance(other, Point):
                 r2 = V(other.rect)  # The vector other is
             else:
                 r2 = V(other.q) - V(other.p)  # The vector other is
@@ -1553,10 +1522,10 @@ if 1:  # Classes
             '''
             if self.is_zero:
                 return self.copy
-            if not ii(other, (Point, Line, Plane)):
+            if not isinstance(other, (Point, Line, Plane)):
                 raise TypeError("other must be a Point, Line, or Plane object")
             r1 = V(self.q) - V(self.p)  # The vector self is
-            if ii(other, Point):
+            if isinstance(other, Point):
                 r2 = V(other.rect)  # The vector other is
             else:
                 r2 = V(other.q) - V(other.p)  # The vector other is
@@ -1584,7 +1553,7 @@ if 1:  # Classes
             L = hypot(x1 - x2, hypot(y1 - y2, z1 - z2))
             if not L:
                 raise RuntimeError("Bug in Line.dc:  zero length vector")
-            return ((x2 - x1) / L, (y2 - y1) / L, (z2 - z1) / L)
+            return ((x2 - x1)/L, (y2 - y1)/L, (z2 - z1)/L)
         @property
         def L(self):
             '''Returns the length of the line segment.'''
@@ -1603,11 +1572,11 @@ if 1:  # Classes
             x2, y2, z2 = self.q.ToCCS()
             if not L:
                 raise ValueError("Zero vector")
-            return ((x2 - x1) / L, (y2 - y1) / L, (z2 - z1) / L)
+            return ((x2 - x1)/L, (y2 - y1)/L, (z2 - z1)/L)
         def _get_p(self):
             return self._p
         def _set_p(self, p):
-            if not ii(p, Point):
+            if not isinstance(p, Point):
                 raise ValueError("p must be set to a Point object")
             if self.q == p:
                 raise ValueError("p must be distinct from q")
@@ -1615,7 +1584,7 @@ if 1:  # Classes
         def _get_q(self):
             return self._q
         def _set_q(self, pt):
-            if not ii(pt, Point):
+            if not isinstance(pt, Point):
                 raise ValueError("q must be set to a point")
             if self.p == pt:
                 raise ValueError("q must be distinct from p")
@@ -1631,21 +1600,21 @@ if 1:  # Classes
         def __init__(self, *par):
             '''There are a variety of ways to define a plane (pt = Point
             type, ln = Line type, pl = Plane type):
-                * pl: copy of existing Plane object
-                * ln: make the plane the same as the line, but normalized
-                * pt1, pt2, pt3: three noncollinear points.
-                * pt, ln1, ln2:  a point and two lines (the line's cross
+               *pl: copy of existing Plane object
+               *ln: make the plane the same as the line, but normalized
+               *pt1, pt2, pt3: three noncollinear points.
+               *pt, ln1, ln2:  a point and two lines (the line's cross
                 product determines the plane's normal).
-                * pt, ln:  a point and a line; the plane will contain
+               *pt, ln:  a point and a line; the plane will contain
                 the line and the line is a normal to the plane.
-                * pt, pl:  a point and a plane; the new plane will be
+               *pt, pl:  a point and a plane; the new plane will be
                 parallel to the given plane and pass through the point.
                 
             These aren't implemented yet:
-                * ln1, ln2:  two lines that intersect; the plane's normal
+               *ln1, ln2:  two lines that intersect; the plane's normal
                 will be defined by the cross product and the plane will
                 contain the lines.
-                * ln1, ln2:  two lines that don't intersect; the plane
+               *ln1, ln2:  two lines that don't intersect; the plane
                 will contain the first line and be parallel to the
                 second line.
             '''
@@ -1657,20 +1626,20 @@ if 1:  # Classes
             # a Line object.
             if len(par) == 1:
                 # Initialize by making a copy of a Plane object
-                if not ii(par[0], (Line, Plane)):
+                if not isinstance(par[0], (Line, Plane)):
                     msg = "Require a plane or line for one-parameter initialization"
                     raise ValueError(msg)
                 super(Plane, self).__init__(par[0]._p.copy, par[0]._q.copy)
                 self.normalize()
             elif len(par) == 2:
-                C1a = ii(par[0], Point) and ii(par[1], Plane)
-                C1b = ii(par[0], Plane) and ii(par[1], Point)
+                C1a = isinstance(par[0], Point) and isinstance(par[1], Plane)
+                C1b = isinstance(par[0], Plane) and isinstance(par[1], Point)
                 C1 = C1a or C1b
-                C2a = ii(par[0], Point) and ii(par[1], Line)
-                C2b = ii(par[0], Line) and ii(par[1], Point)
+                C2a = isinstance(par[0], Point) and isinstance(par[1], Line)
+                C2b = isinstance(par[0], Line) and isinstance(par[1], Point)
                 C2 = C2a or C2b
-                C3 = ii(par[0], Line) and ii(par[1], Line)
-                C4 = ii(par[0], Point) and ii(par[1], Point)
+                C3 = isinstance(par[0], Line) and isinstance(par[1], Line)
+                C4 = isinstance(par[0], Point) and isinstance(par[1], Point)
                 if C1:
                     # The new plane will pass through the point and be
                     # parallel to the existing plane.
@@ -1730,10 +1699,10 @@ if 1:  # Classes
                     raise ValueError("Improper types of parameters")
             elif len(par) == 3:
                 p, q, p3 = par
-                C1 = ii(p, Point) and ii(q, Point) and ii(p3, Point)
-                C2a = ii(par[0], Point) and ii(par[1], Line) and ii(par[2], Line)
-                C2b = ii(par[0], Line) and ii(par[1], Point) and ii(par[2], Line)
-                C2c = ii(par[0], Line) and ii(par[1], Line) and ii(par[2], Point)
+                C1 = isinstance(p, Point) and isinstance(q, Point) and isinstance(p3, Point)
+                C2a = isinstance(par[0], Point) and isinstance(par[1], Line) and isinstance(par[2], Line)
+                C2b = isinstance(par[0], Line) and isinstance(par[1], Point) and isinstance(par[2], Line)
+                C2c = isinstance(par[0], Line) and isinstance(par[1], Line) and isinstance(par[2], Point)
                 C2 = C2a or C2b or C2c
                 if C1:
                     # Plane from 3 points
@@ -1808,7 +1777,7 @@ if 1:  # Classes
             # Return True if the point other is in the plane.
             # The point must satisfy the plane's equation to
             # intersect it.
-            if not ii(other, Point):
+            if not isinstance(other, Point):
                 raise TypeError("other must be a point")
             if self.is_zero:
                 return False
@@ -1818,9 +1787,9 @@ if 1:  # Classes
         def intersect(self, other):
             if self.is_zero:
                 return None
-            elif ii(other, Point):
+            elif isinstance(other, Point):
                 return other if self._pt_in_plane(other) else None
-            elif ii(other, Plane):
+            elif isinstance(other, Plane):
                 n, no = V(self.dc), V(other.dc)
                 if self.Rnd(n.dot(no) - 1) == 0:
                     # Planes are parallel
@@ -1832,16 +1801,16 @@ if 1:  # Classes
                 a = Det2((B1, C1, B2, C2))
                 b = Det2((C1, A1, C2, A2))
                 c = Det2((A1, B1, A2, B2))
-                mu = a * a + b * b + c * c
+                mu = a*a + b*b + c*c
                 assert mu, "Bug:  planes are parallel"
                 # Intersection point (x, y, z)
-                x = (b * Det2((D1, C1, D2, C2)) - c * Det2((D1, B1, D2, B2))) / mu
-                y = (c * Det2((D1, A1, D2, A2)) - a * Det2((D1, C1, D2, C2))) / mu
-                z = (a * Det2((D1, B1, D2, B2)) - b * Det2((D1, A1, D2, A2))) / mu
+                x = (b*Det2((D1, C1, D2, C2)) - c*Det2((D1, B1, D2, B2)))/mu
+                y = (c*Det2((D1, A1, D2, A2)) - a*Det2((D1, C1, D2, C2)))/mu
+                z = (a*Det2((D1, B1, D2, B2)) - b*Det2((D1, A1, D2, A2)))/mu
                 p = Point(x, y, z)
-                q = Point(x + a / mu, y + b / mu, z + c / mu)
+                q = Point(x + a/mu, y + b/mu, z + c/mu)
                 return Line(p, q)
-            elif ii(other, Line):
+            elif isinstance(other, Line):
                 # The line will intersect the plane if it's not parallel
                 # to it.  If it's a line segment, then the intersection
                 # point must be between the Line's two points, inclusive.
@@ -1856,8 +1825,8 @@ if 1:  # Classes
                 # Method from [an:82].
                 rl, nl = V(other.p.rect), V(other.dc)
                 rp, np = V(self.p.rect), V(self.dc)
-                G = np.dot(rp - rl) / nl.dot(np)
-                ri = rl + G * nl
+                G = np.dot(rp - rl)/nl.dot(np)
+                ri = rl + G*nl
                 pt = Point(ri)
                 # xxz Need to handle case where it's a line segment
                 return pt
@@ -1871,14 +1840,14 @@ if 1:  # Classes
             R = self.Rnd
             if self.is_zero:
                 raise ValueError("Plane is the zero plane")
-            elif ii(other, Point):
+            elif isinstance(other, Point):
                 # [an:85]
                 n = self.n  # Unit normal vector to plane
                 r = V(other.rect)
                 return abs(self.Rnd(n.dot(r)))
-            elif ii(other, Plane):
+            elif isinstance(other, Plane):
                 return self.dist(other.p)
-            elif ii(other, Line):
+            elif isinstance(other, Line):
                 # The distance will be zero unless the line is parallel to
                 # the plane.  The line will be parallel to the plane if
                 # the line is perpendicular to the plane's normal.
@@ -1915,7 +1884,7 @@ if 1:  # Classes
             return mu.dot(r0)
         def _set_p(self, p):
             '''Set the point self.p to a given point.'''
-            if not ii(p, Point):
+            if not isinstance(p, Point):
                 raise ValueError("p must be a Point object")
             if self.q == p:
                 self.is_zero = True
@@ -1924,7 +1893,7 @@ if 1:  # Classes
                 self.is_zero = False
         def _set_q(self, q):
             '''Set the point self.q to a given point.'''
-            if not ii(q, Point):
+            if not isinstance(q, Point):
                 raise ValueError("q must be a Point object")
             if self.p == q:
                 self.is_zero = True
@@ -1942,20 +1911,20 @@ if 1:  # Core functionality
         '''If one of the numbers in the sequence lst is an uncertainty
         type, return True.
         '''
-        if ii(lst, (tuple, list)):
+        if isinstance(lst, (tuple, list)):
             for i in lst:
-                if ii(i, UFloat):
+                if isinstance(i, UFloat):
                     return True
             return False
         else:
-            return ii(lst, UFloat)
+            return isinstance(lst, UFloat)
     def Det2(matrix):
         '''Calculate a 2x2 determinant:
         | a b |
         | c d |
         '''
         a, b, c, d = matrix
-        return a * d - b * c
+        return a*d - b*c
     def Det3(matrix):
         '''Calculate a 3x3 determinant:
         | a b c |
@@ -1963,16 +1932,16 @@ if 1:  # Core functionality
         | g h i |
         '''
         a, b, c, d, e, f, g, h, i = matrix
-        return a * Det2((e, f, h, i)) - b * Det2((d, f, g, i)) + c * Det2((d, e, g, h))
+        return a*Det2((e, f, h, i)) - b*Det2((d, f, g, i)) + c*Det2((d, e, g, h))
     def Det4(matrix):
         '''Calculate a 4x4 determinant.'''
         a, b, c, d, e, f, g, h, i, j, k, L, m, n, o, p = matrix
         # Expand along first row
         return (
-            a * Det3((f, g, h, j, k, L, n, o, p))
-            + -b * Det3((e, g, h, i, k, L, m, o, p))
-            + c * Det3((e, f, h, i, j, L, m, n, p))
-            + -d * Det3((e, f, g, i, j, k, m, n, o))
+            a*Det3((f, g, h, j, k, L, n, o, p))
+            + -b*Det3((e, g, h, i, k, L, m, o, p))
+            + c*Det3((e, f, h, i, j, L, m, n, p))
+            + -d*Det3((e, f, g, i, j, k, m, n, o))
         )
 
 if __name__ == "__main__":
@@ -2034,7 +2003,7 @@ if __name__ == "__main__":
                 return np.matrix(A)
             c, p = Ctm(), Point(0, 0, 0)
             c.SetCTM(rm[:])
-            P, n = MakeMatrix(c.GetCTM()) * MakeMatrix(c.GetICTM()), 4
+            P, n = MakeMatrix(c.GetCTM())*MakeMatrix(c.GetICTM()), 4
             # P should be the identity matrix
             for i in range(n):
                 for j in range(n):
@@ -2060,7 +2029,7 @@ if __name__ == "__main__":
                 return A
             c, p = Ctm(), Point(0, 0, 0)
             c.SetCTM(rm[:])
-            P, n = MakeMatrix(c.GetCTM()) * MakeMatrix(c.GetICTM()), 4
+            P, n = MakeMatrix(c.GetCTM())*MakeMatrix(c.GetICTM()), 4
             # P should be the identity matrix
             for i in range(n):
                 for j in range(n):
@@ -2108,8 +2077,8 @@ if __name__ == "__main__":
         # Subtraction
         assert_equal(i - j, V(1, -1, 0))
         # Multiplication
-        assert_equal(2 * i, V(2, 0, 0))
-        assert_equal(i * 2, V(2, 0, 0))
+        assert_equal(2*i, V(2, 0, 0))
+        assert_equal(i*2, V(2, 0, 0))
         # Dot product
         assert_equal(i.dot(j), 0)
         assert_equal(i.dot(i), 1)
@@ -2132,14 +2101,14 @@ if __name__ == "__main__":
         # rect property
         assert_equal(i.rect, (1, 0, 0))
         # dc property
-        a = 1 / math.sqrt(3)
+        a = 1/math.sqrt(3)
         assert_equal(i.dc, (1, 0, 0))
         assert_equal(v.dc, (a, a, a), abstol=eps)
         # u property
-        a = 1 / math.sqrt(3)
+        a = 1/math.sqrt(3)
         assert_equal(v.u, V(a, a, a))
         # cyl property
-        assert_equal(v.cyl, (math.sqrt(2), math.pi / 4, 1))
+        assert_equal(v.cyl, (math.sqrt(2), math.pi/4, 1))
         rho, theta, z = v.cyl
         assert_equal(v.rho, rho)
         assert_equal(v.theta, theta)
@@ -2189,7 +2158,7 @@ if __name__ == "__main__":
         assert_equal(str(i), "Pt<<1, 0, 1.571>>")
         Ctm._elev = True
         assert_equal(str(i), "Pt<<1, 0, 0 E>>")
-        Ctm._angle = 180 / math.pi
+        Ctm._angle = 180/math.pi
         Ctm._angle_name = "deg"
         assert_equal(str(i), "Pt<<1, 0, 0 Eo>>")
         # Conversions to cylindrical and spherical coordinates
@@ -2206,58 +2175,58 @@ if __name__ == "__main__":
                 Ctm._compass = False
                 Ctm._neg = False
                 Ctm._elev = False
-                d2r = math.pi / 180 if deg else 1
+                d2r = math.pi/180 if deg else 1
                 # Basics
                 p = Point(1, 2, 3)
                 assert_equal(p.rect, (1, 2, 3))
                 rho, theta, z = p.cyl
                 assert_equal(p.Rnd(rho - math.sqrt(5)), 0)
-                assert_equal(p.Rnd(d2r * theta - math.atan(2)), 0)
+                assert_equal(p.Rnd(d2r*theta - math.atan(2)), 0)
                 assert_equal(p.Rnd(z - 3), 0)
                 r, theta, phi = p.sph
                 assert_equal(p.Rnd(r - math.sqrt(14)), 0)
-                assert_equal(p.Rnd(d2r * theta - math.atan(2)), 0)
-                assert_equal(p.Rnd(d2r * phi - math.atan(math.sqrt(5) / 3)), 0)
+                assert_equal(p.Rnd(d2r*theta - math.atan(2)), 0)
+                assert_equal(p.Rnd(d2r*phi - math.atan(math.sqrt(5)/3)), 0)
                 # Compass mode
                 o = Point(0, 0, 0)
                 i, j = Line(o, Point(1, 0, 0)), Line(o, Point(0, 1, 0))
                 k = Line(o, Point(0, 0, 1))
                 Ctm._compass = True
                 rho, theta, z = i.q.cyl
-                assert_equal(i.Rnd(d2r * theta), math.pi / 2)
+                assert_equal(i.Rnd(d2r*theta), math.pi/2)
                 rho, theta, z = j.q.cyl
-                assert_equal(i.Rnd(d2r * theta), 0)
+                assert_equal(i.Rnd(d2r*theta), 0)
                 ij = i + j
                 rho, theta, z = ij.q.cyl
-                assert_equal(i.Rnd(d2r * theta - math.pi / 4), 0)
+                assert_equal(i.Rnd(d2r*theta - math.pi/4), 0)
                 # Negative mode
                 Ctm._compass = False
                 Ctm._neg = True
                 rho, theta, z = j.q.cyl
-                assert_equal(i.Rnd(d2r * theta - 3 * math.pi / 2), 0)
+                assert_equal(i.Rnd(d2r*theta - 3*math.pi/2), 0)
                 rho, theta, z = ij.q.cyl
-                assert_equal(i.Rnd(d2r * theta - 7 * math.pi / 4), 0)
+                assert_equal(i.Rnd(d2r*theta - 7*math.pi/4), 0)
                 Ctm._compass = True
                 rho, theta, z = ij.q.cyl
-                assert_equal(i.Rnd(d2r * theta - 7 * math.pi / 4), 0)
+                assert_equal(i.Rnd(d2r*theta - 7*math.pi/4), 0)
                 # Elevation mode
                 Ctm._compass = False
                 Ctm._neg = False
                 Ctm._elev = True
                 r, theta, phi = ij.q.sph
-                assert_equal(i.Rnd(d2r * phi), 0)
+                assert_equal(i.Rnd(d2r*phi), 0)
                 ijk = i + j + k
                 r, theta, phi = ijk.q.sph
                 assert_equal(i.Rnd(r), math.sqrt(3), abstol=eps)
-                assert_equal(i.Rnd(d2r * theta - math.pi / 4), 0)
-                assert_equal(i.Rnd(d2r * phi - math.atan(1 / math.sqrt(2))), 0)
+                assert_equal(i.Rnd(d2r*theta - math.pi/4), 0)
+                assert_equal(i.Rnd(d2r*phi - math.atan(1/math.sqrt(2))), 0)
                 ijmk = i + j - k
                 r, theta, phi = ijmk.q.sph
-                assert_equal(i.Rnd(d2r * phi + math.atan(1 / math.sqrt(2))), 0)
+                assert_equal(i.Rnd(d2r*phi + math.atan(1/math.sqrt(2))), 0)
             Ctm._angle = 1
             TestConversions(deg=False)
             # Check that things work in degrees too
-            Ctm._angle = 180 / math.pi
+            Ctm._angle = 180/math.pi
             TestConversions(deg=True)
         # Restore default state
         Ctm._angle = 1
@@ -2266,7 +2235,7 @@ if __name__ == "__main__":
         Ctm._elev = False
         # Rotate point on x axis about the z axis by 90 deg
         p = Point(1, 0, 0)
-        p.rotate(math.pi / 2, (0, 0, 1))
+        p.rotate(math.pi/2, (0, 0, 1))
         x, y, z = p.ToCCS()
         assert_equal(p.Rnd(x), 0)
         assert_equal(p.Rnd(y + 1), 0)
@@ -2278,7 +2247,7 @@ if __name__ == "__main__":
         assert_equal(p.Rnd(z), 0)
         # Verify rotation axis and angle as expected
         theta, axis = p.GetRotationAxis()
-        assert_equal(p.Rnd(theta - math.pi / 2), 0)
+        assert_equal(p.Rnd(theta - math.pi/2), 0)
         x, y, z = axis
         assert_equal(p.Rnd(x), 0)
         assert_equal(p.Rnd(y), 0)
@@ -2326,10 +2295,10 @@ if __name__ == "__main__":
             r = 10
             p.rho = r
             x, y, z = p.rect
-            assert_equal(x, r * math.cos(theta))
-            assert_equal(y, r * math.sin(theta))
+            assert_equal(x, r*math.cos(theta))
+            assert_equal(y, r*math.sin(theta))
             p = Point(a, b, c)
-            p.theta = math.pi / 2
+            p.theta = math.pi/2
             x, y, z = p.rect
             assert_equal(x, 0)
             assert_equal(y, math.sqrt(5))
@@ -2350,11 +2319,11 @@ if __name__ == "__main__":
             assert_equal(p.Rnd(phi - d), 0)
             # Direction cosines
             p = Point(1, 1, 1)
-            dc, a = p.dc, 1 / math.sqrt(3)
+            dc, a = p.dc, 1/math.sqrt(3)
             assert_equal(dc, (a, a, a), abstol=eps)
             # proj_ang
             pa = p.proj_ang
-            a = math.pi / 4
+            a = math.pi/4
             assert_equal(pa, (a, a))
     def Test_Line():
         Ctm._compass = False
@@ -2424,7 +2393,7 @@ if __name__ == "__main__":
             L = Line(o, i)
             assert_equal(L.intersect(o), o)
             assert_equal(L.intersect(j), None)
-            L, p = Line(i, j), Point(1 / 2, 1 / 2, 0)
+            L, p = Line(i, j), Point(1/2, 1/2, 0)
             assert_equal(L.intersect(o), None)
             assert_equal(L.intersect(p), p)
             # Line and line
@@ -2435,7 +2404,7 @@ if __name__ == "__main__":
                 # Two intersecting lines in the xy plane
                 L1 = Line(i, j)
                 L2 = Line(o, Point(1, 1, 0))
-                assert_equal(L1.intersect(L2), Point(1 / 2, 1 / 2, 0))
+                assert_equal(L1.intersect(L2), Point(1/2, 1/2, 0))
         # Check dot product
         Li, Lj, Lk, a = Line(o, i), Line(o, j), Line(o, Point(0, 0, 1)), 3
         L1, L2 = Line(o, Point(a, a, a)), Line(o, Point(-a, -a, -a))

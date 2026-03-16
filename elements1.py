@@ -26,18 +26,18 @@ if 1:  # Header
         import re
         import sys
     if 1:   # Custom imports
-        from f import flt
-        from wrap import dedent
-        from color import t
-        from columnize import Columnize
-        pp = pprint.pprint
+        import columnize
+        import dptypes
+        import f
+        import trm
+        import wrap
         if 0:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
-        class G:
-            pass
-        g = G()
+        t = trm.Trm()
+        pp = pprint.pprint
+        g = dptypes.Constant()
         g.dbg = False
         __all__ = "elements symbols Element".split()
 if 1:   # Classes
@@ -52,7 +52,7 @@ if 1:   # Classes
                     return x.strip()
             def Flt(x):
                 try:
-                    return flt(x)
+                    return f.flt(x)
                 except Exception:
                     return x.strip()
             for name in data:
@@ -130,7 +130,7 @@ if 1:   # Classes
                     o.append(f"{t.none}{i} = {t.n}")
                 else:
                     o.append(f"{c}{i} = {di[i]} {u}{t.n}" if u else f"{c}{i} = {di[i]}{t.n}")
-            return '\n'.join(Columnize(o, indent=" "*2))
+            return '\n'.join(columnize.Columnize(o, indent=" "*2))
         def __repr__(self):
             return f"Element({self.name})"
 if 1:   # Utility
@@ -161,7 +161,7 @@ if 1:   # Utility
         Warn(*msg)
         exit(status)
     def Usage(status=0):
-        print(dedent(f'''
+        print(wrap.dedent(f'''
         Usage:  {sys.argv[0]} [options] regex1 [regex2...]
           Print information on the elements found by the regexes.
         Examples:
@@ -256,7 +256,7 @@ if 1:   # Data
         return attributes
     def GetElements():
         'Return a dict of the Element instances keyed by atomic number'
-        data = dedent('''
+        data = wrap.dedent('''
             num,sym,name,diat,row,col,elcat,grpebl,atwt,econ,phase,den,ldenmp,ldenbp,mp,bp,Tcrit,Pcrit,fus,vap,spheat,vp1Pa,vp10Pa,vp100Pa,vp1kPa,vp10kPa,vp100kPa,en,ion1,ion2,ion3,atrad,covrad,vdwrad,cryst,magord,res,thcond,thexp,spsnd,neucap,young,shear,bulk,poisson,mohs,brinell,cas,abun
             1,H,Hydrogen,x,1,2,nonmetal,"1,1,s",1.0079,1s1,g,8.988e-5,0.07,0.07099,14.01,20.28,32.97,1.293,0.117,0.904,28.836,--,--,--,--,15,20,2.20 ,1312.0,--,--,--,31,120 ,hexagonal,diamagnetic,--,0.1805,--,1310,0.332,--,--,--,--,--,--,1333-74-0,1400
             2,He,Helium,0,1,18,noble gas,"18,1,s",4.00260,1s2,g,1.786e-4,0.145,--,0.95,4.22,5.19,0.227,0.0138,0.08,20.786,--,--,1.23,1.67,2.48,4.21,--,2372.3,5250.5,--,--,28,140 ,hcp,diamagnetic,--,0.1513,--,972,0.332,--,--,--,--,--,--,7440-59-7,0.0080
@@ -389,7 +389,7 @@ if 1:   # Core functionality
         print(elements[z])
 
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    d: dict[object, object] = {}  # Options dictionary
     args = ParseCommandLine(d)
     if 1:   # Get our data
         # attributes = {attr: description}

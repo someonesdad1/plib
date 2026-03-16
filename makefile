@@ -7,8 +7,11 @@
 PYTHON := python
 MYPY := mypy
 RUFF := ruff
+MYPYOPTS := --exclude-gitignore --exclude 'Dev|doc|lib|old|pgm|test'
 
 .PHONY: help check lint typecheck clean
+
+temp: typecheck
 
 help:
 	@echo "--- plib Commands ---"
@@ -25,13 +28,11 @@ lint:
 	$(RUFF) check dp*.py
 
 typecheck:
-	#$(MYPY) .
-	@echo "Will run mypy type checker on . when things are fixed"
+	$(MYPY) $(MYPYOPTS) .
 
 # This is the 'safe' fix we discussed—no math-mangling!
 fix:
-	#$(RUFF) check --fix .
-	@echo "Will run ruff check --fix on files"
+	$(RUFF) check --fix .
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +

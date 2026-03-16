@@ -219,7 +219,7 @@ if __name__ == "__main__":
             x.rtdp = True
             GetColors()
             return args
-    d = {}      # Options dictionary
+    d: dict[object, object] = {}  # Options dictionary
     args = ParseCommandLine(d)
     sizes = PaperSizes()
     a = "─"*6
@@ -231,10 +231,12 @@ if __name__ == "__main__":
     for i in hdr:
         o.append(i)
     o.append(("─"*17, a, a, a, a, a, a, a))
-    for i, size in enumerate(sizes):
-        w, h = [f.flt(j) for j in sizes[size]]
-        w1, h1 = [f.flt(j/25.4) for j in sizes[size]]
-        o.append((size, w, h, w*h/100, w1, h1, w1*h1, h/w))
+    # Sizes = dict: key:str (paper size like "A"), value: (215.9, 279.4)
+    for size in sizes:
+        w, h = [f.flt(j) for j in sizes[size]]  # width, height in mm
+        w1, h1 = [f.flt(j/25.4) for j in sizes[size]]   # width, height in inches
+        a = [str(i) for i in (size, w, h, w*h/100, w1, h1, w1*h1, h/w)]
+        o.append(tuple(a))
     for i in hdr:
         o.append(i)
     pad = 1

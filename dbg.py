@@ -30,8 +30,9 @@ if 1:  # Header
     if 1:  # Standard imports
         import sys
     if 1: # Custom imports
-        from color import t
+        import trm
     if 1: # Global variables
+        t = trm.Trm()
         __all__ = "Debug".split()
 if 1:  # Core functionality
     class Debug:

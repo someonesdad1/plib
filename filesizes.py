@@ -31,7 +31,7 @@ if 1:  # Header
     if 1:  # Custom imports
         pass
     if 1:  # Global variables
-        Filesize = namedtuple("Filesize", "size perm inode hardlinks atime mtime ctime hash".split())
+        Filesize = namedtuple("Filesize", "size perm inode hardlinks atime mtime ctime hash")
 if 1:   # Core functionality
     def IsIterable(x):
         "Return True if x is an iterable and not a string"

@@ -138,15 +138,16 @@ if __name__ == "__main__":
         import getopt
         import sys
     if 1:   # Custom modules
-        from lwtest import run, assert_equal, raises
-        from wrap import wrap, dedent
+        import dptypes
+        import lwtest
+        import wrap
     if 1:  # Script base code
         def Error(msg, status=1):
             print(msg, file=sys.stderr)
             exit(status)
         def Usage(d, status=1):
             name = sys.argv[0]
-            s = dedent(f'''
+            s = wrap.dedent(f'''
             Usage:  {name}
               Show example of use.  Use --test option to run tests.''')
             print(s)
@@ -167,28 +168,29 @@ if __name__ == "__main__":
             return args
     if 1:  # Test code
         one, two, three, four, five = 1, 2.0, "3", 4 + 0j, 5
-        g = Global()
+        g = dptypes.Constant()
         g.one = one
         g.two = two
         g.three = three
-        g.ro = Constant()
-        g.ro.x = four
-        g.rw = Variable()
-        g.rw.y = five
+        with g:
+            g.ro = Constant()
+            g.ro.x = four
+            g.rw = Variable()
+            g.rw.y = five
         def Test_read_write():
             "This exercises the simple globals that are read/write"
             assert isinstance(g.one, int)
             assert isinstance(g.two, float)
             assert isinstance(g.three, str)
-            assert_equal(g.one, one)
-            assert_equal(g.two, two)
-            assert_equal(g.three, three)
+            lwtest.assert_equal(g.one, one)
+            lwtest.assert_equal(g.two, two)
+            lwtest.assert_equal(g.three, three)
         def Test_more():
             "Tests using Constant and Variable classes"
             # Read only feature
             assert isinstance(g.ro.x, complex)
             assert g.ro.x == four
-            with raises(ReadOnlyError):
+            with lwtest.raises(ReadOnlyError):
                 g.ro.x = 1
             # Variable is read/write
             assert isinstance(g.rw.y, int)
@@ -198,7 +200,7 @@ if __name__ == "__main__":
     if 1:  # Example code
         def Example_Instance():
             print("Example 1:  Using an Instance")
-            s = dedent('''
+            s = wrap.dedent('''
                 g1 = Global()
                 g1.rw = Variable()
                 g1.rw.a = 33
@@ -225,15 +227,15 @@ if __name__ == "__main__":
             g1.ro2.z = (-1e17, "blithering")
             print(g1)
             # We get an exception trying to change a readonly attribute
-            s = dedent('''
-            with raises(ReadOnlyError):
+            s = wrap.dedent('''
+            with lwtest.raises(ReadOnlyError):
                 g1.ro1.x = 48
                 print("Didn't get expected exception")''')
             print("Using the following code to check readonly:")
             for line in s.split("\n"):
                 print(f"    {line}")
             msg = "Didn't get expected exception"
-            with raises(ReadOnlyError):
+            with lwtest.raises(ReadOnlyError):
                 g1.ro1.x = 48
                 print(msg)
             print(f"You shouldn't see '{msg}'")
@@ -241,7 +243,7 @@ if __name__ == "__main__":
             print("-" * 70)
         def Example_UsingClassVariables():
             print("Example 2:  Using Class Variables")
-            s = dedent('''
+            s = wrap.dedent('''
                 g2 = Global()
                 g2.rw = Variable()
                 g2.rw.a = 33
@@ -270,24 +272,24 @@ if __name__ == "__main__":
             print("Instead, use Global's staticmethod str():")
             print(f"{Global.str()}")
             # We get an exception trying to change a readonly attribute
-            s = dedent('''
-                with raises(ReadOnlyError):
+            s = wrap.dedent('''
+                with lwtest.raises(ReadOnlyError):
                     g2.ro.x = 48
                     print("Didn't get expected exception")''')
             print("Using the following code to check readonly:")
             for line in s.split("\n"):
                 print(f"    {line}")
             msg = "Didn't get expected exception"
-            with raises(ReadOnlyError):
+            with lwtest.raises(ReadOnlyError):
                 g2.ro.x = 48
                 print("Didn't get expected exception")
             print(f"You shouldn't see '{msg}'")
             print("End of Example 2")
     # ----------------------------------------------------------------------
-    d = {}  # Options dictionary
+    d: dict[object, object] = {}  # Options dictionary
     args = ParseCommandLine(d)
     if d["--test"]:
-        exit(run(globals(), halt=True)[0])
+        exit(lwtest.run(globals(), halt=True)[0])
     else:
         Example_Instance()
         Example_UsingClassVariables()

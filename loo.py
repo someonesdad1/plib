@@ -32,9 +32,10 @@ if 1:  # Header
         from re import sub
         from string import whitespace
     if 1:  # Custom imports
-        from wrap import dedent
-        from color import t
+        import trm
+        import wrap
     if 1:  # Global variables
+        t = trm.Trm()
         t.missing = t("whtl", "redl")
         t.notrel = t("whtl", "magl")
         t.embedded = t.grnl
@@ -306,7 +307,7 @@ if __name__ == "__main__":
         shortname = os.path.split(sys.argv[0])[1]
         missing = broken_link
         notrel = notrel_image
-        print(dedent(f'''
+        print(wrap.dedent(f'''
         Usage:  {name} [options] file1 [file2...]
           For each Open Office document file given on the command line, print out any
           image files that the document file has links to.  Highlight any missing image
@@ -371,7 +372,7 @@ if __name__ == "__main__":
         elif not args:
             Error("Need at least one Open Office file")
         return args
-    d = {}  # Options dictionary
+    d: dict[object, object] = {}  # Options dictionary
     args = ParseCommandLine(d)
     d["start_dir"] = os.getcwd()
     if d["-r"]:
@@ -385,4 +386,4 @@ if __name__ == "__main__":
             for file in args:
                 ProcessFile(file, d)
         finally:
-            os.chdir(d["start_dir"])
+            os.chdir(d["start_dir"])    # type: ignore

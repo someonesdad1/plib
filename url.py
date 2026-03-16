@@ -70,13 +70,12 @@ if 1:  # Header
         import re
         import sys
     if 1:  # Custom imports
+        import dptypes
         import trm
         import requests
     if 1:  # Global variables
         t = trm.Trm()
-        class G:
-            pass
-        g = G()
+        g = dptypes.Constant()
         g.dbg = False
         # This regex came from https://gist.github.com/gruber/8891611 on 29
         # Nov 2023 and aims to find valid URLs in text strings.  There are a zillion of
@@ -86,6 +85,7 @@ if 1:  # Header
         # Comment:  it's the only regex I was able to find after trying many different
         # ones (mostly from stackoverflow, which has a large number of poor
         # suggestions).  Note that it only takes http or https type URLs.
+        # ∞∞1 This should be in a function in dpstr.py that returns this regex.
         regex = r'''
             (?xi)
             \b
@@ -544,7 +544,7 @@ if __name__ == "__main__":
         url = "http://www.ndt-ed.org/GeneralResources/IACS/IACS.htm"
         status, sc, exc = URL_is_unreadable(url)
         lw.Assert(status and sc == 404 and not exc)
-    d = {  # Options dictionary
+    d: dict[object, object] = {  # Options dictionary
         "urls": {},  # Dict for -U option keyed by file
         "files": set(),  # Keep track of files processed
         "status": set(),  # Keep track of returned statuses

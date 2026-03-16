@@ -367,10 +367,8 @@ if __name__ == "__main__":
     print("Physical data on the planets")
     print(f"  Data to {d['-d']} figures (use -d option to change)")
     if d["-r"]:
-        t.print(
-            f"  {t.r}Relative to {planets[trans[d['-r']]].name}{t.n} "
-            f"{t.nr}(this color means not relative)"
-        )
+        t.print(f"  {t.r}Relative to {planets[trans[d['-r']]].name}{t.n} "  # type: ignore
+                f"{t.nr}(this color means not relative)")
     print()
     if "a" in args:
         for p in planets:

@@ -69,9 +69,9 @@ if 1:  # Header
         import subprocess
         import sys
     if 1:  # Custom imports
-        from color import t
-        from columnize import Columnize
-        from wrap import dedent
+        import columnize
+        import trm
+        import wrap
         if 0:
             import debug
             debug.SetDebugger()  # Start debugger on unhandled exception
@@ -92,7 +92,7 @@ if 1:  # Core functionality
         https://w3techs.com/technologies/overview/character_encoding.  I've
         used this page's data to determine the encoding priority by this
         script.  Here are the frequencies in %:
-
+        
         Data from 1 Feb 2026: 
             Web page's name   Frequency      Python codec name
             ---------------   ---------      -----------------
@@ -360,9 +360,7 @@ if 1:  # Core functionality
             and not (C & D)
         )
         # Dump data to stdout
-        print(
-            dedent(
-                '''
+        print(wrap.dedent('''
         # Note:  'encodings' and 'priorities' were produced by the
         # ConstructEncodingData function.  You may wish to edit it to your own
         # tastes.
@@ -397,7 +395,7 @@ if 1:  # Core functionality
         enc.extend(GetEncoding(mybytes, mycodecs))
         if enc:
             print(f"'{file}' possible encodings:")
-            for line in Columnize([i for i in enc if i], indent=" " * 2):
+            for line in columnize.Columnize([i for i in enc if i], indent=" " * 2):
                 print(line)
     def GetEncoding(mybytes, enc_seq):
         enc = []
@@ -481,16 +479,15 @@ if 1:  # Core functionality
             print(f'''Using '{d["-d"]}' codec for decoding''')
             if success:
                 print("Successfully decoded:")
-                for line in Columnize(success, indent=" " * 2):
+                for line in columnize.Columnize(success, indent=" " * 2):
                     print(line)
             if failure:
                 print("Failed to decode:")
-                for line in Columnize(failure, indent=" " * 2):
+                for line in columnize.Columnize(failure, indent=" " * 2):
                     print(line)
     def UsageHints():
         name = "python " + sys.argv[0]
-        print(
-            dedent(f'''
+        print(wrap.dedent(f'''
         Show the common encodings that can decode a file:
             {name} file
         Show all encodings that can decode a file:
@@ -501,8 +498,7 @@ if 1:  # Core functionality
             {name} -d iso8859_1 -o utf_8 file output_file
         Show the non-ASCII characters in all files in the directory:
             {name} -x *
-        ''')
-        )
+        '''))
     def Is8859(file):
         'Return True if file is 8859 encoded'
         # Method is to use /usr/bin/file
@@ -556,7 +552,7 @@ if __name__ == "__main__":
             exit(status)
         def Usage(d, status=1):
             name = sys.argv[0]
-            print(dedent(f'''
+            print(wrap.dedent(f'''
             Usage:  {name} [options] file1 [file2 ...]
               Try to identify the encoding of the file(s) on the command line.  This is done
               by finding which python codecs module encodings don't raise an exception.
@@ -613,7 +609,7 @@ if __name__ == "__main__":
             if d["-o"] is not None and len(args) != 2:
                 Error("Two arguments needed with -o option")
             return args
-    d = {}  # Options dictionary
+    d: dict[object, object] = {}  # Options dictionary
     files = ParseCommandLine(d)
     if d["-o"]:
         Encode(files)
@@ -623,10 +619,10 @@ if __name__ == "__main__":
         ShowNonASCII(files)
     elif d["-l"]:
         print("Aliases for the primary codec names:")
-        for line in Columnize(sorted(aliases), indent=" " * 2):
+        for line in columnize.Columnize(sorted(aliases), indent=" " * 2):
             print(line)
         print("Primary codec names:")
-        for line in Columnize(sorted(primary), indent=" " * 2):
+        for line in columnize.Columnize(sorted(primary), indent=" " * 2):
             print(line)
     else:
         for file in files:

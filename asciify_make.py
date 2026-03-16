@@ -999,10 +999,10 @@ if 1:  # Make the files
         print(f"Wrote '{file}'", file=sys.stderr)
 
 if __name__ == "__main__":
-    d = {}  # Options dictionary
+    d: dict[object, object] = {}  # Options dictionary
     args = ParseCommandLine(d)
-    decomp = {}  # Codepoints that could be decomposed
-    trans = {}  # Contains the final translate dictionary
+    decomp: dict[object, object] = {}  # Codepoints that could be decomposed
+    trans: dict[object, object] = {}  # Contains the final translate dictionary
     fmt = "  {:30s} {:8d}"  # Used for debug printing to stderr
     # If select is True, only do the tasks currently being worked on
     select = True if d["-s"] else False

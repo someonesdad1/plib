@@ -1,16 +1,15 @@
 import sys
 import wl2rgb
 import color
-from color import Color, t
-from wrap import dedent
-from bidict import bidict
-from dpprint import PP
+import trm
+import wrap
+import dptypes
 import termtables as tt
-pp = PP()   # Get pprint with current screen width
+t = trm.Trm()
 
 def Introduction(quiet=False):
     if not quiet:
-        print(dedent('''
+        print(wrap.dedent('''
         
         This script shows the Feb 2026 development of the short color names I use.  In
         May 2022 I developed a set of color names motivated by the resistor color code
@@ -46,7 +45,7 @@ def Introduction(quiet=False):
         
         '''))
         print()
-    di = bidict({
+    di =dptypes.Bidict({
         "red": 0,
         "ord": 10,
         "orn": 20,
@@ -73,7 +72,7 @@ def Introduction(quiet=False):
         t.print(f'''{t(attr='ul')}Hue        HLS     RGV     HSV   wl   Name''')
         idi = di.invert()
         for h in range(0, 256, 5):
-            c = Color(h, 0x7f, 0xff, hls=True)
+            c = color.Color(h, 0x7f, 0xff, hls=True)
             s = idi[h] if h in idi else ""
             t.print(f"{h:3d} "
                     f"0x{h:02x} "
@@ -82,7 +81,7 @@ def Introduction(quiet=False):
                     f"{s} "
                 )
         print()
-        print(dedent('''
+        print(wrap.dedent('''
         
         This is the first pass at naming; these names refer to a specific hue at a lightness
         of 0x7f and full saturation at 0xff.  The next step was to use integer modifiers of
@@ -100,11 +99,11 @@ def Introduction(quiet=False):
     for name in di:
         h = di[name]
         a, b, c, d, e = name, name + "1", name + "2", name + "3", name + "l"
-        D[a] = Color(h, 0x7f, 0xff, hls=True)
-        D[b] = Color(h, 0x60, 0xff, hls=True)
-        D[c] = Color(h, 0x40, 0xff, hls=True)
-        D[d] = Color(h, 0x20, 0xff, hls=True)
-        D[e] = Color(h, 0xc0, 0xff, hls=True)
+        D[a] = color.Color(h, 0x7f, 0xff, hls=True)
+        D[b] = color.Color(h, 0x60, 0xff, hls=True)
+        D[c] = color.Color(h, 0x40, 0xff, hls=True)
+        D[d] = color.Color(h, 0x20, 0xff, hls=True)
+        D[e] = color.Color(h, 0xc0, 0xff, hls=True)
         t.a = t(D[a])
         t.b = t(D[b])
         t.c = t(D[c])
@@ -122,7 +121,7 @@ def Introduction(quiet=False):
         print("      7f   60    40    20    c0")
         print("where the last number is the hex lightness in the HLS")
         print()
-        print(dedent('''
+        print(wrap.dedent('''
         
         Assessment:  These are pretty good for a first pass; the 3-letter names look fairly
         close to my first set of choices in 2023 on my monitor with a black background.
@@ -133,9 +132,9 @@ def Introduction(quiet=False):
     # Add in some missing names.  Rename D to d.
     def A(name, hex, h=False):
         if h:
-            D[name] = Color(hex, hls=True)
+            D[name] = color.Color(hex, hls=True)
         else:
-            D[name] = Color(hex)
+            D[name] = color.Color(hex)
     if 1:   # Black
         # Black is special, as all lightnesses are black
         A("blk", "#000000")
@@ -181,7 +180,7 @@ def Introduction(quiet=False):
         A("olvl", "$38b09a")
     if 0:
         # Use this section to tune a base color
-        #c = Color("#759a26")
+        #c = color.Color("#759a26")
         #print(c.xhls)
         s = "olv"
         a=s+"l";print(a, D[a], D[a].xhls)
@@ -228,11 +227,11 @@ def CompareNewOld():
             row.extend([""]*4)
         output.append(row)
     n = len(output[0])
-    header = "Num Clr Nom 1 2 3 l | Old l d b".split()
+    header = "Num Clr Nom 1 2 3 l | Old l d b x x".split()
     tt.print(output, header=header, padding=(1, 1), style=" "*15, alignment="c"*n)
 def Assessment():
     print()
-    print(dedent('''
+    print(wrap.dedent('''
 
     There are 5*26 + 1 or 131 colors.  This is roughly half of the 8-bit colors, so I'm
     assuming that there will be a pretty good matching (see below), meaning these names
@@ -270,7 +269,7 @@ def CompareTo8bit():
             row.append(f"{t(c1)}:8bit{t.n}")       
         print(''.join(row))
     print()
-    print(dedent('''
+    print(wrap.dedent('''
 
     Works OK although there are visible differences for the dark colors.  But this looks
     fine for my needs, as I don't use 8-bit stuff very often.
@@ -280,7 +279,7 @@ def DumpDict():
     print("dpcolors = {")
     for i in d:
         name = f"'{i}' " if len(i) == 3 else f"'{i}'"
-        print(f'    {name}: "{d[i].xrgb}",    # {d[i].xhls} {d[i].xhsv}')
+        t.print(f'{t(d[i])}    {name}: "{d[i].xrgb}",    # {d[i].xhls} {d[i].xhsv}')
     print("}")
     exit()
     

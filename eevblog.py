@@ -31,16 +31,18 @@ if 1:  # Header
         <oo todo ∞ oo>
     '''
     if 1:  # Standard imports
-        from pathlib import Path as P
+        import pathlib
         import re
         import sys
     if 1:  # Custom imports
-        from dptime import dpdatetime
-        from color import t
+        import dptime
+        import trm
         if 0:
             import debug
             debug.SetDebugger()
-    __all__ = ["_pgminfo"]
+    if 1:  # Global variables
+        t = trm.Trm()
+        __all__ = ["_pgminfo"]
 if 1:  # Core functionality
     class Title:
         '''Class to regularize the title.  Note there are a number of things needing fixes, as
@@ -112,8 +114,8 @@ if 1:  # Core functionality
         it.
         '''
         url = "https://www.eevblog.com/"
-        module = P("/plib/eevblog_data.py")
-        datafile = P("/home/don/dp/eevblog.data")
+        module = pathlib.Path("/plib/eevblog_data.py")
+        datafile = pathlib.Path("/home/don/dp/eevblog.data")
         # regex to get relevant lines with URL
         r_url = re.compile(f'^<a href="({url}.*?)"')
         # regex to get title
@@ -137,7 +139,7 @@ if 1:  # Core functionality
             f = fp
             if 0:  # Debug by printing to stdout
                 f = sys.stdout
-            print(f"# Created by a script on {dpdatetime()}", file=f)
+            print(f"# Created by a script on {dptime.dpdatetime()}", file=f)
             print("", file=f)
             print("eevblog = {", file=f)
             for i, x in enumerate(o):

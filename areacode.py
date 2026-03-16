@@ -591,7 +591,7 @@ if 1:  # Core functionality
             print(f"    {i}")
 
 if __name__ == "__main__":
-    d = {}  # Options dictionary
+    d: dict[object, object] = {}  # Options dictionary
     regexps = ParseCommandLine(d)
     found = []
     for regex in regexps:

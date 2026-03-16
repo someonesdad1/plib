@@ -107,7 +107,7 @@ if 1:  # Core functions
                 print(line)
 
 if __name__ == "__main__":
-    d = {}  # Options dictionary
+    d: dict[object, object] = {}  # Options dictionary
     dispatch = {
         "diff": Diff,
         "report": Report,

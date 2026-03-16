@@ -74,6 +74,9 @@ if 1:   # Core functionality
         
         Set CheckFile.dbg to True for debug printing to stdout.
         '''
+        if not hasattr(CheckFile, "delay"):
+            CheckFile.delay = 0.5
+            CheckFile.dbg = False
         def GetFileState(file, hash):
             if hash:
                 m = hashlib.md5()
@@ -104,8 +107,6 @@ if 1:   # Core functionality
                 func()  # Alert other process file changed
                 old_state = new_state
                 time.sleep(CheckFile.delay)
-    CheckFile.delay = 0.5
-    CheckFile.dbg = False
 
 if __name__ == "__main__":
     from dptime import sw
@@ -119,8 +120,8 @@ if __name__ == "__main__":
         fp.write("Simple data file")
     runtime = 10
     print(f"Make changes to file {file!r} within {runtime} seconds\n")
-    CheckFile.dbg = True  # Turn on debug messages
-    if CheckFile.dbg:
+    CheckFile.dbg = True    # type: ignore
+    if CheckFile.dbg:       # type: ignore
         print(f"Parent process started (pid = {os.getpid()})")
     p = mp.Process(target=CheckFile, args=(file, Callback, done))
     p.start()
@@ -129,5 +130,5 @@ if __name__ == "__main__":
             done.value = 1  # Make check process return
             break  # Exit after this time
     p.join()
-    if CheckFile.dbg:
+    if CheckFile.dbg:       # type: ignore
         print(f"Parent process exit (pid = {os.getpid()})")

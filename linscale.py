@@ -365,7 +365,7 @@ if __name__ == "__main__":
         if 1:
             # y scale
             y0, y1 = 1, 7  # Bottom and top limits of scale, inches
-            x = 1  # Scale horizontal location
+            x = 1.0  # Scale horizontal location
             # Get the default settings dictionary.  The index function needs to
             # map the x values onto [0, 1], because that's the parameter's range
             # for the whole scale.

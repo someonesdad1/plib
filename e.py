@@ -21,7 +21,7 @@ if 1:  # Header
     if 1:  # Standard imports
         pass
     if 1:  # Custom imports
-        from f import flt
+        import f
 if 1:  # Core functionality
     def E(series, normalize=False):
         '''Specify the series you want by an integer:  6, 12, 24, 48, 96,
@@ -135,7 +135,7 @@ if 1:  # Core functionality
                 raise ValueError(f"{level} is a bad level number")
         else:
             raise ValueError(f"{num} is a bad Renard number")
-        return tuple(flt(i) for i in values)
+        return tuple(f.flt(i) for i in values)
 
 if __name__ == "__main__":
     if 1:  # Standard imports
@@ -143,13 +143,14 @@ if __name__ == "__main__":
         import pathlib
         import sys
     if 1:  # Custom imports
-        from wrap import dedent
-        from lwtest import run, Assert
-        from columnize import Columnize
-        from color import t
+        import columnize
+        import lwtest
+        import trm
+        import wrap
     if 1:  # Global variables
+        t = trm.Trm()
         P = pathlib.Path
-        d = {}  # Options dictionary
+        d: dict[object, object] = {}  # Options dictionary
         # Data copy and pasted from
         # http://en.wikipedia.org/wiki/Preferred_value#E_series
         raw_data = {
@@ -228,7 +229,7 @@ if __name__ == "__main__":
                 return x == y
             for i, y in ((5, R5), (10, R10), (20, R20), (40, R40)):
                 x = f(Renard(i))
-                Assert(Compare(x, y))
+                lwtest.Assert(Compare(x, y))
             exit()
     if 1:  # Module's base code
         def Error(msg, status=1):
@@ -236,7 +237,7 @@ if __name__ == "__main__":
             exit(status)
         def Usage(d, status=1):
             name = sys.argv[0]
-            print(dedent(f'''
+            print(wrap.dedent(f'''
             Usage:  {name} 
               Prints the E series.
             Options:
@@ -266,10 +267,10 @@ if __name__ == "__main__":
             for series in (6, 12, 24, 48, 96, 192):
                 print(f"E{series}")
                 s = [str(i) for i in E(series)]
-                for i in Columnize(s, indent=2 * " ", horiz=True):
+                for i in columnize.Columnize(s, indent=2 * " ", horiz=True):
                     print(i)
             t.print(f"{t.purl}\nRenard numbers")
-            x = flt(0)
+            x = f.flt(0)
             x.rtz = x.rtdp = True
             for num in (5, 10, 20, 40, 80):
                 for level in (0, 1, 2):
@@ -280,7 +281,7 @@ if __name__ == "__main__":
                     u = {0:"least rounded", 1:"medium rounded", 2:"most rounded"}[level]
                     t.print(f"{t.ornl}R{num} {u}")
                     s = [str(i) for i in values]
-                    for i in Columnize(s, indent=" "*4, col_width = 6, horiz=True):
+                    for i in columnize.Columnize(s, indent=" "*4, col_width = 6, horiz=True):
                         print(i)
         def PlotSeries():
             from pylab import plot, grid, xlabel, ylabel, legend, title, show, log10
@@ -305,7 +306,7 @@ if __name__ == "__main__":
             show()
     ParseCommandLine(d)
     if d["--test"]:
-        exit(run(globals())[0])
+        exit(lwtest.run(globals())[0])
     elif d["-p"]:
         PlotSeries()
     else:

@@ -50,11 +50,11 @@ if 1:  # Header
         # This will collect bad import lines that need fixing
         bad = set()
 if 1:  # Core functionality
-    def GetModuleNames() -> set:
+    def GetModuleNames():
         "Return set of module names"
         # Assumes we're in the correct directory
         return set(P(".").glob("*.py"))
-    def GetSourceFiles(modules: set) -> set:
+    def GetSourceFiles(modules):
         "Get all source files that are not modules"
         ignore = set(
             [
@@ -119,8 +119,18 @@ if 1:  # Core functionality
     def NotAComment(line):
         s = line.lstrip()
         return s and s[0] != "#"
-    def GetFilesImportLines(file: P) -> list:
+    def GetFilesImportLines(file):
         "Return lines that aren't comments that contain 'import'"
+        if not hasattr(GetFilesImportLines, "r"):
+            GetFilesImportLines.r = re.compile(r"^\s*import |^\s*from\s+.*\s+import\s+")
+            GetFilesImportLines.regexps = (
+                re.compile(r"\bprint\s+[^(]"),
+                re.compile(r"\blong\b"),
+                re.compile(r"\bexecfile\b"),
+                re.compile(r"\bxrange\b"),
+                re.compile(r"\bexcept\s*\w+,\b"),
+                re.compile(r"\bunicode\b"),
+            )
         lines = []
         for line in file.read_text(encoding="UTF-8").split("\n"):
             if GetFilesImportLines.r.match(line):
@@ -133,15 +143,6 @@ if 1:  # Core functionality
                         msg = f"{file}:  '{line}'"
                         bad.add(msg)
         return lines
-    GetFilesImportLines.r = re.compile(r"^\s*import |^\s*from\s+.*\s+import\s+")
-    GetFilesImportLines.regexps = (
-        re.compile(r"\bprint\s+[^(]"),
-        re.compile(r"\blong\b"),
-        re.compile(r"\bexecfile\b"),
-        re.compile(r"\bxrange\b"),
-        re.compile(r"\bexcept\s*\w+,\b"),
-        re.compile(r"\bunicode\b"),
-    )
     def BadImportLine(line, file):
         '''Stop on a bad import line like
             'from x import (y, z, '
@@ -150,7 +151,7 @@ if 1:  # Core functionality
         assert "import" in line
         if "(" in line and ")" not in line:
             bad.add(str(file))
-    def FileUsesModule(import_lines: list, module: P, file: P) -> bool:
+    def FileUsesModule(import_lines, module, file):
         def ScrubLine(line):
             'Replace "(", ")", and "," with space characters'
             s = " "
@@ -162,7 +163,7 @@ if 1:  # Core functionality
             if name_token in tokens:
                 return True
         return False
-    def GetUsed(modules: set, sources: set) -> dict:
+    def GetUsed(modules, sources):
         '''Return a dict of module names with the list of the file(s)
         in sources that import that name.  An example entry would be:
             P("sig.py"): [P("pgm/file1.py"), P("pgm/file2.py"), ...],
@@ -226,7 +227,7 @@ if __name__ == "__main__":
             if len(args) < 2:
                 Usage(d)
             return args
-    d = {}  # Options dictionary
+    d: dict[object, object] = {}  # Options dictionary
     os.chdir("/plib")
     modules = GetModuleNames()
     source = GetSourceFiles(modules)

@@ -136,7 +136,7 @@ if 1:  # Core functionality
                 fname, arg = func.split(sep="(", maxsplit=1)
                 arg = "(" + arg
             clr = t.m if module[0] == "m" else t.c
-            e = entry(module[0], numargs, fname, arg, clr)
+            e = Entry(module[0], numargs, fname, arg, clr)
             o.append(e)
         return o
     def uniq(x):
@@ -235,7 +235,7 @@ if 1:  # Core functionality
 if __name__ == "__main__":
     import trm
     t = trm.Trm()
-    entry = namedtuple("Entry", "lib n name args color")
+    Entry = namedtuple("Entry", "lib n name args color")
     t.title = t.ygr
     t.m = t.wht
     t.c = t.sky

@@ -2221,7 +2221,7 @@ if __name__ == "__main__":
             elif o == "-h":
                 Manpage()
         return args
-    d = {}  # Options dictionary
+    d: dict[object, object] = {}  # Options dictionary
     files = ParseCommandLine(d)
     for file in files:
         ProcessFile(file, reverse=d["-r"])

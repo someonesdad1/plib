@@ -49,9 +49,10 @@ if 1:  # Core functionality
             return tmp + math.log(stp*ser)
 
 if __name__ == "__main__":
-    from frange import frange
-    from lwtest import run, assert_equal
-    from color import t
+    import dpseq
+    import lwtest
+    import trm
+    t = trm.Trm()
     def TestReal():
         tol = 1e-10
         for x, value in ((1, 1), (1.1, 0.9513507699), (1.61, 0.8946806085)):
@@ -60,13 +61,13 @@ if __name__ == "__main__":
         # If we are running under python 3, then the math library has lgamma
         # which we can test against.
         tol = 2e-9
-        for x in frange("0.1", "10", "0.1"):
+        for x in dpseq.frange("0.1", "10", "0.1"):
             y = lngamma(x)
             y0 = math.lgamma(x)
             if not y0:
                 assert y < tol
             else:
-                assert_equal(lngamma(x), math.lgamma(x), reltol=tol)
+                lwtest.assert_equal(lngamma(x), math.lgamma(x), reltol=tol)
     def TestComplex():
         # Use mpmath for complex value standards
         try:
@@ -76,8 +77,8 @@ if __name__ == "__main__":
             return
         start, stop, step = 0, 10, 1
         eps = 3e-10
-        for r in frange(start + step, stop, step):
-            for i in frange(start + step, stop, step):
+        for r in dpseq.frange(start + step, stop, step):
+            for i in dpseq.frange(start + step, stop, step):
                 z = complex(r, i)
                 got = lngamma(z)
                 expected = ln(gamma(z))
@@ -85,4 +86,4 @@ if __name__ == "__main__":
                 if diff > 1:  # Correct for phase difference of n*pi
                     diff -= round(diff/math.pi, 6)*math.pi
                 assert diff <= eps
-    exit(run(globals(), halt=1)[0])
+    exit(lwtest.run(globals(), halt=1)[0])

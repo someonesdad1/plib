@@ -195,6 +195,7 @@ if 1:  # Header
     import tempfile
     import time
     # Custom imports
+    import dptypes
     from wrap import wrap, dedent
     from columnize import Columnize
     #from color import TRM as t
@@ -202,27 +203,25 @@ if 1:  # Header
     t = Trm(default=2)
     # Global variables
     _ = sys.version_info
-    class G:  # Container for global variables
-        pass
-    g = G()
-    g.P = pathlib.Path
-    g.name = g.P(sys.argv[0])
-    g.datafile = g.P(g.name.stem + ".data")
-    g.editor = os.environ["EDITOR"]
-    g.pyversion = f"{_.major}.{_.minor}.{_.micro}"
-    g.ii = isinstance
-    # Color coding using ANSI escape codes
-    g.blu = t.blu
-    g.brn = t.brn
-    g.grn = t.grn
-    g.cyn = t.cyn
-    g.red = t.red
-    g.yel = t.yel
-    g.wht = t.wht
-    g.whtblu = t("wht", "blu")
-    g.err = t("red")
-    g.ital = t(attr="it")
-    g.n = t.n
+    g = dptypes.Constant()
+    with g:
+        g.name = pathlib.Path(sys.argv[0])
+        g.datafile = pathlib.Path(g.name.stem + ".data")
+        g.editor = os.environ["EDITOR"]
+        g.pyversion = f"{_.major}.{_.minor}.{_.micro}"
+        g.ii = isinstance
+        # Color coding using ANSI escape codes
+        g.blu = t.blu
+        g.brn = t.brn
+        g.grn = t.grn
+        g.cyn = t.cyn
+        g.red = t.red
+        g.yel = t.yel
+        g.wht = t.wht
+        g.whtblu = t("wht", "blu")
+        g.err = t("red")
+        g.ital = t(attr="it")
+        g.n = t.n
 if 1:  # Utility
     def eprint(*p, **kw):
         "Print to stderr"
@@ -271,7 +270,7 @@ if 1:  # Core functionality
         tempname = tempfile.mkstemp(
             prefix="repl", suffix=".py", dir=console.cwd, text=True
         )[1]
-        file = g.P(tempname)
+        file = pathlib.Path(tempname)
         file.write_text(string)
         subprocess.call([g.editor, str(file)])
         newstring = file.read_text()
@@ -282,7 +281,6 @@ if 1:  # Core functionality
         from pprint import pprint as pp # noqa
         from decimal import Decimal as D, getcontext as ctx # noqa
         from dpdecimal import dec   # noqa
-        #from pathlib import Path as P
         from fractions import Fraction as F  # noqa
         try:
             from u import u, dim, to    # noqa
@@ -381,7 +379,7 @@ if 1:  # Core functionality
             return bp
         s = "s = input(self.ps).rstrip()"
         u = "returnvalue = console.push(line)"
-        lines = g.P(sys.argv[0]).read_text().split("\n")
+        lines = pathlib.Path(sys.argv[0]).read_text().split("\n")
         Print(
             dedent(f'''
         Set a breakpoint at line {Find(s)} to stop before each input
@@ -493,12 +491,12 @@ if 1:  # Special commands
             elif first_char == "<":
                 # Read stringbuffer
                 if arg:
-                    file = g.P(arg)
+                    file = pathlib.Path(arg)
                     console.stringbuffer = file.read_text()
             elif first_char == ">":
                 # Write stringbuffer
                 if arg:
-                    file = g.P(arg)
+                    file = pathlib.Path(arg)
                     file.write_text(console.stringbuffer)
             elif cmd == "c" or cmd == "cls":
                 # Clear the screen
@@ -541,7 +539,7 @@ if 1:  # Special commands
                     return
                 # Run it as a script
                 try:
-                    p = g.P(console.file).resolve()
+                    p = pathlib.Path(console.file).resolve()
                     if cmd == "ri":
                         c = [sys.executable, "-i", str(p)]
                     else:
@@ -579,7 +577,7 @@ if 1:  # class Console
         def __init__(self, locals=None):
             super().__init__(locals=locals)
             self.locals.update(GetSymbols())
-            self.cwd = g.P(".").cwd()
+            self.cwd = pathlib.Path(".").cwd()
             self.stringbuffer = ""
             self.filebuffer = ""
         @property
