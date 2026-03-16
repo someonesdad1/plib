@@ -1,21 +1,23 @@
-from collections import namedtuple
-import trm
-t = trm.Trm()
-from dpprint import PP
-from get import GetTextLines
-import iso
-import requests
-import sys
-if 0:
-    import debug
-    debug.SetDebugger()
-pp = PP()
+if 1:   # Imports
+    import collections
+    from collections import namedtuple
+    import trm
+    t = trm.Trm()
+    from dputil import PP
+    from get import GetTextLines
+    import requests
+    import sys
+    if 0:
+        import debug
+        debug.SetDebugger()
+    pp = PP()
 # Fields are
 #   0   Title
 #   1   Artist
 #   2   URL
 #   3   Comment
-Entry = namedtuple("Entry", "title artist url comment")
+# URL is the text appended to "https://www.youtube.com/watch?v="
+Entry = collections.namedtuple("Entry", "title artist url comment")
 favorites = '''
 
     Angie ; Rolling Stones ; oWRr03VcA-0 ;
@@ -402,6 +404,7 @@ if 1:   # Functions
         return o
 
 if __name__ == "__main__":
+    import dptime
     # If the command line has an argument, validate the URLs
     validate = len(sys.argv) > 1
     if 1:   # Get the song URLs and validate them
@@ -410,7 +413,7 @@ if __name__ == "__main__":
         song_list = Get(songs)
         if not validated_OK:
             exit(1)
-        now = iso.ISO()
+        now = dptime.ISO()
     print("Favorites:</p>")
     Print(favorites_list)
     print("<p>Others:</p>")

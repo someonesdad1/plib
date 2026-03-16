@@ -1,7 +1,6 @@
-"""
+'''
 Calculation of Wheatstone bridge problems
-"""
-
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -24,40 +23,32 @@ if 1:  # Header
     if 1:  # Custom imports
         from wrap import wrap, dedent
         from f import flt
-        from color import t
-
+        import trm
         try:
             from uncertainties import ufloat, ufloat_fromstr, UFloat
-
             have_unc = True
         except ImportError:
             have_unc = False
-        if 1:
+        if 0:
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
+        t = trm.Trm()
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
         t.x = t("grnl")
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Manpage():
-        print(
-            dedent(f"""
-        Use of the Wheatstone bridge script
-        """)
-        )
+        print(dedent(f'''
+        Use of the Wheatstone bridge script (to be written)
+        '''))
         exit(0)
-
     def Usage(status=1):
-        print(
-            dedent(f"""
+        print(dedent(f'''
         Usage:  {sys.argv[0]} [options] R1 R2 R3 Vin [Vout]
           Calculate the unknown resistance Rx of a Wheatstone bridge.  Left
           arm of bridge is R1 and R3.  Right arm is R2 and Rx.  +Vin is
@@ -67,15 +58,13 @@ if 1:  # Utility
           option, you can use the short-form notation for uncertainty as
           e.g. 1.00(3) to mean 1.00 ± 0.03 where 0.03 is the standard
           uncertainty.
-
+          
           Voltages are in volts and resistances are in ohms.
         Options:
             -h      Print a manpage
             -u      Allow uncertainties
-        """)
-        )
+        '''))
         exit(status)
-
     def ParseCommandLine(d):
         d["-d"] = 3  # Number of significant digits
         d["-u"] = False  # Allow uncertainties
@@ -104,15 +93,12 @@ if 1:  # Utility
             global have_unc
             have_unc = False
         return args
-
-
 if 1:  # Core functionality
-
     def GetNum(s):
-        """Return a float or ufloat from s, which can either be a regular float
+        '''Return a float or ufloat from s, which can either be a regular float
         string like '1.23' or '1.23e9' or contain a short-form uncertainty
         as in '1.23(3)'.  Note these are the only two allowed forms.
-        """
+        '''
         try:
             if "(" in s and have_unc:
                 return ufloat_fromstr(s)
@@ -121,19 +107,17 @@ if 1:  # Core functionality
         except Exception:
             print(f"{s!r} is not a valid number")
             exit(1)
-
     def Calculate(R1, R2, R3, Vin, Vout):
         a = (R1 + R2) * Vout / Vin
         Rx = (R2 * R3 + a) / (R1 - a)
         if Rx <= 0:
             Error("Unphysical input resulted in Rx <= 0")
         return Rx
-
     def P(x):
-        """Return a string for the float or ufloat x.  The first string is the short
+        '''Return a string for the float or ufloat x.  The first string is the short
         form and the second is the % level of the uncertainty.  Otherwise
         just return the number to the desired number of decimal places.
-        """
+        '''
         if ii(x, UFloat):
             s1 = f"{x:fS}"
             m, s = flt(x.n), flt(x.s)
@@ -146,7 +130,6 @@ if 1:  # Core functionality
         else:
             # return f"{x:.{d['-d']}e}"
             return f"{x}"
-
     def Report(R1, R2, R3, Rx, Vin, Vout):
         print(f"Vin  = {P(Vin)}")
         print(f"Vout = {P(Vout)}")
@@ -154,8 +137,6 @@ if 1:  # Core functionality
         print(f"R2   = {P(R2)}")
         print(f"R3   = {P(R3)}")
         t.print(f"{t.x}Rx   = {P(Rx)}")
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

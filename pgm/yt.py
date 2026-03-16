@@ -5,14 +5,14 @@ if 1:   # Header
     import trm
     t = trm.Trm()
     from wrap import dedent
-    import iso
+    import dptime
+    import dputil
     import requests
     import sys
     if 0:
         import debug
         debug.SetDebugger()
-    from dpprint import PP
-    pp = PP()
+    pp = dputil.PP()
 if 1:   # Classes
     class G:
         pass
@@ -53,7 +53,7 @@ if 1:   # Data
         ],
 }
 if __name__ == "__main__":
-    now = iso.ISO()
+    now = dptime.ISO()
     print(dedent('''
         <!DOCTYPE html>
         <body>

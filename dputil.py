@@ -704,7 +704,7 @@ if 1:  # Core functionality
             except Exception as e:
                 print(e)
                 exit(1)
-        return functools.partial(pprint, width=columns, compact=compact)
+        return functools.partial(pprint.pprint, width=columns, compact=compact)
     def Clear():
         subprocess.run("clear", shell=True)
 
