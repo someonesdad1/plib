@@ -82,6 +82,11 @@ if 1:  # Header
                   stack, which is what usually needs to be done (tediously) with the
                   debugger.
             
+            - This file could have a function that would find all the functions and
+              classes in a module, then compare the list to all the Test_* functions
+              found.  If they don't match 1-to-1, then the module may be missing a test
+              case.
+
             - https://pycodestyle.pycqa.org/en/latest/advanced.html#automated-tests
               tells how to add automated code style testing for conformance.  Add it to
               the self tests as an option to run.
@@ -143,22 +148,20 @@ if 1:  # Header
         ii = isinstance
         python_version = ".".join([str(i) for i in sys.version_info[:3]])
         # Regular expression to identify test functions
-        id_test_function_regexp = "^_*test|test$"
+        id_test_function_regexp = "^Test_|_test$"
 if 1:  # Core functionality
     def run(names_dict, **kw):
-        '''Discover and run the test functions in the names_dict
-        dictionary (name : function pairs).  Return (failed, s) where
-        failed is an integer giving the number of failures that occurred
-        and s is the information string that was sent (or would have been
-        sent) to the stream.  A failure is an unhandled exception.
+        '''Discover and run the test functions in the names_dict dictionary (name :
+        function pairs).  Return (failed, s) where failed is an integer giving the
+        number of failures that occurred and s is the information string that was sent
+        (or would have been sent) to the stream.  A failure is an unhandled exception.
         
         Keyword options [default]:
-            broken:     If True, testing code is acknowledged to be broken;
-                        a warning message is printed and tests are not run.
-                        [False]
-            dbg:        If True, don't handle exceptions (allows you to trap
-                        them in a debugger).  Also can set the environment
-                        variable 'dbg' to do this. [False]
+            broken:     If True, testing code is acknowledged to be broken; a warning 
+                        message is printed and tests are not run.  [False]
+            dbg:        If True, don't handle exceptions (allows you to trap them in a
+                        debugger).  Also can set the environment variable 'dbg' to do
+                        this. [False]
             verbose:    Print the function names as they are executed. [False]
             halt:       Stop at the first failure.  [False]
             quiet:      If True, no output.  [False]
@@ -616,71 +619,8 @@ if 1:  # Checking functions
                 breakpoint()
             else:
                 raise AssertionError(msg)
-
-if __name__ == "__main__":
-    if 1:  # Standard imports
-        import sys
-        from io import StringIO
-    if 1:  # Custom imports
-        from lwtest import run, raises, assert_equal, Assert, ToDoMessage
-        import wrap
-        try:
-            import numpy
-            have_numpy = True
-        except ImportError:
-            have_numpy = False
-        try:
-            import mpmath
-            have_mpmath = True
-        except ImportError:
-            have_mpmath = False
-    def ShowUsage():
-        u.k = u.pur1
-        u.d = u.grn1
-        u.u = u.den1
-        print(wrap.dedent(f'''
-        {u.yel}lwtest:  Lightweight test framework -- typical usage:{u.n}
-            from lwtest import run, assert_equal, raises, Assert
-            # Name your test functions e.g. "def Test_*()"
-            if __name__ == "__main__":
-                {u.orn}num_failed, messages = run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0){u.n}
-                  or
-                {u.mag}exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0]){u.n}
-            
-                {u.k}broken{u.n}      If True, testing code is acknowledged to be broken; a warning
-                            message is printed and tests are not run.  [{u.d}False{u.n}]
-                {u.k}dbg{u.n}         If True, don'u handle exceptions (allows you to trap them in a
-                            debugger).  Also can set the environment variable 'dbg' to do
-                            this. [{u.d}False{u.n}]
-                {u.k}verbose{u.n}     Print the function names as they are executed.  [{u.d}False{u.n}]
-                {u.k}halt{u.n}        Stop at the first failure.  [{u.d}False{u.n}]
-                {u.k}quiet{u.n}       If True, no output.  [{u.d}False{u.n}]
-                {u.k}regexp{u.n}      Regular expression that identifies a test function.  Default
-                            is [{u.d}{id_test_function_regexp}{u.n}]
-                {u.k}reopts{u.n}      Regular expression's options. [{u.d}re.I{u.n}]
-                {u.k}stream{u.n}      Where to send output [{u.d}stdout{u.n}].  None = no output.
-                {u.k}nomsg{u.n}       If True, return only the integer 'failed'.
-            
-                exit(num_failed)      # Nonzero status if 1 or more unhandled exceptions
-        
-        Utility functions:
-            Check that two numbers are close:
-                {u.u}assert_equal{u.n}(a, b, reltol=None, abstol=None, use_min=False)
-            Check that something raises an exception:
-                {u.u}raises{u.n}(exception_object, func, *p, **kw)
-                {u.u}raises{u.n}(sequence_of_exception_objects, func, *p, **kw)
-                with {u.u}raises{u.n}(exception_object):
-                    <code that must raise an exception>
-            Send a colored reminder message to stdout:
-                {u.u}ToDoMessage{u.n}(message, prefix="+", color="yel")
-                
-            {u.u}Assert{u.n}(condition, msg="", debug=False)
-                Is like assert but can'u be optimized out.  The debug keyword argument if True drops
-                you into the debugger if condition is False (type 'u' to go to the line that failed)
-                and msg is printed in color to stderr.  You can also get this behavior if the
-                environment variable Assert is not empty.
-        '''[1:].rstrip()))
-    def TestRaises():
+if 1:  # Testing functions
+    def Test_Raises():
         f = lambda x: 1/x
         # Function call & object instantiation semantics
         raises(ZeroDivisionError, f, 0)
@@ -694,7 +634,7 @@ if __name__ == "__main__":
             def __init__(self):
                 raise RuntimeError
         raises(RuntimeError, A)
-    def TestRaisesContextManager():
+    def Test_RaisesContextManager():
         f = lambda x: 1/x
         with raises(ZeroDivisionError):
             f(0)
@@ -709,7 +649,7 @@ if __name__ == "__main__":
             pass
         else:
             raise Exception("Bug!")
-    def TestAssertEqual():
+    def Test_AssertEqual():
         """Demonstrate that the assert_equal function can detect equal and
         non-equal objects for the following types:
             Numbers
@@ -796,8 +736,8 @@ if __name__ == "__main__":
         raises(E, assert_equal, a, b)
         raises(E, assert_equal, A, B)
         # Functions
-        assert_equal(TestRaises, TestRaises)
-        raises(E, assert_equal, TestRaises, assert_equal)
+        assert_equal(Test_Raises, Test_Raises)
+        raises(E, assert_equal, Test_Raises, assert_equal)
     def Test_flt_cpx():
         x, z = f.flt(0), f.cpx(0)
         with x:
@@ -810,7 +750,7 @@ if __name__ == "__main__":
             assert_equal(a, b)
             b = 1 + 1j
             assert_equal(a, b)
-    def TestRun():
+    def Test_Run():
         def TestA():
             raise ValueError()
         def TestB():
@@ -834,9 +774,73 @@ if __name__ == "__main__":
         s = st.getvalue().strip().split("\n")
         assert s[0] == "testA failed:  ValueError()"
         assert m1 not in messages and m2 not in messages
-    def TestToDoMessage():
+    def Test_ToDoMessage():
         ToDoMessage("Simulated to-do message")
-        ToDoMessage("Simulated to-do message in color", color="yell")
+        ToDoMessage("Simulated to-do message in color", color="yel")
+
+if __name__ == "__main__":
+    if 1:  # Standard imports
+        import sys
+        from io import StringIO
+    if 1:  # Custom imports
+        from lwtest import run, raises, assert_equal, Assert, ToDoMessage
+        import wrap
+        try:
+            import numpy
+            have_numpy = True
+        except ImportError:
+            have_numpy = False
+        try:
+            import mpmath
+            have_mpmath = True
+        except ImportError:
+            have_mpmath = False
+    def ShowUsage():
+        u.k = u.sky
+        u.d = u.grn1
+        u.u = u.lavl
+        print(wrap.dedent(f'''
+        {u.yel}lwtest:  Lightweight test framework -- typical usage:{u.n}
+            from lwtest import run, assert_equal, raises, Assert
+            # Name your test functions e.g. "def Test_*()"
+            if __name__ == "__main__":
+                {u.orn}num_failed, messages = run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0){u.n}
+                  or
+                {u.mag}exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0]){u.n}
+            
+                {u.k}broken{u.n}      If True, testing code is acknowledged to be broken; a warning
+                            message is printed and tests are not run.  [{u.d}False{u.n}]
+                {u.k}dbg{u.n}         If True, don't handle exceptions (allows you to trap them in a
+                            debugger).  Also can set the environment variable 'dbg' to do
+                            this. [{u.d}False{u.n}]
+                {u.k}verbose{u.n}     Print the function names as they are executed.  [{u.d}False{u.n}]
+                {u.k}halt{u.n}        Stop at the first failure.  [{u.d}False{u.n}]
+                {u.k}quiet{u.n}       If True, no output.  [{u.d}False{u.n}]
+                {u.k}regexp{u.n}      Regular expression that identifies a test function.  Default
+                            is [{u.d}{id_test_function_regexp}{u.n}]
+                {u.k}reopts{u.n}      Regular expression's options. [{u.d}re.I{u.n}]
+                {u.k}stream{u.n}      Where to send output [{u.d}stdout{u.n}].  None = no output.
+                {u.k}nomsg{u.n}       If True, return only the integer 'num_failed'.
+            
+                exit(num_failed)      # Nonzero status if 1 or more unhandled exceptions
+        
+        Utility functions:
+            Check that two numbers are close:
+                {u.u}assert_equal{u.n}(a, b, reltol=None, abstol=None, use_min=False)
+            Check that something raises an exception:
+                {u.u}raises{u.n}(exception_object, func, *p, **kw)
+                {u.u}raises{u.n}(sequence_of_exception_objects, func, *p, **kw)
+                with {u.u}raises{u.n}(exception_object):
+                    <code that must raise an exception>
+            Send a colored reminder message to stdout:
+                {u.u}ToDoMessage{u.n}(message, prefix="+", color="yel")
+                
+            {u.u}Assert{u.n}(condition, msg="", debug=False)
+                Is like assert but can't be optimized out.  The debug keyword argument if True drops
+                you into the debugger if condition is False (type 'u' to go to the line that failed)
+                and msg is printed in color to stderr.  You can also get this behavior if the
+                environment variable Assert is not empty.
+        '''[1:].rstrip()))
     if len(sys.argv) > 1 and sys.argv[1] == "--test":
         exit(run(globals(), halt=1)[0])
     else:

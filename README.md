@@ -4,6 +4,10 @@
 
 - Strategic
     - Coalesce into a core set of modules
+    - Look at pytest:  should I switch from lwtest?  
+        - Big decision, as it changes what I've used for years
+        - lwtest has allowed stand-alone testing, a real plus
+        - But other users might have pytest and be familiar with it
     - Type annotate them to modern standards
         - Type hints provide a "user manual" baked into the code
         - Document "why" via Annotated:

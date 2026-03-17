@@ -188,8 +188,12 @@ if 1:  # Distribute and GetClosest
             # All operations here involve Tfp types, so 'x' remains a Tfp
             x = x0 + (impl(i)/divisor)*dx
             yield x
-
-    def GetClosest(x, seq, is_sorted=False, key=None, distance=operator.sub, unresolved=0):
+    def GetClosest(x: ty.Any, 
+                   seq: ty.Sequence[ty.Any],
+                   is_sorted: bool=False,
+                   key: ty.Any=None,
+                   distance=operator.sub,
+                   unresolved: int=0) -> ty.Any:
         '''Return the value in sequence seq that is closest to x.
         
         The intended common use case is where x is a number and seq is a sequence of numbers, but
@@ -287,21 +291,21 @@ if 1:   # Searching sorted sequences from bisect module
         # bisect_right(seq, x) partitions seq into two halves so that 
         #   all values <= x on the left side
         #   all values > x on the right side
-    def Leftmost_eq(seq, x):
+    def Leftmost_eq(seq: ty.Sequence[ty.Any], x: ty.Any) -> ty.Any:
         'Return index of the leftmost value == x'
         # index(a, x) in bisect module document
         i = bisect.bisect_left(seq, x)
         if i != len(seq) and seq[i] == x:
             return i
         raise ValueError(f"No leftmost value == {x}")
-    def Leftmost_gt(seq, x):
+    def Leftmost_gt(seq: ty.Sequence[ty.Any], x) -> ty.Any:
         'Return index of leftmost value > x'
         # find_gt(a, x) in bisect module document
         i = bisect.bisect_right(seq, x)
         if i != len(seq):
             return seq[i]
         raise ValueError(f"No leftmost value > {x}")
-    def Leftmost_ge(seq, x):
+    def Leftmost_ge(seq: ty.Sequence[ty.Any], x) -> ty.Any:
         'Return index of leftmost item >= x'
         # find_ge(a, x) in bisect module document
         i = bisect.bisect_left(seq, x)
@@ -309,7 +313,7 @@ if 1:   # Searching sorted sequences from bisect module
             return seq[i]
         raise ValueError(f"No leftmost value >= {x}")
     #
-    def Rightmost_eq(seq, x):
+    def Rightmost_eq(seq: ty.Sequence[ty.Any], x) -> ty.Any:
         'Return index of the rightmost value == x'
         try:
             n = Rightmost_le(seq, x)
@@ -321,14 +325,14 @@ if 1:   # Searching sorted sequences from bisect module
                 raise ValueError
         except ValueError as e:
             raise ValueError(f"No rightmost value == {x}") from e
-    def Rightmost_lt(seq, x):
+    def Rightmost_lt(seq: ty.Sequence[ty.Any], x) -> ty.Any:
         'Return index of rightmost value < x'
         # find_lt(a, x) in bisect module document
         i = bisect.bisect_left(seq, x)
         if i:
             return seq[i-1]
         raise ValueError(f"No rightmost value < {x}")
-    def Rightmost_le(seq, x):
+    def Rightmost_le(seq: ty.Sequence[ty.Any], x) -> ty.Any:
         'Return index of rightmost value <= x'
         # find_le(a, x) in bisect module document
         i = bisect.bisect_right(seq, x)
@@ -336,7 +340,7 @@ if 1:   # Searching sorted sequences from bisect module
             return seq[i-1]
         raise ValueError(f"No rightmost value <= {x}")
 if 1:   # Get or transform numbers from a sequence
-    def GetNum(seq, typ=int):
+    def GetNum(seq: ty.Sequence[ty.Any], typ=int):
         '''Return a list of numbers found in sequence seq.  The intent is that all the
         elements of seq that can be converted to a number of type typ will be returned
         in the list.  Examples:
@@ -351,7 +355,7 @@ if 1:   # Get or transform numbers from a sequence
             except Exception:
                 return None
         return [i for i in map(Num, seq) if i is not None]
-    def Clamp(seq, low=0, high=1, typ=None):
+    def Clamp(seq: ty.Sequence[ty.Any], low: int=0, high: int=1, typ=ty.Any | None) -> ty.Any:
         '''Generator to return elements of a sequence "clamped" to an interval.  Thus,
         the returned elements will be in [low, high].  The type of the returned value is
         typ if not None; otherwise, it's the same type as the element processed.
@@ -445,27 +449,27 @@ if 1:   # Finding duplicates in sequences
             if self.typ:
                 return (eqval and (type(self) is type(other)))
             return eqval
-    def Nodup(seq, type_important=False):
+    def Nodup(seq: ty.Sequence[ty.Any], type_important: bool=False):
         '''seq is a sequence; returns nodup where nodup is a list of the elements in seq
         that are not duplicates.  See DupNodup() for details.
         '''
         return DupNodup(seq, type_important=type_important)[1]
-    def NodupHashable(seq):
+    def NodupHashable(seq: ty.Sequence[ty.Any]):
         '''seq is a sequence; returns nodup where nodup is a list of the elements in seq
         that are not duplicates.  See DupNodupHashable() for details.
         '''
         return DupNodupHashable(seq)[1]
-    def Dup(seq, type_important=False):
+    def Dup(seq: ty.Sequence[ty.Any], type_important: bool=False):
         '''seq is a sequence; returns dup where dup is a list of the elements in seq
         that are duplicates.  See DupNodup() for details.
         '''
         return DupNodup(seq, type_important=type_important)[0]
-    def DupHashable(seq):
+    def DupHashable(seq: ty.Sequence[ty.Any]):
         '''seq is a sequence; returns dup where dup is a list of the elements in seq
         that are duplicates.  See DupNodupHashable() for details.
         '''
         return DupNodupHashable(seq)[0]
-    def DupNodup(seq, type_important=False):
+    def DupNodup(seq: ty.Sequence[ty.Any], type_important: bool=False):
         '''seq is a sequence; returns (dup, nodup) where dup and nodup are lists.  nodup
         has the elements in seq that are not duplicates.  dup contains the elements that
         are duplicates of earlier elements in the list.  Both dup and nodup maintain the
@@ -515,7 +519,7 @@ if 1:   # Finding duplicates in sequences
             dup.append(item) if sitem in seen else nodup.append(item)
             seen.add(sitem)
         return (dup, nodup)
-    def DupNodupHashable(seq):
+    def DupNodupHashable(seq: ty.Sequence[ty.Any]):
         '''seq is a sequence; returns (dup, nodup) where dup and nodup are lists.  nodup
         has the elements in seq that are not duplicates.  dup contains the elements that
         are duplicates of earlier elements in the list.  Both dup and nodup maintain the
@@ -584,7 +588,7 @@ if 1:  # frange, lrange, Sequence, irange, Rational
                 s.extend([str(remainder), "/", str(d)])
             return "".join(s)
     def frange(start, stop=None, step=None, return_type=float, impl=decimal.Decimal,
-            strict=True, include_end=False):
+            strict: bool=True, include_end: bool=False) -> ty.Any:
         '''A floating point generator analog of range.  start, stop, and step are either
         python floats, integers, or strings representing floating point numbers (or any
         other object that impl can convert to an object that behaves with numerical
@@ -689,7 +693,8 @@ if 1:  # frange, lrange, Sequence, irange, Rational
                         raise
                     yield return_type(str(start))
                 start += step
-    def lrange(start_decade, end_decade, dx=1, x=1, mantissas=None):
+    def lrange(start_decade: int, end_decade: int, dx=1, x=1, 
+               mantissas: list[float] | None=None) -> list[float]:
         '''Provides a logarithmic analog to the frange function.  Returns a list of
         values with logarithmic spacing.
         
@@ -714,8 +719,8 @@ if 1:  # frange, lrange, Sequence, irange, Rational
         for exp in range(start_decade, end_decade):
             values += [i * 10**exp for i in mantissas]
         return values
-    def Sequence(s):
-        '''Return a sequence of numbers based on the specifications in s.
+    def Sequence(s: str):
+        '''Return a sequence of numbers based on the specifications in the string s.
         Specifications are separated by whitespace characters and are of the forms
             a
             a:b
@@ -730,7 +735,7 @@ if 1:  # frange, lrange, Sequence, irange, Rational
             1/4, 3/8, 1/2, 5/8, 3/4]
         '''
         out = []
-        for spec in split_ws.split(s): # noqa ∞∞1 Bug:  split_ws not defined (should it be s.split()?)
+        for spec in s.split(s): 
             spec = spec.strip()
             if not spec:
                 continue
@@ -753,7 +758,7 @@ if 1:  # frange, lrange, Sequence, irange, Rational
                 return i
             return x
         return [MakeIntIfPossible(i) for i in out]
-    def ifrange(start, stop, step=1):
+    def ifrange(start: ty.Any, stop: ty.Any, step: ty.Any=1) -> ty.Any:
         '''Generator similar to frange but with a simpler implementation; note the end
         point is returned.  Use with any number type compatible with dpmath.RoundOff
         such as int, float, Fraction, Decimal, complex, mpmath.mpf, mpmath.mpc,
@@ -1834,7 +1839,7 @@ if __name__ == "__main__":
             got = list(ifrange(0, 1, R(1, 8)))
             expected = [fractions.Fraction(i) for i in "0 1/8 1/4 3/8 1/2 5/8 3/4 7/8".split()]
             Assert(got == expected)
-    if 1:   #Testing for old util stuff
+    if 1:  # Testing for old util stuff
         def Test_GroupByN():
             n, m = 5, 3
             s = range(n)
