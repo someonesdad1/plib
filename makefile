@@ -12,6 +12,8 @@ RUFFOPTS = --config /plib/ruff.toml
 
 .PHONY: help check lint typecheck clean
 
+file = dpseq.py
+
 temp: typecheck
 
 help:
@@ -29,7 +31,7 @@ lint:
 	$(RUFF) $(RUFFOPTS) check --output-format=concise *.py
 
 typecheck:
-	$(MYPY) $(MYPYOPTS) iterutil.py
+	$(MYPY) $(MYPYOPTS) $(file)
 	@#$(MYPY) $(MYPYOPTS) .
 
 # This is the 'safe' fix we discussed—no math-mangling!

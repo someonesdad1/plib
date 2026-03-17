@@ -3,27 +3,8 @@
 # /plib vision
 
 - Strategic
-    - Move to a clean "import math" and "math.pi" usage in my python files.  Avoid "from
-      x import y", which has higher risk of circular imports.  Minimize my definitions
-      of import symbols.
-    - /plib/tests will hold module tests
-    - Makefile to help with testing/checking
-        - 'make' prints key targets to use:
-            - 'make check':  lints & type checks
-            - 'make lint':  lints
-            - 'make type':  type checking
-            - 'make test':  run selftests
-            - 'make fix':  run ruff to safely fix imports and syntax
-            - 'make clean':  remove cache files & other leftover stuff
-        - Move "test" to "tests"
-            - All self tests then run by 'make test' at top level, which simply cd's to
-              tests and runs make or a testing script
-        - Need to support 'make z'; this would cause the test of the current file in .z
-          to be run
-    - Move /plib/pgm to /pgm
-        - Makes /plib a core set of python library files
-    - Core library stuff is type annotated
-        - Use TypeAlias to make things more readable
+    - Coalesce into a core set of modules
+    - Type annotate them to modern standards
         - Type hints provide a "user manual" baked into the code
         - Document "why" via Annotated:
             - from typing import Annotated
@@ -33,44 +14,41 @@
             - A good name for the class/method tell you what it does
             - The types tell you what it takes and what it returns
             - You don't have to read the code to get the prior two things
+    - Switch back to having all tests in a 'tests' directory
+    - gist in every file
+    - numeric/textual data to ./data modules
+    - Makefile that does high level stuff:  
+    - Makefile to help with testing/checking
+        - 'make' prints key targets to use:
+            - 'make check':  lints & type checks
+            - 'make lint':  lints
+            - 'make type':  type checking
+            - 'make test':  run selftests
+            - 'make fix':  run ruff to safely fix imports and syntax
+            - 'make clean':  remove cache files & other leftover stuff
+        - Need to support 'make z'; this would cause the test of the current file in .z
+          to be run
+            - Or, change the z script so that it runs the module or runs its test
+    - Move pgm to elsewhere
+    - Each module can have a --demo option
     - Use __all__ to signal public/private
     - DEVELOPER.md file to indicate epochs of code development, where the legacy stuff
       is, and what's the core up-to-date stuff.
-
-- Tactical
-    - All my stuff moved to MIT license
-    - gist in every file
-    - As much as possible has tests
-        - Speed up testing with multiple processes
-        - OK to e.g. use dptest.py to manage all testing
-    - Coalesce similar functionality into fewer files
-        - dp*.py is useful naming pattern to avoid conflicts with other namespaces
-    - Move numeric/textual data to ./data modules
-    - HTML doc produced automatically; allows a new visitor to browse contents at a
-      reasonably high level
-        - docstrings for functions & classes can have a marker in them that can be used
-          to produce the HTML documentation.  This should be a brief description of the
-          symbol and what problem it solves.
-    - pydoc works well on all symbols
-
-- color
-    - Coalesce everything into color.py
-
-# 2026 /plib vision
-
-- Consolidate into fewer files
-- Module documentation
-    - Better documentation of design decisions used in the module
-    - Must have adequate docstrings for use with pydoc
-    - Each module can have a --demo option that lets you get an overview of the features
-      and see an example of each component.  The demo code could be put in /plib/data
-      and the module would just launch it.
-- Update self-tests and ensure they pass
-- Remove specialized modules that are better stored elsewhere
-- 0what.py returns useful output for all modules
+    - Documentation
+        - HTML files
+        - Organized by topic
+        - Produced automatically by 'make doc'
+        - docstrings can have a marker in them to allow grabbing the text for this
+          automated production.  I like ❎ as a marker; this is the only place this
+          symbol will be used.
 
 # 2026 /plib work done
 
+- 17 Mar
+    - Gemini has been coaching me on an overall strategy for refactoring plus the much
+      more intense desire to type annotate all the core stuff.  
+        - iterutil.py got partially type annotated and this was a severe test, as it's
+          much more complicated than what I'll run into.
 - 14 Mar
     - dp\*.py files linted
     - Policies

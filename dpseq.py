@@ -1,30 +1,45 @@
 '''
 Functions for sequences
-
-iDistribute     Return equally-distributed integers
-fDistribute     Return equally-distributed numbers
-GetClosest      Return value closest to x
-Leftmost_eq     Return index of the leftmost value == x
-Leftmost_gt     Return index of the leftmost value > x
-Leftmost_ge     Return index of the leftmost value >= x
-Rightmost_eq    Return index of the rightmost value == x
-Rightmost_lt    Return index of the rightmost value < x
-Rightmost_le    Return index of the rightmost value <= x
-GetNum          Return a list of numbers in sequence
-Clamp           Return elements clamped to an interval
-Nodup           Return elements that are not duplicates
-NodupHashable   Return elements that are not duplicates
-Dup             Return elements that are duplicates
-DupHashable     Return elements that are duplicates
-DupNodup        Return (dup, nodup)
-DupNodupHashable Return (dup, nodup)
-Rational        Fraction with proper fraction string representation
-frange          Floating point generator analog of range()
-lrange          Logarithmic analog to frange()
-Sequence        Sequence of numbers based on start:end:increment spec
-ifrange         Simpler iterator implementation of frange
-Batch           Generator to pick n items at a time from a sequence
-
+    Batch           Generator to pick n items at a time from a sequence
+    Clamp           Return elements clamped to an interval
+    Dup             Return elements that are duplicates
+    DupHashable     Return elements that are duplicates
+    DupNodup        Return (dup, nodup)
+    DupNodupHashable Return (dup, nodup)
+    fDistribute     Return equally-distributed numbers
+    Flatten         Flatten sequences to specified depth
+    Flatten_generator Generator to return a flattened sequence
+    frange          Floating point generator analog of range()
+    GetClosest      Return value closest to x
+    GetNum          Return a list of numbers in sequence
+    GetSize         Recursively finds size of objects in bytes
+    GroupByN        Return iterator giving groups of n items from sequence
+    grouper         map/reduce for data analysis
+    hyphen_range    
+    iDistribute     Return equally-distributed integers
+    ifrange         Simpler iterator implementation of frange
+    IsHomogeneous   Return True if sequence is homogeneous
+    IsIterable      Return True if argument is an iterable
+    ItemCount       Return a sorted list of (item, count) in sequence
+    Leftmost_eq     Return index of the leftmost value == x
+    Leftmost_ge     Return index of the leftmost value >= x
+    Leftmost_gt     Return index of the leftmost value > x
+    lrange          Logarithmic analog to frange()
+    Nodup           Return elements that are not duplicates
+    NodupHashable   Return elements that are not duplicates
+    Paste           Return a pasted sequence from a group of sequences
+    PPSeq           Class to format sequences for pretty printing
+    Ranges          Return numerical sequence of ranges from sequence of integers
+    Rational        Fraction with proper fraction string representation
+    Rightmost_eq    Return index of the rightmost value == x
+    Rightmost_le    Return index of the rightmost value <= x
+    Rightmost_lt    Return index of the rightmost value < x
+    Sequence        Sequence of numbers based on start:end:increment spec
+    transpose       Transpose of a nested two-dimensional sequence
+    Unique          Generator returns unique elements in sequence of hashable items
+    unrange         Turn seq of integers into a collection of ranges; return as a string
+    unrange_real    Turn seq of numbers into a collection of ranges; return as a string
+    VisualCount     Return a list of strings representing a histogram of the items in seq
 '''
 if 1:  # Header
     _pgminfo = '''
@@ -78,6 +93,7 @@ if 1:  # Header
         import numbers
         import operator
         import os
+        import typing as ty
     if 1:  # Custom imports
         import dptypes
         import f
@@ -88,10 +104,28 @@ if 1:  # Header
     if 1:  # Global variables
         g = dptypes.Constant()
         g.dbg = False
+    if 1:  # Type-related things
+        T_Arith = ty.TypeVar("T_Arith", bound="SupportsArithmetic")
+        @ty.runtime_checkable
+        class SupportsArithmetic(ty.Protocol):
+            '''An interface spec for types that support basic arithmetic
+            and can be constructed from a numeric value.
+            '''
+            def __init__(self, value: ty.Any) -> None: ...
+            def __add__(self: T_Arith, other: ty.Any) -> T_Arith: ...
+            def __sub__(self: T_Arith, other: ty.Any) -> T_Arith: ...
+            def __mul__(self: T_Arith, other: ty.Any) -> T_Arith: ...
+            def __truediv__(self: T_Arith, other: ty.Any) -> T_Arith: ...
+            def __lt__(self: T_Arith, other: ty.Any) -> bool: ...
+            def __le__(self: T_Arith, other: ty.Any) -> bool: ...
+        # We use the Protocol to constrain our TypeVar
+        Tfp = ty.TypeVar("Tfp", bound=SupportsArithmetic)
+
 if 1:  # Distribute and GetClosest
-    def iDistribute(n, a, b):
-        '''Generator to return an integer sequence [a, ..., b] with n elements equally distributed
-        between a and b.  Raises ValueError if no solution is possible.  Example:
+    def iDistribute(n: int, a: int, b: int) -> ty.Iterable[int]:
+        '''Generator to return an integer sequence [a, ..., b] with n elements equally
+        distributed between a and b.  Raises ValueError if no solution is possible.
+        Example:
             a, b = 1, 6
             for n in range(2, 8):
                 s = list(iDistribute(n, a, b))
@@ -123,38 +157,40 @@ if 1:  # Distribute and GetClosest
             raise ValueError("No solution")
         for i in range(n):
             yield int(round(a + i * dx, 0))
-    def fDistribute(n, a=0, b=1, impl=float):
+    def fDistribute(
+            n: int,
+            a: ty.Any = 0.0,
+            b: ty.Any = 1.0,
+            impl: type[Tfp] = float  # type: ignore # default 'float' matches the Protocol
+            ) -> ty.Iterator[Tfp]:
         '''Generator to return n impl instances on [a, b] inclusive. A common use case is an
         interpolation parameter on [0, 1].  This is for floating point numbers.  Examples:
             fd = fDistribute
             fd(3) --> [0.0, 0.5, 1.0]
             fd(3, 1, 2) --> [1.0, 1.5, 2.0]
             fd(4, 1, 2, Fraction) --> [Fraction(1, 1), Fraction(4, 3), Fraction(5, 3), Fraction(2, 1)]
-            
         You can use other impl types like decimal.Decimal.  Other types that define impl()/impl() to
         return an impl-type floating point number will also work (e.g., mpmath's mpf type).
-        
-        If you need a sequence of evenly-distributed integers, see iDistribute().
         '''
-        # Check arguments
-        msg = "n must be an integer > 1"
-        if not isinstance(n, int):
-            raise TypeError(msg)
-        if n < 2:
-            raise ValueError(msg)
-        if not isinstance(a, (int, impl)) or not isinstance(b, (int, impl)):
-            raise TypeError("a and b must be either an integer or impl")
-        if not (a < b):
-            raise ValueError("Must have a < b")
-        x0 = impl(a)
-        dx = impl(b) - x0
+        if 1:   # Check arguments
+            msg = "n must be an integer > 1"
+            if not isinstance(n, int):
+                raise TypeError(msg)
+            if n < 2:
+                raise ValueError(msg)
+            if not isinstance(a, (int, impl)) or not isinstance(b, (int, impl)):
+                raise TypeError("a and b must be either an integer or impl")
+            if not (impl(a) < impl(b)):
+                raise ValueError("Must have a < b")
+        x0: Tfp = impl(a)
+        dx: Tfp = impl(b) - x0
+        # Pre-calculate the denominator as a Tfp type to avoid 'float' drift
+        divisor: Tfp = impl(n - 1)
         for i in range(n):
-            x = x0 + (impl(i) / impl(n - 1)) * dx
-            # Check invariants
-            assert a <= x <= b
-            assert isinstance(x, impl)
-            # Return value
+            # All operations here involve Tfp types, so 'x' remains a Tfp
+            x = x0 + (impl(i)/divisor)*dx
             yield x
+
     def GetClosest(x, seq, is_sorted=False, key=None, distance=operator.sub, unresolved=0):
         '''Return the value in sequence seq that is closest to x.
         
@@ -1258,11 +1294,9 @@ if 1:   # From util
                 d[key] = reducer(group)
         return d
     def Flatten_generator(seq, ltypes=(list, tuple)):
-        '''A generator that will return a flattened sequence from seq.  If an element in seq
-        is of one of the types in ltypes, then it's considered to be a sequence; otherwise,
-        it's a scalar element.
-        
-        The method is a nice use of a deque from
+        '''A generator that will return a flattened sequence from seq.  If an element in
+        seq is of one of the types in ltypes, then it's considered to be a sequence;
+        otherwise, it's a scalar element.  The method is a nice use of a deque from
         https://dev.to/miguendes/5-different-ways-to-flatten-a-list-of-lists-in-python-2cmn
         The algorithm is:
         
@@ -1293,21 +1327,11 @@ if 1:   # From util
                 else:
                     yield elem
     def Flatten(L, max_depth=None, ltypes=(list, tuple)):
-        '''Flatten every sequence in L whose type is contained in "ltypes" to "max_depth" levels down
-        the tree.  The sequence returned has the same type as the input sequence.
-        
-        Written by Kevin L. Sitze on 2010-11-25.  From
+        '''Flatten every sequence in L whose type is contained in 'ltypes' to
+        'max_depth' levels down the tree.  The sequence returned has the same type as
+        the input sequence.  Written by Kevin L. Sitze on 2010-11-25.  From
         http://code.activestate.com/recipes/577470-fast-flatten-with-depth-control-and-oversight-over/?in=lang-python
         This code may be used pursuant to the MIT License.
-        
-        Note:  itertools has a flatten() recipe that flattens one level:
-        
-            def flatten(listOfLists):
-                'Flatten one level of nesting'
-                return chain.from_iterable(listOfLists)
-                
-        but every element encountered needs to be an iterable.  This Flatten() function works more
-        generally.
         '''
         if max_depth is None:
             def make_flat(x):
