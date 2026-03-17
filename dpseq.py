@@ -139,8 +139,6 @@ if 1:  # Distribute and GetClosest
         with a ValueError exception on the n == 7 term.  For the case n == 4, note how the adjective
         "equally" needs to be interpreted "symmetrically" and for the case n == 5, even that's not
         true.
-        
-        If you need a sequence of n floating point values, see util.fDistribute().
         '''
         if not (isinstance(a, int) and isinstance(b, int) and isinstance(n, int)):
             raise TypeError("Arguments must be integers")
@@ -1427,6 +1425,8 @@ if 1:   # From util
 if __name__ == "__main__":
     if 1:  # Standard imports
         import collections
+        import decimal
+        import fractions
         import functools
         import sys
         import timeit
@@ -1519,6 +1519,15 @@ if __name__ == "__main__":
                         assert_equal(abs(d[0] - d[1]), 1)
             for n in range(257, 265):
                 raises(ValueError, list, iDistribute(n, a, b))
+        def Test_fDistribute():
+            a, b, n = 0, 1, 3
+            expected = [0.0, 0.5, 1.0]
+            D, F = decimal.Decimal, fractions.Fraction
+            M = mpmath.mpf if _have_mpmath else float
+            for impl in (float, D, F, M):
+                s = list(fDistribute(n, a, b, impl=impl))
+                Assert(s == expected)
+                Assert(all(isinstance(i, impl) for i in s))
         def Test_GetClosest():
             low, high = -3, 6
             seq = (4, low, high, 1)  # Unsorted sequence
