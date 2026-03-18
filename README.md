@@ -2,113 +2,113 @@
 
 # /plib vision
 
-- Strategic
-    - Coalesce into a core set of modules
-    - Look at pytest:  should I switch from lwtest?  
-        - Big decision, as it changes what I've used for years
-        - lwtest has allowed stand-alone testing, a real plus
-        - But other users might have pytest and be familiar with it
-    - Type annotate them to modern standards
-        - Type hints provide a "user manual" baked into the code
-        - Document "why" via Annotated:
-            - from typing import Annotated
-            - Radians = Annotated[float, "Phase angle in radians"]
-            - Uncertainty = Annotated[float, "Standard deviation"]
-        - The strategic benefits of the typing are
-            - A good name for the class/method tell you what it does
-            - The types tell you what it takes and what it returns
-            - You don't have to read the code to get the prior two things
-    - Switch back to having all tests in a 'tests' directory
-    - gist in every file
-    - numeric/textual data to ./data modules
-    - Makefile that does high level stuff:  
-    - Makefile to help with testing/checking
-        - 'make' prints key targets to use:
-            - 'make check':  lints & type checks
-            - 'make lint':  lints
-            - 'make type':  type checking
-            - 'make test':  run selftests
-            - 'make fix':  run ruff to safely fix imports and syntax
-            - 'make clean':  remove cache files & other leftover stuff
-        - Need to support 'make z'; this would cause the test of the current file in .z
-          to be run
-            - Or, change the z script so that it runs the module or runs its test
-    - Move pgm to elsewhere
-    - Each module can have a --demo option
-    - Use __all__ to signal public/private
-    - DEVELOPER.md file to indicate epochs of code development, where the legacy stuff
-      is, and what's the core up-to-date stuff.
-    - Documentation
-        - HTML files
-        - Organized by topic
-        - Produced automatically by 'make doc'
-        - docstrings can have a marker in them to allow grabbing the text for this
-          automated production.  I like ❎ as a marker; this is the only place this
-          symbol will be used.
+    - Strategic
+        - Coalesce into a core set of modules
+        - Look at pytest:  should I switch from lwtest?  
+            - Big decision, as it changes what I've used for years
+            - lwtest has allowed stand-alone testing, a real plus
+            - But other users might have pytest and be familiar with it
+        - Type annotate them to modern standards
+            - Type hints provide a "user manual" baked into the code
+            - Document "why" via Annotated:
+                - from typing import Annotated
+                - Radians = Annotated[float, "Phase angle in radians"]
+                - Uncertainty = Annotated[float, "Standard deviation"]
+            - The strategic benefits of the typing are
+                - A good name for the class/method tell you what it does
+                - The types tell you what it takes and what it returns
+                - You don't have to read the code to get the prior two things
+        - Switch back to having all tests in a 'tests' directory
+        - gist in every file
+        - numeric/textual data to ./data modules
+        - Makefile that does high level stuff:  
+        - Makefile to help with testing/checking
+            - 'make' prints key targets to use:
+                - 'make check':  lints & type checks
+                - 'make lint':  lints
+                - 'make type':  type checking
+                - 'make test':  run selftests
+                - 'make fix':  run ruff to safely fix imports and syntax
+                - 'make clean':  remove cache files & other leftover stuff
+            - Need to support 'make z'; this would cause the test of the current file in .z
+            to be run
+                - Or, change the z script so that it runs the module or runs its test
+        - Move pgm to elsewhere
+        - Each module can have a --demo option
+        - Use __all__ to signal public/private
+        - DEVELOPER.md file to indicate epochs of code development, where the legacy stuff
+        is, and what's the core up-to-date stuff.
+        - Documentation
+            - HTML files
+            - Organized by topic
+            - Produced automatically by 'make doc'
+            - docstrings can have a marker in them to allow grabbing the text for this
+            automated production.  I like ❎ as a marker; this is the only place this
+            symbol will be used.
 
 # 2026 /plib work done
 
-- 17 Mar
-    - Gemini has been coaching me on an overall strategy for refactoring plus the much
-      more intense desire to type annotate all the core stuff.  
-        - iterutil.py got partially type annotated and this was a severe test, as it's
-          much more complicated than what I'll run into.
-- 14 Mar
-    - dp\*.py files linted
-    - Policies
-        - Importing
-            - Never use 'from x import y'
-            - All imports will be 'import x'
-            - Occasional abbreviations:  'import numpy as np'
-            - Rarely define symbols:  no 'import math' and 'pi = math.pi'.  The primary
-              reason is the person reading the code doesn't have to figure out where the
-              symbol came from.  I'll occasionally let lines become long to support
-              this.
-            - This came from Gemini's analysis that this is the safest way to avoid
-              circular imports and makes it better for other people to read the code
-        - /plib has a makefile that will run lint & type checking
-        - /plib/tests will receive all the tests for the modules
-            - Cleaner
-            - Easy to name
-            - Reduces module size
-            - Lets module's main code be run for a demo
--  3 Mar
-    - New dp\*.py files constructed
-        - Now can test these with 'for i in dp*.py; do p $i ; done'
-    - Started large refactoring
-        - Moved a lot of util.py's stuff moved to dpseq.py, dpstr.py, etc.
-        - Then moved util.py to dputil.py
-    - Moved pgm/lib.py to data/dp_lib_data.py, which now runs as a script and holds
-      snippets; supports interactive browsing
-    - Created data/CIE_xyz_1931_2deg.py, which prototypes having accessible data in the
-      /plib/data directory.  It also shows why this delivery method is preferable, as
-      the data source can be attributed and checked as necessary, particularly if it's
-      from a website with the URL given like this CIE data.
-    - Terminal color stuff moved out of color.py into trm.py.  This broke nearly
-      everything, but it's a lot cleaner now -- and it works properly and supports the
-      context manager protocol, allowing the concept of style containers that I've
-      wanted for years.
-- 21 Feb 
-    - data/dpcolornames.py constructed, giving many colornames collected from the web
-    - I standardized on a new set of short color names (see key 0 in
-      data/dpcolornames.py)
-    - color.py
-        - Color constructor was documented and the self-tests were improved
-        - The Color class now has ColorNameNormalize as a class method
+    - 17 Mar
+        - Gemini has been coaching me on an overall strategy for refactoring plus the much
+        more intense desire to type annotate all the core stuff.  
+            - iterutil.py got partially type annotated and this was a severe test, as it's
+            much more complicated than what I'll run into.
+    - 14 Mar
+        - dp\*.py files linted
+        - Policies
+            - Importing
+                - Never use 'from x import y'
+                - All imports will be 'import x'
+                - Occasional abbreviations:  'import numpy as np'
+                - Rarely define symbols:  no 'import math' and 'pi = math.pi'.  The primary
+                reason is the person reading the code doesn't have to figure out where the
+                symbol came from.  I'll occasionally let lines become long to support
+                this.
+                - This came from Gemini's analysis that this is the safest way to avoid
+                circular imports and makes it better for other people to read the code
+            - /plib has a makefile that will run lint & type checking
+            - /plib/tests will receive all the tests for the modules
+                - Cleaner
+                - Easy to name
+                - Reduces module size
+                - Lets module's main code be run for a demo
+    -  3 Mar
+        - New dp\*.py files constructed
+            - Now can test these with 'for i in dp*.py; do p $i ; done'
+        - Started large refactoring
+            - Moved a lot of util.py's stuff moved to dpseq.py, dpstr.py, etc.
+            - Then moved util.py to dputil.py
+        - Moved pgm/lib.py to data/dp_lib_data.py, which now runs as a script and holds
+        snippets; supports interactive browsing
+        - Created data/CIE_xyz_1931_2deg.py, which prototypes having accessible data in the
+        /plib/data directory.  It also shows why this delivery method is preferable, as
+        the data source can be attributed and checked as necessary, particularly if it's
+        from a website with the URL given like this CIE data.
+        - Terminal color stuff moved out of color.py into trm.py.  This broke nearly
+        everything, but it's a lot cleaner now -- and it works properly and supports the
+        context manager protocol, allowing the concept of style containers that I've
+        wanted for years.
+    - 21 Feb 
+        - data/dpcolornames.py constructed, giving many colornames collected from the web
+        - I standardized on a new set of short color names (see key 0 in
+        data/dpcolornames.py)
+        - color.py
+            - Color constructor was documented and the self-tests were improved
+            - The Color class now has ColorNameNormalize as a class method
 
-- 13 Feb 
-    - Have \_trm_proto.py working to make a Trm object a context manager (adds the style
-      feature I've wanted) and fixes the .on problem.
-- 8 Feb
-    - pgm/todo.py written:  lists priority tasks in python scripts
-    - constant.py updated; works nicely and is now part of my python boilerplate.  I
-      plan for all modules/scripts to use it eventually.
-- 7 Feb
-    - gist added to all /plib/\*.py files and all of these files have:
-        - Single line gist to summarize their behavior
-        - Marked with todo string (∞∞) to things that need to be done
-        - Have a how to test field (notest, run, or --test)
-    - All files switched to MIT license
+    - 13 Feb 
+        - Have \_trm_proto.py working to make a Trm object a context manager (adds the style
+        feature I've wanted) and fixes the .on problem.
+    - 8 Feb
+        - pgm/todo.py written:  lists priority tasks in python scripts
+        - constant.py updated; works nicely and is now part of my python boilerplate.  I
+        plan for all modules/scripts to use it eventually.
+    - 7 Feb
+        - gist added to all /plib/\*.py files and all of these files have:
+            - Single line gist to summarize their behavior
+            - Marked with todo string (∞∞) to things that need to be done
+            - Have a how to test field (notest, run, or --test)
+        - All files switched to MIT license
 
 # Description
 
@@ -131,46 +131,67 @@ not implemented yet**):
 - [lib](doc/lib.html) Information on plib/lib's content
 - [roadmap](doc/roadmap.html) How I plan to change things in this repository
 
-### Formatting
+# Details
 
-I don't follow some recommendations of PEP-8:
+## Testing and typing
 
-- I use no empty lines in files (regex ^$).  Any "blank lines" will be sequences of one
-  or more space characters.  This is done to see as many lines in my editor as I can.
-    - It also lets me insert an empty line to mark places where I'm working, as I can
-      jump to them with one keystroke in either direction.
-    - I use a folding editor and the 'if 1:  # Comment' lines provide a natural folding
-      of the files.
-- A formatter like black or ruff can badly screw up carefully formatted mathematical
-  expressions.  It can take hours to fix the mess it can cause in complicated code.  It
-  can literally turn something complicated but readable into something essentially
-  incomprehensible.  This is the "foolish consistency" that PEP-8 was talking about.
-  Most programmers don't write such stuff, so they don't feel the pain.  I haven't found
-  a decent python formatter.  
-    - I like ruff, but until the developers feel the pain of this math mangling, they
-      won't change anything.  In my opinion, the best fix would probably be a way in
-      the code to delineate a block to say "don't mess with the formatting of this
-      block, but lint it all you want".
+Besides refactoring/cleanup, a major 2026 goal was to add typing to these files.  I
+started using python in 1998 and an immediate favorite feature of the language was no
+compile cycle (I was working at HP on large C and C++ projects at the time and was very
+familiar with the strengths and weaknesses of the various compilers).  However, in the
+long term, something a dynamically-typed language like python misses the type safety of
+the compiled languages, leading to sometimes obscure bugs after long run cycles when a
+rare corner case is encountered.  Python's type annotations are an afterthought and are
+an evolving tool to help with this problem.  It's a bit of a mess to learn on your own,
+as the documentation isn't very helpful, but I found a good shortcut:  Google's AI
+Gemini instructed me and helped me with the type annotations.  I made a point of being a
+bit stubborn and learned to do much of it myself, asking for help when I was stumped.  I
+deliberately started with typing the example functions in itertools and the AI explained
+that these are probably among the hardest to do.  It turned out that most of the modules
+I worked on were much simpler.  After I spent a few days doing this, it was both morally
+OK and expedient to ask the AI to do the typing, as it could do it many orders of
+magnitude faster than I could.  But I'm a skeptical physicist and I've seen multiple AIs
+output incorrect things, so I know to carefully check their work.  Used wisely, an AI
+and a human are a good partnership.
 
-## Caution
+This typing and refactoring also gave me the opportunity to look at the modules' unit tests
+and improve them, along with standardizing the style and improving the docstrings.
 
-- The set of files in this directory are a core set of python modules and scripts I've
-  written over the years for my own use.  There's some useful functionality in here, but
-  it's fairly tightly coupled.  This means if you find a script you like and want to
-  move it somewhere else, you may find that it's dependent on a number of other modules.
-  This will be annoying and maybe a lot of work to fix.  This repository on my system is
-  `/plib` and my `PYTHONPATH` variable is `"/plib:/plib/g"`.  This repository is the
-  only code I use outside of what's in the python distribution. 
-- I work in a bash terminal and use the /plib/color.py module to provide ANSI escape
-  sequences to colorize text output.  I used to provide -c options to turn on
-  colorization in scripts, but today everything I do is in a 24-bit color terminal and
-  the days of monochrome terminals are probably over, so I just put escape codes in
-  everything now.  I've got an item on my todo list to fix this and it should happen in
-  my reorganization/refactoring efforts in the first half of 2026.
-- I make lots of checkins to git, but virtually never include a commit message.  Yes,
-  this is horrible practice in an industrial environment where you work with lots of
-  other folks.  If/when one or more people ever start helping to maintain this stuff,
-  the commit messages will instantly get better.
+The end result is a set of classes and functions with the user manual "baked into" the
+code.  This is Gemini's terminology and is referring to the typing, as an experienced
+programmer can look at the types and infer the operation, thus knowing how to use the
+tool.  I don't use an IDE, but Gemini mentioned that those who do will enjoy the
+automated help those tools supply by virtue of the typing.
+
+For around two decades I've used lwtest.py, a home-grown testing framework based on a
+nice idea by Raymond Hettinger, although I also stole some ideas from nose and pytest.
+Another goal in 2026 was to see if I could modify the setup so a user of these modules
+could utilize the test runner of their choice.  We'll see if that works...
+
+## Formatting
+
+I don't follow some recommendations of PEP-8.  If you like to use PEP-8 guidelines, feel
+free to use your favorite formatter to make the files look like you want.
+
+I delete all empty lines in files because I consider vertical real estate the most
+precious (i.e., I want to see as many lines as possible).  One core reason for doing
+this is that I put a blank line where I'm working.  Then I can get to that location from
+anywhere in the file by pressing one key.  If I'm working on two different locations,
+it's easy to jump between them.
+
+I also use the pattern "if 1:   # Comment on section" a lot.  This lets me indent the
+code under the conditional.  My folding editor then folds this up out of the way so I
+don't see all this code unless I'm working on it.  It also lets me comment out a big
+section by changing the 1 to a 0.  
+
+A problem with formatters like ruff or black is that they will badly screw up
+complicated mathematical code.  I've seen them turn half a page of formulas into many
+pages of stuff that's impossible to decipher.  This is the 'foolish hobgoblin' in the
+PEP-8 document; it's understandable, since most programmers don't work on mathematical
+stuff.  If this is a problem for you, ask an AI how to write your .ini or .toml file for
+the formatter to avoid such problems.  For me, it was a real problem, as an errant
+'format .' command formatted over 600 python files, as I didn't realize the tool was
+recursive.
 
 # Tools
 

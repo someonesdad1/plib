@@ -16,6 +16,9 @@ Reorganization core files
     - Ask Gemini for a tutorial on using package-like structure in /plib, as this could
       probably make things work more concisely and let me group functionality in
       subpackages.
+    - pytest:  Look at some simple ways of letting a user utilize either pytest or lwtest
+        - Hopefully, this could be done with an impedance matching module like
+          dptest.py.  This module would import and name the relevant testing functions.
 - dpdata
     - extensions
 - dpshop

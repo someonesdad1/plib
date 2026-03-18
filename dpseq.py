@@ -129,39 +129,39 @@ if 1:  # Distribute and GetClosest
         with integers, you'll have to be a little flexible about what "equally" means
         (see the example below).
         
-        Algorithm: 
+        Algorithm
             The spacing between the returned integers dx is a Fraction.  The n numbers
             are generated as [f(a + 0*dx), f(a + 1*dx), ..., b] where f is a function
             that rounds to the nearest integer.
         
-        Invariants:
+        Invariants
             This generator returns n values; the first value will always be a and the
             last value will always be b.  Proof:  dx = (b - a)/(n - 1); when i is 0,
             i*dx is 0, so a + i*dx is equal to a.  When i is n - 1 (last value from
             range(n)), then i*dx is (b - a), so a + (b - a) is equal to b.
         
-        Arguments:
+        Arguments
             n: Number of items in returned sequence
             a: The starting value of the returned sequence
             b: The ending value of the returned sequence
         
-        Returns:
+        Returns
             An iterator yielding the sequence.
         
-        Example:
-            a, b = 1, 6
-            for n in range(2, 8):
-                s = list(iDistribute(n, a, b))
-                print(f"iDistribute({n}, {a}, {b}) = {s}")
-        produces
-            iDistribute(2, 1, 6) = [1, 6]
-            iDistribute(3, 1, 6) = [1, 4, 6]
-            iDistribute(4, 1, 6) = [1, 3, 4, 6]
-            iDistribute(5, 1, 6) = [1, 2, 4, 5, 6]
-            iDistribute(6, 1, 6) = [1, 2, 3, 4, 5, 6]
-        with a ValueError exception on the n == 7 term.  For the case n == 4, note how the adjective
-        "equally" needs to be interpreted "symmetrically" and for the case n == 5, even that's not
-        true.
+        Example
+                a, b = 1, 6
+                for n in range(2, 8):
+                    s = list(iDistribute(n, a, b))
+                    print(f"iDistribute({n}, {a}, {b}) = {s}")
+            produces
+                iDistribute(2, 1, 6) = [1, 6]
+                iDistribute(3, 1, 6) = [1, 4, 6]
+                iDistribute(4, 1, 6) = [1, 3, 4, 6]
+                iDistribute(5, 1, 6) = [1, 2, 4, 5, 6]
+                iDistribute(6, 1, 6) = [1, 2, 3, 4, 5, 6]
+            with a ValueError exception on the n == 7 term.  For the case n == 4, note
+            how the adjective "equally" needs to be interpreted "symmetrically" and for
+            the case n == 5, even that's not true.
         '''
         if 1:   # Check parameters
             if not (
@@ -187,41 +187,41 @@ if 1:  # Distribute and GetClosest
             n: int,
             a: ty.Any = 0.0,
             b: ty.Any = 1.0,
-            impl: type[Tfp] = float  # type: ignore # default 'float' matches the Protocol
+            fpimpl: type[Tfp] = float  # type: ignore # default 'float' matches the Protocol
             ) -> ty.Iterator[Tfp]:
-        '''Generator to return n impl instances on [a, b] inclusive
+        '''Generator to return n fpimpl instances on [a, b] inclusive
         
         A common use case is an interpolation parameter on [0, 1].  You can use other
-        impl types like decimal.Decimal.  Other types that define impl()/impl() to
-        return an impl-type floating point number will also work (e.g., mpmath's mpf
-        type).
+        floating point implementation types like decimal.Decimal.  Other types that
+        define fpimpl()/fpimpl() to return an fpimpl-type floating point number will
+        also work (e.g., mpmath's mpf type).
         
-        Algorithm: 
+        Algorithm
             The i-th element of the sequence is a + dx*i/divisor for i in range(n),
             divisor = n - 1, and dx = (b - a).  When i = 0, the output is a; when i = n
             - 1, the output is a + dx*(n - 1)/(n - 1) = a + (b - a) or b.
 
-        Invariants:
+        Invariants
             The returned sequence generator will produce n terms.  The difference
             between any two adjacent elements of the sequence is 
 
             [a + dx*(i + 1)/divisor] - [a + (dx*i/divisor]
             = a - a  + dx/divisor*[(i + 1) - i] = dx/divisor
 
-        Arguments:
+        Arguments
             n: Number of items in sequence (must be an integer > 1).
             a: The starting number of the sequence
             b: The ending number of the sequence
 
-        Returns:
-            An iterator yielding instances of type 'impl'.
+        Returns
+            An iterator yielding instances of type 'fpimpl'.
 
-        Numerical Note:
-            Cumulative precision error is a property of the 'impl' type.  If you are
+        Numerical note
+            Cumulative precision error is a property of the 'fpimpl' type.  If you are
             using near the full number of digits of the floating point instance, beware
             of numerical irregularities.
 
-        Examples:
+        Examples
             >>> import decimal
             >>> import fractions
             >>> list(fDistribute(3, 0, 1, float))
@@ -237,110 +237,117 @@ if 1:  # Distribute and GetClosest
                 raise TypeError(msg)
             if n < 2:
                 raise ValueError(msg)
-            if not isinstance(a, int | impl) or not isinstance(b, int | impl):
-                raise TypeError("a and b must be either an integer or impl")
-            if not (impl(a) < impl(b)):
+            if not isinstance(a, int | fpimpl) or not isinstance(b, int | fpimpl):
+                raise TypeError("a and b must be either an integer or fpimpl")
+            if not (fpimpl(a) < fpimpl(b)):
                 raise ValueError("Must have a < b")
         # Tfp is a floating point type
-        x0: Tfp = impl(a)
-        width: Tfp = impl(b) - x0
+        x0: Tfp = fpimpl(a)
+        width: Tfp = fpimpl(b) - x0
         # Pre-calculate the denominator as a Tfp type to avoid 'float' drift
-        denominator: Tfp = impl(n - 1)
+        denominator: Tfp = fpimpl(n - 1)
         for i in range(n):
             # All operations here involve Tfp types, so 'x' remains a Tfp
-            x = x0 + (impl(i)/denominator)*width
+            x = x0 + (fpimpl(i)/denominator)*width
             yield x
     def GetClosest(x: ty.Any, 
                    seq: ty.Sequence[ty.Any],
-                   is_sorted: bool=False,
+                   is_sorted: bool | None =False,
                    key: ty.Any=None,
                    distance=operator.sub,
                    unresolved: int=0) -> ty.Any:
-        '''Return the value in sequence seq that is closest to x.
-        
-        The intended common use case is where x is a number and seq is a sequence of numbers, but
-        the pattern should apply to any objects that can be ordered with "<" or have the notion of
-        distance between x and any of seq's elements.
-        
-        For best efficiency, have seq be in sorted order or allow it to be sorted, as this uses
-        the bisect module to find the relevant item in O(log(n)).  Otherwise, the algorithm is
-        O(n).
-        
-        is_sorted
-            If is_sorted is False, a sorted copy of the sequence is made and bisect.bisect_left is
-            used to find the relevant insertion point.  If is_sorted is False, you must provide a
-            key for the sorted() built-in if the elements don't have a relevant '<' operator.  If
-            is_sorted is True, the original sequence is used as is.
-            
-            You can also set is_sorted to None, meaning do not use bisection.  Instead, a sequence
-            is constructed of the absolute value of the distance between x and each element of
-            seq.  The index of the smallest value of this sequence is found and is used to return
-            the corresponding element of seq.
-            
-        distance
-            This is a binary function that returns the distance between x and a sequence element.
-            This distance must be an integer or a floating point number.  This function is only
-            used if is_sorted is set to None.
-            
-        unresolved
-            An example like seq = (0, 1, 2, 3) and x = 1e99 will return the list o with all
-            elements the same number, so the problem is unresolved.  If unresolved is set to an
-            integer, then that array index of seq is returned in this case.  Otherwise, a
-            ValueError exception is raised.
-            
-        Example:  let seq = (5, -8, 10, 1).  Then
-            GetClosest(-1e99, seq) = -8
-            GetClosest(-9, seq) = -8
-            GetClosest(-7, seq) = -8
-            GetClosest(0, seq) = 1
-            GetClosest(7, seq) = 5
-            GetClosest(1e99, seq) = 10
+        '''Return the value in sequence seq that is closest to x
+
+        Algorithm 
+            Two different algorithms are used, depending on whether seq is in sorted
+            order.  If seq is sorted, then binary search is used which is O(n*log(n)).
+            If seq is not sorted and its elements don't have a relevant '<' operation
+            defined, you'll want to provide a key function in the argument key for the
+            sorted() builtin.
+
+        Invariants
+            The sequence seq is not modified.
+
+        Arguments
+            x           The number to find the closest value in seq
+            seq         The sequence to search through
+            is_sorted   True if seq is sorted, False if not, None if can't sort
+            key         Key for sorted() builtin
+            distance    Binary function for dist(x, seq element)
+            unresolved  The element in seq to return when can't resolve
+
+        Returns
+            The value in seq that is closest to x.
+
+        is_sorted is None
+            In this case, you've indicated that the sequence can't be put into sorted
+            order and the distance function is used to calculate the distance of each
+            element in the sequence from x.  The index of the lowest distance is used to
+            get the closest element in seq.  The following example shows that some
+            problems are "unresolvable", meaning that any element in the sequence can be
+            returned.
+                >>> x = 1e99
+                >>> seq = [3, 0, 2, 1]
+                >>> [i - x for i in seq]
+                [-1e+99, -1e+99, -1e+99, -1e+99]
+            In such a case, the keyword 'unresolved' is used to pick the element of seq
+            to return; otherwise a ValueError exception is raised.
+
+        Cautions
+            - If is_sorted is False and key is None, the sequence will be sorted with
+              sorted(seq, key=None) and this may or may not work.  If seq is not e.g. a
+              simple sequence of numbers, you'll want to supply a suitable key function.
+            - If is_sorted is None or False, a second sequence is created to hold the
+              distances and this can take extra time and memory.
+
+        Example
+            >>> seq = (5, -8, 10, 1)
+            >>> GetClosest(-1e99, seq)
+            -8
+            >>> GetClosest(-9, seq)
+            -8
+            >>> GetClosest(-7, seq)
+            -8
+            >>> GetClosest(0, seq)
+            1
+            >>> GetClosest(7, seq)
+            5
+            >>> GetClosest(1e99, seq)
+            10
+
         '''
         if not seq:
             raise ValueError("Sequence seq cannot be empty")
         if is_sorted is None:
-            # Get list of differences from x.  Note this can be slow for big sequences because it
-            # creates another list.
-            Dbg(f"GetClosest(seq = {seq})")
-            o = [abs(distance(i, x)) for i in seq]
-            if g.dbg:
-                Dbg(f"  List of differences from x = {x}\n    {t('denl')}[", end="")
-                out = []
-                for i in o:
-                    out.append(f"{i}")
-                Dbg(f"{t('denl')}{', '.join(out)}", end="")
-                Dbg(f"{t('denl')}]")
+            # is_sorted is None means the sequence can't be sorted for some reason.  In
+            # this case, we use the distance binary function to find the closest element
+            # to x.
+            o = [abs(distance(i, x)) for i in seq] # Get list of differences from x
             minimum = min(o)  # Minimum difference
-            # Get o's index of the minimum
             index = o.index(minimum)
-            # Check for the special case where the question is unresolvable, as all of these
-            # differences are the same number.  Example:  seq = (0, 1, 2, 3) and x = 1e99.  As
-            # all of the numbers in seq subtracted from 1e99 give the same value, the problem
-            # is not solvable with floating point arithmetic.  Thus, any entry from the array can
-            # be returned.
-            if len(set(o)) == 1:  # Problem can't be resolved
-                if unresolved is not None and isinstance(unresolved, int):
-                    index = unresolved
-                    try:
-                        seq[index]
-                    except Exception as e:
-                        raise ValueError("'resolved' is not an index for seq") from e
-                else:
-                    raise ValueError("Closest item is unresolvable")
+            if 1:   # Check for unresolved
+                if len(set(o)) == 1 and len(seq) > 1:  # Problem can't be resolved
+                    if unresolved is not None and isinstance(unresolved, int):
+                        index = unresolved
+                        try:
+                            seq[index]
+                        except IndexError as e:
+                            raise ValueError("'resolved' is not an index for seq") from e
+                    else:
+                        raise ValueError("Closest item is unresolvable")
             # Return the closest value
-            Dbg(f"{t('ornl')}  Answer = {seq[index]}")
             return seq[index]
         else:
             # Use binary search on a sorted array
-            sseq = seq if is_sorted else sorted(seq, key=key)
-            if x <= sseq[0]:
-                return sseq[0]
-            elif x >= sseq[-1]:
-                return sseq[-1]
+            sortedseq = seq if is_sorted else sorted(seq, key=key)
+            if x <= sortedseq[0]:
+                return sortedseq[0]
+            elif x >= sortedseq[-1]:
+                return sortedseq[-1]
             else:
                 # Use binary search
-                L = Rightmost_le(sseq, x)  # L is sseq element, not index
-                r = Leftmost_ge(sseq, x)  # r is sseq element, not index
+                L = Rightmost_le(sortedseq, x)   # L is sortedseq element, not index
+                r = Leftmost_ge(sortedseq, x)    # r is sortedseq element, not index
                 if L == r:
                     return L
                 else:
@@ -1617,7 +1624,7 @@ if __name__ == "__main__":
                          fractions.Fraction, 
                          mpmath.mpf if _have_mpmath else float
                         ):
-                s = list(fDistribute(n, a, b, impl=impl))
+                s = list(fDistribute(n, a, b, fpimpl=impl))
                 Assert(s == expected)                           # Numerically correct
                 Assert(all(isinstance(i, impl) for i in s))     # Of the correct type
             if 1:   # Test corner cases
