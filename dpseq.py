@@ -189,15 +189,47 @@ if 1:  # Distribute and GetClosest
             b: ty.Any = 1.0,
             impl: type[Tfp] = float  # type: ignore # default 'float' matches the Protocol
             ) -> ty.Iterator[Tfp]:
-        #yy Add ddoc docstring; check unit tests for completeness incl arg checks
-        '''Generator to return n impl instances on [a, b] inclusive. A common use case is an
-        interpolation parameter on [0, 1].  This is for floating point numbers.  Examples:
-            fd = fDistribute
-            fd(3) --> [0.0, 0.5, 1.0]
-            fd(3, 1, 2) --> [1.0, 1.5, 2.0]
-            fd(4, 1, 2, Fraction) --> [Fraction(1, 1), Fraction(4, 3), Fraction(5, 3), Fraction(2, 1)]
-        You can use other impl types like decimal.Decimal.  Other types that define impl()/impl() to
-        return an impl-type floating point number will also work (e.g., mpmath's mpf type).
+        '''Generator to return n impl instances on [a, b] inclusive
+        
+        A common use case is an interpolation parameter on [0, 1].  You can use other
+        impl types like decimal.Decimal.  Other types that define impl()/impl() to
+        return an impl-type floating point number will also work (e.g., mpmath's mpf
+        type).
+        
+        Algorithm: 
+            The i-th element of the sequence is a + dx*i/divisor for i in range(n),
+            divisor = n - 1, and dx = (b - a).  When i = 0, the output is a; when i = n
+            - 1, the output is a + dx*(n - 1)/(n - 1) = a + (b - a) or b.
+
+        Invariants:
+            The returned sequence generator will produce n terms.  The difference
+            between any two adjacent elements of the sequence is 
+
+            [a + dx*(i + 1)/divisor] - [a + (dx*i/divisor]
+            = a - a  + dx/divisor*[(i + 1) - i] = dx/divisor
+
+        Arguments:
+            n: Number of items in sequence (must be an integer > 1).
+            a: The starting number of the sequence
+            b: The ending number of the sequence
+
+        Returns:
+            An iterator yielding instances of type 'impl'.
+
+        Numerical Note:
+            Cumulative precision error is a property of the 'impl' type.  If you are
+            using near the full number of digits of the floating point instance, beware
+            of numerical irregularities.
+
+        Examples:
+            >>> import decimal
+            >>> import fractions
+            >>> list(fDistribute(3, 0, 1, float))
+            [0.0, 0.5, 1.0]
+            >>> list(fDistribute(3, 0, 1, decimal.Decimal))
+            [Decimal('0'), Decimal('0.5'), Decimal('1')]
+            >>> list(fDistribute(3, 0, 1, fractions.Fraction))
+            [Fraction(0, 1), Fraction(1, 2), Fraction(1, 1)]
         '''
         if 1:   # Check arguments
             msg = "n must be an integer > 1"
@@ -205,17 +237,18 @@ if 1:  # Distribute and GetClosest
                 raise TypeError(msg)
             if n < 2:
                 raise ValueError(msg)
-            if not isinstance(a, (int, impl)) or not isinstance(b, (int, impl)):
+            if not isinstance(a, int | impl) or not isinstance(b, int | impl):
                 raise TypeError("a and b must be either an integer or impl")
             if not (impl(a) < impl(b)):
                 raise ValueError("Must have a < b")
+        # Tfp is a floating point type
         x0: Tfp = impl(a)
-        dx: Tfp = impl(b) - x0
+        width: Tfp = impl(b) - x0
         # Pre-calculate the denominator as a Tfp type to avoid 'float' drift
-        divisor: Tfp = impl(n - 1)
+        denominator: Tfp = impl(n - 1)
         for i in range(n):
             # All operations here involve Tfp types, so 'x' remains a Tfp
-            x = x0 + (impl(i)/divisor)*dx
+            x = x0 + (impl(i)/denominator)*width
             yield x
     def GetClosest(x: ty.Any, 
                    seq: ty.Sequence[ty.Any],
@@ -1579,12 +1612,26 @@ if __name__ == "__main__":
         def Test_fDistribute():
             a, b, n = 0, 1, 3
             expected = [0.0, 0.5, 1.0]
-            D, F = decimal.Decimal, fractions.Fraction
-            M = mpmath.mpf if _have_mpmath else float
-            for impl in (float, D, F, M):
+            for impl in (float, 
+                         decimal.Decimal,
+                         fractions.Fraction, 
+                         mpmath.mpf if _have_mpmath else float
+                        ):
                 s = list(fDistribute(n, a, b, impl=impl))
-                Assert(s == expected)
-                Assert(all(isinstance(i, impl) for i in s))
+                Assert(s == expected)                           # Numerically correct
+                Assert(all(isinstance(i, impl) for i in s))     # Of the correct type
+            if 1:   # Test corner cases
+                with raises(TypeError):     # First argument needs to be an integer
+                    list(fDistribute(1.0, 1, 2))
+                with raises(ValueError):    # Must have n > 1
+                    list(fDistribute(1, 1, 2))
+                with raises(TypeError):     # a must be int or impl
+                    list(fDistribute(2, "1", 2))
+                with raises(TypeError):     # b must be int or impl
+                    list(fDistribute(2, 1, "2"))
+                # Must have a < b
+                with raises(ValueError):
+                    list(fDistribute(2, 2, 1))
         def Test_GetClosest():
             low, high = -3, 6
             seq = (4, low, high, 1)  # Unsorted sequence
