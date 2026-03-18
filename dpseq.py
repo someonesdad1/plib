@@ -123,8 +123,31 @@ if 1:  # Header
 
 if 1:  # Distribute and GetClosest
     def iDistribute(n: int, a: int, b: int) -> ty.Iterable[int]:
-        '''Generator to return an integer sequence [a, ..., b] with n elements equally
-        distributed between a and b.  Raises ValueError if no solution is possible.
+        '''Generator to return an integer sequence [a, ..., b] with n elements
+        
+        The elements are "equally" distributed between a and b, but since we're dealing
+        with integers, you'll have to be a little flexible about what "equally" means
+        (see the example below).
+        
+        Algorithm: 
+            The spacing between the returned integers dx is a Fraction.  The n numbers
+            are generated as [f(a + 0*dx), f(a + 1*dx), ..., b] where f is a function
+            that rounds to the nearest integer.
+        
+        Invariants:
+            This generator returns n values; the first value will always be a and the
+            last value will always be b.  Proof:  dx = (b - a)/(n - 1); when i is 0,
+            i*dx is 0, so a + i*dx is equal to a.  When i is n - 1 (last value from
+            range(n)), then i*dx is (b - a), so a + (b - a) is equal to b.
+        
+        Arguments:
+            n: Number of items in returned sequence
+            a: The starting value of the returned sequence
+            b: The ending value of the returned sequence
+        
+        Returns:
+            An iterator yielding the sequence.
+        
         Example:
             a, b = 1, 6
             for n in range(2, 8):
@@ -140,12 +163,17 @@ if 1:  # Distribute and GetClosest
         "equally" needs to be interpreted "symmetrically" and for the case n == 5, even that's not
         true.
         '''
-        if not (isinstance(a, int) and isinstance(b, int) and isinstance(n, int)):
-            raise TypeError("Arguments must be integers")
-        if a >= b:
-            raise ValueError("Must have a < b")
-        if n < 2:
-            raise ValueError("n must be >= 2")
+        if 1:   # Check parameters
+            if not (
+                    isinstance(a, int) 
+                    and isinstance(b, int)
+                    and isinstance(n, int)
+                ):
+                raise TypeError("Arguments must be integers")
+            if a >= b:
+                raise ValueError("Must have a < b")
+            if n < 2:
+                raise ValueError("n must be >= 2")
         if n == 2:
             yield a
             yield b
@@ -154,13 +182,14 @@ if 1:  # Distribute and GetClosest
         if dx < 1:
             raise ValueError("No solution")
         for i in range(n):
-            yield int(round(a + i * dx, 0))
+            yield int(round(a + i*dx, 0))
     def fDistribute(
             n: int,
             a: ty.Any = 0.0,
             b: ty.Any = 1.0,
             impl: type[Tfp] = float  # type: ignore # default 'float' matches the Protocol
             ) -> ty.Iterator[Tfp]:
+        #yy Add ddoc docstring; check unit tests for completeness incl arg checks
         '''Generator to return n impl instances on [a, b] inclusive. A common use case is an
         interpolation parameter on [0, 1].  This is for floating point numbers.  Examples:
             fd = fDistribute
@@ -355,16 +384,16 @@ if 1:   # Get or transform numbers from a sequence
             except Exception:
                 return None
         return [i for i in map(Num, seq) if i is not None]
-    def Clamp(seq: ty.Sequence[ty.Any], low: int=0, high: int=1, typ=ty.Any | None) -> ty.Any:
+    def Clamp(seq: ty.Sequence[ty.Any], low: int=0, high: int=1) -> ty.Any:
         '''Generator to return elements of a sequence "clamped" to an interval.  Thus,
-        the returned elements will be in [low, high].  The type of the returned value is
-        typ if not None; otherwise, it's the same type as the element processed.
+        the returned elements will be in [low, high].  The type of the each returned
+        value is the same type as the corresponding element processed.
         
         Example:  list(Clamp((-0.02, 0.4, 1.6), low=0, high=1.5, typ=float)) returns
             [0.0, 0.4, 1.5].
         '''
         for x in seq:
-            T = type(x) if typ is None else typ
+            T = type(x)
             if x < low:
                 yield T(low)
             elif x > high:
@@ -578,7 +607,7 @@ if 1:  # frange, lrange, Sequence, irange, Rational
         '''
         def __str__(self):
             n, d = abs(self.numerator), abs(self.denominator)
-            s = ["-"] if self.numerator * self.denominator < 0 else [""]
+            s = ["-"] if self.numerator*self.denominator < 0 else [""]
             if d == 1:
                 s.append(str(n))
             else:
@@ -587,8 +616,14 @@ if 1:  # frange, lrange, Sequence, irange, Rational
                     s.extend([str(ip), "-"])
                 s.extend([str(remainder), "/", str(d)])
             return "".join(s)
-    def frange(start, stop=None, step=None, return_type=float, impl=decimal.Decimal,
-            strict: bool=True, include_end: bool=False) -> ty.Any:
+    def frange(start, 
+               stop=None, 
+               step=None, 
+               return_type=float,
+               impl=decimal.Decimal,
+               strict: bool=True,
+               include_end: bool=False
+               ) -> ty.Any:
         '''A floating point generator analog of range.  start, stop, and step are either
         python floats, integers, or strings representing floating point numbers (or any
         other object that impl can convert to an object that behaves with numerical
@@ -658,7 +693,7 @@ if 1:  # frange, lrange, Sequence, irange, Rational
             i = int(abs(x))
             if x > i:
                 i += 1
-            return (-1 if x < 0 else 1) * i
+            return (-1 if x < 0 else 1)*i
         if isinstance(start, str) and "/" in start:
             impl = return_type = Rational
         def init(x):
@@ -685,7 +720,7 @@ if 1:  # frange, lrange, Sequence, irange, Rational
                         raise
                     yield return_type(str(start))
         else:
-            for i in range(ceil((stop - start) / step)):    # noqa
+            for i in range(ceil((stop - start)/step)):    # noqa
                 try:
                     yield return_type(start)
                 except TypeError:
@@ -717,7 +752,7 @@ if 1:  # frange, lrange, Sequence, irange, Rational
                 x += dx
         values = []
         for exp in range(start_decade, end_decade):
-            values += [i * 10**exp for i in mantissas]
+            values += [i*10**exp for i in mantissas]
         return values
     def Sequence(s: str):
         '''Return a sequence of numbers based on the specifications in the string s.
@@ -804,7 +839,7 @@ if 1:   # From util
         '''
         def counter(x):
             counter.n += 1
-            return counter.n // size
+            return counter.n//size
         counter.n = -1
         for _, g in itertools.groupby(iterable, counter):
             yield g
@@ -842,12 +877,12 @@ if 1:   # From util
         max_hist_len = width - indent - 1 - max_obj_len
         assert max_hist_len > 0
         # Scale counts to fit on screen
-        counts = [(i, int(j / max_count * max_hist_len)) for i, j in counts]
+        counts = [(i, int(j/max_count*max_hist_len)) for i, j in counts]
         # Construct the output list
         output = []
         for item, count in counts:
-            s = "{}{:{}s} ".format(" " * indent, str(item), max_obj_len)
-            output.append(s + char * count)
+            s = "{}{:{}s} ".format(" "*indent, str(item), max_obj_len)
+            output.append(s + char*count)
         return output
     def hyphen_range(s):
         '''Takes a set of range specifications of the form "a-b" and returns a list of
@@ -1029,7 +1064,7 @@ if 1:   # From util
                     raise TypeError("seq[0] is not a sequence") from e
             # Look for extra dimensionality
             if seq:
-                num_elements = nrows * ncols
+                num_elements = nrows*ncols
                 if len(Flatten(seq)) != num_elements:
                     raise TypeError(
                         "seq is not a proper 2D nested list representing a matrix"
@@ -1188,7 +1223,7 @@ if 1:   # From util
             else:
                 assert 0 <= x <= 1
                 # Get the number of decimal places to display this float
-                w = math.ceil(-math.log10(1 / (2**self._bpn - 1)))
+                w = math.ceil(-math.log10(1/(2**self._bpn - 1)))
                 return f"{x:{w + 2}.{w}f}"
         def is_monotype(self, seq):
             "Return True if seq contains only one supported type"
@@ -1506,7 +1541,7 @@ if __name__ == "__main__":
             raises(ValueError, Rightmost_le, seq, -n)
         def Test_iDistribute():
             def Dist(seq):
-                "Return distances between numbers in seq"
+                'Return distances between numbers in seq'
                 out = []
                 for i in range(1, len(seq)):
                     out.append(abs(seq[i] - seq[i - 1]))
@@ -1524,6 +1559,23 @@ if __name__ == "__main__":
                         assert_equal(abs(d[0] - d[1]), 1)
             for n in range(257, 265):
                 raises(ValueError, list, iDistribute(n, a, b))
+            if 1:   # Test corner cases
+                # Arguments need to be integers
+                with raises(TypeError):
+                    list(iDistribute(1.0, 1, 2))
+                with raises(TypeError):
+                    list(iDistribute(1, 1.0, 2))
+                with raises(TypeError):
+                    list(iDistribute(1, 1, 2.0))
+                # Must have a < b
+                with raises(ValueError):
+                    list(iDistribute(2, 2, 1))
+                # n must be > 1
+                with raises(ValueError):
+                    list(iDistribute(1, 2, 1))
+                # No solution
+                with raises(ValueError):
+                    list(iDistribute(5, 1, 1))
         def Test_fDistribute():
             a, b, n = 0, 1, 3
             expected = [0.0, 0.5, 1.0]
@@ -1582,9 +1634,9 @@ if __name__ == "__main__":
                     def __repr__(self):
                         return str(self)
                     def dist(self, other):
-                        x = (self.x - other.x) ** 2
-                        y = (self.y - other.y) ** 2
-                        return f.flt((x + y) ** 0.5)
+                        x = (self.x - other.x)**2
+                        y = (self.y - other.y)**2
+                        return f.flt((x + y)**0.5)
                 seq = (Pt(0, 0), Pt(-3, 6), Pt(4, 8), Pt(2, 0))
                 F = partial(GetClosest, is_sorted=None)
                 def metric(a, b):
@@ -1648,9 +1700,11 @@ if __name__ == "__main__":
             RGB = tuple(Clamp(rgb))     # Default behavior
             Assert(RGB == (0.03, 1.0, 0.855))
             # Typical use case:  scaling (r, g, b) when elements on [0, 1] to int on [0, 255]
-            RGB = tuple(Clamp((int(i*256) for i in rgb), low=0, high=255, typ=int))
+            RGB = tuple(Clamp((int(i*256) for i in rgb), low=0, high=255))
             Assert(RGB == (7, 255, 218))
-            RGB = tuple(Clamp((int(i*256) for i in rgb), low=0, high=255, typ=D))
+            # Check it works with the Decimal type
+            seq = [D(int(i*256)) for i in rgb]
+            RGB = tuple(Clamp(seq, low=0, high=255))
             Assert(RGB == (D(7), D(255), D(218)))
         def Test_Batch():
             s = "0123456789"
@@ -1661,7 +1715,7 @@ if __name__ == "__main__":
         if 1:  # Global variables
             n, N = 10, 100000  # "Large" numbers
             s = "9.6001 9.6002 9.6003 9.6004 9.6005 9.6006 9.6007 9.6008 9.6009"
-            eps = 1.0 / 10**sys.float_info.dig
+            eps = 1.0/10**sys.float_info.dig
         def Test_frange_Normal_one_parameter():
             got = list(frange(str(n)))
             expected = [float(i) for i in range(n)]
@@ -1671,12 +1725,12 @@ if __name__ == "__main__":
             expected = [decimal.Decimal(i) for i in range(n)]
             Assert(got == expected)
         def Test_frange_Normal_two_parameters():
-            got = list(frange(str(n // 2), str(n)))
-            expected = [float(i) for i in range(n // 2, n)]
+            got = list(frange(str(n//2), str(n)))
+            expected = [float(i) for i in range(n//2, n)]
             Assert(got == expected)
         def Test_frange_Normal_two_parameters_Decimals():
-            got = list(frange(str(n // 2), str(n), return_type=decimal.Decimal))
-            expected = [decimal.Decimal(i) for i in range(n // 2, n)]
+            got = list(frange(str(n//2), str(n), return_type=decimal.Decimal))
+            expected = [decimal.Decimal(i) for i in range(n//2, n)]
             Assert(got == expected)
         def Test_frange_Normal_three_parameters():
             got = list(frange("9.6001", "9.601", "0.0001"))
@@ -1755,7 +1809,7 @@ if __name__ == "__main__":
             # Note that because we're using floats, we have to avoid using 5 to ensure that we get
             # the same number of elements as in got.  Again, this kind of thing is problematic with
             # the quantization errors of binary floating point arithmetic.
-            start, stop, inc = 1 / float(3), 5 - eps, 1 / float(3)
+            start, stop, inc = 1/float(3), 5 - eps, 1/float(3)
             expected = list(frange(start, stop, inc, return_type=float, impl=float))
             Assert(len(got) == len(expected))
             # There are small differences between the numbers; we use eps to detect failures.
@@ -1939,7 +1993,7 @@ if __name__ == "__main__":
             # base 40 for the class, 28 per integer, +8 per element
             assert_equal(GetSize(s2), GetSize(s1) + 28 + 4 + version_addition)
             assert_equal(GetSize(s3), GetSize(s2) + 28 + 4 + version_addition)
-            assert_equal(GetSize(s3), GetSize(s1) + 56 + 8 + version_addition * 2) # *2 for the num of variables in difference
+            assert_equal(GetSize(s3), GetSize(s1) + 56 + 8 + version_addition*2) # *2 for the num of variables in difference
         def Test_Flatten():
             t.print(f"{t.orn}{__file__}:Test_Flatten needs implementation")
             #raise Exception("Needs implementation")
