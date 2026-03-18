@@ -104,10 +104,18 @@ if 1:  # Header
     if 1:  # Global variables
         g = dptypes.Constant()
         g.dbg = False
-    if 1:  # Type-related things
-        T_Arith = ty.TypeVar("T_Arith", bound="SupportsArithmetic")
+    if 1:  # Types
+        T = ty.TypeVar("T")     # A short type
+        # A NestedSequence is either a single item of type T
+        # OR a sequence of more NestedSequences.
+        #NestedSequence = T | ty.Sequence["NestedSequence[T]"]
+
+        # A type for numbers (int, float, Decimal, ...)
+        Tnum = ty.TypeVar("Tnum", int, float, ty.Any)
+        # A type specifically for floating point numbers (float, Decimal, ...)
+        T_Arith = ty.TypeVar("T_Arith", bound="SupportsFPArithmetic")
         @ty.runtime_checkable
-        class SupportsArithmetic(ty.Protocol):
+        class SupportsFPArithmetic(ty.Protocol):
             '''An interface spec for types that support basic arithmetic
             and can be constructed from a numeric value.
             '''
@@ -119,7 +127,7 @@ if 1:  # Header
             def __lt__(self: T_Arith, other: ty.Any) -> bool: ...
             def __le__(self: T_Arith, other: ty.Any) -> bool: ...
         # We use the Protocol to constrain our TypeVar
-        Tfp = ty.TypeVar("Tfp", bound=SupportsArithmetic)
+        Tfp = ty.TypeVar("Tfp", bound=SupportsFPArithmetic)
 
 if 1:  # Distribute and GetClosest
     def iDistribute(n: int, a: int, b: int) -> ty.Iterable[int]:
@@ -200,27 +208,27 @@ if 1:  # Distribute and GetClosest
             The i-th element of the sequence is a + dx*i/divisor for i in range(n),
             divisor = n - 1, and dx = (b - a).  When i = 0, the output is a; when i = n
             - 1, the output is a + dx*(n - 1)/(n - 1) = a + (b - a) or b.
-
+        
         Invariants
             The returned sequence generator will produce n terms.  The difference
             between any two adjacent elements of the sequence is 
-
+        
             [a + dx*(i + 1)/divisor] - [a + (dx*i/divisor]
             = a - a  + dx/divisor*[(i + 1) - i] = dx/divisor
-
+        
         Arguments
             n: Number of items in sequence (must be an integer > 1).
             a: The starting number of the sequence
             b: The ending number of the sequence
-
+        
         Returns
             An iterator yielding instances of type 'fpimpl'.
-
+        
         Numerical note
             Cumulative precision error is a property of the 'fpimpl' type.  If you are
             using near the full number of digits of the floating point instance, beware
             of numerical irregularities.
-
+        
         Examples
             >>> import decimal
             >>> import fractions
@@ -257,17 +265,17 @@ if 1:  # Distribute and GetClosest
                    distance=operator.sub,
                    unresolved: int=0) -> ty.Any:
         '''Return the value in sequence seq that is closest to x
-
+        
         Algorithm 
             Two different algorithms are used, depending on whether seq is in sorted
             order.  If seq is sorted, then binary search is used which is O(n*log(n)).
             If seq is not sorted and its elements don't have a relevant '<' operation
             defined, you'll want to provide a key function in the argument key for the
             sorted() builtin.
-
+        
         Invariants
             The sequence seq is not modified.
-
+        
         Arguments
             x           The number to find the closest value in seq
             seq         The sequence to search through
@@ -275,10 +283,10 @@ if 1:  # Distribute and GetClosest
             key         Key for sorted() builtin
             distance    Binary function for dist(x, seq element)
             unresolved  The element in seq to return when can't resolve
-
+        
         Returns
             The value in seq that is closest to x.
-
+        
         is_sorted is None
             In this case, you've indicated that the sequence can't be put into sorted
             order and the distance function is used to calculate the distance of each
@@ -292,14 +300,14 @@ if 1:  # Distribute and GetClosest
                 [-1e+99, -1e+99, -1e+99, -1e+99]
             In such a case, the keyword 'unresolved' is used to pick the element of seq
             to return; otherwise a ValueError exception is raised.
-
+        
         Cautions
             - If is_sorted is False and key is None, the sequence will be sorted with
               sorted(seq, key=None) and this may or may not work.  If seq is not e.g. a
               simple sequence of numbers, you'll want to supply a suitable key function.
             - If is_sorted is None or False, a second sequence is created to hold the
               distances and this can take extra time and memory.
-
+        
         Example
             >>> seq = (5, -8, 10, 1)
             >>> GetClosest(-1e99, seq)
@@ -314,7 +322,6 @@ if 1:  # Distribute and GetClosest
             5
             >>> GetClosest(1e99, seq)
             10
-
         '''
         if not seq:
             raise ValueError("Sequence seq cannot be empty")
@@ -346,20 +353,31 @@ if 1:  # Distribute and GetClosest
                 return sortedseq[-1]
             else:
                 # Use binary search
-                L = Rightmost_le(sortedseq, x)   # L is sortedseq element, not index
-                r = Leftmost_ge(sortedseq, x)    # r is sortedseq element, not index
-                if L == r:
-                    return L
+                left = Rightmost_le(sortedseq, x)   # left is sortedseq element, not index
+                right = Leftmost_ge(sortedseq, x)   # right is sortedseq element, not index
+                if left == right:
+                    return left
                 else:
-                    diff_low, diff_high = abs(x - L), abs(x - r)
-                    return L if diff_low <= diff_high else r
+                    diff_low, diff_high = abs(x - left), abs(x - right)
+                    return left if diff_low <= diff_high else right
 if 1:   # Searching sorted sequences from bisect module
-        # bisect_left(seq, x) partitions seq into two halves so that 
-        #   all values < x on the left side
-        #   all values >= x on the right side
-        # bisect_right(seq, x) partitions seq into two halves so that 
-        #   all values <= x on the left side
-        #   all values > x on the right side
+    '''
+    Binary search is a fundamental technique for searching sorted sequences.  Its
+    fundamental approach is to divide the set of items being searched into two halves
+    and ask "Is the desired item in the left half or the right half?".  If it's in
+    either half, then the same division/question approach is used again, continuing
+    until the answer is known.   The worst-case number of divisions is floor(N+1) where
+    N = ln(n)/ln(2).  ln is the natural logarithm and n is the size of the sequence.
+        
+    bisect.bisect_left(seq, x) partitions seq into two halves so that 
+        all values < x on the left side
+        all values >= x on the right side
+    bisect.bisect_right(seq, x) partitions seq into two halves so that 
+        all values <= x on the left side
+        all values > x on the right side
+        
+    This behavior can help you mentally check the following utility functions.
+    '''
     def Leftmost_eq(seq: ty.Sequence[ty.Any], x: ty.Any) -> ty.Any:
         'Return index of the leftmost value == x'
         # index(a, x) in bisect module document
@@ -409,10 +427,13 @@ if 1:   # Searching sorted sequences from bisect module
             return seq[i-1]
         raise ValueError(f"No rightmost value <= {x}")
 if 1:   # Get or transform numbers from a sequence
-    def GetNum(seq: ty.Sequence[ty.Any], typ=int):
-        '''Return a list of numbers found in sequence seq.  The intent is that all the
-        elements of seq that can be converted to a number of type typ will be returned
-        in the list.  Examples:
+    def GetNum(seq: ty.Sequence[ty.Any],
+               typ: type[Tnum] = int  # type: ignore # float/int don't explicitly inherit
+              ) -> ty.List[Tnum]:
+        '''Return a list of numbers found in sequence seq
+        
+        The intent is that all the elements of seq that can be converted to a number of
+        type typ will be returned in the list.  Examples:
             seq = ("1", "2.", 3., "four")
             GetNum(seq) --> [1, 3]
             GetNum(seq, typ=float) --> [1.0, 2.0, 3.0]
@@ -424,26 +445,40 @@ if 1:   # Get or transform numbers from a sequence
             except Exception:
                 return None
         return [i for i in map(Num, seq) if i is not None]
-    def Clamp(seq: ty.Sequence[ty.Any], low: int=0, high: int=1) -> ty.Any:
-        '''Generator to return elements of a sequence "clamped" to an interval.  Thus,
-        the returned elements will be in [low, high].  The type of the each returned
-        value is the same type as the corresponding element processed.
+    def Clamp(seq: ty.Sequence[ty.Any], low: Tnum=0, high: Tnum=1) -> ty.Any:
+        '''Generator to return sequence's elements "clamped" to an interval
         
-        Example:  list(Clamp((-0.02, 0.4, 1.6), low=0, high=1.5, typ=float)) returns
+        The returned elements will be in the interval [low, high].  The type of the each
+        returned value is the same type as the corresponding element processed.
+        
+        Invariants:
+            The number of elements returned is equal to the number elements in seq.
+        
+        Arguments:
+            seq     The input sequence (will not be changed)
+            low     Low value of the allowed interval
+            high    High value of the allowed interval
+        
+        Returns:
+            An iterator yielding the numbers in seq; they are modified if necessary to
+            lie within [low, high].
+        
+        Example:
+            >>> list(Clamp((-0.02, 0.4, 1.6), low=0, high=1.5, typ=float))
             [0.0, 0.4, 1.5].
         '''
         for x in seq:
-            T = type(x)
+            typex = type(x)
             if x < low:
-                yield T(low)
+                yield typex(low)
             elif x > high:
-                yield T(high)
+                yield typex(high)
             else:
-                yield T(x)
+                yield typex(x)
 if 1:   # Finding duplicates in sequences
     if 0:   # Notes
         '''
-        An obvious approach to this duplicates problem is to use the facilities of
+        The obvious approach to this duplicates problem is to use the facilities of
         lists:
         
             def FindDuplicates(seq):
@@ -455,9 +490,10 @@ if 1:   # Finding duplicates in sequences
         
         It's simple, understandable, and obviously correct.  Unfortunately it's O(n²)
         because looking at each element in the list with pop() is O(n) and the 'item in
-        seqcopy' is an implicit for loop.
+        seqcopy' is an implicit for loop.  It also creates extra lists, using up more
+        memory.
         
-        A fix for this is to copy the sequence into a set, which has no duplicates.  Then
+        One fix for this is to copy the sequence into a set, which has no duplicates.  Then
         we'd use
         
             def FindDuplicates(seq):
@@ -487,8 +523,8 @@ if 1:   # Finding duplicates in sequences
                 return (nodup, dup)
         
         It's understandable, correct, and O(n) because seeing if something is in a set
-        and adding an item to a set are both O(1).  The extra cost is the memory of the
-        two copies of the original sequence: dup/nodup and the set.
+        and adding an item to a set are both O(1).  The extra cost is the extra memory 
+        for dup/nodup and the set.
         '''
     class Hashable:
         '''Encapsulate an object and make it hashable by defining a __hash__ method.  It
@@ -496,13 +532,13 @@ if 1:   # Finding duplicates in sequences
         being processed or you'll get incorrect results.
         '''
         __slots__ = ("object", "typ")
-        def __init__(self, object, typ=False):
+        def __init__(self, object: ty.Any, typ: bool=False) -> None:
             '''If typ in the constructor is True, then the objects must also have the
             same type to be considered equal.
             '''
             self.object = object
             self.typ = bool(typ)
-        def __hash__(self):
+        def __hash__(self) -> int:
             # In CPython, the hash of repr(self.object) seems to work to differentiate
             # e.g. the hash of 1 and the hash of 1.0 when stored in a Hashable instance.
             # If this doesn't work (e.g. in some other python instantiation), then the
@@ -513,82 +549,41 @@ if 1:   # Finding duplicates in sequences
                 return hash(self.object)
             except TypeError:
                 return hash(repr(self.object))
-        def __eq__(self, other):
-            eqval = (self.object == other.object)
+        def __eq__(self, other: ty.Any) -> bool:
+            eqval = bool(self.object == other.object)
             if self.typ:
-                return (eqval and (type(self) is type(other)))
+                return bool(eqval and (type(self) is type(other)))
             return eqval
-    def Nodup(seq: ty.Sequence[ty.Any], type_important: bool=False):
-        '''seq is a sequence; returns nodup where nodup is a list of the elements in seq
-        that are not duplicates.  See DupNodup() for details.
+    def Nodup(seq: ty.Sequence[ty.Any], type_important: bool=False) -> list[ty.Any]:
+        '''Returns a list of elements in seq that are not duplicates
+        
+        See DupNodup() for details.
+        
+        Example
+            >>> list(fDistribute(3, 0, 1, float))
+            [0.0, 0.5, 1.0]
         '''
-        return DupNodup(seq, type_important=type_important)[1]
-    def NodupHashable(seq: ty.Sequence[ty.Any]):
+        _, nodup = DupNodup(seq, type_important=type_important)
+        return nodup
+    def NodupHashable(seq: ty.Sequence[ty.Any]) -> list[ty.Any]:
         '''seq is a sequence; returns nodup where nodup is a list of the elements in seq
         that are not duplicates.  See DupNodupHashable() for details.
         '''
-        return DupNodupHashable(seq)[1]
-    def Dup(seq: ty.Sequence[ty.Any], type_important: bool=False):
+        _, nodup = DupNodupHashable(seq)
+        return nodup
+    def Dup(seq: ty.Sequence[ty.Any], type_important: bool=False) -> list[ty.Any]:
         '''seq is a sequence; returns dup where dup is a list of the elements in seq
         that are duplicates.  See DupNodup() for details.
         '''
-        return DupNodup(seq, type_important=type_important)[0]
-    def DupHashable(seq: ty.Sequence[ty.Any]):
+        dup, _ = DupNodup(seq, type_important=type_important)
+        return dup
+    def DupHashable(seq: ty.Sequence[ty.Any]) -> list[ty.Any]:
         '''seq is a sequence; returns dup where dup is a list of the elements in seq
         that are duplicates.  See DupNodupHashable() for details.
         '''
-        return DupNodupHashable(seq)[0]
-    def DupNodup(seq: ty.Sequence[ty.Any], type_important: bool=False):
-        '''seq is a sequence; returns (dup, nodup) where dup and nodup are lists.  nodup
-        has the elements in seq that are not duplicates.  dup contains the elements that
-        are duplicates of earlier elements in the list.  Both dup and nodup maintain the
-        order of the elements in the original sequence.
-        
-        This function will work on arbitrary sequences.  If you know the sequence only
-        contains hashable objects, use DupNodupHashable().
-        
-        If type_important is True, then itemA and itemB are defined to be duplicates iff
-        both 'itemA == itemB' and 'type(itemA) is type(itemB)' expressions are True.
-        This is useful in situations where e.g. you don't want the integer 1 and the
-        floating point 1.0 values to be considered equal (in python, '1 == 1.0' is
-        True).
-        
-        Examples:
-            DupNodup([1, 2, 3, 1, 4, 1.0]) returns 
-                nodup = [1, 2, 3, 4]
-                dup   = [1, 1.0]
-            because 1 == 1.0, so the second 1 and the 1.0 in seq are considered
-            duplicates.
-        
-            DupNodup([1, 2, 3, 1, 4, 1.0], type_important=True) returns 
-                nodup = [1, 2, 3, 4, 1.0]
-                dup   = [1]
-            because type_important=True means two items aren't duplicates unless they
-            are equal and have the same type.
-        
-        Warnings
-            - The algorithm in this function uses a set of the elements in seq to
-              identify duplicate items.  To ensure this works with unhashable objects,
-              the objects are encapsulated in the Hashable class.  For DupNodup() to
-              work correctly, the contents of all the items in seq cannot change while
-              DupNodup() is processing; otherwise, you'll get incorrect results.  This
-              is important in programs with multiple threads, so you'd probably want to
-              use a lock just before calling this function.
-            - Each element of seq is accessed in a loop.  If seq is a type like a large
-              deque, you may want to convert it to a list for better performance
-              (accessing the middle of a deque is O(n), not like O(1) for a list).
-        
-        The algorithm effectively creates two copies of the list seq (one copy in dup
-        and nodup and one copy in the set seen).  The extra memory of these auxiliary
-        structures allows this to be an O(n) algorithm.
-        '''
-        n, dup, nodup, seen = len(seq), [], [], set()
-        for i in range(n):
-            item, sitem = seq[i], Hashable(seq[i], typ=type_important)
-            dup.append(item) if sitem in seen else nodup.append(item)
-            seen.add(sitem)
-        return (dup, nodup)
-    def DupNodupHashable(seq: ty.Sequence[ty.Any]):
+        dup, _ = DupNodupHashable(seq)
+        return dup
+    def DupNodupHashable(seq: ty.Sequence[ty.Any]) -> tuple[list[ty.Any], list[ty.Any]]:
         '''seq is a sequence; returns (dup, nodup) where dup and nodup are lists.  nodup
         has the elements in seq that are not duplicates.  dup contains the elements that
         are duplicates of earlier elements in the list.  Both dup and nodup maintain the
@@ -600,7 +595,62 @@ if 1:   # Finding duplicates in sequences
             dup.append(seq[i]) if seq[i] in seen else nodup.append(seq[i])
             seen.add(seq[i])
         return (dup, nodup)
-if 1:  # frange, lrange, Sequence, irange, Rational
+    def DupNodup(seq: ty.Sequence[ty.Any],
+                 type_important: bool=False
+                ) -> tuple[list[ty.Any], list[ty.Any]]:
+        '''Returns [dup, nodup]:  the duplicates and non-duplicates in seq
+        
+        This function will work on arbitrary sequences.  If you know the sequence only
+        contains hashable objects, use DupNodupHashable().
+        
+        Algorithm 
+            The method "stores" each item from seq in a class Hashable that allows
+            the item to be stored in a set.  This set is used to identify when a
+            particular element has been seen before; the algorithm puts the element into
+            dup if it has been seen before and into nodup if it hasn't been seen.
+        
+        Invariants
+            len(dup) + len(nodup) == len(seq)
+        
+        Arguments
+            seq     The sequence to process
+            type_important
+                If this variable is True, then itemA and itemB are defined to be
+                duplicates iff both 'itemA == itemB' and 'type(itemA) is type(itemB)'
+                expressions are True.  This is useful in situations where e.g. you don't
+                want the integer 1 and the floating point 1.0 values to be considered
+                equal (in python, '1 == 1.0' is True).
+        
+        Returns
+            [dup, nodup] where both dup and nodup are lists.  
+        
+        Notes
+            - The algorithm in this function uses a set of the elements in seq to
+              identify duplicate items.  To ensure this works with unhashable objects,
+              the objects are encapsulated in the Hashable class.  For DupNodup() to
+              work correctly, the contents of all the items in seq cannot change while
+              DupNodup() is processing; otherwise, you'll get incorrect results.
+            - Each element of seq is accessed in a loop.  If seq is a type like a large
+              deque, you may want to convert it to a list for better performance
+              (accessing the middle of a deque is O(n), not like O(1) for a list).
+        
+        Example
+            >>> DupNodup([1, 2, 3, 1, 4, 1.0])
+            [[1, 1.0], [1, 2, 3, 4]]
+            >>> DupNodup([1, 2, 3, 1, 4, 1.0], type_important=True)
+            [[1], [1, 2, 3, 4, 1.0]]
+        '''
+        n:     int  = len(seq)
+        dup:   list = []
+        nodup: list = []
+        seen:  set  = set()
+        for i in range(n):
+            item, sitem = seq[i], Hashable(seq[i], typ=type_important)
+            dup.append(item) if sitem in seen else nodup.append(item)
+            seen.add(sitem)
+        assert len(dup) + len(nodup) == n
+        return (dup, nodup)
+if 1:   # yy frange, lrange, Sequence, irange, Rational
     '''
     Generators that are floating point analogs of range()
         frange(start, stop, step)
@@ -850,7 +900,7 @@ if 1:  # frange, lrange, Sequence, irange, Rational
             if x >= stop:
                 return
             yield x
-if 1:   # From util
+if 1:   # yy From util
     def Batch(iterable, size):
         '''Generator that gives you batches from an iterable in manageable sizes.  Slightly adapted
         from Raymond Hettinger's entry in the comments to
@@ -1501,6 +1551,18 @@ if 1:   # From util
             return itertools.zip_longest(*([iter(seq)]*n), fillvalue=None)
         else:
             return zip(*([iter(seq)]*n))    # noqa
+if 1:   # yy Mike's flatten
+    pass
+#:    def flatten(seq: NestedSequence[T]) -> ty.Iterator[T]:
+#:        ''' Generator to flatten a nested sequence
+#:        '''
+#:        if isinstance(seq, (str, bytes)):
+#:            yield seq  # type: ignore # Prevent infinite recursion on strings
+#:        elif isinstance(seq, ty.Iterable):
+#:            for item in seq:
+#:                yield from flatten(item)
+#:        else:
+#:            yield seq
 
 if __name__ == "__main__":
     if 1:  # Standard imports

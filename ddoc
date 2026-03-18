@@ -1,27 +1,27 @@
         '''One-line description of the function's purpose
-
-        Algorithm: 
+        
+        Algorithm 
             Describe the algorithm (e.g., Linear interpolation on [a, b]).  
-
-        Invariants:
+        
+        Invariants
             Mention any specific mathematical invariants (e.g., returns n values).
-
-        Arguments:
+        
+        Arguments
             n: Number of steps (must be an integer > 1).
             a: The start point of the distribution.
             b: The end point of the distribution (inclusive).
             impl: The class constructor used for all internal arithmetic 
                 (e.g., float, decimal.Decimal, mpmath.mpf).
-
-        Returns:
+        
+        Returns
             An iterator yielding instances of type 'impl'.
-
-        Numerical Note:
+        
+        Numerical note
             Cumulative precision error is a property of the 'impl' type. 
             When using full precision limits, users should account for 
             potential drift (e.g., 1.0000000000000002 vs 1.0).
-
-        Example:
+        
+        Example
             >>> list(fDistribute(3, 0, 1, float))
             [0.0, 0.5, 1.0]
         '''
