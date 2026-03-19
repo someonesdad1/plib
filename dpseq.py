@@ -938,7 +938,7 @@ if 1:   # frange, lrange, Sequence, irange, Rational
                 step: ty.Any=1
                ) -> ty.Any:
         '''Generator similar to frange but with a simpler implementation
-
+        
         Note the end point is returned.  Use with any number type compatible with
         dpmath.RoundOff such as int, float, Fraction, Decimal, complex, mpmath.mpf,
         mpmath.mpc, uncertainties.UFloat.  You should rely on no more than 12
@@ -1047,7 +1047,7 @@ if 1:   # From util
                         break
                     yield s
                     i += size
-
+        
         Algorithm 
             Slightly adapted from Raymond Hettinger's entry in the comments to
             http://code.activestate.com/recipes/303279-getting-items-in-batches/
@@ -1080,7 +1080,7 @@ if 1:   # From util
         '''Return a list of strings representing a histogram of the items in seq
         
         Note:  the width calculations are only correct if the length of the char string is 1.
-
+        
         Algorithm 
             Describe the algorithm (e.g., Linear interpolation on [a, b]).  
         
@@ -1127,7 +1127,7 @@ if 1:   # From util
         return output
     def hyphen_range(s: str) -> list[int]:
         '''Turns a range spec into a list of integers
-
+        
         A range spec is two integers a and b in the form "a-b".
         See unrange() for doing the opposite thing.
         
@@ -1190,25 +1190,33 @@ if 1:   # From util
                 except Exception as e:
                     raise ValueError(msg.format(item)) from e
         return o
-    def unrange(seq, sort_first=False, sep="─"):   # Note ─ is required for e.g. -4 to -1
-        '''Turn a sequence of integers seq into a collection of ranges and return as a string.  It
-        provides a string summary of the ranges in the sequence.  See unrange_real() for sequences of
-        real numbers.
+    def unrange(seq: ty.Sequence[ty.Any], sort_first=False, sep="─") -> str:   # Note ─ is required for e.g. -4 to -1
+        '''Return a string condensing a sequence of integers
         
-        If sort_first is True, the sequence is sorted before processing.  The sep string is used to
-        separate a number range.
+        Arguments
+            seq         A sequence of integers
+            sort_first  If True, sort the sequence before processing
+            sep         String that separates the integers in output string
         
-        Examples: | represents the sep character
-            seq = [1, 5, 6, 7, 3, 4, 8, 10, 11, 12]
-            unrange(seq, sort_first=True)  outputs 1 3|8 10|12
-            unrange(seq, sort_first=False) outputs 1 5|7 3|4 8 10|12
-            seq = [-1, -5, -6, -7, -3, -4, -8, -10, -11, -12]
-            unrange(seq, sort_first=True)  outputs -12|-10 -8|-3 -1
-            unrange(seq, sort_first=False) outputs -1 -5 -6 -7 -3 -4 -8 -10 -11 -12
+        Returns
+            A string.
+        
+        Example
+            >>> sep = "|"
+            >>> seq = [1, 5, 6, 7, 3, 4, 8, 10, 11, 12]
+            >>> unrange(seq, sort_first=True, sep=sep)
+            '1 3|8 10|12'
+            >>> unrange(seq, sort_first=False, sep=sep)
+            '1 5|7 3|4 8 10|12'
+            >>> seq = [-1, -5, -6, -7, -3, -4, -8, -10, -11, -12]
+            >>> unrange(seq, sort_first=True, sep=sep)
+            '-12|-10 -8|-3 -1'
+            >>> unrange(seq, sort_first=False, sep=sep)
+            '-1 -5 -6 -7 -3 -4 -8 -10 -11 -12'
         '''
         if not seq:
             return ""
-        dq = deque(sorted(seq)) if sort_first else deque(seq)
+        dq = collections.deque(sorted(seq)) if sort_first else collections.deque(seq)
         in_sequence = False
         lastx = dq.popleft()
         out = [lastx]
@@ -1232,26 +1240,31 @@ if 1:   # From util
         s = " ".join([str(i) for i in out])
         u = s.replace(" " + sep + " ", sep)
         return u
-    def unrange_real(seq, sort_first=False, sep="┅"):
-        '''Turn a sequence of numbers seq into a collection of ranges and return as a string.  It
-        provides a string summary of the ranges in the sequence.  See unrange() for sequences of
-        integers.
+    def unrange_real(seq: ty.Sequence[ty.Any], sort_first=False, sep="┅") -> str:
+        '''Turn a sequence of numbers seq into a set of ranges and return as a string
+
+        No knowledge about the sequence elements being real numbers is used; the only
+        operation used is ordering by the >= operator.  Thus, any sequence of items that
+        can be ordered by >= can be converted to a range.
         
-        If sort_first is True, the sequence is sorted before processing.  The sep string is used to
-        separate a number range.
+        Arguments
+            seq         The sequence of numbers
+            sort_first  If True, sort the sequence before converting
+            sep         String that separates the ranges
         
-        Note:  no knowledge about the sequence elements being real numbers is used; the only
-        operation used is ordering by the >= operator.  Thus, any sequence of items that can be
-        ordered by >= can be converted to a range.
+        Returns
+            A string condensing the information in seq.
         
-        Examples:
-            seq = [1.0, 2.2, 3.1, 2.7, 8.1]
-            unrange_real(seq, sort_first=True)  outputs 1.0┅8.1
-            unrange_real(seq, sort_first=False) outputs 1.0┅3.1 2.7┅8.1
+        Example
+            >>> seq = [1.0, 2.2, 3.1, 2.7, 8.1]
+            >>> unrange_real(seq, sort_first=True)
+            '1.0┅8.1'
+            >>> unrange_real(seq, sort_first=False)
+            '1.0┅3.1 2.7┅8.1'
         '''
         if not seq:
             return ""
-        dq = deque(sorted(seq)) if sort_first else deque(seq)
+        dq = collections.deque(sorted(seq)) if sort_first else collections.deque(seq)
         out, seq = [], []
         while dq:
             x = dq.popleft()
@@ -1265,9 +1278,22 @@ if 1:   # From util
             if not dq:
                 break  # Finished
         return " ".join(out)
-    def Unique(seq):
-        '''Generator to return only the unique elements in sequence.  The order of the items in the
-        sequence is maintained.
+    def Unique(seq: ty.Sequence[ty.Any]) -> ty.Any:
+        '''Generator to return the unique elements in sequence
+
+        Only works with sequences that contain hashable elements.  The algorithm works by
+        storing the seen elements in a set and only returning those that haven't been
+        seen before.  For a general routine, see DupNodup().
+        
+        Arguments
+            seq     Sequence of arbitrary hashable objects
+        
+        Returns
+            An generator yielding the unique elements of the sequence.  The returned
+            elements are in the same order they were encountered in the sequence.
+        Example
+            >>> list(Unique([1, 2, 2, 3, 5, 3]))
+            [1, 2, 3, 5]
         '''
         found = set()
         for item in seq:
@@ -1276,24 +1302,35 @@ if 1:   # From util
             else:
                 found.add(item)
                 yield item
-    def transpose(seq, typ=list, check=False):
-        '''Return the transpose of a nested two-dimensional sequence, such as an n x m matrix.
-        len(seq) is n and len(seq[i]) is m for i in range(0, n).
+    def transpose(seq: ty.Sequence[ty.Any], typ=list[ty.Any], check: bool=False):
+        '''Return the transpose of a nested two-dimensional sequence
         
-        typ:  The returned sequence will be of type typ, with each nested sequence also of type typ.
+        The sequence is expected to be an n x m matrix:  len(seq) == n and len(seq[i])
+        is m for i in range(n).
+
+        Algorithm 
+            The algorithm uses the well-known properties of zip() for this task.
         
-        check:  If check is True, then checks are made on seq to ensure it's of proper type.
-            If checks are not satisfied, a ValueError exception is raised.  I recommend not
-            using checking in production code because copies of seq are made, using up
-            memory.
-            
+        Invariants
+            list(transpose(transpose(seq))) == list(seq), within the limits of the
+            container type.
+        
+        Arguments
+            seq     The nested sequence 
+            typ     The type of sequence to return 
+            check   If True, checks are made on seq to ensure it's the proper type and
+                    that the above invariant is True.  For production code, I'd
+                    recommend leaving check False for more speed and less memory use.
+        
+        Returns
+            A list containing the transposed sequence.
+        
         Example:
             data = [[1, 2],
                     [3, 4],
                     [5, 6]]
             transpose(data) --> [[1, 3, 5],
                                 [2, 4, 6]]
-                            
         '''
         if check:
             # seq can't be a string, set, or dict
@@ -1337,27 +1374,20 @@ if 1:   # From util
             tseq = transpose(seqT, typ=list)
             Assert(orig == tseq)
         return seqT
-    def Ranges(seq, validate=False):
-        '''seq is a sequence of integers.  This function will return the sequence as a
-        list of either 2-tuples or single integers.  The 2-tuples represent the
-        arguments to range() to reproduce the original sequence of integers.  If
-        validate is True, the returned list will be validated by reproducing the
-        original sequence.
+    def Ranges(seq: ty.Sequence[int], validate: bool=False) -> list[int | tuple[int, int]]:
+        '''Return a sequence of integers in a compressed form
+
+        The function returns the integers in seq in a form of single integers and
+        2-tuples of integers.  The 2-tuples represent the arguments to range() to
+        reproduce the original sequence of integers.
         
-        Examples
-            [1, 2, 3, 5] --> [(1, 4), 5]
-            [1, 3, 2, 5] --> [1, 3, 2, 5]
-        
-        The intended use case is a form of "compression" for long sequences and an index
-        case is the set of Unicode codepoints, where I wanted to see how much shorter
-        such a representation is than the set of integers.
-        
-        The algorithm is derived from 
-        https://stackoverflow.com/questions/3429510/pythonic-way-to-convert-a-list-\
-        of-integers-into-a-string-of-comma-separated-range/3430231#3430231
-        and is the 7 Aug 2010 answer due to John La Rooy.  It's a neat solution and I 
-        thank La Rooy and StackOverflow for posting the answer.
-        
+        Algorithm 
+            The algorithm is derived from
+            https://stackoverflow.com/questions/3429510/pythonic-way-to-convert-a-list-\
+            of-integers-into-a-string-of-comma-separated-range/3430231#3430231 and is
+            the 7 Aug 2010 answer due to John La Rooy.  It's a nice solution and I thank
+            La Rooy and StackOverflow for posting the answer.
+            
             Content of above link
             # Source - https://stackoverflow.com/a
             # Posted by John La Rooy, modified by community. See post 'Timeline' for change history
@@ -1369,29 +1399,39 @@ if 1:   # From util
             >>> print ",".join("-".join(map(str,(g[0],g[-1])[:len(g)])) for g in G)
             1-4,6-9,12-13,19-20,22-23,40,44
         
-        Note 18 Jan 2026:  this function was broken when the selftests ran.  I attribute the
-        cause to 'ruff check' telling me to get rid of the lambda function I had; so I
-        defined the function f(x, c) instead and the linter was happy.  But things broke a
-        week or so later when I ran the self tests.  Thus, I'll use the original code with
-        the lambda in the generator.
+        Arguments
+            seq     The sequence of integers
+            validate    If True, validate that the returned 
         
+        Returns
+            An iterator yielding instances of type 'impl'.
+        
+        Numerical note
+            Cumulative precision error is a property of the 'impl' type. 
+            When using full precision limits, users should account for 
+            potential drift (e.g., 1.0000000000000002 vs 1.0).
+        
+        Example
+            >>> Ranges([1, 2, 3, 5])
+            [(1, 4), 5]
+            >>> Ranges([1, 3, 2, 5])
+            [1, 3, 2, 5]
         '''
         if validate:
             orig = list(seq)    # Copy of original sequence
         # Make sure all the elements of seq are integers
         if not all(isinstance(i, int) for i in seq):
             raise TypeError("Not all elements of seq are integers")
-        # This is the same code used in the StackOverflow solution, substituting seq for L.
-        # And things work again.
-        G = [list(x) for _,x in itertools.groupby(seq, lambda x,c=itertools.count(): next(c)-x)]  # noqa
+        G = [list(x) for _,x in 
+             itertools.groupby(seq, lambda x,c=itertools.count(): next(c)-x)]  # type: ignore
         # Convert into pairs of numbers for range()
-        o = []
+        o: list[int | tuple[int, int]] = []
         for i in list(G):
-            o.append((i[0], i[-1] + 1)) if len(i) > 1 else o.append(i[0])
+            o.append((i[0], i[-1] + 1)) if len(i) > 1 else o.append(i[0])   # type: ignore
         if validate:
             p = []
-            for i in o:
-                p.append(list(range(i[0], i[1]))) if isinstance(i, tuple) else p.append(i)
+            for _ in o:
+                p.append(list(range(_[0], _[1]))) if isinstance(_, tuple) else p.append(_) # type: ignore
             if Flatten(p) != orig:
                 raise ValueError("Validation failed")
         return o
@@ -1422,7 +1462,7 @@ if 1:   # From util
                 left, right = "[", "]"
             elif isinstance(seq, set):
                 left, right = "{", "}"
-            elif isinstance(seq, deque):
+            elif isinstance(seq, collections.deque):
                 left, right = "<", ">"
             elif isinstance(seq, bytes):
                 left, right = "«", "»"
@@ -1458,7 +1498,7 @@ if 1:   # From util
                 x = seq.pop()
                 seq.add(x)
                 return x
-            elif isinstance(seq, deque):
+            elif isinstance(seq, collections.deque):
                 x = seq.pop()
                 seq.append(x)
                 return x
@@ -1488,7 +1528,7 @@ if 1:   # From util
                 except Exception:
                     return False
             return True
-    def Paste(*seq, missing="", sep="\t"):
+    def Paste(*seq, missing: str="", sep: str="\t") -> list[ty.Any]:
         '''Return a list whose elements are each corresponding element of the sequences in *seq,
         separated by the string sep.  If a sequence is too short, the missing string will be
         substituted.  All sequence elements will be converted to strings using str().
@@ -1500,9 +1540,9 @@ if 1:   # From util
         '''
         result = list(itertools.zip_longest(*seq, fillvalue=missing))
         # Convert all elements to strings
-        result = [str(j) for j in result]   # ∞∞1 Broken because of lint forced change
+        result = [str(j) for j in result]   # type: ignore
         return [sep.join(i) for i in result]
-    def ItemCount(seq, n=None):
+    def ItemCount(seq: ty.Sequence[ty.Any], n: int | None =None) -> list[tuple[ty.Any, int]]:
         '''Return a sorted list of (item, count) in the iterable seq, with the highest count first in
         the list.  If n is given, only return the largest n counts.  The items in seq must be
         hashable.
@@ -1518,14 +1558,15 @@ if 1:   # From util
         counting container, these are considered to be the same items.  Thus, you can get syntactically
         different results that are semantically the same.
         '''
-        items = collections.defaultdict(int)
+        items: dict[ty.Any, int] = collections.defaultdict(int)
         for item in seq:
             items[item] += 1
         s = sorted(items.items(), key=operator.itemgetter(1), reverse=True)
         return s if n is None else s[:n]
-    def IsIterable(x, ignore_strings=True):
-        '''Return True if x is an iterable.  You can exclude strings from the things that can be
-        iterated on if you wish.
+    def IsIterable(x: ty.Any, ignore_strings: bool=True) -> bool:
+        '''Return True if x is an iterable
+        
+        You can exclude strings from the things that can be iterated on if you wish.
         
         Note:  if you don't care whether x is a string or not, a simpler way
         is:
@@ -1538,13 +1579,13 @@ if 1:   # From util
         if ignore_strings and isinstance(x, str):
             return False
         return isinstance(x, collections.abc.Iterable)
-    def IsHomogeneous(seq):
+    def IsHomogeneous(seq: ty.Sequence[ty.Any]) -> bool:
         "Return True if seq is homogeneous"
         if not seq:
             return True
         typ = type(seq[0])
         return all(type(i) is typ for i in seq)
-    def grouper(data, mapper, reducer=None):
+    def grouper(data: ty.Sequence[ty.Any], mapper, reducer=None) -> dict[int, list]:
         '''Simple map/reduce for data analysis.
         
         Each data element is passed to a *mapper* function.  The mapper returns key/value pairs or None
@@ -1564,10 +1605,10 @@ if 1:   # From util
         >>> grouper(range(30), even_odd, sum)    # sum each group
         {0: 90, 1: 75}
         
-        Note:  from http://code.activestate.com/recipes/577676-dirt-simple-mapreduce/?in=lang-python I
-        renamed the function to grouper.
+        Note:  from http://code.activestate.com/recipes/577676-dirt-simple-mapreduce/?in=lang-python
+        I renamed the function to grouper.
         '''
-        d = {}
+        d: dict[int, list] = {}
         for elem in data:
             r = mapper(elem)
             if r is not None:
@@ -1580,45 +1621,14 @@ if 1:   # From util
             for key, group in d.items():
                 d[key] = reducer(group)
         return d
-    def Flatten_generator(seq, ltypes=(list, tuple)):
-        '''A generator that will return a flattened sequence from seq.  If an element in
-        seq is of one of the types in ltypes, then it's considered to be a sequence;
-        otherwise, it's a scalar element.  The method is a nice use of a deque from
-        https://dev.to/miguendes/5-different-ways-to-flatten-a-list-of-lists-in-python-2cmn
-        The algorithm is:
-        
-        - dq = deque()
-        - Iterate through each element e of seq
-        - If e is not one of ltypes
-            - Append e to left of dq
-        - else
-            - dq.extendleft(reversed(e))
-        - Note:  reversing is needed because of the way extendleft works:
-            >>> dq = deque()
-            >>> dq.extendleft([1, 2, 3])
-            >>> dq
-            deque([3, 2, 1]
-        - Now iterate over the deque by popping the leftmost element e; if it's not an
-        ltypes, yield it; otherwise extendleft(reversed(e)).
-        '''
-        dq = deque()
-        for item in seq:
-            if isinstance(item, ltypes):
-                dq.extendleft(reversed(item))
-            else:
-                dq.appendleft(item)
-            while dq:
-                elem = dq.popleft()
-                if isinstance(elem, ltypes):
-                    dq.extendleft(reversed(elem))
-                else:
-                    yield elem
-    def Flatten(L, max_depth=None, ltypes=(list, tuple)):
+    def Flatten(L: ty.Sequence[ty.Any], max_depth: int | None=None, ltypes=(list, tuple)) -> list[ty.Any]:
         '''Flatten every sequence in L whose type is contained in 'ltypes' to
-        'max_depth' levels down the tree.  The sequence returned has the same type as
-        the input sequence.  Written by Kevin L. Sitze on 2010-11-25.  From
-        http://code.activestate.com/recipes/577470-fast-flatten-with-depth-control-and-oversight-over/?in=lang-python
+        'max_depth' levels down the tree.  Returns a list.  Written by Kevin L. Sitze on
+        2010-11-25.  From
+        http://code.activestate.com/recipes/577470-fast-flatten-with-depth-
+            control-and-oversight-over/?in=lang-python
         This code may be used pursuant to the MIT License.
+
         '''
         if max_depth is None:
             def make_flat(x):
@@ -1649,11 +1659,8 @@ if 1:   # From util
                 else:
                     r.append(L[i])
                 i += 1
-        try:
-            return type(L)(r)
-        except TypeError:
-            return r
-    def GetSize(obj, seen=None):
+        return r
+    def GetSize(obj: ty.Any, seen: set | None =None) -> int:
         'Recursively finds size of objects in bytes'
         # Taken from https://github.com/bosswissam/pysize/blob/master/pysize.py
         size = sys.getsizeof(obj)
@@ -1683,7 +1690,7 @@ if 1:   # From util
         if hasattr(obj, '__slots__'): # can have __slots__ with __dict__
             size += sum(GetSize(getattr(obj, s), seen) for s in obj.__slots__ if hasattr(obj, s))
         return size
-    def GroupByN(seq, n, fill=False):
+    def GroupByN(seq: ty.Sequence[ty.Any], n: int, fill: bool=False):
         '''Return an iterator that gives groups of n items from the sequence.  If fill is True, return
         None for any missing items.  In other words, if fill is False, groups without the full number
         of elements are discarded.
@@ -1713,7 +1720,6 @@ if 1:   # From util
 
 if __name__ == "__main__":
     if 1:  # Standard imports
-        import collections
         import decimal
         import fractions
         import functools
