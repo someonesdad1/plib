@@ -93,6 +93,7 @@ if 1:  # Header
         import numbers
         import operator
         import os
+        import pdb
         import typing as ty
     if 1:  # Custom imports
         import dptypes
@@ -109,6 +110,7 @@ if 1:  # Header
     if 1:  # Global variables
         g = dptypes.Constant()
         g.dbg = False
+        zz = pdb.set_trace
     if 1:  # Types
         T = ty.TypeVar("T")     # A short type
         # A nested sequence for flatten()
@@ -131,7 +133,8 @@ if 1:  # Header
             def __le__(self: T_Arith, other: ty.Any) -> bool: ...
         # We use the Protocol to constrain our TypeVar
         Tfp = ty.TypeVar("Tfp", bound=SupportsFPArithmetic)
-        
+
+    if 1:  # Tfrange type for frange()
         # A Protocol that defines "I can be compared and added".  This is intended to be
         # a type used by frange that allows the use of any suitable numerical type, such
         # as float, decimal.Decimal, fractions.Fraction, mpmath.mpf or other floating
@@ -721,9 +724,9 @@ if 1:   # frange, lrange, Sequence, irange, Rational
                     s.extend([str(ip), "-"])
                 s.extend([str(remainder), "/", str(d)])
             return "".join(s)
-    def frange(start: Tfrange|None, 
-               stop: Tfrange|None = None, 
-               step: Tfrange|None = None, 
+    def frange(start: Tfrange|str, 
+               stop: Tfrange|str|None = None, 
+               step: Tfrange|str|None = None, 
                return_type: type[Tfrange] = float,      # type: ignore[assignment]
                impl: type[ty.Any] = decimal.Decimal,    # type: ignore[assignment]
                strict: bool=True,
@@ -738,7 +741,9 @@ if 1:   # frange, lrange, Sequence, irange, Rational
             start, stop, step
                 Can be python floats, integers, or strings representing floating point
                 numbers (or any other object that impl can convert to an object that
-                behaves with numerical semantics).
+                behaves with numerical semantics).  A convenience is that if '/' is in
+                the string for start, all the numbers are interpreted as Rational
+                objects.
             return_type
                 The returned numbers are converted to this type.
             impl
@@ -760,127 +765,136 @@ if 1:   # frange, lrange, Sequence, irange, Rational
             A sequence of numbers of type return_type.
         
         Notes
+            - To help ensure you get the output you want, use strings for start, stop
+              and step.  This is the "proper" way to initialize Decimals with
+              non-integer values.
             - Python's Decimal class is used for the default implementation, but you can
               choose it to be e.g. floats if you wish (however, you'll then have the
               typical naive implementation seen all over the web).  Consult
               http://www.python.org/dev/peps/pep-0327/ and the decimal module's
               documentation to learn why a float implementation is naive.
-            - To help ensure you get the output you want, use strings for start, stop
-              and step.  This is the "proper" way to initialize Decimals with
-              non-integer values.
-                - For an example, compare the output of frange(9.6001, 9.601, 0.0001)
-                  and frange("9.6001", "9.601", "0.0001").  Most users will probably
-                  expect the output from the second form, which excludes the stop value
-                  like range does.
         
         Example
-            >>> list(frange(9.6001, 9.601, 0.0001))
-            [9.6001, 9.6002, 9.6003, 9.6004, 9.6005, 9.6006, 9.6007, 9.6008, 9.6009]
-            >>> list(frange("9.6001", "9.601", "0.0001"))
-            [9.6001, 9.6002, 9.6003, 9.6004, 9.6005, 9.6006, 9.6007, 9.6008, 9.6009]
-        
-            Interestingly, this works the same way in python 3.11, but when originally
-            tested, the first form using floats gave one more item in the sequence.
-        
-        Other examples of use
-            a = list(frange("0.125", "1", ".125"))
-        results in a being
-            [0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875]
-            
-        Alternatively, you can use python fractions in frange because they have the
-        proper numerical semantics.  A convenience class called Rational is provided in
-        this module because it allows fractions to be printed in their customary proper
-        form.
-            R = Rational
-            b = list(frange("1/8", "1", "1/8", impl=R, return_type=R))
-        results in b being
+            >>> list(frange(10))
+            [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]
+            >>> R = Rational
+            >>> list(frange("1/8", "1", "1/8", impl=R, return_type=R))
             [1/8, 1/4, 3/8, 1/2, 5/8, 3/4, 7/8]
-        and we also have a == b is True.
         
-        The happy accident of a == b being True is only because these decimal fractions
-        can be represented exactly in binary floating point.  This is not true in
-        general:
-            c = list(frange("0.1", "1", "0.1"))
-            d = list(frange("1/10", "1", "1/10", impl=R, return_type=R))
-        results in c == d being False.
-        
-        Print out c to see why c and d are not equal (this is practically the canonical
-        example of the problems with binary floating point for us humans that love
-        decimal arithmetic).
-        
-        A convenience is that if '/' is in the string for start, all the numbers are
-        interpreted as Rational objects.
         '''
         def ceil(x):
+            'The ceiling function for a number x'
             i = int(abs(x))
             if x > i:
                 i += 1
             return (-1 if x < 0 else 1)*i
-        if isinstance(start, str) and "/" in start:
-            impl = return_type = Rational
-
-    # yy mypy is barfing on the above line because 'Incompatible types in assignment
-    # (expression has type "type[dpseq.Rational]", variable has type "type[Tfrange]")'
-
-        def init(x):
+        def ConvertToImpl(x):
+            'Convert x to the impl type'
             if isinstance(x, f.flt):
                 return impl(repr(float(x)))
             elif isinstance(x, float):
                 return impl(repr(x))
             else:
                 return impl(x)
-        start = init(start)
-        if stop is not None:
-            stop = init(stop)
-        else:
-            start, stop = impl(0), start
-        step = impl(1) if step is None else init(step)
-        if include_end:
-            stop += step
-        if not step and start < stop:
-            while True:
-                try:
-                    yield return_type(start)
-                except TypeError:
-                    if strict:
-                        raise
-                    yield return_type(str(start))
-        else:
-            for i in range(ceil((stop - start)/step)):    # noqa
-                try:
-                    yield return_type(start)
-                except TypeError:
-                    if strict:
-                        raise
-                    yield return_type(str(start))
-                start += step
-    def lrange(start_decade: int, end_decade: int, dx=1, x=1, 
-               mantissas: list[float] | None=None) -> list[float]:
+        if 1:   # Get our parameters
+            # 1. start
+            #    Note:  If start has "/" in it, we'll assume the user wants 
+            #    to do calculations # with fractions.Fraction; we'll use Rational.
+            if isinstance(start, str) and "/" in start:
+                return_type = ty.cast(type[Tfrange], Rational)
+                impl = ty.cast(type[Tfrange], Rational)
+            _start = ConvertToImpl(start)
+            # 2. stop
+            if stop is None:
+                _stop = _start
+                _start = ConvertToImpl(0)
+            else:
+                _stop = ConvertToImpl(stop)
+            # 3. step
+            if step is None:
+                _step = ConvertToImpl(1)
+            else:
+                _step = ConvertToImpl(step)
+            # 4. If include_end is True
+            if include_end:
+                _stop += _step
+        if 1:   # Parameter checks:  _start, _stop, _step must be impl
+            assert isinstance(_start, impl)
+            assert isinstance(_stop, impl)
+            assert isinstance(_step, impl)
+            # We can't have _step == 0, as the loop would never change the starting
+            # value
+            if not _step:
+                raise ValueError("step cannot be zero")
+        n = ceil((_stop - _start)/_step)
+        assert n > 0
+        for i in range(n):
+            try:
+                yield return_type(_start)   # type: ignore
+                                            # ∞∞1 Should fix type issue
+            except TypeError:
+                if strict:
+                    raise
+                yield return_type(str(_start))  # type: ignore
+                                                # ∞∞1 Should fix type issue
+            _start += _step
+    def lrange(start_decade: int,
+               end_decade: int, 
+               dx: int|float =1,
+               x: int|float =1, 
+               significands: list[float] | None=None
+              ) -> list[float]:
         '''Provides a logarithmic analog to the frange function.  Returns a list of
         values with logarithmic spacing.
         
-        Example:  lrange(0, 2, mantissas=[1, 2, 5]) returns [1, 2, 5, 10, 20, 50].
+        '''
+        '''Provides a logarithmic analog to the frange function
+        
+        Algorithm 
+            Describe the algorithm (e.g., Linear interpolation on [a, b]).  
+        
+        Invariants
+            Mention any specific mathematical invariants (e.g., returns n values).
+        
+        Arguments
+            n: Number of steps (must be an integer > 1).
+            a: The start point of the distribution.
+            b: The end point of the distribution (inclusive).
+            impl: The class constructor used for all internal arithmetic 
+                (e.g., float, decimal.Decimal, mpmath.mpf).
+        
+        Returns
+            An iterator yielding instances of type 'impl'.
+        
+        Numerical note
+            Cumulative precision error is a property of the 'impl' type. 
+            When using full precision limits, users should account for 
+            potential drift (e.g., 1.0000000000000002 vs 1.0).
+        
+        Example
+            >>> lrange(0, 2, significands=[1, 2, 5])
+            [1.0, 2.0, 5.0, 10.0, 20.0, 50.0]
         '''
         msg = "%s must be an integer"
         if not isinstance(start_decade, numbers.Integral):
-            raise ValueError(msg % "start_decade")
+            raise ValueError(f"{start_decade!r} must be an integer")
         if not isinstance(end_decade, numbers.Integral):
-            raise ValueError(msg % "end_decade")
+            raise ValueError(f"{end_decade!r} must be an integer")
         msg = "%s must lie in [1, 10)"
         if not (1 <= dx < 10):
-            raise ValueError(msg % "dx")
+            raise ValueError(f"{dx!r} must lie in [1, 10)")
         if not (1 <= x < 10):
-            raise ValueError(msg % "x")
-        if mantissas is None:
-            mantissas = []
+            raise ValueError(f"{x!r} must lie in [1, 10)")
+        if significands is None:
+            significands = []
             while x < 10:
-                mantissas.append(x)
+                significands.append(x)
                 x += dx
         values = []
-        for exp in range(start_decade, end_decade):
-            values += [i*10**exp for i in mantissas]
+        for exponent in range(start_decade, end_decade):
+            values += [float(i*10**exponent) for i in significands]
         return values
-    def Sequence(s: str):
+    def Sequence(s: str) -> ty.Sequence[ty.Any]:
         '''Return a sequence of numbers based on the specifications in the string s.
         Specifications are separated by whitespace characters and are of the forms
             a
@@ -895,7 +909,7 @@ if 1:   # frange, lrange, Sequence, irange, Rational
             5, 4, 3, 2, 1,
             1/4, 3/8, 1/2, 5/8, 3/4]
         '''
-        out = []
+        out = []    # type: ignore
         for spec in s.split(s): 
             spec = spec.strip()
             if not spec:
@@ -919,16 +933,35 @@ if 1:   # frange, lrange, Sequence, irange, Rational
                 return i
             return x
         return [MakeIntIfPossible(i) for i in out]
-    def ifrange(start: ty.Any, stop: ty.Any, step: ty.Any=1) -> ty.Any:
-        '''Generator similar to frange but with a simpler implementation; note the end
-        point is returned.  Use with any number type compatible with dpmath.RoundOff
-        such as int, float, Fraction, Decimal, complex, mpmath.mpf, mpmath.mpc,
-        uncertainties.UFloat.  You should rely on no more than 12 significant figures in
-        the returned numbers.
+    def ifrange(start: ty.Any,
+                stop: ty.Any,
+                step: ty.Any=1
+               ) -> ty.Any:
+        '''Generator similar to frange but with a simpler implementation
+
+        Note the end point is returned.  Use with any number type compatible with
+        dpmath.RoundOff such as int, float, Fraction, Decimal, complex, mpmath.mpf,
+        mpmath.mpc, uncertainties.UFloat.  You should rely on no more than 12
+        significant figures in the returned numbers.
         
-        Examples:
-            ifrange(1, 3) --> [1, 2, 3]
-            ifrange(0, 1, 0.12) --> [0, 0.12, 0.24, 0.36, 0.48, 0.6, 0.72, 0.84, 0.96]
+        Algorithm 
+            The loop is generated by itertools.count(), the resulting floating number is
+            rounded off using dpmath.RoundOff(), and if the resulting value is >= the
+            stopping value, the loop is stopped.
+        
+        Arguments (can be any common number type)
+            start   Starting value
+            stop    Stopping value
+            step    Increment to increase each element by
+        
+        Returns
+            An iterator yielding a range of numbers.
+        
+        Examples
+            >>> ifrange(1, 3)
+            [1, 2, 3]
+            >>> ifrange(0, 1, 0.12)
+            [0, 0.12, 0.24, 0.36, 0.48, 0.6, 0.72, 0.84, 0.96]
         '''
         import dpmath
         for i in itertools.count(start, step):
@@ -945,11 +978,11 @@ if 1:   # From util
             Google and Google's AI, Gemini.  It is one of those rare moments in software
             where the mathematical definition and the machine implementation align
             perfectly.  Remember the type definitions at the top of this file:
-
+            
                 T = ty.TypeVar("T")     # A short type
                 # A nested sequence for flatten()
                 NestedSequence: ty.TypeAlias = T | ty.Sequence["NestedSequence[T]"]
-
+            
                 This definition uses a forward reference in itself to itself; the
                 "NestedSequence[T]" is needed to refer to NestedSequence to give the
                 recursive nature, but NestedSequence doesn't exist yet, so the string
@@ -1001,23 +1034,11 @@ if 1:   # From util
                 yield from flatten(item)
         else:
             yield seq
-    def Batch(iterable, size):
-        '''Generator that gives you batches from an iterable in manageable sizes.  Slightly adapted
-        from Raymond Hettinger's entry in the comments to
-        http://code.activestate.com/recipes/303279-getting-items-in-batches/
+    def Batch(seq: ty.Sequence[ty.Any], size: int):
+        '''Generator that gives you batches from a sequence in manageable sizes
         
-        Example:
-            for n in (3, 4, 5, 6):
-                s = tuple(tuple(i) for i in Batch(range(n), 3))
-                print(s)
-        gives
-            ((0, 1, 2),)
-            ((0, 1, 2), (3,))
-            ((0, 1, 2), (3, 4))
-            ((0, 1, 2), (3, 4, 5))
-            
-        Another way of doing this is with slicing (but you'll need to have the whole iterable in memory
-        to do this):
+        Another way of doing this is with slicing (but you'll need to have the whole
+        iterable in memory to do this):
             def Pick(iterable, size):
                 i = 0
                 while True:
@@ -1026,34 +1047,64 @@ if 1:   # From util
                         break
                     yield s
                     i += size
+
+        Algorithm 
+            Slightly adapted from Raymond Hettinger's entry in the comments to
+            http://code.activestate.com/recipes/303279-getting-items-in-batches/
+        
+        Arguments
+            seq     The sequence to process
+            size    The integer number of items to return each time
+        
+        Returns
+            A generator that returns sequences of size size each time you call __next__
+            on Batch().
+        
+        Example
+            >>> tuple(tuple(i) for i in Batch(range(5), 3))
+            ((0, 1, 2), (3, 4))
         '''
         def counter(x):
+            if not hasattr(counter, "n"):
+                counter.n = -1
             counter.n += 1
             return counter.n//size
-        counter.n = -1
-        for _, g in itertools.groupby(iterable, counter):
+        for _, g in itertools.groupby(seq, counter):
             yield g
-    def VisualCount(seq, n=None, char="*", width=None, indent=0):
-        '''Return a list of strings representing a histogram of the items in the iterable seq.  If the
-        values in the sequence can be sorted, the histogram will be shown by increasing item value;
-        otherwise, the items will be shown sorted by frequency.
-        
-        n       Return the n largest items if n is not None.
-        char    String to build the histogram element.
-        width   Fit each element into this width.  If none, use the value of
-                the COLUMNS environment variable or 79 if it isn't defined.
-        indent  Indent each line by this amount.
+    def VisualCount(seq: ty.Sequence[ty.Any],
+                    n: int | None = None,
+                    char: str = "*",
+                    width: int | None =None,
+                    indent: int = 0
+                   ) -> list[str]:
+        '''Return a list of strings representing a histogram of the items in seq
         
         Note:  the width calculations are only correct if the length of the char string is 1.
+
+        Algorithm 
+            Describe the algorithm (e.g., Linear interpolation on [a, b]).  
         
-        Example:
-            seq = [1,1,1,1,1,8,8,8,9,9,9,9,9,9,9,9,9,9,9]
-            for i in VisualCount(seq, width=40, indent=8):
-                print(i)
-            prints
-                1 *************
-                8 ********
-                9 ******************************
+        Invariants
+            Mention any specific mathematical invariants (e.g., returns n values).
+        
+        Arguments
+            n       Return the n largest items if n is not None
+            char    String to build the histogram element
+            width   Fit each element into this width.  If None, use the value of
+                    the COLUMNS environment variable or 79 if it isn't defined.
+            indent  Indent each line by this amount
+        
+        Returns
+            A list of strings.
+        
+        Example
+            >>> seq = [1,1,1,1,1,8,8,8,9,9,9,9,9,9,9,9,9,9,9]
+            >>> for i in VisualCount(seq, width=40, indent=8):
+            ...     print(i)
+            ...
+                    1 *************
+                    8 ********
+                    9 ******************************
         '''
         counts = ItemCount(seq, n=n)
         try:
@@ -1074,24 +1125,32 @@ if 1:   # From util
             s = "{}{:{}s} ".format(" "*indent, str(item), max_obj_len)
             output.append(s + char*count)
         return output
-    def hyphen_range(s):
-        '''Takes a set of range specifications of the form "a-b" and returns a list of
-        integers between a and b inclusive.  The string s will be separated on whitespace
-        after commas are replaced by spaces.
-        
+    def hyphen_range(s: str) -> list[int]:
+        '''Turns a range spec into a list of integers
+
+        A range spec is two integers a and b in the form "a-b".
         See unrange() for doing the opposite thing.
         
-        Examples:
-            "" returns []
-            "1" returns [1]
-            "2 3 4" returns [2, 3, 4]
-            "2-4" returns [2, 3, 4]
-            "4 3 2" returns [4, 3, 2]
-            "4-2" returns [4, 3, 2]
-            "1--2" returns [1, 0, -1, -2]
-            "-1--3" returns [-1, -2, -3]
-            "-3--1" returns [-3, -2, -1]
-            "1-3 5 10-8" returns [1, 2, 3, 5, 10, 9, 8]
+        Algorithm 
+            Describe the algorithm (e.g., Linear interpolation on [a, b]).  
+        
+        Arguments
+            s   String containing the specifications
+        
+        Returns
+            A string with the desired integer sequences.
+        
+        Examples                                Returns:
+            hyphen_range("")                    []
+            hyphen_range("1")                   [1]
+            hyphen_range("2 3 4")               [2, 3, 4]
+            hyphen_range("2-4")                 [2, 3, 4]
+            hyphen_range("4 3 2")               [4, 3, 2]
+            hyphen_range("4-2")                 [4, 3, 2]
+            hyphen_range("1--2")                [1, 0, -1, -2]
+            hyphen_range("-1--3")               [-1, -2, -3]
+            hyphen_range("-3--1")               [-3, -2, -1]
+            hyphen_range("1-3 5 10-8")          [1, 2, 3, 5, 10, 9, 8]
         '''
         if not isinstance(s, str):
             raise TypeError("s must be a string")
@@ -1685,6 +1744,10 @@ if __name__ == "__main__":
         Assert = lwtest.Assert
     if 1:  # Global variables
         pass
+    if 0:
+        print(list(frange(0, 2, 10))) #∞∞ 
+        exit()
+
     if 1:  # Utility
         def GetColors():
             t.err = t.red
@@ -2057,7 +2120,7 @@ if __name__ == "__main__":
             expected = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90]
             Assert(got == expected)
             #
-            got = list(lrange(0, 3, mantissas=[1, 2, 5]))
+            got = list(lrange(0, 3, significands=[1, 2, 5]))
             expected = [1, 2, 5, 10, 20, 50, 100, 200, 500]
             Assert(got == expected)
             #
