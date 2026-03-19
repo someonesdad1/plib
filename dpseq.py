@@ -101,15 +101,18 @@ if 1:  # Header
         if 0:
             import debugg
             debugg.SetDebugger()
+        try:
+            import mpmath
+            _have_mpmath = True
+        except ImportError:
+            _have_mpmath = False
     if 1:  # Global variables
         g = dptypes.Constant()
         g.dbg = False
     if 1:  # Types
         T = ty.TypeVar("T")     # A short type
-        # A NestedSequence is either a single item of type T
-        # OR a sequence of more NestedSequences.
-        #NestedSequence = T | ty.Sequence["NestedSequence[T]"]
-
+        # A nested sequence for flatten()
+        NestedSequence: ty.TypeAlias = T | ty.Sequence["NestedSequence[T]"]
         # A type for numbers (int, float, Decimal, ...)
         Tnum = ty.TypeVar("Tnum", int, float, ty.Any)
         # A type specifically for floating point numbers (float, Decimal, ...)
@@ -128,6 +131,18 @@ if 1:  # Header
             def __le__(self: T_Arith, other: ty.Any) -> bool: ...
         # We use the Protocol to constrain our TypeVar
         Tfp = ty.TypeVar("Tfp", bound=SupportsFPArithmetic)
+        
+        # A Protocol that defines "I can be compared and added".  This is intended to be
+        # a type used by frange that allows the use of any suitable numerical type, such
+        # as float, decimal.Decimal, fractions.Fraction, mpmath.mpf or other floating
+        # point types that don't exist today.
+        class SupportsRange(ty.Protocol):
+            def __add__(self, other: ty.Any) -> "SupportsRange": ...
+            def __lt__(self, other: ty.Any) -> bool: ...
+            def __gt__(self, other: ty.Any) -> bool: ...
+        # Tfrange is now "Universal" - any type that meets the Protocol above
+        Tfrange = ty.TypeVar("Tfrange", bound=SupportsRange)
+        # ∞∞1 Tfrange and Tfp are quite similar; can they be coalesced?
 
 if 1:  # Distribute and GetClosest
     def iDistribute(n: int, a: int, b: int) -> ty.Iterable[int]:
@@ -650,7 +665,7 @@ if 1:   # Finding duplicates in sequences
             seen.add(sitem)
         assert len(dup) + len(nodup) == n
         return (dup, nodup)
-if 1:   # yy frange, lrange, Sequence, irange, Rational
+if 1:   # frange, lrange, Sequence, irange, Rational
     '''
     Generators that are floating point analogs of range()
         frange(start, stop, step)
@@ -662,7 +677,7 @@ if 1:   # yy frange, lrange, Sequence, irange, Rational
             results in
                 0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9
             If start contains a '/' character, impl and return_type
-            parameters are set to Rational.
+            parameters are set to dpseq.Rational (see below).
             
         ifrange(start, stop, step)
             Generator that works similarly to frange, but is a simpler implementation.  Must
@@ -695,7 +710,7 @@ if 1:   # yy frange, lrange, Sequence, irange, Rational
         '''The Rational class is a fractions.Fraction object except that it has a
         conventional proper fraction string representation.
         '''
-        def __str__(self):
+        def __str__(self) -> str:
             n, d = abs(self.numerator), abs(self.denominator)
             s = ["-"] if self.numerator*self.denominator < 0 else [""]
             if d == 1:
@@ -706,49 +721,74 @@ if 1:   # yy frange, lrange, Sequence, irange, Rational
                     s.extend([str(ip), "-"])
                 s.extend([str(remainder), "/", str(d)])
             return "".join(s)
-    def frange(start, 
-               stop=None, 
-               step=None, 
-               return_type=float,
-               impl=decimal.Decimal,
+    # yy
+    def frange(start: Tfrange|None, 
+               stop: Tfrange|None = None, 
+               step: Tfrange|None = None, 
+               return_type: type[Tfrange] = float,      # type: ignore[assignment]
+               impl: type[ty.Any] = decimal.Decimal,       # type: ignore[assignment]
                strict: bool=True,
                include_end: bool=False
-               ) -> ty.Any:
-        '''A floating point generator analog of range.  start, stop, and step are either
-        python floats, integers, or strings representing floating point numbers (or any
-        other object that impl can convert to an object that behaves with numerical
-        semantics).  The iterates returned will be of type return_type, which should be
-        a function that converts the impl type to the desired type.  impl defines the
-        numerical type to use for the implementation.  strict is used to define whether
-        we should try to convert an impl object to a string before converting it to a
-        return_type.  If strict is True, this is not allowed.  If strict is False, the
-        conversion will be tried.  Setting strict to False may allow some number types
-        to work with other number types, however, the burden is on the user to determine
-        if frange still behaves as expected.
+               ) -> ty.Generator[Tfrange]:
+        '''A floating point generator analog of range()
         
-        If include_end is True, then the step is added to the stop number.  This allows
-        you to get e.g.  an inclusive list of integers.  However, for floating point
-        values, you may get a number one step beyond the stopping point.  Examples:
+        Algorithm 
+            Describe the algorithm
         
-            frange("1", "3", "0.9") returns 1.0, 1.9, 2.8
-            
-        but
+        Invariants
+            Mention any specific mathematical invariants (e.g., returns n values).
         
-            frange("1", "3", "0.9" include_end=True) returns 1.0 1.9 2.8 3.7
-            
-        Python's Decimal class is used for the default implementation, but you can
-        choose it to be e.g.  floats if you wish (however, you'll then have the typical
-        naive implementation seen all over the web).  Consult
-        http://www.python.org/dev/peps/pep-0327/ and the decimal module's documentation
-        to learn more about why a float implementation is naive.
+        Arguments
+            start, stop, step
+                Can be python floats, integers, or strings representing floating point
+                numbers (or any other object that impl can convert to an object that
+                behaves with numerical semantics).
+            return_type
+                The returned numbers are converted to this type.
+            impl
+                The calculations to produce the desired numbers are done with this
+                number implementation.  I recommend you use either decimal.Decimal 
+                or mpmath.mpf, as these give you an arbitrary number of digits when
+                needed.
+            strict
+                If False, try to convert an impl object to a string before converting it
+                to a return_type number.  Setting strict to False may allow some number
+                types to work with other number types; however, the burden is on the
+                user to determine if frange still behaves as expected.
+            include_end
+                If True, then the step is added to the stop number.  This allows you to
+                get e.g.  an inclusive list of integers.  However, for floating point
+                values, you may get a number one step beyond the stopping point.
         
-        To help ensure you get the output you want, use strings for start, stop and
-        step.  This is the "proper" way to initialize Decimals with non-integer values.
-        start, stop, and step can be python floating point numbers if you wish, but you
-        may not get the sequence you expect.  For an example, compare the output of
-        frange(9.6001, 9.601, 0.0001) and frange("9.6001", "9.601", "0.0001").  Most
-        users will probably expect the output from the second form, which excludes the
-        stop value like range does.
+        Returns
+            A sequence of numbers of type return_type.
+        
+        Notes
+            - Python's Decimal class is used for the default implementation, but you can
+              choose it to be e.g. floats if you wish (however, you'll then have the
+              typical naive implementation seen all over the web).  Consult
+              http://www.python.org/dev/peps/pep-0327/ and the decimal module's
+              documentation to learn why a float implementation is naive.
+            - To help ensure you get the output you want, use strings for start, stop
+              and step.  This is the "proper" way to initialize Decimals with
+              non-integer values.
+                - For an example, compare the output of frange(9.6001, 9.601, 0.0001)
+                  and frange("9.6001", "9.601", "0.0001").  Most users will probably
+                  expect the output from the second form, which excludes the stop value
+                  like range does.
+        
+        Example
+            >>> list(frange(9.6001, 9.601, 0.0001))
+            [9.6001, 9.6002, 9.6003, 9.6004, 9.6005, 9.6006, 9.6007, 9.6008, 9.6009]
+            >>> list(frange("9.6001", "9.601", "0.0001"))
+            [9.6001, 9.6002, 9.6003, 9.6004, 9.6005, 9.6006, 9.6007, 9.6008, 9.6009]
+
+            Interestingly, this works the same way in python 3.11, but when originally
+            tested, the first form using floats gave one more item in the sequence.
+        '''
+
+        '''
+        
         
         Examples of use (also look at the unit tests):
             a = list(frange("0.125", "1", ".125"))
@@ -901,6 +941,40 @@ if 1:   # yy frange, lrange, Sequence, irange, Rational
                 return
             yield x
 if 1:   # yy From util
+    def flatten(seq: NestedSequence[T]) -> ty.Iterator[T]:
+        '''Generator to flatten a nested sequence
+        
+        Algorithm 
+            This elegant implementation was given to me by Google and Google's AI,
+            Gemini.  Note particularly that it avoids the recursion trap that can happen
+            with strings and bytes.
+        
+        Arguments
+            seq     The nested sequence
+        
+        Returns
+            An iterator yielding a flattened version of seq.
+        
+        Caution
+            - Be aware of the behavior with strings and bytes.  Because it's a
+              generator, you may not get what you expect.  See the second example below,
+              where you might have expected to get the original string back, but instead
+              you need list() to consume the generator; thus, use
+              list(flatten("abc"))[0] to get the original string.
+
+        Example
+            >>> list(flatten((1, [2.5, 3.5], ["alpha", ["beta", "gamma"]], 42)))
+            [1, 2.5, 3.5, 'alpha', 'beta', 'gamma', 42]
+            >>> list(flatten("abc"))
+            ['abc']
+        '''
+        if isinstance(seq, (str, bytes)):
+            yield seq  # type: ignore
+        elif isinstance(seq, ty.Iterable):
+            for item in seq:
+                yield from flatten(item)
+        else:
+            yield seq
     def Batch(iterable, size):
         '''Generator that gives you batches from an iterable in manageable sizes.  Slightly adapted
         from Raymond Hettinger's entry in the comments to
@@ -1551,18 +1625,6 @@ if 1:   # yy From util
             return itertools.zip_longest(*([iter(seq)]*n), fillvalue=None)
         else:
             return zip(*([iter(seq)]*n))    # noqa
-if 1:   # yy Mike's flatten
-    pass
-#:    def flatten(seq: NestedSequence[T]) -> ty.Iterator[T]:
-#:        ''' Generator to flatten a nested sequence
-#:        '''
-#:        if isinstance(seq, (str, bytes)):
-#:            yield seq  # type: ignore # Prevent infinite recursion on strings
-#:        elif isinstance(seq, ty.Iterable):
-#:            for item in seq:
-#:                yield from flatten(item)
-#:        else:
-#:            yield seq
 
 if __name__ == "__main__":
     if 1:  # Standard imports
@@ -2110,6 +2172,14 @@ if __name__ == "__main__":
             assert_equal(GetSize(s2), GetSize(s1) + 28 + 4 + version_addition)
             assert_equal(GetSize(s3), GetSize(s2) + 28 + 4 + version_addition)
             assert_equal(GetSize(s3), GetSize(s1) + 56 + 8 + version_addition*2) # *2 for the num of variables in difference
+        def Test_flatten():
+            # This is the modern type annotated version of flatten, elegantly simple and
+            # high performance because it's a generator
+            o = (1, [2.5, 3.5], ["alpha", ["beta", "gamma"]], 42)
+            expected = [1, 2.5, 3.5, "alpha", "beta", "gamma", 42]
+            Assert(list(flatten(o)) == expected)
+            # Flattening a string 
+            Assert(list(flatten("abc")) == ["abc"])
         def Test_Flatten():
             t.print(f"{t.orn}{__file__}:Test_Flatten needs implementation")
             #raise Exception("Needs implementation")

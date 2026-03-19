@@ -638,9 +638,15 @@ class Fmt:
             self._low_init = 1e-4
             self._high_init = 999999.0
         # Key to _SI_prefixes dict is exponent//3
-        self._SI_prefixes = dict(zip(range(-10, 11), list("qryzafpnμm.kMGTPEZYRQ"), strict=True))
+        try:
+            self._SI_prefixes = dict(zip(range(-10, 11), list("qryzafpnμm.kMGTPEZYRQ"), strict=True))
+        except TypeError:
+            self._SI_prefixes = dict(zip(range(-10, 11), list("qryzafpnμm.kMGTPEZYRQ")))
         self._SI_prefixes[0] = ""  # Need empty string
-        self._superscripts = dict(zip("-+0123456789", "⁻⁺⁰¹²³⁴⁵⁶⁷⁸⁹", strict=True))
+        try:
+            self._superscripts = dict(zip("-+0123456789", "⁻⁺⁰¹²³⁴⁵⁶⁷⁸⁹", strict=True))
+        except TypeError:
+            self._superscripts = dict(zip("-+0123456789", "⁻⁺⁰¹²³⁴⁵⁶⁷⁸⁹"))
         # Set to default state
         self.reset()
     def reset(self):
