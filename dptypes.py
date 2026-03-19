@@ -933,6 +933,9 @@ def GetGist():
       frozenbitarray for the implementation.  It would be handy if class IntFixed(int,
       bitarray) could be used.  Or, IntFixed(int) and the instance._i attribute is a 
       suitable frozenbitarray for the class.
+    - Stack:  see https://typing.python.org/en/latest/reference/generics.html.  It's
+      documentation for the typing class that shows a simple generic stack that's
+      homogeneous with a surprisingly small amount of code.
 
     '''
     return g

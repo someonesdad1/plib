@@ -721,22 +721,18 @@ if 1:   # frange, lrange, Sequence, irange, Rational
                     s.extend([str(ip), "-"])
                 s.extend([str(remainder), "/", str(d)])
             return "".join(s)
-    # yy
     def frange(start: Tfrange|None, 
                stop: Tfrange|None = None, 
                step: Tfrange|None = None, 
                return_type: type[Tfrange] = float,      # type: ignore[assignment]
-               impl: type[ty.Any] = decimal.Decimal,       # type: ignore[assignment]
+               impl: type[ty.Any] = decimal.Decimal,    # type: ignore[assignment]
                strict: bool=True,
                include_end: bool=False
-               ) -> ty.Generator[Tfrange]:
+               ) -> ty.Generator[Tfrange, None, None]:
         '''A floating point generator analog of range()
         
         Algorithm 
-            Describe the algorithm
-        
-        Invariants
-            Mention any specific mathematical invariants (e.g., returns n values).
+            The typical use case for this function is to produce a sequence of floats.
         
         Arguments
             start, stop, step
@@ -782,15 +778,11 @@ if 1:   # frange, lrange, Sequence, irange, Rational
             [9.6001, 9.6002, 9.6003, 9.6004, 9.6005, 9.6006, 9.6007, 9.6008, 9.6009]
             >>> list(frange("9.6001", "9.601", "0.0001"))
             [9.6001, 9.6002, 9.6003, 9.6004, 9.6005, 9.6006, 9.6007, 9.6008, 9.6009]
-
+        
             Interestingly, this works the same way in python 3.11, but when originally
             tested, the first form using floats gave one more item in the sequence.
-        '''
-
-        '''
         
-        
-        Examples of use (also look at the unit tests):
+        Other examples of use
             a = list(frange("0.125", "1", ".125"))
         results in a being
             [0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875]
@@ -826,6 +818,10 @@ if 1:   # frange, lrange, Sequence, irange, Rational
             return (-1 if x < 0 else 1)*i
         if isinstance(start, str) and "/" in start:
             impl = return_type = Rational
+
+    # yy mypy is barfing on the above line because 'Incompatible types in assignment
+    # (expression has type "type[dpseq.Rational]", variable has type "type[Tfrange]")'
+
         def init(x):
             if isinstance(x, f.flt):
                 return impl(repr(float(x)))
@@ -940,14 +936,44 @@ if 1:   # frange, lrange, Sequence, irange, Rational
             if x >= stop:
                 return
             yield x
-if 1:   # yy From util
+if 1:   # From util
     def flatten(seq: NestedSequence[T]) -> ty.Iterator[T]:
         '''Generator to flatten a nested sequence
         
         Algorithm 
-            This elegant implementation was given to me by Google and Google's AI,
-            Gemini.  Note particularly that it avoids the recursion trap that can happen
-            with strings and bytes.
+            This elegant, efficient, and beautiful implementation was given to me by
+            Google and Google's AI, Gemini.  It is one of those rare moments in software
+            where the mathematical definition and the machine implementation align
+            perfectly.  Remember the type definitions at the top of this file:
+
+                T = ty.TypeVar("T")     # A short type
+                # A nested sequence for flatten()
+                NestedSequence: ty.TypeAlias = T | ty.Sequence["NestedSequence[T]"]
+
+                This definition uses a forward reference in itself to itself; the
+                "NestedSequence[T]" is needed to refer to NestedSequence to give the
+                recursive nature, but NestedSequence doesn't exist yet, so the string
+                form is used.  It's a hack to add this typing stuff to a language not
+                designed with typing in the first place.
+        
+            The recursive type NestedSequence is the code version of that. Instead of
+            writing complex loops with counters and temporary stacks, you are simply
+            stating the self-similar nature of the data.  Features:
+        
+                Zero memory overhead: Unlike a standard recursive function that might
+                build a new list at every level and return it, 'yield from' creates a
+                transparent pipeline. The data "falls" from the leaf directly to the
+                top-level caller without being buffered in intermediate memory.  It's as
+                if in C you simply got back a pointer to a mmap object of the sequence's
+                data.
+        
+                Lazy evaluation: If you only need the first 10 numbers of a flattened
+                1,000,000-element nested list, the generator stops exactly there. It
+                never touches the rest of the "Tree."
+        
+                The "Str" current limiter: By explicitly checking for (str, bytes), you
+                solve the "infinite loop" problem that usually plagues generic flattens
+                in python.
         
         Arguments
             seq     The nested sequence
@@ -961,7 +987,7 @@ if 1:   # yy From util
               where you might have expected to get the original string back, but instead
               you need list() to consume the generator; thus, use
               list(flatten("abc"))[0] to get the original string.
-
+        
         Example
             >>> list(flatten((1, [2.5, 3.5], ["alpha", ["beta", "gamma"]], 42)))
             [1, 2.5, 3.5, 'alpha', 'beta', 'gamma', 42]
