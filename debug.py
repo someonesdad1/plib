@@ -108,7 +108,7 @@ if 1:  # Header
         #
         Constant = dptypes.Constant
         dedent = wrap.dedent
-        u = trm.Trm(default=2)
+        u = trm.Trm()
 
     if 1:   # Global variables
         g = Constant()      # Class instance to hold global variables

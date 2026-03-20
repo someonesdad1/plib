@@ -2097,7 +2097,7 @@ if __name__ == "__main__":
             exit(1)
     if 1:  # Example stuff
         def ShowAttributes():
-            c = trm.Trm(default=2)
+            c = trm.Trm()
             def f(a):
                 return c(attr=a)
             c.it = c(attr="it")
@@ -2123,7 +2123,7 @@ if __name__ == "__main__":
                 print(f"  In WSL:  {c.it}it{n} {c.rv}rv{n} {c.di}di{n} {c.ul}ul{n} ", end="")
                 print(f"{c.so}so{n} \"{c.hi}hi{n}\"(hi, but it's hidden)")
         def ColorTable(bits):
-            c = trm.Trm(default=2)
+            c = trm.Trm()
             width = int(os.environ["COLUMNS"])
             width + 1   # Dummy to quiet linter
             def H(bright=False):
@@ -2176,7 +2176,7 @@ if __name__ == "__main__":
             - regexp matches
             - Unicode in sub/superscripts (e.g., Hz**(1/2)
             '''
-            c = trm.Trm(default=2)
+            c = trm.Trm()
             c.hdr = c(attr="ul")
             def Header():
                 c.print(wrap.dedent(f'''
@@ -2184,7 +2184,7 @@ if __name__ == "__main__":
                 '''))
             def Theme():
                 # ∞∞2 This needs to be redone
-                x = trm.Trm(default=2)
+                x = trm.Trm()
                 s = "This {ul}truth{n} is well-{em}fixed{n} in our minds."
                 x.print(wrap.dedent(f'''
                     {c.hdr}Themes{x.n}
@@ -2220,7 +2220,7 @@ if __name__ == "__main__":
                 d = {"ul": x.ul, "em": x.em, "n": x.n}
                 x.print("\n    Second style: ", s.format(**d))
             def Exponents():
-                c = trm.Trm(default=2)
+                c = trm.Trm()
                 n = c.n
                 cl = "yel"
                 e = c(cl)
@@ -2239,7 +2239,7 @@ if __name__ == "__main__":
                                                         {e}ξ{b}λ{n}{e} = 3 kg·m{u}θ{c.n}{e}·s{u}μ²{c.n}
                 '''))
             def TextEditing():
-                c = trm.Trm(default=2)
+                c = trm.Trm()
                 cl = "grn"
                 n, a, d = c.n, c(cl), c(None, None, attr="so")
                 c.print(wrap.dedent(f'''

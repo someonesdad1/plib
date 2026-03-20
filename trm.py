@@ -95,8 +95,8 @@ if 1:   # Header
 class Trm(dict):
     '''Dictionary used to output escape codes to a terminal.
     
-        u = Trm(default=0)      # Initialized with my default set of colors
-        u.list()                # Print the defined color names to stdout
+        u = Trm()   # Initialized with my default set of colors
+        u.list()    # Print the defined color names to stdout
     
         Define new colors:
             u[0] = "Pine glade"         # Name will be normalized to "pine_glade"
@@ -436,7 +436,7 @@ if __name__ == "__main__":
     import contextlib
     def TrmDemo():
         print("Here's the color names in the default instance:")
-        u = Trm(default=True)
+        u = Trm()
         u.list()
         print()
         #
@@ -547,7 +547,7 @@ if __name__ == "__main__":
         Assert(u[2] == blu)
     def Test_Trm_Default():
         'Show that the default Trm instance has some of the basic names'
-        u = Trm(default=0)
+        u = Trm()
         items = "red ord orn yon yel ygr lwn grn sea trq cyn".split()
         items += "sky den roy blu vio lav mag pnk lip blk ".split()
         items += "brn gry wht lil pur olv".split()
@@ -558,7 +558,7 @@ if __name__ == "__main__":
         behavior of the old implementation, particularly changing the background color
         and attributes.
         '''
-        u = Trm(default=0)
+        u = Trm()
         u.c = u("whtl", "blu", attr="ul")
         Assert(u.c == '\x1b[38;2;255;255;255m\x1b[48;2;0;0;254m\x1b[4m')
         Assert(u.n == '\x1b[38;2;181;181;181m\x1b[48;2;0;0;0m\x1b[0m')

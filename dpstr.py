@@ -30,7 +30,7 @@ String utilities
     CountLeadingSpaces  Return the number of leading or trailing spaces in a string
     Len                 Length of string with ANSI escape sequences removed
     ListInColumns       Obsolete (use columnize.py)
-    MatchCap            Match string capitalization
+    MatchCapitalization Match string capitalization
     MultipleReplace     Replace multiple patterns in a string
     PrepareMultilineString  Helper function to trim leading & trailing whitespace
     ReadData            Read data from a multiline string
@@ -91,6 +91,7 @@ if 1:   # Header
     if 1:   # Standard imports
         import collections
         import fractions
+        import functools
         import importlib
         import io
         import itertools
@@ -127,6 +128,17 @@ if 1:   # Header
         except Exception:
             with g:
                 g.noflag = 0
+    if 1:   # Type information
+        T = ty.TypeVar("T")
+        # AnyStr ensures that if you pass str, you get str; if bytes, you get bytes.
+        AnyStr = ty.TypeVar("AnyStr", str, bytes)
+        # SupportsWrite is an output Protocol that is usually sys.stdout, but can also
+        # be an output file stream or hardware buffer.
+        # ∞∞1 This needs work, as StringIO only fits the 'write(self, str, /) -> int'
+        # pattern
+        @ty.runtime_checkable
+        class SupportsWrite(ty.Protocol):
+            def write(self, s: str, /) -> int: ...
 if 1:   # Classes
     class NameConvert:
         'Convert programming naming styles, "Python Cookbook" pg. 91'
@@ -202,7 +214,7 @@ if 1:   # RegexpDecorate class
         
         Example use:  highlight lines to stdout that contain '[Mm]adison'
         
-            u = trm.Trm(default=2)
+            u = trm.Trm()
             rd = RegexpDecorate(u)
             r = re.compile(r"[Mm]adison")
             fg = u.yel
@@ -227,38 +239,42 @@ if 1:   # RegexpDecorate class
         A command line tool like grep is capable of more precise searching
         including file names and line numbers.
         '''
-        def __init__(self, mytrm=None):
-            self._styles = {}
+        def __init__(self, mytrm: ty.Any|None=None) -> None:
+            self._styles: dict[re.Pattern, tuple[str, str]] = {}   
             # The following is our trm.Trm instance to get escape codes
-            self._u = mytrm if mytrm is not None else trm.Trm(default=2)
-        def register(self, r, match_style, nomatch_style=None):
+            self._u: dict[str, str] = mytrm if mytrm is not None else trm.Trm()
+        def register(self, r: re.Pattern, match_style: str, nomatch_style: str|None=None) -> None:
             '''Register a regular expression and its styles
             
             Arguments:
                 - match_style:  escape code to print before a match
-                - nomatch_style:  escape code to print before a nonmatching string.  If it is None,
-                  then self._u.n is used as the return-to-standard escape code.
+                - nomatch_style:  escape code to print before a nonmatching string.  If
+                  it is None, then self._u.n is used as the return-to-standard escape
+                  code.
                   
-            You can generate these escape codes with a TRM instance.
+            You can generate these escape codes with a trm.Trm instance.
             
-            If your escape code for match_style includes an attribute, you'll want to include
-            the 'no' attribute for normal text in your nomatch_style.  Otherwise, the remaining text
-            will continue to be printed in the match_style's attribute.  The easiest way to do this is
-            to not set nomatch_style.
+            If your escape code for match_style includes an attribute, you'll want to
+            include the 'no' attribute for normal text in your nomatch_style.
+            Otherwise, the remaining text will continue to be printed in the
+            match_style's attribute.  The easiest way to do this is to not set
+            nomatch_style.
             '''
             assert isinstance(r, re.Pattern)
             if nomatch_style is None:
-                nomatch_style = self._u.n
+                # In the following, the type is ignored because all Trm instances have
+                # the n attribute at instantiation, but mypy doesn't know this
+                nomatch_style = self._u.n   # type: ignore
             self._styles[r] = (match_style, nomatch_style)
-        def unregister(self, r):
+        def unregister(self, r: re.Pattern) -> None:
             "Remove regexp r from our styles dict"
             if r in self._styles:
                 del self._styles[r]
-        def __str__(self):
+        def __str__(self) -> str:
             return f"RegexpDecorate(<styles={len(self._styles)}>)"
-        def __repr__(self):
+        def __repr__(self) -> str:
             return str(self)
-        def decorate(self, line):
+        def decorate(self, line: str) -> str:
             '''Apply the registered regular expressions to the string line and return the string,
             decorated if there was a match.
             '''
@@ -266,7 +282,7 @@ if 1:   # RegexpDecorate class
             out = io.StringIO()
             self(line, file=out)
             return out.getvalue()
-        def __call__(self, line, file=sys.stdout, insert_nl=False):
+        def __call__(self, line: str, file: SupportsWrite=sys.stdout, insert_nl: bool=False) -> bool:
             '''Print the decorated line to a stream.  Check line for a match to one of the
             registered regexps and if there's a match, print the decorated line to the indicated
             stream.  Returns True if there was a match, False otherwise.
@@ -279,7 +295,7 @@ if 1:   # RegexpDecorate class
             '''
             assert isinstance(line, str)
             if not line:
-                return
+                return False
             has_nl = line.endswith("\n")
             had_match = False
             match_style, nomatch_style = "", t.n
@@ -322,31 +338,31 @@ if 1:   # RegexpDecorate class
                     print(file=file)
             return True
 if 1:   # Core functionality
-    def MatchCap(s, t):
-        '''Return t capitalized as s is.  s and t are expected to be sequences of
-        characters.  The returned sequence matches the type of t and has a length equal
-        to the shorter of s and t.  Must have len(s) >= len(t).
+    def MatchCapitalization(s: str, t: str) -> str:
+        '''Return string t capitalized as string s is
         
-        Example:
-            s = "StuVwxyz"
-            t = "abcd"
-            MatchCap(s, t) = "AbcD"
+        Must have len(s) >= len(t).
+        
+        Example
+            >>> s = "StuVwxyz"
+            >>> t = "abcd"
+            >>> MatchCapitalization(s, t) 
+            "AbcD"
         
         If the example is confusing to you, what's going on is that s has the 0th and
-        3rd characters capitalized, so the function's returned value will do the same.
+        3rd characters capitalized, so the function will return t capitalized in the
+        same fashion.
         '''
+        @functools.lru_cache(maxsize=1)
+        def GetCharacterSets() -> tuple[set, set, set]:
+            'Cache our string constants'
+            return (set(string.ascii_letters), set(string.ascii_uppercase), set(string.ascii_lowercase))
         if not t:
             return t
         if len(s) < len(t):
             raise ValueError("len(s) must be >= len(t)")
-        # Cache our string constants
-        if not hasattr(MatchCap, "ac"):
-            MatchCap.ac = ac = set(string.ascii_letters)
-            MatchCap.uc = uc = set(string.ascii_uppercase)
-            MatchCap.lc = lc = set(string.ascii_lowercase)
-        else:
-            ac, uc, lc = MatchCap.ac, MatchCap.uc, MatchCap.lc
-        out = collections.deque()
+        ac, uc, lc = GetCharacterSets()
+        out = []
         for i in range(len(t)):
             if s[i] in ac and t[i] in ac:
                 if s[i] in uc and t[i] in lc:
@@ -357,12 +373,14 @@ if 1:   # Core functionality
                     out.append(t[i])
             else:
                 out.append(t[i])
-        return "".join(out) if isinstance(t, str) else type(t)(out)
-    def soundex(s):
-        '''Return the 4-character soundex value to a string argument.  The string s must
-        be one word formed with ASCII characters and with no punctuation or spaces.  The
-        returned soundex string can be used to compare the sounds of words; from US
-        patents 1261167(1918) and 1435663(1922) by Odell and Russell.
+        return ''.join(out)
+    def soundex(s: str) -> str:
+        '''Return the 4-character soundex value to a string argument
+        
+        The string s must be one word formed with ASCII characters and with no
+        punctuation or spaces.  The returned soundex string can be used to compare the
+        sounds of words; from US patents 1261167(1918) and 1435663(1922) by Odell and
+        Russell.
         
         The algorithm is from Knuth, "The Art of Computer Programming", volume 3,
         "Sorting and Searching", pg. 392:
@@ -382,28 +400,31 @@ if 1:   # Core functionality
             4. Convert to the form "letter, digit, digit, digit" by adding trailing
                zeroes (if there are less than three digits), or by dropping rightmost
                digits (if there are more than three).
+
+        Example
+            >>> soundex("knuth")
+            'K530'
+            >>> soundex("MatchCapitalization")
+            'M322'
         '''
         if not s:
             raise ValueError("Argument s must not be empty string")
         if set(s) - set(string.ascii_letters):
             raise ValueError("String s must contain only ASCII letters")
-        if not hasattr(soundex, "m"):
-            a = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-            b = "01230120022455012623010202"
-            soundex.m = dict(zip(a, b, strict=True))
-        # Function to map lower-case letters to soundex number
+        mdict = dict(zip("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "01230120022455012623010202", strict=True))
+        # Function to map upper-case letters to soundex number
         def getnum(x):
-            return [soundex.m[i] for i in x]
-        t = s.upper()
-        num, keep = getnum(t), []
+            return [mdict[i] for i in x]
+        all_caps = s.upper()
+        num, keep = getnum(all_caps), []
         # Step 0 (and step 3): keep only those letters that don't map to
         # the same number as the previous letter.
         for i, code in enumerate(num):
             if not i:
-                keep.append(t[0])  # Always keep first letter
+                keep.append(all_caps[0])  # Always keep first letter
             else:
                 if code != num[i - 1]:
-                    keep.append(t[i])
+                    keep.append(all_caps[i])
         # Step 1: remove vowels, etc.
         first_letter = keep[0]
         ignore, process = set("AEHIOUWY"), []
@@ -417,37 +438,44 @@ if 1:   # Core functionality
         while len(code) < 4:
             code += "0"
         return code
-    def SoundSimilar(s, t):
+    def SoundSimilar(s: str, t: str) -> bool:
         'Return True if the strings s and t sound similar'
         return True if soundex(s) == soundex(t) else False
-    def CommonPrefix(seq):
+    def CommonPrefix(seq: ty.Sequence[str]) -> str:
         'Return the largest string that is a prefix of all the strings in seq'
         return os.path.commonprefix(seq)
-    def CommonSuffix(seq):
+    def CommonSuffix(seq: ty.Sequence[str]) -> str:
         'Return the largest string that is a suffix of all the strings in seq'
-        # Method: reverse each string in seq, find their common prefix, then reverse the
-        # result.
-        def f(lst):
-            return "".join(lst)  # Convert the list back to a string
+        # Reverse each string in seq, find their common prefix, reverse the result
         def rev(s):  # Reverse the string s
-            return f([f(list(i)) for i in reversed(s)])
-        return rev(CommonPrefix([rev(i) for i in seq]))
-    def FindAll(s, substr="∞"):
-        '''Generator to find all locations of substr in string.
-        https://stackoverflow.com/questions/52452911/finding-all-positions-of-a-character-in-a-string
-        I picked this because python's str.find is done in C code so this will be fast.
+            return ''.join([''.join(list(i)) for i in reversed(s)])
+        return ''.join(rev(CommonPrefix([rev(i) for i in seq])))
+    def FindAll(s: str | bytes, substr: str | bytes ="∞") -> ty.Generator[int, None, None]:
+        '''Generator to find all locations of substr in string s
         
-        An example of use is to let you only see a chunk of a file between two
+        An example of use is to let you only see a chunk of a string between two
         occurrences of ∞:
-            s = open(file).read()
-            start, finish = list(FindAll(s))
-            print(s[start + 1:finish])
+            >>> s = "This ∞is an example of a∞ string"
+            >>> start, finish = list(FindAll(s))
+            >>> print(repr(s[start + 1:finish]))
+            'is an example of a'
         You'll get an exception if there aren't two ∞ characters in the file.
         '''
-        loc = s.find(substr)
-        while loc != -1:
-            yield loc
-            loc = s.find(substr, loc + 1)
+        if isinstance(s, str):
+            if not isinstance(substr, str):
+                raise TypeError("substr must be a str")
+            loc = s.find(substr)
+            while loc != -1:
+                yield loc
+                loc = s.find(substr, loc + 1)
+        elif isinstance(s, bytes):
+            if not isinstance(substr, bytes):
+                raise TypeError("substr must be a bytes object")
+            loc = s.find(substr)
+            while loc != -1:
+                yield loc
+                loc = s.find(substr, loc + 1)
+    #yy
     def FindFirstIn(s, items, invert=False):
         '''Return smallest integer i such that s[i] is in items or else None.  If invert
         is True, find the smallest integer i such that s[i] is not in items.
@@ -624,11 +652,18 @@ if 1:   # Core functionality
             if dq and dq[-1] == g.nl:
                 dq.pop()
         return ''.join(list(dq))
-    def RemoveWhitespace(s):
-        '''Remove all whitespace characters from the string s.  Whitespace characters are:
-        space " ", tab "\t", linefeed "\n", return "\r", formfeed "\f", and vertical tab
-        "\v".  This method is fast because it's done by C code.
-        https://mark-summerfield.github.io/01_nows.html
+    def RemoveWhitespace(s: str) -> str:
+        '''Remove all whitespace characters from the string s
+        
+        Whitespace characters are:
+            " "     space 
+            "\t"    tab
+            "\n"    linefeed
+            "\r"    carriage return
+            "\f"    formfeed
+            "\v"    vertical tab
+        This method is fast and elegant because it's done by C code (from
+        https://mark-summerfield.github.io/01_nows.html).
         '''
         return ''.join(s.split())
     def RemoveEndingChars(s, chars=""):
@@ -1446,26 +1481,6 @@ if 1:   # Core functionality
         def f(s):
             return s.translate(tt)
         return f
-    def Decorate(s, encoding="UTF-8"):
-        '''Return a string that is the "decorated" form of the string s.  Here,
-        "decorated" means whitespace and control characters have Unicode character
-        substitutions that make them easier to see.  If s is bytes, it is first
-        converted to a string with the given encoding.
-        
-        Example:  " \t\n" is transformed into "·␉␊".
-        '''
-        if not hasattr(Decorate, "trans"):  # Make translation dictionary
-            di = {}
-            for i in range(0x20):
-                di[i] = chr(0x2400 + i)
-            di[0x20] = "·"
-            Decorate.trans = "".maketrans(di)
-        if isinstance(s, str):
-            return s.translate(Decorate.trans)
-        elif isinstance(s, bytes):
-            return s.decode(encoding).translate(Decorate.trans)
-        else:
-            raise TypeError("s must be a str or bytes instance")
     def Edit(*files, strict=False, opt=None):
         '''Launch editor on those files that exist.  If strict is True, raise an
         exception if there are no files or a file doesn't exist.  Otherwise, just return
@@ -1719,6 +1734,32 @@ if 1:   # Core functionality
                             lines.append(indent + self.placeholder.lstrip())
                         break
             return lines
+    def Decorate(s: str | bytes, encoding: str="UTF-8") -> str:
+        '''Return a string that is the "decorated" form of the string s
+        
+        Here, "decorated" means whitespace and control characters have Unicode character
+        substitutions that make them easier to see.  If s is bytes, it is first
+        converted to a string with the given encoding.
+        
+        Example
+            >>> Decorate(" \t\n")
+            '·␉␊'
+            >>> Decorate(b" \t\n")
+            '·␉␊'
+        '''
+        @functools.lru_cache(maxsize=1)
+        def GetTranslationTable() -> dict[int, str]:
+            'Build and cache the translation table'
+            di = {i: chr(0x2400 + i) for i in range(0x20)}
+            di[0x20] = "·"  # U+B7 for space
+            return di
+        translation_table = str.maketrans(GetTranslationTable())
+        if isinstance(s, str):
+            return s.translate(translation_table)
+        elif isinstance(s, bytes):
+            return s.decode(encoding).translate(translation_table)
+        else:
+            raise TypeError("s must be a str or bytes instance")
 if 1:   # Old util stuff
     def StringToNumbers(s, sep=" ", handle_i=True):
         '''s is a string; return the sequence (tuple) of numbers it represents; number
@@ -1933,6 +1974,8 @@ if 1:   # Old util stuff
 
 if __name__ == "__main__":
     if 1:   # Standard imports
+        import contextlib
+        import io
         import math
         import os
     if 1:   # Custom imports
@@ -1944,8 +1987,30 @@ if __name__ == "__main__":
         run = lwtest.run
         t = trm.Trm()
     def Test_RegexpDecorate():
-        # ∞∞1 Need to write this test case
-        lwtest.ToDoMessage("Need to write test")
+        u = trm.Trm()
+        rd = RegexpDecorate(u)
+        r = re.compile(r"[Mm]adison")
+        # Note fg and bg must be escape sequences
+        fg = u.yel
+        bg = u.n
+        rd.register(r, fg, bg)    # Print matches in light yellow on black
+        f = io.StringIO()
+        rd("Dolly\n", file=f) 
+        rd("Madison", file=f) 
+        s = f.getvalue()
+        expected = (    # Check actual escape codes
+            "\x1b[38;2;181;181;181m\x1b[48;2;0;0;0m\x1b[0m"     # u.n
+            "Dolly\n"
+            "\x1b[38;2;181;181;181m\x1b[48;2;0;0;0m\x1b[0m"     # u.n
+            
+            "\x1b[38;2;181;181;181m\x1b[48;2;0;0;0m\x1b[0m"     # u.n
+            "\x1b[38;2;254;239;0m"                              # u.yel
+            "Madison"
+            "\x1b[38;2;181;181;181m\x1b[48;2;0;0;0m\x1b[0m")    # u.n
+        Assert(s == expected)
+        # This is what should happen
+        expected = u.n + "Dolly\n" + u.n + u.n + u.yel + "Madison" + u.n
+        Assert(s == expected)
     def Test_Decorate():
         s = "www \t\n\r\f\vzzz"
         Assert(Decorate(s) == "www·␉␊␍␌␋zzz")
@@ -2183,31 +2248,31 @@ if __name__ == "__main__":
         s = (1, 2, 3, 4, 5)
         L = Chop(s, 2)
         Assert(L == [(1, 2), (3, 4), (5,)])
-    def Test_MatchCap():
+    def Test_MatchCapitalization():
         t = "AbCdEf"
         # s needs to have as many characters as t
-        raises(ValueError, MatchCap, "", t)
+        raises(ValueError, MatchCapitalization, "", t)
         # Empty string returns empty string
-        Assert(MatchCap("", "") == "")
-        Assert(MatchCap(t, "") == "")
+        Assert(MatchCapitalization("", "") == "")
+        Assert(MatchCapitalization(t, "") == "")
         # No letters in s just gets t back if length sufficient
-        Assert(MatchCap("......", t) == t)
+        Assert(MatchCapitalization("......", t) == t)
         # Idempotent
-        Assert(MatchCap(t, t) == t)
-        Assert(MatchCap("", "") == "")
+        Assert(MatchCapitalization(t, t) == t)
+        Assert(MatchCapitalization("", "") == "")
         # Routine use
-        Assert(MatchCap(t.lower(), t) == t.lower())
-        Assert(MatchCap(t.upper(), t) == t.upper())
-        Assert(MatchCap("T", "t") == "T")
-        Assert(MatchCap("t", "T") == "t")
-        Assert(MatchCap("MatchCap", t) == "AbcdeF")
-        Assert(MatchCap("MATCHCAP", t) == "ABCDEF")
-        Assert(MatchCap("matchcap", t) == "abcdef")
-        Assert(MatchCap("matchcap", t) == "abcdef")
+        Assert(MatchCapitalization(t.lower(), t) == t.lower())
+        Assert(MatchCapitalization(t.upper(), t) == t.upper())
+        Assert(MatchCapitalization("T", "t") == "T")
+        Assert(MatchCapitalization("t", "T") == "t")
+        Assert(MatchCapitalization("MatchCapitalization", t) == "AbcdeF")
+        Assert(MatchCapitalization("MATCHCAP", t) == "ABCDEF")
+        Assert(MatchCapitalization("matchcap", t) == "abcdef")
+        Assert(MatchCapitalization("matchcap", t) == "abcdef")
         # Check example given in function's docstring
         s = "StuVwxyz"
         t = "abcd"
-        Assert(MatchCap(s, t) == "AbcD")
+        Assert(MatchCapitalization(s, t) == "AbcD")
     def Test_soundex():
         test_cases = (
             ("Euler", "E460"),
@@ -2251,6 +2316,16 @@ if __name__ == "__main__":
         Assert("abc" == CommonSuffix(["1abc", "abc", "abc"]))
         Assert("abc" == CommonSuffix(["1abc", "2abc", "abc"]))
         raises(TypeError, CommonSuffix, ["a", 1])
+    def Test_FindAll():
+        if 1:   # str
+            s = "This ∞is an example of a∞ string"
+            start, finish = list(FindAll(s, substr="∞"))
+            Assert(s[start + 1:finish] == "is an example of a")
+        if 1:   # bytes
+            s = "This ∞is an example of a∞ string".encode("UTF-8")
+            start, finish = list(FindAll(s, substr="∞".encode()))
+            n = len("∞".encode())
+            Assert(s[start + n:finish] == b"is an example of a")
     def Test_FilterStr():
         s = '''"Not that easy, I'm sure."'''
         f = FilterStr('''"',.''', [None]*4)
@@ -2582,6 +2657,7 @@ if __name__ == "__main__":
                 Assert(f('Hiabba', suffix='ba') == 'ba') 
         def Test_GetHash():
             lwtest.ToDoMessage("Need to write test")
+
         def Test_EBCDIC():
             a2e, e2a = EBCDIC()
             # Show that these byte translation tables are inverses
@@ -2721,10 +2797,10 @@ if __name__ == "__main__":
         # KeepOnlyLetters
         s = "88; Hello    there!"
         print(f"KeepOnlyLetters({s!r}) = {KeepOnlyLetters(s)!r}")
-        # MatchCap
+        # MatchCapitalization
         s = "StuVwxyz"
         u = "abcd"
-        print(f"MatchCap({s!r}, {u!r}) = {MatchCap(s, u)!r}")
+        print(f"MatchCapitalization({s!r}, {u!r}) = {MatchCapitalization(s, u)!r}")
         # Decorate
         s = " \t\n\r\f\v"
         print(f"Decorate({s!r}) = {Decorate(s)!r}")
