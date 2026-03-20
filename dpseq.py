@@ -733,24 +733,71 @@ if 1:   # frange, lrange, Sequence, irange, Rational
                include_end: bool=False
                ) -> ty.Generator[Tfrange, None, None]:
         '''A floating point generator analog of range()
+
+            The typical use case for this function is to produce a sequence of floats.
+            However, the internal default implementation is done with python's
+            decimal.Decimal class with its default 28 digits of significance.  The
+            decimal module gives calculations higher confidence because you'll get what
+            you expect and you can increase the number of significant digits to meet the
+            needs of the problem and check that you're not getting roundoff or other
+            numerical problems.
+
+            If you're doing critical calcuations, it's simple to substitute another
+            number type such as mpmath.mpf for the implementation type.  A third at 
+            hand to give high precision is python's fractions.Fractions.  This gives you
+            three independent ways to verify you're getting a correct calculation.
+
+            This function is type-hinted and has been checked with mypy.  It uses
+            types.Protocol to ensure you can utilize suitable numerical types both for
+            the implementation and the output machinery, even if those types don't exist
+            today.
+
+            It is suggested that you pass in the desired numerical arguments as strings,
+            as suggested by the decimal module.  A convenience is that if the first
+            string for "start" contains the "/" character, then the three arguments
+            start, stop, and step are all converted to Rational, a subclass of
+            fractions.Fraction that has a proper fraction string representation.
+
+            Finally, note that the Tfrange type is what is returned, a typing.Protocol
+            type that allows this function's output to be truly duck-typed, as it should
+            be able to handle any numerical type that satisfies the interface
+            constraints.
         
         Algorithm 
-            The typical use case for this function is to produce a sequence of floats.
-        
+            The algorithm is inherently simple:  start, stop, and step are converted to
+            decimal.Decimal instances, the number of items in the sequence is calculated
+            at n = ceiling((stop - start)/step), then a for loop calculates each element of
+            the sequence:
+
+                for i in range(n):
+                    yield return_type(start)
+                    start += step
+
+            This is the same basic algorithm as used in "naive" implementations with
+            IEEE 754 floating point numbers.  However, the extra 13 or so digits of the
+            decimal.Decimal implementation should help protect against unexpected
+            roundoff and inaccuracy, particularly if you initialize frange() with
+            strings representing the numbers.
+
+            You can see by inspection you'll get the correct number of items in the
+            sequence.  Each of the sequence's terms is accurate to the decimal.Decimal
+            accuracy, but I'd caution you if you are using nearly all of the Decimal
+            significant digits that you increase the number of digits in the decimal
+            context by 5 or 10.
+
         Arguments
             start, stop, step
                 Can be python floats, integers, or strings representing floating point
                 numbers (or any other object that impl can convert to an object that
-                behaves with numerical semantics).  A convenience is that if '/' is in
-                the string for start, all the numbers are interpreted as Rational
-                objects.
+                behaves with numerical semantics).  
             return_type
                 The returned numbers are converted to this type.
             impl
                 The calculations to produce the desired numbers are done with this
-                number implementation.  I recommend you use either decimal.Decimal 
-                or mpmath.mpf, as these give you an arbitrary number of digits when
-                needed.
+                number implementation.  I recommend you use either decimal.Decimal or
+                mpmath's mpf type, as these give you an arbitrary number of digits when
+                needed.  Note that python's fractions.Fraction type is also suitable for
+                arbitrary accuracy needs.
             strict
                 If False, try to convert an impl object to a string before converting it
                 to a return_type number.  Setting strict to False may allow some number
@@ -758,7 +805,7 @@ if 1:   # frange, lrange, Sequence, irange, Rational
                 user to determine if frange still behaves as expected.
             include_end
                 If True, then the step is added to the stop number.  This allows you to
-                get e.g.  an inclusive list of integers.  However, for floating point
+                get e.g. an inclusive list of integers.  However, for floating point
                 values, you may get a number one step beyond the stopping point.
         
         Returns

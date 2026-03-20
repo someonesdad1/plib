@@ -104,6 +104,7 @@ if 1:   # Header
         import sys
         import textwrap
         import time
+        import typing as ty
     if 1:   # Custom imports
         import asciify
         import dpseq
@@ -129,28 +130,28 @@ if 1:   # Header
 if 1:   # Classes
     class NameConvert:
         'Convert programming naming styles, "Python Cookbook" pg. 91'
-        def cw2us(self, x):
+        def cw2us(self, x: str) -> str:
             '''Cap-words to underscore:
             ALotOfFuss -> a_lot_of_fuss
             '''
             if not x:
                 return x
             return re.sub(r"(?<=[a-z])[A-Z]|(?<!^)[A-Z](?=[a-z])", r"_\g<0>", x).lower()
-        def cw2mc(self, x):
+        def cw2mc(self, x: str) -> str:
             '''Cap-words to mixed-case:
             ALotOfFuss -> aLotOfFuss
             '''
             if not x:
                 return x
             return x[0].lower() + x[1:]
-        def us2mc(self, x):
+        def us2mc(self, x: str) -> str:
             '''Underscore to mixed-case:
             a_lot_of_fuss -> aLotOfFuss
             '''
             if not x:
                 return x
             return re.sub(r"_([a-z])", lambda m: (m.group(1).upper()), x)
-        def us2cw(self, x):
+        def us2cw(self, x: str) -> str:
             '''Underscore to cap-words:
             a_lot_of_fuss -> ALotOfFuss
             '''
@@ -158,14 +159,14 @@ if 1:   # Classes
                 return x
             s = self.us2mc(x)
             return s[0].upper() + s[1:]
-        def mc2us(self, x):
+        def mc2us(self, x: str) -> str:
             '''Mixed-case to underscore:
             aLotOfFuss -> a_lot_of_fuss
             '''
             if not x:
                 return x
             return self.cw2us(x)
-        def mc2cw(self, x):
+        def mc2cw(self, x: str) -> str:
             '''Mixed-case to cap-words:
             aLotOfFuss -> ALotOfFuss
             '''

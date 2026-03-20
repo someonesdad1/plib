@@ -49,10 +49,14 @@
 # 2026 /plib work done
 
     - 17 Mar
-        - Gemini has been coaching me on an overall strategy for refactoring plus the much
-        more intense desire to type annotate all the core stuff.  
-            - iterutil.py got partially type annotated and this was a severe test, as it's
-            much more complicated than what I'll run into.
+        - Gemini (Google's AI) has been coaching me on an overall strategy for
+          refactoring plus the much more intense desire to type annotate all the core
+          stuff.  I'd like to acknowledge my thanks to both the Google engineers and the
+          Gemini AI for the invaluable help.  This tool is what I read as science
+          fiction when I was a kid.
+
+            - iterutil.py got partially type annotated and this was a severe test, as
+              it's much more complicated than what I'll run into.
     - 14 Mar
         - dp\*.py files linted
         - Policies
@@ -60,12 +64,12 @@
                 - Never use 'from x import y'
                 - All imports will be 'import x'
                 - Occasional abbreviations:  'import numpy as np'
-                - Rarely define symbols:  no 'import math' and 'pi = math.pi'.  The primary
-                reason is the person reading the code doesn't have to figure out where the
-                symbol came from.  I'll occasionally let lines become long to support
-                this.
+                - Rarely define symbols:  no 'import math' and 'pi = math.pi'.  The
+                  primary reason is the person reading the code doesn't have to figure
+                  out where the symbol came from.  I'll occasionally let lines become
+                  long to support this.
                 - This came from Gemini's analysis that this is the safest way to avoid
-                circular imports and makes it better for other people to read the code
+                  circular imports and makes it better for other people to read the code
             - /plib has a makefile that will run lint & type checking
             - /plib/tests will receive all the tests for the modules
                 - Cleaner
@@ -79,19 +83,20 @@
             - Moved a lot of util.py's stuff moved to dpseq.py, dpstr.py, etc.
             - Then moved util.py to dputil.py
         - Moved pgm/lib.py to data/dp_lib_data.py, which now runs as a script and holds
-        snippets; supports interactive browsing
-        - Created data/CIE_xyz_1931_2deg.py, which prototypes having accessible data in the
-        /plib/data directory.  It also shows why this delivery method is preferable, as
-        the data source can be attributed and checked as necessary, particularly if it's
-        from a website with the URL given like this CIE data.
+          snippets; supports interactive browsing
+        - Created data/CIE_xyz_1931_2deg.py, which prototypes having accessible data in
+          the /plib/data directory.  It also shows why this delivery method is
+          preferable, as the data source can be attributed and checked as necessary,
+          particularly if it's from a website with the URL given like this CIE data.
         - Terminal color stuff moved out of color.py into trm.py.  This broke nearly
-        everything, but it's a lot cleaner now -- and it works properly and supports the
-        context manager protocol, allowing the concept of style containers that I've
-        wanted for years.
+          everything, but it's a lot cleaner now -- and it works properly and supports
+          the context manager protocol, allowing the concept of style containers that
+          I've wanted for years.
     - 21 Feb 
-        - data/dpcolornames.py constructed, giving many colornames collected from the web
+        - data/dpcolornames.py constructed, giving many colornames collected from the
+          web
         - I standardized on a new set of short color names (see key 0 in
-        data/dpcolornames.py)
+          data/dpcolornames.py)
         - color.py
             - Color constructor was documented and the self-tests were improved
             - The Color class now has ColorNameNormalize as a class method
