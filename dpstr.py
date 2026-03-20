@@ -459,11 +459,13 @@ if 1:   # Core functionality
             >>> start, finish = list(FindAll(s))
             >>> print(repr(s[start + 1:finish]))
             'is an example of a'
-        You'll get an exception if there aren't two ∞ characters in the file.
+        You'll get a ValueError if there aren't two ∞ characters in the file.
         '''
         if isinstance(s, str):
             if not isinstance(substr, str):
                 raise TypeError("substr must be a str")
+            if not s or not substr:
+                return
             loc = s.find(substr)
             while loc != -1:
                 yield loc
@@ -471,6 +473,8 @@ if 1:   # Core functionality
         elif isinstance(s, bytes):
             if not isinstance(substr, bytes):
                 raise TypeError("substr must be a bytes object")
+            if not s or not substr:
+                return
             loc = s.find(substr)
             while loc != -1:
                 yield loc
@@ -2322,10 +2326,27 @@ if __name__ == "__main__":
             start, finish = list(FindAll(s, substr="∞"))
             Assert(s[start + 1:finish] == "is an example of a")
         if 1:   # bytes
-            s = "This ∞is an example of a∞ string".encode("UTF-8")
-            start, finish = list(FindAll(s, substr="∞".encode()))
+            b = "This ∞is an example of a∞ string".encode("UTF-8")
+            start, finish = list(FindAll(b, substr="∞".encode()))
             n = len("∞".encode())
-            Assert(s[start + n:finish] == b"is an example of a")
+            Assert(b[start + n:finish] == b"is an example of a")
+        if 1:   # Corner cases
+            Assert(list(FindAll("")) == [])
+            Assert(list(FindAll(s, substr="")) == [])
+            Assert(list(FindAll(b"", substr="∞".encode())) == [])
+            Assert(list(FindAll(b, substr=b"")) == [])
+        if 1:   # Raises an exception
+            s = "∞"
+            with raises(ValueError):
+                start, finish = list(FindAll(s))
+            with raises(ValueError):
+                start, finish, _ = list(FindAll(s + s))
+            # Note that FindAll("a", b"a") doesn't raise an exception like it would be
+            # expected from the code; it has to be tested as follows.
+            with raises(TypeError):
+                x = list(FindAll("a", b"a"))
+            with raises(TypeError):
+                x = list(FindAll(b"a", "a"))
     def Test_FilterStr():
         s = '''"Not that easy, I'm sure."'''
         f = FilterStr('''"',.''', [None]*4)
