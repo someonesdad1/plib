@@ -513,44 +513,6 @@ if 1:   # Core functionality
         else:
             n = FindFirstNotIn(bytes(reversed(s)), items)
         return None   if n is None   else    len(s) - n - 1
-
-    def Keep(seq: ty.Iterable[T],
-             keep: ty.Container[ty.Any] | ty.Callable[[T], bool],
-            ) -> ty.Generator[T, None, None]:
-        '''Generator to return items from seq in keep or satisfy keep(item)
-
-        Hashable items are handled quickly by putting them into a set (or using set,
-        frozenset, or dict if keep is already of those types).  Otherwise, we fall 
-        back to linear O(n) search using the 'item in seq' pattern.
-
-        Note:  if seq is a string, you'll probably want to use ''.join(results) to get
-        back a string.  If seq is a bytes object, you'll want to use bytes(results) to
-        get back a sequence of types again.  Similar thoughts apply to other container
-        types.
-        '''
-        if callable(keep):      # The predicate (callable) case
-            for item in seq:
-                if keep(item):
-                    yield item
-            return
-        # The container case:  we attempt a set optimization, but fall back to linear
-        # search if the items are non-hashable or the container is already optimized.
-        use_linear = False
-        try:
-            # Only build a set if it's not already one
-            lookup = keep if isinstance(keep, (set, frozenset, dict)) else set(keep) # type: ignore
-        except TypeError:   # keep probably contains unhashable items
-            lookup = keep
-            use_linear = True
-        for item in seq:
-            try:
-                if item in lookup:
-                    yield item
-            except TypeError:  # item is probably unhashable
-                #if not use_linear and item in keep:    # This is Mike's original logic
-                if item in keep:        # I think this is what's needed
-                    yield item
-
     def Keep_old(s, keep, whole=True, left=False, middle=False, right=False):
         '''Return a list (or a string if s is a string) of the items in s that
         are in keep.
@@ -608,7 +570,55 @@ if 1:   # Core functionality
             return b''.join(result)
         else:
             return result
-    #yy
+    def Keep(seq: ty.Iterable[T],
+             keep: ty.Container[ty.Any] | ty.Callable[[T], bool],
+            ) -> ty.Generator[T, None, None]:
+        '''Generator to return items from seq in keep or satisfy keep(item)
+
+        Hashable items are handled quickly by putting them into a set (or using set,
+        frozenset, or dict if keep is already of those types).  Otherwise, we fall 
+        back to linear O(n) search using the 'item in seq' pattern.
+
+        Note:  if seq is a string, you'll probably want to use ''.join(results) to get
+        back a string.  If seq is a bytes object, you'll want to use bytes(results) to
+        get back a sequence of types again.  Similar thoughts apply to other container
+        types.
+
+        Examples
+            >>> ''.join(Keep("", ""))
+            ''
+            >>> ''.join(Keep("abc", "bc"))
+            'bc'
+            >>> def predicate(x):
+            ...     return x in "bc"
+            ...
+            >>> ''.join(Keep("abc", predicate))
+            'bc'
+            >>> bytes(Keep(b"abc", b"bc"))
+            b'bc'
+        '''
+        if callable(keep):      # The predicate (callable) case
+            for item in seq:
+                if keep(item):
+                    yield item
+            return
+        # The container case:  we attempt a set optimization, but fall back to linear
+        # search if the items are non-hashable or the container is already optimized.
+        use_linear = False
+        try:
+            # Only build a set if it's not already one
+            lookup = keep if isinstance(keep, (set, frozenset, dict)) else set(keep) # type: ignore
+        except TypeError:   # keep probably contains unhashable items
+            lookup = keep
+            use_linear = True
+        for item in seq:
+            try:
+                if item in lookup:
+                    yield item
+            except TypeError:  # item is probably unhashable
+                #if not use_linear and item in keep:    # This is Mike's original logic
+                if item in keep:        # I think this is what's needed
+                    yield item
     def KeepFilter(keep):
         '''Return a function that takes a string and returns a string
         containing only those characters that are in keep.
@@ -623,6 +633,8 @@ if 1:   # Core functionality
             return x in r
         ret = itertools.filterfalse(f, s)
         return "".join(ret) if isinstance(s, str) else type(s)(ret)
+    #yy Remove() should use the same signature and logic as Keep
+    #yy
     def RemoveFilter(remove):
         '''Return a function that takes a string and returns a string containing only
         those characters that are not in remove.
