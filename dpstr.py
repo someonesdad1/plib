@@ -92,6 +92,7 @@ if 1:   # Header
         import collections
         import fractions
         import functools
+        import hashlib
         import importlib
         import io
         import itertools
@@ -139,6 +140,9 @@ if 1:   # Header
         @ty.runtime_checkable
         class SupportsWrite(ty.Protocol):
             def write(self, s: str, /) -> int: ...
+        Iterable = collections.abc.Iterable
+        Container = collections.abc.Container
+        Callable = collections.abc.Callable
 if 1:   # Classes
     class NameConvert:
         'Convert programming naming styles, "Python Cookbook" pg. 91'
@@ -479,41 +483,75 @@ if 1:   # Core functionality
             while loc != -1:
                 yield loc
                 loc = s.find(substr, loc + 1)
-    #yy
-    def FindFirstIn(s, items, invert=False):
-        '''Return smallest integer i such that s[i] is in items or else None.  If invert
-        is True, find the smallest integer i such that s[i] is not in items.
-                
-        if s is a reversed type, then we're searching for the last index of the item in
-        items if invert is False or the last index of the first item in reversed(s)
-        that's in items when invert is True.
-        '''
+    def FindFirstIn(s: str | bytes, items: set[str | bytes]) -> int | None:
+        'Return smallest integer i such that s[i] is in items or else None'
         if not s or not items:
             return None
-        set_of_items = set(items)
-        # If s is a reversed iterator, convert it to a list so s[i]
-        # doesn't fail
-        rev = isinstance(s, reversed)
-        r = list(s) if rev else s
-        n = len(r)
-        for i in range(n):
-            if invert:
-                if r[i] not in set_of_items:
-                    return n - i - 1 if rev else i
-            else:
-                if r[i] in set_of_items:
-                    return n - i - 1 if rev else i
+        for i in range(len(s)):
+            if s[i] in items:
+                return i
         return None
-    def FindLastIn(s, items):
-        "Return index of last element in s in items or None"
-        return FindFirstIn(reversed(s), items)
-    def FindFirstNotIn(s, items):
-        "Return smallest integer i such that s[i] not in items else None"
-        return FindFirstIn(s, items, invert=True)
-    def FindLastNotIn(s, items):
-        "Return index of last element in s not in items or None"
-        return FindFirstIn(reversed(s), items, invert=True)
-    def Keep(s, keep, whole=True, left=False, middle=False, right=False):
+    def FindLastIn(s: str | bytes, items: set[str | bytes]) -> int | None:
+        'Return index of last element in s in items or None'
+        if isinstance(s, str):
+            n = FindFirstIn(''.join(reversed(s)), items)
+        else:
+            n = FindFirstIn(bytes(reversed(s)), items)
+        return None   if n is None   else    len(s) - n - 1
+    def FindFirstNotIn(s: str | bytes, items: set[str | bytes]) -> int | None:
+        'Return smallest integer i such that s[i] not in items else None'
+        if not s or not items:
+            return None
+        for i in range(len(s)):
+            if s[i] not in items:
+                return i
+        return None
+    def FindLastNotIn(s: str | bytes, items: set[str | bytes]) -> int | None:
+        'Return index of last element in s not in items or None'
+        if isinstance(s, str):
+            n = FindFirstNotIn(''.join(reversed(s)), items)
+        else:
+            n = FindFirstNotIn(bytes(reversed(s)), items)
+        return None   if n is None   else    len(s) - n - 1
+
+    def Keep(seq: ty.Iterable[T],
+             keep: ty.Container[ty.Any] | ty.Callable[[T], bool],
+            ) -> ty.Generator[T, None, None]:
+        '''Generator to return items from seq in keep or satisfy keep(item)
+
+        Hashable items are handled quickly by putting them into a set (or using set,
+        frozenset, or dict if keep is already of those types).  Otherwise, we fall 
+        back to linear O(n) search using the 'item in seq' pattern.
+
+        Note:  if seq is a string, you'll probably want to use ''.join(results) to get
+        back a string.  If seq is a bytes object, you'll want to use bytes(results) to
+        get back a sequence of types again.  Similar thoughts apply to other container
+        types.
+        '''
+        if callable(keep):      # The predicate (callable) case
+            for item in seq:
+                if keep(item):
+                    yield item
+            return
+        # The container case:  we attempt a set optimization, but fall back to linear
+        # search if the items are non-hashable or the container is already optimized.
+        use_linear = False
+        try:
+            # Only build a set if it's not already one
+            lookup = keep if isinstance(keep, (set, frozenset, dict)) else set(keep) # type: ignore
+        except TypeError:   # keep probably contains unhashable items
+            lookup = keep
+            use_linear = True
+        for item in seq:
+            try:
+                if item in lookup:
+                    yield item
+            except TypeError:  # item is probably unhashable
+                #if not use_linear and item in keep:    # This is Mike's original logic
+                if item in keep:        # I think this is what's needed
+                    yield item
+
+    def Keep_old(s, keep, whole=True, left=False, middle=False, right=False):
         '''Return a list (or a string if s is a string) of the items in s that
         are in keep.
         
@@ -540,15 +578,10 @@ if 1:   # Core functionality
             not in keep.  If you don't want this, run Keep(..., whole=True)
             on the result.
         '''
-        kp = set(keep)
         if left or middle or right:
             whole = False
         if whole:
-            result = []
-            for i in s:
-                if i in kp:
-                    result.append(i)
-            return "".join(result) if isinstance(s, str) else result
+            result = [item for item in s if item in set(keep)]
         else:
             sl = FindFirstNotIn(s, keep)
             sr = FindLastNotIn(s, keep)
@@ -558,11 +591,10 @@ if 1:   # Core functionality
             s_middle = s[sl : sr + 1]
             # Check invariant
             if s_left + s_middle + s_right != s:
-                if isinstance(s, str):
-                    msg = "Bug:  s_left + s_middle + s_right != original string"
-                else:
-                    msg = "Bug:  s_left + s_middle + s_right != original sequence"
-                raise RuntimeError(msg)
+                a = ("string" if isinstance(s, str) else 
+                     "bytes" if isinstance(s, bytes) else "sequence")
+                raise RuntimeError("Bug in {__file__}:Keep():  "
+                                  f"s_left + s_middle + s_right != original {a}")
             result = []
             if left:
                 result.append(s_left)
@@ -570,16 +602,19 @@ if 1:   # Core functionality
                 result.append(s_middle)
             if right:
                 result.append(s_right)
-            if isinstance(s, str):
-                return "".join(result)
-            else:
-                return result
+        if isinstance(s, str):
+            return ''.join(result)
+        elif isinstance(s, bytes):
+            return b''.join(result)
+        else:
+            return result
+    #yy
     def KeepFilter(keep):
         '''Return a function that takes a string and returns a string
         containing only those characters that are in keep.
         '''
         def func(s):
-            return Keep(s, keep, whole=True)
+            return Keep(s, keep)
         return func
     def Remove(s, remove):
         'Return a sequence of the items in s that are not in remove'
@@ -1818,28 +1853,42 @@ if 1:   # Old util stuff
             return bytes(result)
         else:
             return ''.join(result)
-    def GetHash(file, method="sha256"):
-        "Return a file's hash as a hex string, None if file can't be read"
-        ''' 3 Mar 2026  Being moved to dpstr.py
-        - ∞∞2 Change parameters
-            - file:  should be a Path instance for a file, a str, or bytes
-            - add trunc keyword to truncate the returned hex string; None or 0 means
-              don't truncate.  trunc will be an integer specifying the number of bytes
-              in the hash to keep; the hex string returned will be 2*trunc long.
-        - I've made the default hash to be sha256.  git currently uses sha1 by default,
-          but will be transitioning to sha256 (supported as of 2.30).  However,
-          transitioning is nontrivial.  See
-          https://www.codestudy.net/blog/does-git-use-sha-256-to-calculate-commit-hashes/
+    def GetHash(item: pathlib.Path | str | bytes,
+                method: str="sha256",
+                encoding: str="UTF-8"
+               ) -> str:
+        '''Return item's hash as a hex string
+         
+        item can be:
+            - pathlib.Path instance to a file
+            - string instance (UTF-8 encoding assumed)
+            - bytes instance
+        method is the hash method and can be
+            - md5 sha1 sha224 sha256 sha384 sha512
+        encoding
+            - Is used for text files and strings.  Set it to None to read files in
+              binary.
+        
+        Example
+            >>> GetHash("string")
+            '473287f8298dba7163a897908958f7c0eae733e25d2e027992ea2edc9bed2fa8'
+            >>> GetHash(b"string")
+            '473287f8298dba7163a897908958f7c0eae733e25d2e027992ea2edc9bed2fa8'
         '''
         if method.lower() in "md5 sha1 sha224 sha256 sha384 sha512".split():
             h = eval(f"hashlib.{method.lower()}")()
         else:
             raise ValueError(f"{method!r} is unsupported")
-        try:
-            h.update(open(file, "rb").read())
-        except Exception:
-            return None
-        return h.hexdigest()
+        if isinstance(item, str):
+            h.update(item.encode(encoding))
+        elif isinstance(item, bytes):
+            h.update(item)
+        elif isinstance(item, pathlib.Path):
+            if encoding is None:
+                h.update(item.open("rb").read())
+            else:
+                h.update(item.open("r").read().encode(encoding))
+        return str(h.hexdigest())
     def EBCDIC():
         '''Returns two byte-translation tables to use with
         bytes.translate().  The first converts ASCII bytes to EBCDIC and the
@@ -2055,26 +2104,23 @@ if __name__ == "__main__":
         Assert(Trim(s, chars=cs, left=False, right=True, check=True) == "")
         Assert(Trim(s, chars=cs, left=True, right=True, check=True) == "")
     def Test_Keep():
-        Assert(Keep("", "") == "")
-        Assert(Keep("", "a") == "")
-        Assert(Keep("a", "") == "")
+        Assert(''.join(Keep("", "")) == "")
+        Assert(''.join(Keep("", "a")) == "")
+        Assert(''.join(Keep("a", "")) == "")
+        # Works using a predicate
+        def predicate(x):
+            return x in "bc"
+        Assert(''.join(Keep("abc", predicate)) == "bc")
         # Works on strings
-        Assert(Keep("abc", "bc") == "bc")
-        Assert(Keep("abc", "bc", whole=True) == "bc")
+        Assert(''.join(Keep("abc", "bc")) == "bc")
+        # Works on bytes
+        Assert(bytes(Keep(b"abc", b"bc")) == b"bc")
         # Works on list sequence
         A, B = "a b c".split(), "b c".split()
-        Assert(Keep(A, B) == B)
-        # Using keywords
-        s = "a;bc;d;"
-        keep = string.ascii_lowercase
-        Assert(Keep(s, keep, left=True) == "a")
-        t = Keep(s, keep, middle=True)
-        Assert(t == ";bc;d;")
-        Assert(Keep(t, keep) == "bcd")
-        Assert(Keep(s, keep, right=True) == "")
+        Assert(list(Keep(A, B)) == B)
     def Test_KeepFilter():
         f = KeepFilter("bc")
-        Assert(f("abc") == "bc")
+        Assert(''.join(f("abc")) == "bc")
     def Test_Remove():
         Assert(Remove("", "ab") == "")
         Assert(Remove("ab", "") == "ab")
@@ -2083,37 +2129,48 @@ if __name__ == "__main__":
         f = RemoveFilter("bc")
         Assert(f("abc") == "a")
     def Test_FindNotIn():
-        # Tests are only on strings, but they should work for any sequence
-        if 1:  # FindFirstIn, FindLastIn
-            F, L = FindFirstIn, FindLastIn
-            Assert(F("", "abc") is None)
-            Assert(L("", "abc") is None)
-            Assert(F("abc", "") is None)
-            Assert(L("abc", "") is None)
-            Assert(F("abc", "d") is None)
-            Assert(L("abc", "d") is None)
+        if 1:  # Strings
+            Assert(FindFirstIn("", "abc") is None)
+            Assert(FindLastIn("", "abc") is None)
+            Assert(FindFirstIn("abc", "") is None)
+            Assert(FindLastIn("abc", "") is None)
+            Assert(FindFirstIn("abc", "d") is None)
+            Assert(FindLastIn("abc", "d") is None)
             #
-            Assert(F("dabc", "d") == 0)
-            Assert(L("dabc", "d") == 0)
-            Assert(F("abc;d", ";") == 3)
-            Assert(L("abc;de", ";") == 3)
-            Assert(L("abc;", ";") == 3)
-            Assert(L(";abc;", ";") == 4)
+            Assert(FindFirstIn("dabc", "d") == 0)
+            Assert(FindLastIn("dabc", "d") == 0)
+            Assert(FindFirstIn("abc;d", ";") == 3)
+            Assert(FindLastIn("abc;de", ";") == 3)
+            Assert(FindLastIn("abc;", ";") == 3)
+            Assert(FindLastIn(";abc;", ";") == 4)
+        if 1:  # Bytes
+            Assert(FindFirstIn(b"", b"abc") is None)
+            Assert(FindLastIn(b"", b"abc") is None)
+            Assert(FindFirstIn(b"abc", b"") is None)
+            Assert(FindLastIn(b"abc", b"") is None)
+            Assert(FindFirstIn(b"abc", b"d") is None)
+            Assert(FindLastIn(b"abc", b"d") is None)
+            #
+            Assert(FindFirstIn(b"dabc", b"d") == 0)
+            Assert(FindLastIn(b"dabc", b"d") == 0)
+            Assert(FindFirstIn(b"abc;d", b";") == 3)
+            Assert(FindLastIn(b"abc;de", b";") == 3)
+            Assert(FindLastIn(b"abc;", b";") == 3)
+            Assert(FindLastIn(b";abc;", b";") == 4)
         if 1:  # FindFirstNotIn, FindLastNotIn
-            F, L = FindFirstNotIn, FindLastNotIn
-            Assert(F("", "abc") is None)
-            Assert(L("", "abc") is None)
-            Assert(F("abc", "") is None)
-            Assert(L("abc", "") is None)
+            Assert(FindFirstNotIn("", "abc") is None)
+            Assert(FindLastNotIn("", "abc") is None)
+            Assert(FindFirstNotIn("abc", "") is None)
+            Assert(FindLastNotIn("abc", "") is None)
             #
-            Assert(F("abc", "d") == 0)
-            Assert(L("abc", "d") == 2)
-            Assert(F("dabc", "d") == 1)
-            Assert(L("dabc", "d") == 3)
-            Assert(F("abc;d", string.ascii_letters) == 3)
-            Assert(L("abc;de", string.ascii_letters) == 3)
-            Assert(L("abc;", string.ascii_letters) == 3)
-            Assert(L(";abc;", string.ascii_letters) == 4)
+            Assert(FindFirstNotIn("abc", "d") == 0)
+            Assert(FindLastNotIn("abc", "d") == 2)
+            Assert(FindFirstNotIn("dabc", "d") == 1)
+            Assert(FindLastNotIn("dabc", "d") == 3)
+            Assert(FindFirstNotIn("abc;d", string.ascii_letters) == 3)
+            Assert(FindLastNotIn("abc;de", string.ascii_letters) == 3)
+            Assert(FindLastNotIn("abc;", string.ascii_letters) == 3)
+            Assert(FindLastNotIn(";abc;", string.ascii_letters) == 4)
     def Test_FindStrings():
         seq = "Jan Feb Mar".split()
         str = "1Jan2001"
@@ -2677,8 +2734,11 @@ if __name__ == "__main__":
                 Assert(f('Hiabab', suffix='ab') == 'abab') 
                 Assert(f('Hiabba', suffix='ba') == 'ba') 
         def Test_GetHash():
-            lwtest.ToDoMessage("Need to write test")
-
+            expected = "473287f8298dba7163a897908958f7c0eae733e25d2e027992ea2edc9bed2fa8"
+            h = GetHash("string")
+            Assert(h == expected)
+            h = GetHash(b"string")
+            Assert(h == expected)
         def Test_EBCDIC():
             a2e, e2a = EBCDIC()
             # Show that these byte translation tables are inverses
