@@ -604,27 +604,41 @@ if 1:   # Core functionality
             ) -> ty.Generator[T, None, None]:
         '''Yields items from seq that are found in keep
 
-        This is an O(n) generator to return items from seq that are in keep (n =
-        len(seq)).  Note that keep can also be a predicate function, which means this is
-        like filter(seq, keep).  As the user, it's your responsibility to make sure none
-        of the items in seq change during the processing of this function, as a wrapper
-        class is used on the items to make them hashable even if they are not.
+        This O(n) generator returns items from seq that are in keep (n = len(seq)).
+        keep can also be a predicate function, which means this is like filter(seq,
+        keep).  As the user, it's your responsibility to make sure none of the items in
+        seq change during the processing of this function, as a wrapper class is used
+        internally on the items to make them hashable even if they are not.
+
+        Mathematical description:  
+            keep is a sequence:   Keep(seq, keep) = {x ∈ seq | x ∈ keep}
+            keep is a predicate:  Keep(seq, keep) = {x ∈ seq | keep(x) == True}
 
         Arguments
-            seq     The container of items to look for items to keep
+            seq     A sequence of items as candidates to keep
             keep    A container of items to be kept OR a predicate such that keep(item)
-                    is True if the item is to be kept
+                    is True if the item from seq is to be kept
+
             strict_type
                 If True, then for an item in seq to be equal to an item in keep, we must
                 have that bool(seq_item == keep_item) is True AND that both items have
-                the same type.  Example:  if strict_type is False, then an integer 1 in 
-                seq will be kept if only a floating point 1.0 is in keep.  If
-                strict_type is True, then the integer 1 would not be kept.
+                the same type.  Example:  if strict_type is False, then an integer 1 in
+                seq will be kept if a floating point 1.0 is in keep (but a 1 is not in
+                keep).  If strict_type is True, then the integer 1 would not be kept.
 
         Algorithm
             - If keep is a predicate, this is effectively filter(seq, keep)
             - Otherwise, keep is turned into a set (using the Hashable class) to make 
               'item in keep' be O(1).
+            - The code is short enough to visually inspect that it's correct
+
+        Thanks
+            - This function was a joint effort by me and Google's Gemini AI.  Gemini
+              gave me a lot of help and instruction during my refactoring of my /plib
+              set of modules and helping me with type annotations.  What was interesting
+              was the synergism developed during this work, as this short and elegant
+              algorithm came from both our efforts (neither of use would have produced
+              it by ourselves).
 
         Examples
             >>> ''.join(Keep("", ""))
@@ -638,7 +652,6 @@ if 1:   # Core functionality
             'bc'
             >>> bytes(Keep(b"abc", b"bc"))
             b'bc'
-
         '''
         if callable(keep):
             for item in seq:
@@ -650,57 +663,6 @@ if 1:   # Core functionality
             for item in seq:
                 if Hashable(item, typ=strict_type) in lookup_set:
                     yield item  
-
-#    def Keep(seq: ty.Iterable[T],
-#             keep: ty.Container[ty.Any] | ty.Callable[[T], bool],
-#            ) -> ty.Generator[T, None, None]:
-#        '''Generator to return items from seq in keep or satisfy keep(item)
-#
-#        Hashable items are handled quickly by putting them into a set (or using set,
-#        frozenset, or dict if keep is already of those types).  Otherwise, we fall 
-#        back to linear O(n) search using the 'item in seq' pattern.
-#
-#        Note:  if seq is a string, you'll probably want to use ''.join(results) to get
-#        back a string.  If seq is a bytes object, you'll want to use bytes(results) to
-#        get back a sequence of types again.  Similar thoughts apply to other container
-#        types.
-#
-#        Examples
-#            >>> ''.join(Keep("", ""))
-#            ''
-#            >>> ''.join(Keep("abc", "bc"))
-#            'bc'
-#            >>> def predicate(x):
-#            ...     return x in "bc"
-#            ...
-#            >>> ''.join(Keep("abc", predicate))
-#            'bc'
-#            >>> bytes(Keep(b"abc", b"bc"))
-#            b'bc'
-#        '''
-#        if callable(keep):      # The predicate (callable) case
-#            for item in seq:
-#                if keep(item):
-#                    yield item
-#            return
-#        # The container case:  we attempt a set optimization, but fall back to linear
-#        # search if the items are non-hashable or the container is already optimized.
-#        use_linear = False
-#        try:
-#            # Only build a set if it's not already one
-#            lookup = keep if isinstance(keep, (set, frozenset, dict)) else set(keep) # type: ignore
-#        except TypeError:   # keep probably contains unhashable items
-#            lookup = keep
-#            use_linear = True
-#        for item in seq:
-#            try:
-#                if item in lookup:
-#                    yield item
-#            except TypeError:  # item is probably unhashable
-#                #if not use_linear and item in keep:    # This is Mike's original logic
-#                if item in keep:        # I think this is what's needed
-#                    yield item
-
     def KeepFilter(keep: ty.Sequence[ty.Any] | ty.Callable[[ty.Any], bool]
                   ) -> ty.Callable[[ty.Iterable[T]], ty.Generator[T, None, None]]:
         '''Return a function that keeps items in a sequence
@@ -717,25 +679,40 @@ if 1:   # Core functionality
             return Keep(seq, keep)
         return filter_func
 
-#    def KeepFilter(keep: ty.Container[ty.Any] | ty.Callable[[T], bool]) -> ty.Generator[T, None, None]:
-#        '''Return a function that takes a keeps elements in a sequence
-#
-#        keep is a container of objects to keep or a predicate that takes an object and
-#        returns True if it is to be kept.  The returned function is a closure based
-#        on the function Keep().
-#        '''
-#        def func(seq) -> ty.Generator[T, None, None]:
-#            return Keep(seq, keep)
-#        return func
-    def Remove(s, remove):
-        'Return a sequence of the items in s that are not in remove'
-        r = set(remove)
-        def f(x):
-            return x in r
-        ret = itertools.filterfalse(f, s)
-        return "".join(ret) if isinstance(s, str) else type(s)(ret)
-    #yy Remove() should use the same signature and logic as Keep
-    #yy
+    def Remove(seq: ty.Iterable[T],
+               remove: ty.Sequence[ty.Any] | ty.Callable[[T], bool],
+               strict_type: bool = False
+              ) -> ty.Generator[T, None, None]:
+        '''Yields items from seq that are not in remove
+        
+        See the comments for Keep().
+
+        Mathematical description:  
+            remove is a sequence:   Remove(seq, remove) = {x ∈ seq | x ∉ remove}
+            remove is a predicate:  Remove(seq, remove) = {x ∈ seq | remove(x) == False}
+        
+        Examples
+            >>> ''.join(Remove("abc", "bc"))
+            'a'
+            >>> def predicate(x):
+            ...     return x in "bc"
+            ...
+            >>> ''.join(Remove("abc", predicate))
+            'a'
+            >>> bytes(Remove(b"abc", b"bc"))
+            b'a'
+        '''
+        if callable(remove):
+            for item in seq:
+                if not remove(item):
+                    yield item
+            return
+        else:
+            lookup_set = {Hashable(item, typ=strict_type) for item in remove}
+            for item in seq:
+                if Hashable(item, typ=strict_type) not in lookup_set:
+                    yield item  
+
     def RemoveFilter(remove):
         '''Return a function that takes a string and returns a string containing only
         those characters that are not in remove.
@@ -743,6 +720,8 @@ if 1:   # Core functionality
         def func(s):
             return Remove(s, remove)
         return func
+
+    #yy 
     def CountLeadingSpaces(s, trim_start=True, trim_end=True):
         '''Return the number of common leading space characters in the multiline string
         s.  The use case for this is a multiline string in an indented function in which
@@ -2235,12 +2214,13 @@ if __name__ == "__main__":
         f = KeepFilter("bc")
         Assert(''.join(f("abc")) == "bc")
     def Test_Remove():
-        Assert(Remove("", "ab") == "")
-        Assert(Remove("ab", "") == "ab")
-        Assert(Remove("abc", "cb") == "a")
+        # A modicum of tests, as the logic is just the negated logic of Keep
+        Assert(''.join(Remove("", "ab")) == "")
+        Assert(''.join(Remove("ab", "")) == "ab")
+        Assert(''.join(Remove("abc", "cb")) == "a")
     def Test_RemoveFilter():
         f = RemoveFilter("bc")
-        Assert(f("abc") == "a")
+        Assert(''.join(f("abc")) == "a")
     def Test_FindNotIn():
         if 1:  # Strings
             Assert(FindFirstIn("", "abc") is None)
