@@ -143,6 +143,34 @@ if 1:   # Header
         Iterable = collections.abc.Iterable
         Container = collections.abc.Container
         Callable = collections.abc.Callable
+        
+        class Hashable:     # Duplicate of what's in dpseq.py ∞∞1 Need canonical location
+            '''Internal wrapper to force hashability on heterogeneous/unhashable items.
+        
+            If you want to have things like the integer 1 NOT compare equal to 1.0, then 
+            set the instance's typ attribute to True.  In regular python, bool(1 == 1.0)
+            is True.
+            '''
+            __slots__ = ("object", "typ")
+            def __init__(self, object: ty.Any, typ: bool = False) -> None:
+                self.object = object
+                self.typ = bool(typ)
+            def __hash__(self) -> int:
+                if self.typ:
+                    return hash(repr(self.object))
+                try:
+                    return hash(self.object)
+                except TypeError:
+                    # Fallback to repr for unhashable types (lists, dicts, etc.)
+                    return hash(repr(self.object))
+            def __eq__(self, other: ty.Any) -> bool:
+                if not isinstance(other, Hashable):
+                    return False
+                eqval = bool(self.object == other.object)
+                if self.typ:
+                    return eqval and (type(self.object) is type(other.object))
+                return eqval
+
 if 1:   # Classes
     class NameConvert:
         'Convert programming naming styles, "Python Cookbook" pg. 91'
@@ -571,18 +599,32 @@ if 1:   # Core functionality
         else:
             return result
     def Keep(seq: ty.Iterable[T],
-             keep: ty.Container[ty.Any] | ty.Callable[[T], bool],
+             keep: ty.Sequence[ty.Any] | ty.Callable[[T], bool],
+             strict_type: bool = False
             ) -> ty.Generator[T, None, None]:
-        '''Generator to return items from seq in keep or satisfy keep(item)
+        '''Yields items from seq that are found in keep
 
-        Hashable items are handled quickly by putting them into a set (or using set,
-        frozenset, or dict if keep is already of those types).  Otherwise, we fall 
-        back to linear O(n) search using the 'item in seq' pattern.
+        This is an O(n) generator to return items from seq that are in keep (n =
+        len(seq)).  Note that keep can also be a predicate function, which means this is
+        like filter(seq, keep).  As the user, it's your responsibility to make sure none
+        of the items in seq change during the processing of this function, as a wrapper
+        class is used on the items to make them hashable even if they are not.
 
-        Note:  if seq is a string, you'll probably want to use ''.join(results) to get
-        back a string.  If seq is a bytes object, you'll want to use bytes(results) to
-        get back a sequence of types again.  Similar thoughts apply to other container
-        types.
+        Arguments
+            seq     The container of items to look for items to keep
+            keep    A container of items to be kept OR a predicate such that keep(item)
+                    is True if the item is to be kept
+            strict_type
+                If True, then for an item in seq to be equal to an item in keep, we must
+                have that bool(seq_item == keep_item) is True AND that both items have
+                the same type.  Example:  if strict_type is False, then an integer 1 in 
+                seq will be kept if only a floating point 1.0 is in keep.  If
+                strict_type is True, then the integer 1 would not be kept.
+
+        Algorithm
+            - If keep is a predicate, this is effectively filter(seq, keep)
+            - Otherwise, keep is turned into a set (using the Hashable class) to make 
+              'item in keep' be O(1).
 
         Examples
             >>> ''.join(Keep("", ""))
@@ -596,36 +638,95 @@ if 1:   # Core functionality
             'bc'
             >>> bytes(Keep(b"abc", b"bc"))
             b'bc'
+
         '''
-        if callable(keep):      # The predicate (callable) case
+        if callable(keep):
             for item in seq:
                 if keep(item):
                     yield item
             return
-        # The container case:  we attempt a set optimization, but fall back to linear
-        # search if the items are non-hashable or the container is already optimized.
-        use_linear = False
-        try:
-            # Only build a set if it's not already one
-            lookup = keep if isinstance(keep, (set, frozenset, dict)) else set(keep) # type: ignore
-        except TypeError:   # keep probably contains unhashable items
-            lookup = keep
-            use_linear = True
-        for item in seq:
-            try:
-                if item in lookup:
-                    yield item
-            except TypeError:  # item is probably unhashable
-                #if not use_linear and item in keep:    # This is Mike's original logic
-                if item in keep:        # I think this is what's needed
-                    yield item
-    def KeepFilter(keep):
-        '''Return a function that takes a string and returns a string
-        containing only those characters that are in keep.
+        else:
+            lookup_set = {Hashable(item, typ=strict_type) for item in keep}
+            for item in seq:
+                if Hashable(item, typ=strict_type) in lookup_set:
+                    yield item  
+
+#    def Keep(seq: ty.Iterable[T],
+#             keep: ty.Container[ty.Any] | ty.Callable[[T], bool],
+#            ) -> ty.Generator[T, None, None]:
+#        '''Generator to return items from seq in keep or satisfy keep(item)
+#
+#        Hashable items are handled quickly by putting them into a set (or using set,
+#        frozenset, or dict if keep is already of those types).  Otherwise, we fall 
+#        back to linear O(n) search using the 'item in seq' pattern.
+#
+#        Note:  if seq is a string, you'll probably want to use ''.join(results) to get
+#        back a string.  If seq is a bytes object, you'll want to use bytes(results) to
+#        get back a sequence of types again.  Similar thoughts apply to other container
+#        types.
+#
+#        Examples
+#            >>> ''.join(Keep("", ""))
+#            ''
+#            >>> ''.join(Keep("abc", "bc"))
+#            'bc'
+#            >>> def predicate(x):
+#            ...     return x in "bc"
+#            ...
+#            >>> ''.join(Keep("abc", predicate))
+#            'bc'
+#            >>> bytes(Keep(b"abc", b"bc"))
+#            b'bc'
+#        '''
+#        if callable(keep):      # The predicate (callable) case
+#            for item in seq:
+#                if keep(item):
+#                    yield item
+#            return
+#        # The container case:  we attempt a set optimization, but fall back to linear
+#        # search if the items are non-hashable or the container is already optimized.
+#        use_linear = False
+#        try:
+#            # Only build a set if it's not already one
+#            lookup = keep if isinstance(keep, (set, frozenset, dict)) else set(keep) # type: ignore
+#        except TypeError:   # keep probably contains unhashable items
+#            lookup = keep
+#            use_linear = True
+#        for item in seq:
+#            try:
+#                if item in lookup:
+#                    yield item
+#            except TypeError:  # item is probably unhashable
+#                #if not use_linear and item in keep:    # This is Mike's original logic
+#                if item in keep:        # I think this is what's needed
+#                    yield item
+
+    def KeepFilter(keep: ty.Sequence[ty.Any] | ty.Callable[[ty.Any], bool]
+                  ) -> ty.Callable[[ty.Iterable[T]], ty.Generator[T, None, None]]:
+        '''Return a function that keeps items in a sequence
+        
+        This is a closure using Keep().  Read about your user's responsibilities in
+        Keep().
+        
+        Example
+            >>> hex_only = KeepFilter("0123456789ABCDEFx")
+            >>> ''.join(hex_only("Ref: 0xCAFE"))
+            '0xCAFE'
         '''
-        def func(s):
-            return Keep(s, keep)
-        return func
+        def filter_func(seq: ty.Iterable[T]) -> ty.Generator[T, None, None]:
+            return Keep(seq, keep)
+        return filter_func
+
+#    def KeepFilter(keep: ty.Container[ty.Any] | ty.Callable[[T], bool]) -> ty.Generator[T, None, None]:
+#        '''Return a function that takes a keeps elements in a sequence
+#
+#        keep is a container of objects to keep or a predicate that takes an object and
+#        returns True if it is to be kept.  The returned function is a closure based
+#        on the function Keep().
+#        '''
+#        def func(seq) -> ty.Generator[T, None, None]:
+#            return Keep(seq, keep)
+#        return func
     def Remove(s, remove):
         'Return a sequence of the items in s that are not in remove'
         r = set(remove)
