@@ -432,7 +432,7 @@ if 1:   # Core functionality
             4. Convert to the form "letter, digit, digit, digit" by adding trailing
                zeroes (if there are less than three digits), or by dropping rightmost
                digits (if there are more than three).
-
+        
         Example
             >>> soundex("knuth")
             'K530'
@@ -482,13 +482,13 @@ if 1:   # Core functionality
         def rev(s):  # Reverse the string s
             return ''.join([''.join(list(i)) for i in reversed(s)])
         return ''.join(rev(CommonPrefix([rev(i) for i in seq])))
-    def FindAll(s: str | bytes, substr: str | bytes ="∞") -> ty.Generator[int, None, None]:
+    def FindAll(s: AnyStr, substr: AnyStr) -> ty.Generator[int, None, None]:
         '''Generator to find all locations of substr in string s
         
         An example of use is to let you only see a chunk of a string between two
         occurrences of ∞:
             >>> s = "This ∞is an example of a∞ string"
-            >>> start, finish = list(FindAll(s))
+            >>> start, finish = list(FindAll(s, "∞"))
             >>> print(repr(s[start + 1:finish]))
             'is an example of a'
         You'll get a ValueError if there aren't two ∞ characters in the file.
@@ -511,7 +511,7 @@ if 1:   # Core functionality
             while loc != -1:
                 yield loc
                 loc = s.find(substr, loc + 1)
-    def FindFirstIn(s: str | bytes, items: set[str | bytes]) -> int | None:
+    def FindFirstIn(s: AnyStr, items: set[AnyStr]) -> int | None:
         'Return smallest integer i such that s[i] is in items or else None'
         if not s or not items:
             return None
@@ -519,14 +519,14 @@ if 1:   # Core functionality
             if s[i] in items:
                 return i
         return None
-    def FindLastIn(s: str | bytes, items: set[str | bytes]) -> int | None:
+    def FindLastIn(s: AnyStr, items: set[AnyStr]) -> int | None:
         'Return index of last element in s in items or None'
         if isinstance(s, str):
             n = FindFirstIn(''.join(reversed(s)), items)
         else:
             n = FindFirstIn(bytes(reversed(s)), items)
         return None   if n is None   else    len(s) - n - 1
-    def FindFirstNotIn(s: str | bytes, items: set[str | bytes]) -> int | None:
+    def FindFirstNotIn(s: AnyStr, items: set[AnyStr]) -> int | None:
         'Return smallest integer i such that s[i] not in items else None'
         if not s or not items:
             return None
@@ -534,7 +534,7 @@ if 1:   # Core functionality
             if s[i] not in items:
                 return i
         return None
-    def FindLastNotIn(s: str | bytes, items: set[str | bytes]) -> int | None:
+    def FindLastNotIn(s: AnyStr, items: set[AnyStr]) -> int | None:
         'Return index of last element in s not in items or None'
         if isinstance(s, str):
             n = FindFirstNotIn(''.join(reversed(s)), items)
@@ -603,35 +603,35 @@ if 1:   # Core functionality
              strict_type: bool = False
             ) -> ty.Generator[T, None, None]:
         '''Yields items from seq that are found in keep
-
+        
         This O(n) generator returns items from seq that are in keep (n = len(seq)).
         keep can also be a predicate function, which means this is like filter(seq,
         keep).  As the user, it's your responsibility to make sure none of the items in
         seq change during the processing of this function, as a wrapper class is used
         internally on the items to make them hashable even if they are not.
-
+        
         Mathematical description:  
             keep is a sequence:   Keep(seq, keep) = {x ∈ seq | x ∈ keep}
             keep is a predicate:  Keep(seq, keep) = {x ∈ seq | keep(x) == True}
-
+        
         Arguments
             seq     A sequence of items as candidates to keep
             keep    A container of items to be kept OR a predicate such that keep(item)
                     is True if the item from seq is to be kept
-
+        
             strict_type
                 If True, then for an item in seq to be equal to an item in keep, we must
                 have that bool(seq_item == keep_item) is True AND that both items have
                 the same type.  Example:  if strict_type is False, then an integer 1 in
                 seq will be kept if a floating point 1.0 is in keep (but a 1 is not in
                 keep).  If strict_type is True, then the integer 1 would not be kept.
-
+        
         Algorithm
             - If keep is a predicate, this is effectively filter(seq, keep)
             - Otherwise, keep is turned into a set (using the Hashable class) to make 
               'item in keep' be O(1).
             - The code is short enough to visually inspect that it's correct
-
+        
         Thanks
             - This function was a joint effort by me and Google's Gemini AI.  Gemini
               gave me a lot of help and instruction during my refactoring of my /plib
@@ -639,7 +639,7 @@ if 1:   # Core functionality
               was the synergism developed during this work, as this short and elegant
               algorithm came from both our efforts (neither of use would have produced
               it by ourselves).
-
+        
         Examples
             >>> ''.join(Keep("", ""))
             ''
@@ -678,7 +678,6 @@ if 1:   # Core functionality
         def filter_func(seq: ty.Iterable[T]) -> ty.Generator[T, None, None]:
             return Keep(seq, keep)
         return filter_func
-
     def Remove(seq: ty.Iterable[T],
                remove: ty.Sequence[ty.Any] | ty.Callable[[T], bool],
                strict_type: bool = False
@@ -818,9 +817,9 @@ if 1:   # Core functionality
         while s[i] in S:
             i += 1
         return s[i:]
-    def FilterSeqRegex(seq: ty.Sequence[str | bytes],
+    def FilterSeqRegex(seq: ty.Sequence[AnyStr],
                        regex: re.Pattern
-                      ) -> ty.Generator[str | bytes, None, None]:
+                      ) -> ty.Generator[AnyStr, None, None]:
         '''Generator of a sequence of strings filtered by a regular expression
         
         Only the items in seq where regex.search(item) return a True match object are in
@@ -868,32 +867,8 @@ if 1:   # Core functionality
             # Use str.maketrans to create the mapping dict
             table_str = str.maketrans(remove, replacements)
             return lambda s: ty.cast(AnyStr, s.translate(table_str))
-#    def ReplacementFilter(remove: str | bytes, replacements: str | bytes):
-#        '''Return a function that replaces characters in bytes or strings
-#         
-#        The items in remove are replaced by the corresponding items in replacements.
-#        The method is to use str.translate() and bytes.translate().
-#        
-#        Example
-#            >>> f = ReplacementFilter("abc", "ABC")
-#            >>> f"{f("abc")} News Network"
-#            'ABC News Network'
-#        '''
-#        if type(remove) is not type(replacements):
-#            raise TypeError("remove and replacements must be the same type")
-#        if len(remove) != len(replacements):
-#            raise ValueError("remove and replacements must be the same length")
-#        if isinstance(remove, bytes):
-#            # Build a 256 byte translation table
-#            translation = bytearray(range(256))
-#            for i, j in zip(remove, replacements, strict=True):
-#                translation[i] = j              # type:ignore
-#            translation = bytes(translation)    # type:ignore
-#        else:
-#            translation = ''.maketrans(dict(zip(remove, replacements, strict=True))) # type:ignore
-#        return lambda s: s.translate(translation)
-    def FindDiff(s1: str | bytes,
-                 s2: str | bytes,
+    def FindDiff(s1: AnyStr,
+                 s2: AnyStr,
                  ignore_empty: bool = False,
                  equal_length: bool = False
                 ) -> int:
@@ -922,11 +897,12 @@ if 1:   # Core functionality
             if s1[i] != s2[i]:
                 return i
         raise RuntimeError("Bug:  strings differed")
-
-    #yy 
-    def FindStrings(seq, Str, ignorecase=False):
+    def FindStrings(seq: ty.Sequence[AnyStr],
+                    x: AnyStr,
+                    ignorecase: bool=False
+                   ) -> list[tuple[int, int]]:
         '''Return list of (i, j) pairs which indicate where the strings in sequence seq
-        (index i) are located in string Str (index j).  An empty list is returned if
+        (index i) are located in string x (index j).  An empty list is returned if
         there are no matches.
         
         Example:
@@ -939,23 +915,24 @@ if 1:   # Core functionality
         if ignorecase:
             sq = [i.lower() for i in seq]
         for i, u in enumerate(sq):
-            j = Str.find(u)
+            j = x.find(u)
             if j != -1:
                 found.append((i, j))
         return found
-    def FindSubstring(mystring, substring):
+    def FindSubstring(mystring: AnyStr, substring: AnyStr) -> tuple[int, ...]:
         '''Return a tuple of the all the indexes of where the substring is found in the
         string mystring.
         '''
-        if not isinstance(mystring, str):
+        if isinstance(mystring, str) and not isinstance(substring, str):
             raise TypeError("mystring needs to be a string")
-        if not isinstance(substring, str):
-            raise TypeError("substring needs to be a string")
-        d, ls, lsub = [], len(mystring), len(substring)
-        if not ls or not lsub or lsub > ls:
-            return tuple(d)
+        if isinstance(mystring, bytes) and not isinstance(substring, bytes):
+            raise TypeError("substring needs to be bytes")
+        d: list[int] = []
+        ns, nsub = len(mystring), len(substring)
+        if not ns or not nsub or nsub > ns:
+            return tuple()
         start = mystring.find(substring)
-        while start != -1 and ls - start >= lsub:
+        while start != -1 and ns - start >= nsub:
             d.append(start)
             start = mystring.find(substring, start + 1)
         return tuple(d)
@@ -983,6 +960,7 @@ if 1:   # Core functionality
             if symbol in symbols:
                 found.append(str(myfile))
         return found
+    #yy 
     def GetString(prompt_msg, default, allowed_values, ignore_case=True):
         '''Get a string from a user and compare it to a sequence of allowed values.  If
         the response is in the allowed values, return it.  Otherwise, print an error
@@ -1924,7 +1902,7 @@ if 1:   # Core functionality
                             lines.append(indent + self.placeholder.lstrip())
                         break
             return lines
-    def Decorate(s: str | bytes, encoding: str="UTF-8") -> str:
+    def Decorate(s: AnyStr, encoding: str="UTF-8") -> str:
         '''Return a string that is the "decorated" form of the string s
         
         Here, "decorated" means whitespace and control characters have Unicode character
@@ -2004,7 +1982,7 @@ if 1:   # Old util stuff
             return bytes(result)
         else:
             return ''.join(result)
-    def GetHash(item: pathlib.Path | str | bytes,
+    def GetHash(item: pathlib.Path | AnyStr,
                 method: str="sha256",
                 encoding: str="UTF-8"
                ) -> str:
@@ -2324,18 +2302,32 @@ if __name__ == "__main__":
             Assert(FindLastNotIn("abc;", string.ascii_letters) == 3)
             Assert(FindLastNotIn(";abc;", string.ascii_letters) == 4)
     def Test_FindStrings():
-        seq = "Jan Feb Mar".split()
-        str = "1Jan2001"
-        found = FindStrings(seq, str)
-        Assert(found == [(0, 1)])
-        # Show case insensitivity works
-        str = "1jan2001"
-        found = FindStrings(seq, str, ignorecase=True)
-        Assert(found == [(0, 1)])
-        # Show get empty list on no matches
-        str = ""
-        found = FindStrings(seq, str, ignorecase=True)
-        Assert(not found)
+        if 1:   # Strings
+            seq = "Jan Feb Mar".split()
+            x = "1Jan2001"
+            found = FindStrings(seq, x)
+            Assert(found == [(0, 1)])
+            # Show case insensitivity works
+            x = "1jan2001"
+            found = FindStrings(seq, x, ignorecase=True)
+            Assert(found == [(0, 1)])
+            # Show get empty list on no matches
+            x = ""
+            found = FindStrings(seq, x, ignorecase=True)
+            Assert(not found)
+        if 1:   # Bytes
+            seq = b"Jan Feb Mar".split()
+            x = b"1Jan2001"
+            found = FindStrings(seq, x)
+            Assert(found == [(0, 1)])
+            # Show case insensitivity works
+            x = b"1jan2001"
+            found = FindStrings(seq, x, ignorecase=True)
+            Assert(found == [(0, 1)])
+            # Show get empty list on no matches
+            x = b""
+            found = FindStrings(seq, x, ignorecase=True)
+            Assert(not found)
     def Test_Scramble():
         random.seed("0")
         s = '"Yes", said John. Åé—'
@@ -2540,16 +2532,16 @@ if __name__ == "__main__":
             n = len("∞".encode())
             Assert(b[start + n:finish] == b"is an example of a")
         if 1:   # Corner cases
-            Assert(list(FindAll("")) == [])
+            Assert(list(FindAll("", substr="x")) == [])
             Assert(list(FindAll(s, substr="")) == [])
             Assert(list(FindAll(b"", substr="∞".encode())) == [])
             Assert(list(FindAll(b, substr=b"")) == [])
         if 1:   # Raises an exception
             s = "∞"
             with raises(ValueError):
-                start, finish = list(FindAll(s))
+                start, finish = list(FindAll(s, substr="x"))
             with raises(ValueError):
-                start, finish, _ = list(FindAll(s + s))
+                start, finish, _ = list(FindAll(s + s, substr="x"))
             # Note that FindAll("a", b"a") doesn't raise an exception like it would be
             # expected from the code; it has to be tested as follows.
             with raises(TypeError):
@@ -2607,6 +2599,8 @@ if __name__ == "__main__":
         #    01234567890
         s = "x  x    x  "
         Assert(FindSubstring(s, "x") == (0, 3, 8))
+        s = b"x  x    x  "
+        Assert(FindSubstring(s, b"x") == (0, 3, 8))
     def Test_GetChoice():
         names = set(("one", "two", "three", "thrifty"))
         Assert(GetChoice("o", names) == "one")
