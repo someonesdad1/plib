@@ -758,11 +758,11 @@ if 1:   # Core functionality
             x = PrepareMultilineString(s, trim_start=trim_start, trim_end=trim_end)
         else:
             # No trimming, so just count the leading space characters
-            return len(GetStartingChars(s, chars=spacecharset))
+            return len(GetStartingChars(s, spacecharset))
         # Break into lines and count spaces on each line
         lines = x.split("\n")
         # Count number of leading space characters on each line
-        counts = [len(GetStartingChars(line, chars=spacecharset)) for line in lines]
+        counts = [len(GetStartingChars(line, spacecharset)) for line in lines]
         return min(set(counts))
     def PrepareMultilineString(s: str, trim_start: bool=True, trim_end: bool=True) -> str:
         '''If trim_start, remove leading spaces of s up to the first newline, then
@@ -1107,8 +1107,8 @@ if 1:   # Core functionality
     def Tokenize(s: str, wordchars: set[str]) -> list[str]:
         '''Split the string s into a list of tokens
          
-        The input string s is split into words at any character not in wordchars.  A key
-        invariant is that ''.join(results) is the original string.
+        The input string s is split into tokens (words) at any character not in
+        wordchars.  An invariant is that ''.join(results) is the original string.
 
         Example
             >>> wordchars = string.ascii_letters
@@ -1130,47 +1130,37 @@ if 1:   # Core functionality
                 out.append(char)
         if word:
             out.append(''.join(word))
-        # Check our invariant
-        assert ''.join(out) == s
+        assert ''.join(out) == s    # Check invariant
         return out
-    #yy 
-    def GetStartingChars(s, chars=None):
-        '''Return the string defining the starting characters in the string s.  If chars
-        is not None, use it as the set of allowed leading characters.  If chars is None,
-        then return the leading whitespace characters, which are defined by the re
-        module's '\\s' metacharacters.
+    def GetStartingChars(s: str, allowed: set[str]) -> str:
+        '''Return the string with characters in allowed that start s
+        
+        Example
+            >>> GetStartingChars("abcabHabc", set("abc"))
+            'abcab'
         '''
-        if not isinstance(s, str):
-            raise TypeError("s must be a string")
-        if chars is None:
-            r = re.compile(r"^(\s+).*$", re.M)
-            mo = r.match(s)
-            return mo.groups()[0] if mo else ""
-        else:
-            S = set(chars)
-            t = re.escape(''.join(S))
-            r = re.compile(f"^([{t}]+).*$", re.M)
-            mo = r.match(s)
-            return mo.groups()[0] if mo else ""
-    def GetEndingChars(s, chars=None):
-        '''Return the string defining the trailing characters in the string s.  If chars
-        is not None, use it as the set of allowed trailing characters.  If chars is
-        None, then return the leading whitespace characters, which are defined by the re
-        module's '\\s' metacharacters.
+        out = []
+        for i in s:
+            if i in allowed:
+                out.append(i)
+            else:
+                break
+        return ''.join(out)
+    def GetEndingChars(s: str, allowed: set[str]) -> str:
+        '''Return the string with characters in allowed that end s
+        
+        Example
+            >>> GetEndingChars("abcabHabcab", set("abc"))
+            'abcab'
         '''
-        if not isinstance(s, str):
-            raise TypeError("s must be a string")
-        if chars is None:
-            r = re.compile(r"^[^\s]*(\s+)$", re.M)
-            mo = r.match(s)
-            return mo.groups()[0] if mo else ""
-        else:
-            S = set(chars)
-            t = re.escape(''.join(S))
-            r = re.compile(f"([{t}]+)$", re.M)
-            mo = r.search(s)
-            return mo.groups()[0] if mo else ""
-    def RegisteredOpen(file):
+        out = []
+        for i in reversed(s):
+            if i in allowed:
+                out.append(i)
+            else:
+                break
+        return ''.join(reversed(out))
+    def RegisteredOpen(file: str | pathlib.Path) -> None:
         '''Open the indicated file with its registered application.  file must be a string
         or a Path instance.
         '''
@@ -1201,58 +1191,57 @@ if 1:   # Core functionality
             print(f"{e}")
         finally:
             os.chdir(cwd)
-    def RemoveASCII(s):
-        '''Remove ASCII characters from string s.  This means the returned string only
-        consists of Unicode characters above 0x7f.  This is done with a cached translation
-        table, so it will be fast after the first invocation.
-        '''
-        if not hasattr(RemoveASCII, "table"):
-            # Cache a translation table
-            r = range(0, 0x7F)
-            chars = [chr(i) for i in r]
-            none = [None]*len(chars)
-            RemoveASCII.table = "".maketrans(dict(zip(chars, none, strict=True)))
-        return s.translate(RemoveASCII.table)
-    def IgnoreFilter(regex_seq, ignore_case=False):
-        '''Return a function which removes ignored strings.  regex_seq is a sequence of
-        regular expressions that should be ignored.  Set ignore_case to True to ignore
-        case in the matching.
+    def RemoveASCII(s: str):
+        '''Remove ASCII characters from string s
         
-        The intent of this filter is to provide functionality like the .gitignore file
-        in a git repository:  any filename in the repository that matches a line in the
-        .gitignore file is ignored by git.
+        This means the returned string only consists of Unicode characters above U+7e.
+        
+        Example
+            >>> RemoveASCII("Hello ∞")
+            '∞'
+        '''
+        @functools.lru_cache(maxsize=1)
+        def GetTranslation() -> dict[int, None]:
+            return str.maketrans({i: None for i in range(0x7f)})
+        return s.translate(GetTranslation())
+    def IgnoreFilter(regex_seq: ty.Sequence[str],
+                     flags: int =re.NOFLAG
+                    ) -> ty.Callable[[ty.Sequence[str]], list[str]]:
+        '''Return a function (closure) which removes ignored strings from a sequence
+        
+        regex_seq is a sequence of regular expression strings that should be ignored;
+        this routine will compile them with the indicated re module flags.  
+        
+        A use case for this filter is to provide functionality like the .gitignore file in a
+        git repository:  any filename in the repository that matches a line in the
+        .gitignore file is ignored by git (however, note that git uses file globbing
+        expressions and this function uses python's re module's expressions).
         
         Example:
-            f = IgnoreFilter(["bob", "carol"])
-            g = IgnoreFilter(["bob", "carol"], ignore_case=True)
-            seq = [
-                "Bob",
-                "bob",
-                "bobwhite",
-                "Carol",
-                "carol",
-                "Alice"
-            ]
-            f(seq) returns ["Bob", "Carol", "Alice"].
-            g(seq) returns ["Alice"].
+            >>> f = IgnoreFilter(["bob", "carol"])
+            >>> g = IgnoreFilter(["bob", "carol"], flags=re.I)
+            >>> seq = ["Bob", "bob", "bobwhite", "Carol", "carol", "Alice"]
+            >>> f(seq)
+            ['Bob', 'Carol', 'Alice']
+            >>> g(seq)
+            ['Alice']
         '''
         # Compile the regular expressions
-        regexes = []
-        for regex in regex_seq:
-            if regex:
-                regexes.append(re.compile(regex, re.I if ignore_case else 0))
+        regexes = [re.compile(i, flags) for i in regex_seq if i]
         # Bundle them into a closure
-        def f(seq):
-            results = seq.copy()
+        def regex_filter(seq: ty.Sequence[str]) -> list[str]:
+            results = [i for i in seq]  # Make a copy
             for regex in regexes:
-                results = itertools.filterfalse(regex.search, results)
-            return list(results)
-        return f
-    def IsASCII(s):
-        '''Return True if string s is all ASCII characters.  This means the string only
-        consists of characters chr(0x0) to chr(0x7e) inclusive.
+                results = list(itertools.filterfalse(regex.search, results))
+            return results
+        return regex_filter
+    def IsASCII(s: str) -> bool:
+        '''Return True if string s consists only of ASCII characters
+        
+        This means the string only consists of characters chr(0x0) to chr(0x7e) inclusive.
         '''
         return not bool(RemoveASCII(s))
+    #yy 
     def Scramble(mystring, punc=None, start_end_const=False):
         '''Return a string with the letters in the words randomly shuffled but with the
         punctuation and whitespace unchanged if punc is None.
@@ -1955,7 +1944,7 @@ if __name__ == "__main__":
         f = IgnoreFilter(["bob", "carol"])
         Assert(f(seq) == ['Bob', 'Carol', 'Alice'])
         # Ignore case
-        f = IgnoreFilter(["bob", "carol"], ignore_case=True)
+        f = IgnoreFilter(["bob", "carol"], flags=re.I)
         Assert(f(seq) == ['Alice'])
     def Test_GetTransFunc():
         From = '''Mr. Dee, a, a--b; 'z' and "a", ok.'''
@@ -2098,6 +2087,7 @@ if __name__ == "__main__":
         Assert(IsASCII(""))
         Assert(not IsASCII(s2))
     def Test_GetWhitespace():
+        ws = string.whitespace
         for u in (
             "",
             " ",
@@ -2106,24 +2096,24 @@ if __name__ == "__main__":
             "\n",
             "\t\r\n\f    \t\t\t",
         ):
-            Assert(GetStartingChars(u) == u)
-            Assert(GetStartingChars(u + "a") == u)
-            Assert(GetEndingChars(u) == u)
-            Assert(GetEndingChars("a" + u) == u)
+            Assert(GetStartingChars(u, ws) == u)
+            Assert(GetStartingChars(u + "a", ws) == u)
+            Assert(GetEndingChars(u, ws) == u)
+            Assert(GetEndingChars("a" + u, ws) == u)
         # Define custom sets of whitespace
         if 1:  # Leading
-            Assert(GetStartingChars("  \t  a", chars="z") == "")
-            Assert(GetStartingChars("  \t  a", chars="\t") == "")
-            Assert(GetStartingChars("  \t  a", chars=" ") == "  ")
+            Assert(GetStartingChars("  \t  a", set("z")) == "")
+            Assert(GetStartingChars("  \t  a", set("\t")) == "")
+            Assert(GetStartingChars("  \t  a", set(" ")) == "  ")
             ws, u = ".;:", ".;..:::."
-            a = GetStartingChars(u + "a", chars=ws)
+            a = GetStartingChars(u + "a", ws)
             Assert(a == u)
         if 1:  # Trailing
-            Assert(GetEndingChars("a  \t  ", chars="z") == "")
-            Assert(GetEndingChars("a  \t  ", chars="\t") == "")
-            Assert(GetEndingChars("a  \t  ", chars=" ") == "  ")
+            Assert(GetEndingChars("a  \t  ", set("z")) == "")
+            Assert(GetEndingChars("a  \t  ", set("\t")) == "")
+            Assert(GetEndingChars("a  \t  ", set(" ")) == "  ")
             ws, u = ".;:", ".;..:::."
-            a = GetEndingChars("a" + u, chars=ws)
+            a = GetEndingChars("a" + u, ws)
             Assert(a == u)
     def Test_Tokenize():
         letters = set(string.ascii_letters)
