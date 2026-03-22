@@ -1241,9 +1241,16 @@ if 1:   # Core functionality
         This means the string only consists of characters chr(0x0) to chr(0x7e) inclusive.
         '''
         return not bool(RemoveASCII(s))
-    #yy 
-    def Scramble(mystring, punc=None, start_end_const=False):
-        '''Return a string with the letters in the words randomly shuffled but with the
+    def Scramble(mystr: str,
+                 punc: set[str] = set(string.punctuation + string.whitespace),
+                 start_end_const: bool=False
+                ) -> str:
+        '''Return a string with the letters in the words randomly shuffled
+
+        Arguments
+            mystr       String whose words are to be shuffled
+
+        but with the
         punctuation and whitespace unchanged if punc is None.
         
         Set punc to a different set of punctuation characters if you wish (the
@@ -1259,23 +1266,17 @@ if 1:   # Core functionality
         well-known sections, you'll likely find them hard to read.  A good demonstration
         is to get a copy of an academic paper on something out of your field and you'll
         probably find you can understand almost nothing of it.  I did this with a long
-        article on genetics with a lot of biochemistry and it was gibberish.
-        
-        If you wish to save memory, make mystring a list of individual characters; then
-        a copy of the string isn't made.  Note there is no check that the list's
-        elements are single character strings.
+        article on genetics with a lot of biochemistry and it was essentially total
+        gibberish.
         
         Example with random.seed('0'):
             s = '"Hello there", said John.'
         returns
                 '"loeHl eerth", isda noJh.'
         '''
-        if punc is None:
-            punc = set(string.punctuation + string.whitespace)
         dummy = "."
         prepended = appended = False
-        is_string = isinstance(mystring, str)
-        s = list(mystring) if is_string else mystring
+        s = list(mystr)
         # Add dummy punctuation characters at start and end if needed.  This
         # regularizes the algorithm.
         if s[0] not in punc:
@@ -1285,11 +1286,7 @@ if 1:   # Core functionality
             s.append(dummy)
             appended = True
         # Generate a list of integers showing where punctuation characters are
-        loc = []
-        for i in range(len(s)):
-            if s[i] in punc:
-                loc.append(i)
-        # Use loc to pick out words and scramble them
+        loc = [i for i, x in enumerate(s) if x in punc]
         i = 0
         while i < len(loc):
             try:
@@ -1317,7 +1314,8 @@ if 1:   # Core functionality
         if appended:
             s.pop(-1)
         # Return scrambled string or list
-        return "".join(s) if is_string else s
+        return ''.join(s)
+    #yy 
     def Trim(s, chars="", left=True, right=True, check=False):
         '''Remove characters in the string chars from the left and right sides of s,
         returning the result.
