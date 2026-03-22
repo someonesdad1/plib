@@ -686,7 +686,7 @@ if 1:   # Core functionality
         '''Yields items from seq that are not in remove
         
         See the comments for Keep().
-
+        
         Mathematical description:  
             remove is a sequence:   Remove(seq, remove) = {x ∈ seq | x ∉ remove}
             remove is a predicate:  Remove(seq, remove) = {x ∈ seq | remove(x) == False}
@@ -712,17 +712,22 @@ if 1:   # Core functionality
             for item in seq:
                 if Hashable(item, typ=strict_type) not in lookup_set:
                     yield item  
-
-    def RemoveFilter(remove):
-        '''Return a function that takes a string and returns a string containing only
-        those characters that are not in remove.
+    def RemoveFilter(remove: ty.Sequence[ty.Any] | ty.Callable[[ty.Any], bool]
+                    ) -> ty.Callable[[ty.Iterable[T]], ty.Generator[T, None, None]]:
+        '''Return a function that removes items in a sequence
+        
+        This is a closure using Remove().  Read about your user's responsibilities in
+        Keep().
+        
+        Example
+            >>> hex_only = RemoveFilter("Ref: ")
+            >>> ''.join(hex_only("Ref: 0xCAFE"))
+            '0xCAFE'
         '''
-        def func(s):
-            return Remove(s, remove)
-        return func
-
-    #yy 
-    def CountLeadingSpaces(s, trim_start=True, trim_end=True):
+        def filter_func(seq: ty.Iterable[T]) -> ty.Generator[T, None, None]:
+            return Remove(seq, remove)
+        return filter_func
+    def CountLeadingSpaces(s: str, trim_start: bool=True, trim_end: bool=True) -> int:
         '''Return the number of common leading space characters in the multiline string
         s.  The use case for this is a multiline string in an indented function in which
         you want all the lines aligned to the left margin.  You would do this by getting
@@ -750,37 +755,37 @@ if 1:   # Core functionality
         '''
         if not isinstance(s, str):
             raise TypeError("Argument s must be a string")
-        spacecharset = set([g.sp])
+        spacecharset = set([" "])
         if trim_start or trim_end:
             x = PrepareMultilineString(s, trim_start=trim_start, trim_end=trim_end)
         else:
             # No trimming, so just count the leading space characters
             return len(GetStartingChars(s, chars=spacecharset))
         # Break into lines and count spaces on each line
-        lines = x.split(g.nl)
+        lines = x.split("\n")
         # Count number of leading space characters on each line
         counts = [len(GetStartingChars(line, chars=spacecharset)) for line in lines]
         return min(set(counts))
-    def PrepareMultilineString(s, trim_start=True, trim_end=True):
+    def PrepareMultilineString(s: str, trim_start: bool=True, trim_end: bool=True) -> str:
         '''If trim_start, remove leading spaces of s up to the first newline, then
         remove the first newline.  If trim_end, remove trailing spaces of s up to the
         last newline, then remove the last newline.  Return the string.
         '''
         n = bool(trim_start) + bool(trim_end) - 1
-        if s.count(g.nl) < n:
+        if s.count("\n") < n:
             raise ValueError("Not enough newline characters in multiline string s")
         dq = collections.deque(s)
         if trim_start:
-            while dq and dq[0] == g.sp:
+            while dq and dq[0] == " ":
                 dq.popleft()
             # All leading spaces removed; check for newline
-            if dq and dq[0] == g.nl:
+            if dq and dq[0] == "\n":
                 dq.popleft()
         if trim_end:
-            while dq and dq[-1] == g.sp:
+            while dq and dq[-1] == " ":
                 dq.pop()
             # All trailing spaces removed; check for newline
-            if dq and dq[-1] == g.nl:
+            if dq and dq[-1] == "\n":
                 dq.pop()
         return ''.join(list(dq))
     def RemoveWhitespace(s: str) -> str:
@@ -797,7 +802,7 @@ if 1:   # Core functionality
         https://mark-summerfield.github.io/01_nows.html).
         '''
         return ''.join(s.split())
-    def RemoveEndingChars(s, chars=""):
+    def RemoveEndingChars(s: str, chars: str="") -> str:
         'Remove any ending characters in chars from s and return the result'
         if not s or not chars:
             return s
@@ -805,7 +810,7 @@ if 1:   # Core functionality
         while s and s[-1] in S:
             s = s[:-1]
         return s
-    def RemoveStartingChars(s, chars=""):
+    def RemoveStartingChars(s: str, chars: str="") -> str:
         'Remove any starting characters in chars from s and return the result'
         if not s or not chars:
             return s
@@ -813,35 +818,85 @@ if 1:   # Core functionality
         while s[i] in S:
             i += 1
         return s[i:]
-    def FilterSeqRegex(seq, regexes=None, ANDed=True, re_flags=g.noflag):
-        '''Return a sequence of strings filtered by regexes.  The regexes are ANDed
-        together by default; set ANDed to False to OR the regexes.  If the regexes are
-        ORed together, no duplicates are returned.  In both cases, the returned strings
-        are in the same relative order as they were in seq.
+    def FilterSeqRegex(seq: ty.Sequence[str | bytes],
+                       regex: re.Pattern
+                      ) -> ty.Generator[str | bytes, None, None]:
+        '''Generator of a sequence of strings filtered by a regular expression
+        
+        Only the items in seq where regex.search(item) return a True match object are in
+        the returned sequence.
+        
+        Variables
+            seq     The sequence whose components are to be filtered
+            regex   A compiled regular expression from re.compile()
+        
+        Example
+            >>> seq = "str1 str2 str3".split()
+            >>> list(FilterSeqRegex(seq, re.compile(r"[12]")))
+            ['str1', 'str2']
         '''
-        if regexes is None:
-            return seq
-        # Only keep the strings in seq
-        myseq, o = [i for i in seq if isinstance(i, str)], []
-        if ANDed:
-            for pattern in regexes:
-                myseq = list(filter(lambda x: re.search(pattern, x, re_flags), myseq))
-            return myseq
-        else:
-            for pattern in regexes:
-                o.extend(list(filter(lambda x: re.search(pattern, x, re_flags), myseq)))
-            # Remove duplicates
-            return dpseq.DupNodupHashable(o)[1]
-    def FilterStr(remove, replacements):
-        '''Return a function that removes the characters in sequence remove from other
-        strings and replaces them with corresponding characters in the sequence
-        replacements.
-        '''
+        if regex is None:
+            for i in seq:
+                yield i
+            return
+        if not isinstance(regex, re.Pattern):
+            raise TypeError("regex must be an re.Pattern (output of re.compile())")
+        for i in seq:
+            try:
+                mo = regex.search(i)
+                if mo:
+                    yield i
+            except TypeError:
+                continue
+    def ReplacementFilter(remove: AnyStr, 
+                          replacements: AnyStr
+                         ) -> ty.Callable[[AnyStr], AnyStr]:
+        'Return a closure that performs character/byte replacement'
+        if type(remove) is not type(replacements):
+            raise TypeError("remove and replacements must be the same type")
         if len(remove) != len(replacements):
             raise ValueError("remove and replacements must be the same length")
-        T = "".maketrans(dict(zip(remove, replacements, strict=True)))
-        return lambda s: s.translate(T)
-    def FindDiff(s1, s2, ignore_empty=False, equal_length=False):
+        if isinstance(remove, bytes) and isinstance(replacements, bytes):
+            # Build the 256-byte translation table for bytes
+            table_bytes = bytearray(range(256))
+            for i, j in zip(remove, replacements, strict=True):
+                table_bytes[i] = j
+            # Capture the immutable version for the closure
+            final_table_bytes = bytes(table_bytes)
+            return lambda s: ty.cast(AnyStr, s.translate(final_table_bytes))
+        else:
+            # Use str.maketrans to create the mapping dict
+            table_str = str.maketrans(remove, replacements)
+            return lambda s: ty.cast(AnyStr, s.translate(table_str))
+#    def ReplacementFilter(remove: str | bytes, replacements: str | bytes):
+#        '''Return a function that replaces characters in bytes or strings
+#         
+#        The items in remove are replaced by the corresponding items in replacements.
+#        The method is to use str.translate() and bytes.translate().
+#        
+#        Example
+#            >>> f = ReplacementFilter("abc", "ABC")
+#            >>> f"{f("abc")} News Network"
+#            'ABC News Network'
+#        '''
+#        if type(remove) is not type(replacements):
+#            raise TypeError("remove and replacements must be the same type")
+#        if len(remove) != len(replacements):
+#            raise ValueError("remove and replacements must be the same length")
+#        if isinstance(remove, bytes):
+#            # Build a 256 byte translation table
+#            translation = bytearray(range(256))
+#            for i, j in zip(remove, replacements, strict=True):
+#                translation[i] = j              # type:ignore
+#            translation = bytes(translation)    # type:ignore
+#        else:
+#            translation = ''.maketrans(dict(zip(remove, replacements, strict=True))) # type:ignore
+#        return lambda s: s.translate(translation)
+    def FindDiff(s1: str | bytes,
+                 s2: str | bytes,
+                 ignore_empty: bool = False,
+                 equal_length: bool = False
+                ) -> int:
         '''Returns the integer index of where the strings s1 and s2 first differ.  The
         number returned is the index where the first difference was found.  If the
         strings are equal, then -1 is returned, implying one string is a substring of
@@ -849,10 +904,12 @@ if 1:   # Core functionality
         is raised if one of the strings is empty.  If equal_length is True, then the
         strings must be of equal length or a ValueError exception is raised.
         '''
-        if not isinstance(s1, str) or not isinstance(s2, str):
-            raise TypeError("Arguments must be strings")
+        if isinstance(s1, str) and not isinstance(s2, str):
+            raise TypeError("Both arguments must be strings")
+        if isinstance(s1, bytes) and not isinstance(s2, bytes):
+            raise TypeError("Both arguments must be bytes")
         if (not s1 or not s2) and not ignore_empty:
-            raise ValueError("String cannot be empty")
+            raise ValueError("s1 and/or s2 cannot be empty")
         if equal_length and len(s1) != len(s2):
             raise ValueError("Strings must be equal lengths")
         n = min(len(s1), len(s2))
@@ -860,11 +917,13 @@ if 1:   # Core functionality
             return 0
         if s1[:n] == s2[:n]:
             return -1
-        # Compare characters until we get a mismatch
+        # Compare characters/bytes until we get a mismatch
         for i in range(n):
             if s1[i] != s2[i]:
                 return i
         raise RuntimeError("Bug:  strings differed")
+
+    #yy 
     def FindStrings(seq, Str, ignorecase=False):
         '''Return list of (i, j) pairs which indicate where the strings in sequence seq
         (index i) are located in string Str (index j).  An empty list is returned if
@@ -2497,11 +2556,23 @@ if __name__ == "__main__":
                 x = list(FindAll("a", b"a"))
             with raises(TypeError):
                 x = list(FindAll(b"a", "a"))
-    def Test_FilterStr():
-        s = '''"Not that easy, I'm sure."'''
-        f = FilterStr('''"',.''', [None]*4)
-        t = f(s)
-        Assert(t == "Not that easy Im sure")
+    def Test_ReplacementFilter():
+        if 1:   # Strings
+            s = "abcdefghi"
+            f = ReplacementFilter("abcdefghi", "ABCDEFGHI")
+            t = f(s)
+            Assert(t == "ABCDEFGHI")
+            f = ReplacementFilter("abcdefghi", "         ")
+            t = f(s)
+            Assert(t == "         ")
+        if 1:   # Bytes
+            s = b"abcdefghi"
+            f = ReplacementFilter(b"abcdefghi", b"ABCDEFGHI")
+            t = f(s)
+            Assert(t == b"ABCDEFGHI")
+            f = ReplacementFilter(b"abcdefghi", b"         ")
+            t = f(s)
+            Assert(t == b"         ")
     def Test_RemoveWhitespace():
         s = "a b\tc\nd\re\ff\vg"
         t = RemoveWhitespace(s)
@@ -2682,20 +2753,21 @@ if __name__ == "__main__":
         found = FindSymbol("nowayray", filelist=filelist)
         Assert(found == [])
     def Test_FilterSeqRegex():
-        from lwtest import Assert
-        # With no regexes, it's the identity unless the sequence contains a non-string
         s = "str1 str2 str3 str4 str5"
-        s1 = s.split()
-        s2 = s1 + [10]
-        Assert(FilterSeqRegex([]) == [])
-        Assert(FilterSeqRegex(s1, regexes=[]) == s1)
-        Assert(FilterSeqRegex(s2, regexes=[]) == s1)
-        # ANDing the regexes
-        Assert(FilterSeqRegex(s1, regexes=["[123]", "[1]"]) == ["str1"])
-        # ORing the regexes
-        Assert(FilterSeqRegex(s1, regexes=["[123]", "[1]"], ANDed=False) == ["str1", "str2", "str3"])
-        # re flag works
-        Assert(FilterSeqRegex(s.upper().split(), regexes=["str1"], re_flags=re.I) == ["STR1"])
+        seq1 = s.split()
+        seq2 = seq1 + [10]
+        regex = re.compile(r"[123]")
+        # FilterSeqRegex(seq, regex)
+
+        # Empty sequence gets back empty sequence
+        Assert(list(FilterSeqRegex([], regex)) == [])
+        # regex == None means an identity transformation
+        Assert(list(FilterSeqRegex(seq1, None)) == seq1)
+        Assert(list(FilterSeqRegex(seq2, None)) == seq2)
+        # Actual filtering
+        Assert(list(FilterSeqRegex(seq1, regex)) == seq1[:3])
+        Assert(list(FilterSeqRegex(seq2, regex)) == seq1[:3])
+        Assert(list(FilterSeqRegex(seq1, re.compile("."))) == seq1)
     def Test_RemoveCharClass():
         '''Note the tests cover strings, bytes, and bytearrays.  Test cases:
             A   Convert Unicode characters to rough ASCII equivalents
@@ -2891,17 +2963,17 @@ if __name__ == "__main__":
             s = ["a.b.c", "a.c.c", "a.d.c"]
             print(f"CommonPrefix({s!r}) = {CommonPrefix(s)}")
             print(f"CommonSuffix({s!r}) = {CommonSuffix(s)}")
-            # FilterStr
+            # ReplacementFilter
             print(wrap.dedent('''
  
-            FilterStr() returns a function that can replace a sequence of characters
+            ReplacementFilter() returns a function that can replace a sequence of characters
             with a corresponding sequence from another equally-sized list of characters.''')
             )
             s = "abc"
             u = "αβɣ"
             print(f"  Characters to remove  :  {s!r}")
             print(f"  Replacement characters:  {u!r}")
-            f = FilterStr(s, u)
+            f = ReplacementFilter(s, u)
             o = "abc are the leading characters of the alphabet"
             print(f"  Original   :  '{o}'")
             print(f"  Transformed:  '{f(o)}'")
