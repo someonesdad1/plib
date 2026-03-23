@@ -1926,7 +1926,6 @@ if 1:   # Old util stuff
             print(f"{n} tags constructed in {tagsfile.absolute()}")
         # Go back to the directory we started from
         os.chdir(cwd)
-    #yy 
     def BuildTagsFile(directory: str | pathlib.Path,
                       files: ty.Sequence[str | pathlib.Path],
                       verbose: bool = False
