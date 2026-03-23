@@ -19,6 +19,43 @@ the "Physics" of your code—the constants, the symmetries, and the transformati
       ty.TypeVar('AnyStr', str, bytes) for generic functions.
     - The Central Element: Look for functions that "commute" with others—utility
       functions that don't change the global state.
+    - Look for important invariants, include them in documentation, and test them with
+      asserts
+    - Document and test conservation laws e.g. len(out) <= len(in)
+    - Enforce pre-conditions:  Use assert to verify domain specific constraints
+    - Phase symmetry:  ensure return types match input types (no str/bytes leaking)
+    - Canonical normalization:  use identity transformations to reach a standard state
+      early
+    - Numbers: 1, 1.0 and 1+0j are the same point in a mathematical sense, but are
+      different types in python
+        - Every string input should map to the simplest possible representation that
+          preserves the information
+        - If s represents an int, it should return an int; if it has a decimal point or
+          "e", then a float. If it has an i or a j, it's a complex.
+    - Phase symmetry (input/output stability):  processing strings into numbers:
+      dimensionality preserved
+        - Check:  len(StringToNumbers(s_list) == len(s_list))
+        - If a string cannot be mapped, the system shouldn't drop it, which violates
+          conservation of mass.  Either raise a ValueError or return a NaN/None
+          placeholder to maintain the sequence's index symmetry.
+    - Closure under transformation
+        - If you take a number, turn it into a string, then convert it back to a number,
+          this should be the identity transformation
+        - assert ConvertToNumber(str(x)) == x
+
+    - Domain constraints
+        - Before the conversion even begins, verify the "Physics" of the string.
+        - The Assert: assert any(c.isdigit() or c in "+-.ij/" for c in s), "String
+          contains no numeric potential."
+        - The Logic: Don't wait for float() to fail with a cryptic message. Define the
+          "Numeric Concept" at the door.
+    - Algebraic conversion
+        - Does "1.0" return a float and "1" return an int?
+        - Information Conservation: Does StringToNumbers preserve the length of the
+          input sequence?
+        - Round-trip Symmetry: Does ConvertToNumber(str(n)) == n?
+        - Concept Validation: Does the function assert that the string is "Numeric"
+          before attempting a cast?
 
 2. The Symmetry Audit (Tests & Types)
 
