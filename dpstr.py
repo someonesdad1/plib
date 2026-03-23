@@ -20,7 +20,6 @@ String utilities
     GetChoice           Return choice from a set of choices (minimizes typing)
     GetStartingChars    Return starting characters of a string
     GetEndingChars      Return ending characters of a string
-    GetTransFunc        Return a function that translates strings
     GetString           Return string from user that matches choices
     IgnoreFilter        Return a function which removes ignored strings
     IsASCII             Return True if string is all ASCII characters
@@ -81,7 +80,6 @@ if 1:   # Header
             - ∞∞1 Missing tests for GetString, WordID
             - ∞∞1 Many of these functions can be made to work with bytes
             - Convert token naming conversions to a class
-            - ∞∞3 Consider upper & lower keywords for Keep and Remove
             - ∞∞2 Many functions: divide docstring into multiple categories and then divide
               the code up into the same sections with 'if 1:    # Section' strings.
     
@@ -544,6 +542,10 @@ if 1:   # Core functionality
         '''Return a list (or a string if s is a string) of the items in s that
         are in keep.
         
+        ∞∞1 Mar 2026 This function was replaced by the new version of Keep(), but I'm
+        keeping the old version around for a while in case its functionality is needed.  
+        If not used by Sep 2026, delete.
+        
         If whole is True:
             Returns s only with elements that are in keep.
             Examples:
@@ -605,9 +607,13 @@ if 1:   # Core functionality
         
         This O(n) generator returns items from seq that are in keep (n = len(seq)).
         keep can also be a predicate function, which means this is like filter(seq,
-        keep).  As the user, it's your responsibility to make sure none of the items in
-        seq change during the processing of this function, as a wrapper class is used
-        internally on the items to make them hashable even if they are not.
+        keep).  
+        
+        Warning
+            As the user, it's your responsibility to make sure none of the items in seq
+            change during the processing of this function, as Hashable, a wrapper class,
+            is used internally on the items to make them appear to be hashable even if
+            they are not.
         
         Mathematical description:  
             keep is a sequence:   Keep(seq, keep) = {x ∈ seq | x ∈ keep}
@@ -1109,12 +1115,12 @@ if 1:   # Core functionality
          
         The input string s is split into tokens (words) at any character not in
         wordchars.  An invariant is that ''.join(results) is the original string.
-
+        
         Example
             >>> wordchars = string.ascii_letters
             >>> Tokenize("Zheenl@Punczna.zhmmyr")
             ['Zheenl', '@', 'Punczna', '.', 'zhmmyr']
-
+        
         '''
         if not isinstance(s, str):
             raise TypeError("Argument s needs to be a string")
@@ -1246,10 +1252,10 @@ if 1:   # Core functionality
                  start_end_const: bool=False
                 ) -> str:
         '''Return a string with the letters in the words randomly shuffled
-
+        
         Arguments
             mystr       String whose words are to be shuffled
-
+        
         but with the
         punctuation and whitespace unchanged if punc is None.
         
@@ -1315,108 +1321,79 @@ if 1:   # Core functionality
             s.pop(-1)
         # Return scrambled string or list
         return ''.join(s)
-    #yy 
-    def Trim(s, chars="", left=True, right=True, check=False):
-        '''Remove characters in the string chars from the left and right sides of s,
-        returning the result.
-        
-        This routine breaks s into three strings L, M, and R such that s = L + M + R.  L
-        and R consist only of characters in chars.  The returned string is
-            left    right       returned
-            ----    -----     -------------
-            True    True            M
-            True    False         M + R
-            False   True          L + M
-            False   False     s = L + M + R
-        If check is True, the invariants are validated.
-        '''
+    def Trim(s: AnyStr,
+             chars: set[AnyStr],
+             left: bool=True,
+             right: bool=True
+            ) -> AnyStr:
+        'Remove characters in chars from the left and right sides of s & return result'
         if not chars or (not left and not right):
             return s
-        cs = "".join(set(chars))
-        # Partition s into L, M, R pieces so that s == L + M + R
-        MR = s.lstrip(cs)
-        LM = s.rstrip(cs)
-        M = s.strip(cs)
-        L = LM[: len(LM) - len(M)]
-        R = MR[len(M) :]
-        if check and not set(s).issubset(cs):  # Validate invariants
-            if set(s).issubset(cs):
-                assert not L and not M and not R
-            else:
-                assert L + M + R == s
+        dq = collections.deque(s)
+        isstr = True if isinstance(s, str) else False
         if left:
-            return M if right else M + R
-        else:
-            return L + M
-    def GetTransFunc(chars_from, chars_to, delete=None):
-        '''Return a function that will change characters in chars_from to the characters
-        in chars_to.  This function uses str.translate() to perform its work at C
-        speeds.  If chars_from has N characters, then chars_to must have 1 or N
-        characters.  The rules are:
+            while dq:
+                if dq[0] in chars:
+                    dq.popleft()
+                else:
+                    break
+        if right:
+            while dq:
+                if dq[-1] in chars:
+                    dq.pop()
+                else:
+                    break
+        return ''.join(dq) if isstr else bytes(dq)  # type: ignore
+    def Edit(*files: ty.Sequence[str | pathlib.Path],
+             strict: bool = False,
+             opt: list[str] | None = None,
+             ret: bool = False
+            ) -> None | list[str]:
+        '''Launch editor on those files that exist (or return the command strings)
         
-            - Any characters in the sequence delete are deleted from chars_from.
-            - If delete is not None, then it must be a str whose characters are deleted
-              from the string.
-            - If chars_to has 1 character, then remaining characters in the string will
-              be replaced by the character in chars_to.
-              
-        Example:  Let chars_from = string.punctuation and chars_to = " ".  Then
-        GetTransFunc(chars_from, chars_to) returns a function f that substitutes a space
-        character for every punctuation character.  Given a string s, f(s) returns a
-        string of the same length as s but with all ASCII punctuation characters
-        replaced by a string.
-        '''
-        if not chars_from:
-            return lambda x: x
-        N = len(chars_from)
-        if len(chars_to) not in (1, N):
-            raise ValueError("chars_to must have 1 or len(chars_from) characters")
-        From, To = chars_from, chars_to
-        if len(chars_to) == 1:
-            From, To = chars_from, chars_to*N
-        # Check delete
-        if delete is None:
-            Delete = None
-        elif not isinstance(delete, str):
-            raise TypeError("delete must be None or a string")
-        else:
-            Delete = "".join(set(delete))
-        # Make the translation table
-        tt = str.maketrans(From, To, Delete) if Delete else str.maketrans(From, To)
-        # Now make the function
-        def f(s):
-            return s.translate(tt)
-        return f
-    def Edit(*files, strict=False, opt=None):
-        '''Launch editor on those files that exist.  If strict is True, raise an
-        exception if there are no files or a file doesn't exist.  Otherwise, just return
-        quietly.  opt is a list of option strings to append before the list of files.
+        The bare call launches the editor (gotten from the EDITOR environment string);
+        you'll get an exception from subprocess() if the file doesn't exist or can't be
+        opened.
+        
+        Set strict to False and ret to True to raise no exceptions (files don't have to
+        exist); the function then just returns the list of command strings.
+         
+        Arguments
+            files       A string or pathlib.Path instance (file to edit)
+            strict      If True, raise Exception on no files or if a file doesn't exist
+            opt         List of strings options to append before the files
+            ret         If True, return the list of strings rather than executing the
+                        editing command
+        Example
+            >>> Edit("testfile", ret=True, opt=["a", "b"])
+            ["<editor_executable>", "a", "b", "testfile"]
         '''
         editor = os.environ["EDITOR"]
         files_to_edit = []
+        if strict and not files:
+            raise ValueError(f"No files given")
+        # Construct list of file strings to edit
         for file in files:
-            p = pathlib.Path(file)
-            if p.exists():
-                files_to_edit.append(file)
+            if isinstance(file, str):
+                p = pathlib.Path(file)
+            elif isinstance(file, pathlib.Path):
+                p = file
             else:
-                if strict:
-                    raise ValueError(f"{file!r} doesn't exist")
-        if not files_to_edit:
-            if strict:
-                raise ValueError("No files to edit")
-            return
-        # Construct editing string
-        e = [editor]
+                raise TypeError(f"{file!r} needs to be a str or pathlib.Path")
+            if strict and not p.exists():
+                raise ValueError(f"{file!r} doesn't exist")
+            files_to_edit.append(str(file))
+        # Construct editing command string list
+        editing_commands = [editor]
         if opt:
-            if isinstance(opt, (list, tuple)):
-                e.extend(list(opt))
-            elif isinstance(opt, str): 
-                e += [opt]
-            else:
-                raise TypeError("opt must be string or list/tuple of strings")
-        e += files_to_edit
-        subprocess.call(e)
-    def RemoveCharClass(s, keys=""):
+            editing_commands.extend(list(opt))
+        editing_commands.extend(files_to_edit)
+        if not ret:
+            subprocess.call(editing_commands)
+            return None
+        else:
+            return editing_commands
+    def RemoveCharClass(s: AnyStr, keys: str=""):
         '''Given s, a string, bytes, or bytearry, remove the characters indicated by the
         letters in the keys:
             A   Convert Unicode characters to rough ASCII equivalents
@@ -1443,113 +1420,100 @@ if 1:   # Core functionality
         characters that don't look similar to Latin letters.  The length of the string may
         increase:  for example, '∞' is changed to 'oo'.  For bytes or bytearray objects, the
         A letter results in an identity transformation.
-        
-        For convenience, the above set of letters coding the transformation are stored in
-        the RemoveCharClass.allowed_keys variable.
         '''
-        letters = "ABbdhlnopWwu780"
-        allowed_keys = set(letters)
-        if not hasattr(RemoveCharClass, "allowed_keys"):
-            RemoveCharClass.allowed_keys = allowed_keys
-        keys = set(keys)
-        if not keys.issubset(allowed_keys):
-            raise ValueError(f"{keys!r} must only contain the letters {letters!r}")
-        # Check type of s
-        if isinstance(s, str):
-            is_str = True
-        elif isinstance(s, (bytes, bytearray)):
-            is_str = False
-        else:
-            raise TypeError("s must be str, bytes, or bytearray")
+        letters = set("ABbdhlnopWwu780")
+        mykeys = set(keys)
+        if not mykeys.issubset(letters):
+            raise ValueError(f"keys = {keys!r} must only contain the letters {letters!r}")
         if 1:
-            # Class C is a notational convenience for holding the various sets of characters in
-            # the string module.  The attribute letters correspond to the letters that code the
-            # transformation.
-            class C:
+            cd = string.digits
+            ch = string.hexdigits
+            cl = string.ascii_lowercase
+            cn = string.punctuation
+            co = string.octdigits
+            cp = string.printable
+            cW = string.whitespace
+            cw = cW.replace("\n", "")
+            cu = string.ascii_uppercase
+        if isinstance(s, str):
+            r = s
+            if "A" in mykeys:
+                r = asciify.Asciify(s)
+            if "B" in mykeys:
+                r = ''.join(i for i in s if ord(i) >= 0x20)
+            if "b" in mykeys:
+                r = ''.join(i for i in s if ord(i) >= 0x20 or i == "\n")
+            if "d" in mykeys:
+                r = ''.join(i for i in s if i not in set(cd))
+            if "h" in mykeys:
+                r = ''.join(i for i in s if i not in set(ch))
+            if "l" in mykeys:
+                r = ''.join(i for i in s if i not in set(cl))
+            if "o" in mykeys:
+                r = ''.join(i for i in s if i not in set(co))
+            if "n" in mykeys:
+                r = ''.join(i for i in s if i not in set(cn))
+            if "p" in mykeys:
+                r = ''.join(i for i in s if i     in set(cp))
+            if "W" in mykeys:
+                r = ''.join(i for i in s if i not in set(cW))
+            if "w" in mykeys:
+                r = ''.join(i for i in s if i not in set(cw))
+            if "u" in mykeys:
+                r = ''.join(i for i in s if i not in set(cu))
+            if "7" in mykeys:
+                r = ''.join(i for i in s if ord(i) <= 0x7f)
+            if "8" in mykeys:
+                r = ''.join(i for i in s if ord(i) <= 0xff)
+            if "0" in mykeys:
                 pass
-            c = C()
-            c.d = string.digits
-            c.h = string.hexdigits
-            c.l = string.ascii_lowercase
-            c.n = string.punctuation
-            c.o = string.octdigits
-            c.p = string.printable
-            c.W = string.whitespace
-            c.w = c.W.replace("\n", "")
-            c.u = string.ascii_uppercase
-        if is_str:
-            if "A" in keys:
-                s = asciify.Asciify(s)
-            if "B" in keys:
-                s = ''.join(i for i in s if ord(i) >= 0x20)
-            if "b" in keys:
-                s = ''.join(i for i in s if ord(i) >= 0x20 or i == "\n")
-            if "d" in keys:
-                s = ''.join(i for i in s if i not in set(c.d))
-            if "h" in keys:
-                s = ''.join(i for i in s if i not in set(c.h))
-            if "l" in keys:
-                s = ''.join(i for i in s if i not in set(c.l))
-            if "o" in keys:
-                s = ''.join(i for i in s if i not in set(c.o))
-            if "n" in keys:
-                s = ''.join(i for i in s if i not in set(c.n))
-            if "p" in keys:
-                s = ''.join(i for i in s if i     in set(c.p))
-            if "W" in keys:
-                s = ''.join(i for i in s if i not in set(c.W))
-            if "w" in keys:
-                s = ''.join(i for i in s if i not in set(c.w))
-            if "u" in keys:
-                s = ''.join(i for i in s if i not in set(c.u))
-            if "7" in keys:
-                s = ''.join(i for i in s if ord(i) <= 0x7f)
-            if "8" in keys:
-                s = ''.join(i for i in s if ord(i) <= 0xff)
-            if "0" in keys:
-                pass
-            return s
-        else:
+            return r
+        elif isinstance(s, (bytes, bytearray)):
             b = s
             T = bytes if isinstance(b, bytes) else bytearray
-            if "A" in keys:
+            if "A" in mykeys:
                 pass
-            if "B" in keys:
+            if "B" in mykeys:
                 b = T(i for i in b if i >= 0x20)
-            if "b" in keys:
+            if "b" in mykeys:
                 b = T(i for i in b if i >= 0x20 or i == ord("\n"))
-            if "d" in keys:
-                b = T(i for i in b if i not in set(c.d.encode()))
-            if "h" in keys:
-                b = T(i for i in b if i not in set(c.h.encode()))
-            if "l" in keys:
-                b = T(i for i in b if i not in set(c.l.encode()))
-            if "o" in keys:
-                b = T(i for i in b if i not in set(c.o.encode()))
-            if "n" in keys:
-                b = T(i for i in b if i not in set(c.n.encode()))
-            if "p" in keys:
-                b = T(i for i in b if i     in set(c.p.encode()))
-            if "W" in keys:
-                b = T(i for i in b if i not in set(c.W.encode()))
-            if "w" in keys:
-                b = T(i for i in b if i not in set(c.w.encode()))
-            if "u" in keys:
-                b = T(i for i in b if i not in set(c.u.encode()))
-            if "7" in keys:
+            if "d" in mykeys:
+                b = T(i for i in b if i not in set(cd.encode()))
+            if "h" in mykeys:
+                b = T(i for i in b if i not in set(ch.encode()))
+            if "l" in mykeys:
+                b = T(i for i in b if i not in set(cl.encode()))
+            if "o" in mykeys:
+                b = T(i for i in b if i not in set(co.encode()))
+            if "n" in mykeys:
+                b = T(i for i in b if i not in set(cn.encode()))
+            if "p" in mykeys:
+                b = T(i for i in b if i     in set(cp.encode()))
+            if "W" in mykeys:
+                b = T(i for i in b if i not in set(cW.encode()))
+            if "w" in mykeys:
+                b = T(i for i in b if i not in set(cw.encode()))
+            if "u" in mykeys:
+                b = T(i for i in b if i not in set(cu.encode()))
+            if "7" in mykeys:
                 b = T(i for i in b if i <= 0x7f)
-            if "8" in keys or "0" in keys:
+            if "8" in mykeys or "0" in mykeys:
                 pass
             return b
+        else:
+            raise TypeError("s must be str, bytes, or bytearray")
     class TextWrapper(textwrap.TextWrapper):
-        '''This is the same as the textwrap.TextWrapper class except the
-        method with calls to len had each occurrence replaced with Len.
+        '''This is the same as the textwrap.TextWrapper class except the method with
+        calls to len had each occurrence replaced with Len.  This allows this text
+        wrapper to work with strings with embedded escape strings.
         '''
-        def _wrap_chunks(self, chunks):
+        def __init__(self, *args, **kw) -> None:    # type: ignore
+            super().__init__(*args, **kw)
+        def _wrap_chunks(self, chunks: list[str]) -> list[str]:
             '''_wrap_chunks(chunks : [string]) -> [string]
             
             Wrap a sequence of text chunks and return a list of lines of
-            length 'self.width' or less.  (If 'break_long_words' is false,
+            length 'self.width' or less.  (If 'break_long_words' is False,
             some lines may be longer than this.)  Chunks correspond roughly
             to words and the whitespace between them: each chunk is
             indivisible (modulo 'break_long_words'), but a line break can
@@ -1558,7 +1522,7 @@ if 1:   # Core functionality
             Whitespace chunks will be removed from the beginning and end of
             lines, but apart from that whitespace is preserved.
             '''
-            lines = []
+            lines: list[str] = []
             if self.width <= 0:
                 raise ValueError(f"Invalid width {self.width!r} (must be > 0)")
             if self.max_lines is not None:
@@ -1569,7 +1533,7 @@ if 1:   # Core functionality
                 if Len(indent) + Len(self.placeholder.lstrip()) > self.width:
                     raise ValueError("placeholder too large for max width")
             # Arrange in reverse order so items can be efficiently popped
-            # from a stack of chucks.
+            # from a stack of chunks.
             chunks.reverse()
             while chunks:
                 # Start the list of chunks that will make up the current line.
@@ -1589,13 +1553,12 @@ if 1:   # Core functionality
                     del chunks[-1]
                 while chunks:
                     L = Len(chunks[-1])
-                    # Can at least squeeze this chunk onto the current line.
                     if cur_len + L <= width:
+                        # Can squeeze this chunk onto the current line
                         cur_line.append(chunks.pop())
                         cur_len += L
-                    # Nope, this line is full.
                     else:
-                        break
+                        break   # Nope, this line is full.
                 # The current line is full, and the next chunk is too big to
                 # fit on *any* line (not just this one).
                 if chunks and Len(chunks[-1]) > width:
@@ -1606,26 +1569,20 @@ if 1:   # Core functionality
                     cur_len -= Len(cur_line[-1])
                     del cur_line[-1]
                 if cur_line:
-                    if (
-                        self.max_lines is None
-                        or Len(lines) + 1 < self.max_lines
-                        or (
-                            not chunks
-                            or self.drop_whitespace
-                            and Len(chunks) == 1
-                            and not chunks[0].strip()
-                        )
-                        and cur_len <= width
-                    ):
+                    if     (self.max_lines is None
+                            or Len(lines) + 1 < self.max_lines
+                            or (not chunks
+                                or self.drop_whitespace
+                                and Len(chunks) == 1
+                                and not chunks[0].strip())
+                        and cur_len <= width):
                         # Convert current line back to a string and store it in
                         # list of all lines (return value).
                         lines.append(indent + "".join(cur_line))
                     else:
                         while cur_line:
-                            if (
-                                cur_line[-1].strip()
-                                and cur_len + Len(self.placeholder) <= width
-                            ):
+                            if     (cur_line[-1].strip()
+                                    and cur_len + Len(self.placeholder) <= width):
                                 cur_line.append(self.placeholder)
                                 lines.append(indent + "".join(cur_line))
                                 break
@@ -1667,59 +1624,80 @@ if 1:   # Core functionality
         else:
             raise TypeError("s must be a str or bytes instance")
 if 1:   # Old util stuff
-    def StringToNumbers(s, sep=" ", handle_i=True):
-        '''s is a string; return the sequence (tuple) of numbers it represents; number
+    def StringToNumbers(s: str,
+                        sep: str = " ",
+                        handle_i: bool = True
+                       ) -> list[int | float | complex | fractions.Fraction]:
+        '''Return a list of numbers that the string s represents
+        
+        The numbers returned are integers, fractions, floats, or complex.
+        
+        Arguments
+            s           String of number strings separated by sep
+            sep         String that separates numbers
+            handle_i    If True, 'i' or 'I' are allowed as the imaginary unit
+
+        s is a string; return the sequence (tuple) of numbers it represents; number
         strings are separated by the string sep.  The numbers returned are integers,
         fractions, floats, or complex.  If handle_i is True, 'i' or 'I' are allowed as the
         imaginary unit.
         '''
         seq = []
-        for line in s.strip().split(g.nl):
+        for line in s.strip().split("\n"):
             if sep is None:
                 seq.extend(line.split(sep))
             else:
                 seq.extend(line.split())
-        return tuple([ConvertToNumber(i, handle_i=handle_i) for i in seq])
-    def RemoveIndent(s, numspaces=4):
+        return [ConvertToNumber(i, i=handle_i) for i in seq]
+    def RemoveIndent(s: str, numspaces: int=4) -> str:
         '''Given a multi-line string s, remove the indicated number of spaces from the beginning each
         line.  If that number of space characters aren't present, then leave the line alone.
         '''
         if numspaces < 0:
             raise ValueError("numspaces must be >= 0")
-        lines = s.split(g.nl)
+        lines = s.split("\n")
         for i, line in enumerate(lines):
-            if line.startswith(" " * numspaces):
+            if line.startswith(" "*numspaces):
                 lines[i] = lines[i][numspaces:]
-        return g.nl.join(lines)
-    def GetLeadingString(string, prefix=" "):
-        '''Return the leading string from string, made up of one or more groups of the
-        indicated string prefix.  A use case is to match the indentation of a previous line.
+        return "\n".join(lines)
+    def GetLeadingString(string: AnyStr, prefix: AnyStr) -> AnyStr:
+        '''Return the leading string from string
         
-        Examples:
-            GetLeadingString(b"zzzHi", prefix=b"z") -> b"zzz"
-            GetLeadingString("zzzHi", prefix="z") -> "zzz"
-            GetLeadingString("ababHi", prefix="ab") -> "abab"
+        The leading string is one or more groups of the prefix.  A use case is to match
+        the indentation of a previous line.
+        
+        Example
+            >>> GetLeadingString(b"zzzHi", prefix=b"z")
+            b"zzz"
+            >>> GetLeadingString("zzzHi", prefix="z")
+            "zzz"
+            >>> GetLeadingString("ababHi", prefix="ab")
+            "abab"
         '''
-        np, lp, ls = 0, len(prefix), len(string)
-        while np * lp < ls:
-            if string[np * lp : (np + 1) * lp] == prefix:
-                np += 1
+        num_chunks, len_prefix = 0, len(prefix)
+        while num_chunks*len_prefix < len(string):
+            if string[num_chunks*len_prefix : (num_chunks + 1)*len_prefix] == prefix:
+                num_chunks += 1
             else:
                 break
-        return np * prefix
-    def GetTrailingString(string, suffix=" "):
-        '''Return the trailing string from string, made up of one or more groups of the
-        indicated string suffix.
+        return num_chunks*prefix
+    def GetTrailingString(string: AnyStr, suffix: AnyStr) -> AnyStr:
+        '''Return the trailing string from string
+        
+        The trailing string is one or more groups of the suffix.  A use case is to match
+        the indentation of a previous line.
+        
+        Example
+            >>> GetTrailingString(b"Hizzz", suffix=b"z")
+            b"zzz"
+            >>> GetTrailingString("Hizzz", suffix="z")
+            "zzz"
+            >>> GetTrailingString("Hiabab", suffix="ab")
+            "abab"
         '''
-        # This is done by reversing string and suffix and using GetLeadingString(), but it
-        # does mean we have to create copies in memory.
-        def f(x):
-            return list(reversed(x))
-        result = f(GetLeadingString(f(string), prefix=f(suffix)))
-        if type(string) is bytes:
-            return bytes(result)
-        else:
-            return ''.join(result)
+        def Reversed(x: AnyStr) -> AnyStr:
+            return bytes(reversed(x)) if isinstance(x, bytes) else ''.join(reversed(x))
+        return Reversed(GetLeadingString(Reversed(string), prefix=Reversed(suffix)))
     def GetHash(item: pathlib.Path | AnyStr,
                 method: str="sha256",
                 encoding: str="UTF-8"
@@ -1757,54 +1735,105 @@ if 1:   # Old util stuff
                 h.update(item.open("r").read().encode(encoding))
         return str(h.hexdigest())
     def EBCDIC():
-        '''Returns two byte-translation tables to use with
-        bytes.translate().  The first converts ASCII bytes to EBCDIC and the
-        second converts EBCDIC bytes to ASCII.
-        '''
-        a2e = [int(i) for i in
-            '''0 1 2 3 55 45 46 47 22 5 37 11 12 13 14 15 16 17 18 19 60 61 50 38 24 25
-            63 39 28 29 30 31 64 79 127 123 91 108 80 125 77 93 92 78 107 96 75 97 240
-            241 242 243 244 245 246 247 248 249 122 94 76 126 110 111 124 193 194 195
-            196 197 198 199 200 201 209 210 211 212 213 214 215 216 217 226 227 228 229
-            230 231 232 233 74 224 90 95 109 121 129 130 131 132 133 134 135 136 137 145
-            146 147 148 149 150 151 152 153 162 163 164 165 166 167 168 169 192 106 208
-            161 7 32 33 34 35 36 21 6 23 40 41 42 43 44 9 10 27 48 49 26 51 52 53 54 8
-            56 57 58 59 4 20 62 225 65 66 67 68 69 70 71 72 73 81 82 83 84 85 86 87 88
-            89 98 99 100 101 102 103 104 105 112 113 114 115 116 117 118 119 120 128 138
-            139 140 141 142 143 144 154 155 156 157 158 159 160 170 171 172 173 174 175
-            176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 202 203 204
-            205 206 207 218 219 220 221 222 223 234 235 236 237 238 239 250 251 252 253
-            254 255'''.split()
-        ]
-        e2a = [int(i) for i in 
-            '''0 1 2 3 156 9 134 127 151 141 142 11 12 13 14 15 16 17 18 19 157 133 8
-            135 24 25 146 143 28 29 30 31 128 129 130 131 132 10 23 27 136 137 138 139
-            140 5 6 7 144 145 22 147 148 149 150 4 152 153 154 155 20 21 158 26 32 160
-            161 162 163 164 165 166 167 168 91 46 60 40 43 33 38 169 170 171 172 173 174
-            175 176 177 93 36 42 41 59 94 45 47 178 179 180 181 182 183 184 185 124 44
-            37 95 62 63 186 187 188 189 190 191 192 193 194 96 58 35 64 39 61 34 195 97
-            98 99 100 101 102 103 104 105 196 197 198 199 200 201 202 106 107 108 109
-            110 111 112 113 114 203 204 205 206 207 208 209 126 115 116 117 118 119 120
-            121 122 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226
-            227 228 229 230 231 123 65 66 67 68 69 70 71 72 73 232 233 234 235 236 237
-            125 74 75 76 77 78 79 80 81 82 238 239 240 241 242 243 92 159 83 84 85 86 87
-            88 89 90 244 245 246 247 248 249 48 49 50 51 52 53 54 55 56 57 250 251 252
-            253 254 255'''.split()
-        ]
-        s, t = bytearray(a2e), bytearray(e2a)
-        return s.maketrans(s, t), s.maketrans(t, s)
-    def ConvertToNumber(s, handle_i=True):
-        '''This is a general-purpose routine that will return a python number for a string if it is
-        possible.  The basic logic is:
+        'Return two byte-translation tables ASCII_to_EBCDIC and EBCDIC_to_ASCII'
+        # ∞∞3:  It's not known whether either of these two transformations are "correct"
+        # and it's complicated because things are complicated by many encodings.
+        # Virtually everything you'll come across is poorly documented to, so to fiddle
+        # with old data may take quite a bit of work.  I had to work with this stuff
+        # once a few decades ago with voting data from someone's mainframe reel of tape
+        # and it was frustrating to find documentation, but I finally figured things
+        # out.
+        if 1:   # These two tables are the old code and unattributed
+            a2e = [int(i) for i in
+                '''0 1 2 3 55 45 46 47 22 5 37 11 12 13 14 15 16 17 18 19 60 61 50 38 24 25
+                63 39 28 29 30 31 64 79 127 123 91 108 80 125 77 93 92 78 107 96 75 97 240
+                241 242 243 244 245 246 247 248 249 122 94 76 126 110 111 124 193 194 195
+                196 197 198 199 200 201 209 210 211 212 213 214 215 216 217 226 227 228 229
+                230 231 232 233 74 224 90 95 109 121 129 130 131 132 133 134 135 136 137 145
+                146 147 148 149 150 151 152 153 162 163 164 165 166 167 168 169 192 106 208
+                161 7 32 33 34 35 36 21 6 23 40 41 42 43 44 9 10 27 48 49 26 51 52 53 54 8
+                56 57 58 59 4 20 62 225 65 66 67 68 69 70 71 72 73 81 82 83 84 85 86 87 88
+                89 98 99 100 101 102 103 104 105 112 113 114 115 116 117 118 119 120 128 138
+                139 140 141 142 143 144 154 155 156 157 158 159 160 170 171 172 173 174 175
+                176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 202 203 204
+                205 206 207 218 219 220 221 222 223 234 235 236 237 238 239 250 251 252 253
+                254 255'''.split()
+            ]
+            e2a = [int(i) for i in 
+                '''0 1 2 3 156 9 134 127 151 141 142 11 12 13 14 15 16 17 18 19 157 133 8
+                135 24 25 146 143 28 29 30 31 128 129 130 131 132 10 23 27 136 137 138 139
+                140 5 6 7 144 145 22 147 148 149 150 4 152 153 154 155 20 21 158 26 32 160
+                161 162 163 164 165 166 167 168 91 46 60 40 43 33 38 169 170 171 172 173 174
+                175 176 177 93 36 42 41 59 94 45 47 178 179 180 181 182 183 184 185 124 44
+                37 95 62 63 186 187 188 189 190 191 192 193 194 96 58 35 64 39 61 34 195 97
+                98 99 100 101 102 103 104 105 196 197 198 199 200 201 202 106 107 108 109
+                110 111 112 113 114 203 204 205 206 207 208 209 126 115 116 117 118 119 120
+                121 122 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226
+                227 228 229 230 231 123 65 66 67 68 69 70 71 72 73 232 233 234 235 236 237
+                125 74 75 76 77 78 79 80 81 82 238 239 240 241 242 243 92 159 83 84 85 86 87
+                88 89 90 244 245 246 247 248 249 48 49 50 51 52 53 54 55 56 57 250 251 252
+                253 254 255'''.split()
+            ]
+            s, t = bytes(a2e), bytes(e2a)
+            A2E, E2A = bytes.maketrans(s, t), bytes.maketrans(t, s)
+            return A2E, E2A
+        else:
+            # EBCDIC to/from ASCII
+            # https://www.ibm.com/docs/en/iis/11.7.0?topic=tables-ebcdic-ascii
+            # Downloaded 23 Mar 2026 10:42:46 am Mon
+            e = bytes(list(range(0x100)))   # EBCDIC codes
+            a = bytes((
+                    0x00, 0x01, 0x02, 0x03, 0x1A, 0x09, 0x1A, 0x7F, 0x1A, 0x1A, 0x1A,
+                    0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x1A, 0x1A,
+                    0x08, 0x1A, 0x18, 0x19, 0x1A, 0x1A, 0x1C, 0x1D, 0x1E, 0x1F, 0x1A,
+                    0x1A, 0x1A, 0x1A, 0x1A, 0x0A, 0x17, 0x1B, 0x1A, 0x1A, 0x1A, 0x1A,
+                    0x1A, 0x05, 0x06, 0x07, 0x1A, 0x1A, 0x16, 0x1A, 0x1A, 0x1A, 0x1A,
+                    0x04, 0x1A, 0x1A, 0x1A, 0x1A, 0x14, 0x15, 0x1A, 0x1A, 0x20, 0x1A,
+                    0x1A, 0x1A, 0x1A, 0x1A, 0x1A, 0x1A, 0x1A, 0x1A, 0x5B, 0x2E, 0x3C,
+                    0x28, 0x2B, 0x21, 0x26, 0x1A, 0x1A, 0x1A, 0x1A, 0x1A, 0x1A, 0x1A,
+                    0x1A, 0x1A, 0x5D, 0x24, 0x2A, 0x29, 0x3B, 0x5E, 0x2D, 0x1A, 0x1A,
+                    0x1A, 0x1A, 0x1A, 0x1A, 0x1A, 0x1A, 0x1A, 0x7C, 0x2C, 0x25, 0x5F,
+                    0x3E, 0x3F, 0x1A, 0x1A, 0x1A, 0x1A, 0x1A, 0x1A, 0x1A, 0x1A, 0x1A,
+                    0x60, 0x3A, 0x23, 0x40, 0x27, 0x3D, 0x22, 0x1A, 0x61, 0x62, 0x63,
+                    0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x1A, 0x1A, 0x1A, 0x1A, 0x1A,
+                    0x1A, 0x1A, 0x6A, 0x6B, 0x6C, 0x6D, 0x6E, 0x6F, 0x70, 0x71, 0x72,
+                    0x1A, 0x1A, 0x1A, 0x1A, 0x1A, 0x1A, 0x1A, 0x7E, 0x73, 0x74, 0x75,
+                    0x76, 0x77, 0x78, 0x79, 0x7A, 0x1A, 0x1A, 0x1A, 0x1A, 0x1A, 0x1A,
+                    0x1A, 0x1A, 0x1A, 0x1A, 0x1A, 0x1A, 0x1A, 0x1A, 0x1A, 0x1A, 0x1A,
+                    0x1A, 0x1A, 0x1A, 0x1A, 0x1A, 0x7B, 0x41, 0x42, 0x43, 0x44, 0x45,
+                    0x46, 0x47, 0x48, 0x49, 0x1A, 0x1A, 0x1A, 0x1A, 0x1A, 0x1A, 0x7D,
+                    0x4A, 0x4B, 0x4C, 0x4D, 0x4E, 0x4F, 0x50, 0x51, 0x52, 0x1A, 0x1A,
+                    0x1A, 0x1A, 0x1A, 0x1A, 0x5C, 0x1A, 0x53, 0x54, 0x55, 0x56, 0x57,
+                    0x58, 0x59, 0x5A, 0x1A, 0x1A, 0x1A, 0x1A, 0x1A, 0x1A, 0x30, 0x31,
+                    0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x1A, 0x1A, 0x1A,
+                    0x1A, 0x1A, 0x1A))
+            return bytes.maketrans(a, e), bytes.maketrans(e, a)
+    def ConvertToNumber(s: str,
+                        i: bool = True
+                       ) -> int | float | complex | fractions.Fraction:
+        '''Return a python number instance for a string 
+
+        The logic is:
             - If it contains 'j' or 'J', it's complex
+                - If i is True, if it contains 'i' or 'I', it's complex
             - If it contains '/', it's a fraction
             - If it contains ',', '.', 'E', or 'e', it's a float
             - Otherwise it's interpreted as an integer
-        Since I prefer to use 'i' for complex numbers, we'll also allow an 'i' in the number unless
-        handle_i is False.
+
+        Example
+            >>> ConvertToNumber("3 - j")
+            ValueError
+            >>> ConvertToNumber("3 - 1j")
+            ValueError
+            >>> ConvertToNumber("3-1j")
+            (3-1j)
+            >>> ConvertToNumber("3-1i")
+            (3-1j)
+            >>> ConvertToNumber("3-1i", i=False)
+            ValueError
         '''
         s = s.lower()
-        if handle_i:
+        if i:
             s = s.replace("i", "j")
         if "j" in s:
             return complex(s)
@@ -1818,30 +1847,41 @@ if 1:   # Old util stuff
         '''This is a string object that uses a regular expression to remove
         ANSI color-coding strings before calculating the string length.
         '''
-        # This regular expression is used to replace color-coding escape sequence with the
-        # empty string.  See https://en.wikipedia.org/wiki/ANSI_escape_code.
+        # This regular expression is used to replace a color-coding escape sequence with
+        # the empty string.  See https://en.wikipedia.org/wiki/ANSI_escape_code.
         r = re.compile(r"\x1b\[[0-?]*[ -\/]*[@-~]")
-        def __len__(self):
+        def __len__(self) -> int:
             return len(astr.r.sub("", str(self)))
-    def alen(s):
+    def alen(s: str) -> int:
         'Function to get the length of a string, ignoring any ANSI escape sequences'
         return len(astr.r.sub("", s))
-    def ANSI_strip(string):
-        '''Return the string with ANSI escape sequences removed.  16 Feb 2023 Suggested
-        regexp from
-        https://stackoverflow.com/questions/14693701/how-can-i-remove-the-ansi-escape-sequences-from-a-string-in-python
-        (see the answer below this answer, as it is a more general regexp).
+    def EscapeSequenceStrip(string: str) -> str:
+        '''Return the string with ANSI escape sequences removed
+
+        16 Feb 2023 Suggested regexp from
+        https://stackoverflow.com/questions/14693701/how-can-i-remove-the-ansi-\
+        escape-sequences-from-a-string-in-python (see the answer below this answer,
+        as it is a more general regexp).
+
+        Example:
+            >>>EscapeSequenceStrip("\x1b[38;2;198;174;239m12.578")
+            '12.578'
         '''
         r = re.compile(r"(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]")
         return r.sub("", string)
-    def BuildTagsFile(dir, files, verbose=False, dbg=False):
-        '''Construct a tags file for the indicated directory.
+    def BuildTagsFile_old(dir: str | pathlib.Path,
+                      files: ty.Sequence[str | pathlib.Path],
+                      verbose: bool = False
+                     ) -> None:
+        r'''For vim-style help files, construct a tags file for the indicated directory
+        
+        Arguments
           dir       Directory where the files reside
           files     Sequence of file names
           verbose   If True, print where tags file constructed
           
-        For vim's help files, this is done by searching for text between two asterisk characters
-        and extracting the tag.  This is written to the tags file in the form
+        For vim's help files, this is done by searching for text between two asterisk
+        characters and extracting the tag.  This is written to the tags file in the form
         
             symbol\tsymbol.hld\t/*symbol*
             
@@ -1852,7 +1892,7 @@ if 1:   # Old util stuff
             print("BuildTagsFile:  no files found in files sequence", file=sys.stderr)
             return
         # Make sure dir is a string or a Path instance
-        Assert(isinstance(dir, (str, pathlib.Path)))
+        assert isinstance(dir, str | pathlib.Path)
         # Make sure files is an iterable
         Assert(dpseq.IsIterable(files))
         # Make sure each item in files is a string or Path instance
@@ -1874,8 +1914,6 @@ if 1:   # Old util stuff
                         for tag in mo.groups():
                             t = f"{tag}\t{file}\t/*{tag}*"
                             tags.append(t)
-                        if dbg:
-                            print(f"tag(s) found in [{file}]:  {line!r}")
         # Get rid of duplicates
         tags = list(sorted(list(set(tags))))
         n = len(tags) - 1
@@ -1888,6 +1926,52 @@ if 1:   # Old util stuff
             print(f"{n} tags constructed in {tagsfile.absolute()}")
         # Go back to the directory we started from
         os.chdir(cwd)
+    #yy 
+    def BuildTagsFile(directory: str | pathlib.Path,
+                      files: ty.Sequence[str | pathlib.Path],
+                      verbose: bool = False
+                     ) -> None:
+        r'''For vim-style help files, construct a tags file for the indicated directory
+        
+        Arguments
+          dir       Directory where the files reside
+          files     Sequence of file names
+          verbose   If True, print where tags file constructed
+          
+        For vim's help files, this is done by searching for text between two asterisk
+        characters and extracting the tag.  This is written to the tags file in the form
+        
+            symbol\tsymbol.hld\t/*symbol*
+            
+        and the file is sorted on these lines.  The first line of the file must be
+        'help-tags\ttags\t1'.
+        '''
+        if not files and verbose:
+            print(f"{__file__}:BuildTagsFile: no files found in files sequence", file=sys.stderr)
+            return
+        base_path = pathlib.Path(directory)
+        tag_pattern = re.compile(r"\*([A-Za-z_][A-Za-z0-9_]*)\*")
+        tags_set: set[str] = {"help-tags\ttags\t1"}
+        for file_ref in files:
+            p = pathlib.Path(file_ref)
+            # Handle relative paths: if p isn't absolute, assume it's relative to 'directory'
+            full_path = p if p.is_absolute() else base_path / p
+            try:
+                with full_path.open("r", encoding="utf-8") as f:
+                    for line in f:
+                        for tag in tag_pattern.findall(line):
+                            t = f"{tag}\t{p.name}\t/*{tag}*"
+                            tags_set.add(t)
+            except (OSError, UnicodeDecodeError) as e:
+                if verbose:
+                    print(f"Error reading {full_path}: {e}", file=sys.stderr)
+        sorted_tags = sorted(list(tags_set))
+        output_file = base_path/"tags"
+        output_file.write_text("\n".join(sorted_tags) + "\n", encoding="utf-8")
+        if verbose:
+            # Subtracting 1 because the first line is the header
+            count = len(sorted_tags) - 1
+            print(f"{count} tags constructed in {output_file.absolute()}")
 
 if __name__ == "__main__":
     if 1:   # Standard imports
@@ -1944,29 +2028,23 @@ if __name__ == "__main__":
         # Ignore case
         f = IgnoreFilter(["bob", "carol"], flags=re.I)
         Assert(f(seq) == ['Alice'])
-    def Test_GetTransFunc():
-        From = '''Mr. Dee, a, a--b; 'z' and "a", ok.'''
-        expected = '''r  Dee  a  a  b   z  and  a   ok '''
-        f = GetTransFunc(string.punctuation, " ", delete="M")
-        got = f(From)
-        Assert(got == expected)
     def Test_Trim():
         for s in ("", "a", "abc"):
-            Assert(Trim(s) == s)
+            Assert(Trim(s, set("")) == s)
         u = "a b"
         s = f" {u} "
-        cs = " "
+        cs = set(" ")
         Assert(Trim(s, chars=cs) == f"{u}")
         Assert(Trim(s, chars=cs, left=True, right=False) == f"{u} ")
         Assert(Trim(s, chars=cs, left=False, right=True) == f" {u}")
         Assert(Trim(s, chars=cs, left=True, right=True) == f"{u}")
         # Test when s is a subset of chars
         s = "aaaaaaaaaa"
-        cs = "eoirtjwpo op4er9qorja"
-        Assert(Trim(s, chars=cs, check=True) == "")
-        Assert(Trim(s, chars=cs, left=True, right=False, check=True) == "")
-        Assert(Trim(s, chars=cs, left=False, right=True, check=True) == "")
-        Assert(Trim(s, chars=cs, left=True, right=True, check=True) == "")
+        cs = set("eoirtjwpo op4er9qorja")
+        Assert(Trim(s, chars=cs) == "")
+        Assert(Trim(s, chars=cs, left=True, right=False) == "")
+        Assert(Trim(s, chars=cs, left=False, right=True) == "")
+        Assert(Trim(s, chars=cs, left=True, right=True) == "")
     def Test_Keep():
         Assert(''.join(Keep("", "")) == "")
         Assert(''.join(Keep("", "a")) == "")
@@ -2063,6 +2141,10 @@ if __name__ == "__main__":
             x = b""
             found = FindStrings(seq, x, ignorecase=True)
             Assert(not found)
+    def Test_Edit():
+        s = Edit("testfile", ret=True, opt=["a", "b"])
+        # Ignore the first element, which will be the user's editor
+        Assert(s[1:] == ['a', 'b', 'testfile'])
     def Test_Scramble():
         random.seed("0")
         s = '"Yes", said John. Åé—'
@@ -2400,8 +2482,6 @@ if __name__ == "__main__":
         seq1 = s.split()
         seq2 = seq1 + [10]
         regex = re.compile(r"[123]")
-        # FilterSeqRegex(seq, regex)
-
         # Empty sequence gets back empty sequence
         Assert(list(FilterSeqRegex([], regex)) == [])
         # regex == None means an identity transformation
@@ -2498,95 +2578,92 @@ if __name__ == "__main__":
             s, b, a = mk("∞©")
             Check(s, b, a, "0", s, b, a)
         if 1:   # Check passed key characters
-            keys = list(f.allowed_keys)
+            keys = list("ABbdhlnopWwu780")  # Allowed key letters
             f("", keys=keys)
             raises(ValueError, f, "", keys=keys + ["x"])
-    if 1:   # Test old util stuff
-        def Test_StringToNumbers():
-            s = "4j 3/5 6. 7"
-            Assert(StringToNumbers(s) == (4j, fractions.Fraction(3, 5), 6.0, 7))
-        def Test_RemoveIndent():
-            s = '''
-            This is a test
-                Second line
-              Third line
-            '''
-            n = 12  # Depends on how much this code is indented
-            lines = RemoveIndent(s, numspaces=n).split("\n")
-            Assert(lines[0] == "")
-            Assert(lines[1] == "This is a test")
-            Assert(lines[2] == "    Second line")
-            Assert(lines[3] == "  Third line")
-            Assert(lines[4] == "")
-        def Test_GetLeadingString():
-            if 1:   # GetLeadingString
-                f = GetLeadingString
-                # Test with bytes
-                Assert(f(b'zzzHi', prefix=b'z') == b'zzz') 
-                # Test with string
-                s = 'zzzHi'
-                Assert(f(s, prefix='z') == 'zzz') 
-                Assert(f(s, prefix='zz') == 'zz') 
-                Assert(f(s, prefix='zzz') == 'zzz') 
-                Assert(f('ababHi', prefix='ab') == 'abab') 
-                Assert(f('abbaHi', prefix='ab') == 'ab') 
-            if 1:   # GetTrailingString
-                f = GetTrailingString
-                # Test with bytes
-                Assert(f(b'Hizzz', suffix=b'z') == b'zzz') 
-                # Test with string
-                s = 'Hizzz'
-                Assert(f(s, suffix='z') == 'zzz') 
-                Assert(f(s, suffix='zz') == 'zz') 
-                Assert(f(s, suffix='zzz') == 'zzz') 
-                Assert(f('Hiabab', suffix='ab') == 'abab') 
-                Assert(f('Hiabba', suffix='ba') == 'ba') 
-        def Test_GetHash():
-            expected = "473287f8298dba7163a897908958f7c0eae733e25d2e027992ea2edc9bed2fa8"
-            h = GetHash("string")
-            Assert(h == expected)
-            h = GetHash(b"string")
-            Assert(h == expected)
-        def Test_EBCDIC():
-            a2e, e2a = EBCDIC()
-            # Show that these byte translation tables are inverses
-            a = bytearray(range(256))
-            e = a.translate(a2e)
-            a1 = e.translate(e2a)
-            Assert(a == a1)
-        def Test_ConvertToNumber():
-            Assert(ConvertToNumber("1+i") == 1 + 1j)
-            Assert(ConvertToNumber("1+j") == 1 + 1j)
-            Assert(ConvertToNumber("j") == 1j)
-            Assert(ConvertToNumber("1.") == 1)
-            Assert(ConvertToNumber("1e2") == 1e2)
-            Assert(ConvertToNumber("1E2") == 1e2)
-            Assert(ConvertToNumber("1/2") == fractions.Fraction(1, 2))
-            Assert(ConvertToNumber("1") == 1)
-            n = 10**50  # Large integer
-            Assert(ConvertToNumber(str(n)) == n)
-        def Test_alen_astr():
-            # Note the Unicode '∞' in the third line.
-            tststring = wrap.dedent('''
-            [1;37;42mstring1[0m
-            string2
-            [1;36mstring3∞[0m''')
-            for i, s in enumerate(tststring.split("\n")):
-                a = astr(s)
-                if i in (0, 1):
-                    assert_equal(len(a), 7)
-                    assert_equal(alen(s), 7)
-                else:
-                    assert_equal(len(a), 8)
-                    assert_equal(alen(s), 8)
-        def Test_Len_ANSI_strip():
-            "Also test ANSI_strip"
-            s = "hello world"
-            Assert(Len(s) == 11)
-            s = "\x1b[38;2;198;174;239m12.578\x1b[38;2;192;192;192m\x1b[48;2;0;0;0m\x1b[0m"
-            Assert(Len(s) == 6)
-            u = ANSI_strip(s)
-            Assert(u == "12.578")
+    def Test_StringToNumbers():
+        s = "4i 4j 3/5 6. 7"
+        Assert(StringToNumbers(s) == [4j, 4j, fractions.Fraction(3, 5), 6.0, 7])
+    def Test_RemoveIndent():
+        n = 8
+        u = " "*n
+        s = f"\n{u}This is a test\n{u}    Second line\n{u}  Third line\n{u}"
+        lines = RemoveIndent(s, numspaces=n).split("\n")
+        Assert(lines[0] == "")
+        Assert(lines[1] == "This is a test")
+        Assert(lines[2] == "    Second line")
+        Assert(lines[3] == "  Third line")
+        Assert(lines[4] == "")
+    def Test_GetLeadingString():
+        if 1:   # GetLeadingString
+            f = GetLeadingString
+            # Test with bytes
+            Assert(f(b'zzzHi', prefix=b'z') == b'zzz') 
+            # Test with string
+            s = 'zzzHi'
+            Assert(f(s, prefix='z') == 'zzz') 
+            Assert(f(s, prefix='zz') == 'zz') 
+            Assert(f(s, prefix='zzz') == 'zzz') 
+            Assert(f('ababHi', prefix='ab') == 'abab') 
+            Assert(f('abbaHi', prefix='ab') == 'ab') 
+        if 1:   # GetTrailingString
+            f = GetTrailingString
+            # Test with bytes
+            Assert(f(b'Hizzz', suffix=b'z') == b'zzz') 
+            # Test with string
+            s = 'Hizzz'
+            Assert(f(s, suffix='z') == 'zzz') 
+            Assert(f(s, suffix='zz') == 'zz') 
+            Assert(f(s, suffix='zzz') == 'zzz') 
+            Assert(f('Hiabab', suffix='ab') == 'abab') 
+            Assert(f('Hiabba', suffix='ba') == 'ba') 
+    def Test_GetHash():
+        expected = "473287f8298dba7163a897908958f7c0eae733e25d2e027992ea2edc9bed2fa8"
+        h = GetHash("string")
+        Assert(h == expected)
+        h = GetHash(b"string")
+        Assert(h == expected)
+    def Test_EBCDIC():
+        a2e, e2a = EBCDIC()
+        # Show that these byte translation tables are inverses
+        a = bytes((range(256)))
+        e = a.translate(a2e)
+        a1 = e.translate(e2a)
+        Assert(a == a1)
+    def Test_ConvertToNumber():
+        Assert(ConvertToNumber("1+i") == 1 + 1j)
+        Assert(ConvertToNumber("1+j") == 1 + 1j)
+        Assert(ConvertToNumber("j") == 1j)
+        Assert(ConvertToNumber("1.") == 1)
+        Assert(ConvertToNumber("1e2") == 1e2)
+        Assert(ConvertToNumber("1E2") == 1e2)
+        Assert(ConvertToNumber("1/2") == fractions.Fraction(1, 2))
+        Assert(ConvertToNumber("1") == 1)
+        n = 10**50  # Large integer
+        Assert(ConvertToNumber(str(n)) == n)
+    def Test_alen_astr():
+        # Note the Unicode '∞' in the third line.
+        tststring = wrap.dedent('''
+        [1;37;42mstring1[0m
+        string2
+        [1;36mstring3∞[0m''')
+        for i, s in enumerate(tststring.split("\n")):
+            a = astr(s)
+            if i in (0, 1):
+                assert_equal(len(a), 7)
+                assert_equal(alen(s), 7)
+            else:
+                assert_equal(len(a), 8)
+                assert_equal(alen(s), 8)
+    def Test_Len_ANSI_strip():
+        "Also test EscapeSequenceStrip"
+        s = "hello world"
+        Assert(Len(s) == 11)
+        #                          ↓↓↓↓↓↓  Actual string characters
+        s = "\x1b[38;2;198;174;239m12.578\x1b[38;2;192;192;192m\x1b[48;2;0;0;0m\x1b[0m"
+        Assert(Len(s) == 6)
+        u = EscapeSequenceStrip(s)
+        Assert(u == "12.578")
     def Test_BuildTagsFile():
         '''Test this in my ~/.manpages directory where there is a collection of *.hld files.
         Manual verification has proven the method works, so now running this file is the way to
@@ -2594,7 +2671,7 @@ if __name__ == "__main__":
         '''
         dir = pathlib.Path("/home/don/.manpages")
         files = list(dir.glob("*.hld"))
-        BuildTagsFile(dir, files, dbg=False)
+        BuildTagsFile(dir, files)
     def Demo():
         "Demonstrate the various functions to stdout"
         t.print(f"{t('ornl')}Demo of /plib/dpstr.py functions")
