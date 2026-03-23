@@ -1,0 +1,47 @@
+/plib refactor roadmap
+
+Gemini said:
+
+This is a solid move. Having a "Flight Manual" for the refactor ensures that even if you
+step away for a few days to help with an RV modification or a physics problem, you can
+"re-pressurize" your context instantly.
+
+Here is a Template Roadmap designed for your /plib refactor. It’s structured to track
+the "Physics" of your code—the constants, the symmetries, and the transformations. 
+
+1. The Universal Constants (Core Patterns)
+
+    - Data are Plural: Ensure all documentation and variable naming treat data as plural
+      and datum as singular.
+    - The Identity Transformation: Identify where pathlib.Path(p) or similar
+      constructors can normalize inputs in a single, idempotent line.
+    - AnyStr Duality: Are str and bytes handled as distinct but symmetric states? Use
+      ty.TypeVar('AnyStr', str, bytes) for generic functions.
+    - The Central Element: Look for functions that "commute" with others—utility
+      functions that don't change the global state.
+
+2. The Symmetry Audit (Tests & Types)
+
+    - Type Hinting (Mypy): Are all 56+ functions annotated? (Prioritize ty.Sequence over
+      ty.Container for iterables).
+    - Test-Function Mapping: Does every def func() have a corresponding def Test_func()?
+    - Edge Case Check: Have I tested the "Empty Set" singularity (empty strings, null
+      sets)?
+    - Pathlib Validation: Do the tests pass an actual pathlib.Path object instead of
+      just a string?
+
+3. Non-Abelian Zones (High Risk)
+    - Identify functions here that have side effects (I/O, File Deletion, Global State)
+      or complex commutators.
+        - Function X: Requires [specific setup/mocking].
+        - Function Y: Order of execution relative to [Other Function] matters.
+
+4. The MIT Handshake
+    - License Check: Ensure the header includes or references the MIT release.
+    - Lesson Learned: [Insert a quick note here on any new "Aha!" moment found during
+      this specific module, like the Pathlib idempotency.]
+
+Quick-Reference "Mike Station" Commands
+    - Assert(A == B): Use the lwtest framework for all observables
+    - raises(ValueError, func, args): Always test the "Negative Energy" states (errors).
+    - p = pathlib.Path(p): The standard "Normalization Filter" for all file inputs.
