@@ -139,6 +139,7 @@ if 1:  # Header
         # a type used by frange that allows the use of any suitable numerical type, such
         # as float, decimal.Decimal, fractions.Fraction, mpmath.mpf or other floating
         # point types that don't exist today.
+        @ty.runtime_checkable
         class SupportsRange(ty.Protocol):
             def __add__(self, other: ty.Any) -> "SupportsRange": ...
             def __lt__(self, other: ty.Any) -> bool: ...

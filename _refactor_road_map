@@ -1,18 +1,27 @@
-/plib refactor roadmap
+/plib refactor roadmap (23 Mar 2026 summarized by Mike)
 
-Gemini said:
+23 Mar 2026 status:  2/5 of the dp*.py file type annotations are finished with 628
+kBytes of total file size.
 
-This is a solid move. Having a "Flight Manual" for the refactor ensures that even if you
-step away for a few days to help with an RV modification or a physics problem, you can
-"re-pressurize" your context instantly.
+          Pct
+  * 125k   20   dpstr.py
+  * 118k   19   dpseq.py
+     78k   12   dpmath.py
+     72k   12   dproot.py
+     64k   10   dpastro.py
+     40k    6   dputil.py
+     39k    6   dptypes.py
+     30k    5   dppath.py
+     30k    5   dpdecimal.py
+     21k    3   dpdb.py
+     21k    3   dparith.py
+     20k    3   dptime.py
+     11k    2   dpphys.py
+      5k    1   dpelec.py
+      4k    1   dpdata.py
+       0    0   dpshop.py
 
-Here is a Template Roadmap designed for your /plib refactor. It’s structured to track
-the "Physics" of your code—the constants, the symmetries, and the transformations. 
-
-1. The Universal Constants (Core Patterns)
-
-    - Data are Plural: Ensure all documentation and variable naming treat data as plural
-      and datum as singular.
+- Universal constants
     - The Identity Transformation: Identify where pathlib.Path(p) or similar
       constructors can normalize inputs in a single, idempotent line.
     - AnyStr Duality: Are str and bytes handled as distinct but symmetric states? Use
@@ -42,7 +51,6 @@ the "Physics" of your code—the constants, the symmetries, and the transformati
         - If you take a number, turn it into a string, then convert it back to a number,
           this should be the identity transformation
         - assert ConvertToNumber(str(x)) == x
-
     - Domain constraints
         - Before the conversion even begins, verify the "Physics" of the string.
         - The Assert: assert any(c.isdigit() or c in "+-.ij/" for c in s), "String
@@ -56,29 +64,25 @@ the "Physics" of your code—the constants, the symmetries, and the transformati
         - Round-trip Symmetry: Does ConvertToNumber(str(n)) == n?
         - Concept Validation: Does the function assert that the string is "Numeric"
           before attempting a cast?
-
-2. The Symmetry Audit (Tests & Types)
-
-    - Type Hinting (Mypy): Are all 56+ functions annotated? (Prioritize ty.Sequence over
-      ty.Container for iterables).
-    - Test-Function Mapping: Does every def func() have a corresponding def Test_func()?
-    - Edge Case Check: Have I tested the "Empty Set" singularity (empty strings, null
+- Symmetry audit (tests & types)
+    - Type hinting with mypy: Are all 56+ functions annotated? (prioritize ty.Sequence
+      over ty.Container for iterables).
+    - Test-Function mapping: does every 'def func()' have a corresponding 'def
+      Test_func()'?
+    - Edge case check: have i tested the "empty set" singularity (empty strings, null
       sets)?
-    - Pathlib Validation: Do the tests pass an actual pathlib.Path object instead of
-      just a string?
-
-3. Non-Abelian Zones (High Risk)
-    - Identify functions here that have side effects (I/O, File Deletion, Global State)
-      or complex commutators.
+    - Pathlib validation: do the tests pass an actual pathlib.path object instead of
+      just a string?  . Non-abelian zones (high risk)
+    - Identify functions that have side effects (IO, file deletion, global state) or
+      complicated non-zer commutators.
         - Function X: Requires [specific setup/mocking].
-        - Function Y: Order of execution relative to [Other Function] matters.
-
-4. The MIT Handshake
-    - License Check: Ensure the header includes or references the MIT release.
-    - Lesson Learned: [Insert a quick note here on any new "Aha!" moment found during
-      this specific module, like the Pathlib idempotency.]
-
-Quick-Reference "Mike Station" Commands
+        - Function Y: Order of execution relative to [other Function] matters.
+- The MIT Handshake
+    - License check: ensure the header includes or references the MIT license
+    - Lesson(s) learned
+        - Insert a note on any new "Aha!" moment found during refactoring/annotating a
+          module, like the Pathlib idempotency
+Quick-reference "Mike station" commands
     - Assert(A == B): Use the lwtest framework for all observables
     - raises(ValueError, func, args): Always test the "Negative Energy" states (errors).
-    - p = pathlib.Path(p): The standard "Normalization Filter" for all file inputs.
+    - p = pathlib.Path(p): The "normalization filter" pattern for all file inputs.

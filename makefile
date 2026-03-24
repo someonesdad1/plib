@@ -12,7 +12,7 @@ RUFFOPTS = --config /plib/ruff.toml
 
 .PHONY: help check lint typecheck clean
 
-file = dpstr.py
+file = dpmath.py
 
 temp: typecheck
 

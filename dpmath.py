@@ -11,6 +11,7 @@ if 1:  # Header
         import random
         import re
         import string
+        import typing as ty
     if 1:  # Custom imports
         import dptypes
         import f
@@ -30,102 +31,68 @@ if 1:  # Header
             debug.SetDebugger()
     if 1:  # Global variables
         g = dptypes.Constant()
-if 1:  # Classes
-    class bitvector(int):
-        '''This convenience class is an integer that lets you get its bit
-        values using indexing or slices.
-        
-        Examples:
-            x = bitvector(9)
-            x[3] returns 1
-            x[2] returns 0
-            x[2:3] returns 2
-            x[123] returns 0    # Arbitrary bits can be addressed
-            x[-1] raises an IndexError
-            
-        Suggested from python 2 code given by Ross Rogers at
-        (http://stackoverflow.com/questions/147713/how-do-i-manipulate-bits-in-python)
-        dated 29 Sep 2008.
-        
-        ∞∞3 Should compare to bitarray and toss if outdated
-        '''
-        def __repr__(self):
-            return f"bitvector({self})"
-        def _validate_slice(self, slice):
-            '''Check the slice object for valid values; raises an IndexError if
-            it's improper.  Return (start, stop) where the values are valid
-            indices into the binary value.  Note that start and stop values can
-            be any integers >= 0 as long as start is less than or equal to
-            stop.
-            '''
-            start, stop, step = slice.start, slice.stop, slice.step
-            # Check start
-            if start is None:
-                start = 0
-            elif start < 0:
-                raise IndexError("Slice start cannot be < 0")
-            # Check stop
-            if stop is None:
-                stop = int(math.log(self)/math.log(2))
-            elif stop < 0:
-                raise IndexError("Slice stop cannot be < 0")
-            if step is not None:
-                raise IndexError("Slice step must be None")
-            if start > stop:
-                raise IndexError("Slice start must be <= stop")
-            return start, stop
-        def __getitem__(self, key):
-            if isinstance(key, slice):
-                start, stop = self._validate_slice(key)
-                return bitvector((self >> start) & (2 ** (stop - start + 1) - 1))
-            else:
-                try:
-                    index = int(key)
-                except Exception as e:
-                    raise IndexError(f"'{key}' is an invalid index") from e
-                if index < 0:
-                    raise ValueError("Negative bit index not allowed")
-                return bitvector((self & 2**index) >> index)
+    if 1:  # Types
+        @ty.runtime_checkable
+        class SupportsArithmetic(ty.Protocol):
+            def __add__(self, other: ty.Any) -> ty.Self: ...
+            def __mul__(self, other: ty.Any) -> ty.Self: ...
+            def __lt__(self, other: ty.Any) -> bool: ...
+            def __gt__(self, other: ty.Any) -> bool: ...
+        # Tnumber is now a type that acts like most numbers
+        Tnumber = ty.TypeVar("Tnumber", bound=SupportsArithmetic)
 if 1:  # Polynomial utilities
-    # These routines were originally from
-    # http://www.physics.rutgers.edu/~masud/computing/ in the file
-    # WPark_recipes_in_python.html; I probably downloaded them before 2000.  This
-    # URL is defunct.
-    #
-    # coef is a sequence of the polynomial's coefficients; coef[0] is the
-    # constant term and coef[-1] is the highest term; x is a number.
-    def polyeval(coef, x, lowest_first=True):
-        '''Evaluate a polynomial with the stated coefficients.  Returns
-        coef[0] + x(coef[1] + x(coef[2] +...+ x(coef[n-1] + coef[n]x)...)
-        This is Horner's method.  If lowest_first is False, then the
-        coefficients are in the opposite order with the highest degree
-        coefficient first.
-                    
-        Example: polyeval((3, 2, 1), 6) = 3 + 2(6) + 1(6)**2 = 51
-        '''
-        f = reversed if lowest_first else lambda x: x
-        p = 0
-        for i in f(coef):
-            p = p*x + i
-        return p
-    def polyderiv(coef):
-        '''Returns the coefficients of the derivative of a polynomial with
-        coefficients in coef.
+    def PolynomialEvaluate(x: Tnumber, coefficients: ty.Sequence[Tnumber]) -> Tnumber:
+        '''Evaluate a polynomial with the given coefficients
+
+        If coefficients = [c0, c1, c2], then the evaluated polynomial is 
+                c0 + c1*x + c2*x**2
+
+        Arguments
+            x           Value to evaluate the polynomial at
+            coefficients
+                Coefficients of the polynomial.  The 0th element is the coefficient of
+                x**0.
         
-        Example: polyderiv((3, 2, 1)) = [2, 2]
+        Algorithm
+            Uses Horner's method.  Let coefficients = c, an array from 0 to n.  Then
+            the polynomial's value is 
+
+            (...(c[n]*x**n + c[n-1])*x**(n-1) + c[n-2])*x**(n-2) + ... + 
+                    
+        Example
+            >>> PolynomialEvaluate((1, 2, 3), 4) 
+                = 3 + 2*(6**1) + 4*(6**2) = 3 + 12 + 4*36 = 159
+            polyeval((3, 2, 4), 6, lowest_first=False) 
+                = 4 + 2*(6**1) + 3*(6**2) = 4 + 12 + 3*36 = 124
         '''
-        b = []
-        for i in range(1, len(coef)):
-            b.append(i*coef[i])
-        return b
-    def polyreduce(coef, root):
+        if not coefficients:
+            raise ValueError("Coefficients cannot be empty.")
+        # Start with the highest-degree coefficient to avoid '0' initialization
+        coeffs_rev = reversed(coefficients)
+        value: Tnumber = next(coeffs_rev)
+        for c in coeffs_rev:
+            value = value*x + c
+        return value
+    def PolynomialDerivative(coefficients):
+        '''Return a list of the coefficients of the derivative of a polynomial
+        
+        Example
+            >>> PolynomialDerivative([3, 4, 5])
+            [4, 10]
+        '''
+        result = []
+        for i in range(1, len(coefficients)):
+            result.append(i*coefficients[i])
+        return result
+    def PolynomialReduce(root, coefficients):
         '''Given a root of a polynomial, factor out the (x - root) term, then
         return the coefficients of the factored polynomial.
         
         Example: polyreduce((-12, -1, 1), -3) = [-4, 1]
         '''
         c, p = [], 0
-        for i in reversed(coef):
+        breakpoint() # ∞∞ 
+        for i in reversed(coefficients):
             p = p*root + i
             c.append(p)
         c.reverse()
@@ -1191,25 +1158,21 @@ if __name__ == "__main__":
         g.eps = 1e-15
     def Test_PythagoreanSum():
         assert_equal(PythagoreanSum(3, 4, epsilon=1e-16), 5, abstol=g.eps)
-    def Test_polyeval():
-        Assert(polyeval((3, 2, 1), 6) == 51)
-        Assert(polyeval((1, 2, 3), 6, lowest_first=False) == 51)
+    def Test_PolynomialEvaluate():
+        Assert(PolynomialEvaluate(6, (3, 2, 1)) == 51)
+        Assert(PolynomialEvaluate(6, list(reversed((1, 2, 3)))) == 51)
         # Test with only constant
-        Assert(polyeval((3,), 6) == 3)
-        Assert(polyeval((3,), 8) == 3)
-        Assert(polyeval((3,), 6, lowest_first=False) == 3)
-        Assert(polyeval((3,), 8, lowest_first=False) == 3)
+        Assert(PolynomialEvaluate(6, (3,)) == 3)
+        Assert(PolynomialEvaluate(8, (3,)) == 3)
         # Test linear case
-        Assert(polyeval((3, 1), 6) == 9)
-        Assert(polyeval((3, 1), 8) == 11)
-        Assert(polyeval((3, 1), 6, lowest_first=False) == 19)
-        Assert(polyeval((3, 1), 8, lowest_first=False) == 25)
-    def Test_polyderiv():
-        Assert(polyderiv((3, 2, 1)) == [2, 2])
+        Assert(PolynomialEvaluate(6, (3, 1)) == 9)
+        Assert(PolynomialEvaluate(8, (3, 1)) == 11)
+    def Test_PolynomialDerivative():
+        Assert(PolynomialDerivative((3, 2, 1)) == [2, 2])
     def Test_polyreduce():
         # Use (x - 1)*(x - 2) = 2 - 3*x + x**2
-        p = (2, -3, 1)
-        Assert(polyreduce(p, 1) == [-2, 1])
+        coefficients = (2, -3, 1)
+        Assert(PolynomialReduce(1, coefficients) == [-2, 1])
     def Test_rect():
         Assert(rect(0, 0) == (0, 0))
         Assert(rect(0, 180, deg=True) == (0, 0))

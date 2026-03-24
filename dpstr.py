@@ -1808,41 +1808,36 @@ if 1:   # Old util stuff
                     0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x1A, 0x1A, 0x1A,
                     0x1A, 0x1A, 0x1A))
             return bytes.maketrans(a, e), bytes.maketrans(e, a)
-    def ConvertToNumber(s: str,
+    def ConvertToNumber(s: str, 
                         i: bool = True
                        ) -> int | float | complex | fractions.Fraction:
-        '''Return a python number instance for a string 
+        '''Maps a string to the simplest number form
 
-        The logic is:
-            - If it contains 'j' or 'J', it's complex
-                - If i is True, if it contains 'i' or 'I', it's complex
-            - If it contains '/', it's a fraction
-            - If it contains ',', '.', 'E', or 'e', it's a float
-            - Otherwise it's interpreted as an integer
-
+        Arguments
+            s       A string to convert to a number
+            i       If True, all 'i' as the unit imaginary symbol
+        
         Example
-            >>> ConvertToNumber("3 - j")
-            ValueError
-            >>> ConvertToNumber("3 - 1j")
-            ValueError
-            >>> ConvertToNumber("3-1j")
-            (3-1j)
-            >>> ConvertToNumber("3-1i")
-            (3-1j)
-            >>> ConvertToNumber("3-1i", i=False)
-            ValueError
+            >>> ConvertToNumber("4 + 3i")
+            (4+3j)
         '''
-        s = s.lower()
-        if i:
-            s = s.replace("i", "j")
-        if "j" in s:
-            return complex(s)
-        elif "." in s or "e" in s or "," in s:
-            return float(s)
-        elif "/" in s:
-            return fractions.Fraction(s)
-        else:
-            return int(s)
+        # Normalize the form of the string
+        s = s.lower().strip().replace("i", "j") if i else s.lower().strip()
+        s = s.replace(",", ".") if "," in s else s
+        # '1 + 3j' -> '1 + 3j' and '1 / 3' -> '1/3'
+        if any(op in s for op in "+-/"):
+            s = s.replace(" ", "")
+        try:
+            if "j" in s:
+                return complex(s)
+            elif "." in s or "e" in s:
+                return float(s)
+            elif "/" in s:
+                return fractions.Fraction(s)
+            else:
+                return int(s)
+        except ValueError as err:
+            raise ValueError(f"{s!r} is not a valid string representation of a number") from err
     class astr(str):
         '''This is a string object that uses a regular expression to remove
         ANSI color-coding strings before calculating the string length.
@@ -1869,63 +1864,6 @@ if 1:   # Old util stuff
         '''
         r = re.compile(r"(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]")
         return r.sub("", string)
-    def BuildTagsFile_old(dir: str | pathlib.Path,
-                      files: ty.Sequence[str | pathlib.Path],
-                      verbose: bool = False
-                     ) -> None:
-        r'''For vim-style help files, construct a tags file for the indicated directory
-        
-        Arguments
-          dir       Directory where the files reside
-          files     Sequence of file names
-          verbose   If True, print where tags file constructed
-          
-        For vim's help files, this is done by searching for text between two asterisk
-        characters and extracting the tag.  This is written to the tags file in the form
-        
-            symbol\tsymbol.hld\t/*symbol*
-            
-        and the file is sorted on these lines.  The first line of the file must be
-        'help-tags\ttags\t1'.
-        '''
-        if not files and verbose:
-            print("BuildTagsFile:  no files found in files sequence", file=sys.stderr)
-            return
-        # Make sure dir is a string or a Path instance
-        assert isinstance(dir, str | pathlib.Path)
-        # Make sure files is an iterable
-        Assert(dpseq.IsIterable(files))
-        # Make sure each item in files is a string or Path instance
-        Assert(all(isinstance(i, (str, pathlib.Path)) for i in files))
-        # Our working directory is an invariant
-        cwd = os.getcwd()
-        # regex is a C-type token name between asterisks
-        r = re.compile(r"\*([A-Za-z_][A-Za-z0-9_]*)\*")
-        tags = ["help-tags\ttags\t1"]
-        # Change to the output directory so there will be no directory names in the file's name
-        os.chdir(dir)
-        for file in files:
-            p = pathlib.Path(file) if isinstance(file, str) else file
-            with p.open() as f:
-                for line in f.readlines():
-                    line = line.rstrip()
-                    mo = r.search(line)
-                    if mo:
-                        for tag in mo.groups():
-                            t = f"{tag}\t{file}\t/*{tag}*"
-                            tags.append(t)
-        # Get rid of duplicates
-        tags = list(sorted(list(set(tags))))
-        n = len(tags) - 1
-        # Write the tags file
-        tagsfile = pathlib.Path("tags")
-        with tagsfile.open("w") as f:
-            f.write("\n".join(tags))
-            f.write("\n")
-        if verbose:
-            print(f"{n} tags constructed in {tagsfile.absolute()}")
-        # Go back to the directory we started from
-        os.chdir(cwd)
     def BuildTagsFile(directory: str | pathlib.Path,
                       files: ty.Sequence[str | pathlib.Path],
                       verbose: bool = False
@@ -2631,15 +2569,21 @@ if __name__ == "__main__":
         Assert(a == a1)
     def Test_ConvertToNumber():
         Assert(ConvertToNumber("1+i") == 1 + 1j)
+        Assert(ConvertToNumber("1 + i") == 1 + 1j)
         Assert(ConvertToNumber("1+j") == 1 + 1j)
         Assert(ConvertToNumber("j") == 1j)
-        Assert(ConvertToNumber("1.") == 1)
+        Assert(ConvertToNumber("1") == 1)
+        Assert(ConvertToNumber("1.") == 1.0)
+        Assert(ConvertToNumber("1,") == 1.0)
         Assert(ConvertToNumber("1e2") == 1e2)
         Assert(ConvertToNumber("1E2") == 1e2)
         Assert(ConvertToNumber("1/2") == fractions.Fraction(1, 2))
-        Assert(ConvertToNumber("1") == 1)
         n = 10**50  # Large integer
         Assert(ConvertToNumber(str(n)) == n)
+        # Bad forms
+        raises(ValueError, ConvertToNumber, "1/")
+        raises(ValueError, ConvertToNumber, "x")
+        raises(ValueError, ConvertToNumber, "i+1")
     def Test_alen_astr():
         # Note the Unicode '∞' in the third line.
         tststring = wrap.dedent('''
