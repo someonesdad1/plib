@@ -1624,32 +1624,35 @@ if 1:   # Core functionality
         else:
             raise TypeError("s must be a str or bytes instance")
 
-    def ConvertToNumber(s: str, 
-                        i: bool = True
-                       ) -> int | float | complex | fractions.Fraction:
+    def ConvertToNumber_(s: str) -> int | float | complex | fractions.Fraction:
         '''Maps a string to the simplest number form
-
+        
+        Three "human" formatting conveniences are
+            - 'i' and 'I' are allowed as the imaginary unit
+            - Inputs like '1 + i' and ' 1 / 2 ' have spaces removed
+            - The ',' character can be used as a radix instead of '.'
+        
         Arguments
             s       A string to convert to a number
-            i       If True, allow 'i' as the unit imaginary symbol
         
         Example
             >>> ConvertToNumber("4 + 3i")
             (4+3j)
+            >>> ConvertToNumber("1,45")
+            1.45
         '''
         # Normalize the form of the string
         s = s.lower().strip()
-        if "inf" not in s and i:
+        if "inf" not in s:
             s = s.replace("i", "j")
         s = s.replace(",", ".") if "," in s else s
-        # '1 + 3j' -> '1 + 3j' and '1 / 3' -> '1/3'
+        # '1 + 3j' -> '1+3j' and '1 / 3' -> '1/3'
         if any(op in s for op in "+-/"):
             s = s.replace(" ", "")
         try:
             if "j" in s:
                 return complex(s)
-            elif "." in s or "e" in s or "nan" in s or "inf" in s or "jnf" in s:
-                s = s.replace("jnf", "inf")
+            elif "." in s or "e" in s or "nan" in s or "inf" in s:
                 return float(s)
             elif "/" in s:
                 return fractions.Fraction(s)
@@ -1657,42 +1660,115 @@ if 1:   # Core functionality
                 return int(s)
         except ValueError as err:
             raise ValueError(f"{s!r} is not a valid string representation of a number") from err
-    def StringToNumbers(s: str,
-                        sep: str = " ",
-                        i: bool = True
-                       ) -> list[int | float | complex | fractions.Fraction]:
+
+    def ConvertToNumber(s: str) -> int | float | complex | fractions.Fraction:
+        '''Maps a string to the simplest python number
+        
+        Human-friendly features:
+            - Maps 'i'/'I' to 'j' while protecting 'inf' strings
+            - Allows '1 + 2i' and '1 / 2' by removing internal spaces
+            - Changes ',' to '.' for international radix support
+            - Detects 'nan' and 'inf' as float instances
+        '''
+        s = s.lower().strip()
+        if "inf" in s:
+            s = s.replace("inf", "~~~").replace("i", "j").replace("~~~", "inf")
+        else:
+            s = s.replace("i", "j")
+        if "," in s:
+            s = s.replace(",", ".")
+        if any(op in s for op in "+-/"):
+            s = s.replace(" ", "")
+        try:
+            if "j" in s:
+                return complex(s)
+            if "." in s or "e" in s or "nan" in s or "inf" in s:
+                return float(s)
+            if "/" in s:
+                return fractions.Fraction(s)
+            return int(s)
+        except ValueError as err:
+            raise ValueError(f"{s!r} is not a python number representation") from err
+
+    TNum = int | float | complex | fractions.Fraction
+
+    def StringToNumbers_(s: str,
+                        sep: str | None = " "
+                       ) -> list[TNum] | list[list[TNum]]:
         '''Return a list of numbers that the string s represents
         
-        The numbers returned are integers, fractions, floats, or complex.
-        
+        With the default value of sep == " ", this function will return a nested list of
+        numbers when s is a multiline string.  This supports a common use case of
+        turning a multiline string into a two-dimensional "matrix" represented by a
+        nested list; however, note there are no constraints on what the shape of such a
+        matrix will be and the nesting will only be one level deep, so it's not a
+        recursive structure.
+
+        If you set sep to None, then the default str.split() method is used and this
+        splits the string on all whitespace, so you'll get a non-nested list back.
+
         Arguments
             s       String of number strings separated by sep
             sep     String that separates numbers
-            i       If True, 'i' or 'I' are allowed as the imaginary unit
 
         s is a string; return the sequence (tuple) of numbers it represents; number
         strings are separated by the string sep.  The numbers returned are integers,
         fractions, floats, or complex.
-
-        ∞∞1 This function should return a nested list if the string is a multiline
-        string, as this is probably the "natural" assumption of most users and fits many
-        use cases.  If sep is None, the s.split() is used and you get back a
-        non-nested list.
 
         Examples (need to change the code)
             >>> StringToNumbers("1 2\n3 4", sep=" ")
             [[1, 2], [3, 4]]
             >>> StringToNumbers("1 2\n3 4", sep=None)
             [1, 2, 3, 4]
-
+            >>> StringToNumbers("1 2 3 4")
+            [1, 2, 3, 4]
         '''
-        seq = []
-        for line in s.strip().split("\n"):
-            if sep is None:
-                seq.extend(line.split(sep))
+        s = s.strip()
+        if not s:
+            return []
+        if sep is None:
+            seq = s.split()
+            return [ConvertToNumber(j) for j in seq]
+        else:
+            if "\n" in s:   # Make a nested list
+                seq = []
+                for line in s.split("\n"):
+                    seq.append([ConvertToNumber(j) for j in line.split(sep) if j])
+                return seq
             else:
-                seq.extend(line.split())
-        return [ConvertToNumber(j, i=i) for j in seq]
+                return [ConvertToNumber(j) for j in s.split(sep) if j]
+
+    # 1. Define the Number Manifold for readability
+    TNum = int | float | complex | fractions.Fraction
+
+    def StringToNumbers(s: str,
+                        sep: str | None = " "
+                       ) -> list[TNum] | list[list[TNum]]:
+        '''Transforms a string into a vector (1D) or a matrix (2D).
+
+        If s contains newlines and sep is not None, returns a nested list (2D).
+        Otherwise, returns a flat list (1D).
+        '''
+        s = s.strip()
+        if not s:
+            return []
+
+        # Case 1: The "Flattened" Manifold (No nesting)
+        if sep is None:
+            return [ConvertToNumber(j) for j in s.split()]
+
+        # Case 2: The "Nested" Manifold (Matrix support)
+        if "\n" in s:
+            matrix: list[list[TNum]] = []
+            for line in s.splitlines():  # .splitlines() is cleaner than .split("\n")
+                line = line.strip()
+                if line:
+                    row = [ConvertToNumber(j) for j in line.split(sep) if j.strip()]
+                    matrix.append(row)
+            return matrix
+
+        # Case 3: The "Vector" Manifold (Single line)
+        return [ConvertToNumber(j) for j in s.split(sep) if j.strip()]
 
 if 1:   # Old util stuff
     def RemoveIndent(s: str, numspaces: int=4) -> str:
@@ -2543,8 +2619,11 @@ if __name__ == "__main__":
             ("j", 1j),
             ("0", 0),
             ("-0", 0),
+            ("0.0", 0),
+            ("-0.0", 0),
             ("1", 1),
             ("1.", 1.0),
+            ("1,", 1.0),
             ("1e2", 1e2),
             ("1E2", 1e2),
             ("1/2", fractions.Fraction(1, 2)),
@@ -2573,27 +2652,25 @@ if __name__ == "__main__":
             raises(ValueError, ConvertToNumber, "1/")
             raises(ValueError, ConvertToNumber, "x")
             raises(ValueError, ConvertToNumber, "i+1")
+
     def Test_StringToNumbers():
-        '''Goal:  verify a sequence of strings transforms into a sequence of numbers
-        without "leaking" or "cracking" under pressure.
-         
-        Invariants
-            - Conservation of mass:  len(input_items) == len(output_items)
-            - Type simplicity:  every element must reach its simplest stable state
+        '''Test both the 'string to list of numbers' functionality along with the 
+        'string to nested list of numbers' functionality.
         '''
-        if 1:   # Normal operation
+        if 1:   # Empty string returns empty list
             Assert(StringToNumbers("") == [])
-            s = "1 2. 1/3 1+4j"
+        if 1:   # Normal operation
+            s = "1 2. 1/3 1+4j"     # The four number types
             n_expected = len(s.split())
             got = StringToNumbers(s)
             expected = [1, 2.0, fractions.Fraction(1, 3), complex(1, 4)]
             Assert(got == expected)
             Assert(n_expected == len(got))
             # Can use 'i' as unit imaginary
-            Assert(StringToNumbers("1+i", i=True) == [complex(1, 1)])
-            Assert(StringToNumbers("1+i") == [complex(1, 1)])   # Default i == True
-            # But not if i=False
-            raises(ValueError, StringToNumbers, "1+i", i=False)
+            Assert(StringToNumbers("1+i") == [complex(1, 1)])
+            Assert(StringToNumbers("1+I") == [complex(1, 1)])
+            # Can use comma radix
+            Assert(StringToNumbers("1,") == [1.0])
         if 1:   # Normal but unusual input
             s = "nan NaN -inf inf"
             got = StringToNumbers(s)
@@ -2604,6 +2681,23 @@ if __name__ == "__main__":
             Assert(math.inf == expected[3])
         if 1:   # Weird input
             raises(ValueError, StringToNumbers, "1 ekiu 2")
+        if 1:   # Getting back a nested list
+            s = "1 2\n3 4" 
+            expected = [[1, 2], [3, 4]]
+            Assert(StringToNumbers(s, sep=" ") == expected)
+            Assert(StringToNumbers(s) == expected)
+            expected = [1, 2, 3, 4]
+            s = "1 2 3 4" 
+            Assert(StringToNumbers(s) == expected)
+
+            '''
+            >>> StringToNumbers("1 2\n3 4", sep=" ")
+            [[1, 2], [3, 4]]
+            >>> StringToNumbers("1 2\n3 4", sep=None)
+            [1, 2, 3, 4]
+            >>> StringToNumbers("1 2 3 4")
+            [1, 2, 3, 4]
+            '''
     def Test_RemoveIndent():
         n = 8
         u = " "*n
