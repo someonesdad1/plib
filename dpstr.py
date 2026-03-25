@@ -128,6 +128,8 @@ if 1:   # Header
                 g.noflag = 0
     if 1:   # Type information
         T = ty.TypeVar("T")
+        # Python's basic numbers for use with StringToNumbers
+        TNum = int | float | complex | fractions.Fraction
         # AnyStr ensures that if you pass str, you get str; if bytes, you get bytes.
         AnyStr = ty.TypeVar("AnyStr", str, bytes)
         # SupportsWrite is an output Protocol that is usually sys.stdout, but can also
@@ -1690,8 +1692,6 @@ if 1:   # Core functionality
         except ValueError as err:
             raise ValueError(f"{s!r} is not a python number representation") from err
 
-    TNum = int | float | complex | fractions.Fraction
-
     def StringToNumbers_(s: str,
                         sep: str | None = " "
                        ) -> list[TNum] | list[list[TNum]]:
@@ -1715,13 +1715,6 @@ if 1:   # Core functionality
         strings are separated by the string sep.  The numbers returned are integers,
         fractions, floats, or complex.
 
-        Examples (need to change the code)
-            >>> StringToNumbers("1 2\n3 4", sep=" ")
-            [[1, 2], [3, 4]]
-            >>> StringToNumbers("1 2\n3 4", sep=None)
-            [1, 2, 3, 4]
-            >>> StringToNumbers("1 2 3 4")
-            [1, 2, 3, 4]
         '''
         s = s.strip()
         if not s:
@@ -1733,41 +1726,46 @@ if 1:   # Core functionality
             if "\n" in s:   # Make a nested list
                 seq = []
                 for line in s.split("\n"):
-                    seq.append([ConvertToNumber(j) for j in line.split(sep) if j])
-                return seq
+                    seq.append([ConvertToNumber(j) for j in line.split(sep) if j]) # type:ignore
+                return seq # type:ignore
             else:
                 return [ConvertToNumber(j) for j in s.split(sep) if j]
-
-    # 1. Define the Number Manifold for readability
-    TNum = int | float | complex | fractions.Fraction
 
     def StringToNumbers(s: str,
                         sep: str | None = " "
                        ) -> list[TNum] | list[list[TNum]]:
-        '''Transforms a string into a vector (1D) or a matrix (2D).
+        r'''Transforms a string into a vector or 2D matrix
 
-        If s contains newlines and sep is not None, returns a nested list (2D).
-        Otherwise, returns a flat list (1D).
+        - If 'sep' is None, splits on all whitespace (returns 1D list)
+        - If 'sep' is a string and '\n' is present, returns a nested 2D list
+        - Otherwise, returns a flat 1D list of numbers
+
+        Examples (need to change the code)
+            >>> StringToNumbers("1 2\n3 4", sep=" ")
+            [[1, 2], [3, 4]]
+            >>> StringToNumbers("1 2\n3 4", sep=None)
+            [1, 2, 3, 4]
+            >>> StringToNumbers("1 2 3 4")
+            [1, 2, 3, 4]
         '''
         s = s.strip()
         if not s:
             return []
 
-        # Case 1: The "Flattened" Manifold (No nesting)
+        # Case 1: The All-Whitespace Split (Always 1D)
         if sep is None:
             return [ConvertToNumber(j) for j in s.split()]
 
-        # Case 2: The "Nested" Manifold (Matrix support)
+        # Case 2: The Matrix Load (2D)
         if "\n" in s:
             matrix: list[list[TNum]] = []
-            for line in s.splitlines():  # .splitlines() is cleaner than .split("\n")
-                line = line.strip()
-                if line:
-                    row = [ConvertToNumber(j) for j in line.split(sep) if j.strip()]
-                    matrix.append(row)
+            for line in s.splitlines():
+                line_data = [ConvertToNumber(j) for j in line.split(sep) if j.strip()]
+                if line_data:
+                    matrix.append(line_data)
             return matrix
 
-        # Case 3: The "Vector" Manifold (Single line)
+        # Case 3: The Standard Vector (1D)
         return [ConvertToNumber(j) for j in s.split(sep) if j.strip()]
 
 if 1:   # Old util stuff
