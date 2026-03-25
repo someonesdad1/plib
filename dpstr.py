@@ -1623,24 +1623,68 @@ if 1:   # Core functionality
             return s.decode(encoding).translate(translation_table)
         else:
             raise TypeError("s must be a str or bytes instance")
-if 1:   # Old util stuff
+
+    def ConvertToNumber(s: str, 
+                        i: bool = True
+                       ) -> int | float | complex | fractions.Fraction:
+        '''Maps a string to the simplest number form
+
+        Arguments
+            s       A string to convert to a number
+            i       If True, allow 'i' as the unit imaginary symbol
+        
+        Example
+            >>> ConvertToNumber("4 + 3i")
+            (4+3j)
+        '''
+        # Normalize the form of the string
+        s = s.lower().strip()
+        if "inf" not in s and i:
+            s = s.replace("i", "j")
+        s = s.replace(",", ".") if "," in s else s
+        # '1 + 3j' -> '1 + 3j' and '1 / 3' -> '1/3'
+        if any(op in s for op in "+-/"):
+            s = s.replace(" ", "")
+        try:
+            if "j" in s:
+                return complex(s)
+            elif "." in s or "e" in s or "nan" in s or "inf" in s or "jnf" in s:
+                s = s.replace("jnf", "inf")
+                return float(s)
+            elif "/" in s:
+                return fractions.Fraction(s)
+            else:
+                return int(s)
+        except ValueError as err:
+            raise ValueError(f"{s!r} is not a valid string representation of a number") from err
     def StringToNumbers(s: str,
                         sep: str = " ",
-                        handle_i: bool = True
+                        i: bool = True
                        ) -> list[int | float | complex | fractions.Fraction]:
         '''Return a list of numbers that the string s represents
         
         The numbers returned are integers, fractions, floats, or complex.
         
         Arguments
-            s           String of number strings separated by sep
-            sep         String that separates numbers
-            handle_i    If True, 'i' or 'I' are allowed as the imaginary unit
+            s       String of number strings separated by sep
+            sep     String that separates numbers
+            i       If True, 'i' or 'I' are allowed as the imaginary unit
 
         s is a string; return the sequence (tuple) of numbers it represents; number
         strings are separated by the string sep.  The numbers returned are integers,
-        fractions, floats, or complex.  If handle_i is True, 'i' or 'I' are allowed as the
-        imaginary unit.
+        fractions, floats, or complex.
+
+        ∞∞1 This function should return a nested list if the string is a multiline
+        string, as this is probably the "natural" assumption of most users and fits many
+        use cases.  If sep is None, the s.split() is used and you get back a
+        non-nested list.
+
+        Examples (need to change the code)
+            >>> StringToNumbers("1 2\n3 4", sep=" ")
+            [[1, 2], [3, 4]]
+            >>> StringToNumbers("1 2\n3 4", sep=None)
+            [1, 2, 3, 4]
+
         '''
         seq = []
         for line in s.strip().split("\n"):
@@ -1648,7 +1692,9 @@ if 1:   # Old util stuff
                 seq.extend(line.split(sep))
             else:
                 seq.extend(line.split())
-        return [ConvertToNumber(i, i=handle_i) for i in seq]
+        return [ConvertToNumber(j, i=i) for j in seq]
+
+if 1:   # Old util stuff
     def RemoveIndent(s: str, numspaces: int=4) -> str:
         '''Given a multi-line string s, remove the indicated number of spaces from the beginning each
         line.  If that number of space characters aren't present, then leave the line alone.
@@ -1808,36 +1854,6 @@ if 1:   # Old util stuff
                     0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x1A, 0x1A, 0x1A,
                     0x1A, 0x1A, 0x1A))
             return bytes.maketrans(a, e), bytes.maketrans(e, a)
-    def ConvertToNumber(s: str, 
-                        i: bool = True
-                       ) -> int | float | complex | fractions.Fraction:
-        '''Maps a string to the simplest number form
-
-        Arguments
-            s       A string to convert to a number
-            i       If True, all 'i' as the unit imaginary symbol
-        
-        Example
-            >>> ConvertToNumber("4 + 3i")
-            (4+3j)
-        '''
-        # Normalize the form of the string
-        s = s.lower().strip().replace("i", "j") if i else s.lower().strip()
-        s = s.replace(",", ".") if "," in s else s
-        # '1 + 3j' -> '1 + 3j' and '1 / 3' -> '1/3'
-        if any(op in s for op in "+-/"):
-            s = s.replace(" ", "")
-        try:
-            if "j" in s:
-                return complex(s)
-            elif "." in s or "e" in s:
-                return float(s)
-            elif "/" in s:
-                return fractions.Fraction(s)
-            else:
-                return int(s)
-        except ValueError as err:
-            raise ValueError(f"{s!r} is not a valid string representation of a number") from err
     class astr(str):
         '''This is a string object that uses a regular expression to remove
         ANSI color-coding strings before calculating the string length.
@@ -2518,9 +2534,76 @@ if __name__ == "__main__":
             keys = list("ABbdhlnopWwu780")  # Allowed key letters
             f("", keys=keys)
             raises(ValueError, f, "", keys=keys + ["x"])
+    def Test_ConvertToNumber():
+        n, NaN = 10**50, float("nan")
+        testcases = [
+            ("1+i", 1+1j),
+            ("1+j", 1+1j),
+            ("1 + i", 1+1j),
+            ("j", 1j),
+            ("0", 0),
+            ("-0", 0),
+            ("1", 1),
+            ("1.", 1.0),
+            ("1e2", 1e2),
+            ("1E2", 1e2),
+            ("1/2", fractions.Fraction(1, 2)),
+            (str(n), n),
+            ("1e308", 1e308),
+            ("1e-308", 1e-308),
+            ("-1e308", -1e308),
+            ("-1e-308", -1e-308),
+            ("inf", math.inf),
+            ("-inf", -math.inf),
+            # "Human" formatting
+            (" 1 ", 1),
+            (" 1 / 2 ", fractions.Fraction(1, 2)),
+            (" 1 + 1i ", 1+1j),
+            (" 1,5 ", 1.5),
+        ]
+        for x, expected in testcases:
+            got = ConvertToNumber(x)
+            Assert(got == expected)
+        if 1:   # NaN:  because float("nan") != float("nan")
+            got = ConvertToNumber("nan")
+            Assert(math.isnan(got))
+        if 1:   # Bad forms
+            raises(ValueError, ConvertToNumber, "")
+            raises(ValueError, ConvertToNumber, " ")
+            raises(ValueError, ConvertToNumber, "1/")
+            raises(ValueError, ConvertToNumber, "x")
+            raises(ValueError, ConvertToNumber, "i+1")
     def Test_StringToNumbers():
-        s = "4i 4j 3/5 6. 7"
-        Assert(StringToNumbers(s) == [4j, 4j, fractions.Fraction(3, 5), 6.0, 7])
+        '''Goal:  verify a sequence of strings transforms into a sequence of numbers
+        without "leaking" or "cracking" under pressure.
+         
+        Invariants
+            - Conservation of mass:  len(input_items) == len(output_items)
+            - Type simplicity:  every element must reach its simplest stable state
+        '''
+        if 1:   # Normal operation
+            Assert(StringToNumbers("") == [])
+            s = "1 2. 1/3 1+4j"
+            n_expected = len(s.split())
+            got = StringToNumbers(s)
+            expected = [1, 2.0, fractions.Fraction(1, 3), complex(1, 4)]
+            Assert(got == expected)
+            Assert(n_expected == len(got))
+            # Can use 'i' as unit imaginary
+            Assert(StringToNumbers("1+i", i=True) == [complex(1, 1)])
+            Assert(StringToNumbers("1+i") == [complex(1, 1)])   # Default i == True
+            # But not if i=False
+            raises(ValueError, StringToNumbers, "1+i", i=False)
+        if 1:   # Normal but unusual input
+            s = "nan NaN -inf inf"
+            got = StringToNumbers(s)
+            expected = [float("nan"), float("nan"), float("-inf"), float("inf")]
+            Assert(math.isnan(expected[0]))
+            Assert(math.isnan(expected[1]))
+            Assert(-math.inf == expected[2])
+            Assert(math.inf == expected[3])
+        if 1:   # Weird input
+            raises(ValueError, StringToNumbers, "1 ekiu 2")
     def Test_RemoveIndent():
         n = 8
         u = " "*n
@@ -2567,23 +2650,6 @@ if __name__ == "__main__":
         e = a.translate(a2e)
         a1 = e.translate(e2a)
         Assert(a == a1)
-    def Test_ConvertToNumber():
-        Assert(ConvertToNumber("1+i") == 1 + 1j)
-        Assert(ConvertToNumber("1 + i") == 1 + 1j)
-        Assert(ConvertToNumber("1+j") == 1 + 1j)
-        Assert(ConvertToNumber("j") == 1j)
-        Assert(ConvertToNumber("1") == 1)
-        Assert(ConvertToNumber("1.") == 1.0)
-        Assert(ConvertToNumber("1,") == 1.0)
-        Assert(ConvertToNumber("1e2") == 1e2)
-        Assert(ConvertToNumber("1E2") == 1e2)
-        Assert(ConvertToNumber("1/2") == fractions.Fraction(1, 2))
-        n = 10**50  # Large integer
-        Assert(ConvertToNumber(str(n)) == n)
-        # Bad forms
-        raises(ValueError, ConvertToNumber, "1/")
-        raises(ValueError, ConvertToNumber, "x")
-        raises(ValueError, ConvertToNumber, "i+1")
     def Test_alen_astr():
         # Note the Unicode '∞' in the third line.
         tststring = wrap.dedent('''

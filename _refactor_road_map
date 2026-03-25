@@ -82,7 +82,71 @@ kBytes of total file size.
     - Lesson(s) learned
         - Insert a note on any new "Aha!" moment found during refactoring/annotating a
           module, like the Pathlib idempotency
-Quick-reference "Mike station" commands
+- Quick-reference "Mike station" commands
     - Assert(A == B): Use the lwtest framework for all observables
     - raises(ValueError, func, args): Always test the "Negative Energy" states (errors).
     - p = pathlib.Path(p): The "normalization filter" pattern for all file inputs.
+
+- Testing
+    - The Seam & Corner Principle:
+        - Testing is not "verification of success"; it is a systematic attempt to find
+          the leak.
+        - If a function is a welded box, the bugs are never in the middle of the
+          sheet—they are at the joints where data types meet and the corners where
+          values hit their limits.
+    - The "Material Stress" Checklist (Input Ranges):
+        - The Zero Singularity: Does it handle 0, 0.0, 0+0j, and empty strings ""?
+        - Infinite Horizons: Test with the "Large Numbers" (e.g., 1e308 or massive
+          integers) to check for overflow or precision decay.
+        - Negative Energy States: Ensure signed values (-1, -1.0) don't break logic
+          assuming absolute magnitudes.
+        - The Null Vacuum: How does the code react to None or an empty Sequence[]?
+    - The "Weird User" Manifold (Input Quality):
+        - Dirty Signals: Test with "Human" formatting (spaces, tabs, mixed case, and
+          locale-specific commas).
+        - Type Violations: Pass a float where an int is expected, or a list where a
+          tuple is required.
+    - The Conservation Laws (Observables):
+        - Dimensionality: Assert that len(input) == len(output) for all mapping
+          functions.
+        - Idempotency: Assert that f(f(x)) == f(x). If you "clean" a string twice, it
+          should be no cleaner the second time.
+        - Round-Trip Symmetry: Assert that ConvertToNumber(str(n)) == n. If the signal
+          can't return to its origin, the "leak" is in the transformation logic.
+    - The "Safety Net" Philosophy:
+        - High-quality tests are the "gyroscopic stabilizer" for the engineer.
+        - They allow for "Fearless Refactoring"—the ability to swap out the internal
+          "machining" (implementation) without changing the "external dimensions" (the
+          API).
+
+- Example:  /plib Stress Test: dpstr:StringToNumbers (The Sheet Metal Protocol)
+    - The Objective: - Verify that a sequence of strings transforms into a sequence of
+      numbers without "Leaking" or "Cracking" under pressure.
+    - The Invariants:
+        - Conservation of Mass: len(input_items) == len(output_items).
+        - Phase Consistency: Every element must reach its simplest stable state.
+- 1. The "Ground State" (Normal Operation)
+    - Test: ["1", "2.5", "1/3", "1+j"]
+    - Expected: [1, 2.5, Fraction(1, 3), (1+1j)]
+    - Goal: Verify all four numeric manifolds (int, float, rational, complex) are
+      accessible in a single pass.
+- 2. The "Vacuum" Test (Empty/Null Inputs)
+    - Test: [] (Empty List)
+        - Expected: []
+    - Test: [""] (Empty String)
+        - Expected: ValueError (or None if the function is designed to "buffer" errors).
+    - Goal: Ensure the "Empty Set" doesn't trigger a crash or a dimensionality mismatch.
+- 3. The "Dirty Joint" Test (Human Formatting)
+    - Test: [" 1 ", "1 / 3", "1 + 1i", "1,5"]
+    - Expected: [1, Fraction(1, 3), (1+1j), 1.5]
+    - Goal: Verify the "Targeted Compactor" and "Locale Shield" are functioning within
+      the loop.
+- 4. The "Brittle Material" Test (Boundary Conditions)
+    - Test: ["1e308", "-1e308", "0", "-0"]
+    - Expected: [1e308, -1e308, 0, 0]
+    - Goal: Check the extremes of the floating-point manifold and signed zero.
+- 5. The "Structural Failure" Test (Invalid Input)
+    - Test: ["1", "abc", "3"]
+    - Expected: ValueError: 'abc' is not a valid numeric representation.
+    - Goal: Confirm the "High Wire Safety Net" catches the error and reports exactly
+      which joint failed.
