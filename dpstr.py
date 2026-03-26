@@ -1751,22 +1751,17 @@ if 1:   # Core functionality
         s = s.strip()
         if not s:
             return []
-
-        # Case 1: The All-Whitespace Split (Always 1D)
         if sep is None:
             return [ConvertToNumber(j) for j in s.split()]
-
-        # Case 2: The Matrix Load (2D)
-        if "\n" in s:
+        if "\n" in s:   # It will be a nested list
             matrix: list[list[TNum]] = []
             for line in s.splitlines():
                 line_data = [ConvertToNumber(j) for j in line.split(sep) if j.strip()]
                 if line_data:
                     matrix.append(line_data)
             return matrix
-
-        # Case 3: The Standard Vector (1D)
-        return [ConvertToNumber(j) for j in s.split(sep) if j.strip()]
+        else:
+            return [ConvertToNumber(j) for j in s.split(sep) if j.strip()]
 
 if 1:   # Old util stuff
     def RemoveIndent(s: str, numspaces: int=4) -> str:
@@ -2696,6 +2691,44 @@ if __name__ == "__main__":
             >>> StringToNumbers("1 2 3 4")
             [1, 2, 3, 4]
             '''
+        if 1:   # Mike's test cases
+            # 2D nesting & spacing
+            s_jagged = r'''
+            1   2   3
+            4   5
+            6  7  8  9
+            '''
+            expected_jagged = [[1, 2, 3], [4, 5], [6, 7, 8, 9]]
+            assert StringToNumbers(s_jagged) == expected_jagged
+            # Testing: Sci-notation, European comma, Fractions, Complex Infinity, and NaNs.
+            # Note: Using sep=";" to test explicit separator logic.
+            s_gnarly = r'''
+                        1.2e-1 ; 1 / 2 ; 1 + i
+            nan ; -inf ; 3 + 4i
+                        0 ; -0.0 ; 1,23
+            42 ; 0 ; inf + inf i ; 0 + 0j
+            '''
+            result = StringToNumbers(s_gnarly, sep=";")
+            # Row 1: float, Fraction, complex
+            assert result[0][0] == 0.12
+            assert result[0][1] == fractions.Fraction(1, 2)
+            assert result[0][2] == (1 + 1j)
+            # Row 2: NaN, inf, and complex
+            assert math.isnan(result[1][0])
+            assert result[1][1] == float('-inf')
+            assert result[1][2] == (3 + 4j)
+            # Row 3: Zero, signed Zero and comma radix
+            assert result[2][0] == 0
+            assert result[2][1] == -0.0
+            assert result[2][2] == 1.23     # Comma radix case
+            # Row 4: The Hitchhiker's Row (Complex Infinity Guard)
+            assert result[3][0] == 42
+            # This is the "Infinity Shield" test: 'inf + inf i' -> 'inf + inf j'
+            assert result[3][2] == complex(float('inf'), float('inf'))
+            # 0 and 0+0j are the same mathematically, but in python they have different
+            # types
+            assert result[3][3] == complex(0, 0) == 0
+            assert isinstance(result[3][3], complex)
     def Test_RemoveIndent():
         n = 8
         u = " "*n
