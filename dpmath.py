@@ -40,13 +40,19 @@ if 1:  # Header
             def __gt__(self, other: ty.Any) -> bool: ...
         # Tnumber is now a type that acts like most numbers
         Tnumber = ty.TypeVar("Tnumber", bound=SupportsArithmetic)
+        if 1:   # Basic number types
+            Treal = int | float | decimal.Decimal | fractions.Fraction
+            Tnum = Treal | complex
+            T_Round = ty.TypeVar("T_Round", int, float, complex, decimal.Decimal,
+                                  fractions.Fraction, ty.Any)
 if 1:  # Polynomial utilities
     def PolynomialEvaluate(x: Tnumber, coefficients: ty.Sequence[Tnumber]) -> Tnumber:
         '''Evaluate a polynomial with the given coefficients
-
+        
         If coefficients = [c0, c1, c2], then the evaluated polynomial is 
                 c0 + c1*x + c2*x**2
-
+        Using Horner's method, this is ((c2*x + c1)*x + c0).
+        
         Arguments
             x           Value to evaluate the polynomial at
             coefficients
@@ -55,9 +61,7 @@ if 1:  # Polynomial utilities
         
         Algorithm
             Uses Horner's method.  Let coefficients = c, an array from 0 to n.  Then
-            the polynomial's value is 
-
-            (...(c[n]*x**n + c[n-1])*x**(n-1) + c[n-2])*x**(n-2) + ... + 
+            the polynomial's value is ((⋯(c[n]*x + c[n-1])*x + c[n-2])*x + ⋯ + c0).
                     
         Example
             >>> PolynomialEvaluate((1, 2, 3), 4) 
@@ -73,30 +77,42 @@ if 1:  # Polynomial utilities
         for c in coeffs_rev:
             value = value*x + c
         return value
-    def PolynomialDerivative(coefficients):
+    def PolynomialDerivative(coefficients: ty.Sequence[Tnumber]) -> ty.Sequence[Tnumber]:
         '''Return a list of the coefficients of the derivative of a polynomial
         
         Example
             >>> PolynomialDerivative([3, 4, 5])
             [4, 10]
         '''
-        result = []
+        result: list[Tnumber] = []
         for i in range(1, len(coefficients)):
-            result.append(i*coefficients[i])
+            result.append(coefficients[i]*i)
         return result
-    def PolynomialReduce(root, coefficients):
-        '''Given a root of a polynomial, factor out the (x - root) term, then
-        return the coefficients of the factored polynomial.
+    def PolynomialReduce(root: Tnumber, coefficients: ty.Sequence[Tnumber]) -> ty.Sequence[Tnumber]:
+        '''Given a root of a polynomial, return the factored coefficients
         
-        Example: polyreduce((-12, -1, 1), -3) = [-4, 1]
+        The coefficients are (c0, c1, ⋯, cn) and the polynomial is the sum c0 + c1*x +
+        c2*x**2 + ⋯ + cn*x**n.  The term (x - root) exactly factors this polynomial;
+        this function returns the coefficients of this factored polynomial.
+        
+        Example:  (x - 1)*(x - 2) is 2 - 3*x + x**2.  The two roots are 1 and 2.  The
+        coefficients are (2, -3, 1).  PolynomialReduce(1, (2, -3, 1)) returns [-2, 1],
+        which is -2 + x or (x - 2).
         '''
-        c, p = [], 0
-        breakpoint() # ∞∞ 
-        for i in reversed(coefficients):
-            p = p*root + i
-            c.append(p)
-        c.reverse()
-        return c[1:]
+        results: list[Tnumber] = []
+        # Initialize using first element (last in the original list)
+        it = reversed(coefficients)
+        try:
+            first = next(it)
+        except StopIteration:
+            return []
+        cumulsum: Tnumber = first
+        results.append(cumulsum)
+        for i in it:
+            cumulsum = cumulsum*root + i
+            results.append(cumulsum)
+        results.reverse()
+        return results[1:]
 if 1:  # Spirals
     ''' 
     Length of an Archimedian spiral
@@ -151,20 +167,29 @@ if 1:  # Spirals
         For large θ, the approximation is s = a*θ²/2 because A is about θ and θ² will be
         large compared to ln(2θ).
     '''
-    def SpiralArcLength(a, theta, degrees=False):
-        '''Calculate the arc length of an Archimedian spiral from angle 0 to theta.
-        theta is in radians unless degrees is True.  The number a is the constant in the
-        polar equation for the spiral r = a*theta.  The formula is exact because it is
-        from an integration.
+    def SpiralArcLength(a: float, theta: float, degrees: bool=False) -> float:
+        '''Given an angle, return the arc length of an Archimedian spiral
+        
+        The angle varies from 0 to theta.  The formula is exact because it is from an
+        integration:  a/2*[θ*A + ln(θ + A)] where A = sqrt(θ² + 1) and θ = theta.
+        
+        Arguments
+            a       The constant in the polar equation r = a*theta
+            theta   The total angle of revolution of the spiral
+            degrees If True, theta is in degrees
+        
+        Example
+            >>> SpiralArcLength(1, 360, degrees=True)
+            21.256294148209097
         '''
         if a <= 0:
             raise ValueError("a must be > 0")
         if theta < 0:
             raise ValueError("theta must be >= 0")
-        theta = math.radians(f.flt(theta)) if degrees else f.flt(theta)
+        theta = math.radians(theta) if degrees else theta
         A = math.sqrt(theta*theta + 1)
-        return f.flt(a)/2*(theta*A + math.log(theta + A))
-    def RollArcLength(D, d, thickness):
+        return a/2*(theta*A + math.log(theta + A))
+    def RollArcLength(D: float, d: float, thickness: float) -> float:
         '''Return the length of a roll of material of the given thickness with inside
         diameter d and outside diameter D.  It is assumed the roll forms a spiral.
         '''
@@ -175,23 +200,29 @@ if 1:  # Spirals
         Ld, LD = SpiralArcLength(a, θd), SpiralArcLength(a, θD)
         return LD - Ld
 if 1:  # Ellipse circumference
-    def EllipseCircumference(A, B, debug=False):
-        '''Calculate the circumference of an ellipse with major diameter A and
-        minor diameter B.  Relative accuracy is about 0.5^53 (about 1e-16).
-        Downloaded Mon 26 May 2014 from
-        http://paulbourke.net/geometry/ellipsecirc/python.code; also see the
-        page http://paulbourke.net/geometry/ellipsecirc/.  This series
-        converges quadratically and was first proposed by J. Ivory in 1798 (see
+    def EllipseCircumference(A: float, B: float, debug: bool = False) -> float:
+        '''Return ellipse circumference A = maj dia, B = min dia
+        
+        Calculate the circumference of an ellipse with major diameter A and minor
+        diameter B.  Relative accuracy is about 0.5^53 (about 1e-16).  Downloaded Mon 26
+        May 2014 from http://paulbourke.net/geometry/ellipsecirc/python.code; also see
+        the page http://paulbourke.net/geometry/ellipsecirc/.  This series converges
+        quadratically and was first proposed by J. Ivory in 1798 (see
         https://en.wikipedia.org/wiki/James_Ivory_(mathematician)).
         
-        The formula for the circumference of an ellipse is 2*a*E(e) where a is
-        the major semidiameter, e is the eccentricity, and E is the complete
-        elliptic integral of the second kind.  Thus, this function can also be
-        used to calculate E.
+        The formula for the circumference of an ellipse is 2*a*E(e) where a is the major
+        semidiameter, e is the eccentricity, and E is the complete elliptic integral of
+        the second kind.  Thus, this function can also be used to calculate E.
         
-        A quick check showed that Ivory's formula iterates about half as
-        much as Weaver's EllipticE.  Since they agree in the tests to
-        floating point precision, this method is preferred.
+        A quick check showed that Ivory's formula iterates about half as much as
+        Weaver's EllipticE.  Since they agree in the tests to floating point precision,
+        this method is preferred.
+        
+        Example
+            >>> EllipseCircumference(1, 1)
+            3.141592653589793
+            >>> EllipseCircumference(1, 0)
+            2.0
         '''
         if A < 0 or B < 0:
             raise ValueError("A and B must be >= 0")
@@ -203,17 +234,17 @@ if 1:  # Ellipse circumference
         tol = math.sqrt(math.pow(0.5, digits))
         if digits*y < tol*x:
             return 4*x
-        s, m = 0, 1
+        s, m = 0.0, 1.0
         while x - y > tol*y:
             x, y = 0.5*(x + y), math.sqrt(x*y)
-            m *= 2
+            m *= 2.0
             s += m*math.pow(x - y, 2)
             if debug:
                 val = math.pi*(math.pow(a + b, 2) - s)/(x + y)
                 print(f"EllipseCircumference({A}, {B}, {val}")
         return math.pi*(math.pow(a + b, 2) - s)/(x + y)
 if 1:  # RoundOff, SigFig, TemplateRound, Pound
-    def RoundOff(number, digits=12, convert=False):
+    def RoundOff(number: T_Round, digits: int = 12, convert: bool = False) -> T_Round:
         '''Round the significand of number to the indicated number of digits and return
         the rounded number (integers and Fractions are returned untransformed).  number
         can be an int, float, Decimal, Fraction or complex number.
@@ -246,11 +277,12 @@ if 1:  # RoundOff, SigFig, TemplateRound, Pound
         if isinstance(number, (int, fractions.Fraction)):
             return number
         if _have_unc and isinstance(number, unc.UFloat):
-            return number
+            return number   # type: ignore
         if isinstance(number, complex):
             re = RoundOff(number.real, digits=digits)
             im = RoundOff(number.imag, digits=digits)
-            return type(number)(re, im)  # Handles classes derived from complex
+            # The following handles classes derived from complex
+            return type(number)(re, im)     # type: ignore
         can_convert = False
         if convert and not isinstance(number, decimal.Decimal):
             try:
@@ -1228,6 +1260,12 @@ if __name__ == "__main__":
         expected_area = 45.28
         # It's within about 5%
         assert_equal(area_roll, expected_area, reltol=0.05)
+    def Test_EllipseCircumference():
+        assert_equal(EllipseCircumference(1, 1), math.pi, reltol=1e-14)
+        assert_equal(EllipseCircumference(1, 1), math.pi, reltol=1e-14)
+        # Gemini pulled this value from a table and originally set the reltol at 1e-9,
+        # which was too tight
+        assert_equal(EllipseCircumference(10, 8), 28.361652188, reltol=1e-6)
     def Test_CountBits():
         bits = "0112122312"
         for i in range(10):

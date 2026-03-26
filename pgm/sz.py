@@ -31,7 +31,8 @@ if 1:  # Custom imports
     if cold:
         import color as C
     else:
-        from color import t
+        import trm
+        t = trm.Trm()
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)

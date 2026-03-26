@@ -20,7 +20,7 @@ Root Finding Routines
           Since today's computers are so fast, you can probably find your root nicely
           with bisection.
         - Start with bisection because it's reliable.  Switch to other methods when you
-          run into problems.  Brent and RootFinder and the same basic algorithm; Ridders
+          run into problems.  Brent and RootFinder are the same basic algorithm; Ridders
           is similar but uses a different interpolation function.  
         - https://www.cs.princeton.edu/courses/archive/fall12/cos323/notes/cos323_f12_lecture02_rootfinding.pdf
           is a good overview of the basics.  The three pictures on page 9 show some of
