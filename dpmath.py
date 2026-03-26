@@ -43,8 +43,11 @@ if 1:  # Header
         if 1:   # Basic number types
             Treal = int | float | decimal.Decimal | fractions.Fraction
             Tnum = Treal | complex
+            # For RoundOff()
             T_Round = ty.TypeVar("T_Round", int, float, complex, decimal.Decimal,
                                   fractions.Fraction, ty.Any)
+            # For Pound()
+            T_Pound = ty.TypeVar("T_Pound", float, complex, ty.Any)
 if 1:  # Polynomial utilities
     def PolynomialEvaluate(x: Tnumber, coefficients: ty.Sequence[Tnumber]) -> Tnumber:
         '''Evaluate a polynomial with the given coefficients
@@ -297,11 +300,6 @@ if 1:  # RoundOff, SigFig, TemplateRound, Pound
                 ctx.prec = digits
                 x = +x
             return type(number)(x)  # Handles classes derived from floats
-        elif isinstance(number, complex):
-            return type(number)(
-                RoundOff(number.real, digits=digits, convert=True),
-                RoundOff(number.imag, digits=digits, convert=True),
-            )
         elif isinstance(number, decimal.Decimal):
             with decimal.localcontext() as ctx:
                 ctx.prec = digits
@@ -327,29 +325,31 @@ if 1:  # RoundOff, SigFig, TemplateRound, Pound
                     return z
         else:
             raise TypeError("Unrecognized floating point type")
-    def SigFig(x, clamp=True):
-        '''Return the number of significant figures in the float x (x must be anything that can be
-        converted to a float).  This is done by rounding to 12 figures, the default for RoundOff().
-        Note you won't get more than 12 figures, even if the number has them.  The reason for this is
-        that virtually no practical measured data ever has 12 figures (outside of physical
-        laboratories like NIST or folks who work to their precisions).  If you do want more than 12,
+    def SigFig(x: ty.Any, clamp: bool =True) -> int:
+        '''Return the number of significant figures in x 
+
+        x must be anything that can be converted to a float.  This is done by rounding
+        to 12 figures, the default for RoundOff().  Note you won't get more than 12
+        figures, even if the number has them.  The reason for this is that virtually no
+        practical measured data ever has 12 figures (outside of physical laboratories
+        like NIST or folks who work to their precisions).  If you do want more than 12,
         set clamp to False.
         
-        Note that trailing '0' digits are removed, so a number like 30000 will have 1 significant
-        figure, as will 30000.00.  If you're chronologically-gifted, you may have been taught that
-        '30000.00' has seven significant figures.  Today, I recommend you use the notation
-        '3.000000e4' instead to denote this.
+        Note that trailing '0' digits are removed, so a number like 30000 will have one
+        significant figure, as will 30000.00.  If you're chronologically-gifted, you may
+        have been taught that '30000.00' has seven significant figures.  Today, I
+        recommend you use the notation '3.000000e4' instead to denote this.
+
+        Example
+            >>> SigFig("29.7700")
+            4
         '''
         if x == 0:
             return 1
         radix = ".,"
-        def RemoveTrailingZeroes(s):
-            while s[-1] == "0":
+        def RemoveTrailingZeroes(s: str) -> str:
+            while len(s) > 1 and s[-1] == "0":
                 s = s[:-1]
-            return s
-        def RemoveRadix(s):
-            for i in radix:
-                s = s.replace(i, "")
             return s
         # Algorithm is to convert to scientific notation, parse out the
         # significand, remove the radix, and counts its digits.
@@ -358,11 +358,44 @@ if 1:  # RoundOff, SigFig, TemplateRound, Pound
             s = f"{y:.12e}"
         else:
             s = f"{float(x):.16e}"
-        m, e = s.split("e")
-        t = str(float(m))
-        t = RemoveRadix(t)
-        t = RemoveTrailingZeroes(t)
-        return len(t)
+        significand, e = s.lower().split("e")
+        digits = str(float(significand)).replace(".", "")
+        digits = RemoveTrailingZeroes(digits)
+        n = len(digits)
+        assert n > 0
+        return n
+    def Pound(z: T_Pound, adjust: bool = True, ratio: float = 2.5e-15) -> T_Pound:
+        '''Turn z into a real if z.imag is small enough relative to the z.real and
+        adjust is True.  Do the analogous thing for a nearly pure imaginary number.
+        
+        The name comes from imagining the complex number is a nail which a light tap
+        from a hammer makes it lie parallel to either the real or imaginary axis.
+        
+        Set adjust to False so that only pure real or imaginary numbers are converted.
+        
+        Examples
+            Pound(-6.9e-17+1j) --> 1j
+            Pound(1-6.9e-17j) --> 1.0
+            Pound(-6.9e-17+1j, ratio=1e-20) --> (-6.9e-17+1j)
+            Pound(-6.9e-14+1j) --> (-6.9e-14+1j)
+        '''
+        if not isinstance(z, complex):
+            if _have_mpmath and isinstance(z, mpmath.mpc):
+                raise NotImplementedError("Need to implement")
+            else:
+                return z
+        if z.real and not z.imag:   # Real
+            return z.real
+        elif not z.real and z.imag: # Pure imaginary
+            return ty.cast(T_Pound, 1j*z.imag)
+        # Adjust if the z.real/z.imag or z.imag/z.real ratio is small enough, otherwise
+        # return z unchanged
+        if adjust and z.real and abs(z.imag/z.real) <= ratio:
+            return z.real
+        elif adjust and z.imag and abs(z.real/z.imag) <= ratio:
+            return ty.cast(T_Pound, 1j*z.imag)
+        else:
+            return z
     def TemplateRound(x, template, up=None, roundoff=False):
         '''Round a number to a template number.
             - The returned value's type will be the same as template's type
@@ -429,7 +462,10 @@ if 1:  # RoundOff, SigFig, TemplateRound, Pound
                 y += template
             elif not up and y > abs(tt(x)):  # Round towards zero
                 y -= template
-        return sign * y
+        result = sign * y
+        if roundoff:
+            return RoundOff(result)
+        return result
 if 1:  # Core functions
     def Ceil(x, fp):
         'Ceiling function for type fp:  float, flt, mpf, Decimal'
@@ -460,38 +496,6 @@ if 1:  # Core functions
         if fa*fb > 0:
             raise ValueError(f"a = {a} and b = {b} do not bracket a root of f")
         return (fa, fb)
-    def Pound(z, adjust=True, ratio=2.5e-15):
-        '''Turn z into a real if z.imag is small enough relative to the z.real and
-        adjust is True.  Do the analogous thing for a nearly pure imaginary number.
-        
-        The name comes from imagining the complex number is a nail which a light tap
-        from a hammer makes it lie parallel to either the real or imaginary axis.
-        
-        Set adjust to False so that only pure real or imaginary numbers are converted.
-        
-        Examples
-            Pound(-6.9e-17+1j) --> 1j
-            Pound(1-6.9e-17j) --> 1.0
-            Pound(-6.9e-17+1j, ratio=1e-20) --> (-6.9e-17+1j)
-            Pound(-6.9e-14+1j) --> (-6.9e-14+1j)
-        '''
-        if not isinstance(z, complex):
-            if _have_mpmath and not isinstance(z, mpmath.mpc):
-                return z
-            else:
-                return z
-        if z.real and not z.imag:
-            return z.real
-        elif not z.real and z.imag:
-            return 1j*z.imag
-        # Adjust if the z.real/z.imag or z.imag/z.real ratio is small enough, otherwise
-        # return z unchanged
-        if adjust and z.real and abs(z.imag/z.real) <= ratio:
-            return z.real
-        elif adjust and z.imag and abs(z.real/z.imag) <= ratio:
-            return 1j*z.imag
-        else:
-            return z
     def AlmostEqual(a, b, rel_err=2e-15, abs_err=5e-323):
         '''Determine whether floating-point values a and b are equal to
         within a (small) rounding error; return True if almost equal and
@@ -1537,6 +1541,11 @@ if __name__ == "__main__":
         a, t = 123 + fractions.Fraction(31, 64), fractions.Fraction(1, 8)
         Assert(TemplateRound(a, t, up=True) == fractions.Fraction(247, 2))
         Assert(TemplateRound(a, t, up=False) == fractions.Fraction(987, 8))
+        # Check using the roundoff keyword
+            #def TemplateRound(x, template, up=None, roundoff=False):
+        x = TemplateRound(2/3, 0.07, roundoff=True)
+        print(x);exit() #∞∞
+        Assert(TemplateRound(2/3, 0.07) == fractions.Fraction(987, 8))
         # mpmath
         if _have_mpmath:
             mpf = mpmath.mpf
@@ -1552,11 +1561,12 @@ if __name__ == "__main__":
         Assert(AlmostEqual(1.0, 1.001, 1e-2))
         Assert(not AlmostEqual(1.0, 1.011, 1e-2))
     def Test_SigFig():
-        from math import pi
-        x = pi*1e8
+        x = math.pi*1e8
         for n in range(1, 14):
             y = RoundOff(x, n)
             Assert(SigFig(y) == min(n, 12))
+            Assert(SigFig(10**n) == 1)
+            Assert(SigFig(10**-n) == 1)
         x = 0.00081
         Assert(SigFig(x) == 2)
         x = 0.0001
@@ -1577,44 +1587,45 @@ if __name__ == "__main__":
             Assert(b == -0.06666666666667058)
             Assert(Rsq == 0.9992447129909383)
     def Test_Pound():
-        '''Pound(z) returns a pure real or imaginary if z is close enough to
-        the real or imaginary axis.
+        '''Pound(z, adjust=True, ratio=2.5e-15) returns a pure real or imaginary if z is
+        close enough to the real or imaginary axis.
         '''
-        def test1():
+        if 1:   
             Assert(Pound(0, True) == 0)
             Assert(Pound(1 + 1j, True) == 1 + 1j)
-            for z, expected, t in (
+            eps = 1e-16
+            for z, expected, mytype in (
                 (1 + 0j, 1, numbers.Real),
                 (1 - 0j, 1, numbers.Real),
                 (-1 + 0j, -1, numbers.Real),
                 (-1 - 0j, -1, numbers.Real),
                 #
-                (1 + 1e-16j, 1, numbers.Real),
-                (1 - 1e-16j, 1, numbers.Real),
-                (-1 + 1e-16j, -1, numbers.Real),
-                (-1 - 1e-16j, -1, numbers.Real),
+                (1 + eps*1j, 1, numbers.Real),
+                (1 - eps*1j, 1, numbers.Real),
+                (-1 + eps*1j, -1, numbers.Real),
+                (-1 - eps*1j, -1, numbers.Real),
                 #
-                (1e-16 + 1e-32j, 1e-16, numbers.Real),
-                (1e-16 - 1e-32j, 1e-16, numbers.Real),
-                (-1e-16 + 1e-32j, -1e-16, numbers.Real),
-                (-1e-16 - 1e-32j, -1e-16, numbers.Real),
+                (eps + 1e-32j, eps, numbers.Real),
+                (eps - 1e-32j, eps, numbers.Real),
+                (-eps + 1e-32j, -eps, numbers.Real),
+                (-eps - 1e-32j, -eps, numbers.Real),
                 #
                 (0 + 1j, 1j, numbers.Complex),
                 (0 - 1j, -1j, numbers.Complex),
                 (-0 + 1j, 1j, numbers.Complex),
                 (-0 - 1j, -1j, numbers.Complex),
                 #
-                (1e-16 + 1j, 1j, numbers.Complex),
-                (1e-16 - 1j, -1j, numbers.Complex),
-                (-1e-16 + 1j, 1j, numbers.Complex),
-                (-1e-16 - 1j, -1j, numbers.Complex),
+                (eps + 1j, 1j, numbers.Complex),
+                (eps - 1j, -1j, numbers.Complex),
+                (-eps + 1j, 1j, numbers.Complex),
+                (-eps - 1j, -1j, numbers.Complex),
             ):
                 b = Pound(z)
                 Assert(b == expected)
-                Assert(isinstance(b, t))
-        def test2():
+                Assert(isinstance(b, mytype))
+        if 1:   
             epsilon = 2.5e-15
-            tol = 0.99*float(epsilon)
+            tol = 0.99*epsilon
             # Zero
             Assert(Pound(0, 0) == 0)
             Assert(Pound(0j, 1) == 0)
@@ -1641,8 +1652,6 @@ if __name__ == "__main__":
             x = 1 + 1j
             Assert(Pound(x, 0) == x)
             Assert(Pound(x, 1) == x)
-        test1()
-        test2()
     if 1:   # Test stuff from util.py
         def Test_AcceptableDiff():
             Assert(AcceptableDiff(0, 0))
