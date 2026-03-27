@@ -44,10 +44,12 @@ if 1:  # Header
             Treal = int | float | decimal.Decimal | fractions.Fraction
             Tnum = Treal | complex
             # For RoundOff()
-            T_Round = ty.TypeVar("T_Round", int, float, complex, decimal.Decimal,
+            Tround = ty.TypeVar("Tround", int, float, complex, decimal.Decimal,
                                   fractions.Fraction, ty.Any)
             # For Pound()
-            T_Pound = ty.TypeVar("T_Pound", float, complex, ty.Any)
+            Tpound = ty.TypeVar("Tpound", float, complex, ty.Any)
+            # For Ceil()
+            Tceil = ty.TypeVar("Tceil", float, f.flt, decimal.Decimal, ty.Any)
 if 1:  # Polynomial utilities
     def PolynomialEvaluate(x: Tnumber, coefficients: ty.Sequence[Tnumber]) -> Tnumber:
         '''Evaluate a polynomial with the given coefficients
@@ -247,7 +249,7 @@ if 1:  # Ellipse circumference
                 print(f"EllipseCircumference({A}, {B}, {val}")
         return math.pi*(math.pow(a + b, 2) - s)/(x + y)
 if 1:  # RoundOff, SigFig, TemplateRound, Pound
-    def RoundOff(number: T_Round, digits: int = 12, convert: bool = False) -> T_Round:
+    def RoundOff(number: Tround, digits: int = 12, convert: bool = False) -> Tround:
         '''Round the significand of number to the indicated number of digits and return
         the rounded number (integers and Fractions are returned untransformed).  number
         can be an int, float, Decimal, Fraction or complex number.
@@ -364,7 +366,7 @@ if 1:  # RoundOff, SigFig, TemplateRound, Pound
         n = len(digits)
         assert n > 0
         return n
-    def Pound(z: T_Pound, adjust: bool = True, ratio: float = 2.5e-15) -> T_Pound:
+    def Pound(z: Tpound, adjust: bool = True, ratio: float = 2.5e-15) -> Tpound:
         '''Turn z into a real if z.imag is small enough relative to the z.real and
         adjust is True.  Do the analogous thing for a nearly pure imaginary number.
         
@@ -387,29 +389,33 @@ if 1:  # RoundOff, SigFig, TemplateRound, Pound
         if z.real and not z.imag:   # Real
             return z.real
         elif not z.real and z.imag: # Pure imaginary
-            return ty.cast(T_Pound, 1j*z.imag)
+            return ty.cast(Tpound, 1j*z.imag)
         # Adjust if the z.real/z.imag or z.imag/z.real ratio is small enough, otherwise
         # return z unchanged
         if adjust and z.real and abs(z.imag/z.real) <= ratio:
             return z.real
         elif adjust and z.imag and abs(z.real/z.imag) <= ratio:
-            return ty.cast(T_Pound, 1j*z.imag)
+            return ty.cast(Tpound, 1j*z.imag)
         else:
             return z
-    def TemplateRound(x, template, up=None, roundoff=False):
-        '''Round a number to a template number.
-            - The returned value's type will be the same as template's type
-            - template must be a number greater than zero
-            - x/template must be a meaningful expression (x will be converted to
-              template's type)
-            - If up is None, then rounding is "simple", meaning the number is rounded up
-              if the left-over fraction is 0.5 or larger
-            - If up is True, then the fractional part is always rounded away from zero
-            - If up is False, then the fractional part is always rounded towards zero
-            - Supported types for template are int, float, flt, decimal.Decimal,
-              fraction.Fraction, and mpmath.mpf
-            - If roundoff is True, then the result x returned is filtered through 
-              RoundOff(x), which rounds to 12 digits maximum.
+    def TemplateRound(x: Tround,
+                      template: Tround,
+                      up: bool | None = None
+                     ) -> Tround:
+        '''Round a number to a template number
+
+        - The returned value's type will be the same as template's type
+        - template must be a number greater than zero
+        - x/template must be a meaningful expression (x will be converted to template's
+          type)
+        - If up is None, then rounding is "simple", meaning the number is rounded up if
+          the left-over fraction is 0.5 or larger
+        - If up is True, then the fractional part is always rounded away from zero
+        - If up is False, then the fractional part is always rounded towards zero
+        - Supported types for template are int, float, flt, decimal.Decimal,
+          fraction.Fraction, and mpmath.mpf
+        - If roundoff is True, then the result x returned is filtered through
+          RoundOff(x), which rounds to 12 digits maximum.
             
         The algorithm determines how many template values are in x.  It is descended from the BASIC
         algorithm on pg 435 of the 31 Oct 1988 issue of "PC Magazine":
@@ -447,13 +453,13 @@ if 1:  # RoundOff, SigFig, TemplateRound, Pound
             of significance.
         '''
         # Check inputs
-        if template <= 0:
-            raise ValueError("template must be > 0")
+        if abs(template) <= 0 or isinstance(template, complex):
+            raise ValueError("template must be a real > 0")
         tt = type(template)
         if not x:
             return tt(x)
         sign = tt(1) if x >= 0 else tt(-1)
-        y = tt(int(abs(tt(x) / template) + tt(1) / tt(2)) * template)
+        y = tt(int(abs(tt(x)/template) + tt(1)/tt(2))*template)
         if up is not None:
             # Round toward or away from zero
             if sign < 0:
@@ -462,33 +468,38 @@ if 1:  # RoundOff, SigFig, TemplateRound, Pound
                 y += template
             elif not up and y > abs(tt(x)):  # Round towards zero
                 y -= template
-        result = sign * y
-        if roundoff:
-            return RoundOff(result)
+        result = sign*y
         return result
 if 1:  # Core functions
-    def Ceil(x, fp):
+    def Ceil(x: Tceil, fp: type[Tceil]) -> int:
         'Ceiling function for type fp:  float, flt, mpf, Decimal'
-        if fp is float or fp is f.flt:
+        if fp is float:
             return int(math.ceil(x))
+        elif fp is f.flt:
+            return int(math.ceil(x))    # type: ignore
         elif _have_mpmath and fp is mpmath.mpf:
             return int(mpmath.ceil(x))
-        elif fp is decimal.Decimal and x is decimal.Decimal:
-            return int(x.to_integral_exact(rounding=decimal.ROUND_CEILING))
-        else:
-            raise TypeError(f"Type {fp} not supported")
-    def Log2(x, fp):
-        'Base 2 logarithm function for type fp:  float, flt, mpf, Decimal'
-        if fp is float or fp is f.flt:
-            return math.log2(x)
-        elif _have_mpmath and fp is mpmath.mpf:
-            return mpmath.log(x)/mpmath.log(2)
         elif fp is decimal.Decimal:
-            assert x is decimal.Decimal
-            return x.ln(x)/x.ln(2)
+            return int(x.to_integral_exact(rounding=decimal.ROUND_CEILING))  # type: ignore
         else:
             raise TypeError(f"Type {fp} not supported")
-    def IsBracketed(a, b, f, fp=float):
+    def Log2(x: Tceil, fp: type[Tceil]) -> Tceil:
+        'Base 2 logarithm function for type fp:  float, flt, mpf, Decimal'
+        if fp is float:
+            return fp(math.log2(x))
+        elif fp is f.flt:
+            return fp(math.log2(x))
+        elif _have_mpmath and fp is mpmath.mpf:
+            return mpmath.log(x)/mpmath.log(2)  # type: ignore
+        elif fp is decimal.Decimal:
+            return x.ln()/fp(2).ln()    # type: ignore
+        else:
+            raise TypeError(f"Type {fp} not supported")
+    def IsBracketed(a: Tceil,
+                    b: Tceil,
+                    f: ty.Callable[[Tceil], Tceil],
+                    fp: type[Tceil]=float
+                   ) -> tuple[Tceil, Tceil]:
         '''Check that a and b bracket a root of f(x); raise ValueError if not.  Return
         the values (fp(f(a)), fp(f(b))) for convenience and to avoid recalculating them.
         '''
@@ -496,74 +507,6 @@ if 1:  # Core functions
         if fa*fb > 0:
             raise ValueError(f"a = {a} and b = {b} do not bracket a root of f")
         return (fa, fb)
-    def AlmostEqual(a, b, rel_err=2e-15, abs_err=5e-323):
-        '''Determine whether floating-point values a and b are equal to
-        within a (small) rounding error; return True if almost equal and
-        False otherwise.  The default values for rel_err and abs_err are
-        chosen to be suitable for platforms where a float is represented
-        by an IEEE 754 double.  They allow an error of between 9 and 19
-        ulps.
-        
-        This routine comes from the Lib/test/test_cmath.py in the python
-        distribution; the function was called almostEqualF.
-        
-        ∞∞2 This should probably use math.isclose()
-        '''
-        # Special values testing
-        if math.isnan(a):
-            return math.isnan(b)
-        if math.isinf(a):
-            return a == b
-        # If both a and b are zero, check whether they have the same sign
-        # (in theory there are examples where it would be legitimate for a
-        # and b to have opposite signs; in practice these hardly ever
-        # occur).
-        if not a and not b:
-            return math.copysign(float(1), a) == math.copysign(float(1), b)
-        # If a - b overflows, or b is infinite, return False.  Again, in
-        # theory there are examples where a is within a few ulps of the
-        # max representable float, and then b could legitimately be
-        # infinite.  In practice these examples are rare.
-        try:
-            absolute_error = abs(b - a)
-        except OverflowError:
-            return False
-        else:
-            return absolute_error <= max(abs_err, rel_err*abs(a))
-    def polar(x, y, deg=False):
-        '''Return the polar coordinates for the given rectangular
-        coordinates.  If deg is True, angle measure is in degrees;
-        otherwise, angles are in radians.
-        '''
-        r2d = 180/math.pi if deg else 1
-        return (math.hypot(x, y), math.atan2(y, x)*r2d)
-    def rect(r, theta, deg=False):
-        '''Return the rectangular coordinates for the given polar
-        coordinates.  If deg is True, angle measure is in degrees;
-        otherwise, angles are in radians.
-        '''
-        d2r = math.pi/180 if deg else 1
-        return (r*math.cos(theta*d2r), r*math.sin(theta*d2r))
-    def isqrt(x):
-        '''Integer square root.  This calculation is done with integers, so it
-        can calculate square roots for large numbers that would overflow the
-        normal square root function.
-        
-        From
-        http://code.activestate.com/recipes/577821-integer-square-root-function/
-        '''
-        if x < 0:
-            raise ValueError("Square root not defined for negative numbers")
-        n = int(x)
-        if n == 0:
-            return 0
-        a, b = divmod(n.bit_length(), 2)
-        x = 2**(a + b)
-        while True:
-            y = (x + n//x)//2
-            if y >= x:
-                return x
-            x = y
     def CountBits(num):
         'Return (n_on, n_off), the number of on and off bits in the integer |num|'
         if not isinstance(num, int):
@@ -781,7 +724,7 @@ if 1:  # Core functions
             return return_type(1)
         else:
             return return_type(-1)
-    def Percentile(seq, fraction):
+    def Percentile(seq: ty.Sequence[Tceil], fraction: float) -> ty.Optional[Tceil]:
         '''Return the indicated fraction of a sequence seq of sorted values.  fraction
         will be converted to be in [0, 1].
         
@@ -790,18 +733,18 @@ if 1:  # Core functions
         
         The algorithm is:
         
-            Suppose you have N numbers Y_[1] to Y_[N].  For the pth percentile,
-            let x = p*(N + 1) and
+            Suppose you have n numbers Y_[1] to Y_[n].  For the pth percentile,
+            let x = p*(n + 1) and
             
               k = int(x)      [Integer part of x], d >= 0
               d = x - k       [Fractional part of x], d in [0, 1)
               
             Then calculate
             
-              1.  For 0 < k < N, Y_(p) = Y_[k] + d*(Y_[k+1] - Y_[k]).
-              2.  For k = 0, Y_[p] = Y[1].  Any p <= 1/(N+1) will be set to the
+              1.  For 0 < k < n, Y_(p) = Y_[k] + d*(Y_[k+1] - Y_[k]).
+              2.  For k = 0, Y_[p] = Y[1].  Any p <= 1/(n+1) will be set to the
                   minimum value.
-              3.  For k >= N, Y_(p) = = Y_[N].  Any p > N/(N+1) will be set to
+              3.  For k >= n, Y_(p) = = Y_[n].  Any p > n/(n+1) will be set to
                   the maximum value.
                   
               The algorithm's array indexing is 1-based, so python code needs to take
@@ -824,12 +767,12 @@ if 1:  # Core functions
             11     95.1990     95.1959       12
             12     95.1682     95.1990        8
             
-        To find the 90th percentile, we have p*(N+1) = 0.9*13 = 11.7.  Then k = 11 and d
+        To find the 90th percentile, we have p*(n+1) = 0.9*13 = 11.7.  Then k = 11 and d
         = 0.7.  From step 1 above, we estimate Y_(90) as
         
             Y_(90) = Y[11] + 0.7*(95.1990 - 95.1959) = 95.1981
             
-        Note this algorithm will work for N > 1.
+        Note this algorithm will work for n > 1.
         
         http://code.activestate.com/recipes/511478-finding-the-percentile-of-the-values/
         gives another algorithm, but it doesn't give the same results as the NIST
@@ -842,21 +785,22 @@ if 1:  # Core functions
         '''
         if not seq:
             return None
-        N = len(seq)
-        if N == 1:
+        n = len(seq)
+        if n == 1:
             raise ValueError("Sequence must have at least 2 elements")
         fraction = max(min(fraction, 1), 0)
-        x = fraction*(N + 1)
+        x = fraction*(n + 1)
         k = int(x)  # Integer part of x
         d = x - k  # Fractional part of x
-        if 0 < k < N:
+        if 0 < k < n:
             yk = seq[k - 1]
             y = yk + d*(seq[k] - yk)
-        elif k >= N:
+        elif k >= n:
             y = seq[-1]
         else:
             y = seq[0]
         return y
+
     def LengthOfRopeOnDrum(rope_dia, drum_width, flange_dia, drum_dia, units="mm"):
         '''Return the length of rope of diameter rope_dia_in that will fit on a winch
         drum of diameter drum_dia.  The width of the winding area is width and the maximum
@@ -1082,7 +1026,7 @@ if 1:   # Stuff from util.py
             )
         s = [] if duplicates_OK else set()
         f = s.append if duplicates_OK else s.add
-        numbytes = maxint.bit_length() // 8 + 1
+        numbytes = maxint.bit_length()//8 + 1
         if seed is not None:
             random.seed(seed)
         while len(s) < n:
@@ -1178,6 +1122,64 @@ if 1:  # Simple linear regression
         Rsquared = f.flt((n*sXY - sx*sy)**2/((n*sXX - sx**2)*(n*sYY - sy**2)))
         return (m, b, Rsquared)
 
+if 0:   # Candidates for removal
+    def polar(x, y, deg=False):
+        '''Return the polar coordinates for the given rectangular
+        coordinates.  If deg is True, angle measure is in degrees;
+        otherwise, angles are in radians.
+        '''
+        r2d = 180/math.pi if deg else 1
+        return (math.hypot(x, y), math.atan2(y, x)*r2d)
+    def rect(r, theta, deg=False):
+        '''Return the rectangular coordinates for the given polar
+        coordinates.  If deg is True, angle measure is in degrees;
+        otherwise, angles are in radians.
+        '''
+        d2r = math.pi/180 if deg else 1
+        return (r*math.cos(theta*d2r), r*math.sin(theta*d2r))
+    def isqrt(x):
+        '''Integer square root.  This calculation is done with integers, so it
+        can calculate square roots for large numbers that would overflow the
+        normal square root function.
+        
+        From
+        http://code.activestate.com/recipes/577821-integer-square-root-function/
+        '''
+        if x < 0:
+            raise ValueError("Square root not defined for negative numbers")
+        n = int(x)
+        if n == 0:
+            return 0
+        a, b = divmod(n.bit_length(), 2)
+        x = 2**(a + b)
+        while True:
+            y = (x + n//x)//2
+            if y >= x:
+                return x
+            x = y
+    def Test_rect():
+        Assert(rect(0, 0) == (0, 0))
+        Assert(rect(0, 180, deg=True) == (0, 0))
+        x, y = rect(1, 45, deg=True)
+        s = math.sin(math.pi/4)
+        assert_equal(x, s, abstol=g.eps)
+        assert_equal(y, s, abstol=g.eps)
+    def Test_polar():
+        Assert(polar(0, 0) == (0, 0))
+        Assert(polar(0, 1) == (1, math.pi/2))
+        Assert(polar(0, -1) == (1, -math.pi/2))
+        Assert(polar(-1, 0) == (1, math.pi))
+        s = math.sin(math.pi/4)
+        r, theta = polar(s, s, deg=True)
+        assert_equal(r, 1, abstol=g.eps)
+        assert_equal(theta, 45, abstol=g.eps)
+    def Test_isqrt():
+        n0 = 123456789
+        n = n0
+        while n < n0**8:
+            Assert(isqrt(n*n) == n)
+            n = 3*n//2
+
 if __name__ == "__main__":
     if 1:   # Standard imports
         import numbers
@@ -1209,28 +1211,6 @@ if __name__ == "__main__":
         # Use (x - 1)*(x - 2) = 2 - 3*x + x**2
         coefficients = (2, -3, 1)
         Assert(PolynomialReduce(1, coefficients) == [-2, 1])
-    def Test_rect():
-        Assert(rect(0, 0) == (0, 0))
-        Assert(rect(0, 180, deg=True) == (0, 0))
-        x, y = rect(1, 45, deg=True)
-        s = math.sin(math.pi/4)
-        assert_equal(x, s, abstol=g.eps)
-        assert_equal(y, s, abstol=g.eps)
-    def Test_polar():
-        Assert(polar(0, 0) == (0, 0))
-        Assert(polar(0, 1) == (1, math.pi/2))
-        Assert(polar(0, -1) == (1, -math.pi/2))
-        Assert(polar(-1, 0) == (1, math.pi))
-        s = math.sin(math.pi/4)
-        r, theta = polar(s, s, deg=True)
-        assert_equal(r, 1, abstol=g.eps)
-        assert_equal(theta, 45, abstol=g.eps)
-    def Test_isqrt():
-        n0 = 123456789
-        n = n0
-        while n < n0**8:
-            Assert(isqrt(n*n) == n)
-            n = 3*n // 2
     def Test_SpiralArcLength():
         # a = 1, one revolution
         a, theta = 1, 2*math.pi
@@ -1542,24 +1522,14 @@ if __name__ == "__main__":
         Assert(TemplateRound(a, t, up=True) == fractions.Fraction(247, 2))
         Assert(TemplateRound(a, t, up=False) == fractions.Fraction(987, 8))
         # Check using the roundoff keyword
-            #def TemplateRound(x, template, up=None, roundoff=False):
-        x = TemplateRound(2/3, 0.07, roundoff=True)
-        print(x);exit() #∞∞
-        Assert(TemplateRound(2/3, 0.07) == fractions.Fraction(987, 8))
+        x = TemplateRound(2/3, 0.07)
+        assert_equal(TemplateRound(2/3, 0.07), 0.7, reltol=1e-15)
         # mpmath
         if _have_mpmath:
             mpf = mpmath.mpf
             a, t = mpf("123.48"), mpf("0.1")
             Assert(TemplateRound(a, t, up=True) == mpf("123.5"))
             Assert(TemplateRound(a, t, up=False) == mpf("123.4"))
-    def Test_AlmostEqual():
-        Assert(AlmostEqual(0, 0))
-        Assert(AlmostEqual(0, 1e-353))
-        Assert(AlmostEqual(1.0, 1.0))
-        Assert(AlmostEqual(1, 1 + 2e-15))
-        Assert(not AlmostEqual(1, 1 + 2.11e-15))
-        Assert(AlmostEqual(1.0, 1.001, 1e-2))
-        Assert(not AlmostEqual(1.0, 1.011, 1e-2))
     def Test_SigFig():
         x = math.pi*1e8
         for n in range(1, 14):
@@ -1652,6 +1622,30 @@ if __name__ == "__main__":
             x = 1 + 1j
             Assert(Pound(x, 0) == x)
             Assert(Pound(x, 1) == x)
+    def Test_Ceil():
+        D = decimal.Decimal
+        expected = 4
+        Assert(Ceil(3.1, float) == expected)
+        Assert(Ceil(3.1, f.flt) == expected)
+        Assert(Ceil(D("3.1"), D) == expected)
+        Assert(Ceil(4.0, float) == 4)
+        if _have_mpmath:
+            Assert(Ceil(mpmath.mpf("3.1"), mpmath.mpf) == expected)
+        raises(TypeError, Ceil, "x", str)
+    def Test_Log2():
+        D = decimal.Decimal
+        x = 16
+        expected = 4
+        Assert(Log2(x, float) == expected)
+        Assert(Log2(x, f.flt) == expected)
+        Assert(Log2(D(x), D) == expected)
+        # Non-power of 2 (tests the ln()/ln() logic)
+        # We use a small epsilon or check the type to ensure it's not a float-leak
+        log10_d = Log2(D(10), D)
+        Assert(isinstance(log10_d, D))
+        if _have_mpmath:
+            Assert(Log2(mpmath.mpf(x), mpmath.mpf) == expected)
+        raises(TypeError, Log2, "x", str)
     if 1:   # Test stuff from util.py
         def Test_AcceptableDiff():
             Assert(AcceptableDiff(0, 0))
@@ -1799,8 +1793,8 @@ if __name__ == "__main__":
             m = randq.maxidum
             Assert(randr(0) == (1013904223 % m)/float(m))
         def Test_SignificantFigures():
-            Assert(AlmostEqual(float(SignificantFiguresS(1.2345e-6)), 1.23e-6))
-            Assert(AlmostEqual(SignificantFigures(1.2345e-6), 1.23e-6))
+            Assert(math.isclose(float(SignificantFiguresS(1.2345e-6)), 1.23e-6))
+            Assert(math.isclose(SignificantFigures(1.2345e-6), 1.23e-6))
     exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
 
 def GetGist():

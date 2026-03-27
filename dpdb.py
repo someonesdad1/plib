@@ -342,7 +342,7 @@ if 1:  # Classes
                     u.flt = u.red
                     u.cpx = u.cyn
                     u.int = u.mag
-                    u.Decimal = u.pnk
+                    u.Decimal = u.yonl
                     u.Fraction = u.brn
                     u.string = u.lwn
                     u.bytes = u.orn
