@@ -1,43 +1,37 @@
-"""
+'''
 Critical data for various materials
 
-    This module contains a global variable named 'all' that is a
-    sequence of sequences containing critical data for various
-    substances.  The first sequence in data contains the names of each
-    element and, if appropriate, its physical units.  The values given
-    are the material's state at the critical point.
-
-        A convenience dictionary all_dict is also supplied.  Its keys
-        are the material names given as the first element in the all
-        sequence.  It will return a dictionary keyed by the column names
-        so that the parameter and its units will be clear to the user.
-
-    Since most applications won't need the full set of materials, there
-    are three containers of information:  'all' for all the materials,
-    'some' for a reasonably-large subset, and 'few' for the most-used.
-    You can edit the _filter() function to determine the contents of
-    these subsets.  Use the 'python critical.py -l' command to get a
-    listing of these materials.  Note the small subset is used by
+    This module contains a global variable named 'all' that is a sequence of sequences
+    containing critical data for various substances.  The first sequence in data
+    contains the names of each element and, if appropriate, its physical units.  The
+    values given are the material's state at the critical point.
+    
+        A convenience dictionary all_dict is also supplied.  Its keys are the material
+        names given as the first element in the all sequence.  It will return a
+        dictionary keyed by the column names so that the parameter and its units will be
+        clear to the user.
+        
+    Since most applications won't need the full set of materials, there are three
+    containers of information:  'all' for all the materials, 'some' for a
+    reasonably-large subset, and 'few' for the most-used.  You can edit the _filter()
+    function to determine the contents of these subsets.  Use the 'python critical.py
+    -l' command to get a listing of these materials.  Note the small subset is used by
     default, so use with -s or -a to get fuller listings.
-
-    The references sequence relates the Ref number to where the data
-    came from.
-
-    Run the module as a script to provide a look-up utility to print out
-    the critical data.  It will print a usage message if you don't give
-    it any arguments.
-
-    The critical parameters are useful because they can allow you to
-    predict thermodynamic properties of a material using an equation of
-    state (typically, a function f(P, v, T) = 0 for pressure P, molar
-    volume v, and temperature T.  For more information, consult
-    http://en.wikipedia.org/wiki/Critical_point_(thermodynamics).
-
-    One reference that might be of interest is E.W. Lemmon and R. Span,
-    "Short Fundamental Equations of State for 20 Industrial Fluids", J.
-    Chem. Eng. Data, 51(3):785-850, 2006.
-"""
-
+    
+    The references sequence relates the Ref number to where the data came from.
+    
+    Run the module as a script to provide a look-up utility to print out the critical
+    data.  It will print a usage message if you don't give it any arguments.
+    
+    The critical parameters are useful because they can allow you to predict
+    thermodynamic properties of a material using an equation of state (typically, a
+    function f(P, v, T) = 0 for pressure P, molar volume v, and temperature T.  For more
+    information, consult http://en.wikipedia.org/wiki/Critical_point_(thermodynamics).
+    
+    One reference that might be of interest is E.W. Lemmon and R. Span, "Short
+    Fundamental Equations of State for 20 Industrial Fluids", J.  Chem. Eng. Data,
+    51(3):785-850, 2006.
+'''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
@@ -4278,8 +4272,6 @@ if 1:  # Global variables
             else:
                 d[col] = value
         all_dict[name] = d
-
-
 def _filter():
     "Construct the smaller data sets"
     global some, few
@@ -4381,18 +4373,14 @@ def _filter():
             some.append(i)
         if i[0] in _few:
             few.append(i)
-
-
 _filter()
 if __name__ == "__main__":
     from u import to  # Used for unit conversion
     from columnize import Columnize
     from lwtest import run, assert_equal
-
     field_names = all[0]
     maxlen = max([len(i) for i in field_names])
     fmt = "    %-*s   %s"
-
     def Test_data():
         def get(s):
             # Return the line with the name equal to s
@@ -4401,7 +4389,6 @@ if __name__ == "__main__":
                 if i[0] == S:
                     return i
             return None
-
         # Verify we can read in the appropriate columns and convert them
         # to floating point numbers.
         for i, item in enumerate(all[1:]):
@@ -4425,7 +4412,6 @@ if __name__ == "__main__":
         assert_equal(Tc_wp, float(water[4]))
         Pc_wp = 22.06
         assert_equal(Pc_wp, float(water[5]), abstol=0.005)
-
     def ParseCommandLine(d):
         d["-a"] = False
         d["-l"] = False
@@ -4451,11 +4437,10 @@ if __name__ == "__main__":
         if not d["-l"] and not args:
             Usage(d)
         return args
-
     def PrintItem(i, d):
-        """Print the data; for some of the fields, print the number in
+        '''Print the data; for some of the fields, print the number in
         additional units.
-        """
+        '''
         print(i[0])
         if not d["-q"]:
             for name, item in zip(field_names[1:], i[1:]):
@@ -4481,11 +4466,10 @@ if __name__ == "__main__":
                     print(" (%s g/cc)" % sig(x, GetSigFig(item)), end="")
                 print()
             print()
-
     def Usage(d, status=1):
         name = sys.argv[0]
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {name} [options] regexp1 [regexp2...]
           Prints the critical data for any compound whose name matches the
           given regular expression(s) (case-insensitive search).
@@ -4508,10 +4492,9 @@ if __name__ == "__main__":
             -s      Larger set of materials
             -t      Run the self-tests
             -q      Only print the name of the match
-        """)
+        ''')
         )
         exit(status)
-
     # Perform a regular expression search for names that match the
     # command line arguments.
     d = {}  # Options dictionary

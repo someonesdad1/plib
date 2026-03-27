@@ -26,7 +26,7 @@ if 1:  # Header
         from dpstr import RegexpDecorate
         import trm
         t = trm.Trm()
-        from dpprint import PP
+        from dputil import PP
         import get
         pp = PP()   # Get pprint with current screen width
         if 0:

@@ -329,8 +329,6 @@ if 1:  # Light wavelength to & from RGB colors
                 last modified 20 Feb 1996.
             - Gives a CIE color-matching using the 1931 CIE color model that models how
               the human eye perceives color.
-
-
     '''
 if 1:   # https://stackoverflow.com/questions/3407942/rgb-values-of-visible-spectrum
     def CIE_CMF(wl_nm):

@@ -1937,12 +1937,12 @@ if 1:   # Old util stuff
         return len(astr.r.sub("", s))
     def EscapeSequenceStrip(string: str) -> str:
         '''Return the string with ANSI escape sequences removed
-
+        
         16 Feb 2023 Suggested regexp from
         https://stackoverflow.com/questions/14693701/how-can-i-remove-the-ansi-\
         escape-sequences-from-a-string-in-python (see the answer below this answer,
         as it is a more general regexp).
-
+        
         Example:
             >>>EscapeSequenceStrip("\x1b[38;2;198;174;239m12.578")
             '12.578'
