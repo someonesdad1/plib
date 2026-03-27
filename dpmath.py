@@ -403,7 +403,7 @@ if 1:  # RoundOff, SigFig, TemplateRound, Pound
                       up: bool | None = None
                      ) -> Tround:
         '''Round a number to a template number
-
+        
         - The returned value's type will be the same as template's type
         - template must be a number greater than zero
         - x/template must be a meaningful expression (x will be converted to template's
@@ -498,7 +498,7 @@ if 1:  # Core functions
     def IsBracketed(a: Tceil,
                     b: Tceil,
                     f: ty.Callable[[Tceil], Tceil],
-                    fp: type[Tceil]=float
+                    fp: type[Tceil]=float               # type: ignore
                    ) -> tuple[Tceil, Tceil]:
         '''Check that a and b bracket a root of f(x); raise ValueError if not.  Return
         the values (fp(f(a)), fp(f(b))) for convenience and to avoid recalculating them.
@@ -507,132 +507,7 @@ if 1:  # Core functions
         if fa*fb > 0:
             raise ValueError(f"a = {a} and b = {b} do not bracket a root of f")
         return (fa, fb)
-    def CountBits(num):
-        'Return (n_on, n_off), the number of on and off bits in the integer |num|'
-        if not isinstance(num, int):
-            raise TypeError("num must be an integer")
-        s = list(bin(abs(num))[2:])
-        return (sum([i == "1" for i in s]), sum([i == "0" for i in s]))
-    def DecimalToBase(num, base, check_result=False):
-        '''Convert a decimal integer num to a string in base base.  Tested with
-        random integers from 10 to 10,000 digits in bases 2 to 36 inclusive.
-        Set check_result to True to assure that the integer was converted
-        properly.
-        '''
-        if not 2 <= base <= 36:
-            raise ValueError("Base must be between 2 and 36.")
-        if num == 0:
-            return "0"
-        s, sign, n = "0123456789abcdefghijklmnopqrstuvwxyz", "", abs(num)
-        if num < 0:
-            sign, num = "-", abs(num)
-        d, in_base = dict(zip(range(len(s)), list(s), strict=True)), ""
-        while num:
-            num, rem = divmod(num, base)
-            in_base = d[rem] + in_base
-        if check_result and int(in_base, base) != n:
-            raise ArithmeticError(f"Base conversion failed for {num} to base {base}")
-        return sign + in_base
-    def Int(s):
-        '''Convert the string (or bytes) s to an integer.  Allowed forms are:
-            - Plain base 10 string
-            - 0b, 0B:  binary
-            - 0o, 0O:  octal
-            - 0x, 0X:  hex
-            - u+, U+:  hex style for Unicode codepoints
-        '''
-        if not isinstance(s, (str, bytes, bytearray)):
-            raise TypeError("s must be str, bytes, or bytearray")
-        isstr = True if isinstance(s, str) else False
-        neg = 1
-        if s[0] == "-" or s[0] == ord("-"):
-            neg = -1
-            s = s[1:]
-        if s.lower().startswith("0b" if isstr else b"0b"):
-            return neg*int(s, 2)
-        elif s.lower().startswith("0o" if isstr else b"0o"):
-            return neg*int(s, 8)
-        elif s.lower().startswith("0x" if isstr else b"0x"):
-            return neg*int(s, 16)
-        elif s.lower().startswith("u+" if isstr else b"u+"):
-            return neg*int(s, 16)
-        else:
-            return neg*int(s, 10)
-    def int2base(x, base):
-        '''Converts the integer x to a string representation in a given
-        base.  base may be from 2 to 94.
-        
-        Method by Alex Martelli
-        http://stackoverflow.com/questions/2267362/convert-integer-to-a-string-in-a-given-numeric-base-in-python
-        Modified slightly by DP.
-        '''
-        if not hasattr(int2base, "digits"):
-            a = string.digits + string.ascii_letters
-            int2base.digits = a + string.punctuation
-        if not isinstance(base, int):
-            raise TypeError("base must be an integer")
-        if not (2 <= base <= len(int2base.digits)):
-            n = len(int2base.digits)
-            raise ValueError(f"base must be between 2 and {n} inclusive")
-        if not isinstance(x, (int, str)):
-            raise ValueError("Argument x must be an integer or string")
-        y = int(x) if isinstance(x, str) else x
-        sgn = -1 if y < 0 else 1
-        if not y:
-            return "0"
-        y, answer = abs(y), []
-        while y:
-            answer.append(int2base.digits[y % base])
-            y //= base
-        if sgn < 0:
-            answer.append("-")
-        return "".join(reversed(answer))
-    def base2int(x, base):
-        '''Inverse of int2base.  Converts a string x in the indicated base
-        to a base 10 integer.  base may be from 2 to 94.
-        '''
-        if not hasattr(base2int, "digits"):
-            a = string.digits + string.ascii_letters
-            base2int.digits = a + string.punctuation
-        if not isinstance(base, int):
-            raise TypeError("base must be an integer")
-        if not (2 <= base <= len(base2int.digits)):
-            n = len(int2base.digits)
-            raise ValueError(f"base must be between 2 and {n} inclusive")
-        if not isinstance(x, str):
-            raise ValueError("Argument x must be a string")
-        n, y = 0, reversed(x)
-        n = 0
-        for i, c in enumerate(y):
-            try:
-                val = base2int.digits.index(c)
-            except Exception as e:
-                raise ValueError(f"'{c}' not a valid character for base {base}") from e
-            n += val*(base**i)
-        return n
-    def int2bin(n, numbits=32):
-        '''Returns the binary of integer n, using numbits number of
-        digits.  Note this is a two's-complement representation.
-        From http://www.daniweb.com/software-development/python/code/216539
-        '''
-        return "".join([str((n >> y) & 1) for y in range(numbits - 1, -1, -1)])
-    def Binary(n):
-        '''convert an integer n to a binary string.  Example:  Binary(11549)
-        gives '10110100011101'.
-        '''
-        if 0:
-            # from http://www.daniweb.com/software-development/python/code/216539
-            s, m = "", abs(n)
-            if not n:
-                return "0"
-            while m > 0:
-                s = str(m % 2) + s
-                m >>= 1
-            return "-" + s if n < 0 else s
-        else:
-            # Use built-in bin()
-            return "-" + bin(n)[3:] if n < 0 else bin(n)[2:]
-    def bin2gray(bits):
+    def bin2gray(bits: str) -> str:
         '''bits will be a string representing a binary number with the most
         significant bit at index 0; for example, the integer 13 would be
         represented by the string '1101'.  Return a string representing a Gray
@@ -645,7 +520,7 @@ if 1:  # Core functions
         b = [int(i) for i in bits]
         g = b[:1] + [i ^ ishift for i, ishift in zip(b[:-1], b[1:], strict=True)]
         return "".join([str(i) for i in g])
-    def gray2bin(bits):
+    def gray2bin(bits: str) -> str:
         '''bits will be a string representing a Gray-encoded binary number.
         Return a string representing a binary number with the most significant
         bit at index 0.
@@ -659,7 +534,7 @@ if 1:  # Core functions
         for nextb in Bits[1:]:
             b.append(b[-1] ^ nextb)
         return "".join([str(i) for i in b])
-    def InterpretFraction(s):
+    def InterpretFraction(s: str) -> fractions.Fraction:
         '''Interprets the string s as a fraction.  The following are
         equivalent forms:  '5/4', '1 1/4', '1-1/4', or '1+1/4'.  The
         fractional part in a proper fraction can be improper:  thus,
@@ -686,7 +561,7 @@ if 1:  # Core functions
             return -(ip + fp) if neg else ip + fp
         except ValueError as e:
             raise ValueError(msg) from e
-    def ProperFraction(fraction, separator=" "):
+    def ProperFraction(fraction: fractions.Fraction, separator: str=" ") -> str:
         '''Return the Fraction object fraction in a proper fraction string
         form.
         
@@ -698,33 +573,14 @@ if 1:  # Core functions
         n, d = abs(fraction.numerator), abs(fraction.denominator)
         ip, numerator = divmod(n, d)
         return f"{sgn}{ip}{separator}{numerator}/{d}"
-    def mantissa(x, digits=6):
-        '''Return the mantissa of the base 10 logarithm of x rounded to the
-        indicated number of digits.
-        '''
-        return round(math.log10(significand(x, digits=digits)), digits)
-    def significand(x, digits=6):
-        '''Return the significand of x rounded to the indicated number of
-        digits.
-        '''
-        s = SignSignificandExponent(x)[1]
-        return round(s, digits - 1)
-    def SignSignificandExponent(x, digits=15):
-        '''Returns a tuple (sign, significand, exponent) of a floating point
-        number x.  sign is -1 or 1, significand is a float, and exponent is an
-        integer.
+    def SignSignificandExponent(x: float, digits: int =15) -> tuple[int, float, int]:
+        '''Returns (sign, significand, exponent) of float x
+         
+        sign is -1 or 1, significand is a float, and exponent is an integer.
         '''
         s = f"{abs(float(x)):.{digits}e}"
         return (1 - 2*(x < 0), float(s[0 : digits + 2]), int(s[digits + 3 :]))
-    def signum(x, return_type=int):
-        'Return a number -1, 0, or 1 representing the sign of x'
-        if not x:
-            return return_type(0)
-        elif x > 0:
-            return return_type(1)
-        else:
-            return return_type(-1)
-    def Percentile(seq: ty.Sequence[Tceil], fraction: float) -> ty.Optional[Tceil]:
+    def Percentile(seq: ty.Sequence[int|float|f.flt], fraction: float) -> ty.Optional[int|float|f.flt]:
         '''Return the indicated fraction of a sequence seq of sorted values.  fraction
         will be converted to be in [0, 1].
         
@@ -800,9 +656,14 @@ if 1:  # Core functions
         else:
             y = seq[0]
         return y
-
-    def LengthOfRopeOnDrum(rope_dia, drum_width, flange_dia, drum_dia, units="mm"):
-        '''Return the length of rope of diameter rope_dia_in that will fit on a winch
+    def LengthOfRopeOnDrum(rope_dia: float,
+                           drum_width: float,
+                           flange_dia: float,
+                           drum_dia: float,
+                           units: str = "mm"
+                          ) -> float:
+        '''Return the length of rope of diameter rope_dia_in that will fit on a drum
+         
         drum of diameter drum_dia.  The width of the winding area is width and the maximum
         diameter of the drum's flange is flange_dia.  The units keyword defines the
         units being used (you can use any in u.py) and the output length is in the same
@@ -835,13 +696,18 @@ if 1:  # Core functions
         # Sampson's formula takes parameters in inches and returns feet
         L_ft = f.flt(width*(flange**2 - drum**2)/(15.3*rope**2))
         # Convert feet to the user's units
-        return L_ft*u.u("ft")/u.u(units)
-    def PythagoreanSum(x, y, epsilon=1e-9, watch=False):
-        '''Computes sqrt(x**2 + y**2) using a cubically-convergent algorithm from Moler and
-        Morrison 1983 (IBM J. Res. Develop. vol 27, no. 6, Nov 1983.  The algorithm is
-        terminated when abs((p[i] - p[i-1])/p[i]) is less than abs(epsilon).  With floats,
-        it will never need more than three iterations.  Set watch to True to see
-        convergence.
+        return L_ft*u.u("ft")/u.u(units)    # type: ignore
+    def PythagoreanSum(x: float,
+                       y: float,
+                       epsilon: float = 1e-9,
+                       watch: bool = False
+                      ) -> float:
+        '''Compute sqrt(x**2 + y**2) for sequences x and y
+        
+        Uses a cubically-convergent algorithm from Moler and Morrison 1983 (IBM J. Res.
+        Develop. vol 27, no. 6, Nov 1983.  The algorithm is terminated when abs((p[i] -
+        p[i-1])/p[i]) is less than abs(epsilon).  With floats, it will never need more
+        than three iterations.  Set watch to True to see convergence.
         
         The benefit of this algorithm is that it avoids pernicious overflows or underflows
         caused by using the naive formula sqrt(x**2 + y**2).  It's also robust.  It's
@@ -849,7 +715,10 @@ if 1:  # Core functions
         '''
         if not x and not y:
             return 0
-        p, q, n, plast = max(abs(x), abs(y)), min(abs(x), abs(y)), 0, None
+        p = max(abs(x), abs(y))
+        q = min(abs(x), abs(y))
+        plast = None
+        n = 0
         while q:
             r = (q/p)**2
             s = r/(4 + r)
@@ -865,8 +734,8 @@ if 1:  # Core functions
             plast = p
         return p
 if 1:   # Stuff from util.py
-    def AcceptableDiff(x, y, n=3, strict=False):
-        '''Return True if abs((x - y)/x) <= 10ⁿ.  If x is 0, then calculate abs((y - x)/y).  If
+    def AcceptableDiff(x: float, y: float, n: int=3, strict: bool=False) -> bool:
+        '''Return True if abs((x - y)/x) <= 10⁻ⁿ.  If x is 0, then calculate abs((y - x)/y).  If
         strict is True, then x and y must be the same numerical type.
         
         The use case for this is testing for numerical differences when the numbers come from physical
@@ -877,31 +746,39 @@ if 1:   # Stuff from util.py
         if x == y:
             return True
         if x:
-            return abs((x - y)/x) <= 10**-n
+            return bool(abs((x - y)/x) <= 10**-n)
         else:
-            return abs((x - y)/y) <= 10**-n
-    def Cumul(seq, check=False):
-        '''Return the cumulative sum list of the given sequence seq.  If check is True, verify the last
-        element of the returned array is equal to the sum of all the elements in seq.
+            return bool(abs((x - y)/y) <= 10**-n)
+    def Cumul(seq: ty.Sequence[Tceil], check: bool=False) -> list[Tceil]:
+        '''Return the cumulative sum list of the sequence seq
+        
+        If check is True, verify the last element of the returned array is equal to the
+        sum of all the elements in seq.
         
         Example:  Cumul([1, 2, 3, 4, 7]) returns [1, 3, 6, 10, 17]
         '''
-        cumul, dq = [], collections.deque(seq)
-        while dq:
-            item = dq.popleft()
-            cumul.append(cumul[-1] + item) if cumul else cumul.append(item)
-        if check and cumul and cumul[-1] != sum(seq):
+        if not seq:
+            return []
+        it = iter(seq)
+        current_sum = next(it)
+        cumul = [current_sum]
+        for item in it:
+            current_sum += item
+            cumul.append(current_sum)
+        if check and cumul[-1] != sum(seq):
             raise ValueError("Sum of sequence not same as last cumul element")
         return cumul
-    def DoubleFactorial(n):
-        '''Returns n!! which is defined to be the product from k = 0 to k = int(n/2) - 1 of (n - 2*k).
-        Since we ensure that n is an integer, this function should never fail, but of course it will
-        take a long time for big integers.
+    def DoubleFactorial(n: int) -> int:
+        '''Returns n!! 
+         
+        n!! is defined to be the product from k = 0 to k = int(n/2) - 1 of (n - 2*k).
+        Since we ensure that n is an integer, this function should never fail, but it
+        will take a long time for big integers.
         
         Examples:
-            If n is even, n!! = n(n - 1)(n - 4)···(4)(2)
+            If n is even, n!! = n(n - 2)(n - 4)···(4)(2)
                 Or:  Product from k = 1 to n//2 of 2*k
-            If n is odd,  n!! = n(n - 1)(n - 4)···(3)(1)
+            If n is odd,  n!! = n(n - 2)(n - 4)···(3)(1)
                 Or:  Product from k = 1 to (n+1)//2 of 2*k - 1
         '''
         if not isinstance(n, int):
@@ -912,15 +789,18 @@ if 1:   # Stuff from util.py
         for i in range(n, 0, -2):
             product *= i
         return product
-    def IsConvexPolygon(*p):
-        '''Return True if the sequence p of two-dimensional points constitutes a convex polygon.  Ref:
+    def IsConvexPolygon(*p: ty.Sequence[float]) -> bool:
+        '''Return True if the sequence p represents a 2-dimensional convex polygon
+        
+        p must be composed of two-sequences of numbers like (1, 2).  Ref:
         http://stackoverflow.com/questions/471962/how-do-determine-if-a-polygon-is-complex-convex-nonconvex
         
-        The assumption is that the sequence p of points traverses consecutive points of the polygon.
+        The assumption is that the sequence p of points traverses consecutive points of
+        the polygon.
         
-        The algorithm is to look at the triples of points and calculate the sign of the z component of
-        their cross product.  The polygon is convex if the signs are either all negative or all
-        positive.
+        The algorithm is to look at the triples of points and calculate the sign of the
+        z component of their cross product.  The polygon is convex if the signs are
+        either all negative or all positive.
         
         Examples:
             ((0, 0), (1, 0), (1, 1), (1, 0)) will return True.
@@ -931,6 +811,8 @@ if 1:   # Stuff from util.py
         if n < 3:
             raise ValueError("Need at least three points")
         cross_product_signs = []
+        def signum(x):
+            return math.copysign(1, x) if x else x
         for index in range(n + 3):
             # Generate indices of the needed points
             i = index % n
@@ -945,7 +827,8 @@ if 1:   # Stuff from util.py
         assert len(cross_product_signs) == n + 3
         if cross_product_signs[0] and len(set(cross_product_signs)) == 1:
             return True
-    def ParseComplex(numstring):
+        return False
+    def ParseComplex(numstring: str) -> tuple[str, str]:
         '''numstring contains a string representing a complex number that must be of the form 'x+yi';
         the complex unit can be i or j.  Return (real, imag) where real and imag are the real and
         imaginary strings of the complex number.  Space characters can be anywhere in the string, as
@@ -1008,55 +891,10 @@ if 1:   # Stuff from util.py
                 else:
                     raise ValueError(msg)
         return (first, second)
-    def RandomIntegers(n, maxint, seed=None, duplicates_OK=False):
-        '''Return a random list of n integers between 0 and maxint - 1.  Set seed to be not None to
-        generate a repeatable set of integers.  If duplicates_OK is False, the integers are distinct;
-        otherwise, the list may contain duplicates.
-        '''
-        # Check parameters
-        if not isinstance(n, int) or not isinstance(maxint, int):
-            raise TypeError("n and maxint must be integers")
-        if n <= 0:
-            raise ValueError("n must be > 0")
-        if not maxint and duplicates_OK:
-            return [0]*n
-        if not duplicates_OK and n > maxint:
-            raise ValueError(
-                f"maxint ({maxint}) is too small to generate {n} distinct integers"
-            )
-        s = [] if duplicates_OK else set()
-        f = s.append if duplicates_OK else s.add
-        numbytes = maxint.bit_length()//8 + 1
-        if seed is not None:
-            random.seed(seed)
-        while len(s) < n:
-            if seed is None:
-                f(int.from_bytes(os.urandom(numbytes), "big") % maxint)
-            else:
-                f(random.randint(0, maxint - 1))
-        return list(s)
-    def randq(seed=-1):
-        '''The simple random number generator in the section "An Even Quicker Generator" from
-        "Numerical Recipes in C", page 284, chapter 7, 2nd ed, 1997 reprinting (found on the web in PDF
-        form).
-        
-        If seed is not -1, it is used to initialize the sequence; it can be any hashable value.
-        '''
-        if not hasattr(randq, "a"):
-            # State variables for randq
-            randq.a = 1664525  # Recommended by Knuth
-            randq.c = 1013904223  # From Lewis
-            randq.idum = 0
-            randq.maxidum = 2**32
-        if seed != -1:
-            randq.idum = abs(hash(seed))
-        randq.idum = (randq.a*randq.idum + randq.c) % randq.maxidum
-        return randq.idum
-    def randr(seed=-1):
-        "Uses randq to return a floating point number on [0, 1)"
-        n = randq(seed=seed) if seed != -1 else randq()
-        return n/float(randq.maxidum)
-    def SignificantFiguresS(value, digits=3, exp_compress=True):
+    def SignificantFiguresS(value: float,
+                            digits: int = 3,
+                            exp_compress: bool = True
+                           ) -> str:
         '''Returns a string representing the number value rounded to a specified number
         of significant figures.  The number is converted to a string, then rounded and
         returned as a string.  If you want it back as a number, use float() on the
@@ -1105,11 +943,11 @@ if 1:   # Stuff from util.py
         neg = "-" if sign < 0 else ""
         e = f"e{exponent:+d}" if exp_compress else f"e{exponent:+04d}"
         return neg + (fmt % significand) + e
-    def SignificantFigures(value, figures=3):
+    def SignificantFigures(value: float, figures: int=3) -> float:
         "Rounds a value to specified number of significant figures.  Returns a float."
         return float(SignificantFiguresS(value, figures))
 if 1:  # Simple linear regression
-    def LinearRegression(x, y):
+    def LinearRegression(x: ty.Sequence[float], y: ty.Sequence[float]) -> tuple[float, float, float]:
         'Return (m, b, Rsquared) for a simple linear regression problem'
         if len(x) != len(y):
             raise ValueError("x and y are not same length")
@@ -1121,8 +959,23 @@ if 1:  # Simple linear regression
         b = f.flt((sy - m*sx)/n)
         Rsquared = f.flt((n*sXY - sx*sy)**2/((n*sXX - sx**2)*(n*sYY - sy**2)))
         return (m, b, Rsquared)
-
 if 0:   # Candidates for removal
+    def Test_int2base():
+        raises(ValueError, int2base, "", 2)
+        raises(ValueError, int2base, 0, 370)
+        x = 12345
+        Assert(int2base(x, 2) == bin(x)[2:])
+        Assert(int2base(x, 8) == oct(x)[2:])
+        Assert(int2base(x, 16) == hex(x)[2:])
+        Assert(int2base(36**2, 36) == "100")
+        s = "53,kkns^~laU"
+        Assert(int2base("255" + str(2**64), 94) == s)
+    def Test_base2int():
+        s = "53,kkns^~laU"
+        Assert(base2int(s, 94) == int("255" + str(2**64)))
+    def Test_int2bin():
+        Assert(int2bin(-33, 8) == "11011111")
+        Assert(int2bin(33, 8) == "00100001")
     def polar(x, y, deg=False):
         '''Return the polar coordinates for the given rectangular
         coordinates.  If deg is True, angle measure is in degrees;
@@ -1179,6 +1032,263 @@ if 0:   # Candidates for removal
         while n < n0**8:
             Assert(isqrt(n*n) == n)
             n = 3*n//2
+    def int2base(x, base):
+        '''Converts the integer x to a string representation in a given
+        base.  base may be from 2 to 94.
+        
+        Method by Alex Martelli
+        http://stackoverflow.com/questions/2267362/convert-integer-to-a-string-in-a-given-numeric-base-in-python
+        Modified slightly by DP.
+        '''
+        if not hasattr(int2base, "digits"):
+            a = string.digits + string.ascii_letters
+            int2base.digits = a + string.punctuation
+        if not isinstance(base, int):
+            raise TypeError("base must be an integer")
+        if not (2 <= base <= len(int2base.digits)):
+            n = len(int2base.digits)
+            raise ValueError(f"base must be between 2 and {n} inclusive")
+        if not isinstance(x, (int, str)):
+            raise ValueError("Argument x must be an integer or string")
+        y = int(x) if isinstance(x, str) else x
+        sgn = -1 if y < 0 else 1
+        if not y:
+            return "0"
+        y, answer = abs(y), []
+        while y:
+            answer.append(int2base.digits[y % base])
+            y //= base
+        if sgn < 0:
+            answer.append("-")
+        return "".join(reversed(answer))
+    def base2int(x, base):
+        '''Inverse of int2base.  Converts a string x in the indicated base
+        to a base 10 integer.  base may be from 2 to 94.
+        '''
+        if not hasattr(base2int, "digits"):
+            a = string.digits + string.ascii_letters
+            base2int.digits = a + string.punctuation
+        if not isinstance(base, int):
+            raise TypeError("base must be an integer")
+        if not (2 <= base <= len(base2int.digits)):
+            n = len(int2base.digits)
+            raise ValueError(f"base must be between 2 and {n} inclusive")
+        if not isinstance(x, str):
+            raise ValueError("Argument x must be a string")
+        n, y = 0, reversed(x)
+        n = 0
+        for i, c in enumerate(y):
+            try:
+                val = base2int.digits.index(c)
+            except Exception as e:
+                raise ValueError(f"'{c}' not a valid character for base {base}") from e
+            n += val*(base**i)
+        return n
+    def int2bin(n, numbits=32):
+        '''Returns the binary of integer n, using numbits number of
+        digits.  Note this is a two's-complement representation.
+        From http://www.daniweb.com/software-development/python/code/216539
+        '''
+        return "".join([str((n >> y) & 1) for y in range(numbits - 1, -1, -1)])
+    def Binary(n):
+        '''convert an integer n to a binary string.  Example:  Binary(11549)
+        gives '10110100011101'.
+        '''
+        if 0:
+            # from http://www.daniweb.com/software-development/python/code/216539
+            s, m = "", abs(n)
+            if not n:
+                return "0"
+            while m > 0:
+                s = str(m % 2) + s
+                m >>= 1
+            return "-" + s if n < 0 else s
+        else:
+            # Use built-in bin()
+            return "-" + bin(n)[3:] if n < 0 else bin(n)[2:]
+    def TestBinary():
+        d = '''
+        -1000 -1111101000
+        -501 -111110101
+        -500 -111110100
+        -499 -111110011
+        -16 -10000
+        -15 -1111
+        -14 -1110
+        -13 -1101
+        -12 -1100
+        -11 -1011
+        -10 -1010
+        -9 -1001
+        -8 -1000
+        -7 -111
+        -6 -110
+        -5 -101
+        -4 -100
+        -3 -11
+        -2 -10
+        -1 -1
+        0 0
+        1 1
+        2 10
+        3 11
+        4 100
+        5 101
+        6 110
+        7 111
+        8 1000
+        9 1001
+        10 1010
+        11 1011
+        12 1100
+        13 1101
+        14 1110
+        15 1111
+        16 10000
+        499 111110011
+        500 111110100
+        501 111110101
+        999 1111100111
+        1000 1111101000
+        '''.strip()
+        for line in d.split("\n"):
+            n, b = line.strip().split()
+            n = int(n)
+            Assert(Binary(n) == b)
+    def mantissa(x, digits=6):
+        '''Return the mantissa of the base 10 logarithm of x rounded to the
+        indicated number of digits.
+        '''
+        return round(math.log10(significand(x, digits=digits)), digits)
+    def Test_mantissa():
+        x = 1.234
+        mant = mantissa(x)
+        Assert(mant == 0.091315)
+    def significand(x, digits=6):
+        '''Return the significand of x rounded to the indicated number of
+        digits.
+        '''
+        s = SignSignificandExponent(x)[1]
+        return round(s, digits - 1)
+    def Test_significand():
+        x = math.pi*1e-10
+        Assert(significand(x, digits=6) == 3.14159)
+        Assert(significand(x, digits=2) == 3.1)
+    def signum(x, return_type=int):
+        'Return a number -1, 0, or 1 representing the sign of x'
+        if not x:
+            return return_type(0)
+        elif x > 0:
+            return return_type(1)
+        else:
+            return return_type(-1)
+    def Test_signum():
+        Assert(signum(-5) == -1)
+        Assert(signum(5) == 1)
+        Assert(signum(0) == 0)
+        Assert(isinstance(signum(5, return_type=float), float))
+        for i in (-1, -2, -2.2, fractions.Fraction(-1, 1), decimal.Decimal("-3.7")):
+            assert_equal(signum(i), -1)
+        for i in (0, 0.0, fractions.Fraction(0, 1), decimal.Decimal(0)):
+            assert_equal(signum(i), 0)
+        for i in (1, 2, 2.2, fractions.Fraction(1, 1), decimal.Decimal("3.7")):
+            assert_equal(signum(i), 1)
+        raises(TypeError, signum, "a")
+    def RandomIntegers(n, maxint, seed=None, duplicates_OK=False):
+        '''Return a random list of n integers between 0 and maxint - 1.  Set seed to be not None to
+        generate a repeatable set of integers.  If duplicates_OK is False, the integers are distinct;
+        otherwise, the list may contain duplicates.
+        '''
+        # Check parameters
+        if not isinstance(n, int) or not isinstance(maxint, int):
+            raise TypeError("n and maxint must be integers")
+        if n <= 0:
+            raise ValueError("n must be > 0")
+        if not maxint and duplicates_OK:
+            return [0]*n
+        if not duplicates_OK and n > maxint:
+            raise ValueError(
+                f"maxint ({maxint}) is too small to generate {n} distinct integers"
+            )
+        s = [] if duplicates_OK else set()
+        f = s.append if duplicates_OK else s.add
+        numbytes = maxint.bit_length()//8 + 1
+        if seed is not None:
+            random.seed(seed)
+        while len(s) < n:
+            if seed is None:
+                f(int.from_bytes(os.urandom(numbytes), "big") % maxint)
+            else:
+                f(random.randint(0, maxint - 1))
+        return list(s)
+    def randq(seed=-1):
+        '''The simple random number generator in the section "An Even Quicker Generator" from
+        "Numerical Recipes in C", page 284, chapter 7, 2nd ed, 1997 reprinting (found on the web in PDF
+        form).
+        
+        If seed is not -1, it is used to initialize the sequence; it can be any hashable value.
+        '''
+        if not hasattr(randq, "a"):
+            # State variables for randq
+            randq.a = 1664525  # Recommended by Knuth
+            randq.c = 1013904223  # From Lewis
+            randq.idum = 0
+            randq.maxidum = 2**32
+        if seed != -1:
+            randq.idum = abs(hash(seed))
+        randq.idum = (randq.a*randq.idum + randq.c) % randq.maxidum
+        return randq.idum
+    def randr(seed=-1):
+        "Uses randq to return a floating point number on [0, 1)"
+        n = randq(seed=seed) if seed != -1 else randq()
+        return n/float(randq.maxidum)
+    def Test_RandomIntegers():
+        # Random, no duplicates
+        n = 10
+        maxint = 10  # This means we must get all integers from 0 to 9
+        s = RandomIntegers(n, maxint, seed=None, duplicates_OK=False)
+        Assert(s == list(range(n)))
+        # Random, no duplicates, larger set
+        s = RandomIntegers(n, 1000, seed=None, duplicates_OK=False)
+        t = RandomIntegers(n, 1000, seed=None, duplicates_OK=False)
+        Assert(s != t)
+        # maxint is too small --> generates exception
+        with raises(ValueError):
+            s = RandomIntegers(n, 9, seed=None, duplicates_OK=False)
+        # maxint == 0 OK if duplicates allowed
+        maxint = 0
+        s = RandomIntegers(n, maxint, seed=None, duplicates_OK=True)
+        Assert(s == [0]*n)
+        # Repeatable sequence
+        s = RandomIntegers(n, 1000, seed=0, duplicates_OK=False)
+        t = RandomIntegers(n, 1000, seed=0, duplicates_OK=False)
+        Assert(s == t)
+        s = RandomIntegers(n, 1000, seed=0, duplicates_OK=True)
+        t = RandomIntegers(n, 1000, seed=0, duplicates_OK=True)
+        Assert(s == t)
+    def Test_randq():
+        s = [randq(seed=0)]
+        for _ in range(10):
+            s.append(randq())
+        s = [f"{i:08X}" for i in s]
+        # Hex strings from "Numerical Recipes in C", page 284
+        t = [
+            "3C6EF35F",
+            "47502932",
+            "D1CCF6E9",
+            "AAF95334",
+            "6252E503",
+            "9F2EC686",
+            "57FE6C2D",
+            "A3D95FA8",
+            "81FDBEE7",
+            "94F0AF1A",
+            "CBF633B1",
+        ]
+        Assert(s == t)
+    def Test_randr():
+        m = randq.maxidum
+        Assert(randr(0) == (1013904223 % m)/float(m))
 
 if __name__ == "__main__":
     if 1:   # Standard imports
@@ -1250,108 +1360,6 @@ if __name__ == "__main__":
         # Gemini pulled this value from a table and originally set the reltol at 1e-9,
         # which was too tight
         assert_equal(EllipseCircumference(10, 8), 28.361652188, reltol=1e-6)
-    def Test_CountBits():
-        bits = "0112122312"
-        for i in range(10):
-            Assert(CountBits(i)[0] == int(bits[i]))
-    def TestDecimalToBase():
-        # Generate a few random integers and check the results with
-        # python's int() built-in.
-        for base in range(2, 37):
-            for _ in range(100):
-                x = random.randint(0, int(1e6))
-                # Note the following call also checks the result
-                DecimalToBase(x, base, check_result=True)
-    def TestInt():
-        data = (
-            # Positive integers
-            ("0b11", 3),
-            ("0o10", 8),
-            ("0x10", 16),
-            ("10", 10),
-                # Bytes
-                (b"0b11", 3),
-                (b"0o10", 8),
-                (b"0x10", 16),
-                (b"10", 10),
-            # Negative integers
-            ("-0b11", -3),
-            ("-0o10", -8),
-            ("-0x10", -16),
-            ("-10", -10),
-                # Bytes
-                (b"-0b11", -3),
-                (b"-0o10", -8),
-                (b"-0x10", -16),
-                (b"-10", -10),
-        )
-        for s, n in data:
-            Assert(Int(s) == n)
-    def Test_int2base():
-        raises(ValueError, int2base, "", 2)
-        raises(ValueError, int2base, 0, 370)
-        x = 12345
-        Assert(int2base(x, 2) == bin(x)[2:])
-        Assert(int2base(x, 8) == oct(x)[2:])
-        Assert(int2base(x, 16) == hex(x)[2:])
-        Assert(int2base(36**2, 36) == "100")
-        s = "53,kkns^~laU"
-        Assert(int2base("255" + str(2**64), 94) == s)
-    def Test_base2int():
-        s = "53,kkns^~laU"
-        Assert(base2int(s, 94) == int("255" + str(2**64)))
-    def Test_int2bin():
-        Assert(int2bin(-33, 8) == "11011111")
-        Assert(int2bin(33, 8) == "00100001")
-    def TestBinary():
-        d = '''
-        -1000 -1111101000
-        -501 -111110101
-        -500 -111110100
-        -499 -111110011
-        -16 -10000
-        -15 -1111
-        -14 -1110
-        -13 -1101
-        -12 -1100
-        -11 -1011
-        -10 -1010
-        -9 -1001
-        -8 -1000
-        -7 -111
-        -6 -110
-        -5 -101
-        -4 -100
-        -3 -11
-        -2 -10
-        -1 -1
-        0 0
-        1 1
-        2 10
-        3 11
-        4 100
-        5 101
-        6 110
-        7 111
-        8 1000
-        9 1001
-        10 1010
-        11 1011
-        12 1100
-        13 1101
-        14 1110
-        15 1111
-        16 10000
-        499 111110011
-        500 111110100
-        501 111110101
-        999 1111100111
-        1000 1111101000
-        '''.strip()
-        for line in d.split("\n"):
-            n, b = line.strip().split()
-            n = int(n)
-            Assert(Binary(n) == b)
     def Test_bitvector():
         if 1:
             # This test probably worked under python 2, but not under 3.
@@ -1411,29 +1419,9 @@ if __name__ == "__main__":
         Assert(ProperFraction(fractions.Fraction(3, 1)) == "3 0/1")
         Assert(ProperFraction(fractions.Fraction(5, 4)) == "1 1/4")
         Assert(ProperFraction(fractions.Fraction(-5, 4)) == "-1 1/4")
-    def Test_mantissa():
-        x = 1.234
-        mant = mantissa(x)
-        Assert(mant == 0.091315)
-    def Test_significand():
-        x = math.pi*1e-10
-        Assert(significand(x, digits=6) == 3.14159)
-        Assert(significand(x, digits=2) == 3.1)
     def Test_SignSignificandExponent():
         s, m, e = SignSignificandExponent(-1.23e-4)
         Assert(s == -1 and m == 1.23 and e == -4)
-    def Test_signum():
-        Assert(signum(-5) == -1)
-        Assert(signum(5) == 1)
-        Assert(signum(0) == 0)
-        Assert(isinstance(signum(5, return_type=float), float))
-        for i in (-1, -2, -2.2, fractions.Fraction(-1, 1), decimal.Decimal("-3.7")):
-            assert_equal(signum(i), -1)
-        for i in (0, 0.0, fractions.Fraction(0, 1), decimal.Decimal(0)):
-            assert_equal(signum(i), 0)
-        for i in (1, 2, 2.2, fractions.Fraction(1, 1), decimal.Decimal("3.7")):
-            assert_equal(signum(i), 1)
-        raises(TypeError, signum, "a")
     def TestPercentile():
         s = sorted(
             [  # NIST gauge study data from
@@ -1745,53 +1733,6 @@ if __name__ == "__main__":
                     exit(1)
             # Illegal forms
             raises(ValueError, ParseComplex, "x")
-        def Test_RandomIntegers():
-            # Random, no duplicates
-            n = 10
-            maxint = 10  # This means we must get all integers from 0 to 9
-            s = RandomIntegers(n, maxint, seed=None, duplicates_OK=False)
-            Assert(s == list(range(n)))
-            # Random, no duplicates, larger set
-            s = RandomIntegers(n, 1000, seed=None, duplicates_OK=False)
-            t = RandomIntegers(n, 1000, seed=None, duplicates_OK=False)
-            Assert(s != t)
-            # maxint is too small --> generates exception
-            with raises(ValueError):
-                s = RandomIntegers(n, 9, seed=None, duplicates_OK=False)
-            # maxint == 0 OK if duplicates allowed
-            maxint = 0
-            s = RandomIntegers(n, maxint, seed=None, duplicates_OK=True)
-            Assert(s == [0]*n)
-            # Repeatable sequence
-            s = RandomIntegers(n, 1000, seed=0, duplicates_OK=False)
-            t = RandomIntegers(n, 1000, seed=0, duplicates_OK=False)
-            Assert(s == t)
-            s = RandomIntegers(n, 1000, seed=0, duplicates_OK=True)
-            t = RandomIntegers(n, 1000, seed=0, duplicates_OK=True)
-            Assert(s == t)
-        def Test_randq():
-            s = [randq(seed=0)]
-            for _ in range(10):
-                s.append(randq())
-            s = [f"{i:08X}" for i in s]
-            # Hex strings from "Numerical Recipes in C", page 284
-            t = [
-                "3C6EF35F",
-                "47502932",
-                "D1CCF6E9",
-                "AAF95334",
-                "6252E503",
-                "9F2EC686",
-                "57FE6C2D",
-                "A3D95FA8",
-                "81FDBEE7",
-                "94F0AF1A",
-                "CBF633B1",
-            ]
-            Assert(s == t)
-        def Test_randr():
-            m = randq.maxidum
-            Assert(randr(0) == (1013904223 % m)/float(m))
         def Test_SignificantFigures():
             Assert(math.isclose(float(SignificantFiguresS(1.2345e-6)), 1.23e-6))
             Assert(math.isclose(SignificantFigures(1.2345e-6), 1.23e-6))

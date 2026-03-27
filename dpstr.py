@@ -1625,44 +1625,6 @@ if 1:   # Core functionality
             return s.decode(encoding).translate(translation_table)
         else:
             raise TypeError("s must be a str or bytes instance")
-
-    def ConvertToNumber_(s: str) -> int | float | complex | fractions.Fraction:
-        '''Maps a string to the simplest number form
-        
-        Three "human" formatting conveniences are
-            - 'i' and 'I' are allowed as the imaginary unit
-            - Inputs like '1 + i' and ' 1 / 2 ' have spaces removed
-            - The ',' character can be used as a radix instead of '.'
-        
-        Arguments
-            s       A string to convert to a number
-        
-        Example
-            >>> ConvertToNumber("4 + 3i")
-            (4+3j)
-            >>> ConvertToNumber("1,45")
-            1.45
-        '''
-        # Normalize the form of the string
-        s = s.lower().strip()
-        if "inf" not in s:
-            s = s.replace("i", "j")
-        s = s.replace(",", ".") if "," in s else s
-        # '1 + 3j' -> '1+3j' and '1 / 3' -> '1/3'
-        if any(op in s for op in "+-/"):
-            s = s.replace(" ", "")
-        try:
-            if "j" in s:
-                return complex(s)
-            elif "." in s or "e" in s or "nan" in s or "inf" in s:
-                return float(s)
-            elif "/" in s:
-                return fractions.Fraction(s)
-            else:
-                return int(s)
-        except ValueError as err:
-            raise ValueError(f"{s!r} is not a valid string representation of a number") from err
-
     def ConvertToNumber(s: str) -> int | float | complex | fractions.Fraction:
         '''Maps a string to the simplest python number
         
@@ -1691,46 +1653,6 @@ if 1:   # Core functionality
             return int(s)
         except ValueError as err:
             raise ValueError(f"{s!r} is not a python number representation") from err
-
-    def StringToNumbers_(s: str,
-                        sep: str | None = " "
-                       ) -> list[TNum] | list[list[TNum]]:
-        '''Return a list of numbers that the string s represents
-        
-        With the default value of sep == " ", this function will return a nested list of
-        numbers when s is a multiline string.  This supports a common use case of
-        turning a multiline string into a two-dimensional "matrix" represented by a
-        nested list; however, note there are no constraints on what the shape of such a
-        matrix will be and the nesting will only be one level deep, so it's not a
-        recursive structure.
-
-        If you set sep to None, then the default str.split() method is used and this
-        splits the string on all whitespace, so you'll get a non-nested list back.
-
-        Arguments
-            s       String of number strings separated by sep
-            sep     String that separates numbers
-
-        s is a string; return the sequence (tuple) of numbers it represents; number
-        strings are separated by the string sep.  The numbers returned are integers,
-        fractions, floats, or complex.
-
-        '''
-        s = s.strip()
-        if not s:
-            return []
-        if sep is None:
-            seq = s.split()
-            return [ConvertToNumber(j) for j in seq]
-        else:
-            if "\n" in s:   # Make a nested list
-                seq = []
-                for line in s.split("\n"):
-                    seq.append([ConvertToNumber(j) for j in line.split(sep) if j]) # type:ignore
-                return seq # type:ignore
-            else:
-                return [ConvertToNumber(j) for j in s.split(sep) if j]
-
     def StringToNumbers(s: str,
                         sep: str | None = " "
                        ) -> list[TNum] | list[list[TNum]]:
@@ -1762,7 +1684,31 @@ if 1:   # Core functionality
             return matrix
         else:
             return [ConvertToNumber(j) for j in s.split(sep) if j.strip()]
-
+    def Int(s):
+        '''Convert the string (or bytes) s to an integer.  Allowed forms are:
+            - Plain base 10 string
+            - 0b, 0B:  binary
+            - 0o, 0O:  octal
+            - 0x, 0X:  hex
+            - u+, U+:  hex style for Unicode codepoints
+        '''
+        if not isinstance(s, (str, bytes, bytearray)):
+            raise TypeError("s must be str, bytes, or bytearray")
+        isstr = True if isinstance(s, str) else False
+        neg = 1
+        if s[0] == "-" or s[0] == ord("-"):
+            neg = -1
+            s = s[1:]
+        if s.lower().startswith("0b" if isstr else b"0b"):
+            return neg*int(s, 2)
+        elif s.lower().startswith("0o" if isstr else b"0o"):
+            return neg*int(s, 8)
+        elif s.lower().startswith("0x" if isstr else b"0x"):
+            return neg*int(s, 16)
+        elif s.lower().startswith("u+" if isstr else b"u+"):
+            return neg*int(s, 16)
+        else:
+            return neg*int(s, 10)
 if 1:   # Old util stuff
     def RemoveIndent(s: str, numspaces: int=4) -> str:
         '''Given a multi-line string s, remove the indicated number of spaces from the beginning each
@@ -2009,6 +1955,31 @@ if __name__ == "__main__":
         raises = lwtest.raises
         run = lwtest.run
         t = trm.Trm()
+    def TestInt():
+        data = (
+            # Positive integers
+            ("0b11", 3),
+            ("0o10", 8),
+            ("0x10", 16),
+            ("10", 10),
+                # Bytes
+                (b"0b11", 3),
+                (b"0o10", 8),
+                (b"0x10", 16),
+                (b"10", 10),
+            # Negative integers
+            ("-0b11", -3),
+            ("-0o10", -8),
+            ("-0x10", -16),
+            ("-10", -10),
+                # Bytes
+                (b"-0b11", -3),
+                (b"-0o10", -8),
+                (b"-0x10", -16),
+                (b"-10", -10),
+        )
+        for s, n in data:
+            Assert(Int(s) == n)
     def Test_RegexpDecorate():
         u = trm.Trm()
         rd = RegexpDecorate(u)
