@@ -30,7 +30,6 @@ if 1:  # Header
         from math import *
         from itertools import combinations
     if 1:  # Custom imports
-        from bidict import bidict
         from wrap import dedent
         from sig import sig
         from fpformat import FPFormat
@@ -38,7 +37,7 @@ if 1:  # Header
         import trm
         t = trm.Trm()
         from u import u, ParseUnit, SI_prefixes
-        from dpprint import PP, Clear
+        from dputil import PP
         from f import flt
         if len(sys.argv) > 1:
             import debug

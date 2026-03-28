@@ -80,7 +80,6 @@ if 1:   # Header
         import math
         import pprint
         import sys
-        import threading
     if 1:   # Custom imports
         import color
         import columnize
@@ -92,7 +91,7 @@ if 1:   # Header
     if 0:
         import debug
         debug.SetDebugger()
-class Trm(dict):
+class Trm(dict[str, str]):
     '''Dictionary used to output escape codes to a terminal.
     
         u = Trm()   # Initialized with my default set of colors
@@ -138,9 +137,6 @@ class Trm(dict):
             - You can store attributes in the dictionary instance, but they must start
               with "_" so that they do not get modified.  All other attributes you set
               are converted to a color.Color instance, then changed to an escape code.
-            - A threading lock protects against race conditions occuring due to changing
-              of attributes.  Of course, multiple threads can still stomp on each
-              other's common data, but it won't happen during basic attribute access.
     
         u.on and u.always
             - At anytime, set u.on to False and all escape codes "disappear", as all
@@ -158,6 +154,12 @@ class Trm(dict):
         - 24-bit color
             https://en.wikipedia.org/wiki/ANSI_escape_code#24-bit
     '''
+    # This beautiful optimization was given to me by Mike (Google's Gemini AI) and it
+    # perfectly satisfies the need for type checking by mypy and still lets the type
+    # checker see the dict is a [str, str] mapping.  It’s one of those rare moments
+    # where a performance optimization (__slots__) and a type-system constraint (The
+    # mypy troll) align to create a cleaner architecture.
+    __slots__ = ("on", "always", "_lock", "_stack", "_newstyles")
     # Standard color names to use by default
     std = set('''red ord orn yon yel ygr lwn grn sea trq cyn sky den roy blu vio lav
                  mag pnk lip blk brn gry wht lil pur olv'''.replace("\n", "").split())
@@ -185,7 +187,6 @@ class Trm(dict):
         want the dictionary to be empty.
         '''
         # Attributes with underscores are not meant to be accessed by the user
-        self._lock = threading.Lock()   # For changing attributes
         self._stack = dptypes.Stack()   # Saves previous states of self
         self.on = True          # Output escape codes if True
         self.always = False     # If True, output escape codes even if stdout out isn't a terminal
@@ -226,7 +227,8 @@ class Trm(dict):
                         self[i + j] = color.Color(i + j)
             # Add text attributes (just those that work in WSL)
             for i in "no it bl rv di bo ul rb so hi sb sp".split():
-                exec(f"self.{i} = self(attr='{i}')")
+                #exec(f"self.{i} = self(attr='{i}')")
+                setattr(self, i, self(attr=i))
             # Add n attribute to return to default color
             self["n"] = self(*Trm.normal)
     def _esc(self, clr=None, bg=False):
@@ -316,16 +318,12 @@ class Trm(dict):
         set and access dictionary keys by using them like attributes, as long as they
         are strings that have isidentifier() True.
         '''
-        if name == "_lock":
+        if name in set("on always".split()):
+            super().__setattr__(name, bool(value))
+        elif name.startswith("_"):
             super().__setattr__(name, value)
-            return
-        with self.locked():
-            if name in set("on always".split()):
-                super().__setattr__(name, bool(value))
-            elif name.startswith("_"):
-                super().__setattr__(name, value)
-            else:
-                self[name] = value
+        else:
+            self[name] = value
     def __getitem__(self, name):        # Get self[name]
         'This is used to get self[name]'
         # If self.on isn't True, always return an empty string
@@ -335,16 +333,22 @@ class Trm(dict):
         if not self.always and not sys.stdout.isatty():
             return ""
         # Otherwise, return the escape sequence
-        with self.locked():
-            return super().__getitem__(name)
-    def __getattribute__(self, name):   # Get instance's attributes and dict's keys
-        '''This allows you to access a dictionary key using the syntax self.key instead
-        of self[key] (key.isidentifier() must be True).  It also lets us get to our
-        other attributes that are not in the dict without the infinite recursion
-        problem.
-        '''
-        return (self.__getitem__(name) if name in self
-                else super().__getattribute__(name))
+        return super().__getitem__(name)
+    #def __getattribute__(self, name):   # Get instance's attributes and dict's keys
+    #    '''This allows you to access a dictionary key using the syntax self.key instead
+    #    of self[key] (key.isidentifier() must be True).  It also lets us get to our
+    #    other attributes that are not in the dict without the infinite recursion
+    #    problem.
+    #    '''
+    #    return (self.__getitem__(name) if name in self
+    #            else super().__getattribute__(name))
+    def __getattr__(self, name: str) -> str:
+            '''Called only if the attribute is NOT found in the normal way.
+            This is much faster than __getattribute__ and avoids recursion.
+            '''
+            if name in self:
+                return self[name]       # type: ignore
+            raise AttributeError(f"'Trm' object has no attribute {name!r}")
     def __enter__(self):    # Context manager entry
         assert self._newstyles is not None
         self.ppush(self._newstyles)
@@ -352,12 +356,11 @@ class Trm(dict):
         return self     # Gives caller access to new instance state
     def __exit__(self, exc_type, exc_val, exc_tb):  # Context manager exit
         self.ppop()
-        if exc_type is None or exc_type is TypeError:
-            return True     # Ignore this exception
-        else:
-            return False    # Don't ignore this exception
-    def __repr__(self):
-        return "<class 'trm.Trm'>"
+        # Return False so we DON'T suppress exceptions.
+        # Let the caller handle their own crashes!
+        return False
+    def __repr__(self) -> str:
+        return f"<trm.Trm instance: {len(self)} styles, on={self.on}>"
     def update(self, *p, **kw):
         '''Update ourselves with another dictionary, an iterable of pairs, or keywords.
         Note this method will result in __setitem__ being called, which ensures
@@ -377,8 +380,7 @@ class Trm(dict):
         '''
         if styles_dict is not None and not isinstance(styles_dict, dict):
             raise TypeError("styles_dict must be a dict instance")
-        with self.locked():
-            self._stack.push(self.copy())
+        self._stack.push(self.copy())
         if styles_dict is not None:
             for i in styles_dict:
                 self[i] = styles_dict[i]
@@ -388,8 +390,7 @@ class Trm(dict):
         '''
         old_self = self.copy()
         self.clear()
-        with self.locked():
-            previous = self._stack.pop()
+        previous = self._stack.pop()
         self.update(previous)
         return old_self
     def list(self, msg=None, ignore_std=True, sort=False, horiz=False, columns=0):
@@ -422,13 +423,6 @@ class Trm(dict):
         'Used to utilize a new set of styles in a context manager block'
         self._newstyles = styles_dict
         return self
-    @contextlib.contextmanager
-    def locked(self):
-        self._lock.acquire()
-        try:
-            yield
-        finally:
-            self._lock.release()
 
 if __name__ == "__main__":  
     from lwtest import run, Assert, raises
@@ -591,10 +585,11 @@ if __name__ == "__main__":
             Assert(u["red"] == '\x1b[38;2;254;0;0m')
             del u["red"]
             Assert("red" not in u)
-        if 1:   # Attributes that start wit underscores
+        if 1:   # Attributes that start with underscores
             a = 42
             with raises(AttributeError):
                 u._x
+            u["_x"] = a     # You'll get an exception on the next line if this isn't here
             u._x = a
             Assert(u._x == a)
             del u._x

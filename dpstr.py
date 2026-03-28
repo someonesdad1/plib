@@ -126,6 +126,16 @@ if 1:   # Header
         except Exception:
             with g:
                 g.noflag = 0
+        # This is used by RmEsc and is put here in a "private" variable.  The re module
+        # keeps its own global cache, so there's no need for RmEsc to cache it.
+        # This regexp was constructed from the information given on the
+        # page https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_(Control_Sequence_Introducer)_sequences
+        # This is:
+        #     esc [
+        #     then "parameter bytes":    zero or more bytes 0x30-0x3f       [0-?]
+        #     then "intermediate bytes": zero or more bytes 0x20-0x2f       [ -/]
+        #     then "single byte":        one byte in range of 0x40-0x7e     [@-~]
+        _RE_ANSI_CSI = re.compile(r"\x1b\[[0-?]*[ -\/]*[@-~]")
     if 1:   # Type information
         T = ty.TypeVar("T")
         # Python's basic numbers for use with StringToNumbers
@@ -1149,25 +1159,19 @@ if 1:   # Core functionality
         sequences are stripped out.
         '''
         return len(RmEsc(s)) if isinstance(s, str) else len(s)
-    def RmEsc(s:str, on: bool=True) -> str:
+    def RmEsc(s: str, on: bool = True) -> str:
         '''Remove ANSI escape strings if on is True; otherwise just return s.
         
         The primary use case is to remove colorizing ANSI escape strings from a string
         s.  Not all ANSI escape strings are supported, just the ones that contain a CSI
         sequence.
         '''
+        if not on or not isinstance(s, str):
+            return s
+        return _RE_ANSI_CSI.sub("", s)
+    def RmEsc(s:str, on: bool=True) -> str:
         @functools.lru_cache(maxsize=1)
         def GetRegex() -> re.Pattern:
-            '''Cache our compiled regular expression 
-             
-            This regexp was constructed from the information given on the
-            page https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_(Control_Sequence_Introducer)_sequences
-            This is:
-              esc [
-            then "parameter bytes":    zero or more bytes 0x30-0x3f       [0-?]
-            then "intermediate bytes": zero or more bytes 0x20-0x2f       [ -/]
-            then "single byte":        one byte in range of 0x40-0x7e     [@-~]
-            '''
             return re.compile(r"\x1b\[[0-?]*[ -\/]*[@-~]")
         if not on:
             return s

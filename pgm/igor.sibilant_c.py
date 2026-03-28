@@ -1,11 +1,9 @@
 from collections import deque
 import string
 import sys
-
 ii = isinstance
-
 # Words from PNP   1114
-"""
+'''g
 Absence Accept Accordingly Affectation Archbishop Assistance Attendance
 Because Church Commerce Conceal Conjectures Convinced Darcy Each Exceed
 Exceedingly Excellent Except Excuse Fordyce French Gracechurch
@@ -165,10 +163,9 @@ vivacity voice vouch vouchsafed watch watched watches watchful
 watchfulness watching welcome welcomed welcoming whence which whichever
 whimsical wickedest wickedness witticisms wretched wretchedly
 wretchedness
-"""
-
+'''g
 # words.beale.2of12   8056
-"""
+'''g
 abaci aback abacus abdicate abdication abduct abduction abductor
 abeyance abhorrence abidance abject abjection abjectly abjectness
 abracadabra abscess abscessed abscissa abscissae abscission abscond
@@ -1432,9 +1429,7 @@ wreck wreckage wrecker wrench wrenching wretch wretched wretchedly
 wretchedness wristwatch yacht yachting yachtsman yack yardstick yucca
 yuck yucky zilch zircon zirconium zodiacal zoological zucchini zwieback
 zydeco
-"""
-
-
+'''g
 def GetCWords():
     'Print words that have "c" in middle'
     # Change punctuation to space
@@ -1448,13 +1443,11 @@ def GetCWords():
             words.append(word)
     for i in sorted(set(words)):
         print(i)
-
-
 def MatchCap(s, t):
-    """Return t capitalized as s is.  s and t are expected to be
+    '''Return t capitalized as s is.  s and t are expected to be
     sequences of characters.  The returned sequence matches the type of
     t.
-    """
+    '''g
     if not t:
         return t
     if len(s) < len(t):
@@ -1477,6 +1470,4 @@ def MatchCap(s, t):
         else:
             out.append(t[i])
     return "".join(out) if ii(t, str) else type(t)(out)
-
-
 GetCWords()
