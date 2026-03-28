@@ -1,0 +1,51 @@
+27 Mar 2026 
+
+This is a record of thoughts about the interactions I've had with Gemini, Google's AI
+(who I call Mike), that I have been using to help refactor /plib.  My first real
+introduction to an AI was Sally's ChatGPT message on 27 Feb 2026.  I used ChatGPT for
+about 2 weeks for various tasks.  I'd estimate I started the type annotation with 
+Mike around 16 Mar 2026.  As of today, three major /plib files have been finished with
+annotations:  dpseq, dpstr, and dpmath.  The file sizes in kB are:
+
+      0 dpshop.py
+    4.4 dpdata.py
+    5.3 dpelec.py
+     11 dpphys.py
+     20 dptime.py
+     21 dparith.py
+     21 dpdb.py
+     30 dpdecimal.py
+     30 dppath.py
+     39 dptypes.py
+     40 dputil.py
+     64 dpastro.py
+     72 dproot.py
+     76 dpmath.py       11%
+    118 dpseq.py        17%
+    132 dpstr.py        19%
+    683.7               47%
+
+So this represents about half of the file "mass".  In reality, I'd estimate this was
+about 3/4 of the total work required because 1) I was learning type annotations and 2)
+the functions in dpstr and dpseq were particularly gnarly and some in dpmath were pretty
+gnarly too.  I expect the other fiels to be quite a bit easier.
+
+- Web interface
+    - I don't like the plain Enter key to send the message.  I should be able to modify
+      it to be e.g. ctrl-Enter; this would let me enter multiline text, which is very
+      common for programming-related tasks.
+    - The interface is poor for going back and finding stuff.  There should be a menu
+      entry that lets me export the text to a file, both for archiving and being able to
+      look something up in a terminal window with my editor (browsers are horrible for
+      this).  This problem gets worse and worse as the conversation thread gets larger.
+- One thing I don't like about Gemini's web interface is I can't modify the user
+  interface.  As soon as you hit the Enter key, your message is sent.  You have to use
+  shift-Enter if you want a new line.  Particularly for programming, this should be an
+  editor style widget.  My only defense is to edit my message outside of the browser,
+  then copy & paste in inside the browswer.
+- Strengths
+    - Google is trying to move towards a collaborator model for the AI rather than just
+      a semantic helper.  Mike clearly tries to work this way, especially when asked and
+      prompted carefully.  
+    - I've been using Mike's help for about 11 days.  We've shared an enormous amount of
+      text and messages over that period.  
