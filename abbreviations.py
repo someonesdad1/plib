@@ -13,13 +13,12 @@ Determine if a string is an English abbreviation (case ignored)
 if 1:  # Header
     if 1:  # Imports
         from collections import defaultdict
-    if 1:  # Custom imports
-        from columnize import Columnize
 if 1:  # Utility functions to vet data
     def _Missing(name, s):
         '''Print out abbreviations from s that are missing from
         IsAbbreviation.abbrev.
         '''
+        import columnize
         not_found = []
         for line in s.strip().split("\n"):
             abbr = line.split("|")[0].strip().lower()
@@ -30,7 +29,7 @@ if 1:  # Utility functions to vet data
         if not_found:
             print("-" * 70)
             print(f"Missing in '{name}'")
-            for line in Columnize(not_found, indent="  "):
+            for line in columnize.Columnize(not_found, indent="  "):
                 print(line)
     def _CanonicalizeData():
         '''Print IsAbbrevation.data in sorted form.'''

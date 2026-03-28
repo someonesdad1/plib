@@ -30,6 +30,7 @@ if 1:  # Header
         from math import *
         from itertools import combinations
     if 1:  # Custom imports
+        import wrap
         from wrap import dedent
         from sig import sig
         from fpformat import FPFormat
@@ -50,7 +51,7 @@ if 1:  # Header
             pass
         g = G()  # Global variable container
         # On-hand resistor values.  Change these entries to match what you have.
-        g.on_hand = dedent("""
+        g.on_hand = wrap.dedent("""
             0.025 0.18 0.2 0.27 0.33 0.6
             
             1 2.2 4.6 8.3
@@ -70,7 +71,7 @@ if 1:  # Header
         
             1M 1.2M 1.5M 1.7M 1.9M 2.2M 2.4M 2.6M 2.8M 3.2M 4M 4.8M 5.6M 6M 8.7M 10M 16M 23.5M
         """)
-        g.two_watt = dedent("""
+        g.two_watt = wrap.dedent("""
             1 1.2 1.5 2 3 4.7 6.3 8.2 9.1
             
             10 12 15 20 22 30 47 51 62 82 91 
@@ -292,8 +293,7 @@ if 1:  # Utility
         pmax = "%.1g" % (10 ** (max(powers_of_10) + 1))
         num_entries = d["-n"]
         digits = d["-d"]
-        print(
-            dedent(f"""
+        print(wrap.dedent(f"""
         Usage:  {name} [options] action [parameters]
         
         Actions:
@@ -686,8 +686,7 @@ if 1:  # Core functionality
                 results.append([pct_dev, r, i, j])
         results.sort()
         model, file = "parallel" if parallel else "series", args[1]
-        print(
-            dedent(f"""
+        print(wrap.dedent(f"""
         Model = {model}
         File  = {file}
         

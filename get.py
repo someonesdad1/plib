@@ -80,7 +80,6 @@ if 1:  # Header
     if 1:   # Custom imports
         import u
         from f import flt
-        from columnize import Columnize
         pp = pprint.pprint
         try:
             from uncertainties import ufloat_fromstr, UFloat
@@ -993,13 +992,14 @@ if 1:  # Getting choices
         instream and outstream are used for testing and are passed to
         GetNumber().
         '''
+        import columnize 
         if not seq:
             raise ValueError("seq can't be empty")
         items, n = [], len(seq)
         for i, item in enumerate(seq):
             items.append("{}) {}".format(i + 1, str(item)))
         if col:
-            for i in Columnize(items, indent=indent, sep=" " * 3):
+            for i in columnize.Columnize(items, indent=indent, sep=" " * 3):
                 print(i, file=outstream)
         else:
             s = "" if indent is None else indent

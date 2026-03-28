@@ -145,7 +145,7 @@ if 1:  # Header
         import sys
         from collections import deque
     if 1:  # Custom imports
-        from wrap import dedent
+        import wrap
         try:
             # Note:  mpmath is optional, but I suggest you use it because
             # it handles numbers much larger and smaller than standard
@@ -911,7 +911,7 @@ class Fmt:
                     break
             u = sgn + "".join(left) + self.ellipsis + "".join(right) + m
             if len(u) > L:
-                msg = dedent(f'''
+                msg = wrap.dedent(f'''
                 Bug in algorithm:
                   L = {L}
                   result = {u!r}
@@ -1598,7 +1598,7 @@ if __name__ == "__main__":
         partial = functools.partial
         pi = math.pi
         #
-        dedent = wrap.dedent
+        wrap.dedent = wrap.wrap.dedent
         raises = lwtest.raises
         run = lwtest.run
         t = trm.Trm()
@@ -1619,7 +1619,7 @@ if __name__ == "__main__":
     def Demo():
         f = fmt
         t.print(
-            dedent(f'''
+            wrap.dedent(f'''
         {t.t}Demonstration of Fmt class features:  {t.em}f = Fmt(){t.n}
             Formatting (string interpolation) is gotten by calling the Fmt instance
             as a function:  {t.f}f(x){t.n}.  x can be an integer, real, or complex number.
@@ -1629,7 +1629,7 @@ if __name__ == "__main__":
         x = eval(s)
         # Standard formatting
         print(
-            dedent(f'''
+            wrap.dedent(f'''
         {t.t}Usual python float formatting:{t.n}  x = {s}
             repr(x) = str(x) = {t.u}{x!s}{t.n}
             Though accurate, there are too many digits for easy comprehension.  The
@@ -1709,7 +1709,7 @@ if __name__ == "__main__":
         t.print(f"  {t.f}f(pi*1e-27){t.n} = {t.fix}{f(pi * 1e-27)}")
         t.print(f"  {t.f}f(pi*1e57){t.n} = {t.fix}{f(pi * 1e57)}")
         print(
-            dedent('''
+            wrap.dedent('''
         Large and small enough numbers will still require scientific notation (the
         default processing switches to scientific notation if an interpolation takes
         up more than a fourth of the screen area).''')
@@ -1718,7 +1718,7 @@ if __name__ == "__main__":
         f.low = 1e-6
         # Big exponents
         print(
-            dedent(f'''
+            wrap.dedent(f'''
         {t.em}Big numbers{t.n}   {t.t}Fixed point, scientific, and engineering formatting should work
         for numbers of arbitrary magnitudes as long as an exception isn't encountered.
         ''')
@@ -1734,12 +1734,12 @@ if __name__ == "__main__":
             x = mpmath.mpf(100)
             y = mpmath.fac(x)
             z = y**y
-            print(dedent('''
+            print(wrap.dedent('''
             mpmath lets you calculate y = x**x where x is 100!:
             y = {fmt(z)} (the exponent is 1.47e160)
             '''))
         else:
-            print(dedent('''
+            print(wrap.dedent('''
             If you install mpmath, you can handle/format large numbers.  For example,
             if x = 100!, then x**x is a large number with an exponent of 1.47e160 and
             fmt(x**x) will format the number properly.
@@ -1747,7 +1747,7 @@ if __name__ == "__main__":
         # Decimals with lots of digits
         n = 20
         t.print(
-            dedent(f'''
+            wrap.dedent(f'''
         {t.em}Digits{t.n}  {t.t}You can ask for any number of digits, but the maximum given will be
         a number consistent with the numerical type's precision.  A float is good to
         about 15 digits.  Decimal and mpmath numbers depend on the current context's
@@ -1773,7 +1773,7 @@ if __name__ == "__main__":
             n = 7
             t.print(f"  engsic(y) to {n} digits = {t.si}{f(x, 'engsic', n=n)}")
         t.print(
-            dedent(f'''
+            wrap.dedent(f'''
         {t.em}SI notation{t.n}    The {t.f}f.engsi{t.n} method supplies an SI prefix after the number to
         indicate the number's magnitude.  You can then append a physical unit string
         to get proper SI syntax:  {t.u}{f(x, "engsi")}Ω{t.n}.  {t.f}f.engsic{t.n} does the same except the prefix
@@ -1783,15 +1783,13 @@ if __name__ == "__main__":
         # Complex numbers
         z = complex(3.45678, -6.78901)
         fmt.imag_unit = "j"
-        t.print(
-            dedent(f'''
+        t.print( wrap.dedent(f'''
         {t.em}Complex numbers{t.n}    These are handled by formatting each floating point
         component separately.  Let z = complex(3.45678, -6.78901):
             str(z) = {t.f}{str(z)}{t.n}
             fmt(z) = {t.f}{fmt(z)}{t.n}
         Use the Fmt object's attributes to change the formatted form:
-        ''')
-        )
+        '''))
         w, sp = 25, " " * 4
         fmt.imag_unit = "i"
         s = 'fmt.imag_unit = "i"'

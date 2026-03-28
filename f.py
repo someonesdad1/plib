@@ -176,6 +176,40 @@ if 1:  # Header
                     - .w property:  wide display
                     - Special forms:  1+i, i, -i, etc.
         
+        28 Mar 2026 01:47:27 pm Sat  Mike showed me a beautiful and elegant way to get 
+        math/cmath modules in scope:
+
+            import math
+            import cmath
+            from typing import Callable, Any
+
+            def _make_smart_func(name: str) -> Callable:
+                """Creates a function that tries math, then falls back to cmath."""
+                m_func = getattr(math, name, None)
+                c_func = getattr(cmath, name, None)
+
+                if m_func and c_func:
+                    def smart_func(x: Any, *args: Any, **kwargs: Any) -> Any:
+                        try:
+                            # Try the real-domain version first
+                            res = m_func(x, *args, **kwargs)
+                            # If the input was a flt/float, keep it a flt
+                            return flt(res) 
+                        except ValueError:
+                            # If math.asin(1.1) raises ValueError, leap into the complex plane
+                            return cpx(c_func(x, *args, **kwargs))
+                    return smart_func
+                
+                # If it only exists in one (like 'erf' in math or 'phase' in cmath)
+                return m_func or c_func
+
+            # The 'Magic' Bulk Import
+            _to_merge = set(dir(math)) | set(dir(cmath))
+            for _name in _to_merge:
+                if not _name.startswith("_"):
+                    globals()[_name] = _make_smart_func(_name)
+
+
         oo>
     '''
     if 1:   # Standard library modules

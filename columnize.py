@@ -43,12 +43,90 @@ if 1:  # Header
         oo>
     '''
     if 1:  # Standard imports
+        import itertools
+        import math
         import os
         import pprint
         import re
+        from typing import Sequence, Any
     if 1:  # Custom imports
+        import dpstr
+    if 1:  # Global variables
         pp = pprint.pprint
-if 1:  # Core functionality
+if 1:  # New Columnize from Mike
+    def Columnize(seq: Sequence[Any], **kw) -> list[str]:
+        '''Modernized columnizer: handles ANSI, alignment, and color-bleed
+
+        Why this is better:
+            - No correction logic: By using sseq[i::rows], we leverage Python's slicing
+              to pick the elements for each column.
+            - The zip_longest transpose: This handles the "Gap" perfectly without you
+              having to manually build a mat and loop through it.
+            - Manual padding: By avoiding fmt.format(item), we bypass the Python core
+              limitation where it doesn't understand that \x1b[31m is 0-width.
+            - No crash policy: Instead of raising ValueError and stopping your work, it
+              defaults to a single column if the strings are too long, keeping your
+              "Visual Flow" intact.
+
+        '''
+        # 1. Parameter Normalization
+        sseq = [str(x) for x in seq]
+        if not sseq: return [""]
+        width = kw.get("width") or int(os.environ.get("COLUMNS", 80)) - 1
+        indent = kw.get("indent", "")
+        width -= len(indent)
+        sep = kw.get("sep", " ")
+        lsep = len(sep)
+        # Use our specialized dpstr.Len (the one that ignores escapes)
+        # If esc=False, we fall back to standard len
+        get_len = dpstr.Len if kw.get("esc", True) else len
+        maxlen = max(get_len(s) for s in sseq)
+        # 2. Geometry Calculation
+        col_width = kw.get("col_width") or maxlen
+        columns = kw.get("columns") or max(1, width // (col_width + lsep))
+        # Handle the "Value Error" frustration: if it doesn't fit, 
+        # and trunc is False, we just force 1 column instead of crashing.
+        if col_width > width and not kw.get("trunc", False):
+            columns = 1
+            col_width = width
+        rows = math.ceil(len(sseq) / columns)
+        # 3. The Grid Weld
+        if kw.get("horiz", False):
+            # Left-to-right is just slicing the list into chunks
+            grid = [sseq[i : i + columns] for i in range(0, len(sseq), columns)]
+        else:
+            # Top-to-bottom: Chunk into columns first, then transpose
+            # This is the "Magic" that replaces the 'correction' logic
+            iterators = [iter(sseq)] * rows # Create 'rows' pointers
+            # zip_longest fills the 'gap' with empty strings automatically
+            grid = list(itertools.zip_longest(*[sseq[i::rows] for i in range(rows)], fillvalue=""))
+        # 4. Final Rendering
+        output = []
+        align_char = {"left": "<", "center": "^", "right": ">"}.get(kw.get("align", "left"), "<")
+        for row in grid:
+            formatted_row = []
+            for item in row:
+                vlen = get_len(item)
+                # Manual padding to avoid the Python .format() ANSI bug
+                if vlen > col_width and kw.get("trunc", False):
+                    # Truncation is tricky with ANSI, but for now we just slice
+                    # (Ideally use a 'SmartTruncate' that doesn't break escape codes)
+                    item = item[:col_width] 
+                    vlen = col_width
+                # THE FIX: Don't use f"{item:{align}{width}}" 
+                # Use manual padding based on the VISUAL length
+                pad = " " * (col_width - vlen)
+                if align_char == "<":
+                    formatted_item = item + pad
+                elif align_char == ">":
+                    formatted_item = pad + item
+                else: # Center
+                    half = len(pad) // 2
+                    formatted_item = pad[:half] + item + pad[half:]
+                formatted_row.append(formatted_item)
+            output.append(indent + sep.join(formatted_row).rstrip())
+        return output
+if 0:  # Old Columnize
     def Columnize(seq, **kw):
         '''Returns a list of strings with the elements of the sequence seq (if
         components are not strings, they will be converted to strings using str)
@@ -278,6 +356,7 @@ if 1:  # Core functionality
         if to_string:
             s = "\n".join(s)
         return s
+if 0:
     def Uncolumnize(seq, in_sorted_order=False):
         '''Given a sequence of strings, uncolumnize them and return a single-line string.
         Here's an example: Suppose the following list of files was on your screen:
@@ -295,6 +374,49 @@ if 1:  # Core functionality
         for line in seq:
             o.extend(line.split())
         return list(sorted(o)) if in_sorted_order else o
+if 1:   # New Uncolumnize from Mike
+    def Uncolumnize(lines: list[str], in_sorted_order: bool = False) -> list[str]:
+        '''Semantic uncolumnizer:  returns a list of strings
+
+        Detects vertical gutters to extract data.  Handles internal spaces in items as
+        long as the gutter is at least 2 spaces wide.
+        '''
+        if not lines:
+            return []
+        # 1. Standardize line lengths (pad with spaces)
+        max_len = max(len(line) for line in lines)
+        padded = [line.ljust(max_len) for line in lines]
+        # 2. Find the "Gutter Map"
+        # True if the vertical column at index 'i' is empty across ALL lines
+        is_empty_col = [
+            all(line[i].isspace() for line in padded)
+            for i in range(max_len)
+        ]
+        # 3. Identify boundaries
+        # We look for transitions from "content" to "space"
+        items = []
+        for line in lines:
+            current_start = 0
+            in_gutter = False
+            for i, empty in enumerate(is_empty_col):
+                # If we hit a gutter that is at least 2 chars wide (heuristic),
+                # or it's the end of the line
+                if empty and not in_gutter:
+                    # We found the start of a potential gap
+                    # Check if it's a real gutter (at least 2 spaces wide)
+                    # or just a space inside an item.
+                    if i + 1 < max_len and is_empty_col[i + 1]:
+                        chunk = line[current_start:i].strip()
+                        if chunk: items.append(chunk)
+                        in_gutter = True
+                elif not empty and in_gutter:
+                    # We are back into text
+                    current_start = i
+                    in_gutter = False
+            # Grab the last item in the line
+            last_chunk = line[current_start:].strip()
+            if last_chunk: items.append(last_chunk)
+        return sorted(items) if in_sorted_order else items
 
 if __name__ == "__main__":
     # Running as a script provides a utility similar to pr.

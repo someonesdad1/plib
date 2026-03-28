@@ -114,7 +114,6 @@ if 1:  # Header
         from math import pi
     if 1:  # Custom imports
         import dptypes
-        from columnize import Columnize
         from wrap import dedent
         try:
             import uncertainties
@@ -2532,6 +2531,7 @@ if 1:   # Core functionality
         '''Print out the supported units.  If categories is not empty, it's a
         list of the categories to print out.
         '''
+        import columnize
         indent = " "*2
         if categories:
             # Print any matching categories.  A category matches if it begins
@@ -2565,7 +2565,7 @@ if 1:   # Core functionality
                     o = []
                     for item in filter(IsDim, dims):
                         o.append(item)
-                    for line in Columnize(sorted(o), indent=indent):
+                    for line in columnize.Columnize(sorted(o), indent=indent):
                         print(line)
         else:
             # Base units
@@ -2595,7 +2595,7 @@ if 1:   # Core functionality
                 o = []
                 for item in filter(IsDim, dims):
                     o.append(item)
-                for line in Columnize(sorted(o), indent=indent):
+                for line in columnize.Columnize(sorted(o), indent=indent):
                     print(line)
             # Get the dimensionless units
             print("Dimensionless units:")
@@ -2606,7 +2606,7 @@ if 1:   # Core functionality
                 for item in dims:
                     if dims[item] == Dim(""):
                         o.add(item)
-            for line in Columnize(sorted(o), indent=indent):
+            for line in columnize.Columnize(sorted(o), indent=indent):
                 print(line)
             if 1:
                 # Example formatting

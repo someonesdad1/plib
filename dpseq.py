@@ -210,12 +210,11 @@ if 1:  # Distribute and GetClosest
             raise ValueError("No solution")
         for i in range(n):
             yield int(round(a + i*dx, 0))
-    def fDistribute(
-            n: int,
-            a: ty.Any = 0.0,
-            b: ty.Any = 1.0,
-            fpimpl: type[Tfp] = float  # type: ignore # default 'float' matches the Protocol
-            ) -> ty.Iterator[Tfp]:
+    def fDistribute(n: int,
+                    a: ty.Any = 0.0,
+                    b: ty.Any = 1.0,
+                    fpimpl: type[Tfp] = float  # type: ignore # default 'float' matches the Protocol
+                   ) -> ty.Iterator[Tfp]:
         '''Generator to return n fpimpl instances on [a, b] inclusive
         
         A common use case is an interpolation parameter on [0, 1].  You can use other
