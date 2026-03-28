@@ -232,7 +232,7 @@ if 1:   # Classes
         def __len__(self):
             return Len(self) if bool(self.on) else super().__len__()
 if 1:   # RegexpDecorate class
-    class RegexpDecorate:
+    class RegexpDecorate_OLD:
         '''Decorate regular expression matches with color
         
         You must initialize an instance with a trm.Trm instance.  If you don't, a
@@ -240,8 +240,8 @@ if 1:   # RegexpDecorate class
         
         The styles attribute is a dictionary that contains the styles to apply for each
         regexp's match (key is the compiled regexp).  The style is a tuple of 1 to 3
-        values:  fg color, bg color, and text attributes.  None means to use the
-        default.
+        values:  fg (foreground) color, bg (background) color, and text attributes.
+        None means to use the default.
         
         Example use:  highlight lines to stdout that contain '[Mm]adison'
         
@@ -368,6 +368,66 @@ if 1:   # RegexpDecorate class
                 if not line and not has_nl and insert_nl:
                     print(file=file)
             return True
+
+    class RegexpDecorate:
+        '''
+        Decorate regular expression matches with terminal color codes.
+        Uses a master regex for single-pass high-speed decoration.
+        '''
+        def __init__(self, mytrm: ty.Any|None=None) -> None:
+            self._styles: dict[str, tuple[str, str]] = {}
+            self._master_re: re.Pattern|None = None
+            # self._u is our trm.Trm instance for escape codes
+            self._u = mytrm if mytrm is not None else trm.Trm()
+        def register(self, r: re.Pattern, match_style: str, nomatch_style: str|None=None) -> None:
+            '''Register a regular expression and its associated terminal styles.'''
+            nm = nomatch_style if nomatch_style is not None else self._u.n
+            # We use the pattern string as a key; store as (match, nomatch)
+            self._styles[r.pattern] = (match_style, nm)
+            # Rebuild the master pattern: a giant 'OR' of all registered patterns
+            # We wrap each in a named group to identify which style to apply
+            pattern_str = "|".join(f"(?P<g{i}>{p})" for i, p in enumerate(self._styles.keys()))
+            self._master_re = re.compile(pattern_str)
+        def unregister(self, r: re.Pattern) -> None:
+            "Remove regexp r from our styles dict"
+            if r in self._styles:
+                del self._styles[r]     # type: ignore
+        def decorate(self, line: str) -> str:
+            '''Return a string with all registered matches wrapped in escape codes.'''
+            if not self._master_re or not line:
+                return line
+            def _replace(mo: re.Match) -> str:
+                # Find which group matched
+                group_name = mo.lastgroup
+                idx = int(group_name[1:])       # type: ignore
+                pattern_key = list(self._styles.keys())[idx]
+                m_style, n_style = self._styles[pattern_key]
+                return f"{m_style}{mo.group()}{n_style}"
+            # re.sub handles the 'between matches' text automatically
+            return self._master_re.sub(_replace, line)      # type: ignore
+        def __call__(self, line: str, file: ty.Any=sys.stdout, insert_nl: bool=False) -> bool:
+            '''Decorate and print. Returns True if any matches were found.'''
+            decorated = self.decorate(line)
+            had_match = decorated != line
+            end = "\n" if insert_nl and not line.endswith("\n") else ""
+            print(decorated, end=end, file=file)
+            return had_match
+        def __str__(self) -> str:
+            return f"RegexpDecorate(<styles={len(self._styles)}>)"
+
+
+    if 0:
+        u = trm.Trm()
+        rd = RegexpDecorate(u)
+        r = re.compile(r"[Mm]adison")
+        fg = u.yel
+        bg = u.n
+        # Note fg and bg must be escape sequences
+        rd.register(r, fg, bg)    # Print matches in light yellow on black
+        for line in open("bb").readlines():
+            rd(line)    # Lines with matches are printed to stdout
+        exit()
+
 if 1:   # Core functionality
     def MatchCapitalization(s: str, t: str) -> str:
         '''Return string t capitalized as string s is
@@ -1955,7 +2015,7 @@ if __name__ == "__main__":
         raises = lwtest.raises
         run = lwtest.run
         t = trm.Trm()
-    def TestInt():
+    def Test_Int():
         data = (
             # Positive integers
             ("0b11", 3),
@@ -1992,7 +2052,7 @@ if __name__ == "__main__":
         rd("Dolly\n", file=f) 
         rd("Madison", file=f) 
         s = f.getvalue()
-        expected = (    # Check actual escape codes
+        expected_old = (    # Check actual escape codes
             "\x1b[38;2;181;181;181m\x1b[48;2;0;0;0m\x1b[0m"     # u.n
             "Dolly\n"
             "\x1b[38;2;181;181;181m\x1b[48;2;0;0;0m\x1b[0m"     # u.n
@@ -2001,9 +2061,14 @@ if __name__ == "__main__":
             "\x1b[38;2;254;239;0m"                              # u.yel
             "Madison"
             "\x1b[38;2;181;181;181m\x1b[48;2;0;0;0m\x1b[0m")    # u.n
+        expected = (    # Check actual escape codes
+            # Note this is the more efficient Mike implementation
+            'Dolly\n\x1b[38;2;254;239;0mMadison\x1b[38;2;181;181;181m\x1b[48;2;0;0;0m\x1b[0m'
+            )
         Assert(s == expected)
         # This is what should happen
-        expected = u.n + "Dolly\n" + u.n + u.n + u.yel + "Madison" + u.n
+        expected_old = u.n + "Dolly\n" + u.n + u.n + u.yel + "Madison" + u.n
+        expected = "Dolly\n" + u.yel + "Madison" + u.n
         Assert(s == expected)
     def Test_Decorate():
         s = "www \t\n\r\f\vzzz"

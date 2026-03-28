@@ -40,6 +40,7 @@ Num Lines       Symbol      Color
 import ast
 import sys
 import os
+import pathlib
 import trm
 import wl2rgb
 t = trm.Trm()
@@ -69,7 +70,7 @@ def GetNodeMass(node):
     if hasattr(node, 'end_lineno') and hasattr(node, 'lineno'):
         return node.end_lineno-node.lineno+1
     return 0
-def PrintTree(nodes, total_lines, prefix="", use_percent=True):
+def PrintTree(nodes, total_lines, prefix="", use_percent=False):
     'Recursively prints the tree structure'
     nodes.sort(key=lambda x: x[3])
     for i, (name, mass, children, lineno) in enumerate(nodes):
@@ -91,14 +92,11 @@ def PrintTree(nodes, total_lines, prefix="", use_percent=True):
         #new_prefix = prefix+("    " if is_last else "│   ")
         new_prefix = prefix+("    " if is_last else "    ")
         PrintTree(children, total_lines, new_prefix, use_percent)
-def AnalyzeFile(filepath, use_percent=True):
+def AnalyzeFile(filepath, use_percent=False):
     'Main entry point for file analysis'
-    if not os.path.exists(filepath):
-        print(f"Error: {filepath} not found.")
-        return
-    with open(filepath, "r", encoding="utf-8") as f:
+    with filepath.open("r", encoding="utf-8") as f:
         sourcelines = f.readlines()
-    source = "".join(sourcelines)
+    source = ''.join(sourcelines)
     parsed_tree = ast.parse(source)
     total_lines = len(sourcelines)
     def FindDefinitions(parent):
@@ -121,11 +119,32 @@ def AnalyzeFile(filepath, use_percent=True):
         PrintTree(structure, total_lines, use_percent=use_percent)
 
 if __name__ == "__main__":
+    from wrap import dedent
     if len(sys.argv) < 2:
-        print(f"Usage: {sys.argv[0]} file1 [file2...]")
+        print(dedent(f'''
+        Usage: {sys.argv[0]} file1 [file2...]
+          This utility reads the indicated python files and prints out a listing of the
+          classes and functions found in the file.  An indented name under another name
+          means that class or function is inside the first.
+
+          The number of lines in the class or routine are printed in color to the left
+          of the name.  Colors at the blue end of the spectrum indicate a small number
+          of lines, which orange and red indicate large numbers of lines.  After each
+          token name the line number where it appears is given.
+
+          Classes are printed in light green and Test_* functions are dimmed somewhat.
+        Options
+          -p    Print % of total number of lines rather than number of lines
+        '''))
     else:
         show_pct = "-p" in sys.argv
         for i, filename in enumerate([arg for arg in sys.argv[1:] if arg != "-p"]):
             if i:
                 print(f"{'-'*88}")
-            AnalyzeFile(filename, use_percent=show_pct)
+            filepath = pathlib.Path(filename)
+            if not filepath.exists() and not filepath.suffix:
+                # See if adding '.py' as extension helps
+                filepath = pathlib.Path(filename + ".py")
+                if not filepath.exists():
+                    raise FileNotFoundError(f"{filename!r} doesn't exist")
+            AnalyzeFile(filepath, use_percent=show_pct)
