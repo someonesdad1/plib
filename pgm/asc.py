@@ -26,6 +26,7 @@ if 1:  # Header
         import sys
         from textwrap import dedent
     if 1:  # Custom imports
+        import termtables as tt
         import trm
         from columnize import Columnize
         from wrap import dedent
@@ -225,24 +226,51 @@ if 1:  # Core functionality
             print(chr(c))
         print()
     def PrintTable(lower, upper):
-        ctrl = '''
-                nul soh stx etx eot enq ack bel bs ht nl vt ff cr so si dle dc1
-                dc2 dc3 dc4 nak syn etb can em sub esc fs gs rs us sp
-        '''.split()
-        out = []
-        for i in range(lower, upper):
-            c = ctrl[i] if i <= ord(" ") else chr(i)
-            # Handle the special case of char == 0xf7, which doesn't print correctly.  We
-            # replace it with a space with a red background.
-            c = f"{t('redl', 'redl')} {t.N}" if i == 0x7F else c
-            if g.decimal:
-                out.append(f"{t.dec}{i:3d}{t.N} {t.chr}{c:3s}{t.N}")
-            elif g.octal:
-                out.append(f"{t.oct}{i:03o}{t.N} {t.chr}{c:3s}{t.N}")
-            else:
-                out.append(f"{t.hex}{i:02x}{t.N} {t.chr}{c:3s}{t.N}")
-        for i in Columnize(out, col_width=g.column_width, columns=g.number_of_columns):
-            print(i)
+        ctrl = '''nul soh stx etx eot enq ack bel bs ht nl vt ff cr so si dle dc1
+                  dc2 dc3 dc4 nak syn etb can em sub esc fs gs rs us sp'''.split()
+        if 0:   # Old code; doesn't work now because Columnize changed
+            out = []
+            for i in range(lower, upper):
+                c = ctrl[i] if i <= ord(" ") else chr(i)
+                # Handle the special case of char == 0xf7, which doesn't print correctly.  We
+                # replace it with a space with a red background.
+                c = f"{t('redl', 'redl')} {t.N}" if i == 0x7F else c
+                if g.decimal:
+                    out.append(f"{t.dec}{i:3d}{t.N} {t.chr}{c:3s}{t.N}")
+                elif g.octal:
+                    out.append(f"{t.oct}{i:03o}{t.N} {t.chr}{c:3s}{t.N}")
+                else:
+                    out.append(f"{t.hex}{i:02x}{t.N} {t.chr}{c:3s}{t.N}")
+            for i in Columnize(out,
+                            col_width=g.column_width,
+                            columns=g.number_of_columns,
+                            horiz=False):
+                print(i)
+        else:   # Use termtables
+            # Print in 8 columns
+            ncol = 8
+            nrows = 32 if upper == 256 else 16
+            data = []
+            for row in range(nrows):
+                myrow = []
+                for col in range(ncol):
+                    i = row + nrows*col
+                    c = ctrl[i] if i <= ord(" ") else chr(i)
+                    # Handle the special case of char == 0xf7, which doesn't print correctly.  We
+                    # replace it with a space with a red background.
+                    c = f"{t('redl', 'redl')} {t.N}" if i == 0x7F else c
+                    # Space for 0x80 to 0xa0
+                    c = " " if 0x80 <= i <= 0xa0 else c
+                    if g.decimal:
+                        myrow.append(f"{t.dec}{i:3d}{t.N} {t.chr}{c:3s}{t.N}")
+                    elif g.octal:
+                        myrow.append(f"{t.oct}{i:03o}{t.N} {t.chr}{c:3s}{t.N}")
+                    else:
+                        myrow.append(f"{t.hex}{i:02x}{t.N} {t.chr}{c:3s}{t.N}")
+                data.append(myrow)
+                #print(myrow)
+            tt.print(data, style=" "*15, alignment="l"*8)
+                    
     def PrintSymbols():
         bl = t.blul
         c  = t.cynl

@@ -53,10 +53,10 @@ if 1:  # Header
         import dpstr
     if 1:  # Global variables
         pp = pprint.pprint
-if 1:  # New Columnize from Mike
+if 0:  # New Columnize from Mike
     def Columnize(seq: Sequence[Any], **kw) -> list[str]:
         '''Modernized columnizer: handles ANSI, alignment, and color-bleed
-
+        
         Why this is better:
             - No correction logic: By using sseq[i::rows], we leverage Python's slicing
               to pick the elements for each column.
@@ -67,66 +67,65 @@ if 1:  # New Columnize from Mike
             - No crash policy: Instead of raising ValueError and stopping your work, it
               defaults to a single column if the strings are too long, keeping your
               "Visual Flow" intact.
-
         '''
-        # 1. Parameter Normalization
-        sseq = [str(x) for x in seq]
-        if not sseq: return [""]
-        width = kw.get("width") or int(os.environ.get("COLUMNS", 80)) - 1
-        indent = kw.get("indent", "")
-        width -= len(indent)
-        sep = kw.get("sep", " ")
-        lsep = len(sep)
-        # Use our specialized dpstr.Len (the one that ignores escapes)
-        # If esc=False, we fall back to standard len
-        get_len = dpstr.Len if kw.get("esc", True) else len
-        maxlen = max(get_len(s) for s in sseq)
-        # 2. Geometry Calculation
-        col_width = kw.get("col_width") or maxlen
-        columns = kw.get("columns") or max(1, width // (col_width + lsep))
-        # Handle the "Value Error" frustration: if it doesn't fit, 
-        # and trunc is False, we just force 1 column instead of crashing.
-        if col_width > width and not kw.get("trunc", False):
-            columns = 1
-            col_width = width
-        rows = math.ceil(len(sseq) / columns)
-        # 3. The Grid Weld
-        if kw.get("horiz", False):
-            # Left-to-right is just slicing the list into chunks
-            grid = [sseq[i : i + columns] for i in range(0, len(sseq), columns)]
-        else:
-            # Top-to-bottom: Chunk into columns first, then transpose
-            # This is the "Magic" that replaces the 'correction' logic
-            iterators = [iter(sseq)] * rows # Create 'rows' pointers
-            # zip_longest fills the 'gap' with empty strings automatically
-            grid = list(itertools.zip_longest(*[sseq[i::rows] for i in range(rows)], fillvalue=""))
-        # 4. Final Rendering
-        output = []
-        align_char = {"left": "<", "center": "^", "right": ">"}.get(kw.get("align", "left"), "<")
-        for row in grid:
-            formatted_row = []
-            for item in row:
-                vlen = get_len(item)
-                # Manual padding to avoid the Python .format() ANSI bug
-                if vlen > col_width and kw.get("trunc", False):
-                    # Truncation is tricky with ANSI, but for now we just slice
-                    # (Ideally use a 'SmartTruncate' that doesn't break escape codes)
-                    item = item[:col_width] 
-                    vlen = col_width
-                # THE FIX: Don't use f"{item:{align}{width}}" 
-                # Use manual padding based on the VISUAL length
-                pad = " " * (col_width - vlen)
-                if align_char == "<":
-                    formatted_item = item + pad
-                elif align_char == ">":
-                    formatted_item = pad + item
-                else: # Center
-                    half = len(pad) // 2
-                    formatted_item = pad[:half] + item + pad[half:]
-                formatted_row.append(formatted_item)
-            output.append(indent + sep.join(formatted_row).rstrip())
-        return output
-if 0:  # Old Columnize
+        if 1:   # Parameter Normalization
+            sseq = [str(x) for x in seq]
+            if not sseq: return [""]
+            width = kw.get("width") or int(os.environ.get("COLUMNS", 80)) - 1
+            indent = kw.get("indent", "")
+            width -= len(indent)
+            sep = kw.get("sep", " ")
+            lsep = len(sep)
+            # Use our specialized dpstr.Len (the one that ignores escapes)
+            # If esc=False, we fall back to standard len
+            get_len = dpstr.Len if kw.get("esc", True) else len
+            maxlen = max(get_len(s) for s in sseq)
+        if 1:   # Geometry Calculation
+            col_width = kw.get("col_width") or maxlen
+            columns = kw.get("columns") or max(1, width // (col_width + lsep))
+            # Handle the "Value Error" frustration: if it doesn't fit, 
+            # and trunc is False, we just force 1 column instead of crashing.
+            if col_width > width and not kw.get("trunc", False):
+                columns = 1
+                col_width = width
+            rows = math.ceil(len(sseq) / columns)
+        if 1:   # The grid weld
+            if kw.get("horiz", False):
+                # Left-to-right is just slicing the list into chunks
+                grid = [sseq[i : i + columns] for i in range(0, len(sseq), columns)]
+            else:
+                # Top-to-bottom: Chunk into columns first, then transpose
+                # This is the "Magic" that replaces the 'correction' logic
+                iterators = [iter(sseq)] * rows # Create 'rows' pointers
+                # zip_longest fills the 'gap' with empty strings automatically
+                grid = list(itertools.zip_longest(*[sseq[i::rows] for i in range(rows)], fillvalue=""))
+        if 1:   # Final rendering
+            output = []
+            align_char = {"left": "<", "center": "^", "right": ">"}.get(kw.get("align", "left"), "<")
+            for row in grid:
+                formatted_row = []
+                for item in row:
+                    vlen = get_len(item)
+                    # Manual padding to avoid the Python .format() ANSI bug
+                    if vlen > col_width and kw.get("trunc", False):
+                        # Truncation is tricky with ANSI, but for now we just slice
+                        # (Ideally use a 'SmartTruncate' that doesn't break escape codes)
+                        item = item[:col_width] 
+                        vlen = col_width
+                    # THE FIX: Don't use f"{item:{align}{width}}" 
+                    # Use manual padding based on the VISUAL length
+                    pad = " " * (col_width - vlen)
+                    if align_char == "<":
+                        formatted_item = item + pad
+                    elif align_char == ">":
+                        formatted_item = pad + item
+                    else: # Center
+                        half = len(pad) // 2
+                        formatted_item = pad[:half] + item + pad[half:]
+                    formatted_row.append(formatted_item)
+                output.append(indent + sep.join(formatted_row).rstrip())
+            return output
+else:  # Old Columnize
     def Columnize(seq, **kw):
         '''Returns a list of strings with the elements of the sequence seq (if
         components are not strings, they will be converted to strings using str)
@@ -374,10 +373,10 @@ if 0:
         for line in seq:
             o.extend(line.split())
         return list(sorted(o)) if in_sorted_order else o
-if 1:   # New Uncolumnize from Mike
+else:   # New Uncolumnize from Mike
     def Uncolumnize(lines: list[str], in_sorted_order: bool = False) -> list[str]:
         '''Semantic uncolumnizer:  returns a list of strings
-
+        
         Detects vertical gutters to extract data.  Handles internal spaces in items as
         long as the gutter is at least 2 spaces wide.
         '''
@@ -429,7 +428,7 @@ if __name__ == "__main__":
     alignment = "left"
     separator = " "
     truncate = False
-    def TestBasicBehavior():
+    def Test_BasicBehavior():
         strings = ["12345678"] * 30
         result = Columnize(strings, width=80, col_width=9)
         # Construct expected result
@@ -438,7 +437,7 @@ if __name__ == "__main__":
         expected = [row] * 3 + ["".join(e * 6).rstrip()]
         # Check they're the same
         Assert(result == expected)
-    def TestHoriz():
+    def Test_Horiz():
         seq = [str(i) for i in range(32)]
         result = Columnize(seq, width=20, columns=4, horiz=False)
         expected = [
@@ -472,11 +471,11 @@ if __name__ == "__main__":
             seq, width=20, columns=4, horiz=True, to_string=True
         )
         Assert(string == "\n".join(expected))
-    def TestIdentityXfm():
+    def Test_IdentityXfm():
         seq = [str(i) for i in range(12)]
         result = Columnize(seq, ignore=True)
         Assert(seq == result)
-    def TestSeparator():
+    def Test_Separator():
         seq = [str(i) for i in range(12)]
         result = Columnize(seq, width=12, columns=4, sep="|")
         expected = [
@@ -487,7 +486,7 @@ if __name__ == "__main__":
             2 |5 |8 |11'''[1:].split("\n")
         ]
         Assert(result == expected)
-    def TestIndent():
+    def Test_Indent():
         seq = [str(i) for i in range(12)]
         result = Columnize(seq, width=18, columns=4, indent="qqq")
         expected = [
@@ -498,7 +497,7 @@ if __name__ == "__main__":
             qqq2   5   8   11'''[1:].split("\n")
         ]
         Assert(result == expected)
-    def TestTruncation():
+    def Test_Truncation():
         seq = [str(i) for i in range(12)]
         result = Columnize(seq, col_width=1, columns=4, trunc=True)
         expected = [
@@ -509,7 +508,7 @@ if __name__ == "__main__":
             2 5 8 1'''[1:].split("\n")
         ]
         Assert(result == expected)
-    def TestAlignment():
+    def Test_Alignment():
         seq = [str(i) for i in range(12)]
         result = Columnize(seq, col_width=10, columns=4, sep="|")
         expected = [
@@ -612,7 +611,7 @@ if __name__ == "__main__":
             elif o == "-h":
                 Usage()
             elif o in ("--test",):
-                exit(run(globals(), halt=1)[0])
+                exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
             elif o == "-w":
                 d[o] = abs(int(a))
         if d["-U"]:

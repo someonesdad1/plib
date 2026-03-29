@@ -1526,7 +1526,7 @@ if 1:   # Old Fmt
             @comp.setter
             def comp(self, value):
                 self._comp = bool(value)
-if 1:   # Mike's new stuff
+else:   # Mike's new stuff
     # Constants for the "Middle-Nibble" logic
     ELLIPSIS_U = "\u22EF" # ⋯
     ELLIPSIS_A = "..."
