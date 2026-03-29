@@ -250,8 +250,17 @@ if 1:  # Core functionality
             # Print in 8 columns
             ncol = 8
             nrows = 32 if upper == 256 else 16
+            if 1:   # Get how many rows and the number of rows (16 or 32)
+                n = upper - lower
+                if n == 256:
+                    startrow, endrow = 0, 32
+                else:
+                    if lower == 0:
+                        startrow, endrow = 0, 16
+                    else:
+                        startrow, endrow = 16, 32
             data = []
-            for row in range(nrows):
+            for row in range(startrow, endrow):
                 myrow = []
                 for col in range(ncol):
                     i = row + nrows*col
