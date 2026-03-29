@@ -47,7 +47,7 @@ t = trm.Trm()
 # Decorating colors
 t.klass = t.grnl
 t.test  = t.wht2
-t.normal = t.wht
+t.normal = t.n
 t.lines = t.pnkl
 t.file  = t.orn
 def GetNumLinesColor(numlines):
@@ -88,7 +88,7 @@ def PrintTree(nodes, total_lines, prefix="", use_percent=False):
         elif name.startswith("Test_"):
             t.print(f" {display}  {prefix}{connector}{t.test}{name}{t.n} {lineno}")
         else:
-            t.print(f" {display}  {prefix}{connector}{t.normal}{name}{t.n} {lineno}")
+            t.print(f" {display}  {prefix}{connector}{name} {lineno}")
         #new_prefix = prefix+("    " if is_last else "│   ")
         new_prefix = prefix+("    " if is_last else "    ")
         PrintTree(children, total_lines, new_prefix, use_percent)

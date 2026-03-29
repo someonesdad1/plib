@@ -321,7 +321,10 @@ class Trm(dict[str, str]):
         if name in set("on always".split()):
             super().__setattr__(name, bool(value))
         elif name.startswith("_"):
-            super().__setattr__(name, value)
+            if name in ("_stack", "_newstyles"):
+                super().__setattr__(name, value)
+            else:
+                self[name] = value
         else:
             self[name] = value
     def __getitem__(self, name):        # Get self[name]
@@ -586,13 +589,12 @@ if __name__ == "__main__":
             del u["red"]
             Assert("red" not in u)
         if 1:   # Attributes that start with underscores
-            a = 42
             with raises(AttributeError):
                 u._x
-            u["_x"] = a     # You'll get an exception on the next line if this isn't here
-            u._x = a
-            Assert(u._x == a)
-            del u._x
+            u._x = 42
+            Assert(u._x == '\x1b[38;2;0;215;135m') 
+            del u["_x"]
+            # Note:  del u._x immediately gives an AttributeError
             with raises(AttributeError):
                 u._x
         if 1:   # Show that on toggles escape code output on and off
