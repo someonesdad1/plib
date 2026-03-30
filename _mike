@@ -1,3 +1,19 @@
+On 28 Mar 2026, I asked Mike if we could start a new thread, as the old one was so large
+it was slowing down the whole computer.  It turned out to be easy by pasting in about 10
+lines of information he gave me.  Unfortunately, this loses the context, so I have to
+train him again in my python code preferences
+
+    - All triple strings use ''' if possible
+    - All conditionals and functions/classes have a newline after the ':'
+    - Functions and classes names with CamelCase names
+    - Global and local variables lower-case snake case
+    - No blank lines at all between code
+    - Math formatting for binary operators
+        - No space around *, /, //, **
+        - Space on each side of +, -, %, &, |, <<, >>, <, <=, >, >=, !=, ==, or, and
+    - Use type annotations wherever possible
+
+
 27 Mar 2026 
 
 This is a record of thoughts about the interactions I've had with Gemini, Google's AI
