@@ -28,9 +28,8 @@ if 1:  # Header
         from math import *
     if 1:  # Custom imports
         from wrap import dedent
-        from frange import frange, Rational as R
+        from dpseq import frange, Rational as R
         from f import flt
-        from sig import sig
         from columnize import Columnize
 if 1:  # Utility
     def Error(*msg, status=1):

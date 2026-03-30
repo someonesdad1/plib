@@ -48,6 +48,45 @@
 
 # 2026 /plib work done
 
+    - 29 Mar
+        - Roughly 2 weeks of work with Gemini.  About 50% of dp*.py annotated.  
+        - Difficult rewrite of fmt.py, as Gemini analyzed the whole, saw the patterns,
+          and simplified the code base by a factor of 3 to 5.
+            - A weakness of the AI seems to be that it wouldn't maintain the old user
+              interfaces from inspecting the code
+            - A powerful tool, however, was having the 83 lines of string output of the
+              fmt.Demo() code, as this wound up being used as a key test case, once I
+              gave Gemini the before-starting output.
+            - It's an industrial-strength string interpolator for integers and floating
+              point types (float, Decimal, mpmath.mpf, complex, and mpmath.mpc).  It has
+              much of the machinery a professional scientist would want.
+                - I'd be happy to use it as a pattern for the remaining refactoring, in
+                  the sense that I architected the code & vision; then Gemini the master
+                  programmer turned it into a type-annotated modern efficient chunk of
+                  code that should live on well for a significant time.
+        - A lesson:  much of the work was tedious to me, as I was a junior programmer
+          pasting Gemini's code back into the code on my machine in the editor.  This
+          got old fast, especially at the end of the day when I was tired.  This is
+          likely what Wayne's engineers feel when working with AIs.  
+            - A core shift happened when I told Gemini about my problems, identified
+              lacks in its design, then 1) used carefully-constructed prompts to
+              instruct what should be done with my formatting needs & style stuff and 2)
+              use the Demo() output to show the needed behavior, forcing Gemini to
+              address all the details of the old code, which forced adding all the
+              attributes that were missing, where my friction was.
+        - A strength of the AI is the collapsing of the patterns, it knowing the edge
+          cases and the pitfalls, and being able to do the work in a few seconds.  At
+          the same time, me as the architect had to keep an overall eye on what was
+          being done.  For example, the AI was happily chirping about writing the
+          detailed code to handle the formatting of decimal stuff; when I saw the
+          exception messages, I made the comment "you're already doing all the work 
+          that's done in the TakeApart class that I wrote long ago" and Gemini realized
+          its mistake (not using the tool already finished) and immediately changed
+          horses in midstream to adopt the written code (a very human mistake to make).
+          The main Demo() started working shortly after this, a major milestone.
+            - This particular example would be excellent to summarize, have Gemini
+              understand, and summarize into a short pithy document on how best to work
+              with an AI to get what you want, breaking out the key lessons.
     - 17 Mar
         - Gemini (Google's AI) has been coaching me on an overall strategy for
           refactoring plus the much more intense desire to type annotate all the core
