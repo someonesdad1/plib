@@ -347,7 +347,7 @@ if 1:  # Classes
                     u.string = u.lwn
                     u.bytes = u.orn
                     u.bytearray = u.olv
-                    u.list = u.yel
+                    u.lst = u.yel
                     u.tuple = u.den
                     u.none = u.gry
                     u.n = u.n
@@ -373,10 +373,10 @@ if 1:  # Classes
                             f"{u.float}float{u.n} "
                             f"{u.flt}f.flt{u.n} "
                             f"{u.cpx}f.cpx{u.n} "
-                            f"{u.Decimal}decimal.Decimal{u.n} "
-                            f"{u.Fraction}fractions.Fraction{u.n} "
+                            f"{u.Decimal}Decimal{u.n} "
+                            f"{u.Fraction}Fraction{u.n} "
                             "    "
-                            f"{u.list}list{u.n} "
+                            f"{u.lst}list{u.n} "
                             f"{u.tuple}tuple{u.n} "
                             f"{u.none}None{u.n} "
                             f"{u.string}str{u.n} "

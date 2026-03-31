@@ -53,15 +53,13 @@ I decided that if I was going to add a new dependency, it might as well be a dep
 I could tune to my own preferences.  The other major desire was to allow fairly
 comprehensive coverage of comparing numerical results.
 
-This tool was derived from some nice code by Raymond Hettinger 8 May 2008:
-http://code.activestate.com/recipes/572194/.  I'm grateful Raymond put it out there for
-other folks.
 '''
 if 1:  # Header
     _pgminfo = '''
         <oo gist ∞ Lightweight test runner oo>
         <oo desc ∞ This was derived from some nice code by Raymond Hettinger at
-            http://code.activestate.com/recipes/572194/.  Downloaded 27 Jul 2014.
+            http://code.activestate.com/recipes/572194/.  Downloaded 27 Jul 2014;
+            unfortunately the URL is defunct.
         oo>
         <oo copy ∞ Copyright © 2014 Don Peterson oo>
         <oo lic ∞ MIT License
@@ -74,6 +72,12 @@ if 1:  # Header
         <oo test ∞ testdir oo>
         <oo todo ∞
         
+            - ∞∞1 Assert core need:  use an environment variable AssertStop to determine
+              if an exception is raised during execution.  Most of the time I want this 
+              exception; however, when vetting a major change (like the fmt.py
+              refactor), it would be advantageous to set AssertStop to False and have
+              Assert print out a red error message with line number everywhere there is
+              an assertion failure.
             - ∞∞1 Assert, assert_equal, and the check_* functions can use debug.fln() to get
               the file and line number of the failed call
                 - ∞∞2 Also look at including debug.py to print the details during an
@@ -111,6 +115,7 @@ if 1:  # Header
     if 1:  # Standard imports
         import collections
         import decimal
+        import inspect
         import math
         import os
         import re
@@ -603,15 +608,33 @@ if 1:  # Checking functions
             breakpoint()
         else:
             print(_modname, fail, file=sys.stderr)
-    def Assert(condition, msg="", debug=False):
-        '''Replacement for assert but it can't be optimized out.  If debug is True, Assert.debug is
-        True, or 'Assert' is a nonempty environment string, you'll be dropped into a debugger.  If
-        msg is not empty, it's printed out.
+    def Assert(condition, msg="", debug=False, got=None, expected=None):
+        '''Replacement for assert but it can't be optimized out.  If debug is True,
+        Assert.debug is True, or 'Assert' is a nonempty environment string, you'll be
+        dropped into a debugger.  If msg is not empty, it's printed out.
         '''
+        # Check the environment variable AssertNoStop.  If it's True, we print
+        # an error message with line number to stderr and continue.
+        env_no_stop = os.environ.get('AssertNoStop', '0').lower() in ('1', 'true', 'yes')
+        env_assert = os.environ.get("Assert", "")
         if not hasattr(Assert, "debug"):
             Assert.debug = False
         if not condition:
-            if debug or Assert.debug or os.environ.get("Assert", ""):
+            if env_no_stop:
+                # Print an error message with line number to stderr and continue.  This
+                # lets you see all the error messages in a test suite.
+                if 1:   # Get our current file and line number
+                    caller = inspect.stack()[1]
+                    filename = os.path.basename(caller.filename)
+                    line = caller.lineno
+                    dbg = f"{filename}:{line}"
+                print(f"{u.red}No-stop Assert[{dbg}]{u.n}:  {msg}", file=sys.stderr)
+                if got is not None:
+                    print(f"  got      = {got!r}")
+                if expected is not None:
+                    print(f"  expected = {expected!r}")
+                return 1
+            if debug or Assert.debug or env_assert:
                 # Print colorized message to stdout and start debugger
                 if msg:
                     u.print(f"{u.mag}{_modname} {msg}", file=sys.stderr)
@@ -619,6 +642,9 @@ if 1:  # Checking functions
                 breakpoint()
             else:
                 raise AssertionError(msg)
+        else:
+            return 0
+
 if 1:  # Testing functions
     def Test_Raises():
         f = lambda x: 1/x
