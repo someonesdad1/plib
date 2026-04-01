@@ -13,10 +13,14 @@ if 1:   # Header
         import multiprocessing
         import re
         import threading
+        import typing as ty
     if 1:   # Custom imports
         pass
     if 1:   # Global variables
         pass
+    if 1:   # Type information
+        # Define a type variable for generics (T can be anything)
+        T = ty.TypeVar("T")
 if 1:   # class Bidict:  A dictionary that is an invertible function
     class Bidict(dict):
         '''A dictionary that is an invertible function (a bijection).

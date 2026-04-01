@@ -80,6 +80,7 @@ if 1:   # Header
         import math
         import pprint
         import sys
+        import typing as ty
     if 1:   # Custom imports
         import color
         import columnize
@@ -168,7 +169,7 @@ class Trm(dict[str, str]):
     normal = ("wht", "blk", "normal")
     # Text attributes
     attr = set("no it bl rv di bo ul rb so hi sb sp".split())
-    def __init__(self, *p, **kw):
+    def __init__(self, *p: ty.Any, **kw: ty.Any) -> None:
         '''Initialize with the standard dictionary initializers.  The key can be any
         hashable type and the value should be anything accepted by the color.Color
         constructor.
@@ -188,20 +189,20 @@ class Trm(dict[str, str]):
         want the dictionary to be empty.
         '''
         # Attributes with underscores are not meant to be accessed by the user
-        self._stack = dptypes.Stack()   # Saves previous states of self
+        self._stack: ty.Deque[ty.Any] = dptypes.Stack()   # Saves previous states of self
         self.on = True          # Output escape codes if True
         self.always = False     # If True, output escape codes even if stdout out isn't a terminal
-        self._newstyles = None  # Used for context manager behavior
+        self._newstyles: dict[str, str] = {}  # Used for context manager behavior
         # Process p
         if len(p) == 1 and hasattr(p[0], "keys"):
             di = p[0]
             # It's a dictionary
             if isinstance(di, Trm):
                 # It's a Trm instance, so make a deep copy
-                self._stack = di._stack
+                self._stack = di._stack.copy()          # Uses deque.copy()
                 self.on = di.on
                 self.always = di.always
-                self._newstyles = di._newstyles
+                self._newstyles = di._newstyles.copy()  # Shallow copy OK
             for key in di:
                 self[key] = di[key]
         elif p:
@@ -378,10 +379,14 @@ class Trm(dict[str, str]):
                 self[key] = value
         for key in kw:
             self[key] = kw[key]
-    def ppush(self, styles_dict=None):      # Push our state on stack; update with styles_dict
+    def ppush(self,                         # Push our state on stack; update with styles_dict
+              styles_dict: ty.Optional[ty.Dict[str, ty.Any]] = None
+             ) -> None:
         '''The styles dict must be a dict instance or None.  Update our values with
         styles_dict's values after saving a copy of ourself on the stack.
         '''
+        if not styles_dict:
+        return
         if styles_dict is not None and not isinstance(styles_dict, dict):
             raise TypeError("styles_dict must be a dict instance")
         self._stack.push(self.copy())
@@ -427,6 +432,10 @@ class Trm(dict[str, str]):
         'Used to utilize a new set of styles in a context manager block'
         self._newstyles = styles_dict
         return self
+    def copy(self) -> 'Trm':
+        'Create a complete clone including dictionary data and slot states'
+        # This triggers __init__ logic which handles the cloning
+        return Trm(self)
 
 if __name__ == "__main__":  
     from lwtest import run, Assert, raises

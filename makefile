@@ -14,6 +14,7 @@ RUFFOPTS = --config /plib/ruff.toml
 
 file = dpstr.py
 file = lwtest.py
+file = trm.py
 
 temp: typecheck
 
