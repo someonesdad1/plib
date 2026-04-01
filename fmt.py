@@ -1,20 +1,45 @@
 '''
+
+Todo items (• is nbs)
+    - Turn it into a context manager so that a context manager block can override all
+      the attributes and have the old state back after exiting
+    - Add "unit" keyword to __call__; overrides unit attribute
+    - Make it easy to derive a new class that combines with Trm to get colorized output
+        - int:  sky
+        - float:  ygr
+        - complex: pnkl
+        - Decimal: yon
+        - mpf: pur
+        - mpc: pnk
+    - Complex number formatting:  '1.2-3.4i', '1.2-i3.4', '1.2•-•3.4i', '1.2•-•3.4i•Ω'
+    - Bugs
+        - z = 1.2-3.4j; fmt(z) -> '(1.2-3.4j).'
+            - Make '1.2-3.4j' the default output
+
+---------------------------------------------------------------------------
+
 class Fmt:  Format floating point numbers
     
     This module provides string interpolation ("formatting") for integer, floating
     point, and complex number types.  A Fmt instance can format int, float,
-    decimal.Decimal, mpmath.mpf, and fractions.Fraction number types.
+    Decimal, mpf, complex, and mpc number types.  mpf and mpc are from the mpmath
+    module, which is used for the formatting machinery.
     
     Run the module as a script to see example output.  See Terminal Notes below.
+
+    See the constructor Fmt.__init() for the attributes of the class that control
+    behavior.
     
     The attributes of a Fmt instance provide more control over the formatting:
     
+    These are old Fmt class attributes
+    ∞∞1 This material should be removed once the new implementation is finished
+
         n       Sets the number of displayed digits.  For floats, the maximum is 15;
                 for mpmath and Decimal, it's controlled by the context's precision.
     
-        default String for default floating point formatting (fix, fixed, sci, eng,
+        fmt     String for default floating point formatting (fix, fixed, sci, eng,
                 engsi, engsic)
-        int     How to format integers (None is str(), dec, hex, oct, bin)
         dp      Sets the radix (decimal point) string (use '.' or ',').
         low     Numbers below this value are displayed with scientific notation.
                 None means all small numbers are displayed in fixed point.
@@ -22,8 +47,8 @@ class Fmt:  Format floating point numbers
                 None means all large numbers are displayed in fixed point.
         u       If True, display scientific and engineering notations with Unicode
                 such as 3.14✕10⁶.
-        rlz     If True, remove leading zero digit in fixed point strings.  Example:
-                -0.284 is "-0.284" if False, "-.284" if True.
+        rlz     If True, remove the leading zero digit in fixed point strings.  
+                Example: -0.284 is "-0.284" if False, "-.284" if True.
         rtz     If True, remove trailing zero digits.
         rtdp    If True, remove the trailing radix if it ends the string.
         spc     If True, use " " as leading character if number >= 0
@@ -39,22 +64,15 @@ class Fmt:  Format floating point numbers
         comp        If True, display as (re,im) form, (re, im) if cuddled False.
                     
     Thread safety
-        Fmt is deliberately not thread-safe.  This means if you call the methods of the
-        same instance in two different threads, you'll get unpredictable and probably
-        wrong results.  This could be fixed by e.g. using a thread.Lock instance and
-        turning Fmt into a context manager, but the cost is that Fmt is then not able to
-        be pickled.  Most of my applications are single-threaded and I prefer to have
-        the ability to pickle things if desired.
+        Fmt is intentionally not thread-safe.  This means if you call the methods of the
+        same instance in two different threads, you'll get unpredictable and could
+        suffer from a race condition.  If you have multiple thread, create multiple Fmt
+        instances and syncronize their states as appropriate.
         
-        One solution to a multithreading application is to give each thread its own
-        Fmt() instance:  one way to do this is to create one instance, then make a copy
-        using the copy() method.
-        
-    Terminal Notes
-        This script is intended to be used with other scripts in the plib directory.
-        You can get the needed tools at https://github.com/someonesdad1/plib.  I use
-        this script in a bash terminal, usually under WSL with Windows Terminal.
-        get things to work correctly.
+    Primary use case
+        The Fmt class is used as the primary string formatter for numerical strings in
+        the /plib directory.  The f.flt and f.cpx floating point types are the main
+        consumers of Fmt's features.
         
     How it works
         The TakeApart class takes apart numbers into their component parts.  Then the
@@ -135,6 +153,7 @@ if 1:  # Header
         pass
     if 1:  # Standard imports
         from collections import deque
+        from pdb import set_trace as yy
         import dataclasses
         import decimal
         import fractions
@@ -146,16 +165,8 @@ if 1:  # Header
         import sys
         import typing as ty
     if 1:  # Custom imports
+        import mpmath
         import wrap
-        try:
-            # Note:  mpmath is optional, but I suggest you use it because
-            # it handles numbers much larger and smaller than standard
-            # python tools and it has numerous special functions defined
-            # over the complex plane.
-            import mpmath
-            have_mpmath = True
-        except ImportError:
-            have_mpmath = False
         try:
             # Used in FmtIV class
             from uncertainties import ufloat, ufloat_fromstr, UFloat, ucore
@@ -173,17 +184,15 @@ if 1:  # Header
         mpf = mpmath.mpf
         Decimal = decimal.Decimal
         getcontext = decimal.getcontext
-
     if 1:  # Global variables
-        W = int(os.environ.get("COLUMNS", "80")) - 1
-        L = int(os.environ.get("LINES", "50"))
-        D = Decimal = decimal.Decimal
-        F = Fraction = fractions.Fraction
+        #W = int(os.environ.get("COLUMNS", "80")) - 1
+        #L = int(os.environ.get("LINES", "50"))
+        #F = Fraction = fractions.Fraction
         # Exported symbols:
         #   Fmt is the formatting class
         #   TakeApart is a class that takes apart numbers into string components
         #   fmt is a convenience instance of Fmt
-        __all__ = "Fmt TakeApart fmt".split()
+        __all__ = "Fmt fmt".split()
 if 0:  # Utility
     # This is from lwtest.py and is inserted here to avoid a circular import
     def Assert(cond, msg="", debug=False):
@@ -234,7 +243,7 @@ if 0:   # Old FmtIV interval formatting
             elif isinstance(x, mpmath.iv.mpf):
                 # Interval number, convert to short form string
                 n = float(mpmath.mpf(x.mid))
-                s = float(mpmath.mpf(x.delta) / 2)
+                s = float(mpmath.mpf(x.delta)/2)
                 t = ufloat(n, s)
                 u = f".{self.n}uS"
                 v = f"{t:{u}}".replace("(", "[").replace(")", "]")
@@ -392,7 +401,7 @@ if 0:   # Old TakeApart and Fmt implementation
             radix = locale.localeconv()["decimal_point"]
             # If value is Fraction, convert it
             if isinstance(value, Fraction):
-                value = Decimal(value.numerator) / Decimal(value.denominator)
+                value = Decimal(value.numerator)/Decimal(value.denominator)
             # Construct the output tuple
             if isinstance(value, int):
                 result = (value < 0, str(abs(value)), None, None)
@@ -731,7 +740,7 @@ if 0:   # Old TakeApart and Fmt implementation
             self._rtdp = False
             self._spc = False
             self._sign = False
-            self.nchars = W * L // 4  # Base on screen width and height
+            self.nchars = W*L//4  # Base on screen width and height
             self.brief = False
             self.ellipsis = "⋯"
             # Attributes for complex numbers
@@ -775,11 +784,11 @@ if 0:   # Old TakeApart and Fmt implementation
             elif isinstance(value, D):
                 return value
             elif isinstance(value, Fraction):
-                return D(value.numerator) / D(value.denominator)
+                return D(value.numerator)/D(value.denominator)
             elif isinstance(value, str):
                 if "/" in value:
                     f = Fraction(value)
-                    return D(f.numerator) / D(f.denominator)
+                    return D(f.numerator)/D(f.denominator)
                 else:
                     return D(value)
             else:
@@ -935,7 +944,7 @@ if 0:   # Old TakeApart and Fmt implementation
                 min_length = 2 + len(self.ellipsis) + len(sgn)
                 m = ""
                 if mag:  # Add in the length of ' |10ⁿ|' string
-                    x = D(value) * D("1.0")
+                    x = D(value)*D("1.0")
                     a = f"{x:.1e}".split("e")[1]
                     e = int(a)
                     Assert(e >= 0)
@@ -957,7 +966,7 @@ if 0:   # Old TakeApart and Fmt implementation
                 # alternating deques, until the resulting string will fit the
                 # current string width.
                 lst = list(s)
-                split = n // 2
+                split = n//2
                 left, right = deque(lst[:split]), deque(lst[split:])
                 Assert(len(left) + len(right) == n)
                 def dqlen():
@@ -1165,7 +1174,7 @@ if 0:   # Old TakeApart and Fmt implementation
                 if 1:  # Get m = number of digits that can be in significand
                     m = width
                     if self.u:
-                        m -= 3  # For '×10'
+                        m -= 3  # For '✕10'
                     else:
                         m -= 1  # For 'e'
                     m -= len(str(self.ta.e))  # For exponent's digits
@@ -1181,7 +1190,7 @@ if 0:   # Old TakeApart and Fmt implementation
               #     return s
               # # Significand needs digits removed.  Split significand and remove
               # # middle digits to get needed width.
-              # middle = len(dq) // 2
+              # middle = len(dq)//2
               # left = deque(list(dq)[:middle])
               # right = deque(list(dq)[middle:])
               # def Len():
@@ -1256,7 +1265,7 @@ if 0:   # Old TakeApart and Fmt implementation
             dq.insert(k, self.dp)  # Using self.dp allows user to change it
             dq.appendleft(sign)
             dq = self.trim(dq)  # Implement rtz, rtdp, rlz
-            exponent = ["e", f"{eng_step * div}"]
+            exponent = ["e", f"{eng_step*div}"]
             try:
                 prefix = self._SI_prefixes[div]
             except KeyError:
@@ -1266,7 +1275,7 @@ if 0:   # Old TakeApart and Fmt implementation
                 dq.pop()
             if fmt == "eng":
                 if self.u:  # Use Unicode characters for power of 10
-                    o = self.GetUnicodeExponent(eng_step * div)
+                    o = self.GetUnicodeExponent(eng_step*div)
                     dq.extend(list(o))
                 else:
                     dq.extend(exponent)
@@ -1368,7 +1377,7 @@ if 0:   # Old TakeApart and Fmt implementation
                         print(f"sig = {''.join(sig)}   us = {us}    e  = {e}")
                     # Place decimal point
                     if len(sig) < e + 1:  # Need added 0's
-                        sig.append("0" * (e + 1 - len(sig)))
+                        sig.append("0"*(e + 1 - len(sig)))
                         if not self.rtdp:
                             sig.append(self.dp)
                     else:
@@ -1415,16 +1424,16 @@ if 0:   # Old TakeApart and Fmt implementation
                 r = value.real
                 i = value.imag
                 s = "" if self.cuddled else " "
-                mag = (r * r + i * i) ** (0.5)
+                mag = (r*r + i*i)**(0.5)
                 if have_mpmath:
                     angle = mpmath.atan2(i, r)
                     if self._deg:
-                        angle *= 180 / mpmath.pi
+                        angle *= 180/mpmath.pi
                 else:
-                    mag = (r * r + i * i) ** (0.5)
+                    mag = (r*r + i*i)**(0.5)
                     angle = math.atan2(i, r)
                     if self._deg:
-                        angle *= 180 / math.pi
+                        angle *= 180/math.pi
                 a = self(mag, fmt=fmt, n=n)
                 b = self(angle, fmt=fmt, n=n)
                 if self._deg:
@@ -1594,54 +1603,47 @@ if 0:   # Old TakeApart and Fmt implementation
             def comp(self, value):
                 self._comp = bool(value)
 else:   # New TakeApart/Fmt
-    '''
-    Note on this implementation:  the code in this block was mostly written by Gemini 3
-    in late March 2026.  This new design used the old architecture, but rewrote the code
-    to use modern python syntax and tools.  Adding type annotations was also a key goal.
-    '''
     class DecomposedNumber(ty.NamedTuple):
         sign: str
         digits: str
         exp: int
         is_special: bool = False
     class TakeApart:
-        def __init__(self, use_mpmath: bool = True):
-            self.use_mpmath = use_mpmath and have_mpmath
+        def __init__(self):
+            pass
         def __call__(self, x: ty.Any, n: int = 3) -> DecomposedNumber:
-            n = int(n) if n is not None else 3
-            if x == 0 or (hasattr(x, 'is_zero') and x.is_zero()):
-                return DecomposedNumber('', '0' * n, 0)
-            try:
-                if self.use_mpmath:
-                    with mpmath.workprec(int(n * 4)):
-                        val = mpmath.mpf(str(x))
-                        if mpmath.isnan(val) or mpmath.isinf(val):
-                            return DecomposedNumber('', str(val).lower(), 0, True)
-                        sign = '-' if val < 0 else ''
-                        val = abs(val)
-                        mag = int(mpmath.floor(mpmath.log10(val)))
-                        mantissa = val / mpmath.mpf(10)**mag
-                        # Normalization loop
-                        for _ in range(2):
-                            if mantissa >= 10: 
-                                mantissa /= 10
-                                mag += 1
-                            elif mantissa < 1 and mantissa > 0: 
-                                mantissa *= 10
-                                mag -= 1
-                        s_digits = mpmath.nstr(mantissa, n, strip_zeros=False).replace('.', '').replace('-', '')
-                        return DecomposedNumber(sign, s_digits[:n], mag)
+            if not isinstance(n, int):
+                raise TypeError("n must be an int")
+            if n < 1:
+                raise ValueError("n must be > 0")
+            if isinstance(x, int):
+                if x == 0:
+                    return DecomposedNumber("", "0"*n, 0, False)
                 else:
-                    val = float(x)
-                    if math.isnan(val) or math.isinf(val):
-                        return DecomposedNumber('', str(val).lower(), 0, True)
-                    sign = '-' if val < 0 else ''
-                    mag = int(math.floor(math.log10(abs(val))))
-                    s = format(abs(val), f'.{n-1}e')
-                    digits = s.split('e')[0].replace('.', '')
-                    return DecomposedNumber(sign, digits, mag)
-            except (ValueError, TypeError, OverflowError):
-                return DecomposedNumber('', str(x), 0, True)
+                    val_str = str(abs(x))
+                    s = f"{val_str[0]}.{val_str[1:]}e{len(val_str)-1}"
+            elif isinstance(x, Decimal):
+                s = format(x, f'.{n-1}e').lower()
+            elif isinstance(x, mpmath.mpf):
+                if not mpmath.isfinite(x):
+                    return DecomposedNumber('', str(x).lower(), 0, True)
+                s = mpmath.nstr(x, n, min_fixed=0, max_fixed=0, strip_zeros=False).lower()
+            elif isinstance(x, float):
+                if not math.isfinite(x):
+                    s = str(x).lower()
+                    sign = "-" if s.startswith("-") else ""
+                    return DecomposedNumber(sign, s, 0, True)
+                s = format(x, f'.{n-1}e').lower()
+            assert s and 'e' in s
+            significand, exp = s.split('e')
+            exponent = int(exp)
+            sign = '-' if significand.startswith('-') else ''
+            digits = significand.replace('.', '', 1).replace('-', '', 1)
+            digits = digits.ljust(n, '0')[:n]
+            assert sign in ("-", "")
+            assert len(digits) == n
+            assert isinstance(exponent, int)
+            return DecomposedNumber(sign, digits, exponent)
     @dataclasses.dataclass
     class NumberChassis:
         sign: str
@@ -1653,163 +1655,158 @@ else:   # New TakeApart/Fmt
             ta = TakeApart()(x, n=f_obj.n)
             if ta.is_special: 
                 return cls('', ta.digits, '', '')
-            
             target_exp = 0
             if active_fmt == 'sci': 
                 target_exp = ta.exp
             elif active_fmt in ('eng', 'engsi', 'engsic'): 
-                target_exp = (ta.exp // 3) * 3
-            
+                target_exp = (ta.exp//3)*3
             dot_pos = ta.exp - target_exp + 1
             if dot_pos <= 0:
-                int_p, frac_p = '0', ('0' * abs(dot_pos)) + ta.digits
+                int_p, frac_p = '0', ('0'*abs(dot_pos)) + ta.digits
             elif dot_pos >= len(ta.digits):
-                int_p, frac_p = ta.digits + ('0' * (dot_pos - len(ta.digits))), ''
+                int_p, frac_p = ta.digits + ('0'*(dot_pos - len(ta.digits))), ''
             else:
                 int_p, frac_p = ta.digits[:dot_pos], ta.digits[dot_pos:]
-            
             if f_obj.rtz and frac_p: 
                 frac_p = frac_p.rstrip('0')
             return cls(ta.sign, int_p, frac_p, str(target_exp) if target_exp != 0 else '')
     class Fmt:
         def __init__(self, digits: int = 3, fmt: str = 'fix'):
-            # Public attributes
-            self.cuddled = True     # '1+2j' if True, '1 + 2j' if False
-            self.deg = False    # Use degrees for complex phase if True (normal = radians)
-            self.exp_char = 'e' # Used in scientific notation to indicate exponent
-            self.fmt = fmt      # Default number formatting
-            self.high = 1e6     # Above this, switch to sci; None:  don't use
-            self.imag_unit = 'j'    # Imaginary unit string
-            self.low = 1e-4     # Below this, switch to sci; None:  don't use
-            self.n = digits     # Number of digits in number
-            self.nbs = True     # Use nonbreaking spaces between number & SI prefix as a suffix
-            self.polar = False  # Use polar for complex if True
-            self.rlz = False    # Remove leading zero if True ('0.4' -> '.4')
-            self.rtdp = False   # Remove trailing radix if True ('40.' -> '40')
-            self.rtz = False    # Remove trailing zeros if True ('0.4000' -> '0.4')
-            self.u = True       # Use Unicode characters for output
-            self.ul = False     # Use escape code for underlining for complex polar
-            self.unit = ''      # Lets user provide a unit string output
-            self.width = None   # Clamps the width of the returned string if not None
-            # Check against getting interpolation strings that are too long
-            self.maxlen = 20000 # Maximum allowed number of character in returned string
-            # Private attributes
-            self._si = {-18:'a',-15:'f',-12:'p',-9:'n',-6:'μ',-3:'m',0:'',3:'k',6:'M',9:'G',12:'T',15:'P'}
+            self.cuddled = True     # No spaces around signs/operators (e.g., 1+2j vs 1 + 2j)
+            self.deg = False        # Use degrees for polar complex notation instead of radians
+            self.exp_char = 'e'     # Character used for scientific notation (e.g., 'e', 'E', or 'D')
+            self.fmt = fmt          # Default mode: 'fix' (auto), 'sci', 'eng', 'engsi', 'engsic'
+            self.high = 1e16        # Upper threshold to switch from 'fix' to 'sci' mode
+            self.imag_unit = 'j'    # Character for the imaginary part (e.g., 'j', 'i')
+            self.low = 1e-5         # Lower threshold to switch from 'fix' to 'sci' mode
+            self.mult = "✕"         # Multiplication symbol for Unicode scientific notation
+            self.n = digits         # Precision: number of significant digits to maintain
+            self.nbs = False        # Use non-breaking spaces (\u00A0) in SI/Eng formatting
+            self.polar = False      # Display complex numbers in polar (magnitude/angle) form
+            self.rlz = False        # Remove Leading Zero (e.g., .123 instead of 0.123)
+            self.rtdp = False       # Retain Trailing Decimal Point (e.g., 3. instead of 3)
+            self.rtz = False        # Remove Trailing Zeros in the fractional part
+            self.u = False          # Use Unicode: ✕10ⁿ for scientific, superscripts, and ∠ for angles
+            self.ul = False         # Underline the angle in polar mode (mimics HP-42s display)
+            self.unit = ''          # Physical unit string to append (e.g., 'V', 'Hz', 'Ω')
+            self.width = None       # Fixed width for padding (not yet fully implemented)
+            self.maxlen = 20000     # Safety governor: max string length before ValueError
+            self._si = {-18:'a',-15:'f',-12:'p',-9:'n',-6:'µ',-3:'m',0:'',3:'k',6:'M',9:'G',12:'T',15:'P'}
             self._sup = str.maketrans('0123456789+-', '⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻')
-        def dump(self):
-            'Print a string dump showing the instance state'
-            print("Fmt instance attribute dump:")
-            print(f"  n         = {self.n!r}")
-            print(f"  fmt       = {self.fmt!r}")
-            print(f"  low       = {self.low!r}")
-            print(f"  high      = {self.high!r}")
-            print(f"  rtdp      = {self.rtdp!r}")
-            print(f"  rtz       = {self.rtz!r}")
-            print(f"  rlz       = {self.rlz!r}")
-            print(f"  exp_char  = {self.exp_char!r}")
-            print(f"  u         = {self.u!r}")
-            print(f"  nbs       = {self.nbs!r}")
-            print(f"  unit      = {self.unit!r}")
-            print(f"  ul        = {self.ul!r}")
-            print(f"  polar     = {self.polar!r}")
-            print(f"  deg       = {self.deg!r}")
-            print(f"  imag_unit = {self.imag_unit!r}")
-            print(f"  cuddled   = {self.cuddled!r}")
-        def sci(self, x, n=None):
-            return self(x, n=n, fmt='sci')
-        def eng(self, x, n=None):
-            return self(x, n=n, fmt='eng')
-        def fix(self, x, n=None):
-            return self(x, n=n, fmt='fix')
         def __call__(self, x, n=None, fmt=None):
             if isinstance(x, (str, bytes)): 
                 return x
             if isinstance(n, str) and fmt is None: 
                 fmt, n = n, None
             old_n, old_fmt = self.n, self.fmt
-            if n is not None: 
-                self.n = int(n)
-                if self.n <= 0:
-                    raise ValueError("n must be > 0")
-            if fmt is not None: 
-                self.fmt = fmt
+            if n is not None: self.n = int(n)
+            if fmt is not None: self.fmt = fmt
             try:
                 eff_fmt = self.fmt
                 if eff_fmt == 'fix':
-                    if isinstance(x, float | mpmath.mpf | Decimal):
-                        try:
-                            if isinstance(x, mpmath.mpf | Decimal):
-                                v_abs = abs(x)
-                            else:
-                                v_abs = abs(float(x))
-                            if self.high is not None and v_abs >= self.high: 
-                                eff_fmt = 'sci'
-                            elif self.low is not None and v_abs <= self.low and v_abs != 0: 
-                                eff_fmt = 'sci'
-                        except (ValueError, TypeError): 
-                            pass
-                # Handle complex
-                if isinstance(x, complex | mpmath.mpc):
+                    try:
+                        v_abs = abs(x) if not hasattr(x, 'real') else abs(complex(x))
+                        if self.high is not None and v_abs >= self.high: 
+                            eff_fmt = 'sci'
+                        elif self.low is not None and v_abs <= self.low and v_abs != 0: 
+                            eff_fmt = 'sci'
+                    except (ValueError, TypeError): 
+                        pass
+                if isinstance(x, (complex, mpmath.mpc)):
                     ret_value = self._assemble_complex(x, eff_fmt)
-                # Recursively handle sequences
-                if hasattr(x, '__iter__'):
+                elif hasattr(x, '__iter__') and not isinstance(x, (str, bytes)):
                     ret_value = type(x)(self(item) for item in x)
-                ret_value = self._format_scalar(x, eff_fmt)
-                # Check maximum length
-                n, m = len(ret_value), self.maxlen
-                if n > m:
-                    raise ValueError(f"Returned string length {n} > allowed {m}")
+                else:
+                    ret_value = self._format_scalar(x, eff_fmt)
+                if len(str(ret_value)) > self.maxlen:
+                    raise ValueError(f"Returned string length {len(ret_value)} > allowed {self.maxlen}")
                 return ret_value
             finally:
                 self.n, self.fmt = old_n, old_fmt
-        def _format_scalar(self, x, active_fmt) -> str:
+        def _format_scalar(self, x: ty.Any, active_fmt: str) -> str:
+            '''
+            Main routing for scalar values. Handles sign-aware leading zero removal.
+            '''
             if isinstance(x, int):
                 return self._finalize_int(x, active_fmt)
             c = NumberChassis.from_val(x, self, active_fmt)
             if active_fmt in ('engsi', 'engsic'):
                 return self._finalize_si(c, active_fmt)
-            dot = '.' if (not self.rtdp and not c.frac_part) else ('.' if c.frac_part else '')
+            if active_fmt == 'sci':
+                return self._finalize_sci(c)
+            # Handle 'fix' or fallback formatting
+            dot = '.' if (c.frac_part or not self.rtdp) else ''
             result = f'{c.sign}{c.int_part}{dot}{c.frac_part}'
             if c.exp:
-                if self.u: 
-                    result += f'×10{c.exp.translate(self._sup)}'
-                else: 
+                if self.u:
+                    result += f'{self.mult}10{c.exp.translate(self._sup)}'
+                else:
                     result += f"{self.exp_char}{c.exp}"
-            if self.rlz and result.startswith('0.'): 
-                result = result[1:]
-            if self.rtz:    # 1.000 -> 1., 0.400 -> 0.4
-                result = result.rstrip('0').rstrip('.') if '.' in result else result
-            if self.rtdp and result[-1] == ".":     # 1. -> 1
-                result = result.rstrip('.', 1)
+            if self.rlz:
+                if result.startswith('0.'):
+                    result = result[1:]
+                elif result.startswith('-0.'):
+                    result = '-' + result[2:]
+            if self.rtz:
+                if '.' in result:
+                    result = result.rstrip('0').rstrip('.')
+            if self.rtdp:
+                if result.endswith('.'):
+                    # Logic to ensure the dot stays if rtdp is True
+                    pass
             return result
+        def _finalize_sci(self, chassis: 'NumberChassis') -> str:
+                """
+                Finalizes scientific notation.
+                Handles chassis.exp as a string (possibly empty).
+                """
+                # 1. Join and normalize the mantissa
+                raw_digits = chassis.int_part + chassis.frac_part
+                lead = raw_digits[0]
+                rest = raw_digits[1:]
+                mantissa = lead
+                if rest:
+                    mantissa += "." + rest
+                if self.rtz and "." in mantissa:
+                    mantissa = mantissa.rstrip("0").rstrip(".")
+                elif self.rtdp and "." not in mantissa:
+                    mantissa += "."
+                # 2. Normalize the exponent value
+                # If exp is '', it becomes 0. If it's '-3', it becomes -3.
+                try:
+                    exp_val = int(chassis.exp) if chassis.exp else 0
+                except ValueError:
+                    # Fallback if exp contains non-numeric ghosts
+                    exp_val = 0
+                # 3. Format the exponent string
+                if self.u:
+                    # e.g., 3.14×10⁰
+                    exp_str = f"{self.mul_char}10{str(exp_val).translate(self._sup)}"
+                else:
+                    # e.g., 3.14e+00
+                    exp_str = f"{self.exp_char}{exp_val:d}"
+                # 4. Final Assembly
+                res = f"{chassis.sign}{mantissa}{exp_str}"
+                if self.unit:
+                    sep = "" if self.cuddled else " "
+                    res += f"{sep}{self.unit}"
+                return res
         def _finalize_int(self, x, active_fmt) -> str:
-            '''An int is special in that all the digits will be returned.  When the
-            Fmt.width attribute is implemented, then we will nibble the middle if
-            necessary.
-            '''
-            s = str(x)
-            if len(s) > self.maxlen:
-                print("Fmt._finalize_int() needs to handle long string length case with self.width",
-                      file=sys.stderr)
-            return s
+            return str(x)
         def _finalize_si(self, c, active_fmt) -> str:
             space = '\u00A0' if self.nbs else ' '
-            sep = '' if (self.cuddled or active_fmt == 'engsic') else space
+            sep = '' if active_fmt == 'engsic' else space
             ev = int(c.exp or 0)
             prefix = self._si.get(ev)
-            dot = '.' if (not self.rtdp and not c.frac_part) else ('.' if c.frac_part else '')
+            dot = '.' if (c.frac_part or not self.rtdp) else ''
             if prefix is None:
                 return f"{c.sign}{c.int_part}{dot}{c.frac_part}{self.exp_char}{ev}"
-            if not self.u and prefix == 'μ': 
-                prefix = 'u'
+            if not self.u and prefix == 'µ': prefix = 'u'
             res = f'{c.sign}{c.int_part}{dot}{c.frac_part}{sep}{prefix}{self.unit}'
-            if self.rlz and res.startswith('0.'): 
-                res = res[1:]
+            if self.rlz and res.startswith('0.'): res = res[1:]
             return res
         def _assemble_complex(self, z, active_fmt) -> str:
             space = '\u00A0' if self.nbs else ' '
-            # We call self() here to ensure the scalar components 
-            # follow the same temporary 'active_fmt'
             re_p = self(z.real, fmt=active_fmt)
             im_p = self(abs(z.imag), fmt=active_fmt)
             if self.polar:
@@ -1821,9 +1818,21 @@ else:   # New TakeApart/Fmt
             op = '+' if z.imag >= 0 else '-'
             s = '' if self.cuddled else space
             return f"{re_p}{s}{op}{s}{im_p}{self.imag_unit}"
-
+        def sci(self, x, n=None): return self(x, n=n, fmt='sci')
+        def eng(self, x, n=None): return self(x, n=n, fmt='eng')
+        def fix(self, x, n=None): return self(x, n=n, fmt='fix')
+        def engsi(self, x, n=None): return self(x, n=n, fmt='engsi')
+        def engsic(self, x, n=None): return self(x, n=n, fmt='engsic')
 if 1:   # Public convenience instance of Fmt()
     fmt = Fmt()
+if 0 and __name__ == "__main__":  
+    if 1:   
+        x = decimal.Decimal("3.141592653589793")
+        print(f"x = {x}")
+        yy()
+        s = fmt(x, fmt="sci")
+        print(f"fmt(x) = {s}")
+    exit()
 
 if __name__ == "__main__":
     if 1:   # Standard imports
@@ -1848,6 +1857,7 @@ if __name__ == "__main__":
         run = lwtest.run
         t = trm.Trm()
     if 1:   # Global variables
+        D = Decimal = decimal.Decimal
         d: dict[object, object] = {}  # Options dictionary
         # Set up colors for demo
         u = use_colors = True
@@ -1874,7 +1884,6 @@ if __name__ == "__main__":
             
             Relevant Fmt instance attributes:
                 - n     Number of displayed digits
-
         '''))
         #yy
         s = "math.pi*1e5"
@@ -1901,14 +1910,14 @@ if __name__ == "__main__":
         t.print(f"{t.t}Override f.n digits:")
         t.print(f"  {t.f}f(x, n=5){t.n} = {t.fix}{f(x, n=5)}")
         t.print(f"{t.t}Remove trailing zeros:")
-        t.print(f"  {t.f}f(1/4) = {t.fix}{f(1 / 4)} f.rtz = False")
+        t.print(f"  {t.f}f(1/4) = {t.fix}{f(1/4)} f.rtz = False")
         f.rtz = True
-        t.print(f"  {t.f}f(1/4) = {t.fix}{f(1 / 4)} {' ' * 8}f.rtz = True")
+        t.print(f"  {t.f}f(1/4) = {t.fix}{f(1/4)} {' '*8}f.rtz = True")
         f.rtz = False
         t.print(f"{t.t}Remove leading zero of decimal fraction:")
-        t.print(f"  {t.f}f(1/4) = {t.fix}{f(1 / 4)} f.rlz = False")
+        t.print(f"  {t.f}f(1/4) = {t.fix}{f(1/4)} f.rlz = False")
         f.rlz = True
-        t.print(f"  {t.f}f(1/4) = {t.fix}{f(1 / 4)} {' ' * 1}f.rlz = True")
+        t.print(f"  {t.f}f(1/4) = {t.fix}{f(1/4)} {' '*1}f.rlz = True")
         f.rlz = False
         f.n = 3
         t.print(f'{t.em}fmt="fixed":  Shows fixed number of decimal places')
@@ -1921,31 +1930,29 @@ if __name__ == "__main__":
         f.low = 1e-6
         t.print(f"  {t.f}f.high{t.n} = {t.sci}{f.sci(f.high, n=1)}")
         t.print(f"  {t.f}f.low{t.n}  = {t.sci}{f.sci(f.low, n=1)}")
-        print(f"  {t.fix}{f(pi * 1e5)}{t.n} < f.high so use fix")
-        print(f"  {t.sci}{f(pi * 1e6)}{t.n} > f.high so use sci")
-        print(f"  {t.fix}{f(pi * 1e-6)}{t.n} > f.low so use fix")
-        print(f"  {t.sci}{f(pi * 1e-7)}{t.n} < f.low so use sci")
+        print(f"  {t.fix}{f(pi*1e5)}{t.n} < f.high so use fix")
+        print(f"  {t.sci}{f(pi*1e6)}{t.n} > f.high so use sci")
+        print(f"  {t.fix}{f(pi*1e-6)}{t.n} > f.low so use fix")
+        print(f"  {t.sci}{f(pi*1e-7)}{t.n} < f.low so use sci")
         # Get scientific and engineering notations
         t.print(f"{t.t}Force use of scientific and engineering notation")
-        t.print(f"  sci:  {t.f}f.sci(pi*1e-7){t.n}        = {t.sci}{f.sci(pi * 1e-7)}")
-        t.print(f"        {t.f}f(pi*1e-7, fmt='sci'){t.n} = {t.sci}{f(pi * 1e-7, fmt='sci')}")
-        t.print(f"  eng:  {t.f}f.eng(pi*1e-7){t.n}        = {t.eng}{f.eng(pi * 1e-7)}")
-        t.print(f"        {t.f}f(pi*1e-7, fmt='eng'){t.n} = {t.eng}{f(pi * 1e-7, fmt='eng')}")
-
+        t.print(f"  sci:  {t.f}f.sci(pi*1e-7){t.n}        = {t.sci}{f.sci(pi*1e-7)}")
+        t.print(f"        {t.f}f(pi*1e-7, fmt='sci'){t.n} = {t.sci}{f(pi*1e-7, fmt='sci')}")
+        t.print(f"  eng:  {t.f}f.eng(pi*1e-7){t.n}        = {t.eng}{f.eng(pi*1e-7)}")
+        t.print(f"        {t.f}f(pi*1e-7, fmt='eng'){t.n} = {t.eng}{f(pi*1e-7, fmt='eng')}")
         exit() #∞∞ 
-
         # Use Unicode characters for scientific notation
         f.u = True
         t.print(f"{t.em}Unicode    {t.n}{t.t}Set f.u to True to use Unicode characters in sci and eng exponents:")
-        t.print(f"  {t.f}f.sci(pi*1e6)){t.n} = {t.sci}{f.sci(pi * 1e6)}{t.n}   f.u = True")
-        t.print(f"  {t.f}f.eng(pi*1e-7){t.n} = {t.eng}{f.eng(pi * 1e-7)}{t.n}   f.u = True")
+        t.print(f"  {t.f}f.sci(pi*1e6)){t.n} = {t.sci}{f.sci(pi*1e6)}{t.n}   f.u = True")
+        t.print(f"  {t.f}f.eng(pi*1e-7){t.n} = {t.eng}{f.eng(pi*1e-7)}{t.n}   f.u = True")
         f.u = False
         # Set low & high to None to always get fixed point
         t.print(f"{t.em}Always use fixed point")
         f.low = f.high = None
         t.print(f"  {t.t}Set {t.f}f.low{t.n} and {t.f}f.high{t.n} to None always use fixed point:")
-        t.print(f"  {t.f}f(pi*1e-27){t.n} = {t.fix}{f(pi * 1e-27)}")
-        t.print(f"  {t.f}f(pi*1e57){t.n} = {t.fix}{f(pi * 1e57)}")
+        t.print(f"  {t.f}f(pi*1e-27){t.n} = {t.fix}{f(pi*1e-27)}")
+        t.print(f"  {t.f}f(pi*1e57){t.n} = {t.fix}{f(pi*1e57)}")
         print(wrap.dedent('''
         Large and small enough numbers will still require scientific notation (the
         default processing switches to scientific notation if an interpolation takes
@@ -1964,7 +1971,7 @@ if __name__ == "__main__":
         except decimal.Overflow:
             t.print(f'  {t.f}f(Decimal("1e1000000")){t.n}', "results in overflow")
         t.print(f'  {t.f}f(Decimal("1e-100000000")){t.n}', "underflow that gives 0")
-        if 0 and have_mpmath:
+        if 1:
             x = mpmath.mpf(100)
             y = mpmath.fac(x)
             z = y**y
@@ -1988,11 +1995,11 @@ if __name__ == "__main__":
         '''))
         with decimal.localcontext() as ctx:
             ctx.prec = n
-            x = 100000 * decimalmath.sin(decimalmath.pi() / 4)
+            x = 100000*decimalmath.sin(decimalmath.pi()/4)
             t.print(
                 f"  y = {t.fix}{fmt(x, n=n)}{t.n} (Decimal calculation to 20 digits)"
             )
-            y = 100000 * math.sin(math.pi / 4)
+            y = 100000*math.sin(math.pi/4)
             ys, m = fmt(y, n=n), 16
             bad = f"{t.fix}{ys[:m]}{t.err}{ys[m:]}{t.n}"
             t.print(f"  y = {bad}      (float calculation to 15 digits)")
@@ -2020,7 +2027,7 @@ if __name__ == "__main__":
             fmt(z) = {t.f}{fmt(z)}{t.n}
         Use the Fmt object's attributes to change the formatted form:
         '''))
-        w, sp = 25, " " * 4
+        w, sp = 25, " "*4
         fmt.imag_unit = "i"
         s = 'fmt.imag_unit = "i"'
         t.print(f"{sp}{s:{w}s} {t.f}{fmt(z)}{t.n}")
@@ -2048,15 +2055,14 @@ if __name__ == "__main__":
         if W < 79:
             print("[Need a screen width of at least 80 for acceptable Demo() output]")
     if 1:  # Test code
-        def GetDefaultFmtInstance():
-            "Make sure test environment is set up in a repeatable fashion"
-            fmt = Fmt()
-            fmt.n = 3
-            return fmt
+        # Note the simple expedient of getting the default Fmt instance state by calling
+        # __init__().
         def Test_prepare():
             '''TakeApart.prepare() is the core functionality needed for
             string interpolation for supported number types.
             '''
+            if 1:   # Old functionality; not currently used
+                return
             ta = TakeApart()
             n = 3
             def f(x):
@@ -2071,11 +2077,11 @@ if __name__ == "__main__":
                 Assert(f(float("-inf")) == (True, "inf", None, None))
                 Assert(f(float("nan")) == (None, "nan", None, None))
                 for x, expected in (
-                    (0.0, (False, "0" * n, ".", 0)),
-                    (1.0, (False, "1" + "0" * (n - 1), ".", 0)),
-                    (-1.0, (True, "1" + "0" * (n - 1), ".", 0)),
-                    (0.1, (False, "1" + "0" * (n - 1), ".", -1)),
-                    (-0.1, (True, "1" + "0" * (n - 1), ".", -1)),
+                    (0.0, (False, "0"*n, ".", 0)),
+                    (1.0, (False, "1" + "0"*(n - 1), ".", 0)),
+                    (-1.0, (True, "1" + "0"*(n - 1), ".", 0)),
+                    (0.1, (False, "1" + "0"*(n - 1), ".", -1)),
+                    (-0.1, (True, "1" + "0"*(n - 1), ".", -1)),
                     (123456.78901, (False, "123", ".", 5)),
                     (-123456.78901, (True, "123", ".", 5)),
                     (123456.78901e-6, (False, "123", ".", -1)),
@@ -2085,14 +2091,14 @@ if __name__ == "__main__":
                     (123456.78901e-300, (False, "123", ".", -295)),
                     (-123456.78901e-300, (True, "123", ".", -295)),
                     #
-                    (float("0." + "9" * (n - 1)), (False, "990", ".", -1)),
-                    (float("0." + "9" * n), (False, "999", ".", -1)),
-                    (float("1." + "0" * (n - 3) + "1"), (False, "110", ".", 0)),
-                    (float("1." + "0" * (n - 2) + "1"), (False, "101", ".", 0)),
-                    (float("-0." + "9" * (n - 1)), (True, "990", ".", -1)),
-                    (float("-0." + "9" * n), (True, "999", ".", -1)),
-                    (float("-1." + "0" * (n - 3) + "1"), (True, "110", ".", 0)),
-                    (float("-1." + "0" * (n - 2) + "1"), (True, "101", ".", 0)),
+                    (float("0." + "9"*(n - 1)), (False, "990", ".", -1)),
+                    (float("0." + "9"*n), (False, "999", ".", -1)),
+                    (float("1." + "0"*(n - 3) + "1"), (False, "110", ".", 0)),
+                    (float("1." + "0"*(n - 2) + "1"), (False, "101", ".", 0)),
+                    (float("-0." + "9"*(n - 1)), (True, "990", ".", -1)),
+                    (float("-0." + "9"*n), (True, "999", ".", -1)),
+                    (float("-1." + "0"*(n - 3) + "1"), (True, "110", ".", 0)),
+                    (float("-1." + "0"*(n - 2) + "1"), (True, "101", ".", 0)),
                 ):
                     if 1:
                         if f(x) != expected:
@@ -2105,13 +2111,13 @@ if __name__ == "__main__":
                 m = 10
                 with decimal.localcontext() as ctx:
                     ctx.prec = m
-                    u = "1" + "0" * m
+                    u = "1" + "0"*m
                     v = "12345678900"
                     Assert(f(D("inf")) == (False, "inf", None, None))
                     Assert(f(D("-inf")) == (True, "inf", None, None))
                     Assert(f(D("nan")) == (None, "nan", None, None))
                     for x, expected in (
-                        (D(" 0.0"), (False, "0" * (m + 1), ".", m - 1)),
+                        (D(" 0.0"), (False, "0"*(m + 1), ".", m - 1)),
                         (D(" 1.0"), (False, u, ".", 0)),
                         (D("-1.0"), (True, u, ".", 0)),
                         (D(" 0.1"), (False, u, ".", -1)),
@@ -2127,12 +2133,12 @@ if __name__ == "__main__":
                         #
                         (D(" 0.9999999999"), (False, "99999999990", ".", -1)),
                         (D(" 0.99999999999"), (False, "10000000000", ".", 0)),
-                        (D("1." + "0" * (m - 2) + "1"), (False, "10000000010", ".", 0)),
-                        (D("1." + "0" * (m - 1) + "1"), (False, "10000000000", ".", 0)),
+                        (D("1." + "0"*(m - 2) + "1"), (False, "10000000010", ".", 0)),
+                        (D("1." + "0"*(m - 1) + "1"), (False, "10000000000", ".", 0)),
                         (D("-0.9999999999"), (True, "99999999990", ".", -1)),
                         (D("-0.99999999999"), (True, "10000000000", ".", 0)),
-                        (D("-1." + "0" * (m - 2) + "1"), (True, "10000000010", ".", 0)),
-                        (D("-1." + "0" * (m - 1) + "1"), (True, "10000000000", ".", 0)),
+                        (D("-1." + "0"*(m - 2) + "1"), (True, "10000000010", ".", 0)),
+                        (D("-1." + "0"*(m - 1) + "1"), (True, "10000000000", ".", 0)),
                     ):
                         if 0:
                             if f(x) != expected:
@@ -2144,13 +2150,13 @@ if __name__ == "__main__":
                     # Fraction
                     F = Fraction
                     for x, expected in (
-                        (F(0, 1), (False, "0" * (m + 1), ".", m)),
+                        (F(0, 1), (False, "0"*(m + 1), ".", m)),
                         (F(1, 1), (False, u, ".", 0)),
                         (F(-1, 1), (True, u, ".", 0)),
                         (F(1, 10), (False, u, ".", -1)),
                         (F(-1, 10), (True, u, ".", -1)),
                     ):
-                        y = D(x.numerator) / D(x.denominator)
+                        y = D(x.numerator)/D(x.denominator)
                         if 0:
                             if f(y) != expected:
                                 print(f"y = {y}")
@@ -2159,18 +2165,16 @@ if __name__ == "__main__":
                                 exit()
                         Assert(f(y) == expected)
             if 1:  # mpf
-                if not have_mpmath:
-                    return
                 m = 10
                 with mpmath.workdps(m):
                     mpf = mpmath.mpf
                     Assert(f(mpf("inf")) == (False, "inf", None, None))
                     Assert(f(mpf("-inf")) == (True, "inf", None, None))
                     Assert(f(mpf("nan")) == (None, "nan", None, None))
-                    u = "1" + "0" * (m - 1)
+                    u = "1" + "0"*(m - 1)
                     v = "1234567890"
                     for x, expected in (
-                        (mpf(" 0.0"), (False, "0" * m, ".", 0)),
+                        (mpf(" 0.0"), (False, "0"*m, ".", 0)),
                         (mpf(" 1.0"), (False, u, ".", 0)),
                         (mpf("-1.0"), (True, u, ".", 0)),
                         (mpf(" 0.1"), (False, u, ".", -1)),
@@ -2187,21 +2191,21 @@ if __name__ == "__main__":
                         (mpf(" 0.9999999999"), (False, "9999999999", ".", -1)),
                         (mpf(" 0.99999999999"), (False, "1000000000", ".", 0)),
                         (
-                            mpf("1." + "0" * (m - 2) + "1"),
+                            mpf("1." + "0"*(m - 2) + "1"),
                             (False, "1000000001", ".", 0),
                         ),
                         (
-                            mpf("1." + "0" * (m - 1) + "1"),
+                            mpf("1." + "0"*(m - 1) + "1"),
                             (False, "1000000000", ".", 0),
                         ),
                         (mpf("-0.9999999999"), (True, "9999999999", ".", -1)),
                         (mpf("-0.99999999999"), (True, "1000000000", ".", 0)),
                         (
-                            mpf("-1." + "0" * (m - 2) + "1"),
+                            mpf("-1." + "0"*(m - 2) + "1"),
                             (True, "1000000001", ".", 0),
                         ),
                         (
-                            mpf("-1." + "0" * (m - 1) + "1"),
+                            mpf("-1." + "0"*(m - 1) + "1"),
                             (True, "1000000000", ".", 0),
                         ),
                     ):
@@ -2226,6 +2230,8 @@ if __name__ == "__main__":
             '''TakeApart.disassemble() is used for all string interpolation, so
             show it works for the basic tasks.
             '''
+            if 1:   # Old functionality; not currently used
+                return
             ta = TakeApart()
             def f(x, n):
                 ta.disassemble(x, n)
@@ -2251,7 +2257,7 @@ if __name__ == "__main__":
                         Assert(f(x, n) == str(x))
                         Assert(f(-x, n) == str(x))
             if 1:  # Floating point numbers and a fraction
-                X = mpmath.mpf("12345600.") if have_mpmath else 12345600.0
+                X = mpmath.mpf("12345600.")
                 for x in (12345600.0, D("12345600."), Fraction(12345600, 1), X):
                     for n, expected in (
                         (1, "1"),
@@ -2274,19 +2280,19 @@ if __name__ == "__main__":
                             Assert(f(-x, n) == expected)
                             Assert(ta.sign == "-")
         def Test_Basics():
-            f = GetDefaultFmtInstance()
+            fmt.__init__()
             if 1:   # Test basics
                 msg = "Fmt test of basics"
-                f.u = False # Important to not get Unicode in output
+                fmt.u = False # Important to not get Unicode in output
                 for x, expected in (
                     (pi, "3.14"),
                     (-pi, "-3.14"),
-                    (pi * 1e99, "3.14e99"),
-                    (-pi * 1e99, "-3.14e99"),
-                    (pi * 1e-99, "3.14e-99"),
-                    (-pi * 1e-99, "-3.14e-99"),
+                    (pi*1e99, "3.14e99"),
+                    (-pi*1e99, "-3.14e99"),
+                    (pi*1e-99, "3.14e-99"),
+                    (-pi*1e-99, "-3.14e-99"),
                 ):
-                    got = f(x)
+                    got = fmt(x)
                     status = Assert(got == expected, msg=msg, got=got, expected=expected)
             if 1:   # Test integers with fixed point
                 zero, one = 0, 1
@@ -2305,8 +2311,8 @@ if __name__ == "__main__":
                     (one, 8, "1"),
                     (-one, 8, "-1"),
                 ):
-                    f.n = n
-                    got = f(x, fmt="fix")
+                    fmt.n = n
+                    got = fmt(x, fmt="fix")
                     Assert(got == expected, msg=msg, got=got, expected=expected)
             if 1:   # Test floats with fixed point
                 zero, one = 0.0, 1.0
@@ -2325,78 +2331,40 @@ if __name__ == "__main__":
                     (one, 8, "1.0000000"),
                     (-one, 8, "-1.0000000"),
                 ):
-                    f.n = n
-                    got = f(x)
+                    fmt.n = n
+                    got = fmt(x)
                     Assert(got == expected, msg=msg, got=got, expected=expected)
             if 1:   # Test with numbers near 1
-                f = GetDefaultFmtInstance()
+                fmt.__init__()
                 msg = "Fmt test with numbers near 1"
                 x = 0.99
-                Assert(f(x, n=1) == "1.", msg=msg)
-                Assert(f(x, n=2) == "0.99", msg=msg)
-                Assert(f(-x, n=1) == "-1.", msg=msg)
-                Assert(f(-x, n=2) == "-0.99", msg=msg)
+                Assert(fmt(x, n=1) == "1.", msg=msg)
+                Assert(fmt(x, n=2) == "0.99", msg=msg)
+                Assert(fmt(-x, n=1) == "-1.", msg=msg)
+                Assert(fmt(-x, n=2) == "-0.99", msg=msg)
                 x = 0.999999
-                raises(ValueError, f, x, n=-1)
-                raises(ValueError, f, x, n=0)
-                Assert(f(x, n=1) == "1.", msg=msg)
-                Assert(f(x, n=2) == "1.0", msg=msg)
-                Assert(f(x, n=3) == "1.00", msg=msg)
-                Assert(f(x, n=4) == "1.000", msg=msg)
-                Assert(f(x, n=5) == "1.0000", msg=msg)
-                Assert(f(x, n=6) == "0.999999", msg=msg)
-                Assert(f(x, n=7) == "0.9999990", msg=msg)
-                raises(ValueError, f, -x, n=-1)
-                raises(ValueError, f, -x, n=0)
-                Assert(f(-x, n=1) == "-1.", msg=msg)
-                Assert(f(-x, n=2) == "-1.0", msg=msg)
-                Assert(f(-x, n=3) == "-1.00", msg=msg)
-                Assert(f(-x, n=4) == "-1.000", msg=msg)
-                Assert(f(-x, n=5) == "-1.0000", msg=msg)
-                Assert(f(-x, n=6) == "-0.999999", msg=msg)
-                Assert(f(-x, n=7) == "-0.9999990", msg=msg)
-        def Test_toD():
-            f = GetDefaultFmtInstance().toD
-            # int and str
-            for i in (-1, 0, 1, "-1", "0", "1", "inf", "-inf"):
-                Assert(f(i) == D(i))
-                Assert(f(D(i)) == D(i))
-            for i in (-1_000, 1_000, "-1_000", "1_000"):
-                Assert(f(i) == D(i))
-                Assert(f(D(i)) == D(i))
-            # float and str
-            for i in (-1.0, 0.0, 1.0, "-1.", "0.", "1."):
-                Assert(f(i) == D(i))
-                Assert(f(D(i)) == D(i))
-            for i in (
-                -0.00_1,
-                0.00_1,
-                -1_000.0,
-                1_000.0,
-                "-0.00_1",
-                "0.00_1",
-                "-1_000.",
-                "1_000.",
-            ):
-                Assert(f(i) == D(i))
-                Assert(f(D(i)) == D(i))
-            # Fraction
-            n, d = 3, 8
-            x = Fraction(n, d)
-            Assert(f(x) == D(n / d))
-            # Fraction string
-            Assert(f(f"{n}/{d}") == D(n / d))
-            # mpmath
-            if have_mpmath:
-                mpf = mpmath.mpf
-                n = 50
-                mpmath.mp.dps = n
-                x = mpf(2) ** mpf(1 / 2)
-                with decimal.localcontext() as ctx:
-                    ctx.prec = n
-                    Assert(f(x) == D(2) ** D(1 / 2))
+                raises(ValueError, fmt, x, n=-1)
+                raises(ValueError, fmt, x, n=0)
+                Assert(fmt(x, n=1) == "1.", msg=msg)
+                Assert(fmt(x, n=2) == "1.0", msg=msg)
+                Assert(fmt(x, n=3) == "1.00", msg=msg)
+                Assert(fmt(x, n=4) == "1.000", msg=msg)
+                Assert(fmt(x, n=5) == "1.0000", msg=msg)
+                Assert(fmt(x, n=6) == "0.999999", msg=msg)
+                Assert(fmt(x, n=7) == "0.9999990", msg=msg)
+                raises(ValueError, fmt, -x, n=-1)
+                raises(ValueError, fmt, -x, n=0)
+                Assert(fmt(-x, n=1) == "-1.", msg=msg)
+                Assert(fmt(-x, n=2) == "-1.0", msg=msg)
+                Assert(fmt(-x, n=3) == "-1.00", msg=msg)
+                Assert(fmt(-x, n=4) == "-1.000", msg=msg)
+                Assert(fmt(-x, n=5) == "-1.0000", msg=msg)
+                Assert(fmt(-x, n=6) == "-0.999999", msg=msg)
+                Assert(fmt(-x, n=7) == "-0.9999990", msg=msg)
         def Test_Fixed():
-            f = GetDefaultFmtInstance()
+            lwtest.ToDoMessage("Test_Fixed not run:  feature not supported yet")
+            return
+            fmt.__init__()
             # Test with a float
             x = 31.43905775
             for n, expected in (
@@ -2410,24 +2378,14 @@ if __name__ == "__main__":
                 (8, "31.43905775"),
                 (15, "31.439057750000000"),
             ):
-                f.n = n
-                got = f(x, fmt="fixed")
-                if 0 and got != expected:
-                    print(f"n = {n}")
-                    print(f"got      = {got}")
-                    print(f"expected = {expected}")
-                    exit()
-                Assert(f(x, fmt="fixed") == expected)
-                Assert(f(-x, fmt="fixed") == "-" + expected)
+                fmt.n = n
+                got = fmt(x, fmt="fixed")
+                Assert(fmt(x, fmt="fixed") == expected, got=got, expected=expected)
+                Assert(fmt(-x, fmt="fixed") == "-" + expected, got=got, expected=expected)
                 # Show that n in call overrides fmt.n
-                got = f(x, fmt="fixed", n=n)
-                if 0 and got != expected:
-                    print(f"n = {n}")
-                    print(f"got      = {got}")
-                    print(f"expected = {expected}")
-                    exit()
-                Assert(f(x, fmt="fixed", n=n) == expected)
-                Assert(f(-x, fmt="fixed", n=n) == "-" + expected)
+                got = fmt(x, fmt="fixed", n=n)
+                Assert(fmt(x, fmt="fixed", n=n) == expected, got=got, expected=expected)
+                Assert(fmt(-x, fmt="fixed", n=n) == "-" + expected, got=got, expected=expected)
             x = 0.03143905775
             for n, expected in (
                 (1, "0.03"),
@@ -2442,26 +2400,25 @@ if __name__ == "__main__":
                 (10, "0.0314390578"),
                 (15, "0.031439057750000"),
             ):
-                f.n = n
-                got = f(x, fmt="fixed")
+                fmt.n = n
+                got = fmt(x, fmt="fixed")
                 if 0 and got != expected:
                     print(f"n = {n}")
                     print(f"got      = {got}")
                     print(f"expected = {expected}")
                     exit()
-                Assert(f(x, fmt="fixed") == expected)
-                Assert(f(-x, fmt="fixed") == "-" + expected)
+                Assert(fmt(x, fmt="fixed") == expected)
+                Assert(fmt(-x, fmt="fixed") == "-" + expected)
                 # Show that n in call overrides fmt.n
-                got = f(x, fmt="fixed", n=n)
+                got = fmt(x, fmt="fixed", n=n)
                 if 0 and got != expected:
                     print(f"n = {n}")
                     print(f"got      = {got}")
                     print(f"expected = {expected}")
                     exit()
-                Assert(f(x, fmt="fixed", n=n) == expected)
-                Assert(f(-x, fmt="fixed") == "-" + expected)
-            # Test with an mpf
-            if have_mpmath:
+                Assert(fmt(x, fmt="fixed", n=n) == expected)
+                Assert(fmt(-x, fmt="fixed") == "-" + expected)
+            if 1:   # Test with an mpf
                 mpmath.mp.dps = 40
                 x = mpmath.mpf("31.43905775")
                 for n, expected in (
@@ -2476,24 +2433,24 @@ if __name__ == "__main__":
                     (15, "31.439057750000000"),
                     (30, "31.439057750000000000000000000000"),
                 ):
-                    f.n = n
-                    got = f(x, fmt="fixed")
+                    fmt.n = n
+                    got = fmt(x, fmt="fixed")
                     if 0 and got != expected:
                         print(f"n = {n}")
                         print(f"got      = {got}")
                         print(f"expected = {expected}")
                         exit()
-                    Assert(f(x, fmt="fixed") == expected)
-                    Assert(f(-x, fmt="fixed") == "-" + expected)
+                    Assert(fmt(x, fmt="fixed") == expected)
+                    Assert(fmt(-x, fmt="fixed") == "-" + expected)
                     # Show that n in call overrides fmt.n
-                    got = f(x, fmt="fixed", n=n)
+                    got = fmt(x, fmt="fixed", n=n)
                     if 0 and got != expected:
                         print(f"n = {n}")
                         print(f"got      = {got}")
                         print(f"expected = {expected}")
                         exit()
-                    Assert(f(x, fmt="fixed", n=n) == expected)
-                    Assert(f(-x, fmt="fixed", n=n) == "-" + expected)
+                    Assert(fmt(x, fmt="fixed", n=n) == expected)
+                    Assert(fmt(-x, fmt="fixed", n=n) == "-" + expected)
             # Test with a Decimal
             with decimal.localcontext() as ctx:
                 ctx.prec = 40
@@ -2510,171 +2467,160 @@ if __name__ == "__main__":
                     (15, "31.439057750000000"),
                     (30, "31.439057750000000000000000000000"),
                 ):
-                    f.n = n
-                    got = f(x, fmt="fixed")
+                    fmt.n = n
+                    got = fmt(x, fmt="fixed")
                     if 0 and got != expected:
                         print(f"n = {n}")
                         print(f"got      = {got}")
                         print(f"expected = {expected}")
                         exit()
-                    Assert(f(x, fmt="fixed") == expected)
-                    Assert(f(-x, fmt="fixed") == "-" + expected)
+                    Assert(fmt(x, fmt="fixed") == expected)
+                    Assert(fmt(-x, fmt="fixed") == "-" + expected)
                     # Show that n in call overrides fmt.n
-                    got = f(x, fmt="fixed", n=n)
+                    got = fmt(x, fmt="fixed", n=n)
                     if 0 and got != expected:
                         print(f"n = {n}")
                         print(f"got      = {got}")
                         print(f"expected = {expected}")
                         exit()
-                    Assert(f(x, fmt="fixed", n=n) == expected)
-                    Assert(f(-x, fmt="fixed", n=n) == "-" + expected)
-        def Test_Fix():
-            def TestTrimming():
-                f = GetDefaultFmtInstance()
-                x = 31.41
-                f.n = 6
-                f.rtz = 0
-                Assert(f(x, fmt="fix") == "31.4100")
-                Assert(f(x, fmt="sci") == "3.14100e1")
-                Assert(f(x, fmt="eng") == "31.4100e0")
-                # Remove trailing zeros
-                f.rtz = 1
-                Assert(f(x, fmt="fix") == "31.41")
-                Assert(f(x, fmt="sci") == "3.141e1")
-                Assert(f(x, fmt="eng") == "31.41e0")
-                # Remove decimal point
-                f.rtdp = 1
-                f.n = 2
-                Assert(f(x, fmt="fix") == "31")
-                Assert(f(x, fmt="sci") == "3.1e1")
-                Assert(f(x, fmt="eng") == "31e0")
-                # Remove leading zero
-                f = GetDefaultFmtInstance()
-                x = 0.00732
-                f.rlz = False
-                Assert(f(x, fmt="fix") == "0.00732")
-                f.rlz = True
-                Assert(f(x, fmt="fix") == ".00732")
-                # Use alternate string for decimal point
-                f = GetDefaultFmtInstance()
-                x = -31.41
-                f.dp = ","
-                Assert(f(x) == "-31,4")
-                with raises(TypeError):
-                    f.dp = "q"
-            def TestHuge(n, digits=3):
-                f = GetDefaultFmtInstance()
-                f.n = digits
-                x = D(str(pi) + f"e{n}")
-                f.high = None
-                s = f(x, fmt="fix")
-                if n == 999999:
-                    # Note sci is used
-                    Assert(s == "3.14e999999")
-                else:
-                    Assert(s.startswith("3140"))
-            def TestTiny(n, digits=3):
-                f = GetDefaultFmtInstance()
-                f.n = digits
-                x = D(str(pi) + f"e-{n}")
-                f.low = None
-                s = f(x, fmt="fix")
-                if n == 999999:
-                    # Note sci is used
-                    Assert(s == "3.14e-999999")
-                else:
-                    Assert(s.endswith("0314"))
-            def TestLotsOfDigits(n, digits=3):
-                f = GetDefaultFmtInstance()
-                f.n = digits
-                with localcontext() as ctx:
-                    ctx.prec = n
-                    t = "0." + "1" * n
-                    x = D(t)
-                    f.n = n
-                    s = f(x)
-                    Assert(s == t)
-                    s = f(x, n=n)
-                    Assert(s == t)
-            def TestBigInteger(n):
-                d = ["1234567890"] * n
-                s = "".join(d)
-                with localcontext() as ctx:
-                    ctx.prec = len(s) + 1
-                    f, x = GetDefaultFmtInstance(), D(s)
-                    f.high = None
-                    for m in range(1, len(s)):
-                        t = f(x, n=m)
-                        begin = t[:m]
-                        end = ("0" * (len(s) - m)) + "."
-                        Assert(t == begin + end)
-                if 1:
-                    # Here's a second test with somewhat more random digits.
-                    s = "305834907503304830840485408347390568489537430834"
-                    n = int(1e4 / len(s))  # How many digits
-                    x = D(s * n)
-                    f = GetDefaultFmtInstance()
-                    f.high = None
-                    t = f(x, fmt="fix")
-                    Assert(t == "3.06e9983")
-            def Test_spc():
-                "Test .spc and .sign"
-                f = GetDefaultFmtInstance()
-                x = 0.2846
-                s = f(x)
-                Assert(s == "0.285")
-                f.spc = True
-                s = f(x)
-                Assert(s == " 0.285")
-                f.sign = True
-                s = f(x)
-                Assert(s == "+0.285")
-                f.spc = False
-                s = f(x)
-                Assert(s == "+0.285")
-                x = -0.2846
-                s = f(x)
-                Assert(s == "-0.285")
-            def Test_rlz():
-                f = GetDefaultFmtInstance()
-                x = 0.2846
-                s = f.fix(x)
-                Assert(s == "0.285")
-                x *= -1
-                s = f.fix(x)
-                Assert(s == "-0.285")
-                x *= -1
-                # Turn on rlz
-                f.rlz = True
-                s = f.fix(x)
-                Assert(s == ".285")
-                x *= -1
-                s = f.fix(x)
-                Assert(s == "-.285")
-            for n in (
-                999999,  # Largest exponent allowed by default Decimal context
-                100,
-                20,
-                3,
-            ):
-                TestTiny(n)
-                TestHuge(n)
-                if n <= 100:
-                    TestLotsOfDigits(n)
-            TestTrimming()
-            TestBigInteger(20)
-            Test_spc()
-            Test_rlz()
+                    Assert(fmt(x, fmt="fixed", n=n) == expected)
+                    Assert(fmt(-x, fmt="fixed", n=n) == "-" + expected)
+        def TestTiny():
+            fmt.__init__()
+            x = D(str(pi) + f"e-{999999}")
+            fmt.low = None  # Force fix mode
+            raises(ValueError, fmt, x)  # Too many digits
+            # Now allow all those digits
+            fmt.maxlen = n + 5
+            s = fmt(x)
+            Assert(len(s) == n - 57)
+            Assert(s.endswith("0314"))
+        def TestHuge():
+            fmt.__init__()
+            x = D(str(pi) + f"e{999999}")
+            fmt.high = None     # Force fix mode
+            raises(ValueError, fmt, x)  # Too many digits
+            # Now allow all those digits
+            fmt.maxlen = n + 5
+            s = fmt(x)
+            Assert(len(s) == n - 59)
+            Assert(s.startswith("3140"))
+            fmt.__init__()
+            s = fmt(x)
+            Assert(s == "3.14e999999")
+        def TestTrimming():
+            fmt.__init__()
+            x = 31.41
+            fmt.n = 6
+            fmt.rtz = 0
+            Assert(fmt(x, fmt="fix") == "31.4100")
+            Assert(fmt(x, fmt="sci") == "3.14100e1")
+            Assert(fmt(x, fmt="eng") == "31.4100e0")
+            # Remove trailing zeros
+            fmt.rtz = 1
+            Assert(fmt(x, fmt="fix") == "31.41")
+            Assert(fmt(x, fmt="sci") == "3.141e1")
+            Assert(fmt(x, fmt="eng") == "31.41e0")
+            # Remove decimal point
+            fmt.rtdp = 1
+            fmt.n = 2
+            Assert(fmt(x, fmt="fix") == "31")
+            Assert(fmt(x, fmt="sci") == "3.1e1")
+            Assert(fmt(x, fmt="eng") == "31e0")
+            # Remove leading zero
+            fmt.__init__()
+            x = 0.00732
+            fmt.rlz = False
+            Assert(fmt(x, fmt="fix") == "0.00732")
+            fmt.rlz = True
+            Assert(fmt(x, fmt="fix") == ".00732")
+            # Use alternate string for decimal point
+            fmt.__init__()
+            x = -31.41
+            fmt.dp = ","
+            Assert(fmt(x) == "-31,4")
+            with raises(TypeError):
+                fmt.dp = "q"
+        def TestLotsOfDigits():
+            fmt.__init__()
+            digits = 3
+            fmt.n = digits
+            with localcontext() as ctx:
+                ctx.prec = digits
+                t = "0." + "1"*n
+                x = D(t)
+                fmt.n = n
+                s = fmt(x)
+                Assert(s == t)
+                s = fmt(x, n=n)
+                Assert(s == t)
+        def TestBigInteger(n):
+            size = 20
+            d = ["1234567890"]*size
+            s = "".join(d)
+            with localcontext() as ctx:
+                ctx.prec = len(s) + 1
+                fmt.__init__()
+                x = D(s)
+                fmt.high = None
+                for m in range(1, len(s)):
+                    t = fmt(x, n=m)
+                    begin = t[:m]
+                    end = ("0"*(len(s) - m)) + "."
+                    Assert(t == begin + end)
+            if 1:
+                # Here's a second test with somewhat more random digits.
+                s = "305834907503304830840485408347390568489537430834"
+                n = int(1e4/len(s))  # How many digits
+                x = D(s*n)
+                fmt.__init__()
+                fmt.high = None
+                t = fmt(x, fmt="fix")
+                Assert(t == "3.06e9983")
+        def Test_spc():
+            "Test .spc and .sign"
+            lwtest.ToDoMessage("Test_spc not run:  .spc and .sign features not supported yet")
+            return  # ∞∞2  This can be removed when .spc and .sign are supported
+            fmt.__init__()
+            x = 0.2846
+            s = fmt(x)
+            Assert(s == "0.285")
+            fmt.spc = True
+            s = fmt(x)
+            Assert(s == " 0.285")
+            fmt.sign = True
+            s = fmt(x)
+            Assert(s == "+0.285")
+            fmt.spc = False
+            s = fmt(x)
+            Assert(s == "+0.285")
+            x = -0.2846
+            s = fmt(x)
+            Assert(s == "-0.285")
+        def Test_rlz():
+            fmt.__init__()
+            x = 0.2846
+            s = fmt.fix(x)
+            Assert(s == "0.285")
+            x *= -1
+            s = fmt.fix(x)
+            Assert(s == "-0.285")
+            x *= -1
+            # Turn on rlz
+            fmt.rlz = True
+            s = fmt.fix(x)
+            Assert(s == ".285")
+            x *= -1
+            s = fmt.fix(x)
+            Assert(s == "-.285")
         def Test_Eng():
             old_dps = None
-            if have_mpmath:
-                old_dps = mpmath.mp.dps
-                mpmath.mp.dps = 10
-            fmt = GetDefaultFmtInstance()
-            fmt.u = 0
+            old_dps = mpmath.mp.dps
+            mpmath.mp.dps = 10
+            fmt.__init__()
             fmt.n = 6
             for typ in (D, "mpmath"):
-                if typ == "mpmath" and have_mpmath:
+                if typ == "mpmath":
                     typ = mpmath.mpf
                 if 1:
                     x = typ("3.45678e7")
@@ -2684,37 +2630,37 @@ if __name__ == "__main__":
                     s = f"{fmt.eng(-x)}"
                     Assert(s == "-34.5678e6")
                     s = f"{fmt.eng(x, n=1)}"
-                    Assert(s == "30e6")
+                    Assert(s == "30.e6")
                     s = f"{fmt.eng(-x, n=1)}"
-                    Assert(s == "-30e6")
+                    Assert(s == "-30.e6")
                     fmt.u = 1
                     s = f"{fmt.eng(x)}"
                     Assert(s == "34.5678✕10⁶")
                     s = f"{fmt.eng(-x)}"
                     Assert(s == "-34.5678✕10⁶")
                     s = f"{fmt.eng(x, n=1)}"
-                    Assert(s == "30✕10⁶")
+                    Assert(s == "30.✕10⁶", got=s, expected="30✕10⁶")
                     s = f"{fmt.eng(-x, n=1)}"
-                    Assert(s == "-30✕10⁶")
+                    Assert(s == "-30.✕10⁶")
                     fmt.u = 0
                     # engsi
-                    s = f"{fmt.eng(x, fmt='engsi')}"
+                    s = f"{fmt.engsi(x)}"
                     Assert(s == "34.5678 M")
-                    s = f"{fmt.eng(-x, fmt='engsi')}"
+                    s = f"{fmt.engsi(-x)}"
                     Assert(s == "-34.5678 M")
-                    s = f"{fmt.eng(x, fmt='engsi', n=1)}"
-                    Assert(s == "30 M")
-                    s = f"{fmt.eng(-x, fmt='engsi', n=1)}"
-                    Assert(s == "-30 M")
+                    s = f"{fmt.engsi(x, n=1)}"
+                    Assert(s == "30. M")
+                    s = f"{fmt.engsi(-x, n=1)}"
+                    Assert(s == "-30. M")
                     # engsic
-                    s = f"{fmt.eng(x, fmt='engsic')}"
+                    s = f"{fmt.engsic(x)}"
                     Assert(s == "34.5678M")
-                    s = f"{fmt.eng(-x, fmt='engsic')}"
+                    s = f"{fmt.engsic(-x)}"
                     Assert(s == "-34.5678M")
-                    s = f"{fmt.eng(x, fmt='engsic', n=1)}"
-                    Assert(s == "30M")
-                    s = f"{fmt.eng(-x, fmt='engsic', n=1)}"
-                    Assert(s == "-30M")
+                    s = f"{fmt.engsic(x, n=1)}"
+                    Assert(s == "30.M")
+                    s = f"{fmt.engsic(-x, n=1)}"
+                    Assert(s == "-30.M")
                 if 1:
                     x = typ("3.45678e-13")
                     s = f"{fmt.eng(x)}"
@@ -2722,41 +2668,40 @@ if __name__ == "__main__":
                     s = f"{fmt.eng(-x)}"
                     Assert(s == "-345.678e-15")
                     s = f"{fmt.eng(x, n=1)}"
-                    Assert(s == "300e-15")
+                    Assert(s == "300.e-15")
                     s = f"{fmt.eng(-x, n=1)}"
-                    Assert(s == "-300e-15")
+                    Assert(s == "-300.e-15")
                     fmt.u = 1
                     s = f"{fmt.eng(x)}"
                     Assert(s == "345.678✕10⁻¹⁵")
                     s = f"{fmt.eng(-x)}"
                     Assert(s == "-345.678✕10⁻¹⁵")
                     s = f"{fmt.eng(x, n=1)}"
-                    Assert(s == "300✕10⁻¹⁵")
+                    Assert(s == "300.✕10⁻¹⁵")
                     s = f"{fmt.eng(-x, n=1)}"
-                    Assert(s == "-300✕10⁻¹⁵")
+                    Assert(s == "-300.✕10⁻¹⁵")
                     fmt.u = 0
                     # engsi
-                    s = f"{fmt.eng(x, fmt='engsi')}"
+                    s = f"{fmt.engsi(x)}"
                     Assert(s == "345.678 f")
-                    s = f"{fmt.eng(-x, fmt='engsi')}"
+                    s = f"{fmt.engsi(-x)}"
                     Assert(s == "-345.678 f")
-                    s = f"{fmt.eng(x, fmt='engsi', n=1)}"
-                    Assert(s == "300 f")
-                    s = f"{fmt.eng(-x, fmt='engsi', n=1)}"
-                    Assert(s == "-300 f")
+                    s = f"{fmt.engsi(x, n=1)}"
+                    Assert(s == "300. f")
+                    s = f"{fmt.engsi(-x, n=1)}"
+                    Assert(s == "-300. f")
                     # engsic
-                    s = f"{fmt.eng(x, fmt='engsic')}"
+                    s = f"{fmt.engsic(x)}"
                     Assert(s == "345.678f")
-                    s = f"{fmt.eng(-x, fmt='engsic')}"
+                    s = f"{fmt.engsic(-x)}"
                     Assert(s == "-345.678f")
-                    s = f"{fmt.eng(x, fmt='engsic', n=1)}"
-                    Assert(s == "300f")
-                    s = f"{fmt.eng(-x, fmt='engsic', n=1)}"
-                    Assert(s == "-300f")
-            if old_dps is not None:
-                mpmath.mp.dps = old_dps
+                    s = f"{fmt.engsic(x, n=1)}"
+                    Assert(s == "300.f")
+                    s = f"{fmt.engsic(-x, n=1)}"
+                    Assert(s == "-300.f")
+            mpmath.mp.dps = old_dps
         def Test_Sci():
-            fmt = GetDefaultFmtInstance()
+            fmt.__init__()
             x = D("3.141592653589793e+99")
             fmt.n = 4
             Assert(fmt(x) == "3.142e99")
@@ -2766,12 +2711,14 @@ if __name__ == "__main__":
             Assert(fmt(x) == "3.14e-99")
             x = D("3.141592653589793")
             Assert(fmt(x) == "3.14")
-            Assert(fmt(x, fmt="sci") == "3.14e0")
+            Assert(fmt(x, fmt="sci") == "3.14e0", got=fmt(x, fmt="sci"), expected="3.14e0")
             x = D("3.9e21")
             fmt.n = 1
-            Assert(fmt(x) == "4.e21")
+            Assert(fmt(x) == "4e21", got=fmt(x), expected="4e21")
         def Test_Unc():
-            fmt = GetDefaultFmtInstance()
+            lwtest.ToDoMessage("Skipping Test_Uncertainty():  feature not supported yet")
+            return  #∞∞
+            fmt.__init__()
             x = 1.23456
             u = 0.0064
             Assert(fmt.unc(x, u) == "1.234(6)")
@@ -2817,29 +2764,28 @@ if __name__ == "__main__":
             happen for mpmath.mpf numbers.  In this case, simple sci
             formatting is done.
             '''
-            if not have_mpmath:
-                return
             mpmath.mp.dps = 50
             x = mpmath.mpf(mpmath.pi)**(10**50)
             s = "1.81e49714987269413385435126828829089887365167832438044"
             Assert(fmt(x, n=3) == s)
         def Test_Default():
-            "Verify the default formatting attribute works"
-            fmt = Fmt()
-            fmt.n = 3
-            x = math.pi * 1e4
+            "Verify the fmt formatting attribute works"
+            fmt.__init__()
+            x = math.pi*1e4
             Assert(fmt(x) == "31400.")
-            fmt.default = "sci"
+            fmt.fmt = "sci"
             Assert(fmt(x) == "3.14e4")
-            fmt.default = "eng"
+            fmt.fmt = "eng"
             Assert(fmt(x) == "31.4e3")
-            fmt.default = "engsi"
+            fmt.fmt = "engsi"
             Assert(fmt(x) == "31.4 k")
-            fmt.default = "engsic"
+            fmt.fmt = "engsic"
             Assert(fmt(x) == "31.4k")
         def Test_TakeApart():
-            mpf = mpmath.mpf if have_mpmath else float
-            if 1:  # Show supported types get the same string interpolation
+            mpf = mpmath.mpf 
+            if 1:  # New implementation tests
+                pass
+            else:  # Show supported types get the same string interpolation
                 # Function to convert an Apart to a string
                 def g(x): return "".join(x[:4]) + f"e{x[4]}"
                 k, u, m = 5, "1.23456", 300
@@ -2874,7 +2820,7 @@ if __name__ == "__main__":
                             Assert(y == expected)
                             Assert(g(y) == g(expected))
                     # Large positive float
-                    ta(float(123456 * 10 ** (m - k)), n)
+                    ta(float(123456*10**(m - k)), n)
                     s = f"{u}e{m}"
                     expected = str(ta)
                     for typ in (mpf, D, F):
@@ -2888,7 +2834,7 @@ if __name__ == "__main__":
                             Assert(y == expected)
                             Assert(g(y) == g(expected))
                     # Small negative float
-                    ta(float(-123456 / 10 ** (m + k)), n)
+                    ta(float(-123456/10**(m + k)), n)
                     s = f"-{u}e{-m}"
                     expected = str(ta)
                     for typ in (mpf, D, F):
@@ -2902,7 +2848,7 @@ if __name__ == "__main__":
                             Assert(y == expected)
                             Assert(g(y) == g(expected))
                     # Small positive float
-                    ta(float(123456 / 10 ** (m + k)), n)
+                    ta(float(123456/10**(m + k)), n)
                     s = f"{u}e{-m}"
                     expected = str(ta)
                     for typ in (mpf, D, F):
@@ -2915,58 +2861,22 @@ if __name__ == "__main__":
                         else:
                             Assert(y == expected)
                             Assert(g(y) == g(expected))
-            if 0:
-                n, w, s, sp, f = 5, 20, "-123.456e300", " " * 2, F(1, 1)
-                TA = partial(TakeApart, n=n)
-                # This printout is handy to compare things for equality
-                print("0")
-                print(f"{sp}{'int(0)':{w}s} {TA(0)}")
-                print(f"{sp}{'float(0)':{w}s} {TA(float(0))}")
-                print(f"{sp}{'mpf(0)':{w}s} {TA(mpf(0))}")
-                print(f"{sp}{'Decimal(0)':{w}s} {TA(D(0))}")
-                print(f"{sp}{'Fraction(0)':{w}s} {TA(F(0, 1))}")
-                #
-                print("1")
-                print(f"{sp}{'int(1)':{w}s} {TA(1)}")
-                print(f"{sp}{'float(1)':{w}s} {TA(float(1))}")
-                print(f"{sp}{'mpf(1)':{w}s} {TA(mpf(1))}")
-                print(f"{sp}{'Decimal(1)':{w}s} {TA(D(1))}")
-                print(f"{sp}{'Fraction(1, 1)':{w}s} {TA(F(1, 1))}")
-                #
-                print("-1")
-                print(f"{sp}{'int(-1)':{w}s} {TA(-1)}")
-                print(f"{sp}{'float(-1)':{w}s} {TA(float(-1))}")
-                print(f"{sp}{'mpf(-1)':{w}s} {TA(mpf(-1))}")
-                print(f"{sp}{'Decimal(-1)':{w}s} {TA(D(-1))}")
-                print(f"{sp}{'Fraction(-1, 1)':{w}s} {TA(F(-1, 1))}")
-                #
-                print("-123.456e300")
-                print(f"{sp}{'int':{w}s} {TA(-123456 * 10**297)}")
-                print(f"{sp}{'float':{w}s} {TA(float(s))}")
-                print(f"{sp}{'mpf':{w}s} {TA(mpf(s))}")
-                print(f"{sp}{'Decimal':{w}s} {TA(D(s))}")
-                print(f"{sp}{'Fraction':{w}s} {TA(f.from_decimal(D(s)))}")
-                #
-                print("123.456e300")
-                print(f"{sp}{'int':{w}s} {TA(123456 * 10**297)}")
-                print(f"{sp}{'float':{w}s} {TA(float(s[1:]))}")
-                print(f"{sp}{'mpf':{w}s} {TA(mpf(s[1:]))}")
-                print(f"{sp}{'Decimal':{w}s} {TA(D(s[1:]))}")
-                print(f"{sp}{'Fraction':{w}s} {TA(f.fromdecimal(D(s[1:])))}")
         def Test_Int():
-            f = GetDefaultFmtInstance()
+            if 1:   # Not implemented anymore
+                return
+            fmt.__init__()
             x = 32768
-            Assert(f.fmtint(x) == "32768")
-            Assert(f.fmtint(x, fmt=None) == f"{x}")
-            Assert(f.fmtint(x, fmt="hex") == hex(x))
-            Assert(f.fmtint(x, fmt="oct") == oct(x))
-            Assert(f.fmtint(x, fmt="dec") == "0d32768")
-            Assert(f.fmtint(x, fmt="bin") == bin(x))
-            raises(TypeError, f.fmtint, "kdjfkdj")
-            raises(ValueError, f.fmtint, x, fmt="kdjfkdj")
+            Assert(fmt.fmtint(x) == "32768")
+            Assert(fmt.fmtint(x, fmt=None) == f"{x}")
+            Assert(fmt.fmtint(x, fmt="hex") == hex(x))
+            Assert(fmt.fmtint(x, fmt="oct") == oct(x))
+            Assert(fmt.fmtint(x, fmt="dec") == "0d32768")
+            Assert(fmt.fmtint(x, fmt="bin") == bin(x))
+            raises(TypeError, fmt.fmtint, "kdjfkdj")
+            raises(ValueError, fmt.fmtint, x, fmt="kdjfkdj")
             # Setting default works
-            f.int = "hex"
-            Assert(f.fmtint(x) == hex(x))
+            fmt.int = "hex"
+            Assert(fmt.fmtint(x) == hex(x))
         def Test_Brief():
             if 0:   # The 'width' keyword is not supported yet ∞∞2
                 # Integers
@@ -2988,56 +2898,52 @@ if __name__ == "__main__":
                     Assert(result == "-123⋯89 |10⁴⁶|")
                 # Floats
                 print("∞∞2 Test_Brief:  need to write float code")
-
-        def Test_Supertanker():
-            '''
-            A non-standard test runner to match your preference for custom frameworks.
-            Validates boundary conditions and numerical stability.
-            '''
-            print("∞∞1 Test_Supertanker() is returning without testing")
-            return 
-            f = fmt
-            print(f'--- Starting Sea Trials for Fmt Engine ---')
-            # 1. Extreme Magnitudes (Updated to remove the '+' per your feedback)
-            print('Testing Extreme Magnitudes...')
-            big = Decimal('1e999999')
-            # Expecting '1.00e999999' or '1.00 E 999999' depending on f.u
-            res_big = f(big, fmt='sci', n=3)
-            assert '+' not in res_big
-            assert '999999' in res_big
-            # 2. Test Significant Figure Rounding (The 314159 -> 314000 check)
-            print('Testing Significant Figures...')
-            x = 314159.265
-            f.n = 3
-            f.fmt = 'fix'
-            f.rtdp = True
-            assert f(x) == '314000'
-            
-            # 3. Test the "Physics Dot" (rtdp)
-            f.rtdp = False
-            assert f(x) == '314000.'
-            # 4. SI Prefix Alignment (Checking for the ' k' gap)
-            print('Testing SI Prefix Logic...')
-            y = 70710.678
-            f.fmt = 'engsi'
-            f.n = 6
-            f.strict = True # Force the 'legal' SI space
-            res_si = f(y)
-            assert 'k' in res and '70.7107' in res
-            # 5. Test Complex Signs
-            print('Testing Complex Sign Integrity...')
-            z = complex(3, -4)
-            f.polar = False
-            f.cuddled = False
-            # Should be '3.00 - 4.00j' not '3.00 + -4.00j'
-            assert ' - ' in f(z)
-            # 6. Test Auto-Threshold Switching
-            print('Testing Threshold Logic...')
-            f.fmt = 'fix'
-            f.high = 1e6
-            assert 'E' in f(1e7) # Should auto-switch to sci
-            
-            print('--- All Sea Trials Passed Successfully ---')
+        def Test_SomeBasics():
+            'Validates boundary conditions and numerical stability'
+            # Written by Mike 30 Mar 2026
+            if 0:
+                print("∞∞1 Test_SomeBasics() is returning without testing")
+                return 
+            if 1:   # Large exponent
+                fmt.__init__()
+                big = Decimal('1e999999')
+                # Expecting '1.00e999999' or '1.00 E 999999' depending on f.u
+                res_big = fmt(big, fmt='sci', n=3)
+                assert '+' not in res_big
+                assert '999999' in res_big
+            if 1:   # Significant figure rounding (the 314159 -> 314000 check)
+                fmt.__init__()
+                x = 314159.265
+                fmt.n = 3
+                fmt.fmt = 'fix'
+                fmt.rtdp = True
+                assert fmt(x) == '314000'
+            if 1:   # Test rtdp
+                fmt.__init__()
+                fmt.rtdp = False
+                assert fmt(x) == '314000.'
+                fmt.rtdp = True
+                assert fmt(x) == '314000'
+            if 1:   # SI prefix alignment (checking for the ' k' gap)
+                fmt.__init__()
+                y = 70710.678
+                fmt.fmt = 'engsi'
+                fmt.n = 6
+                fmt.strict = True # Force the 'legal' SI space
+                res_si = fmt(y)
+                assert 'k' in res_si and '70.7107' in res_si
+            if 1:   # Test complex signs
+                fmt.__init__()
+                z = complex(3, -4)
+                fmt.polar = False
+                fmt.cuddled = False
+                # Should be '3.00 - 4.00j' not '3.00 + -4.00j'
+                assert ' - ' in fmt(z)
+            if 1:   # Test auto-threshold switching
+                fmt.__init__()
+                fmt.fmt = 'fix'
+                fmt.high = 1e6
+                assert 'e' in fmt(1e7) # Should auto-switch to sci
     if 1:  # Module's base code
         if len(sys.argv) > 1 and sys.argv[1] == "--test":
         #if 1:

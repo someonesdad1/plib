@@ -1,25 +1,32 @@
-- 30 Mar 2026:  "Settings" for Gemini chat
-    - Triple Quotes: Use ''' for all docstrings and multi-line strings.
-    - Structural Linefeeds: Always a newline after : (Strictly no "one-liners" for if,
-      elif, def, or class).
-    - Naming Conventions: Use CamelCase for Classes and Functions; use snake_case for
-      global and local variables. Avoid SHOUTING_SNAKE_CASE if possible.
-    - Code Density: No blank lines between code statements. Blank lines in docstrings
-      are allowed but must contain the current indentation level's spaces.
-    - Math Spacing (Tight): No spaces around *, /, //, or **.
-    - Math Spacing (Loose): One space on each side of +, -, %, &, |, <<, >>, <, <=, >,
-      >=, !=, ==, or, and and.
-    - Type Annotations: Use type annotations wherever possible, utilizing import typing
-      as ty for abbreviations.
-    - Explicit Imports: Use the import x or import x as y form only, with one library
-      per line. Reference symbols via the "long form" x.y to ensure provenance is clear.
-    - Folding Blocks: Use if 1:  # Section comment to group code for folding editors.
-      This also allows for easy runtime toggling.
-    - Circularity Watch: Actively scan for circular import risks. Use "Late-Imports"
-      inside functions or methods to break dependency loops.
-    - Test Hardiness: Support the AssertNoStop environment variable in the Assert()
-      function. Perform a "Soft Reset" via obj.__init__() on global state objects after
-      a non-blocking failure to maintain a "clean room" for subsequent tests.
+- 30 Mar 2026:  
+    - "Settings" for Gemini chat
+        - Triple Quotes: Use ''' for all docstrings and multi-line strings.
+        - Structural Linefeeds: Always a newline after : (Strictly no "one-liners" for
+          if, elif, def, or class).
+        - Naming Conventions: Use CamelCase for Classes and Functions; use snake_case
+          for global and local variables. Avoid SHOUTING_SNAKE_CASE if possible.
+        - Code Density: No blank lines between code statements. Blank lines in
+          docstrings are allowed but must contain the current indentation level's
+          spaces.
+        - Math Spacing (Tight): No spaces around *, /, //, or **.
+        - Math Spacing (Loose): One space on each side of +, -, %, &, |, <<, >>, <, <=,
+          >, >=, !=, ==, or, and and.
+        - Type Annotations: Use type annotations wherever possible, utilizing import
+          typing as ty for abbreviations.
+        - Explicit Imports: Use the import x or import x as y form only, with one
+          library per line. Reference symbols via the "long form" x.y to ensure
+          provenance is clear.
+        - Folding Blocks: Use if 1:  # Section comment to group code for folding
+          editors.  This also allows for easy runtime toggling.
+        - Circularity Watch: Actively scan for circular import risks. Use "Late-Imports"
+          inside functions or methods to break dependency loops.
+        - Test Hardiness: Support the AssertNoStop environment variable in the Assert()
+          function. Perform a "Soft Reset" via obj.__init__() on global state objects
+          after a non-blocking failure to maintain a "clean room" for subsequent tests.
+        - Capitalization
+            - When OK:  as e.g. a title for a code section:  # Significant Figure Rounding
+            - Most of the time:  standard sentence structure with capitalized first
+              word, followed by no capitals except for proper nouns or common honorifics
 
 - 29 Mar 2026:  question about this longer thread
     - Me

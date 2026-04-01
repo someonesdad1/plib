@@ -621,14 +621,14 @@ if 1:  # Checking functions
             Assert.debug = False
         if not condition:
             if env_no_stop:
-                # Print an error message with line number to stderr and continue.  This
+                # Print an error message with line number to stdout and continue.  This
                 # lets you see all the error messages in a test suite.
                 if 1:   # Get our current file and line number
                     caller = inspect.stack()[1]
                     filename = os.path.basename(caller.filename)
                     line = caller.lineno
                     dbg = f"{filename}:{line}"
-                print(f"{u.red}No-stop Assert[{dbg}]{u.n}:  {msg}", file=sys.stderr)
+                print(f"{u.red}No-stop Assert[{dbg}]{u.n}:  {msg}", file=sys.stdout)
                 if got is not None:
                     print(f"  got      = {got!r}")
                 if expected is not None:
