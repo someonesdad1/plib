@@ -80,6 +80,7 @@ if 1:   # Header
         import math
         import pprint
         import sys
+        import types
         import typing as ty
     if 1:   # Custom imports
         import color
@@ -87,11 +88,13 @@ if 1:   # Header
         import dpcolornames
         import dpmath
         import dptypes
-        import wl2rgb
+        #import wl2rgb
         pp = pprint.pprint
-    if 0:
-        import debug
-        debug.SetDebugger()
+        if 0:
+            import debug
+            debug.SetDebugger()
+        if ty.TYPE_CHECKING:
+            import color  # Only seen by Mypy, ignored at runtime
 class Trm(dict[str, str]):
     '''Dictionary used to output escape codes to a terminal.
     
@@ -185,11 +188,12 @@ class Trm(dict[str, str]):
         normal dict initializers.
     
         Note:  for convenience, the default=2 will be used if no default keyword is
-        used, as this is the set of colors I normally used.  Use default=None if you
-        want the dictionary to be empty.
+        used, as this is the set of colors I normally used.  
+
+        ** IMPORTANT ** Use default=None if you want the dictionary to be empty.
         '''
-        # Attributes with underscores are not meant to be accessed by the user
-        self._stack: ty.Deque[ty.Any] = dptypes.Stack()   # Saves previous states of self
+        self._stack: list[dict[str, str]] = []
+        #self._stack: ty.Deque[ty.Any] = dptypes.Stack()   # Saves previous states of self
         self.on = True          # Output escape codes if True
         self.always = False     # If True, output escape codes even if stdout out isn't a terminal
         self._newstyles: dict[str, str] = {}  # Used for context manager behavior
@@ -199,10 +203,12 @@ class Trm(dict[str, str]):
             # It's a dictionary
             if isinstance(di, Trm):
                 # It's a Trm instance, so make a deep copy
-                self._stack = di._stack.copy()          # Uses deque.copy()
+                self._stack = di._stack.copy()          # Uses list.copy()
                 self.on = di.on
                 self.always = di.always
-                self._newstyles = di._newstyles.copy()  # Shallow copy OK
+                self._newstyles = {}
+                if di._newstyles is not None:
+                    self._newstyles.update(di._newstyles) # Shallow copy OK
             for key in di:
                 self[key] = di[key]
         elif p:
@@ -233,7 +239,10 @@ class Trm(dict[str, str]):
                 setattr(self, i, self(attr=i))
             # Add n attribute to return to default color
             self["n"] = self(*Trm.normal)
-    def _esc(self, clr=None, bg=False):     # Return escape code for Color instance
+    def _esc(self,      # Return escape code for the color.Color instance clr
+             clr: "color.Color|None" = None,
+             bg: bool=False
+            ) -> str:
         '''Return escape code for the color.Color instance clr
         If bg is True, this means it's a background color rather than a foreground
         color, resulting in a different escape code.
@@ -248,7 +257,11 @@ class Trm(dict[str, str]):
             clr = clr.change_bpc(8)
         r, g, b = clr.irgb
         return f"\x1b[{48 if bg else 38};2;{r};{g};{b}m"
-    def __call__(self, fg=None, bg=None, attr=None):    # Return escape code string for (fg, bg, attr)
+    def __call__(self,  # Return escape code string for (fg, bg, attr)
+                 fg: "color.Color | str | int | None" = None,
+                 bg: "color.Color | str | int | None" = None,
+                 attr: str | None = None
+                ) -> str:
         '''Return the indicated color style escape code string
         fg and bg can be
             - color.Color instance
@@ -260,6 +273,8 @@ class Trm(dict[str, str]):
         '''
         ok = (str, color.Color, int, float, decimal.Decimal, fractions.Fraction)
         msg = "{} must be None, a string, or a color.Color instance"
+        if fg is None and bg is None and attr is None:
+            raise ValueError("At least one of fg, bg, or attr must be not None")
         if fg is not None and not isinstance(fg, ok):
             s = msg.format("fg") + f":\n    It's {fg!r}" 
             raise ValueError(s)
@@ -272,15 +287,15 @@ class Trm(dict[str, str]):
         if not self.on or all(i is None for i in (fg, bg, attr)):
             return ""
         # Convert to a Color instance
-        if fg and isinstance(fg, ok):
+        if fg is not None and isinstance(fg, ok):
             fg = color.Color(fg)
-        if bg and isinstance(bg, ok):
+        if bg is not None and isinstance(bg, ok):
             bg = color.Color(bg)
         # Construct the needed escape codes
         out = []
         out.append(self._esc(fg))
         out.append(self._esc(bg, bg=True))
-        if attr is not None:    # Get attribute codes
+        if attr is not None and attr:    # Get attribute codes
             # See the table at
             # https://en.wikipedia.org/wiki/ANSI_escape_code#Select_Graphic_Rendition_parameters
             k1 = '''normal bold dim italic underline blink rapidblink reverse hide
@@ -295,7 +310,7 @@ class Trm(dict[str, str]):
                     raise ValueError(f"{a!r} is not a valid attribute")
                 out.append(f"\x1b[{di[a]}m")
         return ''.join(out)
-    def __setitem__(self, name, value):     # Set self[key]
+    def __setitem__(self, name: str, value: ty.Any) -> None:     # Set self[key]
         'Set self[key] to value and convert it to an escape sequence'
         # value can be a single argument or a sequence of 1 to 3 arguments.  They 
         # will be used with the __call__ method
@@ -318,7 +333,7 @@ class Trm(dict[str, str]):
         # Note escape code is allowed to be an empty string
         assert isinstance(escape_code, str)
         super().__setitem__(name, escape_code)
-    def __setattr__(self, name, value):     # Set an attribute
+    def __setattr__(self, name: str, value: ty.Any) -> None:     # Set an attribute
         '''This is used to make sure the on, always, and any attributes that start with
         '_' get set correctly.  It also adds syntactic sugar to the class by letting you
         set and access dictionary keys by using them like attributes, as long as they
@@ -333,7 +348,7 @@ class Trm(dict[str, str]):
                 self[name] = value
         else:
             self[name] = value
-    def __getitem__(self, name):            # Get self[name]
+    def __getitem__(self, name: str) -> str:            # Get self[name]
         'This is used to get self[name]'
         # If self.on isn't True, always return an empty string
         if not self.on:
@@ -350,12 +365,16 @@ class Trm(dict[str, str]):
             if name in self:
                 return self[name]       # type: ignore
             raise AttributeError(f"'Trm' object has no attribute {name!r}")
-    def __enter__(self):                    # Context manager entry
+    def __enter__(self) -> "Trm":                    # Context manager entry
         assert self._newstyles is not None
         self.ppush(self._newstyles)
-        self._newstyles = None
+        self._newstyles = {}
         return self     # Gives caller access to new instance state
-    def __exit__(self, exc_type, exc_val, exc_tb):  # Context manager exit
+    def __exit__(self,          # Context manager exit
+                 exc_type: ty.Type[BaseException] | None,
+                 exc_val: BaseException | None,
+                 exc_tb: types.TracebackType | None
+                ):
         self.ppop()
         # Return False so we don't suppress exceptions (let caller handle their own crashes)
         return False
@@ -366,11 +385,10 @@ class Trm(dict[str, str]):
         ns = len(self._stack)
         new = 0 if self._newstyles is None else len(self._newstyles)
         return f"Trm({n} styles, on={on}, always={alw}, stack={ns}, newstyles={new})"
-    def update(self, *p, **kw):             # Update ourselves with another dict, etc.
-        '''Update ourselves with another dictionary, an iterable of pairs, or keywords.
-        Note this method will result in __setitem__ being called, which ensures
-        translation to an escape code.
+    def update(self, *p: ty.Any, **kw: ty.Any) -> None:     # Update ourselves with another dict, etc.
+        '''Update ourselves with another dict, an iterable of pairs, or keywords.
         '''
+        # Iterate with a for loop to make sure __setattr__ is called
         if len(p) == 1 and hasattr(p[0], "keys"):
             for key in p[0]:
                 self[key] = p[0][key]
@@ -379,29 +397,44 @@ class Trm(dict[str, str]):
                 self[key] = value
         for key in kw:
             self[key] = kw[key]
+    def copy(self) -> "Trm":
+        'Create a clone including dictionary data and slot states'
+        cp = Trm(default=None)
+        cp.on = self.on
+        cp.always = self.always
+        cp._stack = self._stack.copy()
+        cp._newstyles = self._newstyles.copy() if self._newstyles is not None else None
+        cp.update(self)
+        return cp
     def ppush(self,                         # Push our state on stack; update with styles_dict
               styles_dict: ty.Optional[ty.Dict[str, ty.Any]] = None
              ) -> None:
-        '''The styles dict must be a dict instance or None.  Update our values with
-        styles_dict's values after saving a copy of ourself on the stack.
+        '''Push our dict state onto the stack and update with styles_dict
+        
+        Note the stack doesn't hold the state of __slots__ attributes.  The styles dict
+        must be a dict instance or None.  Update our values with styles_dict's values
+        after saving a copy of our values on the stack.
+
         '''
         if not styles_dict:
-        return
-        if styles_dict is not None and not isinstance(styles_dict, dict):
+            di: dict[str, str] = {}
+            di.update(self)
+            self._stack.append(di)
+            return
+        elif not isinstance(styles_dict, dict):
             raise TypeError("styles_dict must be a dict instance")
-        self._stack.push(self.copy())
-        if styles_dict is not None:
-            for i in styles_dict:
-                self[i] = styles_dict[i]
-    def ppop(self):                         # Pop previous state; return last-used state
+        self._stack.append(self.copy())
+        self.update(styles_dict)
+    def ppop(self) -> dict[str, str]:       # Pop previous state; return last-used state
         '''Get a copy X of ourself, then clear ourself and set our state to that of the
         top of the stack.  Return the state copy X.
         '''
-        old_self = self.copy()
-        self.clear()
-        previous = self._stack.pop()
-        self.update(previous)
-        return old_self
+        X = self.copy()
+        if self._stack:     # Make sure stack isn't empty
+            self.clear()
+            previous = self._stack.pop()
+            self.update(previous)
+        return X
     def list(self, sort=False, horiz=False, columns=0):     # Print columnized list of defined colors
         'Print defined color attributes to stdout in their colors'
         o = []
@@ -417,25 +450,22 @@ class Trm(dict[str, str]):
                 o.append(f"{self[i]}{i}{self.n}")
         for i in columnize.Columnize(o, sep=" "*4, horiz=horiz, columns=columns):
             print(i)
-    def print(self, *p, **kw):              # Convenience print with .n at end
+    def print(self, *p: ty.Any, **kw: ty.Any) -> None:      # Convenience print with .n at end
         'Print arguments with newline, reverting to normal color after finishing'
         self.out(*p, **kw)
         print(**kw)
-    def out(self, *p, **kw):                # Same as print() but no newline; end with .n
+    def out(self, *p: ty.Any, **kw: ty.Any) -> None:    # Same as print() but no newline; end with .n
         'Same as print() but no newline'
         k = kw.copy()
         if "end" not in k:
             k["end"] = ""
         print(*p, **k)
-        print(self.n, **k) if "n" in self else print("", **k)
-    def uses(self, styles_dict):            # Utilize styles in context manager block
+        revert = self.get("n", "")
+        print(revert, **k)
+    def uses(self, styles_dict: dict[str, str]) -> "Trm":  # Utilize styles in context manager block
         'Used to utilize a new set of styles in a context manager block'
         self._newstyles = styles_dict
         return self
-    def copy(self) -> 'Trm':
-        'Create a complete clone including dictionary data and slot states'
-        # This triggers __init__ logic which handles the cloning
-        return Trm(self)
 
 if __name__ == "__main__":  
     from lwtest import run, Assert, raises
@@ -517,41 +547,41 @@ if __name__ == "__main__":
             Assert(value == c555 if i >= 15 else blk)
     def Test_Trm_Stack():
         'Show we can push and pop a new state'
-        # Demonstrate we can initialize an empty dictionary
-        u = Trm(default=None)
-        Assert(not len(u))
-        # Add two new colors
-        u[0] = "red"
-        u[1] = "grn"
-        red = '\x1b[38;2;254;0;0m'
-        grn = '\x1b[38;2;0;254;0m'
-        Assert(u[0] == red)
-        Assert(u[1] == grn)
-        orig = u.copy()
-        # Push the old state and add a new color
-        u.ppush()
-        Assert(u == orig)
-        blu = '\x1b[38;2;0;0;254m'
-        u[2] = "blu"
-        Assert(u[2] == blu)
-        # Push again
-        u.ppush()
-        u.clear()
-        Assert(not u)
-        # Pop and show we've got blu again
-        u.ppop()
-        Assert(u[2] == blu)
-        # Pop and show we're back to orig
-        u.ppop()
-        Assert(u == orig)
-        with raises(KeyError):
-            u[2]    # This shows u[2] no longer exists
-        # Show we can push with a styles dict.  An important feature is that the
-        # updating process with this styles dict must call the necessary methods to turn
-        # the new elements into ones with resolved escape codes.
-        di = {2: "blu"}
-        u.ppush(di)
-        Assert(u[2] == blu)
+        if 1:   # Demonstrate we can initialize an empty dictionary
+            u = Trm(default=None)
+            Assert(not len(u))
+        if 1:   # Add two new colors
+            u[0] = "red"
+            u[1] = "grn"
+            red = '\x1b[38;2;254;0;0m'
+            grn = '\x1b[38;2;0;254;0m'
+            Assert(u[0] == red)
+            Assert(u[1] == grn)
+            orig = u.copy()
+        if 1:   # Push the old state and add a new color
+            u.ppush()
+            Assert(u == orig)
+            blu = '\x1b[38;2;0;0;254m'
+            u[2] = "blu"
+            Assert(u[2] == blu)
+            # Push again
+            u.ppush()
+            u.clear()
+            Assert(not u)
+            # Pop and show we've got blu again
+            u.ppop()
+            Assert(u[2] == blu)
+            # Pop and show we're back to orig
+            u.ppop()
+            Assert(u == orig)
+            with raises(KeyError):
+                u[2]    # This shows u[2] no longer exists
+        if 1:   # Show we can push with a styles dict.  An important feature is that the
+                # updating process with this styles dict must call the necessary methods
+                # to turn the new elements into ones with resolved escape codes.
+            di = {2: "blu"}
+            u.ppush(di)
+            Assert(u[2] == blu)
     def Test_Trm_Default():
         'Show that the default Trm instance has some of the basic names'
         u = Trm()

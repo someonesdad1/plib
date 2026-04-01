@@ -618,7 +618,10 @@ if 1:  # Checking functions
             expected    Test result expected
 
         Using got and expected with msg take extra work when writing tests, but they can
-        help troubleshoot what's going wrong.
+        help troubleshoot what's going wrong.  I've found this to be true in old self
+        tests that were many years old that we were using to vet a new implementation
+        because the resulting error messages gave me the line number of the failure
+        point, what the test got, and what it expected.
 
         Environment variables
             Assert          If True, same as debug above
@@ -627,19 +630,21 @@ if 1:  # Checking functions
                             be able to see all the Assert issues in your code.  Very
                             useful if you supply got and expected.
 
-        If debug is True,
-        Assert.debug is True, or 'Assert' is a nonempty environment string, you'll be
-        dropped into a debugger.  If msg is not empty, it's printed out.
+        If debug is True, Assert.debug is True, or 'Assert' is a nonempty environment
+        string, you'll be dropped into a debugger.  If msg is not empty, it's printed
+        out.
         '''
         def PrintGotExpected():
             if got is not None:
                 print(f"  got      = {got!r}")
             if expected is not None:
                 print(f"  expected = {expected!r}")
-        # Check the environment variable AssertNoStop.  If it's True, we print
-        # an error message with line number to stderr and continue.
-        env_no_stop = os.environ.get('AssertNoStop', '0').lower() in ('1', 'true', 'yes')
-        env_no_stop = os.environ.get('Assert', '0').lower() in ('1', 'true', 'yes')
+        if 1:   # Get our environment variables
+            # AssertNoStop:  if it's True, we print an error message with line number to
+            # stderr and continue on an unhandled exception.
+            # Assert:  if True, print msg and drop into debugger on unhandled exception.
+            env_no_stop = os.environ.get('AssertNoStop', '0').lower() in ('1', 'true', 'yes')
+            env_assert  = os.environ.get('Assert', '0').lower() in ('1', 'true', 'yes')
         if not hasattr(Assert, "debug"):
             Assert.debug = False
         if not condition:

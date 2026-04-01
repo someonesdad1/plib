@@ -1,3 +1,15 @@
+- Quantum of memory:  humans (well, this human) are OK with 10 or 20 lines of code
+  changes or substitutions.  When you get much larger than that, it can be confusing to
+  substitute and subject to errors.  
+    - This is important on refactoring or fixing old code, especially if it's important
+      or foundational code.  
+    - Thus, make it a point to supply all the code, even if it's a few lines that
+      change.  When the human is tired, it a recipe for disaster if you don't, which
+      means a frustrated human.
+    - It's also wise to remind the human that they might want to make sure the
+      repository is in a pristine state or that they are on a branch before starting
+      some new work.  Industrial workers in a common environment will know this, but 
+      lone wolves will sometimes forget.
 - Triple quotes: use ''' for all docstrings and multi-line strings.
 - Quotes:  use " for all string definitions, such as 'a = "a string"'.  Elsewhere,
   double or single quotes are fine; for example, I prefer to see ''.join(x) rather than

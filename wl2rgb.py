@@ -294,10 +294,10 @@ if 1:  # Light wavelength to & from RGB colors
         The goal of this stuff is to turn the wavelength of light into a suitable color
         for your computer monitor.  This is a complicated problem involving the human
         perception of color and the vagaries of software and hardware.
-
+         
         https://stackoverflow.com/questions/3407942/rgb-values-of-visible-spectrum has a
         number of responses:
-
+        
         The response by Ian Boyd seems to be the most detailed and explains a number of
         the assumptions that have to be made.  (Accessed 14 Feb 2026) He references a
         "CIE 1964 Supplementary Standard Colorimetric Observer" link that is broken, but
@@ -307,21 +307,21 @@ if 1:  # Light wavelength to & from RGB colors
         /ebooks/phys/misc/tc148_1964_standard_colorimetric_observer.pdf).  This table
         can be screen-scraped (commas converted to periods) and the data were put into
         the variable cie_1964_colorimetric below):
-
+        
         wl   xbar      ybar      zbar   x       y
         455 0.342957 0.106256 1.900700 0.14594 0.04522
         
         The section after the table gives the sums Σxbar = 23.329353, Σybar = 23.332036,
         Σzbar = 23.334152676, which let you check your data entry.
-
+        
         His example is for 455 nm.  He calls the xbar, etc. variables X, Y, Z and he
         uses X = 0.342957, Y = 0.106256, Z = 1.90070 which agree with the above table
         entry.  Note that x = X/(X + Y + Z) = 0.14594; the y value is calculated
         similarly.
-
+        
         Then a whitepoint has to be picked.  He picked D65, the one that sRGB uses.
         sRGB is the standard RGB system defined in the 1990's
-
+        
         --------------------------------------------------------------------------- 
         https://www.baeldung.com/cs/rgb-color-light-frequency
             - References the wl2rgb algorithm to Earl F. Glynn.  I got it from Dan Bruton's
@@ -358,7 +358,7 @@ if 1:   # https://stackoverflow.com/questions/3407942/rgb-values-of-visible-spec
         shown in the picture and it looks like it probably does a reasonable job of
         reproducing the colors I remember seeing when using a B&L monochromator in the
         1960's, particularly the fall-off at the low and high values.
-
+        
         '''
         '''
         C code Downloaded 15 Feb 2026
