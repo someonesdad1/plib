@@ -609,14 +609,37 @@ if 1:  # Checking functions
         else:
             print(_modname, fail, file=sys.stderr)
     def Assert(condition, msg="", debug=False, got=None, expected=None):
-        '''Replacement for assert but it can't be optimized out.  If debug is True,
+        '''Replacement for assert but it can't be optimized out.
+
+        Arguments
+            debug       If True, drop into a debugger on an unhandled exception
+            msg         On unhandled exception, print this message and start debugger
+            got         Test result gotten
+            expected    Test result expected
+
+        Using got and expected with msg take extra work when writing tests, but they can
+        help troubleshoot what's going wrong.
+
+        Environment variables
+            Assert          If True, same as debug above
+            AssertNoStop    If True, you'll get an assert message in red to the terminal
+                            and the execution will continue.  The utility of this is to
+                            be able to see all the Assert issues in your code.  Very
+                            useful if you supply got and expected.
+
+        If debug is True,
         Assert.debug is True, or 'Assert' is a nonempty environment string, you'll be
         dropped into a debugger.  If msg is not empty, it's printed out.
         '''
+        def PrintGotExpected():
+            if got is not None:
+                print(f"  got      = {got!r}")
+            if expected is not None:
+                print(f"  expected = {expected!r}")
         # Check the environment variable AssertNoStop.  If it's True, we print
         # an error message with line number to stderr and continue.
         env_no_stop = os.environ.get('AssertNoStop', '0').lower() in ('1', 'true', 'yes')
-        env_assert = os.environ.get("Assert", "")
+        env_no_stop = os.environ.get('Assert', '0').lower() in ('1', 'true', 'yes')
         if not hasattr(Assert, "debug"):
             Assert.debug = False
         if not condition:
@@ -629,16 +652,14 @@ if 1:  # Checking functions
                     line = caller.lineno
                     dbg = f"{filename}:{line}"
                 print(f"{u.red}No-stop Assert[{dbg}]{u.n}:  {msg}", file=sys.stdout)
-                if got is not None:
-                    print(f"  got      = {got!r}")
-                if expected is not None:
-                    print(f"  expected = {expected!r}")
+                PrintGotExpected()
                 return 1
             if debug or Assert.debug or env_assert:
                 # Print colorized message to stdout and start debugger
                 if msg:
-                    u.print(f"{u.mag}{_modname} {msg}", file=sys.stderr)
-                print("Type 'up' to go to line that failed", file=sys.stderr)
+                    u.print(f"{u.mag}{_modname} {msg}")
+                    PrintGotExpected()
+                print("Type 'up' to go to line that failed")
                 breakpoint()
             else:
                 raise AssertionError(msg)

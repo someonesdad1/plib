@@ -1,6 +1,11 @@
 '''
 
 Todo items (• is nbs)
+    - Testing
+        - Make sure NBS stuff is working
+        - "fixed" not yet supported
+        - ufloats not yet supported
+        - .spc and .sign attributes not yet supported
     - Turn it into a context manager so that a context manager block can override all
       the attributes and have the old state back after exiting
     - Add "unit" keyword to __call__; overrides unit attribute
@@ -15,6 +20,42 @@ Todo items (• is nbs)
     - Bugs
         - z = 1.2-3.4j; fmt(z) -> '(1.2-3.4j).'
             - Make '1.2-3.4j' the default output
+
+Here's Mike's first thoughts about colorizing.  He and I both felt subclassing is the
+way to go.
+
+if 1:  # Subclass: FmtColor
+    class FmtColor(Fmt):
+        'Extends Fmt to provide terminal colorization based on object type'
+        def __init__(self, *args: ty.Any, **kwargs: ty.Any):
+            super().__init__(*args, **kwargs)
+            # Use a late-import to prevent circular dependency issues
+            import trm
+            self.t = trm.Trm()
+            # Define default semantic mapping
+            self.t.int = "LightSkyBlue"
+            self.t.float = "SpringGreen"
+            self.t.complex = "Gold"
+            self.t.special = "HotPink"
+        def _finalize_int(self, x: int, active_fmt: str) -> str:
+            "Wraps the integer string in the 'int' color"
+            s = super()._finalize_int(x, active_fmt)
+            return f"{self.t.int}{s}{self.t.off}" if self.t.on else s
+        def _format_scalar(self, x: ty.Any, active_fmt: str) -> str:
+            "Wraps the scalar (float/mpf/Decimal) string in the 'float' color"
+            s = super()._format_scalar(x, active_fmt)
+            # Check for specials (NaN/Inf) first
+            if hasattr(x, 'is_special') and x.is_special:
+                color = self.t.special
+            elif isinstance(x, int):
+                color = self.t.int
+            else:
+                color = self.t.float
+            return f"{color}{s}{self.t.off}" if self.t.on else s
+        def _assemble_complex(self, z: ty.Any, active_fmt: str) -> str:
+            "Wraps the entire complex number in the 'complex' color"
+            s = super()._assemble_complex(z, active_fmt)
+            return f"{self.t.complex}{s}{self.t.off}" if self.t.on else s
 
 ---------------------------------------------------------------------------
 
@@ -2717,7 +2758,7 @@ if __name__ == "__main__":
             Assert(fmt(x) == "4e21", got=fmt(x), expected="4e21")
         def Test_Unc():
             lwtest.ToDoMessage("Skipping Test_Uncertainty():  feature not supported yet")
-            return  #∞∞
+            return  #∞∞2 Would be nice to support ufloats
             fmt.__init__()
             x = 1.23456
             u = 0.0064
