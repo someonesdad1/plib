@@ -96,6 +96,7 @@ class Trm(dict[str, str]):
     
         u = Trm()   # Initialized with my default set of colors
         u.list()    # Print the defined color names to stdout
+        print(u)    # See the overall state
     
         Define new colors:
             u[0] = "Pine glade"         # Name will be normalized to "pine_glade"
@@ -157,9 +158,9 @@ class Trm(dict[str, str]):
     # This beautiful optimization was given to me by Mike (Google's Gemini AI) and it
     # perfectly satisfies the need for type checking by mypy and still lets the type
     # checker see the dict is a [str, str] mapping.  It’s one of those rare moments
-    # where a performance optimization (__slots__) and a type-system constraint (The
+    # where a performance optimization (__slots__) and a type-system constraint (the
     # mypy troll) align to create a cleaner architecture.
-    __slots__ = ("on", "always", "_lock", "_stack", "_newstyles")
+    __slots__ = ("on", "always", "_stack", "_newstyles")
     # Standard color names to use by default
     std = set('''red ord orn yon yel ygr lwn grn sea trq cyn sky den roy blu vio lav
                  mag pnk lip blk brn gry wht lil pur olv'''.replace("\n", "").split())
@@ -231,11 +232,14 @@ class Trm(dict[str, str]):
                 setattr(self, i, self(attr=i))
             # Add n attribute to return to default color
             self["n"] = self(*Trm.normal)
-    def _esc(self, clr=None, bg=False):
-        'Return escape code for the color.Color instance clr'
+    def _esc(self, clr=None, bg=False):     # Return escape code for Color instance
+        '''Return escape code for the color.Color instance clr
+        If bg is True, this means it's a background color rather than a foreground
+        color, resulting in a different escape code.
+        '''
         if clr is None:
             return ""
-        if not isinstance(clr, color.Color):
+        elif not isinstance(clr, color.Color):
             raise TypeError("color must be a color.Color instance")
         if clr.bpc < 8:  # Assumes 24-bit color
             raise ValueError(f"Must have 8 bits per color")
@@ -243,11 +247,12 @@ class Trm(dict[str, str]):
             clr = clr.change_bpc(8)
         r, g, b = clr.irgb
         return f"\x1b[{48 if bg else 38};2;{r};{g};{b}m"
-    def __call__(self, fg=None, bg=None, attr=None):
-        '''Return the indicated color style escape code string.  
+    def __call__(self, fg=None, bg=None, attr=None):    # Return escape code string for (fg, bg, attr)
+        '''Return the indicated color style escape code string
         fg and bg can be
             - color.Color instance
             - Color name that can be found in data/dpcolornames.py
+            - Other argument that color.Color constructor accepts
         attr is a string
             - Separate multiple attributs by spaces
             - Typical:  'no' for normal, 'bo' for bold, 'it' for italic, etc.
@@ -327,7 +332,7 @@ class Trm(dict[str, str]):
                 self[name] = value
         else:
             self[name] = value
-    def __getitem__(self, name):        # Get self[name]
+    def __getitem__(self, name):            # Get self[name]
         'This is used to get self[name]'
         # If self.on isn't True, always return an empty string
         if not self.on:
@@ -337,14 +342,6 @@ class Trm(dict[str, str]):
             return ""
         # Otherwise, return the escape sequence
         return super().__getitem__(name)
-    #def __getattribute__(self, name):   # Get instance's attributes and dict's keys
-    #    '''This allows you to access a dictionary key using the syntax self.key instead
-    #    of self[key] (key.isidentifier() must be True).  It also lets us get to our
-    #    other attributes that are not in the dict without the infinite recursion
-    #    problem.
-    #    '''
-    #    return (self.__getitem__(name) if name in self
-    #            else super().__getattribute__(name))
     def __getattr__(self, name: str) -> str:
             '''Called only if the attribute is NOT found in the normal way.
             This is much faster than __getattribute__ and avoids recursion.
@@ -352,19 +349,23 @@ class Trm(dict[str, str]):
             if name in self:
                 return self[name]       # type: ignore
             raise AttributeError(f"'Trm' object has no attribute {name!r}")
-    def __enter__(self):    # Context manager entry
+    def __enter__(self):                    # Context manager entry
         assert self._newstyles is not None
         self.ppush(self._newstyles)
         self._newstyles = None
         return self     # Gives caller access to new instance state
     def __exit__(self, exc_type, exc_val, exc_tb):  # Context manager exit
         self.ppop()
-        # Return False so we DON'T suppress exceptions.
-        # Let the caller handle their own crashes!
+        # Return False so we don't suppress exceptions (let caller handle their own crashes)
         return False
-    def __repr__(self) -> str:
-        return f"<trm.Trm instance: {len(self)} styles, on={self.on}>"
-    def update(self, *p, **kw):
+    def __str__(self) -> str:
+        n = len(self)
+        on = int(self.on)
+        alw = int(self.always)
+        ns = len(self._stack)
+        new = 0 if self._newstyles is None else len(self._newstyles)
+        return f"Trm({n} styles, on={on}, always={alw}, stack={ns}, newstyles={new})"
+    def update(self, *p, **kw):             # Update ourselves with another dict, etc.
         '''Update ourselves with another dictionary, an iterable of pairs, or keywords.
         Note this method will result in __setitem__ being called, which ensures
         translation to an escape code.
@@ -377,7 +378,7 @@ class Trm(dict[str, str]):
                 self[key] = value
         for key in kw:
             self[key] = kw[key]
-    def ppush(self, styles_dict=None):
+    def ppush(self, styles_dict=None):      # Push our state on stack; update with styles_dict
         '''The styles dict must be a dict instance or None.  Update our values with
         styles_dict's values after saving a copy of ourself on the stack.
         '''
@@ -387,17 +388,17 @@ class Trm(dict[str, str]):
         if styles_dict is not None:
             for i in styles_dict:
                 self[i] = styles_dict[i]
-    def ppop(self):
-        '''Get a copy of ourself, then clear ourself and set our state to that of the
-        top of the stack; return the copy of our old self.
+    def ppop(self):                         # Pop previous state; return last-used state
+        '''Get a copy X of ourself, then clear ourself and set our state to that of the
+        top of the stack.  Return the state copy X.
         '''
         old_self = self.copy()
         self.clear()
         previous = self._stack.pop()
         self.update(previous)
         return old_self
-    def list(self, msg=None, ignore_std=True, sort=False, horiz=False, columns=0):
-        'Print defined color attributes to stdout'
+    def list(self, sort=False, horiz=False, columns=0):     # Print columnized list of defined colors
+        'Print defined color attributes to stdout in their colors'
         o = []
         if sort:
             for i in sorted(self):
@@ -411,18 +412,18 @@ class Trm(dict[str, str]):
                 o.append(f"{self[i]}{i}{self.n}")
         for i in columnize.Columnize(o, sep=" "*4, horiz=horiz, columns=columns):
             print(i)
-    def print(self, *p, **kw):
+    def print(self, *p, **kw):              # Convenience print with .n at end
         'Print arguments with newline, reverting to normal color after finishing'
         self.out(*p, **kw)
         print(**kw)
-    def out(self, *p, **kw):
+    def out(self, *p, **kw):                # Same as print() but no newline; end with .n
         'Same as print() but no newline'
         k = kw.copy()
         if "end" not in k:
             k["end"] = ""
         print(*p, **k)
         print(self.n, **k) if "n" in self else print("", **k)
-    def uses(self, styles_dict):
+    def uses(self, styles_dict):            # Utilize styles in context manager block
         'Used to utilize a new set of styles in a context manager block'
         self._newstyles = styles_dict
         return self

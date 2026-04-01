@@ -1,3 +1,11 @@
+- 1 Apr 2026
+    - Next project ideas
+        - Lean impl of flt/cpx
+        - Colorized Fmt
+        - REPL to demo flt/cpx & Fmt features
+        - Examine u.py:  lightweight units idea
+            - Use subprocess to GNU units to get conversion factors
+
 - 30 Mar 2026:  
     - "Settings" for Gemini chat
         - Triple Quotes: Use ''' for all docstrings and multi-line strings.

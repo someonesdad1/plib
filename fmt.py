@@ -6,25 +6,24 @@ Todo items (• is nbs)
         - "fixed" not yet supported
         - ufloats not yet supported
         - .spc and .sign attributes not yet supported
-    - Turn it into a context manager so that a context manager block can override all
-      the attributes and have the old state back after exiting
-    - Add "unit" keyword to __call__; overrides unit attribute
-    - Make it easy to derive a new class that combines with Trm to get colorized output
-        - int:  sky
-        - float:  ygr
-        - complex: pnkl
-        - Decimal: yon
-        - mpf: pur
-        - mpc: pnk
+    - Context manager
+        - Lets a block override all attributes and have them return to original at end
+          of block
+    - "unit" keyword to __call__
+    - Colorized output (see FmtColor below)
+        - A fundamental notion is that colorizing can allow the default formatting to
+          change.  Instead of seing the somewhat ugly default python '(1.2-3.4j)' for a
+          complex number, you could set up '1.2 - 3.4i' since it would be in a
+          contrasting color and easy to mentally parse and grok as a whole
     - Complex number formatting:  '1.2-3.4i', '1.2-i3.4', '1.2•-•3.4i', '1.2•-•3.4i•Ω'
     - Bugs
         - z = 1.2-3.4j; fmt(z) -> '(1.2-3.4j).'
-            - Make '1.2-3.4j' the default output
+            - Make '(1.2-3.4j)' the default output; this is python's default
 
 Here's Mike's first thoughts about colorizing.  He and I both felt subclassing is the
-way to go.
+way to go.  I'd add a property t that lets you change the Trm dict -- or you just know
+it's there and substitute as needed.
 
-if 1:  # Subclass: FmtColor
     class FmtColor(Fmt):
         'Extends Fmt to provide terminal colorization based on object type'
         def __init__(self, *args: ty.Any, **kwargs: ty.Any):
@@ -33,10 +32,17 @@ if 1:  # Subclass: FmtColor
             import trm
             self.t = trm.Trm()
             # Define default semantic mapping
-            self.t.int = "LightSkyBlue"
-            self.t.float = "SpringGreen"
-            self.t.complex = "Gold"
-            self.t.special = "HotPink"
+            self.t.int = "sky"
+            self.t.float = "ygr"
+            self.t.complex = "pnkl"
+            self.t.special = "orn"
+            self.t.ufloat = "den"
+            # Optional names for better type resolution
+            self.t.mpf = "pur"
+            self.t.mpc = "pnk"
+            self.t.Decimal = "grn"
+            self.t.Fraction = "yon"
+
         def _finalize_int(self, x: int, active_fmt: str) -> str:
             "Wraps the integer string in the 'int' color"
             s = super()._finalize_int(x, active_fmt)
