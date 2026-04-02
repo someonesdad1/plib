@@ -118,6 +118,7 @@ if 1:  # Header
         import inspect
         import math
         import os
+        import pdb
         import re
         import sys
         import time
@@ -137,7 +138,9 @@ if 1:  # Header
         except ImportError:
             have_mpmath = False
     if 1:  # Global variables
-        u = trm.Trm()
+        yy = pdb.set_trace
+        u = trm.TrmDP()
+        yy()
         u.got = u.grn1
         u.exp = u.orn
         u.msg = u.mag

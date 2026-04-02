@@ -61,7 +61,6 @@ Reorganization core files
     - /plib work
         - Spell check all the print statements in modules/scripts
         - Needs work/inspection
-            - Bring /pylib/xfmpy to plib/Dev and turn it into a modern tool
             - /pylib/significand.py would be a useful function in dpmath.py
             - dpdata.py:  be a single repository for all the files with data:
                 - drillsizes.py, eia.py, elements.py ?, papersize.py, planets.py,
@@ -1197,10 +1196,6 @@ Reorganization core files
 
     - Analytic geometry document:  convert to LaTeX
 
-    - xfmpy
-        - xseq.py:  Fix syntax:  '2 8 1.1' doesn't give what I'd expect
-        - Fix to work with python 3.11.5
-
     - pgm/ds.py
         - Add a -t option that only shows the document's title
         - Add ability to ignore '_old_' directories when encountered.  For e.g. /ebooks, this is a
@@ -1887,8 +1882,6 @@ Inactive
           directory.  This is amply illustrated by installing the HTML files for scipy, which now
           gives a list of nearly 5000 files when you search for scipy.
             - Model this on .gitignore 
-
-    - /pylib/xfmpy needs to port to /plib
 
     - numpy/scipy/matplotlib app
         - Write a script that proves that these three tools are installed and running correctly.
@@ -3167,3 +3160,51 @@ Programmer's index  xxpgidx
           file to a new one, type-hint the new file immediately. It is 10x easier to
           type-hint fresh code than to retroactively figure out what a variable was
           supposed to be in a file written in 1998.
+
+xfmpy
+    - Summary:  a python 2 tool to deal primarly with vectors of data, transforming
+      them, summarizing them, and doing multiple linear regression with them.  With
+      matplotlib, this also provided some nice plotting tools, but I work virtually
+      exclusively now under WSL without graphical tools. 
+    - It would be nice to update this set of tools, particularly to use the modern
+      formatting tools in fmt.py.  
+    - I remember using minitab in the mid 1980's and this was the perfect model to do
+      the simple data analysis I'd like.  You'd define your data into things with names,
+      then perform various operations on them.
+    - Since data are often accompanied by physical units, this tool ideally would
+      include some bare support for units.  Careful unit algebra doesn't need to be
+      supported, but most vector/matrix data are homogeneous and a single unit can be
+      stored with them.
+    - The major use cases are
+        - Data summary
+        - EDA
+        - Simple Monte Carlo modelling
+        - Since I don't use a GUI, a terminal plotting interface could still be pretty
+          powerful
+    - My main uses are:
+        - Summarize column vector data with basic descriptive statistics
+            - Things like mean, standard deviation, sdev/mean, sum, count, minimum,
+              maximum, range, median, geometric mean, skewness, kurtosis, and estimated
+              percentiles along with things that look like outliers
+        - Correlation matrix between such vectors (extremely important)
+        - Multiple linear regression with residuals and ANOVA
+        - Condensation of data with probability plotting
+        - Simple Monte Carlo manipulations:  fill some column vectors with suitable
+          samples from some distributions, then manipulate them
+        - Transforming and combining.  I used the e.g. 'c1*c2**2' notation that minitabl
+          used in 1980s, but a better notation is needed.
+        - This could be put into a REPL script that remembered your state (and had
+          process locks).  You could invoke it with a string to identify the dataset you
+          wanted it to remember.
+        - Since data analysis is often repetitive, this tool also needs to be able to be
+          driven by a command script, letting you do something like 'xfmpy -f
+          command_file < datafile', just like you'd do in awk.
+    - Design
+        - Use mpmath for all number fiddling.  This is particularly important to help
+          with scenarios like doing MLR with pathological data, as increasing the
+          precision can help you see effects of roundoff.
+            - This leverages the fmt.py formatting to see only what's important
+            - Use the MVC architecture to allow you to change the view and see the "data
+              in a new light".  This means the calculation is done at the selected
+              precision and the lens you look at the results is decided on at runtime;
+              change the lens a bit and look at the data again.

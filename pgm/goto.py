@@ -40,7 +40,7 @@ if 1:  # Header
         import debug
         debug.SetDebugger()
     # Global variables
-    t = trm.Trm(default=2)
+    t = trm.Trm()
     P = pathlib.Path
     ii = isinstance
     class g:

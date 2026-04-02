@@ -10,6 +10,10 @@
       repository is in a pristine state or that they are on a branch before starting
       some new work.  Industrial workers in a common environment will know this, but
       lone wolves will sometimes forget.
+- ASCII characters: use plain ASCII wherever possible.  Avoid Unicode punctuation like
+  em-dashes, single and double fancy quotes, etc.  Reason:  these things cause a mess
+  when working with plain text in a terminal (particular when pasted into some python
+  code) and I paste the stuff you provide into my help files a lot.
 - Triple quotes: use ''' for all docstrings and multi-line strings.
 - Quotes:  use " for all string definitions, such as 'a = "a string"'.  Elsewhere,
   double or single quotes are fine; for example, I prefer to see ''.join(x) rather than

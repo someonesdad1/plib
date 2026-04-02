@@ -110,7 +110,7 @@ if 1:   # Header
         '''
     if 1:   # Global variables
         yy = pdb.set_trace
-class Trm(dict[str, str]):
+class Trm(collections.UserDict[str, str]):
     '''Dictionary used to output escape codes to a terminal.
     
         u = Trm()   # Initialized with my default set of colors
@@ -174,86 +174,25 @@ class Trm(dict[str, str]):
         - 24-bit color
             https://en.wikipedia.org/wiki/ANSI_escape_code#24-bit
     '''
-    # This beautiful optimization was given to me by Mike (Google's Gemini AI) and it
-    # perfectly satisfies the need for type checking by mypy and still lets the type
-    # checker see the dict is a [str, str] mapping.  It’s one of those rare moments
-    # where a performance optimization (__slots__) and a type-system constraint (the
-    # mypy troll) align to create a cleaner architecture.
-    __slots__ = ("on", "always", "_stack", "_newstyles")
-    # Standard color names to use by default
-    std = set('''red ord orn yon yel ygr lwn grn sea trq cyn sky den roy blu vio lav
-                 mag pnk lip blk brn gry wht lil pur olv'''.replace("\n", "").split())
-    # Normal terminal text foreground and background colors and attribute(s)
-    normal = ("wht", "blk", "normal")
-    # Text attributes
-    attr = set("no it bl rv di bo ul rb so hi sb sp".split())
-    def __init__(self, *p: ty.Any, **kw: ty.Any) -> None:
-        '''Initialize with the standard dictionary initializers.  The key can be any
-        hashable type and the value should be anything accepted by the color.Color
-        constructor.
-    
-        'default' is the only keyword not related to dictionary initialization.  If
-        present, it should be an integer of 0, 1, 2, which are used to identify the 
-        colors of Trm.std that are included in the Trm instance:
-            None = an empty dictionary
-            0 = the colors in Trm.std
-            1 = 0 plus the "l" (light) additions
-            2 = "l" plus the darker 1, 2, and 3 additions
-        The defaults are processed last, so they will overwrite any definitions in the
-        normal dict initializers.
-    
-        Note:  for convenience, the default=2 will be used if no default keyword is
-        used, as this is the set of colors I normally used.  
+    def __init__(self, initial_data: ty.Optional[ty.Dict[str, str]] = None) -> None:
+        '''Calling with None creates an empty container.  Otherwise, you can initialize
+        with a regular dict that maps names to desired color names.
 
-        ** IMPORTANT ** Use default=None if you want the dictionary to be empty.
+        Since this is a UserDict, metadata are separated from the dictionary's payload:
+            - Attributes in self.__dict__:  knobs and dials
+            - Data:  stored in self.data, the native python dict this class is wrapping
+
         '''
-        self._stack: list[dict[str, str]] = []
-        #self._stack: ty.Deque[ty.Any] = dptypes.Stack()   # Saves previous states of self
-        self.on = True          # Output escape codes if True
-        self.always = False     # If True, output escape codes even if stdout out isn't a terminal
-        self._newstyles: dict[str, str] = {}  # Used for context manager behavior
-        # Process p
-        if len(p) == 1 and hasattr(p[0], "keys"):
-            di = p[0]
-            # It's a dictionary
-            if isinstance(di, Trm):
-                # It's a Trm instance, so make a deep copy
-                self._stack = di._stack.copy()          # Uses list.copy()
-                self.on = di.on
-                self.always = di.always
-                self._newstyles = {}
-                if di._newstyles is not None:
-                    self._newstyles.update(di._newstyles) # Shallow copy OK
-            for key in di:
-                self[key] = di[key]
-        elif p:
-            for key, value in p:
-                self[key] = value
-        # Process kw
-        default = 2
-        for key in kw:
-            if key == "default":
-                default = kw[key]
-            else:
-                self[key] = kw[key]
-        if default is not None:  # Get the default colors
-            if not isinstance(default, int):
-                raise TypeError("default keyword must be an integer")
-            if default not in (0, 1, 2):
-                raise ValueError("default keyword must be 0, 1, or 2")
-            for i in Trm.std:
-                if default > 0:
-                    self[i + "l"] = color.Color(i + "l")
-                self[i] = color.Color(i)
-                if default > 1:
-                    for j in ("1", "2", "3"):
-                        self[i + j] = color.Color(i + j)
-            # Add text attributes (just those that work in WSL)
-            for i in "no it bl rv di bo ul rb so hi sb sp".split():
-                #exec(f"self.{i} = self(attr='{i}')")
-                setattr(self, i, self(attr=i))
-            # Add n attribute to return to default color
-            self["n"] = self(*Trm.normal)
+        super().__init__(initial_data)
+        if 1:   # Set up our core attributes
+            self._stack: list[dict[str, str]] = []  # Saves previous states of self
+            self._on = True                         # Output escape codes if True
+            self._always = False                    # If True, output escape codes even if stdout isn't a tty
+            self._isatty = sys.stdout.isatty()      # False in a pipe
+            self._newstyles: dict[str, str] = {}    # Used for context manager behavior
+        # Process initial_data, a dictionary
+        if initial_data is not None:
+            self.data.update(initial_data)
     def _esc(self,      # Return escape code for the color.Color instance clr
              clr: "color.Color|None" = None,
              bg: bool=False
@@ -299,7 +238,7 @@ class Trm(dict[str, str]):
         if attr is not None and not isinstance(attr, str):
             s = f"attr must be a string:\n    It's {attr!r}" 
             raise ValueError(s)
-        if not self.on or all(i is None for i in (fg, bg, attr)):
+        if not self._on or all(i is None for i in (fg, bg, attr)):
             return ""
         # Convert to a Color instance
         if fg is not None and isinstance(fg, ok):
@@ -336,10 +275,9 @@ class Trm(dict[str, str]):
                 raise ValueError("value sequence must have 1 to 3 components")
         else:
             if isinstance(value, str):
-                if not value:
+                if not value:               # Empty string
                     escape_code = value
-                elif value[0] == "\x1b":
-                    # It's already an escape code
+                elif value[0] == "\x1b":    # It's already an escape code
                     escape_code = value
                 else:
                     escape_code = self(value)
@@ -347,39 +285,43 @@ class Trm(dict[str, str]):
                 escape_code = self(value)
         # Note escape code is allowed to be an empty string
         assert isinstance(escape_code, str)
-        super().__setitem__(name, escape_code)
-    def __setattr__(self, name: str, value: ty.Any) -> None:     # Set an attribute
-        '''This is used to make sure the on, always, and any attributes that start with
-        '_' get set correctly.  It also adds syntactic sugar to the class by letting you
-        set and access dictionary keys by using them like attributes, as long as they
-        are strings that have isidentifier() True.
+        self.data[name] = escape_code
+    def __getitem__(self, key: str) -> str:             # All attribute access
+        '''This is the "gatekeeper", as all attribute and data access goes through this
+        function, unlike the builtin dict.
         '''
-        if name in set("on always".split()):
-            super().__setattr__(name, bool(value))
-        elif name.startswith("_"):
-            if name in ("_stack", "_newstyles"):
-                super().__setattr__(name, value)
-            else:
-                self[name] = value
+        # Internal logic uses the private variables for speed/clarity
+        if not self._on:
+            return ""
+        if not self._is_tty and not self._always:
+            return ""
+        
+        # Return the escape code or empty string if missing
+        return self.data.get(key, "")
+
+        if not self._on:
+            return ""
         else:
-            self[name] = value
-    def __getitem__(self, name: str) -> str:            # Get self[name]
-        'This is used to get self[name]'
-        # If self.on isn't True, always return an empty string
-        if not self.on:
-            return ""
-        # If self.always is False and stdout isn't a tty, return ""
-        if not sys.stdout.isatty() and not self.always:
-            return ""
-        # Otherwise, return the escape sequence
-        return super().__getitem__(name)
+            if not sys.stdout.isatty() and not self._always:
+                return ""
+            # Otherwise, return the escape sequence
+            return super().__getitem__(name)
+    def __setattr__(self, name: str, value: ty.Any) -> None:     # Set an attribute
+        '''This function gives us complete control over metadata versus data.  In this
+        implementation, the metadata variables are named by 'allowed' below, so these
+        are our attributes and go to the superclass.  Everything else is assumed to be a
+        user-defined dict key, i.e., a color definition.
+        '''
+        allowed = {"data", "_stack", "_on", "_always", "_isatty", "_newstyles"}
+        if name in allowed:     # self.data and private underscore variables
+            super().__setattr__(name, value)
+        else:
+            self[name] = value  # Color definition -> escape code string
     def __getattr__(self, name: str) -> str:
-            '''Called only if the attribute is NOT found in the normal way.
-            This is much faster than __getattribute__ and avoids recursion.
-            '''
-            if name in self:
-                return self[name]       # type: ignore
-            raise AttributeError(f"'Trm' object has no attribute {name!r}")
+        '''This allows 't.red' instead of t["red"]'''
+        if name in self.__dict__:
+            return super().__getattribute__(name)
+        return self.data[name]   # It's a color lookup
     def __enter__(self) -> "Trm":                    # Context manager entry
         assert self._newstyles is not None
         self.ppush(self._newstyles)
@@ -395,8 +337,8 @@ class Trm(dict[str, str]):
         return False
     def __str__(self) -> str:
         n = len(self)
-        on = int(self.on)
-        alw = int(self.always)
+        on = int(self._on)
+        alw = int(self._always)
         ns = len(self._stack)
         new = 0 if self._newstyles is None else len(self._newstyles)
         return f"Trm({n} styles, on={on}, always={alw}, stack={ns}, newstyles={new})"
@@ -415,8 +357,8 @@ class Trm(dict[str, str]):
     def copy(self) -> "Trm":
         'Create a clone including dictionary data and slot states'
         cp = Trm(default=None)
-        cp.on = self.on
-        cp.always = self.always
+        cp.on = self._on
+        cp.always = self._always
         cp._stack = self._stack.copy()
         cp._newstyles = self._newstyles.copy() if self._newstyles is not None else None
         cp.update(self)
@@ -468,21 +410,62 @@ class Trm(dict[str, str]):
     def print(self, *p: ty.Any, **kw: ty.Any) -> None:      # Convenience print with .n at end
         'Print arguments with newline, reverting to normal color after finishing'
         self.out(*p, **kw)
-        print(**kw)
+        print("®", end="")
+        print()
     def out(self, *p: ty.Any, **kw: ty.Any) -> None:    # Same as print() but no newline; end with .n
         'Same as print() but no newline'
         k = kw.copy()
         if "end" not in k:
             k["end"] = ""
         print(*p, **k)
-        if self.on:     # Don't send self["n"] unless our state is on
+        if self._on:     # Don't send self["n"] unless our state is on
             revert = self.get("n", "")
             print(revert, **k)
     def uses(self, styles_dict: dict[str, str]) -> "Trm":  # Utilize styles in context manager block
         'Used to utilize a new set of styles in a context manager block'
         self._newstyles = styles_dict
         return self
+    def __dir__(self) -> ty.List[str]:
+        'Show standard attributes + all the color keys in the dict'
+        # Mike pointed out this will be appreciated by autocompleters
+        return list(super().__dir__()) + list(self.data.keys())
+    if 1:   # Properties
+        @property
+        def on(self) -> bool:
+            return self._on
+        @on.setter
+        def on(self, value: bool):
+            self._on = bool(value)
+        @property
+        def always(self) -> bool:
+            return self._always
+        @always.setter
+        def always(self, value: bool):
+            self._always = bool(value)
 
+class TrmDP(Trm):
+    '''Container of my personalized terminal colors.
+    '''
+    # Standard color names to use by default
+    std = set('''red ord orn yon yel ygr lwn grn sea trq cyn sky den roy blu vio lav
+                 mag pnk lip blk brn gry wht lil pur olv'''.replace("\n", "").split())
+    # Normal terminal text foreground and background colors and attribute(s)
+    normal = ("wht", "blk", "normal")
+    # Text attributes
+    attr = set("no it bl rv di bo ul rb so hi sb sp".split())
+    def __init__(self, initial_data: ty.Optional[ty.Dict[str, str]] = None) -> None:
+        super().__init__(initial_data)
+        # Get my default colors
+        for i in TrmDP.std:
+            self[i] = color.Color(i)
+            self[i + "l"] = color.Color(i + "l")
+            for j in ("1", "2", "3"):
+                self[i + j] = color.Color(i + j)
+        # Add text attributes (just those that work in WSL)
+        for i in TrmDP.attr:
+            setattr(self, i, self(attr=i))
+        # Add n attribute to return to default color
+        self["n"] = self(*TrmDP.normal)
 if __name__ == "__main__":  
     from lwtest import run, Assert, raises
     import io
@@ -733,4 +716,8 @@ if __name__ == "__main__":
             s = out.getvalue()
             expected = '\x1b[38;2;254;120;0mHello\x1b[38;2;181;181;181m\x1b[48;2;0;0;0m\x1b[0m\n'
             Assert(s == expected)
+    def Test_Trm_Basics():
+        t = Trm()
+        Assert(not len(t))
+        breakpoint() # ∞∞ 
     exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
