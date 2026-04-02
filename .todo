@@ -1,3 +1,5 @@
+'pytree dpstr.py >a' has escape codes in it.  It shouldn't if trm.always is False
+
 Reorganization core files
 - Look at moving /plib/pgm to /pgm
 - After these movements are done:

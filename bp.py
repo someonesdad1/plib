@@ -21,6 +21,13 @@ if 1:  # Header
         if 0:
             import debug
             debug.SetDebugger()
+    if 1:   # Core file gist information
+        __gist__      = ""
+        __copyright__ = "Copyright © 2026 Don Peterson"
+        __license__   = "MIT License (see /plib/_lic.mit)"
+        __test__      = "notest"
+        __category__  = ""
+        __todo__      = ''' '''
     if 1:   # Import symbols
         Path = pathlib.Path
         defaultdict = collections.defaultdict
@@ -30,8 +37,8 @@ if 1:  # Header
         Columnize = columnize.Columnize
         dedent = wrap.dedent
         flt = f.flt
-        t = trm.Trm()
     if 1:   # Global variables
+        t = trm.Trm()
         g = dptypes.Constant()
         g.dbg = False
 if 1:   # Utility

@@ -78,6 +78,7 @@ if 1:   # Header
         import decimal
         import fractions
         import math
+        import pdb
         import pprint
         import sys
         import types
@@ -100,7 +101,15 @@ if 1:   # Header
         __license__   = "MIT License (see /plib/_lic.mit)"
         __test__      = "notest"
         __category__  = "util"
-        __todo__      = ''' '''
+        __todo__      = ''' 
+
+            - ∞∞2 Need a test to prove that default behavior is colorizing in a script
+              to stdout, but when stdout isn't a TTY, then there are no escape codes
+              emitted
+
+        '''
+    if 1:   # Global variables
+        yy = pdb.set_trace
 class Trm(dict[str, str]):
     '''Dictionary used to output escape codes to a terminal.
     
@@ -360,7 +369,7 @@ class Trm(dict[str, str]):
         if not self.on:
             return ""
         # If self.always is False and stdout isn't a tty, return ""
-        if not self.always and not sys.stdout.isatty():
+        if not sys.stdout.isatty() and not self.always:
             return ""
         # Otherwise, return the escape sequence
         return super().__getitem__(name)
@@ -466,8 +475,9 @@ class Trm(dict[str, str]):
         if "end" not in k:
             k["end"] = ""
         print(*p, **k)
-        revert = self.get("n", "")
-        print(revert, **k)
+        if self.on:     # Don't send self["n"] unless our state is on
+            revert = self.get("n", "")
+            print(revert, **k)
     def uses(self, styles_dict: dict[str, str]) -> "Trm":  # Utilize styles in context manager block
         'Used to utilize a new set of styles in a context manager block'
         self._newstyles = styles_dict
@@ -707,17 +717,20 @@ if __name__ == "__main__":
             values.append(color.Color(value.hex))
         u = Trm(*zip(keys, values))
         #print(len(u))
+    def Test_Trm_No_Output():
+        'No escape codes emitted when self.on is False'
+        u = Trm()
+        if 1:   # self.on is False
+            out = io.StringIO()
+            u.on = False
+            u.print(f"{u.orn}Hello", file=out)
+            s = out.getvalue()
+            Assert(s == "Hello\n")
+        if 1:   # self.on is True
+            out = io.StringIO()
+            u.on = True
+            u.print(f"{u.orn}Hello", file=out)
+            s = out.getvalue()
+            expected = '\x1b[38;2;254;120;0mHello\x1b[38;2;181;181;181m\x1b[48;2;0;0;0m\x1b[0m\n'
+            Assert(s == expected)
     exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
-
-def GetGist():
-    g = {}
-    g["gist"] = "Trm class for color output in terminals"
-    g["copy"] = "Copyright © 2026 Don Peterson"
-    g["lic"] = "MIT License (see /plib/_lic.mit)"
-    g["test"] = "run"
-    g["cat"] = ""
-    g["todo"] = '''
-
-    - repr(t) needs to show <class 'trm.Trm'>, not the huge list of escape codes
-    '''
-    return g

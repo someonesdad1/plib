@@ -62,7 +62,6 @@ if 1:   # Core class
                                     found_data[target.id] = ast.literal_eval(node.value)
                                 except (ValueError, TypeError, SyntaxError):
                                     found_data[target.id] = "<Non-Literal Value>"
-                    
                     # Catch truthy IF blocks: if 1: or if True:
                     elif isinstance(node, ast.If):
                         is_truthy = False
@@ -75,7 +74,6 @@ if 1:   # Core class
                             is_truthy = True
                         elif isinstance(node.test, ast.Num) and node.test.n == 1:
                             is_truthy = True
-                        
                         if is_truthy:
                             walk_and_find(node.body)
             # 3. Execute recursive search
@@ -83,13 +81,11 @@ if 1:   # Core class
             # 4. Validation Logic
             missing = g.required_dunders - set(found_data.keys())
             errors = []
-            
             if missing:
                 errors.append(f"Missing: {', '.join(sorted(missing))}")
             else:
                 test_val = found_data.get("__test__")
                 cat_val = found_data.get("__category__")
-                
                 if test_val not in g.allowed_test:
                     errors.append(f"Invalid __test__: {test_val!r}")
                 if cat_val not in g.allowed_category:
