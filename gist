@@ -1,6 +1,7 @@
-    __gist__     = ""
-    __copy__     = "Copyright © 2026 Don Peterson"
-    __license__  = "MIT License (see /plib/_lic.mit)"
-    __test__     = "notest"
-    __category__ = ""
-    __todo__     = ''' '''
+    if 1:   # Core file gist information
+        __gist__      = ""
+        __copyright__ = "Copyright © 2026 Don Peterson"
+        __license__   = "MIT License (see /plib/_lic.mit)"
+        __test__      = "notest"
+        __category__  = ""
+        __todo__      = ''' '''

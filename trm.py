@@ -88,13 +88,19 @@ if 1:   # Header
         import dpcolornames
         import dpmath
         import dptypes
-        #import wl2rgb
         pp = pprint.pprint
         if 0:
             import debug
             debug.SetDebugger()
         if ty.TYPE_CHECKING:
             import color  # Only seen by Mypy, ignored at runtime
+    if 1:   # Core file gist information
+        __gist__      = "Trm class for color output in terminals"
+        __copyright__ = "Copyright © 2026 Don Peterson"
+        __license__   = "MIT License (see /plib/_lic.mit)"
+        __test__      = "notest"
+        __category__  = "util"
+        __todo__      = ''' '''
 class Trm(dict[str, str]):
     '''Dictionary used to output escape codes to a terminal.
     

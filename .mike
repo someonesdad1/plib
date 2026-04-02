@@ -8,7 +8,7 @@
       means a frustrated human.
     - It's also wise to remind the human that they might want to make sure the
       repository is in a pristine state or that they are on a branch before starting
-      some new work.  Industrial workers in a common environment will know this, but 
+      some new work.  Industrial workers in a common environment will know this, but
       lone wolves will sometimes forget.
 - Triple quotes: use ''' for all docstrings and multi-line strings.
 - Quotes:  use " for all string definitions, such as 'a = "a string"'.  Elsewhere,
@@ -39,3 +39,17 @@
     - Most of the time:  standard sentence structure with capitalized first word,
       followed by no capitals except for proper nouns or common honorifics
 - Colons in text:  two spaces after the colon.
+- Core files in /plib
+    - f.py:  flt(float) and cpx(complex) with short string interpolations
+    - trm.py:  Trm(dict) for terminal escape sequences
+    - dpseq.py:  Tools helping deal with sequences
+    - dpstr.py:  Tools helping deal with strings & bytes
+    - dpmath.py:  Tools helping deal with math-related stuff
+    - dpphys.py:  Tools helping deal with physics-related stuff
+    - dptypes.py:  Utility types, such as a dict that's a bijective mapping,
+      CommandDecode, which decodes user strings, Constant which provides runtime
+      "constants" that can be changed in a context manager, Stack based on a deque, and
+      SlushDict, a hashable dict (use with care).
+    - dpdb.py:  Adds come conveniences to the python debugger (primarily colorizing and
+      an 'o' command that dumps and colorizes all the local variables)
+    - dputil.py:  Utility functions

@@ -2267,11 +2267,21 @@ if __name__ == "__main__":
                 u.list(horiz=True, columns=10)
                 # Color by wavelength
                 o = []
-                for wl in range(400, 701, 10):
-                    o.append(f"{u(wl)}{wl}{u.n}")
-                u.print(f"{u.ul}Color by wavelength in nm:")
-                for i in columnize.Columnize(o, columns=16, horiz=True, sep=" "*2):
-                    print(i)
+                if 1:   # From 400 to 700 nm
+                    for wl in range(400, 701, 5):
+                        o.append(f"{u(wl)}{wl}{u.n}")
+                    u.print(f"{u.ul}Color by wavelength in nm:")
+                    for i in columnize.Columnize(o, columns=16, horiz=True, sep=" "*2):
+                        print(i)
+                if 1:   # Choice wavelengths
+                    choices = (400, 415, 440, 460, 475, 490, 500, 525, 555, 570, 590, 605,
+                    615, 630, 660)
+                    u.print(f"{u.ul}{len(choices)} color choices at wavelengths in nm:")
+                    o.clear()
+                    for wl in choices:
+                        o.append(f"{u(wl)}{wl}{u.n}")
+                    for i in columnize.Columnize(o, columns=16, horiz=True, sep=" "*2):
+                        print(i)
             else:   # Old stuff when Trm was in color.py
                 '''The default set of color names comes from the colorname0
                 file.  The 12 basic names are the 10 resistor color code names

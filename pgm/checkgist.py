@@ -19,6 +19,13 @@ if 1:  # Header
         if 0:
             import debug
             debug.SetDebugger()
+    if 1:   # Core file gist information
+        __gist__      = "Report the files that do/don't have gists"
+        __copyright__ = "Copyright © 2026 Don Peterson"
+        __license__   = "MIT License (see /plib/_lic.mit)"
+        __test__      = "notest"
+        __category__  = "util"
+        __todo__      = ''' '''
     if 1:   # Import symbols
         deque = collections.deque
         Path = pathlib.Path
@@ -41,6 +48,8 @@ if 1:  # Header
             g.found = []        # Files with proper gist
             g.not_found = []    # Files without proper gist
             g.ignored = []      # Files that were ignored
+            # These are the keywords required to be in a gist
+            g.kw = "gist copyright license test category todo".split()
 if 1:   # Utility
     def GetColors():
         t.err = t.red
@@ -68,7 +77,7 @@ if 1:   # Utility
           Check the gists in the indicated files or if a directory, all the python files
           in that directory.  
         Options:
-          -h      Print a manpage
+          -p      Print the gist information for each file
         '''))
         exit(status)
     def ParseCommandLine(d):
