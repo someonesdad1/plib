@@ -55,7 +55,8 @@ if 1:  # Header
         import f
         import trm
     if 1:   # Global variables
-        u = trm.Trm()
+        yy = pdb.set_trace
+        u = trm.TrmDP()
     if 1:  # Functions to set up colorizing strings
         def All():
             "Fancier set of colors"

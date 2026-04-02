@@ -140,7 +140,6 @@ if 1:  # Header
     if 1:  # Global variables
         yy = pdb.set_trace
         u = trm.TrmDP()
-        yy()
         u.got = u.grn1
         u.exp = u.orn
         u.msg = u.mag
