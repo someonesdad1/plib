@@ -235,7 +235,8 @@ class Trm(collections.UserDict[str, str]):
             - Separate multiple attributs by spaces
             - Typical:  'no' for normal, 'bo' for bold, 'it' for italic, etc.
         '''
-        ok = (str, color.Color, int, float, decimal.Decimal, fractions.Fraction)
+        # fg and bg can be None, a number, string, or a Color instance
+        ok = str|int|float|decimal.Decimal|fractions.Fraction|color.Color
         msg = "{} must be None, a string, or a color.Color instance"
         if fg is None and bg is None and attr is None:
             raise ValueError("At least one of fg, bg, or attr must be not None")
@@ -250,10 +251,10 @@ class Trm(collections.UserDict[str, str]):
             raise ValueError(s)
         if not self._on or all(i is None for i in (fg, bg, attr)):
             return ""
-        # Convert to a Color instance
-        if fg is not None and isinstance(fg, ok):
+        # Convert to a Color instance (note color.Color is idempotent)
+        if fg is not None:
             fg = color.Color(fg)
-        if bg is not None and isinstance(bg, ok):
+        if bg is not None:
             bg = color.Color(bg)
         # Construct the needed escape codes
         out = []

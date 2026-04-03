@@ -199,8 +199,8 @@ if 1:  # Header
     from wrap import wrap, dedent
     from columnize import Columnize
     #from color import TRM as t
-    from trm import Trm
-    t = Trm()
+    import trm 
+    t = trm.TrmDP()
     # Global variables
     _ = sys.version_info
     g = dptypes.Constant()

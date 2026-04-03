@@ -1,66 +1,14 @@
 '''
-Vision
-    - One file for color stuff:  color.py (besides data/colornames.py)
-    - Color
-        - Constructor works flawlessly
-        - Look at getting rid of cruft:  this is primarily a class to hold a color and
-          allow conversion to other coordinates
-    - Trm & ColorName are obsoleted
-    - New Trm is a dict where .on and .always work correctly
-        - No instance is created by default; the t instance has created a large
-          number of circular reference problems
-        - Should Trm be in this file or trm.py?
-    - Move RegexpDecorate to dpstr.py
-    - Move colorcoord.py stuff to this file and have thorough docs & selftests
-'''
-'''
----------------------------------------------------------------------------
-Functions to convert between ANSI 8-bit color numbers and 24-bit RGB values:
-    RGBtoANSI8bit(r, g, b)
-    Translate8bit(n)
     
-Classes to help with color use in terminals
+Class to help with color use in terminals
     - class Color
-        - Immutable class to store the three numbers used to define a color
-    - class Trm
-        - Outputs ANSI escape sequences to allow color use in a terminal
-    - class ColorName
-        - Maps string names to a Color object
-        
-    - Typical usage
-    
-        from color import Color, t
-        print(f"{t('redl')}Error:  you need to fix this{t.n}")
-        print(f"{t('lblu', 'wht'} This is blue text in a white background")
-        
-        # The default color names are based on the resistor color code names.  Prefix with 'l' for
-        # the lighter colors, 'd' for darker, and 'b' for light pastel background colors.  Run the
-        # color.py file as a script to see these color names and how they render on your screen.
-        
-        # The Trm instance t can be called with a foreground and background color (either a name or
-        # Color instance) and an optional attribute (e.g., for italics).  The t.n value means to
-        # return to the default color.  You can store escape sequences as attributes:
-        
-            t.err = t("redl")
-            print(f"{t.err}Error:  you need to fix this{t.n}")
-            
-        # You can use t.out and t.print to avoid having to reset to the default color.  t.out is
-        # the same as t.print but without the newline.
-        
-    - This file includes some deprecated functionality to support an older python module I used for
-      a couple of decades.  Over time, I expect to remove the dependencies on this stuff and it
-      will eventually be removed with no warning (i.e., don't use these older features).  To
-      disable the legacy code support, define the 'klr' environment variable to be empty (evaluate
-      False as a boolean).
-      
-    - class Color
-        - This immutable class is used to store the three integers that define a color.  You can
+        - Immutable class to store the three numbers used to define a color.  You can
           set the number of bits to use to store these integers using the class variable
           Color.bits_per_color, which defaults to 8.
         - The Color constructor has a number of ways to instantiate a color:
             - One argument
-                - A short string name for a color (these are actually handled by the global
-                  ColorNum instance CN).
+                - A short string name for a color (these are actually handled by the
+                  global ColorNum instance CN).
                 - Hex strings
                     - '@abcdef' means an HSV hex string
                     - '#abcdef' means an RGB hex string
@@ -70,48 +18,39 @@ Classes to help with color use in terminals
             - Three arguments
                 - Color(1, 2, 3)
                 - Color(0.1, 0.2, 0.3)
-                - Can use boolean keywords "hsv" or "hls" to not use the default rgb space.
+                - Can use boolean keywords "hsv" or "hls" to not use the default rgb
+                  space.
         - Helpful functionality
             - Construct(x)
-                - This class method returns a Color instance if the string argument x contains a
-                  recognizable color initializer (hex string or 3-sequence of numbers).  If x was a
-                  multiline string with one or more valid color initializers, a deque of (a, c)
-                  objects is returned with a the line's string and c the Color instance.  This is
-                  handy for e.g.  colorizing a set of lines in a file of color specifiers such as
-                  an X11 rgb.txt file.
+                - This class method returns a Color instance if the string argument x
+                  contains a recognizable color initializer (hex string or 3-sequence of
+                  numbers).  If x was a multiline string with one or more valid color
+                  initializers, a deque of (a, c) objects is returned with a the line's
+                  string and c the Color instance.  This is handy for e.g.  colorizing a
+                  set of lines in a file of color specifiers such as an X11 rgb.txt
+                  file.
         - Distance between two colors
             - RGB, HSV, HLS known to be nonlinear with respect to perception
-            - https://www.compuphase.com/cmetric.htm gives a practical formula he says is close to
-              L*u*v* space with modified lightness curve (it's a weighted Euclidean distance in RGB
-              space).   Let two colors be specified by (R1, G1, B1) and (R2, G2, B2) where each
-              component is an int on [0, 255].  Then
+            - https://www.compuphase.com/cmetric.htm gives a practical formula he says
+              is close to L*u*v* space with modified lightness curve (it's a weighted
+              Euclidean distance in RGB space).   Let two colors be specified by (R1,
+              G1, B1) and (R2, G2, B2) where each component is an int on [0, 255].  Then
                 - r = (R1 + R2)/2
                 - dX = X1 - X2
                 - d**2 = (2 + r/256)*dR**2 + 4*dG**2 + (2 + (255 - r)/256)*dB**2
-            - ColorDistance() is a simple Euclidean distance in RGB space using an integer square root.
+            - ColorDistance() is a simple Euclidean distance in RGB space using an
+              integer square root.
             
     References
         - http://color.lukas-stratmann.com/  Nice web pages to help visualize a few color
           coordinate systems.
+
+Functions to convert between ANSI 8-bit color numbers and 24-bit RGB values:
+    RGBtoANSI8bit(r, g, b)
+    Translate8bit(n)
           
 '''
 if 1:  # Header
-    _pgminfo = '''
-        <oo gist ∞ Classes to help with color use in terminals oo>
-        <oo desc ∞ oo>
-        <oo copy ∞ Copyright © 2022 Don Peterson oo>
-        <oo lic ∞ MIT License
-            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-        oo>
-        <oo ind ∞ 8 indent oo>
-        <oo cat ∞ color oo>
-        <oo test ∞ --test oo>
-        <oo todo ∞ 
-            
-        oo>
-    '''
     if 1:   # Standard imports
         import collections 
         import contextlib
@@ -164,6 +103,96 @@ if 1:  # Header
         g = dptypes.Constant()
         g.trm_new = 0
         __all__ = "Color RGBtoANSI8bit Translate8bit ColorDistance ToIntRGB".split()
+    if 1:   # Core file gist information
+        __gist__      = "Classes to help with color use in terminals"
+        __copyright__ = "Copyright © 2022 Don Peterson"
+        __license__   = "MIT License (see /plib/_lic.mit)"
+        __test__      = "--test"
+        __history__   = '''Derived from stuff I wrote in late 1990's'''
+        __category__  = "color"
+        __todo__      = '''
+
+            - Vision
+                - One file for color stuff:  color.py (besides data/colornames.py)
+                - Color
+                    - Constructor works flawlessly
+                    - Look at getting rid of cruft:  this is primarily a class to hold a
+                      color and allow conversion to other coordinates
+                - Move colorcoord.py stuff to this file and have thorough docs &
+                  selftests
+            - ∞∞2 Color.adjust could use some examples in the docstring, as I had
+              forgotten about it and it's likely it's a tool I should use
+                - Or add a demo function in the code that shows percentage adjustments,
+                  which is what I've been wanting to do.  It would be very nice if an
+                  interactive function could be set up to use in the REPL that prompts
+                  you for an adjustment number and optional parameter and you'd see a
+                  set of colors getting generated to the screen, letting you home into a
+                  desired color
+            - RegexpDecorate.register() needs to change to an argument list of (r,
+              match_style, nomatch_style) where the latter two elements are escape codes
+              used to define how things should be printed.  The use case is pfind.py
+              where I want to see directories printed in red with the sky color for the
+              match; plain files are printed with the default text style but matches
+              with sky.  Thus, the default for nomatch_style should be None, meaning the
+              default text style.
+            - TestInvariants() is made to pass, but I'd like to see the conversion work
+              exactly.  It could be a problem with decimal roundoff in the colorsys
+              module.
+                
+            - More color names could be handy
+                - White
+                    - pearl snow ivory cream egg cotton chiffon salt linen bone frost rice
+                    vanilla cloud casper moon ghost milk blizzard polar crystal
+                - Black
+                    - ebony crow ink raven onyx soot coal obsidian
+                - Gray
+                    - graphite iron pewter cloud silver smoke slate ash dove fog flint charcoal
+                    lead coin fossil lava rhino granite shark platinum
+                - Purple
+                    - mauve violet lavender plum lilac grape iris orchid thistle prune indigo
+                    pansy fuchsia eggplant
+                - Blue
+                    - ice baby robin egg blueberry navy slate sky navy indigo cobalt teal ocean
+                    azure lapis spruce denim sapphire arctic aqua steel royal
+                - Green
+                    - juniper sage lime fern emerald pear moss shamrock pine mint seaweed pickle
+                    pistachio basil tea army kelly jungle apple laurel beryl tea moss sage
+                    spring copper mint army pea turtle lime leaf kiwi jade teal kelly aqua
+                    grass frog emerald shamrock kermit verdigris foilage glade willow mantis
+                    broccoli turf
+                - Yellow
+                    - canary gold flax butter lemon mustard corn banana dijon honey blonde peach
+                    daffodil maize citrus topaz ochre custard tangerine melon straw saffron
+                    khaki papaya sand pee sun mustard
+                - Orange
+                    - cider rust ginger tiger fire bronze apricot carrot amber yam mango papaya
+                    sunset coral paprika nectarine squash salmon caramel umber
+                - Red
+                    - cherry rose jam merlot garnet ruby scarlet wine brick blood berry candy
+                    lipstick chili barn fuchsia punch rouge tomato flame cerise sunset pink
+                    pig barbie inferno claret
+                - Tan
+                    - beige oat fawn sand sepia latte oyster desert caramel latte beach almond
+                    toffee vanilla butter wheat maple nutmeg
+                - Brown
+                    - coffee mocha peanut wood pecan walnut caramel syrup umber tawny penny
+                    cedar cognac sienna
+            
+                Not in existing colornames:
+                    arctic    chili     ginger    nectarine robin
+                    baby      cider     glade     oat       salt
+                    barbie    coal      granite   obsidian  soot
+                    barn      coin      inferno   oyster    spring
+                    basil     cotton    ink       pansy     syrup
+                    beach     crow      jam       papaya    tawny
+                    beryl     daffodil  jungle    pecan     tiger
+                    blizzard  dijon     kelly     pee       turf
+                    blonde    dove      lapis     penny     turtle
+                    broccoli  egg       lead      pickle    willow
+                    candy     foilage   maple     pig       wood
+                    carrot    frog      moon      rice      yam
+
+        '''
 class Color:
     '''Storage of the three numbers used to define a color.  
         
@@ -285,7 +314,10 @@ class Color:
             #           '12'
             #       float
             #           '1.2'
-            if isinstance(u, Color):    # Case 1
+            # The first check requires the hasattr addition to handle the case where the
+            # Color instance is coming from the 'if __name__ == "__main__":' section of
+            # this file; the debugger gives the type as <class '__main__.Color'>.
+            if isinstance(u, Color) or hasattr(u, "xrgb"):    # Case 1
                 self._bpc = u._bpc
                 self._rgb = u._rgb
                 self._sort = u._sort
@@ -1551,6 +1583,11 @@ if __name__ == "__main__":
         import trm
         import wrap
         import termtables as tt
+        # This import is needed to ensure Color instances below are really color.Color
+        # instances; otherwise, they will be <class '__main__.Color'> instances in the
+        # debugger; though they are the same class, they reside in different memory
+        # because of the way python imports things.
+        from color import Color
     if 1:   # Symbols from imports
         u = trm.TrmDP()
     def GetScreen():
@@ -2352,53 +2389,57 @@ if __name__ == "__main__":
             2.  #XXXXXX, @XXXXXX, and $XXXXXX hex forms
             3.  "a b c" where the letters represent integers
             4.  An 8-bit integer on [0, 255]
+            5.  A number on [400, 700]
         Instead of space characters, nearly any characters can be used as
         delimiters, as they are replaced by spaces.
         '''
-        x = s.strip()
-        if not x:
+        namestr = s.strip()
+        if not namestr:
             return
         # Replace nearly all delimiters
         for i in "~!%^&*()_-+=|{}[}:;\"'<>,?/":
-            x = x.replace(i, " ")
-        while "  " in x:
-            x = x.replace("  ", " ")
+            namestr = namestr.replace(i, " ")
+        while "  " in namestr:
+            namestr = namestr.replace("  ", " ")
         n = None
         try:
-            n = Int(x)
+            n = float(namestr)
         except Exception:
             pass
-        # Set the variable rgb to a tuple of three base 10 integers
-        if n:  # It's an 8-bit color number
-            if 0 <= n <= 255:
-                rgb = Translate8bit(n)
+        # Set the variable rgb to a Color instance
+        t = trm.TrmDP()
+        if n:  
+            if 0 <= n <= 255:   # It's an 8-bit color number
+                rgb = Translate8bit(int(n))
+            elif 400 <= n <= 700:   # It's a wavelength
+                rgb = Color(n)
             else:
-                Error("An 8-bit number must be between 0 and 255 inclusive")
-            t.print(f"8-bit color name '{n}'    {t(rgb)}Represents this color")
+                Error("A number must be between 0 and 255 inclusive or on [400, 700]")
+            t.print(f"The number '{n}' {t(rgb)}Represents this color")
             ShowRepresentations(rgb)
             return
-        elif len(x) in (3, 4):  # Short name form
+        elif len(namestr) in (3, 4):  # Short name form
             try:
-                c = CN[x]
+                c = Color(namestr)
                 rgb = c.irgb
+                t.print(f"Color name '{namestr}'    {t[namestr]}Represents this color")
+                ShowRepresentations(c)
             except Exception:
-                Error(f"'{x}' not recognized as a color name")
-            t.print(f"Color name '{x}'    {t(c)}Represents this color")
-            ShowRepresentations(c)
+                Error(f"'{namestr}' not recognized as a color name")
             return
-        elif x[0] in "@#$":  # Hex form
-            c = Color(x)
+        elif namestr[0] in "@#$":  # Hex form
+            c = Color(namestr)
             rgb = c.irgb
         else:  # Three numbers
             # Must be 3 RGB numbers separated by white space (either
             # integers or floats)
-            if "." in x or "e" in x:  # Three floats
-                rgb = [Int(255*float(i)) for i in x.split()]
+            if "." in namestr or "e" in namestr:  # Three floats
+                rgb = [Int(255*float(i)) for i in namestr.split()]
             else:  # Three integers
-                rgb = [Int(i) for i in x.split()]
+                rgb = [Int(i) for i in namestr.split()]
         if len(rgb) != 3:
-            Error(f"'{x!s}' doesn't represent three numbers")
-        PrintRGB(s, x, rgb)
+            Error(f"'{namestr!s}' doesn't represent three numbers")
+        PrintRGB(s, namestr, rgb)
     def iDistribute(n, a, b):
         '''Generator to return an integer sequence [a, ..., b] with n elements equally distributed
         between a and b.  Raises ValueError if no solution is possible.  Example:
@@ -2435,6 +2476,7 @@ if __name__ == "__main__":
             yield int(round(a + i*dx, 0))
     def ShowRepresentations(c):
         "Show the Color instance c in various representations"
+        t = trm.TrmDP()
         q = "({:3d}, {:3d}, {:3d})"
         def dec(c):
             "c is a Color instance; return decimal string form"
@@ -2473,7 +2515,7 @@ if __name__ == "__main__":
             row = []
             for v in r:
                 u = f"@{H:02x}{s:02x}{v:02x} "
-                x = Color.Construct(Color, u)
+                x = Color.Construct(u)
                 row.append(f"{t(x)}{u}{t.n}")
             data.append(row)
         tt.print(data, style=" "*15)
@@ -2834,23 +2876,13 @@ if __name__ == "__main__":
         '''Return a dict of my short color names sorted by name.  An example entry is 
             'sky': Color('$90c3ff', bpc=8).
         '''
-        if 0:   # Old method with /plib/colornames0
-            lines, di = get.GetLines("/plib/colornames0", nonl=True, script=True), {}
-            for line in lines:
-                line = line.strip()
-                if not line:
-                    continue
-                name, clr = line.split(":")
-                di[eval(name)] = eval(clr)
-            return di
-        else:   # New method that uses the default colors in trm.TrmDP()
-            t = trm.TrmDP()
-            # The Trm class is a dict and its keys are the default color names I wish to
-            # use.  The name pattern is that valid names are 3 or more letters.  Two
-            # letter names are for attributes like "it" (italic).  The only one-letter
-            # name is "n", which is the default terminal color.
-            names = [i for i in t.keys() if len(i) >= 3]
-            return {i: Color(i) for i in names}
+        t = trm.TrmDP()
+        # The Trm class is a dict and its keys are the default color names I wish to
+        # use.  The name pattern is that valid names are 3 or more letters.  Two
+        # letter names are for attributes like "it" (italic).  The only one-letter
+        # name is "n", which is the default terminal color.
+        names = [i for i in t.keys() if len(i) >= 3]
+        return {i: Color(i) for i in names}
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
@@ -2897,7 +2929,11 @@ if __name__ == "__main__":
     d: dict[str, str|int] = {}  # Options dictionary
     cmds = ParseCommandLine(d)
     colordict = GetNames()
-    if cmds[0] in colordict:
+    try:
+        isint = int(cmds[0])
+    except Exception:
+        isint = False
+    if cmds[0] in colordict or isint:
         # Interpret color strings on command line
         for i in cmds:
             InterpretColorSpecifier(i)
@@ -2923,86 +2959,5 @@ if __name__ == "__main__":
             ShowShortNames(cmds[0])
         elif first_char == "w":  # Show wavelengths and RGB color specifier
             Wavelengths()
-
-def GetGist():
-    gist = {}
-    gist["gist"] = "Classes to help with color use in terminals"
-    gist["copy"] = "Copyright © 2022 Don Peterson"
-    gist["lic"] = "MIT License (see /plib/_lic.mit)"
-    gist["test"] = "--test"
-    gist["cat"] = "color"
-    gist["todo"] = '''
-    
-    - ∞∞2 
-        - Color.adjust could use some examples in the docstring, as I had forgotten
-          about it and it's likely it's a tool I should use
-            - Or add a demo function in the code that shows percentage adjustments,
-              which is what I've been wanting to do.  It would be very nice if an 
-              interactive function could be set up to use in the REPL that prompts you
-              for an adjustment number and optional parameter and you'd see a set of 
-              colors getting generated to the screen, letting you home into a desired
-              color
-        - Move RegexpDecorate to dpstr.py
-    - RegexpDecorate.register() needs to change to an argument list of (r, match_style,
-      nomatch_style) where the latter two elements are escape codes used to define how
-      things should be printed.  The use case is pfind.py where I want to see
-      directories printed in red with the sky color for the match; plain files are
-      printed with the default text style but matches with sky.  Thus, the default for
-      nomatch_style should be None, meaning the default text style.
-    - TestInvariants() is made to pass, but I'd like to see the conversion work exactly.
-      It could be a problem with decimal roundoff in the colorsys module.
-        
-    - More color names could be handy
-        - White
-            - pearl snow ivory cream egg cotton chiffon salt linen bone frost rice
-              vanilla cloud casper moon ghost milk blizzard polar crystal
-        - Black
-            - ebony crow ink raven onyx soot coal obsidian
-        - Gray
-            - graphite iron pewter cloud silver smoke slate ash dove fog flint charcoal
-              lead coin fossil lava rhino granite shark platinum
-        - Purple
-            - mauve violet lavender plum lilac grape iris orchid thistle prune indigo
-              pansy fuchsia eggplant
-        - Blue
-            - ice baby robin egg blueberry navy slate sky navy indigo cobalt teal ocean
-              azure lapis spruce denim sapphire arctic aqua steel royal
-        - Green
-            - juniper sage lime fern emerald pear moss shamrock pine mint seaweed pickle
-              pistachio basil tea army kelly jungle apple laurel beryl tea moss sage
-              spring copper mint army pea turtle lime leaf kiwi jade teal kelly aqua
-              grass frog emerald shamrock kermit verdigris foilage glade willow mantis
-              broccoli turf
-        - Yellow
-            - canary gold flax butter lemon mustard corn banana dijon honey blonde peach
-              daffodil maize citrus topaz ochre custard tangerine melon straw saffron
-              khaki papaya sand pee sun mustard
-        - Orange
-            - cider rust ginger tiger fire bronze apricot carrot amber yam mango papaya
-              sunset coral paprika nectarine squash salmon caramel umber
-        - Red
-            - cherry rose jam merlot garnet ruby scarlet wine brick blood berry candy
-              lipstick chili barn fuchsia punch rouge tomato flame cerise sunset pink
-              pig barbie inferno claret
-        - Tan
-            - beige oat fawn sand sepia latte oyster desert caramel latte beach almond
-              toffee vanilla butter wheat maple nutmeg
-        - Brown
-            - coffee mocha peanut wood pecan walnut caramel syrup umber tawny penny
-              cedar cognac sienna
-    
-        Not in existing colornames:
-            arctic    chili     ginger    nectarine robin
-            baby      cider     glade     oat       salt
-            barbie    coal      granite   obsidian  soot
-            barn      coin      inferno   oyster    spring
-            basil     cotton    ink       pansy     syrup
-            beach     crow      jam       papaya    tawny
-            beryl     daffodil  jungle    pecan     tiger
-            blizzard  dijon     kelly     pee       turf
-            blonde    dove      lapis     penny     turtle
-            broccoli  egg       lead      pickle    willow
-            candy     foilage   maple     pig       wood
-            carrot    frog      moon      rice      yam
-    '''
-    return gist
+        else:
+            breakpoint() # ∞∞ 
