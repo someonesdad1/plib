@@ -313,7 +313,6 @@ class Trm(collections.UserDict[str, str]):
             # This EXPLICITLY triggers the @on.setter
             prop.fset(self, value)
             return
-        #allowed = {"data", "_stack", "_on", "_always", "_isatty", "_newstyles"}
         allowed = {"data", "_stack", "_on", "_always", "_newstyles"}
         if name in allowed:     # self.data and private underscore variables
             super().__setattr__(name, value)
@@ -324,8 +323,7 @@ class Trm(collections.UserDict[str, str]):
         if name in self.__dict__:
             if 0:
                 print(f"__getattr__:  {name} = {super().__getattribute__(name)!r}", file=sys.stderr)
-            return super().__getattribute__(name)
-        #if not self._on or (not self._isatty and not self._always):
+            return super().__getattribute__(name)   # type: ignore
         if not self._on or (not sys.stdout.isatty() and not self._always):
             if 0:
                 print(f"__getattr__:  {name}, output off, return empty string", file=sys.stderr)
@@ -358,13 +356,13 @@ class Trm(collections.UserDict[str, str]):
         '''Update ourselves with another dict, an iterable of pairs, or keywords.
         '''
         # Iterate with a for loop to make sure __setattr__ is called
-        if len(p) == 1 and hasattr(p[0], "keys"):
+        if len(p) == 1 and hasattr(p[0], "keys"):   # It's a dict
             for key in p[0]:
                 self[key] = p[0][key]
         elif p:
-            for key, value in p:
+            for key, value in p:                    # (key, value) pairs
                 self[key] = value
-        for key in kw:
+        for key in kw:                              # Keyword dict
             self[key] = kw[key]
     def copy(self) -> "Trm":
         'Create a clone including dictionary data and slot states'
@@ -380,24 +378,21 @@ class Trm(collections.UserDict[str, str]):
              ) -> None:
         '''Push our dict state onto the stack and update with styles_dict
         
-        Note the stack doesn't hold the state of __slots__ attributes.  The styles dict
+        Note the stack doesn't hold the state of the attributes.  The styles dict
         must be a dict instance or None.  Update our values with styles_dict's values
         after saving a copy of our values on the stack.
         '''
         if not styles_dict:
-            di: dict[str, str] = {}
-            di.update(self)
-            self._stack.append(di)
+            self._stack.append(dict(self.items()))
             return
         elif not isinstance(styles_dict, dict):
             raise TypeError("styles_dict must be a dict instance")
-        self._stack.append(self.copy())
+        self._stack.append(dict(self.items()))
         self.update(styles_dict)
     def ppop(self) -> dict[str, str]:       # Pop previous state; return last-used state
         '''Get a copy X of ourself, then clear ourself and set our state to that of the
         top of the stack.  Return the state copy X.
         '''
-        X = self.copy()
         if self._stack:     # Make sure stack isn't empty
             self.clear()
             previous = self._stack.pop()

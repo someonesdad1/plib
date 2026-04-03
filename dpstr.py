@@ -283,7 +283,7 @@ if 1:   # RegexpDecorate class
         def __init__(self, mytrm: ty.Any|None=None) -> None:
             self._styles: dict[re.Pattern, tuple[str, str]] = {}   
             # The following is our trm.Trm instance to get escape codes
-            self._u: dict[str, str] = mytrm if mytrm is not None else trm.Trm()
+            self._u: ty.Any = mytrm if mytrm is not None else trm.Trm()
         def register(self, r: re.Pattern, match_style: str, nomatch_style: str|None=None) -> None:
             '''Register a regular expression and its styles
             
