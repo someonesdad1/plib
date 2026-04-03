@@ -170,45 +170,63 @@ if 1:   # Utility
         g.W, g.L = GetScreen()
         return args
 if 1:   # Classes
-    NumType = enum.Enum("NumType", 
-        "tInt tFloat fFlt tComplex tCpx tDecimal tFraction tMpf tMpc tUfloat")
+
+    NumType = enum.Enum("NumType", ("tUnknown", "tInt", "tFloat", "fFlt", "tComplex",
+        "tCpx", "tDecimal", "tRational", "tMpf", "tMpc", "tUnc"))
     class Num:
         '''Represent a general number useful for routine calculations
 
-        The internal representation using mpmath, so it's your responsibility as the
+        The internal representation uses mpmath, so it's your responsibility as the
         user to ensure the mpmath context has sufficient resolution for your problems.
         '''
         def __init__(self, value: str|None = None) -> None:
             if 1:   # Default internal state representation
                 numer: int = 0
                 denom: int = 0
+                # The imaginary parts of real and image are used to represent uncertainty as a
+                # standard deviation
                 real: mpmath.mpc = mpmath.mpc("0")
                 imag: mpmath.mpc = mpmath.mpc("0")
+                mytype: NumType = NumType.tInt
                 if value is None:
                     return
             if 1:   # Convert value to our internal representation
                 if isinstance(value, int):
-                    pass
+                    numer = int(value)
+                    mytype = NumType.tInt
                 elif isinstance(value, float):
-                    pass
+                    real = mpmath.mpc(repr(value), 0)
+                    mytype = NumType.tFloat
                 elif isinstance(value, f.flt):
-                    pass
+                    real = mpmath.mpc(repr(float(value)), 0)
+                    mytype = NumType.tFloat
                 elif isinstance(value, complex):
-                    pass
+                    real = mpmath.mpc(repr(value.real), 0)
+                    imag = mpmath.mpc(repr(value.imag), 0)
+                    mytype = NumType.tComplex
                 elif isinstance(value, f.cpx):
-                    pass
+                    real = mpmath.mpc(repr(float(value.real)), 0)
+                    imag = mpmath.mpc(repr(float(value.imag)), 0)
+                    mytype = NumType.tComplex
                 elif isinstance(value, decimal.Decimal):
-                    pass
+                    real = mpmath.mpc(str(value), 0)
+                    mytype = NumType.tFloat
                 elif isinstance(value, fractions.Fraction):
-                    pass
+                    numer = value.numerator
+                    denom = value.denominator
+                    mytype = NumType.tRational
                 elif isinstance(value, mpmath.mpf):
-                    pass
+                    real = mpmath.mpc(value, 0)
+                    mytype = NumType.tMpf
                 elif isinstance(value, mpmath.mpc):
-                    pass
+                    real = mpmath.mpc(value.real, 0)
+                    imag = mpmath.mpc(value.imag, 0)
+                    mytype = NumType.tMpc
                 elif isinstance(value, uncertainties.UFloat):
-                    pass
+                    real = mpmath.mpc(value.nominal_value, value.std_dev)
+                    mytype = NumType.tUnc
                 elif isinstance(value, str):
-                    pass
+                    raise NotImplementedError("str form not implemented yet")
                 else:
                     raise TypeError(f"Type of {value!r} is not supported")
         def __str__(self) -> str:
