@@ -101,11 +101,10 @@ if 1:   # Header
         __license__   = "MIT License (see /plib/_lic.mit)"
         __test__      = "notest"
         __category__  = "util"
+        __history__   = "Implemented Feb 2026"
         __todo__      = ''' 
 
-            - ∞∞2 Need a test to prove that default behavior is colorizing in a script
-              to stdout, but when stdout isn't a TTY, then there are no escape codes
-              emitted
+            - 
 
         '''
     if 1:   # Global variables
@@ -174,6 +173,15 @@ class Trm(collections.UserDict[str, str]):
         - 24-bit color
             https://en.wikipedia.org/wiki/ANSI_escape_code#24-bit
     '''
+    # The class variables std, normal, and attr are intended to be populated in derived
+    # classes (see TrmDP below for an example of how to populate these class variables
+    # for your own purposes).  
+    # Standard color names to use by default
+    std = set()
+    # Normal terminal text foreground and background colors and attribute(s)
+    normal = ("", "", "")
+    # Text attributes
+    attr = set()
     def __init__(self, initial_data: ty.Optional[ty.Dict[str, str]] = None) -> None:
         '''Calling with None creates an empty container.  Otherwise, you can initialize
         with a regular dict that maps names to desired color names.
@@ -401,14 +409,17 @@ class Trm(collections.UserDict[str, str]):
     def list(self, sort=False, horiz=False, columns=0):     # Print columnized list of defined colors
         'Print defined color attributes to stdout in their colors'
         o = []
+        # The default Trm doesn't have suitable class variables, but e.g. TrmDP does.
+        # The following will still work with derived classes.
+        cls = type(self)
         if sort:
             for i in sorted(self):
-                if i in Trm.attr:   # Don't print the text attributes
+                if i in cls.attr:   # Don't print the text attributes
                     continue
                 o.append(f"{self[i]}{i}{self.n}")
         else:
             for i in self:
-                if i in Trm.attr:   # Don't print the text attributes
+                if i in cls.attr:   # Don't print the text attributes
                     continue
                 o.append(f"{self[i]}{i}{self.n}")
         for i in columnize.Columnize(o, sep=" "*4, horiz=horiz, columns=columns):
@@ -448,7 +459,13 @@ class Trm(collections.UserDict[str, str]):
         def always(self, value: bool):
             self._always = bool(value)
 class TrmDP(Trm):
-    '''Container of my personalized terminal colors.
+    '''Container of my personalized terminal colors
+    
+    This also serves as an example of how to populate a Trm instance with colors of your
+    choice.  The strings in std and normal are sent to the color.Color module, which
+    uses the /plib/data/dpcolornames.py file as a source of attributed color names.
+    Currently, there are over ten thousand color names in this container, so you should
+    be able to find a suitable set.
     '''
     # Standard color names to use by default
     std = set('''red ord orn yon yel ygr lwn grn sea trq cyn sky den roy blu vio lav
@@ -470,13 +487,6 @@ class TrmDP(Trm):
             setattr(self, i, self(attr=i))
         # Add n attribute to return to default color
         self["n"] = self(*TrmDP.normal)
-
-if 0 and __name__ == "__main__":  
-    # ∞∞
-    d = {0: color.Color(0)}
-    u = Trm(d)
-    print(u)
-    exit()
 
 if __name__ == "__main__":  
     from lwtest import run, Assert, raises

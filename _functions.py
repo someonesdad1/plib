@@ -22,6 +22,12 @@ Options
 import ast
 import sys
 from pathlib import Path
+import trm
+t = t.TrmDP()
+t.f_on
+t.f_off
+t.c_on
+t.c_off
 def GetFirstLine(node) -> str:
     '''Extracts the first line of a docstring from a Function or Class node.'''
     doc = ast.get_docstring(node)
@@ -61,6 +67,9 @@ def ScanNodes(nodes, active: bool=True):
             else:
                 # For standard 'if' statements, we treat the contents as active
                 ScanNodes(node.body, active=active)
+def Key():
+    print("Functions: ! = active, !! = inactive")
+    print("Classes:   ~ = active, ~~ = inactive")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -68,3 +77,4 @@ if __name__ == "__main__":
     else:
         for arg in sys.argv[1:]:
             ProcessFile(arg)
+        Key()
