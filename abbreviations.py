@@ -13,6 +13,23 @@ Determine if a string is an English abbreviation (case ignored)
 if 1:  # Header
     if 1:  # Imports
         from collections import defaultdict
+    if 1:   # Core file gist information
+        __gist__      = "Find abbreviations and acronyms"
+        __copyright__ = "Copyright © 2026 Don Peterson"
+        __license__   = "MIT License (see /plib/_lic.mit)"
+        __test__      = "run"
+        __history__   = ''''''
+        __category__  = ""
+        __todo__      = '''
+
+            - Harvest from https://en.wikipedia.org/wiki/Lists_of_abbreviations
+            - Test data consistency
+            - Provide a global variable that's the set of abbreviations; utility
+              functions can lowercase this set or remove periods
+            - Identify abbreviations that are also common words that might appear at the
+              end of a sentence (e.g. 'west.' or 'vet.')?
+
+        '''
 if 1:  # Utility functions to vet data
     def _Missing(name, s):
         '''Print out abbreviations from s that are missing from
@@ -149,9 +166,7 @@ if 1:  # Core functionality
 if __name__ == "__main__":
     from lwtest import run, Assert
     def Test_IsAbbreviation_Data():
-        '''Test for data consistency:
-        '''
-        breakpoint() # ∞∞ 
+        'Test for data consistency'
         # This is the set of abbreviations
         a = IsAbbreviation.abbrev
         # This is the set of abbreviations with no '.' characters
@@ -169,21 +184,3 @@ if __name__ == "__main__":
         Assert(not IsAbbreviation("zzeitschr", no_period=True))
     exit(run(globals(), halt=1)[0])
 
-def GetGist():
-    g = {}
-    g["gist"] = "Find abbreviations and acronyms"
-    g["copy"] = "Copyright © 2026 Don Peterson"
-    g["lic"] = "MIT License (see /plib/_lic.mit)"
-    g["test"] = "run"
-    g["cat"] = ""
-    g["todo"] = '''
-
-        - Harvest from https://en.wikipedia.org/wiki/Lists_of_abbreviations
-        - Test data consistency
-        - Provide a global variable that's the set of abbreviations; utility functions
-          can lowercase this set or remove periods
-        - Identify abbreviations that are also common words that might appear at the end
-          of a sentence (e.g. 'west.' or 'vet.')?
-
-    '''
-    return g

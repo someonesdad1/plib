@@ -1,5 +1,5 @@
 '''
-checkgist.py: Validate and print metadata dunders in Python files.
+Validate and print metadata dunders in Python files
 '''
 if 1:  # Header
     if 1:   # Standard imports
@@ -23,12 +23,25 @@ if 1:  # Header
         g = dptypes.Constant()
         g.dbg = False
         with g:
-            g.required_dunders = {"__gist__", "__copyright__", "__license__", 
-                "__test__", "__category__", "__todo__"}
+            g.required_dunders = {
+                "__gist__",
+                "__copyright__",
+                "__license__", 
+                "__test__",
+                "__category__",
+                "__todo__"
+            }
             g.allowed_test = {"notest", "--test", "run"}
-            g.allowed_category = {"util", "utility", "math", "physics", "ui", "internal", ""}
+            g.allowed_category = {  
+                "util", 
+                "math", 
+                "phys", 
+                "elec", 
+                "color", 
+                ""
+            }
             g.ignored_files: Set[str] = {
-                "__init__.py", "rgbdata.py"
+                "rgbdata.py",
             }
 if 1:   # Core class
     class GistAnalyzer:

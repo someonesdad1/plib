@@ -388,7 +388,7 @@ if 1:   # RegexpDecorate class
             self._styles: dict[str, tuple[str, str]] = {}
             self._master_re: re.Pattern|None = None
             # self._u is our trm.Trm instance for escape codes
-            self._u = mytrm if mytrm is not None else trm.Trm()
+            self._u = mytrm if mytrm is not None else trm.TrmDP()
         def register(self, r: re.Pattern, match_style: str, nomatch_style: str|None=None) -> None:
             '''Register a regular expression and its associated terminal styles.'''
             nm = nomatch_style if nomatch_style is not None else self._u.n
