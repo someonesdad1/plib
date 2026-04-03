@@ -23,27 +23,36 @@ import trm
 import wl2rgb
 u = trm.Trm()
 # Decorating colors
-u.klass = u.grnl
-u.test  = u.wht2
-u.normal = u.n
-u.lines = u.pnkl
-u.file  = u.orn
+u.klass = "grnl"
+u.test  = "wht2"
+u.normal = "wht"
+u.lines = "pnkl"
+u.file  = "orn"
+u.n = u("wht", "blk")
+# Colors for number of lines
+u.w450 = u(450)
+u.w470 = u(470)
+u.w490 = u(490)
+u.w550 = u(550)
+u.w580 = u(580)
+u.w620 = u(620)
+u.w660 = u(660)
 
 def GetNumLinesColor(numlines):
     if numlines <= 10:
-        return u(450)
+        return u.w450
     elif numlines <= 20:
-        return u(470)
+        return u.w470
     elif numlines <= 50:
-        return u(490)
+        return u.w490
     elif numlines <= 100:
-        return u(550)
+        return u.w550
     elif numlines <= 200:
-        return u(580)
+        return u.w580
     elif numlines <= 100:
-        return u(620)
+        return u.w620
     else:
-        return u(660)
+        return u.w660
 def GetNodeMass(node):
     'Calculate lines of code in an AST node'
     if hasattr(node, 'end_lineno') and hasattr(node, 'lineno'):

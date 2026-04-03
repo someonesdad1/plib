@@ -2,73 +2,85 @@ r'''
     
 Trm class for color output in terminals
     
-Trm is a specialized dictionary with elements that are turned into strings that are ANSI
-escape sequences.  It facilitates getting colorized output in python scripts run in a
-terminal.  Here's an example of printing an error message in red:
-    
-    u = Trm()       # Creates an empty Trm instance
-    u.red = "red"   # Defines a dict entry u["red"]
-    u.print(f"{u.red}Error message")
-    
-This produces the string "Error message" on the screen in the red color.  My terminal's
-background color is black, so this is quite visible compared to the normal white
-foreground text.
-    
-The 'u.red = "red"' line is syntactic sugar for making a dict element behave the same
-way as a class attribute.  This works if the string variable xx is such that
-xx.isidentifier() is True, meaning it's a valid python identifier.  The reason for it is
-that it makes the use in f-strings a little less cluttered.  The u.print line could also
-be written u.print(f"{u['red']}Error message"), which is legal python syntax but a
-little harder to read and mentally parse quickly.
-    
-We could have defined the red color with an integer index
-    
-    u[0] = "red" 
-    
-and used u.print(f"{u[0]}Error message").
-    
-If you do the above in the python REPL, you'll find that the "Error message" string is
-printed in red, but then so are all the following lines you type.  This is because the
-ANSI escape code is '\x1b[38;2;254;0;0m', which is the string value of u.red (this
-assumes your terminal is using 24-bit colors).  After printing, we need to have the
-foreground color set back to the default color.  On my terminal, that color is "wht",
-short for "white".  The Trm class has a special name for this foreground color, which is
-"n", short for the normal color.  Thus, define u.n as
-    
-    u.n = "wht"
-    
-If you execute u.print(f"{u.red}Error message") again, the REPL's '>>>' prompt will be
-white.  This works because Trm.print() is an instance method that sends the u.n escape
-code to the output stream at the end of printing if the Trm dict contains the "n" key.
-    
-A common use case of this Trm object is to define a set of colors you want to use for a
-script at script initialization.  Occasionally, perhaps in a function, you'd like to use
-a slightly different set of colors, but you don't want to mess up the script's global
-color definitions.  The Trm is a context manager that makes it easy to handle this case:
-define the new colors you want to use in a dictionary (or another Trm instance).
-Suppose for the above red error message example, we instead wanted to use an orange
-error message.  The pattern to use in the function is 
-    
-    new_colors = {"red": "orn"}
-    with u.uses(new_colors) as v:
-        v.print(f"{v.red}Error message")
+    Trm is a specialized dictionary with elements that are turned into strings that are ANSI
+    escape sequences.  It facilitates getting colorized output in python scripts run in a
+    terminal.  Here's an example of printing an error message in red:
         
-and the global u Trm instance reverts to its original state as the context manager block
-exits.
-    
-If you want to customize the Trm class for your own use:
-    - Choose names of colors you'd like to use from data/dpcolornames.py.  If you like,
-      you can edit data/dp_make_colornames.py to produce the set of color names you'd
-      like to use.
-    - Set the class variable Trm.std to the set of color names you'd like to use.
-    - Set the class variable Trm.normal to the normal foreground color, background
-      color, and style that is normal for your terminal.
-    - You may want to edit the Trm constructor (__init__()) to behave as you wish.  As
-      written, the 'default' keyword of the constructor can let you choose some different
-      sets of color names at initialization.
-    
-The color.Color constructor takes a number of different specifications for color and 
-Color.adjust() lets you fiddle with getting a color.
+        u = Trm()       # Creates an empty Trm instance
+        u.red = "red"   # Defines a dict entry u["red"]
+        u.print(f"{u.red}Error message")
+        
+    This produces the string "Error message" on the screen in the red color.  My terminal's
+    background color is black, so this is quite visible compared to the normal white
+    foreground text.
+        
+    The 'u.red = "red"' line is syntactic sugar for making a dict element behave the same
+    way as a class attribute.  This works if the string variable xx is such that
+    xx.isidentifier() is True, meaning it's a valid python identifier.  It makes the use of
+    color in f-strings a little less cluttered.  The u.print line could also be written
+    u.print(f"{u['red']}Error message"), which is legal python syntax but a little harder to
+    read and mentally parse quickly.
+        
+    We could have defined the red color with an integer index
+        
+        u[0] = "red" 
+        
+    and used u.print(f"{u[0]}Error message").
+        
+    If you do the above in the python REPL, you'll find that the "Error message" string is
+    printed in red, but then so are all the following lines you type.  This is because the
+    ANSI escape code is '\x1b[38;2;254;0;0m', which is the string value of u.red (this
+    assumes your terminal is using 24-bit colors).  After printing, we need to have the
+    foreground color set back to the default color.  On my terminal, that color is "wht",
+    short for "white".  The Trm class has a special name for this foreground color, which is
+    "n", short for the normal color.  Thus, define u.n as
+        
+        u.n = u("wht", "blk")
+        
+    If you execute u.print(f"{u.red}Error message") again, the REPL's '>>>' prompt will be
+    white.  This works because Trm.print() is an instance method that sends the u.n escape
+    code to the output stream at the end of printing if the Trm dict contains the "n" key.
+        
+    A common use case of this Trm object is to define a set of colors you want to use for a
+    script at script initialization.  Occasionally, perhaps in a function, you'd like to use
+    a slightly different set of colors, but you don't want to mess up the script's global
+    color definitions.  The Trm is a context manager that makes it easy to handle this case:
+    define the new colors you want to use in a dictionary (or another Trm instance).
+    Suppose for the above red error message example, we instead wanted to use an orange
+    error message.  The pattern to use in the function is 
+        
+        new_colors = {"red": "orn"}
+        with u.uses(new_colors) as v:
+            v.print(f"{v.red}Error message")
+            
+    and the global u Trm instance reverts to its original state as the context manager block
+    exits.
+
+    You can also use the new_colors dict as follows:  call u.ppush() to push the current
+    set of color definitions on an internal stack.  Call u.update(new_colors) and you'll
+    be using the new set of colors.  When finished, call u.ppop() to pop off the old set
+    of color definitions and restore them to the Trm instance.  Either the context
+    manager or the ppush/ppop methods work the same, but I strongly recommend the
+    context manager approach as you don't have to manually manage things (sooner or
+    later you'll forget to push or pop something).  In fact, the context manager just
+    uses the stack in the identical fashion, but you don't have to remember to push or
+    pop.
+        
+    If you want to customize the Trm class for your own use:
+        - Choose names of colors you'd like to use from data/dpcolornames.py.  If you like,
+        you can edit data/dp_make_colornames.py to produce the set of color names you'd
+        like to use.
+        - Set the class variable Trm.std to the set of color names you'd like to use.
+        - Set the class variable Trm.normal to the normal foreground color, background
+        color, and style that is normal for your terminal.
+        
+    The color.Color constructor takes a number of different specifications for color and 
+    Color.adjust() lets you fiddle with getting a color.
+
+    At some point you may have problems with understanding what's happening,
+    particularly if you define lots of colors in an Trm instance.  It can be handy to
+    use Trm.dump() to print the Trm instance's state to stdout, particularly to grep for
+    a particular escape code.
 
 '''
 if 1:   # Header
@@ -109,6 +121,7 @@ if 1:   # Header
         '''
     if 1:   # Global variables
         yy = pdb.set_trace
+        dbg = False
 class Trm(collections.UserDict[str, str]):
     '''Dictionary used to output escape codes to a terminal.
     
@@ -297,23 +310,26 @@ class Trm(collections.UserDict[str, str]):
         # Note escape code is allowed to be an empty string
         assert isinstance(escape_code, str)
         self.data[name] = escape_code
-    def __getitem__(self, key: str) -> str:             # All attribute access
+    def __getitem__(self, name: str) -> str:             # All attribute access
         '''This is the "gatekeeper", as all attribute and data access goes through this
         function, unlike the builtin dict.
         '''
-        # Internal logic uses the private variables for speed/clarity
-        #if not self._on or (not self._isatty and not self._always):
         if not self._on or (not sys.stdout.isatty() and not self._always):
+            if dbg:
+                print(f"__getitem__:  {name}, output off, return empty string", file=sys.stderr)
             return ""
         # Return the escape code or empty string if missing
-        return self.data.get(key, "")
+        item = self.data.get(name, "")
+        if dbg:
+            print(f"__getitem__:  {name} = {item!r}", file=sys.stderr)
+        return item
     def __setattr__(self, name: str, value: ty.Any) -> None:     # Set an attribute
         '''This function gives us complete control over metadata versus data.  In this
         implementation, the metadata variables are named by 'allowed' below, so these
         are our attributes and go to the superclass.  Everything else is assumed to be a
         user-defined dict key, i.e., a color definition.
         '''
-        if 0:
+        if dbg:
             print(f"Trm.__setattr__: name = {name!r}, value = {value!r}", file=sys.stderr)
         # 1. Check if the class (or any parent) has a PROPERTY named 'name'
         # We look at the class (type(self)), not the instance.
@@ -330,14 +346,14 @@ class Trm(collections.UserDict[str, str]):
     def __getattr__(self, name: str) -> str:
         '''This allows 't.red' instead of t["red"]'''
         if name in self.__dict__:
-            if 0:
+            if dbg:
                 print(f"__getattr__:  {name} = {super().__getattribute__(name)!r}", file=sys.stderr)
             return super().__getattribute__(name)   # type: ignore
         if not self._on or (not sys.stdout.isatty() and not self._always):
-            if 0:
+            if dbg:
                 print(f"__getattr__:  {name}, output off, return empty string", file=sys.stderr)
             return ""
-        if 0:
+        if dbg:
             print(f"__getattr__:  {name}, normal color lookup = {self.data[name]!r}", file=sys.stderr)
         return self.data[name]   # It's a color lookup
     def __enter__(self) -> "Trm":                    # Context manager entry
@@ -361,6 +377,10 @@ class Trm(collections.UserDict[str, str]):
         new = 0 if self._newstyles is None else len(self._newstyles)
         s = "s" if n > 1 else ""
         return f"Trm({n} style{s}, on={on}, always={alw}, stack={ns}, newstyles={new})"
+    def __dir__(self) -> ty.List[str]:
+        'Show standard attributes + all the color keys in the dict'
+        # Mike pointed out this will be appreciated by autocompleters
+        return list(super().__dir__()) + list(self.data.keys())
     def update(self, *p: ty.Any, **kw: ty.Any) -> None:     # Update ourselves with another dict, etc.
         '''Update ourselves with another dict, an iterable of pairs, or keywords.
         '''
@@ -373,16 +393,16 @@ class Trm(collections.UserDict[str, str]):
                 self[key] = value
         for key in kw:                              # Keyword dict
             self[key] = kw[key]
-    def copy(self) -> "Trm":
-        'Create a clone including dictionary data and slot states'
-        cp = Trm()
+    def copy(self) -> "Trm":    # Make a cloned copy
+        'Create a clone instance'
+        cp = type(self)()
         cp.on = self._on
         cp.always = self._always
         cp._stack = self._stack.copy()
         cp._newstyles = self._newstyles.copy() if self._newstyles is not None else None
         cp.update(self)
         return cp
-    def ppush(self,                         # Push our state on stack; update with styles_dict
+    def ppush(self,    # Push our state on stack; update with styles_dict
               styles_dict: ty.Optional[ty.Dict[str, ty.Any]] = None
              ) -> None:
         '''Push our dict state onto the stack and update with styles_dict
@@ -442,10 +462,24 @@ class Trm(collections.UserDict[str, str]):
         'Used to utilize a new set of styles in a context manager block'
         self._newstyles = styles_dict
         return self
-    def __dir__(self) -> ty.List[str]:
-        'Show standard attributes + all the color keys in the dict'
-        # Mike pointed out this will be appreciated by autocompleters
-        return list(super().__dir__()) + list(self.data.keys())
+    def dump(self) -> None:  # Print our state to stdout
+        '''This function dumps the complete state of the Trm instance to stdout.  This
+        is particularly helpful when a lot of colors/escape codes are defined and you
+        want to identify a particular item by its escape code.
+        '''
+        print(f"{type(self)} instance dump:")
+        # Dump attributes
+        print("  Attributes:")
+        for attr in self.__dict__:
+            if attr == "data":
+                continue
+            value = eval(f"self.{attr}")
+            print(f"    {attr:12s} = {value}")
+        # Dump escape codes (data items)
+        w = max(len(i) for i in self.data)
+        print("  Escape codes:")
+        for key in self.data:
+            print(f"    {key:{w}s} = {self.data[key]!r}")
     if 1:   # Properties
         @property
         def on(self) -> bool:
@@ -488,6 +522,13 @@ class TrmDP(Trm):
             setattr(self, i, self(attr=i))
         # Add n attribute to return to default color
         self["n"] = self(*TrmDP.normal)
+
+if __name__ == "__main__":  
+    import trm
+    t = trm.TrmDP()
+    t.red = "red"
+    t.dump()
+    exit()
 
 if __name__ == "__main__":  
     from lwtest import run, Assert, raises

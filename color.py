@@ -2499,6 +2499,9 @@ if __name__ == "__main__":
         P(c.irgb, "RGB")
         P(c.ihsv, "HSV")
         P(c.ihls, "HLS")
+        # Show an 8-bit color equivalent
+        n = RGBtoANSI8bit(*c.irgb)
+        t.print(f"  {t(n)}Nearest 8-bit equivalent color = {n}")
         # Show some variations of this color in different lightness and saturation to
         # help with color selection.  Use the #ffffff form for the color specifier.
         # There currently are only 4 lines printed, so another 10 or 20 would be fine.
@@ -2715,6 +2718,7 @@ if __name__ == "__main__":
             YellowGreen #9ACD32
         ''')
         o = []
+        t = trm.TrmDP()
         if by_hue:
             for item in data.split("\n"):
                 name, spec = item.split()
@@ -2959,5 +2963,3 @@ if __name__ == "__main__":
             ShowShortNames(cmds[0])
         elif first_char == "w":  # Show wavelengths and RGB color specifier
             Wavelengths()
-        else:
-            breakpoint() # ∞∞ 

@@ -424,20 +424,6 @@ if 1:   # RegexpDecorate class
             return had_match
         def __str__(self) -> str:
             return f"RegexpDecorate(<styles={len(self._styles)}>)"
-
-
-    if 0:
-        u = trm.Trm()
-        rd = RegexpDecorate(u)
-        r = re.compile(r"[Mm]adison")
-        fg = u.yel
-        bg = u.n
-        # Note fg and bg must be escape sequences
-        rd.register(r, fg, bg)    # Print matches in light yellow on black
-        for line in open("bb").readlines():
-            rd(line)    # Lines with matches are printed to stdout
-        exit()
-
 if 1:   # Core functionality
     def MatchCapitalization(s: str, t: str) -> str:
         '''Return string t capitalized as string s is
@@ -1773,6 +1759,54 @@ if 1:   # Core functionality
             return neg*int(s, 16)
         else:
             return neg*int(s, 10)
+    def Int2Base(x: int, b: int) -> str:
+        '''Return base b string representation for integer x
+         
+        The digits used are the 62 digits:
+                  10        20        30        40         50       60
+         +....|....+....|....+....|....+....|....+....|....+....|....+.
+        "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" with the
+        leftmost being the least significant.
+
+        Arguments
+            x       Integer whose base b string representation we want (can be negative)
+            b       Integer base on interval [2, 62]
+
+        Example
+            >>> Int2Base(100, 10)
+            '100'
+            >>> Int2Base(100, 20)
+            '50'
+            >>> Int2Base(100, 37)
+            '2q'
+            # Check:  2*37 + 26 = 100
+            >>> Int2Base(100, 62)
+            '1C'
+            # Check:  1*62 + 38 = 100
+
+        '''
+        # Adapted from:
+        # Source - https://stackoverflow.com/a/50959925
+        # Posted by bitsplit, modified by community. See post 'Timeline' for change history
+        # Retrieved 2026-04-03, License - CC BY-SA 4.0
+        base_n_digits = string.digits + string.ascii_lowercase + string.ascii_uppercase
+        if 1:   # Checks
+            assert isinstance(x, int)
+            assert isinstance(b, int)
+            assert 2 <= b <= len(base_n_digits), f"b = {b} too large"
+        result: str = ""
+        if x < 0:
+            sign: str = "-"
+            x = -x
+        else:
+            sign: str = ""
+        while x:
+            q, r = divmod(x, b)
+            result += base_n_digits[r]
+            x = q
+        if result == "":
+            result = "0"
+        return sign + "".join(reversed(result))
 if 1:   # Old util stuff
     def RemoveIndent(s: str, numspaces: int=4) -> str:
         '''Given a multi-line string s, remove the indicated number of spaces from the beginning each
@@ -2018,7 +2052,7 @@ if __name__ == "__main__":
         assert_equal = lwtest.assert_equal
         raises = lwtest.raises
         run = lwtest.run
-        t = trm.Trm()
+        t = trm.TrmDP()
     def Test_Int():
         data = (
             # Positive integers
@@ -2044,8 +2078,23 @@ if __name__ == "__main__":
         )
         for s, n in data:
             Assert(Int(s) == n)
+    def Test_Int2Base():
+        raises(AssertionError, Int2Base, 3, 0)
+        raises(AssertionError, Int2Base, 3.0, 3)
+        raises(AssertionError, Int2Base, 3, 3.0)
+        raises(AssertionError, Int2Base, 3, 1)
+        x = 100
+        Assert(Int2Base(x, 10) == "100")
+        Assert(Int2Base(x, 20) == "50")
+        Assert(Int2Base(x, 37) == "2q")
+        Assert(Int2Base(x, 62) == "1C")
+        #
+        Assert(Int2Base(-x, 10) == "-100")
+        Assert(Int2Base(-x, 20) == "-50")
+        Assert(Int2Base(-x, 37) == "-2q")
+        Assert(Int2Base(-x, 62) == "-1C")
     def Test_RegexpDecorate():
-        u = trm.Trm()
+        u = trm.TrmDP()
         rd = RegexpDecorate(u)
         r = re.compile(r"[Mm]adison")
         # Note fg and bg must be escape sequences
@@ -2685,7 +2734,6 @@ if __name__ == "__main__":
             raises(ValueError, ConvertToNumber, "1/")
             raises(ValueError, ConvertToNumber, "x")
             raises(ValueError, ConvertToNumber, "i+1")
-
     def Test_StringToNumbers():
         '''Test both the 'string to list of numbers' functionality along with the 
         'string to nested list of numbers' functionality.
