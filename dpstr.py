@@ -1799,7 +1799,7 @@ if 1:   # Core functionality
             sign: str = "-"
             x = -x
         else:
-            sign: str = ""
+            sign = ""
         while x:
             q, r = divmod(x, b)
             result += base_n_digits[r]

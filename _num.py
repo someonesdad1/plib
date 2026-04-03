@@ -66,6 +66,7 @@ if 1:  # Header
     if 1:   # Standard imports
         import collections
         import decimal
+        import enum
         import fractions
         import getopt
         import os
@@ -169,6 +170,8 @@ if 1:   # Utility
         g.W, g.L = GetScreen()
         return args
 if 1:   # Classes
+    NumType = enum.Enum("NumType", 
+        "tInt tFloat fFlt tComplex tCpx tDecimal tFraction tMpf tMpc tUfloat")
     class Num:
         '''Represent a general number useful for routine calculations
 
@@ -184,20 +187,31 @@ if 1:   # Classes
                 if value is None:
                     return
             if 1:   # Convert value to our internal representation
-                if isinstance(value, int): pass
-                elif isinstance(value, float): pass
-                elif isinstance(value, f.flt): pass
-                elif isinstance(value, complex): pass
-                elif isinstance(value, f.cpx): pass
-                elif isinstance(value, decimal.Decimal): pass
-                elif isinstance(value, fractions.Fraction): pass
-                elif isinstance(value, mpmath.mpf): pass
-                elif isinstance(value, mpmath.mpc): pass
-                elif isinstance(value, uncertainties.UFloat): pass
-                elif isinstance(value, str): pass
+                if isinstance(value, int):
+                    pass
+                elif isinstance(value, float):
+                    pass
+                elif isinstance(value, f.flt):
+                    pass
+                elif isinstance(value, complex):
+                    pass
+                elif isinstance(value, f.cpx):
+                    pass
+                elif isinstance(value, decimal.Decimal):
+                    pass
+                elif isinstance(value, fractions.Fraction):
+                    pass
+                elif isinstance(value, mpmath.mpf):
+                    pass
+                elif isinstance(value, mpmath.mpc):
+                    pass
+                elif isinstance(value, uncertainties.UFloat):
+                    pass
+                elif isinstance(value, str):
+                    pass
                 else:
                     raise TypeError(f"Type of {value!r} is not supported")
-        def __str__(self) -> None:
+        def __str__(self) -> str:
             'Returns a base 62 representation of the memory location'
             me = dpstr.Int2Base(id(self), 62)
             return f"Num({me!r})"

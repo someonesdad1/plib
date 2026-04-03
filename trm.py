@@ -190,11 +190,11 @@ class Trm(collections.UserDict[str, str]):
     # classes (see TrmDP below for an example of how to populate these class variables
     # for your own purposes).  
     # Standard color names to use by default
-    std = set()
+    std: set[str] = set()
     # Normal terminal text foreground and background colors and attribute(s)
     normal = ("", "", "")
     # Text attributes
-    attr = set()
+    attr: set[str] = set()
     def __init__(self, initial_data: ty.Optional[ty.Dict[str, str]] = None) -> None:
         '''Calling with None creates an empty container.  Otherwise, you can initialize
         with a regular dict that maps names to desired color names.
@@ -419,14 +419,18 @@ class Trm(collections.UserDict[str, str]):
         self._stack.append(dict(self.items()))
         self.update(styles_dict)
     def ppop(self) -> dict[str, str]:       # Pop previous state; return last-used state
-        '''Get a copy X of ourself, then clear ourself and set our state to that of the
-        top of the stack.  Return the state copy X.
+        '''Get a copy (clone) 'myself' of ourself, then clear ourself and set our state to
+        that of the top of the stack.  Return a copy of the popped styles dict.
         '''
         if self._stack:     # Make sure stack isn't empty
+            myself = self.copy()
+            mydict = myself.data.copy() # Copy of my current styles (a dict, not Trm instance)
             self.clear()
-            previous = self._stack.pop()
-            self.update(previous)
-        return X
+            top_of_stack = self._stack.pop()
+            self.update(top_of_stack)   # This is a dict update of str to str mappings
+            return mydict
+        else:
+            raise ValueError("Trm._stack is empty")
     def list(self, sort=False, horiz=False, columns=0):     # Print columnized list of defined colors
         'Print defined color attributes to stdout in their colors'
         o = []
