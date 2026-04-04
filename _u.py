@@ -5,6 +5,11 @@ are:
     - Get 15 digit conversion factors
     - Do dimensional algebra
     - Recognize a variety of units
+
+Conversion of mi/s to m/s:  returned [b'1609.344']
+    - Note that 15 digits were asked for, but 7 were returned.  This can be used by the
+      Num machinery to cause the local instance of the number be formatted to 7 figures
+      only
         
 '''
 if 1:  # Header
@@ -112,23 +117,72 @@ if 1:   # Utility
 if 1:   # Classes
     pass
 if 1:   # Functions
-    def Startup():
-        'Return '
+    pass
 
-if 1:
+if 0:   # Demonstrate a conversion via a single process call
     p = subprocess.PIPE
-    cmd = ["/home/don/.0rc/bin/units",
-           "-f", "//home/don/.0rc/definitions.units",
-           "-d", "15", "-t"]
-    proc = subprocess.Popen((cygwin, "-w", "/tools"), stdout=p, stderr=p)
-    error_lines = proc.stderr.readlines()
-    if error_lines:
-        print("Error:")
-        for i in error_lines:
-            print(f"  {i}")
-        exit(1)
+    loc = "/home/don/.0rc/bin"
+    pgm = f"{loc}/units"
+    defn = f"{loc}/definitions.units"
+    cmd = [pgm, "-f", defn, "-d", "15", "-t", "mi/s", "m/s"]
+    proc = subprocess.Popen(cmd, stdout=p, stderr=p)
     lines = [i.strip() for i in proc.stdout.readlines()]
     print(lines)
+    exit()
+
+if 1:   # Demonstrate opening a pipe for continuous conversation
+    def units_repl():
+        loc = "/home/don/.0rc/bin"
+        pgm = f"{loc}/units"
+        defn = f"{loc}/definitions.units"
+        # We use -t (terse) for clean output and -e (exponential) if needed.
+        # We do NOT use -f here if we want the default units, but since you
+        # have a custom path, we keep it.
+        cmd = [pgm, "-f", defn, "-d", "15", "-t"]
+        # Start the "Engine"
+        # bufsize=1 and universal_newlines=True (text mode) makes line-by-line comms easier
+        proc = subprocess.Popen(
+            cmd,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            bufsize=1
+        )
+        print(f"--- GNU Units Bridge Active (PID: {proc.pid}) ---")
+        print("Enter conversion (e.g., 'mi/s <enter> m/s') or Ctrl+C to exit.\n")
+        try:
+            while True:
+                # 1. Get User Input
+                try:
+                    have_unit = input("Have: ").strip()
+                    want_unit = input("Want: ").strip()
+                except EOFError:
+                    break
+                if not have_unit or not want_unit:
+                    continue
+                # 2. Send to the Pipe
+                # We send both lines followed by a newline
+                proc.stdin.write(f"{have_unit}\n{want_unit}\n")
+                proc.stdin.flush()
+                # 3. Read the Response
+                # In terse mode, units returns exactly one line for the factor.
+                # However, if there's an error (non-conformable), it hits stderr.
+                response = proc.stdout.readline().strip()
+                if response:
+                    print(f"Result: {response}")
+                else:
+                    # Check if it's a 'conformability error' or syntax error
+                    # We use a non-blocking check or simply read the error line
+                    err = proc.stderr.readline().strip()
+                    print(f"ERROR: {err}")
+        except KeyboardInterrupt:
+            print("\nShutting down the bridge...")
+        finally:
+            proc.stdin.close()
+            proc.terminate()
+            proc.wait()
+    units_repl()
     exit()
 
 if __name__ == "__main__":  
