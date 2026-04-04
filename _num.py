@@ -1,6 +1,30 @@
 '''
 General number implementation
 
+Vision:  a single number object for a REPL environment that allows use with physical
+units.  The GNU units program will be the arbiter for the units calculation and it must
+be satisifed for the calculation to proceed to numerical evaluation (or overridden).  
+
+- With the proper semantics and grease, numpy can be used to do the calculations behind
+  the scene.  This isn't for high-speed huge matrices, it's for the 10 to 1000 data a
+  person working at a practical problem might encounter.
+- SQLite can be used as a repository for data, giving speed and, effectively, a single
+  channel IPC method.  Another process in another terminal can have its data be shared
+  by SQLite giving it a namespace that another process can use/list and borrow what's
+  needed.  In general, we want our process' local variables to be locally private, but
+  sometimes we want to share.
+- The minitab environment I remember let data be accessible as column vectors and
+  matrices.  I showed Mike the transformation, stats, and regression tools of xfmpy
+  and explained I want these in the REPL too.
+- Plotting is important for models, but I don't have a GUI handy like matplotlib in WSL.
+  But Plotext can do such things well enough in another terminal window to let you see
+  residual plots, histograms, and probability plots.  The user should be able to run a 
+  command to say "send this data to be plotted in the other window".
+- Persistence:  the db approach gives data persistence so when you start a new REPL in a
+  window, you see the same data you saw when you last exited.  This provides problem
+  continuity, as often you have to e.g. go to a prompt and do some other task.
+
+
 Experiment:  construct a python class that holds a number.  The vision is that this
 number can be an int, float, complex, rational, or a float or complex with uncertainty
 in each element.  Behind the scenes the implementation is done with mpmath.mpf floating
@@ -14,7 +38,6 @@ The formatting will be controlled by the allowed width for the number display.  
 will default to the width of the terminal, but the user can set it to smaller numbers.
 When this width is exceeded, the U+22EF character ⋯ "midline horizontal ellipsis" is
 used to indicate middle character removal to fit things to the current number of spaces.
-
 
     - An annoyance with numbers for calculations is that there are so many of them: int,
       float, complex, Fraction, Decimal, ufloat, mpf, mpc, etc.
