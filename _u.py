@@ -131,7 +131,31 @@ if 0:   # Demonstrate a conversion via a single process call
     exit()
 
 if 1:   # Demonstrate opening a pipe for continuous conversation
-    def units_repl():
+    # Overview:  proc = subprocess.Popen() is used to start a process.  Then a command
+    # loop gets user input (input string and output string) and prints both of them to
+    # the proc.stdin of the units process (note the process was started with the -t
+    # option to make it in terse mode).  If you get a response string, it's processed;
+    # otherwise, read proc.stderr for an error.  
+    # 
+    # Note that GNU units will send back 7 digits if you ask for a mi/s conversion to
+    # base SI units.  This is because of the definition of mi in units is only known to
+    # 7 figures.  This is a nice feature and should be taken advantage of in the Num
+    # conversion:  the default behavior will be that the answer displayed is the minimum
+    # of the number of digits used in the calculation, perhaps defaulting to a minimum
+    # of 2 or 3 (or an annotation like {3} can be off to the side letting you know that
+    # only 3 digits are significant).
+    #
+    # I will make an explicit point in the output of the Num REPL that the number of
+    # figures displayed is determined by e.g. the output of the GNU units program.  This
+    # says absolutely nothing about the uncertainty associated with any relevant
+    # measured value and nothing should be inferred from the number of digits given.
+    # The actual physical undertainty of the numbers used in the program are orthogonal
+    # to the design of the program and are the responsibility of the user, not the
+    # program.  In other words, if you see 1.23, don't make the assumption that the
+    # implied uncertainty is 0.005.  This was OK for freshman college students half a
+    # century ago, but isn't relevant today, as we are more sophisticated about
+    # uncertainty.
+    def GNU_Units_REPL():
         loc = "/home/don/.0rc/bin"
         pgm = f"{loc}/units"
         defn = f"{loc}/definitions.units"
@@ -182,7 +206,7 @@ if 1:   # Demonstrate opening a pipe for continuous conversation
             proc.stdin.close()
             proc.terminate()
             proc.wait()
-    units_repl()
+    GNU_Units_REPL()
     exit()
 
 if __name__ == "__main__":  
