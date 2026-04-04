@@ -243,7 +243,7 @@ if 1:   # Classes
                     elif "." in chars or "e" in chars:  # Assume it's floating point
                         try:
                             self.real = mpmath.mpc(mpmath.mpf(value), 0)
-                            self.mytype = NumType.tFloat
+                            self.mytype = NumType.tMpf
                         except Exception as e:
                             raise ValueError(msg) from e
                     else:   # Assume it's an integer
@@ -321,9 +321,30 @@ if __name__ == "__main__":
                     # As string
                     num = Num(str(x))
                     Assert(num.real.real == mpmath.mpf(str(x)) and num.real.imag == 0)
-                    Assert(num.mytype == T)
+                    Assert(num.mytype == NumType.tMpf)
                 if 1:   # Negative float
                     x, T = -3095.7357, NumType.tFloat
+                    num = Num(x)
+                    Assert(num.real.real == mpmath.mpf(str(x)) and num.real.imag == 0)
+                    Assert(num.mytype == T)
+                    # As string
+                    num = Num(str(x))
+                    Assert(num.real.real == mpmath.mpf(str(x)) and num.real.imag == 0)
+                    Assert(num.mytype == NumType.tMpf)
+            if 1:   # mpmath.mpf
+                if 1:   # Positive mpf
+                    s, T = "3095.7357", NumType.tMpf
+                    x = mpmath.mpf(s)
+                    num = Num(x)
+                    Assert(num.real.real == x and num.real.imag == 0)
+                    Assert(num.mytype == T)
+                    # As string
+                    num = Num(str(x))
+                    Assert(num.real.real == mpmath.mpf(str(x)) and num.real.imag == 0)
+                    Assert(num.mytype == T)
+                if 1:   # Negative mpf
+                    s, T = "-3095.7357", NumType.tMpf
+                    x = mpmath.mpf(s)
                     num = Num(x)
                     Assert(num.real.real == mpmath.mpf(str(x)) and num.real.imag == 0)
                     Assert(num.mytype == T)
