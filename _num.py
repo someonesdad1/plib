@@ -77,6 +77,7 @@ if 1:  # Header
     if 1:   # Custom imports
         import columnize
         import dpstr
+        import dpmath
         import dptypes
         import f
         import mpmath
@@ -181,58 +182,91 @@ if 1:   # Classes
         '''
         def __init__(self, value: str|None = None) -> None:
             if 1:   # Default internal state representation
-                numer: int = 0
-                denom: int = 0
+                self.numer: int = 0
+                self.denom: int = 0
                 # The imaginary parts of real and image are used to represent uncertainty as a
                 # standard deviation
-                real: mpmath.mpc = mpmath.mpc("0")
-                imag: mpmath.mpc = mpmath.mpc("0")
-                mytype: NumType = NumType.tInt
+                self.real: mpmath.mpc = mpmath.mpc("0")
+                self.imag: mpmath.mpc = mpmath.mpc("0")
+                self.mytype: NumType = NumType.tInt
                 if value is None:
                     return
             if 1:   # Convert value to our internal representation
                 if isinstance(value, int):
-                    numer = int(value)
-                    mytype = NumType.tInt
+                    self.numer = int(value)
+                    self.mytype = NumType.tInt
                 elif isinstance(value, float):
-                    real = mpmath.mpc(repr(value), 0)
-                    mytype = NumType.tFloat
+                    self.real = mpmath.mpc(repr(value), 0)
+                    self.mytype = NumType.tFloat
                 elif isinstance(value, f.flt):
-                    real = mpmath.mpc(repr(float(value)), 0)
-                    mytype = NumType.tFloat
+                    self.real = mpmath.mpc(repr(float(value)), 0)
+                    self.mytype = NumType.tFloat
                 elif isinstance(value, complex):
-                    real = mpmath.mpc(repr(value.real), 0)
-                    imag = mpmath.mpc(repr(value.imag), 0)
-                    mytype = NumType.tComplex
+                    self.real = mpmath.mpc(repr(value.real), 0)
+                    self.imag = mpmath.mpc(repr(value.imag), 0)
+                    self.mytype = NumType.tComplex
                 elif isinstance(value, f.cpx):
-                    real = mpmath.mpc(repr(float(value.real)), 0)
-                    imag = mpmath.mpc(repr(float(value.imag)), 0)
-                    mytype = NumType.tComplex
+                    self.real = mpmath.mpc(repr(float(value.real)), 0)
+                    self.imag = mpmath.mpc(repr(float(value.imag)), 0)
+                    self.mytype = NumType.tComplex
                 elif isinstance(value, decimal.Decimal):
-                    real = mpmath.mpc(str(value), 0)
-                    mytype = NumType.tFloat
+                    self.real = mpmath.mpc(str(value), 0)
+                    self.mytype = NumType.tFloat
                 elif isinstance(value, fractions.Fraction):
-                    numer = value.numerator
-                    denom = value.denominator
-                    mytype = NumType.tRational
+                    self.numer = value.numerator
+                    self.denom = value.denominator
+                    self.mytype = NumType.tRational
                 elif isinstance(value, mpmath.mpf):
-                    real = mpmath.mpc(value, 0)
-                    mytype = NumType.tMpf
+                    self.real = mpmath.mpc(value, 0)
+                    self.mytype = NumType.tMpf
                 elif isinstance(value, mpmath.mpc):
-                    real = mpmath.mpc(value.real, 0)
-                    imag = mpmath.mpc(value.imag, 0)
-                    mytype = NumType.tMpc
+                    self.real = mpmath.mpc(value.real, 0)
+                    self.imag = mpmath.mpc(value.imag, 0)
+                    self.mytype = NumType.tMpc
                 elif isinstance(value, uncertainties.UFloat):
-                    real = mpmath.mpc(value.nominal_value, value.std_dev)
-                    mytype = NumType.tUnc
+                    self.real = mpmath.mpc(value.nominal_value, value.std_dev)
+                    self.mytype = NumType.tUnc
                 elif isinstance(value, str):
-                    raise NotImplementedError("str form not implemented yet")
+                    msg = f"{value!r} not recognized as a number"
+                    chars = set(value.lower().strip())
+                    if "/" in chars:    # Assume it's a rational number
+                        try:
+                            self.numer, self.denom = [int(i) for i in value.split("/")]
+                            self.mytype = NumType.tRational
+                        except Exception as e:
+                            raise ValueError(msg) from e
+                    elif "j" in chars or "i" in chars:  # Assume it's complex
+                        re, im = dpmath.ParseComplex(value)
+                        self.real = mpmath.mpc(re, 0)
+                        self.imag = mpmath.mpc(im, 0)
+                        self.mytype = NumType.tComplex
+                    elif "." in chars or "e" in chars:  # Assume it's floating point
+                        try:
+                            self.real = mpmath.mpc(mpmath.mpf(value), 0)
+                            self.mytype = NumType.tFloat
+                        except Exception as e:
+                            raise ValueError(msg) from e
+                    else:   # Assume it's an integer
+                        try:
+                            self.numer = int(value)
+                            self.mytype = NumType.tInt
+                        except Exception as e:
+                            raise ValueError(msg) from e
                 else:
                     raise TypeError(f"Type of {value!r} is not supported")
         def __str__(self) -> str:
-            'Returns a base 62 representation of the memory location'
+            'For now, just use the id number'
             me = dpstr.Int2Base(id(self), 62)
-            return f"Num({me!r})"
+            return f"Num(0x{id(self):x})"
+        def __repr__(self) -> str:
+            'This is detailed info for debugger view'
+            typ = self.mytype
+            s = (f"Num<type={typ}\n"
+                 f"   real:  {self.real}\n"
+                 f"   imag:  {self.imag}\n"
+                 f"   numer: {self.numer}\n"
+                 f"   denom: {self.denom}>")
+            return s
 if 1:   # Functions
     pass
 
@@ -254,9 +288,57 @@ if __name__ == "__main__":
     else:   # For module
         def Demo():
             pass
-        def Test_Basics():
-            num = Num()
-            #print(num)
+        def Test_Constructor():
+            if 1:   # No input
+                num = Num()
+                Assert(num.real == 0 and num.imag == 0)
+                Assert(num.mytype == NumType.tInt)
+            if 1:   # int
+                if 1:   # Positive
+                    x, T = 30957357, NumType.tInt
+                    num = Num(x)
+                    Assert(num.numer == x and num.denom == 0)
+                    Assert(num.mytype == T)
+                    # As string
+                    num = Num(str(x))
+                    Assert(num.numer == x and num.denom == 0)
+                    Assert(num.mytype == T)
+                if 1:   # Negative
+                    x, T = -30957357, NumType.tInt
+                    num = Num(x)
+                    Assert(num.numer == x and num.denom == 0)
+                    Assert(num.mytype == T)
+                    # As string
+                    num = Num(str(x))
+                    Assert(num.numer == x and num.denom == 0)
+                    Assert(num.mytype == T)
+            if 1:   # float
+                if 1:   # Positive float
+                    x, T = 3095.7357, NumType.tFloat
+                    num = Num(x)
+                    Assert(num.real.real == x and num.real.imag == 0)
+                    Assert(num.mytype == T)
+                    # As string
+                    num = Num(str(x))
+                    Assert(num.real.real == mpmath.mpf(str(x)) and num.real.imag == 0)
+                    Assert(num.mytype == T)
+                if 1:   # Negative float
+                    x, T = -3095.7357, NumType.tFloat
+                    num = Num(x)
+                    Assert(num.real.real == mpmath.mpf(str(x)) and num.real.imag == 0)
+                    Assert(num.mytype == T)
+                    # As string
+                    num = Num(str(x))
+                    Assert(num.real.real == mpmath.mpf(str(x)) and num.real.imag == 0)
+                    Assert(num.mytype == T)
+            if 1:   # Complex
+                pass
+            if 1:   # Decimal
+                pass
+            if 1:   # Rational
+                pass
+            if 1:   # Unc
+                pass
         if len(sys.argv) > 1:
             Demo()
         else:

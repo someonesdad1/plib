@@ -29,8 +29,6 @@ if 1:  # Header
         if 0:
             import debug
             debug.SetDebugger()
-    if 1:  # Global variables
-        g = dptypes.Constant()
     if 1:  # Types
         @ty.runtime_checkable
         class SupportsArithmetic(ty.Protocol):
@@ -50,6 +48,35 @@ if 1:  # Header
             Tpound = ty.TypeVar("Tpound", float, complex, ty.Any)
             # For Ceil()
             Tceil = ty.TypeVar("Tceil", float, f.flt, decimal.Decimal, ty.Any)
+    if 1:  # Global variables
+        g = dptypes.Constant()
+    if 1:   # Core file gist information
+        __gist__      = "Math-related functions"
+        __copyright__ = "Copyright © 2014 Don Peterson"
+        __license__   = "MIT License (see /plib/_lic.mit)"
+        __test__      = "run"
+        __history__   = ''' '''
+        __category__  = "math"
+        __todo__      = '''
+
+            - ∞∞2 Write docstring so pydoc works on it
+            - ∞∞2 Divide up into sections by function types
+            - SpiralArcLength() and RollArcLength() are duplicated in pgm/spiral,
+              although this module would be a good location for the spiral-related
+              functions
+            - SignSignificandExponent:  allow it to also process Decimal and mpmath
+              numbers.  Also change the significand to be a string instead of a float;
+              this allows it to be used with mpmath and Decimal numbers.  First check
+              what python scripts under plib would be affected by this type change.
+            - Polynomial stuff:  itertool's examples (e.g. polynomial_eval) may have
+              more efficient/standard implementations that can replace this stuff.
+              Could also be customized to return flt instead of float, although the
+              general techniques are type-unaware.
+            - ∞∞1 Look at ParseComplex in f.py and see if it will handle the general
+              case of arbitrary resolution complex numbers (needed for the Num type
+              prototyping)
+
+        '''
 if 1:  # Polynomial utilities
     def PolynomialEvaluate(x: Tnumber, coefficients: ty.Sequence[Tnumber]) -> Tnumber:
         '''Evaluate a polynomial with the given coefficients
@@ -829,10 +856,10 @@ if 1:   # Stuff from util.py
             return True
         return False
     def ParseComplex(numstring: str) -> tuple[str, str]:
-        '''numstring contains a string representing a complex number that must be of the form 'x+yi';
-        the complex unit can be i or j.  Return (real, imag) where real and imag are the real and
-        imaginary strings of the complex number.  Space characters can be anywhere in the string, as
-        they are removed.
+        '''numstring contains a string representing a complex number that must be of the
+        form 'x+yi'; the complex unit can be i or j.  Return (real, imag) where real and
+        imag are the real and imaginary strings of the complex number.  Space characters
+        can be anywhere in the string, as they are removed.
         '''
         # The method uses a regular expression to recognize the string forms of integers or real
         # numbers.  Applied to the string twice, it picks out the real and imaginary parts.
@@ -1737,28 +1764,3 @@ if __name__ == "__main__":
             Assert(math.isclose(float(SignificantFiguresS(1.2345e-6)), 1.23e-6))
             Assert(math.isclose(SignificantFigures(1.2345e-6), 1.23e-6))
     exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
-
-def GetGist():
-    g = {}
-    g["gist"] = "Math-related functions"
-    g["copy"] = "Copyright © 2014 Don Peterson"
-    g["lic"] = "MIT License (see /plib/_lic.mit)"
-    g["test"] = "run"
-    g["cat"] = "math"
-    g["todo"] = ''' 
-
-            - ∞∞2 Write docstring so pydoc works on it
-            - ∞∞2 Divide up into sections by function types
-            - SpiralArcLength() and RollArcLength() are duplicated in pgm/spiral,
-              although this module would be a good location for the spiral-related
-              functions
-            - SignSignificandExponent:  allow it to also process Decimal and mpmath
-              numbers.  Also change the significand to be a string instead of a float;
-              this allows it to be used with mpmath and Decimal numbers.  First check
-              what python scripts under plib would be affected by this type change.
-            - Polynomial stuff:  itertool's examples (e.g. polynomial_eval) may have
-              more efficient/standard implementations that can replace this stuff.
-              Could also be customized to return flt instead of float, although the
-              general techniques are type-unaware.
-    '''
-    return g

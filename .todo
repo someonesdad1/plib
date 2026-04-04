@@ -3,10 +3,12 @@
 Reorganization core files
 - Look at moving /plib/pgm to /pgm
 - After these movements are done:
+    - Inspect each dp*.py file, looking for behavior that shouldn't be there,
+      particularly in regards to circular imports.  Much of this is caused by including
+      color.py and trm.py.
     - Standardize each dp*.py file to style, imports, etc.
-    - xyzzyy Start static typing each dp*.py file
     - Make sure main docstring lists all the functions & classes
-    - Make sure each file has a gist
+    - Make sure each file has a gist (dunder names)
     - Review test coverage in detail; needs writing:
         - dpseq:Test_Flatten
         - dpstr:Test_GetHash
