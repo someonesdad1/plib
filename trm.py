@@ -251,8 +251,8 @@ class Trm(collections.UserDict[str, str]):
         # fg and bg can be None, a number, string, or a Color instance
         ok = str|int|float|decimal.Decimal|fractions.Fraction|color.Color
         msg = "{} must be None, a string, or a color.Color instance"
-        if fg is None and bg is None and attr is None:
-            raise ValueError("At least one of fg, bg, or attr must be not None")
+        if (fg is None and bg is None and attr is None) or not self._on:
+            return ""
         if fg is not None and not isinstance(fg, ok):
             s = msg.format("fg") + f":\n    It's {fg!r}" 
             raise ValueError(s)
@@ -262,8 +262,6 @@ class Trm(collections.UserDict[str, str]):
         if attr is not None and not isinstance(attr, str):
             s = f"attr must be a string:\n    It's {attr!r}" 
             raise ValueError(s)
-        if not self._on or all(i is None for i in (fg, bg, attr)):
-            return ""
         # Convert to a Color instance (note color.Color is idempotent)
         if fg is not None:
             fg = color.Color(fg)
@@ -528,13 +526,6 @@ class TrmDP(Trm):
         self["n"] = self(*TrmDP.normal)
 
 if __name__ == "__main__":  
-    import trm
-    t = trm.TrmDP()
-    t.red = "red"
-    t.dump()
-    exit()
-
-if __name__ == "__main__":  
     from lwtest import run, Assert, raises
     import io
     import contextlib
@@ -665,6 +656,8 @@ if __name__ == "__main__":
         u.c = u("whtl", "blu", attr="ul")
         Assert(u.c == '\x1b[38;2;255;255;255m\x1b[48;2;0;0;254m\x1b[4m')
         Assert(u.n == '\x1b[38;2;181;181;181m\x1b[48;2;0;0;0m\x1b[0m')
+        u.n = u()   # Returns empty string
+        Assert(not u.n)
     def Test_Trm_ContextManager():
         u = Trm()
         u[0] = "red"

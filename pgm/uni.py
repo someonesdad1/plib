@@ -40,7 +40,7 @@ if 1:   # Header
             import debug
             debug.SetDebugger()
         # Color coding
-        t = trm.Trm()
+        t = trm.TrmDP()
         try:
             from color import PrintMatch, lred, black, Style
             MatchStyle = Style(lred, black)

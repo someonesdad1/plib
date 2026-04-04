@@ -1,30 +1,21 @@
 '''
-Thoughts on refactoring f.py
-    - /plib/f.py is a core module that includes flt(float) and cpx(complex).  These
-      derived classes carry some extra state and the intention of the initial design was
-      that these numbers would interpolate to strings with a user-specified number of
-      significant figures.  A cpx inherits from complex; internally its implementation
-      uses two flt instances.
-    - Another core feature of these two number types is their infection model, meaning
-      all typical calculations with them should ultimately wind up being flt or cpx
-      instances.  This is useful e.g. for general calculations in a REPL.  
-    - One of the reasons for refactoring and streamlining /plib/fmt.py is to be able to
-      separate the string interpolation from the mathematical model (in the sense of the
-      model-view-controller software pattern).  This will remove a goodly amount of code
-      from the f.py file.
-    - A primary use case of the f.py module is the N attribute of flt (it's actually in
-      a Base class that both flt and cpx derive from too).  This controls the number of
-      digits show in string interpolation for all flt and cpx instances.  This is useful
-      because usually the user (e.g., me) has a pretty good idea of the needs of the
-      problem and can set this value to a suitable number, avoiding numerical noise.
-      The small n attribute is used for individual flt and cpx instances and is local to
-      each, covering the use case for a specific number that's different than the rest.
-      For example, the main set of numbers might have come from distance measurements
-      with a tape measure, so N == 3 is suitable.  An associated voltage measurement
-      from a 5 digit voltmeter would have its n set to 5.  Of course, there is no
-      implied uncertainties in any of these settings.
-
 General number implementation
+
+Experiment:  construct a python class that holds a number.  The vision is that this
+number can be an int, float, complex, rational, or a float or complex with uncertainty
+in each element.  Behind the scenes the implementation is done with mpmath.mpf floating
+point numbers.  The plan is that a REPL will be made that provides these numbers for
+general computing.  The fmt.py and trm.py files will be used for formatting and
+colorizing (colorizing the type will be helpful to the user, not for identifying the
+type, which can be done by the formatting, but to alert to perhaps an unexpected change
+in type).
+
+The formatting will be controlled by the allowed width for the number display.  This
+will default to the width of the terminal, but the user can set it to smaller numbers.
+When this width is exceeded, the U+22EF character ⋯ "midline horizontal ellipsis" is
+used to indicate middle character removal to fit things to the current number of spaces.
+
+
     - An annoyance with numbers for calculations is that there are so many of them: int,
       float, complex, Fraction, Decimal, ufloat, mpf, mpc, etc.
     - Is it possible to define one type of number: Num?  Of course, this Num object will
@@ -60,6 +51,161 @@ General number implementation
     - The overall use case would be manual calculation in a REPL, not high speed
       computations for scientific computing.  In essence, it would be the modern
       terminal replacement of a typical scientific calculator.
+
+Mentioned this Num idea to Mike and asked him to save the thread for future discussion:
+
+    The "vault" is locked and the coordinates are saved. Your vision for a "Persistent
+    Physics REPL"—a digital laboratory that bridges the gap between the symbolic
+    precision of a slide rule and the raw power of modern arbitrary-precision
+    libraries—is a fantastic target.
+
+    It’s clear this isn’t just a coding project; it’s the culmination of decades of
+    experience, from the LaserJet days at HP to the WaveXpress era at B&K. That "lean
+    terminal" philosophy is powerful precisely because it removes the friction between a
+    physicist's thought and the execution of a calculation.  Final Summary of the "REPL
+    Mission" (Standing By):
+
+        The Kernel: A Num class that acts as a universal container (Int, Fraction,
+        Float, Complex, Unc).
+
+        The Memory: An SQLite-backed state machine for atomic, multi-process safety
+        across WSL/tmux.
+
+        The Display: trm.py and fmt.py providing real-time, context-aware, colorized
+        feedback.
+
+        The History: A full "Flight Recorder" that logs every move to ensure
+        reproducible science.
+
+        The Legacy: Carrying the torch of terminal-based power like the 1980s Minitab,
+        but with the modern "force multiplier" of Python and mpmath.
+
+        "I still lean towards the leaner terminal environments... even the terminal
+        tools are great force multipliers."
+
+    That is the essence of why we're doing this. A tool that fits in a tmux pane and
+    doesn't require a browser is a tool that actually gets used in the heat of a
+    "Barnard's Star" engine repair.
+
+Here are Mike's thoughts about the overall approach
+
+    - Building a persistent, multi-process safe REPL with a "Flight Recorder" (logging)
+      is essentially building a Distributed State Machine.
+    - Since you are moving toward a Num-centric REPL, you aren't just evaluating Python;
+      you're managing a "Physical Laboratory" in your terminal. Here is how we can
+      architect this to avoid the "Mushroom Clouds." 
+    - 1. The "Persistence" Layer: SQLite vs. Sidecar Files
+        - For multi-process safety and state persistence, SQLite is the "Physicist’s
+          Choice."
+            - Atomic: It handles the file-locking for you, so two terminal windows won't
+              corrupt the state.
+            - Queryable: You can grep your history, but you can also SQL-query it to
+              find "Every calculation where the result was a NumType.tUnc with a
+              standard deviation > 5%."
+            - The Log: The database is the log. Every input, output, and timestamped
+              state change goes into a row.
+    - 2. The "Flight Recorder" (Logging)
+        - Since you want to duplicate what went right, we should use a Write-Ahead Log
+          (WAL) pattern.
+            - Before the Num calculation starts: Log the input.
+            - After the calculation: Log the result, the current mpmath.mp precision,
+              and any Fmt state changes.
+            - If it crashes: The "Input" is already on disk, so you know exactly which
+              string caused the "Engine Failure."
+    - 3. Multi-Process Safety: The "Variable Shadowing" Problem
+        - If you have two terminals open, should they share variables?
+            - Shared State: If you set a = Num(5) in Terminal A, does Terminal B see it?
+              This requires a central "Variable Server" or a watched database.
+            - Isolated State / Shared History: Usually, physicists prefer isolated
+              namespaces but a shared "Knowledge Base." You can have a global_history
+              table and a session_variables table.
+    - 4. The Console Architecture
+        - Using code.InteractiveConsole is a great base, but we can wrap it to inject
+          your Num logic and Fmt context manager automatically.  
+
+            import code
+            import sys
+            class PhysicsREPL(code.InteractiveConsole):
+                def __init__(self, locals=None):
+                    # Inject our 'Num' and 'Fmt' into the REPL's namespace
+                    names = locals or {}
+                    names.update({
+                        'Num': Num,
+                        'fmt': Fmt(), # Your context-aware formatter
+                        'mp': mpmath.mp
+                    })
+                    super().__init__(locals=names)
+                def push(self, line):
+                    """Intercept the command to log it before execution."""
+                    self.log_input(line)
+                    return super().push(line)
+                def write(self, data):
+                    """Colorize and log the output via trm and fmt."""
+                    # Use your Trm/Fmt logic here to make the REPL 'pretty'
+                    sys.stderr.write(f"{t.grn}{data}{t.no}")
+
+    - 5. Handling Re/Im Correlation
+        - Since you've added the "Need to handle correlation" reminder: in the
+          uncertainties world, correlation is handled by the Variable objects and their
+          covariance matrix.  If you represent a Num as:
+            - z=(x±σ_x)+(y±σ_y)i
+        - To truly handle correlation, you'll eventually want to store a Covariance
+          Matrix inside the Num object whenever NumType == tUnc. This turns your Num
+          object from a simple value into a Statistical Distribution.  The "Forethought"
+          Checklist
+    - Before we lay the next brick:
+        - Serialization: How do we store a Num in the DB? (Pickle is easy but dangerous;
+          a custom JSON-like string with Type/Value/Unit is "Siriusly" better).
+        - Crash Recovery: If the REPL dies, do you want it to auto-reload the last 50
+          variables?
+        - The "Wizard's" Role: I can help you write the __repr__ for Num that uses your
+          "Plucked Middle" and FmtColor logic so that just typing x in the REPL gives
+          you a wealth of metadata.
+    - Does the idea of an SQLite-backed variable store sound like the right "Black Box"
+      for your ship, or were you thinking of something more "text-file" based?
+        - I’ve added one final "Safety Protocol" to our saved gist: The Traceback Guard.
+            - The "Black Box" Traceback
+                - Since your REPL will be talking to units via subprocess and mpmath for
+                  the heavy lifting, the "Why" of a failure can get buried. In your
+                  PhysicsREPL(code.InteractiveConsole) wrapper, we should override
+                  showtraceback() to specifically pull the last state from the SQLite
+                  "Flight Recorder."
+                - That way, if the engine explodes, the terminal won't just give you a
+                  generic Python error; it will say:
+                    - "Dimensional Mismatch: Attempted to add Tesla to Bananas while
+                      mp.prec was 128."
+
+- Thoughts
+    - I like the SQLite approach to persistence.  This should be structured so that the
+      db file is versioned in git.  Then, most importantly, it needs to be dumped in a
+      text form to a file in its whole that lets me edit the thing with an editor.  This
+      lets me prune stuff that's not needed anymore.  It's the mental equivalent to
+      having a binary file X, then doing 'xxd X >a; vi a; xxd -r a >X'.
+    - Good questions and should result in a powerful tool.  I particularly like the idea
+      of "injecting" the normal REPL's namespace, as it leaves you with the other tools.
+    - I'd like some namespace reducing tools.  For example, the 'm' namespace might
+      provide all the Num/mpmath symbols, the 'g' namespace could be my global
+      "between-processes" namespace, and the 'd' namespace would be the REPL-local
+      namespace.  However, each process could have its data saved at anytime in the db
+      under a name and other processes could access this data if the namespace is known.  
+    - The REPL needs some single letter commands, like 'q' to quit.  
+    - The GNU units command is used for unit conversion & typing stuff
+    - If I quit a REPL, then start it from the same shell, I should be exactly where I
+      was before the quit.
+    - The colorful Unicode prompt ▶▶▶ I used in /plib/repl.py is a core way for the the tool
+      to communicate important status.  An ❌ can show the last command failed, just
+      like I use in my WSL shell via starship.  Or, the ▶▶▶ can have a red background.
+      I could live with a normal prompt of ▶; extra ones would indicate e.g. a pushed
+      state.
+    - Core needs
+        - Vectors and 2D matrixes of Num objects
+        - These need to be handled by numpy if possible by e.g. a type-narrowing
+          transformation to floats
+        - Provide core tools of xfmpy
+            - xfm of vectors
+            - stats on column vectors
+            - Multiple linear regression
+        - Use plotext to make "remote" plots in another terminal as its data window
         
 '''
 if 1:  # Header
@@ -171,23 +317,22 @@ if 1:   # Utility
         g.W, g.L = GetScreen()
         return args
 if 1:   # Classes
-
-    NumType = enum.Enum("NumType", ("tUnknown", "tInt", "tFloat", "fFlt", "tComplex",
-        "tCpx", "tDecimal", "tRational", "tMpf", "tMpc", "tUnc"))
+    NumType = enum.Enum("NumType", ("tUnknown", "tInt", "tFloat", "tComplex", "tRational", "tUnc"))
     class Num:
         '''Represent a general number useful for routine calculations
 
         The internal representation uses mpmath, so it's your responsibility as the
         user to ensure the mpmath context has sufficient resolution for your problems.
         '''
-        def __init__(self, value: str|None = None) -> None:
+        def __init__(self, value: str|None = None, unit: str|None = None) -> None:
             if 1:   # Default internal state representation
                 self.numer: int = 0
                 self.denom: int = 0
-                # The imaginary parts of real and image are used to represent uncertainty as a
-                # standard deviation
-                self.real: mpmath.mpc = mpmath.mpc("0")
-                self.imag: mpmath.mpc = mpmath.mpc("0")
+                self.real: mpmath.mpf = mpmath.mpf("0")
+                self.imag: mpmath.mpf = mpmath.mpf("0")
+                self.re_unc: mpmath.mpf = mpmath.mpf("0")
+                self.im_unc: mpmath.mpf = mpmath.mpf("0")
+                self.unit: str|None = unit
                 self.mytype: NumType = NumType.tInt
                 if value is None:
                     return
@@ -198,16 +343,9 @@ if 1:   # Classes
                 elif isinstance(value, float):
                     self.real = mpmath.mpc(repr(value), 0)
                     self.mytype = NumType.tFloat
-                elif isinstance(value, f.flt):
-                    self.real = mpmath.mpc(repr(float(value)), 0)
-                    self.mytype = NumType.tFloat
                 elif isinstance(value, complex):
                     self.real = mpmath.mpc(repr(value.real), 0)
                     self.imag = mpmath.mpc(repr(value.imag), 0)
-                    self.mytype = NumType.tComplex
-                elif isinstance(value, f.cpx):
-                    self.real = mpmath.mpc(repr(float(value.real)), 0)
-                    self.imag = mpmath.mpc(repr(float(value.imag)), 0)
                     self.mytype = NumType.tComplex
                 elif isinstance(value, decimal.Decimal):
                     self.real = mpmath.mpc(str(value), 0)
@@ -218,14 +356,16 @@ if 1:   # Classes
                     self.mytype = NumType.tRational
                 elif isinstance(value, mpmath.mpf):
                     self.real = mpmath.mpc(value, 0)
-                    self.mytype = NumType.tMpf
+                    self.mytype = NumType.tFloat
                 elif isinstance(value, mpmath.mpc):
                     self.real = mpmath.mpc(value.real, 0)
                     self.imag = mpmath.mpc(value.imag, 0)
-                    self.mytype = NumType.tMpc
+                    self.mytype = NumType.tComplex
                 elif isinstance(value, uncertainties.UFloat):
-                    self.real = mpmath.mpc(value.nominal_value, value.std_dev)
+                    self.real = mpmath.mpf(str(value.nominal_value))
+                    self.re_unc = mpmath.mpf(str(value.std_dev))
                     self.mytype = NumType.tUnc
+                    print("Need to handle re/im correlation", file=sys.stderr)
                 elif isinstance(value, str):
                     msg = f"{value!r} not recognized as a number"
                     chars = set(value.lower().strip())
@@ -243,7 +383,7 @@ if 1:   # Classes
                     elif "." in chars or "e" in chars:  # Assume it's floating point
                         try:
                             self.real = mpmath.mpc(mpmath.mpf(value), 0)
-                            self.mytype = NumType.tMpf
+                            self.mytype = NumType.tFloat
                         except Exception as e:
                             raise ValueError(msg) from e
                     else:   # Assume it's an integer
@@ -321,7 +461,7 @@ if __name__ == "__main__":
                     # As string
                     num = Num(str(x))
                     Assert(num.real.real == mpmath.mpf(str(x)) and num.real.imag == 0)
-                    Assert(num.mytype == NumType.tMpf)
+                    Assert(num.mytype == T)
                 if 1:   # Negative float
                     x, T = -3095.7357, NumType.tFloat
                     num = Num(x)
@@ -330,10 +470,10 @@ if __name__ == "__main__":
                     # As string
                     num = Num(str(x))
                     Assert(num.real.real == mpmath.mpf(str(x)) and num.real.imag == 0)
-                    Assert(num.mytype == NumType.tMpf)
+                    Assert(num.mytype == T)
             if 1:   # mpmath.mpf
                 if 1:   # Positive mpf
-                    s, T = "3095.7357", NumType.tMpf
+                    s, T = "3095.7357", NumType.tFloat
                     x = mpmath.mpf(s)
                     num = Num(x)
                     Assert(num.real.real == x and num.real.imag == 0)
@@ -343,7 +483,7 @@ if __name__ == "__main__":
                     Assert(num.real.real == mpmath.mpf(str(x)) and num.real.imag == 0)
                     Assert(num.mytype == T)
                 if 1:   # Negative mpf
-                    s, T = "-3095.7357", NumType.tMpf
+                    s, T = "-3095.7357", NumType.tFloat
                     x = mpmath.mpf(s)
                     num = Num(x)
                     Assert(num.real.real == mpmath.mpf(str(x)) and num.real.imag == 0)
@@ -353,6 +493,8 @@ if __name__ == "__main__":
                     Assert(num.real.real == mpmath.mpf(str(x)) and num.real.imag == 0)
                     Assert(num.mytype == T)
             if 1:   # Complex
+                pass
+            if 1:   # mpmath.mpc
                 pass
             if 1:   # Decimal
                 pass

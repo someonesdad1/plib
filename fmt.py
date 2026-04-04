@@ -1,70 +1,5 @@
 '''
 
-Todo items (• is nbs)
-    - Testing
-        - Make sure NBS stuff is working
-        - "fixed" not yet supported
-        - ufloats not yet supported
-        - .spc and .sign attributes not yet supported
-    - Context manager
-        - Lets a block override all attributes and have them return to original at end
-          of block
-    - "unit" keyword to __call__
-    - Colorized output (see FmtColor below)
-        - A fundamental notion is that colorizing can allow the default formatting to
-          change.  Instead of seing the somewhat ugly default python '(1.2-3.4j)' for a
-          complex number, you could set up '1.2 - 3.4i' since it would be in a
-          contrasting color and easy to mentally parse and grok as a whole
-    - Complex number formatting:  '1.2-3.4i', '1.2-i3.4', '1.2•-•3.4i', '1.2•-•3.4i•Ω'
-    - Bugs
-        - z = 1.2-3.4j; fmt(z) -> '(1.2-3.4j).'
-            - Make '(1.2-3.4j)' the default output; this is python's default
-
-Here's Mike's first thoughts about colorizing.  He and I both felt subclassing is the
-way to go.  I'd add a property t that lets you change the Trm dict -- or you just know
-it's there and substitute as needed.
-
-    class FmtColor(Fmt):
-        'Extends Fmt to provide terminal colorization based on object type'
-        def __init__(self, *args: ty.Any, **kwargs: ty.Any):
-            super().__init__(*args, **kwargs)
-            # Use a late-import to prevent circular dependency issues
-            import trm
-            self.t = trm.Trm()
-            # Define default semantic mapping
-            self.t.int = "sky"
-            self.t.float = "ygr"
-            self.t.complex = "pnkl"
-            self.t.special = "orn"
-            self.t.ufloat = "den"
-            # Optional names for better type resolution
-            self.t.mpf = "pur"
-            self.t.mpc = "pnk"
-            self.t.Decimal = "grn"
-            self.t.Fraction = "yon"
-
-        def _finalize_int(self, x: int, active_fmt: str) -> str:
-            "Wraps the integer string in the 'int' color"
-            s = super()._finalize_int(x, active_fmt)
-            return f"{self.t.int}{s}{self.t.off}" if self.t.on else s
-        def _format_scalar(self, x: ty.Any, active_fmt: str) -> str:
-            "Wraps the scalar (float/mpf/Decimal) string in the 'float' color"
-            s = super()._format_scalar(x, active_fmt)
-            # Check for specials (NaN/Inf) first
-            if hasattr(x, 'is_special') and x.is_special:
-                color = self.t.special
-            elif isinstance(x, int):
-                color = self.t.int
-            else:
-                color = self.t.float
-            return f"{color}{s}{self.t.off}" if self.t.on else s
-        def _assemble_complex(self, z: ty.Any, active_fmt: str) -> str:
-            "Wraps the entire complex number in the 'complex' color"
-            s = super()._assemble_complex(z, active_fmt)
-            return f"{self.t.complex}{s}{self.t.off}" if self.t.on else s
-
----------------------------------------------------------------------------
-
 class Fmt:  Format floating point numbers
     
     This module provides string interpolation ("formatting") for integer, floating
@@ -240,6 +175,81 @@ if 1:  # Header
         #   TakeApart is a class that takes apart numbers into string components
         #   fmt is a convenience instance of Fmt
         __all__ = "Fmt fmt".split()
+    if 1:   # Core file gist information
+        __gist__      = "Format numbers"
+        __copyright__ = "Copyright © 2008, 2012, 2021, 2026 Don Peterson"
+        __license__   = "MIT License (see /plib/_lic.mit)"
+        __test__      = "--test"
+        __history__   = '''Major refactor in Mar 2026 with help from Mike '''
+        __category__  = "math"
+        __todo__      = ''' 
+
+            - Context manager
+                - Use stack to save all attributes that don't start with an underline
+            - Testing (• is nbs)
+                - Make sure NBS stuff is working
+                - "fixed" not yet supported
+                - ufloats not yet supported
+                - .spc and .sign attributes not yet supported
+            - Context manager
+                - Lets a block override all attributes and have them return to original
+                  at end of block
+            - "unit" keyword to __call__
+            - Colorized output (see FmtColor below)
+                - A fundamental notion is that colorizing can allow the default
+                  formatting to change.  Instead of seing the somewhat ugly default
+                  python '(1.2-3.4j)' for a complex number, you could set up '1.2 -
+                  3.4i' since it would be in a contrasting color and easy to mentally
+                  parse and grok as a whole
+            - Complex number formatting:  '1.2-3.4i', '1.2-i3.4', '1.2•-•3.4i',
+              '1.2•-•3.4i•Ω'
+            - Bugs
+                - z = 1.2-3.4j; fmt(z) -> '(1.2-3.4j).'
+                    - Make '(1.2-3.4j)' the default output; this is python's default
+
+            Here's Mike's first thoughts about colorizing.  He and I both felt
+            subclassing is the way to go.  I'd add a property t that lets you change the
+            Trm dict -- or you just know it's there and substitute as needed.
+
+            class FmtColor(Fmt):
+                'Extends Fmt to provide terminal colorization based on object type'
+                def __init__(self, *args: ty.Any, **kwargs: ty.Any):
+                    super().__init__(*args, **kwargs)
+                    import trm      # Late-import to avoid circular dependency
+                    self.t = trm.Trm()
+                    # Define default semantic mapping
+                    self.t.int = "sky"
+                    self.t.float = "ygr"
+                    self.t.complex = "pnkl"
+                    self.t.special = "orn"      # inf and nan
+                    self.t.ufloat = "den"
+                    # Optional names for better type resolution
+                    self.t.mpf = "pur"
+                    self.t.mpc = "pnk"
+                    self.t.Decimal = "grn"
+                    self.t.Fraction = "yon"
+                def _finalize_int(self, x: int, active_fmt: str) -> str:
+                    "Wraps the integer string in the 'int' color"
+                    s = super()._finalize_int(x, active_fmt)
+                    return f"{self.t.int}{s}{self.t.off}" if self.t.on else s
+                def _format_scalar(self, x: ty.Any, active_fmt: str) -> str:
+                    "Wraps the scalar (float/mpf/Decimal) string in the 'float' color"
+                    s = super()._format_scalar(x, active_fmt)
+                    # Check for specials (NaN/Inf) first
+                    if hasattr(x, 'is_special') and x.is_special:
+                        color = self.t.special
+                    elif isinstance(x, int):
+                        color = self.t.int
+                    else:
+                        color = self.t.float
+                    return f"{color}{s}{self.t.off}" if self.t.on else s
+                def _assemble_complex(self, z: ty.Any, active_fmt: str) -> str:
+                    "Wraps the entire complex number in the 'complex' color"
+                    s = super()._assemble_complex(z, active_fmt)
+                    return f"{self.t.complex}{s}{self.t.off}" if self.t.on else s
+
+        '''
+
 if 0:  # Utility
     # This is from lwtest.py and is inserted here to avoid a circular import
     def Assert(cond, msg="", debug=False):
@@ -1719,9 +1729,17 @@ else:   # New TakeApart/Fmt
             return cls(ta.sign, int_p, frac_p, str(target_exp) if target_exp != 0 else '')
     class Fmt:
         def __init__(self, digits: int = 3, fmt: str = 'fix'):
+            # Maintenance warning:  do not add attributes that are not "simple" (i.e.,
+            # that might require deep copying to duplicate), as the context manager
+            # state behavior depends on having simple attributes.
+            #
+            # In addition, if maintenance changes to using properties later, the dict
+            # update() method bypasses, the properties, so you'll need to use the
+            # __setattr__(self, k, v) loop to get things to work.
             self.cuddled = True     # No spaces around signs/operators (e.g., 1+2j vs 1 + 2j)
             self.deg = False        # Use degrees for polar complex notation instead of radians
             self.exp_char = 'e'     # Character used for scientific notation (e.g., 'e', 'E', or 'D')
+            self.mul_char = '×'     # For e.g., 3.14×10⁰
             self.fmt = fmt          # Default mode: 'fix' (auto), 'sci', 'eng', 'engsi', 'engsic'
             self.high = 1e16        # Upper threshold to switch from 'fix' to 'sci' mode
             self.imag_unit = 'j'    # Character for the imaginary part (e.g., 'j', 'i')
@@ -1738,8 +1756,10 @@ else:   # New TakeApart/Fmt
             self.unit = ''          # Physical unit string to append (e.g., 'V', 'Hz', 'Ω')
             self.width = None       # Fixed width for padding (not yet fully implemented)
             self.maxlen = 20000     # Safety governor: max string length before ValueError
-            self._si = {-18:'a',-15:'f',-12:'p',-9:'n',-6:'µ',-3:'m',0:'',3:'k',6:'M',9:'G',12:'T',15:'P'}
-            self._sup = str.maketrans('0123456789+-', '⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻')
+            if 1:   # Private attributes
+                self._si = {-18:'a',-15:'f',-12:'p',-9:'n',-6:'µ',-3:'m',0:'',3:'k',6:'M',9:'G',12:'T',15:'P'}
+                self._sup = str.maketrans('0123456789+-', '⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻')
+                self._stack = []    # Allow push/pop & context management
         def __call__(self, x, n=None, fmt=None):
             if isinstance(x, (str, bytes)): 
                 return x
@@ -1870,15 +1890,49 @@ else:   # New TakeApart/Fmt
         def fix(self, x, n=None): return self(x, n=n, fmt='fix')
         def engsi(self, x, n=None): return self(x, n=n, fmt='engsi')
         def engsic(self, x, n=None): return self(x, n=n, fmt='engsic')
+        def push(self) -> None:
+            'Capture all current public attributes into the stack'
+            # We only snapshot attributes that don't start with '_'
+            snapshot = {k: v for k, v in self.__dict__.items() if not k.startswith('_')}
+            self._stack.append(snapshot)
+        def pop(self) -> None:
+            'Restore previous state and prune any attributes added during the block'
+            if not self._stack:
+                return
+            state = self._stack.pop()
+            # Identify current public attributes
+            current_keys = [k for k in self.__dict__ if not k.startswith('_')]
+            # If it's not in the 'state' we just popped, it was added inside the 'with' block.
+            # We prune it to return to a clean "known state."
+            for k in current_keys:
+                if k not in state:
+                    delattr(self, k)
+            # Restore the values for everything else
+            self.__dict__.update(state)
+        def __enter__(self) -> "Fmt":
+            '''Context manager: pushes current state
+            
+            WARNING: Any public attributes added inside this block will be deleted upon
+            exit. Define them before 'with' to persist them.
+            '''
+            self.push()
+            return self
+        def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+            self.pop()
 if 1:   # Public convenience instance of Fmt()
     fmt = Fmt()
+
 if 0 and __name__ == "__main__":  
-    if 1:   
-        x = decimal.Decimal("3.141592653589793")
-        print(f"x = {x}")
-        yy()
-        s = fmt(x, fmt="sci")
-        print(f"fmt(x) = {s}")
+    # Utility for quick tests/prototyping
+    x = decimal.Decimal("3.141592653589793")
+    print(f"x = {x}")
+    print(f"fmt(x) = {fmt(x, fmt='sci')}")
+    print("entering context manager:  print to 10 digits")
+    with fmt as f:
+        f.n = 10
+        print(f"fmt(x) = {fmt(x, fmt='sci')}")
+    print("out of context manager:  back to default 3 digits")
+    print(f"fmt(x) = {fmt(x, fmt='sci')}")
     exit()
 
 if __name__ == "__main__":
@@ -1902,7 +1956,7 @@ if __name__ == "__main__":
         Assert = lwtest.Assert
         raises = lwtest.raises
         run = lwtest.run
-        t = trm.Trm()
+        t = trm.TrmDP()
     if 1:   # Global variables
         D = Decimal = decimal.Decimal
         d: dict[object, object] = {}  # Options dictionary
@@ -1918,186 +1972,211 @@ if __name__ == "__main__":
         t.si = t.pnkl   # Engsi notation
         t.em = t.purl   # Emphasis
         t.err = t.red   # Error in digits
+        # Width of screen
+        W = 88
     def Demo():
         t.on = True if sys.stdout.isatty() else False
         f = fmt
-        #if 1:   # Introduction
-        t.print(wrap.dedent(f'''
-        {t.t}Demonstration of Fmt class features:  {t.em}f = Fmt(){t.n}
-            Formatting (string interpolation) is gotten by calling the Fmt instance as a
-            function:  {t.f}f(x){t.n}.  That function call is its only public interface except
-            for the attributes.  x can be an integer, real, or complex number, including
-            python integer/float/complex, python decimal.Decimal, and mpmath mpf and mpc.
-            
-            Relevant Fmt instance attributes:
-                - n     Number of displayed digits
-        '''))
-        #yy
-        s = "math.pi*1e5"
-        x = eval(s)
-        # Standard formatting
-        print(wrap.dedent(f'''
-        {t.t}Usual python float formatting:{t.n}  x = {s}
-            repr(x) = str(x) = {t.u}{x!s}{t.n}
-            Though accurate, there are too many digits for easy comprehension.  The
-            Fmt class defaults to showing {f.n} digits and the trailing radix helps
-            you identify that it's a floating point number.
-        '''))
-        t.print(f'{t.em}fmt="fix":  Shows desired number of figures')
-        print(f'  {t.f}f(x) = f(x, fmt="fix"){t.n} = {t.fix}{f(x)}{t.n} (defaults to {f.n} digits)')
-        t.print(f"{t.t}Remove trailing decimal point:  {t.f}f.rtdp = True")
-        f.rtdp = True
-        t.print(f"  {t.f}f(x) = {t.fix}{f(x)}")
-        f.rtdp = False
-        # More digits
-        n = 10
-        t.print(f"{t.t}Set to {n} digits:  {t.f}f.n = {n}")
-        f.n = n
-        t.print(f"  {t.f}f(x) = {t.fix}{f(x)}")
-        t.print(f"{t.t}Override f.n digits:")
-        t.print(f"  {t.f}f(x, n=5){t.n} = {t.fix}{f(x, n=5)}")
-        t.print(f"{t.t}Remove trailing zeros:")
-        t.print(f"  {t.f}f(1/4) = {t.fix}{f(1/4)} f.rtz = False")
-        f.rtz = True
-        t.print(f"  {t.f}f(1/4) = {t.fix}{f(1/4)} {' '*8}f.rtz = True")
-        f.rtz = False
-        t.print(f"{t.t}Remove leading zero of decimal fraction:")
-        t.print(f"  {t.f}f(1/4) = {t.fix}{f(1/4)} f.rlz = False")
-        f.rlz = True
-        t.print(f"  {t.f}f(1/4) = {t.fix}{f(1/4)} {' '*1}f.rlz = True")
-        f.rlz = False
-        f.n = 3
-        t.print(f'{t.em}fmt="fixed":  Shows fixed number of decimal places')
-        print(f'  {t.f}f(x) = f(x, fmt="fixed", n=2){t.n} = {t.fix}'
-              f'{f(x, fmt="fixed", n=2)}{t.n} (show to second decimal place)')
-        # Change scientific notation thresholds
-        t.print(f'{t.em}fmt="sci"  Scientific notation')
-        print("Change transition thresholds to scientific notation:")
-        f.high = 1e6
-        f.low = 1e-6
-        t.print(f"  {t.f}f.high{t.n} = {t.sci}{f.sci(f.high, n=1)}")
-        t.print(f"  {t.f}f.low{t.n}  = {t.sci}{f.sci(f.low, n=1)}")
-        print(f"  {t.fix}{f(pi*1e5)}{t.n} < f.high so use fix")
-        print(f"  {t.sci}{f(pi*1e6)}{t.n} > f.high so use sci")
-        print(f"  {t.fix}{f(pi*1e-6)}{t.n} > f.low so use fix")
-        print(f"  {t.sci}{f(pi*1e-7)}{t.n} < f.low so use sci")
-        # Get scientific and engineering notations
-        t.print(f"{t.t}Force use of scientific and engineering notation")
-        t.print(f"  sci:  {t.f}f.sci(pi*1e-7){t.n}        = {t.sci}{f.sci(pi*1e-7)}")
-        t.print(f"        {t.f}f(pi*1e-7, fmt='sci'){t.n} = {t.sci}{f(pi*1e-7, fmt='sci')}")
-        t.print(f"  eng:  {t.f}f.eng(pi*1e-7){t.n}        = {t.eng}{f.eng(pi*1e-7)}")
-        t.print(f"        {t.f}f(pi*1e-7, fmt='eng'){t.n} = {t.eng}{f(pi*1e-7, fmt='eng')}")
-        exit() #∞∞ 
-        # Use Unicode characters for scientific notation
-        f.u = True
-        t.print(f"{t.em}Unicode    {t.n}{t.t}Set f.u to True to use Unicode characters in sci and eng exponents:")
-        t.print(f"  {t.f}f.sci(pi*1e6)){t.n} = {t.sci}{f.sci(pi*1e6)}{t.n}   f.u = True")
-        t.print(f"  {t.f}f.eng(pi*1e-7){t.n} = {t.eng}{f.eng(pi*1e-7)}{t.n}   f.u = True")
-        f.u = False
-        # Set low & high to None to always get fixed point
-        t.print(f"{t.em}Always use fixed point")
-        f.low = f.high = None
-        t.print(f"  {t.t}Set {t.f}f.low{t.n} and {t.f}f.high{t.n} to None always use fixed point:")
-        t.print(f"  {t.f}f(pi*1e-27){t.n} = {t.fix}{f(pi*1e-27)}")
-        t.print(f"  {t.f}f(pi*1e57){t.n} = {t.fix}{f(pi*1e57)}")
-        print(wrap.dedent('''
-        Large and small enough numbers will still require scientific notation (the
-        default processing switches to scientific notation if an interpolation takes
-        up more than a fourth of the screen area).'''))
-        f.high = 1e6
-        f.low = 1e-6
-        # Big exponents
-        print(wrap.dedent(f'''
-        {t.em}Big numbers{t.n}   {t.t}Fixed point, scientific, and engineering formatting should work
-        for numbers of arbitrary magnitudes as long as an exception isn't encountered.
-        '''))
-        t.print(f"  {t.f}f(Decimal('1e999999')){t.n} = {t.sci}{f(D('1e999999'))}")
-        t.print(f"  {t.f}f(Decimal('1e-999999')){t.n} = {t.sci}{f(D('1e-999999'))}")
-        try:
-            f(D("1e1000000"))
-        except decimal.Overflow:
-            t.print(f'  {t.f}f(Decimal("1e1000000")){t.n}', "results in overflow")
-        t.print(f'  {t.f}f(Decimal("1e-100000000")){t.n}', "underflow that gives 0")
-        if 1:
-            x = mpmath.mpf(100)
-            y = mpmath.fac(x)
-            z = y**y
-            print(wrap.dedent('''
-            mpmath lets you calculate y = x**x where x is 100!:
-            y = {fmt(z)} (the exponent is 1.47e160)
+        if 1:   # Introduction
+            t.print(wrap.dedent(f'''
+            {t.t}Demonstration of Fmt class features:  {t.em}f = Fmt(){t.n}
+                Formatting (string interpolation) is gotten by calling the Fmt instance as a
+                function:  {t.f}f(x){t.n}.  That function call is its only public interface except
+                for the attributes.  x can be an integer, real, or complex number, including
+                python integer/float/complex, python decimal.Decimal, and mpmath mpf and mpc.
+                
+                Relevant Fmt instance attributes:
+                    - n     Number of displayed digits
             '''))
-        else:
-            print(wrap.dedent('''
-            If you install mpmath, you can handle/format large numbers.  For example,
-            if x = 100!, then x**x is a large number with an exponent of 1.47e160 and
-            fmt(x**x) will format the number properly.
+            #yy
+            s = "math.pi*1e5"
+            x = eval(s)
+            # Standard formatting
+            print(wrap.dedent(f'''
+            {t.t}Usual python float formatting:{t.n}  x = {s}
+                repr(x) = str(x) = {t.u}{x!s}{t.n}
+                Though accurate, there are too many digits for easy comprehension.  The
+                Fmt class defaults to showing {f.n} digits and the trailing radix helps
+                you identify that it's a floating point number.
             '''))
-        # Decimals with lots of digits
-        n = 20
-        t.print(wrap.dedent(f'''
-        {t.em}Digits{t.n}  {t.t}You can ask for any number of digits, but the maximum given will be
-        a number consistent with the numerical type's precision.  A float is good to
-        about 15 digits.  Decimal and mpmath numbers depend on the current context's
-        precision.  The expression evaluated is y = 100000*sin(pi/4):
-        '''))
-        with decimal.localcontext() as ctx:
-            ctx.prec = n
-            x = 100000*decimalmath.sin(decimalmath.pi()/4)
-            t.print(
-                f"  y = {t.fix}{fmt(x, n=n)}{t.n} (Decimal calculation to 20 digits)"
-            )
-            y = 100000*math.sin(math.pi/4)
-            ys, m = fmt(y, n=n), 16
-            bad = f"{t.fix}{ys[:m]}{t.err}{ys[m:]}{t.n}"
-            t.print(f"  y = {bad}      (float calculation to 15 digits)")
-            n = 4
-            t.print(f"  sci(y)    to {n} digits = {t.sci}{f(x, fmt='sci', n=n)}")
-            n = 5
-            t.print(f"  eng(y)    to {n} digits = {t.eng}{f(x, fmt='eng', n=n)}")
-            n = 6
-            t.print(f"  engsi(y)  to {n} digits = {t.si}{f(x, fmt='engsi', n=n)}")
-            n = 7
-            t.print(f"  engsic(y) to {n} digits = {t.si}{f(x, fmt='engsic', n=n)}")
-        t.print(wrap.dedent(f'''
-        {t.em}SI notation{t.n}    The {t.f}f.engsi{t.n} method supplies an SI prefix after the number to
-        indicate the number's magnitude.  You can then append a physical unit string
-        to get proper SI syntax:  {t.u}{f(x, fmt="engsi")}Ω{t.n}.  {t.f}f.engsic{t.n} does the same except the prefix
-        is cuddled: {t.u}{f(x, "engsic")}Ω{t.n} (illegal SI syntax, but sometimes useful).
-        '''))
-        # Complex numbers
-        z = complex(3.45678, -6.78901)
-        fmt.imag_unit = "j"
-        t.print( wrap.dedent(f'''
-        {t.em}Complex numbers{t.n}    These are handled by formatting each floating point
-        component separately.  Let z = complex(3.45678, -6.78901):
-            str(z) = {t.f}{str(z)}{t.n}
-            fmt(z) = {t.f}{fmt(z)}{t.n}
-        Use the Fmt object's attributes to change the formatted form:
-        '''))
-        w, sp = 25, " "*4
-        fmt.imag_unit = "i"
-        s = 'fmt.imag_unit = "i"'
-        t.print(f"{sp}{s:{w}s} {t.f}{fmt(z)}{t.n}")
-        fmt.cuddled = True
-        s = "fmt.cuddled = True"
-        t.print(f"{sp}{s:{w}s} {t.f}{fmt(z)}{t.n}")
-        fmt.polar = True
-        fmt.deg = False
-        s = "fmt.polar = True"
-        t.print(f"{sp}{s:{w}s} {t.f}{fmt(z)}{t.n} (in radians)")
-        fmt.deg = True
-        s = "fmt.deg = True"
-        t.print(f"{sp}{s:{w}s} {t.f}{fmt(z)}{t.n} (in degrees)")
-        fmt.ul = True
-        s = "fmt.ul = True"
-        t.print(f"{sp}{s:{w}s} {t.f}{fmt(z)}{t.n}")
-        fmt.polar = False
-        fmt.comp = True
-        fmt.cuddled = True
-        s = "fmt.comp = True"
-        t.print(f"{sp}{s:{w}s} {t.f}{fmt(z)}{t.n}  (fmt.cuddled True)")
-        fmt.cuddled = False
-        t.print(f"{sp}{'':{w}s} {t.f}{fmt(z)}{t.n} (fmt.cuddled False)")
+            t.print(f'{t.em}fmt="fix":  Shows desired number of figures')
+            print(f'  {t.f}f(x) = f(x, fmt="fix"){t.n} = {t.fix}{f(x)}{t.n} (defaults to {f.n} digits)')
+            t.print(f"{t.t}Remove trailing decimal point:  {t.f}f.rtdp = True")
+            f.rtdp = True
+            t.print(f"  {t.f}f(x) = {t.fix}{f(x)}")
+            f.rtdp = False
+            # More digits
+            n = 10
+            t.print(f"{t.t}Set to {n} digits:  {t.f}f.n = {n}")
+            f.n = n
+            t.print(f"  {t.f}f(x) = {t.fix}{f(x)}")
+            t.print(f"{t.t}Override f.n digits:")
+            t.print(f"  {t.f}f(x, n=5){t.n} = {t.fix}{f(x, n=5)}")
+            t.print(f"{t.t}Remove trailing zeros:")
+            t.print(f"  {t.f}f(1/4) = {t.fix}{f(1/4)} f.rtz = False")
+            f.rtz = True
+            t.print(f"  {t.f}f(1/4) = {t.fix}{f(1/4)} {' '*8}f.rtz = True")
+            f.rtz = False
+            t.print(f"{t.t}Remove leading zero of decimal fraction:")
+            t.print(f"  {t.f}f(1/4) = {t.fix}{f(1/4)} f.rlz = False")
+            f.rlz = True
+            t.print(f"  {t.f}f(1/4) = {t.fix}{f(1/4)} {' '*1}f.rlz = True")
+            f.rlz = False
+            f.n = 3
+            t.print(f'{t.em}fmt="fixed":  Shows fixed number of decimal places')
+            print(f'  {t.f}f(x) = f(x, fmt="fixed", n=2){t.n} = {t.fix}'
+                  f'{f(x, fmt="fixed", n=2)}{t.n} (show to second decimal place)')
+            # Change scientific notation thresholds
+            t.print(f'{t.em}fmt="sci"  Scientific notation')
+            print("Change transition thresholds to scientific notation:")
+            f.high = 1e6
+            f.low = 1e-6
+            t.print(f"  {t.f}f.high{t.n} = {t.sci}{f.sci(f.high, n=1)}")
+            t.print(f"  {t.f}f.low{t.n}  = {t.sci}{f.sci(f.low, n=1)}")
+            print(f"  {t.fix}{f(pi*1e5)}{t.n} < f.high so use fix")
+            print(f"  {t.sci}{f(pi*1e6)}{t.n} > f.high so use sci")
+            print(f"  {t.fix}{f(pi*1e-6)}{t.n} > f.low so use fix")
+            print(f"  {t.sci}{f(pi*1e-7)}{t.n} < f.low so use sci")
+            # Get scientific and engineering notations
+            t.print(f"{t.t}Force use of scientific and engineering notation")
+            t.print(f"  sci:  {t.f}f.sci(pi*1e-7){t.n}        = {t.sci}{f.sci(pi*1e-7)}")
+            t.print(f"        {t.f}f(pi*1e-7, fmt='sci'){t.n} = {t.sci}{f(pi*1e-7, fmt='sci')}")
+            t.print(f"  eng:  {t.f}f.eng(pi*1e-7){t.n}        = {t.eng}{f.eng(pi*1e-7)}")
+            t.print(f"        {t.f}f(pi*1e-7, fmt='eng'){t.n} = {t.eng}{f(pi*1e-7, fmt='eng')}")
+    
+            # Use Unicode characters for scientific notation
+            f.u = True
+            t.print(f"{t.em}Unicode    {t.n}{t.t}Set f.u to True to use Unicode characters in sci and eng exponents:")
+            t.print(f"  {t.f}f.sci(pi*1e6)){t.n} = {t.sci}{f.sci(pi*1e6)}{t.n}   f.u = True")
+            t.print(f"  {t.f}f.eng(pi*1e-7){t.n} = {t.eng}{f.eng(pi*1e-7)}{t.n}   f.u = True")
+            f.u = False
+            # Set low & high to None to always get fixed point
+            t.print(f"{t.em}Always use fixed point")
+            f.low = f.high = None
+            t.print(f"  {t.t}Set {t.f}f.low{t.n} and {t.f}f.high{t.n} to None always use fixed point:")
+            t.print(f"  {t.f}f(pi*1e-27){t.n} = {t.fix}{f(pi*1e-27)}")
+            t.print(f"  {t.f}f(pi*1e57){t.n} = {t.fix}{f(pi*1e57)}")
+            print(wrap.dedent('''
+            Large and small enough numbers will still require scientific notation (the
+            default processing switches to scientific notation if an interpolation takes
+            up more than a fourth of the screen area).'''))
+            f.high = 1e6
+            f.low = 1e-6
+            # Big exponents
+            print(wrap.dedent(f'''
+            {t.em}Big numbers{t.n}   {t.t}Fixed point, scientific, and engineering formatting should work
+            for numbers of arbitrary magnitudes as long as an exception isn't encountered.
+            '''))
+            t.print(f"  {t.f}f(Decimal('1e999999')){t.n} = {t.sci}{f(D('1e999999'))}")
+            if 0:
+                # Note: this produces over 1e6 digits ending in '100', as you'd expect, but
+                # it's too big to print for a demo
+                f.maxlen = 1000004
+                t.print(f"  {t.f}f(Decimal('1e-999999')){t.n} = {t.sci}{f(D('1e-999999'))}")
+            try:
+                f(D("1e1000000"))
+            except decimal.Overflow:
+                t.print(f'  {t.f}f(Decimal("1e1000000")){t.n}', "results in overflow")
+            t.print(f'  {t.f}f(Decimal("1e-100000000")){t.n}', "underflow that gives 0")
+            if 1:
+                x = mpmath.mpf(100)
+                y = mpmath.fac(x)
+                z = y**y
+                print(wrap.dedent(f'''
+                mpmath lets you calculate y = x**x where x is 100!:
+                y = {f(z)} (the exponent is 1.47e160)
+                '''))
+            else:
+                print(wrap.dedent('''
+                If you install mpmath, you can handle/format large numbers.  For example,
+                if x = 100!, then x**x is a large number with an exponent of 1.47e160 and
+                fmt(x**x) will format the number properly.
+                '''))
+            # Decimals with lots of digits
+            n = 20
+            t.print(wrap.dedent(f'''
+            {t.em}Digits{t.n}  {t.t}You can ask for any number of digits, but the maximum given will be
+            a number consistent with the numerical type's precision.  A float is good to
+            about 15 digits.  Decimal and mpmath numbers depend on the current context's
+            precision.  The expression evaluated is y = 100000*sin(pi/4):
+            '''))
+            with decimal.localcontext() as ctx:
+                ctx.prec = n
+                x = 100000*decimalmath.sin(decimalmath.pi()/4)
+                t.print(
+                    f"  y = {t.fix}{fmt(x, n=n)}{t.n} (Decimal calculation to 20 digits)"
+                )
+                y = 100000*math.sin(math.pi/4)
+                ys, m = fmt(y, n=n), 16
+                bad = f"{t.fix}{ys[:m]}{t.err}{ys[m:]}{t.n}"
+                t.print(f"  y = {bad}      (float calculation to 15 digits)")
+                n = 4
+                t.print(f"  sci(y)    to {n} digits = {t.sci}{f(x, fmt='sci', n=n)}")
+                n = 5
+                t.print(f"  eng(y)    to {n} digits = {t.eng}{f(x, fmt='eng', n=n)}")
+                n = 6
+                t.print(f"  engsi(y)  to {n} digits = {t.si}{f(x, fmt='engsi', n=n)}")
+                n = 7
+                t.print(f"  engsic(y) to {n} digits = {t.si}{f(x, fmt='engsic', n=n)}")
+            t.print(wrap.dedent(f'''
+            {t.em}SI notation{t.n}    The {t.f}f.engsi{t.n} method supplies an SI prefix after the number to
+            indicate the number's magnitude.  You can then append a physical unit string
+            to get proper SI syntax:  {t.u}{f(x, fmt="engsi")}Ω{t.n}.  {t.f}f.engsic{t.n} does the same except the prefix
+            is cuddled: {t.u}{f(x, "engsic")}Ω{t.n} (illegal SI syntax, but sometimes useful).  For a number
+            of repeated outputs with the same unit, the Fmt.unit attribute can be set:
+            '''))
+            if 1:
+                f.unit, s = "Ω", " "*4
+                t.print(f"{s}{t.u}{f(807.7, 'engsi')}{t.n}")
+                t.print(f"{s}{t.u}{f(1.223, 'engsi')}{t.n}")
+                t.print(f"{s}{t.u}{f(61123., 'engsi')}{t.n}")
+                f.unit = ""
+            # Complex numbers
+            z = complex(3.45678, -6.78901)
+            fmt.imag_unit = "j"
+            t.print(wrap.dedent(f'''
+            {t.em}Complex numbers{t.n}    These are handled by formatting each floating point
+            component separately.  Let z = complex(3.45678, -6.78901):
+                str(z) = {t.f}{str(z)}{t.n}
+                fmt(z) = {t.f}{fmt(z)}{t.n}
+            Use the Fmt object's attributes to change the formatted form:
+            '''))
+            w, sp = 25, " "*4
+            fmt.imag_unit = "i"
+            s = 'fmt.imag_unit = "i"'
+            t.print(f"{sp}{s:{w}s} {t.f}{fmt(z)}{t.n}")
+            fmt.cuddled = True
+            s = "fmt.cuddled = True"
+            t.print(f"{sp}{s:{w}s} {t.f}{fmt(z)}{t.n}")
+            fmt.polar = True
+            fmt.deg = False
+            s = "fmt.polar = True"
+            t.print(f"{sp}{s:{w}s} {t.f}{fmt(z)}{t.n} (in radians)")
+            fmt.deg = True
+            s = "fmt.deg = True"
+            t.print(f"{sp}{s:{w}s} {t.f}{fmt(z)}{t.n} (in degrees)")
+            fmt.ul = True
+            s = "fmt.ul = True"
+            t.print(f"{sp}{s:{w}s} {t.f}{fmt(z)}{t.n}")
+            fmt.polar = False
+            fmt.comp = True
+            fmt.cuddled = True
+            s = "fmt.comp = True"
+            t.print(f"{sp}{s:{w}s} {t.f}{fmt(z)}{t.n}  (fmt.cuddled True)")
+            fmt.cuddled = False
+            t.print(f"{sp}{'':{w}s} {t.f}{fmt(z)}{t.n} (fmt.cuddled False)")
+        if 1:   # Context manager behavior
+            x = decimal.Decimal("3.141592653589793e5")
+            t.print(wrap.dedent(f'''
+            {t.em}Context manager{t.n}    A Mar 2026 refactor added context manager behavior to Fmt:
+                x = decimal.Decimal("3.141592653589793e5")
+                print(f"x = {{x}}") -> {t.u}x = 314159.2653589793{t.n}
+                print(f"{{fmt(x, fmt='sci')}}") -> {t.u}3.14e5{t.n}
+                with fmt as f:
+                    f.n = 6    # Show 6 significant figures
+                    print(f"{{fmt(x, fmt='sci')}}") -> {t.u}3.14159e5{t.n}
+                print(f"{{fmt(x, fmt='sci')}}") -> {t.u}3.14e5{t.n}
+            '''))
         t.print("The fmt.ul underlining won't work unless your terminal supports it.")
         if W < 79:
             print("[Need a screen width of at least 80 for acceptable Demo() output]")
@@ -2997,13 +3076,3 @@ if __name__ == "__main__":
             status, msg = run(globals(), regexp=r"Test_", halt=1)
             exit(status)
         Demo()
-
-def GetGist():
-    g = {}
-    g["gist"] = "Format floating point numbers"
-    g["copy"] = "Copyright © 2008, 2012, 2021 Don Peterson"
-    g["lic"] = "MIT License (see /plib/_lic.mit)"
-    g["test"] = "--test"
-    g["cat"] = ""
-    g["todo"] = ''' '''
-    return g
